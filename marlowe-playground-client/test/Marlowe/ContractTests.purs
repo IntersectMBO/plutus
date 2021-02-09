@@ -4,14 +4,14 @@ import Prelude
 import Control.Monad.State (runState)
 import Data.Array (snoc)
 import Data.BigInteger (fromInt)
-import Data.Lens (over, preview, set, (^.))
+import Data.Lens (over, preview, previewOn, set, (^.))
 import Data.Lens.NonEmptyList (_Head)
 import Data.Maybe (Maybe(..))
 import Data.Tuple (Tuple(..))
 import Examples.Marlowe.Contracts as Contracts
-import Marlowe.Semantics (ChoiceId(..), Contract(..), Input(..), Token(..), Party(..))
+import Marlowe.Semantics (ChoiceId(..), Contract(..), Input(..), Party(..), Token(..))
+import SimulationPage.Types (_SimulationRunning, _currentContract, _executionState, _marloweState, _pendingInputs, _transactionError, emptyExecutionStateWithSlot, mkState)
 import Simulator (applyTransactions, updateContractInState, updateMarloweState)
-import SimulationPage.Types (_SimulationRunning, _contract, _executionState, _marloweState, _pendingInputs, _transactionError, emptyExecutionStateWithSlot, mkState)
 import Test.Unit (TestSuite, suite, test)
 import Test.Unit.Assert (equal)
 
@@ -37,7 +37,7 @@ all =
 
         (Tuple _ finalState) =
           (flip runState mkState) do
-            updateMarloweState (set _executionState (emptyExecutionStateWithSlot zero))
+            updateMarloweState (set _executionState (emptyExecutionStateWithSlot zero Close))
             updateContractInState Contracts.escrow
             updateMarloweState (over (_executionState <<< _SimulationRunning <<< _pendingInputs) ((flip snoc) deposit))
             applyTransactions
@@ -45,7 +45,7 @@ all =
             updateMarloweState (over (_executionState <<< _SimulationRunning <<< _pendingInputs) ((flip snoc) choice2))
             applyTransactions
 
-        finalContract = finalState ^. _marloweState <<< _Head <<< _contract
+        finalContract = previewOn finalState _currentContract
 
         txError = do
           executionState <- preview (_marloweState <<< _Head <<< _executionState <<< _SimulationRunning) finalState

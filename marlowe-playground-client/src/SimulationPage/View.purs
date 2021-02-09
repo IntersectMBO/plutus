@@ -1,13 +1,12 @@
 module SimulationPage.View where
 
 import Prelude hiding (div)
-import BottomPanel.Types (_showBottomPanel)
-import BottomPanel.Types as BottomPanel
+import BottomPanel.Types as BottomPanelTypes
 import BottomPanel.View as BottomPanel
 import Data.Array (concatMap, intercalate, reverse, sortWith)
 import Data.Array as Array
 import Data.BigInteger (BigInteger, fromString, fromInt)
-import Data.Lens (has, only, to, view, (^.))
+import Data.Lens (has, only, previewOn, to, view, (^.))
 import Data.Lens.Iso.Newtype (_Newtype)
 import Data.Lens.NonEmptyList (_Head)
 import Data.Map (Map)
@@ -19,11 +18,10 @@ import Effect.Aff.Class (class MonadAff)
 import Effect.Class (liftEffect)
 import Halogen (RefLabel(..))
 import Halogen.Classes (aHorizontal, bold, btn, codeEditor, expanded, flex, fullHeight, group, justifyBetween, justifyCenter, noMargins, plusBtn, scroll, sidebarComposer, smallBtn, smallSpaceBottom, spaceBottom, spaceRight, spanText, textSecondaryColor, textXs, uppercase)
-import Halogen.Classes as Classes
 import Halogen.Extra (renderSubmodule)
 import Halogen.HTML (ClassName(..), ComponentHTML, HTML, aside, b_, br_, button, div, div_, em_, h6, h6_, input, li, p, p_, section, slot, span, span_, strong_, text, ul)
 import Halogen.HTML.Events (onClick, onValueChange)
-import Halogen.HTML.Properties (InputType(..), class_, classes, disabled, enabled, placeholder, type_, value)
+import Halogen.HTML.Properties (InputType(..), class_, classes, disabled, placeholder, type_, value)
 import Halogen.Monaco (Settings, monacoComponent)
 import MainFrame.Types (ChildSlots, _simulatorEditorSlot)
 import Marlowe.Monaco (daylightTheme, languageExtensionPoint)
@@ -33,7 +31,7 @@ import Monaco (Editor)
 import Monaco as Monaco
 import Pretty (renderPrettyParty, renderPrettyToken, showPrettyMoney)
 import SimulationPage.BottomPanel (panelContents)
-import SimulationPage.Types (Action(..), ActionInput(..), ActionInputId, BottomPanelView(..), ExecutionState(..), MarloweEvent(..), State, _SimulationRunning, _bottomPanelState, _contract, _currentMarloweState, _executionState, _log, _marloweState, _possibleActions, _showRightPanel, _slot, _transactionError, _transactionWarnings, otherActionsParty)
+import SimulationPage.Types (Action(..), ActionInput(..), ActionInputId, BottomPanelView(..), ExecutionState(..), MarloweEvent(..), State, _SimulationRunning, _bottomPanelState, _currentContract, _currentMarloweState, _executionState, _log, _marloweState, _possibleActions, _showRightPanel, _slot, _transactionError, _transactionWarnings, otherActionsParty)
 import Simulator (hasHistory, inFuture)
 
 render ::
@@ -64,7 +62,7 @@ render state =
 
   showRightPanel = state ^. _showRightPanel
 
-  wrapBottomPanelContents panelView = BottomPanel.PanelAction <$> panelContents state panelView
+  wrapBottomPanelContents panelView = BottomPanelTypes.PanelAction <$> panelContents state panelView
 
 otherActions :: forall p. State -> HTML p Action
 otherActions state =
@@ -248,7 +246,7 @@ simulationStateWidget state =
   let
     currentSlot = state ^. (_currentMarloweState <<< _executionState <<< _SimulationRunning <<< _slot <<< to show)
 
-    expirationSlot = state ^. (_marloweState <<< _Head <<< _contract <<< to contractMaxTime)
+    expirationSlot = contractMaxTime (previewOn state _currentContract)
 
     contractMaxTime = case _ of
       Nothing -> "Closed"
