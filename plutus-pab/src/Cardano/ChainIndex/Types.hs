@@ -14,6 +14,7 @@ import           GHC.Generics               (Generic)
 import           Servant.Client             (BaseUrl)
 
 import           Cardano.Node.Types         (FollowerID)
+import           Ledger.Address             (Address)
 import           Wallet.Emulator.ChainIndex (ChainIndexEvent, ChainIndexState)
 
 data AppState =
@@ -26,9 +27,10 @@ data AppState =
 initialAppState :: AppState
 initialAppState = AppState mempty mempty Nothing
 
-newtype ChainIndexConfig =
+data ChainIndexConfig =
     ChainIndexConfig
-        { ciBaseUrl :: BaseUrl
+        { ciBaseUrl          :: BaseUrl
+        , ciWatchedAddresses :: [Address]
         }
     deriving stock (Show, Eq, Generic)
     deriving anyclass (FromJSON, ToJSON)
