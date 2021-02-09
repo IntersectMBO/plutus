@@ -26,6 +26,7 @@ import Data.Traversable (traverse, traverse_)
 import Data.Tuple (Tuple(..))
 import Debug.Trace (spy)
 import Effect (Effect)
+import Foreign.Generic (encode)
 import Halogen.HTML (HTML)
 import Halogen.HTML.Properties (id_)
 import Marlowe.Holes (Action(..), Bound(..), Case(..), ChoiceId(..), Contract(..), Location(..), Observation(..), Party(..), Payee(..), Term(..), TermWrapper(..), Timeout(..), Token(..), Value(..), ValueId(..), mkDefaultTerm, mkDefaultTermWrapper)
@@ -1005,10 +1006,10 @@ toDefinition blockType@(ValueType UseValueValueType) =
 --
 -- Code generation
 --
-blockToTerm :: Blockly -> Workspace -> Effect (Either String (Term Contract))
-blockToTerm blockly workspace =
+blockToTerm :: Blockly -> Workspace -> String -> Effect (Either String (Term Contract))
+blockToTerm blockly workspace rootBlockName =
   runExceptT do
-    dom <- ExceptT $ (spy "getDom result") <$> lmap explainError <$> getDom blockly workspace
+    dom <- ExceptT $ rmap (spy "getDom result" <<< encode) <$> lmap explainError <$> getDom blockly workspace rootBlockName
     ExceptT $ pure $ Either.Left "DOM interpretation not implemented"
 
 -- FIXME: Remove

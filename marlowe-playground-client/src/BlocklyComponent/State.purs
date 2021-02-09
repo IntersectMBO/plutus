@@ -103,7 +103,7 @@ handleQuery (GetCode next) = do
           block <- ExceptT <<< map (note $ unexpected ("Can't find root block" <> rootBlockName)) $ getBlockById workspace rootBlockName
           -- FIXME: This blockToTerm is different for Marlowe than for Actus... Need to check if
           --        I need to make the component polymorphic or what.
-          void $ lift $ (spy "blockToTerm") <$> blockToTerm blockly workspace
+          void $ lift $ (spy "blockToTerm") <$> blockToTerm blockly workspace rootBlockName
           ExceptT $ rmap (spy "blockToCode") <$> lmap unexpected <$> blockToCode block generator
   case eCode of
     Left e -> do

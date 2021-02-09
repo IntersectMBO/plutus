@@ -50,15 +50,22 @@ import Blockly.Types (Blockly, Workspace)
 import Control.Monad.Error.Extra (toMonadThrow)
 import Control.Monad.Except (runExceptT, throwError)
 import Control.Monad.Except.Trans (class MonadThrow)
-import Data.Array (length)
+import Data.Array (find, length)
 import Data.Array.Partial as UnsafeArray
 import Data.Either (Either(..), note')
 import Data.Foldable (fold)
-import Data.Maybe (Maybe, maybe')
+import Data.Generic.Rep (class Generic)
+import Data.Lens (Lens', view)
+import Data.Lens.Iso.Newtype (_Newtype)
+import Data.Lens.Record (prop)
+import Data.Maybe (Maybe(..), maybe')
+import Data.Newtype (class Newtype)
+import Data.Symbol (SProxy(..))
 import Data.Traversable (traverse)
 import Debug.Trace (spy)
 import Effect (Effect)
 import Effect.Class (class MonadEffect, liftEffect)
+import Foreign.Generic (class Encode, defaultOptions, genericEncode)
 import Partial.Unsafe (unsafePartial)
 import Web.DOM (Element, Node)
 import Web.DOM.Element as Element
@@ -75,6 +82,18 @@ newtype Block
   , type :: String
   , children :: Array BlockChildren
   }
+
+-- FIXME: Show only for dev, remove
+derive instance genericBlock :: Generic Block _
+
+instance encodeBlock :: Encode Block where
+  encode value = genericEncode defaultOptions value
+
+-- END FIXME
+derive instance newtypeBlock :: Newtype Block _
+
+_id :: Lens' Block String
+_id = _Newtype <<< prop (SProxy :: SProxy "id")
 
 data BlockChildren
   -- A BcField has a `name` and and a `value`, both strings.
@@ -95,10 +114,18 @@ data BlockChildren
   --       the reading of the blocks, rather than later the parsing of the interpretation.
   | BcNext Block
 
+-- FIXME: Show only for dev, remove
+derive instance genericBlockChildren :: Generic BlockChildren _
+
+instance encodeBlockChildren :: Encode BlockChildren where
+  encode value = genericEncode defaultOptions value
+
+-- ENDFIXME
 data ReadDomError
   = TypeMismatch Element String
   | MissingProperty Element String
   | SingleChildExpected Element Int
+  | RootElementNotFound String
 
 -- TODO: Change signature to Effect String and traverse the parents of the element to provide error location information.
 explainError :: ReadDomError -> String
@@ -108,15 +135,20 @@ explainError (MissingProperty element missingProperty) = "Element is missing req
 
 explainError (SingleChildExpected element elementCount) = "Element was expected to have a single child, and it had " <> show elementCount
 
-getDom :: Blockly -> Workspace -> Effect (Either ReadDomError Block)
-getDom blockly workspace = do
+explainError (RootElementNotFound rootBlockName) = "The element with id " <> show rootBlockName <> " was not found."
+
+getDom :: Blockly -> Workspace -> String -> Effect (Either ReadDomError Block)
+getDom blockly workspace rootBlockName = do
   rootElement <- spy "xml?" <$> workspaceToDom blockly workspace
   if Element.tagName rootElement /= "xml" then
     pure $ Left $ TypeMismatch rootElement "xml"
   else
     runExceptT do
-      child <- getSingleChild rootElement
-      readAsBlock child
+      childrens <- getChildrens rootElement
+      blocks <- traverse readAsBlock childrens
+      case find (eq rootBlockName <<< view _id) blocks of
+        Nothing -> throwError $ RootElementNotFound rootBlockName
+        Just block -> pure block
   where
   readAsBlock :: forall m. MonadEffect m => MonadThrow ReadDomError m => Element -> m Block
   readAsBlock element =
@@ -125,7 +157,7 @@ getDom blockly workspace = do
     else do
       blockId <- liftEffect $ Element.id element
       blockType <- getAttribute "type" element
-      elementChildren <- getChildElements element
+      elementChildren <- getChildrens element
       children <- traverse readAsBlockChild elementChildren
       pure
         $ Block
@@ -159,14 +191,14 @@ getDom blockly workspace = do
 
   getSingleChild :: forall m. MonadEffect m => MonadThrow ReadDomError m => Element -> m Element
   getSingleChild element = do
-    children <- getChildElements element
+    children <- getChildrens element
     if length children /= 1 then
       throwError $ SingleChildExpected element $ length children
     else do
       pure $ unsafePartial $ UnsafeArray.head children
 
-  getChildElements :: forall m. MonadEffect m => Element -> m (Array Element)
-  getChildElements element =
+  getChildrens :: forall m. MonadEffect m => Element -> m (Array Element)
+  getChildrens element =
     liftEffect do
       elements <- (ParentNode.children <<< Element.toParentNode) element
       HTMLCollection.toArray elements
