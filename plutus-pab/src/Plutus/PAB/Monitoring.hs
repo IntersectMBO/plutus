@@ -12,7 +12,7 @@ module Plutus.PAB.Monitoring(
   handleLogMsgTrace
   , handleLogMsgTraceMap
   , handleObserveTrace
-  , handleLogEffects
+  , runLogEffects
   -- * Conveniences for configuration
   , defaultConfig
   , loadConfig
@@ -107,13 +107,13 @@ toSeverity = \case
   L.Alert     -> Alert
   L.Emergency -> Emergency
 
-handleLogEffects ::
+runLogEffects ::
     forall m l.
     MonadIO m
     => Trace m l
     -> Eff '[LogMsg l, m]
     ~> m
-handleLogEffects trace = runM . handleLogMsgTrace trace
+runLogEffects trace = runM . handleLogMsgTrace trace
 
 -- | Handle the 'LogObserve' effect using the 'Cardano.BM.Observer.Monadic'
 --   observer functions

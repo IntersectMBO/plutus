@@ -45,7 +45,7 @@ import qualified Cardano.Node.Follower           as NodeFollower
 import           Control.Concurrent.Availability (Availability, available)
 import           Ledger.Address                  (Address)
 import           Ledger.AddressMap               (AddressMap)
-import           Plutus.PAB.Monitoring           (handleLogEffects)
+import           Plutus.PAB.Monitoring           (runLogEffects)
 import           Wallet.Effects                  (ChainIndexEffect)
 import qualified Wallet.Effects                  as WalletEffects
 import           Wallet.Emulator.ChainIndex      (ChainIndexControlEffect, ChainIndexEvent, ChainIndexState)
@@ -65,12 +65,12 @@ app stateVar =
         (healthcheck :<|> startWatching :<|> watchedAddresses :<|> confirmedBlocks :<|> WalletEffects.transactionConfirmed :<|> WalletEffects.nextTx)
 
 main :: Trace IO ChainIndexServerMsg -> ChainIndexConfig -> BaseUrl -> Availability -> IO ()
-main trace ChainIndexConfig{ciBaseUrl} nodeBaseUrl availability = handleLogEffects trace $ do
+main trace ChainIndexConfig{ciBaseUrl} nodeBaseUrl availability = runLogEffects trace $ do
     nodeClientEnv <- liftIO getNode
     mVarState <- liftIO $ newMVar initialAppState
 
     logInfo StartingNodeClientThread
-    void $ liftIO $ forkIO $ handleLogEffects trace $ updateThread 10 mVarState nodeClientEnv
+    void $ liftIO $ forkIO $ runLogEffects trace $ updateThread 10 mVarState nodeClientEnv
 
     logInfo $ StartingChainIndex servicePort
     liftIO $ Warp.runSettings warpSettings $ app mVarState

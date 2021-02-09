@@ -35,7 +35,7 @@ import           Servant.Client                  (BaseUrl (baseUrlPort))
 import           Cardano.BM.Data.Trace           (Trace)
 import           Cardano.SigningProcess.API      (API)
 import           Cardano.SigningProcess.Types    (SigningProcessMsg (..))
-import           Plutus.PAB.Monitoring           (handleLogEffects)
+import           Plutus.PAB.Monitoring           (runLogEffects)
 import qualified Wallet.API                      as WAPI
 import           Wallet.Effects                  (SigningProcessEffect)
 import qualified Wallet.Effects                  as WE
@@ -65,7 +65,7 @@ app stateVar =
         (uncurry WE.addSignatures)
 
 main :: Trace IO SigningProcessMsg -> SigningProcessConfig -> Availability -> IO ()
-main trace SigningProcessConfig{spWallet, spBaseUrl} availability = handleLogEffects trace $ do
+main trace SigningProcessConfig{spWallet, spBaseUrl} availability = runLogEffects trace $ do
     stateVar <- liftIO $ newMVar (defaultSigningProcess spWallet)
     logInfo $ StartingSigningProcess servicePort
     liftIO $ Warp.runSettings warpSettings $ app stateVar
