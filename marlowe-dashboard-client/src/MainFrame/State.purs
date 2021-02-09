@@ -4,10 +4,13 @@ import Prelude
 import Contact.Lenses (_contacts)
 import Contact.State (handleAction, initialState) as Contact
 import Contact.Types (Action(..)) as Contact
+import Contract.State (handleAction, initialState) as Contract
+import Contract.Types (Action(..)) as Contract
+import Contract.Types (_executionState)
 import Control.Monad.Except (runExcept)
 import Data.Either (Either(..))
 import Data.Foldable (for_)
-import Data.Lens (assign, modifying, set, use)
+import Data.Lens (assign, set, use)
 import Data.Maybe (Maybe(..))
 import Effect.Aff.Class (class MonadAff)
 import Foreign.Generic (decode)
@@ -16,11 +19,14 @@ import Halogen (Component, HalogenM, liftEffect, mkComponent, mkEval, modify_, r
 import Halogen.Extra (mapSubmodule)
 import Halogen.HTML (HTML)
 import LocalStorage (getItem)
-import MainFrame.Lenses (_card, _contactState, _on, _overlay, _screen)
+import MainFrame.Lenses (_card, _contactState, _contractState, _on, _overlay, _screen)
 import MainFrame.Types (Action(..), Card(..), ChildSlots, Msg(..), Query(..), Screen(..), State)
 import MainFrame.View (render)
+import Marlowe.Execution (_contract)
+import Marlowe.Semantics (Contract(..))
 import StaticData (contactsLocalStorageKey)
-import WebSocket (StreamToServer(..))
+import WebSocket (StreamToClient(..), StreamToServer(..))
+import WebSocket.Support as WS
 
 mkMainFrame :: forall m. MonadAff m => Component HTML Query Action Msg m
 mkMainFrame =
@@ -43,6 +49,7 @@ initialState =
   , screen: Home
   , card: Nothing
   , contactState: Contact.initialState
+  , contractState: Contract.initialState mempty zero Close
   , notifications: []
   , templates: []
   , contracts: []
@@ -51,8 +58,10 @@ initialState =
 
 handleQuery :: forall a m. Query a -> HalogenM State Action ChildSlots Msg m (Maybe a)
 handleQuery (ReceiveWebSocketMessage msg next) = do
-  current <- use _on
-  modifying _on not
+  case msg of
+    (WS.ReceiveMessage (Right (ClientMsg on))) -> assign _on on
+    -- TODO: other matches such as update current slot or apply transaction
+    _ -> pure unit
   pure $ Just next
 
 handleAction :: forall m. MonadAff m => Action -> HalogenM State Action ChildSlots Msg m Unit
@@ -102,6 +111,18 @@ handleAction (ContactAction contactAction) = do
     Contact.ToggleEditContactCard contactKey -> handleAction $ ToggleCard $ EditContact contactKey
     _ -> pure unit
 
+handleAction (ContractAction contractAction) = do
+  contractState <- use _contractState
+  case contractAction of
+    Contract.ClosePanel -> pure unit
+    action -> mapSubmodule _contractState ContractAction $ Contract.handleAction action
+
 handleAction ClickedButton = do
   current <- use _on
   raise (SendWebSocketMessage (ServerMsg current))
+
+handleAction (StartContract contract) = do
+  assign (_contractState <<< _executionState <<< _contract) contract
+
+-- show contract flow
+-- handleAction (PickupWallet pubhash) = assign (_contractState <<< _pk) pubhash

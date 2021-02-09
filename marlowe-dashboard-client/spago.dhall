@@ -18,6 +18,7 @@ You can edit this file as you like.
   , "servant-support"
   , "test-unit"
   , "undefinable"
+  , "unfoldable"
   , "uuid"
   , "web-socket"
   ]
