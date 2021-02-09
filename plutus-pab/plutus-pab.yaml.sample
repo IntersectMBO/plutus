@@ -26,6 +26,7 @@ nodeServerConfig:
 
 chainIndexConfig:
   ciBaseUrl: http://localhost:8083
+  ciWatchedAddresses: []
 
 requestProcessingConfig:
   requestProcessingInterval: 1
