@@ -51,7 +51,7 @@ data ContractActivationArgs t =
 --   * "Builtin" contracts that run in the same process as the PAB (ie. the PAB is compiled & distributed with these contracts)
 type NewAPI t
     = "contract" :>
-        ("activate" :> ReqBody '[ JSON] (ContractID t) :> Post '[JSON] (ContractInstanceState t) -- start a new instance
+        ("activate" :> ReqBody '[ JSON] (ContractActivationArgs t) :> Post '[JSON] (ContractInstanceState t) -- start a new instance
             :<|> "instance" :>
                     (Capture "instance-id" (InstanceID t) :> WebSocketPending -- status updates & endpoints for specific instance
                         :<|> Get '[ JSON] [ContractInstanceState t] -- list of all instances
