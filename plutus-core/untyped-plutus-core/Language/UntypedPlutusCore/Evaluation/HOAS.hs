@@ -98,6 +98,7 @@ instance AsEvaluationFailure UserHoasError where
 type Value unique name uni fun ann =
     HTerm (EvalM unique name uni fun ann) name uni (BuiltinApp unique name uni fun ann) ann
 
+-- See Note [Builtin application evaluation].
 -- | A builtin application consists of a (possibly partially applied) built-in function and
 -- a delayed computation returning the 'Term' representation of that builtin, which we need
 -- in case the built-in function never gets fully saturated, which requires us to put the
@@ -173,6 +174,7 @@ lookupBuiltin ann fun (BuiltinsRuntime meanings) =
     case meanings ^? ix fun of
         Nothing      -> throwingWithCause _InternalHoasError (UnknownBuiltinHoasError fun) Nothing
         Just meaning -> pure . HBuiltin ann $ BuiltinApp (pure $ Builtin ann fun) meaning
+
 {- Note [Handling non-constant results]
 Evaluation may return a non-constant term. This has a couple of implications:
 
