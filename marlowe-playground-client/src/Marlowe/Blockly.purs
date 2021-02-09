@@ -1,10 +1,12 @@
 module Marlowe.Blockly where
 
 import Prelude
+import Blockly.Dom (explainError, getDom)
 import Blockly.Generator (Connection, Generator, Input, NewBlockFunction, clearWorkspace, connect, connectToOutput, connectToPrevious, fieldName, fieldRow, getBlockInputConnectedTo, getFieldValue, getInputWithName, getType, inputList, inputName, inputType, insertGeneratorFunction, mkGenerator, nextBlock, nextConnection, previousConnection, setFieldText, statementToCode)
-import Blockly.Internal (AlignDirection(..), Arg(..), BlockDefinition(..), block, blockType, category, colour, defaultBlockDefinition, getBlockById, initializeWorkspace, name, render, style, x, xml, y)
+import Blockly.Internal (AlignDirection(..), Arg(..), BlockDefinition(..), block, blockType, category, colour, defaultBlockDefinition, getBlockById, initializeWorkspace, name, render, style, workspaceToDom, x, xml, y)
 import Blockly.Types (Block, Blockly, BlocklyState, Workspace)
 import Control.Alternative ((<|>))
+import Control.Monad.Except (ExceptT(..), runExceptT)
 import Data.Array (filter, head, uncons, (:))
 import Data.Array as Array
 import Data.Bifunctor (lmap, rmap)
@@ -22,6 +24,7 @@ import Data.Generic.Rep.Show (genericShow)
 import Data.Maybe (Maybe(..))
 import Data.Traversable (traverse, traverse_)
 import Data.Tuple (Tuple(..))
+import Debug.Trace (spy)
 import Effect (Effect)
 import Halogen.HTML (HTML)
 import Halogen.HTML.Properties (id_)
@@ -999,6 +1002,19 @@ toDefinition blockType@(ValueType UseValueValueType) =
         }
         defaultBlockDefinition
 
+--
+-- Code generation
+--
+blockToTerm :: Blockly -> Workspace -> Effect (Either String (Term Contract))
+blockToTerm blockly workspace =
+  runExceptT do
+    dom <- ExceptT $ (spy "getDom result") <$> lmap explainError <$> getDom blockly workspace
+    ExceptT $ pure $ Either.Left "DOM interpretation not implemented"
+
+-- FIXME: Remove
+-- Code generation using Generator
+--
+--
 parse :: forall a. Parser a -> String -> Either String a
 parse p = lmap show <<< runParser' (parens p <|> p)
 

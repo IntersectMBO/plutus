@@ -6,20 +6,23 @@ import Blockly.Internal (BlockDefinition, ElementId(..), getBlockById)
 import Blockly.Internal as Blockly
 import BlocklyComponent.Types (Action(..), Message(..), Query(..), State, _blocklyEventSubscription, _blocklyState, _errorMessage, _generator, emptyState)
 import BlocklyComponent.View (render)
-import Control.Monad.Except (ExceptT(..), except, runExceptT)
-import Data.Bifunctor (lmap)
+import Control.Monad.Except (ExceptT(..), except, lift, runExceptT)
+import Data.Bifunctor (lmap, rmap)
 import Data.Either (Either(..), either, note)
 import Data.Lens (assign, set, use)
 import Data.Maybe (Maybe(..))
 import Data.Traversable (for, for_)
 import Data.Tuple (Tuple(..))
 import Data.Tuple.Nested ((/\))
+import Debug.Trace (spy)
 import Effect.Aff.Class (class MonadAff)
 import Halogen (Component, HalogenM, liftEffect, mkComponent, modify_)
 import Halogen as H
 import Halogen.BlocklyCommons (blocklyEvents, runWithoutEventSubscription, detectCodeChanges)
 import Halogen.HTML (HTML)
-import Marlowe.Blockly (buildBlocks, buildGenerator)
+-- FIXME: The BlocklyComponent should probably be independent from Marlowe.x, as Actus is also a
+--        posibility.
+import Marlowe.Blockly (blockToTerm, buildBlocks, buildGenerator)
 import Marlowe.Holes (Term(..), Location(..))
 import Marlowe.Parser as Parser
 import Prim.TypeError (class Warn, Text)
@@ -95,10 +98,13 @@ handleQuery (GetCode next) = do
   eCode <-
     liftEffect
       $ runExceptT do
-          { workspace, rootBlockName } <- except <<< (note $ unexpected "BlocklyState not set") $ mBlocklyState
+          { blockly, workspace, rootBlockName } <- except <<< (note $ unexpected "BlocklyState not set") $ mBlocklyState
           generator <- except <<< (note $ unexpected "Generator not set") $ mGenerator
           block <- ExceptT <<< map (note $ unexpected ("Can't find root block" <> rootBlockName)) $ getBlockById workspace rootBlockName
-          ExceptT $ lmap unexpected <$> blockToCode block generator
+          -- FIXME: This blockToTerm is different for Marlowe than for Actus... Need to check if
+          --        I need to make the component polymorphic or what.
+          void $ lift $ (spy "blockToTerm") <$> blockToTerm blockly workspace
+          ExceptT $ rmap (spy "blockToCode") <$> lmap unexpected <$> blockToCode block generator
   case eCode of
     Left e -> do
       assign _errorMessage $ Just e

@@ -13,6 +13,7 @@ import Halogen (SubscriptionId)
 
 type State
   = { blocklyState :: Maybe BT.BlocklyState
+    -- FIXME: remove
     , generator :: Maybe Generator
     , errorMessage :: Maybe String
     , blocklyEventSubscription :: Maybe SubscriptionId
@@ -22,6 +23,7 @@ type State
 _blocklyState :: Lens' State (Maybe BT.BlocklyState)
 _blocklyState = prop (SProxy :: SProxy "blocklyState")
 
+-- FIXME: remove
 _generator :: Lens' State (Maybe Generator)
 _generator = prop (SProxy :: SProxy "generator")
 
