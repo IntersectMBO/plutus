@@ -15,8 +15,19 @@ exports.parse_ = function (emptyInputError, parserError, success, fs, input) {
         if (error.token) {
             return parserError({ message: error.message, row: error.token.line, column: error.token.col, token: error.token.value });
         } else {
-            console.log(error.message.match(/[0-9]+/));
-            return parserError({ message: error.message, row: 1, column: 0, token: "" });
+            const message =  getErrorMessage(error);
+            console.log(message);
+            return parserError({ message, row: 1, column: 0, token: "" });
         }
     }
+}
+
+function getErrorMessage(error) {
+  if (typeof error === 'string') {
+    return error;
+  }
+  if (typeof error === 'object' && error !== null && 'message' in error) {
+    return error.message;
+  }
+  return 'Unexpected error: ' + error;
 }
