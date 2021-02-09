@@ -3,8 +3,8 @@
 {-# LANGUAGE FlexibleContexts      #-}
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE NamedFieldPuns        #-}
 {-# LANGUAGE OverloadedStrings     #-}
+{-# LANGUAGE RecordWildCards       #-}
 {-# LANGUAGE TypeApplications      #-}
 
 module Cardano.Wallet.Server
@@ -12,21 +12,21 @@ module Cardano.Wallet.Server
     , Config(..)
     ) where
 
+import           Cardano.BM.Data.Trace           (Trace)
 import qualified Cardano.ChainIndex.Client       as ChainIndexClient
 import qualified Cardano.Node.Client             as NodeClient
 import           Cardano.Wallet.API              (API)
 import           Cardano.Wallet.Mock
-import           Cardano.Wallet.Types            (Config (..))
+import           Cardano.Wallet.Types            (ChainIndexUrl, Config (..), NodeUrl, WalletMsg (..))
 import           Control.Concurrent.Availability (Availability, available)
 import           Control.Concurrent.MVar         (MVar, newMVar, putMVar, takeMVar)
 import           Control.Monad                   ((>=>))
 import qualified Control.Monad.Except            as MonadError
 import           Control.Monad.Freer             (Eff, runM)
 import           Control.Monad.Freer.Error       (Error, handleError, runError, throwError)
-import           Control.Monad.Freer.Extra.Log   (LogMsg, runStderrLog)
+import           Control.Monad.Freer.Extra.Log   (LogMsg, logInfo, runStderrLog)
 import           Control.Monad.Freer.State       (State, runState)
 import           Control.Monad.IO.Class          (MonadIO, liftIO)
-import           Control.Monad.Logger            (logInfoN, runStdoutLoggingT)
 import qualified Data.ByteString.Lazy.Char8      as Char8
 import           Data.Function                   ((&))
 import           Data.Proxy                      (Proxy (Proxy))
@@ -34,11 +34,11 @@ import           Data.Text                       (Text)
 import           Network.HTTP.Client             (defaultManagerSettings, newManager)
 import qualified Network.Wai.Handler.Warp        as Warp
 import           Plutus.PAB.Arbitrary            ()
-import           Plutus.PAB.Utils                (tshow)
 import           Servant                         (Application, Handler (Handler), NoContent (..), ServerError (..),
                                                   err400, err500, hoistServer, serve, (:<|>) ((:<|>)))
 import           Servant.Client                  (BaseUrl (baseUrlPort), ClientEnv, ClientError, mkClientEnv)
 
+import           Plutus.PAB.Monitoring           (runLogEffects)
 import           Wallet.Effects                  (ChainIndexEffect, NodeClientEffect, WalletEffect, ownOutputs,
                                                   ownPubKey, startWatching, submitTxn, updatePaymentWithChange,
                                                   walletSlot)
@@ -98,25 +98,24 @@ app nodeClientEnv chainIndexEnv mVarState =
     (submitTxn >=> const (pure NoContent)) :<|> ownPubKey :<|> uncurry updatePaymentWithChange :<|>
     walletSlot :<|> ownOutputs
 
-main :: MonadIO m => Config -> BaseUrl -> BaseUrl -> Availability -> m ()
-main Config {baseUrl, wallet} nodeBaseUrl chainIndexBaseUrl availability = runStdoutLoggingT $ do
-    let port = baseUrlPort baseUrl
-        state = emptyWalletState wallet
-    nodeClientEnv <-
-        liftIO $ do
-            nodeManager <- newManager defaultManagerSettings
-            pure $ mkClientEnv nodeManager nodeBaseUrl
-    chainIndexEnv <-
-        liftIO $ do
-            chainIndexManager <- newManager defaultManagerSettings
-            pure $ mkClientEnv chainIndexManager chainIndexBaseUrl
+main :: Trace IO WalletMsg -> Config -> NodeUrl -> ChainIndexUrl -> Availability -> IO ()
+main trace Config {..} nodeBaseUrl chainIndexBaseUrl availability = runLogEffects trace $ do
+    nodeClientEnv <- buildEnv nodeBaseUrl defaultManagerSettings
+    chainIndexEnv <- buildEnv chainIndexBaseUrl defaultManagerSettings
     mVarState <- liftIO $ newMVar state
-    _ <- liftIO
-            $ runM
-            $ flip handleError (error . show @ClientError)
-            $ ChainIndexClient.handleChainIndexClient chainIndexEnv
-            $ startWatching (Wallet.ownAddress state)
-    let warpSettings :: Warp.Settings
-        warpSettings = Warp.defaultSettings & Warp.setPort port & Warp.setBeforeMainLoop (available availability)
-    logInfoN $ "Starting wallet server on port: " <> tshow port
+    runClient chainIndexEnv
+    logInfo $ StartingWallet servicePort
     liftIO $ Warp.runSettings warpSettings $ app nodeClientEnv chainIndexEnv mVarState
+    where
+        servicePort = baseUrlPort baseUrl
+        state = emptyWalletState wallet
+        warpSettings = Warp.defaultSettings & Warp.setPort servicePort & Warp.setBeforeMainLoop (available availability)
+
+        buildEnv url settings = liftIO
+            $ newManager settings >>= \mgr -> pure $ mkClientEnv mgr url
+
+        runClient env = liftIO
+             $ runM
+             $ flip handleError (error . show @ClientError)
+             $ ChainIndexClient.handleChainIndexClient env
+             $ startWatching (Wallet.ownAddress state)

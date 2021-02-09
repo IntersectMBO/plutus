@@ -8,6 +8,7 @@
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE NamedFieldPuns        #-}
 {-# LANGUAGE OverloadedStrings     #-}
+{-# LANGUAGE RecordWildCards       #-}
 {-# LANGUAGE ScopedTypeVariables   #-}
 {-# LANGUAGE TypeApplications      #-}
 {-# LANGUAGE TypeOperators         #-}
@@ -70,9 +71,8 @@ import qualified Plutus.PAB.Core                                 as Core
 import qualified Plutus.PAB.Core.ContractInstance                as Instance
 import           Plutus.PAB.Events.Contract                      (ContractInstanceId (..))
 import           Plutus.PAB.PABLogMsg                            (AppMsg (..), ChainIndexServerMsg,
-                                                                  ContractExeLogMsg (..),
-                                                                  PABLogMsg (SChainIndexServerMsg, SSigningProcessMsg),
-                                                                  SigningProcessMsg)
+                                                                  ContractExeLogMsg (..), PABLogMsg (..),
+                                                                  SigningProcessMsg, WalletMsg)
 import           Plutus.PAB.Types                                (Config (Config), ContractExe (..), PABError,
                                                                   RequestProcessingConfig (..), chainIndexConfig,
                                                                   metadataServerConfig, nodeServerConfig,
@@ -436,12 +436,12 @@ runCliCommand ::
 runCliCommand _ _ _ _ Migrate = raise App.migrate
 
 -- Run mock wallet service
-runCliCommand _ _ Config {walletServerConfig, nodeServerConfig, chainIndexConfig} serviceAvailability MockWallet =
-    WalletServer.main
-        walletServerConfig
-        (NodeServer.mscBaseUrl nodeServerConfig)
-        (ChainIndex.ciBaseUrl chainIndexConfig)
-        serviceAvailability
+runCliCommand trace _ Config {..} serviceAvailability MockWallet =
+    liftIO $ WalletServer.main t walletServerConfig nodeUrl chainIndexUrl serviceAvailability
+            where
+                t = toWalletLog trace
+                nodeUrl = NodeServer.mscBaseUrl nodeServerConfig
+                chainIndexUrl = ChainIndex.ciBaseUrl chainIndexConfig
 
 -- Run mock node server
 runCliCommand _ _ Config {nodeServerConfig} serviceAvailability MockNode = NodeServer.main nodeServerConfig serviceAvailability
@@ -580,6 +580,9 @@ toChainIndexLog = convertLog $ PABMsg . SChainIndexServerMsg
 
 toSigningProcessLog :: Trace m AppMsg -> Trace m SigningProcessMsg
 toSigningProcessLog = convertLog $ PABMsg . SSigningProcessMsg
+
+toWalletLog :: Trace m AppMsg -> Trace m WalletMsg
+toWalletLog = convertLog $ PABMsg . SWalletMsg
 
 pabComponentName :: Text.Text
 pabComponentName = "pab"

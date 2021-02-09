@@ -12,6 +12,7 @@ module Plutus.PAB.PABLogMsg(
     ContractExeLogMsg(..),
     ChainIndexServerMsg,
     SigningProcessMsg,
+    WalletMsg,
     AppMsg(..)
     ) where
 
@@ -28,6 +29,7 @@ import           Cardano.BM.Data.Tracer             (ToObject (..), TracingVerbo
 import           Cardano.BM.Data.Tracer.Extras      (Tagged (..), mkObjectStr)
 import           Cardano.ChainIndex.Types           (ChainIndexServerMsg)
 import           Cardano.SigningProcess.Types       (SigningProcessMsg)
+import           Cardano.Wallet.Types               (WalletMsg)
 import           Language.Plutus.Contract.State     (ContractRequest)
 import           Ledger.Tx                          (Tx)
 import           Plutus.PAB.Core                    (CoreMsg (..))
@@ -82,6 +84,7 @@ data PABLogMsg =
     | SContractRuntimeMsg ContractRuntimeMsg
     | SChainIndexServerMsg ChainIndexServerMsg
     | SSigningProcessMsg SigningProcessMsg
+    | SWalletMsg WalletMsg
     deriving stock (Show, Generic)
     deriving anyclass (ToJSON, FromJSON)
 
@@ -97,6 +100,7 @@ instance Pretty PABLogMsg where
         SContractRuntimeMsg m  -> pretty m
         SChainIndexServerMsg m -> pretty m
         SSigningProcessMsg m   -> pretty m
+        SWalletMsg m           -> pretty m
 
 
 -- | Messages from the Signing Process
@@ -199,6 +203,7 @@ instance ToObject PABLogMsg where
         SContractRuntimeMsg e  -> toObject v e
         SChainIndexServerMsg m -> toObject v m
         SSigningProcessMsg m   -> toObject v m
+        SWalletMsg m           -> toObject v m
 
 
 
