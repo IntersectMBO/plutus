@@ -61,8 +61,8 @@ import           Plutus.Trace.Emulator.Types                     (ContractHandle
                                                                   EmulatorMessage (ContractInstanceStateRequest, ContractInstanceStateResponse, EndpointCall),
                                                                   EmulatorRuntimeError (JSONDecodingError),
                                                                   EmulatorThreads, UserThreadMsg (UserThreadErr))
-import           Plutus.Trace.Scheduler                          (Priority (..), SysCall (Message), SystemCall, Tag,
-                                                                  ThreadId, fork, mkSysCall, sleep)
+import           Plutus.Trace.Scheduler                          (EmSystemCall, MessageCall (Message), Priority (..),
+                                                                  Tag, ThreadId, fork, mkSysCall, sleep)
 import           Wallet.Emulator.MultiAgent                      (EmulatorEvent' (..), MultiAgentEffect)
 import           Wallet.Emulator.Wallet                          (Wallet (..))
 
@@ -113,7 +113,7 @@ handleRunContract :: forall effs effs2.
     , Member ContractInstanceIdEff effs
     , Member (State EmulatorThreads) effs
     , Member (Reader ThreadId) effs
-    , Member (Yield (SystemCall effs2 EmulatorMessage) (Maybe EmulatorMessage)) effs
+    , Member (Yield (EmSystemCall effs2 EmulatorMessage) (Maybe EmulatorMessage)) effs
     )
     => RunContract
     ~> Eff effs
@@ -127,7 +127,7 @@ handleRunContract = \case
 handleGetContractState ::
     forall s e effs effs2.
     ( Member (State EmulatorThreads) effs
-    , Member (Yield (SystemCall effs2 EmulatorMessage) (Maybe EmulatorMessage)) effs
+    , Member (Yield (EmSystemCall effs2 EmulatorMessage) (Maybe EmulatorMessage)) effs
     , Member (Reader ThreadId) effs
     , Member (Error EmulatorRuntimeError) effs
     , ContractConstraints s
@@ -139,7 +139,7 @@ handleGetContractState ::
 handleGetContractState ContractHandle{chInstanceId} = do
     ownId <- ask @ThreadId
     threadId <- getThread chInstanceId
-    void $ mkSysCall @effs2 @EmulatorMessage Normal (Message threadId $ ContractInstanceStateRequest ownId)
+    void $ mkSysCall @effs2 @EmulatorMessage Normal (Left $ Message threadId $ ContractInstanceStateRequest ownId)
 
     let checkResponse = \case
             Just (ContractInstanceStateResponse r) -> do
@@ -159,7 +159,7 @@ handleActivate :: forall s e effs effs2.
     , Member MultiAgentEffect effs2
     , Member (Error EmulatorRuntimeError) effs2
     , Member (LogMsg EmulatorEvent') effs2
-    , Member (Yield (SystemCall effs2 EmulatorMessage) (Maybe EmulatorMessage)) effs
+    , Member (Yield (EmSystemCall effs2 EmulatorMessage) (Maybe EmulatorMessage)) effs
     , HasBlockchainActions s
     , Show e
     , JSON.ToJSON e
@@ -182,7 +182,7 @@ handleCallEndpoint :: forall s l e ep effs effs2.
     , HasEndpoint l ep s
     , Member (State EmulatorThreads) effs2
     , Member (Error EmulatorRuntimeError) effs2
-    , Member (Yield (SystemCall effs2 EmulatorMessage) (Maybe EmulatorMessage)) effs
+    , Member (Yield (EmSystemCall effs2 EmulatorMessage) (Maybe EmulatorMessage)) effs
     )
     => Proxy l
     -> ContractHandle s e
@@ -194,7 +194,7 @@ handleCallEndpoint p ContractHandle{chInstanceId} ep = do
         thr = do
             threadId <- getThread chInstanceId
             ownId <- ask @ThreadId
-            void $ mkSysCall @effs2 @EmulatorMessage Normal (Message threadId $ EndpointCall ownId description epJson)
+            void $ mkSysCall @effs2 @EmulatorMessage Normal (Left $ Message threadId $ EndpointCall ownId description epJson)
     void $ fork @effs2 @EmulatorMessage callEndpointTag Normal thr
 
 -- | Get the active endpoints of a contract instance.

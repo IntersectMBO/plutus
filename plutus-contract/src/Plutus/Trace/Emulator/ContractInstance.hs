@@ -58,7 +58,7 @@ import           Plutus.Trace.Emulator.Types                   (ContractConstrai
                                                                 EmulatorRuntimeError (..), EmulatorThreads,
                                                                 addEventInstanceState, emptyInstanceState,
                                                                 instanceIdThreads, toInstanceState)
-import           Plutus.Trace.Scheduler                        (Priority (..), SysCall (..), SystemCall, ThreadId,
+import           Plutus.Trace.Scheduler                        (EmSystemCall, MessageCall (..), Priority (..), ThreadId,
                                                                 mkSysCall, sleep)
 import qualified Wallet.API                                    as WAPI
 import           Wallet.Effects                                (ChainIndexEffect, ContractRuntimeEffect (..),
@@ -84,7 +84,7 @@ type ContractInstanceThreadEffs s e effs =
 handleContractRuntime ::
     forall effs effs2.
     ( Member (State EmulatorThreads) effs2
-    , Member (Yield (SystemCall effs EmulatorMessage) (Maybe EmulatorMessage)) effs2
+    , Member (Yield (EmSystemCall effs EmulatorMessage) (Maybe EmulatorMessage)) effs2
     , Member (LogMsg ContractInstanceMsg) effs2
     , Member (Reader ThreadId) effs2
     )
@@ -103,7 +103,7 @@ handleContractRuntime = interpret $ \case
                 ownId <- ask @ThreadId
                 let Notification{notificationContractEndpoint=EndpointDescription ep, notificationContractArg} = n
                     vl = object ["tag" JSON..= ep, "value" JSON..= EndpointValue notificationContractArg]
-                    e = Message threadId (EndpointCall ownId (EndpointDescription ep) vl)
+                    e = Left $ Message threadId (EndpointCall ownId (EndpointDescription ep) vl)
                 _ <- mkSysCall @effs @EmulatorMessage Normal e
                 logInfo $ NotificationSuccess n
                 pure Nothing
@@ -131,7 +131,7 @@ contractThread ContractHandle{chInstanceId, chContract, chInstanceTag} = do
             logInfo Started
             logNewMessages @s @e
             logCurrentRequests @s @e
-            msg <- mkSysCall @effs @EmulatorMessage Normal Suspend
+            msg <- mkSysCall @effs @EmulatorMessage Normal (Left WaitForMessage)
             runInstance chContract msg
 
 registerInstance :: forall effs.
@@ -197,7 +197,7 @@ runInstance contract event = do
                 -- us having to convert to 'Value' and back.
                 let stateJSON = JSON.toJSON $ toInstanceState state
                 logInfo $ SendingContractState sender
-                void $ mkSysCall @effs @EmulatorMessage Normal (Message sender $ ContractInstanceStateResponse stateJSON)
+                void $ mkSysCall @effs @EmulatorMessage Normal (Left $ Message sender $ ContractInstanceStateResponse stateJSON)
                 sleep @effs Normal >>= runInstance contract
             _ -> do
                 response <- respondToRequest @s @e handleBlockchainQueries

@@ -31,8 +31,8 @@ import           Control.Monad.Freer.TH                 (makeEffect)
 import           Data.Maybe                             (fromMaybe)
 import           Plutus.Trace.Emulator.ContractInstance (EmulatorRuntimeError, getThread)
 import           Plutus.Trace.Emulator.Types            (EmulatorMessage (Freeze), EmulatorThreads)
-import           Plutus.Trace.Scheduler                 (Priority (Normal), SysCall (Message, Thaw), SystemCall,
-                                                         mkSysCall)
+import           Plutus.Trace.Scheduler                 (EmSystemCall, MessageCall (Message), Priority (Normal),
+                                                         ThreadCall (Thaw), mkSysCall)
 import qualified Wallet.Emulator                        as EM
 import           Wallet.Emulator.Chain                  (ChainState)
 import           Wallet.Emulator.MultiAgent             (EmulatorState, MultiAgentEffect, walletControlAction)
@@ -73,7 +73,7 @@ handleEmulatorControl ::
     , Member (State EmulatorState) effs
     , Member (Error EmulatorRuntimeError) effs
     , Member MultiAgentEffect effs
-    , Member (Yield (SystemCall effs2 EmulatorMessage) (Maybe EmulatorMessage)) effs
+    , Member (Yield (EmSystemCall effs2 EmulatorMessage) (Maybe EmulatorMessage)) effs
     )
     => EmulatorControl
     ~> Eff effs
@@ -83,11 +83,11 @@ handleEmulatorControl = \case
     FreezeContractInstance i -> do
         threadId <- getThread i
         -- see note [Freeze and Thaw]
-        void $ mkSysCall @effs2 @EmulatorMessage Normal (Message threadId Freeze)
+        void $ mkSysCall @effs2 @EmulatorMessage Normal (Left $ Message threadId Freeze)
     ThawContractInstance i -> do
         threadId <- getThread i
         -- see note [Freeze and Thaw]
-        void $ mkSysCall @effs2 @EmulatorMessage Normal (Thaw threadId)
+        void $ mkSysCall @effs2 @EmulatorMessage Normal (Right $ Thaw threadId)
     ChainState -> gets (view EM.chainState)
 
 makeEffect ''EmulatorControl
