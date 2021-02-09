@@ -47,7 +47,6 @@ blah :: Maybe String -> [String]
 blah Nothing     = []
 blah (Just mode) = ["--mode",mode]
 
--- this is likely to raise either an exitFailure or exitSuccess exception
 modeType :: Maybe String -> [String]
 modeType (Just "U") = []
 modeType _          = ["-t"]

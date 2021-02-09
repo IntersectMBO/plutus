@@ -127,4 +127,36 @@ scopeCheckU (UBuiltin b) = return (builtin b)
 scopeCheckU (UDelay t)   = fmap delay (scopeCheckU t)
 scopeCheckU (UForce t)   = fmap force (scopeCheckU t)
 
+open import Data.Bool
+open import Raw
+
+decUTermCon : (C C' : TermCon) → Bool
+decUTermCon (integer i) (integer i') with i Data.Integer.≟ i'
+... | yes p = true
+... | no ¬p = false
+decUTermCon (bytestring b) (bytestring b') with equals b b'
+decUTermCon (bytestring b) (bytestring b') | false = false
+decUTermCon (bytestring b) (bytestring b') | true = true
+decUTermCon (string s) (string s') with s Data.String.≟ s'
+... | yes p = true
+... | no ¬p = false
+decUTermCon (bool b) (bool b') with b Data.Bool.≟ b'
+... | yes p = true
+... | no ¬p = false
+decUTermCon unit unit = true
+decUTermCon (char c) (char c') = true
+decUTermCon _ _ = false
+
+decUTm : (t t' : Untyped) → Bool
+decUTm (UVar x) (UVar x') with x Data.Nat.≟ x
+... | yes p = true
+... | no ¬p = false
+decUTm (ULambda t) (ULambda t') = decUTm t t'
+decUTm (UApp t u) (UApp t' u') = decUTm t t' ∧ decUTm u u'
+decUTm (UCon c) (UCon c') = decUTermCon c c'
+decUTm UError UError = true
+decUTm (UBuiltin b) (UBuiltin b') = decBuiltin b b'
+decUTm (UDelay t) (UDelay t') = decUTm t t'
+decUTm (UForce t) (UForce t') = decUTm t t'
+decUTm _ _ = false
 \end{code}

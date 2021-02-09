@@ -116,9 +116,14 @@ postulate
 
   ProgramNU : Set
   ProgramU : Set
+  TermNU : Set
+  TermU : Set
   deBruijnifyU : ProgramNU → Either FreeVariableError ProgramU
+  deBruijnifyTmU : TermNU → Either FreeVariableError TermU
   parseU : ByteString → Either ParseError ProgramNU
+  parseTmU : ByteString → Either ParseError TermNU
   convPU : ProgramU → Untyped
+  convTmU : TermU → Untyped
   
 
 {-# FOREIGN GHC import Language.PlutusCore.Name #-}
@@ -157,7 +162,12 @@ postulate
 
 {-# COMPILE GHC ProgramNU = type U.Program Name DefaultUni DefaultFun Language.PlutusCore.Lexer.AlexPosn #-}
 {-# COMPILE GHC ProgramU = type U.Program NamedDeBruijn DefaultUni DefaultFun () #-}
+{-# COMPILE GHC TermNU = type U.Term Name DefaultUni DefaultFun Language.PlutusCore.Lexer.AlexPosn #-}
+{-# COMPILE GHC TermU = type U.Term NamedDeBruijn DefaultUni DefaultFun () #-}
 {-# COMPILE GHC deBruijnifyU = second (() <$) . runExcept . U.deBruijnProgram #-}
+{-# COMPILE GHC deBruijnifyTmU = second (() <$) . runExcept . U.deBruijnTerm #-}
+{-# COMPILE GHC parseTmU = first (() <$) . runQuote. runExceptT . U.parseTerm  #-}
+{-# COMPILE GHC convTmU = U.conv #-}
 
 postulate
   prettyPrintTm : RawTm → String
@@ -329,6 +339,16 @@ alphaTm plc1 plc2 | inj₂ plc1' | inj₂ plc2' | _ | _ = Bool.false
 alphaTm plc1 plc2 | _ | _ = Bool.false
 
 {-# COMPILE GHC alphaTm as alphaTm #-}
+
+alphaU : ByteString → ByteString → Bool
+alphaU plc1 plc2 with parseTmU plc1 | parseTmU plc2
+alphaU plc1 plc2 | inj₂ plc1' | inj₂ plc2' with deBruijnifyTmU plc1' | deBruijnifyTmU plc2'
+alphaU plc1 plc2 | inj₂ plc1' | inj₂ plc2' | inj₂ plc1'' | inj₂ plc2'' = decUTm (convTmU plc1'') (convTmU plc2'')
+alphaU plc1 plc2 | inj₂ plc1' | inj₂ plc2' | _ | _ = Bool.false
+alphaU plc1 plc2 | _ | _ = Bool.false
+
+{-# COMPILE GHC alphaU as alphaU #-}
+
 
 blah : ByteString → ByteString → String
 blah plc1 plc2 with parseTm plc1 | parseTm plc2
