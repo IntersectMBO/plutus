@@ -12,7 +12,7 @@ renderTemplateLibrary :: forall p. Array ContractTemplate -> HTML p Action
 renderTemplateLibrary contractTemplates =
   div
     [ classNames [ "h-full", "overflow-auto" ] ]
-    [ text "Quick Access Library" ]
+    [ text "Start new from template" ]
 
 renderTemplateDetails :: forall p. ContractTemplate -> HTML p Action
 renderTemplateDetails contractTemplate =

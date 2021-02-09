@@ -8,6 +8,7 @@ module Material.Icons
   , libraryAdd
   , menu
   , notifications
+  , personAdd
   , search
   , wallet
   ) where
@@ -43,6 +44,9 @@ menu = icon "menu"
 
 notifications :: forall p i. HTML p i
 notifications = icon "notifications_none"
+
+personAdd :: forall p i. HTML p i
+personAdd = icon "person_add"
 
 search :: forall p i. HTML p i
 search = icon "search"

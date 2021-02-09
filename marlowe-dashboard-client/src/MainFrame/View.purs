@@ -9,7 +9,7 @@ import Data.Lens (view)
 import Data.Maybe (Maybe(..))
 import Effect.Aff.Class (class MonadAff)
 import Halogen (ComponentHTML)
-import Halogen.HTML (a, button, div, div_, header, main, nav, text)
+import Halogen.HTML (a, button, div, div_, h1, header, main, nav, span, text)
 import Halogen.HTML.Events (onClick)
 import MainFrame.Lenses (_contactState, _overlay, _screen, _templates)
 import MainFrame.Types (Action(..), Card(..), ChildSlots, Screen(..), State, Overlay(..))
@@ -41,14 +41,26 @@ render state =
 navbar :: forall m. MonadAff m => Maybe Overlay -> ComponentHTML Action ChildSlots m
 navbar currentOverlay =
   nav
-    [ classNames [ "sticky", "top-0", "flex" ] ]
+    [ classNames [ "sticky", "top-0", "flex", "items-center" ] ]
     [ button
         [ classNames $ buttonClasses <> [ "text-midblue" ] ]
         [ Icon.image ]
+    , h1
+        [ classNames [ "text-blue", "font-bold" ] ]
+        [ text "Demo" ]
     , nav
         [ classNames [ "flex", "flex-1", "justify-end" ] ]
         [ navButton Icon.wallet Nothing
         , navButton menuIcon $ Just $ ToggleOverlay Menu
+        , button
+            [ classNames $ buttonClasses <> [ "bg-green", "text-white", "rounded-none", "flex", "items-center" ]
+            , onClick $ const $ Just $ ToggleCard TemplateLibrary
+            ]
+            [ span
+                [ classNames [ "px-0.5" ] ]
+                [ text "New" ]
+            , Icon.libraryAdd
+            ]
         ]
     ]
   where
@@ -66,21 +78,29 @@ menu currentOverlay currentScreen =
   div
     [ wrapperClassNames ]
     [ nav
-        [ classNames [ "bg-gray", "mx-0.5", "flex", "flex-col" ] ]
-        [ menuItem "Welcome screen" (Just $ SetScreen Home) (currentScreen == Home)
-        , menuItem "Quick access library" (Just $ ToggleCard TemplateLibrary) false
-        , menuItem "Contacts" (Just $ SetScreen Contacts) (currentScreen == Contacts)
-        , menuItem "Library" Nothing false
-        , menuItem "Docs" Nothing false
-        , menuItem "Support" Nothing false
+        [ classNames [ "bg-gray", "mx-0.5", "mb-0.5", "flex", "flex-col", "justify-between" ] ]
+        [ nav
+            [ classNames [ "flex", "flex-col" ] ]
+            [ menuItem "Dashboard home" $ Just $ SetScreen Home
+            , menuItem "Contacts" $ Just $ SetScreen Contacts
+            , menuItem "marlowe.io" Nothing
+            , menuItem "Library" Nothing
+            , menuItem "Docs" Nothing
+            , menuItem "Support" Nothing
+            ]
+        , nav
+            [ classNames [ "flex", "flex-col" ] ]
+            [ menuItem "cardano.org" Nothing
+            , menuItem "iohk.io" Nothing
+            ]
         ]
     ]
   where
   wrapperClassNames = classNames $ [ "absolute", "w-full", "z-20" ] <> hideWhen (currentOverlay /= Just Menu)
 
-  menuItem label action active =
+  menuItem label action =
     a
-      [ classNames $ [ "p-1", "hover:text-green", "hover:cursor-pointer" ] <> applyWhen active "text-green"
+      [ classNames $ [ "p-1", "text-green", "font-bold", "hover:cursor-pointer" ]
       , onClick $ const action
       ]
       [ text label ]
@@ -136,6 +156,7 @@ card state =
     , "bg-white"
     , "mt-0"
     , "p-1"
+    , "rounded-t-lg"
     , "transition-all"
     , "duration-400"
     , "transform"

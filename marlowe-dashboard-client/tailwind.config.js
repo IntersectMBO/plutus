@@ -67,7 +67,7 @@ module.exports = {
     borderCollapse: false,
     borderColor: true,
     borderOpacity: false,
-    borderRadius: false,
+    borderRadius: true,
     borderStyle: false,
     borderWidth: true,
     boxSizing: false,
