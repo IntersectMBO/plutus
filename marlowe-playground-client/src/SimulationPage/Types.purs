@@ -266,8 +266,6 @@ type State
     , bottomPanelState :: BottomPanel.State BottomPanelView
     , marloweState :: NonEmptyList MarloweState
     , helpContext :: HelpContext
-    -- QUESTION: What is the use of oldContract?
-    , oldContract :: Maybe String
     }
 
 _showRightPanel :: Lens' State Boolean
@@ -288,16 +286,12 @@ _helpContext = prop (SProxy :: SProxy "helpContext")
 _bottomPanelState :: Lens' State (BottomPanel.State BottomPanelView)
 _bottomPanelState = prop (SProxy :: SProxy "bottomPanelState")
 
-_oldContract :: Lens' State (Maybe String)
-_oldContract = prop (SProxy :: SProxy "oldContract")
-
 mkState :: State
 mkState =
   { showRightPanel: true
   , marloweState: NEL.singleton emptyMarloweState
   , helpContext: MarloweHelp
   , bottomPanelState: BottomPanel.initialState CurrentStateView
-  , oldContract: Nothing
   }
 
 data Action
@@ -308,9 +302,7 @@ data Action
   | MoveSlot Slot
   | SetSlot Slot
   | AddInput Input (Array Bound)
-  | RemoveInput Input
   | SetChoice ChoiceId ChosenNum
-  | ResetContract
   | ResetSimulator
   | Undo
   | LoadContract String
@@ -330,10 +322,8 @@ instance isEventAction :: IsEvent Action where
   toEvent (MoveSlot _) = Just $ defaultEvent "MoveSlot"
   toEvent (SetSlot _) = Just $ defaultEvent "SetSlot"
   toEvent (AddInput _ _) = Just $ defaultEvent "AddInput"
-  toEvent (RemoveInput _) = Just $ defaultEvent "RemoveInput"
   toEvent (SetChoice _ _) = Just $ defaultEvent "SetChoice"
   toEvent ResetSimulator = Just $ defaultEvent "ResetSimulator"
-  toEvent ResetContract = Just $ defaultEvent "ResetContract"
   toEvent Undo = Just $ defaultEvent "Undo"
   toEvent (LoadContract _) = Just $ defaultEvent "LoadContract"
   toEvent (ChangeHelpContext help) = Just $ (defaultEvent "ChangeHelpContext") { label = Just $ show help }
