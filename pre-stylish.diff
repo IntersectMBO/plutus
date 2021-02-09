@@ -1,0 +1,66 @@
+diff --git a/plutus-pab-client/pab-demo-scripts.nix b/plutus-pab-client/pab-demo-scripts.nix
+index fc2e52866..58aa44a8e 100644
+--- a/plutus-pab-client/pab-demo-scripts.nix
++++ b/plutus-pab-client/pab-demo-scripts.nix
+@@ -82,6 +82,7 @@ let
+ 
+       chainIndexConfig:
+         ciBaseUrl: http://localhost:${conf.chain-index-port}
++        ciWatchedAddresses: []
+ 
+       requestProcessingConfig:
+         requestProcessingInterval: 1
+diff --git a/plutus-pab/src/Cardano/ChainIndex/Types.hs b/plutus-pab/src/Cardano/ChainIndex/Types.hs
+index d62fd35d8..d8ae0db2d 100644
+--- a/plutus-pab/src/Cardano/ChainIndex/Types.hs
++++ b/plutus-pab/src/Cardano/ChainIndex/Types.hs
+@@ -14,6 +14,7 @@ import           GHC.Generics               (Generic)
+ import           Servant.Client             (BaseUrl)
+ 
+ import           Cardano.Node.Types         (FollowerID)
++import Ledger.Address (Address)
+ import           Wallet.Emulator.ChainIndex (ChainIndexEvent, ChainIndexState)
+ 
+ data AppState =
+@@ -26,9 +27,10 @@ data AppState =
+ initialAppState :: AppState
+ initialAppState = AppState mempty mempty Nothing
+ 
+-newtype ChainIndexConfig =
++data ChainIndexConfig =
+     ChainIndexConfig
+-        { ciBaseUrl :: BaseUrl
++        { ciBaseUrl          :: BaseUrl
++        , ciWatchedAddresses :: [Address]
+         }
+     deriving stock (Show, Eq, Generic)
+     deriving anyclass (FromJSON, ToJSON)
+diff --git a/plutus-pab/tx-inject/Main.hs b/plutus-pab/tx-inject/Main.hs
+index a8f8c7c09..a047dde47 100644
+--- a/plutus-pab/tx-inject/Main.hs
++++ b/plutus-pab/tx-inject/Main.hs
+@@ -72,7 +72,7 @@ data AppEnv = AppEnv
+ initialUtxoIndex :: UtxoIndex
+ initialUtxoIndex =
+   let initialTxs =
+-        view (chainState . txPool)$
++        view (chainState . txPool) $
+         emulatorStateInitialDist $
+         Map.mapKeys walletPubKey defaultDist
+   in insertBlock initialTxs (UtxoIndex Map.empty)
+diff --git a/plutus-pab/tx-inject/config.yaml b/plutus-pab/tx-inject/config.yaml
+index ed83e8676..47abfdb5e 100644
+--- a/plutus-pab/tx-inject/config.yaml
++++ b/plutus-pab/tx-inject/config.yaml
+@@ -32,6 +32,11 @@ nodeServerConfig:
+ 
+ chainIndexConfig:
+   ciBaseUrl: http://localhost:8083
++  ciWatchedAddresses: 
++    [ { "tag": "PubKeyAddress"
++      , "contents": { "getPubKeyHash" : "9d61b19deffd5a60ba844af492ec2cc44449c5697b326919703bac031cae7f60" }
++      } 
++    ]
+ 
+ requestProcessingConfig:
+   requestProcessingInterval: 1

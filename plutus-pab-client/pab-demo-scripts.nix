@@ -82,6 +82,7 @@ let
 
       chainIndexConfig:
         ciBaseUrl: http://localhost:${conf.chain-index-port}
+        ciWatchedAddresses: []
 
       requestProcessingConfig:
         requestProcessingInterval: 1
