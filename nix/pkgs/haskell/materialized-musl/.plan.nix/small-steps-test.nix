@@ -10,15 +10,15 @@
   {
     flags = { development = false; };
     package = {
-      specVersion = "2.2";
-      identifier = { name = "byron-spec-ledger"; version = "0.1.0.0"; };
+      specVersion = "1.10";
+      identifier = { name = "small-steps-test"; version = "0.1.0.0"; };
       license = "Apache-2.0";
       copyright = "";
       maintainer = "formal.methods@iohk.io";
       author = "IOHK Formal Methods Team";
       homepage = "https://github.com/input-output-hk/cardano-legder-specs";
       url = "";
-      synopsis = "Executable specification of Cardano ledger";
+      synopsis = "Small step semantics testing library";
       description = "";
       buildType = "Simple";
       isLocal = true;
@@ -26,7 +26,7 @@
       licenseFiles = [];
       dataDir = "";
       dataFiles = [];
-      extraSrcFiles = [ "CHANGELOG.md" "src/goblin_genomes/*.genome" ];
+      extraSrcFiles = [];
       extraTmpFiles = [];
       extraDocFiles = [];
       };
@@ -34,39 +34,26 @@
       "library" = {
         depends = [
           (hsPkgs."base" or (errorHandler.buildDepError "base"))
-          (hsPkgs."bimap" or (errorHandler.buildDepError "bimap"))
-          (hsPkgs."containers" or (errorHandler.buildDepError "containers"))
-          (hsPkgs."filepath" or (errorHandler.buildDepError "filepath"))
           (hsPkgs."goblins" or (errorHandler.buildDepError "goblins"))
-          (hsPkgs."hashable" or (errorHandler.buildDepError "hashable"))
           (hsPkgs."hedgehog" or (errorHandler.buildDepError "hedgehog"))
+          (hsPkgs."tasty-hunit" or (errorHandler.buildDepError "tasty-hunit"))
           (hsPkgs."microlens" or (errorHandler.buildDepError "microlens"))
           (hsPkgs."microlens-th" or (errorHandler.buildDepError "microlens-th"))
+          (hsPkgs."mtl" or (errorHandler.buildDepError "mtl"))
           (hsPkgs."nothunks" or (errorHandler.buildDepError "nothunks"))
-          (hsPkgs."template-haskell" or (errorHandler.buildDepError "template-haskell"))
-          (hsPkgs."Unique" or (errorHandler.buildDepError "Unique"))
-          (hsPkgs."cardano-binary" or (errorHandler.buildDepError "cardano-binary"))
+          (hsPkgs."prettyprinter" or (errorHandler.buildDepError "prettyprinter"))
+          (hsPkgs."transformers" or (errorHandler.buildDepError "transformers"))
+          (hsPkgs."QuickCheck" or (errorHandler.buildDepError "QuickCheck"))
+          (hsPkgs."cardano-prelude" or (errorHandler.buildDepError "cardano-prelude"))
           (hsPkgs."small-steps" or (errorHandler.buildDepError "small-steps"))
-          (hsPkgs."small-steps-test" or (errorHandler.buildDepError "small-steps-test"))
           ];
         buildable = true;
         modules = [
-          "Hedgehog/Gen/Double"
-          "Byron/Spec/Ledger/Core"
-          "Byron/Spec/Ledger/Core/Generators"
-          "Byron/Spec/Ledger/Core/Omniscient"
-          "Byron/Spec/Ledger/Delegation"
-          "Byron/Spec/Ledger/Delegation/Test"
-          "Byron/Spec/Ledger/GlobalParams"
-          "Byron/Spec/Ledger/Update"
-          "Byron/Spec/Ledger/Update/Generators"
-          "Byron/Spec/Ledger/Update/Test"
-          "Byron/Spec/Ledger/UTxO"
-          "Byron/Spec/Ledger/UTxO/Generators"
-          "Byron/Spec/Ledger/Util"
-          "Byron/Spec/Ledger/STS/UTXO"
-          "Byron/Spec/Ledger/STS/UTXOW"
-          "Byron/Spec/Ledger/STS/UTXOWS"
+          "Control/State/Transition/Invalid/Trace"
+          "Control/State/Transition/Generator"
+          "Control/State/Transition/Trace"
+          "Control/State/Transition/Trace/Generator/QuickCheck"
+          "Hedgehog/Extra/Manual"
           ];
         hsSourceDirs = [ "src" ];
         };
@@ -75,6 +62,7 @@
           depends = [
             (hsPkgs."base" or (errorHandler.buildDepError "base"))
             (hsPkgs."doctest" or (errorHandler.buildDepError "doctest"))
+            (hsPkgs."prettyprinter" or (errorHandler.buildDepError "prettyprinter"))
             ];
           build-tools = [
             (hsPkgs.buildPackages.doctest-discover or (pkgs.buildPackages.doctest-discover or (errorHandler.buildToolDepError "doctest-discover")))
@@ -83,36 +71,33 @@
           hsSourceDirs = [ "test" ];
           mainPath = [ "DoctestDiscover.hs" ];
           };
-        "byron-spec-ledger-test" = {
+        "examples" = {
           depends = [
             (hsPkgs."base" or (errorHandler.buildDepError "base"))
-            (hsPkgs."bimap" or (errorHandler.buildDepError "bimap"))
             (hsPkgs."containers" or (errorHandler.buildDepError "containers"))
             (hsPkgs."hedgehog" or (errorHandler.buildDepError "hedgehog"))
-            (hsPkgs."microlens" or (errorHandler.buildDepError "microlens"))
-            (hsPkgs."microlens-th" or (errorHandler.buildDepError "microlens-th"))
+            (hsPkgs."mtl" or (errorHandler.buildDepError "mtl"))
             (hsPkgs."tasty" or (errorHandler.buildDepError "tasty"))
-            (hsPkgs."tasty-hunit" or (errorHandler.buildDepError "tasty-hunit"))
             (hsPkgs."tasty-hedgehog" or (errorHandler.buildDepError "tasty-hedgehog"))
+            (hsPkgs."tasty-expected-failure" or (errorHandler.buildDepError "tasty-expected-failure"))
+            (hsPkgs."QuickCheck" or (errorHandler.buildDepError "QuickCheck"))
+            (hsPkgs."tasty-quickcheck" or (errorHandler.buildDepError "tasty-quickcheck"))
+            (hsPkgs."tasty-hunit" or (errorHandler.buildDepError "tasty-hunit"))
             (hsPkgs."Unique" or (errorHandler.buildDepError "Unique"))
-            (hsPkgs."byron-spec-ledger" or (errorHandler.buildDepError "byron-spec-ledger"))
+            (hsPkgs."cardano-crypto-class" or (errorHandler.buildDepError "cardano-crypto-class"))
+            (hsPkgs."cardano-binary" or (errorHandler.buildDepError "cardano-binary"))
             (hsPkgs."small-steps" or (errorHandler.buildDepError "small-steps"))
             (hsPkgs."small-steps-test" or (errorHandler.buildDepError "small-steps-test"))
             ];
           buildable = true;
           modules = [
-            "Test/Byron/Spec/Ledger/Core/Generators/Properties"
-            "Test/Byron/Spec/Ledger/Delegation/Examples"
-            "Test/Byron/Spec/Ledger/Delegation/Properties"
-            "Test/Byron/Spec/Ledger/AbstractSize/Properties"
-            "Test/Byron/Spec/Ledger/Update/Examples"
-            "Test/Byron/Spec/Ledger/Update/Properties"
-            "Test/Byron/Spec/Ledger/Relation/Properties"
-            "Test/Byron/Spec/Ledger/UTxO/Properties"
+            "Control/State/Transition/Examples/Sum"
+            "Control/State/Transition/Examples/GlobalSum"
+            "Control/State/Transition/Examples/CommitReveal"
             ];
           hsSourceDirs = [ "test" ];
-          mainPath = [ "Main.hs" ];
+          mainPath = [ "examples/Main.hs" ];
           };
         };
       };
-    } // rec { src = (pkgs.lib).mkDefault .././.source-repository-packages/28; }
+    } // rec { src = (pkgs.lib).mkDefault .././.source-repository-packages/32; }

@@ -83,79 +83,6 @@ constraints:
 -- we ensure they're included.
 extra-packages: data-ordlist, sequence, tasty-expected-failure, doctest-discover
 
-package ouroboros-network
-  tests: False
-
-package ouroboros-network-framework
-  tests: False
-
--- I need to set +development here, to make warnings not be fatal,
--- as there are a lot more warnings emitted by GHC 8.8.X.
---
--- Also, some tests have incompatible code, and it seems easier to
--- turn them off until everyone upgrades to 8.8.X.
-package cardano-ledger
-  tests: False
-  flags: +development
-
-package cardano-ledger-test
-  tests: False
-  flags: +development
-
-package cardano-binary
-  tests: False
-  flags: +development
-
-package cardano-binary-test
-  tests: False
-  flags: +development
-
-package cardano-crypto
-  tests: False
-
-package cardano-crypto-class
-  tests: False
-  flags: +development
-
-package cardano-crypto-wrapper
-  tests: False
-  flags: +development
-
-package cardano-prelude
-  tests: False
-  flags: +development
-
-package cardano-prelude-test
-  tests: False
-  flags: +development
-
-package contra-tracer
-  tests: False
-
-package byron-spec-chain
-  tests: False
-  flags: +development
-
-package byron-spec-ledger
-  tests: False
-  flags: +development
-
-package goblins
-  tests: False
-  flags: +development
-
-package small-steps
-  tests: False
-  flags: +development
-
-package shelley-spec-ledger
-  tests: True
-  flags: +development
-
-package shelley-spec-ledger-test
-  tests: false
-  flags: +development
-
 package iohk-monitoring
   -- disable all warnings
   ghc-options: -w
@@ -166,8 +93,10 @@ source-repository-package
   tag: 4251c0bb6e4f443f00231d28f5f70d42876da055
   subdir:
     binary
+    binary/test
     slotting
     cardano-crypto-class
+    cardano-crypto-praos
 
 source-repository-package
   type: git
@@ -204,15 +133,20 @@ source-repository-package
 
 source-repository-package
   type: git
-  location: https://github.com/raduom/cardano-ledger-specs
-  tag: 2cac85306d8b3e07006e9081f36ce7ebf2d9d0a3
+  location: https://github.com/input-output-hk/cardano-ledger-specs
+  tag: 097890495cbb0e8b62106bcd090a5721c3f4b36f
   subdir:
     byron/chain/executable-spec
+    byron/crypto
+    byron/crypto/test
     byron/ledger/executable-spec
+    byron/ledger/impl
+    byron/ledger/impl/test
     semantics/executable-spec
+    semantics/small-steps-test
     shelley/chain-and-ledger/dependencies/non-integer
     shelley/chain-and-ledger/executable-spec
-    shelley/chain-and-ledger/executable-spec/test
+    shelley-ma/impl
 
 -- The following two dependencies are not mirrored in the
 -- stack.yaml file, but they are needed regardless by cabal.

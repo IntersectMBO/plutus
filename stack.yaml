@@ -93,19 +93,23 @@ extra-deps:
   subdirs:
     - binary
     - cardano-crypto-class
+    - cardano-crypto-tests
+    - cardano-crypto-praos
     - slotting
-# Making the repository compatible with GHC-8.8.X required a couple of
-# source code changes, so I forked the original repository until it will
-# be properly updated to GHC-8.8.X
-- git: https://github.com/raduom/cardano-ledger-specs
-  commit: 2cac85306d8b3e07006e9081f36ce7ebf2d9d0a3
+- git: https://github.com/input-output-hk/cardano-ledger-specs
+  commit: 097890495cbb0e8b62106bcd090a5721c3f4b36f
   subdirs:
     - byron/chain/executable-spec
+    - byron/crypto
+    - byron/crypto/test
     - byron/ledger/executable-spec
+    - byron/ledger/impl
+    - byron/ledger/impl/test
     - semantics/executable-spec
+    - semantics/small-steps-test
     - shelley/chain-and-ledger/dependencies/non-integer
     - shelley/chain-and-ledger/executable-spec
-    - shelley/chain-and-ledger/executable-spec/test
+    - shelley-ma/impl
 - git: https://github.com/input-output-hk/iohk-monitoring-framework
   commit: a89c38ed5825ba17ca79fddb85651007753d699d
   subdirs:
