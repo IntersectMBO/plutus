@@ -114,13 +114,24 @@ postulate
   deBruijnifyTm : TermN → Either FreeVariableError Term
   deBruijnifyTy : TypeN → Either FreeVariableError Type
 
+  ProgramNU : Set
+  ProgramU : Set
+  deBruijnifyU : ProgramNU → Either FreeVariableError ProgramU
+  parseU : ByteString → Either ParseError ProgramNU
+  convPU : ProgramU → Untyped
+  
+
 {-# FOREIGN GHC import Language.PlutusCore.Name #-}
 {-# FOREIGN GHC import Language.PlutusCore.Lexer #-}
 {-# FOREIGN GHC import Language.PlutusCore.Parser #-}
 {-# FOREIGN GHC import Language.PlutusCore.Pretty #-}
 {-# FOREIGN GHC import Language.PlutusCore.DeBruijn #-}
+{-# FOREIGN GHC import qualified Language.UntypedPlutusCore as U #-}
+{-# FOREIGN GHC import qualified Language.UntypedPlutusCore.Parser as U #-}
+
 {-# FOREIGN GHC import Raw #-}
 {-# COMPILE GHC convP = convP #-}
+{-# COMPILE GHC convPU = U.convP #-}
 {-# COMPILE GHC convTm = conv #-}
 {-# COMPILE GHC convTy = convT #-}
 {-# COMPILE GHC unconvTy = unconvT 0 #-}
@@ -129,6 +140,7 @@ postulate
 
 {-# COMPILE GHC ParseError = type ParseError () #-}
 {-# COMPILE GHC parse = first (() <$) . runQuote . runExceptT . parseProgram  #-}
+{-# COMPILE GHC parseU = first (() <$) . runQuote . runExceptT . U.parseProgram  #-}
 {-# COMPILE GHC parseTm = first (() <$) . runQuote. runExceptT . parseTerm  #-}
 {-# COMPILE GHC parseTy = first (() <$) . runQuote . runExceptT . parseType  #-}
 {-# COMPILE GHC deBruijnify = second (() <$) . runExcept . deBruijnProgram #-}
@@ -141,8 +153,11 @@ postulate
 {-# COMPILE GHC Term = type Language.PlutusCore.Term NamedTyDeBruijn NamedDeBruijn DefaultUni DefaultFun () #-}
 {-# COMPILE GHC TypeN = type Language.PlutusCore.Type TyName DefaultUni Language.PlutusCore.Lexer.AlexPosn #-}
 {-# COMPILE GHC Type = type Language.PlutusCore.Type NamedTyDeBruijn DefaultUni () #-}
-
 {-# COMPILE GHC showTerm = T.pack . show #-}
+
+{-# COMPILE GHC ProgramNU = type U.Program Name DefaultUni DefaultFun Language.PlutusCore.Lexer.AlexPosn #-}
+{-# COMPILE GHC ProgramU = type U.Program NamedDeBruijn DefaultUni DefaultFun () #-}
+{-# COMPILE GHC deBruijnifyU = second (() <$) . runExcept . U.deBruijnProgram #-}
 
 postulate
   prettyPrintTm : RawTm → String
@@ -193,7 +208,6 @@ uglyTypeError builtinError = "builtinError"
 
 {-# COMPILE GHC ERROR = data ERROR (TypeError | ParseError | ScopeError | RuntimeError) #-}
 
-
 parsePLC : ByteString → Either ERROR (ScopedTm Z)
 parsePLC plc = do
   namedprog ← withE parseError $ parse plc
@@ -202,6 +216,11 @@ parsePLC plc = do
   -- ^ FIXME: this should have an interface that guarantees that the
   -- shifter is run
 
+parseUPLC : ByteString → Either ERROR (0 ⊢)
+parseUPLC plc = do
+  namedprog ← withE parseError $ parseU plc
+  prog ← withE (ERROR.scopeError ∘ freeVariableError) $ deBruijnifyU namedprog
+  withE scopeError $ U.scopeCheckU {0} (convPU prog)
 
 typeCheckPLC : ScopedTm Z → Either TypeError (Σ (∅ ⊢Nf⋆ *) (∅ ⊢_))
 typeCheckPLC t = inferType _ t
@@ -252,7 +271,23 @@ executePLC TCEKV t = do
           _    → inj₁ (runtimeError gasError)
   return (prettyPrintTm (unshifter Z (extricateScope (extricate (Algorithmic.CEKV.discharge V)))))
 
+executeUPLC : 0 ⊢ → Either ERROR String
+executeUPLC t = do
+  just t' ← withE runtimeError $ U.progressor 10000000 t
+    where nothing → inj₂ "ERROR"  
+  return $ prettyPrintUTm (extricateU t')
+  
+{-
+  (A ,, t) ← withE (λ e → typeError (uglyTypeError e)) $ typeCheckPLC t
+  just t' ← withE runtimeError $ U.progressor 10000000 (erase t)
+    where nothing → inj₂ "ERROR"  
+  return $ prettyPrintUTm (extricateU t') --Untyped.ugly t'
+-}
+
 evalByteString : EvalMode → ByteString → Either ERROR String
+evalByteString U b = do
+  t ← parseUPLC b
+  executeUPLC t
 evalByteString m b = do
 {-
   -- some debugging code
