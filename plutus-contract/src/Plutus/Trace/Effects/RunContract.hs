@@ -33,11 +33,11 @@ module Plutus.Trace.Effects.RunContract(
     ) where
 
 import           Control.Monad                                   (void)
-import           Control.Monad.Freer                             (Eff, Member, interpret, reinterpret, send, type (~>))
+import           Control.Monad.Freer                             (Eff, Member, interpret, send, type (~>))
 import           Control.Monad.Freer.Coroutine                   (Yield (..))
 import           Control.Monad.Freer.Error                       (Error, throwError)
 import           Control.Monad.Freer.Log                         (LogMsg, logError, mapLog)
-import           Control.Monad.Freer.Reader                      (Reader, ask, runReader)
+import           Control.Monad.Freer.Reader                      (Reader, ask)
 import           Control.Monad.Freer.State                       (State)
 import           Control.Monad.Freer.TH                          (makeEffect)
 
@@ -65,7 +65,8 @@ import           Plutus.Trace.Emulator.Types                     (ContractHandle
                                                                   EmulatorThreads, UserThreadMsg (UserThreadErr))
 import           Plutus.Trace.Scheduler                          (AgentSystemCall, EmSystemCall, MessageCall (Message),
                                                                   Priority (..), Tag, ThreadId, fork, mkSysCall, sleep)
-import           Wallet.Emulator.MultiAgent                      (EmulatorEvent' (..), MultiAgentEffect)
+import           Wallet.Emulator.MultiAgent                      (EmulatorEvent' (..), MultiAgentEffect,
+                                                                  handleMultiAgentEffects)
 import           Wallet.Emulator.Wallet                          (Wallet (..))
 
 type ContractConstraints s =
@@ -199,9 +200,8 @@ startContractThread ::
 startContractThread wallet handle =
     fork @effs2 @EmulatorMessage runningContractInstanceTag Normal
         (interpret (mapYieldEm @_ @effs2)
-            $ runReader wallet
+            $ handleMultiAgentEffects wallet
             $ interpret (mapLog InstanceEvent)
-            $ reinterpret (mapLog InstanceEvent)
             $ contractThread handle)
 
 mapYieldEm ::

@@ -80,12 +80,12 @@ import qualified Language.Plutus.Contract.Trace.RequestHandler     as RequestHan
 import qualified Ledger.Ada                                        as Ada
 import           Ledger.Value                                      (Value)
 
+import           Plutus.Trace.Emulator.Types                       (EmulatedWalletEffects)
 import           Wallet.API                                        (ChainIndexEffect, SigningProcessEffect)
 import           Wallet.Effects                                    (ContractRuntimeEffect, WalletEffect)
 import           Wallet.Emulator                                   (EmulatorState, Wallet)
 import qualified Wallet.Emulator                                   as EM
 import           Wallet.Emulator.LogMessages                       (TxBalanceMsg)
-import           Wallet.Emulator.MultiAgent                        (EmulatedWalletEffects)
 import qualified Wallet.Emulator.MultiAgent                        as EM
 import           Wallet.Emulator.Notify                            (EmulatorNotifyLogMsg (..))
 import           Wallet.Types                                      (ContractInstanceId, EndpointDescription (..),
