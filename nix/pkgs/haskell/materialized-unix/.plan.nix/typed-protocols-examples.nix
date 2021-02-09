@@ -59,7 +59,7 @@
         hsSourceDirs = [ "src" ];
         };
       tests = {
-        "typed-protocols-tests" = {
+        "test" = {
           depends = [
             (hsPkgs."base" or (errorHandler.buildDepError "base"))
             (hsPkgs."bytestring" or (errorHandler.buildDepError "bytestring"))

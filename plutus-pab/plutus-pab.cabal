@@ -157,6 +157,7 @@ library
         network -any,
         network-mux -any,
         newtype-generics -any,
+        nothunks -any,
         optparse-applicative -any,
         ouroboros-network -any,
         ouroboros-network-framework -any,

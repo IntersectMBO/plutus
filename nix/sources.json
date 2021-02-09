@@ -29,12 +29,12 @@
         "branch": "master",
         "description": "Automatically generated Nix expressions for Hackage",
         "homepage": "",
-        "owner": "input-output-hk", 
+        "owner": "input-output-hk",
         "repo": "hackage.nix",
-        "rev": "a97132667c5bf098ac6123f4d163b8ae68348537",
-        "sha256": "1ddpzpkrqxyncrnq6cfaqmlk2kxg9nzm5x7jcrpa6iy9q0kjvk67",
+        "rev": "b921f6fba13a7b5a282803b903b6951ad0968106",
+        "sha256": "1y28rz8kcp7nvqsffd3kv3kzdxzarmcpnn062r4jxbdpr0wk29lw",
         "type": "tarball",
-        "url": "https://github.com/input-output-hk/hackage.nix/archive/a97132667c5bf098ac6123f4d163b8ae68348537.tar.gz",
+        "url": "https://github.com/input-output-hk/hackage.nix/archive/b921f6fba13a7b5a282803b903b6951ad0968106.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     },
     "haskell.nix": {

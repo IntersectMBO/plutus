@@ -80,7 +80,7 @@
           };
         };
       tests = {
-        "test-Win32-network" = {
+        "test" = {
           depends = (pkgs.lib).optionals (system.isWindows) [
             (hsPkgs."async" or (errorHandler.buildDepError "async"))
             (hsPkgs."base" or (errorHandler.buildDepError "base"))

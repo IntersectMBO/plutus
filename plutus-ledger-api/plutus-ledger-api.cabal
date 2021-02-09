@@ -65,7 +65,6 @@ library
         cardano-crypto -any,
         flat -any,
         hashable -any,
-        hedgehog -any,
         plutus-core -any,
         memory -any,
         mtl -any,
