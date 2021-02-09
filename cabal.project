@@ -50,13 +50,7 @@ constraints:
   -- aws-lambda-haskell-runtime-wai doesn't compile with newer versions
   aws-lambda-haskell-runtime <= 3.0.3
 
--- These are dependencies of the (disabled) tests of some of our source-repository-package dependencies.
--- But shellFor still wants them around (https://github.com/input-output-hk/haskell.nix/issues/993), so
--- we ensure they're included.
-extra-packages: data-ordlist, sequence, tasty-expected-failure, doctest-discover
-
--- stack.yaml is the source of truth for these pins, they are explained there
--- and need to be kept in sync.
+-- Needs some patches, but upstream seems to be fairly dead (no activity in > 1 year)
 source-repository-package
   type: git
   location: https://github.com/shmish111/purescript-bridge.git
@@ -72,6 +66,7 @@ source-repository-package
   location: https://github.com/input-output-hk/cardano-crypto.git
   tag: f73079303f663e028288f9f4a9e08bcca39a923e
 
+-- Needs a fix (https://github.com/wenkokke/unlit/pull/11) and a Hackage release
 source-repository-package
   type: git
   location: https://github.com/michaelpj/unlit.git
