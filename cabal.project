@@ -58,8 +58,8 @@ source-repository-package
 
 source-repository-package
   type: git
-  location: https://github.com/eskimor/servant-purescript.git
-  tag: 6454d5bcb9aa2a5d6e3a3dc935423b67b6f3993c
+  location: https://github.com/shmish111/servant-purescript.git
+  tag: a76104490499aa72d40c2790d10e9383e0dbde63
 
 source-repository-package
   type: git
