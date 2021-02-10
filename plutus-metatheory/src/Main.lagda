@@ -18,6 +18,7 @@ open import Data.Bool
 open import Data.Fin
 open import Data.Vec hiding (_>>=_;_++_)
 open import Data.List hiding (_++_)
+import Debug.Trace as D
 
 open import Type
 open import Builtin hiding (ByteString)
@@ -124,6 +125,7 @@ postulate
   parseTmU : ByteString → Either ParseError TermNU
   convPU : ProgramU → Untyped
   convTmU : TermU → Untyped
+  unconvTmU : Untyped → TermU
   
 
 {-# FOREIGN GHC import Language.PlutusCore.Name #-}
@@ -168,6 +170,7 @@ postulate
 {-# COMPILE GHC deBruijnifyTmU = second (() <$) . runExcept . U.deBruijnTerm #-}
 {-# COMPILE GHC parseTmU = first (() <$) . runQuote. runExceptT . U.parseTerm  #-}
 {-# COMPILE GHC convTmU = U.conv #-}
+{-# COMPILE GHC unconvTmU = U.uconv 0 #-}
 
 postulate
   prettyPrintTm : RawTm → String
@@ -556,4 +559,18 @@ runTCEK t = do
   return (unconvTm (unshifter Z (extricateScope (extricate (Algorithmic.CEKV.discharge V)))))
 
 {-# COMPILE GHC runTCEK as runTCEKAgda #-}
+
+postulate showU : TermU -> String
+
+{-# COMPILE GHC showU = T.pack . show #-}
+
+
+runU : TermU → Either ERROR TermU
+runU t = do
+  tDB ← withE scopeError $ U.scopeCheckU {0} (convTmU (D.trace (showU t) t))
+  just tR ← withE runtimeError $ U.progressor maxsteps (D.trace (Untyped.ugly tDB) tDB)
+    where nothing → inj₂ (unconvTmU UError)
+  return (unconvTmU (extricateU tR))
+
+{-# COMPILE GHC runU as runUAgda #-}
 \end{code}

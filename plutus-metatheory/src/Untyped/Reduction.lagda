@@ -399,7 +399,7 @@ progressor 0       t = inj₁ gasError
 progressor (suc n) t with progress t
 ... | step {N = t'} p  = progressor n t'
 ... | done v  = inj₂ $ just (deval v)
-... | error e = inj₁ userError
+... | error e = inj₂ $ just error -- userError
 \end{code}
 
 \begin{code}
