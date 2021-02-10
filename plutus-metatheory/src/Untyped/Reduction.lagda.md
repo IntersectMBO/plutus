@@ -1,8 +1,15 @@
-\begin{code}
-module Untyped.Reduction where
-\end{code}
+---
+title: Untyped reduction
+style: page
+---
 
-\begin{code}
+```
+module Untyped.Reduction where
+```
+
+## Imports
+
+```
 open import Untyped
 open import Untyped.RenamingSubstitution
 open import Builtin
@@ -22,13 +29,21 @@ open import Relation.Nullary.Decidable
 open import Data.Fin using ()
 open import Utils hiding (_≤L_;_:<_)
 import Data.List
-\end{code}
+```
 
-\begin{code}
+## Fixyt
+
+```
 infix 2 _—→_
-\end{code}
+```
 
-\begin{code}
+## Builtin Arities
+
+Typed builtins can take type and term arguments in any order. We
+preserve this behaviour in the untyped language using delay/force. So,
+arities are not just numbers they are lists of type/term labels.
+
+```
 data Label : Set where
   Type : Label
   Term : Label
@@ -72,15 +87,19 @@ data _≤L_ : Bwd Label → Bwd Label → Set where
   skipTerm : ∀{L L'} → L :< Term ≤L L' → L ≤L L'
 
 infix 5 _≤L_
+```
 
+## Error, values, telescopes of values, builtins
+
+```
 -- for untyped reduction, error also includes thing like impossible
 -- applications
 data Error {n} : n ⊢ → Set where
   E-error : Error error
 
-\end{code}
+```
 
-\begin{code}
+```
 ITel : Builtin → Bwd Label → Set
 
 -- I cannot remember why there is both a FValue and a Value...
@@ -215,8 +234,11 @@ IBUILTIN _ _ = error , inr E-error
 
 IBUILTIN' : (b : Builtin) → ∀{L} → L ≡ arity b → ITel b L → Σ (0 ⊢) λ t → Value t ⊎ Error t
 IBUILTIN' b refl vs = IBUILTIN b vs
+```
 
+## Reduction
 
+```
 data _—→_ : 0 ⊢ → 0 ⊢ → Set where
   ξ-·₁ : {L L' M : 0 ⊢} → L —→ L' → L · M —→ L' · M
   ξ-·₂ : {L M M' : 0 ⊢} → FValue L → M —→ M' → L · M —→ L · M'
@@ -261,16 +283,18 @@ data _—→_ : 0 ⊢ → 0 ⊢ → Set where
   -- this is a runtime type error that ceases to be a type error after erasure
   -- E-runtime : {L : n ⊢} → L —→ error
 
-\end{code}
+```
 
 
-\begin{code}
+```
 data _—→⋆_ : 0 ⊢ → 0 ⊢ → Set where
   refl  : {t : 0 ⊢} → t —→⋆ t
   trans—→⋆ : {t t' t'' : 0 ⊢} → t —→ t' → t' —→⋆ t'' → t —→⋆ t''
-\end{code}
+```
 
-\begin{code}
+## Progress
+
+```
 data Progress (M : 0 ⊢) : Set where
   step : ∀{N}
     → M —→ N
@@ -377,9 +401,11 @@ progress (delay t)    = done V-delay
 progress (builtin b)  = done (ival b)
 progress (con tcn)    = done (V-con tcn)
 progress error       = error E-error
-\end{code}
+```
 
-\begin{code}
+## Iterating progress to run programs
+
+```
 run : ∀(t : 0 ⊢) → ℕ
   → Σ (0 ⊢) λ t' → t —→⋆ t' × (Maybe (Value t') ⊎ Error t')
 run t 0       = t , refl , inl nothing
@@ -388,9 +414,9 @@ run t (suc n) | done vt = t , refl , inl (just vt)
 run t (suc n) | error et = t , refl , inr et
 run t (suc n) | step {N = t'} p with run t' n
 run t (suc n) | step p | t'' , q , mvt'' = t'' , trans—→⋆ p q , mvt''
-\end{code}
+```
 
-\begin{code}
+```
 deval : ∀{t} → Value t → 0 ⊢
 deval {t} _ = t
 
@@ -400,9 +426,9 @@ progressor (suc n) t with progress t
 ... | step {N = t'} p  = progressor n t'
 ... | done v  = inj₂ $ just (deval v)
 ... | error e = inj₂ $ just error -- userError
-\end{code}
+```
 
-\begin{code}
+```
 open import Data.Empty
 open import Relation.Nullary
 
@@ -481,4 +507,4 @@ det E-delay· E-delay· = refl
 --temporary
 det (E-builtin .b) (E-builtin b) = refl
 -}
-\end{code}
+```

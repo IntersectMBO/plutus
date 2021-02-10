@@ -1,8 +1,15 @@
-\begin{code}
-module Untyped.RenamingSubstitution where
-\end{code}
+---
+title: Untyped renaming and substitution
+layout: page
+---
 
-\begin{code}
+```
+module Untyped.RenamingSubstitution where
+```
+
+## Imports
+
+```
 open import Untyped
 
 open import Data.Nat
@@ -11,9 +18,11 @@ open import Data.Vec
 open import Relation.Binary.PropositionalEquality
 open import Function
 open import Utils
-\end{code}
+```
 
-\begin{code}
+## Renaming
+
+```
 Ren : ℕ → ℕ → Set
 Ren m n = Fin m → Fin n
 
@@ -33,7 +42,11 @@ ren ρ error       = error
 
 weaken : ∀{n} → n ⊢ → suc n ⊢
 weaken t = ren suc t
+```
 
+Proofs that renaming forms a functor
+
+```
 lift-cong : ∀{m n}{ρ ρ' : Ren m n}
   → (∀ x → ρ x ≡ ρ' x)
   → (x : Fin (suc m))
@@ -86,7 +99,11 @@ ren-comp ρ ρ' (delay t)   = cong delay (ren-comp ρ ρ' t)
 ren-comp ρ ρ' (con c)     = refl
 ren-comp ρ ρ' (builtin b) = refl
 ren-comp ρ ρ' error       = refl 
+```
 
+## Substitution
+
+```
 Sub : ℕ → ℕ → Set
 Sub m n = Fin m → n ⊢
 
@@ -110,7 +127,11 @@ extend σ t (suc x) = σ x
 
 _[_] : ∀{n} → suc n ⊢ → n ⊢ → n ⊢
 t [ u ] = sub (extend ` u) t
+```
 
+Proofs that substitution forms a monad
+
+```
 lifts-cong : ∀{m n}{σ σ' : Sub m n}
   → (∀ x → σ x ≡ σ' x)
   → (x : Fin (suc m))
@@ -191,4 +212,15 @@ lifts-comp g f (suc x) = trans
   (sym (ren-sub f suc (g x)))
   (sub-ren suc (lifts f) (g x))
 
--- TODO: add sub-comp
+sub-comp : ∀{m n o}(g : Sub m n)(f : Sub n o)(t : m ⊢)
+  → sub (sub f ∘ g) t ≡ sub f (sub g t)
+sub-comp g f (` x)       = refl
+sub-comp g f (ƛ t)       =
+  cong ƛ (trans (sub-cong (lifts-comp g f) t) (sub-comp (lifts g) (lifts f) t))
+sub-comp g f (t · u)     = cong₂ _·_ (sub-comp g f t) (sub-comp g f u)
+sub-comp g f (force t)   = cong force (sub-comp g f t)
+sub-comp g f (delay t)   = cong delay (sub-comp g f t)
+sub-comp g f (con c)     = refl
+sub-comp g f (builtin b) = refl
+sub-comp g f error       = refl
+```
