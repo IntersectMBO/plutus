@@ -143,7 +143,9 @@ data ERROR = TypeError T.Text
            | ParseError (ParseError ())
            | ScopeError ScopeError
            | RuntimeError RuntimeError
+           deriving Show
 
-data ScopeError = DeBError|FreeVariableError FreeVariableError
+data ScopeError = DeBError|FreeVariableError FreeVariableError deriving Show
+data RuntimeError = GasError | UserError | RuntimeTypeError deriving Show
 
-data RuntimeError = GasError
+

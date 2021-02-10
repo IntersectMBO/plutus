@@ -38,6 +38,7 @@ import           Language.PlutusCore.Generators.NEAT.Common
 import           Language.PlutusCore.Generators.NEAT.Type
 import           Language.PlutusCore.Normalize
 import           Language.PlutusCore.Pretty
+import qualified Language.UntypedPlutusCore                                 as U
 
 import           Control.Monad.Except
 import           Control.Search                                             (Enumerable (..), Options (..), ctrex',
@@ -294,6 +295,10 @@ data Ctrex
     ClosedTypeG
     ClosedTermG
     [Term TyName Name DefaultUni DefaultFun ()]
+  | CtrexUntypedTermEvaluationMismatch
+    ClosedTypeG
+    ClosedTermG
+    [U.Term Name DefaultUni DefaultFun ()]
 
 instance Show TestFail where
   show (TypeError e)  = show e
@@ -356,6 +361,12 @@ instance Show Ctrex where
     where
       tpl = "Counterexample found: %s :: %s"
   show (CtrexTermEvaluationMismatch tyG tmG tms) =
+    printf tpl (show tmG) (show tyG) ++ results tms
+    where
+      tpl = "Counterexample found: %s :: %s\n"
+      results (t:ts) = "evaluation: " ++ show (pretty t) ++ "\n" ++ results ts
+      results []     = ""
+  show (CtrexUntypedTermEvaluationMismatch tyG tmG tms) =
     printf tpl (show tmG) (show tyG) ++ results tms
     where
       tpl = "Counterexample found: %s :: %s\n"
