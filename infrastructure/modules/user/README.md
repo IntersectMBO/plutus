@@ -4,6 +4,8 @@ This module is intended to create new AWS users.
 
 ## How to create new users
 
+To create a new account, the new user has to follow through the instructions in sections 1 and 2 below. Then an existing user with admin rights has to follow through the instructions in section 3. The new user should then be able to get access to AWS using the instrutions in section 4.
+
 ### 1. New user: Create a GPG public key
 
 If you already have a GPG pubic key, skip straight to the next section.
@@ -44,7 +46,7 @@ If you already have a GPG pubic key, skip straight to the next section.
 1. `cd ../private`.
 2. `git pull` (to get the 2 new files just mentioned).
 3. You now need to decrypt and decode these files with `base64 -d < joe.blogs.password | gpg -d` and `base64 -d < joe.blogs.secret | gpg -d`. Make a note of the results.
-4. [Login to AWS console for both KEVM and IELE](https://dev-mantis.signin.aws.amazon.com/console) using the username you used in `infrastructure/aws-accounts/users.tf` and the password you decrypted from `joe.blogs.password`. You will be prompted to set a new password.
+4. [Login to AWS console](https://dev-mantis.signin.aws.amazon.com/console) using the username you used in `infrastructure/aws-accounts/users.tf` and the password you decrypted from `joe.blogs.password`. You will be prompted to set a new password.
 5. Follow the instructions to [set up MFA](https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_mfa_enable_virtual.html) on your AWS account.
 6. Make a note of your Access key ID. It is displayed under your Security credentials tab in the Summary section of your IAM page.
 7. From inside your nix-shell, run `aws configure`. At the prompts, enter the following:
