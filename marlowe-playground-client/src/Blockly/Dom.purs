@@ -89,6 +89,8 @@ import Debug.Trace (spy)
 import Effect (Effect)
 import Effect.Class (class MonadEffect, liftEffect)
 import Foreign.Generic (class Encode, defaultOptions, genericEncode)
+import Foreign.Object (Object)
+import Foreign.Object as Object
 import Partial.Unsafe (unsafePartial)
 import Web.DOM (Element, Node)
 import Web.DOM.Element as Element
@@ -103,7 +105,11 @@ newtype Block
   = Block
   { id :: String
   , type :: String
-  , children :: Array BlockChildren
+  -- In the XML the children of a block are stored/represented as an array of elements, but to simplify
+  -- consumption we use a JS native Object (like a `Map String a` but with better performance).
+  -- This decision implies that we cannot have two childs properties with the same `name`, but I think we shouldn't
+  -- anyway, and if we do, we are going to have the same kind of error later on, while transforming from Dom -> Term
+  , children :: Object BlockChild
   }
 
 -- FIXME: Show only for dev, remove
@@ -118,32 +124,32 @@ derive instance newtypeBlock :: Newtype Block _
 _id :: Lens' Block String
 _id = _Newtype <<< prop (SProxy :: SProxy "id")
 
-data BlockChildren
-  -- A BcField has a `name` and and a `value`, both strings.
-  -- It is visually represented as a label and an editable field, for example
-  -- the "timeout" inside a When block, or the value inside a Constant block
-  = BcField String String
-  -- A BcValue has a `name` and and a `value`.
-  -- It is visually represented as a label in the block that can be attached to a new block. For
-  -- example "by", "the amount of" and "currency" in the Deposit block
-  | BcValue String Block
-  -- A BcStatement also has a `name` and a `value`.
-  -- It is visually represented as the pluggable elements insides of a block. For example the contract inside
+data BlockChild
+  -- A Field is visually represented as a label and an editable field, for example
+  -- the "timeout" inside a "When block", or the value inside a "Constant block".
+  = Field String
+  -- A Value is visually represented as a label in the block that can be attached to a new block on the side.
+  -- For example "by", "the amount of" and "currency" in the "Deposit block"
+  | Value Block
+  -- A Statement is visually represented as the pluggable elements inside of a block. For example the contract inside
   -- the root block or the Actions inside of a When block.
-  -- We represent the statement children as an Array of Blocks, but as you can see in the XML top level example,
-  -- each `<statement>` has a single block child, and siblings are represented by a `<next>` node, nested inside.
-  -- In the initial version of this module, Next was a BlockChildren constructor, making it easier to parse the
+  -- We represent the statement children as an Array of Blocks, but as you can see in the top level XML example,
+  -- each `<statement>` has a single block child, and siblings are represented by a `<next>` node nested inside.
+  -- In the initial version of this module, Next was a BlockChild constructor, making it easier to parse the
   -- XML, but knowing that it would complicate the translation to Term, I decided to flatten the statement's childs
   -- while parsing.
-  | BcStatement String (Array Block)
+  | Statement (Array Block)
 
 -- FIXME: Show only for dev, remove
-derive instance genericBlockChildren :: Generic BlockChildren _
+derive instance genericBlockChildren :: Generic BlockChild _
 
-instance encodeBlockChildren :: Encode BlockChildren where
+instance encodeBlockChildren :: Encode BlockChild where
   encode value = genericEncode defaultOptions value
 
 -- ENDFIXME
+type ChildWithName
+  = Tuple String BlockChild
+
 data ReadDomError
   = TypeMismatch Element String
   | MissingProperty Element String
@@ -167,6 +173,7 @@ explainError (IncorrectSiblingNesting node) = "Incorrect <next> element found ou
 getDom :: Blockly -> Workspace -> String -> Effect (Either ReadDomError Block)
 getDom blockly workspace rootBlockId =
   runExceptT do
+    -- FIXME: remove the spy
     rootElement <- liftEffect $ spy "xml?" <$> workspaceToDom blockly workspace
     if Element.tagName rootElement /= "xml" then
       throwError $ TypeMismatch rootElement "xml"
@@ -193,28 +200,35 @@ getDom blockly workspace rootBlockId =
       blockId <- liftEffect $ Element.id element
       blockType <- getAttribute "type" element
       elementChildren <- getChildrens element
-      children <- traverse readAsBlockChild elementChildren
+      -- Parse each child element, which can be Either a BlockChild (field, value, statement) or a list of
+      -- siblings to pass to my parent
+      { left, right } <- separate <$> traverse readAsBlockChild elementChildren
       let
-        { left, right } = separate children
+        children = Object.fromFoldable left
       pure
         $ Tuple
-            (Block { id: blockId, type: blockType, children: left })
+            (Block { id: blockId, type: blockType, children })
             (join right)
 
   -- Tries to read an Element as the children of a Block node. The Left hand side of the return represents a Block direct children
   -- while the Right hand side represents the parsed `<next>` elements which should be appended to a parents Statement.
-  readAsBlockChild :: forall m. MonadEffect m => MonadThrow ReadDomError m => Element -> m (Either BlockChildren (Array Block))
+  readAsBlockChild ::
+    forall m.
+    MonadEffect m =>
+    MonadThrow ReadDomError m =>
+    Element ->
+    m (Either ChildWithName (Array Block))
   readAsBlockChild element = do
     case Element.tagName element of
       "field" -> do
         name <- getAttribute "name" element
         value <- getElementText element
-        pure $ Left $ BcField name value
+        pure $ Left $ Tuple name $ Field value
       "statement" -> do
         name <- getAttribute "name" element
         child <- getSingleChild element
         Tuple block nexts <- readAsBlock child
-        pure $ Left $ BcStatement name ([ block ] <> nexts)
+        pure $ Left $ Tuple name $ Statement ([ block ] <> nexts)
       "value" -> do
         name <- getAttribute "name" element
         child <- getSingleChild element
@@ -223,7 +237,7 @@ getDom blockly workspace rootBlockId =
         if length nexts /= 0 then
           throwError $ IncorrectSiblingNesting "value"
         else
-          pure $ Left $ BcValue name block
+          pure $ Left $ Tuple name $ Value block
       "next" -> do
         child <- getSingleChild element
         Tuple block nexts <- readAsBlock child
