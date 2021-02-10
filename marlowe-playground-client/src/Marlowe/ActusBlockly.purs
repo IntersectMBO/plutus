@@ -680,7 +680,7 @@ instance hasBlockDefinitionValue :: HasBlockDefinition ActusValueType ActusValue
   blockDefinition ActusIntegerType g block = do
     valueString <- getFieldValue block "value"
     value <- fromMaybe (Either.Left "can't parse numeric") $ Either.Right <$> BigInteger.fromString valueString
-    pure $ DecimalValue value
+    pure $ IntegerValue value
   blockDefinition ActusAssertionContextType g block = do
     minValueString <- getFieldValue block "min_rrmo"
     minValue <- fromMaybe (Either.Left "can't parse numeric") $ Either.Right <$> parseFloat minValueString
