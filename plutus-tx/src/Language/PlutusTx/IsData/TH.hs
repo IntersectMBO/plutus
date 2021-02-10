@@ -1,5 +1,5 @@
 {-# LANGUAGE TemplateHaskell #-}
-module Language.PlutusTx.IsData.TH (makeIsData, makeIsDataIndexed) where
+module Language.PlutusTx.IsData.TH (unsafeMakeIsData, makeIsDataIndexed) where
 
 import           Data.Foldable
 import           Data.Traversable
@@ -47,8 +47,8 @@ defaultIndex name = do
 
 -- | Generate an 'IsData' instance for a type. This may not be stable in the face of constructor additions, renamings,
 -- etc. Use 'makeIsDataIndexed' if you need stability.
-makeIsData :: TH.Name -> TH.Q [TH.Dec]
-makeIsData name = makeIsDataIndexed name =<< defaultIndex name
+unsafeMakeIsData :: TH.Name -> TH.Q [TH.Dec]
+unsafeMakeIsData name = makeIsDataIndexed name =<< defaultIndex name
 
 -- | Generate an 'IsData' instance for a type, using an explicit mapping of constructor names to indices. Use
 -- this for types where you need to keep the representation stable.

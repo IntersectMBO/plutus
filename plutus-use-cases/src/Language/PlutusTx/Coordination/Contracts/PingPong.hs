@@ -140,8 +140,7 @@ runStop = endpoint @"stop" >> void (SM.runStep client Stop)
 runWaitForUpdate :: Contract PingPongSchema PingPongError (Maybe (OnChainState PingPongState Input))
 runWaitForUpdate = SM.waitForUpdate client
 
-PlutusTx.makeIsData ''PingPongState
+PlutusTx.unsafeMakeIsData ''PingPongState
 PlutusTx.makeLift ''PingPongState
-PlutusTx.makeIsData ''Input
+PlutusTx.unsafeMakeIsData ''Input
 PlutusTx.makeLift ''Input
-

@@ -317,4 +317,4 @@ round x
           sig    = signumR (abs r P.- half)
 
 P.makeLift ''Ratio
-P.makeIsData ''Ratio
+P.makeIsDataIndexed ''Ratio [('(:%),0)]

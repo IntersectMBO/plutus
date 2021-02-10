@@ -13,9 +13,11 @@ import           Language.PlutusTx.IsData.TH
 -- While these types should be stable, we really don't want them changing, so index
 -- them explicitly to be sure.
 makeIsDataIndexed ''Bool [('False,0),('True,1)]
-makeIsData ''()
-makeIsData ''(,)
-makeIsData ''(,,)
-makeIsData ''(,,,)
 makeIsDataIndexed ''Maybe [('Just,0),('Nothing,1)]
 makeIsDataIndexed ''Either [('Left,0),('Right,1)]
+
+-- Okay to use unsafeMakeIsData here since there's only one alternative and we're sure that will never change
+unsafeMakeIsData ''()
+unsafeMakeIsData ''(,)
+unsafeMakeIsData ''(,,)
+unsafeMakeIsData ''(,,,)

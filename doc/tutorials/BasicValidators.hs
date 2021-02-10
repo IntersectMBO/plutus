@@ -25,11 +25,12 @@ newtype Date = Date Integer
 -- | Either a specific end date, or "never".
 data EndDate = Fixed Integer | Never
 
--- 'makeIsData' is a TemplateHaskell function that takes a type name and
+-- 'unsafeMakeIsData' is a TemplateHaskell function that takes a type name and
 -- generates an 'IsData' instance definition for it. It should work for most
--- types, including newtypes and sum types.
-makeIsData ''Date
-makeIsData ''EndDate
+-- types, including newtypes and sum types. For production usage use 'makeIsDataIndexed'
+-- which ensures that the output is stable across time.
+unsafeMakeIsData ''Date
+unsafeMakeIsData ''EndDate
 
 -- BLOCK2
 alwaysSucceeds :: Data -> Data -> Data -> ()

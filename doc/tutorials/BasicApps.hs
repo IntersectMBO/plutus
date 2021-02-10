@@ -40,7 +40,8 @@ data SplitData =
         }
     deriving stock (Show, Generic)
 
-PlutusTx.makeIsData ''SplitData
+-- For a 'real' application use 'makeIsDataIndexed' to ensure the output is stable over time
+PlutusTx.unsafeMakeIsData ''SplitData
 PlutusTx.makeLift ''SplitData
 
 -- BLOCK2

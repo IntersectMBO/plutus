@@ -60,7 +60,7 @@ data SwapOwners = SwapOwners {
     swapOwnersFloating :: PubKeyHash
     }
 
-PlutusTx.makeIsData ''SwapOwners
+PlutusTx.unsafeMakeIsData ''SwapOwners
 PlutusTx.makeLift ''SwapOwners
 
 type SwapOracleMessage = SignedMessage (Observation Rational)

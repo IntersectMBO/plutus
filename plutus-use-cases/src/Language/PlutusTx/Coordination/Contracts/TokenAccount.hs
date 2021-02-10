@@ -251,4 +251,4 @@ newAccount tokenName pk = mapError (review _TokenAccountError) $ do
     pure $ Account (sym, tokenName)
 
 PlutusTx.makeLift ''Account
-PlutusTx.makeIsData ''Account
+PlutusTx.unsafeMakeIsData ''Account
