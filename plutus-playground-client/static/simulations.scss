@@ -1,0 +1,197 @@
+.simulations {
+    .nav-tabs {
+        background: $gray-background-color;
+        border-color: $blue;
+        border-width: 2px;
+    
+        .nav-item {
+            position: relative;
+            margin-bottom: -2px;
+
+            // it's surprisingly fiddly getting the borders right
+            // this works, but there might be a more elegant solution...
+            &::after {
+                position: absolute;
+                content: " ";
+                height: calc(100% - 2px);
+                width: 1px;
+                background: $gray-border-color;
+                top: 0;
+                left: -1px;
+                z-index: 0;
+            }
+        }
+    
+        .nav-link {
+            position: relative;
+            z-index: 1;
+            cursor: default;
+            border-width: 2px;
+            border-radius: 0;
+            color: inherit;
+            margin-left: -1px;
+            height: 100%;
+
+            &:not(:last-child) {
+                padding-right: 3em; // leave room for the close button
+            }
+
+            &:hover {
+                border-color: transparent;
+            }
+    
+            &.active {
+                border-color: $blue;
+                border-bottom-color: transparent;
+                background: $gray-100;
+            }
+        }
+    }
+
+    .simulation-nav-item-control {
+        display: inline-block;
+        padding: 0 .5em;
+
+        &:not(:first-child) {
+            position: absolute;
+            top: .75em;
+            right: .75em;
+            z-index: 2;
+        }
+
+        &:hover {
+            background: $gray-accent-color;
+        }
+    }
+
+    .ajax-error {
+        margin-top: 1rem;
+
+        .alert {
+            margin: 0;
+        }
+    }
+}
+
+.simulation {
+    padding: 1rem;
+
+    .simulation-controls {
+        display: flex;
+
+        button {
+            width: 8rem;
+
+            &:not(:first-child) {
+                margin-left: 1rem;
+            }
+        }
+    }
+}
+
+.wallets,
+.actions {
+    margin-bottom: 1rem;
+
+    h3 {
+        font-size: 1.1rem;
+    }
+
+    h4 {
+        font-size: 1rem;
+        margin-bottom: .75em;
+    }    
+}
+
+.actions-being-dragged {
+    .action {
+        opacity: 0.75;
+    }
+}
+
+
+.wallet-list,
+.action-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, 309px); // 309px means 3 fit exactly on 1024px screen
+    grid-gap: 1rem;
+}
+
+.wallet,
+.action {
+    .close-button {
+        margin: -0.5rem -0.5rem 0 0;
+
+        &:hover {
+            background: $gray-accent-color;
+        }
+    }
+
+    .form-control {
+        // otherwise flex-wrap is not necessarily triggered, and some inputs become unreadably small
+        min-width: 6rem;
+    }
+
+    .form-group:last-child {
+        margin-bottom: 0;
+    }
+}
+
+.wallet {
+    .available-actions > div {
+        display: flex;
+        flex-wrap: wrap;
+        margin: -0.125rem;
+
+        &:not(:first-child) {
+            margin-top: .125rem;
+        }
+
+        .action-button {
+            flex: 1;
+            margin: .125rem;
+            display: flex;
+        }
+
+        .action-button-text {
+            flex: 1;
+        }
+
+        .action-button-icon {
+            margin-left: .5rem;
+        }
+    }
+}
+
+.action {
+    position: relative;
+
+    .action-label {
+        position: absolute;
+        top: -0.75rem;
+        left: 128px;
+        width: 40px;
+        text-align: center;
+        background: $white;
+        border-radius: $border-radius-sm;
+        border: 1px solid $gray-400;
+    }
+
+    .wait-type-options {
+        border: 1px solid $gray-border-color;
+        border-radius: $border-radius;
+        padding: .4em;
+        margin-bottom: .5rem;
+    }
+}
+
+.add-wallet,
+.add-wait-action {
+    cursor: pointer;
+    align-self: flex-start;
+    text-align: center;
+}    
+
+.action-invalid-wallet {
+    border: solid 1px $red;
+}

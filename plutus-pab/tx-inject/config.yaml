@@ -1,0 +1,51 @@
+dbConfig:
+    dbConfigFile: ./primary.db
+    dbConfigPoolSize: 20
+
+pabWebserverConfig:
+  baseUrl: http://localhost:8080
+  staticDir: .
+
+walletServerConfig:
+  baseUrl: http://localhost:8081
+  wallet: 
+    getWallet: 1
+
+nodeServerConfig:
+  mscBaseUrl: http://localhost:8082
+  mscSocketPath: ./node-server.sock
+  mscSlotLength: 5
+  mscBlockReaper:
+    brcInterval: 6000000
+    brcBlocksToKeep: 100000
+  mscInitialTxWallets:
+    - getWallet: 1
+    - getWallet: 2
+    - getWallet: 3
+    - getWallet: 4
+    - getWallet: 5
+    - getWallet: 6
+    - getWallet: 7
+    - getWallet: 8
+    - getWallet: 9
+    - getWallet: 10
+
+chainIndexConfig:
+  ciBaseUrl: http://localhost:8083
+  ciWatchedAddresses: 
+    [ { "tag": "PubKeyAddress"
+      , "contents": { "getPubKeyHash" : "9d61b19deffd5a60ba844af492ec2cc44449c5697b326919703bac031cae7f60" }
+      } 
+    ]
+
+requestProcessingConfig:
+  requestProcessingInterval: 1
+
+signingProcessConfig:
+  spBaseUrl: http://localhost:8084
+  spWallet: 
+    getWallet: 1
+  
+metadataServerConfig:
+  mdBaseUrl: http://localhost:8085
+

@@ -53,13 +53,15 @@ import           Language.Plutus.Contract
 
 newtype HashedString = HashedString ByteString
     deriving newtype (PlutusTx.IsData, Eq)
-    deriving stock Show
+    deriving stock (Show, Generic)
+    deriving anyclass (ToJSON, FromJSON)
 
 PlutusTx.makeLift ''HashedString
 
 newtype ClearString = ClearString ByteString
     deriving newtype (PlutusTx.IsData, Eq)
-    deriving stock Show
+    deriving stock (Show, Generic)
+    deriving anyclass (ToJSON, FromJSON)
 
 PlutusTx.makeLift ''ClearString
 
@@ -95,8 +97,9 @@ type GameStateMachineSchema =
 
 data GameError =
     GameContractError ContractError
-    | GameSMError (SM.SMContractError GameState GameInput)
-    deriving stock (Show)
+    | GameSMError SM.SMContractError
+    deriving stock (Show, Generic)
+    deriving anyclass (ToJSON, FromJSON)
 
 -- | Top-level contract, exposing both endpoints.
 contract :: Contract GameStateMachineSchema GameError ()
@@ -116,7 +119,8 @@ data GameState =
     | Locked MonetaryPolicyHash TokenName HashedString
     -- ^ Funds have been locked. In this state only the 'Guess' action is
     --   allowed.
-    deriving (Show)
+    deriving stock (Show, Generic)
+    deriving anyclass (ToJSON, FromJSON)
 
 instance Eq GameState where
     {-# INLINABLE (==) #-}
@@ -136,7 +140,8 @@ data GameInput =
     | Guess ClearString HashedString Value
     -- ^ Make a guess, extract the funds, and lock the remaining funds using a
     --   new secret word.
-    deriving (Show)
+    deriving stock (Show, Generic)
+    deriving anyclass (ToJSON, FromJSON)
 
 {-# INLINABLE transition #-}
 transition :: State GameState -> GameInput -> Maybe (TxConstraints Void Void, State GameState)

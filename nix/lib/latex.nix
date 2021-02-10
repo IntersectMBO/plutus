@@ -1,5 +1,4 @@
-{ stdenv, lib, texlive }:
-{
+{ stdenv, lib, texlive }: {
   # Build a latex derivation using latexmk.
   buildLatex =
     { texFiles ? [ ]
@@ -21,7 +20,14 @@
       buildPhase = ''
         runHook preBuild
         mkdir -p ${buildDir}
-        latexmk -outdir=${buildDir} -pdf ${toString texFiles}
+        # The bibtex_fudge setting is because our version of latexmk has an issue with bibtex
+        # and explicit output directories, which should be fixed in v4.70b: 
+        # https://tex.stackexchange.com/questions/564626/latexmk-4-70a-doesnt-compile-document-with-bibtex-citation
+        latexmk \
+          -e '$bibtex_fudge=1' \
+          -outdir=${buildDir} \
+          -pdf \
+          ${toString texFiles}
         runHook postBuild
       '';
       installPhase = ''

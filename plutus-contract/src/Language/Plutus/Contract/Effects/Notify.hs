@@ -20,7 +20,7 @@ import           Language.Plutus.Contract.Types                  (Contract, mapE
 import           Wallet.Types                                    (ContractInstanceId, Notification (..),
                                                                   NotificationError (..))
 
-type NotifySym = "notify"
+type NotifySym = "notify-instance"
 
 type HasContractNotify s =
     ( HasType NotifySym Notification (Output s)
@@ -31,11 +31,11 @@ type HasContractNotify s =
 type ContractInstanceNotify = NotifySym .== (Maybe NotificationError, Notification)
 
 -- | Send a notification to an instance of another contract whose schema
---   is known. (This provides slightly more type-safety than 'notifyUnsafe')
+--   is known. (This provides slightly more type-safety than 'notifyInstanceUnsafe')
 --
 --   TODO: In the future the runtime should check that the contract instance
 --   does indeed conform with 'otherSchema'.
-notify :: forall ep a otherSchema s.
+notifyInstance :: forall ep a otherSchema s.
     ( HasContractNotify s
     , HasEndpoint ep a otherSchema
     , ToJSON a
@@ -43,17 +43,17 @@ notify :: forall ep a otherSchema s.
     => ContractInstanceId
     -> a
     -> Contract s NotificationError ()
-notify i v = notifyUnsafe @ep i (toJSON v)
+notifyInstance i v = notifyInstanceUnsafe @ep i (toJSON v)
 
 -- | Send a notification to a contract instance.
-notifyUnsafe :: forall ep s.
+notifyInstanceUnsafe :: forall ep s.
     ( HasContractNotify s
     , KnownSymbol ep
     )
     => ContractInstanceId
     -> Value
     -> Contract s NotificationError ()
-notifyUnsafe i a = do
+notifyInstanceUnsafe i a = do
     let notification = Notification
             { notificationContractID = i
             , notificationContractEndpoint = endpointDescription (Proxy @ep)

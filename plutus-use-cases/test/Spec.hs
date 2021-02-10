@@ -1,6 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Main(main) where
 
+import qualified Spec.Auction
 import qualified Spec.Crowdfunding
 import qualified Spec.Currency
 import qualified Spec.ErrorHandling
@@ -49,5 +50,6 @@ tests = localOption limit $ testGroup "use cases" [
     Spec.PingPong.tests,
     Spec.RPC.tests,
     Spec.Prism.tests,
-    Spec.Stablecoin.tests
+    Spec.Stablecoin.tests,
+    Spec.Auction.tests
     ]

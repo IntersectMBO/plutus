@@ -40,7 +40,9 @@ module.exports = {
                                 'src/**/*.purs',
                                 'generated/**/*.purs',
                                 '.spago/*/*/src/**/*.purs',
-                                '../web-common/**/*.purs',
+                                'web-common/**/*.purs',
+                                'web-common-marlowe/**/*.purs',
+                                'web-common-playground/**/*.purs',
                                 'test/**/*.purs'
                             ],
                         }
@@ -56,7 +58,10 @@ module.exports = {
 
     resolve: {
         modules: [
-            'node_modules'
+            // We need the second entry for node to be able to
+            // locate `node_modules` from client directory when 
+            // modules are referenced from inside `web-common`.
+            'node_modules', path.resolve(__dirname, './node_modules')
         ],
         alias: {
             grammar: path.resolve(__dirname, './grammar.ne'),

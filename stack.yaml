@@ -1,25 +1,26 @@
 resolver: nightly-2020-08-17
 
 packages:
+- doc
+- marlowe
+- marlowe-dashboard-server
+- marlowe-actus
+- marlowe-playground-server
+- marlowe-symbolic
+- playground-common
+- plutus-benchmark
+- plutus-contract
 - plutus-core
+- plutus-errors
+- plutus-ledger
+- plutus-ledger-api
+- plutus-metatheory
+- plutus-pab
+- plutus-playground-server
 - plutus-tx
 - plutus-tx-plugin
 - plutus-use-cases
-- plutus-benchmark
-- playground-common
-- marlowe
-- marlowe-playground-server
-- marlowe-actus
-- plutus-metatheory
-- plutus-ledger
-- plutus-playground-server
-- plutus-contract
-- plutus-scb
-- deployment-server
-- iots-export
-- marlowe-symbolic
 - prettyprinter-configurable
-- doc
 - web-ghc
 
 extra-deps:
@@ -56,7 +57,6 @@ extra-deps:
 - github-webhooks-0.12.0
 - monoidal-containers-0.6.0.1
 - monad-stm-0.1.0.2
-- prometheus-2.1.3
 - row-types-0.4.0.0
 - time-out-0.2@sha256:b9a6b4dee64f030ecb2a25dca0faff39b3cb3b5fefbb8af3cdec4142bfd291f2
 - time-interval-0.1.1@sha256:7bfd3601853d1af7caa18248ec10b01701d035ac274a93bb4670fea52a14d4e8
@@ -82,7 +82,7 @@ extra-deps:
 - witherable-class-0
 # Needs some patches, but upstream seems to be fairly dead (no activity in > 1 year)
 - git: https://github.com/shmish111/purescript-bridge.git
-  commit: 28c37771ef30b0d751960c061ef95627f05d290e
+  commit: 6a92d7853ea514be8b70bab5e72077bf5a510596
 - git: https://github.com/shmish111/servant-purescript.git
   commit: ece5d1dad16a5731ac22040075615803796c7c21
 - git: https://github.com/input-output-hk/cardano-crypto.git
@@ -180,7 +180,6 @@ ghc-options:
   eventful-sql-common: "-XDerivingStrategies -XStandaloneDeriving -XUndecidableInstances"
   # Disable all warnings, we're building with a newer version of GHC
   iohk-monitoring: "-w" 
-  inline-r: "-XStandaloneKindSignatures"
 
 nix:
   shell-file: shell.nix

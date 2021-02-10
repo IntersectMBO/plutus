@@ -10,17 +10,20 @@ module Wallet.Emulator.LogMessages(
   ) where
 
 import           Data.Aeson                  (FromJSON, ToJSON)
-import           Data.Text.Prettyprint.Doc   (Pretty (..), (<+>))
+import           Data.Text.Prettyprint.Doc   (Pretty (..), hang, viaShow, vsep, (<+>))
 import           GHC.Generics                (Generic)
+import           Ledger                      (Address)
 import           Ledger.Constraints.OffChain (UnbalancedTx)
 import           Ledger.Slot                 (Slot)
 import           Ledger.Value                (Value)
+import           Wallet.Emulator.Error       (WalletAPIError)
 
 data RequestHandlerLogMsg =
     SlotNoficationTargetVsCurrent Slot Slot
     | StartWatchingContractAddresses
     | HandleNextTxAt Slot Slot
-    | HandleTxFailed
+    | HandleTxFailed WalletAPIError
+    | UtxoAtFailed Address
     deriving stock (Eq, Ord, Show, Generic)
     deriving anyclass (ToJSON, FromJSON)
 
@@ -29,12 +32,13 @@ instance Pretty RequestHandlerLogMsg where
         SlotNoficationTargetVsCurrent target current ->
             "target slot:" <+> pretty target <> "; current slot:" <+> pretty current
         StartWatchingContractAddresses -> "Start watching contract addresses"
-        HandleTxFailed -> "handleTx failed"
+        HandleTxFailed e -> "handleTx failed:" <+> viaShow e
         HandleNextTxAt current target ->
             "handle next tx at. Target:"
                 <+> pretty target
                 <+> "Current:"
                 <+> pretty current
+        UtxoAtFailed addr -> "UtxoAt failed:" <+> pretty addr
 
 data TxBalanceMsg =
     BalancingUnbalancedTx UnbalancedTx
@@ -47,7 +51,7 @@ data TxBalanceMsg =
 
 instance Pretty TxBalanceMsg where
     pretty = \case
-        BalancingUnbalancedTx utx   -> "Balancing an unbalanced transaction:" <+> pretty utx
+        BalancingUnbalancedTx utx   -> hang 2 $ vsep ["Balancing an unbalanced transaction:", pretty utx]
         NoOutputsAdded              -> "No outputs added"
         AddingPublicKeyOutputFor vl -> "Adding public key output for" <+> pretty vl
         NoInputsAdded               -> "No inputs added"

@@ -1,0 +1,15 @@
+.save-as-modal {
+  width: 400px;
+  input {
+    padding: 0.5rem 1rem;
+  }
+  .error {
+    color: var(--error-color)
+  }
+  button {
+    /* Make buttons have the same width, and reset horizontal padding so
+    that both texts are centered*/
+    width: 6rem;
+    padding: 0.5rem 0;
+  }
+}

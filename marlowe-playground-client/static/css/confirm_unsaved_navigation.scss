@@ -1,0 +1,9 @@
+.confirm-unsaved-navigation {
+  p {
+    margin-bottom: var(--small-margin);
+  }
+  .actions {
+    display: flex;
+    justify-content: space-between;
+  }
+}

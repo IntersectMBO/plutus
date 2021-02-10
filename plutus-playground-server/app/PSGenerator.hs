@@ -39,6 +39,8 @@ import qualified ErrorHandling
 import qualified ErrorHandlingSimulations
 import qualified Game
 import qualified GameSimulations
+import qualified HelloWorld
+import qualified HelloWorldSimulations
 import qualified Interpreter                                as Webghc
 import           Language.Haskell.Interpreter               (CompilationError, InterpreterError,
                                                              InterpreterResult (InterpreterResult),
@@ -60,7 +62,7 @@ import           Playground.Types                           (CompilationResult (
                                                              Simulation (Simulation), SimulatorAction, SimulatorWallet,
                                                              contractDemoContext, contractDemoEditorContents,
                                                              contractDemoName, contractDemoSimulations, functionSchema,
-                                                             iotsSpec, knownCurrencies, program, simulationActions,
+                                                             knownCurrencies, program, simulationActions,
                                                              simulationWallets, sourceCode, wallets)
 import           Playground.Usecases                        (crowdFunding, errorHandling, game, starter, vesting)
 import qualified Playground.Usecases                        as Usecases
@@ -256,6 +258,12 @@ generate outputDir = do
 contractDemos :: [ContractDemo]
 contractDemos =
     [ mkContractDemo
+        "Hello, world"
+        Usecases.helloWorld
+        HelloWorldSimulations.simulations
+        HelloWorld.schemas
+        HelloWorld.registeredKnownCurrencies
+    , mkContractDemo
           "Starter"
           Usecases.starter
           StarterSimulations.simulations
@@ -304,6 +312,6 @@ mkContractDemo contractDemoName contractDemoEditorContents contractDemoSimulatio
                   { warnings = []
                   , result =
                         CompilationResult
-                            {functionSchema, knownCurrencies, iotsSpec = ""}
+                            {functionSchema, knownCurrencies}
                   }
         }

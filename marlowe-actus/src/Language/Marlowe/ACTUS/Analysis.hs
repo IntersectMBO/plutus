@@ -1,7 +1,8 @@
 {-# LANGUAGE RecordWildCards #-}
 module Language.Marlowe.ACTUS.Analysis(sampleCashflows, genProjectedCashflows, genZeroRiskAssertions) where
 
-import qualified Data.List                                             as L (scanl, tail, zip)
+import qualified Data.List                                             as L (dropWhile, groupBy, head, scanl, tail, zip)
+import qualified Data.Map                                              as M (fromList, lookup)
 import           Data.Maybe                                            (fromJust, fromMaybe)
 import           Data.Sort                                             (sortOn)
 import           Data.Time                                             (Day, fromGregorian)
@@ -23,6 +24,18 @@ import           Prelude                                               hiding (F
 genProjectedCashflows :: ContractTerms -> [CashFlow]
 genProjectedCashflows = sampleCashflows (const $ RiskFactors 1.0 1.0 1.0 0.0)
 
+postProcessSchedule :: ContractTerms -> [(EventType, ShiftedDay)] -> [(EventType, ShiftedDay)]
+postProcessSchedule ct =
+    let trim = L.dropWhile (\(_, d) -> calculationDay d < ct_SD ct)
+        prioritised = [AD, IED, PR, PI, PRF, PY, FP, PRD, TD, IP, IPCI, IPCB, RR, PP, CE, MD, RRF, SC, STD, DV, XD, MR]
+        priority :: (EventType, ShiftedDay) -> Integer
+        priority (event, _) = fromJust $ M.lookup event $ M.fromList (zip prioritised [1..])
+        simillarity (_, l) (_, r) = calculationDay l == calculationDay r
+        regroup = L.groupBy simillarity
+        overwrite = map (L.head . sortOn priority) . regroup
+    in overwrite . trim
+
+
 sampleCashflows :: (Day -> RiskFactors) -> ContractTerms -> [CashFlow]
 sampleCashflows riskFactors terms =
     let
@@ -33,6 +46,7 @@ sampleCashflows riskFactors terms =
         getSchedule e = fromMaybe [] $ schedule e terms
         scheduleEvent e = preserveDate e <$> getSchedule e
         events = sortOn (paymentDay . snd) $ concatMap scheduleEvent eventTypes
+        events' = postProcessSchedule terms events
 
         applyStateTransition (st, ev, date) (ev', date') =
             (stateTransition ev (riskFactors $ calculationDay date) terms st (calculationDay date), ev', date')
@@ -44,7 +58,7 @@ sampleCashflows riskFactors terms =
             , AD
             , ShiftedDay analysisDate analysisDate
             )
-        states  = L.tail $ L.scanl applyStateTransition initialState events
+        states  = L.tail $ L.scanl applyStateTransition initialState events'
         payoffs = calculatePayoff <$> states
 
         genCashflow ((_, ev, d), pff) = CashFlow

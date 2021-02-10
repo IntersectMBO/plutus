@@ -55,7 +55,7 @@ ren ρ⋆ ρ (ƛ A t)  = ƛ (ren⋆ ρ⋆ A) (ren ρ⋆ (lift ρ) t)
 ren ρ⋆ ρ (t · u) = ren ρ⋆ ρ t · ren ρ⋆ ρ u
 ren ρ⋆ ρ (con x) = con x
 ren ρ⋆ ρ (error A) = error (ren⋆ ρ⋆ A)
-ren ρ⋆ ρ (builtin b p As ts) = builtin b p (ren⋆T ρ⋆ As) (renT ρ⋆ ρ ts)
+ren ρ⋆ ρ (ibuiltin b) = ibuiltin b
 ren ρ⋆ ρ (wrap A B t) = wrap (ren⋆ ρ⋆ A) (ren⋆ ρ⋆ B) (ren ρ⋆ ρ t)
 ren ρ⋆ ρ (unwrap t) = unwrap (ren ρ⋆ ρ t)
 
@@ -106,7 +106,7 @@ sub σ⋆ σ (ƛ A t) = ƛ (sub⋆ σ⋆ A) (sub σ⋆ (slift σ) t)
 sub σ⋆ σ (t · u) = sub σ⋆ σ t · sub σ⋆ σ u
 sub σ⋆ σ (con c) = con c
 sub σ⋆ σ (error A) = error (sub⋆ σ⋆ A)
-sub σ⋆ σ (builtin b p As ts) = builtin b p (sub⋆T σ⋆ As) (subT σ⋆ σ ts)
+sub σ⋆ σ (ibuiltin b) = ibuiltin b
 sub σ⋆ σ (wrap A B t) = wrap (sub⋆ σ⋆ A) (sub⋆ σ⋆ B) (sub σ⋆ σ t)
 sub σ⋆ σ (unwrap t) = unwrap (sub σ⋆ σ t)
 
@@ -171,4 +171,13 @@ sub⋆-cong p (A · B)     = cong₂ _·_ (sub⋆-cong p A) (sub⋆-cong p B)
 sub⋆-cong p (con c)     = refl
 sub⋆-cong p (μ pat arg) = cong₂ μ (sub⋆-cong p pat) (sub⋆-cong p arg)
 sub⋆-cong p missing     = refl
+
+sub-cons : ∀{n n'}{w : Weirdℕ n}{w' : Weirdℕ n'} → Sub w w' → ScopedTm w' →
+  Sub (S w) w'
+sub-cons σ t Z     = t
+sub-cons σ t (S x) = σ x  
+
+sub-cons⋆ : ∀{n n'}{w : Weirdℕ n}{w' : Weirdℕ n'} → Sub w w' → Sub (T w) w'
+sub-cons⋆ σ (T x) = σ x
+
 \end{code}

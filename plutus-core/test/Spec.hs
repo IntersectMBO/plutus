@@ -22,6 +22,7 @@ import           Language.PlutusCore.Generators
 import           Language.PlutusCore.Generators.AST         as AST
 import           Language.PlutusCore.Generators.Interesting
 import qualified Language.PlutusCore.Generators.NEAT.Spec   as NEAT
+import           Language.PlutusCore.MkPlc
 import           Language.PlutusCore.Pretty
 
 import           Codec.Serialise
@@ -33,6 +34,7 @@ import           Flat                                       (flat)
 import qualified Flat                                       as Flat
 import           Hedgehog                                   hiding (Var)
 import qualified Hedgehog.Gen                               as Gen
+import qualified Hedgehog.Range                             as Range
 import           Test.Tasty
 import           Test.Tasty.Golden
 import           Test.Tasty.HUnit
@@ -102,13 +104,85 @@ propFlat = property $ do
     prog <- forAllPretty $ runAstGen genProgram
     Hedgehog.tripping prog Flat.flat Flat.unflat
 
--- Generate a random 'Program', pretty-print it, and parse the pretty-printed
+{- The lexer contains some quite complex regular expressions for literal
+  constants, allowing escape sequences inside quoted strings among other
+  things.  The lexer returns 'TkLiteralConst' tokens and then individual
+  built-in types interpret these using their own parsing functions via the
+  'Parsable' class.  The following tests check that (A) the lexer/parser can
+  handle the output of the prettyprinter on constants from types in the default
+  universe, and (B) that parsing is left inverse to printing for both constants
+  and programs.  We have unit tests for the unit and boolean types, and property
+  tests for the full set of types in the default universe. -}
+
+type DefaultTerm  a = Term TyName Name DefaultUni DefaultFun a
+type DefaultError a = Error DefaultUni DefaultFun a
+
+parseTm :: BSL.ByteString -> Either (DefaultError AlexPosn) (DefaultTerm AlexPosn)
+parseTm = runQuote . runExceptT . parseTerm @(DefaultError AlexPosn)
+
+reprint :: PrettyPlc a => a -> BSL.ByteString
+reprint = BSL.fromStrict . encodeUtf8 . displayPlcDef
+
+{-| Test that the lexer/parser can successfully consume the output from the
+   prettyprinter for the unit and boolean types.  We use a unit test here
+   because there are only three possiblities (@()@, @false@, and @true@). -}
+testLexConstant :: Assertion
+testLexConstant =
+    mapM_ (\t -> (fmap void . parseTm . reprint $ t) @?= Right t) smallConsts
+        where
+          smallConsts :: [DefaultTerm ()]
+          smallConsts =
+              [ mkConstant () ()
+              , mkConstant () False
+              , mkConstant () True
+              ]
+
+{- Generate constant terms for each type in the default universe. The lexer should
+  be able to consume escape sequences in characters and strings, both standard
+  ASCII escape sequences and Unicode ones.  Hedgehog has generators for both of
+  these, but the Unicode one essentially never generates anything readable: all
+  of the output looks like '\857811'.  To get good coverage of the different
+  possible formats we have generators for Unicode characters and ASCII
+  characters, and also Latin-1 ones (characters 0-255, including standard ASCII
+  from 0-127); there is also a generator for UTF8-encoded Unicode. -}
+-- TODO: replace Language.PlutusCore.Generators.AST.genConstant with this.  We
+-- can't do that at the moment because genConstant is used by the tests for the
+-- plutus-ir parser, and that can't handle the full range of constants at the
+-- moment.
+genConstantForTest :: AstGen (Some (ValueOf DefaultUni))
+genConstantForTest = Gen.frequency
+    [ (3,  someValue <$> pure ())
+    , (3,  someValue <$> Gen.bool)
+    , (5,  someValue <$> Gen.integral (Range.linear (-k1) k1)) -- Smallish Integers
+    , (5,  someValue <$> Gen.integral (Range.linear (-k2) k2)) -- Big Integers, generally not Ints
+    , (10, someValue <$> Gen.ascii)                            -- Character: 'c', '\n', '\SYN' etc.
+    , (3,  someValue <$> Gen.latin1)                           -- Character: ascii and '\128'..'\255'
+    , (3,  someValue <$> Gen.unicode)   -- Unicode character: typically '\857811' etc. Almost never generates anything readable.
+    , (10, someValue <$> Gen.string (Range.linear 0 100) Gen.ascii)    -- eg "\SOc_\t\GS'v\DC4FP@-pN`\na\SI\r"
+    , (3,  someValue <$> Gen.string (Range.linear 0 100) Gen.latin1)   -- eg "\246'X\b<\195]\171Y"
+    , (3,  someValue <$> Gen.utf8   (Range.linear 0 100) Gen.unicode)  -- eg "\243\190\180\141"
+    , (3,  someValue <$> Gen.string (Range.linear 0 100) Gen.unicode)  -- eg "\1108177\609033\384623"
+    , (10, someValue <$> Gen.bytes  (Range.linear 0 100))              -- Bytestring
+    ]
+    where k1 = 1000000 :: Integer
+          k2 = m*m
+          m = fromIntegral (maxBound::Int) :: Integer
+
+{-| Check that printing followed by parsing is the identity function on
+  constants.  This is quite fast, so we do it 1000 times to get good coverage
+  of the various generators. -}
+propLexConstant :: Property
+propLexConstant = withTests (1000 :: Hedgehog.TestLimit) . property $ do
+    term <- forAllPretty $ Constant () <$> runAstGen genConstantForTest
+    Hedgehog.tripping term reprint (fmap void . parseTm)
+
+-- | Generate a random 'Program', pretty-print it, and parse the pretty-printed
 -- text, hopefully returning the same thing.
 propParser :: Property
 propParser = property $ do
     prog <- TextualProgram <$> forAllPretty (runAstGen genProgram)
-    let reprint = BSL.fromStrict . encodeUtf8 . displayPlcDef . unTextualProgram
-    Hedgehog.tripping prog reprint (\p -> fmap (TextualProgram . void) $ runQuote $ runExceptT $ parseProgram @(Error DefaultUni DefaultFun AlexPosn) p)
+    Hedgehog.tripping prog (reprint . unTextualProgram)
+                (\p -> fmap (TextualProgram . void) $ runQuote $ runExceptT $ parseProgram @(DefaultError AlexPosn) p)
 
 propRename :: Property
 propRename = property $ do
@@ -126,14 +200,14 @@ propMangle = property $ do
             Just (term, termMang)
     Hedgehog.assert $ term /= termMangled && termMangled /= term
 
-propDeBruijn :: Gen (TermOf (Term TyName Name DefaultUni DefaultFun ()) a) -> Property
+propDeBruijn :: Gen (TermOf (DefaultTerm ()) a) -> Property
 propDeBruijn gen = property . generalizeT $ do
     (TermOf body _) <- forAllNoShowT gen
     let
         forward = deBruijnTerm
         backward
             :: Except FreeVariableError (Term NamedTyDeBruijn NamedDeBruijn DefaultUni DefaultFun a)
-            -> Except FreeVariableError (Term TyName Name DefaultUni DefaultFun a)
+            -> Except FreeVariableError (DefaultTerm a)
         backward e = e >>= (\t -> runQuoteT $ unDeBruijnTerm t)
     Hedgehog.tripping body forward backward
 
@@ -141,6 +215,8 @@ allTests :: [FilePath] -> [FilePath] -> [FilePath] -> [FilePath] -> [FilePath] -
 allTests plcFiles rwFiles typeFiles typeErrorFiles evalFiles =
   testGroup "all tests"
     [ tests
+    , testCase "lexing constants from small types" testLexConstant
+    , testProperty "lexing constants" propLexConstant
     , testProperty "parser round-trip" propParser
     , testProperty "serialization round-trip (CBOR)" propCBOR
     , testProperty "serialization round-trip (Flat)" propFlat
@@ -163,7 +239,7 @@ allTests plcFiles rwFiles typeFiles typeErrorFiles evalFiles =
     ]
 
 
-type TestFunction a = BSL.ByteString -> Either (Error DefaultUni DefaultFun a) T.Text
+type TestFunction a = BSL.ByteString -> Either (DefaultError a) T.Text
 
 asIO :: Pretty a => TestFunction a -> FilePath -> IO BSL.ByteString
 asIO f = fmap (either errorgen (BSL.fromStrict . encodeUtf8) . f) . BSL.readFile
@@ -177,7 +253,7 @@ asGolden f file = goldenVsString file (file ++ ".golden") (asIO f file)
 -- TODO: evaluation tests should go under the 'Evaluation' module,
 -- normalization tests -- under 'Normalization', etc.
 
-evalFile :: BSL.ByteString -> Either (Error DefaultUni DefaultFun AlexPosn) T.Text
+evalFile :: BSL.ByteString -> Either (DefaultError AlexPosn) T.Text
 evalFile contents =
     second displayPlcDef $
         unsafeEvaluateCek defBuiltinsRuntime . toTerm . void <$> runQuoteT (parseScoped contents)
@@ -212,7 +288,7 @@ testEqTerm =
         lamX = LamAbs () xName varType varX
         lamY = LamAbs () yName varType varY
 
-        term0, term1 :: Term TyName Name DefaultUni DefaultFun ()
+        term0, term1 :: DefaultTerm ()
 
         -- [(lam x a x) x]
         term0 = Apply () lamX varX

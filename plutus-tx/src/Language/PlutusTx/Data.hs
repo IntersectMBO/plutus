@@ -4,9 +4,11 @@
 {-# LANGUAGE LambdaCase         #-}
 {-# LANGUAGE OverloadedStrings  #-}
 {-# LANGUAGE ViewPatterns       #-}
+
 module Language.PlutusTx.Data (Data (..)) where
 
 import           Codec.Serialise           (Serialise)
+import           Control.DeepSeq           (NFData)
 import qualified Data.ByteString           as BS
 import           Data.Text.Prettyprint.Doc
 import           GHC.Generics
@@ -25,7 +27,7 @@ data Data =
     | I Integer
     | B BS.ByteString
     deriving stock (Show, Eq, Ord, Generic)
-    deriving anyclass Serialise
+    deriving anyclass (Serialise, NFData)
 
 instance Pretty Data where
     pretty = \case

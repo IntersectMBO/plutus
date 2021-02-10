@@ -34,13 +34,15 @@ import           Language.PlutusCore.Quote (MonadQuote (..), freshName)
 
 -- * Enumerating deBruijn indices
 
+-- empty type
 data Z
-  deriving (Typeable, Eq, Show)
+  deriving (Typeable, Eq, Ord, Show)
 
+-- maybe type
 data S n
   = FZ
   | FS n
-  deriving (Typeable, Eq, Show, Functor)
+  deriving (Typeable, Eq, Ord, Show, Functor)
 
 instance Enumerable Z where
   enumerate = datatype []

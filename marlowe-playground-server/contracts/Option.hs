@@ -8,47 +8,62 @@ main = print . pretty $ contract
 
 contract :: Contract
 contract = When
-    []
-    10
-    (When
-        [Case
-            (Choice
-                (ChoiceId
-                    "exercise"
-                    (Role "buyer")
-                )
-                [Bound 0 1]
-            )
-            (Let
-                "payoff"
-                (Cond
-                    (ValueEQ
-                        (ChoiceValue
-                            (ChoiceId "exercise" (Role "buyer"))
-                        )
-                        (Constant 1)
-                    )
+    [Case
+        (Deposit
+            (Role "party")
+            (Role "party")
+            (Token "" "ada")
+            (Constant 1000)
+        )
+        (When
+            [Case
+                (Deposit
+                    (Role "counterparty")
+                    (Role "counterparty")
+                    (Token "" "bitcoin")
                     (Constant 1)
-                    (Constant 0)
                 )
                 (When
                     [Case
-                        (Deposit
-                            (Role "seller")
-                            (Role "seller")
-                            (Token "" "")
-                            (UseValue "payoff")
+                        (Choice
+                            (ChoiceId
+                                "exercise"
+                                (Role "party")
+                            )
+                            [Bound 0 1]
                         )
-                        (Pay
-                            (Role "seller")
-                            (Party (Role "buyer"))
-                            (Token "" "")
-                            (UseValue "payoff")
-                            Close
+                        (If
+                            (ValueEQ
+                                (ChoiceValue
+                                    (ChoiceId
+                                        "exercise"
+                                        (Role "party")
+                                    ))
+                                (Constant 1)
+                            )
+                            (Pay
+                                (Role "counterparty")
+                                (Party (Role "party"))
+                                (Token "" "bitcoin")
+                                (Constant 1)
+                                (Pay
+                                    (Role "party")
+                                    (Party (Role "counterparty"))
+                                    (Token "" "ada")
+                                    (Constant 1000)
+                                    Close
+                                )
+                            )
+                            (Pay
+                                (Role "party")
+                                (Party (Role "counterparty"))
+                                (Token "" "ada")
+                                (Constant 100)
+                                Close
+                            )
                         )]
-                    120 Close
-                )
-            )]
-        110 Close
-    )
-
+                    1000 Close
+                )]
+            10 Close
+        )]
+    10 Close

@@ -55,7 +55,7 @@ for more details.
 [[building-with-nix]]
 ==== How to build Haskell packages and other artifacts with Nix
 
-Run `nix build -f default.nix haskell.projectPackages.plutus-core`
+Run `nix build -f default.nix plutus.haskell.packages.plutus-core`
 from the root to build the Plutus Core library.
 
 See <<nix-build-attributes>> to find out
@@ -192,12 +192,12 @@ artifacts you can build from this repository. These can be built
 using `nix build`. For example:
 
 ----
-nix build -f default.nix haskell.projectPackages.plutus-core
+nix build -f default.nix plutus.haskell.packages.plutus-core
 ----
 
 .Example attributes
-* Project packages: defined inside `haskell.projectPackages`
-** e.g. `haskell.projectPackages.plutus-core`
+* Project packages: defined inside `plutus.haskell.packages`
+** e.g. `plutus.haskell.packages.plutus-core`
 * Documents: defined inside `docs`
 ** e.g. `docs.plutus-core-spec`
 * Development scripts: defined inside `dev`

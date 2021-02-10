@@ -153,17 +153,17 @@ genIterAppValue (Denotation object embed meta scheme) = result where
         -> ([Plain Term uni fun] -> [Plain Term uni fun])
         -> FoldArgs args res
         -> PlcGenT uni fun m (IterAppValue uni fun head (Plain Term uni fun) res)
-    go (TypeSchemeResult _)       term args y = do  -- Computed the result.
+    go (TypeSchemeResult _)     term args y = do  -- Computed the result.
         let pia = IterApp object $ args []
         return $ IterAppValue term pia y
-    go (TypeSchemeArrow _ schB)   term args f = do  -- Another argument is required.
+    go (TypeSchemeArrow _ schB) term args f = do  -- Another argument is required.
         BuiltinGensT genTb <- ask
         TermOf v x <- liftT $ genTb AsKnownType  -- Get a Haskell and the correspoding PLC values.
         let term' = Apply () term v              -- Apply the term to the PLC value.
             args' = args . (v :)                 -- Append the PLC value to the spine.
             y     = f x                          -- Apply the Haskell function to the generated argument.
         go schB term' args' y
-    go (TypeSchemeAll _ _ schK) term args f =
+    go (TypeSchemeAll _ schK)   term args f =
         go (schK Proxy) term args f
 
 -- | Generate a PLC 'Term' of the specified type and the corresponding Haskell value.

@@ -1,15 +1,13 @@
 module Marlowe.BlocklyTests where
 
 import Prelude
-import Blockly (getBlockById)
-import Blockly as Blockly
 import Blockly.Generator (Generator, getInputWithName, inputList, blockToCode)
 import Blockly.Headless as Headless
+import Blockly.Internal (getBlockById)
+import Blockly.Internal as Blockly
 import Blockly.Types (BlocklyState)
+import Control.Monad.Except (ExceptT(..), runExceptT)
 import Control.Monad.Reader (runReaderT)
-import Control.Monad.ST (ST)
-import Control.Monad.ST as ST
-import Control.Monad.ST.Ref as STRef
 import Data.Bifunctor (lmap, rmap)
 import Data.Either (Either, note)
 import Data.Foldable (for_)
@@ -38,16 +36,10 @@ quickCheckGen g = quickCheck $ runReaderT (unGenWithHoles g) true
 mkTestState :: forall m. MonadEffect m => m { blocklyState :: BlocklyState, generator :: Generator }
 mkTestState = do
   blocklyState <- liftEffect $ Headless.createBlocklyInstance rootBlockName
-  let
-    _ =
-      ST.run
-        ( do
-            blocklyRef <- STRef.new blocklyState.blockly
-            Blockly.addBlockTypes blocklyRef blockDefinitions
-        )
-  liftEffect $ Headless.initializeWorkspace blocklyState
-  let
-    generator = buildGenerator blocklyState
+  liftEffect do
+    Blockly.addBlockTypes blocklyState.blockly blockDefinitions
+    Headless.initializeWorkspace blocklyState
+  generator <- liftEffect $ buildGenerator blocklyState.blockly
   pure { blocklyState: blocklyState, generator: generator }
 
 -- Here we keep using `show` because the Term range is intentionally incorrect when converting from blockly
@@ -68,20 +60,18 @@ c2b2c = do
 runContract :: Term Contract -> Effect (Either String (Term Contract))
 runContract contract = do
   state <- liftEffect mkTestState
-  pure $ ST.run (buildBlocks state.blocklyState contract)
-  pure do
-    rootBlock <- note "failed to get root block" $ getBlockById state.blocklyState.workspace state.blocklyState.rootBlockName
-    code <- blockToCode rootBlock state.generator
-    lmap show $ Parser.parseContract (stripParens code)
+  liftEffect $ buildBlocks state.blocklyState contract
+  runExceptT do
+    rootBlock <- ExceptT $ note "failed to get root block" <$> getBlockById state.blocklyState.workspace state.blocklyState.rootBlockName
+    code <- ExceptT $ blockToCode rootBlock state.generator
+    ExceptT $ pure $ lmap show $ Parser.parseContract (stripParens code)
 
-buildBlocks :: forall r. BlocklyState -> Term Contract -> ST r Unit
+buildBlocks :: BlocklyState -> Term Contract -> Effect Unit
 buildBlocks bs contract = do
-  workspaceRef <- STRef.new bs.workspace
-  let
-    mContract = getBlockById bs.workspace rootBlockName
+  mContract <- getBlockById bs.workspace rootBlockName
   rootBlock <- case mContract of
-    Nothing -> Headless.newBlock workspaceRef "BaseContractType" >>= STRef.read
+    Nothing -> Headless.newBlock bs.workspace "BaseContractType"
     Just block -> pure block
   let
     inputs = inputList rootBlock
-  for_ (getInputWithName inputs "BaseContractType") \input -> toBlockly Headless.newBlock workspaceRef input contract
+  for_ (getInputWithName inputs "BaseContractType") \input -> toBlockly Headless.newBlock bs.workspace input contract

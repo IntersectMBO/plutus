@@ -12,7 +12,7 @@ import Halogen.HTML (ClassName(..), HTML, div, h4, hr, img, p, p_, span, text)
 import Halogen.HTML.Properties (alt, class_, src)
 import Marlowe.Holes (MarloweType(..))
 import Marlowe.Holes as Holes
-import Prelude (class Show, show, (<$>), (<<<), (<>))
+import Prelude hiding (div)
 
 data HelpContext
   = MarloweHelp
@@ -180,6 +180,13 @@ A Party is represented as either a public key hash or a role name.
 In order to progress a Marlowe contract, a party must provide an evidence. For PK party that would be a valid signature of a transaction signed by a private key of a public key that hashes to party’s PubKeyHash, similarly to Bitcoin’s Pay to Public Key Hash mechanism. For a Role party the evidence is spending a role token within the same transaction, usually to the same owner.
 
 So, Role parties will look like (Role "alice"), (Role "bob") and so on.
+"""
+
+marloweTypeMarkerText TimeoutType =
+  """
+Timeout is the slot number after which the When will no longer accept any new events: Case branches will become unusable, and the contract will continue as specified by the timeout continuation.
+
+Timeouts accept templates, this means that instead of writing a specific slot number it is possible to fill Timeouts by using a template parameter that can be filled just before deploying or simulating the contract, for example: SlotParam "maturityDate"
 """
 
 helpForConstructor :: String -> Maybe String

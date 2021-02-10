@@ -35,6 +35,8 @@ of Haskell libraries.
 - [X] Automated building under CI;
 - [X] Automated testing of evaluation under CI;
 - [X] Automated testing of typechecking under CI.
+- [X] Automatic geneneration of programs to test using NEAT
+- [ ] Published paper.
 
 ### Stage 3 (further metatheory)
 
@@ -44,85 +46,70 @@ of Haskell libraries.
 - [ ] Correspondence between extrinsic and intrinsic semantics;
 - [X] Soundness of typechecking;
 - [ ] Completeness of typechecking;
-- [ ] Intrinsic evaluation, compiled to Haskell.
+- [X] Intrinsic evaluation, compiled to Haskell.
+- [ ] Published paper.
 
 ## Installation
 
-The formalisation requires version 2.6 or higher of Agda, the latest
+
+### To typecheck the formalisation in Agda
+The formalisation requires version 2.6.1 or higher of Agda and the latest
 corresonnding version of the Agda standard library.
+
+### To compile to Haskell
 
 It also it contains a command line tool called `plc-agda` for
 executing plutus core programs. The command line tool is an Agda
 program that is compiled to Haskell, it uses Haskell libraries (such
 as bytestring) and also borrows the Plutus parser and pretty printer.
 
-The metatheory package is not currently included in the main plutus
-`cabal.project`. This is a workaround to enable building with `cabal
-v2-*`. Run it from the `plutus` repo root folder:
-
-```
-$ echo "packages: metatheory" > cabal.project.local
-```
-
 The `plc-agda` tool can be installed by running the following commands
 starting in the root folder of the `plutus` repository:
 
-
+With nix:
 ```
-$ cd metatheory
+$ nix-shell
+$ cabal v2-install plutus-metatheory
+```
+
+Without nix:
+```
+$ cd plutus-metatheory
 $ agda --compile --ghc-dont-call-ghc Main.lagda
 $ cd ..
-$ cabal v2-install metatheory
+$ cabal v2-install plutus-metatheory
 ```
 
-The `plc-agda` can to execute Plutus Core programs. It is intended to
+The `plc-agda` can execute Plutus Core programs. It is intended to
 be used for testing the `plc` command against. The tests can be
 executed by running the following command from the `plutus` root
 folder:
 
 ```
-$ cd metatheory
-$ agda --compile --ghc-dont-call-ghc Main.lagda
-$ cd ..
-$ cabal v2-test metatheory
+$ nix-shell
+$ cabal v2-test plutus-metatheory
 ```
 
 ## Features:
 
 * The formalisation currently covers the full language of Plutus Core:
   System F omega with (deep) iso-recursive types, and builtin-types
-  for integers and bytestrings. Progress and preservation have been
-  shown to hold for the small-step operational semantics.
+  for integers and bytestrings, reduction, CK and CEK semantics and
+  type checking. Progress and preservation have been shown to hold for
+  the small-step operational semantics.
 
 * The Agda formalisation contains an executable `plc-agda` which makes
   use of the parser and pretty printer from `plutus-core` in
   conjunction with an interpreter written in Agda. It has the same
-  interface as `plc`.
+  interface as `plc`. It supports evaluation using various reduction
+  strategies and type checking.
 
-There are three versions of the reduction semantics:
+## Detailed Description
 
-1. The intrinsically typed semantics which is the most high-assurance
-and described in the paper "System F for Fun and Profit" which will be
-presented at the International Conference on the Mathematics of
-Program Construction in Porto, Portugal in Autum 2019.
+See the [table of contents](https://input-output-hk.github.io/plutus-metatheory/) for an explanation of the structure of the formalisation and links to the code.
 
-2. The extrinsically typed version which the `plc-agda` tool uses.
-
-3. The untyped version. The computational meaning of System F is given
-by the untyped semantics and this version allows us to check that this
-is the case. It also provides a check that other versions of the
-syntax and semantics match by seeing if they erase to the same untyped
-syntax/semantics.
-
-We have proved that the three versions of the syntax/reduction
-semantics match.
-
-There are two versions of the CK machine:
-
-1. Intrinsically typed.
-2. Extrinsically typed.
-
-There is an evidence producing typechecker.
+**The below information is deprecated and is in the process of being
+replaced by the table of contents document.**
 
 ## Structure of the intrinsically typed formalisation
 

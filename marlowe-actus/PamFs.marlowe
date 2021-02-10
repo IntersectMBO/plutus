@@ -206,9 +206,9 @@ When [
                                                                                                                                          (Token "" "")
                                                                                                                                          (Constant 10000) Close))] 1256169500
                                                                                                                                    (Pay
-                                                                                                                                      (Role "counterparty")
+                                                                                                                                      (Role "party")
                                                                                                                                       (Party
-                                                                                                                                         (Role "party"))
+                                                                                                                                         (Role "counterparty"))
                                                                                                                                       (Token "" "")
                                                                                                                                       (NegValue
                                                                                                                                          (UseValue "payoff_2")) Close))))))))))))))))))))))))))))))))))))))))))))] 1224633500 Close

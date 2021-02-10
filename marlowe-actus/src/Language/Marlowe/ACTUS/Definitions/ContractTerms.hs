@@ -163,7 +163,7 @@ data ContractTerms = ContractTerms {
   , scfg         :: ScheduleConfig
   -- Penalties
   , ct_PYRT      :: Double -- Penalty Rate
-  , ct_PYTP      :: PYTP -- Penalty Pype
+  , ct_PYTP      :: PYTP -- Penalty Type
   , ct_cPYRT     :: Double
   -- Optionality
   , ct_OPCL      :: Maybe Cycle

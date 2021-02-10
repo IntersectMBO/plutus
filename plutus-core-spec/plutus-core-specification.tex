@@ -213,7 +213,14 @@
 \newcommand\blocknum{\ensuremath{\mathit{blocknum}}}
 %% \newcommand\uniqmem[1]{#1^{\blacktriangledown}}  %% Unique member of size type
 
+%%% Spacing in tables
 
+\newcommand\sep{4pt}
+% The table of abbreviations previously had \\\\ at the end of each line, which
+% made it quite long. Lines are now separated by a vertical space of size \sep.
+% This makes it a bit more readable than no spacing at all, but not too long
+
+\newcommand{\Strut}{\rule[-2mm]{0mm}{6mm}}
 
 \begin{document}
 %
@@ -1219,7 +1226,7 @@ Given a closure $(V,\rho)$ we denote by $\discharge{(V,\rho)}$ the
 result of \textit{discharging} the closure, ie, recursively replacing
 all of the variables occurring in $V$ by their bindings in
 $\rho$. Note that variables are bound to closures which may themselves
-need to be discharged: hence the use of the word ``recursively''. It
+need to be discharged: hence the use of the word `recursively'. It
 can be shown that when any closure produced by the CEK machine is
 discharged it yields a value.
 
@@ -1370,6 +1377,267 @@ the untyped CEK machine halts in the $\blacklozenge$ state.
 \item The typed CK machine returns a value $V$ if and only if the untyped CEK machine returns a
 closure $C$ with $\discharge{C} = \erase{V}$.
 \end{itemize}
+
+\section{Serialisation}
+
+We use the \texttt{flat} \citep{flat} format to serialise Plutus Core terms. The
+\texttt{flat} format encodes sum types as tagged unions and products by
+concatenating their contents. We proceed by defining the structure and the data
+types of untyped Plutus Core and how they get serialised.
+
+\subsection{Variable length data}
+
+\texttt{Non-empty lists} are encoded by prefixing the element stored with `0'
+if this is the \texttt{last} element or `1' if there is \texttt{more} data following.
+
+\noindent We encode \texttt{Integers} as a non-empty list of chunks, 7 bits each,
+with the least significant chunk first and the most significant bit first in the chunk.
+
+\medskip
+\noindent Let's calculate the encoding of the \texttt{32768} index (unsigned, arbitrary
+length integer):
+\begin{enumerate}
+  \item Converting \texttt{32768} to binary: \\
+    \verb|32768| $\rightarrow$ \verb|0b1000000000000000|
+  \item Split into 7 bit chunks: \\
+    \verb|0b1000000000000000| $\rightarrow$ \verb|0000010 0000000 0000000|
+  \item Reorder chunks (least significant chunk first): \\
+    \verb|0000010 0000000 0000000| $\rightarrow$ \verb|0000000 0000000 0000010|
+  \item Add list constructor tags: \\
+    \verb|0000000 0000000 0000010| $\rightarrow$ \verb|10000000 10000000 00000010|
+\end{enumerate}
+
+For \texttt{ByteString}s, \texttt{Char}s and \texttt{String}s we use a byte aligned
+array of bytes (in the case of \texttt{Char} and \texttt{String} the bytes correspond
+to the UTF-8 encoding of the text). The structure is pre-aligned to the byte boundary
+by using the `0' bit as a filler and the `1' bit as the final bit. Following the filler
+we have the number of bytes that the data uses, a number from 0 to 255 (1 byte),
+followed by the bytes themselves, and a final 0 length block (the byte `0').
+
+\subsection{Constants}
+
+Constants are encoded as a combination of a tag indicating the kind of value that is serialized and the
+value itself. Constants use 4 bits to encode the tags, so they allow for a
+maximum of 16 constructors, of which 6 are used by the default set of builtin types.
+
+\vspace{1cm}
+
+\begin{minipage}{\linewidth}
+\centering
+\begin{tabular}{|l|c|l|}
+  \hline
+  \Strut
+  \textrm{Name} & \textrm{Tag} & \textrm{Encoding} \\
+  \hline
+  Integer & 0 & ZigZag + Variable length \\[\sep]
+  ByteString & 1 & Variable length \rule{0mm}{4mm} \\[\sep]
+  String & 2 & UTF-8 \\[\sep]
+  Char & 3 & UTF-8 \\[\sep]
+  Unit & 4 & Empty \\[\sep]
+  Bool & 5 & `1' is True, `0' is False \\[\sep]
+  \hline
+\end{tabular}
+\captionof{figure}{Constant kinds}
+\label{fig:serialisation-constants}
+\end{minipage}
+
+\subsection{Untyped terms}
+
+Terms are encoded using 4 bit tags, which allows a total of 16 kinds of term, of which 8 are
+currently used.
+
+\vspace{1cm}
+
+\begin{minipage}{\linewidth}
+\centering
+\begin{tabular}{|l|c|l|}
+  \hline
+  \Strut
+  \textrm{Name} & \textrm{Tag} & \textrm{Arguments} \\
+  \hline
+  Variable & 0 & name \rule{0mm}{4mm} \\[\sep]
+  Delay & 1 & term \\[\sep]
+  Lambda abstraction & 2 & name, term \\[\sep]
+  Application & 3 & term, term \\[\sep]
+  Constant & 4 & constant \\[\sep]
+  Force & 5 & term \\[\sep]
+  Error & 6 & term \\[\sep]
+  Builtin & 7 & builtin \\[\sep]
+  \hline
+\end{tabular}
+\captionof{figure}{Untyped terms}
+\label{fig:serialisation-terms}
+\end{minipage}
+
+\vspace{1cm}
+
+\noindent Builtins use 5 bits for their tags, allowing for a maximum of 32 builtin
+functions of which 25 are used.
+
+\vspace{1cm}
+
+\begin{minipage}{\linewidth}
+\centering
+\begin{tabular}{|c|c|c|c|c|c|}
+  \hline
+  \Strut
+  \textrm{Name} & \textrm{Tag} & \textrm{Name} & \textrm{Tag} & \textrm{Name} & \textrm{Tag} \\
+  \hline
+   AddInteger & 0 & GreaterThanEqInteger & 8 & QuotientInteger & 17 \rule{0mm}{4mm} \\[\sep]
+   SubtractInteger & 1 & EqInteger & 9 & ModInteger & 18 \\[\sep]
+   MultiplyInteger & 2 & Concatenate & 10 & LtByteString & 19 \\[\sep]
+   DivideInteger & 3 & TakeByteString & 11 & GtByteString & 20 \\[\sep]
+   RemainderInteger & 4 & DropByteString & 12 & IfThenElse & 21 \\[\sep]
+   LessThanInteger & 5 & SHA2 & 13 & CharToString & 22 \\[\sep]
+   LessThanEqInteger & 6 & SHA3 & 14 & Append & 23 \\[\sep]
+   GreaterThanInteger & 7 & VerifySignature & 15 & Trace & 24 \\[\sep]
+   & & EqByteString & 16 & & \\[\sep]
+   \hline
+\end{tabular}
+\captionof{figure}{Builtin tags}
+\label{fig:serialisation-builtins}
+\end{minipage}
+
+\vspace{1cm}
+
+\noindent Encoding primtive values:
+
+\begin{itemize}
+  \item Unsigned \texttt{Integer}s and \texttt{ByteString}s are encoded using the
+    previously introduced encoding for variable length data types.
+  \item Signed \texttt{Integer}s are first converted to an unsigned value using the
+    \texttt{ZigZag}\footnote{The \texttt{ZigZag} encoding interleaves positive and negative numbers such that small
+    negative numbers are stored using a small number of bytes.} encoding, then they are encoded as variable length data types.
+  \item \texttt{String}s are encoded as lists of characters and use the \texttt{UTF-8}
+    encoding.
+  \item \texttt{Unit} and data structures which have only one constructor, are removed
+    from the serialised data.
+  \item Variable names are encoded using DeBruijn indices, which are unsigned, arbitrary
+    length integers.
+\end{itemize}
+
+Possibly empty lists are encoded in the standard way, by the tag for the constructor,
+`0' for `Nil' and `1' for `Cons'. The `Cons' constructor is followed by the serialised
+element, and then, recursiveley another list.
+
+Encoded values are aligned to byte/word boundary using a meaningless sequence of `0' bits
+terminated with a `1' bit.
+
+\subsection{Example}
+
+We will serialise the program \verb|(program 11.22.33 (con integer 11))| compiled to untyped plutus core, using DeBruijn indices.
+
+First, lets convert the program to the desired representation:
+
+\begin{verbatim}
+> stack exec plc -- convert --untyped --if plc --of flat -o program.flat <<EOF
+> (program 11.22.33 (con integer 11))
+> EOF
+\end{verbatim}
+
+Now, let's take a look at the output.
+
+\begin{verbatim}
+> xxd -b program.flat
+> 00000000: 00001011 00010110 00100001 01001000 00000101 10000001  ..!H..
+\end{verbatim}
+
+\subsubsection{The program preamble.}
+
+We define `Program` in the `Language.PlutusCore.Core.Type` haskell module like this:
+
+\begin{verbatim}
+-- | A 'Program' is simply a 'Term' coupled with a 'Version' 
+--   of the core language.
+data Program tyname name uni fun ann = 
+       Program ann (Version ann) (Term tyname name uni fun ann)
+         deriving (Show, Functor, Generic, NFData, Hashable)
+\end{verbatim}
+
+Because the \verb|Program| data type has only one constructor we know that flat will not waste any space serialising it. `ann' will always be (for serialised ASTs) `()', which similarly to the \verb|Program| data type has only one constructor and flat will not serialise it.
+
+Next, the `Version' is a tuple of 3 `Natural' numbers, which are encoded as variable length unsigned integers. Because all the version numbers can fit in a 7 bit word, we only need one byte to store each of them. Also, the first bit, which represents the non-empty list constructor will always be `0' (standing for `Last'), resulting in:
+
+\begin{verbatim}
+0 (*Last*) 000 (*Unused*) 1011   (*11 in binary*)
+0 (*Last*) 00  (*Unused*) 10110  (*22 in binary*)
+0 (*Last*) 0   (*Unused*) 100001 (*33 in binary*)
+\end{verbatim}
+
+\subsubsection{The integer constant `1`.}
+
+Let's take a quick look at how we defined untyped plutus terms, in Figure~\ref{fig:serialisation-terms}.
+
+We need to encode the `Constant', signed integer value `11'. Terms are encoded using 4 bits, and the `Constant' term has tag 4. This results in:
+
+\begin{verbatim}
+0 (*Unused*) 100 (*4 in binary*)
+\end{verbatim}
+
+For the `Default' universe we have the constant tags defined from Figure~\ref{fig:serialisation-constants}, wrapped in a list, followed by the encoding for the constant's value.
+
+So we see how, for the integer type we care about the type is encoded as a list containing the id `0'. We know that we are using 3 bits to store the type of constant, so the encoding will be:
+
+\begin{verbatim}
+1 (*Cons*) 0000 (The `0` tag using 4 bits for storage) 0 (*Nil*)
+\end{verbatim}
+
+The annotation will not be serialised, and we are left with the constant itself. Because it is an variable length signed integer, we first need to find out it's value after conversion to the `ZigZag' format.
+
+\begin{verbatim}
+> stack repl plutus-core:exe:plc
+> ghci> import Data.ZigZag
+> ghci> zigZag (11 :: Integer)
+> 22
+\end{verbatim}
+
+Next, we need to encode the variable length unsigned integer `22'. We only need one byte (as it fits in the available 7 bits), so we end up with the following:
+
+\begin{verbatim}
+0 (*Last*) 00 (*Unused*) 10110 (*22 in binary*) 000001 (*Padding to byte size*)
+\end{verbatim}
+
+\subsubsection{Note}
+
+You may notice how in the rest of the codebase we use the `CBOR' format to serialise
+everything.
+
+So why did we choose to switch to `Flat' for on-chain serialisation?
+
+`CBOR' pays a price for being a self-describing format. The size of the serialised
+terms is consistently larger than a format that is not self-describing. Running the
+`flat' benchmarks will show flat consistently out-performing `CBOR' by about 35\%
+without using compression.
+
+\begin{verbatim}
+> stack bench plutus-benchmark:flat
+> cat plutus-benchmark/flat-sizes.md
+
+** Contract: crowdfunding-indices **
+Codec            Size    Of minimum   Of maximum
+flat             8148    2.240308     0.62652826
+cbor             13005   3.5757492    1.0
+
+** Contract: escrow-indices **
+Codec            Size    Of minimum   Of maximum
+flat             8529    2.2004645    0.6302838 
+cbor             13532   3.491228     1.0
+
+** Contract: future-indices **
+Codec            Size    Of minimum   Of maximum
+flat             17654   2.19141      0.6628619 
+cbor             26633   3.305983     1.0
+
+** Contract: game-indices **
+Codec            Size   Of minimum   Of maximum
+flat             5158   2.2290406    0.6254395 
+cbor             8247   3.5639584    1.0
+
+** Contract: vesting-indices **
+Codec            Size    Of minimum   Of maximum
+flat             8367    2.2288227    0.6273525 
+cbor             13337   3.5527437    1.0
+\end{verbatim}
 
 \end{appendices}
 

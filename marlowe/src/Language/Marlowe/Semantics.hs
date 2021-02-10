@@ -295,7 +295,8 @@ instance ToJSON Input where
 -}
 data IntervalError = InvalidInterval SlotInterval
                    | IntervalInPastError Slot SlotInterval
-  deriving stock (Show)
+  deriving stock (Show, Generic)
+  deriving anyclass (ToJSON, FromJSON)
 
 
 -- | Result of 'fixInterval'
@@ -377,7 +378,8 @@ data TransactionError = TEAmbiguousSlotIntervalError
                       | TEApplyNoMatchError
                       | TEIntervalError IntervalError
                       | TEUselessTransaction
-  deriving stock (Show)
+  deriving stock (Show, Generic)
+  deriving anyclass (ToJSON, FromJSON)
 
 
 {-| Marlowe transaction input.
@@ -412,7 +414,8 @@ data TransactionOutput =
 data MarloweData = MarloweData {
         marloweState    :: State,
         marloweContract :: Contract
-    } deriving stock (Show)
+    } deriving stock (Show, Generic)
+      deriving anyclass (ToJSON, FromJSON)
 
 
 data MarloweParams = MarloweParams {

@@ -50,7 +50,7 @@ blah (Just mode) = ["--mode",mode]
 -- this is likely to raise either an exitFailure or exitSuccess exception
 runTest :: String -> Maybe String -> String -> IO ()
 runTest command mode test = do
-  example <- readProcess "plc" ["example","-s",test] []
+  example <- readProcess "plc" ["example","-t","-s",test] []
   writeFile "tmp" example
   putStrLn $ "test: " ++ test ++ " [" ++ command ++ "]"
   withArgs ([command,"--file","tmp"] ++ blah mode)  M.main

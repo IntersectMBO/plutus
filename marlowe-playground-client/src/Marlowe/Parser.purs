@@ -16,10 +16,13 @@ import Data.Maybe (Maybe(..))
 import Data.String (length)
 import Data.String.CodeUnits (fromCharArray)
 import Data.Unit (Unit, unit)
-import Marlowe.Holes (class FromTerm, AccountId, Action(..), Bound(..), Case(..), ChoiceId(..), Contract(..), Observation(..), Party(..), Payee(..), Range, Term(..), TermWrapper(..), Token(..), Value(..), ValueId(..), fromTerm, getRange, mkHole)
+import Effect.Exception.Unsafe (unsafeThrow)
+import Marlowe.Holes (class FromTerm, AccountId, Action(..), Bound(..), Case(..), ChoiceId(..), Contract(..), Location(..), Observation(..), Party(..), Payee(..), Term(..), TermWrapper(..), Timeout(SlotParam), Token(..), Value(..), ValueId(..), fromTerm, getLocation, mkHole)
+import Marlowe.Holes as H
 import Marlowe.Semantics (CurrencySymbol, Rational(..), PubKey, Slot(..), SlotInterval(..), TransactionInput(..), TransactionWarning(..), TokenName)
 import Marlowe.Semantics as S
-import Prelude (class Show, bind, const, discard, pure, show, void, zero, ($), (*>), (-), (<$), (<$>), (<*), (<*>), (<<<))
+import Monaco (IRange)
+import Prelude (class Show, bind, const, discard, pure, show, void, ($), (*>), (-), (<$), (<$>), (<*), (<*>), (<<<), (>>>))
 import Text.Parsing.StringParser (Parser(..), fail, runParser)
 import Text.Parsing.StringParser.Basic (integral, parens, someWhiteSpace, whiteSpaceChar)
 import Text.Parsing.StringParser.CodeUnits (alphaNum, char, skipSpaces, string)
@@ -27,15 +30,17 @@ import Text.Parsing.StringParser.Combinators (between, choice, sepBy)
 import Type.Proxy (Proxy(..))
 
 type HelperFunctions a
-  = { mkHole :: String -> Range -> Term a
-    , mkTerm :: a -> Range -> Term a
-    , mkTermWrapper :: a -> Range -> TermWrapper a
-    , getRange :: Term a -> Range
+  = { mkHole :: String -> IRange -> Term a
+    , mkTerm :: a -> IRange -> Term a
+    , mkTermWrapper :: a -> IRange -> TermWrapper a
+    , getRange :: Term a -> IRange
     , mkBigInteger :: Int -> BigInteger
-    , mkTimeout :: Int -> Range -> TermWrapper Slot
+    , mkSlot :: BigInteger -> Slot
+    , mkExtendedSlot :: BigInteger -> Timeout
+    , mkExtendedSlotParam :: String -> Timeout
     , mkClose :: Contract
     , mkPay :: AccountId -> Term Payee -> Term Token -> Term Value -> Term Contract -> Contract
-    , mkWhen :: Array (Term Case) -> (TermWrapper Slot) -> Term Contract -> Contract
+    , mkWhen :: Array (Term Case) -> Term Timeout -> Term Contract -> Contract
     , mkIf :: Term Observation -> Term Contract -> Term Contract -> Contract
     , mkLet :: TermWrapper ValueId -> Term Value -> Term Contract -> Contract
     , mkAssert :: Term Observation -> Term Contract -> Contract
@@ -64,6 +69,7 @@ type HelperFunctions a
     , mkFalseObs :: Observation
     , mkAvailableMoney :: AccountId -> Term Token -> Value
     , mkConstant :: BigInteger -> Value
+    , mkConstantParam :: String -> Value
     , mkNegValue :: Term Value -> Value
     , mkAddValue :: Term Value -> Term Value -> Value
     , mkSubValue :: Term Value -> Term Value -> Value
@@ -77,14 +83,25 @@ type HelperFunctions a
     , mkCond :: Term Observation -> Term Value -> Term Value -> Value
     }
 
+-- We cannot guarantee at the type level that the only type of location we handle in the Parser is a Range
+-- location, so we throw a useful error if we ever get to this situation
+locationToRange :: Location -> IRange
+locationToRange (Range range) = range
+
+locationToRange (BlockId _) = unsafeThrow "Unexpected BlockId location found in MarloweParser"
+
+locationToRange NoLocation = unsafeThrow "Unexpected NoLocation found in MarloweParser"
+
 helperFunctions :: forall a. HelperFunctions a
 helperFunctions =
-  { mkHole: mkHole
-  , mkTerm: Term
-  , mkTermWrapper: TermWrapper
-  , getRange: getRange
+  { mkHole: \h pos -> mkHole h (Range pos)
+  , mkTerm: \a pos -> Term a (Range pos)
+  , mkTermWrapper: \a pos -> TermWrapper a (Range pos)
+  , getRange: getLocation >>> locationToRange
   , mkBigInteger: BigInteger.fromInt
-  , mkTimeout: \v pos -> TermWrapper (Slot (BigInteger.fromInt v)) pos
+  , mkSlot: Slot
+  , mkExtendedSlot: H.Slot
+  , mkExtendedSlotParam: SlotParam
   , mkClose: Close
   , mkPay: Pay
   , mkWhen: When
@@ -116,6 +133,7 @@ helperFunctions =
   , mkFalseObs: FalseObs
   , mkAvailableMoney: AvailableMoney
   , mkConstant: Constant
+  , mkConstantParam: ConstantParam
   , mkNegValue: NegValue
   , mkAddValue: AddValue
   , mkSubValue: SubValue
@@ -174,7 +192,7 @@ hole =
 
       end = suffix.pos
     -- this position info is incorrect however we don't use it anywhere at this time
-    pure { result: Hole name Proxy zero, suffix }
+    pure { result: Hole name Proxy NoLocation, suffix }
   where
   nameChars = alphaNum <|> char '_'
 
@@ -187,7 +205,7 @@ term' (Parser p) =
 
       end = suffix.pos
     -- this position info is incorrect however we don't use it anywhere at this time
-    pure { result: Term result zero, suffix }
+    pure { result: Term result NoLocation, suffix }
 
 termWrapper :: forall a. Parser a -> Parser (TermWrapper a)
 termWrapper (Parser p) =
@@ -198,7 +216,7 @@ termWrapper (Parser p) =
 
       end = suffix.pos
     -- this position info is incorrect however we don't use it anywhere at this time
-    pure { result: TermWrapper result zero, suffix }
+    pure { result: TermWrapper result NoLocation, suffix }
 
 parseTerm :: forall a. Parser a -> Parser (Term a)
 parseTerm p = hole <|> (term' p)
@@ -253,18 +271,14 @@ valueId = ValueId <$> text
 slot :: Parser Slot
 slot = Slot <$> maybeParens bigInteger
 
-slotTerm :: Parser (Term Slot)
-slotTerm = parseTerm slot
+timeout :: Parser (Term Timeout)
+timeout = parseTerm ((SlotParam <$> maybeParens (string "SlotParam" **> text)) <|> (H.Slot <$> maybeParens bigInteger))
 
-timeout :: Parser (TermWrapper Slot)
-timeout = do
-  result <- bigIntegerTerm
-  case result of
-    (Hole _ _ pos) -> fail ""
-    (Term v pos) -> pure $ TermWrapper (Slot v) pos
+accountIdExtended :: Parser AccountId
+accountIdExtended = parseTerm $ parens partyExtended
 
-accountId :: Parser AccountId
-accountId = parseTerm $ parens party
+accountIdCore :: Parser S.AccountId
+accountIdCore = parens partyCore
 
 choiceId :: Parser ChoiceId
 choiceId = parens choiceId'
@@ -276,7 +290,7 @@ choiceId' = do
   void someWhiteSpace
   first <- text
   void someWhiteSpace
-  second <- parseTerm $ parens party
+  second <- parseTerm $ parens partyExtended
   skipSpaces
   pure $ ChoiceId first second
 
@@ -298,7 +312,8 @@ rational = do
 -- see https://stackoverflow.com/questions/36984245/undefined-value-reference-not-allowed-workaround/36991223#36991223
 recValue :: Unit -> Parser Value
 recValue _ =
-  (AvailableMoney <$> (string "AvailableMoney" **> accountId) <**> parseTerm (parens token))
+  (AvailableMoney <$> (string "AvailableMoney" **> accountIdExtended) <**> parseTerm (parens token))
+    <|> (ConstantParam <$> (string "ConstantParam" **> text))
     <|> (Constant <$> (string "Constant" **> bigInteger))
     <|> (NegValue <$> (string "NegValue" **> value'))
     <|> (AddValue <$> (string "AddValue" **> value') <**> value')
@@ -346,18 +361,28 @@ recObservation =
 observation :: Parser Observation
 observation = atomObservation <|> recObservation
 
-payee :: Parser Payee
-payee =
-  (Account <$> (string "Account" **> accountId))
-    <|> (Party <$> (string "Party" **> parseTerm (parens party)))
+payeeExtended :: Parser Payee
+payeeExtended =
+  (Account <$> (string "Account" **> accountIdExtended))
+    <|> (Party <$> (string "Party" **> parseTerm (parens partyExtended)))
+
+payeeCore :: Parser S.Payee
+payeeCore =
+  (S.Account <$> (string "Account" **> accountIdCore))
+    <|> (S.Party <$> (string "Party" **> parens partyCore))
 
 pubkey :: Parser PubKey
 pubkey = text
 
-party :: Parser Party
-party =
+partyExtended :: Parser Party
+partyExtended =
   (PK <$> (string "PK" **> pubkey))
     <|> (Role <$> (string "Role" **> tokenName))
+
+partyCore :: Parser S.Party
+partyCore =
+  (S.PK <$> (string "PK" **> pubkey))
+    <|> (S.Role <$> (string "Role" **> tokenName))
 
 currencySymbol :: Parser CurrencySymbol
 currencySymbol = text
@@ -389,7 +414,7 @@ bound = do
 
 action :: Parser Action
 action =
-  (Deposit <$> (string "Deposit" **> accountId) <**> parseTerm (parens party) <**> parseTerm (parens token) <**> value')
+  (Deposit <$> (string "Deposit" **> accountIdExtended) <**> parseTerm (parens partyExtended) <**> parseTerm (parens token) <**> value')
     <|> (Choice <$> (string "Choice" **> choiceId) <**> array (maybeParens (parseTerm bound)))
     <|> (Notify <$> (string "Notify" **> observation'))
   where
@@ -416,8 +441,8 @@ atomContract = pure Close <* string "Close"
 
 recContract :: Parser Contract
 recContract =
-  ( Pay <$> (string "Pay" **> accountId)
-      <**> parseTerm (parens payee)
+  ( Pay <$> (string "Pay" **> accountIdExtended)
+      <**> parseTerm (parens payeeExtended)
       <**> parseTerm (parens token)
       <**> value'
       <**> contract'
@@ -558,13 +583,13 @@ testString =
 input :: Parser S.Input
 input =
   maybeParens
-    ( (S.IDeposit <$> (string "IDeposit" **> accountIdValue) <**> parseToValue (parens party) <**> parseToValue (parens token) <**> (maybeParens bigInteger))
+    ( (S.IDeposit <$> (string "IDeposit" **> accountIdValue) <**> parens partyCore <**> parseToValue (parens token) <**> (maybeParens bigInteger))
         <|> (S.IChoice <$> (string "IChoice" **> choiceIdValue) <**> (maybeParens bigInteger))
         <|> ((const S.INotify) <$> (string "INotify"))
     )
 
 accountIdValue :: Parser S.AccountId
-accountIdValue = parseToValue (parens party)
+accountIdValue = parens partyCore
 
 choiceIdValue :: Parser S.ChoiceId
 choiceIdValue = parseToValue choiceId
@@ -572,8 +597,8 @@ choiceIdValue = parseToValue choiceId
 valueIdValue :: Parser S.ValueId
 valueIdValue = parseToValue valueId
 
-payeeValue :: Parser S.Payee
-payeeValue = parseToValue payee
+payeeCoreValue :: Parser S.Payee
+payeeCoreValue = payeeCore
 
 inputList :: Parser (List S.Input)
 inputList = haskellList input
@@ -627,9 +652,9 @@ transactionWarning = do
       ( do
           skipSpaces
           tWaS <-
-            (TransactionNonPositiveDeposit <$> (string "TransactionNonPositiveDeposit" **> parseToValue (parens party)) <**> accountIdValue <**> parseToValue (parens token) <**> maybeParens bigInteger)
-              <|> (TransactionNonPositivePay <$> (string "TransactionNonPositivePay" **> accountIdValue) <**> (parens payeeValue) <**> parseToValue (parens token) <**> maybeParens bigInteger)
-              <|> (TransactionPartialPay <$> (string "TransactionPartialPay" **> accountIdValue) <**> (parens payeeValue) <**> parseToValue (parens token) <**> maybeParens bigInteger <**> maybeParens bigInteger)
+            (TransactionNonPositiveDeposit <$> (string "TransactionNonPositiveDeposit" **> parens partyCore) <**> accountIdValue <**> parseToValue (parens token) <**> maybeParens bigInteger)
+              <|> (TransactionNonPositivePay <$> (string "TransactionNonPositivePay" **> accountIdValue) <**> (parens payeeCoreValue) <**> parseToValue (parens token) <**> maybeParens bigInteger)
+              <|> (TransactionPartialPay <$> (string "TransactionPartialPay" **> accountIdValue) <**> (parens payeeCoreValue) <**> parseToValue (parens token) <**> maybeParens bigInteger <**> maybeParens bigInteger)
               <|> (TransactionShadowing <$> (string "TransactionShadowing" **> valueIdValue) <**> (maybeParens bigInteger) <**> (maybeParens bigInteger))
               <|> (TransactionAssertionFailed <$ (string "TransactionAssertionFailed"))
           skipSpaces

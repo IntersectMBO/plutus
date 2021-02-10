@@ -10,9 +10,11 @@ open import Data.Product renaming (_,_ to _,,_)
 open import Data.List hiding ([_])
 open import Relation.Binary.PropositionalEquality hiding ([_])
 open import Data.Unit
+open import Data.Sum
 
 open import Type
 open import Type.BetaNormal
+import Type.RenamingSubstitution as ⋆
 open import Type.BetaNBE
 open import Type.BetaNBE.RenamingSubstitution renaming (_[_]Nf to _[_])
 open import Builtin
@@ -93,93 +95,134 @@ application.
 \begin{code}
 open import Data.String
 
-data Tel {Φ} Γ Δ (σ : ∀ {J} → Δ ∋⋆ J → Φ ⊢Nf⋆ J) : List (Δ ⊢Nf⋆ *) → Set
+data _≤C_ {Φ}(Γ : Ctx Φ) : ∀{Φ'} → Ctx Φ' → Set where
+ base : Γ ≤C Γ
+ skip⋆ : ∀{Φ'}{Γ' : Ctx Φ'}{K} → Γ ≤C Γ' → Γ ≤C (Γ' ,⋆ K)
+ skip : ∀{Φ'}{Γ' : Ctx Φ'}{A : Φ' ⊢Nf⋆ *} → Γ ≤C Γ' → Γ ≤C (Γ' , A)
 
-data _⊢_ : ∀ {Φ} (Γ : Ctx Φ) → Φ ⊢Nf⋆ * → Set where
+∅≤C : ∀ {Φ} → (Γ : Ctx Φ) → ∅ ≤C Γ
+∅≤C ∅       = base
+∅≤C (Γ ,⋆ K) = skip⋆ (∅≤C Γ)
+∅≤C (Γ , A) = skip (∅≤C Γ)
 
-  ` : ∀ {Φ Γ} {A : Φ ⊢Nf⋆ *}
+data _≤C'_ {Φ}(Γ : Ctx Φ) : ∀{Φ'} → Ctx Φ' → Set where
+ base : Γ ≤C' Γ
+ skip⋆ : ∀{Φ'}{Γ' : Ctx Φ'}{K} → (Γ ,⋆ K) ≤C' Γ' → Γ ≤C' Γ'
+ skip : ∀{Φ'}{Γ' : Ctx Φ'}{A : Φ ⊢Nf⋆ *} → (Γ , A) ≤C' Γ' → Γ ≤C' Γ'
+
+skip⋆' : ∀{Φ Φ'}{Γ : Ctx Φ}{Γ' : Ctx Φ'}{K} → Γ ≤C' Γ' → Γ ≤C' (Γ' ,⋆ K)
+skip⋆' base = skip⋆ base
+skip⋆' (skip⋆ p) = skip⋆ (skip⋆' p)
+skip⋆' (skip p) = skip (skip⋆' p)
+
+skip' : ∀{Φ Φ'}{Γ : Ctx Φ}{Γ' : Ctx Φ'}{A} → Γ ≤C' Γ' → Γ ≤C' (Γ' , A)
+skip' base = skip base
+skip' (skip⋆ p) = skip⋆ (skip' p)
+skip' (skip p) = skip (skip' p)
+
+≤Cto≤C' : ∀{Φ Φ'}{Γ : Ctx Φ}{Γ' : Ctx Φ'} → Γ ≤C Γ' → Γ ≤C' Γ'
+≤Cto≤C' base      = base
+≤Cto≤C' (skip⋆ p) = skip⋆' (≤Cto≤C' p)
+≤Cto≤C' (skip p)  = skip' (≤Cto≤C' p)
+
+∅≤C' : ∀ {Φ} → (Γ : Ctx Φ) → ∅ ≤C' Γ
+∅≤C' Γ = ≤Cto≤C' (∅≤C Γ)
+
+ISIG : Builtin → Σ Ctx⋆ λ Φ → Ctx Φ × Φ ⊢Nf⋆ *
+ISIG ifThenElse = ∅ ,⋆ * ,, ∅ ,⋆ * , con bool , ne (` Z) , ne (` Z) ,, ne (` Z)
+ISIG addInteger = ∅ ,, ∅ , con integer , con integer ,, con integer
+ISIG subtractInteger = ∅ ,, ∅ , con integer , con integer ,, con integer
+ISIG multiplyInteger = ∅ ,, ∅ , con integer , con integer ,, con integer
+ISIG divideInteger = ∅ ,, ∅ , con integer , con integer ,, con integer
+ISIG quotientInteger = ∅ ,, ∅ , con integer , con integer ,, con integer
+ISIG remainderInteger = ∅ ,, ∅ , con integer , con integer ,, con integer
+ISIG modInteger = ∅ ,, ∅ , con integer , con integer ,, con integer
+ISIG lessThanInteger = ∅ ,, ∅ , con integer , con integer ,, con bool
+ISIG lessThanEqualsInteger = ∅ ,, ∅ , con integer , con integer ,, con bool
+ISIG greaterThanInteger = ∅ ,, ∅ , con integer , con integer ,, con bool
+ISIG greaterThanEqualsInteger = ∅ ,, ∅ , con integer , con integer ,, con bool
+ISIG equalsInteger = ∅ ,, ∅ , con integer , con integer ,, con bool
+ISIG concatenate = ∅ ,, ∅ , con bytestring , con bytestring ,, con bytestring
+ISIG takeByteString = ∅ ,, ∅ , con integer , con bytestring ,, con bytestring
+ISIG dropByteString = ∅ ,, ∅ , con integer , con bytestring ,, con bytestring
+ISIG lessThanByteString = ∅ ,, ∅ , con bytestring , con bytestring ,, con bool
+ISIG greaterThanByteString = ∅ ,, ∅ , con bytestring , con bytestring ,, con bool
+ISIG sha2-256 = ∅ ,, ∅ , con bytestring ,, con bytestring
+ISIG sha3-256 = ∅ ,, ∅ , con bytestring ,, con bytestring
+ISIG verifySignature = ∅ ,, ∅ , con bytestring , con bytestring , con bytestring ,, con bool
+ISIG equalsByteString = ∅ ,, ∅ , con bytestring , con bytestring ,, con bool 
+ISIG charToString = ∅ ,, ∅ , con char ,, con string
+ISIG append = ∅ ,, ∅ , con string , con string ,, con string
+ISIG trace = ∅ ,, ∅ , con string ,, con unit
+
+isig2type : (Φ : Ctx⋆) → Ctx Φ → Φ ⊢Nf⋆ * → ∅ ⊢Nf⋆ *
+isig2type .∅ ∅ C = C
+isig2type (Φ ,⋆ J) (Γ ,⋆ J) C = isig2type Φ Γ (Π C)
+isig2type Φ        (Γ ,  A) C = isig2type Φ Γ (A ⇒ C)
+
+itype : ∀{Φ} → Builtin → Φ ⊢Nf⋆ *
+itype b = let Φ ,, Γ ,, C = ISIG b in subNf (λ()) (isig2type Φ Γ C) 
+
+postulate itype-ren : ∀{Φ Ψ} b (ρ : ⋆.Ren Φ Ψ) → itype b ≡ renNf ρ (itype b)
+postulate itype-sub : ∀{Φ Ψ} b (ρ : SubNf Φ Ψ) → itype b ≡ subNf ρ (itype b)
+
+data _⊢_ {Φ} (Γ : Ctx Φ) : Φ ⊢Nf⋆ * → Set where
+
+  ` : ∀ {A : Φ ⊢Nf⋆ *}
     → Γ ∋ A
       ------
     → Γ ⊢ A
 
-  ƛ : ∀ {Φ Γ}{A B : Φ ⊢Nf⋆ *}
+  ƛ : ∀ {A B : Φ ⊢Nf⋆ *}
     → Γ , A ⊢ B
       -----------
     → Γ ⊢ A ⇒ B
 
-  _·_ : ∀ {Φ Γ}{A B : Φ ⊢Nf⋆ *}
+  _·_ : ∀ {A B : Φ ⊢Nf⋆ *}
     → Γ ⊢ A ⇒ B
     → Γ ⊢ A
       -----------
     → Γ ⊢ B
 
-  Λ : ∀ {Φ Γ K}
+  Λ : ∀ {K}
     → {B : Φ ,⋆ K ⊢Nf⋆ *}
     → Γ ,⋆ K ⊢ B
       ----------
     → Γ ⊢ Π B
 
-  _·⋆_ : ∀ {Φ Γ K}
+  _·⋆_ : ∀ {K}
     → {B : Φ ,⋆ K ⊢Nf⋆ *}
     → Γ ⊢ Π B
     → (A : Φ ⊢Nf⋆ K)
       ---------------
     → Γ ⊢ B [ A ]
 
-  wrap : ∀{Φ Γ K}
+  wrap : ∀{K}
    → (A : Φ ⊢Nf⋆ (K ⇒ *) ⇒ K ⇒ *)
    → (B : Φ ⊢Nf⋆ K)
    → Γ ⊢ nf (embNf A · ƛ (μ (embNf (weakenNf A)) (` Z)) · embNf B)
    → Γ ⊢ μ A B
 
-  unwrap : ∀{Φ Γ K}
+  unwrap : ∀{K}
     → {A : Φ ⊢Nf⋆ (K ⇒ *) ⇒ K ⇒ *}
     → {B : Φ ⊢Nf⋆ K}
     → Γ ⊢ μ A B
     → Γ ⊢ nf (embNf A · ƛ (μ (embNf (weakenNf A)) (` Z)) · embNf B)
 
-  con : ∀{Φ}{Γ : Ctx Φ}{tcn}
+  con : ∀{tcn}
     → TermCon {Φ} (con tcn)
       -------------------
     → Γ ⊢ con tcn
 
-  builtin : ∀{Φ Γ}
-    → (bn : Builtin)
-    → let Δ ,, As ,, C = SIG bn in
-      (σ : ∀ {J} → Δ ∋⋆ J → Φ ⊢Nf⋆ J)
-    → Tel Γ Δ σ As
-      -------------------------------
-    → Γ ⊢ substNf σ C
+  ibuiltin : (b :  Builtin) → Γ ⊢ itype b
 
-  error : ∀{Φ Γ} → (A : Φ ⊢Nf⋆ *) → Γ ⊢ A
+  error : (A : Φ ⊢Nf⋆ *) → Γ ⊢ A
 
-data Tel {Φ} Γ Δ σ where
-  []  : Tel Γ Δ σ []
-  _∷_ : ∀{A As} → Γ ⊢ substNf σ A → Tel Γ Δ σ As →  Tel Γ Δ σ (A ∷ As)
 \end{code}
 
 Utility functions
 
 \begin{code}
-_++T_ : ∀ {Φ Γ Δ}{σ : ∀ {J} → Δ ∋⋆ J → Φ ⊢Nf⋆ J}
-  → {As : List (Δ ⊢Nf⋆ *)}
-  → {As' : List (Δ ⊢Nf⋆ *)}
-  → (ts  : Tel Γ Δ σ As)
-  → (ts' : Tel Γ Δ σ As')
-  → Tel Γ Δ σ (As Data.List.++ As')
-[]       ++T ts' = ts'
-(t ∷ ts) ++T ts' = t ∷ (ts ++T ts')
-
-
-_:<T_ : ∀ {Φ Γ Δ}{σ : ∀ {J} → Δ ∋⋆ J → Φ ⊢Nf⋆ J}
-  → {As : List (Δ ⊢Nf⋆ *)}
-  → {A  : Δ ⊢Nf⋆ *}
-  → (ts : Tel Γ Δ σ As)
-  → (t : Γ ⊢ substNf σ A)
-  → Tel Γ Δ σ (As :<L A)
-[]        :<T t = t ∷ []
-(t' ∷ ts) :<T t = t' ∷ (ts :<T t)
-
 open import Type.BetaNormal.Equality
 
 conv∋ : ∀ {Φ Γ Γ'}{A A' : Φ ⊢Nf⋆ *}
@@ -200,11 +243,35 @@ conv⊢ : ∀ {Φ Γ Γ'}{A A' : Φ ⊢Nf⋆ *}
  → Γ' ⊢ A'
 conv⊢ refl refl t = t
 
-convTel : ∀ {Φ Ψ}{Γ Γ' : Ctx Φ}
-  → Γ ≡ Γ'
-  → (σ : ∀{J} → Ψ ∋⋆ J → Φ ⊢Nf⋆ J)
-  → (As : List (Ψ ⊢Nf⋆ *))
-  → Tel Γ Ψ σ As → Tel Γ' Ψ σ As
-convTel p σ []       []       = []
-convTel p σ (A ∷ As) (t ∷ ts) = conv⊢ p refl t ∷ convTel p σ As ts
+<C'2type : ∀{Φ Φ'}{Γ : Ctx Φ}{Γ' : Ctx Φ'} → Γ ≤C' Γ' → Φ' ⊢Nf⋆ * → Φ ⊢Nf⋆ *
+<C'2type base      C = C
+<C'2type (skip⋆ p) C = Π (<C'2type p C)
+<C'2type (skip {A = A} p)  C = A ⇒ <C'2type p C
+
+Ctx2type : ∀{Φ}(Γ : Ctx Φ) → Φ ⊢Nf⋆ * → ∅ ⊢Nf⋆ *
+Ctx2type ∅        C = C
+Ctx2type (Γ ,⋆ J) C = Ctx2type Γ (Π C)
+Ctx2type (Γ , x)  C = Ctx2type Γ (x ⇒ C)
+
+Πlem : ∀{K K'}{Φ Φ'}{Δ : Ctx Φ'}{Γ : Ctx Φ}(p : ((Δ ,⋆ K) ,⋆ K') ≤C' Γ)
+  (A : ∅ ⊢Nf⋆ K)(C : Φ ⊢Nf⋆ *)(σ : SubNf Φ' ∅)
+  → (Π
+       (eval
+        (⋆.sub (⋆.exts (⋆.exts (λ x → embNf (σ x))))
+         (embNf (<C'2type p C)))
+        (exte (exte (idEnv ∅))))
+       [ A ]Nf)
+      ≡ subNf (subNf-cons σ A) (Π (<C'2type p C))
+Πlem p A C σ = sym (subNf-cons-[]Nf (Π (<C'2type p C)))
+
+⇒lem : ∀{K}{A : ∅ ⊢Nf⋆ K}{Φ Φ'}{Δ : Ctx Φ'}{Γ : Ctx Φ}{B : Φ' ,⋆ K ⊢Nf⋆ *}
+       (p : ((Δ ,⋆ K) , B) ≤C' Γ)(σ : SubNf Φ' ∅)(C : Φ ⊢Nf⋆ *)
+  → ((eval (⋆.sub (⋆.exts (λ x → embNf (σ x))) (embNf B))
+        (exte (idEnv ∅))
+        ⇒
+        eval (⋆.sub (⋆.exts (λ x → embNf (σ x))) (embNf (<C'2type p C)))
+        (exte (idEnv ∅)))
+       [ A ]Nf)
+      ≡ subNf (subNf-cons σ A) (B ⇒ <C'2type p C)
+⇒lem {B = B} p σ C = sym (subNf-cons-[]Nf (B ⇒ <C'2type p C)) 
 \end{code}

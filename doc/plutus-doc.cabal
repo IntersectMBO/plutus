@@ -51,6 +51,8 @@ executable doc-doctests
       PlutusTx
       BasicValidators
       BasicPolicies
+      BasicApps
+      HelloWorldApp
     build-depends:
       base >=4.9 && <5,
       template-haskell >=2.13.0.0,
@@ -59,8 +61,11 @@ executable doc-doctests
       plutus-tx -any,
       plutus-ledger -any,
       plutus-contract -any,
+      playground-common -any,
       prettyprinter -any,
-      containers -any
+      containers -any,
+      text -any,
+      aeson -any
 
     if !(impl(ghcjs) || os(ghcjs))
         build-depends: plutus-tx-plugin -any

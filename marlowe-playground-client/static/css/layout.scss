@@ -49,3 +49,30 @@ main section {
     }
   }
 }
+
+/* The "grey" background that prevents other actions to be performed */
+.loading-overlay {
+
+  /*
+    Hidden by default
+    Centered vertically and horizontally
+  */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  /* Stay in place */
+  position: fixed;
+  /* Sit on top */
+  z-index: 1000;
+  left: 0;
+  top: 0;
+  /* Full width */
+  width: 100vw;
+  /* Full height */
+  height: 100vh;
+  /* Fallback color */
+  background-color: rgb(0, 0, 0);
+  /* Black w/ opacity */
+  background-color: rgba(0, 0, 0, 0.4);
+}

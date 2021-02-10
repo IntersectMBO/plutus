@@ -8,7 +8,6 @@ import           Plutus.Benchmark.Knights.ChessSetList
 import           Plutus.Benchmark.Knights.KnightHeuristic
 import           Plutus.Benchmark.Knights.Queue
 
-import           Language.PlutusCore                      (Name (..))
 import           Language.PlutusCore.Builtins
 import qualified Language.PlutusCore.Pretty               as PLC
 import           Language.PlutusCore.Universe
@@ -91,7 +90,7 @@ runKnights :: Integer -> Integer -> [Solution]
 runKnights depth boardSize = depthSearch depth (root boardSize) grow isFinished
 
 {-# INLINABLE mkKnightsTerm #-}
-mkKnightsTerm :: Integer -> Integer -> Term Name DefaultUni DefaultFun ()
+mkKnightsTerm :: Integer -> Integer -> Term NamedDeBruijn DefaultUni DefaultFun ()
 mkKnightsTerm depth boardSize =
   let (Program _ _ code) = Tx.getPlc $
                              $$(Tx.compile [|| runKnights ||])

@@ -163,6 +163,7 @@ const marloweLexer = moo.compile({
       VALUE: [
         'AvailableMoney',
         'Constant',
+        'ConstantParam',
         'NegValue',
         'AddValue',
         'SubValue',
@@ -178,6 +179,7 @@ const marloweLexer = moo.compile({
       PAYEE: ['Account', 'Party'],
       PARTY: ['PK', 'Role'],
       BOUND: ['Bound'],
+      TIMEOUT: ['SlotParam'],
       VALUE_ID: ['ValueId'],
       CASE: ['Case'],
       ACTION: ['Deposit', 'Choice', 'Notify'],

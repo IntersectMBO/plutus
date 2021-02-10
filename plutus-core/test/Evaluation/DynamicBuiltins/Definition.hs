@@ -25,6 +25,7 @@ import           Language.PlutusCore.Constant
 import           Language.PlutusCore.Evaluation.Machine.ExBudgeting
 import           Language.PlutusCore.Evaluation.Machine.ExBudgetingDefaults
 import           Language.PlutusCore.Evaluation.Machine.ExMemory
+import           Language.PlutusCore.Evaluation.Machine.Exception
 import           Language.PlutusCore.Generators.Interesting
 import           Language.PlutusCore.MkPlc                                  hiding (error)
 import           Language.PlutusCore.Pretty
@@ -36,8 +37,10 @@ import qualified Language.PlutusCore.StdLib.Data.List                       as P
 import           Evaluation.DynamicBuiltins.Common
 
 import           Data.Either
+import qualified Data.Kind                                                  as GHC (Type)
 import           Data.Proxy
 import           Data.Text.Prettyprint.Doc
+import           Data.Void
 import           GHC.Generics
 import           GHC.Ix
 import           Hedgehog                                                   hiding (Opaque, Size, Var)
@@ -107,6 +110,7 @@ data ExtensionFun
     | IdFInteger
     | IdList
     | IdRank2
+    | Absurd
     deriving (Show, Eq, Ord, Enum, Bounded, Ix, Generic, Hashable)
     deriving ExMemoryUsage via (GenericExMemoryUsage ExtensionFun)
 
@@ -127,17 +131,19 @@ defBuiltinsRuntimeExt
     => BuiltinsRuntime (Either DefaultFun ExtensionFun) term
 defBuiltinsRuntimeExt = toBuiltinsRuntime (defDefaultFunDyn, ()) (defaultCostModel, ())
 
-data ListRep a
+data ListRep (a :: GHC.Type)
 instance KnownTypeAst uni a => KnownTypeAst uni (ListRep a) where
     toTypeAst _ = TyApp () Plc.listTy . toTypeAst $ Proxy @a
-type instance ToBinds (ListRep a) = TypeToBinds a
+type instance ToBinds (ListRep a) = ToBinds a
 
-data TyForallStarRep text unique a
-instance (KnownTypeAst uni (TyVarRep text unique), KnownTypeAst uni a) =>
-            KnownTypeAst uni (TyForallStarRep text unique a) where
-    toTypeAst _ = case toTypeAst @uni $ Proxy @(TyVarRep text unique) of
-        TyVar () name -> TyForall () name (Type ()) . toTypeAst $ Proxy @a
-        _             -> error "Impossible"
+instance KnownTypeAst uni Void where
+    toTypeAst _ = runQuote $ do
+        a <- freshTyName "a"
+        pure $ TyForall () a (Type ()) $ TyVar () a
+instance KnownType term Void where
+    makeKnown = absurd
+    readKnown = throwingWithCause _UnliftingError "Can't unlift a 'Void'" . Just
+type instance ToBinds Void = '[]
 
 instance (GShow uni, GEq uni, uni `Includes` Integer) => ToBuiltinMeaning uni ExtensionFun where
     type DynamicPart uni ExtensionFun = ()
@@ -145,33 +151,38 @@ instance (GShow uni, GEq uni, uni `Includes` Integer) => ToBuiltinMeaning uni Ex
     toBuiltinMeaning Factorial = toStaticBuiltinMeaning (\(n :: Integer) -> product [1..n]) mempty
     toBuiltinMeaning Const =
         toStaticBuiltinMeaning
-            (const
-                :: (a ~ Opaque term (TyVarRep "a" 0), b ~ Opaque term (TyVarRep "b" 1))
-                => a -> b -> a)
+            const
             mempty
     toBuiltinMeaning Id =
         toStaticBuiltinMeaning
-            (Prelude.id :: a ~ Opaque term (TyVarRep "a" 0) => a -> a)
+            Prelude.id
             mempty
     toBuiltinMeaning IdFInteger =
-        -- Automatic inference doesn't work with higher-kinded variables, hence doing everything
-        -- manually.
-        BuiltinMeaning
-            (TypeSchemeAll @"f" @0 Proxy (KindArrow () (Type ()) $ Type ()) $ \(_ :: Proxy f) ->
-                let ty = Proxy @(Opaque _ (TyAppRep f Integer))
-                in ty `TypeSchemeArrow` TypeSchemeResult ty)
-            (\_ -> Prelude.id)
+        toStaticBuiltinMeaning
+            (Prelude.id
+                :: a ~ Opaque term (TyAppRep (TyVarRep ('TyNameRep "f" 0)) Integer)
+                => a -> a)
             mempty
     toBuiltinMeaning IdList =
         toStaticBuiltinMeaning
-            (Prelude.id :: a ~ Opaque term (ListRep (Opaque term (TyVarRep "a" 0))) => a -> a)
+            (Prelude.id
+                :: a ~ Opaque term (ListRep (TyVarRep ('TyNameRep "a" 0)))
+                => a -> a)
             mempty
     toBuiltinMeaning IdRank2 =
-        BuiltinMeaning
-            (TypeSchemeAll @"f" @0 Proxy (KindArrow () (Type ()) $ Type ()) $ \(_ :: Proxy f) ->
-                let ty = Proxy @(Opaque _ (TyForallStarRep "a" 1 (TyAppRep f (Opaque _ (TyVarRep "a" 1)))))
-                in ty `TypeSchemeArrow` TypeSchemeResult ty)
-            (\_ -> Prelude.id)
+        toStaticBuiltinMeaning
+            (Prelude.id
+                :: ( f ~ 'TyNameRep "f" 0
+                   , a ~ 'TyNameRep @GHC.Type "a" 1
+                   , afa ~ Opaque term (TyForallRep a (TyAppRep (TyVarRep f) (TyVarRep a)))
+                   )
+                => afa -> afa)
+            mempty
+    toBuiltinMeaning Absurd =
+        toStaticBuiltinMeaning
+            (absurd
+                :: a ~ Opaque term (TyVarRep ('TyNameRep "a" 0))
+                => Void -> a)
             mempty
 
 -- | Check that 'Factorial' from the above computes to the same thing as
@@ -194,7 +205,7 @@ test_Const =
         b <- forAll Gen.bool
         let tC = mkConstant () c
             tB = mkConstant () b
-            char = toTypeAst @DefaultUni @Char Proxy
+            char = toTypeAst @_ @DefaultUni @Char Proxy
             runConst con = mkIterApp () (mkIterInst () con [char, bool]) [tC, tB]
             lhs = typecheckReadKnownCek defBuiltinsRuntimeExt $ runConst $ Builtin () (Right Const)
             rhs = typecheckReadKnownCek defBuiltinsRuntimeExt $ runConst $ mapFun Left Plc.const
@@ -306,6 +317,16 @@ test_IdRank2 =
         tyAct @?= tyExp
         typecheckEvaluateCek defBuiltinsRuntimeExt term @?= Right (EvaluationSuccess res)
 
+-- | Test that the type of PLC @Absurd@ is inferred correctly.
+test_Absurd :: TestTree
+test_Absurd =
+    testCase "Absurd" $ do
+        let tyAct = typeOfBuiltinFunction @DefaultUni Absurd
+            tyExp = let a = TyName . Name "a" $ Unique 0
+                        tyForallA = TyForall () a (Type ())
+                    in tyForallA . TyFun () (tyForallA $ TyVar () a) $ TyVar () a
+        tyAct @?= tyExp
+
 test_definition :: TestTree
 test_definition =
     testGroup "definition"
@@ -315,4 +336,5 @@ test_definition =
         , test_IdFInteger
         , test_IdList
         , test_IdRank2
+        , test_Absurd
         ]

@@ -39,6 +39,14 @@ variable "marlowe_public_zone" {
   default = "Z1VIYCTCY8RMLZ"
 }
 
+variable "marlowe_dash_tld" {
+  default = "marlowe-dash.iohkdev.io"
+}
+
+variable "marlowe_dash_public_zone" {
+  default = "Z04600362E06M9P9U3Y12"
+}
+
 variable "monitoring_tld" {
   default = "goguen.monitoring.iohkdev.io"
 }
@@ -59,6 +67,10 @@ variable "playground_instance_type" {
   default = "t3.small"
 }
 
+variable "marlowe_dash_instance_type" {
+  default = "t3.small"
+}
+
 variable "nixops_instance_type" {
   default = "t2.large"
 }
@@ -70,6 +82,7 @@ variable "bastion_ssh_keys" {
     kris    = ["kris"]
     pablo   = ["pablo"]
     prod = [ "live-infra-staging", "david", "kris", "mpj" ]
+    playground = [ "live-infra-staging", "david", "kris", "mpj" ]
     wyohack = ["david", "pablo", "kris"]
     testing = ["david", "pablo", "kris"]
   }
@@ -85,6 +98,7 @@ variable "nixops_ssh_keys" {
     kris    = ["kris"]
     pablo   = ["pablo"]
     prod = [ "live-infra-staging" ]
+    playground = [ "live-infra-staging", "kris", "david" ]
     wyohack = ["david", "pablo", "kris"]
     testing = ["david", "pablo", "kris"]
   }
@@ -100,6 +114,7 @@ variable "playground_ssh_keys" {
     kris    = ["kris"]
     pablo   = ["pablo"]
     prod = [ "live-infra-staging", "david", "kris", "mpj" ]
+    playground = [ "live-infra-staging", "david", "kris", "mpj" ]
     wyohack = ["david", "pablo", "kris"]
     testing = ["david", "pablo", "kris"]
   }

@@ -81,11 +81,10 @@ mkCompileScript script =
   replaceModuleName script
     <> Text.unlines
       [ "",
-        "$ensureIotsDefinitions",
         "$ensureKnownCurrencies",
         "",
         "main :: IO ()",
-        "main = printSchemas (schemas, registeredKnownCurrencies, iotsDefinitions)"
+        "main = printSchemas (schemas, registeredKnownCurrencies)"
       ]
 
 runghc :: CompileRequest -> ClientM (Either InterpreterError (InterpreterResult String))
@@ -120,16 +119,16 @@ getCompilationResult (InterpreterResult warnings result) =
             "unable to decode compilation result: " <> Text.pack err
               <> "\n"
               <> Text.pack result
-        Right ([schema], currencies, iots) -> do
+        Right ([schema], currencies) -> do
           let warnings' =
                 Warning
                   "It looks like you have not made any functions available, use `$(mkFunctions ['functionA, 'functionB])` to be able to use `functionA` and `functionB`" :
                 warnings
           pure . InterpreterResult warnings' $
-            CompilationResult [schema] currencies iots
-        Right (schemas, currencies, iots) ->
+            CompilationResult [schema] currencies
+        Right (schemas, currencies) ->
           pure . InterpreterResult warnings $
-            CompilationResult schemas currencies iots
+            CompilationResult schemas currencies
 
 compile ::
   ( MonadMask m,

@@ -37,6 +37,8 @@ module Language.PlutusTx.Prelude (
     snd,
     -- * Maybe
     module Maybe,
+    -- * Either
+    module Either,
     -- * Lists
     module List,
     fold,
@@ -68,6 +70,7 @@ import           Language.PlutusTx.Builtins    (ByteString, concatenate, dropByt
                                                 equalsByteString, greaterThanByteString, lessThanByteString, sha2_256,
                                                 sha3_256, takeByteString, verifySignature)
 import qualified Language.PlutusTx.Builtins    as Builtins
+import           Language.PlutusTx.Either      as Either
 import           Language.PlutusTx.Eq          as Eq
 import           Language.PlutusTx.Functor     as Functor
 import           Language.PlutusTx.Lattice     as Lattice
@@ -81,10 +84,10 @@ import           Language.PlutusTx.Semigroup   as Semigroup
 import           Language.PlutusTx.String      as String
 import           Prelude                       as Prelude hiding (Applicative (..), Eq (..), Functor (..), Monoid (..),
                                                            Num (..), Ord (..), Rational, Semigroup (..), all, any,
-                                                           const, divMod, elem, error, filter, foldMap, foldl, foldr,
-                                                           fst, id, length, map, max, maybe, min, not, null, quotRem,
-                                                           reverse, round, sequence, snd, traverse, zip, (!!), ($),
-                                                           (&&), (++), (<$>), (||))
+                                                           const, divMod, either, elem, error, filter, foldMap, foldl,
+                                                           foldr, fst, id, length, map, max, maybe, min, not, null,
+                                                           quotRem, reverse, round, sequence, snd, traverse, zip, (!!),
+                                                           ($), (&&), (++), (<$>), (||))
 
 -- this module does lots of weird stuff deliberately
 {-# ANN module ("HLint: ignore"::String) #-}

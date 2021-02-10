@@ -3,10 +3,11 @@
 , config ? { allowUnfreePredicate = (import ./lib.nix).unfreePredicate; }
 , rev ? "in-nix-shell"
 , sourcesOverride ? { }
-, packages ? import ./nix { inherit crossSystem config sourcesOverride rev; }
+, packages ? import ./. { inherit crossSystem config sourcesOverride rev enableHaskellProfiling; }
+, enableHaskellProfiling ? false
 }:
 let
-  inherit (packages) pkgs plutus plutusMusl;
+  inherit (packages) pkgs plutus plutusMusl plutus-playground marlowe-playground plutus-pab marlowe-dashboard deployment;
   inherit (pkgs) stdenv lib utillinux python3 nixpkgs-fmt;
   inherit (plutus) haskell agdaPackages stylish-haskell sphinxcontrib-haddock nix-pre-commit-hooks;
   inherit (plutus) agdaWithStdlib;
@@ -32,7 +33,7 @@ let
         # While nixpkgs-fmt does exclude patterns specified in `.ignore` this
         # does not appear to work inside the hook. For now we have to thus
         # maintain excludes here *and* in `./.ignore` and *keep them in sync*.
-        excludes = [ ".*nix/stack.materialized/.*" ".*nix/sources.nix$" ".*/spago-packages.nix$" ".*/packages.nix$" ];
+        excludes = [ ".*nix/pkgs/haskell/materialized.*/.*" ".*nix/sources.nix$" ".*/spago-packages.nix$" ".*/packages.nix$" ];
       };
       shellcheck.enable = true;
     };
@@ -44,6 +45,7 @@ let
     awscli
     cacert
     ghcid
+    morph
     niv
     nixpkgs-fmt
     nodejs
@@ -51,7 +53,7 @@ let
     shellcheck
     sqlite-interactive
     stack
-    terraform_0_12
+    terraform
     yubikey-manager
     z3
     zlib
@@ -66,21 +68,37 @@ let
     hie-bios
     gen-hie
     hlint
+    marlowe-dashboard.generate-purescript
+    marlowe-playground.generate-purescript
+    marlowe-playground.start-backend
+    plutus-playground.generate-purescript
+    plutus-playground.start-backend
+    plutus-pab.generate-purescript
+    plutus-pab.start-backend
     purs
     purty
     spago
     stylish-haskell
+    updateMaterialized
     updateHie
     updateClientDeps
     updateMetadataSamples
+    deployment.getCreds
   ]);
 
 in
-haskell.packages.shellFor {
+haskell.project.shellFor {
   nativeBuildInputs = nixpkgsInputs ++ localInputs ++ [ agdaWithStdlib sphinxTools ];
+  # We don't currently use this, and it's a pain to materialize, and otherwise
+  # costs a fair bit of eval time.
+  withHoogle = false;
 
   # we have a local passwords store that we use for deployments etc.
   PASSWORD_STORE_DIR = toString ./. + "/secrets";
+
+  # we use the working projects root in a deployment hack, 
+  # you will normally be here to start the shell but this allows you to move around
+  PLUTUS_ROOT = toString ./.;
 
   shellHook = ''
     ${pre-commit-check.shellHook}

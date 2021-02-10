@@ -2,69 +2,56 @@
 {-# LANGUAGE ExplicitForAll    #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TypeApplications  #-}
-module Spec.TokenAccount(tests, assertAccountBalance) where
+module Spec.TokenAccount(tests, assertAccountBalance, tokenAccountTrace) where
 
 import           Test.Tasty
 
+import           Control.Monad                                         (void)
+import           Control.Monad.Freer                                   (run)
+import           Control.Monad.Freer.Error                             (runError)
+import           Language.Plutus.Contract                              (Contract)
 import           Language.Plutus.Contract.Test
-import           Language.PlutusTx.Lattice
 import qualified Ledger
 import qualified Ledger.Ada                                            as Ada
 import           Ledger.Value                                          (TokenName, Value)
+import qualified Streaming.Prelude                                     as S
+import           Wallet.Emulator.Stream                                (foldEmulatorStreamM, takeUntilSlot)
 
 import           Language.PlutusTx.Coordination.Contracts.TokenAccount (Account (..), TokenAccountError,
                                                                         TokenAccountSchema, tokenAccountContract)
 import qualified Language.PlutusTx.Coordination.Contracts.TokenAccount as Accounts
+import qualified Plutus.Trace.Emulator                                 as Trace
+import qualified Wallet.Emulator.Folds                                 as Folds
 
 tests :: TestTree
 tests = testGroup "token account"
-    [ checkPredicate @TokenAccountSchema @TokenAccountError "Create a token account"
-        tokenAccountContract
+    [ checkPredicate "Create a token account"
         (assertNoFailedTransactions
-        /\ assertNotDone w1 "contract should not have any errors"
-        /\ walletFundsChange w1 theToken)
-        (  callEndpoint @"new-account" w1 (tokenName, Ledger.pubKeyHash $ walletPubKey w1)
-        >> handleBlockchainEvents w1
-        >> addBlocks 1
-        >> handleBlockchainEvents w1
-        >> addBlocks 1)
+        .&&. assertNotDone contract (Trace.walletInstanceTag w1) "contract should not have any errors"
+        .&&. walletFundsChange w1 theToken)
+        $ do
+            hdl <- Trace.activateContractWallet w1 contract
+            Trace.callEndpoint @"new-account" hdl (tokenName, Ledger.pubKeyHash $ walletPubKey w1)
+            void $ Trace.waitNSlots 2
 
-    , checkPredicate @TokenAccountSchema @TokenAccountError "Pay into the account"
-        tokenAccountContract
+    , checkPredicate "Pay into the account"
         (assertNoFailedTransactions
-        /\ assertNotDone w1 "contract should not have any errors"
-        /\ walletFundsChange w1 (Ada.lovelaceValueOf (-10) <> theToken))
-        ( callEndpoint @"new-account" w1 (tokenName, Ledger.pubKeyHash $ walletPubKey w1)
-        >> handleBlockchainEvents w1
-        >> addBlocks 1
-        >> handleBlockchainEvents w1
-        >> addBlocks 1
-        >> handleBlockchainEvents w1
-        >> callEndpoint @"pay" w1 (account, Ada.lovelaceValueOf 10)
-        >> handleBlockchainEvents w1
-        >> addBlocks 1)
+        .&&. assertNotDone contract (Trace.walletInstanceTag w1) "contract should not have any errors"
+        .&&. walletFundsChange w1 (Ada.lovelaceValueOf (-10) <> theToken))
+        $ do
+            hdl <- Trace.activateContractWallet w1 contract
+            Trace.callEndpoint @"new-account" hdl (tokenName, Ledger.pubKeyHash $ walletPubKey w1)
+            _ <- Trace.waitNSlots 3
+            Trace.callEndpoint @"pay" hdl (account, Ada.lovelaceValueOf 10)
+            void $ Trace.waitNSlots 1
 
-    , checkPredicate @TokenAccountSchema @TokenAccountError "Transfer & redeem all funds"
-        tokenAccountContract
+    , checkPredicate "Transfer & redeem all funds"
         (assertNoFailedTransactions
-        /\ assertNotDone w1 "contract should not have any errors"
-        /\ walletFundsChange w1 (Ada.lovelaceValueOf (-10))
-        /\ walletFundsChange w2 (theToken <> Ada.lovelaceValueOf 10))
-        (  callEndpoint @"new-account" w1 (tokenName, Ledger.pubKeyHash $ walletPubKey w1)
-        >> handleBlockchainEvents w1
-        >> addBlocks 1
-        >> handleBlockchainEvents w1
-        >> addBlocks 1
-        >> handleBlockchainEvents w1
-        >> callEndpoint @"pay" w1 (account, Ada.lovelaceValueOf 10)
-        >> handleBlockchainEvents w1
-        >> addBlocks 1
-        >> payToWallet w1 w2 theToken
-        >> addBlocks 1
-        >> handleBlockchainEvents w1
-        >> callEndpoint @"redeem" w2 (account, Ledger.pubKeyHash $ walletPubKey w2)
-        >> handleBlockchainEvents w2
-        >> addBlocks 1)
+        .&&. assertNotDone contract (Trace.walletInstanceTag w1) "contract should not have any errors"
+        .&&. walletFundsChange w1 (Ada.lovelaceValueOf (-10))
+        .&&. walletFundsChange w2 (theToken <> Ada.lovelaceValueOf 10)
+        )
+        tokenAccountTrace
 
     ]
 
@@ -75,18 +62,43 @@ w2 = Wallet 2
 tokenName :: TokenName
 tokenName = "test token"
 
+contract :: Contract TokenAccountSchema TokenAccountError ()
+contract = tokenAccountContract
+
 account :: Account
 account =
-    let con = Accounts.newAccount tokenName (Ledger.pubKeyHash $ walletPubKey w1) in
-    either error id $ evalTrace @TokenAccountSchema @TokenAccountError con (handleBlockchainEvents w1 >> addBlocks 1 >> handleBlockchainEvents w1 >> addBlocks 1 >> handleBlockchainEvents w1) w1
+    let con = Accounts.newAccount @TokenAccountSchema @TokenAccountError tokenName (Ledger.pubKeyHash $ walletPubKey w1)
+        fld = Folds.instanceOutcome con (Trace.walletInstanceTag w1)
+        trace = Trace.activateContractWallet w1 (void con) >> Trace.waitNSlots 2
+        getOutcome (Done a) = a
+        getOutcome _        = error "not finished"
+    in
+    either (error . show) (getOutcome . S.fst')
+        $ run
+        $ runError @Folds.EmulatorFoldErr
+        $ foldEmulatorStreamM fld
+        $ takeUntilSlot 10
+        $ Trace.runEmulatorStream Trace.defaultEmulatorConfig trace
 
 theToken :: Value
 theToken = Accounts.accountToken account
 
 -- | Check that the balance of the given account satisfies a predicate.
-assertAccountBalance
-    :: forall s e a.
-       Account
-    -> (Value -> Bool)
-    -> TracePredicate s e a
-assertAccountBalance acc = fundsAtAddress (Accounts.address acc)
+assertAccountBalance :: Account -> (Value -> Bool) -> TracePredicate
+assertAccountBalance acc = valueAtAddress (Accounts.address acc)
+
+-- | Create a new token account for wallet 1, pay 100 lovelace to the token
+--   account contract, transfer the token to wallet 2, then use the token
+--   to take out the funds.
+tokenAccountTrace :: Trace.EmulatorTrace ()
+tokenAccountTrace = do
+    hdl <- Trace.activateContractWallet w1 contract
+    hdl2 <- Trace.activateContractWallet w2 contract
+    Trace.callEndpoint @"new-account" hdl (tokenName, Ledger.pubKeyHash $ walletPubKey w1)
+    _ <- Trace.waitNSlots 3
+    Trace.callEndpoint @"pay" hdl (account, Ada.lovelaceValueOf 10)
+    _ <- Trace.waitNSlots 2
+    _ <- Trace.payToWallet w1 w2 theToken
+    _ <- Trace.waitNSlots 1
+    Trace.callEndpoint @"redeem" hdl2 (account, Ledger.pubKeyHash $ walletPubKey w2)
+    void $ Trace.waitNSlots 1

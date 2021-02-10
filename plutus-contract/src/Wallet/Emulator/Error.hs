@@ -13,7 +13,6 @@ import           Data.Aeson                (FromJSON, ToJSON)
 import           Data.Text                 (Text)
 import           Data.Text.Prettyprint.Doc
 import           GHC.Generics              (Generic)
-import           IOTS                      (IotsType)
 
 import           Ledger                    (PubKeyHash)
 
@@ -26,7 +25,6 @@ data WalletAPIError =
     | OtherError Text
     -- ^ Some other error occurred.
     deriving stock (Show, Eq, Ord, Generic)
-    deriving anyclass (IotsType)
 
 instance Pretty WalletAPIError where
     pretty = \case

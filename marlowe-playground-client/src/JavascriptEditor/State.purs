@@ -1,36 +1,54 @@
-module JavascriptEditor.State where
+module JavascriptEditor.State
+  ( handleAction
+  , mkEditor
+  , editorGetValue
+  ) where
 
 import Prelude hiding (div)
+import BottomPanel.State (handleAction) as BottomPanel
+import BottomPanel.Types (Action(..), State) as BottomPanel
+import CloseAnalysis (analyseClose)
 import Control.Monad.Maybe.Extra (hoistMaybe)
 import Control.Monad.Maybe.Trans (runMaybeT)
+import Control.Monad.Reader (class MonadAsk)
 import Data.Array as Array
 import Data.Either (Either(..))
-import Data.Lens (assign, to, use, view)
+import Data.Lens (assign, use, view)
 import Data.List ((:))
 import Data.List as List
-import Data.Map as Map
 import Data.Maybe (Maybe(..), fromMaybe)
 import Data.String (drop, joinWith, length, take)
 import Effect.Aff.Class (class MonadAff, liftAff)
 import Effect.Class (class MonadEffect)
+import Env (Env)
 import Examples.JS.Contracts as JSE
 import Halogen (Component, HalogenM, gets, liftEffect, query)
-import Halogen.Blockly as Blockly
+import Halogen.Extra (mapSubmodule)
 import Halogen.HTML (HTML)
 import Halogen.Monaco (Message(..), Query(..)) as Monaco
 import Halogen.Monaco (Message, Query, monacoComponent)
-import JavascriptEditor.Types (Action(..), CompilationState(..), State, _compilationResult, _decorationIds, _keybindings, _showBottomPanel)
-import Language.Javascript.Interpreter (_result)
+import JavascriptEditor.Types (Action(..), BottomPanelView(..), CompilationState(..), State, _bottomPanelState, _compilationResult, _decorationIds, _keybindings)
+import Language.Javascript.Interpreter (InterpreterResult(..))
 import Language.Javascript.Interpreter as JSI
 import Language.Javascript.Monaco as JSM
 import LocalStorage as LocalStorage
-import MainFrame.Types (ChildSlots, _blocklySlot, _jsEditorSlot)
-import Marlowe (SPParams_)
+import MainFrame.Types (ChildSlots, _jsEditorSlot)
+import Marlowe.Extended (Contract)
 import Monaco (IRange, getModel, isError, setValue)
-import Servant.PureScript.Settings (SPSettings_)
+import Network.RemoteData (RemoteData(..))
+import StaticAnalysis.Reachability (analyseReachability)
+import StaticAnalysis.StaticTools (analyseContract)
+import StaticAnalysis.Types (AnalysisState(..), MultiStageAnalysisData(..), _analysisState)
 import StaticData (jsBufferLocalStorageKey)
 import StaticData as StaticData
 import Text.Parsing.StringParser.Basic (lines)
+
+toBottomPanel ::
+  forall m a.
+  Functor m =>
+  HalogenM (BottomPanel.State BottomPanelView) (BottomPanel.Action BottomPanelView Action) ChildSlots Void m a ->
+  HalogenM State Action ChildSlots Void m a
+toBottomPanel = mapSubmodule _bottomPanelState BottomPanelAction
 
 checkDecorationPosition :: Int -> Maybe IRange -> Maybe IRange -> Boolean
 checkDecorationPosition numLines (Just { endLineNumber }) (Just { startLineNumber }) = (endLineNumber == decorationHeaderLines) && (startLineNumber == numLines - decorationFooterLines + 1)
@@ -40,11 +58,23 @@ checkDecorationPosition _ _ _ = false
 handleAction ::
   forall m.
   MonadAff m =>
-  SPSettings_ SPParams_ ->
+  MonadAsk Env m =>
   Action ->
   HalogenM State Action ChildSlots Void m Unit
-handleAction _ (HandleEditorMessage (Monaco.TextChanged text)) =
+handleAction (HandleEditorMessage (Monaco.TextChanged text)) =
   ( do
+      -- TODO: This handler manages the logic of having a restricted range that cannot be modified. But the
+      --       current implementation uses editorSetValue to overwrite the editor contents with the last
+      --       correct value (taken from local storage). By using editorSetValue inside the TextChanged handler
+      --       the events get fired multiple times on init, which makes hasUnsavedChanges always true for a new
+      --       JS project or a project load.
+      --
+      --       Once the PR 2498 gets merged, I want to try changing the web-commons Monaco component so that the
+      --       TextChanged handler returns an IModelContentChangedEvent instead of a string. That event cointains
+      --       information of the range of the modifications, and if the action was triggered by an undo/redo
+      --       action. With that information we can reimplement this by firing an undo event if a "read only"
+      --       decoration. At this moment I'm not sure if that will solve the bubble problem but at least it will
+      --       allow us to decouple from local storage.
       let
         prunedText = pruneJSboilerplate text
 
@@ -69,11 +99,11 @@ handleAction _ (HandleEditorMessage (Monaco.TextChanged text)) =
         Nothing -> editorSetValue prunedText
   )
 
-handleAction _ (ChangeKeyBindings bindings) = do
+handleAction (ChangeKeyBindings bindings) = do
   assign _keybindings bindings
   void $ query _jsEditorSlot unit (Monaco.SetKeyBindings bindings unit)
 
-handleAction settings Compile = do
+handleAction Compile = do
   maybeModel <- query _jsEditorSlot unit (Monaco.GetModel identity)
   compilationResult <- case maybeModel of
     Nothing -> pure NotCompiled
@@ -94,28 +124,52 @@ handleAction settings Compile = do
             Left err -> pure $ CompilationError err
             Right result -> pure $ CompiledSuccessfully result
   assign _compilationResult compilationResult
-  assign _showBottomPanel true
+  case compilationResult of
+    (CompilationError _) -> handleAction $ BottomPanelAction (BottomPanel.ChangePanel ErrorsView)
+    _ -> pure unit
   editorResize
 
-handleAction _ (LoadScript key) = do
-  case Map.lookup key StaticData.demoFilesJS of
-    Nothing -> pure unit
-    Just contents -> do
-      editorSetValue contents
+handleAction (BottomPanelAction (BottomPanel.PanelAction action)) = handleAction action
 
-handleAction _ (ShowBottomPanel val) = do
-  assign _showBottomPanel val
+handleAction (BottomPanelAction action) = do
+  toBottomPanel (BottomPanel.handleAction action)
   editorResize
 
-handleAction _ SendResultToSimulator = pure unit
+handleAction SendResultToSimulator = pure unit
 
-handleAction _ SendResultToBlockly = do
-  mContract <- use _compilationResult
-  case mContract of
-    CompiledSuccessfully result -> do
-      let
-        source = view (_result <<< to show) result
-      void $ query _blocklySlot unit (Blockly.SetCode source unit)
+handleAction (InitJavascriptProject prunedContent) = do
+  editorSetValue prunedContent
+  liftEffect $ LocalStorage.setItem jsBufferLocalStorageKey prunedContent
+
+handleAction AnalyseContract = compileAndAnalyze (WarningAnalysis Loading) $ analyseContract
+
+handleAction AnalyseReachabilityContract =
+  compileAndAnalyze (ReachabilityAnalysis AnalysisNotStarted)
+    $ analyseReachability
+
+handleAction AnalyseContractForCloseRefund =
+  compileAndAnalyze (CloseAnalysis AnalysisNotStarted)
+    $ analyseClose
+
+-- This function runs a static analysis to the compiled code. It calls the compiler if
+-- it wasn't runned before and it switches to the error panel if the compilation failed
+compileAndAnalyze ::
+  forall m.
+  MonadAff m =>
+  MonadAsk Env m =>
+  AnalysisState ->
+  (Contract -> HalogenM State Action ChildSlots Void m Unit) ->
+  HalogenM State Action ChildSlots Void m Unit
+compileAndAnalyze initialAnalysisState doAnalyze = do
+  compilationResult <- use _compilationResult
+  case compilationResult of
+    NotCompiled -> do
+      -- The initial analysis state allow us to show an "Analysing..." indicator
+      assign _analysisState initialAnalysisState
+      handleAction Compile
+      compileAndAnalyze initialAnalysisState doAnalyze
+    CompiledSuccessfully (InterpreterResult interpretedResult) -> doAnalyze interpretedResult.result
+    CompilationError _ -> handleAction $ BottomPanelAction $ BottomPanel.ChangePanel ErrorsView
     _ -> pure unit
 
 editorResize :: forall state action msg m. HalogenM state action ChildSlots msg m Unit
@@ -203,7 +257,7 @@ mkEditor = monacoComponent $ JSM.settings setup
     liftEffect do
       mContents <- LocalStorage.getItem StaticData.jsBufferLocalStorageKey
       let
-        contents = fromMaybe JSE.escrow mContents
+        contents = fromMaybe JSE.example mContents
 
         decoratedContent = joinWith "\n" [ decorationHeader, contents, decorationFooter ]
 

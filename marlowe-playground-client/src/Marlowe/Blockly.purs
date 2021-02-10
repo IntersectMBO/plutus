@@ -1,19 +1,18 @@
 module Marlowe.Blockly where
 
 import Prelude
-import Blockly (AlignDirection(..), Arg(..), BlockDefinition(..), block, blockType, category, colour, defaultBlockDefinition, getBlockById, initializeWorkspace, name, render, style, x, xml, y)
 import Blockly.Generator (Connection, Generator, Input, NewBlockFunction, clearWorkspace, connect, connectToOutput, connectToPrevious, fieldName, fieldRow, getBlockInputConnectedTo, getFieldValue, getInputWithName, getType, inputList, inputName, inputType, insertGeneratorFunction, mkGenerator, nextBlock, nextConnection, previousConnection, setFieldText, statementToCode)
-import Blockly.Types (Block, BlocklyState, Workspace)
+import Blockly.Internal (AlignDirection(..), Arg(..), BlockDefinition(..), block, blockType, category, colour, defaultBlockDefinition, getBlockById, initializeWorkspace, name, render, style, x, xml, y)
+import Blockly.Types (Block, Blockly, BlocklyState, Workspace)
 import Control.Alternative ((<|>))
-import Control.Monad.ST as ST
-import Control.Monad.ST.Internal (ST, STRef)
-import Control.Monad.ST.Ref as STRef
 import Data.Array (filter, head, uncons, (:))
 import Data.Array as Array
 import Data.Bifunctor (lmap, rmap)
+import Data.BigInteger (fromString)
 import Data.Either (Either, note)
 import Data.Either as Either
 import Data.Enum (class BoundedEnum, class Enum, upFromIncluding)
+import Data.Foldable (for_)
 import Data.Generic.Rep (class Generic)
 import Data.Generic.Rep.Bounded (genericBottom, genericTop)
 import Data.Generic.Rep.Enum (genericCardinality, genericFromEnum, genericPred, genericSucc, genericToEnum)
@@ -23,9 +22,10 @@ import Data.Generic.Rep.Show (genericShow)
 import Data.Maybe (Maybe(..))
 import Data.Traversable (traverse, traverse_)
 import Data.Tuple (Tuple(..))
+import Effect (Effect)
 import Halogen.HTML (HTML)
 import Halogen.HTML.Properties (id_)
-import Marlowe.Holes (Action(..), Bound(..), Case(..), ChoiceId(..), Contract(..), Observation(..), Party(..), Payee(..), Term(..), TermWrapper(..), Token(..), Value(..), ValueId(..), mkDefaultTerm, mkDefaultTermWrapper)
+import Marlowe.Holes (Action(..), Bound(..), Case(..), ChoiceId(..), Contract(..), Location(..), Observation(..), Party(..), Payee(..), Term(..), TermWrapper(..), Timeout(..), Token(..), Value(..), ValueId(..), mkDefaultTerm, mkDefaultTermWrapper)
 import Marlowe.Parser as Parser
 import Marlowe.Semantics (Rational(..))
 import Record (merge)
@@ -239,6 +239,7 @@ observationTypes = upFromIncluding bottom
 data ValueType
   = AvailableMoneyValueType
   | ConstantValueType
+  | ConstantParamValueType
   | NegValueValueType
   | AddValueValueType
   | SubValueValueType
@@ -604,7 +605,7 @@ toDefinition blockType@(ContractType WhenContractType) =
         , args0:
             [ DummyCentre
             , Statement { name: "case", check: "ActionType", align: Left }
-            , Number { name: "timeout", value: 0.0, min: Nothing, max: Nothing, precision: Nothing }
+            , Input { name: "timeout", text: "0", spellcheck: false }
             , DummyLeft
             , DummyLeft
             , Statement { name: "contract", check: (show BaseContractType), align: Right }
@@ -840,6 +841,20 @@ toDefinition blockType@(ValueType ConstantValueType) =
         }
         defaultBlockDefinition
 
+toDefinition blockType@(ValueType ConstantParamValueType) =
+  BlockDefinition
+    $ merge
+        { type: show ConstantParamValueType
+        , message0: "ConstantParam %1"
+        , args0:
+            [ Input { name: "paramName", text: "parameterName", spellcheck: false }
+            ]
+        , colour: blockColour blockType
+        , output: Just "value"
+        , inputsInline: Just true
+        }
+        defaultBlockDefinition
+
 toDefinition blockType@(ValueType NegValueValueType) =
   BlockDefinition
     $ merge
@@ -1009,33 +1024,29 @@ workspaceBlocks =
 parse :: forall a. Parser a -> String -> Either String a
 parse p = lmap show <<< runParser' (parens p <|> p)
 
-buildGenerator :: BlocklyState -> Generator
-buildGenerator blocklyState =
-  ST.run
-    ( do
-        gRef <- mkGenerator blocklyState "Marlowe"
-        g <- STRef.read gRef
-        traverse_ (\t -> mkGenFun gRef t (baseContractDefinition g)) [ BaseContractType ]
-        traverse_ (\t -> mkGenFun gRef t (blockDefinition t g)) contractTypes
-        traverse_ (\t -> mkGenFun gRef t (blockDefinition t g)) payeeTypes
-        traverse_ (\t -> mkGenFun gRef t (blockDefinition t g)) partyTypes
-        traverse_ (\t -> mkGenFun gRef t (blockDefinition t g)) tokenTypes
-        traverse_ (\t -> mkGenFun gRef t (blockDefinition t g)) observationTypes
-        traverse_ (\t -> mkGenFun gRef t (blockDefinition t g)) valueTypes
-        traverse_ (\t -> mkGenFun gRef t (blockDefinition t g)) actionTypes
-        traverse_ (\t -> mkGenFun gRef t (boundsDefinition g)) [ BoundsType ]
-        STRef.read gRef
-    )
-
-mkGenFun :: forall a r t. Show a => Show t => STRef r Generator -> t -> (Block -> Either String a) -> ST r Unit
-mkGenFun generator blockType f = insertGeneratorFunction generator (show blockType) ((rmap show) <<< f)
+buildGenerator :: Blockly -> Effect Generator
+buildGenerator blockly = do
+  generator <- mkGenerator blockly "Marlowe"
+  let
+    mkGenFun :: forall a t. Show a => Show t => t -> (Block -> Either String a) -> Effect Unit
+    mkGenFun blockType f = insertGeneratorFunction generator (show blockType) (rmap show <<< f)
+  traverse_ (\t -> mkGenFun t (baseContractDefinition generator)) [ BaseContractType ]
+  traverse_ (\t -> mkGenFun t (blockDefinition t generator)) contractTypes
+  traverse_ (\t -> mkGenFun t (blockDefinition t generator)) payeeTypes
+  traverse_ (\t -> mkGenFun t (blockDefinition t generator)) partyTypes
+  traverse_ (\t -> mkGenFun t (blockDefinition t generator)) tokenTypes
+  traverse_ (\t -> mkGenFun t (blockDefinition t generator)) observationTypes
+  traverse_ (\t -> mkGenFun t (blockDefinition t generator)) valueTypes
+  traverse_ (\t -> mkGenFun t (blockDefinition t generator)) actionTypes
+  traverse_ (\t -> mkGenFun t (boundsDefinition generator)) [ BoundsType ]
+  pure generator
 
 class HasBlockDefinition a b | a -> b where
   blockDefinition :: a -> Generator -> Block -> Either String b
 
 baseContractDefinition :: Generator -> Block -> Either String (Term Contract)
 baseContractDefinition g block = case statementToCode g block (show BaseContractType) of
-  Either.Left _ -> pure $ Hole "contract" Proxy zero
+  Either.Left _ -> pure $ Hole "contract" Proxy NoLocation
   Either.Right s -> parse (mkDefaultTerm <$> Parser.contract) s
 
 getAllBlocks :: Block -> Array Block
@@ -1073,20 +1084,20 @@ boundsDefinition g block = traverse (boundDefinition g) (getAllBlocks block)
 
 statementToTerm :: forall a. Generator -> Block -> String -> Parser a -> Either String (Term a)
 statementToTerm g block name p = case statementToCode g block name of
-  Either.Left _ -> pure $ Hole name Proxy zero
+  Either.Left _ -> pure $ Hole name Proxy NoLocation
   Either.Right s -> parse (mkDefaultTerm <$> p) s
 
 instance hasBlockDefinitionAction :: HasBlockDefinition ActionType (Term Case) where
   blockDefinition DepositActionType g block = do
-    accountOwner <- statementToTerm g block "party" Parser.party
+    accountOwner <- statementToTerm g block "party" Parser.partyExtended
     tok <- statementToTerm g block "token" Parser.token
-    party <- statementToTerm g block "from_party" Parser.party
+    party <- statementToTerm g block "from_party" Parser.partyExtended
     amount <- statementToTerm g block "value" (Parser.value unit)
     contract <- statementToTerm g block "contract" Parser.contract
     pure $ mkDefaultTerm (Case (mkDefaultTerm (Deposit accountOwner party tok amount)) contract)
   blockDefinition ChoiceActionType g block = do
     choiceName <- getFieldValue block "choice_name"
-    choiceOwner <- statementToTerm g block "party" Parser.party
+    choiceOwner <- statementToTerm g block "party" Parser.partyExtended
     let
       choiceId = ChoiceId choiceName choiceOwner
 
@@ -1095,7 +1106,7 @@ instance hasBlockDefinitionAction :: HasBlockDefinition ActionType (Term Case) w
     let
       mTopboundBlock = getBlockInputConnectedTo boundsInput
     bounds <- case mTopboundBlock of
-      Either.Left _ -> pure [ Hole "bounds" Proxy zero ]
+      Either.Left _ -> pure [ Hole "bounds" Proxy NoLocation ]
       Either.Right topboundBlock -> boundsDefinition g topboundBlock
     contract <- statementToTerm g block "contract" Parser.contract
     pure $ mkDefaultTerm (Case (mkDefaultTerm (Choice choiceId bounds)) contract)
@@ -1106,16 +1117,16 @@ instance hasBlockDefinitionAction :: HasBlockDefinition ActionType (Term Case) w
 
 instance hasBlockDefinitionPayee :: HasBlockDefinition PayeeType (Term Payee) where
   blockDefinition AccountPayeeType g block = do
-    accountOwner <- statementToTerm g block "party" Parser.party
+    accountOwner <- statementToTerm g block "party" Parser.partyExtended
     pure $ mkDefaultTerm (Account accountOwner)
   blockDefinition PartyPayeeType g block = do
-    party <- statementToTerm g block "party" Parser.party
+    party <- statementToTerm g block "party" Parser.partyExtended
     pure $ mkDefaultTerm (Party party)
 
 instance hasBlockDefinitionParty :: HasBlockDefinition PartyType (Term Party) where
   blockDefinition PKPartyType g block = do
     case getFieldValue block "pubkey" of
-      Either.Left _ -> pure $ Hole "n" Proxy zero
+      Either.Left _ -> pure $ Hole "n" Proxy NoLocation
       Either.Right pk -> pure $ mkDefaultTerm (PK pk)
   blockDefinition RolePartyType g block = do
     role <- getFieldValue block "role"
@@ -1132,9 +1143,9 @@ instance hasBlockDefinitionToken :: HasBlockDefinition TokenType (Term Token) wh
 instance hasBlockDefinitionContract :: HasBlockDefinition ContractType (Term Contract) where
   blockDefinition CloseContractType _ _ = pure $ mkDefaultTerm Close
   blockDefinition PayContractType g block = do
-    accountOwner <- statementToTerm g block "party" Parser.party
+    accountOwner <- statementToTerm g block "party" Parser.partyExtended
     tok <- statementToTerm g block "token" Parser.token
-    payee <- statementToTerm g block "payee" Parser.payee
+    payee <- statementToTerm g block "payee" Parser.payeeExtended
     value <- statementToTerm g block "value" (Parser.value unit)
     contract <- statementToTerm g block "contract" Parser.contract
     pure $ mkDefaultTerm (Pay accountOwner payee tok value contract)
@@ -1152,8 +1163,14 @@ instance hasBlockDefinitionContract :: HasBlockDefinition ContractType (Term Con
     cases <- case eTopCaseBlock of
       Either.Right topCaseBlock -> casesDefinition g topCaseBlock
       Either.Left _ -> pure []
-    slot <- parse Parser.timeout =<< getFieldValue block "timeout"
+    slotOrParam <- getFieldValue block "timeout"
     contract <- statementToTerm g block "contract" Parser.contract
+    let
+      slot =
+        mkDefaultTerm
+          $ case fromString slotOrParam of
+              Just slotNumber -> Slot slotNumber
+              Nothing -> SlotParam slotOrParam
     pure $ mkDefaultTerm (When cases slot contract)
   blockDefinition LetContractType g block = do
     valueId <- mkDefaultTermWrapper <<< ValueId <$> getFieldValue block "value_id"
@@ -1179,7 +1196,7 @@ instance hasBlockDefinitionObservation :: HasBlockDefinition ObservationType (Te
     pure $ mkDefaultTerm (NotObs observation)
   blockDefinition ChoseSomethingObservationType g block = do
     choiceName <- getFieldValue block "choice_name"
-    choiceOwner <- statementToTerm g block "party" Parser.party
+    choiceOwner <- statementToTerm g block "party" Parser.partyExtended
     let
       choiceId = ChoiceId choiceName choiceOwner
     pure $ mkDefaultTerm (ChoseSomething choiceId)
@@ -1208,12 +1225,15 @@ instance hasBlockDefinitionObservation :: HasBlockDefinition ObservationType (Te
 
 instance hasBlockDefinitionValue :: HasBlockDefinition ValueType (Term Value) where
   blockDefinition AvailableMoneyValueType g block = do
-    accountOwner <- statementToTerm g block "party" Parser.party
+    accountOwner <- statementToTerm g block "party" Parser.partyExtended
     tok <- statementToTerm g block "token" Parser.token
     pure $ mkDefaultTerm (AvailableMoney accountOwner tok)
   blockDefinition ConstantValueType g block = do
     constant <- parse Parser.bigInteger =<< getFieldValue block "constant"
     pure $ mkDefaultTerm (Constant constant)
+  blockDefinition ConstantParamValueType g block = do
+    paramName <- getFieldValue block "paramName"
+    pure $ mkDefaultTerm (ConstantParam paramName)
   blockDefinition NegValueValueType g block = do
     value <- statementToTerm g block "value" (Parser.value unit)
     pure $ mkDefaultTerm (NegValue value)
@@ -1236,7 +1256,7 @@ instance hasBlockDefinitionValue :: HasBlockDefinition ValueType (Term Value) wh
     pure $ mkDefaultTerm (Scale (mkDefaultTermWrapper (Rational numerator denominator)) value)
   blockDefinition ChoiceValueValueType g block = do
     choiceName <- getFieldValue block "choice_name"
-    choiceOwner <- statementToTerm g block "party" Parser.party
+    choiceOwner <- statementToTerm g block "party" Parser.partyExtended
     let
       choiceId = ChoiceId choiceName choiceOwner
     pure $ mkDefaultTerm (ChoiceValue choiceId)
@@ -1251,57 +1271,47 @@ instance hasBlockDefinitionValue :: HasBlockDefinition ValueType (Term Value) wh
     els <- statementToTerm g block "else" (Parser.value unit)
     pure $ mkDefaultTerm (Cond condition thn els)
 
-buildBlocks :: forall r. NewBlockFunction r -> BlocklyState -> Term Contract -> ST r Unit
+buildBlocks :: NewBlockFunction -> BlocklyState -> Term Contract -> Effect Unit
 buildBlocks newBlock bs contract = do
-  workspaceRef <- STRef.new bs.workspace
-  clearWorkspace workspaceRef
-  initializeWorkspace bs.blockly workspaceRef
-  let
-    mContract = getBlockById bs.workspace bs.rootBlockName
-  rootBlock <- case mContract of
-    Nothing -> do
-      blockRef <- newBlock workspaceRef (show BaseContractType)
-      STRef.read blockRef
+  clearWorkspace bs.workspace
+  initializeWorkspace bs.blockly bs.workspace
+  -- Get or create rootBlock
+  mRootBlock <- getBlockById bs.workspace bs.rootBlockName
+  rootBlock <- case mRootBlock of
+    Nothing -> newBlock bs.workspace (show BaseContractType)
     Just block -> pure block
   let
     inputs = inputList rootBlock
 
     mInput = getInputWithName inputs (show BaseContractType)
-  case mInput of
-    Nothing -> pure unit
-    Just i -> do
-      toBlockly newBlock workspaceRef i contract
-      render workspaceRef
+  for_ mInput \input -> do
+    toBlockly newBlock bs.workspace input contract
+    render bs.workspace
 
-setField :: forall r. (STRef r Block) -> String -> String -> ST r Unit
-setField blockRef name value = do
-  block <- STRef.read blockRef
+setField :: Block -> String -> String -> Effect Unit
+setField block name value = do
   let
     fields = inputList block >>= fieldRow
   case Array.find (\f -> fieldName f == name) fields of
     Nothing -> pure unit
-    Just f -> do
-      field <- STRef.new f
-      setFieldText field value
+    Just field -> setFieldText field value
 
-getNextInput :: forall r. STRef r Block -> ST r (Maybe Input)
-getNextInput blockRef = do
-  block <- STRef.read blockRef
+getNextInput :: Block -> Effect (Maybe Input)
+getNextInput block = do
   let
     inputs = inputList block
 
     nextConInputs = filter (\input -> inputType input == 5) inputs
   pure (head nextConInputs)
 
-inputToBlockly :: forall a r. ToBlockly a => NewBlockFunction r -> (STRef r Workspace) -> STRef r Block -> String -> a -> ST r Unit
-inputToBlockly newBlock workspaceRef blockRef name value = do
-  block <- STRef.read blockRef
+inputToBlockly :: forall a. ToBlockly a => NewBlockFunction -> Workspace -> Block -> String -> a -> Effect Unit
+inputToBlockly newBlock workspace block name value = do
   case Array.find (\i -> inputName i == name) (inputList block) of
     Nothing -> pure unit
-    Just input -> toBlockly newBlock workspaceRef input value
+    Just input -> toBlockly newBlock workspace input value
 
 class ToBlockly a where
-  toBlockly :: forall r. NewBlockFunction r -> STRef r Workspace -> Input -> a -> ST r Unit
+  toBlockly :: NewBlockFunction -> Workspace -> Input -> a -> Effect Unit
 
 instance toBlocklyTerm :: ToBlockly a => ToBlockly (Term a) where
   toBlockly newBlock workspace input (Term a _) = toBlockly newBlock workspace input a
@@ -1337,7 +1347,7 @@ instance toBlocklyToken :: ToBlockly Token where
     setField block "currency_symbol" currSym
     setField block "token_name" tokName
 
-nextBound :: forall r. NewBlockFunction r -> STRef r Workspace -> Connection -> Array (Term Bound) -> ST r Unit
+nextBound :: NewBlockFunction -> Workspace -> Connection -> Array (Term Bound) -> Effect Unit
 nextBound newBlock workspace fromConnection bounds = do
   case uncons bounds of
     Nothing -> pure unit
@@ -1364,7 +1374,7 @@ instance toBlocklyBounds :: ToBlockly (Array (Term Bound)) where
         fromConnection <- nextConnection block
         nextBound newBlock workspace fromConnection tail
 
-oneCaseToBlockly :: forall r. NewBlockFunction r -> STRef r Workspace -> Case -> ST r (STRef r Block)
+oneCaseToBlockly :: NewBlockFunction -> Workspace -> Case -> Effect Block
 oneCaseToBlockly newBlock workspace (Case (Term (Deposit accountOwner party tok value) _) cont) = do
   block <- newBlock workspace (show DepositActionType)
   inputToBlockly newBlock workspace block "party" accountOwner
@@ -1395,7 +1405,7 @@ oneCaseToBlockly newBlock workspace (Case (Term (Notify observation) _) cont) = 
 -- we will allow blockly to fill in a default Notify action
 oneCaseToBlockly newBlock workspace _ = newBlock workspace (show NotifyActionType)
 
-nextCase :: forall r. NewBlockFunction r -> STRef r Workspace -> Connection -> Array (Term Case) -> ST r Unit
+nextCase :: NewBlockFunction -> Workspace -> Connection -> Array (Term Case) -> Effect Unit
 nextCase newBlock workspace fromConnection cases = do
   case uncons cases of
     Nothing -> pure unit
@@ -1440,7 +1450,12 @@ instance toBlocklyContract :: ToBlockly Contract where
     block <- newBlock workspace (show WhenContractType)
     connectToPrevious block input
     inputToBlockly newBlock workspace block "case" cases
-    setField block "timeout" (show timeout)
+    setField block "timeout"
+      ( case timeout of
+          Term (Slot slotNum) _ -> show slotNum
+          Term (SlotParam paramName) _ -> paramName
+          _ -> "0"
+      )
     inputToBlockly newBlock workspace block "contract" contract
   toBlockly newBlock workspace input (Let (TermWrapper (ValueId valueId) _) value contract) = do
     block <- newBlock workspace (show LetContractType)
@@ -1516,6 +1531,10 @@ instance toBlocklyValue :: ToBlockly Value where
     block <- newBlock workspace (show ConstantValueType)
     connectToOutput block input
     setField block "constant" (show v)
+  toBlockly newBlock workspace input (ConstantParam n) = do
+    block <- newBlock workspace (show ConstantParamValueType)
+    connectToOutput block input
+    setField block "paramName" n
   toBlockly newBlock workspace input (NegValue v) = do
     block <- newBlock workspace (show NegValueValueType)
     connectToOutput block input

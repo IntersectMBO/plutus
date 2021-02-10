@@ -65,7 +65,7 @@ newtype DenotationContext term = DenotationContext
 typeSchemeResult :: TypeScheme term args res -> AsKnownType term res
 typeSchemeResult (TypeSchemeResult _)     = AsKnownType
 typeSchemeResult (TypeSchemeArrow _ schB) = typeSchemeResult schB
-typeSchemeResult (TypeSchemeAll _ _ schK) = typeSchemeResult $ schK Proxy
+typeSchemeResult (TypeSchemeAll _ schK)   = typeSchemeResult $ schK Proxy
 
 -- | Get the 'Denotation' of a variable.
 denoteVariable

@@ -38,3 +38,15 @@ You can also use a normal Haskell development environment on your computer to wr
    :maxdepth: 2
 
    reference/index
+
+References
+----------
+
+1. Haskell_ is the programming language for Plutus contracts. 
+2. We also generate the developer documentation from our source code using Haddock_. You can also find this documentation in the Playground.
+3. If you want to talk to us directly, you can use the Cardano Forum_.
+
+.. _Haskell: http://haskell.org/
+.. _Haddock: haddock/index.html
+.. _Forum: http://forum.cardano.org/
+
