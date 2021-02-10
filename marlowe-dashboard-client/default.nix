@@ -14,6 +14,11 @@ let
     $(nix-build --quiet --no-build-output ../default.nix -A plutus.haskell.packages.marlowe-dashboard-server.components.exes.marlowe-dashboard-server)/bin/marlowe-dashboard-server psgenerator ./generated
   '';
 
+  # For dev usage
+  start-backend = pkgs.writeShellScriptBin "marlowe-dashboard-server" ''
+    $(nix-build --quiet --no-build-output ../default.nix -A plutus.haskell.packages.marlowe-dashboard-server.components.exes.marlowe-dashboard-server)/bin/marlowe-dashboard-server webserver
+  '';
+
   cleanSrc = gitignore-nix.gitignoreSource ./.;
 
   nodeModules = buildNodeModules {
@@ -40,5 +45,5 @@ let
   };
 in
 {
-  inherit client server-invoker generated-purescript generate-purescript;
+  inherit client server-invoker generated-purescript generate-purescript start-backend;
 }
