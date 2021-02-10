@@ -24,6 +24,7 @@ import Data.Newtype (unwrap)
 import Demos.Types (Action(..), Demo(..)) as Demos
 import Effect.Aff.Class (class MonadAff, liftAff)
 import Effect.Class (class MonadEffect)
+import Effect.Class.Console as Console
 import Env (Env)
 import Foreign.Generic (decodeJSON, encodeJSON)
 import Gist (Gist, _GistId, gistDescription, gistId)
@@ -362,9 +363,7 @@ handleAction (BlocklyEditorAction action) = do
   case action of
     BE.SendToSimulator -> do
       mCode <- use (_blocklyEditorState <<< _marloweCode)
-      for_ mCode \code -> do
-        selectView Simulation
-        void $ toSimulation $ Simulation.handleAction (ST.LoadContract code)
+      for_ mCode \contents -> sendToSimulation contents
     BE.ViewAsMarlowe -> do
       -- TODO: doing an effect that returns a maybe value and doing an action on the possible
       -- result is a pattern that we have repeated a lot in this file. See if we could refactor
@@ -386,8 +385,10 @@ handleAction (SimulationAction action) = do
     _ -> pure unit
 
 handleAction (HandleWalletMessage Wallet.SendContractToWallet) = do
-  contract <- toSimulation $ Simulation.getCurrentContract
-  void $ query _walletSlot unit (Wallet.LoadContract contract unit)
+  mContract <- toSimulation $ Simulation.getCurrentContract
+  case mContract of
+    Nothing -> liftEffect $ Console.warn "Could not import contract from simulator"
+    Just contract -> void $ query _walletSlot unit (Wallet.LoadContract contract unit)
 
 handleAction (ChangeView view) = selectView view
 
