@@ -507,6 +507,7 @@ newtype ActusContract
   , interestCalculationBaseCycle :: ActusValue
   , assertionCtx :: ActusValue
   , assertion :: ActusValue
+  , collateral :: ActusValue
   }
 
 derive instance actusContract :: Generic ActusContract _

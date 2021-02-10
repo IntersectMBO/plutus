@@ -64,7 +64,6 @@ invoice from to amount collateralAmount timeout continue =
                         amount
                         continue
                     )
-
             ]
             timeout
             (Pay party
