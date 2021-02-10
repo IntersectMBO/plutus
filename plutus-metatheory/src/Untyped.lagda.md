@@ -58,6 +58,7 @@ data _⊢ n : Set where
 
 variable
   n m o : ℕ
+  t t' u u' : n ⊢
 ```
 
 ## Ugly printing for debugging

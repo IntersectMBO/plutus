@@ -52,6 +52,9 @@ data Bwd (A : Set) : Set where
   [] : Bwd A
   _:<_ : Bwd A → A → Bwd A
 
+variable
+  ls ls' : Bwd Label
+
 infixl 10 _:<_
 
 arity : Builtin → Bwd Label
@@ -82,9 +85,9 @@ arity append = [] :< Term :< Term
 arity trace = [] :< Term
 
 data _≤L_ : Bwd Label → Bwd Label → Set where
-  base : ∀{L} → L ≤L L
-  skipType : ∀{L L'} → L :< Type ≤L L' → L ≤L L'
-  skipTerm : ∀{L L'} → L :< Term ≤L L' → L ≤L L'
+  base     : ls ≤L ls
+  skipType : ls :< Type ≤L ls' → ls ≤L ls'
+  skipTerm : ls :< Term ≤L ls' → ls ≤L ls'
 
 infix 5 _≤L_
 ```
@@ -96,7 +99,6 @@ infix 5 _≤L_
 -- applications
 data Error {n} : n ⊢ → Set where
   E-error : Error error
-
 ```
 
 ```
@@ -107,29 +109,31 @@ data FValue : 0 ⊢ → Set where
   V-ƛ : (t : suc 0 ⊢)
       → FValue (ƛ t)
   V-builtin : (b : Builtin)
-            → ∀ {L L'}
-            → L' ≡ arity b
-            → L :< Term ≤L L'
-            → ITel b L
+            → ∀ {ls ls'}
+            → ls' ≡ arity b
+            → ls :< Term ≤L ls'
+            → ITel b ls
             → (t : 0 ⊢)
             → FValue t
 
 data Value  : 0 ⊢ → Set where
-  V-F     : {t : 0 ⊢} → FValue t → Value t
-  V-delay : {t : 0 ⊢} → Value (delay t)
+  V-F     : FValue t → Value t
+  V-delay : Value (delay t)
   V-con   : (tcn : TermCon) → Value (con tcn)
   V-builtin⋆ : (b : Builtin)
-            → ∀ {L L'}
-            → L' ≡ arity b
-            → L :< Type ≤L L'
-            → ITel b L
+            → ∀ {ls ls'}
+            → ls' ≡ arity b
+            → ls :< Type ≤L ls'
+            → ITel b ls
             → (t : 0 ⊢)
             → Value t
   
-
 ITel b []          = ⊤
-ITel b (L :< Type) = ITel b L
-ITel b (L :< Term) = ITel b L × Σ (0 ⊢) Value
+ITel b (ls :< Type) = ITel b ls
+ITel b (ls :< Term) = ITel b ls × Σ (0 ⊢) Value
+
+deval : ∀{t} → Value t → 0 ⊢
+deval {t} _ = t
 
 IBUILTIN : (b : Builtin) → ITel b (arity b) → Σ (0 ⊢) λ t → Value t ⊎ Error t
 IBUILTIN addInteger
@@ -232,7 +236,7 @@ IBUILTIN trace
   = _ , inl (V-con unit)
 IBUILTIN _ _ = error , inr E-error
 
-IBUILTIN' : (b : Builtin) → ∀{L} → L ≡ arity b → ITel b L → Σ (0 ⊢) λ t → Value t ⊎ Error t
+IBUILTIN' : (b : Builtin) → ∀{ls} → ls ≡ arity b → ITel b ls → Σ (0 ⊢) λ t → Value t ⊎ Error t
 IBUILTIN' b refl vs = IBUILTIN b vs
 ```
 
@@ -240,31 +244,31 @@ IBUILTIN' b refl vs = IBUILTIN b vs
 
 ```
 data _—→_ : 0 ⊢ → 0 ⊢ → Set where
-  ξ-·₁ : {L L' M : 0 ⊢} → L —→ L' → L · M —→ L' · M
-  ξ-·₂ : {L M M' : 0 ⊢} → FValue L → M —→ M' → L · M —→ L · M'
+  ξ-·₁ : t —→ t' → t · u —→ t' · u
+  ξ-·₂ : FValue t → u —→ u' → t · u —→ t · u'
 
-  β-ƛ : ∀{L : suc 0 ⊢}{V : 0 ⊢} → Value V → ƛ L · V —→ L [ V ]
+  β-ƛ : Value u → ƛ t · u —→ t [ u ]
 
-  ξ-force : {L L' : 0 ⊢} → L —→ L' → force L —→ force L'
+  ξ-force : t —→ t' → force t —→ force t'
 
-  β-delay : {L : 0 ⊢} → force (delay L) —→ L
+  β-delay : force (delay t) —→ t
 
   β-builtin : (b : Builtin)
-            → ∀ {L} t
-            → (p : L :< Term ≡ arity b)
-            → (vs : ITel b L)
+            → ∀ {ls} t
+            → (p : ls :< Term ≡ arity b)
+            → (vs : ITel b ls)
             → ∀ {u} v
             → t · u —→ fst (IBUILTIN' b p (vs , u , v))
 
   β-builtin⋆ : (b : Builtin)
-            → ∀ {L} t
-            → (p : L :< Type ≡ arity b)
-            → (vs : ITel b L)
+            → ∀ {ls} t
+            → (p : ls :< Type ≡ arity b)
+            → (vs : ITel b ls)
             → force t —→ fst (IBUILTIN' b p vs)
 
 
-  E-·₁ : {M : 0 ⊢} → error · M —→ error
-  E-·₂ : {L : 0 ⊢} → FValue L → L · error —→ error
+  E-·₁ : error · u —→ error
+  E-·₂ : FValue t → t · error —→ error
 
   E-force : force error —→ error
 
@@ -275,43 +279,40 @@ data _—→_ : 0 ⊢ → 0 ⊢ → Set where
               → t · u —→ error
 
   -- these correspond to type errors encountered at runtime
-  E-con· : {tcn : TermCon}{L : 0 ⊢} → con tcn · L —→ error
+  E-con· : {tcn : TermCon} → con tcn · t —→ error
   E-con-force : {tcn : TermCon} → force (con tcn) —→ error
-  E-FVal-force : {L : 0 ⊢} → FValue L → force L —→ error
-  E-delay· : {L M : 0 ⊢} → delay L · M —→ error
+  E-FVal-force : FValue t → force t —→ error
+  E-delay· : delay t · u —→ error
 
   -- this is a runtime type error that ceases to be a type error after erasure
-  -- E-runtime : {L : n ⊢} → L —→ error
+  -- E-runtime : {t : n ⊢} → t —→ error
 
 ```
 
 
 ```
 data _—→⋆_ : 0 ⊢ → 0 ⊢ → Set where
-  refl  : {t : 0 ⊢} → t —→⋆ t
-  trans—→⋆ : {t t' t'' : 0 ⊢} → t —→ t' → t' —→⋆ t'' → t —→⋆ t''
+  refl  : t —→⋆ t
+  trans—→⋆ : {t'' : 0 ⊢} → t —→ t' → t' —→⋆ t'' → t —→⋆ t''
 ```
 
 ## Progress
 
 ```
-data Progress (M : 0 ⊢) : Set where
-  step : ∀{N}
-    → M —→ N
-      -------------
-    → Progress M
-  done :
-      Value M
-      ----------
-    → Progress M
-  error :
-      Error M
-      -------
-    → Progress M
+data Progress (t : 0 ⊢) : Set where
+  step : t —→ u
+         ----------
+       → Progress t
+  done : Value t
+         ----------
+       → Progress t
+  error : Error t
+          ----------
+        → Progress t
 
 progress-·V :
-    {t : 0 ⊢} → Value t
-  → {u : 0 ⊢} → Progress u
+    Value t
+  → Progress u
   → Progress (t · u)
 progress-·V (V-con tcn)              v               = step E-con·
 progress-·V (V-builtin⋆ b L p vs t)  v               = step (E-builtin⋆· b t _)
@@ -326,17 +327,12 @@ progress-·V (V-F (V-builtin b p (skipType q) vs t)) (done v) =
 progress-·V (V-F (V-builtin b p (skipTerm q) vs t)) (done v) =
   done (V-F (V-builtin b p q (vs , _ , v) (t · _)))
 
-progress-· :
-    {t : 0 ⊢} → Progress t
-  → {u : 0 ⊢} → Progress u
-  → Progress (t · u)
+progress-· : Progress t → Progress u → Progress (t · u)
 progress-· (done v)        q = progress-·V v q
 progress-· (step p)        q = step (ξ-·₁ p)
 progress-· (error E-error) q = step E-·₁
 
-progress-forceV :
-    {t : 0 ⊢} → Value t
-  → Progress (force t)
+progress-forceV : Value t → Progress (force t)
 progress-forceV (V-F V)     = step (E-FVal-force V)
 progress-forceV V-delay     = step β-delay
 progress-forceV (V-con tcn) = step E-con-force
@@ -347,9 +343,7 @@ progress-forceV (V-builtin⋆ b p (skipTerm q) vs t) =
 progress-forceV (V-builtin⋆ b p (skipType q) vs t) =
   done (V-builtin⋆ b p q vs (force t))
 
-progress-force :
-    {t : 0 ⊢} → Progress t
-  → Progress (force t)
+progress-force : Progress t → Progress (force t)
 progress-force (done v)        = progress-forceV v
 progress-force (step p)        = step (ξ-force p)
 progress-force (error E-error) = step E-force
@@ -406,24 +400,10 @@ progress error       = error E-error
 ## Iterating progress to run programs
 
 ```
-run : ∀(t : 0 ⊢) → ℕ
-  → Σ (0 ⊢) λ t' → t —→⋆ t' × (Maybe (Value t') ⊎ Error t')
-run t 0       = t , refl , inl nothing
-run t (suc n) with progress t
-run t (suc n) | done vt = t , refl , inl (just vt)
-run t (suc n) | error et = t , refl , inr et
-run t (suc n) | step {N = t'} p with run t' n
-run t (suc n) | step p | t'' , q , mvt'' = t'' , trans—→⋆ p q , mvt''
-```
-
-```
-deval : ∀{t} → Value t → 0 ⊢
-deval {t} _ = t
-
 progressor : ℕ → (t : 0 ⊢) → Either RuntimeError (Maybe (0 ⊢))
 progressor 0       t = inj₁ gasError
 progressor (suc n) t with progress t
-... | step {N = t'} p  = progressor n t'
+... | step {u = t'} p  = progressor n t'
 ... | done v  = inj₂ $ just (deval v)
 ... | error e = inj₂ $ just error -- userError
 ```
