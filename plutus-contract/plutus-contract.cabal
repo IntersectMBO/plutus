@@ -37,6 +37,7 @@ library
     exposed-modules:
         Data.Row.Extras
         Data.Text.Extras
+        Data.UUID.Extras
         Language.Plutus.Contract
         Language.Plutus.Contract.Effects.AwaitSlot
         Language.Plutus.Contract.Effects.AwaitTxConfirmed
@@ -55,7 +56,6 @@ library
         Language.Plutus.Contract.Schema
         Language.Plutus.Contract.Trace
         Language.Plutus.Contract.Trace.RequestHandler
-        Language.Plutus.Contract.IOTS
         Language.Plutus.Contract.Servant
         Language.Plutus.Contract.Resumable
         Language.Plutus.Contract.StateMachine
@@ -67,16 +67,16 @@ library
         Language.Plutus.Contract.Typed.Tx
         Wallet.Emulator
         Wallet.Emulator.Types
-        Wallet.Emulator.Generators
         Wallet.Emulator.Chain
         Wallet.Emulator.ChainIndex
         Wallet.Emulator.ChainIndex.Index
         Wallet.Emulator.Error
+        Wallet.Emulator.Folds
         Wallet.Emulator.LogMessages
         Wallet.Emulator.NodeClient
         Wallet.Emulator.Notify
         Wallet.Emulator.MultiAgent
-        Wallet.Emulator.SigningProcess
+        Wallet.Emulator.Stream
         Wallet.Emulator.Wallet
         Wallet.Rollup
         Wallet.Rollup.Types
@@ -88,15 +88,30 @@ library
         Wallet.Types
         Control.Monad.Freer.Extras
         Control.Monad.Freer.Log
+        Control.Monad.Freer.Stream
+        Plutus.Trace
+        Plutus.Trace.Effects.ContractInstanceId
+        Plutus.Trace.Effects.RunContract
+        Plutus.Trace.Effects.RunContractPlayground
+        Plutus.Trace.Effects.EmulatedWalletAPI
+        Plutus.Trace.Effects.EmulatorControl
+        Plutus.Trace.Effects.Waiting
+        Plutus.Trace.Emulator
+        Plutus.Trace.Emulator.ContractInstance
+        Plutus.Trace.Emulator.System
+        Plutus.Trace.Emulator.Types
+        Plutus.Trace.Playground
+        Plutus.Trace.Scheduler
+        Plutus.Trace.Tag
     hs-source-dirs: src
     build-depends:
         plutus-ledger -any,
         plutus-tx -any,
-        iots-export -any
     build-depends:
-        aeson -any,
+        aeson >= 1.5.2,
         base >=4.7 && <5,
         containers -any,
+        deepseq -any,
         lens -any,
         text -any,
         hashable -any,
@@ -115,14 +130,17 @@ library
         transformers-base -any,
         monad-control -any,
         mmorph -any,
-        row-types -any,
+        row-types < 1.0,
         freer-simple -any,
         prettyprinter >=1.1.0.1,
         semigroups -any,
         cryptonite >=0.25,
         fingertree -any,
         uuid -any,
-        aeson-pretty -any
+        aeson-pretty -any,
+        unordered-containers -any,
+        foldl -any,
+        streaming -any
 
     if !(impl(ghcjs) || os(ghcjs))
         exposed-modules:

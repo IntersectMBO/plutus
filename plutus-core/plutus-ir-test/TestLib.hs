@@ -4,6 +4,7 @@
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings     #-}
 {-# LANGUAGE ScopedTypeVariables   #-}
+{-# LANGUAGE TypeApplications      #-}
 {-# LANGUAGE TypeOperators         #-}
 {-# LANGUAGE UndecidableInstances  #-}
 module TestLib where
@@ -20,7 +21,6 @@ import           Control.Monad.Reader         as Reader
 
 import qualified Language.PlutusCore          as PLC
 import qualified Language.PlutusCore.Constant as PLC
-import qualified Language.PlutusCore.DeBruijn as PLC
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Pretty
 import           Language.PlutusCore.Quote
@@ -64,8 +64,11 @@ compileAndMaybeTypecheck
     -> Except (PIR.Error uni fun (PIR.Provenance a)) (PLC.Term TyName Name uni fun (PIR.Provenance a))
 compileAndMaybeTypecheck doTypecheck pir = do
     tcConfig <- PLC.getDefTypeCheckConfig noProvenance
-    flip runReaderT (toDefaultCompilationCtx tcConfig) $ runQuoteT $ do
-        compiled <- compileTerm doTypecheck pir
+    let pirCtx = toDefaultCompilationCtx tcConfig & if doTypecheck
+                                                    then id
+                                                    else set ccTypeCheckConfig Nothing
+    flip runReaderT pirCtx $ runQuoteT $ do
+        compiled <- compileTerm pir
         when doTypecheck $ do
             -- PLC errors are parameterized over PLC.Terms, whereas PIR errors over PIR.Terms and as such, these prism errors cannot be unified.
             -- We instead run the ExceptT, collect any PLC error and explicitly lift into a PIR error by wrapping with PIR._PLCError
@@ -98,12 +101,12 @@ ppCatch value = render <$> (either (pretty . show) prettyPlcClassicDebug <$> run
 goldenPlcFromPir :: ToTPlc a PLC.DefaultUni PLC.DefaultFun => Parser a -> String -> TestNested
 goldenPlcFromPir = goldenPirM (\ast -> ppThrow $ do
                                 p <- toTPlc ast
-                                withExceptT toException $ PLC.deBruijnProgram p)
+                                withExceptT @_ @PLC.FreeVariableError toException $ PLC.deBruijnProgram p)
 
 goldenPlcFromPirCatch :: ToTPlc a PLC.DefaultUni PLC.DefaultFun => Parser a -> String -> TestNested
 goldenPlcFromPirCatch = goldenPirM (\ast -> ppCatch $ do
                                            p <- toTPlc ast
-                                           withExceptT toException $ PLC.deBruijnProgram p)
+                                           withExceptT @_ @PLC.FreeVariableError toException $ PLC.deBruijnProgram p)
 
 goldenEvalPir :: ToUPlc a PLC.DefaultUni PLC.DefaultFun => Parser a -> String -> TestNested
 goldenEvalPir = goldenPirM (\ast -> ppThrow $ runUPlc [ast])

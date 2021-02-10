@@ -9,6 +9,8 @@
 -- | Defines a number of types that are used in Wallet.XXX modules
 module Wallet.Types(
     ContractInstanceId(..)
+    , contractInstanceIDs
+    , randomID
     , Notification(..)
     , EndpointDescription(..)
     , EndpointValue(..)
@@ -40,11 +42,12 @@ import qualified Data.Text                           as T
 import           Data.Text.Prettyprint.Doc           (Pretty (..), colon, hang, viaShow, vsep, (<+>))
 import           Data.Text.Prettyprint.Doc.Extras    (PrettyShow (..), Tagged (..))
 import           Data.UUID                           (UUID)
+import qualified Data.UUID.Extras                    as UUID
+import qualified Data.UUID.V4                        as UUID
 import           GHC.Generics                        (Generic)
 import qualified Language.Haskell.TH.Syntax          as TH
 
 import           Language.Plutus.Contract.Checkpoint (AsCheckpointError (..), CheckpointError)
-import           Language.Plutus.Contract.IOTS       (IotsType)
 import           Ledger                              (Address, Slot, Tx, TxIn, TxOut, txId)
 import           Ledger.Constraints.OffChain         (MkTxError)
 import           Wallet.Emulator.Error               (WalletAPIError)
@@ -124,14 +127,21 @@ newtype ContractInstanceId = ContractInstanceId { unContractInstanceId :: UUID }
     deriving anyclass (FromJSON, ToJSON)
     deriving Pretty via (PrettyShow UUID)
 
+-- | A pure list of all 'ContractInstanceId' values. To be used in testing.
+contractInstanceIDs :: [ContractInstanceId]
+contractInstanceIDs = ContractInstanceId <$> UUID.mockUUIDs
+
+randomID :: IO ContractInstanceId
+randomID = ContractInstanceId <$> UUID.nextRandom
+
 newtype EndpointDescription = EndpointDescription { getEndpointDescription :: String }
     deriving stock (Eq, Ord, Generic, Show, TH.Lift)
     deriving newtype (IsString, Pretty)
-    deriving anyclass (ToJSON, FromJSON, IotsType)
+    deriving anyclass (ToJSON, FromJSON)
 
 newtype EndpointValue a = EndpointValue { unEndpointValue :: a }
     deriving stock (Eq, Ord, Generic, Show)
-    deriving anyclass (ToJSON, FromJSON, IotsType)
+    deriving anyclass (ToJSON, FromJSON)
 
 deriving via (Tagged "EndpointValue:" (PrettyShow a)) instance (Show a => Pretty (EndpointValue a))
 

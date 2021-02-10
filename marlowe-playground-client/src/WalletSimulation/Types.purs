@@ -1,5 +1,6 @@
 module WalletSimulation.Types where
 
+import Prelude hiding (div)
 import Analytics (class IsEvent, Event)
 import Analytics as A
 import Data.Array (elem, find)
@@ -22,8 +23,7 @@ import Data.Symbol (SProxy(..))
 import Help (HelpContext(..))
 import Marlowe.Semantics (Bound, ChoiceId, ChosenNum, Input, Party, PubKey, Slot, Token(..))
 import Marlowe.Semantics as S
-import Prelude (class Eq, class Ord, class Show, bind, mempty, zero, ($), (<<<), (<>), (==), (||))
-import Simulation.Types (MarloweState, _marloweState)
+import SimulationPage.Types (MarloweState, _marloweState)
 
 newtype Wallet
   = Wallet

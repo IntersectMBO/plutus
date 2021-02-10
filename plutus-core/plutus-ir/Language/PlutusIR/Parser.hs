@@ -40,9 +40,9 @@ import           Data.Proxy
 import qualified Data.Text                          as T
 
 import qualified Control.Monad.Combinators.NonEmpty as NE
+import           ErrorCode
 import           Text.Megaparsec.Char
 import qualified Text.Megaparsec.Char.Lexer         as Lex
-
 
 
 
@@ -52,6 +52,10 @@ newtype ParserState = ParserState { identifiers :: M.Map T.Text PLC.Unique }
 data ParseError = UnknownBuiltinType T.Text
                 | InvalidConstant T.Text T.Text
                 deriving (Eq, Ord, Show)
+
+instance HasErrorCode ParseError where
+      errorCode UnknownBuiltinType {} = ErrorCode 5
+      errorCode InvalidConstant {}    = ErrorCode 4
 
 type Error = Parsec.ParseError Char ParseError
 

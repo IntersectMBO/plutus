@@ -91,7 +91,8 @@ type PrismSchema =
     .\/ UnlockExchangeSchema
     .\/ Endpoint "role" Role
 
-{- The above type seems to take GHC an awful lot of time to figure out -}
+{- With the implementation of .\/ from row-types, GHC chokes on the above type because of the four
+   repeated BlockchainActions. Using our own implementation from Data.Row.Extras everything is fine. -}
 
 data PrismError =
     UnlockSTOErr UnlockError
@@ -104,7 +105,7 @@ data PrismError =
 
 -- | A wrapper around the four prism contracts. This is just a workaround
 --   for the emulator, where we can only ever run a single 'Contract'. In
---   the SCB we could simply start all four contracts (credentialManager,
+--   the PAB we could simply start all four contracts (credentialManager,
 --   mirror, subscribeSTO, subscribeExchange) separately.
 contract ::
     Contract PrismSchema PrismError ()

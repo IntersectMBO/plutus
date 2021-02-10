@@ -1,27 +1,37 @@
 {-# LANGUAGE FlexibleContexts  #-}
 {-# LANGUAGE OverloadedStrings #-}
-module Spec.Currency(tests) where
+module Spec.Currency(tests, currencyTrace) where
 
+import           Control.Monad                                     (void)
 import           Language.Plutus.Contract
 import           Language.Plutus.Contract.Test
 import qualified Ledger
 
 import           Language.PlutusTx.Coordination.Contracts.Currency (Currency)
 import qualified Language.PlutusTx.Coordination.Contracts.Currency as Cur
+import qualified Plutus.Trace.Emulator                             as Trace
 
 import           Test.Tasty
 
+-- | Runs 'Language.PlutusTx.Coordination.Contracts.Currency.forgeContract' for
+--   a sample currency.
+currencyTrace :: Trace.EmulatorTrace ()
+currencyTrace = do
+    _ <- Trace.activateContractWallet w1 (void theContract)
+    _ <- Trace.nextSlot
+    void $ Trace.nextSlot
+
 tests :: TestTree
 tests = testGroup "currency"
-    [ checkPredicate "can create a new currency"
-        theContract
-        (assertDone w1 (const True) "currency contract not done")
-        (handleBlockchainEvents (Wallet 1) >> addBlocks 1 >> handleBlockchainEvents (Wallet 1) >> addBlocks 1 >> handleBlockchainEvents (Wallet 1))
+    [ checkPredicate
+        "can create a new currency"
+        (assertDone theContract (Trace.walletInstanceTag w1) (const True) "currency contract not done")
+        currencyTrace
 
-    , checkPredicate "script size is reasonable"
-        theContract
-        (assertDone w1 ((25000 >=) . Ledger.scriptSize . Ledger.unMonetaryPolicyScript . Cur.curPolicy) "script too large")
-        (handleBlockchainEvents (Wallet 1) >> addBlocks 1 >> handleBlockchainEvents (Wallet 1) >> addBlocks 1 >> handleBlockchainEvents (Wallet 1))
+    , checkPredicate
+        "script size is reasonable"
+        (assertDone theContract (Trace.walletInstanceTag w1) ((30000 >=) . Ledger.scriptSize . Ledger.unMonetaryPolicyScript . Cur.curPolicy) "script too large")
+        currencyTrace
 
     ]
 

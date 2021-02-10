@@ -38,7 +38,9 @@ module Language.PlutusCore.Generators.NEAT.Type
 import           Control.Enumerable
 import           Control.Monad.Except
 import           Data.Bifunctor.TH
+import           Data.ByteString                            (ByteString, pack)
 import           Data.Coolean                               (Cool, false, toCool, true, (&&&))
+import qualified Data.Map                                   as Map
 import qualified Data.Stream                                as Stream
 import qualified Data.Text                                  as Text
 import           Language.PlutusCore
@@ -58,7 +60,10 @@ data TypeBuiltinG
   = TyByteStringG
   | TyIntegerG
   | TyStringG
-  deriving (Typeable, Eq, Show)
+  | TyBoolG
+  | TyUnitG
+  | TyCharG
+  deriving (Show, Eq, Ord)
 
 deriveEnumerable ''TypeBuiltinG
 
@@ -75,7 +80,9 @@ data TypeG tyname
   | TyBuiltinG TypeBuiltinG
   | TyLamG (TypeG (S tyname))
   | TyAppG (TypeG tyname) (TypeG tyname) (Kind ())
-  deriving (Typeable, Eq, Show, Functor)
+  deriving (Typeable, Eq, Ord, Show, Functor)
+
+deriving instance Ord (Kind ())
 
 deriveEnumerable ''Kind
 
@@ -130,6 +137,22 @@ instance Enumerable tyname => Enumerable (Neutral (TypeG tyname)) where
 
 -- ** Enumerating terms
 
+-- Word8 is enumerable so we get an enumerable instance via pack
+instance Enumerable ByteString where
+  enumerate = share $ fmap pack access
+
+data TermConstantG = TmIntegerG Integer
+                   | TmByteStringG ByteString
+                   | TmStringG String
+                   | TmBoolG Bool
+                   | TmUnitG ()
+                   | TmCharG Char
+                   deriving (Show, Eq)
+
+deriveEnumerable ''TermConstantG
+
+deriveEnumerable ''DefaultFun
+
 data TermG tyname name
     = VarG
       name
@@ -146,13 +169,17 @@ data TermG tyname name
       (TypeG (S tyname))
       (TypeG tyname)
       (Kind ())
+    | ConstantG TermConstantG
+    | BuiltinG DefaultFun
+    | WrapG (TermG tyname name)
+    | UnWrapG (TypeG tyname) (Kind ()) (TypeG tyname) (TermG tyname name)
+    | ErrorG (TypeG tyname)
     deriving (Typeable, Eq, Show)
 
 deriveBifunctor ''TermG
 deriveEnumerable ''TermG
 
 type ClosedTermG = TermG Z Z
-
 
 -- * Converting types
 
@@ -161,6 +188,9 @@ convertTypeBuiltin :: TypeBuiltinG -> Some (TypeIn DefaultUni)
 convertTypeBuiltin TyByteStringG = Some (TypeIn DefaultUniByteString)
 convertTypeBuiltin TyIntegerG    = Some (TypeIn DefaultUniInteger)
 convertTypeBuiltin TyStringG     = Some (TypeIn DefaultUniString)
+convertTypeBuiltin TyBoolG       = Some (TypeIn DefaultUniBool)
+convertTypeBuiltin TyUnitG       = Some (TypeIn DefaultUniUnit)
+convertTypeBuiltin TyCharG       = Some (TypeIn DefaultUniChar)
 
 -- |Convert well-kinded generated types to Plutus types.
 --
@@ -207,7 +237,6 @@ convertClosedType
   -> m (Type TyName DefaultUni ())
 convertClosedType tynames = convertType (emptyTyNameState tynames)
 
-
 -- ** Converting terms
 
 -- |Convert (well-typed) generated terms to Plutus terms.
@@ -223,13 +252,21 @@ convertClosedType tynames = convertType (emptyTyNameState tynames)
 --       that this function is only called on a well-typed
 --       term. Violating this would point to an error in the
 --       generator/checker.
+convertTermConstant :: TermConstantG -> Some (ValueOf DefaultUni)
+convertTermConstant (TmByteStringG b) = Some $ ValueOf DefaultUniByteString b
+convertTermConstant (TmIntegerG i)    = Some $ ValueOf DefaultUniInteger i
+convertTermConstant (TmStringG s)     = Some $ ValueOf DefaultUniString s
+convertTermConstant (TmBoolG b)       = Some $ ValueOf DefaultUniBool b
+convertTermConstant (TmUnitG u)       = Some $ ValueOf DefaultUniUnit u
+convertTermConstant (TmCharG c)       = Some $ ValueOf DefaultUniChar c
+
 convertTerm
   :: (Show tyname, Show name, MonadQuote m, MonadError GenError m)
   => TyNameState tyname -- ^ Type name environment with fresh name stream
   -> NameState name     -- ^ Name environment with fresh name stream
   -> TypeG tyname       -- ^ Type of term below
   -> TermG tyname name  -- ^ Term to convert
-  -> m (Term TyName Name DefaultUni fun ())
+  -> m (Term TyName Name DefaultUni DefaultFun ())
 convertTerm _tns ns _ty (VarG i) =
   return (Var () (nameOf ns i))
 convertTerm tns ns (TyFunG ty1 ty2) (LamAbsG tm) = do
@@ -243,6 +280,16 @@ convertTerm tns ns (TyForallG k ty) (TyAbsG tm) = do
   TyAbs () (tynameOf tns' FZ) k <$> convertTerm tns' ns ty tm
 convertTerm tns ns _ (TyInstG tm cod ty k) =
   TyInst () <$> convertTerm tns ns (TyForallG k cod) tm <*> convertType tns k ty
+convertTerm _tns _ns _ (ConstantG c) =
+  return $ Constant () (convertTermConstant c)
+convertTerm _tns _ns _ (BuiltinG b) = return $ Builtin () b
+convertTerm tns ns (TyIFixG ty1 k ty2) (WrapG tm) = IWrap () <$> convertType tns k' ty1 <*> convertType tns k ty2 <*> convertTerm tns ns (normalizeTypeG ty') tm
+  where
+  k'  = KindArrow () (KindArrow () k (Type ())) (KindArrow () k (Type ()))
+  -- Γ ⊢ A · ƛ (μ (weaken A) (` Z)) · B
+  ty' = TyAppG (TyAppG ty1 (TyLamG (TyIFixG (weakenTy ty1) k (TyVarG FZ))) (KindArrow () k (Type ()))) ty2 k
+convertTerm tns ns _ (UnWrapG ty1 k ty2 tm) = Unwrap () <$> convertTerm tns ns (TyIFixG ty1 k ty2) tm
+convertTerm tns _ns _ (ErrorG ty) = Error () <$> convertType tns (Type ()) ty
 convertTerm _ _ ty tm = throwError $ BadTermG ty tm
 
 -- |Convert generated closed terms to Plutus terms.
@@ -252,7 +299,7 @@ convertClosedTerm
   -> Stream.Stream Text.Text
   -> ClosedTypeG
   -> ClosedTermG
-  -> m (Term TyName Name DefaultUni fun ())
+  -> m (Term TyName Name DefaultUni DefaultFun ())
 convertClosedTerm tynames names = convertTerm (emptyTyNameState tynames) (emptyNameState names)
 
 
@@ -274,8 +321,10 @@ instance Check (Kind ()) TypeBuiltinG where
   check (Type _) TyByteStringG = true
   check (Type _) TyIntegerG    = true
   check (Type _) TyStringG     = true
+  check (Type _) TyBoolG       = true
+  check (Type _) TyCharG       = true
+  check (Type _) TyUnitG       = true
   check _        _             = false
-
 
 -- |Kind check types.
 checkKindG :: KCS n -> Kind () -> TypeG n -> Cool
@@ -348,8 +397,50 @@ extKCS k KCS{..} = KCS{ kindOf = kindOf' }
 
 -- ** Type checking
 
+instance Check TypeBuiltinG TermConstantG where
+  check TyByteStringG (TmByteStringG _) = true
+  check TyIntegerG    (TmIntegerG    _) = true
+  check TyStringG     (TmStringG     _) = true
+  check TyBoolG       (TmBoolG       _) = true
+  check TyCharG       (TmCharG       _) = true
+  check TyUnitG       (TmUnitG       _) = true
+  check _             _                 = false
+
+
+defaultFunTypes :: Ord tyname => Map.Map (TypeG tyname) [DefaultFun]
+defaultFunTypes = Map.fromList [(TyFunG (TyBuiltinG TyIntegerG) (TyFunG (TyBuiltinG TyIntegerG) (TyBuiltinG TyIntegerG))
+                   ,[AddInteger,SubtractInteger,MultiplyInteger,DivideInteger,QuotientInteger,RemainderInteger,ModInteger])
+                  ,(TyFunG (TyBuiltinG TyIntegerG) (TyFunG (TyBuiltinG TyIntegerG) (TyBuiltinG TyBoolG))
+                   ,[LessThanInteger,LessThanEqInteger,GreaterThanInteger,GreaterThanEqInteger,EqInteger])
+                  ,(TyFunG (TyBuiltinG TyByteStringG) (TyFunG (TyBuiltinG TyByteStringG) (TyBuiltinG TyByteStringG))
+                   ,[Concatenate])
+                  ,(TyFunG (TyBuiltinG TyIntegerG) (TyFunG (TyBuiltinG TyByteStringG) (TyBuiltinG TyByteStringG))
+                   ,[TakeByteString,DropByteString])
+                  ,(TyFunG (TyBuiltinG TyByteStringG) (TyBuiltinG TyByteStringG)
+                   ,[SHA2,SHA3])
+                  ,(TyFunG (TyBuiltinG TyByteStringG) (TyFunG (TyBuiltinG TyByteStringG) (TyFunG (TyBuiltinG TyByteStringG) (TyBuiltinG TyBoolG)))
+                   ,[VerifySignature])
+                  ,(TyFunG (TyBuiltinG TyByteStringG) (TyFunG (TyBuiltinG TyByteStringG) (TyBuiltinG TyBoolG))
+                   ,[EqByteString,LtByteString,GtByteString])
+                  ,(TyForallG (Type ()) (TyFunG (TyBuiltinG TyBoolG) (TyFunG (TyVarG FZ) (TyFunG (TyVarG FZ) (TyVarG FZ))))
+                   ,[IfThenElse])
+                  ,(TyFunG (TyBuiltinG TyCharG) (TyBuiltinG TyStringG)
+                   ,[CharToString])
+                  ,(TyFunG (TyBuiltinG TyStringG) (TyFunG (TyBuiltinG TyStringG) (TyBuiltinG TyStringG))
+                   ,[Append])
+                  ,(TyFunG (TyBuiltinG TyStringG) (TyBuiltinG TyUnitG)
+                   ,[Trace])
+                  ]
+
+instance Ord tyname => Check (TypeG tyname) DefaultFun where
+  check ty b = case Map.lookup ty defaultFunTypes of
+    Just bs -> toCool $ elem b bs
+    Nothing -> false
+
+-- it's not clear to me whether this function should insist that some
+-- types are in normal form...
 checkTypeG
-  :: Eq tyname
+  :: Ord tyname
   => KCS tyname
   -> TCS tyname name
   -> TypeG tyname
@@ -383,7 +474,24 @@ checkTypeG kcs tcs vTy (TyInstG tm vCod ty k)
     tmTypeOk = checkTypeG kcs tcs (TyForallG k vCod) tm
     tyKindOk = checkKindG kcs k ty
     tyOk = vTy == normalizeTypeG (TyAppG (TyLamG vCod) ty k)
-
+checkTypeG _kcs _tcs (TyBuiltinG tc) (ConstantG c) = check tc c
+checkTypeG kcs tcs (TyIFixG ty1 k ty2) (WrapG tm) = ty1Ok &&& ty2Ok &&& tmOk
+  where
+    ty1Ok = checkKindG kcs (KindArrow () (KindArrow () k (Type ())) (KindArrow () k (Type ()))) ty1
+    ty2Ok = checkKindG kcs k ty2
+    tmTy  = TyAppG (TyAppG ty1 (TyLamG (TyIFixG (weakenTy ty1) k (TyVarG FZ))) (KindArrow () k (Type ()))) ty2 k
+    tmOk  = checkTypeG kcs tcs (normalizeTypeG tmTy) tm
+checkTypeG kcs tcs vTy (UnWrapG ty1 k ty2 tm) = ty1Ok &&& ty2Ok &&& tmOk &&& vTyOk
+  where
+    ty1Ok = checkKindG kcs (KindArrow () (KindArrow () k (Type ())) (KindArrow () k (Type ()))) ty1
+    ty2Ok = checkKindG kcs k ty2
+    tmOk  = checkTypeG kcs tcs (TyIFixG ty1 k ty2) tm
+    vTyOk = vTy == normalizeTypeG (TyAppG (TyAppG ty1 (TyLamG (TyIFixG (weakenTy ty1) k (TyVarG FZ))) (KindArrow () k (Type ()))) ty2 k)
+checkTypeG kcs _tcs vTy (ErrorG ty) = tyKindOk &&& tyOk
+  where
+    tyKindOk = checkKindG kcs (Type ()) ty
+    tyOk = vTy == normalizeTypeG ty
+checkTypeG _kcs _tcs vTy (BuiltinG b) = check vTy b
 checkTypeG _ _ _ _ = false
 
 instance Check ClosedTypeG ClosedTermG where
@@ -419,6 +527,8 @@ extTySub :: TySub n m -> TySub (S n) (S m)
 extTySub _ FZ     = TyVarG FZ
 extTySub s (FS i) = FS <$> s i
 
+weakenTy :: TypeG m -> TypeG (S m)
+weakenTy ty = applyTySub (TyVarG . FS) ty
 
 -- |Simultaneous substitution of type variables.
 applyTySub :: (n -> TypeG m) -> TypeG n -> TypeG m

@@ -27,7 +27,7 @@ import           Network.Wai.Middleware.RequestLogger           (logStdout)
 import           Servant                                        (serve)
 import           Servant.Prometheus                             (monitorEndpoints)
 import           System.Metrics.Prometheus.Concurrent.RegistryT (runRegistryT)
-import           System.Metrics.Prometheus.Http.Scrape          (serveHttpTextMetricsT)
+import           System.Metrics.Prometheus.Http.Scrape          (serveMetricsT)
 import           Webghc.Server                                  (API, server)
 
 
@@ -45,4 +45,4 @@ run settings = runRegistryT $ do
   appMonitor <- monitorEndpoints (Proxy @API)
   logInfoN "Starting webserver."
   void . liftIO . forkIO . runSettings settings . appMonitor $ app
-  serveHttpTextMetricsT 9091 ["metrics"]
+  serveMetricsT 9091 ["metrics"]

@@ -41,6 +41,7 @@ common lang
                  -Wincomplete-uni-patterns -Wincomplete-record-updates
                  -Wredundant-constraints -Widentities
                  -Wnoncanonical-monoid-instances
+                 -Wunused-packages
 
 library
     import: lang
@@ -99,6 +100,7 @@ library
         Language.PlutusCore.Generators.NEAT.Type
         Language.PlutusCore.Lexer
         Language.PlutusCore.Parser
+        Language.PlutusCore.Error
 
         Language.PlutusIR
         Language.PlutusIR.Compiler
@@ -126,6 +128,7 @@ library
 
         PlutusPrelude
         Common
+        ErrorCode
         Data.ByteString.Hash
         PlcTestUtils
         Crypto
@@ -163,7 +166,6 @@ library
         Language.PlutusCore.Pretty.Utils
         Language.PlutusCore.Universe.Core
         Language.PlutusCore.Universe.Default
-        Language.PlutusCore.Error
         Language.PlutusCore.Size
         Language.PlutusCore.TypeCheck.Internal
         Language.PlutusCore.TypeCheck
@@ -196,6 +198,7 @@ library
         Language.UntypedPlutusCore.Core.Instance.Eq
         Language.UntypedPlutusCore.Core.Instance.Pretty
         Language.UntypedPlutusCore.Core.Instance.Pretty.Classic
+        Language.UntypedPlutusCore.Core.Instance.Pretty.Default
         Language.UntypedPlutusCore.Core.Instance.Pretty.Plc
         Language.UntypedPlutusCore.Core.Instance.Pretty.Readable
         Language.UntypedPlutusCore.Core.Instance.Recursive
@@ -250,7 +253,6 @@ library
         prettyprinter >=1.1.0.1,
         prettyprinter-configurable -any,
         recursion-schemes -any,
-        safe-exceptions -any,
         semigroups -any,
         semigroupoids -any,
         serialise -any,
@@ -263,7 +265,6 @@ library
         th-lift-instances -any,
         th-utilities -any,
         template-haskell -any,
-        data-default -any,
         data-default-class -any,
         transformers -any,
         witherable -any,
@@ -276,10 +277,8 @@ executable plutus-core-generate-evaluation-test
     ghc-options: -threaded -rtsopts -with-rtsopts=-N
     build-depends:
         base -any,
-        cborg -any,
         hedgehog -any,
         plutus-core -any,
-        serialise -any,
         text -any
 
 test-suite plutus-core-test
@@ -306,26 +305,20 @@ test-suite plutus-core-test
     build-depends:
         base -any,
         bytestring -any,
-        containers -any,
         filepath -any,
         flat -any,
         hedgehog -any,
         plutus-core -any,
-        lazy-search -any,
-        lens -any,
         mmorph -any,
         mtl -any,
         prettyprinter -any,
         serialise -any,
-        size-based -any,
-        Stream -any,
         tasty -any,
         tasty-golden -any,
         tasty-hedgehog -any,
         tasty-hunit -any,
         text -any,
-        transformers -any,
-        tuple -any
+        transformers -any
 
 test-suite plutus-ir-test
     import: lang
@@ -349,7 +342,6 @@ test-suite plutus-ir-test
         mtl -any,
         mmorph -any,
         prettyprinter -any,
-        serialise -any,
         tasty -any,
         tasty-hedgehog -any,
         megaparsec -any
@@ -364,7 +356,6 @@ test-suite untyped-plutus-core-test
         Evaluation.Machines
     build-depends:
         base >=4.9 && <5,
-        bytestring,
         hedgehog -any,
         plutus-core -any,
         mtl -any,
@@ -382,7 +373,6 @@ benchmark plutus-core-bench
         base -any,
         bytestring -any,
         mtl -any,
-        containers -any,
         criterion -any,
         plutus-core -any,
         serialise -any
@@ -396,9 +386,7 @@ benchmark plutus-core-weigh
     build-depends:
         base -any,
         bytestring -any,
-        containers -any,
         plutus-core -any,
-        serialise -any,
         weigh -any
 
 executable plc
@@ -428,12 +416,8 @@ benchmark plutus-core-budgeting-bench
     build-depends:
         base -any,
         bytestring -any,
-        containers -any,
         criterion -any,
         plutus-core -any,
-        serialise -any,
-        deepseq -any,
-        lens -any,
         directory -any,
         integer-gmp -any,
         hedgehog -any

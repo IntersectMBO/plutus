@@ -51,11 +51,8 @@ import           Data.Aeson                        (FromJSON, ToJSON)
 import           Data.Text                         (Text)
 import qualified Data.Text                         as Text
 import           GHC.Generics                      (Generic)
-import           IOTS                              (IotsType)
 
 import           Language.Plutus.Contract
-import           Language.Plutus.Contract.Trace    (ContractTrace)
-import qualified Language.Plutus.Contract.Trace    as Trace
 import qualified Language.Plutus.Contract.Typed.Tx as Typed
 import qualified Language.PlutusTx                 as PlutusTx
 import           Language.PlutusTx.Prelude         hiding (Applicative (..), Semigroup (..), return, (<$>), (>>), (>>=))
@@ -63,17 +60,19 @@ import           Ledger                            (PubKeyHash, Slot, Validator,
 import qualified Ledger                            as Ledger
 import qualified Ledger.Ada                        as Ada
 import qualified Ledger.Constraints                as Constraints
+import           Ledger.Contexts                   as V
 import qualified Ledger.Interval                   as Interval
 import qualified Ledger.Scripts                    as Scripts
 import           Ledger.Slot                       (SlotRange)
 import qualified Ledger.Typed.Scripts              as Scripts
-import           Ledger.Validation                 as V
 import           Ledger.Value                      (Value)
 import qualified Ledger.Value                      as Value
+import           Plutus.Trace.Emulator             (ContractHandle, EmulatorTrace)
+import qualified Plutus.Trace.Emulator             as Trace
 import           Prelude                           (Semigroup (..))
 import qualified Prelude                           as Haskell
 import           Schema                            (ToArgument, ToSchema)
-import           Wallet.Emulator                   (Wallet)
+import           Wallet.Emulator                   (Wallet (..))
 import qualified Wallet.Emulator                   as Emulator
 
 -- | A crowdfunding campaign.
@@ -109,7 +108,7 @@ newtype Contribution = Contribution
         { contribValue :: Value
         -- ^ how much to contribute
         } deriving stock (Haskell.Eq, Show, Generic)
-          deriving anyclass (ToJSON, FromJSON, IotsType, ToSchema, ToArgument)
+          deriving anyclass (ToJSON, FromJSON, ToSchema, ToArgument)
 
 -- | Construct a 'Campaign' value from the campaign parameters,
 --   using the wallet's public key.
@@ -255,29 +254,23 @@ scheduleCollection cmp = do
 
 -- | Call the "schedule collection" endpoint and instruct the campaign owner's
 --   wallet (wallet 1) to start watching the campaign address.
-startCampaign :: ContractTrace CrowdfundingSchema ContractError () ()
-startCampaign =
-    Trace.callEndpoint @"schedule collection" (Trace.Wallet 1)  ()
-        >> Trace.notifyInterestingAddresses (Trace.Wallet 1)
+startCampaign :: EmulatorTrace (ContractHandle CrowdfundingSchema ContractError)
+startCampaign = do
+    hdl <- Trace.activateContractWallet (Wallet 1) (crowdfunding theCampaign)
+    Trace.callEndpoint @"schedule collection" hdl ()
+    pure hdl
 
 -- | Call the "contribute" endpoint, contributing the amount from the wallet
-makeContribution
-    :: Wallet
-    -> Value
-    -> ContractTrace CrowdfundingSchema ContractError () ()
-makeContribution w v =
-    Trace.callEndpoint @"contribute" w Contribution{contribValue=v}
-        >> Trace.handleBlockchainEvents w
-        >> Trace.addBlocks 1
+makeContribution :: Wallet -> Value -> EmulatorTrace ()
+makeContribution w v = do
+    hdl <- Trace.activateContractWallet w (crowdfunding theCampaign)
+    Trace.callEndpoint @"contribute" hdl Contribution{contribValue=v}
 
 -- | Run a successful campaign with contributions from wallets 2, 3 and 4.
-successfulCampaign
-    :: ContractTrace CrowdfundingSchema ContractError () ()
-successfulCampaign =
-    startCampaign
-        >> makeContribution (Trace.Wallet 2) (Ada.lovelaceValueOf 10)
-        >> makeContribution (Trace.Wallet 3) (Ada.lovelaceValueOf 10)
-        >> makeContribution (Trace.Wallet 4) (Ada.lovelaceValueOf 1)
-        >> Trace.addBlocksUntil 20
-        >> Trace.handleBlockchainEvents (Trace.Wallet 1)
-        >> Trace.addBlocks 1
+successfulCampaign :: EmulatorTrace ()
+successfulCampaign = do
+    _ <- startCampaign
+    makeContribution (Wallet 2) (Ada.lovelaceValueOf 10)
+    makeContribution (Wallet 3) (Ada.lovelaceValueOf 10)
+    makeContribution (Wallet 4) (Ada.lovelaceValueOf 1)
+    void $ Trace.waitUntilSlot 21

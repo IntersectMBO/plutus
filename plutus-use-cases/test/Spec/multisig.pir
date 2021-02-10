@@ -4,7 +4,7 @@
     (datatypebind
       (datatype
         (tyvardecl Bool (type))
-        
+
         Bool_match
         (vardecl True Bool) (vardecl False Bool)
       )
@@ -236,7 +236,7 @@
               (datatypebind
                 (datatype
                   (tyvardecl Data (type))
-                  
+
                   Data_match
                   (vardecl B (fun (con bytestring) Data))
                   (vardecl Constr (fun (con integer) (fun [List Data] Data)))
@@ -303,7 +303,7 @@
                 (datatypebind
                   (datatype
                     (tyvardecl TxOutRef (type))
-                    
+
                     TxOutRef_match
                     (vardecl
                       TxOutRef
@@ -314,7 +314,7 @@
                 (datatypebind
                   (datatype
                     (tyvardecl TxInInfo (type))
-                    
+
                     TxInInfo_match
                     (vardecl
                       TxInInfo
@@ -325,7 +325,7 @@
                 (datatypebind
                   (datatype
                     (tyvardecl Address (type))
-                    
+
                     Address_match
                     (vardecl PubKeyAddress (fun (con bytestring) Address))
                     (vardecl ScriptAddress (fun (con bytestring) Address))
@@ -334,7 +334,7 @@
                 (datatypebind
                   (datatype
                     (tyvardecl TxOutType (type))
-                    
+
                     TxOutType_match
                     (vardecl PayToPubKey TxOutType)
                     (vardecl PayToScript (fun (con bytestring) TxOutType))
@@ -343,7 +343,7 @@
                 (datatypebind
                   (datatype
                     (tyvardecl TxOut (type))
-                    
+
                     TxOut_match
                     (vardecl
                       TxOut
@@ -354,7 +354,7 @@
                 (datatypebind
                   (datatype
                     (tyvardecl TxInfo (type))
-                    
+
                     TxInfo_match
                     (vardecl
                       TxInfo
@@ -365,7 +365,7 @@
                 (datatypebind
                   (datatype
                     (tyvardecl ValidatorCtx (type))
-                    
+
                     ValidatorCtx_match
                     (vardecl
                       ValidatorCtx (fun TxInfo (fun (con integer) ValidatorCtx))
@@ -565,7 +565,7 @@
                 (datatypebind
                   (datatype
                     (tyvardecl MultiSig (type))
-                    
+
                     MultiSig_match
                     (vardecl
                       MultiSig

@@ -1,4 +1,5 @@
 /*eslint-env node*/
+/*global exports global*/
 
 'use strict';
 
@@ -38,9 +39,14 @@ exports.create_ = function (monaco, nodeId, languageId) {
   const editor = monaco.editor.create(nodeId, {
     language: languageId,
     minimap: {
-      enabled: true
+      enabled: false
     }
   });
+
+  window.addEventListener('resize', function () {
+    editor.layout();
+  });
+
   return editor;
 }
 
@@ -141,7 +147,8 @@ exports.focus_ = function (editor) {
 }
 
 exports.enableVimBindings_ = function (editor) {
-  var vimMode = global.initVimMode(editor);
+  var statusNode = document.getElementById('statusline');
+  var vimMode = global.initVimMode(editor, statusNode);
   return (() => vimMode.dispose());
 }
 
@@ -163,4 +170,8 @@ exports.completionItemKindOrd_ = function (lt, eq, gt, a, b) {
   } else {
     return gt;
   }
+}
+
+exports.setReadOnly_ = function (editor, val) {
+  editor.updateOptions({ readOnly: val })
 }

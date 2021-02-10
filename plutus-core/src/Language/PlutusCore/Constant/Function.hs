@@ -21,19 +21,19 @@ import           GHC.TypeLits
 -- | Convert a 'TypeScheme' to the corresponding 'Type'.
 -- Basically, a map from the PHOAS representation to the FOAS one.
 typeSchemeToType :: TypeScheme term args res -> Type TyName (UniOf term) ()
-typeSchemeToType (TypeSchemeResult pR)           = toTypeAst pR
-typeSchemeToType (TypeSchemeArrow pA schB)       = TyFun () (toTypeAst pA) $ typeSchemeToType schB
-typeSchemeToType (TypeSchemeAll proxy kind schK) = case proxy of
-    (_ :: Proxy '(text, uniq)) ->
+typeSchemeToType (TypeSchemeResult pR)      = toTypeAst pR
+typeSchemeToType (TypeSchemeArrow pA schB)  = TyFun () (toTypeAst pA) $ typeSchemeToType schB
+typeSchemeToType (TypeSchemeAll proxy schK) = case proxy of
+    (_ :: Proxy '(text, uniq, kind)) ->
         let text = Text.pack $ symbolVal @text Proxy
             uniq = fromIntegral $ natVal @uniq Proxy
             a    = TyName $ Name text $ Unique uniq
-        in TyForall () a kind $ typeSchemeToType (schK Proxy)
+        in TyForall () a (knownKind $ Proxy @kind) $ typeSchemeToType (schK Proxy)
 
 countTermArgs :: TypeScheme uni args res -> Int
 countTermArgs (TypeSchemeResult _)     = 0
 countTermArgs (TypeSchemeArrow _ schB) = 1 + countTermArgs schB
-countTermArgs (TypeSchemeAll _ _ schK) = countTermArgs (schK Proxy)
+countTermArgs (TypeSchemeAll _ schK)   = countTermArgs (schK Proxy)
 
 -- | This type is used when evaluating builtins to decide whether a term argument or a type instantiation is required
 data ArgumentClass
@@ -47,4 +47,4 @@ type Arity = [ArgumentClass]
 getArity ::  TypeScheme uni args res -> Arity
 getArity (TypeSchemeResult _)     = []
 getArity (TypeSchemeArrow _ schB) = TermArg : getArity schB
-getArity (TypeSchemeAll _ _ schK) = TypeArg : getArity (schK Proxy)
+getArity (TypeSchemeAll _ schK)   = TypeArg : getArity (schK Proxy)

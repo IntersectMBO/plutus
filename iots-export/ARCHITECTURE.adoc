@@ -1,4 +1,0 @@
-=== `iots-export`
-
-This package defines a scheme for exporting interfaces to Typescript using IOTS.
-This is used by `plutus-contract` to expose an interface for Typescript clients.

@@ -36,6 +36,9 @@ module Language.Plutus.Contract(
     -- * Blockchain events
     , HasWatchAddress
     , WatchAddress
+    , AddressChangeRequest(..)
+    , AddressChangeResponse(..)
+    , addressChangeRequest
     , nextTransactionsAt
     , watchAddressUntil
     , fundsAtAddressGt
@@ -53,6 +56,7 @@ module Language.Plutus.Contract(
     , ContractInstanceId
     , ownInstanceId
     -- * Notifications
+    , notifyInstance
     , notify
     -- * Transactions
     , HasWriteTx
@@ -87,7 +91,7 @@ module Language.Plutus.Contract(
     ) where
 
 import           Data.Aeson                                        (ToJSON (toJSON))
-import           Data.Row
+import           Data.Row                                          hiding (type (.\/))
 
 import           Language.Plutus.Contract.Effects.AwaitSlot        as AwaitSlot
 import           Language.Plutus.Contract.Effects.AwaitTxConfirmed as AwaitTxConfirmed
@@ -99,6 +103,7 @@ import           Language.Plutus.Contract.Effects.UtxoAt           as UtxoAt
 import           Language.Plutus.Contract.Effects.WatchAddress     as WatchAddress
 import           Language.Plutus.Contract.Effects.WriteTx
 
+import           Data.Row.Extras                                   (type (.\/))
 import           Language.Plutus.Contract.Request                  (ContractRow)
 import           Language.Plutus.Contract.Typed.Tx                 as Tx
 import           Language.Plutus.Contract.Types                    (AsCheckpointError (..), AsContractError (..),
@@ -155,3 +160,8 @@ logWarn = Contract . L.logWarn . toJSON
 -- | Log a message at the 'Error' level
 logError :: ToJSON a => a -> Contract s e ()
 logError = Contract . L.logError . toJSON
+
+-- | Send a notification to the outside world. (This is a placeholder
+--   until we implement https://jira.iohk.io/browse/SCP-1837)
+notify :: ToJSON a => a -> Contract s e ()
+notify = logInfo

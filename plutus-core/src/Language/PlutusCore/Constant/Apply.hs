@@ -18,7 +18,8 @@ import           Data.Proxy
 -- Checks that the constants are of expected types.
 applyTypeSchemed
     :: forall err m args fun exBudgetCat term res.
-       ( MonadError (ErrorWithCause err term) m, AsUnliftingError err, AsConstAppError err fun term
+       ( MonadError (ErrorWithCause err term) m
+       , AsUnliftingError err, AsEvaluationFailure err, AsConstAppError err fun term
        , SpendBudget m fun exBudgetCat term
        )
     => fun
@@ -26,7 +27,7 @@ applyTypeSchemed
     -> FoldArgs args res
     -> FoldArgsEx args
     -> [term]
-    -> m (EvaluationResult term)
+    -> m term
 applyTypeSchemed name = go where
     go
         :: forall args'.
@@ -34,15 +35,15 @@ applyTypeSchemed name = go where
         -> FoldArgs args' res
         -> FoldArgsEx args'
         -> [term]
-        -> m (EvaluationResult term)
+        -> m term
     go (TypeSchemeResult _)        y _ args =
         -- TODO: The costing function is NOT run here. Might cause problems if there's never a TypeSchemeArrow.
         case args of
-            [] -> pure $ makeKnown y                     -- Computed the result.
+            [] -> makeKnown y                            -- Computed the result.
             _  -> throwingWithCause _ConstAppError       -- Too many arguments.
                     (TooManyArgumentsConstAppError name args)
                     Nothing
-    go (TypeSchemeAll _ _ schK)  f exF args =
+    go (TypeSchemeAll _ schK)    f exF args =
         go (schK Proxy) f exF args
     go (TypeSchemeArrow _ schB)  f exF args = case args of
         []          ->

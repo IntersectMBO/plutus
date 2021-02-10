@@ -34,23 +34,13 @@
   color: var(--text-color-inactive);
 }
 
-.demo-title {
-  flex: 1;
-}
-
 .demo-list {
   flex: 6;
   display: flex;
   justify-content: space-between;
 }
 
-.code-to-blockly-wrap {
-  flex: 2;
-  display: flex;
-  justify-content: flex-end;
-}
-
-.demo-list li+li {
+.demo-list li + li {
   border-left: 1px solid var(--layout-accent-color);
 }
 
@@ -69,8 +59,6 @@
   padding-top: 6px;
 }
 
-.demo-arrow,
-.github-icon,
 .drawer-icon,
 .minimize-icon {
   height: 30px;
@@ -89,16 +77,6 @@
   transform: rotate(180deg);
 }
 
-.blockly-btn-icon {
-  height: 11px;
-  width: 16px;
-}
-
-.simulation-btn-icon {
-  height: 16px;
-  width: 16px;
-}
-
 .code-panel {
   display: flex;
 }
@@ -109,19 +87,19 @@
   overflow-x: unset;
 }
 
-@media (min-height:1024px) {
+@media (min-height: 1024px) {
   .code-editor {
     padding-bottom: 14rem;
   }
 }
 
-@media (min-height:1050px) {
+@media (min-height: 1050px) {
   .code-editor {
     padding-bottom: 16rem;
   }
 }
 
-@media (min-height:1200px) {
+@media (min-height: 1200px) {
   .code-editor {
     padding-bottom: 14rem;
   }
@@ -131,7 +109,7 @@
   padding-bottom: 4rem;
 }
 
-.expanded>.code-editor {
+.expanded > .code-editor {
   padding-bottom: 2rem;
 }
 
@@ -177,14 +155,6 @@
   margin-right: 1rem;
 }
 
-.transaction-composer ul li ul {
-  display: flex;
-}
-
-.participants li+li {
-  margin-top: 1rem;
-}
-
 .align-top {
   align-self: flex-start;
 }
@@ -219,16 +189,6 @@ button.minus-btn:hover {
 .choice-input {
   line-height: 1.4;
   flex: 1;
-}
-
-.transaction-composer p {
-  line-height: 1.4;
-  flex: 1;
-}
-
-.participants em {
-  display: inline-block;
-  margin-bottom: 0.5rem;
 }
 
 .transaction-btns {
@@ -322,19 +282,19 @@ button.minus-btn:hover {
   height: 8em;
 }
 
-@media (min-width:1280px) {
+@media (min-width: 1280px) {
   .simulation-bottom-panel {
     width: 66%;
   }
 }
 
-@media (min-width:1440px) {
+@media (min-width: 1440px) {
   .simulation-bottom-panel {
     width: 67%;
   }
 }
 
-@media (min-width:1900px) {
+@media (min-width: 1900px) {
   .simulation-bottom-panel {
     width: 68%;
   }
@@ -363,7 +323,7 @@ button.minus-btn:hover {
   margin-bottom: 1.5rem;
 }
 
-.expanded>.haskell-panel-contents {
+.expanded > .haskell-panel-contents {
   height: calc(100% - 3rem);
   max-height: 70vh;
   overflow-x: scroll;
@@ -375,7 +335,7 @@ button.minus-btn:hover {
   z-index: 1;
 }
 
-.footer-panel-bg.footer-panel-haskell>.panel-contents {
+.footer-panel-bg.footer-panel-haskell > .panel-contents {
   display: block;
 }
 
@@ -388,17 +348,8 @@ button.minus-btn:hover {
   align-items: flex-start;
 }
 
-.haskell-buttons {
-  width: 27rem;
-  margin-left: 1rem;
-}
-
 .drawer-icon-click {
   display: none;
-}
-
-.state-label {
-  font-weight: normal;
 }
 
 .error-row {
@@ -432,21 +383,12 @@ button.minus-btn:hover {
   transform: rotate(90deg);
 }
 
-.transaction-composer {
-  margin-top: 1rem;
-}
-
-#blocklyWorkspace>button {
+#blocklyWorkspace > button {
   margin: 1rem 0;
 }
 
-
-#actusBlocklyWorkspace>button {
+#actusBlocklyWorkspace > button {
   margin: 1rem 0;
-}
-
-.analyse-btn {
-  margin: 1rem 0rem 4rem 0rem;
 }
 
 .error-content {
@@ -474,17 +416,6 @@ button.minus-btn:hover {
 .indented-loweralpha-enum {
   list-style-type: lower-alpha;
   padding-left: 1.5rem;
-}
-
-.contract-buttons {
-  width: 7rem;
-  display: flex;
-  justify-content: space-between;
-}
-
-.single-contract-button {
-  display: flex;
-  justify-content: space-between;
 }
 
 .full-height {
@@ -539,3 +470,26 @@ button.minus-btn:hover {
 .actus-buttons {
   padding-left: 1rem;
 }
+
+.transaction-composer {
+  margin-top: 1rem;
+}
+
+.transaction-composer ul li ul {
+  display: flex;
+}
+
+.transaction-composer p {
+  line-height: 1.4;
+  flex: 1;
+}
+
+.participants li + li {
+  margin-top: 1rem;
+}
+
+.participants em {
+  display: inline-block;
+  margin-bottom: 0.5rem;
+}
+

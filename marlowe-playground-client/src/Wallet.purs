@@ -1,5 +1,6 @@
 module Wallet where
 
+import Prelude hiding (div)
 import Control.Alt ((<|>))
 import Control.Monad.State (class MonadState)
 import Data.Array (concatMap, delete, drop, fold, foldMap, snoc)
@@ -27,7 +28,7 @@ import Data.Tuple.Nested (type (/\), (/\))
 import Effect.Class (class MonadEffect, liftEffect)
 import Halogen (ClassName(..), Component, HalogenM, raise)
 import Halogen as H
-import Halogen.Analytics (handleActionWithAnalyticsTracking)
+import Halogen.Analytics (withAnalytics)
 import Halogen.Classes (aHorizontal, active, bold, closeDrawerIcon, expanded, first, infoIcon, jFlexStart, minusBtn, noMargins, panelSubHeader, panelSubHeaderMain, panelSubHeaderSide, plusBtn, pointer, rTable, rTable4cols, rTableCell, rTableDataRow, rTableEmptyRow, sidebarComposer, smallBtn, spaceLeft, spanText, textSecondaryColor, uppercase)
 import Halogen.Classes as Classes
 import Halogen.HTML (HTML, a, article, aside, b_, br_, button, div, h6, hr_, img, input, li, option, p, p_, section, select, small, small_, strong_, text, ul)
@@ -37,13 +38,15 @@ import Halogen.HTML.Events (onClick, onValueChange)
 import Halogen.HTML.Properties (InputType(..), alt, class_, classes, enabled, placeholder, selected, src, type_, value)
 import Halogen.HTML.Properties (value) as HTML
 import Help (HelpContext(..), toHTML)
+import Marlowe.Semantics (AccountId, Assets(..), Bound(..), ChoiceId(..), Input(..), Party, Payment(..), PubKey, Token(..), TransactionWarning(..), ValueId(..), _accounts, _boundValues, _choices, inBounds, timeouts)
+import Marlowe.Semantics as S
+import Marlowe.Extended (toCore)
+import Marlowe.Extended as EM
 import Marlowe.Holes (fromTerm, gatherContractData)
 import Marlowe.Parser (parseContract)
-import Marlowe.Semantics (AccountId, Assets(..), Bound(..), ChoiceId(..), Input(..), Party, Payee(..), Payment(..), PubKey, Token(..), TransactionWarning(..), ValueId(..), _accounts, _boundValues, _choices, inBounds, timeouts)
-import Marlowe.Semantics as S
-import Prelude (class Ord, class Show, Unit, add, bind, const, discard, eq, flip, map, mempty, not, one, otherwise, pure, show, unit, when, zero, ($), (&&), (+), (-), (<$>), (<<<), (<>), (=<<), (==), (>), (>=))
-import Simulation.State (updateContractInStateP, updatePossibleActions, updateStateP)
-import Simulation.Types (ActionInput(..), ActionInputId, MarloweState, _SimulationRunning, _contract, _currentMarloweState, _marloweState, _executionState, _payments, _pendingInputs, _possibleActions, _slot, _state, _transactionError, _transactionWarnings, emptyMarloweStateWithSlot, mapPartiesActionInput)
+import Pretty (renderPrettyParty, renderPrettyPayee, renderPrettyToken, showPrettyMoney)
+import SimulationPage.Types (ActionInput(..), ActionInputId, MarloweState, _SimulationRunning, _contract, _currentMarloweState, _marloweState, _executionState, _payments, _pendingInputs, _possibleActions, _slot, _state, _transactionError, _transactionWarnings, emptyMarloweStateWithSlot, mapPartiesActionInput)
+import Simulator (updateContractInStateP, updatePossibleActions, updateStateP)
 import Text.Extra (stripParens)
 import Text.Pretty (pretty)
 import WalletSimulation.Types (Action(..), ChildSlots, LoadedContract, Message(..), Query(..), State, View(..), Wallet(..), _addInputError, _assetChanges, _assets, _contracts, _currentLoadedMarloweState, _helpContext, _initialized, _loadContractError, _loadedMarloweState, _name, _openWallet, _parties, _runningContracts, _showRightPanel, _started, _tokens, _view, _walletContracts, _walletLoadedContract, _wallets, mkState)
@@ -62,7 +65,7 @@ mkComponent =
     , render
     , eval:
         H.mkEval
-          { handleAction: handleActionWithAnalyticsTracking handleAction
+          { handleAction: withAnalytics handleAction
           , handleQuery
           , initialize: Just Init
           , receive: const Nothing
@@ -104,39 +107,41 @@ handleQuery (LoadContract contractString next) = do
   case parseContract contractString of
     Left err -> assign _loadContractError (Just $ show err)
     Right contractTerm ->
-      for_ (fromTerm contractTerm) \contract -> do
-        idx <- use (_contracts <<< _NextIndex)
-        mOpenWallet <- use _openWallet
-        for_ mOpenWallet \openWallet -> do
-          existingWallets <- use _wallets
-          slot <- use _slot
-          let
-            contractData = gatherContractData contractTerm { parties: mempty, tokens: mempty }
+      for_ (fromTerm contractTerm) \extendedContract -> do
+        -- We reuse the extended Marlowe parser for now since it is a superset
+        for_ (toCore (extendedContract :: EM.Contract)) \contract -> do
+          idx <- use (_contracts <<< _NextIndex)
+          mOpenWallet <- use _openWallet
+          for_ mOpenWallet \openWallet -> do
+            existingWallets <- use _wallets
+            slot <- use _slot
+            let
+              contractData = gatherContractData contractTerm { parties: mempty, tokens: mempty }
 
-            parties = Set.mapMaybe fromTerm contractData.parties
+              parties = Set.mapMaybe fromTerm contractData.parties
 
-            tokens = Map.fromFoldable $ Set.map (\token -> Tuple token zero) $ Set.mapMaybe fromTerm contractData.tokens
+              tokens = Map.fromFoldable $ Set.map (\token -> Tuple token zero) $ Set.mapMaybe fromTerm contractData.tokens
 
-            newWallets = foldl (walletFromPK tokens) existingWallets parties
+              newWallets = foldl (walletFromPK tokens) existingWallets parties
 
-            -- A PK party should be owned by the wallet that is that PK but by default it is owned by the primary wallet
-            partiesMap = Map.fromFoldable $ Set.map (mkPartyPair openWallet newWallets) parties
+              -- A PK party should be owned by the wallet that is that PK but by default it is owned by the primary wallet
+              partiesMap = Map.fromFoldable $ Set.map (mkPartyPair openWallet newWallets) parties
 
-            loadedContract =
-              { contract
-              , idx
-              , owner: openWallet ^. _name
-              , parties: mempty
-              , started: false
-              , marloweState: NEL.singleton (emptyMarloweStateWithSlot slot)
-              }
-          modifying _wallets (Map.union newWallets)
-          assign _walletLoadedContract (Just loadedContract)
-          modifying _contracts (Map.insert idx loadedContract)
-          assign (_walletLoadedContract <<< _Just <<< _parties) partiesMap
-          modifying (_openWallet <<< _Just <<< _assets) (flip Map.union tokens)
-          modifying _tokens (Set.union (Map.keys tokens))
-          updateContractInState contractString
+              loadedContract =
+                { contract
+                , idx
+                , owner: openWallet ^. _name
+                , parties: mempty
+                , started: false
+                , marloweState: NEL.singleton (emptyMarloweStateWithSlot slot)
+                }
+            modifying _wallets (Map.union newWallets)
+            assign _walletLoadedContract (Just loadedContract)
+            modifying _contracts (Map.insert idx loadedContract)
+            assign (_walletLoadedContract <<< _Just <<< _parties) partiesMap
+            modifying (_openWallet <<< _Just <<< _assets) (flip Map.union tokens)
+            modifying _tokens (Set.union (Map.keys tokens))
+            updateContractInState contractString
   pure $ Just next
   where
   walletFromPK :: Map Token BigInteger -> Map String Wallet -> Party -> Map String Wallet
@@ -704,13 +709,16 @@ renderCurrentState state =
   displayWarning' (TransactionNonPositiveDeposit party owner tok amount) =
     [ div [ classes [ rTableCell, first ] ] []
     , div [ class_ (ClassName "RTable-2-cells") ] [ text "TransactionNonPositiveDeposit" ]
-    , div [ class_ rTableCell ]
-        [ text $ "Party " <> show party <> " is asked to deposit " <> show amount
+    , div [ class_ (ClassName "RTable-4-cells") ]
+        [ text $ "Party "
+        , renderPrettyParty party
+        , text $ " is asked to deposit "
+            <> showPrettyMoney amount
             <> " units of "
-            <> show tok
-            <> " into account of "
-            <> show owner
-            <> "."
+        , renderPrettyToken tok
+        , text " into account of "
+        , renderPrettyParty owner
+        , text "."
         ]
     ]
 
@@ -718,40 +726,38 @@ renderCurrentState state =
     [ div [ classes [ rTableCell, first ] ] []
     , div [ class_ (ClassName "RTable-2-cells") ] [ text "TransactionNonPositivePay" ]
     , div [ class_ (ClassName "RTable-4-cells") ]
-        [ text $ "The contract is supposed to make a payment of "
-            <> show amount
-            <> " units of "
-            <> show tok
-            <> " from account of "
-            <> show owner
-            <> " to "
-            <> ( case payee of
-                  (Account owner2) -> "account of " <> show owner2
-                  (Party dest) -> "party " <> show dest
-              )
-            <> "."
-        ]
+        ( [ text $ "The contract is supposed to make a payment of "
+              <> showPrettyMoney amount
+              <> " units of "
+          , renderPrettyToken tok
+          , text $ " from account of "
+              <> show owner
+              <> " to "
+          ]
+            <> renderPrettyPayee payee
+            <> [ text "." ]
+        )
     ]
 
   displayWarning' (TransactionPartialPay owner payee tok amount expected) =
     [ div [ classes [ rTableCell, first ] ] []
     , div [ class_ (ClassName "RTable-2-cells") ] [ text "TransactionPartialPay" ]
     , div [ class_ (ClassName "RTable-4-cells") ]
-        [ text $ "The contract is supposed to make a payment of "
-            <> show expected
-            <> " units of "
-            <> show tok
-            <> " from account of "
-            <> show owner
-            <> " to "
-            <> ( case payee of
-                  (Account owner2) -> ("account of " <> show owner2)
-                  (Party dest) -> ("party " <> show dest)
-              )
-            <> " but there is only "
-            <> show amount
-            <> "."
-        ]
+        ( [ text $ "The contract is supposed to make a payment of "
+              <> showPrettyMoney expected
+              <> " units of "
+          , renderPrettyToken tok
+          , text " from account of "
+          , renderPrettyParty owner
+          , text $ " to "
+          ]
+            <> renderPrettyPayee payee
+            <> [ text $ "."
+                  <> " but there is only "
+                  <> showPrettyMoney amount
+                  <> "."
+              ]
+        )
     ]
 
   displayWarning' (TransactionShadowing valId oldVal newVal) =
@@ -950,13 +956,13 @@ marloweActionInput isEnabled f current =
 renderDeposit :: forall p a. AccountId -> S.Party -> Token -> BigInteger -> Array (HTML p a)
 renderDeposit accountOwner party tok money =
   [ spanText "Deposit "
-  , b_ [ spanText (show money) ]
+  , b_ [ spanText (showPrettyMoney money) ]
   , spanText " units of "
-  , b_ [ spanText (show tok) ]
-  , spanText " into Account "
-  , b_ [ spanText (show accountOwner) ]
+  , b_ [ renderPrettyToken tok ]
+  , spanText " into account of "
+  , b_ [ renderPrettyParty accountOwner ]
   , spanText " as "
-  , b_ [ spanText (show party) ]
+  , b_ [ renderPrettyParty party ]
   ]
 
 transactionComposer ::

@@ -49,6 +49,19 @@ this can at least potentially cause problems or cause you to be missing
 bug workarounds.
 ====
 
+=== How to build the code with profiling
+
+If you launch `nix-shell` with the `enableHaskellProfiling` argument set to true, you will get a shell where all the dependencies have been built with profiling.
+
+Like this: `nix-shell --arg enableHaskellProfiling true`
+
+Then you can do e.g. `cabal run --enableProfiling ...`.
+
+[WARNING]
+====
+This is not curently cached, so may result in you rebuilding all of our dependencies with profiling on your machine.
+====
+
 === How to setup `haskell-language-server`
 
 The `nix-shell` environment has a `haskell-language-server` binary for the right version of GHC.
@@ -70,18 +83,18 @@ You can find some documentation in the [hie-bios](https://github.com/mpickering/
 The Nix code that builds all the Haskell packages and their dependencies is generated automatically.
 However, to avoid doing too much work all the time, we have checked the generated output in.
 
-IMPORTANT: These files needs to be regenerated if you change any dependencies in cabal files or change the Stackage resolver.
+IMPORTANT: These files needs to be regenerated if you change any dependencies in cabal files.
 But the CI will tell you if you've failed to do so.
 
-You can regenerate the files by running `$(nix-build default.nix -A plutus.updateMaterialized)`.
+You can regenerate the files by running `updateMaterialized` (provided by `nix-shell`) from the repository root.
 
 === How to add a new Haskell package
 
 You need to do a few things when adding a new package, in the following order:
 
 . Add the cabal file for the new package.
-. Add the package to link:stack.yaml[`stack.yaml`].
 . Add the package to link:cabal.project[`cabal.project`].
+. Add the package to link:stack.yaml[`stack.yaml`].
 . Update the xref:update-generated[package set].
 . Update the `xref:update-hie[hie-*.yaml` files].
 . Check that you can run `nix build -f default.nix plutus.haskell.projectPackages.<package name>` successfully.

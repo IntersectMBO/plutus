@@ -19,7 +19,7 @@ import Foreign.Class (encode)
 import Foreign.Generic (encodeJSON)
 import Foreign.Object as FO
 import Language.PlutusTx.AssocMap as AssocMap
-import Ledger.Value (CurrencySymbol(..), TokenName(..), Value(..))
+import Plutus.V1.Ledger.Value (CurrencySymbol(..), TokenName(..), Value(..))
 import Playground.Types (ContractCall(..), FunctionSchema(..), KnownCurrency(..))
 import Schema (FormSchema(..), FormArgumentF(..))
 import Schema.Types (FormArgument, formArgumentToJson, mkInitialValue, toArgument)

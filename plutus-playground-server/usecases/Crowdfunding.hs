@@ -33,11 +33,11 @@ import           Ledger                               (PubKeyHash, TxInfo (..), 
                                                        pubKeyHash, txId, valueSpent)
 import qualified Ledger                               as Ledger
 import qualified Ledger.Ada                           as Ada
+import qualified Ledger.Contexts                      as V
 import qualified Ledger.Interval                      as Interval
 import qualified Ledger.Scripts                       as Scripts
 import           Ledger.Slot                          (Slot, SlotRange)
 import qualified Ledger.Typed.Scripts                 as Scripts
-import qualified Ledger.Validation                    as V
 import           Ledger.Value                         (Value)
 import qualified Ledger.Value                         as Value
 import           Playground.Contract
@@ -78,7 +78,7 @@ newtype Contribution = Contribution
         { contribValue :: Value
         -- ^ how much to contribute
         } deriving stock (Haskell.Eq, Show, Generic)
-          deriving anyclass (ToJSON, FromJSON, IotsType, ToSchema, ToArgument)
+          deriving anyclass (ToJSON, FromJSON, ToSchema, ToArgument)
 
 -- | Construct a 'Campaign' value from the campaign parameters,
 --   using the wallet's public key.

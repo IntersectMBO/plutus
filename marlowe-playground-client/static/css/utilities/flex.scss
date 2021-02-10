@@ -1,0 +1,98 @@
+/*
+  The classes provided here were taken from tailwind's display and flex
+  modules.
+*/
+
+// --------------------------------------------
+// https://tailwindcss.com/docs/display#flex
+.flex {
+  display: flex;
+}
+
+// --------------------------------------------
+// https://tailwindcss.com/docs/flex-direction
+
+.flex-row {
+  flex-direction: row;
+}
+
+.flex-row-reverse {
+  flex-direction: row-reverse;
+}
+
+.flex-col {
+  flex-direction: column;
+}
+
+.flex-col-reverse {
+  flex-direction: column-reverse;
+}
+
+// --------------------------------------------
+// https://tailwindcss.com/docs/flex
+
+.flex-1 {
+  flex: 1 1 0%;
+}
+
+.flex-auto {
+  flex: 1 1 auto;
+}
+
+.flex-initial {
+  flex: 0 1 auto;
+}
+
+.flex-none {
+  flex: none;
+}
+
+// --------------------------------------------
+// https://tailwindcss.com/docs/justify-content
+
+.justify-start {
+  justify-content: flex-start;
+}
+
+.justify-end {
+  justify-content: flex-end;
+}
+
+.justify-center {
+  justify-content: center;
+}
+
+.justify-between {
+  justify-content: space-between;
+}
+
+.justify-around {
+  justify-content: space-around;
+}
+
+.justify-evenly {
+  justify-content: space-evenly;
+}
+
+// --------------------------------------------
+// https://tailwindcss.com/docs/justify-self
+
+.justify-self-auto {
+  justify-self: auto;
+}
+
+.justify-self-start {
+  justify-self: start;
+}
+
+.justify-self-end {
+  justify-self: end;
+}
+
+.justify-self-center {
+  justify-self: center;
+}
+
+.justify-self-stretch {
+  justify-self: stretch;
+}

@@ -34,3 +34,6 @@ crowdFunding =
 
 starter :: SourceCode
 starter = process $(makeRelativeToProject "usecases/Starter.hs" >>= embedFile)
+
+helloWorld :: SourceCode
+helloWorld = process $(makeRelativeToProject "usecases/HelloWorld.hs" >>= embedFile)

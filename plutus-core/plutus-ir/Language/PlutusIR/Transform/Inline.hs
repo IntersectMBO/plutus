@@ -28,7 +28,7 @@ import           Control.Monad.State
 import qualified Algebra.Graph                           as G
 import           Data.Foldable
 import qualified Data.Map                                as Map
-import           Data.Witherable
+import           Witherable
 
 {- Note [Inlining approach and 'Secrets of the GHC Inliner']
 The approach we take is more-or-less exactly taken from 'Secrets of the GHC Inliner'.

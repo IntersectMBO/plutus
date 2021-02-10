@@ -27,13 +27,13 @@ import           Data.Text.Prettyprint.Doc.Extras    (Pretty, PrettyShow (..))
 import           Language.Plutus.Contract.Checkpoint (CheckpointStore)
 import           Language.Plutus.Contract.Resumable
 import           Language.Plutus.Contract.Schema     (Event (..), Handlers (..))
-import           Language.Plutus.Contract.Types
+import           Language.Plutus.Contract.Types      hiding (logs)
 
 -- $contractstate
 -- Types for initialising and running instances of 'Contract's. The types and
 -- functions in this module are convenient wrappers around types and functions
 -- from 'Language.Plutus.Contract.Types', exposing an interface that is suitable
--- for consumption by the SCB. In particular this means that
+-- for consumption by the PAB. In particular this means that
 -- 'insertAndUpdateContract' has a single argument, and its argument & return
 -- types can be serialised to JSON easily.
 --
@@ -92,12 +92,12 @@ insertAndUpdateContract (Contract con) ContractRequest{oldState=State record che
 mkResponse :: forall e s h a.
     ResumableResult e s h a
     -> ContractResponse e s h
-mkResponse ResumableResult{wcsResponses, wcsRequests=Requests{unRequests},wcsCheckpointStore, wcsLogs, wcsFinalState} =
+mkResponse ResumableResult{_responses, _requests=Requests{unRequests},_checkpointStore, _logs, _finalState} =
     ContractResponse
         { hooks = unRequests
-        , newState = State { record = wcsResponses, checkpoints=wcsCheckpointStore }
-        , logs = toList wcsLogs
-        , err = either Just (const Nothing) wcsFinalState
+        , newState = State { record = _responses, checkpoints=_checkpointStore }
+        , logs = toList _logs
+        , err = either Just (const Nothing) _finalState
         }
 
 -- | The 'ContractResponse' with the initial state of the contract.

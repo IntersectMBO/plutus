@@ -16,9 +16,11 @@
 module Wallet.Emulator.Wallet where
 
 import           Control.Lens
+import           Control.Monad                       (foldM)
 import           Control.Monad.Freer
 import           Control.Monad.Freer.Error
 import           Control.Monad.Freer.State
+import           Control.Monad.Freer.TH              (makeEffect)
 import           Control.Newtype.Generics            (Newtype)
 import           Data.Aeson                          (FromJSON, ToJSON, ToJSONKey)
 import           Data.Bifunctor
@@ -30,7 +32,6 @@ import qualified Data.Set                            as Set
 import qualified Data.Text                           as T
 import           Data.Text.Prettyprint.Doc
 import           GHC.Generics                        (Generic)
-import           IOTS                                (IotsType)
 import           Language.Plutus.Contract.Checkpoint (CheckpointLogMsg)
 import qualified Language.PlutusTx.Prelude           as PlutusTx
 import           Ledger
@@ -41,16 +42,26 @@ import qualified Ledger.Value                        as Value
 import           Prelude                             as P
 import           Servant.API                         (FromHttpApiData (..), ToHttpApiData (..))
 import qualified Wallet.API                          as WAPI
-import           Wallet.Effects                      (ChainIndexEffect, NodeClientEffect, WalletEffect (..))
+import           Wallet.Effects                      (ChainIndexEffect, NodeClientEffect, SigningProcessEffect (..),
+                                                      WalletEffect (..))
 import qualified Wallet.Effects                      as W
+import           Wallet.Emulator.ChainIndex          (ChainIndexState)
 import           Wallet.Emulator.LogMessages         (RequestHandlerLogMsg, TxBalanceMsg)
+import           Wallet.Emulator.NodeClient          (NodeClientState, emptyNodeClientState)
 import           Wallet.Types                        (Payment (..))
+
+newtype SigningProcess = SigningProcess {
+    unSigningProcess :: forall effs. (Member (Error WAPI.WalletAPIError) effs) => [PubKeyHash] -> Tx -> Eff effs Tx
+}
+
+instance Show SigningProcess where
+    show = const "SigningProcess <...>"
 
 -- | A wallet in the emulator model.
 newtype Wallet = Wallet { getWallet :: Integer }
     deriving (Show, Eq, Ord, Generic)
     deriving newtype (ToHttpApiData, FromHttpApiData, Hashable)
-    deriving anyclass (Newtype, ToJSON, FromJSON, ToJSONKey, IotsType)
+    deriving anyclass (Newtype, ToJSON, FromJSON, ToJSONKey)
 
 instance Pretty Wallet where
     pretty (Wallet i) = "W" <> pretty i
@@ -91,16 +102,13 @@ makePrisms ''WalletEvent
 
 -- | The state used by the mock wallet environment.
 data WalletState = WalletState {
-    _ownPrivateKey :: PrivateKey
-    -- ^ User's 'PrivateKey'.
-    } deriving stock (Eq)
+    _ownPrivateKey  :: PrivateKey, -- ^ User's 'PrivateKey'.
+    _nodeClient     :: NodeClientState,
+    _chainIndex     :: ChainIndexState,
+    _signingProcess :: SigningProcess
+    } deriving Show
 
 makeLenses ''WalletState
-
-instance Show WalletState where
-    showsPrec p (WalletState kp ) = showParen (p > 10)
-        (showString "WalletState"
-            . showChar ' ' . showsPrec 10 kp)
 
 -- | Get the user's own public-key address.
 ownAddress :: WalletState -> Address
@@ -109,8 +117,9 @@ ownAddress = pubKeyAddress . toPublicKey . view ownPrivateKey
 -- | An empty wallet state with the public/private key pair for a wallet, and the public-key address
 -- for that wallet as the sole watched address.
 emptyWalletState :: Wallet -> WalletState
-emptyWalletState w = WalletState pk where
+emptyWalletState w = WalletState pk emptyNodeClientState mempty sp  where
     pk = walletPrivKey w
+    sp = defaultSigningProcess w
 
 data PaymentArgs =
     PaymentArgs
@@ -227,3 +236,46 @@ takeUntil _ []       = []
 takeUntil p (x:xs)
     | p x            = [x]
     | otherwise      = x : takeUntil p xs
+
+-- | The default signing process is 'signWallet'
+defaultSigningProcess :: Wallet -> SigningProcess
+defaultSigningProcess = signWallet
+
+-- | Sign the transaction by calling 'WAPI.signTxnWithKey' (throwing a
+--   'PrivateKeyNotFound' error if called with a key other than the
+--   wallet's private key)
+signWallet :: Wallet -> SigningProcess
+signWallet wllt = SigningProcess $
+    \pks tx -> foldM (signTxnWithKey wllt) tx pks
+
+-- | Sign the transaction with the private key of the given public
+--   key. Fails if the wallet doesn't have the private key.
+signTxnWithKey :: (Member (Error WAPI.WalletAPIError) r) => Wallet -> Tx -> PubKeyHash -> Eff r Tx
+signTxnWithKey wllt tx pubK = do
+    let ownPubK = walletPubKey wllt
+    if pubKeyHash ownPubK == pubK
+    then pure (signWithWallet wllt tx)
+    else throwError (WAPI.PrivateKeyNotFound pubK)
+
+-- | Sign the transaction with the private keys of the given wallets,
+--   ignoring the list of public keys that the 'SigningProcess' is passed.
+signWallets :: [Wallet] -> SigningProcess
+signWallets wallets = SigningProcess $ \_ tx ->
+    let signingKeys = walletPrivKey <$> wallets in
+    pure (foldr addSignature tx signingKeys)
+
+data SigningProcessControlEffect r where
+    SetSigningProcess :: SigningProcess -> SigningProcessControlEffect ()
+makeEffect ''SigningProcessControlEffect
+
+type SigningProcessEffs = '[State SigningProcess, Error WAPI.WalletAPIError]
+
+handleSigningProcessControl :: (Members SigningProcessEffs effs) => Eff (SigningProcessControlEffect ': effs) ~> Eff effs
+handleSigningProcessControl = interpret $ \case
+    SetSigningProcess proc -> put proc
+
+handleSigningProcess :: (Members SigningProcessEffs effs) => Eff (SigningProcessEffect ': effs) ~> Eff effs
+handleSigningProcess = interpret $ \case
+    AddSignatures sigs tx -> do
+        SigningProcess process <- get
+        process sigs tx

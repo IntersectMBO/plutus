@@ -1,5 +1,8 @@
 module JavascriptEditor.View where
 
+import Prelude hiding (div)
+import BottomPanel.Types (Action(..)) as BottomPanel
+import BottomPanel.View (render) as BottomPanel
 import Data.Array as Array
 import Data.Enum (toEnum, upFromIncluding)
 import Data.Lens (to, view, (^.))
@@ -8,17 +11,20 @@ import Data.String (Pattern(..), split)
 import Data.String as String
 import Effect.Aff.Class (class MonadAff)
 import Halogen (ClassName(..), ComponentHTML)
-import Halogen.Classes (aHorizontal, analysisPanel, closeDrawerArrowIcon, codeEditor, collapsed, footerPanelBg, minimizeIcon)
-import Halogen.HTML (HTML, a, button, code_, div, div_, img, option, pre_, section, select, slot, text)
+import Halogen.Classes (aHorizontal, codeEditor, group)
+import Halogen.Classes as Classes
+import Halogen.Extra (renderSubmodule)
+import Halogen.HTML (HTML, a, button, code_, div, div_, option, pre_, section, select, slot, text)
 import Halogen.HTML.Events (onClick, onSelectedIndexChange)
-import Halogen.HTML.Properties (alt, class_, classes, href, src)
+import Halogen.HTML.Properties (class_, classes, enabled, href)
 import Halogen.HTML.Properties as HTML
 import JavascriptEditor.State (mkEditor)
-import JavascriptEditor.Types (Action(..), State, _compilationResult, _keybindings, _showBottomPanel)
+import JavascriptEditor.Types (Action(..), BottomPanelView(..), State, _bottomPanelState, _compilationResult, _keybindings, isCompiling)
 import JavascriptEditor.Types as JS
 import Language.Javascript.Interpreter (CompilationError(..), InterpreterResult(..))
 import MainFrame.Types (ChildSlots, _jsEditorSlot)
-import Prelude (bottom, const, map, not, show, unit, ($), (<$>), (<<<), (<>), (==))
+import StaticAnalysis.BottomPanel (analysisResultPane, analyzeButton)
+import StaticAnalysis.Types (_analysisState, isCloseAnalysisLoading, isReachabilityLoading, isStaticLoading)
 import Text.Pretty (pretty)
 
 render ::
@@ -29,24 +35,41 @@ render ::
 render state =
   div_
     [ section [ class_ (ClassName "code-panel") ]
-        [ div [ classes (codeEditor $ state ^. _showBottomPanel) ]
+        [ div [ classes [ codeEditor ] ]
             [ jsEditor state ]
         ]
-    , bottomPanel state
+    , renderSubmodule _bottomPanelState BottomPanelAction (BottomPanel.render panelTitles wrapBottomPanelContents) state
     ]
+  where
+  panelTitles =
+    [ { title: "Generated code", view: GeneratedOutputView, classes: [] }
+    , { title: "Static Analysis", view: StaticAnalysisView, classes: [] }
+    , { title: "Errors", view: ErrorsView, classes: [] }
+    ]
+
+  wrapBottomPanelContents panelView = BottomPanel.PanelAction <$> panelContents state panelView
 
 otherActions :: forall p. State -> HTML p Action
 otherActions state =
-  div [ classes [ ClassName "group" ] ]
+  div [ classes [ group ] ]
     [ editorOptions state
     , compileButton state
-    , sendButton state
+    , sendToSimulationButton state
     ]
 
-sendButton :: forall p. State -> HTML p Action
-sendButton state = case view _compilationResult state of
-  JS.CompiledSuccessfully _ -> button [ onClick $ const $ Just SendResultToSimulator ] [ text "Send To Simulator" ]
-  _ -> text ""
+sendToSimulationButton :: forall p. State -> HTML p Action
+sendToSimulationButton state =
+  button
+    [ onClick $ const $ Just SendResultToSimulator
+    , enabled enabled'
+    ]
+    [ text "Send To Simulator" ]
+  where
+  compilationResult = view _compilationResult state
+
+  enabled' = case compilationResult of
+    JS.CompiledSuccessfully _ -> true
+    _ -> false
 
 editorOptions :: forall p. State -> HTML p Action
 editorOptions state =
@@ -54,6 +77,7 @@ editorOptions state =
     [ select
         [ HTML.id_ "editor-options"
         , class_ (ClassName "dropdown-header")
+        , HTML.value $ show $ state ^. _keybindings
         , onSelectedIndexChange (\idx -> ChangeKeyBindings <$> toEnum idx)
         ]
         (map keybindingItem (upFromIncluding bottom))
@@ -72,58 +96,69 @@ jsEditor ::
   ComponentHTML Action ChildSlots m
 jsEditor state = slot _jsEditorSlot unit mkEditor unit (Just <<< HandleEditorMessage)
 
-bottomPanel :: forall p. State -> HTML p Action
-bottomPanel state =
-  div
-    ( [ classes
-          ( if showingBottomPanel then
-              [ analysisPanel ]
-            else
-              [ analysisPanel, collapsed ]
-          )
-      ]
-    )
-    [ div
-        [ classes [ footerPanelBg, ClassName "flip-x" ] ]
-        [ section [ classes [ ClassName "panel-header", aHorizontal ] ]
-            [ div [ classes [ ClassName "panel-sub-header-main", aHorizontal ] ]
-                [ div [ class_ (ClassName "minimize-icon-container") ]
-                    [ a [ onClick $ const $ Just $ ShowBottomPanel (state ^. _showBottomPanel <<< to not) ]
-                        [ img [ classes (minimizeIcon $ state ^. _showBottomPanel), src closeDrawerArrowIcon, alt "close drawer icon" ] ]
-                    ]
-                ]
-            ]
-        , section
-            [ classes [ ClassName "panel-sub-header", aHorizontal, ClassName "panel-contents" ]
-            ]
-            (resultPane state)
-        ]
-    ]
-  where
-  showingBottomPanel = state ^. _showBottomPanel
-
 compileButton :: forall p. State -> HTML p Action
 compileButton state =
-  button [ onClick $ const $ Just Compile ]
-    [ text (if state ^. _compilationResult <<< to isLoading then "Compiling..." else "Compile") ]
+  button
+    [ onClick $ const $ Just Compile
+    , enabled enabled'
+    , classes classes'
+    ]
+    [ text buttonText ]
   where
-  isLoading JS.Compiling = true
+  buttonText = case view _compilationResult state of
+    JS.Compiling -> "Compiling..."
+    JS.CompiledSuccessfully _ -> "Compiled"
+    JS.CompilationError _ -> "Compiled"
+    JS.NotCompiled -> "Compile"
 
-  isLoading _ = false
+  enabled' = case view _compilationResult state of
+    JS.NotCompiled -> true
+    _ -> false
 
-resultPane :: forall p. State -> Array (HTML p Action)
-resultPane state =
-  if state ^. _showBottomPanel then case view _compilationResult state of
+  classes' =
+    [ ClassName "btn" ]
+      <> case view _compilationResult state of
+          JS.CompiledSuccessfully _ -> [ ClassName "success" ]
+          JS.CompilationError _ -> [ ClassName "error" ]
+          _ -> []
+
+panelContents :: forall p. State -> BottomPanelView -> HTML p Action
+panelContents state GeneratedOutputView =
+  section
+    [ classes [ ClassName "panel-sub-header", aHorizontal, Classes.panelContents ]
+    ] case view _compilationResult state of
     JS.CompiledSuccessfully (InterpreterResult result) ->
       [ div [ classes [ ClassName "code-editor", ClassName "expanded", ClassName "code" ] ]
           numberedText
       ]
       where
       numberedText = (code_ <<< Array.singleton <<< text) <$> split (Pattern "\n") ((show <<< pretty <<< _.result) result)
+    _ -> [ text "There is no generated code" ]
+
+panelContents state StaticAnalysisView =
+  section
+    [ classes [ ClassName "panel-sub-header", aHorizontal, Classes.panelContents ]
+    ]
+    [ analysisResultPane state
+    , analyzeButton loadingWarningAnalysis enabled' "Analyse for warnings" AnalyseContract
+    , analyzeButton loadingReachability enabled' "Analyse reachability" AnalyseReachabilityContract
+    , analyzeButton loadingCloseAnalysis enabled' "Analyse for refunds on Close" AnalyseContractForCloseRefund
+    ]
+  where
+  loadingWarningAnalysis = state ^. _analysisState <<< to isStaticLoading
+
+  loadingReachability = state ^. _analysisState <<< to isReachabilityLoading
+
+  loadingCloseAnalysis = state ^. _analysisState <<< to isCloseAnalysisLoading
+
+  enabled' = not loadingWarningAnalysis && not loadingReachability && not loadingCloseAnalysis && not (isCompiling state)
+
+panelContents state ErrorsView =
+  section
+    [ classes [ ClassName "panel-sub-header", aHorizontal, Classes.panelContents ]
+    ] case view _compilationResult state of
     JS.CompilationError err -> [ compilationErrorPane err ]
-    _ -> [ text "" ]
-  else
-    [ text "" ]
+    _ -> [ text "No errors" ]
 
 compilationErrorPane :: forall p. CompilationError -> HTML p Action
 compilationErrorPane (RawError error) = div_ [ text "There was an error when running the JavaScript code:", code_ [ pre_ [ text $ error ] ] ]

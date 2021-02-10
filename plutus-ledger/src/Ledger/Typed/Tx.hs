@@ -25,13 +25,13 @@
 --   validation time.
 module Ledger.Typed.Tx where
 
-import           Ledger.Address            hiding (scriptAddress)
-import           Ledger.Crypto
-import           Ledger.Scripts
-import           Ledger.Tx
-import           Ledger.TxId
 import           Ledger.Typed.Scripts
-import qualified Ledger.Value              as Value
+import           Plutus.V1.Ledger.Address  hiding (scriptAddress)
+import           Plutus.V1.Ledger.Crypto
+import           Plutus.V1.Ledger.Scripts
+import           Plutus.V1.Ledger.Tx
+import           Plutus.V1.Ledger.TxId
+import qualified Plutus.V1.Ledger.Value    as Value
 
 import           Language.PlutusTx
 

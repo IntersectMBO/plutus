@@ -11,6 +11,7 @@ module Language.PlutusCore.DeBruijn
     , TyDeBruijn (..)
     , NamedTyDeBruijn (..)
     , FreeVariableError (..)
+    , AsFreeVariableError (..)
     , deBruijnTy
     , deBruijnTerm
     , deBruijnProgram
@@ -19,6 +20,7 @@ module Language.PlutusCore.DeBruijn
     , unDeBruijnProgram
     , unNameDeBruijn
     , unNameTyDeBruijn
+    , fakeNameDeBruijn
     ) where
 
 import           Language.PlutusCore.DeBruijn.Internal
@@ -34,19 +36,19 @@ import qualified Data.Bimap                            as BM
 
 -- | Convert a 'Type' with 'TyName's into a 'Type' with 'NamedTyDeBruijn's.
 deBruijnTy
-    :: MonadError FreeVariableError m
+    :: (AsFreeVariableError e, MonadError e m)
     => Type TyName uni ann -> m (Type NamedTyDeBruijn uni ann)
 deBruijnTy = flip runReaderT (Levels 0 BM.empty) . deBruijnTyM
 
 -- | Convert a 'Term' with 'TyName's and 'Name's into a 'Term' with 'NamedTyDeBruijn's and 'NamedDeBruijn's.
 deBruijnTerm
-    :: MonadError FreeVariableError m
+    :: (AsFreeVariableError e, MonadError e m)
     => Term TyName Name uni fun ann -> m (Term NamedTyDeBruijn NamedDeBruijn uni fun ann)
 deBruijnTerm = flip runReaderT (Levels 0 BM.empty) . deBruijnTermM
 
 -- | Convert a 'Program' with 'TyName's and 'Name's into a 'Program' with 'NamedTyDeBruijn's and 'NamedDeBruijn's.
 deBruijnProgram
-    :: MonadError FreeVariableError m
+    :: (AsFreeVariableError e, MonadError e m)
     => Program TyName Name uni fun ann -> m (Program NamedTyDeBruijn NamedDeBruijn uni fun ann)
 deBruijnProgram (Program ann ver term) = Program ann ver <$> deBruijnTerm term
 
@@ -56,7 +58,7 @@ we are not only altering the recursive type, but also the name type parameters.
 These are normally constant in a catamorphic application.
 -}
 deBruijnTyM
-    :: (MonadReader Levels m, MonadError FreeVariableError m)
+    :: (MonadReader Levels m, AsFreeVariableError e, MonadError e m)
     => Type TyName uni ann
     -> m (Type NamedTyDeBruijn uni ann)
 deBruijnTyM = \case
@@ -77,7 +79,7 @@ deBruijnTyM = \case
     TyBuiltin ann con -> pure $ TyBuiltin ann con
 
 deBruijnTermM
-    :: (MonadReader Levels m, MonadError FreeVariableError m)
+    :: (MonadReader Levels m, AsFreeVariableError e, MonadError e m)
     => Term TyName Name uni fun ann
     -> m (Term NamedTyDeBruijn NamedDeBruijn uni fun ann)
 deBruijnTermM = \case
@@ -102,24 +104,24 @@ deBruijnTermM = \case
 
 -- | Convert a 'Type' with 'NamedTyDeBruijn's into a 'Type' with 'TyName's.
 unDeBruijnTy
-    :: (MonadQuote m, MonadError FreeVariableError m)
+    :: (MonadQuote m, AsFreeVariableError e, MonadError e m)
     => Type NamedTyDeBruijn uni ann -> m (Type TyName uni ann)
 unDeBruijnTy = flip runReaderT (Levels 0 BM.empty) . unDeBruijnTyM
 
 -- | Convert a 'Term' with 'NamedTyDeBruijn's and 'NamedDeBruijn's into a 'Term' with 'TyName's and 'Name's.
 unDeBruijnTerm
-    :: (MonadQuote m, MonadError FreeVariableError m)
+    :: (MonadQuote m, AsFreeVariableError e, MonadError e m)
     => Term NamedTyDeBruijn NamedDeBruijn uni fun ann -> m (Term TyName Name uni fun ann)
 unDeBruijnTerm = flip runReaderT (Levels 0 BM.empty) . unDeBruijnTermM
 
 -- | Convert a 'Program' with 'NamedTyDeBruijn's and 'NamedDeBruijn's into a 'Program' with 'TyName's and 'Name's.
 unDeBruijnProgram
-    :: (MonadQuote m, MonadError FreeVariableError m)
+    :: (MonadQuote m, AsFreeVariableError e, MonadError e m)
     => Program NamedTyDeBruijn NamedDeBruijn uni fun ann -> m (Program TyName Name uni fun ann)
 unDeBruijnProgram (Program ann ver term) = Program ann ver <$> unDeBruijnTerm term
 
 unDeBruijnTyM
-    :: (MonadReader Levels m, MonadQuote m, MonadError FreeVariableError m)
+    :: (MonadReader Levels m, MonadQuote m, AsFreeVariableError e, MonadError e m)
     => Type NamedTyDeBruijn uni ann
     -> m (Type TyName uni ann)
 unDeBruijnTyM = \case
@@ -140,7 +142,7 @@ unDeBruijnTyM = \case
     TyBuiltin ann con -> pure $ TyBuiltin ann con
 
 unDeBruijnTermM
-    :: (MonadReader Levels m, MonadQuote m, MonadError FreeVariableError m)
+    :: (MonadReader Levels m, MonadQuote m, AsFreeVariableError e, MonadError e m)
     => Term NamedTyDeBruijn NamedDeBruijn uni fun ann
     -> m (Term TyName Name uni fun ann)
 unDeBruijnTermM = \case

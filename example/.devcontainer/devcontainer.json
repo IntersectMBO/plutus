@@ -1,6 +1,6 @@
 {
     "name": "Example Plutus Project",
-    "image": "uwyoiohk/plutus-development:8.8.3-vscode",
+    "image": "uwyoiohk/plutus-development:8.10.2",
     "workspaceFolder": "/plutus",
     "workspaceMount": "source=${localWorkspaceFolder},target=/plutus,type=bind,consistency=cached",
 
@@ -14,11 +14,11 @@
     // Use 'settings' to set *default* container specific settings.json values on container create. 
     // You can edit these settings after create using File > Preferences > Settings > Remote.
     "settings": {
-        "terminal.integrated.shell.linux": "/root/.nix-profile/bin/zsh"
+        "terminal.integrated.shell.linux": "/usr/bin/zsh"
     },
     
     // IDs of extensions inside container.
     "extensions": [
-        "alanz.vscode-hie-server"
+        "haskell.haskell"
     ],
 }

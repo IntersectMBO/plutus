@@ -4,7 +4,7 @@
     (datatypebind
       (datatype
         (tyvardecl RecordNewtype (type))
-        
+
         RecordNewtype_match
         (vardecl RecordNewtype (fun (con integer) RecordNewtype))
       )

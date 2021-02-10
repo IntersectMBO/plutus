@@ -1,12 +1,14 @@
 -- GHC doesn't like the definition of 'toDynamicBuiltinMeaning'.
 {-# OPTIONS_GHC -fno-warn-redundant-constraints #-}
 
+{-# LANGUAGE ConstraintKinds           #-}
 {-# LANGUAGE DataKinds                 #-}
 {-# LANGUAGE ExistentialQuantification #-}
 {-# LANGUAGE FlexibleInstances         #-}
 {-# LANGUAGE FunctionalDependencies    #-}
 {-# LANGUAGE MultiParamTypeClasses     #-}
 {-# LANGUAGE PolyKinds                 #-}
+{-# LANGUAGE StandaloneKindSignatures  #-}
 {-# LANGUAGE TypeApplications          #-}
 {-# LANGUAGE TypeFamilies              #-}
 {-# LANGUAGE TypeOperators             #-}
@@ -20,13 +22,18 @@ import           Language.PlutusCore.Constant.Function
 import           Language.PlutusCore.Constant.Typed
 import           Language.PlutusCore.Core
 import           Language.PlutusCore.Evaluation.Machine.Exception
+import           Language.PlutusCore.Evaluation.Result
 import           Language.PlutusCore.Name
+import           Language.PlutusCore.Universe
 
 import           Control.Lens                                     (ix, (^?))
 import           Control.Monad.Except
 import           Data.Array
+import qualified Data.ByteString                                  as BS
 import qualified Data.Kind                                        as GHC
 import           Data.Proxy
+import           Data.Type.Bool
+import           Data.Type.Equality
 import           GHC.TypeLits
 
 -- | The meaning of a dynamic built-in function consists of its type represented as a 'TypeScheme',
@@ -142,14 +149,18 @@ collected in the order that they appear in (i.e. just like in Haskell). For exam
 a type signature like
 
     const
-        :: (a ~ Opaque term (TyVarRep "a" 0), b ~ Opaque term (TyVarRep "b" 1))
+        :: ( a ~ Opaque term (TyVarRep ('TyNameRep "a" 0))
+           , b ~ Opaque term (TyVarRep ('TyNameRep "b" 1))
+           )
         => b -> a -> b
 
 with 'ToBinds' results in the following list of bindings:
 
-    '[ '("b", 1), '("a", 0) ]
+    '[ 'Some ('TyNameRep "b" 1), 'Some ('TyNameRep "a" 0) ]
 
-The implementation of the 'KnownMonotype' and 'KnownPolytype' classes are structured in an
+Higher-kinded type variables are fully supported.
+
+The implementations of the 'KnownMonotype' and 'KnownPolytype' classes are structured in an
 inference-friendly manner:
 
 1. we compute @args@ using a type family ('GetArgs') in order to dispatch on the list of
@@ -158,32 +169,23 @@ inference-friendly manner:
 2. the @a -> res@ dependency allows us not to compute @res@ using a type family like with @args@
 3. the @args res -> a@ dependency allows us not to mention @a@ in the type of 'knownMonotype'
 
+Polymorphic built-in functions are handled via automatic specialization of all Haskell type
+variables as types representing PLC type variables, as long as each Haskell variable appears as a
+left argument to @(->)@ and is not buried somewhere inside (i.e. automatic derivation can handle
+neither @f a@, @ListRep a@, nor @f Int@. Nor is @a -> b@ allowed to the left of an @(->)@.
+Where all lower-case names are Haskell type variables). We'll call functions having such types
+"simply-polymorphic". See the docs of 'EnumerateFromTo' for details.
+
 The end result is that the user only has to specify the type of the denotation of a built-in
-function and the 'TypeScheme' of the built-in function will be derived automatically.
-
-Higher-kinded type variables are not supported currently. There are options, as always:
-
-1. we can make the user annotate type variables with kinds
-1.1. and check them
-1.2. or not check them
-2. or maybe we can make Haskell infer the kinds for us? For example, if we made it
-
-    data family TyVarRepK (text :: Symbol) (unique :: Nat) :: kind
-    data family TyAppRepK (fun :: dom -> cod) (arg :: dom) :: cod
-
-then we could write things like
-
-    type FA = TyAppRepK (TyVarRepK "f" 0) (TyVarRepK "a" 1)
-
-and make Haskell kind check everything for us. And then we could match on the inferred kind using
-a type class and generate a PLC kind at the Haskell's term level.
+function and the 'TypeScheme' of the built-in function will be derived automatically. And in the
+monomorphic and simply-polymorphic cases no types need to be specified at all.
 -}
 
 type family GetArgs a :: [GHC.Type] where
     GetArgs (a -> b) = a ': GetArgs b
     GetArgs _        = '[]
 
--- | A class that allows to derive a 'Monotype' for a builtin.
+-- | A class that allows us to derive a monotype for a builtin.
 class KnownMonotype term args res a | args res -> a, a -> res where
     knownMonotype :: TypeScheme term args res
 
@@ -207,34 +209,112 @@ type family Merge xs ys :: [a] where
     Merge '[]       ys = ys
     Merge (x ': xs) ys = x ': Delete x (Merge xs ys)
 
--- | Collect all unique variables (a variable consists of a textual name and a unique) in an @x@.
-type family ToBinds (x :: a) :: [(Symbol, Nat)]
+-- | Collect all unique variables (a variable consists of a textual name, a unique and a kind)
+-- in an @x@.
+type family ToBinds (x :: a) :: [Some TyNameRep]
 
-type instance ToBinds (TyVarRep name uniq) = '[ '(name, uniq) ]
-type instance ToBinds (TyAppRep fun arg) = TypeError ('Text "Not supported yet")
+type instance ToBinds Integer       = '[]
+type instance ToBinds BS.ByteString = '[]
+type instance ToBinds String        = '[]
+type instance ToBinds Char          = '[]
+type instance ToBinds ()            = '[]
+type instance ToBinds Bool          = '[]
+type instance ToBinds Int           = '[]
 
--- | A standalone Haskell type either stands for a PLC type (when it's an 'Opaque') or
--- it's an actual Haskell type, in which case it doesn't contain any PLC type variables.
-type family TypeToBinds (a :: GHC.Type) :: [(Symbol, Nat)] where
-    TypeToBinds (Opaque _ rep) = ToBinds rep
-    TypeToBinds _              = '[]
+type instance ToBinds (EvaluationResult a) = ToBinds a
+type instance ToBinds (Opaque _ rep)       = ToBinds rep
 
-type instance ToBinds (TypeScheme term '[]           res) = TypeToBinds res
+type instance ToBinds (TyVarRep var) = '[ 'Some var ]
+type instance ToBinds (TyAppRep fun arg) = Merge (ToBinds fun) (ToBinds arg)
+type instance ToBinds (TyForallRep var a) = Delete ('Some var) (ToBinds a)
+
+type instance ToBinds (TypeScheme term '[]           res) = ToBinds res
 type instance ToBinds (TypeScheme term (arg ': args) res) =
-    Merge (TypeToBinds arg) (ToBinds (TypeScheme term args res))
+    Merge (ToBinds arg) (ToBinds (TypeScheme term args res))
 
--- | A class that allows to derive a 'Polytype' for a builtin.
-class KnownPolytype (binds :: [(Symbol, Nat)]) term args res a | args res -> a, a -> res where
+-- | A class that allows us to derive a polytype for a builtin.
+class KnownPolytype (binds :: [Some TyNameRep]) term args res a | args res -> a, a -> res where
     knownPolytype :: Proxy binds -> TypeScheme term args res
 
 -- | Once we've run out of type-level arguments, we start handling term-level ones.
 instance KnownMonotype term args res a => KnownPolytype '[] term args res a where
     knownPolytype _ = knownMonotype
 
+-- Here we unpack an existentially packed @kind@ and constrain it afterwards!
+-- So promoted existentials are true sigmas! If we were at the term level, we'd have to pack
+-- @kind@ along with the @KnownKind kind@ constraint, otherwise when we unpack the existential,
+-- all information is lost and we can't do anything with @kind@.
 -- | Every type-level argument becomes a 'TypeSchemeAll'.
-instance (KnownSymbol name, KnownNat uniq, KnownPolytype binds term args res a) =>
-            KnownPolytype ('(name, uniq) ': binds) term args res a where
-    knownPolytype _ = TypeSchemeAll @name @uniq Proxy (Type ()) $ \_ -> knownPolytype (Proxy @binds)
+instance (KnownSymbol name, KnownNat uniq, KnownKind kind, KnownPolytype binds term args res a) =>
+            KnownPolytype ('Some ('TyNameRep @kind name uniq) ': binds) term args res a where
+    knownPolytype _ = TypeSchemeAll @name @uniq @kind Proxy $ \_ -> knownPolytype (Proxy @binds)
+
+-- The 'TryUnify' gadget explained in detail in https://github.com/effectfully/sketches/tree/master/poly-type-of-saga/part1-try-unify
+
+-- | Check if two values of different kinds are in fact the same value (with the same kind).
+-- A heterogeneous version of @Type.Equality.(==)@.
+type (===) :: forall a b. a -> b -> Bool
+type family x === y where
+    x === x = 'True
+    x === y = 'False
+
+type TryUnify :: forall a b. Bool -> a -> b -> GHC.Constraint
+class same ~ (x === y) => TryUnify same x y
+instance (x === y) ~ 'False => TryUnify 'False x y
+instance {-# INCOHERENT #-} (x ~~ y, same ~ 'True) => TryUnify same x y
+
+-- | Unify two values unless they're obviously distinct (in which case do nothing).
+-- Allows us to detect and specialize type variables, since a type variable is not obviously
+-- distinct from anything else and so the INCOHERENT instance of 'TryUnify' gets triggered and the
+-- variable gets unified with whatever we want it to.
+type (~?~) :: forall a b. a -> b -> GHC.Constraint
+type x ~?~ y = TryUnify (x === y) x y
+
+-- | Get the element at an @i@th position in a list.
+type Lookup :: forall a. Nat -> [a] -> a
+type family Lookup n xs where
+    Lookup 0 (x ': xs) = x
+    Lookup n (_ ': xs) = Lookup (n - 1) xs
+
+-- | Get the name at the @i@th position in the list of default names. We could use @a_0@, @a_1@,
+-- @a_2@ etc instead, but @a@, @b@, @c@ etc are nicer.
+type GetName i = Lookup i '["a", "b", "c", "d", "e", "f", "g", "h"]
+
+-- | Try to specialize @a@ as a type representing a Plutus type variable.
+-- @i@ is a fresh id and @j@ is a final one (either @i + 1@ or @i@ depending on whether
+-- specialization attempt is successful or not).
+type TrySpecializeAsVar :: Nat -> Nat -> GHC.Type -> GHC.Type -> GHC.Constraint
+class TrySpecializeAsVar i j term a | i term a -> j
+instance
+    ( var ~ Opaque term (TyVarRep ('TyNameRep (GetName i) i))
+    -- Try to unify @a@ with a freshly created @var@.
+    , a ~?~ var
+    -- If @a@ is equal to @var@ then unification was successful and we just used the fresh id and
+    -- so we need to bump it up. Otherwise @var@ was discarded and so the fresh id is still fresh.
+    -- Replacing @(===)@ with @(==)@ causes errors at use site, for whatever reason.
+    , j ~ If (a === var) (i + 1) i
+    ) => TrySpecializeAsVar i j term a
+
+-- See https://github.com/effectfully/sketches/tree/master/poly-type-of-saga/part2-enumerate-type-vars
+-- for a detailed elaboration on how this works.
+-- | Specialize each Haskell type variable in @a@ as a type representing a Plutus Core type variable
+-- by deconstructing @a@ into an applied @(->)@ (we don't recurse to the left of @(->)@, only to the
+-- right) and trying to specialize every argument type as a PLC type variable
+-- (via 'TrySpecializeAsVar') until no deconstruction is possible, at which point we've got a result
+-- which we don't try to specialize, because that would require an incoherent instance and
+-- introducing one makes code that otherwise type checks perfectly throw errors due to a bug in GHC,
+-- see https://github.com/input-output-hk/plutus/pull/2521#issuecomment-759522445
+-- In practice this means that if the result is a type variable, then this type variable has to
+-- be mentioned as an argument type for inference to work. I.e. @absurd :: Void -> a@ does not get
+-- inferred, since @a@ is only mentioned as the result type and not as an argument type.
+-- But that's a fairly rear use case and we can always provide a type signature manually.
+type EnumerateFromTo :: Nat -> Nat -> GHC.Type -> GHC.Type -> GHC.Constraint
+class EnumerateFromTo i j term a | i term a -> j
+instance {-# OVERLAPPABLE #-} i ~ j => EnumerateFromTo i j term a
+instance {-# OVERLAPPING #-}
+    ( TrySpecializeAsVar i j term a
+    , EnumerateFromTo j k term b
+    ) => EnumerateFromTo i k term (a -> b)
 
 -- See Note [Automatic derivation of type schemes]
 -- | Construct the meaning for a dynamic built-in function by automatically deriving its
@@ -244,9 +324,9 @@ instance (KnownSymbol name, KnownNat uniq, KnownPolytype binds term args res a) 
 --    of dynamic builtins
 -- 2. an uninstantiated costing function
 toDynamicBuiltinMeaning
-    :: forall a term dyn cost binds args res.
+    :: forall a term dyn cost binds args res j.
        ( args ~ GetArgs a, a ~ FoldArgs args res, binds ~ ToBinds (TypeScheme term args res)
-       , KnownPolytype binds term args res a
+       , KnownPolytype binds term args res a, EnumerateFromTo 0 j term a
        )
     => (dyn -> a) -> (cost -> FoldArgsEx args) -> BuiltinMeaning term dyn cost
 toDynamicBuiltinMeaning = BuiltinMeaning (knownPolytype (Proxy @binds) :: TypeScheme term args res)
@@ -258,9 +338,9 @@ toDynamicBuiltinMeaning = BuiltinMeaning (knownPolytype (Proxy @binds) :: TypeSc
 -- 1. the denotation of the builtin
 -- 2. an uninstantiated costing function
 toStaticBuiltinMeaning
-    :: forall a term dyn cost binds args res.
+    :: forall a term dyn cost binds args res j.
        ( args ~ GetArgs a, a ~ FoldArgs args res, binds ~ ToBinds (TypeScheme term args res)
-       , KnownPolytype binds term args res a
+       , KnownPolytype binds term args res a, EnumerateFromTo 0 j term a
        )
     => a -> (cost -> FoldArgsEx args) -> BuiltinMeaning term dyn cost
 toStaticBuiltinMeaning = toDynamicBuiltinMeaning . const

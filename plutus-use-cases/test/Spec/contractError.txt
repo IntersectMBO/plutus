@@ -1,8 +1,4 @@
-Test outputs:
-  
-Events by wallet:
-  
-Contract result by wallet:
-    
-Checkpoint state by wallet
-    
+Slot 1: 00000000-0000-4000-8000-000000000000 {Contract instance for wallet 1}:
+          Contract instance started
+Slot 1: 00000000-0000-4000-8000-000000000000 {Contract instance for wallet 1}:
+          Contract instance stopped with error: OtherError "something went wrong"

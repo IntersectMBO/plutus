@@ -23,7 +23,7 @@ saturatesScheme ::  [Arg tyname name uni fun a] -> TypeScheme term args res -> M
 saturatesScheme _ TypeSchemeResult{}                       = Just True
 -- Consume one argument
 saturatesScheme (TermArg _ : args) (TypeSchemeArrow _ sch) = saturatesScheme args sch
-saturatesScheme (TypeArg _ : args) (TypeSchemeAll _ _ k)   = saturatesScheme args (k Proxy)
+saturatesScheme (TypeArg _ : args) (TypeSchemeAll _ k)     = saturatesScheme args (k Proxy)
 -- Under-applied, not saturated
 saturatesScheme [] TypeSchemeArrow{}                       = Just False
 saturatesScheme [] TypeSchemeAll{}                         = Just False

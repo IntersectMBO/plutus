@@ -1,0 +1,81 @@
+cabal-version: 2.2
+name: plutus-ledger-api
+version: 0.1.0.0
+license: Apache-2.0
+license-files:
+  LICENSE
+  NOTICE
+maintainer: michael.peyton-jones@iohk.io
+author: Michael Peyton Jones, Jann Mueller
+synopsis: Interface to the Plutus ledger for the Cardano ledger.
+description:
+    Interface to the Plutus scripting support for the Cardano ledger.
+category: Language
+build-type: Simple
+
+source-repository head
+    type: git
+    location: https://github.com/input-output-hk/plutus
+
+common lang
+    default-language: Haskell2010
+    default-extensions: ExplicitForAll ScopedTypeVariables
+                        DeriveGeneric StandaloneDeriving DeriveLift
+                        GeneralizedNewtypeDeriving DeriveFunctor DeriveFoldable
+                        DeriveTraversable MultiParamTypeClasses FlexibleContexts
+    other-extensions: DeriveAnyClass FlexibleInstances
+                      TypeFamilies OverloadedStrings
+                      MonadComprehensions ConstrainedClassMethods TupleSections GADTs
+                      RankNTypes TemplateHaskell QuasiQuotes TypeApplications
+                      ExistentialQuantification
+    ghc-options: -Wall -Wnoncanonical-monad-instances
+                 -Wincomplete-uni-patterns -Wincomplete-record-updates
+                 -Wredundant-constraints -Widentities -Wunused-packages
+                 -- See Plutus Tx readme
+                 -fobject-code -fno-ignore-interface-pragmas -fno-omit-interface-pragmas
+
+library
+    import: lang
+    hs-source-dirs: src
+    default-language: Haskell2010
+    exposed-modules:
+        Data.Aeson.Extras
+        Data.Either.Extras
+        Data.Text.Prettyprint.Doc.Extras
+        Plutus.V1.Ledger.Address
+        Plutus.V1.Ledger.Ada
+        Plutus.V1.Ledger.Api
+        Plutus.V1.Ledger.Bytes
+        Plutus.V1.Ledger.Contexts
+        Plutus.V1.Ledger.Crypto
+        Plutus.V1.Ledger.Interval
+        Plutus.V1.Ledger.Orphans
+        Plutus.V1.Ledger.Scripts
+        Plutus.V1.Ledger.Slot
+        Plutus.V1.Ledger.Tx
+        Plutus.V1.Ledger.TxId
+        Plutus.V1.Ledger.Value
+    build-depends:
+        base >=4.9 && <5,
+        aeson -any,
+        bytestring -any,
+        cborg -any,
+        containers -any,
+        cryptonite >=0.25,
+        cardano-crypto -any,
+        flat -any,
+        hashable -any,
+        plutus-core -any,
+        memory -any,
+        mtl -any,
+        plutus-tx -any,
+        serialise -any,
+        template-haskell -any,
+        text -any,
+        prettyprinter -any,
+        transformers -any,
+        base16-bytestring -any,
+        deepseq -any,
+        newtype-generics -any,
+        tagged -any,
+        lens -any

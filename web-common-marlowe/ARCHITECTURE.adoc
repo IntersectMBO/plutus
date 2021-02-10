@@ -1,0 +1,3 @@
+=== `web-common-marlowe`
+
+This contains frontend code that is shared between marlowe frontend projects.

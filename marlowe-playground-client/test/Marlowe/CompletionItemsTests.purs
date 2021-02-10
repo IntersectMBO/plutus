@@ -8,13 +8,14 @@ import Data.Enum (upFromIncluding)
 import Data.Map as Map
 import Data.Set as Set
 import Data.Traversable (traverse_)
-import Marlowe.Holes (MarloweHole(..), MarloweType(..), getMarloweConstructors, marloweHoleToSuggestionText)
+import Marlowe.Holes (MarloweHole(..), MarloweType(..), Location(..), getMarloweConstructors)
+import Marlowe.LinterText (marloweHoleToSuggestionText)
 import Marlowe.Parser (parse)
 import Marlowe.Parser as Parser
 import Test.Unit (TestSuite, failure, success, suite, test)
 
 mkHole :: MarloweType -> MarloweHole
-mkHole marloweType = MarloweHole { name: mempty, range: zero, marloweType }
+mkHole marloweType = MarloweHole { name: mempty, location: NoLocation, marloweType }
 
 holeSuggestions :: Boolean -> MarloweHole -> Array String
 holeSuggestions stripParens marloweHole@(MarloweHole { name, marloweType }) =
@@ -46,7 +47,7 @@ testFor ValueIdType = mkTest false ValueIdType (parse Parser.valueId)
 
 testFor ActionType = mkTest false ActionType (parse Parser.action)
 
-testFor PayeeType = mkTest false PayeeType (parse Parser.payee)
+testFor PayeeType = mkTest false PayeeType (parse Parser.payeeExtended)
 
 testFor CaseType = mkTest false CaseType (parse Parser.case')
 
@@ -60,7 +61,9 @@ testFor BoundType = mkTest false BoundType (parse Parser.bound)
 
 testFor TokenType = mkTest false TokenType (parse Parser.token)
 
-testFor PartyType = mkTest false PartyType (parse Parser.party)
+testFor PartyType = mkTest false PartyType (parse Parser.partyExtended)
+
+testFor TimeoutType = mkTest false TimeoutType (parse Parser.timeout)
 
 all :: TestSuite
 all =

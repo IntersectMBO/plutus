@@ -57,10 +57,10 @@ emb[] A B = trans≡β
   (≡2β (cong embNf
     (trans
       (trans
-        (subst-eval (embNf B) idCR (subst-cons ` (embNf A)))
+        (sub-eval (embNf B) idCR (sub-cons ` (embNf A)))
         (idext (λ { Z → idext idCR (embNf A)
                   ; (S α) → reflectCR (refl {x = ` α})}) (embNf B)))
-      (sym (subst-eval (embNf B) idCR (embNf ∘ substNf-cons (ne ∘ `) A))))))
+      (sym (sub-eval (embNf B) idCR (embNf ∘ subNf-cons (ne ∘ `) A))))))
 \end{code}
 
 \begin{code}
@@ -94,7 +94,7 @@ lemσ' : ∀{Γ Γ' Δ Δ'}(bn : Builtin)(p : Γ ≡ Γ')
   → (C : Δ ⊢⋆ *)(C' : Δ' ⊢Nf⋆ *) → (q : Δ ≡ Δ')
   → (σ : {J : Kind} → Δ' ∋⋆ J → Γ ⊢Nf⋆ J)
   → nf C ≡ substEq (_⊢Nf⋆ *) (sym q) C' →
-  subst
+  sub
   (λ {J} α →
      substEq (_⊢⋆ J) p
      (embNf (σ (substEq (_∋⋆ J) q α))))
@@ -103,16 +103,16 @@ lemσ' : ∀{Γ Γ' Δ Δ'}(bn : Builtin)(p : Γ ≡ Γ')
   substEq (_⊢⋆ *) p
   (embNf
    (eval
-    (subst (λ {J₁} x → embNf (σ x))
+    (sub (λ {J₁} x → embNf (σ x))
      (embNf C'))
     (idEnv Γ)))
 lemσ' bn refl C C' refl σ p =  trans≡β
-  (soundness (subst (embNf ∘ σ) C))
+  (soundness (sub (embNf ∘ σ) C))
   (trans≡β
-    (≡2β (cong embNf (subst-eval C idCR (embNf ∘ σ))))
+    (≡2β (cong embNf (sub-eval C idCR (embNf ∘ σ))))
     (trans≡β
       (≡2β (cong embNf (fund (λ α → idext  idCR (embNf (σ α))) (soundness C))))
-      (trans≡β (≡2β (sym (cong embNf (subst-eval (embNf (nf C)) idCR (embNf ∘ σ))))) (≡2β (cong embNf (cong nf (cong (subst (embNf ∘ σ)) (cong embNf p))))))))
+      (trans≡β (≡2β (sym (cong embNf (sub-eval (embNf (nf C)) idCR (embNf ∘ σ))))) (≡2β (cong embNf (cong nf (cong (sub (embNf ∘ σ)) (cong embNf p))))))))
 
 _≡βL_ : ∀{Δ} → (As As' : List (Δ ⊢⋆ *)) → Set
 []       ≡βL []         = ⊤
@@ -149,41 +149,33 @@ lemList' equalsInteger = refl≡β _ ,, refl≡β _ ,, _
 lemList' concatenate = refl≡β _ ,, refl≡β _ ,, _
 lemList' takeByteString = refl≡β _ ,, refl≡β _ ,, _
 lemList' dropByteString = refl≡β _ ,, refl≡β _ ,, _
+lemList' lessThanByteString = refl≡β _ ,, refl≡β _ ,, _
+lemList' greaterThanByteString = refl≡β _ ,, refl≡β _ ,, _
 lemList' sha2-256 = refl≡β _ ,, _
 lemList' sha3-256 = refl≡β _ ,, _
 lemList' verifySignature = refl≡β _ ,, refl≡β _ ,, refl≡β _ ,, _
 lemList' equalsByteString = refl≡β _ ,, refl≡β _ ,, _
 lemList' ifThenElse = refl≡β _ ,, refl≡β _ ,, refl≡β _ ,, _
+lemList' charToString = refl≡β _ ,, _
+lemList' append = refl≡β _ ,, refl≡β _ ,, _
+lemList' trace = refl≡β _ ,, _
 
 lemsub : ∀{Γ Δ}(A : Δ ⊢Nf⋆ *)(A' : Δ ⊢⋆ *)
   → (σ : {J : Kind} → Δ ∋⋆ J → Γ ⊢Nf⋆ J)
   → embNf A ≡β A' →
-  (embNf (substNf σ A)) ≡β
-  subst (λ {J} α → embNf (σ α)) A'
+  (embNf (subNf σ A)) ≡β
+  sub (λ {J} α → embNf (σ α)) A'
 lemsub A A' σ p = trans≡β
   (trans≡β
-    (≡2β (cong embNf (subst-eval (embNf A) idCR (embNf ∘ σ))))
+    (≡2β (cong embNf (sub-eval (embNf A) idCR (embNf ∘ σ))))
     (trans≡β
       (≡2β (cong embNf (fund (λ α → idext  idCR (embNf (σ α))) p)))
-      ((≡2β (sym (cong embNf (subst-eval A' idCR (embNf ∘ σ))))))))
-  (sym≡β (soundness (subst (embNf ∘ σ) A')))
+      ((≡2β (sym (cong embNf (sub-eval A' idCR (embNf ∘ σ))))))))
+  (sym≡β (soundness (sub (embNf ∘ σ) A')))
 
-embTel : ∀{Φ Γ Δ Δ'}(q : Δ' ≡ Δ)
-  → (As  : List (Δ ⊢Nf⋆ *))
-  → (As' : List (Δ' ⊢⋆ *))
-  → embList As ≡βL substEq (λ Δ → List (Δ ⊢⋆ *)) q As'
-  → (σ : {J : Kind} → Δ ∋⋆ J → Φ ⊢Nf⋆ J)
-  → Alg.Tel Γ Δ σ As
-  → Dec.Tel (embCtx Γ) Δ' (λ {J} α → (embNf (σ (substEq (_∋⋆ J) q α)))) As'
+postulate itype-lem≡β : ∀{Φ} b → Dec.itype {Φ} b ≡β embNf (Alg.itype b)
 
 emb : ∀{Φ Γ}{A : Φ ⊢Nf⋆ *} → Γ Alg.⊢ A → embCtx Γ Dec.⊢ embNf A
-
-embTel refl [] [] p σ x = Dec.[]
-embTel refl [] (A' ∷ As') () σ x
-embTel refl (A ∷ As) [] () σ x
-embTel refl (A ∷ As) (A' ∷ As') (p ,, p') σ (t Alg.∷ tel) =
-  Dec.conv (lemsub A A' σ p) (emb t) Dec.∷ embTel refl As As' p' σ tel
-
 emb (Alg.` α) = Dec.` (embVar α)
 emb (Alg.ƛ {A = A}{B} t) = Dec.ƛ (emb t)
 emb (Alg._·_ {A = A}{B} t u) = emb t Dec.· emb u
@@ -197,15 +189,7 @@ emb (Alg.wrap A B t) = Dec.wrap
 emb (Alg.unwrap {A = A}{B} t) =
   Dec.conv (soundness-μ refl A B) (Dec.unwrap (emb t))
 emb (Alg.con  {tcn = tcn} t ) = Dec.con (embTC t)
-emb (Alg.builtin bn σ tel) = let
-  Δ  ,, As  ,, C  = SSig.SIG bn
-  Δ' ,, As' ,, C' = NSig.SIG bn
-  in Dec.conv
-       (lemσ' bn refl C C' (nfTypeSIG≡₁ bn) σ (nfTypeSIG≡₂ bn))
-       (Dec.builtin
-         bn
-         (embNf ∘ σ ∘ substEq (_∋⋆ _) (nfTypeSIG≡₁ bn))
-         (embTel (nfTypeSIG≡₁ bn) As' As (lemList' bn) σ tel))
+emb (Alg.ibuiltin b) = Dec.conv (itype-lem≡β b) (Dec.ibuiltin b)
 emb (Alg.error A) = Dec.error (embNf A)
 
 soundnessT : ∀{Φ Γ}{A : Φ ⊢Nf⋆ *} → Γ Alg.⊢ A → embCtx Γ Dec.⊢ embNf A

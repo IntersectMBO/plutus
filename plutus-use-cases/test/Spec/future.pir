@@ -4,7 +4,7 @@
     (datatypebind
       (datatype
         (tyvardecl Bool (type))
-        
+
         Bool_match
         (vardecl True Bool) (vardecl False Bool)
       )
@@ -73,7 +73,7 @@
         (datatypebind
           (datatype
             (tyvardecl TxOutRef (type))
-            
+
             TxOutRef_match
             (vardecl
               TxOutRef (fun (con bytestring) (fun (con integer) TxOutRef))
@@ -91,7 +91,7 @@
         (datatypebind
           (datatype
             (tyvardecl TxInInfo (type))
-            
+
             TxInInfo_match
             (vardecl
               TxInInfo
@@ -102,7 +102,7 @@
         (datatypebind
           (datatype
             (tyvardecl Address (type))
-            
+
             Address_match
             (vardecl PubKeyAddress (fun (con bytestring) Address))
             (vardecl ScriptAddress (fun (con bytestring) Address))
@@ -111,7 +111,7 @@
         (datatypebind
           (datatype
             (tyvardecl TxOutType (type))
-            
+
             TxOutType_match
             (vardecl PayToPubKey TxOutType)
             (vardecl PayToScript (fun (con bytestring) TxOutType))
@@ -120,7 +120,7 @@
         (datatypebind
           (datatype
             (tyvardecl TxOut (type))
-            
+
             TxOut_match
             (vardecl
               TxOut
@@ -169,7 +169,7 @@
           (datatypebind
             (datatype
               (tyvardecl Data (type))
-              
+
               Data_match
               (vardecl B (fun (con bytestring) Data))
               (vardecl Constr (fun (con integer) (fun [List Data] Data)))
@@ -183,7 +183,7 @@
             (datatypebind
               (datatype
                 (tyvardecl TxInfo (type))
-                
+
                 TxInfo_match
                 (vardecl
                   TxInfo
@@ -194,7 +194,7 @@
             (datatypebind
               (datatype
                 (tyvardecl ValidatorCtx (type))
-                
+
                 ValidatorCtx_match
                 (vardecl
                   ValidatorCtx (fun TxInfo (fun (con integer) ValidatorCtx))
@@ -237,7 +237,7 @@
             (datatypebind
               (datatype
                 (tyvardecl TxConstraint (type))
-                
+
                 TxConstraint_match
                 (vardecl MustBeSignedBy (fun (con bytestring) TxConstraint))
                 (vardecl
@@ -306,7 +306,7 @@
             (datatypebind
               (datatype
                 (tyvardecl FutureAccounts (type))
-                
+
                 FutureAccounts_match
                 (vardecl
                   FutureAccounts
@@ -1657,7 +1657,7 @@
                     (datatypebind
                       (datatype
                         (tyvardecl Margins (type))
-                        
+
                         Margins_match
                         (vardecl
                           Margins
@@ -1668,7 +1668,7 @@
                     (datatypebind
                       (datatype
                         (tyvardecl Role (type))
-                        
+
                         Role_match
                         (vardecl Long Role) (vardecl Short Role)
                       )
@@ -2111,7 +2111,7 @@
                     (datatypebind
                       (datatype
                         (tyvardecl Payouts (type))
-                        
+
                         Payouts_match
                         (vardecl
                           Payouts
@@ -3907,7 +3907,7 @@
                         (datatypebind
                           (datatype
                             (tyvardecl FutureAction (type))
-                            
+
                             FutureAction_match
                             (vardecl
                               AdjustMargin
@@ -3926,7 +3926,7 @@
                         (datatypebind
                           (datatype
                             (tyvardecl FutureState (type))
-                            
+
                             FutureState_match
                             (vardecl Finished FutureState)
                             (vardecl Running (fun Margins FutureState))
@@ -4129,7 +4129,7 @@
                         (datatypebind
                           (datatype
                             (tyvardecl Future (type))
-                            
+
                             Future_match
                             (vardecl
                               Future

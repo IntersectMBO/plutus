@@ -13,6 +13,7 @@
 {-# OPTIONS_GHC -fno-strictness #-}
 {-# OPTIONS_GHC -fno-specialise #-}
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
+
 -- | A map represented as an "association list" of key-value pairs.
 module Language.PlutusTx.AssocMap (
     Map
@@ -31,13 +32,13 @@ module Language.PlutusTx.AssocMap (
     , mapThese
     ) where
 
+import           Control.DeepSeq           (NFData)
 import           GHC.Generics              (Generic)
 import           Language.PlutusTx.IsData
 import           Language.PlutusTx.Lift    (makeLift)
 import           Language.PlutusTx.Prelude hiding (all, lookup, null)
 import qualified Language.PlutusTx.Prelude as P
 import           Language.PlutusTx.These
-import qualified Prelude                   as HP
 
 {-# ANN module ("HLint: ignore Use newtype instead of data"::String) #-}
 
@@ -45,7 +46,7 @@ import qualified Prelude                   as HP
 newtype Map k v = Map { unMap :: [(k, v)] }
     deriving (Show)
     deriving stock (Generic)
-    deriving newtype (Eq, Ord, IsData)
+    deriving newtype (Eq, Ord, IsData, NFData)
 
 instance Functor (Map k) where
     {-# INLINABLE fmap #-}
@@ -55,13 +56,6 @@ instance Functor (Map k) where
             go ((c, i):xs') = (c, f i) : go xs'
         in Map (go mp)
 
--- Do not use this 'Read' instance. It is only used by Marlowe Playgrounds
--- and it will be removed after we have proper serialisation.
-instance (Read k, Read e) => Read (Map k e) where
-  readsPrec p = readParen (p HP.> 10) $ \ r -> do
-    ("fromList",s) <- lex r
-    (xs,t) <- reads s
-    return (fromList xs,t)
 
 -- This is the "better" instance for Maps that various people
 -- have suggested, which merges conflicting entries with

@@ -1,12 +1,14 @@
 module StaticData
-  ( bufferLocalStorageKey
+  ( haskellBufferLocalStorageKey
   , jsBufferLocalStorageKey
   , demoFiles
   , demoFilesJS
   , marloweBufferLocalStorageKey
+  , simulatorBufferLocalStorageKey
   , marloweContract
   , marloweContracts
   , gistIdLocalStorageKey
+  , sessionStorageKey
   ) where
 
 import Data.Map (Map)
@@ -63,9 +65,9 @@ marloweContract ::
   Contents
 marloweContract = "(Some Marlowe Code)"
 
-bufferLocalStorageKey ::
+haskellBufferLocalStorageKey ::
   LocalStorage.Key
-bufferLocalStorageKey = LocalStorage.Key "HaskellBuffer"
+haskellBufferLocalStorageKey = LocalStorage.Key "HaskellBuffer"
 
 jsBufferLocalStorageKey ::
   LocalStorage.Key
@@ -75,6 +77,13 @@ marloweBufferLocalStorageKey ::
   LocalStorage.Key
 marloweBufferLocalStorageKey = LocalStorage.Key "MarloweBuffer"
 
+simulatorBufferLocalStorageKey ::
+  LocalStorage.Key
+simulatorBufferLocalStorageKey = LocalStorage.Key "SimulationBuffer"
+
 gistIdLocalStorageKey ::
   LocalStorage.Key
 gistIdLocalStorageKey = LocalStorage.Key "GistId"
+
+sessionStorageKey :: LocalStorage.Key
+sessionStorageKey = LocalStorage.Key "MarlowePlaygroundSession"

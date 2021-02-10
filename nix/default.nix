@@ -5,6 +5,7 @@
 , sourcesOverride ? { }
 , rev ? null
 , checkMaterialization ? false
+, enableHaskellProfiling ? false
 }:
 let
   sources = import ./sources.nix { inherit pkgs; }
@@ -41,16 +42,16 @@ let
     config = haskellNix.config // config;
   };
 
-  plutusMusl = import sources.nixpkgs {
+  pkgsMusl = import sources.nixpkgs {
     system = "x86_64-linux";
     crossSystem = pkgs.lib.systems.examples.musl64;
     overlays = extraOverlays ++ overlays;
     config = haskellNix.config // config;
   };
 
-  plutus = import ./pkgs { inherit rev pkgs plutusMusl checkMaterialization sources; };
+  plutus = import ./pkgs { inherit rev pkgs pkgsMusl checkMaterialization enableHaskellProfiling sources; };
 
 in
 {
-  inherit pkgs plutusMusl plutus;
+  inherit pkgs pkgsMusl plutus;
 }

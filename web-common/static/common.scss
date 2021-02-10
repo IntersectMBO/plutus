@@ -1,0 +1,213 @@
+@import 'bootstrap.scss';
+
+.alert a {
+    color: inherit;
+    text-decoration: underline;
+}
+
+b, strong {
+    font-weight: bold;
+}
+
+h2 {
+    font-size: 1.22rem;
+}
+
+.clickable {
+    &:not(:disabled):not(.disabled) {
+        cursor: pointer;
+    }
+}
+
+.gist-controls {
+    padding-left: 15px;
+    margin-bottom: 15px;
+
+    input {
+        padding: 0.375rem;
+    }
+    #gist-id {
+        margin-bottom: 10px;
+    }
+
+    .gist-link {
+        text-align: center;
+        text-decoration: underline;
+        padding: 5px;
+    }
+
+    input {
+        color: $input-color;
+        background: $input-bg;
+        border: $input-border-color;
+        outline:none;
+        border-bottom:1px solid $input-border-color;
+        padding-left: 0;
+        padding-right: 0;
+    }
+}
+
+.compilation-error {
+    cursor: pointer;
+
+    pre {
+        margin-top: 1rem;
+    }
+}
+
+.ajax-error {
+    margin-top: 15px;
+    margin-bottom: 15px;
+}
+
+.fa-close {
+    font-size:26px;
+    &:before {
+        content: '\00d7';
+    }
+}
+
+.fa-plus {
+    cursor:pointer;
+    font-size:32px;
+    transform:rotate(45deg);
+    &:before {
+        content: '\00d7';
+    }
+}
+
+.btn-link {
+    padding: 0.375rem;
+}
+
+.badge-action {
+    $badge-width: 4rem;
+    padding: 0.25rem 1.75rem 0.25rem 1.5rem;
+    width: $badge-width;
+    font-size: 100%;
+    background: $badge-background;
+    border-color: $section-border;
+    border-radius: 1.5rem;
+    color: $badge;
+    line-height: inherit;
+    position: absolute;
+    top: -1rem;
+    left: calc(50% - #{$badge-width / 2});
+}
+
+.card {
+    margin-bottom: 1rem;
+
+    .btn.pull-right, .btn.pull-right:focus {
+        border:none;
+        background:none;
+        outline:0;
+        box-shadow: none;
+    }
+    button.pull-right {
+        margin:-0.5rem 0 0 0;
+        padding:0;
+    }
+    .pull-right {
+        float: right;
+        .fa-plus {
+            font-size: 1rem;
+            margin-left: 1rem;
+        }
+    }
+    .form-row {
+        margin-bottom: 0.5rem;
+    }
+}
+
+.card-footer {
+    padding: $card-spacer-y $card-spacer-x;
+    background-color: $card-bg !important;
+    border-top: $card-border-width solid $card-border-color;
+}
+
+.nav-tabs {
+    margin-bottom: 15px;
+    text-transform: uppercase;
+    letter-spacing: 0.1rem;
+    border-bottom: none;
+
+    a.nav-link {
+        color: $nav-link;
+        padding: 0.375rem 2rem;
+        line-height: 16px;
+
+        &.active,
+        &:hover {
+            color: $nav-link-hover;
+            font-weight: bold;
+            border: $nav-link-active-border;
+            border-radius: 0;
+            border-top-left-radius: $nav-link-border-radius;
+            border-top-right-radius: $nav-link-border-radius;
+        }
+    }
+
+    @include media-breakpoint-up(lg) {
+        border-bottom: $nav-link-active-border;
+
+        a.nav-link {
+            &.active,
+            &:hover {
+                border-bottom: dotted 1px transparent;
+            }
+        }
+    }
+
+}
+
+.form-control {
+    &:focus {
+        color: inherit;
+    }
+}
+
+input.form-control {
+    min-width: 4.5rem;
+}
+
+.input-group-prepend,
+.input-group-append {
+    button,
+    .input-group-text {
+        padding: 0.375rem;
+    }
+}
+
+.input-group-prepend button {
+    border-top-left-radius: 3px;
+    border-bottom-left-radius: 3px;
+}
+
+.input-group-append button {
+    border-top-right-radius: 3px;
+    border-bottom-right-radius: 3px;
+}
+
+.preWrap {
+    white-space: pre-wrap;
+}
+
+.clipboard {
+    display: inline;
+
+    button {
+        padding-top: 0;
+        padding-bottom: 0;
+
+        .fa {
+            transition: color 500ms;
+
+        }
+
+        &:active .fa {
+            transition: color 50ms;
+            color: $clipboard-button-color;
+        }
+    }
+}

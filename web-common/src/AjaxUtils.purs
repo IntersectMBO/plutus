@@ -1,22 +1,34 @@
 module AjaxUtils
-  ( ajaxErrorPane
+  ( AjaxErrorPaneAction(..)
+  , ajaxErrorPane
+  , closeableAjaxErrorPane
+  , ajaxErrorRefLabel
   , renderForeignErrors
   , defaultJsonOptions
   ) where
 
 import Prelude hiding (div)
-import Bootstrap (alertDanger_)
+import Bootstrap (alertDanger_, btn, floatRight)
 import Data.Foldable (intercalate)
+import Data.Maybe (Maybe(Just))
 import Foreign (MultipleErrors, renderForeignError)
 import Foreign.Generic.Class (Options, aesonSumEncoding, defaultOptions)
-import Halogen.HTML (ClassName(..), HTML, br_, div, div_, text)
-import Halogen.HTML.Properties (class_)
+import Halogen (RefLabel(RefLabel))
+import Halogen.HTML (ClassName(..), HTML, br_, button, div, div_, p_, text)
+import Halogen.HTML.Events (onClick)
+import Halogen.HTML.Properties (class_, classes, ref)
+import Icons (Icon(..), icon)
 import Servant.PureScript.Ajax (AjaxError, ErrorDescription(..), runAjaxError)
+
+data AjaxErrorPaneAction
+  = CloseErrorPane
 
 ajaxErrorPane :: forall p i. AjaxError -> HTML p i
 ajaxErrorPane error =
   div
-    [ class_ $ ClassName "ajax-error" ]
+    [ class_ ajaxErrorClass
+    , ref ajaxErrorRefLabel
+    ]
     [ alertDanger_
         [ showAjaxError error
         , br_
@@ -24,16 +36,35 @@ ajaxErrorPane error =
         ]
     ]
 
+closeableAjaxErrorPane :: forall p. AjaxError -> HTML p AjaxErrorPaneAction
+closeableAjaxErrorPane error =
+  div
+    [ class_ ajaxErrorClass ]
+    [ alertDanger_
+        [ button
+            [ classes [ btn, floatRight, ClassName "ajax-error-close-button" ]
+            , onClick $ const $ Just CloseErrorPane
+            ]
+            [ icon Close ]
+        , p_ [ showAjaxError error ]
+        ]
+    ]
+
+ajaxErrorRefLabel :: RefLabel
+ajaxErrorRefLabel = RefLabel "ajax-error"
+
+ajaxErrorClass :: ClassName
+ajaxErrorClass = ClassName "ajax-error"
+
 showAjaxError :: forall p i. AjaxError -> HTML p i
 showAjaxError = runAjaxError >>> _.description >>> showErrorDescription
 
 showErrorDescription :: forall p i. ErrorDescription -> HTML p i
-showErrorDescription (DecodingError err@"(\"Unexpected token E in JSON at position 0\" : Nil)") =
-  div_
-    [ text $ "Cannot connect to the server. Please check your network connection."
-    , br_
-    , text $ "DecodingError: " <> err
-    ]
+showErrorDescription NotFound = text "Data not found."
+
+showErrorDescription (ResponseError statusCode err) = text $ "Server error " <> show statusCode <> ": " <> err
+
+showErrorDescription (DecodingError err@"(\"Unexpected token E in JSON at position 0\" : Nil)") = text "Cannot connect to the server. Please check your network connection."
 
 showErrorDescription (DecodingError err) = text $ "DecodingError: " <> err
 

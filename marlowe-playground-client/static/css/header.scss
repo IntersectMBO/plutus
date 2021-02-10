@@ -56,12 +56,20 @@ header {
   }
 }
 
+.project-title .unsave-change-indicator {
+  color: var(--text-color-inactive);
+  margin-left: var(--very-small-margin);
+}
+
+
+// Spinner icon when saving
 .project-title i {
   height: 1em;
   width: 1em;
   margin-left: 1rem;
 }
 
+// Placeholder for the spinner icon
 .project-title .empty {
   height: 1em;
   width: 1em;

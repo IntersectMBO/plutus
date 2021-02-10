@@ -1,3 +1,4 @@
+
 \begin{code}
 module Utils where
 
@@ -5,7 +6,9 @@ open import Relation.Binary.PropositionalEquality
 open import Function
 open import Data.Nat
 open import Data.Nat.Properties
-open import Data.Vec hiding (map;_>>=_)
+open import Relation.Binary
+import Data.Integer as I
+open import Data.Vec hiding (map;_>>=_;_++_)
 open import Data.List hiding (map)
 open import Data.Sum
 open import Relation.Nullary
@@ -58,6 +61,12 @@ cong₃ : {A B C D : Set} → (f : A → B → C → D)
   → f a b c ≡ f a' b' c'
 cong₃ f refl refl refl = refl
 
+_I>?_ : Decidable I._>_
+i I>? j = j I.<? i
+
+_I≥?_ : Decidable I._≥_
+i I≥? j = j I.≤? i
+
 z≤‴n : ∀ {n} → zero  ≤‴ n
 z≤‴n {n} = ≤″⇒≤‴ (≤⇒≤″ z≤n)
 
@@ -80,6 +89,44 @@ _:<_ : ∀{A : Set}{n} → Vec A n → A → Vec A (suc n)
 _:<L_ : ∀{A : Set} → List A → A → List A
 []        :<L a = a ∷ []
 (a' ∷ as) :<L a = a' ∷ (as :<L a)
+
+data _≤L_ {A : Set} : List A → List A → Set where
+ base : ∀{as} → as ≤L as
+ skip : ∀{as as' a} → as ≤L as' → as ≤L (a ∷ as')
+
+[]≤L : {A : Set}(as : List A) → [] ≤L as
+[]≤L []       = base
+[]≤L (a ∷ as) = skip ([]≤L as)
+
+
+data _≤L'_ {A : Set} : List A → List A → Set where
+ base : ∀{as} → as ≤L' as
+ skip : ∀{as as' a} → (a ∷ as) ≤L' as' → as ≤L' as'
+
+open import Data.Product
+
+_<L'_ : {A : Set} → List A → List A → Set
+as <L' as' = Σ _ λ a → (a ∷ as) ≤L' as'
+
+lem⊥ : ∀{A : Set}{as : List A}{a} → (a ∷ as) ≤L' [] → ⊥
+lem⊥ (skip p) = lem⊥ p
+
+lem0 : {A : Set}{a a' : A}{as as' : List A}
+  → (a ∷ as) ≤L' (a' ∷ as') → as ≤L' as'
+lem0 base     = base
+lem0 (skip p) = skip (lem0 p)
+
+lem1 : {A : Set}{a : A}{as as' : List A} → as ≤L' as' → as ≤L' (a ∷ as')
+lem1 base = skip base
+lem1 (skip p) = skip (lem1 p)
+
+≤Lto≤L' : {A : Set}{as as' : List A} → as ≤L as' → as ≤L' as'
+≤Lto≤L' base = base
+≤Lto≤L' (skip p) = lem1 (≤Lto≤L' p)
+
+[]≤L' : {A : Set}(as : List A) → [] ≤L' as
+[]≤L' as = ≤Lto≤L' ([]≤L as)
+
 
 -- Monads
 

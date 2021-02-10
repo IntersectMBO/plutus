@@ -3,7 +3,7 @@ const moo = require("moo");
 
 const lexer = moo.compile({
         WS: /[ \t]+/,
-        number: /0|-?[1-9][0-9]*/,
+        number: /-?[0-9](?:_*[0-9])*/,
         base16: {match: /"(?:[0-9a-fA-F][0-9a-fA-F])*"/, value: x => x.slice(1, -1)},
         string: {match: /"(?:\\["\\]|[^\n"\\])*"/, value: x => x.slice(1, -1)},
         ratio: '%',
@@ -32,6 +32,7 @@ const lexer = moo.compile({
                 VALUE: [
                     'AvailableMoney',
                     'Constant',
+                    'ConstantParam',
                     'NegValue',
                     'AddValue',
                     'SubValue',
@@ -47,6 +48,7 @@ const lexer = moo.compile({
                 PAYEE: ['Account', 'Party'],
                 PARTY: ['PK', 'Role'],
                 BOUND: ['Bound'],
+                TIMEOUT: ['SlotParam'],
                 VALUE_ID: ['ValueId'],
                 CASE: ['Case'],
                 ACTION: ['Deposit', 'Choice', 'Notify'],
@@ -83,12 +85,13 @@ rsquare ->  manyWS %rsquare
 hole -> %hole {% ([hole]) => opts.mkHole(hole.value.substring(1))({startLineNumber: hole.line, startColumn: hole.col, endLineNumber: hole.line, endColumn: hole.col + hole.value.length}) %}
 
 number
-   -> %number {% ([n]) => opts.mkBigInteger(n.value) %}
-    | lparen %number rparen {% ([,n,]) => opts.mkBigInteger(n.value) %}
+   -> %number {% ([n]) => opts.mkBigInteger(n.value.replace('_', '')) %}
+    | lparen %number rparen {% ([,n,]) => opts.mkBigInteger(n.value.replace('_', '')) %}
 
 timeout
-   -> %number {% ([n]) => opts.mkTimeout(n.value)({startLineNumber: n.line, startColumn: n.col, endLineNumber: n.line, endColumn: n.col + n.toString(10).length}) %}
-    | lparen %number rparen {% ([start,n,end]) => opts.mkTimeout(n.value)({startLineNumber: start.line, startColumn: start.col, endLineNumber: end.line, endColumn: end.col}) %}
+   -> hole {% ([hole]) => hole %}
+    | number {% ([n]) => opts.mkTerm(opts.mkExtendedSlot(n))({startLineNumber: n.line, startColumn: n.col, endLineNumber: n.line, endColumn: n.col + n.toString(10).length}) %}
+    | lparen "SlotParam" someWS string rparen {% ([start,{line,col},,s,end]) => opts.mkTerm(opts.mkExtendedSlotParam(s))({startLineNumber: start.line, startColumn: start.col, endLineNumber: end.line, endColumn: end.col}) %}
 
 string
    -> %string {% ([s]) => s.value %}
@@ -187,6 +190,7 @@ value
    -> hole {% ([hole]) => hole %}
     | lparen "AvailableMoney" someWS party someWS token rparen {% ([start,{line,col},,party,,token,end]) => opts.mkTerm(opts.mkAvailableMoney(party)(token))({startLineNumber: start.line, startColumn: start.col, endLineNumber: end.line, endColumn: end.col + 1}) %}
     | lparen "Constant" someWS number rparen {% ([start,{line,col},,number,end]) => opts.mkTerm(opts.mkConstant(number))({startLineNumber: start.line, startColumn: start.col, endLineNumber: end.line, endColumn: end.col + 1}) %}
+    | lparen "ConstantParam" someWS string rparen {% ([start,{line,col},,name,end]) => opts.mkTerm(opts.mkConstantParam(name))({startLineNumber: start.line, startColumn: start.col, endLineNumber: end.line, endColumn: end.col + 1}) %}
     | lparen "NegValue" someWS value rparen {% ([start,{line,col},,value,end]) => opts.mkTerm(opts.mkNegValue(value))({startLineNumber: start.line, startColumn: start.col, endLineNumber: end.line, endColumn: end.col + 1}) %}
     | lparen "AddValue" someWS value someWS value rparen {% ([start,{line,col},,v1,,v2,end]) => opts.mkTerm(opts.mkAddValue(v1)(v2))({startLineNumber: start.line, startColumn: start.col, endLineNumber: end.line, endColumn: end.col + 1}) %}
     | lparen "SubValue" someWS value someWS value rparen {% ([start,{line,col},,v1,,v2,end]) => opts.mkTerm(opts.mkSubValue(v1)(v2))({startLineNumber: start.line, startColumn: start.col, endLineNumber: end.line, endColumn: end.col + 1}) %}

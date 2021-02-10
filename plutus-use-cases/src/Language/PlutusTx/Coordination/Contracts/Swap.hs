@@ -21,11 +21,11 @@ import           Ledger                    (PubKey, PubKeyHash, Slot, Validator)
 import qualified Ledger                    as Ledger
 import           Ledger.Ada                (Ada)
 import qualified Ledger.Ada                as Ada
+import           Ledger.Contexts           (TxInInfo (..), TxInfo (..), TxOut (..), ValidatorCtx (..))
+import qualified Ledger.Contexts           as Validation
 import           Ledger.Oracle             (Observation (..), SignedMessage)
 import qualified Ledger.Oracle             as Oracle
 import qualified Ledger.Typed.Scripts      as Scripts
-import           Ledger.Validation         (TxInInfo (..), TxInfo (..), TxOut (..), ValidatorCtx (..))
-import qualified Ledger.Validation         as Validation
 import           Ledger.Value              (Value)
 
 -- | A swap is an agreement to exchange cashflows at future dates. To keep

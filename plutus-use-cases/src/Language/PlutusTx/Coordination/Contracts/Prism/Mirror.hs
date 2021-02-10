@@ -100,6 +100,6 @@ data MirrorError =
     | IssueEndpointError ContractError
     | RevokeEndpointError ContractError
     | CreateTokenTxError ContractError
-    | StateMachineError (SMContractError IDState IDAction)
+    | StateMachineError SMContractError
     deriving stock (Eq, Show, Generic)
     deriving anyclass (ToJSON, FromJSON)

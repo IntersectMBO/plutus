@@ -31,9 +31,10 @@ import Data.Lens (Traversal', wander)
 import Data.Lens.Index (class Index)
 import Data.Maybe (Maybe, fromMaybe, maybe)
 import Data.Ord as Ord
+import Data.Traversable (class Traversable, sequenceDefault, traverse)
 import Foreign (ForeignError(..), fail, readArray, readInt)
 import Foreign.Class (class Decode, class Encode, decode, encode)
-import Prelude (class Eq, class Functor, class Ord, class Show, bind, map, otherwise, pure, show, (#), ($), (+), (-), (<<<), (<>), (>=), (>>>))
+import Prelude (class Eq, class Functor, class Ord, class Show, bind, map, otherwise, pure, show, (#), ($), (+), (-), (<$>), (<<<), (<>), (>=), (>>>))
 import Test.QuickCheck.Arbitrary (class Arbitrary, arbitrary)
 import Test.QuickCheck.Gen (arrayOf)
 
@@ -52,6 +53,10 @@ instance foldableCursor :: Foldable Cursor where
   foldr f acc (Cursor _ xs) = foldr f acc xs
   foldl f acc (Cursor _ xs) = foldl f acc xs
   foldMap f (Cursor _ xs) = foldMap f xs
+
+instance traversableCursor :: Traversable Cursor where
+  traverse f (Cursor n xs) = Cursor n <$> traverse f xs
+  sequence = sequenceDefault
 
 instance showCursor :: Show a => Show (Cursor a) where
   show (Cursor index xs) = "Cursor " <> show index <> " " <> show xs
