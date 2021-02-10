@@ -50,3 +50,9 @@ module "hernan_rajchert" {
   username   = "hernan.rajchert"
   policy_arn = "arn:aws:iam::aws:policy/AdministratorAccess"
 }
+
+module "amyas_merivale" {
+  source     = "../modules/user"
+  username   = "amyas.merivale"
+  policy_arn = "arn:aws:iam::aws:policy/AdministratorAccess"
+}

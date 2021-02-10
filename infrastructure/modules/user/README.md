@@ -22,7 +22,5 @@ module "joe_blogs" {
 7. The user should now [set up MFA](https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_mfa_enable_virtual.html)
 8. The user can view their AWS_ACCESS_KEY in the Summary section of their user's IAM page, see [here](https://console.aws.amazon.com/iam/home?region=eu-west-1#/users)
 9. The user should add a new entry in their `~/.aws/credentials` file (figure 1)
-10. The user should save the script in figure 2 as getcreds.sh
-11. The user can now run `eval $($(nix-build -A deployment.getCreds) joe.blogs 123456)` where `123456` is the MFA code provided by their MFA device
-12. The user should now be able to access aws resources
-yes
+10. The user can now run `eval $(getcreds joe.blogs 123456)` where `123456` is the MFA code provided by their MFA device
+11. The user should now be able to access aws resources
