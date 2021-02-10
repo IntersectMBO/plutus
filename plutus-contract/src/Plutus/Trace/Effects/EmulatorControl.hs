@@ -35,7 +35,7 @@ import           Plutus.Trace.Scheduler                 (EmSystemCall, MessageCa
                                                          ThreadCall (Thaw), mkSysCall)
 import qualified Wallet.Emulator                        as EM
 import           Wallet.Emulator.Chain                  (ChainState)
-import           Wallet.Emulator.MultiAgent             (EmulatorState, MultiAgentEffect, walletControlAction)
+import           Wallet.Emulator.MultiAgent             (EmulatorState, MultiAgentControlEffect, walletControlAction)
 import           Wallet.Emulator.Wallet                 (SigningProcess, Wallet, WalletState)
 import qualified Wallet.Emulator.Wallet                 as W
 import           Wallet.Types                           (ContractInstanceId)
@@ -72,7 +72,7 @@ handleEmulatorControl ::
     ( Member (State EmulatorThreads) effs
     , Member (State EmulatorState) effs
     , Member (Error EmulatorRuntimeError) effs
-    , Member MultiAgentEffect effs
+    , Member MultiAgentControlEffect effs
     , Member (Yield (EmSystemCall effs2 EmulatorMessage) (Maybe EmulatorMessage)) effs
     )
     => EmulatorControl

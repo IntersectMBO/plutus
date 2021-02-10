@@ -72,7 +72,7 @@ import           Plutus.Trace.Scheduler                  (EmSystemCall, ThreadId
 import           Wallet.Emulator.Chain                   (ChainControlEffect, ChainEffect)
 import qualified Wallet.Emulator.Chain                   as ChainState
 import           Wallet.Emulator.MultiAgent              (EmulatorEvent, EmulatorEvent' (..), EmulatorState,
-                                                          MultiAgentEffect, schedulerEvent)
+                                                          MultiAgentControlEffect, MultiAgentEffect, schedulerEvent)
 import           Wallet.Emulator.Stream                  (EmulatorConfig (..), EmulatorErr (..), defaultEmulatorConfig,
                                                           initialChainState, runTraceStream)
 import qualified Wallet.Emulator.Wallet                  as Wallet
@@ -106,6 +106,7 @@ type EmulatorTrace a =
 handleEmulatorTrace ::
     forall effs a.
     ( Member MultiAgentEffect effs
+    , Member MultiAgentControlEffect effs
     , Member (State EmulatorThreads) effs
     , Member (State EmulatorState) effs
     , Member (Error EmulatorRuntimeError) effs
@@ -134,6 +135,7 @@ runEmulatorStream conf = runTraceStream conf . interpretEmulatorTrace conf
 --   blockchain effects.
 interpretEmulatorTrace :: forall effs a.
     ( Member MultiAgentEffect effs
+    , Member MultiAgentControlEffect effs
     , Member (Error EmulatorRuntimeError) effs
     , Member ChainEffect effs
     , Member ChainControlEffect effs
