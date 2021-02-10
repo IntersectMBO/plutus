@@ -15,7 +15,7 @@ module MainFrame.Types
 
 import Prelude
 import Analytics (class IsEvent, defaultEvent, toEvent)
-import Contact.Types (Action, Contact, State) as Contact
+import Contact.Types (Action, ContactKey, State) as Contact
 import Data.Maybe (Maybe(..))
 import WebSocket (StreamToClient, StreamToServer)
 import WebSocket.Support as WS
@@ -47,7 +47,7 @@ derive instance eqFrame :: Eq Screen
 
 data Card
   = NewContact
-  | EditContact Contact.Contact
+  | EditContact Contact.ContactKey
   | TemplateLibrary
   | TemplateDetails ContractTemplate
   | ContractDetails ContractInstance

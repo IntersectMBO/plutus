@@ -1,5 +1,6 @@
 module Contact.Types
   ( State
+  , ContactKey
   , Contact(..)
   , PubKeyHash
   , Action(..)
@@ -9,18 +10,22 @@ import Prelude
 import Analytics (class IsEvent, defaultEvent)
 import Data.Generic.Rep (class Generic)
 import Data.Maybe (Maybe(..))
+import Data.Map (Map)
 import Data.Newtype (class Newtype)
+import Data.Tuple (Tuple)
 import Foreign.Generic (class Decode, class Encode, defaultOptions, genericDecode, genericEncode)
 
 type State
-  = { contacts :: Array Contact
-    , newContact :: Contact
+  = { contacts :: Map ContactKey Contact
+    , newContactKey :: ContactKey
     }
+
+type ContactKey
+  = Tuple String PubKeyHash
 
 newtype Contact
   = Contact
-  { key :: PubKeyHash
-  , nickname :: String
+  { userHasPickedUp :: Boolean
   }
 
 derive instance newtypeContact :: Newtype Contact _
@@ -35,16 +40,13 @@ instance encodeContact :: Encode Contact where
 instance decodeContact :: Decode Contact where
   decode = genericDecode defaultOptions
 
-instance ordContact :: Ord Contact where
-  compare (Contact contact1) (Contact contact2) = compare contact1.nickname contact2.nickname
-
 -- TODO: import PubKeyHash
 type PubKeyHash
   = String
 
 data Action
   = ToggleNewContactCard
-  | ToggleEditContactCard Contact
+  | ToggleEditContactCard ContactKey
   | SetNewContactKey PubKeyHash
   | SetNewContactNickname String
   | AddNewContact

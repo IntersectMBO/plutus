@@ -6,21 +6,11 @@ module Contact.Validation
   ) where
 
 import Prelude
-import Contact.Lenses (_key, _nickname)
 import Contact.Types (Contact, PubKeyHash)
-import Data.Array (find)
-import Data.Lens (view)
+import Data.Map (Map, member)
+import Data.Map.Extra (mapIndex)
 import Data.Maybe (Maybe(..))
-
-data KeyError
-  = EmptyKey
-  | DuplicateKey
-
-derive instance eqKeyError :: Eq KeyError
-
-instance showKeyError :: Show KeyError where
-  show EmptyKey = "Wallet key cannot be blank"
-  show DuplicateKey = "Wallet key is already in your contacts"
+import Data.Tuple (Tuple, fst, snd)
 
 data NicknameError
   = EmptyNickname
@@ -32,20 +22,30 @@ instance showNicknameError :: Show NicknameError where
   show EmptyNickname = "Nickname cannot be blank"
   show DuplicateNickname = "Nickname is already in use in your contacts"
 
-keyError :: PubKeyHash -> Array Contact -> Maybe KeyError
-keyError "" _ = Just EmptyKey
+data KeyError
+  = EmptyKey
+  | DuplicateKey
 
-keyError key contacts =
-  if find (\contact -> view _key contact == key) contacts == Nothing then
-    Nothing
-  else
-    Just DuplicateKey
+derive instance eqKeyError :: Eq KeyError
 
-nicknameError :: String -> Array Contact -> Maybe NicknameError
+instance showKeyError :: Show KeyError where
+  show EmptyKey = "Wallet key cannot be blank"
+  show DuplicateKey = "Wallet key is already in your contacts"
+
+nicknameError :: String -> Map (Tuple String PubKeyHash) Contact -> Maybe NicknameError
 nicknameError "" _ = Just EmptyNickname
 
 nicknameError nickname contacts =
-  if find (\contact -> view _nickname contact == nickname) contacts == Nothing then
-    Nothing
-  else
+  if member nickname $ mapIndex fst $ contacts then
     Just DuplicateNickname
+  else
+    Nothing
+
+keyError :: PubKeyHash -> Map (Tuple String PubKeyHash) Contact -> Maybe KeyError
+keyError "" _ = Just EmptyKey
+
+keyError key contacts =
+  if member key $ mapIndex snd $ contacts then
+    Just DuplicateKey
+  else
+    Nothing

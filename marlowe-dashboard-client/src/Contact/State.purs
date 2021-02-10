@@ -4,11 +4,12 @@ module Contact.State
   ) where
 
 import Prelude
-import Contact.Lenses (_contacts, _key, _newContact, _nickname)
+import Contact.Lenses (_contacts, _newContactKey)
 import Contact.Types (Action(..), Contact(..), State)
-import Data.Array (find)
-import Data.Lens (assign, modifying, use, view)
-import Data.Maybe (Maybe(..))
+import Data.Lens (assign, modifying, use)
+import Data.Lens.Lens.Tuple (_1, _2)
+import Data.Map (empty, insert, member)
+import Data.Tuple (Tuple(..))
 import Effect.Aff.Class (class MonadAff)
 import Foreign.Generic (encodeJSON)
 import Halogen (HalogenM, liftEffect)
@@ -18,34 +19,29 @@ import StaticData (contactsLocalStorageKey)
 
 initialState :: State
 initialState =
-  { contacts: []
-  , newContact: emptyContact
+  { contacts: empty
+  , newContactKey: Tuple "" ""
   }
 
 emptyContact :: Contact
-emptyContact = Contact { key: "", nickname: "" }
+emptyContact = Contact { userHasPickedUp: false }
 
 handleAction :: forall m. MonadAff m => Action -> HalogenM State Action ChildSlots Msg m Unit
 handleAction ToggleNewContactCard = pure unit -- handled in MainFrame.State
 
 handleAction (ToggleEditContactCard contact) = pure unit -- handled in MainFrame.State
 
-handleAction (SetNewContactKey key) = do
-  nickname <- use (_newContact <<< _nickname)
-  assign _newContact $ Contact { key, nickname }
+handleAction (SetNewContactNickname nickname) = assign (_newContactKey <<< _1) nickname
 
-handleAction (SetNewContactNickname nickname) = do
-  key <- use (_newContact <<< _key)
-  assign _newContact $ Contact { key, nickname }
+handleAction (SetNewContactKey key) = assign (_newContactKey <<< _2) key
 
 handleAction AddNewContact = do
   oldContacts <- use _contacts
-  newContact <- use _newContact
-  key <- use (_newContact <<< _key)
-  case find (\contact -> view _key contact == key) oldContacts of
-    Nothing -> do
-      modifying _contacts $ append [ newContact ]
-      assign _newContact emptyContact
-      newContacts <- use _contacts
-      liftEffect $ setItem contactsLocalStorageKey $ encodeJSON newContacts
-    _ -> pure unit
+  newContactKey <- use _newContactKey
+  if not $ member newContactKey oldContacts then do
+    modifying _contacts $ insert newContactKey emptyContact
+    assign _newContactKey $ Tuple "" ""
+    newContacts <- use _contacts
+    liftEffect $ setItem contactsLocalStorageKey $ encodeJSON newContacts
+  else
+    pure unit

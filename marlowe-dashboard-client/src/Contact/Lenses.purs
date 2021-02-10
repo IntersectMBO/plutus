@@ -1,25 +1,22 @@
 module Contact.Lenses
   ( _contacts
-  , _newContact
-  , _key
-  , _nickname
+  , _newContactKey
+  , _userHasPickedUp
   ) where
 
 import Prelude
-import Contact.Types (Contact, State, PubKeyHash)
+import Contact.Types (Contact, ContactKey, State)
 import Data.Lens (Lens')
 import Data.Lens.Iso.Newtype (_Newtype)
 import Data.Lens.Record (prop)
+import Data.Map (Map)
 import Data.Symbol (SProxy(..))
 
-_contacts :: Lens' State (Array Contact)
+_contacts :: Lens' State (Map ContactKey Contact)
 _contacts = prop (SProxy :: SProxy "contacts")
 
-_newContact :: Lens' State Contact
-_newContact = prop (SProxy :: SProxy "newContact")
+_newContactKey :: Lens' State ContactKey
+_newContactKey = prop (SProxy :: SProxy "newContactKey")
 
-_key :: Lens' Contact PubKeyHash
-_key = _Newtype <<< prop (SProxy :: SProxy "key")
-
-_nickname :: Lens' Contact String
-_nickname = _Newtype <<< prop (SProxy :: SProxy "nickname")
+_userHasPickedUp :: Lens' Contact Boolean
+_userHasPickedUp = _Newtype <<< prop (SProxy :: SProxy "userHasPickedUp")

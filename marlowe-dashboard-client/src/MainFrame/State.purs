@@ -6,6 +6,7 @@ import Contact.State (handleAction, initialState) as Contact
 import Contact.Types (Action(..)) as Contact
 import Control.Monad.Except (runExcept)
 import Data.Either (Either(..))
+import Data.Foldable (for_)
 import Data.Lens (assign, modifying, set, use)
 import Data.Maybe (Maybe(..))
 import Effect.Aff.Class (class MonadAff)
@@ -57,18 +58,17 @@ handleQuery (ReceiveWebSocketMessage msg next) = do
 handleAction :: forall m. MonadAff m => Action -> HalogenM State Action ChildSlots Msg m Unit
 handleAction Init = do
   mCachedContactsJson <- liftEffect $ getItem contactsLocalStorageKey
-  case mCachedContactsJson of
-    Just json -> do
-      let
-        contacts =
-          runExcept
-            $ do
-                foreignJson <- parseJSON json
-                decode foreignJson
-      case contacts of
-        Right cachedContacts -> assign (_contactState <<< _contacts) cachedContacts
-        _ -> pure unit
-    Nothing -> pure unit
+  for_ mCachedContactsJson
+    $ \json -> do
+        let
+          contacts =
+            runExcept
+              $ do
+                  foreignJson <- parseJSON json
+                  decode foreignJson
+        case contacts of
+          Right cachedContacts -> assign (_contactState <<< _contacts) cachedContacts
+          _ -> pure unit
 
 handleAction (ToggleOverlay overlay) = do
   mCurrentOverlay <- use _overlay
@@ -99,7 +99,7 @@ handleAction (ContactAction contactAction) = do
   case contactAction of
     Contact.ToggleNewContactCard -> handleAction $ ToggleCard NewContact
     Contact.AddNewContact -> handleAction $ ToggleCard NewContact
-    Contact.ToggleEditContactCard contact -> handleAction $ ToggleCard $ EditContact contact
+    Contact.ToggleEditContactCard contactKey -> handleAction $ ToggleCard $ EditContact contactKey
     _ -> pure unit
 
 handleAction ClickedButton = do

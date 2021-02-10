@@ -1,7 +1,7 @@
 module MainFrame.View where
 
 import Prelude hiding (div)
-import Contact.Lenses (_contacts, _newContact)
+import Contact.Lenses (_contacts, _newContactKey)
 import Contact.View (renderContacts, renderContact, renderNewContact)
 import Contract.View (renderContractSetup, renderContractDetails)
 import Css (applyWhen, buttonClasses, classNames, hideWhen)
@@ -126,7 +126,7 @@ card state =
   let
     contacts = view (_contactState <<< _contacts) state
 
-    newContact = view (_contactState <<< _newContact) state
+    newContactKey = view (_contactState <<< _newContactKey) state
 
     templates = view _templates state
   in
@@ -138,8 +138,8 @@ card state =
           ]
           [ Icon.close ]
       , case state.card of
-          Just NewContact -> ContactAction <$> renderNewContact contacts newContact
-          Just (EditContact contact) -> ContactAction <$> renderContact contact
+          Just NewContact -> ContactAction <$> renderNewContact newContactKey contacts
+          Just (EditContact contactKey) -> ContactAction <$> renderContact contactKey contacts
           Just TemplateLibrary -> renderTemplateLibrary templates
           Just (TemplateDetails contractTemplate) -> renderTemplateDetails contractTemplate
           Just (ContractDetails contractInstance) -> renderContractDetails contractInstance

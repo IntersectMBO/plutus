@@ -5,19 +5,20 @@ module Contact.View
   ) where
 
 import Prelude hiding (div)
-import Contact.Lenses (_key, _nickname)
-import Contact.Types (Action(..), Contact)
+import Contact.Types (Action(..), Contact, ContactKey)
 import Contact.Validation (keyError, nicknameError)
 import Css (buttonClasses, classNames, h2Classes, textInputClasses, toggleWhen)
-import Data.Array (head, sort)
 import Data.Lens (view)
-import Data.Maybe (Maybe(..))
+import Data.Lens.Lens.Tuple (_1, _2)
+import Data.Map (Map, isEmpty, lookup, toUnfoldable)
+import Data.Maybe (Maybe(..), isJust)
+import Data.Tuple (Tuple(..))
 import Halogen.HTML (HTML, button, div, h2, hr_, input, li, p_, span, text, ul)
 import Halogen.HTML.Events (onClick, onValueInput)
 import Halogen.HTML.Properties (InputType(..), disabled, placeholder, type_, value)
 import Material.Icons as Icon
 
-renderContacts :: forall p. Array Contact -> HTML p Action
+renderContacts :: forall p. Map ContactKey Contact -> HTML p Action
 renderContacts contacts =
   div
     [ classNames [ "p-1" ] ]
@@ -25,13 +26,13 @@ renderContacts contacts =
         [ classNames h2Classes ]
         [ text "Contacts" ]
     , hr_
-    , case head contacts of
-        Nothing -> p_ [ text "You do not have any contacts." ]
-        _ ->
-          ul
-            [ classNames [ "mt-1" ] ]
-            $ contactLi
-            <$> sort contacts
+    , if isEmpty contacts then
+        p_ [ text "You do not have any contacts." ]
+      else
+        ul
+          [ classNames [ "mt-1" ] ]
+          $ contactLi
+          <$> toUnfoldable contacts
     , div
         [ classNames [ "absolute", "bottom-1", "left-1", "right-1" ] ]
         [ button
@@ -46,23 +47,23 @@ renderContacts contacts =
         ]
     ]
   where
-  contactLi contact =
+  contactLi (Tuple contactKey@(Tuple nickname key) contact) =
     li
       [ classNames [ "mt-1", "hover:cursor-pointer", "hover:text-green" ]
-      , onClick $ const $ Just $ ToggleEditContactCard contact
+      , onClick $ const $ Just $ ToggleEditContactCard contactKey
       ]
-      [ text $ view _nickname contact ]
+      [ text nickname ]
 
-renderNewContact :: forall p. Array Contact -> Contact -> HTML p Action
-renderNewContact contacts newContact =
+renderNewContact :: forall p. ContactKey -> Map ContactKey Contact -> HTML p Action
+renderNewContact newContactKey contacts =
   let
-    key = view _key newContact
+    nickname = view _1 newContactKey
 
-    nickname = view _nickname newContact
-
-    mKeyError = keyError key contacts
+    key = view _2 newContactKey
 
     mNicknameError = nicknameError nickname contacts
+
+    mKeyError = keyError key contacts
   in
     div
       [ classNames [ "flex", "flex-col" ] ]
@@ -95,19 +96,21 @@ renderNewContact contacts newContact =
               Nothing -> []
       , button
           [ classNames $ buttonClasses <> [ "bg-green", "text-white" ]
-          , disabled $ not $ mKeyError == Nothing && mNicknameError == Nothing
+          , disabled $ isJust mKeyError || isJust mNicknameError
           , onClick $ const $ Just AddNewContact
           ]
           [ text "Save new contact" ]
       ]
 
-renderContact :: forall p. Contact -> HTML p Action
-renderContact contact =
-  div
-    [ classNames [ "flex", "flex-col" ] ]
-    [ h2
-        [ classNames h2Classes ]
-        [ text "Contact details" ]
-    , p_ [ text $ "Nickname: " <> view _nickname contact ]
-    , p_ [ text $ "Wallet key: " <> view _key contact ]
-    ]
+renderContact :: forall p. ContactKey -> Map ContactKey Contact -> HTML p Action
+renderContact contactKey contacts = case lookup contactKey contacts of
+  Just contact ->
+    div
+      [ classNames [ "flex", "flex-col" ] ]
+      [ h2
+          [ classNames h2Classes ]
+          [ text "Contact details" ]
+      , p_ [ text $ "Nickname: " <> view _1 contactKey ]
+      , p_ [ text $ "Wallet key: " <> view _2 contactKey ]
+      ]
+  Nothing -> div [] []
