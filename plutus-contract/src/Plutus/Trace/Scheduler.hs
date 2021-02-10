@@ -34,6 +34,7 @@ module Plutus.Trace.Scheduler(
     , Priority(..)
     , Tag
     , EmSystemCall
+    , AgentSystemCall
     , SuspendedThread
     , EmThread(..)
     , SchedulerState(..)
@@ -45,6 +46,7 @@ module Plutus.Trace.Scheduler(
     -- * Etc.
     , mkThread
     , mkSysCall
+    , mkAgentSysCall
     , SchedulerLog(..)
     , ThreadEvent(..)
     , StopReason(..)
@@ -153,11 +155,13 @@ data WithPriority t
     = WithPriority
         { _priority :: Priority
         , _thread   :: t
-        }
+        } deriving Functor
 
 type SuspendedThread effs systemEvent = WithPriority (EmThread effs systemEvent)
 
 type EmSystemCall effs systemEvent = WithPriority (SysCall effs systemEvent)
+
+type AgentSystemCall systemEvent = WithPriority (MessageCall systemEvent)
 
 -- | Thread that can be run by the scheduler
 data EmThread effs systemEvent =
@@ -220,6 +224,14 @@ mkThread tag prio action tid =
                 , _tag      = tag
                 }
             }
+
+-- | Make a 'MessageCall' system call for some agent
+mkAgentSysCall :: forall effs systemEvent.
+    Member (Yield (AgentSystemCall systemEvent) (Maybe systemEvent)) effs
+    => Priority -- ^ The 'Priority' of the caller
+    -> MessageCall systemEvent -- ^ The system call
+    -> Eff effs (Maybe systemEvent)
+mkAgentSysCall prio sc = yield @(AgentSystemCall systemEvent) @(Maybe systemEvent) (WithPriority prio sc) id
 
 -- | Make a system call
 mkSysCall :: forall effs systemEvent effs2.
