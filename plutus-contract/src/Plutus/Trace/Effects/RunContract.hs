@@ -211,6 +211,7 @@ mapYieldEm ::
     -> Eff effs c
 mapYieldEm = mapYield @_ @(EmSystemCall effs2 EmulatorMessage) (fmap Left) id
 
+-- | Handle a @Yield a b@ with a @Yield a' b'@ effect.
 mapYield ::
     forall a a' b b' effs c.
     (Member (Yield a' b') effs)
@@ -220,7 +221,6 @@ mapYield ::
     -> Eff effs c
 mapYield f g = \case
     Yield a cont -> send @(Yield a' b') $ Yield (f a) (lmap g cont)
-
 
 handleCallEndpoint :: forall s l e ep effs effs2.
     ( ContractConstraints s

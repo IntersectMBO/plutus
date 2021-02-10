@@ -225,6 +225,7 @@ mkThread tag prio action tid =
                 }
             }
 
+-- | Make a 'MessageCall' system call for some agent
 mkAgentSysCall :: forall effs systemEvent.
     Member (Yield (AgentSystemCall systemEvent) (Maybe systemEvent)) effs
     => Priority -- ^ The 'Priority' of the caller
