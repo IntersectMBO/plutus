@@ -70,7 +70,7 @@ invoice from to amount collateralAmount timeout continue =
                 (Party counterparty)
                 ada
                 collateralAmount
-                continue
+                Close
             )
 
 maxPseudoDecimalValue :: Integer
@@ -148,19 +148,19 @@ genStaticContract terms =
                     = invoice 
                         "party" 
                         "counterparty" 
-                        (Constant $ collateralAmount t) 
                         (Constant $ round amount) 
+                        (Constant 0) 
                         (Slot $ dayToSlotNumber cashPaymentDay)
                     | otherwise
                     = invoice 
                         "counterparty" 
                         "party" 
-                        (Constant $ collateralAmount t) 
                         (Constant $ round $ - amount) 
+                        (Constant $ collateralAmount t)
                         (Slot $ dayToSlotNumber cashPaymentDay)
                 withCollateral cont = 
                     receiveCollateral 
-                        "party" 
+                        "counterparty" 
                         (collateralAmount t) 
                         (dayToSlotNumber $ ct_SD t) 
                         cont
@@ -197,20 +197,20 @@ genFsContract terms =
                         invoice 
                             "party" 
                             "counterparty" 
-                            (Constant $ collateralAmount terms)
                             (UseValue $ payoffAt t) 
+                            (Constant 0)
                             date 
                             cont
                     else                    
                         invoice 
                             "counterparty" 
                             "party" 
-                            (Constant $ collateralAmount terms)
                             (NegValue $ UseValue $ payoffAt t) 
+                            (Constant $ collateralAmount terms)
                             date 
                             cont
                     where pof = payoffFs ev terms t (t - 1) prevDate (cashCalculationDay cf)
                 scheduleAcc = foldr gen (postProcess Close) $
                     L.zip6 schedCfs previousDates schedEvents schedDates cfsDirections [1..]
-                withCollateral cont = receiveCollateral "party" (collateralAmount terms) (dayToSlotNumber $ ct_SD terms) cont
+                withCollateral cont = receiveCollateral "counterparty" (collateralAmount terms) (dayToSlotNumber $ ct_SD terms) cont
             in Success . withCollateral $ inititializeStateFs terms scheduleAcc

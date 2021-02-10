@@ -1,8 +1,8 @@
 When [
   (Case
      (Deposit
-        (Role "party")
-        (Role "party")
+        (Role "counterparty")
+        (Role "counterparty")
         (Token "" "")
         (Constant 10000))
      (Let "tmd_0"
@@ -75,13 +75,13 @@ When [
                                                                                          (Role "party")
                                                                                          (Role "party")
                                                                                          (Token "" "")
-                                                                                         (Constant 10000))
+                                                                                         (UseValue "payoff_1"))
                                                                                       (Pay
                                                                                          (Role "party")
                                                                                          (Party
                                                                                             (Role "counterparty"))
                                                                                          (Token "" "")
-                                                                                         (Constant 10000)
+                                                                                         (UseValue "payoff_1")
                                                                                          (Let "o_rf_CURS_2"
                                                                                             (Constant 1000)
                                                                                             (Let "MD_2"
@@ -130,85 +130,24 @@ When [
                                                                                                                                             (Role "counterparty")
                                                                                                                                             (Role "counterparty")
                                                                                                                                             (Token "" "")
-                                                                                                                                            (Constant 10000))
+                                                                                                                                            (NegValue
+                                                                                                                                               (UseValue "payoff_2")))
                                                                                                                                          (Pay
                                                                                                                                             (Role "counterparty")
                                                                                                                                             (Party
                                                                                                                                                (Role "party"))
                                                                                                                                             (Token "" "")
-                                                                                                                                            (Constant 10000) Close))] 1256169500
+                                                                                                                                            (NegValue
+                                                                                                                                               (UseValue "payoff_2")) Close))] 1256169500
                                                                                                                                       (Pay
                                                                                                                                          (Role "counterparty")
                                                                                                                                          (Party
                                                                                                                                             (Role "party"))
                                                                                                                                          (Token "" "")
-                                                                                                                                         (NegValue
-                                                                                                                                            (UseValue "payoff_2")) Close))))))))))))))))))] 1224460700
+                                                                                                                                         (Constant 10000) Close))))))))))))))))))] 1224460700
                                                                                    (Pay
                                                                                       (Role "party")
                                                                                       (Party
                                                                                          (Role "counterparty"))
                                                                                       (Token "" "")
-                                                                                      (UseValue "payoff_1")
-                                                                                      (Let "o_rf_CURS_2"
-                                                                                         (Constant 1000)
-                                                                                         (Let "MD_2"
-                                                                                            (Constant 0)
-                                                                                            (Let "tmd_2"
-                                                                                               (UseValue "tmd_1")
-                                                                                               (Let "nt_2"
-                                                                                                  (Constant 0)
-                                                                                                  (Let "ipnr_2"
-                                                                                                     (UseValue "ipnr_1")
-                                                                                                     (Let "ipac_2"
-                                                                                                        (Constant 0)
-                                                                                                        (Let "feac_2"
-                                                                                                           (Constant 0)
-                                                                                                           (Let "fac_2"
-                                                                                                              (UseValue "fac_1")
-                                                                                                              (Let "nsc_2"
-                                                                                                                 (UseValue "nsc_1")
-                                                                                                                 (Let "isc_2"
-                                                                                                                    (UseValue "isc_1")
-                                                                                                                    (Let "sd_2"
-                                                                                                                       (Constant 1256169500)
-                                                                                                                       (Let "prnxt_2"
-                                                                                                                          (UseValue "prnxt_1")
-                                                                                                                          (Let "ipcb_2"
-                                                                                                                             (UseValue "ipcb_1")
-                                                                                                                             (Let "payoff_2"
-                                                                                                                                (Scale (1 % 1000)
-                                                                                                                                   (Scale (1 % 1000)
-                                                                                                                                      (MulValue
-                                                                                                                                         (UseValue "o_rf_CURS_2")
-                                                                                                                                         (AddValue
-                                                                                                                                            (AddValue
-                                                                                                                                               (Scale (1 % 1000)
-                                                                                                                                                  (MulValue
-                                                                                                                                                     (UseValue "nsc_1")
-                                                                                                                                                     (UseValue "nt_1")))
-                                                                                                                                               (Scale (1 % 1000)
-                                                                                                                                                  (MulValue
-                                                                                                                                                     (UseValue "isc_1")
-                                                                                                                                                     (UseValue "ipac_1"))))
-                                                                                                                                            (UseValue "feac_1")))))
-                                                                                                                                (When [
-                                                                                                                                   (Case
-                                                                                                                                      (Deposit
-                                                                                                                                         (Role "counterparty")
-                                                                                                                                         (Role "counterparty")
-                                                                                                                                         (Token "" "")
-                                                                                                                                         (Constant 10000))
-                                                                                                                                      (Pay
-                                                                                                                                         (Role "counterparty")
-                                                                                                                                         (Party
-                                                                                                                                            (Role "party"))
-                                                                                                                                         (Token "" "")
-                                                                                                                                         (Constant 10000) Close))] 1256169500
-                                                                                                                                   (Pay
-                                                                                                                                      (Role "counterparty")
-                                                                                                                                      (Party
-                                                                                                                                         (Role "party"))
-                                                                                                                                      (Token "" "")
-                                                                                                                                      (NegValue
-                                                                                                                                         (UseValue "payoff_2")) Close))))))))))))))))))))))))))))))))))))))))))))] 1224633500 Close
+                                                                                      (Constant 0) Close))))))))))))))))))))))))))))] 1224633500 Close
