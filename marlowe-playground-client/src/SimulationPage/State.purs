@@ -9,7 +9,9 @@ module SimulationPage.State
 import Prelude hiding (div)
 import BottomPanel.State (handleAction) as BottomPanel
 import BottomPanel.Types (Action(..), State) as BottomPanel
-import Control.Monad.Except (ExceptT, runExceptT, runExcept)
+import Control.Monad.Except (ExceptT, lift, runExcept, runExceptT)
+import Control.Monad.Maybe.Extra (hoistMaybe)
+import Control.Monad.Maybe.Trans (MaybeT(..), runMaybeT)
 import Control.Monad.Reader (class MonadAsk, asks, runReaderT)
 import Data.Array (snoc)
 import Data.Array as Array
@@ -85,14 +87,14 @@ handleAction (SetInitialSlot initialSlot) = do
   assign (_currentMarloweState <<< _executionState <<< _SimulationNotStarted <<< _initialSlot) initialSlot
   setOraclePrice
 
-handleAction StartSimulation = do
-  maybeInitialSlot <- peruse (_currentMarloweState <<< _executionState <<< _SimulationNotStarted <<< _initialSlot)
-  maybeExtendedContract <- peruse (_currentMarloweState <<< _executionState <<< _SimulationNotStarted <<< _extendedContract <<< _Just)
-  for_ maybeInitialSlot \initialSlot ->
-    for_ maybeExtendedContract \extendedContract ->
-      for_ (toCore (extendedContract :: EM.Contract)) \contract -> do
+handleAction StartSimulation =
+  void
+    $ runMaybeT do
+        initialSlot <- MaybeT $ peruse (_currentMarloweState <<< _executionState <<< _SimulationNotStarted <<< _initialSlot)
+        extendedContract <- MaybeT $ peruse (_currentMarloweState <<< _executionState <<< _SimulationNotStarted <<< _extendedContract <<< _Just)
+        contract <- hoistMaybe $ toCore (extendedContract :: EM.Contract)
         modifying _marloweState (extendWith (updatePossibleActions <<< updateStateP <<< (set _executionState (emptyExecutionStateWithSlot initialSlot (contract :: S.Contract)))))
-        updateContractInEditor
+        lift $ updateContractInEditor
 
 handleAction (MoveSlot slot) = do
   inTheFuture <- inFuture <$> get <*> pure slot
@@ -220,8 +222,8 @@ getPrice exchange pair = do
     price = fromMaybe zero (fromString calculatedPrice)
   pure price
 
-getCurrentContract :: forall m. HalogenM State Action ChildSlots Void m String
-getCurrentContract = fromMaybe "Close" <$> editorGetValue
+getCurrentContract :: forall m. HalogenM State Action ChildSlots Void m (Maybe String)
+getCurrentContract = editorGetValue
 
 runAjax ::
   forall m a.
@@ -272,6 +274,6 @@ updateContractInEditor = do
   editorSetValue
     ( case executionState of
         SimulationRunning runningState -> show $ genericPretty runningState.contract
-        SimulationNotStarted notStartedState -> maybe "No contract" (show <<< genericPretty) notStartedState.extendedContract
+        SimulationNotStarted notStartedState -> maybe "No contract" (show <<< genericPretty) notStartedState.extendedContract -- This "No contract" should never happen if we get valid contracts from editors 
     )
   setOraclePrice

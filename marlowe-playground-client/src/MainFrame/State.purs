@@ -24,6 +24,7 @@ import Data.Newtype (unwrap)
 import Demos.Types (Action(..), Demo(..)) as Demos
 import Effect.Aff.Class (class MonadAff, liftAff)
 import Effect.Class (class MonadEffect)
+import Effect.Class.Console as Console
 import Env (Env)
 import Foreign.Generic (decodeJSON, encodeJSON)
 import Gist (Gist, _GistId, gistDescription, gistId)
@@ -384,8 +385,10 @@ handleAction (SimulationAction action) = do
     _ -> pure unit
 
 handleAction (HandleWalletMessage Wallet.SendContractToWallet) = do
-  contract <- toSimulation $ Simulation.getCurrentContract
-  void $ query _walletSlot unit (Wallet.LoadContract contract unit)
+  mContract <- toSimulation $ Simulation.getCurrentContract
+  case mContract of
+    Nothing -> liftEffect $ Console.warn "Could not import contract from simulator"
+    Just contract -> void $ query _walletSlot unit (Wallet.LoadContract contract unit)
 
 handleAction (ChangeView view) = selectView view
 
