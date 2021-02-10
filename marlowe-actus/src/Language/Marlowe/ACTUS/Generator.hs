@@ -24,7 +24,7 @@ import           Language.Marlowe                                         (Actio
 import           Language.Marlowe.ACTUS.Analysis                          (genProjectedCashflows, genZeroRiskAssertions)
 import           Language.Marlowe.ACTUS.Definitions.BusinessEvents        (EventType (..))
 import           Language.Marlowe.ACTUS.Definitions.ContractTerms         (AssertionContext (..), Assertions (..),
-                                                                           ContractTerms (constraints, ct_CURS, ct_SD, collateralAmount),
+                                                                           ContractTerms (collateralAmount, constraints, ct_CURS, ct_SD),
                                                                            TermValidationError (..))
 import           Language.Marlowe.ACTUS.Definitions.Schedule              (CashFlow (..))
 import           Language.Marlowe.ACTUS.MarloweCompat                     (constnt, dayToSlotNumber,
@@ -38,7 +38,7 @@ import           Ledger.Value                                             (Token
 
 receiveCollateral :: String -> Integer -> Integer -> Contract -> Contract
 receiveCollateral from amount timeout continue =
-    if amount == 0 
+    if amount == 0
         then continue
         else
             let party = Role $ TokenName $ fromString from
@@ -48,7 +48,7 @@ receiveCollateral from amount timeout continue =
                             continue
                     ]
                     (Slot timeout)
-                    Close  
+                    Close
 
 
 invoice :: String -> String -> Value Observation -> Value Observation -> Slot -> Contract -> Contract
@@ -145,24 +145,24 @@ genStaticContract terms =
                 gen CashFlow {..}
                     | amount == 0.0 = id
                     | amount > 0.0
-                    = invoice 
-                        "party" 
-                        "counterparty" 
-                        (Constant $ round amount) 
-                        (Constant 0) 
+                    = invoice
+                        "party"
+                        "counterparty"
+                        (Constant $ round amount)
+                        (Constant 0)
                         (Slot $ dayToSlotNumber cashPaymentDay)
                     | otherwise
-                    = invoice 
-                        "counterparty" 
-                        "party" 
-                        (Constant $ round $ - amount) 
+                    = invoice
+                        "counterparty"
+                        "party"
+                        (Constant $ round $ - amount)
                         (Constant $ collateralAmount t)
                         (Slot $ dayToSlotNumber cashPaymentDay)
-                withCollateral cont = 
-                    receiveCollateral 
-                        "counterparty" 
-                        (collateralAmount t) 
-                        (dayToSlotNumber $ ct_SD t) 
+                withCollateral cont =
+                    receiveCollateral
+                        "counterparty"
+                        (collateralAmount t)
+                        (dayToSlotNumber $ ct_SD t)
                         cont
             in Success . withCollateral $ foldl (flip gen) Close cfs
 
@@ -193,21 +193,21 @@ genFsContract terms =
                     $ stateTransitionFs ev terms t prevDate (cashCalculationDay cf)
                     $ Let (payoffAt t) (fromMaybe (constnt 0.0) pof)
                     $ if isNothing pof then cont
-                    else if  r > 0.0   then 
-                        invoice 
-                            "party" 
-                            "counterparty" 
-                            (UseValue $ payoffAt t) 
+                    else if  r > 0.0   then
+                        invoice
+                            "party"
+                            "counterparty"
+                            (UseValue $ payoffAt t)
                             (Constant 0)
-                            date 
+                            date
                             cont
-                    else                    
-                        invoice 
-                            "counterparty" 
-                            "party" 
-                            (NegValue $ UseValue $ payoffAt t) 
+                    else
+                        invoice
+                            "counterparty"
+                            "party"
+                            (NegValue $ UseValue $ payoffAt t)
                             (Constant $ collateralAmount terms)
-                            date 
+                            date
                             cont
                     where pof = payoffFs ev terms t (t - 1) prevDate (cashCalculationDay cf)
                 scheduleAcc = foldr gen (postProcess Close) $

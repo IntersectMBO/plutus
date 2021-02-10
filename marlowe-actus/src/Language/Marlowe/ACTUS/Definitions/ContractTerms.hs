@@ -144,67 +144,67 @@ data Assertion = NpvAssertionAgainstZeroRiskBond
 
 
 data ContractTerms = ContractTerms {
-  contractId     :: String
-  , contractType :: Maybe ContractType
-  , ct_IED       :: Day -- Initial Exchange Date
-  , ct_SD        :: Day -- start date
-  , ct_MD        :: Maybe Day -- maturity date
-  , ct_TD        :: Maybe Day -- termination date
-  , ct_PRNXT     :: Maybe Double -- periodic payment amount
-  , ct_PRD       :: Maybe Day -- purchase date
-  , ct_CNTRL     :: ContractRole
-  , ct_PDIED     :: Double -- Premium / Discount At IED
-  , ct_NT        :: Maybe Double -- Notional
-  , ct_PPRD      :: Maybe Double -- Price At Purchase Date
-  , ct_PTD       :: Maybe Double -- Price At Termination Date
-  , ct_DCC       :: DCC -- Date Count Convention
-  , ct_PREF      :: PREF -- allow PP
-  , ct_PRF       :: ContractStatus
-  , scfg         :: ScheduleConfig
+  contractId         :: String
+  , contractType     :: Maybe ContractType
+  , ct_IED           :: Day -- Initial Exchange Date
+  , ct_SD            :: Day -- start date
+  , ct_MD            :: Maybe Day -- maturity date
+  , ct_TD            :: Maybe Day -- termination date
+  , ct_PRNXT         :: Maybe Double -- periodic payment amount
+  , ct_PRD           :: Maybe Day -- purchase date
+  , ct_CNTRL         :: ContractRole
+  , ct_PDIED         :: Double -- Premium / Discount At IED
+  , ct_NT            :: Maybe Double -- Notional
+  , ct_PPRD          :: Maybe Double -- Price At Purchase Date
+  , ct_PTD           :: Maybe Double -- Price At Termination Date
+  , ct_DCC           :: DCC -- Date Count Convention
+  , ct_PREF          :: PREF -- allow PP
+  , ct_PRF           :: ContractStatus
+  , scfg             :: ScheduleConfig
   -- Penalties
-  , ct_PYRT      :: Double -- Penalty Rate
-  , ct_PYTP      :: PYTP -- Penalty Type
-  , ct_cPYRT     :: Double
+  , ct_PYRT          :: Double -- Penalty Rate
+  , ct_PYTP          :: PYTP -- Penalty Type
+  , ct_cPYRT         :: Double
   -- Optionality
-  , ct_OPCL      :: Maybe Cycle
-  , ct_OPANX     :: Maybe Day
+  , ct_OPCL          :: Maybe Cycle
+  , ct_OPANX         :: Maybe Day
   -- Scaling:
-  , ct_SCIED     :: Double
-  , ct_SCEF      :: SCEF
-  , ct_SCCL      :: Maybe Cycle
-  , ct_SCANX     :: Maybe Day
-  , ct_SCIXSD    :: Double
+  , ct_SCIED         :: Double
+  , ct_SCEF          :: SCEF
+  , ct_SCCL          :: Maybe Cycle
+  , ct_SCANX         :: Maybe Day
+  , ct_SCIXSD        :: Double
   -- Rate Reset
-  , ct_RRCL      :: Maybe Cycle
-  , ct_RRANX     :: Maybe Day
-  , ct_RRNXT     :: Maybe Double -- next reset date
-  , ct_RRSP      :: Double
-  , ct_RRMLT     :: Double
-  , ct_RRPF      :: Double
-  , ct_RRPC      :: Double
-  , ct_RRLC      :: Double
-  , ct_RRLF      :: Double
+  , ct_RRCL          :: Maybe Cycle
+  , ct_RRANX         :: Maybe Day
+  , ct_RRNXT         :: Maybe Double -- next reset date
+  , ct_RRSP          :: Double
+  , ct_RRMLT         :: Double
+  , ct_RRPF          :: Double
+  , ct_RRPC          :: Double
+  , ct_RRLC          :: Double
+  , ct_RRLF          :: Double
   -- Interest
-  , ct_IPCED     :: Maybe Day
-  , ct_IPCL      :: Maybe Cycle
-  , ct_IPANX     :: Maybe Day
-  , ct_IPNR      :: Maybe Double
-  , ct_IPAC      :: Maybe Double
-  , ct_PRCL      :: Maybe Cycle
-  , ct_PRANX     :: Maybe Day
-  , ct_IPCB      :: Maybe IPCB   -- Interest calc base
-  , ct_IPCBA     :: Maybe Double -- Amount used for interest calculation
-  , ct_IPCBCL    :: Maybe Cycle  -- Cycle of interest calculation base
-  , ct_IPCBANX   :: Maybe Day   -- Anchor of interest calc base cycle
+  , ct_IPCED         :: Maybe Day
+  , ct_IPCL          :: Maybe Cycle
+  , ct_IPANX         :: Maybe Day
+  , ct_IPNR          :: Maybe Double
+  , ct_IPAC          :: Maybe Double
+  , ct_PRCL          :: Maybe Cycle
+  , ct_PRANX         :: Maybe Day
+  , ct_IPCB          :: Maybe IPCB   -- Interest calc base
+  , ct_IPCBA         :: Maybe Double -- Amount used for interest calculation
+  , ct_IPCBCL        :: Maybe Cycle  -- Cycle of interest calculation base
+  , ct_IPCBANX       :: Maybe Day   -- Anchor of interest calc base cycle
   -- Fee
-  , ct_FECL      :: Maybe Cycle
-  , ct_FEANX     :: Maybe Day
-  , ct_FEAC      :: Maybe Double
-  , ct_FEB       :: FEB  -- fee basis
-  , ct_FER       :: Double -- fee rate
+  , ct_FECL          :: Maybe Cycle
+  , ct_FEANX         :: Maybe Day
+  , ct_FEAC          :: Maybe Double
+  , ct_FEB           :: FEB  -- fee basis
+  , ct_FER           :: Double -- fee rate
   -- enable settlement currency
-  , ct_CURS      :: Bool
-  , constraints  :: Maybe Assertions
+  , ct_CURS          :: Bool
+  , constraints      :: Maybe Assertions
   , collateralAmount :: Integer
   }
   deriving stock (Show, Generic)
