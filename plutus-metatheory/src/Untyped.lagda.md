@@ -55,6 +55,9 @@ data _⊢ n : Set where
   con     : TermCon → n ⊢
   builtin : (b : Builtin) → n ⊢
   error   : n ⊢
+
+variable
+  n m o : ℕ
 ```
 
 ## Ugly printing for debugging
@@ -84,7 +87,8 @@ postulate showNat : ℕ → String
 uglyBuiltin : Builtin → String
 uglyBuiltin addInteger = "addInteger"
 uglyBuiltin _ = "other"
-ugly : ∀{n} → n  ⊢ → String
+
+ugly : n ⊢ → String
 ugly (` x) = "(` " +++ uglyFin x +++ ")"
 ugly (ƛ t) = "(ƛ " +++ ugly t +++ ")"
 ugly (t · u) = "( " +++ ugly t +++ " · " +++ ugly u +++ ")"
@@ -119,7 +123,7 @@ data Untyped : Set where
 ## Scope checking
 
 ```
-extricateU : ∀{n} → n ⊢ → Untyped
+extricateU : n ⊢ → Untyped
 extricateU (con c) = UCon c
 extricateU (` x) = UVar (Data.Fin.toℕ x)
 extricateU (ƛ t) = ULambda (extricateU t)
@@ -129,12 +133,12 @@ extricateU (delay t) = UDelay (extricateU t)
 extricateU (builtin b) = UBuiltin b
 extricateU error = UError
 
-ℕtoFin : ∀{n} → ℕ → Either ScopeError (Fin n)
+ℕtoFin : ℕ → Either ScopeError (Fin n)
 ℕtoFin {zero}  _       = inj₁ deBError
 ℕtoFin {suc m} zero    = return zero
 ℕtoFin {suc m} (suc n) = fmap suc (ℕtoFin n)
 
-scopeCheckU : ∀{n} → Untyped → Either ScopeError (n ⊢)
+scopeCheckU : Untyped → Either ScopeError (n ⊢)
 scopeCheckU (UVar x)     = fmap ` (ℕtoFin x)
 scopeCheckU (ULambda t)  = fmap ƛ (scopeCheckU t)
 scopeCheckU (UApp t u)   = do
