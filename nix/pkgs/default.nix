@@ -21,7 +21,7 @@ let
 
   # The git revision comes from `rev` if available (Hydra), otherwise
   # it is read using IFD and git, which is avilable on local builds.
-  git-rev = if isNull rev then iohkNix.commitIdFromGitRepo ../../.git else rev;
+  git-rev = if isNull rev then pkgs.lib.commitIdFromGitRepo ../../.git else rev;
 
   # { index-state, project, projectPackages, packages, muslProject, muslPackages, extraPackages }
   haskell = pkgs.callPackage ./haskell {
