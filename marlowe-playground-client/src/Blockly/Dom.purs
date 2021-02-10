@@ -12,31 +12,52 @@
 -- We can use the following Marlowe contract and it's XML representation to understand the
 -- different constructors we expose.
 --
--- Let
---     "value"
---     (Constant 0)
---     (When
---         []
---         10 Close
---     )
+-- When
+--   [ Case (Notify TrueObs ) Close
+--   , Case
+--       (Choice
+--         (ChoiceId "name" (Role "role") )
+--         [(Bound 0 0)]
+--       ) Close
+--   ]
+--   0 Close
 --
 -- <xml>
 --     <block type="BaseContractType" id="root_contract" deletable="false" x="13" y="187">
 --         <statement name="BaseContractType">
---             <block type="LetContractType" id="B,h$QnT-yvh}n$mayQ(G">
---                 <field name="value_id">value</field>
---                 <value name="value">
---                     <block type="ConstantValueType" id="+wL`m?B;F`DCz#TQp?y)">
---                         <field name="constant">0</field>
---                     </block>
---                 </value>
---                 <statement name="contract">
---                     <block type="WhenContractType" id="LA$!CNdK@V{WOo,R2$re">
---                         <field name="timeout">10</field>
+--             <block type="WhenContractType" id="yy!Q^=B5;V_Sk@546gjk">
+--                 <field name="timeout">0</field>
+--                 <statement name="case">
+--                     <block type="NotifyActionType" id=":!;w+=o^v3QU%M+zAaI^">
+--                         <value name="observation">
+--                             <block type="TrueObservationType" id="@}aK]jjhxi=2LLj*5g}."></block>
+--                         </value>
 --                         <statement name="contract">
---                             <block type="CloseContractType" id=";FLEJsyB3D;Hj%vS]SY]"></block>
+--                             <block type="CloseContractType" id="Yd_ab!Vtyb88H@?Eqj9E"></block>
 --                         </statement>
+--                         <next>
+--                             <block type="ChoiceActionType" id=")z[fYD/@_GoEtKS}/48t">
+--                                 <field name="choice_name">name</field>
+--                                 <value name="party">
+--                                     <block type="RolePartyType" id="`blYZ~JOFle+tRT_@;KS">
+--                                         <field name="role">role</field>
+--                                     </block>
+--                                 </value>
+--                                 <statement name="bounds">
+--                                     <block type="BoundsType" id="5x$vp,OGm^;CWEYL;l_u">
+--                                         <field name="from">0</field>
+--                                         <field name="to">0</field>
+--                                     </block>
+--                                 </statement>
+--                                 <statement name="contract">
+--                                     <block type="CloseContractType" id="VkYy9=B7eZ/AZAd@6jr)"></block>
+--                                 </statement>
+--                             </block>
+--                         </next>
 --                     </block>
+--                 </statement>
+--                 <statement name="contract">
+--                     <block type="CloseContractType" id="dzm~uz;1}9ZF,+L^UbCX"></block>
 --                 </statement>
 --             </block>
 --         </statement>
@@ -52,16 +73,18 @@ import Control.Monad.Except (runExceptT, throwError)
 import Control.Monad.Except.Trans (class MonadThrow)
 import Data.Array (find, length)
 import Data.Array.Partial as UnsafeArray
+import Data.Compactable (separate)
 import Data.Either (Either(..), note')
 import Data.Foldable (fold)
 import Data.Generic.Rep (class Generic)
-import Data.Lens (Lens', view)
+import Data.Lens (Lens', _1, view)
 import Data.Lens.Iso.Newtype (_Newtype)
 import Data.Lens.Record (prop)
 import Data.Maybe (Maybe(..), maybe')
 import Data.Newtype (class Newtype)
 import Data.Symbol (SProxy(..))
 import Data.Traversable (traverse)
+import Data.Tuple (Tuple(..))
 import Debug.Trace (spy)
 import Effect (Effect)
 import Effect.Class (class MonadEffect, liftEffect)
@@ -105,14 +128,14 @@ data BlockChildren
   -- example "by", "the amount of" and "currency" in the Deposit block
   | BcValue String Block
   -- A BcStatement also has a `name` and a `value`.
-  -- It is visually represented as the pluggable insides of a block. For example the contract inside
+  -- It is visually represented as the pluggable elements insides of a block. For example the contract inside
   -- the root block or the Actions inside of a When block.
-  | BcStatement String Block
-  -- When a statement element has multiple children, for example the when clause. Instead of having an
-  -- array of blocks, it represents it with a "next" element in the children.
-  -- FIXME: I should probably change the representation of the BcStatement to be an arary and "complicate"
-  --       the reading of the blocks, rather than later the parsing of the interpretation.
-  | BcNext Block
+  -- We represent the statement children as an Array of Blocks, but as you can see in the XML top level example,
+  -- each `<statement>` has a single block child, and siblings are represented by a `<next>` node, nested inside.
+  -- In the initial version of this module, Next was a BlockChildren constructor, making it easier to parse the
+  -- XML, but knowing that it would complicate the translation to Term, I decided to flatten the statement's childs
+  -- while parsing.
+  | BcStatement String (Array Block)
 
 -- FIXME: Show only for dev, remove
 derive instance genericBlockChildren :: Generic BlockChildren _
@@ -126,6 +149,7 @@ data ReadDomError
   | MissingProperty Element String
   | SingleChildExpected Element Int
   | RootElementNotFound String
+  | IncorrectSiblingNesting String
 
 -- TODO: Change signature to Effect String and traverse the parents of the element to provide error location information.
 explainError :: ReadDomError -> String
@@ -137,20 +161,31 @@ explainError (SingleChildExpected element elementCount) = "Element was expected 
 
 explainError (RootElementNotFound rootBlockName) = "The element with id " <> show rootBlockName <> " was not found."
 
+explainError (IncorrectSiblingNesting node) = "Incorrect <next> element found outside the scope of a <statement> and inside of a " <> node <> " node"
+
+-- | Read and parse the DOM nodes of a blockly workspace.
 getDom :: Blockly -> Workspace -> String -> Effect (Either ReadDomError Block)
-getDom blockly workspace rootBlockName = do
-  rootElement <- spy "xml?" <$> workspaceToDom blockly workspace
-  if Element.tagName rootElement /= "xml" then
-    pure $ Left $ TypeMismatch rootElement "xml"
-  else
-    runExceptT do
+getDom blockly workspace rootBlockId =
+  runExceptT do
+    rootElement <- liftEffect $ spy "xml?" <$> workspaceToDom blockly workspace
+    if Element.tagName rootElement /= "xml" then
+      throwError $ TypeMismatch rootElement "xml"
+    else do
+      -- The workspace can have many elements at the top level, we parse them all
+      -- but only return the one that has the same id as rootBlockId
       childrens <- getChildrens rootElement
       blocks <- traverse readAsBlock childrens
-      case find (eq rootBlockName <<< view _id) blocks of
-        Nothing -> throwError $ RootElementNotFound rootBlockName
-        Just block -> pure block
+      case find (eq rootBlockId <<< view (_1 <<< _id)) blocks of
+        Nothing -> throwError $ RootElementNotFound rootBlockId
+        Just (Tuple block nexts) ->
+          if length nexts /= 0 then
+            throwError $ IncorrectSiblingNesting "root"
+          else
+            pure block
   where
-  readAsBlock :: forall m. MonadEffect m => MonadThrow ReadDomError m => Element -> m Block
+  -- Tries to read an Element as a Block node. It returns a tuple with the parsed Block and an Array of Block's which
+  -- are the parsed <next> elements which represent the siblings of a parent Statement.
+  readAsBlock :: forall m. MonadEffect m => MonadThrow ReadDomError m => Element -> m (Tuple Block (Array Block))
   readAsBlock element =
     if Element.tagName element /= "block" then
       throwError $ TypeMismatch element "block"
@@ -159,34 +194,40 @@ getDom blockly workspace rootBlockName = do
       blockType <- getAttribute "type" element
       elementChildren <- getChildrens element
       children <- traverse readAsBlockChild elementChildren
+      let
+        { left, right } = separate children
       pure
-        $ Block
-            { id: blockId
-            , type: blockType
-            , children
-            }
+        $ Tuple
+            (Block { id: blockId, type: blockType, children: left })
+            (join right)
 
-  readAsBlockChild :: forall m. MonadEffect m => MonadThrow ReadDomError m => Element -> m BlockChildren
+  -- Tries to read an Element as the children of a Block node. The Left hand side of the return represents a Block direct children
+  -- while the Right hand side represents the parsed `<next>` elements which should be appended to a parents Statement.
+  readAsBlockChild :: forall m. MonadEffect m => MonadThrow ReadDomError m => Element -> m (Either BlockChildren (Array Block))
   readAsBlockChild element = do
     case Element.tagName element of
       "field" -> do
         name <- getAttribute "name" element
         value <- getElementText element
-        pure $ BcField name value
+        pure $ Left $ BcField name value
       "statement" -> do
         name <- getAttribute "name" element
         child <- getSingleChild element
-        value <- readAsBlock child
-        pure $ BcStatement name value
+        Tuple block nexts <- readAsBlock child
+        pure $ Left $ BcStatement name ([ block ] <> nexts)
       "value" -> do
         name <- getAttribute "name" element
         child <- getSingleChild element
-        value <- readAsBlock child
-        pure $ BcValue name value
+        Tuple block nexts <- readAsBlock child
+        -- Even if a value can have a Block appended, it should have a single block child and no "siblings"
+        if length nexts /= 0 then
+          throwError $ IncorrectSiblingNesting "value"
+        else
+          pure $ Left $ BcValue name block
       "next" -> do
         child <- getSingleChild element
-        value <- readAsBlock child
-        pure $ BcNext value
+        Tuple block nexts <- readAsBlock child
+        pure $ Right ([ block ] <> nexts)
       _ -> throwError $ TypeMismatch element "field, statement, value, next"
 
   getSingleChild :: forall m. MonadEffect m => MonadThrow ReadDomError m => Element -> m Element

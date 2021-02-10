@@ -172,6 +172,12 @@ let additions =
           , repo = "https://github.com/Proclivis/purescript-numerics"
           , version = "v0.1.2"
           }
+      , filterable =
+          { dependencies =
+            [ "arrays" , "either" , "foldable-traversable" , "identity" , "lists" , "ordered-collections" ]
+          , repo = "https://github.com/LiamGoodacre/purescript-filterable"
+          , version = "v3.0.1"
+          }
       }
 
 in  upstream ⫽ overrides ⫽ additions
