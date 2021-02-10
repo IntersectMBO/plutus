@@ -14,11 +14,10 @@ import           Control.Monad.Freer.Extra.Log
 import           Control.Monad.Freer.Extra.State
 import           Control.Monad.Freer.State
 import           Control.Monad.Freer.TH          (makeEffect)
-import           Data.Text.Prettyprint.Doc       (Pretty (..), (<+>))
 
 import qualified Data.Map                        as Map
 
-import           Cardano.Node.Types              (FollowerID, NodeFollowerState, _NodeFollowerState)
+import           Cardano.Node.Types
 import           Ledger                          (Block, Slot)
 import           Wallet.Emulator.Chain           (ChainState)
 import qualified Wallet.Emulator.Chain           as Chain
@@ -30,20 +29,6 @@ data NodeFollowerEffect r where
 
 makeEffect ''NodeFollowerEffect
 
-data NodeFollowerLogMsg =
-    NewFollowerId FollowerID
-    | GetBlocksFor FollowerID
-    | LastBlock Int
-    | NewLastBlock Int
-    | GetCurrentSlot Slot
-
-instance Pretty NodeFollowerLogMsg where
-    pretty  = \case
-        NewFollowerId newID -> "New follower ID:" <+> pretty newID
-        GetBlocksFor i      -> "Get blocks for" <+> pretty i
-        LastBlock i         -> "Last block:" <+> pretty i
-        NewLastBlock i      -> "New last block:" <+> pretty i
-        GetCurrentSlot s    -> "Get current slot:" <+> pretty s
 
 handleNodeFollower ::
     ( Member (State ChainState) effs

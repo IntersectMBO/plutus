@@ -14,7 +14,7 @@ import           Control.Monad.IO.Class
 import           Data.Foldable                  (traverse_)
 
 import qualified Cardano.Node.Follower          as NF
-import qualified Cardano.Node.Types             as NT
+import           Cardano.Node.Types
 import qualified Cardano.Protocol.Socket.Client as Client
 import           Ledger                         (Block)
 import           Wallet.Emulator.Chain          (ChainState (..), addBlock)
@@ -23,9 +23,9 @@ import           Wallet.Emulator.Chain          (ChainState (..), addBlock)
      a follower effect. -}
 handleNodeFollower
   :: ( Member (State ChainState) effs
-     , Member (State NT.NodeFollowerState) effs
+     , Member (State NodeFollowerState) effs
      , Member (Reader Client.ClientHandler) effs
-     , Member (LogMsg NF.NodeFollowerLogMsg) effs
+     , Member (LogMsg NodeFollowerLogMsg) effs
      , LastMember m effs
      , MonadIO m
      )
