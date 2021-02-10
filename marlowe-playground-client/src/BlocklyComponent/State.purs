@@ -1,32 +1,31 @@
 module BlocklyComponent.State where
 
 import Prelude hiding (div)
-import Blockly.Generator (blockToCode, newBlock)
-import Blockly.Internal (BlockDefinition, ElementId(..), getBlockById)
+import Blockly.Dom (explainError, getDom)
+import Blockly.Generator (newBlock)
+import Blockly.Internal (BlockDefinition, ElementId(..))
 import Blockly.Internal as Blockly
 import BlocklyComponent.Types (Action(..), Message(..), Query(..), State, _blocklyEventSubscription, _blocklyState, _errorMessage, _generator, emptyState)
 import BlocklyComponent.View (render)
-import Control.Monad.Except (ExceptT(..), except, lift, runExceptT)
-import Data.Bifunctor (lmap, rmap)
+import Control.Monad.Except (ExceptT(..), except, runExceptT)
+import Data.Bifunctor (lmap)
 import Data.Either (Either(..), either, note)
 import Data.Lens (assign, set, use)
 import Data.Maybe (Maybe(..))
 import Data.Traversable (for, for_)
 import Data.Tuple (Tuple(..))
 import Data.Tuple.Nested ((/\))
-import Debug.Trace (spy)
 import Effect.Aff.Class (class MonadAff)
 import Halogen (Component, HalogenM, liftEffect, mkComponent, modify_)
 import Halogen as H
 import Halogen.BlocklyCommons (blocklyEvents, runWithoutEventSubscription, detectCodeChanges)
 import Halogen.HTML (HTML)
--- FIXME: The BlocklyComponent should probably be independent from Marlowe.x, as Actus is also a
---        posibility.
-import Marlowe.Blockly (blockToTerm, buildBlocks, buildGenerator)
+import Marlowe.Blockly (blockToContract, buildBlocks, buildGenerator)
 import Marlowe.Holes (Term(..), Location(..))
 import Marlowe.Parser as Parser
 import Prim.TypeError (class Warn, Text)
 import Text.Extra as Text
+import Text.Pretty (pretty)
 import Type.Proxy (Proxy(..))
 
 blockly ::
@@ -99,12 +98,11 @@ handleQuery (GetCode next) = do
     liftEffect
       $ runExceptT do
           { blockly, workspace, rootBlockName } <- except <<< (note $ unexpected "BlocklyState not set") $ mBlocklyState
-          generator <- except <<< (note $ unexpected "Generator not set") $ mGenerator
-          block <- ExceptT <<< map (note $ unexpected ("Can't find root block" <> rootBlockName)) $ getBlockById workspace rootBlockName
-          -- FIXME: This blockToTerm is different for Marlowe than for Actus... Need to check if
-          --        I need to make the component polymorphic or what.
-          void $ lift $ (spy "blockToTerm") <$> blockToTerm blockly workspace rootBlockName
-          ExceptT $ rmap (spy "blockToCode") <$> lmap unexpected <$> blockToCode block generator
+          -- FIXME: Eventually BlocklyComponent should return the Block representation defined in Blockly.Dom and it should be
+          --        the parents responsability to transform it to code. That way we dont need to specify which `blockToTerm` to use
+          --        and allow to share this component between Marlowe and Actus Blockly
+          block <- ExceptT $ lmap explainError <$> getDom blockly workspace rootBlockName
+          ExceptT $ pure $ show <<< pretty <$> blockToContract block
   case eCode of
     Left e -> do
       assign _errorMessage $ Just e

@@ -1,17 +1,21 @@
 module Marlowe.Blockly where
 
 import Prelude
-import Blockly.Dom (explainError, getDom)
+import Blockly.Dom as BDom
 import Blockly.Generator (Connection, Generator, Input, NewBlockFunction, clearWorkspace, connect, connectToOutput, connectToPrevious, fieldName, fieldRow, getBlockInputConnectedTo, getFieldValue, getInputWithName, getType, inputList, inputName, inputType, insertGeneratorFunction, mkGenerator, nextBlock, nextConnection, previousConnection, setFieldText, statementToCode)
 import Blockly.Internal (AlignDirection(..), Arg(..), BlockDefinition(..), block, blockType, category, colour, defaultBlockDefinition, getBlockById, initializeWorkspace, name, render, style, workspaceToDom, x, xml, y)
 import Blockly.Types (Block, Blockly, BlocklyState, Workspace)
 import Control.Alternative ((<|>))
-import Control.Monad.Except (ExceptT(..), runExceptT)
-import Data.Array (filter, head, uncons, (:))
+import Control.Monad.Error.Extra (toMonadThrow)
+import Control.Monad.Except (ExceptT(..), runExceptT, throwError)
+import Control.Monad.Except.Trans (class MonadThrow)
+import Data.Array (filter, head, length, uncons, (:))
 import Data.Array as Array
+import Data.Array.Partial as UnsafeArray
 import Data.Bifunctor (lmap, rmap)
-import Data.BigInteger (fromString)
-import Data.Either (Either, note)
+import Data.BigInteger (BigInteger, fromString)
+import Data.BigInteger as BigInteger
+import Data.Either (Either, either, note)
 import Data.Either as Either
 import Data.Enum (class BoundedEnum, class Enum, upFromIncluding)
 import Data.Foldable (for_)
@@ -21,17 +25,19 @@ import Data.Generic.Rep.Enum (genericCardinality, genericFromEnum, genericPred, 
 import Data.Generic.Rep.Eq (genericEq)
 import Data.Generic.Rep.Ord (genericCompare)
 import Data.Generic.Rep.Show (genericShow)
-import Data.Maybe (Maybe(..))
+import Data.Maybe (Maybe(..), maybe)
 import Data.Traversable (traverse, traverse_)
 import Data.Tuple (Tuple(..))
 import Debug.Trace (spy)
 import Effect (Effect)
 import Foreign.Generic (encode)
+import Foreign.Object as Object
 import Halogen.HTML (HTML)
 import Halogen.HTML.Properties (id_)
 import Marlowe.Holes (Action(..), Bound(..), Case(..), ChoiceId(..), Contract(..), Location(..), Observation(..), Party(..), Payee(..), Term(..), TermWrapper(..), Timeout(..), Token(..), Value(..), ValueId(..), mkDefaultTerm, mkDefaultTermWrapper)
 import Marlowe.Parser as Parser
 import Marlowe.Semantics (Rational(..))
+import Partial.Unsafe (unsafePartial)
 import Record (merge)
 import Text.Parsing.StringParser (Parser)
 import Text.Parsing.StringParser.Basic (parens, runParser')
@@ -1006,11 +1012,275 @@ toDefinition blockType@(ValueType UseValueValueType) =
 --
 -- Code generation
 --
-blockToTerm :: Blockly -> Workspace -> String -> Effect (Either String (Term Contract))
-blockToTerm blockly workspace rootBlockName =
-  runExceptT do
-    dom <- ExceptT $ rmap (spy "getDom result" <<< encode) <$> lmap explainError <$> getDom blockly workspace rootBlockName
-    ExceptT $ pure $ Either.Left "DOM interpretation not implemented"
+blockToContract :: BDom.Block -> Either String (Term Contract)
+blockToContract = blockToTerm
+
+class BlockToTerm a where
+  -- FIXME: once we remove the Generator, see if we can remove the BDom prefix
+  blockToTerm :: forall m. MonadThrow String m => BDom.Block -> m a
+
+getRequiredAttribute :: forall m. MonadThrow String m => String -> BDom.Block -> m BDom.BlockChild
+getRequiredAttribute attr (BDom.Block block) = case (Object.lookup attr block.children) of
+  Nothing -> throwError $ ("Block " <> show block.id <> " is missing required argument " <> show attr)
+  Just child -> pure child
+
+getAttribute :: forall a. String -> BDom.Block -> Either (Term a) BDom.BlockChild
+getAttribute attr (BDom.Block block) = case Object.lookup attr block.children of
+  -- TODO: Could be replaced with note'
+  Nothing -> Either.Left $ Hole attr Proxy (BlockId block.id)
+  Just child -> Either.Right child
+
+asStatement :: forall m. MonadThrow String m => BDom.BlockChild -> m (Array BDom.Block)
+asStatement child = case child of
+  BDom.Statement blocks -> pure blocks
+  -- FIXME: We are loosing the ability to showcase where the error occurred. Probably we should change the type of
+  --        error from String to something more elaborate and allow errors to be nested and pretty printed.
+  -- _ -> throwError $ "Attribute " <> show attr <> " from block " <> show block.id <> " should be a statement."
+  _ -> throwError $ "Attribute should be of type statement."
+
+asValue :: forall m. MonadThrow String m => BDom.BlockChild -> m BDom.Block
+asValue child = case child of
+  BDom.Value block -> pure block
+  -- FIXME: We are loosing the ability to showcase where the error occurred. Probably we should change the type of
+  --        error from String to something more elaborate and allow errors to be nested and pretty printed.
+  -- _ -> throwError $ "Attribute " <> show attr <> " from block " <> show block.id <> " should be a statement."
+  _ -> throwError $ "Attribute should be of type value."
+
+asField :: forall m. MonadThrow String m => BDom.BlockChild -> m String
+asField child = case child of
+  BDom.Field text -> pure text
+  _ -> throwError $ "Attribute should be of type field."
+
+asBigInteger :: forall m. MonadThrow String m => String -> m BigInteger
+asBigInteger str = toMonadThrow $ note ("Could not convert value " <> show str <> " to BigInteger") (BigInteger.fromString str)
+
+asSingleStatement :: forall m. MonadThrow String m => BDom.BlockChild -> m BDom.Block
+asSingleStatement child = do
+  statements <- asStatement child
+  if length statements /= 1 then
+    -- FIXME: We are loosing the ability to showcase where the error occurred. Probably we should change the type of
+    --        error from String to something more elaborate and allow errors to be nested and pretty printed.
+    -- throwError $ "Block " <> show block.id <> " was supposed to have a single statement, and it had " <> show (length statements)
+    throwError $ "Block was supposed to have a single statement, and it had " <> show (length statements)
+  else
+    pure $ unsafePartial $ UnsafeArray.head statements
+
+invalidBlock :: BDom.Block -> String -> String
+invalidBlock (BDom.Block block) expectedType = "Block with id " <> show block.id <> " and type " <> show block.type <> " is not a valid " <> expectedType <> " type."
+
+instance blockToTermContract :: BlockToTerm (Term Contract) where
+  blockToTerm b@(BDom.Block { type: "BaseContractType" }) = either pure (blockToTerm <=< asSingleStatement) (getAttribute "BaseContractType" b)
+  blockToTerm (BDom.Block { type: "CloseContractType", id }) = pure $ Term Close (BlockId id)
+  blockToTerm b@(BDom.Block { type: "PayContractType", id }) = do
+    accountOwner <- either pure (blockToTerm <=< asValue) (getAttribute "party" b)
+    payee <- either pure (blockToTerm <=< asValue) (getAttribute "payee" b)
+    token <- either pure (blockToTerm <=< asValue) (getAttribute "token" b)
+    value <- either pure (blockToTerm <=< asValue) (getAttribute "value" b)
+    contract <- either pure (blockToTerm <=< asSingleStatement) (getAttribute "contract" b)
+    pure $ Term (Pay accountOwner payee token value contract) (BlockId id)
+  blockToTerm b@(BDom.Block { type: "IfContractType", id }) = do
+    observation <- either pure (blockToTerm <=< asValue) (getAttribute "observation" b)
+    contract1 <- either pure (blockToTerm <=< asSingleStatement) (getAttribute "contract1" b)
+    contract2 <- either pure (blockToTerm <=< asSingleStatement) (getAttribute "contract2" b)
+    pure $ Term (If observation contract1 contract2) (BlockId id)
+  blockToTerm b@(BDom.Block { type: "WhenContractType", id, children }) = do
+    timeoutField <- asField =<< getRequiredAttribute "timeout" b
+    cases <-
+      maybe
+        (pure [])
+        (traverse blockToTerm <=< asStatement)
+        (Object.lookup "case" children)
+    let
+      location = (BlockId id)
+
+      timeout = case BigInteger.fromString timeoutField of
+        Just slotNumber -> Term (Slot slotNumber) location
+        Nothing -> Term (SlotParam timeoutField) location
+    contract <- either pure (blockToTerm <=< asSingleStatement) (getAttribute "contract" b)
+    pure $ Term (When cases timeout contract) location
+  blockToTerm b@(BDom.Block { type: "LetContractType", id }) = do
+    valueId <- asField =<< getRequiredAttribute "value_id" b
+    value <- either pure (blockToTerm <=< asValue) (getAttribute "value" b)
+    contract <- either pure (blockToTerm <=< asSingleStatement) (getAttribute "contract" b)
+    let
+      location = (BlockId id)
+
+      valueIdTerm = (TermWrapper (ValueId valueId) location)
+    pure $ Term (Let valueIdTerm value contract) location
+  blockToTerm b@(BDom.Block { type: "AssertContractType", id }) = do
+    contract <- either pure (blockToTerm <=< asSingleStatement) (getAttribute "contract" b)
+    observation <- either pure (blockToTerm <=< asValue) (getAttribute "observation" b)
+    pure $ Term (Assert observation contract) (BlockId id)
+  blockToTerm block = throwError $ invalidBlock block "Contract"
+
+instance blockToTermObservation :: BlockToTerm (Term Observation) where
+  blockToTerm b@(BDom.Block { type: "AndObservationType", id }) = do
+    observation1 <- either pure (blockToTerm <=< asValue) (getAttribute "observation1" b)
+    observation2 <- either pure (blockToTerm <=< asValue) (getAttribute "observation2" b)
+    pure $ Term (AndObs observation1 observation2) (BlockId id)
+  blockToTerm b@(BDom.Block { type: "OrObservationType", id }) = do
+    observation1 <- either pure (blockToTerm <=< asValue) (getAttribute "observation1" b)
+    observation2 <- either pure (blockToTerm <=< asValue) (getAttribute "observation2" b)
+    pure $ Term (OrObs observation1 observation2) (BlockId id)
+  blockToTerm b@(BDom.Block { type: "NotObservationType", id }) = do
+    observation <- either pure (blockToTerm <=< asValue) (getAttribute "observation" b)
+    pure $ Term (NotObs observation) (BlockId id)
+  blockToTerm b@(BDom.Block { type: "ChoseSomethingObservationType", id }) = do
+    party <- either pure (blockToTerm <=< asValue) (getAttribute "party" b)
+    choiceName <- asField =<< getRequiredAttribute "choice_name" b
+    let
+      choice = ChoiceId choiceName party
+    pure $ Term (ChoseSomething choice) (BlockId id)
+  blockToTerm b@(BDom.Block { type: "ValueGEObservationType", id }) = do
+    value1 <- either pure (blockToTerm <=< asValue) (getAttribute "value1" b)
+    value2 <- either pure (blockToTerm <=< asValue) (getAttribute "value2" b)
+    pure $ Term (ValueGE value1 value2) (BlockId id)
+  blockToTerm b@(BDom.Block { type: "ValueGTObservationType", id }) = do
+    value1 <- either pure (blockToTerm <=< asValue) (getAttribute "value1" b)
+    value2 <- either pure (blockToTerm <=< asValue) (getAttribute "value2" b)
+    pure $ Term (ValueGT value1 value2) (BlockId id)
+  blockToTerm b@(BDom.Block { type: "ValueLTObservationType", id }) = do
+    value1 <- either pure (blockToTerm <=< asValue) (getAttribute "value1" b)
+    value2 <- either pure (blockToTerm <=< asValue) (getAttribute "value2" b)
+    pure $ Term (ValueLT value1 value2) (BlockId id)
+  blockToTerm b@(BDom.Block { type: "ValueLEObservationType", id }) = do
+    value1 <- either pure (blockToTerm <=< asValue) (getAttribute "value1" b)
+    value2 <- either pure (blockToTerm <=< asValue) (getAttribute "value2" b)
+    pure $ Term (ValueLE value1 value2) (BlockId id)
+  blockToTerm b@(BDom.Block { type: "ValueEQObservationType", id }) = do
+    value1 <- either pure (blockToTerm <=< asValue) (getAttribute "value1" b)
+    value2 <- either pure (blockToTerm <=< asValue) (getAttribute "value2" b)
+    pure $ Term (ValueEQ value1 value2) (BlockId id)
+  blockToTerm (BDom.Block { type: "TrueObservationType", id }) = pure $ Term TrueObs (BlockId id)
+  blockToTerm (BDom.Block { type: "FalseObservationType", id }) = pure $ Term FalseObs (BlockId id)
+  blockToTerm block = throwError $ invalidBlock block "Observation"
+
+instance blockToTermValue :: BlockToTerm (Term Value) where
+  blockToTerm b@(BDom.Block { type: "AvailableMoneyValueType", id }) = do
+    party <- either pure (blockToTerm <=< asValue) (getAttribute "party" b)
+    token <- either pure (blockToTerm <=< asValue) (getAttribute "token" b)
+    pure $ Term (AvailableMoney party token) (BlockId id)
+  blockToTerm b@(BDom.Block { type: "ConstantValueType", id }) = do
+    constant <- asBigInteger =<< asField =<< getRequiredAttribute "constant" b
+    pure $ Term (Constant constant) (BlockId id)
+  blockToTerm b@(BDom.Block { type: "ConstantParamValueType", id }) = do
+    paramName <- asField =<< getRequiredAttribute "paramName" b
+    pure $ Term (ConstantParam paramName) (BlockId id)
+  blockToTerm b@(BDom.Block { type: "NegValueValueType", id }) = do
+    value <- either pure (blockToTerm <=< asValue) (getAttribute "value" b)
+    pure $ Term (NegValue value) (BlockId id)
+  blockToTerm b@(BDom.Block { type: "AddValueValueType", id }) = do
+    value1 <- either pure (blockToTerm <=< asValue) (getAttribute "value1" b)
+    value2 <- either pure (blockToTerm <=< asValue) (getAttribute "value2" b)
+    pure $ Term (AddValue value1 value2) (BlockId id)
+  blockToTerm b@(BDom.Block { type: "SubValueValueType", id }) = do
+    value1 <- either pure (blockToTerm <=< asValue) (getAttribute "value1" b)
+    value2 <- either pure (blockToTerm <=< asValue) (getAttribute "value2" b)
+    pure $ Term (SubValue value1 value2) (BlockId id)
+  blockToTerm b@(BDom.Block { type: "MulValueValueType", id }) = do
+    value1 <- either pure (blockToTerm <=< asValue) (getAttribute "value1" b)
+    value2 <- either pure (blockToTerm <=< asValue) (getAttribute "value2" b)
+    pure $ Term (MulValue value1 value2) (BlockId id)
+  blockToTerm b@(BDom.Block { type: "ScaleValueType", id }) = do
+    numerator <- asBigInteger =<< asField =<< getRequiredAttribute "numerator" b
+    denominator <- asBigInteger =<< asField =<< getRequiredAttribute "denominator" b
+    value <- either pure (blockToTerm <=< asValue) (getAttribute "value" b)
+    let
+      location = (BlockId id)
+
+      rational = TermWrapper (Rational numerator denominator) location
+    pure $ Term (Scale rational value) location
+  blockToTerm b@(BDom.Block { type: "ChoiceValueValueType", id }) = do
+    choiceName <- asField =<< getRequiredAttribute "choice_name" b
+    party <- either pure (blockToTerm <=< asValue) (getAttribute "party" b)
+    pure $ Term (ChoiceValue (ChoiceId choiceName party)) (BlockId id)
+  blockToTerm b@(BDom.Block { type: "SlotIntervalStartValueType", id }) = pure $ Term SlotIntervalStart (BlockId id)
+  blockToTerm b@(BDom.Block { type: "SlotIntervalEndValueType", id }) = pure $ Term SlotIntervalEnd (BlockId id)
+  blockToTerm b@(BDom.Block { type: "UseValueValueType", id }) = do
+    valueId <- asField =<< getRequiredAttribute "value_id" b
+    let
+      location = (BlockId id)
+
+      value = TermWrapper (ValueId valueId) location
+    pure $ Term (UseValue value) location
+  blockToTerm b@(BDom.Block { type: "CondObservationValueValueType", id }) = do
+    condition <- either pure (blockToTerm <=< asValue) (getAttribute "condition" b)
+    thenVal <- either pure (blockToTerm <=< asValue) (getAttribute "then" b)
+    elseVal <- either pure (blockToTerm <=< asValue) (getAttribute "else" b)
+    pure $ Term (Cond condition thenVal elseVal) (BlockId id)
+  blockToTerm block = throwError $ invalidBlock block "Value"
+
+instance blockToTermCase :: BlockToTerm (Term Case) where
+  blockToTerm b@(BDom.Block { type: "DepositActionType", id }) = do
+    by <- either pure (blockToTerm <=< asValue) (getAttribute "from_party" b)
+    intoAccountOf <- either pure (blockToTerm <=< asValue) (getAttribute "party" b)
+    token <- either pure (blockToTerm <=< asValue) (getAttribute "token" b)
+    value <- either pure (blockToTerm <=< asValue) (getAttribute "value" b)
+    contract <- either pure (blockToTerm <=< asSingleStatement) (getAttribute "contract" b)
+    let
+      location = (BlockId id)
+
+      action = Term (Deposit intoAccountOf by token value) location
+    pure $ Term (Case action contract) location
+  blockToTerm b@(BDom.Block { type: "ChoiceActionType", id, children }) = do
+    choiceName <- asField =<< getRequiredAttribute "choice_name" b
+    party <- either pure (blockToTerm <=< asValue) (getAttribute "party" b)
+    -- FIXME: This is the same pattern as the cases in the When clause. Refactor
+    bounds <-
+      maybe
+        (pure [])
+        (traverse blockToTerm <=< asStatement)
+        (Object.lookup "bounds" children)
+    contract <- either pure (blockToTerm <=< asSingleStatement) (getAttribute "contract" b)
+    let
+      location = (BlockId id)
+
+      choice = ChoiceId choiceName party
+
+      action = Term (Choice choice bounds) location
+    pure $ Term (Case action contract) location
+  blockToTerm b@(BDom.Block { type: "NotifyActionType", id, children }) = do
+    observation <- either pure (blockToTerm <=< asValue) (getAttribute "observation" b)
+    contract <- either pure (blockToTerm <=< asSingleStatement) (getAttribute "contract" b)
+    let
+      location = (BlockId id)
+
+      action = Term (Notify observation) location
+    pure $ Term (Case action contract) location
+  blockToTerm block = throwError $ invalidBlock block "Action"
+
+instance blockToTermParty :: BlockToTerm (Term Party) where
+  blockToTerm b@(BDom.Block { type: "PKPartyType", id }) = do
+    pubkey <- asField =<< getRequiredAttribute "pubkey" b
+    pure $ Term (PK pubkey) (BlockId id)
+  blockToTerm b@(BDom.Block { type: "RolePartyType", id }) = do
+    role <- asField =<< getRequiredAttribute "role" b
+    pure $ Term (Role role) (BlockId id)
+  blockToTerm block = throwError $ invalidBlock block "Party"
+
+instance blockToTermPayee :: BlockToTerm (Term Payee) where
+  blockToTerm b@(BDom.Block { type: "AccountPayeeType", id }) = do
+    party <- either pure (blockToTerm <=< asValue) (getAttribute "party" b)
+    pure $ Term (Account party) (BlockId id)
+  blockToTerm b@(BDom.Block { type: "PartyPayeeType", id }) = do
+    party <- either pure (blockToTerm <=< asValue) (getAttribute "party" b)
+    pure $ Term (Party party) (BlockId id)
+  blockToTerm block = throwError $ invalidBlock block "Payee"
+
+instance blockToTermToken :: BlockToTerm (Term Token) where
+  blockToTerm b@(BDom.Block { type: "AdaTokenType", id }) = pure $ Term (Token "" "") (BlockId id)
+  blockToTerm b@(BDom.Block { type: "CustomTokenType", id }) = do
+    currencySymbol <- asField =<< getRequiredAttribute "currency_symbol" b
+    tokenName <- asField =<< getRequiredAttribute "token_name" b
+    pure $ Term (Token currencySymbol tokenName) (BlockId id)
+  blockToTerm block = throwError $ invalidBlock block "Token"
+
+instance blockToTermBound :: BlockToTerm (Term Bound) where
+  blockToTerm b@(BDom.Block { type: "BoundsType", id }) = do
+    from <- asBigInteger =<< asField =<< getRequiredAttribute "from" b
+    to <- asBigInteger =<< asField =<< getRequiredAttribute "to" b
+    pure $ Term (Bound from to) (BlockId id)
+  blockToTerm block = throwError $ invalidBlock block "Bound"
 
 -- FIXME: Remove
 -- Code generation using Generator

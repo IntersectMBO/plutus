@@ -29,6 +29,7 @@ handleAction ::
 handleAction (HandleBlocklyMessage Blockly.CodeChange) = do
   eContract <-
     runExceptT do
+      -- FIXME: don't reparse the contract
       code <- ExceptT <<< map (note "Blockly Workspace is empty") $ query _blocklySlot unit $ H.request Blockly.GetCode
       contract <- except <<< lmap (unexpected <<< show) $ Parser.parseContract (Text.stripParens code)
       let
