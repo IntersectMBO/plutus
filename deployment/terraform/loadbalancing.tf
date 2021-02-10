@@ -29,85 +29,17 @@ resource "aws_security_group" "public_alb" {
   }
 
   egress {
-    from_port   = local.nixops_nginx_port
-    to_port     = local.nixops_nginx_port
+    from_port   = local.prometheus_port
+    to_port     = local.prometheus_port
     protocol    = "TCP"
     cidr_blocks = var.private_subnet_cidrs
   }
 
   tags = {
-    Name        = "${var.project}_${var.env}_public_alb"
-    Project     = var.project
+    Name        = "${local.project}_${var.env}_public_alb"
+    Project     = local.project
     Environment = var.env
   }
-}
-
-data "aws_acm_certificate" "plutus_private" {
-  domain      = "*.${var.plutus_tld}"
-  statuses    = ["ISSUED"]
-  most_recent = true
-}
-
-data "aws_acm_certificate" "marlowe_private" {
-  domain      = "*.${var.marlowe_tld}"
-  statuses    = ["ISSUED"]
-  most_recent = true
-}
-
-# Marlowe Dash SSL Certificate
-resource "aws_acm_certificate" "marlowe_dash_private" {
-  domain_name      = "*.${var.marlowe_dash_tld}"
-  validation_method = "DNS"
-}
-
-resource "aws_route53_record" "marlowe_dash_private" {
-  for_each = {
-    for dvo in aws_acm_certificate.marlowe_dash_private.domain_validation_options : dvo.domain_name => {
-      name   = dvo.resource_record_name
-      record = dvo.resource_record_value
-      type   = dvo.resource_record_type
-    }
-  }
-
-  allow_overwrite = true
-  name            = each.value.name
-  records         = [each.value.record]
-  ttl             = 60
-  type            = each.value.type
-  zone_id         = var.marlowe_dash_public_zone
-}
-
-resource "aws_acm_certificate_validation" "marlowe_dash_private" {
-  certificate_arn         = aws_acm_certificate.marlowe_dash_private.arn
-  validation_record_fqdns = [for record in aws_route53_record.marlowe_dash_private : record.fqdn]
-}
-
-# Monitoring SSL Certificate
-resource "aws_acm_certificate" "monitoring_private" {
-  domain_name      = "*.${var.monitoring_tld}"
-  validation_method = "DNS"
-}
-
-resource "aws_route53_record" "monitoring_private" {
-  for_each = {
-    for dvo in aws_acm_certificate.monitoring_private.domain_validation_options : dvo.domain_name => {
-      name   = dvo.resource_record_name
-      record = dvo.resource_record_value
-      type   = dvo.resource_record_type
-    }
-  }
-
-  allow_overwrite = true
-  name            = each.value.name
-  records         = [each.value.record]
-  ttl             = 60
-  type            = each.value.type
-  zone_id         = var.monitoring_public_zone
-}
-
-resource "aws_acm_certificate_validation" "monitoring_private" {
-  certificate_arn         = aws_acm_certificate.monitoring_private.arn
-  validation_record_fqdns = [for record in aws_route53_record.monitoring_private : record.fqdn]
 }
 
 resource "aws_alb" "plutus" {
@@ -116,8 +48,8 @@ resource "aws_alb" "plutus" {
   internal        = false
 
   tags = {
-    Name        = "${var.project}_${var.env}_public_alb"
-    Project     = var.project
+    Name        = "${local.project}_${var.env}_public_alb"
+    Project     = local.project
     Environment = var.env
   }
 }
@@ -138,28 +70,11 @@ resource "aws_lb_listener" "redirect" {
   }
 }
 
-resource "aws_alb_listener_rule" "runghc" {
-  depends_on   = [aws_alb_target_group.webghc]
-  listener_arn = aws_lb_listener.redirect.arn
-  priority     = 100
-
-  action {
-    type             = "forward"
-    target_group_arn = aws_alb_target_group.webghc.id
-  }
-
-  condition {
-    path_pattern {
-      values = ["/runghc"]
-    }
-  }
-}
-
 resource "aws_alb_listener" "playground" {
   load_balancer_arn = aws_alb.plutus.arn
   port              = "443"
   protocol          = "HTTPS"
-  certificate_arn   = data.aws_acm_certificate.plutus_private.arn
+  certificate_arn   = aws_acm_certificate.plutus_private.arn
 
   default_action {
     target_group_arn = aws_alb_target_group.webghc.arn
@@ -169,7 +84,7 @@ resource "aws_alb_listener" "playground" {
 
 resource "aws_lb_listener_certificate" "marlowe" {
   listener_arn    = aws_alb_listener.playground.arn
-  certificate_arn = data.aws_acm_certificate.marlowe_private.arn
+  certificate_arn = aws_acm_certificate.marlowe_private.arn
 }
 
 resource "aws_lb_listener_certificate" "monitoring" {
@@ -182,26 +97,6 @@ resource "aws_lb_listener_certificate" "marlowe_dash" {
   certificate_arn = aws_acm_certificate.marlowe_dash_private.arn
 }
 
-# FIXME: This needs to stay here until aws_alb_listener.playground no longer depends on it
-# This has been changed but it needs to be deployed everywhere first so this should be removed
-# in another commit/pr
-resource "aws_alb_target_group" "playground" {
-  # ALB is taking care of SSL termination so we listen to port 80 here
-  port     = "80"
-  protocol = "HTTP"
-  vpc_id   = aws_vpc.plutus.id
-
-  health_check {
-    path = "/api/health"
-
-    # The playground health check is currently a bit slow since it compiles some contracts
-    timeout = 20
-  }
-
-  stickiness {
-    type = "lb_cookie"
-  }
-}
 ## ALB rule for web-ghc
 resource "aws_alb_target_group" "webghc" {
   # ALB is taking care of SSL termination so we listen to port 80 here
@@ -218,10 +113,14 @@ resource "aws_alb_target_group" "webghc" {
   }
 }
 
-resource "aws_alb_listener_rule" "webghc" {
+resource "aws_alb_listener_rule" "runghc" {
   depends_on   = [aws_alb_target_group.webghc]
-  listener_arn = aws_alb_listener.playground.arn
-  priority     = 113
+  # The API Gateway uses http for proxying rather than https so we
+  # have to go through the redirect listener to get here
+  # If we moved away from API Gateway we would need to use the
+  # playground listener instead
+  listener_arn = aws_lb_listener.redirect.arn
+  priority     = 100
 
   action {
     type             = "forward"
@@ -282,8 +181,8 @@ resource "aws_alb_listener_rule" "monitoring" {
 
 resource "aws_alb_target_group_attachment" "monitoring_a" {
   target_group_arn = aws_alb_target_group.monitoring.arn
-  target_id        = aws_instance.nixops.id
-  port             = local.nixops_nginx_port
+  target_id        = aws_instance.prometheus.id
+  port             = local.prometheus_port
 }
 
 resource "aws_route53_record" "monitoring_alb" {

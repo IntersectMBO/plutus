@@ -8,7 +8,7 @@ let
     in
     if builtins.pathExists p
     then plutus.pkgs.lib.importJSON p
-    else { rootSshKeys = [ ]; playgroundSshKeys = [ ]; };
+    else { rootSshKeys = [ ]; monitoringSshKeys = [ ]; };
   stdOverlays = [ ];
   nixpkgsLocation = https://github.com/NixOS/nixpkgs/archive/5272327b81ed355bbed5659b8d303cf2979b6953.tar.gz;
   ports = {
@@ -19,7 +19,7 @@ let
     webGhcExporter = 9091;
   };
   options = { inherit stdOverlays machines nixpkgsLocation ports; };
-  monitoringKeys = machines.playgroundSshKeys;
+  monitoringKeys = machines.monitoringSshKeys;
   defaultMachine = (import ./default-machine.nix) options;
   web-ghc = plutus.web-ghc;
   webGhcMachine = import ./webghc.nix;
