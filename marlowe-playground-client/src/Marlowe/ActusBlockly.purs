@@ -75,6 +75,7 @@ data ActusValueType
   = ActusDate
   | ActusCycleType
   | ActusDecimalType
+  | ActusIntegerType
   | ActusAssertionContextType
   | ActusAssertionType
 
@@ -305,7 +306,7 @@ toDefinition (ActusContractType LinearAmortizer) =
             , Value { name: "principal_redemption_cycle", check: "cycle", align: Right }
             , Value { name: "interest_rate_ctr", check: "assertionCtx", align: Right }
             , Value { name: "payoff_ctr", check: "assertion", align: Right }
-            , Value { name: "collateal", check: "decimal", align: Right }
+            , Value { name: "collateal", check: "integer", align: Right }
             ]
         , colour: blockColour (ActusContractType LinearAmortizer)
         , previousStatement: Just (show BaseContractType)
@@ -356,6 +357,20 @@ toDefinition (ActusValueType ActusDecimalType) =
         , colour: blockColour (ActusValueType ActusDecimalType)
         , inputsInline: Just false
         , output: Just "decimal"
+        }
+        defaultBlockDefinition
+
+toDefinition (ActusValueType ActusIntegerType) =
+  BlockDefinition
+    $ merge
+        { type: show ActusIntegerType
+        , message0: "integer %1"
+        , args0:
+            [ Input { name: "value", text: "1000", spellcheck: false }
+            ]
+        , colour: blockColour (ActusValueType ActusIntegerType)
+        , inputsInline: Just false
+        , output: Just "integer"
         }
         defaultBlockDefinition
 
@@ -521,6 +536,7 @@ data ActusValue
   = DateValue String String String
   | CycleValue ActusValue BigInteger ActusPeriodType
   | DecimalValue Number
+  | IntegerValue Number
   | ActusAssertionCtx Number Number
   | ActusAssertionNpv Number Number
   | NoActusValue
@@ -661,6 +677,10 @@ instance hasBlockDefinitionValue :: HasBlockDefinition ActusValueType ActusValue
     valueString <- getFieldValue block "value"
     value <- fromMaybe (Either.Left "can't parse numeric") $ Either.Right <$> parseFloat valueString
     pure $ DecimalValue value
+  blockDefinition ActusIntegerType g block = do
+    valueString <- getFieldValue block "value"
+    value <- fromMaybe (Either.Left "can't parse numeric") $ Either.Right <$> BigInteger.fromString valueString
+    pure $ DecimalValue value
   blockDefinition ActusAssertionContextType g block = do
     minValueString <- getFieldValue block "min_rrmo"
     minValue <- fromMaybe (Either.Left "can't parse numeric") $ Either.Right <$> parseFloat minValueString
@@ -694,6 +714,15 @@ actusDecimalToNumber (ActusError msg) = Either.Left msg
 actusDecimalToNumber NoActusValue = Either.Right Nothing
 
 actusDecimalToNumber x = Either.Left $ "Unexpected: " <> show x
+
+actusIntegerToNumber :: ActusValue -> Either String (Maybe Number)
+actusIntegerToNumber (IntegerValue n) = Either.Right $ Just $ n
+
+actusIntegerToNumber (ActusError msg) = Either.Left msg
+
+actusIntegerToNumber NoActusValue = Either.Right Nothing
+
+actusIntegerToNumber x = Either.Left $ "Unexpected: " <> show x
 
 blocklyCycleToCycle :: ActusValue -> Either String (Maybe Cycle)
 blocklyCycleToCycle (CycleValue _ value period) =
@@ -797,7 +826,7 @@ actusContractToTerms raw = do
                 Nothing -> []
             )
         }
-  collateral <- actusDecimalToNumber c.collateral
+  collateral <- actusIntegerToNumber c.collateral
   pure
     $ ContractTerms
         { contractId: "0"
@@ -860,7 +889,7 @@ actusContractToTerms raw = do
         , ct_FER: 0.0
         , ct_CURS: false
         , constraints: constraint <$> assertionCtx
-        , collateralAmount: fromMaybe 0 (collateral >>= BigInteger.fromNumber)
+        , collateralAmount: fromMaybe 0 collateral
         }
 
 aesonCompatibleOptions :: Options
