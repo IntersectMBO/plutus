@@ -11,11 +11,11 @@ import MainFrame.Types (Action, ContractTemplate)
 renderTemplateLibrary :: forall p. Array ContractTemplate -> HTML p Action
 renderTemplateLibrary contractTemplates =
   div
-    [ classNames [ "p-1", "h-full", "overflow-auto" ] ]
-    [ text "Quick Access" ]
+    [ classNames [ "h-full", "overflow-auto" ] ]
+    [ text "Start new from template" ]
 
 renderTemplateDetails :: forall p. ContractTemplate -> HTML p Action
 renderTemplateDetails contractTemplate =
   div
-    [ classNames [ "p-1", "h-full", "overflow-auto" ] ]
+    [ classNames [ "h-full", "overflow-auto" ] ]
     [ text "Contract Template" ]

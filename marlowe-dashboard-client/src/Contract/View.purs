@@ -5,7 +5,7 @@ module Contract.View
 
 import Prelude hiding (div)
 import Css (classNames)
-import Halogen.HTML (HTML, div, text)
+import Halogen.HTML (HTML, div, div_, text)
 import MainFrame.Types (Action, ContractInstance, ContractTemplate)
 
 renderContractSetup :: forall p. ContractTemplate -> HTML p Action
@@ -16,6 +16,5 @@ renderContractSetup contractTemplate =
 
 renderContractDetails :: forall p. ContractInstance -> HTML p Action
 renderContractDetails contract =
-  div
-    [ classNames [ "p-1", "bg-gray" ] ]
+  div_
     [ text "contract details" ]
