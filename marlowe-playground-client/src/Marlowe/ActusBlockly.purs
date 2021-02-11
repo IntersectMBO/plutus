@@ -715,7 +715,7 @@ actusDecimalToNumber NoActusValue = Either.Right Nothing
 
 actusDecimalToNumber x = Either.Left $ "Unexpected: " <> show x
 
-actusIntegerToNumber :: ActusValue -> Either String (Maybe Number)
+actusIntegerToNumber :: ActusValue -> Either String (Maybe BigInteger)
 actusIntegerToNumber (IntegerValue n) = Either.Right $ Just $ n
 
 actusIntegerToNumber (ActusError msg) = Either.Left msg
