@@ -257,7 +257,7 @@ toDefinition (ActusContractType PaymentAtMaturity) =
             , Value { name: "interest_rate_cycle", check: "cycle", align: Right }
             , Value { name: "interest_rate_ctr", check: "assertionCtx", align: Right }
             , Value { name: "payoff_ctr", check: "assertion", align: Right }
-            , Value { name: "collateral", check: "decimal", align: Right }
+            , Value { name: "collateral", check: "integer", align: Right }
             ]
         , colour: blockColour (ActusContractType PaymentAtMaturity)
         , previousStatement: Just (show BaseContractType)
@@ -366,7 +366,7 @@ toDefinition (ActusValueType ActusIntegerType) =
         { type: show ActusIntegerType
         , message0: "integer %1"
         , args0:
-            [ Input { name: "value", text: "1000", spellcheck: false }
+            [ Input { name: "value", text: "10000", spellcheck: false }
             ]
         , colour: blockColour (ActusValueType ActusIntegerType)
         , inputsInline: Just false
