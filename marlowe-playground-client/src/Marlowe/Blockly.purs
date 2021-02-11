@@ -1069,7 +1069,9 @@ invalidBlock :: BDom.Block -> String -> String
 invalidBlock (BDom.Block block) expectedType = "Block with id " <> show block.id <> " and type " <> show block.type <> " is not a valid " <> expectedType <> " type."
 
 instance blockToTermContract :: BlockToTerm (Term Contract) where
-  blockToTerm b@(BDom.Block { type: "BaseContractType" }) = either pure (blockToTerm <=< asSingleStatement) (getAttribute "BaseContractType" b)
+  blockToTerm (BDom.Block { type: "BaseContractType", children, id }) = case Object.lookup "BaseContractType" children of
+    Nothing -> pure $ Hole "contract" Proxy (BlockId id)
+    Just child -> (blockToTerm <=< asSingleStatement) child
   blockToTerm (BDom.Block { type: "CloseContractType", id }) = pure $ Term Close (BlockId id)
   blockToTerm b@(BDom.Block { type: "PayContractType", id }) = do
     accountOwner <- either pure (blockToTerm <=< asValue) (getAttribute "party" b)
