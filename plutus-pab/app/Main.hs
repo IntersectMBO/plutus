@@ -71,8 +71,8 @@ import qualified Plutus.PAB.Core                                 as Core
 import qualified Plutus.PAB.Core.ContractInstance                as Instance
 import           Plutus.PAB.Events.Contract                      (ContractInstanceId (..))
 import           Plutus.PAB.PABLogMsg                            (AppMsg (..), ChainIndexServerMsg,
-                                                                  ContractExeLogMsg (..), PABLogMsg (..),
-                                                                  SigningProcessMsg, WalletMsg)
+                                                                  ContractExeLogMsg (..), MetadataLogMessage,
+                                                                  PABLogMsg (..), SigningProcessMsg, WalletMsg)
 import           Plutus.PAB.Types                                (Config (Config), ContractExe (..), PABError,
                                                                   RequestProcessingConfig (..), chainIndexConfig,
                                                                   metadataServerConfig, nodeServerConfig,
@@ -447,7 +447,9 @@ runCliCommand trace _ Config {..} serviceAvailability MockWallet =
 runCliCommand _ _ Config {nodeServerConfig} serviceAvailability MockNode = NodeServer.main nodeServerConfig serviceAvailability
 
 -- Run mock metadata server
-runCliCommand _ _ Config {metadataServerConfig} serviceAvailability Metadata = raise $ Metadata.main metadataServerConfig serviceAvailability
+runCliCommand t _ Config {metadataServerConfig} serviceAvailability Metadata = liftIO $ Metadata.main trace metadataServerConfig serviceAvailability
+    where
+        trace = toMetaDataLog t
 
 -- Run PAB webserver
 runCliCommand trace logConfig config serviceAvailability PABWebserver = raise $ PABServer.main (toPABMsg trace) logConfig config serviceAvailability
@@ -583,6 +585,9 @@ toSigningProcessLog = convertLog $ PABMsg . SSigningProcessMsg
 
 toWalletLog :: Trace m AppMsg -> Trace m WalletMsg
 toWalletLog = convertLog $ PABMsg . SWalletMsg
+
+toMetaDataLog :: Trace m AppMsg -> Trace m MetadataLogMessage
+toMetaDataLog = convertLog $ PABMsg . SMetaDataLogMsg
 
 pabComponentName :: Text.Text
 pabComponentName = "pab"

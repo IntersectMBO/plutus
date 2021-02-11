@@ -11,6 +11,7 @@
 {-# LANGUAGE RoleAnnotations   #-}
 {-# LANGUAGE StrictData        #-}
 {-# LANGUAGE TemplateHaskell   #-}
+{-# LANGUAGE TypeApplications  #-}
 
 -- | Maintainer's note: There are some types in this module where we'd
 -- like to have two different ways to encode JSON data; the 'native'
@@ -23,6 +24,8 @@
 -- 'Data.Coerce.coerce' to freely switch between encodings.
 module Cardano.Metadata.Types where
 
+import           Cardano.BM.Data.Tracer            (ToObject (..))
+import           Cardano.BM.Data.Tracer.Extras     (Tagged (..), mkObjectStr)
 import           Control.Applicative               (Alternative, (<|>))
 import           Control.Monad.Freer.TH            (makeEffect)
 import           Data.Aeson                        (FromJSON, FromJSONKey, ToJSON, ToJSONKey, parseJSON, toJSON,
@@ -321,10 +324,21 @@ data MetadataLogMessage
     = FetchingSubject Subject
     | FetchingProperty Subject PropertyKey
     | Querying Query
+    | StartingMetadataServer Int
+    deriving stock (Show, Generic)
+    deriving anyclass (ToJSON, FromJSON)
+
+instance ToObject MetadataLogMessage where
+    toObject _ = \case
+        StartingMetadataServer p -> mkObjectStr "Starting Metadata Server" (Tagged @"port" p)
+        FetchingSubject s        -> mkObjectStr "Fetching subject" (Tagged @"subject" s)
+        FetchingProperty s p     -> mkObjectStr "Fetching property" (Tagged @"subject" s, Tagged @"property" p)
+        Querying q               -> mkObjectStr "Running query" (Tagged @"query" q)
 
 instance Pretty MetadataLogMessage where
     pretty =
         \case
+            StartingMetadataServer p -> "Starting Metadata Server:" <+> pretty p
             FetchingSubject subject -> "Fetching subject:" <+> pretty subject
             FetchingProperty subject propertyKey ->
                 "Fetching property:" <+>

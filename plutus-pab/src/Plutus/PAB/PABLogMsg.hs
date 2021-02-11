@@ -12,6 +12,7 @@ module Plutus.PAB.PABLogMsg(
     ContractExeLogMsg(..),
     ChainIndexServerMsg,
     SigningProcessMsg,
+    MetadataLogMessage,
     WalletMsg,
     AppMsg(..)
     ) where
@@ -28,6 +29,7 @@ import           GHC.Generics                       (Generic)
 import           Cardano.BM.Data.Tracer             (ToObject (..), TracingVerbosity (..))
 import           Cardano.BM.Data.Tracer.Extras      (Tagged (..), mkObjectStr)
 import           Cardano.ChainIndex.Types           (ChainIndexServerMsg)
+import           Cardano.Metadata.Types             (MetadataLogMessage)
 import           Cardano.SigningProcess.Types       (SigningProcessMsg)
 import           Cardano.Wallet.Types               (WalletMsg)
 import           Language.Plutus.Contract.State     (ContractRequest)
@@ -85,6 +87,7 @@ data PABLogMsg =
     | SChainIndexServerMsg ChainIndexServerMsg
     | SSigningProcessMsg SigningProcessMsg
     | SWalletMsg WalletMsg
+    | SMetaDataLogMsg MetadataLogMessage
     deriving stock (Show, Generic)
     deriving anyclass (ToJSON, FromJSON)
 
@@ -101,6 +104,7 @@ instance Pretty PABLogMsg where
         SChainIndexServerMsg m -> pretty m
         SSigningProcessMsg m   -> pretty m
         SWalletMsg m           -> pretty m
+        SMetaDataLogMsg m      -> pretty m
 
 
 -- | Messages from the Signing Process
@@ -204,9 +208,7 @@ instance ToObject PABLogMsg where
         SChainIndexServerMsg m -> toObject v m
         SSigningProcessMsg m   -> toObject v m
         SWalletMsg m           -> toObject v m
-
-
-
+        SMetaDataLogMsg m      -> toObject v m
 
 instance ToObject ContractExeLogMsg where
     toObject v = \case
