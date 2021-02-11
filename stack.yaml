@@ -44,6 +44,7 @@ extra-deps:
 - barbies-2.0.2.0
 - nothunks-0.1.2
 - indexed-traversable-instances-0.1
+- base16-bytestring-1.0.1.0
 # A revision was added to keep the bounds down, we don't actually want this!
 # we work around the newer persistent-template by adding flags below
 - eventful-sql-common-0.2.0@rev:0
