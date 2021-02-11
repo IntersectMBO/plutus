@@ -536,7 +536,7 @@ data ActusValue
   = DateValue String String String
   | CycleValue ActusValue BigInteger ActusPeriodType
   | DecimalValue Number
-  | IntegerValue Number
+  | IntegerValue BigInteger
   | ActusAssertionCtx Number Number
   | ActusAssertionNpv Number Number
   | NoActusValue
