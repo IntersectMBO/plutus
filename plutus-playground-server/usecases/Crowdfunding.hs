@@ -66,7 +66,7 @@ PlutusTx.makeLift ''Campaign
 --
 data CampaignAction = Collect | Refund
 
-PlutusTx.unsafeMakeIsData ''CampaignAction
+PlutusTx.unstableMakeIsData ''CampaignAction
 PlutusTx.makeLift ''CampaignAction
 
 type CrowdfundingSchema =

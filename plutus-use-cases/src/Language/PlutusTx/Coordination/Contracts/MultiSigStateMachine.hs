@@ -272,10 +272,10 @@ contract params = forever endpoints where
         SM.runInitialise theClient Holding value
     pay = endpoint @"pay" >> SM.runStep theClient Pay
 
-PlutusTx.unsafeMakeIsData ''Payment
+PlutusTx.unstableMakeIsData ''Payment
 PlutusTx.makeLift ''Payment
-PlutusTx.unsafeMakeIsData ''MSState
+PlutusTx.unstableMakeIsData ''MSState
 PlutusTx.makeLift ''MSState
 PlutusTx.makeLift ''Params
-PlutusTx.unsafeMakeIsData ''Input
+PlutusTx.unstableMakeIsData ''Input
 PlutusTx.makeLift ''Input

@@ -116,5 +116,5 @@ mkMachineClient authority credentialOwner tokenName =
 PlutusTx.makeLift ''UserCredential
 PlutusTx.makeLift ''IDState
 PlutusTx.makeLift ''IDAction
-PlutusTx.unsafeMakeIsData ''IDState
-PlutusTx.unsafeMakeIsData ''IDAction
+PlutusTx.unstableMakeIsData ''IDState
+PlutusTx.unstableMakeIsData ''IDAction

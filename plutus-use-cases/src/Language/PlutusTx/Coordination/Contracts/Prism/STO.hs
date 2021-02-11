@@ -74,4 +74,4 @@ coins d@STOData{stoTokenName} n =
     in Value.singleton sym stoTokenName n
 
 PlutusTx.makeLift ''STOData
-PlutusTx.unsafeMakeIsData ''STOData
+PlutusTx.unstableMakeIsData ''STOData

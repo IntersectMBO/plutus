@@ -60,7 +60,7 @@ data HighestBid =
     deriving stock (Haskell.Eq, Haskell.Show, Generic)
     deriving anyclass (ToJSON, FromJSON)
 
-PlutusTx.unsafeMakeIsData ''HighestBid
+PlutusTx.unstableMakeIsData ''HighestBid
 
 -- | The states of the auction
 data AuctionState
@@ -75,7 +75,7 @@ data AuctionState
 initialState :: PubKeyHash -> AuctionState
 initialState self = Ongoing HighestBid{highestBid = 0, highestBidder = self}
 
-PlutusTx.unsafeMakeIsData ''AuctionState
+PlutusTx.unstableMakeIsData ''AuctionState
 
 -- | Transition between auction states
 data AuctionInput
@@ -84,7 +84,7 @@ data AuctionInput
     deriving stock (Generic, Haskell.Show)
     deriving anyclass (ToJSON, FromJSON)
 
-PlutusTx.unsafeMakeIsData ''AuctionInput
+PlutusTx.unstableMakeIsData ''AuctionInput
 
 {-# INLINABLE auctionTransition #-}
 -- | The transitions of the auction state machine.

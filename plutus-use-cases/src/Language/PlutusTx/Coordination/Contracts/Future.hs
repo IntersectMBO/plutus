@@ -645,10 +645,10 @@ setupTokensTrace = do
 PlutusTx.makeLift ''Future
 PlutusTx.makeLift ''FutureAccounts
 PlutusTx.makeLift ''Margins
-PlutusTx.unsafeMakeIsData ''Margins
+PlutusTx.unstableMakeIsData ''Margins
 PlutusTx.makeLift ''Role
-PlutusTx.unsafeMakeIsData ''Role
+PlutusTx.unstableMakeIsData ''Role
 PlutusTx.makeLift ''FutureState
-PlutusTx.unsafeMakeIsData ''FutureState
+PlutusTx.unstableMakeIsData ''FutureState
 PlutusTx.makeLift ''FutureAction
-PlutusTx.unsafeMakeIsData ''FutureAction
+PlutusTx.unstableMakeIsData ''FutureAction

@@ -80,6 +80,6 @@ tokenAccount Credential{credAuthority, credName} =
     in Account (sym, credName)
 
 PlutusTx.makeLift ''CredentialAuthority
-PlutusTx.unsafeMakeIsData ''CredentialAuthority
+PlutusTx.unstableMakeIsData ''CredentialAuthority
 PlutusTx.makeLift ''Credential
-PlutusTx.unsafeMakeIsData ''Credential
+PlutusTx.unstableMakeIsData ''Credential
