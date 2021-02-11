@@ -75,6 +75,7 @@ data ActusValueType
   = ActusDate
   | ActusCycleType
   | ActusDecimalType
+  | ActusIntegerType
   | ActusAssertionContextType
   | ActusAssertionType
 
@@ -239,6 +240,7 @@ toDefinition (ActusContractType PaymentAtMaturity) =
               <> "interest payment cycle %13"
               <> "observation constraints %14"
               <> "payoff analysis constraints %15"
+              <> "collateral amount %16"
         , args0:
             [ DummyCentre
             , Value { name: "start_date", check: "date", align: Right }
@@ -255,6 +257,7 @@ toDefinition (ActusContractType PaymentAtMaturity) =
             , Value { name: "interest_rate_cycle", check: "cycle", align: Right }
             , Value { name: "interest_rate_ctr", check: "assertionCtx", align: Right }
             , Value { name: "payoff_ctr", check: "assertion", align: Right }
+            , Value { name: "collateral", check: "integer", align: Right }
             ]
         , colour: blockColour (ActusContractType PaymentAtMaturity)
         , previousStatement: Just (show BaseContractType)
@@ -284,6 +287,7 @@ toDefinition (ActusContractType LinearAmortizer) =
               <> "principal redemption cycle * %15"
               <> "observation constraints %16"
               <> "payoff analysis constraints %17"
+              <> "collateral amount %18"
         , args0:
             [ DummyCentre
             , Value { name: "start_date", check: "date", align: Right }
@@ -302,6 +306,7 @@ toDefinition (ActusContractType LinearAmortizer) =
             , Value { name: "principal_redemption_cycle", check: "cycle", align: Right }
             , Value { name: "interest_rate_ctr", check: "assertionCtx", align: Right }
             , Value { name: "payoff_ctr", check: "assertion", align: Right }
+            , Value { name: "collateal", check: "integer", align: Right }
             ]
         , colour: blockColour (ActusContractType LinearAmortizer)
         , previousStatement: Just (show BaseContractType)
@@ -352,6 +357,20 @@ toDefinition (ActusValueType ActusDecimalType) =
         , colour: blockColour (ActusValueType ActusDecimalType)
         , inputsInline: Just false
         , output: Just "decimal"
+        }
+        defaultBlockDefinition
+
+toDefinition (ActusValueType ActusIntegerType) =
+  BlockDefinition
+    $ merge
+        { type: show ActusIntegerType
+        , message0: "integer %1"
+        , args0:
+            [ Input { name: "value", text: "10000", spellcheck: false }
+            ]
+        , colour: blockColour (ActusValueType ActusIntegerType)
+        , inputsInline: Just false
+        , output: Just "integer"
         }
         defaultBlockDefinition
 
@@ -497,6 +516,7 @@ newtype ActusContract
   , interestCalculationBaseCycle :: ActusValue
   , assertionCtx :: ActusValue
   , assertion :: ActusValue
+  , collateral :: ActusValue
   }
 
 derive instance actusContract :: Generic ActusContract _
@@ -516,6 +536,7 @@ data ActusValue
   = DateValue String String String
   | CycleValue ActusValue BigInteger ActusPeriodType
   | DecimalValue Number
+  | IntegerValue BigInteger
   | ActusAssertionCtx Number Number
   | ActusAssertionNpv Number Number
   | NoActusValue
@@ -594,6 +615,7 @@ instance hasBlockDefinitionActusContract :: HasBlockDefinition ActusContractType
             , interestCalculationBaseCycle: NoActusValue
             , assertionCtx: parseFieldActusValueJson g block "interest_rate_ctr"
             , assertion: parseFieldActusValueJson g block "payoff_ctr"
+            , collateral: parseFieldActusValueJson g block "collateral"
             }
     LAM ->
       Either.Right
@@ -618,6 +640,7 @@ instance hasBlockDefinitionActusContract :: HasBlockDefinition ActusContractType
             , interestCalculationBaseCycle: parseFieldActusValueJson g block "interest_calculation_base_cycle"
             , assertionCtx: parseFieldActusValueJson g block "interest_rate_ctr"
             , assertion: parseFieldActusValueJson g block "payoff_ctr"
+            , collateral: parseFieldActusValueJson g block "collateral"
             }
 
 instance hasBlockDefinitionValue :: HasBlockDefinition ActusValueType ActusValue where
@@ -654,6 +677,10 @@ instance hasBlockDefinitionValue :: HasBlockDefinition ActusValueType ActusValue
     valueString <- getFieldValue block "value"
     value <- fromMaybe (Either.Left "can't parse numeric") $ Either.Right <$> parseFloat valueString
     pure $ DecimalValue value
+  blockDefinition ActusIntegerType g block = do
+    valueString <- getFieldValue block "value"
+    value <- fromMaybe (Either.Left "can't parse numeric") $ Either.Right <$> BigInteger.fromString valueString
+    pure $ IntegerValue value
   blockDefinition ActusAssertionContextType g block = do
     minValueString <- getFieldValue block "min_rrmo"
     minValue <- fromMaybe (Either.Left "can't parse numeric") $ Either.Right <$> parseFloat minValueString
@@ -687,6 +714,15 @@ actusDecimalToNumber (ActusError msg) = Either.Left msg
 actusDecimalToNumber NoActusValue = Either.Right Nothing
 
 actusDecimalToNumber x = Either.Left $ "Unexpected: " <> show x
+
+actusIntegerToNumber :: ActusValue -> Either String (Maybe BigInteger)
+actusIntegerToNumber (IntegerValue n) = Either.Right $ Just $ n
+
+actusIntegerToNumber (ActusError msg) = Either.Left msg
+
+actusIntegerToNumber NoActusValue = Either.Right Nothing
+
+actusIntegerToNumber x = Either.Left $ "Unexpected: " <> show x
 
 blocklyCycleToCycle :: ActusValue -> Either String (Maybe Cycle)
 blocklyCycleToCycle (CycleValue _ value period) =
@@ -746,7 +782,7 @@ blocklyCycleToAnchor NoActusValue = Either.Right Nothing
 blocklyCycleToAnchor x = Either.Left $ "Unexpected: " <> show x -- should be unreachable
 
 actusContractToTerms :: ActusContract -> Either String ContractTerms
-actusContractToTerms raw = do --todo use monad transformers?
+actusContractToTerms raw = do
   let
     c = (unwrap raw)
   contractType <- Either.Right c.contractType
@@ -790,6 +826,7 @@ actusContractToTerms raw = do --todo use monad transformers?
                 Nothing -> []
             )
         }
+  collateral <- actusIntegerToNumber c.collateral
   pure
     $ ContractTerms
         { contractId: "0"
@@ -852,6 +889,7 @@ actusContractToTerms raw = do --todo use monad transformers?
         , ct_FER: 0.0
         , ct_CURS: false
         , constraints: constraint <$> assertionCtx
+        , collateralAmount: fromMaybe (BigInteger.fromInt 0) collateral
         }
 
 aesonCompatibleOptions :: Options

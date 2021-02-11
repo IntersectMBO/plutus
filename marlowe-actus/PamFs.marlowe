@@ -1,471 +1,153 @@
-Let "tmd_0"
-  (Constant 1761091100)
-  (Let "nt_0"
-     (Constant 0)
-     (Let "ipnr_0"
-        (Constant 0)
-        (Let "ipac_0"
-           (Constant 0)
-           (Let "feac_0"
+When [
+  (Case
+     (Deposit
+        (Role "counterparty")
+        (Role "counterparty")
+        (Token "" "")
+        (Constant 10000))
+     (Let "tmd_0"
+        (Constant 1256169500)
+        (Let "nt_0"
+           (Constant -1000000)
+           (Let "ipnr_0"
               (Constant 0)
-              (Let "fac_0"
+              (Let "ipac_0"
                  (Constant 0)
-                 (Let "nsc_0"
-                    (Constant 1000)
-                    (Let "isc_0"
-                       (Constant 1000)
-                       (Let "sd_0"
-                          (Constant 1193011100)
-                          (Let "prnxt_0"
-                             (Constant 0)
-                             (Let "ipcb_0"
-                                (Constant 0)
-                                (Let "o_rf_CURS_1"
-                                   (Constant 1000)
-                                   (Let "IED_1"
+                 (Let "feac_0"
+                    (Constant 0)
+                    (Let "fac_0"
+                       (Constant 0)
+                       (Let "nsc_0"
+                          (Constant 1000)
+                          (Let "isc_0"
+                             (Constant 1000)
+                             (Let "sd_0"
+                                (Constant 1224633500)
+                                (Let "prnxt_0"
+                                   (Constant 0)
+                                   (Let "ipcb_0"
                                       (Constant 0)
-                                      (Let "tmd_1"
-                                         (UseValue "tmd_0")
-                                         (Let "nt_1"
-                                            (Scale (1 % 1000)
-                                               (MulValue
-                                                  (Constant 1000)
-                                                  (Constant 1000000)))
-                                            (Let "ipnr_1"
-                                               (Constant 100)
-                                               (Let "ipac_1"
+                                      (Let "o_rf_CURS_1"
+                                         (Constant 1000)
+                                         (Let "IED_1"
+                                            (Constant 0)
+                                            (Let "tmd_1"
+                                               (UseValue "tmd_0")
+                                               (Let "nt_1"
                                                   (Scale (1 % 1000)
                                                      (MulValue
-                                                        (Scale (1 % 1000)
-                                                           (MulValue
-                                                              (Scale (1 % 1000)
-                                                                 (MulValue
-                                                                    (Cond
-                                                                       (ValueLT
-                                                                          (Constant 1634687900)
-                                                                          (Constant 1603151900))
-                                                                       (Constant 1000)
-                                                                       (Constant 0))
-                                                                    (Constant 0)))
-                                                              (Scale (1 % 1000)
-                                                                 (MulValue
-                                                                    (Constant 1000)
-                                                                    (Constant 1000000)))))
-                                                        (Constant 100)))
-                                                  (Let "feac_1"
-                                                     (UseValue "feac_0")
-                                                     (Let "fac_1"
-                                                        (UseValue "fac_0")
-                                                        (Let "nsc_1"
-                                                           (UseValue "nsc_0")
-                                                           (Let "isc_1"
-                                                              (UseValue "isc_0")
-                                                              (Let "sd_1"
-                                                                 (Constant 1603151900)
-                                                                 (Let "prnxt_1"
-                                                                    (UseValue "prnxt_0")
-                                                                    (Let "ipcb_1"
-                                                                       (UseValue "ipcb_0")
-                                                                       (Let "payoff_1"
-                                                                          (Scale (1 % 1000)
-                                                                             (SubValue
-                                                                                (Constant 0)
+                                                        (Constant -1000)
+                                                        (Constant 1000000)))
+                                                  (Let "ipnr_1"
+                                                     (Constant 0)
+                                                     (Let "ipac_1"
+                                                        (Constant 0)
+                                                        (Let "feac_1"
+                                                           (UseValue "feac_0")
+                                                           (Let "fac_1"
+                                                              (UseValue "fac_0")
+                                                              (Let "nsc_1"
+                                                                 (UseValue "nsc_0")
+                                                                 (Let "isc_1"
+                                                                    (UseValue "isc_0")
+                                                                    (Let "sd_1"
+                                                                       (Constant 1224460700)
+                                                                       (Let "prnxt_1"
+                                                                          (UseValue "prnxt_0")
+                                                                          (Let "ipcb_1"
+                                                                             (UseValue "ipcb_0")
+                                                                             (Let "payoff_1"
                                                                                 (Scale (1 % 1000)
-                                                                                   (MulValue
+                                                                                   (SubValue
+                                                                                      (Constant 0)
                                                                                       (Scale (1 % 1000)
                                                                                          (MulValue
-                                                                                            (UseValue "o_rf_CURS_1")
-                                                                                            (Constant 1000)))
-                                                                                      (AddValue
-                                                                                         (Constant 1000000)
-                                                                                         (Constant -100000))))))
-                                                                          (When [
-                                                                             (Case
-                                                                                (Deposit
-                                                                                   (Role "counterparty")
-                                                                                   (Role "counterparty")
-                                                                                   (Token "" "")
-                                                                                   (NegValue
-                                                                                      (UseValue "payoff_1")))
-                                                                                (Pay
-                                                                                   (Role "counterparty")
-                                                                                   (Party
-                                                                                      (Role "party"))
-                                                                                   (Token "" "")
-                                                                                   (NegValue
-                                                                                      (UseValue "payoff_1"))
-                                                                                   (Let "o_rf_CURS_2"
-                                                                                      (Constant 1000)
-                                                                                      (Let "IP:2021-10-202020-10-20_2"
-                                                                                         (Constant 0)
-                                                                                         (Let "tmd_2"
-                                                                                            (UseValue "tmd_1")
-                                                                                            (Let "nt_2"
-                                                                                               (UseValue "nt_1")
-                                                                                               (Let "ipnr_2"
-                                                                                                  (UseValue "ipnr_1")
-                                                                                                  (Let "ipac_2"
+                                                                                            (Scale (1 % 1000)
+                                                                                               (MulValue
+                                                                                                  (UseValue "o_rf_CURS_1")
+                                                                                                  (Constant -1000)))
+                                                                                            (AddValue
+                                                                                               (Constant 1000000)
+                                                                                               (Constant -100000))))))
+                                                                                (When [
+                                                                                   (Case
+                                                                                      (Deposit
+                                                                                         (Role "party")
+                                                                                         (Role "party")
+                                                                                         (Token "" "")
+                                                                                         (UseValue "payoff_1"))
+                                                                                      (Pay
+                                                                                         (Role "party")
+                                                                                         (Party
+                                                                                            (Role "counterparty"))
+                                                                                         (Token "" "")
+                                                                                         (UseValue "payoff_1")
+                                                                                         (Let "o_rf_CURS_2"
+                                                                                            (Constant 1000)
+                                                                                            (Let "MD_2"
+                                                                                               (Constant 0)
+                                                                                               (Let "tmd_2"
+                                                                                                  (UseValue "tmd_1")
+                                                                                                  (Let "nt_2"
                                                                                                      (Constant 0)
-                                                                                                     (Let "feac_2"
-                                                                                                        (UseValue "feac_1")
-                                                                                                        (Let "fac_2"
-                                                                                                           (AddValue
-                                                                                                              (UseValue "fac_1")
-                                                                                                              (Scale (1 % 1000)
-                                                                                                                 (MulValue
-                                                                                                                    (Scale (1 % 1000)
-                                                                                                                       (MulValue
-                                                                                                                          (Constant 1014)
-                                                                                                                          (UseValue "nt_1")))
-                                                                                                                    (Constant 30))))
-                                                                                                           (Let "nsc_2"
-                                                                                                              (UseValue "nsc_1")
-                                                                                                              (Let "isc_2"
-                                                                                                                 (UseValue "isc_1")
-                                                                                                                 (Let "sd_2"
-                                                                                                                    (Constant 1634687900)
-                                                                                                                    (Let "prnxt_2"
-                                                                                                                       (UseValue "prnxt_1")
-                                                                                                                       (Let "ipcb_2"
-                                                                                                                          (UseValue "ipcb_1")
-                                                                                                                          (Let "payoff_2"
-                                                                                                                             (Scale (1 % 1000)
-                                                                                                                                (Scale (1 % 1000)
-                                                                                                                                   (MulValue
+                                                                                                     (Let "ipnr_2"
+                                                                                                        (UseValue "ipnr_1")
+                                                                                                        (Let "ipac_2"
+                                                                                                           (Constant 0)
+                                                                                                           (Let "feac_2"
+                                                                                                              (Constant 0)
+                                                                                                              (Let "fac_2"
+                                                                                                                 (UseValue "fac_1")
+                                                                                                                 (Let "nsc_2"
+                                                                                                                    (UseValue "nsc_1")
+                                                                                                                    (Let "isc_2"
+                                                                                                                       (UseValue "isc_1")
+                                                                                                                       (Let "sd_2"
+                                                                                                                          (Constant 1256169500)
+                                                                                                                          (Let "prnxt_2"
+                                                                                                                             (UseValue "prnxt_1")
+                                                                                                                             (Let "ipcb_2"
+                                                                                                                                (UseValue "ipcb_1")
+                                                                                                                                (Let "payoff_2"
+                                                                                                                                   (Scale (1 % 1000)
                                                                                                                                       (Scale (1 % 1000)
                                                                                                                                          (MulValue
                                                                                                                                             (UseValue "o_rf_CURS_2")
-                                                                                                                                            (UseValue "isc_1")))
-                                                                                                                                      (AddValue
-                                                                                                                                         (UseValue "ipac_1")
-                                                                                                                                         (Scale (1 % 1000)
-                                                                                                                                            (MulValue
-                                                                                                                                               (Scale (1 % 1000)
-                                                                                                                                                  (MulValue
-                                                                                                                                                     (Constant 1014)
-                                                                                                                                                     (UseValue "ipnr_1")))
-                                                                                                                                               (UseValue "nt_1")))))))
-                                                                                                                             (When [
-                                                                                                                                (Case
-                                                                                                                                   (Deposit
-                                                                                                                                      (Role "party")
-                                                                                                                                      (Role "party")
-                                                                                                                                      (Token "" "")
-                                                                                                                                      (UseValue "payoff_2"))
-                                                                                                                                   (Pay
-                                                                                                                                      (Role "party")
-                                                                                                                                      (Party
-                                                                                                                                         (Role "counterparty"))
-                                                                                                                                      (Token "" "")
-                                                                                                                                      (UseValue "payoff_2")
-                                                                                                                                      (Let "o_rf_CURS_3"
-                                                                                                                                         (Constant 1000)
-                                                                                                                                         (Let "IP:2022-10-202021-10-20_3"
-                                                                                                                                            (Constant 0)
-                                                                                                                                            (Let "tmd_3"
-                                                                                                                                               (UseValue "tmd_2")
-                                                                                                                                               (Let "nt_3"
-                                                                                                                                                  (UseValue "nt_2")
-                                                                                                                                                  (Let "ipnr_3"
-                                                                                                                                                     (UseValue "ipnr_2")
-                                                                                                                                                     (Let "ipac_3"
-                                                                                                                                                        (Constant 0)
-                                                                                                                                                        (Let "feac_3"
-                                                                                                                                                           (UseValue "feac_2")
-                                                                                                                                                           (Let "fac_3"
-                                                                                                                                                              (AddValue
-                                                                                                                                                                 (UseValue "fac_2")
-                                                                                                                                                                 (Scale (1 % 1000)
-                                                                                                                                                                    (MulValue
-                                                                                                                                                                       (Scale (1 % 1000)
-                                                                                                                                                                          (MulValue
-                                                                                                                                                                             (Constant 1014)
-                                                                                                                                                                             (UseValue "nt_2")))
-                                                                                                                                                                       (Constant 30))))
-                                                                                                                                                              (Let "nsc_3"
-                                                                                                                                                                 (UseValue "nsc_2")
-                                                                                                                                                                 (Let "isc_3"
-                                                                                                                                                                    (UseValue "isc_2")
-                                                                                                                                                                    (Let "sd_3"
-                                                                                                                                                                       (Constant 1666223900)
-                                                                                                                                                                       (Let "prnxt_3"
-                                                                                                                                                                          (UseValue "prnxt_2")
-                                                                                                                                                                          (Let "ipcb_3"
-                                                                                                                                                                             (UseValue "ipcb_2")
-                                                                                                                                                                             (Let "payoff_3"
-                                                                                                                                                                                (Scale (1 % 1000)
-                                                                                                                                                                                   (Scale (1 % 1000)
-                                                                                                                                                                                      (MulValue
-                                                                                                                                                                                         (Scale (1 % 1000)
-                                                                                                                                                                                            (MulValue
-                                                                                                                                                                                               (UseValue "o_rf_CURS_3")
-                                                                                                                                                                                               (UseValue "isc_2")))
-                                                                                                                                                                                         (AddValue
-                                                                                                                                                                                            (UseValue "ipac_2")
-                                                                                                                                                                                            (Scale (1 % 1000)
-                                                                                                                                                                                               (MulValue
-                                                                                                                                                                                                  (Scale (1 % 1000)
-                                                                                                                                                                                                     (MulValue
-                                                                                                                                                                                                        (Constant 1014)
-                                                                                                                                                                                                        (UseValue "ipnr_2")))
-                                                                                                                                                                                                  (UseValue "nt_2")))))))
-                                                                                                                                                                                (When [
-                                                                                                                                                                                   (Case
-                                                                                                                                                                                      (Deposit
-                                                                                                                                                                                         (Role "party")
-                                                                                                                                                                                         (Role "party")
-                                                                                                                                                                                         (Token "" "")
-                                                                                                                                                                                         (UseValue "payoff_3"))
-                                                                                                                                                                                      (Pay
-                                                                                                                                                                                         (Role "party")
-                                                                                                                                                                                         (Party
-                                                                                                                                                                                            (Role "counterparty"))
-                                                                                                                                                                                         (Token "" "")
-                                                                                                                                                                                         (UseValue "payoff_3")
-                                                                                                                                                                                         (Let "o_rf_CURS_4"
-                                                                                                                                                                                            (Constant 1000)
-                                                                                                                                                                                            (Let "IP:2023-10-202022-10-20_4"
-                                                                                                                                                                                               (Constant 0)
-                                                                                                                                                                                               (Let "tmd_4"
-                                                                                                                                                                                                  (UseValue "tmd_3")
-                                                                                                                                                                                                  (Let "nt_4"
-                                                                                                                                                                                                     (UseValue "nt_3")
-                                                                                                                                                                                                     (Let "ipnr_4"
-                                                                                                                                                                                                        (UseValue "ipnr_3")
-                                                                                                                                                                                                        (Let "ipac_4"
-                                                                                                                                                                                                           (Constant 0)
-                                                                                                                                                                                                           (Let "feac_4"
-                                                                                                                                                                                                              (UseValue "feac_3")
-                                                                                                                                                                                                              (Let "fac_4"
-                                                                                                                                                                                                                 (AddValue
-                                                                                                                                                                                                                    (UseValue "fac_3")
-                                                                                                                                                                                                                    (Scale (1 % 1000)
-                                                                                                                                                                                                                       (MulValue
-                                                                                                                                                                                                                          (Scale (1 % 1000)
-                                                                                                                                                                                                                             (MulValue
-                                                                                                                                                                                                                                (Constant 1014)
-                                                                                                                                                                                                                                (UseValue "nt_3")))
-                                                                                                                                                                                                                          (Constant 30))))
-                                                                                                                                                                                                                 (Let "nsc_4"
-                                                                                                                                                                                                                    (UseValue "nsc_3")
-                                                                                                                                                                                                                    (Let "isc_4"
-                                                                                                                                                                                                                       (UseValue "isc_3")
-                                                                                                                                                                                                                       (Let "sd_4"
-                                                                                                                                                                                                                          (Constant 1697759900)
-                                                                                                                                                                                                                          (Let "prnxt_4"
-                                                                                                                                                                                                                             (UseValue "prnxt_3")
-                                                                                                                                                                                                                             (Let "ipcb_4"
-                                                                                                                                                                                                                                (UseValue "ipcb_3")
-                                                                                                                                                                                                                                (Let "payoff_4"
-                                                                                                                                                                                                                                   (Scale (1 % 1000)
-                                                                                                                                                                                                                                      (Scale (1 % 1000)
-                                                                                                                                                                                                                                         (MulValue
-                                                                                                                                                                                                                                            (Scale (1 % 1000)
-                                                                                                                                                                                                                                               (MulValue
-                                                                                                                                                                                                                                                  (UseValue "o_rf_CURS_4")
-                                                                                                                                                                                                                                                  (UseValue "isc_3")))
-                                                                                                                                                                                                                                            (AddValue
-                                                                                                                                                                                                                                               (UseValue "ipac_3")
-                                                                                                                                                                                                                                               (Scale (1 % 1000)
-                                                                                                                                                                                                                                                  (MulValue
-                                                                                                                                                                                                                                                     (Scale (1 % 1000)
-                                                                                                                                                                                                                                                        (MulValue
-                                                                                                                                                                                                                                                           (Constant 1014)
-                                                                                                                                                                                                                                                           (UseValue "ipnr_3")))
-                                                                                                                                                                                                                                                     (UseValue "nt_3")))))))
-                                                                                                                                                                                                                                   (When [
-                                                                                                                                                                                                                                      (Case
-                                                                                                                                                                                                                                         (Deposit
-                                                                                                                                                                                                                                            (Role "party")
-                                                                                                                                                                                                                                            (Role "party")
-                                                                                                                                                                                                                                            (Token "" "")
-                                                                                                                                                                                                                                            (UseValue "payoff_4"))
-                                                                                                                                                                                                                                         (Pay
-                                                                                                                                                                                                                                            (Role "party")
-                                                                                                                                                                                                                                            (Party
-                                                                                                                                                                                                                                               (Role "counterparty"))
-                                                                                                                                                                                                                                            (Token "" "")
-                                                                                                                                                                                                                                            (UseValue "payoff_4")
-                                                                                                                                                                                                                                            (Let "o_rf_CURS_5"
-                                                                                                                                                                                                                                               (Constant 1000)
-                                                                                                                                                                                                                                               (Let "IP:2024-10-202023-10-20_5"
-                                                                                                                                                                                                                                                  (Constant 0)
-                                                                                                                                                                                                                                                  (Let "tmd_5"
-                                                                                                                                                                                                                                                     (UseValue "tmd_4")
-                                                                                                                                                                                                                                                     (Let "nt_5"
-                                                                                                                                                                                                                                                        (UseValue "nt_4")
-                                                                                                                                                                                                                                                        (Let "ipnr_5"
-                                                                                                                                                                                                                                                           (UseValue "ipnr_4")
-                                                                                                                                                                                                                                                           (Let "ipac_5"
-                                                                                                                                                                                                                                                              (Constant 0)
-                                                                                                                                                                                                                                                              (Let "feac_5"
-                                                                                                                                                                                                                                                                 (UseValue "feac_4")
-                                                                                                                                                                                                                                                                 (Let "fac_5"
-                                                                                                                                                                                                                                                                    (AddValue
-                                                                                                                                                                                                                                                                       (UseValue "fac_4")
-                                                                                                                                                                                                                                                                       (Scale (1 % 1000)
-                                                                                                                                                                                                                                                                          (MulValue
-                                                                                                                                                                                                                                                                             (Scale (1 % 1000)
-                                                                                                                                                                                                                                                                                (MulValue
-                                                                                                                                                                                                                                                                                   (Constant 1017)
-                                                                                                                                                                                                                                                                                   (UseValue "nt_4")))
-                                                                                                                                                                                                                                                                             (Constant 30))))
-                                                                                                                                                                                                                                                                    (Let "nsc_5"
-                                                                                                                                                                                                                                                                       (UseValue "nsc_4")
-                                                                                                                                                                                                                                                                       (Let "isc_5"
-                                                                                                                                                                                                                                                                          (UseValue "isc_4")
-                                                                                                                                                                                                                                                                          (Let "sd_5"
-                                                                                                                                                                                                                                                                             (Constant 1729382300)
-                                                                                                                                                                                                                                                                             (Let "prnxt_5"
-                                                                                                                                                                                                                                                                                (UseValue "prnxt_4")
-                                                                                                                                                                                                                                                                                (Let "ipcb_5"
-                                                                                                                                                                                                                                                                                   (UseValue "ipcb_4")
-                                                                                                                                                                                                                                                                                   (Let "payoff_5"
-                                                                                                                                                                                                                                                                                      (Scale (1 % 1000)
-                                                                                                                                                                                                                                                                                         (Scale (1 % 1000)
-                                                                                                                                                                                                                                                                                            (MulValue
-                                                                                                                                                                                                                                                                                               (Scale (1 % 1000)
-                                                                                                                                                                                                                                                                                                  (MulValue
-                                                                                                                                                                                                                                                                                                     (UseValue "o_rf_CURS_5")
-                                                                                                                                                                                                                                                                                                     (UseValue "isc_4")))
-                                                                                                                                                                                                                                                                                               (AddValue
-                                                                                                                                                                                                                                                                                                  (UseValue "ipac_4")
-                                                                                                                                                                                                                                                                                                  (Scale (1 % 1000)
-                                                                                                                                                                                                                                                                                                     (MulValue
-                                                                                                                                                                                                                                                                                                        (Scale (1 % 1000)
-                                                                                                                                                                                                                                                                                                           (MulValue
-                                                                                                                                                                                                                                                                                                              (Constant 1017)
-                                                                                                                                                                                                                                                                                                              (UseValue "ipnr_4")))
-                                                                                                                                                                                                                                                                                                        (UseValue "nt_4")))))))
-                                                                                                                                                                                                                                                                                      (When [
-                                                                                                                                                                                                                                                                                         (Case
-                                                                                                                                                                                                                                                                                            (Deposit
-                                                                                                                                                                                                                                                                                               (Role "party")
-                                                                                                                                                                                                                                                                                               (Role "party")
-                                                                                                                                                                                                                                                                                               (Token "" "")
-                                                                                                                                                                                                                                                                                               (UseValue "payoff_5"))
-                                                                                                                                                                                                                                                                                            (Pay
-                                                                                                                                                                                                                                                                                               (Role "party")
-                                                                                                                                                                                                                                                                                               (Party
-                                                                                                                                                                                                                                                                                                  (Role "counterparty"))
-                                                                                                                                                                                                                                                                                               (Token "" "")
-                                                                                                                                                                                                                                                                                               (UseValue "payoff_5")
-                                                                                                                                                                                                                                                                                               (Let "o_rf_CURS_6"
-                                                                                                                                                                                                                                                                                                  (Constant 1000)
-                                                                                                                                                                                                                                                                                                  (Let "IP:2025-10-202024-10-20_6"
-                                                                                                                                                                                                                                                                                                     (Constant 0)
-                                                                                                                                                                                                                                                                                                     (Let "tmd_6"
-                                                                                                                                                                                                                                                                                                        (UseValue "tmd_5")
-                                                                                                                                                                                                                                                                                                        (Let "nt_6"
-                                                                                                                                                                                                                                                                                                           (UseValue "nt_5")
-                                                                                                                                                                                                                                                                                                           (Let "ipnr_6"
-                                                                                                                                                                                                                                                                                                              (UseValue "ipnr_5")
-                                                                                                                                                                                                                                                                                                              (Let "ipac_6"
-                                                                                                                                                                                                                                                                                                                 (Constant 0)
-                                                                                                                                                                                                                                                                                                                 (Let "feac_6"
-                                                                                                                                                                                                                                                                                                                    (UseValue "feac_5")
-                                                                                                                                                                                                                                                                                                                    (Let "fac_6"
-                                                                                                                                                                                                                                                                                                                       (AddValue
-                                                                                                                                                                                                                                                                                                                          (UseValue "fac_5")
-                                                                                                                                                                                                                                                                                                                          (Scale (1 % 1000)
-                                                                                                                                                                                                                                                                                                                             (MulValue
-                                                                                                                                                                                                                                                                                                                                (Scale (1 % 1000)
-                                                                                                                                                                                                                                                                                                                                   (MulValue
-                                                                                                                                                                                                                                                                                                                                      (Constant 1014)
-                                                                                                                                                                                                                                                                                                                                      (UseValue "nt_5")))
-                                                                                                                                                                                                                                                                                                                                (Constant 30))))
-                                                                                                                                                                                                                                                                                                                       (Let "nsc_6"
-                                                                                                                                                                                                                                                                                                                          (UseValue "nsc_5")
-                                                                                                                                                                                                                                                                                                                          (Let "isc_6"
-                                                                                                                                                                                                                                                                                                                             (UseValue "isc_5")
-                                                                                                                                                                                                                                                                                                                             (Let "sd_6"
-                                                                                                                                                                                                                                                                                                                                (Constant 1760918300)
-                                                                                                                                                                                                                                                                                                                                (Let "prnxt_6"
-                                                                                                                                                                                                                                                                                                                                   (UseValue "prnxt_5")
-                                                                                                                                                                                                                                                                                                                                   (Let "ipcb_6"
-                                                                                                                                                                                                                                                                                                                                      (UseValue "ipcb_5")
-                                                                                                                                                                                                                                                                                                                                      (Let "payoff_6"
-                                                                                                                                                                                                                                                                                                                                         (Scale (1 % 1000)
-                                                                                                                                                                                                                                                                                                                                            (Scale (1 % 1000)
-                                                                                                                                                                                                                                                                                                                                               (MulValue
-                                                                                                                                                                                                                                                                                                                                                  (Scale (1 % 1000)
-                                                                                                                                                                                                                                                                                                                                                     (MulValue
-                                                                                                                                                                                                                                                                                                                                                        (UseValue "o_rf_CURS_6")
-                                                                                                                                                                                                                                                                                                                                                        (UseValue "isc_5")))
-                                                                                                                                                                                                                                                                                                                                                  (AddValue
-                                                                                                                                                                                                                                                                                                                                                     (UseValue "ipac_5")
-                                                                                                                                                                                                                                                                                                                                                     (Scale (1 % 1000)
-                                                                                                                                                                                                                                                                                                                                                        (MulValue
-                                                                                                                                                                                                                                                                                                                                                           (Scale (1 % 1000)
-                                                                                                                                                                                                                                                                                                                                                              (MulValue
-                                                                                                                                                                                                                                                                                                                                                                 (Constant 1014)
-                                                                                                                                                                                                                                                                                                                                                                 (UseValue "ipnr_5")))
-                                                                                                                                                                                                                                                                                                                                                           (UseValue "nt_5")))))))
-                                                                                                                                                                                                                                                                                                                                         (When [
-                                                                                                                                                                                                                                                                                                                                            (Case
-                                                                                                                                                                                                                                                                                                                                               (Deposit
-                                                                                                                                                                                                                                                                                                                                                  (Role "party")
-                                                                                                                                                                                                                                                                                                                                                  (Role "party")
-                                                                                                                                                                                                                                                                                                                                                  (Token "" "")
-                                                                                                                                                                                                                                                                                                                                                  (UseValue "payoff_6"))
-                                                                                                                                                                                                                                                                                                                                               (Pay
-                                                                                                                                                                                                                                                                                                                                                  (Role "party")
-                                                                                                                                                                                                                                                                                                                                                  (Party
-                                                                                                                                                                                                                                                                                                                                                     (Role "counterparty"))
-                                                                                                                                                                                                                                                                                                                                                  (Token "" "")
-                                                                                                                                                                                                                                                                                                                                                  (UseValue "payoff_6")
-                                                                                                                                                                                                                                                                                                                                                  (Let "o_rf_CURS_7"
-                                                                                                                                                                                                                                                                                                                                                     (Constant 1000)
-                                                                                                                                                                                                                                                                                                                                                     (Let "MD_7"
-                                                                                                                                                                                                                                                                                                                                                        (Constant 0)
-                                                                                                                                                                                                                                                                                                                                                        (Let "tmd_7"
-                                                                                                                                                                                                                                                                                                                                                           (UseValue "tmd_6")
-                                                                                                                                                                                                                                                                                                                                                           (Let "nt_7"
-                                                                                                                                                                                                                                                                                                                                                              (Constant 0)
-                                                                                                                                                                                                                                                                                                                                                              (Let "ipnr_7"
-                                                                                                                                                                                                                                                                                                                                                                 (UseValue "ipnr_6")
-                                                                                                                                                                                                                                                                                                                                                                 (Let "ipac_7"
-                                                                                                                                                                                                                                                                                                                                                                    (Constant 0)
-                                                                                                                                                                                                                                                                                                                                                                    (Let "feac_7"
-                                                                                                                                                                                                                                                                                                                                                                       (Constant 0)
-                                                                                                                                                                                                                                                                                                                                                                       (Let "fac_7"
-                                                                                                                                                                                                                                                                                                                                                                          (UseValue "fac_6")
-                                                                                                                                                                                                                                                                                                                                                                          (Let "nsc_7"
-                                                                                                                                                                                                                                                                                                                                                                             (UseValue "nsc_6")
-                                                                                                                                                                                                                                                                                                                                                                             (Let "isc_7"
-                                                                                                                                                                                                                                                                                                                                                                                (UseValue "isc_6")
-                                                                                                                                                                                                                                                                                                                                                                                (Let "sd_7"
-                                                                                                                                                                                                                                                                                                                                                                                   (Constant 1761091100)
-                                                                                                                                                                                                                                                                                                                                                                                   (Let "prnxt_7"
-                                                                                                                                                                                                                                                                                                                                                                                      (UseValue "prnxt_6")
-                                                                                                                                                                                                                                                                                                                                                                                      (Let "ipcb_7"
-                                                                                                                                                                                                                                                                                                                                                                                         (UseValue "ipcb_6")
-                                                                                                                                                                                                                                                                                                                                                                                         (Let "payoff_7"
-                                                                                                                                                                                                                                                                                                                                                                                            (Scale (1 % 1000)
-                                                                                                                                                                                                                                                                                                                                                                                               (Scale (1 % 1000)
-                                                                                                                                                                                                                                                                                                                                                                                                  (MulValue
-                                                                                                                                                                                                                                                                                                                                                                                                     (UseValue "o_rf_CURS_7")
-                                                                                                                                                                                                                                                                                                                                                                                                     (AddValue
-                                                                                                                                                                                                                                                                                                                                                                                                        (AddValue
-                                                                                                                                                                                                                                                                                                                                                                                                           (Scale (1 % 1000)
-                                                                                                                                                                                                                                                                                                                                                                                                              (MulValue
-                                                                                                                                                                                                                                                                                                                                                                                                                 (UseValue "nsc_6")
-                                                                                                                                                                                                                                                                                                                                                                                                                 (UseValue "nt_6")))
-                                                                                                                                                                                                                                                                                                                                                                                                           (Scale (1 % 1000)
-                                                                                                                                                                                                                                                                                                                                                                                                              (MulValue
-                                                                                                                                                                                                                                                                                                                                                                                                                 (UseValue "isc_6")
-                                                                                                                                                                                                                                                                                                                                                                                                                 (UseValue "ipac_6"))))
-                                                                                                                                                                                                                                                                                                                                                                                                        (UseValue "feac_6")))))
-                                                                                                                                                                                                                                                                                                                                                                                            (When [
-                                                                                                                                                                                                                                                                                                                                                                                               (Case
-                                                                                                                                                                                                                                                                                                                                                                                                  (Deposit
-                                                                                                                                                                                                                                                                                                                                                                                                     (Role "party")
-                                                                                                                                                                                                                                                                                                                                                                                                     (Role "party")
-                                                                                                                                                                                                                                                                                                                                                                                                     (Token "" "")
-                                                                                                                                                                                                                                                                                                                                                                                                     (UseValue "payoff_7"))
-                                                                                                                                                                                                                                                                                                                                                                                                  (Pay
-                                                                                                                                                                                                                                                                                                                                                                                                     (Role "party")
-                                                                                                                                                                                                                                                                                                                                                                                                     (Party
-                                                                                                                                                                                                                                                                                                                                                                                                        (Role "counterparty"))
-                                                                                                                                                                                                                                                                                                                                                                                                     (Token "" "")
-                                                                                                                                                                                                                                                                                                                                                                                                     (UseValue "payoff_7") Close))] 1761091100 Close)))))))))))))))))] 1760918300 Close)))))))))))))))))] 1729382300 Close)))))))))))))))))] 1697759900 Close)))))))))))))))))] 1666223900 Close)))))))))))))))))] 1634687900 Close)))))))))))))))))] 1603151900 Close)))))))))))))))))))))))))
+                                                                                                                                            (AddValue
+                                                                                                                                               (AddValue
+                                                                                                                                                  (Scale (1 % 1000)
+                                                                                                                                                     (MulValue
+                                                                                                                                                        (UseValue "nsc_1")
+                                                                                                                                                        (UseValue "nt_1")))
+                                                                                                                                                  (Scale (1 % 1000)
+                                                                                                                                                     (MulValue
+                                                                                                                                                        (UseValue "isc_1")
+                                                                                                                                                        (UseValue "ipac_1"))))
+                                                                                                                                               (UseValue "feac_1")))))
+                                                                                                                                   (When [
+                                                                                                                                      (Case
+                                                                                                                                         (Deposit
+                                                                                                                                            (Role "counterparty")
+                                                                                                                                            (Role "counterparty")
+                                                                                                                                            (Token "" "")
+                                                                                                                                            (NegValue
+                                                                                                                                               (UseValue "payoff_2")))
+                                                                                                                                         (Pay
+                                                                                                                                            (Role "counterparty")
+                                                                                                                                            (Party
+                                                                                                                                               (Role "party"))
+                                                                                                                                            (Token "" "")
+                                                                                                                                            (NegValue
+                                                                                                                                               (UseValue "payoff_2")) Close))] 1256169500
+                                                                                                                                      (Pay
+                                                                                                                                         (Role "counterparty")
+                                                                                                                                         (Party
+                                                                                                                                            (Role "party"))
+                                                                                                                                         (Token "" "")
+                                                                                                                                         (Constant 10000) Close))))))))))))))))))] 1224460700
+                                                                                   (Pay
+                                                                                      (Role "party")
+                                                                                      (Party
+                                                                                         (Role "counterparty"))
+                                                                                      (Token "" "")
+                                                                                      (Constant 0) Close))))))))))))))))))))))))))))] 1224633500 Close

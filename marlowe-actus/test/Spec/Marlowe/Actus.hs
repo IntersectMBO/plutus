@@ -89,6 +89,7 @@ contractTerms = ContractTerms {
         , ct_FER = 0.03 -- fee rate
         , ct_CURS = False
         , constraints = Nothing
+        , collateralAmount = 10000
     }
 
 pamProjected :: IO ()
