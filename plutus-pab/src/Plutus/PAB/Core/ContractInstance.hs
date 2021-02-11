@@ -377,6 +377,16 @@ activateContract contract = do
     logInfo @(ContractInstanceMsg t) $ ActivatedContractInstance activeContractInstanceId
     pure instanceState
 
+-- | Start an instance of the contract using the STM-based
+--   contract runner
+activateContractSTM ::
+    forall effs.
+    BlockchainEnv
+    -> Contract s e ()
+    -> Eff effs InstanceState
+activateContractSTM env contract = do
+    undefined
+
 respondtoRequests ::
     forall t effs.
     ( Member (EventLogEffect (ChainEvent t)) effs

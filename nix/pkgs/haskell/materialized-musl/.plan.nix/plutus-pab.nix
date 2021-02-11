@@ -156,6 +156,7 @@
           "Plutus/PAB/ContractCLI"
           "Plutus/PAB/Core"
           "Plutus/PAB/Core/ContractInstance"
+          "Plutus/PAB/Core/ContractInstance/STM"
           "Plutus/PAB/Core/Projections"
           "Plutus/PAB/Effects/Contract"
           "Plutus/PAB/Effects/ContractTest"
