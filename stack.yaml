@@ -50,6 +50,7 @@ extra-deps:
 - eventful-sql-common-0.2.0@rev:0
 - eventful-sqlite-0.2.0
 - monoidal-containers-0.6.0.1
+- recursion-schemes-5.1.3
 - row-types-0.4.0.0
 - time-out-0.2@sha256:b9a6b4dee64f030ecb2a25dca0faff39b3cb3b5fefbb8af3cdec4142bfd291f2
 - time-interval-0.1.1@sha256:7bfd3601853d1af7caa18248ec10b01701d035ac274a93bb4670fea52a14d4e8
@@ -126,7 +127,7 @@ extra-package-dbs: []
 ghc-options:
   # Newer versions of persistent-template require some extra language extensions. Fortunately
   # we can hack around this here rather than having to fork eventful & co (for now)
-  eventful-sql-common: "-XDerivingStrategies -XStandaloneDeriving -XUndecidableInstances"
+  eventful-sql-common: "-XDerivingStrategies -XStandaloneDeriving -XUndecidableInstances -XDataKinds -XFlexibleInstances -XMultiParamTypeClasses"
 
 nix:
   shell-file: shell.nix
