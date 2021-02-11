@@ -74,7 +74,7 @@ library
         text -any,
         prettyprinter -any,
         transformers -any,
-        base16-bytestring -any,
+        base16-bytestring >= 1,
         deepseq -any,
         newtype-generics -any,
         tagged -any,

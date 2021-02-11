@@ -1,4 +1,4 @@
-resolver: nightly-2020-08-17
+resolver: lts-17.2
 
 packages:
 - doc
@@ -35,69 +35,46 @@ extra-deps:
 # Other missing packages
 - aws-lambda-haskell-runtime-3.0.3
 - aws-lambda-haskell-runtime-wai-1.0.2@sha256:5ce655247461b562c8048011ddc022130135a03417def8203aad92366cc979ab,1965
-- binary-instances-1.0.0.1
-- composition-prelude-2.0.2.1
+- composition-prelude-3.0.0.2
 - constraints-extras-0.3.0.2
-- dependent-map-0.3
+- dependent-map-0.4.0.0
 - dependent-sum-0.6.2.0
 - dependent-sum-template-0.1.0.3
-- deriving-aeson-0.2.3
-- ekg-0.4.0.15
-- ekg-core-0.1.1.7
-- ekg-json-0.1.0.6
 - eventful-memory-0.2.0
-- barbies-2.0.1.0
+- barbies-2.0.2.0
+- nothunks-0.1.2
+- indexed-traversable-instances-0.1
+- base16-bytestring-1.0.1.0
 # A revision was added to keep the bounds down, we don't actually want this!
 # we work around the newer persistent-template by adding flags below
 - eventful-sql-common-0.2.0@rev:0
 - eventful-sqlite-0.2.0
-- persistent-sqlite-2.10.6.2
-- persistent-template-2.8.2.3
-- github-0.24
-- github-webhooks-0.12.0
 - monoidal-containers-0.6.0.1
-- monad-stm-0.1.0.2
 - row-types-0.4.0.0
 - time-out-0.2@sha256:b9a6b4dee64f030ecb2a25dca0faff39b3cb3b5fefbb8af3cdec4142bfd291f2
 - time-interval-0.1.1@sha256:7bfd3601853d1af7caa18248ec10b01701d035ac274a93bb4670fea52a14d4e8
 - time-units-1.0.0@sha256:27cf54091c4a0ca73d504fc11d5c31ab4041d17404fe3499945e2055697746c1
-- th-utilities-0.2.4.0
-- servant-0.16.2
-- servant-options-0.1.0.0
-- servant-github-webhook-0.4.1.0@sha256:6ac456ccc6a2a96b30a7b80cd91b121f1b7e9bd33635641a6afbd6137700a753
-- servant-client-0.16.0.1
-- servant-client-core-0.16
-- servant-server-0.16.2
 - servant-websockets-2.0.0
-- servant-foreign-0.15
 - servant-subscriber-0.7.0.0
-- servant-swagger-1.1.7.1
 - safe-exceptions-checked-0.1.0
-- async-timer-0.2.0.0
-- sbv-8.6
-- random-strings-0.1.1.0@sha256:935a7a23dab45411960df77636a29b44ce42b89eeb15f2b1e809d771491fa677,2517
+- async-timer-0.1.4.1
+- sbv-8.9
 - wl-pprint-1.2.1@sha256:aea676cff4a062d7d912149d270e33f5bb0c01b68a9db46ff13b438141ff4b7c
-- inline-r-0.10.3
-- witherable-0.3.5
-- witherable-class-0
-# Needs some patches, but upstream seems to be fairly dead (no activity in > 1 year)
-- git: https://github.com/shmish111/purescript-bridge.git
-  commit: 6a92d7853ea514be8b70bab5e72077bf5a510596
-- git: https://github.com/shmish111/servant-purescript.git
-  commit: ece5d1dad16a5731ac22040075615803796c7c21
-- git: https://github.com/input-output-hk/cardano-crypto.git
-  commit: 2547ad1e80aeabca2899951601079408becbc92c
-# Needs a fix (https://github.com/wenkokke/unlit/pull/11) and a Hackage release
-- git: https://github.com/michaelpj/unlit.git
-  commit: 9ca1112093c5ffd356fc99c7dafa080e686dd748
-## Node protocols
+- witherable-0.4.1
 - canonical-json-0.6.0.0@sha256:9021f435ccb884a3b4c55bcc6b50eb19d5fc3cc3f29d5fcbdef016f5bbae23a2,3488
 - statistics-linreg-0.3@sha256:95c6efe6c7f6b26bc6e9ada90ab2d18216371cf59a6ef2b517b4a6fd35d9a76f,2544
-# Making the repository compatible with GHC-8.8.X required a couple of
-# source code changes, so I forked the original repository until it will
-# be properly updated to GHC-8.8.X
+# cabal.project is the source of truth for these pins, they are explained there
+# and need to be kept in sync.
+- git: https://github.com/shmish111/purescript-bridge.git
+  commit: 6a92d7853ea514be8b70bab5e72077bf5a510596
+- git: https://github.com/eskimor/servant-purescript.git
+  commit: 6454d5bcb9aa2a5d6e3a3dc935423b67b6f3993c
+- git: https://github.com/input-output-hk/cardano-crypto.git
+  commit: f73079303f663e028288f9f4a9e08bcca39a923e
+- git: https://github.com/michaelpj/unlit.git
+  commit: 9ca1112093c5ffd356fc99c7dafa080e686dd748
 - git: https://github.com/input-output-hk/ouroboros-network
-  commit: 75153affa23a0e68e035d7bb19880fe1ae35b1d4
+  commit: 6cb9052bde39472a0555d19ade8a42da63d3e904
   subdirs:
     - typed-protocols
     - typed-protocols-examples
@@ -108,36 +85,34 @@ extra-deps:
     - network-mux
     - Win32-network
 - git: https://github.com/input-output-hk/cardano-prelude
-  commit: 71ea865408f2e03e6d6832359423546699730849
+  commit: ee4e7b547a991876e6b05ba542f4e62909f4a571
   subdirs:
-    - .
-    - test
-# cardano-prelude currently redefines some instances that appear in 0.3.4.0
-- nonempty-containers-0.3.3.0
+    - cardano-prelude 
+    - cardano-prelude-test
 - git: https://github.com/input-output-hk/cardano-base
-  commit: 5035c9ed95e9d47f050314a7d96b1b2043288f61
+  commit: 4251c0bb6e4f443f00231d28f5f70d42876da055
   subdirs:
     - binary
-    - binary/test
     - cardano-crypto-class
+    - cardano-crypto-tests
+    - cardano-crypto-praos
     - slotting
-# Making the repository compatible with GHC-8.8.X required a couple of
-# source code changes, so I forked the original repository until it will
-# be properly updated to GHC-8.8.X
-- git: https://github.com/raduom/cardano-ledger-specs
-  commit: 2cac85306d8b3e07006e9081f36ce7ebf2d9d0a3
+- git: https://github.com/input-output-hk/cardano-ledger-specs
+  commit: 097890495cbb0e8b62106bcd090a5721c3f4b36f
   subdirs:
     - byron/chain/executable-spec
+    - byron/crypto
+    - byron/crypto/test
     - byron/ledger/executable-spec
+    - byron/ledger/impl
+    - byron/ledger/impl/test
     - semantics/executable-spec
+    - semantics/small-steps-test
     - shelley/chain-and-ledger/dependencies/non-integer
     - shelley/chain-and-ledger/executable-spec
-    - shelley/chain-and-ledger/executable-spec/test
-# Making the repository compatible with GHC-8.8.X required a couple of
-# source code changes, so I forked the original repository until it will
-# be properly updated to GHC-8.8.X
+    - shelley-ma/impl
 - git: https://github.com/input-output-hk/iohk-monitoring-framework
-  commit: 5c9627b6aee487f9b7ec44981aba57a6afc659b1
+  commit: a89c38ed5825ba17ca79fddb85651007753d699d
   subdirs:
     - contra-tracer
     - iohk-monitoring
@@ -146,40 +121,12 @@ extra-deps:
 
 allow-newer: true
 
-flags:
-  cardano-prelude:
-    development: true
-  cardano-prelude-test:
-    development: true
-  cardano-binary:
-    development: true
-  cardano-binary-test:
-    development: true
-  cardano-crypto-class:
-    development: true
-  small-steps:
-    development: true
-  byron-spec-ledger:
-    development: true
-  shelley-spec-ledger:
-    development: true
-  byron-spec-chain:
-    development: true
-  shelley-spec-ledger-test:
-    development: true
-
-## / Node protocols
-
 extra-package-dbs: []
 
 ghc-options:
-  # TODO: remove whenn inline-r version>0.10.3  is pushed to hackage
-  inline-r: "-XStandaloneKindSignatures"
   # Newer versions of persistent-template require some extra language extensions. Fortunately
   # we can hack around this here rather than having to fork eventful & co (for now)
   eventful-sql-common: "-XDerivingStrategies -XStandaloneDeriving -XUndecidableInstances"
-  # Disable all warnings, we're building with a newer version of GHC
-  iohk-monitoring: "-w" 
 
 nix:
   shell-file: shell.nix
