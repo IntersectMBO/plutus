@@ -5,8 +5,13 @@ import Control.Alt ((<|>))
 import Data.BigInteger (BigInteger)
 import Data.Generic.Rep (class Generic)
 import Data.Generic.Rep.Show (genericShow)
-import Data.Maybe (Maybe(..))
-import Data.Traversable (traverse)
+import Data.Map (Map)
+import Data.Map as Map
+import Data.Maybe (Maybe(..), maybe)
+import Data.Newtype (class Newtype, unwrap)
+import Data.Set (Set)
+import Data.Set as Set
+import Data.Traversable (foldMap, traverse)
 import Foreign (ForeignError(..), fail)
 import Foreign.Class (class Encode, class Decode, encode, decode)
 import Foreign.Index (hasProperty)
@@ -16,6 +21,84 @@ import Text.Pretty (class Args, class Pretty, genericHasArgs, genericHasNestedAr
 
 class ToCore a b where
   toCore :: a -> Maybe b
+
+newtype Placeholders
+  = Placeholders
+  { slotPlaceholderIds :: Set String
+  , valuePlaceholderIds :: Set String
+  }
+
+derive instance newTypePlaceholders :: Newtype Placeholders _
+
+instance semigroupPlaceholders :: Semigroup Placeholders where
+  append ( Placeholders
+      { slotPlaceholderIds: slotPlaceholderIds1
+    , valuePlaceholderIds: valuePlaceholerIds1
+    }
+  ) ( Placeholders
+      { slotPlaceholderIds: slotPlaceholderIds2
+    , valuePlaceholderIds: valuePlaceholerIds2
+    }
+  ) =
+    Placeholders
+      { slotPlaceholderIds: slotPlaceholderIds1 <> slotPlaceholderIds2
+      , valuePlaceholderIds: valuePlaceholerIds1 <> valuePlaceholerIds2
+      }
+
+instance monoidPlaceholders :: Monoid Placeholders where
+  mempty =
+    Placeholders
+      { slotPlaceholderIds: mempty
+      , valuePlaceholderIds: mempty
+      }
+
+newtype TemplateContent
+  = TemplateContent
+  { slotContent :: Map String BigInteger
+  , valueContent :: Map String BigInteger
+  }
+
+derive instance newTypeTemplateContent :: Newtype TemplateContent _
+
+instance semigroupTemplateContent :: Semigroup TemplateContent where
+  append ( TemplateContent
+      { slotContent: slotContent1
+    , valueContent: valueContent1
+    }
+  ) ( TemplateContent
+      { slotContent: slotContent2
+    , valueContent: valueContent2
+    }
+  ) =
+    TemplateContent
+      { slotContent: slotContent1 <> slotContent2
+      , valueContent: valueContent1 <> valueContent2
+      }
+
+instance monoidTemplateContent :: Monoid TemplateContent where
+  mempty =
+    TemplateContent
+      { slotContent: mempty
+      , valueContent: mempty
+      }
+
+initialiseTemplateContent :: Placeholders -> TemplateContent
+initialiseTemplateContent ( Placeholders
+    { slotPlaceholderIds, valuePlaceholderIds }
+) =
+  TemplateContent
+    { slotContent: initialiseWith (const zero) slotPlaceholderIds
+    , valueContent: initialiseWith (const zero) valuePlaceholderIds
+    }
+  where
+  initialiseWith :: forall a b. Ord a => (a -> b) -> Set a -> Map a b
+  initialiseWith f = foldMap (\x -> Map.singleton x $ f x)
+
+class Template a b where
+  getPlaceholderIds :: a -> b
+
+class Fillable a b where
+  fillTemplate :: b -> a -> a
 
 data Timeout
   = SlotParam String
@@ -54,6 +137,14 @@ instance hasArgsTimeout :: Args Timeout where
 instance toCoreTimeout :: ToCore Timeout S.Slot where
   toCore (SlotParam _) = Nothing
   toCore (Slot x) = Just (S.Slot x)
+
+instance templateTimeout :: Template Timeout Placeholders where
+  getPlaceholderIds (SlotParam slotParamId) = Placeholders (unwrap (mempty :: Placeholders)) { slotPlaceholderIds = Set.singleton slotParamId }
+  getPlaceholderIds (Slot x) = mempty
+
+instance fillableTimeout :: Fillable Timeout TemplateContent where
+  fillTemplate placeholders v@(SlotParam slotParamId) = maybe v Slot $ Map.lookup slotParamId (unwrap placeholders).slotContent
+  fillTemplate _ (Slot x) = Slot x
 
 data Value
   = AvailableMoney S.AccountId S.Token
@@ -193,6 +284,40 @@ instance toCoreValue :: ToCore Value S.Value where
   toCore (UseValue vId) = Just $ S.UseValue vId
   toCore (Cond obs lhs rhs) = S.Cond <$> toCore obs <*> toCore lhs <*> toCore rhs
 
+instance templateValue :: Template Value Placeholders where
+  getPlaceholderIds (ConstantParam constantParamId) = Placeholders (unwrap (mempty :: Placeholders)) { valuePlaceholderIds = Set.singleton constantParamId }
+  getPlaceholderIds (Constant _) = mempty
+  getPlaceholderIds (AvailableMoney _ _) = mempty
+  getPlaceholderIds (NegValue v) = getPlaceholderIds v
+  getPlaceholderIds (AddValue lhs rhs) = getPlaceholderIds lhs <> getPlaceholderIds rhs
+  getPlaceholderIds (SubValue lhs rhs) = getPlaceholderIds lhs <> getPlaceholderIds rhs
+  getPlaceholderIds (MulValue lhs rhs) = getPlaceholderIds lhs <> getPlaceholderIds rhs
+  getPlaceholderIds (Scale _ v) = getPlaceholderIds v
+  getPlaceholderIds (ChoiceValue _) = mempty
+  getPlaceholderIds SlotIntervalStart = mempty
+  getPlaceholderIds SlotIntervalEnd = mempty
+  getPlaceholderIds (UseValue _) = mempty
+  getPlaceholderIds (Cond obs lhs rhs) = getPlaceholderIds obs <> getPlaceholderIds lhs <> getPlaceholderIds rhs
+
+instance fillableValue :: Fillable Value TemplateContent where
+  fillTemplate placeholders val = case val of
+    Constant _ -> val
+    ConstantParam constantParamId -> maybe val Constant $ Map.lookup constantParamId (unwrap placeholders).valueContent
+    AvailableMoney _ _ -> val
+    NegValue v -> NegValue $ go v
+    AddValue lhs rhs -> AddValue (go lhs) (go rhs)
+    SubValue lhs rhs -> SubValue (go lhs) (go rhs)
+    MulValue lhs rhs -> MulValue (go lhs) (go rhs)
+    Scale f v -> Scale f $ go v
+    ChoiceValue _ -> val
+    SlotIntervalStart -> val
+    SlotIntervalEnd -> val
+    UseValue _ -> val
+    Cond obs lhs rhs -> Cond (go obs) (go lhs) (go rhs)
+    where
+    go :: forall a. (Fillable a TemplateContent) => a -> a
+    go = fillTemplate placeholders
+
 data Observation
   = AndObs Observation Observation
   | OrObs Observation Observation
@@ -316,6 +441,36 @@ instance toCoreObservation :: ToCore Observation S.Observation where
   toCore TrueObs = Just S.TrueObs
   toCore FalseObs = Just S.FalseObs
 
+instance templateObservation :: Template Observation Placeholders where
+  getPlaceholderIds (AndObs lhs rhs) = getPlaceholderIds lhs <> getPlaceholderIds rhs
+  getPlaceholderIds (OrObs lhs rhs) = getPlaceholderIds lhs <> getPlaceholderIds rhs
+  getPlaceholderIds (NotObs v) = getPlaceholderIds v
+  getPlaceholderIds (ChoseSomething _) = mempty
+  getPlaceholderIds (ValueGE lhs rhs) = getPlaceholderIds lhs <> getPlaceholderIds rhs
+  getPlaceholderIds (ValueGT lhs rhs) = getPlaceholderIds lhs <> getPlaceholderIds rhs
+  getPlaceholderIds (ValueLT lhs rhs) = getPlaceholderIds lhs <> getPlaceholderIds rhs
+  getPlaceholderIds (ValueLE lhs rhs) = getPlaceholderIds lhs <> getPlaceholderIds rhs
+  getPlaceholderIds (ValueEQ lhs rhs) = getPlaceholderIds lhs <> getPlaceholderIds rhs
+  getPlaceholderIds TrueObs = mempty
+  getPlaceholderIds FalseObs = mempty
+
+instance fillableObservation :: Fillable Observation TemplateContent where
+  fillTemplate placeholders obs = case obs of
+    AndObs lhs rhs -> AndObs (go lhs) (go rhs)
+    OrObs lhs rhs -> OrObs (go lhs) (go rhs)
+    NotObs v -> NotObs (go v)
+    ChoseSomething _ -> obs
+    ValueGE lhs rhs -> ValueGE (go lhs) (go rhs)
+    ValueGT lhs rhs -> ValueGT (go lhs) (go rhs)
+    ValueLT lhs rhs -> ValueLT (go lhs) (go rhs)
+    ValueLE lhs rhs -> ValueLE (go lhs) (go rhs)
+    ValueEQ lhs rhs -> ValueEQ (go lhs) (go rhs)
+    TrueObs -> obs
+    FalseObs -> obs
+    where
+    go :: forall a. (Fillable a TemplateContent) => a -> a
+    go = fillTemplate placeholders
+
 data Action
   = Deposit S.AccountId S.Party S.Token Value
   | Choice S.ChoiceId (Array S.Bound)
@@ -372,6 +527,20 @@ instance toCoreAction :: ToCore Action S.Action where
   toCore (Deposit accId party tok val) = S.Deposit <$> pure accId <*> pure party <*> pure tok <*> toCore val
   toCore (Choice choId bounds) = Just $ S.Choice choId bounds
   toCore (Notify obs) = S.Notify <$> toCore obs
+
+instance templateAction :: Template Action Placeholders where
+  getPlaceholderIds (Deposit accId party tok val) = getPlaceholderIds val
+  getPlaceholderIds (Choice choId bounds) = mempty
+  getPlaceholderIds (Notify obs) = getPlaceholderIds obs
+
+instance fillableAction :: Fillable Action TemplateContent where
+  fillTemplate placeholders action = case action of
+    Deposit accId party tok val -> Deposit accId party tok $ go val
+    Choice _ _ -> action
+    Notify obs -> Notify $ go obs
+    where
+    go :: forall a. (Fillable a TemplateContent) => a -> a
+    go = fillTemplate placeholders
 
 data Payee
   = Account S.AccountId
@@ -440,6 +609,15 @@ instance hasArgsCase :: Args Case where
 
 instance toCoreCase :: ToCore Case S.Case where
   toCore (Case act c) = S.Case <$> toCore act <*> toCore c
+
+instance templateCase :: Template Case Placeholders where
+  getPlaceholderIds (Case act c) = getPlaceholderIds act <> getPlaceholderIds c
+
+instance fillableCase :: Fillable Case TemplateContent where
+  fillTemplate placeholders (Case act c) = Case (go act) (go c)
+    where
+    go :: forall a. (Fillable a TemplateContent) => a -> a
+    go = fillTemplate placeholders
 
 data Contract
   = Close
@@ -534,3 +712,23 @@ instance toCoreContract :: ToCore Contract S.Contract where
   toCore (When cases tim cont) = S.When <$> traverse toCore cases <*> toCore tim <*> toCore cont
   toCore (Let varId val cont) = S.Let <$> pure varId <*> toCore val <*> toCore cont
   toCore (Assert obs cont) = S.Assert <$> toCore obs <*> toCore cont
+
+instance templateContract :: Template Contract Placeholders where
+  getPlaceholderIds Close = mempty
+  getPlaceholderIds (Pay accId payee tok val cont) = getPlaceholderIds val <> getPlaceholderIds cont
+  getPlaceholderIds (If obs cont1 cont2) = getPlaceholderIds obs <> getPlaceholderIds cont1 <> getPlaceholderIds cont2
+  getPlaceholderIds (When cases tim cont) = foldMap getPlaceholderIds cases <> getPlaceholderIds tim <> getPlaceholderIds cont
+  getPlaceholderIds (Let varId val cont) = getPlaceholderIds val <> getPlaceholderIds cont
+  getPlaceholderIds (Assert obs cont) = getPlaceholderIds obs <> getPlaceholderIds cont
+
+instance fillableContract :: Fillable Contract TemplateContent where
+  fillTemplate placeholders contract = case contract of
+    Close -> Close
+    Pay accId payee tok val cont -> Pay accId payee tok (go val) (go cont)
+    If obs cont1 cont2 -> If (go obs) (go cont1) (go cont2)
+    When cases tim cont -> When (map go cases) (go tim) (go cont)
+    Let varId val cont -> Let varId (go val) (go cont)
+    Assert obs cont -> Assert (go obs) (go cont)
+    where
+    go :: forall a. (Fillable a TemplateContent) => a -> a
+    go = fillTemplate placeholders

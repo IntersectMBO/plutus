@@ -20,13 +20,14 @@ import Data.List.NonEmpty as NEL
 import Data.List.Types (NonEmptyList)
 import Data.Map (Map)
 import Data.Map as Map
-import Data.Maybe (Maybe(..))
+import Data.Maybe (Maybe(..), maybe)
 import Data.Newtype (class Newtype)
 import Data.Profunctor.Choice (class Choice)
 import Data.Profunctor.Strong (class Strong)
 import Data.Symbol (SProxy(..))
 import Foreign.Generic (class Decode, class Encode, genericDecode, genericEncode)
 import Help (HelpContext(..))
+import Marlowe.Extended (TemplateContent, getPlaceholderIds, initialiseTemplateContent)
 import Marlowe.Extended as EM
 import Marlowe.Holes (Holes)
 import Marlowe.Semantics (AccountId, Assets, Bound, ChoiceId, ChosenNum, Contract, Input, Party(..), Payment, Slot, SlotInterval, Token, TransactionError, TransactionInput, TransactionWarning, aesonCompatibleOptions, emptyState)
@@ -175,6 +176,7 @@ _payments = _log <<< to (mapMaybe f)
 type InitialConditionsRecord
   = { initialSlot :: Slot
     , extendedContract :: Maybe EM.Contract
+    , templateContent :: TemplateContent
     }
 
 _initialSlot :: forall s a. Lens' { initialSlot :: a | s } a
@@ -182,6 +184,9 @@ _initialSlot = prop (SProxy :: SProxy "initialSlot")
 
 _extendedContract :: forall s a. Lens' { extendedContract :: a | s } a
 _extendedContract = prop (SProxy :: SProxy "extendedContract")
+
+_templateContent :: forall s a. Lens' { templateContent :: a | s } a
+_templateContent = prop (SProxy :: SProxy "templateContent")
 
 data ExecutionState
   = SimulationRunning ExecutionStateRecord
@@ -224,6 +229,7 @@ simulationNotStartedWithSlot slot mContract =
   SimulationNotStarted
     { initialSlot: slot
     , extendedContract: mContract
+    , templateContent: maybe mempty (initialiseTemplateContent <<< getPlaceholderIds) mContract
     }
 
 simulationNotStarted :: Maybe EM.Contract -> ExecutionState
