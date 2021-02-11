@@ -84,7 +84,6 @@ import           Wallet.Effects                                    (ContractRunt
 import           Wallet.Emulator                                   (Wallet)
 import qualified Wallet.Emulator                                   as EM
 import           Wallet.Emulator.LogMessages                       (TxBalanceMsg)
-import           Wallet.Emulator.MultiAgent                        (EmulatedWalletEffects)
 import           Wallet.Types                                      (ContractInstanceId, EndpointDescription (..),
                                                                     NotificationError (..))
 

@@ -178,7 +178,7 @@ walletAction wallet act = send (WalletAction wallet act)
 handleMultiAgentEffects ::
     forall effs.
     Member MultiAgentEffect effs
-    => Wallet
+    => Wallet.Wallet
     -> Eff (EmulatedWalletEffects' effs)
     ~> Eff effs
 handleMultiAgentEffects wallet =
@@ -196,7 +196,7 @@ raiseWallet :: forall f effs.
     ( Member f EmulatedWalletEffects
     , Member MultiAgentEffect effs
     )
-    => Wallet
+    => Wallet.Wallet
     -> f
     ~> Eff effs
 raiseWallet wllt = walletAction wllt . send
