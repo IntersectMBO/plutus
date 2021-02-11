@@ -227,6 +227,7 @@
           "Language/PlutusCore/Generators/NEAT/Common"
           "Language/PlutusCore/Generators/NEAT/Spec"
           "Language/PlutusCore/Generators/NEAT/Type"
+          "Language/PlutusCore/Generators/NEAT/Term"
           "Language/PlutusCore/Lexer"
           "Language/PlutusCore/Parser"
           "Language/PlutusCore/Error"
