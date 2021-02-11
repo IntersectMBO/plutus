@@ -35,15 +35,16 @@ import           GHC.Generics                (Generic)
 import           Ledger                      hiding (to, value)
 import qualified Ledger.AddressMap           as AM
 import qualified Ledger.Index                as Index
-import           Plutus.Trace.Emulator.Types (ContractInstanceLog, UserThreadMsg)
+import           Plutus.Trace.Emulator.Types (ContractInstanceLog, EmulatedWalletEffects, EmulatedWalletEffects',
+                                              UserThreadMsg)
 import qualified Plutus.Trace.Scheduler      as Scheduler
 import qualified Wallet.API                  as WAPI
-import qualified Wallet.Effects              as Wallet
 import qualified Wallet.Emulator.Chain       as Chain
 import qualified Wallet.Emulator.ChainIndex  as ChainIndex
 import           Wallet.Emulator.LogMessages (RequestHandlerLogMsg, TxBalanceMsg)
 import qualified Wallet.Emulator.NodeClient  as NC
 import qualified Wallet.Emulator.Notify      as Notify
+import           Wallet.Emulator.Wallet      (Wallet)
 import qualified Wallet.Emulator.Wallet      as Wallet
 import           Wallet.Types                (AssertionError (..))
 
@@ -121,18 +122,6 @@ instanceEvent = prism' InstanceEvent (\case { InstanceEvent e -> Just e; _ -> No
 userThreadEvent :: Prism' EmulatorEvent' UserThreadMsg
 userThreadEvent = prism' UserThreadEvent (\case { UserThreadEvent e -> Just e ; _ -> Nothing })
 
-type EmulatedWalletEffects =
-        '[ Wallet.WalletEffect
-         , Error WAPI.WalletAPIError
-         , Wallet.NodeClientEffect
-         , Wallet.ChainIndexEffect
-         , Wallet.SigningProcessEffect
-         , LogObserve (LogMessage T.Text)
-         , LogMsg RequestHandlerLogMsg
-         , LogMsg TxBalanceMsg
-         , LogMsg T.Text
-         ]
-
 type EmulatedWalletControlEffects =
         '[ NC.NodeClientControlEffect
          , ChainIndex.ChainIndexControlEffect
@@ -192,6 +181,32 @@ walletAction
     -> Eff EmulatedWalletEffects r
     -> Eff effs r
 walletAction wallet act = send (WalletAction wallet act)
+
+handleMultiAgentEffects ::
+    forall effs.
+    Member MultiAgentEffect effs
+    => Wallet
+    -> Eff (EmulatedWalletEffects' effs)
+    ~> Eff effs
+handleMultiAgentEffects wallet =
+    interpret (raiseWallet @(LogMsg T.Text) wallet)
+        . interpret (raiseWallet @(LogMsg TxBalanceMsg) wallet)
+        . interpret (raiseWallet @(LogMsg RequestHandlerLogMsg) wallet)
+        . interpret (raiseWallet @(LogObserve (LogMessage T.Text)) wallet)
+        . interpret (raiseWallet @WAPI.SigningProcessEffect wallet)
+        . interpret (raiseWallet @WAPI.ChainIndexEffect wallet)
+        . interpret (raiseWallet @WAPI.NodeClientEffect wallet)
+        . interpret (raiseWallet @(Error WAPI.WalletAPIError) wallet)
+        . interpret (raiseWallet @WAPI.WalletEffect wallet)
+
+raiseWallet :: forall f effs.
+    ( Member f EmulatedWalletEffects
+    , Member MultiAgentEffect effs
+    )
+    => Wallet
+    -> f
+    ~> Eff effs
+raiseWallet wllt = walletAction wllt . send
 
 -- | Run a control action in the context of a wallet
 walletControlAction
