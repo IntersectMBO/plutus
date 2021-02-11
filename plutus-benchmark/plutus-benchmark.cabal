@@ -189,6 +189,7 @@ benchmark flat
     , deepseq -any
     , flat -any
     , lens -any
+    , marlowe -any
     , plutus-core -any
     , plutus-use-cases -any
     , plutus-ledger -any
