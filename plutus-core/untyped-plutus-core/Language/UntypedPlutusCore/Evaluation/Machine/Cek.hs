@@ -38,7 +38,6 @@ module Language.UntypedPlutusCore.Evaluation.Machine.Cek
     , runCekCounting
     , evaluateCek
     , unsafeEvaluateCek
-    , unsafeEvaluateCekWithBudgeting
     , readKnownCek
     )
 where
@@ -52,8 +51,8 @@ import           Language.UntypedPlutusCore.Subst
 import           Language.PlutusCore.Constant
 import qualified Language.PlutusCore.Evaluation.Machine.Cek         as Typed (CekUserError (..))
 import           Language.PlutusCore.Evaluation.Machine.ExBudgeting
-import           Language.PlutusCore.Evaluation.Machine.Exception
 import           Language.PlutusCore.Evaluation.Machine.ExMemory
+import           Language.PlutusCore.Evaluation.Machine.Exception
 import           Language.PlutusCore.Evaluation.Result
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Pretty
@@ -524,6 +523,7 @@ evaluateCek
     -> Either (CekEvaluationException uni fun) (Term Name uni fun ())
 evaluateCek runtime = fst . runCekCounting runtime
 
+
 -- | Evaluate a term using the CEK machine. May throw a 'CekMachineException'.
 unsafeEvaluateCek
     :: ( GShow uni, GEq uni, Typeable uni
@@ -535,6 +535,7 @@ unsafeEvaluateCek
     -> EvaluationResult (Term Name uni fun ())
 unsafeEvaluateCek runtime = either throw id . extractEvaluationResult . evaluateCek runtime
 
+{-
 -- | Evaluate a term using the CEK machine. May throw a 'CekMachineException'.
 -- This version takes a starting budget (either Counting or Restricting) and
 -- returns it along with the result.
@@ -546,7 +547,7 @@ unsafeEvaluateCekRestricting
     => BuiltinsRuntime fun (CekValue uni fun)
     -> ExBudgetMode
     -> Term Name uni fun ()
-    -> EvaluationResult (Term Name uni fun (), CekExBudgetState)
+    -> EvaluationResult (Term Name uni fun (), CekExBudgetState fun)
 unsafeEvaluateCekRestricting runtime budget =
     either throw id . extractEvaluationResult . runCek runtime budget
 
@@ -556,14 +557,16 @@ unsafeEvaluateCekRestricting runtime budget =
 unsafeEvaluateCekCounting
     :: ( GShow uni, GEq uni, Typeable uni
        , Closed uni, uni `EverywhereAll` '[ExMemoryUsage, PrettyConst]
+
        , Hashable fun, Ix fun, Pretty fun, Typeable fun, ExMemoryUsage fun
        )
     => BuiltinsRuntime fun (CekValue uni fun)
     -> ExBudgetMode
     -> Term Name uni fun ()
-    -> EvaluationResult (Term Name uni fun (), CekExBudgetState)
+    -> EvaluationResult (Term Name uni fun (), CekExBudgetState fun)
 unsafeEvaluateCekCounting runtime budget =
     either throw id . extractEvaluationResult . runCek runtime budget
+-}
 
 
 -- | Unlift a value using the CEK machine.

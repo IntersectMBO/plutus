@@ -659,18 +659,18 @@ runEval (EvalOptions language inp ifmt evalMode budgetMode printMode printtime) 
           case evalMode of
             CK  -> hPutStrLn stderr "There is no CK machine for UntypedPLC Plutus Core" >> exitFailure
             CEK -> do
-                  UntypedProgram prog <- getProgram UntypedPLC ifmt inp
-                  let budget =
-                          case budgetmode of
-                          Silent -> UPLC.Counting
-                          Verbose b -> b
-                   evaluate = UPLC.unsafeEvaluateCekWithBudget PLC.defBuiltinsRuntime budget
-                      body = void . UPLC.toTerm $ prog
-                  () <- Exn.evaluate $ rnf body
-                  start <- getCPUTime
-                  case evaluate body of
-                    UPLC.EvaluationSuccess v -> succeed start v
-                    UPLC.EvaluationFailure   -> exitFailure
+                    UntypedProgram prog <- getProgram UntypedPLC ifmt inp
+                    let budget =
+                            case budgetMode of
+                              Silent    -> UPLC.Counting
+                              Verbose b -> b
+                        evaluate = undefined -- UPLC.unsafeEvaluateCekWithBudget PLC.defBuiltinsRuntime budget
+                        body = void . UPLC.toTerm $ prog
+                    () <- Exn.evaluate $ rnf body
+                    start <- getCPUTime
+                    case evaluate body of
+                      UPLC.EvaluationSuccess v -> undefined -- succeed start v
+                      UPLC.EvaluationFailure   -> exitFailure
 
     where succeed start v = do
             end <- getCPUTime
