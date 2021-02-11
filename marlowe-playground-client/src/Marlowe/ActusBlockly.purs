@@ -889,7 +889,7 @@ actusContractToTerms raw = do
         , ct_FER: 0.0
         , ct_CURS: false
         , constraints: constraint <$> assertionCtx
-        , collateralAmount: fromMaybe 0 collateral
+        , collateralAmount: fromMaybe (BigInteger.fromInt 0) collateral
         }
 
 aesonCompatibleOptions :: Options
