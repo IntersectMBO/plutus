@@ -10,6 +10,7 @@ import           Data.Bifunctor                                        (second)
 import           Data.Either                                           (fromRight)
 import           Data.Text                                             (Text)
 
+import qualified Language.Marlowe                                      as Marlowe
 import           Language.Plutus.Contract.Trace
 import           Language.PlutusCore                                   (DefaultFun (..), runQuoteT)
 import           Language.PlutusCore.Universe
@@ -98,6 +99,7 @@ contractsWithNames :: [ (Text, Term Name DefaultUni DefaultFun ()) ]
 contractsWithNames = map (second (runQuote . nameDeBruijn . getTerm . Plutus.unScript . Plutus.unValidatorScript))
   [ ("game-names", Game.gameValidator)
   , ("crowdfunding-names", Crowdfunding.contributionScript Crowdfunding.theCampaign)
+  , ("marlowe-names", Plutus.validatorScript $ Marlowe.scriptInstance Marlowe.defaultMarloweParams)
   , ("vesting-names", Vesting.vestingScript vesting)
   , ("escrow-names", Plutus.validatorScript $ Escrow.scriptInstance escrowParams)
   , ("future-names", Future.validator theFuture Future.testAccounts) ]
@@ -107,6 +109,7 @@ contractsWithIndices ::
 contractsWithIndices = map (second (getTerm . Plutus.unScript . Plutus.unValidatorScript))
   [ ("game-indices", Game.gameValidator)
   , ("crowdfunding-indices", Crowdfunding.contributionScript Crowdfunding.theCampaign)
+  , ("marlowe-indices", Plutus.validatorScript $ Marlowe.scriptInstance Marlowe.defaultMarloweParams)
   , ("vesting-indices", Vesting.vestingScript vesting)
   , ("escrow-indices", Plutus.validatorScript $ Escrow.scriptInstance escrowParams)
   , ("future-indices", Future.validator theFuture Future.testAccounts) ]
