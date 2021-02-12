@@ -1,4 +1,4 @@
-{ runCommand, purty, src, lib, diffutils, glibcLocales }:
+{ runCommand, fixPurty, src, lib, diffutils, glibcLocales }:
 let
   # just purescript sources
   src' = lib.cleanSourceWith {
@@ -18,14 +18,14 @@ let
 in
 runCommand "purty-check"
 {
-  buildInputs = [ purty diffutils glibcLocales ];
+  buildInputs = [ fixPurty diffutils glibcLocales ];
 } ''
   set +e
   cp -a ${src'} orig
   cp -a ${src'} purty
   chmod -R +w purty
   cd purty
-  find . -type f -name "*.purs" -exec ${purty}/bin/purty --write {} \;
+  fix-purty
   cd ..
   diff --brief --recursive orig purty > /dev/null
   EXIT_CODE=$?

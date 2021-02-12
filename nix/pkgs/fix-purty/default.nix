@@ -1,23 +1,14 @@
-{ writeShellScriptBin, runtimeShell, git, fd, purty }:
+{ writeShellScriptBin, fd, purty }:
 
 writeShellScriptBin "fix-purty" ''
-  set -eou pipefail
-
-  ${git}/bin/git diff > pre-purty.diff
+  # purty can fail for some files that it can't parse, and fd will terminate
+  # if any of the exec commands fail. Rather than blacklisting the bad files, we simply
+  # ignore the exit code, which is usually unhelpful.
   ${fd}/bin/fd \
     --extension purs \
     --exclude '*/.psc-package/*' \
     --exclude '*/.spago/*' \
     --exclude '*/node_modules/*' \
     --exclude '*/generated/*' \
-    --exec ${purty}/bin/purty --write {}
-  ${git}/bin/git diff > post-purty.diff
-  if (diff pre-purty.diff post-purty.diff > /dev/null)
-  then
-    echo "Changes by purty have been made. Please commit them."
-  else
-    echo "No purty changes were made."
-  fi
-  rm pre-purty.diff post-purty.diff
-  exit
+    --exec bash -c "${purty}/bin/purty --write {} || true"
 ''
