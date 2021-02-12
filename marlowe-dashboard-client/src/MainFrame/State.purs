@@ -123,6 +123,3 @@ handleAction ClickedButton = do
 
 handleAction (StartContract contract) = do
   assign (_contractState <<< _executionState <<< _contract) contract
-
--- show contract flow
--- handleAction (PickupWallet pubhash) = assign (_contractState <<< _pk) pubhash
