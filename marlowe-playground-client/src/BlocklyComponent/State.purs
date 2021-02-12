@@ -20,7 +20,6 @@ import Halogen.HTML (HTML)
 import Marlowe.Blockly (buildBlocks)
 import Marlowe.Holes (Term(..), Location(..))
 import Marlowe.Parser as Parser
-import Prim.TypeError (class Warn, Text)
 import Text.Extra as Text
 import Type.Proxy (Proxy(..))
 
@@ -104,7 +103,6 @@ handleQuery (GetBlockRepresentation next) = do
 
 handleAction ::
   forall m slots.
-  Warn (Text "SCP-1648 Fix blockly code being lost after refresh") =>
   MonadAff m =>
   Action ->
   HalogenM State Action slots Message m Unit

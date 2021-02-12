@@ -30,7 +30,7 @@ import Examples.Marlowe.Contracts (example) as ME
 import Halogen (HalogenM, liftEffect, modify_, query)
 import Halogen.Extra (mapSubmodule)
 import Halogen.Monaco (Message(..), Query(..)) as Monaco
-import LocalStorage as LocalStorage
+import SessionStorage as SessionStorage
 import MainFrame.Types (ChildSlots, _marloweEditorPageSlot)
 import Marlowe.Extended (Contract, getPlaceholderIds, typeToLens, updateTemplateContent)
 import Marlowe.Holes (fromTerm)
@@ -66,7 +66,7 @@ handleAction ::
   HalogenM State Action ChildSlots Void m Unit
 handleAction Init = do
   editorSetTheme
-  mContents <- liftEffect $ LocalStorage.getItem marloweBufferLocalStorageKey
+  mContents <- liftEffect $ SessionStorage.getItem marloweBufferLocalStorageKey
   editorSetValue $ fromMaybe ME.example mContents
 
 handleAction (ChangeKeyBindings bindings) = do
@@ -75,7 +75,7 @@ handleAction (ChangeKeyBindings bindings) = do
 
 handleAction (HandleEditorMessage (Monaco.TextChanged text)) = do
   assign _selectedHole Nothing
-  liftEffect $ LocalStorage.setItem marloweBufferLocalStorageKey text
+  liftEffect $ SessionStorage.setItem marloweBufferLocalStorageKey text
   lintText text
 
 handleAction (HandleDragEvent event) = liftEffect $ preventDefault event
@@ -95,7 +95,7 @@ handleAction (LoadScript key) = do
         Right pcon -> show $ pretty pcon
         Left _ -> contents
     editorSetValue prettyContents
-    liftEffect $ LocalStorage.setItem marloweBufferLocalStorageKey prettyContents
+    liftEffect $ SessionStorage.setItem marloweBufferLocalStorageKey prettyContents
 
 handleAction (SetEditorText contents) = editorSetValue contents
 
@@ -113,7 +113,7 @@ handleAction ViewAsBlockly = pure unit
 
 handleAction (InitMarloweProject contents) = do
   editorSetValue contents
-  liftEffect $ LocalStorage.setItem marloweBufferLocalStorageKey contents
+  liftEffect $ SessionStorage.setItem marloweBufferLocalStorageKey contents
 
 handleAction (SelectHole hole) = assign _selectedHole hole
 

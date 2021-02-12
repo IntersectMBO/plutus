@@ -28,7 +28,7 @@ import Halogen.Monaco (Message(..), Query(..)) as Monaco
 import HaskellEditor.Types (Action(..), BottomPanelView(..), State, _bottomPanelState, _compilationResult, _haskellEditorKeybindings)
 import Language.Haskell.Interpreter (CompilationError(..), InterpreterError(..), InterpreterResult(..))
 import Language.Haskell.Monaco as HM
-import LocalStorage as LocalStorage
+import SessionStorage as SessionStorage
 import MainFrame.Types (ChildSlots, _haskellEditorSlot)
 import Marlowe (postRunghc)
 import Marlowe.Extended (Contract, typeToLens)
@@ -60,11 +60,11 @@ handleAction ::
   HalogenM State Action ChildSlots Void m Unit
 handleAction Init = do
   editorSetTheme
-  mContents <- liftEffect $ LocalStorage.getItem haskellBufferLocalStorageKey
+  mContents <- liftEffect $ SessionStorage.getItem haskellBufferLocalStorageKey
   editorSetValue $ fromMaybe HE.example mContents
 
 handleAction (HandleEditorMessage (Monaco.TextChanged text)) = do
-  liftEffect $ LocalStorage.setItem haskellBufferLocalStorageKey text
+  liftEffect $ SessionStorage.setItem haskellBufferLocalStorageKey text
   assign _compilationResult NotAsked
 
 handleAction (ChangeKeyBindings bindings) = do
@@ -100,7 +100,7 @@ handleAction SendResultToSimulator = pure unit
 
 handleAction (InitHaskellProject contents) = do
   editorSetValue contents
-  liftEffect $ LocalStorage.setItem haskellBufferLocalStorageKey contents
+  liftEffect $ SessionStorage.setItem haskellBufferLocalStorageKey contents
 
 handleAction (SetIntegerTemplateParam templateType key value) = modifying (_analysisState <<< _templateContent <<< typeToLens templateType) (Map.insert key value)
 
