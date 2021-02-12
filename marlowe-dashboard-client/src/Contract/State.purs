@@ -31,13 +31,6 @@ handleQuery (ApplyTx tx next) = do
   modifying _executionState \currentExeState -> merge (nextState currentExeState tx) currentExeState
   pure $ Just next
 
-getParty :: Input -> Maybe Party
-getParty (IDeposit _ p _ _) = Just p
-
-getParty (IChoice (ChoiceId _ p) _) = Just p
-
-getParty _ = Nothing
-
 handleAction :: forall m. MonadAff m => Action -> HalogenM State Action ChildSlots Msg m Unit
 handleAction (ConfirmInput input) = do
   currentExeState <- use _executionState
