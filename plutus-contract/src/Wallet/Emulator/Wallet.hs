@@ -192,6 +192,9 @@ handleWallet = interpret $ \case
     OwnOutputs -> do
         addr <- gets ownAddress
         view (at addr . non mempty) <$> W.watchedAddresses
+    WalletAddSignature tx -> do
+        privKey <- gets _ownPrivateKey
+        pure (addSignature privKey tx)
 
 -- Make a transaction output from a positive value.
 mkChangeOutput :: PubKey -> Value -> Maybe TxOut

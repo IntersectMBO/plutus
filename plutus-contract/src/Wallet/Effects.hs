@@ -5,6 +5,7 @@
 {-# LANGUAGE DerivingVia        #-}
 {-# LANGUAGE FlexibleContexts   #-}
 {-# LANGUAGE GADTs              #-}
+{-# LANGUAGE KindSignatures     #-}
 {-# LANGUAGE LambdaCase         #-}
 {-# LANGUAGE NamedFieldPuns     #-}
 {-# LANGUAGE OverloadedStrings  #-}
@@ -19,6 +20,7 @@ module Wallet.Effects(
     , updatePaymentWithChange
     , walletSlot
     , ownOutputs
+    , walletAddSignature
     -- * Node client
     , NodeClientEffect(..)
     , publishTx
@@ -52,6 +54,7 @@ data WalletEffect r where
     UpdatePaymentWithChange :: Value -> Payment -> WalletEffect Payment
     WalletSlot :: WalletEffect Slot
     OwnOutputs :: WalletEffect UtxoMap
+    WalletAddSignature :: Tx -> WalletEffect Tx
 makeEffect ''WalletEffect
 
 data NodeClientEffect r where

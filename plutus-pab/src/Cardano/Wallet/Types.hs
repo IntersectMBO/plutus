@@ -1,16 +1,25 @@
-{-# LANGUAGE DataKinds         #-}
-{-# LANGUAGE DeriveAnyClass    #-}
-{-# LANGUAGE DeriveGeneric     #-}
-{-# LANGUAGE DerivingVia       #-}
-{-# LANGUAGE LambdaCase        #-}
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE StrictData        #-}
-{-# LANGUAGE TypeApplications  #-}
+{-# LANGUAGE DataKinds          #-}
+{-# LANGUAGE DeriveAnyClass     #-}
+{-# LANGUAGE DeriveGeneric      #-}
+{-# LANGUAGE DerivingStrategies #-}
+{-# LANGUAGE DerivingVia        #-}
+{-# LANGUAGE FlexibleContexts   #-}
+{-# LANGUAGE GADTs              #-}
+{-# LANGUAGE KindSignatures     #-}
+{-# LANGUAGE LambdaCase         #-}
+{-# LANGUAGE NamedFieldPuns     #-}
+{-# LANGUAGE OverloadedStrings  #-}
+{-# LANGUAGE StrictData         #-}
+{-# LANGUAGE TemplateHaskell    #-}
+{-# LANGUAGE TypeApplications   #-}
 
 module Cardano.Wallet.Types (
      -- * effect type for the mock wallet
       WalletEffects
-
+    , Wallets
+    , MultiWalletEffect (..)
+    , createWallet
+    , multiWallet
      -- * wallet configuration
     , WalletConfig (..)
 
@@ -25,29 +34,41 @@ module Cardano.Wallet.Types (
     , ChainIndexUrl
     ) where
 
-import           Control.Monad.Freer.Error          (Error)
-import           Control.Monad.Freer.Extras.Log     (LogMsg)
-import           Control.Monad.Freer.State          (State)
-import           Data.Aeson                         (FromJSON, ToJSON)
-import           Data.Text                          (Text)
-import           Data.Text.Prettyprint.Doc          (Pretty (..), (<+>))
-import           GHC.Generics                       (Generic)
-import           Servant                            (ServerError (..))
-import           Servant.Client                     (BaseUrl, ClientError)
-
 import           Cardano.BM.Data.Tracer             (ToObject (..))
 import           Cardano.BM.Data.Tracer.Extras      (Tagged (..), mkObjectStr)
 import           Cardano.ChainIndex.Types           (ChainIndexUrl)
+import           Control.Monad.Freer                (Eff)
+import           Control.Monad.Freer.Error          (Error)
+import           Control.Monad.Freer.Extras.Log     (LogMsg)
+import           Control.Monad.Freer.State          (State)
+import           Control.Monad.Freer.TH             (makeEffect)
+import           Data.Aeson                         (FromJSON, ToJSON)
+import           Data.Map.Strict                    (Map)
+import           Data.Text                          (Text)
+import           Data.Text.Prettyprint.Doc          (Pretty (..), (<+>))
+import           GHC.Generics                       (Generic)
+import           Ledger                             (PrivateKey, PubKeyHash)
 import           Plutus.PAB.Arbitrary               ()
+import           Servant                            (ServerError (..))
+import           Servant.Client                     (BaseUrl, ClientError)
 import           Servant.Client.Internal.HttpClient (ClientEnv)
 import           Wallet.Effects                     (ChainIndexEffect, NodeClientEffect, WalletEffect)
 import           Wallet.Emulator.Error              (WalletAPIError)
 import           Wallet.Emulator.Wallet             (Wallet, WalletState)
 
-type WalletEffects m = '[ WalletEffect
+
+type Wallets = Map Wallet PrivateKey
+
+data MultiWalletEffect r where
+    CreateWallet :: MultiWalletEffect Wallet
+    MultiWallet :: Wallet -> Eff '[WalletEffect] a -> MultiWalletEffect a
+makeEffect ''MultiWalletEffect
+
+
+type WalletEffects m = '[ MultiWalletEffect
                         , NodeClientEffect
                         , ChainIndexEffect
-                        , State WalletState
+                        , State Wallets
                         , LogMsg Text
                         , Error WalletAPIError
                         , Error ClientError

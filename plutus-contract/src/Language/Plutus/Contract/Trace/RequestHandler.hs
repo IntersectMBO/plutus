@@ -56,7 +56,7 @@ import           Ledger.AddressMap                                 (AddressMap (
 import           Ledger.Constraints.OffChain                       (UnbalancedTx (unBalancedTxTx))
 import           Wallet.API                                        (WalletAPIError)
 import           Wallet.Effects                                    (ChainIndexEffect, ContractRuntimeEffect,
-                                                                    SigningProcessEffect, WalletEffect)
+                                                                    WalletEffect)
 import qualified Wallet.Effects
 import           Wallet.Emulator.LogMessages                       (RequestHandlerLogMsg (..), TxBalanceMsg)
 import           Wallet.Types                                      (AddressChangeRequest (..), AddressChangeResponse,
@@ -123,7 +123,6 @@ handlePendingTransactions ::
     , Member (LogObserve (LogMessage Text)) effs
     , Member (LogMsg RequestHandlerLogMsg) effs
     , Member (LogMsg TxBalanceMsg) effs
-    , Member SigningProcessEffect effs
     , Member ChainIndexEffect effs
     )
     => RequestHandler effs UnbalancedTx (Either WalletAPIError Tx)

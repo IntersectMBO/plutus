@@ -98,9 +98,7 @@ payToPublicKey_ r v = void . payToPublicKey r v
 --   TODO: This is here to make the calculation of fees easier for old-style contracts
 --         and should be removed when all contracts have been ported to the new API.
 createTxAndSubmit ::
-    ( Member WalletEffect effs
-    , Member SigningProcessEffect effs
-    )
+    ( Member WalletEffect effs )
     => SlotRange
     -> Set.Set TxIn
     -> [TxOut]
@@ -118,21 +116,16 @@ createTxAndSubmit range ins outs datas = do
 -- | Add the wallet's signature to the transaction and submit it. Returns
 --   the transaction with the wallet's signature.
 signTxAndSubmit ::
-    ( Member WalletEffect effs
-    , Member SigningProcessEffect effs
-    )
+    ( Member WalletEffect effs )
     => Tx -> Eff effs Tx
 signTxAndSubmit t = do
-    pk <- ownPubKey
-    tx' <- addSignatures [pubKeyHash pk] t
+    tx' <- walletAddSignature t
     submitTxn tx'
     pure tx'
 
 -- | A version of 'signTxAndSubmit' that discards the result.
 signTxAndSubmit_ ::
-    ( Member WalletEffect effs
-    , Member SigningProcessEffect effs
-    )
+    ( Member WalletEffect effs )
     => Tx -> Eff effs ()
 signTxAndSubmit_ = void . signTxAndSubmit
 

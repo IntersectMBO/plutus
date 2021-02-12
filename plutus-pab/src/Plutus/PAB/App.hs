@@ -40,6 +40,7 @@ import           Control.Monad.Freer.WebSocket           (WebSocketEffect, handl
 import           Control.Monad.IO.Class                  (MonadIO, liftIO)
 import           Control.Monad.IO.Unlift                 (MonadUnliftIO)
 import           Control.Monad.Logger                    (MonadLogger)
+import           Control.Tracer                          (natTracer)
 import           Data.Aeson                              (FromJSON, eitherDecode)
 import qualified Data.Aeson.Encode.Pretty                as JSON
 import           Data.Bifunctor                          (Bifunctor (..))
@@ -69,6 +70,7 @@ import           System.Exit                             (ExitCode (ExitFailure,
 import           System.Process                          (readProcessWithExitCode)
 import           Wallet.Effects                          (ChainIndexEffect, ContractRuntimeEffect, NodeClientEffect,
                                                           SigningProcessEffect, WalletEffect)
+import           Wallet.Emulator.Wallet                  (Wallet (..))
 
 
 ------------------------------------------------------------
@@ -124,6 +126,7 @@ runAppBackend trace loggingConfig config action = do
             , chainIndexEnv
             } <- mkEnv config
     let
+        wllt = Wallet.wallet $ walletServerConfig config
         handleChainIndex :: Eff (ChainIndexEffect ': _) a -> Eff _ a
         handleChainIndex =
             flip handleError (throwError . ChainIndexError) .
@@ -150,7 +153,7 @@ runAppBackend trace loggingConfig config action = do
         handleWallet =
             flip handleError (throwError . WalletClientError) .
             flip handleError (throwError . WalletError) .
-            reinterpret2 (WalletClient.handleWalletClient walletClientEnv)
+            reinterpret2 (WalletClient.handleWalletClient walletClientEnv wllt)
         handleRandomTx :: Eff (GenRandomTx ': _) a -> Eff _ a
         handleRandomTx =
             flip handleError (throwError . RandomTxClientError) .
