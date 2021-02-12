@@ -26,8 +26,9 @@ import           Language.PureScript.Bridge                 (BridgePart, Languag
                                                              typeName, writePSTypesWith, (^==))
 import           Language.PureScript.Bridge.CodeGenSwitches (ForeignOptions (ForeignOptions), defaultSwitch, genForeign)
 import           Language.PureScript.Bridge.PSTypes         (psNumber, psString)
-import           Language.PureScript.Bridge.SumType         (equal, genericShow, mkSumType)
+import           Language.PureScript.Bridge.SumType         (equal, genericShow, mkSumType, order)
 import qualified PSGenerator.Common
+import           Plutus.V1.Ledger.Api                       (PubKeyHash)
 import           Servant.PureScript                         (HasBridge, Settings, _generateSubscriberAPI, apiModuleName,
                                                              defaultBridge, defaultSettings, languageBridge,
                                                              writeAPIModuleWithSettings)
@@ -60,7 +61,8 @@ instance HasBridge MyBridge where
 myTypes :: [SumType 'Haskell]
 myTypes =
   [ (equal <*> (genericShow <*> mkSumType)) (Proxy @StreamToServer),
-    (equal <*> (genericShow <*> mkSumType)) (Proxy @StreamToClient)
+    (equal <*> (genericShow <*> mkSumType)) (Proxy @StreamToClient),
+    (order <*> (genericShow <*> mkSumType)) (Proxy @PubKeyHash)
   ]
 
 mySettings :: Settings

@@ -12,7 +12,7 @@ import Halogen (ComponentHTML)
 import Halogen.HTML (a, button, div, div_, h1, header, main, nav, span, text)
 import Halogen.HTML.Events (onClick)
 import MainFrame.Lenses (_contactState, _overlay, _screen, _templates)
-import MainFrame.Types (Action(..), Card(..), ChildSlots, Screen(..), State, Overlay(..))
+import MainFrame.Types (Action(..), Card(..), ChildSlots, Overlay(..), Screen(..), State)
 import Material.Icons as Icon
 import Template.View (renderTemplateLibrary, renderTemplateDetails)
 import Welcome.View (renderHome)
@@ -117,8 +117,8 @@ screen state =
       [ case currentScreen of
           Home -> renderHome state
           Contacts -> ContactAction <$> renderContacts contacts
-          ViewContract contractInstance -> renderContractDetails contractInstance
-          SetupContract contractTemplate -> renderContractSetup contractTemplate
+          ViewContract contractInstance -> ContractAction <$> renderContractDetails contractInstance
+          SetupContract contractTemplate -> ContractAction <$> renderContractSetup contractTemplate
       ]
 
 card :: forall m. MonadAff m => State -> ComponentHTML Action ChildSlots m
@@ -142,7 +142,7 @@ card state =
           Just (EditContact contactKey) -> ContactAction <$> renderContact contactKey contacts
           Just TemplateLibrary -> renderTemplateLibrary templates
           Just (TemplateDetails contractTemplate) -> renderTemplateDetails contractTemplate
-          Just (ContractDetails contractInstance) -> renderContractDetails contractInstance
+          Just (ContractDetails contractInstance) -> ContractAction <$> renderContractDetails contractInstance
           Nothing -> div_ []
       ]
   where

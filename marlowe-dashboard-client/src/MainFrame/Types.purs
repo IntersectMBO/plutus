@@ -16,7 +16,9 @@ module MainFrame.Types
 import Prelude
 import Analytics (class IsEvent, defaultEvent, toEvent)
 import Contact.Types (Action, ContactKey, State) as Contact
+import Contract.Types as Contract
 import Data.Maybe (Maybe(..))
+import Marlowe.Semantics (Contract)
 import WebSocket (StreamToClient, StreamToServer)
 import WebSocket.Support as WS
 
@@ -25,6 +27,7 @@ type State
     , screen :: Screen
     , card :: Maybe Card
     , contactState :: Contact.State
+    , contractState :: Contract.State
     , notifications :: Array Notification
     , templates :: Array ContractTemplate
     , contracts :: Array ContractInstance
@@ -91,7 +94,9 @@ data Action
   | ToggleCard Card
   | CloseCard
   | ContactAction Contact.Action
+  | ContractAction Contract.Action
   | ClickedButton
+  | StartContract Contract
 
 -- | Here we decide which top-level queries to track as GA events, and
 -- how to classify them.
@@ -102,4 +107,6 @@ instance actionIsEvent :: IsEvent Action where
   toEvent (ToggleCard _) = Just $ defaultEvent "ToggleCard"
   toEvent CloseCard = Just $ defaultEvent "CloseCard"
   toEvent (ContactAction contactAction) = toEvent contactAction
+  toEvent (ContractAction contractAction) = toEvent contractAction
   toEvent ClickedButton = Just $ defaultEvent "ClickedButton"
+  toEvent (StartContract _) = Just $ defaultEvent "StartContract"

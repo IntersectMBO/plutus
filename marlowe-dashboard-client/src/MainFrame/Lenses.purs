@@ -3,6 +3,7 @@ module MainFrame.Lenses
   , _screen
   , _card
   , _contactState
+  , _contractState
   , _notifications
   , _templates
   , _contracts
@@ -10,6 +11,7 @@ module MainFrame.Lenses
   ) where
 
 import Contact.Types (State) as Contact
+import Contract.Types as Contract
 import Data.Lens (Lens')
 import Data.Lens.Record (prop)
 import Data.Maybe (Maybe)
@@ -27,6 +29,9 @@ _card = prop (SProxy :: SProxy "card")
 
 _contactState :: Lens' State Contact.State
 _contactState = prop (SProxy :: SProxy "contactState")
+
+_contractState :: Lens' State Contract.State
+_contractState = prop (SProxy :: SProxy "contractState")
 
 _notifications :: Lens' State (Array Notification)
 _notifications = prop (SProxy :: SProxy "notifications")
