@@ -5,6 +5,7 @@
 {-# LANGUAGE DerivingVia        #-}
 {-# LANGUAGE FlexibleContexts   #-}
 {-# LANGUAGE GADTs              #-}
+{-# LANGUAGE KindSignatures     #-}
 {-# LANGUAGE LambdaCase         #-}
 {-# LANGUAGE NamedFieldPuns     #-}
 {-# LANGUAGE OverloadedStrings  #-}
@@ -13,6 +14,7 @@ module Wallet.Effects(
     WalletEffects
     -- * Wallet effect
     , WalletEffect(..)
+    , MultiWalletEffect(..)
     , Payment(..)
     , submitTxn
     , ownPubKey
@@ -35,11 +37,13 @@ module Wallet.Effects(
     , confirmedBlocks
     , transactionConfirmed
     , nextTx
+    , multiWallet
     -- * Contract runtime
     , ContractRuntimeEffect(..)
     , sendNotification
     ) where
 
+import           Control.Monad.Freer    (Eff)
 import           Control.Monad.Freer.TH (makeEffect)
 import           Ledger                 (Address, PubKey, PubKeyHash, Slot, Tx, TxId, Value)
 import           Ledger.AddressMap      (AddressMap, UtxoMap)
@@ -53,6 +57,10 @@ data WalletEffect r where
     WalletSlot :: WalletEffect Slot
     OwnOutputs :: WalletEffect UtxoMap
 makeEffect ''WalletEffect
+
+data MultiWalletEffect r where
+    MultiWallet :: Integer -> Eff '[WalletEffect] a -> MultiWalletEffect a
+makeEffect ''MultiWalletEffect
 
 data NodeClientEffect r where
     PublishTx :: Tx -> NodeClientEffect ()

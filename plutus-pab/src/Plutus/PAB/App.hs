@@ -77,6 +77,7 @@ import           System.Process                     (readProcessWithExitCode)
 import           Wallet.API                         (WalletAPIError)
 import           Wallet.Effects                     (ChainIndexEffect, ContractRuntimeEffect, NodeClientEffect,
                                                      SigningProcessEffect, WalletEffect)
+import           Wallet.Emulator.Wallet             (Wallet (..))
 import qualified Wallet.Emulator.Wallet
 
 
@@ -148,6 +149,7 @@ runAppBackend trace loggingConfig config action = do
             , chainIndexEnv
             } <- mkEnv config
     let
+        Wallet wid = WalletServer.wallet $ walletServerConfig config
         handleChainIndex :: Eff (ChainIndexEffect ': Error ClientError ': _) a -> Eff _ a
         handleChainIndex =
             flip handleError (throwError . ChainIndexError) .
@@ -178,7 +180,7 @@ runAppBackend trace loggingConfig config action = do
         handleWallet =
             flip handleError (throwError . WalletClientError) .
             flip handleError (throwError . WalletError) .
-            WalletClient.handleWalletClient walletClientEnv
+            WalletClient.handleWalletClient walletClientEnv wid
 
 
     runM

@@ -12,16 +12,20 @@ module Cardano.Wallet.Types where
 import           Cardano.BM.Data.Tracer        (ToObject (..))
 import           Cardano.BM.Data.Tracer.Extras (Tagged (..), mkObjectStr)
 import           Data.Aeson                    (FromJSON, ToJSON)
+import           Data.Map                      (Map)
 import           Data.Text                     (Text)
 import           Data.Text.Prettyprint.Doc     (Pretty (..), (<+>))
 import           GHC.Generics                  (Generic)
+import           Ledger.Crypto                 (PrivateKey)
 import           Servant.Client                (BaseUrl)
-import           Wallet.Emulator.Wallet        (Wallet)
+import           Wallet.Emulator.Wallet        (Wallet, WalletState)
 
 type NodeUrl = BaseUrl
 type ChainIndexUrl = BaseUrl
 type WalletId = Integer
 type Port     = Int
+
+type Wallets = Map WalletId (WalletState, PrivateKey)
 
 data Amount =
     Amount

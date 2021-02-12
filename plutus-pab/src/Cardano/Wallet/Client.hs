@@ -9,6 +9,7 @@
 module Cardano.Wallet.Client where
 
 import           Cardano.Wallet.API        (API)
+import           Cardano.Wallet.Types
 import           Control.Monad             (void)
 import           Control.Monad.Freer
 import           Control.Monad.Freer.Error (Error, throwError)
@@ -22,13 +23,13 @@ import           Servant                   ((:<|>) (..))
 import           Servant.Client            (ClientEnv, ClientError, ClientM, client, runClientM)
 import           Wallet.Effects            (Payment (..), WalletEffect (..))
 
-submitTxn :: Tx -> ClientM ()
-ownPublicKey :: ClientM PubKey
-updatePaymentWithChange :: (Value, Payment) -> ClientM Payment
-walletSlot :: ClientM Slot
-ownOutputs :: ClientM UtxoMap
+submitTxn :: Integer -> Tx -> ClientM ()
+ownPublicKey :: Integer -> ClientM PubKey
+updatePaymentWithChange :: Integer -> (Value, Payment) -> ClientM Payment
+walletSlot :: Integer -> ClientM Slot
+ownOutputs :: Integer -> ClientM UtxoMap
 (submitTxn, ownPublicKey, updatePaymentWithChange, walletSlot, ownOutputs) =
-  ( fmap void submitTxn_
+  ( \x -> fmap void (submitTxn_ x)
   , ownPublicKey_
   , updatePaymentWithChange_
   , walletSlot_
@@ -47,16 +48,17 @@ handleWalletClient ::
   , Member (Error ClientError) effs
   )
   => ClientEnv
+  -> WalletId
   -> Eff (WalletEffect ': effs)
   ~> Eff effs
-handleWalletClient clientEnv =
+handleWalletClient clientEnv walletId =
     let
         runClient :: forall a. ClientM a -> Eff effs a
         runClient a = (sendM $ liftIO $ runClientM a clientEnv) >>= either throwError pure
     in
       interpret $ \case
-        SubmitTxn t                    -> runClient (submitTxn t)
-        OwnPubKey                      -> runClient ownPublicKey
-        UpdatePaymentWithChange vl pmt -> runClient $ updatePaymentWithChange (vl, pmt)
-        WalletSlot                     -> runClient walletSlot
-        OwnOutputs                     -> runClient ownOutputs
+        SubmitTxn t                    -> runClient (submitTxn walletId t)
+        OwnPubKey                      -> runClient (ownPublicKey walletId)
+        UpdatePaymentWithChange vl pmt -> runClient $ updatePaymentWithChange walletId (vl, pmt)
+        WalletSlot                     -> runClient $ walletSlot walletId
+        OwnOutputs                     -> runClient $ ownOutputs walletId
