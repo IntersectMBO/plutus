@@ -1008,10 +1008,7 @@ blockToContract :: BDom.Block -> Either String (Term Contract)
 blockToContract block = lmap explainParseTermError $ blockToTerm block
 
 class BlockToTerm a where
-  -- FIXME: Maybe lose some flexibility but make this more true to it's name by making
-  --        the return a `Term a` instead of any `a`. Currently all instances are for
-  --        `Term a` anyway.
-  blockToTerm :: forall m. MonadError ParseTermError m => BDom.Block -> m a
+  blockToTerm :: forall m. MonadError ParseTermError m => BDom.Block -> m (Term a)
 
 data ParseTermError
   = InvalidBlock BDom.Block String
@@ -1069,7 +1066,7 @@ asBigInteger str = toMonadThrow $ note' (\_ -> InvalidFieldCast str "BigInteger"
 mkTermFromChild ::
   forall m a.
   MonadError ParseTermError m =>
-  BlockToTerm (Term a) =>
+  BlockToTerm a =>
   (BDom.BlockChild -> m BDom.Block) ->
   String ->
   BDom.Block ->
@@ -1084,7 +1081,7 @@ mkTermFromChild childToBlock attr b@(BDom.Block block) = case Object.lookup attr
 valueToTerm ::
   forall m a.
   MonadError ParseTermError m =>
-  BlockToTerm (Term a) =>
+  BlockToTerm a =>
   String ->
   BDom.Block ->
   m (Term a)
@@ -1093,7 +1090,7 @@ valueToTerm = mkTermFromChild asValue
 singleStatementToTerm ::
   forall m a.
   MonadError ParseTermError m =>
-  BlockToTerm (Term a) =>
+  BlockToTerm a =>
   String ->
   BDom.Block ->
   m (Term a)
@@ -1107,7 +1104,7 @@ statementsToTerms ::
   BlockToTerm a =>
   String ->
   BDom.Block ->
-  m (Array a)
+  m (Array (Term a))
 statementsToTerms attr b@(BDom.Block { children }) =
   let
     parseStatements child = do
@@ -1144,7 +1141,7 @@ fieldAsBigInteger attr block =
     (asBigInteger =<< asField =<< getRequiredAttribute attr block)
     (\err -> throwError $ ErrorInChild block attr err)
 
-instance blockToTermContract :: BlockToTerm (Term Contract) where
+instance blockToTermContract :: BlockToTerm Contract where
   blockToTerm (BDom.Block { type: "BaseContractType", children, id }) = case Object.lookup "BaseContractType" children of
     Nothing -> pure $ Hole "contract" Proxy (BlockId id)
     Just child -> blockToTerm =<< asSingleStatement child
@@ -1187,7 +1184,7 @@ instance blockToTermContract :: BlockToTerm (Term Contract) where
     pure $ Term (Assert observation contract) (BlockId id)
   blockToTerm block = throwError $ InvalidBlock block "Contract"
 
-instance blockToTermObservation :: BlockToTerm (Term Observation) where
+instance blockToTermObservation :: BlockToTerm Observation where
   blockToTerm b@(BDom.Block { type: "AndObservationType", id }) = do
     observation1 <- valueToTerm "observation1" b
     observation2 <- valueToTerm "observation2" b
@@ -1229,7 +1226,7 @@ instance blockToTermObservation :: BlockToTerm (Term Observation) where
   blockToTerm (BDom.Block { type: "FalseObservationType", id }) = pure $ Term FalseObs (BlockId id)
   blockToTerm block = throwError $ InvalidBlock block "Observation"
 
-instance blockToTermValue :: BlockToTerm (Term Value) where
+instance blockToTermValue :: BlockToTerm Value where
   blockToTerm b@(BDom.Block { type: "AvailableMoneyValueType", id }) = do
     party <- valueToTerm "party" b
     token <- valueToTerm "token" b
@@ -1284,7 +1281,7 @@ instance blockToTermValue :: BlockToTerm (Term Value) where
     pure $ Term (Cond condition thenVal elseVal) (BlockId id)
   blockToTerm block = throwError $ InvalidBlock block "Value"
 
-instance blockToTermCase :: BlockToTerm (Term Case) where
+instance blockToTermCase :: BlockToTerm Case where
   blockToTerm b@(BDom.Block { type: "DepositActionType", id }) = do
     by <- valueToTerm "from_party" b
     intoAccountOf <- valueToTerm "party" b
@@ -1318,7 +1315,7 @@ instance blockToTermCase :: BlockToTerm (Term Case) where
     pure $ Term (Case action contract) location
   blockToTerm block = throwError $ InvalidBlock block "Action"
 
-instance blockToTermParty :: BlockToTerm (Term Party) where
+instance blockToTermParty :: BlockToTerm Party where
   blockToTerm b@(BDom.Block { type: "PKPartyType", id }) = do
     pubkey <- fieldAsString "pubkey" b
     pure $ Term (PK pubkey) (BlockId id)
@@ -1327,7 +1324,7 @@ instance blockToTermParty :: BlockToTerm (Term Party) where
     pure $ Term (Role role) (BlockId id)
   blockToTerm block = throwError $ InvalidBlock block "Party"
 
-instance blockToTermPayee :: BlockToTerm (Term Payee) where
+instance blockToTermPayee :: BlockToTerm Payee where
   blockToTerm b@(BDom.Block { type: "AccountPayeeType", id }) = do
     party <- valueToTerm "party" b
     pure $ Term (Account party) (BlockId id)
@@ -1336,7 +1333,7 @@ instance blockToTermPayee :: BlockToTerm (Term Payee) where
     pure $ Term (Party party) (BlockId id)
   blockToTerm block = throwError $ InvalidBlock block "Payee"
 
-instance blockToTermToken :: BlockToTerm (Term Token) where
+instance blockToTermToken :: BlockToTerm Token where
   blockToTerm b@(BDom.Block { type: "AdaTokenType", id }) = pure $ Term (Token "" "") (BlockId id)
   blockToTerm b@(BDom.Block { type: "CustomTokenType", id }) = do
     currencySymbol <- fieldAsString "currency_symbol" b
@@ -1344,13 +1341,14 @@ instance blockToTermToken :: BlockToTerm (Term Token) where
     pure $ Term (Token currencySymbol tokenName) (BlockId id)
   blockToTerm block = throwError $ InvalidBlock block "Token"
 
-instance blockToTermBound :: BlockToTerm (Term Bound) where
+instance blockToTermBound :: BlockToTerm Bound where
   blockToTerm b@(BDom.Block { type: "BoundsType", id }) = do
     from <- fieldAsBigInteger "from" b
     to <- fieldAsBigInteger "to" b
     pure $ Term (Bound from to) (BlockId id)
   blockToTerm block = throwError $ InvalidBlock block "Bound"
 
+---------------------------------------------------------------------------------------------------
 buildBlocks :: NewBlockFunction -> BlocklyState -> Term Contract -> Effect Unit
 buildBlocks newBlock bs contract = do
   clearWorkspace bs.workspace

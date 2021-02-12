@@ -75,7 +75,6 @@ import Data.Array (find, length)
 import Data.Array.Partial as UnsafeArray
 import Data.Compactable (separate)
 import Data.Either (Either(..), note')
-import Data.Generic.Rep (class Generic)
 import Data.Lens (Lens', _1, view)
 import Data.Lens.Iso.Newtype (_Newtype)
 import Data.Lens.Record (prop)
@@ -86,7 +85,6 @@ import Data.Traversable (traverse)
 import Data.Tuple (Tuple(..))
 import Effect (Effect)
 import Effect.Class (class MonadEffect, liftEffect)
-import Foreign.Generic (class Encode, defaultOptions, genericEncode)
 import Foreign.Object (Object)
 import Foreign.Object as Object
 import Partial.Unsafe (unsafePartial)
@@ -108,13 +106,6 @@ newtype Block
   , children :: Object BlockChild
   }
 
--- FIXME: Show only for dev, remove
-derive instance genericBlock :: Generic Block _
-
-instance encodeBlock :: Encode Block where
-  encode value = genericEncode defaultOptions value
-
--- END FIXME
 derive instance newtypeBlock :: Newtype Block _
 
 _id :: Lens' Block String
@@ -136,13 +127,6 @@ data BlockChild
   -- while parsing.
   | Statement (Array Block)
 
--- FIXME: Show only for dev, remove
-derive instance genericBlockChildren :: Generic BlockChild _
-
-instance encodeBlockChildren :: Encode BlockChild where
-  encode value = genericEncode defaultOptions value
-
--- ENDFIXME
 type ChildWithName
   = Tuple String BlockChild
 
@@ -153,7 +137,8 @@ data ReadDomError
   | RootElementNotFound String
   | IncorrectSiblingNesting String
 
--- TODO: Change signature to Effect String and traverse the parents of the element to provide error location information.
+-- NOTE: In some errors the element is not currently used to display the error. The idea is that we could later Change
+--       the signature to Effect String and traverse the parents of the element to provide error location information.
 explainError :: ReadDomError -> String
 explainError (TypeMismatch element expectedType) = "Element is of the wrong type (" <> show expectedType <> " expected, " <> show (Element.tagName element) <> " received)"
 
@@ -169,7 +154,6 @@ explainError (IncorrectSiblingNesting node) = "Incorrect <next> element found ou
 getDom :: BlocklyState -> Effect (Either ReadDomError Block)
 getDom { blockly, workspace, rootBlockName } =
   runExceptT do
-    -- FIXME: remove the spy
     rootElement <- liftEffect $ workspaceToDom blockly workspace
     if Element.tagName rootElement /= "xml" then
       throwError $ TypeMismatch rootElement "xml"
@@ -261,7 +245,7 @@ getDom { blockly, workspace, rootBlockName } =
       NodeList.toArray nodes
 
   getElementText :: forall m. MonadEffect m => Element -> m String
-  getElementText element = liftEffect $ (Node.textContent <<< Element.toNode) element
+  getElementText = liftEffect <<< Node.textContent <<< Element.toNode
 
   getAttribute :: forall m. MonadEffect m => MonadThrow ReadDomError m => String -> Element -> m String
   getAttribute attr element = do

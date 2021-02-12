@@ -30,11 +30,11 @@ handleAction (HandleBlocklyMessage Blockly.CodeChange) = do
   eContract <-
     runExceptT do
       block <- ExceptT <<< map (note "Blockly Workspace is empty") $ query _blocklySlot unit $ H.request Blockly.GetBlockRepresentation
-      except <<< lmap (unexpected <<< show) $ blockToContract block
+      except $ blockToContract block
   case eContract of
     Left e ->
       modify_
-        ( set _errorMessage (Just e)
+        ( set _errorMessage (Just $ unexpected e)
             <<< set _marloweCode Nothing
         )
     Right contract ->

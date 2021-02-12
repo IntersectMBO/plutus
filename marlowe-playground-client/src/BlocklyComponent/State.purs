@@ -90,18 +90,13 @@ handleQuery (LoadWorkspace xml next) = do
   pure $ Just next
 
 handleQuery (GetBlockRepresentation next) = do
-  mBlocklyState <- use _blocklyState
   eBlock <-
-    liftEffect
-      $ runExceptT do
-          blocklyState <- except <<< (note $ unexpected "BlocklyState not set") $ mBlocklyState
-          -- FIXME: Eventually BlocklyComponent should return the Block representation defined in Blockly.Dom and it should be
-          --        the parents responsability to transform it to code. That way we dont need to specify which `blockToTerm` to use
-          --        and allow to share this component between Marlowe and Actus Blockly
-          ExceptT $ lmap explainError <$> getDom blocklyState
+    runExceptT do
+      blocklyState <- ExceptT $ note "BlocklyState not set" <$> use _blocklyState
+      ExceptT $ lmap explainError <$> liftEffect (getDom blocklyState)
   case eBlock of
     Left e -> do
-      assign _errorMessage $ Just e
+      assign _errorMessage $ Just $ unexpected e
       pure Nothing
     Right block -> do
       assign _errorMessage Nothing
