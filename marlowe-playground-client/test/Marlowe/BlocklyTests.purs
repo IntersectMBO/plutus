@@ -2,7 +2,7 @@ module Marlowe.BlocklyTests where
 
 import Prelude
 import Blockly.Dom (explainError, getDom)
-import Blockly.Generator (Generator, getInputWithName, inputList)
+import Blockly.Generator (getInputWithName, inputList)
 import Blockly.Headless as Headless
 import Blockly.Internal (getBlockById)
 import Blockly.Internal as Blockly
@@ -16,7 +16,7 @@ import Data.Maybe (Maybe(..))
 import Effect (Effect)
 import Effect.Class (class MonadEffect, liftEffect)
 import Effect.Unsafe (unsafePerformEffect)
-import Marlowe.Blockly (blockDefinitions, blockToContract, buildGenerator, rootBlockName, toBlockly)
+import Marlowe.Blockly (blockDefinitions, blockToContract, rootBlockName, toBlockly)
 import Marlowe.Gen (genContract, genTerm)
 import Marlowe.GenWithHoles (GenWithHoles, unGenWithHoles)
 import Marlowe.Holes (Contract, Term)
@@ -34,14 +34,13 @@ all =
 quickCheckGen :: forall prop. Testable prop => GenWithHoles prop -> Test
 quickCheckGen g = quickCheck $ runReaderT (unGenWithHoles g) true
 
-mkTestState :: forall m. MonadEffect m => m { blocklyState :: BlocklyState, generator :: Generator }
+mkTestState :: forall m. MonadEffect m => m BlocklyState
 mkTestState = do
   blocklyState <- liftEffect $ Headless.createBlocklyInstance rootBlockName
   liftEffect do
     Blockly.addBlockTypes blocklyState.blockly blockDefinitions
     Headless.initializeWorkspace blocklyState
-  generator <- liftEffect $ buildGenerator blocklyState.blockly
-  pure { blocklyState: blocklyState, generator: generator }
+  pure blocklyState
 
 -- Here we keep using `show` because the Term range is intentionally incorrect when converting from blockly
 -- It uses zero to create a dummy range. By using `show` we can reasonably compare contracts
@@ -61,10 +60,10 @@ codeToBlocklyToCode = do
 runContract :: Term Contract -> Effect (Either String (Term Contract))
 runContract contract =
   liftEffect do
-    state <- mkTestState
-    buildBlocks state.blocklyState contract
+    blocklyState <- mkTestState
+    buildBlocks blocklyState contract
     runExceptT do
-      block <- ExceptT $ lmap explainError <$> getDom state.blocklyState
+      block <- ExceptT $ lmap explainError <$> getDom blocklyState
       ExceptT $ pure $ blockToContract block
 
 buildBlocks :: BlocklyState -> Term Contract -> Effect Unit

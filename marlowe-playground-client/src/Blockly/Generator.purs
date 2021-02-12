@@ -1,6 +1,6 @@
 module Blockly.Generator where
 
--- FIXME: Remove the Generator functionality
+-- FIXME: SCP-1881 Remove the Generator functionality once we refactor Actus to use Blockly.Dom
 import Prelude
 import Blockly.Types (Block, Blockly, Workspace)
 import Data.Array as Array

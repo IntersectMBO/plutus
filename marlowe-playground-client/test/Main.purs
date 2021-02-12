@@ -7,7 +7,6 @@ import Marlowe.BlocklyTests as BlocklyTests
 import Marlowe.ContractTests as ContractTests
 import Marlowe.LintTests as LintTests
 import Marlowe.ParserTests as ParserTests
-import Marlowe.CompletionItemsTests as CompletionItemsTests
 import Test.Unit.Main (runTest)
 
 foreign import forDeps :: Effect Unit
@@ -20,4 +19,3 @@ main =
     ContractTests.all
     BlocklyTests.all
     LintTests.all
-    CompletionItemsTests.all

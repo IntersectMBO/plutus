@@ -5,7 +5,7 @@ import Blockly.Dom (explainError, getDom)
 import Blockly.Generator (newBlock)
 import Blockly.Internal (BlockDefinition, ElementId(..))
 import Blockly.Internal as Blockly
-import BlocklyComponent.Types (Action(..), Message(..), Query(..), State, _blocklyEventSubscription, _blocklyState, _errorMessage, _generator, emptyState)
+import BlocklyComponent.Types (Action(..), Message(..), Query(..), State, _blocklyEventSubscription, _blocklyState, _errorMessage, emptyState)
 import BlocklyComponent.View (render)
 import Control.Monad.Except (ExceptT(..), except, runExceptT)
 import Data.Bifunctor (lmap)
@@ -20,7 +20,7 @@ import Halogen (Component, HalogenM, liftEffect, mkComponent, modify_)
 import Halogen as H
 import Halogen.BlocklyCommons (blocklyEvents, runWithoutEventSubscription, detectCodeChanges)
 import Halogen.HTML (HTML)
-import Marlowe.Blockly (blockToContract, buildBlocks, buildGenerator)
+import Marlowe.Blockly (blockToContract, buildBlocks)
 import Marlowe.Holes (Term(..), Location(..))
 import Marlowe.Parser as Parser
 import Prim.TypeError (class Warn, Text)
@@ -93,7 +93,6 @@ handleQuery (LoadWorkspace xml next) = do
 
 handleQuery (GetCode next) = do
   mBlocklyState <- use _blocklyState
-  mGenerator <- use _generator
   eCode <-
     liftEffect
       $ runExceptT do
@@ -120,17 +119,15 @@ handleAction ::
   Action ->
   HalogenM State Action slots Message m Unit
 handleAction (Inject rootBlockName blockDefinitions) = do
-  blocklyState /\ generator <-
+  blocklyState <-
     liftEffect do
       state <- Blockly.createBlocklyInstance rootBlockName (ElementId "blocklyWorkspace") (ElementId "blocklyToolbox")
       Blockly.addBlockTypes state.blockly blockDefinitions
       Blockly.initializeWorkspace state.blockly state.workspace
-      generator <- buildGenerator state.blockly
-      pure $ Tuple state generator
+      pure $ state
   eventSubscription <- H.subscribe $ blocklyEvents BlocklyEvent blocklyState.workspace
   modify_
     ( set _blocklyState (Just blocklyState)
-        <<< set _generator (Just generator)
         <<< set _blocklyEventSubscription (Just eventSubscription)
     )
 
