@@ -13,19 +13,17 @@ import Data.Either (Either(..), either, note)
 import Data.Lens (assign, set, use)
 import Data.Maybe (Maybe(..))
 import Data.Traversable (for, for_)
-import Data.Tuple (Tuple(..))
-import Data.Tuple.Nested ((/\))
 import Effect.Aff.Class (class MonadAff)
 import Halogen (Component, HalogenM, liftEffect, mkComponent, modify_)
 import Halogen as H
 import Halogen.BlocklyCommons (blocklyEvents, runWithoutEventSubscription, detectCodeChanges)
 import Halogen.HTML (HTML)
-import Marlowe.Blockly (blockToContract, buildBlocks)
+-- TODO: If we want to make ActusBlockly to use this component, we shouldn't depend on Marlowe.X
+import Marlowe.Blockly (buildBlocks)
 import Marlowe.Holes (Term(..), Location(..))
 import Marlowe.Parser as Parser
 import Prim.TypeError (class Warn, Text)
 import Text.Extra as Text
-import Text.Pretty (pretty)
 import Type.Proxy (Proxy(..))
 
 blockly ::
@@ -91,24 +89,23 @@ handleQuery (LoadWorkspace xml next) = do
   assign _errorMessage Nothing
   pure $ Just next
 
-handleQuery (GetCode next) = do
+handleQuery (GetBlockRepresentation next) = do
   mBlocklyState <- use _blocklyState
-  eCode <-
+  eBlock <-
     liftEffect
       $ runExceptT do
           blocklyState <- except <<< (note $ unexpected "BlocklyState not set") $ mBlocklyState
           -- FIXME: Eventually BlocklyComponent should return the Block representation defined in Blockly.Dom and it should be
           --        the parents responsability to transform it to code. That way we dont need to specify which `blockToTerm` to use
           --        and allow to share this component between Marlowe and Actus Blockly
-          block <- ExceptT $ lmap explainError <$> getDom blocklyState
-          ExceptT $ pure $ show <<< pretty <$> blockToContract block
-  case eCode of
+          ExceptT $ lmap explainError <$> getDom blocklyState
+  case eBlock of
     Left e -> do
       assign _errorMessage $ Just e
       pure Nothing
-    Right code -> do
+    Right block -> do
       assign _errorMessage Nothing
-      pure <<< Just <<< next $ code
+      pure <<< Just <<< next $ block
   where
   unexpected s = "An unexpected error has occurred, please raise a support issue at https://github.com/input-output-hk/plutus/issues/new: " <> s
 

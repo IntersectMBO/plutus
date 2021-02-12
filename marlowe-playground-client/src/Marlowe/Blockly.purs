@@ -1008,7 +1008,6 @@ blockToContract :: BDom.Block -> Either String (Term Contract)
 blockToContract block = lmap explainParseTermError $ blockToTerm block
 
 class BlockToTerm a where
-  -- FIXME: once we remove the Generator, see if we can remove the BDom prefix
   -- FIXME: Maybe lose some flexibility but make this more true to it's name by making
   --        the return a `Term a` instead of any `a`. Currently all instances are for
   --        `Term a` anyway.
@@ -1032,7 +1031,7 @@ explainParseTermError (InvalidFieldCast fieldValue castType) = "Could not conver
 
 explainParseTermError (ErrorInChild (BDom.Block block) attr err) = "Error in " <> block.type <> "." <> attr <> explainNested err
   where
-  explainNested (ErrorInChild (BDom.Block block) attr' err') = " -> " <> block.type <> "." <> attr' <> explainNested err'
+  explainNested (ErrorInChild (BDom.Block block') attr' err') = " -> " <> block'.type <> "." <> attr' <> explainNested err'
 
   explainNested err' = ": " <> explainParseTermError err'
 

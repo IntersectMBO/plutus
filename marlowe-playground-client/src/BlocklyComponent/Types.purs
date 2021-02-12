@@ -1,6 +1,7 @@
 module BlocklyComponent.Types where
 
 import Prelude hiding (div)
+import Blockly.Dom (Block(..))
 import Blockly.Generator (Generator)
 import Blockly.Internal (BlockDefinition, XML)
 import Blockly.Types as BT
@@ -41,7 +42,7 @@ data Query a
   | SetError String a
   | GetWorkspace (XML -> a)
   | LoadWorkspace XML a
-  | GetCode (String -> a)
+  | GetBlockRepresentation (Block -> a)
 
 data Action
   = Inject String (Array BlockDefinition)
