@@ -97,11 +97,11 @@ handleQuery (GetCode next) = do
   eCode <-
     liftEffect
       $ runExceptT do
-          { blockly, workspace, rootBlockName } <- except <<< (note $ unexpected "BlocklyState not set") $ mBlocklyState
+          blocklyState <- except <<< (note $ unexpected "BlocklyState not set") $ mBlocklyState
           -- FIXME: Eventually BlocklyComponent should return the Block representation defined in Blockly.Dom and it should be
           --        the parents responsability to transform it to code. That way we dont need to specify which `blockToTerm` to use
           --        and allow to share this component between Marlowe and Actus Blockly
-          block <- ExceptT $ lmap explainError <$> getDom blockly workspace rootBlockName
+          block <- ExceptT $ lmap explainError <$> getDom blocklyState
           ExceptT $ pure $ show <<< pretty <$> blockToContract block
   case eCode of
     Left e -> do

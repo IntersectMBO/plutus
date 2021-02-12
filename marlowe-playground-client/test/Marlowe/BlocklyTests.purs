@@ -1,7 +1,8 @@
 module Marlowe.BlocklyTests where
 
 import Prelude
-import Blockly.Generator (Generator, getInputWithName, inputList, blockToCode)
+import Blockly.Dom (explainError, getDom)
+import Blockly.Generator (Generator, getInputWithName, inputList)
 import Blockly.Headless as Headless
 import Blockly.Internal (getBlockById)
 import Blockly.Internal as Blockly
@@ -9,13 +10,13 @@ import Blockly.Types (BlocklyState)
 import Control.Monad.Except (ExceptT(..), runExceptT)
 import Control.Monad.Reader (runReaderT)
 import Data.Bifunctor (lmap, rmap)
-import Data.Either (Either, note)
+import Data.Either (Either)
 import Data.Foldable (for_)
 import Data.Maybe (Maybe(..))
 import Effect (Effect)
 import Effect.Class (class MonadEffect, liftEffect)
 import Effect.Unsafe (unsafePerformEffect)
-import Marlowe.Blockly (blockDefinitions, buildGenerator, rootBlockName, toBlockly)
+import Marlowe.Blockly (blockDefinitions, blockToContract, buildGenerator, rootBlockName, toBlockly)
 import Marlowe.Gen (genContract, genTerm)
 import Marlowe.GenWithHoles (GenWithHoles, unGenWithHoles)
 import Marlowe.Holes (Contract, Term)
@@ -58,13 +59,13 @@ codeToBlocklyToCode = do
   pure (result === positionedContract)
 
 runContract :: Term Contract -> Effect (Either String (Term Contract))
-runContract contract = do
-  state <- liftEffect mkTestState
-  liftEffect $ buildBlocks state.blocklyState contract
-  runExceptT do
-    rootBlock <- ExceptT $ note "failed to get root block" <$> getBlockById state.blocklyState.workspace state.blocklyState.rootBlockName
-    code <- ExceptT $ blockToCode rootBlock state.generator
-    ExceptT $ pure $ lmap show $ Parser.parseContract (stripParens code)
+runContract contract =
+  liftEffect do
+    state <- mkTestState
+    buildBlocks state.blocklyState contract
+    runExceptT do
+      block <- ExceptT $ lmap explainError <$> getDom state.blocklyState
+      ExceptT $ pure $ blockToContract block
 
 buildBlocks :: BlocklyState -> Term Contract -> Effect Unit
 buildBlocks bs contract = do

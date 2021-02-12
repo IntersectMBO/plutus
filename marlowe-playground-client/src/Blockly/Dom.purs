@@ -67,7 +67,7 @@ module Blockly.Dom where
 
 import Prelude
 import Blockly.Internal (workspaceToDom)
-import Blockly.Types (Blockly, Workspace)
+import Blockly.Types (BlocklyState)
 import Control.Monad.Error.Extra (toMonadThrow)
 import Control.Monad.Except (runExceptT, throwError)
 import Control.Monad.Except.Trans (class MonadThrow)
@@ -75,17 +75,15 @@ import Data.Array (find, length)
 import Data.Array.Partial as UnsafeArray
 import Data.Compactable (separate)
 import Data.Either (Either(..), note')
-import Data.Foldable (fold)
 import Data.Generic.Rep (class Generic)
 import Data.Lens (Lens', _1, view)
 import Data.Lens.Iso.Newtype (_Newtype)
 import Data.Lens.Record (prop)
-import Data.Maybe (Maybe(..), maybe')
+import Data.Maybe (Maybe(..))
 import Data.Newtype (class Newtype)
 import Data.Symbol (SProxy(..))
 import Data.Traversable (traverse)
 import Data.Tuple (Tuple(..))
-import Debug.Trace (spy)
 import Effect (Effect)
 import Effect.Class (class MonadEffect, liftEffect)
 import Foreign.Generic (class Encode, defaultOptions, genericEncode)
@@ -98,8 +96,6 @@ import Web.DOM.HTMLCollection as HTMLCollection
 import Web.DOM.Node as Node
 import Web.DOM.NodeList as NodeList
 import Web.DOM.ParentNode as ParentNode
-import Web.DOM.Text (Text)
-import Web.DOM.Text as Text
 
 newtype Block
   = Block
@@ -170,20 +166,20 @@ explainError (RootElementNotFound rootBlockName) = "The element with id " <> sho
 explainError (IncorrectSiblingNesting node) = "Incorrect <next> element found outside the scope of a <statement> and inside of a " <> node <> " node"
 
 -- | Read and parse the DOM nodes of a blockly workspace.
-getDom :: Blockly -> Workspace -> String -> Effect (Either ReadDomError Block)
-getDom blockly workspace rootBlockId =
+getDom :: BlocklyState -> Effect (Either ReadDomError Block)
+getDom { blockly, workspace, rootBlockName } =
   runExceptT do
     -- FIXME: remove the spy
-    rootElement <- liftEffect $ spy "xml?" <$> workspaceToDom blockly workspace
+    rootElement <- liftEffect $ workspaceToDom blockly workspace
     if Element.tagName rootElement /= "xml" then
       throwError $ TypeMismatch rootElement "xml"
     else do
       -- The workspace can have many elements at the top level, we parse them all
-      -- but only return the one that has the same id as rootBlockId
+      -- but only return the one that has the same id as rootBlockName
       childrens <- getChildrens rootElement
       blocks <- traverse readAsBlock childrens
-      case find (eq rootBlockId <<< view (_1 <<< _id)) blocks of
-        Nothing -> throwError $ RootElementNotFound rootBlockId
+      case find (eq rootBlockName <<< view (_1 <<< _id)) blocks of
+        Nothing -> throwError $ RootElementNotFound rootBlockName
         Just (Tuple block nexts) ->
           if length nexts /= 0 then
             throwError $ IncorrectSiblingNesting "root"
@@ -265,15 +261,7 @@ getDom blockly workspace rootBlockId =
       NodeList.toArray nodes
 
   getElementText :: forall m. MonadEffect m => Element -> m String
-  getElementText element = do
-    nodes <- getChildNodes element
-    let
-      textNodes :: Array (Maybe Text)
-      textNodes = Text.fromNode <$> nodes
-
-      maybeGetText :: (Maybe Text) -> m String
-      maybeGetText = maybe' (\_ -> pure "") (liftEffect <<< Text.wholeText)
-    fold <$> traverse maybeGetText textNodes
+  getElementText element = liftEffect $ (Node.textContent <<< Element.toNode) element
 
   getAttribute :: forall m. MonadEffect m => MonadThrow ReadDomError m => String -> Element -> m String
   getAttribute attr element = do
