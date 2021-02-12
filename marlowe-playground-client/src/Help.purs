@@ -161,7 +161,7 @@ Observations are Boolean values derived by comparing values, and can be combined
 
 marloweTypeMarkerText ContractType =
   """
-Marlowe has five ways of building contracts. Four of these – Pay, Let, If and When – build a complex contract from simpler contracts, and the fifth, Close, is a simple contract. At each step of execution, as well as returning a new state and continuation contract, it is possible that effects – payments – and warnings can be generated too.
+Marlowe has six ways of building contracts. Five of these – Pay, Let, If, When and Assert – build a complex contract from simpler contracts, and the sixth, Close, is a simple contract. At each step of execution, as well as returning a new state and continuation contract, it is possible that effects – payments – and warnings can be generated too.
 """
 
 marloweTypeMarkerText BoundType =
