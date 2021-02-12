@@ -49,7 +49,7 @@ initialState =
   , screen: Home
   , card: Nothing
   , contactState: Contact.initialState
-  , contractState: Contract.initialState mempty zero Close
+  , contractState: Contract.initialState zero Close
   , notifications: []
   , templates: []
   , contracts: []

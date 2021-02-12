@@ -1,7 +1,7 @@
 module Contract.State where
 
 import Prelude
-import Contract.Types (Action(..), Query(..), Side(..), State, Tab(..), _confirmation, _executionState, _pk, _side, _step, _tab)
+import Contract.Types (Action(..), Query(..), Side(..), State, Tab(..), _confirmation, _executionState, _side, _step, _tab)
 import Data.Lens (assign, modifying, use)
 import Data.Maybe (Maybe(..))
 import Data.Unfoldable as Unfoldable
@@ -9,17 +9,16 @@ import Effect.Aff.Class (class MonadAff)
 import Halogen (HalogenM, raise)
 import MainFrame.Types (ChildSlots, Msg(..))
 import Marlowe.Execution (NamedAction(..), _namedActions, _state, initExecution, merge, mkTx, nextState)
-import Marlowe.Semantics (ChoiceId(..), Contract, Input(..), Party(..), Slot, _minSlot)
+import Marlowe.Semantics (Contract, Slot, _minSlot)
 import WebSocket (StreamToServer(..))
 
-initialState :: String -> Slot -> Contract -> State
-initialState pk slot contract =
+initialState :: Slot -> Contract -> State
+initialState slot contract =
   { tab: Tasks
   , executionState: initExecution slot contract
   , side: Overview
   , confirmation: Nothing
   , step: 0
-  , pk
   }
 
 handleQuery :: forall a m. Query a -> HalogenM State Action ChildSlots Msg m (Maybe a)
@@ -34,13 +33,7 @@ handleQuery (ApplyTx tx next) = do
 handleAction :: forall m. MonadAff m => Action -> HalogenM State Action ChildSlots Msg m Unit
 handleAction (ConfirmInput input) = do
   currentExeState <- use _executionState
-  defaultParty <- use _pk
   let
-    party = case input of
-      (Just (IDeposit _ p _ _)) -> p
-      (Just (IChoice (ChoiceId _ p) _)) -> p
-      _ -> PK defaultParty
-
     txInput = mkTx currentExeState (Unfoldable.fromMaybe input)
 
     executionState = nextState currentExeState txInput

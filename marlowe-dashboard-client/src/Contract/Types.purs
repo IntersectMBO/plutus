@@ -45,7 +45,6 @@ type State
     , side :: Side
     , confirmation :: Maybe Input
     , step :: Int
-    , pk :: String -- FIXME pub key
     }
 
 _tab :: Lens' State Tab
@@ -62,6 +61,3 @@ _confirmation = prop (SProxy :: SProxy "confirmation")
 
 _step :: Lens' State Int
 _step = prop (SProxy :: SProxy "step")
-
-_pk :: Lens' State String
-_pk = prop (SProxy :: SProxy "pk")
