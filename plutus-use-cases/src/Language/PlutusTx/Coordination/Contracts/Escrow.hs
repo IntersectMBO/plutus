@@ -169,7 +169,7 @@ instance Scripts.ScriptType Escrow where
     type instance RedeemerType Escrow = Action
     type instance DatumType Escrow = PubKeyHash
 
-PlutusTx.makeIsData ''Action
+PlutusTx.unstableMakeIsData ''Action
 PlutusTx.makeLift ''Action
 
 {-# INLINABLE meetsTarget #-}

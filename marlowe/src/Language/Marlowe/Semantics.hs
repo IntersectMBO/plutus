@@ -54,7 +54,7 @@ import           Data.Text                  (pack)
 import           Data.Text.Encoding         (decodeUtf8, encodeUtf8)
 import           Deriving.Aeson
 import           Language.Marlowe.Pretty    (Pretty (..))
-import           Language.PlutusTx          (makeIsData)
+import           Language.PlutusTx          (makeIsDataIndexed)
 import           Language.PlutusTx.AssocMap (Map)
 import qualified Language.PlutusTx.AssocMap as Map
 import           Language.PlutusTx.Lift     (makeLift)
@@ -1289,32 +1289,64 @@ instance Eq State where
 
 -- Lifting data types to Plutus Core
 makeLift ''Party
-makeIsData ''Party
+makeIsDataIndexed ''Party [('PK,0),('Role,1)]
 makeLift ''ChoiceId
-makeIsData ''ChoiceId
+makeIsDataIndexed ''ChoiceId [('ChoiceId,0)]
 makeLift ''Token
-makeIsData ''Token
+makeIsDataIndexed ''Token [('Token,0)]
 makeLift ''ValueId
-makeIsData ''ValueId
+makeIsDataIndexed ''ValueId [('ValueId,0)]
 makeLift ''Value
-makeIsData ''Value
+makeIsDataIndexed ''Value [
+    ('AvailableMoney,0),
+    ('Constant,1),
+    ('NegValue,2),
+    ('AddValue,3),
+    ('SubValue,4),
+    ('MulValue,5),
+    ('Scale,6),
+    ('ChoiceValue,7),
+    ('SlotIntervalStart, 8),
+    ('SlotIntervalEnd,9),
+    ('UseValue,10),
+    ('Cond,11)
+    ]
 makeLift ''Observation
-makeIsData ''Observation
+makeIsDataIndexed ''Observation [
+    ('AndObs,0),
+    ('OrObs,1),
+    ('NotObs,2),
+    ('ChoseSomething,3),
+    ('ValueGE,4),
+    ('ValueGT,5),
+    ('ValueLT,6),
+    ('ValueLE,7),
+    ('ValueEQ,8),
+    ('TrueObs,9),
+    ('FalseObs,10)
+    ]
 makeLift ''Bound
-makeIsData ''Bound
+makeIsDataIndexed ''Bound [('Bound,0)]
 makeLift ''Action
-makeIsData ''Action
+makeIsDataIndexed ''Action [('Deposit,0),('Choice,1),('Notify,2)]
 makeLift ''Case
-makeIsData ''Case
+makeIsDataIndexed ''Case [('Case,0)]
 makeLift ''Payee
-makeIsData ''Payee
+makeIsDataIndexed ''Payee [('Account,0),('Party,1)]
 makeLift ''Contract
-makeIsData ''Contract
+makeIsDataIndexed ''Contract [
+    ('Close,0),
+    ('Pay,1),
+    ('If,2),
+    ('When,3),
+    ('Let,4),
+    ('Assert,5)
+    ]
 makeLift ''State
-makeIsData ''State
+makeIsDataIndexed ''State [('State,0)]
 makeLift ''Environment
 makeLift ''Input
-makeIsData ''Input
+makeIsDataIndexed ''Input [('IDeposit,0),('IChoice,1),('INotify,2)]
 makeLift ''IntervalError
 makeLift ''IntervalResult
 makeLift ''Payment
@@ -1329,6 +1361,5 @@ makeLift ''TransactionWarning
 makeLift ''TransactionError
 makeLift ''TransactionOutput
 makeLift ''MarloweData
-makeIsData ''MarloweData
+makeIsDataIndexed ''MarloweData [('MarloweData,0)]
 makeLift ''MarloweParams
-
