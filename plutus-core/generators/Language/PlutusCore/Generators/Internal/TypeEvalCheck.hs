@@ -107,7 +107,7 @@ typeEvalCheckBy
     -> TypeEvalCheckM uni fun (TermOf (Term TyName Name uni fun ()) (TypeEvalCheckResult uni fun))
 typeEvalCheckBy eval (TermOf term (x :: a)) = TermOf term <$> do
     let tyExpected = runQuote . normalizeType $ toTypeAst (Proxy @a)
-        valExpected = makeKnown x
+        valExpected = makeKnownNoEmit x
     tyActual <- runQuoteT $ do
         config <- getDefTypeCheckConfig ()
         inferType config term
@@ -127,7 +127,7 @@ unsafeTypeEvalCheck
     => TermOf (Term TyName Name uni fun ()) a
     -> TermOf (Term TyName Name uni fun ()) (EvaluationResult (Term TyName Name uni fun ()))
 unsafeTypeEvalCheck termOfTbv = do
-    let errOrRes = typeEvalCheckBy (evaluateCek defBuiltinsRuntime) termOfTbv
+    let errOrRes = typeEvalCheckBy (fst . evaluateCek defBuiltinsRuntime) termOfTbv
     case errOrRes of
         Left err         -> error $ concat
             [ prettyPlcErrorString err

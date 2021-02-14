@@ -40,7 +40,7 @@ typecheckEvaluateCek
        )
     => BuiltinsRuntime fun (CekValue uni fun)
     -> Term TyName Name uni fun ()
-    -> m (EvaluationResult (Term TyName Name uni fun ()))
+    -> m (EvaluationResult (Term TyName Name uni fun ()), [String])
 typecheckEvaluateCek = typecheckAnd unsafeEvaluateCek
 
 -- | Type check and convert a Plutus Core term to a Haskell value.

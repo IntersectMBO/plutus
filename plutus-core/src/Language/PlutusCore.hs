@@ -30,7 +30,6 @@ module Language.PlutusCore
     , type (<:)
     , DefaultUni (..)
     , DefaultFun (..)
-    , defDefaultFunDyn
     -- * AST
     , Term (..)
     , termSubterms

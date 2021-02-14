@@ -18,6 +18,7 @@ module Language.PlutusCore.Constant.Meaning where
 
 import           PlutusPrelude
 
+import           Language.PlutusCore.Constant.Dynamic.Emit
 import           Language.PlutusCore.Constant.Function
 import           Language.PlutusCore.Constant.Typed
 import           Language.PlutusCore.Core
@@ -222,6 +223,7 @@ type instance ToBinds Bool          = '[]
 type instance ToBinds Int           = '[]
 
 type instance ToBinds (EvaluationResult a) = ToBinds a
+type instance ToBinds (Emitter a)          = ToBinds a
 type instance ToBinds (Opaque _ rep)       = ToBinds rep
 
 type instance ToBinds (TyVarRep var) = '[ 'Some var ]

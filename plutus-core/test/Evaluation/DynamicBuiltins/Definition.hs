@@ -129,7 +129,7 @@ instance (ToBuiltinMeaning uni fun1, ToBuiltinMeaning uni fun2) =>
 defBuiltinsRuntimeExt
     :: HasConstantIn DefaultUni term
     => BuiltinsRuntime (Either DefaultFun ExtensionFun) term
-defBuiltinsRuntimeExt = toBuiltinsRuntime (defDefaultFunDyn, ()) (defaultCostModel, ())
+defBuiltinsRuntimeExt = toBuiltinsRuntime mempty (defaultCostModel, ())
 
 data ListRep (a :: GHC.Type)
 instance KnownTypeAst uni a => KnownTypeAst uni (ListRep a) where
@@ -233,7 +233,7 @@ test_Id =
                                   . LamAbs () i integer
                                   . LamAbs () j integer
                                   $ Var () i
-        typecheckEvaluateCek defBuiltinsRuntimeExt term @?= Right (EvaluationSuccess one)
+        fst <$> typecheckEvaluateCek defBuiltinsRuntimeExt term @?= Right (EvaluationSuccess one)
 
 -- | Test that a polymorphic built-in function can have a higher-kinded type variable in its
 -- signature.
@@ -253,7 +253,7 @@ test_IdFInteger =
                 . Apply () (TyInst () (Builtin () $ Right IdFInteger) Plc.listTy)
                 $ mkIterApp () (mapFun Left Plc.enumFromTo) [one, ten]
         tyAct @?= tyExp
-        typecheckEvaluateCek defBuiltinsRuntimeExt term @?= Right (EvaluationSuccess res)
+        fst <$> typecheckEvaluateCek defBuiltinsRuntimeExt term @?= Right (EvaluationSuccess res)
 
 test_IdList :: TestTree
 test_IdList =
@@ -272,7 +272,7 @@ test_IdList =
                 . Apply () (TyInst () (Builtin () $ Right IdList) integer)
                 $ mkIterApp () (mapFun Left Plc.enumFromTo) [one, ten]
         tyAct @?= tyExp
-        typecheckEvaluateCek defBuiltinsRuntimeExt term @?= Right (EvaluationSuccess res)
+        fst <$> typecheckEvaluateCek defBuiltinsRuntimeExt term @?= Right (EvaluationSuccess res)
 
 {- Note [Higher-rank built-in functions]
 We can't unlift a monomorphic function passed to a built-in function, let alone unlift a polymorphic
@@ -315,7 +315,7 @@ test_IdRank2 =
                 . TyInst () (Apply () (TyInst () (Builtin () $ Right IdRank2) Plc.listTy) Plc.nil)
                 $ integer
         tyAct @?= tyExp
-        typecheckEvaluateCek defBuiltinsRuntimeExt term @?= Right (EvaluationSuccess res)
+        fst <$> typecheckEvaluateCek defBuiltinsRuntimeExt term @?= Right (EvaluationSuccess res)
 
 -- | Test that the type of PLC @Absurd@ is inferred correctly.
 test_Absurd :: TestTree

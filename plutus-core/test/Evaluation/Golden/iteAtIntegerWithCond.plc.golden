@@ -1,1 +1,1 @@
-(Right [ { (builtin ifThenElse) (con integer) } (con bool True) ])
+((Right [ { (builtin ifThenElse) (con integer) } (con bool True) ]), [])

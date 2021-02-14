@@ -1,1 +1,1 @@
-(Right (abs a_0 (type) (error a_0)))
+((Right (abs a_0 (type) (error a_0))), [])

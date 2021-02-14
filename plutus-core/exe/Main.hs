@@ -644,8 +644,8 @@ runEval (EvalOptions language inp ifmt evalMode printMode printtime) =
         TypedProgram prog <- getProgram TypedPLC ifmt inp
         let evaluate =
                 case evalMode of
-                  CK  -> PLC.unsafeEvaluateCk  PLC.defBuiltinsRuntime
-                  CEK -> PLC.unsafeEvaluateCek PLC.defBuiltinsRuntime
+                  CK  -> PLC.unsafeEvaluateCk PLC.defBuiltinsRuntime
+                  CEK -> fst . PLC.unsafeEvaluateCek PLC.defBuiltinsRuntime
             body = void . PLC.toTerm $ prog
         () <-  Exn.evaluate $ rnf body
         -- Force evaluation of body to ensure that we're not timing parsing/deserialisation.
@@ -660,7 +660,7 @@ runEval (EvalOptions language inp ifmt evalMode printMode printtime) =
             CK  -> hPutStrLn stderr "There is no CK machine for UntypedPLC Plutus Core" >> exitFailure
             CEK -> do
                   UntypedProgram prog <- getProgram UntypedPLC ifmt inp
-                  let evaluate = UPLC.unsafeEvaluateCek PLC.defBuiltinsRuntime
+                  let evaluate = fst . UPLC.unsafeEvaluateCek PLC.defBuiltinsRuntime
                       body = void . UPLC.toTerm $ prog
                   () <- Exn.evaluate $ rnf body
                   start <- getCPUTime

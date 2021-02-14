@@ -8,7 +8,6 @@ module Evaluation.DynamicBuiltins.MakeRead
     ) where
 
 import           Language.PlutusCore
-import           Language.PlutusCore.Builtins
 import           Language.PlutusCore.Constant
 import           Language.PlutusCore.Evaluation.Machine.ExBudgetingDefaults
 import           Language.PlutusCore.Evaluation.Machine.Exception
@@ -19,7 +18,6 @@ import           Language.PlutusCore.StdLib.Data.Unit
 
 import           Evaluation.DynamicBuiltins.Common
 
-import           Control.Monad.IO.Class
 import           Hedgehog                                                   hiding (Size, Var)
 import qualified Hedgehog.Gen                                               as Gen
 import qualified Hedgehog.Range                                             as Range
@@ -35,7 +33,7 @@ readMakeHetero
        )
     => a -> EvaluationResult b
 readMakeHetero x = do
-    xTerm <- makeKnown @(Term TyName Name DefaultUni DefaultFun ()) x
+    xTerm <- makeKnownNoEmit @(Term TyName Name DefaultUni DefaultFun ()) x
     case extractEvaluationResult <$> typecheckReadKnownCek defBuiltinsRuntime xTerm of
         Left err          -> error $ "Type error" ++ displayPlcCondensedErrorClassic err
         Right (Left err)  -> error $ "Evaluation error: " ++ show err
@@ -72,18 +70,16 @@ test_stringRoundtrip =
 test_collectStrings :: TestTree
 test_collectStrings = testProperty "collectStrings" . property $ do
     strs <- forAll . Gen.list (Range.linear 0 10) $ Gen.string (Range.linear 0 20) Gen.unicode
-    (strs', errOrRes) <- liftIO . withEmit $ \emit -> do
-        let runtime = toBuiltinsRuntime (DefaultFunDyn emit) defaultCostModel
-            step arg rest = mkIterApp () sequ
-                [ Apply () (Builtin () Trace) $ mkConstant @String @DefaultUni () arg
-                , rest
-                ]
-            term = foldr step unitval strs
-        pure $ typecheckEvaluateCek runtime term
-    case errOrRes of
-        Left _                      -> failure
-        Right EvaluationFailure     -> failure
-        Right (EvaluationSuccess _) -> return ()
+    let runtime = toBuiltinsRuntime () defaultCostModel
+        step arg rest = mkIterApp () sequ
+            [ Apply () (Builtin () Trace) $ mkConstant @String @DefaultUni () arg
+            , rest
+            ]
+        term = foldr step unitval strs
+    strs' <- case typecheckEvaluateCek runtime term of
+        Left _                             -> failure
+        Right (EvaluationFailure, _)       -> failure
+        Right (EvaluationSuccess _, strs') -> return strs'
     strs === strs'
 
 test_noticeEvaluationFailure :: TestTree

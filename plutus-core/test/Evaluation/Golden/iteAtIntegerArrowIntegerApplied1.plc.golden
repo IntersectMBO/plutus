@@ -1,1 +1,1 @@
-(Right [ (builtin multiplyInteger) (con integer 11) ])
+((Right [ (builtin multiplyInteger) (con integer 11) ]), [])

@@ -67,7 +67,7 @@ attachCoercedTerm
     => GenT m a -> GenT m (TermOf term a)
 attachCoercedTerm a = do
     x <- a
-    case makeKnown x of
+    case makeKnownNoEmit x of
         -- I've attempted to implement support for generating 'EvaluationFailure',
         -- but it turned out to be too much of a pain for something that we do not really need.
         EvaluationFailure -> fail $ concat

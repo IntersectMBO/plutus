@@ -44,8 +44,8 @@ testMachine machine eval =
 test_machines :: TestTree
 test_machines = testGroup
     "machines"
-    [ testMachine "CK"  $ evaluateCk  defBuiltinsRuntime
-    , testMachine "CEK" $ evaluateCek defBuiltinsRuntime
+    [ testMachine "CK"  $ evaluateCk defBuiltinsRuntime
+    , testMachine "CEK" $ fst . evaluateCek defBuiltinsRuntime
     ]
 
 testMemory :: ExMemoryUsage a => TestName -> a -> TestNested

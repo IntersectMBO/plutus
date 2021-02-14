@@ -130,6 +130,11 @@ to look up a free variable in an environment: there's no CkValue for
 Var, so we can't report which variable caused the error.
 -}
 
+-- Tracing does not work with the CK machine. We could make it work if we wanted it to,
+-- but it doesn't seem we need that.
+deriving via NoEmitterT (CkCarryingM term uni fun)
+    instance MonadEmitter (CkCarryingM term uni fun)
+
 instance ToExMemory term => SpendBudget (CkCarryingM term uni fun) fun () term where
     spendBudget _key _budget = pure ()
 
