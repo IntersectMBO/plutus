@@ -81,8 +81,7 @@ tests :: GenOptions -> TestTree
 tests genOpts@GenOptions{} =
   testGroup "NEAT"
 
-  [ -- as originally written, use lazy-search to find ctrexs
-    bigTest "normalization commutes with conversion from generated types"
+  [ bigTest "normalization commutes with conversion from generated types"
       genOpts {genDepth = 13}
       (Type ())
       (packAssertion prop_normalizeConvertCommuteTypes)
@@ -90,10 +89,16 @@ tests genOpts@GenOptions{} =
       genOpts {genDepth = 14}
       (Type ())
       (packAssertion prop_normalTypesCannotReduce)
-  , bigTest "type preservation - CK & CEK"
+
+  -- note: we don't test type preservation of CEK as it does not
+  -- preserve type annotations although it would work for unit.
+  , bigTest "type preservation - CK"
       genOpts {genDepth = 18}
       (TyBuiltinG TyUnitG)
       (packAssertion prop_typePreservation)
+
+  -- note: the typed CEK vs CK test would fail if values of this type
+  -- include type annotations. This is not the case for unit.
   , bigTest "typed CEK vs CK, typed CEK vs untyped CEK produce the same output"
       genOpts {genDepth = 18}
       (TyBuiltinG TyUnitG)
@@ -154,18 +159,16 @@ prop_typePreservation tyG tmG = do
     evaluateCk testBuiltinsRuntime tm `catchError` handleError ty
   withExceptT TypeError $ checkType tcConfig () tmCK (Normalized ty)
 
-  -- note: the CEK does not respect this property in general as it
-  -- does not properly handle type annotations.
-
 -- |Property: check if both the CK and CEK machine produce the same ouput
 --
--- They should produce the same terms. Currently they differ in the
--- type annotations of those terms as the the CEK machine does not
--- handle the annotations correctly. This is not exposed on the small
--- examples used here. I believe it would be if we increased the
--- depth. One could work around this problem by erasing type
--- annotations before comparison, or fix the problem by updating the
--- CEK machine.
+-- PRECONDITION: only use where the expected output does not contain
+-- type annotations. E.g. constants. The CEK machine does not handle
+-- type annotations correctly. So, if the output were to include them
+-- then the results would differ and this test would fail.
+
+-- POTENTIAL FIXES: Either the CEK machine coud be fixed or one could
+-- erase the outputs (removing any type annotations) before
+-- comparison.
 
 prop_agree_termEval :: ClosedTypeG -> ClosedTermG -> ExceptT TestFail Quote ()
 prop_agree_termEval tyG tmG = do
