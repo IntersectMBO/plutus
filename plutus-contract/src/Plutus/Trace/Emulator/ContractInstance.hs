@@ -105,6 +105,8 @@ handleContractRuntime = \case
                 let Notification{notificationContractEndpoint=EndpointDescription ep, notificationContractArg} = n
                     vl = object ["tag" JSON..= ep, "value" JSON..= EndpointValue notificationContractArg]
                     e = Message threadId (EndpointCall ownId (EndpointDescription ep) vl)
+
+                    -- Wait for the 'EndpointCallResult' message to come in.
                     go = \case
                         Just (EndpointCallResult (Just err)) -> do
                             logWarn $ NotificationFailure err
