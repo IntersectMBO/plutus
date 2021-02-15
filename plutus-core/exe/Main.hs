@@ -40,6 +40,7 @@ import           System.Exit                                       (exitFailure,
 import           System.IO
 import           System.Mem                                        (performGC)
 import           Text.Printf                                       (printf)
+import           Text.Read                                         (readMaybe)
 
 {- Note [Annotation types] This program now reads and writes CBOR-serialised PLC
    ASTs.  In all cases we require the annotation type to be ().  There are two
@@ -82,7 +83,7 @@ type PlcParserError = PLC.Error PLC.DefaultUni PLC.DefaultFun PLC.AlexPosn
 data Input       = FileInput FilePath | StdInput
 data Output      = FileOutput FilePath | StdOutput
 data Language    = TypedPLC | UntypedPLC
-data Timing      = NoTiming | Timing deriving (Eq)  -- Report program execution time?
+data TimingMode  = NoTiming | Timing Int deriving (Eq)  -- Report program execution time?
 data PrintMode   = Classic | Debug | Readable | ReadableDebug deriving (Show, Read)
 type ExampleName = T.Text
 data ExampleMode = ExampleSingle ExampleName | ExampleAvailable
@@ -103,7 +104,7 @@ data ConvertOptions   = ConvertOptions Language Input Format Output Format Print
 data PrintOptions     = PrintOptions Language Input PrintMode
 data ExampleOptions   = ExampleOptions Language ExampleMode
 data EraseOptions     = EraseOptions Input Format Output Format PrintMode
-data EvalOptions      = EvalOptions Language Input Format EvalMode PrintMode Timing
+data EvalOptions      = EvalOptions Language Input Format EvalMode PrintMode TimingMode
 data ApplyOptions     = ApplyOptions Language Files Format Output Format PrintMode
 
 -- Main commands
@@ -125,8 +126,8 @@ untypedPLC :: Parser Language
 untypedPLC = flag UntypedPLC UntypedPLC (long "untyped" <> short 'u' <> help "Use untyped Plutus Core (default)")
 -- ^ NB: default is always UntypedPLC
 
-languageMode :: Parser Language
-languageMode = typedPLC <|> untypedPLC
+languagemode :: Parser Language
+languagemode = typedPLC <|> untypedPLC
 
 -- | Parser for an input stream. If none is specified, default to stdin: this makes use in pipelines easier
 input :: Parser Input
@@ -193,18 +194,29 @@ outputformat = option (maybeReader formatReader)
   <> showDefault
   <> help ("Output format: " ++ formatHelp))
 
-timing :: Parser Timing
-timing = flag NoTiming Timing
+
+timing1 :: Parser TimingMode
+timing1 = flag NoTiming (Timing 10)
   ( long "time-execution"
   <> short 'x'
-  <> help "Report execution time of program"
+  <> help "Report mean execution time of program over 10 repetitions"
   )
+
+timing2 :: Parser TimingMode
+timing2 = Timing <$> option auto
+  (  short 'X'
+  <> metavar "N"
+  <> help "Report mean execution time of program over N repetitions"
+  )
+
+timingmode :: Parser TimingMode
+timingmode = timing1 <|> timing2
 
 files :: Parser Files
 files = some (argument str (metavar "[FILES...]"))
 
 applyOpts :: Parser ApplyOptions
-applyOpts = ApplyOptions <$> languageMode <*> files <*> inputformat <*> output <*> outputformat <*> printmode
+applyOpts = ApplyOptions <$> languagemode <*> files <*> inputformat <*> output <*> outputformat <*> printmode
 
 typecheckOpts :: Parser TypecheckOptions
 typecheckOpts = TypecheckOptions <$> input <*> inputformat
@@ -219,10 +231,10 @@ printmode = option auto
         ++ "Readable -> prettyPlcReadableDef, ReadableDebug -> prettyPlcReadableDebug" ))
 
 printOpts :: Parser PrintOptions
-printOpts = PrintOptions <$> languageMode <*> input <*> printmode
+printOpts = PrintOptions <$> languagemode <*> input <*> printmode
 
 convertOpts :: Parser ConvertOptions
-convertOpts = ConvertOptions <$> languageMode <*> input <*> inputformat <*> output <*> outputformat <*> printmode
+convertOpts = ConvertOptions <$> languagemode <*> input <*> inputformat <*> output <*> outputformat <*> printmode
 
 exampleMode :: Parser ExampleMode
 exampleMode = exampleAvailable <|> exampleSingle
@@ -244,7 +256,7 @@ exampleSingle :: Parser ExampleMode
 exampleSingle = ExampleSingle <$> exampleName
 
 exampleOpts :: Parser ExampleOptions
-exampleOpts = ExampleOptions <$> languageMode <*> exampleMode
+exampleOpts = ExampleOptions <$> languagemode <*> exampleMode
 
 eraseOpts :: Parser EraseOptions
 eraseOpts = EraseOptions <$> input <*> inputformat <*> output <*> outputformat <*> printmode
@@ -259,7 +271,7 @@ evalmode = option auto
   <> help "Evaluation mode (CK or CEK)" )
 
 evalOpts :: Parser EvalOptions
-evalOpts = EvalOptions <$> languageMode <*> input <*> inputformat <*> evalmode <*> printmode <*> timing
+evalOpts = EvalOptions <$> languagemode <*> input <*> inputformat <*> evalmode <*> printmode <*> timingmode
 
 helpText :: String
 helpText =
@@ -637,7 +649,7 @@ runTypecheck (TypecheckOptions inp fmt) = do
 ---------------- Evaluation ----------------
 
 runEval :: EvalOptions -> IO ()
-runEval (EvalOptions language inp ifmt evalMode printMode printtime) =
+runEval (EvalOptions language inp ifmt evalMode printMode timingMode) =
     case language of
 
       TypedPLC -> do
@@ -673,7 +685,7 @@ runEval (EvalOptions language inp ifmt evalMode printMode printtime) =
             print $ getPrintMethod printMode v
             let ms = 1e9 :: Double
                 diff = (fromIntegral (end - start)) / ms
-            when (printtime == Timing) $ printf "Evaluation time: %0.2f ms\n" diff
+            case timingMode of { Timing n -> printf "Timing: %d\n" n; _ -> pure () }
             exitSuccess
 
 
