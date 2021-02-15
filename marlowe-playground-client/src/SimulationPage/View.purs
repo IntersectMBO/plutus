@@ -14,16 +14,18 @@ import Data.Map as Map
 import Data.Maybe (Maybe(..), isJust)
 import Data.Newtype (unwrap, wrap)
 import Data.Tuple (Tuple(..), snd)
+import Data.Tuple.Nested ((/\))
 import Effect.Aff.Class (class MonadAff)
 import Effect.Class (liftEffect)
 import Halogen (RefLabel(..))
 import Halogen.Classes (aHorizontal, bold, btn, codeEditor, expanded, flex, fullHeight, group, justifyBetween, justifyCenter, noMargins, plusBtn, scroll, sidebarComposer, smallBtn, smallSpaceBottom, spaceBottom, spaceRight, spanText, textSecondaryColor, textXs, uppercase)
 import Halogen.Extra (renderSubmodule)
-import Halogen.HTML (ClassName(..), ComponentHTML, HTML, aside, b_, br_, button, div, div_, em_, h6, h6_, input, li, p, p_, section, slot, span, span_, strong_, text, ul)
+import Halogen.HTML (ClassName(..), ComponentHTML, HTML, aside, b_, br_, button, div, div_, em_, h6, h6_, input, li, li_, p, p_, section, slot, span, span_, strong_, text, ul)
 import Halogen.HTML.Events (onClick, onValueChange)
 import Halogen.HTML.Properties (InputType(..), class_, classes, disabled, placeholder, type_, value)
 import Halogen.Monaco (Settings, monacoComponent)
 import MainFrame.Types (ChildSlots, _simulatorEditorSlot)
+import Marlowe.Extended (IntegerTemplateType(..))
 import Marlowe.Monaco (daylightTheme, languageExtensionPoint)
 import Marlowe.Monaco as MM
 import Marlowe.Semantics (AccountId, Assets(..), Bound(..), ChoiceId(..), Input(..), Party(..), Payment(..), PubKey, Slot, SlotInterval(..), Token(..), TransactionInput(..), inBounds, timeouts)
@@ -31,7 +33,7 @@ import Monaco (Editor)
 import Monaco as Monaco
 import Pretty (renderPrettyParty, renderPrettyToken, showPrettyMoney)
 import SimulationPage.BottomPanel (panelContents)
-import SimulationPage.Types (Action(..), ActionInput(..), ActionInputId, BottomPanelView(..), ExecutionState(..), MarloweEvent(..), State, _SimulationRunning, _bottomPanelState, _currentContract, _currentMarloweState, _executionState, _log, _marloweState, _possibleActions, _showRightPanel, _slot, _transactionError, _transactionWarnings, otherActionsParty)
+import SimulationPage.Types (Action(..), ActionInput(..), ActionInputId, BottomPanelView(..), ExecutionState(..), MarloweEvent(..), State, InitialConditionsRecord, _SimulationRunning, _bottomPanelState, _currentContract, _currentMarloweState, _executionState, _log, _marloweState, _possibleActions, _showRightPanel, _slot, _transactionError, _transactionWarnings, otherActionsParty)
 import Simulator (hasHistory, inFuture)
 
 render ::
@@ -194,7 +196,7 @@ sidebar state =
     showRightPanel = state ^. _showRightPanel
 
     contents = case view (_marloweState <<< _Head <<< _executionState) state of
-      SimulationNotStarted { initialSlot } -> [ startSimulationWidget initialSlot ]
+      SimulationNotStarted notStartedRecord -> [ startSimulationWidget notStartedRecord ]
       SimulationRunning _ ->
         [ div [ class_ smallSpaceBottom ] [ simulationStateWidget state ]
         , div [ class_ spaceBottom ] [ actionWidget state ]
@@ -220,13 +222,19 @@ sidebar state =
           (toHTML (state ^. _helpContext))
       -}
 ------------------------------------------------------------
-startSimulationWidget :: forall p. Slot -> HTML p Action
-startSimulationWidget initialSlot =
+startSimulationWidget :: forall p. InitialConditionsRecord -> HTML p Action
+startSimulationWidget { initialSlot, templateContent } =
   cardWidget "Simulation has not started yet"
     $ div [ classes [] ]
         [ div [ classes [ ClassName "slot-input", ClassName "initial-slot-input" ] ]
             [ spanText "Initial slot:"
             , marloweActionInput (SetInitialSlot <<< wrap) initialSlot
+            ]
+        , div [ classes [] ]
+            [ ul [ class_ (ClassName "templates") ]
+                ( integerTemplateParameters SlotContent "Timeout template parameters" "Slot for" (unwrap templateContent).slotContent
+                    <> integerTemplateParameters ValueContent "Value template parameters" "Constant for" (unwrap templateContent).valueContent
+                )
             ]
         , div [ classes [ ClassName "transaction-btns", flex, justifyCenter ] ]
             [ button
@@ -236,6 +244,28 @@ startSimulationWidget initialSlot =
                 [ text "Start simulation" ]
             ]
         ]
+
+integerTemplateParameters :: forall p. IntegerTemplateType -> String -> String -> Map String BigInteger -> Array (HTML p Action)
+integerTemplateParameters typeName title prefix content =
+  [ li_
+      if Map.isEmpty content then
+        []
+      else
+        ([ h6_ [ em_ [ text title ] ] ])
+          <> ( map
+                ( \(key /\ value) ->
+                    ( ( div [ class_ (ClassName "template-fields") ]
+                          [ text (prefix <> " ")
+                          , strong_ [ text key ]
+                          , text ":"
+                          , marloweActionInput (SetIntegerTemplateParam typeName key) value
+                          ]
+                      )
+                    )
+                )
+                (Map.toUnfoldable content)
+            )
+  ]
 
 ------------------------------------------------------------
 simulationStateWidget ::

@@ -41,7 +41,7 @@ import Halogen.Monaco (Query(..)) as Monaco
 import LocalStorage as LocalStorage
 import MainFrame.Types (ChildSlots, _simulatorEditorSlot)
 import Marlowe as Server
-import Marlowe.Extended (fillTemplate, toCore)
+import Marlowe.Extended (fillTemplate, toCore, typeToLens)
 import Marlowe.Extended as EM
 import Marlowe.Holes (fromTerm)
 import Marlowe.Monaco as MM
@@ -84,6 +84,10 @@ handleAction Init = do
 
 handleAction (SetInitialSlot initialSlot) = do
   assign (_currentMarloweState <<< _executionState <<< _SimulationNotStarted <<< _initialSlot) initialSlot
+  setOraclePrice
+
+handleAction (SetIntegerTemplateParam templateType key value) = do
+  modifying (_currentMarloweState <<< _executionState <<< _SimulationNotStarted <<< _templateContent <<< typeToLens templateType) (Map.insert key value)
   setOraclePrice
 
 handleAction StartSimulation =

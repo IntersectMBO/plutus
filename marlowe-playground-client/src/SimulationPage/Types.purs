@@ -27,7 +27,7 @@ import Data.Profunctor.Strong (class Strong)
 import Data.Symbol (SProxy(..))
 import Foreign.Generic (class Decode, class Encode, genericDecode, genericEncode)
 import Help (HelpContext(..))
-import Marlowe.Extended (TemplateContent, getPlaceholderIds, initialiseTemplateContent)
+import Marlowe.Extended (IntegerTemplateType, TemplateContent, getPlaceholderIds, initialiseTemplateContent)
 import Marlowe.Extended as EM
 import Marlowe.Holes (Holes)
 import Marlowe.Semantics (AccountId, Assets, Bound, ChoiceId, ChosenNum, Contract, Input, Party(..), Payment, Slot, SlotInterval, Token, TransactionError, TransactionInput, TransactionWarning, aesonCompatibleOptions, emptyState)
@@ -315,6 +315,7 @@ data Action
   = Init
   -- marlowe actions
   | SetInitialSlot Slot
+  | SetIntegerTemplateParam IntegerTemplateType String BigInteger
   | StartSimulation
   | MoveSlot Slot
   | SetSlot Slot
@@ -335,6 +336,7 @@ defaultEvent s = A.defaultEvent $ "Simulation." <> s
 instance isEventAction :: IsEvent Action where
   toEvent Init = Just $ defaultEvent "Init"
   toEvent (SetInitialSlot _) = Just $ defaultEvent "SetInitialSlot"
+  toEvent (SetIntegerTemplateParam templateType key value) = Just $ defaultEvent "SetIntegerTemplateParam"
   toEvent StartSimulation = Just $ defaultEvent "StartSimulation"
   toEvent (MoveSlot _) = Just $ defaultEvent "MoveSlot"
   toEvent (SetSlot _) = Just $ defaultEvent "SetSlot"

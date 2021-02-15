@@ -5,12 +5,16 @@ import Control.Alt ((<|>))
 import Data.BigInteger (BigInteger)
 import Data.Generic.Rep (class Generic)
 import Data.Generic.Rep.Show (genericShow)
+import Data.Lens (Lens')
+import Data.Lens.Iso.Newtype (_Newtype)
+import Data.Lens.Record (prop)
 import Data.Map (Map)
 import Data.Map as Map
 import Data.Maybe (Maybe(..), maybe)
 import Data.Newtype (class Newtype, unwrap)
 import Data.Set (Set)
 import Data.Set as Set
+import Data.Symbol (SProxy(..))
 import Data.Traversable (foldMap, traverse)
 import Foreign (ForeignError(..), fail)
 import Foreign.Class (class Encode, class Decode, encode, decode)
@@ -52,11 +56,26 @@ instance monoidPlaceholders :: Monoid Placeholders where
       , valuePlaceholderIds: mempty
       }
 
+data IntegerTemplateType
+  = SlotContent
+  | ValueContent
+
 newtype TemplateContent
   = TemplateContent
   { slotContent :: Map String BigInteger
   , valueContent :: Map String BigInteger
   }
+
+_slotContent :: Lens' TemplateContent (Map String BigInteger)
+_slotContent = _Newtype <<< prop (SProxy :: SProxy "slotContent")
+
+_valueContent :: Lens' TemplateContent (Map String BigInteger)
+_valueContent = _Newtype <<< prop (SProxy :: SProxy "valueContent")
+
+typeToLens :: IntegerTemplateType -> Lens' TemplateContent (Map String BigInteger)
+typeToLens SlotContent = _slotContent
+
+typeToLens ValueContent = _valueContent
 
 derive instance newTypeTemplateContent :: Newtype TemplateContent _
 
