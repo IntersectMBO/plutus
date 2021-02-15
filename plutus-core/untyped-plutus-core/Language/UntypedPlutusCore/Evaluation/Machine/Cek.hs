@@ -349,11 +349,11 @@ computeCek ctx env (Apply _ fun arg) = do
 -- s ; ρ ▻ builtin bn  ↦  s ◅ builtin bn arity arity [] [] ρ
 computeCek ctx _ (Builtin ex bn) = do
     -- TODO: budget?
-  BuiltinRuntime _ arity _ _ <- asksM $ lookupBuiltin bn . cekEnvRuntime
-  returnCek ctx (VBuiltin ex bn arity arity 0 [])
+    BuiltinRuntime _ arity _ _ <- asksM $ lookupBuiltin bn . cekEnvRuntime
+    returnCek ctx (VBuiltin ex bn arity arity 0 [])
 -- s ; ρ ▻ error A  ↦  <> A
 computeCek _ _ (Error _) =
-    throwingWithCause _EvaluationFailure () . Just $ Error ()
+    throwing_ _EvaluationFailure
 -- s ; ρ ▻ x  ↦  s ◅ ρ[ x ]
 
 -- | Call 'dischargeCekValue' over the received 'CekVal' and feed the resulting 'Term' to
