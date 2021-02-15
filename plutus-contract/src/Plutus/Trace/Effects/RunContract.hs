@@ -68,7 +68,8 @@ import           Plutus.Trace.Emulator.Types                     (ContractHandle
 import           Plutus.Trace.Scheduler                          (AgentSystemCall, EmSystemCall, MessageCall (Message),
                                                                   Priority (..), Tag, ThreadId, fork, mkSysCall, sleep)
 import           Wallet.Effects                                  (ContractRuntimeEffect, sendNotification)
-import           Wallet.Emulator.MultiAgent                      (EmulatorEvent' (..), MultiAgentEffect, handleMultiAgentEffects)
+import           Wallet.Emulator.MultiAgent                      (EmulatorEvent' (..), MultiAgentEffect,
+                                                                  handleMultiAgentEffects)
 import           Wallet.Emulator.Wallet                          (Wallet (..))
 import           Wallet.Types                                    (Notification (..), NotificationError)
 
