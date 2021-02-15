@@ -1,5 +1,6 @@
 module LocalStorage
   ( setItem
+  , removeItem
   , getItem
   , listen
   , getItems
@@ -58,6 +59,8 @@ toEvent key oldValue newValue =
 ------------------------------------------------------------
 foreign import _setItem :: EffectFn2 Key String Unit
 
+foreign import _removeItem :: EffectFn1 Key Unit
+
 foreign import _getItem :: EffectFn1 Key (Nullable String)
 
 foreign import _listen ::
@@ -73,6 +76,9 @@ foreign import _getItems ::
 
 setItem :: Key -> String -> Effect Unit
 setItem = runEffectFn2 _setItem
+
+removeItem :: Key -> Effect Unit
+removeItem = runEffectFn1 _removeItem
 
 getItem :: Key -> Effect (Maybe String)
 getItem = map toMaybe <$> runEffectFn1 _getItem

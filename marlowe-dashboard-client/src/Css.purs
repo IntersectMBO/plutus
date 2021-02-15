@@ -3,9 +3,6 @@ module Css
   , toggleWhen
   , applyWhen
   , hideWhen
-  , h2Classes
-  , buttonClasses
-  , textInputClasses
   ) where
 
 import Prelude
@@ -23,25 +20,3 @@ applyWhen condition className = if condition then [ className ] else []
 
 hideWhen :: Boolean -> Array String
 hideWhen condition = applyWhen condition "hidden"
-
-h2Classes :: Array String
-h2Classes =
-  [ "font-bold"
-  , "text-lg"
-  , "mb-1"
-  ]
-
-buttonClasses :: Array String
-buttonClasses =
-  [ "p-0.5"
-  , "leading-none"
-  , "focus:outline-none"
-  , "disabled:opacity-50"
-  , "disabled:cursor-not-allowed"
-  ]
-
-textInputClasses :: Array String
-textInputClasses =
-  [ "border"
-  , "p-0.5"
-  ]

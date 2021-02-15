@@ -19,12 +19,17 @@ module.exports = {
       lightblue: "#ccddea",
       yellow: "#fed130",
       white: "#fff",
-      gray: "#ebebeb"
+      gray: "#ebebeb",
+      transgray: "rgba(10,10,10,0.1)"
     },
     spacing: {
       0: "0px",
       0.5: "0.5rem",
-      1: "1rem"
+      0.75: "0.75rem",
+      1: "1rem",
+      2: "2rem",
+      3: "3rem",
+      card: "20rem"
     },
     fontSize: {
       xs: ["0.75rem", { lineHeight: "1rem" }],
@@ -35,7 +40,7 @@ module.exports = {
     },
     extend: {
       gridTemplateRows: {
-        main: "auto minmax(0, 1fr)"
+        main: "auto minmax(0, 1fr) auto"
       }
     }
   },
@@ -97,7 +102,7 @@ module.exports = {
     listStylePosition: false,
     listStyleType: false,
     maxHeight: false,
-    maxWidth: false,
+    maxWidth: true,
     minHeight: false,
     minWidth: false,
     objectFit: false,
@@ -112,7 +117,7 @@ module.exports = {
     position: true,
     inset: true,
     resize: false,
-    boxShadow: false,
+    boxShadow: true,
     ringWidth: false,
     ringOffsetColor: false,
     ringOffsetWidth: false,

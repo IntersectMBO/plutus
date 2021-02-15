@@ -3,10 +3,13 @@ module Material.Icons
   ( add
   , addCircle
   , close
+  , contacts
   , help
   , image
   , libraryAdd
   , menu
+  , navigateBefore
+  , navigateNext
   , notifications
   , personAdd
   , search
@@ -30,6 +33,9 @@ addCircle = icon "add_circle"
 close :: forall p i. HTML p i
 close = icon "close"
 
+contacts :: forall p i. HTML p i
+contacts = icon "contacts"
+
 help :: forall p i. HTML p i
 help = icon "help"
 
@@ -41,6 +47,12 @@ libraryAdd = icon "library_add"
 
 menu :: forall p i. HTML p i
 menu = icon "menu"
+
+navigateBefore :: forall p i. HTML p i
+navigateBefore = icon "navigate_before"
+
+navigateNext :: forall p i. HTML p i
+navigateNext = icon "navigate_next"
 
 notifications :: forall p i. HTML p i
 notifications = icon "notifications_none"

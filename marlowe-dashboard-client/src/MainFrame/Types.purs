@@ -1,12 +1,12 @@
 module MainFrame.Types
-  ( State(..)
-  , Overlay(..)
+  ( State
+  , OutsideCard(..)
+  , InsideState
   , Screen(..)
   , Card(..)
-  , Notification
+  , ContractStatus(..)
   , ContractTemplate
   , ContractInstance
-  , ContractStatus(..)
   , ChildSlots
   , Query(..)
   , Msg(..)
@@ -15,50 +15,57 @@ module MainFrame.Types
 
 import Prelude
 import Analytics (class IsEvent, defaultEvent, toEvent)
-import Contact.Types (Action, ContactKey, State) as Contact
 import Contract.Types as Contract
 import Data.Maybe (Maybe(..))
 import Marlowe.Semantics (Contract)
+import Wallet.Types (PubKeyHash, WalletDetails, WalletLibrary, WalletNicknameKey)
 import WebSocket (StreamToClient, StreamToServer)
 import WebSocket.Support as WS
 
 type State
-  = { overlay :: Maybe Overlay
+  = { wallets :: WalletLibrary
+    , newWalletNicknameKey :: WalletNicknameKey
+    , outsideCard :: Maybe OutsideCard
+    , insideState :: Maybe InsideState
+    -- TODO: (work out how to) move contract state into inside state
+    -- (the puzzle is how to handle contract actions in the mainframe if the
+    -- submodule state is behind a `Maybe`... :thinking_face:)
+    , contractState :: Contract.State
+    }
+
+data OutsideCard
+  = PickupNewWalletCard
+  | PickupWalletCard WalletNicknameKey
+
+type InsideState
+  = { wallet :: PubKeyHash
+    , menuOpen :: Boolean
     , screen :: Screen
     , card :: Maybe Card
-    , contactState :: Contact.State
-    , contractState :: Contract.State
-    , notifications :: Array Notification
-    , templates :: Array ContractTemplate
-    , contracts :: Array ContractInstance
     , on :: Boolean
     }
 
-data Overlay
-  = Menu
-  | Notifications
-
-derive instance eqOverlay :: Eq Overlay
-
 data Screen
-  = Home
-  | Contacts
-  | SetupContract ContractTemplate
-  | ViewContract ContractInstance
+  = ContractsScreen ContractStatus
+  | WalletLibraryScreen
 
 derive instance eqFrame :: Eq Screen
 
 data Card
-  = NewContact
-  | EditContact Contact.ContactKey
-  | TemplateLibrary
-  | TemplateDetails ContractTemplate
-  | ContractDetails ContractInstance
+  = CreateWalletCard
+  | ViewWalletCard WalletNicknameKey WalletDetails
+  | PutdownWalletCard
+  | TemplateLibraryCard
+  | ContractTemplateCard ContractTemplate
+  | ContractInstanceCard ContractInstance
 
 derive instance eqCard :: Eq Card
 
--- notification type TBD
-data Notification
+data ContractStatus
+  = Running
+  | Completed
+
+derive instance eqContractStatus :: Eq ContractStatus
 
 -- contract templage type TBD
 type ContractTemplate
@@ -67,12 +74,6 @@ type ContractTemplate
 -- contract instance type TBD
 type ContractInstance
   = Int
-
-data ContractStatus
-  = Running
-  | Completed
-
-derive instance eqContractStatus :: Eq ContractStatus
 
 ------------------------------------------------------------
 type ChildSlots
@@ -89,24 +90,46 @@ data Msg
 ------------------------------------------------------------
 data Action
   = Init
-  | ToggleOverlay Overlay
+  -- outside actions
+  | SetOutsideCard (Maybe OutsideCard)
+  | GenerateNewWallet
+  | PickupNewWallet
+  | LookupWallet String
+  | PickupWallet PubKeyHash
+  -- inside actions
+  | PutdownWallet
+  | ToggleMenu
   | SetScreen Screen
+  | SetCard (Maybe Card)
   | ToggleCard Card
-  | CloseCard
-  | ContactAction Contact.Action
-  | ContractAction Contract.Action
+  | SetNewWalletNickname String
+  | SetNewWalletKey PubKeyHash
+  | AddNewWallet
   | ClickedButton
+  -- contract actions
+  | ContractAction Contract.Action
   | StartContract Contract
 
 -- | Here we decide which top-level queries to track as GA events, and
 -- how to classify them.
 instance actionIsEvent :: IsEvent Action where
   toEvent Init = Just $ defaultEvent "Init"
-  toEvent (ToggleOverlay _) = Just $ defaultEvent "ToggleOverlay"
-  toEvent (SetScreen _) = Just $ defaultEvent "SetFrame"
+  -- outside actions
+  toEvent (SetOutsideCard _) = Just $ defaultEvent "SetOutsideCard"
+  toEvent GenerateNewWallet = Just $ defaultEvent "GenerateNewWallet"
+  toEvent PickupNewWallet = Just $ defaultEvent "PickupNewWallet"
+  toEvent (LookupWallet _) = Nothing
+  toEvent (PickupWallet _) = Just $ defaultEvent "PickupWallet"
+  -- inside actions
+  toEvent PutdownWallet = Just $ defaultEvent "PutdownWallet"
+  toEvent ToggleMenu = Just $ defaultEvent "ToggleMenu"
+  toEvent (SetScreen _) = Just $ defaultEvent "SetScreen"
+  toEvent (SetCard _) = Just $ defaultEvent "SetCard"
   toEvent (ToggleCard _) = Just $ defaultEvent "ToggleCard"
-  toEvent CloseCard = Just $ defaultEvent "CloseCard"
-  toEvent (ContactAction contactAction) = toEvent contactAction
-  toEvent (ContractAction contractAction) = toEvent contractAction
+  toEvent (SetNewWalletNickname _) = Nothing
+  toEvent (SetNewWalletKey _) = Nothing
+  toEvent AddNewWallet = Just $ defaultEvent "AddNewWallet"
   toEvent ClickedButton = Just $ defaultEvent "ClickedButton"
+  -- contract actions
+  toEvent (ContractAction contractAction) = toEvent contractAction
   toEvent (StartContract _) = Just $ defaultEvent "StartContract"

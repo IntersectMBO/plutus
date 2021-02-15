@@ -1,30 +1,35 @@
 module MainFrame.State (mkMainFrame) where
 
 import Prelude
-import Contact.Lenses (_contacts)
-import Contact.State (handleAction, initialState) as Contact
-import Contact.Types (Action(..)) as Contact
 import Contract.State (handleAction, initialState) as Contract
 import Contract.Types (Action(..)) as Contract
 import Contract.Types (_executionState)
 import Control.Monad.Except (runExcept)
 import Data.Either (Either(..))
 import Data.Foldable (for_)
-import Data.Lens (assign, set, use)
+import Data.Lens (assign, modifying, set, use)
+import Data.Lens.Extra (peruse)
+import Data.Lens.Prism.Maybe (_Just)
+import Data.Map (empty, insert, member)
+import Data.Map.Extra (findIndex)
 import Data.Maybe (Maybe(..))
+import Data.Tuple (Tuple(..), fst)
 import Effect.Aff.Class (class MonadAff)
-import Foreign.Generic (decode)
+import Effect.Random (random)
+import Foreign.Generic (decode, encodeJSON)
 import Foreign.JSON (parseJSON)
 import Halogen (Component, HalogenM, liftEffect, mkComponent, mkEval, modify_, raise)
 import Halogen.Extra (mapSubmodule)
 import Halogen.HTML (HTML)
-import LocalStorage (getItem)
-import MainFrame.Lenses (_card, _contactState, _contractState, _on, _overlay, _screen)
-import MainFrame.Types (Action(..), Card(..), ChildSlots, Msg(..), Query(..), Screen(..), State)
+import LocalStorage (getItem, removeItem, setItem)
+import MainFrame.Lenses (_card, _contractState, _insideState, _menuOpen, _newWalletNicknameKey, _on, _outsideCard, _screen, _wallets)
+import MainFrame.Types (Action(..), ChildSlots, ContractStatus(..), InsideState, Msg(..), OutsideCard(..), Query(..), Screen(..), State)
 import MainFrame.View (render)
 import Marlowe.Execution (_contract)
 import Marlowe.Semantics (Contract(..))
-import StaticData (contactsLocalStorageKey)
+import StaticData (walletLocalStorageKey, walletsLocalStorageKey)
+import Wallet.Lenses (_key, _nickname)
+import Wallet.Types (PubKeyHash, WalletDetails(..), WalletNicknameKey)
 import WebSocket (StreamToClient(..), StreamToServer(..))
 import WebSocket.Support as WS
 
@@ -45,81 +50,134 @@ mkMainFrame =
 
 initialState :: State
 initialState =
-  { overlay: Nothing
-  , screen: Home
-  , card: Nothing
-  , contactState: Contact.initialState
+  { wallets: empty
+  , newWalletNicknameKey: emptyWalletNicknameKey
+  , outsideCard: Nothing
+  , insideState: Nothing
   , contractState: Contract.initialState zero Close
-  , notifications: []
-  , templates: []
-  , contracts: []
+  }
+
+mkInsideState :: PubKeyHash -> InsideState
+mkInsideState pubKeyHash =
+  { wallet: pubKeyHash
+  , menuOpen: false
+  , screen: ContractsScreen Running
+  , card: Nothing
   , on: true
   }
+
+emptyWalletNicknameKey :: WalletNicknameKey
+emptyWalletNicknameKey = Tuple "" ""
+
+defaultWalletDetails :: WalletDetails
+defaultWalletDetails = WalletDetails { userHasPickedUp: false }
 
 handleQuery :: forall a m. Query a -> HalogenM State Action ChildSlots Msg m (Maybe a)
 handleQuery (ReceiveWebSocketMessage msg next) = do
   case msg of
-    (WS.ReceiveMessage (Right (ClientMsg on))) -> assign _on on
+    (WS.ReceiveMessage (Right (ClientMsg on))) -> assign (_insideState <<< _Just <<< _on) on
     -- TODO: other matches such as update current slot or apply transaction
     _ -> pure unit
   pure $ Just next
 
 handleAction :: forall m. MonadAff m => Action -> HalogenM State Action ChildSlots Msg m Unit
 handleAction Init = do
-  mCachedContactsJson <- liftEffect $ getItem contactsLocalStorageKey
-  for_ mCachedContactsJson
+  mCachedWalletsJson <- liftEffect $ getItem walletsLocalStorageKey
+  for_ mCachedWalletsJson
     $ \json -> do
         let
-          contacts =
-            runExcept
-              $ do
-                  foreignJson <- parseJSON json
-                  decode foreignJson
-        case contacts of
-          Right cachedContacts -> assign (_contactState <<< _contacts) cachedContacts
+          wallets =
+            runExcept do
+              foreignJson <- parseJSON json
+              decode foreignJson
+        case wallets of
+          Right cachedWallets -> assign _wallets cachedWallets
+          _ -> pure unit
+  mCachedWalletJson <- liftEffect $ getItem walletLocalStorageKey
+  for_ mCachedWalletJson
+    $ \json -> do
+        let
+          wallet =
+            runExcept do
+              foreignJson <- parseJSON json
+              decode foreignJson
+        case wallet of
+          Right cachedWallet -> assign _insideState $ Just $ mkInsideState cachedWallet
           _ -> pure unit
 
-handleAction (ToggleOverlay overlay) = do
-  mCurrentOverlay <- use _overlay
-  case mCurrentOverlay of
-    Just currentOverlay
-      | overlay == currentOverlay -> assign _overlay Nothing
-    _ -> assign _overlay $ Just overlay
+-- outside actions
+handleAction (SetOutsideCard outsideCard) = assign _outsideCard outsideCard
+
+-- TODO: generate wallet on the backend; for now just create a random number
+handleAction GenerateNewWallet = do
+  randomNumber <- liftEffect random
+  let
+    key = show $ randomNumber
+  assign (_newWalletNicknameKey <<< _key) key
+  assign _outsideCard $ Just PickupNewWalletCard
+
+handleAction PickupNewWallet = do
+  newPubKeyHash <- use (_newWalletNicknameKey <<< _key)
+  handleAction AddNewWallet
+  handleAction $ PickupWallet newPubKeyHash
+
+handleAction (LookupWallet string) = do
+  wallets <- use _wallets
+  for_ (findIndex (\key -> fst key == string) wallets) $ \key -> assign _outsideCard $ Just $ PickupWalletCard key
+
+handleAction (PickupWallet pubKeyHash) = do
+  assign _insideState $ Just $ mkInsideState pubKeyHash
+  assign _outsideCard Nothing
+  liftEffect $ setItem walletLocalStorageKey $ encodeJSON pubKeyHash
+
+-- inside actions
+handleAction PutdownWallet = do
+  assign _insideState Nothing
+  liftEffect $ removeItem walletLocalStorageKey
+
+handleAction ToggleMenu = modifying (_insideState <<< _Just <<< _menuOpen) not
 
 handleAction (SetScreen screen) =
   modify_
-    ( set _overlay Nothing
-        <<< set _card Nothing
-        <<< set _screen screen
+    ( set (_insideState <<< _Just <<< _menuOpen) false
+        <<< (_insideState <<< _Just <<< set _card) Nothing
+        <<< (_insideState <<< _Just <<< set _screen) screen
     )
 
+handleAction (SetCard card) = do
+  previousCard <- peruse (_insideState <<< _Just <<< _card)
+  assign (_insideState <<< _Just <<< _card) card
+  for_ previousCard $ const $ assign (_insideState <<< _Just <<< _menuOpen) false
+
 handleAction (ToggleCard card) = do
-  assign _overlay Nothing
-  mCurrentCard <- use _card
+  mCurrentCard <- peruse (_insideState <<< _Just <<< _card)
   case mCurrentCard of
     Just currentCard
-      | card == currentCard -> assign _card Nothing
-    _ -> assign _card $ Just card
+      | currentCard == Just card -> handleAction $ SetCard Nothing
+    _ -> handleAction $ SetCard $ Just card
 
-handleAction CloseCard = assign _card Nothing
+handleAction (SetNewWalletNickname nickname) = assign (_newWalletNicknameKey <<< _nickname) nickname
 
-handleAction (ContactAction contactAction) = do
-  mapSubmodule _contactState ContactAction $ Contact.handleAction contactAction
-  case contactAction of
-    Contact.ToggleNewContactCard -> handleAction $ ToggleCard NewContact
-    Contact.AddNewContact -> handleAction $ ToggleCard NewContact
-    Contact.ToggleEditContactCard contactKey -> handleAction $ ToggleCard $ EditContact contactKey
-    _ -> pure unit
+handleAction (SetNewWalletKey key) = assign (_newWalletNicknameKey <<< _key) key
 
+handleAction AddNewWallet = do
+  oldWallets <- use _wallets
+  newWalletNicknameKey <- use _newWalletNicknameKey
+  when (not $ member newWalletNicknameKey oldWallets) do
+    modifying _wallets $ insert newWalletNicknameKey defaultWalletDetails
+    assign _newWalletNicknameKey emptyWalletNicknameKey
+    newWallets <- use _wallets
+    liftEffect $ setItem walletsLocalStorageKey $ encodeJSON newWallets
+    assign (_insideState <<< _Just <<< _card) Nothing
+
+handleAction ClickedButton = do
+  mCurrent <- peruse (_insideState <<< _Just <<< _on)
+  for_ mCurrent $ \current -> raise (SendWebSocketMessage (ServerMsg current))
+
+-- contract actions
 handleAction (ContractAction contractAction) = do
-  contractState <- use _contractState
   case contractAction of
     Contract.ClosePanel -> pure unit
     action -> mapSubmodule _contractState ContractAction $ Contract.handleAction action
 
-handleAction ClickedButton = do
-  current <- use _on
-  raise (SendWebSocketMessage (ServerMsg current))
-
-handleAction (StartContract contract) = do
-  assign (_contractState <<< _executionState <<< _contract) contract
+handleAction (StartContract contract) = assign (_contractState <<< _executionState <<< _contract) contract

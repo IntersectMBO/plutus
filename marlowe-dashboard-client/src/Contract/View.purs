@@ -1,6 +1,6 @@
 module Contract.View
-  ( renderContractSetup
-  , renderContractDetails
+  ( contractsScreen
+  , contractDetailsCard
   ) where
 
 import Prelude hiding (div)
@@ -11,22 +11,26 @@ import Data.Lens (view)
 import Data.Map (Map)
 import Data.Map as Map
 import Data.Maybe (Maybe(..))
-import Halogen.HTML (HTML, button, div, div_, text)
+import Halogen.HTML (HTML, button, div, div_, h2_, text)
 import Halogen.HTML.Events (onClick)
-import MainFrame.Types (ContractInstance, ContractTemplate)
+import MainFrame.Types (ContractInstance, ContractStatus)
 import Marlowe.Execution (ExecutionStep, NamedAction(..))
 import Marlowe.Semantics (Accounts, ChoiceId(..), Input(..), Party, TransactionInput(..), _accounts)
 
-renderContractSetup :: forall p. ContractTemplate -> HTML p Action
-renderContractSetup contractTemplate =
+contractsScreen :: forall p. ContractStatus -> HTML p Action
+contractsScreen contractStatus =
   div
     [ classNames [ "p-1" ] ]
-    [ text "contract setup" ]
+    [ h2_
+        [ text "Dashboard home" ]
+    ]
 
-renderContractDetails :: forall p. ContractInstance -> HTML p Action
-renderContractDetails contract =
+contractDetailsCard :: forall p. ContractInstance -> HTML p Action
+contractDetailsCard contractInstance =
   div_
-    [ text "contract details" ]
+    [ h2_
+        [ text "Contract details" ]
+    ]
 
 getParty :: Input -> Maybe Party
 getParty (IDeposit _ p _ _) = Just p

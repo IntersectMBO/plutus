@@ -1,46 +1,51 @@
 module MainFrame.Lenses
-  ( _overlay
+  ( _wallets
+  , _newWalletNicknameKey
+  , _outsideCard
+  , _insideState
+  , _contractState
+  , _wallet
+  , _menuOpen
   , _screen
   , _card
-  , _contactState
-  , _contractState
-  , _notifications
-  , _templates
-  , _contracts
   , _on
   ) where
 
-import Contact.Types (State) as Contact
-import Contract.Types as Contract
+import Contract.Types (State) as Contract
 import Data.Lens (Lens')
 import Data.Lens.Record (prop)
 import Data.Maybe (Maybe)
 import Data.Symbol (SProxy(..))
-import MainFrame.Types (Card, ContractInstance, ContractTemplate, Notification, Overlay, Screen, State)
+import MainFrame.Types (Card, InsideState, OutsideCard, Screen, State)
+import Wallet.Types (PubKeyHash, WalletLibrary, WalletNicknameKey)
 
-_overlay :: Lens' State (Maybe Overlay)
-_overlay = prop (SProxy :: SProxy "overlay")
+_wallets :: Lens' State WalletLibrary
+_wallets = prop (SProxy :: SProxy "wallets")
 
-_screen :: Lens' State Screen
-_screen = prop (SProxy :: SProxy "screen")
+_newWalletNicknameKey :: Lens' State WalletNicknameKey
+_newWalletNicknameKey = prop (SProxy :: SProxy "newWalletNicknameKey")
 
-_card :: Lens' State (Maybe Card)
-_card = prop (SProxy :: SProxy "card")
+_outsideCard :: Lens' State (Maybe OutsideCard)
+_outsideCard = prop (SProxy :: SProxy "outsideCard")
 
-_contactState :: Lens' State Contact.State
-_contactState = prop (SProxy :: SProxy "contactState")
+_insideState :: Lens' State (Maybe InsideState)
+_insideState = prop (SProxy :: SProxy "insideState")
 
 _contractState :: Lens' State Contract.State
 _contractState = prop (SProxy :: SProxy "contractState")
 
-_notifications :: Lens' State (Array Notification)
-_notifications = prop (SProxy :: SProxy "notifications")
+------------------------------------------------------------
+_wallet :: Lens' InsideState PubKeyHash
+_wallet = prop (SProxy :: SProxy "wallet")
 
-_templates :: Lens' State (Array ContractTemplate)
-_templates = prop (SProxy :: SProxy "templates")
+_menuOpen :: Lens' InsideState Boolean
+_menuOpen = prop (SProxy :: SProxy "menuOpen")
 
-_contracts :: Lens' State (Array ContractInstance)
-_contracts = prop (SProxy :: SProxy "contracts")
+_screen :: Lens' InsideState Screen
+_screen = prop (SProxy :: SProxy "screen")
 
-_on :: Lens' State Boolean
+_card :: Lens' InsideState (Maybe Card)
+_card = prop (SProxy :: SProxy "card")
+
+_on :: Lens' InsideState Boolean
 _on = prop (SProxy :: SProxy "on")
