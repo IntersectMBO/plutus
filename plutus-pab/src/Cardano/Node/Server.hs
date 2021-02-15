@@ -1,6 +1,6 @@
 {-# LANGUAGE FlexibleContexts  #-}
+{-# LANGUAGE NamedFieldPuns    #-}
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE RecordWildCards   #-}
 {-# LANGUAGE TypeApplications  #-}
 
 module Cardano.Node.Server
@@ -48,40 +48,43 @@ app trace serverHandler clientHandler stateVar =
 
 data Ctx = Ctx { serverHandler :: Server.ServerHandler
                , clientHandler :: Client.ClientHandler
-               , serverState   ::  MVar AppState
-               , clientState   :: MVar AppState
+               , serverState   :: MVar AppState
                , mockTrace     :: Trace IO MockServerLogMsg
                }
 
 main :: Trace IO MockServerLogMsg -> MockServerConfig -> Availability -> IO ()
-main trace MockServerConfig {..} availability = runLogEffects trace $ do
+main trace MockServerConfig { mscBaseUrl
+                            , mscRandomTxInterval
+                            , mscBlockReaper
+                            , mscSlotLength
+                            , mscInitialTxWallets
+                            , mscSocketPath} availability = runLogEffects trace $ do
+
     serverHandler <- liftIO $ Server.runServerNode mscSocketPath (_chainState $ initialAppState mscInitialTxWallets)
     clientHandler <- liftIO $ Client.runClientNode mscSocketPath
     clientState <- liftIO $ newMVar (initialAppState mscInitialTxWallets)
     serverState <- liftIO $ newMVar (initialAppState mscInitialTxWallets)
 
-    let ctx = Ctx serverHandler clientHandler serverState clientState trace
+    let ctx = Ctx serverHandler clientHandler serverState trace
 
     runSlotCoordinator ctx mscSlotLength
     maybe (logInfo NoRandomTxGeneration) (runRandomTxGeneration ctx) mscRandomTxInterval
     maybe (logInfo KeepingOldBlocks) (runBlockReaper ctx) mscBlockReaper
 
-    logInfo $ StartingMockServer servicePort
+    logInfo $ StartingMockServer $ baseUrlPort mscBaseUrl
     liftIO $ Warp.runSettings warpSettings $ app trace serverHandler clientHandler clientState
 
         where
-            servicePort = baseUrlPort mscBaseUrl
+            warpSettings = Warp.defaultSettings & Warp.setPort (baseUrlPort mscBaseUrl) & Warp.setBeforeMainLoop (available availability)
 
-            warpSettings = Warp.defaultSettings & Warp.setPort servicePort & Warp.setBeforeMainLoop (available availability)
+            runRandomTxGeneration Ctx { serverHandler , clientHandler , serverState , mockTrace } randomTxInterval = do
+                    logInfo StartingRandomTx
+                    void $ liftIO $ forkIO $ transactionGenerator mockTrace randomTxInterval serverHandler clientHandler serverState
 
-            runRandomTxGeneration Ctx {..} randomTxInterval = do
-                logInfo StartingRandomTx
-                void $ liftIO $ forkIO $ transactionGenerator trace randomTxInterval serverHandler clientHandler serverState
-
-            runBlockReaper Ctx {..} reaperConfig = do
+            runBlockReaper Ctx { serverHandler , clientHandler , serverState , mockTrace } reaperConfig = do
                 logInfo RemovingOldBlocks
-                void $ liftIO $ forkIO $ blockReaper trace reaperConfig serverHandler clientHandler serverState
+                void $ liftIO $ forkIO $ blockReaper mockTrace reaperConfig serverHandler clientHandler serverState
 
-            runSlotCoordinator Ctx {..} slotLength = do
+            runSlotCoordinator Ctx { serverHandler , clientHandler , serverState , mockTrace } slotLength = do
                 logInfo StartingSlotCoordination
-                void $ liftIO $ forkIO $ slotCoordinator trace slotLength serverHandler clientHandler serverState
+                void $ liftIO $ forkIO $ slotCoordinator mockTrace slotLength serverHandler clientHandler serverState

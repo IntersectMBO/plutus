@@ -11,7 +11,6 @@ import           Cardano.Node.Types      (FollowerID, MockServerLogMsg)
 import           Control.Monad.Freer.Log (LogMessage)
 import           Ledger                  (Block, Slot, Tx)
 import           Servant.API             (Capture, Get, JSON, NoContent, Post, Put, ReqBody, (:<|>), (:>))
-import           Wallet.Emulator.Chain   (ChainEvent)
 
 type API
      = "healthcheck" :> Get '[ JSON] NoContent
