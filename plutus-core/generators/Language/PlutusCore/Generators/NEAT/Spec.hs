@@ -39,6 +39,7 @@ import           Language.PlutusCore.Generators.NEAT.Term
 import           Language.PlutusCore.Normalize
 import           Language.PlutusCore.Pretty
 import qualified Language.UntypedPlutusCore                                 as U
+import qualified Language.UntypedPlutusCore.Evaluation.Machine.Cek          as U
 
 import           Control.Monad.Except
 import           Control.Search                                             (Enumerable (..), Options (..), ctrex',
@@ -97,6 +98,11 @@ tests genOpts@GenOptions{} =
       genOpts {genDepth = 18}
       (TyBuiltinG TyUnitG)
       (packAssertion prop_agree_Ck_Cek)
+  , bigTest "Typed CEK and Untyped CEK produce the same output"
+      genOpts {genDepth = 18}
+      (TyBuiltinG TyUnitG)
+      (packAssertion prop_agree_Typed_Untyped)
+
   ]
 
 
@@ -126,6 +132,15 @@ handleError :: Type TyName DefaultUni ()
 handleError ty e = case _ewcError e of
   UserEvaluationError     _ -> return (Error () ty)
   InternalEvaluationError _ -> throwError e
+
+handleUError ::
+          ErrorWithCause (EvaluationError user internal) term
+       -> Either (ErrorWithCause (EvaluationError user internal) term)
+                 (U.Term Name DefaultUni DefaultFun ())
+handleUError e = case _ewcError e of
+  UserEvaluationError     _ -> return (U.Error ())
+  InternalEvaluationError _ -> throwError e
+
 
 prop_typePreservation :: ClosedTypeG -> ClosedTermG -> ExceptT TestFail Quote ()
 prop_typePreservation tyG tmG = do
@@ -209,6 +224,27 @@ prop_normalTypesCannotReduce :: Kind () -> Normalized ClosedTypeG -> ExceptT Tes
 prop_normalTypesCannotReduce k (Normalized tyG) =
   unless (isNothing $ stepTypeG tyG) $ throwCtrex (CtrexNormalTypesCannotReduce k tyG)
 
+prop_agree_Typed_Untyped :: ClosedTypeG -> ClosedTermG -> ExceptT TestFail Quote ()
+prop_agree_Typed_Untyped tyG tmG = do
+  tcConfig <- withExceptT TypeError $ getDefTypeCheckConfig ()
+
+  -- Check if the type checker for generated terms is sound:
+  ty <- withExceptT GenError $ convertClosedType tynames (Type ()) tyG
+  withExceptT TypeError $ checkKind tcConfig () ty (Type ())
+  tm <- withExceptT GenError $ convertClosedTerm tynames names tyG tmG
+  withExceptT TypeError $ checkType tcConfig () tm (Normalized ty)
+
+  -- check if CK and CEK give the same output
+  tmCek <- withExceptT CekP $ liftEither $
+    evaluateCek testBuiltinsRuntime tm `catchError` handleError ty
+
+  let tmCekU = U.erase tmCek
+
+  tmUCek <- withExceptT UCekP $ liftEither $
+    U.evaluateCek testBuiltinsRuntime (U.erase tm) `catchError` handleUError
+
+  unless (tmUCek == tmCekU) $ throwCtrex (CtrexUntypedTermEvaluationMismatch tyG tmG [tmUCek,tmCekU])
+
 
 -- |Create a generator test, searching for a counter-example to the given predicate.
 
@@ -250,6 +286,7 @@ data TestFail
   | FVErrorP FreeVariableError
   | CkP (CkEvaluationException DefaultUni DefaultFun)
   | CekP (CekEvaluationException DefaultUni DefaultFun)
+  | UCekP (U.CekEvaluationException DefaultUni DefaultFun)
   | Ctrex Ctrex
 
 data Ctrex
@@ -308,6 +345,7 @@ instance Show TestFail where
   show (FVErrorP e)   = show e
   show (CkP e)        = show e
   show (CekP e)       = show e
+  show (UCekP e)      = show e
 
 instance Show Ctrex where
   show (CtrexNormalizeConvertCommuteTypes k tyG ty1 ty2) =
