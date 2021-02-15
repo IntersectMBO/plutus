@@ -24,7 +24,6 @@ open import Relation.Nullary
 open import Data.Product
 open import Data.Empty
 
-open import Agda.Builtin.Nat
 open import Relation.Binary.PropositionalEquality using (_≡_; refl; cong)
 ```
 
@@ -68,6 +67,42 @@ discharge : {A : ∅ ⊢⋆ K} → Value⋆ A → ∅ ⊢⋆ K
 discharge {A = A} V = A
 ```
 
+## Frames
+
+A frame corresponds to a type with a hole in it for a missing sub
+type. It is indexed by two kinds. The first index is the kind of the
+outer type that the frame corresponds to, the second index refers to
+the kind of the missing subterm. The frame datatypes has constructors
+for all the different places in a type that we might need to make a
+hole.
+
+```
+data Frame : Kind → Kind → Set where
+  -·_     : ∅ ⊢⋆ K → Frame J (K ⇒ J)
+  _·-     : {A : ∅ ⊢⋆ K ⇒ J} → Value⋆ A → Frame J K
+  -⇒_     : ∅ ⊢⋆ * → Frame * *
+  _⇒-     : {A : ∅ ⊢⋆ *} → Value⋆ A → Frame * *
+  μ-_     : (B : ∅ ⊢⋆ K) → Frame * ((K ⇒ *) ⇒ K ⇒ *)
+  μ_-     : {A : ∅ ⊢⋆ (K ⇒ *) ⇒ K ⇒ *} → Value⋆ A → Frame * K
+```
+
+Given a frame and type to plug in to it we can close the frame and
+recover a type with no hole. By indexing frames by kinds we can
+specify exactly what kind the plug needs to have and ensure we don't
+plug in something of the wrong kind. We can also ensure what kind the
+returned type will have.
+
+```
+closeFrame : Frame K J → ∅ ⊢⋆ J → ∅ ⊢⋆ K
+closeFrame (-· B)  A = A · B
+closeFrame (_·- A) B = discharge A · B
+closeFrame (-⇒ B)  A = A ⇒ B
+closeFrame (_⇒- A) B = discharge A ⇒ B
+closeFrame (μ_- A) B = μ (discharge A) B
+closeFrame (μ- B)  A = μ A B
+```
+
+
 ## Reduction
 
 Reduction is intrinsically kind preserving. This doesn't require proof.
@@ -76,37 +111,19 @@ Reduction is intrinsically kind preserving. This doesn't require proof.
 infix 2 _—→⋆_
 infix 2 _—↠⋆_
 
-data _—→⋆_ : (∅ ⊢⋆ J) → (∅ ⊢⋆ J) → Set where
-  ξ-⇒₁ : A —→⋆ A'
-         -----------------
-       → A ⇒ B —→⋆ A' ⇒ B
-
-  ξ-⇒₂ : Value⋆ A
+data _—→⋆_ : ∀{J} → (∅ ⊢⋆ J) → (∅ ⊢⋆ J) → Set where
+  frameRule : ∀{K K'} → (f : Frame K K')
+    → ∀{A A' : ∅ ⊢⋆ K'} → A —→⋆ A'
+    → {B B' : ∅ ⊢⋆ K}
+    → B ≡ closeFrame f A
+    → B' ≡ closeFrame f A'
+      --------------------
     → B —→⋆ B'
-      -----------------
-    → A ⇒ B —→⋆ A ⇒ B'
-
-  ξ-·₁ : A —→⋆ A'
-         ----------------
-       → A · B —→⋆ A' · B
-
-  ξ-·₂ : Value⋆ A
-       → B —→⋆ B'
-         ----------------
-       → A · B —→⋆ A · B'
+    -- ^ explicit proofs make pattern matching easier
 
   β-ƛ : Value⋆ B
         -------------------
       → ƛ A · B —→⋆ A [ B ]
-
-  ξ-μ₁ : A —→⋆ A'
-         ----------------
-       → μ A B —→⋆ μ A' B
-
-  ξ-μ₂ : Value⋆ A
-       → B —→⋆ B'
-         ----------------
-       → μ A B —→⋆ μ A B'
 ```
 
 ## Reflexive transitie closure of reduction
@@ -145,21 +162,21 @@ variables in the empty context.
 progress⋆ : (A : ∅ ⊢⋆ K) → Progress⋆ A
 progress⋆ (` ())
 progress⋆ (μ A B) with progress⋆ A
-... | step p  = step (ξ-μ₁ p)
+... | step p  = step (frameRule (μ- B) p refl refl)
 ... | done VA with progress⋆ B
-... | step p  = step (ξ-μ₂ VA p)
+... | step p  = step (frameRule (μ VA -) p refl refl)
 ... | done VB = done (V-μ VA VB)
 progress⋆ (Π A) = done (V-Π A)
 progress⋆ (A ⇒ B) with progress⋆ A
-... | step p = step (ξ-⇒₁ p)
+... | step p = step (frameRule (-⇒ B) p refl refl)
 ... | done VA with progress⋆ B
-... | step q  = step (ξ-⇒₂ VA q)
+... | step q  = step (frameRule (VA ⇒-) q refl refl)
 ... | done VB = done (VA V-⇒ VB)
 progress⋆ (ƛ A) = done (V-ƛ A)
 progress⋆ (A · B) with progress⋆ A
-... | step p = step (ξ-·₁ p)
+... | step p = step (frameRule (-· B) p refl refl)
 ... | done VA with progress⋆ B
-... | step p = step (ξ-·₂ VA p)
+... | step p = step (frameRule (VA ·-) p refl refl)
 progress⋆ (.(ƛ _) · B) | done (V-ƛ A) | done VB = step (β-ƛ VB)
 progress⋆ (con tcn) = done (V-con tcn)
 ```
@@ -170,10 +187,16 @@ A type is a value or it can make a step, but not both:
 
 ```
 notboth : (A : ∅ ⊢⋆ K) → ¬ (Value⋆ A × (Σ (∅ ⊢⋆ K) (A —→⋆_)))
-notboth .(_ ⇒ _) ((V V-⇒ W) , .(_ ⇒ _) , ξ-⇒₁ p)   = notboth _ (V , _ , p)
-notboth .(_ ⇒ _) ((V V-⇒ W) , .(_ ⇒ _) , ξ-⇒₂ _ p) = notboth _ (W , _ , p)
-notboth .(μ _ _) (V-μ V W   , .(μ _ _)  , ξ-μ₁ p)   = notboth _ (V , _ , p)
-notboth .(μ _ _) (V-μ V W   , .(μ _ _)  , ξ-μ₂ _ p) = notboth _ (W , _ , p)
+notboth _ (() , A' , frameRule (-· _) p refl _)
+notboth _ (() , A' , frameRule (_ ·-) p refl _)
+notboth _ ((V V-⇒ _) , _ , frameRule (-⇒ _) p refl _) =
+  notboth _ (V , _ , p)
+notboth _ ((_ V-⇒ W) , _ , frameRule (_ ⇒-) p refl _) =
+  notboth _ (W , _ , p)
+notboth _ (V-μ V _ , _ , frameRule (μ- _) p refl _) =
+  notboth _ (V , _ , p)
+notboth _ (V-μ _ W , _ , frameRule μ _ - p refl _) =
+  notboth _ (W , _ , p)
 ```
 
 Reduction is deterministic. There is only one possible reduction step
@@ -181,19 +204,59 @@ a type can make.
 
 ```
 det : (p : A —→⋆ B)(q : A —→⋆ B') → B ≡ B'
-det (ξ-⇒₁ p) (ξ-⇒₁ q) = cong (_⇒ _) (det p q)
-det (ξ-⇒₁ p) (ξ-⇒₂ w q) = ⊥-elim (notboth _ (w , _ , p))
-det (ξ-⇒₂ v p) (ξ-⇒₁ q) = ⊥-elim (notboth _ (v , _ , q))
-det (ξ-⇒₂ v p) (ξ-⇒₂ w q) = cong (_ ⇒_) (det p q)
-det (ξ-·₁ p) (ξ-·₁ q) = cong (_· _) (det p q)
-det (ξ-·₁ p) (ξ-·₂ w q) = ⊥-elim (notboth _ (w , _ , p))
-det (ξ-·₂ v p) (ξ-·₁ q) = ⊥-elim (notboth _ (v , _ , q))
-det (ξ-·₂ v p) (ξ-·₂ w q) = cong (_ ·_) (det p q)
-det (ξ-·₂ v p) (β-ƛ w) = ⊥-elim (notboth _ (w , _ , p))
-det (β-ƛ v) (ξ-·₂ w q) = ⊥-elim (notboth _ (v , _ , q))
-det (β-ƛ v) (β-ƛ w) = refl
-det (ξ-μ₁ p) (ξ-μ₁ q) = cong (λ X → μ X _) (det p q)
-det (ξ-μ₁ p) (ξ-μ₂ w q) = ⊥-elim (notboth _ (w , _ , p))
-det (ξ-μ₂ v p) (ξ-μ₁ q) = ⊥-elim (notboth _ (v , _ , q))
-det (ξ-μ₂ v p) (ξ-μ₂ w q) = cong (μ _) (det p q)
+det (frameRule (-· x₄) p refl refl) (frameRule (-· .x₄) q refl refl) =
+  cong (_· _) (det p q)
+det (frameRule (-· x₄) p refl refl) (frameRule (x₅ ·-) q refl refl) =
+  ⊥-elim (notboth _ (x₅ , _ , p))
+det (frameRule (-· x₄) p refl refl) (frameRule (-⇒ x₅) q () x₃)
+det (frameRule (-· x₄) p refl refl) (frameRule (x₅ ⇒-) q () x₃)
+det (frameRule (-· x₄) p refl refl) (frameRule (μ- B) q () x₃)
+det (frameRule (-· x₄) p refl refl) (frameRule μ x₅ - q () x₃)
+det (frameRule (x₄ ·-) p refl refl) (frameRule (-· x₅) q refl refl) =
+  ⊥-elim (notboth _ (x₄ , _ , q))
+det (frameRule (x₄ ·-) p refl refl) (frameRule (x₅ ·-) q refl refl) =
+  cong (_ ·_) (det p q)
+det (frameRule (x₄ ·-) p refl refl) (frameRule (-⇒ x₅) q () x₃)
+det (frameRule (x₄ ·-) p refl refl) (frameRule (x₅ ⇒-) q () x₃)
+det (frameRule (x₄ ·-) p refl refl) (frameRule (μ- B) q () x₃)
+det (frameRule (x₄ ·-) p refl refl) (frameRule μ x₅ - q () x₃)
+det (frameRule (-⇒ x₄) p refl refl) (frameRule (-· x₅) q () x₃)
+det (frameRule (-⇒ x₄) p refl refl) (frameRule (x₅ ·-) q () x₃)
+det (frameRule (-⇒ x₄) p refl refl) (frameRule (-⇒ .x₄) q refl refl) =
+  cong (_⇒ _) (det p q)
+det (frameRule (-⇒ x₄) p refl refl) (frameRule (x₅ ⇒-) q refl refl) =
+    ⊥-elim (notboth _ (x₅ , _ , p))
+det (frameRule (-⇒ x₄) p refl refl) (frameRule (μ- B) q () x₃)
+det (frameRule (-⇒ x₄) p refl refl) (frameRule μ x₅ - q () x₃)
+det (frameRule (x₄ ⇒-) p refl refl) (frameRule (-· x₅) q () x₃)
+det (frameRule (x₄ ⇒-) p refl refl) (frameRule (x₅ ·-) q () x₃)
+det (frameRule (x₄ ⇒-) p refl refl) (frameRule (-⇒ x₅) q refl refl) =
+  ⊥-elim (notboth _ (x₄ , _ , q))
+det (frameRule (x₄ ⇒-) p refl refl) (frameRule (x₅ ⇒-) q refl refl) =
+  cong (_ ⇒_) (det p q)
+det (frameRule (x₄ ⇒-) p refl refl) (frameRule (μ- B) q () x₃)
+det (frameRule (x₄ ⇒-) p refl refl) (frameRule μ x₅ - q () x₃)
+det (frameRule (μ- B) p refl refl) (frameRule (-· x₄) q () x₃)
+det (frameRule (μ- B) p refl refl) (frameRule (x₄ ·-) q () x₃)
+det (frameRule (μ- B) p refl refl) (frameRule (-⇒ x₄) q () x₃)
+det (frameRule (μ- B) p refl refl) (frameRule (x₄ ⇒-) q () x₃)
+det (frameRule (μ- B) p refl refl) (frameRule (μ- .B) q refl refl) =
+  cong (λ A → μ A B) (det p q) 
+det (frameRule (μ- B) p refl refl) (frameRule μ x₄ - q refl refl) =
+  ⊥-elim (notboth _ (x₄ , _ , p))
+det (frameRule μ x₄ - p refl refl) (frameRule (-· x₅) q () x₃)
+det (frameRule μ x₄ - p refl refl) (frameRule (x₅ ·-) q () x₃)
+det (frameRule μ x₄ - p refl refl) (frameRule (-⇒ x₅) q () x₃)
+det (frameRule μ x₄ - p refl refl) (frameRule (x₅ ⇒-) q () x₃)
+det (frameRule μ x₄ - p refl refl) (frameRule (μ- B) q refl refl) =
+  ⊥-elim (notboth _ (x₄ , _ , q))
+det (frameRule μ x₄ - p refl refl) (frameRule μ x₅ - q refl refl) =
+  cong (μ _) (det p q) 
+det (frameRule (-· x) p refl refl) (β-ƛ x₂) =
+  ⊥-elim (notboth (ƛ _) (V-ƛ _ , _ , p))
+det (frameRule (_ ·-) p refl refl) (β-ƛ V) = ⊥-elim (notboth _ (V , _ , p))
+det (β-ƛ x) (frameRule (-· x₃) q refl refl) =
+  ⊥-elim (notboth (ƛ _) (V-ƛ _ , _ , q))
+det (β-ƛ V) (frameRule (x₃ ·-) q refl refl) = ⊥-elim (notboth _ (V , _ , q))
+det (β-ƛ V) (β-ƛ x₁) = refl
 ```
