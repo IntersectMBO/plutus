@@ -11,6 +11,7 @@ import Data.Map (Map)
 import Data.Set (Set)
 import Data.Symbol (SProxy(..))
 import Data.Tuple.Nested (type (/\))
+import Marlowe.Extended (TemplateContent)
 import Marlowe.Semantics (AccountId, Case, Contract, Observation, Payee, Timeout, Token, Value, ValueId)
 import Marlowe.Semantics as S
 import Marlowe.Symbolic.Types.Response (Result)
@@ -18,7 +19,18 @@ import Network.RemoteData (isLoading)
 import Types (WarningAnalysisData)
 
 -------------------------------------------------------------------------------
-data AnalysisState
+type AnalysisState
+  = { templateContent :: TemplateContent
+    , analysisExecutionState :: AnalysisExecutionState
+    }
+
+_templateContent :: forall s a. Lens' { templateContent :: a | s } a
+_templateContent = prop (SProxy :: SProxy "templateContent")
+
+_analysisExecutionState :: forall s a. Lens' { analysisExecutionState :: a | s } a
+_analysisExecutionState = prop (SProxy :: SProxy "analysisExecutionState")
+
+data AnalysisExecutionState
   = NoneAsked
   | WarningAnalysis (WarningAnalysisData Result)
   | ReachabilityAnalysis MultiStageAnalysisData
@@ -27,19 +39,19 @@ data AnalysisState
 _analysisState :: forall s. Lens' { analysisState :: AnalysisState | s } AnalysisState
 _analysisState = prop (SProxy :: SProxy "analysisState")
 
-isStaticLoading :: AnalysisState -> Boolean
+isStaticLoading :: AnalysisExecutionState -> Boolean
 isStaticLoading (WarningAnalysis remoteData) = isLoading remoteData
 
 isStaticLoading _ = false
 
-isReachabilityLoading :: AnalysisState -> Boolean
+isReachabilityLoading :: AnalysisExecutionState -> Boolean
 isReachabilityLoading (ReachabilityAnalysis (AnalysisInProgress _)) = true
 
 isReachabilityLoading (ReachabilityAnalysis AnalysisNotStarted) = true
 
 isReachabilityLoading _ = false
 
-isCloseAnalysisLoading :: AnalysisState -> Boolean
+isCloseAnalysisLoading :: AnalysisExecutionState -> Boolean
 isCloseAnalysisLoading (CloseAnalysis (AnalysisInProgress _)) = true
 
 isCloseAnalysisLoading (CloseAnalysis AnalysisNotStarted) = true
@@ -110,7 +122,7 @@ data ContractZipper
 type MultiStageAnalysisProblemDef
   = { expandSubproblemImpl :: ContractZipper -> Contract -> (ContractPath /\ Contract)
     , isValidSubproblemImpl :: ContractZipper -> Contract -> Boolean
-    , analysisDataSetter :: MultiStageAnalysisData -> AnalysisState
+    , analysisDataSetter :: MultiStageAnalysisData -> AnalysisExecutionState
     , shouldExamineChildren :: Boolean -> Boolean
     , isProblemCounterExample :: Boolean -> Boolean
     }

@@ -31,19 +31,19 @@ import Halogen.Extra (mapSubmodule)
 import Halogen.Monaco (Message(..), Query(..)) as Monaco
 import LocalStorage as LocalStorage
 import MainFrame.Types (ChildSlots, _marloweEditorPageSlot)
+import Marlowe.Extended (Contract)
 import Marlowe.Holes (fromTerm)
 import Marlowe.LinterText as Linter
 import Marlowe.Monaco (updateAdditionalContext)
 import Marlowe.Monaco as MM
 import Marlowe.Parser (parseContract)
-import Marlowe.Extended (Contract)
 import MarloweEditor.Types (Action(..), BottomPanelView, State, _bottomPanelState, _editorErrors, _editorWarnings, _keybindings, _selectedHole, _showErrorDetail)
 import Monaco (IMarker, isError, isWarning)
 import Network.RemoteData as RemoteData
 import Servant.PureScript.Ajax (AjaxError)
 import StaticAnalysis.Reachability (analyseReachability, getUnreachableContracts)
 import StaticAnalysis.StaticTools (analyseContract)
-import StaticAnalysis.Types (_analysisState)
+import StaticAnalysis.Types (_analysisExecutionState, _analysisState)
 import StaticData (marloweBufferLocalStorageKey)
 import StaticData as StaticData
 import Text.Pretty (pretty)
@@ -148,11 +148,11 @@ lintText ::
   String ->
   HalogenM State Action ChildSlots Void m Unit
 lintText text = do
-  analysisState <- use _analysisState
+  analysisExecutionState <- use (_analysisState <<< _analysisExecutionState)
   let
     parsedContract = parseContract text
 
-    unreachableContracts = getUnreachableContracts analysisState
+    unreachableContracts = getUnreachableContracts analysisExecutionState
 
     (Tuple markerData additionalContext) = Linter.markers unreachableContracts parsedContract
   markers <- query _marloweEditorPageSlot unit (Monaco.SetModelMarkers markerData identity)

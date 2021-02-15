@@ -24,7 +24,7 @@ import JavascriptEditor.Types as JS
 import Language.Javascript.Interpreter (CompilationError(..), InterpreterResult(..))
 import MainFrame.Types (ChildSlots, _jsEditorSlot)
 import StaticAnalysis.BottomPanel (analysisResultPane, analyzeButton)
-import StaticAnalysis.Types (_analysisState, isCloseAnalysisLoading, isReachabilityLoading, isStaticLoading)
+import StaticAnalysis.Types (_analysisExecutionState, _analysisState, isCloseAnalysisLoading, isReachabilityLoading, isStaticLoading)
 import Text.Pretty (pretty)
 
 render ::
@@ -145,11 +145,11 @@ panelContents state StaticAnalysisView =
     , analyzeButton loadingCloseAnalysis enabled' "Analyse for refunds on Close" AnalyseContractForCloseRefund
     ]
   where
-  loadingWarningAnalysis = state ^. _analysisState <<< to isStaticLoading
+  loadingWarningAnalysis = state ^. _analysisState <<< _analysisExecutionState <<< to isStaticLoading
 
-  loadingReachability = state ^. _analysisState <<< to isReachabilityLoading
+  loadingReachability = state ^. _analysisState <<< _analysisExecutionState <<< to isReachabilityLoading
 
-  loadingCloseAnalysis = state ^. _analysisState <<< to isCloseAnalysisLoading
+  loadingCloseAnalysis = state ^. _analysisState <<< _analysisExecutionState <<< to isCloseAnalysisLoading
 
   enabled' = not loadingWarningAnalysis && not loadingReachability && not loadingCloseAnalysis && not (isCompiling state)
 

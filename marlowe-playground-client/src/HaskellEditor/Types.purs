@@ -16,7 +16,7 @@ import Halogen.Monaco as Monaco
 import Language.Haskell.Interpreter (InterpreterError, InterpreterResult, _InterpreterResult)
 import Marlowe.Parser (parseContract)
 import Network.RemoteData (RemoteData(..), _Loading, _Success)
-import StaticAnalysis.Types (AnalysisState(..))
+import StaticAnalysis.Types (AnalysisExecutionState(..), AnalysisState)
 import Text.Pretty (pretty)
 import Types (WebData)
 
@@ -82,7 +82,10 @@ initialState =
   { keybindings: DefaultBindings
   , compilationResult: NotAsked
   , bottomPanelState: BottomPanel.initialState GeneratedOutputView
-  , analysisState: NoneAsked
+  , analysisState:
+      { templateContent: mempty
+      , analysisExecutionState: NoneAsked
+      }
   }
 
 isCompiling :: State -> Boolean

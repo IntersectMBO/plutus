@@ -19,7 +19,7 @@ import Marlowe.Symbolic.Types.Response as R
 import Network.RemoteData (RemoteData(..))
 import Pretty (showPrettyToken)
 import Servant.PureScript.Ajax (AjaxError(..), ErrorDescription(..))
-import StaticAnalysis.Types (AnalysisState(..), MultiStageAnalysisData(..), _analysisState)
+import StaticAnalysis.Types (AnalysisExecutionState(..), AnalysisState, MultiStageAnalysisData(..), _analysisExecutionState, _analysisState)
 import Types (WarningAnalysisError(..))
 
 analyzeButton ::
@@ -35,7 +35,7 @@ analyzeButton isLoading isEnabled name action =
 analysisResultPane :: forall action p state. { analysisState :: AnalysisState | state } -> HTML p action
 analysisResultPane state =
   let
-    result = state ^. _analysisState
+    result = state ^. (_analysisState <<< _analysisExecutionState)
 
     explanation = div [ classes [ ClassName "padded-explanation" ] ]
   in

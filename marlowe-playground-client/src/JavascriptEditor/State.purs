@@ -38,7 +38,7 @@ import Monaco (IRange, getModel, isError, setValue)
 import Network.RemoteData (RemoteData(..))
 import StaticAnalysis.Reachability (analyseReachability)
 import StaticAnalysis.StaticTools (analyseContract)
-import StaticAnalysis.Types (AnalysisState(..), MultiStageAnalysisData(..), _analysisState)
+import StaticAnalysis.Types (AnalysisExecutionState(..), MultiStageAnalysisData(..), _analysisExecutionState, _analysisState)
 import StaticData (jsBufferLocalStorageKey)
 import StaticData as StaticData
 import Text.Parsing.StringParser.Basic (lines)
@@ -157,7 +157,7 @@ compileAndAnalyze ::
   forall m.
   MonadAff m =>
   MonadAsk Env m =>
-  AnalysisState ->
+  AnalysisExecutionState ->
   (Contract -> HalogenM State Action ChildSlots Void m Unit) ->
   HalogenM State Action ChildSlots Void m Unit
 compileAndAnalyze initialAnalysisState doAnalyze = do
@@ -165,7 +165,7 @@ compileAndAnalyze initialAnalysisState doAnalyze = do
   case compilationResult of
     NotCompiled -> do
       -- The initial analysis state allow us to show an "Analysing..." indicator
-      assign _analysisState initialAnalysisState
+      assign (_analysisState <<< _analysisExecutionState) initialAnalysisState
       handleAction Compile
       compileAndAnalyze initialAnalysisState doAnalyze
     CompiledSuccessfully (InterpreterResult interpretedResult) -> doAnalyze interpretedResult.result

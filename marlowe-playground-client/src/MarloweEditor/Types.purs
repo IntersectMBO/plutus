@@ -16,7 +16,7 @@ import Data.Symbol (SProxy(..))
 import Halogen.Monaco (KeyBindings(..))
 import Halogen.Monaco as Monaco
 import Monaco (IMarker)
-import StaticAnalysis.Types (AnalysisState(..))
+import StaticAnalysis.Types (AnalysisExecutionState(..), AnalysisState)
 import Text.Parsing.StringParser (Pos)
 import Web.HTML.Event.DragEvent (DragEvent)
 
@@ -109,7 +109,10 @@ initialState =
   , bottomPanelState: BottomPanel.initialState StaticAnalysisView
   , showErrorDetail: false
   , selectedHole: Nothing
-  , analysisState: NoneAsked
+  , analysisState:
+      { templateContent: mempty
+      , analysisExecutionState: NoneAsked
+      }
   , editorErrors: mempty
   , editorWarnings: mempty
   }

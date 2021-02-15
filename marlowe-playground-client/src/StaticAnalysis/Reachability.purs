@@ -8,9 +8,9 @@ module StaticAnalysis.Reachability
   ) where
 
 import Prelude hiding (div)
-import Control.Monad.State as CMS
 import Control.Monad.Reader (class MonadAsk)
-import Data.Lens (assign)
+import Control.Monad.State as CMS
+import Data.Lens (assign, use)
 import Data.List (List(..), any, catMaybes, fromFoldable, null)
 import Data.List.NonEmpty (fromList, head, tail, toList)
 import Data.Map (fromFoldableWith, lookup, unionWith)
@@ -20,12 +20,12 @@ import Data.Tuple.Nested (type (/\), (/\))
 import Effect.Aff.Class (class MonadAff)
 import Env (Env)
 import Halogen (HalogenM)
+import Marlowe.Extended (fillTemplate, toCore)
+import Marlowe.Extended as EM
 import Marlowe.Semantics (Contract(..), Observation(..), emptyState)
 import Marlowe.Semantics as S
-import Marlowe.Extended (toCore)
-import Marlowe.Extended as EM
 import StaticAnalysis.StaticTools (closeZipperContract, startMultiStageAnalysis, zipperToContractPath)
-import StaticAnalysis.Types (AnalysisState(..), ContractPath, ContractPathStep, ContractZipper(..), MultiStageAnalysisData(..), MultiStageAnalysisProblemDef, PrefixMap, _analysisState)
+import StaticAnalysis.Types (AnalysisExecutionState(..), AnalysisState, ContractPath, ContractPathStep, ContractZipper(..), MultiStageAnalysisData(..), MultiStageAnalysisProblemDef, PrefixMap, _analysisExecutionState, _analysisState, _templateContent)
 
 analyseReachability ::
   forall m state action slots.
@@ -34,17 +34,18 @@ analyseReachability ::
   EM.Contract ->
   HalogenM { analysisState :: AnalysisState | state } action slots Void m Unit
 analyseReachability extendedContract = do
-  case toCore extendedContract of
+  templateContent <- use (_analysisState <<< _templateContent)
+  case toCore $ fillTemplate templateContent extendedContract of
     Just contract -> do
-      assign _analysisState (ReachabilityAnalysis AnalysisNotStarted)
+      assign (_analysisState <<< _analysisExecutionState) (ReachabilityAnalysis AnalysisNotStarted)
       -- when editor and simulator were together the analyse contract could be made
       -- at any step of the simulator. Now that they are separate, it can only be done
       -- with initial state
       let
         emptySemanticState = emptyState zero
       newReachabilityAnalysisState <- startReachabilityAnalysis contract emptySemanticState
-      assign _analysisState (ReachabilityAnalysis newReachabilityAnalysisState)
-    Nothing -> assign _analysisState (ReachabilityAnalysis $ AnalysisFailure "The code has templates. Static analysis can only be run in core Marlowe code.")
+      assign (_analysisState <<< _analysisExecutionState) (ReachabilityAnalysis newReachabilityAnalysisState)
+    Nothing -> assign (_analysisState <<< _analysisExecutionState) (ReachabilityAnalysis $ AnalysisFailure "The code has templates. Static analysis can only be run in core Marlowe code.")
 
 expandSubproblem :: ContractZipper -> Contract -> (ContractPath /\ Contract)
 expandSubproblem z _ = zipperToContractPath z /\ closeZipperContract z (Assert FalseObs Close)
@@ -78,14 +79,14 @@ startReachabilityAnalysis ::
   S.State -> HalogenM { analysisState :: AnalysisState | state } action slots Void m MultiStageAnalysisData
 startReachabilityAnalysis = startMultiStageAnalysis reachabilityAnalysisDef
 
-getUnreachableContracts :: AnalysisState -> List ContractPath
+getUnreachableContracts :: AnalysisExecutionState -> List ContractPath
 getUnreachableContracts (ReachabilityAnalysis (AnalysisInProgress ipr)) = ipr.counterExampleSubcontracts
 
 getUnreachableContracts (ReachabilityAnalysis (AnalysisFoundCounterExamples us)) = toList us.counterExampleSubcontracts
 
 getUnreachableContracts _ = Nil
 
-areContractAndStateTheOnesAnalysed :: AnalysisState -> Maybe Contract -> S.State -> Boolean
+areContractAndStateTheOnesAnalysed :: AnalysisExecutionState -> Maybe Contract -> S.State -> Boolean
 areContractAndStateTheOnesAnalysed (ReachabilityAnalysis (AnalysisInProgress ipr)) (Just contract) state = ipr.originalContract == contract && ipr.originalState == state
 
 areContractAndStateTheOnesAnalysed (ReachabilityAnalysis (AnalysisFoundCounterExamples us)) (Just contract) state = us.originalContract == contract && us.originalState == state

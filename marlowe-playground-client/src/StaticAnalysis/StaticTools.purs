@@ -12,7 +12,7 @@ import Prelude hiding (div)
 import Control.Monad.Except (ExceptT, runExceptT)
 import Control.Monad.Reader (class MonadAsk, asks, runReaderT)
 import Data.Bifunctor (lmap)
-import Data.Lens (assign)
+import Data.Lens (assign, use)
 import Data.List (List(..), foldl, fromFoldable, length, snoc, toUnfoldable)
 import Data.List.Types (NonEmptyList(..))
 import Data.Maybe (Maybe(..))
@@ -22,16 +22,16 @@ import Effect.Aff.Class (class MonadAff)
 import Env (Env)
 import Halogen (HalogenM)
 import Marlowe as Server
+import Marlowe.Extended (fillTemplate, toCore)
+import Marlowe.Extended as EM
 import Marlowe.Semantics (Case(..), Contract(..), Observation(..), emptyState)
 import Marlowe.Semantics as S
-import Marlowe.Extended (toCore)
-import Marlowe.Extended as EM
 import Marlowe.Symbolic.Types.Request as MSReq
 import Marlowe.Symbolic.Types.Response (Result(..))
 import Network.RemoteData (RemoteData(..))
 import Network.RemoteData as RemoteData
 import Servant.PureScript.Ajax (AjaxError(..))
-import StaticAnalysis.Types (AnalysisInProgressRecord, AnalysisState(..), ContractPath, ContractPathStep(..), ContractZipper(..), MultiStageAnalysisData(..), MultiStageAnalysisProblemDef, RemainingSubProblemInfo, _analysisState)
+import StaticAnalysis.Types (AnalysisExecutionState(..), AnalysisInProgressRecord, AnalysisState, ContractPath, ContractPathStep(..), ContractZipper(..), MultiStageAnalysisData(..), MultiStageAnalysisProblemDef, RemainingSubProblemInfo, _analysisExecutionState, _analysisState, _templateContent)
 import Types (WarningAnalysisError(..), WebData)
 
 runAjax ::
@@ -47,16 +47,17 @@ analyseContract ::
   EM.Contract ->
   HalogenM { analysisState :: AnalysisState | state } action slots Void m Unit
 analyseContract extendedContract = do
-  case toCore extendedContract of
+  templateContent <- use (_analysisState <<< _templateContent)
+  case toCore $ fillTemplate templateContent extendedContract of
     Just contract -> do
-      assign _analysisState (WarningAnalysis Loading)
+      assign (_analysisState <<< _analysisExecutionState) (WarningAnalysis Loading)
       -- when editor and simulator were together the analyse contract could be made
       -- at any step of the simulator. Now that they are separate, it can only be done
       -- with initial state
       settings <- asks _.ajaxSettings
       response <- checkContractForWarnings settings emptySemanticState contract
-      assign _analysisState $ WarningAnalysis $ lmap WarningAnalysisAjaxError $ response
-    Nothing -> assign _analysisState $ WarningAnalysis $ Failure WarningAnalysisIsExtendedMarloweError
+      assign (_analysisState <<< _analysisExecutionState) $ WarningAnalysis $ lmap WarningAnalysisAjaxError $ response
+    Nothing -> assign (_analysisState <<< _analysisExecutionState) $ WarningAnalysis $ Failure WarningAnalysisIsExtendedMarloweError
   where
   emptySemanticState = emptyState zero
 
@@ -228,7 +229,7 @@ startMultiStageAnalysis problemDef contract state = do
               , counterExampleSubcontracts: Nil
               }
           )
-      assign _analysisState (problemDef.analysisDataSetter progress)
+      assign (_analysisState <<< _analysisExecutionState) (problemDef.analysisDataSetter progress)
       response <- checkContractForFailedAssertions newContract state
       result <- updateWithResponse problemDef progress response
       pure result
@@ -315,11 +316,11 @@ stepAnalysis problemDef isCounterExample rad =
     thereAreMore /\ newRad = stepSubproblem problemDef isCounterExample rad
   in
     if thereAreMore then do
-      assign _analysisState (problemDef.analysisDataSetter (AnalysisInProgress newRad))
+      assign (_analysisState <<< _analysisExecutionState) (problemDef.analysisDataSetter (AnalysisInProgress newRad))
       response <- checkContractForFailedAssertions (newRad.currContract) (newRad.originalState)
       updateWithResponse problemDef (AnalysisInProgress newRad) response
     else do
       let
         result = finishAnalysis newRad
-      assign _analysisState (problemDef.analysisDataSetter result)
+      assign (_analysisState <<< _analysisExecutionState) (problemDef.analysisDataSetter result)
       pure result
