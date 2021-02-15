@@ -111,6 +111,13 @@ tests =
                     .&&. not (endpointAvailable @"1" theContract tag))
                 (activateContract w1 theContract tag >>= \hdl -> callEndpoint_ @"1" hdl 1 >> callEndpoint_ @"2" hdl 2)
 
+        , let theContract :: Contract Schema ContractError () = void $ endpoint @"1" @Int >> endpoint @"2" @Int
+          in run 1 "call endpoint (4)"
+                (endpointAvailable @"2" theContract tag
+                .&&. not (endpointAvailable @"1" theContract tag))
+                -- only call endpoint "1" if the previous call (to endpoint "2", which is not active) fails.
+                (activateContract w1 theContract tag >>= \hdl -> callEndpoint @"2" hdl 1 >>= \case { Nothing -> pure (); Just _ -> callEndpoint_ @"1" hdl 1})
+
         , let theContract :: Contract Schema ContractError () = void $ submitTx mempty >> watchAddressUntil someAddress 20
           in run 1 "submit tx"
                 (waitingForSlot theContract tag 20)
