@@ -21,10 +21,11 @@ import qualified Language.UntypedPlutusCore                        as UPLC
 import qualified Language.UntypedPlutusCore.Evaluation.Machine.Cek as UPLC
 
 import           Codec.Serialise
-import           Control.DeepSeq                                   (rnf)
+import           Control.DeepSeq                                   (NFData, rnf)
 import qualified Control.Exception                                 as Exn (evaluate)
 import           Control.Monad
 import           Control.Monad.Trans.Except                        (runExceptT)
+import qualified Criterion.Measurement                             as Criterion
 import           Data.Bifunctor                                    (second)
 import qualified Data.ByteString.Lazy                              as BSL
 import           Data.Foldable                                     (traverse_)
@@ -40,7 +41,6 @@ import           System.Exit                                       (exitFailure,
 import           System.IO
 import           System.Mem                                        (performGC)
 import           Text.Printf                                       (printf)
-import           Text.Read                                         (readMaybe)
 
 {- Note [Annotation types] This program now reads and writes CBOR-serialised PLC
    ASTs.  In all cases we require the annotation type to be ().  There are two
@@ -194,7 +194,7 @@ outputformat = option (maybeReader formatReader)
   <> showDefault
   <> help ("Output format: " ++ formatHelp))
 
-
+-- -x -> run 10 times and print mean
 timing1 :: Parser TimingMode
 timing1 = flag NoTiming (Timing 10)
   ( long "time-execution"
@@ -202,6 +202,7 @@ timing1 = flag NoTiming (Timing 10)
   <> help "Report mean execution time of program over 10 repetitions"
   )
 
+-- -X N -> run N times and print mean
 timing2 :: Parser TimingMode
 timing2 = Timing <$> option auto
   (  short 'X'
@@ -648,6 +649,22 @@ runTypecheck (TypecheckOptions inp fmt) = do
 
 ---------------- Evaluation ----------------
 
+-- Convert a time in picoseconds into a readble format with appropriate units
+formatTime :: Double -> String
+formatTime t
+    | t >= 1e12 = printf "%.3f s"  (t/1e12)
+    | t >= 1e9  = printf "%.3f ms" (t/1e9)
+    | t >= 1e6  = printf "%.3f μs" (t/1e6)
+    | t >= 1e3  = printf "%.3f ns" (t/1e3)
+    | otherwise = printf "%f ps"   t
+
+timeEval :: NFData a => (t -> a) -> t -> IO Integer
+timeEval eval prog = do
+  start <- performGC >> getCPUTime
+  () <- Exn.evaluate $ rnf $ eval prog
+  end <- getCPUTime
+  pure $ end - start
+
 runEval :: EvalOptions -> IO ()
 runEval (EvalOptions language inp ifmt evalMode printMode timingMode) =
     case language of
@@ -662,9 +679,8 @@ runEval (EvalOptions language inp ifmt evalMode printMode timingMode) =
         () <-  Exn.evaluate $ rnf body
         -- Force evaluation of body to ensure that we're not timing parsing/deserialisation.
         -- The parser apparently returns a fully-evaluated AST, but let's be on the safe side.
-        start <- performGC >> getCPUTime
         case evaluate body of
-              PLC.EvaluationSuccess v -> succeed start v
+              PLC.EvaluationSuccess v -> succeed v
               PLC.EvaluationFailure   -> exitFailure
 
       UntypedPLC ->
@@ -675,18 +691,23 @@ runEval (EvalOptions language inp ifmt evalMode printMode timingMode) =
                   let evaluate = UPLC.unsafeEvaluateCek PLC.defBuiltinsRuntime
                       body = void . UPLC.toTerm $ prog
                   () <- Exn.evaluate $ rnf body
-                  start <- getCPUTime
-                  case evaluate body of
-                    UPLC.EvaluationSuccess v -> succeed start v
-                    UPLC.EvaluationFailure   -> exitFailure
+                  case timingMode of
+                    NoTiming -> case evaluate body of
+                                  UPLC.EvaluationSuccess v -> succeed v
+                                  UPLC.EvaluationFailure   -> exitFailure
+                    Timing n -> do
+                          times <- mapM (timeEval evaluate) (replicate n body)
+                          let mean = (fromIntegral $sum times) / (fromIntegral n) :: Double
+                          _ <- mapM print times
+                          printf "Mean execution time over %d runs: %s" n (formatTime mean)
+                          exitSuccess
 
-    where succeed start v = do
-            end <- getCPUTime
+-- We want to evaluate, then report any statistics, then succeed/fail.
+
+    where succeed v = do
             print $ getPrintMethod printMode v
-            let ms = 1e9 :: Double
-                diff = (fromIntegral (end - start)) / ms
-            case timingMode of { Timing n -> printf "Timing: %d\n" n; _ -> pure () }
             exitSuccess
+
 
 
 ---------------- Driver ----------------
