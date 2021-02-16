@@ -10,7 +10,7 @@
   {
     flags = { development = false; };
     package = {
-      specVersion = "1.10";
+      specVersion = "2.2";
       identifier = { name = "cardano-prelude-test"; version = "0.1.0.0"; };
       license = "MIT";
       copyright = "2018 IOHK";
@@ -49,8 +49,8 @@
           (hsPkgs."pretty-show" or (errorHandler.buildDepError "pretty-show"))
           (hsPkgs."QuickCheck" or (errorHandler.buildDepError "QuickCheck"))
           (hsPkgs."quickcheck-instances" or (errorHandler.buildDepError "quickcheck-instances"))
-          (hsPkgs."text" or (errorHandler.buildDepError "text"))
           (hsPkgs."template-haskell" or (errorHandler.buildDepError "template-haskell"))
+          (hsPkgs."text" or (errorHandler.buildDepError "text"))
           (hsPkgs."time" or (errorHandler.buildDepError "time"))
           ];
         buildable = true;
@@ -65,6 +65,29 @@
           "Test/Cardano/Prelude/Tripping"
           "Test/Cardano/Prelude"
           ];
+        hsSourceDirs = [ "src" ];
+        };
+      tests = {
+        "cardano-prelude-test-suite" = {
+          depends = [
+            (hsPkgs."base" or (errorHandler.buildDepError "base"))
+            (hsPkgs."bytestring" or (errorHandler.buildDepError "bytestring"))
+            (hsPkgs."cardano-prelude" or (errorHandler.buildDepError "cardano-prelude"))
+            (hsPkgs."cardano-prelude-test" or (errorHandler.buildDepError "cardano-prelude-test"))
+            (hsPkgs."ghc-heap" or (errorHandler.buildDepError "ghc-heap"))
+            (hsPkgs."ghc-prim" or (errorHandler.buildDepError "ghc-prim"))
+            (hsPkgs."hedgehog" or (errorHandler.buildDepError "hedgehog"))
+            (hsPkgs."text" or (errorHandler.buildDepError "text"))
+            ];
+          buildable = true;
+          modules = [
+            "Test/Cardano/Prelude/GHC/Heap/NormalFormSpec"
+            "Test/Cardano/Prelude/GHC/Heap/SizeSpec"
+            "Test/Cardano/Prelude/GHC/Heap/TreeSpec"
+            ];
+          hsSourceDirs = [ "test" ];
+          mainPath = [ "test.hs" ];
+          };
         };
       };
-    } // rec { src = (pkgs.lib).mkDefault .././.source-repository-packages/8; }
+    } // rec { src = (pkgs.lib).mkDefault .././.source-repository-packages/10; }

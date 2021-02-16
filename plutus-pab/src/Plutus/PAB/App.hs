@@ -238,7 +238,6 @@ mkEnv Config { dbConfig
 runApp :: Trace IO PABLogMsg -> CM.Configuration -> Config -> App a -> IO (Either PABError a)
 runApp theTrace logConfig config action =
     runTraceLoggerT
-
     -- see note [Use of iohk-monitoring in PAB]
     (runAppBackend @(TraceLoggerT IO) (monadLoggerTracer theTrace) logConfig config action)
     (contramap (second (fmap SLoggerBridge)) theTrace)

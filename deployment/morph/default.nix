@@ -14,5 +14,5 @@ in
   "${machines.marloweDashB.dns}" = configurations.marloweDash "marlowe-dash-b";
   "${machines.webghcA.dns}" = configurations.webGhc "web-ghc-a";
   "${machines.webghcB.dns}" = configurations.webGhc "web-ghc-b";
-  "${machines.nixops.dns}" = configurations.prometheus { hostName = "prometheus"; environment = machines.environment; inherit promTargets; };
+  "${machines.prometheus.dns}" = configurations.prometheus { hostName = "prometheus"; environment = machines.environment; inherit promTargets; };
 }

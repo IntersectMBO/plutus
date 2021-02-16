@@ -82,6 +82,8 @@
           "Cardano/BM/Counters"
           "Cardano/BM/Counters/Common"
           "Cardano/BM/Counters/Dummy"
+          "Cardano/BM/Stats"
+          "Cardano/BM/Stats/Resources"
           "Cardano/BM/Data/Aggregated"
           "Cardano/BM/Data/AggregatedKind"
           "Cardano/BM/Data/Backend"
@@ -98,7 +100,7 @@
           "Cardano/BM/Data/Trace"
           "Cardano/BM/Data/Tracer"
           "Cardano/BM/Data/Transformers"
-          "Cardano/BM/ElidingTracer"
+          "Cardano/BM/Internal/ElidingTracer"
           "Cardano/BM/Tracing"
           "Cardano/BM/Backend/Log"
           "Cardano/BM/Backend/LogBuffer"
@@ -175,4 +177,4 @@
           };
         };
       };
-    } // rec { src = (pkgs.lib).mkDefault .././.source-repository-packages/18; }
+    } // rec { src = (pkgs.lib).mkDefault .././.source-repository-packages/20; }

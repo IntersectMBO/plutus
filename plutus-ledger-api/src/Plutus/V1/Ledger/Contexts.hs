@@ -289,13 +289,13 @@ spendsOutput p h i =
     in any spendsOutRef (txInfoInputs p)
 
 makeLift ''TxInInfo
-makeIsData ''TxInInfo
+makeIsDataIndexed ''TxInInfo [('TxInInfo,0)]
 
 makeLift ''TxInfo
-makeIsData ''TxInfo
+makeIsDataIndexed ''TxInfo [('TxInfo,0)]
 
 makeLift ''ValidatorCtx
-makeIsData ''ValidatorCtx
+makeIsDataIndexed ''ValidatorCtx [('ValidatorCtx,0)]
 
 makeLift ''PolicyCtx
-makeIsData ''PolicyCtx
+makeIsDataIndexed ''PolicyCtx [('PolicyCtx,0)]

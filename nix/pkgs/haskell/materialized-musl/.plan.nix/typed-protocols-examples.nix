@@ -59,7 +59,7 @@
         hsSourceDirs = [ "src" ];
         };
       tests = {
-        "typed-protocols-tests" = {
+        "test" = {
           depends = [
             (hsPkgs."base" or (errorHandler.buildDepError "base"))
             (hsPkgs."bytestring" or (errorHandler.buildDepError "bytestring"))
@@ -83,4 +83,4 @@
           };
         };
       };
-    } // rec { src = (pkgs.lib).mkDefault .././.source-repository-packages/10; }
+    } // rec { src = (pkgs.lib).mkDefault .././.source-repository-packages/12; }

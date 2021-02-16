@@ -25,7 +25,7 @@ import Data.Tuple (Tuple(..))
 import Effect (Effect)
 import Halogen.HTML (HTML)
 import Halogen.HTML.Properties (id_)
-import Marlowe.Holes (Action(..), Bound(..), Case(..), ChoiceId(..), Contract(..), Timeout(..), Observation(..), Party(..), Payee(..), Term(..), TermWrapper(..), Token(..), Value(..), ValueId(..), mkDefaultTerm, mkDefaultTermWrapper)
+import Marlowe.Holes (Action(..), Bound(..), Case(..), ChoiceId(..), Contract(..), Location(..), Observation(..), Party(..), Payee(..), Term(..), TermWrapper(..), Timeout(..), Token(..), Value(..), ValueId(..), mkDefaultTerm, mkDefaultTermWrapper)
 import Marlowe.Parser as Parser
 import Marlowe.Semantics (Rational(..))
 import Record (merge)
@@ -1046,7 +1046,7 @@ class HasBlockDefinition a b | a -> b where
 
 baseContractDefinition :: Generator -> Block -> Either String (Term Contract)
 baseContractDefinition g block = case statementToCode g block (show BaseContractType) of
-  Either.Left _ -> pure $ Hole "contract" Proxy zero
+  Either.Left _ -> pure $ Hole "contract" Proxy NoLocation
   Either.Right s -> parse (mkDefaultTerm <$> Parser.contract) s
 
 getAllBlocks :: Block -> Array Block
@@ -1084,7 +1084,7 @@ boundsDefinition g block = traverse (boundDefinition g) (getAllBlocks block)
 
 statementToTerm :: forall a. Generator -> Block -> String -> Parser a -> Either String (Term a)
 statementToTerm g block name p = case statementToCode g block name of
-  Either.Left _ -> pure $ Hole name Proxy zero
+  Either.Left _ -> pure $ Hole name Proxy NoLocation
   Either.Right s -> parse (mkDefaultTerm <$> p) s
 
 instance hasBlockDefinitionAction :: HasBlockDefinition ActionType (Term Case) where
@@ -1106,7 +1106,7 @@ instance hasBlockDefinitionAction :: HasBlockDefinition ActionType (Term Case) w
     let
       mTopboundBlock = getBlockInputConnectedTo boundsInput
     bounds <- case mTopboundBlock of
-      Either.Left _ -> pure [ Hole "bounds" Proxy zero ]
+      Either.Left _ -> pure [ Hole "bounds" Proxy NoLocation ]
       Either.Right topboundBlock -> boundsDefinition g topboundBlock
     contract <- statementToTerm g block "contract" Parser.contract
     pure $ mkDefaultTerm (Case (mkDefaultTerm (Choice choiceId bounds)) contract)
@@ -1126,7 +1126,7 @@ instance hasBlockDefinitionPayee :: HasBlockDefinition PayeeType (Term Payee) wh
 instance hasBlockDefinitionParty :: HasBlockDefinition PartyType (Term Party) where
   blockDefinition PKPartyType g block = do
     case getFieldValue block "pubkey" of
-      Either.Left _ -> pure $ Hole "n" Proxy zero
+      Either.Left _ -> pure $ Hole "n" Proxy NoLocation
       Either.Right pk -> pure $ mkDefaultTerm (PK pk)
   blockDefinition RolePartyType g block = do
     role <- getFieldValue block "role"

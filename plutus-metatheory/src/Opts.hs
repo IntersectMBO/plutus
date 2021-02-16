@@ -32,7 +32,7 @@ evalMode = option auto
   (  long "mode"
   <> short 'm'
   <> metavar "MODE"
-  <> value CK
+  <> value TL
   <> showDefault
   <> help "Evaluation mode (U , TL, L, TCK, CK, TCEK)" )
 

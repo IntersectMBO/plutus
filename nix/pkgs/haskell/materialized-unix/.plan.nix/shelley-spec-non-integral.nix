@@ -12,7 +12,7 @@
     package = {
       specVersion = "1.8";
       identifier = { name = "shelley-spec-non-integral"; version = "0.1.0.0"; };
-      license = "NONE";
+      license = "Apache-2.0";
       copyright = "";
       maintainer = "formal.methods@iohk.io";
       author = "IOHK Formal Methods Team";
@@ -51,4 +51,4 @@
           };
         };
       };
-    } // rec { src = (pkgs.lib).mkDefault .././.source-repository-packages/25; }
+    } // rec { src = (pkgs.lib).mkDefault .././.source-repository-packages/32; }

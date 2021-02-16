@@ -33,7 +33,7 @@ module Plutus.PAB.MockApp
     , blockchainNewestFirst
     ) where
 
-import           Cardano.Node.Types                    (NodeFollowerState)
+import           Cardano.Node.Types                    (MockServerLogMsg, NodeFollowerState)
 import qualified Cardano.Node.Types                    as NodeServer
 import           Control.Lens                          hiding (use)
 import           Control.Monad                         (void)
@@ -70,7 +70,7 @@ import           Test.QuickCheck.Instances.UUID        ()
 
 import qualified Cardano.ChainIndex.Server             as ChainIndex
 import qualified Cardano.ChainIndex.Types              as ChainIndex
-import           Cardano.Node.Follower                 (NodeFollowerLogMsg)
+import           Cardano.Node.Types                    (NodeFollowerLogMsg)
 import           Wallet.API                            (WalletAPIError)
 import           Wallet.Emulator.Chain                 (ChainControlEffect, ChainEffect, ChainEvent, ChainState,
                                                         handleChain, handleControlChain)
@@ -124,7 +124,7 @@ type MockAppEffects =
 
 data MockAppReport =
     MockAppReport
-        { marFinalChainEvents      :: [LogMessage ChainEvent]
+        { marFinalChainEvents      :: [LogMessage MockServerLogMsg]
         , marFinalEmulatorEvents   :: [LogMessage MockAppLog]
         , marFinalChainIndexEvents :: [LogMessage ChainIndexEvent]
         }

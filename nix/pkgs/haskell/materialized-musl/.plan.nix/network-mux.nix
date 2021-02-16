@@ -10,7 +10,7 @@
   {
     flags = { asserts = false; ipv6 = false; };
     package = {
-      specVersion = "1.10";
+      specVersion = "2.2";
       identifier = { name = "network-mux"; version = "0.1.0.0"; };
       license = "Apache-2.0";
       copyright = "2019 Input Output (Hong Kong) Ltd.";
@@ -99,9 +99,26 @@
           hsSourceDirs = [ "demo" "test" ];
           mainPath = [ "mux-demo.hs" ] ++ [ "" ];
           };
+        "cardano-ping" = {
+          depends = [
+            (hsPkgs."base" or (errorHandler.buildDepError "base"))
+            (hsPkgs."aeson" or (errorHandler.buildDepError "aeson"))
+            (hsPkgs."network-mux" or (errorHandler.buildDepError "network-mux"))
+            (hsPkgs."io-sim-classes" or (errorHandler.buildDepError "io-sim-classes"))
+            (hsPkgs."contra-tracer" or (errorHandler.buildDepError "contra-tracer"))
+            (hsPkgs."bytestring" or (errorHandler.buildDepError "bytestring"))
+            (hsPkgs."cborg" or (errorHandler.buildDepError "cborg"))
+            (hsPkgs."network" or (errorHandler.buildDepError "network"))
+            (hsPkgs."tdigest" or (errorHandler.buildDepError "tdigest"))
+            (hsPkgs."text" or (errorHandler.buildDepError "text"))
+            ];
+          buildable = if system.isWindows then false else true;
+          hsSourceDirs = [ "demo" ];
+          mainPath = [ "cardano-ping.hs" ] ++ [ "" ];
+          };
         };
       tests = {
-        "test-network-mux" = {
+        "test" = {
           depends = [
             (hsPkgs."base" or (errorHandler.buildDepError "base"))
             (hsPkgs."io-sim-classes" or (errorHandler.buildDepError "io-sim-classes"))
@@ -135,4 +152,4 @@
           };
         };
       };
-    } // rec { src = (pkgs.lib).mkDefault .././.source-repository-packages/16; }
+    } // rec { src = (pkgs.lib).mkDefault .././.source-repository-packages/18; }

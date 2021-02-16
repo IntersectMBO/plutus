@@ -29,4 +29,4 @@ newtype TxId = TxId { getTxId :: BS.ByteString }
     deriving (Show, Pretty) via LedgerBytes
 
 PlutusTx.makeLift ''TxId
-PlutusTx.makeIsData ''TxId
+PlutusTx.makeIsDataIndexed ''TxId [('TxId,0)]

@@ -44,12 +44,12 @@
           (hsPkgs."fingertree" or (errorHandler.buildDepError "fingertree"))
           (hsPkgs."iproute" or (errorHandler.buildDepError "iproute"))
           (hsPkgs."mtl" or (errorHandler.buildDepError "mtl"))
+          (hsPkgs."nothunks" or (errorHandler.buildDepError "nothunks"))
           (hsPkgs."network" or (errorHandler.buildDepError "network"))
           (hsPkgs."psqueues" or (errorHandler.buildDepError "psqueues"))
           (hsPkgs."serialise" or (errorHandler.buildDepError "serialise"))
           (hsPkgs."random" or (errorHandler.buildDepError "random"))
           (hsPkgs."stm" or (errorHandler.buildDepError "stm"))
-          (hsPkgs."time" or (errorHandler.buildDepError "time"))
           (hsPkgs."cardano-binary" or (errorHandler.buildDepError "cardano-binary"))
           (hsPkgs."cardano-prelude" or (errorHandler.buildDepError "cardano-prelude"))
           (hsPkgs."cardano-slotting" or (errorHandler.buildDepError "cardano-slotting"))
@@ -70,6 +70,7 @@
           "Ouroboros/Network/PeerSelection/Governor/RootPeers"
           "Ouroboros/Network/PeerSelection/Governor/Types"
           "Ouroboros/Network/AnchoredFragment"
+          "Ouroboros/Network/AnchoredSeq"
           "Ouroboros/Network/Block"
           "Ouroboros/Network/BlockFetch"
           "Ouroboros/Network/BlockFetch/Client"
@@ -78,7 +79,6 @@
           "Ouroboros/Network/BlockFetch/Decision"
           "Ouroboros/Network/BlockFetch/DeltaQ"
           "Ouroboros/Network/BlockFetch/State"
-          "Ouroboros/Network/ChainFragment"
           "Ouroboros/Network/DeltaQ"
           "Ouroboros/Network/Diffusion"
           "Ouroboros/Network/KeepAlive"
@@ -91,6 +91,7 @@
           "Ouroboros/Network/Point"
           "Ouroboros/Network/PeerSelection/Types"
           "Ouroboros/Network/PeerSelection/KnownPeers"
+          "Ouroboros/Network/PeerSelection/LedgerPeers"
           "Ouroboros/Network/PeerSelection/RootPeersDNS"
           "Ouroboros/Network/PeerSelection/Governor"
           "Ouroboros/Network/Protocol/ChainSync/Client"
@@ -118,6 +119,8 @@
           "Ouroboros/Network/Protocol/TxSubmission/Client"
           "Ouroboros/Network/Protocol/TxSubmission/Server"
           "Ouroboros/Network/Protocol/TxSubmission/Codec"
+          "Ouroboros/Network/Protocol/TxSubmission2/Type"
+          "Ouroboros/Network/Protocol/TxSubmission2/Codec"
           "Ouroboros/Network/Protocol/LocalTxSubmission/Type"
           "Ouroboros/Network/Protocol/LocalTxSubmission/Client"
           "Ouroboros/Network/Protocol/LocalTxSubmission/Server"
@@ -126,6 +129,9 @@
           "Ouroboros/Network/Protocol/KeepAlive/Client"
           "Ouroboros/Network/Protocol/KeepAlive/Server"
           "Ouroboros/Network/Protocol/KeepAlive/Codec"
+          "Ouroboros/Network/Protocol/Trans/Hello/Type"
+          "Ouroboros/Network/Protocol/Trans/Hello/Codec"
+          "Ouroboros/Network/Protocol/Trans/Hello/Util"
           "Ouroboros/Network/TxSubmission/Inbound"
           "Ouroboros/Network/TxSubmission/Mempool/Reader"
           "Ouroboros/Network/TxSubmission/Outbound"
@@ -179,6 +185,7 @@
             "Ouroboros/Network/Protocol/TxSubmission/Direct"
             "Ouroboros/Network/Protocol/TxSubmission/Examples"
             "Ouroboros/Network/Protocol/TxSubmission/Test"
+            "Ouroboros/Network/Protocol/TxSubmission2/Test"
             "Ouroboros/Network/Protocol/KeepAlive/Direct"
             "Ouroboros/Network/Protocol/KeepAlive/Examples"
             "Ouroboros/Network/Protocol/KeepAlive/Test"
@@ -200,7 +207,6 @@
             (hsPkgs."network" or (errorHandler.buildDepError "network"))
             (hsPkgs."random" or (errorHandler.buildDepError "random"))
             (hsPkgs."serialise" or (errorHandler.buildDepError "serialise"))
-            (hsPkgs."splitmix" or (errorHandler.buildDepError "splitmix"))
             (hsPkgs."stm" or (errorHandler.buildDepError "stm"))
             (hsPkgs."QuickCheck" or (errorHandler.buildDepError "QuickCheck"))
             (hsPkgs."contra-tracer" or (errorHandler.buildDepError "contra-tracer"))
@@ -215,7 +221,7 @@
           };
         };
       tests = {
-        "test-network" = {
+        "test" = {
           depends = [
             (hsPkgs."base" or (errorHandler.buildDepError "base"))
             (hsPkgs."QuickCheck" or (errorHandler.buildDepError "QuickCheck"))
@@ -243,11 +249,11 @@
             (hsPkgs."tasty-hunit" or (errorHandler.buildDepError "tasty-hunit"))
             (hsPkgs."tasty-quickcheck" or (errorHandler.buildDepError "tasty-quickcheck"))
             (hsPkgs."text" or (errorHandler.buildDepError "text"))
-            (hsPkgs."time" or (errorHandler.buildDepError "time"))
             (hsPkgs."cardano-binary" or (errorHandler.buildDepError "cardano-binary"))
             (hsPkgs."cardano-prelude" or (errorHandler.buildDepError "cardano-prelude"))
             (hsPkgs."cardano-slotting" or (errorHandler.buildDepError "cardano-slotting"))
             (hsPkgs."contra-tracer" or (errorHandler.buildDepError "contra-tracer"))
+            (hsPkgs."nothunks" or (errorHandler.buildDepError "nothunks"))
             (hsPkgs."io-sim" or (errorHandler.buildDepError "io-sim"))
             (hsPkgs."io-sim-classes" or (errorHandler.buildDepError "io-sim-classes"))
             (hsPkgs."network-mux" or (errorHandler.buildDepError "network-mux"))
@@ -265,12 +271,16 @@
             "Ouroboros/Network/BlockFetch/Examples"
             "Ouroboros/Network/MockNode"
             "Ouroboros/Network/PeerSelection/Test"
+            "Ouroboros/Network/NodeToNode/Version/Test"
+            "Ouroboros/Network/NodeToClient/Version/Test"
             "Test/AnchoredFragment"
             "Test/Chain"
-            "Test/ChainFragment"
+            "Test/LedgerPeers"
+            "Test/Ouroboros/Network/Utils"
             "Test/Ouroboros/Network/BlockFetch"
             "Test/Ouroboros/Network/KeepAlive"
             "Test/Ouroboros/Network/MockNode"
+            "Test/Ouroboros/Network/TxSubmission"
             "Test/Mux"
             "Test/Pipe"
             "Test/Socket"
@@ -280,7 +290,7 @@
           hsSourceDirs = [ "test" ];
           mainPath = [ "Main.hs" ];
           };
-        "test-cddl" = {
+        "cddl" = {
           depends = [
             (hsPkgs."base" or (errorHandler.buildDepError "base"))
             (hsPkgs."bytestring" or (errorHandler.buildDepError "bytestring"))
@@ -298,7 +308,6 @@
             (hsPkgs."tasty" or (errorHandler.buildDepError "tasty"))
             (hsPkgs."tasty-quickcheck" or (errorHandler.buildDepError "tasty-quickcheck"))
             (hsPkgs."cardano-binary" or (errorHandler.buildDepError "cardano-binary"))
-            (hsPkgs."cardano-prelude" or (errorHandler.buildDepError "cardano-prelude"))
             (hsPkgs."cardano-slotting" or (errorHandler.buildDepError "cardano-slotting"))
             (hsPkgs."contra-tracer" or (errorHandler.buildDepError "contra-tracer"))
             (hsPkgs."io-sim" or (errorHandler.buildDepError "io-sim"))
@@ -315,4 +324,4 @@
           };
         };
       };
-    } // rec { src = (pkgs.lib).mkDefault .././.source-repository-packages/11; }
+    } // rec { src = (pkgs.lib).mkDefault .././.source-repository-packages/13; }

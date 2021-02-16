@@ -16,6 +16,7 @@ module Cardano.Metadata.Server
     , annotatedSignature1
     ) where
 
+import           Cardano.BM.Data.Trace           (Trace)
 import           Cardano.Metadata.API            (API)
 import           Cardano.Metadata.Types
 import           Control.Concurrent.Availability (Availability, available)
@@ -43,8 +44,7 @@ import           Data.Text.Encoding              (encodeUtf8)
 import           Ledger.Bytes                    (LedgerBytes)
 import           Ledger.Crypto                   (PrivateKey, PubKey, getPubKey, pubKeyHash, sign)
 import qualified Network.Wai.Handler.Warp        as Warp
-import           Plutus.PAB.App                  (App)
-import           Plutus.PAB.PABLogMsg            (ContractExeLogMsg (StartingMetadataServer))
+import           Plutus.PAB.Monitoring           (runLogEffects)
 import           Plutus.PAB.Utils                (tshow)
 import           Servant                         (Application, Handler (Handler), ServerError, err404, err500, errBody,
                                                   hoistServer, serve)
@@ -193,12 +193,12 @@ app = serve api apiServer
     api = Proxy @(API 'AesonEncoding)
     apiServer = hoistServer api asHandler handler
 
-main :: MetadataConfig -> Availability -> App ()
-main MetadataConfig {mdBaseUrl} availability = do
-    let port = baseUrlPort mdBaseUrl
-        warpSettings :: Warp.Settings
-        warpSettings =
-            Warp.defaultSettings & Warp.setPort port &
-            Warp.setBeforeMainLoop (available availability)
+main :: Trace IO MetadataLogMessage -> MetadataConfig ->  Availability -> IO ()
+main trace MetadataConfig {mdBaseUrl} availability = runLogEffects trace $ do
     logInfo $ StartingMetadataServer port
     liftIO $ Warp.runSettings warpSettings app
+        where
+            port = baseUrlPort mdBaseUrl
+            warpSettings = Warp.defaultSettings &
+                Warp.setPort port &
+                Warp.setBeforeMainLoop (available availability)

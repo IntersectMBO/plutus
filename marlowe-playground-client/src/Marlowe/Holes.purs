@@ -1,7 +1,6 @@
 module Marlowe.Holes where
 
 import Prelude
-import Control.Monad.Except.Extra (noteT)
 import Data.Array (foldMap)
 import Data.Array as Array
 import Data.BigInteger (BigInteger)
@@ -14,25 +13,23 @@ import Data.Generic.Rep.Enum (genericCardinality, genericFromEnum, genericPred, 
 import Data.Generic.Rep.Show (genericShow)
 import Data.Lens (Lens', over)
 import Data.Lens.Record (prop)
-import Data.List.NonEmpty as NEL
 import Data.Map (Map)
 import Data.Map as Map
 import Data.Maybe (Maybe(..), fromMaybe)
 import Data.Newtype (class Newtype, unwrap)
 import Data.Set (Set)
 import Data.Set as Set
-import Data.String (Pattern(..), contains, splitAt, toLower)
+import Data.String (splitAt, toLower)
 import Data.String.CodeUnits (dropRight)
 import Data.Symbol (SProxy(..))
 import Data.Traversable (traverse)
 import Data.Tuple (Tuple(..))
-import Foreign (readString)
-import Foreign.Generic (class Decode, class Encode, ForeignError(..), decode, encode)
+import Effect.Exception.Unsafe (unsafeThrow)
+import Foreign.Generic (class Decode, class Encode, defaultOptions, genericDecode, genericEncode)
 import Marlowe.Extended as EM
 import Marlowe.Semantics (PubKey, Rational(..), TokenName)
 import Marlowe.Semantics as S
-import Monaco (CompletionItem, IRange, completionItemKind)
-import Text.Extra as Text
+import Monaco (IRange)
 import Text.Pretty (class Args, class Pretty, genericHasArgs, genericHasNestedArgs, genericPretty, hasArgs, hasNestedArgs, pretty)
 import Text.Pretty as P
 import Type.Proxy (Proxy(..))
@@ -73,14 +70,6 @@ instance boundedEnumMarloweType :: BoundedEnum MarloweType where
   cardinality = genericCardinality
   toEnum = genericToEnum
   fromEnum = genericFromEnum
-
-instance encodeMarloweType :: Encode MarloweType where
-  encode = encode <<< show
-
-instance decodeMarloweType :: Decode MarloweType where
-  decode t = do
-    s <- readString t
-    noteT (NEL.singleton (ForeignError (s <> " is not a valid MarloweType"))) $ readMarloweType s
 
 allMarloweTypes :: Array MarloweType
 allMarloweTypes = upFromIncluding bottom
@@ -250,10 +239,10 @@ getConstructorFromMarloweType t = case Set.toUnfoldable $ Map.keys (getMarloweCo
 -- | Creates a String consisting of the data constructor name followed by argument holes
 --   e.g. "When [ ?case_10 ] ?timeout_11 ?contract_12"
 constructMarloweType :: String -> MarloweHole -> Map String TermGenerator -> String
-constructMarloweType constructorName (MarloweHole { range: { startColumn, startLineNumber } }) m = case Map.lookup constructorName m of
+constructMarloweType constructorName (MarloweHole { location }) m = case Map.lookup constructorName m of
   Nothing -> ""
   Just (ArgumentArray []) -> constructorName
-  Just (ArgumentArray vs) -> parens startLineNumber startColumn $ constructorName <> " " <> intercalate " " (map showArgument vs)
+  Just (ArgumentArray vs) -> parens location $ constructorName <> " " <> intercalate " " (map showArgument vs)
   Just (SimpleArgument vs) -> showArgument vs
   where
   showArgument EmptyArrayArg = "[]"
@@ -280,32 +269,81 @@ constructMarloweType constructorName (MarloweHole { range: { startColumn, startL
       let
         newArgs = getMarloweConstructors marloweType
 
-        hole = MarloweHole { name, marloweType, range: zero }
+        hole = MarloweHole { name, marloweType, location: NoLocation }
       in
         constructMarloweType name hole newArgs
 
-  parens 1 1 text = text
+  -- This parens helper adds parentesis to the code if the hole is not in the first line and character
+  -- position of the editor. This is like this because the parser throws an error if the Contract starts
+  -- with a parentesis. But this check is very basic, if the hole is the first part of the code, but has
+  -- an extra space before, the quick-fix will create the contract with a parens and make it invalid.
+  -- A couple of things that could be investigated in other PR:
+  --   * See if this belongs to LinterMarker rather than Marlowe.Holes, as it's relying on the textual
+  --     representation of the marker and a Range location.
+  --   * See if we can Modify the parser so that a contract starting with parentesis is valid
+  --   * Or see if we have another way to detect the first hole that does not depend on being the first
+  --     character
+  parens (Range { startColumn: 1, startLineNumber: 1, endColumn: _, endLineNumber: _ }) text = text
 
-  parens _ _ text = "(" <> text <> ")"
+  parens _ text = "(" <> text <> ")"
 
-type Range
-  = { startLineNumber :: Int
-    , startColumn :: Int
-    , endLineNumber :: Int
-    , endColumn :: Int
-    }
+data Location
+  = Range IRange
+  | BlockId String
+  -- CHECK THIS: Before this refactor, the Range had an implicit Semiring constraint in multiple places, for
+  -- example mkDefaultTermWrapper. The idea was mainly to use a `zero`/`mempty` location. But having a semiring
+  -- is probably not what we want for Range or BlockId. For the moment I'm adding a separate constructor
+  -- to the location, but perhaps we want to modify the Term constructor to receive a (Maybe Location) instead.
+  | NoLocation
+
+derive instance eqLocation :: Eq Location
+
+derive instance genericSession :: Generic Location _
+
+instance encodeSession :: Encode Location where
+  encode value = genericEncode defaultOptions value
+
+instance decodeSession :: Decode Location where
+  decode value = genericDecode defaultOptions value
 
 -- We need to compare the fields in the correct order
-compareRange :: Range -> Range -> Ordering
+compareRange :: IRange -> IRange -> Ordering
 compareRange =
   compare `on` _.startColumn
     <> compare `on` _.startLineNumber
     <> compare `on` _.endLineNumber
     <> compare `on` _.endColumn
 
+-- FIXME: We should check the need for the different Ord's instances we have here.
+--        I've traced that all the Term's instances are required because the Linter has a generic
+--        compare on the WarningDetail, which is only used as the fallback case of ordWarning.
+--        The other use of ordering is in MarloweHole, to be able to insert them in the `Holes` Set.
+--        But that is currently using compareLocation and not the Location Ord instance. And it doesn't
+--        necesarely need to be based on location, is just a constraint for Set.
+instance ordLocation :: Ord Location where
+  compare = compareLocation
+
+compareLocation :: Location -> Location -> Ordering
+compareLocation (Range a) (Range b) = compareRange a b
+
+-- TODO: Comparing on String does not make too much sense for ordering blocks id's. Once
+--       we refactor Blockly to produce Term's directly, we can see if it makes sense to store
+--       the id and the depth and compare on depth.
+compareLocation (BlockId a) (BlockId b) = compare a b
+
+compareLocation NoLocation NoLocation = EQ
+
+compareLocation NoLocation _ = LT
+
+compareLocation _ NoLocation = GT
+
+compareLocation (BlockId a) (Range b) = unsafeThrow "Invalid comparation of a BlockId and Range (this should not happen)"
+
+compareLocation (Range a) (BlockId b) = unsafeThrow "Invalid comparation of a BlockId and Range (this should not happen)"
+
 data Term a
-  = Term a Range
-  | Hole String (Proxy a) Range
+  = Term a Location
+  | Hole String (Proxy a) Location
 
 derive instance genericTerm :: Generic (Term a) _
 
@@ -327,11 +365,11 @@ instance hasArgsTerm :: Args a => Args (Term a) where
   hasNestedArgs (Term a _) = hasNestedArgs a
   hasNestedArgs _ = false
 
-mkHole :: forall a. String -> Range -> Term a
+mkHole :: forall a. String -> Location -> Term a
 mkHole name range = Hole name Proxy range
 
 mkDefaultTerm :: forall a. a -> Term a
-mkDefaultTerm a = Term a zero
+mkDefaultTerm a = Term a NoLocation
 
 class HasMarloweHoles a where
   getHoles :: a -> Holes -> Holes
@@ -362,14 +400,14 @@ instance termFromTerm :: FromTerm a b => FromTerm (Term a) b where
   fromTerm (Term a _) = fromTerm a
   fromTerm _ = Nothing
 
-getRange :: forall a. Term a -> Range
-getRange (Term _ range) = range
+getLocation :: forall a. Term a -> Location
+getLocation (Term _ location) = location
 
-getRange (Hole _ _ range) = range
+getLocation (Hole _ _ location) = location
 
 -- A TermWrapper is like a Term but doesn't have a Hole constructor
 data TermWrapper a
-  = TermWrapper a Range
+  = TermWrapper a Location
 
 derive instance genericTermWrapper :: Generic a r => Generic (TermWrapper a) _
 
@@ -396,7 +434,7 @@ instance termWrapperHasContractData :: HasContractData a => HasContractData (Ter
   gatherContractData (TermWrapper a _) s = gatherContractData a s
 
 mkDefaultTermWrapper :: forall a. a -> TermWrapper a
-mkDefaultTermWrapper a = TermWrapper a zero
+mkDefaultTermWrapper a = TermWrapper a NoLocation
 
 -- special case
 instance fromTermRational :: FromTerm Rational Rational where
@@ -407,7 +445,7 @@ newtype MarloweHole
   = MarloweHole
   { name :: String
   , marloweType :: MarloweType
-  , range :: Range
+  , location :: Location
   }
 
 derive instance genericMarloweHole :: Generic MarloweHole _
@@ -415,61 +453,10 @@ derive instance genericMarloweHole :: Generic MarloweHole _
 derive instance eqMarloweHole :: Eq MarloweHole
 
 instance ordMarloweHole :: Ord MarloweHole where
-  compare (MarloweHole { range: a }) (MarloweHole { range: b }) = compareRange a b
-
-instance showMarloweHole :: Show MarloweHole where
-  show = genericShow
-
-derive newtype instance encodeMarloweHole :: Encode MarloweHole
-
-derive newtype instance decodeMarloweHole :: Decode MarloweHole
+  compare (MarloweHole { location: a }) (MarloweHole { location: b }) = compareLocation a b
 
 class IsMarloweType a where
   marloweType :: Proxy a -> MarloweType
-
-marloweHoleToSuggestionText :: Boolean -> MarloweHole -> String -> String
-marloweHoleToSuggestionText stripParens firstHole@(MarloweHole { marloweType }) constructorName =
-  let
-    m = getMarloweConstructors marloweType
-
-    fullInsertText = constructMarloweType constructorName firstHole m
-  in
-    if stripParens then
-      Text.stripParens fullInsertText
-    else
-      fullInsertText
-
-marloweHoleToSuggestion :: String -> Boolean -> IRange -> MarloweHole -> String -> CompletionItem
-marloweHoleToSuggestion original stripParens range marloweHole@(MarloweHole { marloweType }) constructorName =
-  let
-    kind = completionItemKind "Constructor"
-
-    insertText = marloweHoleToSuggestionText stripParens marloweHole constructorName
-
-    preselect = contains (Pattern original) constructorName
-
-    -- Weirdly, the item that has sortText equal to the word you typed is shown at the _bottom_ of the list so
-    -- since we want it to be at the top (so if you typed `W` you would have `When` at the top) we make sure it
-    -- is the _only_ one that doesn't have the 'correct' sortText.
-    -- The weirdest thing happens here, if you use mempty instead of "*" then Debug.trace shows constructorName
-    -- and this causes the ordering in Monaco not to work, it's crazy that Debug.trace seems to display the wrong thing
-    sortText = if preselect then "*" else original
-  in
-    { label: constructorName
-    , kind
-    , range
-    , insertText
-    , filterText: original
-    , sortText
-    , preselect
-    }
-
-holeSuggestions :: String -> Boolean -> IRange -> MarloweHole -> Array CompletionItem
-holeSuggestions original stripParens range marloweHole@(MarloweHole { name, marloweType }) =
-  let
-    marloweHoles = getMarloweConstructors marloweType
-  in
-    map (marloweHoleToSuggestion original stripParens range marloweHole) $ Set.toUnfoldable $ Map.keys marloweHoles
 
 -- a Monoid for collecting Holes
 newtype Holes
@@ -483,18 +470,10 @@ derive newtype instance eqHoles :: Eq Holes
 
 derive newtype instance ordHoles :: Ord Holes
 
-derive newtype instance showHoles :: Show Holes
-
 instance semigroupHoles :: Semigroup Holes where
   append (Holes a) (Holes b) = Holes (Map.unionWith append a b)
 
 derive newtype instance monoidHoles :: Monoid Holes
-
-instance encodeHoles :: Encode Holes where
-  encode (Holes ps) = encode ps
-
-instance decodeHoles :: Decode Holes where
-  decode f = Holes <$> decode f
 
 isEmpty :: Holes -> Boolean
 isEmpty = Map.isEmpty <<< unwrap
@@ -502,9 +481,9 @@ isEmpty = Map.isEmpty <<< unwrap
 insertHole :: forall a. IsMarloweType a => Term a -> Holes -> Holes
 insertHole (Term _ _) m = m
 
-insertHole (Hole name proxy range) (Holes m) = Holes $ Map.alter f name m
+insertHole (Hole name proxy location) (Holes m) = Holes $ Map.alter f name m
   where
-  marloweHole = MarloweHole { name, marloweType: (marloweType proxy), range }
+  marloweHole = MarloweHole { name, marloweType: (marloweType proxy), location }
 
   f v = Just (Set.insert marloweHole $ fromMaybe mempty v)
 

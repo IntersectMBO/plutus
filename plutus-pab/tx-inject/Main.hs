@@ -72,7 +72,7 @@ data AppEnv = AppEnv
 initialUtxoIndex :: UtxoIndex
 initialUtxoIndex =
   let initialTxs =
-        view (chainState . txPool)$
+        view (chainState . txPool) $
         emulatorStateInitialDist $
         Map.mapKeys walletPubKey defaultDist
   in insertBlock initialTxs (UtxoIndex Map.empty)

@@ -20,7 +20,7 @@ import Halogen as H
 import Halogen.BlocklyCommons (blocklyEvents, runWithoutEventSubscription, detectCodeChanges)
 import Halogen.HTML (HTML)
 import Marlowe.Blockly (buildBlocks, buildGenerator)
-import Marlowe.Holes (Term(..))
+import Marlowe.Holes (Term(..), Location(..))
 import Marlowe.Parser as Parser
 import Prim.TypeError (class Warn, Text)
 import Text.Extra as Text
@@ -63,7 +63,7 @@ handleQuery (SetCode code next) = do
     let
       contract =
         either
-          (const $ Hole blocklyState.rootBlockName Proxy zero)
+          (const $ Hole blocklyState.rootBlockName Proxy NoLocation)
           identity
           $ Parser.parseContract (Text.stripParens code)
     -- Create the blocks temporarily disabling the blockly events until they settle

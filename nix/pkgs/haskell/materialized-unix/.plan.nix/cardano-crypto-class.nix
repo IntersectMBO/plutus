@@ -33,6 +33,7 @@
     components = {
       "library" = {
         depends = [
+          (hsPkgs."aeson" or (errorHandler.buildDepError "aeson"))
           (hsPkgs."base" or (errorHandler.buildDepError "base"))
           (hsPkgs."base16-bytestring" or (errorHandler.buildDepError "base16-bytestring"))
           (hsPkgs."bytestring" or (errorHandler.buildDepError "bytestring"))
@@ -40,8 +41,17 @@
           (hsPkgs."cardano-prelude" or (errorHandler.buildDepError "cardano-prelude"))
           (hsPkgs."cryptonite" or (errorHandler.buildDepError "cryptonite"))
           (hsPkgs."deepseq" or (errorHandler.buildDepError "deepseq"))
+          (hsPkgs."integer-gmp" or (errorHandler.buildDepError "integer-gmp"))
+          (hsPkgs."ghc-prim" or (errorHandler.buildDepError "ghc-prim"))
           (hsPkgs."memory" or (errorHandler.buildDepError "memory"))
+          (hsPkgs."nothunks" or (errorHandler.buildDepError "nothunks"))
+          (hsPkgs."primitive" or (errorHandler.buildDepError "primitive"))
+          (hsPkgs."text" or (errorHandler.buildDepError "text"))
+          (hsPkgs."transformers" or (errorHandler.buildDepError "transformers"))
           (hsPkgs."vector" or (errorHandler.buildDepError "vector"))
+          ];
+        pkgconfig = [
+          (pkgconfPkgs."libsodium" or (errorHandler.pkgConfDepError "libsodium"))
           ];
         buildable = true;
         modules = [
@@ -54,50 +64,52 @@
           "Cardano/Crypto/DSIGN/Ed448"
           "Cardano/Crypto/DSIGN/Mock"
           "Cardano/Crypto/DSIGN/NeverUsed"
-          "Cardano/Crypto/DSIGN/RSAPSS"
           "Cardano/Crypto/Hash/Blake2b"
           "Cardano/Crypto/Hash/Class"
           "Cardano/Crypto/Hash/MD5"
           "Cardano/Crypto/Hash/NeverUsed"
           "Cardano/Crypto/Hash/SHA256"
+          "Cardano/Crypto/Hash/SHA3_256"
           "Cardano/Crypto/Hash/Short"
           "Cardano/Crypto/KES/Class"
           "Cardano/Crypto/KES/Mock"
           "Cardano/Crypto/KES/NeverUsed"
           "Cardano/Crypto/KES/Simple"
+          "Cardano/Crypto/KES/Single"
+          "Cardano/Crypto/KES/Sum"
+          "Cardano/Crypto/PinnedSizedBytes"
+          "Cardano/Crypto/Seed"
           "Cardano/Crypto/Util"
           "Cardano/Crypto/VRF/Class"
           "Cardano/Crypto/VRF/Mock"
           "Cardano/Crypto/VRF/NeverUsed"
           "Cardano/Crypto/VRF/Simple"
+          "Cardano/Crypto/Libsodium"
+          "Cardano/Crypto/Libsodium/C"
+          "Cardano/Crypto/Libsodium/Constants"
+          "Cardano/Crypto/Libsodium/DSIGN"
+          "Cardano/Crypto/Libsodium/Hash"
+          "Cardano/Crypto/Libsodium/Init"
+          "Cardano/Crypto/Libsodium/Memory"
+          "Cardano/Crypto/Libsodium/Memory/Internal"
+          "Cardano/Crypto/Libsodium/MLockedBytes"
+          "Cardano/Crypto/Libsodium/MLockedBytes/Internal"
+          "Cardano/Crypto/Libsodium/UnsafeC"
+          "Cardano/Foreign"
           ];
         hsSourceDirs = [ "src" ];
         };
       tests = {
-        "test-crypto" = {
+        "test-memory-example" = {
           depends = [
             (hsPkgs."base" or (errorHandler.buildDepError "base"))
             (hsPkgs."bytestring" or (errorHandler.buildDepError "bytestring"))
-            (hsPkgs."cardano-binary" or (errorHandler.buildDepError "cardano-binary"))
             (hsPkgs."cardano-crypto-class" or (errorHandler.buildDepError "cardano-crypto-class"))
-            (hsPkgs."cborg" or (errorHandler.buildDepError "cborg"))
-            (hsPkgs."cryptonite" or (errorHandler.buildDepError "cryptonite"))
-            (hsPkgs."QuickCheck" or (errorHandler.buildDepError "QuickCheck"))
-            (hsPkgs."tasty" or (errorHandler.buildDepError "tasty"))
-            (hsPkgs."tasty-quickcheck" or (errorHandler.buildDepError "tasty-quickcheck"))
-            ];
+            ] ++ (pkgs.lib).optional (system.isLinux || system.isOsx) (hsPkgs."unix" or (errorHandler.buildDepError "unix"));
           buildable = true;
-          modules = [
-            "Test/Crypto/DSIGN"
-            "Test/Crypto/Hash"
-            "Test/Crypto/KES"
-            "Test/Crypto/Orphans/Arbitrary"
-            "Test/Crypto/Util"
-            "Test/Crypto/VRF"
-            ];
-          hsSourceDirs = [ "test" ];
+          hsSourceDirs = [ "memory-example" ];
           mainPath = [ "Main.hs" ];
           };
         };
       };
-    } // rec { src = (pkgs.lib).mkDefault .././.source-repository-packages/6; }
+    } // rec { src = (pkgs.lib).mkDefault .././.source-repository-packages/7; }

@@ -20,6 +20,8 @@ module Plutus.Trace.Emulator.Types(
     , EmulatorThreads(..)
     , instanceIdThreads
     , EmulatorAgentThreadEffs
+    , EmulatedWalletEffects
+    , EmulatedWalletEffects'
     , ContractInstanceTag(..)
     , walletInstanceTag
     , ContractHandle(..)
@@ -52,7 +54,8 @@ module Plutus.Trace.Emulator.Types(
 
 import           Control.Lens
 import           Control.Monad.Freer.Coroutine
-import           Control.Monad.Freer.Log            (LogMsg)
+import           Control.Monad.Freer.Error
+import           Control.Monad.Freer.Log            (LogMessage, LogMsg, LogObserve)
 import           Control.Monad.Freer.Reader         (Reader)
 import           Data.Aeson                         (FromJSON, ToJSON)
 import qualified Data.Aeson                         as JSON
@@ -61,6 +64,7 @@ import qualified Data.Row.Internal                  as V
 import           Data.Sequence                      (Seq)
 import           Data.String                        (IsString (..))
 import           Data.Text                          (Text)
+import qualified Data.Text                          as T
 import           Data.Text.Prettyprint.Doc          (Pretty (..), braces, colon, fillSep, hang, parens, viaShow, vsep,
                                                      (<+>))
 import           GHC.Generics                       (Generic)
@@ -72,7 +76,10 @@ import           Language.Plutus.Contract.Types     (ResumableResult (..), Suspe
 import qualified Language.Plutus.Contract.Types     as Contract.Types
 import           Ledger.Slot                        (Slot (..))
 import           Ledger.Tx                          (Tx)
-import           Plutus.Trace.Scheduler             (SystemCall, ThreadId)
+import           Plutus.Trace.Scheduler             (AgentSystemCall, ThreadId)
+import qualified Wallet.API                         as WAPI
+import qualified Wallet.Effects                     as Wallet
+import           Wallet.Emulator.LogMessages        (RequestHandlerLogMsg, TxBalanceMsg)
 import           Wallet.Emulator.Wallet             (Wallet (..))
 import           Wallet.Types                       (ContractInstanceId, EndpointDescription, Notification (..),
                                                      NotificationError)
@@ -104,13 +111,34 @@ newtype EmulatorThreads =
 
 makeLenses ''EmulatorThreads
 
--- | Effects available to emulator agent threads.
+-- | Effects that are used to handle requests by contract instances.
+--   In the emulator these effects are handled by 'Wallet.Emulator.MultiAgent'.
+--   In the PAB they are handled by the actual wallet/node/chain index,
+--   mediated by the PAB runtime.
+type EmulatedWalletEffects' effs =
+        Wallet.WalletEffect
+        ': Error WAPI.WalletAPIError
+        ': Wallet.NodeClientEffect
+        ': Wallet.ChainIndexEffect
+        ': Wallet.SigningProcessEffect
+        ': LogObserve (LogMessage T.Text)
+        ': LogMsg RequestHandlerLogMsg
+        ': LogMsg TxBalanceMsg
+        ': LogMsg T.Text
+        ': effs
+
+type EmulatedWalletEffects = EmulatedWalletEffects' '[]
+
+-- | Effects available to emulator agent threads. Includes emulated wallet
+--   effects and effects related to threading / waiting for messages.
 type EmulatorAgentThreadEffs effs =
     LogMsg ContractInstanceLog
-    ': Reader Wallet
-    ': Reader ThreadId
-    ': Yield (SystemCall effs EmulatorMessage) (Maybe EmulatorMessage)
-    ': effs
+
+    ': EmulatedWalletEffects' (
+        Yield (AgentSystemCall EmulatorMessage) (Maybe EmulatorMessage)
+        ': Reader ThreadId
+        ': effs
+        )
 
 data Emulator
 

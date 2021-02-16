@@ -69,6 +69,7 @@ library
         Cardano.SigningProcess.API
         Cardano.SigningProcess.Server
         Cardano.SigningProcess.Client
+        Cardano.SigningProcess.Types
         Cardano.Wallet.API
         Cardano.Wallet.Client
         Cardano.Wallet.Mock
@@ -157,6 +158,7 @@ library
         network -any,
         network-mux -any,
         newtype-generics -any,
+        nothunks -any,
         optparse-applicative -any,
         ouroboros-network -any,
         ouroboros-network-framework -any,

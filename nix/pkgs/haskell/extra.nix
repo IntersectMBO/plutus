@@ -18,7 +18,7 @@
   Agda = haskell-nix.hackage-package {
     name = "Agda";
     version = "2.6.1.1";
-    plan-sha256 = "0dywr1n68gvb0sbrqm5ahp8lkckminqdxsdcybjnjr8vc82sc08c";
+    plan-sha256 = "1lz6l4l1g64pjjrnr84cf86kynnar0xmc354ngw6v7sbrdwm3zhy";
     # Should use the index-state from the target cabal.project, but that disables plan-sha256. Fixed
     # in recent haskell.nix, delete the index-state passing when we update.
     inherit compiler-nix-name index-state checkMaterialization;
@@ -55,21 +55,21 @@
     version = "3.2.0.0";
     inherit compiler-nix-name index-state checkMaterialization;
     # Invalidate and update if you change the version or index-state
-    plan-sha256 = "0m1h3hp95cflj28vhxyl1hl7k3frhx8f1mbkc8ry2dms603w2nrw";
+    plan-sha256 = "0cj394bl1n0cacfpxp49gkz80wg61zqx9vn0f5838zny3782kg9m";
   };
   stylish-haskell = haskell-nix.hackage-package {
     name = "stylish-haskell";
     version = "0.12.2.0";
     inherit compiler-nix-name index-state checkMaterialization;
     # Invalidate and update if you change the version or index-state
-    plan-sha256 = "0dl37v5sfs9gl46cxiaw04p3h5ny2pmqfy8jrpwr5xca8kxihc8h";
+    plan-sha256 = "0hjdjqkpkdnm9lnk6g1f3l5y2d5jxv8yyqf7xd0w73sp6ngy39n5";
   };
   hlint = haskell-nix.hackage-package {
     name = "hlint";
     version = "3.2.1";
     inherit compiler-nix-name index-state checkMaterialization;
     # Invalidate and update if you change the version or index-state
-    plan-sha256 = "0q2ymsp4j3gi6ahaj6gynq1hkw418qwk2qyyarvbk4x9xskkz9fh";
+    plan-sha256 = "1jmv8kswc01snylrfjc30iim0g6xcfg78v59gxir5l97p7z8qh9z";
     modules = [{ reinstallableLibGhc = false; }];
   };
 }

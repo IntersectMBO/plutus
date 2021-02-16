@@ -110,6 +110,8 @@ The link:./doc[doc] folder contains the documentation site.
 
 To build a full HTML version of the site that you can view locally, build the `docs.site` attribute xref:building-with-nix[using Nix].
 
+The online version of the tutorial can be found https://docs.cardano.org/projects/plutus/en/latest/index.html[here]
+
 === How to learn about the terminology we use
 
 There is a comprehensive glossary in link:GLOSSARY{outfilesuffix}[GLOSSARY].

@@ -62,6 +62,7 @@ executable marlowe-dashboard-server
         monad-logger -any,
         mtl -any,
         playground-common -any,
+        plutus-ledger-api -any,
         prometheus >=2,
         purescript-bridge -any,
         optparse-applicative -any,

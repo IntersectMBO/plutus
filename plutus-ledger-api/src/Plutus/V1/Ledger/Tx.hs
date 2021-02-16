@@ -445,11 +445,11 @@ addSignature privK tx = tx & signatures . at pubK ?~ sig where
     sig = signTx (txId tx) privK
     pubK = toPublicKey privK
 
-PlutusTx.makeIsData ''TxOut
+PlutusTx.makeIsDataIndexed ''TxOut [('TxOut,0)]
 PlutusTx.makeLift ''TxOut
 
 PlutusTx.makeIsDataIndexed ''TxOutType [('PayToScript, 0), ('PayToPubKey , 1)]
 PlutusTx.makeLift ''TxOutType
 
-PlutusTx.makeIsData ''TxOutRef
+PlutusTx.makeIsDataIndexed ''TxOutRef [('TxOutRef,0)]
 PlutusTx.makeLift ''TxOutRef

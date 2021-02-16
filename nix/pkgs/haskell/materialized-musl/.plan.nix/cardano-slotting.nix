@@ -33,21 +33,20 @@
     components = {
       "library" = {
         depends = [
+          (hsPkgs."aeson" or (errorHandler.buildDepError "aeson"))
           (hsPkgs."base" or (errorHandler.buildDepError "base"))
-          (hsPkgs."cardano-prelude" or (errorHandler.buildDepError "cardano-prelude"))
           (hsPkgs."cardano-binary" or (errorHandler.buildDepError "cardano-binary"))
           (hsPkgs."cborg" or (errorHandler.buildDepError "cborg"))
-          (hsPkgs."containers" or (errorHandler.buildDepError "containers"))
+          (hsPkgs."deepseq" or (errorHandler.buildDepError "deepseq"))
           (hsPkgs."mmorph" or (errorHandler.buildDepError "mmorph"))
-          (hsPkgs."mtl" or (errorHandler.buildDepError "mtl"))
+          (hsPkgs."nothunks" or (errorHandler.buildDepError "nothunks"))
           (hsPkgs."serialise" or (errorHandler.buildDepError "serialise"))
-          (hsPkgs."transformers" or (errorHandler.buildDepError "transformers"))
+          (hsPkgs."quiet" or (errorHandler.buildDepError "quiet"))
           ];
         buildable = true;
         modules = [
           "Cardano/Slotting/Block"
           "Cardano/Slotting/Slot"
-          "Cardano/Slotting/SlotBounded"
           "Cardano/Slotting/EpochInfo"
           "Cardano/Slotting/EpochInfo/API"
           "Cardano/Slotting/EpochInfo/Impl"
@@ -55,4 +54,4 @@
         hsSourceDirs = [ "src" ];
         };
       };
-    } // rec { src = (pkgs.lib).mkDefault .././.source-repository-packages/5; }
+    } // rec { src = (pkgs.lib).mkDefault .././.source-repository-packages/6; }

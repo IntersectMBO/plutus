@@ -171,6 +171,8 @@ withE f (inj₂ c) = inj₂ c
 
 data RuntimeError : Set where
   gasError : RuntimeError
+  userError : RuntimeError
+  runtimeTypeError : RuntimeError
 
-{-# COMPILE GHC RuntimeError = data RuntimeError (GasError) #-}
+{-# COMPILE GHC RuntimeError = data RuntimeError (GasError | UserError | RuntimeTypeError) #-}
 \end{code}

@@ -214,9 +214,9 @@ lock = do
     _ <- mapError GameSMError $ SM.runInitialise client (Initialised sym "guess" secret) lockArgsValue
     void $ mapError GameSMError $ SM.runStep client ForgeToken
 
-PlutusTx.makeIsData ''GameState
+PlutusTx.unstableMakeIsData ''GameState
 PlutusTx.makeLift ''GameState
-PlutusTx.makeIsData ''GameInput
+PlutusTx.unstableMakeIsData ''GameInput
 PlutusTx.makeLift ''GameInput
 PlutusTx.makeLift ''GameToken
-PlutusTx.makeIsData ''GameToken
+PlutusTx.unstableMakeIsData ''GameToken

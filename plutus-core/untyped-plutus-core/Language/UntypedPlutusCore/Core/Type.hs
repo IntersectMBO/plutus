@@ -12,6 +12,7 @@ module Language.UntypedPlutusCore.Core.Type
     , Term (..)
     , Program (..)
     , toTerm
+    , bindFunM
     , bindFun
     , mapFun
     , termAnn
@@ -19,6 +20,7 @@ module Language.UntypedPlutusCore.Core.Type
     , eraseProgram
     ) where
 
+import           Data.Functor.Identity
 import           PlutusPrelude
 
 import qualified Language.PlutusCore.Constant                       as TPLC
@@ -108,19 +110,26 @@ termAnn (Delay ann _)    = ann
 termAnn (Force ann _)    = ann
 termAnn (Error ann)      = ann
 
+bindFunM
+    :: Monad m
+    => (ann -> fun -> m (Term name uni fun' ann))
+    -> Term name uni fun ann
+    -> m (Term name uni fun' ann)
+bindFunM f = go where
+    go (Constant ann val)     = pure $ Constant ann val
+    go (Builtin ann fun)      = f ann fun
+    go (Var ann name)         = pure $ Var ann name
+    go (LamAbs ann name body) = LamAbs ann name <$> go body
+    go (Apply ann fun arg)    = Apply ann <$> go fun <*> go arg
+    go (Delay ann term)       = Delay ann <$> go term
+    go (Force ann term)       = Force ann <$> go term
+    go (Error ann)            = pure $ Error ann
+
 bindFun
     :: (ann -> fun -> Term name uni fun' ann)
     -> Term name uni fun ann
     -> Term name uni fun' ann
-bindFun f = go where
-    go (Constant ann val)     = Constant ann val
-    go (Builtin ann fun)      = f ann fun
-    go (Var ann name)         = Var ann name
-    go (LamAbs ann name body) = LamAbs ann name $ go body
-    go (Apply ann fun arg)    = Apply ann (go fun) (go arg)
-    go (Delay ann term)       = Delay ann $ go term
-    go (Force ann term)       = Force ann $ go term
-    go (Error ann)            = Error ann
+bindFun f = runIdentity . bindFunM (coerce f)
 
 mapFun :: (ann -> fun -> fun') -> Term name uni fun ann -> Term name uni fun' ann
 mapFun f = bindFun $ \ann fun -> Builtin ann (f ann fun)
