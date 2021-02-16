@@ -4,6 +4,7 @@ import Prelude
 import Analytics (class IsEvent, Event)
 import Analytics as A
 import BottomPanel.Types as BottomPanel
+import Data.BigInteger (BigInteger)
 import Data.Either (Either(..))
 import Data.Generic.Rep (class Generic)
 import Data.Generic.Rep.Show (genericShow)
@@ -14,6 +15,7 @@ import Data.Symbol (SProxy(..))
 import Halogen.Monaco (KeyBindings(..))
 import Halogen.Monaco as Monaco
 import Language.Haskell.Interpreter (InterpreterError, InterpreterResult, _InterpreterResult)
+import Marlowe.Extended (IntegerTemplateType)
 import Marlowe.Parser (parseContract)
 import Network.RemoteData (RemoteData(..), _Loading, _Success)
 import StaticAnalysis.Types (AnalysisExecutionState(..), AnalysisState)
@@ -28,6 +30,7 @@ data Action
   | BottomPanelAction (BottomPanel.Action BottomPanelView Action)
   | SendResultToSimulator
   | InitHaskellProject String
+  | SetIntegerTemplateParam IntegerTemplateType String BigInteger
   | AnalyseContract
   | AnalyseReachabilityContract
   | AnalyseContractForCloseRefund
@@ -43,6 +46,7 @@ instance actionIsEvent :: IsEvent Action where
   toEvent (BottomPanelAction action) = A.toEvent action
   toEvent SendResultToSimulator = Just $ defaultEvent "SendResultToSimulator"
   toEvent (InitHaskellProject _) = Just $ defaultEvent "InitHaskellProject"
+  toEvent (SetIntegerTemplateParam _ _ _) = Just $ defaultEvent "SetIntegerTemplateParam"
   toEvent AnalyseContract = Just $ defaultEvent "AnalyseContract"
   toEvent AnalyseReachabilityContract = Just $ defaultEvent "AnalyseReachabilityContract"
   toEvent AnalyseContractForCloseRefund = Just $ defaultEvent "AnalyseContractForCloseRefund"

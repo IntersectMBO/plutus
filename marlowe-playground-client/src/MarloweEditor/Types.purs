@@ -6,6 +6,7 @@ import Analytics as A
 import BottomPanel.Types as BottomPanel
 import Data.Array (filter)
 import Data.Array as Array
+import Data.BigInteger (BigInteger)
 import Data.Generic.Rep (class Generic)
 import Data.Generic.Rep.Show (genericShow)
 import Data.Lens (Lens', to, view, (^.))
@@ -15,6 +16,7 @@ import Data.String (Pattern(..), contains)
 import Data.Symbol (SProxy(..))
 import Halogen.Monaco (KeyBindings(..))
 import Halogen.Monaco as Monaco
+import Marlowe.Extended (IntegerTemplateType)
 import Monaco (IMarker)
 import StaticAnalysis.Types (AnalysisExecutionState(..), AnalysisState)
 import Text.Parsing.StringParser (Pos)
@@ -35,6 +37,7 @@ data Action
   | ViewAsBlockly
   | InitMarloweProject String
   | SelectHole (Maybe String)
+  | SetIntegerTemplateParam IntegerTemplateType String BigInteger
   | AnalyseContract
   | AnalyseReachabilityContract
   | AnalyseContractForCloseRefund
@@ -58,6 +61,7 @@ instance actionIsEvent :: IsEvent Action where
   toEvent ViewAsBlockly = Just $ defaultEvent "ViewAsBlockly"
   toEvent (InitMarloweProject _) = Just $ defaultEvent "InitMarloweProject"
   toEvent (SelectHole _) = Just $ defaultEvent "SelectHole"
+  toEvent (SetIntegerTemplateParam _ _ _) = Just $ defaultEvent "SetIntegerTemplateParam"
   toEvent AnalyseContract = Just $ defaultEvent "AnalyseContract"
   toEvent AnalyseReachabilityContract = Just $ defaultEvent "AnalyseReachabilityContract"
   toEvent AnalyseContractForCloseRefund = Just $ defaultEvent "AnalyseContractForCloseRefund"

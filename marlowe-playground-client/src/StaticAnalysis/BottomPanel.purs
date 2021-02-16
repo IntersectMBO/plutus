@@ -4,22 +4,26 @@ module StaticAnalysis.BottomPanel
   ) where
 
 import Prelude hiding (div)
+import Data.BigInteger (BigInteger)
 import Data.Foldable (foldMap)
 import Data.Lens ((^.))
 import Data.List (List, null, toUnfoldable)
 import Data.List as List
 import Data.List.NonEmpty (toList)
 import Data.Maybe (Maybe(..))
+import Data.Newtype (unwrap)
 import Halogen.Classes (spaceBottom, spaceRight, spaceTop, spanText)
 import Halogen.HTML (ClassName(..), HTML, b_, br_, button, div, h2, h3, li_, ol, span_, text, ul)
 import Halogen.HTML.Events (onClick)
-import Halogen.HTML.Properties (classes, enabled)
+import Halogen.HTML.Properties (class_, classes, enabled)
+import Marlowe.Extended (IntegerTemplateType(..))
 import Marlowe.Semantics (ChoiceId(..), Input(..), Payee(..), Slot(..), SlotInterval(..), TransactionInput(..), TransactionWarning(..))
 import Marlowe.Symbolic.Types.Response as R
 import Network.RemoteData (RemoteData(..))
 import Pretty (showPrettyToken)
 import Servant.PureScript.Ajax (AjaxError(..), ErrorDescription(..))
-import StaticAnalysis.Types (AnalysisExecutionState(..), AnalysisState, MultiStageAnalysisData(..), _analysisExecutionState, _analysisState)
+import SimulationPage.View (integerTemplateParameters)
+import StaticAnalysis.Types (AnalysisExecutionState(..), AnalysisState, MultiStageAnalysisData(..), _analysisExecutionState, _analysisState, _templateContent)
 import Types (WarningAnalysisError(..))
 
 analyzeButton ::
@@ -32,9 +36,11 @@ analyzeButton isLoading isEnabled name action =
     ]
     [ text (if isLoading then "Analysing..." else name) ]
 
-analysisResultPane :: forall action p state. { analysisState :: AnalysisState | state } -> HTML p action
-analysisResultPane state =
+analysisResultPane :: forall action p state. (IntegerTemplateType -> String -> BigInteger -> action) -> { analysisState :: AnalysisState | state } -> HTML p action
+analysisResultPane actionGen state =
   let
+    templateContent = state ^. (_analysisState <<< _templateContent)
+
     result = state ^. (_analysisState <<< _analysisExecutionState)
 
     explanation = div [ classes [ ClassName "padded-explanation" ] ]
@@ -43,6 +49,10 @@ analysisResultPane state =
       NoneAsked ->
         explanation
           [ text ""
+          , ul [ class_ (ClassName "templates") ]
+              ( integerTemplateParameters actionGen SlotContent "Timeout template parameters" "Slot for" (unwrap templateContent).slotContent
+                  <> integerTemplateParameters actionGen ValueContent "Value template parameters" "Constant for" (unwrap templateContent).valueContent
+              )
           ]
       WarningAnalysis staticSubResult -> case staticSubResult of
         NotAsked ->

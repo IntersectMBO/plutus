@@ -15,7 +15,8 @@ import Control.Monad.Reader (class MonadAsk, asks, runReaderT)
 import Data.Array (catMaybes)
 import Data.Either (Either(..), hush)
 import Data.Foldable (for_)
-import Data.Lens (assign, use)
+import Data.Lens (assign, modifying, use)
+import Data.Map as Map
 import Data.Maybe (Maybe(..), fromMaybe)
 import Data.String as String
 import Effect.Aff.Class (class MonadAff)
@@ -30,7 +31,7 @@ import Language.Haskell.Monaco as HM
 import LocalStorage as LocalStorage
 import MainFrame.Types (ChildSlots, _haskellEditorSlot)
 import Marlowe (postRunghc)
-import Marlowe.Extended (Contract)
+import Marlowe.Extended (Contract, typeToLens)
 import Marlowe.Holes (fromTerm)
 import Marlowe.Parser (parseContract)
 import Monaco (IMarkerData, markerSeverity)
@@ -39,7 +40,7 @@ import Network.RemoteData as RemoteData
 import Servant.PureScript.Ajax (AjaxError)
 import StaticAnalysis.Reachability (analyseReachability)
 import StaticAnalysis.StaticTools (analyseContract)
-import StaticAnalysis.Types (AnalysisExecutionState(..), MultiStageAnalysisData(..), _analysisExecutionState, _analysisState)
+import StaticAnalysis.Types (AnalysisExecutionState(..), MultiStageAnalysisData(..), _analysisExecutionState, _analysisState, _templateContent)
 import StaticData (haskellBufferLocalStorageKey)
 import Types (WebData)
 import Webghc.Server (CompileRequest(..))
@@ -100,6 +101,9 @@ handleAction SendResultToSimulator = pure unit
 handleAction (InitHaskellProject contents) = do
   editorSetValue contents
   liftEffect $ LocalStorage.setItem haskellBufferLocalStorageKey contents
+
+handleAction (SetIntegerTemplateParam templateType key value) = do
+  modifying (_analysisState <<< _templateContent <<< typeToLens templateType) (Map.insert key value)
 
 handleAction AnalyseContract = compileAndAnalyze (WarningAnalysis Loading) $ analyseContract
 

@@ -18,6 +18,7 @@ import Data.Either (Either(..), hush)
 import Data.Foldable (for_, traverse_)
 import Data.Lens (assign, modifying, preview, set, use)
 import Data.Lens.Index (ix)
+import Data.Map as Map
 import Data.Maybe (Maybe(..), fromMaybe)
 import Data.String (codePointFromChar)
 import Data.String as String
@@ -31,7 +32,7 @@ import Halogen.Extra (mapSubmodule)
 import Halogen.Monaco (Message(..), Query(..)) as Monaco
 import LocalStorage as LocalStorage
 import MainFrame.Types (ChildSlots, _marloweEditorPageSlot)
-import Marlowe.Extended (Contract, getPlaceholderIds, updateTemplateContent)
+import Marlowe.Extended (Contract, getPlaceholderIds, typeToLens, updateTemplateContent)
 import Marlowe.Holes (fromTerm)
 import Marlowe.LinterText as Linter
 import Marlowe.Monaco (updateAdditionalContext)
@@ -115,6 +116,9 @@ handleAction (InitMarloweProject contents) = do
   liftEffect $ LocalStorage.setItem marloweBufferLocalStorageKey contents
 
 handleAction (SelectHole hole) = assign _selectedHole hole
+
+handleAction (SetIntegerTemplateParam templateType key value) = do
+  modifying (_analysisState <<< _templateContent <<< typeToLens templateType) (Map.insert key value)
 
 handleAction AnalyseContract = runAnalysis $ analyseContract
 

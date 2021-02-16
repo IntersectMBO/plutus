@@ -25,7 +25,7 @@ panelContents state StaticAnalysisView =
   section
     [ classes [ ClassName "panel-sub-header", aHorizontal, Classes.panelContents ]
     ]
-    [ analysisResultPane state
+    [ analysisResultPane SetIntegerTemplateParam state
     , analyzeButton loadingWarningAnalysis enabled' "Analyse for warnings" AnalyseContract
     , analyzeButton loadingReachability enabled' "Analyse reachability" AnalyseReachabilityContract
     , analyzeButton loadingCloseAnalysis enabled' "Analyse for refunds on Close" AnalyseContractForCloseRefund

@@ -33,7 +33,7 @@ import Monaco (Editor)
 import Monaco as Monaco
 import Pretty (renderPrettyParty, renderPrettyToken, showPrettyMoney)
 import SimulationPage.BottomPanel (panelContents)
-import SimulationPage.Types (Action(..), ActionInput(..), ActionInputId, BottomPanelView(..), ExecutionState(..), MarloweEvent(..), State, InitialConditionsRecord, _SimulationRunning, _bottomPanelState, _currentContract, _currentMarloweState, _executionState, _log, _marloweState, _possibleActions, _showRightPanel, _slot, _transactionError, _transactionWarnings, otherActionsParty)
+import SimulationPage.Types (Action(..), ActionInput(..), ActionInputId, BottomPanelView(..), ExecutionState(..), InitialConditionsRecord, MarloweEvent(..), State, _SimulationRunning, _bottomPanelState, _currentContract, _currentMarloweState, _executionState, _log, _marloweState, _possibleActions, _showRightPanel, _slot, _transactionError, _transactionWarnings, otherActionsParty)
 import Simulator (hasHistory, inFuture)
 
 render ::
@@ -232,8 +232,8 @@ startSimulationWidget { initialSlot, templateContent } =
             ]
         , div [ classes [] ]
             [ ul [ class_ (ClassName "templates") ]
-                ( integerTemplateParameters SlotContent "Timeout template parameters" "Slot for" (unwrap templateContent).slotContent
-                    <> integerTemplateParameters ValueContent "Value template parameters" "Constant for" (unwrap templateContent).valueContent
+                ( integerTemplateParameters SetIntegerTemplateParam SlotContent "Timeout template parameters" "Slot for" (unwrap templateContent).slotContent
+                    <> integerTemplateParameters SetIntegerTemplateParam ValueContent "Value template parameters" "Constant for" (unwrap templateContent).valueContent
                 )
             ]
         , div [ classes [ ClassName "transaction-btns", flex, justifyCenter ] ]
@@ -245,8 +245,8 @@ startSimulationWidget { initialSlot, templateContent } =
             ]
         ]
 
-integerTemplateParameters :: forall p. IntegerTemplateType -> String -> String -> Map String BigInteger -> Array (HTML p Action)
-integerTemplateParameters typeName title prefix content =
+integerTemplateParameters :: forall action p. (IntegerTemplateType -> String -> BigInteger -> action) -> IntegerTemplateType -> String -> String -> Map String BigInteger -> Array (HTML p action)
+integerTemplateParameters actionGen typeName title prefix content =
   [ li_
       if Map.isEmpty content then
         []
@@ -258,7 +258,7 @@ integerTemplateParameters typeName title prefix content =
                           [ text (prefix <> " ")
                           , strong_ [ text key ]
                           , text ":"
-                          , marloweActionInput (SetIntegerTemplateParam typeName key) value
+                          , marloweActionInput (actionGen typeName key) value
                           ]
                       )
                     )
@@ -467,7 +467,7 @@ inputItem state person (MoveToSlot slot) =
 
   boundsError = "The slot must be more than the current slot " <> (state ^. (_currentMarloweState <<< _executionState <<< _SimulationRunning <<< _slot <<< to show))
 
-marloweActionInput :: forall p a. Show a => (BigInteger -> Action) -> a -> HTML p Action
+marloweActionInput :: forall p a action. Show a => (BigInteger -> action) -> a -> HTML p action
 marloweActionInput f current =
   input
     [ type_ InputNumber
