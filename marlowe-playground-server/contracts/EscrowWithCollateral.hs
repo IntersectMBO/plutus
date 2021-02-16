@@ -16,22 +16,21 @@ main = print . pretty $ contract
 -}
 
 contract :: Contract
-
-
 contract = When [Case (Deposit "bob" "bob" ada bobCollateral) contract]
                 10
                 Close
 
+collateralAlice :: Contract
 collateralAlice = When [Case (Deposit "alice" "alice" ada aliceCollateral) escrow]
                 10
                 Close
 
+escrow :: Contract
 escrow = When [Case (Deposit "alice" "alice" ada price) inner]
                 10
                 Close
 
 inner :: Contract
-
 inner =
   When [ Case aliceChoice
               (When [ Case bobChoice
@@ -45,7 +44,6 @@ inner =
         destroyCollateral
 
 -- The contract to follow when Alice and Bob have made the same choice.
-
 agreement :: Contract
 agreement =
   If
@@ -53,16 +51,12 @@ agreement =
     (Pay "alice" (Party "bob") ada price Close)
     Close
 
--- The contract to follow when Alice and Bob disagree, or if
--- Carol has to intervene after a single choice from Alice or Bob.
-
+-- The contract to follow when Alice and Bob disagree
 destroyCollateral :: Contract
-
 destroyCollateral =
     (Pay "alice" (Party "blackhole") ada aliceCollateral (Pay "bob" (Party "blackhole") ada bobCollateral Close))
 
 -- Names for choices
-
 pay,refund,both :: [Bound]
 
 pay    = [Bound 0 0]
@@ -70,12 +64,10 @@ refund = [Bound 1 1]
 both   = [Bound 0 1]
 
 -- helper function to build Actions
-
 choiceName :: ChoiceName
 choiceName = "choice"
 
 choice :: Party -> [Bound] -> Action
-
 choice party = Choice (ChoiceId choiceName party)
 
 -- Name choices according to person making choice and choice made
@@ -95,7 +87,6 @@ carolRefund = choice "carol" refund
 carolChoice = choice "carol" both
 
 -- the values chosen in choices
-
 aliceChosen, bobChosen :: (Value Observation)
 
 aliceChosen = ChoiceValue (ChoiceId choiceName "alice")
@@ -105,7 +96,6 @@ defValue :: (Value Observation)
 defValue = Constant 42
 
 -- Value under escrow
-
 price :: (Value Observation)
 price = Constant 450
 
