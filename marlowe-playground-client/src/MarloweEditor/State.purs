@@ -16,7 +16,7 @@ import Control.Monad.Reader (class MonadAsk)
 import Data.Array (filter)
 import Data.Either (Either(..), hush)
 import Data.Foldable (for_, traverse_)
-import Data.Lens (assign, preview, set, use)
+import Data.Lens (assign, modifying, preview, set, use)
 import Data.Lens.Index (ix)
 import Data.Maybe (Maybe(..), fromMaybe)
 import Data.String (codePointFromChar)
@@ -31,7 +31,7 @@ import Halogen.Extra (mapSubmodule)
 import Halogen.Monaco (Message(..), Query(..)) as Monaco
 import LocalStorage as LocalStorage
 import MainFrame.Types (ChildSlots, _marloweEditorPageSlot)
-import Marlowe.Extended (Contract)
+import Marlowe.Extended (Contract, getPlaceholderIds, updateTemplateContent)
 import Marlowe.Holes (fromTerm)
 import Marlowe.LinterText as Linter
 import Marlowe.Monaco (updateAdditionalContext)
@@ -43,7 +43,7 @@ import Network.RemoteData as RemoteData
 import Servant.PureScript.Ajax (AjaxError)
 import StaticAnalysis.Reachability (analyseReachability, getUnreachableContracts)
 import StaticAnalysis.StaticTools (analyseContract)
-import StaticAnalysis.Types (_analysisExecutionState, _analysisState)
+import StaticAnalysis.Types (_analysisExecutionState, _analysisState, _templateContent)
 import StaticData (marloweBufferLocalStorageKey)
 import StaticData as StaticData
 import Text.Pretty (pretty)
@@ -157,6 +157,13 @@ lintText text = do
     (Tuple markerData additionalContext) = Linter.markers unreachableContracts parsedContract
   markers <- query _marloweEditorPageSlot unit (Monaco.SetModelMarkers markerData identity)
   traverse_ editorSetMarkers markers
+  for_ parsedContract
+    ( \contractHoles ->
+        for_ ((fromTerm contractHoles) :: Maybe Contract)
+          ( \contract ->
+              modifying (_analysisState <<< _templateContent) $ updateTemplateContent $ getPlaceholderIds contract
+          )
+    ) -- We set the templates here so that we don't have to parse twice
   {-
     There are three different Monaco objects that require the linting information:
       * Markers

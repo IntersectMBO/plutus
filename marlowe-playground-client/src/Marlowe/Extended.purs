@@ -10,7 +10,7 @@ import Data.Lens.Iso.Newtype (_Newtype)
 import Data.Lens.Record (prop)
 import Data.Map (Map)
 import Data.Map as Map
-import Data.Maybe (Maybe(..), maybe)
+import Data.Maybe (Maybe(..), fromMaybe, maybe)
 import Data.Newtype (class Newtype, unwrap)
 import Data.Set (Set)
 import Data.Set as Set
@@ -101,6 +101,9 @@ instance monoidTemplateContent :: Monoid TemplateContent where
       , valueContent: mempty
       }
 
+initialiseWith :: forall a b. Ord a => (a -> b) -> Set a -> Map a b
+initialiseWith f = foldMap (\x -> Map.singleton x $ f x)
+
 initialiseTemplateContent :: Placeholders -> TemplateContent
 initialiseTemplateContent ( Placeholders
     { slotPlaceholderIds, valuePlaceholderIds }
@@ -109,9 +112,14 @@ initialiseTemplateContent ( Placeholders
     { slotContent: initialiseWith (const zero) slotPlaceholderIds
     , valueContent: initialiseWith (const zero) valuePlaceholderIds
     }
-  where
-  initialiseWith :: forall a b. Ord a => (a -> b) -> Set a -> Map a b
-  initialiseWith f = foldMap (\x -> Map.singleton x $ f x)
+
+updateTemplateContent :: Placeholders -> TemplateContent -> TemplateContent
+updateTemplateContent ( Placeholders { slotPlaceholderIds, valuePlaceholderIds }
+) (TemplateContent { slotContent, valueContent }) =
+  TemplateContent
+    { slotContent: initialiseWith (\x -> fromMaybe zero $ Map.lookup x slotContent) slotPlaceholderIds
+    , valueContent: initialiseWith (\x -> fromMaybe zero $ Map.lookup x valueContent) valuePlaceholderIds
+    }
 
 class Template a b where
   getPlaceholderIds :: a -> b
