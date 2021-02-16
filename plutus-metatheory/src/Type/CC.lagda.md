@@ -12,23 +12,12 @@ module Type.CC where
 ```
 open import Type
 open import Type.RenamingSubstitution
-open import Type.Reduction hiding (step)
+open import Type.ReductionC hiding (step)
 
 open import Data.Product
 ```
 
 ```
--- K -- type of the whole thing
--- J -- type of the hole
-data EvalCtx : (K J : Kind) → Set where
-  []   : EvalCtx K K
-  _·r_ : {A : ∅ ⊢⋆ K ⇒ J} → Value⋆ A → EvalCtx K I → EvalCtx J I
-  _l·_ : EvalCtx (K ⇒ J) I → (∅ ⊢⋆ K) → EvalCtx J I
-  _⇒r_     : {A : ∅ ⊢⋆ *} → Value⋆ A → EvalCtx * I → EvalCtx * I
-  _l⇒_     : EvalCtx * I → (∅ ⊢⋆ *) → EvalCtx * I
-  μr     : {A : ∅ ⊢⋆ (K ⇒ *) ⇒ K ⇒ *} → Value⋆ A → EvalCtx K I → EvalCtx * I
-  μl     : EvalCtx ((K ⇒ *) ⇒ K ⇒ *) I →  (B : ∅ ⊢⋆ K) → EvalCtx * I
-
 open import Relation.Binary.PropositionalEquality hiding ([_])
 open import Data.Sum
 
@@ -53,15 +42,6 @@ dissect (μr V E) with dissect E
 dissect (μl E B) with dissect E
 ... | inj₁ refl = inj₂ (-, [] , μ- B)
 ... | inj₂ (_ , E' , f) = inj₂ (-, μl E' B , f)
-
-closeEvalCtx : EvalCtx K J → ∅ ⊢⋆ J → ∅ ⊢⋆ K
-closeEvalCtx []       C = C
-closeEvalCtx (V ·r E) C = discharge V · closeEvalCtx E C
-closeEvalCtx (E l· B) C = closeEvalCtx E C · B
-closeEvalCtx (V ⇒r E) C = discharge V ⇒ closeEvalCtx E C
-closeEvalCtx (E l⇒ B) C = closeEvalCtx E C ⇒ B
-closeEvalCtx (μr V E) C = μ (discharge V) (closeEvalCtx E C)
-closeEvalCtx (μl E B) C = μ (closeEvalCtx E C) B
 
 -- this reaches down inside the evaluation context and changes the
 -- scope of the hole

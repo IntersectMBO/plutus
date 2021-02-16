@@ -12,7 +12,7 @@ module Type.CK where
 ```
 open import Type
 open import Type.RenamingSubstitution
-open import Type.Reduction hiding (step)
+open import Type.ReductionF hiding (step)
 
 open import Data.Product
 ```
@@ -109,4 +109,21 @@ step ((s , (V ⇒-)) ◅ W)             = -, s ◅ (V V-⇒ W)
 step ((s , μ- B) ◅ A)               = -, (s , μ A -) ▻ B
 step ((s , μ A -) ◅ B)              = -, s ◅ V-μ A B
 step (□ V)                          = -, □ V
+```
+
+reflexive transitive closure of step:
+
+```
+variable
+ I' : Kind
+
+open import Relation.Binary.PropositionalEquality
+
+data _-→s_ : State K J → State K I → Set where
+  base  : (s : State K J)
+        → s -→s s
+  step* : (s : State K J)(s' : State K I)(s'' : State K I')
+        → step s ≡ (I , s')
+        → s' -→s s''
+        → s -→s s''
 ```
