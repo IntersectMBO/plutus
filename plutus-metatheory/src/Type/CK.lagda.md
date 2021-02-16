@@ -36,7 +36,6 @@ performs one step of computation, preserves the kind of the overall
 type and the intermediate data structures are indexed by kinds to
 enable this.
 
-
 ## Stack
 
 A stack is a sequence of frames. It allows us to specify a single hole
@@ -86,7 +85,6 @@ closeState (s ▻ A)   = closeStack s A
 closeState (_◅_ s A) = closeStack s (discharge A)
 closeState (□ A)     = discharge A
 ```
-
 
 ## The machine
 

@@ -4,7 +4,7 @@ layout: page
 ---
 
 ```
-module Type.Reduction where
+module Type.ReductionF where
 ```
 
 Right now this file is not used in other things. In the rest of the
@@ -100,6 +100,8 @@ closeFrame (-⇒ B)  A = A ⇒ B
 closeFrame (_⇒- A) B = discharge A ⇒ B
 closeFrame (μ_- A) B = μ (discharge A) B
 closeFrame (μ- B)  A = μ A B
+
+-- this can also be given by an inductive definition
 ```
 
 
@@ -119,7 +121,7 @@ data _—→⋆_ : ∀{J} → (∅ ⊢⋆ J) → (∅ ⊢⋆ J) → Set where
     → B' ≡ closeFrame f A'
       --------------------
     → B —→⋆ B'
-    -- ^ explicit proofs make pattern matching easier
+    -- ^ explicit equality proofs make pattern matching easier and this uglier
 
   β-ƛ : Value⋆ B
         -------------------
