@@ -76,7 +76,6 @@ data State (K : Kind) : Kind → Set where
   _▻_ : Stack K J → ∅ ⊢⋆ J → State K J
   _◅_ : Stack K J → {A : ∅ ⊢⋆ J} → Value⋆ A → State K J
   □   : {A : ∅ ⊢⋆ K} →  Value⋆ A → State K K
-  -- ◆ : ∀ (J : Kind) →  State K J -- impossible in the type language
 ```
 
 Analogously to `Frame` and `Stack` we can also close a `State`:
