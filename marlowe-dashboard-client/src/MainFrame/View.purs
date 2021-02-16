@@ -11,9 +11,10 @@ import Halogen (ComponentHTML)
 import Halogen.HTML (HTML, a, div, footer, h1, header, main, nav, span, text)
 import Halogen.HTML.Events (onClick)
 import Halogen.HTML.Properties (href)
-import MainFrame.Lenses (_card, _insideState, _menuOpen, _newWalletNicknameKey, _outsideCard, _screen, _wallet, _wallets)
-import MainFrame.Types (Action(..), Card(..), ChildSlots, ContractStatus(..), InsideState, OutsideCard(..), Screen(..), State)
+import MainFrame.Lenses (_card, _menuOpen, _newWalletNicknameKey, _screen, _subState, _wallet, _wallets)
+import MainFrame.Types (Action(..), Card(..), ChildSlots, ContractStatus(..), InsideState, OutsideCard(..), OutsideScreen(..), OutsideState, Screen(..), State)
 import Material.Icons as Icon
+import Prim.TypeError (class Warn, Text)
 import Template.View (templateLibraryCard, templateDetailsCard)
 import Wallet.Types (PubKeyHash, WalletNicknameKey, WalletLibrary)
 import Wallet.View (contactDetailsCard, newContactCard, pickupLocalWalletCard, pickupNewWalletCard, pickupWalletScreen, putdownWalletCard, walletLibraryScreen)
@@ -25,13 +26,55 @@ render state =
 
     newWalletNicknameKey = view _newWalletNicknameKey state
   in
-    case view _insideState state of
-      Just insideState -> renderInside wallets newWalletNicknameKey insideState
-      Nothing ->
-        let
-          outsideCard = view _outsideCard state
-        in
-          renderOutside wallets newWalletNicknameKey outsideCard
+    case view _subState state of
+      Left outsideState -> renderOutside wallets newWalletNicknameKey outsideState
+      Right insideState -> renderInside wallets newWalletNicknameKey insideState
+
+------------------------------------------------------------
+renderOutside :: forall p. WalletLibrary -> WalletNicknameKey -> OutsideState -> HTML p Action
+renderOutside wallets newWalletNicknameKey outsideState =
+  let
+    screen = view _screen outsideState
+
+    card = view _card outsideState
+  in
+    div
+      [ classNames [ "grid", "h-full" ] ]
+      [ main
+          [ classNames [ "relative", "bg-lightblue", "text-blue" ] ]
+          [ renderOutsideCard card newWalletNicknameKey wallets
+          , renderOutsideScreen wallets screen
+          ]
+      ]
+
+renderOutsideCard :: forall p. Maybe OutsideCard -> WalletNicknameKey -> WalletLibrary -> HTML p Action
+renderOutsideCard outsideCard newWalletNicknameKey wallets =
+  div
+    [ classNames $ [ "absolute", "top-0", "bottom-0", "left-0", "right-0", "z-10", "flex", "flex-col", "justify-end", "md:justify-center", "bg-transgray" ] <> hideWhen (isNothing outsideCard) ]
+    [ div
+        [ classNames $ [ "shadow-md", "bg-white", "mx-1", "md:mx-auto", "md:w-card" ] <> hideWhen (isNothing outsideCard) ]
+        [ div
+            [ classNames [ "flex", "justify-end" ] ]
+            [ a
+                [ classNames [ "p-0.5", "text-green" ]
+                , onClick $ const $ Just $ SetOutsideCard Nothing
+                ]
+                [ Icon.close ]
+            ]
+        , div
+            [ classNames [ "px-1", "pb-1" ] ] case outsideCard of
+            Just PickupNewWalletCard -> [ pickupNewWalletCard newWalletNicknameKey wallets ]
+            Just (PickupWalletCard walletNicknameKey) -> [ pickupLocalWalletCard walletNicknameKey ]
+            Nothing -> []
+        ]
+    ]
+
+renderOutsideScreen :: forall p. WalletLibrary -> OutsideScreen -> HTML p Action
+renderOutsideScreen wallets screen = case screen of
+  GenerateWalletScreen ->
+    div
+      [ classNames [ "absolute", "top-0", "bottom-0", "left-0", "right-0", "overflow-auto", "z-0" ] ]
+      [ pickupWalletScreen wallets ]
 
 ------------------------------------------------------------
 renderInside :: forall p. WalletLibrary -> WalletNicknameKey -> InsideState -> HTML p Action
@@ -121,18 +164,13 @@ renderMobileMenu menuOpen =
         [ classNames $ [ "absolute", "top-0", "bottom-0.5", "left-0.5", "right-0.5", "bg-gray", "overflow-auto", "flex", "flex-col", "justify-between" ] ]
         [ div
             [ classNames [ "flex", "flex-col" ] ]
-            [ link "Dashboard home" $ Right $ SetScreen $ ContractsScreen Running
-            , link "Contacts" $ Right $ SetScreen WalletLibraryScreen
-            , link "Library" $ Left ""
-            , link "Docs" $ Left ""
-            , link "Support" $ Left ""
-            ]
+            $ [ link "Dashboard home" $ Right $ SetScreen $ ContractsScreen Running
+              , link "Contacts" $ Right $ SetScreen WalletLibraryScreen
+              ]
+            <> dashboardLinks
         , div
             [ classNames [ "flex", "flex-col" ] ]
-            [ link "marlowe.io" $ Left ""
-            , link "cardano.org" $ Left "https://cardano.org"
-            , link "iohk.io" $ Left "https://iohk.io"
-            ]
+            iohkLinks
         ]
     ]
 
@@ -177,17 +215,25 @@ renderFooter =
     [ classNames [ "hidden", "md:flex", "justify-between" ] ]
     [ nav
         [ classNames [ "flex" ] ]
-        [ link "Library" $ Left ""
-        , link "Docs" $ Left ""
-        , link "Support" $ Left ""
-        ]
+        dashboardLinks
     , nav
         [ classNames [ "flex" ] ]
-        [ link "marlowe.io" $ Left ""
-        , link "cardano.org" $ Left "https://cardano.org"
-        , link "iohk.io" $ Left "https://iohk.io"
-        ]
+        iohkLinks
     ]
+
+dashboardLinks :: forall p. Warn (Text "We need to add the dashboard links.") => Array (HTML p Action)
+dashboardLinks =
+  [ link "Library" $ Left ""
+  , link "Docs" $ Left ""
+  , link "Support" $ Left ""
+  ]
+
+iohkLinks :: forall p. Warn (Text "We need to add the IOHK links.") => Array (HTML p Action)
+iohkLinks =
+  [ link "marlowe.io" $ Left ""
+  , link "cardano.org" $ Left "https://cardano.org"
+  , link "iohk.io" $ Left "https://iohk.io"
+  ]
 
 link :: forall p. String -> Either String Action -> HTML p Action
 link label urlOrAction =
@@ -198,43 +244,3 @@ link label urlOrAction =
         Right action -> onClick $ const $ Just action
     ]
     [ text label ]
-
-------------------------------------------------------------
-renderOutside :: forall p. WalletLibrary -> WalletNicknameKey -> Maybe OutsideCard -> HTML p Action
-renderOutside wallets newWalletNicknameKey outsideCard =
-  div
-    [ classNames [ "grid", "h-full" ] ]
-    [ main
-        [ classNames [ "relative", "bg-lightblue", "text-blue" ] ]
-        [ renderOutsideCard outsideCard newWalletNicknameKey wallets
-        , renderOutsideScreen wallets
-        ]
-    ]
-
-renderOutsideCard :: forall p. Maybe OutsideCard -> WalletNicknameKey -> WalletLibrary -> HTML p Action
-renderOutsideCard outsideCard newWalletNicknameKey wallets =
-  div
-    [ classNames $ [ "absolute", "top-0", "bottom-0", "left-0", "right-0", "z-10", "flex", "flex-col", "justify-end", "md:justify-center", "bg-transgray" ] <> hideWhen (isNothing outsideCard) ]
-    [ div
-        [ classNames $ [ "shadow-md", "bg-white", "mx-1", "md:mx-auto", "md:w-card" ] <> hideWhen (isNothing outsideCard) ]
-        [ div
-            [ classNames [ "flex", "justify-end" ] ]
-            [ a
-                [ classNames [ "p-0.5", "text-green" ]
-                , onClick $ const $ Just $ SetOutsideCard Nothing
-                ]
-                [ Icon.close ]
-            ]
-        , div
-            [ classNames [ "px-1", "pb-1" ] ] case outsideCard of
-            Just PickupNewWalletCard -> [ pickupNewWalletCard newWalletNicknameKey wallets ]
-            Just (PickupWalletCard walletNicknameKey) -> [ pickupLocalWalletCard walletNicknameKey ]
-            Nothing -> []
-        ]
-    ]
-
-renderOutsideScreen :: forall p. WalletLibrary -> HTML p Action
-renderOutsideScreen wallets =
-  div
-    [ classNames [ "absolute", "top-0", "bottom-0", "left-0", "right-0", "overflow-auto", "z-0" ] ]
-    [ pickupWalletScreen wallets ]

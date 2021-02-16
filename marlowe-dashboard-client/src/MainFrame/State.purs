@@ -9,21 +9,19 @@ import Data.Either (Either(..))
 import Data.Foldable (for_)
 import Data.Lens (assign, modifying, set, use)
 import Data.Lens.Extra (peruse)
-import Data.Lens.Prism.Maybe (_Just)
 import Data.Map (empty, insert, member)
 import Data.Map.Extra (findIndex)
 import Data.Maybe (Maybe(..))
 import Data.Tuple (Tuple(..), fst)
 import Effect.Aff.Class (class MonadAff)
 import Effect.Random (random)
-import Foreign.Generic (decode, encodeJSON)
-import Foreign.JSON (parseJSON)
+import Foreign.Generic (decodeJSON, encodeJSON)
 import Halogen (Component, HalogenM, liftEffect, mkComponent, mkEval, modify_, raise)
 import Halogen.Extra (mapSubmodule)
 import Halogen.HTML (HTML)
 import LocalStorage (getItem, removeItem, setItem)
-import MainFrame.Lenses (_card, _contractState, _insideState, _menuOpen, _newWalletNicknameKey, _on, _outsideCard, _screen, _wallets)
-import MainFrame.Types (Action(..), ChildSlots, ContractStatus(..), InsideState, Msg(..), OutsideCard(..), Query(..), Screen(..), State)
+import MainFrame.Lenses (_card, _contractState, _insideState, _menuOpen, _newWalletNicknameKey, _on, _outsideState, _screen, _subState, _wallets)
+import MainFrame.Types (Action(..), ChildSlots, ContractStatus(..), InsideState, Msg(..), OutsideCard(..), OutsideScreen(..), OutsideState, Query(..), Screen(..), State)
 import MainFrame.View (render)
 import Marlowe.Execution (_contract)
 import Marlowe.Semantics (Contract(..))
@@ -52,9 +50,14 @@ initialState :: State
 initialState =
   { wallets: empty
   , newWalletNicknameKey: emptyWalletNicknameKey
-  , outsideCard: Nothing
-  , insideState: Nothing
+  , subState: Left initialOutsideState
   , contractState: Contract.initialState zero Close
+  }
+
+initialOutsideState :: OutsideState
+initialOutsideState =
+  { screen: GenerateWalletScreen
+  , card: Nothing
   }
 
 mkInsideState :: PubKeyHash -> InsideState
@@ -75,7 +78,7 @@ defaultWalletDetails = WalletDetails { userHasPickedUp: false }
 handleQuery :: forall a m. Query a -> HalogenM State Action ChildSlots Msg m (Maybe a)
 handleQuery (ReceiveWebSocketMessage msg next) = do
   case msg of
-    (WS.ReceiveMessage (Right (ClientMsg on))) -> assign (_insideState <<< _Just <<< _on) on
+    (WS.ReceiveMessage (Right (ClientMsg on))) -> assign (_insideState <<< _on) on
     -- TODO: other matches such as update current slot or apply transaction
     _ -> pure unit
   pure $ Just next
@@ -88,8 +91,7 @@ handleAction Init = do
         let
           wallets =
             runExcept do
-              foreignJson <- parseJSON json
-              decode foreignJson
+              decodeJSON json
         case wallets of
           Right cachedWallets -> assign _wallets cachedWallets
           _ -> pure unit
@@ -99,22 +101,22 @@ handleAction Init = do
         let
           wallet =
             runExcept do
-              foreignJson <- parseJSON json
-              decode foreignJson
+              decodeJSON json
         case wallet of
-          Right cachedWallet -> assign _insideState $ Just $ mkInsideState cachedWallet
+          Right cachedWallet -> assign _subState $ Right $ mkInsideState cachedWallet
           _ -> pure unit
 
 -- outside actions
-handleAction (SetOutsideCard outsideCard) = assign _outsideCard outsideCard
+handleAction (SetOutsideCard outsideCard) = assign (_outsideState <<< _card) outsideCard
 
 -- TODO: generate wallet on the backend; for now just create a random number
 handleAction GenerateNewWallet = do
   randomNumber <- liftEffect random
   let
     key = show $ randomNumber
-  assign (_newWalletNicknameKey <<< _key) key
-  assign _outsideCard $ Just PickupNewWalletCard
+  modify_
+    $ (_newWalletNicknameKey <<< set _key) key
+    <<< (_outsideState <<< set _card) (Just PickupNewWalletCard)
 
 handleAction PickupNewWallet = do
   newPubKeyHash <- use (_newWalletNicknameKey <<< _key)
@@ -123,34 +125,34 @@ handleAction PickupNewWallet = do
 
 handleAction (LookupWallet string) = do
   wallets <- use _wallets
-  for_ (findIndex (\key -> fst key == string) wallets) $ \key -> assign _outsideCard $ Just $ PickupWalletCard key
+  for_ (findIndex (\key -> fst key == string) wallets) $ \key -> assign (_outsideState <<< _card) $ Just $ PickupWalletCard key
 
 handleAction (PickupWallet pubKeyHash) = do
-  assign _insideState $ Just $ mkInsideState pubKeyHash
-  assign _outsideCard Nothing
+  modify_
+    $ (set _subState) (Right $ mkInsideState pubKeyHash)
+    <<< (_outsideState <<< set _card) Nothing
   liftEffect $ setItem walletLocalStorageKey $ encodeJSON pubKeyHash
 
 -- inside actions
 handleAction PutdownWallet = do
-  assign _insideState Nothing
+  assign _subState $ Left initialOutsideState
   liftEffect $ removeItem walletLocalStorageKey
 
-handleAction ToggleMenu = modifying (_insideState <<< _Just <<< _menuOpen) not
+handleAction ToggleMenu = modifying (_insideState <<< _menuOpen) not
 
 handleAction (SetScreen screen) =
   modify_
-    ( set (_insideState <<< _Just <<< _menuOpen) false
-        <<< (_insideState <<< _Just <<< set _card) Nothing
-        <<< (_insideState <<< _Just <<< set _screen) screen
-    )
+    $ (_insideState <<< set _menuOpen) false
+    <<< (_insideState <<< set _card) Nothing
+    <<< (_insideState <<< set _screen) screen
 
 handleAction (SetCard card) = do
-  previousCard <- peruse (_insideState <<< _Just <<< _card)
-  assign (_insideState <<< _Just <<< _card) card
-  for_ previousCard $ const $ assign (_insideState <<< _Just <<< _menuOpen) false
+  previousCard <- peruse (_insideState <<< _card)
+  assign (_insideState <<< _card) card
+  for_ previousCard $ const $ assign (_insideState <<< _menuOpen) false
 
 handleAction (ToggleCard card) = do
-  mCurrentCard <- peruse (_insideState <<< _Just <<< _card)
+  mCurrentCard <- peruse (_insideState <<< _card)
   case mCurrentCard of
     Just currentCard
       | currentCard == Just card -> handleAction $ SetCard Nothing
@@ -168,10 +170,10 @@ handleAction AddNewWallet = do
     assign _newWalletNicknameKey emptyWalletNicknameKey
     newWallets <- use _wallets
     liftEffect $ setItem walletsLocalStorageKey $ encodeJSON newWallets
-    assign (_insideState <<< _Just <<< _card) Nothing
+    assign (_insideState <<< _card) Nothing
 
 handleAction ClickedButton = do
-  mCurrent <- peruse (_insideState <<< _Just <<< _on)
+  mCurrent <- peruse (_insideState <<< _on)
   for_ mCurrent $ \current -> raise (SendWebSocketMessage (ServerMsg current))
 
 -- contract actions

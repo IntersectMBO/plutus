@@ -1,5 +1,7 @@
 module MainFrame.Types
   ( State
+  , OutsideState
+  , OutsideScreen(..)
   , OutsideCard(..)
   , InsideState
   , Screen(..)
@@ -16,40 +18,59 @@ module MainFrame.Types
 import Prelude
 import Analytics (class IsEvent, defaultEvent, toEvent)
 import Contract.Types as Contract
+import Data.Either (Either)
 import Data.Maybe (Maybe(..))
 import Marlowe.Semantics (Contract)
 import Wallet.Types (PubKeyHash, WalletDetails, WalletLibrary, WalletNicknameKey)
 import WebSocket (StreamToClient, StreamToServer)
 import WebSocket.Support as WS
 
+-- apart from the wallet library (which you need in both cases), the app exists
+-- in one of two distinct states: the "outside" state for when you have no
+-- wallet, and all you can do is pick one up or generate a new one; and the
+-- "inside" state for when you have picked up a wallet, and can do all of the
+-- things
 type State
   = { wallets :: WalletLibrary
     , newWalletNicknameKey :: WalletNicknameKey
-    , outsideCard :: Maybe OutsideCard
-    , insideState :: Maybe InsideState
+    , subState :: Either OutsideState InsideState
     -- TODO: (work out how to) move contract state into inside state
     -- (the puzzle is how to handle contract actions in the mainframe if the
-    -- submodule state is behind a `Maybe`... :thinking_face:)
+    -- submodule state is behind an `Either`... :thinking_face:)
     , contractState :: Contract.State
     }
+
+type OutsideState
+  = { screen :: OutsideScreen
+    , card :: Maybe OutsideCard
+    }
+
+-- there's only one outside screen at the moment, but we might need more, and
+-- in any case it seems clearer to specify it explicitly
+data OutsideScreen
+  = GenerateWalletScreen
+
+derive instance eqOutsideScreen :: Eq OutsideScreen
 
 data OutsideCard
   = PickupNewWalletCard
   | PickupWalletCard WalletNicknameKey
+
+derive instance eqOutsideCard :: Eq OutsideCard
 
 type InsideState
   = { wallet :: PubKeyHash
     , menuOpen :: Boolean
     , screen :: Screen
     , card :: Maybe Card
-    , on :: Boolean
+    , on :: Boolean -- this is just a temporary dummy property for testing the websocket
     }
 
 data Screen
   = ContractsScreen ContractStatus
   | WalletLibraryScreen
 
-derive instance eqFrame :: Eq Screen
+derive instance eqScreen :: Eq Screen
 
 data Card
   = CreateWalletCard
