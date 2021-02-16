@@ -63,7 +63,6 @@ pay    = [Bound 0 0]
 refund = [Bound 1 1]
 both   = [Bound 0 1]
 
--- helper function to build Actions
 choiceName :: ChoiceName
 choiceName = "choice"
 
