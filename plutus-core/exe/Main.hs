@@ -663,7 +663,7 @@ time.  The first measurement is often significantly larger than the rest
 we measure the evaluation time (n+1) times and discard the first result. -}
 timeEval :: NFData a => Integer -> (t -> a) -> t -> IO ()
 timeEval n evaluate prog =
-    if n <= 0then error "Error: the number of repetitions should be at least 1"
+    if n <= 0 then error "Error: the number of repetitions should be at least 1"
     else do
       times <- tail <$> mapM (timeOnce evaluate) (replicate (fromIntegral (n+1)) prog)
       let mean = (fromIntegral $ sum times) / (fromIntegral n) :: Double
