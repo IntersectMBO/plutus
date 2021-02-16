@@ -665,7 +665,7 @@ timeEval :: NFData a => Integer -> (t -> a) -> t -> IO ()
 timeEval n evaluate prog =
     if n <= 0 then error "Error: the number of repetitions should be at least 1"
     else do
-      times <- tail <$> mapM (timeOnce evaluate) (replicate (fromIntegral (n+1)) prog)
+      times <- tail <$> for (replicate (fromIntegral (n+1)) prog) (timeOnce evaluate)
       let mean = (fromIntegral $ sum times) / (fromIntegral n) :: Double
           runs :: String = if n==1 then "run" else "runs"
       printf "Mean evaluation time (%d %s): %s\n" n runs (formatTime mean)
