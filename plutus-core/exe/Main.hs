@@ -657,7 +657,7 @@ formatTime t
     | t >= 1e3  = printf "%.3f ns" (t/1e3)
     | otherwise = printf "%f ps"   t
 
-{- Apply an evaluator to a program a number of times and report the mean execution
+{-| Apply an evaluator to a program a number of times and report the mean execution
 time.  The first measurement is often significantly larger than the rest
 (perhaps due to warm-up effects), and this can distort the mean.  To avoid this
 we measure the evaluation time (n+1) times and discard the first result. -}
