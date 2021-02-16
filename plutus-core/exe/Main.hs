@@ -667,8 +667,7 @@ timeEval n evaluate prog =
     else do
       times <- tail <$> mapM (timeOnce evaluate) (replicate (fromIntegral (n+1)) prog)
       let mean = (fromIntegral $ sum times) / (fromIntegral n) :: Double
-      _ <- mapM print times
-      let runs :: String = if n==1 then "run" else "runs"
+          runs :: String = if n==1 then "run" else "runs"
       printf "Mean evaluation time (%d %s): %s\n" n runs (formatTime mean)
     where timeOnce eval prg = do
              start <- performGC >> getCPUTime
