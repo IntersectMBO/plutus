@@ -186,12 +186,12 @@ escrowWithCollateral =
                                     Close)
 
     const collateral2 : Contract = When([Case(Deposit(bob, bob, ada, bobCollateral), contract)],
-                                    10n,
+                                    20n,
                                     Close)
     
 
     const collateral1 : Contract = When([Case(Deposit(alice, alice, ada, aliceCollateral), collateral2)],
-                                    10n,
+                                    30n,
                                     Close)
 
 

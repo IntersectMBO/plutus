@@ -15,19 +15,21 @@ main = print . pretty $ contract
   - refund if no choices are made.
 -}
 
+-- step1: bob's collateral
 contract :: Contract
-contract = When [Case (Deposit "bob" "bob" ada bobCollateral) contract]
+contract = When [Case (Deposit "bob" "bob" ada bobCollateral) contract2]
                 10
                 Close
-
-collateralAlice :: Contract
-collateralAlice = When [Case (Deposit "alice" "alice" ada aliceCollateral) escrow]
-                10
+-- step2: alice's collateral
+contract2 :: Contract
+contract2 = When [Case (Deposit "alice" "alice" ada aliceCollateral) contract3]
+                20
                 Close
 
-escrow :: Contract
-escrow = When [Case (Deposit "alice" "alice" ada price) inner]
-                10
+-- step3: alice's payment
+contract3 :: Contract
+contract3 = When [Case (Deposit "alice" "alice" ada price) inner]
+                30
                 Close
 
 inner :: Contract
