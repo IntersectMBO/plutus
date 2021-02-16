@@ -102,8 +102,7 @@ handleAction (InitHaskellProject contents) = do
   editorSetValue contents
   liftEffect $ LocalStorage.setItem haskellBufferLocalStorageKey contents
 
-handleAction (SetIntegerTemplateParam templateType key value) = do
-  modifying (_analysisState <<< _templateContent <<< typeToLens templateType) (Map.insert key value)
+handleAction (SetIntegerTemplateParam templateType key value) = modifying (_analysisState <<< _templateContent <<< typeToLens templateType) (Map.insert key value)
 
 handleAction AnalyseContract = compileAndAnalyze (WarningAnalysis Loading) $ analyseContract
 

@@ -16,8 +16,8 @@ import Halogen.HTML (ClassName(..), HTML, a, div, li, pre, section, text, ul_)
 import Halogen.HTML.Events (onClick)
 import Halogen.HTML.Properties (class_, classes)
 import MarloweEditor.Types (Action(..), BottomPanelView(..), State, _editorErrors, _editorWarnings, _showErrorDetail, contractHasErrors)
-import StaticAnalysis.BottomPanel (analysisResultPane, analyzeButton)
-import StaticAnalysis.Types (_analysisExecutionState, _analysisState, isCloseAnalysisLoading, isReachabilityLoading, isStaticLoading)
+import StaticAnalysis.BottomPanel (analysisResultPane, analyzeButton, clearButton)
+import StaticAnalysis.Types (_analysisExecutionState, _analysisState, isCloseAnalysisLoading, isNoneAsked, isReachabilityLoading, isStaticLoading)
 import Text.Parsing.StringParser.Basic (lines)
 
 panelContents :: forall p. State -> BottomPanelView -> HTML p Action
@@ -29,6 +29,7 @@ panelContents state StaticAnalysisView =
     , analyzeButton loadingWarningAnalysis enabled' "Analyse for warnings" AnalyseContract
     , analyzeButton loadingReachability enabled' "Analyse reachability" AnalyseReachabilityContract
     , analyzeButton loadingCloseAnalysis enabled' "Analyse for refunds on Close" AnalyseContractForCloseRefund
+    , clearButton (not noneAskedAnalysis) "Clear" ClearAnalysisResults
     ]
   where
   loadingWarningAnalysis = state ^. _analysisState <<< _analysisExecutionState <<< to isStaticLoading
@@ -36,6 +37,8 @@ panelContents state StaticAnalysisView =
   loadingReachability = state ^. _analysisState <<< _analysisExecutionState <<< to isReachabilityLoading
 
   loadingCloseAnalysis = state ^. _analysisState <<< _analysisExecutionState <<< to isCloseAnalysisLoading
+
+  noneAskedAnalysis = state ^. _analysisState <<< _analysisExecutionState <<< to isNoneAsked
 
   enabled' = not loadingWarningAnalysis && not loadingReachability && not loadingCloseAnalysis && not contractHasErrors state
 

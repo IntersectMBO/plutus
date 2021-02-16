@@ -58,6 +58,11 @@ isCloseAnalysisLoading (CloseAnalysis AnalysisNotStarted) = true
 
 isCloseAnalysisLoading _ = false
 
+isNoneAsked :: AnalysisExecutionState -> Boolean
+isNoneAsked NoneAsked = true
+
+isNoneAsked _ = false
+
 -------------------------------------------------------------------------------
 data MultiStageAnalysisData
   = AnalysisNotStarted

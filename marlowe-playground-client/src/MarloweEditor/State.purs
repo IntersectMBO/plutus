@@ -44,7 +44,7 @@ import Network.RemoteData as RemoteData
 import Servant.PureScript.Ajax (AjaxError)
 import StaticAnalysis.Reachability (analyseReachability, getUnreachableContracts)
 import StaticAnalysis.StaticTools (analyseContract)
-import StaticAnalysis.Types (_analysisExecutionState, _analysisState, _templateContent)
+import StaticAnalysis.Types (AnalysisExecutionState(..), _analysisExecutionState, _analysisState, _templateContent)
 import StaticData (marloweBufferLocalStorageKey)
 import StaticData as StaticData
 import Text.Pretty (pretty)
@@ -117,14 +117,15 @@ handleAction (InitMarloweProject contents) = do
 
 handleAction (SelectHole hole) = assign _selectedHole hole
 
-handleAction (SetIntegerTemplateParam templateType key value) = do
-  modifying (_analysisState <<< _templateContent <<< typeToLens templateType) (Map.insert key value)
+handleAction (SetIntegerTemplateParam templateType key value) = modifying (_analysisState <<< _templateContent <<< typeToLens templateType) (Map.insert key value)
 
 handleAction AnalyseContract = runAnalysis $ analyseContract
 
 handleAction AnalyseReachabilityContract = runAnalysis $ analyseReachability
 
 handleAction AnalyseContractForCloseRefund = runAnalysis $ analyseClose
+
+handleAction ClearAnalysisResults = assign (_analysisState <<< _analysisExecutionState) NoneAsked
 
 handleAction Save = pure unit
 

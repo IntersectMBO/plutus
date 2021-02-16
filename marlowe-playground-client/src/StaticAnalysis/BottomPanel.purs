@@ -1,6 +1,7 @@
 module StaticAnalysis.BottomPanel
   ( analysisResultPane
   , analyzeButton
+  , clearButton
   ) where
 
 import Prelude hiding (div)
@@ -35,6 +36,16 @@ analyzeButton isLoading isEnabled name action =
     , classes [ spaceTop, spaceBottom, spaceRight ]
     ]
     [ text (if isLoading then "Analysing..." else name) ]
+
+clearButton ::
+  forall p action. Boolean -> String -> action -> HTML p action
+clearButton isEnabled name action =
+  button
+    [ onClick $ const $ Just $ action
+    , enabled isEnabled
+    , classes [ spaceTop, spaceBottom, spaceRight ]
+    ]
+    [ text name ]
 
 analysisResultPane :: forall action p state. (IntegerTemplateType -> String -> BigInteger -> action) -> { analysisState :: AnalysisState | state } -> HTML p action
 analysisResultPane actionGen state =
