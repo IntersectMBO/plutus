@@ -14,6 +14,7 @@ module Plutus.PAB.PABLogMsg(
     SigningProcessMsg,
     MetadataLogMessage,
     WalletMsg,
+    MockServerLogMsg,
     AppMsg(..)
     ) where
 
@@ -30,6 +31,7 @@ import           Cardano.BM.Data.Tracer             (ToObject (..), TracingVerbo
 import           Cardano.BM.Data.Tracer.Extras      (Tagged (..), mkObjectStr)
 import           Cardano.ChainIndex.Types           (ChainIndexServerMsg)
 import           Cardano.Metadata.Types             (MetadataLogMessage)
+import           Cardano.Node.Types                 (MockServerLogMsg)
 import           Cardano.SigningProcess.Types       (SigningProcessMsg)
 import           Cardano.Wallet.Types               (WalletMsg)
 import           Language.Plutus.Contract.State     (ContractRequest)
@@ -88,6 +90,7 @@ data PABLogMsg =
     | SSigningProcessMsg SigningProcessMsg
     | SWalletMsg WalletMsg
     | SMetaDataLogMsg MetadataLogMessage
+    | SMockserverLogMsg MockServerLogMsg
     deriving stock (Show, Generic)
     deriving anyclass (ToJSON, FromJSON)
 
@@ -105,6 +108,7 @@ instance Pretty PABLogMsg where
         SSigningProcessMsg m   -> pretty m
         SWalletMsg m           -> pretty m
         SMetaDataLogMsg m      -> pretty m
+        SMockserverLogMsg m    -> pretty m
 
 
 -- | Messages from the Signing Process
@@ -209,6 +213,7 @@ instance ToObject PABLogMsg where
         SSigningProcessMsg m   -> toObject v m
         SWalletMsg m           -> toObject v m
         SMetaDataLogMsg m      -> toObject v m
+        SMockserverLogMsg m    -> toObject v m
 
 instance ToObject ContractExeLogMsg where
     toObject v = \case

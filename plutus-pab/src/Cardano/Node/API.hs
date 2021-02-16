@@ -7,11 +7,10 @@ module Cardano.Node.API
     , FollowerAPI
     ) where
 
-import           Cardano.Node.Types      (FollowerID)
+import           Cardano.Node.Types      (FollowerID, MockServerLogMsg)
 import           Control.Monad.Freer.Log (LogMessage)
 import           Ledger                  (Block, Slot, Tx)
 import           Servant.API             (Capture, Get, JSON, NoContent, Post, Put, ReqBody, (:<|>), (:>))
-import           Wallet.Emulator.Chain   (ChainEvent)
 
 type API
      = "healthcheck" :> Get '[ JSON] NoContent
@@ -23,7 +22,7 @@ type API
 -- Routes that are not guaranteed to exist on the real node
 type NodeAPI
      = "random-tx" :> Get '[ JSON] Tx
-       :<|> "consume-event-history" :> Post '[ JSON] [LogMessage ChainEvent]
+       :<|> "consume-event-history" :> Post '[ JSON] [LogMessage MockServerLogMsg]
 
 -- Protocol 1 of the node (node followers can request new blocks)
 type FollowerAPI
