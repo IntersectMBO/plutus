@@ -1,1 +1,1 @@
-((Right (lam j_1 (con integer) (con integer 1))), [])
+(Right (lam j_1 (con integer) (con integer 1)))

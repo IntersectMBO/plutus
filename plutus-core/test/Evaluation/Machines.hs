@@ -64,7 +64,7 @@ testBudget name term =
                        nestedGoldenVsText
     name
     (renderStrict $ layoutPretty defaultLayoutOptions {layoutPageWidth = AvailablePerLine maxBound 1.0} $
-        prettyPlcReadableDef $ runCek defBuiltinsRuntime (Restricting (ExRestrictingBudget (ExBudget 1000 1000))) term)
+        prettyPlcReadableDef $ runCekNoEmit defBuiltinsRuntime (Restricting (ExRestrictingBudget (ExBudget 1000 1000))) term)
 
 bunchOfFibs :: PlcFolderContents DefaultUni DefaultFun
 bunchOfFibs =

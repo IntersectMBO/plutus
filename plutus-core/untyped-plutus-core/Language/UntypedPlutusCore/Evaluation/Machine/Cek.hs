@@ -35,6 +35,7 @@ module Language.UntypedPlutusCore.Evaluation.Machine.Cek
     , exBudgetStateTally
     , extractEvaluationResult
     , runCek
+    , runCekNoEmit
     , runCekCounting
     , evaluateCek
     , unsafeEvaluateCek
@@ -67,6 +68,8 @@ import           Control.Monad.Reader
 import           Control.Monad.ST
 import           Control.Monad.State.Strict
 import           Data.Array
+import           Data.DList                                         (DList)
+import qualified Data.DList                                         as DList
 import           Data.HashMap.Monoidal
 import           Data.STRef
 import           Data.Text.Prettyprint.Doc
@@ -112,7 +115,7 @@ type CekValEnv uni fun = UniqueMap TermUnique (CekValue uni fun)
 data CekEnv uni fun s = CekEnv
     { cekEnvRuntime    :: BuiltinsRuntime fun (CekValue uni fun)
     , cekEnvBudgetMode :: ExBudgetMode
-    , cekEnvEmitRef    :: STRef s ([String] -> [String])  -- TODO: use @DList@.
+    , cekEnvMayEmitRef :: Maybe (STRef s (DList String))
     }
 
 data CekUserError
@@ -273,8 +276,10 @@ instance ExBudgetBuiltin fun (ExBudgetCategory fun) where
 
 instance MonadEmitter (CekCarryingM term uni fun s) where
     emit str = do
-        logsRef <- asks cekEnvEmitRef
-        lift . lift . lift $ modifySTRef logsRef (\logs -> logs . (str :))
+        mayLogsRef <- asks cekEnvMayEmitRef
+        case mayLogsRef of
+            Nothing      -> pure ()
+            Just logsRef -> lift . lift . lift $ modifySTRef logsRef (`DList.snoc` str)
 
 -- We only need the @Eq fun@ constraint here and not anywhere else, because in other places we have
 -- @Ix fun@ which implies @Ord fun@ which implies @Eq fun@.
@@ -305,14 +310,17 @@ runCekM
     :: forall a uni fun
      . BuiltinsRuntime fun (CekValue uni fun)
     -> ExBudgetMode
+    -> Bool
     -> CekExBudgetState fun
     -> (forall s. CekM uni fun s a)
     -> (Either (CekEvaluationException uni fun) a, CekExBudgetState fun, [String])
-runCekM runtime mode s a = runST $ do
-    logsRef <- newSTRef id
-    (errOrRes, s') <- runStateT (runExceptT $ runReaderT a $ CekEnv runtime mode logsRef) s
-    logs <- readSTRef logsRef
-    pure (errOrRes, s', logs [])
+runCekM runtime mode emitting s a = runST $ do
+    mayLogsRef <- if emitting then Just <$> newSTRef DList.empty else pure Nothing
+    (errOrRes, s') <- runStateT (runExceptT $ runReaderT a $ CekEnv runtime mode mayLogsRef) s
+    logs <- case mayLogsRef of
+        Nothing      -> pure []
+        Just logsRef -> DList.toList <$> readSTRef logsRef
+    pure (errOrRes, s', logs)
 
 -- | Extend an environment with a variable name, the value the variable stands for
 -- and the environment the value is defined in.
@@ -508,14 +516,27 @@ runCek
        )
     => BuiltinsRuntime fun (CekValue uni fun)
     -> ExBudgetMode
+    -> Bool
     -> Term Name uni fun ()
     -> (Either (CekEvaluationException uni fun) (Term Name uni fun ()), CekExBudgetState fun, [String])
-runCek runtime mode term =
-    runCekM runtime mode (ExBudgetState mempty mempty) $ do
+runCek runtime mode emitting term =
+    runCekM runtime mode emitting (ExBudgetState mempty mempty) $ do
         spendBudget BAST (ExBudget 0 (termAnn memTerm))
         computeCek [] mempty memTerm
   where
     memTerm = withMemory term
+
+runCekNoEmit
+    :: ( GShow uni, GEq uni, Closed uni, uni `Everywhere` ExMemoryUsage
+       , Hashable fun, Ix fun, ExMemoryUsage fun
+       )
+    => BuiltinsRuntime fun (CekValue uni fun)
+    -> ExBudgetMode
+    -> Term Name uni fun ()
+    -> (Either (CekEvaluationException uni fun) (Term Name uni fun ()), CekExBudgetState fun)
+runCekNoEmit runtime mode term =
+    case runCek runtime mode False term of
+        (errOrRes, s', _) -> (errOrRes, s')
 
 -- | Evaluate a term using the CEK machine in the 'Counting' mode.
 runCekCounting
@@ -524,8 +545,8 @@ runCekCounting
        )
     => BuiltinsRuntime fun (CekValue uni fun)
     -> Term Name uni fun ()
-    -> (Either (CekEvaluationException uni fun) (Term Name uni fun ()), CekExBudgetState fun, [String])
-runCekCounting means = runCek means Counting
+    -> (Either (CekEvaluationException uni fun) (Term Name uni fun ()), CekExBudgetState fun)
+runCekCounting runtime = runCekNoEmit runtime Counting
 
 -- | Evaluate a term using the CEK machine.
 evaluateCek
@@ -536,7 +557,9 @@ evaluateCek
     -> Term Name uni fun ()
     -> (Either (CekEvaluationException uni fun) (Term Name uni fun ()), [String])
 evaluateCek runtime term =
-    case runCekCounting runtime term of
+    -- Oftentimes we want neither 'Restricting' nor 'Counting'. Should we have a third mode
+    -- 'JustEvaluateTheProgram'?
+    case runCek runtime Counting True term of
         (errOrRes, _, logs) -> (errOrRes, logs)
 
 -- | Evaluate a term using the CEK machine. May throw a 'CekMachineException'.

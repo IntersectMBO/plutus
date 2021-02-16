@@ -316,7 +316,7 @@ goldenVsEvaluatedCK :: String -> Term TyName Name DefaultUni DefaultFun () -> Te
 goldenVsEvaluatedCK name = goldenVsPretty ".plc.golden" name . pure . evaluateCk defBuiltinsRuntime
 
 goldenVsEvaluatedCEK :: String -> Term TyName Name DefaultUni DefaultFun () -> TestTree
-goldenVsEvaluatedCEK name = goldenVsPretty ".plc.golden" name . pure . evaluateCek defBuiltinsRuntime
+goldenVsEvaluatedCEK name = goldenVsPretty ".plc.golden" name . pure . fst . evaluateCek defBuiltinsRuntime
 
 runTypecheck
     :: Term TyName Name DefaultUni DefaultFun ()

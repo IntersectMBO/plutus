@@ -116,6 +116,8 @@ newtype EvalM unique name uni fun ann a = EvalM
         ( Functor, Applicative, Monad
         , MonadError (HoasException fun (Value unique name uni fun ann))
         )
+      -- No logging for now.
+      deriving (MonadEmitter) via (NoEmitterT (EvalM unique name uni fun ann))
 
 makeClassyPrisms ''UserHoasError
 makeClassyPrisms ''InternalHoasError
