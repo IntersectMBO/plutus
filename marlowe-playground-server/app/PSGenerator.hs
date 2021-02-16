@@ -30,6 +30,7 @@ import qualified Data.Set                                         as Set ()
 import qualified Data.Text.Encoding                               as T ()
 import qualified Data.Text.IO                                     as T ()
 import qualified Escrow
+import qualified EscrowWithCollateral
 import qualified Example
 import           Language.Haskell.Interpreter                     (CompilationError, InterpreterError,
                                                                    InterpreterResult, SourceCode, Warning)
@@ -46,7 +47,7 @@ import           Language.PureScript.Bridge.CodeGenSwitches       (ForeignOption
 import           Language.PureScript.Bridge.PSTypes               (psNumber, psString)
 import           Language.PureScript.Bridge.TypeParameters        (A)
 import           Marlowe.Contracts                                (contractForDifference, couponBondGuaranteed, escrow,
-                                                                   example, swap, zeroCouponBond)
+                                                                   escrowWithCollateral, example, swap, zeroCouponBond)
 import qualified Marlowe.Symbolic.Server                          as MS
 import qualified Marlowe.Symbolic.Types.Request                   as MSReq
 import qualified Marlowe.Symbolic.Types.Response                  as MSRes
@@ -187,6 +188,7 @@ writeUsecases outputDir = do
     let haskellUsecases =
             multilineString "example" example
          <> multilineString "escrow" escrow
+         <> multilineString "escrowWithCollateral" escrowWithCollateral
          <> multilineString "zeroCouponBond" zeroCouponBond
          <> multilineString "couponBondGuaranteed" couponBondGuaranteed
          <> multilineString "swap" swap
@@ -198,6 +200,7 @@ writeUsecases outputDir = do
         marloweUsecases =
             multilineString "example" (contractToString Example.contract)
          <> multilineString "escrow" (contractToString Escrow.contract)
+         <> multilineString "escrowWithCollateral" (contractToString EscrowWithCollateral.contract)
          <> multilineString "zeroCouponBond" (contractToString ZeroCouponBond.contract)
          <> multilineString "option" (contractToString Option.contract)
          <> multilineString "swap" (contractToString Swap.contract)
