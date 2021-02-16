@@ -2,7 +2,7 @@ module StaticAnalysis.Reachability
   ( analyseReachability
   , areContractAndStateTheOnesAnalysed
   , getUnreachableContracts
-  , initialisePrefixMap
+  , initializePrefixMap
   , startReachabilityAnalysis
   , stepPrefixMap
   ) where
@@ -94,8 +94,8 @@ areContractAndStateTheOnesAnalysed (ReachabilityAnalysis (AnalysisFoundCounterEx
 areContractAndStateTheOnesAnalysed _ _ _ = false
 
 -- It groups the contract paths by their head, discards empty contract paths
-initialisePrefixMap :: List ContractPath -> PrefixMap
-initialisePrefixMap unreachablePathList = fromFoldableWith union $ map (\x -> (head x /\ singleton x)) $ catMaybes $ map fromList unreachablePathList
+initializePrefixMap :: List ContractPath -> PrefixMap
+initializePrefixMap unreachablePathList = fromFoldableWith union $ map (\x -> (head x /\ singleton x)) $ catMaybes $ map fromList unreachablePathList
 
 -- Returns Nothing when the path is unreachable according to one of the paths, otherwise it returns the updated PrefixMap for the subpath
 stepPrefixMap :: forall a. CMS.State a Unit -> PrefixMap -> ContractPathStep -> CMS.State a (Maybe PrefixMap)
@@ -108,5 +108,5 @@ stepPrefixMap markUnreachable prefixMap contractPath = case lookup contractPath 
         markUnreachable
         pure Nothing
       else
-        pure $ Just $ unionWith union (initialisePrefixMap tails) mempty
+        pure $ Just $ unionWith union (initializePrefixMap tails) mempty
   Nothing -> pure (Just mempty)

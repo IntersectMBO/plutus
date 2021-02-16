@@ -38,7 +38,7 @@ import Marlowe.Semantics (Rational(..), Slot(..), emptyState, evalValue, makeEnv
 import Marlowe.Semantics as S
 import Monaco (TextEdit)
 import Pretty (showPrettyMoney, showPrettyParty, showPrettyToken)
-import StaticAnalysis.Reachability (initialisePrefixMap, stepPrefixMap)
+import StaticAnalysis.Reachability (initializePrefixMap, stepPrefixMap)
 import StaticAnalysis.Types (ContractPath, ContractPathStep(..), PrefixMap)
 import Text.Pretty (hasArgs, pretty)
 
@@ -193,7 +193,7 @@ emptyEnvironment unreachablePathList =
     , letBindings: mempty
     , maxTimeout: mempty
     , isReachable: true
-    , unreachablePaths: Just $ initialisePrefixMap unreachablePathList
+    , unreachablePaths: Just $ initializePrefixMap unreachablePathList
     }
 
 -- Generic wrapper for stepPrefixMap. It steps the results of reachability analysis to see

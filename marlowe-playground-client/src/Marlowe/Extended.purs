@@ -34,27 +34,9 @@ newtype Placeholders
 
 derive instance newTypePlaceholders :: Newtype Placeholders _
 
-instance semigroupPlaceholders :: Semigroup Placeholders where
-  append ( Placeholders
-      { slotPlaceholderIds: slotPlaceholderIds1
-    , valuePlaceholderIds: valuePlaceholerIds1
-    }
-  ) ( Placeholders
-      { slotPlaceholderIds: slotPlaceholderIds2
-    , valuePlaceholderIds: valuePlaceholerIds2
-    }
-  ) =
-    Placeholders
-      { slotPlaceholderIds: slotPlaceholderIds1 <> slotPlaceholderIds2
-      , valuePlaceholderIds: valuePlaceholerIds1 <> valuePlaceholerIds2
-      }
+derive newtype instance semigroupPlaceholders :: Semigroup Placeholders
 
-instance monoidPlaceholders :: Monoid Placeholders where
-  mempty =
-    Placeholders
-      { slotPlaceholderIds: mempty
-      , valuePlaceholderIds: mempty
-      }
+derive newtype instance monoidPlaceholders :: Monoid Placeholders
 
 data IntegerTemplateType
   = SlotContent
@@ -79,46 +61,28 @@ typeToLens ValueContent = _valueContent
 
 derive instance newTypeTemplateContent :: Newtype TemplateContent _
 
-instance semigroupTemplateContent :: Semigroup TemplateContent where
-  append ( TemplateContent
-      { slotContent: slotContent1
-    , valueContent: valueContent1
-    }
-  ) ( TemplateContent
-      { slotContent: slotContent2
-    , valueContent: valueContent2
-    }
-  ) =
-    TemplateContent
-      { slotContent: slotContent1 <> slotContent2
-      , valueContent: valueContent1 <> valueContent2
-      }
+derive newtype instance semigroupTemplateContent :: Semigroup TemplateContent
 
-instance monoidTemplateContent :: Monoid TemplateContent where
-  mempty =
-    TemplateContent
-      { slotContent: mempty
-      , valueContent: mempty
-      }
+derive newtype instance monoidTemplateContent :: Monoid TemplateContent
 
-initialiseWith :: forall a b. Ord a => (a -> b) -> Set a -> Map a b
-initialiseWith f = foldMap (\x -> Map.singleton x $ f x)
+initializeWith :: forall a b. Ord a => (a -> b) -> Set a -> Map a b
+initializeWith f = foldMap (\x -> Map.singleton x $ f x)
 
-initialiseTemplateContent :: Placeholders -> TemplateContent
-initialiseTemplateContent ( Placeholders
+initializeTemplateContent :: Placeholders -> TemplateContent
+initializeTemplateContent ( Placeholders
     { slotPlaceholderIds, valuePlaceholderIds }
 ) =
   TemplateContent
-    { slotContent: initialiseWith (const zero) slotPlaceholderIds
-    , valueContent: initialiseWith (const zero) valuePlaceholderIds
+    { slotContent: initializeWith (const zero) slotPlaceholderIds
+    , valueContent: initializeWith (const zero) valuePlaceholderIds
     }
 
 updateTemplateContent :: Placeholders -> TemplateContent -> TemplateContent
 updateTemplateContent ( Placeholders { slotPlaceholderIds, valuePlaceholderIds }
 ) (TemplateContent { slotContent, valueContent }) =
   TemplateContent
-    { slotContent: initialiseWith (\x -> fromMaybe zero $ Map.lookup x slotContent) slotPlaceholderIds
-    , valueContent: initialiseWith (\x -> fromMaybe zero $ Map.lookup x valueContent) valuePlaceholderIds
+    { slotContent: initializeWith (\x -> fromMaybe zero $ Map.lookup x slotContent) slotPlaceholderIds
+    , valueContent: initializeWith (\x -> fromMaybe zero $ Map.lookup x valueContent) valuePlaceholderIds
     }
 
 class Template a b where
