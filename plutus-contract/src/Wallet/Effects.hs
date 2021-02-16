@@ -37,6 +37,7 @@ module Wallet.Effects(
     , confirmedBlocks
     , transactionConfirmed
     , nextTx
+    , createWallet
     , multiWallet
     -- * Contract runtime
     , ContractRuntimeEffect(..)
@@ -59,6 +60,7 @@ data WalletEffect r where
 makeEffect ''WalletEffect
 
 data MultiWalletEffect r where
+    CreateWallet :: MultiWalletEffect Integer
     MultiWallet :: Integer -> Eff '[WalletEffect] a -> MultiWalletEffect a
 makeEffect ''MultiWalletEffect
 

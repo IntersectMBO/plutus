@@ -109,7 +109,7 @@ app :: Trace IO WalletMsg -> ClientEnv -> ClientEnv -> MVar WalletState -> Appli
 app trace nodeClientEnv chainIndexEnv mVarState =
     serve (Proxy @API) $
     hoistServer (Proxy @API) (asHandler trace nodeClientEnv chainIndexEnv mVarState) $
-    (\_ -> submitTxn >=> const (pure NoContent)) :<|> (\_ -> ownPubKey) :<|>
+    (pure 0) :<|> (\_ -> submitTxn >=> const (pure NoContent)) :<|> (\_ -> ownPubKey) :<|>
     (\_ -> uncurry updatePaymentWithChange) :<|>
     (\_ -> walletSlot) :<|> (\_ -> ownOutputs)
 
@@ -120,7 +120,7 @@ main trace Config {..} nodeBaseUrl chainIndexBaseUrl availability = runLogEffect
     mVarState <- liftIO $ newMVar state
     runClient chainIndexEnv
     logInfo $ StartingWallet servicePort
-    liftIO $ Warp.runSettings warpSettings $ app trace nodeClientEnv chainIndexEnv 1 mVarState
+    liftIO $ Warp.runSettings warpSettings $ app trace nodeClientEnv chainIndexEnv mVarState
     where
         servicePort = baseUrlPort baseUrl
         state = emptyWalletState wallet

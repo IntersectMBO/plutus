@@ -25,7 +25,7 @@ type ChainIndexUrl = BaseUrl
 type WalletId = Integer
 type Port     = Int
 
-type Wallets = Map WalletId (WalletState, PrivateKey)
+type Wallets = Map WalletId (Wallet, PrivateKey)
 
 data Amount =
     Amount

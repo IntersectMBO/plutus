@@ -23,19 +23,22 @@ import           Servant                   ((:<|>) (..))
 import           Servant.Client            (ClientEnv, ClientError, ClientM, client, runClientM)
 import           Wallet.Effects            (Payment (..), WalletEffect (..))
 
+createWallet :: ClientM Integer
 submitTxn :: Integer -> Tx -> ClientM ()
 ownPublicKey :: Integer -> ClientM PubKey
 updatePaymentWithChange :: Integer -> (Value, Payment) -> ClientM Payment
 walletSlot :: Integer -> ClientM Slot
 ownOutputs :: Integer -> ClientM UtxoMap
-(submitTxn, ownPublicKey, updatePaymentWithChange, walletSlot, ownOutputs) =
-  ( \x -> fmap void (submitTxn_ x)
+(createWallet, submitTxn, ownPublicKey, updatePaymentWithChange, walletSlot, ownOutputs) =
+  ( createWallet_
+  , \wid tx -> void (submitTxn_ wid tx)
   , ownPublicKey_
   , updatePaymentWithChange_
   , walletSlot_
   , ownOutputs_)
   where
-    ( submitTxn_
+    ( createWallet_
+      :<|> submitTxn_
       :<|> ownPublicKey_
       :<|> updatePaymentWithChange_
       :<|> walletSlot_

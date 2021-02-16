@@ -14,7 +14,8 @@ import           Servant.API          (Capture, Get, JSON, NoContent, Post, ReqB
 import           Wallet.Effects       (Payment)
 
 type API
-    = Capture "walletId" WalletId :> "submit-txn" :> ReqBody '[JSON] Tx :> Post '[JSON] NoContent
+    = "create" :> Post '[JSON] WalletId
+      :<|> Capture "walletId" WalletId :> "submit-txn" :> ReqBody '[JSON] Tx :> Post '[JSON] NoContent
       :<|> Capture "walletId" WalletId :> "own-public-key" :> Get '[JSON] PubKey
       :<|> Capture "walletId" WalletId :> "update-payment-with-change" :> ReqBody '[JSON] (Value, Payment) :> Post '[JSON] Payment
       :<|> Capture "walletId" WalletId :> "wallet-slot" :> Get '[JSON] Slot
