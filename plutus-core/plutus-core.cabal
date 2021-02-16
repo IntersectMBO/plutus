@@ -397,7 +397,6 @@ executable plc
     build-depends:
         base <5,
         bytestring -any,
-        criterion-measurement -any,
         deepseq -any,
         flat -any,
         optparse-applicative -any,

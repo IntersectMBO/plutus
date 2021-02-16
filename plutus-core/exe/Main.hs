@@ -1,3 +1,4 @@
+{-# LANGUAGE BangPatterns          #-}
 {-# LANGUAGE LambdaCase            #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings     #-}
@@ -22,10 +23,8 @@ import qualified Language.UntypedPlutusCore.Evaluation.Machine.Cek as UPLC
 
 import           Codec.Serialise
 import           Control.DeepSeq                                   (NFData, rnf)
-import qualified Control.Exception                                 as Exn (evaluate)
 import           Control.Monad
 import           Control.Monad.Trans.Except                        (runExceptT)
-import qualified Criterion.Measurement                             as Criterion
 import           Data.Bifunctor                                    (second)
 import qualified Data.ByteString.Lazy                              as BSL
 import           Data.Foldable                                     (traverse_)
@@ -83,7 +82,7 @@ type PlcParserError = PLC.Error PLC.DefaultUni PLC.DefaultFun PLC.AlexPosn
 data Input       = FileInput FilePath | StdInput
 data Output      = FileOutput FilePath | StdOutput
 data Language    = TypedPLC | UntypedPLC
-data TimingMode  = NoTiming | Timing Int deriving (Eq)  -- Report program execution time?
+data TimingMode  = NoTiming | Timing Integer deriving (Eq)  -- Report program execution time?
 data PrintMode   = Classic | Debug | Readable | ReadableDebug deriving (Show, Read)
 type ExampleName = T.Text
 data ExampleMode = ExampleSingle ExampleName | ExampleAvailable
@@ -194,20 +193,20 @@ outputformat = option (maybeReader formatReader)
   <> showDefault
   <> help ("Output format: " ++ formatHelp))
 
--- -x -> run 10 times and print mean
+-- -x -> run 100 times and print the mean time
 timing1 :: Parser TimingMode
-timing1 = flag NoTiming (Timing 10)
-  ( long "time-execution"
-  <> short 'x'
-  <> help "Report mean execution time of program over 10 repetitions"
+timing1 = flag NoTiming (Timing 100)
+  (  short 'x'
+  <> help "Report mean execution time of program over 100 repetitions"
   )
 
--- -X N -> run N times and print mean
+-- -X N -> run N times and print the mean time
 timing2 :: Parser TimingMode
 timing2 = Timing <$> option auto
-  (  short 'X'
+  (  long "time-execution"
+  <> short 'X'
   <> metavar "N"
-  <> help "Report mean execution time of program over N repetitions"
+  <> help "Report mean execution time of program over N repetitions. Use a large value of N if possible to get accurate results."
   )
 
 timingmode :: Parser TimingMode
@@ -658,12 +657,24 @@ formatTime t
     | t >= 1e3  = printf "%.3f ns" (t/1e3)
     | otherwise = printf "%f ps"   t
 
-timeEval :: NFData a => (t -> a) -> t -> IO Integer
-timeEval eval prog = do
-  start <- performGC >> getCPUTime
-  () <- Exn.evaluate $ rnf $ eval prog
-  end <- getCPUTime
-  pure $ end - start
+{- Apply an evaluator to a program a number of times and report the mean execution
+time.  The first measurement is often significantly larger than the rest
+(perhaps due to warm-up effects), and this can distort the mean.  To avoid this
+we measure the evaluation time (n+1) times and discard the first result. -}
+timeEval :: NFData a => Integer -> (t -> a) -> t -> IO ()
+timeEval n evaluate prog =
+    if n <= 0then error "Error: the number of repetitions should be at least 1"
+    else do
+      times <- tail <$> mapM (timeOnce evaluate) (replicate (fromIntegral (n+1)) prog)
+      let mean = (fromIntegral $ sum times) / (fromIntegral n) :: Double
+      _ <- mapM print times
+      let runs :: String = if n==1 then "run" else "runs"
+      printf "Mean evaluation time (%d %s): %s\n" n runs (formatTime mean)
+    where timeOnce eval prg = do
+             start <- performGC >> getCPUTime
+             let !_ = rnf $ eval prg
+             end <- getCPUTime
+             pure $ end - start
 
 runEval :: EvalOptions -> IO ()
 runEval (EvalOptions language inp ifmt evalMode printMode timingMode) =
@@ -676,12 +687,14 @@ runEval (EvalOptions language inp ifmt evalMode printMode timingMode) =
                   CK  -> PLC.unsafeEvaluateCk  PLC.defBuiltinsRuntime
                   CEK -> PLC.unsafeEvaluateCek PLC.defBuiltinsRuntime
             body = void . PLC.toTerm $ prog
-        () <-  Exn.evaluate $ rnf body
+            !_ = rnf body
         -- Force evaluation of body to ensure that we're not timing parsing/deserialisation.
         -- The parser apparently returns a fully-evaluated AST, but let's be on the safe side.
-        case evaluate body of
-              PLC.EvaluationSuccess v -> succeed v
-              PLC.EvaluationFailure   -> exitFailure
+        case timingMode of
+          NoTiming -> case evaluate body of
+                        PLC.EvaluationSuccess v -> succeed v
+                        PLC.EvaluationFailure   -> exitFailure
+          Timing n -> timeEval n evaluate body >> exitSuccess
 
       UntypedPLC ->
           case evalMode of
@@ -690,19 +703,12 @@ runEval (EvalOptions language inp ifmt evalMode printMode timingMode) =
                   UntypedProgram prog <- getProgram UntypedPLC ifmt inp
                   let evaluate = UPLC.unsafeEvaluateCek PLC.defBuiltinsRuntime
                       body = void . UPLC.toTerm $ prog
-                  () <- Exn.evaluate $ rnf body
+                      !_ = rnf body
                   case timingMode of
                     NoTiming -> case evaluate body of
                                   UPLC.EvaluationSuccess v -> succeed v
                                   UPLC.EvaluationFailure   -> exitFailure
-                    Timing n -> do
-                          times <- mapM (timeEval evaluate) (replicate n body)
-                          let mean = (fromIntegral $sum times) / (fromIntegral n) :: Double
-                          _ <- mapM print times
-                          printf "Mean execution time over %d runs: %s" n (formatTime mean)
-                          exitSuccess
-
--- We want to evaluate, then report any statistics, then succeed/fail.
+                    Timing n -> timeEval n evaluate body >> exitSuccess
 
     where succeed v = do
             print $ getPrintMethod printMode v
