@@ -29,7 +29,7 @@ panelContents state StaticAnalysisView =
     , analyzeButton loadingWarningAnalysis enabled' "Analyse for warnings" AnalyseContract
     , analyzeButton loadingReachability enabled' "Analyse reachability" AnalyseReachabilityContract
     , analyzeButton loadingCloseAnalysis enabled' "Analyse for refunds on Close" AnalyseContractForCloseRefund
-    , clearButton (not noneAskedAnalysis) "Clear" ClearAnalysisResults
+    , clearButton (nothingLoading && not noneAskedAnalysis) "Clear" ClearAnalysisResults
     ]
   where
   loadingWarningAnalysis = state ^. _analysisState <<< _analysisExecutionState <<< to isStaticLoading
@@ -40,7 +40,9 @@ panelContents state StaticAnalysisView =
 
   noneAskedAnalysis = state ^. _analysisState <<< _analysisExecutionState <<< to isNoneAsked
 
-  enabled' = not loadingWarningAnalysis && not loadingReachability && not loadingCloseAnalysis && not contractHasErrors state
+  nothingLoading = not loadingWarningAnalysis && not loadingReachability && not loadingCloseAnalysis
+
+  enabled' = nothingLoading && not contractHasErrors state
 
 panelContents state MarloweWarningsView =
   section
