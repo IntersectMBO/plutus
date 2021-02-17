@@ -1,10 +1,10 @@
 ---
-title: Type Reduction
+title: Type Reduction, structural style
 layout: page
 ---
 
 ```
-module Type.Reduction where
+module Type.ReductionS where
 ```
 
 Right now this file is not used in other things. In the rest of the
