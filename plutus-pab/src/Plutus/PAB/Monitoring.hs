@@ -18,6 +18,7 @@ module Plutus.PAB.Monitoring(
   , loadConfig
   -- * Misc
   , toSeverity
+  , convertLog
   ) where
 
 import           Cardano.BM.Configuration       (setup)
@@ -158,3 +159,7 @@ handleObserveTrace config t =
   in L.handleObserve
       observeBefore
       observeAfter
+
+-- | Convert tracer structured log data
+convertLog :: (a -> b) -> Trace m b -> Trace m a
+convertLog f = contramap (second (fmap f))
