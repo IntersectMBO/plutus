@@ -22,6 +22,7 @@ import qualified Control.Monad.Freer.State       as Eff
 import qualified Control.Monad.Freer.Writer      as Eff
 import           Control.Monad.IO.Class          (MonadIO, liftIO)
 import           Data.Foldable                   (traverse_)
+import           Data.Function                   ((&))
 import           Data.List                       (genericDrop)
 import           Data.Text                       (Text)
 import           Data.Time.Units                 (Second, toMicroseconds)
@@ -106,6 +107,9 @@ type NodeServerEffects m
         , m]
 
 ------------------------------------------------------------
+
+
+-- | Run all chain effects in the IO Monad
 runChainEffects ::
     Server.ServerHandler
  -> Client.ClientHandler
@@ -115,29 +119,32 @@ runChainEffects ::
 runChainEffects serverHandler clientHandler stateVar eff = do
     oldAppState <- liftIO $ takeMVar stateVar
     ((a, events), newState) <- liftIO
-        $ runM
-        $ runStderrLog
-        $ interpret renderLogMessages
-        $ Eff.runState oldAppState
-        $ Eff.runReader serverHandler
-        $ Eff.runReader clientHandler
-        $ Eff.runWriter
-        $ reinterpret (handleLogWriter @MockServerLogMsg @[LogMessage MockServerLogMsg] (unto return))
-        $ interpret (handleZoomedState chainState)
-        $ interpret (handleZoomedState followerState)
-        $ interpret (mapLog ProcessingChainEvent)
-        $ reinterpret CE.handleChain
-        $ interpret (mapLog ProcessingChainEvent)
-        $ reinterpret Chain.handleControlChain
-        $ interpret (mapLog FollowerMsg)
-        $ FE.handleNodeFollower
-        $ subsume
-        $ runGenRandomTx
-        $ do result <- eff
-             void Chain.processBlock
-             pure result
+            $ processBlock eff
+            & runRandomTx
+            & runNodeFollwer
+            & runChain
+            & mergeState
+            & toWriter
+            & runReaders oldAppState
+            & interpret renderLogMessages
+            & runStderrLog
+            & runM
     liftIO $ putMVar stateVar newState
     pure (events, a)
+        where
+            processBlock e = e >>= \r -> Chain.processBlock >> pure r
+
+            runRandomTx = subsume . runGenRandomTx
+
+            runNodeFollwer = interpret (mapLog FollowerMsg) . FE.handleNodeFollower
+
+            runChain = interpret (mapLog ProcessingChainEvent) . reinterpret CE.handleChain . interpret (mapLog ProcessingChainEvent) . reinterpret Chain.handleControlChain
+
+            mergeState = interpret (handleZoomedState chainState) . interpret (handleZoomedState followerState)
+
+            toWriter = Eff.runWriter . reinterpret (handleLogWriter @MockServerLogMsg @[LogMessage MockServerLogMsg] (unto return))
+
+            runReaders s = Eff.runState s . Eff.runReader serverHandler . Eff.runReader clientHandler
 
 processChainEffects ::
     Trace IO MockServerLogMsg
