@@ -1,6 +1,0 @@
-(Left Type mismatch at () in term
-  '[ [ (builtin multiplyInteger) (con integer 11) ] (con integer 22) ]'.
-Expected type
-  '(all *_0 (type) *_0)',
-found type
-  '(con integer)')
