@@ -76,10 +76,8 @@ import Data.Array.Partial as UnsafeArray
 import Data.Compactable (separate)
 import Data.Either (Either(..), note')
 import Data.Lens (Lens', _1, view)
-import Data.Lens.Iso.Newtype (_Newtype)
 import Data.Lens.Record (prop)
 import Data.Maybe (Maybe(..))
-import Data.Newtype (class Newtype)
 import Data.Symbol (SProxy(..))
 import Data.Traversable (traverse)
 import Data.Tuple (Tuple(..))
@@ -95,21 +93,18 @@ import Web.DOM.Node as Node
 import Web.DOM.NodeList as NodeList
 import Web.DOM.ParentNode as ParentNode
 
-newtype Block
-  = Block
-  { id :: String
-  , type :: String
-  -- In the XML the children of a block are stored/represented as an array of elements, but to simplify
-  -- consumption we use a JS native Object (like a `Map String a` but with better performance).
-  -- This decision implies that we cannot have two childs properties with the same `name`, but I think we shouldn't
-  -- anyway, and if we do, we are going to have the same kind of error later on, while transforming from Dom -> Term
-  , children :: Object BlockChild
-  }
-
-derive instance newtypeBlock :: Newtype Block _
+type Block
+  = { id :: String
+    , type :: String
+    -- In the XML the children of a block are stored/represented as an array of elements, but to simplify
+    -- consumption we use a JS native Object (like a `Map String a` but with better performance).
+    -- This decision implies that we cannot have two childs properties with the same `name`, but I think we shouldn't
+    -- anyway, and if we do, we are going to have the same kind of error later on, while transforming from Dom -> Term
+    , children :: Object BlockChild
+    }
 
 _id :: Lens' Block String
-_id = _Newtype <<< prop (SProxy :: SProxy "id")
+_id = prop (SProxy :: SProxy "id")
 
 data BlockChild
   -- A Field is visually represented as a label and an editable field, for example
@@ -187,7 +182,7 @@ getDom { blockly, workspace, rootBlockName } =
         children = Object.fromFoldable left
       pure
         $ Tuple
-            (Block { id: blockId, type: blockType, children })
+            { id: blockId, type: blockType, children }
             (join right)
 
   -- Tries to read an Element as the children of a Block node. The Left hand side of the return represents a Block direct children
