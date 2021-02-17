@@ -125,7 +125,10 @@ handleAction AnalyseReachabilityContract = runAnalysis $ analyseReachability
 
 handleAction AnalyseContractForCloseRefund = runAnalysis $ analyseClose
 
-handleAction ClearAnalysisResults = assign (_analysisState <<< _analysisExecutionState) NoneAsked
+handleAction ClearAnalysisResults = do
+  assign (_analysisState <<< _analysisExecutionState) NoneAsked
+  mContents <- editorGetValue
+  for_ mContents \contents -> lintText contents
 
 handleAction Save = pure unit
 
