@@ -1,0 +1,44 @@
+cabal-version:       2.2
+name:                freer-extras
+version:             0.1.0.0
+synopsis:            Useful extensions to simple-freer
+description:         freer-extras provides logging and monitoring functions extending simple-freer
+bug-reports:         https://github.com/iohk/plutus/issues
+license:             Apache-2.0
+license-file:        LICENSE
+author:              Tobias Pflug
+maintainer:          tobias.pflug@iohk.io
+build-type:          Simple
+extra-source-files:  CHANGELOG.md
+
+source-repository head
+    type: git
+    location: https://github.com/iohk/plutus
+
+common lang
+    default-language: Haskell2010
+    default-extensions: ExplicitForAll ScopedTypeVariables
+                        DeriveGeneric StandaloneDeriving DeriveLift
+                        GeneralizedNewtypeDeriving DeriveFunctor DeriveFoldable
+                        DeriveTraversable
+    ghc-options: -Wall -Wnoncanonical-monad-instances
+                 -Wincomplete-uni-patterns -Wincomplete-record-updates
+                 -Wredundant-constraints -Widentities
+
+
+library
+  import:              lang
+  hs-source-dirs: src
+  exposed-modules:
+        Control.Monad.Freer.Extras
+        Control.Monad.Freer.Log
+        Control.Monad.Freer.Stream
+  build-depends:
+        aeson -any,
+        base >=4.7 && <5,
+        lens -any,
+        freer-simple -any,
+        mtl -any,
+        prettyprinter -any,
+        streaming -any,
+        text -any
