@@ -3,12 +3,17 @@ module BlocklyEditor.View where
 import Prelude hiding (div)
 import Blockly.Internal (block, blockType, category, colour, name, style, x, xml, y)
 import BlocklyComponent.State as Blockly
-import BlocklyEditor.Types (Action(..), State, _hasHoles, _marloweCode)
+import BlocklyEditor.BottomPanel (panelContents)
+import BlocklyEditor.Types (Action(..), BottomPanelView(..), State, _bottomPanelState, _hasHoles, _marloweCode)
+import BottomPanel.Types (Action(..)) as BottomPanel
+import BottomPanel.View (render) as BottomPanel
+import Data.Array as Array
 import Data.Lens ((^.))
 import Data.Maybe (Maybe(..), isJust)
 import Effect.Aff.Class (class MonadAff)
 import Halogen (ComponentHTML)
 import Halogen.Classes (group)
+import Halogen.Extra (renderSubmodule)
 import Halogen.HTML (HTML, button, div, slot, text, div_)
 import Halogen.HTML.Events (onClick)
 import Halogen.HTML.Properties (classes, enabled, id_)
@@ -25,7 +30,19 @@ render state =
     [ slot _blocklySlot unit (Blockly.blockly MB.rootBlockName MB.blockDefinitions) unit (Just <<< HandleBlocklyMessage)
     , toolbox
     , workspaceBlocks
+    , renderSubmodule _bottomPanelState BottomPanelAction (BottomPanel.render panelTitles wrapBottomPanelContents) state
     ]
+  where
+  panelTitles =
+    [ { title: "Static Analysis", view: StaticAnalysisView, classes: [] }
+    , { title: warningsTitle, view: BlocklyWarningsView, classes: [] }
+    ]
+
+  withCount str arry = str <> if Array.null arry then "" else " (" <> show (Array.length arry) <> ")"
+
+  warningsTitle = withCount "Warnings" [] -- $ state ^. _editorWarnings
+
+  wrapBottomPanelContents panelView = BottomPanel.PanelAction <$> panelContents state panelView
 
 toolbox :: forall a b. HTML a b
 toolbox =

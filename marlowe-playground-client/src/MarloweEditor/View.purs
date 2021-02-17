@@ -3,7 +3,6 @@ module MarloweEditor.View where
 import Prelude hiding (div)
 import BottomPanel.Types (Action(..)) as BottomPanel
 import BottomPanel.View (render) as BottomPanel
-import Data.Array (length)
 import Data.Array as Array
 import Data.Enum (toEnum, upFromIncluding)
 import Data.Lens ((^.))
@@ -43,7 +42,7 @@ render state =
     , { title: errorsTitle, view: MarloweErrorsView, classes: [] }
     ]
 
-  withCount str arry = str <> if Array.null arry then "" else " (" <> show (length arry) <> ")"
+  withCount str arry = str <> if Array.null arry then "" else " (" <> show (Array.length arry) <> ")"
 
   warningsTitle = withCount "Warnings" $ state ^. _editorWarnings
 
