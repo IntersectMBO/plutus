@@ -28,11 +28,14 @@ import           Control.Monad.Trans.Except                        (runExceptT)
 import           Data.Bifunctor                                    (second)
 import qualified Data.ByteString.Lazy                              as BSL
 import           Data.Foldable                                     (traverse_)
+import           Data.Function                                     ((&))
 import           Data.Functor                                      ((<&>))
+import           Data.List                                         (nub)
 import qualified Data.Text                                         as T
 import           Data.Text.Encoding                                (encodeUtf8)
 import qualified Data.Text.IO                                      as T
 import           Data.Text.Prettyprint.Doc                         (Doc, pretty, (<+>))
+import           Data.Traversable                                  (for)
 import           Flat
 import           Options.Applicative
 import           System.CPUTime                                    (getCPUTime)
@@ -209,6 +212,8 @@ timing2 = Timing <$> option auto
   <> help "Report mean execution time of program over N repetitions. Use a large value of N if possible to get accurate results."
   )
 
+-- We really do need two separate parsers here.
+-- See https://github.com/pcapriotti/optparse-applicative/issues/194#issuecomment-205103230
 timingmode :: Parser TimingMode
 timingmode = timing1 <|> timing2
 
@@ -661,19 +666,21 @@ formatTime t
 time.  The first measurement is often significantly larger than the rest
 (perhaps due to warm-up effects), and this can distort the mean.  To avoid this
 we measure the evaluation time (n+1) times and discard the first result. -}
-timeEval :: NFData a => Integer -> (t -> a) -> t -> IO ()
-timeEval n evaluate prog =
-    if n <= 0 then error "Error: the number of repetitions should be at least 1"
-    else do
-      times <- tail <$> for (replicate (fromIntegral (n+1)) prog) (timeOnce evaluate)
-      let mean = (fromIntegral $ sum times) / (fromIntegral n) :: Double
-          runs :: String = if n==1 then "run" else "runs"
-      printf "Mean evaluation time (%d %s): %s\n" n runs (formatTime mean)
+timeEval :: NFData a => Integer -> (t -> a) -> t -> IO [a]
+timeEval n evaluate prog
+    | n <= 0 = error "Error: the number of repetitions should be at least 1"
+    | otherwise = do
+  (results, times) <- unzip . tail <$> for (replicate (fromIntegral (n+1)) prog) (timeOnce evaluate)
+  let mean = (fromIntegral $ sum times) / (fromIntegral n) :: Double
+      runs :: String = if n==1 then "run" else "runs"
+  printf "Mean evaluation time (%d %s): %s\n" n runs (formatTime mean)
+  pure results
     where timeOnce eval prg = do
-             start <- performGC >> getCPUTime
-             let !_ = rnf $ eval prg
-             end <- getCPUTime
-             pure $ end - start
+            start <- performGC >> getCPUTime
+            let result = eval prg
+                !_ = rnf result
+            end <- getCPUTime
+            pure $ (result, end - start)
 
 runEval :: EvalOptions -> IO ()
 runEval (EvalOptions language inp ifmt evalMode printMode timingMode) =
@@ -690,10 +697,8 @@ runEval (EvalOptions language inp ifmt evalMode printMode timingMode) =
         -- Force evaluation of body to ensure that we're not timing parsing/deserialisation.
         -- The parser apparently returns a fully-evaluated AST, but let's be on the safe side.
         case timingMode of
-          NoTiming -> case evaluate body of
-                        PLC.EvaluationSuccess v -> succeed v
-                        PLC.EvaluationFailure   -> exitFailure
-          Timing n -> timeEval n evaluate body >> exitSuccess
+          NoTiming -> evaluate body & handleResult
+          Timing n -> timeEval n evaluate body >>= handleTimingResults
 
       UntypedPLC ->
           case evalMode of
@@ -704,14 +709,18 @@ runEval (EvalOptions language inp ifmt evalMode printMode timingMode) =
                       body = void . UPLC.toTerm $ prog
                       !_ = rnf body
                   case timingMode of
-                    NoTiming -> case evaluate body of
-                                  UPLC.EvaluationSuccess v -> succeed v
-                                  UPLC.EvaluationFailure   -> exitFailure
-                    Timing n -> timeEval n evaluate body >> exitSuccess
+                    NoTiming -> evaluate body & handleResult
+                    Timing n -> timeEval n evaluate body >>= handleTimingResults
 
-    where succeed v = do
-            print $ getPrintMethod printMode v
-            exitSuccess
+    where handleResult result =
+              case result of
+                PLC.EvaluationSuccess v -> (print $ getPrintMethod printMode v) >> exitSuccess
+                PLC.EvaluationFailure   -> exitFailure
+          handleTimingResults results =
+              case nub results of
+                [PLC.EvaluationSuccess _] -> exitSuccess -- We don't want to see the results here
+                [PLC.EvaluationFailure]   -> exitFailure
+                _                         -> error "Timing evaluations returned inconsistent results"
 
 
 
