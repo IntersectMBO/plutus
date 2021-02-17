@@ -24,7 +24,7 @@ import           Control.Monad                   ((>=>))
 import qualified Control.Monad.Except            as MonadError
 import           Control.Monad.Freer             (Eff, runM)
 import           Control.Monad.Freer.Error       (Error, handleError, runError, throwError)
-import           Control.Monad.Freer.Extra.Log   (LogMsg, logInfo, runStderrLog)
+import           Control.Monad.Freer.Extra.Log   (LogMsg, logInfo)
 import           Control.Monad.Freer.State       (State, runState)
 import           Control.Monad.IO.Class          (MonadIO, liftIO)
 import qualified Data.ByteString.Lazy.Char8      as Char8
@@ -38,7 +38,7 @@ import           Servant                         (Application, Handler (Handler)
                                                   err400, err500, hoistServer, serve, (:<|>) ((:<|>)))
 import           Servant.Client                  (BaseUrl (baseUrlPort), ClientEnv, ClientError, mkClientEnv)
 
-import           Plutus.PAB.Monitoring           (runLogEffects)
+import           Plutus.PAB.Monitoring           (convertLog, handleLogMsgTrace, runLogEffects)
 import           Wallet.Effects                  (ChainIndexEffect, NodeClientEffect, WalletEffect, ownOutputs,
                                                   ownPubKey, startWatching, submitTxn, updatePaymentWithChange,
                                                   walletSlot)
@@ -46,26 +46,38 @@ import           Wallet.Emulator.Error           (WalletAPIError)
 import           Wallet.Emulator.Wallet          (WalletState, emptyWalletState)
 import qualified Wallet.Emulator.Wallet          as Wallet
 
-type AppEffects m = '[WalletEffect, NodeClientEffect, ChainIndexEffect, State WalletState, LogMsg Text, Error WalletAPIError, Error ClientError, Error ServerError, m]
-
+type AppEffects m = '[WalletEffect
+                     , NodeClientEffect
+                     , ChainIndexEffect
+                     , State WalletState
+                     , LogMsg Text
+                     , Error WalletAPIError
+                     , Error ClientError
+                     , Error ServerError
+                     , m]
 runAppEffects ::
-    ( MonadIO m
-    )
-    => ClientEnv
+     MonadIO m
+    => Trace m WalletMsg
+    -> ClientEnv
     -> ClientEnv
     -> WalletState
     -> Eff (AppEffects m) a
     -> m (Either ServerError (a, WalletState))
-runAppEffects nodeClientEnv chainIndexEnv walletState action =
-    runM
-            $ runError
-            $ flip handleError (\e -> throwError $ err500 { errBody = Char8.pack (show e) })
-            $ flip handleError (throwError . fromWalletAPIError)
-            $ runStderrLog
-            $ runState walletState
-            $ ChainIndexClient.handleChainIndexClient chainIndexEnv
-            $ NodeClient.handleNodeClientClient nodeClientEnv
-            $ Wallet.handleWallet action
+runAppEffects trace nodeClientEnv chainIndexEnv walletState action =
+    Wallet.handleWallet action
+    & NodeClient.handleNodeClientClient nodeClientEnv
+    & ChainIndexClient.handleChainIndexClient chainIndexEnv
+    & runState walletState
+    & handleLogMsgTrace (toWalletMsg trace)
+    & handleWalletApiErrors
+    & handleClientErrors
+    & runError
+    & runM
+        where
+            handleWalletApiErrors = flip handleError (throwError . fromWalletAPIError)
+            handleClientErrors = flip handleError (\e -> throwError $ err500 { errBody = Char8.pack (show e) })
+            toWalletMsg = convertLog ChainClientMsg
+
 
 ------------------------------------------------------------
 -- | Run all handlers, affecting a single, global 'MVar WalletState'.
@@ -74,15 +86,16 @@ runAppEffects nodeClientEnv chainIndexEnv walletState action =
 -- block on access to a single, global 'MVar'.  We could do something
 -- smarter, but I don't think it matters as this is only a mock.
 asHandler ::
-    ClientEnv
+    Trace IO WalletMsg
+    -> ClientEnv
     -> ClientEnv
     -> MVar WalletState
     -> Eff (AppEffects IO) a
     -> Handler a
-asHandler nodeClientEnv chainIndexEnv mVarState action =
+asHandler trace nodeClientEnv chainIndexEnv mVarState action =
     Handler $ do
         oldState <- liftIO $ takeMVar mVarState
-        result <- liftIO $ runAppEffects nodeClientEnv chainIndexEnv oldState action
+        result <- liftIO $ runAppEffects trace nodeClientEnv chainIndexEnv oldState action
         case result of
             Left err -> do
                 liftIO $ putMVar mVarState oldState
@@ -91,10 +104,10 @@ asHandler nodeClientEnv chainIndexEnv mVarState action =
                 liftIO $ putMVar mVarState newState
                 pure result_
 
-app :: ClientEnv -> ClientEnv -> MVar WalletState -> Application
-app nodeClientEnv chainIndexEnv mVarState =
+app :: Trace IO WalletMsg -> ClientEnv -> ClientEnv -> MVar WalletState -> Application
+app trace nodeClientEnv chainIndexEnv mVarState =
     serve (Proxy @API) $
-    hoistServer (Proxy @API) (asHandler nodeClientEnv chainIndexEnv mVarState) $
+    hoistServer (Proxy @API) (asHandler trace nodeClientEnv chainIndexEnv mVarState) $
     (submitTxn >=> const (pure NoContent)) :<|> ownPubKey :<|> uncurry updatePaymentWithChange :<|>
     walletSlot :<|> ownOutputs
 
@@ -105,7 +118,7 @@ main trace Config {..} nodeBaseUrl chainIndexBaseUrl availability = runLogEffect
     mVarState <- liftIO $ newMVar state
     runClient chainIndexEnv
     logInfo $ StartingWallet servicePort
-    liftIO $ Warp.runSettings warpSettings $ app nodeClientEnv chainIndexEnv mVarState
+    liftIO $ Warp.runSettings warpSettings $ app trace nodeClientEnv chainIndexEnv mVarState
     where
         servicePort = baseUrlPort baseUrl
         state = emptyWalletState wallet
