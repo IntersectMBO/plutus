@@ -93,7 +93,7 @@ handleQuery (GetBlockRepresentation next) = do
   eBlock <-
     runExceptT do
       blocklyState <- ExceptT $ note "BlocklyState not set" <$> use _blocklyState
-      ExceptT $ lmap explainError <$> liftEffect (getDom blocklyState)
+      ExceptT $ lmap explainError <$> runExceptT (getDom blocklyState)
   case eBlock of
     Left e -> do
       assign _errorMessage $ Just $ unexpected e
@@ -116,7 +116,7 @@ handleAction (Inject rootBlockName blockDefinitions) = do
       state <- Blockly.createBlocklyInstance rootBlockName (ElementId "blocklyWorkspace") (ElementId "blocklyToolbox")
       Blockly.addBlockTypes state.blockly blockDefinitions
       Blockly.initializeWorkspace state.blockly state.workspace
-      pure $ state
+      pure state
   eventSubscription <- H.subscribe $ blocklyEvents BlocklyEvent blocklyState.workspace
   modify_
     ( set _blocklyState (Just blocklyState)

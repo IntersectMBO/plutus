@@ -69,10 +69,9 @@ import Prelude
 import Blockly.Internal (workspaceToDom)
 import Blockly.Types (BlocklyState)
 import Control.Monad.Error.Extra (toMonadThrow)
-import Control.Monad.Except (runExceptT, throwError)
+import Control.Monad.Except (throwError)
 import Control.Monad.Except.Trans (class MonadThrow)
-import Data.Array (find, length)
-import Data.Array.Partial as UnsafeArray
+import Data.Array (find, length, uncons)
 import Data.Compactable (separate)
 import Data.Either (Either(..), note')
 import Data.Lens (Lens', _1, view)
@@ -85,7 +84,6 @@ import Effect (Effect)
 import Effect.Class (class MonadEffect, liftEffect)
 import Foreign.Object (Object)
 import Foreign.Object as Object
-import Partial.Unsafe (unsafePartial)
 import Web.DOM (Element, Node)
 import Web.DOM.Element as Element
 import Web.DOM.HTMLCollection as HTMLCollection
@@ -122,7 +120,7 @@ data BlockChild
   -- while parsing.
   | Statement (Array Block)
 
-type ChildWithName
+type NamedBlockChild
   = Tuple String BlockChild
 
 data ReadDomError
@@ -146,35 +144,36 @@ explainError (RootElementNotFound rootBlockName) = "The element with id " <> sho
 explainError (IncorrectSiblingNesting node) = "Incorrect <next> element found outside the scope of a <statement> and inside of a " <> node <> " node"
 
 -- | Read and parse the DOM nodes of a blockly workspace.
-getDom :: BlocklyState -> Effect (Either ReadDomError Block)
-getDom { blockly, workspace, rootBlockName } =
-  runExceptT do
-    rootElement <- liftEffect $ workspaceToDom blockly workspace
-    if Element.tagName rootElement /= "xml" then
-      throwError $ TypeMismatch rootElement "xml"
-    else do
-      -- The workspace can have many elements at the top level, we parse them all
-      -- but only return the one that has the same id as rootBlockName
-      childrens <- getChildrens rootElement
-      blocks <- traverse readAsBlock childrens
-      case find (eq rootBlockName <<< view (_1 <<< _id)) blocks of
-        Nothing -> throwError $ RootElementNotFound rootBlockName
-        Just (Tuple block nexts) ->
-          if length nexts /= 0 then
-            throwError $ IncorrectSiblingNesting "root"
-          else
-            pure block
+getDom ::
+  forall m.
+  MonadEffect m =>
+  MonadThrow ReadDomError m =>
+  BlocklyState ->
+  m Block
+getDom { blockly, workspace, rootBlockName } = do
+  rootElement <- liftEffect $ workspaceToDom blockly workspace
+  if Element.tagName rootElement /= "xml" then
+    throwError $ TypeMismatch rootElement "xml"
+  else do
+    -- The workspace can have many elements at the top level, we parse them all
+    -- but only return the one that has the same id as rootBlockName
+    childrens <- liftEffect $ getChildren rootElement
+    blocks <- traverse readAsBlock childrens
+    case find (eq rootBlockName <<< view (_1 <<< _id)) blocks of
+      Nothing -> throwError $ RootElementNotFound rootBlockName
+      Just (Tuple block []) -> pure block
+      Just _ -> throwError $ IncorrectSiblingNesting "root"
   where
   -- Tries to read an Element as a Block node. It returns a tuple with the parsed Block and an Array of Block's which
   -- are the parsed <next> elements which represent the siblings of a parent Statement.
-  readAsBlock :: forall m. MonadEffect m => MonadThrow ReadDomError m => Element -> m (Tuple Block (Array Block))
+  readAsBlock :: Element -> m (Tuple Block (Array Block))
   readAsBlock element =
     if Element.tagName element /= "block" then
       throwError $ TypeMismatch element "block"
     else do
       blockId <- liftEffect $ Element.id element
       blockType <- getAttribute "type" element
-      elementChildren <- getChildrens element
+      elementChildren <- liftEffect $ getChildren element
       -- Parse each child element, which can be Either a BlockChild (field, value, statement) or a list of
       -- siblings to pass to my parent
       { left, right } <- separate <$> traverse readAsBlockChild elementChildren
@@ -187,17 +186,12 @@ getDom { blockly, workspace, rootBlockName } =
 
   -- Tries to read an Element as the children of a Block node. The Left hand side of the return represents a Block direct children
   -- while the Right hand side represents the parsed `<next>` elements which should be appended to a parents Statement.
-  readAsBlockChild ::
-    forall m.
-    MonadEffect m =>
-    MonadThrow ReadDomError m =>
-    Element ->
-    m (Either ChildWithName (Array Block))
+  readAsBlockChild :: Element -> m (Either NamedBlockChild (Array Block))
   readAsBlockChild element = do
     case Element.tagName element of
       "field" -> do
         name <- getAttribute "name" element
-        value <- getElementText element
+        value <- liftEffect $ getElementText element
         pure $ Left $ Tuple name $ Field value
       "statement" -> do
         name <- getAttribute "name" element
@@ -219,30 +213,23 @@ getDom { blockly, workspace, rootBlockName } =
         pure $ Right ([ block ] <> nexts)
       _ -> throwError $ TypeMismatch element "field, statement, value, next"
 
-  getSingleChild :: forall m. MonadEffect m => MonadThrow ReadDomError m => Element -> m Element
+  getSingleChild :: Element -> m Element
   getSingleChild element = do
-    children <- getChildrens element
-    if length children /= 1 then
-      throwError $ SingleChildExpected element $ length children
-    else do
-      pure $ unsafePartial $ UnsafeArray.head children
+    children <- liftEffect $ getChildren element
+    case uncons children of
+      Just { head, tail: [] } -> pure head
+      _ -> throwError $ SingleChildExpected element $ length children
 
-  getChildrens :: forall m. MonadEffect m => Element -> m (Array Element)
-  getChildrens element =
-    liftEffect do
-      elements <- (ParentNode.children <<< Element.toParentNode) element
-      HTMLCollection.toArray elements
+  getChildren :: Element -> Effect (Array Element)
+  getChildren element = HTMLCollection.toArray =<< (ParentNode.children $ Element.toParentNode element)
 
-  getChildNodes :: forall m. MonadEffect m => Element -> m (Array Node)
-  getChildNodes element =
-    liftEffect do
-      nodes <- (Node.childNodes <<< Element.toNode) element
-      NodeList.toArray nodes
+  getChildNodes :: Element -> Effect (Array Node)
+  getChildNodes element = NodeList.toArray =<< (Node.childNodes $ Element.toNode element)
 
-  getElementText :: forall m. MonadEffect m => Element -> m String
-  getElementText = liftEffect <<< Node.textContent <<< Element.toNode
+  getElementText :: Element -> Effect String
+  getElementText = Node.textContent <<< Element.toNode
 
-  getAttribute :: forall m. MonadEffect m => MonadThrow ReadDomError m => String -> Element -> m String
+  getAttribute :: String -> Element -> m String
   getAttribute attr element = do
     mValue <- liftEffect $ Element.getAttribute attr element
     toMonadThrow $ note' (\_ -> MissingProperty element attr) mValue

@@ -31,7 +31,6 @@ import Effect (Effect)
 import Foreign.Object as Object
 import Marlowe.Holes (Action(..), Bound(..), Case(..), ChoiceId(..), Contract(..), Location(..), Observation(..), Party(..), Payee(..), Term(..), TermWrapper(..), Timeout(..), Token(..), Value(..), ValueId(..))
 import Marlowe.Semantics (Rational(..))
-import Partial.Unsafe (unsafePartial)
 import Record (merge)
 import Type.Proxy (Proxy(..))
 
@@ -1045,10 +1044,9 @@ asStatement child = case child of
 asSingleStatement :: forall m. MonadThrow ParseTermError m => BDom.BlockChild -> m BDom.Block
 asSingleStatement child = do
   statements <- asStatement child
-  if length statements /= 1 then
-    throwError $ InvalidChildType "Statement with a single child"
-  else
-    pure $ unsafePartial $ UnsafeArray.head statements
+  case uncons statements of
+    Just { head, tail: [] } -> pure head
+    _ -> throwError $ InvalidChildType "Statement with a single child"
 
 asValue :: forall m. MonadThrow ParseTermError m => BDom.BlockChild -> m BDom.Block
 asValue child = case child of
