@@ -98,7 +98,7 @@ import           Streaming.Prelude                       (Of)
 
 -- | Effects that make up an emulator trace:
 --   Running contracts, waiting for blockchain events,
---   changing emultor internal state, and logging.
+--   changing emulator internal state, and logging.
 type EmulatorTraceEffs effs =
             RunContract
             ': Waiting
