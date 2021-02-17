@@ -96,6 +96,111 @@ escrow =
     return contract;
 """
 
+escrowWithCollateral :: String
+escrowWithCollateral =
+  """
+ import {
+    PK, Role, Account, Party, ada, AvailableMoney, Constant, NegValue, AddValue,
+    SubValue, MulValue, Scale, ChoiceValue, SlotIntervalStart, SlotIntervalEnd,
+    UseValue, Cond, AndObs, OrObs, NotObs, ChoseSomething, ValueGE, ValueGT,
+    ValueLT, ValueLE, ValueEQ, TrueObs, FalseObs, Deposit, Choice, Notify,
+    Close, Pay, If, When, Let, Assert, SomeNumber, AccountId, ChoiceId, Token,
+    ValueId, Value, EValue, Observation, Bound, Action, Payee, Case, Contract
+} from 'marlowe-js';
+
+(function (): Contract {
+
+    /* Parties */
+    const alice : Party = Role("alice");
+    const bob : Party = Role("bob");
+    const blackhole : Party = Role("blackhole");
+
+    /* Value under escrow */
+    const price : SomeNumber = 450n;
+    const aliceCollateral : SomeNumber = 4500n;
+    const bobCollateral : SomeNumber = 4500n;
+
+    /* helper function to build Actions */
+
+    const choiceName : string = "choice";
+
+    const choiceIdBy = function (party : Party) : ChoiceId {
+                        return ChoiceId(choiceName, party);
+                    }
+
+    const choiceBy = function(party : Party, bounds : [Bound]) : Action {
+                        return Choice(choiceIdBy(party), bounds);
+                    };
+
+
+    const choiceValueBy = function(party : Party) : Value {
+                            return ChoiceValue(choiceIdBy(party));
+                        };
+
+    /* Names for choices */
+
+    const both : [Bound]   = [Bound(0n, 1n)];
+
+    /* Name choices according to person making choice and choice made */
+
+
+    const aliceChoice : Action = choiceBy(alice, both);
+
+    const bobChoice : Action = choiceBy(bob, both);
+
+    /* the values chosen in choices */
+
+    const aliceChosen : Value = choiceValueBy(alice);
+    const bobChosen : Value = choiceValueBy(bob);
+
+    /* The contract to follow when Alice and Bob disagree, or if
+    Carol has to intervene after a single choice from Alice or Bob. */
+
+    const destroyCollaterals : Contract = Pay(alice, Party(blackhole), ada, aliceCollateral, Pay(bob, Party(blackhole), ada, bobCollateral, Close));
+
+    /* The contract to follow when Alice and Bob have made the same choice. */
+
+    const agreement : Contract = If(ValueEQ(aliceChosen, 0n),
+                                    Pay(alice, Party(bob), ada, price, Close),
+                                    Close);
+
+    /* Inner part of contract */
+
+    const inner : Contract = When([Case(aliceChoice,
+                            When([Case(bobChoice,
+                                        If(ValueEQ(aliceChosen, bobChosen),
+                                            agreement,
+                                            destroyCollaterals))],
+                                    60n, destroyCollaterals))],
+                            40n, destroyCollaterals);
+
+    /* What does the vanilla contract look like?
+    - if Alice and Bob choose
+        - and agree: do it
+        - and disagree: Carol decides
+    - Carol also decides if timeout after one choice has been made;
+    - refund if no choices are made. */  
+
+    const contract : Contract =  When([Case(Deposit(alice, alice, ada, price), inner)],
+                                    10n,
+                                    Close)
+
+    const collateral2 : Contract = When([Case(Deposit(bob, bob, ada, bobCollateral), contract)],
+                                    20n,
+                                    Close)
+    
+
+    const collateral1 : Contract = When([Case(Deposit(alice, alice, ada, aliceCollateral), collateral2)],
+                                    30n,
+                                    Close)
+
+
+
+    return collateral1;
+
+})
+"""
+
 zeroCouponBond :: String
 zeroCouponBond =
   """
