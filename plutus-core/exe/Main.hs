@@ -723,7 +723,6 @@ runEval (EvalOptions language inp ifmt evalMode printMode timingMode) =
                 _                         -> error "Timing evaluations returned inconsistent results"
 
 
-
 ---------------- Driver ----------------
 
 main :: IO ()
