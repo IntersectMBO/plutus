@@ -27,7 +27,7 @@ import           Language.PlutusCore.Builtins
 import           Language.PlutusCore.Constant
 import           Language.PlutusCore.Core
 import           Language.PlutusCore.Error
-import           Language.PlutusCore.Evaluation.Machine.Cek
+import           Language.PlutusCore.Evaluation.Machine.Ck
 import           Language.PlutusCore.Evaluation.Machine.ExMemory
 import           Language.PlutusCore.Evaluation.Machine.Exception
 import           Language.PlutusCore.Name
@@ -127,7 +127,7 @@ unsafeTypeEvalCheck
     => TermOf (Term TyName Name uni fun ()) a
     -> TermOf (Term TyName Name uni fun ()) (EvaluationResult (Term TyName Name uni fun ()))
 unsafeTypeEvalCheck termOfTbv = do
-    let errOrRes = typeEvalCheckBy (evaluateCek defBuiltinsRuntime) termOfTbv
+    let errOrRes = typeEvalCheckBy (evaluateCk defBuiltinsRuntime) termOfTbv
     case errOrRes of
         Left err         -> error $ concat
             [ prettyPlcErrorString err
