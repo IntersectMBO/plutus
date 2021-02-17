@@ -83,13 +83,13 @@ handleQuery (ReceiveWebSocketMessage msg next) = do
 handleAction :: forall m. MonadAff m => Action -> HalogenM State Action ChildSlots Msg m Unit
 handleAction Init = do
   mCachedWalletsJson <- liftEffect $ getItem walletsLocalStorageKey
-  for_ mCachedWalletsJson
-    \json -> for_ (runExcept $ decodeJSON json)
-      \cachedWallets -> assign _wallets cachedWallets
+  for_ mCachedWalletsJson \json ->
+    for_ (runExcept $ decodeJSON json) \cachedWallets ->
+      assign _wallets cachedWallets
   mCachedWalletJson <- liftEffect $ getItem walletLocalStorageKey
-  for_ mCachedWalletJson
-    \json -> for_ (runExcept $ decodeJSON json)
-      \cachedWallet -> assign _subState $ Right $ mkWalletState cachedWallet
+  for_ mCachedWalletJson \json ->
+    for_ (runExcept $ decodeJSON json) \cachedWallet ->
+      assign _subState $ Right $ mkWalletState cachedWallet
 
 -- pickup actions
 handleAction (SetPickupCard pickupCard) = assign (_pickupState <<< _card) pickupCard
@@ -113,13 +113,11 @@ handleAction (LookupWallet string) = do
   -- check for a matching nickname in the wallet library first
   case findIndex (\key -> fst key == string) wallets of
     Just key -> assign (_pickupState <<< _card) $ Just $ PickupWalletCard key
-    Nothing ->
-      -- failing that, check for a matching pubkey in the wallet library
-      case findIndex (\key -> snd key == string) wallets of
-        Just key -> assign (_pickupState <<< _card) $ Just $ PickupWalletCard key
-        Nothing ->
-          -- TODO: lookup pubkey on the blockchain
-          pure unit
+    -- failing that, check for a matching pubkey in the wallet library
+    Nothing -> case findIndex (\key -> snd key == string) wallets of
+      Just key -> assign (_pickupState <<< _card) $ Just $ PickupWalletCard key
+      -- TODO: lookup pubkey on the blockchain
+      Nothing -> pure unit
 
 handleAction (PickupWallet pubKeyHash) = do
   modify_
