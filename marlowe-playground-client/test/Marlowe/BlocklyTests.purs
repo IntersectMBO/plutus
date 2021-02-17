@@ -7,7 +7,7 @@ import Blockly.Headless as Headless
 import Blockly.Internal (getBlockById)
 import Blockly.Internal as Blockly
 import Blockly.Types (BlocklyState)
-import Control.Monad.Except (ExceptT(..), runExceptT)
+import Control.Monad.Except (ExceptT(..), runExceptT, withExceptT)
 import Control.Monad.Reader (runReaderT)
 import Data.Bifunctor (lmap, rmap)
 import Data.Either (Either)
@@ -63,7 +63,7 @@ runContract contract =
     blocklyState <- mkTestState
     buildBlocks blocklyState contract
     runExceptT do
-      block <- ExceptT $ lmap explainError <$> getDom blocklyState
+      block <- withExceptT explainError (getDom blocklyState)
       ExceptT $ pure $ blockToContract block
 
 buildBlocks :: BlocklyState -> Term Contract -> Effect Unit

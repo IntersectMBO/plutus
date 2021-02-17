@@ -7,8 +7,7 @@ import Blockly.Internal (BlockDefinition, ElementId(..))
 import Blockly.Internal as Blockly
 import BlocklyComponent.Types (Action(..), Message(..), Query(..), State, _blocklyEventSubscription, _blocklyState, _errorMessage, emptyState)
 import BlocklyComponent.View (render)
-import Control.Monad.Except (ExceptT(..), except, runExceptT)
-import Data.Bifunctor (lmap)
+import Control.Monad.Except (ExceptT(..), runExceptT, withExceptT)
 import Data.Either (Either(..), either, note)
 import Data.Lens (assign, set, use)
 import Data.Maybe (Maybe(..))
@@ -18,7 +17,6 @@ import Halogen (Component, HalogenM, liftEffect, mkComponent, modify_)
 import Halogen as H
 import Halogen.BlocklyCommons (blocklyEvents, runWithoutEventSubscription, detectCodeChanges)
 import Halogen.HTML (HTML)
--- TODO: If we want to make ActusBlockly to use this component, we shouldn't depend on Marlowe.X
 import Marlowe.Blockly (buildBlocks)
 import Marlowe.Holes (Term(..), Location(..))
 import Marlowe.Parser as Parser
@@ -93,7 +91,7 @@ handleQuery (GetBlockRepresentation next) = do
   eBlock <-
     runExceptT do
       blocklyState <- ExceptT $ note "BlocklyState not set" <$> use _blocklyState
-      ExceptT $ lmap explainError <$> runExceptT (getDom blocklyState)
+      withExceptT explainError (getDom blocklyState)
   case eBlock of
     Left e -> do
       assign _errorMessage $ Just $ unexpected e
