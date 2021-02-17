@@ -718,7 +718,7 @@ runEval (EvalOptions language inp ifmt evalMode printMode timingMode) =
                 PLC.EvaluationFailure   -> exitFailure
           handleTimingResults results =
               case nub results of
-                [PLC.EvaluationSuccess _] -> exitSuccess -- We don't want to see the results here
+                [PLC.EvaluationSuccess _] -> exitSuccess -- We don't want to see the result here
                 [PLC.EvaluationFailure]   -> exitFailure
                 _                         -> error "Timing evaluations returned inconsistent results"
 
