@@ -19,9 +19,10 @@ import Halogen.HTML (HTML, a, br_, button, datalist, div, footer, h2_, header, h
 import Halogen.HTML.Events (onClick, onValueInput)
 import Halogen.HTML.Properties (InputType(..), disabled, for, href, id_, list, placeholder, readOnly, type_, value)
 import MainFrame.Types (Action(..), Card(..))
+import Marlowe.Semantics (PubKey)
 import Material.Icons as Icon
 import Wallet.Lenses (_key, _nickname)
-import Wallet.Types (PubKeyHash, WalletDetails, WalletLibrary, WalletNicknameKey)
+import Wallet.Types (WalletDetails, WalletLibrary, WalletNicknameKey)
 import Wallet.Validation (keyError, nicknameError)
 
 pickupWalletScreen :: forall p. WalletLibrary -> HTML p Action
@@ -153,7 +154,7 @@ pickupLocalWalletCard walletNicknameKey =
         [ text "Pickup wallet" ]
     ]
 
-putdownWalletCard :: forall p. PubKeyHash -> WalletLibrary -> HTML p Action
+putdownWalletCard :: forall p. PubKey -> WalletLibrary -> HTML p Action
 putdownWalletCard pubKeyHash wallets =
   let
     mKey = findIndex (\key -> snd key == pubKeyHash) wallets

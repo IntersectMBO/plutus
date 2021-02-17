@@ -10,7 +10,8 @@ import Data.Map (member)
 import Data.Map.Extra (mapIndex)
 import Data.Maybe (Maybe(..))
 import Data.Tuple (fst, snd)
-import Wallet.Types (WalletLibrary, PubKeyHash)
+import Marlowe.Semantics (PubKey)
+import Wallet.Types (WalletLibrary)
 
 data NicknameError
   = EmptyNickname
@@ -41,7 +42,7 @@ nicknameError nickname contacts =
   else
     Nothing
 
-keyError :: PubKeyHash -> WalletLibrary -> Maybe KeyError
+keyError :: PubKey -> WalletLibrary -> Maybe KeyError
 keyError "" _ = Just EmptyKey
 
 keyError key contacts =
