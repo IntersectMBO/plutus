@@ -8,6 +8,8 @@ module Plutus.PAB.Core.ContractInstance.STM(
     OpenEndpoint(..)
     , BlockchainEnv(..)
     , InstanceState(..)
+    , Activity(..)
+    , TxStatus(..)
     ) where
 
 import           Control.Concurrent.STM (TMVar, TVar)
