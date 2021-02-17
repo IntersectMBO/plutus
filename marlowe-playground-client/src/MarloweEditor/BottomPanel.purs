@@ -26,10 +26,10 @@ panelContents state StaticAnalysisView =
     [ classes [ ClassName "panel-sub-header", aHorizontal, Classes.panelContents ]
     ]
     [ analysisResultPane SetIntegerTemplateParam state
-    , analyzeButton loadingWarningAnalysis enabled' "Analyse for warnings" AnalyseContract
-    , analyzeButton loadingReachability enabled' "Analyse reachability" AnalyseReachabilityContract
-    , analyzeButton loadingCloseAnalysis enabled' "Analyse for refunds on Close" AnalyseContractForCloseRefund
-    , clearButton (nothingLoading && not noneAskedAnalysis) "Clear" ClearAnalysisResults
+    , analyzeButton loadingWarningAnalysis analysisEnabled "Analyse for warnings" AnalyseContract
+    , analyzeButton loadingReachability analysisEnabled "Analyse reachability" AnalyseReachabilityContract
+    , analyzeButton loadingCloseAnalysis analysisEnabled "Analyse for refunds on Close" AnalyseContractForCloseRefund
+    , clearButton clearEnabled "Clear" ClearAnalysisResults
     ]
   where
   loadingWarningAnalysis = state ^. _analysisState <<< _analysisExecutionState <<< to isStaticLoading
@@ -42,7 +42,9 @@ panelContents state StaticAnalysisView =
 
   nothingLoading = not loadingWarningAnalysis && not loadingReachability && not loadingCloseAnalysis
 
-  enabled' = nothingLoading && not contractHasErrors state
+  clearEnabled = nothingLoading && not noneAskedAnalysis
+
+  analysisEnabled = nothingLoading && not contractHasErrors state
 
 panelContents state MarloweWarningsView =
   section

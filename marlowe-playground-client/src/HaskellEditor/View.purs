@@ -147,9 +147,9 @@ panelContents state StaticAnalysisView =
     [ classes [ ClassName "panel-sub-header", aHorizontal, Classes.panelContents ]
     ]
     [ analysisResultPane SetIntegerTemplateParam state
-    , analyzeButton loadingWarningAnalysis enabled' "Analyse for warnings" AnalyseContract
-    , analyzeButton loadingReachability enabled' "Analyse reachability" AnalyseReachabilityContract
-    , analyzeButton loadingCloseAnalysis enabled' "Analyse for refunds on Close" AnalyseContractForCloseRefund
+    , analyzeButton loadingWarningAnalysis analysisEnabled "Analyse for warnings" AnalyseContract
+    , analyzeButton loadingReachability analysisEnabled "Analyse reachability" AnalyseReachabilityContract
+    , analyzeButton loadingCloseAnalysis analysisEnabled "Analyse for refunds on Close" AnalyseContractForCloseRefund
     ]
   where
   loadingWarningAnalysis = state ^. _analysisState <<< _analysisExecutionState <<< to isStaticLoading
@@ -158,7 +158,7 @@ panelContents state StaticAnalysisView =
 
   loadingCloseAnalysis = state ^. _analysisState <<< _analysisExecutionState <<< to isCloseAnalysisLoading
 
-  enabled' = not loadingWarningAnalysis && not loadingReachability && not loadingCloseAnalysis && not (isCompiling state)
+  analysisEnabled = not loadingWarningAnalysis && not loadingReachability && not loadingCloseAnalysis && not (isCompiling state)
 
 panelContents state ErrorsView =
   section

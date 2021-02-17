@@ -165,13 +165,10 @@ lintText text = do
     (Tuple markerData additionalContext) = Linter.markers unreachableContracts parsedContract
   markers <- query _marloweEditorPageSlot unit (Monaco.SetModelMarkers markerData identity)
   traverse_ editorSetMarkers markers
-  for_ parsedContract
-    ( \contractHoles ->
-        for_ ((fromTerm contractHoles) :: Maybe Contract)
-          ( \contract ->
-              modifying (_analysisState <<< _templateContent) $ updateTemplateContent $ getPlaceholderIds contract
-          )
-    ) -- We set the templates here so that we don't have to parse twice
+  for_ parsedContract \contractHoles ->
+    for_ ((fromTerm contractHoles) :: Maybe Contract) \contract ->
+      modifying (_analysisState <<< _templateContent) $ updateTemplateContent $ getPlaceholderIds contract
+  -- We set the templates here so that we don't have to parse twice
   {-
     There are three different Monaco objects that require the linting information:
       * Markers

@@ -30,6 +30,12 @@ _templateContent = prop (SProxy :: SProxy "templateContent")
 _analysisExecutionState :: forall s a. Lens' { analysisExecutionState :: a | s } a
 _analysisExecutionState = prop (SProxy :: SProxy "analysisExecutionState")
 
+initAnalysisState :: AnalysisState
+initAnalysisState =
+  { templateContent: mempty
+  , analysisExecutionState: NoneAsked
+  }
+
 data AnalysisExecutionState
   = NoneAsked
   | WarningAnalysis (WarningAnalysisData Result)

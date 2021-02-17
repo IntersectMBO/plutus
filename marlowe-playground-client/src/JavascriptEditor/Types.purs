@@ -17,7 +17,7 @@ import Halogen.Monaco as Monaco
 import Language.Javascript.Interpreter (_result)
 import Language.Javascript.Interpreter as JS
 import Marlowe.Extended (Contract, IntegerTemplateType)
-import StaticAnalysis.Types (AnalysisExecutionState(..), AnalysisState)
+import StaticAnalysis.Types (AnalysisExecutionState(..), AnalysisState, initAnalysisState)
 import Text.Pretty (pretty)
 
 data CompilationState
@@ -108,10 +108,7 @@ initialState =
   , bottomPanelState: BottomPanel.initialState GeneratedOutputView
   , compilationResult: NotCompiled
   , decorationIds: Nothing
-  , analysisState:
-      { templateContent: mempty
-      , analysisExecutionState: NoneAsked
-      }
+  , analysisState: initAnalysisState
   }
 
 data BottomPanelView

@@ -18,7 +18,7 @@ import Halogen.Monaco (KeyBindings(..))
 import Halogen.Monaco as Monaco
 import Marlowe.Extended (IntegerTemplateType)
 import Monaco (IMarker)
-import StaticAnalysis.Types (AnalysisExecutionState(..), AnalysisState)
+import StaticAnalysis.Types (AnalysisExecutionState(..), AnalysisState, initAnalysisState)
 import Text.Parsing.StringParser (Pos)
 import Web.HTML.Event.DragEvent (DragEvent)
 
@@ -115,10 +115,7 @@ initialState =
   , bottomPanelState: BottomPanel.initialState StaticAnalysisView
   , showErrorDetail: false
   , selectedHole: Nothing
-  , analysisState:
-      { templateContent: mempty
-      , analysisExecutionState: NoneAsked
-      }
+  , analysisState: initAnalysisState
   , editorErrors: mempty
   , editorWarnings: mempty
   }

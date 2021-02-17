@@ -18,7 +18,7 @@ import Language.Haskell.Interpreter (InterpreterError, InterpreterResult, _Inter
 import Marlowe.Extended (IntegerTemplateType)
 import Marlowe.Parser (parseContract)
 import Network.RemoteData (RemoteData(..), _Loading, _Success)
-import StaticAnalysis.Types (AnalysisExecutionState(..), AnalysisState)
+import StaticAnalysis.Types (AnalysisExecutionState(..), AnalysisState, initAnalysisState)
 import Text.Pretty (pretty)
 import Types (WebData)
 
@@ -86,10 +86,7 @@ initialState =
   { keybindings: DefaultBindings
   , compilationResult: NotAsked
   , bottomPanelState: BottomPanel.initialState GeneratedOutputView
-  , analysisState:
-      { templateContent: mempty
-      , analysisExecutionState: NoneAsked
-      }
+  , analysisState: initAnalysisState
   }
 
 isCompiling :: State -> Boolean
