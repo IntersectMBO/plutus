@@ -1,3 +1,4 @@
+{-# LANGUAGE NamedFieldPuns #-}
 {-
 
 Types and functions for contract instances that communicate with the outside
@@ -5,19 +6,52 @@ world via STM. See note [Contract instance thread model].
 
 -}
 module Plutus.PAB.Core.ContractInstance.STM(
-    OpenEndpoint(..)
-    , BlockchainEnv(..)
+    BlockchainEnv(..)
+    , emptyBlockchainEnv
+    , awaitSlot
+    , awaitEndpointResponse
+    , waitForAddressChange
+    -- * State of a contract instance
     , InstanceState(..)
+    , emptyInstanceState
+    , OpenEndpoint(..)
+    , clearEndpoints
+    , addEndpoint
+    , addAddress
+    , addTransaction
+    , setActivity
+    , openEndpoints
+    , callEndpoint
     , Activity(..)
     , TxStatus(..)
+    -- * State of all running contract instances
+    , InstancesState
+    , emptyInstancesState
+    , insertInstance
+    , watchedAddresses
+    , watchedTransactions
+    , callEndpointOnInstance
     ) where
 
-import           Control.Concurrent.STM (TMVar, TVar)
-import           Data.Aeson             (Value)
-import           Data.Map               (Map)
-import           Data.Set               (Set)
-import           Ledger                 (Address, Slot, TxId)
-import           Ledger.AddressMap      (AddressMap)
+import           Control.Applicative                    (Alternative (..))
+import           Control.Concurrent.STM                 (STM, TMVar, TVar)
+import qualified Control.Concurrent.STM                 as STM
+import           Control.Monad                          (guard)
+import           Data.Aeson                             (Value)
+import           Data.Foldable                          (fold)
+import           Data.Map                               (Map)
+import qualified Data.Map                               as Map
+import           Data.Set                               (Set)
+import qualified Data.Set                               as Set
+import           Ledger                                 (Address, Slot, TxId)
+import           Ledger.AddressMap                      (AddressMap)
+import           Plutus.Contract.Effects.ExposeEndpoint (ActiveEndpoint (..), EndpointValue (..))
+import           Plutus.Contract.Resumable              (IterationID, Request (..), RequestID)
+import           Wallet.Emulator.ChainIndex.Index       (ChainIndex)
+import qualified Wallet.Emulator.ChainIndex.Index       as Index
+import           Wallet.Types                           (AddressChangeRequest (..), AddressChangeResponse (..),
+                                                         ContractInstanceId, EndpointDescription,
+                                                         NotificationError (..))
 
 {- Note [Contract instance thread model]
 
@@ -73,9 +107,9 @@ tx construction and signing).
 -- | An open endpoint that can be responded to.
 data OpenEndpoint =
         OpenEndpoint
-            { oepName     :: String -- ^ Name of the endpoint
+            { oepName     :: ActiveEndpoint -- ^ Name of the endpoint
             , oepMeta     :: Maybe Value -- ^ Metadata that was provided by the contract
-            , oepResponse :: TMVar Value -- ^ A place to write the response to.
+            , oepResponse :: TMVar (EndpointValue Value) -- ^ A place to write the response to.
             }
 
 {- Note [TxStatus state machine]
@@ -105,18 +139,137 @@ data TxStatus =
 --   may be interested in.
 data BlockchainEnv =
     BlockchainEnv
-        { beCurrentSlot :: TVar Slot
-        , beAddressMap  :: TVar AddressMap
-        , beTxChanges   :: TVar (Map TxId TxStatus)
+        { beCurrentSlot :: TVar Slot -- ^ Current slot
+        , beAddressMap  :: TVar AddressMap -- ^ Address map used for updating the chain index
+        , beTxIndex     :: TVar ChainIndex -- ^ Local chain index (not persisted)
+        , beTxChanges   :: TVar (Map TxId TxStatus) -- ^ Map of transaction IDs to statuses
         }
 
+-- | Initialise an empty 'BlockchainEnv' value
+emptyBlockchainEnv :: STM BlockchainEnv
+emptyBlockchainEnv =
+    BlockchainEnv
+        <$> STM.newTVar 0
+        <*> STM.newTVar mempty
+        <*> STM.newTVar mempty
+        <*> STM.newTVar mempty
+
+-- | Wait until the current slot is greater than or equal to the
+--   target slot, then return the current slot.
+awaitSlot :: Slot -> BlockchainEnv -> STM Slot
+awaitSlot targetSlot BlockchainEnv{beCurrentSlot} = do
+    current <- STM.readTVar beCurrentSlot
+    guard (current >= targetSlot)
+    pure current
+
+-- | Wait for an endpoint response.
+awaitEndpointResponse :: Request ActiveEndpoint -> InstanceState -> STM (EndpointValue Value)
+awaitEndpointResponse Request{rqID, itID} InstanceState{issEndpoints} = do
+    currentEndpoints <- STM.readTVar issEndpoints
+    let openEndpoint = Map.lookup (rqID, itID) currentEndpoints
+    case openEndpoint of
+        Nothing                        -> empty
+        Just OpenEndpoint{oepResponse} -> STM.readTMVar oepResponse
+
+-- | Whether the contract instance is still waiting for an event.
 data Activity = Active | Done
 
 -- | The state of an active contract instance.
 data InstanceState =
     InstanceState
-        { issEndpoints    :: TVar (Map String OpenEndpoint) -- ^ Open endpoints that can be responded to.
+        { issEndpoints    :: TVar (Map (RequestID, IterationID) OpenEndpoint) -- ^ Open endpoints that can be responded to.
         , issAddresses    :: TVar (Set Address) -- ^ Addresses that the contract wants to watch
         , issTransactions :: TVar (Set TxId) -- ^ Transactions whose status the contract is interested in
         , issStatus       :: TVar Activity -- ^ Whether the instance is still running.
+        }
+
+-- | An 'InstanceState' value with empty fields
+emptyInstanceState :: STM InstanceState
+emptyInstanceState =
+    InstanceState
+        <$> STM.newTVar mempty
+        <*> STM.newTVar mempty
+        <*> STM.newTVar mempty
+        <*> STM.newTVar Active
+
+-- | Add an address to the set of addresses that the instance is watching
+addAddress :: Address -> InstanceState -> STM ()
+addAddress addr InstanceState{issAddresses} = STM.modifyTVar issAddresses (Set.insert addr)
+
+-- | Add a transaction hash to the set of transactions that the instance is
+--   interested in
+addTransaction :: TxId -> InstanceState -> STM ()
+addTransaction txid InstanceState{issTransactions} = STM.modifyTVar issTransactions (Set.insert txid)
+
+-- | Set the 'Activity' of the instance
+setActivity :: Activity -> InstanceState -> STM ()
+setActivity a InstanceState{issStatus} = STM.writeTVar issStatus a
+
+-- | Empty the list of open enpoints that can be called on the instance
+clearEndpoints :: InstanceState -> STM ()
+clearEndpoints InstanceState{issEndpoints} = STM.writeTVar issEndpoints Map.empty
+
+-- | Add an active endpoint to the instance's list of active endpoints.
+addEndpoint :: Request ActiveEndpoint -> InstanceState -> STM ()
+addEndpoint Request{rqID, itID, rqRequest} InstanceState{issEndpoints} = do
+    endpoint <- OpenEndpoint rqRequest Nothing <$> STM.newEmptyTMVar
+    STM.modifyTVar issEndpoints (Map.insert (rqID, itID) endpoint)
+
+-- | The list of all endpoints that can be called on the instance
+openEndpoints :: InstanceState -> STM (Map (RequestID, IterationID) OpenEndpoint)
+openEndpoints = STM.readTVar . issEndpoints
+
+-- | Call an endpoint with a JSON value.
+callEndpoint :: OpenEndpoint -> EndpointValue Value -> STM ()
+callEndpoint OpenEndpoint{oepResponse} = STM.putTMVar oepResponse
+
+-- | Call an endpoint on a contract instance.
+callEndpointOnInstance :: InstancesState -> EndpointDescription -> Value -> ContractInstanceId -> STM (Maybe NotificationError)
+callEndpointOnInstance (InstancesState m) endpointDescription value instanceID = do
+    instances <- STM.readTVar m
+    case Map.lookup instanceID instances of
+        Nothing -> pure $ Just $ InstanceDoesNotExist instanceID
+        Just is -> do
+            mp <- openEndpoints is
+            let match OpenEndpoint{oepName=ActiveEndpoint{aeDescription=d}} = endpointDescription == d
+            case filter match $ fmap snd $ Map.toList mp of
+                []   -> pure $ Just $ EndpointNotAvailable instanceID endpointDescription
+                [ep] -> callEndpoint ep (EndpointValue value) >> pure Nothing
+                _    -> pure $ Just $ MoreThanOneEndpointAvailable instanceID endpointDescription
+
+-- | State of all contract instances that are currently running
+newtype InstancesState = InstancesState (TVar (Map ContractInstanceId InstanceState))
+
+-- | Initialise the 'InstancesState' with an empty value
+emptyInstancesState :: STM InstancesState
+emptyInstancesState = InstancesState <$> STM.newTVar mempty
+
+-- | Insert an 'InstanceState' value into the 'InstancesState'
+insertInstance :: ContractInstanceId -> InstanceState -> InstancesState -> STM ()
+insertInstance instanceID state (InstancesState m) = STM.modifyTVar m (Map.insert instanceID state)
+
+-- | The addresses that are currently watched by the contract instances
+watchedAddresses :: InstancesState -> STM (Set Address)
+watchedAddresses (InstancesState m) = do
+    mp <- STM.readTVar m
+    allSets <- traverse (STM.readTVar . issAddresses) (snd <$> Map.toList mp)
+    pure $ fold allSets
+
+-- | The transactions that are currently watched by the contract instances
+watchedTransactions :: InstancesState -> STM (Set TxId)
+watchedTransactions (InstancesState m) = do
+    mp <- STM.readTVar m
+    allSets <- traverse (STM.readTVar . issTransactions) (snd <$> Map.toList mp)
+    pure $ fold allSets
+
+-- | Respond to an 'AddressChangeRequest' for a future slot.
+waitForAddressChange :: AddressChangeRequest -> BlockchainEnv -> STM AddressChangeResponse
+waitForAddressChange AddressChangeRequest{acreqSlot, acreqAddress} b@BlockchainEnv{beTxIndex} = do
+    _ <- awaitSlot (succ acreqSlot) b
+    idx <- STM.readTVar beTxIndex
+    pure
+        AddressChangeResponse
+        { acrAddress = acreqAddress
+        , acrSlot    = acreqSlot
+        , acrTxns    = Index.ciTx <$> Index.transactionsAt idx acreqSlot acreqAddress
         }

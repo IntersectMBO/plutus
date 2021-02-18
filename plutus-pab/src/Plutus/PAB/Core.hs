@@ -19,6 +19,7 @@ module Plutus.PAB.Core
     ( dbConnect
     , installContract
     , activateContract
+    , activateContractSTM
     , reportContractState
     , installedContracts
     , activeContracts
@@ -60,8 +61,9 @@ import           Eventful.Store.Sql               (defaultSqlEventStoreConfig)
 import           GHC.Generics                     (Generic)
 import qualified Ledger
 import           Plutus.PAB.Command               (installCommand)
-import           Plutus.PAB.Core.ContractInstance (activateContract, callContractEndpoint, processAllContractInboxes,
-                                                   processAllContractOutboxes, processContractInbox)
+import           Plutus.PAB.Core.ContractInstance (activateContract, activateContractSTM, callContractEndpoint,
+                                                   processAllContractInboxes, processAllContractOutboxes,
+                                                   processContractInbox)
 import           Plutus.PAB.Effects.Contract      (ContractCommand (..), ContractEffect, invokeContract)
 import           Plutus.PAB.Effects.EventLog      (Connection (..), EventLogEffect, refreshProjection, runCommand,
                                                    runGlobalQuery)

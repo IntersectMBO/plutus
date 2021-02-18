@@ -76,6 +76,9 @@ library
         Plutus.PAB.ContractCLI
         Plutus.PAB.Core
         Plutus.PAB.Core.ContractInstance
+        Plutus.PAB.Core.ContractInstance.BlockchainEnv
+        Plutus.PAB.Core.ContractInstance.Polling
+        Plutus.PAB.Core.ContractInstance.RequestHandlers
         Plutus.PAB.Core.ContractInstance.STM
         Plutus.PAB.Core.Projections
         Plutus.PAB.Effects.Contract

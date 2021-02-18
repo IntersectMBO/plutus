@@ -179,7 +179,6 @@ allServersParser =
                   , Metadata
                   , MockWallet
                   , PABWebserver
-                  , ProcessAllContractOutboxes
                   ]))
         (fullDesc <> progDesc "Run all the mock servers needed.")
 
