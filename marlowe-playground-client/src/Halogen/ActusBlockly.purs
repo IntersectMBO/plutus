@@ -62,6 +62,9 @@ data Query a
   | GetWorkspace (XML -> a)
   | LoadWorkspace XML a
 
+-- QUESTION:
+-- QUESTION: What are the different ContractFlavour F and FS?
+-- QUESTION:
 data ContractFlavour
   = FS
   | F
