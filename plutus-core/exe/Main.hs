@@ -799,6 +799,9 @@ runEval (EvalOptions language inp ifmt evalMode printMode budgetMode timingMode)
                           case timingMode of
                             NoTiming -> evaluate body & handleResult
                             Timing n -> timeEval n evaluate body >>= handleTimingResults
+                            -- TODO: we can't currently run the machine without performing expensive cost
+                            -- tallying.  When we can do that, at this point we should run the progam
+                            -- in Restricting mode with a large intial budget to get a more realistic estimate of costs.
                     Verbose bm -> do
                           let evaluate = Cek.unsafeEvaluateCekWithBudget PLC.defBuiltinsRuntime bm
                               body = void . UPLC.toTerm $ prog
@@ -808,7 +811,6 @@ runEval (EvalOptions language inp ifmt evalMode printMode budgetMode timingMode)
                                     printBudgetState budget
                                     handleResultSilently result  -- We just want to see the budget information
                             Timing _ -> error "Timing mode and budget mode cannot be used simultaneously"
-
 
     where handleResult result =
               case result of
