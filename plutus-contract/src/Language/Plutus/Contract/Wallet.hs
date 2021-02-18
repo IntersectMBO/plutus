@@ -16,27 +16,27 @@ module Language.Plutus.Contract.Wallet(
     ) where
 
 import           Control.Lens
-import           Control.Monad.Freer         (Eff, Member)
-import           Control.Monad.Freer.Error   (Error)
-import           Control.Monad.Freer.Log     (LogMsg, logDebug, logInfo)
-import           Data.Bifunctor              (second)
-import qualified Data.Map                    as Map
-import qualified Data.Set                    as Set
-import           Data.String                 (IsString (fromString))
-import qualified Language.PlutusTx.Prelude   as P
-import qualified Ledger                      as L
-import           Ledger.AddressMap           (UtxoMap)
-import qualified Ledger.AddressMap           as AM
-import           Ledger.Constraints.OffChain (UnbalancedTx (..))
-import           Ledger.Tx                   (Tx (..))
-import qualified Ledger.Tx                   as Tx
-import           Ledger.Value                (Value)
-import qualified Ledger.Value                as Value
-import           Wallet.API                  (PubKey, WalletAPIError)
-import qualified Wallet.API                  as WAPI
+import           Control.Monad.Freer            (Eff, Member)
+import           Control.Monad.Freer.Error      (Error)
+import           Control.Monad.Freer.Extras.Log (LogMsg, logDebug, logInfo)
+import           Data.Bifunctor                 (second)
+import qualified Data.Map                       as Map
+import qualified Data.Set                       as Set
+import           Data.String                    (IsString (fromString))
+import qualified Language.PlutusTx.Prelude      as P
+import qualified Ledger                         as L
+import           Ledger.AddressMap              (UtxoMap)
+import qualified Ledger.AddressMap              as AM
+import           Ledger.Constraints.OffChain    (UnbalancedTx (..))
+import           Ledger.Tx                      (Tx (..))
+import qualified Ledger.Tx                      as Tx
+import           Ledger.Value                   (Value)
+import qualified Ledger.Value                   as Value
+import           Wallet.API                     (PubKey, WalletAPIError)
+import qualified Wallet.API                     as WAPI
 import           Wallet.Effects
-import qualified Wallet.Emulator             as E
-import           Wallet.Emulator.LogMessages (TxBalanceMsg (..))
+import qualified Wallet.Emulator                as E
+import           Wallet.Emulator.LogMessages    (TxBalanceMsg (..))
 
 {- Note [Submitting transactions from Plutus contracts]
 

@@ -17,7 +17,7 @@ module Wallet.Emulator.ChainIndex where
 
 import           Control.Lens
 import           Control.Monad.Freer
-import           Control.Monad.Freer.Log
+import           Control.Monad.Freer.Extras.Log
 import           Control.Monad.Freer.State
 import           Control.Monad.Freer.TH
 import           Data.Aeson                       (FromJSON, ToJSON)

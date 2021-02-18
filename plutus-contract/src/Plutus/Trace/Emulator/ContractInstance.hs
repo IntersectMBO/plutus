@@ -34,9 +34,9 @@ import           Control.Monad                                 (guard, unless, v
 import           Control.Monad.Freer
 import           Control.Monad.Freer.Coroutine                 (Yield)
 import           Control.Monad.Freer.Error                     (Error, throwError)
-import           Control.Monad.Freer.Extras                    (raiseEnd11)
-import           Control.Monad.Freer.Log                       (LogMessage, LogMsg (..), LogObserve, logDebug, logError,
+import           Control.Monad.Freer.Extras.Log                (LogMessage, LogMsg (..), LogObserve, logDebug, logError,
                                                                 logInfo, logWarn, mapLog)
+import           Control.Monad.Freer.Extras.Modify             (raiseEnd11)
 import           Control.Monad.Freer.Reader                    (Reader, ask, runReader)
 import           Control.Monad.Freer.State                     (State, evalState, get, gets, modify, put)
 import           Data.Aeson                                    (object)

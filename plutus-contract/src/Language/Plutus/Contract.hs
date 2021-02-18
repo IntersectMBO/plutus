@@ -112,7 +112,7 @@ import           Language.Plutus.Contract.Types                    (AsCheckpoint
                                                                     mapError, runError, select, selectEither,
                                                                     throwError)
 
-import qualified Control.Monad.Freer.Log                           as L
+import qualified Control.Monad.Freer.Extras.Log                    as L
 import           Prelude                                           hiding (until)
 import           Wallet.API                                        (WalletAPIError)
 

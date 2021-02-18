@@ -28,17 +28,17 @@ module Language.Plutus.Contract.Checkpoint(
 
 import           Control.Lens
 import           Control.Monad.Freer
-import           Control.Monad.Freer.Error (Error, throwError)
-import           Control.Monad.Freer.Log   (LogMsg, logDebug, logError)
-import           Control.Monad.Freer.State (State, get, gets, modify, put)
-import           Data.Aeson                (FromJSON, FromJSONKey, ToJSON, ToJSONKey, Value)
-import qualified Data.Aeson.Types          as JSON
-import           Data.Map                  (Map)
-import qualified Data.Map                  as Map
-import           Data.Text                 (Text)
-import qualified Data.Text                 as Text
-import           Data.Text.Prettyprint.Doc (Pretty (..), colon, vsep, (<+>))
-import           GHC.Generics              (Generic)
+import           Control.Monad.Freer.Error      (Error, throwError)
+import           Control.Monad.Freer.Extras.Log (LogMsg, logDebug, logError)
+import           Control.Monad.Freer.State      (State, get, gets, modify, put)
+import           Data.Aeson                     (FromJSON, FromJSONKey, ToJSON, ToJSONKey, Value)
+import qualified Data.Aeson.Types               as JSON
+import           Data.Map                       (Map)
+import qualified Data.Map                       as Map
+import           Data.Text                      (Text)
+import qualified Data.Text                      as Text
+import           Data.Text.Prettyprint.Doc      (Pretty (..), colon, vsep, (<+>))
+import           GHC.Generics                   (Generic)
 
 -- $checkpoints
 -- This module contains a checkpoints mechanism that can be used to store

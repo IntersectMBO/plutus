@@ -56,7 +56,7 @@ module Plutus.Trace.Scheduler(
 import           Control.Lens                     hiding (Empty)
 import           Control.Monad.Freer
 import           Control.Monad.Freer.Coroutine
-import           Control.Monad.Freer.Log          (LogMsg, logDebug)
+import           Control.Monad.Freer.Extras.Log   (LogMsg, logDebug)
 import           Control.Monad.Freer.Reader
 import           Data.Aeson                       (FromJSON, ToJSON)
 import           Data.HashMap.Strict              (HashMap)

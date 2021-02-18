@@ -21,32 +21,32 @@ import           Control.Lens
 import           Control.Monad
 import           Control.Monad.Freer
 import           Control.Monad.Freer.Error
-import           Control.Monad.Freer.Extras
-import           Control.Monad.Freer.Log     (LogMessage, LogMsg, LogObserve, handleObserveLog, mapLog)
+import           Control.Monad.Freer.Extras.Log    (LogMessage, LogMsg, LogObserve, handleObserveLog, mapLog)
+import           Control.Monad.Freer.Extras.Modify (handleZoomedState, raiseEnd5, raiseEnd9, writeIntoState)
 import           Control.Monad.Freer.State
-import           Data.Aeson                  (FromJSON, ToJSON)
-import           Data.Map                    (Map)
-import qualified Data.Map                    as Map
-import qualified Data.Text                   as T
-import           Data.Text.Extras            (tshow)
+import           Data.Aeson                        (FromJSON, ToJSON)
+import           Data.Map                          (Map)
+import qualified Data.Map                          as Map
+import qualified Data.Text                         as T
+import           Data.Text.Extras                  (tshow)
 import           Data.Text.Prettyprint.Doc
-import           GHC.Generics                (Generic)
+import           GHC.Generics                      (Generic)
 
-import           Ledger                      hiding (to, value)
-import qualified Ledger.AddressMap           as AM
-import qualified Ledger.Index                as Index
-import           Plutus.Trace.Emulator.Types (ContractInstanceLog, EmulatedWalletEffects, EmulatedWalletEffects',
-                                              UserThreadMsg)
-import qualified Plutus.Trace.Scheduler      as Scheduler
-import qualified Wallet.API                  as WAPI
-import qualified Wallet.Emulator.Chain       as Chain
-import qualified Wallet.Emulator.ChainIndex  as ChainIndex
-import           Wallet.Emulator.LogMessages (RequestHandlerLogMsg, TxBalanceMsg)
-import qualified Wallet.Emulator.NodeClient  as NC
-import qualified Wallet.Emulator.Notify      as Notify
-import           Wallet.Emulator.Wallet      (Wallet)
-import qualified Wallet.Emulator.Wallet      as Wallet
-import           Wallet.Types                (AssertionError (..))
+import           Ledger                            hiding (to, value)
+import qualified Ledger.AddressMap                 as AM
+import qualified Ledger.Index                      as Index
+import           Plutus.Trace.Emulator.Types       (ContractInstanceLog, EmulatedWalletEffects, EmulatedWalletEffects',
+                                                    UserThreadMsg)
+import qualified Plutus.Trace.Scheduler            as Scheduler
+import qualified Wallet.API                        as WAPI
+import qualified Wallet.Emulator.Chain             as Chain
+import qualified Wallet.Emulator.ChainIndex        as ChainIndex
+import           Wallet.Emulator.LogMessages       (RequestHandlerLogMsg, TxBalanceMsg)
+import qualified Wallet.Emulator.NodeClient        as NC
+import qualified Wallet.Emulator.Notify            as Notify
+import           Wallet.Emulator.Wallet            (Wallet)
+import qualified Wallet.Emulator.Wallet            as Wallet
+import           Wallet.Types                      (AssertionError (..))
 
 -- | Assertions which will be checked during execution of the emulator.
 data Assertion

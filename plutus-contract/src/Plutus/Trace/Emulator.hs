@@ -62,8 +62,8 @@ import           Control.Monad                           (void)
 import           Control.Monad.Freer
 import           Control.Monad.Freer.Coroutine           (Yield)
 import           Control.Monad.Freer.Error               (Error)
-import           Control.Monad.Freer.Extras              (raiseEnd5)
-import           Control.Monad.Freer.Log                 (LogMessage (..), LogMsg (..), mapLog)
+import           Control.Monad.Freer.Extras.Log          (LogMessage (..), LogMsg (..), mapLog)
+import           Control.Monad.Freer.Extras.Modify       (raiseEnd5)
 import           Control.Monad.Freer.Reader              (Reader)
 import           Control.Monad.Freer.State               (State, evalState)
 import qualified Data.Map                                as Map
