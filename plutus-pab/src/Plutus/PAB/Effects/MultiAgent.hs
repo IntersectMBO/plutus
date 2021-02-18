@@ -38,11 +38,9 @@ import           Control.Lens                       (AReview, Lens', Prism', ano
                                                      makeLenses, (&))
 import           Control.Monad.Freer                (Eff, Members, interpret, subsume, type (~>))
 import           Control.Monad.Freer.Error          (Error, handleError, throwError)
-import           Control.Monad.Freer.Extra.Log      (LogMsg)
-import           Control.Monad.Freer.Extras         (handleZoomedState, handleZoomedWriter, raiseEnd10, raiseEnd18)
-import           Control.Monad.Freer.Log            (LogLevel (..), LogMessage, LogObserve, handleLogWriter,
+import           Control.Monad.Freer.Extras.Log     (LogLevel (..), LogMessage, LogMsg, LogObserve, handleLogWriter,
                                                      handleObserveLog, logMessage)
-import qualified Control.Monad.Freer.Log            as Log
+import           Control.Monad.Freer.Extras.Modify  (handleZoomedState, handleZoomedWriter, raiseEnd10, raiseEnd18)
 import           Control.Monad.Freer.State          (State)
 import           Control.Monad.Freer.TH             (makeEffect)
 import           Control.Monad.Freer.Writer         (Writer)
@@ -250,11 +248,11 @@ handleMultiAgent = interpret $ \effect -> do
             p2 = _singleton . below (_EmulatorMsg . timed . walletClientEvent wallet)
             p3 :: AReview [LogMessage PABMultiAgentMsg] (LogMessage ChainIndex.ChainIndexEvent)
             p3 = _singleton . below (_EmulatorMsg . timed . chainIndexEvent wallet)
-            p4 :: AReview [LogMessage PABMultiAgentMsg] (Log.LogMessage T.Text)
+            p4 :: AReview [LogMessage PABMultiAgentMsg] (LogMessage T.Text)
             p4 = _singleton . below (_EmulatorMsg . timed . walletEvent wallet . Wallet._GenericLog)
-            p5 :: AReview [LogMessage PABMultiAgentMsg] (Log.LogMessage ChainIndexServerMsg)
+            p5 :: AReview [LogMessage PABMultiAgentMsg] (LogMessage ChainIndexServerMsg)
             p5 = _singleton . below _ChainIndexServerLog
-            p6 :: AReview [LogMessage PABMultiAgentMsg] (Log.LogMessage MetadataLogMessage)
+            p6 :: AReview [LogMessage PABMultiAgentMsg] (LogMessage MetadataLogMessage)
             p6 = _singleton . below _MetadataLog
         action
             & raiseEnd10

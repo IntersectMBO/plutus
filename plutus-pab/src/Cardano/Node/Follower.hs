@@ -10,8 +10,8 @@ module Cardano.Node.Follower where
 
 import           Control.Lens                    hiding (assign, use)
 import           Control.Monad.Freer
-import           Control.Monad.Freer.Extra.Log
 import           Control.Monad.Freer.Extra.State
+import           Control.Monad.Freer.Extras.Log
 import           Control.Monad.Freer.State
 import           Control.Monad.Freer.TH          (makeEffect)
 

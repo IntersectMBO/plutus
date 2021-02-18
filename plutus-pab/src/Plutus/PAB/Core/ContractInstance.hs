@@ -40,9 +40,9 @@ import           Control.Lens
 import           Control.Monad                                   (unless, void, when)
 import           Control.Monad.Freer
 import           Control.Monad.Freer.Error                       (Error, throwError)
-import           Control.Monad.Freer.Extra.Log
-import           Control.Monad.Freer.Extras                      (wrapError)
-import           Control.Monad.Freer.Log                         (LogMessage, LogObserve, mapLog, surroundInfo)
+import           Control.Monad.Freer.Extras.Log                  (LogMessage, LogMsg, LogObserve, logDebug, logInfo,
+                                                                  logWarn, mapLog, surroundInfo)
+import           Control.Monad.Freer.Extras.Modify               (wrapError)
 import           Control.Monad.Freer.Reader                      (Reader, runReader)
 import           Data.Aeson                                      (ToJSON (..))
 import qualified Data.Aeson                                      as JSON

@@ -19,8 +19,8 @@ import           Control.Concurrent              (forkIO, threadDelay)
 import           Control.Concurrent.MVar         (MVar, newMVar, putMVar, takeMVar)
 import           Control.Monad                   (forever, unless, void)
 import           Control.Monad.Freer             hiding (run)
-import           Control.Monad.Freer.Extra.Log
 import           Control.Monad.Freer.Extra.State (assign, use)
+import           Control.Monad.Freer.Extras.Log
 import           Control.Monad.Freer.State
 import qualified Control.Monad.Freer.State       as Eff
 import           Control.Monad.IO.Class          (MonadIO (..))
