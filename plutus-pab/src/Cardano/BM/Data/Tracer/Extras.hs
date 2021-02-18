@@ -3,16 +3,14 @@
 {-# LANGUAGE FlexibleContexts  #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE GADTs             #-}
-{-# LANGUAGE LambdaCase        #-}
+{-# LANGUAGE KindSignatures    #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TypeApplications  #-}
-{-# LANGUAGE TypeOperators     #-}
 module Cardano.BM.Data.Tracer.Extras(
     mkObjectStr
     , PrettyToObject(..)
     , StructuredLog(..)
     , Tagged(Tagged)
-    , HList(HNil, HCons)
     ) where
 
 import           Cardano.BM.Data.Tracer                (ToObject (..))
@@ -20,13 +18,13 @@ import           Data.Aeson                            (ToJSON (..), Value (Stri
 import           Data.HashMap.Strict                   (HashMap)
 import qualified Data.HashMap.Strict                   as HM
 import           Data.Proxy                            (Proxy (..))
+import           Data.Tagged                           (Tagged (Tagged))
 import           Data.Text                             (Text)
 import qualified Data.Text                             as Text
 import           Data.Text.Prettyprint.Doc             (Pretty (..), defaultLayoutOptions, layoutPretty)
 import qualified Data.Text.Prettyprint.Doc.Render.Text as Render
 import           Data.UUID                             (UUID)
 import           GHC.TypeLits                          (KnownSymbol, symbolVal)
-import           IOTS                                  (HList (HCons, HNil), Tagged (Tagged))
 import           Language.Plutus.Contract.Checkpoint   (CheckpointLogMsg)
 import           Language.Plutus.Contract.State        (ContractRequest)
 import           Ledger.Tx                             (Tx)
@@ -87,16 +85,6 @@ deriving via (Tagged "endpoint" EndpointDescription) instance StructuredLog Endp
 
 instance (KnownSymbol s, ToJSON a) => StructuredLog (Tagged s a) where
     toStructuredLog = toStructuredLog'
-
--- | Instance for HList in case the tuple instances aren't enough.
-instance StructuredLog (HList '[]) where
-    toStructuredLog = \case
-        HNil -> HM.empty
-
-instance (StructuredLog x, StructuredLog (HList xs)) => StructuredLog (HList (x ': xs)) where
-    toStructuredLog = \case
-        HCons x xs ->
-            HM.union (toStructuredLog x) $ toStructuredLog xs
 
 -- | A structured log object with a textual description and additional fields.
 mkObjectStr :: StructuredLog k => Text -> k -> HashMap Text Value

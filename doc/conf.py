@@ -102,7 +102,7 @@ html_context = {
   "github_user": "input-output-hk",
   "github_repo": "plutus",
   "github_version": "master",
-  "conf_py_path": "/doc",
+  "conf_py_path": "/doc/",
   "source_suffix": source_suffix,
 }
 

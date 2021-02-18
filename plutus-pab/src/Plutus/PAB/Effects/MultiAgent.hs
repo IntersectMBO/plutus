@@ -53,9 +53,9 @@ import           Eventful.Store.Memory              (EventMap, emptyEventMap)
 
 import           Cardano.ChainIndex.Server          (ChainIndexServerMsg)
 import qualified Cardano.ChainIndex.Types           as CI
-import           Cardano.Node.Follower              (NodeFollowerEffect, NodeFollowerLogMsg)
+import           Cardano.Node.Follower              (NodeFollowerEffect)
 import qualified Cardano.Node.Follower              as NF
-import qualified Cardano.Node.Types                 as NF
+import           Cardano.Node.Types
 import           Ledger.Slot                        (Slot)
 
 import           Plutus.PAB.Core                    (CoreMsg)
@@ -173,7 +173,7 @@ type PABControlEffects =
 type MultiAgentEffs =
     '[State (Map Wallet AgentState)
     , State Chain.ChainState
-    , State NF.NodeFollowerState
+    , State NodeFollowerState
     , Error WalletAPIError
     , Chain.ChainEffect
     , Error PABError

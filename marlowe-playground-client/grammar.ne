@@ -32,6 +32,7 @@ const lexer = moo.compile({
                 VALUE: [
                     'AvailableMoney',
                     'Constant',
+                    'ConstantParam',
                     'NegValue',
                     'AddValue',
                     'SubValue',
@@ -47,6 +48,7 @@ const lexer = moo.compile({
                 PAYEE: ['Account', 'Party'],
                 PARTY: ['PK', 'Role'],
                 BOUND: ['Bound'],
+                TIMEOUT: ['SlotParam'],
                 VALUE_ID: ['ValueId'],
                 CASE: ['Case'],
                 ACTION: ['Deposit', 'Choice', 'Notify'],
@@ -87,8 +89,9 @@ number
     | lparen %number rparen {% ([,n,]) => opts.mkBigInteger(n.value.replace('_', '')) %}
 
 timeout
-   -> %number {% ([n]) => opts.mkTimeout(n.value.replace('_', ''))({startLineNumber: n.line, startColumn: n.col, endLineNumber: n.line, endColumn: n.col + n.toString(10).length}) %}
-    | lparen %number rparen {% ([start,n,end]) => opts.mkTimeout(n.value.replace('_', ''))({startLineNumber: start.line, startColumn: start.col, endLineNumber: end.line, endColumn: end.col}) %}
+   -> hole {% ([hole]) => hole %}
+    | number {% ([n]) => opts.mkTerm(opts.mkExtendedSlot(n))({startLineNumber: n.line, startColumn: n.col, endLineNumber: n.line, endColumn: n.col + n.toString(10).length}) %}
+    | lparen "SlotParam" someWS string rparen {% ([start,{line,col},,s,end]) => opts.mkTerm(opts.mkExtendedSlotParam(s))({startLineNumber: start.line, startColumn: start.col, endLineNumber: end.line, endColumn: end.col}) %}
 
 string
    -> %string {% ([s]) => s.value %}
@@ -187,6 +190,7 @@ value
    -> hole {% ([hole]) => hole %}
     | lparen "AvailableMoney" someWS party someWS token rparen {% ([start,{line,col},,party,,token,end]) => opts.mkTerm(opts.mkAvailableMoney(party)(token))({startLineNumber: start.line, startColumn: start.col, endLineNumber: end.line, endColumn: end.col + 1}) %}
     | lparen "Constant" someWS number rparen {% ([start,{line,col},,number,end]) => opts.mkTerm(opts.mkConstant(number))({startLineNumber: start.line, startColumn: start.col, endLineNumber: end.line, endColumn: end.col + 1}) %}
+    | lparen "ConstantParam" someWS string rparen {% ([start,{line,col},,name,end]) => opts.mkTerm(opts.mkConstantParam(name))({startLineNumber: start.line, startColumn: start.col, endLineNumber: end.line, endColumn: end.col + 1}) %}
     | lparen "NegValue" someWS value rparen {% ([start,{line,col},,value,end]) => opts.mkTerm(opts.mkNegValue(value))({startLineNumber: start.line, startColumn: start.col, endLineNumber: end.line, endColumn: end.col + 1}) %}
     | lparen "AddValue" someWS value someWS value rparen {% ([start,{line,col},,v1,,v2,end]) => opts.mkTerm(opts.mkAddValue(v1)(v2))({startLineNumber: start.line, startColumn: start.col, endLineNumber: end.line, endColumn: end.col + 1}) %}
     | lparen "SubValue" someWS value someWS value rparen {% ([start,{line,col},,v1,,v2,end]) => opts.mkTerm(opts.mkSubValue(v1)(v2))({startLineNumber: start.line, startColumn: start.col, endLineNumber: end.line, endColumn: end.col + 1}) %}

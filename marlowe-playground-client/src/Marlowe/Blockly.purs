@@ -8,6 +8,7 @@ import Control.Alternative ((<|>))
 import Data.Array (filter, head, uncons, (:))
 import Data.Array as Array
 import Data.Bifunctor (lmap, rmap)
+import Data.BigInteger (fromString)
 import Data.Either (Either, note)
 import Data.Either as Either
 import Data.Enum (class BoundedEnum, class Enum, upFromIncluding)
@@ -24,7 +25,7 @@ import Data.Tuple (Tuple(..))
 import Effect (Effect)
 import Halogen.HTML (HTML)
 import Halogen.HTML.Properties (id_)
-import Marlowe.Holes (Action(..), Bound(..), Case(..), ChoiceId(..), Contract(..), Observation(..), Party(..), Payee(..), Term(..), TermWrapper(..), Token(..), Value(..), ValueId(..), mkDefaultTerm, mkDefaultTermWrapper)
+import Marlowe.Holes (Action(..), Bound(..), Case(..), ChoiceId(..), Contract(..), Location(..), Observation(..), Party(..), Payee(..), Term(..), TermWrapper(..), Timeout(..), Token(..), Value(..), ValueId(..), mkDefaultTerm, mkDefaultTermWrapper)
 import Marlowe.Parser as Parser
 import Marlowe.Semantics (Rational(..))
 import Record (merge)
@@ -238,6 +239,7 @@ observationTypes = upFromIncluding bottom
 data ValueType
   = AvailableMoneyValueType
   | ConstantValueType
+  | ConstantParamValueType
   | NegValueValueType
   | AddValueValueType
   | SubValueValueType
@@ -603,7 +605,7 @@ toDefinition blockType@(ContractType WhenContractType) =
         , args0:
             [ DummyCentre
             , Statement { name: "case", check: "ActionType", align: Left }
-            , Number { name: "timeout", value: 0.0, min: Nothing, max: Nothing, precision: Nothing }
+            , Input { name: "timeout", text: "0", spellcheck: false }
             , DummyLeft
             , DummyLeft
             , Statement { name: "contract", check: (show BaseContractType), align: Right }
@@ -839,6 +841,20 @@ toDefinition blockType@(ValueType ConstantValueType) =
         }
         defaultBlockDefinition
 
+toDefinition blockType@(ValueType ConstantParamValueType) =
+  BlockDefinition
+    $ merge
+        { type: show ConstantParamValueType
+        , message0: "ConstantParam %1"
+        , args0:
+            [ Input { name: "paramName", text: "parameterName", spellcheck: false }
+            ]
+        , colour: blockColour blockType
+        , output: Just "value"
+        , inputsInline: Just true
+        }
+        defaultBlockDefinition
+
 toDefinition blockType@(ValueType NegValueValueType) =
   BlockDefinition
     $ merge
@@ -1013,7 +1029,7 @@ buildGenerator blockly = do
   generator <- mkGenerator blockly "Marlowe"
   let
     mkGenFun :: forall a t. Show a => Show t => t -> (Block -> Either String a) -> Effect Unit
-    mkGenFun blockType f = insertGeneratorFunction generator (show blockType) ((rmap show) <<< f)
+    mkGenFun blockType f = insertGeneratorFunction generator (show blockType) (rmap show <<< f)
   traverse_ (\t -> mkGenFun t (baseContractDefinition generator)) [ BaseContractType ]
   traverse_ (\t -> mkGenFun t (blockDefinition t generator)) contractTypes
   traverse_ (\t -> mkGenFun t (blockDefinition t generator)) payeeTypes
@@ -1030,7 +1046,7 @@ class HasBlockDefinition a b | a -> b where
 
 baseContractDefinition :: Generator -> Block -> Either String (Term Contract)
 baseContractDefinition g block = case statementToCode g block (show BaseContractType) of
-  Either.Left _ -> pure $ Hole "contract" Proxy zero
+  Either.Left _ -> pure $ Hole "contract" Proxy NoLocation
   Either.Right s -> parse (mkDefaultTerm <$> Parser.contract) s
 
 getAllBlocks :: Block -> Array Block
@@ -1068,20 +1084,20 @@ boundsDefinition g block = traverse (boundDefinition g) (getAllBlocks block)
 
 statementToTerm :: forall a. Generator -> Block -> String -> Parser a -> Either String (Term a)
 statementToTerm g block name p = case statementToCode g block name of
-  Either.Left _ -> pure $ Hole name Proxy zero
+  Either.Left _ -> pure $ Hole name Proxy NoLocation
   Either.Right s -> parse (mkDefaultTerm <$> p) s
 
 instance hasBlockDefinitionAction :: HasBlockDefinition ActionType (Term Case) where
   blockDefinition DepositActionType g block = do
-    accountOwner <- statementToTerm g block "party" Parser.party
+    accountOwner <- statementToTerm g block "party" Parser.partyExtended
     tok <- statementToTerm g block "token" Parser.token
-    party <- statementToTerm g block "from_party" Parser.party
+    party <- statementToTerm g block "from_party" Parser.partyExtended
     amount <- statementToTerm g block "value" (Parser.value unit)
     contract <- statementToTerm g block "contract" Parser.contract
     pure $ mkDefaultTerm (Case (mkDefaultTerm (Deposit accountOwner party tok amount)) contract)
   blockDefinition ChoiceActionType g block = do
     choiceName <- getFieldValue block "choice_name"
-    choiceOwner <- statementToTerm g block "party" Parser.party
+    choiceOwner <- statementToTerm g block "party" Parser.partyExtended
     let
       choiceId = ChoiceId choiceName choiceOwner
 
@@ -1090,7 +1106,7 @@ instance hasBlockDefinitionAction :: HasBlockDefinition ActionType (Term Case) w
     let
       mTopboundBlock = getBlockInputConnectedTo boundsInput
     bounds <- case mTopboundBlock of
-      Either.Left _ -> pure [ Hole "bounds" Proxy zero ]
+      Either.Left _ -> pure [ Hole "bounds" Proxy NoLocation ]
       Either.Right topboundBlock -> boundsDefinition g topboundBlock
     contract <- statementToTerm g block "contract" Parser.contract
     pure $ mkDefaultTerm (Case (mkDefaultTerm (Choice choiceId bounds)) contract)
@@ -1101,16 +1117,16 @@ instance hasBlockDefinitionAction :: HasBlockDefinition ActionType (Term Case) w
 
 instance hasBlockDefinitionPayee :: HasBlockDefinition PayeeType (Term Payee) where
   blockDefinition AccountPayeeType g block = do
-    accountOwner <- statementToTerm g block "party" Parser.party
+    accountOwner <- statementToTerm g block "party" Parser.partyExtended
     pure $ mkDefaultTerm (Account accountOwner)
   blockDefinition PartyPayeeType g block = do
-    party <- statementToTerm g block "party" Parser.party
+    party <- statementToTerm g block "party" Parser.partyExtended
     pure $ mkDefaultTerm (Party party)
 
 instance hasBlockDefinitionParty :: HasBlockDefinition PartyType (Term Party) where
   blockDefinition PKPartyType g block = do
     case getFieldValue block "pubkey" of
-      Either.Left _ -> pure $ Hole "n" Proxy zero
+      Either.Left _ -> pure $ Hole "n" Proxy NoLocation
       Either.Right pk -> pure $ mkDefaultTerm (PK pk)
   blockDefinition RolePartyType g block = do
     role <- getFieldValue block "role"
@@ -1127,9 +1143,9 @@ instance hasBlockDefinitionToken :: HasBlockDefinition TokenType (Term Token) wh
 instance hasBlockDefinitionContract :: HasBlockDefinition ContractType (Term Contract) where
   blockDefinition CloseContractType _ _ = pure $ mkDefaultTerm Close
   blockDefinition PayContractType g block = do
-    accountOwner <- statementToTerm g block "party" Parser.party
+    accountOwner <- statementToTerm g block "party" Parser.partyExtended
     tok <- statementToTerm g block "token" Parser.token
-    payee <- statementToTerm g block "payee" Parser.payee
+    payee <- statementToTerm g block "payee" Parser.payeeExtended
     value <- statementToTerm g block "value" (Parser.value unit)
     contract <- statementToTerm g block "contract" Parser.contract
     pure $ mkDefaultTerm (Pay accountOwner payee tok value contract)
@@ -1147,8 +1163,14 @@ instance hasBlockDefinitionContract :: HasBlockDefinition ContractType (Term Con
     cases <- case eTopCaseBlock of
       Either.Right topCaseBlock -> casesDefinition g topCaseBlock
       Either.Left _ -> pure []
-    slot <- parse Parser.timeout =<< getFieldValue block "timeout"
+    slotOrParam <- getFieldValue block "timeout"
     contract <- statementToTerm g block "contract" Parser.contract
+    let
+      slot =
+        mkDefaultTerm
+          $ case fromString slotOrParam of
+              Just slotNumber -> Slot slotNumber
+              Nothing -> SlotParam slotOrParam
     pure $ mkDefaultTerm (When cases slot contract)
   blockDefinition LetContractType g block = do
     valueId <- mkDefaultTermWrapper <<< ValueId <$> getFieldValue block "value_id"
@@ -1174,7 +1196,7 @@ instance hasBlockDefinitionObservation :: HasBlockDefinition ObservationType (Te
     pure $ mkDefaultTerm (NotObs observation)
   blockDefinition ChoseSomethingObservationType g block = do
     choiceName <- getFieldValue block "choice_name"
-    choiceOwner <- statementToTerm g block "party" Parser.party
+    choiceOwner <- statementToTerm g block "party" Parser.partyExtended
     let
       choiceId = ChoiceId choiceName choiceOwner
     pure $ mkDefaultTerm (ChoseSomething choiceId)
@@ -1203,12 +1225,15 @@ instance hasBlockDefinitionObservation :: HasBlockDefinition ObservationType (Te
 
 instance hasBlockDefinitionValue :: HasBlockDefinition ValueType (Term Value) where
   blockDefinition AvailableMoneyValueType g block = do
-    accountOwner <- statementToTerm g block "party" Parser.party
+    accountOwner <- statementToTerm g block "party" Parser.partyExtended
     tok <- statementToTerm g block "token" Parser.token
     pure $ mkDefaultTerm (AvailableMoney accountOwner tok)
   blockDefinition ConstantValueType g block = do
     constant <- parse Parser.bigInteger =<< getFieldValue block "constant"
     pure $ mkDefaultTerm (Constant constant)
+  blockDefinition ConstantParamValueType g block = do
+    paramName <- getFieldValue block "paramName"
+    pure $ mkDefaultTerm (ConstantParam paramName)
   blockDefinition NegValueValueType g block = do
     value <- statementToTerm g block "value" (Parser.value unit)
     pure $ mkDefaultTerm (NegValue value)
@@ -1231,7 +1256,7 @@ instance hasBlockDefinitionValue :: HasBlockDefinition ValueType (Term Value) wh
     pure $ mkDefaultTerm (Scale (mkDefaultTermWrapper (Rational numerator denominator)) value)
   blockDefinition ChoiceValueValueType g block = do
     choiceName <- getFieldValue block "choice_name"
-    choiceOwner <- statementToTerm g block "party" Parser.party
+    choiceOwner <- statementToTerm g block "party" Parser.partyExtended
     let
       choiceId = ChoiceId choiceName choiceOwner
     pure $ mkDefaultTerm (ChoiceValue choiceId)
@@ -1425,7 +1450,12 @@ instance toBlocklyContract :: ToBlockly Contract where
     block <- newBlock workspace (show WhenContractType)
     connectToPrevious block input
     inputToBlockly newBlock workspace block "case" cases
-    setField block "timeout" (show timeout)
+    setField block "timeout"
+      ( case timeout of
+          Term (Slot slotNum) _ -> show slotNum
+          Term (SlotParam paramName) _ -> paramName
+          _ -> "0"
+      )
     inputToBlockly newBlock workspace block "contract" contract
   toBlockly newBlock workspace input (Let (TermWrapper (ValueId valueId) _) value contract) = do
     block <- newBlock workspace (show LetContractType)
@@ -1501,6 +1531,10 @@ instance toBlocklyValue :: ToBlockly Value where
     block <- newBlock workspace (show ConstantValueType)
     connectToOutput block input
     setField block "constant" (show v)
+  toBlockly newBlock workspace input (ConstantParam n) = do
+    block <- newBlock workspace (show ConstantParamValueType)
+    connectToOutput block input
+    setField block "paramName" n
   toBlockly newBlock workspace input (NegValue v) = do
     block <- newBlock workspace (show NegValueValueType)
     connectToOutput block input

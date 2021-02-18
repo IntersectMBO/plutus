@@ -1,17 +1,5 @@
 cradle:
   cabal:
-    - path: "deployment-server/src"
-      component: "lib:deployment-server"
-
-    - path: "deployment-server/app/Main.hs"
-      component: "deployment-server:exe:deployment-server-exe"
-
-    - path: "deployment-server/app/Paths_deployment_server.hs"
-      component: "deployment-server:exe:deployment-server-exe"
-
-    - path: "deployment-server/test"
-      component: "deployment-server:test:deployment-server-test"
-
     - path: "doc/tutorials/Main.hs"
       component: "plutus-doc:exe:doc-doctests"
 
@@ -26,12 +14,6 @@ cradle:
 
     - path: "doc/tutorials/BasicApps.hs"
       component: "plutus-doc:exe:doc-doctests"
-
-    - path: "iots-export/src"
-      component: "lib:iots-export"
-
-    - path: "iots-export/test"
-      component: "iots-export:test:iots-export-test"
 
     - path: "marlowe/src"
       component: "lib:marlowe"

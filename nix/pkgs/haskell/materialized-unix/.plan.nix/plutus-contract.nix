@@ -35,7 +35,6 @@
         depends = [
           (hsPkgs."plutus-ledger" or (errorHandler.buildDepError "plutus-ledger"))
           (hsPkgs."plutus-tx" or (errorHandler.buildDepError "plutus-tx"))
-          (hsPkgs."iots-export" or (errorHandler.buildDepError "iots-export"))
           (hsPkgs."aeson" or (errorHandler.buildDepError "aeson"))
           (hsPkgs."base" or (errorHandler.buildDepError "base"))
           (hsPkgs."containers" or (errorHandler.buildDepError "containers"))
@@ -96,7 +95,6 @@
           "Language/Plutus/Contract/Schema"
           "Language/Plutus/Contract/Trace"
           "Language/Plutus/Contract/Trace/RequestHandler"
-          "Language/Plutus/Contract/IOTS"
           "Language/Plutus/Contract/Servant"
           "Language/Plutus/Contract/Resumable"
           "Language/Plutus/Contract/StateMachine"

@@ -47,6 +47,6 @@ References
 3. If you want to talk to us directly, you can use the Cardano Forum_.
 
 .. _Haskell: http://haskell.org/
-.. _Haddock: haddock/index.html
+.. _Haddock: https://www.haskell.org/haddock/index.html
 .. _Forum: http://forum.cardano.org/
 

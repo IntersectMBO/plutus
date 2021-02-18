@@ -10,7 +10,7 @@ import Data.BigInteger (BigInteger)
 import Data.Either (Either(..))
 import Data.Generic.Rep (class Generic)
 import Data.Generic.Rep.Show (genericShow)
-import Data.Lens (Getter', Lens', Prism', Traversal', lens, preview, prism, set, to)
+import Data.Lens (Getter', Lens', Prism', Traversal', Optic', lens, preview, prism, set, to)
 import Data.Lens.At (at)
 import Data.Lens.Index (ix)
 import Data.Lens.Iso.Newtype (_Newtype)
@@ -20,11 +20,15 @@ import Data.List.NonEmpty as NEL
 import Data.List.Types (NonEmptyList)
 import Data.Map (Map)
 import Data.Map as Map
-import Data.Maybe (Maybe(..))
+import Data.Maybe (Maybe(..), maybe)
 import Data.Newtype (class Newtype)
+import Data.Profunctor.Choice (class Choice)
+import Data.Profunctor.Strong (class Strong)
 import Data.Symbol (SProxy(..))
 import Foreign.Generic (class Decode, class Encode, genericDecode, genericEncode)
 import Help (HelpContext(..))
+import Marlowe.Extended (IntegerTemplateType, TemplateContent, getPlaceholderIds, initializeTemplateContent)
+import Marlowe.Extended as EM
 import Marlowe.Holes (Holes)
 import Marlowe.Semantics (AccountId, Assets, Bound, ChoiceId, ChosenNum, Contract, Input, Party(..), Payment, Slot, SlotInterval, Token, TransactionError, TransactionInput, TransactionWarning, aesonCompatibleOptions, emptyState)
 import Marlowe.Semantics as S
@@ -132,6 +136,7 @@ type ExecutionStateRecord
     , state :: S.State
     , slot :: Slot
     , moneyInContract :: Assets
+    , contract :: S.Contract
     }
 
 _possibleActions :: forall s a. Lens' { possibleActions :: a | s } a
@@ -155,6 +160,9 @@ _slot = prop (SProxy :: SProxy "slot")
 _moneyInContract :: forall s a. Lens' { moneyInContract :: a | s } a
 _moneyInContract = prop (SProxy :: SProxy "moneyInContract")
 
+_contract :: forall s a. Lens' { contract :: a | s } a
+_contract = prop (SProxy :: SProxy "contract")
+
 _log :: forall s a. Lens' { log :: a | s } a
 _log = prop (SProxy :: SProxy "log")
 
@@ -166,10 +174,19 @@ _payments = _log <<< to (mapMaybe f)
   f (OutputEvent _ payment) = Just payment
 
 type InitialConditionsRecord
-  = { initialSlot :: Slot }
+  = { initialSlot :: Slot
+    , extendedContract :: Maybe EM.Contract
+    , templateContent :: TemplateContent
+    }
 
 _initialSlot :: forall s a. Lens' { initialSlot :: a | s } a
 _initialSlot = prop (SProxy :: SProxy "initialSlot")
+
+_extendedContract :: forall s a. Lens' { extendedContract :: a | s } a
+_extendedContract = prop (SProxy :: SProxy "extendedContract")
+
+_templateContent :: forall s a. Lens' { templateContent :: a | s } a
+_templateContent = prop (SProxy :: SProxy "templateContent")
 
 data ExecutionState
   = SimulationRunning ExecutionStateRecord
@@ -193,8 +210,8 @@ _SimulationNotStarted =
           anotherCase -> Left anotherCase
       )
 
-emptyExecutionStateWithSlot :: Slot -> ExecutionState
-emptyExecutionStateWithSlot sn =
+emptyExecutionStateWithSlot :: Slot -> S.Contract -> ExecutionState
+emptyExecutionStateWithSlot sn cont =
   SimulationRunning
     { possibleActions: mempty
     , pendingInputs: mempty
@@ -204,17 +221,22 @@ emptyExecutionStateWithSlot sn =
     , state: emptyState sn
     , slot: sn
     , moneyInContract: mempty
+    , contract: cont
     }
 
-simulationNotStartedWithSlot :: Slot -> ExecutionState
-simulationNotStartedWithSlot slot = SimulationNotStarted { initialSlot: slot }
+simulationNotStartedWithSlot :: Slot -> Maybe EM.Contract -> ExecutionState
+simulationNotStartedWithSlot slot mContract =
+  SimulationNotStarted
+    { initialSlot: slot
+    , extendedContract: mContract
+    , templateContent: maybe mempty (initializeTemplateContent <<< getPlaceholderIds) mContract
+    }
 
-simulationNotStarted :: ExecutionState
+simulationNotStarted :: Maybe EM.Contract -> ExecutionState
 simulationNotStarted = simulationNotStartedWithSlot zero
 
 type MarloweState
   = { executionState :: ExecutionState
-    , contract :: Maybe Contract
     , holes :: Holes
     -- NOTE: as part of the marlowe editor and simulator split this part of the
     --       state wont be used, but it is left as it is because it may make sense
@@ -225,9 +247,6 @@ type MarloweState
 
 _executionState :: forall s a. Lens' { executionState :: a | s } a
 _executionState = prop (SProxy :: SProxy "executionState")
-
-_contract :: forall s a. Lens' { contract :: a | s } a
-_contract = prop (SProxy :: SProxy "contract")
 
 _editorErrors :: forall s a. Lens' { editorErrors :: a | s } a
 _editorErrors = prop (SProxy :: SProxy "editorErrors")
@@ -242,22 +261,20 @@ _holes = prop (SProxy :: SProxy "holes")
 _result :: forall s a. Lens' { result :: a | s } a
 _result = prop (SProxy :: SProxy "result")
 
-emptyMarloweState :: MarloweState
-emptyMarloweState =
-  { contract: Nothing
-  , editorErrors: mempty
+emptyMarloweState :: Maybe EM.Contract -> MarloweState
+emptyMarloweState mContract =
+  { editorErrors: mempty
   , editorWarnings: mempty
   , holes: mempty
-  , executionState: simulationNotStarted
+  , executionState: simulationNotStarted mContract
   }
 
-emptyMarloweStateWithSlot :: Slot -> MarloweState
-emptyMarloweStateWithSlot sn =
-  { contract: Nothing
-  , editorErrors: mempty
+emptyMarloweStateWithSlot :: Slot -> S.Contract -> MarloweState
+emptyMarloweStateWithSlot sn cont =
+  { editorErrors: mempty
   , editorWarnings: mempty
   , holes: mempty
-  , executionState: emptyExecutionStateWithSlot sn
+  , executionState: emptyExecutionStateWithSlot sn cont
   }
 
 --
@@ -266,8 +283,6 @@ type State
     , bottomPanelState :: BottomPanel.State BottomPanelView
     , marloweState :: NonEmptyList MarloweState
     , helpContext :: HelpContext
-    -- QUESTION: What is the use of oldContract?
-    , oldContract :: Maybe String
     }
 
 _showRightPanel :: Lens' State Boolean
@@ -279,8 +294,8 @@ _marloweState = prop (SProxy :: SProxy "marloweState")
 _currentMarloweState :: forall s. Lens' { marloweState :: NonEmptyList MarloweState | s } MarloweState
 _currentMarloweState = _marloweState <<< _Head
 
-_currentContract :: Lens' State (Maybe Contract)
-_currentContract = _currentMarloweState <<< _contract
+_currentContract :: forall s p. Strong p => Choice p => Optic' p { marloweState :: NonEmptyList MarloweState | s } Contract
+_currentContract = _currentMarloweState <<< _executionState <<< _SimulationRunning <<< _contract
 
 _helpContext :: Lens' State HelpContext
 _helpContext = prop (SProxy :: SProxy "helpContext")
@@ -288,29 +303,24 @@ _helpContext = prop (SProxy :: SProxy "helpContext")
 _bottomPanelState :: Lens' State (BottomPanel.State BottomPanelView)
 _bottomPanelState = prop (SProxy :: SProxy "bottomPanelState")
 
-_oldContract :: Lens' State (Maybe String)
-_oldContract = prop (SProxy :: SProxy "oldContract")
-
 mkState :: State
 mkState =
   { showRightPanel: true
-  , marloweState: NEL.singleton emptyMarloweState
+  , marloweState: NEL.singleton (emptyMarloweState Nothing)
   , helpContext: MarloweHelp
   , bottomPanelState: BottomPanel.initialState CurrentStateView
-  , oldContract: Nothing
   }
 
 data Action
   = Init
   -- marlowe actions
   | SetInitialSlot Slot
+  | SetIntegerTemplateParam IntegerTemplateType String BigInteger
   | StartSimulation
   | MoveSlot Slot
   | SetSlot Slot
   | AddInput Input (Array Bound)
-  | RemoveInput Input
   | SetChoice ChoiceId ChosenNum
-  | ResetContract
   | ResetSimulator
   | Undo
   | LoadContract String
@@ -326,14 +336,13 @@ defaultEvent s = A.defaultEvent $ "Simulation." <> s
 instance isEventAction :: IsEvent Action where
   toEvent Init = Just $ defaultEvent "Init"
   toEvent (SetInitialSlot _) = Just $ defaultEvent "SetInitialSlot"
+  toEvent (SetIntegerTemplateParam templateType key value) = Just $ defaultEvent "SetIntegerTemplateParam"
   toEvent StartSimulation = Just $ defaultEvent "StartSimulation"
   toEvent (MoveSlot _) = Just $ defaultEvent "MoveSlot"
   toEvent (SetSlot _) = Just $ defaultEvent "SetSlot"
   toEvent (AddInput _ _) = Just $ defaultEvent "AddInput"
-  toEvent (RemoveInput _) = Just $ defaultEvent "RemoveInput"
   toEvent (SetChoice _ _) = Just $ defaultEvent "SetChoice"
   toEvent ResetSimulator = Just $ defaultEvent "ResetSimulator"
-  toEvent ResetContract = Just $ defaultEvent "ResetContract"
   toEvent Undo = Just $ defaultEvent "Undo"
   toEvent (LoadContract _) = Just $ defaultEvent "LoadContract"
   toEvent (ChangeHelpContext help) = Just $ (defaultEvent "ChangeHelpContext") { label = Just $ show help }

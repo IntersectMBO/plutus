@@ -51,7 +51,6 @@ import           Data.Aeson                        (FromJSON, ToJSON)
 import           Data.Text                         (Text)
 import qualified Data.Text                         as Text
 import           GHC.Generics                      (Generic)
-import           IOTS                              (IotsType)
 
 import           Language.Plutus.Contract
 import qualified Language.Plutus.Contract.Typed.Tx as Typed
@@ -97,7 +96,7 @@ PlutusTx.makeLift ''Campaign
 --
 data CampaignAction = Collect | Refund
 
-PlutusTx.makeIsData ''CampaignAction
+PlutusTx.unstableMakeIsData ''CampaignAction
 PlutusTx.makeLift ''CampaignAction
 
 type CrowdfundingSchema =
@@ -109,7 +108,7 @@ newtype Contribution = Contribution
         { contribValue :: Value
         -- ^ how much to contribute
         } deriving stock (Haskell.Eq, Show, Generic)
-          deriving anyclass (ToJSON, FromJSON, IotsType, ToSchema, ToArgument)
+          deriving anyclass (ToJSON, FromJSON, ToSchema, ToArgument)
 
 -- | Construct a 'Campaign' value from the campaign parameters,
 --   using the wallet's public key.
@@ -275,4 +274,3 @@ successfulCampaign = do
     makeContribution (Wallet 3) (Ada.lovelaceValueOf 10)
     makeContribution (Wallet 4) (Ada.lovelaceValueOf 1)
     void $ Trace.waitUntilSlot 21
-

@@ -1,35 +1,42 @@
 module CloseAnalysis where
 
 import Prelude hiding (div)
+import Control.Monad.Reader (class MonadAsk)
 import Data.Foldable (foldl)
-import Data.Lens (assign)
+import Data.Lens (assign, use)
+import Data.Maybe (Maybe(..))
 import Data.Set (Set)
 import Data.Set as Set
 import Data.Tuple.Nested (type (/\), (/\))
 import Effect.Aff.Class (class MonadAff)
+import Env (Env)
 import Halogen (HalogenM)
-import Marlowe (SPParams_)
+import Marlowe.Extended (fillTemplate, toCore)
+import Marlowe.Extended as EM
 import Marlowe.Semantics (AccountId, Contract(..), Observation(..), Payee(..), Token, Value(..), emptyState)
 import Marlowe.Semantics as S
-import Servant.PureScript.Settings (SPSettings_)
 import StaticAnalysis.StaticTools (closeZipperContract, startMultiStageAnalysis, zipperToContractPath)
-import StaticAnalysis.Types (AnalysisState(..), ContractPath, ContractZipper(..), MultiStageAnalysisData(..), MultiStageAnalysisProblemDef, _analysisState)
+import StaticAnalysis.Types (AnalysisExecutionState(..), AnalysisState, ContractPath, ContractZipper(..), MultiStageAnalysisData(..), MultiStageAnalysisProblemDef, _analysisExecutionState, _analysisState, _templateContent)
 
 analyseClose ::
   forall m state action slots.
   MonadAff m =>
-  SPSettings_ SPParams_ ->
-  Contract ->
+  MonadAsk Env m =>
+  EM.Contract ->
   HalogenM { analysisState :: AnalysisState | state } action slots Void m Unit
-analyseClose settings contract = do
-  assign _analysisState (CloseAnalysis AnalysisNotStarted)
-  -- when editor and simulator were together the analyse contract could be made
-  -- at any step of the simulator. Now that they are separate, it can only be done
-  -- with initial state
-  let
-    emptySemanticState = emptyState zero
-  newCloseAnalysisState <- startCloseAnalysis settings contract emptySemanticState
-  assign _analysisState (CloseAnalysis newCloseAnalysisState)
+analyseClose extendedContract = do
+  templateContent <- use (_analysisState <<< _templateContent)
+  case toCore $ fillTemplate templateContent extendedContract of
+    Just contract -> do
+      assign (_analysisState <<< _analysisExecutionState) (CloseAnalysis AnalysisNotStarted)
+      -- when editor and simulator were together the analyse contract could be made
+      -- at any step of the simulator. Now that they are separate, it can only be done
+      -- with initial state
+      let
+        emptySemanticState = emptyState zero
+      newCloseAnalysisState <- startCloseAnalysis contract emptySemanticState
+      assign (_analysisState <<< _analysisExecutionState) (CloseAnalysis newCloseAnalysisState)
+    Nothing -> assign (_analysisState <<< _analysisExecutionState) (CloseAnalysis $ AnalysisFailure "The code has templates. Static analysis can only be run in core Marlowe code.")
 
 extractAccountIdsFromZipper :: ContractZipper -> Set (AccountId /\ Token)
 extractAccountIdsFromZipper = go
@@ -82,7 +89,7 @@ closeAnalysisAnalysisDef =
 startCloseAnalysis ::
   forall m state action slots.
   MonadAff m =>
-  SPSettings_ SPParams_ ->
+  MonadAsk Env m =>
   Contract ->
   S.State -> HalogenM { analysisState :: AnalysisState | state } action slots Void m MultiStageAnalysisData
 startCloseAnalysis = startMultiStageAnalysis closeAnalysisAnalysisDef

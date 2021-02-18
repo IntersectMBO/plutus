@@ -46,7 +46,6 @@ import           Data.Set                         (Set)
 import qualified Data.Set                         as Set
 import           Data.Text.Prettyprint.Doc
 import           GHC.Generics                     (Generic)
-import           IOTS                             (IotsType)
 
 import           Language.PlutusTx                (IsData (..))
 import           Language.PlutusTx.Lattice
@@ -150,7 +149,7 @@ data UnbalancedTx =
         , unBalancedTxRequiredSignatories :: Set PubKeyHash
         }
     deriving stock (Eq, Generic, Show)
-    deriving anyclass (FromJSON, ToJSON, IotsType)
+    deriving anyclass (FromJSON, ToJSON)
 
 makeLensesFor [("unBalancedTxTx", "tx"), ("unBalancedTxRequiredSignatories", "requiredSignatories")] ''UnbalancedTx
 

@@ -10,19 +10,16 @@ import Halogen.HTML (button, div, div_, input, text)
 import Halogen.HTML.Events (onClick, onValueChange)
 import Halogen.HTML.Properties (class_, classes, value)
 import MainFrame.Types (ChildSlots)
-import Marlowe (SPParams_)
 import Modal.ViewHelpers (modalHeader)
 import Rename.Types (Action(..), State, _error, _projectName)
-import Servant.PureScript.Settings (SPSettings_)
 
 handleAction ::
   forall m.
   MonadAff m =>
-  SPSettings_ SPParams_ ->
   Action -> HalogenM State Action ChildSlots Void m Unit
-handleAction settings (ChangeInput newName) = assign _projectName newName
+handleAction (ChangeInput newName) = assign _projectName newName
 
-handleAction settings SaveProject = pure unit
+handleAction SaveProject = pure unit
 
 render ::
   forall m.

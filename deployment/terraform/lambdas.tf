@@ -19,8 +19,8 @@ resource "aws_security_group" "marlowe_symbolic_lambda" {
   }
 
   tags = {
-    Name        = "${var.project}_${var.env}_marlowe_symbolic_lambda"
-    Project     = var.project
+    Name        = "${local.project}_${var.env}_marlowe_symbolic_lambda"
+    Project     = local.project
     Environment = var.env
   }
 }

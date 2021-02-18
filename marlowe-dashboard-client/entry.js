@@ -1,3 +1,3 @@
 /*eslint-env node*/
-import './static/css/main.scss';
+import './static/css/main.css';
 import './src/Main.purs';

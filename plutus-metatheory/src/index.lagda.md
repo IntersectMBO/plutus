@@ -56,7 +56,10 @@ proof.
 import Type
 import Type.RenamingSubstitution
 import Type.Equality
-import Type.Reduction
+import Type.ReductionS
+import Type.ReductionF
+import Type.ReductionC
+import Type.CC
 import Type.CK
 ```
 
@@ -125,7 +128,7 @@ import Algorithmic.Completeness
 import Algorithmic.Soundness
 import Algorithmic.Erasure
 import Algorithmic.Erasure.RenamingSubstitution
---import Algorithmic.Erasure.Reduction
+import Algorithmic.Erasure.Reduction
 import Algorithmic.CK
 import Algorithmic.CEKV
 

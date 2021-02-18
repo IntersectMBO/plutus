@@ -48,7 +48,6 @@ import           GHC.Generics                        (Generic)
 import qualified Language.Haskell.TH.Syntax          as TH
 
 import           Language.Plutus.Contract.Checkpoint (AsCheckpointError (..), CheckpointError)
-import           Language.Plutus.Contract.IOTS       (IotsType)
 import           Ledger                              (Address, Slot, Tx, TxIn, TxOut, txId)
 import           Ledger.Constraints.OffChain         (MkTxError)
 import           Wallet.Emulator.Error               (WalletAPIError)
@@ -138,11 +137,11 @@ randomID = ContractInstanceId <$> UUID.nextRandom
 newtype EndpointDescription = EndpointDescription { getEndpointDescription :: String }
     deriving stock (Eq, Ord, Generic, Show, TH.Lift)
     deriving newtype (IsString, Pretty)
-    deriving anyclass (ToJSON, FromJSON, IotsType)
+    deriving anyclass (ToJSON, FromJSON)
 
 newtype EndpointValue a = EndpointValue { unEndpointValue :: a }
     deriving stock (Eq, Ord, Generic, Show)
-    deriving anyclass (ToJSON, FromJSON, IotsType)
+    deriving anyclass (ToJSON, FromJSON)
 
 deriving via (Tagged "EndpointValue:" (PrettyShow a)) instance (Show a => Pretty (EndpointValue a))
 

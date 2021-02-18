@@ -56,5 +56,5 @@ scriptAddress = ScriptAddress . validatorHash
 scriptHashAddress :: ValidatorHash -> Address
 scriptHashAddress = ScriptAddress
 
-PlutusTx.makeIsData ''Address
+PlutusTx.makeIsDataIndexed ''Address [('PubKeyAddress,0), ('ScriptAddress,1)]
 PlutusTx.makeLift ''Address

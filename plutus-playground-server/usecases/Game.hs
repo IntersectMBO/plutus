@@ -2,7 +2,6 @@
 {-# LANGUAGE DeriveAnyClass             #-}
 {-# LANGUAGE DeriveGeneric              #-}
 {-# LANGUAGE DerivingStrategies         #-}
-{-# LANGUAGE ExplicitNamespaces         #-}
 {-# LANGUAGE FlexibleContexts           #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE MultiParamTypeClasses      #-}
@@ -90,14 +89,14 @@ data LockParams = LockParams
     , amount     :: Value
     }
     deriving stock (Prelude.Eq, Prelude.Show, Generic)
-    deriving anyclass (FromJSON, ToJSON, IotsType, ToSchema, ToArgument)
+    deriving anyclass (FromJSON, ToJSON, ToSchema, ToArgument)
 
 --  | Parameters for the "guess" endpoint
 newtype GuessParams = GuessParams
     { guessWord :: String
     }
     deriving stock (Prelude.Eq, Prelude.Show, Generic)
-    deriving anyclass (FromJSON, ToJSON, IotsType, ToSchema, ToArgument)
+    deriving anyclass (FromJSON, ToJSON, ToSchema, ToArgument)
 
 -- | The "lock" contract endpoint. See note [Contract endpoints]
 lock :: AsContractError e => Contract GameSchema e ()

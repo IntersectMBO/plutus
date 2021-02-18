@@ -16,8 +16,8 @@ import Data.Unfoldable as Unfoldable
 import Halogen (RefLabel(..))
 import Halogen.Monaco (Settings)
 import Help as Help
-import Marlowe.Linter (AdditionalContext)
-import Marlowe.Linter as Linter
+import Marlowe.LinterText (AdditionalContext)
+import Marlowe.LinterText as Linter
 import Monaco (CodeAction, CodeActionProvider, CompletionItem, CompletionItemProvider, DocumentFormattingEditProvider, Editor, HoverProvider, IMarkdownString, IMarkerData, IRange, IStandaloneThemeData, LanguageExtensionPoint(..), Theme, TokensProvider, Uri)
 
 foreign import hoverProvider_ :: Fn1 (String -> { contents :: Array IMarkdownString }) HoverProvider

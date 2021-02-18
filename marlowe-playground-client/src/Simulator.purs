@@ -5,7 +5,7 @@ import Control.Monad.State (class MonadState)
 import Data.Array (fromFoldable, mapMaybe, sort, toUnfoldable, uncons)
 import Data.Either (Either(..))
 import Data.FoldableWithIndex (foldlWithIndex)
-import Data.Lens (has, modifying, nearly, over, previewOn, set, to, use, view, (^.))
+import Data.Lens (has, modifying, nearly, over, previewOn, set, use, view, (^.))
 import Data.List (List(..))
 import Data.List as List
 import Data.List.Types (NonEmptyList)
@@ -17,11 +17,13 @@ import Data.NonEmpty (foldl1, (:|))
 import Data.NonEmptyList.Extra (extendWith)
 import Data.NonEmptyList.Lens (_Tail)
 import Data.Tuple (Tuple(..))
+import Marlowe.Extended (toCore)
+import Marlowe.Extended as EM
 import Marlowe.Holes (fromTerm)
 import Marlowe.Linter (lint)
 import Marlowe.Linter as L
 import Marlowe.Parser (parseContract)
-import Marlowe.Semantics (Action(..), Bound(..), ChoiceId(..), ChosenNum, Contract(..), Environment(..), Input, IntervalResult(..), Observation, Party, Slot, SlotInterval(..), State, TransactionError(..), TransactionInput(..), TransactionOutput(..), _minSlot, boundFrom, computeTransaction, emptyState, evalValue, extractRequiredActionsWithTxs, fixInterval, moneyInContract, timeouts)
+import Marlowe.Semantics (Action(..), Bound(..), ChoiceId(..), ChosenNum, Contract(..), Environment(..), Input, IntervalResult(..), Observation, Party, Slot, SlotInterval(..), State, Timeouts(..), TransactionError(..), TransactionInput(..), TransactionOutput(..), _minSlot, boundFrom, computeTransaction, emptyState, evalValue, extractRequiredActionsWithTxs, fixInterval, moneyInContract, timeouts)
 import Marlowe.Semantics as S
 import SimulationPage.Types (ActionInput(..), ActionInputId(..), ExecutionState(..), ExecutionStateRecord, MarloweEvent(..), MarloweState, Parties, _SimulationRunning, _contract, _currentMarloweState, _editorErrors, _executionState, _holes, _log, _marloweState, _moneyInContract, _moveToAction, _pendingInputs, _possibleActions, _slot, _state, _transactionError, _transactionWarnings, otherActionsParty)
 
@@ -88,21 +90,22 @@ updateContractInStateP text state = case parseContract text of
 
       mContract = fromTerm parsedContract
     in
+      -- We reuse the extended Marlowe parser for now since it is a superset
       case mContract of
-        Just contract -> do
-          set _editorErrors [] <<< set _contract (Just contract) $ state
-        Nothing -> do
+        Just extendedContract -> case toCore (extendedContract :: EM.Contract) of
+          Just contract -> set _editorErrors [] $ set (_executionState <<< _SimulationRunning <<< _contract) contract state
+          Nothing -> (set _holes mempty) state
+        Nothing ->
           let
             holes = view L._holes lintResult
-          (set _holes holes) state
+          in
+            (set _holes holes) state
   Left error -> (set _holes mempty) state
-  where
-  marloweState = fromMaybe (emptyState zero) (previewOn state (_executionState <<< _SimulationRunning <<< _state))
 
 updatePossibleActions :: MarloweState -> MarloweState
 updatePossibleActions oldState@{ executionState: SimulationRunning executionState } =
   let
-    contract = fromMaybe Close (oldState ^. _contract)
+    contract = executionState ^. _contract
 
     state = executionState ^. _state
 
@@ -173,8 +176,8 @@ updateStateP oldState@{ executionState: SimulationRunning executionState } = act
   where
   txInput@(TransactionInput txIn) = stateToTxInput executionState
 
-  actState = case computeTransaction txInput (executionState ^. _state) (oldState ^. _contract <<< to (fromMaybe Close)) of
-    (TransactionOutput { txOutWarnings, txOutPayments, txOutState, txOutContract }) ->
+  actState = case computeTransaction txInput (executionState ^. _state) (executionState ^. _contract) of
+    TransactionOutput { txOutWarnings, txOutPayments, txOutState, txOutContract } ->
       let
         newExecutionState =
           ( set _transactionError Nothing
@@ -187,12 +190,9 @@ updateStateP oldState@{ executionState: SimulationRunning executionState } = act
           )
             executionState
       in
-        ( set _executionState (SimulationRunning newExecutionState)
-            <<< set _contract (Just txOutContract)
-        )
-          oldState
-    (Error TEUselessTransaction) -> oldState
-    (Error txError) ->
+        set _executionState (SimulationRunning (set _contract txOutContract newExecutionState)) oldState
+    Error TEUselessTransaction -> oldState
+    Error txError ->
       let
         newExecutionState =
           ( set _transactionError (Just txError)
@@ -279,11 +279,8 @@ evalObservation state@{ executionState: SimulationRunning executionState } obser
 evalObservation state observation = false
 
 nextSignificantSlot :: MarloweState -> Maybe Slot
-nextSignificantSlot state =
-  state
-    ^. ( _contract
-          <<< to (fromMaybe Close)
-          <<< to timeouts
-          <<< to unwrap
-          <<< to _.minTime
-      )
+nextSignificantSlot state = do
+  mContract <- previewOn state (_executionState <<< _SimulationRunning <<< _contract)
+  let
+    Timeouts { minTime } = timeouts mContract
+  minTime

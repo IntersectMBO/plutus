@@ -1,7 +1,7 @@
 # Security Group
 resource "aws_security_group" "webghc" {
   vpc_id = aws_vpc.plutus.id
-  name   = "${var.project}_${var.env}_webghc"
+  name   = "${local.project}_${var.env}_webghc"
 
   ingress {
     from_port   = 22
@@ -19,9 +19,10 @@ resource "aws_security_group" "webghc" {
     cidr_blocks = concat(var.public_subnet_cidrs, var.private_subnet_cidrs)
   }
 
+  # prometheus node exporter
   ingress {
-    from_port   = 9100
-    to_port     = 9100
+    from_port   = local.node_exporter_port
+    to_port     = local.node_exporter_port
     protocol    = "TCP"
     cidr_blocks = var.private_subnet_cidrs
   }
@@ -49,8 +50,8 @@ resource "aws_security_group" "webghc" {
   }
 
   tags = {
-    Name        = "${var.project}_${var.env}_webghc"
-    Project     = var.project
+    Name        = "${local.project}_${var.env}_webghc"
+    Project     = local.project
     Environment = var.env
   }
 }
@@ -59,7 +60,7 @@ data "template_file" "webghc_user_data" {
   template = file("${path.module}/templates/default_configuration.nix")
 
   vars = {
-    root_ssh_keys      = join(" ", formatlist("\"%s\"", data.template_file.nixops_ssh_keys.*.rendered))
+    root_ssh_keys      = join(" ", formatlist("\"%s\"", local.root_ssh_keys))
   }
 }
 
@@ -79,8 +80,8 @@ resource "aws_instance" "webghc_a" {
   }
 
   tags = {
-    Name        = "${var.project}_${var.env}_webghc_a"
-    Project     = var.project
+    Name        = "${local.project}_${var.env}_webghc_a"
+    Project     = local.project
     Environment = var.env
   }
 }
@@ -109,8 +110,8 @@ resource "aws_instance" "webghc_b" {
   }
 
   tags = {
-    Name        = "${var.project}_${var.env}_webghc_b"
-    Project     = var.project
+    Name        = "${local.project}_${var.env}_webghc_b"
+    Project     = local.project
     Environment = var.env
   }
 }

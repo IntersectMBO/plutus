@@ -26,6 +26,7 @@ flag defer-plugin-errors
 library
     exposed-modules:
         Language.PlutusTx.Coordination.Contracts
+        Language.PlutusTx.Coordination.Contracts.Auction
         Language.PlutusTx.Coordination.Contracts.TokenAccount
         Language.PlutusTx.Coordination.Contracts.Crowdfunding
         Language.PlutusTx.Coordination.Contracts.Currency
@@ -65,7 +66,6 @@ library
         aeson -any,
         bytestring -any,
         containers -any,
-        iots-export -any,
         mtl -any,
         plutus-core -any,
         plutus-tx -any,
@@ -91,6 +91,7 @@ test-suite plutus-use-cases-test
     main-is: Spec.hs
     hs-source-dirs: test
     other-modules:
+        Spec.Auction
         Spec.Crowdfunding
         Spec.Currency
         Spec.ErrorHandling
@@ -152,6 +153,7 @@ executable plutus-use-cases-scripts
         test
     default-language: Haskell2010
     other-modules:
+        Spec.Auction
         Spec.Crowdfunding
         Spec.Currency
         Spec.ErrorHandling

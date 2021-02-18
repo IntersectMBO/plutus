@@ -15,7 +15,9 @@ import Data.Int (rem)
 import Data.Maybe (fromMaybe)
 import Data.NonEmpty (NonEmpty, foldl1, (:|))
 import Data.String.CodeUnits (fromCharArray)
-import Marlowe.Holes (Action(..), Bound(..), Case(..), ChoiceId(..), Contract(..), MarloweType(..), Observation(..), Party(..), Payee(..), Range, Term(..), TermWrapper(..), Token(..), Value(..), ValueId(..), mkArgName)
+import Marlowe.Extended as EM
+import Marlowe.Holes (Action(..), Bound(..), Case(..), ChoiceId(..), Contract(..), Location(..), MarloweType(..), Observation(..), Party(..), Payee(..), Term(..), TermWrapper(..), Token(..), Value(..), ValueId(..), mkArgName)
+import Marlowe.Holes as H
 import Marlowe.Semantics (Rational(..), CurrencySymbol, Input(..), PubKey, Slot(..), SlotInterval(..), TokenName, TransactionInput(..), TransactionWarning(..))
 import Marlowe.Semantics as S
 import Text.Parsing.StringParser (Pos)
@@ -51,8 +53,8 @@ genRational = do
 genSlot :: forall m. MonadGen m => MonadRec m => m Slot
 genSlot = Slot <$> genBigInteger
 
-genTimeout :: forall m. MonadGen m => MonadRec m => m (TermWrapper Slot)
-genTimeout = TermWrapper <$> genSlot <*> pure zero
+genTimeout :: forall m. MonadGen m => MonadRec m => m H.Timeout
+genTimeout = H.Slot <$> genBigInteger
 
 genValueId :: forall m. MonadGen m => MonadRec m => MonadReader Boolean m => m ValueId
 genValueId = ValueId <$> genString
@@ -104,13 +106,13 @@ genBound = do
 genPosition :: forall m. MonadGen m => MonadRec m => m Pos
 genPosition = chooseInt 0 1000
 
-genRange :: forall m. MonadGen m => MonadRec m => m Range
+genRange :: forall m. MonadGen m => MonadRec m => m Location
 genRange = do
   startLineNumber <- genPosition
   startColumn <- genPosition
   endLineNumber <- genPosition
   endColumn <- genPosition
-  pure { startLineNumber, startColumn, endLineNumber, endColumn }
+  pure $ Range { startLineNumber, startColumn, endLineNumber, endColumn }
 
 genHole :: forall m a. MonadGen m => MonadRec m => String -> m (Term a)
 genHole name = do
@@ -122,11 +124,11 @@ genHole name = do
 genTerm :: forall m a. MonadGen m => MonadRec m => MonadReader Boolean m => String -> m a -> m (Term a)
 genTerm name g = do
   withHoles <- ask
-  oneOf $ (Term <$> g <*> pure zero) :| (if withHoles then [ genHole name ] else [])
+  oneOf $ (Term <$> g <*> pure NoLocation) :| (if withHoles then [ genHole name ] else [])
 
 genTermWrapper :: forall m a. MonadGen m => MonadRec m => MonadReader Boolean m => m a -> m (TermWrapper a)
 genTermWrapper g = do
-  TermWrapper <$> g <*> pure zero
+  TermWrapper <$> g <*> pure NoLocation
 
 genToken :: forall m. MonadGen m => MonadRec m => MonadReader Boolean m => m Token
 genToken = oneOf $ (pure $ Token "" "") :| [ Token <$> genCurrencySymbol <*> genTokenName ]
@@ -300,11 +302,13 @@ genContract' size
         genNewContractIndexed i = genTerm ((mkArgName ContractType) <> show i) $ genContract' newSize
 
         genNewContract = genTerm (mkArgName ContractType) $ genContract' newSize
+
+        genNewTimeout = Term <$> genTimeout <*> pure NoLocation
       in
         oneOf $ pure Close
           :| [ Pay <$> genTerm (mkArgName PartyType) genParty <*> genTerm (mkArgName PayeeType) genPayee <*> genTerm (mkArgName TokenType) genToken <*> genNewValue <*> genNewContract
             , If <$> genNewObservation <*> genNewContractIndexed 1 <*> genNewContractIndexed 2
-            , When <$> genCases newSize <*> genTimeout <*> genNewContract
+            , When <$> genCases newSize <*> genNewTimeout <*> genNewContract
             , Let <$> genTermWrapper genValueId <*> genNewValue <*> genNewContract
             , Assert <$> genNewObservation <*> genNewContract
             ]
@@ -334,8 +338,11 @@ genPartyValue = oneOf $ pk :| [ role ]
 
   role = S.Role <$> genTokenNameValue
 
-genPayeeValue :: forall m. MonadGen m => MonadRec m => m S.Payee
-genPayeeValue = oneOf $ (S.Account <$> genPartyValue) :| [ S.Party <$> genPartyValue ]
+genPayeeValueCore :: forall m. MonadGen m => MonadRec m => m S.Payee
+genPayeeValueCore = oneOf $ (S.Account <$> genPartyValue) :| [ S.Party <$> genPartyValue ]
+
+genPayeeValueExtended :: forall m. MonadGen m => MonadRec m => m EM.Payee
+genPayeeValueExtended = oneOf $ (EM.Account <$> genPartyValue) :| [ EM.Party <$> genPartyValue ]
 
 genValueIdValue :: forall m. MonadGen m => MonadRec m => m S.ValueId
 genValueIdValue = S.ValueId <$> genString
@@ -376,7 +383,7 @@ genTransactionWarning ::
 genTransactionWarning =
   oneOf
     $ (TransactionNonPositiveDeposit <$> genPartyValue <*> genPartyValue <*> genTokenValue <*> genBigInteger)
-    :| [ TransactionNonPositivePay <$> genPartyValue <*> genPayeeValue <*> genTokenValue <*> genBigInteger
-      , TransactionPartialPay <$> genPartyValue <*> genPayeeValue <*> genTokenValue <*> genBigInteger <*> genBigInteger
+    :| [ TransactionNonPositivePay <$> genPartyValue <*> genPayeeValueCore <*> genTokenValue <*> genBigInteger
+      , TransactionPartialPay <$> genPartyValue <*> genPayeeValueCore <*> genTokenValue <*> genBigInteger <*> genBigInteger
       , TransactionShadowing <$> genValueIdValue <*> genBigInteger <*> genBigInteger
       ]

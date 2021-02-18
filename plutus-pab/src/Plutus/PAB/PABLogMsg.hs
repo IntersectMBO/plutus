@@ -5,15 +5,19 @@
 {-# LANGUAGE LambdaCase        #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TypeApplications  #-}
+
 -- | PAB Log messages and instances
 module Plutus.PAB.PABLogMsg(
     PABLogMsg(..),
     ContractExeLogMsg(..),
+    ChainIndexServerMsg,
+    SigningProcessMsg,
+    MetadataLogMessage,
+    WalletMsg,
+    MockServerLogMsg,
     AppMsg(..)
     ) where
 
-import           Cardano.BM.Data.Tracer             (ToObject (..), TracingVerbosity (..))
-import           Cardano.BM.Data.Tracer.Extras      (Tagged (..), mkObjectStr)
 import           Data.Aeson                         (FromJSON, ToJSON, Value)
 import qualified Data.Aeson.Encode.Pretty           as JSON
 import qualified Data.ByteString.Lazy.Char8         as BSL8
@@ -22,6 +26,14 @@ import           Data.Text                          (Text)
 import           Data.Text.Prettyprint.Doc          (Pretty (..), colon, hang, viaShow, vsep, (<+>))
 import           Data.Time.Units                    (Second)
 import           GHC.Generics                       (Generic)
+
+import           Cardano.BM.Data.Tracer             (ToObject (..), TracingVerbosity (..))
+import           Cardano.BM.Data.Tracer.Extras      (Tagged (..), mkObjectStr)
+import           Cardano.ChainIndex.Types           (ChainIndexServerMsg)
+import           Cardano.Metadata.Types             (MetadataLogMessage)
+import           Cardano.Node.Types                 (MockServerLogMsg)
+import           Cardano.SigningProcess.Types       (SigningProcessMsg)
+import           Cardano.Wallet.Types               (WalletMsg)
 import           Language.Plutus.Contract.State     (ContractRequest)
 import           Ledger.Tx                          (Tx)
 import           Plutus.PAB.Core                    (CoreMsg (..))
@@ -46,9 +58,10 @@ data AppMsg =
     | InstalledContract Text
     | ContractInstance ContractExe [ContractInstanceId]
     | TxHistoryItem Tx
-    | ContractHistoryItem Int (ContractInstanceState ContractExe) -- index
+    | ContractHistoryItem Int (ContractInstanceState ContractExe)
     deriving stock (Show, Generic)
     deriving anyclass (ToJSON, FromJSON)
+
 
 instance Pretty AppMsg where
     pretty = \case
@@ -73,6 +86,11 @@ data PABLogMsg =
     | SLoggerBridge MonadLoggerMsg
     | SWebsocketMsg WebSocketLogMsg
     | SContractRuntimeMsg ContractRuntimeMsg
+    | SChainIndexServerMsg ChainIndexServerMsg
+    | SSigningProcessMsg SigningProcessMsg
+    | SWalletMsg WalletMsg
+    | SMetaDataLogMsg MetadataLogMessage
+    | SMockserverLogMsg MockServerLogMsg
     deriving stock (Show, Generic)
     deriving anyclass (ToJSON, FromJSON)
 
@@ -86,6 +104,14 @@ instance Pretty PABLogMsg where
         SLoggerBridge m        -> pretty m
         SWebsocketMsg m        -> pretty m
         SContractRuntimeMsg m  -> pretty m
+        SChainIndexServerMsg m -> pretty m
+        SSigningProcessMsg m   -> pretty m
+        SWalletMsg m           -> pretty m
+        SMetaDataLogMsg m      -> pretty m
+        SMockserverLogMsg m    -> pretty m
+
+
+-- | Messages from the Signing Process
 
 data ContractExeLogMsg =
     InvokeContractMsg
@@ -183,6 +209,11 @@ instance ToObject PABLogMsg where
         SLoggerBridge e        -> toObject v e
         SWebsocketMsg e        -> toObject v e
         SContractRuntimeMsg e  -> toObject v e
+        SChainIndexServerMsg m -> toObject v m
+        SSigningProcessMsg m   -> toObject v m
+        SWalletMsg m           -> toObject v m
+        SMetaDataLogMsg m      -> toObject v m
+        SMockserverLogMsg m    -> toObject v m
 
 instance ToObject ContractExeLogMsg where
     toObject v = \case

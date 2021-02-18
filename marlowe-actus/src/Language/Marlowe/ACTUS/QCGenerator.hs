@@ -196,6 +196,7 @@ contractTermsGen = do
         -- enable settlement currency
         , ct_CURS      = False
         , constraints  = Nothing
+        , collateralAmount = 0
     }
 
 

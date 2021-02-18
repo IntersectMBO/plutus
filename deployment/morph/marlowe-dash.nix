@@ -1,22 +1,33 @@
 {
-  mkInstance = { defaultMachine, marloweDash }:
+  mkInstance = { defaultMachine, marloweDash, pkgs, ports, ... }:
+    hostName:
     let
-      httpPort = 80;
+      promNodeTextfileDir = pkgs.writeTextDir "roles.prom"
+        ''
+          machine_role{role="marlowe_dash"} 1
+        '';
     in
     { config, pkgs, lib, ... }:
     {
-      imports = [ (defaultMachine pkgs) ];
+      imports = [ (defaultMachine hostName pkgs) ];
 
       networking.firewall = {
         enable = true;
-        allowedTCPPorts = [ httpPort ];
+        allowedTCPPorts = with ports; [ ssh http nodeExporter ];
       };
-      networking.hostName = lib.mkForce "marlowe-dash-b";
+
+      services.prometheus.exporters = {
+        node = {
+          enable = true;
+          enabledCollectors = [ "systemd" ];
+          extraFlags =
+            [ "--collector.textfile.directory ${promNodeTextfileDir}" ];
+        };
+      };
 
       systemd.services.marlowe-dash = {
-        wantedBy = [ ];
-        before = [ ];
         enable = true;
+        after = [ "network.target" ];
 
         serviceConfig = {
           TimeoutStartSec = "0";
@@ -31,7 +42,7 @@
           AmbientCapabilities = [ "CAP_NET_BIND_SERVICE" ];
         };
 
-        script = "${marloweDash.server-invoker}/bin/marlowe-dashboard-server webserver -b 0.0.0.0 -p ${toString httpPort} -s ${marloweDash.client}";
+        script = "${marloweDash.server-invoker}/bin/marlowe-dashboard-server webserver -b 0.0.0.0 -p ${toString ports.http} -s ${marloweDash.client}";
       };
 
     };

@@ -32,8 +32,7 @@ ajaxSettings = SPSettings_ $ (settings { decodeJson = decodeJson, encodeJson = e
 
   encodeJson = SPSettingsEncodeJson_ jsonOptions
 
-main ::
-  Effect Unit
+main :: Effect Unit
 main = do
   let
     mainFrame = mkMainFrame
@@ -55,9 +54,7 @@ main = do
 watchLocalStorageProcess :: Process Aff Unit
 watchLocalStorageProcess = connect LocalStorage.listen watchLocalStorage
 
-watchLocalStorage ::
-  forall r.
-  Consumer RawStorageEvent Aff r
+watchLocalStorage :: forall r. Consumer RawStorageEvent Aff r
 watchLocalStorage =
   consumer \event -> do
     liftEffect $ log $ "Got Local Storage Event: " <> show event

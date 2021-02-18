@@ -1,7 +1,7 @@
 # Security Group
 resource "aws_security_group" "marlowe_dash" {
   vpc_id = aws_vpc.plutus.id
-  name   = "${var.project}_${var.env}_marlowe_dash"
+  name   = "${local.project}_${var.env}_marlowe_dash"
 
   ingress {
     from_port   = 22
@@ -19,6 +19,14 @@ resource "aws_security_group" "marlowe_dash" {
     cidr_blocks = concat(var.public_subnet_cidrs, var.private_subnet_cidrs)
   }
 
+  # prometheus node exporter
+  ingress {
+    from_port   = local.node_exporter_port
+    to_port     = local.node_exporter_port
+    protocol    = "TCP"
+    cidr_blocks = var.private_subnet_cidrs
+  }
+
   ## outgoing: all
   egress {
     from_port   = 0
@@ -28,8 +36,8 @@ resource "aws_security_group" "marlowe_dash" {
   }
 
   tags = {
-    Name        = "${var.project}_${var.env}_marlowe_dash"
-    Project     = var.project
+    Name        = "${local.project}_${var.env}_marlowe_dash"
+    Project     = local.project
     Environment = var.env
   }
 }
@@ -38,13 +46,8 @@ data "template_file" "marlowe_dash_user_data" {
   template = file("${path.module}/templates/default_configuration.nix")
 
   vars = {
-    root_ssh_keys      = join(" ", formatlist("\"%s\"", data.template_file.nixops_ssh_keys.*.rendered))
+    root_ssh_keys      = join(" ", formatlist("\"%s\"", local.root_ssh_keys))
   }
-}
-
-module "nixos_image" {
-    source  = "git::https://github.com/tweag/terraform-nixos.git//aws_image_nixos?ref=5f5a0408b299874d6a29d1271e9bffeee4c9ca71"
-    release = "20.09"
 }
 
 resource "aws_instance" "marlowe_dash_a" {
@@ -63,8 +66,8 @@ resource "aws_instance" "marlowe_dash_a" {
   }
 
   tags = {
-    Name        = "${var.project}_${var.env}_marlowe_dash_a"
-    Project     = var.project
+    Name        = "${local.project}_${var.env}_marlowe_dash_a"
+    Project     = local.project
     Environment = var.env
   }
 }
@@ -93,8 +96,8 @@ resource "aws_instance" "marlowe_dash_b" {
   }
 
   tags = {
-    Name        = "${var.project}_${var.env}_marlowe_dash_b"
-    Project     = var.project
+    Name        = "${local.project}_${var.env}_marlowe_dash_b"
+    Project     = local.project
     Environment = var.env
   }
 }

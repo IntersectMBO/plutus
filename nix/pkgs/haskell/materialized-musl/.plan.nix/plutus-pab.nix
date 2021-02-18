@@ -39,7 +39,6 @@
           (hsPkgs."plutus-contract" or (errorHandler.buildDepError "plutus-contract"))
           (hsPkgs."playground-common" or (errorHandler.buildDepError "playground-common"))
           (hsPkgs."plutus-use-cases" or (errorHandler.buildDepError "plutus-use-cases"))
-          (hsPkgs."iots-export" or (errorHandler.buildDepError "iots-export"))
           (hsPkgs."QuickCheck" or (errorHandler.buildDepError "QuickCheck"))
           (hsPkgs."aeson" or (errorHandler.buildDepError "aeson"))
           (hsPkgs."aeson-pretty" or (errorHandler.buildDepError "aeson-pretty"))
@@ -71,6 +70,7 @@
           (hsPkgs."network" or (errorHandler.buildDepError "network"))
           (hsPkgs."network-mux" or (errorHandler.buildDepError "network-mux"))
           (hsPkgs."newtype-generics" or (errorHandler.buildDepError "newtype-generics"))
+          (hsPkgs."nothunks" or (errorHandler.buildDepError "nothunks"))
           (hsPkgs."optparse-applicative" or (errorHandler.buildDepError "optparse-applicative"))
           (hsPkgs."ouroboros-network" or (errorHandler.buildDepError "ouroboros-network"))
           (hsPkgs."ouroboros-network-framework" or (errorHandler.buildDepError "ouroboros-network-framework"))
@@ -87,6 +87,7 @@
           (hsPkgs."servant-client" or (errorHandler.buildDepError "servant-client"))
           (hsPkgs."servant-server" or (errorHandler.buildDepError "servant-server"))
           (hsPkgs."swagger2" or (errorHandler.buildDepError "swagger2"))
+          (hsPkgs."tagged" or (errorHandler.buildDepError "tagged"))
           (hsPkgs."typed-protocols" or (errorHandler.buildDepError "typed-protocols"))
           (hsPkgs."typed-protocols-examples" or (errorHandler.buildDepError "typed-protocols-examples"))
           (hsPkgs."servant-websockets" or (errorHandler.buildDepError "servant-websockets"))
@@ -136,6 +137,7 @@
           "Cardano/SigningProcess/API"
           "Cardano/SigningProcess/Server"
           "Cardano/SigningProcess/Client"
+          "Cardano/SigningProcess/Types"
           "Cardano/Wallet/API"
           "Cardano/Wallet/Client"
           "Cardano/Wallet/Mock"

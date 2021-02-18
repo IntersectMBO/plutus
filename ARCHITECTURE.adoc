@@ -56,8 +56,6 @@ include::plutus-contract/ARCHITECTURE.adoc[]
 
 include::plutus-use-cases/ARCHITECTURE.adoc[]
 
-include::iots-export/ARCHITECTURE.adoc[]
-
 == Marlowe
 
 Although conceptually separate from Plutus, a fair amount of Marlowe-related
@@ -95,8 +93,6 @@ include::playground-common/ARCHITECTURE.adoc[]
 include::web-common/ARCHITECTURE.adoc[]
 
 include::deployment/ARCHITECTURE.adoc[]
-
-include::deployment-server/ARCHITECTURE.adoc[]
 
 == Smart Contract Backend
 

@@ -1,4 +1,4 @@
-{ machines, stdOverlays, nixpkgsLocation, ... }: pkgs:
+{ machines, stdOverlays, nixpkgsLocation, ... }: hostName: pkgs:
 {
   nixpkgs.localSystem.system = "x86_64-linux";
   nixpkgs.overlays = stdOverlays;
@@ -29,6 +29,8 @@
   ec2.hvm = true;
 
   networking.timeServers = [ "1.amazon.pool.ntp.org" "2.amazon.pool.ntp.org" "3.amazon.pool.ntp.org" ];
+
+  networking.hostName = pkgs.lib.mkForce hostName;
 
   ## Disable journald ratelimiting.
   services.journald.rateLimitBurst = 0;

@@ -21,7 +21,7 @@ import           Control.Monad.Freer.TH        (makeEffect)
 import           Ledger.Slot                   (Slot)
 import           Numeric.Natural               (Natural)
 import           Plutus.Trace.Emulator.Types   (EmulatorMessage (NewSlot))
-import           Plutus.Trace.Scheduler        (Priority (Sleeping), SystemCall, sleep)
+import           Plutus.Trace.Scheduler        (EmSystemCall, Priority (Sleeping), sleep)
 
 data Waiting r where
     WaitUntilSlot :: Slot -> Waiting Slot
@@ -45,7 +45,7 @@ waitNSlots n
 
 handleWaiting ::
     forall effs effs2.
-    ( Member (Yield (SystemCall effs2 EmulatorMessage) (Maybe EmulatorMessage)) effs
+    ( Member (Yield (EmSystemCall effs2 EmulatorMessage) (Maybe EmulatorMessage)) effs
     )
     => Waiting
     ~> Eff effs

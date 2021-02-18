@@ -12,7 +12,7 @@ import Data.Symbol (SProxy(..))
 import Effect.Aff (Aff)
 import Effect.Uncurried (EffectFn3, runEffectFn3)
 import Foreign.Generic (decodeJSON)
-import Marlowe.Semantics (Contract)
+import Marlowe.Extended (Contract)
 import Monaco (ITextModel)
 
 data CompilationError

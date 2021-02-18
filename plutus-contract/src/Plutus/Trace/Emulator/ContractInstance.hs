@@ -22,6 +22,7 @@ module Plutus.Trace.Emulator.ContractInstance(
     contractThread
     , getThread
     , EmulatorRuntimeError
+    , runInstance
     -- * Instance state
     , ContractInstanceState(..)
     , emptyInstanceState
@@ -54,18 +55,17 @@ import           Plutus.Trace.Emulator.Types                   (ContractConstrai
                                                                 ContractInstanceLog (..), ContractInstanceMsg (..),
                                                                 ContractInstanceState (..),
                                                                 ContractInstanceStateInternal (..),
+                                                                EmulatedWalletEffects, EmulatedWalletEffects',
                                                                 EmulatorAgentThreadEffs, EmulatorMessage (..),
                                                                 EmulatorRuntimeError (..), EmulatorThreads,
                                                                 addEventInstanceState, emptyInstanceState,
                                                                 instanceIdThreads, toInstanceState)
-import           Plutus.Trace.Scheduler                        (Priority (..), SysCall (..), SystemCall, ThreadId,
-                                                                mkSysCall, sleep)
+import           Plutus.Trace.Scheduler                        (AgentSystemCall, MessageCall (..), Priority (..),
+                                                                ThreadId, mkAgentSysCall)
 import qualified Wallet.API                                    as WAPI
 import           Wallet.Effects                                (ChainIndexEffect, ContractRuntimeEffect (..),
                                                                 NodeClientEffect, SigningProcessEffect, WalletEffect)
 import           Wallet.Emulator.LogMessages                   (TxBalanceMsg)
-import           Wallet.Emulator.MultiAgent                    (EmulatedWalletEffects, MultiAgentEffect, walletAction)
-import           Wallet.Emulator.Wallet                        (Wallet)
 import           Wallet.Types                                  (ContractInstanceId, EndpointDescription (..),
                                                                 EndpointValue (..), Notification (..),
                                                                 NotificationError (..))
@@ -82,9 +82,9 @@ type ContractInstanceThreadEffs s e effs =
 -- | Handle 'ContractRuntimeEffect' by sending the notification to the
 --   receiving contract's thread
 handleContractRuntime ::
-    forall effs effs2.
+    forall effs2.
     ( Member (State EmulatorThreads) effs2
-    , Member (Yield (SystemCall effs EmulatorMessage) (Maybe EmulatorMessage)) effs2
+    , Member (Yield (AgentSystemCall EmulatorMessage) (Maybe EmulatorMessage)) effs2
     , Member (LogMsg ContractInstanceMsg) effs2
     , Member (Reader ThreadId) effs2
     )
@@ -104,7 +104,7 @@ handleContractRuntime = interpret $ \case
                 let Notification{notificationContractEndpoint=EndpointDescription ep, notificationContractArg} = n
                     vl = object ["tag" JSON..= ep, "value" JSON..= EndpointValue notificationContractArg]
                     e = Message threadId (EndpointCall ownId (EndpointDescription ep) vl)
-                _ <- mkSysCall @effs @EmulatorMessage Normal e
+                _ <- mkAgentSysCall @_ @EmulatorMessage Normal e
                 logInfo $ NotificationSuccess n
                 pure Nothing
 
@@ -112,7 +112,6 @@ handleContractRuntime = interpret $ \case
 --   'runInstance'.
 contractThread :: forall s e effs.
     ( Member (State EmulatorThreads) effs
-    , Member MultiAgentEffect effs
     , Member (Error EmulatorRuntimeError) effs
     , ContractConstraints s
     , HasBlockchainActions s
@@ -124,14 +123,14 @@ contractThread :: forall s e effs.
 contractThread ContractHandle{chInstanceId, chContract, chInstanceTag} = do
     ask @ThreadId >>= registerInstance chInstanceId
     interpret (mapLog (\m -> ContractInstanceLog m chInstanceId chInstanceTag))
-        $ handleContractRuntime @effs
+        $ handleContractRuntime
         $ runReader chInstanceId
         $ evalState (emptyInstanceState chContract)
         $ do
             logInfo Started
             logNewMessages @s @e
             logCurrentRequests @s @e
-            msg <- mkSysCall @effs @EmulatorMessage Normal Suspend
+            msg <- mkAgentSysCall @_ @EmulatorMessage Normal WaitForMessage
             runInstance chContract msg
 
 registerInstance :: forall effs.
@@ -164,8 +163,7 @@ logStopped ResumableResult{_finalState} =
 
 -- | Run an instance of a contract
 runInstance :: forall s e effs.
-    ( Member MultiAgentEffect effs
-    , ContractConstraints s
+    ( ContractConstraints s
     , HasBlockchainActions s
     , Member (Error EmulatorRuntimeError) effs
     , Show e
@@ -183,12 +181,12 @@ runInstance contract event = do
             Just Freeze -> do
                 logInfo Freezing
                 -- freeze ourselves, see note [Freeze and Thaw]
-                sleep @effs Frozen >>= runInstance contract
+                mkAgentSysCall Frozen WaitForMessage >>= runInstance contract
             Just (EndpointCall _ _ vl) -> do
                 logInfo $ ReceiveEndpointCall vl
                 e <- decodeEvent @s vl
                 _ <- respondToEvent @s @e e
-                sleep @effs Normal >>= runInstance contract
+                mkAgentSysCall Normal WaitForMessage >>= runInstance contract
             Just (ContractInstanceStateRequest sender) -> do
                 state <- get @(ContractInstanceStateInternal s e ())
 
@@ -197,8 +195,8 @@ runInstance contract event = do
                 -- us having to convert to 'Value' and back.
                 let stateJSON = JSON.toJSON $ toInstanceState state
                 logInfo $ SendingContractState sender
-                void $ mkSysCall @effs @EmulatorMessage Normal (Message sender $ ContractInstanceStateResponse stateJSON)
-                sleep @effs Normal >>= runInstance contract
+                void $ mkAgentSysCall Normal (Message sender $ ContractInstanceStateResponse stateJSON)
+                mkAgentSysCall Normal WaitForMessage >>= runInstance contract
             _ -> do
                 response <- respondToRequest @s @e handleBlockchainQueries
                 let prio =
@@ -214,7 +212,7 @@ runInstance contract event = do
                             -- other active threads have had their turn
                             (const Normal)
                             response
-                sleep @effs prio >>= runInstance contract
+                mkAgentSysCall prio WaitForMessage >>= runInstance contract
 
 decodeEvent ::
     forall s effs.
@@ -249,35 +247,16 @@ addResponse e = do
     traverse_ put newState
     logNewMessages @s @e
 
-raiseWallet :: forall f effs.
-    ( Member f EmulatedWalletEffects
-    , Member MultiAgentEffect effs
-    )
-    => Wallet
-    -> f
-    ~> Eff effs
-raiseWallet wllt = walletAction wllt . send
-
 type ContractInstanceRequests effs =
         Reader ContractInstanceId
          ': ContractRuntimeEffect
-         ': WalletEffect
-         ': Error WAPI.WalletAPIError
-         ': NodeClientEffect
-         ': ChainIndexEffect
-         ': SigningProcessEffect
-         ': LogObserve (LogMessage T.Text)
-         ': LogMsg RequestHandlerLogMsg
-         ': LogMsg TxBalanceMsg
-         ': LogMsg T.Text
-         ': effs
+         ': (EmulatedWalletEffects' effs)
 
 -- | Respond to a specific event
 respondToEvent ::
     forall s e effs.
     ( Member (State (ContractInstanceStateInternal s e ())) effs
-    , Member MultiAgentEffect effs
-    , Member (Reader Wallet) effs
+    , Members EmulatedWalletEffects effs
     , Member ContractRuntimeEffect effs
     , Member (Reader ContractInstanceId) effs
     , Member (LogMsg ContractInstanceMsg) effs
@@ -295,11 +274,10 @@ respondToEvent e =
 --   contract, if any.
 respondToRequest :: forall s e effs.
     ( Member (State (ContractInstanceStateInternal s e ())) effs
-    , Member MultiAgentEffect effs
-    , Member (Reader Wallet) effs
     , Member ContractRuntimeEffect effs
     , Member (Reader ContractInstanceId) effs
     , Member (LogMsg ContractInstanceMsg) effs
+    , Members EmulatedWalletEffects effs
     , ContractConstraints s
     )
     => RequestHandler (Reader ContractInstanceId ': ContractRuntimeEffect ': EmulatedWalletEffects) (Handlers s) (Event s)
@@ -307,22 +285,21 @@ respondToRequest :: forall s e effs.
     ->  Eff effs (Maybe (Response (Event s)))
 respondToRequest f = do
     hks <- getHooks @s @e
-    ownWallet <- ask @Wallet
     let hdl :: (Eff (Reader ContractInstanceId ': ContractRuntimeEffect ': EmulatedWalletEffects) (Maybe (Response (Event s)))) = tryHandler (wrapHandler f) hks
         hdl' :: (Eff (ContractInstanceRequests effs) (Maybe (Response (Event s)))) = raiseEnd11 hdl
 
         response_ :: Eff effs (Maybe (Response (Event s))) =
-            interpret (raiseWallet @(LogMsg T.Text) ownWallet)
-                $ interpret (raiseWallet @(LogMsg TxBalanceMsg) ownWallet)
-                $ interpret (raiseWallet @(LogMsg RequestHandlerLogMsg) ownWallet)
-                $ interpret (raiseWallet @(LogObserve (LogMessage T.Text)) ownWallet)
-                $ interpret (raiseWallet @SigningProcessEffect ownWallet)
-                $ interpret (raiseWallet @ChainIndexEffect ownWallet)
-                $ interpret (raiseWallet @NodeClientEffect ownWallet)
-                $ interpret (raiseWallet @(Error WAPI.WalletAPIError) ownWallet)
-                $ interpret (raiseWallet @WalletEffect ownWallet)
-                $ subsume @ContractRuntimeEffect
-                $ subsume @(Reader ContractInstanceId) hdl'
+                subsume @(LogMsg T.Text)
+                    $ subsume @(LogMsg TxBalanceMsg)
+                    $ subsume @(LogMsg RequestHandlerLogMsg)
+                    $ subsume @(LogObserve (LogMessage T.Text))
+                    $ subsume @SigningProcessEffect
+                    $ subsume @ChainIndexEffect
+                    $ subsume @NodeClientEffect
+                    $ subsume @(Error WAPI.WalletAPIError)
+                    $ subsume @WalletEffect
+                    $ subsume @ContractRuntimeEffect
+                    $ subsume @(Reader ContractInstanceId) hdl'
     response <- response_
     traverse_ (addResponse @s @e) response
     logResponse @s @e response

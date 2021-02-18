@@ -161,7 +161,7 @@ Observations are Boolean values derived by comparing values, and can be combined
 
 marloweTypeMarkerText ContractType =
   """
-Marlowe has five ways of building contracts. Four of these – Pay, Let, If and When – build a complex contract from simpler contracts, and the fifth, Close, is a simple contract. At each step of execution, as well as returning a new state and continuation contract, it is possible that effects – payments – and warnings can be generated too.
+Marlowe has six ways of building contracts. Five of these – Pay, Let, If, When and Assert – build a complex contract from simpler contracts, and the sixth, Close, is a simple contract. At each step of execution, as well as returning a new state and continuation contract, it is possible that effects – payments – and warnings can be generated too.
 """
 
 marloweTypeMarkerText BoundType =
@@ -180,6 +180,13 @@ A Party is represented as either a public key hash or a role name.
 In order to progress a Marlowe contract, a party must provide an evidence. For PK party that would be a valid signature of a transaction signed by a private key of a public key that hashes to party’s PubKeyHash, similarly to Bitcoin’s Pay to Public Key Hash mechanism. For a Role party the evidence is spending a role token within the same transaction, usually to the same owner.
 
 So, Role parties will look like (Role "alice"), (Role "bob") and so on.
+"""
+
+marloweTypeMarkerText TimeoutType =
+  """
+Timeout is the slot number after which the When will no longer accept any new events: Case branches will become unusable, and the contract will continue as specified by the timeout continuation.
+
+Timeouts accept templates, this means that instead of writing a specific slot number it is possible to fill Timeouts by using a template parameter that can be filled just before deploying or simulating the contract, for example: SlotParam "maturityDate"
 """
 
 helpForConstructor :: String -> Maybe String

@@ -5,7 +5,6 @@
 {-# LANGUAGE FlexibleContexts      #-}
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE GADTs                 #-}
-{-# LANGUAGE LambdaCase            #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE Rank2Types            #-}
 {-# LANGUAGE ScopedTypeVariables   #-}
@@ -82,11 +81,12 @@ processEmulated :: forall effs.
     , Member (State EmulatorState) effs
     , Member (LogMsg EmulatorEvent') effs
     )
-    => Eff (MultiAgentEffect ': ChainEffect ': ChainControlEffect ': effs)
+    => Eff (MultiAgentEffect ': MultiAgentControlEffect ': ChainEffect ': ChainControlEffect ': effs)
     ~> Eff effs
 processEmulated act =
     act
         & handleMultiAgent
+        & handleMultiAgentControl
         & reinterpret2 @ChainEffect @(State ChainState) @(LogMsg ChainEvent) handleChain
         & interpret (Eff.handleZoomedState chainState)
         & interpret (mapLog (review chainEvent))

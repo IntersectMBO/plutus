@@ -4,7 +4,6 @@
 {-# LANGUAGE ExplicitNamespaces  #-}
 {-# LANGUAGE FlexibleContexts    #-}
 {-# LANGUAGE MonoLocalBinds      #-}
-{-# LANGUAGE NamedFieldPuns      #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 {-# OPTIONS_GHC -fno-warn-missing-signatures #-}
@@ -13,9 +12,7 @@
 module Playground.Contract
     ( mkFunctions
     , mkFunction
-    , mkIotsDefinitions
     , endpointsToSchemas
-    , ensureIotsDefinitions
     , ensureKnownCurrencies
     , mkSchemaDefinitions
     , mkKnownCurrencies
@@ -37,7 +34,6 @@ module Playground.Contract
     , TokenName(TokenName)
     , NonEmpty((:|))
     , adaCurrency
-    , module IOTS
     , endpoint
     , Contract
     , Endpoint
@@ -62,9 +58,7 @@ import           Data.Aeson                                      (FromJSON, ToJS
 import qualified Data.Aeson                                      as JSON
 import qualified Data.ByteString.Lazy.Char8                      as LBC8
 import           Data.List.NonEmpty                              (NonEmpty ((:|)))
-import           Data.Text                                       (Text)
 import           GHC.Generics                                    (Generic)
-import           IOTS                                            (IotsType (iotsDefinition))
 import           Language.Plutus.Contract                        (AsContractError, BlockchainActions, Contract,
                                                                   Endpoint, awaitSlot, nextTransactionsAt, submitTx,
                                                                   type (.\/), utxoAt, watchAddressUntil)
@@ -78,17 +72,16 @@ import           Ledger.Tx                                       (Tx, TxOutRef (
 import           Ledger.Value                                    (TokenName (TokenName))
 import           Playground.Interpreter.Util
 import           Playground.Schema                               (endpointsToSchemas)
-import           Playground.TH                                   (ensureIotsDefinitions, ensureKnownCurrencies,
-                                                                  mkFunction, mkFunctions, mkIotsDefinitions,
+import           Playground.TH                                   (ensureKnownCurrencies, mkFunction, mkFunctions,
                                                                   mkKnownCurrencies, mkSchemaDefinitions)
 import           Playground.Types                                (Expression, FunctionSchema,
                                                                   KnownCurrency (KnownCurrency), adaCurrency)
 import           Schema                                          (FormSchema, ToArgument, ToSchema)
 import           Wallet.Emulator.Types                           (Wallet (..))
 
-printSchemas :: ([FunctionSchema FormSchema], [KnownCurrency], Text) -> IO ()
-printSchemas (userSchemas, currencies, iotsDefinitions) =
-    LBC8.putStrLn . JSON.encode $ (allSchemas, currencies, iotsDefinitions)
+printSchemas :: ([FunctionSchema FormSchema], [KnownCurrency]) -> IO ()
+printSchemas (userSchemas, currencies) =
+    LBC8.putStrLn . JSON.encode $ (allSchemas, currencies)
   where
     allSchemas = userSchemas <> builtinSchemas
     builtinSchemas = []

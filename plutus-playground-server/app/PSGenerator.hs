@@ -62,7 +62,7 @@ import           Playground.Types                           (CompilationResult (
                                                              Simulation (Simulation), SimulatorAction, SimulatorWallet,
                                                              contractDemoContext, contractDemoEditorContents,
                                                              contractDemoName, contractDemoSimulations, functionSchema,
-                                                             iotsSpec, knownCurrencies, program, simulationActions,
+                                                             knownCurrencies, program, simulationActions,
                                                              simulationWallets, sourceCode, wallets)
 import           Playground.Usecases                        (crowdFunding, errorHandling, game, starter, vesting)
 import qualified Playground.Usecases                        as Usecases
@@ -312,6 +312,6 @@ mkContractDemo contractDemoName contractDemoEditorContents contractDemoSimulatio
                   { warnings = []
                   , result =
                         CompilationResult
-                            {functionSchema, knownCurrencies, iotsSpec = ""}
+                            {functionSchema, knownCurrencies}
                   }
         }

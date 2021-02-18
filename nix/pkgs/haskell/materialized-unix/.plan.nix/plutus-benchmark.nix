@@ -158,6 +158,7 @@
             (hsPkgs."deepseq" or (errorHandler.buildDepError "deepseq"))
             (hsPkgs."flat" or (errorHandler.buildDepError "flat"))
             (hsPkgs."lens" or (errorHandler.buildDepError "lens"))
+            (hsPkgs."marlowe" or (errorHandler.buildDepError "marlowe"))
             (hsPkgs."plutus-core" or (errorHandler.buildDepError "plutus-core"))
             (hsPkgs."plutus-use-cases" or (errorHandler.buildDepError "plutus-use-cases"))
             (hsPkgs."plutus-ledger" or (errorHandler.buildDepError "plutus-ledger"))

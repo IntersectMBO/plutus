@@ -11,6 +11,9 @@ example = $(makeRelativeToProject "contracts/Example.hs" >>= embedFile)
 escrow :: ByteString
 escrow = $(makeRelativeToProject "contracts/Escrow.hs" >>= embedFile)
 
+escrowWithCollateral :: ByteString
+escrowWithCollateral = $(makeRelativeToProject "contracts/EscrowWithCollateral.hs" >>= embedFile)
+
 zeroCouponBond :: ByteString
 zeroCouponBond = $(makeRelativeToProject "contracts/ZeroCouponBond.hs" >>= embedFile)
 

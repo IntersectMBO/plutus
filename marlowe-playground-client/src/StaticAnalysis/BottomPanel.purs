@@ -1,25 +1,31 @@
 module StaticAnalysis.BottomPanel
   ( analysisResultPane
   , analyzeButton
+  , clearButton
   ) where
 
 import Prelude hiding (div)
+import Data.BigInteger (BigInteger)
 import Data.Foldable (foldMap)
 import Data.Lens ((^.))
 import Data.List (List, null, toUnfoldable)
 import Data.List as List
 import Data.List.NonEmpty (toList)
 import Data.Maybe (Maybe(..))
+import Data.Newtype (unwrap)
 import Halogen.Classes (spaceBottom, spaceRight, spaceTop, spanText)
 import Halogen.HTML (ClassName(..), HTML, b_, br_, button, div, h2, h3, li_, ol, span_, text, ul)
 import Halogen.HTML.Events (onClick)
-import Halogen.HTML.Properties (classes, enabled)
+import Halogen.HTML.Properties (class_, classes, enabled)
+import Marlowe.Extended (IntegerTemplateType(..))
 import Marlowe.Semantics (ChoiceId(..), Input(..), Payee(..), Slot(..), SlotInterval(..), TransactionInput(..), TransactionWarning(..))
 import Marlowe.Symbolic.Types.Response as R
 import Network.RemoteData (RemoteData(..))
 import Pretty (showPrettyToken)
 import Servant.PureScript.Ajax (AjaxError(..), ErrorDescription(..))
-import StaticAnalysis.Types (AnalysisState(..), MultiStageAnalysisData(..), _analysisState)
+import SimulationPage.View (integerTemplateParameters)
+import StaticAnalysis.Types (AnalysisExecutionState(..), AnalysisState, MultiStageAnalysisData(..), _analysisExecutionState, _analysisState, _templateContent)
+import Types (WarningAnalysisError(..))
 
 analyzeButton ::
   forall p action. Boolean -> Boolean -> String -> action -> HTML p action
@@ -31,10 +37,22 @@ analyzeButton isLoading isEnabled name action =
     ]
     [ text (if isLoading then "Analysing..." else name) ]
 
-analysisResultPane :: forall action p state. { analysisState :: AnalysisState | state } -> HTML p action
-analysisResultPane state =
+clearButton ::
+  forall p action. Boolean -> String -> action -> HTML p action
+clearButton isEnabled name action =
+  button
+    [ onClick $ const $ Just $ action
+    , enabled isEnabled
+    , classes [ spaceTop, spaceBottom, spaceRight ]
+    ]
+    [ text name ]
+
+analysisResultPane :: forall action p state. (IntegerTemplateType -> String -> BigInteger -> action) -> { analysisState :: AnalysisState | state } -> HTML p action
+analysisResultPane actionGen state =
   let
-    result = state ^. _analysisState
+    templateContent = state ^. (_analysisState <<< _templateContent)
+
+    result = state ^. (_analysisState <<< _analysisExecutionState)
 
     explanation = div [ classes [ ClassName "padded-explanation" ] ]
   in
@@ -42,6 +60,10 @@ analysisResultPane state =
       NoneAsked ->
         explanation
           [ text ""
+          , ul [ class_ (ClassName "templates") ]
+              ( integerTemplateParameters actionGen SlotContent "Timeout template parameters" "Slot for" (unwrap templateContent).slotContent
+                  <> integerTemplateParameters actionGen ValueContent "Value template parameters" "Constant for" (unwrap templateContent).valueContent
+              )
           ]
       WarningAnalysis staticSubResult -> case staticSubResult of
         NotAsked ->
@@ -82,7 +104,7 @@ analysisResultPane state =
                     ]
                 ]
             ]
-        Failure (AjaxError { description }) ->
+        Failure (WarningAnalysisAjaxError (AjaxError { description })) ->
           let
             err = case description of
               DecodingError e -> "Decoding error: " <> e
@@ -100,6 +122,16 @@ analysisResultPane state =
                       ]
                   ]
               ]
+        Failure WarningAnalysisIsExtendedMarloweError ->
+          explanation
+            [ h3 [ classes [ ClassName "analysis-result-title" ] ] [ text "Error during warning analysis" ]
+            , text "Analysis failed for the following reason:"
+            , ul [ classes [ ClassName "indented-enum-initial" ] ]
+                [ li_
+                    [ b_ [ spanText "The code has templates. Static analysis can only be run in core Marlowe code." ]
+                    ]
+                ]
+            ]
         Loading -> text ""
       ReachabilityAnalysis reachabilitySubResult -> case reachabilitySubResult of
         AnalysisNotStarted ->
@@ -123,7 +155,7 @@ analysisResultPane state =
                           ]
                     )
             )
-        AnalyisisFailure err ->
+        AnalysisFailure err ->
           explanation
             [ h3 [ classes [ ClassName "analysis-result-title" ] ] [ text "Error during reachability analysis" ]
             , text "Reachability analysis failed for the following reason:"
@@ -170,7 +202,7 @@ analysisResultPane state =
                           ]
                     )
             )
-        AnalyisisFailure err ->
+        AnalysisFailure err ->
           explanation
             [ h3 [ classes [ ClassName "analysis-result-title" ] ] [ text "Error during Close refund analysis" ]
             , text "Close refund analysis failed for the following reason:"

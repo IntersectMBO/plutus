@@ -207,7 +207,7 @@ signObservation :: IsData a => Slot -> a -> PrivateKey -> SignedMessage (Observa
 signObservation sl vl = signMessage Observation{obsValue=vl, obsSlot=sl}
 
 makeLift ''SignedMessage
-makeIsData ''SignedMessage
+makeIsDataIndexed ''SignedMessage [('SignedMessage,0)]
 
 makeLift ''Observation
-makeIsData ''Observation
+makeIsDataIndexed ''Observation [('Observation,0)]

@@ -1,12 +1,10 @@
 {-# LANGUAGE DataKinds           #-}
 {-# LANGUAGE FlexibleContexts    #-}
 {-# LANGUAGE GADTs               #-}
-{-# LANGUAGE LambdaCase          #-}
 {-# LANGUAGE NamedFieldPuns      #-}
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeApplications    #-}
-{-# LANGUAGE TypeOperators       #-}
 
 module Cardano.Node.Mock where
 
@@ -14,43 +12,38 @@ import           Control.Concurrent              (threadDelay)
 import           Control.Concurrent.MVar         (MVar, modifyMVar_, putMVar, takeMVar)
 import           Control.Lens                    (over, set, unto, view)
 import           Control.Monad                   (forever, unless, void)
-import           Control.Monad.Freer             (Eff, Member, interpret, reinterpret, runM)
+import           Control.Monad.Freer             (Eff, Member, interpret, reinterpret, runM, subsume)
 import           Control.Monad.Freer.Extras      (handleZoomedState)
-import           Control.Monad.Freer.Log         (LogMessage, handleLogWriter, mapLog, renderLogMessages)
+import           Control.Monad.Freer.Log         (LogMessage (..), handleLogWriter, mapLog, renderLogMessages)
 import           Control.Monad.Freer.Reader      (Reader)
 import qualified Control.Monad.Freer.Reader      as Eff
 import           Control.Monad.Freer.State       (State)
 import qualified Control.Monad.Freer.State       as Eff
 import qualified Control.Monad.Freer.Writer      as Eff
 import           Control.Monad.IO.Class          (MonadIO, liftIO)
-import           Control.Monad.Logger            (MonadLogger, logDebugN)
 import           Data.Foldable                   (traverse_)
+import           Data.Function                   ((&))
 import           Data.List                       (genericDrop)
 import           Data.Text                       (Text)
-import           Data.Text.Prettyprint.Doc       (Pretty (pretty), (<+>))
 import           Data.Time.Units                 (Second, toMicroseconds)
 import           Data.Time.Units.Extra           ()
 import           Servant                         (NoContent (NoContent))
 
-import           Ledger                          (Block, Slot (Slot), Tx)
-
-import qualified Ledger
-import           Ledger.Tx                       (outputs)
-
-import           Cardano.Node.Follower           (NodeFollowerEffect, NodeFollowerLogMsg)
+import           Cardano.BM.Data.Trace           (Trace)
+import           Cardano.Node.Follower           (NodeFollowerEffect)
 import           Cardano.Node.RandomTx
-import           Cardano.Node.Types              as T
+import           Cardano.Node.Types
 import           Cardano.Protocol.ChainEffect    as CE
 import           Cardano.Protocol.FollowerEffect as FE
 import qualified Cardano.Protocol.Socket.Client  as Client
 import qualified Cardano.Protocol.Socket.Server  as Server
 import           Control.Monad.Freer.Extra.Log
-
+import           Ledger                          (Block, Slot (Slot), Tx)
+import           Ledger.Tx                       (outputs)
 import           Plutus.PAB.Arbitrary            ()
-import           Plutus.PAB.Utils                (tshow)
-
+import           Plutus.PAB.Monitoring           (runLogEffects)
 import qualified Wallet.Emulator                 as EM
-import           Wallet.Emulator.Chain           (ChainControlEffect, ChainEffect, ChainEvent, ChainState)
+import           Wallet.Emulator.Chain           (ChainControlEffect, ChainEffect, ChainState)
 import qualified Wallet.Emulator.Chain           as Chain
 
 healthcheck :: Monad m => m NoContent
@@ -59,21 +52,13 @@ healthcheck = pure NoContent
 getCurrentSlot :: (Member (State ChainState) effs) => Eff effs Slot
 getCurrentSlot = Eff.gets (view EM.currentSlot)
 
-data MockNodeLogMsg =
-        AddingSlot
-        | AddingTx Tx
-
-instance Pretty MockNodeLogMsg where
-    pretty AddingSlot   = "Adding slot"
-    pretty (AddingTx t) = "AddingTx" <+> pretty (Ledger.txId t)
-
 addBlock ::
-    ( Member (LogMsg MockNodeLogMsg) effs
+    ( Member (LogMsg MockServerLogMsg) effs
     , Member ChainControlEffect effs
     )
     => Eff effs ()
 addBlock = do
-    logInfo AddingSlot
+    logInfo $ BlockOperation NewSlot
     void Chain.processBlock
 
 getBlocksSince ::
@@ -87,7 +72,7 @@ getBlocksSince (Slot slotNumber) = do
     chainNewestFirst <- Eff.gets (view Chain.chainNewestFirst)
     pure $ genericDrop slotNumber $ reverse chainNewestFirst
 
-consumeEventHistory :: MonadIO m => MVar AppState -> m [LogMessage ChainEvent]
+consumeEventHistory :: MonadIO m => MVar AppState -> m [LogMessage MockServerLogMsg]
 consumeEventHistory stateVar =
     liftIO $ do
         oldState <- takeMVar stateVar
@@ -96,84 +81,81 @@ consumeEventHistory stateVar =
         putMVar stateVar newState
         pure events
 
-addTx :: (Member (LogMsg MockNodeLogMsg) effs, Member ChainEffect effs) => Tx -> Eff effs NoContent
+addTx :: (Member (LogMsg MockServerLogMsg) effs, Member ChainEffect effs) => Tx -> Eff effs NoContent
 addTx tx = do
-    logInfo $ AddingTx tx
+    logInfo $ BlockOperation $ NewTransaction tx
     Chain.queueTx tx
     pure NoContent
 
-data NodeServerMsg =
-    NodeServerFollowerMsg NodeFollowerLogMsg
-    | NodeGenRandomTxMsg GenRandomTxMsg
-    | NodeMockNodeMsg MockNodeLogMsg
 
-instance Pretty NodeServerMsg where
-    pretty = \case
-        NodeServerFollowerMsg m -> pretty m
-        NodeGenRandomTxMsg m    -> pretty m
-        NodeMockNodeMsg m       -> pretty m
 
 type NodeServerEffects m
      = '[ GenRandomTx
-        , LogMsg GenRandomTxMsg
+        , LogMsg MockServerLogMsg
         , NodeFollowerEffect
         , LogMsg NodeFollowerLogMsg
         , ChainControlEffect
         , ChainEffect
         , State NodeFollowerState
         , State ChainState
-        , LogMsg ChainEvent
+        , LogMsg MockServerLogMsg
         , Reader Client.ClientHandler
         , Reader Server.ServerHandler
         , State AppState
-        , LogMsg MockNodeLogMsg
-        , LogMsg NodeServerMsg
+        , LogMsg MockServerLogMsg
         , LogMsg Text
         , m]
 
 ------------------------------------------------------------
+
+
+-- | Run all chain effects in the IO Monad
 runChainEffects ::
     Server.ServerHandler
  -> Client.ClientHandler
  -> MVar AppState
  -> Eff (NodeServerEffects IO) a
- -> IO ([LogMessage ChainEvent], a)
+ -> IO ([LogMessage MockServerLogMsg], a)
 runChainEffects serverHandler clientHandler stateVar eff = do
     oldAppState <- liftIO $ takeMVar stateVar
     ((a, events), newState) <- liftIO
-        $ runM
-        $ runStderrLog
-        $ interpret renderLogMessages
-        $ interpret (mapLog NodeMockNodeMsg)
-        $ Eff.runState oldAppState
-        $ Eff.runReader serverHandler
-        $ Eff.runReader clientHandler
-        $ Eff.runWriter
-        $ reinterpret (handleLogWriter @ChainEvent @[LogMessage ChainEvent] (unto return))
-        $ interpret (handleZoomedState T.chainState)
-        $ interpret (handleZoomedState T.followerState)
-        $ CE.handleChain
-        $ interpret Chain.handleControlChain
-        $ interpret (mapLog NodeServerFollowerMsg)
-        $ FE.handleNodeFollower
-        $ interpret (mapLog NodeGenRandomTxMsg)
-        $ runGenRandomTx
-        $ do result <- eff
-             void Chain.processBlock
-             pure result
+            $ processBlock eff
+            & runRandomTx
+            & runNodeFollwer
+            & runChain
+            & mergeState
+            & toWriter
+            & runReaders oldAppState
+            & interpret renderLogMessages
+            & runStderrLog
+            & runM
     liftIO $ putMVar stateVar newState
     pure (events, a)
+        where
+            processBlock e = e >>= \r -> Chain.processBlock >> pure r
+
+            runRandomTx = subsume . runGenRandomTx
+
+            runNodeFollwer = interpret (mapLog FollowerMsg) . FE.handleNodeFollower
+
+            runChain = interpret (mapLog ProcessingChainEvent) . reinterpret CE.handleChain . interpret (mapLog ProcessingChainEvent) . reinterpret Chain.handleControlChain
+
+            mergeState = interpret (handleZoomedState chainState) . interpret (handleZoomedState followerState)
+
+            toWriter = Eff.runWriter . reinterpret (handleLogWriter @MockServerLogMsg @[LogMessage MockServerLogMsg] (unto return))
+
+            runReaders s = Eff.runState s . Eff.runReader serverHandler . Eff.runReader clientHandler
 
 processChainEffects ::
-       (MonadIO m, MonadLogger m)
-    => Server.ServerHandler
+    Trace IO MockServerLogMsg
+    -> Server.ServerHandler
     -> Client.ClientHandler
     -> MVar AppState
     -> Eff (NodeServerEffects IO) a
-    -> m a
-processChainEffects serverHandler clientHandler stateVar eff = do
+    -> IO a
+processChainEffects trace serverHandler clientHandler stateVar eff = do
     (events, result) <- liftIO $ runChainEffects serverHandler clientHandler stateVar eff
-    traverse_ (\event -> logDebugN $ "Event: " <> tshow (pretty event)) events
+    runLogEffects trace $ traverse_ (\(LogMessage _ chainEvent) -> logDebug chainEvent) events
     liftIO $
         modifyMVar_
             stateVar
@@ -183,46 +165,47 @@ processChainEffects serverHandler clientHandler stateVar eff = do
 -- | Calls 'addBlock' at the start of every slot, causing pending transactions
 --   to be validated and added to the chain.
 slotCoordinator ::
-    (MonadIO m, MonadLogger m)
- => Second
+    Trace IO MockServerLogMsg
+ ->  Second
  -> Server.ServerHandler
  -> Client.ClientHandler
  -> MVar AppState
- -> m ()
-slotCoordinator slotLength serverHandler clientHandler stateVar =
+ -> IO a
+slotCoordinator trace slotLength serverHandler clientHandler stateVar =
     forever $ do
-        void $ processChainEffects serverHandler clientHandler stateVar addBlock
+        void $ processChainEffects trace serverHandler clientHandler stateVar addBlock
         liftIO $ threadDelay $ fromIntegral $ toMicroseconds slotLength
 
 -- | Generates a random transaction once in each 'mscRandomTxInterval' of the
 --   config
 transactionGenerator ::
-    (MonadIO m, MonadLogger m)
- => Second
+  Trace IO MockServerLogMsg
+ -> Second
  -> Server.ServerHandler
  -> Client.ClientHandler
  -> MVar AppState
- -> m ()
-transactionGenerator itvl serverHandler clientHandler stateVar =
+ -> IO ()
+transactionGenerator trace interval serverHandler clientHandler stateVar =
     forever $ do
-        liftIO $ threadDelay $ fromIntegral $ toMicroseconds itvl
-        processChainEffects serverHandler clientHandler stateVar $ do
+        liftIO $ threadDelay $ fromIntegral $ toMicroseconds interval
+        processChainEffects trace serverHandler clientHandler stateVar $ do
             tx' <- genRandomTx
             unless (null $ view outputs tx') (void $ addTx tx')
 
 -- | Discards old blocks according to the 'BlockReaperConfig'. (avoids memory
 --   leak)
 blockReaper ::
-    (MonadIO m, MonadLogger m)
- => BlockReaperConfig
+  Trace IO MockServerLogMsg
+ -> BlockReaperConfig
  -> Server.ServerHandler
  -> Client.ClientHandler
  -> MVar AppState
- -> m ()
-blockReaper BlockReaperConfig {brcInterval, brcBlocksToKeep} serverHandler clientHandler stateVar =
+ -> IO ()
+blockReaper tracer BlockReaperConfig {brcInterval, brcBlocksToKeep} serverHandler clientHandler stateVar =
     forever $ do
         void $
             processChainEffects
+                tracer
                 serverHandler
                 clientHandler
                 stateVar

@@ -5,8 +5,10 @@
 {-# LANGUAGE FlexibleContexts   #-}
 {-# LANGUAGE NamedFieldPuns     #-}
 {-# LANGUAGE OverloadedStrings  #-}
+{-# LANGUAGE RankNTypes         #-}
 {-# LANGUAGE StrictData         #-}
 {-# LANGUAGE TypeApplications   #-}
+
 module Cardano.SigningProcess.Server(
     -- $signingProcess
     SigningProcessConfig(..)
@@ -15,28 +17,29 @@ module Cardano.SigningProcess.Server(
 
 import           Control.Concurrent.Availability (Availability, available)
 import           Control.Concurrent.MVar         (MVar, newMVar, putMVar, takeMVar)
-import           Control.Monad.Freer             (Eff, run)
+import           Control.Monad.Freer
 import           Control.Monad.Freer.Error       (Error)
 import qualified Control.Monad.Freer.Error       as Eff
+import           Control.Monad.Freer.Extra.Log
 import           Control.Monad.Freer.State       (State)
 import qualified Control.Monad.Freer.State       as Eff
 import           Control.Monad.IO.Class          (MonadIO (..))
-import           Control.Monad.Logger            (logInfoN, runStdoutLoggingT)
 import           Data.Aeson                      (FromJSON, ToJSON)
 import           Data.Function                   ((&))
 import           Data.Proxy                      (Proxy (..))
 import           GHC.Generics                    (Generic)
 import qualified Network.Wai.Handler.Warp        as Warp
-
 import           Servant                         (Application, hoistServer, serve)
 import           Servant.Client                  (BaseUrl (baseUrlPort))
+
+import           Cardano.BM.Data.Trace           (Trace)
+import           Cardano.SigningProcess.API      (API)
+import           Cardano.SigningProcess.Types    (SigningProcessMsg (..))
+import           Plutus.PAB.Monitoring           (runLogEffects)
 import qualified Wallet.API                      as WAPI
 import           Wallet.Effects                  (SigningProcessEffect)
 import qualified Wallet.Effects                  as WE
 import           Wallet.Emulator.Wallet          (SigningProcess, Wallet, defaultSigningProcess, handleSigningProcess)
-
-import           Cardano.SigningProcess.API      (API)
-import           Plutus.PAB.Utils                (tshow)
 
 -- $ signingProcess
 -- The signing process that adds signatures to transactions.
@@ -61,14 +64,15 @@ app stateVar =
         (processSigningProcessEffects stateVar)
         (uncurry WE.addSignatures)
 
-main :: MonadIO m => SigningProcessConfig -> Availability -> m ()
-main SigningProcessConfig{spWallet, spBaseUrl} availability = runStdoutLoggingT $ do
+main :: Trace IO SigningProcessMsg -> SigningProcessConfig -> Availability -> IO ()
+main trace SigningProcessConfig{spWallet, spBaseUrl} availability = runLogEffects trace $ do
     stateVar <- liftIO $ newMVar (defaultSigningProcess spWallet)
-    let spPort = baseUrlPort spBaseUrl
-    let warpSettings :: Warp.Settings
-        warpSettings = Warp.defaultSettings & Warp.setPort spPort & Warp.setBeforeMainLoop (available availability)
-    logInfoN $ "Starting signing process on port: " <> tshow spPort
+    logInfo $ StartingSigningProcess servicePort
     liftIO $ Warp.runSettings warpSettings $ app stateVar
+        where
+            servicePort = baseUrlPort spBaseUrl
+            isAvailable = available availability
+            warpSettings = Warp.defaultSettings & Warp.setPort servicePort & Warp.setBeforeMainLoop isAvailable
 
 type SigningProcessEffects =
     '[ SigningProcessEffect, State SigningProcess, Error WAPI.WalletAPIError]

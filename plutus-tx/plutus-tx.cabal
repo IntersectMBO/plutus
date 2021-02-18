@@ -32,6 +32,7 @@ common lang
     ghc-options: -Wall -Wnoncanonical-monad-instances
                  -Wincomplete-uni-patterns -Wincomplete-record-updates
                  -Wredundant-constraints -Widentities
+                 -Wunused-packages
                  -- See Plutus Tx readme
                  -fobject-code -fno-ignore-interface-pragmas -fno-omit-interface-pragmas
 
@@ -84,7 +85,6 @@ library
         text -any,
         mtl -any,
         containers -any,
-        cborg -any,
         flat -any,
         serialise -any,
         plutus-core -any,
@@ -100,10 +100,8 @@ test-suite plutus-tx-test
     build-depends:
         base >=4.9 && <5,
         plutus-tx -any,
-        bytestring -any,
         hedgehog -any,
         tasty -any,
-        tasty-hunit -any,
         tasty-hedgehog -any,
         serialise -any,
         cborg -any

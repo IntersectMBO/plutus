@@ -42,7 +42,6 @@
           (hsPkgs."text" or (errorHandler.buildDepError "text"))
           (hsPkgs."mtl" or (errorHandler.buildDepError "mtl"))
           (hsPkgs."containers" or (errorHandler.buildDepError "containers"))
-          (hsPkgs."cborg" or (errorHandler.buildDepError "cborg"))
           (hsPkgs."flat" or (errorHandler.buildDepError "flat"))
           (hsPkgs."serialise" or (errorHandler.buildDepError "serialise"))
           (hsPkgs."plutus-core" or (errorHandler.buildDepError "plutus-core"))
@@ -96,10 +95,8 @@
           depends = [
             (hsPkgs."base" or (errorHandler.buildDepError "base"))
             (hsPkgs."plutus-tx" or (errorHandler.buildDepError "plutus-tx"))
-            (hsPkgs."bytestring" or (errorHandler.buildDepError "bytestring"))
             (hsPkgs."hedgehog" or (errorHandler.buildDepError "hedgehog"))
             (hsPkgs."tasty" or (errorHandler.buildDepError "tasty"))
-            (hsPkgs."tasty-hunit" or (errorHandler.buildDepError "tasty-hunit"))
             (hsPkgs."tasty-hedgehog" or (errorHandler.buildDepError "tasty-hedgehog"))
             (hsPkgs."serialise" or (errorHandler.buildDepError "serialise"))
             (hsPkgs."cborg" or (errorHandler.buildDepError "cborg"))

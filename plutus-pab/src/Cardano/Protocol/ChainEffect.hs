@@ -47,8 +47,8 @@ handleChain ::
     , LastMember m effs
     , MonadIO m
     )
- => Eff (EC.ChainEffect ': effs) ~> Eff effs
-handleChain = interpret $ \case
+ => EC.ChainEffect ~> Eff effs
+handleChain =  \case
   EC.QueueTx tx -> do
     clientHandler <- ask
     liftIO $ Client.queueTx clientHandler tx

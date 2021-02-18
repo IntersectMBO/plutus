@@ -68,11 +68,11 @@ import           Control.Monad.Freer.Reader              (Reader)
 import           Control.Monad.Freer.State               (State, evalState)
 import qualified Data.Map                                as Map
 import           Data.Maybe                              (fromMaybe)
-import           Plutus.Trace.Scheduler                  (SystemCall, ThreadId, exit, runThreads)
+import           Plutus.Trace.Scheduler                  (EmSystemCall, ThreadId, exit, runThreads)
 import           Wallet.Emulator.Chain                   (ChainControlEffect, ChainEffect)
 import qualified Wallet.Emulator.Chain                   as ChainState
 import           Wallet.Emulator.MultiAgent              (EmulatorEvent, EmulatorEvent' (..), EmulatorState,
-                                                          MultiAgentEffect, schedulerEvent)
+                                                          MultiAgentControlEffect, MultiAgentEffect, schedulerEvent)
 import           Wallet.Emulator.Stream                  (EmulatorConfig (..), EmulatorErr (..), defaultEmulatorConfig,
                                                           initialChainState, runTraceStream)
 import qualified Wallet.Emulator.Wallet                  as Wallet
@@ -106,6 +106,7 @@ type EmulatorTrace a =
 handleEmulatorTrace ::
     forall effs a.
     ( Member MultiAgentEffect effs
+    , Member MultiAgentControlEffect effs
     , Member (State EmulatorThreads) effs
     , Member (State EmulatorState) effs
     , Member (Error EmulatorRuntimeError) effs
@@ -113,7 +114,7 @@ handleEmulatorTrace ::
     , Member ContractInstanceIdEff effs
     )
     => EmulatorTrace a
-    -> Eff (Reader ThreadId ': Yield (SystemCall effs EmulatorMessage) (Maybe EmulatorMessage) ': effs) ()
+    -> Eff (Reader ThreadId ': Yield (EmSystemCall effs EmulatorMessage) (Maybe EmulatorMessage) ': effs) ()
 handleEmulatorTrace action = do
     _ <- interpret (mapLog (UserThreadEvent . UserLog))
             . interpret handleEmulatedWalletAPI
@@ -134,6 +135,7 @@ runEmulatorStream conf = runTraceStream conf . interpretEmulatorTrace conf
 --   blockchain effects.
 interpretEmulatorTrace :: forall effs a.
     ( Member MultiAgentEffect effs
+    , Member MultiAgentControlEffect effs
     , Member (Error EmulatorRuntimeError) effs
     , Member ChainEffect effs
     , Member ChainControlEffect effs

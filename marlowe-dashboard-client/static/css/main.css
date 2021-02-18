@@ -1,0 +1,32 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html,
+body {
+  height: 100%;
+}
+
+@layer components {
+  .btn {
+    @apply p-0.5 leading-none focus:outline-none;
+  }
+
+  .notifications {
+    @apply absolute top-1 left-1 right-0 bottom-1 z-20 bg-gray ml-0 transition-all duration-500;
+    transform: translateX(0%);
+  }
+  .notifications.hidden {
+    display: block;
+    transform: translateX(100%);
+  }
+
+  .card {
+    @apply absolute top-1 left-1 right-1 bottom-0 z-10 bg-white mt-0 transition-all duration-500;
+    transform: translateY(0%);
+  }
+  .card.hidden {
+    display: block;
+    transform: translateY(100%);
+  }
+}

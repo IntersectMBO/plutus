@@ -31,14 +31,32 @@ catchOutput act = do
   removeFile tmpFP
   return str
 
+modeType :: Maybe String -> [String]
+modeType (Just "U") = []
+modeType _          = ["-t"]
+
 compareResult :: (C.ByteString -> C.ByteString -> Bool) -> String -> String -> IO Progress
 compareResult eq mode test = do
+  example <- readProcess "plc" ["example","-t","-s",test] []
+  writeFile "tmp" example
+  putStrLn $ "test: " ++ test
+  let mode' = if mode == "evaluate" then [mode,"-t"] else [mode]
+  plcOutput <- readProcess "plc" (mode' ++ ["--input","tmp"]) []
+  plcAgdaOutput <- catchOutput $ catch
+    (withArgs [mode,"--file","tmp"]  M.main)
+    (\ e -> case e of
+        ExitFailure _ -> exitFailure
+        ExitSuccess   -> return ()) -- does this ever happen?
+  return $ Finished $ if eq (C.pack plcOutput) (C.pack plcAgdaOutput) then Pass else Fail $ "plc: '" ++ plcOutput ++ "' " ++ "plc-agda: '" ++ plcAgdaOutput ++ "'"
+
+compareResultU :: (C.ByteString -> C.ByteString -> Bool) -> String -> IO Progress
+compareResultU eq test = do
   example <- readProcess "plc" ["example","-s",test] []
   writeFile "tmp" example
   putStrLn $ "test: " ++ test
-  plcOutput <- readProcess "plc" [mode,"--input","tmp"] []
+  plcOutput <- readProcess "plc" ["evaluate","--input","tmp"] []
   plcAgdaOutput <- catchOutput $ catch
-    (withArgs [mode,"--file","tmp"]  M.main)
+    (withArgs ["evaluate","-mU","--file","tmp"]  M.main)
     (\ e -> case e of
         ExitFailure _ -> exitFailure
         ExitSuccess   -> return ())
@@ -46,7 +64,7 @@ compareResult eq mode test = do
 
 compareResultMode :: String -> String -> (C.ByteString -> C.ByteString -> Bool) -> String -> IO Progress
 compareResultMode mode1 mode2 eq test = do
-  example <- readProcess "plc" ["example","-s",test] []
+  example <- readProcess "plc" ["example","-t","-s",test] []
   writeFile "tmp" example
   putStrLn $ "test: " ++ test
   plcAgdaOutput1 <- catchOutput $ catch
@@ -86,30 +104,45 @@ mkTest eq mode test = TestInstance
         , setOption = \_ _ -> Right (mkTest eq mode test)
         }
 
+mkTestU :: (C.ByteString -> C.ByteString -> Bool) -> String -> TestInstance
+mkTestU eq test = TestInstance
+        { run = compareResultU eq test
+        , name = "evaluate" ++ " " ++ test
+        , tags = []
+        , options = []
+        , setOption = \_ _ -> Right (mkTestU eq test)
+        }
+
 -- test different plc-agda modes against each other
 mkTestMode :: String -> String -> (C.ByteString -> C.ByteString -> Bool) -> String -> TestInstance
 mkTestMode mode1 mode2 eq test = TestInstance
         { run = compareResultMode mode1 mode2 eq test
-        , name = test
+        , name = mode1 ++ " " ++  mode2 ++ " " ++ test
         , tags = []
         , options = []
         , setOption = \_ _ -> Right (mkTestMode mode1 mode2 eq test)
         }
 
 tests :: IO [Test]
-tests = do --return [ Test succeeds ] -- , Test fails ]
+tests = do
   return $ map Test $
     map (mkTest M.alphaTm "evaluate") testNames
      ++
-    map (mkTestMode "L" "TL" M.alphaTm) testNames
+{-    map (mkTestMode "L" "TL" M.alphaTm) testNames
      ++
     map (mkTestMode "L" "CK" M.alphaTm) testNames
      ++
     map (mkTestMode "CK" "TCK" M.alphaTm) testNames
      ++
+-}
+    map (mkTestMode "TL" "TCK" M.alphaTm) testNames
+     ++
     map (mkTestMode "TCK" "TCEK" M.alphaTm) testNames
      ++
     map (mkTest M.alphaTy "typecheck") testNames
+     ++
+    map (mkTestU M.alphaU) testNames
+
   where
     fails = TestInstance
         { run = return $ Finished $ Fail "Always fails!"

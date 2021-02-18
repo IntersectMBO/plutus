@@ -21,7 +21,7 @@ let
 
   # The git revision comes from `rev` if available (Hydra), otherwise
   # it is read using IFD and git, which is avilable on local builds.
-  git-rev = if isNull rev then iohkNix.commitIdFromGitRepo ../../.git else rev;
+  git-rev = if isNull rev then pkgs.lib.commitIdFromGitRepo ../../.git else rev;
 
   # { index-state, project, projectPackages, packages, muslProject, muslPackages, extraPackages }
   haskell = pkgs.callPackage ./haskell {
@@ -166,13 +166,6 @@ let
   # ghc web service
   web-ghc = pkgs.callPackage ./web-ghc { inherit set-git-rev haskell; };
 
-  # Nixops version after 1.7 release that is on nixpkgs 20.09
-  # latest nixops uses nix flakes but unfortunately the below command won't work in restricted mode
-  # for now I have commented it out and you can still build `nix-build -A plutus.nixops` however it
-  # won't work in nix-shell. To get it to build on Hydra I think we will have to manually provide
-  # flake-compat with niv.
-  # nixops = (import sources.nixops).defaultPackage."${system}";
-
   # combined haddock documentation for all public plutus libraries
   plutus-haddock-combined =
     let
@@ -191,6 +184,7 @@ let
     inherit gitignore-nix;
     haddock-combine = pkgs.callPackage ../lib/haddock-combine.nix { inherit sphinxcontrib-haddock; };
     latex = pkgs.callPackage ../lib/latex.nix { };
+    filterNpm = pkgs.callPackage ../lib/filter-npm.nix { };
     npmlock2nix = pkgs.callPackage sources.npmlock2nix { };
     buildPursPackage = pkgs.callPackage ../lib/purescript.nix { inherit easyPS;inherit (pkgs) nodejs; };
     buildNodeModules = pkgs.callPackage ../lib/node_modules.nix ({

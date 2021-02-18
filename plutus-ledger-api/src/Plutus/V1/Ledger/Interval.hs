@@ -77,9 +77,9 @@ data LowerBound a = LowerBound (Extended a) Closure
     deriving anyclass (FromJSON, ToJSON, Serialise, Hashable, NFData)
 
 PlutusTx.makeIsDataIndexed ''Extended [('NegInf,0),('Finite,1),('PosInf,2)]
-PlutusTx.makeIsData ''UpperBound
-PlutusTx.makeIsData ''LowerBound
-PlutusTx.makeIsData ''Interval
+PlutusTx.makeIsDataIndexed ''UpperBound [('UpperBound,0)]
+PlutusTx.makeIsDataIndexed ''LowerBound [('LowerBound,0)]
+PlutusTx.makeIsDataIndexed ''Interval [('Interval,0)]
 
 makeLift ''Extended
 makeLift ''LowerBound

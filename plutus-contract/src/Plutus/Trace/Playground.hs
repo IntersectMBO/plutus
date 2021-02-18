@@ -52,12 +52,12 @@ import           Plutus.Trace.Emulator.ContractInstance     (EmulatorRuntimeErro
 import           Plutus.Trace.Emulator.System               (launchSystemThreads)
 import           Plutus.Trace.Emulator.Types                (ContractConstraints, EmulatorMessage (..), EmulatorThreads,
                                                              walletInstanceTag)
-import           Plutus.Trace.Scheduler                     (SystemCall, ThreadId, exit, runThreads)
+import           Plutus.Trace.Scheduler                     (EmSystemCall, ThreadId, exit, runThreads)
 import           Streaming                                  (Stream)
 import           Streaming.Prelude                          (Of)
 import           Wallet.Emulator.Chain                      (ChainControlEffect, ChainEffect)
 import           Wallet.Emulator.MultiAgent                 (EmulatorEvent, EmulatorEvent' (..), EmulatorState,
-                                                             MultiAgentEffect, schedulerEvent)
+                                                             MultiAgentControlEffect, MultiAgentEffect, schedulerEvent)
 import           Wallet.Emulator.Stream                     (EmulatorConfig (..), EmulatorErr (..),
                                                              defaultEmulatorConfig, initialChainState, runTraceStream)
 import           Wallet.Emulator.Wallet                     (Wallet (..))
@@ -107,7 +107,7 @@ handlePlaygroundTrace ::
     )
     => Contract s e ()
     -> PlaygroundTrace a
-    -> Eff (Reader ThreadId ': Yield (SystemCall effs EmulatorMessage) (Maybe EmulatorMessage) ': effs) ()
+    -> Eff (Reader ThreadId ': Yield (EmSystemCall effs EmulatorMessage) (Maybe EmulatorMessage) ': effs) ()
 handlePlaygroundTrace contract action = do
     _ <- interpret handleEmulatedWalletAPI
             . interpret (handleWaiting @_ @effs)
@@ -133,6 +133,7 @@ runPlaygroundStream conf contract =
 
 interpretPlaygroundTrace :: forall s e effs a.
     ( Member MultiAgentEffect effs
+    , Member MultiAgentControlEffect effs
     , Member (Error EmulatorRuntimeError) effs
     , Member ChainEffect effs
     , Member ChainControlEffect effs

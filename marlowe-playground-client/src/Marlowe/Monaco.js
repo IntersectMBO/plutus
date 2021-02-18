@@ -59,6 +59,7 @@ exports.daylightTheme_ = {
         { token: "PAYEE", foreground: blue },
         { token: "PARTY", foreground: blue },
         { token: "BOUND", foreground: blue },
+        { token: "TIMEOUT", foreground: blue },
         { token: "VALUE_ID", foreground: blue },
         { token: "CASE", foreground: blue },
         { token: "ACTION", foreground: blue },

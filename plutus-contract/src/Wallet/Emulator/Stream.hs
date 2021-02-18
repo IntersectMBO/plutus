@@ -31,7 +31,7 @@ import           Control.Lens                           (filtered, makeLenses, p
 import           Control.Monad.Freer                    (Eff, Member, interpret, reinterpret, run, subsume, type (~>))
 import           Control.Monad.Freer.Coroutine          (Yield, yield)
 import           Control.Monad.Freer.Error              (Error, runError)
-import           Control.Monad.Freer.Extras             (raiseEnd6, wrapError)
+import           Control.Monad.Freer.Extras             (raiseEnd7, wrapError)
 import           Control.Monad.Freer.Log                (LogLevel, LogMessage (..), LogMsg (..), logMessageContent,
                                                          mapMLog)
 import           Control.Monad.Freer.State              (State, gets, runState)
@@ -53,8 +53,8 @@ import           Wallet.API                             (WalletAPIError)
 import           Wallet.Emulator                        (EmulatorEvent, EmulatorEvent')
 import qualified Wallet.Emulator                        as EM
 import           Wallet.Emulator.Chain                  (ChainControlEffect, ChainEffect, _SlotAdd)
-import           Wallet.Emulator.MultiAgent             (EmulatorState, EmulatorTimeEvent (..), MultiAgentEffect,
-                                                         chainEvent, eteEvent)
+import           Wallet.Emulator.MultiAgent             (EmulatorState, EmulatorTimeEvent (..), MultiAgentControlEffect,
+                                                         MultiAgentEffect, chainEvent, eteEvent)
 import           Wallet.Emulator.Wallet                 (Wallet (..), walletAddress)
 
 -- TODO: Move these two to 'Wallet.Emulator.XXX'?
@@ -109,6 +109,7 @@ runTraceStream :: forall effs.
     -> Eff '[ State EmulatorState
             , LogMsg EmulatorEvent'
             , MultiAgentEffect
+            , MultiAgentControlEffect
             , ChainEffect
             , ChainControlEffect
             , Error EmulatorRuntimeError
@@ -128,7 +129,7 @@ runTraceStream conf =
     . EM.processEmulated
     . subsume
     . subsume @(State EmulatorState)
-    . raiseEnd6
+    . raiseEnd7
 
 data EmulatorConfig =
     EmulatorConfig

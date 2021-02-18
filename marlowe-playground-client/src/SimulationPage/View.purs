@@ -1,13 +1,12 @@
 module SimulationPage.View where
 
 import Prelude hiding (div)
-import BottomPanel.Types (_showBottomPanel)
-import BottomPanel.Types as BottomPanel
+import BottomPanel.Types as BottomPanelTypes
 import BottomPanel.View as BottomPanel
 import Data.Array (concatMap, intercalate, reverse, sortWith)
 import Data.Array as Array
 import Data.BigInteger (BigInteger, fromString, fromInt)
-import Data.Lens (has, only, to, view, (^.))
+import Data.Lens (has, only, previewOn, to, view, (^.))
 import Data.Lens.Iso.Newtype (_Newtype)
 import Data.Lens.NonEmptyList (_Head)
 import Data.Map (Map)
@@ -15,17 +14,18 @@ import Data.Map as Map
 import Data.Maybe (Maybe(..), isJust)
 import Data.Newtype (unwrap, wrap)
 import Data.Tuple (Tuple(..), snd)
+import Data.Tuple.Nested ((/\))
 import Effect.Aff.Class (class MonadAff)
 import Effect.Class (liftEffect)
 import Halogen (RefLabel(..))
 import Halogen.Classes (aHorizontal, bold, btn, codeEditor, expanded, flex, fullHeight, group, justifyBetween, justifyCenter, noMargins, plusBtn, scroll, sidebarComposer, smallBtn, smallSpaceBottom, spaceBottom, spaceRight, spanText, textSecondaryColor, textXs, uppercase)
-import Halogen.Classes as Classes
 import Halogen.Extra (renderSubmodule)
-import Halogen.HTML (ClassName(..), ComponentHTML, HTML, aside, b_, br_, button, div, div_, em_, h6, h6_, input, li, p, p_, section, slot, span, span_, strong_, text, ul)
+import Halogen.HTML (ClassName(..), ComponentHTML, HTML, aside, b_, br_, button, div, div_, em_, h6, h6_, input, li, li_, p, p_, section, slot, span, span_, strong_, text, ul)
 import Halogen.HTML.Events (onClick, onValueChange)
-import Halogen.HTML.Properties (InputType(..), class_, classes, disabled, enabled, placeholder, type_, value)
+import Halogen.HTML.Properties (InputType(..), class_, classes, disabled, placeholder, type_, value)
 import Halogen.Monaco (Settings, monacoComponent)
 import MainFrame.Types (ChildSlots, _simulatorEditorSlot)
+import Marlowe.Extended (IntegerTemplateType(..))
 import Marlowe.Monaco (daylightTheme, languageExtensionPoint)
 import Marlowe.Monaco as MM
 import Marlowe.Semantics (AccountId, Assets(..), Bound(..), ChoiceId(..), Input(..), Party(..), Payment(..), PubKey, Slot, SlotInterval(..), Token(..), TransactionInput(..), inBounds, timeouts)
@@ -33,7 +33,7 @@ import Monaco (Editor)
 import Monaco as Monaco
 import Pretty (renderPrettyParty, renderPrettyToken, showPrettyMoney)
 import SimulationPage.BottomPanel (panelContents)
-import SimulationPage.Types (Action(..), ActionInput(..), ActionInputId, BottomPanelView(..), ExecutionState(..), MarloweEvent(..), State, _SimulationRunning, _bottomPanelState, _contract, _currentMarloweState, _executionState, _log, _marloweState, _possibleActions, _showRightPanel, _slot, _transactionError, _transactionWarnings, otherActionsParty)
+import SimulationPage.Types (Action(..), ActionInput(..), ActionInputId, BottomPanelView(..), ExecutionState(..), InitialConditionsRecord, MarloweEvent(..), State, _SimulationRunning, _bottomPanelState, _currentContract, _currentMarloweState, _executionState, _log, _marloweState, _possibleActions, _showRightPanel, _slot, _transactionError, _transactionWarnings, otherActionsParty)
 import Simulator (hasHistory, inFuture)
 
 render ::
@@ -64,7 +64,7 @@ render state =
 
   showRightPanel = state ^. _showRightPanel
 
-  wrapBottomPanelContents panelView = BottomPanel.PanelAction <$> panelContents state panelView
+  wrapBottomPanelContents panelView = BottomPanelTypes.PanelAction <$> panelContents state panelView
 
 otherActions :: forall p. State -> HTML p Action
 otherActions state =
@@ -196,7 +196,7 @@ sidebar state =
     showRightPanel = state ^. _showRightPanel
 
     contents = case view (_marloweState <<< _Head <<< _executionState) state of
-      SimulationNotStarted { initialSlot } -> [ startSimulationWidget initialSlot ]
+      SimulationNotStarted notStartedRecord -> [ startSimulationWidget notStartedRecord ]
       SimulationRunning _ ->
         [ div [ class_ smallSpaceBottom ] [ simulationStateWidget state ]
         , div [ class_ spaceBottom ] [ actionWidget state ]
@@ -222,13 +222,19 @@ sidebar state =
           (toHTML (state ^. _helpContext))
       -}
 ------------------------------------------------------------
-startSimulationWidget :: forall p. Slot -> HTML p Action
-startSimulationWidget initialSlot =
+startSimulationWidget :: forall p. InitialConditionsRecord -> HTML p Action
+startSimulationWidget { initialSlot, templateContent } =
   cardWidget "Simulation has not started yet"
     $ div [ classes [] ]
         [ div [ classes [ ClassName "slot-input", ClassName "initial-slot-input" ] ]
             [ spanText "Initial slot:"
             , marloweActionInput (SetInitialSlot <<< wrap) initialSlot
+            ]
+        , div [ classes [] ]
+            [ ul [ class_ (ClassName "templates") ]
+                ( integerTemplateParameters SetIntegerTemplateParam SlotContent "Timeout template parameters" "Slot for" (unwrap templateContent).slotContent
+                    <> integerTemplateParameters SetIntegerTemplateParam ValueContent "Value template parameters" "Constant for" (unwrap templateContent).valueContent
+                )
             ]
         , div [ classes [ ClassName "transaction-btns", flex, justifyCenter ] ]
             [ button
@@ -239,6 +245,28 @@ startSimulationWidget initialSlot =
             ]
         ]
 
+integerTemplateParameters :: forall action p. (IntegerTemplateType -> String -> BigInteger -> action) -> IntegerTemplateType -> String -> String -> Map String BigInteger -> Array (HTML p action)
+integerTemplateParameters actionGen typeName title prefix content =
+  [ li_
+      if Map.isEmpty content then
+        []
+      else
+        ([ h6_ [ em_ [ text title ] ] ])
+          <> ( map
+                ( \(key /\ value) ->
+                    ( ( div [ class_ (ClassName "template-fields") ]
+                          [ text (prefix <> " ")
+                          , strong_ [ text key ]
+                          , text ":"
+                          , marloweActionInput (actionGen typeName key) value
+                          ]
+                      )
+                    )
+                )
+                (Map.toUnfoldable content)
+            )
+  ]
+
 ------------------------------------------------------------
 simulationStateWidget ::
   forall p.
@@ -248,7 +276,7 @@ simulationStateWidget state =
   let
     currentSlot = state ^. (_currentMarloweState <<< _executionState <<< _SimulationRunning <<< _slot <<< to show)
 
-    expirationSlot = state ^. (_marloweState <<< _Head <<< _contract <<< to contractMaxTime)
+    expirationSlot = contractMaxTime (previewOn state _currentContract)
 
     contractMaxTime = case _ of
       Nothing -> "Closed"
@@ -439,7 +467,7 @@ inputItem state person (MoveToSlot slot) =
 
   boundsError = "The slot must be more than the current slot " <> (state ^. (_currentMarloweState <<< _executionState <<< _SimulationRunning <<< _slot <<< to show))
 
-marloweActionInput :: forall p a. Show a => (BigInteger -> Action) -> a -> HTML p Action
+marloweActionInput :: forall p a action. Show a => (BigInteger -> action) -> a -> HTML p action
 marloweActionInput f current =
   input
     [ type_ InputNumber

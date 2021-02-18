@@ -4,23 +4,26 @@ import           Control.Monad.Except
 import           Data.Coolean
 import           Data.Either
 import           Data.List
-
 import           Language.PlutusCore
 import           Language.PlutusCore.Evaluation.Machine.Ck
 import           Language.PlutusCore.Generators.NEAT.Spec
-import           Language.PlutusCore.Generators.NEAT.Type
+import           Language.PlutusCore.Generators.NEAT.Term
 import           Language.PlutusCore.Lexer
 import           Language.PlutusCore.Normalize
+import           Language.PlutusCore.Pretty
+import qualified Language.UntypedPlutusCore                as U
 import           Test.Tasty
 import           Test.Tasty.HUnit
 
 import           MAlonzo.Code.Main                         (checkKindAgda, checkTypeAgda, inferKindAgda, inferTypeAgda,
                                                             normalizeTypeAgda, normalizeTypeTermAgda, runCKAgda,
-                                                            runTCEKAgda, runTCKAgda, runTLAgda)
+                                                            runTCEKAgda, runTCKAgda, runTLAgda, runUAgda)
 import           MAlonzo.Code.Scoped                       (deBruijnifyK, unDeBruijnifyK)
 
 import           Language.PlutusCore.DeBruijn
 import           Raw                                       hiding (TypeError, tynames)
+
+import           Debug.Trace
 
 main :: IO ()
 main = defaultMain $ allTests defaultGenOptions
@@ -115,3 +118,24 @@ prop_Term tyG tmG = do
   tmEvsN <- withExceptT FVErrorP $ traverse unDeBruijnTerm tmEvs
 
   unless (length (nub tmEvsN) == 1) $ throwCtrex (CtrexTermEvaluationMismatch tyG tmG tmEvsN)
+  -- 4. untyped_reduce . erase == erase . typed_reduce
+
+  -- erase original named term
+  let tmU = U.erase tm
+  -- turn it into an untyped de Bruij term
+  tmUDB <- withExceptT FVErrorP $ U.deBruijnTerm tmU
+  -- reduce the untyped term
+  tmUDB' <- withExceptT (\e -> trace (show e) (Ctrex (CtrexTermEvaluationFail tyG tmG))) $ liftEither $ runUAgda tmUDB
+  -- turn it back into a named term
+  tmU' <- withExceptT FVErrorP $ U.unDeBruijnTerm tmUDB'
+  -- reduce the orignal de Bruijn typed term
+  tmDB'' <- withExceptT (\e -> trace (show e) (Ctrex (CtrexTermEvaluationFail tyG tmG))) $
+    liftEither $ runTLAgda tmDB
+  -- turn it back into a named term
+  tm'' <- withExceptT FVErrorP $ unDeBruijnTerm tmDB''
+  -- erase it after the fact
+  let tmU'' = U.erase tm''
+  unless (tmU' == tmU'') $
+    throwCtrex (CtrexUntypedTermEvaluationMismatch tyG tmG [tmU',tmU''])
+
+
