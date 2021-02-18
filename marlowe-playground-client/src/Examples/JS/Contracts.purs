@@ -99,17 +99,6 @@ escrow =
 escrowWithCollateral :: String
 escrowWithCollateral =
   """
- import {
-    PK, Role, Account, Party, ada, AvailableMoney, Constant, NegValue, AddValue,
-    SubValue, MulValue, Scale, ChoiceValue, SlotIntervalStart, SlotIntervalEnd,
-    UseValue, Cond, AndObs, OrObs, NotObs, ChoseSomething, ValueGE, ValueGT,
-    ValueLT, ValueLE, ValueEQ, TrueObs, FalseObs, Deposit, Choice, Notify,
-    Close, Pay, If, When, Let, Assert, SomeNumber, AccountId, ChoiceId, Token,
-    ValueId, Value, EValue, Observation, Bound, Action, Payee, Case, Contract
-} from 'marlowe-js';
-
-(function (): Contract {
-
     /* Parties */
     const alice : Party = Role("alice");
     const bob : Party = Role("bob");
@@ -197,8 +186,6 @@ escrowWithCollateral =
 
 
     return collateral1;
-
-})
 """
 
 zeroCouponBond :: String
