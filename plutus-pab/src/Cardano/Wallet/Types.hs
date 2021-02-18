@@ -63,7 +63,7 @@ data Config =
     deriving anyclass (FromJSON, ToJSON)
 
 data WalletMsg = StartingWallet Port
-                  | ChainClientMsg Text
+               | ChainClientMsg Text
     deriving stock (Show, Generic)
     deriving anyclass (ToJSON, FromJSON)
 
