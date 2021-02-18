@@ -1,4 +1,4 @@
-module Contact.Validation
+module Wallet.Validation
   ( KeyError(..)
   , NicknameError(..)
   , keyError
@@ -6,11 +6,12 @@ module Contact.Validation
   ) where
 
 import Prelude
-import Contact.Types (Contact, PubKeyHash)
-import Data.Map (Map, member)
+import Data.Map (member)
 import Data.Map.Extra (mapIndex)
 import Data.Maybe (Maybe(..))
-import Data.Tuple (Tuple, fst, snd)
+import Data.Tuple (fst, snd)
+import Marlowe.Semantics (PubKey)
+import Wallet.Types (WalletLibrary)
 
 data NicknameError
   = EmptyNickname
@@ -32,20 +33,20 @@ instance showKeyError :: Show KeyError where
   show EmptyKey = "Wallet key cannot be blank"
   show DuplicateKey = "Wallet key is already in your contacts"
 
-nicknameError :: String -> Map (Tuple String PubKeyHash) Contact -> Maybe NicknameError
+nicknameError :: String -> WalletLibrary -> Maybe NicknameError
 nicknameError "" _ = Just EmptyNickname
 
 nicknameError nickname contacts =
-  if member nickname $ mapIndex fst $ contacts then
+  if member nickname $ mapIndex fst contacts then
     Just DuplicateNickname
   else
     Nothing
 
-keyError :: PubKeyHash -> Map (Tuple String PubKeyHash) Contact -> Maybe KeyError
+keyError :: PubKey -> WalletLibrary -> Maybe KeyError
 keyError "" _ = Just EmptyKey
 
 keyError key contacts =
-  if member key $ mapIndex snd $ contacts then
+  if member key $ mapIndex snd contacts then
     Just DuplicateKey
   else
     Nothing

@@ -1,6 +1,12 @@
-module StaticData (contactsLocalStorageKey) where
+module StaticData
+  ( walletsLocalStorageKey
+  , walletLocalStorageKey
+  ) where
 
 import LocalStorage (Key(..))
 
-contactsLocalStorageKey :: Key
-contactsLocalStorageKey = Key "contacts"
+walletsLocalStorageKey :: Key
+walletsLocalStorageKey = Key "wallets"
+
+walletLocalStorageKey :: Key
+walletLocalStorageKey = Key "wallet"
