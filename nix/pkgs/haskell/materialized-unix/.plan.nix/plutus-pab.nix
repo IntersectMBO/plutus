@@ -222,7 +222,7 @@
             (hsPkgs."lobemo-backend-ekg" or (errorHandler.buildDepError "lobemo-backend-ekg"))
             ];
           buildable = true;
-          modules = [ "PSGenerator" ];
+          modules = [ "PSGenerator" "Cli" "Command" "CommandParser" ];
           hsSourceDirs = [ "app" ];
           mainPath = [ "Main.hs" ];
           };
