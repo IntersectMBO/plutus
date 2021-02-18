@@ -73,6 +73,7 @@ export const ValueId =
 type Value = { "amount_of_token": Token,
                "in_account": AccountId }
            | bignumber.BigNumber
+           | { "constant_param": String }
            | { "negate": Value }
            | { "add": Value
              , "and": Value }
@@ -117,6 +118,11 @@ export const AvailableMoney =
 export const Constant =
     function (number : SomeNumber) : Value {
         return coerceNumber(number);
+    };
+
+export const ConstantParam =
+    function (paramName : String) : Value {
+        return { "constant_param": paramName };
     };
 
 export const NegValue =
