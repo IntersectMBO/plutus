@@ -55,9 +55,13 @@ let
       spagoPackages = pkgs.callPackage ./spago-packages.nix { };
     };
 
-  demo-scripts = pkgs.callPackage ./pab-demo-scripts.nix { inherit client; pab-exes = haskell.packages.plutus-pab.components.exes; };
+  pab-exes = haskell.packages.plutus-pab.components.exes;
+
+  demo-scripts = pkgs.callPackage ./pab-demo-scripts.nix { inherit client pab-exes; };
+
+  mkConf = pkgs.callPackage ./config.nix { };
 
 in
 {
-  inherit client demo-scripts server-invoker generated-purescript generate-purescript start-backend;
+  inherit client demo-scripts server-invoker generated-purescript generate-purescript start-backend mkConf pab-exes;
 }
