@@ -94,7 +94,7 @@ tests genOpts@GenOptions{} =
       (TyBuiltinG TyUnitG)
       (packAssertion prop_typePreservation)
 
-  , bigTest "CK vs untyped CEK produce the same output"
+  , bigTest "typed CK vs untyped CEK produce the same output"
       genOpts {genDepth = 18}
       (TyBuiltinG TyUnitG)
       (packAssertion prop_agree_termEval)
@@ -112,12 +112,6 @@ sequential. There is some limited opportunity for parallelism which is
 not exploited.
 
 -}
-
--- |Property: check if the type is preserved by evaluation.
---
--- This property is expected to hold for the CK machine and fail for
--- the CEK machine at the time of writing.
-
 
 -- handle a user error and turn it back into an error term
 handleError :: Type TyName DefaultUni ()
@@ -137,7 +131,10 @@ handleUError e = case U._ewcError e of
   U.UserEvaluationError     _ -> return (U.Error ())
   U.InternalEvaluationError _ -> throwError e
 
-
+-- |Property: check if the type is preserved by evaluation.
+--
+-- This property is expected to hold for the CK machine.
+--
 prop_typePreservation :: ClosedTypeG -> ClosedTermG -> ExceptT TestFail Quote ()
 prop_typePreservation tyG tmG = do
   tcConfig <- withExceptT TypeError $ getDefTypeCheckConfig ()
@@ -154,17 +151,9 @@ prop_typePreservation tyG tmG = do
     evaluateCk testBuiltinsRuntime tm `catchError` handleError ty
   withExceptT TypeError $ checkType tcConfig () tmCK (Normalized ty)
 
--- |Property: check if both the CK and CEK machine produce the same ouput
+-- |Property: check if both the typed CK and untyped CEK machines produce the same ouput
+-- module erasure.
 --
--- PRECONDITION: only use where the expected output does not contain
--- type annotations. E.g. constants. The CEK machine does not handle
--- type annotations correctly. So, if the output were to include them
--- then the results would differ and this test would fail.
-
--- POTENTIAL FIXES: Either the CEK machine coud be fixed or one could
--- erase the outputs (removing any type annotations) before
--- comparison.
-
 prop_agree_termEval :: ClosedTypeG -> ClosedTermG -> ExceptT TestFail Quote ()
 prop_agree_termEval tyG tmG = do
   tcConfig <- withExceptT TypeError $ getDefTypeCheckConfig ()
@@ -175,17 +164,18 @@ prop_agree_termEval tyG tmG = do
   tm <- withExceptT GenError $ convertClosedTerm tynames names tyG tmG
   withExceptT TypeError $ checkType tcConfig () tm (Normalized ty)
 
+  -- run typed CK on input
   tmCk <- withExceptT CkP $ liftEither $
     evaluateCk testBuiltinsRuntime tm `catchError` handleError ty
 
-  -- erase CEK output
+  -- erase CK output
   let tmUCk = U.erase tmCk
 
   -- run untyped CEK on erased input
   tmUCek <- withExceptT UCekP $ liftEither $
     U.evaluateCek testBuiltinsRuntime (U.erase tm) `catchError` handleUError
 
-  -- check if CK and CEK give the same output
+  -- check if typed CK and untyped CEK give the same output module erasure
   unless (tmUCk == tmUCek) $
     throwCtrex (CtrexUntypedTermEvaluationMismatch tyG tmG [tmUCk,tmUCek])
 
