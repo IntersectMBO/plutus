@@ -1,8 +1,11 @@
 ( (Right (delay (delay (delay (\z -> \f -> z)))))
-, ({ tally: ({ BAST causes ({ cpu: 0
+, ({ tally: ({ BDelay causes ({ cpu: 1
+| mem: 1
+})
+| BAST causes ({ cpu: 0
 | mem: 3
 })})
-| budget: ({ cpu: 0
-| mem: 3
+| budget: ({ cpu: 1
+| mem: 4
 })
 }) )

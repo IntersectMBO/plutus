@@ -1,29 +1,35 @@
 ( (Right (2))
-, ({ tally: ({ BForce causes ({ cpu: 18
-| mem: 18
-})
-| BBuiltin SubtractInteger causes ({ cpu: 18
+, ({ tally: ({ BBuiltin SubtractInteger causes ({ cpu: 18
 | mem: 164
 })
 | BBuiltin AddInteger causes ({ cpu: 8
 | mem: 2
 })
-| BApply causes ({ cpu: 86
-| mem: 86
+| BConst causes ({ cpu: 15
+| mem: 15
+})
+| BVar causes ({ cpu: 59
+| mem: 59
+})
+| BDelay causes ({ cpu: 13
+| mem: 13
+})
+| BLamAbs causes ({ cpu: 46
+| mem: 46
+})
+| BBuiltin LessThanEqInteger causes ({ cpu: 25
+| mem: 5
+})
+| BForce causes ({ cpu: 18
+| mem: 18
 })
 | BBuiltin IfThenElse causes ({ cpu: 5
 | mem: 5
 })
 | BAST causes ({ cpu: 0
 | mem: 40
-})
-| BVar causes ({ cpu: 59
-| mem: 59
-})
-| BBuiltin LessThanEqInteger causes ({ cpu: 25
-| mem: 5
 })})
-| budget: ({ cpu: 219
-| mem: 379
+| budget: ({ cpu: 207
+| mem: 367
 })
 }) )
