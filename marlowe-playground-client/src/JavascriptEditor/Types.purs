@@ -17,7 +17,7 @@ import Halogen.Monaco as Monaco
 import Language.Javascript.Interpreter (_result)
 import Language.Javascript.Interpreter as JS
 import Marlowe.Extended (Contract, IntegerTemplateType)
-import StaticAnalysis.Types (AnalysisExecutionState(..), AnalysisState, initAnalysisState)
+import StaticAnalysis.Types (AnalysisState, initAnalysisState)
 import Text.Pretty (pretty)
 
 data CompilationState
@@ -50,6 +50,7 @@ data Action
   | AnalyseContract
   | AnalyseReachabilityContract
   | AnalyseContractForCloseRefund
+  | ClearAnalysisResults
 
 defaultEvent :: String -> Event
 defaultEvent s = A.defaultEvent $ "Javascript." <> s
@@ -65,6 +66,7 @@ instance actionIsEvent :: IsEvent Action where
   toEvent AnalyseContract = Just $ defaultEvent "AnalyseContract"
   toEvent AnalyseReachabilityContract = Just $ defaultEvent "AnalyseReachabilityContract"
   toEvent AnalyseContractForCloseRefund = Just $ defaultEvent "AnalyseContractForCloseRefund"
+  toEvent ClearAnalysisResults = Just $ defaultEvent "ClearAnalysisResults"
 
 type DecorationIds
   = { topDecorationId :: String
