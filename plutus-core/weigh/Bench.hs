@@ -1,10 +1,11 @@
 module Main (main) where
 
 import           Language.PlutusCore
-import           Language.PlutusCore.Evaluation.Machine.Cek (unsafeEvaluateCek)
+import qualified Language.UntypedPlutusCore                        as UPLC
+import           Language.UntypedPlutusCore.Evaluation.Machine.Cek (unsafeEvaluateCek)
 
-import           Control.Monad                              (void)
-import qualified Data.ByteString.Lazy                       as BSL
+import           Control.Monad                                     (void)
+import qualified Data.ByteString.Lazy                              as BSL
 import           Weigh
 
 main :: IO ()
@@ -16,8 +17,8 @@ main = do
         g' = processor g
 
     mainWith $ sequence_
-        [ func "valid" (fmap (unsafeEvaluateCek defBuiltinsRuntime)) f'
-        , func "invalid" (fmap (unsafeEvaluateCek defBuiltinsRuntime)) g'
+        [ func "valid" (fmap (unsafeEvaluateCek defBuiltinsRuntime . UPLC.erase)) f'
+        , func "invalid" (fmap (unsafeEvaluateCek defBuiltinsRuntime . UPLC.erase)) g'
         ]
 
     where evalFile0 = BSL.readFile "test/Evaluation/Golden/verifySignature.plc"

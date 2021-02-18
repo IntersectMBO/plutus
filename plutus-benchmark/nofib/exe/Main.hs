@@ -20,7 +20,6 @@ import           Language.PlutusCore                               (Name (..))
 import qualified Language.PlutusCore                               as PLC
 import           Language.PlutusCore.Builtins
 import           Language.PlutusCore.CBOR                          ()
-import           Language.PlutusCore.Evaluation.Machine.Cek        ()
 import qualified Language.PlutusCore.Pretty                        as PLC
 import           Language.PlutusCore.Universe
 import           Language.PlutusTx.Prelude                         as TxPrelude hiding (fmap, mappend, (<$), (<$>),
