@@ -144,35 +144,28 @@ handleAction (InitJavascriptProject prunedContent) = do
 
 handleAction (SetIntegerTemplateParam templateType key value) = modifying (_analysisState <<< _templateContent <<< typeToLens templateType) (Map.insert key value)
 
-handleAction AnalyseContract = compileAndAnalyze (WarningAnalysis Loading) $ analyseContract
+handleAction AnalyseContract = analyze (WarningAnalysis Loading) $ analyseContract
 
 handleAction AnalyseReachabilityContract =
-  compileAndAnalyze (ReachabilityAnalysis AnalysisNotStarted)
+  analyze (ReachabilityAnalysis AnalysisNotStarted)
     $ analyseReachability
 
 handleAction AnalyseContractForCloseRefund =
-  compileAndAnalyze (CloseAnalysis AnalysisNotStarted)
+  analyze (CloseAnalysis AnalysisNotStarted)
     $ analyseClose
 
--- This function runs a static analysis to the compiled code. It calls the compiler if
--- it wasn't runned before and it switches to the error panel if the compilation failed
-compileAndAnalyze ::
+-- This function runs a static analysis to the compiled code if it compiled successfully.
+analyze ::
   forall m.
   MonadAff m =>
   MonadAsk Env m =>
   AnalysisExecutionState ->
   (Contract -> HalogenM State Action ChildSlots Void m Unit) ->
   HalogenM State Action ChildSlots Void m Unit
-compileAndAnalyze initialAnalysisState doAnalyze = do
+analyze initialAnalysisState doAnalyze = do
   compilationResult <- use _compilationResult
   case compilationResult of
-    NotCompiled -> do
-      -- The initial analysis state allow us to show an "Analysing..." indicator
-      assign (_analysisState <<< _analysisExecutionState) initialAnalysisState
-      handleAction Compile
-      compileAndAnalyze initialAnalysisState doAnalyze
     CompiledSuccessfully (InterpreterResult interpretedResult) -> doAnalyze interpretedResult.result
-    CompilationError _ -> handleAction $ BottomPanelAction $ BottomPanel.ChangePanel ErrorsView
     _ -> pure unit
 
 editorResize :: forall state action msg m. HalogenM state action ChildSlots msg m Unit
