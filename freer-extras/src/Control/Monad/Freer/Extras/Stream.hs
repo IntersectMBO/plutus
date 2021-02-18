@@ -2,7 +2,7 @@
 {-# LANGUAGE TypeOperators #-}
 
 {- Interpreting the 'Yield' effect as a stream -}
-module Control.Monad.Freer.Stream(
+module Control.Monad.Freer.Extras.Stream(
     runStream
     ) where
 

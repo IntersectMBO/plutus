@@ -12,9 +12,10 @@
 {-# LANGUAGE TypeApplications   #-}
 {-# LANGUAGE TypeOperators      #-}
 
-module Control.Monad.Freer.Log(
+module Control.Monad.Freer.Extras.Log (
+
     -- $log
-    -- * Logging
+    -- * Logging functions
     LogMsg(..)
     , LogLevel(..)
     , LogMessage(..)
@@ -25,32 +26,40 @@ module Control.Monad.Freer.Log(
     , logInfo
     , logWarn
     , logError
-    -- ** Handlers
+
+    -- * Modifying logs
     , mapLog
     , mapMLog
+
+    -- * Running logs
     , handleWriterLog
     , handleLogIgnore
     , handleLogTrace
     , handleLogWriter
     , renderLogMessages
-    -- * Tracing
+
+    -- * Observing
     , LogObserve(..)
     , ObservationHandle
     , Observation(..)
     , observeBefore
     , observeAfter
+
+     -- * Combinators
     , surround
     , surroundDebug
     , surroundInfo
     , surroundWarn
+
     -- ** Handlers
     , handleObserveLog
     , handleObserve
     ) where
 
+import           Control.Monad.Freer.Extras.Modify       (raiseUnder)
+
 import           Control.Lens                            (AReview, Prism', makeLenses, prism', review)
 import           Control.Monad.Freer
-import           Control.Monad.Freer.Extras              (raiseUnder)
 import           Control.Monad.Freer.State               (State, get, put, runState)
 import           Control.Monad.Freer.TH                  (makeEffect)
 import           Control.Monad.Freer.Writer              (Writer (..), tell)
