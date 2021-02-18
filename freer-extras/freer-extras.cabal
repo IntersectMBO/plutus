@@ -34,6 +34,7 @@ library
         Control.Monad.Freer.Extras.Modify
         Control.Monad.Freer.Extras.Log
         Control.Monad.Freer.Extras.Stream
+        Control.Monad.Freer.Extras.State
   build-depends:
         aeson -any,
         base >=4.7 && <5,

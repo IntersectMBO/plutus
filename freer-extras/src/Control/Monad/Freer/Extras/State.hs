@@ -1,7 +1,10 @@
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE MonoLocalBinds   #-}
 
-module Control.Monad.Freer.Extra.State where
+module Control.Monad.Freer.Extras.State (
+      use
+    , assign
+    , modifying ) where
 
 import           Control.Lens              (ASetter, Getting, over, set, view)
 import           Control.Monad.Freer       (Eff, Member)

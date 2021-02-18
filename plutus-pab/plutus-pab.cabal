@@ -76,7 +76,6 @@ library
         Cardano.Wallet.Server
         Cardano.Wallet.Types
         Control.Monad.Freer.Delay
-        Control.Monad.Freer.Extra.State
         Control.Monad.Freer.WebSocket
         Control.Concurrent.Availability
         Data.Time.Units.Extra

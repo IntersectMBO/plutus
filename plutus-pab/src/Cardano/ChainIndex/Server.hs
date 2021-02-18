@@ -13,42 +13,42 @@ module Cardano.ChainIndex.Server(
     , syncState
     ) where
 
-import           Cardano.BM.Data.Trace           (Trace)
-import           Cardano.Node.Types              (FollowerID)
-import           Control.Concurrent              (forkIO, threadDelay)
-import           Control.Concurrent.MVar         (MVar, newMVar, putMVar, takeMVar)
-import           Control.Monad                   (forever, unless, void)
-import           Control.Monad.Freer             hiding (run)
-import           Control.Monad.Freer.Extra.State (assign, use)
+import           Cardano.BM.Data.Trace            (Trace)
+import           Cardano.Node.Types               (FollowerID)
+import           Control.Concurrent               (forkIO, threadDelay)
+import           Control.Concurrent.MVar          (MVar, newMVar, putMVar, takeMVar)
+import           Control.Monad                    (forever, unless, void)
+import           Control.Monad.Freer              hiding (run)
 import           Control.Monad.Freer.Extras.Log
+import           Control.Monad.Freer.Extras.State (assign, use)
 import           Control.Monad.Freer.State
-import qualified Control.Monad.Freer.State       as Eff
-import           Control.Monad.IO.Class          (MonadIO (..))
-import           Data.Foldable                   (fold, traverse_)
-import           Data.Function                   ((&))
-import           Data.Proxy                      (Proxy (Proxy))
-import           Data.Time.Units                 (Second, toMicroseconds)
-import           Ledger.Blockchain               (Block)
-import           Network.HTTP.Client             (defaultManagerSettings, newManager)
-import qualified Network.Wai.Handler.Warp        as Warp
-import           Servant                         (Application, NoContent (NoContent), hoistServer, serve,
-                                                  (:<|>) ((:<|>)))
-import           Servant.Client                  (BaseUrl (baseUrlPort), ClientEnv, mkClientEnv, runClientM)
+import qualified Control.Monad.Freer.State        as Eff
+import           Control.Monad.IO.Class           (MonadIO (..))
+import           Data.Foldable                    (fold, traverse_)
+import           Data.Function                    ((&))
+import           Data.Proxy                       (Proxy (Proxy))
+import           Data.Time.Units                  (Second, toMicroseconds)
+import           Ledger.Blockchain                (Block)
+import           Network.HTTP.Client              (defaultManagerSettings, newManager)
+import qualified Network.Wai.Handler.Warp         as Warp
+import           Servant                          (Application, NoContent (NoContent), hoistServer, serve,
+                                                   (:<|>) ((:<|>)))
+import           Servant.Client                   (BaseUrl (baseUrlPort), ClientEnv, mkClientEnv, runClientM)
 
 import           Cardano.ChainIndex.API
 import           Cardano.ChainIndex.Types
-import qualified Cardano.Node.Client             as NodeClient
-import           Cardano.Node.Follower           (NodeFollowerEffect, getSlot)
-import qualified Cardano.Node.Follower           as NodeFollower
-import           Control.Concurrent.Availability (Availability, available)
-import           Ledger.Address                  (Address)
-import           Ledger.AddressMap               (AddressMap)
-import           Plutus.PAB.Monitoring           (convertLog, handleLogMsgTrace, runLogEffects)
-import           Wallet.Effects                  (ChainIndexEffect)
-import qualified Wallet.Effects                  as WalletEffects
-import           Wallet.Emulator.ChainIndex      (ChainIndexControlEffect, ChainIndexEvent, ChainIndexState)
-import qualified Wallet.Emulator.ChainIndex      as ChainIndex
-import           Wallet.Emulator.NodeClient      (ChainClientNotification (BlockValidated, SlotChanged))
+import qualified Cardano.Node.Client              as NodeClient
+import           Cardano.Node.Follower            (NodeFollowerEffect, getSlot)
+import qualified Cardano.Node.Follower            as NodeFollower
+import           Control.Concurrent.Availability  (Availability, available)
+import           Ledger.Address                   (Address)
+import           Ledger.AddressMap                (AddressMap)
+import           Plutus.PAB.Monitoring            (convertLog, handleLogMsgTrace, runLogEffects)
+import           Wallet.Effects                   (ChainIndexEffect)
+import qualified Wallet.Effects                   as WalletEffects
+import           Wallet.Emulator.ChainIndex       (ChainIndexControlEffect, ChainIndexEvent, ChainIndexState)
+import qualified Wallet.Emulator.ChainIndex       as ChainIndex
+import           Wallet.Emulator.NodeClient       (ChainClientNotification (BlockValidated, SlotChanged))
 
 -- $chainIndex
 -- The PAB chain index that keeps track of transaction data (UTXO set enriched
