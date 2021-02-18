@@ -38,7 +38,7 @@ import Foreign.JSON (parseJSON)
 import Halogen (HalogenM, get, query)
 import Halogen.Extra (mapSubmodule)
 import Halogen.Monaco (Query(..)) as Monaco
-import LocalStorage as LocalStorage
+import SessionStorage as SessionStorage
 import MainFrame.Types (ChildSlots, _simulatorEditorSlot)
 import Marlowe as Server
 import Marlowe.Extended (fillTemplate, toCore, typeToLens)
@@ -79,7 +79,7 @@ handleAction ::
   HalogenM State Action ChildSlots Void m Unit
 handleAction Init = do
   editorSetTheme
-  mContents <- liftEffect $ LocalStorage.getItem simulatorBufferLocalStorageKey
+  mContents <- liftEffect $ SessionStorage.getItem simulatorBufferLocalStorageKey
   handleAction $ LoadContract $ fromMaybe "" mContents
 
 handleAction (SetInitialSlot initialSlot) = do
@@ -140,7 +140,7 @@ handleAction Undo = do
   updateContractInEditor
 
 handleAction (LoadContract contents) = do
-  liftEffect $ LocalStorage.setItem simulatorBufferLocalStorageKey contents
+  liftEffect $ SessionStorage.setItem simulatorBufferLocalStorageKey contents
   let
     mExtendedContract = do
       termContract <- hush $ parseContract contents
@@ -278,6 +278,6 @@ updateContractInEditor = do
   editorSetValue
     ( case executionState of
         SimulationRunning runningState -> show $ genericPretty runningState.contract
-        SimulationNotStarted notStartedState -> maybe "No contract" (show <<< genericPretty) notStartedState.extendedContract -- This "No contract" should never happen if we get valid contracts from editors 
+        SimulationNotStarted notStartedState -> maybe "No contract" (show <<< genericPretty) notStartedState.extendedContract -- This "No contract" should never happen if we get valid contracts from editors
     )
   setOraclePrice

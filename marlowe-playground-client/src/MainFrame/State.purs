@@ -46,7 +46,6 @@ import JavascriptEditor.State as JavascriptEditor
 import JavascriptEditor.Types (Action(..), State, _ContractString, initialState) as JS
 import JavascriptEditor.Types (CompilationState(..))
 import Language.Haskell.Monaco as HM
-import LocalStorage as LocalStorage
 import LoginPopup (openLoginPopup, informParentAndClose)
 import MainFrame.Types (Action(..), ChildSlots, ModalView(..), Query(..), State, View(..), _actusBlocklySlot, _authStatus, _blocklyEditorState, _blocklySlot, _createGistResult, _gistId, _hasUnsavedChanges, _haskellState, _javascriptState, _jsEditorSlot, _loadGistResult, _marloweEditorState, _newProject, _projectName, _projects, _rename, _saveAs, _showBottomPanel, _showModal, _simulationState, _view, _walletSlot, _workflow, sessionToState, stateToSession)
 import MainFrame.View (render)
@@ -299,6 +298,7 @@ handleAction Init = do
   toSimulation $ Simulation.handleAction ST.Init
   toHaskellEditor $ HaskellEditor.handleAction HE.Init
   toMarloweEditor $ MarloweEditor.handleAction ME.Init
+  toBlocklyEditor $ BlocklyEditor.handleAction BE.Init
   checkAuthStatus
   -- Load session data if available
   void
@@ -454,7 +454,7 @@ handleAction (NewProjectAction (NewProject.CreateProject lang)) = do
         <<< set _gistId Nothing
         <<< set _createGistResult NotAsked
     )
-  liftEffect $ LocalStorage.setItem gistIdLocalStorageKey mempty
+  liftEffect $ SessionStorage.setItem gistIdLocalStorageKey mempty
   -- We reset all editors and then initialize the selected language.
   toHaskellEditor $ HaskellEditor.handleAction $ HE.InitHaskellProject mempty
   toJavascriptEditor $ JavascriptEditor.handleAction $ JS.InitJavascriptProject mempty
@@ -531,7 +531,7 @@ handleAction (SaveAsAction action@SaveAs.SaveProject) = do
   res <- peruse (_createGistResult <<< _Success)
   case res of
     Just gist -> do
-      liftEffect $ LocalStorage.setItem gistIdLocalStorageKey (gist ^. (gistId <<< _GistId))
+      liftEffect $ SessionStorage.setItem gistIdLocalStorageKey (gist ^. (gistId <<< _GistId))
       modify_
         ( set _showModal Nothing
             <<< set (_saveAs <<< SaveAs._status) NotAsked

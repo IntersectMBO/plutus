@@ -32,7 +32,7 @@ import JavascriptEditor.Types (Action(..), BottomPanelView(..), CompilationState
 import Language.Javascript.Interpreter (InterpreterResult(..))
 import Language.Javascript.Interpreter as JSI
 import Language.Javascript.Monaco as JSM
-import LocalStorage as LocalStorage
+import SessionStorage as SessionStorage
 import MainFrame.Types (ChildSlots, _jsEditorSlot)
 import Marlowe.Extended (Contract, typeToLens)
 import Monaco (IRange, getModel, isError, setValue)
@@ -85,14 +85,14 @@ handleAction (HandleEditorMessage (Monaco.TextChanged text)) =
         Just decorIds -> do
           mRangeHeader <- query _jsEditorSlot unit (Monaco.GetDecorationRange decorIds.topDecorationId identity)
           mRangeFooter <- query _jsEditorSlot unit (Monaco.GetDecorationRange decorIds.bottomDecorationId identity)
-          mContent <- liftEffect $ LocalStorage.getItem jsBufferLocalStorageKey
+          mContent <- liftEffect $ SessionStorage.getItem jsBufferLocalStorageKey
           if ((mContent == Nothing) || (mContent == Just prunedText)) then
             -- The case where `mContent == Just prunedText` is to prevent potential infinite loops, it should not happen
             assign _compilationResult NotCompiled
           else
             if checkJSboilerplate text && checkDecorationPosition numLines mRangeHeader mRangeFooter then
               ( do
-                  liftEffect $ LocalStorage.setItem jsBufferLocalStorageKey prunedText
+                  liftEffect $ SessionStorage.setItem jsBufferLocalStorageKey prunedText
                   assign _compilationResult NotCompiled
               )
             else
@@ -140,7 +140,7 @@ handleAction SendResultToSimulator = pure unit
 
 handleAction (InitJavascriptProject prunedContent) = do
   editorSetValue prunedContent
-  liftEffect $ LocalStorage.setItem jsBufferLocalStorageKey prunedContent
+  liftEffect $ SessionStorage.setItem jsBufferLocalStorageKey prunedContent
 
 handleAction (SetIntegerTemplateParam templateType key value) = modifying (_analysisState <<< _templateContent <<< typeToLens templateType) (Map.insert key value)
 
@@ -258,7 +258,7 @@ mkEditor = monacoComponent $ JSM.settings setup
   where
   setup editor =
     liftEffect do
-      mContents <- LocalStorage.getItem StaticData.jsBufferLocalStorageKey
+      mContents <- SessionStorage.getItem StaticData.jsBufferLocalStorageKey
       let
         contents = fromMaybe JSE.example mContents
 
