@@ -13,9 +13,9 @@ import Data.Map as Map
 import Data.Maybe (Maybe(..))
 import Halogen.HTML (HTML, button, div, div_, h2_, text)
 import Halogen.HTML.Events (onClick)
-import MainFrame.Types (ContractInstance, ContractStatus)
+import MainFrame.Types (ContractStatus)
 import Marlowe.Execution (ExecutionStep, NamedAction(..))
-import Marlowe.Semantics (Accounts, ChoiceId(..), Input(..), Party, TransactionInput(..), _accounts)
+import Marlowe.Semantics (Accounts, ChoiceId(..), Contract, Input(..), Party, TransactionInput(..), _accounts)
 
 contractsScreen :: forall p. ContractStatus -> HTML p Action
 contractsScreen contractStatus =
@@ -25,7 +25,7 @@ contractsScreen contractStatus =
         [ text "Dashboard home" ]
     ]
 
-contractDetailsCard :: forall p. ContractInstance -> HTML p Action
+contractDetailsCard :: forall p. Contract -> HTML p Action
 contractDetailsCard contractInstance =
   div_
     [ h2_
