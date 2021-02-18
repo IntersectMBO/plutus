@@ -33,6 +33,7 @@
     components = {
       "library" = {
         depends = [
+          (hsPkgs."freer-extras" or (errorHandler.buildDepError "freer-extras"))
           (hsPkgs."plutus-ledger" or (errorHandler.buildDepError "plutus-ledger"))
           (hsPkgs."plutus-tx" or (errorHandler.buildDepError "plutus-tx"))
           (hsPkgs."plutus-tx-plugin" or (errorHandler.buildDepError "plutus-tx-plugin"))
@@ -144,8 +145,6 @@
           "Cardano/Wallet/Server"
           "Cardano/Wallet/Types"
           "Control/Monad/Freer/Delay"
-          "Control/Monad/Freer/Extra/Log"
-          "Control/Monad/Freer/Extra/State"
           "Control/Monad/Freer/WebSocket"
           "Control/Concurrent/Availability"
           "Data/Time/Units/Extra"
@@ -196,6 +195,7 @@
             (hsPkgs."base" or (errorHandler.buildDepError "base"))
             (hsPkgs."bytestring" or (errorHandler.buildDepError "bytestring"))
             (hsPkgs."filepath" or (errorHandler.buildDepError "filepath"))
+            (hsPkgs."freer-extras" or (errorHandler.buildDepError "freer-extras"))
             (hsPkgs."freer-simple" or (errorHandler.buildDepError "freer-simple"))
             (hsPkgs."lens" or (errorHandler.buildDepError "lens"))
             (hsPkgs."monad-logger" or (errorHandler.buildDepError "monad-logger"))
@@ -358,6 +358,7 @@
             (hsPkgs."containers" or (errorHandler.buildDepError "containers"))
             (hsPkgs."eventful-core" or (errorHandler.buildDepError "eventful-core"))
             (hsPkgs."eventful-memory" or (errorHandler.buildDepError "eventful-memory"))
+            (hsPkgs."freer-extras" or (errorHandler.buildDepError "freer-extras"))
             (hsPkgs."freer-simple" or (errorHandler.buildDepError "freer-simple"))
             (hsPkgs."http-client" or (errorHandler.buildDepError "http-client"))
             (hsPkgs."http-client-tls" or (errorHandler.buildDepError "http-client-tls"))
