@@ -24,17 +24,13 @@
 module Language.PlutusCore.Evaluation.Machine.Cek
     ( CekValue(..)
     , CekEvaluationException
-    , EvaluationResult(..)
-    , ErrorWithCause(..)
-    , EvaluationError(..)
-    , CekUserError(..)
-    , ExBudget(..)
-    , ExBudgetCategory(..)
-    , ExBudgetMode(..)
-    , ExRestrictingBudget(..)
-    , ExTally(..)
     , CekExBudgetState
     , CekExTally
+    , CekUserError(..)
+    , ErrorWithCause(..)
+    , EvaluationResult(..)
+    , EvaluationError(..)
+    , ExBudgetCategory(..)
     , exBudgetStateTally
     , extractEvaluationResult
     , runCek

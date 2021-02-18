@@ -20,23 +20,20 @@
 
 module Language.UntypedPlutusCore.Evaluation.Machine.Cek
     ( CekValue(..)
+    , CekUserError(..)
     , CekEvaluationException
+    , CekExBudgetState
+    , CekExTally
     , EvaluationResult(..)
     , ErrorWithCause(..)
     , EvaluationError(..)
-    , CekUserError(..)
-    , ExBudget(..)
     , ExBudgetCategory(..)
-    , ExBudgetMode(..)
-    , ExRestrictingBudget(..)
-    , ExTally(..)
-    , CekExBudgetState
-    , CekExTally
     , exBudgetStateTally
     , extractEvaluationResult
     , runCek
     , runCekCounting
     , evaluateCek
+    , unsafeEvaluateCekWithBudget
     , unsafeEvaluateCek
     , readKnownCek
     )
@@ -158,9 +155,13 @@ type CekEvaluationException uni fun = CekEvaluationExceptionCarrying (Term Name 
 type CekM uni fun = CekCarryingM (Term Name uni fun ()) uni fun
 
 data ExBudgetCategory fun
-    = BForce
-    | BApply
+    = BConst
     | BVar
+    | BLamAbs
+    | BApply
+    | BDelay
+    | BForce
+    | BError
     | BBuiltin fun
     | BAST
     deriving stock (Show, Eq, Generic)
@@ -325,16 +326,17 @@ computeCek
     => Context uni fun -> CekValEnv uni fun -> TermWithMem uni fun -> CekM uni fun (Term Name uni fun ())
 -- s ; ρ ▻ {L A}  ↦ s , {_ A} ; ρ ▻ L
 computeCek ctx env (Var _ varName) = do
-    spendBudget BVar (ExBudget 1 1) -- TODO
+    spendBudget BVar (ExBudget 1 1)
     val <- lookupVarName varName env
     returnCek ctx val
-computeCek ctx _ (Constant ex val) =
+computeCek ctx _ (Constant ex val) = do
+    spendBudget BConst (ExBudget 1 1)
     returnCek ctx (VCon ex val)
-computeCek ctx env (LamAbs ex name body) =
-    -- TODO: budget?
+computeCek ctx env (LamAbs ex name body) = do
+    spendBudget BLamAbs (ExBudget 1 1)
     returnCek ctx (VLamAbs ex name body env)
-computeCek ctx env (Delay ex body) =
-    -- TODO: budget?
+computeCek ctx env (Delay ex body) = do
+    spendBudget BDelay (ExBudget 1 1)
     returnCek ctx (VDelay ex body env)
 -- s ; ρ ▻ lam x L  ↦  s ◅ lam x (L , ρ)
 computeCek ctx env (Force _ body) = do
@@ -342,17 +344,17 @@ computeCek ctx env (Force _ body) = do
     computeCek (FrameForce : ctx) env body
 -- s ; ρ ▻ [L M]  ↦  s , [_ (M,ρ)]  ; ρ ▻ L
 computeCek ctx env (Apply _ fun arg) = do
-    spendBudget BApply (ExBudget 1 1) -- TODO
+--    spendBudget BApply (ExBudget 1 1) -- TODO
     computeCek (FrameApplyArg env arg : ctx) env fun
 -- s ; ρ ▻ abs α L  ↦  s ◅ abs α (L , ρ)
 -- s ; ρ ▻ con c  ↦  s ◅ con c
 -- s ; ρ ▻ builtin bn  ↦  s ◅ builtin bn arity arity [] [] ρ
 computeCek ctx _ (Builtin ex bn) = do
-    -- TODO: budget?
     BuiltinRuntime _ arity _ _ <- asksM $ lookupBuiltin bn . cekEnvRuntime
     returnCek ctx (VBuiltin ex bn arity arity 0 [])
 -- s ; ρ ▻ error A  ↦  <> A
-computeCek _ _ (Error _) =
+computeCek _ _ (Error _) = do
+    spendBudget BError (ExBudget 1 1)
     throwing_ _EvaluationFailure
 -- s ; ρ ▻ x  ↦  s ◅ ρ[ x ]
 
@@ -534,6 +536,28 @@ unsafeEvaluateCek
     -> Term Name uni fun ()
     -> EvaluationResult (Term Name uni fun ())
 unsafeEvaluateCek runtime = either throw id . extractEvaluationResult . evaluateCek runtime
+
+unsafeEvaluateCekWithBudget
+    :: ( GShow uni, GEq uni, Typeable uni
+       , Closed uni, uni `EverywhereAll` '[ExMemoryUsage, PrettyConst]
+       , Hashable fun, Ix fun, Pretty fun, Typeable fun, ExMemoryUsage fun
+        )
+    => BuiltinsRuntime fun (CekValue uni fun)
+    -> ExBudgetMode
+    -> Term Name uni fun ()
+    -> (EvaluationResult (Term Name uni fun ()), CekExBudgetState fun)
+unsafeEvaluateCekWithBudget runtime budget term =
+    let (result, budgetState) = runCek runtime budget term
+    in (either throw id . extractEvaluationResult  $ result, budgetState)
+
+-- runCek returns (Either (CekEvaluationException uni fun) (Term Name uni fun ()), CekExBudgetState fun)
+
+-- We get back (Either error term, budgetstate)
+-- extractEvaluationResult converts this to
+--
+
+-- We *don't* want to throw an error if there's an error (at least not an internal one),
+-- because the budget state is still important.
 
 {-
 -- | Evaluate a term using the CEK machine. May throw a 'CekMachineException'.

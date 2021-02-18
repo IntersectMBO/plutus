@@ -6,46 +6,50 @@
 
 module Main (main) where
 
-import qualified Language.PlutusCore                               as PLC
-import qualified Language.PlutusCore.CBOR                          as PLC
-import qualified Language.PlutusCore.Evaluation.Machine.Cek        as PLC
-import qualified Language.PlutusCore.Evaluation.Machine.Ck         as PLC
-import           Language.PlutusCore.Evaluation.Machine.ExMemory   (ExCPU (..), ExMemory (..))
-import qualified Language.PlutusCore.Generators                    as Gen
-import qualified Language.PlutusCore.Generators.Interesting        as Gen
-import qualified Language.PlutusCore.Generators.Test               as Gen
-import qualified Language.PlutusCore.Pretty                        as PP
-import qualified Language.PlutusCore.StdLib.Data.Bool              as StdLib
-import qualified Language.PlutusCore.StdLib.Data.ChurchNat         as StdLib
-import qualified Language.PlutusCore.StdLib.Data.Integer           as StdLib
-import qualified Language.PlutusCore.StdLib.Data.Unit              as StdLib
-import qualified Language.UntypedPlutusCore                        as UPLC
-import qualified Language.UntypedPlutusCore.Evaluation.Machine.Cek as UPLC
+import qualified Language.PlutusCore                                as PLC
+import qualified Language.PlutusCore.CBOR                           as PLC
+import qualified Language.PlutusCore.Evaluation.Machine.Cek         as TCek
+import qualified Language.PlutusCore.Evaluation.Machine.Ck          as Ck
+import           Language.PlutusCore.Evaluation.Machine.ExBudgeting (ExBudget (..), ExBudgetMode (..),
+                                                                     ExBudgetState (..), ExRestrictingBudget (..),
+                                                                     ExTally (..), Hashable)
+import           Language.PlutusCore.Evaluation.Machine.ExMemory    (ExCPU (..), ExMemory (..))
+import qualified Language.PlutusCore.Generators                     as Gen
+import qualified Language.PlutusCore.Generators.Interesting         as Gen
+import qualified Language.PlutusCore.Generators.Test                as Gen
+import qualified Language.PlutusCore.Pretty                         as PP
+import qualified Language.PlutusCore.StdLib.Data.Bool               as StdLib
+import qualified Language.PlutusCore.StdLib.Data.ChurchNat          as StdLib
+import qualified Language.PlutusCore.StdLib.Data.Integer            as StdLib
+import qualified Language.PlutusCore.StdLib.Data.Unit               as StdLib
+import qualified Language.UntypedPlutusCore                         as UPLC
+import qualified Language.UntypedPlutusCore.Evaluation.Machine.Cek  as Cek
 
 import           Codec.Serialise
-import           Control.DeepSeq                                   (NFData, rnf)
+import           Control.DeepSeq                                    (NFData, rnf)
 import           Control.Monad
-import           Control.Monad.Trans.Except                        (runExceptT)
-import           Data.Bifunctor                                    (second)
-import qualified Data.ByteString.Lazy                              as BSL
-import           Data.Foldable                                     (traverse_)
-import           Data.Function                                     ((&))
-import           Data.Functor                                      ((<&>))
-import           Data.List                                         (nub)
-import           Data.List.Split                                   (splitOn)
-import qualified Data.Text                                         as T
-import           Data.Text.Encoding                                (encodeUtf8)
-import qualified Data.Text.IO                                      as T
-import           Data.Text.Prettyprint.Doc                         (Doc, pretty, (<+>))
-import           Data.Traversable                                  (for)
+import           Control.Monad.Trans.Except                         (runExceptT)
+import           Data.Bifunctor                                     (second)
+import qualified Data.ByteString.Lazy                               as BSL
+import           Data.Foldable                                      (traverse_)
+import           Data.Function                                      ((&))
+import           Data.Functor                                       ((<&>))
+import qualified Data.HashMap.Monoidal                              as H
+import           Data.List                                          (foldl, nub)
+import           Data.List.Split                                    (splitOn)
+import qualified Data.Text                                          as T
+import           Data.Text.Encoding                                 (encodeUtf8)
+import qualified Data.Text.IO                                       as T
+import           Data.Text.Prettyprint.Doc                          (Doc, pretty, (<+>))
+import           Data.Traversable                                   (for)
 import           Flat
 import           Options.Applicative
-import           System.CPUTime                                    (getCPUTime)
-import           System.Exit                                       (exitFailure, exitSuccess)
+import           System.CPUTime                                     (getCPUTime)
+import           System.Exit                                        (exitFailure, exitSuccess)
 import           System.IO
-import           System.Mem                                        (performGC)
-import           Text.Printf                                       (printf)
-import           Text.Read                                         (readMaybe)
+import           System.Mem                                         (performGC)
+import           Text.Printf                                        (printf)
+import           Text.Read                                          (readMaybe)
 
 {- Note [Annotation types] This program now reads and writes CBOR-serialised PLC
    ASTs.  In all cases we require the annotation type to be ().  There are two
@@ -93,7 +97,7 @@ data PrintMode   = Classic | Debug | Readable | ReadableDebug deriving (Show, Re
 type ExampleName = T.Text
 data ExampleMode = ExampleSingle ExampleName | ExampleAvailable
 data EvalMode    = CK | CEK deriving (Show, Read)
-data BudgetMode  = Silent | Verbose UPLC.ExBudgetMode
+data BudgetMode  = Silent | Verbose ExBudgetMode
 data AstNameType = Named | DeBruijn  -- Do we use Names or de Bruijn indices when (de)serialising ASTs?
 type Files       = [FilePath]
 
@@ -204,26 +208,28 @@ outputformat = option (maybeReader formatReader)
 -- Reader for budget.  The --restricting option requires two integer arguments
 -- and the easiest way to do this is to supply a colon-separated pair of
 -- integers.
-exbudgetReader :: ReadM UPLC.ExBudget
+exbudgetReader :: ReadM ExBudget
 exbudgetReader = do
   s <- str
   case splitOn ":" s of
     [a,b] -> case (readMaybe a, readMaybe b) of
-               (Just (cpu::Integer), Just (mem::Integer)) -> pure $ UPLC.ExBudget (ExCPU cpu) (ExMemory mem)
+               (Just (cpu::Integer), Just (mem::Integer)) -> pure $ ExBudget (ExCPU cpu) (ExMemory mem)
                _                                          -> readerError badfmt
     _     -> readerError badfmt
     where badfmt = "Invalid budget (expected eg 10000:50000)"
 
 restrictingbudget :: Parser BudgetMode
-restrictingbudget = Verbose . UPLC.Restricting . UPLC.ExRestrictingBudget
+restrictingbudget = Verbose . Restricting . ExRestrictingBudget
                     <$> option exbudgetReader
                             (  long "restricting"
+                            <> short 'r'
                             <> metavar "ExCPU:ExMemory"
                             <> help "Run the machine in restricting mode with the given limits" )
 
 countingbudget :: Parser BudgetMode
-countingbudget = flag' (Verbose UPLC.Counting)
+countingbudget = flag' (Verbose Counting)
                  (  long "counting"
+                 <> short 'c'
                  <> help "Run machine in counting mode and report results" )
 
 budgetmode :: Parser BudgetMode
@@ -715,16 +721,57 @@ timeEval n evaluate prog
             end <- getCPUTime
             pure $ (result, end - start)
 
+printBudgetStateBudget :: ExBudget -> IO ()
+printBudgetStateBudget b = do
+  let ExCPU cpu = _exBudgetCPU b
+      ExMemory mem = _exBudgetMemory b
+  putStrLn $ "cpu budget:    " ++ show cpu
+  putStrLn $ "memory budget: " ++ show mem
+
+
+printBudgetStateTally :: (Eq fun, Hashable fun, Show fun) => Cek.CekExTally fun -> IO ()
+printBudgetStateTally (ExTally costs) = do
+  putStrLn $ "Const:   " ++ pbudget Cek.BConst
+  putStrLn $ "Var:     " ++ pbudget Cek.BVar
+  putStrLn $ "LamAbs:  " ++ pbudget Cek.BLamAbs
+  putStrLn $ "Apply:   " ++ pbudget Cek.BApply
+  putStrLn $ "Delay:   " ++ pbudget Cek.BDelay
+  putStrLn $ "Force:   " ++ pbudget Cek.BForce
+  putStrLn $ "Error:   " ++ pbudget Cek.BError
+  putStrLn $ "AST:     " ++ pbudget Cek.BAST
+  putStrLn $ "Builtin: " ++ budgetToString (mconcat (map snd builtinsAndCosts))
+  putStrLn ""
+  traverse_ (\(b,cost) -> putStrLn $ printf "%-20s %s" (show b) (budgetToString cost :: String)) builtinsAndCosts
+      where
+        get k =
+            case H.lookup k costs of
+              Just v  -> v
+              Nothing -> ExBudget 0 0
+        pbudget k = budgetToString $ get k
+        budgetToString (ExBudget (ExCPU cpu) (ExMemory mem)) = printf "%6d  %6d" cpu mem
+        f l e = case e of {(Cek.BBuiltin b, cost)  -> (b,cost):l; _ -> l}
+        builtinsAndCosts = Data.List.foldl f [] (H.toList costs)
+
+printBudgetState :: (Eq fun, Hashable fun, Show fun) => Cek.CekExBudgetState fun -> IO ()
+printBudgetState bs = do
+    printBudgetStateBudget $ _exBudgetStateBudget bs
+    putStrLn ""
+    printBudgetStateTally  $ _exBudgetStateTally bs
+
 runEval :: EvalOptions -> IO ()
 runEval (EvalOptions language inp ifmt evalMode printMode budgetMode timingMode) =
     case language of
 
       TypedPLC -> do
+        let !_ = case budgetMode of
+                   Silent    -> ()
+                   Verbose _ -> error "There is no budgeting for typed Plutus Core"
+                   -- There is in the CEK machine, but that's just about to disappear so let's ignore it.
         TypedProgram prog <- getProgram TypedPLC ifmt inp
         let evaluate =
                 case evalMode of
-                  CK  -> PLC.unsafeEvaluateCk  PLC.defBuiltinsRuntime
-                  CEK -> PLC.unsafeEvaluateCek PLC.defBuiltinsRuntime
+                  CK  -> Ck.unsafeEvaluateCk  PLC.defBuiltinsRuntime
+                  CEK -> TCek.unsafeEvaluateCek PLC.defBuiltinsRuntime
             body = void . PLC.toTerm $ prog
             !_ = rnf body
         -- Force evaluation of body to ensure that we're not timing parsing/deserialisation.
@@ -735,19 +782,34 @@ runEval (EvalOptions language inp ifmt evalMode printMode budgetMode timingMode)
 
       UntypedPLC ->
           case evalMode of
-            CK  -> hPutStrLn stderr "There is no CK machine for UntypedPLC Plutus Core" >> exitFailure
+            CK  -> hPutStrLn stderr "There is no CK machine for Untyped Plutus Core" >> exitFailure
             CEK -> do
                   UntypedProgram prog <- getProgram UntypedPLC ifmt inp
-                  let evaluate = UPLC.unsafeEvaluateCek PLC.defBuiltinsRuntime
-                      body = void . UPLC.toTerm $ prog
-                      !_ = rnf body
-                  case timingMode of
-                    NoTiming -> evaluate body & handleResult
-                    Timing n -> timeEval n evaluate body >>= handleTimingResults
+                  case budgetMode of
+                    Silent -> do
+                          let evaluate = Cek.unsafeEvaluateCek PLC.defBuiltinsRuntime
+                              body = void . UPLC.toTerm $ prog
+                              !_ = rnf body
+                          case timingMode of
+                            NoTiming -> evaluate body & handleResult
+                            Timing n -> timeEval n evaluate body >>= handleTimingResults
+                    Verbose bm -> do
+                          let evaluate = Cek.unsafeEvaluateCekWithBudget PLC.defBuiltinsRuntime bm
+                              body = void . UPLC.toTerm $ prog
+                          case timingMode of
+                            NoTiming -> do
+                                    let (result, budget) = evaluate body
+                                    printBudgetState budget
+                                    handleResultSilently result  -- We just want to see the budget information
+                            Timing _ -> error "Timing mode and budget mode cannot be used simultaneously"
+
 
     where handleResult result =
               case result of
                 PLC.EvaluationSuccess v -> (print $ getPrintMethod printMode v) >> exitSuccess
+                PLC.EvaluationFailure   -> exitFailure
+          handleResultSilently = \case
+                PLC.EvaluationSuccess _ -> exitSuccess
                 PLC.EvaluationFailure   -> exitFailure
           handleTimingResults results =
               case nub results of
