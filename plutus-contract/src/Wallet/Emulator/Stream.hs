@@ -32,10 +32,10 @@ import           Control.Monad.Freer                    (Eff, Member, interpret,
 import           Control.Monad.Freer.Coroutine          (Yield, yield)
 import           Control.Monad.Freer.Error              (Error, runError)
 import           Control.Monad.Freer.Extras             (raiseEnd7, wrapError)
-import           Control.Monad.Freer.Log                (LogLevel, LogMessage (..), LogMsg (..), logMessageContent,
+import           Control.Monad.Freer.Extras.Log         (LogLevel, LogMessage (..), LogMsg (..), logMessageContent,
                                                          mapMLog)
+import           Control.Monad.Freer.Extras.Stream      (runStream)
 import           Control.Monad.Freer.State              (State, gets, runState)
-import           Control.Monad.Freer.Stream             (runStream)
 import           Data.Bifunctor                         (first)
 import           Data.Map                               (Map)
 import qualified Data.Map                               as Map

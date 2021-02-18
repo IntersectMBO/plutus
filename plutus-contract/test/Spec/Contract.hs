@@ -17,8 +17,8 @@ import           Control.Monad                                 (forever, void)
 import           Control.Monad.Error.Lens
 import           Control.Monad.Except                          (catchError, throwError)
 import           Control.Monad.Freer                           (Eff)
-import           Control.Monad.Freer.Log                       (LogLevel (..))
-import qualified Control.Monad.Freer.Log                       as Log
+import           Control.Monad.Freer.Extras.Log                (LogLevel (..))
+import qualified Control.Monad.Freer.Extras.Log                as Log
 import           Test.Tasty
 
 import           Language.Plutus.Contract                      as Con
