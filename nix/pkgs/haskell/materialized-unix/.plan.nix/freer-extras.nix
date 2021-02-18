@@ -45,8 +45,10 @@
         buildable = true;
         modules = [
           "Control/Monad/Freer/Extras"
-          "Control/Monad/Freer/Log"
-          "Control/Monad/Freer/Stream"
+          "Control/Monad/Freer/Extras/Modify"
+          "Control/Monad/Freer/Extras/Log"
+          "Control/Monad/Freer/Extras/Stream"
+          "Control/Monad/Freer/Extras/State"
           ];
         hsSourceDirs = [ "src" ];
         };
