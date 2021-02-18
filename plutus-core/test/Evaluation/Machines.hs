@@ -10,13 +10,15 @@ module Evaluation.Machines
 where
 
 import           Common
-import qualified Data.Text                                        as T
+import qualified Data.Text                                          as T
 import           Data.Text.Prettyprint.Doc
 import           Data.Text.Prettyprint.Doc.Render.Text
 
 import           Language.PlutusCore
 import           Language.PlutusCore.Evaluation.Machine.Cek
 import           Language.PlutusCore.Evaluation.Machine.Ck
+import           Language.PlutusCore.Evaluation.Machine.ExBudgeting (ExBudget (..), ExBudgetMode (..),
+                                                                     ExRestrictingBudget (..))
 import           Language.PlutusCore.Evaluation.Machine.ExMemory
 import           Language.PlutusCore.Evaluation.Machine.Exception
 import           Language.PlutusCore.FsTree
@@ -24,8 +26,8 @@ import           Language.PlutusCore.Generators.Interesting
 import           Language.PlutusCore.Generators.Test
 import           Language.PlutusCore.Pretty
 
-import           Language.PlutusCore.Examples.Everything          (examples)
-import           Language.PlutusCore.StdLib.Everything            (stdLib)
+import           Language.PlutusCore.Examples.Everything            (examples)
+import           Language.PlutusCore.StdLib.Everything              (stdLib)
 
 import           Test.Tasty
 import           Test.Tasty.HUnit

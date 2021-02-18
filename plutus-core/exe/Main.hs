@@ -213,8 +213,8 @@ exbudgetReader = do
   s <- str
   case splitOn ":" s of
     [a,b] -> case (readMaybe a, readMaybe b) of
-               (Just (cpu::Integer), Just (mem::Integer)) -> pure $ ExBudget (ExCPU cpu) (ExMemory mem)
-               _                                          -> readerError badfmt
+               (Just cpu, Just mem) -> pure $ ExBudget (ExCPU cpu) (ExMemory mem)
+               _                    -> readerError badfmt
     _     -> readerError badfmt
     where badfmt = "Invalid budget (expected eg 10000:50000)"
 
