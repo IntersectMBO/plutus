@@ -16,6 +16,7 @@ import Halogen.HTML.Properties (IProp, attr)
 import Record as Record
 import Simple.JSON (class WriteForeign)
 import Simple.JSON as JSON
+import Web.DOM (Element)
 import Web.Event.EventTarget (EventListener)
 import Web.HTML (HTMLElement)
 
@@ -102,6 +103,8 @@ foreign import loadWorkspace_ :: EffectFn3 Blockly Workspace XML Unit
 -- could be left enabled.
 foreign import debugBlockly_ :: EffectFn2 String BlocklyState Unit
 
+foreign import workspaceToDom_ :: EffectFn2 Blockly Workspace Element
+
 newtype ElementId
   = ElementId String
 
@@ -185,6 +188,9 @@ workspaceXML = runEffectFn2 workspaceXML_
 
 loadWorkspace :: Blockly -> Workspace -> XML -> Effect Unit
 loadWorkspace = runEffectFn3 loadWorkspace_
+
+workspaceToDom :: Blockly -> Workspace -> Effect Element
+workspaceToDom = runEffectFn2 workspaceToDom_
 
 data Pair
   = Pair String String

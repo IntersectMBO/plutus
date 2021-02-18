@@ -329,6 +329,18 @@ let
         installPhase = "ln -s $src $out";
       };
 
+    "filterable" = pkgs.stdenv.mkDerivation {
+        name = "filterable";
+        version = "v3.0.1";
+        src = pkgs.fetchgit {
+          url = "https://github.com/LiamGoodacre/purescript-filterable";
+          rev = "0b9b0994704f29e75072e6b3e6b8658b93b35ab8";
+          sha256 = "1sj0r49pzkiibrin28p2ikh3z0884kzqa9p6glzh5hxh6smx8ihb";
+        };
+        phases = "installPhase";
+        installPhase = "ln -s $src $out";
+      };
+
     "fixed-points" = pkgs.stdenv.mkDerivation {
         name = "fixed-points";
         version = "v5.1.0";
@@ -1233,7 +1245,7 @@ let
         name = "unsafe-reference";
         version = "v3.0.1";
         src = pkgs.fetchgit {
-          url = "https://github.com/purescript-contrib/purescript-unsafe-reference.git";
+          url = "https://github.com/purescript-contrib/purescript-unsafe-reference";
           rev = "79d7de7b9351346a73e6c060d80532c95ba1c7c1";
           sha256 = "0q758dz59qz0li4s3w1qcg921xp5i5rh6i1l611iv7rr8cbj11al";
         };
