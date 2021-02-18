@@ -18,6 +18,7 @@ import Data.List ((:))
 import Data.List as List
 import Data.Map as Map
 import Data.Maybe (Maybe(..), fromMaybe)
+import Data.Newtype (unwrap)
 import Data.String (drop, joinWith, length, take)
 import Effect.Aff.Class (class MonadAff, liftAff)
 import Effect.Class (class MonadEffect)
@@ -34,7 +35,7 @@ import Language.Javascript.Interpreter as JSI
 import Language.Javascript.Monaco as JSM
 import SessionStorage as SessionStorage
 import MainFrame.Types (ChildSlots, _jsEditorSlot)
-import Marlowe.Extended (Contract, typeToLens)
+import Marlowe.Extended (Contract, getPlaceholderIds, typeToLens, updateTemplateContent)
 import Monaco (IRange, getModel, isError, setValue)
 import Network.RemoteData (RemoteData(..))
 import StaticAnalysis.Reachability (analyseReachability)
@@ -123,7 +124,9 @@ handleAction Compile = do
           res <- liftAff $ JSI.eval model
           case res of
             Left err -> pure $ CompilationError err
-            Right result -> pure $ CompiledSuccessfully result
+            Right result -> do
+              modifying (_analysisState <<< _templateContent) $ updateTemplateContent $ getPlaceholderIds $ (unwrap result).result
+              pure $ CompiledSuccessfully result
   assign _compilationResult compilationResult
   case compilationResult of
     (CompilationError _) -> handleAction $ BottomPanelAction (BottomPanel.ChangePanel ErrorsView)

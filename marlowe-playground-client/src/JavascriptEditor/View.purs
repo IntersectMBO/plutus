@@ -19,7 +19,7 @@ import Halogen.HTML.Events (onClick, onSelectedIndexChange)
 import Halogen.HTML.Properties (class_, classes, enabled, href)
 import Halogen.HTML.Properties as HTML
 import JavascriptEditor.State (mkEditor)
-import JavascriptEditor.Types (Action(..), BottomPanelView(..), State, _bottomPanelState, _compilationResult, _keybindings, isCompiling)
+import JavascriptEditor.Types (Action(..), BottomPanelView(..), State, _bottomPanelState, _compilationResult, _keybindings)
 import JavascriptEditor.Types as JS
 import Language.Javascript.Interpreter (CompilationError(..), InterpreterResult(..))
 import MainFrame.Types (ChildSlots, _jsEditorSlot)
