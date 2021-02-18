@@ -63,8 +63,8 @@ import           Control.Monad.Freer
 import           Control.Monad.Freer.Coroutine
 import           Control.Monad.Freer.Error           (Error)
 import qualified Control.Monad.Freer.Error           as E
-import           Control.Monad.Freer.Extras          (raiseEnd4, raiseUnderN)
-import           Control.Monad.Freer.Log             (LogMessage, LogMsg, handleLogIgnore, handleLogWriter)
+import           Control.Monad.Freer.Extras.Log      (LogMessage, LogMsg, handleLogIgnore, handleLogWriter)
+import           Control.Monad.Freer.Extras.Modify   (raiseEnd4, raiseUnderN)
 import           Control.Monad.Freer.NonDet
 import           Control.Monad.Freer.State
 import qualified Control.Monad.Freer.Writer          as W

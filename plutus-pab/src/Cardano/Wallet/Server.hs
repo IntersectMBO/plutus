@@ -24,7 +24,7 @@ import           Control.Monad                   ((>=>))
 import qualified Control.Monad.Except            as MonadError
 import           Control.Monad.Freer             (Eff, runM)
 import           Control.Monad.Freer.Error       (Error, handleError, runError, throwError)
-import           Control.Monad.Freer.Extra.Log   (LogMsg, logInfo)
+import           Control.Monad.Freer.Extras.Log  (LogMsg, logInfo)
 import           Control.Monad.Freer.State       (State, runState)
 import           Control.Monad.IO.Class          (MonadIO, liftIO)
 import qualified Data.ByteString.Lazy.Char8      as Char8

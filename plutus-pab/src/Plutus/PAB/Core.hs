@@ -47,7 +47,7 @@ import           Cardano.BM.Data.Tracer.Extras    (StructuredLog, mkObjectStr)
 import           Control.Monad                    (void)
 import           Control.Monad.Freer              (Eff, Member)
 import           Control.Monad.Freer.Error        (Error)
-import           Control.Monad.Freer.Extra.Log    (LogMsg, logInfo)
+import           Control.Monad.Freer.Extras.Log   (LogMsg, logInfo)
 import           Control.Monad.IO.Unlift          (MonadUnliftIO)
 import           Control.Monad.Logger             (MonadLogger)
 import qualified Control.Monad.Logger             as MonadLogger

@@ -86,9 +86,6 @@ library
         Wallet.Effects
         Wallet.Graph
         Wallet.Types
-        Control.Monad.Freer.Extras
-        Control.Monad.Freer.Log
-        Control.Monad.Freer.Stream
         Plutus.Trace
         Plutus.Trace.Effects.ContractInstanceId
         Plutus.Trace.Effects.RunContract
@@ -107,6 +104,7 @@ library
     build-depends:
         plutus-ledger -any,
         plutus-tx -any,
+        freer-extras -any,
     build-depends:
         aeson >= 1.5.2,
         base >=4.7 && <5,
@@ -165,6 +163,7 @@ test-suite contract-doctests
       base >=4.9 && <5,
       template-haskell >=2.13.0.0,
       bytestring -any,
+      freer-extras -any,
       plutus-core -any,
       plutus-contract -any,
       plutus-ledger -any,
@@ -187,6 +186,7 @@ test-suite plutus-contract-test
         base >=4.9 && <5,
         bytestring -any,
         containers -any,
+        freer-extras -any,
         hedgehog -any,
         tasty -any,
         tasty-hunit -any,

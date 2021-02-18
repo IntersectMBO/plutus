@@ -8,7 +8,66 @@
 {-# LANGUAGE TypeApplications    #-}
 {-# LANGUAGE TypeFamilies        #-}
 {-# LANGUAGE TypeOperators       #-}
-module Control.Monad.Freer.Extras where
+
+module Control.Monad.Freer.Extras.Modify (
+    -- * weaken functions
+    weakenEnd
+    , weakenEnd2
+    , weakenEnd3
+    , weakenEnd4
+    , weakenEnd5
+    , weakenEnd6
+    , weakenEnd7
+    , weakenEnd8
+    , weakenEnd9
+    , weakenEnd10
+    , weakenEnd11
+    , weakenEnd12
+    , weakenEnd13
+    , weakenEnd14
+    , weakenEnd15
+    , weakenEnd16
+    , weakenEnd17
+    , weakenEnd18
+    , weakenUnder
+    , weakenUnderN
+
+    -- * raise functions
+    , raiseEnd
+    , raiseEnd2
+    , raiseEnd3
+    , raiseEnd4
+    , raiseEnd5
+    , raiseEnd6
+    , raiseEnd7
+    , raiseEnd8
+    , raiseEnd9
+    , raiseEnd10
+    , raiseEnd11
+    , raiseEnd12
+    , raiseEnd13
+    , raiseEnd14
+    , raiseEnd15
+    , raiseEnd16
+    , raiseEnd17
+    , raiseEnd18
+    , raiseUnder
+    , raiseUnder2
+    , raiseUnderN
+
+    -- * zoom functions
+    , handleZoomedState
+    , handleZoomedError
+    , handleZoomedWriter
+    , handleZoomedReader
+
+    -- * manipulation
+    , writeIntoState
+    , stateToMonadState
+    , monadStateToState
+    , errorToMonadError
+    , wrapError
+    ) where
 
 import           Control.Lens
 import qualified Control.Monad.Except         as MTL

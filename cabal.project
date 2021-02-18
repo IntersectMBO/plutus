@@ -2,6 +2,7 @@
 index-state: 2021-02-17T00:00:00Z
 
 packages: doc
+          freer-extras
           marlowe
           marlowe-actus
           marlowe-playground-server

@@ -6,7 +6,7 @@
 module Cardano.Protocol.FollowerEffect where
 
 import           Control.Monad.Freer
-import           Control.Monad.Freer.Extra.Log
+import           Control.Monad.Freer.Extras.Log
 import           Control.Monad.Freer.Reader
 import           Control.Monad.Freer.State
 import           Control.Monad.IO.Class

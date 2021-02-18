@@ -10,19 +10,19 @@
 
 module Cardano.ChainIndex.Types where
 
-import           Control.Lens                  (makeLenses)
-import           Control.Monad.Freer.Log       (LogMessage)
-import           Data.Aeson                    (FromJSON, ToJSON)
-import           Data.Sequence                 (Seq)
-import           Data.Text.Prettyprint.Doc     (Pretty (..), parens, (<+>))
-import           GHC.Generics                  (Generic)
-import           Servant.Client                (BaseUrl)
+import           Control.Lens                   (makeLenses)
+import           Control.Monad.Freer.Extras.Log (LogMessage)
+import           Data.Aeson                     (FromJSON, ToJSON)
+import           Data.Sequence                  (Seq)
+import           Data.Text.Prettyprint.Doc      (Pretty (..), parens, (<+>))
+import           GHC.Generics                   (Generic)
+import           Servant.Client                 (BaseUrl)
 
-import           Cardano.BM.Data.Tracer        (ToObject (..))
-import           Cardano.BM.Data.Tracer.Extras (Tagged (..), mkObjectStr)
-import           Cardano.Node.Types            (FollowerID)
-import           Ledger.Address                (Address)
-import           Wallet.Emulator.ChainIndex    (ChainIndexEvent, ChainIndexState)
+import           Cardano.BM.Data.Tracer         (ToObject (..))
+import           Cardano.BM.Data.Tracer.Extras  (Tagged (..), mkObjectStr)
+import           Cardano.Node.Types             (FollowerID)
+import           Ledger.Address                 (Address)
+import           Wallet.Emulator.ChainIndex     (ChainIndexEvent, ChainIndexState)
 
 data AppState =
     AppState

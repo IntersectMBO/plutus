@@ -45,7 +45,7 @@ import qualified Ledger.AddressMap                                 as AM
 
 import           Language.Plutus.Contract.Resumable                (Request (..), Response (..))
 
-import           Control.Monad.Freer.Log                           (LogMessage, LogMsg, LogObserve, logDebug, logWarn,
+import           Control.Monad.Freer.Extras.Log                    (LogMessage, LogMsg, LogObserve, logDebug, logWarn,
                                                                     surroundDebug)
 import           Language.Plutus.Contract.Effects.AwaitTxConfirmed (TxConfirmed (..))
 import           Language.Plutus.Contract.Effects.Instance         (OwnIdRequest)

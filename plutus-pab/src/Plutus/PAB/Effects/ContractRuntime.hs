@@ -21,8 +21,7 @@ import           Cardano.BM.Data.Tracer           (ToObject (..), TracingVerbosi
 import           Cardano.BM.Data.Tracer.Extras    (Tagged (..), mkObjectStr)
 import           Control.Monad.Freer              (Eff, Member, type (~>))
 import           Control.Monad.Freer.Error        (runError)
-import           Control.Monad.Freer.Extra.Log    (LogMsg)
-import           Control.Monad.Freer.Log          (logInfo, logWarn)
+import           Control.Monad.Freer.Extras.Log   (LogMsg, logInfo, logWarn)
 import qualified Data.Aeson                       as JSON
 import           Data.Text.Prettyprint.Doc        (Pretty (..), (<+>))
 import           GHC.Generics                     (Generic)

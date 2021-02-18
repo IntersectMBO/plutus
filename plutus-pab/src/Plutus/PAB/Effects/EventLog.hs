@@ -7,25 +7,26 @@
 
 module Plutus.PAB.Effects.EventLog where
 
-import           Control.Monad.Freer        (Eff, LastMember, Member, interpret, sendM, type (~>))
-import           Control.Monad.Freer.Extras (monadStateToState)
-import           Control.Monad.Freer.Reader (Reader, ask)
-import           Control.Monad.Freer.State  (State)
-import           Control.Monad.Freer.TH     (makeEffect)
-import qualified Control.Monad.IO.Unlift    as Unlift
-import qualified Control.Monad.Logger       as MonadLogger
-import           Data.Aeson                 (FromJSON, ToJSON)
-import           Database.Persist.Sqlite    (ConnectionPool, SqlPersistT, retryOnBusy, runSqlPool)
-import           Eventful                   (Aggregate, EventStoreWriter, GlobalStreamProjection, Projection,
-                                             VersionedEventStoreReader, VersionedStreamEvent, commandStoredAggregate,
-                                             getLatestStreamProjection, globalStreamProjection,
-                                             serializedEventStoreWriter, serializedGlobalEventStoreReader,
-                                             serializedVersionedEventStoreReader, streamProjectionState)
-import qualified Eventful.Store.Memory      as M
-import           Eventful.Store.Sql         (JSONString, SqlEvent, SqlEventStoreConfig, jsonStringSerializer,
-                                             sqlEventStoreReader, sqlGlobalEventStoreReader)
-import           Eventful.Store.Sqlite      (sqliteEventStoreWriter)
-import           Plutus.PAB.Types           (Source (..), toUUID)
+import           Control.Monad.Freer               (Eff, LastMember, Member, interpret, sendM, type (~>))
+import           Control.Monad.Freer.Extras.Modify (monadStateToState)
+import           Control.Monad.Freer.Reader        (Reader, ask)
+import           Control.Monad.Freer.State         (State)
+import           Control.Monad.Freer.TH            (makeEffect)
+import qualified Control.Monad.IO.Unlift           as Unlift
+import qualified Control.Monad.Logger              as MonadLogger
+import           Data.Aeson                        (FromJSON, ToJSON)
+import           Database.Persist.Sqlite           (ConnectionPool, SqlPersistT, retryOnBusy, runSqlPool)
+import           Eventful                          (Aggregate, EventStoreWriter, GlobalStreamProjection, Projection,
+                                                    VersionedEventStoreReader, VersionedStreamEvent,
+                                                    commandStoredAggregate, getLatestStreamProjection,
+                                                    globalStreamProjection, serializedEventStoreWriter,
+                                                    serializedGlobalEventStoreReader,
+                                                    serializedVersionedEventStoreReader, streamProjectionState)
+import qualified Eventful.Store.Memory             as M
+import           Eventful.Store.Sql                (JSONString, SqlEvent, SqlEventStoreConfig, jsonStringSerializer,
+                                                    sqlEventStoreReader, sqlGlobalEventStoreReader)
+import           Eventful.Store.Sqlite             (sqliteEventStoreWriter)
+import           Plutus.PAB.Types                  (Source (..), toUUID)
 
 newtype Connection =
     Connection (SqlEventStoreConfig SqlEvent JSONString, ConnectionPool)

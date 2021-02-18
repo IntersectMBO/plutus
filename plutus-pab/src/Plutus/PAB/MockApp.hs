@@ -33,16 +33,13 @@ module Plutus.PAB.MockApp
     , blockchainNewestFirst
     ) where
 
-import           Cardano.Node.Types                    (MockServerLogMsg, NodeFollowerState)
 import qualified Cardano.Node.Types                    as NodeServer
 import           Control.Lens                          hiding (use)
 import           Control.Monad                         (void)
 import           Control.Monad.Freer                   (Eff, Member, interpret, runM, type (~>))
 import           Control.Monad.Freer.Error             (Error, handleError, runError, throwError)
-import           Control.Monad.Freer.Extra.Log         (LogMsg)
-import           Control.Monad.Freer.Extra.State       (use)
-import           Control.Monad.Freer.Extras
-import           Control.Monad.Freer.Log               (LogMessage, handleLogWriter)
+import           Control.Monad.Freer.Extras.Log        (LogMessage, LogMsg, handleLogWriter)
+import           Control.Monad.Freer.Extras.State      (use)
 import           Control.Monad.Freer.State             (State, runState)
 import           Control.Monad.Freer.Writer            (Writer)
 import           Control.Monad.IO.Class                (MonadIO (..))
@@ -70,7 +67,8 @@ import           Test.QuickCheck.Instances.UUID        ()
 
 import qualified Cardano.ChainIndex.Server             as ChainIndex
 import qualified Cardano.ChainIndex.Types              as ChainIndex
-import           Cardano.Node.Types                    (NodeFollowerLogMsg)
+import           Cardano.Node.Types                    (MockServerLogMsg, NodeFollowerLogMsg, NodeFollowerState)
+import           Control.Monad.Freer.Extras.Modify     (handleZoomedState, handleZoomedWriter, writeIntoState)
 import           Wallet.API                            (WalletAPIError)
 import           Wallet.Emulator.Chain                 (ChainControlEffect, ChainEffect, ChainEvent, ChainState,
                                                         handleChain, handleControlChain)

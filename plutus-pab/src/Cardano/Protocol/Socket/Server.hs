@@ -7,7 +7,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TypeApplications  #-}
 {-# LANGUAGE TypeFamilies      #-}
-{-# LANGUAGE TypeOperators     #-}
 
 module Cardano.Protocol.Socket.Server where
 
@@ -24,8 +23,8 @@ import           Control.Concurrent.Async
 import           Control.Concurrent.STM
 import           Control.Lens                                        hiding (ix)
 import qualified Control.Monad.Freer                                 as Free
-import           Control.Monad.Freer.Log                             (LogMessage, LogMsg)
-import qualified Control.Monad.Freer.Log                             as Free
+import           Control.Monad.Freer.Extras.Log                      (LogMessage, LogMsg)
+import qualified Control.Monad.Freer.Extras.Log                      as Free
 import qualified Control.Monad.Freer.State                           as Free
 import           Control.Monad.Freer.Writer                          (Writer)
 import qualified Control.Monad.Freer.Writer                          as Free

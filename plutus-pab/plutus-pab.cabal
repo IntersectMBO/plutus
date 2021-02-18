@@ -76,8 +76,6 @@ library
         Cardano.Wallet.Server
         Cardano.Wallet.Types
         Control.Monad.Freer.Delay
-        Control.Monad.Freer.Extra.Log
-        Control.Monad.Freer.Extra.State
         Control.Monad.Freer.WebSocket
         Control.Concurrent.Availability
         Data.Time.Units.Extra
@@ -120,6 +118,7 @@ library
         Servant.Extra
     hs-source-dirs: src
     build-depends:
+        freer-extras -any,
         plutus-ledger -any,
         plutus-tx -any,
         plutus-tx-plugin -any,
@@ -192,7 +191,6 @@ library
         Win32-network -any,
         websockets -any,
         yaml -any,
-        freer-simple -any,
         mwc-random -any,
         primitive -any,
         hedgehog -any,
@@ -216,6 +214,7 @@ executable plutus-pab
         base >=4.9 && <5,
         bytestring -any,
         filepath -any,
+        freer-extras -any,
         freer-simple -any,
         lens -any,
         monad-logger -any,
@@ -309,6 +308,7 @@ test-suite plutus-pab-test
         containers -any,
         eventful-core -any,
         eventful-memory -any,
+        freer-extras -any,
         freer-simple -any,
         http-client -any,
         http-client-tls -any,
