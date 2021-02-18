@@ -525,7 +525,6 @@ evaluateCek
     -> Either (CekEvaluationException uni fun) (Term Name uni fun ())
 evaluateCek runtime = fst . runCekCounting runtime
 
-
 -- | Evaluate a term using the CEK machine. May throw a 'CekMachineException'.
 unsafeEvaluateCek
     :: ( GShow uni, GEq uni, Typeable uni
@@ -537,6 +536,7 @@ unsafeEvaluateCek
     -> EvaluationResult (Term Name uni fun ())
 unsafeEvaluateCek runtime = either throw id . extractEvaluationResult . evaluateCek runtime
 
+-- | This is like unsafeEvaluateCek, but it takes an initial budget and returns the final budget
 unsafeEvaluateCekWithBudget
     :: ( GShow uni, GEq uni, Typeable uni
        , Closed uni, uni `EverywhereAll` '[ExMemoryUsage, PrettyConst]
@@ -546,52 +546,8 @@ unsafeEvaluateCekWithBudget
     -> ExBudgetMode
     -> Term Name uni fun ()
     -> (EvaluationResult (Term Name uni fun ()), CekExBudgetState fun)
-unsafeEvaluateCekWithBudget runtime budget term =
-    let (result, budgetState) = runCek runtime budget term
-    in (either throw id . extractEvaluationResult  $ result, budgetState)
-
--- runCek returns (Either (CekEvaluationException uni fun) (Term Name uni fun ()), CekExBudgetState fun)
-
--- We get back (Either error term, budgetstate)
--- extractEvaluationResult converts this to
---
-
--- We *don't* want to throw an error if there's an error (at least not an internal one),
--- because the budget state is still important.
-
-{-
--- | Evaluate a term using the CEK machine. May throw a 'CekMachineException'.
--- This version takes a starting budget (either Counting or Restricting) and
--- returns it along with the result.
-unsafeEvaluateCekRestricting
-    :: ( GShow uni, GEq uni, Typeable uni
-       , Closed uni, uni `EverywhereAll` '[ExMemoryUsage, PrettyConst]
-       , Hashable fun, Ix fun, Pretty fun, Typeable fun, ExMemoryUsage fun
-       )
-    => BuiltinsRuntime fun (CekValue uni fun)
-    -> ExBudgetMode
-    -> Term Name uni fun ()
-    -> EvaluationResult (Term Name uni fun (), CekExBudgetState fun)
-unsafeEvaluateCekRestricting runtime budget =
-    either throw id . extractEvaluationResult . runCek runtime budget
-
--- | Evaluate a term using the CEK machine. May throw a 'CekMachineException'.
--- This version takes a starting budget (either Counting or Restricting) and
--- returns it along with the result.
-unsafeEvaluateCekCounting
-    :: ( GShow uni, GEq uni, Typeable uni
-       , Closed uni, uni `EverywhereAll` '[ExMemoryUsage, PrettyConst]
-
-       , Hashable fun, Ix fun, Pretty fun, Typeable fun, ExMemoryUsage fun
-       )
-    => BuiltinsRuntime fun (CekValue uni fun)
-    -> ExBudgetMode
-    -> Term Name uni fun ()
-    -> EvaluationResult (Term Name uni fun (), CekExBudgetState fun)
-unsafeEvaluateCekCounting runtime budget =
-    either throw id . extractEvaluationResult . runCek runtime budget
--}
-
+unsafeEvaluateCekWithBudget runtime budget =
+    first (either throw id . extractEvaluationResult) . runCek runtime budget
 
 -- | Unlift a value using the CEK machine.
 readKnownCek

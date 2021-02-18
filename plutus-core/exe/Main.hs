@@ -690,7 +690,7 @@ runTypecheck (TypecheckOptions inp fmt) = do
         T.putStrLn (PP.displayPlcDef ty) >> exitSuccess
 
 
----------------- Evaluation ----------------
+---------------- Timing ----------------
 
 -- Convert a time in picoseconds into a readble format with appropriate units
 formatTime :: Double -> String
@@ -721,6 +721,9 @@ timeEval n evaluate prog
             end <- getCPUTime
             pure $ (result, end - start)
 
+
+---------------- Printing budgets and costs ----------------
+
 printBudgetStateBudget :: ExBudget -> IO ()
 printBudgetStateBudget b = do
   let ExCPU cpu = _exBudgetCPU b
@@ -731,6 +734,7 @@ printBudgetStateBudget b = do
 
 printBudgetStateTally :: (Eq fun, Hashable fun, Show fun) => Cek.CekExTally fun -> IO ()
 printBudgetStateTally (ExTally costs) = do
+  putStrLn $ "AST:     " ++ pbudget Cek.BAST
   putStrLn $ "Const:   " ++ pbudget Cek.BConst
   putStrLn $ "Var:     " ++ pbudget Cek.BVar
   putStrLn $ "LamAbs:  " ++ pbudget Cek.BLamAbs
@@ -738,7 +742,6 @@ printBudgetStateTally (ExTally costs) = do
   putStrLn $ "Delay:   " ++ pbudget Cek.BDelay
   putStrLn $ "Force:   " ++ pbudget Cek.BForce
   putStrLn $ "Error:   " ++ pbudget Cek.BError
-  putStrLn $ "AST:     " ++ pbudget Cek.BAST
   putStrLn $ "Builtin: " ++ budgetToString (mconcat (map snd builtinsAndCosts))
   putStrLn ""
   traverse_ (\(b,cost) -> putStrLn $ printf "%-20s %s" (show b) (budgetToString cost :: String)) builtinsAndCosts
@@ -757,6 +760,9 @@ printBudgetState bs = do
     printBudgetStateBudget $ _exBudgetStateBudget bs
     putStrLn ""
     printBudgetStateTally  $ _exBudgetStateTally bs
+
+
+---------------- Evaluation ----------------
 
 runEval :: EvalOptions -> IO ()
 runEval (EvalOptions language inp ifmt evalMode printMode budgetMode timingMode) =
