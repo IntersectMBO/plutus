@@ -6,7 +6,7 @@ module Evaluation.Golden
     ( test_golden
     ) where
 
-import           Prelude                                    hiding (even)
+import           Prelude                                           hiding (even)
 
 import           Language.PlutusCore.StdLib.Data.Bool
 import           Language.PlutusCore.StdLib.Data.Function
@@ -17,16 +17,17 @@ import           Language.PlutusCore.StdLib.Meta.Data.Tuple
 import           Language.PlutusCore.StdLib.Type
 
 import           Language.PlutusCore
-import           Language.PlutusCore.Evaluation.Machine.Cek
 import           Language.PlutusCore.Evaluation.Machine.Ck
 import           Language.PlutusCore.Generators.Interesting
 import           Language.PlutusCore.MkPlc
 import           Language.PlutusCore.Pretty
+import qualified Language.UntypedPlutusCore                        as UPLC
+import           Language.UntypedPlutusCore.Evaluation.Machine.Cek
 
-import           Control.Monad.Except
-import qualified Data.ByteString                            as BS
-import qualified Data.ByteString.Lazy                       as BSL
-import           Data.Text.Encoding                         (encodeUtf8)
+import           Data.Bifunctor
+import qualified Data.ByteString                                   as BS
+import qualified Data.ByteString.Lazy                              as BSL
+import           Data.Text.Encoding                                (encodeUtf8)
 import           Test.Tasty
 import           Test.Tasty.Golden
 
@@ -307,16 +308,22 @@ takeTooMuch = mkIterApp () (Builtin () TakeByteString)
 
 -- Running the tests
 
-goldenVsPretty :: PrettyPlc a => String -> String -> ExceptT BSL.ByteString IO a -> TestTree
+goldenVsPretty :: PrettyPlc a => String -> String -> a -> TestTree
 goldenVsPretty extn name value =
     goldenVsString name ("test/Evaluation/Golden/" ++ name ++ extn) $
-        either id (BSL.fromStrict . encodeUtf8 . render . prettyPlcClassicDebug) <$> runExceptT value
+        pure . BSL.fromStrict . encodeUtf8 . render $ prettyPlcClassicDebug value
 
 goldenVsEvaluatedCK :: String -> Term TyName Name DefaultUni DefaultFun () -> TestTree
-goldenVsEvaluatedCK name = goldenVsPretty ".plc.golden" name . pure . evaluateCk defBuiltinsRuntime
+goldenVsEvaluatedCK name
+    = goldenVsPretty ".plc.golden" name
+    . bimap (fmap UPLC.erase) UPLC.erase
+    . evaluateCk defBuiltinsRuntime
 
 goldenVsEvaluatedCEK :: String -> Term TyName Name DefaultUni DefaultFun () -> TestTree
-goldenVsEvaluatedCEK name = goldenVsPretty ".plc.golden" name . pure . evaluateCek defBuiltinsRuntime
+goldenVsEvaluatedCEK name
+    = goldenVsPretty ".plc.golden" name
+    . evaluateCek defBuiltinsRuntime
+    . UPLC.erase
 
 runTypecheck
     :: Term TyName Name DefaultUni DefaultFun ()
@@ -327,8 +334,17 @@ runTypecheck term =
     inferType tcConfig term
 
 goldenVsTypechecked :: String -> Term TyName Name DefaultUni DefaultFun () -> TestTree
-goldenVsTypechecked name = goldenVsPretty ".type.golden" name . pure . runTypecheck
+goldenVsTypechecked name = goldenVsPretty ".type.golden" name . runTypecheck
 
+goldenVsTypecheckedEvaluatedCK :: String -> Term TyName Name DefaultUni DefaultFun () -> TestTree
+goldenVsTypecheckedEvaluatedCK name term =
+    -- The CK machine can evaluate an ill-typed term to a well-typed one, so we check
+    -- that the term is well-typed before checking that the type of the result is the
+    -- one stored in the golden file (we could simply check the two types for equality,
+    -- but since we're doing golden testing in this file, why not do it here as well).
+    case (runTypecheck term, evaluateCk defBuiltinsRuntime term) of
+        (Right _, Right res) -> goldenVsTypechecked name res
+        _                    -> testGroup name []
 
 namesAndTests :: [(String, Term TyName Name DefaultUni DefaultFun ())]
 namesAndTests =
@@ -370,4 +386,5 @@ test_golden = testGroup "golden"
               [ testGroup "CK"  $ fmap (uncurry goldenVsEvaluatedCK)  namesAndTests
               , testGroup "CEK" $ fmap (uncurry goldenVsEvaluatedCEK) namesAndTests
               , testGroup "Typechecking" $ fmap (uncurry goldenVsTypechecked) namesAndTests
+              , testGroup "Typechecking CK output" $ fmap (uncurry goldenVsTypecheckedEvaluatedCK) namesAndTests
               ]

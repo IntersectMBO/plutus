@@ -191,8 +191,8 @@ test_Factorial :: TestTree
 test_Factorial =
     testCase "Factorial" $ do
         let ten = mkConstant @Integer @DefaultUni () 10
-            lhs = typecheckEvaluateCek defBuiltinsRuntimeExt $ Apply () (Builtin () $ Right Factorial) ten
-            rhs = typecheckEvaluateCek defBuiltinsRuntimeExt $ Apply () (mapFun Left factorial) ten
+            lhs = typecheckEvaluateCk defBuiltinsRuntimeExt $ Apply () (Builtin () $ Right Factorial) ten
+            rhs = typecheckEvaluateCk defBuiltinsRuntimeExt $ Apply () (mapFun Left factorial) ten
         assertBool "type checks" $ isRight lhs
         lhs @?= rhs
 
@@ -207,8 +207,8 @@ test_Const =
             tB = mkConstant () b
             char = toTypeAst @_ @DefaultUni @Char Proxy
             runConst con = mkIterApp () (mkIterInst () con [char, bool]) [tC, tB]
-            lhs = typecheckReadKnownCek defBuiltinsRuntimeExt $ runConst $ Builtin () (Right Const)
-            rhs = typecheckReadKnownCek defBuiltinsRuntimeExt $ runConst $ mapFun Left Plc.const
+            lhs = typecheckReadKnownCk defBuiltinsRuntimeExt $ runConst $ Builtin () (Right Const)
+            rhs = typecheckReadKnownCk defBuiltinsRuntimeExt $ runConst $ mapFun Left Plc.const
         lhs === Right (Right c)
         lhs === rhs
 
@@ -233,7 +233,7 @@ test_Id =
                                   . LamAbs () i integer
                                   . LamAbs () j integer
                                   $ Var () i
-        typecheckEvaluateCek defBuiltinsRuntimeExt term @?= Right (EvaluationSuccess one)
+        typecheckEvaluateCk defBuiltinsRuntimeExt term @?= Right (EvaluationSuccess one)
 
 -- | Test that a polymorphic built-in function can have a higher-kinded type variable in its
 -- signature.
@@ -253,7 +253,7 @@ test_IdFInteger =
                 . Apply () (TyInst () (Builtin () $ Right IdFInteger) Plc.listTy)
                 $ mkIterApp () (mapFun Left Plc.enumFromTo) [one, ten]
         tyAct @?= tyExp
-        typecheckEvaluateCek defBuiltinsRuntimeExt term @?= Right (EvaluationSuccess res)
+        typecheckEvaluateCk defBuiltinsRuntimeExt term @?= Right (EvaluationSuccess res)
 
 test_IdList :: TestTree
 test_IdList =
@@ -272,7 +272,7 @@ test_IdList =
                 . Apply () (TyInst () (Builtin () $ Right IdList) integer)
                 $ mkIterApp () (mapFun Left Plc.enumFromTo) [one, ten]
         tyAct @?= tyExp
-        typecheckEvaluateCek defBuiltinsRuntimeExt term @?= Right (EvaluationSuccess res)
+        typecheckEvaluateCk defBuiltinsRuntimeExt term @?= Right (EvaluationSuccess res)
 
 {- Note [Higher-rank built-in functions]
 We can't unlift a monomorphic function passed to a built-in function, let alone unlift a polymorphic
@@ -293,7 +293,7 @@ but we have no way of providing a meaning for a built-in function with the follo
 That's because the meaning function would have to instantiate the @all (a :: *). f a@ argument
 somehow to get an @f a@, but that is exactly "using a term in a non-opaque way".
 
-Basically, since we are either generic over @term@ or, like in the example below, use 'CekValue',
+Basically, since we are either generic over @term@ or, like in the example below, use 'CkValue',
 there's is no sensible way of instantiating a passed polymorphic argument (or applying a passed
 argument when it's a function, for another example).
 -}
@@ -315,7 +315,7 @@ test_IdRank2 =
                 . TyInst () (Apply () (TyInst () (Builtin () $ Right IdRank2) Plc.listTy) Plc.nil)
                 $ integer
         tyAct @?= tyExp
-        typecheckEvaluateCek defBuiltinsRuntimeExt term @?= Right (EvaluationSuccess res)
+        typecheckEvaluateCk defBuiltinsRuntimeExt term @?= Right (EvaluationSuccess res)
 
 -- | Test that the type of PLC @Absurd@ is inferred correctly.
 test_Absurd :: TestTree

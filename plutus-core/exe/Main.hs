@@ -8,7 +8,6 @@ module Main (main) where
 
 import qualified Language.PlutusCore                               as PLC
 import qualified Language.PlutusCore.CBOR                          as PLC
-import qualified Language.PlutusCore.Evaluation.Machine.Cek        as PLC
 import qualified Language.PlutusCore.Evaluation.Machine.Ck         as PLC
 import qualified Language.PlutusCore.Generators                    as Gen
 import qualified Language.PlutusCore.Generators.Interesting        as Gen
@@ -686,23 +685,23 @@ runEval :: EvalOptions -> IO ()
 runEval (EvalOptions language inp ifmt evalMode printMode timingMode) =
     case language of
 
-      TypedPLC -> do
-        TypedProgram prog <- getProgram TypedPLC ifmt inp
-        let evaluate =
-                case evalMode of
-                  CK  -> PLC.unsafeEvaluateCk  PLC.defBuiltinsRuntime
-                  CEK -> PLC.unsafeEvaluateCek PLC.defBuiltinsRuntime
-            body = void . PLC.toTerm $ prog
-            !_ = rnf body
-        -- Force evaluation of body to ensure that we're not timing parsing/deserialisation.
-        -- The parser apparently returns a fully-evaluated AST, but let's be on the safe side.
-        case timingMode of
-          NoTiming -> evaluate body & handleResult
-          Timing n -> timeEval n evaluate body >>= handleTimingResults
+      TypedPLC ->
+        case evalMode of
+            CEK -> hPutStrLn stderr "There is no CEK machine for Typed Plutus Core" >> exitFailure
+            CK  -> do
+                  TypedProgram prog <- getProgram TypedPLC ifmt inp
+                  let evaluate = PLC.unsafeEvaluateCk PLC.defBuiltinsRuntime
+                      body = void . PLC.toTerm $ prog
+                      !_ = rnf body
+                  -- Force evaluation of body to ensure that we're not timing parsing/deserialisation.
+                  -- The parser apparently returns a fully-evaluated AST, but let's be on the safe side.
+                  case timingMode of
+                    NoTiming -> evaluate body & handleResult
+                    Timing n -> timeEval n evaluate body >>= handleTimingResults
 
       UntypedPLC ->
           case evalMode of
-            CK  -> hPutStrLn stderr "There is no CK machine for UntypedPLC Plutus Core" >> exitFailure
+            CK  -> hPutStrLn stderr "There is no CK machine for Untyped Plutus Core" >> exitFailure
             CEK -> do
                   UntypedProgram prog <- getProgram UntypedPLC ifmt inp
                   let evaluate = UPLC.unsafeEvaluateCek PLC.defBuiltinsRuntime

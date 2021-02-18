@@ -31,7 +31,6 @@ module Language.PlutusCore.Generators.NEAT.Spec
 import           Language.PlutusCore
 import           Language.PlutusCore.Builtins
 import           Language.PlutusCore.Constant
-import           Language.PlutusCore.Evaluation.Machine.Cek
 import           Language.PlutusCore.Evaluation.Machine.Ck
 import           Language.PlutusCore.Evaluation.Machine.ExBudgetingDefaults
 import           Language.PlutusCore.Generators.NEAT.Common
@@ -90,16 +89,12 @@ tests genOpts@GenOptions{} =
       (Type ())
       (packAssertion prop_normalTypesCannotReduce)
 
-  -- note: we don't test type preservation of CEK as it does not
-  -- preserve type annotations although it would work for unit.
   , bigTest "type preservation - CK"
       genOpts {genDepth = 18}
       (TyBuiltinG TyUnitG)
       (packAssertion prop_typePreservation)
 
-  -- note: the typed CEK vs CK test would fail if values of this type
-  -- include type annotations. This is not the case for unit.
-  , bigTest "typed CEK vs CK, typed CEK vs untyped CEK produce the same output"
+  , bigTest "typed CK vs untyped CEK produce the same output"
       genOpts {genDepth = 18}
       (TyBuiltinG TyUnitG)
       (packAssertion prop_agree_termEval)
@@ -118,31 +113,28 @@ not exploited.
 
 -}
 
--- |Property: check if the type is preserved by evaluation.
---
--- This property is expected to hold for the CK machine and fail for
--- the CEK machine at the time of writing.
-
-
 -- handle a user error and turn it back into an error term
 handleError :: Type TyName DefaultUni ()
-       -> ErrorWithCause (EvaluationError user internal) term
-       -> Either (ErrorWithCause (EvaluationError user internal) term)
+       -> U.ErrorWithCause (U.EvaluationError user internal) term
+       -> Either (U.ErrorWithCause (U.EvaluationError user internal) term)
                  (Term TyName Name DefaultUni DefaultFun ())
-handleError ty e = case _ewcError e of
-  UserEvaluationError     _ -> return (Error () ty)
-  InternalEvaluationError _ -> throwError e
+handleError ty e = case U._ewcError e of
+  U.UserEvaluationError     _ -> return (Error () ty)
+  U.InternalEvaluationError _ -> throwError e
 
 -- untyped version of `handleError`
 handleUError ::
-          ErrorWithCause (EvaluationError user internal) term
-       -> Either (ErrorWithCause (EvaluationError user internal) term)
+          U.ErrorWithCause (U.EvaluationError user internal) term
+       -> Either (U.ErrorWithCause (U.EvaluationError user internal) term)
                  (U.Term Name DefaultUni DefaultFun ())
-handleUError e = case _ewcError e of
-  UserEvaluationError     _ -> return (U.Error ())
-  InternalEvaluationError _ -> throwError e
+handleUError e = case U._ewcError e of
+  U.UserEvaluationError     _ -> return (U.Error ())
+  U.InternalEvaluationError _ -> throwError e
 
-
+-- |Property: check if the type is preserved by evaluation.
+--
+-- This property is expected to hold for the CK machine.
+--
 prop_typePreservation :: ClosedTypeG -> ClosedTermG -> ExceptT TestFail Quote ()
 prop_typePreservation tyG tmG = do
   tcConfig <- withExceptT TypeError $ getDefTypeCheckConfig ()
@@ -159,17 +151,9 @@ prop_typePreservation tyG tmG = do
     evaluateCk testBuiltinsRuntime tm `catchError` handleError ty
   withExceptT TypeError $ checkType tcConfig () tmCK (Normalized ty)
 
--- |Property: check if both the CK and CEK machine produce the same ouput
+-- |Property: check if both the typed CK and untyped CEK machines produce the same ouput
+-- modulo erasure.
 --
--- PRECONDITION: only use where the expected output does not contain
--- type annotations. E.g. constants. The CEK machine does not handle
--- type annotations correctly. So, if the output were to include them
--- then the results would differ and this test would fail.
-
--- POTENTIAL FIXES: Either the CEK machine coud be fixed or one could
--- erase the outputs (removing any type annotations) before
--- comparison.
-
 prop_agree_termEval :: ClosedTypeG -> ClosedTermG -> ExceptT TestFail Quote ()
 prop_agree_termEval tyG tmG = do
   tcConfig <- withExceptT TypeError $ getDefTypeCheckConfig ()
@@ -180,26 +164,20 @@ prop_agree_termEval tyG tmG = do
   tm <- withExceptT GenError $ convertClosedTerm tynames names tyG tmG
   withExceptT TypeError $ checkType tcConfig () tm (Normalized ty)
 
-  tmCek <- withExceptT CekP $ liftEither $
-    evaluateCek testBuiltinsRuntime tm `catchError` handleError ty
-
+  -- run typed CK on input
   tmCk <- withExceptT CkP $ liftEither $
     evaluateCk testBuiltinsRuntime tm `catchError` handleError ty
 
-  -- check if CK and CEK give the same output
-  unless (tmCk == tmCek) $
-    throwCtrex (CtrexTermEvaluationMismatch tyG tmG [tmCek,tmCk])
-
-  -- erase CEK output
-  let tmCekU = U.erase tmCek
+  -- erase CK output
+  let tmUCk = U.erase tmCk
 
   -- run untyped CEK on erased input
   tmUCek <- withExceptT UCekP $ liftEither $
     U.evaluateCek testBuiltinsRuntime (U.erase tm) `catchError` handleUError
 
-  -- check if typed CEK and untyped CEK give the same output (after erasure)
-  unless (tmUCek == tmCekU) $
-    throwCtrex (CtrexUntypedTermEvaluationMismatch tyG tmG [tmUCek,tmCekU])
+  -- check if typed CK and untyped CEK give the same output modulo erasure
+  unless (tmUCk == tmUCek) $
+    throwCtrex (CtrexUntypedTermEvaluationMismatch tyG tmG [tmUCk,tmUCek])
 
 
 -- |Property: the following diagram commutes for well-kinded types...
@@ -292,7 +270,6 @@ data TestFail
   | AgdaErrorP ()
   | FVErrorP FreeVariableError
   | CkP (CkEvaluationException DefaultUni DefaultFun)
-  | CekP (CekEvaluationException DefaultUni DefaultFun)
   | UCekP (U.CekEvaluationException DefaultUni DefaultFun)
   | Ctrex Ctrex
 
@@ -351,7 +328,6 @@ instance Show TestFail where
   show (AgdaErrorP e) = show e
   show (FVErrorP e)   = show e
   show (CkP e)        = show e
-  show (CekP e)       = show e
   show (UCekP e)      = show e
 
 instance Show Ctrex where
