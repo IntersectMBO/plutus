@@ -25,6 +25,7 @@ import qualified Language.UntypedPlutusCore                        as UPLC
 import           Language.UntypedPlutusCore.Evaluation.Machine.Cek
 
 import           Control.Monad.Except
+import           Data.Bifunctor
 import qualified Data.ByteString                                   as BS
 import qualified Data.ByteString.Lazy                              as BSL
 import           Data.Text.Encoding                                (encodeUtf8)
@@ -314,12 +315,18 @@ goldenVsPretty extn name value =
         either id (BSL.fromStrict . encodeUtf8 . render . prettyPlcClassicDebug) <$> runExceptT value
 
 goldenVsEvaluatedCK :: String -> Term TyName Name DefaultUni DefaultFun () -> TestTree
-goldenVsEvaluatedCK name =
-    goldenVsPretty ".plc.golden" name . pure . fmap UPLC.erase . evaluateCk defBuiltinsRuntime
+goldenVsEvaluatedCK name
+    = goldenVsPretty ".plc.golden" name
+    . pure
+    . bimap (fmap UPLC.erase) UPLC.erase
+    . evaluateCk defBuiltinsRuntime
 
 goldenVsEvaluatedCEK :: String -> Term TyName Name DefaultUni DefaultFun () -> TestTree
-goldenVsEvaluatedCEK name =
-    goldenVsPretty ".plc.golden" name . pure . evaluateCek defBuiltinsRuntime . UPLC.erase
+goldenVsEvaluatedCEK name
+    = goldenVsPretty ".plc.golden" name
+    . pure
+    . evaluateCek defBuiltinsRuntime
+    . UPLC.erase
 
 runTypecheck
     :: Term TyName Name DefaultUni DefaultFun ()
