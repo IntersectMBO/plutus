@@ -11,7 +11,7 @@ import           Cardano.Wallet.Types           (WalletId)
 import           Control.Lens                   (view)
 import           Control.Monad.Freer
 import           Control.Monad.Freer.Error      (Error, runError, throwError)
-import           Control.Monad.Freer.Log        (LogMsg, logInfo)
+import           Control.Monad.Freer.Extras.Log (LogMsg, logInfo)
 import           Control.Monad.IO.Class         (MonadIO, liftIO)
 import           Data.Bifunctor                 (Bifunctor (..))
 import qualified Data.ByteString.Lazy           as BSL

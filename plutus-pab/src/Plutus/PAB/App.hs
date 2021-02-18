@@ -36,9 +36,8 @@ import qualified Cardano.Wallet.Server              as WalletServer
 import           Control.Monad.Catch                (MonadCatch)
 import           Control.Monad.Freer
 import           Control.Monad.Freer.Error          (Error, handleError, runError, throwError)
-import           Control.Monad.Freer.Extra.Log      (LogMsg, handleWriterLog, logDebug, logInfo)
-import           Control.Monad.Freer.Log            (LogMessage, LogObserve)
-import qualified Control.Monad.Freer.Log            as Log
+import           Control.Monad.Freer.Extras.Log     (LogMessage, LogMsg, LogObserve, handleWriterLog, logDebug, logInfo)
+import qualified Control.Monad.Freer.Extras.Log     as Log
 import           Control.Monad.Freer.Reader         (Reader, asks, runReader)
 import           Control.Monad.Freer.WebSocket      (WebSocketEffect, handleWebSocket)
 import           Control.Monad.Freer.Writer         (Writer)

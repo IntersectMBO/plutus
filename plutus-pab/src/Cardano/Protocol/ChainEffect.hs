@@ -7,7 +7,7 @@
 module Cardano.Protocol.ChainEffect where
 
 import           Control.Monad.Freer
-import           Control.Monad.Freer.Log
+import           Control.Monad.Freer.Extras.Log
 import           Control.Monad.Freer.Reader
 import           Control.Monad.Freer.State
 import           Control.Monad.IO.Class

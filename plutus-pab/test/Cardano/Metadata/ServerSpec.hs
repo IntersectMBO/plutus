@@ -7,18 +7,20 @@ module Cardano.Metadata.ServerSpec
     ( tests
     ) where
 
-import           Cardano.Metadata.Server   (annotatedSignature1, handleMetadata, script1)
-import           Cardano.Metadata.Types    (HashFunction (SHA256), MetadataEffect, MetadataError, MetadataLogMessage,
-                                            Property (Name, Preimage), PropertyKey (PropertyKey), Query (QuerySubjects),
-                                            QueryResult (QueryResult), SubjectProperties (SubjectProperties),
-                                            batchQuery, getProperties, getProperty, propertyNames, subjects, toSubject)
-import           Control.Monad.Freer       (Eff, runM)
-import           Control.Monad.Freer.Error (Error, runError)
-import           Control.Monad.Freer.Log   (LogMsg, handleLogTrace)
-import           Data.List.NonEmpty        (NonEmpty ((:|)))
-import qualified Data.Set                  as Set
-import           Test.Tasty                (TestName, TestTree, testGroup)
-import           Test.Tasty.HUnit          (assertEqual, testCase)
+import           Cardano.Metadata.Server        (annotatedSignature1, handleMetadata, script1)
+import           Cardano.Metadata.Types         (HashFunction (SHA256), MetadataEffect, MetadataError,
+                                                 MetadataLogMessage, Property (Name, Preimage),
+                                                 PropertyKey (PropertyKey), Query (QuerySubjects),
+                                                 QueryResult (QueryResult), SubjectProperties (SubjectProperties),
+                                                 batchQuery, getProperties, getProperty, propertyNames, subjects,
+                                                 toSubject)
+import           Control.Monad.Freer            (Eff, runM)
+import           Control.Monad.Freer.Error      (Error, runError)
+import           Control.Monad.Freer.Extras.Log (LogMsg, handleLogTrace)
+import           Data.List.NonEmpty             (NonEmpty ((:|)))
+import qualified Data.Set                       as Set
+import           Test.Tasty                     (TestName, TestTree, testGroup)
+import           Test.Tasty.HUnit               (assertEqual, testCase)
 
 tests :: TestTree
 tests = testGroup "Cardano.Metadata.Server" [queryTests]

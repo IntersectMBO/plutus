@@ -15,9 +15,9 @@ import           Control.Lens                                      ((&), (+~))
 import           Control.Monad                                     (unless, void)
 import           Control.Monad.Freer                               (Eff, Member, Members)
 import           Control.Monad.Freer.Error                         (Error, throwError)
-import           Control.Monad.Freer.Extra.Log                     (LogMsg)
 import           Control.Monad.Freer.Extra.State                   (use)
-import qualified Control.Monad.Freer.Log                           as EmulatorLog
+import           Control.Monad.Freer.Extras.Log                    (LogMsg)
+import qualified Control.Monad.Freer.Extras.Log                    as EmulatorLog
 import           Control.Monad.Freer.State                         (State)
 import           Data.Foldable                                     (fold)
 import qualified Data.Map                                          as Map

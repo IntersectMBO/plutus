@@ -16,27 +16,27 @@ module Plutus.PAB.MonadLoggerBridge(
   , logStrToText
   ) where
 
-import           Cardano.BM.Data.LogItem       (PrivacyAnnotation (Public))
-import           Cardano.BM.Data.Trace         (Trace)
-import           Cardano.BM.Data.Tracer        (ToObject (..))
-import           Cardano.BM.Data.Tracer.Extras (mkObjectStr)
-import           Cardano.BM.Trace              (traceNamedItem)
-import           Control.Monad.Catch           (MonadCatch, MonadThrow)
-import qualified Control.Monad.Freer.Log       as L
-import           Control.Monad.IO.Class        (MonadIO (..))
-import           Control.Monad.IO.Unlift       (MonadUnliftIO (..))
-import           Control.Monad.Logger          (Loc, LogLevel (..), LogSource, LogStr, MonadLogger (..), ToLogStr (..),
-                                                fromLogStr)
-import           Control.Monad.Reader          (ReaderT (..))
-import           Data.Aeson                    (FromJSON (..), ToJSON (..), Value (Object), object, (.:), (.=))
-import           Data.Aeson.Types              (typeMismatch)
-import           Data.String                   (IsString (..))
-import           Data.Text                     (Text)
-import qualified Data.Text.Encoding            as Encoding
-import           Data.Text.Prettyprint.Doc     (Pretty (..), viaShow, vsep, (<+>))
-import           GHC.Generics                  (Generic)
-import           Plutus.PAB.Instances          ()
-import qualified Plutus.PAB.Monitoring         as M
+import           Cardano.BM.Data.LogItem        (PrivacyAnnotation (Public))
+import           Cardano.BM.Data.Trace          (Trace)
+import           Cardano.BM.Data.Tracer         (ToObject (..))
+import           Cardano.BM.Data.Tracer.Extras  (mkObjectStr)
+import           Cardano.BM.Trace               (traceNamedItem)
+import           Control.Monad.Catch            (MonadCatch, MonadThrow)
+import qualified Control.Monad.Freer.Extras.Log as L
+import           Control.Monad.IO.Class         (MonadIO (..))
+import           Control.Monad.IO.Unlift        (MonadUnliftIO (..))
+import           Control.Monad.Logger           (Loc, LogLevel (..), LogSource, LogStr, MonadLogger (..), ToLogStr (..),
+                                                 fromLogStr)
+import           Control.Monad.Reader           (ReaderT (..))
+import           Data.Aeson                     (FromJSON (..), ToJSON (..), Value (Object), object, (.:), (.=))
+import           Data.Aeson.Types               (typeMismatch)
+import           Data.String                    (IsString (..))
+import           Data.Text                      (Text)
+import qualified Data.Text.Encoding             as Encoding
+import           Data.Text.Prettyprint.Doc      (Pretty (..), viaShow, vsep, (<+>))
+import           GHC.Generics                   (Generic)
+import           Plutus.PAB.Instances           ()
+import qualified Plutus.PAB.Monitoring          as M
 
 logStrToText :: LogStr -> Text
 logStrToText = Encoding.decodeUtf8 . fromLogStr -- I'm just assuming it's UTF-8...

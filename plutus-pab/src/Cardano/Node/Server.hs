@@ -11,7 +11,7 @@ module Cardano.Node.Server
 import           Control.Concurrent              (MVar, forkIO, newMVar)
 import           Control.Concurrent.Availability (Availability, available)
 import           Control.Monad                   (void)
-import           Control.Monad.Freer.Extra.Log   (logInfo)
+import           Control.Monad.Freer.Extras.Log  (logInfo)
 import           Control.Monad.IO.Class          (liftIO)
 import           Data.Function                   ((&))
 import           Data.Proxy                      (Proxy (Proxy))
