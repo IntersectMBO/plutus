@@ -152,7 +152,7 @@ prop_typePreservation tyG tmG = do
   withExceptT TypeError $ checkType tcConfig () tmCK (Normalized ty)
 
 -- |Property: check if both the typed CK and untyped CEK machines produce the same ouput
--- module erasure.
+-- modulo erasure.
 --
 prop_agree_termEval :: ClosedTypeG -> ClosedTermG -> ExceptT TestFail Quote ()
 prop_agree_termEval tyG tmG = do
@@ -175,7 +175,7 @@ prop_agree_termEval tyG tmG = do
   tmUCek <- withExceptT UCekP $ liftEither $
     U.evaluateCek testBuiltinsRuntime (U.erase tm) `catchError` handleUError
 
-  -- check if typed CK and untyped CEK give the same output module erasure
+  -- check if typed CK and untyped CEK give the same output modulo erasure
   unless (tmUCk == tmUCek) $
     throwCtrex (CtrexUntypedTermEvaluationMismatch tyG tmG [tmUCk,tmUCek])
 
