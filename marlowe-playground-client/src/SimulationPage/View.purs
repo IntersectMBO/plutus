@@ -18,7 +18,7 @@ import Data.Tuple.Nested ((/\))
 import Effect.Aff.Class (class MonadAff)
 import Effect.Class (liftEffect)
 import Halogen (RefLabel(..))
-import Halogen.Classes (aHorizontal, bold, btn, codeEditor, expanded, flex, fullHeight, group, justifyBetween, justifyCenter, noMargins, plusBtn, scroll, sidebarComposer, smallBtn, smallSpaceBottom, spaceBottom, spaceRight, spanText, textSecondaryColor, textXs, uppercase)
+import Halogen.Classes (aHorizontal, bold, btn, codeEditor, expanded, flex, fullHeight, group, justifyBetween, justifyCenter, noMargins, plusBtn, sidebarComposer, smallBtn, smallSpaceBottom, spaceBottom, spaceRight, spanText, textSecondaryColor, textXs, uppercase)
 import Halogen.Extra (renderSubmodule)
 import Halogen.HTML (ClassName(..), ComponentHTML, HTML, aside, b_, br_, button, div, div_, em_, h6, h6_, input, li, li_, p, p_, section, slot, span, span_, strong_, text, ul)
 import Halogen.HTML.Events (onClick, onValueChange)
@@ -42,7 +42,7 @@ render ::
   State ->
   ComponentHTML Action ChildSlots m
 render state =
-  div [ classes [ fullHeight, scroll, ClassName "simulation-panel" ] ]
+  div [ classes [ fullHeight, ClassName "simulation-panel" ] ]
     [ section [ class_ (ClassName "code-panel") ]
         [ div [ classes [ codeEditor ] ]
             [ marloweEditor state ]

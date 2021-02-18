@@ -12,7 +12,7 @@ import Halogen.ActusBlockly as ActusBlockly
 import Halogen.Classes (aHorizontal, active, flex, fontSemibold, fullHeight, fullWidth, group, hide, noMargins, smallSpaceBottom, spaceLeft, spaceRight, text3xl, textWhite, uppercase, vl)
 import Halogen.Classes as Classes
 import Halogen.Extra (renderSubmodule)
-import Halogen.HTML (ClassName(ClassName), HTML, a, div, div_, h1_, h2, header, hr_, main, section, slot, span, text)
+import Halogen.HTML (ClassName(ClassName), HTML, a, div, div_, footer_, h1_, h2, header, hr_, main, section, slot, span, text)
 import Halogen.HTML.Events (onClick)
 import Halogen.HTML.Properties (class_, classes, href, id_, target)
 import Halogen.SVG (GradientUnits(..), Translate(..), d, defs, gradientUnits, linearGradient, offset, path, stop, stopColour, svg, transform, x1, x2, y2)
@@ -72,7 +72,7 @@ render state =
           ]
       , modal state
       , globalLoadingOverlay
-      , div [ classes [ ClassName "footer" ] ]
+      , footer_
           [ div [ classes [ flex, ClassName "links" ] ]
               [ a [ href "https://cardano.org/", target "_blank" ] [ text "cardano.org" ]
               , vl
@@ -115,7 +115,7 @@ render state =
 
   isActiveTab activeView = if isActiveView activeView then [ active ] else []
 
-  tabContents activeView contents = if isActiveView activeView then div [ classes [ fullHeight, Classes.scroll ] ] contents else div [ classes [ hide ] ] contents
+  tabContents activeView contents = if isActiveView activeView then div [ classes [ fullHeight ] ] contents else div [ classes [ hide ] ] contents
 
   topBar = div [ class_ (ClassName "global-actions") ] ([ menuBar state ] <> otherActions (state ^. _view))
 

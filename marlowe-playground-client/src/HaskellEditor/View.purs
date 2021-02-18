@@ -12,7 +12,7 @@ import Data.String (Pattern(..), split)
 import Data.String as String
 import Effect.Aff.Class (class MonadAff)
 import Halogen (ClassName(..), ComponentHTML)
-import Halogen.Classes (aHorizontal, codeEditor, group)
+import Halogen.Classes (aHorizontal, codeEditor, group, fullHeight)
 import Halogen.Classes as Classes
 import Halogen.Extra (renderSubmodule)
 import Halogen.HTML (HTML, button, code_, div, div_, option, pre_, section, select, slot, text)
@@ -34,7 +34,7 @@ render ::
   State ->
   ComponentHTML Action ChildSlots m
 render state =
-  div_
+  div [ class_ fullHeight ]
     [ section [ class_ (ClassName "code-panel") ]
         [ div [ classes [ codeEditor ] ]
             [ haskellEditor state ]

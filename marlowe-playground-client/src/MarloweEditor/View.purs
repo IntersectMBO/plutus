@@ -9,7 +9,7 @@ import Data.Lens ((^.))
 import Data.Maybe (Maybe(..))
 import Effect.Aff.Class (class MonadAff)
 import Halogen (ClassName(..), ComponentHTML)
-import Halogen.Classes (codeEditor, group)
+import Halogen.Classes (codeEditor, group, fullHeight)
 import Halogen.Extra (renderSubmodule)
 import Halogen.HTML (HTML, button, div, div_, option, section, select, slot, text)
 import Halogen.HTML.Events (onClick, onSelectedIndexChange)
@@ -28,7 +28,7 @@ render ::
   State ->
   ComponentHTML Action ChildSlots m
 render state =
-  div_
+  div [ class_ (fullHeight) ]
     [ section [ class_ (ClassName "code-panel") ]
         [ div [ classes [ codeEditor ] ]
             [ marloweEditor state ]
