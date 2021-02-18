@@ -62,14 +62,17 @@ data Config =
     deriving (Show, Eq, Generic)
     deriving anyclass (FromJSON, ToJSON)
 
-newtype WalletMsg = StartingWallet Port
+data WalletMsg = StartingWallet Port
+               | ChainClientMsg Text
     deriving stock (Show, Generic)
     deriving anyclass (ToJSON, FromJSON)
 
 instance Pretty WalletMsg where
     pretty = \case
         StartingWallet port -> "Starting wallet server on port " <+> pretty port
+        ChainClientMsg m    -> "Chain Client: " <+> pretty m
 
 instance ToObject WalletMsg where
     toObject _ = \case
         StartingWallet port -> mkObjectStr "Starting wallet server" (Tagged @"port" port)
+        ChainClientMsg m    -> mkObjectStr "Chain Client: " (Tagged @"msg" m)
