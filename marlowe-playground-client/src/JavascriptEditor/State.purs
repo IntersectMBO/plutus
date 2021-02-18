@@ -184,7 +184,8 @@ decorationHeader =
     UseValue, Cond, AndObs, OrObs, NotObs, ChoseSomething, ValueGE, ValueGT,
     ValueLT, ValueLE, ValueEQ, TrueObs, FalseObs, Deposit, Choice, Notify,
     Close, Pay, If, When, Let, Assert, SomeNumber, AccountId, ChoiceId, Token,
-    ValueId, Value, EValue, Observation, Bound, Action, Payee, Case, Contract
+    ValueId, Value, EValue, Observation, Bound, Action, Payee, Case, Timeout,
+    ETimeout, SlotParam, Contract
 } from 'marlowe-js';
 
 (function (): Contract {"""
