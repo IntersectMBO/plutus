@@ -11,7 +11,7 @@ import qualified Control.Foldl                                         as L
 import           Control.Lens                                          ((&), (.~))
 import           Control.Monad                                         (void)
 import           Control.Monad.Freer                                   (run)
-import           Control.Monad.Freer.Log                               (LogLevel (..))
+import           Control.Monad.Freer.Extras.Log                        (LogLevel (..))
 import           Data.ByteString.Lazy                                  (ByteString)
 import qualified Data.ByteString.Lazy                                  as BSL
 import qualified Data.Text.Encoding                                    as T
