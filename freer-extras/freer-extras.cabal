@@ -9,7 +9,6 @@ license-file:        LICENSE
 author:              Tobias Pflug
 maintainer:          tobias.pflug@iohk.io
 build-type:          Simple
-extra-source-files:  CHANGELOG.md
 
 source-repository head
     type: git
