@@ -312,12 +312,12 @@ lookupVarName varName varEnv = do
         Just val -> pure val
 
 
--- We provisionally charge a unit cost for AST nodes: this is just to allow us
--- to count the number of times each node type is evaluated.  We may wish to
+-- We provisionally charge a unit CPU cost for AST nodes: this is just to allow
+-- us to count the number of times each node type is evaluated.  We may wish to
 -- change this later if it turns out that different node types have
 -- significantly different costs.
 astNodeCost :: ExBudget
-astNodeCost = ExBudget 1 1
+astNodeCost = ExBudget 1 0
 
 -- | The computing part of the CEK machine.
 -- Either
