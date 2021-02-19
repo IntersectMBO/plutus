@@ -21,7 +21,7 @@ import           Control.Monad                              (void)
 import           Control.Monad.Catch                        (MonadMask)
 import           Control.Monad.Except                       (MonadError, runExceptT)
 import           Control.Monad.Except.Extras                (mapError)
-import qualified Control.Monad.Freer.Log                    as Log
+import qualified Control.Monad.Freer.Extras.Log             as Log
 import           Control.Monad.IO.Class                     (MonadIO)
 import qualified Crowdfunding
 import qualified CrowdfundingSimulations

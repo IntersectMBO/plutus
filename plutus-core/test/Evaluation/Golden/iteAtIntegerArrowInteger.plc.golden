@@ -1,1 +1,1 @@
-(Right { (builtin ifThenElse) (fun (con integer) (con integer)) })
+(Right (force (builtin ifThenElse)))

@@ -10,19 +10,19 @@
 
 module Cardano.ChainIndex.Types where
 
-import           Control.Lens                  (makeLenses)
-import           Control.Monad.Freer.Log       (LogMessage)
-import           Data.Aeson                    (FromJSON, ToJSON)
-import           Data.Sequence                 (Seq)
-import           Data.Text.Prettyprint.Doc     (Pretty (..), parens, (<+>))
-import           GHC.Generics                  (Generic)
-import           Servant.Client                (BaseUrl)
+import           Control.Lens                   (makeLenses)
+import           Control.Monad.Freer.Extras.Log (LogMessage)
+import           Data.Aeson                     (FromJSON, ToJSON)
+import           Data.Sequence                  (Seq)
+import           Data.Text.Prettyprint.Doc      (Pretty (..), parens, (<+>))
+import           GHC.Generics                   (Generic)
+import           Servant.Client                 (BaseUrl)
 
-import           Cardano.BM.Data.Tracer        (ToObject (..))
-import           Cardano.BM.Data.Tracer.Extras (Tagged (..), mkObjectStr)
-import           Cardano.Node.Types            (FollowerID)
-import           Ledger.Address                (Address)
-import           Wallet.Emulator.ChainIndex    (ChainIndexEvent, ChainIndexState)
+import           Cardano.BM.Data.Tracer         (ToObject (..))
+import           Cardano.BM.Data.Tracer.Extras  (Tagged (..), mkObjectStr)
+import           Cardano.Node.Types             (FollowerID)
+import           Ledger.Address                 (Address)
+import           Wallet.Emulator.ChainIndex     (ChainIndexEvent, ChainIndexState)
 
 data AppState =
     AppState
@@ -66,6 +66,7 @@ data ChainIndexServerMsg =
     | ReceivedBlocksTxns
         Int    -- ^ Blocks
         Int    -- ^ Transactions
+    | ChainEvent ChainIndexEvent
     deriving stock (Show, Generic)
     deriving anyclass (ToJSON, FromJSON)
 
@@ -79,6 +80,7 @@ instance Pretty ChainIndexServerMsg where
         AskingNodeForCurrentSlot -> "Asking the node for the current slot"
         StartingNodeClientThread -> "Starting node client thread"
         StartingChainIndex port -> "Starting chain index on port: " <> pretty port
+        ChainEvent e -> "Processing chain index event: " <> pretty e
 
 instance ToObject ChainIndexServerMsg where
     toObject _ = \case
@@ -90,3 +92,4 @@ instance ToObject ChainIndexServerMsg where
       AskingNodeForCurrentSlot -> mkObjectStr "asking node for current slot" ()
       StartingNodeClientThread -> mkObjectStr "starting node client thread" ()
       StartingChainIndex p     -> mkObjectStr "starting chain index" (Tagged @"port" p)
+      ChainEvent e             -> mkObjectStr "processing chain event" (Tagged @"event" e)

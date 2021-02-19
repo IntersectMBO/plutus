@@ -18,7 +18,7 @@ module Language.Plutus.Contract.State(
     , initialiseContract
     ) where
 
-import           Control.Monad.Freer.Log             (LogMessage)
+import           Control.Monad.Freer.Extras.Log      (LogMessage)
 import           Data.Aeson                          (FromJSON, ToJSON, Value)
 import           Data.Foldable                       (toList)
 import           GHC.Generics                        (Generic)

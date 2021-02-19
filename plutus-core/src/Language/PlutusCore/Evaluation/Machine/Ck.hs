@@ -15,8 +15,10 @@ module Language.PlutusCore.Evaluation.Machine.Ck
     , CkEvaluationException
     , CkM
     , CkValue
+    , extractEvaluationResult
     , evaluateCk
     , unsafeEvaluateCk
+    , readKnownCk
     ) where
 
 import           PlutusPrelude
@@ -360,3 +362,11 @@ unsafeEvaluateCk
     -> Term TyName Name uni fun ()
     -> EvaluationResult (Term TyName Name uni fun ())
 unsafeEvaluateCk runtime = either throw id . extractEvaluationResult . evaluateCk runtime
+
+-- | Unlift a value using the CK machine.
+readKnownCk
+    :: (GShow uni, GEq uni, Ix fun, KnownType (Term TyName Name uni fun ()) a)
+    => BuiltinsRuntime fun (CkValue uni fun)
+    -> Term TyName Name uni fun ()
+    -> Either (CkEvaluationException uni fun) a
+readKnownCk runtime = evaluateCk runtime >=> readKnown

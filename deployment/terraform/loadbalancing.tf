@@ -35,6 +35,13 @@ resource "aws_security_group" "public_alb" {
     cidr_blocks = var.private_subnet_cidrs
   }
 
+  egress {
+    from_port   = 80
+    to_port     = 80
+    protocol    = "TCP"
+    cidr_blocks = var.private_subnet_cidrs
+  }
+
   tags = {
     Name        = "${local.project}_${var.env}_public_alb"
     Project     = local.project

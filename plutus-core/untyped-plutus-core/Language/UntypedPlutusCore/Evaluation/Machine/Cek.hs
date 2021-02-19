@@ -46,7 +46,6 @@ import           Language.UntypedPlutusCore.Core
 import           Language.UntypedPlutusCore.Subst
 
 import           Language.PlutusCore.Constant
-import qualified Language.PlutusCore.Evaluation.Machine.Cek         as Typed (CekUserError (..))
 import           Language.PlutusCore.Evaluation.Machine.ExBudgeting
 import           Language.PlutusCore.Evaluation.Machine.ExMemory
 import           Language.PlutusCore.Evaluation.Machine.Exception
@@ -114,10 +113,9 @@ data CekUserError
     | CekEvaluationFailure -- ^ Error has been called or a builtin application has failed
     deriving (Show, Eq)
 
--- Note: reusing the error-codes of the original Typed CekOutOfExError
 instance HasErrorCode CekUserError where
-      errorCode CekEvaluationFailure   = errorCode Typed.CekEvaluationFailure
-      errorCode  (CekOutOfExError a b) = errorCode $ Typed.CekOutOfExError a b
+    errorCode CekEvaluationFailure {} = ErrorCode 37
+    errorCode CekOutOfExError {}      = ErrorCode 36
 
 {- Note [Being generic over @term@ in 'CekM']
 We have a @term@-generic version of 'CekM' called 'CekCarryingM', which itself requires a

@@ -25,7 +25,7 @@ import           Cardano.Metadata.Types                          (MetadataEffect
 import qualified Cardano.Metadata.Types                          as Metadata
 import           Control.Monad.Freer                             (Eff, Member)
 import           Control.Monad.Freer.Error                       (Error, throwError)
-import           Control.Monad.Freer.Extra.Log                   (LogMsg, logInfo)
+import           Control.Monad.Freer.Extras.Log                  (LogMsg, logInfo)
 import qualified Data.Aeson                                      as JSON
 import           Data.Map                                        (Map)
 import qualified Data.Map                                        as Map

@@ -709,6 +709,7 @@
         goblins = ./.plan.nix/goblins.nix;
         marlowe-actus = ./.plan.nix/marlowe-actus.nix;
         Win32-network = ./.plan.nix/Win32-network.nix;
+        freer-extras = ./.plan.nix/freer-extras.nix;
         plutus-errors = ./.plan.nix/plutus-errors.nix;
         cardano-binary-test = ./.plan.nix/cardano-binary-test.nix;
         plutus-core = ./.plan.nix/plutus-core.nix;
@@ -791,6 +792,7 @@
             flags = { "defer-plugin-errors" = lib.mkOverride 900 false; };
             };
           "Win32-network" = { flags = { "demo" = lib.mkOverride 900 false; }; };
+          "freer-extras" = { flags = {}; };
           "plutus-errors" = { flags = {}; };
           "cardano-binary-test" = {
             flags = { "development" = lib.mkOverride 900 false; };

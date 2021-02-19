@@ -8,7 +8,6 @@ module Main (main) where
 
 import qualified Language.PlutusCore                                as PLC
 import qualified Language.PlutusCore.CBOR                           as PLC
-import qualified Language.PlutusCore.Evaluation.Machine.Cek         as TCek
 import qualified Language.PlutusCore.Evaluation.Machine.Ck          as Ck
 import           Language.PlutusCore.Evaluation.Machine.ExBudgeting (ExBudget (..), ExBudgetMode (..),
                                                                      ExBudgetState (..), ExRestrictingBudget (..),
@@ -776,12 +775,8 @@ runEval (EvalOptions language inp ifmt evalMode printMode budgetMode timingMode)
         let !_ = case budgetMode of
                    Silent    -> ()
                    Verbose _ -> error "There is no budgeting for typed Plutus Core"
-                   -- There is in the CEK machine, but that's just about to disappear so let's ignore it.
         TypedProgram prog <- getProgram TypedPLC ifmt inp
-        let evaluate =
-                case evalMode of
-                  CK  -> Ck.unsafeEvaluateCk  PLC.defBuiltinsRuntime
-                  CEK -> TCek.unsafeEvaluateCek PLC.defBuiltinsRuntime
+        let evaluate = Ck.unsafeEvaluateCk  PLC.defBuiltinsRuntime
             body = void . PLC.toTerm $ prog
             !_ = rnf body
         -- Force evaluation of body to ensure that we're not timing parsing/deserialisation.

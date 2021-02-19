@@ -37,7 +37,7 @@ import qualified Plutus.PAB.Events.Contract                        as C
 import           Plutus.PAB.Types                                  (PABError (..))
 import           Plutus.PAB.Utils                                  (tshow)
 
-import           Control.Monad.Freer.Extra.Log                     (LogMsg, logDebug)
+import           Control.Monad.Freer.Extras.Log                    (LogMsg, logDebug)
 
 import           Language.Plutus.Contract                          (BlockchainActions, Contract, ContractError)
 import           Language.Plutus.Contract.Effects.RPC              (RPCClient)

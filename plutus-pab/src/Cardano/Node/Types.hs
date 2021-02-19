@@ -53,7 +53,7 @@ import           Servant.Client                 (BaseUrl)
 
 import           Cardano.BM.Data.Tracer         (ToObject (..))
 import           Cardano.BM.Data.Tracer.Extras  (Tagged (..), mkObjectStr)
-import           Control.Monad.Freer.Log        (LogMessage)
+import           Control.Monad.Freer.Extras.Log (LogMessage)
 import qualified Language.Plutus.Contract.Trace as Trace
 import           Wallet.Emulator                (Wallet)
 import qualified Wallet.Emulator                as EM

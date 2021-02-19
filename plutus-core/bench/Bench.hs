@@ -3,10 +3,11 @@
 module Main (main) where
 
 import           Language.PlutusCore
-import           Language.PlutusCore.Evaluation.Machine.Cek (unsafeEvaluateCek)
-import           Language.PlutusCore.Evaluation.Machine.Ck  (unsafeEvaluateCk)
+import           Language.PlutusCore.Evaluation.Machine.Ck         (unsafeEvaluateCk)
 import           Language.PlutusCore.Parser
 import           Language.PlutusCore.Pretty
+import qualified Language.UntypedPlutusCore                        as UPLC
+import           Language.UntypedPlutusCore.Evaluation.Machine.Cek (unsafeEvaluateCek)
 
 import           Codec.Serialise
 import           Control.Monad
@@ -14,8 +15,8 @@ import           Control.Monad.Except
 import           Control.Monad.State
 import           Criterion.Main
 import           Crypto
-import qualified Data.ByteString                            as BS
-import qualified Data.ByteString.Lazy                       as BSL
+import qualified Data.ByteString                                   as BS
+import qualified Data.ByteString.Lazy                              as BSL
 
 pubKey, sig, msg :: BS.ByteString
 sig = "e5564300c360ac729086e2cc806e828a84877f1eb8e5d974d873e065224901555fb8821590a33bacc61e39701cf9b46bd25bf5f0595bbe24655141438e7a100b"
@@ -117,9 +118,9 @@ main =
                        g' = processor g
                    in
 
-                   bgroup "unsafeEvaluateCek"
-                     [ bench "valid" $ nf (fmap $ unsafeEvaluateCek defBuiltinsRuntime . toTerm) f'
-                     , bench "invalid" $ nf (fmap $ unsafeEvaluateCek defBuiltinsRuntime . toTerm) g'
+                   bgroup "unsafeEvaluateCek . erase"
+                     [ bench "valid" $ nf (fmap $ unsafeEvaluateCek defBuiltinsRuntime . UPLC.erase . toTerm) f'
+                     , bench "invalid" $ nf (fmap $ unsafeEvaluateCek defBuiltinsRuntime . UPLC.erase . toTerm) g'
                      ]
                 ,   bgroup "verifySignature" $
                       let verify :: BS.ByteString -> BS.ByteString -> BS.ByteString -> Maybe Bool

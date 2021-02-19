@@ -21,17 +21,17 @@ module Wallet.Emulator.Notify(
     ) where
 
 import           Control.Monad.Freer
-import           Control.Monad.Freer.Log   (LogMsg, logWarn)
-import           Control.Monad.Freer.TH    (makeEffect)
-import           Data.Aeson                (FromJSON, ToJSON)
+import           Control.Monad.Freer.Extras.Log (LogMsg, logWarn)
+import           Control.Monad.Freer.TH         (makeEffect)
+import           Data.Aeson                     (FromJSON, ToJSON)
 import           Data.Text.Prettyprint.Doc
-import qualified Data.UUID.Extras          as UUID
-import           GHC.Generics              (Generic)
+import qualified Data.UUID.Extras               as UUID
+import           GHC.Generics                   (Generic)
 
 
-import           Wallet.Effects            (ContractRuntimeEffect (..))
-import           Wallet.Emulator.Wallet    (Wallet (..))
-import           Wallet.Types              (ContractInstanceId (..), Notification (..), NotificationError (..))
+import           Wallet.Effects                 (ContractRuntimeEffect (..))
+import           Wallet.Emulator.Wallet         (Wallet (..))
+import           Wallet.Types                   (ContractInstanceId (..), Notification (..), NotificationError (..))
 
 data EmulatorContractNotifyEffect r where
     SendAgentNotification :: Wallet -> Wallet -> Notification -> EmulatorContractNotifyEffect (Maybe NotificationError)

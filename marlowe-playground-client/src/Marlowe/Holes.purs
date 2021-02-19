@@ -27,7 +27,7 @@ import Data.Tuple (Tuple(..))
 import Effect.Exception.Unsafe (unsafeThrow)
 import Foreign.Generic (class Decode, class Encode, defaultOptions, genericDecode, genericEncode)
 import Marlowe.Extended as EM
-import Marlowe.Semantics (PubKey, Rational(..), TokenName)
+import Marlowe.Semantics (PubKey, Rational(..), TokenName, CurrencySymbol)
 import Marlowe.Semantics as S
 import Monaco (IRange)
 import Text.Pretty (class Args, class Pretty, genericHasArgs, genericHasNestedArgs, genericPretty, hasArgs, hasNestedArgs, pretty)
@@ -592,7 +592,7 @@ type AccountId
   = Term Party
 
 data Token
-  = Token String String
+  = Token CurrencySymbol String
 
 derive instance genericToken :: Generic Token _
 

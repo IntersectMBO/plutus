@@ -1,7 +1,6 @@
 module Blockly.Generator where
 
--- FIXME: There are a lot of FFI functions here that should probably run inside in Effect, but we will try to remove
---        Generator altogether in a second step of the Blockly refactor.
+-- FIXME: SCP-1881 Remove the Generator functionality once we refactor Actus to use Blockly.Dom
 import Prelude
 import Blockly.Types (Block, Blockly, Workspace)
 import Data.Array as Array

@@ -179,7 +179,6 @@
           "Language/PlutusCore/Quote"
           "Language/PlutusCore/MkPlc"
           "Language/PlutusCore/Evaluation/Machine/Ck"
-          "Language/PlutusCore/Evaluation/Machine/Cek"
           "Language/PlutusCore/Evaluation/Machine/ExBudgeting"
           "Language/PlutusCore/Evaluation/Machine/ExBudgetingDefaults"
           "Language/PlutusCore/Evaluation/Machine/Exception"
@@ -332,7 +331,6 @@
             "Evaluation/DynamicBuiltins/Definition"
             "Evaluation/DynamicBuiltins/MakeRead"
             "Evaluation/DynamicBuiltins"
-            "Evaluation/Golden"
             "Evaluation/Machines"
             "Evaluation/Spec"
             "Normalization/Check"
@@ -374,15 +372,22 @@
         "untyped-plutus-core-test" = {
           depends = [
             (hsPkgs."base" or (errorHandler.buildDepError "base"))
+            (hsPkgs."bytestring" or (errorHandler.buildDepError "bytestring"))
             (hsPkgs."hedgehog" or (errorHandler.buildDepError "hedgehog"))
             (hsPkgs."plutus-core" or (errorHandler.buildDepError "plutus-core"))
             (hsPkgs."mtl" or (errorHandler.buildDepError "mtl"))
             (hsPkgs."prettyprinter" or (errorHandler.buildDepError "prettyprinter"))
             (hsPkgs."tasty" or (errorHandler.buildDepError "tasty"))
+            (hsPkgs."tasty-golden" or (errorHandler.buildDepError "tasty-golden"))
             (hsPkgs."tasty-hedgehog" or (errorHandler.buildDepError "tasty-hedgehog"))
+            (hsPkgs."text" or (errorHandler.buildDepError "text"))
             ];
           buildable = true;
-          modules = [ "Evaluation/ApplyBuiltinName" "Evaluation/Machines" ];
+          modules = [
+            "Evaluation/ApplyBuiltinName"
+            "Evaluation/Golden"
+            "Evaluation/Machines"
+            ];
           hsSourceDirs = [ "untyped-plutus-core-test" ];
           mainPath = [ "Spec.hs" ];
           };

@@ -20,7 +20,7 @@ import           Control.Concurrent.MVar         (MVar, newMVar, putMVar, takeMV
 import           Control.Monad.Freer
 import           Control.Monad.Freer.Error       (Error)
 import qualified Control.Monad.Freer.Error       as Eff
-import           Control.Monad.Freer.Extra.Log
+import           Control.Monad.Freer.Extras.Log
 import           Control.Monad.Freer.State       (State)
 import qualified Control.Monad.Freer.State       as Eff
 import           Control.Monad.IO.Class          (MonadIO (..))

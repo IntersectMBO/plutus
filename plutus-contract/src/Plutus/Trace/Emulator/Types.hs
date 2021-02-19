@@ -55,7 +55,7 @@ module Plutus.Trace.Emulator.Types(
 import           Control.Lens
 import           Control.Monad.Freer.Coroutine
 import           Control.Monad.Freer.Error
-import           Control.Monad.Freer.Log            (LogMessage, LogMsg, LogObserve)
+import           Control.Monad.Freer.Extras.Log     (LogMessage, LogMsg, LogObserve)
 import           Control.Monad.Freer.Reader         (Reader)
 import           Data.Aeson                         (FromJSON, ToJSON)
 import qualified Data.Aeson                         as JSON

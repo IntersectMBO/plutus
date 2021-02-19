@@ -1,6 +1,7 @@
 module BlocklyComponent.Types where
 
 import Prelude hiding (div)
+import Blockly.Dom (Block(..))
 import Blockly.Generator (Generator)
 import Blockly.Internal (BlockDefinition, XML)
 import Blockly.Types as BT
@@ -13,7 +14,6 @@ import Halogen (SubscriptionId)
 
 type State
   = { blocklyState :: Maybe BT.BlocklyState
-    , generator :: Maybe Generator
     , errorMessage :: Maybe String
     , blocklyEventSubscription :: Maybe SubscriptionId
     , eventsWhileDragging :: Maybe (List BT.BlocklyEvent)
@@ -21,9 +21,6 @@ type State
 
 _blocklyState :: Lens' State (Maybe BT.BlocklyState)
 _blocklyState = prop (SProxy :: SProxy "blocklyState")
-
-_generator :: Lens' State (Maybe Generator)
-_generator = prop (SProxy :: SProxy "generator")
 
 _errorMessage :: Lens' State (Maybe String)
 _errorMessage = prop (SProxy :: SProxy "errorMessage")
@@ -34,7 +31,6 @@ _blocklyEventSubscription = prop (SProxy :: SProxy "blocklyEventSubscription")
 emptyState :: State
 emptyState =
   { blocklyState: Nothing
-  , generator: Nothing
   , errorMessage: Nothing
   , blocklyEventSubscription: Nothing
   , eventsWhileDragging: Nothing
@@ -46,7 +42,7 @@ data Query a
   | SetError String a
   | GetWorkspace (XML -> a)
   | LoadWorkspace XML a
-  | GetCode (String -> a)
+  | GetBlockRepresentation (Block -> a)
 
 data Action
   = Inject String (Array BlockDefinition)
