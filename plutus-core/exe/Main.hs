@@ -45,7 +45,6 @@ import           Flat
 import           Options.Applicative
 import           System.CPUTime                                     (getCPUTime)
 import           System.Exit                                        (exitFailure, exitSuccess)
-import           System.IO
 import           System.Mem                                         (performGC)
 import           Text.Printf                                        (printf)
 import           Text.Read                                          (readMaybe)
@@ -368,14 +367,14 @@ plutusOpts = hsubparser (
 -- need isn't available anyway).
 typedDeBruijnNotSupportedError :: IO a
 typedDeBruijnNotSupportedError =
-    hPutStrLn stderr "De-Bruijn-named ASTs are not supported for typed Plutus Core" >> exitFailure
+    errorWithoutStackTrace "De-Bruijn-named ASTs are not supported for typed Plutus Core"
 
 -- | Convert an untyped program to one where the 'name' type is de Bruijn indices.
 toDeBruijn :: UntypedProgram a -> IO (UntypedProgramDeBruijn a)
 toDeBruijn prog = do
   r <- PLC.runQuoteT $ runExceptT @UPLC.FreeVariableError (UPLC.deBruijnProgram prog)
   case r of
-    Left e  -> hPutStrLn stderr (show e) >> exitFailure
+    Left e  -> errorWithoutStackTrace $ show e
     Right p -> return $ UPLC.programMapNames (\(UPLC.NamedDeBruijn _ ix) -> UPLC.DeBruijn ix) p
 
 
@@ -386,7 +385,7 @@ fromDeBruijn :: UntypedProgramDeBruijn a -> IO (UntypedProgram a)
 fromDeBruijn prog = do
     let namedProgram = UPLC.programMapNames (\(UPLC.DeBruijn ix) -> UPLC.NamedDeBruijn "v" ix) prog
     case PLC.runQuote $ runExceptT @UPLC.FreeVariableError $ UPLC.unDeBruijnProgram namedProgram of
-      Left e  -> hPutStrLn stderr (show e) >> exitFailure
+      Left e  -> errorWithoutStackTrace $ show e
       Right p -> return p
 
 
@@ -409,7 +408,7 @@ parsePlcInput language inp = do
                   Left errCheck        -> failWith errCheck
                   Right (Left errEval) -> failWith errEval
                   Right (Right p)      -> return $ wrapper p
-            failWith (err :: PlcParserError) =  T.hPutStrLn stderr (PP.displayPlcDef err) >> exitFailure
+            failWith (err :: PlcParserError) =  errorWithoutStackTrace $ PP.displayPlcDef err
 
 -- Read a binary-encoded file (eg, CBOR- or Flat-encoded PLC)
 getBinaryInput :: Input -> IO BSL.ByteString
@@ -429,7 +428,7 @@ loadASTfromCBOR language cborMode inp =
     where handleResult wrapper =
               \case
                Left (DeserialiseFailure offset msg) ->
-                   hPutStrLn stderr ("CBOR deserialisation failure at offset " ++ Prelude.show offset ++ ": " ++ msg) >> exitFailure
+                   errorWithoutStackTrace $ "CBOR deserialisation failure at offset " ++ Prelude.show offset ++ ": " ++ msg
                Right r -> return $ wrapper r
 
 -- Read and deserialise a Flat-encoded AST
@@ -442,7 +441,7 @@ loadASTfromFlat language flatMode inp =
          (UntypedPLC, DeBruijn) -> getBinaryInput inp <&> unflat >>= mapM fromDeBruijn >>= handleResult UntypedProgram
     where handleResult wrapper =
               \case
-               Left e  -> hPutStrLn stderr ("Flat deserialisation failure:" ++ show e)  >> exitFailure
+               Left e  -> errorWithoutStackTrace $ "Flat deserialisation failure:" ++ show e
                Right r -> return $ wrapper r
 
 
@@ -568,11 +567,11 @@ runApply (ApplyOptions language inputfiles ifmt outp ofmt mode) = do
           case language of  -- Annoyingly, we've got a list which could in principle contain both typed and untyped programs
             TypedPLC ->
                 case map (\case TypedProgram p -> () <$ p;  _ -> error "unexpected program type mismatch") scripts of
-                  []          -> error "No input files"
+                  []          -> errorWithoutStackTrace "No input files"
                   progAndargs -> TypedProgram $ foldl1 PLC.applyProgram progAndargs
             UntypedPLC ->
                 case map (\case UntypedProgram p -> () <$ p; _ -> error "unexpected program type mismatch") scripts of
-                  []          -> error "No input files"
+                  []          -> errorWithoutStackTrace "No input files"
                   progAndArgs -> UntypedProgram $ foldl1 UPLC.applyProgram progAndArgs
   writeProgram outp ofmt mode appliedScript
 
@@ -615,7 +614,7 @@ toTypedTermExample term = TypedTermExample ty term where
         tcConfig <- PLC.getDefTypeCheckConfig ()
         PLC.typecheckPipeline tcConfig program
     ty = case errOrTy of
-        Left (err :: PLC.Error PLC.DefaultUni PLC.DefaultFun ()) -> error $ PP.displayPlcDef err
+        Left (err :: PLC.Error PLC.DefaultUni PLC.DefaultFun ()) -> errorWithoutStackTrace $ PP.displayPlcDef err
         Right vTy                                                -> PLC.unNormalized vTy
 
 getInteresting :: IO [(ExampleName, PLC.Term PLC.TyName PLC.Name PLC.DefaultUni PLC.DefaultFun ())]
@@ -684,7 +683,7 @@ runTypecheck (TypecheckOptions inp fmt) = do
     PLC.typecheckPipeline tcConfig (void prog)
     of
       Left (e :: PLC.Error PLC.DefaultUni PLC.DefaultFun ()) ->
-        T.hPutStrLn stderr (PP.displayPlcDef e) >> exitFailure
+        errorWithoutStackTrace $ PP.displayPlcDef e
       Right ty                                               ->
         T.putStrLn (PP.displayPlcDef ty) >> exitSuccess
 
@@ -706,7 +705,7 @@ time.  The first measurement is often significantly larger than the rest
 we measure the evaluation time (n+1) times and discard the first result. -}
 timeEval :: NFData a => Integer -> (t -> a) -> t -> IO [a]
 timeEval n evaluate prog
-    | n <= 0 = error "Error: the number of repetitions should be at least 1"
+    | n <= 0 = errorWithoutStackTrace "Error: the number of repetitions should be at least 1"
     | otherwise = do
   (results, times) <- unzip . tail <$> for (replicate (fromIntegral (n+1)) prog) (timeOnce evaluate)
   let mean = (fromIntegral $ sum times) / (fromIntegral n) :: Double
@@ -771,23 +770,26 @@ runEval :: EvalOptions -> IO ()
 runEval (EvalOptions language inp ifmt evalMode printMode budgetMode timingMode) =
     case language of
 
-      TypedPLC -> do
-        let !_ = case budgetMode of
-                   Silent    -> ()
-                   Verbose _ -> error "There is no budgeting for typed Plutus Core"
-        TypedProgram prog <- getProgram TypedPLC ifmt inp
-        let evaluate = Ck.unsafeEvaluateCk  PLC.defBuiltinsRuntime
-            body = void . PLC.toTerm $ prog
-            !_ = rnf body
-        -- Force evaluation of body to ensure that we're not timing parsing/deserialisation.
-        -- The parser apparently returns a fully-evaluated AST, but let's be on the safe side.
-        case timingMode of
-          NoTiming -> evaluate body & handleResult
-          Timing n -> timeEval n evaluate body >>= handleTimingResults
+      TypedPLC ->
+        case evalMode of
+            CEK -> errorWithoutStackTrace "There is no CEK machine for Typed Plutus Core"
+            CK  -> do
+                    let !_ = case budgetMode of
+                               Silent    -> ()
+                               Verbose _ -> errorWithoutStackTrace "There is no budgeting for typed Plutus Core"
+                    TypedProgram prog <- getProgram TypedPLC ifmt inp
+                    let evaluate = Ck.unsafeEvaluateCk  PLC.defBuiltinsRuntime
+                        body = void . PLC.toTerm $ prog
+                        !_ = rnf body
+                        -- Force evaluation of body to ensure that we're not timing parsing/deserialisation.
+                        -- The parser apparently returns a fully-evaluated AST, but let's be on the safe side.
+                    case timingMode of
+                      NoTiming -> evaluate body & handleResult
+                      Timing n -> timeEval n evaluate body >>= handleTimingResults
 
       UntypedPLC ->
           case evalMode of
-            CK  -> hPutStrLn stderr "There is no CK machine for Untyped Plutus Core" >> exitFailure
+            CK  -> errorWithoutStackTrace "There is no CK machine for Untyped Plutus Core"
             CEK -> do
                   UntypedProgram prog <- getProgram UntypedPLC ifmt inp
                   case budgetMode of
@@ -810,7 +812,7 @@ runEval (EvalOptions language inp ifmt evalMode printMode budgetMode timingMode)
                                     let (result, budget) = evaluate body
                                     printBudgetState budget
                                     handleResultSilently result  -- We just want to see the budget information
-                            Timing _ -> error "Timing mode and budget mode cannot be used simultaneously"
+                            Timing _ -> errorWithoutStackTrace "Timing mode and budget mode cannot be used simultaneously"
 
     where handleResult result =
               case result of
@@ -823,7 +825,7 @@ runEval (EvalOptions language inp ifmt evalMode printMode budgetMode timingMode)
               case nub results of
                 [PLC.EvaluationSuccess _] -> exitSuccess -- We don't want to see the result here
                 [PLC.EvaluationFailure]   -> exitFailure
-                _                         -> error "Timing evaluations returned inconsistent results"
+                _                         -> error "Timing evaluations returned inconsistent results" -- Should never happen
 
 
 ---------------- Driver ----------------
