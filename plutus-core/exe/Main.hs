@@ -812,7 +812,7 @@ runEval (EvalOptions language inp ifmt evalMode printMode budgetMode timingMode)
                                     let (result, budget) = evaluate body
                                     printBudgetState budget
                                     handleResultSilently result  -- We just want to see the budget information
-                            Timing _ -> errorWithoutStackTrace "Timing mode and budget mode cannot be used simultaneously"
+                            Timing n -> timeEval n evaluate body >>= handleTimingResultsWithBudget
 
     where handleResult result =
               case result of
@@ -826,6 +826,11 @@ runEval (EvalOptions language inp ifmt evalMode printMode budgetMode timingMode)
                 [PLC.EvaluationSuccess _] -> exitSuccess -- We don't want to see the result here
                 [PLC.EvaluationFailure]   -> exitFailure
                 _                         -> error "Timing evaluations returned inconsistent results" -- Should never happen
+          handleTimingResultsWithBudget results =
+              case nub results of
+                [(PLC.EvaluationSuccess _, budget)] -> putStrLn "" >> printBudgetState budget >> exitSuccess
+                [(PLC.EvaluationFailure, budget)]   -> putStrLn "" >> printBudgetState budget >> exitFailure
+                _                                   -> error "Timing evaluations returned inconsistent results" -- Should never happen
 
 
 ---------------- Driver ----------------
