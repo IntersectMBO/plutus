@@ -12,7 +12,7 @@ module Type.CK where
 ```
 open import Type
 open import Type.RenamingSubstitution
-open import Type.Reduction hiding (step)
+open import Type.ReductionF hiding (step)
 
 open import Data.Product
 ```
@@ -35,41 +35,6 @@ Our CK machine is intrinsically kinded. The step function, which
 performs one step of computation, preserves the kind of the overall
 type and the intermediate data structures are indexed by kinds to
 enable this.
-
-## Frames
-
-A frame corresponds to a type with a hole in it for a missing sub
-type. It is indexed by two kinds. The first index is the kind of the
-outer type that the frame corresponds to, the second index refers to
-the kind of the missing subterm. The frame datatypes has constructors
-for all the different places in a type that we might need to make a
-hole.
-
-```
-data Frame : Kind → Kind → Set where
-  -·_     : ∅ ⊢⋆ K → Frame J (K ⇒ J)
-  _·-     : {A : ∅ ⊢⋆ K ⇒ J} → Value⋆ A → Frame J K
-  -⇒_     : ∅ ⊢⋆ * → Frame * *
-  _⇒-     : {A : ∅ ⊢⋆ *} → Value⋆ A → Frame * *
-  μ-_     : (B : ∅ ⊢⋆ K) → Frame * ((K ⇒ *) ⇒ K ⇒ *)
-  μ_-     : {A : ∅ ⊢⋆ (K ⇒ *) ⇒ K ⇒ *} → Value⋆ A → Frame * K
-```
-
-Given a frame and type to plug in to it we can close the frame and
-recover a type with no hole. By indexing frames by kinds we can
-specify exactly what kind the plug needs to have and ensure we don't
-plug in something of the wrong kind. We can also ensure what kind the
-returned type will have.
-
-```
-closeFrame : Frame K J → ∅ ⊢⋆ J → ∅ ⊢⋆ K
-closeFrame (-· B)  A = A · B
-closeFrame (_·- A) B = discharge A · B
-closeFrame (-⇒ B)  A = A ⇒ B
-closeFrame (_⇒- A) B = discharge A ⇒ B
-closeFrame (μ_- A) B = μ (discharge A) B
-closeFrame (μ- B)  A = μ A B
-```
 
 ## Stack
 
@@ -110,7 +75,6 @@ data State (K : Kind) : Kind → Set where
   _▻_ : Stack K J → ∅ ⊢⋆ J → State K J
   _◅_ : Stack K J → {A : ∅ ⊢⋆ J} → Value⋆ A → State K J
   □   : {A : ∅ ⊢⋆ K} →  Value⋆ A → State K K
-  -- ◆ : ∀ (J : Kind) →  State K J -- impossible in the type language
 ```
 
 Analogously to `Frame` and `Stack` we can also close a `State`:
@@ -121,7 +85,6 @@ closeState (s ▻ A)   = closeStack s A
 closeState (_◅_ s A) = closeStack s (discharge A)
 closeState (□ A)     = discharge A
 ```
-
 
 ## The machine
 
@@ -146,4 +109,21 @@ step ((s , (V ⇒-)) ◅ W)             = -, s ◅ (V V-⇒ W)
 step ((s , μ- B) ◅ A)               = -, (s , μ A -) ▻ B
 step ((s , μ A -) ◅ B)              = -, s ◅ V-μ A B
 step (□ V)                          = -, □ V
+```
+
+reflexive transitive closure of step:
+
+```
+variable
+ I' : Kind
+
+open import Relation.Binary.PropositionalEquality
+
+data _-→s_ : State K J → State K I → Set where
+  base  : (s : State K J)
+        → s -→s s
+  step* : (s : State K J)(s' : State K I)(s'' : State K I')
+        → step s ≡ (I , s')
+        → s' -→s s''
+        → s -→s s''
 ```

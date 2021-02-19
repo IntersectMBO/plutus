@@ -2,6 +2,7 @@ resolver: lts-17.2
 
 packages:
 - doc
+- freer-extras
 - marlowe
 - marlowe-dashboard-server
 - marlowe-actus

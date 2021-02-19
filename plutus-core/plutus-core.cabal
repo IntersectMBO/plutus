@@ -50,7 +50,6 @@ library
         Language.PlutusCore.Quote
         Language.PlutusCore.MkPlc
         Language.PlutusCore.Evaluation.Machine.Ck
-        Language.PlutusCore.Evaluation.Machine.Cek
         Language.PlutusCore.Evaluation.Machine.ExBudgeting
         Language.PlutusCore.Evaluation.Machine.ExBudgetingDefaults
         Language.PlutusCore.Evaluation.Machine.Exception
@@ -296,7 +295,6 @@ test-suite plutus-core-test
         Evaluation.DynamicBuiltins.Definition
         Evaluation.DynamicBuiltins.MakeRead
         Evaluation.DynamicBuiltins
-        Evaluation.Golden
         Evaluation.Machines
         Evaluation.Spec
         Normalization.Check
@@ -356,15 +354,19 @@ test-suite untyped-plutus-core-test
     hs-source-dirs: untyped-plutus-core-test
     other-modules:
         Evaluation.ApplyBuiltinName
+        Evaluation.Golden
         Evaluation.Machines
     build-depends:
         base >=4.9 && <5,
+        bytestring -any,
         hedgehog -any,
         plutus-core -any,
         mtl -any,
         prettyprinter -any,
         tasty -any,
-        tasty-hedgehog -any
+        tasty-golden -any,
+        tasty-hedgehog -any,
+        text -any
 
 benchmark plutus-core-bench
     import: lang

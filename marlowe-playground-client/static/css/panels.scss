@@ -493,3 +493,26 @@ button.minus-btn:hover {
   margin-bottom: 0.5rem;
 }
 
+.templates li {
+  margin: 1.5rem 0;
+}
+
+.templates h6 {
+  margin: 0 0 1rem 0;
+}
+
+.templates em {
+  display: inline-block;
+}
+
+.template-fields {
+  margin: 0.5rem 1.5rem;
+}
+
+.template-fields * {
+  word-break: break-all;
+}
+
+.template-fields > input {
+  margin-left: 1rem;
+}

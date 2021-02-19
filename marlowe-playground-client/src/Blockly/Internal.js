@@ -99,3 +99,7 @@ exports.addChangeListener_ = function (workspace, listener) {
 exports.removeChangeListener_ = function (workspace, listener) {
   workspace.removeChangeListener(listener);
 };
+
+exports.workspaceToDom_ = function (blockly, workspace) {
+  return blockly.Xml.workspaceToDom(workspace);
+};

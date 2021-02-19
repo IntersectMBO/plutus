@@ -10,56 +10,56 @@ module Spec.Emulator(tests) where
 
 
 import           Control.Lens
-import           Control.Monad                 (void)
-import qualified Control.Monad.Freer           as Eff
-import qualified Control.Monad.Freer.Error     as E
+import           Control.Monad                  (void)
+import qualified Control.Monad.Freer            as Eff
+import qualified Control.Monad.Freer.Error      as E
 import           Control.Monad.Freer.Extras
-import           Control.Monad.Freer.Log       (logMessageContent)
-import           Control.Monad.Trans.Except    (runExcept)
-import qualified Data.Aeson                    as JSON
-import qualified Data.Aeson.Extras             as JSON
-import qualified Data.Aeson.Internal           as Aeson
-import qualified Data.ByteString               as BSS
-import qualified Data.ByteString.Lazy          as BSL
-import           Data.Either                   (isLeft, isRight)
-import           Data.Foldable                 (fold, foldl', traverse_)
-import           Data.List                     (sort)
-import qualified Data.Map                      as Map
-import           Data.Monoid                   (Sum (..))
-import qualified Data.Set                      as Set
-import           Data.String                   (IsString (fromString))
-import           Hedgehog                      (Property, forAll, property)
+import           Control.Monad.Freer.Extras.Log (logMessageContent)
+import           Control.Monad.Trans.Except     (runExcept)
+import qualified Data.Aeson                     as JSON
+import qualified Data.Aeson.Extras              as JSON
+import qualified Data.Aeson.Internal            as Aeson
+import qualified Data.ByteString                as BSS
+import qualified Data.ByteString.Lazy           as BSL
+import           Data.Either                    (isLeft, isRight)
+import           Data.Foldable                  (fold, foldl', traverse_)
+import           Data.List                      (sort)
+import qualified Data.Map                       as Map
+import           Data.Monoid                    (Sum (..))
+import qualified Data.Set                       as Set
+import           Data.String                    (IsString (fromString))
+import           Hedgehog                       (Property, forAll, property)
 import qualified Hedgehog
-import qualified Hedgehog.Gen                  as Gen
-import qualified Hedgehog.Range                as Range
-import           Language.Plutus.Contract.Test hiding (not)
-import qualified Language.PlutusTx             as PlutusTx
-import           Language.PlutusTx.AssocMap    as AssocMap
-import qualified Language.PlutusTx.Builtins    as Builtins
-import qualified Language.PlutusTx.Numeric     as P
-import qualified Language.PlutusTx.Prelude     as PlutusTx
+import qualified Hedgehog.Gen                   as Gen
+import qualified Hedgehog.Range                 as Range
+import           Language.Plutus.Contract.Test  hiding (not)
+import qualified Language.PlutusTx              as PlutusTx
+import           Language.PlutusTx.AssocMap     as AssocMap
+import qualified Language.PlutusTx.Builtins     as Builtins
+import qualified Language.PlutusTx.Numeric      as P
+import qualified Language.PlutusTx.Prelude      as PlutusTx
 import           Ledger
-import qualified Ledger.Ada                    as Ada
-import           Ledger.Bytes                  as LedgerBytes
-import           Ledger.Generators             (Mockchain (Mockchain))
-import qualified Ledger.Generators             as Gen
-import qualified Ledger.Index                  as Index
-import           Ledger.Typed.Scripts          (wrapValidator)
-import           Ledger.Value                  (CurrencySymbol, Value (Value))
-import qualified Ledger.Value                  as Value
-import           Plutus.Trace                  (EmulatorTrace)
-import qualified Plutus.Trace                  as Trace
+import qualified Ledger.Ada                     as Ada
+import           Ledger.Bytes                   as LedgerBytes
+import           Ledger.Generators              (Mockchain (Mockchain))
+import qualified Ledger.Generators              as Gen
+import qualified Ledger.Index                   as Index
+import           Ledger.Typed.Scripts           (wrapValidator)
+import           Ledger.Value                   (CurrencySymbol, Value (Value))
+import qualified Ledger.Value                   as Value
+import           Plutus.Trace                   (EmulatorTrace)
+import qualified Plutus.Trace                   as Trace
 import           Test.Tasty
-import           Test.Tasty.HUnit              (testCase)
-import qualified Test.Tasty.HUnit              as HUnit
-import           Test.Tasty.Hedgehog           (testProperty)
+import           Test.Tasty.HUnit               (testCase)
+import qualified Test.Tasty.HUnit               as HUnit
+import           Test.Tasty.Hedgehog            (testProperty)
 import           Wallet
-import qualified Wallet.API                    as W
-import qualified Wallet.Emulator.Chain         as Chain
-import           Wallet.Emulator.MultiAgent    (EmulatorEvent' (..), eteEvent)
-import qualified Wallet.Emulator.NodeClient    as NC
+import qualified Wallet.API                     as W
+import qualified Wallet.Emulator.Chain          as Chain
+import           Wallet.Emulator.MultiAgent     (EmulatorEvent' (..), eteEvent)
+import qualified Wallet.Emulator.NodeClient     as NC
 import           Wallet.Emulator.Types
-import qualified Wallet.Emulator.Wallet        as Wallet
+import qualified Wallet.Emulator.Wallet         as Wallet
 import qualified Wallet.Graph
 
 tests :: TestTree

@@ -16,8 +16,9 @@ import Control.Monad.Reader (class MonadAsk)
 import Data.Array (filter)
 import Data.Either (Either(..), hush)
 import Data.Foldable (for_, traverse_)
-import Data.Lens (assign, preview, set, use)
+import Data.Lens (assign, modifying, preview, set, use)
 import Data.Lens.Index (ix)
+import Data.Map as Map
 import Data.Maybe (Maybe(..), fromMaybe)
 import Data.String (codePointFromChar)
 import Data.String as String
@@ -29,21 +30,21 @@ import Examples.Marlowe.Contracts (example) as ME
 import Halogen (HalogenM, liftEffect, modify_, query)
 import Halogen.Extra (mapSubmodule)
 import Halogen.Monaco (Message(..), Query(..)) as Monaco
-import LocalStorage as LocalStorage
+import SessionStorage as SessionStorage
 import MainFrame.Types (ChildSlots, _marloweEditorPageSlot)
+import Marlowe.Extended (Contract, getPlaceholderIds, typeToLens, updateTemplateContent)
 import Marlowe.Holes (fromTerm)
 import Marlowe.LinterText as Linter
 import Marlowe.Monaco (updateAdditionalContext)
 import Marlowe.Monaco as MM
 import Marlowe.Parser (parseContract)
-import Marlowe.Extended (Contract)
 import MarloweEditor.Types (Action(..), BottomPanelView, State, _bottomPanelState, _editorErrors, _editorWarnings, _keybindings, _selectedHole, _showErrorDetail)
 import Monaco (IMarker, isError, isWarning)
 import Network.RemoteData as RemoteData
 import Servant.PureScript.Ajax (AjaxError)
 import StaticAnalysis.Reachability (analyseReachability, getUnreachableContracts)
 import StaticAnalysis.StaticTools (analyseContract)
-import StaticAnalysis.Types (_analysisState)
+import StaticAnalysis.Types (AnalysisExecutionState(..), _analysisExecutionState, _analysisState, _templateContent)
 import StaticData (marloweBufferLocalStorageKey)
 import StaticData as StaticData
 import Text.Pretty (pretty)
@@ -65,7 +66,7 @@ handleAction ::
   HalogenM State Action ChildSlots Void m Unit
 handleAction Init = do
   editorSetTheme
-  mContents <- liftEffect $ LocalStorage.getItem marloweBufferLocalStorageKey
+  mContents <- liftEffect $ SessionStorage.getItem marloweBufferLocalStorageKey
   editorSetValue $ fromMaybe ME.example mContents
 
 handleAction (ChangeKeyBindings bindings) = do
@@ -74,7 +75,7 @@ handleAction (ChangeKeyBindings bindings) = do
 
 handleAction (HandleEditorMessage (Monaco.TextChanged text)) = do
   assign _selectedHole Nothing
-  liftEffect $ LocalStorage.setItem marloweBufferLocalStorageKey text
+  liftEffect $ SessionStorage.setItem marloweBufferLocalStorageKey text
   lintText text
 
 handleAction (HandleDragEvent event) = liftEffect $ preventDefault event
@@ -94,7 +95,7 @@ handleAction (LoadScript key) = do
         Right pcon -> show $ pretty pcon
         Left _ -> contents
     editorSetValue prettyContents
-    liftEffect $ LocalStorage.setItem marloweBufferLocalStorageKey prettyContents
+    liftEffect $ SessionStorage.setItem marloweBufferLocalStorageKey prettyContents
 
 handleAction (SetEditorText contents) = editorSetValue contents
 
@@ -112,15 +113,22 @@ handleAction ViewAsBlockly = pure unit
 
 handleAction (InitMarloweProject contents) = do
   editorSetValue contents
-  liftEffect $ LocalStorage.setItem marloweBufferLocalStorageKey contents
+  liftEffect $ SessionStorage.setItem marloweBufferLocalStorageKey contents
 
 handleAction (SelectHole hole) = assign _selectedHole hole
+
+handleAction (SetIntegerTemplateParam templateType key value) = modifying (_analysisState <<< _templateContent <<< typeToLens templateType) (Map.insert key value)
 
 handleAction AnalyseContract = runAnalysis $ analyseContract
 
 handleAction AnalyseReachabilityContract = runAnalysis $ analyseReachability
 
 handleAction AnalyseContractForCloseRefund = runAnalysis $ analyseClose
+
+handleAction ClearAnalysisResults = do
+  assign (_analysisState <<< _analysisExecutionState) NoneAsked
+  mContents <- editorGetValue
+  for_ mContents \contents -> lintText contents
 
 handleAction Save = pure unit
 
@@ -148,15 +156,19 @@ lintText ::
   String ->
   HalogenM State Action ChildSlots Void m Unit
 lintText text = do
-  analysisState <- use _analysisState
+  analysisExecutionState <- use (_analysisState <<< _analysisExecutionState)
   let
     parsedContract = parseContract text
 
-    unreachableContracts = getUnreachableContracts analysisState
+    unreachableContracts = getUnreachableContracts analysisExecutionState
 
     (Tuple markerData additionalContext) = Linter.markers unreachableContracts parsedContract
   markers <- query _marloweEditorPageSlot unit (Monaco.SetModelMarkers markerData identity)
   traverse_ editorSetMarkers markers
+  for_ parsedContract \contractHoles ->
+    for_ ((fromTerm contractHoles) :: Maybe Contract) \contract ->
+      modifying (_analysisState <<< _templateContent) $ updateTemplateContent $ getPlaceholderIds contract
+  -- We set the templates here so that we don't have to parse twice
   {-
     There are three different Monaco objects that require the linting information:
       * Markers

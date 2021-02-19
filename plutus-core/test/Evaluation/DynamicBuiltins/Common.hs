@@ -4,8 +4,9 @@
 
 module Evaluation.DynamicBuiltins.Common
     ( typecheckAnd
-    , typecheckEvaluateCek
-    , typecheckReadKnownCek
+    , typecheckEvaluateCk
+    , typecheckEvaluateCkNoEmit
+    , typecheckReadKnownCk
     ) where
 
 import           PlutusPrelude
@@ -14,17 +15,15 @@ import           Language.PlutusCore
 import           Language.PlutusCore.Constant
 import           Language.PlutusCore.Pretty
 
-import           Language.PlutusCore.Evaluation.Machine.Cek
-import           Language.PlutusCore.Evaluation.Machine.ExBudgeting
-import           Language.PlutusCore.Evaluation.Machine.ExMemory
+import           Language.PlutusCore.Evaluation.Machine.Ck
 
 import           Control.Monad.Except
 
 -- | Type check and evaluate a term that can contain dynamic built-ins.
 typecheckAnd
     :: (MonadError (Error uni fun ()) m, ToBuiltinMeaning uni fun, GShow uni, GEq uni)
-    => (BuiltinsRuntime fun (CekValue uni fun) -> Term TyName Name uni fun () -> a)
-    -> BuiltinsRuntime fun (CekValue uni fun) -> Term TyName Name uni fun () -> m a
+    => (BuiltinsRuntime fun (CkValue uni fun) -> Term TyName Name uni fun () -> a)
+    -> BuiltinsRuntime fun (CkValue uni fun) -> Term TyName Name uni fun () -> m a
 typecheckAnd action runtime term = runQuoteT $ do
     tcConfig <- getDefTypeCheckConfig ()
     _ <- inferType tcConfig term
@@ -32,25 +31,34 @@ typecheckAnd action runtime term = runQuoteT $ do
     -- the result of the computation is forced or not.
     return $! action runtime term
 
--- | Type check and evaluate a term that can contain dynamic built-ins.
-typecheckEvaluateCek
+-- | Type check and evaluate a term that can contain dynamic builtins, logging enabled.
+typecheckEvaluateCk
     :: ( MonadError (Error uni fun ()) m, ToBuiltinMeaning uni fun
-       , GShow uni, GEq uni, Closed uni, uni `EverywhereAll` '[ExMemoryUsage, PrettyConst]
-       , Typeable uni, Typeable fun, Pretty fun, Hashable fun, ExMemoryUsage fun
+       , GShow uni, GEq uni, Closed uni, uni `Everywhere` PrettyConst
+       , Typeable uni, Typeable fun, Pretty fun
        )
-    => BuiltinsRuntime fun (CekValue uni fun)
+    => BuiltinsRuntime fun (CkValue uni fun)
     -> Term TyName Name uni fun ()
     -> m (EvaluationResult (Term TyName Name uni fun ()), [String])
-typecheckEvaluateCek = typecheckAnd unsafeEvaluateCek
+typecheckEvaluateCk = typecheckAnd unsafeEvaluateCk
+
+-- | Type check and evaluate a term that can contain dynamic builtins, logging disabled.
+typecheckEvaluateCkNoEmit
+    :: ( MonadError (Error uni fun ()) m, ToBuiltinMeaning uni fun
+       , GShow uni, GEq uni, Closed uni, uni `Everywhere` PrettyConst
+       , Typeable uni, Typeable fun, Pretty fun
+       )
+    => BuiltinsRuntime fun (CkValue uni fun)
+    -> Term TyName Name uni fun ()
+    -> m (EvaluationResult (Term TyName Name uni fun ()))
+typecheckEvaluateCkNoEmit = typecheckAnd unsafeEvaluateCkNoEmit
 
 -- | Type check and convert a Plutus Core term to a Haskell value.
-typecheckReadKnownCek
+typecheckReadKnownCk
     :: ( MonadError (Error uni fun ()) m, ToBuiltinMeaning uni fun
        , KnownType (Term TyName Name uni fun ()) a, GShow uni, GEq uni
-       , Closed uni, uni `EverywhereAll` '[ExMemoryUsage, PrettyConst]
-       , Hashable fun, ExMemoryUsage fun
        )
-    => BuiltinsRuntime fun (CekValue uni fun)
+    => BuiltinsRuntime fun (CkValue uni fun)
     -> Term TyName Name uni fun ()
-    -> m (Either (CekEvaluationException uni fun) a)
-typecheckReadKnownCek = typecheckAnd readKnownCek
+    -> m (Either (CkEvaluationException uni fun) a)
+typecheckReadKnownCk = typecheckAnd readKnownCk

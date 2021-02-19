@@ -16,7 +16,7 @@ import qualified Cardano.BM.Configuration.Model  as CM
 import           Cardano.BM.Trace                (Trace)
 import           Control.Concurrent.Availability (Availability, available)
 import           Control.Monad.Except            (ExceptT (ExceptT))
-import           Control.Monad.Freer.Extra.Log   (logInfo)
+import           Control.Monad.Freer.Extras.Log  (logInfo)
 import           Control.Monad.IO.Class          (liftIO)
 import           Data.Bifunctor                  (first)
 import qualified Data.ByteString.Lazy.Char8      as LBS

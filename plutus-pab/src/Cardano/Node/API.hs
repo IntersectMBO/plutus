@@ -7,10 +7,10 @@ module Cardano.Node.API
     , FollowerAPI
     ) where
 
-import           Cardano.Node.Types      (FollowerID, MockServerLogMsg)
-import           Control.Monad.Freer.Log (LogMessage)
-import           Ledger                  (Block, Slot, Tx)
-import           Servant.API             (Capture, Get, JSON, NoContent, Post, Put, ReqBody, (:<|>), (:>))
+import           Cardano.Node.Types             (FollowerID, MockServerLogMsg)
+import           Control.Monad.Freer.Extras.Log (LogMessage)
+import           Ledger                         (Block, Slot, Tx)
+import           Servant.API                    (Capture, Get, JSON, NoContent, Post, Put, ReqBody, (:<|>), (:>))
 
 type API
      = "healthcheck" :> Get '[ JSON] NoContent

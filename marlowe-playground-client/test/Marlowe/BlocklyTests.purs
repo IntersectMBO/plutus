@@ -1,21 +1,22 @@
 module Marlowe.BlocklyTests where
 
 import Prelude
-import Blockly.Generator (Generator, getInputWithName, inputList, blockToCode)
+import Blockly.Dom (explainError, getDom)
+import Blockly.Generator (getInputWithName, inputList)
 import Blockly.Headless as Headless
 import Blockly.Internal (getBlockById)
 import Blockly.Internal as Blockly
 import Blockly.Types (BlocklyState)
-import Control.Monad.Except (ExceptT(..), runExceptT)
+import Control.Monad.Except (ExceptT(..), runExceptT, withExceptT)
 import Control.Monad.Reader (runReaderT)
 import Data.Bifunctor (lmap, rmap)
-import Data.Either (Either, note)
+import Data.Either (Either)
 import Data.Foldable (for_)
 import Data.Maybe (Maybe(..))
 import Effect (Effect)
 import Effect.Class (class MonadEffect, liftEffect)
 import Effect.Unsafe (unsafePerformEffect)
-import Marlowe.Blockly (blockDefinitions, buildGenerator, rootBlockName, toBlockly)
+import Marlowe.Blockly (blockDefinitions, blockToContract, rootBlockName, toBlockly)
 import Marlowe.Gen (genContract, genTerm)
 import Marlowe.GenWithHoles (GenWithHoles, unGenWithHoles)
 import Marlowe.Holes (Contract, Term)
@@ -28,24 +29,23 @@ import Text.Extra (stripParens)
 all :: TestSuite
 all =
   suite "Marlowe.Blockly" do
-    test "c2b2c" $ quickCheckGen c2b2c
+    test "codeToBlocklyToCode" $ quickCheckGen codeToBlocklyToCode
 
 quickCheckGen :: forall prop. Testable prop => GenWithHoles prop -> Test
 quickCheckGen g = quickCheck $ runReaderT (unGenWithHoles g) true
 
-mkTestState :: forall m. MonadEffect m => m { blocklyState :: BlocklyState, generator :: Generator }
+mkTestState :: forall m. MonadEffect m => m BlocklyState
 mkTestState = do
   blocklyState <- liftEffect $ Headless.createBlocklyInstance rootBlockName
   liftEffect do
     Blockly.addBlockTypes blocklyState.blockly blockDefinitions
     Headless.initializeWorkspace blocklyState
-  generator <- liftEffect $ buildGenerator blocklyState.blockly
-  pure { blocklyState: blocklyState, generator: generator }
+  pure blocklyState
 
 -- Here we keep using `show` because the Term range is intentionally incorrect when converting from blockly
 -- It uses zero to create a dummy range. By using `show` we can reasonably compare contracts
-c2b2c :: GenWithHoles Result
-c2b2c = do
+codeToBlocklyToCode :: GenWithHoles Result
+codeToBlocklyToCode = do
   contract <- genTerm "contract" genContract
   let
     positionedContract = rmap show $ lmap show $ Parser.parseContract (stripParens $ show contract)
@@ -58,13 +58,13 @@ c2b2c = do
   pure (result === positionedContract)
 
 runContract :: Term Contract -> Effect (Either String (Term Contract))
-runContract contract = do
-  state <- liftEffect mkTestState
-  liftEffect $ buildBlocks state.blocklyState contract
-  runExceptT do
-    rootBlock <- ExceptT $ note "failed to get root block" <$> getBlockById state.blocklyState.workspace state.blocklyState.rootBlockName
-    code <- ExceptT $ blockToCode rootBlock state.generator
-    ExceptT $ pure $ lmap show $ Parser.parseContract (stripParens code)
+runContract contract =
+  liftEffect do
+    blocklyState <- mkTestState
+    buildBlocks blocklyState contract
+    runExceptT do
+      block <- withExceptT explainError (getDom blocklyState)
+      ExceptT $ pure $ blockToContract block
 
 buildBlocks :: BlocklyState -> Term Contract -> Effect Unit
 buildBlocks bs contract = do

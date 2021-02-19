@@ -28,7 +28,6 @@ import Data.Map as Map
 import Data.Maybe (Maybe(..), fromMaybe, maybe)
 import Data.NonEmptyList.Extra (extendWith, tailIfNotEmpty)
 import Data.RawJson (RawJson(..))
-import Data.Traversable (for_)
 import Data.Tuple (Tuple(..))
 import Effect.Aff.Class (class MonadAff)
 import Effect.Class (class MonadEffect, liftEffect)
@@ -39,10 +38,10 @@ import Foreign.JSON (parseJSON)
 import Halogen (HalogenM, get, query)
 import Halogen.Extra (mapSubmodule)
 import Halogen.Monaco (Query(..)) as Monaco
-import LocalStorage as LocalStorage
+import SessionStorage as SessionStorage
 import MainFrame.Types (ChildSlots, _simulatorEditorSlot)
 import Marlowe as Server
-import Marlowe.Extended (toCore)
+import Marlowe.Extended (fillTemplate, toCore, typeToLens)
 import Marlowe.Extended as EM
 import Marlowe.Holes (fromTerm)
 import Marlowe.Monaco as MM
@@ -52,7 +51,7 @@ import Marlowe.Semantics as S
 import Network.RemoteData (RemoteData(..))
 import Network.RemoteData as RemoteData
 import Servant.PureScript.Ajax (AjaxError, errorToString)
-import SimulationPage.Types (Action(..), ActionInput(..), ActionInputId(..), BottomPanelView, ExecutionState(..), Parties(..), State, _SimulationNotStarted, _SimulationRunning, _bottomPanelState, _currentMarloweState, _executionState, _extendedContract, _helpContext, _initialSlot, _marloweState, _moveToAction, _possibleActions, _showRightPanel, emptyExecutionStateWithSlot, emptyMarloweState, mapPartiesActionInput)
+import SimulationPage.Types (Action(..), ActionInput(..), ActionInputId(..), BottomPanelView, ExecutionState(..), Parties(..), State, _SimulationNotStarted, _SimulationRunning, _bottomPanelState, _currentMarloweState, _executionState, _extendedContract, _helpContext, _initialSlot, _marloweState, _moveToAction, _possibleActions, _showRightPanel, _templateContent, emptyExecutionStateWithSlot, emptyMarloweState, mapPartiesActionInput)
 import Simulator (applyInput, inFuture, moveToSignificantSlot, moveToSlot, nextSignificantSlot, updateMarloweState, updatePossibleActions, updateStateP)
 import StaticData (simulatorBufferLocalStorageKey)
 import Text.Pretty (genericPretty)
@@ -80,11 +79,15 @@ handleAction ::
   HalogenM State Action ChildSlots Void m Unit
 handleAction Init = do
   editorSetTheme
-  mContents <- liftEffect $ LocalStorage.getItem simulatorBufferLocalStorageKey
+  mContents <- liftEffect $ SessionStorage.getItem simulatorBufferLocalStorageKey
   handleAction $ LoadContract $ fromMaybe "" mContents
 
 handleAction (SetInitialSlot initialSlot) = do
   assign (_currentMarloweState <<< _executionState <<< _SimulationNotStarted <<< _initialSlot) initialSlot
+  setOraclePrice
+
+handleAction (SetIntegerTemplateParam templateType key value) = do
+  modifying (_currentMarloweState <<< _executionState <<< _SimulationNotStarted <<< _templateContent <<< typeToLens templateType) (Map.insert key value)
   setOraclePrice
 
 handleAction StartSimulation =
@@ -92,7 +95,8 @@ handleAction StartSimulation =
     $ runMaybeT do
         initialSlot <- MaybeT $ peruse (_currentMarloweState <<< _executionState <<< _SimulationNotStarted <<< _initialSlot)
         extendedContract <- MaybeT $ peruse (_currentMarloweState <<< _executionState <<< _SimulationNotStarted <<< _extendedContract <<< _Just)
-        contract <- hoistMaybe $ toCore (extendedContract :: EM.Contract)
+        templateContent <- MaybeT $ peruse (_currentMarloweState <<< _executionState <<< _SimulationNotStarted <<< _templateContent)
+        contract <- hoistMaybe $ toCore $ fillTemplate templateContent (extendedContract :: EM.Contract)
         modifying _marloweState (extendWith (updatePossibleActions <<< updateStateP <<< (set _executionState (emptyExecutionStateWithSlot initialSlot (contract :: S.Contract)))))
         lift $ updateContractInEditor
 
@@ -136,7 +140,7 @@ handleAction Undo = do
   updateContractInEditor
 
 handleAction (LoadContract contents) = do
-  liftEffect $ LocalStorage.setItem simulatorBufferLocalStorageKey contents
+  liftEffect $ SessionStorage.setItem simulatorBufferLocalStorageKey contents
   let
     mExtendedContract = do
       termContract <- hush $ parseContract contents
@@ -274,6 +278,6 @@ updateContractInEditor = do
   editorSetValue
     ( case executionState of
         SimulationRunning runningState -> show $ genericPretty runningState.contract
-        SimulationNotStarted notStartedState -> maybe "No contract" (show <<< genericPretty) notStartedState.extendedContract -- This "No contract" should never happen if we get valid contracts from editors 
+        SimulationNotStarted notStartedState -> maybe "No contract" (show <<< genericPretty) notStartedState.extendedContract -- This "No contract" should never happen if we get valid contracts from editors
     )
   setOraclePrice

@@ -18,6 +18,7 @@ module Plutus.PAB.Monitoring(
   , loadConfig
   -- * Misc
   , toSeverity
+  , convertLog
   ) where
 
 import           Cardano.BM.Configuration       (setup)
@@ -35,8 +36,8 @@ import           Cardano.BM.Trace
 import           Control.Monad                  (void)
 import           Control.Monad.Catch            (MonadCatch)
 import           Control.Monad.Freer
-import           Control.Monad.Freer.Log        (LogMsg (..), LogObserve (..), Observation (..))
-import qualified Control.Monad.Freer.Log        as L
+import           Control.Monad.Freer.Extras.Log (LogMsg (..), LogObserve (..), Observation (..))
+import qualified Control.Monad.Freer.Extras.Log as L
 import           Control.Monad.IO.Class         (MonadIO (..))
 import           Data.Bifunctor                 (Bifunctor (..))
 import           Data.Foldable                  (for_)
@@ -158,3 +159,7 @@ handleObserveTrace config t =
   in L.handleObserve
       observeBefore
       observeAfter
+
+-- | Convert tracer structured log data
+convertLog :: (a -> b) -> Trace m b -> Trace m a
+convertLog f = contramap (second (fmap f))

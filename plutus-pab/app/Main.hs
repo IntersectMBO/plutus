@@ -36,21 +36,19 @@ import           Control.Lens.Indexed                            (itraverse_)
 import           Control.Monad                                   (forever, void, when)
 import           Control.Monad.Freer                             (Eff, raise)
 import           Control.Monad.Freer.Error                       (handleError)
-import           Control.Monad.Freer.Extra.Log                   (LogMsg, logInfo)
-import           Control.Monad.Freer.Log                         (logError)
+import           Control.Monad.Freer.Extras.Log                  (LogMsg, logError, logInfo)
 import           Control.Monad.IO.Class                          (liftIO)
 import           Control.Monad.Logger                            (runStdoutLoggingT)
 import qualified Data.Aeson                                      as JSON
-import           Data.Bifunctor                                  (Bifunctor (..))
 import qualified Data.ByteString.Lazy.Char8                      as BS8
 import           Data.Foldable                                   (for_, traverse_)
-import           Data.Functor.Contravariant                      (Contravariant (..))
 import qualified Data.Map                                        as Map
 import qualified Data.Set                                        as Set
 import qualified Data.Text                                       as Text
 import           GHC.Generics                                    (Generic)
 import           Plutus.PAB.MonadLoggerBridge                    (TraceLoggerT (..))
-import           Plutus.PAB.Monitoring                           (defaultConfig, handleLogMsgTrace, loadConfig)
+import           Plutus.PAB.Monitoring                           (convertLog, defaultConfig, handleLogMsgTrace,
+                                                                  loadConfig)
 
 import           Data.Text.Prettyprint.Doc                       (Pretty (..), pretty)
 import           Data.Time.Units                                 (toMicroseconds)
@@ -573,9 +571,6 @@ main = do
             exitWith (ExitFailure 1)
         Right _ -> exitSuccess
 
--- Convert tracer structured log data
-convertLog :: (a -> b) -> Trace m b -> Trace m a
-convertLog f = contramap (second (fmap f))
 
 toPABMsg :: Trace m AppMsg -> Trace m PABLogMsg
 toPABMsg = convertLog PABMsg

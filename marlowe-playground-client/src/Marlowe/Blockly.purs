@@ -1,16 +1,21 @@
 module Marlowe.Blockly where
 
 import Prelude
-import Blockly.Generator (Connection, Generator, Input, NewBlockFunction, clearWorkspace, connect, connectToOutput, connectToPrevious, fieldName, fieldRow, getBlockInputConnectedTo, getFieldValue, getInputWithName, getType, inputList, inputName, inputType, insertGeneratorFunction, mkGenerator, nextBlock, nextConnection, previousConnection, setFieldText, statementToCode)
-import Blockly.Internal (AlignDirection(..), Arg(..), BlockDefinition(..), block, blockType, category, colour, defaultBlockDefinition, getBlockById, initializeWorkspace, name, render, style, x, xml, y)
-import Blockly.Types (Block, Blockly, BlocklyState, Workspace)
-import Control.Alternative ((<|>))
-import Data.Array (filter, head, uncons, (:))
+import Blockly.Dom as BDom
+import Blockly.Generator (Connection, Input, NewBlockFunction, clearWorkspace, connect, connectToOutput, connectToPrevious, fieldName, fieldRow, getInputWithName, inputList, inputName, inputType, nextConnection, previousConnection, setFieldText)
+import Blockly.Internal (AlignDirection(..), Arg(..), BlockDefinition(..), defaultBlockDefinition, getBlockById, initializeWorkspace, render)
+import Blockly.Types (Block, BlocklyState, Workspace)
+import Control.Monad.Error.Class (catchError)
+import Control.Monad.Error.Extra (toMonadThrow)
+import Control.Monad.Except (class MonadError, throwError)
+import Control.Monad.Except.Trans (class MonadThrow)
+import Data.Array (filter, head, length, uncons)
 import Data.Array as Array
-import Data.Bifunctor (lmap, rmap)
-import Data.BigInteger (fromString)
-import Data.Either (Either, note)
-import Data.Either as Either
+import Data.Array.Partial as UnsafeArray
+import Data.Bifunctor (lmap)
+import Data.BigInteger (BigInteger)
+import Data.BigInteger as BigInteger
+import Data.Either (Either, note')
 import Data.Enum (class BoundedEnum, class Enum, upFromIncluding)
 import Data.Foldable (for_)
 import Data.Generic.Rep (class Generic)
@@ -19,18 +24,14 @@ import Data.Generic.Rep.Enum (genericCardinality, genericFromEnum, genericPred, 
 import Data.Generic.Rep.Eq (genericEq)
 import Data.Generic.Rep.Ord (genericCompare)
 import Data.Generic.Rep.Show (genericShow)
-import Data.Maybe (Maybe(..))
-import Data.Traversable (traverse, traverse_)
+import Data.Maybe (Maybe(..), maybe)
+import Data.TraversableWithIndex (forWithIndex)
 import Data.Tuple (Tuple(..))
 import Effect (Effect)
-import Halogen.HTML (HTML)
-import Halogen.HTML.Properties (id_)
-import Marlowe.Holes (Action(..), Bound(..), Case(..), ChoiceId(..), Contract(..), Location(..), Observation(..), Party(..), Payee(..), Term(..), TermWrapper(..), Timeout(..), Token(..), Value(..), ValueId(..), mkDefaultTerm, mkDefaultTermWrapper)
-import Marlowe.Parser as Parser
+import Foreign.Object as Object
+import Marlowe.Holes (Action(..), Bound(..), Case(..), ChoiceId(..), Contract(..), Location(..), Observation(..), Party(..), Payee(..), Term(..), TermWrapper(..), Timeout(..), Token(..), Value(..), ValueId(..))
 import Marlowe.Semantics (Rational(..))
 import Record (merge)
-import Text.Parsing.StringParser (Parser)
-import Text.Parsing.StringParser.Basic (parens, runParser')
 import Type.Proxy (Proxy(..))
 
 rootBlockName :: String
@@ -999,278 +1000,353 @@ toDefinition blockType@(ValueType UseValueValueType) =
         }
         defaultBlockDefinition
 
-toolbox :: forall a b. HTML a b
-toolbox =
-  xml [ id_ "blocklyToolbox", style "display:none" ]
-    [ category [ name "Contracts", colour contractColour ] (map mkBlock contractTypes)
-    , category [ name "Observations", colour observationColour ] (map mkBlock observationTypes)
-    , category [ name "Actions", colour actionColour ] (map mkBlock actionTypes)
-    , category [ name "Values", colour valueColour ] (map mkBlock valueTypes)
-    , category [ name "Payee", colour payeeColour ] (map mkBlock payeeTypes)
-    , category [ name "Party", colour partyColour ] (map mkBlock partyTypes)
-    , category [ name "Token", colour tokenColour ] (map mkBlock tokenTypes)
-    , category [ name "Bounds", colour boundsColour ] (map mkBlock [ BoundsType ])
-    ]
+--
+-- Code generation
+--
+blockToContract :: BDom.Block -> Either String (Term Contract)
+blockToContract block = lmap explainParseTermError $ blockToTerm block
+
+class BlockToTerm a where
+  blockToTerm :: forall m. MonadError ParseTermError m => BDom.Block -> m (Term a)
+
+data ParseTermError
+  = InvalidBlock BDom.Block String
+  | MissingArgument BDom.Block String
+  | InvalidChildType String
+  | InvalidFieldCast String String
+  | ErrorInChild BDom.Block String ParseTermError
+
+explainParseTermError :: ParseTermError -> String
+explainParseTermError (InvalidBlock block expectedType) = "Block with id " <> show block.id <> " and type " <> show block.type <> " is not a valid " <> expectedType <> " type"
+
+explainParseTermError (MissingArgument block attr) = "Block " <> show block.id <> " is missing required argument " <> show attr
+
+explainParseTermError (InvalidChildType childType) = "Attribute should be of type " <> childType
+
+explainParseTermError (InvalidFieldCast fieldValue castType) = "Could not convert value " <> show fieldValue <> " to " <> castType
+
+explainParseTermError (ErrorInChild block attr err) = "Error in " <> block.type <> "." <> attr <> explainNested err
   where
-  mkBlock :: forall t. Show t => t -> _
-  mkBlock t = block [ blockType (show t) ] []
+  explainNested (ErrorInChild block' attr' err') = " -> " <> block'.type <> "." <> attr' <> explainNested err'
 
-workspaceBlocks :: forall a b. HTML a b
-workspaceBlocks =
-  xml [ id_ "workspaceBlocks", style "display:none" ]
-    [ block [ blockType (show BaseContractType), x "13", y "187", id_ rootBlockName ] []
-    ]
+  explainNested err' = ": " <> explainParseTermError err'
 
-parse :: forall a. Parser a -> String -> Either String a
-parse p = lmap show <<< runParser' (parens p <|> p)
+getRequiredAttribute :: forall m. MonadThrow ParseTermError m => String -> BDom.Block -> m BDom.BlockChild
+getRequiredAttribute attr block = case (Object.lookup attr block.children) of
+  Nothing -> throwError $ MissingArgument block attr
+  Just child -> pure child
 
-buildGenerator :: Blockly -> Effect Generator
-buildGenerator blockly = do
-  generator <- mkGenerator blockly "Marlowe"
+asStatement :: forall m. MonadThrow ParseTermError m => BDom.BlockChild -> m (Array BDom.Block)
+asStatement child = case child of
+  BDom.Statement blocks -> pure blocks
+  _ -> throwError $ InvalidChildType "Statement"
+
+asSingleStatement :: forall m. MonadThrow ParseTermError m => BDom.BlockChild -> m BDom.Block
+asSingleStatement child = do
+  statements <- asStatement child
+  case uncons statements of
+    Just { head, tail: [] } -> pure head
+    _ -> throwError $ InvalidChildType "Statement with a single child"
+
+asValue :: forall m. MonadThrow ParseTermError m => BDom.BlockChild -> m BDom.Block
+asValue child = case child of
+  BDom.Value block -> pure block
+  _ -> throwError $ InvalidChildType "Value"
+
+asField :: forall m. MonadThrow ParseTermError m => BDom.BlockChild -> m String
+asField child = case child of
+  BDom.Field text -> pure text
+  _ -> throwError $ InvalidChildType "Field"
+
+asBigInteger :: forall m. MonadThrow ParseTermError m => String -> m BigInteger
+asBigInteger str = toMonadThrow $ note' (\_ -> InvalidFieldCast str "BigInteger") (BigInteger.fromString str)
+
+mkTermFromChild ::
+  forall m a.
+  MonadError ParseTermError m =>
+  BlockToTerm a =>
+  (BDom.BlockChild -> m BDom.Block) ->
+  String ->
+  BDom.Block ->
+  m (Term a)
+mkTermFromChild childToBlock attr block = case Object.lookup attr block.children of
+  Nothing -> pure $ Hole attr Proxy (BlockId block.id)
+  Just child ->
+    catchError
+      (blockToTerm =<< childToBlock child)
+      (\err -> throwError $ ErrorInChild block attr err)
+
+valueToTerm ::
+  forall m a.
+  MonadError ParseTermError m =>
+  BlockToTerm a =>
+  String ->
+  BDom.Block ->
+  m (Term a)
+valueToTerm = mkTermFromChild asValue
+
+singleStatementToTerm ::
+  forall m a.
+  MonadError ParseTermError m =>
+  BlockToTerm a =>
+  String ->
+  BDom.Block ->
+  m (Term a)
+singleStatementToTerm = mkTermFromChild asSingleStatement
+
+-- Parse the child of a block as a statement (array of blocks), and convert each
+-- block to a term
+statementsToTerms ::
+  forall m a.
+  MonadError ParseTermError m =>
+  BlockToTerm a =>
+  String ->
+  BDom.Block ->
+  m (Array (Term a))
+statementsToTerms attr block =
   let
-    mkGenFun :: forall a t. Show a => Show t => t -> (Block -> Either String a) -> Effect Unit
-    mkGenFun blockType f = insertGeneratorFunction generator (show blockType) (rmap show <<< f)
-  traverse_ (\t -> mkGenFun t (baseContractDefinition generator)) [ BaseContractType ]
-  traverse_ (\t -> mkGenFun t (blockDefinition t generator)) contractTypes
-  traverse_ (\t -> mkGenFun t (blockDefinition t generator)) payeeTypes
-  traverse_ (\t -> mkGenFun t (blockDefinition t generator)) partyTypes
-  traverse_ (\t -> mkGenFun t (blockDefinition t generator)) tokenTypes
-  traverse_ (\t -> mkGenFun t (blockDefinition t generator)) observationTypes
-  traverse_ (\t -> mkGenFun t (blockDefinition t generator)) valueTypes
-  traverse_ (\t -> mkGenFun t (blockDefinition t generator)) actionTypes
-  traverse_ (\t -> mkGenFun t (boundsDefinition generator)) [ BoundsType ]
-  pure generator
-
-class HasBlockDefinition a b | a -> b where
-  blockDefinition :: a -> Generator -> Block -> Either String b
-
-baseContractDefinition :: Generator -> Block -> Either String (Term Contract)
-baseContractDefinition g block = case statementToCode g block (show BaseContractType) of
-  Either.Left _ -> pure $ Hole "contract" Proxy NoLocation
-  Either.Right s -> parse (mkDefaultTerm <$> Parser.contract) s
-
-getAllBlocks :: Block -> Array Block
-getAllBlocks currentBlock =
-  currentBlock
-    : ( case nextBlock currentBlock of
-          Nothing -> []
-          Just nextBlock' -> getAllBlocks nextBlock'
-      )
-
-caseDefinition :: Generator -> Block -> Either String (Term Case)
-caseDefinition g block =
-  let
-    maybeActionType = case getType block of
-      "DepositActionType" -> Just DepositActionType
-      "ChoiceActionType" -> Just ChoiceActionType
-      "NotifyActionType" -> Just NotifyActionType
-      _ -> Nothing
+    parseStatements child = do
+      statements <- catchError (asStatement child) (\err -> throwError $ ErrorInChild block attr err)
+      forWithIndex statements \i block' ->
+        catchError
+          (blockToTerm block')
+          (\err -> throwError $ ErrorInChild block (attr <> "[" <> show i <> "]") err)
   in
-    case maybeActionType of
-      Nothing -> Either.Left "Could not parse ActionType in caseDefinition function"
-      Just actionType -> blockDefinition actionType g block
+    maybe
+      (pure [])
+      parseStatements
+      (Object.lookup attr block.children)
 
-casesDefinition :: Generator -> Block -> Either String (Array (Term Case))
-casesDefinition g block = traverse (caseDefinition g) (getAllBlocks block)
+fieldAsString ::
+  forall m.
+  MonadError ParseTermError m =>
+  String ->
+  BDom.Block ->
+  m String
+fieldAsString attr block =
+  catchError
+    (asField =<< getRequiredAttribute attr block)
+    (\err -> throwError $ ErrorInChild block attr err)
 
-boundDefinition :: Generator -> Block -> Either String (Term Bound)
-boundDefinition g block = do
-  from <- parse Parser.bigInteger =<< getFieldValue block "from"
-  to <- parse Parser.bigInteger =<< getFieldValue block "to"
-  pure (mkDefaultTerm (Bound from to))
+fieldAsBigInteger ::
+  forall m.
+  MonadError ParseTermError m =>
+  String ->
+  BDom.Block ->
+  m BigInteger
+fieldAsBigInteger attr block =
+  catchError
+    (asBigInteger =<< asField =<< getRequiredAttribute attr block)
+    (\err -> throwError $ ErrorInChild block attr err)
 
-boundsDefinition :: Generator -> Block -> Either String (Array (Term Bound))
-boundsDefinition g block = traverse (boundDefinition g) (getAllBlocks block)
-
-statementToTerm :: forall a. Generator -> Block -> String -> Parser a -> Either String (Term a)
-statementToTerm g block name p = case statementToCode g block name of
-  Either.Left _ -> pure $ Hole name Proxy NoLocation
-  Either.Right s -> parse (mkDefaultTerm <$> p) s
-
-instance hasBlockDefinitionAction :: HasBlockDefinition ActionType (Term Case) where
-  blockDefinition DepositActionType g block = do
-    accountOwner <- statementToTerm g block "party" Parser.partyExtended
-    tok <- statementToTerm g block "token" Parser.token
-    party <- statementToTerm g block "from_party" Parser.partyExtended
-    amount <- statementToTerm g block "value" (Parser.value unit)
-    contract <- statementToTerm g block "contract" Parser.contract
-    pure $ mkDefaultTerm (Case (mkDefaultTerm (Deposit accountOwner party tok amount)) contract)
-  blockDefinition ChoiceActionType g block = do
-    choiceName <- getFieldValue block "choice_name"
-    choiceOwner <- statementToTerm g block "party" Parser.partyExtended
+instance blockToTermContract :: BlockToTerm Contract where
+  blockToTerm { type: "BaseContractType", children, id } = case Object.lookup "BaseContractType" children of
+    Nothing -> pure $ Hole "contract" Proxy (BlockId id)
+    Just child -> blockToTerm =<< asSingleStatement child
+  blockToTerm { type: "CloseContractType", id } = pure $ Term Close (BlockId id)
+  blockToTerm b@({ type: "PayContractType", id }) = do
+    accountOwner <- valueToTerm "party" b
+    payee <- valueToTerm "payee" b
+    token <- valueToTerm "token" b
+    value <- valueToTerm "value" b
+    contract <- singleStatementToTerm "contract" b
+    pure $ Term (Pay accountOwner payee token value contract) (BlockId id)
+  blockToTerm b@({ type: "IfContractType", id }) = do
+    observation <- valueToTerm "observation" b
+    contract1 <- singleStatementToTerm "contract1" b
+    contract2 <- singleStatementToTerm "contract2" b
+    pure $ Term (If observation contract1 contract2) (BlockId id)
+  blockToTerm b@({ type: "WhenContractType", id, children }) = do
+    timeoutField <- fieldAsString "timeout" b
+    cases <- statementsToTerms "case" b
     let
-      choiceId = ChoiceId choiceName choiceOwner
+      location = (BlockId id)
 
-      inputs = inputList block
-    boundsInput <- note "No Input with name \"bound\" found" $ getInputWithName inputs "bounds"
+      timeout = case BigInteger.fromString timeoutField of
+        Just slotNumber -> Term (Slot slotNumber) location
+        Nothing -> Term (SlotParam timeoutField) location
+    contract <- singleStatementToTerm "contract" b
+    pure $ Term (When cases timeout contract) location
+  blockToTerm b@({ type: "LetContractType", id }) = do
+    valueId <- fieldAsString "value_id" b
+    value <- valueToTerm "value" b
+    contract <- singleStatementToTerm "contract" b
     let
-      mTopboundBlock = getBlockInputConnectedTo boundsInput
-    bounds <- case mTopboundBlock of
-      Either.Left _ -> pure [ Hole "bounds" Proxy NoLocation ]
-      Either.Right topboundBlock -> boundsDefinition g topboundBlock
-    contract <- statementToTerm g block "contract" Parser.contract
-    pure $ mkDefaultTerm (Case (mkDefaultTerm (Choice choiceId bounds)) contract)
-  blockDefinition NotifyActionType g block = do
-    observation <- statementToTerm g block "observation" Parser.observation
-    contract <- statementToTerm g block "contract" Parser.contract
-    pure $ mkDefaultTerm (Case (mkDefaultTerm (Notify observation)) contract)
+      location = (BlockId id)
 
-instance hasBlockDefinitionPayee :: HasBlockDefinition PayeeType (Term Payee) where
-  blockDefinition AccountPayeeType g block = do
-    accountOwner <- statementToTerm g block "party" Parser.partyExtended
-    pure $ mkDefaultTerm (Account accountOwner)
-  blockDefinition PartyPayeeType g block = do
-    party <- statementToTerm g block "party" Parser.partyExtended
-    pure $ mkDefaultTerm (Party party)
+      valueIdTerm = (TermWrapper (ValueId valueId) location)
+    pure $ Term (Let valueIdTerm value contract) location
+  blockToTerm b@({ type: "AssertContractType", id }) = do
+    contract <- singleStatementToTerm "contract" b
+    observation <- valueToTerm "observation" b
+    pure $ Term (Assert observation contract) (BlockId id)
+  blockToTerm block = throwError $ InvalidBlock block "Contract"
 
-instance hasBlockDefinitionParty :: HasBlockDefinition PartyType (Term Party) where
-  blockDefinition PKPartyType g block = do
-    case getFieldValue block "pubkey" of
-      Either.Left _ -> pure $ Hole "n" Proxy NoLocation
-      Either.Right pk -> pure $ mkDefaultTerm (PK pk)
-  blockDefinition RolePartyType g block = do
-    role <- getFieldValue block "role"
-    pure $ mkDefaultTerm (Role role)
-
-instance hasBlockDefinitionToken :: HasBlockDefinition TokenType (Term Token) where
-  blockDefinition AdaTokenType g block = do
-    pure $ mkDefaultTerm (Token "" "")
-  blockDefinition CustomTokenType g block = do
-    currSym <- getFieldValue block "currency_symbol"
-    tokName <- getFieldValue block "token_name"
-    pure $ mkDefaultTerm (Token currSym tokName)
-
-instance hasBlockDefinitionContract :: HasBlockDefinition ContractType (Term Contract) where
-  blockDefinition CloseContractType _ _ = pure $ mkDefaultTerm Close
-  blockDefinition PayContractType g block = do
-    accountOwner <- statementToTerm g block "party" Parser.partyExtended
-    tok <- statementToTerm g block "token" Parser.token
-    payee <- statementToTerm g block "payee" Parser.payeeExtended
-    value <- statementToTerm g block "value" (Parser.value unit)
-    contract <- statementToTerm g block "contract" Parser.contract
-    pure $ mkDefaultTerm (Pay accountOwner payee tok value contract)
-  blockDefinition IfContractType g block = do
-    observation <- statementToTerm g block "observation" Parser.observation
-    contract1 <- statementToTerm g block "contract1" Parser.contract
-    contract2 <- statementToTerm g block "contract2" Parser.contract
-    pure $ mkDefaultTerm (If observation contract1 contract2)
-  blockDefinition WhenContractType g block = do
+instance blockToTermObservation :: BlockToTerm Observation where
+  blockToTerm b@({ type: "AndObservationType", id }) = do
+    observation1 <- valueToTerm "observation1" b
+    observation2 <- valueToTerm "observation2" b
+    pure $ Term (AndObs observation1 observation2) (BlockId id)
+  blockToTerm b@({ type: "OrObservationType", id }) = do
+    observation1 <- valueToTerm "observation1" b
+    observation2 <- valueToTerm "observation2" b
+    pure $ Term (OrObs observation1 observation2) (BlockId id)
+  blockToTerm b@({ type: "NotObservationType", id }) = do
+    observation <- valueToTerm "observation" b
+    pure $ Term (NotObs observation) (BlockId id)
+  blockToTerm b@({ type: "ChoseSomethingObservationType", id }) = do
+    party <- valueToTerm "party" b
+    choiceName <- fieldAsString "choice_name" b
     let
-      inputs = inputList block
-    casesInput <- note "No Input with name \"case\" found" $ getInputWithName inputs "case"
-    let
-      eTopCaseBlock = getBlockInputConnectedTo casesInput
-    cases <- case eTopCaseBlock of
-      Either.Right topCaseBlock -> casesDefinition g topCaseBlock
-      Either.Left _ -> pure []
-    slotOrParam <- getFieldValue block "timeout"
-    contract <- statementToTerm g block "contract" Parser.contract
-    let
-      slot =
-        mkDefaultTerm
-          $ case fromString slotOrParam of
-              Just slotNumber -> Slot slotNumber
-              Nothing -> SlotParam slotOrParam
-    pure $ mkDefaultTerm (When cases slot contract)
-  blockDefinition LetContractType g block = do
-    valueId <- mkDefaultTermWrapper <<< ValueId <$> getFieldValue block "value_id"
-    value <- statementToTerm g block "value" (Parser.value unit)
-    contract <- statementToTerm g block "contract" Parser.contract
-    pure $ mkDefaultTerm (Let valueId value contract)
-  blockDefinition AssertContractType g block = do
-    observation <- statementToTerm g block "observation" Parser.observation
-    contract <- statementToTerm g block "contract" Parser.contract
-    pure $ mkDefaultTerm (Assert observation contract)
+      choice = ChoiceId choiceName party
+    pure $ Term (ChoseSomething choice) (BlockId id)
+  blockToTerm b@({ type: "ValueGEObservationType", id }) = do
+    value1 <- valueToTerm "value1" b
+    value2 <- valueToTerm "value2" b
+    pure $ Term (ValueGE value1 value2) (BlockId id)
+  blockToTerm b@({ type: "ValueGTObservationType", id }) = do
+    value1 <- valueToTerm "value1" b
+    value2 <- valueToTerm "value2" b
+    pure $ Term (ValueGT value1 value2) (BlockId id)
+  blockToTerm b@({ type: "ValueLTObservationType", id }) = do
+    value1 <- valueToTerm "value1" b
+    value2 <- valueToTerm "value2" b
+    pure $ Term (ValueLT value1 value2) (BlockId id)
+  blockToTerm b@({ type: "ValueLEObservationType", id }) = do
+    value1 <- valueToTerm "value1" b
+    value2 <- valueToTerm "value2" b
+    pure $ Term (ValueLE value1 value2) (BlockId id)
+  blockToTerm b@({ type: "ValueEQObservationType", id }) = do
+    value1 <- valueToTerm "value1" b
+    value2 <- valueToTerm "value2" b
+    pure $ Term (ValueEQ value1 value2) (BlockId id)
+  blockToTerm { type: "TrueObservationType", id } = pure $ Term TrueObs (BlockId id)
+  blockToTerm { type: "FalseObservationType", id } = pure $ Term FalseObs (BlockId id)
+  blockToTerm block = throwError $ InvalidBlock block "Observation"
 
-instance hasBlockDefinitionObservation :: HasBlockDefinition ObservationType (Term Observation) where
-  blockDefinition AndObservationType g block = do
-    observation1 <- statementToTerm g block "observation1" Parser.observation
-    observation2 <- statementToTerm g block "observation2" Parser.observation
-    pure $ mkDefaultTerm (AndObs observation1 observation2)
-  blockDefinition OrObservationType g block = do
-    observation1 <- statementToTerm g block "observation1" Parser.observation
-    observation2 <- statementToTerm g block "observation2" Parser.observation
-    pure $ mkDefaultTerm (OrObs observation1 observation2)
-  blockDefinition NotObservationType g block = do
-    observation <- statementToTerm g block "observation" Parser.observation
-    pure $ mkDefaultTerm (NotObs observation)
-  blockDefinition ChoseSomethingObservationType g block = do
-    choiceName <- getFieldValue block "choice_name"
-    choiceOwner <- statementToTerm g block "party" Parser.partyExtended
+instance blockToTermValue :: BlockToTerm Value where
+  blockToTerm b@({ type: "AvailableMoneyValueType", id }) = do
+    party <- valueToTerm "party" b
+    token <- valueToTerm "token" b
+    pure $ Term (AvailableMoney party token) (BlockId id)
+  blockToTerm b@({ type: "ConstantValueType", id }) = do
+    constant <- fieldAsBigInteger "constant" b
+    pure $ Term (Constant constant) (BlockId id)
+  blockToTerm b@({ type: "ConstantParamValueType", id }) = do
+    paramName <- fieldAsString "paramName" b
+    pure $ Term (ConstantParam paramName) (BlockId id)
+  blockToTerm b@({ type: "NegValueValueType", id }) = do
+    value <- valueToTerm "value" b
+    pure $ Term (NegValue value) (BlockId id)
+  blockToTerm b@({ type: "AddValueValueType", id }) = do
+    value1 <- valueToTerm "value1" b
+    value2 <- valueToTerm "value2" b
+    pure $ Term (AddValue value1 value2) (BlockId id)
+  blockToTerm b@({ type: "SubValueValueType", id }) = do
+    value1 <- valueToTerm "value1" b
+    value2 <- valueToTerm "value2" b
+    pure $ Term (SubValue value1 value2) (BlockId id)
+  blockToTerm b@({ type: "MulValueValueType", id }) = do
+    value1 <- valueToTerm "value1" b
+    value2 <- valueToTerm "value2" b
+    pure $ Term (MulValue value1 value2) (BlockId id)
+  blockToTerm b@({ type: "ScaleValueType", id }) = do
+    numerator <- fieldAsBigInteger "numerator" b
+    denominator <- fieldAsBigInteger "denominator" b
+    value <- valueToTerm "value" b
     let
-      choiceId = ChoiceId choiceName choiceOwner
-    pure $ mkDefaultTerm (ChoseSomething choiceId)
-  blockDefinition ValueGEObservationType g block = do
-    value1 <- statementToTerm g block "value1" (Parser.value unit)
-    value2 <- statementToTerm g block "value2" (Parser.value unit)
-    pure $ mkDefaultTerm (ValueGE value1 value2)
-  blockDefinition ValueGTObservationType g block = do
-    value1 <- statementToTerm g block "value1" (Parser.value unit)
-    value2 <- statementToTerm g block "value2" (Parser.value unit)
-    pure $ mkDefaultTerm (ValueGT value1 value2)
-  blockDefinition ValueLEObservationType g block = do
-    value1 <- statementToTerm g block "value1" (Parser.value unit)
-    value2 <- statementToTerm g block "value2" (Parser.value unit)
-    pure $ mkDefaultTerm (ValueLE value1 value2)
-  blockDefinition ValueLTObservationType g block = do
-    value1 <- statementToTerm g block "value1" (Parser.value unit)
-    value2 <- statementToTerm g block "value2" (Parser.value unit)
-    pure $ mkDefaultTerm (ValueLT value1 value2)
-  blockDefinition ValueEQObservationType g block = do
-    value1 <- statementToTerm g block "value1" (Parser.value unit)
-    value2 <- statementToTerm g block "value2" (Parser.value unit)
-    pure $ mkDefaultTerm (ValueEQ value1 value2)
-  blockDefinition TrueObservationType g block = pure $ mkDefaultTerm TrueObs
-  blockDefinition FalseObservationType g block = pure $ mkDefaultTerm FalseObs
+      location = (BlockId id)
 
-instance hasBlockDefinitionValue :: HasBlockDefinition ValueType (Term Value) where
-  blockDefinition AvailableMoneyValueType g block = do
-    accountOwner <- statementToTerm g block "party" Parser.partyExtended
-    tok <- statementToTerm g block "token" Parser.token
-    pure $ mkDefaultTerm (AvailableMoney accountOwner tok)
-  blockDefinition ConstantValueType g block = do
-    constant <- parse Parser.bigInteger =<< getFieldValue block "constant"
-    pure $ mkDefaultTerm (Constant constant)
-  blockDefinition ConstantParamValueType g block = do
-    paramName <- getFieldValue block "paramName"
-    pure $ mkDefaultTerm (ConstantParam paramName)
-  blockDefinition NegValueValueType g block = do
-    value <- statementToTerm g block "value" (Parser.value unit)
-    pure $ mkDefaultTerm (NegValue value)
-  blockDefinition AddValueValueType g block = do
-    value1 <- statementToTerm g block "value1" (Parser.value unit)
-    value2 <- statementToTerm g block "value2" (Parser.value unit)
-    pure $ mkDefaultTerm (AddValue value1 value2)
-  blockDefinition SubValueValueType g block = do
-    value1 <- statementToTerm g block "value1" (Parser.value unit)
-    value2 <- statementToTerm g block "value2" (Parser.value unit)
-    pure $ mkDefaultTerm (SubValue value1 value2)
-  blockDefinition MulValueValueType g block = do
-    value1 <- statementToTerm g block "value1" (Parser.value unit)
-    value2 <- statementToTerm g block "value2" (Parser.value unit)
-    pure $ mkDefaultTerm (MulValue value1 value2)
-  blockDefinition ScaleValueType g block = do
-    numerator <- parse Parser.bigInteger =<< getFieldValue block "numerator"
-    denominator <- parse Parser.bigInteger =<< getFieldValue block "denominator"
-    value <- statementToTerm g block "value" (Parser.value unit)
-    pure $ mkDefaultTerm (Scale (mkDefaultTermWrapper (Rational numerator denominator)) value)
-  blockDefinition ChoiceValueValueType g block = do
-    choiceName <- getFieldValue block "choice_name"
-    choiceOwner <- statementToTerm g block "party" Parser.partyExtended
+      rational = TermWrapper (Rational numerator denominator) location
+    pure $ Term (Scale rational value) location
+  blockToTerm b@({ type: "ChoiceValueValueType", id }) = do
+    choiceName <- fieldAsString "choice_name" b
+    party <- valueToTerm "party" b
+    pure $ Term (ChoiceValue (ChoiceId choiceName party)) (BlockId id)
+  blockToTerm b@({ type: "SlotIntervalStartValueType", id }) = pure $ Term SlotIntervalStart (BlockId id)
+  blockToTerm b@({ type: "SlotIntervalEndValueType", id }) = pure $ Term SlotIntervalEnd (BlockId id)
+  blockToTerm b@({ type: "UseValueValueType", id }) = do
+    valueId <- fieldAsString "value_id" b
     let
-      choiceId = ChoiceId choiceName choiceOwner
-    pure $ mkDefaultTerm (ChoiceValue choiceId)
-  blockDefinition SlotIntervalStartValueType g block = pure $ mkDefaultTerm SlotIntervalStart
-  blockDefinition SlotIntervalEndValueType g block = pure $ mkDefaultTerm SlotIntervalEnd
-  blockDefinition UseValueValueType g block = do
-    valueId <- mkDefaultTermWrapper <<< ValueId <$> getFieldValue block "value_id"
-    pure $ mkDefaultTerm (UseValue valueId)
-  blockDefinition CondObservationValueValueType g block = do
-    condition <- statementToTerm g block "condition" Parser.observation
-    thn <- statementToTerm g block "then" (Parser.value unit)
-    els <- statementToTerm g block "else" (Parser.value unit)
-    pure $ mkDefaultTerm (Cond condition thn els)
+      location = (BlockId id)
 
+      value = TermWrapper (ValueId valueId) location
+    pure $ Term (UseValue value) location
+  blockToTerm b@({ type: "CondObservationValueValueType", id }) = do
+    condition <- valueToTerm "condition" b
+    thenVal <- valueToTerm "then" b
+    elseVal <- valueToTerm "else" b
+    pure $ Term (Cond condition thenVal elseVal) (BlockId id)
+  blockToTerm block = throwError $ InvalidBlock block "Value"
+
+instance blockToTermCase :: BlockToTerm Case where
+  blockToTerm b@({ type: "DepositActionType", id }) = do
+    by <- valueToTerm "from_party" b
+    intoAccountOf <- valueToTerm "party" b
+    token <- valueToTerm "token" b
+    value <- valueToTerm "value" b
+    contract <- singleStatementToTerm "contract" b
+    let
+      location = (BlockId id)
+
+      action = Term (Deposit intoAccountOf by token value) location
+    pure $ Term (Case action contract) location
+  blockToTerm b@({ type: "ChoiceActionType", id }) = do
+    choiceName <- fieldAsString "choice_name" b
+    party <- valueToTerm "party" b
+    bounds <- statementsToTerms "bounds" b
+    contract <- singleStatementToTerm "contract" b
+    let
+      location = (BlockId id)
+
+      choice = ChoiceId choiceName party
+
+      action = Term (Choice choice bounds) location
+    pure $ Term (Case action contract) location
+  blockToTerm b@({ type: "NotifyActionType", id }) = do
+    observation <- valueToTerm "observation" b
+    contract <- singleStatementToTerm "contract" b
+    let
+      location = (BlockId id)
+
+      action = Term (Notify observation) location
+    pure $ Term (Case action contract) location
+  blockToTerm block = throwError $ InvalidBlock block "Action"
+
+instance blockToTermParty :: BlockToTerm Party where
+  blockToTerm b@({ type: "PKPartyType", id }) = do
+    pubkey <- fieldAsString "pubkey" b
+    pure $ Term (PK pubkey) (BlockId id)
+  blockToTerm b@({ type: "RolePartyType", id }) = do
+    role <- fieldAsString "role" b
+    pure $ Term (Role role) (BlockId id)
+  blockToTerm block = throwError $ InvalidBlock block "Party"
+
+instance blockToTermPayee :: BlockToTerm Payee where
+  blockToTerm b@({ type: "AccountPayeeType", id }) = do
+    party <- valueToTerm "party" b
+    pure $ Term (Account party) (BlockId id)
+  blockToTerm b@({ type: "PartyPayeeType", id }) = do
+    party <- valueToTerm "party" b
+    pure $ Term (Party party) (BlockId id)
+  blockToTerm block = throwError $ InvalidBlock block "Payee"
+
+instance blockToTermToken :: BlockToTerm Token where
+  blockToTerm b@({ type: "AdaTokenType", id }) = pure $ Term (Token "" "") (BlockId id)
+  blockToTerm b@({ type: "CustomTokenType", id }) = do
+    currencySymbol <- fieldAsString "currency_symbol" b
+    tokenName <- fieldAsString "token_name" b
+    pure $ Term (Token currencySymbol tokenName) (BlockId id)
+  blockToTerm block = throwError $ InvalidBlock block "Token"
+
+instance blockToTermBound :: BlockToTerm Bound where
+  blockToTerm b@({ type: "BoundsType", id }) = do
+    from <- fieldAsBigInteger "from" b
+    to <- fieldAsBigInteger "to" b
+    pure $ Term (Bound from to) (BlockId id)
+  blockToTerm block = throwError $ InvalidBlock block "Bound"
+
+---------------------------------------------------------------------------------------------------
 buildBlocks :: NewBlockFunction -> BlocklyState -> Term Contract -> Effect Unit
 buildBlocks newBlock bs contract = do
   clearWorkspace bs.workspace

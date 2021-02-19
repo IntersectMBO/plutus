@@ -130,6 +130,7 @@
             "PSGenerator"
             "Types"
             "Escrow"
+            "EscrowWithCollateral"
             "Example"
             "CouponBondGuaranteed"
             "ZeroCouponBond"

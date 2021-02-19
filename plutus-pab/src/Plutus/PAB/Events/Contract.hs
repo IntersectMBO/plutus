@@ -44,7 +44,7 @@ module Plutus.PAB.Events.Contract(
   ) where
 
 import           Control.Lens.TH                                   (makePrisms)
-import           Control.Monad.Freer.Log                           (LogMessage)
+import           Control.Monad.Freer.Extras.Log                    (LogMessage)
 import           Data.Aeson                                        (FromJSON, ToJSON, Value, (.:))
 import qualified Data.Aeson                                        as JSON
 import qualified Data.Aeson.Encode.Pretty                          as JSON

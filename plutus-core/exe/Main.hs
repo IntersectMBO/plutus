@@ -1,3 +1,4 @@
+{-# LANGUAGE BangPatterns          #-}
 {-# LANGUAGE LambdaCase            #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings     #-}
@@ -7,7 +8,6 @@ module Main (main) where
 
 import qualified Language.PlutusCore                               as PLC
 import qualified Language.PlutusCore.CBOR                          as PLC
-import qualified Language.PlutusCore.Evaluation.Machine.Cek        as PLC
 import qualified Language.PlutusCore.Evaluation.Machine.Ck         as PLC
 import qualified Language.PlutusCore.Generators                    as Gen
 import qualified Language.PlutusCore.Generators.Interesting        as Gen
@@ -21,18 +21,20 @@ import qualified Language.UntypedPlutusCore                        as UPLC
 import qualified Language.UntypedPlutusCore.Evaluation.Machine.Cek as UPLC
 
 import           Codec.Serialise
-import           Control.DeepSeq                                   (rnf)
-import qualified Control.Exception                                 as Exn (evaluate)
+import           Control.DeepSeq                                   (NFData, rnf)
 import           Control.Monad
 import           Control.Monad.Trans.Except                        (runExceptT)
 import           Data.Bifunctor                                    (second)
 import qualified Data.ByteString.Lazy                              as BSL
 import           Data.Foldable                                     (traverse_)
+import           Data.Function                                     ((&))
 import           Data.Functor                                      ((<&>))
+import           Data.List                                         (nub)
 import qualified Data.Text                                         as T
 import           Data.Text.Encoding                                (encodeUtf8)
 import qualified Data.Text.IO                                      as T
 import           Data.Text.Prettyprint.Doc                         (Doc, pretty, (<+>))
+import           Data.Traversable                                  (for)
 import           Flat
 import           Options.Applicative
 import           System.CPUTime                                    (getCPUTime)
@@ -82,7 +84,7 @@ type PlcParserError = PLC.Error PLC.DefaultUni PLC.DefaultFun PLC.AlexPosn
 data Input       = FileInput FilePath | StdInput
 data Output      = FileOutput FilePath | StdOutput
 data Language    = TypedPLC | UntypedPLC
-data Timing      = NoTiming | Timing deriving (Eq)  -- Report program execution time?
+data TimingMode  = NoTiming | Timing Integer deriving (Eq)  -- Report program execution time?
 data PrintMode   = Classic | Debug | Readable | ReadableDebug deriving (Show, Read)
 type ExampleName = T.Text
 data ExampleMode = ExampleSingle ExampleName | ExampleAvailable
@@ -103,7 +105,7 @@ data ConvertOptions   = ConvertOptions Language Input Format Output Format Print
 data PrintOptions     = PrintOptions Language Input PrintMode
 data ExampleOptions   = ExampleOptions Language ExampleMode
 data EraseOptions     = EraseOptions Input Format Output Format PrintMode
-data EvalOptions      = EvalOptions Language Input Format EvalMode PrintMode Timing
+data EvalOptions      = EvalOptions Language Input Format EvalMode PrintMode TimingMode
 data ApplyOptions     = ApplyOptions Language Files Format Output Format PrintMode
 
 -- Main commands
@@ -125,8 +127,8 @@ untypedPLC :: Parser Language
 untypedPLC = flag UntypedPLC UntypedPLC (long "untyped" <> short 'u' <> help "Use untyped Plutus Core (default)")
 -- ^ NB: default is always UntypedPLC
 
-languageMode :: Parser Language
-languageMode = typedPLC <|> untypedPLC
+languagemode :: Parser Language
+languagemode = typedPLC <|> untypedPLC
 
 -- | Parser for an input stream. If none is specified, default to stdin: this makes use in pipelines easier
 input :: Parser Input
@@ -193,18 +195,32 @@ outputformat = option (maybeReader formatReader)
   <> showDefault
   <> help ("Output format: " ++ formatHelp))
 
-timing :: Parser Timing
-timing = flag NoTiming Timing
-  ( long "time-execution"
-  <> short 'x'
-  <> help "Report execution time of program"
+-- -x -> run 100 times and print the mean time
+timing1 :: Parser TimingMode
+timing1 = flag NoTiming (Timing 100)
+  (  short 'x'
+  <> help "Report mean execution time of program over 100 repetitions"
   )
+
+-- -X N -> run N times and print the mean time
+timing2 :: Parser TimingMode
+timing2 = Timing <$> option auto
+  (  long "time-execution"
+  <> short 'X'
+  <> metavar "N"
+  <> help "Report mean execution time of program over N repetitions. Use a large value of N if possible to get accurate results."
+  )
+
+-- We really do need two separate parsers here.
+-- See https://github.com/pcapriotti/optparse-applicative/issues/194#issuecomment-205103230
+timingmode :: Parser TimingMode
+timingmode = timing1 <|> timing2
 
 files :: Parser Files
 files = some (argument str (metavar "[FILES...]"))
 
 applyOpts :: Parser ApplyOptions
-applyOpts = ApplyOptions <$> languageMode <*> files <*> inputformat <*> output <*> outputformat <*> printmode
+applyOpts = ApplyOptions <$> languagemode <*> files <*> inputformat <*> output <*> outputformat <*> printmode
 
 typecheckOpts :: Parser TypecheckOptions
 typecheckOpts = TypecheckOptions <$> input <*> inputformat
@@ -219,10 +235,10 @@ printmode = option auto
         ++ "Readable -> prettyPlcReadableDef, ReadableDebug -> prettyPlcReadableDebug" ))
 
 printOpts :: Parser PrintOptions
-printOpts = PrintOptions <$> languageMode <*> input <*> printmode
+printOpts = PrintOptions <$> languagemode <*> input <*> printmode
 
 convertOpts :: Parser ConvertOptions
-convertOpts = ConvertOptions <$> languageMode <*> input <*> inputformat <*> output <*> outputformat <*> printmode
+convertOpts = ConvertOptions <$> languagemode <*> input <*> inputformat <*> output <*> outputformat <*> printmode
 
 exampleMode :: Parser ExampleMode
 exampleMode = exampleAvailable <|> exampleSingle
@@ -244,7 +260,7 @@ exampleSingle :: Parser ExampleMode
 exampleSingle = ExampleSingle <$> exampleName
 
 exampleOpts :: Parser ExampleOptions
-exampleOpts = ExampleOptions <$> languageMode <*> exampleMode
+exampleOpts = ExampleOptions <$> languagemode <*> exampleMode
 
 eraseOpts :: Parser EraseOptions
 eraseOpts = EraseOptions <$> input <*> inputformat <*> output <*> outputformat <*> printmode
@@ -259,7 +275,7 @@ evalmode = option auto
   <> help "Evaluation mode (CK or CEK)" )
 
 evalOpts :: Parser EvalOptions
-evalOpts = EvalOptions <$> languageMode <*> input <*> inputformat <*> evalmode <*> printmode <*> timing
+evalOpts = EvalOptions <$> languagemode <*> input <*> inputformat <*> evalmode <*> printmode <*> timingmode
 
 helpText :: String
 helpText =
@@ -636,45 +652,74 @@ runTypecheck (TypecheckOptions inp fmt) = do
 
 ---------------- Evaluation ----------------
 
+-- Convert a time in picoseconds into a readble format with appropriate units
+formatTime :: Double -> String
+formatTime t
+    | t >= 1e12 = printf "%.3f s"  (t/1e12)
+    | t >= 1e9  = printf "%.3f ms" (t/1e9)
+    | t >= 1e6  = printf "%.3f μs" (t/1e6)
+    | t >= 1e3  = printf "%.3f ns" (t/1e3)
+    | otherwise = printf "%f ps"   t
+
+{-| Apply an evaluator to a program a number of times and report the mean execution
+time.  The first measurement is often significantly larger than the rest
+(perhaps due to warm-up effects), and this can distort the mean.  To avoid this
+we measure the evaluation time (n+1) times and discard the first result. -}
+timeEval :: NFData a => Integer -> (t -> a) -> t -> IO [a]
+timeEval n evaluate prog
+    | n <= 0 = error "Error: the number of repetitions should be at least 1"
+    | otherwise = do
+  (results, times) <- unzip . tail <$> for (replicate (fromIntegral (n+1)) prog) (timeOnce evaluate)
+  let mean = (fromIntegral $ sum times) / (fromIntegral n) :: Double
+      runs :: String = if n==1 then "run" else "runs"
+  printf "Mean evaluation time (%d %s): %s\n" n runs (formatTime mean)
+  pure results
+    where timeOnce eval prg = do
+            start <- performGC >> getCPUTime
+            let result = eval prg
+                !_ = rnf result
+            end <- getCPUTime
+            pure $ (result, end - start)
+
 runEval :: EvalOptions -> IO ()
-runEval (EvalOptions language inp ifmt evalMode printMode printtime) =
+runEval (EvalOptions language inp ifmt evalMode printMode timingMode) =
     case language of
 
-      TypedPLC -> do
-        TypedProgram prog <- getProgram TypedPLC ifmt inp
-        let evaluate =
-                case evalMode of
-                  CK  -> PLC.unsafeEvaluateCk PLC.defBuiltinsRuntime
-                  CEK -> fst . PLC.unsafeEvaluateCek PLC.defBuiltinsRuntime
-            body = void . PLC.toTerm $ prog
-        () <-  Exn.evaluate $ rnf body
-        -- Force evaluation of body to ensure that we're not timing parsing/deserialisation.
-        -- The parser apparently returns a fully-evaluated AST, but let's be on the safe side.
-        start <- performGC >> getCPUTime
-        case evaluate body of
-              PLC.EvaluationSuccess v -> succeed start v
-              PLC.EvaluationFailure   -> exitFailure
+      TypedPLC ->
+        case evalMode of
+            CEK -> hPutStrLn stderr "There is no CEK machine for Typed Plutus Core" >> exitFailure
+            CK  -> do
+                  TypedProgram prog <- getProgram TypedPLC ifmt inp
+                  let evaluate = PLC.unsafeEvaluateCkNoEmit PLC.defBuiltinsRuntime
+                      body = void . PLC.toTerm $ prog
+                      !_ = rnf body
+                  -- Force evaluation of body to ensure that we're not timing parsing/deserialisation.
+                  -- The parser apparently returns a fully-evaluated AST, but let's be on the safe side.
+                  case timingMode of
+                    NoTiming -> evaluate body & handleResult
+                    Timing n -> timeEval n evaluate body >>= handleTimingResults
 
       UntypedPLC ->
           case evalMode of
-            CK  -> hPutStrLn stderr "There is no CK machine for UntypedPLC Plutus Core" >> exitFailure
+            CK  -> hPutStrLn stderr "There is no CK machine for Untyped Plutus Core" >> exitFailure
             CEK -> do
                   UntypedProgram prog <- getProgram UntypedPLC ifmt inp
-                  let evaluate = fst . UPLC.unsafeEvaluateCek PLC.defBuiltinsRuntime
+                  let evaluate = UPLC.unsafeEvaluateCekNoEmit PLC.defBuiltinsRuntime
                       body = void . UPLC.toTerm $ prog
-                  () <- Exn.evaluate $ rnf body
-                  start <- getCPUTime
-                  case evaluate body of
-                    UPLC.EvaluationSuccess v -> succeed start v
-                    UPLC.EvaluationFailure   -> exitFailure
+                      !_ = rnf body
+                  case timingMode of
+                    NoTiming -> evaluate body & handleResult
+                    Timing n -> timeEval n evaluate body >>= handleTimingResults
 
-    where succeed start v = do
-            end <- getCPUTime
-            print $ getPrintMethod printMode v
-            let ms = 1e9 :: Double
-                diff = (fromIntegral (end - start)) / ms
-            when (printtime == Timing) $ printf "Evaluation time: %0.2f ms\n" diff
-            exitSuccess
+    where handleResult result =
+              case result of
+                PLC.EvaluationSuccess v -> (print $ getPrintMethod printMode v) >> exitSuccess
+                PLC.EvaluationFailure   -> exitFailure
+          handleTimingResults results =
+              case nub results of
+                [PLC.EvaluationSuccess _] -> exitSuccess -- We don't want to see the result here
+                [PLC.EvaluationFailure]   -> exitFailure
+                _                         -> error "Timing evaluations returned inconsistent results"
 
 
 ---------------- Driver ----------------

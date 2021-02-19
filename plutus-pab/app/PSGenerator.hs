@@ -18,7 +18,7 @@ import           Cardano.Metadata.Types                            (AnnotatedSig
 import           Control.Applicative                               ((<|>))
 import           Control.Lens                                      (set, view, (&))
 import           Control.Monad                                     (void)
-import           Control.Monad.Freer.Log                           (LogLevel, LogMessage)
+import           Control.Monad.Freer.Extras.Log                    (LogLevel, LogMessage)
 import qualified Data.Aeson.Encode.Pretty                          as JSON
 import qualified Data.ByteString.Lazy                              as BSL
 import           Data.Proxy                                        (Proxy (Proxy))

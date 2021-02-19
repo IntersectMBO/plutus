@@ -50,18 +50,17 @@ main =
     void $ liftEffect
       $ matchesWith (Routing.parse Router.route) \old new -> do
           when (old /= Just new) $ launchAff_ $ driver.query (MainFrame.ChangeRoute new unit)
-    forkAff $ runProcess watchLocalStorageProcess
 
-watchLocalStorageProcess :: Process Aff Unit
-watchLocalStorageProcess = connect LocalStorage.listen watchLocalStorage
-
-watchLocalStorage ::
-  forall r.
-  Consumer RawStorageEvent Aff r
-watchLocalStorage =
-  consumer \event -> do
-    liftEffect $ log $ "Got Local Storage Event: " <> show event
-    pure Nothing
-
+-- FIXME: This was not doing anything... should we remove? add a comment for future use?
+-- forkAff $ runProcess watchLocalStorageProcess
+-- watchLocalStorageProcess :: Process Aff Unit
+-- watchLocalStorageProcess = connect LocalStorage.listen watchLocalStorage
+-- watchLocalStorage ::
+--   forall r.
+--   Consumer RawStorageEvent Aff r
+-- watchLocalStorage =
+--   consumer \event -> do
+--     liftEffect $ log $ "Got Local Storage Event: " <> show event
+--     pure Nothing
 onLoad :: Unit
 onLoad = unsafePerformEffect main

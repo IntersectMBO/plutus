@@ -1,7 +1,8 @@
 module BlocklyEditor.Types where
 
 import Prelude
-import Analytics (class IsEvent, defaultEvent)
+import Analytics (class IsEvent, Event)
+import Analytics as A
 import Data.Lens (Lens')
 import Data.Lens.Record (prop)
 import Data.Maybe (Maybe(..))
@@ -9,18 +10,23 @@ import Data.Symbol (SProxy(..))
 import BlocklyComponent.Types as Blockly
 
 data Action
-  = HandleBlocklyMessage Blockly.Message
+  = Init
+  | HandleBlocklyMessage Blockly.Message
   | InitBlocklyProject String
   | SendToSimulator
   | ViewAsMarlowe
   | Save
 
+defaultEvent :: String -> Event
+defaultEvent s = (A.defaultEvent $ "BlocklyEditor." <> s) { category = Just "Blockly" }
+
 instance blocklyActionIsEvent :: IsEvent Action where
-  toEvent (HandleBlocklyMessage _) = Just $ (defaultEvent "HandleBlocklyMessage") { category = Just "Blockly" }
-  toEvent (InitBlocklyProject _) = Just $ (defaultEvent "InitBlocklyProject") { category = Just "Blockly" }
-  toEvent SendToSimulator = Just $ (defaultEvent "SendToSimulator") { category = Just "Blockly" }
-  toEvent ViewAsMarlowe = Just $ (defaultEvent "ViewAsMarlowe") { category = Just "Blockly" }
-  toEvent Save = Just $ (defaultEvent "Save") { category = Just "Blockly" }
+  toEvent Init = Just $ defaultEvent "Init"
+  toEvent (HandleBlocklyMessage _) = Just $ defaultEvent "HandleBlocklyMessage"
+  toEvent (InitBlocklyProject _) = Just $ defaultEvent "InitBlocklyProject"
+  toEvent SendToSimulator = Just $ defaultEvent "SendToSimulator"
+  toEvent ViewAsMarlowe = Just $ defaultEvent "ViewAsMarlowe"
+  toEvent Save = Just $ defaultEvent "Save"
 
 type State
   = { errorMessage :: Maybe String

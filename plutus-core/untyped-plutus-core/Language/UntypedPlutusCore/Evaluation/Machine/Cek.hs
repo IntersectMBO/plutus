@@ -38,7 +38,9 @@ module Language.UntypedPlutusCore.Evaluation.Machine.Cek
     , runCekNoEmit
     , runCekCounting
     , evaluateCek
+    , evaluateCekNoEmit
     , unsafeEvaluateCek
+    , unsafeEvaluateCekNoEmit
     , readKnownCek
     )
 where
@@ -50,7 +52,6 @@ import           Language.UntypedPlutusCore.Core
 import           Language.UntypedPlutusCore.Subst
 
 import           Language.PlutusCore.Constant
-import qualified Language.PlutusCore.Evaluation.Machine.Cek         as Typed (CekUserError (..))
 import           Language.PlutusCore.Evaluation.Machine.ExBudgeting
 import           Language.PlutusCore.Evaluation.Machine.ExMemory
 import           Language.PlutusCore.Evaluation.Machine.Exception
@@ -123,10 +124,9 @@ data CekUserError
     | CekEvaluationFailure -- ^ Error has been called or a builtin application has failed
     deriving (Show, Eq)
 
--- Note: reusing the error-codes of the original Typed CekOutOfExError
 instance HasErrorCode CekUserError where
-      errorCode CekEvaluationFailure   = errorCode Typed.CekEvaluationFailure
-      errorCode  (CekOutOfExError a b) = errorCode $ Typed.CekOutOfExError a b
+    errorCode CekEvaluationFailure {} = ErrorCode 37
+    errorCode CekOutOfExError {}      = ErrorCode 36
 
 {- Note [Being generic over @term@ in 'CekM']
 We have a @term@-generic version of 'CekM' called 'CekCarryingM', which itself requires a
@@ -316,7 +316,7 @@ runCekM
     -> (Either (CekEvaluationException uni fun) a, CekExBudgetState fun, [String])
 runCekM runtime mode emitting s a = runST $ do
     mayLogsRef <- if emitting then Just <$> newSTRef DList.empty else pure Nothing
-    (errOrRes, s') <- runStateT (runExceptT $ runReaderT a $ CekEnv runtime mode mayLogsRef) s
+    (errOrRes, s') <- runStateT (runExceptT . runReaderT a $ CekEnv runtime mode mayLogsRef) s
     logs <- case mayLogsRef of
         Nothing      -> pure []
         Just logsRef -> DList.toList <$> readSTRef logsRef
@@ -548,7 +548,7 @@ runCekCounting
     -> (Either (CekEvaluationException uni fun) (Term Name uni fun ()), CekExBudgetState fun)
 runCekCounting runtime = runCekNoEmit runtime Counting
 
--- | Evaluate a term using the CEK machine.
+-- | Evaluate a term using the CEK machine with logging enabled.
 evaluateCek
     :: ( GShow uni, GEq uni, Closed uni, uni `Everywhere` ExMemoryUsage
        , Hashable fun, Ix fun, ExMemoryUsage fun
@@ -562,7 +562,17 @@ evaluateCek runtime term =
     case runCek runtime Counting True term of
         (errOrRes, _, logs) -> (errOrRes, logs)
 
--- | Evaluate a term using the CEK machine. May throw a 'CekMachineException'.
+-- | Evaluate a term using the CEK machine with logging disabled.
+evaluateCekNoEmit
+    :: ( GShow uni, GEq uni, Closed uni, uni `Everywhere` ExMemoryUsage
+       , Hashable fun, Ix fun, ExMemoryUsage fun
+       )
+    => BuiltinsRuntime fun (CekValue uni fun)
+    -> Term Name uni fun ()
+    -> Either (CekEvaluationException uni fun) (Term Name uni fun ())
+evaluateCekNoEmit runtime = fst . runCekNoEmit runtime Counting
+
+-- | Evaluate a term using the CEK machine with logging enabled. May throw a 'CekMachineException'.
 unsafeEvaluateCek
     :: ( GShow uni, GEq uni, Typeable uni
        , Closed uni, uni `EverywhereAll` '[ExMemoryUsage, PrettyConst]
@@ -573,6 +583,17 @@ unsafeEvaluateCek
     -> (EvaluationResult (Term Name uni fun ()), [String])
 unsafeEvaluateCek runtime = first (either throw id . extractEvaluationResult) . evaluateCek runtime
 
+-- | Evaluate a term using the CEK machine with logging disabled. May throw a 'CekMachineException'.
+unsafeEvaluateCekNoEmit
+    :: ( GShow uni, GEq uni, Typeable uni
+       , Closed uni, uni `EverywhereAll` '[ExMemoryUsage, PrettyConst]
+       , Hashable fun, Ix fun, Pretty fun, Typeable fun, ExMemoryUsage fun
+       )
+    => BuiltinsRuntime fun (CekValue uni fun)
+    -> Term Name uni fun ()
+    -> EvaluationResult (Term Name uni fun ())
+unsafeEvaluateCekNoEmit runtime = either throw id . extractEvaluationResult . evaluateCekNoEmit runtime
+
 -- | Unlift a value using the CEK machine.
 readKnownCek
     :: ( GShow uni, GEq uni, Closed uni, uni `Everywhere` ExMemoryUsage
@@ -582,4 +603,4 @@ readKnownCek
     => BuiltinsRuntime fun (CekValue uni fun)
     -> Term Name uni fun ()
     -> Either (CekEvaluationException uni fun) a
-readKnownCek runtime = readKnown <=< fst . evaluateCek runtime
+readKnownCek runtime = evaluateCekNoEmit runtime >=> readKnown

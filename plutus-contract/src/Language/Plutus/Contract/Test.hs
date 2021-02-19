@@ -65,7 +65,7 @@ import           Control.Lens                                    (at, makeLenses
 import           Control.Monad                                   (guard, unless)
 import           Control.Monad.Freer                             (Eff, reinterpret, runM, sendM)
 import           Control.Monad.Freer.Error                       (Error, runError)
-import           Control.Monad.Freer.Log                         (LogLevel (..), LogMessage (..))
+import           Control.Monad.Freer.Extras.Log                  (LogLevel (..), LogMessage (..))
 import           Control.Monad.Freer.Reader
 import           Control.Monad.Freer.Writer                      (Writer (..), tell)
 import           Data.Foldable                                   (fold, toList, traverse_)

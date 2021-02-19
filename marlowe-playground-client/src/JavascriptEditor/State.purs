@@ -13,9 +13,10 @@ import Control.Monad.Maybe.Trans (runMaybeT)
 import Control.Monad.Reader (class MonadAsk)
 import Data.Array as Array
 import Data.Either (Either(..))
-import Data.Lens (assign, use, view)
+import Data.Lens (assign, modifying, use, view)
 import Data.List ((:))
 import Data.List as List
+import Data.Map as Map
 import Data.Maybe (Maybe(..), fromMaybe)
 import Data.String (drop, joinWith, length, take)
 import Effect.Aff.Class (class MonadAff, liftAff)
@@ -31,14 +32,14 @@ import JavascriptEditor.Types (Action(..), BottomPanelView(..), CompilationState
 import Language.Javascript.Interpreter (InterpreterResult(..))
 import Language.Javascript.Interpreter as JSI
 import Language.Javascript.Monaco as JSM
-import LocalStorage as LocalStorage
+import SessionStorage as SessionStorage
 import MainFrame.Types (ChildSlots, _jsEditorSlot)
-import Marlowe.Extended (Contract)
+import Marlowe.Extended (Contract, typeToLens)
 import Monaco (IRange, getModel, isError, setValue)
 import Network.RemoteData (RemoteData(..))
 import StaticAnalysis.Reachability (analyseReachability)
 import StaticAnalysis.StaticTools (analyseContract)
-import StaticAnalysis.Types (AnalysisState(..), MultiStageAnalysisData(..), _analysisState)
+import StaticAnalysis.Types (AnalysisExecutionState(..), MultiStageAnalysisData(..), _analysisExecutionState, _analysisState, _templateContent)
 import StaticData (jsBufferLocalStorageKey)
 import StaticData as StaticData
 import Text.Parsing.StringParser.Basic (lines)
@@ -84,14 +85,14 @@ handleAction (HandleEditorMessage (Monaco.TextChanged text)) =
         Just decorIds -> do
           mRangeHeader <- query _jsEditorSlot unit (Monaco.GetDecorationRange decorIds.topDecorationId identity)
           mRangeFooter <- query _jsEditorSlot unit (Monaco.GetDecorationRange decorIds.bottomDecorationId identity)
-          mContent <- liftEffect $ LocalStorage.getItem jsBufferLocalStorageKey
+          mContent <- liftEffect $ SessionStorage.getItem jsBufferLocalStorageKey
           if ((mContent == Nothing) || (mContent == Just prunedText)) then
             -- The case where `mContent == Just prunedText` is to prevent potential infinite loops, it should not happen
             assign _compilationResult NotCompiled
           else
             if checkJSboilerplate text && checkDecorationPosition numLines mRangeHeader mRangeFooter then
               ( do
-                  liftEffect $ LocalStorage.setItem jsBufferLocalStorageKey prunedText
+                  liftEffect $ SessionStorage.setItem jsBufferLocalStorageKey prunedText
                   assign _compilationResult NotCompiled
               )
             else
@@ -139,7 +140,9 @@ handleAction SendResultToSimulator = pure unit
 
 handleAction (InitJavascriptProject prunedContent) = do
   editorSetValue prunedContent
-  liftEffect $ LocalStorage.setItem jsBufferLocalStorageKey prunedContent
+  liftEffect $ SessionStorage.setItem jsBufferLocalStorageKey prunedContent
+
+handleAction (SetIntegerTemplateParam templateType key value) = modifying (_analysisState <<< _templateContent <<< typeToLens templateType) (Map.insert key value)
 
 handleAction AnalyseContract = compileAndAnalyze (WarningAnalysis Loading) $ analyseContract
 
@@ -157,7 +160,7 @@ compileAndAnalyze ::
   forall m.
   MonadAff m =>
   MonadAsk Env m =>
-  AnalysisState ->
+  AnalysisExecutionState ->
   (Contract -> HalogenM State Action ChildSlots Void m Unit) ->
   HalogenM State Action ChildSlots Void m Unit
 compileAndAnalyze initialAnalysisState doAnalyze = do
@@ -165,7 +168,7 @@ compileAndAnalyze initialAnalysisState doAnalyze = do
   case compilationResult of
     NotCompiled -> do
       -- The initial analysis state allow us to show an "Analysing..." indicator
-      assign _analysisState initialAnalysisState
+      assign (_analysisState <<< _analysisExecutionState) initialAnalysisState
       handleAction Compile
       compileAndAnalyze initialAnalysisState doAnalyze
     CompiledSuccessfully (InterpreterResult interpretedResult) -> doAnalyze interpretedResult.result
@@ -255,7 +258,7 @@ mkEditor = monacoComponent $ JSM.settings setup
   where
   setup editor =
     liftEffect do
-      mContents <- LocalStorage.getItem StaticData.jsBufferLocalStorageKey
+      mContents <- SessionStorage.getItem StaticData.jsBufferLocalStorageKey
       let
         contents = fromMaybe JSE.example mContents
 

@@ -51,7 +51,7 @@ testMachine machine eval =
 test_machines :: TestTree
 test_machines =
     testGroup "machines"
-        [ testMachine "CEK"  $ fst . evaluateCek defBuiltinsRuntime
+        [ testMachine "CEK"  $ evaluateCekNoEmit defBuiltinsRuntime
         , testMachine "HOAS" $ evaluateHoas defBuiltinsRuntime
         ]
 

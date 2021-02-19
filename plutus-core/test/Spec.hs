@@ -17,7 +17,6 @@ import           TypeSynthesis.Spec                         (test_typecheck)
 
 import           Language.PlutusCore
 import           Language.PlutusCore.DeBruijn
-import           Language.PlutusCore.Evaluation.Machine.Cek (unsafeEvaluateCek)
 import           Language.PlutusCore.Generators
 import           Language.PlutusCore.Generators.AST         as AST
 import           Language.PlutusCore.Generators.Interesting
@@ -46,8 +45,7 @@ main = do
     rwFiles <- findByExtension [".plc"] "test/scopes"
     typeFiles <- findByExtension [".plc"] "test/types"
     typeErrorFiles <- findByExtension [".plc"] "test/type-errors"
-    evalFiles <- findByExtension [".plc"] "test/Evaluation/Golden"
-    defaultMain (allTests plcFiles rwFiles typeFiles typeErrorFiles evalFiles)
+    defaultMain (allTests plcFiles rwFiles typeFiles typeErrorFiles)
 
 compareName :: Name -> Name -> Bool
 compareName = (==) `on` nameString
@@ -211,8 +209,8 @@ propDeBruijn gen = property . generalizeT $ do
         backward e = e >>= (\t -> runQuoteT $ unDeBruijnTerm t)
     Hedgehog.tripping body forward backward
 
-allTests :: [FilePath] -> [FilePath] -> [FilePath] -> [FilePath] -> [FilePath] -> TestTree
-allTests plcFiles rwFiles typeFiles typeErrorFiles evalFiles =
+allTests :: [FilePath] -> [FilePath] -> [FilePath] -> [FilePath] -> TestTree
+allTests plcFiles rwFiles typeFiles typeErrorFiles =
   testGroup "all tests"
     [ tests
     , testCase "lexing constants from small types" testLexConstant
@@ -228,7 +226,6 @@ allTests plcFiles rwFiles typeFiles typeErrorFiles evalFiles =
     , testsRewrite rwFiles
     , testsType typeFiles
     , testsType typeErrorFiles
-    , testsEval evalFiles
     , test_Pretty
     , test_typeNormalization
     , test_typecheck
@@ -252,14 +249,6 @@ asGolden f file = goldenVsString file (file ++ ".golden") (asIO f file)
 
 -- TODO: evaluation tests should go under the 'Evaluation' module,
 -- normalization tests -- under 'Normalization', etc.
-
-evalFile :: BSL.ByteString -> Either (DefaultError AlexPosn) T.Text
-evalFile contents =
-    second displayPlcDef $
-        unsafeEvaluateCek defBuiltinsRuntime . toTerm . void <$> runQuoteT (parseScoped contents)
-
-testsEval :: [FilePath] -> TestTree
-testsEval = testGroup "golden evaluation tests" . fmap (asGolden evalFile)
 
 testsType :: [FilePath] -> TestTree
 testsType = testGroup "golden type synthesis tests" . fmap (asGolden printType)

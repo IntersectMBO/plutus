@@ -6,6 +6,7 @@ import Analytics as A
 import BottomPanel.Types as BottomPanel
 import Data.Array (filter)
 import Data.Array as Array
+import Data.BigInteger (BigInteger)
 import Data.Generic.Rep (class Generic)
 import Data.Generic.Rep.Show (genericShow)
 import Data.Lens (Lens', to, view, (^.))
@@ -15,8 +16,9 @@ import Data.String (Pattern(..), contains)
 import Data.Symbol (SProxy(..))
 import Halogen.Monaco (KeyBindings(..))
 import Halogen.Monaco as Monaco
+import Marlowe.Extended (IntegerTemplateType)
 import Monaco (IMarker)
-import StaticAnalysis.Types (AnalysisState(..))
+import StaticAnalysis.Types (AnalysisExecutionState(..), AnalysisState, initAnalysisState)
 import Text.Parsing.StringParser (Pos)
 import Web.HTML.Event.DragEvent (DragEvent)
 
@@ -35,9 +37,11 @@ data Action
   | ViewAsBlockly
   | InitMarloweProject String
   | SelectHole (Maybe String)
+  | SetIntegerTemplateParam IntegerTemplateType String BigInteger
   | AnalyseContract
   | AnalyseReachabilityContract
   | AnalyseContractForCloseRefund
+  | ClearAnalysisResults
   | Save
 
 defaultEvent :: String -> Event
@@ -58,9 +62,11 @@ instance actionIsEvent :: IsEvent Action where
   toEvent ViewAsBlockly = Just $ defaultEvent "ViewAsBlockly"
   toEvent (InitMarloweProject _) = Just $ defaultEvent "InitMarloweProject"
   toEvent (SelectHole _) = Just $ defaultEvent "SelectHole"
+  toEvent (SetIntegerTemplateParam _ _ _) = Just $ defaultEvent "SetIntegerTemplateParam"
   toEvent AnalyseContract = Just $ defaultEvent "AnalyseContract"
   toEvent AnalyseReachabilityContract = Just $ defaultEvent "AnalyseReachabilityContract"
   toEvent AnalyseContractForCloseRefund = Just $ defaultEvent "AnalyseContractForCloseRefund"
+  toEvent ClearAnalysisResults = Just $ defaultEvent "ClearAnalysisResults"
   toEvent Save = Just $ defaultEvent "Save"
 
 data BottomPanelView
@@ -109,7 +115,7 @@ initialState =
   , bottomPanelState: BottomPanel.initialState StaticAnalysisView
   , showErrorDetail: false
   , selectedHole: Nothing
-  , analysisState: NoneAsked
+  , analysisState: initAnalysisState
   , editorErrors: mempty
   , editorWarnings: mempty
   }

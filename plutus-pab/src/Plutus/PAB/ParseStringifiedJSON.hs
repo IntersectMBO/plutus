@@ -11,15 +11,15 @@ module Plutus.PAB.ParseStringifiedJSON(
     parseStringifiedJSON
     ) where
 
-import           Cardano.BM.Data.Tracer        (ToObject)
-import           Cardano.BM.Data.Tracer.Extras (PrettyToObject (..))
+import           Cardano.BM.Data.Tracer         (ToObject)
+import           Cardano.BM.Data.Tracer.Extras  (PrettyToObject (..))
 import           Control.Monad.Freer
-import           Control.Monad.Freer.Log       (LogMsg, logDebug)
-import           Data.Aeson                    (FromJSON, ToJSON, Value (..), decode)
-import qualified Data.ByteString.Lazy.Char8    as LBS
-import qualified Data.Text.Encoding            as Text
-import           Data.Text.Prettyprint.Doc     (Pretty (..))
-import           GHC.Generics                  (Generic)
+import           Control.Monad.Freer.Extras.Log (LogMsg, logDebug)
+import           Data.Aeson                     (FromJSON, ToJSON, Value (..), decode)
+import qualified Data.ByteString.Lazy.Char8     as LBS
+import qualified Data.Text.Encoding             as Text
+import           Data.Text.Prettyprint.Doc      (Pretty (..))
+import           GHC.Generics                   (Generic)
 
 data UnStringifyJSONLog =
     ParseStringifiedJSONAttempt

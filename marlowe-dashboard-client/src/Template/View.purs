@@ -1,6 +1,7 @@
 module Template.View
-  ( renderTemplateLibrary
-  , renderTemplateDetails
+  ( templateLibraryCard
+  , templateDetailsCard
+  , templateSetupScreen
   ) where
 
 import Prelude hiding (div)
@@ -8,14 +9,20 @@ import Css (classNames)
 import Halogen.HTML (HTML, div, text)
 import MainFrame.Types (Action, ContractTemplate)
 
-renderTemplateLibrary :: forall p. Array ContractTemplate -> HTML p Action
-renderTemplateLibrary contractTemplates =
+templateLibraryCard :: forall p. HTML p Action
+templateLibraryCard =
   div
     [ classNames [ "h-full", "overflow-auto" ] ]
     [ text "Start new from template" ]
 
-renderTemplateDetails :: forall p. ContractTemplate -> HTML p Action
-renderTemplateDetails contractTemplate =
+templateDetailsCard :: forall p. ContractTemplate -> HTML p Action
+templateDetailsCard contractTemplate =
   div
     [ classNames [ "h-full", "overflow-auto" ] ]
     [ text "Contract Template" ]
+
+templateSetupScreen :: forall p. ContractTemplate -> HTML p Action
+templateSetupScreen contractTemplate =
+  div
+    [ classNames [ "h-full", "overflow-auto" ] ]
+    [ text "Setup Contract" ]

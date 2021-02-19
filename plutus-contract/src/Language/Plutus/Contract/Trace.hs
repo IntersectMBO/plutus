@@ -47,7 +47,7 @@ module Language.Plutus.Contract.Trace
 import           Control.Arrow                                     ((>>>), (>>^))
 import           Control.Lens                                      (from, makeClassyPrisms, review, view)
 import           Control.Monad.Freer
-import           Control.Monad.Freer.Log                           (LogMessage, LogMsg, LogObserve)
+import           Control.Monad.Freer.Extras.Log                    (LogMessage, LogMsg, LogObserve)
 import           Control.Monad.Freer.Reader                        (Reader)
 import           Control.Monad.Freer.State                         (State, gets)
 import qualified Data.Aeson.Types                                  as JSON

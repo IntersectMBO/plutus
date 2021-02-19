@@ -1,46 +1,63 @@
 module MainFrame.Lenses
-  ( _overlay
+  ( _wallets
+  , _newWalletNicknameKey
+  , _subState
+  , _pickupState
+  , _walletState
+  , _contractState
   , _screen
   , _card
-  , _contactState
-  , _contractState
-  , _notifications
-  , _templates
-  , _contracts
+  , _wallet
+  , _menuOpen
   , _on
   ) where
 
-import Contact.Types (State) as Contact
-import Contract.Types as Contract
-import Data.Lens (Lens')
+import Prelude
+import Contract.Types (State) as Contract
+import Data.Either (Either)
+import Data.Lens (Lens', Traversal')
+import Data.Lens.Prism.Either (_Left, _Right)
 import Data.Lens.Record (prop)
-import Data.Maybe (Maybe)
 import Data.Symbol (SProxy(..))
-import MainFrame.Types (Card, ContractInstance, ContractTemplate, Notification, Overlay, Screen, State)
+import MainFrame.Types (WalletState, PickupState, State)
+import Marlowe.Semantics (PubKey)
+import Wallet.Types (WalletLibrary, WalletNicknameKey)
 
-_overlay :: Lens' State (Maybe Overlay)
-_overlay = prop (SProxy :: SProxy "overlay")
+_wallets :: Lens' State WalletLibrary
+_wallets = prop (SProxy :: SProxy "wallets")
 
-_screen :: Lens' State Screen
-_screen = prop (SProxy :: SProxy "screen")
+_newWalletNicknameKey :: Lens' State WalletNicknameKey
+_newWalletNicknameKey = prop (SProxy :: SProxy "newWalletNicknameKey")
 
-_card :: Lens' State (Maybe Card)
-_card = prop (SProxy :: SProxy "card")
+_subState :: Lens' State (Either PickupState WalletState)
+_subState = prop (SProxy :: SProxy "subState")
 
-_contactState :: Lens' State Contact.State
-_contactState = prop (SProxy :: SProxy "contactState")
+-- This isn't a Traversal' in any meaningful sense (that I can see), but a Traversal'
+-- is a Strong Choice Profunctor, so this is a neat type for the occasion.
+-- Alternatively: forall a. Strong a => Choice a => Optic' a State PickupState
+_pickupState :: Traversal' State PickupState
+_pickupState = _subState <<< _Left
+
+-- As above.
+_walletState :: Traversal' State WalletState
+_walletState = _subState <<< _Right
 
 _contractState :: Lens' State Contract.State
 _contractState = prop (SProxy :: SProxy "contractState")
 
-_notifications :: Lens' State (Array Notification)
-_notifications = prop (SProxy :: SProxy "notifications")
+------------------------------------------------------------
+_screen :: forall s b. Lens' { screen :: s | b } s
+_screen = prop (SProxy :: SProxy "screen")
 
-_templates :: Lens' State (Array ContractTemplate)
-_templates = prop (SProxy :: SProxy "templates")
+_card :: forall c b. Lens' { card :: c | b } c
+_card = prop (SProxy :: SProxy "card")
 
-_contracts :: Lens' State (Array ContractInstance)
-_contracts = prop (SProxy :: SProxy "contracts")
+------------------------------------------------------------
+_wallet :: Lens' WalletState PubKey
+_wallet = prop (SProxy :: SProxy "wallet")
 
-_on :: Lens' State Boolean
+_menuOpen :: Lens' WalletState Boolean
+_menuOpen = prop (SProxy :: SProxy "menuOpen")
+
+_on :: Lens' WalletState Boolean
 _on = prop (SProxy :: SProxy "on")

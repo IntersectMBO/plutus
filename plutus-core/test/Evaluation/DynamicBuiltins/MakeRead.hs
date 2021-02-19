@@ -34,7 +34,7 @@ readMakeHetero
     => a -> EvaluationResult b
 readMakeHetero x = do
     xTerm <- makeKnownNoEmit @(Term TyName Name DefaultUni DefaultFun ()) x
-    case extractEvaluationResult <$> typecheckReadKnownCek defBuiltinsRuntime xTerm of
+    case extractEvaluationResult <$> typecheckReadKnownCk defBuiltinsRuntime xTerm of
         Left err          -> error $ "Type error" ++ displayPlcCondensedErrorClassic err
         Right (Left err)  -> error $ "Evaluation error: " ++ show err
         Right (Right res) -> res
@@ -76,7 +76,7 @@ test_collectStrings = testProperty "collectStrings" . property $ do
             , rest
             ]
         term = foldr step unitval strs
-    strs' <- case typecheckEvaluateCek runtime term of
+    strs' <- case typecheckEvaluateCk runtime term of
         Left _                             -> failure
         Right (EvaluationFailure, _)       -> failure
         Right (EvaluationSuccess _, strs') -> return strs'

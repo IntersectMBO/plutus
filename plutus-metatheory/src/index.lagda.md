@@ -56,7 +56,10 @@ proof.
 import Type
 import Type.RenamingSubstitution
 import Type.Equality
-import Type.Reduction
+import Type.ReductionS
+import Type.ReductionF
+import Type.ReductionC
+import Type.CC
 import Type.CK
 ```
 

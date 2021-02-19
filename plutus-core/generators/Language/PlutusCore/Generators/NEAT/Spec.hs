@@ -29,21 +29,21 @@ module Language.PlutusCore.Generators.NEAT.Spec
   ) where
 
 import           Language.PlutusCore
-import           Language.PlutusCore.Evaluation.Machine.Cek
 import           Language.PlutusCore.Evaluation.Machine.Ck
 import           Language.PlutusCore.Generators.NEAT.Common
 import           Language.PlutusCore.Generators.NEAT.Term
 import           Language.PlutusCore.Normalize
 import           Language.PlutusCore.Pretty
-import qualified Language.UntypedPlutusCore                                 as U
+import qualified Language.UntypedPlutusCore                        as U
+import qualified Language.UntypedPlutusCore.Evaluation.Machine.Cek as U
 
 import           Control.Monad.Except
-import           Control.Search                             (Enumerable (..), Options (..), ctrex', search')
-import           Data.Coolean                               (Cool, toCool, (!=>))
+import           Control.Search                                    (Enumerable (..), Options (..), ctrex', search')
+import           Data.Coolean                                      (Cool, toCool, (!=>))
 import           Data.Either
 import           Data.Maybe
-import qualified Data.Stream                                as Stream
-import qualified Data.Text                                  as Text
+import qualified Data.Stream                                       as Stream
+import qualified Data.Text                                         as Text
 import           System.IO.Unsafe
 import           Test.Tasty
 import           Test.Tasty.HUnit
@@ -66,8 +66,7 @@ tests :: GenOptions -> TestTree
 tests genOpts@GenOptions{} =
   testGroup "NEAT"
 
-  [ -- as originally written, use lazy-search to find ctrexs
-    bigTest "normalization commutes with conversion from generated types"
+  [ bigTest "normalization commutes with conversion from generated types"
       genOpts {genDepth = 13}
       (Type ())
       (packAssertion prop_normalizeConvertCommuteTypes)
@@ -75,14 +74,16 @@ tests genOpts@GenOptions{} =
       genOpts {genDepth = 14}
       (Type ())
       (packAssertion prop_normalTypesCannotReduce)
-  , bigTest "type preservation - CK & CEK"
+
+  , bigTest "type preservation - CK"
       genOpts {genDepth = 18}
       (TyBuiltinG TyUnitG)
       (packAssertion prop_typePreservation)
-  , bigTest "CEK and CK produce the same output"
+
+  , bigTest "typed CK vs untyped CEK produce the same output"
       genOpts {genDepth = 18}
       (TyBuiltinG TyUnitG)
-      (packAssertion prop_agree_Ck_Cek)
+      (packAssertion prop_agree_termEval)
   ]
 
 
@@ -98,21 +99,28 @@ not exploited.
 
 -}
 
--- |Property: check if the type is preserved by evaluation.
---
--- This property is expected to hold for the CK machine and fail for
--- the CEK machine at the time of writing.
-
-
 -- handle a user error and turn it back into an error term
 handleError :: Type TyName DefaultUni ()
-       -> ErrorWithCause (EvaluationError user internal) term
-       -> Either (ErrorWithCause (EvaluationError user internal) term)
+       -> U.ErrorWithCause (U.EvaluationError user internal) term
+       -> Either (U.ErrorWithCause (U.EvaluationError user internal) term)
                  (Term TyName Name DefaultUni DefaultFun ())
-handleError ty e = case _ewcError e of
-  UserEvaluationError     _ -> return (Error () ty)
-  InternalEvaluationError _ -> throwError e
+handleError ty e = case U._ewcError e of
+  U.UserEvaluationError     _ -> return (Error () ty)
+  U.InternalEvaluationError _ -> throwError e
 
+-- untyped version of `handleError`
+handleUError ::
+          U.ErrorWithCause (U.EvaluationError user internal) term
+       -> Either (U.ErrorWithCause (U.EvaluationError user internal) term)
+                 (U.Term Name DefaultUni DefaultFun ())
+handleUError e = case U._ewcError e of
+  U.UserEvaluationError     _ -> return (U.Error ())
+  U.InternalEvaluationError _ -> throwError e
+
+-- |Property: check if the type is preserved by evaluation.
+--
+-- This property is expected to hold for the CK machine.
+--
 prop_typePreservation :: ClosedTypeG -> ClosedTermG -> ExceptT TestFail Quote ()
 prop_typePreservation tyG tmG = do
   tcConfig <- withExceptT TypeError $ getDefTypeCheckConfig ()
@@ -126,24 +134,14 @@ prop_typePreservation tyG tmG = do
   -- Check if the converted term, when evaluated by CK, still has the same type:
 
   tmCK <- withExceptT CkP $ liftEither $
-    evaluateCk defBuiltinsRuntime tm `catchError` handleError ty
+    evaluateCkNoEmit defBuiltinsRuntime tm `catchError` handleError ty
   withExceptT TypeError $ checkType tcConfig () tmCK (Normalized ty)
 
-  -- note: the CEK does not respect this property in general as it
-  -- does not properly handle type annotations.
-
--- |Property: check if both the CK and CEK machine produce the same ouput
+-- |Property: check if both the typed CK and untyped CEK machines produce the same ouput
+-- modulo erasure.
 --
--- They should produce the same terms. Currently they differ in the
--- type annotations of those terms as the the CEK machine does not
--- handle the annotations correctly. This is not exposed on the small
--- examples used here. I believe it would be if we increased the
--- depth. One could work around this problem by erasing type
--- annotations before comparison, or fix the problem by updating the
--- CEK machine.
-
-prop_agree_Ck_Cek :: ClosedTypeG -> ClosedTermG -> ExceptT TestFail Quote ()
-prop_agree_Ck_Cek tyG tmG = do
+prop_agree_termEval :: ClosedTypeG -> ClosedTermG -> ExceptT TestFail Quote ()
+prop_agree_termEval tyG tmG = do
   tcConfig <- withExceptT TypeError $ getDefTypeCheckConfig ()
 
   -- Check if the type checker for generated terms is sound:
@@ -152,13 +150,20 @@ prop_agree_Ck_Cek tyG tmG = do
   tm <- withExceptT GenError $ convertClosedTerm tynames names tyG tmG
   withExceptT TypeError $ checkType tcConfig () tm (Normalized ty)
 
-  -- check if CK and CEK give the same output
-  tmCek <- withExceptT CekP $ liftEither $
-    fst (evaluateCek defBuiltinsRuntime tm) `catchError` handleError ty
-
+  -- run typed CK on input
   tmCk <- withExceptT CkP $ liftEither $
-    evaluateCk defBuiltinsRuntime tm `catchError` handleError ty
-  unless (tmCk == tmCek) $ throwCtrex (CtrexTermEvaluationMismatch tyG tmG [tmCek,tmCk])
+    evaluateCkNoEmit defBuiltinsRuntime tm `catchError` handleError ty
+
+  -- erase CK output
+  let tmUCk = U.erase tmCk
+
+  -- run untyped CEK on erased input
+  tmUCek <- withExceptT UCekP $ liftEither $
+    U.evaluateCekNoEmit defBuiltinsRuntime (U.erase tm) `catchError` handleUError
+
+  -- check if typed CK and untyped CEK give the same output modulo erasure
+  unless (tmUCk == tmUCek) $
+    throwCtrex (CtrexUntypedTermEvaluationMismatch tyG tmG [tmUCk,tmUCek])
 
 -- |Property: the following diagram commutes for well-kinded types...
 --
@@ -174,7 +179,9 @@ prop_agree_Ck_Cek tyG tmG = do
 --                  convertClosedType
 -- @
 --
-prop_normalizeConvertCommuteTypes :: Kind () -> ClosedTypeG -> ExceptT TestFail Quote ()
+prop_normalizeConvertCommuteTypes :: Kind ()
+                                  -> ClosedTypeG
+                                  -> ExceptT TestFail Quote ()
 prop_normalizeConvertCommuteTypes k tyG = do
   tcConfig <- withExceptT TypeError $ getDefTypeCheckConfig ()
 
@@ -188,15 +195,22 @@ prop_normalizeConvertCommuteTypes k tyG = do
 
   -- Check if normalization for generated types is sound:
   ty2 <- withExceptT GenError $ convertClosedType tynames k (normalizeTypeG tyG)
-  unless (ty1 == ty2) $ throwCtrex (CtrexNormalizeConvertCommuteTypes k tyG ty1 ty2)
+
+  unless (ty1 == ty2) $
+    throwCtrex (CtrexNormalizeConvertCommuteTypes k tyG ty1 ty2)
+
+
 
 -- |Property: normal types cannot reduce
-prop_normalTypesCannotReduce :: Kind () -> Normalized ClosedTypeG -> ExceptT TestFail Quote ()
+prop_normalTypesCannotReduce :: Kind ()
+                             -> Normalized ClosedTypeG
+                             -> ExceptT TestFail Quote ()
 prop_normalTypesCannotReduce k (Normalized tyG) =
-  unless (isNothing $ stepTypeG tyG) $ throwCtrex (CtrexNormalTypesCannotReduce k tyG)
+  unless (isNothing $ stepTypeG tyG) $
+    throwCtrex (CtrexNormalTypesCannotReduce k tyG)
 
-
--- |Create a generator test, searching for a counter-example to the given predicate.
+-- |Create a generator test, searching for a counter-example to the
+-- given predicate.
 
 -- NOTE: we are not currently using this approach (using `ctrex'` to
 -- search for a counter example), instead we generate a list of
@@ -214,7 +228,8 @@ testCaseGen name GenOptions{..} t prop =
     result <- ctrex' genMode genDepth (\x -> check t x !=> isOk (prop t x))
     case result of
       Left  count -> return $ printf "%d examples generated" count
-      Right ctrex -> assertFailure . show . fromLeft undefined . run $ prop t ctrex
+      Right ctrex ->
+        assertFailure . show . fromLeft undefined . run $ prop t ctrex
 
 
 -- * Test failures
@@ -231,11 +246,16 @@ testCaseGen name GenOptions{..} t prop =
 
 data TestFail
   = GenError GenError
-  | TypeError (TypeError (Term TyName Name DefaultUni DefaultFun ()) DefaultUni DefaultFun ())
+  | TypeError
+    (TypeError
+      (Term TyName Name DefaultUni DefaultFun ())
+      DefaultUni
+      DefaultFun
+      ())
   | AgdaErrorP ()
   | FVErrorP FreeVariableError
   | CkP (CkEvaluationException DefaultUni DefaultFun)
-  | CekP (CekEvaluationException DefaultUni DefaultFun)
+  | UCekP (U.CekEvaluationException DefaultUni DefaultFun)
   | Ctrex Ctrex
 
 data Ctrex
@@ -293,11 +313,16 @@ instance Show TestFail where
   show (AgdaErrorP e) = show e
   show (FVErrorP e)   = show e
   show (CkP e)        = show e
-  show (CekP e)       = show e
+  show (UCekP e)      = show e
 
 instance Show Ctrex where
   show (CtrexNormalizeConvertCommuteTypes k tyG ty1 ty2) =
-    printf tpl (show tyG) (show (pretty k)) (show (pretty ty1)) (show (pretty ty2))
+    printf
+      tpl
+      (show tyG)
+      (show (pretty k))
+      (show (pretty ty1))
+      (show (pretty ty2))
     where
       tpl = unlines
             [ "Counterexample found: %s :: %s"
@@ -319,8 +344,13 @@ instance Show Ctrex where
     where
       tpl = "Counterexample found: %s :: %s"
   show (CtrexKindMismatch k tyG k' k'') =
-    printf tpl (show (pretty k)) (show tyG) (show (pretty k')) (show (pretty k''))
-      where
+    printf
+      tpl
+      (show (pretty k))
+      (show tyG)
+      (show (pretty k'))
+      (show (pretty k''))
+    where
       tpl = unlines
             [ "Counterexample found: %s :: %s"
             , "- inferer1 gives %s"
@@ -331,7 +361,12 @@ instance Show Ctrex where
     where
       tpl = "Counterexample found: %s :: %s"
   show (CtrexTypeNormalizationMismatch k tyG ty1 ty2) =
-    printf tpl (show tyG) (show (pretty k)) (show (pretty ty1)) (show (pretty ty2))
+    printf
+      tpl
+      (show tyG)
+      (show (pretty k))
+      (show (pretty ty1))
+      (show (pretty ty2))
     where
       tpl = unlines
             [ "Counterexample found: %s :: %s"

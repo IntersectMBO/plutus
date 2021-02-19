@@ -1,28 +1,25 @@
 module BlocklyComponent.State where
 
 import Prelude hiding (div)
-import Blockly.Generator (blockToCode, newBlock)
-import Blockly.Internal (BlockDefinition, ElementId(..), getBlockById)
+import Blockly.Dom (explainError, getDom)
+import Blockly.Generator (newBlock)
+import Blockly.Internal (BlockDefinition, ElementId(..))
 import Blockly.Internal as Blockly
-import BlocklyComponent.Types (Action(..), Message(..), Query(..), State, _blocklyEventSubscription, _blocklyState, _errorMessage, _generator, emptyState)
+import BlocklyComponent.Types (Action(..), Message(..), Query(..), State, _blocklyEventSubscription, _blocklyState, _errorMessage, emptyState)
 import BlocklyComponent.View (render)
-import Control.Monad.Except (ExceptT(..), except, runExceptT)
-import Data.Bifunctor (lmap)
+import Control.Monad.Except (ExceptT(..), runExceptT, withExceptT)
 import Data.Either (Either(..), either, note)
 import Data.Lens (assign, set, use)
 import Data.Maybe (Maybe(..))
 import Data.Traversable (for, for_)
-import Data.Tuple (Tuple(..))
-import Data.Tuple.Nested ((/\))
 import Effect.Aff.Class (class MonadAff)
 import Halogen (Component, HalogenM, liftEffect, mkComponent, modify_)
 import Halogen as H
 import Halogen.BlocklyCommons (blocklyEvents, runWithoutEventSubscription, detectCodeChanges)
 import Halogen.HTML (HTML)
-import Marlowe.Blockly (buildBlocks, buildGenerator)
+import Marlowe.Blockly (buildBlocks)
 import Marlowe.Holes (Term(..), Location(..))
 import Marlowe.Parser as Parser
-import Prim.TypeError (class Warn, Text)
 import Text.Extra as Text
 import Type.Proxy (Proxy(..))
 
@@ -89,44 +86,36 @@ handleQuery (LoadWorkspace xml next) = do
   assign _errorMessage Nothing
   pure $ Just next
 
-handleQuery (GetCode next) = do
-  mBlocklyState <- use _blocklyState
-  mGenerator <- use _generator
-  eCode <-
-    liftEffect
-      $ runExceptT do
-          { workspace, rootBlockName } <- except <<< (note $ unexpected "BlocklyState not set") $ mBlocklyState
-          generator <- except <<< (note $ unexpected "Generator not set") $ mGenerator
-          block <- ExceptT <<< map (note $ unexpected ("Can't find root block" <> rootBlockName)) $ getBlockById workspace rootBlockName
-          ExceptT $ lmap unexpected <$> blockToCode block generator
-  case eCode of
+handleQuery (GetBlockRepresentation next) = do
+  eBlock <-
+    runExceptT do
+      blocklyState <- ExceptT $ note "BlocklyState not set" <$> use _blocklyState
+      withExceptT explainError (getDom blocklyState)
+  case eBlock of
     Left e -> do
-      assign _errorMessage $ Just e
+      assign _errorMessage $ Just $ unexpected e
       pure Nothing
-    Right code -> do
+    Right block -> do
       assign _errorMessage Nothing
-      pure <<< Just <<< next $ code
+      pure <<< Just <<< next $ block
   where
   unexpected s = "An unexpected error has occurred, please raise a support issue at https://github.com/input-output-hk/plutus/issues/new: " <> s
 
 handleAction ::
   forall m slots.
-  Warn (Text "SCP-1648 Fix blockly code being lost after refresh") =>
   MonadAff m =>
   Action ->
   HalogenM State Action slots Message m Unit
 handleAction (Inject rootBlockName blockDefinitions) = do
-  blocklyState /\ generator <-
+  blocklyState <-
     liftEffect do
       state <- Blockly.createBlocklyInstance rootBlockName (ElementId "blocklyWorkspace") (ElementId "blocklyToolbox")
       Blockly.addBlockTypes state.blockly blockDefinitions
       Blockly.initializeWorkspace state.blockly state.workspace
-      generator <- buildGenerator state.blockly
-      pure $ Tuple state generator
+      pure state
   eventSubscription <- H.subscribe $ blocklyEvents BlocklyEvent blocklyState.workspace
   modify_
     ( set _blocklyState (Just blocklyState)
-        <<< set _generator (Just generator)
         <<< set _blocklyEventSubscription (Just eventSubscription)
     )
 

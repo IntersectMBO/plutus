@@ -8,42 +8,42 @@
 
 module Cardano.Node.Mock where
 
-import           Control.Concurrent              (threadDelay)
-import           Control.Concurrent.MVar         (MVar, modifyMVar_, putMVar, takeMVar)
-import           Control.Lens                    (over, set, unto, view)
-import           Control.Monad                   (forever, unless, void)
-import           Control.Monad.Freer             (Eff, Member, interpret, reinterpret, runM, subsume)
-import           Control.Monad.Freer.Extras      (handleZoomedState)
-import           Control.Monad.Freer.Log         (LogMessage (..), handleLogWriter, mapLog, renderLogMessages)
-import           Control.Monad.Freer.Reader      (Reader)
-import qualified Control.Monad.Freer.Reader      as Eff
-import           Control.Monad.Freer.State       (State)
-import qualified Control.Monad.Freer.State       as Eff
-import qualified Control.Monad.Freer.Writer      as Eff
-import           Control.Monad.IO.Class          (MonadIO, liftIO)
-import           Data.Foldable                   (traverse_)
-import           Data.List                       (genericDrop)
-import           Data.Text                       (Text)
-import           Data.Time.Units                 (Second, toMicroseconds)
-import           Data.Time.Units.Extra           ()
-import           Servant                         (NoContent (NoContent))
+import           Control.Concurrent                (threadDelay)
+import           Control.Concurrent.MVar           (MVar, modifyMVar_, putMVar, takeMVar)
+import           Control.Lens                      (over, set, unto, view)
+import           Control.Monad                     (forever, unless, void)
+import           Control.Monad.Freer               (Eff, Member, interpret, reinterpret, runM, subsume)
+import           Control.Monad.Freer.Extras.Log    (LogMessage (..), LogMsg (..), handleLogWriter, logDebug, logInfo,
+                                                    mapLog)
+import           Control.Monad.Freer.Extras.Modify (handleZoomedState)
+import           Control.Monad.Freer.Reader        (Reader)
+import qualified Control.Monad.Freer.Reader        as Eff
+import           Control.Monad.Freer.State         (State)
+import qualified Control.Monad.Freer.State         as Eff
+import qualified Control.Monad.Freer.Writer        as Eff
+import           Control.Monad.IO.Class            (MonadIO, liftIO)
+import           Data.Foldable                     (traverse_)
+import           Data.Function                     ((&))
+import           Data.List                         (genericDrop)
+import           Data.Time.Units                   (Second, toMicroseconds)
+import           Data.Time.Units.Extra             ()
+import           Servant                           (NoContent (NoContent))
 
-import           Cardano.BM.Data.Trace           (Trace)
-import           Cardano.Node.Follower           (NodeFollowerEffect)
+import           Cardano.BM.Data.Trace             (Trace)
+import           Cardano.Node.Follower             (NodeFollowerEffect)
 import           Cardano.Node.RandomTx
 import           Cardano.Node.Types
-import           Cardano.Protocol.ChainEffect    as CE
-import           Cardano.Protocol.FollowerEffect as FE
-import qualified Cardano.Protocol.Socket.Client  as Client
-import qualified Cardano.Protocol.Socket.Server  as Server
-import           Control.Monad.Freer.Extra.Log
-import           Ledger                          (Block, Slot (Slot), Tx)
-import           Ledger.Tx                       (outputs)
-import           Plutus.PAB.Arbitrary            ()
-import           Plutus.PAB.Monitoring           (runLogEffects)
-import qualified Wallet.Emulator                 as EM
-import           Wallet.Emulator.Chain           (ChainControlEffect, ChainEffect, ChainState)
-import qualified Wallet.Emulator.Chain           as Chain
+import           Cardano.Protocol.ChainEffect      as CE
+import           Cardano.Protocol.FollowerEffect   as FE
+import qualified Cardano.Protocol.Socket.Client    as Client
+import qualified Cardano.Protocol.Socket.Server    as Server
+import           Ledger                            (Block, Slot (Slot), Tx)
+import           Ledger.Tx                         (outputs)
+import           Plutus.PAB.Arbitrary              ()
+import           Plutus.PAB.Monitoring             (handleLogMsgTrace, runLogEffects)
+import qualified Wallet.Emulator                   as EM
+import           Wallet.Emulator.Chain             (ChainControlEffect, ChainEffect, ChainState)
+import qualified Wallet.Emulator.Chain             as Chain
 
 healthcheck :: Monad m => m NoContent
 healthcheck = pure NoContent
@@ -102,42 +102,47 @@ type NodeServerEffects m
         , Reader Server.ServerHandler
         , State AppState
         , LogMsg MockServerLogMsg
-        , LogMsg Text
         , m]
 
 ------------------------------------------------------------
+
+
+-- | Run all chain effects in the IO Monad
 runChainEffects ::
-    Server.ServerHandler
+ Trace IO MockServerLogMsg
+ -> Server.ServerHandler
  -> Client.ClientHandler
  -> MVar AppState
  -> Eff (NodeServerEffects IO) a
  -> IO ([LogMessage MockServerLogMsg], a)
-runChainEffects serverHandler clientHandler stateVar eff = do
+runChainEffects trace serverHandler clientHandler stateVar eff = do
     oldAppState <- liftIO $ takeMVar stateVar
     ((a, events), newState) <- liftIO
-        $ runM
-        $ runStderrLog
-        $ interpret renderLogMessages
-        $ Eff.runState oldAppState
-        $ Eff.runReader serverHandler
-        $ Eff.runReader clientHandler
-        $ Eff.runWriter
-        $ reinterpret (handleLogWriter @MockServerLogMsg @[LogMessage MockServerLogMsg] (unto return))
-        $ interpret (handleZoomedState chainState)
-        $ interpret (handleZoomedState followerState)
-        $ interpret (mapLog ProcessingChainEvent)
-        $ reinterpret CE.handleChain
-        $ interpret (mapLog ProcessingChainEvent)
-        $ reinterpret Chain.handleControlChain
-        $ interpret (mapLog FollowerMsg)
-        $ FE.handleNodeFollower
-        $ subsume
-        $ runGenRandomTx
-        $ do result <- eff
-             void Chain.processBlock
-             pure result
+            $ processBlock eff
+            & runRandomTx
+            & runNodeFollwer
+            & runChain
+            & mergeState
+            & toWriter
+            & runReaders oldAppState
+            & handleLogMsgTrace trace
+            & runM
     liftIO $ putMVar stateVar newState
     pure (events, a)
+        where
+            processBlock e = e >>= \r -> Chain.processBlock >> pure r
+
+            runRandomTx = subsume . runGenRandomTx
+
+            runNodeFollwer = interpret (mapLog FollowerMsg) . FE.handleNodeFollower
+
+            runChain = interpret (mapLog ProcessingChainEvent) . reinterpret CE.handleChain . interpret (mapLog ProcessingChainEvent) . reinterpret Chain.handleControlChain
+
+            mergeState = interpret (handleZoomedState chainState) . interpret (handleZoomedState followerState)
+
+            toWriter = Eff.runWriter . reinterpret (handleLogWriter @MockServerLogMsg @[LogMessage MockServerLogMsg] (unto return))
+
+            runReaders s = Eff.runState s . Eff.runReader serverHandler . Eff.runReader clientHandler
 
 processChainEffects ::
     Trace IO MockServerLogMsg
@@ -147,7 +152,7 @@ processChainEffects ::
     -> Eff (NodeServerEffects IO) a
     -> IO a
 processChainEffects trace serverHandler clientHandler stateVar eff = do
-    (events, result) <- liftIO $ runChainEffects serverHandler clientHandler stateVar eff
+    (events, result) <- liftIO $ runChainEffects trace serverHandler clientHandler stateVar eff
     runLogEffects trace $ traverse_ (\(LogMessage _ chainEvent) -> logDebug chainEvent) events
     liftIO $
         modifyMVar_
