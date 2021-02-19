@@ -807,6 +807,7 @@ runEval (EvalOptions language inp ifmt evalMode printMode budgetMode timingMode)
                     Verbose bm -> do
                           let evaluate = Cek.unsafeEvaluateCekWithBudget PLC.defBuiltinsRuntime bm
                               body = void . UPLC.toTerm $ prog
+                              !_ = rnf body
                           case timingMode of
                             NoTiming -> do
                                     let (result, budget) = evaluate body
