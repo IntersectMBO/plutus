@@ -1,7 +1,8 @@
 module Template.Types
   ( Template
-  , Contract
   ) where
+
+import Marlowe.Extended (Contract)
 
 type Template
   = { name :: String
@@ -9,7 +10,3 @@ type Template
     , description :: String
     , contract :: Contract
     }
-
--- TODO: move Marlowe.Extended to web-common-marlowe and import Marlowe.Extended.Contract
-type Contract
-  = Int
