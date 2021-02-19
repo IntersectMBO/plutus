@@ -829,7 +829,7 @@ runEval (EvalOptions language inp ifmt evalMode printMode budgetMode timingMode)
           handleTimingResultsWithBudget results =
               case nub results of
                 [(PLC.EvaluationSuccess _, budget)] -> putStrLn "" >> printBudgetState budget >> exitSuccess
-                [(PLC.EvaluationFailure, budget)]   -> putStrLn "" >> printBudgetState budget >> exitFailure
+                [(PLC.EvaluationFailure,   budget)] -> putStrLn "" >> printBudgetState budget >> exitFailure
                 _                                   -> error "Timing evaluations returned inconsistent results"
 
 
