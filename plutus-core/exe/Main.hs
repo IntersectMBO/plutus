@@ -830,7 +830,7 @@ runEval (EvalOptions language inp ifmt evalMode printMode budgetMode timingMode)
               case nub results of
                 [(PLC.EvaluationSuccess _, budget)] -> putStrLn "" >> printBudgetState budget >> exitSuccess
                 [(PLC.EvaluationFailure, budget)]   -> putStrLn "" >> printBudgetState budget >> exitFailure
-                _                                   -> error "Timing evaluations returned inconsistent results" -- Should never happen
+                _                                   -> error "Timing evaluations returned inconsistent results"
 
 
 ---------------- Driver ----------------
