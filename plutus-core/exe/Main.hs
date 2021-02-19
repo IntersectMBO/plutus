@@ -731,7 +731,6 @@ printBudgetStateBudget b = do
   putStrLn $ "cpu budget:    " ++ show cpu
   putStrLn $ "memory budget: " ++ show mem
 
-
 printBudgetStateTally :: (Eq fun, Hashable fun, Show fun) => Cek.CekExTally fun -> IO ()
 printBudgetStateTally (ExTally costs) = do
   putStrLn $ "AST:     " ++ pbudget Cek.BAST
