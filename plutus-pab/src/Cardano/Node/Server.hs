@@ -5,7 +5,6 @@
 
 module Cardano.Node.Server
     ( main
-    , MockServerConfig(..)
     ) where
 
 import           Control.Concurrent              (MVar, forkIO, newMVar)
@@ -21,21 +20,14 @@ import           Servant.Client                  (BaseUrl (baseUrlPort))
 
 import           Cardano.BM.Data.Trace           (Trace)
 import           Cardano.Node.API                (API)
-import           Cardano.Node.Follower           (getBlocks, newFollower)
 import           Cardano.Node.Mock
-import           Cardano.Node.RandomTx           (genRandomTx)
 import           Cardano.Node.Types
 import qualified Cardano.Protocol.Socket.Client  as Client
 import qualified Cardano.Protocol.Socket.Server  as Server
 import           Plutus.PAB.Arbitrary            ()
 import           Plutus.PAB.Monitoring           (runLogEffects)
 
-app ::
- Trace IO MockServerLogMsg
- -> Server.ServerHandler
- -> Client.ClientHandler
- -> MVar AppState
- -> Application
+app :: Trace IO MockServerLogMsg -> Server.ServerHandler -> Client.ClientHandler -> MVar AppState -> Application
 app trace serverHandler clientHandler stateVar =
     serve (Proxy @API) $
     hoistServer

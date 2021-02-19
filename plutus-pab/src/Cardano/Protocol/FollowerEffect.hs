@@ -29,7 +29,7 @@ handleNodeFollower
      , LastMember m effs
      , MonadIO m
      )
-  => Eff (NF.NodeFollowerEffect ': effs) ~> Eff effs
+  => Eff (NodeFollowerEffect ': effs) ~> Eff effs
 handleNodeFollower =
     (synchroniseState >>) . NF.handleNodeFollower
 

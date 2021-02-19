@@ -14,7 +14,7 @@ module Plutus.PAB.Types where
 import           Cardano.BM.Data.Tracer.Extras  (StructuredLog (..))
 import qualified Cardano.ChainIndex.Types       as ChainIndex
 import qualified Cardano.Metadata.Types         as Metadata
-import qualified Cardano.Node.Server            as NodeServer
+import           Cardano.Node.Types             (MockServerConfig (..))
 import qualified Cardano.SigningProcess.Server  as SigningProcess
 import qualified Cardano.Wallet.Server          as WalletServer
 import           Control.Lens.TH                (makePrisms)
@@ -101,7 +101,7 @@ data Config =
     Config
         { dbConfig                :: DbConfig
         , walletServerConfig      :: WalletServer.Config
-        , nodeServerConfig        :: NodeServer.MockServerConfig
+        , nodeServerConfig        :: MockServerConfig
         , metadataServerConfig    :: Metadata.MetadataConfig
         , pabWebserverConfig      :: WebserverConfig
         , chainIndexConfig        :: ChainIndex.ChainIndexConfig
@@ -160,7 +160,7 @@ mkChainOverview = foldl reducer emptyChainOverview
                           } txs =
         let unprunedTxById =
                 foldl (\m tx -> Map.insert (txId tx) tx m) oldTxById txs
-            newTxById = id unprunedTxById -- TODO Prune spent keys.
+            newTxById = unprunedTxById -- TODO Prune spent keys.
             newUtxoIndex = UtxoIndex.insertBlock txs oldUtxoIndex
          in ChainOverview
                 { chainOverviewBlockchain = txs : oldBlockchain
