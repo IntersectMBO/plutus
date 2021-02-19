@@ -26,7 +26,7 @@
       licenseFiles = [ "LICENSE" ];
       dataDir = "";
       dataFiles = [];
-      extraSrcFiles = [ "CHANGELOG.md" ];
+      extraSrcFiles = [];
       extraTmpFiles = [];
       extraDocFiles = [];
       };
