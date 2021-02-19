@@ -51,7 +51,6 @@ import           Eventful.Store.Memory              (EventMap, emptyEventMap)
 
 import           Cardano.ChainIndex.Server          (ChainIndexServerMsg)
 import qualified Cardano.ChainIndex.Types           as CI
-import           Cardano.Node.Follower              (NodeFollowerEffect)
 import qualified Cardano.Node.Follower              as NF
 import           Cardano.Node.Types
 import           Ledger.Slot                        (Slot)

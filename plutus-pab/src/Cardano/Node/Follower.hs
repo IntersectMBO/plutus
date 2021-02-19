@@ -3,7 +3,6 @@
 {-# LANGUAGE GADTs             #-}
 {-# LANGUAGE LambdaCase        #-}
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TemplateHaskell   #-}
 {-# LANGUAGE TypeOperators     #-}
 
 module Cardano.Node.Follower where
@@ -13,21 +12,11 @@ import           Control.Monad.Freer
 import           Control.Monad.Freer.Extras.Log
 import           Control.Monad.Freer.Extras.State
 import           Control.Monad.Freer.State
-import           Control.Monad.Freer.TH           (makeEffect)
-
 import qualified Data.Map                         as Map
 
 import           Cardano.Node.Types
-import           Ledger                           (Block, Slot)
 import           Wallet.Emulator.Chain            (ChainState)
 import qualified Wallet.Emulator.Chain            as Chain
-
-data NodeFollowerEffect r where
-    NewFollower :: NodeFollowerEffect FollowerID
-    GetBlocks :: FollowerID -> NodeFollowerEffect [Block]
-    GetSlot :: NodeFollowerEffect Slot
-
-makeEffect ''NodeFollowerEffect
 
 
 handleNodeFollower ::

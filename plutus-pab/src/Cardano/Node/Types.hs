@@ -2,6 +2,8 @@
 {-# LANGUAGE DeriveAnyClass    #-}
 {-# LANGUAGE DeriveGeneric     #-}
 {-# LANGUAGE DerivingVia       #-}
+{-# LANGUAGE FlexibleContexts  #-}
+{-# LANGUAGE GADTs             #-}
 {-# LANGUAGE LambdaCase        #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE StrictData        #-}
@@ -19,6 +21,15 @@ module Cardano.Node.Types
 
      -- * Event types
     , BlockEvent (..)
+
+     -- * Effects
+    , NodeFollowerEffect (..)
+    , NodeServerEffects
+    , getBlocks
+    , getSlot
+    , newFollower
+    , GenRandomTx (..)
+    , genRandomTx
 
      -- *  State types
     , AppState (..)
@@ -40,6 +51,7 @@ module Cardano.Node.Types
         where
 
 import           Control.Lens                   (makeLenses, makePrisms, view)
+import           Control.Monad.Freer.TH         (makeEffect)
 import           Data.Aeson                     (FromJSON, ToJSON)
 import           Data.Map                       (Map)
 import qualified Data.Map                       as Map
@@ -47,19 +59,24 @@ import           Data.Text.Prettyprint.Doc      (Pretty (..), pretty, (<+>))
 import           Data.Time.Units                (Second)
 import           Data.Time.Units.Extra          ()
 import           GHC.Generics                   (Generic)
-import           Ledger                         (Slot, Tx, txId)
+import           Ledger                         (Block, Slot, Tx, txId)
 import           Servant                        (FromHttpApiData, ToHttpApiData)
 import           Servant.Client                 (BaseUrl)
 
 import           Cardano.BM.Data.Tracer         (ToObject (..))
 import           Cardano.BM.Data.Tracer.Extras  (Tagged (..), mkObjectStr)
-import           Control.Monad.Freer.Extras.Log (LogMessage)
+import           Cardano.Protocol.Socket.Client (ClientHandler)
+import           Control.Monad.Freer.Extras.Log (LogMessage, LogMsg (..))
+import           Control.Monad.Freer.Reader     (Reader)
+import           Control.Monad.Freer.State      (State)
 import qualified Language.Plutus.Contract.Trace as Trace
 import           Wallet.Emulator                (Wallet)
 import qualified Wallet.Emulator                as EM
-import           Wallet.Emulator.Chain          (ChainEvent, ChainState)
+import           Wallet.Emulator.Chain          (ChainControlEffect, ChainEffect, ChainEvent, ChainState)
 import qualified Wallet.Emulator.MultiAgent     as MultiAgent
 
+import qualified Cardano.Protocol.Socket.Server as Server
+import           Plutus.PAB.Arbitrary           ()
 
 -- Configuration ------------------------------------------------------------------------------------------------------
 
@@ -210,3 +227,33 @@ initialChainState :: Trace.InitialDistribution -> ChainState
 initialChainState =
     view EM.chainState .
     MultiAgent.emulatorStateInitialDist . Map.mapKeys EM.walletPubKey
+
+-- Effects -------------------------------------------------------------------------------------------------------------
+
+data NodeFollowerEffect r where
+    NewFollower :: NodeFollowerEffect FollowerID
+    GetBlocks :: FollowerID -> NodeFollowerEffect [Block]
+    GetSlot :: NodeFollowerEffect Slot
+
+makeEffect ''NodeFollowerEffect
+
+type NodeServerEffects m
+     = '[ GenRandomTx
+        , LogMsg MockServerLogMsg
+        , NodeFollowerEffect
+        , LogMsg NodeFollowerLogMsg
+        , ChainControlEffect
+        , ChainEffect
+        , State NodeFollowerState
+        , State ChainState
+        , LogMsg MockServerLogMsg
+        , Reader ClientHandler
+        , Reader Server.ServerHandler
+        , State AppState
+        , LogMsg MockServerLogMsg
+        , m]
+
+data GenRandomTx r where
+    GenRandomTx :: GenRandomTx Tx
+
+makeEffect ''GenRandomTx

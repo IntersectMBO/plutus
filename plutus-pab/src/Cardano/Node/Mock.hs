@@ -13,10 +13,8 @@ import           Control.Concurrent.MVar           (MVar, modifyMVar_, putMVar, 
 import           Control.Lens                      (over, set, unto, view)
 import           Control.Monad                     (forever, unless, void)
 import           Control.Monad.Freer               (Eff, Member, interpret, reinterpret, runM, subsume)
-import           Control.Monad.Freer.Extras.Log    (LogMessage (..), LogMsg (..), handleLogWriter, logDebug, logInfo,
-                                                    mapLog)
+import           Control.Monad.Freer.Extras.Log
 import           Control.Monad.Freer.Extras.Modify (handleZoomedState)
-import           Control.Monad.Freer.Reader        (Reader)
 import qualified Control.Monad.Freer.Reader        as Eff
 import           Control.Monad.Freer.State         (State)
 import qualified Control.Monad.Freer.State         as Eff
@@ -24,20 +22,18 @@ import qualified Control.Monad.Freer.Writer        as Eff
 import           Control.Monad.IO.Class            (MonadIO, liftIO)
 import           Data.Foldable                     (traverse_)
 import           Data.Function                     ((&))
-import           Data.List                         (genericDrop)
 import           Data.Time.Units                   (Second, toMicroseconds)
 import           Data.Time.Units.Extra             ()
 import           Servant                           (NoContent (NoContent))
 
 import           Cardano.BM.Data.Trace             (Trace)
-import           Cardano.Node.Follower             (NodeFollowerEffect)
 import           Cardano.Node.RandomTx
 import           Cardano.Node.Types
 import           Cardano.Protocol.ChainEffect      as CE
 import           Cardano.Protocol.FollowerEffect   as FE
 import qualified Cardano.Protocol.Socket.Client    as Client
 import qualified Cardano.Protocol.Socket.Server    as Server
-import           Ledger                            (Block, Slot (Slot), Tx)
+import           Ledger                            (Slot, Tx)
 import           Ledger.Tx                         (outputs)
 import           Plutus.PAB.Arbitrary              ()
 import           Plutus.PAB.Monitoring             (handleLogMsgTrace, runLogEffects)
@@ -60,17 +56,6 @@ addBlock = do
     logInfo $ BlockOperation NewSlot
     void Chain.processBlock
 
-getBlocksSince ::
-    ( Member ChainControlEffect effs
-    , Member (State ChainState) effs
-    )
-    => Slot
-    -> Eff effs [Block]
-getBlocksSince (Slot slotNumber) = do
-    void Chain.processBlock
-    chainNewestFirst <- Eff.gets (view Chain.chainNewestFirst)
-    pure $ genericDrop slotNumber $ reverse chainNewestFirst
-
 consumeEventHistory :: MonadIO m => MVar AppState -> m [LogMessage MockServerLogMsg]
 consumeEventHistory stateVar =
     liftIO $ do
@@ -85,26 +70,6 @@ addTx tx = do
     logInfo $ BlockOperation $ NewTransaction tx
     Chain.queueTx tx
     pure NoContent
-
-
-
-type NodeServerEffects m
-     = '[ GenRandomTx
-        , LogMsg MockServerLogMsg
-        , NodeFollowerEffect
-        , LogMsg NodeFollowerLogMsg
-        , ChainControlEffect
-        , ChainEffect
-        , State NodeFollowerState
-        , State ChainState
-        , LogMsg MockServerLogMsg
-        , Reader Client.ClientHandler
-        , Reader Server.ServerHandler
-        , State AppState
-        , LogMsg MockServerLogMsg
-        , m]
-
-------------------------------------------------------------
 
 
 -- | Run all chain effects in the IO Monad

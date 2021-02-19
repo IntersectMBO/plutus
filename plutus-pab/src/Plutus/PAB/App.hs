@@ -26,9 +26,8 @@ import           Cardano.Metadata.Types             (MetadataEffect)
 import qualified Cardano.Metadata.Types             as Metadata
 import           Cardano.Node.Client                (handleNodeClientClient, handleNodeFollowerClient,
                                                      handleRandomTxClient)
-import           Cardano.Node.Follower              (NodeFollowerEffect)
 import           Cardano.Node.RandomTx              (GenRandomTx)
-import qualified Cardano.Node.Server                as NodeServer
+import           Cardano.Node.Types                 (MockServerConfig (..), NodeFollowerEffect)
 import qualified Cardano.SigningProcess.Client      as SigningProcessClient
 import qualified Cardano.SigningProcess.Server      as SigningProcess
 import qualified Cardano.Wallet.Client              as WalletClient
@@ -196,7 +195,7 @@ mkEnv Config { dbConfig
              , chainIndexConfig
              } = do
     walletClientEnv <- clientEnv (WalletServer.baseUrl walletServerConfig)
-    nodeClientEnv <- clientEnv (NodeServer.mscBaseUrl nodeServerConfig)
+    nodeClientEnv <- clientEnv (mscBaseUrl nodeServerConfig)
     metadataClientEnv <- clientEnv (Metadata.mdBaseUrl metadataServerConfig)
     signingProcessEnv <-
         clientEnv (SigningProcess.spBaseUrl signingProcessConfig)
@@ -268,4 +267,4 @@ migrate = interpret (mapLog SContractExeLogMsg) $ do
         $ initializeSqliteEventStore sqlConfig connectionPool
 
 monadLoggerTracer :: Trace IO a -> Trace (TraceLoggerT IO) a
-monadLoggerTracer = natTracer (\x -> TraceLoggerT $ \_ -> x)
+monadLoggerTracer = natTracer (\x -> TraceLoggerT $ const  x)

@@ -8,19 +8,19 @@
 
 module Cardano.Node.Client where
 
-import           Cardano.Node.API               (API)
-import           Cardano.Node.Follower          (NodeFollowerEffect (..))
-import           Cardano.Node.RandomTx          (GenRandomTx (..))
-import           Cardano.Node.Types             (FollowerID, MockServerLogMsg)
 import           Control.Monad                  (void)
 import           Control.Monad.Freer
-import           Control.Monad.Freer.Error
-import           Control.Monad.Freer.Extras.Log (LogMessage)
 import           Control.Monad.IO.Class
 import           Data.Proxy                     (Proxy (Proxy))
-import           Ledger                         (Block, Slot, Tx)
 import           Servant                        (NoContent, (:<|>) (..))
 import           Servant.Client                 (ClientEnv, ClientError, ClientM, client, runClientM)
+
+import           Cardano.Node.API               (API)
+import           Cardano.Node.RandomTx          (GenRandomTx (..))
+import           Cardano.Node.Types             (FollowerID, MockServerLogMsg, NodeFollowerEffect (..))
+import           Control.Monad.Freer.Error
+import           Control.Monad.Freer.Extras.Log (LogMessage)
+import           Ledger                         (Block, Slot, Tx)
 import           Wallet.Effects                 (NodeClientEffect (..))
 
 healthcheck :: ClientM NoContent

@@ -14,7 +14,7 @@ module Cardano.ChainIndex.Server(
     ) where
 
 import           Cardano.BM.Data.Trace            (Trace)
-import           Cardano.Node.Types               (FollowerID)
+import           Cardano.Node.Types               (FollowerID, NodeFollowerEffect, getBlocks, getSlot, newFollower)
 import           Control.Concurrent               (forkIO, threadDelay)
 import           Control.Concurrent.MVar          (MVar, newMVar, putMVar, takeMVar)
 import           Control.Monad                    (forever, unless, void)
@@ -38,8 +38,6 @@ import           Servant.Client                   (BaseUrl (baseUrlPort), Client
 import           Cardano.ChainIndex.API
 import           Cardano.ChainIndex.Types
 import qualified Cardano.Node.Client              as NodeClient
-import           Cardano.Node.Follower            (NodeFollowerEffect, getSlot)
-import qualified Cardano.Node.Follower            as NodeFollower
 import           Control.Concurrent.Availability  (Availability, available)
 import           Ledger.Address                   (Address)
 import           Ledger.AddressMap                (AddressMap)
@@ -105,9 +103,9 @@ syncState ::
     => Eff effs ()
 syncState = do
     followerID <- use indexFollowerID >>=
-        maybe (logInfo ObtainingFollowerID >> NodeFollower.newFollower >>= \i -> assign indexFollowerID (Just i) >> return i) pure
+        maybe (logInfo ObtainingFollowerID >> newFollower >>= \i -> assign indexFollowerID (Just i) >> return i) pure
     logDebug $ UpdatingChainIndex followerID
-    newBlocks <- NodeFollower.getBlocks followerID
+    newBlocks <- getBlocks followerID
     logInfo $ ReceivedBlocksTxns (length newBlocks) (length $ fold newBlocks)
     currentSlot <- SlotChanged <$> getSlot
     let notifications = BlockValidated <$> newBlocks

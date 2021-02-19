@@ -4,7 +4,6 @@
 {-# LANGUAGE LambdaCase        #-}
 {-# LANGUAGE NamedFieldPuns    #-}
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TemplateHaskell   #-}
 {-# LANGUAGE TypeOperators     #-}
 
 module Cardano.Node.RandomTx(
@@ -20,7 +19,6 @@ import           Control.Monad.Freer            (Eff, LastMember, Member)
 import qualified Control.Monad.Freer            as Eff
 import           Control.Monad.Freer.State      (State)
 import qualified Control.Monad.Freer.State      as Eff
-import           Control.Monad.Freer.TH         (makeEffect)
 import           Control.Monad.IO.Class         (MonadIO, liftIO)
 import           Control.Monad.Primitive        (PrimMonad, PrimState)
 import           Data.List.NonEmpty             (NonEmpty (..))
@@ -30,6 +28,8 @@ import qualified Data.Set                       as Set
 import qualified Hedgehog.Gen                   as Gen
 import           System.Random.MWC              as MWC
 
+import           Cardano.Node.Types             (GenRandomTx (..), MockServerLogMsg (..), genRandomTx)
+import           Control.Monad.Freer.Extras.Log
 import qualified Ledger.Ada                     as Ada
 import qualified Ledger.Address                 as Address
 import           Ledger.Crypto                  (PrivateKey, PubKey)
@@ -38,20 +38,12 @@ import qualified Ledger.Generators              as Generators
 import           Ledger.Index                   (UtxoIndex (..))
 import           Ledger.Tx                      (Tx, TxOut (..))
 import qualified Ledger.Tx                      as Tx
-
 import qualified Wallet.Emulator                as EM
 import           Wallet.Emulator.Chain          (ChainState)
-
-import           Cardano.Node.Types             (MockServerLogMsg (..))
-import           Control.Monad.Freer.Extras.Log
 
 -- $randomTx
 -- Generate a random, valid transaction that moves some ada
 -- around between the emulator wallets.
-data GenRandomTx r where
-    GenRandomTx :: GenRandomTx Tx
-
-makeEffect ''GenRandomTx
 
 
 runGenRandomTx ::
