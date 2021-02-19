@@ -7,8 +7,6 @@ module MainFrame.Types
   , Screen(..)
   , Card(..)
   , ContractStatus(..)
-  , ContractTemplate
-  , ContractInstance
   , ChildSlots
   , Query(..)
   , Msg(..)
@@ -21,6 +19,7 @@ import Contract.Types as Contract
 import Data.Either (Either)
 import Data.Maybe (Maybe(..))
 import Marlowe.Semantics (Contract, PubKey)
+import Template.Types (Template)
 import Wallet.Types (WalletDetails, WalletLibrary, WalletNicknameKey)
 import WebSocket (StreamToClient, StreamToServer)
 import WebSocket.Support as WS
@@ -33,6 +32,7 @@ import WebSocket.Support as WS
 type State
   = { wallets :: WalletLibrary
     , newWalletNicknameKey :: WalletNicknameKey
+    , templates :: Array Template
     , subState :: Either PickupState WalletState
     -- TODO: (work out how to) move contract state into wallet state
     -- (the puzzle is how to handle contract actions in the mainframe if the
@@ -69,6 +69,7 @@ type WalletState
 data Screen
   = ContractsScreen ContractStatus
   | WalletLibraryScreen
+  | ContractSetupScreen Template
 
 derive instance eqScreen :: Eq Screen
 
@@ -77,8 +78,7 @@ data Card
   | ViewWalletCard WalletNicknameKey WalletDetails
   | PutdownWalletCard
   | TemplateLibraryCard
-  | ContractTemplateCard ContractTemplate
-  | ContractInstanceCard ContractInstance
+  | ContractCard Contract
 
 derive instance eqCard :: Eq Card
 
@@ -87,14 +87,6 @@ data ContractStatus
   | Completed
 
 derive instance eqContractStatus :: Eq ContractStatus
-
--- contract templage type TBD
-type ContractTemplate
-  = Int
-
--- contract instance type TBD
-type ContractInstance
-  = Int
 
 ------------------------------------------------------------
 type ChildSlots

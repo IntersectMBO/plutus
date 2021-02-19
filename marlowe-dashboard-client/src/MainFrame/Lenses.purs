@@ -1,6 +1,7 @@
 module MainFrame.Lenses
   ( _wallets
   , _newWalletNicknameKey
+  , _templates
   , _subState
   , _pickupState
   , _walletState
@@ -21,6 +22,7 @@ import Data.Lens.Record (prop)
 import Data.Symbol (SProxy(..))
 import MainFrame.Types (WalletState, PickupState, State)
 import Marlowe.Semantics (PubKey)
+import Template.Types (Template)
 import Wallet.Types (WalletLibrary, WalletNicknameKey)
 
 _wallets :: Lens' State WalletLibrary
@@ -28,6 +30,9 @@ _wallets = prop (SProxy :: SProxy "wallets")
 
 _newWalletNicknameKey :: Lens' State WalletNicknameKey
 _newWalletNicknameKey = prop (SProxy :: SProxy "newWalletNicknameKey")
+
+_templates :: Lens' State (Array Template)
+_templates = prop (SProxy :: SProxy "templates")
 
 _subState :: Lens' State (Either PickupState WalletState)
 _subState = prop (SProxy :: SProxy "subState")
