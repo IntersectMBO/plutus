@@ -1,13 +1,16 @@
 module Main(main) where
 
-import           Codec.Serialise                                       (writeFileSerialise)
 import qualified Control.Foldl                                         as L
 import           Control.Monad.Freer                                   (run)
+import qualified Data.ByteString.Lazy                                  as BSL
 import           Data.Foldable                                         (traverse_)
+import           Flat                                                  (flat)
 import           Ledger.Index                                          (ScriptValidationEvent (sveScript))
 import           Plutus.Trace.Emulator                                 (EmulatorTrace)
 import qualified Plutus.Trace.Emulator                                 as Trace
+import           Plutus.V1.Ledger.Scripts                              (Script (..))
 import qualified Streaming.Prelude                                     as S
+import           System.Directory                                      (createDirectoryIfMissing)
 import           System.Environment                                    (getArgs)
 import           System.FilePath                                       ((</>))
 import qualified Wallet.Emulator.Folds                                 as Folds
@@ -70,8 +73,13 @@ writeScripts fp = do
         , ("auction_2", Auction.auctionTrace2)
         ]
 
--- | Run an emulator trace and write the applied scripts to a file
---   using the name as a prefix
+{-| Run an emulator trace and write the applied scripts to a file in Flat format
+    using the name as a prefix.  There's an instance of Codec.Serialise for
+    Script in Scripts.hs (see Note [Using Flat inside CBOR instance of Script]),
+    which wraps Flat-encoded bytestings in CBOR, but that's not used here: we
+    just use unwrapped Flat because that's more convenient for use with the
+    `plc` command, for example.
+-}
 writeScriptsTo :: FilePath -> String -> EmulatorTrace a -> IO ()
 writeScriptsTo fp prefix trace = do
     let events =
@@ -80,8 +88,8 @@ writeScriptsTo fp prefix trace = do
             $ foldEmulatorStreamM (L.generalize Folds.scriptEvents)
             $ Trace.runEmulatorStream defaultEmulatorConfig trace
         writeScript idx script = do
-            let filename = fp </> prefix <> "-" <> show idx
+            let filename = fp </> prefix <> "-" <> show idx <> ".flat"
             putStrLn $ "Writing script: " <> filename
-            writeFileSerialise filename script
-
+            BSL.writeFile filename (BSL.fromStrict . flat . unScript $ script)
+    createDirectoryIfMissing True fp
     traverse_ (uncurry writeScript) (zip [1::Int ..] (sveScript <$> events))
