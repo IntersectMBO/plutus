@@ -728,20 +728,23 @@ printBudgetStateBudget :: ExBudget -> IO ()
 printBudgetStateBudget b = do
   let ExCPU cpu = _exBudgetCPU b
       ExMemory mem = _exBudgetMemory b
-  putStrLn $ "cpu budget:    " ++ show cpu
-  putStrLn $ "memory budget: " ++ show mem
+  putStrLn $ "CPU budget used:    " ++ show cpu
+  putStrLn $ "Memory budget used: " ++ show mem
 
 printBudgetStateTally :: (Eq fun, Hashable fun, Show fun) => Cek.CekExTally fun -> IO ()
 printBudgetStateTally (ExTally costs) = do
-  putStrLn $ "AST:     " ++ pbudget Cek.BAST
-  putStrLn $ "Const:   " ++ pbudget Cek.BConst
-  putStrLn $ "Var:     " ++ pbudget Cek.BVar
-  putStrLn $ "LamAbs:  " ++ pbudget Cek.BLamAbs
-  putStrLn $ "Apply:   " ++ pbudget Cek.BApply
-  putStrLn $ "Delay:   " ++ pbudget Cek.BDelay
-  putStrLn $ "Force:   " ++ pbudget Cek.BForce
-  putStrLn $ "Error:   " ++ pbudget Cek.BError
-  putStrLn $ "Builtin: " ++ budgetToString (mconcat (map snd builtinsAndCosts))
+  putStrLn $ "Const      " ++ pbudget Cek.BConst
+  putStrLn $ "Var        " ++ pbudget Cek.BVar
+  putStrLn $ "LamAbs     " ++ pbudget Cek.BLamAbs
+  putStrLn $ "Apply      " ++ pbudget Cek.BApply
+  putStrLn $ "Delay      " ++ pbudget Cek.BDelay
+  putStrLn $ "Force      " ++ pbudget Cek.BForce
+  putStrLn $ "Error      " ++ pbudget Cek.BError
+  putStrLn $ "Builtin    " ++ pbudget Cek.BBuiltin
+  putStrLn ""
+  putStrLn $ "AST        " ++ pbudget Cek.BAST
+  putStrLn $ "compute    " ++ printf "%-20s" (budgetToString totalComputeSteps)
+  putStrLn $ "BuiltinApp " ++ budgetToString (mconcat (map snd builtinsAndCosts))
   putStrLn ""
   traverse_ (\(b,cost) -> putStrLn $ printf "%-20s %s" (show b) (budgetToString cost :: String)) builtinsAndCosts
       where
@@ -749,9 +752,11 @@ printBudgetStateTally (ExTally costs) = do
             case H.lookup k costs of
               Just v  -> v
               Nothing -> ExBudget 0 0
+        allNodeTags = [Cek.BConst, Cek.BVar, Cek.BLamAbs, Cek.BApply, Cek.BDelay, Cek.BForce, Cek.BError, Cek.BBuiltin]
+        totalComputeSteps = mconcat $ map get allNodeTags  -- Depends on the fact that we have a unit cost for each AST node type
+        budgetToString (ExBudget (ExCPU cpu) (ExMemory mem)) = printf "%10d  %10d" cpu mem :: String
         pbudget k = budgetToString $ get k
-        budgetToString (ExBudget (ExCPU cpu) (ExMemory mem)) = printf "%6d  %6d" cpu mem
-        f l e = case e of {(Cek.BBuiltin b, cost)  -> (b,cost):l; _ -> l}
+        f l e = case e of {(Cek.BBuiltinApp b, cost)  -> (b,cost):l; _ -> l}
         builtinsAndCosts = Data.List.foldl f [] (H.toList costs)
 
 printBudgetState :: (Eq fun, Hashable fun, Show fun) => Cek.CekExBudgetState fun -> IO ()
