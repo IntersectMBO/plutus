@@ -792,11 +792,11 @@ runEval (EvalOptions language inp ifmt evalMode printMode budgetMode timingMode)
             CK  -> errorWithoutStackTrace "There is no CK machine for Untyped Plutus Core"
             CEK -> do
                   UntypedProgram prog <- getProgram UntypedPLC ifmt inp
+                  let body = void . UPLC.toTerm $ prog
+                      !_ = rnf body
                   case budgetMode of
                     Silent -> do
                           let evaluate = Cek.unsafeEvaluateCek PLC.defBuiltinsRuntime
-                              body = void . UPLC.toTerm $ prog
-                              !_ = rnf body
                           case timingMode of
                             NoTiming -> evaluate body & handleResult
                             Timing n -> timeEval n evaluate body >>= handleTimingResults
@@ -806,8 +806,6 @@ runEval (EvalOptions language inp ifmt evalMode printMode budgetMode timingMode)
                             -- estimate of on-chain costs.
                     Verbose bm -> do
                           let evaluate = Cek.unsafeEvaluateCekWithBudget PLC.defBuiltinsRuntime bm
-                              body = void . UPLC.toTerm $ prog
-                              !_ = rnf body
                           case timingMode of
                             NoTiming -> do
                                     let (result, budget) = evaluate body
