@@ -119,6 +119,7 @@ mkCostModel m = case fromJSON $ toJSON m of
     Error e   -> throwError $ CostModelParameterMismatch e
 
 data VerboseMode = Verbose | Quiet
+    deriving (Eq)
 
 type LogOutput = [Text.Text]
 
@@ -156,7 +157,6 @@ mkTermToEvaluate bs args = do
         applied = PLC.mkIterApp () namedTerm termArgs
     liftEither $ first DeBruijnError $ PLC.runQuoteT $ UPLC.unDeBruijnTerm applied
 
--- TODO: actually implement log output
 -- | Evaluates a script, with a budget that restricts how many resources it can use.
 evaluateScriptRestricting
     :: VerboseMode -- ^ Whether to produce log output
@@ -165,15 +165,17 @@ evaluateScriptRestricting
     -> Script -- ^ The script to evaluate
     -> [Data] -- ^ The arguments to the script
     -> (LogOutput, Either EvaluationError ())
-evaluateScriptRestricting _verbose costParams budget p args = swap $ runWriter @LogOutput $ runExceptT $ do
+evaluateScriptRestricting verbose costParams budget p args = swap $ runWriter @LogOutput $ runExceptT $ do
     appliedTerm <- mkTermToEvaluate p args
     model <- liftEither $ mkCostModel costParams
 
-    let (res, _) = UPLC.runCek
-          (PLC.toBuiltinsRuntime PLC.defDefaultFunDyn model)
+    let (res, _, logs) = UPLC.runCek
+          (PLC.toBuiltinsRuntime () model)
           (PLC.Restricting $ PLC.ExRestrictingBudget budget)
-          appliedTerm
+          (verbose == Verbose)
+         appliedTerm
 
+    tell $ Prelude.map Text.pack logs
     liftEither $ first CekError $ void res
 
 -- | Evaluates a script, returning the budget that the script would need to evaluate successfully.
@@ -183,14 +185,16 @@ evaluateScriptCounting
     -> Script -- ^ The script to evaluate
     -> [Data] -- ^ The arguments to the script
     -> (LogOutput, Either EvaluationError ExBudget)
-evaluateScriptCounting _verbose costParams p args = swap $ runWriter @LogOutput $ runExceptT $ do
+evaluateScriptCounting verbose costParams p args = swap $ runWriter @LogOutput $ runExceptT $ do
     appliedTerm <- mkTermToEvaluate p args
     model <- liftEither $ mkCostModel costParams
 
-    let (res, final) = UPLC.runCek
-          (PLC.toBuiltinsRuntime PLC.defDefaultFunDyn model)
+    let (res, final, logs) = UPLC.runCek
+          (PLC.toBuiltinsRuntime () model)
           PLC.Counting
+          (verbose == Verbose)
           appliedTerm
 
+    tell $ Prelude.map Text.pack logs
     liftEither $ first CekError $ void res
     pure $ PLC._exBudgetStateBudget final
