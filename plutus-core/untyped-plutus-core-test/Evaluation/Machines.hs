@@ -94,7 +94,7 @@ testCounting name term =
                        nestedGoldenVsText
     name
     (renderStrict $ layoutPretty defaultLayoutOptions {layoutPageWidth = AvailablePerLine maxBound 1.0} $
-        prettyPlcReadableDef $ runCekCounting defBuiltinsRuntime term)
+        prettyPlcReadableDef $ runCekNoEmit defBuiltinsRuntime Counting term)
 
 test_counting :: TestTree
 test_counting =

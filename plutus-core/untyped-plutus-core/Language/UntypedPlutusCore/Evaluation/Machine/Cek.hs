@@ -36,7 +36,6 @@ module Language.UntypedPlutusCore.Evaluation.Machine.Cek
     , extractEvaluationResult
     , runCek
     , runCekNoEmit
-    , runCekCounting
     , evaluateCek
     , evaluateCekNoEmit
     , unsafeEvaluateCek
@@ -537,16 +536,6 @@ runCekNoEmit
 runCekNoEmit runtime mode term =
     case runCek runtime mode False term of
         (errOrRes, s', _) -> (errOrRes, s')
-
--- | Evaluate a term using the CEK machine in the 'Counting' mode.
-runCekCounting
-    :: ( GShow uni, GEq uni, Closed uni, uni `Everywhere` ExMemoryUsage
-       , Hashable fun, Ix fun, ExMemoryUsage fun
-       )
-    => BuiltinsRuntime fun (CekValue uni fun)
-    -> Term Name uni fun ()
-    -> (Either (CekEvaluationException uni fun) (Term Name uni fun ()), CekExBudgetState fun)
-runCekCounting runtime = runCekNoEmit runtime Counting
 
 -- | Evaluate a term using the CEK machine with logging enabled.
 evaluateCek
