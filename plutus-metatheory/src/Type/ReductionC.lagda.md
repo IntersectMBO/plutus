@@ -91,7 +91,6 @@ closeEvalCtx (E l⇒ B) C = closeEvalCtx E C ⇒ B
 closeEvalCtx (μr V E) C = μ (discharge V) (closeEvalCtx E C)
 closeEvalCtx (μl E B) C = μ (closeEvalCtx E C) B
 
--- inductive version of closeEvalCtx, it doesn't seem to help
 data _~_⟦_⟧ : ∅ ⊢⋆ K → EvalCtx K J → ∅ ⊢⋆ J → Set where
   ~[] : (P : ∅ ⊢⋆ K) → P ~ [] ⟦ P ⟧
   ~·r : ∀(P : ∅ ⊢⋆ I){A : ∅ ⊢⋆ K ⇒ J}(V : Value⋆ A)(B : ∅ ⊢⋆ K) E
@@ -100,6 +99,18 @@ data _~_⟦_⟧ : ∅ ⊢⋆ K → EvalCtx K J → ∅ ⊢⋆ J → Set where
   ~l· : ∀(P : ∅ ⊢⋆ I)(A : ∅ ⊢⋆ K ⇒ J)(B : ∅ ⊢⋆ K) E
       → A ~ E ⟦ P ⟧
       → (A · B) ~ E l· B ⟦ P ⟧
+  ~⇒r : ∀(P  : ∅ ⊢⋆ K) A (V : Value⋆ A) E B
+      → B ~ E ⟦ P ⟧
+      → (A ⇒ B) ~ V ⇒r E ⟦ P ⟧  
+  ~l⇒ : ∀(P  : ∅ ⊢⋆ K) A B E
+      → A ~ E ⟦ P ⟧
+      → (A ⇒ B) ~ E l⇒ B ⟦ P ⟧  
+  ~μr : ∀(P  : ∅ ⊢⋆ I) A (V : Value⋆ A) E (B : ∅ ⊢⋆ K)
+      → B ~ E ⟦ P ⟧
+      → (μ A B) ~ (μr V E) ⟦ P ⟧  
+  ~μl : ∀(P  : ∅ ⊢⋆ I) A (B : ∅ ⊢⋆ K) E
+      → A ~ E ⟦ P ⟧
+      → (μ A B) ~ (μl E B) ⟦ P ⟧  
 ```
 
 ## Frames
@@ -153,8 +164,8 @@ data _—→⋆_ : ∀{J} → (∅ ⊢⋆ J) → (∅ ⊢⋆ J) → Set where
     → ∀{A A' : ∅ ⊢⋆ K'}
     → A —→⋆ A'
     → {B B' : ∅ ⊢⋆ K}
-    → B  ≡ closeEvalCtx E A
-    → B' ≡ closeEvalCtx E A'
+    → B  ~ E ⟦ A ⟧
+    → B' ~ E ⟦ A' ⟧
       --------------------
     → B —→⋆ B'
     -- ^ explicit equality proofs make pattern matching easier and this uglier
@@ -200,23 +211,23 @@ variables in the empty context.
 progress⋆ : (A : ∅ ⊢⋆ K) → Progress⋆ A
 progress⋆ (` ())
 progress⋆ (μ A B) with progress⋆ A
-... | step p  = step (contextRule (μl [] B) p refl refl)
+... | step p  = step (contextRule (μl [] B) p (~μl A A B [] (~[] A)) (~μl _ _ B [] (~[] _)))
 ... | done VA with progress⋆ B
-... | step p  = step (contextRule (μr VA []) p refl refl)
+... | step p  = step (contextRule (μr VA []) p (~μr B A VA [] B (~[] B)) (~μr _ A VA [] _ (~[] _)))
 ... | done VB = done (V-μ VA VB)
 progress⋆ (Π A) = done (V-Π A)
 progress⋆ (A ⇒ B) with progress⋆ A
-... | step p = step (contextRule ([] l⇒ B) p refl refl)
+... | step p = step (contextRule ([] l⇒ B) p (~l⇒ A A B [] (~[] A)) (~l⇒ _ _ _ [] (~[] _)))
 ... | done VA with progress⋆ B
-... | step q  = step (contextRule (VA ⇒r []) q refl refl)
+... | step q  = step (contextRule (VA ⇒r []) q (~⇒r B _ VA [] B (~[] B)) (~⇒r _ A VA [] _ (~[] _)))
 ... | done VB = done (VA V-⇒ VB)
 progress⋆ (ƛ A) = done (V-ƛ A)
 progress⋆ (A · B) with progress⋆ A
 ... | step p =
-  step (contextRule ([] l· B) p refl refl)
+  step (contextRule ([] l· B) p (~l· A _ B [] (~[] A)) (~l· _ _ B [] (~[] _)))
 ... | done V with progress⋆ B
 ... | step p =
-  step (contextRule (V ·r []) p refl refl)
+  step (contextRule (V ·r []) p (~·r B V B [] (~[] B)) (~·r _ V _ [] (~[] _)))
 progress⋆ (.(ƛ _) · B) | done (V-ƛ A) | done VB = step (β-ƛ VB)
 progress⋆ (con tcn) = done (V-con tcn)
 ```
