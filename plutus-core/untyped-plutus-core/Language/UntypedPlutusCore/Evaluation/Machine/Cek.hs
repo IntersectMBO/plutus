@@ -546,7 +546,7 @@ evaluateCek
     -> Term Name uni fun ()
     -> (Either (CekEvaluationException uni fun) (Term Name uni fun ()), [String])
 evaluateCek runtime term =
-    -- Oftentimes we want neither 'Restricting' nor 'Counting'. Should we have a third mode
+    -- TODO: Oftentimes we want neither 'Restricting' nor 'Counting'. Should we have a third mode
     -- 'JustEvaluateTheProgram'?
     case runCek runtime Counting True term of
         (errOrRes, _, logs) -> (errOrRes, logs)

@@ -351,6 +351,9 @@ class KnownTypeAst (UniOf term) a => KnownType term a where
            , KnownBuiltinType term a
            )
         => a -> m term
+    -- Forcing the value to avoid space leaks. Note that the value is only forced to WHNF,
+    -- so care must be taken to ensure that every value of a type from the universe gets forced
+    -- to NF whenever it's forced to WHNF.
     makeKnown x = pure . fromConstant . someValue $! x
 
     -- | Convert a PLC term to the corresponding Haskell value.
