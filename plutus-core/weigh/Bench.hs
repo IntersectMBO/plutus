@@ -2,7 +2,7 @@ module Main (main) where
 
 import           Language.PlutusCore
 import qualified Language.UntypedPlutusCore                        as UPLC
-import           Language.UntypedPlutusCore.Evaluation.Machine.Cek (unsafeEvaluateCek)
+import           Language.UntypedPlutusCore.Evaluation.Machine.Cek (unsafeEvaluateCekNoEmit)
 
 import           Control.Monad                                     (void)
 import qualified Data.ByteString.Lazy                              as BSL

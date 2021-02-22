@@ -11,9 +11,14 @@ import           Control.Monad.Reader
 import           Control.Monad.State
 import           Control.Monad.Trans.Identity
 
+-- | A class for emitting 'String's in a monadic context (basically, for logging).
 class Monad m => MonadEmitter m where
     emit :: String -> m ()
 
+-- | A concrete type implementing 'MonadEmitter'. Useful in signatures of built-in functions that
+-- do logging. We don't use any concrete first-order encoding and instead pack a @MonadEmitter m@
+-- constraint internally, so that built-in functions that do logging can work in any monad
+-- implementing 'MonadEmitter' (for example, @CkM@ or @CekM@).
 newtype Emitter a = Emitter
     { unEmitter :: forall m. MonadEmitter m => m a
     } deriving (Functor)
@@ -28,6 +33,7 @@ instance Monad Emitter where
 instance MonadEmitter Emitter where
     emit str = Emitter $ emit str
 
+-- | A newtype wrapper for via-deriving a vacuous 'MonadEmitter' instance for a monad.
 newtype NoEmitterT m a = NoEmitterT
     { unNoEmitterT :: m a
     } deriving

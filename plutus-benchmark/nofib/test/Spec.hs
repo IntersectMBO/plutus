@@ -22,7 +22,8 @@ import           Language.PlutusCore.Builtins
 import           Language.PlutusCore.Universe                      (DefaultUni)
 import qualified Language.PlutusTx                                 as Tx
 import qualified Language.UntypedPlutusCore                        as UPLC
-import           Language.UntypedPlutusCore.Evaluation.Machine.Cek as UPLC (EvaluationResult (..), unsafeEvaluateCek)
+import           Language.UntypedPlutusCore.Evaluation.Machine.Cek as UPLC (EvaluationResult (..),
+                                                                            unsafeEvaluateCekNoEmit)
 import           Test.Tasty
 import           Test.Tasty.HUnit
 import           Test.Tasty.QuickCheck
@@ -35,7 +36,7 @@ type Term' = UPLC.Term PLC.Name DefaultUni DefaultFun ()
 runCek :: Term -> EvaluationResult Term'
 runCek t = case runExcept @UPLC.FreeVariableError $ PLC.runQuoteT $ UPLC.unDeBruijnTerm t of
     Left e   -> throw e
-    Right t' -> UPLC.unsafeEvaluateCek defBuiltinsRuntime t'
+    Right t' -> UPLC.unsafeEvaluateCekNoEmit defBuiltinsRuntime t'
 
 termOfHaskellValue :: Tx.Lift DefaultUni a => a -> Term
 termOfHaskellValue v =
@@ -46,7 +47,7 @@ runCekWithErrMsg :: Term -> String -> IO Term'
 runCekWithErrMsg term errMsg =
     case runExcept @UPLC.FreeVariableError $ PLC.runQuoteT $ UPLC.unDeBruijnTerm term of
         Left e -> assertFailure (show e)
-        Right t -> case UPLC.unsafeEvaluateCek defBuiltinsRuntime t of
+        Right t -> case UPLC.unsafeEvaluateCekNoEmit defBuiltinsRuntime t of
           EvaluationFailure        -> assertFailure errMsg
           EvaluationSuccess result -> pure result
 
