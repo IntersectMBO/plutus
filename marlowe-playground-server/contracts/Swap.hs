@@ -1,7 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Swap where
 
-import           Language.Marlowe
+import           Language.Marlowe.Extended
 
 main :: IO ()
 main = print . pretty $ contract
@@ -21,3 +21,4 @@ contract =
   where
     gracePeriod = Slot 5
     date1 = Slot 20
+

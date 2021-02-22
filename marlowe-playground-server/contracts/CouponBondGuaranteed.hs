@@ -1,7 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 module CouponBondGuaranteed where
 
-import           Language.Marlowe
+import           Language.Marlowe.Extended
 
 main :: IO ()
 main = print . pretty $ contract
@@ -24,3 +24,4 @@ contract = When [Case (Deposit "investor" "guarantor" ada (Constant 1030))
             (Slot 10) Close))]
     (Slot 5) Close)]
     (Slot 5) Close
+

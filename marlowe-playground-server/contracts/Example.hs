@@ -1,7 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Example where
 
-import           Language.Marlowe
+import           Language.Marlowe.Extended
 
 main :: IO ()
 main = print . pretty $ contract

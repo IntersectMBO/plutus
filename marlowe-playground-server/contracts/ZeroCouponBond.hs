@@ -2,7 +2,7 @@
 {-# LANGUAGE OverloadedStrings  #-}
 module ZeroCouponBond where
 
-import           Language.Marlowe
+import           Language.Marlowe.Extended
 
 main :: IO ()
 main = print . pretty $ contract
@@ -22,3 +22,4 @@ contract = When [ Case
     ]
     (Slot 10)
     Close
+
