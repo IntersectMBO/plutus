@@ -114,6 +114,8 @@ handleAction AnalyseContractForCloseRefund =
   analyze (CloseAnalysis AnalysisNotStarted)
     $ analyseClose
 
+handleAction ClearAnalysisResults = assign (_analysisState <<< _analysisExecutionState) NoneAsked
+
 -- This function runs a static analysis to the compiled code if it compiled successfully.
 analyze ::
   forall m.

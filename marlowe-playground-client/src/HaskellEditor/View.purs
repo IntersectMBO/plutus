@@ -25,8 +25,8 @@ import Language.Haskell.Interpreter (CompilationError(..), InterpreterError(..),
 import Language.Haskell.Monaco as HM
 import MainFrame.Types (ChildSlots, _haskellEditorSlot)
 import Network.RemoteData (RemoteData(..))
-import StaticAnalysis.BottomPanel (analysisResultPane, analyzeButton)
-import StaticAnalysis.Types (_analysisExecutionState, _analysisState, isCloseAnalysisLoading, isReachabilityLoading, isStaticLoading)
+import StaticAnalysis.BottomPanel (analysisResultPane, analyzeButton, clearButton)
+import StaticAnalysis.Types (_analysisExecutionState, _analysisState, isCloseAnalysisLoading, isNoneAsked, isReachabilityLoading, isStaticLoading)
 
 render ::
   forall m.
@@ -150,6 +150,7 @@ panelContents state StaticAnalysisView =
       , analyzeButton loadingWarningAnalysis analysisEnabled "Analyse for warnings" AnalyseContract
       , analyzeButton loadingReachability analysisEnabled "Analyse reachability" AnalyseReachabilityContract
       , analyzeButton loadingCloseAnalysis analysisEnabled "Analyse for refunds on Close" AnalyseContractForCloseRefund
+      , clearButton clearEnabled "Clear" ClearAnalysisResults
       ]
         <> (if isCompiled then [] else [ div [ classes [ ClassName "choice-error" ] ] [ text "Haskell code needs to be compiled in order to run static analysis" ] ])
     )
@@ -160,9 +161,13 @@ panelContents state StaticAnalysisView =
 
   loadingCloseAnalysis = state ^. _analysisState <<< _analysisExecutionState <<< to isCloseAnalysisLoading
 
+  noneAskedAnalysis = state ^. _analysisState <<< _analysisExecutionState <<< to isNoneAsked
+
   anyAnalysisLoading = loadingWarningAnalysis || loadingReachability || loadingCloseAnalysis
 
   analysisEnabled = not anyAnalysisLoading && isCompiled
+
+  clearEnabled = not (anyAnalysisLoading || noneAskedAnalysis)
 
   isCompiled = case view _compilationResult state of
     Success (Right _) -> true
