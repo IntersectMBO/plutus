@@ -409,7 +409,7 @@ unsafeEvaluateCk
     => BuiltinsRuntime fun (CkValue uni fun)
     -> Term TyName Name uni fun ()
     -> (EvaluationResult (Term TyName Name uni fun ()), [String])
-unsafeEvaluateCk runtime = first (either throw id . extractEvaluationResult) . evaluateCk runtime
+unsafeEvaluateCk runtime = first unsafeExtractEvaluationResult . evaluateCk runtime
 
 -- | Evaluate a term using the CK machine with logging disabled. May throw a 'CkEvaluationException'.
 unsafeEvaluateCkNoEmit
@@ -420,7 +420,7 @@ unsafeEvaluateCkNoEmit
     => BuiltinsRuntime fun (CkValue uni fun)
     -> Term TyName Name uni fun ()
     -> EvaluationResult (Term TyName Name uni fun ())
-unsafeEvaluateCkNoEmit runtime = either throw id . extractEvaluationResult . evaluateCkNoEmit runtime
+unsafeEvaluateCkNoEmit runtime = unsafeExtractEvaluationResult . evaluateCkNoEmit runtime
 
 -- | Unlift a value using the CK machine.
 readKnownCk

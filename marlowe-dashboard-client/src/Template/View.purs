@@ -1,28 +1,44 @@
 module Template.View
   ( templateLibraryCard
-  , templateDetailsCard
-  , templateSetupScreen
+  , contractSetupScreen
   ) where
 
 import Prelude hiding (div)
 import Css (classNames)
-import Halogen.HTML (HTML, div, text)
-import MainFrame.Types (Action, ContractTemplate)
+import Data.Maybe (Maybe(..))
+import Halogen.HTML (HTML, button, div, div_, h2_, h3_, h4_, p_, text)
+import Halogen.HTML.Events (onClick)
+import MainFrame.Types (Action(..), Screen(..))
+import Template.Types (Template)
 
-templateLibraryCard :: forall p. HTML p Action
-templateLibraryCard =
-  div
-    [ classNames [ "h-full", "overflow-auto" ] ]
-    [ text "Start new from template" ]
+templateLibraryCard :: forall p. Array Template -> HTML p Action
+templateLibraryCard templates =
+  div_
+    [ h2_ [ text "Start new from template" ]
+    , div
+        [ classNames [ "grid", "gap-1", "md:grid-cols-2", "lg:grid-cols-3" ] ]
+        (templateBox <$> templates)
+    ]
 
-templateDetailsCard :: forall p. ContractTemplate -> HTML p Action
-templateDetailsCard contractTemplate =
+templateBox :: forall p. Template -> HTML p Action
+templateBox template =
   div
-    [ classNames [ "h-full", "overflow-auto" ] ]
-    [ text "Contract Template" ]
+    [ classNames [ "bg-white", "p-1" ] ]
+    [ h4_
+        [ text template.type_ ]
+    , h3_
+        [ text template.name ]
+    , p_
+        [ text template.description ]
+    , button
+        [ classNames [ "bg-green", "text-white" ]
+        , onClick $ const $ Just $ SetScreen $ ContractSetupScreen template
+        ]
+        [ text "Setup" ]
+    ]
 
-templateSetupScreen :: forall p. ContractTemplate -> HTML p Action
-templateSetupScreen contractTemplate =
+contractSetupScreen :: forall p. Template -> HTML p Action
+contractSetupScreen template =
   div
-    [ classNames [ "h-full", "overflow-auto" ] ]
+    [ classNames [ "p-1" ] ]
     [ text "Setup Contract" ]

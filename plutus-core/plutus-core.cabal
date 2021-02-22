@@ -403,10 +403,12 @@ executable plc
         bytestring -any,
         deepseq -any,
         flat -any,
+        monoidal-containers -any,
         optparse-applicative -any,
         plutus-core -any,
         prettyprinter -any,
         serialise -any,
+        split -any,
         text -any,
         transformers -any
 

@@ -29,6 +29,7 @@ module Language.PlutusCore.Evaluation.Machine.Exception
     , throwing_
     , throwingWithCause
     , extractEvaluationResult
+    , unsafeExtractEvaluationResult
     ) where
 
 import           PlutusPrelude
@@ -173,6 +174,12 @@ extractEvaluationResult (Right term) = Right $ EvaluationSuccess term
 extractEvaluationResult (Left (ErrorWithCause evalErr cause)) = case evalErr of
     InternalEvaluationError err -> Left  $ ErrorWithCause err cause
     UserEvaluationError _       -> Right $ EvaluationFailure
+
+unsafeExtractEvaluationResult
+    :: (PrettyPlc internal, PrettyPlc term, Typeable internal, Typeable term)
+    => Either (EvaluationException user internal term) a
+    -> EvaluationResult a
+unsafeExtractEvaluationResult = either throw id . extractEvaluationResult
 
 instance Pretty UnliftingError where
     pretty (UnliftingErrorE err) = fold

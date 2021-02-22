@@ -19,12 +19,12 @@ import Halogen.HTML.Events (onClick, onSelectedIndexChange)
 import Halogen.HTML.Properties (class_, classes, enabled, href)
 import Halogen.HTML.Properties as HTML
 import JavascriptEditor.State (mkEditor)
-import JavascriptEditor.Types (Action(..), BottomPanelView(..), State, _bottomPanelState, _compilationResult, _keybindings, isCompiling)
+import JavascriptEditor.Types (Action(..), BottomPanelView(..), State, _bottomPanelState, _compilationResult, _keybindings)
 import JavascriptEditor.Types as JS
 import Language.Javascript.Interpreter (CompilationError(..), InterpreterResult(..))
 import MainFrame.Types (ChildSlots, _jsEditorSlot)
-import StaticAnalysis.BottomPanel (analysisResultPane, analyzeButton)
-import StaticAnalysis.Types (_analysisExecutionState, _analysisState, isCloseAnalysisLoading, isReachabilityLoading, isStaticLoading)
+import StaticAnalysis.BottomPanel (analysisResultPane, analyzeButton, clearButton)
+import StaticAnalysis.Types (_analysisExecutionState, _analysisState, isCloseAnalysisLoading, isNoneAsked, isReachabilityLoading, isStaticLoading)
 import Text.Pretty (pretty)
 
 render ::
@@ -139,11 +139,14 @@ panelContents state StaticAnalysisView =
   section
     [ classes [ ClassName "panel-sub-header", aHorizontal, Classes.panelContents ]
     ]
-    [ analysisResultPane SetIntegerTemplateParam state
-    , analyzeButton loadingWarningAnalysis analysisEnabled "Analyse for warnings" AnalyseContract
-    , analyzeButton loadingReachability analysisEnabled "Analyse reachability" AnalyseReachabilityContract
-    , analyzeButton loadingCloseAnalysis analysisEnabled "Analyse for refunds on Close" AnalyseContractForCloseRefund
-    ]
+    ( [ analysisResultPane SetIntegerTemplateParam state
+      , analyzeButton loadingWarningAnalysis analysisEnabled "Analyse for warnings" AnalyseContract
+      , analyzeButton loadingReachability analysisEnabled "Analyse reachability" AnalyseReachabilityContract
+      , analyzeButton loadingCloseAnalysis analysisEnabled "Analyse for refunds on Close" AnalyseContractForCloseRefund
+      , clearButton clearEnabled "Clear" ClearAnalysisResults
+      ]
+        <> (if isCompiled then [] else [ div [ classes [ ClassName "choice-error" ] ] [ text "JavaScript code needs to be compiled in order to run static analysis" ] ])
+    )
   where
   loadingWarningAnalysis = state ^. _analysisState <<< _analysisExecutionState <<< to isStaticLoading
 
@@ -151,7 +154,17 @@ panelContents state StaticAnalysisView =
 
   loadingCloseAnalysis = state ^. _analysisState <<< _analysisExecutionState <<< to isCloseAnalysisLoading
 
-  analysisEnabled = not loadingWarningAnalysis && not loadingReachability && not loadingCloseAnalysis && not (isCompiling state)
+  noneAskedAnalysis = state ^. _analysisState <<< _analysisExecutionState <<< to isNoneAsked
+
+  anyAnalysisLoading = loadingWarningAnalysis || loadingReachability || loadingCloseAnalysis
+
+  analysisEnabled = not anyAnalysisLoading && isCompiled
+
+  clearEnabled = not (anyAnalysisLoading || noneAskedAnalysis)
+
+  isCompiled = case view _compilationResult state of
+    JS.CompiledSuccessfully _ -> true
+    _ -> false
 
 panelContents state ErrorsView =
   section

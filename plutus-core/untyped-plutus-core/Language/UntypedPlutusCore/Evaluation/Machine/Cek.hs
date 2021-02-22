@@ -20,22 +20,19 @@
 
 module Language.UntypedPlutusCore.Evaluation.Machine.Cek
     ( CekValue(..)
+    , CekUserError(..)
     , CekEvaluationException
+    , CekExBudgetState
+    , CekExTally
     , EvaluationResult(..)
     , ErrorWithCause(..)
     , EvaluationError(..)
-    , CekUserError(..)
-    , ExBudget(..)
     , ExBudgetCategory(..)
-    , ExBudgetMode(..)
-    , ExRestrictingBudget(..)
-    , ExTally(..)
-    , CekExBudgetState
-    , CekExTally
     , exBudgetStateTally
     , extractEvaluationResult
     , runCek
     , runCekNoEmit
+    , unsafeRunCekNoEmit
     , evaluateCek
     , evaluateCekNoEmit
     , unsafeEvaluateCek
@@ -166,10 +163,15 @@ type CekEvaluationException uni fun = CekEvaluationExceptionCarrying (Term Name 
 type CekM uni fun s = CekCarryingM (Term Name uni fun ()) uni fun s
 
 data ExBudgetCategory fun
-    = BForce
-    | BApply
+    = BConst
     | BVar
-    | BBuiltin fun
+    | BLamAbs
+    | BApply
+    | BDelay
+    | BForce
+    | BError
+    | BBuiltin         -- Cost of evaluating a Builtin AST node
+    | BBuiltinApp fun  -- Cost of evaluating a fully applied builtin function
     | BAST
     deriving stock (Show, Eq, Generic)
     deriving anyclass (NFData, Hashable)
@@ -271,7 +273,7 @@ instance ToExMemory (CekValue uni fun) where
         VBuiltin ex _ _ _ _ _ -> ex
 
 instance ExBudgetBuiltin fun (ExBudgetCategory fun) where
-    exBudgetBuiltin = BBuiltin
+    exBudgetBuiltin = BBuiltinApp
 
 instance MonadEmitter (CekCarryingM term uni fun s) where
     emit str = do
@@ -334,6 +336,14 @@ lookupVarName varName varEnv = do
             var = Var () varName
         Just val -> pure val
 
+
+-- We provisionally charge a unit CPU cost for AST nodes: this is just to allow
+-- us to count the number of times each node type is evaluated.  We may wish to
+-- change this later if it turns out that different node types have
+-- significantly different costs.
+astNodeCost :: ExBudget
+astNodeCost = ExBudget 1 0
+
 -- | The computing part of the CEK machine.
 -- Either
 -- 1. adds a frame to the context and calls 'computeCek' ('Force', 'Apply')
@@ -348,37 +358,38 @@ computeCek
     => Context uni fun -> CekValEnv uni fun -> TermWithMem uni fun -> CekM uni fun s (Term Name uni fun ())
 -- s ; ρ ▻ {L A}  ↦ s , {_ A} ; ρ ▻ L
 computeCek ctx env (Var _ varName) = do
-    spendBudget BVar (ExBudget 1 1) -- TODO
+    spendBudget BVar astNodeCost
     val <- lookupVarName varName env
     returnCek ctx val
-computeCek ctx _ (Constant ex val) =
+computeCek ctx _ (Constant ex val) = do
+    spendBudget BConst astNodeCost
     returnCek ctx (VCon ex val)
-computeCek ctx env (LamAbs ex name body) =
-    -- TODO: budget?
+computeCek ctx env (LamAbs ex name body) = do
+    spendBudget BLamAbs astNodeCost
     returnCek ctx (VLamAbs ex name body env)
-computeCek ctx env (Delay ex body) =
-    -- TODO: budget?
+computeCek ctx env (Delay ex body) = do
+    spendBudget BDelay astNodeCost
     returnCek ctx (VDelay ex body env)
 -- s ; ρ ▻ lam x L  ↦  s ◅ lam x (L , ρ)
 computeCek ctx env (Force _ body) = do
-    spendBudget BForce (ExBudget 1 1) -- TODO
+    spendBudget BForce astNodeCost
     computeCek (FrameForce : ctx) env body
 -- s ; ρ ▻ [L M]  ↦  s , [_ (M,ρ)]  ; ρ ▻ L
 computeCek ctx env (Apply _ fun arg) = do
-    spendBudget BApply (ExBudget 1 1) -- TODO
+    spendBudget BApply astNodeCost
     computeCek (FrameApplyArg env arg : ctx) env fun
 -- s ; ρ ▻ abs α L  ↦  s ◅ abs α (L , ρ)
 -- s ; ρ ▻ con c  ↦  s ◅ con c
 -- s ; ρ ▻ builtin bn  ↦  s ◅ builtin bn arity arity [] [] ρ
 computeCek ctx _ (Builtin ex bn) = do
-    -- TODO: budget?
+    spendBudget BBuiltin astNodeCost
     BuiltinRuntime _ arity _ _ <- asksM $ lookupBuiltin bn . cekEnvRuntime
     returnCek ctx (VBuiltin ex bn arity arity 0 [])
 -- s ; ρ ▻ error A  ↦  <> A
-computeCek _ _ (Error _) =
+computeCek _ _ (Error _) = do
+    spendBudget BError astNodeCost
     throwing_ _EvaluationFailure
 -- s ; ρ ▻ x  ↦  s ◅ ρ[ x ]
-
 -- | Call 'dischargeCekValue' over the received 'CekVal' and feed the resulting 'Term' to
 -- 'throwingWithCause' as the cause of the failure.
 throwingDischarged
@@ -508,7 +519,7 @@ applyBuiltin ctx bn args = do
   result <- dischargeError $ applyTypeSchemed bn sch f exF args
   returnCek ctx result
 
--- | Evaluate a term using the CEK machine and keep track of costing.
+-- | Evaluate a term using the CEK machine and keep track of costing, logging is optional.
 runCek
     :: ( GShow uni, GEq uni, Closed uni, uni `Everywhere` ExMemoryUsage
        , Hashable fun, Ix fun, ExMemoryUsage fun
@@ -525,6 +536,7 @@ runCek runtime mode emitting term =
   where
     memTerm = withMemory term
 
+-- | Evaluate a term using the CEK machine with logging disabled and keep track of costing.
 runCekNoEmit
     :: ( GShow uni, GEq uni, Closed uni, uni `Everywhere` ExMemoryUsage
        , Hashable fun, Ix fun, ExMemoryUsage fun
@@ -536,6 +548,19 @@ runCekNoEmit
 runCekNoEmit runtime mode term =
     case runCek runtime mode False term of
         (errOrRes, s', _) -> (errOrRes, s')
+
+-- | Unsafely evaluate a term using the CEK machine with logging disabled and keep track of costing.
+-- May throw a 'CekMachineException'.
+unsafeRunCekNoEmit
+    :: ( GShow uni, GEq uni, Typeable uni
+       , Closed uni, uni `EverywhereAll` '[ExMemoryUsage, PrettyConst]
+       , Hashable fun, Ix fun, Pretty fun, Typeable fun, ExMemoryUsage fun
+       )
+    => BuiltinsRuntime fun (CekValue uni fun)
+    -> ExBudgetMode
+    -> Term Name uni fun ()
+    -> (EvaluationResult (Term Name uni fun ()), CekExBudgetState fun)
+unsafeRunCekNoEmit runtime mode = first unsafeExtractEvaluationResult . runCekNoEmit runtime mode
 
 -- | Evaluate a term using the CEK machine with logging enabled.
 evaluateCek
@@ -570,7 +595,7 @@ unsafeEvaluateCek
     => BuiltinsRuntime fun (CekValue uni fun)
     -> Term Name uni fun ()
     -> (EvaluationResult (Term Name uni fun ()), [String])
-unsafeEvaluateCek runtime = first (either throw id . extractEvaluationResult) . evaluateCek runtime
+unsafeEvaluateCek runtime = first unsafeExtractEvaluationResult . evaluateCek runtime
 
 -- | Evaluate a term using the CEK machine with logging disabled. May throw a 'CekMachineException'.
 unsafeEvaluateCekNoEmit
@@ -581,7 +606,7 @@ unsafeEvaluateCekNoEmit
     => BuiltinsRuntime fun (CekValue uni fun)
     -> Term Name uni fun ()
     -> EvaluationResult (Term Name uni fun ())
-unsafeEvaluateCekNoEmit runtime = either throw id . extractEvaluationResult . evaluateCekNoEmit runtime
+unsafeEvaluateCekNoEmit runtime = unsafeExtractEvaluationResult . evaluateCekNoEmit runtime
 
 -- | Unlift a value using the CEK machine.
 readKnownCek

@@ -73,6 +73,7 @@ export const ValueId =
 type Value = { "amount_of_token": Token,
                "in_account": AccountId }
            | bignumber.BigNumber
+           | { "constant_param": String }
            | { "negate": Value }
            | { "add": Value
              , "and": Value }
@@ -117,6 +118,11 @@ export const AvailableMoney =
 export const Constant =
     function (number : SomeNumber) : Value {
         return coerceNumber(number);
+    };
+
+export const ConstantParam =
+    function (paramName : String) : Value {
+        return { "constant_param": paramName };
     };
 
 export const NegValue =
@@ -305,6 +311,16 @@ export const Case =
                  "then": continuation };
     };
 
+type Timeout = { "slot_param": String }
+             | bignumber.BigNumber;
+
+type ETimeout = SomeNumber | Timeout;
+
+export const SlotParam =
+    function (paramName : String) : Timeout {
+        return { "slot_param": paramName }
+    }
+
 type Contract = "close"
               | { "pay": Value,
                   "token": Token,
@@ -315,7 +331,7 @@ type Contract = "close"
                   "then": Contract,
                   "else": Contract }
               | { "when": Case [],
-                  "timeout": bignumber.BigNumber,
+                  "timeout": Timeout,
                   "timeout_continuation": Contract }
               | { "let": ValueId,
                   "be": Value,
@@ -343,9 +359,11 @@ export const If =
     };
 
 export const When =
-    function (cases : Case[], timeout : SomeNumber, timeoutCont : Contract) : Contract {
+    function (cases : Case[], timeout : ETimeout, timeoutCont : Contract) : Contract {
+        var coercedTimeout : Timeout;
+        if (typeof (timeout) == "object") { coercedTimeout = timeout; } else { coercedTimeout = coerceNumber(timeout); }
         return { "when": cases,
-                 "timeout": coerceNumber(timeout),
+                 "timeout": coercedTimeout,
                  "timeout_continuation": timeoutCont };
     };
 

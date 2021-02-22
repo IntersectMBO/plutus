@@ -18,6 +18,7 @@ import Data.List ((:))
 import Data.List as List
 import Data.Map as Map
 import Data.Maybe (Maybe(..), fromMaybe)
+import Data.Newtype (unwrap)
 import Data.String (drop, joinWith, length, take)
 import Effect.Aff.Class (class MonadAff, liftAff)
 import Effect.Class (class MonadEffect)
@@ -34,7 +35,7 @@ import Language.Javascript.Interpreter as JSI
 import Language.Javascript.Monaco as JSM
 import SessionStorage as SessionStorage
 import MainFrame.Types (ChildSlots, _jsEditorSlot)
-import Marlowe.Extended (Contract, typeToLens)
+import Marlowe.Extended (Contract, getPlaceholderIds, typeToLens, updateTemplateContent)
 import Monaco (IRange, getModel, isError, setValue)
 import Network.RemoteData (RemoteData(..))
 import StaticAnalysis.Reachability (analyseReachability)
@@ -123,7 +124,9 @@ handleAction Compile = do
           res <- liftAff $ JSI.eval model
           case res of
             Left err -> pure $ CompilationError err
-            Right result -> pure $ CompiledSuccessfully result
+            Right result -> do
+              modifying (_analysisState <<< _templateContent) $ updateTemplateContent $ getPlaceholderIds $ (unwrap result).result
+              pure $ CompiledSuccessfully result
   assign _compilationResult compilationResult
   case compilationResult of
     (CompilationError _) -> handleAction $ BottomPanelAction (BottomPanel.ChangePanel ErrorsView)
@@ -144,35 +147,30 @@ handleAction (InitJavascriptProject prunedContent) = do
 
 handleAction (SetIntegerTemplateParam templateType key value) = modifying (_analysisState <<< _templateContent <<< typeToLens templateType) (Map.insert key value)
 
-handleAction AnalyseContract = compileAndAnalyze (WarningAnalysis Loading) $ analyseContract
+handleAction AnalyseContract = analyze (WarningAnalysis Loading) $ analyseContract
 
 handleAction AnalyseReachabilityContract =
-  compileAndAnalyze (ReachabilityAnalysis AnalysisNotStarted)
+  analyze (ReachabilityAnalysis AnalysisNotStarted)
     $ analyseReachability
 
 handleAction AnalyseContractForCloseRefund =
-  compileAndAnalyze (CloseAnalysis AnalysisNotStarted)
+  analyze (CloseAnalysis AnalysisNotStarted)
     $ analyseClose
 
--- This function runs a static analysis to the compiled code. It calls the compiler if
--- it wasn't runned before and it switches to the error panel if the compilation failed
-compileAndAnalyze ::
+handleAction ClearAnalysisResults = assign (_analysisState <<< _analysisExecutionState) NoneAsked
+
+-- This function runs a static analysis to the compiled code if it compiled successfully.
+analyze ::
   forall m.
   MonadAff m =>
   MonadAsk Env m =>
   AnalysisExecutionState ->
   (Contract -> HalogenM State Action ChildSlots Void m Unit) ->
   HalogenM State Action ChildSlots Void m Unit
-compileAndAnalyze initialAnalysisState doAnalyze = do
+analyze initialAnalysisState doAnalyze = do
   compilationResult <- use _compilationResult
   case compilationResult of
-    NotCompiled -> do
-      -- The initial analysis state allow us to show an "Analysing..." indicator
-      assign (_analysisState <<< _analysisExecutionState) initialAnalysisState
-      handleAction Compile
-      compileAndAnalyze initialAnalysisState doAnalyze
     CompiledSuccessfully (InterpreterResult interpretedResult) -> doAnalyze interpretedResult.result
-    CompilationError _ -> handleAction $ BottomPanelAction $ BottomPanel.ChangePanel ErrorsView
     _ -> pure unit
 
 editorResize :: forall state action msg m. HalogenM state action ChildSlots msg m Unit
@@ -181,12 +179,13 @@ editorResize = void $ query _jsEditorSlot unit (Monaco.Resize unit)
 decorationHeader :: String
 decorationHeader =
   """import {
-    PK, Role, Account, Party, ada, AvailableMoney, Constant, NegValue, AddValue,
-    SubValue, MulValue, Scale, ChoiceValue, SlotIntervalStart, SlotIntervalEnd,
-    UseValue, Cond, AndObs, OrObs, NotObs, ChoseSomething, ValueGE, ValueGT,
-    ValueLT, ValueLE, ValueEQ, TrueObs, FalseObs, Deposit, Choice, Notify,
-    Close, Pay, If, When, Let, Assert, SomeNumber, AccountId, ChoiceId, Token,
-    ValueId, Value, EValue, Observation, Bound, Action, Payee, Case, Contract
+    PK, Role, Account, Party, ada, AvailableMoney, Constant, ConstantParam,
+    NegValue, AddValue, SubValue, MulValue, Scale, ChoiceValue, SlotIntervalStart,
+    SlotIntervalEnd, UseValue, Cond, AndObs, OrObs, NotObs, ChoseSomething,
+    ValueGE, ValueGT, ValueLT, ValueLE, ValueEQ, TrueObs, FalseObs, Deposit,
+    Choice, Notify, Close, Pay, If, When, Let, Assert, SomeNumber, AccountId,
+    ChoiceId, Token, ValueId, Value, EValue, Observation, Bound, Action, Payee,
+    Case, Timeout, ETimeout, SlotParam, Contract
 } from 'marlowe-js';
 
 (function (): Contract {"""

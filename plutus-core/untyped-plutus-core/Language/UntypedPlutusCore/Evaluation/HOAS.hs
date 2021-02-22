@@ -28,7 +28,6 @@ import           Language.PlutusCore.Name
 import           Language.PlutusCore.Pretty
 import           Language.PlutusCore.Universe
 
-import           Control.Exception
 import           Control.Lens                                     (ix, (^?))
 import           Control.Lens.TH
 import           Control.Monad.Except
@@ -308,4 +307,4 @@ unsafeEvaluateHoas
        , Pretty fun, PrettyPlc term
        )
     => BuiltinsRuntime fun value -> term -> EvaluationResult term
-unsafeEvaluateHoas runtime = either throw id . extractEvaluationResult . evaluateHoas runtime
+unsafeEvaluateHoas runtime = unsafeExtractEvaluationResult . evaluateHoas runtime

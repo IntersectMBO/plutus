@@ -12,9 +12,11 @@ import           Language.UntypedPlutusCore
 import           Language.UntypedPlutusCore.Evaluation.HOAS
 import           Language.UntypedPlutusCore.Evaluation.Machine.Cek
 
-import qualified Language.PlutusCore                               as Plc
+import qualified Language.PlutusCore                                as Plc
 import           Language.PlutusCore.Builtins
 import           Language.PlutusCore.Constant
+import           Language.PlutusCore.Evaluation.Machine.ExBudgeting (ExBudget (..), ExBudgetMode (..),
+                                                                     ExRestrictingBudget (..))
 import           Language.PlutusCore.Evaluation.Machine.ExMemory
 import           Language.PlutusCore.Evaluation.Machine.Exception
 import           Language.PlutusCore.FsTree
@@ -22,14 +24,14 @@ import           Language.PlutusCore.Generators.Interesting
 import           Language.PlutusCore.Pretty
 import           Language.PlutusCore.Universe
 
-import           Language.PlutusCore.Examples.Everything           (examples)
-import           Language.PlutusCore.StdLib.Everything             (stdLib)
+import           Language.PlutusCore.Examples.Everything            (examples)
+import           Language.PlutusCore.StdLib.Everything              (stdLib)
 
 import           Common
 import           Data.String
 import           Data.Text.Prettyprint.Doc
 import           Data.Text.Prettyprint.Doc.Render.Text
-import           Hedgehog                                          hiding (Size, Var, eval)
+import           Hedgehog                                           hiding (Size, Var, eval)
 import           Test.Tasty
 import           Test.Tasty.Hedgehog
 

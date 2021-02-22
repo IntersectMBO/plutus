@@ -155,6 +155,7 @@
           "Plutus/PAB/ContractCLI"
           "Plutus/PAB/Core"
           "Plutus/PAB/Core/ContractInstance"
+          "Plutus/PAB/Core/ContractInstance/STM"
           "Plutus/PAB/Core/Projections"
           "Plutus/PAB/Effects/Contract"
           "Plutus/PAB/Effects/ContractTest"
@@ -222,7 +223,7 @@
             (hsPkgs."lobemo-backend-ekg" or (errorHandler.buildDepError "lobemo-backend-ekg"))
             ];
           buildable = true;
-          modules = [ "PSGenerator" ];
+          modules = [ "PSGenerator" "Cli" "Command" "CommandParser" ];
           hsSourceDirs = [ "app" ];
           mainPath = [ "Main.hs" ];
           };

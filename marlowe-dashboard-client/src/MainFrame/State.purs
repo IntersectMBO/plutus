@@ -20,12 +20,13 @@ import Halogen (Component, HalogenM, liftEffect, mkComponent, mkEval, modify_, r
 import Halogen.Extra (mapSubmodule)
 import Halogen.HTML (HTML)
 import LocalStorage (getItem, removeItem, setItem)
-import MainFrame.Lenses (_card, _contractState, _walletState, _menuOpen, _newWalletNicknameKey, _on, _pickupState, _screen, _subState, _wallets)
+import MainFrame.Lenses (_card, _contractState, _menuOpen, _newWalletNicknameKey, _on, _pickupState, _screen, _subState, _templates, _wallets, _walletState)
 import MainFrame.Types (Action(..), ChildSlots, ContractStatus(..), WalletState, Msg(..), PickupCard(..), PickupScreen(..), PickupState, Query(..), Screen(..), State)
 import MainFrame.View (render)
 import Marlowe.Execution (_contract)
 import Marlowe.Semantics (Contract(..), PubKey)
 import StaticData (walletLocalStorageKey, walletsLocalStorageKey)
+import Template.Library (templates)
 import Wallet.Lenses (_key, _nickname)
 import Wallet.Types (WalletDetails)
 import WebSocket (StreamToClient(..), StreamToServer(..))
@@ -50,6 +51,7 @@ initialState :: State
 initialState =
   { wallets: empty
   , newWalletNicknameKey: mempty
+  , templates: mempty
   , subState: Left initialPickupState
   , contractState: Contract.initialState zero Close
   }
@@ -90,6 +92,8 @@ handleAction Init = do
   for_ mCachedWalletJson \json ->
     for_ (runExcept $ decodeJSON json) \cachedWallet ->
       assign _subState $ Right $ mkWalletState cachedWallet
+  -- TODO: fetch contract templates from the library ??
+  assign _templates templates
 
 -- pickup actions
 handleAction (SetPickupCard pickupCard) = assign (_pickupState <<< _card) pickupCard

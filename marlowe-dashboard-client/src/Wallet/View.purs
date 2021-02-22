@@ -28,7 +28,7 @@ import Wallet.Validation (keyError, nicknameError)
 pickupWalletScreen :: forall p. WalletLibrary -> HTML p Action
 pickupWalletScreen wallets =
   div
-    [ classNames [ "flex", "flex-col", "justify-between", "h-full", "overflow-auto" ] ]
+    [ classNames [ "flex", "flex-col", "justify-between" ] ]
     [ header
         [ classNames [ "flex" ] ]
         [ link Icon.navigateBefore "Back to marlowe.io" "" ]
