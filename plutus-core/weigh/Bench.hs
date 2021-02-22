@@ -17,8 +17,8 @@ main = do
         g' = processor g
 
     mainWith $ sequence_
-        [ func "valid" (fmap (unsafeEvaluateCek defBuiltinsRuntime . UPLC.erase)) f'
-        , func "invalid" (fmap (unsafeEvaluateCek defBuiltinsRuntime . UPLC.erase)) g'
+        [ func "valid" (fmap (unsafeEvaluateCekNoEmit defBuiltinsRuntime . UPLC.erase)) f'
+        , func "invalid" (fmap (unsafeEvaluateCekNoEmit defBuiltinsRuntime . UPLC.erase)) g'
         ]
 
     where evalFile0 = BSL.readFile "test/Evaluation/Golden/verifySignature.plc"

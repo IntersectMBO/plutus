@@ -32,7 +32,7 @@ runTermBench :: String -> UntypedPlain UT.Term DefaultUni DefaultFun -> Benchmar
 runTermBench name term = env
     (do
         (_result, budget) <-
-          pure $ runCekCounting defBuiltinsRuntime term
+          pure $ runCekNoEmit defBuiltinsRuntime Counting term
         pure budget
         )
     (\_ -> bench name $ nf (unsafeEvaluateCek defBuiltinsRuntime) term)
