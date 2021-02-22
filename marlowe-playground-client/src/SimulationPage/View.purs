@@ -17,8 +17,8 @@ import Data.Tuple (Tuple(..), snd)
 import Data.Tuple.Nested ((/\))
 import Effect.Aff.Class (class MonadAff)
 import Effect.Class (liftEffect)
-import Halogen (RefLabel(..))
-import Halogen.Classes (aHorizontal, bold, btn, codeEditor, expanded, flex, fullHeight, group, justifyBetween, justifyCenter, noMargins, plusBtn, sidebarComposer, smallBtn, smallSpaceBottom, spaceBottom, spaceRight, spanText, textSecondaryColor, textXs, uppercase)
+import Halogen (ClassName, RefLabel(..))
+import Halogen.Classes (aHorizontal, bold, btn, codeEditor, expanded, flex, flexCol, flexGrow, flexGrow0, flexShrink0, fullHeight, group, justifyBetween, justifyCenter, maxH70p, minH0, noMargins, overflowHidden, overflowScroll, paddingLeft, paddingX, plusBtn, sidebarComposer, smallBtn, smallSpaceBottom, spaceBottom, spaceLeft, spaceRight, spanText, textSecondaryColor, textXs, uppercase, w30p)
 import Halogen.Extra (renderSubmodule)
 import Halogen.HTML (ClassName(..), ComponentHTML, HTML, aside, b_, br_, button, div, div_, em_, h6, h6_, input, li, li_, p, p_, section, slot, span, span_, strong_, text, ul)
 import Halogen.HTML.Events (onClick, onValueChange)
@@ -42,13 +42,20 @@ render ::
   State ->
   ComponentHTML Action ChildSlots m
 render state =
-  div [ classes [ fullHeight, ClassName "simulation-panel" ] ]
-    [ section [ class_ (ClassName "code-panel") ]
-        [ div [ classes [ codeEditor ] ]
+  div [ classes [ fullHeight, paddingX, flex ] ]
+    [ div [ classes [ flex, flexCol, fullHeight, flexGrow ] ]
+        [ section [ classes [ minH0, flexGrow, overflowHidden ] ]
             [ marloweEditor state ]
-        , sidebar state
+        , section [ classes [ maxH70p ] ]
+            [ renderSubmodule
+                _bottomPanelState
+                BottomPanelAction
+                (BottomPanel.render panelTitles wrapBottomPanelContents)
+                state
+            ]
         ]
-    , renderSubmodule _bottomPanelState BottomPanelAction (BottomPanel.render panelTitles wrapBottomPanelContents) state
+    , aside [ classes [ flexShrink0, spaceLeft, overflowScroll, w30p ] ]
+        (sidebar state)
     ]
   where
   panelTitles =
@@ -61,8 +68,6 @@ render state =
   hasRuntimeWarnings = has (_marloweState <<< _Head <<< _executionState <<< _SimulationRunning <<< _transactionWarnings <<< to Array.null <<< only false) state
 
   hasRuntimeError = has (_marloweState <<< _Head <<< _executionState <<< _SimulationRunning <<< _transactionError <<< to isJust <<< only true) state
-
-  showRightPanel = state ^. _showRightPanel
 
   wrapBottomPanelContents panelView = BottomPanelTypes.PanelAction <$> panelContents state panelView
 
@@ -190,47 +195,25 @@ settings setup =
 sidebar ::
   forall p.
   State ->
-  HTML p Action
-sidebar state =
-  let
-    showRightPanel = state ^. _showRightPanel
+  Array (HTML p Action)
+sidebar state = case view (_marloweState <<< _Head <<< _executionState) state of
+  SimulationNotStarted notStartedRecord -> [ startSimulationWidget notStartedRecord ]
+  SimulationRunning _ ->
+    [ div [ class_ smallSpaceBottom ] [ simulationStateWidget state ]
+    , div [ class_ spaceBottom ] [ actionWidget state ]
+    , logWidget state
+    ]
 
-    contents = case view (_marloweState <<< _Head <<< _executionState) state of
-      SimulationNotStarted notStartedRecord -> [ startSimulationWidget notStartedRecord ]
-      SimulationRunning _ ->
-        [ div [ class_ smallSpaceBottom ] [ simulationStateWidget state ]
-        , div [ class_ spaceBottom ] [ actionWidget state ]
-        , logWidget state
-        ]
-  in
-    aside [ classes [ sidebarComposer, expanded showRightPanel ] ]
-      {- FIXME the drawer icon to show/hide the right panel is currently not shown and is not present in the
-                 designs. Check if we need to remove that functionality and if so, remove the action and state
-                 that goes with it.
-       div [ classes [ panelSubHeaderSide, expanded (state ^. _showRightPanel), ClassName "drawer-icon-container" ] ]
-          [ a [ classes [ (ClassName "drawer-icon-click") ], onClick $ const $ Just $ ShowRightPanel (not showRightPanel) ]
-              [ img [ src closeDrawerIcon, class_ (ClassName "drawer-icon") ] ]
-          ]
-        -}
-      contents
-
-{-
-        FIXME The new designs of the simulator does not have contextual help, and there is a lot
-        of code related to this. Confirm if we really don't want this before deleting, or if it may
-        come back later on.
-      , article [ class_ (ClassName "documentation-panel") ]
-          (toHTML (state ^. _helpContext))
-      -}
 ------------------------------------------------------------
 startSimulationWidget :: forall p. InitialConditionsRecord -> HTML p Action
 startSimulationWidget { initialSlot, templateContent } =
   cardWidget "Simulation has not started yet"
-    $ div [ classes [] ]
+    $ div_
         [ div [ classes [ ClassName "slot-input", ClassName "initial-slot-input" ] ]
             [ spanText "Initial slot:"
             , marloweActionInput (SetInitialSlot <<< wrap) initialSlot
             ]
-        , div [ classes [] ]
+        , div_
             [ ul [ class_ (ClassName "templates") ]
                 ( integerTemplateParameters SetIntegerTemplateParam SlotContent "Timeout template parameters" "Slot for" (unwrap templateContent).slotContent
                     <> integerTemplateParameters SetIntegerTemplateParam ValueContent "Value template parameters" "Constant for" (unwrap templateContent).valueContent

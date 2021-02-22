@@ -1,0 +1,15 @@
+/*
+  The names for these utilities are inspired from tailwind's
+  Text Color module, but the values are tailored with our
+  color pallete. If at some moment we need introduce to introduce
+  Tailwind to our build process, the colors can be customized
+  https://tailwindcss.com/docs/text-color#customizing
+*/
+
+.text-inactive {
+  color: var(--text-color-inactive);
+}
+
+.text-secondary {
+  color: var(--secondary-color);
+}

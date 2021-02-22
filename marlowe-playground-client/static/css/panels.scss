@@ -1,15 +1,14 @@
-#main-panel {
-  position: relative;
-}
-
 .panel-header-main,
 .panel-header-side {
   min-height: 3rem;
 }
 
+
+
 .panel-header-main,
 .panel-sub-header-main,
-.code-editor {
+.code-editor
+{
   flex: 10;
 }
 
@@ -268,38 +267,6 @@ button.minus-btn:hover {
   height: 8em;
 }
 
-.simulation-bottom-panel {
-  position: absolute;
-  width: 67%;
-  bottom: 0;
-  z-index: 0;
-  resize: vertical;
-  overflow: hidden;
-  transform: rotateX(180deg);
-  box-shadow: var(--box-shadow-inverted);
-}
-
-.simulation-bottom-panel.collapsed {
-  height: 8em;
-}
-
-@media (min-width: 1280px) {
-  .simulation-bottom-panel {
-    width: 66%;
-  }
-}
-
-@media (min-width: 1440px) {
-  .simulation-bottom-panel {
-    width: 67%;
-  }
-}
-
-@media (min-width: 1900px) {
-  .simulation-bottom-panel {
-    width: 68%;
-  }
-}
 
 .analysis-panel .panel-header {
   margin-bottom: 0;
@@ -316,29 +283,11 @@ button.minus-btn:hover {
   margin-bottom: 0.5rem;
 }
 
-.panel-contents {
-  height: calc(100% - 3rem);
-  max-height: 70vh;
-  overflow-x: scroll;
-  display: block;
-  margin-bottom: 1.5rem;
-}
-
-.expanded > .haskell-panel-contents {
-  height: calc(100% - 3rem);
-  max-height: 70vh;
-  overflow-x: scroll;
-  display: block;
-}
-
 /* V impoprtant to add this, either treble the class like this to enhance specificity or use !important if needed */
 .ace_gutter.ace_gutter.ace_gutter {
   z-index: 1;
 }
 
-.footer-panel-bg.footer-panel-haskell > .panel-contents {
-  display: block;
-}
 
 .collapsed {
   resize: none;
@@ -432,7 +381,6 @@ button.minus-btn:hover {
   min-height: 100px;
   white-space: pre;
   font-family: "Menlo", "Monaco", "Courier New", monospace;
-  padding-bottom: 3rem;
 }
 
 .code code {
@@ -459,10 +407,6 @@ button.minus-btn:hover {
   background: var(--white);
 }
 
-.success-code {
-  height: auto;
-  padding-bottom: 3rem;
-}
 
 .editor-help img {
   vertical-align: top;

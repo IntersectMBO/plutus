@@ -38,6 +38,7 @@ exports.getModelMarkers_ = function (monaco, model) {
 exports.create_ = function (monaco, nodeId, languageId) {
   const editor = monaco.editor.create(nodeId, {
     language: languageId,
+    automaticLayout: false,
     minimap: {
       enabled: false
     }
@@ -139,6 +140,7 @@ exports.revealLine_ = function (editor, lineNumber) {
 }
 
 exports.layout_ = function (editor) {
+  console.log('ea ea editor layout3')
   editor.layout();
 }
 

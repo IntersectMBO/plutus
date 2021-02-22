@@ -574,7 +574,7 @@ displayParty wallets (Tuple party owner) = case Map.lookup owner wallets, party 
 
 renderCurrentState :: forall p action. State -> HTML p action
 renderCurrentState state =
-  div [ classes [ Classes.panelContents, active, ClassName "wallet-composer-state" ] ]
+  div [ classes [ active, ClassName "wallet-composer-state" ] ]
     [ div [ classes [ rTable, rTable4cols ] ]
         ( warningsRow <> errorRow
             <> dataRow "Expiration Slot" (contractMaxTime (previewOn state (_currentLoadedMarloweState <<< _executionState <<< _SimulationRunning <<< _contract)))

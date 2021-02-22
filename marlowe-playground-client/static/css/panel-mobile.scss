@@ -24,7 +24,6 @@
   }
 
   .panel-header,
-  .panel-sub-header,
   .code-panel {
     position: relative;
   }
@@ -44,10 +43,6 @@
     z-index: 1;
     transform: translateX(95%);
     transition: transform .3s ease-in-out;
-  }
-
-  .panel-sub-header .panel-sub-header-side.expanded {
-    width: 500px;
   }
 
   .panel-sub-header .panel-sub-header-side {

@@ -12,25 +12,35 @@ import Data.Lens ((^.))
 import Data.Maybe (Maybe(..), isJust)
 import Effect.Aff.Class (class MonadAff)
 import Halogen (ComponentHTML)
-import Halogen.Classes (group)
+import Halogen.Classes (flex, flexCol, flexGrow, fullHeight, group, maxH70p, minH0, overflowHidden, paddingX)
 import Halogen.Extra (renderSubmodule)
-import Halogen.HTML (HTML, button, div, slot, text, div_)
+import Halogen.HTML (HTML, button, div, div_, section, slot, text)
 import Halogen.HTML.Events (onClick)
 import Halogen.HTML.Properties (classes, enabled, id_)
 import MainFrame.Types (ChildSlots, _blocklySlot)
 import Marlowe.Blockly as MB
 
+-- Me quede aca, no tengo resize de blockly
+-- Falta editor de haskell y el simulador.
 render ::
   forall m.
   MonadAff m =>
   State ->
   ComponentHTML Action ChildSlots m
 render state =
-  div_
-    [ slot _blocklySlot unit (Blockly.blockly MB.rootBlockName MB.blockDefinitions) unit (Just <<< HandleBlocklyMessage)
-    , toolbox
-    , workspaceBlocks
-    , renderSubmodule _bottomPanelState BottomPanelAction (BottomPanel.render panelTitles wrapBottomPanelContents) state
+  div [ classes [ flex, flexCol, fullHeight ] ]
+    [ section [ classes [ paddingX, minH0, overflowHidden, fullHeight ] ]
+        [ slot _blocklySlot unit (Blockly.blockly MB.rootBlockName MB.blockDefinitions) unit (Just <<< HandleBlocklyMessage)
+        , toolbox
+        , workspaceBlocks
+        ]
+    , section [ classes [ paddingX, maxH70p ] ]
+        [ renderSubmodule
+            _bottomPanelState
+            BottomPanelAction
+            (BottomPanel.render panelTitles wrapBottomPanelContents)
+            state
+        ]
     ]
   where
   panelTitles =

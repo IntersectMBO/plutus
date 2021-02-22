@@ -20,17 +20,17 @@ body,
     'header'
     'main'
     'footer';
-
 }
 
 header {
   // Indicate which row of the .site-wrap grid to use
   grid-area: header;
 }
+
 main {
   display: flex;
   flex-direction: column;
-  // overflow: hidden;
+  overflow: scroll;
   // Indicate which row of the .site-wrap grid to use
   grid-area: main;
 
@@ -43,7 +43,6 @@ main {
   }
 }
 
-
 .code-editor {
   height: 100%;
   overflow-x: scroll;
@@ -52,26 +51,10 @@ main {
 footer {
   // Indicate which row of the .site-wrap grid to use
   grid-area: footer;
-
-  display: flex;
-  height: 54px;
-  justify-content: space-between;
-  background-color: var(--bg-dark);
-  align-items: center;
-
-  .links {
-    height: 1rem;
-    align-items: center;
-
-    a {
-      padding: 0rem 1rem;
-    }
-  }
 }
 
 /* The "grey" background that prevents other actions to be performed */
 .loading-overlay {
-
   /*
     Hidden by default
     Centered vertically and horizontally

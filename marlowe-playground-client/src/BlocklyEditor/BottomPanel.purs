@@ -11,7 +11,7 @@ import Data.Maybe (Maybe(..))
 import Data.String (take)
 import Data.String.Extra (unlines)
 import Data.Tuple.Nested ((/\))
-import Halogen.Classes (aHorizontal, flexLeft, underline)
+import Halogen.Classes (aHorizontal, flex, flexCol, flexLeft, paddingRight, underline)
 import Halogen.Classes as Classes
 import Halogen.HTML (ClassName(..), HTML, a, div, div_, li, pre, section, text, ul_)
 import Halogen.HTML.Events (onClick)
@@ -22,14 +22,14 @@ import Text.Parsing.StringParser.Basic (lines)
 
 panelContents :: forall p. State -> BottomPanelView -> HTML p Action
 panelContents state StaticAnalysisView =
-  section
-    [ classes [ ClassName "panel-sub-header", aHorizontal, Classes.panelContents ]
-    ]
+  section [ classes [ flex, flexCol ] ]
     [ analysisResultPane SetIntegerTemplateParam state
-    , analyzeButton loadingWarningAnalysis analysisEnabled "Analyse for warnings" AnalyseContract
-    , analyzeButton loadingReachability analysisEnabled "Analyse reachability" AnalyseReachabilityContract
-    , analyzeButton loadingCloseAnalysis analysisEnabled "Analyse for refunds on Close" AnalyseContractForCloseRefund
-    , clearButton clearEnabled "Clear" ClearAnalysisResults
+    , div [ classes [ paddingRight ] ]
+        [ analyzeButton loadingWarningAnalysis analysisEnabled "Analyse for warnings" AnalyseContract
+        , analyzeButton loadingReachability analysisEnabled "Analyse reachability" AnalyseReachabilityContract
+        , analyzeButton loadingCloseAnalysis analysisEnabled "Analyse for refunds on Close" AnalyseContractForCloseRefund
+        , clearButton clearEnabled "Clear" ClearAnalysisResults
+        ]
     ]
   where
   loadingWarningAnalysis = state ^. _analysisState <<< _analysisExecutionState <<< to isStaticLoading
@@ -48,7 +48,7 @@ panelContents state StaticAnalysisView =
 
 panelContents state BlocklyWarningsView =
   section
-    [ classes [ ClassName "panel-sub-header", aHorizontal, Classes.panelContents, flexLeft ]
+    [ classes []
     ]
     content
   where
