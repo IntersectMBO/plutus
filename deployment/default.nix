@@ -254,7 +254,7 @@ let
     alpha = mkEnv "alpha" "eu-west-2" [ keys.david keys.kris keys.pablo keys.hernan ];
     pablo = mkEnv "pablo" "eu-west-3" [ keys.pablo ];
     playground = mkEnv "playground" "us-west-1" [ keys.david keys.kris keys.pablo keys.hernan ];
-    wyohack = mkEnv "wyohack" "us-west-2" [ keys.david keys.kris keys.pablo keys.hernan ];
+    wyohack = mkEnv "wyohack" "us-west-2" [ keys.david keys.kris keys.hernan ];
     testing = mkEnv "testing" "eu-west-3" [ keys.david keys.kris keys.pablo keys.hernan ];
   };
 
