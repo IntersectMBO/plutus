@@ -10,7 +10,7 @@ import Halogen (HalogenM, raise)
 import MainFrame.Types (ChildSlots, Msg(..))
 import Marlowe.Execution (NamedAction(..), _namedActions, _state, initExecution, merge, mkTx, nextState)
 import Marlowe.Semantics (Contract, Slot, _minSlot)
-import WebSocket (StreamToServer(..))
+import Plutus.PAB.Webserver.Types (StreamToServer(..))
 
 initialState :: Slot -> Contract -> State
 initialState slot contract =
@@ -38,8 +38,8 @@ handleAction (ConfirmInput input) = do
 
     executionState = nextState currentExeState txInput
   assign _executionState executionState
-  raise (SendWebSocketMessage (ServerMsg true)) -- FIXME: send txInput to the server to apply to the on-chain contract
 
+-- raise (SendWebSocketMessage (ServerMsg true)) -- FIXME: send txInput to the server to apply to the on-chain contract
 handleAction (ChooseInput input) = assign _confirmation input
 
 handleAction (ChangeChoice choiceId chosenNum) = modifying (_executionState <<< _namedActions) (map changeChoice)

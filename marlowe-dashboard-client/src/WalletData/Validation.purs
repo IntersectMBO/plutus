@@ -1,4 +1,4 @@
-module Wallet.Validation
+module WalletData.Validation
   ( KeyError(..)
   , NicknameError(..)
   , keyError
@@ -11,7 +11,7 @@ import Data.Map.Extra (mapIndex)
 import Data.Maybe (Maybe(..))
 import Data.Tuple (fst, snd)
 import Marlowe.Semantics (PubKey)
-import Wallet.Types (WalletLibrary)
+import WalletData.Types (WalletLibrary)
 
 data NicknameError
   = EmptyNickname

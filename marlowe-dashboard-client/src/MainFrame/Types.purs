@@ -11,18 +11,21 @@ module MainFrame.Types
   , Query(..)
   , Msg(..)
   , Action(..)
+  , WebSocketStatus(..)
   ) where
 
 import Prelude
 import Analytics (class IsEvent, defaultEvent, toEvent)
 import Contract.Types as Contract
 import Data.Either (Either)
+import Data.Generic.Rep (class Generic)
 import Data.Maybe (Maybe(..))
 import Marlowe.Semantics (Contract, PubKey)
+import Plutus.PAB.Webserver.Types (StreamToClient, StreamToServer)
 import Template.Types (Template)
-import Wallet.Types (WalletDetails, WalletLibrary, WalletNicknameKey)
-import WebSocket (StreamToClient, StreamToServer)
-import WebSocket.Support as WS
+import WalletData.Types (WalletDetails, WalletLibrary, WalletNicknameKey)
+import Web.Socket.Event.CloseEvent (CloseEvent, reason) as WS
+import WebSocket.Support (FromSocket) as WS
 
 -- Apart from the wallet library (which you need in both cases), the app exists
 -- in one of two distinct states: the "pickup" state for when you have no
@@ -38,7 +41,19 @@ type State
     -- (the puzzle is how to handle contract actions in the mainframe if the
     -- submodule state is behind an `Either`... :thinking_face:)
     , contractState :: Contract.State
+    , webSocketStatus :: WebSocketStatus
     }
+
+data WebSocketStatus
+  = WebSocketOpen
+  | WebSocketClosed (Maybe WS.CloseEvent)
+
+derive instance genericWebSocketStatus :: Generic WebSocketStatus _
+
+instance showWebSocketStatus :: Show WebSocketStatus where
+  show WebSocketOpen = "WebSocketOpen"
+  show (WebSocketClosed Nothing) = "WebSocketClosed"
+  show (WebSocketClosed (Just closeEvent)) = "WebSocketClosed " <> WS.reason closeEvent
 
 type PickupState
   = { screen :: PickupScreen
@@ -63,7 +78,6 @@ type WalletState
     , menuOpen :: Boolean
     , screen :: Screen
     , card :: Maybe Card
-    , on :: Boolean -- this is just a temporary dummy property for testing the websocket
     }
 
 data Screen
@@ -118,7 +132,6 @@ data Action
   | SetNewWalletNickname String
   | SetNewWalletKey PubKey
   | AddNewWallet
-  | ClickedButton
   -- contract actions
   | ContractAction Contract.Action
   | StartContract Contract
@@ -142,7 +155,6 @@ instance actionIsEvent :: IsEvent Action where
   toEvent (SetNewWalletNickname _) = Nothing
   toEvent (SetNewWalletKey _) = Nothing
   toEvent AddNewWallet = Just $ defaultEvent "AddNewWallet"
-  toEvent ClickedButton = Just $ defaultEvent "ClickedButton"
   -- contract actions
   toEvent (ContractAction contractAction) = toEvent contractAction
   toEvent (StartContract _) = Just $ defaultEvent "StartContract"

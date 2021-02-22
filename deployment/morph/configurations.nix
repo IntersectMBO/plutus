@@ -38,6 +38,6 @@ in
   marloweDash = marloweDashMachine.mkInstance (options // { inherit defaultMachine marloweDash pkgs; });
   webGhc = webGhcMachine.mkInstance (options // { inherit defaultMachine web-ghc monitoringKeys; });
   prometheus = prometheusMachine.mkInstance (options // { inherit defaultMachine monitoringKeys; });
-  pab = pabMachine.mkInstance (options // { inherit defaultMachine monitoringKeys plutus-pab marlowe-app pkgs; });
+  pab = pabMachine.mkInstance (options // { inherit defaultMachine monitoringKeys plutus-pab marlowe-app pkgs;inherit (plutus) marlowe-dashboard; });
   inherit pkgs ports;
 }
