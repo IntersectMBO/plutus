@@ -20,7 +20,7 @@ import Halogen.HTML.Events (onClick, onSelectedIndexChange)
 import Halogen.HTML.Properties (class_, classes, enabled)
 import Halogen.HTML.Properties as HTML
 import Halogen.Monaco (monacoComponent)
-import HaskellEditor.Types (Action(..), BottomPanelView(..), State, _bottomPanelState, _compilationResult, _haskellEditorKeybindings, isCompiling)
+import HaskellEditor.Types (Action(..), BottomPanelView(..), State, _bottomPanelState, _compilationResult, _haskellEditorKeybindings)
 import Language.Haskell.Interpreter (CompilationError(..), InterpreterError(..), InterpreterResult(..))
 import Language.Haskell.Monaco as HM
 import MainFrame.Types (ChildSlots, _haskellEditorSlot)
@@ -146,11 +146,13 @@ panelContents state StaticAnalysisView =
   section
     [ classes [ ClassName "panel-sub-header", aHorizontal, Classes.panelContents ]
     ]
-    [ analysisResultPane SetIntegerTemplateParam state
-    , analyzeButton loadingWarningAnalysis analysisEnabled "Analyse for warnings" AnalyseContract
-    , analyzeButton loadingReachability analysisEnabled "Analyse reachability" AnalyseReachabilityContract
-    , analyzeButton loadingCloseAnalysis analysisEnabled "Analyse for refunds on Close" AnalyseContractForCloseRefund
-    ]
+    ( [ analysisResultPane SetIntegerTemplateParam state
+      , analyzeButton loadingWarningAnalysis analysisEnabled "Analyse for warnings" AnalyseContract
+      , analyzeButton loadingReachability analysisEnabled "Analyse reachability" AnalyseReachabilityContract
+      , analyzeButton loadingCloseAnalysis analysisEnabled "Analyse for refunds on Close" AnalyseContractForCloseRefund
+      ]
+        <> (if isCompiled then [] else [ div [ classes [ ClassName "choice-error" ] ] [ text "Haskell code needs to be compiled in order to run static analysis" ] ])
+    )
   where
   loadingWarningAnalysis = state ^. _analysisState <<< _analysisExecutionState <<< to isStaticLoading
 
@@ -158,7 +160,13 @@ panelContents state StaticAnalysisView =
 
   loadingCloseAnalysis = state ^. _analysisState <<< _analysisExecutionState <<< to isCloseAnalysisLoading
 
-  analysisEnabled = not loadingWarningAnalysis && not loadingReachability && not loadingCloseAnalysis && not (isCompiling state)
+  anyAnalysisLoading = loadingWarningAnalysis || loadingReachability || loadingCloseAnalysis
+
+  analysisEnabled = not anyAnalysisLoading && isCompiled
+
+  isCompiled = case view _compilationResult state of
+    Success (Right _) -> true
+    _ -> false
 
 panelContents state ErrorsView =
   section
