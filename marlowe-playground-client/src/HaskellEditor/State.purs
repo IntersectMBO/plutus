@@ -28,16 +28,16 @@ import Halogen.Monaco (Message(..), Query(..)) as Monaco
 import HaskellEditor.Types (Action(..), BottomPanelView(..), State, _bottomPanelState, _compilationResult, _haskellEditorKeybindings)
 import Language.Haskell.Interpreter (CompilationError(..), InterpreterError(..), InterpreterResult(..))
 import Language.Haskell.Monaco as HM
-import SessionStorage as SessionStorage
 import MainFrame.Types (ChildSlots, _haskellEditorSlot)
 import Marlowe (postRunghc)
-import Marlowe.Extended (Contract, typeToLens)
+import Marlowe.Extended (Contract, getPlaceholderIds, typeToLens, updateTemplateContent)
 import Marlowe.Holes (fromTerm)
 import Marlowe.Parser (parseContract)
 import Monaco (IMarkerData, markerSeverity)
 import Network.RemoteData (RemoteData(..))
 import Network.RemoteData as RemoteData
 import Servant.PureScript.Ajax (AjaxError)
+import SessionStorage as SessionStorage
 import StaticAnalysis.Reachability (analyseReachability)
 import StaticAnalysis.StaticTools (analyseContract)
 import StaticAnalysis.Types (AnalysisExecutionState(..), MultiStageAnalysisData(..), _analysisExecutionState, _analysisState, _templateContent)
@@ -83,6 +83,12 @@ handleAction Compile = do
       -- Update the error display.
       case result of
         Success (Left _) -> handleAction $ BottomPanelAction (BottomPanel.ChangePanel ErrorsView)
+        Success (Right (InterpreterResult interpretedResult)) ->
+          let
+            mContract :: Maybe Contract
+            mContract = (fromTerm <=< hush <<< parseContract) interpretedResult.result
+          in
+            for_ mContract $ (modifying (_analysisState <<< _templateContent)) <<< updateTemplateContent <<< getPlaceholderIds
         _ -> pure unit
       let
         markers = case result of
