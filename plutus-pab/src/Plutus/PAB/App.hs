@@ -29,7 +29,7 @@ import           Cardano.Node.Client                (handleNodeClientClient, han
 import           Cardano.Node.RandomTx              (GenRandomTx)
 import           Cardano.Node.Types                 (MockServerConfig (..), NodeFollowerEffect)
 import qualified Cardano.SigningProcess.Client      as SigningProcessClient
-import qualified Cardano.SigningProcess.Server      as SigningProcess
+import qualified Cardano.SigningProcess.Types       as SigningProcess
 import qualified Cardano.Wallet.Client              as WalletClient
 import qualified Cardano.Wallet.Types               as Wallet
 import           Control.Monad.Catch                (MonadCatch)
@@ -46,6 +46,7 @@ import           Data.Aeson                         (FromJSON, eitherDecode)
 import qualified Data.Aeson.Encode.Pretty           as JSON
 import           Data.Bifunctor                     (Bifunctor (..))
 import qualified Data.ByteString.Lazy.Char8         as BSL8
+import           Data.Coerce                        (coerce)
 import           Data.Functor.Contravariant         (Contravariant (..))
 import qualified Data.Text                          as Text
 import           Database.Persist.Sqlite            (runSqlPool)
@@ -198,13 +199,12 @@ mkEnv Config { dbConfig
     nodeClientEnv <- clientEnv (mscBaseUrl nodeServerConfig)
     metadataClientEnv <- clientEnv (Metadata.mdBaseUrl metadataServerConfig)
     signingProcessEnv <-
-        clientEnv (SigningProcess.spBaseUrl signingProcessConfig)
+        clientEnv $ SigningProcess.spBaseUrl signingProcessConfig
     chainIndexEnv <- clientEnv (ChainIndex.ciBaseUrl chainIndexConfig)
     dbConnection <- dbConnect dbConfig
     pure Env {..}
   where
-    clientEnv :: BaseUrl -> m ClientEnv
-    clientEnv baseUrl = mkClientEnv <$> liftIO mkManager <*> pure baseUrl
+    clientEnv baseUrl = mkClientEnv <$> liftIO mkManager <*> pure (coerce baseUrl)
 
     mkManager =
         newManager $

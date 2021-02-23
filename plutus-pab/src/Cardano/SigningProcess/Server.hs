@@ -1,6 +1,4 @@
 {-# LANGUAGE DataKinds          #-}
-{-# LANGUAGE DeriveAnyClass     #-}
-{-# LANGUAGE DeriveGeneric      #-}
 {-# LANGUAGE DerivingStrategies #-}
 {-# LANGUAGE FlexibleContexts   #-}
 {-# LANGUAGE NamedFieldPuns     #-}
@@ -11,35 +9,31 @@
 
 module Cardano.SigningProcess.Server(
     -- $signingProcess
-    SigningProcessConfig(..)
-    , main
+     main
     ) where
 
 import           Control.Concurrent.Availability (Availability, available)
 import           Control.Concurrent.MVar         (MVar, newMVar, putMVar, takeMVar)
 import           Control.Monad.Freer
-import           Control.Monad.Freer.Error       (Error)
 import qualified Control.Monad.Freer.Error       as Eff
 import           Control.Monad.Freer.Extras.Log
-import           Control.Monad.Freer.State       (State)
 import qualified Control.Monad.Freer.State       as Eff
 import           Control.Monad.IO.Class          (MonadIO (..))
-import           Data.Aeson                      (FromJSON, ToJSON)
 import           Data.Function                   ((&))
 import           Data.Proxy                      (Proxy (..))
-import           GHC.Generics                    (Generic)
 import qualified Network.Wai.Handler.Warp        as Warp
 import           Servant                         (Application, hoistServer, serve)
 import           Servant.Client                  (BaseUrl (baseUrlPort))
 
 import           Cardano.BM.Data.Trace           (Trace)
 import           Cardano.SigningProcess.API      (API)
-import           Cardano.SigningProcess.Types    (SigningProcessMsg (..))
+import           Cardano.SigningProcess.Types    (SigningProcessConfig (..), SigningProcessEffects,
+                                                  SigningProcessMsg (..))
+import           Cardano.Wallet.Types            (WalletUrl (..))
+import           Data.Coerce                     (coerce)
 import           Plutus.PAB.Monitoring           (runLogEffects)
-import qualified Wallet.API                      as WAPI
-import           Wallet.Effects                  (SigningProcessEffect)
 import qualified Wallet.Effects                  as WE
-import           Wallet.Emulator.Wallet          (SigningProcess, Wallet, defaultSigningProcess, handleSigningProcess)
+import           Wallet.Emulator.Wallet          (SigningProcess, defaultSigningProcess, handleSigningProcess)
 
 -- $ signingProcess
 -- The signing process that adds signatures to transactions.
@@ -48,13 +42,6 @@ import           Wallet.Emulator.Wallet          (SigningProcess, Wallet, defaul
 -- wallet to the transaction. It does not support
 -- 'Wallet.Emulator.SigningProcess.signWallets', which attaches multiple
 -- signatures at once. 'signWallets' is needed for the multi sig examples.
-
-data SigningProcessConfig =
-    SigningProcessConfig
-        { spWallet  :: Wallet -- Wallet with whose private key transactions should be signed.
-        , spBaseUrl :: BaseUrl
-        } deriving stock (Eq, Show, Generic)
-          deriving anyclass (ToJSON, FromJSON)
 
 app :: MVar SigningProcess -> Application
 app stateVar =
@@ -70,12 +57,11 @@ main trace SigningProcessConfig{spWallet, spBaseUrl} availability = runLogEffect
     logInfo $ StartingSigningProcess servicePort
     liftIO $ Warp.runSettings warpSettings $ app stateVar
         where
-            servicePort = baseUrlPort spBaseUrl
+            servicePort = baseUrlPort (coerce spBaseUrl)
             isAvailable = available availability
-            warpSettings = Warp.defaultSettings & Warp.setPort servicePort & Warp.setBeforeMainLoop isAvailable
-
-type SigningProcessEffects =
-    '[ SigningProcessEffect, State SigningProcess, Error WAPI.WalletAPIError]
+            warpSettings = Warp.defaultSettings
+                & Warp.setPort servicePort
+                & Warp.setBeforeMainLoop isAvailable
 
 processSigningProcessEffects ::
     MonadIO m
