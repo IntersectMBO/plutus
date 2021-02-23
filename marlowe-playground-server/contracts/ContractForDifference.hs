@@ -1,9 +1,9 @@
 {-# LANGUAGE OverloadedStrings #-}
 module ContractForDifference where
 
-import           Data.String      (IsString (fromString))
-import           Language.Marlowe
-import           Prelude          hiding (Fractional, Num, (*), (-), (/), (<), (==))
+import           Data.String               (IsString (fromString))
+import           Language.Marlowe.Extended
+import           Prelude                   hiding (Fractional, Num, (*), (-), (/), (<), (==))
 
 main :: IO ()
 main = print . pretty $ contract
@@ -27,13 +27,13 @@ orElse :: Contract -> Contract
 orElse = id
 
 receiveValue :: String -> Action
-receiveValue val = (Choice (ChoiceId (fromString val) oracle) [Bound 0 100000])
+receiveValue val = Choice (ChoiceId (fromString val) oracle) [Bound 0 100000]
 
-readValue :: String -> (Value Observation)
+readValue :: String -> Value
 readValue val = ChoiceValue (ChoiceId (fromString val) oracle)
 
 waitFor :: Integer -> Contract -> Contract
-waitFor delay continue =  When [] (Slot delay) continue
+waitFor delay = When [] (Slot delay)
 
 checkIf :: Observation -> Contract -> Contract -> Contract
 checkIf = If
@@ -44,22 +44,22 @@ thenDo = id
 elseDo :: Contract -> Contract
 elseDo = id
 
-letValue :: String -> (Value Observation) -> Contract -> Contract
+letValue :: String -> Value -> Contract -> Contract
 letValue val = Let (ValueId $ fromString val)
 
-useValue :: String -> (Value Observation)
+useValue :: String -> Value
 useValue = UseValue . fromString
 
-value :: Integer -> (Value Observation)
+value :: Integer -> Value
 value = Constant
 
-(-) :: (Value Observation) -> (Value Observation) -> (Value Observation)
+(-) :: Value -> Value -> Value
 (-) = SubValue
 
-(<) :: (Value Observation) -> (Value Observation) -> Observation
+(<) :: Value -> Value -> Observation
 (<) = ValueLT
 
-(==) :: (Value Observation) -> (Value Observation) -> Observation
+(==) :: Value -> Value -> Observation
 (==) = ValueEQ
 
 from :: AccountId -> AccountId
@@ -74,16 +74,16 @@ with = id
 end :: Contract
 end = Close
 
-amountOf :: (Value Observation) -> (Value Observation)
+amountOf :: Value -> Value
 amountOf = id
 
 contract :: Contract
 contract =
     let
 
-        partyCollateralToken = (Token "" "")
+        partyCollateralToken = Token "" ""
         partyCollateralAmount = value 1000
-        counterPartyCollateralToken = (Token "" "")
+        counterPartyCollateralToken = Token "" ""
         counterPartyCollateralAmount = value 1000
         endDate = 1000
 
@@ -110,7 +110,7 @@ contract =
         waitForEvent (receiveValue "price2") (before $ endDate + 100) (orElse end) $
         letValue "delta" (readValue "price1" - readValue "price2") $
         checkIf (useValue "delta" == value 0)
-            (thenDo $
+            (thenDo
                 end
             )
             (elseDo $
@@ -122,7 +122,7 @@ contract =
                             (from party)
                             (to counterParty)
                             (with partyCollateralToken)
-                            (amountOf payoff)) $
+                            (amountOf payoff))
                         end
                     )
                     (elseDo $
@@ -131,8 +131,9 @@ contract =
                             (from counterParty)
                             (to party)
                             (with counterPartyCollateralToken)
-                            (amountOf payoff)) $
+                            (amountOf payoff))
                         end
                 )
             )
+
 

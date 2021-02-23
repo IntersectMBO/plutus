@@ -34,8 +34,10 @@ import qualified EscrowWithCollateral
 import qualified Example
 import           Language.Haskell.Interpreter                     (CompilationError, InterpreterError,
                                                                    InterpreterResult, SourceCode, Warning)
-import           Language.Marlowe
+import qualified Language.Marlowe                                 as S
 import qualified Language.Marlowe.ACTUS.Definitions.ContractTerms as CT
+import           Language.Marlowe.Extended
+import           Language.Marlowe.Semantics                       (State (..))
 import qualified Language.PlutusTx.AssocMap                       as Map
 import           Language.PureScript.Bridge                       (BridgePart, Language (Haskell), PSType, SumType,
                                                                    TypeInfo (TypeInfo), buildBridge, genericShow,
@@ -215,42 +217,42 @@ writePangramJson outputDir = do
 
     let
 
-        alicePk = PK "4ecde0775d081e45f06141416cbc3afed4c44a08c93ea31281e25c8fa03548b9"
+        alicePk = S.PK "4ecde0775d081e45f06141416cbc3afed4c44a08c93ea31281e25c8fa03548b9"
 
-        bobRole = Role "Bob"
+        bobRole = S.Role "Bob"
 
-        const100 = Constant 100
+        const100 = S.Constant 100
 
-        choiceId = ChoiceId "choice" alicePk
+        choiceId = S.ChoiceId "choice" alicePk
 
-        valueExpr = AddValue const100 (SubValue const100 (NegValue const100))
+        valueExpr = S.AddValue const100 (S.SubValue const100 (S.NegValue const100))
 
-        token = Token "aa" "name"
+        token = S.Token "aa" "name"
 
     let pangram =
-            Assert TrueObs
-                (When
-                    [ Case (Deposit alicePk alicePk ada valueExpr)
-                        ( Let (ValueId "x") valueExpr
-                            (Pay alicePk (Party bobRole) ada (Cond TrueObs (UseValue (ValueId "x")) (UseValue (ValueId "y"))) Close)
+            S.Assert S.TrueObs
+                (S.When
+                    [ S.Case (S.Deposit alicePk alicePk ada valueExpr)
+                        ( S.Let (S.ValueId "x") valueExpr
+                            (S.Pay alicePk (S.Party bobRole) ada (S.Cond S.TrueObs (S.UseValue (S.ValueId "x")) (S.UseValue (S.ValueId "y"))) S.Close)
                         )
-                    , Case (Choice choiceId [ Bound 0 1 ])
-                        ( If (ChoseSomething choiceId `OrObs` (ChoiceValue choiceId `ValueEQ` Scale (1 % 10) const100))
-                            (Pay alicePk (Account alicePk) token (AvailableMoney alicePk token) Close)
-                            Close
+                    , S.Case (S.Choice choiceId [ S.Bound 0 1 ])
+                        ( S.If (S.ChoseSomething choiceId `S.OrObs` (S.ChoiceValue choiceId `S.ValueEQ` S.Scale (1 S.% 10) const100))
+                            (S.Pay alicePk (S.Account alicePk) token (S.AvailableMoney alicePk token) S.Close)
+                            S.Close
                         )
-                    , Case (Notify (AndObs (SlotIntervalStart `ValueLT` SlotIntervalEnd) TrueObs)) Close
+                    , S.Case (S.Notify (S.AndObs (S.SlotIntervalStart `S.ValueLT` S.SlotIntervalEnd) S.TrueObs)) S.Close
                     ]
-                    (Slot 100)
-                    Close
+                    (S.Slot 100)
+                    S.Close
                 )
         encodedPangram = BS8.pack . Char8.unpack $ encode pangram
         state =
             State
             { accounts = Map.singleton (alicePk, token) 12
             , choices = Map.singleton choiceId 42
-            , boundValues = Map.fromList [ ((ValueId "x"), 1), ((ValueId "y"), 2) ]
-            , minSlot = Slot 123
+            , boundValues = Map.fromList [ (ValueId "x", 1), (ValueId "y", 2) ]
+            , minSlot = S.Slot 123
             }
         encodedState = BS8.pack . Char8.unpack $ encode state
     createDirectoryIfMissing True (outputDir </> "JSON")

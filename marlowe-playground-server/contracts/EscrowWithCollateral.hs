@@ -1,7 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 module EscrowWithCollateral where
 
-import           Language.Marlowe
+import           Language.Marlowe.Extended
 
 main :: IO ()
 main = print . pretty $ contract
@@ -56,7 +56,7 @@ agreement =
 -- The contract to follow when Alice and Bob disagree
 destroyCollateral :: Contract
 destroyCollateral =
-    (Pay "alice" (Party "blackhole") ada aliceCollateral (Pay "bob" (Party "blackhole") ada bobCollateral Close))
+    Pay "alice" (Party "blackhole") ada aliceCollateral (Pay "bob" (Party "blackhole") ada bobCollateral Close)
 
 -- Names for choices
 pay,refund,both :: [Bound]
@@ -88,21 +88,21 @@ carolRefund = choice "carol" refund
 carolChoice = choice "carol" both
 
 -- the values chosen in choices
-aliceChosen, bobChosen :: (Value Observation)
+aliceChosen, bobChosen :: Value
 
 aliceChosen = ChoiceValue (ChoiceId choiceName "alice")
 bobChosen   = ChoiceValue (ChoiceId choiceName "bob")
 
-defValue :: (Value Observation)
+defValue :: Value
 defValue = Constant 42
 
 -- Value under escrow
-price :: (Value Observation)
+price :: Value
 price = Constant 450
 
-aliceCollateral :: (Value Observation)
+aliceCollateral :: Value
 aliceCollateral = Constant 4500
 
-bobCollateral :: (Value Observation)
+bobCollateral :: Value
 bobCollateral = Constant 4500
 

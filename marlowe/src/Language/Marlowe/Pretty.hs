@@ -78,8 +78,8 @@ instance (Pretty1 a, Pretty1 b) => Pretty1 (a :*: b) where
     pretty1 topLevel (f :*: g) = pretty1 topLevel f <> pretty1 topLevel g
     isNullary _ = False
 
-instance Pretty String where
-  prettyFragment = text
+instance {-# OVERLAPPING #-} Pretty [Char] where
+  prettyFragment = text . show
 
 instance Pretty Text where
   prettyFragment = text . show . Text.unpack
