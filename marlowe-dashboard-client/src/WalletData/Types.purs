@@ -1,4 +1,4 @@
-module Wallet.Types
+module WalletData.Types
   ( WalletLibrary
   , WalletNicknameKey
   , WalletDetails(..)

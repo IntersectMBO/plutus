@@ -12,7 +12,7 @@
     "test:watch": "spago test --no-psa --watch",
     "docs": "spago docs",
     "repl": "spago repl",
-    "start": "npm install && marlowe-dashboard-generate-purs && npm run purs:compile && npm run webpack:server"
+    "start": "npm install && plutus-pab-generate-purs && npm run purs:compile && npm run webpack:server"
   },
   "dependencies": {
     "json-bigint": "^1.0.0"
@@ -33,9 +33,11 @@
     "style-loader": "^0.23.1",
     "tailwindcss": "^2.0.2",
     "url-loader": "^1.1.2",
+    "uuid-validate": "^0.0.3",
     "webpack": "^4.41.0",
     "webpack-cli": "^3.1.2",
     "webpack-dev-server": "^3.1.10",
-    "webpack-node-externals": "^1.7.2"
+    "webpack-node-externals": "^1.7.2",
+    "xhr2": "^0.1.4"
   }
 }

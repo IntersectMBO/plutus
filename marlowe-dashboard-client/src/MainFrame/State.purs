@@ -16,20 +16,20 @@ import Data.Tuple (fst, snd)
 import Effect.Aff.Class (class MonadAff)
 import Effect.Random (random)
 import Foreign.Generic (decodeJSON, encodeJSON)
-import Halogen (Component, HalogenM, liftEffect, mkComponent, mkEval, modify_, raise)
+import Halogen (Component, HalogenM, liftEffect, mkComponent, mkEval, modify_)
 import Halogen.Extra (mapSubmodule)
 import Halogen.HTML (HTML)
 import LocalStorage (getItem, removeItem, setItem)
-import MainFrame.Lenses (_card, _contractState, _menuOpen, _newWalletNicknameKey, _on, _pickupState, _screen, _subState, _templates, _wallets, _walletState)
-import MainFrame.Types (Action(..), ChildSlots, ContractStatus(..), WalletState, Msg(..), PickupCard(..), PickupScreen(..), PickupState, Query(..), Screen(..), State)
+import MainFrame.Lenses (_card, _contractState, _menuOpen, _newWalletNicknameKey, _pickupState, _screen, _subState, _templates, _walletState, _wallets, _webSocketStatus)
+import MainFrame.Types (Action(..), ChildSlots, ContractStatus(..), Msg, PickupCard(..), PickupScreen(..), PickupState, Query(..), Screen(..), State, WalletState, WebSocketStatus(..))
 import MainFrame.View (render)
 import Marlowe.Execution (_contract)
 import Marlowe.Semantics (Contract(..), PubKey)
+import Plutus.PAB.Webserver.Types (StreamToClient(..))
 import StaticData (walletLocalStorageKey, walletsLocalStorageKey)
 import Template.Library (templates)
-import Wallet.Lenses (_key, _nickname)
-import Wallet.Types (WalletDetails)
-import WebSocket (StreamToClient(..), StreamToServer(..))
+import WalletData.Lenses (_key, _nickname)
+import WalletData.Types (WalletDetails)
 import WebSocket.Support as WS
 
 mkMainFrame :: forall m. MonadAff m => Component HTML Query Action Msg m
@@ -54,6 +54,7 @@ initialState =
   , templates: mempty
   , subState: Left initialPickupState
   , contractState: Contract.initialState zero Close
+  , webSocketStatus: WebSocketClosed Nothing
   }
 
 initialPickupState :: PickupState
@@ -68,7 +69,6 @@ mkWalletState pubKeyHash =
   , menuOpen: false
   , screen: ContractsScreen Running
   , card: Nothing
-  , on: true
   }
 
 defaultWalletDetails :: WalletDetails
@@ -77,9 +77,17 @@ defaultWalletDetails = { userHasPickedUp: false }
 handleQuery :: forall a m. Query a -> HalogenM State Action ChildSlots Msg m (Maybe a)
 handleQuery (ReceiveWebSocketMessage msg next) = do
   case msg of
-    (WS.ReceiveMessage (Right (ClientMsg on))) -> assign (_walletState <<< _on) on
-    -- TODO: other matches such as update current slot or apply transaction
-    _ -> pure unit
+    WS.WebSocketOpen -> assign _webSocketStatus WebSocketOpen
+    (WS.WebSocketClosed reason) -> assign _webSocketStatus (WebSocketClosed (Just reason))
+    (WS.ReceiveMessage (Left errors)) -> pure unit -- failed to decode message, do nothing for now
+    -- TODO: This is where the main logic of dealing with messages goes
+    (WS.ReceiveMessage (Right stc)) -> case stc of
+      (NewChainReport report) -> pure unit
+      (NewContractReport report) -> pure unit
+      (NewChainEvents events) -> pure unit
+      (FetchedProperties subjectProperties) -> pure unit
+      (FetchedProperty subject properties) -> pure unit
+      (ErrorResponse error) -> pure unit
   pure $ Just next
 
 handleAction :: forall m. MonadAff m => Action -> HalogenM State Action ChildSlots Msg m Unit
@@ -168,10 +176,6 @@ handleAction AddNewWallet = do
       <<< (_walletState <<< set _card) Nothing
     newWallets <- use _wallets
     liftEffect $ setItem walletsLocalStorageKey $ encodeJSON newWallets
-
-handleAction ClickedButton = do
-  mCurrent <- peruse (_walletState <<< _on)
-  for_ mCurrent $ \current -> raise (SendWebSocketMessage (ServerMsg current))
 
 -- contract actions
 handleAction (ContractAction contractAction) = do

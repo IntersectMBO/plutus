@@ -18,8 +18,8 @@ import Material.Icons as Icon
 import Prim.TypeError (class Warn, Text)
 import Template.View (templateLibraryCard, contractSetupScreen)
 import Template.Types (Template)
-import Wallet.Types (WalletNicknameKey, WalletLibrary)
-import Wallet.View (contactDetailsCard, newContactCard, pickupLocalWalletCard, pickupNewWalletCard, pickupWalletScreen, putdownWalletCard, walletLibraryScreen)
+import WalletData.Types (WalletNicknameKey, WalletLibrary)
+import WalletData.View (contactDetailsCard, newContactCard, pickupLocalWalletCard, pickupNewWalletCard, pickupWalletScreen, putdownWalletCard, walletLibraryScreen)
 
 render :: forall m. MonadAff m => State -> ComponentHTML Action ChildSlots m
 render state =

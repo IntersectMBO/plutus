@@ -1,5 +1,5 @@
 {
-  mkInstance = { defaultMachine, plutus-pab, marlowe-app, pkgs, ports, ... }:
+  mkInstance = { defaultMachine, plutus-pab, marlowe-app, marlowe-dashboard, pkgs, ports, ... }:
     hostName:
     let
       promNodeTextfileDir = pkgs.writeTextDir "roles.prom"
@@ -10,7 +10,7 @@
       db-file = "/var/lib/pab/pab-core.db";
       cfg = plutus-pab.mkConf {
         inherit db-file;
-        client = plutus-pab.client;
+        client = marlowe-dashboard.client;
         name = "pab-config";
         wallet = "1";
       };

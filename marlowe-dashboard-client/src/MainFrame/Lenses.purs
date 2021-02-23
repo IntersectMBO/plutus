@@ -10,7 +10,7 @@ module MainFrame.Lenses
   , _card
   , _wallet
   , _menuOpen
-  , _on
+  , _webSocketStatus
   ) where
 
 import Prelude
@@ -20,10 +20,10 @@ import Data.Lens (Lens', Traversal')
 import Data.Lens.Prism.Either (_Left, _Right)
 import Data.Lens.Record (prop)
 import Data.Symbol (SProxy(..))
-import MainFrame.Types (WalletState, PickupState, State)
+import MainFrame.Types (PickupState, State, WalletState, WebSocketStatus)
 import Marlowe.Semantics (PubKey)
 import Template.Types (Template)
-import Wallet.Types (WalletLibrary, WalletNicknameKey)
+import WalletData.Types (WalletLibrary, WalletNicknameKey)
 
 _wallets :: Lens' State WalletLibrary
 _wallets = prop (SProxy :: SProxy "wallets")
@@ -50,6 +50,9 @@ _walletState = _subState <<< _Right
 _contractState :: Lens' State Contract.State
 _contractState = prop (SProxy :: SProxy "contractState")
 
+_webSocketStatus :: Lens' State WebSocketStatus
+_webSocketStatus = prop (SProxy :: SProxy "webSocketStatus")
+
 ------------------------------------------------------------
 _screen :: forall s b. Lens' { screen :: s | b } s
 _screen = prop (SProxy :: SProxy "screen")
@@ -63,6 +66,3 @@ _wallet = prop (SProxy :: SProxy "wallet")
 
 _menuOpen :: Lens' WalletState Boolean
 _menuOpen = prop (SProxy :: SProxy "menuOpen")
-
-_on :: Lens' WalletState Boolean
-_on = prop (SProxy :: SProxy "on")

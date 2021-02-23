@@ -1,4 +1,4 @@
-module Wallet.Lenses
+module WalletData.Lenses
   ( _nickname
   , _key
   , _userHasPickedUp
@@ -9,7 +9,7 @@ import Data.Lens.Lens.Tuple (_1, _2)
 import Data.Lens.Record (prop)
 import Data.Symbol (SProxy(..))
 import Marlowe.Semantics (PubKey)
-import Wallet.Types (WalletDetails, WalletNicknameKey)
+import WalletData.Types (WalletDetails, WalletNicknameKey)
 
 _nickname :: Lens' WalletNicknameKey String
 _nickname = _1

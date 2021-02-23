@@ -1,4 +1,4 @@
-module Wallet.View
+module WalletData.View
   ( pickupWalletScreen
   , pickupNewWalletCard
   , pickupLocalWalletCard
@@ -21,9 +21,9 @@ import Halogen.HTML.Properties (InputType(..), disabled, for, href, id_, list, p
 import MainFrame.Types (Action(..), Card(..))
 import Marlowe.Semantics (PubKey)
 import Material.Icons as Icon
-import Wallet.Lenses (_key, _nickname)
-import Wallet.Types (WalletDetails, WalletLibrary, WalletNicknameKey)
-import Wallet.Validation (keyError, nicknameError)
+import WalletData.Lenses (_key, _nickname)
+import WalletData.Types (WalletDetails, WalletLibrary, WalletNicknameKey)
+import WalletData.Validation (keyError, nicknameError)
 
 pickupWalletScreen :: forall p. WalletLibrary -> HTML p Action
 pickupWalletScreen wallets =
