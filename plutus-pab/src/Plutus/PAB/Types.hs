@@ -16,7 +16,7 @@ import qualified Cardano.ChainIndex.Types       as ChainIndex
 import qualified Cardano.Metadata.Types         as Metadata
 import           Cardano.Node.Types             (MockServerConfig (..))
 import qualified Cardano.SigningProcess.Server  as SigningProcess
-import qualified Cardano.Wallet.Server          as WalletServer
+import qualified Cardano.Wallet.Types           as WalletTypes
 import           Control.Lens.TH                (makePrisms)
 import           Data.Aeson                     (FromJSON, ToJSON (..))
 import qualified Data.HashMap.Strict            as HM
@@ -100,7 +100,7 @@ data DbConfig =
 data Config =
     Config
         { dbConfig                :: DbConfig
-        , walletServerConfig      :: WalletServer.Config
+        , walletServerConfig      :: WalletTypes.WalletConfig
         , nodeServerConfig        :: MockServerConfig
         , metadataServerConfig    :: Metadata.MetadataConfig
         , pabWebserverConfig      :: WebserverConfig

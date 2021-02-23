@@ -63,6 +63,7 @@ import qualified Cardano.Metadata.Server                         as Metadata
 import qualified Cardano.Node.Server                             as NodeServer
 import qualified Cardano.SigningProcess.Server                   as SigningProcess
 import qualified Cardano.Wallet.Server                           as WalletServer
+import           Cardano.Wallet.Types
 import           Control.Concurrent                              (threadDelay)
 import           Control.Concurrent.Async                        (Async, async, waitAny)
 import           Control.Concurrent.Availability                 (Availability, starting)
@@ -90,8 +91,7 @@ import qualified Plutus.PAB.Core.ContractInstance                as Instance
 import           Plutus.PAB.Events.Contract                      (ContractInstanceId (..))
 import           Plutus.PAB.PABLogMsg                            (AppMsg (..), ChainIndexServerMsg,
                                                                   ContractExeLogMsg (..), MetadataLogMessage,
-                                                                  MockServerLogMsg, PABLogMsg (..), SigningProcessMsg,
-                                                                  WalletMsg)
+                                                                  MockServerLogMsg, PABLogMsg (..), SigningProcessMsg)
 import           Plutus.PAB.Types                                (Config (Config), ContractExe (..), PABError,
                                                                   RequestProcessingConfig (..), chainIndexConfig,
                                                                   metadataServerConfig, nodeServerConfig,
@@ -118,8 +118,8 @@ runCliCommand trace _ Config {..} serviceAvailability MockWallet =
     liftIO $ WalletServer.main
         (toWalletLog trace)
         walletServerConfig
-        nodeUrl
-        chainIndexUrl
+        (NodeUrl nodeUrl)
+        (ChainIndexUrl chainIndexUrl)
         serviceAvailability
             where
                 nodeUrl = mscBaseUrl nodeServerConfig
