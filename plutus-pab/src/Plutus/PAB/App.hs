@@ -27,8 +27,6 @@ import qualified Cardano.Metadata.Types                  as Metadata
 import           Cardano.Node.Client                     (handleNodeClientClient, handleRandomTxClient)
 import           Cardano.Node.RandomTx                   (GenRandomTx)
 import           Cardano.Node.Types                      (MockServerConfig (..))
-import qualified Cardano.SigningProcess.Client           as SigningProcessClient
-import qualified Cardano.SigningProcess.Types            as SigningProcess
 import qualified Cardano.Wallet.Client                   as WalletClient
 import qualified Cardano.Wallet.Types                    as Wallet
 import           Control.Monad.Catch                     (MonadCatch)
@@ -40,7 +38,6 @@ import           Control.Monad.Freer.WebSocket           (WebSocketEffect, handl
 import           Control.Monad.IO.Class                  (MonadIO, liftIO)
 import           Control.Monad.IO.Unlift                 (MonadUnliftIO)
 import           Control.Monad.Logger                    (MonadLogger)
-import           Control.Tracer                          (natTracer)
 import           Data.Aeson                              (FromJSON, eitherDecode)
 import qualified Data.Aeson.Encode.Pretty                as JSON
 import           Data.Bifunctor                          (Bifunctor (..))
@@ -64,13 +61,12 @@ import           Plutus.PAB.Monitoring.Monitoring        (handleLogMsgTrace, han
 import           Plutus.PAB.Monitoring.PABLogMsg         (ContractExeLogMsg (..), PABLogMsg (..))
 import           Plutus.PAB.Types                        (Config (Config), ContractExe (..), PABError (..),
                                                           chainIndexConfig, dbConfig, metadataServerConfig,
-                                                          nodeServerConfig, signingProcessConfig, walletServerConfig)
+                                                          nodeServerConfig, walletServerConfig)
 import           Servant.Client                          (ClientEnv, ClientError, mkClientEnv)
 import           System.Exit                             (ExitCode (ExitFailure, ExitSuccess))
 import           System.Process                          (readProcessWithExitCode)
 import           Wallet.Effects                          (ChainIndexEffect, ContractRuntimeEffect, NodeClientEffect,
-                                                          SigningProcessEffect, WalletEffect)
-import           Wallet.Emulator.Wallet                  (Wallet (..))
+                                                          WalletEffect)
 
 
 ------------------------------------------------------------
@@ -80,7 +76,6 @@ data Env =
         , walletClientEnv   :: ClientEnv
         , nodeClientEnv     :: ClientEnv
         , metadataClientEnv :: ClientEnv
-        , signingProcessEnv :: ClientEnv
         , chainIndexEnv     :: ClientEnv
         }
 
@@ -90,7 +85,6 @@ type AppBackend m =
          , WalletEffect
          , NodeClientEffect
          , MetadataEffect
-         , SigningProcessEffect
          , UUIDEffect
          , ContractEffect ContractExe
          , ChainIndexEffect
@@ -122,7 +116,6 @@ runAppBackend trace loggingConfig config action = do
             , nodeClientEnv
             , metadataClientEnv
             , walletClientEnv
-            , signingProcessEnv
             , chainIndexEnv
             } <- mkEnv config
     let
@@ -131,12 +124,6 @@ runAppBackend trace loggingConfig config action = do
         handleChainIndex =
             flip handleError (throwError . ChainIndexError) .
             reinterpret @_ @(Error ClientError) (handleChainIndexClient chainIndexEnv)
-        handleSigningProcess ::
-               Eff (SigningProcessEffect ': _) a -> Eff _ a
-        handleSigningProcess =
-            interpret (mapLog SWebsocketMsg) .
-            flip handleError (throwError . SigningProcessError) .
-            reinterpret2 @_ @(Error ClientError) (SigningProcessClient.handleSigningProcessClient signingProcessEnv)
         handleNodeClient ::
                Eff (NodeClientEffect ': _) a -> Eff _ a
         handleNodeClient =
@@ -172,7 +159,6 @@ runAppBackend trace loggingConfig config action = do
         . handleChainIndex
         . interpret (mapLog SContractExeLogMsg) . reinterpret handleContractEffectApp
         . handleUUIDEffect
-        . handleSigningProcess
         . handleMetadata
         . handleNodeClient
         . handleWallet
@@ -186,14 +172,11 @@ mkEnv Config { dbConfig
              , nodeServerConfig
              , metadataServerConfig
              , walletServerConfig
-             , signingProcessConfig
              , chainIndexConfig
              } = do
     walletClientEnv <- clientEnv (Wallet.baseUrl walletServerConfig)
     nodeClientEnv <- clientEnv (mscBaseUrl nodeServerConfig)
     metadataClientEnv <- clientEnv (Metadata.mdBaseUrl metadataServerConfig)
-    signingProcessEnv <-
-        clientEnv $ SigningProcess.spBaseUrl signingProcessConfig
     chainIndexEnv <- clientEnv (ChainIndex.ciBaseUrl chainIndexConfig)
     dbConnection <- dbConnect dbConfig
     pure Env {..}

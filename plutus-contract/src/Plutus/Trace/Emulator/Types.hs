@@ -120,7 +120,6 @@ type EmulatedWalletEffects' effs =
         ': Error WAPI.WalletAPIError
         ': Wallet.NodeClientEffect
         ': Wallet.ChainIndexEffect
-        ': Wallet.SigningProcessEffect
         ': LogObserve (LogMessage T.Text)
         ': LogMsg RequestHandlerLogMsg
         ': LogMsg TxBalanceMsg

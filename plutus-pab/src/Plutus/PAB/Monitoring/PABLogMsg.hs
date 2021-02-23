@@ -11,7 +11,6 @@ module Plutus.PAB.Monitoring.PABLogMsg(
     PABLogMsg(..),
     ContractExeLogMsg(..),
     ChainIndexServerMsg,
-    SigningProcessMsg,
     MetadataLogMessage,
     WalletMsg,
     MockServerLogMsg,
@@ -32,7 +31,6 @@ import           Cardano.BM.Data.Tracer.Extras           (Tagged (..), mkObjectS
 import           Cardano.ChainIndex.Types                (ChainIndexServerMsg)
 import           Cardano.Metadata.Types                  (MetadataLogMessage)
 import           Cardano.Node.Types                      (MockServerLogMsg)
-import           Cardano.SigningProcess.Types            (SigningProcessMsg)
 import           Cardano.Wallet.Types                    (WalletMsg)
 import           Language.Plutus.Contract.State          (ContractRequest)
 import           Ledger.Tx                               (Tx)
@@ -87,7 +85,6 @@ data PABLogMsg =
     | SWebsocketMsg WebSocketLogMsg
     | SContractRuntimeMsg ContractRuntimeMsg
     | SChainIndexServerMsg ChainIndexServerMsg
-    | SSigningProcessMsg SigningProcessMsg
     | SWalletMsg WalletMsg
     | SMetaDataLogMsg MetadataLogMessage
     | SMockserverLogMsg MockServerLogMsg
@@ -105,7 +102,6 @@ instance Pretty PABLogMsg where
         SWebsocketMsg m        -> pretty m
         SContractRuntimeMsg m  -> pretty m
         SChainIndexServerMsg m -> pretty m
-        SSigningProcessMsg m   -> pretty m
         SWalletMsg m           -> pretty m
         SMetaDataLogMsg m      -> pretty m
         SMockserverLogMsg m    -> pretty m
@@ -210,7 +206,6 @@ instance ToObject PABLogMsg where
         SWebsocketMsg e        -> toObject v e
         SContractRuntimeMsg e  -> toObject v e
         SChainIndexServerMsg m -> toObject v m
-        SSigningProcessMsg m   -> toObject v m
         SWalletMsg m           -> toObject v m
         SMetaDataLogMsg m      -> toObject v m
         SMockserverLogMsg m    -> toObject v m

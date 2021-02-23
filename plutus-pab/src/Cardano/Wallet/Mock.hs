@@ -24,8 +24,7 @@ import qualified Control.Monad.Except             as MonadError
 import           Control.Monad.Freer
 import           Control.Monad.Freer.Error
 import           Control.Monad.Freer.Extras
-import           Control.Monad.Freer.State
-import           Control.Monad.Freer.State        (runState)
+import           Control.Monad.Freer.State        (State, evalState, get, put, runState)
 import           Control.Monad.IO.Class           (MonadIO, liftIO)
 import           Crypto.PubKey.Ed25519            (secretKeySize)
 import           Crypto.Random                    (getRandomBytes)

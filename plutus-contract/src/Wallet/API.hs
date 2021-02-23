@@ -26,8 +26,6 @@ module Wallet.API(
     NodeClientEffect,
     publishTx,
     getClientSlot,
-    SigningProcessEffect,
-    addSignatures,
     ChainIndexEffect,
     startWatching,
     watchedAddresses,
@@ -78,7 +76,6 @@ createPaymentWithChange v =
 --   transaction that was submitted.
 payToPublicKey ::
     ( Member WalletEffect effs
-    , Member SigningProcessEffect effs
     )
     => SlotRange -> Value -> PubKey -> Eff effs Tx
 payToPublicKey range v pk = do
@@ -89,7 +86,6 @@ payToPublicKey range v pk = do
 -- | Transfer some funds to an address locked by a public key.
 payToPublicKey_ ::
     ( Member WalletEffect effs
-    , Member SigningProcessEffect effs
     )
     => SlotRange -> Value -> PubKey -> Eff effs ()
 payToPublicKey_ r v = void . payToPublicKey r v

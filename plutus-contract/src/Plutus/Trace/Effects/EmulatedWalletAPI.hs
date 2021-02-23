@@ -14,19 +14,19 @@ module Plutus.Trace.Effects.EmulatedWalletAPI(
     ) where
 
 import           Control.Monad.Freer        (Eff, Member, subsume, type (~>))
-import           Control.Monad.Freer.Extras (raiseEnd2)
+import           Control.Monad.Freer.Extras (raiseEnd)
 import           Control.Monad.Freer.TH     (makeEffect)
 import           Ledger.Tx                  (txId)
 import           Ledger.TxId                (TxId)
 import           Ledger.Value               (Value)
 import           Wallet.API                 (defaultSlotRange, payToPublicKey)
-import           Wallet.Effects             (SigningProcessEffect, WalletEffect)
+import           Wallet.Effects             (WalletEffect)
 import qualified Wallet.Emulator            as EM
 import           Wallet.Emulator.MultiAgent (MultiAgentEffect, walletAction)
 import           Wallet.Emulator.Wallet     (Wallet)
 
 data EmulatedWalletAPI r where
-    LiftWallet :: Wallet -> Eff '[WalletEffect, SigningProcessEffect] a -> EmulatedWalletAPI a
+    LiftWallet :: Wallet -> Eff '[WalletEffect] a -> EmulatedWalletAPI a
 
 makeEffect ''EmulatedWalletAPI
 
@@ -51,5 +51,4 @@ handleEmulatedWalletAPI = \case
     LiftWallet w action ->
         walletAction w
             $ subsume
-            $ subsume
-            $ raiseEnd2 action
+            $ raiseEnd action

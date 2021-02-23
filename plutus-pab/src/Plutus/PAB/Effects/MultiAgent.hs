@@ -40,7 +40,7 @@ import           Control.Monad.Freer                (Eff, Members, interpret, su
 import           Control.Monad.Freer.Error          (Error, handleError, throwError)
 import           Control.Monad.Freer.Extras.Log     (LogLevel (..), LogMessage, LogMsg, LogObserve, handleLogWriter,
                                                      handleObserveLog, logMessage)
-import           Control.Monad.Freer.Extras.Modify  (handleZoomedState, handleZoomedWriter, raiseEnd17, raiseEnd9)
+import           Control.Monad.Freer.Extras.Modify  (handleZoomedState, handleZoomedWriter, raiseEnd16, raiseEnd9)
 import           Control.Monad.Freer.State          (State)
 import           Control.Monad.Freer.TH             (makeEffect)
 import           Control.Monad.Freer.Writer         (Writer)
@@ -64,7 +64,7 @@ import           Plutus.PAB.Events                  (ChainEvent)
 import           Plutus.PAB.Types                   (PABError (..))
 
 import           Wallet.Effects                     (ChainIndexEffect, ContractRuntimeEffect, NodeClientEffect,
-                                                     SigningProcessEffect, WalletEffect)
+                                                     WalletEffect)
 import qualified Wallet.Emulator.Chain              as Chain
 import           Wallet.Emulator.ChainIndex         (ChainIndexControlEffect)
 import qualified Wallet.Emulator.ChainIndex         as ChainIndex
@@ -74,8 +74,7 @@ import           Wallet.Emulator.MultiAgent         (EmulatorEvent, EmulatorTime
 import           Wallet.Emulator.NodeClient         (NodeClientControlEffect, NodeClientEvent)
 import qualified Wallet.Emulator.NodeClient         as NC
 import           Wallet.Emulator.Wallet             (SigningProcess, SigningProcessControlEffect, Wallet, WalletState,
-                                                     defaultSigningProcess, handleSigningProcess,
-                                                     handleSigningProcessControl)
+                                                     defaultSigningProcess, handleSigningProcessControl)
 import qualified Wallet.Emulator.Wallet             as Wallet
 
 -- $multiagent
@@ -136,7 +135,6 @@ type PABClientEffects =
     , MetadataEffect
     , NodeClientEffect
     , ChainIndexEffect
-    , SigningProcessEffect
     , UUIDEffect
     , EventLogEffect (ChainEvent TestContracts)
     , Error WalletAPIError
@@ -202,14 +200,13 @@ handleMultiAgent = interpret $ \effect -> do
             p8 :: AReview [LogMessage PABMultiAgentMsg] (LogMessage ContractRuntimeMsg)
             p8 = _singleton . below _RuntimeLog
         action
-            & raiseEnd17
+            & raiseEnd16
             & Wallet.handleWallet
             & interpret (handleContractRuntime @TestContracts)
             & handleContractTest
             & handleMetadata
             & NC.handleNodeClient
             & ChainIndex.handleChainIndex
-            & handleSigningProcess
             & subsume
             & handleEventLogState
             & subsume

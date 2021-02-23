@@ -36,7 +36,7 @@ import           Control.Monad.Freer.Coroutine                 (Yield)
 import           Control.Monad.Freer.Error                     (Error, throwError)
 import           Control.Monad.Freer.Extras.Log                (LogMessage, LogMsg (..), LogObserve, logDebug, logError,
                                                                 logInfo, logWarn, mapLog)
-import           Control.Monad.Freer.Extras.Modify             (raiseEnd11)
+import           Control.Monad.Freer.Extras.Modify             (raiseEnd10)
 import           Control.Monad.Freer.Reader                    (Reader, ask, runReader)
 import           Control.Monad.Freer.State                     (State, evalState, get, gets, modify, put)
 import           Data.Aeson                                    (object)
@@ -64,7 +64,7 @@ import           Plutus.Trace.Scheduler                        (AgentSystemCall,
                                                                 ThreadId, mkAgentSysCall)
 import qualified Wallet.API                                    as WAPI
 import           Wallet.Effects                                (ChainIndexEffect, ContractRuntimeEffect (..),
-                                                                NodeClientEffect, SigningProcessEffect, WalletEffect)
+                                                                NodeClientEffect, WalletEffect)
 import           Wallet.Emulator.LogMessages                   (TxBalanceMsg)
 import           Wallet.Types                                  (ContractInstanceId, EndpointDescription (..),
                                                                 EndpointValue (..), Notification (..),
@@ -286,14 +286,13 @@ respondToRequest :: forall s e effs.
 respondToRequest f = do
     hks <- getHooks @s @e
     let hdl :: (Eff (Reader ContractInstanceId ': ContractRuntimeEffect ': EmulatedWalletEffects) (Maybe (Response (Event s)))) = tryHandler (wrapHandler f) hks
-        hdl' :: (Eff (ContractInstanceRequests effs) (Maybe (Response (Event s)))) = raiseEnd11 hdl
+        hdl' :: (Eff (ContractInstanceRequests effs) (Maybe (Response (Event s)))) = raiseEnd10 hdl
 
         response_ :: Eff effs (Maybe (Response (Event s))) =
                 subsume @(LogMsg T.Text)
                     $ subsume @(LogMsg TxBalanceMsg)
                     $ subsume @(LogMsg RequestHandlerLogMsg)
                     $ subsume @(LogObserve (LogMessage T.Text))
-                    $ subsume @SigningProcessEffect
                     $ subsume @ChainIndexEffect
                     $ subsume @NodeClientEffect
                     $ subsume @(Error WAPI.WalletAPIError)

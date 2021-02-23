@@ -15,7 +15,6 @@ import           Cardano.BM.Data.Tracer.Extras  (StructuredLog (..))
 import qualified Cardano.ChainIndex.Types       as ChainIndex
 import qualified Cardano.Metadata.Types         as Metadata
 import           Cardano.Node.Types             (MockServerConfig (..))
-import qualified Cardano.SigningProcess.Types   as SigningProcess
 import qualified Cardano.Wallet.Types           as Wallet
 import           Control.Lens.TH                (makePrisms)
 import           Data.Aeson                     (FromJSON, ToJSON (..))
@@ -59,7 +58,6 @@ data PABError
     | NodeClientError ClientError
     | RandomTxClientError ClientError
     | MetadataError Metadata.MetadataError
-    | SigningProcessError ClientError
     | ChainIndexError ClientError
     | WalletError WalletAPIError
     | ContractCommandError Int Text
@@ -79,7 +77,6 @@ instance Pretty PABError where
         NodeClientError e          -> "Node client error:" <+> viaShow e
         RandomTxClientError e      -> "Random tx client error:" <+> viaShow e
         MetadataError e            -> "Metadata error:" <+> viaShow e
-        SigningProcessError e      -> "Signing process error:" <+> viaShow e
         ChainIndexError e          -> "Chain index error:" <+> viaShow e
         WalletError e              -> "Wallet error:" <+> pretty e
         ContractCommandError i t   -> "Contract command error:" <+> pretty i <+> pretty t
@@ -105,7 +102,6 @@ data Config =
         , metadataServerConfig    :: Metadata.MetadataConfig
         , pabWebserverConfig      :: WebserverConfig
         , chainIndexConfig        :: ChainIndex.ChainIndexConfig
-        , signingProcessConfig    :: SigningProcess.SigningProcessConfig
         , requestProcessingConfig :: RequestProcessingConfig
         }
     deriving (Show, Eq, Generic, FromJSON)

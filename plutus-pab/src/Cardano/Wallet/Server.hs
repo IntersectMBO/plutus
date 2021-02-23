@@ -24,7 +24,6 @@ import           Cardano.Wallet.Types             (Port (..), WalletConfig (..),
                                                    Wallets, createWallet, multiWallet)
 import           Control.Concurrent.Availability  (Availability, available)
 import           Control.Concurrent.MVar          (MVar, newMVar)
-import           Control.Monad                    ((>=>))
 import           Control.Monad.Freer              (reinterpret, runM)
 import           Control.Monad.Freer.Error        (handleError)
 import           Control.Monad.Freer.Extras.Log   (logInfo)
@@ -40,7 +39,7 @@ import           Servant                          (Application, NoContent (..), 
 import           Servant.Client                   (BaseUrl (baseUrlPort), ClientEnv, ClientError, mkClientEnv)
 import           Wallet.Effects                   (ownOutputs, ownPubKey, startWatching, submitTxn,
                                                    updatePaymentWithChange, walletAddSignature, walletSlot)
-import           Wallet.Emulator.Wallet           (WalletState, emptyWalletState)
+import           Wallet.Emulator.Wallet           (emptyWalletState)
 import qualified Wallet.Emulator.Wallet           as Wallet
 
 
