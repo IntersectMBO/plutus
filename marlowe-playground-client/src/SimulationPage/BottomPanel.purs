@@ -20,7 +20,7 @@ import SimulationPage.Types (Action, BottomPanelView(..), State, _SimulationNotS
 
 panelContents :: forall p. State -> BottomPanelView -> HTML p Action
 panelContents state CurrentStateView =
-  div [ classes [ rTable, rTable4cols, ClassName "panel-table" ] ]
+  div [ classes [ rTable, rTable4cols ] ]
     ( tableRow
         { title: "Accounts"
         , emptyMessage: "No accounts have been used"

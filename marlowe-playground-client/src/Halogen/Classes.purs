@@ -162,24 +162,6 @@ tabIcon = ClassName "tab-icon"
 flexLeft :: ClassName
 flexLeft = ClassName "flex-left"
 
-panelHeader :: ClassName
-panelHeader = ClassName "panel-header"
-
-panelSubHeader :: ClassName
-panelSubHeader = ClassName "panel-sub-header"
-
-panelSubHeaderMain :: ClassName
-panelSubHeaderMain = ClassName "panel-sub-header-main"
-
-panelSubHeaderSide :: ClassName
-panelSubHeaderSide = ClassName "panel-sub-header-side"
-
-panelHeaderMain :: ClassName
-panelHeaderMain = ClassName "panel-header-main"
-
-panelHeaderSide :: ClassName
-panelHeaderSide = ClassName "panel-header-side"
-
 accentBorderBottom :: ClassName
 accentBorderBottom = ClassName "accent-border-bottom"
 
@@ -277,24 +259,10 @@ spanText s = span [] [ text s ]
 sidebarComposer :: ClassName
 sidebarComposer = ClassName "sidebar-composer"
 
-codeEditor :: ClassName
-codeEditor = ClassName "code-editor"
-
-haskellEditor :: Boolean -> Array ClassName
-haskellEditor true = [ ClassName "code-panel", ClassName "haskell-editor" ]
-
-haskellEditor false = [ ClassName "code-panel", ClassName "haskell-editor", ClassName "expanded" ]
-
 minimizeIcon :: Boolean -> Array ClassName
 minimizeIcon true = [ ClassName "minimize-icon", ClassName "expanded" ]
 
 minimizeIcon false = [ ClassName "minimize-icon" ]
-
-footerPanelBg :: ClassName
-footerPanelBg = ClassName "footer-panel-bg"
-
-analysisPanel :: ClassName
-analysisPanel = ClassName "analysis-panel"
 
 alignedButtonInTheMiddle :: ClassName
 alignedButtonInTheMiddle = ClassName "aligned-button-in-the-middle"

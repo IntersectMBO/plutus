@@ -29,7 +29,7 @@ import Effect.Class (class MonadEffect, liftEffect)
 import Halogen (ClassName(..), Component, HalogenM, raise)
 import Halogen as H
 import Halogen.Analytics (withAnalytics)
-import Halogen.Classes (aHorizontal, active, bold, closeDrawerIcon, expanded, first, infoIcon, jFlexStart, minusBtn, noMargins, panelSubHeader, panelSubHeaderMain, panelSubHeaderSide, plusBtn, pointer, rTable, rTable4cols, rTableCell, rTableDataRow, rTableEmptyRow, sidebarComposer, smallBtn, spaceLeft, spanText, textSecondaryColor, uppercase)
+import Halogen.Classes (aHorizontal, active, bold, closeDrawerIcon, expanded, first, fullHeight, infoIcon, jFlexStart, minusBtn, noMargins, plusBtn, pointer, rTable, rTable4cols, rTableCell, rTableDataRow, rTableEmptyRow, sidebarComposer, smallBtn, spaceLeft, spanText, textSecondaryColor, uppercase)
 import Halogen.Classes as Classes
 import Halogen.HTML (HTML, a, article, aside, b_, br_, button, div, h6, hr_, img, input, li, option, p, p_, section, select, small, small_, strong_, text, ul)
 import Halogen.HTML (code_, span) as HTML
@@ -316,8 +316,8 @@ scrollHelpPanel =
 render :: forall p. State -> HTML p Action
 render state =
   div [ classes [ ClassName "full-height" ] ]
-    [ section [ classes [ panelSubHeader, aHorizontal ] ]
-        [ div [ classes [ panelSubHeaderMain, aHorizontal ] ]
+    [ section [ classes [ aHorizontal ] ]
+        [ div [ classes [ aHorizontal ] ]
             [ div [ classes [ ClassName "wallet-title", aHorizontal, jFlexStart ] ]
                 [ div [ classes [ ClassName "demos", spaceLeft ] ]
                     [ small_ [ text "Created Wallets:" ]
@@ -328,12 +328,12 @@ render state =
             , addWalletButton
             , a [ class_ (ClassName "clear-all-contracts"), onClick $ const $ Just ResetAll ] [ text "Clear All" ]
             ]
-        , div [ classes [ panelSubHeaderSide, expanded (state ^. _showRightPanel) ] ]
+        , div [ classes [ expanded (state ^. _showRightPanel) ] ]
             [ a [ classes [ (ClassName "drawer-icon-click") ], onClick $ const $ Just $ ShowRightPanel (state ^. (_showRightPanel <<< to not)) ]
                 [ img [ src closeDrawerIcon, class_ (ClassName "drawer-icon") ] ]
             ]
         ]
-    , section [ classes [ ClassName "code-panel", ClassName "full-height" ] ]
+    , section [ classes [ fullHeight ] ]
         [ mainPanel state
         , rightPanel state
         ]
@@ -387,12 +387,12 @@ mainPanel state =
   renderContract'
     | not started =
       [ button
-          [ classes [ ClassName "tooltip", ClassName "start-simulation-btn" ]
+          [ classes [ ClassName "tooltip" ]
           , onClick $ const $ Just $ StartContract
           ]
           [ text "Start"
           ]
-      , div [ classes [ ClassName "code-editor", ClassName "expanded", ClassName "code" ] ]
+      , div [ classes [ ClassName "expanded", ClassName "code" ] ]
           numberedText
       ]
       where
@@ -405,7 +405,7 @@ mainPanel state =
               <> [ renderCurrentState state
                 ]
           )
-      , div [ classes [ ClassName "code-editor", ClassName "expanded", ClassName "code" ] ]
+      , div [ classes [ ClassName "expanded", ClassName "code" ] ]
           numberedText
       ]
       where
@@ -436,17 +436,17 @@ renderActions state =
                     ]
                 )
             ]
-          <> [ div [ classes [ aHorizontal, ClassName "transaction-composer" ] ]
+          <> [ div [ classes [ aHorizontal ] ]
                 [ h6 [ classes [ ClassName "input-composer-heading", noMargins ] ]
                     [ small [ classes [ textSecondaryColor, bold, uppercase ] ] [ text "Transaction Composer" ] ]
                 , a [ onClick $ const $ Just $ ChangeHelpContext TransactionComposerHelp ] [ img [ src infoIcon, alt "info book icon" ] ]
                 ]
             ]
-          <> [ div [ classes [ ClassName "transaction-composer", ClassName "composer" ] ]
+          <> [ div [ classes [ ClassName "composer" ] ]
                 ( if hasTransactions then
                     [ transactionComposer state
                     , div [ class_ (ClassName "transaction-btns") ]
-                        [ ul [ classes [ ClassName "demo-list", aHorizontal ] ]
+                        [ ul [ classes [ aHorizontal ] ]
                             [ li [ class_ (ClassName "apply-transaction-button") ]
                                 [ button
                                     [ onClick $ const $ Just ApplyTransaction
@@ -836,7 +836,7 @@ renderContracts state =
 
     contracts = state ^. (_walletContracts pubKey <<< to Map.values <<< to Array.fromFoldable)
   in
-    div [ classes [ panelSubHeaderMain, aHorizontal ] ]
+    div [ classes [ aHorizontal ] ]
       [ div [ classes [ ClassName "wallet-title", aHorizontal, jFlexStart ] ]
           [ div [ classes [ ClassName "demos", spaceLeft ] ]
               [ small_ [ text "Contracts:" ]
@@ -894,7 +894,7 @@ inputItem isEnabled person (DepositInput accountId party token value) =
 
 inputItem isEnabled person (ChoiceInput choiceId@(ChoiceId choiceName choiceOwner) bounds chosenNum) =
   li
-    [ classes [ aHorizontal, ClassName "flex-wrap", ClassName "choice-row" ] ]
+    [ classes [ aHorizontal, ClassName "choice-row" ] ]
     ( [ div []
           [ p [ class_ (ClassName "choice-input") ]
               [ b_ [ spanText (show choiceOwner) ]

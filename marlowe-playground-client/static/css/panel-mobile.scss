@@ -18,51 +18,6 @@
     margin-right: 1rem;
   }
 
-  .composer ul {
-    width: 100%;
-    max-width: inherit;
-  }
-
-  .panel-header,
-  .code-panel {
-    position: relative;
-  }
-
-  .code-panel .sidebar-composer.expanded {
-    width: 500px;
-  }
-
-  .code-panel .sidebar-composer {
-    position: absolute;
-    top: 0;
-    right: 0;
-    width: 200px;
-    padding-left: 0.5rem;
-    background: var(--bg-light);
-    box-shadow: var(--box-shadow-left);
-    z-index: 1;
-    transform: translateX(95%);
-    transition: transform .3s ease-in-out;
-  }
-
-  .panel-sub-header .panel-sub-header-side {
-    position: absolute;
-    display: flex;
-    top: 0;
-    right: 0;
-    width: 200px;
-    padding-left: 0.5rem;
-    background: var(--bg-light);
-    box-shadow: var(--box-shadow-left);
-    z-index: 1;
-    transform: translateX(95%);
-    transition: transform .3s ease-in-out;
-  }
-
-  .panel-sub-header-main {
-    padding-right: 2rem;
-  }
-
   .github-gist-panel {
     width: 29rem;
     display: none;
@@ -75,31 +30,6 @@
 
   #publish-gist {
     height: 30px;
-  }
-
-  .panel-header .panel-header-side.expanded,
-  .panel-sub-header .panel-sub-header-side.expanded,
-  .code-panel .sidebar-composer.expanded {
-    transform: translatex(0);
-  }
-
-  .code-panel .sidebar-composer .drawer-icon-container {
-    opacity: 1;
-  }
-
-  .code-panel .sidebar-composer>div,
-  .code-panel .sidebar-composer>article {
-    opacity: 0;
-    transition: opacity .3s ease-in;
-  }
-
-  .code-panel .sidebar-composer.expanded>div,
-  .code-panel .sidebar-composer.expanded>article {
-    opacity: 1;
-  }
-
-  .simulation-bottom-panel {
-    width: 90%;
   }
 }
 

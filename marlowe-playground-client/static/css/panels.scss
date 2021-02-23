@@ -1,63 +1,3 @@
-.panel-header-main,
-.panel-header-side {
-  min-height: 3rem;
-}
-
-
-
-.panel-header-main,
-.panel-sub-header-main,
-.code-editor
-{
-  flex: 10;
-}
-
-.panel-header-side,
-.panel-sub-header-side,
-.sidebar-composer {
-  flex: 4;
-}
-
-.panel-sub-header-main {
-  min-height: 3.5rem;
-}
-
-.panel-sub-header-side {
-  min-height: 0rem;
-}
-
-.panel-sub-header-main {
-  display: flex;
-  justify-content: flex-start;
-  font-weight: bold;
-  color: var(--text-color-inactive);
-}
-
-.demo-list {
-  flex: 6;
-  display: flex;
-  justify-content: space-between;
-}
-
-.demo-list li + li {
-  border-left: 1px solid var(--layout-accent-color);
-}
-
-.demo-list li {
-  padding: 0 1vw;
-  line-height: 1.2;
-  text-align: center;
-  width: 100%;
-}
-
-.demo-list li.active {
-  color: var(--secondary-color);
-}
-
-.minimize-icon-container {
-  padding-top: 6px;
-}
-
 .drawer-icon,
 .minimize-icon {
   height: 30px;
@@ -74,77 +14,6 @@
 
 .minimize-icon {
   transform: rotate(180deg);
-}
-
-.code-panel {
-  display: flex;
-  height: 100%;
-}
-
-.code-editor {
-  background: var(--white);
-  padding-bottom: 0rem;
-  overflow-x: unset;
-}
-
-@media (min-height: 1024px) {
-  .code-editor {
-    padding-bottom: 14rem;
-  }
-}
-
-@media (min-height: 1050px) {
-  .code-editor {
-    padding-bottom: 16rem;
-  }
-}
-
-@media (min-height: 1200px) {
-  .code-editor {
-    padding-bottom: 14rem;
-  }
-}
-
-.code-editor.expanded {
-  padding-bottom: 4rem;
-}
-
-.expanded > .code-editor {
-  padding-bottom: 2rem;
-}
-
-.panel-header-side,
-.panel-sub-header-side {
-  padding-left: 0px;
-  padding-top: 12px;
-}
-
-.sidebar-composer {
-  padding-left: 20px;
-  padding-bottom: 7rem;
-  overflow-y: unset;
-}
-
-.composer {
-  padding: 1rem;
-  margin-top: 1rem;
-  border-radius: var(--border-radius);
-  background: var(--white);
-  box-shadow: 0 3px 27px 0 rgba(0, 0, 0, 0.08);
-}
-
-.composer ul {
-  margin: 0 auto;
-  max-width: 22vw;
-}
-
-.composer input {
-  height: 30px;
-  padding: 0 0.1rem;
-}
-
-.composer .slot-input input {
-  width: 150px;
 }
 
 .initial-slot-input {
@@ -237,10 +106,6 @@ button.minus-btn:hover {
   text-decoration: underline dotted red;
 }
 
-.underline-yellow {
-  text-decoration: underline dotted yellow;
-}
-
 .inline-code {
   font-family: monospace;
   white-space: pre;
@@ -251,43 +116,6 @@ button.minus-btn:hover {
   padding: 0rem;
   margin: 0rem 0rem -0.3rem 0rem;
 }
-
-.analysis-panel {
-  position: absolute;
-  width: calc(100% - 4rem);
-  bottom: 0;
-  z-index: 1;
-  resize: vertical;
-  overflow: hidden;
-  transform: rotateX(180deg);
-  box-shadow: var(--box-shadow-inverted);
-}
-
-.analysis-panel.collapsed {
-  height: 8em;
-}
-
-
-.analysis-panel .panel-header {
-  margin-bottom: 0;
-}
-
-.footer-panel-bg {
-  padding: 1rem 2rem 3rem 2rem;
-  background: var(--bg-light);
-  height: 100%;
-}
-
-.footer-panel-bg .panel-header {
-  height: 3rem;
-  margin-bottom: 0.5rem;
-}
-
-/* V impoprtant to add this, either treble the class like this to enhance specificity or use !important if needed */
-.ace_gutter.ace_gutter.ace_gutter {
-  z-index: 1;
-}
-
 
 .collapsed {
   resize: none;
@@ -302,47 +130,10 @@ button.minus-btn:hover {
   display: none;
 }
 
-.error-row {
-  display: flex;
-  width: 100%;
-  justify-content: space-between;
-}
-
-.error-headers {
-  font-weight: bold;
-  padding: 1rem 0rem 0.5rem 0rem;
-}
-
-.demo-list li a.disabled {
-  color: lightgray;
-  pointer-events: none;
-  cursor: default;
-}
-
 .global-actions li a.disabled {
   color: lightgray;
   pointer-events: none;
   cursor: default;
-}
-
-.rotate-left {
-  transform: rotate(270deg);
-}
-
-.rotate-right {
-  transform: rotate(90deg);
-}
-
-#blocklyWorkspace > button {
-  margin: 1rem 0;
-}
-
-#actusBlocklyWorkspace > button {
-  margin: 1rem 0;
-}
-
-.error-content {
-  padding-top: 1rem;
 }
 
 .editor-options select {
@@ -366,10 +157,6 @@ button.minus-btn:hover {
 .indented-loweralpha-enum {
   list-style-type: lower-alpha;
   padding-left: 1.5rem;
-}
-
-.full-height {
-  height: 100%;
 }
 
 .flip-x {
@@ -410,23 +197,6 @@ button.minus-btn:hover {
 
 .editor-help img {
   vertical-align: top;
-}
-
-.actus-buttons {
-  padding-left: 1rem;
-}
-
-.transaction-composer {
-  margin-top: 1rem;
-}
-
-.transaction-composer ul li ul {
-  display: flex;
-}
-
-.transaction-composer p {
-  line-height: 1.4;
-  flex: 1;
 }
 
 .participants li + li {

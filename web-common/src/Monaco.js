@@ -140,7 +140,6 @@ exports.revealLine_ = function (editor, lineNumber) {
 }
 
 exports.layout_ = function (editor) {
-  console.log('ea ea editor layout3')
   editor.layout();
 }
 

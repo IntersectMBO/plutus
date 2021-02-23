@@ -9,10 +9,9 @@ import Effect.Aff.Class (class MonadAff)
 import Gists.Types (GistAction(..))
 import Halogen (ComponentHTML)
 import Halogen.ActusBlockly as ActusBlockly
-import Halogen.Classes (aHorizontal, active, bgDark, flex, flexCol, fontSemibold, fullHeight, fullWidth, group, hide, justifyBetween, noMargins, paddingX, smallPaddingLeft, smallPaddingRight, smallPaddingY, smallSpaceBottom, spaceLeft, spaceRight, text3xl, textLg, textWhite, uppercase, vl)
-import Halogen.Classes as Classes
+import Halogen.Classes (aHorizontal, active, bgDark, flex, flexCol, fontSemibold, fullHeight, fullWidth, group, hide, justifyBetween, noMargins, paddingLeft, paddingX, smallPaddingLeft, smallPaddingRight, smallPaddingY, smallSpaceBottom, spaceLeft, spaceRight, text3xl, textLg, textWhite, uppercase, vl)
 import Halogen.Extra (renderSubmodule)
-import Halogen.HTML (ClassName(ClassName), HTML, a, div, div_, footer, h1, h1_, h2, header, hr_, main, section, slot, span, text)
+import Halogen.HTML (ClassName(ClassName), HTML, a, div, div_, footer, h1, h2, header, main, section, slot, span, text)
 import Halogen.HTML.Events (onClick)
 import Halogen.HTML.Properties (class_, classes, href, id_, target)
 import Halogen.SVG (GradientUnits(..), Translate(..), d, defs, gradientUnits, linearGradient, offset, path, stop, stopColour, svg, transform, x1, x2, y2)
@@ -40,7 +39,7 @@ render state =
           [ div [ classes [ aHorizontal, fullWidth, bgDark, paddingX, smallPaddingY ] ]
               [ div [ classes [ group, aHorizontal, ClassName "marlowe-title-group" ] ]
                   [ div [ class_ (ClassName "marlowe-logo"), onClick $ const $ Just $ ChangeView HomePage ] [ marloweIcon ]
-                  , h2 [ classes [ spaceLeft, uppercase, spaceRight ] ] [ text "Marlowe Playground" ]
+                  , h2 [ classes [ paddingLeft, uppercase, spaceRight ] ] [ text "Marlowe Playground" ]
                   ]
               , projectTitle
               , div [ classes [ group, ClassName "marlowe-links-group" ] ]

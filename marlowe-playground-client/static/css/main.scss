@@ -22,24 +22,6 @@
 @import './simulation.scss';
 @import './save-as-modal.scss';
 
-.ace_editor {
-    height: 100%;
-    width: 100%;
-}
-
-.haskell-editor .ace_editor {
-    height: 100%;
-}
-
-.haskell-editor.expanded .ace_editor {
-    height: 120%;
-}
-
-.actus-blockly-workspace {
-    height: 80vh;
-    width: 100%;
-}
-
 a:hover {
     cursor: pointer;
 }
@@ -94,10 +76,6 @@ a:hover {
     background-size: 42px;
 }
 
-.panel-table {
-    height: 8rem;
-}
-
 /* Tooltip text */
 .tooltip .tooltiptext {
     visibility: hidden;
@@ -146,43 +124,6 @@ a:hover {
 
 .download-btn>.tooltiptext::after {
     left: 85%;
-}
-
-.code-to-blockly-wrap>.tooltip>.tooltiptext {
-    right: -10px;
-    top: 30px;
-    width: 13em;
-}
-
-.code-to-blockly-wrap>.tooltip>.tooltiptext::after {
-    left: 85%;
-}
-
-.load-from-simulation-btn.tooltip>.tooltiptext {
-    right: -15px;
-    top: 35px;
-    width: 13em;
-}
-
-.load-from-simulation-btn.tooltip>.tooltiptext::after {
-    left: 85%;
-}
-
-.start-simulation-btn.tooltip>.tooltiptext {
-    right: -146px;
-    top: 35px;
-    width: 13em;
-}
-
-.start-simulation-btn.tooltip>.tooltiptext::after {
-    left: 15%;
-}
-
-button.start-simulation-btn {
-    padding-left: 1rem;
-    padding-right: 1rem;
-    height: 30px;
-    margin-bottom: 1rem;
 }
 
 .choice-error {
