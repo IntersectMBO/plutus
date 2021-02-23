@@ -185,7 +185,6 @@
           "Plutus/PAB/Relation"
           "Plutus/PAB/PABLogMsg"
           "Plutus/PAB/Types"
-          "Plutus/PAB/Utils"
           ];
         hsSourceDirs = [ "src" ];
         };
@@ -244,6 +243,7 @@
             (hsPkgs."base" or (errorHandler.buildDepError "base"))
             (hsPkgs."plutus-pab" or (errorHandler.buildDepError "plutus-pab"))
             (hsPkgs."plutus-use-cases" or (errorHandler.buildDepError "plutus-use-cases"))
+            (hsPkgs."text" or (errorHandler.buildDepError "text"))
             ];
           buildable = true;
           hsSourceDirs = [ "currency-contract" ];
@@ -252,6 +252,7 @@
         "plutus-atomic-swap" = {
           depends = [
             (hsPkgs."base" or (errorHandler.buildDepError "base"))
+            (hsPkgs."text" or (errorHandler.buildDepError "text"))
             (hsPkgs."plutus-pab" or (errorHandler.buildDepError "plutus-pab"))
             ];
           buildable = true;
@@ -262,6 +263,7 @@
           depends = [
             (hsPkgs."base" or (errorHandler.buildDepError "base"))
             (hsPkgs."plutus-pab" or (errorHandler.buildDepError "plutus-pab"))
+            (hsPkgs."text" or (errorHandler.buildDepError "text"))
             ];
           buildable = true;
           hsSourceDirs = [ "pay-to-wallet-contract" ];
