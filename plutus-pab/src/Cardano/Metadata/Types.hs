@@ -22,7 +22,35 @@
 -- Since it's a phantom type, the underlying data representation is
 -- the same in every case, so you are allowed to use
 -- 'Data.Coerce.coerce' to freely switch between encodings.
-module Cardano.Metadata.Types where
+
+module Cardano.Metadata.Types (
+      Subject (..)
+    , AnnotatedSignature (..)
+    , SubjectProperties (..)
+    , Property (..)
+    , PropertyKey
+    , MetadataError (..)
+    , Query (..)
+    , QueryResult (..)
+    , HashFunction (..)
+
+    -- * Encoding (aeson or external)
+    , JSONEncoding (..)
+
+    -- * Configuration
+    , MetadataConfig (..)
+
+    -- * Logging
+    , MetadataLogMessage (..)
+
+    -- * Effects
+    , MetadataEffect (..)
+    , batchQuery
+    , getProperty
+    , getProperties
+    , toPropertyKey
+    , toSubject
+    ) where
 
 import           Cardano.BM.Data.Tracer            (ToObject (..))
 import           Cardano.BM.Data.Tracer.Extras     (Tagged (..), mkObjectStr)
@@ -50,6 +78,9 @@ import           Plutus.PAB.Instances              ()
 import           Servant.API                       (FromHttpApiData, ToHttpApiData)
 import           Servant.Client                    (BaseUrl, ClientError)
 import           Test.QuickCheck.Arbitrary.Generic (Arbitrary, arbitrary, genericArbitrary)
+
+newtype MetadataUrl = MetadataUrl BaseUrl
+    deriving (Show, Eq)
 
 newtype MetadataConfig =
     MetadataConfig

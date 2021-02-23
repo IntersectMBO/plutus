@@ -66,7 +66,7 @@ import           Plutus.PAB.PABLogMsg               (ContractExeLogMsg (..), PAB
 import           Plutus.PAB.Types                   (Config (Config), ContractExe (..), PABError (..), chainIndexConfig,
                                                      dbConfig, metadataServerConfig, nodeServerConfig,
                                                      signingProcessConfig, walletServerConfig)
-import           Servant.Client                     (BaseUrl, ClientEnv, ClientError, mkClientEnv)
+import           Servant.Client                     (ClientEnv, ClientError, mkClientEnv)
 import           System.Exit                        (ExitCode (ExitFailure, ExitSuccess))
 import           System.Process                     (readProcessWithExitCode)
 import           Wallet.Effects                     (ChainIndexEffect, ContractRuntimeEffect, NodeClientEffect,
