@@ -31,7 +31,7 @@ import           Cardano.Node.Types                 (MockServerConfig (..), Node
 import qualified Cardano.SigningProcess.Client      as SigningProcessClient
 import qualified Cardano.SigningProcess.Server      as SigningProcess
 import qualified Cardano.Wallet.Client              as WalletClient
-import qualified Cardano.Wallet.Server              as WalletServer
+import qualified Cardano.Wallet.Types               as Wallet
 import           Control.Monad.Catch                (MonadCatch)
 import           Control.Monad.Freer
 import           Control.Monad.Freer.Error          (Error, handleError, runError, throwError)
@@ -194,7 +194,7 @@ mkEnv Config { dbConfig
              , signingProcessConfig
              , chainIndexConfig
              } = do
-    walletClientEnv <- clientEnv (WalletServer.baseUrl walletServerConfig)
+    walletClientEnv <- clientEnv (Wallet.baseUrl walletServerConfig)
     nodeClientEnv <- clientEnv (mscBaseUrl nodeServerConfig)
     metadataClientEnv <- clientEnv (Metadata.mdBaseUrl metadataServerConfig)
     signingProcessEnv <-
