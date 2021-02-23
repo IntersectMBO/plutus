@@ -52,6 +52,7 @@ library
         Cardano.ChainIndex.Types
         Cardano.Metadata.API
         Cardano.Metadata.Client
+        Cardano.Metadata.Mock
         Cardano.Metadata.Server
         Cardano.Metadata.Types
         Cardano.Node.API
