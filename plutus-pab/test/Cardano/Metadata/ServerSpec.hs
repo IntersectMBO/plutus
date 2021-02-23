@@ -7,7 +7,8 @@ module Cardano.Metadata.ServerSpec
     ( tests
     ) where
 
-import           Cardano.Metadata.Server        (annotatedSignature1, handleMetadata, script1)
+import           Cardano.Metadata.Mock          (annotatedSignature1, script1)
+import           Cardano.Metadata.Server        (handleMetadata)
 import           Cardano.Metadata.Types         (HashFunction (SHA256), MetadataEffect, MetadataError,
                                                  MetadataLogMessage, Property (Name, Preimage),
                                                  PropertyKey (PropertyKey), Query (QuerySubjects),

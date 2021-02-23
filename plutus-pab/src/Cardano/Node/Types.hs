@@ -47,6 +47,9 @@ module Cardano.Node.Types
     -- * Config types
     , MockServerConfig (..)
     , BlockReaperConfig (..)
+
+    -- * newtype wrappers
+    , NodeUrl (..)
     )
         where
 
@@ -79,6 +82,9 @@ import qualified Cardano.Protocol.Socket.Server as Server
 import           Plutus.PAB.Arbitrary           ()
 
 -- Configuration ------------------------------------------------------------------------------------------------------
+
+newtype NodeUrl = NodeUrl BaseUrl
+    deriving (Show, Eq) via BaseUrl
 
 -- | Mock Node server configuration
 data MockServerConfig =

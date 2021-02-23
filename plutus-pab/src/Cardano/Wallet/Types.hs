@@ -18,12 +18,11 @@ module Cardano.Wallet.Types (
     , WalletMsg (..)
 
      -- * newtypes for convenience
-    , NodeUrl (..)
-    , ChainIndexUrl (..)
     , Port (..)
     , NodeClient (..)
     , ChainClient (..)
     , WalletUrl (..)
+    , ChainIndexUrl
     ) where
 
 import           Control.Monad.Freer.Error          (Error)
@@ -38,6 +37,7 @@ import           Servant.Client                     (BaseUrl, ClientError)
 
 import           Cardano.BM.Data.Tracer             (ToObject (..))
 import           Cardano.BM.Data.Tracer.Extras      (Tagged (..), mkObjectStr)
+import           Cardano.ChainIndex.Types           (ChainIndexUrl)
 import           Plutus.PAB.Arbitrary               ()
 import           Servant.Client.Internal.HttpClient (ClientEnv)
 import           Wallet.Effects                     (ChainIndexEffect, NodeClientEffect, WalletEffect)
@@ -58,14 +58,8 @@ newtype NodeClient = NodeClient ClientEnv
 
 newtype ChainClient = ChainClient ClientEnv
 
-newtype NodeUrl = NodeUrl BaseUrl
-    deriving (Eq, Show) via BaseUrl
-
 newtype WalletUrl = WalletUrl BaseUrl
     deriving (Eq, Show, ToJSON, FromJSON) via BaseUrl
-
-newtype ChainIndexUrl = ChainIndexUrl BaseUrl
-    deriving (Eq, Show) via BaseUrl
 
 newtype Port = Port Int
     deriving (Show)
