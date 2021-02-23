@@ -21,6 +21,8 @@
 , sqlite-interactive
 , client
 , pab-exes
+, pkgs
+, lib
 }:
 let
   inherit (pab-exes)
@@ -33,77 +35,33 @@ let
     prism-unlock-sto
     prism-unlock-exchange;
 
+  mkConf = pkgs.callPackage ./config.nix { };
+
 
   # mkSetup :: Conf -> Store Path
   # Takes a Conf object and creates a config file and a sqlite database
   mkSetup = conf:
     let
-      cfg = mkConf { inherit conf; };
+      cfg = mkConf conf;
     in
     runCommand "pab-setup" { } ''
       echo "Creating PAB database"
       ${pab} --config=${cfg} migrate
-      ${sqlite-interactive}/bin/sqlite3 /tmp/pab-core.db '.tables'
+      ${sqlite-interactive}/bin/sqlite3 ${conf.db-file} '.tables'
       mkdir $out
-      cp /tmp/pab-core.db* $out/
+      cp ${conf.db-file}* $out/
       cp ${cfg} $out/plutus-pab.yaml
-    '';
-
-  # mkConf :: { dbFile, Conf } -> Store Path
-  # Takes an optional database path and a configuration object and 
-  # creates a config file
-  mkConf = { conf }: writeText "pab-setup"
-    ''
-      dbConfig:
-          dbConfigFile: /tmp/pab-core.db
-          dbConfigPoolSize: 20
-
-      pabWebserverConfig:
-        baseUrl: http://localhost:${conf.webserver-port}
-        staticDir: ${client}
-
-      walletServerConfig:
-        baseUrl: http://localhost:${conf.walletserver-port}
-        wallet:
-          getWallet: ${conf.wallet}
-
-      nodeServerConfig:
-        mscBaseUrl: http://localhost:${conf.nodeserver-port}
-        mscSocketPath: ./node-server.sock
-        mscSlotLength: 5
-        mscRandomTxInterval: 20000000
-        mscBlockReaper:
-          brcInterval: 6000000
-          brcBlocksToKeep: 100000
-        mscInitialTxWallets:
-          - getWallet: 1
-          - getWallet: 2
-          - getWallet: 3
-
-      chainIndexConfig:
-        ciBaseUrl: http://localhost:${conf.chain-index-port}
-        ciWatchedAddresses: []
-
-      requestProcessingConfig:
-        requestProcessingInterval: 1
-
-      signingProcessConfig:
-        spBaseUrl: http://localhost:${conf.signing-process-port}
-        spWallet:
-          getWallet: ${conf.wallet}
-
-      metadataServerConfig:
-        mdBaseUrl: http://localhost:${conf.metadata-server-port}
-
     '';
 
   # mock node, needs to be the same for all PABs
   node-port = "8082";
+  db-file = "/tmp/pab-core.db";
 
   pab = "${pab-exes.plutus-pab}/bin/plutus-pab";
 
   primary-config = {
-    configname = "demo-primary";
+    inherit db-file client;
+    name = "demo-primary";
     webserver-port = "8080";
     walletserver-port = "8081";
     nodeserver-port = "${node-port}";
@@ -114,7 +72,8 @@ let
   };
 
   secondary-config = {
-    configname = "demo-secondary";
+    inherit db-file client;
+    name = "demo-secondary";
     webserver-port = "8086";
     walletserver-port = "8087";
     nodeserver-port = "${node-port}";

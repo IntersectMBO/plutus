@@ -42,6 +42,13 @@ resource "aws_security_group" "public_alb" {
     cidr_blocks = var.private_subnet_cidrs
   }
 
+  egress {
+    from_port   = 8080
+    to_port     = 8080
+    protocol    = "TCP"
+    cidr_blocks = var.private_subnet_cidrs
+  }
+
   tags = {
     Name        = "${local.project}_${var.env}_public_alb"
     Project     = local.project
@@ -240,14 +247,14 @@ resource "aws_alb_listener_rule" "marlowe_dash" {
 resource "aws_alb_target_group_attachment" "marlowe_dash_a" {
   target_group_arn = aws_alb_target_group.marlowe_dash.arn
   target_id        = aws_instance.marlowe_dash_a.id
-  port             = "80"
+  port             = "8080"
 }
 
-resource "aws_alb_target_group_attachment" "marlowe_dash_b" {
-  target_group_arn = aws_alb_target_group.marlowe_dash.arn
-  target_id        = aws_instance.marlowe_dash_b.id
-  port             = "80"
-}
+# resource "aws_alb_target_group_attachment" "marlowe_dash_b" {
+#   target_group_arn = aws_alb_target_group.marlowe_dash.arn
+#   target_id        = aws_instance.marlowe_dash_b.id
+#   port             = "8080"
+# }
 
 resource "aws_route53_record" "marlowe_dash_alb" {
   zone_id = var.marlowe_dash_public_zone

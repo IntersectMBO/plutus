@@ -38,6 +38,8 @@ rec {
     plutus-atomic-swap
     plutus-pay-to-wallet;
 
+  inherit (haskell.packages.marlowe.components.exes) marlowe-app;
+
   webCommon = pkgs.callPackage ./web-common { inherit (plutus.lib) gitignore-nix; };
   webCommonPlutus = pkgs.callPackage ./web-common-plutus { inherit (plutus.lib) gitignore-nix; };
   webCommonMarlowe = pkgs.callPackage ./web-common-marlowe { inherit (plutus.lib) gitignore-nix; };

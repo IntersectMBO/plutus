@@ -6,5 +6,6 @@ let
   marloweDash = configurations.marloweDash "testhost" { inherit pkgs lib config; };
   webGhc = configurations.webGhc "testhost" { inherit pkgs lib config; };
   prometheus = configurations.prometheus { hostName = "testhost"; environment = "test"; promTargets = [ ]; };
+  pab = configurations.pab "testhost" { inherit pkgs lib config; };
 in
-[ (pkgs.nixos marloweDash) (pkgs.nixos webGhc) (pkgs.nixos prometheus) ]
+[ (pkgs.nixos marloweDash) (pkgs.nixos webGhc) (pkgs.nixos prometheus) (pkgs.nixos pab) ]
