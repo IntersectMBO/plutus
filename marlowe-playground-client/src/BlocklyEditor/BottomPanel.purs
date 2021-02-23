@@ -4,21 +4,15 @@ module BlocklyEditor.BottomPanel
 
 import Prelude hiding (div)
 import BlocklyEditor.Types (Action(..), BottomPanelView(..), State, _warnings)
-import Data.Array (drop, head)
 import Data.Array as Array
 import Data.Lens (to, (^.))
 import Data.Maybe (Maybe(..))
-import Data.String (take)
-import Data.String.Extra (unlines)
-import Data.Tuple.Nested ((/\))
-import Halogen.Classes (aHorizontal, flex, flexCol, flexLeft, fontBold, fullWidth, grid, gridColsDescriptionLocation, justifySelfEnd, paddingRight, underline)
-import Halogen.Classes as Classes
-import Halogen.HTML (ClassName(..), HTML, a, div, div_, li, pre, pre_, section, section_, span_, text, ul_)
+import Halogen.Classes (flex, flexCol, fontBold, fullWidth, grid, gridColsDescriptionLocation, justifySelfEnd, paddingRight, underline)
+import Halogen.HTML (HTML, a, div, pre_, section, section_, span_, text)
 import Halogen.HTML.Events (onClick)
 import Halogen.HTML.Properties (class_, classes)
 import StaticAnalysis.BottomPanel (analysisResultPane, analyzeButton, clearButton)
 import StaticAnalysis.Types (_analysisExecutionState, _analysisState, isCloseAnalysisLoading, isNoneAsked, isReachabilityLoading, isStaticLoading)
-import Text.Parsing.StringParser.Basic (lines)
 
 panelContents :: forall p. State -> BottomPanelView -> HTML p Action
 panelContents state StaticAnalysisView =

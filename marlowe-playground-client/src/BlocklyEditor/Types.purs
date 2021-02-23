@@ -31,6 +31,7 @@ data Action
   | SetIntegerTemplateParam IntegerTemplateType String BigInteger
   | ClearAnalysisResults
   | SelectWarning Warning
+  | ResizeWorkspace
 
 defaultEvent :: String -> Event
 defaultEvent s = (A.defaultEvent $ "BlocklyEditor." <> s) { category = Just "Blockly" }
@@ -49,6 +50,7 @@ instance blocklyActionIsEvent :: IsEvent Action where
   toEvent (SetIntegerTemplateParam _ _ _) = Just $ defaultEvent "SetIntegerTemplateParam"
   toEvent ClearAnalysisResults = Just $ defaultEvent "ClearAnalysisResults"
   toEvent (SelectWarning _) = Just $ defaultEvent "SelectWarning"
+  toEvent ResizeWorkspace = Just $ defaultEvent "ResizeWorkspace"
 
 data BottomPanelView
   = StaticAnalysisView

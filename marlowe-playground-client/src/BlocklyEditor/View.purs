@@ -29,7 +29,10 @@ render ::
   ComponentHTML Action ChildSlots m
 render state =
   div [ classes [ flex, flexCol, fullHeight ] ]
-    [ section [ classes [ paddingX, minH0, overflowHidden, fullHeight ] ]
+    [ section
+        [ id_ "blockly-editor-main-section"
+        , classes [ paddingX, minH0, overflowHidden, fullHeight ]
+        ]
         [ slot _blocklySlot unit (Blockly.blockly MB.rootBlockName MB.blockDefinitions) unit (Just <<< HandleBlocklyMessage)
         , toolbox
         , workspaceBlocks

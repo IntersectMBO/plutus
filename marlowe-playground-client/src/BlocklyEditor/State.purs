@@ -12,27 +12,24 @@ import Control.Monad.Maybe.Extra (hoistMaybe)
 import Control.Monad.Maybe.Trans (MaybeT(..), runMaybeT)
 import Control.Monad.Reader (class MonadAsk)
 import Data.Array as Array
-import Data.Either (Either(..), either, hush, note)
+import Data.Either (Either(..), hush, note)
+import Data.Foldable (for_)
 import Data.Lens (assign, modifying, over, set, use, view)
-import Data.List (List(..))
 import Data.Map as Map
 import Data.Maybe (Maybe(..), fromMaybe, maybe)
-import Debug.Trace (spy)
 import Effect.Aff.Class (class MonadAff)
 import Effect.Class (liftEffect)
-import Effect.Exception.Unsafe (unsafeThrow)
 import Env (Env)
 import Examples.Marlowe.Contracts (example) as ME
 import Halogen (HalogenM, modify_, query)
 import Halogen as H
+import Halogen.ElementResize (elementResize)
 import Halogen.Extra (mapSubmodule)
 import MainFrame.Types (ChildSlots, _blocklySlot)
 import Marlowe.Blockly (blockToContract)
 import Marlowe.Extended as EM
-import Marlowe.Holes (Location(..))
 import Marlowe.Holes as Holes
 import Marlowe.Linter as Linter
-import Marlowe.Parser as Parser
 import SessionStorage as SessionStorage
 import SimulationPage.Types (_templateContent)
 import StaticAnalysis.Reachability (analyseReachability, getUnreachableContracts)
@@ -40,6 +37,11 @@ import StaticAnalysis.StaticTools (analyseContract)
 import StaticAnalysis.Types (AnalysisExecutionState(..), _analysisExecutionState, _analysisState)
 import StaticData (marloweBufferLocalStorageKey)
 import Text.Pretty (pretty)
+import Web.DOM.NonElementParentNode (getElementById)
+import Web.DOM.ResizeObserver (ResizeObserverBoxOptions(..))
+import Web.HTML (window)
+import Web.HTML.HTMLDocument (toNonElementParentNode)
+import Web.HTML.Window (document)
 
 toBottomPanel ::
   forall m a.
@@ -57,13 +59,19 @@ handleAction ::
 handleAction Init = do
   mContents <- liftEffect $ SessionStorage.getItem marloweBufferLocalStorageKey
   handleAction $ InitBlocklyProject $ fromMaybe ME.example mContents
+  -- Subscribe to the resize events on the main section to resize blockly automatically
+  mElement <-
+    liftEffect do
+      doc <- document =<< window
+      getElementById "blockly-editor-main-section" $ toNonElementParentNode doc
+  for_ mElement $ H.subscribe <<< elementResize ContentBox (const ResizeWorkspace)
 
-handleAction (HandleBlocklyMessage Blockly.CodeChange) = processCode
+handleAction (HandleBlocklyMessage Blockly.CodeChange) = processBlocklyCode
 
 handleAction (InitBlocklyProject code) = do
   void $ query _blocklySlot unit $ H.tell (Blockly.SetCode code)
   liftEffect $ SessionStorage.setItem marloweBufferLocalStorageKey code
-  processCode
+  processBlocklyCode
 
 handleAction SendToSimulator = pure unit
 
@@ -73,9 +81,7 @@ handleAction Save = pure unit
 
 handleAction (BottomPanelAction (BottomPanel.PanelAction action)) = handleAction action
 
-handleAction (BottomPanelAction action) = do
-  toBottomPanel (BottomPanel.handleAction action)
-  void $ query _blocklySlot unit $ H.tell Blockly.Resize
+handleAction (BottomPanelAction action) = toBottomPanel (BottomPanel.handleAction action)
 
 handleAction (SetIntegerTemplateParam templateType key value) =
   modifying
@@ -92,12 +98,14 @@ handleAction ClearAnalysisResults = assign (_analysisState <<< _analysisExecutio
 
 handleAction (SelectWarning warning) = void $ query _blocklySlot unit $ H.tell (Blockly.SelectWarning warning)
 
--- This function reads the Marlowe code from blockly and updates the warnings and hole information
-processCode ::
+handleAction ResizeWorkspace = void $ query _blocklySlot unit $ H.tell Blockly.Resize
+
+-- This function reads the Marlowe code from blockly and, process it and updates the component state
+processBlocklyCode ::
   forall m.
   MonadAff m =>
   HalogenM State Action ChildSlots Void m Unit
-processCode = do
+processBlocklyCode = do
   eContract <-
     runExceptT do
       block <- ExceptT <<< map (note "Blockly Workspace is empty") $ query _blocklySlot unit $ H.request Blockly.GetBlockRepresentation
@@ -113,7 +121,7 @@ processCode = do
       let
         unreachableContracts = getUnreachableContracts analysisExecutionState
 
-        lintingState = spy "Linting state" $ Linter.lint unreachableContracts holesContract
+        lintingState = Linter.lint unreachableContracts holesContract
 
         hasHoles = Linter.hasHoles $ lintingState
 
@@ -153,7 +161,7 @@ runAnalysis doAnalyze =
         contract <- MaybeT $ pure $ Holes.fromTerm =<< (hush $ blockToContract block)
         lift do
           doAnalyze contract
-          processCode
+          processBlocklyCode
 
 editorGetValue :: forall state action msg m. HalogenM state action ChildSlots msg m (Maybe String)
 editorGetValue =
