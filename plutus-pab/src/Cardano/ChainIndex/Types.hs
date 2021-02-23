@@ -1,28 +1,44 @@
-{-# LANGUAGE DataKinds          #-}
-{-# LANGUAGE DeriveAnyClass     #-}
-{-# LANGUAGE DeriveGeneric      #-}
-{-# LANGUAGE DerivingStrategies #-}
-{-# LANGUAGE LambdaCase         #-}
-{-# LANGUAGE OverloadedStrings  #-}
-{-# LANGUAGE StrictData         #-}
-{-# LANGUAGE TemplateHaskell    #-}
-{-# LANGUAGE TypeApplications   #-}
+{-# LANGUAGE DataKinds         #-}
+{-# LANGUAGE DeriveAnyClass    #-}
+{-# LANGUAGE DeriveGeneric     #-}
+{-# LANGUAGE DerivingVia       #-}
+{-# LANGUAGE LambdaCase        #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE StrictData        #-}
+{-# LANGUAGE TemplateHaskell   #-}
+{-# LANGUAGE TypeApplications  #-}
 
 module Cardano.ChainIndex.Types where
 
 import           Control.Lens                   (makeLenses)
 import           Control.Monad.Freer.Extras.Log (LogMessage)
+import           Control.Monad.Freer.State
 import           Data.Aeson                     (FromJSON, ToJSON)
 import           Data.Sequence                  (Seq)
 import           Data.Text.Prettyprint.Doc      (Pretty (..), parens, (<+>))
 import           GHC.Generics                   (Generic)
 import           Servant.Client                 (BaseUrl)
 
+import           Cardano.BM.Data.Trace          (Trace)
 import           Cardano.BM.Data.Tracer         (ToObject (..))
 import           Cardano.BM.Data.Tracer.Extras  (Tagged (..), mkObjectStr)
 import           Cardano.Node.Types             (FollowerID)
+import           Control.Monad.Freer.Extras     (LogMsg)
 import           Ledger.Address                 (Address)
-import           Wallet.Emulator.ChainIndex     (ChainIndexEvent, ChainIndexState)
+import           Wallet.Effects                 (ChainIndexEffect)
+import           Wallet.Emulator.ChainIndex     (ChainIndexControlEffect, ChainIndexEvent, ChainIndexState)
+
+
+type ChainIndexEffects m
+     = '[ ChainIndexControlEffect
+        , ChainIndexEffect
+        , State ChainIndexState
+        , LogMsg ChainIndexEvent
+        , m
+        ]
+
+newtype ChainIndexUrl = ChainIndexUrl BaseUrl
+    deriving (Eq, Show, FromJSON, ToJSON) via BaseUrl
 
 data AppState =
     AppState
@@ -36,7 +52,7 @@ initialAppState = AppState mempty mempty Nothing
 
 data ChainIndexConfig =
     ChainIndexConfig
-        { ciBaseUrl          :: BaseUrl
+        { ciBaseUrl          :: ChainIndexUrl
         , ciWatchedAddresses :: [Address]
         }
     deriving stock (Show, Eq, Generic)
@@ -69,6 +85,8 @@ data ChainIndexServerMsg =
     | ChainEvent ChainIndexEvent
     deriving stock (Show, Generic)
     deriving anyclass (ToJSON, FromJSON)
+
+type ChainIndexTrace = Trace IO ChainIndexServerMsg
 
 instance Pretty ChainIndexServerMsg where
     pretty = \case

@@ -47,6 +47,7 @@ library
     exposed-modules:
         Cardano.BM.Data.Tracer.Extras
         Cardano.ChainIndex.API
+        Cardano.ChainIndex.ChainIndex
         Cardano.ChainIndex.Client
         Cardano.ChainIndex.Server
         Cardano.ChainIndex.Types
