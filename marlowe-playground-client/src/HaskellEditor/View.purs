@@ -6,7 +6,7 @@ import BottomPanel.View (render) as BottomPanel
 import Data.Array as Array
 import Data.Either (Either(..))
 import Data.Enum (toEnum, upFromIncluding)
-import Data.Lens (to, view, (^.))
+import Data.Lens (_Right, has, to, view, (^.))
 import Data.Maybe (Maybe(..))
 import Data.String (Pattern(..), split)
 import Data.String as String
@@ -24,7 +24,7 @@ import HaskellEditor.Types (Action(..), BottomPanelView(..), State, _bottomPanel
 import Language.Haskell.Interpreter (CompilationError(..), InterpreterError(..), InterpreterResult(..))
 import Language.Haskell.Monaco as HM
 import MainFrame.Types (ChildSlots, _haskellEditorSlot)
-import Network.RemoteData (RemoteData(..))
+import Network.RemoteData (RemoteData(..), _Success)
 import StaticAnalysis.BottomPanel (analysisResultPane, analyzeButton, clearButton)
 import StaticAnalysis.Types (_analysisExecutionState, _analysisState, isCloseAnalysisLoading, isNoneAsked, isReachabilityLoading, isStaticLoading)
 
@@ -169,9 +169,7 @@ panelContents state StaticAnalysisView =
 
   clearEnabled = not (anyAnalysisLoading || noneAskedAnalysis)
 
-  isCompiled = case view _compilationResult state of
-    Success (Right _) -> true
-    _ -> false
+  isCompiled = has (_compilationResult <<< _Success <<< _Right) state
 
 panelContents state ErrorsView =
   section
