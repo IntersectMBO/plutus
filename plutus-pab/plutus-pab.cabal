@@ -116,7 +116,6 @@ library
         Plutus.PAB.Relation
         Plutus.PAB.PABLogMsg
         Plutus.PAB.Types
-        Plutus.PAB.Utils
     other-modules:
         Servant.Extra
     hs-source-dirs: src
@@ -269,7 +268,8 @@ executable plutus-currency
     build-depends:
         base >=4.9 && <5,
         plutus-pab,
-        plutus-use-cases -any
+        plutus-use-cases -any,
+        text -any
 
 executable plutus-atomic-swap
     main-is: Main.hs
@@ -280,6 +280,7 @@ executable plutus-atomic-swap
                  -Wno-missing-import-lists -Wredundant-constraints -O0
     build-depends:
         base >=4.9 && <5,
+        text -any,
         plutus-pab
 
 executable plutus-pay-to-wallet
@@ -291,7 +292,8 @@ executable plutus-pay-to-wallet
                  -Wno-missing-import-lists -Wredundant-constraints -O0
     build-depends:
         base >=4.9 && <5,
-        plutus-pab
+        plutus-pab,
+        text -any
 
 test-suite plutus-pab-test
     default-language: Haskell2010

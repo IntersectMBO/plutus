@@ -3,9 +3,9 @@
 module Main where
 
 import           Data.Bifunctor                                        (first)
+import           Data.Text.Extras                                      (tshow)
 import           Language.PlutusTx.Coordination.Contracts.Prism.Mirror (MirrorSchema, mirror)
 import           Plutus.PAB.ContractCLI                                (commandLineApp)
-import           Plutus.PAB.Utils                                      (tshow)
 
 main :: IO ()
 main =

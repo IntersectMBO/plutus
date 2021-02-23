@@ -23,13 +23,13 @@ import           Cardano.BM.Setup                (setupTrace_)
 import           Control.Concurrent.Availability (newToken)
 import           Control.Monad                   (when)
 import           Control.Monad.IO.Class          (liftIO)
-import           Control.Monad.Logger            (runStdoutLoggingT)
+import           Control.Monad.Logger            (logErrorN, runStdoutLoggingT)
 import           Data.Foldable                   (for_)
+import           Data.Text.Extras                (tshow)
 import           Data.Yaml                       (decodeFileThrow)
 import           Plutus.PAB.App                  (monadLoggerTracer, runApp)
 import           Plutus.PAB.Monitoring           (convertLog, defaultConfig, handleLogMsgTrace, loadConfig)
 import           Plutus.PAB.PABLogMsg            (AppMsg (..))
-import           Plutus.PAB.Utils                (logErrorS)
 import           System.Exit                     (ExitCode (ExitFailure), exitSuccess, exitWith)
 
 
@@ -56,7 +56,7 @@ main = do
         where
 
             handleError err = do
-                runStdoutLoggingT $ logErrorS err
+                runStdoutLoggingT $ (logErrorN . tshow) err
                 exitWith (ExitFailure 1)
 
             executePABCommand t logConfig config availability cmd = runApp (convertLog PABMsg t) logConfig config

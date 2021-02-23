@@ -76,6 +76,8 @@ import           Control.Monad.IO.Class                          (liftIO)
 import           Data.Foldable                                   (traverse_)
 import qualified Data.Map                                        as Map
 import qualified Data.Set                                        as Set
+import           Data.Text.Prettyprint.Doc                       (defaultLayoutOptions, layoutPretty)
+import           Data.Text.Prettyprint.Doc.Render.Text           (renderStrict)
 import           Plutus.PAB.MonadLoggerBridge                    (TraceLoggerT (..))
 import           Plutus.PAB.Monitoring                           (convertLog, defaultConfig, handleLogMsgTrace)
 
@@ -97,7 +99,6 @@ import           Plutus.PAB.Types                                (Config (Config
                                                                   metadataServerConfig, nodeServerConfig,
                                                                   requestProcessingConfig, signingProcessConfig,
                                                                   walletServerConfig)
-import           Plutus.PAB.Utils                                (render)
 import qualified Plutus.PAB.Webserver.Server                     as PABServer
 
 -- | Interpret a 'Command' in 'Eff' using the provided tracer and configurations
@@ -198,6 +199,8 @@ runCliCommand _ _ _ _ (ContractState uuid) =
 runCliCommand _ _ _ _ ReportInstalledContracts = do
     logInfo InstalledContractsMsg
     traverse_ (logInfo . InstalledContract . render . pretty) =<< Core.installedContracts @ContractExe
+        where
+            render = renderStrict . layoutPretty defaultLayoutOptions
 
 -- Get all active contracts
 runCliCommand _ _ _ _ ReportActiveContracts = do

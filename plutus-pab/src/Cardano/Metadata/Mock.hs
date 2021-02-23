@@ -30,9 +30,9 @@ import           Data.Maybe                     (fromMaybe)
 import           Data.Set                       (Set)
 import qualified Data.Set                       as Set
 import           Data.Text.Encoding             (encodeUtf8)
+import           Data.Text.Extras               (tshow)
 import           Ledger.Bytes                   (LedgerBytes)
 import           Ledger.Crypto                  (PrivateKey, PubKey, getPubKey, pubKeyHash, sign)
-import           Plutus.PAB.Utils               (tshow)
 import           Wallet.Emulator.Wallet         (Wallet (Wallet), walletPrivKey, walletPubKey)
 
 

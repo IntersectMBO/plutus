@@ -71,7 +71,7 @@ import           Language.Plutus.Contract.Effects.Instance         (OwnIdRequest
 import           Language.Plutus.Contract.Effects.OwnPubKey        (OwnPubKeyRequest)
 import           Language.Plutus.Contract.Effects.UtxoAt           (UtxoAtAddress)
 
-import           Plutus.PAB.Utils                                  (abbreviate)
+import           Data.Text.Extras                                  (abbreviate)
 import           Wallet.Effects                                    (AddressChangeRequest, AddressChangeResponse)
 import           Wallet.Types                                      (ContractInstanceId (..), Notification,
                                                                     NotificationError)
