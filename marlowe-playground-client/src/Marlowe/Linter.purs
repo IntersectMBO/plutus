@@ -7,6 +7,7 @@ module Marlowe.Linter
   , _holes
   , hasHoles
   , _warnings
+  , _location
   ) where
 
 import Prelude
@@ -67,6 +68,11 @@ newtype Warning
   -- FIXME: The Maybe TextEdit only makes sense for LinterText
   , refactoring :: Maybe TextEdit
   }
+
+derive instance newtypeWarning :: Newtype Warning _
+
+_location :: Lens' Warning Location
+_location = _Newtype <<< prop (SProxy :: SProxy "location")
 
 data WarningDetail
   = NegativePayment

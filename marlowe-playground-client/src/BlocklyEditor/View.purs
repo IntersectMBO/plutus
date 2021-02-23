@@ -4,7 +4,7 @@ import Prelude hiding (div)
 import Blockly.Internal (block, blockType, category, colour, name, style, x, xml, y)
 import BlocklyComponent.State as Blockly
 import BlocklyEditor.BottomPanel (panelContents)
-import BlocklyEditor.Types (Action(..), BottomPanelView(..), State, _bottomPanelState, _hasHoles, _marloweCode)
+import BlocklyEditor.Types (Action(..), BottomPanelView(..), State, _bottomPanelState, _hasHoles, _marloweCode, _warnings)
 import BottomPanel.Types (Action(..)) as BottomPanel
 import BottomPanel.View (render) as BottomPanel
 import Data.Array as Array
@@ -50,7 +50,7 @@ render state =
 
   withCount str arry = str <> if Array.null arry then "" else " (" <> show (Array.length arry) <> ")"
 
-  warningsTitle = withCount "Warnings" [] -- $ state ^. _editorWarnings
+  warningsTitle = withCount "Warnings" $ state ^. _warnings
 
   wrapBottomPanelContents panelView = BottomPanel.PanelAction <$> panelContents state panelView
 

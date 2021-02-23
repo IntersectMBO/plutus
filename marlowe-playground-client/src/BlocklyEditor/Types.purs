@@ -11,7 +11,9 @@ import Data.Generic.Rep.Show (genericShow)
 import Data.Lens (Lens')
 import Data.Lens.Record (prop)
 import Data.Maybe (Maybe(..))
+import Data.Set (Set)
 import Data.Symbol (SProxy(..))
+import Marlowe.Linter (Warning)
 import Marlowe.Extended (IntegerTemplateType)
 import StaticAnalysis.Types (AnalysisState, initAnalysisState)
 
@@ -28,6 +30,7 @@ data Action
   | AnalyseContractForCloseRefund
   | SetIntegerTemplateParam IntegerTemplateType String BigInteger
   | ClearAnalysisResults
+  | SelectWarning Warning
 
 defaultEvent :: String -> Event
 defaultEvent s = (A.defaultEvent $ "BlocklyEditor." <> s) { category = Just "Blockly" }
@@ -45,6 +48,7 @@ instance blocklyActionIsEvent :: IsEvent Action where
   toEvent AnalyseContractForCloseRefund = Just $ defaultEvent "AnalyseContractForCloseRefund"
   toEvent (SetIntegerTemplateParam _ _ _) = Just $ defaultEvent "SetIntegerTemplateParam"
   toEvent ClearAnalysisResults = Just $ defaultEvent "ClearAnalysisResults"
+  toEvent (SelectWarning _) = Just $ defaultEvent "SelectWarning"
 
 data BottomPanelView
   = StaticAnalysisView
@@ -63,6 +67,7 @@ type State
     , hasHoles :: Boolean
     , bottomPanelState :: BottomPanel.State BottomPanelView
     , analysisState :: AnalysisState
+    , warnings :: Array Warning
     }
 
 _errorMessage :: Lens' State (Maybe String)
@@ -77,6 +82,9 @@ _hasHoles = prop (SProxy :: SProxy "hasHoles")
 _bottomPanelState :: Lens' State (BottomPanel.State BottomPanelView)
 _bottomPanelState = prop (SProxy :: SProxy "bottomPanelState")
 
+_warnings :: Lens' State (Array Warning)
+_warnings = prop (SProxy :: SProxy "warnings")
+
 initialState :: State
 initialState =
   { errorMessage: Nothing
@@ -84,4 +92,5 @@ initialState =
   , hasHoles: false
   , bottomPanelState: BottomPanel.initialState StaticAnalysisView
   , analysisState: initAnalysisState
+  , warnings: mempty
   }

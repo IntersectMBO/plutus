@@ -3,7 +3,7 @@ module BlocklyEditor.State where
 
 import Prelude
 import BlocklyComponent.Types as Blockly
-import BlocklyEditor.Types (Action(..), BottomPanelView, State, _bottomPanelState, _errorMessage, _hasHoles, _marloweCode)
+import BlocklyEditor.Types (Action(..), BottomPanelView, State, _bottomPanelState, _errorMessage, _hasHoles, _marloweCode, _warnings)
 import BottomPanel.State (handleAction) as BottomPanel
 import BottomPanel.Types (Action(..), State) as BottomPanel
 import CloseAnalysis (analyseClose)
@@ -11,13 +11,16 @@ import Control.Monad.Except (ExceptT(..), except, lift, runExceptT)
 import Control.Monad.Maybe.Extra (hoistMaybe)
 import Control.Monad.Maybe.Trans (MaybeT(..), runMaybeT)
 import Control.Monad.Reader (class MonadAsk)
+import Data.Array as Array
 import Data.Either (Either(..), either, hush, note)
-import Data.Lens (assign, modifying, over, set)
+import Data.Lens (assign, modifying, over, set, use, view)
 import Data.List (List(..))
 import Data.Map as Map
 import Data.Maybe (Maybe(..), fromMaybe, maybe)
+import Debug.Trace (spy)
 import Effect.Aff.Class (class MonadAff)
 import Effect.Class (liftEffect)
+import Effect.Exception.Unsafe (unsafeThrow)
 import Env (Env)
 import Examples.Marlowe.Contracts (example) as ME
 import Halogen (HalogenM, modify_, query)
@@ -26,12 +29,13 @@ import Halogen.Extra (mapSubmodule)
 import MainFrame.Types (ChildSlots, _blocklySlot)
 import Marlowe.Blockly (blockToContract)
 import Marlowe.Extended as EM
+import Marlowe.Holes (Location(..))
 import Marlowe.Holes as Holes
 import Marlowe.Linter as Linter
 import Marlowe.Parser as Parser
 import SessionStorage as SessionStorage
 import SimulationPage.Types (_templateContent)
-import StaticAnalysis.Reachability (analyseReachability)
+import StaticAnalysis.Reachability (analyseReachability, getUnreachableContracts)
 import StaticAnalysis.StaticTools (analyseContract)
 import StaticAnalysis.Types (AnalysisExecutionState(..), _analysisExecutionState, _analysisState)
 import StaticData (marloweBufferLocalStorageKey)
@@ -54,50 +58,12 @@ handleAction Init = do
   mContents <- liftEffect $ SessionStorage.getItem marloweBufferLocalStorageKey
   handleAction $ InitBlocklyProject $ fromMaybe ME.example mContents
 
-handleAction (HandleBlocklyMessage Blockly.CodeChange) = do
-  eContract <-
-    runExceptT do
-      block <- ExceptT <<< map (note "Blockly Workspace is empty") $ query _blocklySlot unit $ H.request Blockly.GetBlockRepresentation
-      except $ blockToContract block
-  case eContract of
-    Left e ->
-      modify_
-        ( set _errorMessage (Just $ unexpected e)
-            <<< set _marloweCode Nothing
-        )
-    Right holesContract -> do
-      let
-        hasHoles = Linter.hasHoles $ Linter.lint Nil holesContract
-
-        prettyContract = show $ pretty holesContract
-
-        mExtendedContract :: Maybe EM.Contract
-        mExtendedContract = Holes.fromTerm holesContract
-
-        maybeUpdateTemplateContent =
-          maybe
-            identity
-            (EM.updateTemplateContent <<< EM.getPlaceholderIds)
-            mExtendedContract
-      liftEffect $ SessionStorage.setItem marloweBufferLocalStorageKey prettyContract
-      modify_
-        ( set _errorMessage Nothing
-            <<< set _marloweCode (Just $ prettyContract)
-            <<< set _hasHoles hasHoles
-            <<< over (_analysisState <<< _templateContent) maybeUpdateTemplateContent
-        )
-  where
-  unexpected s = "An unexpected error has occurred, please raise a support issue at https://github.com/input-output-hk/plutus/issues/new: " <> s
+handleAction (HandleBlocklyMessage Blockly.CodeChange) = processCode
 
 handleAction (InitBlocklyProject code) = do
   void $ query _blocklySlot unit $ H.tell (Blockly.SetCode code)
   liftEffect $ SessionStorage.setItem marloweBufferLocalStorageKey code
-  let
-    hasHoles = either (const false) identity $ (Linter.hasHoles <<< Linter.lint Nil) <$> Parser.parseContract code
-  modify_
-    ( set _marloweCode (Just code)
-        <<< set _hasHoles hasHoles
-    )
+  processCode
 
 handleAction SendToSimulator = pure unit
 
@@ -124,6 +90,56 @@ handleAction AnalyseContractForCloseRefund = runAnalysis $ analyseClose
 
 handleAction ClearAnalysisResults = assign (_analysisState <<< _analysisExecutionState) NoneAsked
 
+handleAction (SelectWarning warning) = void $ query _blocklySlot unit $ H.tell (Blockly.SelectWarning warning)
+
+-- This function reads the Marlowe code from blockly and updates the warnings and hole information
+processCode ::
+  forall m.
+  MonadAff m =>
+  HalogenM State Action ChildSlots Void m Unit
+processCode = do
+  eContract <-
+    runExceptT do
+      block <- ExceptT <<< map (note "Blockly Workspace is empty") $ query _blocklySlot unit $ H.request Blockly.GetBlockRepresentation
+      except $ blockToContract block
+  case eContract of
+    Left e ->
+      modify_
+        ( set _errorMessage (Just $ unexpected e)
+            <<< set _marloweCode Nothing
+        )
+    Right holesContract -> do
+      analysisExecutionState <- use (_analysisState <<< _analysisExecutionState)
+      let
+        unreachableContracts = getUnreachableContracts analysisExecutionState
+
+        lintingState = spy "Linting state" $ Linter.lint unreachableContracts holesContract
+
+        hasHoles = Linter.hasHoles $ lintingState
+
+        warnings = Array.fromFoldable $ view Linter._warnings lintingState
+
+        prettyContract = show $ pretty holesContract
+
+        mExtendedContract :: Maybe EM.Contract
+        mExtendedContract = Holes.fromTerm holesContract
+
+        maybeUpdateTemplateContent =
+          maybe
+            identity
+            (EM.updateTemplateContent <<< EM.getPlaceholderIds)
+            mExtendedContract
+      liftEffect $ SessionStorage.setItem marloweBufferLocalStorageKey prettyContract
+      modify_
+        ( set _errorMessage Nothing
+            <<< set _marloweCode (Just $ prettyContract)
+            <<< set _hasHoles hasHoles
+            <<< set _warnings warnings
+            <<< over (_analysisState <<< _templateContent) maybeUpdateTemplateContent
+        )
+  where
+  unexpected s = "An unexpected error has occurred, please raise a support issue at https://github.com/input-output-hk/plutus/issues/new: " <> s
+
 runAnalysis ::
   forall m.
   MonadAff m =>
@@ -135,7 +151,9 @@ runAnalysis doAnalyze =
         block <- MaybeT $ query _blocklySlot unit $ H.request Blockly.GetBlockRepresentation
         -- FIXME: See if we can use runExceptT and show the error somewhere
         contract <- MaybeT $ pure $ Holes.fromTerm =<< (hush $ blockToContract block)
-        lift $ doAnalyze contract
+        lift do
+          doAnalyze contract
+          processCode
 
 editorGetValue :: forall state action msg m. HalogenM state action ChildSlots msg m (Maybe String)
 editorGetValue =
