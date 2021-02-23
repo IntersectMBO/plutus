@@ -17,9 +17,9 @@ import qualified Cardano.Metadata.Types         as Metadata
 import           Control.Concurrent.Async       (Async, async, waitAnyCancel)
 import           Control.Exception              (SomeException, handle)
 import           Control.Monad                  (forever, void, when)
-import           Control.Monad.Freer            (Eff, LastMember, Member)
+import           Control.Monad.Freer            (Eff, LastMember, Member, interpret)
 import           Control.Monad.Freer.Delay      (DelayEffect, delayThread, handleDelayEffect)
-import           Control.Monad.Freer.Extras.Log (LogMsg, logDebug, logInfo)
+import           Control.Monad.Freer.Extras.Log (LogMsg, logDebug, logInfo, mapLog)
 import           Control.Monad.Freer.Reader     (Reader, ask)
 import           Control.Monad.Freer.WebSocket  (WebSocketEffect, acceptConnection, receiveJSON, sendJSON)
 import           Control.Monad.IO.Class         (MonadIO, liftIO)
@@ -30,7 +30,7 @@ import           Plutus.PAB.App                 (runApp)
 import           Plutus.PAB.Effects.Contract    (ContractEffect)
 import           Plutus.PAB.Effects.EventLog    (EventLogEffect)
 import           Plutus.PAB.Events              (ChainEvent)
-import           Plutus.PAB.PABLogMsg           (PABLogMsg)
+import           Plutus.PAB.PABLogMsg           (PABLogMsg (SWebsocketMsg))
 import           Plutus.PAB.Types               (Config, ContractExe, PABError)
 import           Plutus.PAB.Webserver.Handler   (getChainReport, getContractReport, getEvents)
 import           Plutus.PAB.Webserver.Types     (StreamToClient (ErrorResponse, FetchedProperties, FetchedProperty, NewChainEvents, NewChainReport, NewContractReport),
@@ -144,7 +144,7 @@ threadApp trace logConfig config connection = do
             [ chainReportThread connection
             , contractStateThread connection
             , eventsThread connection
-            , queryHandlerThread connection
+            , interpret (mapLog SWebsocketMsg) (queryHandlerThread connection)
             ]
     void $ waitAnyCancel tasks
   where

@@ -49,16 +49,16 @@ handleNodeFollowerClient ::
     , MonadIO m
     , Member (Error ClientError) effs)
     => ClientEnv
-    -> Eff (NodeFollowerEffect ': effs)
+    -> NodeFollowerEffect
     ~> Eff effs
 handleNodeFollowerClient clientEnv =
     let
         runClient :: forall a. ClientM a -> Eff effs a
-        runClient a = (sendM $ liftIO $ runClientM a clientEnv) >>= either throwError pure in
-    interpret $ \case
-    NewFollower   -> runClient newFollower
-    GetBlocks fid -> runClient (getBlocks fid)
-    GetSlot       -> runClient getCurrentSlot
+        runClient a = (sendM $ liftIO $ runClientM a clientEnv) >>= either throwError pure
+    in \case
+        NewFollower   -> runClient newFollower
+        GetBlocks fid -> runClient (getBlocks fid)
+        GetSlot       -> runClient getCurrentSlot
 
 handleRandomTxClient ::
     forall m effs.
@@ -66,13 +66,13 @@ handleRandomTxClient ::
     , MonadIO m
     , Member (Error ClientError) effs)
     => ClientEnv
-    -> Eff (GenRandomTx ': effs)
+    -> GenRandomTx
     ~> Eff effs
 handleRandomTxClient clientEnv =
     let
         runClient :: forall a. ClientM a -> Eff effs a
-        runClient a = (sendM $ liftIO $ runClientM a clientEnv) >>= either throwError pure in
-    interpret $ \case
+        runClient a = (sendM $ liftIO $ runClientM a clientEnv) >>= either throwError pure
+    in \case
         GenRandomTx -> runClient randomTx
 
 handleNodeClientClient ::
@@ -82,12 +82,12 @@ handleNodeClientClient ::
     , Member (Error ClientError) effs
     )
     => ClientEnv
-    -> Eff (NodeClientEffect ': effs)
+    -> NodeClientEffect
     ~> Eff effs
 handleNodeClientClient clientEnv =
     let
         runClient :: forall a. ClientM a -> Eff effs a
-        runClient a = (sendM $ liftIO $ runClientM a clientEnv) >>= either throwError pure in
-    interpret $ \case
+        runClient a = (sendM $ liftIO $ runClientM a clientEnv) >>= either throwError pure
+    in \case
         PublishTx tx  -> void (runClient (addTx tx))
         GetClientSlot -> runClient getCurrentSlot

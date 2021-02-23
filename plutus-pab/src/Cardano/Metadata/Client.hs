@@ -18,7 +18,7 @@ import           Cardano.Metadata.Types    (JSONEncoding (AesonEncoding),
                                             MetadataEffect (BatchQuery, GetProperties, GetProperty),
                                             MetadataError (MetadataClientError, SubjectNotFound, SubjectPropertyNotFound),
                                             QueryResult (QueryResult))
-import           Control.Monad.Freer       (Eff, LastMember, Member, interpret, sendM, type (~>))
+import           Control.Monad.Freer       (Eff, LastMember, Member, sendM, type (~>))
 import           Control.Monad.Freer.Error (Error, throwError)
 import           Control.Monad.IO.Class    (MonadIO, liftIO)
 import           Data.Coerce               (Coercible, coerce)
@@ -39,7 +39,8 @@ handleMetadataClient ::
        forall m effs.
        (LastMember m effs, MonadIO m, Member (Error MetadataError) effs)
     => ClientEnv
-    -> Eff (MetadataEffect ': effs) ~> Eff effs
+    -> MetadataEffect
+    ~> Eff effs
 handleMetadataClient clientEnv =
     let getProperties subject = left (left api subject)
         getProperty subject = right (left api subject)
@@ -54,7 +55,7 @@ handleMetadataClient clientEnv =
                 (Left (FailureResponse _ response))
                     | responseStatusCode response == status404 -> def
                 (Left err) -> throwError $ MetadataClientError err
-     in interpret $ \case
+     in \case
             GetProperties subject ->
                 runClient
                     (throwError (SubjectNotFound subject))

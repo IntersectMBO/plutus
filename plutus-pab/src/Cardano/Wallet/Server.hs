@@ -22,7 +22,7 @@ import           Control.Concurrent.Availability (Availability, available)
 import           Control.Concurrent.MVar         (MVar, newMVar, putMVar, takeMVar)
 import           Control.Monad                   ((>=>))
 import qualified Control.Monad.Except            as MonadError
-import           Control.Monad.Freer             (Eff, runM)
+import           Control.Monad.Freer             (Eff, interpret, reinterpret, runM)
 import           Control.Monad.Freer.Error       (Error, handleError, runError, throwError)
 import           Control.Monad.Freer.Extras.Log  (LogMsg, logInfo)
 import           Control.Monad.Freer.State       (State, runState)
@@ -65,8 +65,8 @@ runAppEffects ::
     -> m (Either ServerError (a, WalletState))
 runAppEffects trace nodeClientEnv chainIndexEnv walletState action =
     Wallet.handleWallet action
-    & NodeClient.handleNodeClientClient nodeClientEnv
-    & ChainIndexClient.handleChainIndexClient chainIndexEnv
+    & interpret (NodeClient.handleNodeClientClient nodeClientEnv)
+    & interpret (ChainIndexClient.handleChainIndexClient chainIndexEnv)
     & runState walletState
     & handleLogMsgTrace (toWalletMsg trace)
     & handleWalletApiErrors
@@ -130,5 +130,5 @@ main trace Config {..} nodeBaseUrl chainIndexBaseUrl availability = runLogEffect
         runClient env = liftIO
              $ runM
              $ flip handleError (error . show @ClientError)
-             $ ChainIndexClient.handleChainIndexClient env
+             $ reinterpret (ChainIndexClient.handleChainIndexClient env)
              $ startWatching (Wallet.ownAddress state)

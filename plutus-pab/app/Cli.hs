@@ -68,9 +68,9 @@ import           Control.Concurrent.Async                        (Async, async, 
 import           Control.Concurrent.Availability                 (Availability, starting)
 import           Control.Lens.Indexed                            (itraverse_)
 import           Control.Monad                                   (forever, void)
-import           Control.Monad.Freer                             (Eff, raise)
+import           Control.Monad.Freer                             (Eff, interpret, raise)
 import           Control.Monad.Freer.Error                       (handleError)
-import           Control.Monad.Freer.Extras.Log                  (LogMsg, logError, logInfo)
+import           Control.Monad.Freer.Extras.Log                  (LogMsg, logError, logInfo, mapLog)
 import           Control.Monad.IO.Class                          (liftIO)
 import           Data.Foldable                                   (traverse_)
 import qualified Data.Map                                        as Map
@@ -180,13 +180,21 @@ runCliCommand t _ Config {signingProcessConfig} serviceAvailability SigningProce
         serviceAvailability
 
 -- Install a contract
-runCliCommand _ _ _ _ (InstallContract path) = Core.installContract (ContractExe path)
+runCliCommand _ _ _ _ (InstallContract path) =
+    interpret (mapLog SCoreMsg)
+    $ Core.installContract (ContractExe path)
 
 -- Activate a contract
-runCliCommand _ _ _ _ (ActivateContract path) = void $ Core.activateContract (ContractExe path)
+runCliCommand _ _ _ _ (ActivateContract path) =
+    void
+    $ interpret (mapLog SContractInstanceMsg)
+    $ interpret (mapLog SCoreMsg)
+    $ Core.activateContract (ContractExe path)
 
 -- Get the state of a contract
-runCliCommand _ _ _ _ (ContractState uuid) = Core.reportContractState @ContractExe (ContractInstanceId uuid)
+runCliCommand _ _ _ _ (ContractState uuid) =
+    interpret (mapLog SCoreMsg)
+    $ Core.reportContractState @ContractExe (ContractInstanceId uuid)
 
 -- Get all installed contracts
 runCliCommand _ _ _ _ ReportInstalledContracts = do
@@ -206,7 +214,9 @@ runCliCommand _ _ _ _ ReportTxHistory = do
 
 -- Update a specific contract
 runCliCommand _ _ _ _ (UpdateContract uuid endpoint payload) =
-    void $ Instance.callContractEndpoint @ContractExe (ContractInstanceId uuid) (getEndpointDescription endpoint) payload
+    void
+    $ interpret (mapLog SContractInstanceMsg)
+    $ Instance.callContractEndpoint @ContractExe (ContractInstanceId uuid) (getEndpointDescription endpoint) payload
 
 -- Get history of a specific contract
 runCliCommand _ _ _ _ (ReportContractHistory uuid) = do
@@ -217,17 +227,22 @@ runCliCommand _ _ _ _ (ReportContractHistory uuid) = do
       logContract index contract = logInfo $ ContractHistoryItem index contract
 
 -- DEPRECATED
-runCliCommand _ _ _ _ (ProcessContractInbox uuid) = do
-    logInfo ProcessInboxMsg
-    Core.processContractInbox @ContractExe (ContractInstanceId uuid)
+runCliCommand _ _ _ _ (ProcessContractInbox uuid) =
+    interpret (mapLog SContractInstanceMsg)
+    $ do
+        logInfo ProcessInboxMsg
+        Core.processContractInbox @ContractExe (ContractInstanceId uuid)
 
 -- Run the process-outboxes command
-runCliCommand _ _ Config{requestProcessingConfig} _ ProcessAllContractOutboxes = do
-    let RequestProcessingConfig{requestProcessingInterval} = requestProcessingConfig
-    logInfo $ ProcessAllOutboxesMsg requestProcessingInterval
-    forever $ do
-        _ <- liftIO . threadDelay . fromIntegral $ toMicroseconds requestProcessingInterval
-        handleError @PABError (Core.processAllContractOutboxes @ContractExe Instance.defaultMaxIterations) (logError . ContractExePABError)
+runCliCommand _ _ Config{requestProcessingConfig} _ ProcessAllContractOutboxes =
+    interpret (mapLog SContractInstanceMsg)
+    $ interpret (mapLog SContractExeLogMsg)
+    $ do
+        let RequestProcessingConfig{requestProcessingInterval} = requestProcessingConfig
+        logInfo $ ProcessAllOutboxesMsg requestProcessingInterval
+        forever $ do
+            _ <- liftIO . threadDelay . fromIntegral $ toMicroseconds requestProcessingInterval
+            handleError @PABError (Core.processAllContractOutboxes @ContractExe Instance.defaultMaxIterations) (logError . ContractExePABError)
 
 -- Generate PureScript bridge code
 runCliCommand _ _ _ _ PSGenerator {_outputDir} =
