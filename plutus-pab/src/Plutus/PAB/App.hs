@@ -74,7 +74,6 @@ import           Plutus.PAB.Webserver.Types         (WebSocketLogMsg)
 import           Servant.Client                     (BaseUrl, ClientEnv, ClientError, mkClientEnv)
 import           System.Exit                        (ExitCode (ExitFailure, ExitSuccess))
 import           System.Process                     (readProcessWithExitCode)
-import           Wallet.API                         (WalletAPIError)
 import           Wallet.Effects                     (ChainIndexEffect, ContractRuntimeEffect, NodeClientEffect,
                                                      SigningProcessEffect, WalletEffect)
 import qualified Wallet.Emulator.Wallet
@@ -95,20 +94,13 @@ type AppBackend m =
         '[ GenRandomTx
          , ContractRuntimeEffect
          , NodeFollowerEffect
-         , Error ClientError
          , WalletEffect
-         , Error WalletAPIError
-         , Error ClientError
          , NodeClientEffect
-         , Error ClientError
          , MetadataEffect
-         , Error Metadata.MetadataError
          , SigningProcessEffect
-         , Error ClientError
          , UUIDEffect
          , ContractEffect ContractExe
          , ChainIndexEffect
-         , Error ClientError
          , EventLogEffect (ChainEvent ContractExe)
          , WebSocketEffect
          , Error PABError
@@ -148,37 +140,41 @@ runAppBackend trace loggingConfig config action = do
             , chainIndexEnv
             } <- mkEnv config
     let
-        handleChainIndex :: Eff (ChainIndexEffect ': Error ClientError ': _) a -> Eff _ a
+        handleChainIndex :: Eff (ChainIndexEffect ': _) a -> Eff _ a
         handleChainIndex =
             flip handleError (throwError . ChainIndexError) .
-            handleChainIndexClient chainIndexEnv
+            reinterpret @_ @(Error ClientError) (handleChainIndexClient chainIndexEnv)
         handleSigningProcess ::
-               Eff (SigningProcessEffect ': Error ClientError ': _) a -> Eff _ a
+               Eff (SigningProcessEffect ': _) a -> Eff _ a
         handleSigningProcess =
             flip handleError (throwError . SigningProcessError) .
-            SigningProcessClient.handleSigningProcessClient signingProcessEnv
+            reinterpret @_ @(Error ClientError) (SigningProcessClient.handleSigningProcessClient signingProcessEnv)
         handleNodeClient ::
-               Eff (NodeClientEffect ': Error ClientError ': _) a -> Eff _ a
+               Eff (NodeClientEffect ': _) a -> Eff _ a
         handleNodeClient =
             flip handleError (throwError . NodeClientError) .
-            handleNodeClientClient nodeClientEnv
+            reinterpret @_ @(Error ClientError) (handleNodeClientClient nodeClientEnv)
         handleNodeFollower ::
-               Eff (NodeFollowerEffect ': Error ClientError ': _) a -> Eff _ a
+               Eff (NodeFollowerEffect ': _) a -> Eff _ a
         handleNodeFollower =
             flip handleError (throwError . NodeClientError) .
-            handleNodeFollowerClient nodeClientEnv
+            reinterpret @_ @(Error ClientError) (handleNodeFollowerClient nodeClientEnv)
         handleMetadata ::
-               Eff (MetadataEffect ': Error Metadata.MetadataError ': _) a -> Eff _ a
+               Eff (MetadataEffect ': _) a -> Eff _ a
         handleMetadata =
             flip handleError (throwError . MetadataError) .
-            handleMetadataClient metadataClientEnv
+            reinterpret @_ @(Error Metadata.MetadataError) (handleMetadataClient metadataClientEnv)
         handleWallet ::
-               Eff (WalletEffect ': Error WalletAPIError ': Error ClientError ': _) a
+               Eff (WalletEffect ': _) a
             -> Eff _ a
         handleWallet =
             flip handleError (throwError . WalletClientError) .
             flip handleError (throwError . WalletError) .
-            WalletClient.handleWalletClient walletClientEnv
+            reinterpret2 (WalletClient.handleWalletClient walletClientEnv)
+        handleRandomTx :: Eff (GenRandomTx ': _) a -> Eff _ a
+        handleRandomTx =
+            flip handleError (throwError . RandomTxClientError) .
+            reinterpret (handleRandomTxClient nodeClientEnv)
 
 
     runM
@@ -206,7 +202,7 @@ runAppBackend trace loggingConfig config action = do
         . handleWallet
         . handleNodeFollower
         . interpret (handleContractRuntime @ContractExe)
-        $ handleRandomTxClient nodeClientEnv action
+        $ handleRandomTx action
 
 type App a = Eff (AppBackend (TraceLoggerT IO)) a
 

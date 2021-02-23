@@ -47,14 +47,13 @@ handleWalletClient ::
   , Member (Error ClientError) effs
   )
   => ClientEnv
-  -> Eff (WalletEffect ': effs)
+  -> WalletEffect
   ~> Eff effs
 handleWalletClient clientEnv =
     let
         runClient :: forall a. ClientM a -> Eff effs a
         runClient a = (sendM $ liftIO $ runClientM a clientEnv) >>= either throwError pure
-    in
-      interpret $ \case
+    in \case
         SubmitTxn t                    -> runClient (submitTxn t)
         OwnPubKey                      -> runClient ownPublicKey
         UpdatePaymentWithChange vl pmt -> runClient $ updatePaymentWithChange (vl, pmt)

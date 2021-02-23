@@ -28,12 +28,12 @@ handleSigningProcessClient ::
     , Member (Error ClientError) effs
     )
     => ClientEnv
-    -> Eff (SigningProcessEffect ': effs)
+    -> SigningProcessEffect
     ~> Eff effs
 handleSigningProcessClient clientEnv =
     let
         runClient :: forall a. ClientM a -> Eff effs a
         runClient a = (sendM $ liftIO $ runClientM a clientEnv) >>= either throwError pure
     in
-      interpret $ \case
+      \case
         AddSignatures sigs tx -> runClient (addSignatures sigs tx)
