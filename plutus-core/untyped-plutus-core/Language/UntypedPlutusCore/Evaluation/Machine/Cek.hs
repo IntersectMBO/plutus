@@ -112,6 +112,8 @@ type CekValEnv uni fun = UniqueMap TermUnique (CekValue uni fun)
 data CekEnv uni fun s = CekEnv
     { cekEnvRuntime    :: BuiltinsRuntime fun (CekValue uni fun)
     , cekEnvBudgetMode :: ExBudgetMode
+    -- 'Nothing' means no logging. 'DList' is due to the fact that we need efficient append
+    -- as we store logs as "latest go last".
     , cekEnvMayEmitRef :: Maybe (STRef s (DList String))
     }
 
@@ -518,6 +520,16 @@ applyBuiltin ctx bn args = do
   BuiltinRuntime sch _ f exF <- asksM $ lookupBuiltin bn . cekEnvRuntime
   result <- dischargeError $ applyTypeSchemed bn sch f exF args
   returnCek ctx result
+
+{- Note [CEK runners naming convention]
+A function whose name ends in @NoEmit@ does not perform logging and so does not return any logs.
+A function whose name starts with @unsafe@ throws exceptions instead of returning them purely.
+A function from the @runCek@ family takes an 'ExBudgetMode' parameter and returns the final
+'CekExBudgetState' (and possibly logs).
+A function from the @evaluateCek@ family does not return the final 'ExBudgetMode', nor does it
+allow one to specify an 'ExBudgetMode'. I.e. such functions are only for fully evaluating programs
+(and possibly returning logs).
+-}
 
 -- | Evaluate a term using the CEK machine and keep track of costing, logging is optional.
 runCek

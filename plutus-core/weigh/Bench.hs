@@ -1,11 +1,12 @@
 module Main (main) where
 
 import           Language.PlutusCore
-import qualified Language.UntypedPlutusCore                        as UPLC
-import           Language.UntypedPlutusCore.Evaluation.Machine.Cek (unsafeEvaluateCekNoEmit)
+import           Language.PlutusCore.Evaluation.Machine.ExBudgeting
+import qualified Language.UntypedPlutusCore                         as UPLC
+import           Language.UntypedPlutusCore.Evaluation.Machine.Cek  (unsafeEvaluateCekNoEmit)
 
-import           Control.Monad                                     (void)
-import qualified Data.ByteString.Lazy                              as BSL
+import           Control.Monad                                      (void)
+import qualified Data.ByteString.Lazy                               as BSL
 import           Weigh
 
 main :: IO ()

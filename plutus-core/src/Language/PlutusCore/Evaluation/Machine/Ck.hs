@@ -101,6 +101,8 @@ ckValueToTerm = \case
 
 data CkEnv uni fun s = CkEnv
     { ckEnvRuntime    :: BuiltinsRuntime fun (CkValue uni fun)
+    -- 'Nothing' means no logging. 'DList' is due to the fact that we need efficient append
+    -- as we store logs as "latest go last".
     , ckEnvMayEmitRef :: Maybe (STRef s (DList String))
     }
 

@@ -23,6 +23,7 @@ newtype Emitter a = Emitter
     { unEmitter :: forall m. MonadEmitter m => m a
     } deriving (Functor)
 
+-- newtype-deriving doesn't work with 'Emitter'.
 instance Applicative Emitter where
     pure x = Emitter $ pure x
     Emitter f <*> Emitter a = Emitter $ f <*> a
