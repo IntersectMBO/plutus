@@ -24,6 +24,7 @@ import qualified Data.Map                                          as Map
 import qualified Data.Set                                          as Set
 import           Data.Text                                         (Text)
 import qualified Data.Text                                         as Text
+import           Data.Text.Extras                                  (tshow)
 import           Language.PlutusTx.Coordination.Contracts.Currency (SimpleMPS (..))
 import qualified Language.PlutusTx.Coordination.Contracts.Game     as Contracts.Game
 import           Ledger                                            (pubKeyAddress)
@@ -43,7 +44,6 @@ import           Plutus.PAB.MockApp                                (TestState, T
 import qualified Plutus.PAB.Query                                  as Query
 import           Plutus.PAB.Types                                  (PABError (..), chainOverviewBlockchain,
                                                                     mkChainOverview)
-import           Plutus.PAB.Utils                                  (tshow)
 import           Test.QuickCheck.Instances.UUID                    ()
 import           Test.Tasty                                        (TestTree, testGroup)
 import           Test.Tasty.HUnit                                  (testCase)

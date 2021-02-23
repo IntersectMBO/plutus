@@ -3,9 +3,9 @@ module Main
     ) where
 
 import           Data.Bifunctor                              (first)
+import qualified Data.Text                                   as T
 import           Plutus.PAB.ContractCLI                      (commandLineApp)
 import           Plutus.PAB.Effects.ContractTest.PayToWallet (payToWallet)
-import           Plutus.PAB.Utils                            (tshow)
 
 main :: IO ()
-main = commandLineApp $ first tshow payToWallet
+main = commandLineApp $ first (T.pack . show) payToWallet

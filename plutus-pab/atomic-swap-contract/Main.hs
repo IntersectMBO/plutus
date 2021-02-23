@@ -3,9 +3,9 @@ module Main
     ) where
 
 import           Data.Bifunctor                             (first)
+import qualified Data.Text                                  as T
 import           Plutus.PAB.ContractCLI                     (commandLineApp)
 import           Plutus.PAB.Effects.ContractTest.AtomicSwap (atomicSwap)
-import           Plutus.PAB.Utils                           (tshow)
 
 main :: IO ()
-main = commandLineApp $ first tshow atomicSwap
+main = commandLineApp $ first (T.pack . show) atomicSwap
