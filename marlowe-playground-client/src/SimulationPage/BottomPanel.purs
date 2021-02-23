@@ -12,7 +12,7 @@ import Data.Tuple (Tuple(..))
 import Data.Tuple.Nested ((/\))
 import Halogen.Classes (first, rTable, rTable4cols, rTableCell, rTableEmptyRow)
 import Halogen.Classes as Classes
-import Halogen.HTML (ClassName(..), HTML, div, text)
+import Halogen.HTML (HTML, div, text)
 import Halogen.HTML.Properties (class_, classes)
 import Marlowe.Semantics (ChoiceId(..), Party, Token, ValueId(..), _accounts, _boundValues, _choices)
 import Pretty (renderPrettyParty, renderPrettyToken, showPrettyMoney)

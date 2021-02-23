@@ -38,7 +38,6 @@ exports.getModelMarkers_ = function (monaco, model) {
 exports.create_ = function (monaco, nodeId, languageId) {
   const editor = monaco.editor.create(nodeId, {
     language: languageId,
-    automaticLayout: false,
     minimap: {
       enabled: false
     }

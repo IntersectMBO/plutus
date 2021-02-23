@@ -9,7 +9,7 @@ import Effect.Aff.Class (class MonadAff)
 import Gists.Types (GistAction(..))
 import Halogen (ComponentHTML)
 import Halogen.ActusBlockly as ActusBlockly
-import Halogen.Classes (aHorizontal, active, bgDark, flex, flexCol, fontSemibold, fullHeight, fullWidth, group, hide, justifyBetween, noMargins, paddingLeft, paddingX, smallPaddingLeft, smallPaddingRight, smallPaddingY, smallSpaceBottom, spaceLeft, spaceRight, text3xl, textLg, textWhite, uppercase, vl)
+import Halogen.Classes (aHorizontal, active, bgDark, flex, flexCol, fontSemibold, fullHeight, fullWidth, group, hide, justifyBetween, noMargins, paddingLeft, paddingX, smallPaddingLeft, smallPaddingRight, smallPaddingY, smallSpaceBottom, spaceRight, text3xl, textLg, textWhite, uppercase, vl)
 import Halogen.Extra (renderSubmodule)
 import Halogen.HTML (ClassName(ClassName), HTML, a, div, div_, footer, h1, h2, header, main, section, slot, span, text)
 import Halogen.HTML.Events (onClick)

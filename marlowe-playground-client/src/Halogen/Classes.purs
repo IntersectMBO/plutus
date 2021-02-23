@@ -201,12 +201,6 @@ mAlignCenter = ClassName "m-align-center"
 tAlignCenter :: ClassName
 tAlignCenter = ClassName "t-align-center"
 
-flexFour :: ClassName
-flexFour = ClassName "flex-four"
-
-flexTen :: ClassName
-flexTen = ClassName "flex-ten"
-
 activeClass :: forall a. (a -> Boolean) -> Getter' a (Array ClassName)
 activeClass p = to \x -> if p x then [ active ] else []
 

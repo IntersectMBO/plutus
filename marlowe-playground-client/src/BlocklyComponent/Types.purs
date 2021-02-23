@@ -1,8 +1,7 @@
 module BlocklyComponent.Types where
 
 import Prelude hiding (div)
-import Blockly.Dom (Block(..))
-import Blockly.Generator (Generator)
+import Blockly.Dom (Block)
 import Blockly.Internal (BlockDefinition, XML)
 import Blockly.Types as BT
 import Data.Lens (Lens')
@@ -11,7 +10,7 @@ import Data.List (List)
 import Data.Maybe (Maybe(..))
 import Data.Symbol (SProxy(..))
 import Halogen (SubscriptionId)
-import Marlowe.Linter (Warning(..))
+import Marlowe.Linter (Warning)
 
 type State
   = { blocklyState :: Maybe BT.BlocklyState
