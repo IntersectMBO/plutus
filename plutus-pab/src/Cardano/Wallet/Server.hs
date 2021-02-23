@@ -29,9 +29,10 @@ import qualified Cardano.ChainIndex.Client       as ChainIndexClient
 import           Cardano.Wallet.API              (API)
 import           Cardano.Wallet.Mock
 import           Cardano.Wallet.Types            (ChainIndexUrl (..), NodeUrl (..), Port (..), WalletConfig (..),
-                                                  WalletMsg (..))
+                                                  WalletMsg (..), WalletUrl (..))
 import           Control.Concurrent.Availability (Availability, available)
 import           Control.Concurrent.MVar         (MVar, newMVar)
+import           Data.Coerce                     (coerce)
 import           Plutus.PAB.Arbitrary            ()
 import           Plutus.PAB.Monitoring           (runLogEffects)
 import           Wallet.Effects                  (ownOutputs, ownPubKey, startWatching, submitTxn,
@@ -60,7 +61,7 @@ main trace WalletConfig { baseUrl, wallet } (NodeUrl nodeUrl) (ChainIndexUrl cha
     logInfo $ StartingWallet (Port servicePort)
     liftIO $ Warp.runSettings warpSettings $ app trace nodeClientEnv chainIndexEnv mVarState
     where
-        servicePort = baseUrlPort baseUrl
+        servicePort = baseUrlPort (coerce baseUrl)
         state = emptyWalletState wallet
         warpSettings = Warp.defaultSettings & Warp.setPort servicePort & Warp.setBeforeMainLoop (available availability)
 

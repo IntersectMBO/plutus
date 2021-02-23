@@ -23,6 +23,7 @@ module Cardano.Wallet.Types (
     , Port (..)
     , NodeClient (..)
     , ChainClient (..)
+    , WalletUrl (..)
     ) where
 
 import           Control.Monad.Freer.Error          (Error)
@@ -60,6 +61,9 @@ newtype ChainClient = ChainClient ClientEnv
 newtype NodeUrl = NodeUrl BaseUrl
     deriving (Eq, Show) via BaseUrl
 
+newtype WalletUrl = WalletUrl BaseUrl
+    deriving (Eq, Show, ToJSON, FromJSON) via BaseUrl
+
 newtype ChainIndexUrl = ChainIndexUrl BaseUrl
     deriving (Eq, Show) via BaseUrl
 
@@ -69,7 +73,7 @@ newtype Port = Port Int
 
 data WalletConfig =
     WalletConfig
-        { baseUrl :: BaseUrl
+        { baseUrl :: WalletUrl
         , wallet  :: Wallet
         }
     deriving (Show, Eq, Generic)
