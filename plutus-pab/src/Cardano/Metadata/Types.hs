@@ -28,7 +28,7 @@ module Cardano.Metadata.Types (
     , AnnotatedSignature (..)
     , SubjectProperties (..)
     , Property (..)
-    , PropertyKey
+    , PropertyKey (..)
     , MetadataError (..)
     , Query (..)
     , QueryResult (..)

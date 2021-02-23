@@ -10,6 +10,9 @@
 
 module Cardano.Metadata.Mock
     ( handleMetadata
+     -- * required by tests
+    , script1
+    , annotatedSignature1
     ) where
 
 import           Cardano.Metadata.Types

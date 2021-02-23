@@ -39,7 +39,7 @@ import           Text.Pretty.Simple             (pPrint)
 
 import           Cardano.Node.Client            (addTx)
 import           Cardano.Node.RandomTx          (generateTx)
-import           Cardano.Node.Server            (MockServerConfig (..))
+import           Cardano.Node.Types             (MockServerConfig (..))
 import           Language.Plutus.Contract.Trace (defaultDist)
 import           Ledger.Index                   (UtxoIndex (..), insertBlock)
 import           Ledger.Tx                      (Tx (..))

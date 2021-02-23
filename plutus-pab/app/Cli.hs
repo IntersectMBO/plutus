@@ -79,7 +79,7 @@ import qualified Data.Set                                        as Set
 import           Plutus.PAB.MonadLoggerBridge                    (TraceLoggerT (..))
 import           Plutus.PAB.Monitoring                           (convertLog, defaultConfig, handleLogMsgTrace)
 
-import           Cardano.Node.Types                              (MockServerConfig (..))
+import           Cardano.Node.Types                              (MockServerConfig (..), NodeUrl (..))
 import           Data.Text.Prettyprint.Doc                       (Pretty (..), pretty)
 import           Data.Time.Units                                 (toMicroseconds)
 import           Language.Plutus.Contract.Effects.ExposeEndpoint (EndpointDescription (..))
@@ -118,12 +118,9 @@ runCliCommand trace _ Config {..} serviceAvailability MockWallet =
     liftIO $ WalletServer.main
         (toWalletLog trace)
         walletServerConfig
-        (NodeUrl nodeUrl)
-        (ChainIndexUrl chainIndexUrl)
+        (NodeUrl $ mscBaseUrl nodeServerConfig)
+        (ChainIndex.ciBaseUrl chainIndexConfig)
         serviceAvailability
-            where
-                nodeUrl = mscBaseUrl nodeServerConfig
-                chainIndexUrl = ChainIndex.ciBaseUrl chainIndexConfig
 
 -- Run mock node server
 runCliCommand trace _ Config {nodeServerConfig} serviceAvailability MockNode =

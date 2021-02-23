@@ -26,10 +26,11 @@ import           Servant.Client                  (BaseUrl (baseUrlPort), ClientE
 
 import           Cardano.BM.Data.Trace           (Trace)
 import qualified Cardano.ChainIndex.Client       as ChainIndexClient
+import           Cardano.ChainIndex.Types        (ChainIndexUrl (..))
+import           Cardano.Node.Types              (NodeUrl (..))
 import           Cardano.Wallet.API              (API)
 import           Cardano.Wallet.Mock
-import           Cardano.Wallet.Types            (ChainIndexUrl (..), NodeUrl (..), Port (..), WalletConfig (..),
-                                                  WalletMsg (..), WalletUrl (..))
+import           Cardano.Wallet.Types            (Port (..), WalletConfig (..), WalletMsg (..), WalletUrl (..))
 import           Control.Concurrent.Availability (Availability, available)
 import           Control.Concurrent.MVar         (MVar, newMVar)
 import           Data.Coerce                     (coerce)

@@ -10,7 +10,7 @@ module Plutus.PAB.CoreSpec
     ( tests
     ) where
 
-import           Cardano.Node.Follower                             (NodeFollowerEffect)
+import           Cardano.Node.Types                                (NodeFollowerEffect)
 import           Control.Lens                                      ((&), (+~))
 import           Control.Monad                                     (unless, void)
 import           Control.Monad.Freer                               (Eff, Member, Members)
