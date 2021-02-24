@@ -6,7 +6,7 @@ packages:
 source-repository-package
     type: git
     location: https://github.com/input-output-hk/plutus
-    subdir: plutus-core playground-common prettyprinter-configurable plutus-contract plutus-tx plutus-tx-plugin plutus-ledger plutus-ledger-api
+    subdir: plutus-core playground-common prettyprinter-configurable plutus-contract plutus-tx plutus-tx-plugin plutus-ledger plutus-ledger-api iots-export
     tag: fa3a9b1c303a0a65cc7ddef0d8ae9bb6d2bbf2ae
 
 source-repository-package
