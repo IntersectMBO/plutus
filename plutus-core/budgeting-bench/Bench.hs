@@ -9,22 +9,23 @@
 -- See Note [Creation of the Cost Model]
 module Main (main) where
 
-import qualified Criterion.Types                                   as C
-import qualified Data.ByteString                                   as BS
+import qualified Criterion.Types                                    as C
+import qualified Data.ByteString                                    as BS
 import           Hedgehog
 import           Hedgehog.Internal.Gen
 import           Hedgehog.Internal.Tree
 import           Hedgehog.Range
-import           Language.PlutusCore                               as PLC
+import           Language.PlutusCore                                as PLC
+import           Language.PlutusCore.Evaluation.Machine.ExBudgeting
 import           Language.PlutusCore.Evaluation.Machine.ExMemory
 import           Language.PlutusCore.MkPlc
-import           Language.UntypedPlutusCore                        as UT
+import           Language.UntypedPlutusCore                         as UT
 import           Language.UntypedPlutusCore.Evaluation.Machine.Cek
 import           System.Directory
 
 import           Criterion.Main
 import           Data.Functor
-import qualified Data.Kind                                         as GHC
+import qualified Data.Kind                                          as GHC
 
 type UntypedPlain f (uni :: GHC.Type -> GHC.Type) (fun :: GHC.Type) = f Name uni fun ()
 
