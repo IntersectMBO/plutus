@@ -30,7 +30,7 @@ import           Cardano.BM.Data.Trace             (Trace)
 import           Cardano.Node.RandomTx
 import           Cardano.Node.Types
 import qualified Cardano.Protocol.Socket.Server    as Server
-import           Ledger                            (Slot(..), Block, Tx)
+import           Ledger                            (Block, Slot (..), Tx)
 import           Ledger.Tx                         (outputs)
 import           Plutus.PAB.Arbitrary              ()
 import           Plutus.PAB.Monitoring             (handleLogMsgTrace, runLogEffects)

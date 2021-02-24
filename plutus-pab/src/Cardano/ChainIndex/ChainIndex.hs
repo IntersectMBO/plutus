@@ -14,26 +14,26 @@ module Cardano.ChainIndex.ChainIndex
     , healthcheck
     ) where
 
-import           Cardano.BM.Data.Trace            (Trace)
-import           Control.Concurrent.MVar          (MVar, putMVar, takeMVar)
-import           Control.Monad.Freer              hiding (run)
-import qualified Control.Monad.Freer.State        as Eff
-import           Control.Monad.IO.Class           (MonadIO (..))
-import           Data.Foldable                    (traverse_)
-import           Data.Function                    ((&))
-import           Ledger.Blockchain                (Block)
-import Ledger.Slot (Slot)
-import           Servant                          (NoContent (NoContent))
+import           Cardano.BM.Data.Trace      (Trace)
+import           Control.Concurrent.MVar    (MVar, putMVar, takeMVar)
+import           Control.Monad.Freer        hiding (run)
+import qualified Control.Monad.Freer.State  as Eff
+import           Control.Monad.IO.Class     (MonadIO (..))
+import           Data.Foldable              (traverse_)
+import           Data.Function              ((&))
+import           Ledger.Blockchain          (Block)
+import           Ledger.Slot                (Slot)
+import           Servant                    (NoContent (NoContent))
 
 import           Cardano.ChainIndex.Types
-import           Ledger.Address                   (Address)
-import           Ledger.AddressMap                (AddressMap)
-import           Plutus.PAB.Monitoring            (convertLog, handleLogMsgTrace)
-import           Wallet.Effects                   (ChainIndexEffect)
-import qualified Wallet.Effects                   as WalletEffects
-import           Wallet.Emulator.ChainIndex       (ChainIndexControlEffect, ChainIndexEvent)
-import qualified Wallet.Emulator.ChainIndex       as ChainIndex
-import           Wallet.Emulator.NodeClient       (ChainClientNotification (BlockValidated, SlotChanged))
+import           Ledger.Address             (Address)
+import           Ledger.AddressMap          (AddressMap)
+import           Plutus.PAB.Monitoring      (convertLog, handleLogMsgTrace)
+import           Wallet.Effects             (ChainIndexEffect)
+import qualified Wallet.Effects             as WalletEffects
+import           Wallet.Emulator.ChainIndex (ChainIndexControlEffect, ChainIndexEvent)
+import qualified Wallet.Emulator.ChainIndex as ChainIndex
+import           Wallet.Emulator.NodeClient (ChainClientNotification (BlockValidated, SlotChanged))
 
 healthcheck :: Monad m => m NoContent
 healthcheck = pure NoContent

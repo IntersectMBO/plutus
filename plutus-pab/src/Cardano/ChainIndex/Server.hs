@@ -28,8 +28,7 @@ import           Data.Function                   ((&))
 import           Data.Proxy                      (Proxy (Proxy))
 import           Ledger.Blockchain               (Block)
 import qualified Network.Wai.Handler.Warp        as Warp
-import           Servant                         (Application, hoistServer, serve,
-                                                  (:<|>) ((:<|>)))
+import           Servant                         (Application, hoistServer, serve, (:<|>) ((:<|>)))
 
 import           Cardano.ChainIndex.API
 import           Cardano.ChainIndex.Types
