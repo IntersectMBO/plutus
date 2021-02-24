@@ -119,7 +119,7 @@ where
 
 import           Language.PlutusCore.Core
 import           Language.PlutusCore.Name
-import           PlutusPrelude
+import           PlutusPrelude                                   hiding (toList)
 
 import           Barbies
 import           Control.Lens.Indexed
@@ -129,6 +129,7 @@ import           Data.HashMap.Monoidal
 import           Data.Hashable
 import qualified Data.Kind                                       as Kind
 import           Data.List                                       (intersperse)
+import qualified Data.Map                                        as Map
 import           Data.Semigroup.Generic
 import           Data.Text.Prettyprint.Doc
 import           Deriving.Aeson
@@ -192,7 +193,7 @@ data ExBudgetState exBudgetCat = ExBudgetState
     deriving stock (Eq, Generic, Show)
     deriving anyclass NFData
 instance ( PrettyDefaultBy config Integer, PrettyBy config exBudgetCat
-         , Eq exBudgetCat, Hashable exBudgetCat
+         , Eq exBudgetCat, Hashable exBudgetCat, Ord exBudgetCat
          ) => PrettyBy config (ExBudgetState exBudgetCat) where
     prettyBy config (ExBudgetState tally budget) = parens $ fold
         [ "{ tally: ", prettyBy config tally, line
@@ -205,11 +206,14 @@ newtype ExTally exBudgetCat = ExTally (MonoidalHashMap exBudgetCat ExBudget)
     deriving (Semigroup, Monoid) via (GenericSemigroupMonoid (ExTally exBudgetCat))
     deriving anyclass NFData
 instance ( PrettyDefaultBy config Integer, PrettyBy config exBudgetCat
-         , Eq exBudgetCat, Hashable exBudgetCat
+         , Eq exBudgetCat, Hashable exBudgetCat, Ord exBudgetCat
          ) => PrettyBy config (ExTally exBudgetCat) where
     prettyBy config (ExTally m) =
-        parens $ fold (["{ "] <> (intersperse (line <> "| ") $ fmap group $
-          ifoldMap (\k v -> [(prettyBy config k <+> "causes" <+> prettyBy config v)]) m) <> ["}"])
+        let
+            om :: Map.Map exBudgetCat ExBudget
+            om = Map.fromList $ toList m
+        in parens $ fold (["{ "] <> (intersperse (line <> "| ") $ fmap group $
+          ifoldMap (\k v -> [(prettyBy config k <+> "causes" <+> prettyBy config v)]) om) <> ["}"])
 
 type CostModel = CostModelBase CostingFun
 

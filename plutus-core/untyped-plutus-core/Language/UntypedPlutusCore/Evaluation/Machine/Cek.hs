@@ -163,7 +163,7 @@ data ExBudgetCategory fun
     | BBuiltin         -- Cost of evaluating a Builtin AST node
     | BBuiltinApp fun  -- Cost of evaluating a fully applied builtin function
     | BAST
-    deriving stock (Show, Eq, Generic)
+    deriving stock (Show, Eq, Ord, Generic)
     deriving anyclass (NFData, Hashable)
 instance Show fun => PrettyBy config (ExBudgetCategory fun) where
     prettyBy _ = viaShow

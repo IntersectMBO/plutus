@@ -1,8 +1,23 @@
 ( (Right (1))
-, ({ tally: ({ BBuiltin causes ({ cpu: 9
+, ({ tally: ({ BConst causes ({ cpu: 9
 | mem: 0
 })
-| BConst causes ({ cpu: 9
+| BVar causes ({ cpu: 36
+| mem: 0
+})
+| BLamAbs causes ({ cpu: 30
+| mem: 0
+})
+| BApply causes ({ cpu: 52
+| mem: 0
+})
+| BDelay causes ({ cpu: 9
+| mem: 0
+})
+| BForce causes ({ cpu: 12
+| mem: 0
+})
+| BBuiltin causes ({ cpu: 9
 | mem: 0
 })
 | BBuiltinApp AddInteger causes ({ cpu: 4
@@ -11,26 +26,11 @@
 | BBuiltinApp SubtractInteger causes ({ cpu: 10
 | mem: 82
 })
-| BVar causes ({ cpu: 36
-| mem: 0
-})
-| BDelay causes ({ cpu: 9
-| mem: 0
-})
-| BLamAbs causes ({ cpu: 30
-| mem: 0
-})
-| BBuiltinApp IfThenElse causes ({ cpu: 3
-| mem: 3
-})
-| BForce causes ({ cpu: 12
-| mem: 0
-})
 | BBuiltinApp LessThanEqInteger causes ({ cpu: 15
 | mem: 3
 })
-| BApply causes ({ cpu: 52
-| mem: 0
+| BBuiltinApp IfThenElse causes ({ cpu: 3
+| mem: 3
 })
 | BAST causes ({ cpu: 0
 | mem: 40
