@@ -45,7 +45,7 @@ testMachine machine eval =
     testGroup machine $ fromInterestingTermGens $ \name genTermOfTbv ->
         testProperty name . withTests 200 . property $ do
             TermOf term val <- forAllWith mempty genTermOfTbv
-            let resExp = erase <$> makeKnown @(Plc.Term TyName Name DefaultUni DefaultFun ()) val
+            let resExp = erase <$> makeKnownNoEmit @(Plc.Term TyName Name DefaultUni DefaultFun ()) val
             case extractEvaluationResult . eval $ erase term of
                 Left err     -> fail $ show err
                 Right resAct -> resAct === resExp
@@ -53,7 +53,7 @@ testMachine machine eval =
 test_machines :: TestTree
 test_machines =
     testGroup "machines"
-        [ testMachine "CEK"  $ evaluateCek  defBuiltinsRuntime
+        [ testMachine "CEK"  $ evaluateCekNoEmit defBuiltinsRuntime
         , testMachine "HOAS" $ evaluateHoas defBuiltinsRuntime
         ]
 
@@ -73,7 +73,7 @@ testBudget name term =
                        nestedGoldenVsText
     name
     (renderStrict $ layoutPretty defaultLayoutOptions {layoutPageWidth = AvailablePerLine maxBound 1.0} $
-        prettyPlcReadableDef $ runCek defBuiltinsRuntime (Restricting (ExRestrictingBudget (ExBudget 1000 1000))) term)
+        prettyPlcReadableDef $ runCekNoEmit defBuiltinsRuntime (Restricting (ExRestrictingBudget (ExBudget 1000 1000))) term)
 
 bunchOfFibs :: PlcFolderContents DefaultUni DefaultFun
 bunchOfFibs =
@@ -96,7 +96,7 @@ testCounting name term =
                        nestedGoldenVsText
     name
     (renderStrict $ layoutPretty defaultLayoutOptions {layoutPageWidth = AvailablePerLine maxBound 1.0} $
-        prettyPlcReadableDef $ runCekCounting defBuiltinsRuntime term)
+        prettyPlcReadableDef $ runCekNoEmit defBuiltinsRuntime Counting term)
 
 test_counting :: TestTree
 test_counting =

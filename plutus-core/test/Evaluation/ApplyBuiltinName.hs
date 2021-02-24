@@ -36,6 +36,7 @@ type AppErr =
 newtype AppM a = AppM
     { unAppM :: Either AppErr a
     } deriving newtype (Functor, Applicative, Monad, MonadError AppErr)
+      deriving (MonadEmitter) via (NoEmitterT AppM)
 
 instance SpendBudget AppM DefaultFun () (Term TyName Name DefaultUni DefaultFun ()) where
     spendBudget _ _ = pure ()
@@ -44,7 +45,7 @@ test_applyBuiltinFunction :: DefaultFun -> TestTree
 test_applyBuiltinFunction fun =
     testProperty (show fun) . property $ case toBuiltinMeaning fun of
         BuiltinMeaning sch toF toExF -> do
-            let f = toF defDefaultFunDyn
+            let f = toF ()
                 exF = toExF defaultCostModel
                 denot = Denotation fun (Builtin ()) f sch
                 getIterAppValue = runPlcT genTypedBuiltinDef $ genIterAppValue denot

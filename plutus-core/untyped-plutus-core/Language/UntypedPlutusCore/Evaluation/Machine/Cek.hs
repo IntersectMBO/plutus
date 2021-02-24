@@ -31,10 +31,12 @@ module Language.UntypedPlutusCore.Evaluation.Machine.Cek
     , exBudgetStateTally
     , extractEvaluationResult
     , runCek
-    , runCekCounting
+    , runCekNoEmit
+    , unsafeRunCekNoEmit
     , evaluateCek
-    , unsafeEvaluateCekWithBudget
+    , evaluateCekNoEmit
     , unsafeEvaluateCek
+    , unsafeEvaluateCekNoEmit
     , readKnownCek
     )
 where
@@ -60,9 +62,13 @@ import           Control.Lens.Setter
 import           Control.Monad.Except
 import           Control.Monad.Morph
 import           Control.Monad.Reader
+import           Control.Monad.ST
 import           Control.Monad.State.Strict
 import           Data.Array
+import           Data.DList                                         (DList)
+import qualified Data.DList                                         as DList
 import           Data.HashMap.Monoidal
+import           Data.STRef
 import           Data.Text.Prettyprint.Doc
 
 {- Note [Scoping]
@@ -103,9 +109,12 @@ data CekValue uni fun =
 type CekValEnv uni fun = UniqueMap TermUnique (CekValue uni fun)
 
 -- | The environment the CEK machine runs in.
-data CekEnv uni fun = CekEnv
+data CekEnv uni fun s = CekEnv
     { cekEnvRuntime    :: BuiltinsRuntime fun (CekValue uni fun)
     , cekEnvBudgetMode :: ExBudgetMode
+    -- 'Nothing' means no logging. 'DList' is due to the fact that we need efficient append
+    -- as we store logs as "latest go last".
+    , cekEnvMayEmitRef :: Maybe (STRef s (DList String))
     }
 
 data CekUserError
@@ -143,14 +152,17 @@ type CekEvaluationExceptionCarrying term fun =
 -- See Note [Being generic over @term@ in 'CekM'].
 -- | A generalized version of 'CekM' carrying a @term@.
 -- 'State' is inside the 'ExceptT', so we can get it back in case of error.
-type CekCarryingM term uni fun =
-    ReaderT (CekEnv uni fun) (ExceptT (CekEvaluationExceptionCarrying term fun) (State (CekExBudgetState fun)))
+type CekCarryingM term uni fun s =
+    ReaderT (CekEnv uni fun s)
+        (ExceptT (CekEvaluationExceptionCarrying term fun)
+            (StateT (CekExBudgetState fun)
+                (ST s)))
 
 -- | The CEK machine-specific 'EvaluationException'.
 type CekEvaluationException uni fun = CekEvaluationExceptionCarrying (Term Name uni fun ()) fun
 
 -- | The monad the CEK machine runs in.
-type CekM uni fun = CekCarryingM (Term Name uni fun ()) uni fun
+type CekM uni fun s = CekCarryingM (Term Name uni fun ()) uni fun s
 
 data ExBudgetCategory fun
     = BConst
@@ -265,10 +277,17 @@ instance ToExMemory (CekValue uni fun) where
 instance ExBudgetBuiltin fun (ExBudgetCategory fun) where
     exBudgetBuiltin = BBuiltinApp
 
+instance MonadEmitter (CekCarryingM term uni fun s) where
+    emit str = do
+        mayLogsRef <- asks cekEnvMayEmitRef
+        case mayLogsRef of
+            Nothing      -> pure ()
+            Just logsRef -> lift . lift . lift $ modifySTRef logsRef (`DList.snoc` str)
+
 -- We only need the @Eq fun@ constraint here and not anywhere else, because in other places we have
 -- @Ix fun@ which implies @Ord fun@ which implies @Eq fun@.
 instance (Eq fun, Hashable fun, ToExMemory term) =>
-            SpendBudget (CekCarryingM term uni fun) fun (ExBudgetCategory fun) term where
+            SpendBudget (CekCarryingM term uni fun s) fun (ExBudgetCategory fun) term where
     spendBudget key budget = do
         modifying exBudgetStateTally
                 (<> (ExTally (singleton key budget)))
@@ -292,11 +311,19 @@ type Context uni fun = [Frame uni fun]
 
 runCekM
     :: forall a uni fun
-     . CekEnv uni fun
+     . BuiltinsRuntime fun (CekValue uni fun)
+    -> ExBudgetMode
+    -> Bool
     -> CekExBudgetState fun
-    -> CekM uni fun a
-    -> (Either (CekEvaluationException uni fun) a, CekExBudgetState fun)
-runCekM env s a = runState (runExceptT $ runReaderT a env) s
+    -> (forall s. CekM uni fun s a)
+    -> (Either (CekEvaluationException uni fun) a, CekExBudgetState fun, [String])
+runCekM runtime mode emitting s a = runST $ do
+    mayLogsRef <- if emitting then Just <$> newSTRef DList.empty else pure Nothing
+    (errOrRes, s') <- runStateT (runExceptT . runReaderT a $ CekEnv runtime mode mayLogsRef) s
+    logs <- case mayLogsRef of
+        Nothing      -> pure []
+        Just logsRef -> DList.toList <$> readSTRef logsRef
+    pure (errOrRes, s', logs)
 
 -- | Extend an environment with a variable name, the value the variable stands for
 -- and the environment the value is defined in.
@@ -304,7 +331,7 @@ extendEnv :: Name -> CekValue uni fun -> CekValEnv uni fun -> CekValEnv uni fun
 extendEnv = insertByName
 
 -- | Look up a variable name in the environment.
-lookupVarName :: Name -> CekValEnv uni fun -> CekM uni fun (CekValue uni fun)
+lookupVarName :: Name -> CekValEnv uni fun -> CekM uni fun s (CekValue uni fun)
 lookupVarName varName varEnv = do
     case lookupName varName varEnv of
         Nothing  -> throwingWithCause _MachineError OpenTermEvaluatedMachineError $ Just var where
@@ -330,7 +357,7 @@ computeCek
     :: ( GShow uni, GEq uni, Closed uni, uni `Everywhere` ExMemoryUsage
        , Hashable fun, Ix fun
        )
-    => Context uni fun -> CekValEnv uni fun -> TermWithMem uni fun -> CekM uni fun (Term Name uni fun ())
+    => Context uni fun -> CekValEnv uni fun -> TermWithMem uni fun -> CekM uni fun s (Term Name uni fun ())
 -- s ; ρ ▻ {L A}  ↦ s , {_ A} ; ρ ▻ L
 computeCek ctx env (Var _ varName) = do
     spendBudget BVar astNodeCost
@@ -392,7 +419,7 @@ returnCek
     :: ( GShow uni, GEq uni, Closed uni, uni `Everywhere` ExMemoryUsage
        , Hashable fun, Ix fun
        )
-    => Context uni fun -> CekValue uni fun -> CekM uni fun (Term Name uni fun ())
+    => Context uni fun -> CekValue uni fun -> CekM uni fun s (Term Name uni fun ())
 --- Instantiate all the free variable of the resulting term in case there are any.
 -- . ◅ V           ↦  [] V
 returnCek [] val = pure $ void $ dischargeCekValue val
@@ -429,7 +456,7 @@ forceEvaluate
     :: ( GShow uni, GEq uni, Closed uni, uni `Everywhere` ExMemoryUsage
        , Hashable fun, Ix fun
        )
-    => Context uni fun -> CekValue uni fun -> CekM uni fun (Term Name uni fun ())
+    => Context uni fun -> CekValue uni fun -> CekM uni fun s (Term Name uni fun ())
 forceEvaluate ctx (VDelay _ body env) = computeCek ctx env body
 forceEvaluate ctx val@(VBuiltin ex bn arity0 arity forces args) =
     case arity of
@@ -461,7 +488,7 @@ applyEvaluate
     => Context uni fun
     -> CekValue uni fun   -- lhs of application
     -> CekValue uni fun   -- rhs of application
-    -> CekM uni fun (Term Name uni fun ())
+    -> CekM uni fun s (Term Name uni fun ())
 applyEvaluate ctx (VLamAbs _ name body env) arg =
     computeCek ctx (extendEnv name arg env) body
 applyEvaluate ctx val@(VBuiltin ex bn arity0 arity forces args) arg = do
@@ -485,7 +512,7 @@ applyBuiltin
     => Context uni fun
     -> fun
     -> [CekValue uni fun]
-    -> CekM uni fun (Term Name uni fun ())
+    -> CekM uni fun s (Term Name uni fun ())
 applyBuiltin ctx bn args = do
   -- Turn the cause of a possible failure, being a 'CekValue', into a 'Term'.
   -- See Note [Being generic over @term@ in 'CekM'].
@@ -494,8 +521,35 @@ applyBuiltin ctx bn args = do
   result <- dischargeError $ applyTypeSchemed bn sch f exF args
   returnCek ctx result
 
--- | Evaluate a term using the CEK machine and keep track of costing.
+{- Note [CEK runners naming convention]
+A function whose name ends in @NoEmit@ does not perform logging and so does not return any logs.
+A function whose name starts with @unsafe@ throws exceptions instead of returning them purely.
+A function from the @runCek@ family takes an 'ExBudgetMode' parameter and returns the final
+'CekExBudgetState' (and possibly logs).
+A function from the @evaluateCek@ family does not return the final 'ExBudgetMode', nor does it
+allow one to specify an 'ExBudgetMode'. I.e. such functions are only for fully evaluating programs
+(and possibly returning logs).
+-}
+
+-- | Evaluate a term using the CEK machine and keep track of costing, logging is optional.
 runCek
+    :: ( GShow uni, GEq uni, Closed uni, uni `Everywhere` ExMemoryUsage
+       , Hashable fun, Ix fun, ExMemoryUsage fun
+       )
+    => BuiltinsRuntime fun (CekValue uni fun)
+    -> ExBudgetMode
+    -> Bool
+    -> Term Name uni fun ()
+    -> (Either (CekEvaluationException uni fun) (Term Name uni fun ()), CekExBudgetState fun, [String])
+runCek runtime mode emitting term =
+    runCekM runtime mode emitting (ExBudgetState mempty mempty) $ do
+        spendBudget BAST (ExBudget 0 (termAnn memTerm))
+        computeCek [] mempty memTerm
+  where
+    memTerm = withMemory term
+
+-- | Evaluate a term using the CEK machine with logging disabled and keep track of costing.
+runCekNoEmit
     :: ( GShow uni, GEq uni, Closed uni, uni `Everywhere` ExMemoryUsage
        , Hashable fun, Ix fun, ExMemoryUsage fun
        )
@@ -503,36 +557,48 @@ runCek
     -> ExBudgetMode
     -> Term Name uni fun ()
     -> (Either (CekEvaluationException uni fun) (Term Name uni fun ()), CekExBudgetState fun)
-runCek runtime mode term =
-    runCekM (CekEnv runtime mode)
-            (ExBudgetState mempty mempty)
-        $ do
-            spendBudget BAST (ExBudget 0 (termAnn memTerm))
-            computeCek [] mempty memTerm
-    where
-        memTerm = withMemory term
+runCekNoEmit runtime mode term =
+    case runCek runtime mode False term of
+        (errOrRes, s', _) -> (errOrRes, s')
 
--- | Evaluate a term using the CEK machine in the 'Counting' mode.
-runCekCounting
-    :: ( GShow uni, GEq uni, Closed uni, uni `Everywhere` ExMemoryUsage
-       , Hashable fun, Ix fun, ExMemoryUsage fun
+-- | Unsafely evaluate a term using the CEK machine with logging disabled and keep track of costing.
+-- May throw a 'CekMachineException'.
+unsafeRunCekNoEmit
+    :: ( GShow uni, GEq uni, Typeable uni
+       , Closed uni, uni `EverywhereAll` '[ExMemoryUsage, PrettyConst]
+       , Hashable fun, Ix fun, Pretty fun, Typeable fun, ExMemoryUsage fun
        )
     => BuiltinsRuntime fun (CekValue uni fun)
+    -> ExBudgetMode
     -> Term Name uni fun ()
-    -> (Either (CekEvaluationException uni fun) (Term Name uni fun ()), CekExBudgetState fun)
-runCekCounting runtime = runCek runtime Counting
+    -> (EvaluationResult (Term Name uni fun ()), CekExBudgetState fun)
+unsafeRunCekNoEmit runtime mode = first unsafeExtractEvaluationResult . runCekNoEmit runtime mode
 
--- | Evaluate a term using the CEK machine.
+-- | Evaluate a term using the CEK machine with logging enabled.
 evaluateCek
     :: ( GShow uni, GEq uni, Closed uni, uni `Everywhere` ExMemoryUsage
        , Hashable fun, Ix fun, ExMemoryUsage fun
        )
     => BuiltinsRuntime fun (CekValue uni fun)
     -> Term Name uni fun ()
-    -> Either (CekEvaluationException uni fun) (Term Name uni fun ())
-evaluateCek runtime = fst . runCekCounting runtime
+    -> (Either (CekEvaluationException uni fun) (Term Name uni fun ()), [String])
+evaluateCek runtime term =
+    -- TODO: Oftentimes we want neither 'Restricting' nor 'Counting'. Should we have a third mode
+    -- 'JustEvaluateTheProgram'?
+    case runCek runtime Counting True term of
+        (errOrRes, _, logs) -> (errOrRes, logs)
 
--- | Evaluate a term using the CEK machine. May throw a 'CekMachineException'.
+-- | Evaluate a term using the CEK machine with logging disabled.
+evaluateCekNoEmit
+    :: ( GShow uni, GEq uni, Closed uni, uni `Everywhere` ExMemoryUsage
+       , Hashable fun, Ix fun, ExMemoryUsage fun
+       )
+    => BuiltinsRuntime fun (CekValue uni fun)
+    -> Term Name uni fun ()
+    -> Either (CekEvaluationException uni fun) (Term Name uni fun ())
+evaluateCekNoEmit runtime = fst . runCekNoEmit runtime Counting
+
+-- | Evaluate a term using the CEK machine with logging enabled. May throw a 'CekMachineException'.
 unsafeEvaluateCek
     :: ( GShow uni, GEq uni, Typeable uni
        , Closed uni, uni `EverywhereAll` '[ExMemoryUsage, PrettyConst]
@@ -540,21 +606,19 @@ unsafeEvaluateCek
        )
     => BuiltinsRuntime fun (CekValue uni fun)
     -> Term Name uni fun ()
-    -> EvaluationResult (Term Name uni fun ())
-unsafeEvaluateCek runtime = either throw id . extractEvaluationResult . evaluateCek runtime
+    -> (EvaluationResult (Term Name uni fun ()), [String])
+unsafeEvaluateCek runtime = first unsafeExtractEvaluationResult . evaluateCek runtime
 
--- | This is like unsafeEvaluateCek, but it takes an initial budget and returns the final budget
-unsafeEvaluateCekWithBudget
+-- | Evaluate a term using the CEK machine with logging disabled. May throw a 'CekMachineException'.
+unsafeEvaluateCekNoEmit
     :: ( GShow uni, GEq uni, Typeable uni
        , Closed uni, uni `EverywhereAll` '[ExMemoryUsage, PrettyConst]
        , Hashable fun, Ix fun, Pretty fun, Typeable fun, ExMemoryUsage fun
-        )
+       )
     => BuiltinsRuntime fun (CekValue uni fun)
-    -> ExBudgetMode
     -> Term Name uni fun ()
-    -> (EvaluationResult (Term Name uni fun ()), CekExBudgetState fun)
-unsafeEvaluateCekWithBudget runtime budget =
-    first (either throw id . extractEvaluationResult) . runCek runtime budget
+    -> EvaluationResult (Term Name uni fun ())
+unsafeEvaluateCekNoEmit runtime = unsafeExtractEvaluationResult . evaluateCekNoEmit runtime
 
 -- | Unlift a value using the CEK machine.
 readKnownCek
@@ -565,4 +629,4 @@ readKnownCek
     => BuiltinsRuntime fun (CekValue uni fun)
     -> Term Name uni fun ()
     -> Either (CekEvaluationException uni fun) a
-readKnownCek runtime = evaluateCek runtime >=> readKnown
+readKnownCek runtime = evaluateCekNoEmit runtime >=> readKnown

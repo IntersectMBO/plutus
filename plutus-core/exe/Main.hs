@@ -778,7 +778,7 @@ runEval (EvalOptions language inp ifmt evalMode printMode budgetMode timingMode)
                                Silent    -> ()
                                Verbose _ -> errorWithoutStackTrace "There is no budgeting for typed Plutus Core"
                     TypedProgram prog <- getProgram TypedPLC ifmt inp
-                    let evaluate = Ck.unsafeEvaluateCk  PLC.defBuiltinsRuntime
+                    let evaluate = Ck.unsafeEvaluateCkNoEmit PLC.defBuiltinsRuntime
                         body = void . PLC.toTerm $ prog
                         !_ = rnf body
                         -- Force evaluation of body to ensure that we're not timing parsing/deserialisation.
@@ -796,7 +796,7 @@ runEval (EvalOptions language inp ifmt evalMode printMode budgetMode timingMode)
                       !_ = rnf body
                   case budgetMode of
                     Silent -> do
-                          let evaluate = Cek.unsafeEvaluateCek PLC.defBuiltinsRuntime
+                          let evaluate = Cek.unsafeEvaluateCekNoEmit PLC.defBuiltinsRuntime
                           case timingMode of
                             NoTiming -> evaluate body & handleResult
                             Timing n -> timeEval n evaluate body >>= handleTimingResults
@@ -805,7 +805,7 @@ runEval (EvalOptions language inp ifmt evalMode printMode budgetMode timingMode)
                             -- in Restricting mode with a large intial budget to get a more realistic
                             -- estimate of on-chain costs.
                     Verbose bm -> do
-                          let evaluate = Cek.unsafeEvaluateCekWithBudget PLC.defBuiltinsRuntime bm
+                          let evaluate = Cek.unsafeRunCekNoEmit PLC.defBuiltinsRuntime bm
                           case timingMode of
                             NoTiming -> do
                                     let (result, budget) = evaluate body

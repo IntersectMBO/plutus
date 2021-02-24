@@ -6,6 +6,7 @@ module Language.PlutusCore.Constant.Apply
     ( applyTypeSchemed
     ) where
 
+import           Language.PlutusCore.Constant.Dynamic.Emit
 import           Language.PlutusCore.Constant.Typed
 import           Language.PlutusCore.Evaluation.Machine.ExBudgeting
 import           Language.PlutusCore.Evaluation.Machine.Exception
@@ -18,7 +19,7 @@ import           Data.Proxy
 -- Checks that the constants are of expected types.
 applyTypeSchemed
     :: forall err m args fun exBudgetCat term res.
-       ( MonadError (ErrorWithCause err term) m
+       ( MonadEmitter m, MonadError (ErrorWithCause err term) m
        , AsUnliftingError err, AsEvaluationFailure err, AsConstAppError err fun term
        , SpendBudget m fun exBudgetCat term
        )
