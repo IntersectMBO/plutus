@@ -12,7 +12,6 @@ module Template.Validation
 -- opposed to rationals). It would almost be simpler to give all inputs a 
 -- type="text", and validate against the string input before converting it to
 -- a number. But then the HTML interface wouldn't be as user-friendly. :(
-
 import Prelude
 import Data.BigInteger (BigInteger)
 import Data.Map (Map, isEmpty, mapMaybe, member)
