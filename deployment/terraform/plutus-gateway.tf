@@ -71,6 +71,8 @@ resource "aws_api_gateway_integration" "plutus_root_get_method" {
   integration_http_method = "GET"
   credentials             = aws_iam_role.plutus_s3_proxy_role.arn
   uri                     = "arn:aws:apigateway:${var.aws_region}:s3:path/plutus-playground-website-${var.env}/index.html"
+  depends_on = [aws_s3_bucket.plutus_playground]
+
 }
 
 resource "aws_api_gateway_method_response" "plutus_root_get_method" {
@@ -138,6 +140,7 @@ resource "aws_api_gateway_integration" "plutus_item_get_method" {
   request_parameters = {
     "integration.request.path.proxy"   = "method.request.path.proxy"
   }
+  depends_on = [aws_s3_bucket.plutus_playground]
 }
 
 resource "aws_api_gateway_method_response" "plutus_item_get_method" {
