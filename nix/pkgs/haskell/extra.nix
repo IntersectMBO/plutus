@@ -18,7 +18,7 @@
   Agda = haskell-nix.hackage-package {
     name = "Agda";
     version = "2.6.1.1";
-    plan-sha256 = "03gmq1gbbq7w870qjqbr9aiyyxmj1xl182k3cjnby2w59np6isyl";
+    plan-sha256 = "1mj425brxp4zvbpj04ixzmpdrb7i6mcg54y8q4396s1mzy74k1xw";
     # Should use the index-state from the target cabal.project, but that disables plan-sha256. Fixed
     # in recent haskell.nix, delete the index-state passing when we update.
     inherit compiler-nix-name index-state checkMaterialization;
@@ -52,24 +52,24 @@
   };
   cabal-install = haskell-nix.hackage-package {
     name = "cabal-install";
-    version = "3.2.0.0";
+    version = "3.4.0.0";
     inherit compiler-nix-name index-state checkMaterialization;
     # Invalidate and update if you change the version or index-state
-    plan-sha256 = "0n8vpjj8477f50kab9h4pgh92q49260r78fc3pfh2l56lmc6ngfi";
+    plan-sha256 = "12qb9j99zkav8df91s9wsigqcj6h8wzlq95ci5qgj263rkm112a9";
   };
   stylish-haskell = haskell-nix.hackage-package {
     name = "stylish-haskell";
     version = "0.12.2.0";
     inherit compiler-nix-name index-state checkMaterialization;
     # Invalidate and update if you change the version or index-state
-    plan-sha256 = "1wdpv3n1lz4dwkw2mvhnbyqq2haskcjiz1py9h1i0www2valm1lj";
+    plan-sha256 = "12falax0q7hqsgjvirpn8nnf97pl7a17kfwf9jp0j3k1plwlv8fy";
   };
   hlint = haskell-nix.hackage-package {
     name = "hlint";
     version = "3.2.1";
     inherit compiler-nix-name index-state checkMaterialization;
     # Invalidate and update if you change the version or index-state
-    plan-sha256 = "06zc8rs4rbsfjrixy2mazy7rlkxk1smgjrhkp4d3krmabmfqm2wd";
+    plan-sha256 = "15dx7l2ilp4w0jvczvpn5c8gjyh8cx3qgaq92d2r2570ml49im2z";
     modules = [{ reinstallableLibGhc = false; }];
   };
 }
@@ -91,8 +91,8 @@
     plan-sha256 =
       # See https://github.com/input-output-hk/nix-tools/issues/97
       if stdenv.isLinux
-      then "137f0k6dvf1m8zpykqfcrrn9dmnypryhhqpaa9jgx6wvn7ra6061"
-      else "1dvp46l6c91v2581pwjybvlg65ppbmpc37f7afvm0qbwrrdncvid";
+      then "09cbs77xcxmfsv1vxdbaj31r3d1mnwci7061vcrn5fkncsx827xq"
+      else "1ypvxgvwzgh1jm4cfk6y0c6iqnrinkcha76rmnchim2y9zz070pj";
     modules = [{
       packages.ghcide.patches = [ ../../patches/ghcide_partial_iface.patch ];
     }];
