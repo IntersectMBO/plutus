@@ -143,7 +143,7 @@ let
 
       echo "apply terraform"
       ${terraform}/bin/terraform init
-      ${terraform}/bin/terraform workspace select ${env}
+      ${terraform}/bin/terraform workspace select ${env} || ${terraform}/bin/terraform workspace new ${env}
       ${terraform}/bin/terraform apply -var-file=${env}.tfvars
 
       marlowe_api_id=$(${terraform}/bin/terraform output marlowe_rest_api_id)
@@ -189,6 +189,13 @@ let
       ln -s ${terraform-locals env}/* "$tmp_dir"
       ln -s ${terraform-vars env region}/* "$tmp_dir"
       cd "$tmp_dir"
+
+      echo "deleting S3 buckets"
+      aws s3 rm s3://marlowe-playground-website-${env} --recursive
+      aws s3 rm s3://plutus-playground-website-${env} --recursive
+
+      echo "set output directory"
+      export TF_VAR_output_path="$tmp_dir"
 
       echo "apply terraform"
       export TF_VAR_marlowe_github_client_id=$(pass ${env}/marlowe/githubClientId)
@@ -254,8 +261,8 @@ let
     alpha = mkEnv "alpha" "eu-west-2" [ keys.david keys.kris keys.pablo keys.hernan ];
     pablo = mkEnv "pablo" "eu-west-3" [ keys.pablo ];
     playground = mkEnv "playground" "us-west-1" [ keys.david keys.kris keys.pablo keys.hernan ];
-    wyohack = mkEnv "wyohack" "us-west-2" [ keys.david keys.kris keys.pablo keys.hernan ];
     testing = mkEnv "testing" "eu-west-3" [ keys.david keys.kris keys.pablo keys.hernan ];
+    hernan = mkEnv "hernan" "us-west-2" [ keys.hernan ];
   };
 
   configTest = import ./morph/test.nix;
