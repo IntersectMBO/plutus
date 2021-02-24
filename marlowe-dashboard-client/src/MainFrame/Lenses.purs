@@ -5,12 +5,13 @@ module MainFrame.Lenses
   , _subState
   , _pickupState
   , _walletState
-  , _contractState
   , _screen
   , _card
   , _wallet
   , _menuOpen
   , _webSocketStatus
+  , _templateState
+  , _contractState
   ) where
 
 import Prelude
@@ -22,7 +23,7 @@ import Data.Lens.Record (prop)
 import Data.Symbol (SProxy(..))
 import MainFrame.Types (PickupState, State, WalletState, WebSocketStatus)
 import Marlowe.Semantics (PubKey)
-import Template.Types (Template)
+import Template.Types (State, Template) as Template
 import WalletData.Types (WalletLibrary, WalletNicknameKey)
 
 _wallets :: Lens' State WalletLibrary
@@ -31,27 +32,21 @@ _wallets = prop (SProxy :: SProxy "wallets")
 _newWalletNicknameKey :: Lens' State WalletNicknameKey
 _newWalletNicknameKey = prop (SProxy :: SProxy "newWalletNicknameKey")
 
-_templates :: Lens' State (Array Template)
+_templates :: Lens' State (Array Template.Template)
 _templates = prop (SProxy :: SProxy "templates")
 
 _subState :: Lens' State (Either PickupState WalletState)
 _subState = prop (SProxy :: SProxy "subState")
 
--- This isn't a Traversal' in any meaningful sense (that I can see), but a Traversal'
--- is a Strong Choice Profunctor, so this is a neat type for the occasion.
--- Alternatively: forall a. Strong a => Choice a => Optic' a State PickupState
+_webSocketStatus :: Lens' State WebSocketStatus
+_webSocketStatus = prop (SProxy :: SProxy "webSocketStatus")
+
+------------------------------------------------------------
 _pickupState :: Traversal' State PickupState
 _pickupState = _subState <<< _Left
 
--- As above.
 _walletState :: Traversal' State WalletState
 _walletState = _subState <<< _Right
-
-_contractState :: Lens' State Contract.State
-_contractState = prop (SProxy :: SProxy "contractState")
-
-_webSocketStatus :: Lens' State WebSocketStatus
-_webSocketStatus = prop (SProxy :: SProxy "webSocketStatus")
 
 ------------------------------------------------------------
 _screen :: forall s b. Lens' { screen :: s | b } s
@@ -66,3 +61,9 @@ _wallet = prop (SProxy :: SProxy "wallet")
 
 _menuOpen :: Lens' WalletState Boolean
 _menuOpen = prop (SProxy :: SProxy "menuOpen")
+
+_templateState :: Lens' WalletState Template.State
+_templateState = prop (SProxy :: SProxy "templateState")
+
+_contractState :: Lens' WalletState Contract.State
+_contractState = prop (SProxy :: SProxy "contractState")

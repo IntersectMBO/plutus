@@ -1,8 +1,8 @@
 module WalletData.Validation
-  ( KeyError(..)
-  , NicknameError(..)
-  , keyError
+  ( NicknameError(..)
+  , KeyError(..)
   , nicknameError
+  , keyError
   ) where
 
 import Prelude

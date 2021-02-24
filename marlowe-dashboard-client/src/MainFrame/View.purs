@@ -1,6 +1,7 @@
 module MainFrame.View where
 
 import Prelude hiding (div)
+import Contract.Types (State) as Contract
 import Contract.View (contractsScreen, contractDetailsCard)
 import Css (classNames, hideWhen)
 import Data.Either (Either(..))
@@ -11,14 +12,15 @@ import Halogen (ComponentHTML)
 import Halogen.HTML (HTML, a, div, footer, h1, header, main, nav, span, text)
 import Halogen.HTML.Events (onClick)
 import Halogen.HTML.Properties (href)
-import MainFrame.Lenses (_card, _menuOpen, _newWalletNicknameKey, _templates, _screen, _subState, _wallet, _wallets)
-import MainFrame.Types (Action(..), Card(..), ChildSlots, ContractStatus(..), WalletState, PickupCard(..), PickupScreen(..), PickupState, Screen(..), State)
+import MainFrame.Lenses (_card, _contractState, _menuOpen, _newWalletNicknameKey, _templates, _templateState, _screen, _subState, _wallet, _wallets)
+import MainFrame.Types (Action(..), Card(..), ChildSlots, ContractStatus(..), PickupCard(..), PickupScreen(..), PickupState, Screen(..), State, WalletState)
 import Marlowe.Semantics (PubKey)
 import Material.Icons as Icon
 import Prim.TypeError (class Warn, Text)
-import Template.View (templateLibraryCard, contractSetupScreen)
 import Template.Types (Template)
-import WalletData.Types (WalletNicknameKey, WalletLibrary)
+import Template.Types (State) as Template
+import Template.View (contractSetupConfirmationCard, contractSetupScreen, templateLibraryCard)
+import WalletData.Types (WalletLibrary, WalletNicknameKey)
 import WalletData.View (contactDetailsCard, newContactCard, pickupLocalWalletCard, pickupNewWalletCard, pickupWalletScreen, putdownWalletCard, walletLibraryScreen)
 
 render :: forall m. MonadAff m => State -> ComponentHTML Action ChildSlots m
@@ -91,11 +93,15 @@ renderWalletState wallets newWalletNicknameKey templates walletState =
     screen = view _screen walletState
 
     card = view _card walletState
+
+    templateState = view _templateState walletState
+
+    contractState = view _contractState walletState
   in
     div
       [ classNames [ "grid", "h-full", "grid-rows-main" ] ]
       [ renderHeader wallet menuOpen
-      , renderMain newWalletNicknameKey wallets templates wallet menuOpen screen card
+      , renderMain newWalletNicknameKey wallets templates wallet menuOpen screen card templateState contractState
       , renderFooter
       ]
 
@@ -151,13 +157,13 @@ renderHeader wallet menuOpen =
   where
   itemClasses = [ "flex", "items-center", "p-0.5" ]
 
-renderMain :: forall p. WalletNicknameKey -> WalletLibrary -> Array Template -> PubKey -> Boolean -> Screen -> Maybe Card -> HTML p Action
-renderMain newWalletNicknameKey wallets templates wallet menuOpen screen card =
+renderMain :: forall p. WalletNicknameKey -> WalletLibrary -> Array Template -> PubKey -> Boolean -> Screen -> Maybe Card -> Template.State -> Contract.State -> HTML p Action
+renderMain newWalletNicknameKey wallets templates wallet menuOpen screen card templateState contractState =
   main
     [ classNames [ "relative", "bg-lightblue", "text-blue" ] ]
     [ renderMobileMenu menuOpen
-    , renderCards newWalletNicknameKey wallets templates wallet card
-    , renderScreen wallets screen
+    , renderCards newWalletNicknameKey wallets templates wallet card contractState
+    , renderScreen wallets screen templateState
     ]
 
 renderMobileMenu :: forall p. Boolean -> HTML p Action
@@ -178,8 +184,8 @@ renderMobileMenu menuOpen =
         ]
     ]
 
-renderCards :: forall p. WalletNicknameKey -> WalletLibrary -> Array Template -> PubKey -> Maybe Card -> HTML p Action
-renderCards newWalletNicknameKey wallets templates wallet card =
+renderCards :: forall p. WalletNicknameKey -> WalletLibrary -> Array Template -> PubKey -> Maybe Card -> Contract.State -> HTML p Action
+renderCards newWalletNicknameKey wallets templates wallet card contractState =
   div
     [ classNames $ [ "absolute", "top-0", "bottom-0", "left-0", "right-0", "z-10", "flex", "flex-col", "justify-end", "md:justify-center", "bg-transgray" ] <> hideWhen (isNothing card) ]
     [ div
@@ -198,26 +204,26 @@ renderCards newWalletNicknameKey wallets templates wallet card =
             Just (ViewWalletCard walletNicknameKey walletDetails) -> [ contactDetailsCard walletNicknameKey walletDetails ]
             Just PutdownWalletCard -> [ putdownWalletCard wallet wallets ]
             Just TemplateLibraryCard -> [ templateLibraryCard templates ]
-            Just (ContractCard contract) -> [ ContractAction <$> contractDetailsCard contract ]
+            Just NewContractForRoleCard -> []
+            Just ContractSetupConfirmationCard -> [ contractSetupConfirmationCard ]
+            Just ContractCard -> [ ContractAction <$> contractDetailsCard contractState ]
             Nothing -> []
         ]
     ]
   where
   cardClasses = case card of
     Just TemplateLibraryCard -> [ "max-h-full", "overflow-auto", "mt-3", "mx-1", "shadow-md", "bg-gray", "md:mb-3", "lg:mx-3" ]
-    Just (ContractCard _) -> [ "max-h-full", "overflow-auto", "mt-1", "mx-1", "shadow-md", "bg-gray", "md:mb-1", "lg:mx-3" ]
+    Just ContractCard -> [ "max-h-full", "overflow-auto", "mt-1", "mx-1", "shadow-md", "bg-gray", "md:mb-1", "lg:mx-3" ]
     Just _ -> [ "mx-1", "shadow-md", "bg-white", "md:mx-auto", "md:w-card" ]
     Nothing -> [ "hidden" ]
 
-renderScreen :: forall p. WalletLibrary -> Screen -> HTML p Action
-renderScreen wallets screen =
+renderScreen :: forall p. WalletLibrary -> Screen -> Template.State -> HTML p Action
+renderScreen wallets screen setupState =
   div
-    [ classNames [ "absolute", "top-0", "bottom-0", "left-0", "right-0", "overflow-auto", "z-0" ] ]
-    [ case screen of
-        ContractsScreen contractStatus -> ContractAction <$> contractsScreen contractStatus
-        WalletLibraryScreen -> walletLibraryScreen wallets
-        ContractSetupScreen template -> contractSetupScreen template
-    ]
+    [ classNames [ "absolute", "top-0", "bottom-0", "left-0", "right-0", "overflow-auto", "z-0", "p-1" ] ] case screen of
+    ContractsScreen contractStatus -> [ ContractAction <$> contractsScreen contractStatus ]
+    WalletLibraryScreen -> [ walletLibraryScreen wallets ]
+    ContractSetupScreen setupScreen -> [ contractSetupScreen wallets setupScreen setupState ]
 
 renderFooter :: forall p. HTML p Action
 renderFooter =

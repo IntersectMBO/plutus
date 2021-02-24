@@ -1,4 +1,9 @@
-module Contract.State where
+module Contract.State
+  ( defaultState
+  , mkInitialState
+  , handleQuery
+  , handleAction
+  ) where
 
 import Prelude
 import Contract.Types (Action(..), Query(..), Side(..), State, Tab(..), _confirmation, _executionState, _side, _step, _tab)
@@ -6,14 +11,16 @@ import Data.Lens (assign, modifying, use)
 import Data.Maybe (Maybe(..))
 import Data.Unfoldable as Unfoldable
 import Effect.Aff.Class (class MonadAff)
-import Halogen (HalogenM, raise)
-import MainFrame.Types (ChildSlots, Msg(..))
+import Halogen (HalogenM)
+import MainFrame.Types (ChildSlots, Msg)
 import Marlowe.Execution (NamedAction(..), _namedActions, _state, initExecution, merge, mkTx, nextState)
-import Marlowe.Semantics (Contract, Slot, _minSlot)
-import Plutus.PAB.Webserver.Types (StreamToServer(..))
+import Marlowe.Semantics (Contract(..), Slot, _minSlot)
 
-initialState :: Slot -> Contract -> State
-initialState slot contract =
+defaultState :: State
+defaultState = mkInitialState zero Close
+
+mkInitialState :: Slot -> Contract -> State
+mkInitialState slot contract =
   { tab: Tasks
   , executionState: initExecution slot contract
   , side: Overview

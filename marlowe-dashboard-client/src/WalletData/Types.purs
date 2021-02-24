@@ -1,11 +1,11 @@
 module WalletData.Types
   ( WalletLibrary
   , WalletNicknameKey
-  , WalletDetails(..)
+  , WalletDetails
   ) where
 
-import Data.Map (Map)
 import Data.Tuple (Tuple)
+import Data.Map (Map)
 import Marlowe.Semantics (PubKey)
 
 type WalletLibrary
