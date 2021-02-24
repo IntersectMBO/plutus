@@ -58,8 +58,8 @@ prop_sha2 :: Property
 prop_sha2 = testPredictOne sHA2 (getConst . paramSHA2)
 prop_sha3 :: Property
 prop_sha3 = testPredictOne sHA3 (getConst . paramSHA3)
-prop_verifySignature :: Property
-prop_verifySignature = testPredictThree verifySignature (getConst . paramVerifySignature)
+-- prop_verifySignature :: Property
+-- prop_verifySignature = testPredictThree verifySignature (getConst . paramVerifySignature)
 prop_eqByteString :: Property
 prop_eqByteString = testPredict eqByteString (getConst . paramEqByteString)
 prop_ltByteString :: Property
