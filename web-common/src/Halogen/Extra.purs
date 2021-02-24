@@ -7,7 +7,7 @@ import Data.Bifunctor (bimap)
 import Data.Foldable (for_)
 import Data.Lens (Lens', Traversal', preview, set, view)
 import Data.Lens.Extra (peruse)
-import Data.Maybe (Maybe(..))
+import Data.Maybe (fromMaybe)
 import Data.Newtype (over)
 import Data.Tuple (Tuple(..))
 import Effect.Aff.Class (class MonadAff)
@@ -88,9 +88,7 @@ mapMaybeSubmodule state traversal wrapper submoduleDefaultState submoduleHandleA
   where
   subToMain submoduleState = set traversal submoduleState state
 
-  mainToSub mainState = case preview traversal mainState of
-    Just submoduleState -> submoduleState
-    _ -> submoduleDefaultState
+  mainToSub = fromMaybe submoduleDefaultState <<< preview traversal
 
 foreign import scrollIntoView_ :: EffectFn1 HTMLElement Unit
 

@@ -20,8 +20,8 @@ import Halogen.HTML.Properties (InputType(..), disabled, for, id_, list, min, pl
 import MainFrame.Types (Action(..), Card(..), Screen(..))
 import Marlowe.Extended (Contract, IntegerTemplateType(..), TemplateContent, _slotContent, _valueContent, getParties)
 import Marlowe.Semantics (PubKey, Party(..))
-import Template.Lenses (_contractNickname, _extendedContract, _roleWallets, _template, _templateContent)
-import Template.Types (ContractSetupScreen(..), Template)
+import Template.Lenses (_contractNickname, _extendedContract, _metaData, _roleWallets, _template, _templateContent)
+import Template.Types (ContractSetupScreen(..), MetaData, Template)
 import Template.Types (Action(..), State) as Template
 import Template.Validation (roleError, roleWalletsAreValid, slotError, valueError)
 import WalletData.Types (WalletLibrary)
@@ -41,11 +41,11 @@ templateBox template =
   div
     [ classNames [ "bg-white", "p-1" ] ]
     [ h4_
-        [ text template.type_ ]
+        [ text template.metaData.contractType ]
     , h3_
-        [ text template.name ]
+        [ text template.metaData.contractName ]
     , p_
-        [ text template.description ]
+        [ text template.metaData.contractDescription ]
     , button
         [ classNames [ "bg-green", "text-white" ]
         , onClick $ const $ Just $ SetTemplate template
@@ -58,6 +58,8 @@ contractSetupScreen wallets setupScreen state =
   let
     contractNickname = view _contractNickname state
 
+    metaData = view (_template <<< _metaData) state
+
     extendedContract = view (_template <<< _extendedContract) state
 
     roleWallets = view _roleWallets state
@@ -68,8 +70,8 @@ contractSetupScreen wallets setupScreen state =
       []
       [ contractSetupScreenHeader setupScreen contractNickname
       , case setupScreen of
-          ContractRolesScreen -> contractRolesScreen wallets extendedContract roleWallets
-          ContractParametersScreen -> contractParametersScreen templateContent
+          ContractRolesScreen -> contractRolesScreen wallets metaData extendedContract roleWallets
+          ContractParametersScreen -> contractParametersScreen metaData templateContent
           ContractReviewScreen -> contractReviewScreen state
       , div
           [ classNames [ "absolute", "bottom-1", "left-1", "right-1", "flex", "items-center", "justify-between" ] ]
@@ -134,8 +136,8 @@ contractNavigationButtons screen roleWallets wallets = case screen of
         [ text "Pay and start >" ]
     ]
 
-contractRolesScreen :: forall p. WalletLibrary -> Contract -> Map String PubKey -> HTML p Action
-contractRolesScreen wallets extendedContract roleWallets =
+contractRolesScreen :: forall p. WalletLibrary -> MetaData -> Contract -> Map String PubKey -> HTML p Action
+contractRolesScreen wallets metaData extendedContract roleWallets =
   ul
     [ classNames [ "mx-auto", "w-card" ] ]
     $ map partyInput (Set.toUnfoldable $ getParties extendedContract)
@@ -157,9 +159,11 @@ contractRolesScreen wallets extendedContract roleWallets =
           ]
       ]
 
-  partyInput (Role tokName) =
+  partyInput (Role tokenName) =
     let
-      assigned = fromMaybe "" $ lookup tokName roleWallets
+      description = fromMaybe "no description available" $ lookup tokenName metaData.roleDescriptions
+
+      assigned = fromMaybe "" $ lookup tokenName roleWallets
 
       mRoleError = roleError assigned wallets
     in
@@ -167,15 +171,15 @@ contractRolesScreen wallets extendedContract roleWallets =
         [ classNames [ "mb-1" ] ]
         [ label
             [ classNames [ "block", "mb-0.5" ]
-            , for tokName
+            , for tokenName
             ]
-            [ text tokName ]
+            [ text $ tokenName <> ": " <> description ]
         , input
             [ classNames $ [ "w-full" ] <> toggleWhen (mRoleError == Nothing) "border-green" "border-red"
-            , id_ tokName
+            , id_ tokenName
             , type_ InputText
             , list "walletNicknames"
-            , onValueInput $ Just <<< TemplateAction <<< Template.SetRoleWallet tokName
+            , onValueInput $ Just <<< TemplateAction <<< Template.SetRoleWallet tokenName
             , value assigned
             ]
         , div
@@ -186,8 +190,8 @@ contractRolesScreen wallets extendedContract roleWallets =
         , nicknamesDataList wallets
         ]
 
-contractParametersScreen :: forall p. TemplateContent -> HTML p Action
-contractParametersScreen templateContent =
+contractParametersScreen :: forall p. MetaData -> TemplateContent -> HTML p Action
+contractParametersScreen metaData templateContent =
   let
     slotContent = view _slotContent templateContent
 
@@ -204,6 +208,10 @@ contractParametersScreen templateContent =
   where
   parameterInput integerTemplateType (key /\ parameterValue) =
     let
+      description = case integerTemplateType of
+        SlotContent -> fromMaybe "no description available" $ lookup key metaData.slotParameterDescriptions
+        ValueContent -> fromMaybe "no description available" $ lookup key metaData.valueParameterDescriptions
+
       mParameterError = case integerTemplateType of
         SlotContent -> slotError parameterValue
         ValueContent -> valueError parameterValue
@@ -212,7 +220,7 @@ contractParametersScreen templateContent =
         [ classNames [ "mb-1" ] ]
         [ label
             [ classNames [ "block", "mb-0.5" ] ]
-            [ text key ]
+            [ text $ key <> ": " <> description ]
         , input
             [ classNames $ [ "w-full" ] <> toggleWhen (mParameterError == Nothing) "border-green" "border-red"
             , type_ InputNumber

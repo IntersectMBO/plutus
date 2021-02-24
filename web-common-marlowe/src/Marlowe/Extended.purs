@@ -95,7 +95,7 @@ class HasParties a where
   getParties :: a -> Set S.Party
 
 instance arrayHasParties :: HasParties a => HasParties (Array a) where
-  getParties as = foldMap (\a -> getParties a) as
+  getParties = foldMap (\a -> getParties a)
 
 instance sPartyHasParties :: HasParties S.Party where
   getParties party = Set.singleton party
@@ -323,13 +323,18 @@ instance fillableValue :: Fillable Value TemplateContent where
 
 instance valueHasParties :: HasParties Value where
   getParties (AvailableMoney accId _) = getParties accId
+  getParties (Constant _) = Set.empty
+  getParties (ConstantParam _) = Set.empty
   getParties (NegValue val) = getParties val
   getParties (AddValue lhs rhs) = getParties lhs <> getParties rhs
   getParties (SubValue lhs rhs) = getParties lhs <> getParties rhs
+  getParties (MulValue lhs rhs) = getParties lhs <> getParties rhs
   getParties (Scale _ val) = getParties val
   getParties (ChoiceValue choId) = getParties choId
+  getParties SlotIntervalStart = Set.empty
+  getParties SlotIntervalEnd = Set.empty
+  getParties (UseValue _) = Set.empty
   getParties (Cond obs lhs rhs) = getParties obs <> getParties lhs <> getParties rhs
-  getParties _ = Set.empty
 
 data Observation
   = AndObs Observation Observation
@@ -494,7 +499,8 @@ instance observationHasParties :: HasParties Observation where
   getParties (ValueLT lhs rhs) = getParties lhs <> getParties rhs
   getParties (ValueLE lhs rhs) = getParties lhs <> getParties rhs
   getParties (ValueEQ lhs rhs) = getParties lhs <> getParties rhs
-  getParties _ = Set.empty
+  getParties TrueObs = Set.empty
+  getParties FalseObs = Set.empty
 
 data Action
   = Deposit S.AccountId S.Party S.Token Value

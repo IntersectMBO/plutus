@@ -184,10 +184,7 @@ handleAction AddNewWallet = do
 -- template actions
 handleAction (SetTemplate template) = do
   mCurrentTemplate <- peruse (_walletState <<< _templateState <<< _template)
-  case mCurrentTemplate of
-    Just currentTemplate
-      | currentTemplate == template -> pure unit
-    _ -> assign (_walletState <<< _templateState) $ Template.mkInitialState template
+  when (mCurrentTemplate /= Just template) $ assign (_walletState <<< _templateState) $ Template.mkInitialState template
   handleAction $ SetScreen $ ContractSetupScreen ContractRolesScreen
 
 handleAction (TemplateAction templateAction) = Template.handleAction templateAction
@@ -195,18 +192,18 @@ handleAction (TemplateAction templateAction) = Template.handleAction templateAct
 -- contract actions
 handleAction StartContract = do
   mTemplateState <- peruse (_walletState <<< _templateState)
-  for_ mTemplateState \templateState -> do
+  for_ mTemplateState \templateState ->
     let
       extendedContract = view (_template <<< _extendedContract) templateState
-    pure unit
-    let
+
       templateContent = view _templateContent templateState
-    let
+
       mContract = toCore $ fillTemplate templateContent extendedContract
-    for_ mContract \contract -> do
-      assign (_walletState <<< _contractState <<< _executionState <<< _contract) contract
-      handleAction $ SetScreen $ ContractsScreen Running
-      handleAction $ ToggleCard ContractCard
+    in
+      for_ mContract \contract -> do
+        assign (_walletState <<< _contractState <<< _executionState <<< _contract) contract
+        handleAction $ SetScreen $ ContractsScreen Running
+        handleAction $ ToggleCard ContractCard
 
 handleAction (ContractAction contractAction) = handleSubAction (_walletState <<< _contractState) ContractAction Contract.defaultState (Contract.handleAction contractAction)
 

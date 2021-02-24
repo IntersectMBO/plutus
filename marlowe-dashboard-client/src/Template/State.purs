@@ -12,9 +12,9 @@ module Template.State
 import Prelude
 import Data.Lens (assign, modifying)
 import Data.Map (Map, insert, fromFoldable)
-import Data.Maybe (fromMaybe)
+import Data.Maybe (Maybe(..), fromMaybe)
 import Data.Set (Set)
-import Data.Set (delete, map) as Set
+import Data.Set (map, mapMaybe) as Set
 import Data.Tuple (Tuple(..))
 import Effect.Aff.Class (class MonadAff)
 import Halogen (HalogenM)
@@ -33,7 +33,7 @@ defaultState = mkInitialState defaultTemplate
 mkInitialState :: Template -> State
 mkInitialState template =
   { template: template
-  , contractNickname: template.name
+  , contractNickname: template.metaData.contractName
   , roleWallets: mkRoleWallets template.extendedContract
   , templateContent: initializeTemplateContent $ getPlaceholderIds template.extendedContract
   }
@@ -42,11 +42,11 @@ mkRoleWallets :: Contract -> Map String String
 mkRoleWallets contract = fromFoldable $ Set.map (\name -> Tuple name "") (getRoleNames contract)
 
 getRoleNames :: Contract -> Set String
-getRoleNames contract = Set.delete "" $ Set.map roleName (getParties contract)
+getRoleNames contract = Set.mapMaybe roleName (getParties contract)
   where
-  roleName (PK pubKey) = ""
+  roleName (PK pubKey) = Nothing
 
-  roleName (Role tokenName) = tokenName
+  roleName (Role tokenName) = Just tokenName
 
 handleAction :: forall m. MonadAff m => Action -> HalogenM MainFrame.State MainFrame.Action ChildSlots Msg m Unit
 handleAction (SetContractNickname nickname) = assign (_walletState <<< _templateState <<< _contractNickname) nickname
