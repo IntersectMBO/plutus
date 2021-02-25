@@ -1,12 +1,9 @@
 module WalletData.View
-  ( pickupWalletScreen
-  , nicknamesDataList
-  , pickupNewWalletCard
-  , pickupLocalWalletCard
+  ( newWalletCard
+  , walletDetailsCard
   , putdownWalletCard
   , walletLibraryScreen
-  , newContactCard
-  , contactDetailsCard
+  , nicknamesDataList
   ) where
 
 import Prelude hiding (div)
@@ -16,101 +13,34 @@ import Data.Map (isEmpty, toUnfoldable)
 import Data.Map.Extra (findIndex)
 import Data.Maybe (Maybe(..), isJust)
 import Data.Tuple (Tuple(..), fst, snd)
-import Halogen.HTML (HTML, a, br_, button, datalist, div, div_, footer, h2_, header, hr_, input, label, li, main, option, p, p_, span, text, ul)
+import Halogen.HTML (HTML, button, datalist, div, div_, h2_, hr_, input, li, option, p_, span, text, ul)
 import Halogen.HTML.Events (onClick, onValueInput)
-import Halogen.HTML.Properties (InputType(..), disabled, for, href, id_, list, placeholder, readOnly, type_, value)
-import MainFrame.Types (Action(..), Card(..))
+import Halogen.HTML.Properties (InputType(..), disabled, id_, placeholder, readOnly, type_, value)
 import Marlowe.Semantics (PubKey)
 import Material.Icons as Icon
+import Play.Types (Action(..), Card(..))
 import WalletData.Lenses (_key, _nickname)
 import WalletData.Types (WalletDetails, WalletLibrary, WalletNicknameKey)
 import WalletData.Validation (keyError, nicknameError)
 
-pickupWalletScreen :: forall p. WalletLibrary -> HTML p Action
-pickupWalletScreen wallets =
-  div
-    [ classNames [ "flex", "flex-col", "justify-between" ] ]
-    [ header
-        [ classNames [ "flex" ] ]
-        [ link Icon.navigateBefore "Back to marlowe.io" "" ]
-    , main
-        [ classNames [ "flex", "flex-col", "p-1", "max-w-md", "mx-auto" ] ]
-        [ h2_
-            [ text "Welcome to the Marlowe Dashboard" ]
-        , p
-            [ classNames [ "mb-1" ] ]
-            [ text "Here be some words of wisdom." ]
-        , button
-            [ classNames [ "mb-1" ]
-            , onClick $ const $ Just GenerateNewWallet
-            ]
-            [ text "Generate play wallet" ]
-        , label
-            [ classNames [ "text-sm", "font-bold" ]
-            , for "existingWallet"
-            ]
-            [ text "Pickup existing wallet" ]
-        , input
-            [ type_ InputText
-            , id_ "existingWallet"
-            , list "walletNicknames"
-            , onValueInput $ Just <<< LookupWallet
-            ]
-        , nicknamesDataList wallets
-        ]
-    , footer
-        [ classNames [ "flex" ] ]
-        [ link Icon.navigateNext "Docs" ""
-        , link Icon.navigateNext "Library" ""
-        ]
-    ]
-  where
-  link icon label url =
-    a
-      [ classNames [ "flex", "items-center", "text-green", "p-0.5" ]
-      , href url
-      ]
-      [ icon, text label ]
-
-nicknamesDataList :: forall p a. WalletLibrary -> HTML p a
-nicknamesDataList wallets =
-  datalist
-    [ id_ "walletNicknames" ]
-    $ walletOption
-    <$> toUnfoldable wallets
-  where
-  walletOption (Tuple (Tuple nickname _) _) = option [ value nickname ] []
-
-pickupNewWalletCard :: forall p. WalletNicknameKey -> WalletLibrary -> HTML p Action
-pickupNewWalletCard newWalletNicknameKey wallets =
+newWalletCard :: forall p. WalletNicknameKey -> WalletLibrary -> HTML p Action
+newWalletCard newWalletNicknameKey wallets =
   let
     nickname = view _nickname newWalletNicknameKey
 
     key = view _key newWalletNicknameKey
 
     mNicknameError = nicknameError nickname wallets
+
+    mKeyError = keyError key wallets
   in
     div
       [ classNames [ "flex", "flex-col" ] ]
       [ h2_
-          [ text "New wallet generated" ]
-      , label
-          [ for "newWalletKey" ]
-          [ text "Key:" ]
-      , input
-          [ type_ InputText
-          , id_ "newWalletKey"
-          , value key
-          , readOnly true
-          ]
-      , br_
-      , label
-          [ for "newWalletNickname" ]
-          [ text "Nickname:" ]
+          [ text "Create new contact" ]
       , input
           [ type_ InputText
           , classNames $ toggleWhen (mNicknameError == Nothing) "border-green" "border-red"
-          , id_ "newWalletNickname"
           , placeholder "Nickname"
           , value nickname
           , onValueInput $ Just <<< SetNewWalletNickname
@@ -120,43 +50,33 @@ pickupNewWalletCard newWalletNicknameKey wallets =
           $ case mNicknameError of
               Just nicknameError -> [ text $ show nicknameError ]
               Nothing -> []
-      , button
-          [ disabled $ isJust mNicknameError
-          , onClick $ const $ Just PickupNewWallet
+      , input
+          [ type_ InputText
+          , classNames $ toggleWhen (mKeyError == Nothing) "border-green" "border-red"
+          , placeholder "Wallet key"
+          , value key
+          , onValueInput $ Just <<< SetNewWalletKey
           ]
-          [ text "Pickup new wallet" ]
+      , div
+          [ classNames [ "mb-1", "text-red", "text-sm" ] ]
+          $ case mKeyError of
+              Just keyError -> [ text $ show keyError ]
+              Nothing -> []
+      , button
+          [ disabled $ isJust mKeyError || isJust mNicknameError
+          , onClick $ const $ Just AddNewWallet
+          ]
+          [ text "Save new contact" ]
       ]
 
-pickupLocalWalletCard :: forall p. WalletNicknameKey -> HTML p Action
-pickupLocalWalletCard walletNicknameKey =
+walletDetailsCard :: forall p a. WalletNicknameKey -> WalletDetails -> HTML p a
+walletDetailsCard walletNicknameKey walletDetails =
   div
     [ classNames [ "flex", "flex-col" ] ]
     [ h2_
-        [ text "Wallet found" ]
-    , label
-        [ for "newWalletKey" ]
-        [ text "Key:" ]
-    , input
-        [ type_ InputText
-        , id_ "newWalletKey"
-        , value $ snd walletNicknameKey
-        , readOnly true
-        ]
-    , br_
-    , label
-        [ for "newWalletNickname" ]
-        [ text "Nickname:" ]
-    , input
-        [ type_ InputText
-        , id_ "newWalletNickname"
-        , placeholder "Nickname"
-        , value $ fst walletNicknameKey
-        , readOnly true
-        ]
-    , br_
-    , button
-        [ onClick $ const $ Just $ PickupWallet $ snd walletNicknameKey ]
-        [ text "Pickup wallet" ]
+        [ text "Contact details" ]
+    , p_ [ text $ "Nickname: " <> view _nickname walletNicknameKey ]
+    , p_ [ text $ "Wallet key: " <> view _key walletNicknameKey ]
     ]
 
 putdownWalletCard :: forall p. PubKey -> WalletLibrary -> HTML p Action
@@ -219,58 +139,11 @@ walletLibraryScreen wallets =
       ]
       [ text nickname ]
 
-newContactCard :: forall p. WalletNicknameKey -> WalletLibrary -> HTML p Action
-newContactCard newWalletNicknameKey wallets =
-  let
-    nickname = view _nickname newWalletNicknameKey
-
-    key = view _key newWalletNicknameKey
-
-    mNicknameError = nicknameError nickname wallets
-
-    mKeyError = keyError key wallets
-  in
-    div
-      [ classNames [ "flex", "flex-col" ] ]
-      [ h2_
-          [ text "Create new contact" ]
-      , input
-          [ type_ InputText
-          , classNames $ toggleWhen (mNicknameError == Nothing) "border-green" "border-red"
-          , placeholder "Nickname"
-          , value nickname
-          , onValueInput $ Just <<< SetNewWalletNickname
-          ]
-      , div
-          [ classNames [ "mb-1", "text-red", "text-sm" ] ]
-          $ case mNicknameError of
-              Just nicknameError -> [ text $ show nicknameError ]
-              Nothing -> []
-      , input
-          [ type_ InputText
-          , classNames $ toggleWhen (mKeyError == Nothing) "border-green" "border-red"
-          , placeholder "Wallet key"
-          , value key
-          , onValueInput $ Just <<< SetNewWalletKey
-          ]
-      , div
-          [ classNames [ "mb-1", "text-red", "text-sm" ] ]
-          $ case mKeyError of
-              Just keyError -> [ text $ show keyError ]
-              Nothing -> []
-      , button
-          [ disabled $ isJust mKeyError || isJust mNicknameError
-          , onClick $ const $ Just AddNewWallet
-          ]
-          [ text "Save new contact" ]
-      ]
-
-contactDetailsCard :: forall p. WalletNicknameKey -> WalletDetails -> HTML p Action
-contactDetailsCard walletNicknameKey walletDetails =
-  div
-    [ classNames [ "flex", "flex-col" ] ]
-    [ h2_
-        [ text "Contact details" ]
-    , p_ [ text $ "Nickname: " <> view _nickname walletNicknameKey ]
-    , p_ [ text $ "Wallet key: " <> view _key walletNicknameKey ]
-    ]
+nicknamesDataList :: forall p a. WalletLibrary -> HTML p a
+nicknamesDataList wallets =
+  datalist
+    [ id_ "walletNicknames" ]
+    $ walletOption
+    <$> toUnfoldable wallets
+  where
+  walletOption (Tuple (Tuple nickname _) _) = option [ value nickname ] []

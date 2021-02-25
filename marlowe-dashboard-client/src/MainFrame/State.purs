@@ -1,14 +1,11 @@
 module MainFrame.State (mkMainFrame) where
 
 import Prelude
-import Contract.State (handleAction, defaultState) as Contract
-import Contract.Types (_executionState)
 import Control.Monad.Except (runExcept)
 import Control.Monad.Reader (class MonadAsk)
 import Data.Either (Either(..))
 import Data.Foldable (for_)
-import Data.Lens (Traversal', assign, modifying, over, set, use, view)
-import Data.Lens.Extra (peruse)
+import Data.Lens (assign, over, set, use)
 import Data.Map (empty, insert, member)
 import Data.Map.Extra (findIndex)
 import Data.Maybe (Maybe(..))
@@ -18,21 +15,18 @@ import Effect.Random (random)
 import Env (Env)
 import Foreign.Generic (decodeJSON, encodeJSON)
 import Halogen (Component, HalogenM, liftEffect, mkComponent, mkEval, modify_)
-import Halogen.Extra (mapMaybeSubmodule)
 import Halogen.HTML (HTML)
 import LocalStorage (getItem, removeItem, setItem)
-import MainFrame.Lenses (_card, _contractState, _menuOpen, _newWalletNicknameKey, _pickupState, _screen, _templateState, _subState, _templates, _walletState, _wallets, _webSocketStatus)
-import MainFrame.Types (Action(..), Card(..), ChildSlots, ContractStatus(..), Msg, PickupCard(..), PickupScreen(..), PickupState, Query(..), Screen(..), State, WalletState, WebSocketStatus(..))
+import MainFrame.Lenses (_card, _newWalletNicknameKey, _pickupState, _subState, _templates, _playState, _wallets, _webSocketStatus)
+import MainFrame.Types (Action(..), ChildSlots, Msg, Query(..), State, WebSocketStatus(..))
 import MainFrame.View (render)
-import Marlowe.Execution (_contract)
-import Marlowe.Extended (fillTemplate, toCore)
-import Marlowe.Semantics (PubKey)
+import Pickup.State (handleAction, initialState) as Pickup
+import Pickup.Types (Action(..), Card(..)) as Pickup
+import Play.State (handleAction, mkInitialState) as Play
+import Play.Types (Action(..)) as Play
 import Plutus.PAB.Webserver.Types (StreamToClient(..))
 import StaticData (walletLocalStorageKey, walletsLocalStorageKey)
-import Template.Lenses (_extendedContract, _template, _templateContent)
 import Template.Library (templates)
-import Template.State (defaultState, handleAction, mkInitialState) as Template
-import Template.Types (ContractSetupScreen(..))
 import WalletData.Lenses (_key, _nickname)
 import WalletData.Types (WalletDetails)
 import WebSocket.Support as WS
@@ -61,24 +55,8 @@ initialState =
   { wallets: empty
   , newWalletNicknameKey: mempty
   , templates: mempty
-  , subState: Left initialPickupState
+  , subState: Left Pickup.initialState
   , webSocketStatus: WebSocketClosed Nothing
-  }
-
-initialPickupState :: PickupState
-initialPickupState =
-  { screen: GenerateWalletScreen
-  , card: Nothing
-  }
-
-mkWalletState :: PubKey -> WalletState
-mkWalletState pubKeyHash =
-  { wallet: pubKeyHash
-  , menuOpen: false
-  , screen: ContractsScreen Running
-  , card: Nothing
-  , templateState: Template.defaultState
-  , contractState: Contract.defaultState
   }
 
 defaultWalletDetails :: WalletDetails
@@ -100,6 +78,15 @@ handleQuery (ReceiveWebSocketMessage msg next) = do
       (ErrorResponse error) -> pure unit
   pure $ Just next
 
+-- Note [State]: Some actions belong logically in one part of the state, but
+-- from the user's point of view in another. For example, the action of picking
+-- up a wallet belongs logically in the MainFrame state (because it modifies
+-- that state), but from the user's point of view it belongs in the Pickup
+-- state (because that's the state the app is in when you perform it). To work
+-- around this, we can either make our `handleAction` functions a bit awkward,
+-- or our `render` functions a bit awkward. I prefer the former. Hence some
+-- submodule actions (triggered straightforwardly in the submodule's `render`
+-- functions) are handled by their parent module's `handleAction` function.
 handleAction ::
   forall m.
   MonadAff m =>
@@ -113,72 +100,11 @@ handleAction Init = do
   mCachedWalletJson <- liftEffect $ getItem walletLocalStorageKey
   for_ mCachedWalletJson \json ->
     for_ (runExcept $ decodeJSON json) \cachedWallet ->
-      assign _subState $ Right $ mkWalletState cachedWallet
+      assign _subState $ Right $ Play.mkInitialState cachedWallet
   -- TODO: fetch contract templates from the library ??
   assign _templates templates
 
--- pickup actions
-handleAction (SetPickupCard pickupCard) = assign (_pickupState <<< _card) pickupCard
-
--- TODO: generate wallet on the backend; for now just create a random number
-handleAction GenerateNewWallet = do
-  randomNumber <- liftEffect random
-  let
-    key = show $ randomNumber
-  modify_
-    $ (_newWalletNicknameKey <<< set _key) key
-    <<< (_pickupState <<< set _card) (Just PickupNewWalletCard)
-
-handleAction PickupNewWallet = do
-  newPubKey <- use (_newWalletNicknameKey <<< _key)
-  handleAction AddNewWallet
-  handleAction $ PickupWallet newPubKey
-
-handleAction (LookupWallet string) = do
-  wallets <- use _wallets
-  -- check for a matching nickname in the wallet library first
-  case findIndex (\key -> fst key == string) wallets of
-    Just key -> assign (_pickupState <<< _card) $ Just $ PickupWalletCard key
-    -- failing that, check for a matching pubkey in the wallet library
-    Nothing -> case findIndex (\key -> snd key == string) wallets of
-      Just key -> assign (_pickupState <<< _card) $ Just $ PickupWalletCard key
-      -- TODO: lookup pubkey on the blockchain
-      Nothing -> pure unit
-
-handleAction (PickupWallet pubKeyHash) = do
-  modify_
-    $ (set _subState) (Right $ mkWalletState pubKeyHash)
-    <<< (_pickupState <<< set _card) Nothing
-  liftEffect $ setItem walletLocalStorageKey $ encodeJSON pubKeyHash
-
--- wallet actions
-handleAction PutdownWallet = do
-  assign _subState $ Left initialPickupState
-  liftEffect $ removeItem walletLocalStorageKey
-
-handleAction ToggleMenu = modifying (_walletState <<< _menuOpen) not
-
-handleAction (SetScreen screen) =
-  modify_
-    $ (_walletState <<< set _menuOpen) false
-    <<< (_walletState <<< set _card) Nothing
-    <<< (_walletState <<< set _screen) screen
-
-handleAction (SetCard card) = do
-  previousCard <- peruse (_walletState <<< _card)
-  assign (_walletState <<< _card) card
-  for_ previousCard $ const $ assign (_walletState <<< _menuOpen) false
-
-handleAction (ToggleCard card) = do
-  mCurrentCard <- peruse (_walletState <<< _card)
-  case mCurrentCard of
-    Just currentCard
-      | currentCard == Just card -> handleAction $ SetCard Nothing
-    _ -> handleAction $ SetCard $ Just card
-
 handleAction (SetNewWalletNickname nickname) = assign (_newWalletNicknameKey <<< _nickname) nickname
-
-handleAction (SetNewWalletKey key) = assign (_newWalletNicknameKey <<< _key) key
 
 handleAction AddNewWallet = do
   oldWallets <- use _wallets
@@ -187,52 +113,57 @@ handleAction AddNewWallet = do
     modify_
       $ (over _wallets) (insert newWalletNicknameKey defaultWalletDetails)
       <<< (set _newWalletNicknameKey) mempty
-      <<< (_walletState <<< set _card) Nothing
+      <<< (_playState <<< set _card) Nothing
     newWallets <- use _wallets
     liftEffect $ setItem walletsLocalStorageKey $ encodeJSON newWallets
 
--- template actions
-handleAction (SetTemplate template) = do
-  mCurrentTemplate <- peruse (_walletState <<< _templateState <<< _template)
-  when (mCurrentTemplate /= Just template) $ assign (_walletState <<< _templateState) $ Template.mkInitialState template
-  handleAction $ SetScreen $ ContractSetupScreen ContractRolesScreen
+-- pickup actions that need to be handled here
+handleAction (PickupAction (Pickup.SetNewWalletNickname nickname)) = handleAction $ SetNewWalletNickname nickname
 
-handleAction (TemplateAction templateAction) = Template.handleAction templateAction
+handleAction (PickupAction Pickup.PickupNewWallet) = do
+  newPubKey <- use (_newWalletNicknameKey <<< _key)
+  handleAction AddNewWallet
+  handleAction $ PickupAction $ Pickup.PickupWallet newPubKey
 
--- contract actions
-handleAction StartContract = do
-  mTemplateState <- peruse (_walletState <<< _templateState)
-  for_ mTemplateState \templateState ->
-    let
-      extendedContract = view (_template <<< _extendedContract) templateState
+handleAction (PickupAction (Pickup.PickupWallet pubKey)) = do
+  modify_
+    $ (set _subState) (Right $ Play.mkInitialState pubKey)
+    <<< (_pickupState <<< set _card) Nothing
+  liftEffect $ setItem walletLocalStorageKey $ encodeJSON pubKey
 
-      templateContent = view _templateContent templateState
-
-      mContract = toCore $ fillTemplate templateContent extendedContract
-    in
-      for_ mContract \contract -> do
-        assign (_walletState <<< _contractState <<< _executionState <<< _contract) contract
-        handleAction $ SetScreen $ ContractsScreen Running
-        handleAction $ ToggleCard ContractCard
-
-handleAction (ContractAction contractAction) = handleSubAction (_walletState <<< _contractState) ContractAction Contract.defaultState (Contract.handleAction contractAction)
-
--- there must be a nicer way to get the current state than by manually
--- piecing together each of its properties, but I haven't found it :(
-handleSubAction ::
-  forall m state' action'.
-  MonadAff m =>
-  Traversal' State state' ->
-  (action' -> Action) ->
-  state' ->
-  HalogenM state' action' ChildSlots Msg m Unit ->
-  HalogenM State Action ChildSlots Msg m Unit
-handleSubAction traversal wrapper submoduleInitialState submoduleHandleAction = do
-  wallets <- use _wallets
-  newWalletNicknameKey <- use _newWalletNicknameKey
-  templates <- use _templates
-  subState <- use _subState
-  webSocketStatus <- use _webSocketStatus
+-- TODO: generate wallet on the backend; for now just create a random number
+handleAction (PickupAction Pickup.GenerateNewWallet) = do
+  randomNumber <- liftEffect random
   let
-    state = { wallets, newWalletNicknameKey, templates, subState, webSocketStatus }
-  mapMaybeSubmodule state traversal wrapper submoduleInitialState submoduleHandleAction
+    key = show $ randomNumber
+  modify_
+    $ (_newWalletNicknameKey <<< set _key) key
+    <<< (_pickupState <<< set _card) (Just Pickup.PickupNewWalletCard)
+
+handleAction (PickupAction (Pickup.LookupWallet string)) = do
+  wallets <- use _wallets
+  -- check for a matching nickname in the wallet library first
+  case findIndex (\key -> fst key == string) wallets of
+    Just key -> assign (_pickupState <<< _card) $ Just $ Pickup.PickupWalletCard key
+    -- failing that, check for a matching pubkey in the wallet library
+    Nothing -> case findIndex (\key -> snd key == string) wallets of
+      Just key -> assign (_pickupState <<< _card) $ Just $ Pickup.PickupWalletCard key
+      -- TODO: lookup pubkey on the blockchain
+      Nothing -> pure unit
+
+-- other pickup actions
+handleAction (PickupAction pickupAction) = Pickup.handleAction pickupAction
+
+-- play actions that need to be handled here
+handleAction (PlayAction Play.PutdownWallet) = do
+  assign _subState $ Left Pickup.initialState
+  liftEffect $ removeItem walletLocalStorageKey
+
+handleAction (PlayAction (Play.SetNewWalletNickname nickname)) = handleAction $ SetNewWalletNickname nickname
+
+handleAction (PlayAction (Play.SetNewWalletKey key)) = assign (_newWalletNicknameKey <<< _key) key
+
+handleAction (PlayAction Play.AddNewWallet) = handleAction AddNewWallet
+
+-- other play actions
+handleAction (PlayAction playAction) = Play.handleAction playAction
