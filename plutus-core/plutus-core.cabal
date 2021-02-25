@@ -464,7 +464,9 @@ benchmark plutus-core-create-cost-model
     other-modules:
         CostModelCreation
 
-test-suite plutus-core-test-cost-model
+-- This test is problematic in CI: pretending that it's a benchmark will prevent
+-- it from being run automatically but will still allow us to run it manually.
+benchmark plutus-core-test-cost-model
     type: exitcode-stdio-1.0
     main-is: TestCostModels.hs
     hs-source-dirs: test-cost-model, cost-model-creation
