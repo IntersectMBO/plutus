@@ -23,6 +23,6 @@ button {
   @apply px-1 py-0.75 leading-none disabled:opacity-50 disabled:cursor-not-allowed bg-green text-white;
 }
 
-input[type="text"] {
+input[type="text"], input[type="number"] {
   @apply border p-0.5
 }

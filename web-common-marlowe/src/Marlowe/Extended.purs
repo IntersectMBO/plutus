@@ -73,7 +73,7 @@ initializeTemplateContent ( Placeholders
     { slotPlaceholderIds, valuePlaceholderIds }
 ) =
   TemplateContent
-    { slotContent: initializeWith (const zero) slotPlaceholderIds
+    { slotContent: initializeWith (const one) slotPlaceholderIds
     , valueContent: initializeWith (const zero) valuePlaceholderIds
     }
 
@@ -81,7 +81,7 @@ updateTemplateContent :: Placeholders -> TemplateContent -> TemplateContent
 updateTemplateContent ( Placeholders { slotPlaceholderIds, valuePlaceholderIds }
 ) (TemplateContent { slotContent, valueContent }) =
   TemplateContent
-    { slotContent: initializeWith (\x -> fromMaybe zero $ Map.lookup x slotContent) slotPlaceholderIds
+    { slotContent: initializeWith (\x -> fromMaybe one $ Map.lookup x slotContent) slotPlaceholderIds
     , valueContent: initializeWith (\x -> fromMaybe zero $ Map.lookup x valueContent) valuePlaceholderIds
     }
 
@@ -90,6 +90,18 @@ class Template a b where
 
 class Fillable a b where
   fillTemplate :: b -> a -> a
+
+class HasParties a where
+  getParties :: a -> Set S.Party
+
+instance arrayHasParties :: HasParties a => HasParties (Array a) where
+  getParties = foldMap (\a -> getParties a)
+
+instance sPartyHasParties :: HasParties S.Party where
+  getParties party = Set.singleton party
+
+instance sChoiceIdHasParties :: HasParties S.ChoiceId where
+  getParties (S.ChoiceId _ party) = getParties party
 
 data Timeout
   = SlotParam String
@@ -309,6 +321,21 @@ instance fillableValue :: Fillable Value TemplateContent where
     go :: forall a. (Fillable a TemplateContent) => a -> a
     go = fillTemplate placeholders
 
+instance valueHasParties :: HasParties Value where
+  getParties (AvailableMoney accId _) = getParties accId
+  getParties (Constant _) = Set.empty
+  getParties (ConstantParam _) = Set.empty
+  getParties (NegValue val) = getParties val
+  getParties (AddValue lhs rhs) = getParties lhs <> getParties rhs
+  getParties (SubValue lhs rhs) = getParties lhs <> getParties rhs
+  getParties (MulValue lhs rhs) = getParties lhs <> getParties rhs
+  getParties (Scale _ val) = getParties val
+  getParties (ChoiceValue choId) = getParties choId
+  getParties SlotIntervalStart = Set.empty
+  getParties SlotIntervalEnd = Set.empty
+  getParties (UseValue _) = Set.empty
+  getParties (Cond obs lhs rhs) = getParties obs <> getParties lhs <> getParties rhs
+
 data Observation
   = AndObs Observation Observation
   | OrObs Observation Observation
@@ -462,6 +489,19 @@ instance fillableObservation :: Fillable Observation TemplateContent where
     go :: forall a. (Fillable a TemplateContent) => a -> a
     go = fillTemplate placeholders
 
+instance observationHasParties :: HasParties Observation where
+  getParties (AndObs lhs rhs) = getParties lhs <> getParties rhs
+  getParties (OrObs lhs rhs) = getParties lhs <> getParties rhs
+  getParties (NotObs v) = getParties v
+  getParties (ChoseSomething a) = getParties a
+  getParties (ValueGE lhs rhs) = getParties lhs <> getParties rhs
+  getParties (ValueGT lhs rhs) = getParties lhs <> getParties rhs
+  getParties (ValueLT lhs rhs) = getParties lhs <> getParties rhs
+  getParties (ValueLE lhs rhs) = getParties lhs <> getParties rhs
+  getParties (ValueEQ lhs rhs) = getParties lhs <> getParties rhs
+  getParties TrueObs = Set.empty
+  getParties FalseObs = Set.empty
+
 data Action
   = Deposit S.AccountId S.Party S.Token Value
   | Choice S.ChoiceId (Array S.Bound)
@@ -533,6 +573,11 @@ instance fillableAction :: Fillable Action TemplateContent where
     go :: forall a. (Fillable a TemplateContent) => a -> a
     go = fillTemplate placeholders
 
+instance actionHasParties :: HasParties Action where
+  getParties (Deposit accId party _ value) = getParties accId <> getParties party <> getParties value
+  getParties (Notify obs) = getParties obs
+  getParties _ = Set.empty
+
 data Payee
   = Account S.AccountId
   | Party S.Party
@@ -565,6 +610,10 @@ instance hasArgsPayee :: Args Payee where
 instance toCorePayee :: ToCore Payee S.Payee where
   toCore (Account accId) = Just $ S.Account accId
   toCore (Party roleName) = Just $ S.Party roleName
+
+instance payeeHasParties :: HasParties Payee where
+  getParties (Account accountId) = getParties accountId
+  getParties (Party party) = getParties party
 
 data Case
   = Case Action Contract
@@ -609,6 +658,9 @@ instance fillableCase :: Fillable Case TemplateContent where
     where
     go :: forall a. (Fillable a TemplateContent) => a -> a
     go = fillTemplate placeholders
+
+instance caseHasParties :: HasParties Case where
+  getParties (Case action contract) = getParties action <> getParties contract
 
 data Contract
   = Close
@@ -723,3 +775,11 @@ instance fillableContract :: Fillable Contract TemplateContent where
     where
     go :: forall a. (Fillable a TemplateContent) => a -> a
     go = fillTemplate placeholders
+
+instance contractHasParries :: HasParties Contract where
+  getParties Close = Set.empty
+  getParties (Pay accId payee _ val cont) = getParties accId <> getParties payee <> getParties val <> getParties cont
+  getParties (If obs cont1 cont2) = getParties obs <> getParties cont1 <> getParties cont2
+  getParties (When cases _ cont) = getParties cases <> getParties cont
+  getParties (Let _ val cont) = getParties val <> getParties cont
+  getParties (Assert obs cont) = getParties obs <> getParties cont

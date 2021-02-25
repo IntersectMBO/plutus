@@ -1,13 +1,12 @@
 module MainFrame.State (mkMainFrame) where
 
 import Prelude
-import Contract.State (handleAction, initialState) as Contract
-import Contract.Types (Action(..)) as Contract
+import Contract.State (handleAction, defaultState) as Contract
 import Contract.Types (_executionState)
 import Control.Monad.Except (runExcept)
 import Data.Either (Either(..))
 import Data.Foldable (for_)
-import Data.Lens (assign, modifying, over, set, use)
+import Data.Lens (Traversal', assign, modifying, over, set, use, view)
 import Data.Lens.Extra (peruse)
 import Data.Map (empty, insert, member)
 import Data.Map.Extra (findIndex)
@@ -17,17 +16,21 @@ import Effect.Aff.Class (class MonadAff)
 import Effect.Random (random)
 import Foreign.Generic (decodeJSON, encodeJSON)
 import Halogen (Component, HalogenM, liftEffect, mkComponent, mkEval, modify_)
-import Halogen.Extra (mapSubmodule)
+import Halogen.Extra (mapMaybeSubmodule)
 import Halogen.HTML (HTML)
 import LocalStorage (getItem, removeItem, setItem)
-import MainFrame.Lenses (_card, _contractState, _menuOpen, _newWalletNicknameKey, _pickupState, _screen, _subState, _templates, _walletState, _wallets, _webSocketStatus)
-import MainFrame.Types (Action(..), ChildSlots, ContractStatus(..), Msg, PickupCard(..), PickupScreen(..), PickupState, Query(..), Screen(..), State, WalletState, WebSocketStatus(..))
+import MainFrame.Lenses (_card, _contractState, _menuOpen, _newWalletNicknameKey, _pickupState, _screen, _templateState, _subState, _templates, _walletState, _wallets, _webSocketStatus)
+import MainFrame.Types (Action(..), Card(..), ChildSlots, ContractStatus(..), Msg, PickupCard(..), PickupScreen(..), PickupState, Query(..), Screen(..), State, WalletState, WebSocketStatus(..))
 import MainFrame.View (render)
 import Marlowe.Execution (_contract)
-import Marlowe.Semantics (Contract(..), PubKey)
+import Marlowe.Extended (fillTemplate, toCore)
+import Marlowe.Semantics (PubKey)
 import Plutus.PAB.Webserver.Types (StreamToClient(..))
 import StaticData (walletLocalStorageKey, walletsLocalStorageKey)
+import Template.Lenses (_extendedContract, _template, _templateContent)
 import Template.Library (templates)
+import Template.State (defaultState, handleAction, mkInitialState) as Template
+import Template.Types (ContractSetupScreen(..))
 import WalletData.Lenses (_key, _nickname)
 import WalletData.Types (WalletDetails)
 import WebSocket.Support as WS
@@ -53,7 +56,6 @@ initialState =
   , newWalletNicknameKey: mempty
   , templates: mempty
   , subState: Left initialPickupState
-  , contractState: Contract.initialState zero Close
   , webSocketStatus: WebSocketClosed Nothing
   }
 
@@ -69,6 +71,8 @@ mkWalletState pubKeyHash =
   , menuOpen: false
   , screen: ContractsScreen Running
   , card: Nothing
+  , templateState: Template.defaultState
+  , contractState: Contract.defaultState
   }
 
 defaultWalletDetails :: WalletDetails
@@ -177,10 +181,48 @@ handleAction AddNewWallet = do
     newWallets <- use _wallets
     liftEffect $ setItem walletsLocalStorageKey $ encodeJSON newWallets
 
--- contract actions
-handleAction (ContractAction contractAction) = do
-  case contractAction of
-    Contract.ClosePanel -> pure unit
-    action -> mapSubmodule _contractState ContractAction $ Contract.handleAction action
+-- template actions
+handleAction (SetTemplate template) = do
+  mCurrentTemplate <- peruse (_walletState <<< _templateState <<< _template)
+  when (mCurrentTemplate /= Just template) $ assign (_walletState <<< _templateState) $ Template.mkInitialState template
+  handleAction $ SetScreen $ ContractSetupScreen ContractRolesScreen
 
-handleAction (StartContract contract) = assign (_contractState <<< _executionState <<< _contract) contract
+handleAction (TemplateAction templateAction) = Template.handleAction templateAction
+
+-- contract actions
+handleAction StartContract = do
+  mTemplateState <- peruse (_walletState <<< _templateState)
+  for_ mTemplateState \templateState ->
+    let
+      extendedContract = view (_template <<< _extendedContract) templateState
+
+      templateContent = view _templateContent templateState
+
+      mContract = toCore $ fillTemplate templateContent extendedContract
+    in
+      for_ mContract \contract -> do
+        assign (_walletState <<< _contractState <<< _executionState <<< _contract) contract
+        handleAction $ SetScreen $ ContractsScreen Running
+        handleAction $ ToggleCard ContractCard
+
+handleAction (ContractAction contractAction) = handleSubAction (_walletState <<< _contractState) ContractAction Contract.defaultState (Contract.handleAction contractAction)
+
+-- there must be a nicer way to get the current state than by manually
+-- piecing together each of its properties, but I haven't found it :(
+handleSubAction ::
+  forall m state' action'.
+  MonadAff m =>
+  Traversal' State state' ->
+  (action' -> Action) ->
+  state' ->
+  HalogenM state' action' ChildSlots Msg m Unit ->
+  HalogenM State Action ChildSlots Msg m Unit
+handleSubAction traversal wrapper submoduleInitialState submoduleHandleAction = do
+  wallets <- use _wallets
+  newWalletNicknameKey <- use _newWalletNicknameKey
+  templates <- use _templates
+  subState <- use _subState
+  webSocketStatus <- use _webSocketStatus
+  let
+    state = { wallets, newWalletNicknameKey, templates, subState, webSocketStatus }
+  mapMaybeSubmodule state traversal wrapper submoduleInitialState submoduleHandleAction

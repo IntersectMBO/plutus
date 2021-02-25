@@ -1,5 +1,6 @@
 module WalletData.View
   ( pickupWalletScreen
+  , nicknamesDataList
   , pickupNewWalletCard
   , pickupLocalWalletCard
   , putdownWalletCard
@@ -15,7 +16,7 @@ import Data.Map (isEmpty, toUnfoldable)
 import Data.Map.Extra (findIndex)
 import Data.Maybe (Maybe(..), isJust)
 import Data.Tuple (Tuple(..), fst, snd)
-import Halogen.HTML (HTML, a, br_, button, datalist, div, footer, h2_, header, hr_, input, label, li, main, option, p, p_, span, text, ul)
+import Halogen.HTML (HTML, a, br_, button, datalist, div, div_, footer, h2_, header, hr_, input, label, li, main, option, p, p_, span, text, ul)
 import Halogen.HTML.Events (onClick, onValueInput)
 import Halogen.HTML.Properties (InputType(..), disabled, for, href, id_, list, placeholder, readOnly, type_, value)
 import MainFrame.Types (Action(..), Card(..))
@@ -52,13 +53,10 @@ pickupWalletScreen wallets =
         , input
             [ type_ InputText
             , id_ "existingWallet"
-            , list "existingNicknames"
+            , list "walletNicknames"
             , onValueInput $ Just <<< LookupWallet
             ]
-        , datalist
-            [ id_ "existingNicknames" ]
-            $ walletOption
-            <$> toUnfoldable wallets
+        , nicknamesDataList wallets
         ]
     , footer
         [ classNames [ "flex" ] ]
@@ -74,6 +72,13 @@ pickupWalletScreen wallets =
       ]
       [ icon, text label ]
 
+nicknamesDataList :: forall p a. WalletLibrary -> HTML p a
+nicknamesDataList wallets =
+  datalist
+    [ id_ "walletNicknames" ]
+    $ walletOption
+    <$> toUnfoldable wallets
+  where
   walletOption (Tuple (Tuple nickname _) _) = option [ value nickname ] []
 
 pickupNewWalletCard :: forall p. WalletNicknameKey -> WalletLibrary -> HTML p Action
@@ -182,8 +187,7 @@ putdownWalletCard pubKeyHash wallets =
 
 walletLibraryScreen :: forall p. WalletLibrary -> HTML p Action
 walletLibraryScreen wallets =
-  div
-    [ classNames [ "p-1" ] ]
+  div_
     [ h2_
         [ text "Contacts" ]
     , hr_
