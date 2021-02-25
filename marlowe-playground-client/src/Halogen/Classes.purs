@@ -63,8 +63,20 @@ foreign import newProjectBlocklyIcon :: String
 fullWidth :: ClassName
 fullWidth = ClassName "full-width"
 
+minW0 :: ClassName
+minW0 = ClassName "min-w-0"
+
+w30p :: ClassName
+w30p = ClassName "w-30p"
+
 fullHeight :: ClassName
 fullHeight = ClassName "full-height"
+
+minH0 :: ClassName
+minH0 = ClassName "min-h-0"
+
+maxH70p :: ClassName
+maxH70p = ClassName "max-h-70p"
 
 scroll :: ClassName
 scroll = ClassName "scroll"
@@ -87,6 +99,9 @@ spaceLeft = ClassName "space-left"
 spaceRight :: ClassName
 spaceRight = ClassName "space-right"
 
+spaceX :: ClassName
+spaceX = ClassName "space-x"
+
 spaceBottom :: ClassName
 spaceBottom = ClassName "space-bottom"
 
@@ -105,6 +120,30 @@ paddingLeft = ClassName "padding-left"
 smallPaddingLeft :: ClassName
 smallPaddingLeft = ClassName "small-padding-left"
 
+paddingX :: ClassName
+paddingX = ClassName "padding-x"
+
+smallPaddingX :: ClassName
+smallPaddingX = ClassName "small-padding-x"
+
+paddingTop :: ClassName
+paddingTop = ClassName "padding-top"
+
+smallPaddingTop :: ClassName
+smallPaddingTop = ClassName "small-padding-top"
+
+paddingBottom :: ClassName
+paddingBottom = ClassName "padding-bottom"
+
+smallPaddingBottom :: ClassName
+smallPaddingBottom = ClassName "small-padding-bottom"
+
+paddingY :: ClassName
+paddingY = ClassName "padding-y"
+
+smallPaddingY :: ClassName
+smallPaddingY = ClassName "small-padding-y"
+
 spaceTop :: ClassName
 spaceTop = ClassName "space-top"
 
@@ -120,32 +159,14 @@ aCenter = ClassName "a-center"
 tabIcon :: ClassName
 tabIcon = ClassName "tab-icon"
 
-panelContents :: ClassName
-panelContents = ClassName "panel-contents"
-
 flexLeft :: ClassName
 flexLeft = ClassName "flex-left"
 
-panelHeader :: ClassName
-panelHeader = ClassName "panel-header"
-
-panelSubHeader :: ClassName
-panelSubHeader = ClassName "panel-sub-header"
-
-panelSubHeaderMain :: ClassName
-panelSubHeaderMain = ClassName "panel-sub-header-main"
-
-panelSubHeaderSide :: ClassName
-panelSubHeaderSide = ClassName "panel-sub-header-side"
-
-panelHeaderMain :: ClassName
-panelHeaderMain = ClassName "panel-header-main"
-
-panelHeaderSide :: ClassName
-panelHeaderSide = ClassName "panel-header-side"
-
 accentBorderBottom :: ClassName
 accentBorderBottom = ClassName "accent-border-bottom"
+
+accentBorderTop :: ClassName
+accentBorderTop = ClassName "accent-border-top"
 
 jFlexStart :: ClassName
 jFlexStart = ClassName "j-flex-start"
@@ -179,12 +200,6 @@ mAlignCenter = ClassName "m-align-center"
 
 tAlignCenter :: ClassName
 tAlignCenter = ClassName "t-align-center"
-
-flexFour :: ClassName
-flexFour = ClassName "flex-four"
-
-flexTen :: ClassName
-flexTen = ClassName "flex-ten"
 
 activeClass :: forall a. (a -> Boolean) -> Getter' a (Array ClassName)
 activeClass p = to \x -> if p x then [ active ] else []
@@ -238,24 +253,10 @@ spanText s = span [] [ text s ]
 sidebarComposer :: ClassName
 sidebarComposer = ClassName "sidebar-composer"
 
-codeEditor :: ClassName
-codeEditor = ClassName "code-editor"
-
-haskellEditor :: Boolean -> Array ClassName
-haskellEditor true = [ ClassName "code-panel", ClassName "haskell-editor" ]
-
-haskellEditor false = [ ClassName "code-panel", ClassName "haskell-editor", ClassName "expanded" ]
-
 minimizeIcon :: Boolean -> Array ClassName
 minimizeIcon true = [ ClassName "minimize-icon", ClassName "expanded" ]
 
 minimizeIcon false = [ ClassName "minimize-icon" ]
-
-footerPanelBg :: ClassName
-footerPanelBg = ClassName "footer-panel-bg"
-
-analysisPanel :: ClassName
-analysisPanel = ClassName "analysis-panel"
 
 alignedButtonInTheMiddle :: ClassName
 alignedButtonInTheMiddle = ClassName "aligned-button-in-the-middle"
@@ -288,11 +289,17 @@ textXs = ClassName "text-xs"
 textSm :: ClassName
 textSm = ClassName "text-sm"
 
+textLg :: ClassName
+textLg = ClassName "text-lg"
+
 text3xl :: ClassName
 text3xl = ClassName "text-3xl"
 
 fontSemibold :: ClassName
 fontSemibold = ClassName "font-semibold"
+
+fontBold :: ClassName
+fontBold = ClassName "font-bold"
 
 textLeft :: ClassName
 textLeft = ClassName "text-left"
@@ -377,3 +384,63 @@ justifySelfCenter = ClassName "justify-self-center"
 
 justifySelfStretch :: ClassName
 justifySelfStretch = ClassName "justify-self-stretch"
+
+whitespaceNormal :: ClassName
+whitespaceNormal = ClassName "whitespace-normal"
+
+whitespaceNowrap :: ClassName
+whitespaceNowrap = ClassName "whitespace-nowrap"
+
+whitespacePre :: ClassName
+whitespacePre = ClassName "whitespace-pre"
+
+whitespacePreLine :: ClassName
+whitespacePreLine = ClassName "whitespace-pre-line"
+
+whitespacePreWrap :: ClassName
+whitespacePreWrap = ClassName "whitespace-pre-wrap"
+
+flexGrow :: ClassName
+flexGrow = ClassName "flex-grow"
+
+flexGrow0 :: ClassName
+flexGrow0 = ClassName "flex-grow-0"
+
+flexShrink :: ClassName
+flexShrink = ClassName "flex-shrink"
+
+flexShrink0 :: ClassName
+flexShrink0 = ClassName "flex-shrink-0"
+
+grid :: ClassName
+grid = ClassName "grid"
+
+gridColsDescriptionLocation :: ClassName
+gridColsDescriptionLocation = ClassName "grid-cols-description-location"
+
+bgDark :: ClassName
+bgDark = ClassName "bg-dark"
+
+bgWhite :: ClassName
+bgWhite = ClassName "bg-white"
+
+textInactive :: ClassName
+textInactive = ClassName "text-inactive"
+
+textSecondary :: ClassName
+textSecondary = ClassName "text-secondary"
+
+borderSeparator :: ClassName
+borderSeparator = ClassName "border-separator"
+
+overflowHidden :: ClassName
+overflowHidden = ClassName "overflow-hidden"
+
+overflowScroll :: ClassName
+overflowScroll = ClassName "overflow-scroll"
+
+overflowXScroll :: ClassName
+overflowXScroll = ClassName "overflow-x-scroll"
+
+boxShadowInverted :: ClassName
+boxShadowInverted = ClassName "box-shadow-inverted"

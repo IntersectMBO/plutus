@@ -2,12 +2,10 @@ module Main where
 
 import Prelude
 import AppM (runAppM)
-import Control.Coroutine (Consumer, Process, connect, consumer, runProcess)
 import Data.Maybe (Maybe(..))
 import Effect (Effect)
-import Effect.Aff (Aff, forkAff, launchAff_)
+import Effect.Aff (Aff, launchAff_)
 import Effect.Class (liftEffect)
-import Effect.Console (log)
 import Effect.Unsafe (unsafePerformEffect)
 import Env (Env)
 import Foreign.Generic (defaultOptions)
@@ -15,10 +13,8 @@ import Halogen as H
 import Halogen.Aff as HA
 import Halogen.HTML as HH
 import Halogen.VDom.Driver (runUI)
-import LocalStorage (RawStorageEvent)
-import LocalStorage as LocalStorage
-import MainFrame.State as MainFrame
-import MainFrame.Types as MainFrame
+import MainFrame.State (component) as MainFrame
+import MainFrame.Types (Query(..)) as MainFrame
 import Marlowe (SPParams_(SPParams_))
 import Router as Router
 import Routing.Duplex as Routing
@@ -51,16 +47,5 @@ main =
       $ matchesWith (Routing.parse Router.route) \old new -> do
           when (old /= Just new) $ launchAff_ $ driver.query (MainFrame.ChangeRoute new unit)
 
--- FIXME: This was not doing anything... should we remove? add a comment for future use?
--- forkAff $ runProcess watchLocalStorageProcess
--- watchLocalStorageProcess :: Process Aff Unit
--- watchLocalStorageProcess = connect LocalStorage.listen watchLocalStorage
--- watchLocalStorage ::
---   forall r.
---   Consumer RawStorageEvent Aff r
--- watchLocalStorage =
---   consumer \event -> do
---     liftEffect $ log $ "Got Local Storage Event: " <> show event
---     pure Nothing
 onLoad :: Unit
 onLoad = unsafePerformEffect main

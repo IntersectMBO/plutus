@@ -1,9 +1,3 @@
-header {
-  padding: 0.5rem 2rem;
-  background: var(--bg-dark);
-  height: 54px;
-}
-
 .marlowe-logo {
   width: 35px;
   height: 26px;
@@ -30,7 +24,7 @@ header {
   text-align: end;
 
   a {
-    margin: 0.5rem;
+    margin-left: var(--medium-margin);
 
   }
 }
@@ -85,7 +79,7 @@ header {
   display: flex;
 
   a {
-    padding: 0rem 1rem;
+    padding-left: var(--medium-margin);
     font-weight: bold;
     color: var(--text-color-light);
 
@@ -103,8 +97,11 @@ header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 10px;
+  padding-top: var(--small-margin);
+  padding-bottom: var(--small-margin);
+  padding-right: var(--medium-margin);
   background-color: var(--bg-light);
+  border-bottom: rgba(0,0,0,0.1) solid 1px
 }
 
 .global-actions h2 {

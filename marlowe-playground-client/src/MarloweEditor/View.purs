@@ -3,16 +3,15 @@ module MarloweEditor.View where
 import Prelude hiding (div)
 import BottomPanel.Types (Action(..)) as BottomPanel
 import BottomPanel.View (render) as BottomPanel
-import Data.Array (length)
 import Data.Array as Array
 import Data.Enum (toEnum, upFromIncluding)
 import Data.Lens ((^.))
 import Data.Maybe (Maybe(..))
 import Effect.Aff.Class (class MonadAff)
 import Halogen (ClassName(..), ComponentHTML)
-import Halogen.Classes (codeEditor, group)
+import Halogen.Classes (flex, flexCol, flexGrow, fullHeight, group, maxH70p, minH0, overflowHidden, paddingX)
 import Halogen.Extra (renderSubmodule)
-import Halogen.HTML (HTML, button, div, div_, option, section, select, slot, text)
+import Halogen.HTML (HTML, button, div, option, section, select, slot, text)
 import Halogen.HTML.Events (onClick, onSelectedIndexChange)
 import Halogen.HTML.Properties (class_, classes, disabled, title)
 import Halogen.HTML.Properties as HTML
@@ -29,12 +28,16 @@ render ::
   State ->
   ComponentHTML Action ChildSlots m
 render state =
-  div_
-    [ section [ class_ (ClassName "code-panel") ]
-        [ div [ classes [ codeEditor ] ]
-            [ marloweEditor state ]
+  div [ classes [ flex, flexCol, fullHeight, paddingX ] ]
+    [ section [ classes [ minH0, flexGrow, overflowHidden ] ]
+        [ marloweEditor state ]
+    , section [ classes [ maxH70p ] ]
+        [ renderSubmodule
+            _bottomPanelState
+            BottomPanelAction
+            (BottomPanel.render panelTitles wrapBottomPanelContents)
+            state
         ]
-    , renderSubmodule _bottomPanelState BottomPanelAction (BottomPanel.render panelTitles wrapBottomPanelContents) state
     ]
   where
   panelTitles =
@@ -43,7 +46,7 @@ render state =
     , { title: errorsTitle, view: MarloweErrorsView, classes: [] }
     ]
 
-  withCount str arry = str <> if Array.null arry then "" else " (" <> show (length arry) <> ")"
+  withCount str arry = str <> if Array.null arry then "" else " (" <> show (Array.length arry) <> ")"
 
   warningsTitle = withCount "Warnings" $ state ^. _editorWarnings
 

@@ -103,3 +103,12 @@ exports.removeChangeListener_ = function (workspace, listener) {
 exports.workspaceToDom_ = function (blockly, workspace) {
   return blockly.Xml.workspaceToDom(workspace);
 };
+
+exports.select_ = function (block) {
+  block.select();
+}
+
+exports.centerOnBlock_ = function (workspace, blockId) {
+  workspace.centerOnBlock(blockId);
+}
+

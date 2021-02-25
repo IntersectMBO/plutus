@@ -3,22 +3,25 @@ module BlocklyComponent.State where
 import Prelude hiding (div)
 import Blockly.Dom (explainError, getDom)
 import Blockly.Generator (newBlock)
-import Blockly.Internal (BlockDefinition, ElementId(..))
+import Blockly.Internal (BlockDefinition, ElementId(..), centerOnBlock, getBlockById, select)
 import Blockly.Internal as Blockly
 import BlocklyComponent.Types (Action(..), Message(..), Query(..), State, _blocklyEventSubscription, _blocklyState, _errorMessage, emptyState)
 import BlocklyComponent.View (render)
 import Control.Monad.Except (ExceptT(..), runExceptT, withExceptT)
+import Control.Monad.Maybe.Trans (MaybeT(..), runMaybeT)
 import Data.Either (Either(..), either, note)
-import Data.Lens (assign, set, use)
+import Data.Lens (assign, set, use, view)
 import Data.Maybe (Maybe(..))
 import Data.Traversable (for, for_)
 import Effect.Aff.Class (class MonadAff)
+import Effect.Exception.Unsafe (unsafeThrow)
 import Halogen (Component, HalogenM, liftEffect, mkComponent, modify_)
 import Halogen as H
 import Halogen.BlocklyCommons (blocklyEvents, runWithoutEventSubscription, detectCodeChanges)
 import Halogen.HTML (HTML)
 import Marlowe.Blockly (buildBlocks)
 import Marlowe.Holes (Term(..), Location(..))
+import Marlowe.Linter (_location)
 import Marlowe.Parser as Parser
 import Text.Extra as Text
 import Type.Proxy (Proxy(..))
@@ -100,6 +103,28 @@ handleQuery (GetBlockRepresentation next) = do
       pure <<< Just <<< next $ block
   where
   unexpected s = "An unexpected error has occurred, please raise a support issue at https://github.com/input-output-hk/plutus/issues/new: " <> s
+
+handleQuery (SelectWarning warning next) = do
+  let
+    blockId = locationToBlockId $ view _location warning
+  void
+    $ runMaybeT do
+        blocklyState <- MaybeT $ use _blocklyState
+        block <- MaybeT $ liftEffect $ getBlockById blocklyState.workspace blockId
+        MaybeT $ map pure
+          $ liftEffect do
+              select block
+              centerOnBlock blocklyState.workspace blockId
+  pure $ Just next
+
+-- We cannot guarantee at the type level that the only type of location we handle in this editor
+-- is a BlockId location, so we throw a useful error if we ever get to this situation
+locationToBlockId :: Location -> String
+locationToBlockId (BlockId blockId) = blockId
+
+locationToBlockId (Range _) = unsafeThrow "Unexpected Range location found in MarloweParser"
+
+locationToBlockId NoLocation = unsafeThrow "Unexpected NoLocation found in MarloweParser"
 
 handleAction ::
   forall m slots.

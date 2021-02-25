@@ -18,7 +18,7 @@ import Data.Tuple.Nested ((/\))
 import Effect.Aff.Class (class MonadAff)
 import Effect.Class (liftEffect)
 import Halogen (RefLabel(..))
-import Halogen.Classes (aHorizontal, bold, btn, codeEditor, expanded, flex, fullHeight, group, justifyBetween, justifyCenter, noMargins, plusBtn, scroll, sidebarComposer, smallBtn, smallSpaceBottom, spaceBottom, spaceRight, spanText, textSecondaryColor, textXs, uppercase)
+import Halogen.Classes (aHorizontal, bold, btn, flex, flexCol, flexGrow, flexShrink0, fontBold, fullHeight, fullWidth, grid, gridColsDescriptionLocation, group, justifyBetween, justifyCenter, justifyEnd, maxH70p, minH0, noMargins, overflowHidden, overflowScroll, paddingX, plusBtn, smallBtn, smallSpaceBottom, spaceBottom, spaceLeft, spaceRight, spanText, textSecondaryColor, textXs, uppercase, w30p)
 import Halogen.Extra (renderSubmodule)
 import Halogen.HTML (ClassName(..), ComponentHTML, HTML, aside, b_, br_, button, div, div_, em_, h6, h6_, input, li, li_, p, p_, section, slot, span, span_, strong_, text, ul)
 import Halogen.HTML.Events (onClick, onValueChange)
@@ -33,7 +33,7 @@ import Monaco (Editor)
 import Monaco as Monaco
 import Pretty (renderPrettyParty, renderPrettyToken, showPrettyMoney)
 import SimulationPage.BottomPanel (panelContents)
-import SimulationPage.Types (Action(..), ActionInput(..), ActionInputId, BottomPanelView(..), ExecutionState(..), InitialConditionsRecord, MarloweEvent(..), State, _SimulationRunning, _bottomPanelState, _currentContract, _currentMarloweState, _executionState, _log, _marloweState, _possibleActions, _showRightPanel, _slot, _transactionError, _transactionWarnings, otherActionsParty)
+import SimulationPage.Types (Action(..), ActionInput(..), ActionInputId, BottomPanelView(..), ExecutionState(..), InitialConditionsRecord, MarloweEvent(..), State, _SimulationRunning, _bottomPanelState, _currentContract, _currentMarloweState, _executionState, _log, _marloweState, _possibleActions, _slot, _transactionError, _transactionWarnings, otherActionsParty)
 import Simulator (hasHistory, inFuture)
 
 render ::
@@ -42,13 +42,20 @@ render ::
   State ->
   ComponentHTML Action ChildSlots m
 render state =
-  div [ classes [ fullHeight, scroll, ClassName "simulation-panel" ] ]
-    [ section [ class_ (ClassName "code-panel") ]
-        [ div [ classes [ codeEditor ] ]
+  div [ classes [ fullHeight, paddingX, flex ] ]
+    [ div [ classes [ flex, flexCol, fullHeight, flexGrow ] ]
+        [ section [ classes [ minH0, flexGrow, overflowHidden ] ]
             [ marloweEditor state ]
-        , sidebar state
+        , section [ classes [ maxH70p ] ]
+            [ renderSubmodule
+                _bottomPanelState
+                BottomPanelAction
+                (BottomPanel.render panelTitles wrapBottomPanelContents)
+                state
+            ]
         ]
-    , renderSubmodule _bottomPanelState BottomPanelAction (BottomPanel.render panelTitles wrapBottomPanelContents) state
+    , aside [ classes [ flexShrink0, spaceLeft, overflowScroll, w30p ] ]
+        (sidebar state)
     ]
   where
   panelTitles =
@@ -61,8 +68,6 @@ render state =
   hasRuntimeWarnings = has (_marloweState <<< _Head <<< _executionState <<< _SimulationRunning <<< _transactionWarnings <<< to Array.null <<< only false) state
 
   hasRuntimeError = has (_marloweState <<< _Head <<< _executionState <<< _SimulationRunning <<< _transactionError <<< to isJust <<< only true) state
-
-  showRightPanel = state ^. _showRightPanel
 
   wrapBottomPanelContents panelView = BottomPanelTypes.PanelAction <$> panelContents state panelView
 
@@ -190,47 +195,25 @@ settings setup =
 sidebar ::
   forall p.
   State ->
-  HTML p Action
-sidebar state =
-  let
-    showRightPanel = state ^. _showRightPanel
+  Array (HTML p Action)
+sidebar state = case view (_marloweState <<< _Head <<< _executionState) state of
+  SimulationNotStarted notStartedRecord -> [ startSimulationWidget notStartedRecord ]
+  SimulationRunning _ ->
+    [ div [ class_ smallSpaceBottom ] [ simulationStateWidget state ]
+    , div [ class_ spaceBottom ] [ actionWidget state ]
+    , logWidget state
+    ]
 
-    contents = case view (_marloweState <<< _Head <<< _executionState) state of
-      SimulationNotStarted notStartedRecord -> [ startSimulationWidget notStartedRecord ]
-      SimulationRunning _ ->
-        [ div [ class_ smallSpaceBottom ] [ simulationStateWidget state ]
-        , div [ class_ spaceBottom ] [ actionWidget state ]
-        , logWidget state
-        ]
-  in
-    aside [ classes [ sidebarComposer, expanded showRightPanel ] ]
-      {- FIXME the drawer icon to show/hide the right panel is currently not shown and is not present in the
-                 designs. Check if we need to remove that functionality and if so, remove the action and state
-                 that goes with it.
-       div [ classes [ panelSubHeaderSide, expanded (state ^. _showRightPanel), ClassName "drawer-icon-container" ] ]
-          [ a [ classes [ (ClassName "drawer-icon-click") ], onClick $ const $ Just $ ShowRightPanel (not showRightPanel) ]
-              [ img [ src closeDrawerIcon, class_ (ClassName "drawer-icon") ] ]
-          ]
-        -}
-      contents
-
-{-
-        FIXME The new designs of the simulator does not have contextual help, and there is a lot
-        of code related to this. Confirm if we really don't want this before deleting, or if it may
-        come back later on.
-      , article [ class_ (ClassName "documentation-panel") ]
-          (toHTML (state ^. _helpContext))
-      -}
 ------------------------------------------------------------
 startSimulationWidget :: forall p. InitialConditionsRecord -> HTML p Action
 startSimulationWidget { initialSlot, templateContent } =
   cardWidget "Simulation has not started yet"
-    $ div [ classes [] ]
+    $ div_
         [ div [ classes [ ClassName "slot-input", ClassName "initial-slot-input" ] ]
             [ spanText "Initial slot:"
             , marloweActionInput (SetInitialSlot <<< wrap) initialSlot
             ]
-        , div [ classes [] ]
+        , div_
             [ ul [ class_ (ClassName "templates") ]
                 ( integerTemplateParameters SetIntegerTemplateParam SlotContent "Timeout template parameters" "Slot for" (unwrap templateContent).slotContent
                     <> integerTemplateParameters SetIntegerTemplateParam ValueContent "Value template parameters" "Constant for" (unwrap templateContent).valueContent
@@ -504,73 +487,67 @@ logWidget ::
   HTML p Action
 logWidget state =
   cardWidget "Transaction log"
-    $ div []
-        [ div
-            [ classes [ ClassName "error-headers", ClassName "error-row" ] ]
-            [ div [] [ text "Action" ]
-            , div [] [ text "Slot" ]
-            ]
-        , ul [] (reverse inputLines)
-        ]
+    $ div [ classes [ grid, gridColsDescriptionLocation, fullWidth ] ]
+        ( [ div [ class_ fontBold ] [ text "Action" ]
+          , div [ class_ fontBold ] [ text "Slot" ]
+          ]
+            <> inputLines
+        )
   where
-  inputLines = state ^. (_marloweState <<< _Head <<< _executionState <<< _SimulationRunning <<< _log <<< to (concatMap logToLines))
+  inputLines = state ^. (_marloweState <<< _Head <<< _executionState <<< _SimulationRunning <<< _log <<< to (concatMap logToLines <<< reverse))
 
 logToLines :: forall p a. MarloweEvent -> Array (HTML p a)
-logToLines (InputEvent (TransactionInput { interval, inputs })) = Array.fromFoldable $ map (inputToLine interval) inputs
+logToLines (InputEvent (TransactionInput { interval, inputs })) = inputToLine interval =<< Array.fromFoldable inputs
 
 logToLines (OutputEvent interval payment) = paymentToLines interval payment
 
-inputToLine :: forall p a. SlotInterval -> Input -> HTML p a
+inputToLine :: forall p a. SlotInterval -> Input -> Array (HTML p a)
 inputToLine (SlotInterval start end) (IDeposit accountOwner party token money) =
-  li [ classes [ ClassName "error-row" ] ]
-    [ span_
-        [ text "Deposit "
-        , strong_ [ text (showPrettyMoney money) ]
-        , text " units of "
-        , strong_ [ renderPrettyToken token ]
-        , text " into account of "
-        , strong_ [ renderPrettyParty accountOwner ]
-        , text " as "
-        , strong_ [ renderPrettyParty party ]
-        ]
-    , span_ [ text $ showSlotRange start end ]
-    ]
+  [ span_
+      [ text "Deposit "
+      , strong_ [ text (showPrettyMoney money) ]
+      , text " units of "
+      , strong_ [ renderPrettyToken token ]
+      , text " into account of "
+      , strong_ [ renderPrettyParty accountOwner ]
+      , text " as "
+      , strong_ [ renderPrettyParty party ]
+      ]
+  , span [ class_ justifyEnd ] [ text $ showSlotRange start end ]
+  ]
 
 inputToLine (SlotInterval start end) (IChoice (ChoiceId choiceName choiceOwner) chosenNum) =
-  li [ classes [ ClassName "error-row" ] ]
-    [ span_
-        [ text "Participant "
-        , strong_ [ renderPrettyParty choiceOwner ]
-        , text " chooses the value "
-        , strong_ [ text (showPrettyMoney chosenNum) ]
-        , text " for choice with id "
-        , strong_ [ text (show choiceName) ]
-        ]
-    , span_ [ text $ showSlotRange start end ]
-    ]
+  [ span_
+      [ text "Participant "
+      , strong_ [ renderPrettyParty choiceOwner ]
+      , text " chooses the value "
+      , strong_ [ text (showPrettyMoney chosenNum) ]
+      , text " for choice with id "
+      , strong_ [ text (show choiceName) ]
+      ]
+  , span [ class_ justifyEnd ] [ text $ showSlotRange start end ]
+  ]
 
 inputToLine (SlotInterval start end) INotify =
-  li [ classes [ ClassName "error-row" ] ]
-    [ text "Notify"
-    , span_ [ text $ showSlotRange start end ]
-    ]
+  [ text "Notify"
+  , span [ class_ justifyEnd ] [ text $ showSlotRange start end ]
+  ]
 
 paymentToLines :: forall p a. SlotInterval -> Payment -> Array (HTML p a)
-paymentToLines slotInterval (Payment party money) = unfoldAssets money (paymentToLine slotInterval party)
+paymentToLines slotInterval (Payment party money) = join $ unfoldAssets money (paymentToLine slotInterval party)
 
-paymentToLine :: forall p a. SlotInterval -> Party -> Token -> BigInteger -> HTML p a
+paymentToLine :: forall p a. SlotInterval -> Party -> Token -> BigInteger -> Array (HTML p a)
 paymentToLine (SlotInterval start end) party token money =
-  li [ classes [ ClassName "error-row" ] ]
-    [ span_
-        [ text "The contract pays "
-        , strong_ [ text (showPrettyMoney money) ]
-        , text " units of "
-        , strong_ [ renderPrettyToken token ]
-        , text " to participant "
-        , strong_ [ renderPrettyParty party ]
-        ]
-    , span_ [ text $ showSlotRange start end ]
-    ]
+  [ span_
+      [ text "The contract pays "
+      , strong_ [ text (showPrettyMoney money) ]
+      , text " units of "
+      , strong_ [ renderPrettyToken token ]
+      , text " to participant "
+      , strong_ [ renderPrettyParty party ]
+      ]
+  , span [ class_ justifyEnd ] [ text $ showSlotRange start end ]
+  ]
 
 showSlotRange :: Slot -> Slot -> String
 showSlotRange start end =

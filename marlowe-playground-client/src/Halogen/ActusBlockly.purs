@@ -4,7 +4,6 @@ import Prelude hiding (div)
 import Blockly.Generator (Generator, blockToCode)
 import Blockly.Internal (BlockDefinition, ElementId(..), XML, getBlockById)
 import Blockly.Internal as Blockly
-import Blockly.Types (Block)
 import Blockly.Types as BT
 import Control.Monad.Except (ExceptT(..), except, runExceptT)
 import Data.Bifunctor (lmap)
@@ -25,7 +24,7 @@ import Foreign.Generic (encodeJSON)
 import Halogen (ClassName(..), Component, HalogenM, RefLabel(..), liftEffect, mkComponent, modify_, raise)
 import Halogen as H
 import Halogen.BlocklyCommons (blocklyEvents, detectCodeChanges)
-import Halogen.Classes (aHorizontal, expanded, panelSubHeader, panelSubHeaderMain, sidebarComposer, hide, alignedButtonInTheMiddle, alignedButtonLast)
+import Halogen.Classes (aHorizontal, alignedButtonInTheMiddle, alignedButtonLast, expanded, flex, flexCol, flexGrow, fontBold, fullHeight, hide, smallPaddingLeft, smallPaddingY, textInactive)
 import Halogen.HTML (HTML, button, div, text, iframe, aside, section)
 import Halogen.HTML.Core (AttrName(..))
 import Halogen.HTML.Events (onClick)
@@ -203,31 +202,28 @@ blocklyRef = RefLabel "blockly"
 
 render :: forall p. State -> HTML p Action
 render state =
-  div []
-    [ section [ classes [ panelSubHeader, aHorizontal ] ]
-        [ div [ classes [ panelSubHeaderMain, aHorizontal, ClassName "actus-buttons" ] ]
+  div [ classes [ fullHeight, flex, flexCol ] ]
+    [ section [ classes [ aHorizontal ] ]
+        [ div [ classes [ smallPaddingY, smallPaddingLeft, aHorizontal, fontBold, textInactive ] ]
             [ toCodeButton "Generate reactive contract"
             , toStaticCodeButton "Generate static contract"
             , runAnalysis
             , errorMessage state.errorMessage
             ]
         ]
-    , div [ classes [ ClassName "code-panel" ] ]
-        [ div
-            [ ref blocklyRef
-            , id_ "actusBlocklyWorkspace"
-            , classes [ ClassName "actus-blockly-workspace", ClassName "code-editor" ]
-            ]
-            []
-        , shiny state
+    , div
+        [ ref blocklyRef
+        , id_ "actusBlocklyWorkspace"
+        , classes [ flexGrow ]
         ]
+        []
     ]
 
 shiny ::
   forall p.
   State -> HTML p Action
 shiny state =
-  aside [ classes ([ sidebarComposer, expanded false ] <> if state.showShiny then [] else [ hide ]) ]
+  aside [ classes ([ expanded false ] <> if state.showShiny then [] else [ hide ]) ]
     [ div [ attr (AttrName "style") "height: 100%;" ]
         [ iframe
             [ src "http://localhost:8081"

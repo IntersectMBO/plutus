@@ -21,14 +21,9 @@
 
 #main-panel {
   background: var(--bg-light);
-  // padding: 0rem 2rem;
   width: 100%;
   height: 100%;
-  margin-bottom: 20px;
-}
-
-.simulation-panel {
-  padding: 0rem 2rem;
+  position: relative;
 }
 
 #main-panel div.panel-content {
@@ -108,7 +103,7 @@
 }
 
 .aligned-button-in-the-middle {
-  margin-left:5px; 
+  margin-left:5px;
   margin-right:5px;
 }
 
