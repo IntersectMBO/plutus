@@ -1,4 +1,5 @@
 -- This module provides FFI bindings for the Resize Observer API.
+-- https://www.w3.org/TR/resize-observer/#api
 -- TODO: Create a PR to make this a part of `purescript-web-dom`.
 -- NOTE: I'm not using the uncurried package as `web-dom` doesn't use it either.
 module Web.DOM.ResizeObserver

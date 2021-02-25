@@ -112,3 +112,6 @@ exports.centerOnBlock_ = function (workspace, blockId) {
   workspace.centerOnBlock(blockId);
 }
 
+exports.hideChaff_ = function (blockly) {
+  blockly.hideChaff();
+}

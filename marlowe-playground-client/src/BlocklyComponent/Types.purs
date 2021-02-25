@@ -49,6 +49,7 @@ data Action
   | SetData Unit
   | BlocklyEvent BT.BlocklyEvent
   | ResizeWorkspace
+  | VisibilityChanged Boolean
 
 data Message
   = CodeChange
