@@ -133,7 +133,6 @@ step** : {s : State K J}{s' : State K I}{s'' : State K I'}
         → s -→s s''
 step** base q = q
 step** (step* x p) q = step* x (step** p q)
-        
 ```
 
 ```

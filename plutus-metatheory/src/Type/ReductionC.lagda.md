@@ -82,6 +82,8 @@ data EvalCtx : (K J : Kind) → Set where
   μr     : {A : ∅ ⊢⋆ (K ⇒ *) ⇒ K ⇒ *} → Value⋆ A → EvalCtx K I → EvalCtx * I
   μl     : EvalCtx ((K ⇒ *) ⇒ K ⇒ *) I →  (B : ∅ ⊢⋆ K) → EvalCtx * I
 
+
+-- this is a bit like substitution
 closeEvalCtx : EvalCtx K J → ∅ ⊢⋆ J → ∅ ⊢⋆ K
 closeEvalCtx []       C = C
 closeEvalCtx (V ·r E) C = discharge V · closeEvalCtx E C
@@ -91,6 +93,61 @@ closeEvalCtx (E l⇒ B) C = closeEvalCtx E C ⇒ B
 closeEvalCtx (μr V E) C = μ (discharge V) (closeEvalCtx E C)
 closeEvalCtx (μl E B) C = μ (closeEvalCtx E C) B
 
+-- the most direct way to define composition
+-- by induction on the first arg
+compEvalCtx : EvalCtx K J → EvalCtx J I → EvalCtx K I
+compEvalCtx []       E' = E'
+compEvalCtx (V ·r E) E' = V ·r compEvalCtx E E'
+compEvalCtx (E l· B) E' = compEvalCtx E E' l· B
+compEvalCtx (V ⇒r E) E' = V ⇒r compEvalCtx E E'
+compEvalCtx (E l⇒ B) E' = compEvalCtx E E' l⇒ B
+compEvalCtx (μr V E) E' = μr V (compEvalCtx E E')
+compEvalCtx (μl E B) E' = μl (compEvalCtx E E') B
+
+-- some laws about closing and composition
+
+-- monoid laws for composition
+comp-idl : (E : EvalCtx K J) → compEvalCtx [] E ≡ E
+comp-idl E = refl
+
+comp-idr : (E : EvalCtx K J) → compEvalCtx E [] ≡ E
+comp-idr []       = refl
+comp-idr (A ·r E) = cong (A ·r_) (comp-idr E)
+comp-idr (E l· B) = cong (_l· B) (comp-idr E)
+comp-idr (A ⇒r E) = cong (A ⇒r_) (comp-idr E)
+comp-idr (E l⇒ B) = cong (_l⇒ B) (comp-idr E)
+comp-idr (μr A E) = cong (μr A) (comp-idr E)
+comp-idr (μl E B) = cong (λ E → μl E B) (comp-idr E)
+
+variable H : Kind
+
+comp-assoc : (E : EvalCtx K J)(E' : EvalCtx J I)(E'' : EvalCtx I H)
+           → compEvalCtx E (compEvalCtx E' E'')
+           ≡ compEvalCtx (compEvalCtx E E') E''
+comp-assoc []       E' E'' = refl
+comp-assoc (A ·r E) E' E'' = cong (A ·r_) (comp-assoc E E' E'')
+comp-assoc (E l· B) E' E'' = cong (_l· B) (comp-assoc E E' E'')
+comp-assoc (A ⇒r E) E' E'' = cong (A ⇒r_) (comp-assoc E E' E'')
+comp-assoc (E l⇒ B) E' E'' = cong (_l⇒ B) (comp-assoc E E' E'')
+comp-assoc (μr A E) E' E'' = cong (μr A) (comp-assoc E E' E'')
+comp-assoc (μl E B) E' E'' = cong (λ E → μl E B) (comp-assoc E E' E'')
+
+-- functor laws for close
+close-id : (A : ∅ ⊢⋆ K) → closeEvalCtx [] A ≡ A
+close-id A = refl
+
+close-comp : (E : EvalCtx K J)(E' : EvalCtx J I)(A : ∅ ⊢⋆ I)
+           → closeEvalCtx (compEvalCtx E E') A
+           ≡ closeEvalCtx E (closeEvalCtx E' A)
+close-comp []       E' A = refl
+close-comp (V ·r E) E' A = cong (discharge V ·_) (close-comp E E' A)
+close-comp (E l· B) E' A = cong (_· B) (close-comp E E' A)
+close-comp (V ⇒r E) E' A = cong (discharge V ⇒_) (close-comp E E' A)
+close-comp (E l⇒ B) E' A = cong (_⇒ B) (close-comp E E' A)
+close-comp (μr V E) E' A = cong (μ (discharge V)) (close-comp E E' A)
+close-comp (μl E B) E' A = cong (λ E → μ E B) (close-comp E E' A)
+
+-- an inductive version of the graph of closeEvalCtx
 data _~_⟦_⟧ : ∅ ⊢⋆ K → EvalCtx K J → ∅ ⊢⋆ J → Set where
   ~[] : (P : ∅ ⊢⋆ K) → P ~ [] ⟦ P ⟧
   ~·r : ∀(P : ∅ ⊢⋆ I){A : ∅ ⊢⋆ K ⇒ J}(V : Value⋆ A)(B : ∅ ⊢⋆ K) E
@@ -147,7 +204,35 @@ closeFrame (_⇒- A) B = discharge A ⇒ B
 closeFrame (μ_- A) B = μ (discharge A) B
 closeFrame (μ- B)  A = μ A B
 
--- this can also be given by an inductive definition
+extendEvalCtx : (E : EvalCtx K J)(F : Frame J I) → EvalCtx K I
+extendEvalCtx [] (-· B)  = [] l· B
+extendEvalCtx [] (V ·-)  = V ·r []
+extendEvalCtx [] (-⇒ B)  = [] l⇒ B
+extendEvalCtx [] (V ⇒-)  = V ⇒r []
+extendEvalCtx [] (μ- B)  = μl [] B
+extendEvalCtx [] μ V -   = μr V []
+extendEvalCtx (V ·r E) F = V ·r extendEvalCtx E F
+extendEvalCtx (E l· B) F = extendEvalCtx E F l· B
+extendEvalCtx (V ⇒r E) F = V ⇒r extendEvalCtx E F
+extendEvalCtx (E l⇒ B) F = extendEvalCtx E F l⇒ B
+extendEvalCtx (μr V E) F = μr V (extendEvalCtx E F)
+extendEvalCtx (μl E B) F = μl (extendEvalCtx E F) B
+
+closeEF : (E : EvalCtx K J)(F : Frame J I)(A : ∅ ⊢⋆ I)
+     → closeEvalCtx (extendEvalCtx E F) A
+     ≡ closeEvalCtx E (closeFrame F A)
+closeEF [] (-· B) A = refl
+closeEF [] (V ·-) A = refl
+closeEF [] (-⇒ B) A = refl
+closeEF [] (V ⇒-) A = refl
+closeEF [] (μ- B) A = refl
+closeEF [] μ V -  A = refl
+closeEF (V ·r E) F A = cong (_ ·_) (closeEF E F A)
+closeEF (E l· B) F A = cong (_· _) (closeEF E F A)
+closeEF (V ⇒r E) F A = cong (_ ⇒_) (closeEF E F A)
+closeEF (E l⇒ B) F A = cong (_⇒ _) (closeEF E F A)
+closeEF (μr V E) F A = cong (μ _) (closeEF E F A)
+closeEF (μl E B) F A = cong (λ A → μ A _) (closeEF E F A)
 ```
 
 
