@@ -131,48 +131,16 @@ step** : {s : State K J}{s' : State K I}{s'' : State K I'}
         → s -→s s'
         → s' -→s s''
         → s -→s s''
-step** p q = {!!}
+step** base q = q
+step** (step* x p) q = step* x (step** p q)
         
 ```
 
 ```
-blah : (s : Stack I J)(A : ∅ ⊢⋆ J) (V : Value⋆ A) → (s ▻ A) -→s (s ◅ V)
-blah s .(Π N) (V-Π N) = step* refl base
-blah s .(_ ⇒ _) (V V-⇒ V₁) = step* refl (step** (blah _ _ V) (step* refl (step** (blah _ _ V₁) (step* refl base))))
-blah s .(ƛ N) (V-ƛ N) = step* refl base
-blah s .(con tcn) (V-con tcn) = step* refl base
-blah s .(μ _ _) (V-μ V V₁) = {!!} -- this would work
-
-{- 
--- this doesn't work as on the right it may be deeper inside the term than t'
--- reduction is all top level, e.g, consider an application
-lemma : {s : Stack I J}{t t' : ∅ ⊢⋆ J} → t —→⋆ t' → (s ▻ t) -→s (s ▻ t')
-lemma (frameRule f p x x₁) = {!!}
-lemma (β-ƛ V) = step* refl (step* refl (step* refl (step** (blah _ _ V) (step* refl base))))
--}
-
--- frames
-
-lemma' : ∀(s s' : Stack I J){t t'} → closeStack s t —→⋆ closeStack s' t' → (s ▻ t) -→s (s' ▻ t')
-lemma' s s' {t}{t'} p with closeStack s t | closeStack s' t'
-lemma' s s' {t} {t'} (frameRule f p x x₁) | q | r = {!!}
-lemma' s s' {t} {t'} (β-ƛ x) | .(ƛ _ · _) | _ = {!!}
-
-
-lemma : ∀(s : Stack I J){t t'} → closeStack s t —→⋆ t' → (s ▻ t) -→s (ε ▻ t')
-lemma ε (frameRule f p x x₁) = {!!}
-lemma ε (β-ƛ x) = {!!}
-lemma (s , (-· x)) p = {!p!} {!!}
-lemma (s , (x ·-)) p = {!p!}
-lemma (s , (-⇒ x)) p = {!!}
-lemma (s , (x ⇒-)) p = {!!}
-lemma (s , (μ- B)) p = {!!}
-lemma (s , μ x -) p = {!!}
-
--- this roughly what we want ultimately
--- possibly with Value⋆ t'
-{-
-lemma' : {t t' : ∅ ⊢⋆ *} → t —↠⋆ t' → (ε ▻ t) -→s (ε ▻ t')
-lemma' p = {!!}
--}
+change-dir : (s : Stack I J)(A : ∅ ⊢⋆ J) (V : Value⋆ A) → (s ▻ A) -→s (s ◅ V)
+change-dir s .(Π N) (V-Π N) = step* refl base
+change-dir s .(_ ⇒ _) (V V-⇒ V₁) = step* refl (step** (change-dir _ _ V) (step* refl (step** (change-dir _ _ V₁) (step* refl base))))
+change-dir s .(ƛ N) (V-ƛ N) = step* refl base
+change-dir s .(con tcn) (V-con tcn) = step* refl base
+change-dir s .(μ _ _) (V-μ V V₁) = step* refl (step** (change-dir _ _ V) (step* refl (step** (change-dir _ _ V₁) (step* refl base))))
 ```
