@@ -42,20 +42,18 @@ import           Control.Monad.Freer.State                       (State)
 import           Control.Monad.Freer.TH                          (makeEffect)
 
 import qualified Data.Aeson                                      as JSON
-import           Data.Foldable                                   (toList)
-import           Data.Maybe                                      (fromMaybe, listToMaybe)
+import           Data.Maybe                                      (mapMaybe)
 import           Data.Profunctor                                 (Profunctor (..))
 import           Data.Proxy                                      (Proxy (..))
 import qualified Data.Row.Internal                               as V
-import           Data.Sequence                                   (Seq)
-import qualified Data.Sequence                                   as Seq
 import           Data.String                                     (IsString (..))
 import qualified GHC.TypeLits
-import           Language.Plutus.Contract                        (Contract, EndpointDescription (..),
-                                                                  HasBlockchainActions, HasEndpoint)
+import           Language.Plutus.Contract                        (Contract, HasBlockchainActions, HasEndpoint)
+import           Language.Plutus.Contract.Effects.ExposeEndpoint (ActiveEndpoint)
 import qualified Language.Plutus.Contract.Effects.ExposeEndpoint as Endpoint
-import           Language.Plutus.Contract.Resumable              (Request (rqRequest))
-import           Language.Plutus.Contract.Schema                 (Input, Output, handlerName)
+import           Language.Plutus.Contract.Resumable              (Request (rqRequest), Requests (..))
+import           Language.Plutus.Contract.Schema                 (Input, Output, handlerArgument)
+import           Language.Plutus.Contract.Types                  (ResumableResult (..))
 import           Plutus.Trace.Effects.ContractInstanceId         (ContractInstanceIdEff, nextId)
 import           Plutus.Trace.Emulator.ContractInstance          (contractThread, getThread)
 import           Plutus.Trace.Emulator.Types                     (ContractHandle (..), ContractInstanceState (..),
@@ -249,11 +247,14 @@ activeEndpoints :: forall s e effs.
     , JSON.FromJSON e
     )
     => ContractHandle s e
-    -> Eff effs [EndpointDescription]
-activeEndpoints = fmap (fmap (EndpointDescription . handlerName . rqRequest) . fromMaybe [] . lastMaybe . instHandlersHistory) . getContractState
+    -> Eff effs [ActiveEndpoint]
+activeEndpoints hdl = do
+    ContractInstanceState{instContractState=ResumableResult{_requests=Requests rq}} <- getContractState hdl
+    let parse :: JSON.Value -> Maybe ActiveEndpoint
+        parse v = case JSON.fromJSON v of
+            JSON.Success a -> Just a
+            _              -> Nothing
+    pure $ mapMaybe (parse . handlerArgument . rqRequest) rq
 
 callEndpointTag :: Tag
 callEndpointTag = "call endpoint"
-
-lastMaybe :: Seq a -> Maybe a
-lastMaybe = listToMaybe . toList . Seq.reverse
