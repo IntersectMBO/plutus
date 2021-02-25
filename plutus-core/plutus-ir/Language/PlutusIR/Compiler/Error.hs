@@ -1,3 +1,4 @@
+{-# LANGUAGE DeriveAnyClass         #-}
 {-# LANGUAGE FlexibleInstances      #-}
 {-# LANGUAGE FunctionalDependencies #-}
 {-# LANGUAGE LambdaCase             #-}
@@ -27,8 +28,8 @@ instance PLC.AsTypeError (Error uni fun a) (PLC.Term PLC.TyName PLC.Name uni fun
     _TypeError = _PLCError . PLC._TypeError
 
 instance (PLC.GShow uni, PLC.Closed uni, uni `PLC.Everywhere` PLC.PrettyConst, PP.Pretty fun, PP.Pretty a) =>
-            Show (Error uni fun a) where
-    show e = show $ PLC.prettyPlcClassicDebug e
+         Show (Error uni fun a) where
+    show = show . PLC.prettyPlcClassicDebug
 
 instance (PLC.GShow uni, PLC.Closed uni, uni `PLC.Everywhere` PLC.PrettyConst, PP.Pretty fun, PP.Pretty a) =>
             PLC.PrettyBy PLC.PrettyConfigPlc (Error uni fun a) where
@@ -37,6 +38,7 @@ instance (PLC.GShow uni, PLC.Closed uni, uni `PLC.Everywhere` PLC.PrettyConst, P
         UnsupportedError x e -> "Unsupported construct:" <+> PP.pretty e <+> "(" <> PP.pretty x <> ")"
         PLCError e           -> PP.vsep [ "Error from the PLC compiler:", PLC.prettyBy config e ]
 
-instance ( PLC.GShow uni, PLC.Closed uni, uni `PLC.Everywhere` PLC.PrettyConst, PP.Pretty a, PP.Pretty fun
-         , Typeable uni, Typeable fun, Typeable a
-         ) => Exception (Error uni fun a)
+deriving anyclass instance
+    ( PLC.GShow uni, PLC.Closed uni, uni `PLC.Everywhere` PLC.PrettyConst, PP.Pretty a, PP.Pretty fun
+    , Typeable uni, Typeable fun, Typeable a
+    ) => Exception (Error uni fun a)

@@ -1,6 +1,5 @@
 {-# LANGUAGE ConstraintKinds        #-}
 {-# LANGUAGE DeriveAnyClass         #-}
-{-# LANGUAGE DerivingStrategies     #-}
 {-# LANGUAGE FlexibleInstances      #-}
 {-# LANGUAGE FunctionalDependencies #-}
 {-# LANGUAGE LambdaCase             #-}
@@ -35,7 +34,8 @@ data TypeErrorExt uni ann =
          ann
          -- the expected constructor's type
          (PLC.Type PLC.TyName uni ann)
-    deriving (Show, Eq, Generic, NFData)
+    deriving stock (Show, Eq, Generic)
+    deriving anyclass (NFData)
 makeClassyPrisms ''TypeErrorExt
 
 instance HasErrorCode (TypeErrorExt _a _b) where
@@ -81,7 +81,8 @@ instance (PrettyUni uni ann, Pretty fun) => Show (Error uni fun ann) where
     show = show . PP.pretty
 
 -- FIXME: we get rid of this when our TestLib stops using rethrow
-instance (PrettyUni uni ann, Typeable uni, Typeable fun, Typeable ann, Pretty fun) => Exception (Error uni fun ann)
+deriving anyclass instance
+    (PrettyUni uni ann, Typeable uni, Typeable fun, Typeable ann, Pretty fun) => Exception (Error uni fun ann)
 
 instance
         (Pretty ann, Pretty fun,

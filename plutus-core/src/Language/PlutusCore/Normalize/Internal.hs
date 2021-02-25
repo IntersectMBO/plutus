@@ -1,7 +1,6 @@
 -- | The internals of the normalizer.
 
-{-# LANGUAGE DerivingStrategies #-}
-{-# LANGUAGE TemplateHaskell    #-}
+{-# LANGUAGE TemplateHaskell #-}
 
 module Language.PlutusCore.Normalize.Internal
     ( NormalizeTypeT

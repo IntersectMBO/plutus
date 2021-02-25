@@ -1,4 +1,5 @@
 {-# LANGUAGE DataKinds             #-}
+{-# LANGUAGE DeriveAnyClass        #-}
 {-# LANGUAGE DerivingStrategies    #-}
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
@@ -58,9 +59,9 @@ However, we just did it ourselves, so this should be impossible, and we signal t
 exception.
 -}
 newtype ImpossibleDeserialisationFailure = ImpossibleDeserialisationFailure DecodeException
+    deriving anyclass (Exception)
 instance Show ImpossibleDeserialisationFailure where
     show (ImpossibleDeserialisationFailure e) = "Failed to deserialise our own program! This is a bug, please report it. Caused by: " ++ show e
-instance Exception ImpossibleDeserialisationFailure
 
 instance HasErrorCode ImpossibleDeserialisationFailure where
       errorCode ImpossibleDeserialisationFailure {} = ErrorCode 40

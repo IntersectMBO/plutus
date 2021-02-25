@@ -1,6 +1,5 @@
 {-# LANGUAGE DefaultSignatures      #-}
 {-# LANGUAGE DeriveAnyClass         #-}
-{-# LANGUAGE DerivingStrategies     #-}
 {-# LANGUAGE FlexibleInstances      #-}
 {-# LANGUAGE FunctionalDependencies #-}
 {-# LANGUAGE OverloadedStrings      #-}

@@ -1,5 +1,7 @@
 {-# LANGUAGE ConstraintKinds       #-}
 {-# LANGUAGE DefaultSignatures     #-}
+{-# LANGUAGE DeriveAnyClass        #-}
+{-# LANGUAGE DerivingStrategies    #-}
 {-# LANGUAGE FlexibleContexts      #-}
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE LambdaCase            #-}
@@ -90,8 +92,7 @@ data LiftError = UnsupportedLiftKind TH.Kind
                | UserLiftError T.Text
                | LiftMissingDataCons TH.Name
                | LiftMissingVar TH.Name
-
-instance Prelude.Exception LiftError
+               deriving anyclass (Prelude.Exception)
 
 instance PP.Pretty LiftError where
     pretty (UnsupportedLiftType t) = "Unsupported lift type: " PP.<+> PP.viaShow t
