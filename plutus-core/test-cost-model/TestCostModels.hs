@@ -9,19 +9,21 @@
 {-# LANGUAGE TemplateHaskell     #-}
 {-# LANGUAGE TypeApplications    #-}
 
+import           Language.PlutusCore.Evaluation.Machine.ExBudgeting
+import           Language.PlutusCore.Evaluation.Machine.ExMemory
+
+import           Foreign.R                                          hiding (unsafeCoerce)
+import           H.Prelude                                          (MonadR, Region, r)
+import           Language.R                                         hiding (unsafeCoerce)
+
 import           Control.Applicative
 import           Control.Monad.Morph
 import           CostModelCreation
 import           Data.Coerce
-import           Foreign.R                                          hiding (unsafeCoerce)
-import           H.Prelude                                          (MonadR, Region, r)
 import           Hedgehog
 import qualified Hedgehog.Gen                                       as Gen
 import           Hedgehog.Main
 import qualified Hedgehog.Range                                     as Range
-import           Language.PlutusCore.Evaluation.Machine.ExBudgeting
-import           Language.PlutusCore.Evaluation.Machine.ExMemory
-import           Language.R                                         hiding (unsafeCoerce)
 import           Unsafe.Coerce                                      (unsafeCoerce)
 
 prop_addInteger :: Property
@@ -58,8 +60,8 @@ prop_sha2 :: Property
 prop_sha2 = testPredictOne sHA2 (getConst . paramSHA2)
 prop_sha3 :: Property
 prop_sha3 = testPredictOne sHA3 (getConst . paramSHA3)
--- prop_verifySignature :: Property
--- prop_verifySignature = testPredictThree verifySignature (getConst . paramVerifySignature)
+prop_verifySignature :: Property
+prop_verifySignature = testPredictThree verifySignature (getConst . paramVerifySignature)
 prop_eqByteString :: Property
 prop_eqByteString = testPredict eqByteString (getConst . paramEqByteString)
 prop_ltByteString :: Property

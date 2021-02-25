@@ -7,6 +7,9 @@
 
 module CostModelCreation where
 
+import           Language.PlutusCore.Evaluation.Machine.ExBudgeting
+import           Language.PlutusCore.Evaluation.Machine.ExMemory
+
 import           Barbies
 import           Control.Applicative
 import           Control.Exception                                  (TypeError (..))
@@ -21,11 +24,10 @@ import           Data.Functor.Compose
 import           Data.Text                                          as T
 import qualified Data.Text.Encoding                                 as T
 import           Data.Vector
-import           Foreign.R
 import           GHC.Generics
+
+import           Foreign.R
 import           H.Prelude                                          (MonadR, Region, r)
-import           Language.PlutusCore.Evaluation.Machine.ExBudgeting
-import           Language.PlutusCore.Evaluation.Machine.ExMemory
 import           Language.R
 
 {- See Note [Creation of the Cost Model]
@@ -76,28 +78,29 @@ createCostModel =
   withEmbeddedR defaultConfig $ runRegion $ do
     models <- costModelsR
     -- TODO: refactor with barbies
-    paramAddInteger           <- addInteger (getConst $ paramAddInteger models)
-    paramSubtractInteger      <- subtractInteger (getConst $ paramSubtractInteger models)
-    paramMultiplyInteger      <- multiplyInteger (getConst $ paramMultiplyInteger models)
-    paramDivideInteger        <- divideInteger (getConst $ paramDivideInteger models)
-    paramQuotientInteger      <- quotientInteger (getConst $ paramQuotientInteger models)
-    paramRemainderInteger     <- remainderInteger (getConst $ paramRemainderInteger models)
-    paramModInteger           <- modInteger (getConst $ paramModInteger models)
-    paramLessThanInteger      <- lessThanInteger (getConst $ paramLessThanInteger models)
-    paramGreaterThanInteger   <- greaterThanInteger (getConst $ paramGreaterThanInteger models)
-    paramLessThanEqInteger    <- lessThanEqInteger (getConst $ paramLessThanEqInteger models)
-    paramGreaterThanEqInteger <- greaterThanEqInteger (getConst $ paramGreaterThanEqInteger models)
-    paramEqInteger            <- eqInteger (getConst $ paramEqInteger models)
-    paramConcatenate          <- concatenate (getConst $ paramConcatenate models)
-    paramTakeByteString       <- takeByteString (getConst $ paramTakeByteString models)
-    paramDropByteString       <- dropByteString (getConst $ paramDropByteString models)
-    paramSHA2                 <- sHA2 (getConst $ paramSHA2 models)
-    paramSHA3                 <- sHA3 (getConst $ paramSHA3 models)
-    paramVerifySignature      <- verifySignature (getConst $ paramVerifySignature models)
-    paramEqByteString         <- eqByteString (getConst $ paramEqByteString models)
-    paramLtByteString         <- ltByteString (getConst $ paramLtByteString models)
-    paramGtByteString         <- gtByteString (getConst $ paramGtByteString models)
-    paramIfThenElse           <- ifThenElse (getConst $ paramIfThenElse models)
+    let f x y = x (getConst $ y models)
+    paramAddInteger           <- f addInteger           paramAddInteger
+    paramSubtractInteger      <- f subtractInteger      paramSubtractInteger
+    paramMultiplyInteger      <- f multiplyInteger      paramMultiplyInteger
+    paramDivideInteger        <- f divideInteger        paramDivideInteger
+    paramQuotientInteger      <- f quotientInteger      paramQuotientInteger
+    paramRemainderInteger     <- f remainderInteger     paramRemainderInteger
+    paramModInteger           <- f modInteger           paramModInteger
+    paramLessThanInteger      <- f lessThanInteger      paramLessThanInteger
+    paramGreaterThanInteger   <- f greaterThanInteger   paramGreaterThanInteger
+    paramLessThanEqInteger    <- f lessThanEqInteger    paramLessThanEqInteger
+    paramGreaterThanEqInteger <- f greaterThanEqInteger paramGreaterThanEqInteger
+    paramEqInteger            <- f eqInteger            paramEqInteger
+    paramConcatenate          <- f concatenate          paramConcatenate
+    paramTakeByteString       <- f takeByteString       paramTakeByteString
+    paramDropByteString       <- f dropByteString       paramDropByteString
+    paramSHA2                 <- f sHA2                 paramSHA2
+    paramSHA3                 <- f sHA3                 paramSHA3
+    paramVerifySignature      <- f verifySignature      paramVerifySignature
+    paramEqByteString         <- f eqByteString         paramEqByteString
+    paramLtByteString         <- f ltByteString         paramLtByteString
+    paramGtByteString         <- f gtByteString         paramGtByteString
+    paramIfThenElse           <- f ifThenElse           paramIfThenElse
 
     pure $ CostModel {..}
 
@@ -136,7 +139,7 @@ unsafeReadModelFromR formula rmodel = do
         model <- Data.Csv.decode HasHeader $ BSL.fromStrict $ T.encodeUtf8 $ (fromSomeSEXP j :: Text)
         intercept <- linearModelRawEstimate <$> findInRaw "(Intercept)" model
         slope <- linearModelRawEstimate <$> findInRaw formula model
-        pure $ (intercept, slope)
+        pure $ (max intercept 0, slope)
   case m of
     Left err -> throwM (TypeError err)
     Right x  -> pure x
@@ -150,7 +153,7 @@ unsafeReadModelFromR2 formula1 formula2 rmodel = do
         intercept <- linearModelRawEstimate <$> findInRaw "(Intercept)" model
         slope1 <- linearModelRawEstimate <$> findInRaw formula1 model
         slope2 <- linearModelRawEstimate <$> findInRaw formula2 model
-        pure $ (intercept, slope1, slope2)
+        pure $ (max intercept 0, slope1, slope2)
   case m of
     Left err -> throwM (TypeError err)
     Right x  -> pure x
