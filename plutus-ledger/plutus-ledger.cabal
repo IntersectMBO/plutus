@@ -24,11 +24,6 @@ common lang
                         DeriveGeneric StandaloneDeriving DeriveLift
                         GeneralizedNewtypeDeriving DeriveFunctor DeriveFoldable
                         DeriveTraversable MultiParamTypeClasses FlexibleContexts
-    other-extensions: DeriveAnyClass FlexibleInstances
-                      TypeFamilies OverloadedStrings
-                      MonadComprehensions ConstrainedClassMethods TupleSections GADTs
-                      RankNTypes TemplateHaskell QuasiQuotes TypeApplications
-                      ExistentialQuantification
     ghc-options: -Wall -Wnoncanonical-monad-instances
                  -Wincomplete-uni-patterns -Wincomplete-record-updates
                  -Wredundant-constraints -Widentities
