@@ -1,3 +1,4 @@
+{-# LANGUAGE AllowAmbiguousTypes        #-}
 {-# LANGUAGE DataKinds                  #-}
 {-# LANGUAGE DerivingStrategies         #-}
 {-# LANGUAGE FlexibleContexts           #-}
@@ -36,7 +37,7 @@ module Plutus.PAB.MockApp
 import qualified Cardano.Node.Types                    as NodeServer
 import           Control.Lens                          hiding (use)
 import           Control.Monad                         (void)
-import           Control.Monad.Freer                   (Eff, Member, interpret, runM, type (~>))
+import           Control.Monad.Freer                   (Eff, Member, interpret, reinterpret, runM, type (~>))
 import           Control.Monad.Freer.Error             (Error, handleError, runError, throwError)
 import           Control.Monad.Freer.Extras.Log        (LogMessage, LogMsg, handleLogWriter)
 import           Control.Monad.Freer.Extras.State      (use)
@@ -210,11 +211,10 @@ notifyChainIndex ::
        ( Member ChainEffect effs
        , Member MultiAgentPABEffect effs
        )
-    => ( ChainControlEffect ~> Eff effs )
-    ->   ChainControlEffect ~> Eff effs
-notifyChainIndex handler = \case
+    =>   ChainControlEffect ~> Eff (ChainControlEffect ': effs)
+notifyChainIndex = \case
     ProcessBlock -> do
-        block <- handler ProcessBlock
+        block <- processBlock
         slot  <- Wallet.Emulator.Chain.getCurrentSlot
         traverse_ (notifyWallet block slot) (Wallet <$> [1..10])
         pure block
@@ -242,7 +242,8 @@ handleTopLevelEffects ::
     => Eff (ChainControlEffect ': MultiAgentPABEffect ': ChainEffect ': effs) ~> Eff effs
 handleTopLevelEffects action =
   action
-    & interpret (notifyChainIndex handleControlChain)
+    & reinterpret notifyChainIndex
+    & interpret handleControlChain
     & PAB.MultiAgent.handleMultiAgent
     & interpret handleChain
 
