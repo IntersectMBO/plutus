@@ -42,6 +42,7 @@ instance actionIsEvent :: IsEvent Action where
 type State
   = { tab :: Tab
     , executionState :: ExecutionState
+    , contractId :: Maybe String -- FIXME: what is a contract instance identified by
     , side :: Side
     , confirmation :: Maybe Input
     , step :: Int
@@ -61,3 +62,6 @@ _confirmation = prop (SProxy :: SProxy "confirmation")
 
 _step :: Lens' State Int
 _step = prop (SProxy :: SProxy "step")
+
+_contractId :: Lens' State (Maybe String)
+_contractId = prop (SProxy :: SProxy "contractId")

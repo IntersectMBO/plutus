@@ -4,6 +4,7 @@ import Prelude
 import Contract.State (handleAction, defaultState) as Contract
 import Contract.Types (_executionState)
 import Control.Monad.Except (runExcept)
+import Control.Monad.Reader (class MonadAsk)
 import Data.Either (Either(..))
 import Data.Foldable (for_)
 import Data.Lens (Traversal', assign, modifying, over, set, use, view)
@@ -14,6 +15,7 @@ import Data.Maybe (Maybe(..))
 import Data.Tuple (fst, snd)
 import Effect.Aff.Class (class MonadAff)
 import Effect.Random (random)
+import Env (Env)
 import Foreign.Generic (decodeJSON, encodeJSON)
 import Halogen (Component, HalogenM, liftEffect, mkComponent, mkEval, modify_)
 import Halogen.Extra (mapMaybeSubmodule)
@@ -35,7 +37,11 @@ import WalletData.Lenses (_key, _nickname)
 import WalletData.Types (WalletDetails)
 import WebSocket.Support as WS
 
-mkMainFrame :: forall m. MonadAff m => Component HTML Query Action Msg m
+mkMainFrame ::
+  forall m.
+  MonadAff m =>
+  MonadAsk Env m =>
+  Component HTML Query Action Msg m
 mkMainFrame =
   mkComponent
     { initialState: const initialState
@@ -94,7 +100,11 @@ handleQuery (ReceiveWebSocketMessage msg next) = do
       (ErrorResponse error) -> pure unit
   pure $ Just next
 
-handleAction :: forall m. MonadAff m => Action -> HalogenM State Action ChildSlots Msg m Unit
+handleAction ::
+  forall m.
+  MonadAff m =>
+  MonadAsk Env m =>
+  Action -> HalogenM State Action ChildSlots Msg m Unit
 handleAction Init = do
   mCachedWalletsJson <- liftEffect $ getItem walletsLocalStorageKey
   for_ mCachedWalletsJson \json ->
