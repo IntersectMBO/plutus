@@ -62,24 +62,24 @@ let
   primary-config = {
     inherit db-file client;
     name = "demo-primary";
-    webserver-port = "8080";
-    walletserver-port = "8081";
+    webserver-port = "9080";
+    walletserver-port = "9081";
     nodeserver-port = "${node-port}";
-    chain-index-port = "8083";
-    signing-process-port = "8084";
-    metadata-server-port = "8085";
+    chain-index-port = "9083";
+    signing-process-port = "9084";
+    metadata-server-port = "9085";
     wallet = "1";
   };
 
   secondary-config = {
     inherit db-file client;
     name = "demo-secondary";
-    webserver-port = "8086";
-    walletserver-port = "8087";
+    webserver-port = "9086";
+    walletserver-port = "9087";
     nodeserver-port = "${node-port}";
-    chain-index-port = "8088";
-    signing-process-port = "8089";
-    metadata-server-port = "8090";
+    chain-index-port = "9088";
+    signing-process-port = "9089";
+    metadata-server-port = "9090";
     wallet = "2";
   };
 
