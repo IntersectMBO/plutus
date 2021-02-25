@@ -9,7 +9,7 @@ import Data.Lens.Record (prop)
 import Data.List (List)
 import Data.Maybe (Maybe(..))
 import Data.Symbol (SProxy(..))
-import Halogen (SubscriptionId)
+import Halogen (RefLabel(..), SubscriptionId)
 import Marlowe.Linter (Warning)
 
 type State
@@ -37,8 +37,7 @@ emptyState =
   }
 
 data Query a
-  = Resize a
-  | SetCode String a
+  = SetCode String a
   | SetError String a
   | GetWorkspace (XML -> a)
   | LoadWorkspace XML a
@@ -49,6 +48,10 @@ data Action
   = Inject String (Array BlockDefinition)
   | SetData Unit
   | BlocklyEvent BT.BlocklyEvent
+  | ResizeWorkspace
 
 data Message
   = CodeChange
+
+blocklyRef :: RefLabel
+blocklyRef = RefLabel "blockly"

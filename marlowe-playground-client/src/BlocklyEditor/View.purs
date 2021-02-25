@@ -28,10 +28,9 @@ render ::
 render state =
   div [ classes [ flex, flexCol, fullHeight ] ]
     [ section
-        [ id_ "blockly-editor-main-section"
-        , classes [ paddingX, minH0, overflowHidden, fullHeight ]
+        [ classes [ paddingX, minH0, overflowHidden, fullHeight ]
         ]
-        [ slot _blocklySlot unit (Blockly.blockly MB.rootBlockName MB.blockDefinitions) unit (Just <<< HandleBlocklyMessage)
+        [ slot _blocklySlot unit (Blockly.blocklyComponent MB.rootBlockName MB.blockDefinitions) unit (Just <<< HandleBlocklyMessage)
         , toolbox
         , workspaceBlocks
         ]

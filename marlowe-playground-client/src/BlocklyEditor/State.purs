@@ -13,7 +13,6 @@ import Control.Monad.Maybe.Trans (MaybeT(..), runMaybeT)
 import Control.Monad.Reader (class MonadAsk)
 import Data.Array as Array
 import Data.Either (Either(..), hush, note)
-import Data.Foldable (for_)
 import Data.Lens (assign, modifying, over, set, use, view)
 import Data.Map as Map
 import Data.Maybe (Maybe(..), fromMaybe)
@@ -23,7 +22,6 @@ import Env (Env)
 import Examples.Marlowe.Contracts (example) as ME
 import Halogen (HalogenM, modify_, query)
 import Halogen as H
-import Halogen.ElementResize (elementResize)
 import Halogen.Extra (mapSubmodule)
 import MainFrame.Types (ChildSlots, _blocklySlot)
 import Marlowe.Blockly (blockToContract)
@@ -38,11 +36,6 @@ import StaticAnalysis.StaticTools (analyseContract)
 import StaticAnalysis.Types (AnalysisExecutionState(..), _analysisExecutionState, _analysisState)
 import StaticData (marloweBufferLocalStorageKey)
 import Text.Pretty (pretty)
-import Web.DOM.NonElementParentNode (getElementById)
-import Web.DOM.ResizeObserver (ResizeObserverBoxOptions(..))
-import Web.HTML (window)
-import Web.HTML.HTMLDocument (toNonElementParentNode)
-import Web.HTML.Window (document)
 
 toBottomPanel ::
   forall m a.
@@ -60,12 +53,6 @@ handleAction ::
 handleAction Init = do
   mContents <- liftEffect $ SessionStorage.getItem marloweBufferLocalStorageKey
   handleAction $ InitBlocklyProject $ fromMaybe ME.example mContents
-  -- Subscribe to the resize events on the main section to resize blockly automatically
-  mElement <-
-    liftEffect do
-      doc <- document =<< window
-      getElementById "blockly-editor-main-section" $ toNonElementParentNode doc
-  for_ mElement $ H.subscribe <<< elementResize ContentBox (const ResizeWorkspace)
 
 handleAction (HandleBlocklyMessage Blockly.CodeChange) = processBlocklyCode
 
@@ -98,8 +85,6 @@ handleAction AnalyseContractForCloseRefund = runAnalysis $ analyseClose
 handleAction ClearAnalysisResults = assign (_analysisState <<< _analysisExecutionState) NoneAsked
 
 handleAction (SelectWarning warning) = void $ query _blocklySlot unit $ H.tell (Blockly.SelectWarning warning)
-
-handleAction ResizeWorkspace = void $ query _blocklySlot unit $ H.tell Blockly.Resize
 
 -- This function reads the Marlowe code from blockly and, process it and updates the component state
 processBlocklyCode ::
