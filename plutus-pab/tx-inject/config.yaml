@@ -31,7 +31,7 @@ nodeServerConfig:
     - getWallet: 10
 
 chainIndexConfig:
-  ciBaseUrl: http://localhost:8083
+  ciBaseUrl: http://localhost:9083
   ciWatchedAddresses:
     [ { "tag": "PubKeyAddress"
       , "contents": { "getPubKeyHash" : "9d61b19deffd5a60ba844af492ec2cc44449c5697b326919703bac031cae7f60" } }
