@@ -261,10 +261,6 @@ the top level or we can have beta inside the empty evaluation
 context. Different rules, same answer. So, we have B ≡ B' but not p ≡ q
 
 ```
--- if something reduces in an eval ctx then it should be in the only
--- possible place
-
-
 det : (p : A —→⋆ B)(q : A —→⋆ B') → B ≡ B'
 det (contextRule [] p (~[] _) (~[] _)) q = det p q
 det (contextRule (x₄ ·r E) p x x₁) (contextRule [] q (~[] _) (~[] _)) =
