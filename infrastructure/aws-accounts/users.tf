@@ -30,11 +30,6 @@ module "alexander_nemish" {
   policy_arn = "arn:aws:iam::aws:policy/AdministratorAccess"
 }
 
-module "tobias_pflug" {
-  source     = "../modules/existing-user"
-  username   = "tobias.pflug"
-  policy_arn = "arn:aws:iam::aws:policy/AdministratorAccess"
-}
 
 # Users that are in the AWS account but that I am unable to import
 
@@ -60,5 +55,11 @@ module "hernan_rajchert" {
 module "amyas_merivale" {
   source     = "../modules/user"
   username   = "amyas.merivale"
+  policy_arn = "arn:aws:iam::aws:policy/AdministratorAccess"
+}
+
+module "tobias_pflug" {
+  source     = "../modules/user"
+  username   = "tobias.pflug"
   policy_arn = "arn:aws:iam::aws:policy/AdministratorAccess"
 }
