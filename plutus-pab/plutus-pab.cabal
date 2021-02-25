@@ -113,7 +113,6 @@ library
         Plutus.PAB.Events.Wallet
         Plutus.PAB.ParseStringifiedJSON
         Plutus.PAB.Query
-        Plutus.PAB.Relation
         Plutus.PAB.PABLogMsg
         Plutus.PAB.Types
     other-modules:
@@ -302,7 +301,6 @@ test-suite plutus-pab-test
     main-is: Spec.hs
     other-modules:
         Plutus.PAB.CoreSpec
-        Plutus.PAB.RelationSpec
         Plutus.PAB.Events.ContractSpec
         Cardano.Metadata.ServerSpec
         Cardano.Metadata.TypesSpec

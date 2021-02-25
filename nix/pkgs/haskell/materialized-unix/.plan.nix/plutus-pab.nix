@@ -182,7 +182,6 @@
           "Plutus/PAB/Events/Wallet"
           "Plutus/PAB/ParseStringifiedJSON"
           "Plutus/PAB/Query"
-          "Plutus/PAB/Relation"
           "Plutus/PAB/PABLogMsg"
           "Plutus/PAB/Types"
           ];
@@ -389,7 +388,6 @@
           buildable = true;
           modules = [
             "Plutus/PAB/CoreSpec"
-            "Plutus/PAB/RelationSpec"
             "Plutus/PAB/Events/ContractSpec"
             "Cardano/Metadata/ServerSpec"
             "Cardano/Metadata/TypesSpec"
