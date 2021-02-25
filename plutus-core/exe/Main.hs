@@ -27,7 +27,7 @@ import qualified Language.UntypedPlutusCore.Evaluation.Machine.Cek  as Cek
 import           Codec.Serialise
 import           Control.DeepSeq                                    (NFData, rnf)
 import           Control.Monad
-import           Control.Monad.Trans.Except                         (runExceptT)
+import           Control.Monad.Trans.Except                         (runExcept, runExceptT)
 import           Data.Bifunctor                                     (second)
 import qualified Data.ByteString.Lazy                               as BSL
 import           Data.Foldable                                      (traverse_)
@@ -371,9 +371,8 @@ typedDeBruijnNotSupportedError =
 
 -- | Convert an untyped program to one where the 'name' type is de Bruijn indices.
 toDeBruijn :: UntypedProgram a -> IO (UntypedProgramDeBruijn a)
-toDeBruijn prog = do
-  r <- PLC.runQuoteT $ runExceptT @UPLC.FreeVariableError (UPLC.deBruijnProgram prog)
-  case r of
+toDeBruijn prog =
+  case runExcept @UPLC.FreeVariableError (UPLC.deBruijnProgram prog) of
     Left e  -> errorWithoutStackTrace $ show e
     Right p -> return $ UPLC.programMapNames (\(UPLC.NamedDeBruijn _ ix) -> UPLC.DeBruijn ix) p
 
