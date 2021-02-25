@@ -92,11 +92,12 @@ let
             platforms = lib.platforms.linux;
           };
 
-          plutus-core.components.benchmarks.plutus-core-create-cost-model = {
-            build-tools = r-packages;
-            # Seems to be broken on darwin for some reason
-            platforms = lib.platforms.linux;
-          };
+          #  Temporarily removed due to CI problems
+          #          plutus-core.components.benchmarks.plutus-core-create-cost-model = {
+          #            build-tools = r-packages;
+          #            # Seems to be broken on darwin for some reason
+          #            platforms = lib.platforms.linux;
+          #          };
 
           marlowe-actus.components.exes.marlowe-shiny = {
             build-tools = r-packages;
