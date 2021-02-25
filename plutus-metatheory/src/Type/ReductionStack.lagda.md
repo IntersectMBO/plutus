@@ -24,7 +24,7 @@ open import Relation.Nullary
 open import Data.Product
 open import Data.Empty
 
-open import Relation.Binary.PropositionalEquality using (_≡_; refl; cong)
+open import Relation.Binary.PropositionalEquality using (_≡_; refl; cong;subst;sym)
 ```
 
 ## Values
@@ -214,103 +214,41 @@ A type is a value or it can make a step, but not both:
 
 ```
 -- an application is not a value
+-- this is provable by λ()
 lem0 : (A : ∅ ⊢⋆ I ⇒ J)(B : ∅ ⊢⋆ I) → Value⋆ (A · B) → ⊥
 lem0 A B ()
 
 -- you can't plug a application into a frame and get a value
-lem1 : (f : Frame K J)(A : ∅ ⊢⋆ I ⇒ J)(B : ∅ ⊢⋆ I) → Value⋆ (closeFrame f (A · B)) → ⊥
-lem1 (-⇒ x) A B V = {!V!}
-lem1 (x ⇒-) A B V = {!!}
-lem1 (μ- B₁) A B V = {!!}
-lem1 μ x - A B V = {!!}
+lem1 : (f : Frame K J)(A : ∅ ⊢⋆ J) → (Value⋆ A → ⊥)
+     → Value⋆ (closeFrame f A) → ⊥
+lem1 (-⇒ x) A ¬V (V V-⇒ W) = ¬V V
+lem1 (x ⇒-) A ¬V (W V-⇒ V) = ¬V V
+lem1 (μ- B) A ¬V (V-μ V W) = ¬V V
+lem1 μ x -  A ¬V (V-μ W V) = ¬V V
 
-lem2 : (s : Stack K J)(A : ∅ ⊢⋆ I ⇒ J)(B : ∅ ⊢⋆ I)
-     → Value⋆ (closeStack s (A · B)) → ⊥
-lem2 (s , x) A B V = {!!}
+-- if you plug something into a thing that becomes a value, it's a value
+lem1' : (f : Frame K J)(A : ∅ ⊢⋆ J) → Value⋆ (closeFrame f A) → Value⋆ A
+lem1' (-⇒ C) A (V V-⇒ W) = V
+lem1' (C ⇒-) A (V V-⇒ W) = W
+lem1' (μ- C) A (V-μ V W) = V
+lem1' μ C -  A (V-μ V W) = W
 
-notboth : (A : ∅ ⊢⋆ K) → ¬ (Value⋆ A × (Σ (∅ ⊢⋆ K) (A —→⋆_)))
-notboth A (V , A' , frameRule ε p refl refl) = notboth A (V , A' , p)
-notboth .(closeStack s (_ · x₂)) (V , A' , frameRule (s , (-· x₂)) p refl x₁) = {!!}
-notboth A (V , A' , frameRule (s , (x₂ ·-)) p x x₁) = {!!}
-notboth A (V , A' , frameRule (s , (-⇒ x₂)) p x x₁) = {!!}
-notboth A (V , A' , frameRule (s , (x₂ ⇒-)) p x x₁) = {!!}
-notboth A (V , A' , frameRule (s , (μ- B)) p x x₁) = {!!}
-notboth A (V , A' , frameRule (s , μ x₂ -) p x x₁) = {!!}
-{-
-notboth _ (() , A' , frameRule (-· _) p refl _)
-notboth _ (() , A' , frameRule (_ ·-) p refl _)
-notboth _ ((V V-⇒ _) , _ , frameRule (-⇒ _) p refl _) =
-  notboth _ (V , _ , p)
-notboth _ ((_ V-⇒ W) , _ , frameRule (_ ⇒-) p refl _) =
-  notboth _ (W , _ , p)
-notboth _ (V-μ V _ , _ , frameRule (μ- _) p refl _) =
-  notboth _ (V , _ , p)
-notboth _ (V-μ _ W , _ , frameRule μ _ - p refl _) =
-  notboth _ (W , _ , p)
--}
+lem2' : (s : Stack K J)(A : ∅ ⊢⋆ J) → Value⋆ (closeStack s A) → Value⋆ A
+lem2' ε       A V = V
+lem2' (s , f) A V = lem1' f A (lem2' s (closeFrame f A) V)
+
+lem2 : (s : Stack K J)(A : ∅ ⊢⋆ J) → (Value⋆ A → ⊥)
+     → Value⋆ (closeStack s A) → ⊥
+lem2 ε       A ¬V V = ¬V V
+lem2 (s , f) A ¬V W = lem2 s (closeFrame f A) (lem1 f A ¬V) W
+
+
+--notboth : (A : ∅ ⊢⋆ K) → ¬ (Value⋆ A × (Σ (∅ ⊢⋆ K) (A —→⋆_)))
 ```
 
 Reduction is deterministic. There is only one possible reduction step
 a type can make.
 
 ```
-det : (p : A —→⋆ B)(q : A —→⋆ B') → B ≡ B'
-det = {!!}
-{-
-det (frameRule (-· x₄) p refl refl) (frameRule (-· .x₄) q refl refl) =
-  cong (_· _) (det p q)
-det (frameRule (-· x₄) p refl refl) (frameRule (x₅ ·-) q refl refl) =
-  ⊥-elim (notboth _ (x₅ , _ , p))
-det (frameRule (-· x₄) p refl refl) (frameRule (-⇒ x₅) q () x₃)
-det (frameRule (-· x₄) p refl refl) (frameRule (x₅ ⇒-) q () x₃)
-det (frameRule (-· x₄) p refl refl) (frameRule (μ- B) q () x₃)
-det (frameRule (-· x₄) p refl refl) (frameRule μ x₅ - q () x₃)
-det (frameRule (x₄ ·-) p refl refl) (frameRule (-· x₅) q refl refl) =
-  ⊥-elim (notboth _ (x₄ , _ , q))
-det (frameRule (x₄ ·-) p refl refl) (frameRule (x₅ ·-) q refl refl) =
-  cong (_ ·_) (det p q)
-det (frameRule (x₄ ·-) p refl refl) (frameRule (-⇒ x₅) q () x₃)
-det (frameRule (x₄ ·-) p refl refl) (frameRule (x₅ ⇒-) q () x₃)
-det (frameRule (x₄ ·-) p refl refl) (frameRule (μ- B) q () x₃)
-det (frameRule (x₄ ·-) p refl refl) (frameRule μ x₅ - q () x₃)
-det (frameRule (-⇒ x₄) p refl refl) (frameRule (-· x₅) q () x₃)
-det (frameRule (-⇒ x₄) p refl refl) (frameRule (x₅ ·-) q () x₃)
-det (frameRule (-⇒ x₄) p refl refl) (frameRule (-⇒ .x₄) q refl refl) =
-  cong (_⇒ _) (det p q)
-det (frameRule (-⇒ x₄) p refl refl) (frameRule (x₅ ⇒-) q refl refl) =
-    ⊥-elim (notboth _ (x₅ , _ , p))
-det (frameRule (-⇒ x₄) p refl refl) (frameRule (μ- B) q () x₃)
-det (frameRule (-⇒ x₄) p refl refl) (frameRule μ x₅ - q () x₃)
-det (frameRule (x₄ ⇒-) p refl refl) (frameRule (-· x₅) q () x₃)
-det (frameRule (x₄ ⇒-) p refl refl) (frameRule (x₅ ·-) q () x₃)
-det (frameRule (x₄ ⇒-) p refl refl) (frameRule (-⇒ x₅) q refl refl) =
-  ⊥-elim (notboth _ (x₄ , _ , q))
-det (frameRule (x₄ ⇒-) p refl refl) (frameRule (x₅ ⇒-) q refl refl) =
-  cong (_ ⇒_) (det p q)
-det (frameRule (x₄ ⇒-) p refl refl) (frameRule (μ- B) q () x₃)
-det (frameRule (x₄ ⇒-) p refl refl) (frameRule μ x₅ - q () x₃)
-det (frameRule (μ- B) p refl refl) (frameRule (-· x₄) q () x₃)
-det (frameRule (μ- B) p refl refl) (frameRule (x₄ ·-) q () x₃)
-det (frameRule (μ- B) p refl refl) (frameRule (-⇒ x₄) q () x₃)
-det (frameRule (μ- B) p refl refl) (frameRule (x₄ ⇒-) q () x₃)
-det (frameRule (μ- B) p refl refl) (frameRule (μ- .B) q refl refl) =
-  cong (λ A → μ A B) (det p q) 
-det (frameRule (μ- B) p refl refl) (frameRule μ x₄ - q refl refl) =
-  ⊥-elim (notboth _ (x₄ , _ , p))
-det (frameRule μ x₄ - p refl refl) (frameRule (-· x₅) q () x₃)
-det (frameRule μ x₄ - p refl refl) (frameRule (x₅ ·-) q () x₃)
-det (frameRule μ x₄ - p refl refl) (frameRule (-⇒ x₅) q () x₃)
-det (frameRule μ x₄ - p refl refl) (frameRule (x₅ ⇒-) q () x₃)
-det (frameRule μ x₄ - p refl refl) (frameRule (μ- B) q refl refl) =
-  ⊥-elim (notboth _ (x₄ , _ , q))
-det (frameRule μ x₄ - p refl refl) (frameRule μ x₅ - q refl refl) =
-  cong (μ _) (det p q) 
-det (frameRule (-· x) p refl refl) (β-ƛ x₂) =
-  ⊥-elim (notboth (ƛ _) (V-ƛ _ , _ , p))
-det (frameRule (_ ·-) p refl refl) (β-ƛ V) = ⊥-elim (notboth _ (V , _ , p))
-det (β-ƛ x) (frameRule (-· x₃) q refl refl) =
-  ⊥-elim (notboth (ƛ _) (V-ƛ _ , _ , q))
-det (β-ƛ V) (frameRule (x₃ ·-) q refl refl) = ⊥-elim (notboth _ (V , _ , q))
-det (β-ƛ V) (β-ƛ x₁) = refl
--}
+-- det 
 ```
