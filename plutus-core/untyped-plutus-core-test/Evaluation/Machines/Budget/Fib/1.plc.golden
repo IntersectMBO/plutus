@@ -1,30 +1,30 @@
 ( (Right (1))
-, ({ tally: ({ BBuiltin causes ({ cpu: 2
-| mem: 0
-})
-| BConst causes ({ cpu: 3
+, ({ tally: ({ BConst causes ({ cpu: 3
 | mem: 0
 })
 | BVar causes ({ cpu: 13
 | mem: 0
 })
-| BDelay causes ({ cpu: 5
-| mem: 0
-})
 | BLamAbs causes ({ cpu: 14
 | mem: 0
 })
-| BBuiltinApp IfThenElse causes ({ cpu: 1
-| mem: 1
+| BApply causes ({ cpu: 18
+| mem: 0
+})
+| BDelay causes ({ cpu: 5
+| mem: 0
 })
 | BForce causes ({ cpu: 6
+| mem: 0
+})
+| BBuiltin causes ({ cpu: 2
 | mem: 0
 })
 | BBuiltinApp LessThanEqInteger causes ({ cpu: 5
 | mem: 1
 })
-| BApply causes ({ cpu: 18
-| mem: 0
+| BBuiltinApp IfThenElse causes ({ cpu: 1
+| mem: 1
 })
 | BAST causes ({ cpu: 0
 | mem: 40
