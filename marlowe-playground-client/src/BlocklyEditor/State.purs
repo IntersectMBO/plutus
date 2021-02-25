@@ -16,7 +16,7 @@ import Data.Either (Either(..), hush, note)
 import Data.Foldable (for_)
 import Data.Lens (assign, modifying, over, set, use, view)
 import Data.Map as Map
-import Data.Maybe (Maybe(..), fromMaybe, maybe)
+import Data.Maybe (Maybe(..), fromMaybe)
 import Effect.Aff.Class (class MonadAff)
 import Effect.Class (liftEffect)
 import Env (Env)
@@ -27,6 +27,7 @@ import Halogen.ElementResize (elementResize)
 import Halogen.Extra (mapSubmodule)
 import MainFrame.Types (ChildSlots, _blocklySlot)
 import Marlowe.Blockly (blockToContract)
+import Marlowe.Extended (TemplateContent)
 import Marlowe.Extended as EM
 import Marlowe.Holes as Holes
 import Marlowe.Linter as Linter
@@ -123,26 +124,20 @@ processBlocklyCode = do
 
         lintingState = Linter.lint unreachableContracts holesContract
 
-        hasHoles = Linter.hasHoles $ lintingState
-
-        warnings = Array.fromFoldable $ view Linter._warnings lintingState
-
         prettyContract = show $ pretty holesContract
 
-        mExtendedContract :: Maybe EM.Contract
-        mExtendedContract = Holes.fromTerm holesContract
-
-        maybeUpdateTemplateContent =
-          maybe
-            identity
-            (EM.updateTemplateContent <<< EM.getPlaceholderIds)
-            mExtendedContract
+        -- If we can get an Extended contract from the holes contract (basically if it has no holes)
+        -- then update the template content. If not, leave them as they are
+        maybeUpdateTemplateContent :: TemplateContent -> TemplateContent
+        maybeUpdateTemplateContent = case Holes.fromTerm holesContract of
+          Just (contract :: EM.Contract) -> EM.updateTemplateContent $ EM.getPlaceholderIds contract
+          Nothing -> identity
       liftEffect $ SessionStorage.setItem marloweBufferLocalStorageKey prettyContract
       modify_
         ( set _errorMessage Nothing
             <<< set _marloweCode (Just $ prettyContract)
-            <<< set _hasHoles hasHoles
-            <<< set _warnings warnings
+            <<< set _hasHoles (Linter.hasHoles $ lintingState)
+            <<< set _warnings (Array.fromFoldable $ view Linter._warnings lintingState)
             <<< over (_analysisState <<< _templateContent) maybeUpdateTemplateContent
         )
   where
