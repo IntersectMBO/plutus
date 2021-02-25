@@ -15,6 +15,7 @@
   "dependencies": {
     "@fortawesome/fontawesome-free": "^5.10.2",
     "bignumber": "^1.1.0",
+    "blockly": "^4.20201217.0",
     "bootstrap": "^4.3.1",
     "decimal.js": "^10.0.0",
     "json-bigint": "^1.0.0",
@@ -23,9 +24,8 @@
     "monaco-vim": "^0.1.7",
     "moo": "^0.5.1",
     "nearley": "^2.19.1",
-    "node-blockly": "^1.0.36",
-    "safe-eval": "^0.4.0",
     "popper.js": "^1.14.4",
+    "safe-eval": "^0.4.0",
     "xhr2": "^0.1.4"
   },
   "resolutions": {},

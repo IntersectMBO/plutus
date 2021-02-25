@@ -4,7 +4,7 @@
 var JSONbig = require("json-bigint");
 
 exports.createBlocklyInstance_ = function () {
-  return require("node-blockly/browser");
+  return require("blockly");
 };
 exports.debugBlockly_ = function debugBlockly_ (name, state) {
   if (typeof window.blockly === 'undefined') {
