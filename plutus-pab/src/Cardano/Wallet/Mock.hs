@@ -8,32 +8,32 @@ module Cardano.Wallet.Mock
     ( processWalletEffects
     ) where
 
-import qualified Control.Monad.Except       as MonadError
+import qualified Control.Monad.Except             as MonadError
 import           Control.Monad.Freer
 import           Control.Monad.Freer.Error
-import           Control.Monad.Freer.State  (runState)
-import           Control.Monad.IO.Class     (MonadIO, liftIO)
-import qualified Data.ByteString.Lazy       as BSL
-import qualified Data.ByteString.Lazy.Char8 as BSL8
-import qualified Data.ByteString.Lazy.Char8 as Char8
-import           Data.Function              ((&))
-import           Data.Text.Encoding         (encodeUtf8)
-import           Servant                    (ServerError (..), err400, err401, err404)
-import           Servant.Client             (ClientEnv)
+import           Control.Monad.Freer.State        (runState)
+import           Control.Monad.IO.Class           (MonadIO, liftIO)
+import qualified Data.ByteString.Lazy             as BSL
+import qualified Data.ByteString.Lazy.Char8       as BSL8
+import qualified Data.ByteString.Lazy.Char8       as Char8
+import           Data.Function                    ((&))
+import           Data.Text.Encoding               (encodeUtf8)
+import           Servant                          (ServerError (..), err400, err401, err404)
+import           Servant.Client                   (ClientEnv)
 
-import           Cardano.BM.Data.Trace      (Trace)
-import qualified Cardano.ChainIndex.Client  as ChainIndexClient
-import qualified Cardano.Node.Client        as NodeClient
-import           Cardano.Wallet.Types       (WalletEffects, WalletMsg (..))
-import           Control.Concurrent         (MVar)
-import           Control.Concurrent.MVar    (putMVar, takeMVar)
-import           Control.Monad.Error        (MonadError)
-import           Plutus.PAB.Arbitrary       ()
-import           Plutus.PAB.Monitoring      (convertLog, handleLogMsgTrace)
-import           Servant.Server             (err500)
-import           Wallet.API                 (WalletAPIError (InsufficientFunds, OtherError, PrivateKeyNotFound))
-import           Wallet.Emulator.Wallet     (WalletState)
-import qualified Wallet.Emulator.Wallet     as Wallet
+import           Cardano.BM.Data.Trace            (Trace)
+import qualified Cardano.ChainIndex.Client        as ChainIndexClient
+import qualified Cardano.Node.Client              as NodeClient
+import           Cardano.Wallet.Types             (WalletEffects, WalletMsg (..))
+import           Control.Concurrent               (MVar)
+import           Control.Concurrent.MVar          (putMVar, takeMVar)
+import           Control.Monad.Error              (MonadError)
+import           Plutus.PAB.Arbitrary             ()
+import qualified Plutus.PAB.Monitoring.Monitoring as LM
+import           Servant.Server                   (err500)
+import           Wallet.API                       (WalletAPIError (InsufficientFunds, OtherError, PrivateKeyNotFound))
+import           Wallet.Emulator.Wallet           (WalletState)
+import qualified Wallet.Emulator.Wallet           as Wallet
 
 
 -- | Process wallet effects. Retain state and yield HTTP400 on error
@@ -71,7 +71,7 @@ runWalletEffects trace nodeClientEnv chainIndexEnv walletState action =
     & interpret (NodeClient.handleNodeClientClient nodeClientEnv)
     & interpret (ChainIndexClient.handleChainIndexClient chainIndexEnv)
     & runState walletState
-    & handleLogMsgTrace (toWalletMsg trace)
+    & LM.handleLogMsgTrace (toWalletMsg trace)
     & handleWalletApiErrors
     & handleClientErrors
     & runError
@@ -79,7 +79,7 @@ runWalletEffects trace nodeClientEnv chainIndexEnv walletState action =
         where
             handleWalletApiErrors = flip handleError (throwError . fromWalletAPIError)
             handleClientErrors = flip handleError (\e -> throwError $ err500 { errBody = Char8.pack (show e) })
-            toWalletMsg = convertLog ChainClientMsg
+            toWalletMsg = LM.convertLog ChainClientMsg
 
 -- | Convert Wallet errors to Servant error responses
 fromWalletAPIError :: WalletAPIError -> ServerError

@@ -21,7 +21,7 @@ module Cli (runCliCommand) where
 
 We use the 'iohk-monitoring' package to process the log messages that come
 out of the 'Control.Monad.Freer.Log' effects. We create a top-level 'Tracer'
-value that we pass to 'Plutus.PAB.Monitoring.handleLogMsgTrace', which
+value that we pass to 'Plutus.PAB.Monitoring.Monitoring.handleLogMsgTrace', which
 ultimately runs the trace actions in IO.
 
 This works well for our own code that uses the 'freer-simple' effects, but in
@@ -41,7 +41,7 @@ base monad of the 'AppBackend' effects stack.
 
 The 'MonadLogger' and 'MonadUnliftIO' constraints propagate up to the top level
 via 'Plutus.PAB.Effects.EventLog.handleEventLogSql'. Both instances are
-provided by 'Plutus.PAB.MonadLoggerBridge.TraceLoggerT', which translates
+provided by 'Plutus.PAB.Monitoring.MonadLoggerBridge.TraceLoggerT', which translates
 'MonadLogger' calls to 'Tracer' calls. This is why the base monad of the
 effects stack in 'runCliCommand' is 'TraceLoggerT IO' instead of just 'IO'.
 
@@ -76,24 +76,21 @@ import           Control.Monad.IO.Class                          (liftIO)
 import           Data.Foldable                                   (traverse_)
 import qualified Data.Map                                        as Map
 import qualified Data.Set                                        as Set
-import           Data.Text.Prettyprint.Doc                       (defaultLayoutOptions, layoutPretty)
+import           Data.Text.Prettyprint.Doc                       (Pretty (..), defaultLayoutOptions, layoutPretty,
+                                                                  pretty)
 import           Data.Text.Prettyprint.Doc.Render.Text           (renderStrict)
-import           Plutus.PAB.MonadLoggerBridge                    (TraceLoggerT (..))
-import           Plutus.PAB.Monitoring                           (convertLog, defaultConfig, handleLogMsgTrace)
 
 import           Cardano.Node.Types                              (MockServerConfig (..), NodeUrl (..))
-import           Data.Text.Prettyprint.Doc                       (Pretty (..), pretty)
 import           Data.Time.Units                                 (toMicroseconds)
 import           Language.Plutus.Contract.Effects.ExposeEndpoint (EndpointDescription (..))
 import qualified PSGenerator
-import           Plutus.PAB.App                                  (AppBackend, monadLoggerTracer, runApp)
+import           Plutus.PAB.App                                  (AppBackend, runApp)
 import qualified Plutus.PAB.App                                  as App
 import qualified Plutus.PAB.Core                                 as Core
 import qualified Plutus.PAB.Core.ContractInstance                as Instance
 import           Plutus.PAB.Events.Contract                      (ContractInstanceId (..))
-import           Plutus.PAB.PABLogMsg                            (AppMsg (..), ChainIndexServerMsg,
-                                                                  ContractExeLogMsg (..), MetadataLogMessage,
-                                                                  MockServerLogMsg, PABLogMsg (..), SigningProcessMsg)
+import           Plutus.PAB.Monitoring.MonadLoggerBridge         (TraceLoggerT, monadLoggerTracer)
+import qualified Plutus.PAB.Monitoring.Monitoring                as LM
 import           Plutus.PAB.Types                                (Config (Config), ContractExe (..), PABError,
                                                                   RequestProcessingConfig (..), chainIndexConfig,
                                                                   metadataServerConfig, nodeServerConfig,
@@ -104,12 +101,12 @@ import qualified Plutus.PAB.Webserver.Server                     as PABServer
 -- | Interpret a 'Command' in 'Eff' using the provided tracer and configurations
 --
 runCliCommand ::
-    Trace IO AppMsg  -- ^ PAB Tracer logging instance
+    Trace IO LM.AppMsg  -- ^ PAB Tracer logging instance
     -> Configuration -- ^ Monitoring configuration
     -> Config        -- ^ PAB Configuration
     -> Availability  -- ^ Token for signaling service availability
     -> Command
-    -> Eff (LogMsg AppMsg ': AppBackend (TraceLoggerT IO)) ()
+    -> Eff (LogMsg LM.AppMsg ': AppBackend (TraceLoggerT IO)) ()
 
 -- Run database migration
 runCliCommand _ _ _ _ Migrate = raise App.migrate
@@ -157,7 +154,7 @@ runCliCommand trace logConfig config serviceAvailability (ForkCommands commands)
       putStrLn $ "Starting: " <> show subcommand
       -- see note [Use of iohk-monitoring in PAB]
       let trace' = monadLoggerTracer trace
-      asyncId <- async . void . runApp (toPABMsg trace) logConfig config . handleLogMsgTrace trace' . runCliCommand trace logConfig config serviceAvailability $ subcommand
+      asyncId <- async . void . runApp (toPABMsg trace) logConfig config . LM.handleLogMsgTrace trace' . runCliCommand trace logConfig config serviceAvailability $ subcommand
       putStrLn $ "Started: " <> show subcommand
       starting serviceAvailability
       pure asyncId
@@ -180,70 +177,70 @@ runCliCommand t _ Config {signingProcessConfig} serviceAvailability SigningProce
 
 -- Install a contract
 runCliCommand _ _ _ _ (InstallContract path) =
-    interpret (mapLog SCoreMsg)
+    interpret (mapLog LM.SCoreMsg)
     $ Core.installContract (ContractExe path)
 
 -- Activate a contract
 runCliCommand _ _ _ _ (ActivateContract path) =
     void
-    $ interpret (mapLog SContractInstanceMsg)
-    $ interpret (mapLog SCoreMsg)
+    $ interpret (mapLog LM.SContractInstanceMsg)
+    $ interpret (mapLog LM.SCoreMsg)
     $ Core.activateContract (ContractExe path)
 
 -- Get the state of a contract
 runCliCommand _ _ _ _ (ContractState uuid) =
-    interpret (mapLog SCoreMsg)
+    interpret (mapLog LM.SCoreMsg)
     $ Core.reportContractState @ContractExe (ContractInstanceId uuid)
 
 -- Get all installed contracts
 runCliCommand _ _ _ _ ReportInstalledContracts = do
-    logInfo InstalledContractsMsg
-    traverse_ (logInfo . InstalledContract . render . pretty) =<< Core.installedContracts @ContractExe
+    logInfo LM.InstalledContractsMsg
+    traverse_ (logInfo . LM.InstalledContract . render . pretty) =<< Core.installedContracts @ContractExe
         where
             render = renderStrict . layoutPretty defaultLayoutOptions
 
 -- Get all active contracts
 runCliCommand _ _ _ _ ReportActiveContracts = do
-    logInfo ActiveContractsMsg
+    logInfo LM.ActiveContractsMsg
     instances <- Map.toAscList <$> Core.activeContracts @ContractExe
-    traverse_ (\(e, s) -> logInfo $ ContractInstance e (Set.toList s)) instances
+    traverse_ (\(e, s) -> logInfo $ LM.ContractInstance e (Set.toList s)) instances
 
 -- Get transaction history
 runCliCommand _ _ _ _ ReportTxHistory = do
-    logInfo TransactionHistoryMsg
-    traverse_ (logInfo . TxHistoryItem) =<< Core.txHistory @ContractExe
+    logInfo LM.TransactionHistoryMsg
+    traverse_ (logInfo . LM.TxHistoryItem) =<< Core.txHistory @ContractExe
 
 -- Update a specific contract
 runCliCommand _ _ _ _ (UpdateContract uuid endpoint payload) =
     void
-    $ interpret (mapLog SContractInstanceMsg)
+    $ interpret (mapLog LM.SContractInstanceMsg)
     $ Instance.callContractEndpoint @ContractExe (ContractInstanceId uuid) (getEndpointDescription endpoint) payload
 
 -- Get history of a specific contract
 runCliCommand _ _ _ _ (ReportContractHistory uuid) = do
-    logInfo ContractHistoryMsg
+    logInfo LM.ContractHistoryMsg
     contracts <- Core.activeContractHistory @ContractExe (ContractInstanceId uuid)
     itraverse_ (\i -> logContract i) contracts
     where
-      logContract index contract = logInfo $ ContractHistoryItem index contract
+      logContract index contract = logInfo $ LM.ContractHistoryItem index contract
 
 -- DEPRECATED
 runCliCommand _ _ _ _ (ProcessContractInbox uuid) =
-    interpret (mapLog SContractInstanceMsg)
+    interpret (mapLog LM.SContractInstanceMsg)
     $ do
-        logInfo ProcessInboxMsg
+        logInfo LM.ProcessInboxMsg
         Core.processContractInbox @ContractExe (ContractInstanceId uuid)
 
 -- Run the process-outboxes command
 runCliCommand _ _ Config{requestProcessingConfig} _ ProcessAllContractOutboxes =
-    interpret (mapLog SContractInstanceMsg)
-    $ interpret (mapLog SContractExeLogMsg)
+    interpret (mapLog LM.SContractInstanceMsg)
+    $ interpret (mapLog LM.SContractExeLogMsg)
     $ do
         let RequestProcessingConfig{requestProcessingInterval} = requestProcessingConfig
-        logInfo $ ProcessAllOutboxesMsg requestProcessingInterval
+        logInfo $ LM.ProcessAllOutboxesMsg requestProcessingInterval
         forever $ do
             _ <- liftIO . threadDelay . fromIntegral $ toMicroseconds requestProcessingInterval
-            handleError @PABError (Core.processAllContractOutboxes @ContractExe Instance.defaultMaxIterations) (logError . ContractExePABError)
+            handleError @PABError (Core.processAllContractOutboxes @ContractExe Instance.defaultMaxIterations) (logError . LM.ContractExePABError)
 
 -- Generate PureScript bridge code
 runCliCommand _ _ _ _ PSGenerator {_outputDir} =
@@ -251,22 +248,22 @@ runCliCommand _ _ _ _ PSGenerator {_outputDir} =
 
 -- Get default logging configuration
 runCliCommand _ _ _ _ WriteDefaultConfig{_outputFile} =
-    liftIO $ defaultConfig >>= flip CM.exportConfiguration _outputFile
+    liftIO $ LM.defaultConfig >>= flip CM.exportConfiguration _outputFile
 
-toPABMsg :: Trace m AppMsg -> Trace m PABLogMsg
-toPABMsg = convertLog PABMsg
+toPABMsg :: Trace m LM.AppMsg -> Trace m LM.PABLogMsg
+toPABMsg = LM.convertLog LM.PABMsg
 
-toChainIndexLog :: Trace m AppMsg -> Trace m ChainIndexServerMsg
-toChainIndexLog = convertLog $ PABMsg . SChainIndexServerMsg
+toChainIndexLog :: Trace m LM.AppMsg -> Trace m LM.ChainIndexServerMsg
+toChainIndexLog = LM.convertLog $ LM.PABMsg . LM.SChainIndexServerMsg
 
-toSigningProcessLog :: Trace m AppMsg -> Trace m SigningProcessMsg
-toSigningProcessLog = convertLog $ PABMsg . SSigningProcessMsg
+toSigningProcessLog :: Trace m LM.AppMsg -> Trace m LM.SigningProcessMsg
+toSigningProcessLog = LM.convertLog $ LM.PABMsg . LM.SSigningProcessMsg
 
-toWalletLog :: Trace m AppMsg -> Trace m WalletMsg
-toWalletLog = convertLog $ PABMsg . SWalletMsg
+toWalletLog :: Trace m LM.AppMsg -> Trace m WalletMsg
+toWalletLog = LM.convertLog $ LM.PABMsg . LM.SWalletMsg
 
-toMetaDataLog :: Trace m AppMsg -> Trace m MetadataLogMessage
-toMetaDataLog = convertLog $ PABMsg . SMetaDataLogMsg
+toMetaDataLog :: Trace m LM.AppMsg -> Trace m LM.MetadataLogMessage
+toMetaDataLog = LM.convertLog $ LM.PABMsg . LM.SMetaDataLogMsg
 
-toMockNodeServerLog :: Trace m AppMsg -> Trace m MockServerLogMsg
-toMockNodeServerLog = convertLog $ PABMsg . SMockserverLogMsg
+toMockNodeServerLog :: Trace m LM.AppMsg -> Trace m LM.MockServerLogMsg
+toMockNodeServerLog = LM.convertLog $ LM.PABMsg . LM.SMockserverLogMsg

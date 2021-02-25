@@ -47,7 +47,7 @@ import           Plutus.PAB.Effects.UUID                         (UUIDEffect)
 import           Plutus.PAB.Events                               (ChainEvent, ContractInstanceId (ContractInstanceId),
                                                                   ContractInstanceState (ContractInstanceState),
                                                                   csContractDefinition)
-import           Plutus.PAB.PABLogMsg                            (ContractExeLogMsg (..))
+import qualified Plutus.PAB.Monitoring.PABLogMsg                 as LM
 import           Plutus.PAB.ParseStringifiedJSON                 (UnStringifyJSONLog, parseStringifiedJSON)
 import qualified Plutus.PAB.Query                                as Query
 import           Plutus.PAB.Types
@@ -174,7 +174,7 @@ getContractInstanceState contractId = do
 invokeEndpoint ::
        forall t effs.
        ( Member (EventLogEffect (ChainEvent t)) effs
-       , Member (LogMsg ContractExeLogMsg) effs
+       , Member (LogMsg LM.ContractExeLogMsg) effs
        , Member (Error PABError) effs
        , Member (LogMsg (Instance.ContractInstanceMsg t)) effs
        , Pretty t
@@ -184,11 +184,11 @@ invokeEndpoint ::
     -> ContractInstanceId
     -> Eff effs (ContractInstanceState t)
 invokeEndpoint (EndpointDescription endpointDescription) payload contractId = do
-    logInfo $ InvokingEndpoint endpointDescription payload
+    logInfo $ LM.InvokingEndpoint endpointDescription payload
     newState :: [ChainEvent t] <-
         Instance.callContractEndpoint @t contractId endpointDescription payload
     logInfo $
-        EndpointInvocationResponse $
+        LM.EndpointInvocationResponse $
         fmap
             (renderStrict . layoutPretty defaultLayoutOptions . pretty)
             newState
@@ -208,7 +208,7 @@ handler ::
        , Member ChainIndexEffect effs
        , Member MetadataEffect effs
        , Member UUIDEffect effs
-       , Member (LogMsg ContractExeLogMsg) effs
+       , Member (LogMsg LM.ContractExeLogMsg) effs
        , Member (Error PABError) effs
        , Member (LogMsg UnStringifyJSONLog) effs
        , Member (LogMsg (Instance.ContractInstanceMsg ContractExe)) effs

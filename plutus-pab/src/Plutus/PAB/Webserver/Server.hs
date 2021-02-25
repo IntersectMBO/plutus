@@ -36,7 +36,7 @@ import           Control.Monad.Freer.Extras.Log   (LogMsg, logInfo, mapLog)
 import           Plutus.PAB.App                   (App, AppBackend, runApp)
 import           Plutus.PAB.Arbitrary             ()
 import           Plutus.PAB.Core.ContractInstance (ContractInstanceMsg)
-import           Plutus.PAB.PABLogMsg             (ContractExeLogMsg (StartingPABBackendServer), PABLogMsg (..))
+import qualified Plutus.PAB.Monitoring.PABLogMsg  as LM
 import           Plutus.PAB.ParseStringifiedJSON  (UnStringifyJSONLog)
 import           Plutus.PAB.Types                 (Config, ContractExe, PABError (InvalidUUIDError), baseUrl,
                                                    pabWebserverConfig, staticDir)
@@ -45,10 +45,10 @@ import           Plutus.PAB.Webserver.Handler     (handler)
 import           Plutus.PAB.Webserver.Types       (WebSocketLogMsg)
 import           Plutus.PAB.Webserver.WebSocket   (handleWS)
 
-asHandler :: Trace IO PABLogMsg
+asHandler :: Trace IO LM.PABLogMsg
           -> CM.Configuration
           -> Config
-          -> Eff (LogMsg ContractExeLogMsg
+          -> Eff (LogMsg LM.ContractExeLogMsg
                  ': LogMsg (ContractInstanceMsg ContractExe)
                  ': LogMsg WebSocketLogMsg
                  ': LogMsg UnStringifyJSONLog
@@ -57,17 +57,17 @@ asHandler :: Trace IO PABLogMsg
 asHandler trace logConfig config =
     Handler . ExceptT . fmap (first decodeErr)
       . runApp trace logConfig config
-      . interpret (mapLog SUnstringifyJSON)
-      . interpret (mapLog SWebsocketMsg)
-      . interpret (mapLog SContractInstanceMsg)
-      . interpret (mapLog SContractExeLogMsg)
+      . interpret (mapLog LM.SUnstringifyJSON)
+      . interpret (mapLog LM.SWebsocketMsg)
+      . interpret (mapLog LM.SContractInstanceMsg)
+      . interpret (mapLog LM.SContractExeLogMsg)
   where
     decodeErr (InvalidUUIDError t) =
         err400
             {errBody = "Invalid UUID: " <> LBS.fromStrict (Text.encodeUtf8 t)}
     decodeErr err = err500 {errBody = LBS.pack $ show err}
 
-app :: Trace IO PABLogMsg -> CM.Configuration -> Config -> Application
+app :: Trace IO LM.PABLogMsg -> CM.Configuration -> Config -> Application
 app trace logConfig config = serve rest (apiServer :<|> fileServer)
   where
     rest = Proxy @((API ContractExe :<|> WSAPI) :<|> Raw)
@@ -80,12 +80,12 @@ app trace logConfig config = serve rest (apiServer :<|> fileServer)
     fileServer :: ServerT Raw Handler
     fileServer = serveDirectoryFileServer (staticDir . pabWebserverConfig $ config)
 
-main :: Trace IO PABLogMsg -> CM.Configuration -> Config -> Availability -> App ()
-main trace logConfig config availability = interpret (mapLog SContractExeLogMsg) $ do
+main :: Trace IO LM.PABLogMsg -> CM.Configuration -> Config -> Availability -> App ()
+main trace logConfig config availability = interpret (mapLog LM.SContractExeLogMsg) $ do
     let port = baseUrlPort $ baseUrl $ pabWebserverConfig config
     let warpSettings :: Warp.Settings
         warpSettings = Warp.defaultSettings
             & Warp.setPort port
             & Warp.setBeforeMainLoop (available availability)
-    logInfo $ StartingPABBackendServer port
+    logInfo $ LM.StartingPABBackendServer port
     liftIO $ Warp.runSettings warpSettings $ app trace logConfig config

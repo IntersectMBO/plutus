@@ -12,29 +12,29 @@ module Cardano.Metadata.Server
     , handleMetadata
     ) where
 
-import           Control.Monad.Except            (ExceptT (ExceptT))
-import           Control.Monad.Freer             (Eff, Member, runM)
-import           Control.Monad.Freer.Error       (Error, runError)
-import           Control.Monad.IO.Class          (liftIO)
-import           Data.Bifunctor                  (first)
-import qualified Data.ByteString.Lazy.Char8      as BSL
-import           Data.Function                   ((&))
-import           Data.Proxy                      (Proxy (Proxy))
-import qualified Network.Wai.Handler.Warp        as Warp
-import           Servant                         (Application, Handler (Handler), ServerError, err404, err500, errBody,
-                                                  hoistServer, serve)
-import           Servant.API                     ((:<|>) ((:<|>)))
-import           Servant.Client                  (baseUrlPort)
+import           Control.Monad.Except             (ExceptT (ExceptT))
+import           Control.Monad.Freer              (Eff, Member, runM)
+import           Control.Monad.Freer.Error        (Error, runError)
+import           Control.Monad.IO.Class           (liftIO)
+import           Data.Bifunctor                   (first)
+import qualified Data.ByteString.Lazy.Char8       as BSL
+import           Data.Function                    ((&))
+import           Data.Proxy                       (Proxy (Proxy))
+import qualified Network.Wai.Handler.Warp         as Warp
+import           Servant                          (Application, Handler (Handler), ServerError, err404, err500, errBody,
+                                                   hoistServer, serve)
+import           Servant.API                      ((:<|>) ((:<|>)))
+import           Servant.Client                   (baseUrlPort)
 
 
-import           Cardano.BM.Data.Trace           (Trace)
-import           Cardano.Metadata.API            (API)
+import           Cardano.BM.Data.Trace            (Trace)
+import           Cardano.Metadata.API             (API)
 import           Cardano.Metadata.Mock
 import           Cardano.Metadata.Types
-import           Control.Concurrent.Availability (Availability, available)
-import           Control.Monad.Freer.Extras.Log  (LogMsg, handleLogTrace, logInfo)
-import           Data.Coerce                     (coerce)
-import           Plutus.PAB.Monitoring           (runLogEffects)
+import           Control.Concurrent.Availability  (Availability, available)
+import           Control.Monad.Freer.Extras.Log   (LogMsg, handleLogTrace, logInfo)
+import           Data.Coerce                      (coerce)
+import qualified Plutus.PAB.Monitoring.Monitoring as LM
 
 handler ::
        Member MetadataEffect effs
@@ -67,7 +67,7 @@ app = serve api apiServer
     apiServer = hoistServer api asHandler handler
 
 main :: Trace IO MetadataLogMessage -> MetadataConfig ->  Availability -> IO ()
-main trace MetadataConfig {mdBaseUrl} availability = runLogEffects trace $ do
+main trace MetadataConfig {mdBaseUrl} availability = LM.runLogEffects trace $ do
     logInfo $ StartingMetadataServer port
     liftIO $ Warp.runSettings warpSettings app
         where

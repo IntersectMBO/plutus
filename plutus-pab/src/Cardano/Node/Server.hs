@@ -7,24 +7,24 @@ module Cardano.Node.Server
     ( main
     ) where
 
-import           Control.Concurrent              (MVar, forkIO, newMVar)
-import           Control.Concurrent.Availability (Availability, available)
-import           Control.Monad                   (void)
-import           Control.Monad.Freer.Extras.Log  (logInfo)
-import           Control.Monad.IO.Class          (liftIO)
-import           Data.Function                   ((&))
-import           Data.Proxy                      (Proxy (Proxy))
-import qualified Network.Wai.Handler.Warp        as Warp
-import           Servant                         (Application, hoistServer, serve, (:<|>) ((:<|>)))
-import           Servant.Client                  (BaseUrl (baseUrlPort))
+import           Control.Concurrent               (MVar, forkIO, newMVar)
+import           Control.Concurrent.Availability  (Availability, available)
+import           Control.Monad                    (void)
+import           Control.Monad.Freer.Extras.Log   (logInfo)
+import           Control.Monad.IO.Class           (liftIO)
+import           Data.Function                    ((&))
+import           Data.Proxy                       (Proxy (Proxy))
+import qualified Network.Wai.Handler.Warp         as Warp
+import           Servant                          (Application, hoistServer, serve, (:<|>) ((:<|>)))
+import           Servant.Client                   (BaseUrl (baseUrlPort))
 
-import           Cardano.BM.Data.Trace           (Trace)
-import           Cardano.Node.API                (API)
+import           Cardano.BM.Data.Trace            (Trace)
+import           Cardano.Node.API                 (API)
 import           Cardano.Node.Mock
 import           Cardano.Node.Types
-import qualified Cardano.Protocol.Socket.Server  as Server
-import           Plutus.PAB.Arbitrary            ()
-import           Plutus.PAB.Monitoring           (runLogEffects)
+import qualified Cardano.Protocol.Socket.Server   as Server
+import           Plutus.PAB.Arbitrary             ()
+import qualified Plutus.PAB.Monitoring.Monitoring as LM
 
 app ::
     Trace IO MockServerLogMsg
@@ -51,7 +51,7 @@ main trace MockServerConfig { mscBaseUrl
                             , mscBlockReaper
                             , mscSlotLength
                             , mscInitialTxWallets
-                            , mscSocketPath} availability = runLogEffects trace $ do
+                            , mscSocketPath} availability = LM.runLogEffects trace $ do
 
     serverHandler <- liftIO $ Server.runServerNode mscSocketPath (_chainState $ initialAppState mscInitialTxWallets)
     serverState <- liftIO $ newMVar (initialAppState mscInitialTxWallets)
