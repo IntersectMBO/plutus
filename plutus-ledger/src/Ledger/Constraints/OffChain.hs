@@ -38,7 +38,7 @@ import           Control.Monad.Reader
 import           Control.Monad.State
 
 import           Data.Aeson                       (FromJSON, ToJSON)
-import           Data.Foldable                    (fold, traverse_)
+import           Data.Foldable                    (traverse_)
 import           Data.Map                         (Map)
 import qualified Data.Map                         as Map
 import           Data.Semigroup                   (First (..))
@@ -164,18 +164,53 @@ instance Pretty UnbalancedTx where
         , hang 2 $ vsep $ "Requires signatures:" : (pretty <$> Set.toList unBalancedTxRequiredSignatories)
         ]
 
+{- Note [Balance of value spent]
+
+The @MustSpendValue v@ constraint means: I want @v@ to be *present* in the
+transaction. That is, if @t@ is the total value produced or spent by the
+transaction, then @v Value.leq t@.
+
+This is useful for example if we want to include a role token that lives
+somewhere in the user's public key outputs.
+
+The balance of value spent is computed as follows.
+
+1. Take the sum of all 'MustSpendValue' constraints. This is the required value spent.
+2. Separately sum the total value of transaction inputs and outputs.
+3. Take the convex union of those two sums. This is the actual value spent.
+4. Add the positive part [1] of the difference between required and actual
+   value spent as a public key output.
+
+[1] See 'Plutus.V1.Ledger.Value.split'
+
+-}
+
 data ConstraintProcessingState =
     ConstraintProcessingState
-        { cpsUnbalancedTx      :: UnbalancedTx
+        { cpsUnbalancedTx       :: UnbalancedTx
         -- ^ The unbalanced transaction that we're building
-        , cpsValueSpentBalance :: Value.Value
-        -- ^ Balance of required vs actual value spent by the transaction. If positive, an output needs to be added.
+        , cpsValueSpentRequired :: Value
+        -- ^ Required value spent by the transaction. See note [Balance of value spent]
+        , cpsValueOfInputs      :: Value
+        -- ^ Value of inputs that were added while processing constraints. See note [Balance of value spent]
+        , cpsValueOfOutputs     :: Value
+        -- ^ Value of outputs that were added while processing constraints. See note [Balance of value spent]
         }
 
 initialState :: ConstraintProcessingState
-initialState = ConstraintProcessingState{ cpsUnbalancedTx = emptyUnbalancedTx, cpsValueSpentBalance = mempty }
+initialState = ConstraintProcessingState
+    { cpsUnbalancedTx = emptyUnbalancedTx
+    , cpsValueSpentRequired = mempty
+    , cpsValueOfInputs = mempty
+    , cpsValueOfOutputs = mempty
+    }
 
-makeLensesFor [("cpsUnbalancedTx", "unbalancedTx"), ("cpsValueSpentBalance", "valueSpentBalance")] ''ConstraintProcessingState
+makeLensesFor
+    [ ("cpsUnbalancedTx", "unbalancedTx")
+    , ("cpsValueSpentRequired", "valueSpentRequired")
+    , ("cpsValueOfInputs", "valueOfInputs")
+    , ("cpsValueOfOutputs", "valueOfOutputs")
+    ] ''ConstraintProcessingState
 
 -- | Some typed 'TxConstraints' and the 'ScriptLookups' needed to turn them
 --   into an 'UnbalancedTx'.
@@ -208,9 +243,8 @@ processLookupsAndConstraints
 processLookupsAndConstraints lookups TxConstraints{txConstraints, txOwnInputs, txOwnOutputs} =
         flip runReaderT lookups $ do
             traverse_ processConstraint txConstraints
-            valueFromInputs <- fold <$> traverse addOwnInput txOwnInputs
-            valueFromOutputs <- fold <$> traverse addOwnOutput txOwnOutputs
-            valueSpentBalance <>= N.negate (convexUnion valueFromInputs valueFromOutputs)
+            traverse_ addOwnInput txOwnInputs
+            traverse_ addOwnOutput txOwnOutputs
             addMissingValueSpent
 
 -- | Turn a 'TxConstraints' value into an unbalanced transaction that satisfies
@@ -225,6 +259,8 @@ mkTx
     -> Either MkTxError UnbalancedTx
 mkTx lookups txc = mkSomeTx [SomeLookupsAndConstraints lookups txc]
 
+-- | Add the remaining balance of the total value that the tx must spend.
+--   See note [Balance of value spent]
 addMissingValueSpent
     :: ( MonadReader (ScriptLookups a) m
        , MonadState ConstraintProcessingState m
@@ -232,11 +268,13 @@ addMissingValueSpent
        )
     => m ()
 addMissingValueSpent = do
-    ConstraintProcessingState{cpsValueSpentBalance} <- get
+    ConstraintProcessingState{cpsValueSpentRequired, cpsValueOfInputs, cpsValueOfOutputs} <- get
 
     -- 'missing' is the value that the transaction is supposed to spend, but
     -- that's not matched by an input or output.
-    let (_, missing) = Value.split cpsValueSpentBalance
+    -- This is step 3 of the process described in [Balance of value spent]
+    let difference = cpsValueSpentRequired <> N.negate (convexUnion cpsValueOfInputs cpsValueOfOutputs)
+        (_, missing) = Value.split difference
 
     if Value.isZero missing
         then pure ()
@@ -244,6 +282,7 @@ addMissingValueSpent = do
             -- add 'missing' to the transaction's outputs. This ensures that the
             -- wallet will add a corresponding input when balancing the
             -- transaction.
+            -- Step 4 of the process described in [Balance of value spent]
             pk <- asks slOwnPubkey >>= maybe (throwError OwnPubKeyMissing) pure
             unbalancedTx . tx . Tx.outputs %= (Tx.TxOut (PubKeyAddress pk) missing Tx.PayToPubKey :)
 
@@ -257,7 +296,7 @@ addOwnInput
         , IsData (RedeemerType a)
         )
     => InputConstraint (RedeemerType a)
-    -> m Value
+    -> m ()
 addOwnInput InputConstraint{icRedeemer, icTxOutRef} = do
     ScriptLookups{slTxOutputs, slScriptInstance} <- ask
     inst <- maybe (throwError ScriptInstanceMissing) pure slScriptInstance
@@ -268,7 +307,7 @@ addOwnInput InputConstraint{icRedeemer, icTxOutRef} = do
     let txIn = Typed.makeTypedScriptTxIn inst icRedeemer typedOutRef
         vl   = Tx.txOutValue $ Typed.tyTxOutTxOut $ Typed.tyTxOutRefOut typedOutRef
     unbalancedTx . tx . Tx.inputs %= Set.insert (Typed.tyTxInTxIn txIn)
-    pure vl
+    valueOfInputs <>= vl
 
 -- | Add a typed output and return its value.
 addOwnOutput
@@ -278,7 +317,7 @@ addOwnOutput
         , MonadError MkTxError m
         )
     => OutputConstraint (DatumType a)
-    -> m Value
+    -> m ()
 addOwnOutput OutputConstraint{ocDatum, ocValue} = do
     ScriptLookups{slScriptInstance} <- ask
     inst <- maybe (throwError ScriptInstanceMissing) pure slScriptInstance
@@ -286,7 +325,7 @@ addOwnOutput OutputConstraint{ocDatum, ocValue} = do
         dsV   = Datum (toData ocDatum)
     unbalancedTx . tx . Tx.outputs %= (Typed.tyTxOutTxOut txOut :)
     unbalancedTx . tx . Tx.datumWitnesses . at (datumHash dsV) .= Just dsV
-    pure ocValue
+    valueOfOutputs <>= ocValue
 
 data MkTxError =
     TypeCheckFailed ConnectionError
@@ -308,7 +347,7 @@ instance Pretty MkTxError where
         TxOutRefWrongType t      -> "Tx out reference wrong type:" <+> pretty t
         DatumNotFound h          -> "No datum with hash" <+> pretty h <+> "was found"
         MonetaryPolicyNotFound h -> "No monetary policy with hash" <+> pretty h <+> "was found"
-        ValidatorHashNotFound h  ->  "No validator with hash" <+> pretty h <+> "was found"
+        ValidatorHashNotFound h  -> "No validator with hash" <+> pretty h <+> "was found"
         OwnPubKeyMissing         -> "Own public key is missing"
         ScriptInstanceMissing    -> "Script instance is missing"
         DatumWrongHash h d       -> "Wrong hash for datum" <+> pretty d <> colon <+> pretty h
@@ -366,13 +405,13 @@ processConstraint = \case
         unbalancedTx . tx . Tx.validRange %= (slotRange /\)
     MustBeSignedBy pk ->
         unbalancedTx . requiredSignatories %= Set.insert pk
-    MustSpendValue vl -> valueSpentBalance <>= vl
+    MustSpendValue vl -> valueSpentRequired <>= vl
     MustSpendPubKeyOutput txo -> do
         TxOutTx{txOutTxOut} <- lookupTxOutRef txo
         case Tx.txOutAddress txOutTxOut of
             PubKeyAddress pk -> do
                 unbalancedTx . tx . Tx.inputs %= Set.insert (Tx.pubKeyTxIn txo)
-                valueSpentBalance <>= N.negate (Tx.txOutValue txOutTxOut)
+                valueOfOutputs <>= Tx.txOutValue txOutTxOut
                 unbalancedTx . requiredSignatories %= Set.insert pk
             _                 -> throwError (TxOutRefWrongType txo)
     MustSpendScriptOutput txo red -> do
@@ -390,7 +429,7 @@ processConstraint = \case
                 --       'lookupDatum'
                 let input = Tx.scriptTxIn txo validator red dataValue
                 unbalancedTx . tx . Tx.inputs %= Set.insert input
-                valueSpentBalance <>= N.negate (Tx.txOutValue (txOutTxOut txOutTx))
+                valueOfInputs <>= Tx.txOutValue (txOutTxOut txOutTx)
             _                 -> throwError (TxOutRefWrongType txo)
 
     MustForgeValue mpsHash tn i -> do
@@ -398,23 +437,20 @@ processConstraint = \case
         let value = Value.singleton (Value.mpsSymbol mpsHash) tn i
         unbalancedTx . tx . Tx.forgeScripts %= Set.insert monetaryPolicyScript
         unbalancedTx . tx . Tx.forge <>= value
-        -- If i is negative we are burning tokens. This counts as an output, so we should subtract
-        -- the amount burned from valueSpentBalance, just as in `MustPayToPubKey` below.
-        -- Subtracting the amount burned is the same as adding the (negative) amount forged.
-        if i < 0 then valueSpentBalance <>= value
-                 else valueSpentBalance  <>= N.negate value
+        -- If i is negative we are burning tokens. The tokens burned must be provided as
+        -- an input. So we add the value burnt to 'valueOfInputs'. If i is positive then
+        -- new tokens are created which must be added to 'valueOfOutputs'.
+        if i < 0 then valueOfInputs  <>= value
+                 else valueOfOutputs <>= value
     MustPayToPubKey pk vl -> do
         unbalancedTx . tx . Tx.outputs %= (Tx.TxOut (PubKeyAddress pk) vl Tx.PayToPubKey :)
-        -- we can subtract vl from 'valueSpentRequired' because
-        -- we know for certain that it will be matched by an input
-        -- after balancing
-        valueSpentBalance <>= N.negate vl
+        valueOfOutputs <>= vl
     MustPayToOtherScript vlh dv vl -> do
         let addr = Address.scriptHashAddress vlh
             theHash = datumHash dv
         unbalancedTx . tx . Tx.datumWitnesses %= set (at theHash) (Just dv)
         unbalancedTx . tx . Tx.outputs %= (Tx.scriptTxOut' vl addr dv :)
-        valueSpentBalance <>= N.negate vl
+        valueOfOutputs <>= vl
     MustHashDatum dvh dv -> do
         unless (datumHash dv == dvh)
             (throwError $ DatumWrongHash dvh dv)
