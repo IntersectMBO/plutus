@@ -15,22 +15,26 @@ import           Language.UntypedPlutusCore.Evaluation.Machine.Cek
 import qualified Language.PlutusCore                                as Plc
 import           Language.PlutusCore.Builtins
 import           Language.PlutusCore.Constant
-import           Language.PlutusCore.Evaluation.Machine.ExBudgeting (ExBudget (..), ExBudgetMode (..),
-                                                                     ExRestrictingBudget (..))
+import           Language.PlutusCore.Evaluation.Machine.ExBudgeting
 import           Language.PlutusCore.Evaluation.Machine.ExMemory
 import           Language.PlutusCore.Evaluation.Machine.Exception
 import           Language.PlutusCore.FsTree
 import           Language.PlutusCore.Generators.Interesting
+import           Language.PlutusCore.MkPlc
 import           Language.PlutusCore.Pretty
 import           Language.PlutusCore.Universe
 
+import           Language.PlutusCore.Examples.Builtins
 import           Language.PlutusCore.Examples.Everything            (examples)
+import qualified Language.PlutusCore.StdLib.Data.Nat                as Plc
 import           Language.PlutusCore.StdLib.Everything              (stdLib)
+import           Language.PlutusCore.StdLib.Meta
 
 import           Common
 import           Data.String
 import           Data.Text.Prettyprint.Doc
 import           Data.Text.Prettyprint.Doc.Render.Text
+import           GHC.Ix
 import           Hedgehog                                           hiding (Size, Var, eval)
 import           Test.Tasty
 import           Test.Tasty.Hedgehog
@@ -68,28 +72,50 @@ test_memory =
         $  stdLib
         <> examples
 
-testBudget :: TestName -> Term Name DefaultUni DefaultFun () -> TestNested
-testBudget name term =
+testBudget
+    :: (Ix fun, Show fun, Pretty fun, Hashable fun, ExMemoryUsage fun)
+    => BuiltinsRuntime fun (CekValue DefaultUni fun)
+    -> TestName
+    -> Term Name DefaultUni fun ()
+    -> TestNested
+testBudget runtime name term =
                        nestedGoldenVsText
     name
     (renderStrict $ layoutPretty defaultLayoutOptions {layoutPageWidth = AvailablePerLine maxBound 1.0} $
-        prettyPlcReadableDef $ runCekNoEmit defBuiltinsRuntime (Restricting (ExRestrictingBudget (ExBudget 1000 1000))) term)
+        prettyPlcReadableDef $ runCekNoEmit runtime (Restricting (ExRestrictingBudget (ExBudget 1000 1000))) term)
 
 bunchOfFibs :: PlcFolderContents DefaultUni DefaultFun
-bunchOfFibs =
-    let
-        fibFile i = plcTermFile (show i) (naiveFib i)
-    in
-        FolderContents [ treeFolderContents "Fib" (fibFile <$> [1..3]) ]
+bunchOfFibs = FolderContents [treeFolderContents "Fib" $ map fibFile [1..3]] where
+    fibFile i = plcTermFile (show i) (naiveFib i)
+
+-- | To check how a sequence of calls to a built-in @id@ affects budgeting when a (relatively)
+-- big AST is threaded through them.
+bunchOfIdNats :: PlcFolderContents DefaultUni ExtensionFun
+bunchOfIdNats = FolderContents [treeFolderContents "IdNat" $ map idNatFile [0 :: Int, 3.. 9]] where
+    idNatFile i = plcTermFile (show i) (idNat id0 i) where
+        -- > id0 = foldNat {nat} succ zero
+        id0 = mkIterApp () (tyInst () Plc.foldNat $ Plc.natTy) [Plc.succ, Plc.zero]
+
+    idNat idN 0 = apply () idN $ metaIntegerToNat 10
+    idNat idN n = idNat idN' (n - 1) where
+        -- > idN' = id {nat -> nat} idN
+        idN' = apply () (tyInst () (builtin () Id) $ Plc.TyFun () Plc.natTy Plc.natTy) idN
 
 test_budget :: TestTree
-test_budget =
-    runTestNestedIn ["untyped-plutus-core-test", "Evaluation", "Machines"]
-        .  testNested "Budget"
-        .  foldPlcFolderContents testNested
-                                 (\name _ -> pure $ testGroup name [])
-                                 (\name -> testBudget name . erase)
-        $ examples <> bunchOfFibs
+test_budget
+    = runTestNestedIn ["untyped-plutus-core-test", "Evaluation", "Machines"]
+    . testNested "Budget"
+    $ concat
+        [ folder defBuiltinsRuntime examples
+        , folder defBuiltinsRuntime bunchOfFibs
+        , folder (toBuiltinsRuntime mempty ()) bunchOfIdNats
+        ]
+  where
+    folder runtime =
+        foldPlcFolderContents
+            testNested
+            (\name _ -> pure $ testGroup name [])
+            (\name -> testBudget runtime name . erase)
 
 testCounting :: TestName -> Term Name DefaultUni DefaultFun () -> TestNested
 testCounting name term =

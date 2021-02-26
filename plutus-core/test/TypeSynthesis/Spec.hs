@@ -1,6 +1,7 @@
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TypeApplications  #-}
-{-# LANGUAGE TypeFamilies      #-}
+{-# LANGUAGE AllowAmbiguousTypes #-}
+{-# LANGUAGE OverloadedStrings   #-}
+{-# LANGUAGE TypeApplications    #-}
+{-# LANGUAGE TypeFamilies        #-}
 
 module TypeSynthesis.Spec
     ( test_typecheck
@@ -10,10 +11,11 @@ import           PlutusPrelude
 
 import           Language.PlutusCore
 import           Language.PlutusCore.Constant
-import           Language.PlutusCore.FsTree              (foldPlcFolderContents)
+import           Language.PlutusCore.FsTree
 import           Language.PlutusCore.Pretty
 
-import           Language.PlutusCore.Examples.Everything (examples)
+import           Language.PlutusCore.Examples.Builtins
+import           Language.PlutusCore.Examples.Everything (builtins, examples)
 import           Language.PlutusCore.StdLib.Everything   (stdLib)
 
 import           Common
@@ -33,7 +35,7 @@ kindcheck ty = do
     return ty
 
 typecheck
-    :: (uni ~ DefaultUni, fun ~ DefaultFun, MonadError (Error uni fun ()) m)
+    :: (uni ~ DefaultUni, MonadError (Error uni fun ()) m, ToBuiltinMeaning uni fun)
     => Term TyName Name uni fun () -> m ()
 typecheck term = do
     _ <- runQuoteT $ do
@@ -48,7 +50,9 @@ assertWellKinded ty = case runExcept . runQuoteT $ kindcheck ty of
     Right _   -> return ()
 
 -- | Assert a 'Term' is well-typed.
-assertWellTyped :: HasCallStack => Term TyName Name DefaultUni DefaultFun () -> Assertion
+assertWellTyped
+    :: (HasCallStack, ToBuiltinMeaning DefaultUni fun, Pretty fun)
+    => Term TyName Name DefaultUni fun () -> Assertion
 assertWellTyped term = case runExcept . runQuoteT $ typecheck term of
     Left  err -> assertFailure $ "Type error: " ++ displayPlcCondensedErrorClassic err
     Right _   -> return ()
@@ -59,14 +63,21 @@ assertIllTyped term = case runExcept . runQuoteT $ typecheck term of
     Right () -> assertFailure $ "Well-typed: " ++ displayPlcCondensedErrorClassic term
     Left  _  -> return ()
 
+foldAssertWell
+    :: (ToBuiltinMeaning DefaultUni fun, Pretty fun)
+    => PlcFolderContents DefaultUni fun -> [TestTree]
+foldAssertWell =
+    foldPlcFolderContents
+        testGroup
+        (\name -> testCase name . assertWellKinded)
+        (\name -> testCase name . assertWellTyped)
+
 test_typecheckAvailable :: TestTree
 test_typecheckAvailable =
-    testGroup "Available" $
-        foldPlcFolderContents
-            testGroup
-            (\name -> testCase name . assertWellKinded)
-            (\name -> testCase name . assertWellTyped)
-            (stdLib <> examples)
+    testGroup "Available"
+        [ testGroup "DefaultFun" . foldAssertWell $ stdLib <> examples
+        , testGroup "ExtensionFun" $ foldAssertWell builtins
+        ]
 
 -- | Self-application. An example of ill-typed term.
 --
@@ -88,15 +99,23 @@ test_typecheckIllTyped =
             [ selfApply
             ]
 
-test_typecheckDefaultFun :: DefaultFun -> TestTree
-test_typecheckDefaultFun name = goldenVsDoc testName path doc where
+test_typecheckFun :: (ToBuiltinMeaning DefaultUni fun, Show fun) => fun -> TestTree
+test_typecheckFun name = goldenVsDoc testName path doc where
     testName = show name
     path     = "test" </> "TypeSynthesis" </> "Golden" </> (testName ++ ".plc.golden")
     doc      = prettyPlcDef $ typeOfBuiltinFunction @DefaultUni name
 
+test_typecheckAllFun
+    :: forall fun. (ToBuiltinMeaning DefaultUni fun, Show fun)
+    => String -> TestTree
+test_typecheckAllFun name = testGroup name . map test_typecheckFun $ enumeration @fun
+
 test_typecheckDefaultFuns :: TestTree
 test_typecheckDefaultFuns =
-    testGroup "built-in name" $ map test_typecheckDefaultFun enumeration
+    testGroup "builtins"
+        [ test_typecheckAllFun @DefaultFun "DefaultFun"
+        , test_typecheckAllFun @ExtensionFun "ExtensionFun"
+        ]
 
 test_typecheck :: TestTree
 test_typecheck =
