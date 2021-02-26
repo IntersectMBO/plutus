@@ -1,7 +1,9 @@
 module Blockly.Internal where
 
 import Prelude
+import Blockly.Toolbox (Toolbox, encodeToolbox)
 import Blockly.Types (Block, Blockly, BlocklyState, Workspace)
+import Data.Argonaut.Core (Json)
 import Data.Maybe (Maybe(..))
 import Data.Newtype (class Newtype, unwrap)
 import Data.Symbol (SProxy(..))
@@ -44,7 +46,7 @@ type Move
     }
 
 type WorkspaceConfig
-  = { toolbox :: HTMLElement
+  = { toolbox :: Json
     , collapse :: Boolean
     , comments :: Boolean
     , disable :: Boolean
@@ -116,16 +118,15 @@ newtype ElementId
 
 derive instance newtypeElementId :: Newtype ElementId _
 
-createBlocklyInstance :: String -> ElementId -> ElementId -> Effect BlocklyState
-createBlocklyInstance rootBlockName workspaceElementId toolboxElementId = do
+createBlocklyInstance :: String -> ElementId -> Toolbox -> Effect BlocklyState
+createBlocklyInstance rootBlockName workspaceElementId toolbox = do
   blockly <- createBlocklyInstance_
-  toolbox <- runEffectFn1 getElementById_ (unwrap toolboxElementId)
-  workspace <- runEffectFn3 createWorkspace_ blockly (unwrap workspaceElementId) (config toolbox)
+  workspace <- runEffectFn3 createWorkspace_ blockly (unwrap workspaceElementId) config
   runEffectFn2 debugBlockly_ (unwrap workspaceElementId) { blockly, workspace, rootBlockName }
   pure { blockly, workspace, rootBlockName }
   where
-  config toolbox =
-    { toolbox: toolbox
+  config =
+    { toolbox: encodeToolbox toolbox
     , collapse: true
     , comments: true
     , disable: true
@@ -315,9 +316,6 @@ defaultBlockDefinition =
 
 xml :: forall p i. Node ( id :: String, style :: String ) p i
 xml = element (ElemName "xml")
-
-category :: forall p i. Node ( name :: String, colour :: String ) p i
-category = element (ElemName "category")
 
 block :: forall p i. Node ( id :: String, type :: String, x :: String, y :: String ) p i
 block = element (ElemName "block")

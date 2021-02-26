@@ -9,9 +9,8 @@ import Control.Monad.Error.Class (catchError)
 import Control.Monad.Error.Extra (toMonadThrow)
 import Control.Monad.Except (class MonadError, throwError)
 import Control.Monad.Except.Trans (class MonadThrow)
-import Data.Array (filter, head, length, uncons)
+import Data.Array (filter, head, uncons)
 import Data.Array as Array
-import Data.Array.Partial as UnsafeArray
 import Data.Bifunctor (lmap)
 import Data.BigInteger (BigInteger)
 import Data.BigInteger as BigInteger

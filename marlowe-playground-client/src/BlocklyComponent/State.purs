@@ -5,6 +5,7 @@ import Blockly.Dom (explainError, getDom)
 import Blockly.Generator (newBlock)
 import Blockly.Internal (BlockDefinition, ElementId(..), centerOnBlock, getBlockById, select)
 import Blockly.Internal as Blockly
+import Blockly.Toolbox (Toolbox)
 import BlocklyComponent.Types (Action(..), Message(..), Query(..), State, _blocklyEventSubscription, _blocklyState, _errorMessage, blocklyRef, emptyState)
 import BlocklyComponent.View (render)
 import Control.Monad.Except (ExceptT(..), runExceptT, withExceptT)
@@ -35,8 +36,9 @@ blocklyComponent ::
   MonadAff m =>
   String ->
   Array BlockDefinition ->
+  Toolbox ->
   Component HTML Query Unit Message m
-blocklyComponent rootBlockName blockDefinitions =
+blocklyComponent rootBlockName blockDefinitions toolbox =
   mkComponent
     { initialState: const emptyState
     , render
@@ -44,7 +46,7 @@ blocklyComponent rootBlockName blockDefinitions =
         H.mkEval
           { handleQuery
           , handleAction
-          , initialize: Just $ Inject rootBlockName blockDefinitions
+          , initialize: Just $ Inject rootBlockName blockDefinitions toolbox
           , finalize: Nothing
           , receive: Just <<< SetData
           }
@@ -129,13 +131,13 @@ handleAction ::
   MonadAff m =>
   Action ->
   HalogenM State Action slots Message m Unit
-handleAction (Inject rootBlockName blockDefinitions) = do
+handleAction (Inject rootBlockName blockDefinitions toolbox) = do
   mElement <- (pure <<< map HTMLElement.toElement) =<< getHTMLElementRef blocklyRef
   blocklyState <-
     liftEffect do
       -- TODO: once we refactor ActusBlockly to use BlocklyComponent we should remove ElementId from
       --       createBlocklyInstance and receive two HTMLElements that should be handled by RefElement
-      state <- Blockly.createBlocklyInstance rootBlockName (ElementId "blocklyWorkspace") (ElementId "blocklyToolbox")
+      state <- Blockly.createBlocklyInstance rootBlockName (ElementId "blocklyWorkspace") toolbox
       Blockly.addBlockTypes state.blockly blockDefinitions
       Blockly.initializeWorkspace state.blockly state.workspace
       pure state

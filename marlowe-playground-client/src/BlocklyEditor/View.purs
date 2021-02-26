@@ -1,7 +1,8 @@
 module BlocklyEditor.View where
 
 import Prelude hiding (div)
-import Blockly.Internal (block, blockType, category, colour, name, style, x, xml, y)
+import Blockly.Internal (block, blockType, style, x, xml, y)
+import Blockly.Toolbox (Toolbox(..), category, leaf)
 import BlocklyComponent.State as Blockly
 import BlocklyEditor.BottomPanel (panelContents)
 import BlocklyEditor.Types (Action(..), BottomPanelView(..), State, _bottomPanelState, _hasHoles, _marloweCode, _warnings)
@@ -30,8 +31,7 @@ render state =
     [ section
         [ classes [ paddingX, minH0, overflowHidden, fullHeight ]
         ]
-        [ slot _blocklySlot unit (Blockly.blocklyComponent MB.rootBlockName MB.blockDefinitions) unit (Just <<< HandleBlocklyMessage)
-        , toolbox
+        [ slot _blocklySlot unit (Blockly.blocklyComponent MB.rootBlockName MB.blockDefinitions toolbox) unit (Just <<< HandleBlocklyMessage)
         , workspaceBlocks
         ]
     , section [ classes [ paddingX, maxH70p ] ]
@@ -54,21 +54,18 @@ render state =
 
   wrapBottomPanelContents panelView = BottomPanel.PanelAction <$> panelContents state panelView
 
-toolbox :: forall a b. HTML a b
+toolbox :: Toolbox
 toolbox =
-  xml [ id_ "blocklyToolbox", style "display:none" ]
-    [ category [ name "Contracts", colour MB.contractColour ] (map mkBlock MB.contractTypes)
-    , category [ name "Observations", colour MB.observationColour ] (map mkBlock MB.observationTypes)
-    , category [ name "Actions", colour MB.actionColour ] (map mkBlock MB.actionTypes)
-    , category [ name "Values", colour MB.valueColour ] (map mkBlock MB.valueTypes)
-    , category [ name "Payee", colour MB.payeeColour ] (map mkBlock MB.payeeTypes)
-    , category [ name "Party", colour MB.partyColour ] (map mkBlock MB.partyTypes)
-    , category [ name "Token", colour MB.tokenColour ] (map mkBlock MB.tokenTypes)
-    , category [ name "Bounds", colour MB.boundsColour ] (map mkBlock [ MB.BoundsType ])
+  CategoryToolbox
+    [ category "Contracts" MB.contractColour $ map (leaf <<< show) MB.contractTypes
+    , category "Observations" MB.observationColour $ map (leaf <<< show) MB.observationTypes
+    , category "Actions" MB.actionColour $ map (leaf <<< show) MB.actionTypes
+    , category "Values" MB.valueColour $ map (leaf <<< show) MB.valueTypes
+    , category "Payee" MB.payeeColour $ map (leaf <<< show) MB.payeeTypes
+    , category "Party" MB.partyColour $ map (leaf <<< show) MB.partyTypes
+    , category "Token" MB.tokenColour $ map (leaf <<< show) MB.tokenTypes
+    , category "Bounds" MB.boundsColour $ [ leaf $ show MB.BoundsType ]
     ]
-  where
-  mkBlock :: forall t. Show t => t -> _
-  mkBlock t = block [ blockType (show t) ] []
 
 workspaceBlocks :: forall a b. HTML a b
 workspaceBlocks =

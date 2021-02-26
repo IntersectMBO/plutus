@@ -58,8 +58,7 @@ render state =
               , tabContents JSEditor [ renderSubmodule _javascriptState JavascriptAction JSEditor.render state ]
               , tabContents BlocklyEditor [ renderSubmodule _blocklyEditorState BlocklyEditorAction BlocklyEditor.render state ]
               , tabContents ActusBlocklyEditor
-                  [ slot _actusBlocklySlot unit (ActusBlockly.blockly AMB.rootBlockName AMB.blockDefinitions) unit (Just <<< HandleActusBlocklyMessage)
-                  , AMB.toolbox
+                  [ slot _actusBlocklySlot unit (ActusBlockly.blockly AMB.rootBlockName AMB.blockDefinitions AMB.toolbox) unit (Just <<< HandleActusBlocklyMessage)
                   , AMB.workspaceBlocks
                   ]
               , tabContents WalletEmulator
