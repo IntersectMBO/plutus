@@ -24,10 +24,9 @@ import qualified Cardano.ChainIndex.Types           as ChainIndex
 import           Cardano.Metadata.Client            (handleMetadataClient)
 import           Cardano.Metadata.Types             (MetadataEffect)
 import qualified Cardano.Metadata.Types             as Metadata
-import           Cardano.Node.Client                (handleNodeClientClient, handleNodeFollowerClient,
-                                                     handleRandomTxClient)
+import           Cardano.Node.Client                (handleNodeClientClient, handleRandomTxClient)
 import           Cardano.Node.RandomTx              (GenRandomTx)
-import           Cardano.Node.Types                 (MockServerConfig (..), NodeFollowerEffect)
+import           Cardano.Node.Types                 (MockServerConfig (..))
 import qualified Cardano.SigningProcess.Client      as SigningProcessClient
 import qualified Cardano.SigningProcess.Types       as SigningProcess
 import qualified Cardano.Wallet.Client              as WalletClient
@@ -87,7 +86,6 @@ data Env =
 type AppBackend m =
         '[ GenRandomTx
          , ContractRuntimeEffect
-         , NodeFollowerEffect
          , WalletEffect
          , NodeClientEffect
          , MetadataEffect
@@ -142,11 +140,6 @@ runAppBackend trace loggingConfig config action = do
         handleNodeClient =
             flip handleError (throwError . NodeClientError) .
             reinterpret @_ @(Error ClientError) (handleNodeClientClient nodeClientEnv)
-        handleNodeFollower ::
-               Eff (NodeFollowerEffect ': _) a -> Eff _ a
-        handleNodeFollower =
-            flip handleError (throwError . NodeClientError) .
-            reinterpret @_ @(Error ClientError) (handleNodeFollowerClient nodeClientEnv)
         handleMetadata ::
                Eff (MetadataEffect ': _) a -> Eff _ a
         handleMetadata =
@@ -181,7 +174,6 @@ runAppBackend trace loggingConfig config action = do
         . handleMetadata
         . handleNodeClient
         . handleWallet
-        . handleNodeFollower
         . interpret (mapLog SContractRuntimeMsg) . interpret (mapLog SContractInstanceMsg) . reinterpret2 (handleContractRuntime @ContractExe)
         $ handleRandomTx action
 

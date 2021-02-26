@@ -37,12 +37,10 @@ module Cardano.Node.Types
     , _NodeFollowerState
     , initialAppState
     , initialChainState
-    , initialFollowerState
 
     -- * Lens functions
     , chainState
     , eventHistory
-    , followerState
 
     -- * Config types
     , MockServerConfig (..)
@@ -68,7 +66,6 @@ import           Servant.Client                 (BaseUrl)
 
 import           Cardano.BM.Data.Tracer         (ToObject (..))
 import           Cardano.BM.Data.Tracer.Extras  (Tagged (..), mkObjectStr)
-import           Cardano.Protocol.Socket.Client (ClientHandler)
 import           Control.Monad.Freer.Extras.Log (LogMessage, LogMsg (..))
 import           Control.Monad.Freer.Reader     (Reader)
 import           Control.Monad.Freer.State      (State)
@@ -206,9 +203,8 @@ makePrisms 'NodeFollowerState
 -- | Application State
 data AppState =
     AppState
-        { _chainState    :: ChainState -- ^ blockchain state
-        , _eventHistory  :: [LogMessage MockServerLogMsg] -- ^ history of all log messages
-        , _followerState :: NodeFollowerState -- ^ follower state
+        { _chainState   :: ChainState -- ^ blockchain state
+        , _eventHistory :: [LogMessage MockServerLogMsg] -- ^ history of all log messages
         }
     deriving (Show)
 
@@ -221,12 +217,7 @@ initialAppState wallets =
     AppState
         { _chainState = initialChainState (Trace.defaultDistFor wallets)
         , _eventHistory = mempty
-        , _followerState = initialFollowerState
         }
-
--- | Empty initial 'NodeFollowerState'
-initialFollowerState :: NodeFollowerState
-initialFollowerState = NodeFollowerState Map.empty
 
 -- | 'ChainState' with initial values
 initialChainState :: Trace.InitialDistribution -> ChainState
@@ -246,14 +237,10 @@ makeEffect ''NodeFollowerEffect
 type NodeServerEffects m
      = '[ GenRandomTx
         , LogMsg MockServerLogMsg
-        , NodeFollowerEffect
-        , LogMsg NodeFollowerLogMsg
         , ChainControlEffect
         , ChainEffect
-        , State NodeFollowerState
         , State ChainState
         , LogMsg MockServerLogMsg
-        , Reader ClientHandler
         , Reader Server.ServerHandler
         , State AppState
         , LogMsg MockServerLogMsg

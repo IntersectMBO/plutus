@@ -11,10 +11,9 @@ import Data.String (Pattern(..), split)
 import Data.String as String
 import Effect.Aff.Class (class MonadAff)
 import Halogen (ClassName(..), ComponentHTML)
-import Halogen.Classes (aHorizontal, codeEditor, group)
-import Halogen.Classes as Classes
+import Halogen.Classes (bgWhite, flex, flexCol, flexGrow, fullHeight, group, maxH70p, minH0, overflowHidden, paddingX, spaceBottom)
 import Halogen.Extra (renderSubmodule)
-import Halogen.HTML (HTML, a, button, code_, div, div_, option, pre_, section, select, slot, text)
+import Halogen.HTML (HTML, a, button, code_, div, div_, option, pre_, section, section_, select, slot, text)
 import Halogen.HTML.Events (onClick, onSelectedIndexChange)
 import Halogen.HTML.Properties (class_, classes, enabled, href)
 import Halogen.HTML.Properties as HTML
@@ -33,12 +32,16 @@ render ::
   State ->
   ComponentHTML Action ChildSlots m
 render state =
-  div_
-    [ section [ class_ (ClassName "code-panel") ]
-        [ div [ classes [ codeEditor ] ]
-            [ jsEditor state ]
+  div [ classes [ flex, flexCol, fullHeight ] ]
+    [ section [ classes [ paddingX, minH0, flexGrow, overflowHidden ] ]
+        [ jsEditor state ]
+    , section [ classes [ paddingX, maxH70p ] ]
+        [ renderSubmodule
+            _bottomPanelState
+            BottomPanelAction
+            (BottomPanel.render panelTitles wrapBottomPanelContents)
+            state
         ]
-    , renderSubmodule _bottomPanelState BottomPanelAction (BottomPanel.render panelTitles wrapBottomPanelContents) state
     ]
   where
   panelTitles =
@@ -124,11 +127,9 @@ compileButton state =
 
 panelContents :: forall p. State -> BottomPanelView -> HTML p Action
 panelContents state GeneratedOutputView =
-  section
-    [ classes [ ClassName "panel-sub-header", aHorizontal, Classes.panelContents ]
-    ] case view _compilationResult state of
+  section_ case view _compilationResult state of
     JS.CompiledSuccessfully (InterpreterResult result) ->
-      [ div [ classes [ ClassName "code-editor", ClassName "expanded", ClassName "code" ] ]
+      [ div [ classes [ bgWhite, spaceBottom, ClassName "code" ] ]
           numberedText
       ]
       where
@@ -136,9 +137,7 @@ panelContents state GeneratedOutputView =
     _ -> [ text "There is no generated code" ]
 
 panelContents state StaticAnalysisView =
-  section
-    [ classes [ ClassName "panel-sub-header", aHorizontal, Classes.panelContents ]
-    ]
+  section_
     ( [ analysisResultPane SetIntegerTemplateParam state
       , analyzeButton loadingWarningAnalysis analysisEnabled "Analyse for warnings" AnalyseContract
       , analyzeButton loadingReachability analysisEnabled "Analyse reachability" AnalyseReachabilityContract
@@ -167,9 +166,7 @@ panelContents state StaticAnalysisView =
     _ -> false
 
 panelContents state ErrorsView =
-  section
-    [ classes [ ClassName "panel-sub-header", aHorizontal, Classes.panelContents ]
-    ] case view _compilationResult state of
+  section_ case view _compilationResult state of
     JS.CompilationError err -> [ compilationErrorPane err ]
     _ -> [ text "No errors" ]
 

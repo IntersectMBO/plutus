@@ -22,24 +22,25 @@ import           Cardano.BM.Data.Trace           (Trace)
 import           Cardano.Node.API                (API)
 import           Cardano.Node.Mock
 import           Cardano.Node.Types
-import qualified Cardano.Protocol.Socket.Client  as Client
 import qualified Cardano.Protocol.Socket.Server  as Server
 import           Plutus.PAB.Arbitrary            ()
 import           Plutus.PAB.Monitoring           (runLogEffects)
 
-app :: Trace IO MockServerLogMsg -> Server.ServerHandler -> Client.ClientHandler -> MVar AppState -> Application
-app trace serverHandler clientHandler stateVar =
+app ::
+    Trace IO MockServerLogMsg
+ -> Server.ServerHandler
+ -> MVar AppState
+ -> Application
+app trace serverHandler stateVar =
     serve (Proxy @API) $
     hoistServer
         (Proxy @API)
-        (liftIO . processChainEffects trace serverHandler clientHandler stateVar)
+        (liftIO . processChainEffects trace serverHandler stateVar)
         (healthcheck :<|> addTx :<|> getCurrentSlot :<|>
          (genRandomTx :<|>
-          consumeEventHistory stateVar) :<|>
-          (newFollower :<|> getBlocks))
+          consumeEventHistory stateVar))
 
 data Ctx = Ctx { serverHandler :: Server.ServerHandler
-               , clientHandler :: Client.ClientHandler
                , serverState   :: MVar AppState
                , mockTrace     :: Trace IO MockServerLogMsg
                }
@@ -53,30 +54,28 @@ main trace MockServerConfig { mscBaseUrl
                             , mscSocketPath} availability = runLogEffects trace $ do
 
     serverHandler <- liftIO $ Server.runServerNode mscSocketPath (_chainState $ initialAppState mscInitialTxWallets)
-    clientHandler <- liftIO $ Client.runClientNode mscSocketPath
-    clientState <- liftIO $ newMVar (initialAppState mscInitialTxWallets)
     serverState <- liftIO $ newMVar (initialAppState mscInitialTxWallets)
 
-    let ctx = Ctx serverHandler clientHandler serverState trace
+    let ctx = Ctx serverHandler serverState trace
 
     runSlotCoordinator ctx mscSlotLength
     maybe (logInfo NoRandomTxGeneration) (runRandomTxGeneration ctx) mscRandomTxInterval
     maybe (logInfo KeepingOldBlocks) (runBlockReaper ctx) mscBlockReaper
 
     logInfo $ StartingMockServer $ baseUrlPort mscBaseUrl
-    liftIO $ Warp.runSettings warpSettings $ app trace serverHandler clientHandler clientState
+    liftIO $ Warp.runSettings warpSettings $ app trace serverHandler serverState
 
         where
             warpSettings = Warp.defaultSettings & Warp.setPort (baseUrlPort mscBaseUrl) & Warp.setBeforeMainLoop (available availability)
 
-            runRandomTxGeneration Ctx { serverHandler , clientHandler , serverState , mockTrace } randomTxInterval = do
+            runRandomTxGeneration Ctx { serverHandler , serverState , mockTrace } randomTxInterval = do
                     logInfo StartingRandomTx
-                    void $ liftIO $ forkIO $ transactionGenerator mockTrace randomTxInterval serverHandler clientHandler serverState
+                    void $ liftIO $ forkIO $ transactionGenerator mockTrace randomTxInterval serverHandler serverState
 
-            runBlockReaper Ctx { serverHandler , clientHandler , serverState , mockTrace } reaperConfig = do
+            runBlockReaper Ctx { serverHandler , serverState , mockTrace } reaperConfig = do
                 logInfo RemovingOldBlocks
-                void $ liftIO $ forkIO $ blockReaper mockTrace reaperConfig serverHandler clientHandler serverState
+                void $ liftIO $ forkIO $ blockReaper mockTrace reaperConfig serverHandler serverState
 
-            runSlotCoordinator Ctx { serverHandler , clientHandler , serverState , mockTrace } slotLength = do
+            runSlotCoordinator Ctx { serverHandler , serverState , mockTrace } slotLength = do
                 logInfo StartingSlotCoordination
-                void $ liftIO $ forkIO $ slotCoordinator mockTrace slotLength serverHandler clientHandler serverState
+                void $ liftIO $ forkIO $ slotCoordinator mockTrace slotLength serverHandler serverState

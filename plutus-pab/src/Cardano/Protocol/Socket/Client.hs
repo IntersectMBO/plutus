@@ -28,62 +28,43 @@ import           Ouroboros.Network.Snocket
 import           Ouroboros.Network.Socket
 
 import           Cardano.Protocol.Socket.Type
-import           Ledger                                              (Block, Tx (..))
+import           Ledger                                              (Block, Slot (..), Tx (..))
 
 -- | Client handler, used to communicate with the client thread.
 data ClientHandler = ClientHandler {
-        chOutputQueue :: TQueue Block,
-        chInputQueue  :: TQueue Tx,
-        chSocketPath  :: FilePath,
-        chThreadId    :: ThreadId
+        chInputQueue :: TQueue Tx,
+        chSocketPath :: FilePath,
+        chThreadId   :: ThreadId
     }
-
--- | Flush all the blocks that have accumulated on the queue.
---   It does not block.
-flushBlocks ::
-    ClientHandler
- -> IO [Block]
-flushBlocks (ClientHandler outputQueue _ _ _) = go []
-    where
-      go :: [Block] -> IO [Block]
-      go acc = atomically (tryReadTQueue outputQueue) >>= \case
-          Nothing    -> pure (reverse acc)
-          Just block -> go   (block : acc)
-
--- | Read the next block. It will block if no new block is
---   available.
-getBlock ::
-    ClientHandler
- -> IO Block
-getBlock (ClientHandler outputQueue _ _ _) =
-    atomically (readTQueue outputQueue)
 
 -- | Queue a transaction to be sent to the server.
 queueTx ::
     ClientHandler
  -> Tx
  -> IO ()
-queueTx (ClientHandler _ inputQueue _ _) tx =
+queueTx (ClientHandler inputQueue _ _) tx =
     atomically (writeTQueue inputQueue tx)
 
 -- | Forks and starts a new client node, returning the newly allocated thread id.
 runClientNode :: FilePath
+              -> (Block -> Slot -> IO ())
               -> IO ClientHandler
-runClientNode socketPath = do
-    outputQueue <- newTQueueIO
+runClientNode socketPath onNewBlock = do
     inputQueue  <- newTQueueIO
-    threadId    <- forkIO $ withIOManager $ \iocp ->
+    -- Right now we synchronise the whole blockchain so we can initialise the first
+    -- slot to be 0. This will change when we start looking for intersection points.
+    mSlot    <- newMVar (Slot 0)
+    threadId <- forkIO $ withIOManager $ \iocp ->
         connectToNode
           (localSnocket iocp socketPath)
           unversionedHandshakeCodec
           (cborTermVersionDataCodec unversionedProtocolDataCodec)
           nullNetworkConnectTracers
           acceptableVersion
-          (unversionedProtocol (app outputQueue inputQueue))
+          (unversionedProtocol (app mSlot onNewBlock inputQueue))
           Nothing
           (localAddressFromPath socketPath)
     pure ClientHandler {
-        chOutputQueue = outputQueue,
         chInputQueue  = inputQueue,
         chSocketPath  = socketPath,
         chThreadId    = threadId
@@ -92,22 +73,24 @@ runClientNode socketPath = do
     where
       {- Application that communicates using 2 multiplexed protocols
          (ChainSync and TxSubmission). -}
-      app :: TQueue Block
+      app :: MVar Slot
+          -> (Block -> Slot -> IO ())
           -> TQueue Tx
           -> OuroborosApplication 'InitiatorMode addr
                                   LBS.ByteString IO () Void
-      app outputQueue inputQueue =
-        nodeApplication (chainSync outputQueue) (txSubmission inputQueue)
+      app mSlot onNewBlock' inputQueue =
+        nodeApplication (chainSync mSlot onNewBlock') (txSubmission inputQueue)
 
-      chainSync :: TQueue Block
+      chainSync :: MVar Slot
+                -> (Block -> Slot -> IO ())
                 -> RunMiniProtocol 'InitiatorMode LBS.ByteString IO () Void
-      chainSync outputQueue =
+      chainSync mSlot onNewBlock' =
           InitiatorProtocolOnly $
           MuxPeer
             (contramap show stdoutTracer)
             codecChainSync
             (ChainSync.chainSyncClientPeer
-               (chainSyncClient outputQueue))
+               (chainSyncClient mSlot onNewBlock'))
 
       txSubmission :: TQueue Tx
                    -> RunMiniProtocol 'InitiatorMode LBS.ByteString IO () Void
@@ -120,9 +103,10 @@ runClientNode socketPath = do
                (txSubmissionClient inputQueue))
 
 -- | The client updates the application state when the protocol state changes.
-chainSyncClient :: TQueue Block
+chainSyncClient :: MVar Slot
+                -> (Block -> Slot -> IO ())
                 -> ChainSync.ChainSyncClient Block (Point Block) Tip IO ()
-chainSyncClient outputQueue =
+chainSyncClient mSlot onNewBlock =
     ChainSync.ChainSyncClient $ pure requestNext
     where
       requestNext :: ChainSync.ClientStIdle Block (Point Block) Tip IO ()
@@ -137,7 +121,9 @@ chainSyncClient outputQueue =
         {
           ChainSync.recvMsgRollForward  = \block _ ->
             ChainSync.ChainSyncClient $ do
-              atomically $ writeTQueue outputQueue block
+              currentSlot <- takeMVar mSlot
+              onNewBlock block (currentSlot + 1)
+              putMVar mSlot (currentSlot + 1)
               return requestNext
         , ChainSync.recvMsgRollBackward = error "Not supported."
         }

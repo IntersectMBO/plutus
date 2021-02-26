@@ -10,7 +10,6 @@ module Plutus.PAB.CoreSpec
     ( tests
     ) where
 
-import           Cardano.Node.Types                                (NodeFollowerEffect)
 import           Control.Lens                                      ((&), (+~))
 import           Control.Monad                                     (unless, void)
 import           Control.Monad.Freer                               (Eff, Member, Members)
@@ -39,8 +38,8 @@ import           Plutus.PAB.Effects.MultiAgent                     (PABClientEff
 import           Plutus.PAB.Events                                 (ChainEvent, ContractInstanceId,
                                                                     ContractInstanceState (..), hooks)
 import           Plutus.PAB.MockApp                                (TestState, TxCounts (..), blockchainNewestFirst,
-                                                                    defaultWallet, runScenario, syncAll, txCounts,
-                                                                    txValidated, valueAt)
+                                                                    defaultWallet, processAllMsgBoxes, runScenario,
+                                                                    txCounts, txValidated, valueAt)
 import qualified Plutus.PAB.Query                                  as Query
 import           Plutus.PAB.Types                                  (PABError (..), chainOverviewBlockchain,
                                                                     mkChainOverview)
@@ -108,16 +107,12 @@ currencyTest =
               agentAction defaultWallet (installContract Currency)
               contractState <- agentAction defaultWallet (activateContract Currency)
               let instanceId = csContract contractState
-              syncAll
               assertTxCounts
                   "Activating the currency contract does not generate transactions."
                   initialTxCounts
               agentAction defaultWallet $ createCurrency instanceId mps
-              syncAll
               void Chain.processBlock
-              syncAll
               void Chain.processBlock
-              syncAll
               assertTxCounts
                 "Forging the currency should produce two valid transactions."
                 (initialTxCounts & txValidated +~ 2)
@@ -130,13 +125,13 @@ rpcTest =
             agentAction defaultWallet (installContract RPCServer)
             ContractInstanceState{csContract=clientId} <- agentAction defaultWallet (activateContract RPCClient)
             ContractInstanceState{csContract=serverId} <- agentAction defaultWallet (activateContract RPCServer)
-            syncAll
+            processAllMsgBoxes
             agentAction defaultWallet $ void $ callContractEndpoint @TestContracts serverId "serve" ()
-            syncAll
+            processAllMsgBoxes
             agentAction defaultWallet $ callAdder clientId serverId
-            syncAll
-            syncAll
-            syncAll
+            processAllMsgBoxes
+            processAllMsgBoxes
+            processAllMsgBoxes
             agentAction defaultWallet $ do
                 assertDone clientId
                 assertDone serverId
@@ -158,7 +153,7 @@ guessingGameTest =
               -- need to add contract address to wallet's watched addresses
               contractState <- agentAction defaultWallet (activateContract Game)
               let instanceId = csContract contractState
-              syncAll
+              processAllMsgBoxes
               assertTxCounts
                   "Activating the game does not generate transactions."
                   initialTxCounts
@@ -168,9 +163,9 @@ guessingGameTest =
                       { Contracts.Game.amount = lovelaceValueOf lockAmount
                       , Contracts.Game.secretWord = "password"
                       }
-              syncAll
+              processAllMsgBoxes
               void Chain.processBlock
-              syncAll
+              processAllMsgBoxes
               assertTxCounts
                   "Locking the game should produce one transaction"
                   (initialTxCounts & txValidated +~ 1)
@@ -181,23 +176,23 @@ guessingGameTest =
                   balance1
 
               game1State <- agentAction defaultWallet (activateContract Game)
-              syncAll
+              processAllMsgBoxes
               agentAction defaultWallet $ guess
                   (csContract game1State)
                   Contracts.Game.GuessParams
                       {Contracts.Game.guessWord = "wrong"}
-              syncAll
+              processAllMsgBoxes
               void Chain.processBlock
               assertTxCounts
                 "A wrong guess still produces a transaction."
                 (initialTxCounts & txValidated +~ 2)
               game2State <- agentAction defaultWallet (activateContract Game)
-              syncAll
+              processAllMsgBoxes
               agentAction defaultWallet $ guess
                   (csContract game2State)
                   Contracts.Game.GuessParams
                       {Contracts.Game.guessWord = "password"}
-              syncAll
+              processAllMsgBoxes
               void Chain.processBlock
               assertTxCounts
                 "A correct guess creates a third transaction."
@@ -258,7 +253,6 @@ type SpecEffects =
         , Error PABError
         , EventLogEffect (ChainEvent TestContracts)
         , ContractEffect TestContracts
-        , NodeFollowerEffect
         , LogMsg Text
         , LogMsg (ContractInstanceMsg TestContracts)
         , EmulatorLog.LogObserve (EmulatorLog.LogMessage Text)

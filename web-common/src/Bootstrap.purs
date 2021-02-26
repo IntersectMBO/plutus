@@ -515,7 +515,7 @@ navLink :: ClassName
 navLink = ClassName "nav-link"
 
 hidden :: ClassName
-hidden = ClassName "d-none"
+hidden = ClassName "hidden"
 
 -- | A third of the screen, assuming a reasonable screen
 -- size. Collapses sensibly as the size goes down to iPhone.

@@ -105,6 +105,10 @@ foreign import debugBlockly_ :: EffectFn2 String BlocklyState Unit
 
 foreign import workspaceToDom_ :: EffectFn2 Blockly Workspace Element
 
+foreign import select_ :: EffectFn1 Block Unit
+
+foreign import centerOnBlock_ :: EffectFn2 Workspace String Unit
+
 newtype ElementId
   = ElementId String
 
@@ -191,6 +195,12 @@ loadWorkspace = runEffectFn3 loadWorkspace_
 
 workspaceToDom :: Blockly -> Workspace -> Effect Element
 workspaceToDom = runEffectFn2 workspaceToDom_
+
+select :: Block -> Effect Unit
+select = runEffectFn1 select_
+
+centerOnBlock :: Workspace -> String -> Effect Unit
+centerOnBlock = runEffectFn2 centerOnBlock_
 
 data Pair
   = Pair String String

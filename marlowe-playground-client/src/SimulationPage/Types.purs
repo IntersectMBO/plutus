@@ -325,7 +325,11 @@ data Action
   | Undo
   | LoadContract String
   -- simulation view
+  -- FIXME: We are not showing a help context. See if we want to bring back this
+  --       functionality or delete this code
   | ChangeHelpContext HelpContext
+  -- FIXME: This action is not triggerable at the moment. Check if we want to bring
+  --        back this functionality or delete this code
   | ShowRightPanel Boolean
   | BottomPanelAction (BottomPanel.Action BottomPanelView Action)
   | EditSource
