@@ -3,13 +3,15 @@ module Marlowe.Blockly where
 import Prelude
 import Blockly.Dom as BDom
 import Blockly.Generator (Connection, Input, NewBlockFunction, clearWorkspace, connect, connectToOutput, connectToPrevious, fieldName, fieldRow, getInputWithName, inputList, inputName, inputType, nextConnection, previousConnection, setFieldText)
-import Blockly.Internal (AlignDirection(..), Arg(..), BlockDefinition(..), defaultBlockDefinition, getBlockById, initializeWorkspace, render)
+import Blockly.Internal (AlignDirection(..), Arg(..), BlockDefinition(..), defaultBlockDefinition, getBlockById, initializeWorkspace, render, typedArguments)
+import Blockly.Toolbox (Category(..), Toolbox(..), category, defaultCategoryFields, leaf, separator)
+import Blockly.Toolbox as Toolbox
 import Blockly.Types (Block, BlocklyState, Workspace)
 import Control.Monad.Error.Class (catchError)
 import Control.Monad.Error.Extra (toMonadThrow)
 import Control.Monad.Except (class MonadError, throwError)
 import Control.Monad.Except.Trans (class MonadThrow)
-import Data.Array (filter, head, uncons)
+import Data.Array (catMaybes, filter, head, uncons)
 import Data.Array as Array
 import Data.Bifunctor (lmap)
 import Data.BigInteger (BigInteger)
@@ -23,6 +25,8 @@ import Data.Generic.Rep.Enum (genericCardinality, genericFromEnum, genericPred, 
 import Data.Generic.Rep.Eq (genericEq)
 import Data.Generic.Rep.Ord (genericCompare)
 import Data.Generic.Rep.Show (genericShow)
+import Data.Map (Map)
+import Data.Map as Map
 import Data.Maybe (Maybe(..), maybe)
 import Data.TraversableWithIndex (forWithIndex)
 import Data.Tuple (Tuple(..))
@@ -366,6 +370,9 @@ blockColour (TokenType _) = tokenColour
 
 blockDefinitions :: Array BlockDefinition
 blockDefinitions = map toDefinition (upFromIncluding bottom)
+
+definitionsMap :: Map String BlockDefinition
+definitionsMap = Map.fromFoldable $ (\def@(BlockDefinition d) -> Tuple d.type def) <$> blockDefinitions
 
 toDefinition :: BlockType -> BlockDefinition
 toDefinition BaseContractType =
@@ -999,6 +1006,80 @@ toDefinition blockType@(ValueType UseValueValueType) =
         }
         defaultBlockDefinition
 
+---------------------------------------------------------------------------------------------------
+--
+-- Toolbox definition
+--
+contractsCategory :: Category
+contractsCategory = category "Contracts" contractColour $ map (leaf <<< show) contractTypes
+
+observationsCategory :: Category
+observationsCategory = category "Observations" observationColour $ map (leaf <<< show) observationTypes
+
+actionsCategory :: Category
+actionsCategory = category "Actions" actionColour $ map (leaf <<< show) actionTypes
+
+valueCategory :: Category
+valueCategory = category "Values" valueColour $ map (leaf <<< show) valueTypes
+
+payeeCategory :: Category
+payeeCategory = category "Payee" payeeColour $ map (leaf <<< show) payeeTypes
+
+partyCategory :: Category
+partyCategory = category "Party" partyColour $ map (leaf <<< show) partyTypes
+
+tokenCategory :: Category
+tokenCategory = category "Token" tokenColour $ map (leaf <<< show) tokenTypes
+
+boundsCategory :: Category
+boundsCategory = category "Bounds" boundsColour $ [ leaf $ show BoundsType ]
+
+-- This map ties a block definition "check" with a Category that can be displayed in the Toolbar
+-- as part of the Blockly holes functionality.
+-- TODO: We should probably stop relying on `Show` for check and use a NewType to avoid having any string
+typeMap :: Map String Category
+typeMap =
+  Map.fromFoldable
+    $ [ Tuple (show BaseContractType) contractsCategory
+      , Tuple "ActionType" actionsCategory
+      , Tuple "observation" observationsCategory
+      , Tuple "value" valueCategory
+      , Tuple "payee" payeeCategory
+      , Tuple "party" partyCategory
+      , Tuple "token" tokenCategory
+      , Tuple (show BoundsType) boundsCategory
+      ]
+
+defaultCategories :: Array Category
+defaultCategories =
+  [ contractsCategory
+  , observationsCategory
+  , actionsCategory
+  , valueCategory
+  , payeeCategory
+  , partyCategory
+  , tokenCategory
+  , boundsCategory
+  ]
+
+toolbox :: Toolbox
+toolbox = CategoryToolbox defaultCategories
+
+toolboxWithHoles :: BlockDefinition -> Toolbox
+toolboxWithHoles definition = CategoryToolbox (defaultCategories <> addSeparator holesCategories)
+  where
+  addSeparator = case _ of
+    [] -> []
+    xs -> [ separator ] <> xs
+
+  holesCategories =
+    catMaybes
+      $ typedArguments definition
+      <#> \{ name, check } -> do
+          cat <- Map.lookup check typeMap
+          pure $ Category (defaultCategoryFields { name = name }) [ cat ]
+
+---------------------------------------------------------------------------------------------------
 --
 -- Code generation
 --

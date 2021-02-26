@@ -1,7 +1,7 @@
 module Blockly.Types where
 
 import Prelude
-import Blockly.Events (ChangeEvent, CreateEvent, FinishLoadingEvent, MoveEvent, UIEvent, element)
+import Blockly.Events (ChangeEvent, CreateEvent, FinishLoadingEvent, MoveEvent, UIEvent, element, SelectEvent)
 import Data.Maybe (Maybe(..))
 
 foreign import data Blockly :: Type
@@ -22,6 +22,7 @@ data BlocklyEvent
   | Move MoveEvent
   | FinishLoading FinishLoadingEvent
   | UI UIEvent
+  | Select SelectEvent
 
 isDragStart :: BlocklyEvent -> Boolean
 isDragStart (UI event) = element event == (Just "dragStart")

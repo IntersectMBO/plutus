@@ -4,6 +4,7 @@ import Prelude
 import Blockly.Toolbox (Toolbox, encodeToolbox)
 import Blockly.Types (Block, Blockly, BlocklyState, Workspace)
 import Data.Argonaut.Core (Json)
+import Data.Array (catMaybes)
 import Data.Maybe (Maybe(..))
 import Data.Newtype (class Newtype, unwrap)
 import Data.Symbol (SProxy(..))
@@ -22,7 +23,6 @@ import Web.DOM (Element)
 import Web.Event.EventTarget (EventListener)
 import Web.HTML (HTMLElement)
 
--- QUESTION: Should we move these under Blockly.Types??
 type GridConfig
   = { spacing :: Int
     , length :: Int
@@ -75,7 +75,6 @@ derive newtype instance monoidXML :: Monoid XML
 
 derive newtype instance eqXML :: Eq XML
 
--- END QUESTION
 foreign import getElementById_ :: EffectFn1 String HTMLElement
 
 foreign import createBlocklyInstance_ :: Effect Blockly
@@ -112,6 +111,10 @@ foreign import select_ :: EffectFn1 Block Unit
 foreign import centerOnBlock_ :: EffectFn2 Workspace String Unit
 
 foreign import hideChaff_ :: EffectFn1 Blockly Unit
+
+foreign import getBlockType_ :: EffectFn1 Block String
+
+foreign import updateToolbox_ :: EffectFn2 Json Workspace Unit
 
 newtype ElementId
   = ElementId String
@@ -208,6 +211,12 @@ centerOnBlock = runEffectFn2 centerOnBlock_
 hideChaff :: Blockly -> Effect Unit
 hideChaff = runEffectFn1 hideChaff_
 
+getBlockType :: Block -> Effect String
+getBlockType = runEffectFn1 getBlockType_
+
+updateToolbox :: Toolbox -> Workspace -> Effect Unit
+updateToolbox toolbox = runEffectFn2 updateToolbox_ (encodeToolbox toolbox)
+
 data Pair
   = Pair String String
 
@@ -231,6 +240,13 @@ data Arg
   | DummyRight
   | DummyLeft
   | DummyCentre
+
+argType :: Arg -> Maybe ({ name :: String, check :: String })
+argType (Value { name, check }) = Just $ { name, check }
+
+argType (Statement { name, check }) = Just $ { name, check }
+
+argType _ = Nothing
 
 type_ :: SProxy "type"
 type_ = SProxy
@@ -313,6 +329,9 @@ defaultBlockDefinition =
   , extensions: []
   , mutator: Nothing
   }
+
+typedArguments :: BlockDefinition -> Array { name :: String, check :: String }
+typedArguments (BlockDefinition { args0 }) = catMaybes $ argType <$> args0
 
 xml :: forall p i. Node ( id :: String, style :: String ) p i
 xml = element (ElemName "xml")

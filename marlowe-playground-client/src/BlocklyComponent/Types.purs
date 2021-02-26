@@ -44,6 +44,7 @@ data Query a
   | LoadWorkspace XML a
   | GetBlockRepresentation (Block -> a)
   | SelectWarning Warning a
+  | SetToolbox Toolbox a
 
 data Action
   = Inject String (Array BlockDefinition) Toolbox
@@ -54,6 +55,7 @@ data Action
 
 data Message
   = CodeChange
+  | BlockSelection (Maybe ({ blockId :: String, blockType :: String }))
 
 blocklyRef :: RefLabel
 blocklyRef = RefLabel "blockly"

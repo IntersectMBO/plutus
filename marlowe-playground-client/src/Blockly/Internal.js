@@ -115,3 +115,12 @@ exports.centerOnBlock_ = function (workspace, blockId) {
 exports.hideChaff_ = function (blockly) {
   blockly.hideChaff();
 }
+
+exports.getBlockType_ = function (block) {
+  return block.type;
+}
+
+exports.updateToolbox_ = function (toolboxJson, workspace) {
+  workspace.updateToolbox(toolboxJson);
+}
+

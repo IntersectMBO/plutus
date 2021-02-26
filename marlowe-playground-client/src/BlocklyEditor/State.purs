@@ -24,7 +24,7 @@ import Halogen (HalogenM, modify_, query)
 import Halogen as H
 import Halogen.Extra (mapSubmodule)
 import MainFrame.Types (ChildSlots, _blocklySlot)
-import Marlowe.Blockly (blockToContract)
+import Marlowe.Blockly as MB
 import Marlowe.Extended (TemplateContent)
 import Marlowe.Extended as EM
 import Marlowe.Holes as Holes
@@ -55,6 +55,14 @@ handleAction Init = do
   handleAction $ InitBlocklyProject $ fromMaybe ME.example mContents
 
 handleAction (HandleBlocklyMessage Blockly.CodeChange) = processBlocklyCode
+
+handleAction (HandleBlocklyMessage (Blockly.BlockSelection selection)) = case mBlockDefinition of
+  Nothing -> void $ query _blocklySlot unit $ H.tell (Blockly.SetToolbox MB.toolbox)
+  Just definition -> void $ query _blocklySlot unit $ H.tell (Blockly.SetToolbox $ MB.toolboxWithHoles definition)
+  where
+  mBlockDefinition = do
+    { blockType } <- selection
+    Map.lookup blockType MB.definitionsMap
 
 handleAction (InitBlocklyProject code) = do
   void $ query _blocklySlot unit $ H.tell (Blockly.SetCode code)
@@ -95,7 +103,7 @@ processBlocklyCode = do
   eContract <-
     runExceptT do
       block <- ExceptT <<< map (note "Blockly Workspace is empty") $ query _blocklySlot unit $ H.request Blockly.GetBlockRepresentation
-      except $ blockToContract block
+      except $ MB.blockToContract block
   case eContract of
     Left e ->
       modify_
@@ -138,7 +146,7 @@ runAnalysis doAnalyze =
     $ runMaybeT do
         block <- MaybeT $ query _blocklySlot unit $ H.request Blockly.GetBlockRepresentation
         -- FIXME: See if we can use runExceptT and show the error somewhere
-        contract <- MaybeT $ pure $ Holes.fromTerm =<< (hush $ blockToContract block)
+        contract <- MaybeT $ pure $ Holes.fromTerm =<< (hush $ MB.blockToContract block)
         lift do
           doAnalyze contract
           processBlocklyCode
@@ -147,5 +155,5 @@ editorGetValue :: forall state action msg m. HalogenM state action ChildSlots ms
 editorGetValue =
   runMaybeT do
     block <- MaybeT $ query _blocklySlot unit $ H.request Blockly.GetBlockRepresentation
-    contract <- hoistMaybe $ hush $ blockToContract block
+    contract <- hoistMaybe $ hush $ MB.blockToContract block
     pure $ show $ pretty $ contract

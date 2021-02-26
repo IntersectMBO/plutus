@@ -2,7 +2,6 @@ module BlocklyEditor.View where
 
 import Prelude hiding (div)
 import Blockly.Internal (block, blockType, style, x, xml, y)
-import Blockly.Toolbox (Toolbox(..), category, leaf)
 import BlocklyComponent.State as Blockly
 import BlocklyEditor.BottomPanel (panelContents)
 import BlocklyEditor.Types (Action(..), BottomPanelView(..), State, _bottomPanelState, _hasHoles, _marloweCode, _warnings)
@@ -31,7 +30,7 @@ render state =
     [ section
         [ classes [ paddingX, minH0, overflowHidden, fullHeight ]
         ]
-        [ slot _blocklySlot unit (Blockly.blocklyComponent MB.rootBlockName MB.blockDefinitions toolbox) unit (Just <<< HandleBlocklyMessage)
+        [ slot _blocklySlot unit (Blockly.blocklyComponent MB.rootBlockName MB.blockDefinitions MB.toolbox) unit (Just <<< HandleBlocklyMessage)
         , workspaceBlocks
         ]
     , section [ classes [ paddingX, maxH70p ] ]
@@ -53,19 +52,6 @@ render state =
   warningsTitle = withCount "Warnings" $ state ^. _warnings
 
   wrapBottomPanelContents panelView = BottomPanel.PanelAction <$> panelContents state panelView
-
-toolbox :: Toolbox
-toolbox =
-  CategoryToolbox
-    [ category "Contracts" MB.contractColour $ map (leaf <<< show) MB.contractTypes
-    , category "Observations" MB.observationColour $ map (leaf <<< show) MB.observationTypes
-    , category "Actions" MB.actionColour $ map (leaf <<< show) MB.actionTypes
-    , category "Values" MB.valueColour $ map (leaf <<< show) MB.valueTypes
-    , category "Payee" MB.payeeColour $ map (leaf <<< show) MB.payeeTypes
-    , category "Party" MB.partyColour $ map (leaf <<< show) MB.partyTypes
-    , category "Token" MB.tokenColour $ map (leaf <<< show) MB.tokenTypes
-    , category "Bounds" MB.boundsColour $ [ leaf $ show MB.BoundsType ]
-    ]
 
 workspaceBlocks :: forall a b. HTML a b
 workspaceBlocks =

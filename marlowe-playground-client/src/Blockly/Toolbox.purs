@@ -1,10 +1,13 @@
 module Blockly.Toolbox
   ( Toolbox(..)
   , ToolboxBlock
-  , Category
+  , Category(..)
+  , CategoryFields
+  , defaultCategoryFields
   , encodeToolbox
   , block
   , category
+  , separator
   , leaf
   ) where
 
@@ -84,13 +87,19 @@ category name colour children =
 leaf :: String -> Category
 leaf _type = CategoryLeaf $ block _type
 
+separator :: Category
+separator = Separator Nothing
+
 data Category
   = Category CategoryFields (Array Category)
   | CategoryLeaf ToolboxBlock
+  | Separator (Maybe String)
+  -- NOTE: Even if the documentation has the posibility to add a label, in practice the
+  --       "label" type doesn't seem to be recognized.
+  | Label String (Maybe String)
 
 -- A category could also be one of these, but not worth to implement at the moment
 -- https://developers.google.com/blockly/guides/configure/web/toolbox#preset_blocks
--- https://developers.google.com/blockly/guides/configure/web/toolbox#separators
 -- https://developers.google.com/blockly/guides/configure/web/toolbox#buttons_and_labels
 encodeCategory :: Category -> Json
 encodeCategory (Category fields children) =
@@ -99,14 +108,43 @@ encodeCategory (Category fields children) =
         ( [ Tuple "kind" (A.fromString "category")
           , Tuple "name" (A.fromString fields.name)
           , Tuple "contents" (A.fromArray $ encodeCategory <$> children)
-          , Tuple "expanded" (A.fromString $ show fields.expanded)
           ]
             <> catMaybes
                 [ Tuple "toolboxitemid" <<< A.fromString <$> fields.toolboxitemid
                 , Tuple "colour" <<< A.fromString <$> fields.colour
                 , Tuple "categorystyle" <<< A.fromString <$> fields.categorystyle
+                , if fields.expanded then
+                    Just $ Tuple "expanded" (A.fromString "true")
+                  else
+                    Nothing
                 ]
         )
     )
 
 encodeCategory (CategoryLeaf b) = encodeBlock b
+
+encodeCategory (Separator mClassName) =
+  A.fromObject
+    ( Object.fromFoldable
+        ( [ Tuple "kind" (A.fromString "sep") ]
+            <> catMaybes
+                [ Tuple "cssConfig"
+                    <<< A.fromObject
+                    <<< Object.singleton "container"
+                    <<< A.fromString
+                    <$> mClassName
+                ]
+        )
+    )
+
+encodeCategory (Label text mClassName) =
+  A.fromObject
+    ( Object.fromFoldable
+        ( [ Tuple "kind" (A.fromString "label")
+          , Tuple "text" (A.fromString text)
+          ]
+            <> catMaybes
+                [ Tuple "web-class" <<< A.fromString <$> mClassName
+                ]
+        )
+    )
