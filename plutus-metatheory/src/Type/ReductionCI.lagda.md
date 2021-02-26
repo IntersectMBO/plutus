@@ -4,7 +4,7 @@ layout: page
 ---
 
 ```
-module Type.ReductionC where
+module Type.ReductionCI where
 ```
 
 The rules are presented in 'contextual style' with a first order
@@ -147,6 +147,28 @@ close-comp (V ⇒r E) E' A = cong (discharge V ⇒_) (close-comp E E' A)
 close-comp (E l⇒ B) E' A = cong (_⇒ B) (close-comp E E' A)
 close-comp (μr V E) E' A = cong (μ (discharge V)) (close-comp E E' A)
 close-comp (μl E B) E' A = cong (λ E → μ E B) (close-comp E E' A)
+
+-- an inductive version of the graph of closeEvalCtx
+data _~_⟦_⟧ : ∅ ⊢⋆ K → EvalCtx K J → ∅ ⊢⋆ J → Set where
+  ~[] : (P : ∅ ⊢⋆ K) → P ~ [] ⟦ P ⟧
+  ~·r : ∀(P : ∅ ⊢⋆ I){A : ∅ ⊢⋆ K ⇒ J}(V : Value⋆ A)(B : ∅ ⊢⋆ K) E
+      → B ~ E ⟦ P ⟧
+      → (discharge V · B) ~ V ·r E ⟦ P ⟧
+  ~l· : ∀(P : ∅ ⊢⋆ I)(A : ∅ ⊢⋆ K ⇒ J)(B : ∅ ⊢⋆ K) E
+      → A ~ E ⟦ P ⟧
+      → (A · B) ~ E l· B ⟦ P ⟧
+  ~⇒r : ∀(P  : ∅ ⊢⋆ K) A (V : Value⋆ A) E B
+      → B ~ E ⟦ P ⟧
+      → (A ⇒ B) ~ V ⇒r E ⟦ P ⟧  
+  ~l⇒ : ∀(P  : ∅ ⊢⋆ K) A B E
+      → A ~ E ⟦ P ⟧
+      → (A ⇒ B) ~ E l⇒ B ⟦ P ⟧  
+  ~μr : ∀(P  : ∅ ⊢⋆ I) A (V : Value⋆ A) E (B : ∅ ⊢⋆ K)
+      → B ~ E ⟦ P ⟧
+      → (μ A B) ~ (μr V E) ⟦ P ⟧  
+  ~μl : ∀(P  : ∅ ⊢⋆ I) A (B : ∅ ⊢⋆ K) E
+      → A ~ E ⟦ P ⟧
+      → (μ A B) ~ (μl E B) ⟦ P ⟧  
 ```
 
 ## Frames
@@ -354,8 +376,8 @@ data _—→⋆_ : ∀{J} → (∅ ⊢⋆ J) → (∅ ⊢⋆ J) → Set where
     → ∀{A A' : ∅ ⊢⋆ K'}
     → A —→⋆ A'
     → {B B' : ∅ ⊢⋆ K}
-    → B  ≡ closeEvalCtx E A
-    → B' ≡ closeEvalCtx E A'
+    → B  ~ E ⟦ A ⟧
+    → B' ~ E ⟦ A' ⟧
       --------------------
     → B —→⋆ B'
     -- ^ explicit equality proofs make pattern matching easier and this uglier
@@ -401,23 +423,23 @@ variables in the empty context.
 progress⋆ : (A : ∅ ⊢⋆ K) → Progress⋆ A
 progress⋆ (` ())
 progress⋆ (μ A B) with progress⋆ A
-... | step p = step (contextRule (μl [] B) p refl refl)
+... | step p = step (contextRule (μl [] B) p (~μl A A B [] (~[] A)) (~μl _ _ B [] (~[] _)))
 ... | done VA with progress⋆ B
-... | step p = step (contextRule (μr VA []) p refl refl)
+... | step p = step (contextRule (μr VA []) p (~μr B A VA [] B (~[] B)) (~μr _ A VA [] _ (~[] _)))
 ... | done VB = done (V-μ VA VB)
 progress⋆ (Π A) = done (V-Π A)
 progress⋆ (A ⇒ B) with progress⋆ A
-... | step p = step (contextRule ([] l⇒ B) p refl refl)
+... | step p = step (contextRule ([] l⇒ B) p (~l⇒ A A B [] (~[] A)) (~l⇒ _ _ _ [] (~[] _)))
 ... | done VA with progress⋆ B
-... | step q = step (contextRule (VA ⇒r []) q refl refl)
+... | step q = step (contextRule (VA ⇒r []) q (~⇒r B _ VA [] B (~[] B)) (~⇒r _ A VA [] _ (~[] _)))
 ... | done VB = done (VA V-⇒ VB)
 progress⋆ (ƛ A) = done (V-ƛ A)
 progress⋆ (A · B) with progress⋆ A
 ... | step p =
-  step (contextRule ([] l· B) p refl refl)
+  step (contextRule ([] l· B) p (~l· A _ B [] (~[] A)) (~l· _ _ B [] (~[] _)))
 ... | done V with progress⋆ B
 ... | step p =
-  step (contextRule (V ·r []) p refl refl)
+  step (contextRule (V ·r []) p (~·r B V B [] (~[] B)) (~·r _ V _ [] (~[] _)))
 progress⋆ (.(ƛ _) · B) | done (V-ƛ A) | done VB = step (β-ƛ VB)
 progress⋆ (con tcn) = done (V-con tcn)
 ```
@@ -427,25 +449,23 @@ progress⋆ (con tcn) = done (V-con tcn)
 A type is a value or it can make a step, but not both:
 
 ```
-lem0 : ∀ A (E : EvalCtx K J) → Value⋆ (closeEvalCtx E A) → Value⋆ A
-lem0 A []       V          = V
-lem0 A (_ ⇒r E) (W V-⇒ W') = lem0 A E W'
-lem0 A (E l⇒ B) (W V-⇒ W') = lem0 A E W
-lem0 A (μr _ E) (V-μ W W') = lem0 A E W'
-lem0 A (μl E B) (V-μ W W') = lem0 A E W
+lem0 : ∀ A B (E : EvalCtx K J) → B ~ E ⟦ A ⟧ → Value⋆ B → Value⋆ A
+lem0 A .A [] (~[] .A) V = V
+lem0 A .(_ · B) (x ·r E) (~·r .A .x B .E p) ()
+lem0 A .(A₁ · x) (E l· x) (~l· .A A₁ .x .E p) ()
+lem0 A .(_ ⇒ B) (x ⇒r E) (~⇒r .A _ .x .E B p) (V V-⇒ W) = lem0 A B E p W
+lem0 A .(A₁ ⇒ x) (E l⇒ x) (~l⇒ .A A₁ .x .E p) (V V-⇒ W) = lem0 A _ E p V
+lem0 A .(μ _ B) (μr x E) (~μr .A _ .x .E B p) (V-μ V W) = lem0 A B E p W
+lem0 A .(μ A₁ B₁) (μl E B₁) (~μl .A A₁ .B₁ .E p) (V-μ V W) = lem0 A _ E p V
 
 notboth : (A : ∅ ⊢⋆ K) → ¬ (Value⋆ A × (Σ (∅ ⊢⋆ K) (A —→⋆_)))
-notboth A (V , A' , contextRule [] p refl refl) = notboth A (V , A' , p)
-notboth _ (() , _ , contextRule (V ·r E) p refl refl)
-notboth _ (() , _ , contextRule (E l· B) p refl refl)
-notboth _ ((V V-⇒ W) , _ , contextRule (_ ⇒r E) p refl refl) =
-  notboth _ (W , _ , contextRule E p refl refl)
-notboth _ ((V V-⇒ W) , _ , contextRule (E l⇒ B) p refl refl) =
-  notboth _ (V , _ , contextRule E p refl refl)
-notboth _ (V-μ V W , _ , contextRule (μr _ E) p refl refl) =
-  notboth _ (W , _ , contextRule E p refl refl)
-notboth _ (V-μ V W , _ , contextRule (μl E B) p refl refl) =
-  notboth _ (V , _ , contextRule E p refl refl)
+notboth A (V , A' , contextRule [] p (~[] .A) (~[] .A')) = notboth A (V , A' , p)
+notboth .(_ · B) (() , .(_ · B₁) , contextRule (x₂ ·r E) p (~·r _ .x₂ B .E x) (~·r _ .x₂ B₁ .E x₁))
+notboth .(A · x₂) (() , .(A₁ · x₂) , contextRule (E l· x₂) p (~l· _ A .x₂ .E x) (~l· _ A₁ .x₂ .E x₁))
+notboth .(_ ⇒ B) ((V V-⇒ W) , .(_ ⇒ B₁) , contextRule (x₂ ⇒r E) p (~⇒r _ _ .x₂ .E B x) (~⇒r _ _ .x₂ .E B₁ x₁)) = notboth _ (W , _ , contextRule E p x x₁)
+notboth .(A ⇒ x₂) (V V-⇒ W , .(A₁ ⇒ x₂) , contextRule (E l⇒ x₂) p (~l⇒ _ A .x₂ .E x) (~l⇒ _ A₁ .x₂ .E x₁)) = notboth _ (V , _ , contextRule E p x x₁)
+notboth .(μ _ B) (V-μ V W , .(μ _ B₁) , contextRule (μr x₂ E) p (~μr _ _ .x₂ .E B x) (~μr _ _ .x₂ .E B₁ x₁)) = notboth _ (W , _ , contextRule E p x x₁)
+notboth .(μ A B) (V-μ V W , .(μ A₁ B) , contextRule (μl E B) p (~μl _ A .B .E x) (~μl _ A₁ .B .E x₁)) = notboth _ (V , _ , contextRule E p x x₁)
 ```
 
 This is not as precisely deterministic as, e.g., we can have beta at
@@ -453,7 +473,6 @@ the top level or we can have beta inside the empty evaluation
 context. Different rules, same answer. So, we have B ≡ B' but not p ≡ q
 
 ```
-{-
 det : (p : A —→⋆ B)(q : A —→⋆ B') → B ≡ B'
 det (contextRule [] p (~[] _) (~[] _)) q = det p q
 det (contextRule (x₄ ·r E) p x x₁) (contextRule [] q (~[] _) (~[] _)) =
@@ -522,5 +541,4 @@ det (β-ƛ x) (contextRule [] q (~[] .(ƛ _ · _)) (~[] _)) = det (β-ƛ x) q
 det (β-ƛ x) (contextRule (x₃ ·r E) q (~·r _ .x₃ _ .E x₁) (~·r _ .x₃ B .E x₂)) = ⊥-elim (notboth _ (lem0 _ _ _ x₁ x , _ , q))
 det (β-ƛ x) (contextRule (E l· x₃) q (~l· _ .(ƛ _) .x₃ _ x₁) (~l· _ A .x₃ _ x₂)) = ⊥-elim (notboth _ (lem0 _ _ _ x₁ (V-ƛ _) , _ , q))
 det (β-ƛ x) (β-ƛ x₁) = refl
--}
 ```
