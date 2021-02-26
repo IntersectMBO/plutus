@@ -41,6 +41,7 @@ module Plutus.V1.Ledger.Value(
       -- * Etc.
     , isZero
     , split
+    , unionWith
     ) where
 
 import qualified Prelude                          as Haskell

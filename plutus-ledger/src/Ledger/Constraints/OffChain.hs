@@ -38,7 +38,7 @@ import           Control.Monad.Reader
 import           Control.Monad.State
 
 import           Data.Aeson                       (FromJSON, ToJSON)
-import           Data.Foldable                    (traverse_)
+import           Data.Foldable                    (fold, traverse_)
 import           Data.Map                         (Map)
 import qualified Data.Map                         as Map
 import           Data.Semigroup                   (First (..))
@@ -64,6 +64,7 @@ import           Plutus.V1.Ledger.Scripts         (Datum (..), DatumHash, Moneta
                                                    datumHash, monetaryPolicyHash)
 import           Plutus.V1.Ledger.Tx              (Tx, TxOutRef, TxOutTx (..))
 import qualified Plutus.V1.Ledger.Tx              as Tx
+import           Plutus.V1.Ledger.Value           (Value)
 import qualified Plutus.V1.Ledger.Value           as Value
 
 data ScriptLookups a =
@@ -207,8 +208,9 @@ processLookupsAndConstraints
 processLookupsAndConstraints lookups TxConstraints{txConstraints, txOwnInputs, txOwnOutputs} =
         flip runReaderT lookups $ do
             traverse_ processConstraint txConstraints
-            traverse_ addOwnInput txOwnInputs
-            traverse_ addOwnOutput txOwnOutputs
+            valueFromInputs <- fold <$> traverse addOwnInput txOwnInputs
+            valueFromOutputs <- fold <$> traverse addOwnOutput txOwnOutputs
+            valueSpentBalance <>= N.negate (convexUnion valueFromInputs valueFromOutputs)
             addMissingValueSpent
 
 -- | Turn a 'TxConstraints' value into an unbalanced transaction that satisfies
@@ -245,7 +247,8 @@ addMissingValueSpent = do
             pk <- asks slOwnPubkey >>= maybe (throwError OwnPubKeyMissing) pure
             unbalancedTx . tx . Tx.outputs %= (Tx.TxOut (PubKeyAddress pk) missing Tx.PayToPubKey :)
 
--- | Add a typed input, checking the type of the output it spends.
+-- | Add a typed input, checking the type of the output it spends. Return the value
+--   of the spent output.
 addOwnInput
     :: ( MonadReader (ScriptLookups a) m
         , MonadError MkTxError m
@@ -254,7 +257,7 @@ addOwnInput
         , IsData (RedeemerType a)
         )
     => InputConstraint (RedeemerType a)
-    -> m ()
+    -> m Value
 addOwnInput InputConstraint{icRedeemer, icTxOutRef} = do
     ScriptLookups{slTxOutputs, slScriptInstance} <- ask
     inst <- maybe (throwError ScriptInstanceMissing) pure slScriptInstance
@@ -263,9 +266,11 @@ addOwnInput InputConstraint{icRedeemer, icTxOutRef} = do
         $ runExcept @ConnectionError
         $ Typed.typeScriptTxOutRef (`Map.lookup` slTxOutputs) inst icTxOutRef
     let txIn = Typed.makeTypedScriptTxIn inst icRedeemer typedOutRef
+        vl   = Tx.txOutValue $ Typed.tyTxOutTxOut $ Typed.tyTxOutRefOut typedOutRef
     unbalancedTx . tx . Tx.inputs %= Set.insert (Typed.tyTxInTxIn txIn)
-    valueSpentBalance <>= N.negate (Tx.txOutValue $ Typed.tyTxOutTxOut $ Typed.tyTxOutRefOut typedOutRef)
+    pure vl
 
+-- | Add a typed output and return its value.
 addOwnOutput
     :: ( MonadReader (ScriptLookups a) m
         , MonadState ConstraintProcessingState m
@@ -273,7 +278,7 @@ addOwnOutput
         , MonadError MkTxError m
         )
     => OutputConstraint (DatumType a)
-    -> m ()
+    -> m Value
 addOwnOutput OutputConstraint{ocDatum, ocValue} = do
     ScriptLookups{slScriptInstance} <- ask
     inst <- maybe (throwError ScriptInstanceMissing) pure slScriptInstance
@@ -281,7 +286,7 @@ addOwnOutput OutputConstraint{ocDatum, ocValue} = do
         dsV   = Datum (toData ocDatum)
     unbalancedTx . tx . Tx.outputs %= (Typed.tyTxOutTxOut txOut :)
     unbalancedTx . tx . Tx.datumWitnesses . at (datumHash dsV) .= Just dsV
-    valueSpentBalance <>= N.negate ocValue
+    pure ocValue
 
 data MkTxError =
     TypeCheckFailed ConnectionError
@@ -414,3 +419,8 @@ processConstraint = \case
         unless (datumHash dv == dvh)
             (throwError $ DatumWrongHash dvh dv)
         unbalancedTx . tx . Tx.datumWitnesses %= set (at dvh) (Just dv)
+
+-- | The union of two values, taking the larger amount when both keys
+--   are present.
+convexUnion :: Value -> Value -> Value
+convexUnion = Value.unionWith max
