@@ -112,8 +112,8 @@ handleAction AddNewWallet = do
   when (not $ member newWalletNicknameKey oldWallets) do
     modify_
       $ (over _wallets) (insert newWalletNicknameKey defaultWalletDetails)
-      <<< (set _newWalletNicknameKey) mempty
-      <<< (_playState <<< set _card) Nothing
+      <<< set _newWalletNicknameKey mempty
+      <<< set (_playState <<< _card) Nothing
     newWallets <- use _wallets
     liftEffect $ setItem walletsLocalStorageKey $ encodeJSON newWallets
 
@@ -127,8 +127,8 @@ handleAction (PickupAction Pickup.PickupNewWallet) = do
 
 handleAction (PickupAction (Pickup.PickupWallet pubKey)) = do
   modify_
-    $ (set _subState) (Right $ Play.mkInitialState pubKey)
-    <<< (_pickupState <<< set _card) Nothing
+    $ set _subState (Right $ Play.mkInitialState pubKey)
+    <<< set (_pickupState <<< _card) Nothing
   liftEffect $ setItem walletLocalStorageKey $ encodeJSON pubKey
 
 -- TODO: generate wallet on the backend; for now just create a random number
@@ -137,8 +137,8 @@ handleAction (PickupAction Pickup.GenerateNewWallet) = do
   let
     key = show $ randomNumber
   modify_
-    $ (_newWalletNicknameKey <<< set _key) key
-    <<< (_pickupState <<< set _card) (Just Pickup.PickupNewWalletCard)
+    $ set (_newWalletNicknameKey <<< _key) key
+    <<< set (_pickupState <<< _card) (Just Pickup.PickupNewWalletCard)
 
 handleAction (PickupAction (Pickup.LookupWallet string)) = do
   wallets <- use _wallets

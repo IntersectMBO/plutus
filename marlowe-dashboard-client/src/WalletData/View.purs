@@ -14,7 +14,7 @@ import Data.Map.Extra (findIndex)
 import Data.Maybe (Maybe(..), isJust)
 import Data.Tuple (Tuple(..), fst, snd)
 import Halogen.HTML (HTML, button, datalist, div, div_, h2_, hr_, input, li, option, p_, span, text, ul)
-import Halogen.HTML.Events (onClick, onValueInput)
+import Halogen.HTML.Events.Extra (onClick_, onValueInput_)
 import Halogen.HTML.Properties (InputType(..), disabled, id_, placeholder, readOnly, type_, value)
 import Marlowe.Semantics (PubKey)
 import Material.Icons as Icon
@@ -43,7 +43,7 @@ newWalletCard newWalletNicknameKey wallets =
           , classNames $ toggleWhen (mNicknameError == Nothing) "border-green" "border-red"
           , placeholder "Nickname"
           , value nickname
-          , onValueInput $ Just <<< SetNewWalletNickname
+          , onValueInput_ SetNewWalletNickname
           ]
       , div
           [ classNames [ "mb-1", "text-red", "text-sm" ] ]
@@ -55,7 +55,7 @@ newWalletCard newWalletNicknameKey wallets =
           , classNames $ toggleWhen (mKeyError == Nothing) "border-green" "border-red"
           , placeholder "Wallet key"
           , value key
-          , onValueInput $ Just <<< SetNewWalletKey
+          , onValueInput_ SetNewWalletKey
           ]
       , div
           [ classNames [ "mb-1", "text-red", "text-sm" ] ]
@@ -64,7 +64,7 @@ newWalletCard newWalletNicknameKey wallets =
               Nothing -> []
       , button
           [ disabled $ isJust mKeyError || isJust mNicknameError
-          , onClick $ const $ Just AddNewWallet
+          , onClick_ AddNewWallet
           ]
           [ text "Save new contact" ]
       ]
@@ -101,7 +101,7 @@ putdownWalletCard pubKeyHash wallets =
           , readOnly true
           ]
       , button
-          [ onClick $ const $ Just PutdownWallet ]
+          [ onClick_ PutdownWallet ]
           [ text "Put down wallet" ]
       ]
 
@@ -122,7 +122,7 @@ walletLibraryScreen wallets =
         [ classNames [ "absolute", "bottom-1", "left-1", "right-1" ] ]
         [ button
             [ classNames [ "w-full", "px-1", "flex", "justify-between", "items-center" ]
-            , onClick $ const $ Just $ ToggleCard CreateWalletCard
+            , onClick_ $ ToggleCard CreateWalletCard
             ]
             [ span
                 [ classNames [ "mr-0.5" ] ]
@@ -135,7 +135,7 @@ walletLibraryScreen wallets =
   contactLi (Tuple localWalletKey@(Tuple nickname key) localWallet) =
     li
       [ classNames [ "mt-1", "hover:cursor-pointer", "hover:text-green" ]
-      , onClick $ const $ Just $ ToggleCard $ ViewWalletCard localWalletKey localWallet
+      , onClick_ $ ToggleCard $ ViewWalletCard localWalletKey localWallet
       ]
       [ text nickname ]
 

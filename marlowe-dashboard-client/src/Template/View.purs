@@ -14,7 +14,7 @@ import Data.Maybe (Maybe(..), fromMaybe)
 import Data.Set (toUnfoldable) as Set
 import Data.Tuple.Nested ((/\))
 import Halogen.HTML (HTML, a, button, div, div_, h2_, h3_, h4_, input, label, li, p_, span, text, ul, ul_)
-import Halogen.HTML.Events (onClick, onValueInput)
+import Halogen.HTML.Events.Extra (onClick_, onValueInput_)
 import Halogen.HTML.Properties (InputType(..), enabled, for, id_, list, min, placeholder, readOnly, type_, value)
 import Marlowe.Extended (Contract, IntegerTemplateType(..), TemplateContent, _slotContent, _valueContent, getParties)
 import Marlowe.Semantics (PubKey, Party(..))
@@ -59,7 +59,7 @@ contractSetupScreenHeader setupScreen contractNickname =
             , type_ InputText
             , placeholder "Contract name"
             , value contractNickname
-            , onValueInput $ Just <<< SetContractNickname
+            , onValueInput_ SetContractNickname
             ]
         ]
     , div
@@ -82,28 +82,28 @@ contractNavigationButtons :: forall p. Screen -> Map String String -> WalletLibr
 contractNavigationButtons screen roleWallets wallets = case screen of
   ContractRolesScreen ->
     [ a
-        [ onClick $ const $ Just $ ToggleTemplateLibraryCard ]
+        [ onClick_ ToggleTemplateLibraryCard ]
         [ text "< Library quick access" ]
     , button
-        [ onClick $ const $ Just $ SetScreen ContractParametersScreen
+        [ onClick_ $ SetScreen ContractParametersScreen
         , enabled $ roleWalletsAreValid roleWallets wallets
         ]
         [ text "Next >" ]
     ]
   ContractParametersScreen ->
     [ a
-        [ onClick $ const $ Just $ SetScreen ContractRolesScreen ]
+        [ onClick_ $ SetScreen ContractRolesScreen ]
         [ text "< Roles" ]
     , button
-        [ onClick $ const $ Just $ SetScreen ContractReviewScreen ]
+        [ onClick_ $ SetScreen ContractReviewScreen ]
         [ text "Next >" ]
     ]
   ContractReviewScreen ->
     [ a
-        [ onClick $ const $ Just $ SetScreen ContractParametersScreen ]
+        [ onClick_ $ SetScreen ContractParametersScreen ]
         [ text "< Parameters" ]
     , button
-        [ onClick $ const $ Just $ ToggleSetupConfirmationCard ]
+        [ onClick_ $ ToggleSetupConfirmationCard ]
         [ text "Pay and start >" ]
     ]
 
@@ -150,7 +150,7 @@ contractRolesScreen wallets metaData extendedContract roleWallets =
             , id_ tokenName
             , type_ InputText
             , list "walletNicknames"
-            , onValueInput $ Just <<< SetRoleWallet tokenName
+            , onValueInput_ $ SetRoleWallet tokenName
             , value assigned
             ]
         , div
@@ -196,7 +196,7 @@ contractParametersScreen metaData templateContent =
             [ classNames $ [ "w-full" ] <> toggleWhen (mParameterError == Nothing) "border-green" "border-red"
             , type_ InputNumber
             , min one
-            , onValueInput $ Just <<< SetParameter integerTemplateType key <<< BigInteger.fromString
+            , onValueInput_ $ SetParameter integerTemplateType key <<< BigInteger.fromString
             , value $ show parameterValue
             ]
         , div
@@ -233,7 +233,7 @@ templateLibraryCard templates =
           [ text template.metaData.contractDescription ]
       , button
           [ classNames [ "bg-green", "text-white" ]
-          , onClick $ const $ Just $ SetTemplate template
+          , onClick_ $ SetTemplate template
           ]
           [ text "Setup" ]
       ]
@@ -246,12 +246,12 @@ contractSetupConfirmationCard =
         [ classNames [ "flex" ] ]
         [ button
             [ classNames [ "flex-1", "mr-1" ]
-            , onClick $ const $ Just StartContract
+            , onClick_ StartContract
             ]
             [ text "Pay and start" ]
         , button
             [ classNames [ "flex-1" ]
-            , onClick $ const $ Just $ ToggleSetupConfirmationCard
+            , onClick_ ToggleSetupConfirmationCard
             ]
             [ text "Cancel" ]
         ]

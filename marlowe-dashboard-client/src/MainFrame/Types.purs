@@ -58,12 +58,9 @@ data Msg
 ------------------------------------------------------------
 data Action
   = Init
-  -- "global" wallet data actions (can be performed in either pickup or play state)
   | SetNewWalletNickname String
   | AddNewWallet
-  -- pickup actions
   | PickupAction Pickup.Action
-  -- play actions
   | PlayAction Play.Action
 
 -- | Here we decide which top-level queries to track as GA events, and

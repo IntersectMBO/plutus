@@ -9,7 +9,7 @@ import Data.Foldable (foldMap)
 import Data.Lens (view)
 import Data.Maybe (Maybe(..), isNothing)
 import Halogen.HTML (HTML, a, div, footer, h1, header, main, nav, span, text)
-import Halogen.HTML.Events (onClick)
+import Halogen.HTML.Events.Extra (onClick_)
 import Halogen.HTML.Properties (href)
 import MainFrame.Lenses (_card, _screen)
 import Marlowe.Semantics (PubKey)
@@ -17,14 +17,82 @@ import Material.Icons as Icon
 import Play.Lenses (_contractState, _menuOpen, _templateState, _wallet)
 import Play.Types (Action(..), Card(..), ContractStatus(..), Screen(..), State)
 import Prim.TypeError (class Warn, Text)
-import Template.Types (Template)
 import Template.Types (State) as Template
+import Template.Types (Template)
 import Template.View (contractSetupConfirmationCard, contractSetupScreen, templateLibraryCard)
 import WalletData.Types (WalletLibrary, WalletNicknameKey)
 import WalletData.View (newWalletCard, walletDetailsCard, putdownWalletCard, walletLibraryScreen)
 
 renderPlayState :: forall p. WalletLibrary -> WalletNicknameKey -> Array Template -> State -> HTML p Action
 renderPlayState wallets newWalletNicknameKey templates playState =
+  let
+    wallet = view _wallet playState
+
+    menuOpen = view _menuOpen playState
+  in
+    div
+      [ classNames [ "grid", "h-full", "grid-rows-main" ] ]
+      [ renderHeader wallet menuOpen
+      , renderMain newWalletNicknameKey wallets templates playState
+      , renderFooter
+      ]
+
+------------------------------------------------------------
+renderHeader :: forall p. PubKey -> Boolean -> HTML p Action
+renderHeader wallet menuOpen =
+  header
+    [ classNames [ "relative", "flex", "justify-between", "text-green" ] ]
+    [ h1
+        [ classNames $ itemClasses <> [ "cursor-pointer" ]
+        , onClick_ $ SetScreen $ ContractsScreen Running
+        ]
+        [ Icon.image
+        , span
+            [ classNames [ "ml-0.5" ] ]
+            [ text "Demo" ]
+        ]
+    , nav
+        [ classNames [ "flex" ] ]
+        [ a
+            [ classNames $ itemClasses <> [ "hidden", "md:flex" ]
+            , onClick_ $ SetScreen WalletLibraryScreen
+            ]
+            [ Icon.contacts
+            , span
+                [ classNames [ "ml-0.5" ] ]
+                [ text "Contacts" ]
+            ]
+        , a
+            [ classNames itemClasses
+            , onClick_ $ ToggleCard PutdownWalletCard
+            ]
+            [ Icon.wallet
+            , span
+                [ classNames [ "ml-0.5", "hidden", "md:inline" ] ]
+                [ text "Wallet" ]
+            ]
+        , a
+            [ classNames $ itemClasses <> [ "md:hidden" ]
+            , onClick_ ToggleMenu
+            ]
+            [ if menuOpen then Icon.close else Icon.menu ]
+        , a
+            [ classNames $ itemClasses <> [ "px-1", "bg-green", "text-white" ]
+            , onClick_ $ ToggleCard TemplateLibraryCard
+            ]
+            [ span
+                [ classNames [ "mr-0.5" ] ]
+                [ text "New" ]
+            , Icon.libraryAdd
+            ]
+        ]
+    ]
+  where
+  itemClasses = [ "flex", "items-center", "p-0.5" ]
+
+------------------------------------------------------------
+renderMain :: forall p. WalletNicknameKey -> WalletLibrary -> Array Template -> State -> HTML p Action
+renderMain newWalletNicknameKey wallets templates playState =
   let
     wallet = view _wallet playState
 
@@ -38,75 +106,12 @@ renderPlayState wallets newWalletNicknameKey templates playState =
 
     contractState = view _contractState playState
   in
-    div
-      [ classNames [ "grid", "h-full", "grid-rows-main" ] ]
-      [ renderHeader wallet menuOpen
-      , renderMain newWalletNicknameKey wallets templates wallet menuOpen screen card templateState contractState
-      , renderFooter
+    main
+      [ classNames [ "relative", "bg-lightblue", "text-blue" ] ]
+      [ renderMobileMenu menuOpen
+      , renderCards newWalletNicknameKey wallets templates wallet card contractState
+      , renderScreen wallets screen templateState
       ]
-
-------------------------------------------------------------
-renderHeader :: forall p. PubKey -> Boolean -> HTML p Action
-renderHeader wallet menuOpen =
-  header
-    [ classNames [ "relative", "flex", "justify-between", "text-green" ] ]
-    [ h1
-        [ classNames $ itemClasses <> [ "cursor-pointer" ]
-        , onClick $ const $ Just $ SetScreen $ ContractsScreen Running
-        ]
-        [ Icon.image
-        , span
-            [ classNames [ "ml-0.5" ] ]
-            [ text "Demo" ]
-        ]
-    , nav
-        [ classNames [ "flex" ] ]
-        [ a
-            [ classNames $ itemClasses <> [ "hidden", "md:flex" ]
-            , onClick $ const $ Just $ SetScreen WalletLibraryScreen
-            ]
-            [ Icon.contacts
-            , span
-                [ classNames [ "ml-0.5" ] ]
-                [ text "Contacts" ]
-            ]
-        , a
-            [ classNames itemClasses
-            , onClick $ const $ Just $ ToggleCard PutdownWalletCard
-            ]
-            [ Icon.wallet
-            , span
-                [ classNames [ "ml-0.5", "hidden", "md:inline" ] ]
-                [ text "Wallet" ]
-            ]
-        , a
-            [ classNames $ itemClasses <> [ "md:hidden" ]
-            , onClick $ const $ Just ToggleMenu
-            ]
-            [ if menuOpen then Icon.close else Icon.menu ]
-        , a
-            [ classNames $ itemClasses <> [ "px-1", "bg-green", "text-white" ]
-            , onClick $ const $ Just $ ToggleCard TemplateLibraryCard
-            ]
-            [ span
-                [ classNames [ "mr-0.5" ] ]
-                [ text "New" ]
-            , Icon.libraryAdd
-            ]
-        ]
-    ]
-  where
-  itemClasses = [ "flex", "items-center", "p-0.5" ]
-
-------------------------------------------------------------
-renderMain :: forall p. WalletNicknameKey -> WalletLibrary -> Array Template -> PubKey -> Boolean -> Screen -> Maybe Card -> Template.State -> Contract.State -> HTML p Action
-renderMain newWalletNicknameKey wallets templates wallet menuOpen screen card templateState contractState =
-  main
-    [ classNames [ "relative", "bg-lightblue", "text-blue" ] ]
-    [ renderMobileMenu menuOpen
-    , renderCards newWalletNicknameKey wallets templates wallet card contractState
-    , renderScreen wallets screen templateState
-    ]
 
 renderMobileMenu :: forall p. Boolean -> HTML p Action
 renderMobileMenu menuOpen =
@@ -136,7 +141,7 @@ renderCards newWalletNicknameKey wallets templates wallet card contractState =
             [ classNames [ "flex", "justify-end" ] ]
             [ a
                 [ classNames [ "p-0.5", "leading-none", "text-green" ]
-                , onClick $ const $ Just $ SetCard Nothing
+                , onClick_ $ SetCard Nothing
                 ]
                 [ Icon.close ]
             ]
@@ -201,6 +206,6 @@ link label urlOrAction =
     [ classNames [ "p-1", "text-green", "hover:underline", "cursor-pointer" ]
     , case urlOrAction of
         Left url -> href url
-        Right action -> onClick $ const $ Just action
+        Right action -> onClick_ action
     ]
     [ text label ]

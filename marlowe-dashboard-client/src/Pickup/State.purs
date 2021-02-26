@@ -28,16 +28,9 @@ handleAction ::
   MonadAff m =>
   MonadAsk Env m =>
   Action -> HalogenM MainFrame.State MainFrame.Action ChildSlots Msg m Unit
-handleAction (SetNewWalletNickname nickname) = pure unit -- handled in `MainFrame.State`
-
-handleAction PickupNewWallet = pure unit -- handled in `MainFrame.State`
-
-handleAction (PickupWallet pubKey) = pure unit -- handled in `MainFrame.State`
-
-handleAction GenerateNewWallet = pure unit -- handled in `MainFrame.State`
-
-handleAction (LookupWallet _) = pure unit -- handled in `MainFrame.State`
-
 handleAction (SetScreen screen) = assign (_pickupState <<< _screen) screen
 
 handleAction (SetCard card) = assign (_pickupState <<< _card) card
+
+-- all other actions are handled in `MainFrame.State`
+handleAction _ = pure unit

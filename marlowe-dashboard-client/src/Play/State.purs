@@ -11,6 +11,7 @@ import Control.Monad.State.Class (get)
 import Data.Foldable (for_)
 import Data.Lens (assign, modifying, set, view)
 import Data.Lens.Extra (peruse)
+import Data.Lens.Prism.Maybe (_Just)
 import Data.Maybe (Maybe(..))
 import Effect.Aff.Class (class MonadAff)
 import Env (Env)
@@ -45,21 +46,13 @@ handleAction ::
   MonadAff m =>
   MonadAsk Env m =>
   Action -> HalogenM MainFrame.State MainFrame.Action ChildSlots Msg m Unit
-handleAction (SetNewWalletNickname _) = pure unit -- handled in `MainFrame.State`
-
-handleAction (SetNewWalletKey key) = pure unit -- handled in `MainFrame.State`
-
-handleAction AddNewWallet = pure unit -- handled in `MainFrame.State`
-
-handleAction PutdownWallet = pure unit -- handled in `MainFrame.State`
-
 handleAction ToggleMenu = modifying (_playState <<< _menuOpen) not
 
 handleAction (SetScreen screen) =
   modify_
-    $ (_playState <<< set _menuOpen) false
-    <<< (_playState <<< set _card) Nothing
-    <<< (_playState <<< set _screen) screen
+    $ set (_playState <<< _menuOpen) false
+    <<< set (_playState <<< _card) Nothing
+    <<< set (_playState <<< _screen) screen
 
 handleAction (SetCard card) = do
   previousCard <- peruse (_playState <<< _card)
@@ -67,10 +60,10 @@ handleAction (SetCard card) = do
   for_ previousCard $ const $ assign (_playState <<< _menuOpen) false
 
 handleAction (ToggleCard card) = do
-  mCurrentCard <- peruse (_playState <<< _card)
+  mCurrentCard <- peruse (_playState <<< _card <<< _Just)
   case mCurrentCard of
     Just currentCard
-      | currentCard == Just card -> handleAction $ SetCard Nothing
+      | currentCard == card -> handleAction $ SetCard Nothing
     _ -> handleAction $ SetCard $ Just card
 
 -- template actions that need to be handled here
@@ -107,3 +100,6 @@ handleAction (TemplateAction templateAction) = Template.handleAction templateAct
 handleAction (ContractAction contractAction) = do
   state <- get
   mapMaybeSubmodule state (_playState <<< _contractState) (MainFrame.PlayAction <<< ContractAction) Contract.defaultState (Contract.handleAction contractAction)
+
+-- all other actions are handled in `MainFrame.State`
+handleAction _ = pure unit

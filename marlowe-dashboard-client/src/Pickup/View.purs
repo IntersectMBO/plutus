@@ -6,7 +6,7 @@ import Data.Lens (view)
 import Data.Maybe (Maybe(..), isJust, isNothing)
 import Data.Tuple (fst, snd)
 import Halogen.HTML (HTML, a, br_, button, div, footer, h2_, header, input, label, main, p, text)
-import Halogen.HTML.Events (onClick, onValueInput)
+import Halogen.HTML.Events.Extra (onClick_, onValueInput_)
 import Halogen.HTML.Properties (InputType(..), disabled, for, href, id_, list, placeholder, readOnly, type_, value)
 import MainFrame.Lenses (_card, _screen)
 import Material.Icons as Icon
@@ -43,7 +43,7 @@ renderPickupCard pickupCard newWalletNicknameKey wallets =
             [ classNames [ "flex", "justify-end" ] ]
             [ a
                 [ classNames [ "p-0.5", "text-green" ]
-                , onClick $ const $ Just $ SetCard Nothing
+                , onClick_ $ SetCard Nothing
                 ]
                 [ Icon.close ]
             ]
@@ -87,7 +87,7 @@ pickupNewWalletCard newWalletNicknameKey wallets =
           , id_ "newWalletNickname"
           , placeholder "Nickname"
           , value nickname
-          , onValueInput $ Just <<< SetNewWalletNickname
+          , onValueInput_ SetNewWalletNickname
           ]
       , div
           [ classNames [ "mb-1", "text-red", "text-sm" ] ]
@@ -96,7 +96,7 @@ pickupNewWalletCard newWalletNicknameKey wallets =
               Nothing -> []
       , button
           [ disabled $ isJust mNicknameError
-          , onClick $ const $ Just PickupNewWallet
+          , onClick_ PickupNewWallet
           ]
           [ text "Pickup new wallet" ]
       ]
@@ -129,7 +129,7 @@ pickupLocalWalletCard walletNicknameKey =
         ]
     , br_
     , button
-        [ onClick $ const $ Just $ PickupWallet $ snd walletNicknameKey ]
+        [ onClick_ $ PickupWallet $ snd walletNicknameKey ]
         [ text "Pickup wallet" ]
     ]
 
@@ -157,7 +157,7 @@ pickupWalletScreen wallets =
             [ text "Here be some words of wisdom." ]
         , button
             [ classNames [ "mb-1" ]
-            , onClick $ const $ Just $ GenerateNewWallet
+            , onClick_ GenerateNewWallet
             ]
             [ text "Generate play wallet" ]
         , label
@@ -169,7 +169,7 @@ pickupWalletScreen wallets =
             [ type_ InputText
             , id_ "existingWallet"
             , list "walletNicknames"
-            , onValueInput $ Just <<< LookupWallet
+            , onValueInput_ LookupWallet
             ]
         , nicknamesDataList wallets
         ]
