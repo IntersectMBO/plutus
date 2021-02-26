@@ -463,39 +463,3 @@ benchmark plutus-core-create-cost-model
         bytestring -any
     other-modules:
         CostModelCreation
-
--- This test is problematic in CI: pretending that it's a benchmark will prevent
--- it from being run automatically but will still allow us to run it manually.
-benchmark plutus-core-test-cost-model
-    type: exitcode-stdio-1.0
-    main-is: TestCostModels.hs
-    hs-source-dirs: test-cost-model, cost-model-creation
-    default-language: Haskell2010
-    ghc-options: -threaded -rtsopts -with-rtsopts=-N -Wall -Wincomplete-uni-patterns
-                 -Wincomplete-record-updates -Wredundant-constraints -Widentities
-    build-depends:
-        base -any,
-        bytestring -any,
-        barbies -any,
-        containers -any,
-        plutus-core -any,
-        serialise -any,
-        deepseq -any,
-        lens -any,
-        directory -any,
-        hedgehog -any,
-        vector -any,
-        aeson -any,
-        text -any,
-        deriving-aeson >= 0.2.3,
-        extra -any,
-        data-default -any,
-        cassava -any,
-        mmorph -any,
-        exceptions -any,
-        hedgehog -any,
-        bytestring -any,
-        containers -any,
-        inline-r -any
-    other-modules:
-        CostModelCreation
