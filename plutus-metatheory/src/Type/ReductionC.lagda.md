@@ -28,7 +28,7 @@ open import Data.Product
 open import Data.Empty
 
 open import Relation.Binary.PropositionalEquality
-  using (_≡_;refl;cong;subst;trans;sym)
+  using (_≡_;refl;cong;subst;trans;sym;inspect) renaming ([_] to blah)
 ```
 
 ## Values
@@ -453,74 +453,85 @@ the top level or we can have beta inside the empty evaluation
 context. Different rules, same answer. So, we have B ≡ B' but not p ≡ q
 
 ```
+variable K' : Kind
+
+inv·l : ∀ A A' (B : ∅ ⊢⋆ K)(B' : ∅ ⊢⋆ K')
+  → A · B ≡ A' · B' → Σ (K' ⇒ J ≡ K ⇒ J) λ p → A ≡ subst (∅ ⊢⋆_) p A'
+inv·l A .A B .B refl = refl , refl
+
+inv·r : ∀ (A : ∅ ⊢⋆ K ⇒ J) A' (B : ∅ ⊢⋆ K)(B' : ∅ ⊢⋆ K')
+  → A · B ≡ A' · B' → Σ (K' ≡ K) λ p → B ≡ subst (∅ ⊢⋆_) p B'
+inv·r A .A B .B refl = refl , refl
+
+-- this is rather unpleasant with this definition of closeEvalCtx
+-- it's do-able but ugly, some lemmas would be useful rather than using 'with'
 {-
 det : (p : A —→⋆ B)(q : A —→⋆ B') → B ≡ B'
-det (contextRule [] p (~[] _) (~[] _)) q = det p q
-det (contextRule (x₄ ·r E) p x x₁) (contextRule [] q (~[] _) (~[] _)) =
-  det (contextRule _ p x x₁) q
-det (contextRule (x₄ ·r E) p (~·r _ .x₄ B .E x) (~·r _ .x₄ B₁ .E x₁)) (contextRule (x₅ ·r E') q (~·r _ .x₅ .B .E' x₂) (~·r _ .x₅ B₂ .E' x₃)) =
-  cong (_ ·_) (det (contextRule E p x x₁) (contextRule E' q x₂ x₃))
-det (contextRule (x₄ ·r E) p (~·r _ .x₄ B .E x) (~·r _ .x₄ B₁ .E x₁)) (contextRule (E' l· .B) q (~l· _ _ .B .E' x₂) (~l· _ A .B .E' x₃)) =
-  ⊥-elim (notboth _ (lem0 _ _ _ x₂ x₄ , _ , q))
-det (contextRule (x₄ ·r E) p (~·r _ .x₄ B .E x) (~·r _ .x₄ B₁ .E x₁)) (contextRule (x₅ ⇒r E') q () x₃)
-det (contextRule (x₄ ·r E) p (~·r _ .x₄ B .E x) (~·r _ .x₄ B₁ .E x₁)) (contextRule (E' l⇒ x₅) q () x₃)
-det (contextRule (x₄ ·r E) p (~·r _ .x₄ B .E x) (~·r _ .x₄ B₁ .E x₁)) (contextRule (μr x₅ E') q () x₃)
-det (contextRule (x₄ ·r E) p (~·r _ .x₄ B₁ .E x) (~·r _ .x₄ B₂ .E x₁)) (contextRule (μl E' B) q () x₃)
-det C@(contextRule (E l· x₄) p x x₁) (contextRule [] q (~[] _) (~[] _)) =
-  det C q
-det (contextRule (E l· x₄) p (~l· _ A .x₄ .E x) (~l· _ A₁ .x₄ .E x₁)) (contextRule (x₅ ·r E') q (~·r _ .x₅ .x₄ .E' x₂) (~·r _ .x₅ B .E' x₃)) =
-  ⊥-elim (notboth _ (lem0 _ _ _ x x₅ , _ , p))
-det (contextRule (E l· x₄) p (~l· _ A .x₄ .E x) (~l· _ A₁ .x₄ .E x₁)) (contextRule (E' l· .x₄) q (~l· _ .A .x₄ .E' x₂) (~l· _ A₂ .x₄ .E' x₃)) =
-  cong (_· _) (det (contextRule E p x x₁) (contextRule E' q x₂ x₃))
-det (contextRule (E l· x₄) p (~l· _ A .x₄ .E x) (~l· _ A₁ .x₄ .E x₁)) (contextRule (x₅ ⇒r E') q () x₃)
-det (contextRule (E l· x₄) p (~l· _ A .x₄ .E x) (~l· _ A₁ .x₄ .E x₁)) (contextRule (E' l⇒ x₅) q () x₃)
-det (contextRule (E l· x₄) p (~l· _ A .x₄ .E x) (~l· _ A₁ .x₄ .E x₁)) (contextRule (μr x₅ E') q () x₃)
-det (contextRule (E l· x₄) p (~l· _ A .x₄ .E x) (~l· _ A₁ .x₄ .E x₁)) (contextRule (μl E' B) q () x₃)
-det C@(contextRule (x₄ ⇒r E) p x x₁) (contextRule [] q (~[] _) (~[] _)) =
-  det C q 
-det (contextRule (x₄ ⇒r E) p (~⇒r _ _ .x₄ .E B x) (~⇒r _ _ .x₄ .E B₁ x₁)) (contextRule (x₅ ·r E') q () x₃)
-det (contextRule (x₄ ⇒r E) p (~⇒r _ _ .x₄ .E B x) (~⇒r _ _ .x₄ .E B₁ x₁)) (contextRule (E' l· x₅) q () x₃)
-det (contextRule (x₄ ⇒r E) p (~⇒r _ _ .x₄ .E B x) (~⇒r _ _ .x₄ .E B₁ x₁)) (contextRule (x₅ ⇒r E') q (~⇒r _ _ .x₅ .E' .B x₂) (~⇒r _ _ .x₅ .E' B₂ x₃)) =
-   cong (_ ⇒_) (det (contextRule E p x x₁) (contextRule E' q x₂ x₃))
-det (contextRule (x₄ ⇒r E) p (~⇒r _ _ .x₄ .E B x) (~⇒r _ _ .x₄ .E B₁ x₁)) (contextRule (E' l⇒ .B) q (~l⇒ _ _ .B .E' x₂) (~l⇒ _ A .B .E' x₃)) =
-  ⊥-elim (notboth _ (lem0 _ _ _ x₂ x₄ , _ , q))
-det (contextRule (x₄ ⇒r E) p (~⇒r _ _ .x₄ .E B x) (~⇒r _ _ .x₄ .E B₁ x₁)) (contextRule (μr x₅ E') q () x₃)
-det (contextRule (x₄ ⇒r E) p (~⇒r _ _ .x₄ .E B₁ x) (~⇒r _ _ .x₄ .E B₂ x₁)) (contextRule (μl E' B) q () x₃)
-det C@(contextRule (E l⇒ x₄) p x x₁) (contextRule [] q (~[] _) (~[] _)) =
-  det C q
-det (contextRule (E l⇒ x₄) p (~l⇒ _ A .x₄ .E x) (~l⇒ _ A₁ .x₄ .E x₁)) (contextRule (x₅ ·r E') q () x₃)
-det (contextRule (E l⇒ x₄) p (~l⇒ _ A .x₄ .E x) (~l⇒ _ A₁ .x₄ .E x₁)) (contextRule (E' l· x₅) q () x₃)
-det (contextRule (E l⇒ x₄) p (~l⇒ _ A .x₄ .E x) (~l⇒ _ A₁ .x₄ .E x₁)) (contextRule (x₅ ⇒r E') q (~⇒r _ .A .x₅ .E' .x₄ x₂) (~⇒r _ .A .x₅ .E' B x₃)) =
-  ⊥-elim (notboth _ (lem0 _ _ _ x x₅ , _ , p))
-det (contextRule (E l⇒ x₄) p (~l⇒ _ A .x₄ .E x) (~l⇒ _ A₁ .x₄ .E x₁)) (contextRule (E' l⇒ .x₄) q (~l⇒ _ .A .x₄ .E' x₂) (~l⇒ _ A₂ .x₄ .E' x₃)) =
-  cong (_⇒ _) (det (contextRule E p x x₁) (contextRule E' q x₂ x₃))
-det (contextRule (E l⇒ x₄) p (~l⇒ _ A .x₄ .E x) (~l⇒ _ A₁ .x₄ .E x₁)) (contextRule (μr x₅ E') q () x₃)
-det (contextRule (E l⇒ x₄) p (~l⇒ _ A .x₄ .E x) (~l⇒ _ A₁ .x₄ .E x₁)) (contextRule (μl E' B) q () x₃)
-det C@(contextRule (μr x₄ E) p x x₁) (contextRule [] q (~[] _) (~[] _)) =
-  det C q
-det (contextRule (μr x₄ E) p (~μr _ _ .x₄ .E B x) (~μr _ _ .x₄ .E B₁ x₁)) (contextRule (x₅ ·r E') q () x₃)
-det (contextRule (μr x₄ E) p (~μr _ _ .x₄ .E B x) (~μr _ _ .x₄ .E B₁ x₁)) (contextRule (E' l· x₅) q () x₃)
-det (contextRule (μr x₄ E) p (~μr _ _ .x₄ .E B x) (~μr _ _ .x₄ .E B₁ x₁)) (contextRule (x₅ ⇒r E') q () x₃)
-det (contextRule (μr x₄ E) p (~μr _ _ .x₄ .E B x) (~μr _ _ .x₄ .E B₁ x₁)) (contextRule (E' l⇒ x₅) q () x₃)
-det (contextRule (μr x₄ E) p (~μr _ _ .x₄ .E B x) (~μr _ _ .x₄ .E B₁ x₁)) (contextRule (μr x₅ E') q (~μr _ _ .x₅ .E' .B x₂) (~μr _ _ .x₅ .E' B₂ x₃)) =
-  cong (μ _) (det (contextRule E p x x₁) (contextRule E' q x₂ x₃))
-det (contextRule (μr x₄ E) p (~μr _ _ .x₄ .E B x) (~μr _ _ .x₄ .E B₁ x₁)) (contextRule (μl E' B) q (~μl _ _ .B .E' x₂) (~μl _ A .B .E' x₃)) =
-  ⊥-elim (notboth _ (lem0 _ _ _ x₂ x₄ , _ , q))
-det C@(contextRule (μl E B) p x x₁) (contextRule [] q (~[] _) (~[] _)) = det C q
-det (contextRule (μl E B) p (~μl _ A .B .E x) (~μl _ A₁ .B .E x₁)) (contextRule (x₄ ·r E') q () x₃)
-det (contextRule (μl E B) p (~μl _ A .B .E x) (~μl _ A₁ .B .E x₁)) (contextRule (E' l· x₄) q () x₃)
-det (contextRule (μl E B) p (~μl _ A .B .E x) (~μl _ A₁ .B .E x₁)) (contextRule (x₄ ⇒r E') q () x₃)
-det (contextRule (μl E B) p (~μl _ A .B .E x) (~μl _ A₁ .B .E x₁)) (contextRule (E' l⇒ x₄) q () x₃)
-det (contextRule (μl E B) p (~μl _ A .B .E x) (~μl _ A₁ .B .E x₁)) (contextRule (μr x₄ E') q (~μr _ .A .x₄ .E' .B x₂) (~μr _ .A .x₄ .E' B₁ x₃)) =
-  ⊥-elim (notboth _ (lem0 _ _ _ x x₄ , _ , p))
-det (contextRule (μl E B) p (~μl _ A .B .E x) (~μl _ A₁ .B .E x₁)) (contextRule (μl E' .B) q (~μl _ .A .B .E' x₂) (~μl _ A₂ .B .E' x₃)) =
-  cong (λ A → μ A _) (det (contextRule E p x x₁) (contextRule E' q x₂ x₃))
-det (contextRule (x₃ ·r E) p (~·r _ .x₃ _ .E x) (~·r _ .x₃ B .E x₁)) (β-ƛ x₂) =
- ⊥-elim (notboth _ (lem0 _ _ _ x x₂ , _ , p))
-det (contextRule (E l· x₃) p (~l· _ .(ƛ _) .x₃ .E x) (~l· _ A .x₃ .E x₁)) (β-ƛ x₂) = ⊥-elim (notboth _ (lem0 _ _ _ x (V-ƛ _) , _ , p))
-det (β-ƛ x) (contextRule [] q (~[] .(ƛ _ · _)) (~[] _)) = det (β-ƛ x) q
-det (β-ƛ x) (contextRule (x₃ ·r E) q (~·r _ .x₃ _ .E x₁) (~·r _ .x₃ B .E x₂)) = ⊥-elim (notboth _ (lem0 _ _ _ x₁ x , _ , q))
-det (β-ƛ x) (contextRule (E l· x₃) q (~l· _ .(ƛ _) .x₃ _ x₁) (~l· _ A .x₃ _ x₂)) = ⊥-elim (notboth _ (lem0 _ _ _ x₁ (V-ƛ _) , _ , q))
-det (β-ƛ x) (β-ƛ x₁) = refl
+det (contextRule [] p refl refl) C@(contextRule _ _ _ _) = det p C
+det C@(contextRule (_ ·r _) _ _ _) (contextRule [] q refl refl) = det C q
+det (contextRule (V ·r E) {A = B}{A' = B'} p x x') (contextRule (V' ·r E') {A = C}{A' = C'} q x'' x''')
+  with closeEvalCtx E B
+  | inspect (closeEvalCtx E) B
+  | closeEvalCtx E B'
+  | inspect (closeEvalCtx E) B'
+  | closeEvalCtx E' C
+  | inspect (closeEvalCtx E') C
+  | closeEvalCtx E' C'
+  | inspect (closeEvalCtx E') C'
+det (contextRule (V ·r E) p refl refl) (contextRule (V' ·r E') q refl refl)
+  | r
+  | blah x
+  | r'
+  | blah x'
+  | .r
+  | blah x''
+  | r'''
+  | blah x''' = cong
+    (_ ·_)
+    (det (contextRule E p (sym x) (sym x'))
+         (contextRule E' q (sym x'') (sym x''')))
+det (contextRule (x₄ ·r E) p x x₁) (contextRule (E₁ l· x₅) q x₂ x₃) = {!!}
+det (contextRule (x₄ ·r E) p x x₁) (contextRule (x₅ ⇒r E₁) q x₂ x₃) = {!!}
+det (contextRule (x₄ ·r E) p x x₁) (contextRule (E₁ l⇒ x₅) q x₂ x₃) = {!!}
+det (contextRule (x₄ ·r E) p x x₁) (contextRule (μr x₅ E₁) q x₂ x₃) = {!!}
+det (contextRule (x₄ ·r E) p x x₁) (contextRule (μl E₁ B) q x₂ x₃) = {!!}
+det (contextRule (E l· x₄) p x x₁) (contextRule [] q x₂ x₃) = {!!}
+det (contextRule (E l· x₄) p x x₁) (contextRule (x₅ ·r E₁) q x₂ x₃) = {!!}
+det (contextRule (E l· x₄) p x x₁) (contextRule (E₁ l· x₅) q x₂ x₃) = {!!}
+det (contextRule (E l· x₄) p x x₁) (contextRule (x₅ ⇒r E₁) q x₂ x₃) = {!!}
+det (contextRule (E l· x₄) p x x₁) (contextRule (E₁ l⇒ x₅) q x₂ x₃) = {!!}
+det (contextRule (E l· x₄) p x x₁) (contextRule (μr x₅ E₁) q x₂ x₃) = {!!}
+det (contextRule (E l· x₄) p x x₁) (contextRule (μl E₁ B) q x₂ x₃) = {!!}
+det (contextRule (x₄ ⇒r E) p x x₁) (contextRule [] q x₂ x₃) = {!!}
+det (contextRule (x₄ ⇒r E) p x x₁) (contextRule (x₅ ·r E₁) q x₂ x₃) = {!!}
+det (contextRule (x₄ ⇒r E) p x x₁) (contextRule (E₁ l· x₅) q x₂ x₃) = {!!}
+det (contextRule (x₄ ⇒r E) p x x₁) (contextRule (x₅ ⇒r E₁) q x₂ x₃) = {!!}
+det (contextRule (x₄ ⇒r E) p x x₁) (contextRule (E₁ l⇒ x₅) q x₂ x₃) = {!!}
+det (contextRule (x₄ ⇒r E) p x x₁) (contextRule (μr x₅ E₁) q x₂ x₃) = {!!}
+det (contextRule (x₄ ⇒r E) p x x₁) (contextRule (μl E₁ B) q x₂ x₃) = {!!}
+det (contextRule (E l⇒ x₄) p x x₁) (contextRule [] q x₂ x₃) = {!!}
+det (contextRule (E l⇒ x₄) p x x₁) (contextRule (x₅ ·r E₁) q x₂ x₃) = {!!}
+det (contextRule (E l⇒ x₄) p x x₁) (contextRule (E₁ l· x₅) q x₂ x₃) = {!!}
+det (contextRule (E l⇒ x₄) p x x₁) (contextRule (x₅ ⇒r E₁) q x₂ x₃) = {!!}
+det (contextRule (E l⇒ x₄) p x x₁) (contextRule (E₁ l⇒ x₅) q x₂ x₃) = {!!}
+det (contextRule (E l⇒ x₄) p x x₁) (contextRule (μr x₅ E₁) q x₂ x₃) = {!!}
+det (contextRule (E l⇒ x₄) p x x₁) (contextRule (μl E₁ B) q x₂ x₃) = {!!}
+det (contextRule (μr x₄ E) p x x₁) (contextRule [] q x₂ x₃) = {!!}
+det (contextRule (μr x₄ E) p x x₁) (contextRule (x₅ ·r E₁) q x₂ x₃) = {!!}
+det (contextRule (μr x₄ E) p x x₁) (contextRule (E₁ l· x₅) q x₂ x₃) = {!!}
+det (contextRule (μr x₄ E) p x x₁) (contextRule (x₅ ⇒r E₁) q x₂ x₃) = {!!}
+det (contextRule (μr x₄ E) p x x₁) (contextRule (E₁ l⇒ x₅) q x₂ x₃) = {!!}
+det (contextRule (μr x₄ E) p x x₁) (contextRule (μr x₅ E₁) q x₂ x₃) = {!!}
+det (contextRule (μr x₄ E) p x x₁) (contextRule (μl E₁ B) q x₂ x₃) = {!!}
+det (contextRule (μl E B) p x x₁) (contextRule [] q x₂ x₃) = {!!}
+det (contextRule (μl E B) p x x₁) (contextRule (x₄ ·r E₁) q x₂ x₃) = {!!}
+det (contextRule (μl E B) p x x₁) (contextRule (E₁ l· x₄) q x₂ x₃) = {!!}
+det (contextRule (μl E B) p x x₁) (contextRule (x₄ ⇒r E₁) q x₂ x₃) = {!!}
+det (contextRule (μl E B) p x x₁) (contextRule (E₁ l⇒ x₄) q x₂ x₃) = {!!}
+det (contextRule (μl E B) p x x₁) (contextRule (μr x₄ E₁) q x₂ x₃) = {!!}
+det (contextRule (μl E B) p x x₁) (contextRule (μl E₁ B₁) q x₂ x₃) = {!!}
+det (contextRule E p x x₁) (β-ƛ x₂) = {!!}
+det (β-ƛ x) (contextRule E q x₁ x₂) = {!!}
+det (β-ƛ x) (β-ƛ x₁) = {!!}
 -}
 ```
