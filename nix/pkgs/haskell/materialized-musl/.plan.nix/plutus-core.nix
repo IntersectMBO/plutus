@@ -392,37 +392,6 @@
           hsSourceDirs = [ "untyped-plutus-core-test" ];
           mainPath = [ "Spec.hs" ];
           };
-        "plutus-core-test-cost-model" = {
-          depends = [
-            (hsPkgs."base" or (errorHandler.buildDepError "base"))
-            (hsPkgs."bytestring" or (errorHandler.buildDepError "bytestring"))
-            (hsPkgs."barbies" or (errorHandler.buildDepError "barbies"))
-            (hsPkgs."containers" or (errorHandler.buildDepError "containers"))
-            (hsPkgs."plutus-core" or (errorHandler.buildDepError "plutus-core"))
-            (hsPkgs."serialise" or (errorHandler.buildDepError "serialise"))
-            (hsPkgs."deepseq" or (errorHandler.buildDepError "deepseq"))
-            (hsPkgs."lens" or (errorHandler.buildDepError "lens"))
-            (hsPkgs."directory" or (errorHandler.buildDepError "directory"))
-            (hsPkgs."hedgehog" or (errorHandler.buildDepError "hedgehog"))
-            (hsPkgs."vector" or (errorHandler.buildDepError "vector"))
-            (hsPkgs."aeson" or (errorHandler.buildDepError "aeson"))
-            (hsPkgs."text" or (errorHandler.buildDepError "text"))
-            (hsPkgs."deriving-aeson" or (errorHandler.buildDepError "deriving-aeson"))
-            (hsPkgs."extra" or (errorHandler.buildDepError "extra"))
-            (hsPkgs."data-default" or (errorHandler.buildDepError "data-default"))
-            (hsPkgs."cassava" or (errorHandler.buildDepError "cassava"))
-            (hsPkgs."mmorph" or (errorHandler.buildDepError "mmorph"))
-            (hsPkgs."exceptions" or (errorHandler.buildDepError "exceptions"))
-            (hsPkgs."hedgehog" or (errorHandler.buildDepError "hedgehog"))
-            (hsPkgs."bytestring" or (errorHandler.buildDepError "bytestring"))
-            (hsPkgs."containers" or (errorHandler.buildDepError "containers"))
-            (hsPkgs."inline-r" or (errorHandler.buildDepError "inline-r"))
-            ];
-          buildable = true;
-          modules = [ "CostModelCreation" ];
-          hsSourceDirs = [ "test-cost-model" "cost-model-creation" ];
-          mainPath = [ "TestCostModels.hs" ];
-          };
         };
       benchmarks = {
         "plutus-core-bench" = {
@@ -488,6 +457,36 @@
           buildable = true;
           modules = [ "CostModelCreation" ];
           hsSourceDirs = [ "create-cost-model" "cost-model-creation" ];
+          };
+        "plutus-core-test-cost-model" = {
+          depends = [
+            (hsPkgs."base" or (errorHandler.buildDepError "base"))
+            (hsPkgs."bytestring" or (errorHandler.buildDepError "bytestring"))
+            (hsPkgs."barbies" or (errorHandler.buildDepError "barbies"))
+            (hsPkgs."containers" or (errorHandler.buildDepError "containers"))
+            (hsPkgs."plutus-core" or (errorHandler.buildDepError "plutus-core"))
+            (hsPkgs."serialise" or (errorHandler.buildDepError "serialise"))
+            (hsPkgs."deepseq" or (errorHandler.buildDepError "deepseq"))
+            (hsPkgs."lens" or (errorHandler.buildDepError "lens"))
+            (hsPkgs."directory" or (errorHandler.buildDepError "directory"))
+            (hsPkgs."hedgehog" or (errorHandler.buildDepError "hedgehog"))
+            (hsPkgs."vector" or (errorHandler.buildDepError "vector"))
+            (hsPkgs."aeson" or (errorHandler.buildDepError "aeson"))
+            (hsPkgs."text" or (errorHandler.buildDepError "text"))
+            (hsPkgs."deriving-aeson" or (errorHandler.buildDepError "deriving-aeson"))
+            (hsPkgs."extra" or (errorHandler.buildDepError "extra"))
+            (hsPkgs."data-default" or (errorHandler.buildDepError "data-default"))
+            (hsPkgs."cassava" or (errorHandler.buildDepError "cassava"))
+            (hsPkgs."mmorph" or (errorHandler.buildDepError "mmorph"))
+            (hsPkgs."exceptions" or (errorHandler.buildDepError "exceptions"))
+            (hsPkgs."hedgehog" or (errorHandler.buildDepError "hedgehog"))
+            (hsPkgs."bytestring" or (errorHandler.buildDepError "bytestring"))
+            (hsPkgs."containers" or (errorHandler.buildDepError "containers"))
+            (hsPkgs."inline-r" or (errorHandler.buildDepError "inline-r"))
+            ];
+          buildable = true;
+          modules = [ "CostModelCreation" ];
+          hsSourceDirs = [ "test-cost-model" "cost-model-creation" ];
           };
         };
       };
