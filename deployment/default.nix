@@ -156,12 +156,23 @@ let
 
       echo "json files created in $tmp_dir"
 
+      plutus_tld=$(cat $tmp_dir/machines.json | jq -r '.plutusTld')
+      cat > $tmp_dir/secrets.plutus.${env}.json <<EOL
+      {
+        "jwt-signature": "$(pass ${env}/plutus/jwtSignature)",
+        "frontend-url": "https://${env}.$plutus_tld",
+        "github-cb-path": "/#/gh-oauth-cb",
+        "github-client-id": "$(pass ${env}/plutus/githubClientId)",
+        "github-client-secret": "$(pass ${env}/plutus/githubClientSecret)"
+      }
+      EOL
       # This is a nasty way to make deployment with morph easier since I cannot yet find a way to get morph deployments to work
       # from within a nix derivation shell script.
       # Once you have run this script you will have the correct information in the morph directory for morph to deploy to the EC2 instances
       if [[ ! -z "$PLUTUS_ROOT" ]]; then
         echo "copying machine information to $PLUTUS_ROOT/deployment/morph"
         cp $tmp_dir/machines.json $PLUTUS_ROOT/deployment/morph/
+        cp $tmp_dir/secrets.plutus.${env}.json $PLUTUS_ROOT/deployment/morph/
       fi
     '';
 

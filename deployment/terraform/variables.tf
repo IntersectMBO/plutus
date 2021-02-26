@@ -58,7 +58,7 @@ variable "webghc_instance_type" {
   default = "t3.large"
 }
 
-variable "playground_instance_type" {
+variable "playgrounds_instance_type" {
   default = "t3.small"
 }
 

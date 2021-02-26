@@ -24,6 +24,18 @@ locals {
     dns  = "marlowe-dash-b.${element(concat(aws_route53_zone.plutus_private_zone.*.name, list("")), 0)}"
   }
 
+  playgroundsA = {
+    name = "playgroundsA"
+    ip   = "${element(concat(aws_instance.playgrounds_a.*.private_ip, list("")), 0)}"
+    dns  = "playgrounds-a.${element(concat(aws_route53_zone.plutus_private_zone.*.name, list("")), 0)}"
+  }
+
+  playgroundsB = {
+    name = "playgroundsB"
+    ip   = "${element(concat(aws_instance.playgrounds_b.*.private_ip, list("")), 0)}"
+    dns  = "playgrounds-b.${element(concat(aws_route53_zone.plutus_private_zone.*.name, list("")), 0)}"
+  }
+
   prometheus = {
     name        = "prometheus"
     ip          = "${element(concat(aws_instance.prometheus.*.private_ip, list("")), 0)}"
@@ -36,6 +48,8 @@ locals {
     webghcB           = "${local.webghcB}"
     marloweDashA      = "${local.marloweDashA}"
     marloweDashB      = "${local.marloweDashB}"
+    playgroundsA      = "${local.playgroundsA}"
+    playgroundsB      = "${local.playgroundsB}"
     prometheus            = "${local.prometheus}"
     rootSshKeys       = local.root_ssh_keys
     monitoringSshKeys = local.monitoring_ssh_keys
