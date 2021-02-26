@@ -27,7 +27,8 @@ open import Relation.Nullary
 open import Data.Product
 open import Data.Empty
 
-open import Relation.Binary.PropositionalEquality using (_≡_; refl; cong;subst)
+open import Relation.Binary.PropositionalEquality
+  using (_≡_;refl;cong;subst;trans;sym)
 ```
 
 ## Values
@@ -233,6 +234,132 @@ closeEF (V ⇒r E) F A = cong (_ ⇒_) (closeEF E F A)
 closeEF (E l⇒ B) F A = cong (_⇒ _) (closeEF E F A)
 closeEF (μr V E) F A = cong (μ _) (closeEF E F A)
 closeEF (μl E B) F A = cong (λ A → μ A _) (closeEF E F A)
+
+-- there should be a law for comp and e,f too...
+
+-- composition can also be defined by induction on E'
+compEvalCtx' : EvalCtx K J → EvalCtx J I → EvalCtx K I
+compEvalCtx' E []        = E
+compEvalCtx' E (V ·r E') = compEvalCtx' (extendEvalCtx E (V ·-)) E'
+compEvalCtx' E (E' l· B) = compEvalCtx' (extendEvalCtx E (-· B)) E'
+compEvalCtx' E (V ⇒r E') = compEvalCtx' (extendEvalCtx E (V ⇒-)) E'
+compEvalCtx' E (E' l⇒ B) = compEvalCtx' (extendEvalCtx E (-⇒ B)) E'
+compEvalCtx' E (μr V E') = compEvalCtx' (extendEvalCtx E (μ V -)) E'
+compEvalCtx' E (μl E' B) = compEvalCtx' (extendEvalCtx E (μ- B)) E'
+
+-- these are properties that hold definitionally of compEvalCtx
+compEvalCtx'-·r : ∀(E : EvalCtx K J)(E' : EvalCtx J I)
+                  {A : ∅ ⊢⋆ K ⇒ H}(V : Value⋆ A)
+                → V ·r compEvalCtx' E E' ≡ compEvalCtx' (V ·r E) E'
+compEvalCtx'-·r E []        V = refl
+compEvalCtx'-·r E (x ·r E') V = compEvalCtx'-·r _ E' V
+compEvalCtx'-·r E (E' l· x) V = compEvalCtx'-·r _ E' V
+compEvalCtx'-·r E (x ⇒r E') V = compEvalCtx'-·r _ E' V
+compEvalCtx'-·r E (E' l⇒ x) V = compEvalCtx'-·r _ E' V
+compEvalCtx'-·r E (μr x E') V = compEvalCtx'-·r _ E' V
+compEvalCtx'-·r E (μl E' B) V = compEvalCtx'-·r _ E' V
+
+compEvalCtx'-l· : ∀(E : EvalCtx (K ⇒ H) J)(E' : EvalCtx J I) B
+                → compEvalCtx' E E' l· B ≡ compEvalCtx' (E l· B) E'
+compEvalCtx'-l· E []        C = refl
+compEvalCtx'-l· E (V ·r E') C = compEvalCtx'-l· _ E' C
+compEvalCtx'-l· E (E' l· B) C = compEvalCtx'-l· _ E' C
+compEvalCtx'-l· E (V ⇒r E') C = compEvalCtx'-l· _ E' C
+compEvalCtx'-l· E (E' l⇒ B) C = compEvalCtx'-l· _ E' C
+compEvalCtx'-l· E (μr V E') C = compEvalCtx'-l· _ E' C
+compEvalCtx'-l· E (μl E' B) C = compEvalCtx'-l· _ E' C
+
+compEvalCtx'-⇒r : ∀(E : EvalCtx * J)(E' : EvalCtx J I)
+                  {A : ∅ ⊢⋆ *}(V : Value⋆ A)
+                → V ⇒r compEvalCtx' E E' ≡ compEvalCtx' (V ⇒r E) E'
+compEvalCtx'-⇒r E []        V = refl
+compEvalCtx'-⇒r E (x ·r E') V = compEvalCtx'-⇒r _ E' V
+compEvalCtx'-⇒r E (E' l· x) V = compEvalCtx'-⇒r _ E' V
+compEvalCtx'-⇒r E (x ⇒r E') V = compEvalCtx'-⇒r _ E' V
+compEvalCtx'-⇒r E (E' l⇒ x) V = compEvalCtx'-⇒r _ E' V
+compEvalCtx'-⇒r E (μr x E') V = compEvalCtx'-⇒r _ E' V
+compEvalCtx'-⇒r E (μl E' B) V = compEvalCtx'-⇒r _ E' V
+
+compEvalCtx'-l⇒ : ∀(E : EvalCtx * J)(E' : EvalCtx J I) B
+                → compEvalCtx' E E' l⇒ B ≡ compEvalCtx' (E l⇒ B) E'
+compEvalCtx'-l⇒ E []        C = refl
+compEvalCtx'-l⇒ E (V ·r E') C = compEvalCtx'-l⇒ _ E' C
+compEvalCtx'-l⇒ E (E' l· B) C = compEvalCtx'-l⇒ _ E' C
+compEvalCtx'-l⇒ E (V ⇒r E') C = compEvalCtx'-l⇒ _ E' C
+compEvalCtx'-l⇒ E (E' l⇒ B) C = compEvalCtx'-l⇒ _ E' C
+compEvalCtx'-l⇒ E (μr V E') C = compEvalCtx'-l⇒ _ E' C
+compEvalCtx'-l⇒ E (μl E' B) C = compEvalCtx'-l⇒ _ E' C
+
+compEvalCtx'-μr : ∀(E : EvalCtx K J)(E' : EvalCtx J I)
+                  {A : ∅ ⊢⋆ _}(V : Value⋆ A)
+                → μr V (compEvalCtx' E E') ≡ compEvalCtx' (μr V E) E'
+compEvalCtx'-μr E []        V = refl
+compEvalCtx'-μr E (x ·r E') V = compEvalCtx'-μr _ E' V
+compEvalCtx'-μr E (E' l· x) V = compEvalCtx'-μr _ E' V
+compEvalCtx'-μr E (x ⇒r E') V = compEvalCtx'-μr _ E' V
+compEvalCtx'-μr E (E' l⇒ x) V = compEvalCtx'-μr _ E' V
+compEvalCtx'-μr E (μr x E') V = compEvalCtx'-μr _ E' V
+compEvalCtx'-μr E (μl E' B) V = compEvalCtx'-μr _ E' V 
+
+compEvalCtx'-lμ : ∀(E : EvalCtx _ J)(E' : EvalCtx J I)(B : ∅ ⊢⋆ K)
+                → μl (compEvalCtx' E E') B ≡ compEvalCtx' (μl E B) E'
+compEvalCtx'-lμ E []        C = refl
+compEvalCtx'-lμ E (V ·r E') C = compEvalCtx'-lμ _ E' C
+compEvalCtx'-lμ E (E' l· B) C = compEvalCtx'-lμ _ E' C
+compEvalCtx'-lμ E (V ⇒r E') C = compEvalCtx'-lμ _ E' C
+compEvalCtx'-lμ E (E' l⇒ B) C = compEvalCtx'-lμ _ E' C
+compEvalCtx'-lμ E (μr V E') C = compEvalCtx'-lμ _ E' C
+compEvalCtx'-lμ E (μl E' B) C = compEvalCtx'-lμ _ E' C
+
+
+compEvalCtx'-[] : (E' : EvalCtx K J) → E' ≡ compEvalCtx' [] E'
+compEvalCtx'-[] [] = refl
+compEvalCtx'-[] (V ·r E') =
+  trans (cong (V ·r_) (compEvalCtx'-[] E')) (compEvalCtx'-·r [] E' V)
+compEvalCtx'-[] (E' l· B) =
+  trans (cong (_l· B) (compEvalCtx'-[] E')) (compEvalCtx'-l· [] E' B)
+compEvalCtx'-[] (V ⇒r E') =
+  trans (cong (V ⇒r_) (compEvalCtx'-[] E')) (compEvalCtx'-⇒r [] E' V)
+compEvalCtx'-[] (E' l⇒ B) =
+  trans (cong (_l⇒ B) (compEvalCtx'-[] E')) (compEvalCtx'-l⇒ [] E' B)
+compEvalCtx'-[] (μr V E') =
+  trans (cong (μr V) (compEvalCtx'-[] E')) (compEvalCtx'-μr [] E' V)
+compEvalCtx'-[] (μl E' B) =
+  trans (cong (λ E → μl E B) (compEvalCtx'-[] E')) (compEvalCtx'-lμ [] E' B)
+
+compEvalCtx-eq : (E : EvalCtx K J)(E' : EvalCtx J I)
+               → compEvalCtx E E' ≡ compEvalCtx' E E'
+compEvalCtx-eq [] E' = compEvalCtx'-[] E'
+compEvalCtx-eq (V ·r E) E' =
+  trans (cong (V ·r_) (compEvalCtx-eq E E')) (compEvalCtx'-·r E E' V)
+compEvalCtx-eq (E l· B) E' =
+  trans (cong (_l· B) (compEvalCtx-eq E E')) (compEvalCtx'-l· E E' B)
+compEvalCtx-eq (V ⇒r E) E' =
+  trans (cong (V ⇒r_) (compEvalCtx-eq E E')) (compEvalCtx'-⇒r E E' V)
+compEvalCtx-eq (E l⇒ B) E' =
+  trans (cong (_l⇒ B) (compEvalCtx-eq E E')) (compEvalCtx'-l⇒ E E' B)
+compEvalCtx-eq (μr V E) E' =
+  trans (cong (μr V) (compEvalCtx-eq E E')) (compEvalCtx'-μr E E' V)
+compEvalCtx-eq (μl E B) E' =
+  trans (cong (λ E → μl E B) (compEvalCtx-eq E E')) (compEvalCtx'-lμ E E' B)
+
+-- because compEvalCtx = compEvalCtx', it is also a monoid
+comp'-idl : (E : EvalCtx K J) → compEvalCtx' [] E ≡ E
+comp'-idl E = sym (compEvalCtx-eq [] E)
+
+comp'-idr : (E : EvalCtx K J) → compEvalCtx' E [] ≡ E
+comp'-idr E = refl
+
+comp'-assoc : (E : EvalCtx K J)(E' : EvalCtx J I)(E'' : EvalCtx I H)
+           → compEvalCtx' E (compEvalCtx' E' E'')
+           ≡ compEvalCtx' (compEvalCtx' E E') E''
+comp'-assoc E E' E'' = trans
+  (sym (compEvalCtx-eq E (compEvalCtx' E' E'')))
+  (trans (cong (compEvalCtx E) (sym (compEvalCtx-eq E' E'')))
+         (trans (comp-assoc E E' E'')
+                (trans (compEvalCtx-eq (compEvalCtx E E') E'')
+                       (cong (λ E → compEvalCtx' E E'')
+                             (compEvalCtx-eq E E')))))
 ```
 
 
