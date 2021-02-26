@@ -264,6 +264,7 @@ addOwnInput InputConstraint{icRedeemer, icTxOutRef} = do
         $ Typed.typeScriptTxOutRef (`Map.lookup` slTxOutputs) inst icTxOutRef
     let txIn = Typed.makeTypedScriptTxIn inst icRedeemer typedOutRef
     unbalancedTx . tx . Tx.inputs %= Set.insert (Typed.tyTxInTxIn txIn)
+    valueSpentBalance <>= N.negate (Tx.txOutValue $ Typed.tyTxOutTxOut $ Typed.tyTxOutRefOut typedOutRef)
 
 addOwnOutput
     :: ( MonadReader (ScriptLookups a) m
@@ -280,6 +281,7 @@ addOwnOutput OutputConstraint{ocDatum, ocValue} = do
         dsV   = Datum (toData ocDatum)
     unbalancedTx . tx . Tx.outputs %= (Typed.tyTxOutTxOut txOut :)
     unbalancedTx . tx . Tx.datumWitnesses . at (datumHash dsV) .= Just dsV
+    valueSpentBalance <>= N.negate ocValue
 
 data MkTxError =
     TypeCheckFailed ConnectionError
