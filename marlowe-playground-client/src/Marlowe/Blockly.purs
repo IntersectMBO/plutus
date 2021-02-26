@@ -4,7 +4,7 @@ import Prelude
 import Blockly.Dom as BDom
 import Blockly.Generator (Connection, Input, NewBlockFunction, clearWorkspace, connect, connectToOutput, connectToPrevious, fieldName, fieldRow, getInputWithName, inputList, inputName, inputType, nextConnection, previousConnection, setFieldText)
 import Blockly.Internal (AlignDirection(..), Arg(..), BlockDefinition(..), defaultBlockDefinition, getBlockById, initializeWorkspace, render, typedArguments)
-import Blockly.Toolbox (Category(..), Toolbox(..), category, defaultCategoryFields, leaf, separator)
+import Blockly.Toolbox (Category(..), Toolbox(..), category, defaultCategoryFields, leaf, rename, separator)
 import Blockly.Toolbox as Toolbox
 import Blockly.Types (Block, BlocklyState, Workspace)
 import Control.Monad.Error.Class (catchError)
@@ -1072,12 +1072,11 @@ toolboxWithHoles definition = CategoryToolbox (defaultCategories <> addSeparator
     [] -> []
     xs -> [ separator ] <> xs
 
+  holesCategories :: Array Category
   holesCategories =
     catMaybes
       $ typedArguments definition
-      <#> \{ name, check } -> do
-          cat <- Map.lookup check typeMap
-          pure $ Category (defaultCategoryFields { name = name }) [ cat ]
+      <#> \{ name, check } -> rename name <$> Map.lookup check typeMap
 
 ---------------------------------------------------------------------------------------------------
 --
@@ -1150,6 +1149,9 @@ mkTermFromChild ::
   BDom.Block ->
   m (Term a)
 mkTermFromChild childToBlock attr block = case Object.lookup attr block.children of
+  -- FIXME: Check if I can use something relating to the term type `a` instead of
+  --        attr to generate the hole name. That way I could rename the blockly attributes
+  --        without problem
   Nothing -> pure $ Hole attr Proxy (BlockId block.id)
   Just child ->
     catchError

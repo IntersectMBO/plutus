@@ -9,6 +9,7 @@ module Blockly.Toolbox
   , category
   , separator
   , leaf
+  , rename
   ) where
 
 import Prelude
@@ -97,6 +98,11 @@ data Category
   -- NOTE: Even if the documentation has the posibility to add a label, in practice the
   --       "label" type doesn't seem to be recognized.
   | Label String (Maybe String)
+
+rename :: String -> Category -> Category
+rename name (Category fields children) = Category (fields { name = name }) children
+
+rename _ category' = category'
 
 -- A category could also be one of these, but not worth to implement at the moment
 -- https://developers.google.com/blockly/guides/configure/web/toolbox#preset_blocks
