@@ -29,6 +29,7 @@ import           Language.PlutusCore.Examples.Everything            (examples)
 import qualified Language.PlutusCore.StdLib.Data.Nat                as Plc
 import           Language.PlutusCore.StdLib.Everything              (stdLib)
 import           Language.PlutusCore.StdLib.Meta
+import           Language.PlutusCore.StdLib.Meta.Data.Function      (etaExpand)
 
 import           Common
 import           Data.String
@@ -91,15 +92,38 @@ bunchOfFibs = FolderContents [treeFolderContents "Fib" $ map fibFile [1..3]] whe
 -- | To check how a sequence of calls to a built-in @id@ affects budgeting when a (relatively)
 -- big AST is threaded through them.
 bunchOfIdNats :: PlcFolderContents DefaultUni ExtensionFun
-bunchOfIdNats = FolderContents [treeFolderContents "IdNat" $ map idNatFile [0 :: Int, 3.. 9]] where
-    idNatFile i = plcTermFile (show i) (idNat id0 i) where
+bunchOfIdNats =
+    FolderContents [treeFolderContents "IdNat" $ map idNatFile [0 :: Int, 3.. 9]] where
+        idNatFile i = plcTermFile (show i) (idNat id0 i)
         -- > id0 = foldNat {nat} succ zero
         id0 = mkIterApp () (tyInst () Plc.foldNat $ Plc.natTy) [Plc.succ, Plc.zero]
 
-    idNat idN 0 = apply () idN $ metaIntegerToNat 10
-    idNat idN n = idNat idN' (n - 1) where
-        -- > idN' = id {nat -> nat} idN
-        idN' = apply () (tyInst () (builtin () Id) $ Plc.TyFun () Plc.natTy Plc.natTy) idN
+        idNat idN 0 = apply () idN $ metaIntegerToNat 10
+        idNat idN n = idNat idN' (n - 1) where
+            -- Intentionally not eta-expanding the call to @idN'@, so that it gets forced during
+            -- evaluation, which causes @idN@ to get forced, which on the first iteration causes
+            -- @id0@ to get forced, which gives us a sufficiently big AST.
+            -- > idN' = id {nat -> nat} idN
+            idN' = apply () (tyInst () (builtin () Id) $ Plc.TyFun () Plc.natTy Plc.natTy) idN
+
+-- | Same as 'bunchOfIdNats' except uses the built-in @ifThenElse@.
+bunchOfIfThenElseNats :: PlcFolderContents DefaultUni DefaultFun
+bunchOfIfThenElseNats =
+    FolderContents [treeFolderContents "IfThenElse" $ map ifThenElseNatFile [0 :: Int, 1.. 5]] where
+        ifThenElseNatFile i = plcTermFile (show i) (ifThenElseNat id0 i) where
+        -- > id0 = foldNat {nat} succ zero
+        id0 = mkIterApp () (tyInst () Plc.foldNat $ Plc.natTy) [Plc.succ, Plc.zero]
+
+        ifThenElseNat idN 0 = apply () idN $ metaIntegerToNat 10
+        ifThenElseNat idN n = ifThenElseNat idN' (n - 1) where
+            -- Eta-expanding @idN'@ so that all of the if-then-else-s don't get evaluated --
+            -- only those that are on the actual execution path.
+            -- > idN' = \(n : nat) -> ifThenElse {nat -> nat} ($(even n)) idN idN n
+            idN'
+
+                = etaExpand Plc.natTy
+                $ mkIterApp () (tyInst () (builtin () IfThenElse) $ Plc.TyFun () Plc.natTy Plc.natTy)
+                    [mkConstant () $ even n, idN, idN]
 
 test_budget :: TestTree
 test_budget
@@ -109,6 +133,7 @@ test_budget
         [ folder defBuiltinsRuntime examples
         , folder defBuiltinsRuntime bunchOfFibs
         , folder (toBuiltinsRuntime mempty ()) bunchOfIdNats
+        , folder defBuiltinsRuntime bunchOfIfThenElseNats
         ]
   where
     folder runtime =
