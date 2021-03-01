@@ -463,16 +463,16 @@ processConstraint = \case
 
     MustForgeValue mpsHash tn i -> do
         monetaryPolicyScript <- lookupMonetaryPolicy mpsHash
-        let value = Value.singleton (Value.mpsSymbol mpsHash) tn i
+        let value = Value.singleton (Value.mpsSymbol mpsHash) tn
             -- If i is negative we are burning tokens. The tokens burned must
             -- be provided as an input. So we add the value burnt to
             -- 'valueOfInputs'. If i is positive then new tokens are created
             -- which must be added to 'valueOfOutputs'.
             balanceChange = if i < 0
-                                then countAsInput value
-                                else countAsOutput value
+                                then countAsInput $ value (negate i)
+                                else countAsOutput $ value i
         unbalancedTx . tx . Tx.forgeScripts %= Set.insert monetaryPolicyScript
-        unbalancedTx . tx . Tx.forge <>= value
+        unbalancedTx . tx . Tx.forge <>= value i
         valueSpentBalances <>= balanceChange
     MustPayToPubKey pk vl -> do
         unbalancedTx . tx . Tx.outputs %= (Tx.TxOut (PubKeyAddress pk) vl Tx.PayToPubKey :)
