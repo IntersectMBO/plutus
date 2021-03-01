@@ -43,6 +43,7 @@ library
         Plutus.V1.Ledger.Bytes
         Plutus.V1.Ledger.Contexts
         Plutus.V1.Ledger.Crypto
+        Plutus.V1.Ledger.Examples
         Plutus.V1.Ledger.Interval
         Plutus.V1.Ledger.Orphans
         Plutus.V1.Ledger.Scripts
