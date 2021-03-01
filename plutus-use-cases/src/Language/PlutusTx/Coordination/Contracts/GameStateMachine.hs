@@ -156,7 +156,7 @@ transition State{stateData=oldData, stateValue=oldValue} input = case (oldData, 
              )
     (Locked mph tn currentSecret, Guess theGuess nextSecret takenOut)
         | checkGuess currentSecret theGuess ->
-        let constraints = Constraints.mustSpendValue (token mph tn) <> Constraints.mustForgeCurrency mph tn 0 in
+        let constraints = Constraints.mustSpendAtLeast (token mph tn) <> Constraints.mustForgeCurrency mph tn 0 in
         Just ( constraints
              , State
                 { stateData = Locked mph tn nextSecret

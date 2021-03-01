@@ -49,6 +49,7 @@ module Plutus.V1.Ledger.Contexts
     , signsTransaction
     , spendsOutput
     , valueSpent
+    , valueProduced
     , ownCurrencySymbol
     , ownHashes
     , ownHash
@@ -266,6 +267,13 @@ signsTransaction (Signature sig) (PubKey (LedgerBytes pk)) (TxInfo{txInfoId=TxId
 valueSpent :: TxInfo -> Value
 valueSpent p =
     let inputs' = map txInInfoValue (txInfoInputs p)
+    in mconcat inputs'
+
+{-# INLINABLE valueProduced #-}
+-- | Get the total value of outputs produced by this transaction.
+valueProduced :: TxInfo -> Value
+valueProduced p =
+    let inputs' = map txOutValue (txInfoOutputs p)
     in mconcat inputs'
 
 {-# INLINABLE ownCurrencySymbol #-}

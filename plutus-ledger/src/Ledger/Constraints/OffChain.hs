@@ -33,12 +33,9 @@ module Ledger.Constraints.OffChain(
     , mkSomeTx
     -- * Internals exposed for testing
     , ValueSpentBalances(..)
-    , countAsInput
-    , countAsOutput
-    , countAsRequired
+    , provided
+    , required
     , missingValueSpent
-    , actualValueSpent
-    , convexUnion
     ) where
 
 import           Control.Lens
@@ -51,7 +48,6 @@ import           Data.Foldable                    (traverse_)
 import           Data.Map                         (Map)
 import qualified Data.Map                         as Map
 import           Data.Semigroup                   (First (..))
-import           Data.Semigroup.Generic           (GenericSemigroupMonoid (..))
 import           Data.Set                         (Set)
 import qualified Data.Set                         as Set
 import           Data.Text.Prettyprint.Doc
@@ -176,20 +172,11 @@ instance Pretty UnbalancedTx where
 
 {- Note [Balance of value spent]
 
-The @MustSpendValue v@ constraint means: I want @v@ to be *present* in the
-transaction. That is, if @t@ is the total value produced or spent by the
-transaction, then @v Value.leq t@.
-
-This is useful for example if we want to include a role token that lives
-somewhere in the user's public key outputs.
-
-The balance of value spent is computed as follows.
-
-1. Take the sum of all 'MustSpendValue' constraints. This is the required value spent.
-2. Separately sum the total value of transaction inputs and outputs.
-3. Take the convex union of those two sums. This is the actual value spent.
-4. Add the positive part [1] of the difference between required and actual
-   value spent as a public key output.
+To build a transaction that satisfies the 'MustSpendAtLeast' and
+'MustProduceAtLeast' constraints, we keep a tally of the required and
+actual values we encounter on either side of the transaction. Then we
+compute the missing value on both sides, and add an input with the
+convex union of the positive parts [1] of the missing values.
 
 [1] See 'Plutus.V1.Ledger.Value.split'
 
@@ -202,50 +189,60 @@ data ValueSpentBalances =
     ValueSpentBalances
         { vbsRequired :: Value
         -- ^ Required value spent by the transaction.
-        , vbsInputs   :: Value
-        -- ^ Value of inputs that were added while processing constraints
-        , vbsOutputs  :: Value
-        -- ^ Value of outputs that were added while processing constraints
+        , vbsProvided :: Value
+        -- ^ Value provided by an input or output of the transaction.
         } deriving (Show, Generic)
-          deriving (Semigroup, Monoid) via (GenericSemigroupMonoid ValueSpentBalances)
+
+instance Semigroup ValueSpentBalances where
+    l <> r =
+        ValueSpentBalances
+            { vbsRequired = Value.convexUnion (vbsRequired l) (vbsRequired r)
+            , vbsProvided = Value.convexUnion (vbsProvided l) (vbsProvided r)
+            }
 
 data ConstraintProcessingState =
     ConstraintProcessingState
-        { cpsUnbalancedTx       :: UnbalancedTx
+        { cpsUnbalancedTx              :: UnbalancedTx
         -- ^ The unbalanced transaction that we're building
-        , cpsValueSpentBalances :: ValueSpentBalances
+        , cpsValueSpentBalancesInputs  :: ValueSpentBalances
+        -- ^ Balance of the values given and required for the transaction's
+        --   inputs
+        , cpsValueSpentBalancesOutputs :: ValueSpentBalances
+        -- ^ Balance of the values produced and required for the transaction's
+        --   outputs
         }
+
+missingValueSpent :: ValueSpentBalances -> Value
+missingValueSpent ValueSpentBalances{vbsRequired, vbsProvided} =
+    let
+        difference = vbsRequired <> N.negate vbsProvided
+        (_, missing) = Value.split difference
+    in missing
+
+totalMissingValue :: ConstraintProcessingState -> Value
+totalMissingValue ConstraintProcessingState{cpsValueSpentBalancesInputs, cpsValueSpentBalancesOutputs} =
+    Value.convexUnion
+        (missingValueSpent cpsValueSpentBalancesInputs)
+        (missingValueSpent cpsValueSpentBalancesOutputs)
 
 makeLensesFor
     [ ("cpsUnbalancedTx", "unbalancedTx")
-    , ("cpsValueSpentBalances", "valueSpentBalances")
+    , ("cpsValueSpentBalancesInputs", "valueSpentInputs")
+    , ("cpsValueSpentBalancesOutputs", "valueSpentOutputs")
     ] ''ConstraintProcessingState
 
 initialState :: ConstraintProcessingState
 initialState = ConstraintProcessingState
     { cpsUnbalancedTx = emptyUnbalancedTx
-    , cpsValueSpentBalances = mempty
+    , cpsValueSpentBalancesInputs = ValueSpentBalances mempty mempty
+    , cpsValueSpentBalancesOutputs = ValueSpentBalances mempty mempty
     }
 
-countAsInput :: Value -> ValueSpentBalances
-countAsInput v = mempty { vbsInputs = v }
+provided :: Value -> ValueSpentBalances
+provided v = ValueSpentBalances { vbsProvided = v, vbsRequired = mempty }
 
-countAsOutput :: Value -> ValueSpentBalances
-countAsOutput v = mempty { vbsOutputs = v }
-
-countAsRequired :: Value -> ValueSpentBalances
-countAsRequired v = mempty { vbsRequired = v }
-
-actualValueSpent :: ValueSpentBalances -> Value
-actualValueSpent ValueSpentBalances{vbsInputs, vbsOutputs} =
-    convexUnion vbsInputs vbsOutputs
-
-missingValueSpent :: ValueSpentBalances -> Value
-missingValueSpent v@ValueSpentBalances{vbsRequired} =
-    let
-        difference = vbsRequired <> N.negate (actualValueSpent v)
-        (_, missing) = Value.split difference
-    in missing
+required :: Value -> ValueSpentBalances
+required v = ValueSpentBalances { vbsRequired = v, vbsProvided = mempty }
 
 -- | Some typed 'TxConstraints' and the 'ScriptLookups' needed to turn them
 --   into an 'UnbalancedTx'.
@@ -303,7 +300,7 @@ addMissingValueSpent
        )
     => m ()
 addMissingValueSpent = do
-    missing <- missingValueSpent . view valueSpentBalances <$> get
+    missing <- totalMissingValue <$> get
 
     if Value.isZero missing
         then pure ()
@@ -336,7 +333,7 @@ addOwnInput InputConstraint{icRedeemer, icTxOutRef} = do
     let txIn = Typed.makeTypedScriptTxIn inst icRedeemer typedOutRef
         vl   = Tx.txOutValue $ Typed.tyTxOutTxOut $ Typed.tyTxOutRefOut typedOutRef
     unbalancedTx . tx . Tx.inputs %= Set.insert (Typed.tyTxInTxIn txIn)
-    valueSpentBalances <>= countAsInput vl
+    valueSpentInputs <>= provided vl
 
 -- | Add a typed output and return its value.
 addOwnOutput
@@ -354,7 +351,7 @@ addOwnOutput OutputConstraint{ocDatum, ocValue} = do
         dsV   = Datum (toData ocDatum)
     unbalancedTx . tx . Tx.outputs %= (Typed.tyTxOutTxOut txOut :)
     unbalancedTx . tx . Tx.datumWitnesses . at (datumHash dsV) .= Just dsV
-    valueSpentBalances <>= countAsOutput ocValue
+    valueSpentOutputs <>= provided ocValue
 
 data MkTxError =
     TypeCheckFailed ConnectionError
@@ -434,13 +431,14 @@ processConstraint = \case
         unbalancedTx . tx . Tx.validRange %= (slotRange /\)
     MustBeSignedBy pk ->
         unbalancedTx . requiredSignatories %= Set.insert pk
-    MustSpendValue vl -> valueSpentBalances <>= countAsRequired vl
+    MustSpendAtLeast vl -> valueSpentInputs <>= required vl
+    MustProduceAtLeast vl -> valueSpentOutputs <>= required vl
     MustSpendPubKeyOutput txo -> do
         TxOutTx{txOutTxOut} <- lookupTxOutRef txo
         case Tx.txOutAddress txOutTxOut of
             PubKeyAddress pk -> do
                 unbalancedTx . tx . Tx.inputs %= Set.insert (Tx.pubKeyTxIn txo)
-                valueSpentBalances <>= countAsOutput (Tx.txOutValue txOutTxOut)
+                valueSpentInputs <>= provided (Tx.txOutValue txOutTxOut)
                 unbalancedTx . requiredSignatories %= Set.insert pk
             _                 -> throwError (TxOutRefWrongType txo)
     MustSpendScriptOutput txo red -> do
@@ -458,37 +456,32 @@ processConstraint = \case
                 --       'lookupDatum'
                 let input = Tx.scriptTxIn txo validator red dataValue
                 unbalancedTx . tx . Tx.inputs %= Set.insert input
-                valueSpentBalances <>= countAsInput (Tx.txOutValue (txOutTxOut txOutTx))
+                valueSpentInputs <>= provided (Tx.txOutValue (txOutTxOut txOutTx))
             _                 -> throwError (TxOutRefWrongType txo)
 
     MustForgeValue mpsHash tn i -> do
         monetaryPolicyScript <- lookupMonetaryPolicy mpsHash
         let value = Value.singleton (Value.mpsSymbol mpsHash) tn
-            -- If i is negative we are burning tokens. The tokens burned must
-            -- be provided as an input. So we add the value burnt to
-            -- 'valueOfInputs'. If i is positive then new tokens are created
-            -- which must be added to 'valueOfOutputs'.
-            balanceChange = if i < 0
-                                then countAsInput $ value (negate i)
-                                else countAsOutput $ value i
+        -- If i is negative we are burning tokens. The tokens burned must
+        -- be provided as an input. So we add the value burnt to
+        -- 'valueSpentInputs'. If i is positive then new tokens are created
+        -- which must be added to 'valueSpentOutputs'.
+        if i < 0
+            then valueSpentInputs <>= provided (value (negate i))
+            else valueSpentOutputs <>= provided (value i)
+
         unbalancedTx . tx . Tx.forgeScripts %= Set.insert monetaryPolicyScript
         unbalancedTx . tx . Tx.forge <>= value i
-        valueSpentBalances <>= balanceChange
     MustPayToPubKey pk vl -> do
         unbalancedTx . tx . Tx.outputs %= (Tx.TxOut (PubKeyAddress pk) vl Tx.PayToPubKey :)
-        valueSpentBalances <>= countAsOutput vl
+        valueSpentOutputs <>= provided vl
     MustPayToOtherScript vlh dv vl -> do
         let addr = Address.scriptHashAddress vlh
             theHash = datumHash dv
         unbalancedTx . tx . Tx.datumWitnesses %= set (at theHash) (Just dv)
         unbalancedTx . tx . Tx.outputs %= (Tx.scriptTxOut' vl addr dv :)
-        valueSpentBalances <>= countAsOutput vl
+        valueSpentOutputs <>= provided vl
     MustHashDatum dvh dv -> do
         unless (datumHash dv == dvh)
             (throwError $ DatumWrongHash dvh dv)
         unbalancedTx . tx . Tx.datumWitnesses %= set (at dvh) (Just dv)
-
--- | The union of two values, taking the larger amount when both keys
---   are present.
-convexUnion :: Value -> Value -> Value
-convexUnion = Value.unionWith max

@@ -42,7 +42,8 @@ data TxConstraint =
     MustIncludeDatum Datum
     | MustValidateIn SlotRange
     | MustBeSignedBy PubKeyHash
-    | MustSpendValue Value
+    | MustSpendAtLeast Value
+    | MustProduceAtLeast Value
     | MustSpendPubKeyOutput TxOutRef
     | MustSpendScriptOutput TxOutRef Redeemer
     | MustForgeValue MonetaryPolicyHash TokenName Integer
@@ -60,8 +61,10 @@ instance Pretty TxConstraint where
             "must validate in:" <+> viaShow range
         MustBeSignedBy signatory ->
             "must be signed by:" <+> pretty signatory
-        MustSpendValue vl ->
-            hang 2 $ vsep ["must spend value:", pretty vl]
+        MustSpendAtLeast vl ->
+            hang 2 $ vsep ["must spend at least:", pretty vl]
+        MustProduceAtLeast vl ->
+            hang 2 $ vsep ["must produce at least:", pretty vl]
         MustSpendPubKeyOutput ref ->
             hang 2 $ vsep ["must spend pubkey output:", pretty ref]
         MustSpendScriptOutput ref red ->
@@ -209,10 +212,15 @@ mustForgeValue = foldMap valueConstraint . (AssocMap.toList . Value.getValue) wh
 mustForgeCurrency :: forall i o. MonetaryPolicyHash -> TokenName -> Integer -> TxConstraints i o
 mustForgeCurrency mps tn = singleton . MustForgeValue mps tn
 
-{-# INLINABLE mustSpendValue #-}
--- | Requirement to spend the given value
-mustSpendValue :: forall i o. Value -> TxConstraints i o
-mustSpendValue = singleton . MustSpendValue
+{-# INLINABLE mustSpendAtLeast #-}
+-- | Requirement to spend inputs with at least the given value
+mustSpendAtLeast :: forall i o. Value -> TxConstraints i o
+mustSpendAtLeast = singleton . MustSpendAtLeast
+
+{-# INLINABLE mustProduceAtLeast #-}
+-- | Requirement to produce outputs with at least the given value
+mustProduceAtLeast :: forall i o. Value -> TxConstraints i o
+mustProduceAtLeast = singleton . MustProduceAtLeast
 
 {-# INLINABLE mustSpendPubKeyOutput #-}
 mustSpendPubKeyOutput :: forall i o. TxOutRef -> TxConstraints i o
@@ -241,11 +249,19 @@ pubKeyPayments TxConstraints{txConstraints} =
     $ Map.fromListWith (<>)
       (txConstraints >>= \case { MustPayToPubKey pk vl -> [(pk, vl)]; _ -> [] })
 
-{-# INLINABLE mustSpendValueTotal #-}
-mustSpendValueTotal :: forall i o. TxConstraints i o -> Value
-mustSpendValueTotal = foldMap f . txConstraints where
-    f (MustSpendValue v) = v
-    f _                  = mempty
+-- | The minimum 'Value' that satisfies all 'MustSpendAtLeast' constraints
+{-# INLINABLE mustSpendAtLeastTotal #-}
+mustSpendAtLeastTotal :: forall i o. TxConstraints i o -> Value
+mustSpendAtLeastTotal = foldl Value.convexUnion mempty . fmap f . txConstraints where
+    f (MustSpendAtLeast v) = v
+    f _                    = mempty
+
+-- | The minimum 'Value' that satisfies all 'MustProduceAtLeast' constraints
+{-# INLINABLE mustProduceAtLeastTotal #-}
+mustProduceAtLeastTotal :: forall i o. TxConstraints i o -> Value
+mustProduceAtLeastTotal = foldl Value.convexUnion mempty . fmap f . txConstraints where
+    f (MustProduceAtLeast v) = v
+    f _                      = mempty
 
 {-# INLINABLE requiredSignatories #-}
 requiredSignatories :: forall i o. TxConstraints i o -> [PubKeyHash]
@@ -271,7 +287,8 @@ requiredDatums = foldMap f . txConstraints where
 modifiesUtxoSet :: forall i o. TxConstraints i o -> Bool
 modifiesUtxoSet TxConstraints{txConstraints, txOwnOutputs, txOwnInputs} =
     let requiresInputOutput = \case
-            MustSpendValue{}            -> True
+            MustSpendAtLeast{}          -> True
+            MustProduceAtLeast{}        -> True
             MustSpendPubKeyOutput{}     -> True
             MustSpendScriptOutput{}     -> True
             MustForgeValue{}            -> True

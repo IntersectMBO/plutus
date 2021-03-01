@@ -42,6 +42,7 @@ module Plutus.V1.Ledger.Value(
     , isZero
     , split
     , unionWith
+    , convexUnion
     ) where
 
 import qualified Prelude                          as Haskell
@@ -63,6 +64,7 @@ import qualified Language.PlutusTx                as PlutusTx
 import qualified Language.PlutusTx.AssocMap       as Map
 import qualified Language.PlutusTx.Builtins       as Builtins
 import           Language.PlutusTx.Lift           (makeLift)
+import qualified Language.PlutusTx.Ord            as Ord
 import           Language.PlutusTx.Prelude
 import           Language.PlutusTx.These
 import           Plutus.V1.Ledger.Bytes           (LedgerBytes (LedgerBytes))
@@ -349,3 +351,9 @@ split (Value mp) = (negate (Value neg), Value pos) where
   splitIntl :: Map.Map TokenName Integer -> These (Map.Map TokenName Integer) (Map.Map TokenName Integer)
   splitIntl mp' = These l r where
     (l, r) = Map.mapThese (\i -> if i <= 0 then This i else That i) mp'
+
+-- | The union of two values, taking the larger amount when both keys
+--   are present.
+{-# INLINABLE convexUnion #-}
+convexUnion :: Value -> Value -> Value
+convexUnion = unionWith Ord.max
