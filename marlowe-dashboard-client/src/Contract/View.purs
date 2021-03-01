@@ -12,7 +12,7 @@ import Data.Map as Map
 import Data.Maybe (Maybe(..))
 import Halogen.HTML (HTML, button, div, div_, h2_, text)
 import Halogen.HTML.Events (onClick)
-import MainFrame.Types (ContractStatus)
+import Play.Types (ContractStatus)
 import Marlowe.Execution (ExecutionStep, NamedAction(..))
 import Marlowe.Semantics (Accounts, ChoiceId(..), Input(..), Party, TransactionInput(..), _accounts)
 

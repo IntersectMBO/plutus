@@ -95,7 +95,7 @@ class HasParties a where
   getParties :: a -> Set S.Party
 
 instance arrayHasParties :: HasParties a => HasParties (Array a) where
-  getParties = foldMap (\a -> getParties a)
+  getParties = foldMap getParties
 
 instance sPartyHasParties :: HasParties S.Party where
   getParties party = Set.singleton party

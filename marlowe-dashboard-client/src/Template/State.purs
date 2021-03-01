@@ -10,19 +10,21 @@ module Template.State
 -- relatively small and easier to read.
 -- Maybe we could do the same for Contract.State...?
 import Prelude
+import Control.Monad.Reader (class MonadAsk)
 import Data.Lens (assign, modifying)
 import Data.Map (Map, insert, fromFoldable)
 import Data.Maybe (Maybe(..), fromMaybe)
-import Data.Set (Set)
-import Data.Set (map, mapMaybe) as Set
+import Data.Set (mapMaybe) as Set
 import Data.Tuple (Tuple(..))
 import Effect.Aff.Class (class MonadAff)
+import Env (Env)
 import Halogen (HalogenM)
-import MainFrame.Lenses (_templateState, _walletState)
+import MainFrame.Lenses (_playState)
 import MainFrame.Types (ChildSlots, Msg)
 import MainFrame.Types (Action, State) as MainFrame
 import Marlowe.Extended (Contract, getParties, getPlaceholderIds, initializeTemplateContent, typeToLens)
 import Marlowe.Semantics (Party(..))
+import Play.Lenses (_templateState)
 import Template.Lenses (_contractNickname, _roleWallets, _templateContent)
 import Template.Library (defaultTemplate)
 import Template.Types (Action(..), State, Template)
@@ -39,21 +41,34 @@ mkInitialState template =
   }
 
 mkRoleWallets :: Contract -> Map String String
-mkRoleWallets contract = fromFoldable $ Set.map (\name -> Tuple name "") (getRoleNames contract)
-
-getRoleNames :: Contract -> Set String
-getRoleNames contract = Set.mapMaybe roleName (getParties contract)
+mkRoleWallets contract = fromFoldable $ Set.mapMaybe getRoleEntry (getParties contract)
   where
-  roleName (PK pubKey) = Nothing
+  getRoleEntry (PK pubKey) = Nothing
 
-  roleName (Role tokenName) = Just tokenName
+  getRoleEntry (Role tokenName) = Just (Tuple tokenName "")
 
-handleAction :: forall m. MonadAff m => Action -> HalogenM MainFrame.State MainFrame.Action ChildSlots Msg m Unit
-handleAction (SetContractNickname nickname) = assign (_walletState <<< _templateState <<< _contractNickname) nickname
+-- Some actions are handled in `Play.State` because they involve
+-- modifications of that state. See Note [State].
+handleAction ::
+  forall m.
+  MonadAff m =>
+  MonadAsk Env m =>
+  Action -> HalogenM MainFrame.State MainFrame.Action ChildSlots Msg m Unit
+handleAction (SetTemplate _) = pure unit -- handled in `Play.State`
 
-handleAction (SetRoleWallet roleName walletNickname) = modifying (_walletState <<< _templateState <<< _roleWallets) $ insert roleName walletNickname
+handleAction (SetScreen _) = pure unit -- handled in `Play.State`
+
+handleAction ToggleTemplateLibraryCard = pure unit -- handled in `Play.State`
+
+handleAction ToggleSetupConfirmationCard = pure unit -- handled in `Play.State`
+
+handleAction StartContract = pure unit -- handled in `Play.State`
+
+handleAction (SetContractNickname nickname) = assign (_playState <<< _templateState <<< _contractNickname) nickname
+
+handleAction (SetRoleWallet roleName walletNickname) = modifying (_playState <<< _templateState <<< _roleWallets) $ insert roleName walletNickname
 
 handleAction (SetParameter integerTemplateType key mValue) = do
   let
     value = fromMaybe zero mValue
-  modifying (_walletState <<< _templateState <<< _templateContent <<< typeToLens integerTemplateType) $ insert key value
+  modifying (_playState <<< _templateState <<< _templateContent <<< typeToLens integerTemplateType) $ insert key value
