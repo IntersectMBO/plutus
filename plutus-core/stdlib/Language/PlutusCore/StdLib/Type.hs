@@ -1,5 +1,6 @@
 -- | This module defines Haskell data types that simplify construction of PLC types and terms.
 
+{-# LANGUAGE DeriveAnyClass    #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE Rank2Types        #-}
 
@@ -500,7 +501,7 @@ data IndicesLengthsMismatchException = IndicesLengthsMismatchException
     { _indicesLengthsMismatchExceptionExpected :: Int
     , _indicesLengthsMismatchExceptionActual   :: Int
     , _indicesLengthsMismatchExceptionTyName   :: TyName
-    } deriving (Typeable)
+    } deriving anyclass (Exception)
 
 instance Show IndicesLengthsMismatchException where
     show (IndicesLengthsMismatchException expected actual tyName) = concat
@@ -508,8 +509,6 @@ instance Show IndicesLengthsMismatchException where
         , "expected: ", show expected, " , actual: ", show actual, "\n"
         , "while constructing a ", displayPlcDef tyName
         ]
-
-instance Exception IndicesLengthsMismatchException
 
 -- | Get the kind of a data type having the kinds of its arguments.
 --

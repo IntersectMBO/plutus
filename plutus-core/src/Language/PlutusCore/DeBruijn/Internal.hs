@@ -1,5 +1,4 @@
 {-# LANGUAGE DeriveAnyClass        #-}
-{-# LANGUAGE DerivingStrategies    #-}
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE LambdaCase            #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
@@ -45,7 +44,6 @@ import           Control.Monad.Reader
 import qualified Data.Bimap                 as BM
 import qualified Data.Text                  as T
 import           Data.Text.Prettyprint.Doc
-import           Data.Typeable
 
 import           Numeric.Natural
 
@@ -167,8 +165,9 @@ withScope = local $ \(Levels current ls) -> Levels (current+1) ls
 data FreeVariableError
     = FreeUnique Unique
     | FreeIndex Index
-    deriving (Show, Typeable, Eq, Ord, Generic, NFData)
-instance Exception FreeVariableError
+    deriving stock (Show, Eq, Ord, Generic)
+    deriving anyclass (Exception, NFData)
+
 
 instance Pretty FreeVariableError where
     pretty (FreeUnique u) = "Free unique:" <+> pretty u

@@ -1,13 +1,13 @@
-{-# LANGUAGE DeriveAnyClass    #-}
-{-# LANGUAGE DeriveGeneric     #-}
-{-# LANGUAGE DerivingVia       #-}
-{-# LANGUAGE FlexibleContexts  #-}
-{-# LANGUAGE FlexibleInstances #-}
-{-# LANGUAGE LambdaCase        #-}
-{-# LANGUAGE NamedFieldPuns    #-}
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE RecordWildCards   #-}
-{-# LANGUAGE TemplateHaskell   #-}
+{-# LANGUAGE DeriveAnyClass     #-}
+{-# LANGUAGE DeriveGeneric      #-}
+{-# LANGUAGE DerivingStrategies #-}
+{-# LANGUAGE FlexibleContexts   #-}
+{-# LANGUAGE FlexibleInstances  #-}
+{-# LANGUAGE LambdaCase         #-}
+{-# LANGUAGE NamedFieldPuns     #-}
+{-# LANGUAGE OverloadedStrings  #-}
+{-# LANGUAGE RecordWildCards    #-}
+{-# LANGUAGE TemplateHaskell    #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 {-# OPTIONS_GHC -fno-strictness #-}
 {-# OPTIONS_GHC -fno-specialise #-}
@@ -77,7 +77,6 @@ import qualified Data.Map                  as Map
 import           Data.Maybe                (isJust)
 import qualified Data.Set                  as Set
 import           Data.Text.Prettyprint.Doc
-import           Data.Typeable
 import           GHC.Generics              (Generic)
 
 import qualified Language.PlutusTx         as PlutusTx
@@ -135,7 +134,7 @@ data Tx = Tx {
     -- ^ Signatures of this transaction.
     txData         :: Map DatumHash Datum
     -- ^ Datum objects recorded on this transaction.
-    } deriving stock (Show, Eq, Generic, Typeable)
+    } deriving stock (Show, Eq, Generic)
       deriving anyclass (ToJSON, FromJSON, Serialise, NFData)
 
 instance Pretty Tx where

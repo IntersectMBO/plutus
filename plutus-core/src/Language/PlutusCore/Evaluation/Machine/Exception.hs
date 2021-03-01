@@ -4,7 +4,7 @@
 {-# OPTIONS_GHC -Wno-overlapping-patterns #-}
 
 {-# LANGUAGE DataKinds              #-}
-{-# LANGUAGE DerivingStrategies     #-}
+{-# LANGUAGE DeriveAnyClass         #-}
 {-# LANGUAGE FlexibleInstances      #-}
 {-# LANGUAGE FunctionalDependencies #-}
 {-# LANGUAGE OverloadedStrings      #-}
@@ -243,9 +243,8 @@ instance (PrettyPlc term, PrettyPlc err) =>
             Show (ErrorWithCause err term) where
     show = render . prettyPlcReadableDebug
 
-instance (PrettyPlc term, PrettyPlc err, Typeable term, Typeable err) =>
-            Exception (ErrorWithCause err term)
-
+deriving anyclass instance
+    (PrettyPlc term, PrettyPlc err, Typeable term, Typeable err) => Exception (ErrorWithCause err term)
 
 instance HasErrorCode UnliftingError where
       errorCode        UnliftingErrorE {}        = ErrorCode 30
@@ -269,7 +268,6 @@ instance HasErrorCode (MachineError err _a) where
 instance (HasErrorCode user, HasErrorCode internal) => HasErrorCode (EvaluationError user internal) where
   errorCode (InternalEvaluationError e) = errorCode e
   errorCode (UserEvaluationError e)     = errorCode e
-
 
 instance HasErrorCode err => HasErrorCode (ErrorWithCause err t) where
     errorCode (ErrorWithCause e _) = errorCode e

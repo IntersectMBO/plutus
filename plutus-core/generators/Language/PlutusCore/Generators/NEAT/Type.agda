@@ -15,10 +15,6 @@ module Language.PlutusCore.Generators.NEAT.Type where
 
 {-# FOREIGN AGDA2HS
 {-# OPTIONS_GHC -fno-warn-orphans      #-}
-{-# LANGUAGE DeriveAnyClass            #-}
-{-# LANGUAGE DeriveDataTypeable        #-}
-{-# LANGUAGE DeriveFunctor             #-}
-{-# LANGUAGE DerivingVia               #-}
 {-# LANGUAGE ExistentialQuantification #-}
 {-# LANGUAGE FlexibleInstances         #-}
 {-# LANGUAGE LambdaCase                #-}
@@ -83,7 +79,7 @@ data TypeG (n : Set) : Set where
   TyLamG : TypeG (S n) → TypeG n
   TyAppG : TypeG n → TypeG n → Kind ⊤ → TypeG n
 
-{-# COMPILE AGDA2HS TypeG deriving (Typeable, Eq, Ord, Show) #-}
+{-# COMPILE AGDA2HS TypeG deriving (Eq, Ord, Show) #-}
 
 {-# FOREIGN AGDA2HS
 deriving instance Ord (Kind ())
