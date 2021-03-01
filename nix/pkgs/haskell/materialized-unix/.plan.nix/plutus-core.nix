@@ -153,6 +153,7 @@
           "Language/PlutusIR/Compiler/Recursion"
           "Language/PlutusIR/Compiler/Types"
           "Language/PlutusIR/Compiler/Lower"
+          "Language/PlutusIR/Compiler/Error"
           "Language/PlutusIR/Normalize"
           "Language/PlutusIR/TypeCheck/Internal"
           "Language/UntypedPlutusCore/Core"
