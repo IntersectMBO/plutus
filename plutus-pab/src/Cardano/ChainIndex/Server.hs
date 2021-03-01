@@ -19,7 +19,7 @@ import           Control.Monad.Freer.Extras.Log
 import           Servant.Client                  (BaseUrl (baseUrlPort))
 
 import           Data.Coerce                     (coerce)
-import           Plutus.PAB.Monitoring           (runLogEffects)
+import           Plutus.PAB.Monitoring.Util      (runLogEffects)
 import qualified Wallet.Effects                  as WalletEffects
 
 import           Cardano.ChainIndex.ChainIndex

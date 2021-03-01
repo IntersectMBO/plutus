@@ -9,11 +9,10 @@
 
 -- | A 'Control.Monad.Logger.Logger' instance
 --   using the 'Control.Monad.Freer.Log.Log' effect
-module Plutus.PAB.MonadLoggerBridge(
+module Plutus.PAB.Monitoring.MonadLoggerBridge(
   MonadLoggerMsg(..)
   , TraceLoggerT(..)
-  -- * Etc.
-  , logStrToText
+  , monadLoggerTracer
   ) where
 
 import           Cardano.BM.Data.LogItem        (PrivacyAnnotation (Public))
@@ -28,6 +27,7 @@ import           Control.Monad.IO.Unlift        (MonadUnliftIO (..))
 import           Control.Monad.Logger           (Loc, LogLevel (..), LogSource, LogStr, MonadLogger (..), ToLogStr (..),
                                                  fromLogStr)
 import           Control.Monad.Reader           (ReaderT (..))
+import           Control.Tracer                 (natTracer)
 import           Data.Aeson                     (FromJSON (..), ToJSON (..), Value (Object), object, (.:), (.=))
 import           Data.Aeson.Types               (typeMismatch)
 import           Data.String                    (IsString (..))
@@ -36,7 +36,7 @@ import qualified Data.Text.Encoding             as Encoding
 import           Data.Text.Prettyprint.Doc      (Pretty (..), viaShow, vsep, (<+>))
 import           GHC.Generics                   (Generic)
 import           Plutus.PAB.Instances           ()
-import qualified Plutus.PAB.Monitoring          as M
+import           Plutus.PAB.Monitoring.Util     (toSeverity)
 
 logStrToText :: LogStr -> Text
 logStrToText = Encoding.decodeUtf8 . fromLogStr -- I'm just assuming it's UTF-8...
@@ -102,5 +102,8 @@ instance (MonadIO m, MonadUnliftIO m) => MonadUnliftIO (TraceLoggerT m) where
 
 instance (MonadIO m, Monad m) => MonadLogger (TraceLoggerT m) where
     monadLoggerLog l logSource ll msg = TraceLoggerT $ \trace ->
-        traceNamedItem trace Public (M.toSeverity $ toLogLevel ll)
+        traceNamedItem trace Public (toSeverity $ toLogLevel ll)
         $ MonadLoggerMsg{mlmLocation = l, mlmLogSource = logSource, mlmLogStr = toLogStr msg}
+
+monadLoggerTracer :: Trace IO a -> Trace (TraceLoggerT IO) a
+monadLoggerTracer = natTracer (\x -> TraceLoggerT $ const  x)

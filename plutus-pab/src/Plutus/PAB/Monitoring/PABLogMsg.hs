@@ -7,7 +7,7 @@
 {-# LANGUAGE TypeApplications  #-}
 
 -- | PAB Log messages and instances
-module Plutus.PAB.PABLogMsg(
+module Plutus.PAB.Monitoring.PABLogMsg(
     PABLogMsg(..),
     ContractExeLogMsg(..),
     ChainIndexServerMsg,
@@ -18,34 +18,34 @@ module Plutus.PAB.PABLogMsg(
     AppMsg(..)
     ) where
 
-import           Data.Aeson                         (FromJSON, ToJSON, Value)
-import qualified Data.Aeson.Encode.Pretty           as JSON
-import qualified Data.ByteString.Lazy.Char8         as BSL8
-import           Data.String                        (IsString (..))
-import           Data.Text                          (Text)
-import           Data.Text.Prettyprint.Doc          (Pretty (..), colon, hang, viaShow, vsep, (<+>))
-import           Data.Time.Units                    (Second)
-import           GHC.Generics                       (Generic)
+import           Data.Aeson                              (FromJSON, ToJSON, Value)
+import qualified Data.Aeson.Encode.Pretty                as JSON
+import qualified Data.ByteString.Lazy.Char8              as BSL8
+import           Data.String                             (IsString (..))
+import           Data.Text                               (Text)
+import           Data.Text.Prettyprint.Doc               (Pretty (..), colon, hang, viaShow, vsep, (<+>))
+import           Data.Time.Units                         (Second)
+import           GHC.Generics                            (Generic)
 
-import           Cardano.BM.Data.Tracer             (ToObject (..), TracingVerbosity (..))
-import           Cardano.BM.Data.Tracer.Extras      (Tagged (..), mkObjectStr)
-import           Cardano.ChainIndex.Types           (ChainIndexServerMsg)
-import           Cardano.Metadata.Types             (MetadataLogMessage)
-import           Cardano.Node.Types                 (MockServerLogMsg)
-import           Cardano.SigningProcess.Types       (SigningProcessMsg)
-import           Cardano.Wallet.Types               (WalletMsg)
-import           Language.Plutus.Contract.State     (ContractRequest)
-import           Ledger.Tx                          (Tx)
-import           Plutus.PAB.Core                    (CoreMsg (..))
-import           Plutus.PAB.Core.ContractInstance   (ContractInstanceMsg (..))
-import           Plutus.PAB.Effects.ContractRuntime (ContractRuntimeMsg)
-import           Plutus.PAB.Events.Contract         (ContractInstanceId, ContractInstanceState)
-import           Plutus.PAB.Instances               ()
-import           Plutus.PAB.MonadLoggerBridge       (MonadLoggerMsg (..))
-import           Plutus.PAB.ParseStringifiedJSON    (UnStringifyJSONLog (..))
-import           Plutus.PAB.Types                   (ContractExe, PABError (..))
-import           Plutus.PAB.Webserver.Types         (WebSocketLogMsg)
-import           Wallet.Emulator.Wallet             (WalletEvent (..))
+import           Cardano.BM.Data.Tracer                  (ToObject (..), TracingVerbosity (..))
+import           Cardano.BM.Data.Tracer.Extras           (Tagged (..), mkObjectStr)
+import           Cardano.ChainIndex.Types                (ChainIndexServerMsg)
+import           Cardano.Metadata.Types                  (MetadataLogMessage)
+import           Cardano.Node.Types                      (MockServerLogMsg)
+import           Cardano.SigningProcess.Types            (SigningProcessMsg)
+import           Cardano.Wallet.Types                    (WalletMsg)
+import           Language.Plutus.Contract.State          (ContractRequest)
+import           Ledger.Tx                               (Tx)
+import           Plutus.PAB.Core                         (CoreMsg (..))
+import           Plutus.PAB.Core.ContractInstance        (ContractInstanceMsg (..))
+import           Plutus.PAB.Effects.ContractRuntime      (ContractRuntimeMsg)
+import           Plutus.PAB.Events.Contract              (ContractInstanceId, ContractInstanceState)
+import           Plutus.PAB.Instances                    ()
+import           Plutus.PAB.Monitoring.MonadLoggerBridge (MonadLoggerMsg (..))
+import           Plutus.PAB.ParseStringifiedJSON         (UnStringifyJSONLog (..))
+import           Plutus.PAB.Types                        (ContractExe, PABError (..))
+import           Plutus.PAB.Webserver.Types              (WebSocketLogMsg)
+import           Wallet.Emulator.Wallet                  (WalletEvent (..))
 
 data AppMsg =
     InstalledContractsMsg

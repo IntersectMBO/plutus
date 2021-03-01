@@ -7,27 +7,19 @@
 {-# LANGUAGE RankNTypes        #-}
 {-# LANGUAGE TypeApplications  #-}
 {-# LANGUAGE TypeOperators     #-}
-module Plutus.PAB.Monitoring(
-  -- * Effect handlers
-  handleLogMsgTrace
-  , handleLogMsgTraceMap
-  , handleObserveTrace
-  , runLogEffects
-  -- * Conveniences for configuration
-  , defaultConfig
-  , loadConfig
-  -- * Misc
-  , toSeverity
-  , convertLog
-  ) where
 
-import           Cardano.BM.Configuration       (setup)
+module Plutus.PAB.Monitoring.Util (
+      handleLogMsgTrace
+    , handleLogMsgTraceMap
+    , handleObserveTrace
+    , runLogEffects
+    , convertLog
+    , toSeverity
+    ) where
+
 import qualified Cardano.BM.Configuration.Model as CM
-import           Cardano.BM.Data.BackendKind
-import           Cardano.BM.Data.Configuration  (Endpoint (..))
 import           Cardano.BM.Data.Counter
 import           Cardano.BM.Data.LogItem
-import           Cardano.BM.Data.Output
 import           Cardano.BM.Data.Severity
 import           Cardano.BM.Data.SubTrace
 import           Cardano.BM.Data.Trace
@@ -45,34 +37,17 @@ import           Data.Functor.Contravariant     (Contravariant (..))
 import           Data.Maybe                     (fromMaybe)
 import           Data.Text                      (Text)
 
--- | A default 'CM.Configuration' that logs on 'Info' and above
---   to stdout
-defaultConfig :: IO CM.Configuration
-defaultConfig = do
-  c <- CM.empty
-  CM.setMinSeverity c Info
-  CM.setSetupBackends c [ KatipBK
-                        , AggregationBK
-                        , MonitoringBK
-                        , EKGViewBK
-                        ]
-  CM.setDefaultBackends c [KatipBK, AggregationBK, EKGViewBK]
-  CM.setSetupScribes c [ ScribeDefinition {
-                          scName = "stdout"
-                        , scKind = StdoutSK
-                        , scFormat = ScText
-                        , scPrivacy = ScPublic
-                        , scRotation = Nothing
-                        , scMinSev = minBound
-                        , scMaxSev = maxBound
-                        }]
-  CM.setDefaultScribes c ["StdoutSK::stdout"]
-  CM.setEKGBindAddr c $ Just (Endpoint ("localhost", 12790))
-  pure c
+toSeverity :: L.LogLevel -> Severity
+toSeverity = \case
+  L.Debug     -> Debug
+  L.Info      -> Info
+  L.Notice    -> Notice
+  L.Warning   -> Warning
+  L.Error     -> Error
+  L.Critical  -> Critical
+  L.Alert     -> Alert
+  L.Emergency -> Emergency
 
--- | Load a 'CM.Configuration' from a YAML file.
-loadConfig :: FilePath -> IO CM.Configuration
-loadConfig = setup
 
 -- | Handle the 'LogMsg' effect by logging messages to a 'Trace'
 handleLogMsgTrace :: forall a m effs.
@@ -87,6 +62,7 @@ handleLogMsgTrace trace = interpret $ \case
     let defaultPrivacy = Public -- TODO: Configurable / add to 'L.LogMessage'?
     in sendM $ traceNamedItem trace defaultPrivacy (toSeverity _logLevel) _logMessageContent
 
+-- | Handle the 'LogMsg' effect by logging messages to a mapped 'Trace'
 handleLogMsgTraceMap :: forall b a m effs.
   ( LastMember m effs
   , MonadIO m
@@ -97,17 +73,6 @@ handleLogMsgTraceMap :: forall b a m effs.
   ~> Eff effs
 handleLogMsgTraceMap f t = handleLogMsgTrace (contramap (second (fmap f)) t)
 
-toSeverity :: L.LogLevel -> Severity
-toSeverity = \case
-  L.Debug     -> Debug
-  L.Info      -> Info
-  L.Notice    -> Notice
-  L.Warning   -> Warning
-  L.Error     -> Error
-  L.Critical  -> Critical
-  L.Alert     -> Alert
-  L.Emergency -> Emergency
-
 runLogEffects ::
     forall m l.
     MonadIO m
@@ -115,6 +80,12 @@ runLogEffects ::
     -> Eff '[LogMsg l, m]
     ~> m
 runLogEffects trace = runM . handleLogMsgTrace trace
+
+
+-- | Convert tracer structured log data
+convertLog :: (a -> b) -> Trace m b -> Trace m a
+convertLog f = contramap (second (fmap f))
+
 
 -- | Handle the 'LogObserve' effect using the 'Cardano.BM.Observer.Monadic'
 --   observer functions
@@ -159,7 +130,3 @@ handleObserveTrace config t =
   in L.handleObserve
       observeBefore
       observeAfter
-
--- | Convert tracer structured log data
-convertLog :: (a -> b) -> Trace m b -> Trace m a
-convertLog f = contramap (second (fmap f))

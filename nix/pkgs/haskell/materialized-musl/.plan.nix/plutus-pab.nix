@@ -165,8 +165,11 @@
           "Plutus/PAB/Effects/MultiAgent"
           "Plutus/PAB/Effects/UUID"
           "Plutus/PAB/Instances"
-          "Plutus/PAB/MonadLoggerBridge"
-          "Plutus/PAB/Monitoring"
+          "Plutus/PAB/Monitoring/MonadLoggerBridge"
+          "Plutus/PAB/Monitoring/Monitoring"
+          "Plutus/PAB/Monitoring/PABLogMsg"
+          "Plutus/PAB/Monitoring/Config"
+          "Plutus/PAB/Monitoring/Util"
           "Plutus/PAB/Webserver/API"
           "Plutus/PAB/Webserver/Handler"
           "Plutus/PAB/Webserver/Server"
@@ -179,7 +182,6 @@
           "Plutus/PAB/Events/Wallet"
           "Plutus/PAB/ParseStringifiedJSON"
           "Plutus/PAB/Query"
-          "Plutus/PAB/PABLogMsg"
           "Plutus/PAB/Types"
           ];
         hsSourceDirs = [ "src" ];

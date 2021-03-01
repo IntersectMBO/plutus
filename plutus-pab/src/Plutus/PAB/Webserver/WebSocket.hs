@@ -4,39 +4,38 @@
 {-# LANGUAGE KindSignatures      #-}
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE TypeOperators       #-}
 
 module Plutus.PAB.Webserver.WebSocket
     ( handleWS
     ) where
 
-import qualified Cardano.BM.Configuration.Model as CM
-import           Cardano.BM.Trace               (Trace)
-import           Cardano.Metadata.Types         (MetadataEffect)
-import qualified Cardano.Metadata.Types         as Metadata
-import           Control.Concurrent.Async       (Async, async, waitAnyCancel)
-import           Control.Exception              (SomeException, handle)
-import           Control.Monad                  (forever, void, when)
-import           Control.Monad.Freer            (Eff, LastMember, Member, interpret)
-import           Control.Monad.Freer.Delay      (DelayEffect, delayThread, handleDelayEffect)
-import           Control.Monad.Freer.Extras.Log (LogMsg, logDebug, logInfo, mapLog)
-import           Control.Monad.Freer.Reader     (Reader, ask)
-import           Control.Monad.Freer.WebSocket  (WebSocketEffect, acceptConnection, receiveJSON, sendJSON)
-import           Control.Monad.IO.Class         (MonadIO, liftIO)
-import           Data.Aeson                     (ToJSON)
-import           Data.Time.Units                (Second, TimeUnit)
-import           Network.WebSockets.Connection  (Connection, PendingConnection, withPingThread)
-import           Plutus.PAB.App                 (runApp)
-import           Plutus.PAB.Effects.Contract    (ContractEffect)
-import           Plutus.PAB.Effects.EventLog    (EventLogEffect)
-import           Plutus.PAB.Events              (ChainEvent)
-import           Plutus.PAB.PABLogMsg           (PABLogMsg (SWebsocketMsg))
-import           Plutus.PAB.Types               (Config, ContractExe, PABError)
-import           Plutus.PAB.Webserver.Handler   (getChainReport, getContractReport, getEvents)
-import           Plutus.PAB.Webserver.Types     (StreamToClient (ErrorResponse, FetchedProperties, FetchedProperty, NewChainEvents, NewChainReport, NewContractReport),
-                                                 StreamToServer (FetchProperties, FetchProperty),
-                                                 WebSocketLogMsg (ClosedConnection, CreatedConnection, ReceivedWebSocketRequest, SendingWebSocketResponse))
-import           Wallet.Effects                 (ChainIndexEffect)
+import qualified Cardano.BM.Configuration.Model  as CM
+import           Cardano.BM.Trace                (Trace)
+import           Cardano.Metadata.Types          (MetadataEffect)
+import qualified Cardano.Metadata.Types          as Metadata
+import           Control.Concurrent.Async        (Async, async, waitAnyCancel)
+import           Control.Exception               (SomeException, handle)
+import           Control.Monad                   (forever, void, when)
+import           Control.Monad.Freer             (Eff, LastMember, Member, interpret)
+import           Control.Monad.Freer.Delay       (DelayEffect, delayThread, handleDelayEffect)
+import           Control.Monad.Freer.Extras.Log  (LogMsg, logDebug, logInfo, mapLog)
+import           Control.Monad.Freer.Reader      (Reader, ask)
+import           Control.Monad.Freer.WebSocket   (WebSocketEffect, acceptConnection, receiveJSON, sendJSON)
+import           Control.Monad.IO.Class          (MonadIO, liftIO)
+import           Data.Aeson                      (ToJSON)
+import           Data.Time.Units                 (Second, TimeUnit)
+import           Network.WebSockets.Connection   (Connection, PendingConnection, withPingThread)
+import           Plutus.PAB.App                  (runApp)
+import           Plutus.PAB.Effects.Contract     (ContractEffect)
+import           Plutus.PAB.Effects.EventLog     (EventLogEffect)
+import           Plutus.PAB.Events               (ChainEvent)
+import qualified Plutus.PAB.Monitoring.PABLogMsg as LM
+import           Plutus.PAB.Types                (Config, ContractExe, PABError)
+import           Plutus.PAB.Webserver.Handler    (getChainReport, getContractReport, getEvents)
+import           Plutus.PAB.Webserver.Types      (StreamToClient (ErrorResponse, FetchedProperties, FetchedProperty, NewChainEvents, NewChainReport, NewContractReport),
+                                                  StreamToServer (FetchProperties, FetchProperty),
+                                                  WebSocketLogMsg (ClosedConnection, CreatedConnection, ReceivedWebSocketRequest, SendingWebSocketResponse))
+import           Wallet.Effects                  (ChainIndexEffect)
 
 ------------------------------------------------------------
 -- Message processors.
@@ -136,7 +135,7 @@ queryHandlerThread connection =
 ------------------------------------------------------------
 -- Plumbing
 ------------------------------------------------------------
-threadApp :: Trace IO PABLogMsg -> CM.Configuration -> Config -> Connection -> IO ()
+threadApp :: Trace IO LM.PABLogMsg -> CM.Configuration -> Config -> Connection -> IO ()
 threadApp trace logConfig config connection = do
     tasks :: [Async (Either PABError ())] <-
         traverse
@@ -144,13 +143,13 @@ threadApp trace logConfig config connection = do
             [ chainReportThread connection
             , contractStateThread connection
             , eventsThread connection
-            , interpret (mapLog SWebsocketMsg) (queryHandlerThread connection)
+            , interpret (mapLog LM.SWebsocketMsg) (queryHandlerThread connection)
             ]
     void $ waitAnyCancel tasks
   where
     asyncApp = async . runApp trace logConfig config . handleDelayEffect
 
-handleClient :: Trace IO PABLogMsg -> CM.Configuration -> Config -> Connection -> IO ()
+handleClient :: Trace IO LM.PABLogMsg -> CM.Configuration -> Config -> Connection -> IO ()
 handleClient trace logConfig config connection =
     handle disconnect . withPingThread connection 30 (pure ()) $
     threadApp trace logConfig config connection
@@ -165,7 +164,7 @@ handleWS ::
        , Member (Reader Config) effs
        , Member WebSocketEffect effs
        )
-    => Trace IO PABLogMsg
+    => Trace IO LM.PABLogMsg
     -> CM.Configuration
     -> PendingConnection
     -> Eff effs ()
