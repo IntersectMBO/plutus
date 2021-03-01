@@ -235,18 +235,18 @@ couponBondGuaranteed =
                                                                                                     Pay(investor, Party(guarantor), ada, 1010n, Close)
                                                                                                 )
                                                                                             )
-                                                                                            ], 20n, Close)
+                                                                                            ], 25n, Close)
                                                                                     )
                                                                                 )
                                                                             )
-                                                                        ], 15n, Close)
+                                                                        ], 20n, Close)
                                                                     )
                                                                 )
                                                             )
-                                                        ], 10n, Close)
+                                                        ], 15n, Close)
                                                     )
                                                 )
-                                            ], 5n, Close)
+                                            ], 10n, Close)
                                         )
                                     ], 5n, Close)
     return contract;
@@ -305,8 +305,8 @@ swap =
     return contract;
 """
 
-cfd :: String
-cfd =
+contractForDifference :: String
+contractForDifference =
   """
     const party : Party = Role("party")
 
