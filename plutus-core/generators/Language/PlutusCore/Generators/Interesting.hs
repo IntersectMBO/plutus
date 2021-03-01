@@ -78,8 +78,11 @@ factorial = runQuote $ do
     let int = mkTyBuiltin @Integer ()
     return
         . LamAbs () i int
-        . mkIterApp () List.product
-        $ [ mkIterApp () List.enumFromTo [ mkConstant @Integer () 1 , Var () i]]
+        . apply () List.product
+        $ mkIterApp () List.enumFromTo
+            [ mkConstant @Integer () 1
+            , Var () i
+            ]
 
 -- | The naive exponential fibonacci function as a PLC term.
 --
@@ -146,7 +149,7 @@ genNatRoundtrip :: TermGen Integer
 genNatRoundtrip = do
     let typedInt = AsKnownType @(Term TyName Name DefaultUni DefaultFun ())
     TermOf _ iv <- Gen.filter ((>= 0) . _termOfValue) $ genTypedBuiltinDef typedInt
-    let term = mkIterApp () natToInteger [metaIntegerToNat iv]
+    let term = apply () natToInteger $ metaIntegerToNat iv
     return $ TermOf term iv
 
 -- | @sumNat@ as a PLC term.
@@ -176,7 +179,7 @@ genListSum = do
         intS = toTypeAst typedInt
     ps <- Gen.list (Range.linear 0 10) $ genTypedBuiltinDef typedInt
     let list = metaListToList intS $ Prelude.map _termOfTerm ps
-        term = mkIterApp () List.sum [list]
+        term = apply () List.sum list
     let haskSum = Prelude.sum $ Prelude.map _termOfValue ps
     return $ TermOf term haskSum
 
@@ -243,8 +246,8 @@ genDivideByZeroDrop = do
     TermOf i iv <- genTermLoose typedInt
     let term =
             mkIterApp () (mkIterInst () Function.const [int, int])
-                [ mkIterApp () (Builtin () op) [i, mkConstant @Integer () 0]
-                , mkConstant @Integer () iv
+                [ mkConstant @Integer () iv
+                , mkIterApp () (Builtin () op) [i, mkConstant @Integer () 0]
                 ]
     return $ TermOf term EvaluationFailure
 

@@ -220,6 +220,7 @@
           "Language/PlutusCore/StdLib/Meta/Data/Tuple"
           "Language/PlutusCore/StdLib/Meta/Data/Function"
           "Language/PlutusCore/StdLib/Type"
+          "Language/PlutusCore/Examples/Builtins"
           "Language/PlutusCore/Examples/Everything"
           "Language/PlutusCore/Generators"
           "Language/PlutusCore/Generators/AST"
