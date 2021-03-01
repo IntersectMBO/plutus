@@ -1,7 +1,7 @@
 module Template.Types
-  ( State
+  ( module ExtendedREs
+  , State
   , Template
-  , MetaData
   , Screen(..)
   , Action(..)
   ) where
@@ -11,29 +11,18 @@ import Analytics (class IsEvent, defaultEvent)
 import Data.BigInteger (BigInteger)
 import Data.Map (Map)
 import Data.Maybe (Maybe(..))
-import Marlowe.Extended (Contract, IntegerTemplateType, TemplateContent)
+import Marlowe.Extended (Contract, IntegerTemplateType, MetaData, TemplateContent, ContractTemplate)
+import Marlowe.Extended (MetaData) as ExtendedREs
 import Marlowe.Semantics (TokenName)
+
+type Template
+  = ContractTemplate
 
 type State
   = { template :: Template
     , contractNickname :: String
     , roleWallets :: Map String String
     , templateContent :: TemplateContent
-    }
-
-type Template
-  = { metaData :: MetaData
-    , extendedContract :: Contract
-    }
-
-type MetaData
-  = { contractName :: String
-    , contractType :: String
-    , contractDescription :: String
-    , roleDescriptions :: Map TokenName String
-    , slotParameterDescriptions :: Map String String
-    , valueParameterDescriptions :: Map String String
-    , choiceDescriptions :: Map String String
     }
 
 data Screen
