@@ -23,6 +23,21 @@ import Marlowe.Semantics (decodeProp)
 import Marlowe.Semantics as S
 import Text.Pretty (class Args, class Pretty, genericHasArgs, genericHasNestedArgs, genericPretty, pretty)
 
+type ContractTemplate
+  = { metaData :: MetaData
+    , extendedContract :: Contract
+    }
+
+type MetaData
+  = { contractName :: String
+    , contractType :: String
+    , contractDescription :: String
+    , roleDescriptions :: Map S.TokenName String
+    , slotParameterDescriptions :: Map String String
+    , valueParameterDescriptions :: Map String String
+    , choiceDescriptions :: Map String String
+    }
+
 class ToCore a b where
   toCore :: a -> Maybe b
 

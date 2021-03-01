@@ -20,6 +20,7 @@ import qualified ContractForDifference
 import           Control.Applicative                              ((<|>))
 import           Control.Lens                                     (set, (&))
 import           Control.Monad.Reader                             (MonadReader)
+import qualified CouponBondGuaranteed
 import           Data.Aeson                                       (encode)
 import qualified Data.ByteString                                  as BS
 import qualified Data.ByteString.Char8                            as BS8
@@ -53,7 +54,6 @@ import           Marlowe.Contracts                                (contractForDi
 import qualified Marlowe.Symbolic.Server                          as MS
 import qualified Marlowe.Symbolic.Types.Request                   as MSReq
 import qualified Marlowe.Symbolic.Types.Response                  as MSRes
-import qualified Option
 import qualified PSGenerator.Common
 import           Servant                                          ((:<|>), (:>))
 import           Servant.PureScript                               (HasBridge, Settings, _generateSubscriberAPI,
@@ -204,7 +204,7 @@ writeUsecases outputDir = do
          <> multilineString "escrow" (contractToString Escrow.contract)
          <> multilineString "escrowWithCollateral" (contractToString EscrowWithCollateral.contract)
          <> multilineString "zeroCouponBond" (contractToString ZeroCouponBond.contract)
-         <> multilineString "option" (contractToString Option.contract)
+         <> multilineString "couponBondGuaranteed" (contractToString CouponBondGuaranteed.contract)
          <> multilineString "swap" (contractToString Swap.contract)
          <> multilineString "contractForDifference" (contractToString ContractForDifference.contract)
         marloweUsecasesModule = psModule "Examples.Marlowe.Contracts" marloweUsecases
