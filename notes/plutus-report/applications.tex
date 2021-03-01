@@ -273,3 +273,51 @@ Over time we hope to unify the experiences of working locally and working in the
 \subsection{Application design}
 
 \todompj{Talk about state machines and our ideas for handling rollbacks.}
+
+\subsection{Off-chain contract semantics}
+
+This is a (semi) formal account of the semantics of the off-chain part of Plutus \glspl{app}.
+
+\todojm{Tidy up}
+
+Plutus \glspl{app} react to events that happen either on the blockchain or outside the \gls{plutus-platform}.
+The following types of events can be reacted to:
+\begin{enumerate}
+  \item[Slot change] Wall clock time progresses.
+  \item[Transaction status change] The status of a transaction changes as a result of transaction validation or a rollback.
+  \item[Address change] The set of unspent outputs at an address changes as a result of a transaction status change.
+  \item[Endpoint] Input is provided to the \gls{app} from outside the system.
+\end{enumerate}
+
+The meaning of these interactions is described by the following Petri nets.
+
+\todojm{How formal should this be? Do we need definitions etc?}
+
+\subsubsection{Slot change}
+
+For each slot $s$ there is a place $p_s$.
+A \emph{clock} transition places a token in $p_s$ to signal that $s$ has begun.
+Any transition that removes a token from $p_s$ is expected to put it back immediately, so that there is always exactly one token in $p_s$ after it has been filled for the first time.
+
+\subsubsection{Transaction status change}
+
+The status of a transaction changes multiple after it has been sent to the node.
+Transactions start out in the node's \emph{mempool}.
+Then their status changes to \emph{tentatively confirmed} or to \emph{rejected}.
+Finally, a transaction that is tentatively confirmed can revert back to \emph{mempool} or it can become \emph{permantently confirmed} when enough blocks have been added to make it irreversible.
+
+For each of the four states of a transaction there is one place in the petri net.
+Transactions are identified by colored tokens.
+
+\subsubsection{Address change}
+
+The set of unspent outputs at an address is modified by transactions that spend and produce outputs.
+Therefore, whenever the status of a transaction changes, the status of its inputs and outputs changes also.
+
+We represent the outputs at each address with two petri nets, one for unspent outputs and one for spent outputs.
+There is one place each for outputs that are in the mempool, tentatively confirmed, permantently confirmed, rejected.
+
+\subsubsection{Endpoint}
+
+Users and other applications may call endpoints on the \gls{app}.
+This is done using
