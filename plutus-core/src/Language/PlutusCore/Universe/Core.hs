@@ -251,6 +251,10 @@ instance GShow f => Show (Some f) where
     showsPrec pr (Some a) = ($(makeShowsPrec ''Some)) pr (Some (AG a))
 
 instance GShow uni => GShow (TypeIn uni) where gshowsPrec = showsPrec
+
+-- If it was possible to combine @stock@ and @via@ that instance could look like
+--
+--     deriving stock via TypeIn (AG uni) a instance GShow uni => Show (TypeIn uni a)
 instance GShow uni => Show (TypeIn uni a) where
     showsPrec pr (TypeIn uni) = ($(makeShowsPrec ''TypeIn)) pr (TypeIn (AG uni))
 

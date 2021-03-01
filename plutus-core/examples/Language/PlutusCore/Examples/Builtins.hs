@@ -137,8 +137,8 @@ type instance ToBinds Void = '[]
 -- function, should we multiple memory consumption by the number of duplicates it returns minus one?
 -- For example, should @\x -> [x, x]@ increase memory consumption by the memory annotation of @x@
 -- just once and not twice, since one of the @x@s is going to be essentially reused and the other
--- one will by a true duplicate? Or should memory consumption stay the same regardless of the
--- number of duplicates (modulo whatever the spine of the freshly list takes up), given that
+-- one will be a true duplicate? Or should memory consumption stay the same regardless of the
+-- number of duplicates (modulo whatever the spine of the freshly list takes up)? Since
 --
 -- 1. later we can call @head@ over the resulting list thus not duplicating anything in the end
 -- 2. any monomorphic builtin forcing a 'Constant' node of the duplicated AST will automatically

@@ -63,7 +63,7 @@ newtype ExMemory = ExMemory Integer
 -- Yes, I also hate that.
 deriving newtype instance PrettyDefaultBy config Integer => PrettyBy config ExMemory
 
--- 'Integer's are not particularly fast. Should we use @Int64@?
+-- TODO: 'Integer's are not particularly fast. Should we use @Int64@?
 -- | Counts CPU units - no fixed base, proportional.
 newtype ExCPU = ExCPU Integer
   deriving (Eq, Ord, Show)
