@@ -6,7 +6,8 @@ module Contract.State
   ) where
 
 import Prelude
-import Contract.Types (Action(..), Query(..), Side(..), State, Tab(..), _confirmation, _contractId, _executionState, _side, _step, _tab)
+import Contract.Lenses (_confirmation, _contractId, _executionState, _side, _step, _tab)
+import Contract.Types (Action(..), Query(..), Side(..), State, Tab(..))
 import Control.Monad.Except (runExceptT)
 import Control.Monad.Maybe.Trans (runMaybeT)
 import Control.Monad.Reader (class MonadAsk)
@@ -82,7 +83,7 @@ handleAction (SelectTab tab) = assign _tab tab
 
 handleAction (FlipCard side) = assign _side side
 
--- Handled in MainFrame
-handleAction ClosePanel = pure unit
-
 handleAction (ChangeStep step) = assign _step step
+
+-- all other actions are handled in `Play.State`
+handleAction _ = pure unit

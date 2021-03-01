@@ -19,7 +19,8 @@ type State
 -- there's only one pickup screen at the moment, but we might need more, and
 -- in any case it seems clearer to specify it explicitly
 data Screen
-  = GenerateWalletScreen
+  = GDPRScreen
+  | GenerateWalletScreen
 
 derive instance eqScreen :: Eq Screen
 

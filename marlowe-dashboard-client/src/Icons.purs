@@ -5,6 +5,7 @@ module Material.Icons
   , close
   , contacts
   , help
+  , home
   , image
   , libraryAdd
   , menu
@@ -38,6 +39,9 @@ contacts = icon "contacts"
 
 help :: forall p i. HTML p i
 help = icon "help"
+
+home :: forall p i. HTML p i
+home = icon "home"
 
 image :: forall p i. HTML p i
 image = icon "image"

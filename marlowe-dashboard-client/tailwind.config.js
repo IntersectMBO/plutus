@@ -12,31 +12,35 @@ module.exports = {
     colors: {
       transparent: "transparent",
       current: "currentColor",
-      red: "#fc0f37",
-      green: "#17a454",
-      blue: "#6280a9",
-      midblue: "#b8c6dd",
-      lightblue: "#ccddea",
-      yellow: "#fed130",
-      white: "#fff",
-      gray: "#ebebeb",
-      transgray: "rgba(10,10,10,0.1)"
+      black: "#283345",
+      gray: "#eeeeee",
+      darkgray: "#cbcbcb",
+      white: "#ffffff",
+      grayblue: "#f5f9fc",
+      blue: "#4d48e1",
+      lightblue: "#3688d5",
+      red: "#de4c51",
+      transgray: "rgba(10,10,10,0.4)"
     },
     spacing: {
       0: "0px",
+      0.25: "0.25rem",
       0.5: "0.5rem",
       0.75: "0.75rem",
       1: "1rem",
+      1.5: "1.5rem",
       2: "2rem",
       3: "3rem",
-      card: "20rem"
+      12: "12rem",
+      22: "22rem"
     },
     fontSize: {
       xs: ["0.75rem", { lineHeight: "1rem" }],
       sm: ["0.875rem", { lineHeight: "1.25rem" }],
       base: ["1rem", { lineHeight: "1.5rem" }],
       lg: ["1.125rem", { lineHeight: "1.75rem" }],
-      xl: ["1.25rem", { lineHeight: "1.75rem" }]
+      xl: ["1.5rem", { lineHeight: "1.75rem" }],
+      "2xl": ["2rem", { lineHeight: "1.75rem" }]
     },
     extend: {
       gridTemplateRows: {
@@ -63,8 +67,8 @@ module.exports = {
     backgroundAttachment: false,
     backgroundClip: false,
     backgroundColor: true,
-    backgroundImage: false,
-    gradientColorStops: false,
+    backgroundImage: true,
+    gradientColorStops: true,
     backgroundOpacity: false,
     backgroundPosition: false,
     backgroundRepeat: false,

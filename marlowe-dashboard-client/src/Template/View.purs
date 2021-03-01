@@ -5,19 +5,21 @@ module Template.View
   ) where
 
 import Prelude hiding (div, min)
-import Css (applyWhen, classNames, toggleWhen)
+import Css (applyWhen, classNames)
+import Css as Css
 import Data.BigInteger (fromString) as BigInteger
 import Data.Lens (view)
 import Data.Map (Map, lookup)
 import Data.Map (toUnfoldable) as Map
-import Data.Maybe (Maybe(..), fromMaybe)
+import Data.Maybe (Maybe(..), fromMaybe, isJust)
 import Data.Set (toUnfoldable) as Set
 import Data.Tuple.Nested ((/\))
-import Halogen.HTML (HTML, a, button, div, div_, h2_, h3_, h4_, input, label, li, p_, span, text, ul, ul_)
+import Halogen.HTML (HTML, a, button, div, div_, h2, h3, input, label, li, p_, span, span_, text, ul, ul_)
 import Halogen.HTML.Events.Extra (onClick_, onValueInput_)
 import Halogen.HTML.Properties (InputType(..), enabled, for, id_, list, min, placeholder, readOnly, type_, value)
 import Marlowe.Extended (Contract, IntegerTemplateType(..), TemplateContent, _slotContent, _valueContent, getParties)
 import Marlowe.Semantics (PubKey, Party(..))
+import Material.Icons as Icon
 import Template.Lenses (_contractNickname, _extendedContract, _metaData, _roleWallets, _template, _templateContent)
 import Template.Types (Action(..), Screen(..), MetaData, State, Template)
 import Template.Validation (roleError, roleWalletsAreValid, slotError, valueError)
@@ -76,7 +78,7 @@ contractSetupScreenHeader setupScreen contractNickname =
         ]
     ]
   where
-  screenClasses currentScreen screen = [ "p-1" ] <> applyWhen (currentScreen == screen) "text-green"
+  screenClasses currentScreen screen = [ "p-1" ] <> applyWhen (currentScreen == screen) [ "text-blue" ]
 
 contractNavigationButtons :: forall p. Screen -> Map String String -> WalletLibrary -> Array (HTML p Action)
 contractNavigationButtons screen roleWallets wallets = case screen of
@@ -85,7 +87,8 @@ contractNavigationButtons screen roleWallets wallets = case screen of
         [ onClick_ ToggleTemplateLibraryCard ]
         [ text "< Library quick access" ]
     , button
-        [ onClick_ $ SetScreen ContractParametersScreen
+        [ classNames Css.primaryButton
+        , onClick_ $ SetScreen ContractParametersScreen
         , enabled $ roleWalletsAreValid roleWallets wallets
         ]
         [ text "Next >" ]
@@ -95,7 +98,9 @@ contractNavigationButtons screen roleWallets wallets = case screen of
         [ onClick_ $ SetScreen ContractRolesScreen ]
         [ text "< Roles" ]
     , button
-        [ onClick_ $ SetScreen ContractReviewScreen ]
+        [ classNames Css.primaryButton
+        , onClick_ $ SetScreen ContractReviewScreen
+        ]
         [ text "Next >" ]
     ]
   ContractReviewScreen ->
@@ -103,14 +108,16 @@ contractNavigationButtons screen roleWallets wallets = case screen of
         [ onClick_ $ SetScreen ContractParametersScreen ]
         [ text "< Parameters" ]
     , button
-        [ onClick_ $ ToggleSetupConfirmationCard ]
+        [ classNames Css.primaryButton
+        , onClick_ $ ToggleSetupConfirmationCard
+        ]
         [ text "Pay and start >" ]
     ]
 
 contractRolesScreen :: forall p. WalletLibrary -> MetaData -> Contract -> Map String PubKey -> HTML p Action
 contractRolesScreen wallets metaData extendedContract roleWallets =
   ul
-    [ classNames [ "mx-auto", "w-card" ] ]
+    [ classNames [ "mx-auto", "w-22" ] ]
     $ map partyInput (Set.toUnfoldable $ getParties extendedContract)
   where
   partyInput (PK pubKey) =
@@ -122,7 +129,7 @@ contractRolesScreen wallets metaData extendedContract roleWallets =
           ]
           [ text "Wallet" ]
       , input
-          [ classNames [ "w-full" ]
+          [ classNames $ Css.input false
           , id_ pubKey
           , type_ InputText
           , value pubKey
@@ -146,7 +153,7 @@ contractRolesScreen wallets metaData extendedContract roleWallets =
             ]
             [ text $ tokenName <> ": " <> description ]
         , input
-            [ classNames $ [ "w-full" ] <> toggleWhen (mRoleError == Nothing) "border-green" "border-red"
+            [ classNames $ Css.input (isJust mRoleError)
             , id_ tokenName
             , type_ InputText
             , list "walletNicknames"
@@ -154,7 +161,7 @@ contractRolesScreen wallets metaData extendedContract roleWallets =
             , value assigned
             ]
         , div
-            [ classNames [ "mb-1", "text-red", "text-sm" ] ]
+            [ classNames Css.inputError ]
             $ case mRoleError of
                 Just roleError -> [ text $ show roleError ]
                 Nothing -> []
@@ -169,7 +176,7 @@ contractParametersScreen metaData templateContent =
     valueContent = view _valueContent templateContent
   in
     div
-      [ classNames [ "mx-auto", "w-card" ] ]
+      [ classNames [ "mx-auto", "w-22" ] ]
       [ ul
           [ classNames [ "mb-1" ] ]
           $ map (parameterInput SlotContent) (Map.toUnfoldable slotContent)
@@ -193,14 +200,14 @@ contractParametersScreen metaData templateContent =
             [ classNames [ "block", "mb-0.5" ] ]
             [ text $ key <> ": " <> description ]
         , input
-            [ classNames $ [ "w-full" ] <> toggleWhen (mParameterError == Nothing) "border-green" "border-red"
+            [ classNames $ Css.input (isJust mParameterError)
             , type_ InputNumber
             , min one
             , onValueInput_ $ SetParameter integerTemplateType key <<< BigInteger.fromString
             , value $ show parameterValue
             ]
         , div
-            [ classNames [ "mb-1", "text-red", "text-sm" ] ]
+            [ classNames Css.inputError ]
             $ case mParameterError of
                 Just parameterError -> [ text $ show parameterError ]
                 Nothing -> []
@@ -209,14 +216,16 @@ contractParametersScreen metaData templateContent =
 contractReviewScreen :: forall p. State -> HTML p Action
 contractReviewScreen state =
   div
-    [ classNames [ "mx-auto", "w-card", "bg-white", "p-1" ] ]
+    [ classNames [ "mx-auto", "w-22", "bg-white", "p-1" ] ]
     [ text "Summary information about the contract goes here." ]
 
 ------------------------------------------------------------
 templateLibraryCard :: forall p. Array Template -> HTML p Action
 templateLibraryCard templates =
   div_
-    [ h2_ [ text "Start new from template" ]
+    [ h2
+        [ classNames [ "text-lg", "text-center", "font-bold", "mb-1" ] ]
+        [ text "Choose a contract template" ]
     , div
         [ classNames [ "grid", "gap-1", "md:grid-cols-2", "lg:grid-cols-3" ] ]
         (templateBox <$> templates)
@@ -225,17 +234,22 @@ templateLibraryCard templates =
   templateBox template =
     div
       [ classNames [ "bg-white", "p-1" ] ]
-      [ h4_
-          [ text template.metaData.contractType ]
-      , h3_
+      [ div
+          [ classNames [ "flex", "justify-between" ] ]
+          [ text template.metaData.contractType
+          , button
+              [ classNames Css.primaryButton
+              , onClick_ $ SetTemplate template
+              ]
+              [ span_ [ text "Setup" ]
+              , span_ [ Icon.navigateNext ]
+              ]
+          ]
+      , h3
+          [ classNames [ "font-bold" ] ]
           [ text template.metaData.contractName ]
       , p_
           [ text template.metaData.contractDescription ]
-      , button
-          [ classNames [ "bg-green", "text-white" ]
-          , onClick_ $ SetTemplate template
-          ]
-          [ text "Setup" ]
       ]
 
 contractSetupConfirmationCard :: forall p. HTML p Action
@@ -245,14 +259,14 @@ contractSetupConfirmationCard =
     , div
         [ classNames [ "flex" ] ]
         [ button
-            [ classNames [ "flex-1", "mr-1" ]
-            , onClick_ StartContract
-            ]
-            [ text "Pay and start" ]
-        , button
-            [ classNames [ "flex-1" ]
+            [ classNames $ Css.secondaryButton <> [ "flex-1", "mr-1" ]
             , onClick_ ToggleSetupConfirmationCard
             ]
             [ text "Cancel" ]
+        , button
+            [ classNames $ Css.primaryButton <> [ "flex-1" ]
+            , onClick_ StartContract
+            ]
+            [ text "Pay" ]
         ]
     ]

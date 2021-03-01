@@ -4,8 +4,9 @@ module Play.State
   ) where
 
 import Prelude
+import Contract.Lenses (_executionState)
 import Contract.State (defaultState, handleAction) as Contract
-import Contract.Types (_executionState)
+import Contract.Types (Action(..)) as Contract
 import Control.Monad.Reader (class MonadAsk)
 import Control.Monad.State.Class (get)
 import Data.Foldable (for_)
@@ -96,7 +97,10 @@ handleAction (TemplateAction Template.StartContract) = do
 -- other template actions
 handleAction (TemplateAction templateAction) = Template.handleAction templateAction
 
--- contract actions
+-- contract actions that need to be handled here
+handleAction (ContractAction (Contract.ToggleTemplateLibraryCard)) = handleAction $ ToggleCard TemplateLibraryCard
+
+-- other contract actions
 handleAction (ContractAction contractAction) = do
   state <- get
   mapMaybeSubmodule state (_playState <<< _contractState) (MainFrame.PlayAction <<< ContractAction) Contract.defaultState (Contract.handleAction contractAction)
