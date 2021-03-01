@@ -103,7 +103,7 @@ step (s ▻ μ A B)                    = -, (s , μ- B) ▻ A
 step (s ▻ con c)                    = -, s ◅ V-con c
 step (ε ◅ V)                        = -, □ V
 step ((s , (-· B)) ◅ V)             = -, (s , V ·-) ▻ B
-step (_◅_ (s , (V-ƛ A ·-)) B)       = -, s ▻ (A [ discharge B ])
+step ((s , (V-ƛ A ·-)) ◅ B)       = -, s ▻ (A [ discharge B ])
 step ((s , (-⇒ B)) ◅ V)             = -, (s , V ⇒-) ▻ B
 step ((s , (V ⇒-)) ◅ W)             = -, s ◅ (V V-⇒ W)
 step ((s , μ- B) ◅ A)               = -, (s , μ A -) ▻ B
@@ -120,10 +120,26 @@ variable
 open import Relation.Binary.PropositionalEquality
 
 data _-→s_ : State K J → State K I → Set where
-  base  : (s : State K J)
+  base  : {s : State K J}
         → s -→s s
-  step* : (s : State K J)(s' : State K I)(s'' : State K I')
+  step* : {s : State K J}{s' : State K I}{s'' : State K I'}
         → step s ≡ (I , s')
         → s' -→s s''
         → s -→s s''
+
+step** : {s : State K J}{s' : State K I}{s'' : State K I'}
+        → s -→s s'
+        → s' -→s s''
+        → s -→s s''
+step** base q = q
+step** (step* x p) q = step* x (step** p q)
+```
+
+```
+change-dir : (s : Stack I J)(A : ∅ ⊢⋆ J) (V : Value⋆ A) → (s ▻ A) -→s (s ◅ V)
+change-dir s .(Π N) (V-Π N) = step* refl base
+change-dir s .(_ ⇒ _) (V V-⇒ V₁) = step* refl (step** (change-dir _ _ V) (step* refl (step** (change-dir _ _ V₁) (step* refl base))))
+change-dir s .(ƛ N) (V-ƛ N) = step* refl base
+change-dir s .(con tcn) (V-con tcn) = step* refl base
+change-dir s .(μ _ _) (V-μ V V₁) = step* refl (step** (change-dir _ _ V) (step* refl (step** (change-dir _ _ V₁) (step* refl base))))
 ```
