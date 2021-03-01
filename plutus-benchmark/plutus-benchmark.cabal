@@ -70,8 +70,6 @@ library
     TypeApplications
     MultiParamTypeClasses
     ScopedTypeVariables
-  other-extensions:
-    NoImplicitPrelude
 
 executable nofib-exe
   import: lang
