@@ -265,16 +265,12 @@ signsTransaction (Signature sig) (PubKey (LedgerBytes pk)) (TxInfo{txInfoId=TxId
 {-# INLINABLE valueSpent #-}
 -- | Get the total value of inputs spent by this transaction.
 valueSpent :: TxInfo -> Value
-valueSpent p =
-    let inputs' = map txInInfoValue (txInfoInputs p)
-    in mconcat inputs'
+valueSpent = foldMap txInInfoValue . txInfoInputs
 
 {-# INLINABLE valueProduced #-}
 -- | Get the total value of outputs produced by this transaction.
 valueProduced :: TxInfo -> Value
-valueProduced p =
-    let inputs' = map txOutValue (txInfoOutputs p)
-    in mconcat inputs'
+valueProduced = foldMap txOutValue . txInfoOutputs
 
 {-# INLINABLE ownCurrencySymbol #-}
 -- | The 'CurrencySymbol' of the current validator script.
