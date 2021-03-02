@@ -171,7 +171,7 @@ handleAction (BlocklyEvent (BT.Select event)) = case newElementId event of
           blocklyState <- MaybeT $ use _blocklyState
           block <- MaybeT $ liftEffect $ getBlockById blocklyState.workspace blockId
           blockType <- MaybeT $ map pure $ liftEffect $ getBlockType block
-          MaybeT $ map pure $ raise $ BlockSelection $ Just $ { blockId, blockType }
+          MaybeT $ map pure $ raise $ BlockSelection $ Just { blockId, blockType }
 
 handleAction (BlocklyEvent event) = detectCodeChanges CodeChange event
 

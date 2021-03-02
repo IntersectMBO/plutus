@@ -55,7 +55,7 @@ data Action
 
 data Message
   = CodeChange
-  | BlockSelection (Maybe ({ blockId :: String, blockType :: String }))
+  | BlockSelection (Maybe { blockId :: String, blockType :: String })
 
 blocklyRef :: RefLabel
 blocklyRef = RefLabel "blockly"

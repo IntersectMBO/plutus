@@ -1032,7 +1032,7 @@ tokenCategory :: Category
 tokenCategory = category "Token" tokenColour $ map (leaf <<< show) tokenTypes
 
 boundsCategory :: Category
-boundsCategory = category "Bounds" boundsColour $ [ leaf $ show BoundsType ]
+boundsCategory = category "Bounds" boundsColour [ leaf $ show BoundsType ]
 
 -- This map ties a block definition "check" with a Category that can be displayed in the Toolbar
 -- as part of the Blockly holes functionality.
@@ -1040,15 +1040,15 @@ boundsCategory = category "Bounds" boundsColour $ [ leaf $ show BoundsType ]
 typeMap :: Map String Category
 typeMap =
   Map.fromFoldable
-    $ [ Tuple (show BaseContractType) contractsCategory
-      , Tuple "ActionType" actionsCategory
-      , Tuple "observation" observationsCategory
-      , Tuple "value" valueCategory
-      , Tuple "payee" payeeCategory
-      , Tuple "party" partyCategory
-      , Tuple "token" tokenCategory
-      , Tuple (show BoundsType) boundsCategory
-      ]
+    [ Tuple (show BaseContractType) contractsCategory
+    , Tuple "ActionType" actionsCategory
+    , Tuple "observation" observationsCategory
+    , Tuple "value" valueCategory
+    , Tuple "payee" payeeCategory
+    , Tuple "party" partyCategory
+    , Tuple "token" tokenCategory
+    , Tuple (show BoundsType) boundsCategory
+    ]
 
 defaultCategories :: Array Category
 defaultCategories =

@@ -63,7 +63,7 @@ type CategoryFields
     , colour :: Maybe String
     , categorystyle :: Maybe String
     -- https://developers.google.com/blockly/guides/configure/web/toolbox#expanded
-    , expanded :: Boolean -- (default to false) (encoded as string)
+    , expanded :: Boolean
     -- Categories can also have this properties that we don't need to implement at the moment
     -- cssConfig :: Object String
     -- https://developers.google.com/blockly/guides/configure/web/toolbox#dynamic_categories
@@ -91,6 +91,9 @@ leaf _type = CategoryLeaf $ block _type
 separator :: Category
 separator = Separator Nothing
 
+-- A category could also be one of these, but not worth to implement at the moment
+-- https://developers.google.com/blockly/guides/configure/web/toolbox#preset_blocks
+-- https://developers.google.com/blockly/guides/configure/web/toolbox#buttons_and_labels
 data Category
   = Category CategoryFields (Array Category)
   | CategoryLeaf ToolboxBlock
@@ -104,9 +107,6 @@ rename name (Category fields children) = Category (fields { name = name }) child
 
 rename _ category' = category'
 
--- A category could also be one of these, but not worth to implement at the moment
--- https://developers.google.com/blockly/guides/configure/web/toolbox#preset_blocks
--- https://developers.google.com/blockly/guides/configure/web/toolbox#buttons_and_labels
 encodeCategory :: Category -> Json
 encodeCategory (Category fields children) =
   A.fromObject
@@ -119,6 +119,9 @@ encodeCategory (Category fields children) =
                 [ Tuple "toolboxitemid" <<< A.fromString <$> fields.toolboxitemid
                 , Tuple "colour" <<< A.fromString <$> fields.colour
                 , Tuple "categorystyle" <<< A.fromString <$> fields.categorystyle
+                -- Even if the expanded field is always present in our configuration (true/false)
+                -- we only encode it (as string) when is true, as Blockly expects the value to either
+                -- be present as a string, or not present at all.
                 , if fields.expanded then
                     Just $ Tuple "expanded" (A.fromString "true")
                   else

@@ -241,10 +241,10 @@ data Arg
   | DummyLeft
   | DummyCentre
 
-argType :: Arg -> Maybe ({ name :: String, check :: String })
-argType (Value { name, check }) = Just $ { name, check }
+argType :: Arg -> Maybe { name :: String, check :: String }
+argType (Value { name, check }) = Just { name, check }
 
-argType (Statement { name, check }) = Just $ { name, check }
+argType (Statement { name, check }) = Just { name, check }
 
 argType _ = Nothing
 
