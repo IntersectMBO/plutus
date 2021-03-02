@@ -58,9 +58,12 @@ checkTxConstraint ValidatorCtx{valCtxTxInfo} = \case
     MustBeSignedBy pubKey ->
         traceIfFalse "Missing signature"
         $ valCtxTxInfo `V.txSignedBy` pubKey
-    MustSpendValue vl ->
+    MustSpendAtLeast vl ->
         traceIfFalse "Spent value not OK"
         $ vl `leq` V.valueSpent valCtxTxInfo
+    MustProduceAtLeast vl ->
+        traceIfFalse "Produced value not OK"
+        $ vl `leq` V.valueProduced valCtxTxInfo
     MustSpendPubKeyOutput txOutRef ->
         traceIfFalse "Public key output not spent"
         $ maybe False (isNothing . txInInfoWitness) (V.findTxInByTxOutRef txOutRef valCtxTxInfo)

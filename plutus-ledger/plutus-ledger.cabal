@@ -104,7 +104,8 @@ library
         http-api-data -any,
         cardano-crypto -any,
         deepseq -any,
-        freer-simple -any
+        freer-simple -any,
+        semigroups -any
 
     ghc-options: -fprint-potential-instances
 

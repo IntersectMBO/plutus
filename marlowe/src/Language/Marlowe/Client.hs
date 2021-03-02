@@ -148,7 +148,7 @@ marlowePlutusContract = do
         let spendPayouts = Map.foldlWithKey spendPayoutConstraints mempty utxos
             constraints = spendPayouts
                 -- must spend a role token for authorization
-                <> Constraints.mustSpendValue (Val.singleton rolesCurrency role 1)
+                <> Constraints.mustSpendAtLeast (Val.singleton rolesCurrency role 1)
             -- lookup for payout validator and role payouts
             validator = rolePayoutScript rolesCurrency
             lookups = Constraints.otherScript validator
@@ -440,7 +440,7 @@ mkMarloweStateMachineTransition params SM.State{ SM.stateData=MarloweData{..}, S
             validatePartyWitness (Role role) = ([], AssocMap.singleton role ())
 
         mustSpendRoleToken :: TokenName -> TxConstraints Void Void
-        mustSpendRoleToken role = mustSpendValue $ Val.singleton rolesCurrency role 1
+        mustSpendRoleToken role = mustSpendAtLeast $ Val.singleton rolesCurrency role 1
 
     collectDeposits :: Input -> Val.Value
     collectDeposits (IDeposit _ _ (Token cur tok) amount) = Val.singleton cur tok amount
