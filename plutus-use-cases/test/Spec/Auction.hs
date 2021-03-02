@@ -5,6 +5,7 @@ module Spec.Auction(tests, auctionTrace1, auctionTrace2) where
 
 import           Control.Lens
 import           Control.Monad                                    (void)
+import           Data.Semigroup                                   (Last (..))
 
 import           Language.Plutus.Contract
 import           Language.Plutus.Contract.Test
@@ -25,6 +26,7 @@ tests =
         [ checkPredicateOptions options "run an auction"
             (assertDone seller (Trace.walletInstanceTag w1) (const True) "seller should be done"
             .&&. assertDone buyer (Trace.walletInstanceTag w2) (const True) "buyer should be done"
+            .&&. assertAccumState buyer (Trace.walletInstanceTag w2) ((==) (Just $ Last trace1FinalState)) "final state should be OK"
             .&&. walletFundsChange w1 (Ada.toValue trace1WinningBid <> inv theToken)
             .&&. walletFundsChange w2 (inv (Ada.toValue trace1WinningBid) <> theToken))
             auctionTrace1
@@ -32,6 +34,7 @@ tests =
             (assertDone seller (Trace.walletInstanceTag w1) (const True) "seller should be done"
             .&&. assertDone buyer (Trace.walletInstanceTag w2) (const True) "buyer should be done"
             .&&. assertDone buyer (Trace.walletInstanceTag w3) (const True) "3rd party should be done"
+            .&&. assertAccumState buyer (Trace.walletInstanceTag w2) ((==) (Just $ Last trace2FinalState)) "final state should be OK"
             .&&. walletFundsChange w1 (Ada.toValue trace2WinningBid <> inv theToken)
             .&&. walletFundsChange w2 (inv (Ada.toValue trace2WinningBid) <> theToken)
             .&&. walletFundsChange w3 mempty)
@@ -61,10 +64,10 @@ options =
     let initialDistribution = defaultDist & over (at (Wallet 1) . _Just) ((<>) theToken)
     in defaultCheckOptions & emulatorConfig . Trace.initialChainState .~ Left initialDistribution
 
-seller :: Contract () SellerSchema SM.SMContractError ()
+seller :: Contract (Maybe (Last AuctionState)) SellerSchema SM.SMContractError ()
 seller = auctionSeller (apAsset params) (apEndTime params)
 
-buyer :: Contract () BuyerSchema SM.SMContractError ()
+buyer :: Contract (Maybe (Last AuctionState)) BuyerSchema SM.SMContractError ()
 buyer = auctionBuyer params
 
 w1, w2, w3 :: Wallet
@@ -81,7 +84,7 @@ auctionTrace1 = do
     _ <- Trace.waitNSlots 1
     hdl2 <- Trace.activateContractWallet w2 buyer
     _ <- Trace.waitNSlots 1
-    Trace.callEndpoint @"bid" hdl2 50
+    Trace.callEndpoint @"bid" hdl2 trace1WinningBid
     void $ Trace.waitUntilSlot (succ $ succ $ apEndTime params)
 
 trace2WinningBid :: Ada
@@ -98,5 +101,21 @@ auctionTrace2 = do
     _ <- Trace.waitNSlots 15
     Trace.callEndpoint @"bid" hdl3 60
     _ <- Trace.waitNSlots 35
-    Trace.callEndpoint @"bid" hdl2 70
+    Trace.callEndpoint @"bid" hdl2 trace2WinningBid
     void $ Trace.waitUntilSlot (succ $ succ $ apEndTime params)
+
+trace1FinalState :: AuctionState
+trace1FinalState =
+    Finished $
+        HighestBid
+            { highestBid = trace1WinningBid
+            , highestBidder = pubKeyHash (walletPubKey w2)
+            }
+
+trace2FinalState :: AuctionState
+trace2FinalState =
+    Finished $
+        HighestBid
+            { highestBid = trace2WinningBid
+            , highestBidder = pubKeyHash (walletPubKey w2)
+            }

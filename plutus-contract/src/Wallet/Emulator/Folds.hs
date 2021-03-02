@@ -23,6 +23,7 @@ module Wallet.Emulator.Folds (
     , instanceTransactions
     , Outcome(..)
     , instanceLog
+    , instanceAccumState
     -- * Folds for transactions and the UTXO set
     , chainEvents
     , failedTransactions
@@ -167,6 +168,18 @@ instanceResponses ::
     -> ContractInstanceTag
     -> EmulatorEventFoldM effs [Response (Event s)]
 instanceResponses con = fmap (fromMaybe [] . fmap (toList . instEvents)) . instanceState con
+
+-- | Accumulated state of the contract instance
+instanceAccumState ::
+    forall w s e a effs.
+    ( ContractConstraints s
+    , Member (Error EmulatorFoldErr) effs
+    , Monoid w
+    )
+    => Contract w s e a
+    -> ContractInstanceTag
+    -> EmulatorEventFoldM effs w
+instanceAccumState con = fmap (maybe mempty (_observableState . instContractState)) . instanceState con
 
 -- | The log messages produced by the contract instance.
 instanceLog :: ContractInstanceTag -> EmulatorEventFold [EmulatorTimeEvent ContractInstanceLog]

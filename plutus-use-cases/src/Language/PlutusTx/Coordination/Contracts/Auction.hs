@@ -15,12 +15,14 @@ module Language.PlutusTx.Coordination.Contracts.Auction(
     BuyerSchema,
     SellerSchema,
     AuctionParams(..),
+    HighestBid(..),
     auctionBuyer,
     auctionSeller,
     ) where
 
 
 import           Data.Aeson                            (FromJSON, ToJSON)
+import           Data.Semigroup                        (Last (..))
 import           GHC.Generics                          (Generic)
 import           Language.Plutus.Contract
 import           Language.Plutus.Contract.StateMachine (State (..), StateMachine (..), StateMachineClient,
@@ -66,7 +68,7 @@ PlutusTx.unstableMakeIsData ''HighestBid
 data AuctionState
     = Ongoing HighestBid -- Bids can be submitted.
     | Finished HighestBid -- The auction is finished
-    deriving stock (Generic, Haskell.Show)
+    deriving stock (Generic, Haskell.Show, Haskell.Eq)
     deriving anyclass (ToJSON, FromJSON)
 
 -- | Initial 'AuctionState'. In the beginning the highest bid is 0 and the
@@ -164,7 +166,7 @@ data AuctionLog =
 
 
 -- | Client code for the seller
-auctionSeller :: Value -> Slot -> Contract () SellerSchema SM.SMContractError ()
+auctionSeller :: Value -> Slot -> Contract (Maybe (Last AuctionState)) SellerSchema SM.SMContractError ()
 auctionSeller value slot = do
     self <- Ledger.pubKeyHash <$> ownPubKey
     let params       = AuctionParams{apOwner = self, apAsset = value, apEndTime = slot }
@@ -186,10 +188,10 @@ auctionSeller value slot = do
 
 
 -- | Get the current state of the contract and log it.
-currentState :: StateMachineClient AuctionState AuctionInput -> Contract () BuyerSchema SM.SMContractError (Maybe HighestBid)
+currentState :: StateMachineClient AuctionState AuctionInput -> Contract (Maybe (Last AuctionState)) BuyerSchema SM.SMContractError (Maybe HighestBid)
 currentState client = SM.getOnChainState client >>= \case
     Just ((TypedScriptTxOut{tyTxOutData=Ongoing s}, _), _) -> do
-        notify (Ongoing s)
+        tell (Just $ Last $ Ongoing s)
         pure (Just s)
     _ -> do
         logWarn CurrentStateNotFound
@@ -207,7 +209,7 @@ To achieve this, we have a loop where we wait for one of several events to
 happen and then deal with the event. The waiting is implemented in
 @waitForChange@ and the event handling is in @handleEvent@.
 
-Updates to the user are provided via 'notify'.
+Updates to the user are provided via 'tell'.
 
 -}
 
@@ -217,7 +219,7 @@ data BuyerEvent =
         | OtherBid HighestBid -- ^ Another buyer submitted a higher bid
         | NoChange HighestBid -- ^ Nothing has changed
 
-waitForChange :: AuctionParams -> StateMachineClient AuctionState AuctionInput -> HighestBid -> Contract () BuyerSchema SM.SMContractError BuyerEvent
+waitForChange :: AuctionParams -> StateMachineClient AuctionState AuctionInput -> HighestBid -> Contract (Maybe (Last AuctionState)) BuyerSchema SM.SMContractError BuyerEvent
 waitForChange AuctionParams{apEndTime} client lastHighestBid = do
     s <- currentSlot
     let
@@ -237,13 +239,13 @@ waitForChange AuctionParams{apEndTime} client lastHighestBid = do
     -- see note [Buyer client]
     auctionOver `select` submitOwnBid `select` otherBid
 
-handleEvent :: StateMachineClient AuctionState AuctionInput -> HighestBid -> BuyerEvent -> Contract () BuyerSchema SM.SMContractError (Either HighestBid ())
+handleEvent :: StateMachineClient AuctionState AuctionInput -> HighestBid -> BuyerEvent -> Contract (Maybe (Last AuctionState)) BuyerSchema SM.SMContractError (Either HighestBid ())
 handleEvent client lastHighestBid change =
     let continue = pure . Left
         stop     = pure (Right ())
     -- see note [Buyer client]
     in case change of
-        AuctionIsOver s -> notify (Finished s) >> stop
+        AuctionIsOver s -> tell (Just $ Last $ Finished s) >> stop
         SubmitOwnBid ada -> do
             self <- Ledger.pubKeyHash <$> ownPubKey
             r <- SM.runStep client Bid{newBid = ada, newBidder = self}
@@ -255,11 +257,11 @@ handleEvent client lastHighestBid change =
                 -- but you never know :-)
                 SM.TransitionSuccess (Finished newHighestBid) -> logError (AuctionEnded newHighestBid) >> stop
         OtherBid s -> do
-            notify (Ongoing s)
+            tell (Just $ Last $ Ongoing s)
             continue s
         NoChange s -> continue s
 
-auctionBuyer :: AuctionParams -> Contract () BuyerSchema SM.SMContractError ()
+auctionBuyer :: AuctionParams -> Contract (Maybe (Last AuctionState)) BuyerSchema SM.SMContractError ()
 auctionBuyer params = do
     let inst         = scriptInstance params
         client       = machineClient inst params

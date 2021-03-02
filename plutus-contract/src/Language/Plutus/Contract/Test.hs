@@ -38,6 +38,7 @@ module Language.Plutus.Contract.Test(
     , assertUserLog
     , assertBlockchain
     , assertChainEvents
+    , assertAccumState
     , tx
     , anyTx
     , assertEvents
@@ -556,3 +557,28 @@ assertUserLog pred' = flip postMapM (L.generalize Folds.userLog) $ \lg -> do
     let result = pred' lg
     unless result (tell @(Doc Void) $ vsep ("User log failed to validate:" : fmap pretty lg))
     pure result
+
+-- | Make an assertion about the accumulated state @w@ of
+--   a contract instance.
+assertAccumState ::
+    forall w s e a.
+    ( ContractConstraints s
+    , Monoid w
+    , Show w
+    )
+    => Contract w s e a
+    -> ContractInstanceTag
+    -> (w -> Bool)
+    -> String
+    -> TracePredicate
+assertAccumState contract inst p nm =
+    flip postMapM (Folds.instanceAccumState contract inst) $ \w -> do
+        let result = p w
+        unless result $ do
+            tell @(Doc Void) $ vsep
+                [ "Accumulated state of of" <+> pretty inst <> colon
+                , indent 2 (viaShow w)
+                , "Failed" <+> squotes (fromString nm)
+                ]
+        pure result
+

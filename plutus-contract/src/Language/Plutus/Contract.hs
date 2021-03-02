@@ -57,7 +57,7 @@ module Language.Plutus.Contract(
     , ownInstanceId
     -- * Notifications
     , notifyInstance
-    , notify
+    , tell
     -- * Transactions
     , HasWriteTx
     , WriteTx
@@ -113,6 +113,7 @@ import           Language.Plutus.Contract.Types                    (AsCheckpoint
                                                                     throwError)
 
 import qualified Control.Monad.Freer.Extras.Log                    as L
+import qualified Control.Monad.Freer.Writer                        as W
 import           Prelude                                           hiding (until)
 import           Wallet.API                                        (WalletAPIError)
 
@@ -161,7 +162,7 @@ logWarn = Contract . L.logWarn . toJSON
 logError :: ToJSON a => a -> Contract w s e ()
 logError = Contract . L.logError . toJSON
 
--- | Send a notification to the outside world. (This is a placeholder
---   until we implement https://jira.iohk.io/browse/SCP-1837)
-notify :: ToJSON a => a -> Contract w s e ()
-notify = logInfo
+-- | Update the contract's accumulating state @w@
+tell :: w -> Contract w s e ()
+tell = Contract . W.tell
+
