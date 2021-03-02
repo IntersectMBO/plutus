@@ -1,11 +1,11 @@
-module BlocklyComponent.State where
+module BlocklyComponent.State (blocklyComponent) where
 
 import Prelude hiding (div)
 import Blockly.Dom (explainError, getDom)
 import Blockly.Generator (newBlock)
 import Blockly.Internal (BlockDefinition, ElementId(..), centerOnBlock, getBlockById, select)
 import Blockly.Internal as Blockly
-import BlocklyComponent.Types (Action(..), Message(..), Query(..), State, _blocklyEventSubscription, _blocklyState, _errorMessage, emptyState)
+import BlocklyComponent.Types (Action(..), Message(..), Query(..), State, _blocklyEventSubscription, _blocklyState, _errorMessage, blocklyRef, emptyState)
 import BlocklyComponent.View (render)
 import Control.Monad.Except (ExceptT(..), runExceptT, withExceptT)
 import Control.Monad.Maybe.Trans (MaybeT(..), runMaybeT)
@@ -15,9 +15,11 @@ import Data.Maybe (Maybe(..))
 import Data.Traversable (for, for_)
 import Effect.Aff.Class (class MonadAff)
 import Effect.Exception.Unsafe (unsafeThrow)
-import Halogen (Component, HalogenM, liftEffect, mkComponent, modify_)
+import Halogen (Component, HalogenM, getHTMLElementRef, liftEffect, mkComponent, modify_)
 import Halogen as H
 import Halogen.BlocklyCommons (blocklyEvents, runWithoutEventSubscription, detectCodeChanges)
+import Halogen.ElementResize (elementResize)
+import Halogen.ElementVisible (elementVisible)
 import Halogen.HTML (HTML)
 import Marlowe.Blockly (buildBlocks)
 import Marlowe.Holes (Term(..), Location(..))
@@ -25,14 +27,16 @@ import Marlowe.Linter (_location)
 import Marlowe.Parser as Parser
 import Text.Extra as Text
 import Type.Proxy (Proxy(..))
+import Web.DOM.ResizeObserver (ResizeObserverBoxOptions(..))
+import Web.HTML.HTMLElement as HTMLElement
 
-blockly ::
+blocklyComponent ::
   forall m.
   MonadAff m =>
   String ->
   Array BlockDefinition ->
   Component HTML Query Unit Message m
-blockly rootBlockName blockDefinitions =
+blocklyComponent rootBlockName blockDefinitions =
   mkComponent
     { initialState: const emptyState
     , render
@@ -51,12 +55,6 @@ handleQuery ::
   MonadAff m =>
   Query a ->
   HalogenM State Action slots Message m (Maybe a)
-handleQuery (Resize next) = do
-  mState <- use _blocklyState
-  for_ mState \{ blockly, workspace } ->
-    liftEffect $ Blockly.resize blockly workspace
-  pure $ Just next
-
 handleQuery (SetCode code next) = do
   mState <- use _blocklyState
   for_ mState \blocklyState -> do
@@ -132,12 +130,20 @@ handleAction ::
   Action ->
   HalogenM State Action slots Message m Unit
 handleAction (Inject rootBlockName blockDefinitions) = do
+  mElement <- (pure <<< map HTMLElement.toElement) =<< getHTMLElementRef blocklyRef
   blocklyState <-
     liftEffect do
+      -- TODO: once we refactor ActusBlockly to use BlocklyComponent we should remove ElementId from
+      --       createBlocklyInstance and receive two HTMLElements that should be handled by RefElement
       state <- Blockly.createBlocklyInstance rootBlockName (ElementId "blocklyWorkspace") (ElementId "blocklyToolbox")
       Blockly.addBlockTypes state.blockly blockDefinitions
       Blockly.initializeWorkspace state.blockly state.workspace
       pure state
+  -- Subscribe to the resize events on the main section to resize blockly automatically.
+  for_ mElement $ H.subscribe <<< elementResize ContentBox (const ResizeWorkspace)
+  -- Subscribe to events triggered when blockly becames visible or hidden.
+  for_ mElement $ H.subscribe <<< elementVisible VisibilityChanged
+  -- Subscribe to blockly events to see when the code has changed.
   eventSubscription <- H.subscribe $ blocklyEvents BlocklyEvent blocklyState.workspace
   modify_
     ( set _blocklyState (Just blocklyState)
@@ -147,3 +153,15 @@ handleAction (Inject rootBlockName blockDefinitions) = do
 handleAction (SetData _) = pure unit
 
 handleAction (BlocklyEvent event) = detectCodeChanges CodeChange event
+
+handleAction ResizeWorkspace = do
+  mState <- use _blocklyState
+  for_ mState \{ blockly, workspace } ->
+    liftEffect $ Blockly.resize blockly workspace
+
+-- When blockly becames visible or unvisible, we call hideChaff to avoid a visual glitch
+-- See PR https://github.com/input-output-hk/plutus/pull/2787
+handleAction (VisibilityChanged _) = do
+  mState <- use _blocklyState
+  for_ mState \{ blockly } ->
+    liftEffect $ Blockly.hideChaff blockly
