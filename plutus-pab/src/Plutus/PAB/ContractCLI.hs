@@ -84,16 +84,18 @@ exportSignatureParser =
     command "export-signature" $
     info (pure ExportSignature) (fullDesc <> progDesc "Export the contract's signature.")
 
-runCliCommand :: forall s s2 m.
+runCliCommand :: forall w s s2 m.
        ( AllUniqueLabels (Input s)
        , Forall (Input s) FromJSON
        , Forall (Output s) ToJSON
        , Forall (Input s) ToJSON
        , EndpointToSchema (s .\\ s2)
        , MonadIO m
+       , ToJSON w
+       , Monoid w
        )
     => Proxy s2
-    -> Contract s Text ()
+    -> Contract w s Text ()
     -> Command
     -> m (Either BS8.ByteString BS8.ByteString)
 runCliCommand _ schema Initialise = pure $ Right $ BSL.toStrict $ JSON.encodePretty $ ContractState.initialiseContract schema
@@ -104,13 +106,15 @@ runCliCommand _ _ ExportSignature = do
   let r = endpointsToSchemas @(s .\\ s2)
   pure $ Right $ BSL.toStrict $ JSON.encodePretty r
 
-runUpdate :: forall s.
+runUpdate :: forall w s.
     ( AllUniqueLabels (Input s)
     , Forall (Input s) FromJSON
     , Forall (Output s) ToJSON
     , Forall (Input s) ToJSON
+    , ToJSON w
+    , Monoid w
     )
-    => Contract s Text ()
+    => Contract w s Text ()
     -> BS.ByteString
     -> Either BS8.ByteString BS8.ByteString
 runUpdate contract arg =
@@ -121,28 +125,32 @@ runUpdate contract arg =
 
 -- | Make a command line app with a schema that includes all of the contract's
 --   endpoints except the 'BlockchainActions' ones.
-commandLineApp :: forall s.
+commandLineApp :: forall w s.
        ( AllUniqueLabels (Input s)
        , Forall (Input s) FromJSON
        , Forall (Input s) ToJSON
        , Forall (Output s) ToJSON
        , EndpointToSchema (s .\\ BlockchainActions)
+       , ToJSON w
+       , Monoid w
        )
-    => Contract s Text ()
+    => Contract w s Text ()
     -> IO ()
-commandLineApp = commandLineApp' @s @BlockchainActions (Proxy @BlockchainActions)
+commandLineApp = commandLineApp' @w @s @BlockchainActions (Proxy @BlockchainActions)
 
 -- | Make a command line app for a contract, excluding some of the contract's
 --   endpoints from the generated schema.
-commandLineApp' :: forall s s2.
+commandLineApp' :: forall w s s2.
        ( AllUniqueLabels (Input s)
        , Forall (Input s) FromJSON
        , Forall (Input s) ToJSON
        , Forall (Output s) ToJSON
        , EndpointToSchema (s .\\ s2)
+       , ToJSON w
+       , Monoid w
        )
     => Proxy s2
-    -> Contract s Text ()
+    -> Contract w s Text ()
     -> IO ()
 commandLineApp' p schema = do
     cmd <-

@@ -310,7 +310,7 @@ newtype RefundSuccess = RefundSuccess TxId
 
 -- | 'refund' with an endpoint.
 refundEp ::
-    forall w s e.
+    forall w s.
     ( HasUtxoAt s
     , HasWriteTx s
     , HasOwnPubKey s
@@ -322,7 +322,7 @@ refundEp escrow = endpoint @"refund-escrow" >> refund (scriptInstance escrow) es
 
 -- | Claim a refund of the contribution.
 refund ::
-    forall w s e.
+    forall w s.
     ( HasUtxoAt s
     , HasOwnPubKey s
     , HasWriteTx s)
@@ -343,7 +343,7 @@ refund inst escrow = do
 --   specified targets if enough funds were deposited before the deadline,
 --   or reclaim the contribution if the goal has not been met.
 payRedeemRefund ::
-    forall w s e.
+    forall w s.
     ( HasUtxoAt s
     , HasWriteTx s
     , HasAwaitSlot s
