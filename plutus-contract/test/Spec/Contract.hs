@@ -50,7 +50,7 @@ tests =
     let run :: Slot -> String -> TracePredicate -> EmulatorTrace () -> _
         run sl = checkPredicateOptions (defaultCheckOptions & maxSlot .~ sl & minLogLevel .~ Debug)
 
-        check :: Slot -> String -> Contract Schema ContractError () -> _ -> _
+        check :: Slot -> String -> Contract () Schema ContractError () -> _ -> _
         check sl nm contract pred = run sl nm (pred contract) (void $ activateContract w1 contract tag)
 
         tag :: ContractInstanceTag
@@ -83,8 +83,8 @@ tests =
             (endpointAvailable @"ep" con tag)
 
         , let
-            oneTwo :: Contract Schema ContractError Int = endpoint @"1" >> endpoint @"2" >> endpoint @"4"
-            oneThree :: Contract Schema ContractError Int = endpoint @"1" >> endpoint @"3" >> endpoint @"4"
+            oneTwo :: Contract () Schema ContractError Int = endpoint @"1" >> endpoint @"2" >> endpoint @"4"
+            oneThree :: Contract () Schema ContractError Int = endpoint @"1" >> endpoint @"3" >> endpoint @"4"
             con = void (oneTwo `select` oneThree)
           in
             run 1 "alternative"
@@ -94,24 +94,24 @@ tests =
                     hdl <- activateContract w1 con tag
                     callEndpoint @"1" hdl 1
 
-        , let theContract :: Contract Schema ContractError () = void $ endpoint @"1" @Int >> endpoint @"2" @Int
+        , let theContract :: Contract () Schema ContractError () = void $ endpoint @"1" @Int >> endpoint @"2" @Int
           in run 1 "call endpoint (1)"
                 (endpointAvailable @"1" theContract tag)
                 (void $ activateContract w1 theContract tag)
 
-        , let theContract :: Contract Schema ContractError () = void $ endpoint @"1" @Int >> endpoint @"2" @Int
+        , let theContract :: Contract () Schema ContractError () = void $ endpoint @"1" @Int >> endpoint @"2" @Int
           in run 1 "call endpoint (2)"
                 (endpointAvailable @"2" theContract tag
                     .&&. not (endpointAvailable @"1" theContract tag))
                 (activateContract w1 theContract tag >>= \hdl -> callEndpoint @"1" hdl 1)
 
-        , let theContract :: Contract Schema ContractError () = void $ endpoint @"1" @Int >> endpoint @"2" @Int
+        , let theContract :: Contract () Schema ContractError () = void $ endpoint @"1" @Int >> endpoint @"2" @Int
           in run 1 "call endpoint (3)"
                 (not (endpointAvailable @"2" theContract tag)
                     .&&. not (endpointAvailable @"1" theContract tag))
                 (activateContract w1 theContract tag >>= \hdl -> callEndpoint @"1" hdl 1 >> callEndpoint @"2" hdl 2)
 
-        , let theContract :: Contract Schema ContractError [ActiveEndpoint] = endpoint @"5" @[ActiveEndpoint]
+        , let theContract :: Contract () Schema ContractError [ActiveEndpoint] = endpoint @"5" @[ActiveEndpoint]
               expected = ActiveEndpoint{ aeDescription = (EndpointDescription "5"), aeMetadata = Nothing}
           in run 5 "active endpoints"
                 (assertDone theContract tag ((==) [expected]) "should be done")
@@ -121,13 +121,13 @@ tests =
                     eps <- activeEndpoints hdl
                     void $ callEndpoint @"5" hdl eps
 
-        , let theContract :: Contract Schema ContractError () = void $ submitTx mempty >> watchAddressUntil someAddress 20
+        , let theContract :: Contract () Schema ContractError () = void $ submitTx mempty >> watchAddressUntil someAddress 20
           in run 1 "submit tx"
                 (waitingForSlot theContract tag 20)
                 (void $ activateContract w1 theContract tag)
 
         , let smallTx = Constraints.mustPayToPubKey (Crypto.pubKeyHash $ walletPubKey (Wallet 2)) (Ada.lovelaceValueOf 10)
-              theContract :: Contract Schema ContractError () = submitTx smallTx >>= awaitTxConfirmed . Ledger.txId >> submitTx smallTx >>= awaitTxConfirmed . Ledger.txId
+              theContract :: Contract () Schema ContractError () = submitTx smallTx >>= awaitTxConfirmed . Ledger.txId >> submitTx smallTx >>= awaitTxConfirmed . Ledger.txId
           in run 3 "handle several blockchain events"
                 (walletFundsChange w1 (Ada.lovelaceValueOf (-20))
                     .&&. assertNoFailedTransactions
@@ -136,23 +136,23 @@ tests =
 
         , let l = endpoint @"1" >> endpoint @"2"
               r = endpoint @"3" >> endpoint @"4"
-              theContract :: Contract Schema ContractError () = void $ selectEither l r
+              theContract :: Contract () Schema ContractError () = void $ selectEither l r
           in run 1 "select either"
                 (assertDone theContract tag (const True) "left branch should finish")
                 (activateContract w1 theContract tag >>= (\hdl -> callEndpoint @"1" hdl 1 >> callEndpoint @"2" hdl 2))
 
-        , let theContract :: Contract Schema ContractError () = void $ loopM (\_ -> Left <$> endpoint @"1" @Int) 0
+        , let theContract :: Contract () Schema ContractError () = void $ loopM (\_ -> Left <$> endpoint @"1" @Int) 0
           in run 1 "loopM"
                 (endpointAvailable @"1" theContract tag)
                 (void $ activateContract w1 theContract tag >>= \hdl -> callEndpoint @"1" hdl 1)
 
-        , let theContract :: Contract Schema ContractError () = void $ collectUntil (+) 0 (endpoint @"1") 10
+        , let theContract :: Contract () Schema ContractError () = void $ collectUntil (+) 0 (endpoint @"1") 10
           in run 1 "collect until"
                 (endpointAvailable @"1" theContract tag
                     .&&. waitingForSlot theContract tag 10)
                 (activateContract w1 theContract tag >>= \hdl -> callEndpoint @"1" hdl 1)
 
-        , let theContract :: Contract Schema ContractError () = void $ throwing Con._ContractError $ OtherError "error"
+        , let theContract :: Contract () Schema ContractError () = void $ throwing Con._ContractError $ OtherError "error"
           in run 1 "throw an error"
                 (assertContractError theContract tag (\case { OtherError "error" -> True; _ -> False}) "failed to throw error")
                 (void $ activateContract w1 theContract tag)
@@ -163,13 +163,13 @@ tests =
                 .&&. assertNoFailedTransactions)
             (void $ Trace.payToWallet w1 w2 (Ada.lovelaceValueOf 20))
 
-        , let theContract :: Contract Schema ContractError PubKey = ownPubKey
+        , let theContract :: Contract () Schema ContractError PubKey = ownPubKey
           in run 1 "own public key"
                 (assertDone theContract tag (== (walletPubKey w2)) "should return the wallet's public key")
                 (void $ activateContract w2 (void theContract) tag)
 
         , let payment = Constraints.mustPayToPubKey (Crypto.pubKeyHash $ walletPubKey w2) (Ada.lovelaceValueOf 10)
-              theContract :: Contract Schema ContractError () = submitTx payment >>= awaitTxConfirmed . Ledger.txId
+              theContract :: Contract () Schema ContractError () = submitTx payment >>= awaitTxConfirmed . Ledger.txId
           in run 2 "await tx confirmed"
             (assertDone theContract tag (const True) "should be done")
             (activateContract w1 theContract tag >> void (Trace.waitNSlots 1))
@@ -182,7 +182,7 @@ tests =
             (assertDone errorContract tag (\i -> i == 11) "should finish")
             (void $ activateContract w1 (void errorContract) tag >>= \hdl -> callEndpoint @"1" hdl 1 >> callEndpoint @"2" hdl 10 >> callEndpoint @"3" hdl 11)
 
-        , let theContract :: Contract Schema ContractError () = logInfo @String "waiting for endpoint 1" >> endpoint @"1" >>= logInfo . (<>) "Received value: " . show
+        , let theContract :: Contract () Schema ContractError () = logInfo @String "waiting for endpoint 1" >> endpoint @"1" >>= logInfo . (<>) "Received value: " . show
               matchLogs :: [EM.EmulatorTimeEvent ContractInstanceLog] -> Bool
               matchLogs lgs =
                   case (_cilMessage . EM._eteEvent <$> lgs) of
@@ -193,7 +193,7 @@ tests =
                 (assertInstanceLog tag matchLogs)
                 (void $ activateContract w1 theContract tag >>= \hdl -> callEndpoint @"1" hdl 27)
 
-        , let theContract :: Contract Schema ContractError () = logInfo @String "waiting for endpoint 1" >> endpoint @"1" >>= logInfo . (<>) "Received value: " . show
+        , let theContract :: Contract () Schema ContractError () = logInfo @String "waiting for endpoint 1" >> endpoint @"1" >>= logInfo . (<>) "Received value: " . show
               matchLogs :: [EM.EmulatorTimeEvent UserThreadMsg] -> Bool
               matchLogs lgs =
                   case (EM._eteEvent <$> lgs) of
@@ -217,7 +217,7 @@ w1 = EM.Wallet 1
 w2 :: EM.Wallet
 w2 = EM.Wallet 2
 
-checkpointContract :: Contract Schema ContractError ()
+checkpointContract :: Contract () Schema ContractError ()
 checkpointContract = void $ do
     checkpoint $ do
         endpoint @"1" @Int
@@ -226,7 +226,7 @@ checkpointContract = void $ do
         endpoint @"1" @Int
         endpoint @"3" @Int
 
-errorContract :: Contract Schema ContractError Int
+errorContract :: Contract () Schema ContractError Int
 errorContract = do
     catchError
         (endpoint @"1" @Int >> throwError (OtherError "something went wrong"))
