@@ -154,7 +154,7 @@ campaignAddress :: Campaign -> Ledger.ValidatorHash
 campaignAddress = Scripts.validatorHash . contributionScript
 
 -- | The crowdfunding contract for the 'Campaign'.
-crowdfunding :: AsContractError e => Campaign -> Contract CrowdfundingSchema e ()
+crowdfunding :: AsContractError e => Campaign -> Contract () CrowdfundingSchema e ()
 crowdfunding c = contribute c `select` scheduleCollection c
 
 -- | A sample campaign with a target of 20 Ada by slot 20
@@ -170,7 +170,7 @@ theCampaign = Campaign
 --   an endpoint that allows the user to enter their public key and the
 --   contribution. Then waits until the campaign is over, and collects the
 --   refund if the funding target was not met.
-contribute :: AsContractError e => Campaign -> Contract CrowdfundingSchema e ()
+contribute :: AsContractError e => Campaign -> Contract () CrowdfundingSchema e ()
 contribute cmp = do
     Contribution{contribValue} <- endpoint @"contribute"
     contributor <- pubKeyHash <$> ownPubKey
@@ -196,7 +196,7 @@ contribute cmp = do
 -- | The campaign owner's branch of the contract for a given 'Campaign'. It
 --   watches the campaign address for contributions and collects them if
 --   the funding goal was reached in time.
-scheduleCollection :: AsContractError e => Campaign -> Contract CrowdfundingSchema e ()
+scheduleCollection :: AsContractError e => Campaign -> Contract () CrowdfundingSchema e ()
 scheduleCollection cmp = do
     let inst = scriptInstance cmp
 
@@ -247,7 +247,7 @@ to change.
 
 -}
 
-endpoints :: AsContractError e => Contract CrowdfundingSchema e ()
+endpoints :: AsContractError e => Contract () CrowdfundingSchema e ()
 endpoints = crowdfunding theCampaign
 
 mkSchemaDefinitions ''CrowdfundingSchema

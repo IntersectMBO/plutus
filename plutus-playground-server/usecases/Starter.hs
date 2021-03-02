@@ -71,18 +71,18 @@ type Schema =
         .\/ Endpoint "publish" (Integer, Value)
         .\/ Endpoint "redeem" Integer
 
-contract :: AsContractError e => Contract Schema e ()
+contract :: AsContractError e => Contract () Schema e ()
 contract = publish `select` redeem
 
 -- | The "publish" contract endpoint.
-publish :: AsContractError e => Contract Schema e ()
+publish :: AsContractError e => Contract () Schema e ()
 publish = do
     (i, lockedFunds) <- endpoint @"publish"
     let tx = Constraints.mustPayToTheScript (MyDatum i) lockedFunds
     void $ submitTxConstraints starterInstance tx
 
 -- | The "redeem" contract endpoint.
-redeem :: AsContractError e => Contract Schema e ()
+redeem :: AsContractError e => Contract () Schema e ()
 redeem = do
     myRedeemerValue <- endpoint @"redeem"
     unspentOutputs <- utxoAt contractAddress
@@ -90,7 +90,7 @@ redeem = do
         tx       = collectFromScript unspentOutputs redeemer
     void $ submitTxConstraintsSpending starterInstance unspentOutputs tx
 
-endpoints :: AsContractError e => Contract Schema e ()
+endpoints :: AsContractError e => Contract () Schema e ()
 endpoints = contract
 
 mkSchemaDefinitions ''Schema
