@@ -68,6 +68,8 @@ handleAction (InitBlocklyProject code) = do
   void $ query _blocklySlot unit $ H.tell (Blockly.SetCode code)
   liftEffect $ SessionStorage.setItem marloweBufferLocalStorageKey code
   processBlocklyCode
+  -- Reset the toolbox
+  void $ query _blocklySlot unit $ H.tell (Blockly.SetToolbox MB.toolbox)
 
 handleAction SendToSimulator = pure unit
 
