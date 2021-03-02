@@ -252,14 +252,14 @@ pubKeyPayments TxConstraints{txConstraints} =
 -- | The minimum 'Value' that satisfies all 'MustSpendAtLeast' constraints
 {-# INLINABLE mustSpendAtLeastTotal #-}
 mustSpendAtLeastTotal :: forall i o. TxConstraints i o -> Value
-mustSpendAtLeastTotal = foldl Value.convexUnion mempty . fmap f . txConstraints where
+mustSpendAtLeastTotal = foldl (\/) mempty . fmap f . txConstraints where
     f (MustSpendAtLeast v) = v
     f _                    = mempty
 
 -- | The minimum 'Value' that satisfies all 'MustProduceAtLeast' constraints
 {-# INLINABLE mustProduceAtLeastTotal #-}
 mustProduceAtLeastTotal :: forall i o. TxConstraints i o -> Value
-mustProduceAtLeastTotal = foldl Value.convexUnion mempty . fmap f . txConstraints where
+mustProduceAtLeastTotal = foldl (\/) mempty . fmap f . txConstraints where
     f (MustProduceAtLeast v) = v
     f _                      = mempty
 

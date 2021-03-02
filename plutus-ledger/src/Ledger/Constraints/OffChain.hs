@@ -176,7 +176,7 @@ To build a transaction that satisfies the 'MustSpendAtLeast' and
 'MustProduceAtLeast' constraints, we keep a tally of the required and
 actual values we encounter on either side of the transaction. Then we
 compute the missing value on both sides, and add an input with the
-convex union of the positive parts [1] of the missing values.
+join of the positive parts [1] of the missing values.
 
 [1] See 'Plutus.V1.Ledger.Value.split'
 
@@ -196,8 +196,8 @@ data ValueSpentBalances =
 instance Semigroup ValueSpentBalances where
     l <> r =
         ValueSpentBalances
-            { vbsRequired = Value.convexUnion (vbsRequired l) (vbsRequired r)
-            , vbsProvided = Value.convexUnion (vbsProvided l) (vbsProvided r)
+            { vbsRequired = vbsRequired l \/ vbsRequired r
+            , vbsProvided = vbsProvided l \/ vbsProvided r
             }
 
 -- No @Monoid ValueSpentBalances@ because @max@ (used by 'convexUnion') is only
@@ -226,9 +226,8 @@ missingValueSpent ValueSpentBalances{vbsRequired, vbsProvided} =
 
 totalMissingValue :: ConstraintProcessingState -> Value
 totalMissingValue ConstraintProcessingState{cpsValueSpentBalancesInputs, cpsValueSpentBalancesOutputs} =
-    Value.convexUnion
-        (missingValueSpent cpsValueSpentBalancesInputs)
-        (missingValueSpent cpsValueSpentBalancesOutputs)
+        missingValueSpent cpsValueSpentBalancesInputs \/
+        missingValueSpent cpsValueSpentBalancesOutputs
 
 makeLensesFor
     [ ("cpsUnbalancedTx", "unbalancedTx")
