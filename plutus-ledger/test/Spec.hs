@@ -224,14 +224,13 @@ pubkeyHashOnChainAndOffChain = property $ do
 missingValueSpentProp :: Property
 missingValueSpentProp = property $ do
     let valueSpentBalances = Gen.choice
-            [ OC.countAsInput <$> nonNegativeValue
-            , OC.countAsOutput <$> nonNegativeValue
-            , OC.countAsRequired <$> nonNegativeValue
+            [ OC.provided <$> nonNegativeValue
+            , OC.required <$> nonNegativeValue
             ]
-
-    balances <- fold <$> forAll (Gen.list (Range.linear 0 10000) valueSpentBalances)
+        empty = OC.ValueSpentBalances mempty mempty
+    balances <- foldl (<>) empty <$> forAll (Gen.list (Range.linear 0 10000) valueSpentBalances)
     let missing = OC.missingValueSpent balances
-        actual = OC.actualValueSpent balances
+        actual = OC.vbsProvided balances
     Hedgehog.annotateShow missing
     Hedgehog.annotateShow actual
     Hedgehog.assert (OC.vbsRequired balances `Value.leq` (actual <> missing))

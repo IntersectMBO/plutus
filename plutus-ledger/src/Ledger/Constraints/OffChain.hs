@@ -200,6 +200,11 @@ instance Semigroup ValueSpentBalances where
             , vbsProvided = Value.convexUnion (vbsProvided l) (vbsProvided r)
             }
 
+-- No @Monoid ValueSpentBalances@ because @max@ (used by 'convexUnion') is only
+-- a semigroup. In this module we only use @Value@s with non-negative amounts,
+-- so @mempty :: Value@ technically is the identity, but I'd rather not
+-- define the instance. Maybe we need a type for non-negative @Value@s.
+
 data ConstraintProcessingState =
     ConstraintProcessingState
         { cpsUnbalancedTx              :: UnbalancedTx
