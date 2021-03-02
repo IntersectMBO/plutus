@@ -2,16 +2,16 @@
 , ({ tally: ({ BVar causes ({ cpu: 140
 | mem: 0
 })
-| BDelay causes ({ cpu: 37
-| mem: 0
-})
 | BLamAbs causes ({ cpu: 94
 | mem: 0
 })
-| BForce causes ({ cpu: 26
+| BApply causes ({ cpu: 122
 | mem: 0
 })
-| BApply causes ({ cpu: 122
+| BDelay causes ({ cpu: 37
+| mem: 0
+})
+| BForce causes ({ cpu: 26
 | mem: 0
 })
 | BAST causes ({ cpu: 0
