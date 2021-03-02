@@ -51,13 +51,13 @@ instance Pretty UtxoAtAddress where
 type UtxoAt = UtxoAtSym .== (UtxoAtAddress, Address)
 
 -- | Get the unspent transaction outputs at an address.
-utxoAt :: forall s e. (AsContractError e, HasUtxoAt s) => Address -> Contract s e UtxoMap
+utxoAt :: forall w s e. (AsContractError e, HasUtxoAt s) => Address -> Contract w s e UtxoMap
 utxoAt address' =
     let check :: UtxoAtAddress -> Maybe UtxoMap
         check UtxoAtAddress{address,utxo} =
           if address' == address then Just utxo else Nothing
     in
-    requestMaybe @UtxoAtSym @_ @_ @s address' check
+    requestMaybe @w @UtxoAtSym @_ @_ @s address' check
 
 event
     :: forall s.
@@ -76,12 +76,12 @@ utxoAtRequest (Handlers r) = trial' r (Label @UtxoAtSym)
 -- | Watch an address until the given slot, then return all known outputs
 --   at the address.
 watchAddressUntil
-    :: forall s e.
+    :: forall w s e.
        ( HasAwaitSlot s
        , HasUtxoAt s
        , AsContractError e
        )
     => Address
     -> Slot
-    -> Contract s e UtxoMap
+    -> Contract w s e UtxoMap
 watchAddressUntil a slot = awaitSlot slot >> utxoAt a

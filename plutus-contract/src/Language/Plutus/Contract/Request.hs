@@ -47,14 +47,14 @@ type ContractRow s =
 --   is a contract that writes the request @r@ and waits for a response of type
 --   @resp@.
 request
-  :: forall l req resp s e.
+  :: forall w l req resp s e.
     ( KnownSymbol l
     , HasType l resp (Input s)
     , HasType l req (Output s)
     , AsContractError e
     )
     => req
-    -> Contract s e resp
+    -> Contract w s e resp
 request out = Contract $ do
   Event rho <- prompt @(Event s) @(Handlers s) (Events.initialise @s @l out)
   case trial' rho (Label @l) of
@@ -63,7 +63,7 @@ request out = Contract $ do
 
 -- | Write a request repeatedly until the desired response is returned.
 requestMaybe
-  :: forall l req resp s a e.
+  :: forall w l req resp s a e.
      ( KnownSymbol l
      , HasType l resp (Input s)
      , HasType l req (Output s)
@@ -72,9 +72,9 @@ requestMaybe
      )
     => req
     -> (resp -> Maybe a)
-    -> Contract s e a
+    -> Contract w s e a
 requestMaybe out check = do
-  rsp <- request @l @req @resp @s out
+  rsp <- request @w @l @req @resp @s out
   case check rsp of
-    Nothing -> requestMaybe @l @req @resp @s out check
+    Nothing -> requestMaybe @w @l @req @resp @s out check
     Just a  -> pure a

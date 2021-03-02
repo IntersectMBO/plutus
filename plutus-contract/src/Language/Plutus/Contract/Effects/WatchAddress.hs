@@ -54,29 +54,29 @@ type WatchAddress = AddressSymbol .== (AddressChangeResponse, AddressChangeReque
 {-| Get the transactions that modified an address in a specific slot.
 -}
 addressChangeRequest ::
-    forall s e.
+    forall w s e.
     ( HasWatchAddress s
     , AsContractError e
     )
     => AddressChangeRequest
-    -> Contract s e AddressChangeResponse
+    -> Contract w s e AddressChangeResponse
 addressChangeRequest rq =
     let check :: AddressChangeResponse -> Maybe AddressChangeResponse
         check r@AddressChangeResponse{acrAddress, acrSlot}
                 | acrAddress == acreqAddress rq && acrSlot >= acreqSlot rq = Just r
                 | otherwise = Nothing
-    in requestMaybe @AddressSymbol @_ @_ @s rq check
+    in requestMaybe @w @AddressSymbol @_ @_ @s rq check
 
 -- | Call 'addresssChangeRequest' for the address in each slot, until at least one
 --   transaction is returned that modifies the address.
 nextTransactionsAt ::
-    forall s e.
+    forall w s e.
     ( HasWatchAddress s
     , AsContractError e
     , HasAwaitSlot s
     )
     => Address
-    -> Contract s e [Tx]
+    -> Contract w s e [Tx]
 nextTransactionsAt addr = do
     initial <- currentSlot
     let go sl = do
@@ -90,26 +90,26 @@ nextTransactionsAt addr = do
 --   at that address when the total value at the address
 --   has surpassed the given value.
 fundsAtAddressGt
-    :: forall s e.
+    :: forall w s e.
        ( AsContractError e
        , HasAwaitSlot s
        , HasUtxoAt s
        )
     => Address
     -> Value
-    -> Contract s e UtxoMap
+    -> Contract w s e UtxoMap
 fundsAtAddressGt addr vl =
     fundsAtAddressCondition (\presentVal -> presentVal `V.gt` vl) addr
 
 fundsAtAddressCondition
-    :: forall s e.
+    :: forall w s e.
        ( AsContractError e
        , HasAwaitSlot s
        , HasUtxoAt s
        )
     => (Value -> Bool)
     -> Address
-    -> Contract s e UtxoMap
+    -> Contract w s e UtxoMap
 fundsAtAddressCondition condition addr = loopM go () where
     go () = do
         cur <- utxoAt addr
@@ -123,14 +123,14 @@ fundsAtAddressCondition condition addr = loopM go () where
 --   at that address when the total value at the address
 --   has reached or surpassed the given value.
 fundsAtAddressGeq
-    :: forall s e.
+    :: forall w s e.
        ( AsContractError e
        , HasAwaitSlot s
        , HasUtxoAt s
        )
     => Address
     -> Value
-    -> Contract s e UtxoMap
+    -> Contract w s e UtxoMap
 fundsAtAddressGeq addr vl =
     fundsAtAddressCondition (\presentVal -> presentVal `V.geq` vl) addr
 

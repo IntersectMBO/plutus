@@ -171,7 +171,7 @@ getOnChainState ::
     , PlutusTx.IsData state
     , HasUtxoAt schema)
     => StateMachineClient state i
-    -> Contract schema e (Maybe (OnChainState state i, UtxoMap))
+    -> Contract w schema e (Maybe (OnChainState state i, UtxoMap))
 getOnChainState StateMachineClient{scInstance, scChooser} = mapError (review _SMContractError) $ do
     utxo <- utxoAt (SM.machineAddress scInstance)
     let states = getStates scInstance utxo
@@ -202,7 +202,7 @@ waitForUpdateUntil ::
     , HasWatchAddress schema)
     => StateMachineClient state i
     -> Slot
-    -> Contract schema e (WaitingResult state)
+    -> Contract w schema e (WaitingResult state)
 waitForUpdateUntil StateMachineClient{scInstance, scChooser} timeoutSlot = do
     let addr = Scripts.scriptAddress $ validatorInstance scInstance
         outputsMap :: Ledger.Tx -> Map.Map TxOutRef TxOutTx
@@ -240,7 +240,7 @@ waitForUpdate ::
     , HasAwaitSlot schema
     , HasWatchAddress schema)
     => StateMachineClient state i
-    -> Contract schema e (Maybe (OnChainState state i))
+    -> Contract w schema e (Maybe (OnChainState state i))
 waitForUpdate StateMachineClient{scInstance, scChooser} = do
     let addr = Scripts.scriptAddress $ validatorInstance scInstance
         outputsMap :: Ledger.Tx -> Map TxOutRef TxOutTx
@@ -258,7 +258,7 @@ waitForUpdate StateMachineClient{scInstance, scChooser} = do
 -- unbalanced transaction to be submitted, the old state and the new step, the step is run and @'Right'@ the new state is returned.
 -- If the guard returns @'Just' a@, @'Left' a@ is returned instead.
 runGuardedStep ::
-    forall a e state schema input.
+    forall w a e state schema input.
     ( AsSMContractError e
     , PlutusTx.IsData state
     , PlutusTx.IsData input
@@ -270,7 +270,7 @@ runGuardedStep ::
     => StateMachineClient state input              -- ^ The state machine
     -> input                                       -- ^ The input to apply to the state machine
     -> (UnbalancedTx -> state -> state -> Maybe a) -- ^ The guard to check before running the step
-    -> Contract schema e (Either a (TransitionResult state input))
+    -> Contract w schema e (Either a (TransitionResult state input))
 runGuardedStep smc input guard = mapError (review _SMContractError) $ mkStep smc input >>= \case
     Right (StateMachineTransition{smtConstraints,smtOldState=State{stateData=os}, smtNewState=State{stateData=ns}, smtLookups}) -> do
         pk <- ownPubKey
@@ -285,7 +285,7 @@ runGuardedStep smc input guard = mapError (review _SMContractError) $ mkStep smc
 
 -- | Run one step of a state machine, returning the new state.
 runStep ::
-    forall e state schema input.
+    forall w e state schema input.
     ( AsSMContractError e
     , PlutusTx.IsData state
     , PlutusTx.IsData input
@@ -298,7 +298,7 @@ runStep ::
     -- ^ The state machine
     -> input
     -- ^ The input to apply to the state machine
-    -> Contract schema e (TransitionResult state input)
+    -> Contract w schema e (TransitionResult state input)
 runStep smc input =
     runGuardedStep smc input (\_ _ _ -> Nothing) >>= pure . \case
         Left a  -> absurd a
@@ -306,7 +306,7 @@ runStep smc input =
 
 -- | Initialise a state machine
 runInitialise ::
-    forall e state schema input.
+    forall w e state schema input.
     ( PlutusTx.IsData state
     , PlutusTx.IsData input
     , HasTxConfirmation schema
@@ -319,7 +319,7 @@ runInitialise ::
     -- ^ The initial state
     -> Value
     -- ^ The value locked by the contract at the beginning
-    -> Contract schema e state
+    -> Contract w schema e state
 runInitialise StateMachineClient{scInstance} initialState initialValue = mapError (review _SMContractError) $ do
     let StateMachineInstance{validatorInstance} = scInstance
         tx = mustPayToTheScript initialState initialValue
@@ -341,14 +341,14 @@ data StateMachineTransition state input =
 --   the client's state machine instance, compute the 'StateMachineTransition'
 --   that can produce an actual transaction performing the transition
 mkStep ::
-    forall e state schema input.
+    forall w e state schema input.
     ( AsSMContractError e
     , HasUtxoAt schema
     , PlutusTx.IsData state
     )
     => StateMachineClient state input
     -> input
-    -> Contract schema e (Either (InvalidTransition state input) (StateMachineTransition state input))
+    -> Contract w schema e (Either (InvalidTransition state input) (StateMachineTransition state input))
 mkStep client@StateMachineClient{scInstance} input = do
     let StateMachineInstance{stateMachine=StateMachine{smTransition}, validatorInstance} = scInstance
     maybeState <- getOnChainState client

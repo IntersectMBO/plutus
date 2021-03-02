@@ -229,12 +229,13 @@ checkPredicateOptions options nm predicate action = do
         checkPredicateInner options predicate action step (HUnit.assertBool nm)
 
 endpointAvailable
-    :: forall (l :: Symbol) s e a.
+    :: forall (l :: Symbol) w s e a.
        ( HasType l Endpoints.ActiveEndpoint (Output s)
        , KnownSymbol l
        , ContractConstraints s
+       , Monoid w
        )
-    => Contract s e a
+    => Contract w s e a
     -> ContractInstanceTag
     -> TracePredicate
 endpointAvailable contract inst =
@@ -246,11 +247,12 @@ endpointAvailable contract inst =
                 pure False
 
 interestingAddress
-    :: forall s e a.
+    :: forall w s e a.
        ( WatchAddress.HasWatchAddress s
        , ContractConstraints s
+       , Monoid w
        )
-    => Contract s e a
+    => Contract w s e a
     -> ContractInstanceTag
     -> Address
     -> TracePredicate
@@ -268,11 +270,12 @@ interestingAddress contract inst addr =
             pure False
 
 queryingUtxoAt
-    :: forall s e a.
+    :: forall w s e a.
        ( UtxoAt.HasUtxoAt s
        , ContractConstraints s
+       , Monoid w
        )
-    => Contract s e a
+    => Contract w s e a
     -> ContractInstanceTag
     -> Address
     -> TracePredicate
@@ -290,11 +293,12 @@ queryingUtxoAt contract inst addr =
             pure False
 
 tx
-    :: forall s e a.
+    :: forall w s e a.
        ( HasWriteTx s
        , ContractConstraints s
+       , Monoid w
        )
-    => Contract s e a
+    => Contract w s e a
     -> ContractInstanceTag
     -> (UnbalancedTx -> Bool)
     -> String
@@ -317,11 +321,12 @@ walletWatchingAddress w addr = flip postMapM (L.generalize $ Folds.walletWatchin
     pure r
 
 assertEvents
-    :: forall s e a.
+    :: forall w s e a.
        ( Forall (Input s) Pretty
        , ContractConstraints s
+       , Monoid w
        )
-    => Contract s e a
+    => Contract w s e a
     -> ContractInstanceTag
     -> ([Event s] -> Bool)
     -> String
@@ -348,11 +353,12 @@ valueAtAddress address check =
         pure result
 
 waitingForSlot
-    :: forall s e a.
+    :: forall w s e a.
        ( HasType SlotSymbol AwaitSlot.WaitingForSlot (Output s)
        , ContractConstraints s
+       , Monoid w
        )
-    => Contract s e a
+    => Contract w s e a
     -> ContractInstanceTag
     -> Slot
     -> TracePredicate
@@ -365,21 +371,23 @@ waitingForSlot contract inst sl =
             _ -> pure True
 
 anyTx
-    :: forall s e a.
+    :: forall w s e a.
        ( HasWriteTx s
        , ContractConstraints s
+       , Monoid w
        )
-    => Contract s e a
+    => Contract w s e a
     -> ContractInstanceTag
     -> TracePredicate
 anyTx contract inst = tx contract inst (const True) "anyTx"
 
 assertHooks
-    :: forall s e a.
+    :: forall w s e a.
        ( Forall (Output s) Pretty
        , ContractConstraints s
+       , Monoid w
        )
-    => Contract s e a
+    => Contract w s e a
     -> ContractInstanceTag
     -> ([Handlers s] -> Bool)
     -> String
@@ -398,11 +406,12 @@ assertHooks contract inst p nm =
 
 -- | Make an assertion about the responses provided to the contract instance.
 assertResponses
-    :: forall s e a.
+    :: forall w s e a.
        ( Forall (Input s) Pretty
        , ContractConstraints s
+       , Monoid w
        )
-    => Contract s e a
+    => Contract w s e a
     -> ContractInstanceTag
     -> ([Response (Event s)] -> Bool)
     -> String
@@ -421,10 +430,11 @@ assertResponses contract inst p nm =
 -- | A 'TracePredicate' checking that the wallet's contract instance finished
 --   without errors.
 assertDone
-    :: forall s e a.
+    :: forall w s e a.
     ( ContractConstraints s
+    , Monoid w
     )
-    => Contract s e a
+    => Contract w s e a
     -> ContractInstanceTag
     -> (a -> Bool)
     -> String
@@ -434,10 +444,11 @@ assertDone contract inst pr = assertOutcome contract inst (\case { Done a -> pr 
 -- | A 'TracePredicate' checking that the wallet's contract instance is
 --   waiting for input.
 assertNotDone
-    :: forall s e a.
+    :: forall w s e a.
     ( ContractConstraints s
+    , Monoid w
     )
-    => Contract s e a
+    => Contract w s e a
     -> ContractInstanceTag
     -> String
     -> TracePredicate
@@ -446,10 +457,11 @@ assertNotDone contract inst = assertOutcome contract inst (\case { NotDone -> Tr
 -- | A 'TracePredicate' checking that the wallet's contract instance
 --   failed with an error.
 assertContractError
-    :: forall s e a.
+    :: forall w s e a.
     ( ContractConstraints s
+    , Monoid w
     )
-    => Contract s e a
+    => Contract w s e a
     -> ContractInstanceTag
     -> (e -> Bool)
     -> String
@@ -457,10 +469,11 @@ assertContractError
 assertContractError contract inst p = assertOutcome contract inst (\case { Failed err -> p err; _ -> False })
 
 assertOutcome
-    :: forall s e a.
+    :: forall w s e a.
        ( ContractConstraints s
+       , Monoid w
        )
-    => Contract s e a
+    => Contract w s e a
     -> ContractInstanceTag
     -> (Outcome e a -> Bool)
     -> String

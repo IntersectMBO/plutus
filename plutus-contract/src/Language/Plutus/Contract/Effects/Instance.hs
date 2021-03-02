@@ -65,8 +65,8 @@ instance FromJSON OwnIdRequest where
 deriving via (PrettyShow OwnIdRequest) instance Pretty OwnIdRequest
 
 -- | Get the 'ContractInstanceId' of this instance.
-ownInstanceId :: forall s e. (AsContractError e, HasOwnId s) => Contract s e ContractInstanceId
-ownInstanceId = requestMaybe @OwnIdSym @_ @_ @s WaitingForInstanceId Just
+ownInstanceId :: forall w s e. (AsContractError e, HasOwnId s) => Contract w s e ContractInstanceId
+ownInstanceId = requestMaybe @w @OwnIdSym @_ @_ @s WaitingForInstanceId Just
 
 event
     :: forall s.

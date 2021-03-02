@@ -92,7 +92,7 @@ type HasRPCServer r s = HasEndpoint (RPCRequestEndpoint r) (RPCParams (RPCReques
 data Retries = NoRetries | MaxRetries Natural
 
 -- | Call an endpoint on another contract instance.
-callRPC :: forall r s.
+callRPC :: forall r w s.
     ( HasOwnId s
     , HasAwaitSlot s
     , HasEndpoint (RPCResponseEndpoint r) (Either (RPCError r) (RPCResponse r)) s
@@ -103,13 +103,13 @@ callRPC :: forall r s.
     => Retries
     -> ContractInstanceId
     -> RPCRequest r
-    -> Contract s RPCCallError (Either (RPCError r) (RPCResponse r))
+    -> Contract w s RPCCallError (Either (RPCError r) (RPCResponse r))
 callRPC retries targetInstance requestArgs =
-    let inner :: Contract s RPCCallError (Either (RPCError r) (RPCResponse r))
+    let inner :: Contract w s RPCCallError (Either (RPCError r) (RPCResponse r))
         inner = call @(RPCRequestEndpoint r) @(RPCResponseEndpoint r) @(RPCRequest r)  @(RPCResponse r) @(RPCError r) targetInstance requestArgs
         maxRetries = case retries of { NoRetries -> 0; MaxRetries n -> n }
 
-        go :: Natural -> Contract s RPCCallError (Either (RPCError r) (RPCResponse r))
+        go :: Natural -> Contract w s RPCCallError (Either (RPCError r) (RPCResponse r))
         go i = do
             rpcResult <- mapError absurd $ runError inner
             case rpcResult of
@@ -146,7 +146,7 @@ data RPCRespondError =
     deriving anyclass (ToJSON, FromJSON)
 
 -- | Call another instance and return the response.
-call :: forall (rpc :: Symbol) (rpcRsp :: Symbol) req resp err s.
+call :: forall (rpc :: Symbol) (rpcRsp :: Symbol) req resp err w s.
     ( HasContractNotify s
     , HasEndpoint rpcRsp (Either err resp) s
     , HasOwnId s
@@ -155,7 +155,7 @@ call :: forall (rpc :: Symbol) (rpcRsp :: Symbol) req resp err s.
     )
     => ContractInstanceId -- ^ ID of the contract instance that is to be called
     -> req -- ^ RPC argument
-    -> Contract s RPCCallError (Either err resp)
+    -> Contract w s RPCCallError (Either err resp)
 call t req = do
     ownId <- mapError RPCOtherError ownInstanceId
     let params = RPCParams{rpcCallbackInstance = ownId, rpcPayload = req}
@@ -164,26 +164,26 @@ call t req = do
 
 -- | Wait for another instance to call the RPC endpoint, and respond to the
 --   call.
-respondRPC :: forall r s.
+respondRPC :: forall w r s.
     ( HasEndpoint (RPCRequestEndpoint r) (RPCParams (RPCRequest r)) s
     , HasContractNotify s
     , RPC r
     , KnownSymbol (RPCResponseEndpoint r)
     )
-    => (RPCRequest r -> Contract s (RPCError r) (RPCResponse r)) -- ^ Implementation of the RPC
-    -> Contract s RPCRespondError ()
-respondRPC = respond @(RPCRequestEndpoint r) @(RPCResponseEndpoint r) @(RPCRequest r) @(RPCResponse r) @s @(RPCError r)
+    => (RPCRequest r -> Contract w s (RPCError r) (RPCResponse r)) -- ^ Implementation of the RPC
+    -> Contract w s RPCRespondError ()
+respondRPC = respond @(RPCRequestEndpoint r) @(RPCResponseEndpoint r) @(RPCRequest r) @(RPCResponse r) @w @s @(RPCError r)
 
 -- | Wait to be called by another instance.
-respond :: forall (rpc :: Symbol) (rpcRespondEndpoint :: Symbol) req resp s e.
+respond :: forall (rpc :: Symbol) (rpcRespondEndpoint :: Symbol) req resp w s e.
     ( HasEndpoint rpc (RPCParams req) s
     , HasContractNotify s
     , ToJSON resp
     , ToJSON e
     , KnownSymbol rpcRespondEndpoint
     )
-    => (req -> Contract s e resp)
-    -> Contract s RPCRespondError ()
+    => (req -> Contract w s e resp)
+    -> Contract w s RPCRespondError ()
 respond k = do
     RPCParams{rpcCallbackInstance, rpcPayload} <- mapError RPCEndpointError $ endpoint @rpc
     result :: Either e resp <- mapError absurd $ runError $ k rpcPayload

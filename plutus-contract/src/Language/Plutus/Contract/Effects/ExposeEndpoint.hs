@@ -64,12 +64,12 @@ type Endpoint l a = l .== (EndpointValue a, ActiveEndpoint)
 
 -- | Expose an endpoint, return the data that was entered
 endpoint
-  :: forall l a s e.
+  :: forall l a w s e.
      ( HasEndpoint l a s
      , AsContractError e
      )
-  => Contract s e a
-endpoint = unEndpointValue <$> request @l @_ @_ @s s where
+  => Contract w s e a
+endpoint = unEndpointValue <$> request @w @l @_ @_ @s s where
   s = ActiveEndpoint
         { aeDescription = EndpointDescription $ symbolVal (Proxy @l)
         , aeMetadata    = Nothing
@@ -77,14 +77,14 @@ endpoint = unEndpointValue <$> request @l @_ @_ @s s where
 
 -- | Expose an endpoint with some metadata. Return the data that was entered.
 endpointWithMeta
-  :: forall l a s e b.
+  :: forall l a w s e b.
      ( HasEndpoint l a s
      , AsContractError e
      , ToJSON b
      )
   => b
-  -> Contract s e a
-endpointWithMeta b = unEndpointValue <$> request @l @_ @_ @s s where
+  -> Contract w s e a
+endpointWithMeta b = unEndpointValue <$> request @w @l @_ @_ @s s where
   s = ActiveEndpoint
         { aeDescription = endpointDescription (Proxy @l)
         , aeMetadata    = Just $ JSON.toJSON b

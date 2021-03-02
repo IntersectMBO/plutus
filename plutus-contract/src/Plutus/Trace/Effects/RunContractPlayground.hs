@@ -69,11 +69,13 @@ makeEffect ''RunContractPlayground
 
 -- | Handle the 'RunContractPlayground' effect.
 handleRunContractPlayground ::
-    forall s e effs effs2.
+    forall w s e effs effs2.
     ( HasBlockchainActions s
     , ContractConstraints s
     , Show e
     , JSON.ToJSON e
+    , JSON.ToJSON w
+    , Monoid w
     , Member ContractInstanceIdEff effs
     , Member (Yield (EmSystemCall effs2 EmulatorMessage) (Maybe EmulatorMessage)) effs
     , Member (LogMsg EmulatorEvent') effs2
@@ -83,19 +85,21 @@ handleRunContractPlayground ::
     , Member (State (Map Wallet ContractInstanceId)) effs2
     , Member (State (Map Wallet ContractInstanceId)) effs
     )
-    => Contract s e ()
+    => Contract w s e ()
     -> RunContractPlayground
     ~> Eff effs
 handleRunContractPlayground contract = \case
     CallEndpoint wallet ep vl -> handleCallEndpoint @effs @effs2 wallet ep vl
-    LaunchContract wllt       -> handleLaunchContract @s @e @effs @effs2 contract wllt
+    LaunchContract wllt       -> handleLaunchContract @w @s @e @effs @effs2 contract wllt
 
 handleLaunchContract ::
-    forall s e effs effs2.
+    forall w s e effs effs2.
     ( HasBlockchainActions s
     , ContractConstraints s
     , Show e
     , JSON.ToJSON e
+    , JSON.ToJSON w
+    , Monoid w
     , Member (Yield (EmSystemCall effs2 EmulatorMessage) (Maybe EmulatorMessage)) effs
     , Member ContractInstanceIdEff effs
     , Member (LogMsg EmulatorEvent') effs2
@@ -104,13 +108,13 @@ handleLaunchContract ::
     , Member MultiAgentEffect effs2
     , Member (State (Map Wallet ContractInstanceId)) effs
     )
-    => Contract s e ()
+    => Contract w s e ()
     -> Wallet
     -> Eff effs ()
 handleLaunchContract contract wllt = do
     i <- nextId
     let handle = ContractHandle{chContract=contract, chInstanceId = i, chInstanceTag = walletInstanceTag wllt}
-    void $ startContractThread @s @e @effs @effs2 wllt handle
+    void $ startContractThread @w @s @e @effs @effs2 wllt handle
     modify @(Map Wallet ContractInstanceId) (set (at wllt) (Just i))
 
 handleCallEndpoint ::
