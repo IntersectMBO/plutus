@@ -34,6 +34,10 @@
 % Automatically build the glossary index, and don't show the occurrence lists or add a dot at the end
 \usepackage[automake=true, nonumberlist]{glossaries-extra}
 
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+\lhead{\color{red} DRAFT: DO NOT DISTRIBUTE}
+
 \newcommand{\todompj}[1]{\todo[inline,color=yellow!40,author=Michael]{#1}}
 % TODO: nicer code formatting inline and also in blocks
 \newcommand{\code}[1]{\texttt{#1}}
@@ -60,6 +64,7 @@
 \makeglossaries
 \setabbreviationstyle[acronym]{long-short-desc}
 \input{glossary}
+
 
 \begin{document}
 
