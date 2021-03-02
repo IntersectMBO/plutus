@@ -1,4 +1,4 @@
-{ pkgs, gitignore-nix, webCommon, webCommonMarlowe, buildPursPackage, buildNodeModules, filterNpm, plutus-pab }:
+{ pkgs, gitignore-nix, webCommon, webCommonMarlowe, buildPursPackage, buildNodeModules, filterNpm }:
 let
   cleanSrc = gitignore-nix.gitignoreSource ./.;
 
@@ -19,13 +19,11 @@ let
     extraSrcs = {
       web-common = webCommon;
       web-common-marlowe = webCommonMarlowe;
-      generated = plutus-pab.generated-purescript;
     };
     packages = pkgs.callPackage ./packages.nix { };
     spagoPackages = pkgs.callPackage ./spago-packages.nix { };
   };
 in
 {
-  inherit (plutus-pab) server-invoker generated-purescript generate-purescript start-backend;
   inherit client;
 }

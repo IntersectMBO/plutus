@@ -98,7 +98,7 @@ backend server with Nix:
 $ nix-build \
   --option trusted-public-keys "hydra.iohk.io:f/Ea+s+dFdN+3Y/G+FDgSq+a5NEWhJGzdjvKNGv0/EQ=" \
   --option substituters https://hydra.iohk.io \
-  -A marlowe-dashboard.client -A marlowe-dashboard.server-invoker
+  -A marlowe-marketplace.client -A marlowe-marketplace.server-invoker
 ```
 
 **Note**: When building the client make sure that the generated directory is removed completely or you will get _Duplicate module_ errors.
@@ -106,8 +106,8 @@ $ nix-build \
 #### Building Docker Images With Nix
 
 ```sh
-$ nix build -f default.nix marlowe-dashboard.docker
+$ nix build -f default.nix marlowe-marketplace.docker
 $ docker load < result
 # You can see the image name and tag as a result of the previous command and use it below
-$ docker run -p 8080:8080 marlowe-dashboard-docker:somecrazytag
+$ docker run -p 8080:8080 marlowe-marketplace-docker:somecrazytag
 ```
