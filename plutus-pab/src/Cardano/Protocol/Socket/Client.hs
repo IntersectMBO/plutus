@@ -3,6 +3,7 @@
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE GADTs             #-}
 {-# LANGUAGE LambdaCase        #-}
+{-# LANGUAGE NamedFieldPuns    #-}
 {-# LANGUAGE TypeFamilies      #-}
 
 module Cardano.Protocol.Socket.Client where
@@ -31,10 +32,11 @@ import           Cardano.Protocol.Socket.Type
 import           Ledger                                              (Block, Slot (..), Tx (..))
 
 -- | Client handler, used to communicate with the client thread.
-data ClientHandler = ClientHandler {
-        chInputQueue :: TQueue Tx,
-        chSocketPath :: FilePath,
-        chThreadId   :: ThreadId
+data ClientHandler = ClientHandler
+    { chInputQueue  :: TQueue Tx
+    , chSocketPath  :: FilePath
+    , chThreadId    :: ThreadId
+    , chCurrentSlot :: MVar Slot
     }
 
 -- | Queue a transaction to be sent to the server.
@@ -42,8 +44,14 @@ queueTx ::
     ClientHandler
  -> Tx
  -> IO ()
-queueTx (ClientHandler inputQueue _ _) tx =
-    atomically (writeTQueue inputQueue tx)
+queueTx ClientHandler { chInputQueue } tx =
+    atomically (writeTQueue chInputQueue tx)
+
+getCurrentSlot ::
+     ClientHandler
+  -> IO Slot
+getCurrentSlot ClientHandler { chCurrentSlot } =
+    takeMVar chCurrentSlot
 
 -- | Forks and starts a new client node, returning the newly allocated thread id.
 runClientNode :: FilePath
@@ -64,11 +72,11 @@ runClientNode socketPath onNewBlock = do
           (unversionedProtocol (app mSlot onNewBlock inputQueue))
           Nothing
           (localAddressFromPath socketPath)
-    pure ClientHandler {
-        chInputQueue  = inputQueue,
-        chSocketPath  = socketPath,
-        chThreadId    = threadId
-    }
+    pure ClientHandler { chInputQueue  = inputQueue
+                       , chSocketPath  = socketPath
+                       , chThreadId    = threadId
+                       , chCurrentSlot = mSlot
+                       }
 
     where
       {- Application that communicates using 2 multiplexed protocols

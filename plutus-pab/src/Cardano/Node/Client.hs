@@ -8,7 +8,6 @@
 
 module Cardano.Node.Client where
 
-import           Control.Monad                  (void)
 import           Control.Monad.Freer
 import           Control.Monad.IO.Class
 import           Data.Proxy                     (Proxy (Proxy))
@@ -19,24 +18,23 @@ import           Servant.Client                 (ClientEnv, ClientError, ClientM
 import           Cardano.Node.API               (API)
 import           Cardano.Node.RandomTx          (GenRandomTx (..))
 import           Cardano.Node.Types             (MockServerLogMsg)
+import qualified Cardano.Protocol.Socket.Client as Client
 import           Control.Monad.Freer.Error
 import           Control.Monad.Freer.Extras.Log (LogMessage)
 import           Wallet.Effects                 (NodeClientEffect (..))
 
 healthcheck :: ClientM NoContent
 getCurrentSlot :: ClientM Slot
-addTx :: Tx -> ClientM NoContent
 randomTx :: ClientM Tx
 consumeEventHistory :: ClientM [LogMessage MockServerLogMsg]
-(healthcheck, addTx, getCurrentSlot, randomTx, consumeEventHistory) =
+(healthcheck, getCurrentSlot, randomTx, consumeEventHistory) =
     ( healthcheck_
-    , addTx_
     , getCurrentSlot_
     , randomTx_
     , consumeEventHistory_
     )
   where
-    healthcheck_ :<|> addTx_ :<|> getCurrentSlot_ :<|> (randomTx_ :<|> consumeEventHistory_) =
+    healthcheck_ :<|> getCurrentSlot_ :<|> (randomTx_ :<|> consumeEventHistory_) =
         client (Proxy @API)
 
 handleRandomTxClient ::
@@ -58,15 +56,12 @@ handleNodeClientClient ::
     forall m effs.
     ( LastMember m effs
     , MonadIO m
-    , Member (Error ClientError) effs
     )
-    => ClientEnv
+    => Client.ClientHandler
     -> NodeClientEffect
     ~> Eff effs
-handleNodeClientClient clientEnv =
-    let
-        runClient :: forall a. ClientM a -> Eff effs a
-        runClient a = (sendM $ liftIO $ runClientM a clientEnv) >>= either throwError pure
-    in \case
-        PublishTx tx  -> void (runClient (addTx tx))
-        GetClientSlot -> runClient getCurrentSlot
+handleNodeClientClient clientHandler = \case
+    PublishTx tx  ->
+        liftIO $ Client.queueTx clientHandler tx
+    GetClientSlot ->
+        liftIO $ Client.getCurrentSlot clientHandler

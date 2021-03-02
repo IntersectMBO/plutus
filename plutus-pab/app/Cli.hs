@@ -63,6 +63,7 @@ import qualified Cardano.Metadata.Server                 as Metadata
 import qualified Cardano.Node.Server                     as NodeServer
 import qualified Cardano.Wallet.Server                   as WalletServer
 import           Cardano.Wallet.Types
+-- <<<<<<< HEAD
 import           Control.Concurrent                      (threadDelay)
 import           Control.Concurrent.Async                (Async, async, waitAny)
 import           Control.Concurrent.Availability         (Availability, starting)
@@ -80,6 +81,27 @@ import           Data.Text.Prettyprint.Doc.Render.Text   (renderStrict)
 
 import           Cardano.Node.Types                      (MockServerConfig (..), NodeUrl (..))
 import           Data.Time.Units                         (toMicroseconds)
+-- =======
+-- import           Control.Concurrent                              (threadDelay)
+-- import           Control.Concurrent.Async                        (Async, async, waitAny)
+-- import           Control.Concurrent.Availability                 (Availability, starting)
+-- import           Control.Lens.Indexed                            (itraverse_)
+-- import           Control.Monad                                   (forever, void)
+-- import           Control.Monad.Freer                             (Eff, interpret, raise)
+-- import           Control.Monad.Freer.Error                       (handleError)
+-- import           Control.Monad.Freer.Extras.Log                  (LogMsg, logError, logInfo, mapLog)
+-- import           Control.Monad.IO.Class                          (liftIO)
+-- import           Data.Foldable                                   (traverse_)
+-- import qualified Data.Map                                        as Map
+-- import qualified Data.Set                                        as Set
+-- import           Data.Text.Prettyprint.Doc                       (Pretty (..), defaultLayoutOptions, layoutPretty,
+--                                                                   pretty)
+-- import           Data.Text.Prettyprint.Doc.Render.Text           (renderStrict)
+
+-- import           Cardano.Node.Types                              (MockServerConfig (..))
+-- import           Data.Time.Units                                 (toMicroseconds)
+-- import           Language.Plutus.Contract.Effects.ExposeEndpoint (EndpointDescription (..))
+-- >>>>>>> bb26cbc28 (Make addTx go directly to the socket based node.)
 import qualified PSGenerator
 import           Plutus.Contract.Effects.ExposeEndpoint  (EndpointDescription (..))
 import           Plutus.PAB.App                          (AppBackend, runApp)
@@ -113,7 +135,7 @@ runCliCommand trace _ Config {..} serviceAvailability MockWallet =
     liftIO $ WalletServer.main
         (toWalletLog trace)
         walletServerConfig
-        (NodeUrl $ mscBaseUrl nodeServerConfig)
+        (mscSocketPath nodeServerConfig)
         (ChainIndex.ciBaseUrl chainIndexConfig)
         serviceAvailability
 

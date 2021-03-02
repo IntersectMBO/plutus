@@ -75,6 +75,7 @@ data ServerCommand =
     -- This command will add a new block by processing
     -- transactions in the memory pool.
     ProcessBlocks [Block]
+  | AddTx Tx
     deriving Show
 
 {- | The response from the server. Can be used for the information
@@ -89,10 +90,14 @@ data ServerResponse =
      in the memory pool. This function will block waiting for a response. -}
 processBlocks :: ServerHandler -> [Block] -> IO (Error [Block])
 processBlocks ServerHandler {shCommandChannel} blocks = do
-  atomically $ writeTQueue (ccCommand  shCommandChannel) $   ProcessBlocks blocks
-  atomically $ readTQueue  (ccResponse shCommandChannel) >>= \case
+    atomically $ writeTQueue (ccCommand  shCommandChannel) $   ProcessBlocks blocks
+    atomically $ readTQueue  (ccResponse shCommandChannel) >>= \case
       BlocksAdded blocks' ->
           pure $ Right blocks'
+
+addTx :: ServerHandler -> Tx -> IO ()
+addTx ServerHandler { shCommandChannel } tx = do
+    atomically $ writeTQueue (ccCommand  shCommandChannel) $ AddTx tx
 
 handleCommand ::
     CommandChannel
@@ -109,6 +114,8 @@ handleCommand CommandChannel {ccCommand, ccResponse}
                 -- state to remain synchronised.
                 traverse_   (writeTChan isBlocks)   blocks
                 writeTQueue ccResponse (BlocksAdded blocks)
+        AddTx tx -> do
+            modifyMVar_ isState (pure . over Chain.txPool (tx :))
 
 {- | Start the server in a new thread, and return a server handler
      used to control the server -}

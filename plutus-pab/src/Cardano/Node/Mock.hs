@@ -12,9 +12,10 @@ import           Control.Concurrent                (threadDelay)
 import           Control.Concurrent.MVar           (MVar, modifyMVar_, putMVar, takeMVar)
 import           Control.Lens                      (over, set, unto, view)
 import           Control.Monad                     (forever, unless, void)
-import           Control.Monad.Freer               (Eff, Member, interpret, reinterpret, runM, subsume)
+import           Control.Monad.Freer               (Eff, LastMember, Member, interpret, reinterpret, runM, subsume)
 import           Control.Monad.Freer.Extras.Log
 import           Control.Monad.Freer.Extras.Modify (handleZoomedState)
+import           Control.Monad.Freer.Reader        (Reader)
 import qualified Control.Monad.Freer.Reader        as Eff
 import           Control.Monad.Freer.State         (State)
 import qualified Control.Monad.Freer.State         as Eff
@@ -35,7 +36,7 @@ import           Ledger.Tx                         (outputs)
 import           Plutus.PAB.Arbitrary              ()
 import qualified Plutus.PAB.Monitoring.Monitoring  as LM
 import qualified Wallet.Emulator                   as EM
-import           Wallet.Emulator.Chain             (ChainControlEffect, ChainEffect, ChainState)
+import           Wallet.Emulator.Chain             (ChainControlEffect, ChainState)
 import qualified Wallet.Emulator.Chain             as Chain
 
 healthcheck :: Monad m => m NoContent
@@ -62,10 +63,17 @@ consumeEventHistory stateVar =
         putMVar stateVar newState
         pure events
 
-addTx :: (Member (LogMsg MockServerLogMsg) effs, Member ChainEffect effs) => Tx -> Eff effs NoContent
+addTx ::
+    ( Member (LogMsg MockServerLogMsg) effs
+    , Member (Reader Server.ServerHandler) effs
+    , MonadIO m
+    , LastMember m effs
+    )
+ => Tx -> Eff effs NoContent
 addTx tx = do
     logInfo $ BlockOperation $ NewTransaction tx
-    Chain.queueTx tx
+    serverHandler <- Eff.ask
+    liftIO $ Server.addTx serverHandler tx
     pure NoContent
 
 -- | Run all chain effects in the IO Monad
