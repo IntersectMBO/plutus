@@ -43,7 +43,7 @@ w2 = Wallet 2
 w3 = Wallet 3
 w4 = Wallet 4
 
-theContract :: Contract CrowdfundingSchema ContractError ()
+theContract :: Contract () CrowdfundingSchema ContractError ()
 theContract = crowdfunding theCampaign
 
 tests :: TestTree
@@ -120,7 +120,7 @@ tests = testGroup "crowdfunding"
         "test/Spec/crowdfundingEmulatorTestOutput.txt"
         (pure $ renderEmulatorLog successfulCampaign)
 
-    , let con :: Contract BlockchainActions ContractError () = throwError "something went wrong" in
+    , let con :: Contract () BlockchainActions ContractError () = throwError "something went wrong" in
         goldenVsString
         "renders an error sensibly"
         "test/Spec/contractError.txt"

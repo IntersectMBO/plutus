@@ -107,14 +107,14 @@ tests = testGroup "Stablecoin"
 
     ]
 
-initialise :: Trace.EmulatorTrace (ContractHandle StablecoinSchema StablecoinError)
+initialise :: Trace.EmulatorTrace (ContractHandle () StablecoinSchema StablecoinError)
 initialise = do
     hdl <- Trace.activateContractWallet user Stablecoin.contract
     Trace.callEndpoint @"initialise" hdl coin
     _ <- Trace.waitNSlots 2
     pure hdl
 
-mintReserveCoins :: RC Integer -> ConversionRate -> ContractHandle StablecoinSchema StablecoinError -> Trace.EmulatorTrace ()
+mintReserveCoins :: RC Integer -> ConversionRate -> ContractHandle () StablecoinSchema StablecoinError -> Trace.EmulatorTrace ()
 mintReserveCoins rc rate hdl = do
     Trace.callEndpoint @"run step" hdl
         Input
@@ -123,7 +123,7 @@ mintReserveCoins rc rate hdl = do
             }
     void $ Trace.waitNSlots 2
 
-mintStableCoins :: SC Integer -> ConversionRate -> ContractHandle StablecoinSchema StablecoinError -> Trace.EmulatorTrace ()
+mintStableCoins :: SC Integer -> ConversionRate -> ContractHandle () StablecoinSchema StablecoinError -> Trace.EmulatorTrace ()
 mintStableCoins sc rate hdl = do
     Trace.callEndpoint @"run step" hdl
         Input
@@ -132,7 +132,7 @@ mintStableCoins sc rate hdl = do
             }
     void $ Trace.waitNSlots 2
 
-redeemStableCoins :: SC Integer -> ConversionRate -> ContractHandle StablecoinSchema StablecoinError -> Trace.EmulatorTrace ()
+redeemStableCoins :: SC Integer -> ConversionRate -> ContractHandle () StablecoinSchema StablecoinError -> Trace.EmulatorTrace ()
 redeemStableCoins sc rate hdl = do
     Trace.callEndpoint @"run step" hdl
         Input

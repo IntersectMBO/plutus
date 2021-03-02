@@ -188,7 +188,7 @@ campaignAddress :: Campaign -> Ledger.ValidatorHash
 campaignAddress = Scripts.validatorHash . contributionScript
 
 -- | The crowdfunding contract for the 'Campaign'.
-crowdfunding :: Campaign -> Contract CrowdfundingSchema ContractError ()
+crowdfunding :: Campaign -> Contract () CrowdfundingSchema ContractError ()
 crowdfunding c = contribute c `select` scheduleCollection c
 
 -- | A sample campaign with a target of 20 Ada by slot 20
@@ -204,7 +204,7 @@ theCampaign = Campaign
 --   an endpoint that allows the user to enter their public key and the
 --   contribution. Then waits until the campaign is over, and collects the
 --   refund if the funding target was not met.
-contribute :: Campaign -> Contract CrowdfundingSchema ContractError ()
+contribute :: Campaign -> Contract () CrowdfundingSchema ContractError ()
 contribute cmp = do
     Contribution{contribValue} <- endpoint @"contribute"
     logInfo @Text $ "Contributing " <> Text.pack (show contribValue)
@@ -233,7 +233,7 @@ contribute cmp = do
 -- | The campaign owner's branch of the contract for a given 'Campaign'. It
 --   watches the campaign address for contributions and collects them if
 --   the funding goal was reached in time.
-scheduleCollection :: Campaign -> Contract CrowdfundingSchema ContractError ()
+scheduleCollection :: Campaign -> Contract () CrowdfundingSchema ContractError ()
 scheduleCollection cmp = do
     let inst = scriptInstance cmp
 
@@ -254,7 +254,7 @@ scheduleCollection cmp = do
 
 -- | Call the "schedule collection" endpoint and instruct the campaign owner's
 --   wallet (wallet 1) to start watching the campaign address.
-startCampaign :: EmulatorTrace (ContractHandle CrowdfundingSchema ContractError)
+startCampaign :: EmulatorTrace (ContractHandle () CrowdfundingSchema ContractError)
 startCampaign = do
     hdl <- Trace.activateContractWallet (Wallet 1) (crowdfunding theCampaign)
     Trace.callEndpoint @"schedule collection" hdl ()

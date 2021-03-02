@@ -61,10 +61,10 @@ options =
     let initialDistribution = defaultDist & over (at (Wallet 1) . _Just) ((<>) theToken)
     in defaultCheckOptions & emulatorConfig . Trace.initialChainState .~ Left initialDistribution
 
-seller :: Contract SellerSchema SM.SMContractError ()
+seller :: Contract () SellerSchema SM.SMContractError ()
 seller = auctionSeller (apAsset params) (apEndTime params)
 
-buyer :: Contract BuyerSchema SM.SMContractError ()
+buyer :: Contract () BuyerSchema SM.SMContractError ()
 buyer = auctionBuyer params
 
 w1, w2, w3 :: Wallet

@@ -54,7 +54,7 @@ data MultiSig =
 
 PlutusTx.makeLift ''MultiSig
 
-contract :: AsContractError e => Contract MultiSigSchema e ()
+contract :: AsContractError e => Contract () MultiSigSchema e ()
 contract = (lock `select` unlock) >> contract
 
 {-# INLINABLE validate #-}
@@ -76,7 +76,7 @@ scriptInstance ms =
 
 
 -- | Lock some funds in a 'MultiSig' contract.
-lock :: AsContractError e => Contract MultiSigSchema e ()
+lock :: AsContractError e => Contract () MultiSigSchema e ()
 lock = do
     (ms, vl) <- endpoint @"lock"
     let tx = Constraints.mustPayToTheScript () vl
@@ -85,7 +85,7 @@ lock = do
 
 -- | The @"unlock"@ endpoint, unlocking some funds with a list
 --   of signatures.
-unlock :: AsContractError e => Contract MultiSigSchema e ()
+unlock :: AsContractError e => Contract () MultiSigSchema e ()
 unlock = do
     (ms, pks) <- endpoint @"unlock"
     let inst = scriptInstance ms

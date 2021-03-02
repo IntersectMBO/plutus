@@ -170,7 +170,7 @@ makeClassyPrisms ''VestingError
 instance AsContractError VestingError where
     _ContractError = _VContractError
 
-vestingContract :: AsVestingError e => VestingParams -> Contract VestingSchema e ()
+vestingContract :: AsVestingError e => VestingParams -> Contract () VestingSchema e ()
 vestingContract vesting = mapError (review _VestingError) (vest `select` retrieve)
   where
     vest = endpoint @"vest funds" >> vestFundsC vesting
@@ -189,7 +189,7 @@ vestFundsC
        , AsVestingError e
        )
     => VestingParams
-    -> Contract s e ()
+    -> Contract w s e ()
 vestFundsC vesting = mapError (review _VestingError) $ do
     let tx = payIntoContract (totalAmount vesting)
     void $ submitTxConstraints (scriptInstance vesting) tx
@@ -204,7 +204,7 @@ retrieveFundsC
        )
     => VestingParams
     -> Value
-    -> Contract s e Liveness
+    -> Contract w s e Liveness
 retrieveFundsC vesting payment = mapError (review _VestingError) $ do
     let inst = scriptInstance vesting
         addr = Scripts.scriptAddress inst

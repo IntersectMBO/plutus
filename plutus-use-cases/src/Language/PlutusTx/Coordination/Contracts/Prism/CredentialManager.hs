@@ -45,14 +45,14 @@ type CredentialManagerSchema =
         .\/ RPCServer CredentialManager
 
 -- | The Plutus application that keeps track of user credentials.
-credentialManager :: forall s.
+credentialManager :: forall w s.
     ( HasBlockchainActions s
     , HasRPCServer CredentialManager s
     )
-    => Contract s CredentialManagerError ()
+    => Contract w s CredentialManagerError ()
 credentialManager =
     let go = do
-            mapError TokenAppServerRPCError (respondRPC @CredentialManager @s presentToken)
+            mapError TokenAppServerRPCError (respondRPC @w @CredentialManager @s presentToken)
             go
     in go
 
@@ -73,11 +73,11 @@ data CredentialManagerError =
 -- | Server side implementation of the 'CredentialManager' RPC. This simply calls the 'PresentCredential'
 --   step on the state machine instance and returns the constraints needed to construct a transaction
 --   that presents the token.
-presentToken :: forall s.
+presentToken :: forall w s.
     ( HasBlockchainActions s
     )
     => UserCredential
-    -> Contract s CredentialManagerClientError (TxConstraints IDAction IDState, ScriptLookups (StateMachine IDState IDAction))
+    -> Contract w s CredentialManagerClientError (TxConstraints IDAction IDState, ScriptLookups (StateMachine IDState IDAction))
 presentToken userCredential = do
     let theClient = StateMachine.machineClient (StateMachine.scriptInstance userCredential) userCredential
     t <- mapError StateMachineError $ mkStep theClient PresentCredential

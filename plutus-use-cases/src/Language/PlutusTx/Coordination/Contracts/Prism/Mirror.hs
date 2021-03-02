@@ -55,7 +55,7 @@ mirror ::
     , HasEndpoint "revoke" CredentialOwnerReference s
     , HasEndpoint "issue" CredentialOwnerReference s
     )
-    => Contract s MirrorError ()
+    => Contract w s MirrorError ()
 mirror = do
     authority <- mapError SetupError $ CredentialAuthority . pubKeyHash <$> ownPubKey
     forever $ (createTokens authority `select` revokeToken authority)
@@ -65,7 +65,7 @@ createTokens ::
     , HasBlockchainActions s
     )
     => CredentialAuthority
-    -> Contract s MirrorError ()
+    -> Contract w s MirrorError ()
 createTokens authority = do
     CredentialOwnerReference{coTokenName, coOwner} <- mapError IssueEndpointError $ endpoint @"issue"
     let lookups = Constraints.monetaryPolicy (Credential.policy authority)
@@ -84,7 +84,7 @@ revokeToken ::
     , HasEndpoint "revoke" CredentialOwnerReference s
     )
     => CredentialAuthority
-    -> Contract s MirrorError ()
+    -> Contract w s MirrorError ()
 revokeToken authority = do
     CredentialOwnerReference{coTokenName, coOwner} <- mapError RevokeEndpointError $ endpoint @"revoke"
     let stateMachine = StateMachine.mkMachineClient authority (pubKeyHash $ walletPubKey coOwner) coTokenName

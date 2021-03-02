@@ -13,7 +13,7 @@ import           Language.PlutusTx.Coordination.Contracts.RPC
 
 import           Test.Tasty
 
-cancelContract :: Contract AdderSchema AdderError (Either (Either CancelRPC Integer) ())
+cancelContract :: Contract () AdderSchema AdderError (Either (Either CancelRPC Integer) ())
 cancelContract = callAdderCancel `selectEither` respondAdder
 
 server, client :: Wallet

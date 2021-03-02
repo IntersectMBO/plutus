@@ -21,7 +21,7 @@ import           Test.Tasty
 w1 :: Wallet
 w1 = Wallet 1
 
-theContract :: Contract BlockchainActions PubKeyError ()
+theContract :: Contract () BlockchainActions PubKeyError ()
 theContract = do
   (txOutRef, txOutTx, pkInst) <- pubKeyContract (Ledger.pubKeyHash $ walletPubKey w1) (Ada.lovelaceValueOf 10)
   let lookups = ScriptLookups

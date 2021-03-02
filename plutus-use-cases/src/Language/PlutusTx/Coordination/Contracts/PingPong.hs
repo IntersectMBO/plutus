@@ -111,13 +111,13 @@ machineInstance = SM.StateMachineInstance machine scriptInstance
 client :: SM.StateMachineClient PingPongState Input
 client = SM.mkStateMachineClient machineInstance
 
-initialise :: Contract PingPongSchema PingPongError PingPongState
+initialise :: Contract () PingPongSchema PingPongError PingPongState
 initialise = endpoint @"initialise" >> SM.runInitialise client Pinged (Ada.lovelaceValueOf 1)
 
 run ::
     PingPongState
-    -> Contract PingPongSchema PingPongError ()
-    -> Contract PingPongSchema PingPongError ()
+    -> Contract () PingPongSchema PingPongError ()
+    -> Contract () PingPongSchema PingPongError ()
 run expectedState action = do
     let extractState = tyTxOutData . fst
         go Nothing = throwError StoppedUnexpectedly
@@ -128,16 +128,16 @@ run expectedState action = do
     let datum = fmap fst maybeState
     go datum
 
-runPing :: Contract PingPongSchema PingPongError ()
+runPing :: Contract () PingPongSchema PingPongError ()
 runPing = run Ponged (endpoint @"ping" >> void (SM.runStep client Ping))
 
-runPong :: Contract PingPongSchema PingPongError ()
+runPong :: Contract () PingPongSchema PingPongError ()
 runPong = run Pinged (endpoint @"pong" >> void (SM.runStep client Pong))
 
-runStop :: Contract PingPongSchema PingPongError ()
+runStop :: Contract () PingPongSchema PingPongError ()
 runStop = endpoint @"stop" >> void (SM.runStep client Stop)
 
-runWaitForUpdate :: Contract PingPongSchema PingPongError (Maybe (OnChainState PingPongState Input))
+runWaitForUpdate :: Contract () PingPongSchema PingPongError (Maybe (OnChainState PingPongState Input))
 runWaitForUpdate = SM.waitForUpdate client
 
 PlutusTx.unstableMakeIsData ''PingPongState

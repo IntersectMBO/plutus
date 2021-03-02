@@ -164,7 +164,7 @@ data AuctionLog =
 
 
 -- | Client code for the seller
-auctionSeller :: Value -> Slot -> Contract SellerSchema SM.SMContractError ()
+auctionSeller :: Value -> Slot -> Contract () SellerSchema SM.SMContractError ()
 auctionSeller value slot = do
     self <- Ledger.pubKeyHash <$> ownPubKey
     let params       = AuctionParams{apOwner = self, apAsset = value, apEndTime = slot }
@@ -186,7 +186,7 @@ auctionSeller value slot = do
 
 
 -- | Get the current state of the contract and log it.
-currentState :: StateMachineClient AuctionState AuctionInput -> Contract BuyerSchema SM.SMContractError (Maybe HighestBid)
+currentState :: StateMachineClient AuctionState AuctionInput -> Contract () BuyerSchema SM.SMContractError (Maybe HighestBid)
 currentState client = SM.getOnChainState client >>= \case
     Just ((TypedScriptTxOut{tyTxOutData=Ongoing s}, _), _) -> do
         notify (Ongoing s)
@@ -217,7 +217,7 @@ data BuyerEvent =
         | OtherBid HighestBid -- ^ Another buyer submitted a higher bid
         | NoChange HighestBid -- ^ Nothing has changed
 
-waitForChange :: AuctionParams -> StateMachineClient AuctionState AuctionInput -> HighestBid -> Contract BuyerSchema SM.SMContractError BuyerEvent
+waitForChange :: AuctionParams -> StateMachineClient AuctionState AuctionInput -> HighestBid -> Contract () BuyerSchema SM.SMContractError BuyerEvent
 waitForChange AuctionParams{apEndTime} client lastHighestBid = do
     s <- currentSlot
     let
@@ -237,7 +237,7 @@ waitForChange AuctionParams{apEndTime} client lastHighestBid = do
     -- see note [Buyer client]
     auctionOver `select` submitOwnBid `select` otherBid
 
-handleEvent :: StateMachineClient AuctionState AuctionInput -> HighestBid -> BuyerEvent -> Contract BuyerSchema SM.SMContractError (Either HighestBid ())
+handleEvent :: StateMachineClient AuctionState AuctionInput -> HighestBid -> BuyerEvent -> Contract () BuyerSchema SM.SMContractError (Either HighestBid ())
 handleEvent client lastHighestBid change =
     let continue = pure . Left
         stop     = pure (Right ())
@@ -259,7 +259,7 @@ handleEvent client lastHighestBid change =
             continue s
         NoChange s -> continue s
 
-auctionBuyer :: AuctionParams -> Contract BuyerSchema SM.SMContractError ()
+auctionBuyer :: AuctionParams -> Contract () BuyerSchema SM.SMContractError ()
 auctionBuyer params = do
     let inst         = scriptInstance params
         client       = machineClient inst params

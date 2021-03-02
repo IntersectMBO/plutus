@@ -122,13 +122,13 @@ newtype GuessParams = GuessParams
     deriving stock (Prelude.Eq, Prelude.Show, Generic)
     deriving anyclass (FromJSON, ToJSON, ToSchema, ToArgument)
 
-lock :: AsContractError e => Contract GameSchema e ()
+lock :: AsContractError e => Contract () GameSchema e ()
 lock = do
     LockParams secret amt <- endpoint @"lock" @LockParams
     let tx         = Constraints.mustPayToTheScript (hashString secret) amt
     void (submitTxConstraints gameInstance tx)
 
-guess :: AsContractError e => Contract GameSchema e ()
+guess :: AsContractError e => Contract () GameSchema e ()
 guess = do
     GuessParams theGuess <- endpoint @"guess" @GuessParams
     unspentOutputs <- utxoAt gameAddress
@@ -136,7 +136,7 @@ guess = do
         tx       = collectFromScript unspentOutputs redeemer
     void (submitTxConstraintsSpending gameInstance unspentOutputs tx)
 
-game :: AsContractError e => Contract GameSchema e ()
+game :: AsContractError e => Contract () GameSchema e ()
 game = lock `select` guess
 
 lockTrace :: EmulatorTrace ()

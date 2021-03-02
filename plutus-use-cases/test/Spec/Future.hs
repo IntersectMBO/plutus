@@ -38,7 +38,7 @@ tests :: TestTree
 tests =
     testGroup "futures"
     [ checkPredicate "setup tokens"
-        (assertDone (F.setupTokens @FutureSchema @FutureError) (Trace.walletInstanceTag w1) (const True) "setupTokens")
+        (assertDone (F.setupTokens @() @FutureSchema @FutureError) (Trace.walletInstanceTag w1) (const True) "setupTokens")
         $ void F.setupTokensTrace
 
     , checkPredicate "can initialise and obtain tokens"
@@ -118,7 +118,7 @@ payOutTrace = do
 
 -- | After this trace, the initial margin of wallet 1, and the two tokens,
 --   are locked by the contract.
-initContract :: EmulatorTrace (ContractHandle FutureSchema FutureError)
+initContract :: EmulatorTrace (ContractHandle () FutureSchema FutureError)
 initContract = do
     hdl1 <- Trace.activateContractWallet w1 (F.futureContract theFuture)
     Trace.callEndpoint @"initialise-future" hdl1 (setup, Short)
@@ -127,7 +127,7 @@ initContract = do
 
 -- | Calls the "join-future" endpoint for wallet 2 and processes
 --   all resulting transactions.
-joinFuture :: EmulatorTrace (ContractHandle FutureSchema FutureError)
+joinFuture :: EmulatorTrace (ContractHandle () FutureSchema FutureError)
 joinFuture = do
     hdl2 <- Trace.activateContractWallet w2 (F.futureContract theFuture)
     Trace.callEndpoint @"join-future" hdl2 (F.testAccounts, setup)
@@ -136,7 +136,7 @@ joinFuture = do
 
 -- | Calls the "settle-future" endpoint for wallet 2 and processes
 --   all resulting transactions.
-payOut :: ContractHandle FutureSchema FutureError -> EmulatorTrace ()
+payOut :: ContractHandle () FutureSchema FutureError -> EmulatorTrace ()
 payOut hdl = do
     let
         spotPrice = Ada.lovelaceValueOf 1124
@@ -162,13 +162,13 @@ oracleKeys =
         (walletPrivKey wllt, walletPubKey wllt)
 
 -- | Increase the margin of the 'Long' role by 100 lovelace
-increaseMargin :: ContractHandle FutureSchema FutureError -> EmulatorTrace ()
+increaseMargin :: ContractHandle () FutureSchema FutureError -> EmulatorTrace ()
 increaseMargin hdl = do
     Trace.callEndpoint @"increase-margin" hdl (Ada.lovelaceValueOf 100, Long)
     void $ Trace.waitNSlots 2
 
 -- | Call 'settleEarly' with a high spot price (11240 lovelace)
-settleEarly :: ContractHandle FutureSchema FutureError -> EmulatorTrace ()
+settleEarly :: ContractHandle () FutureSchema FutureError -> EmulatorTrace ()
 settleEarly hdl = do
     let
         spotPrice = Ada.lovelaceValueOf 11240

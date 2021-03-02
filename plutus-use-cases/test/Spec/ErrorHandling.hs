@@ -14,16 +14,16 @@ import           Test.Tasty
 tests :: TestTree
 tests = testGroup "error handling"
     [ checkPredicate "throw an error"
-        (assertContractError contract (Trace.walletInstanceTag w1) (\case { Error1 _ -> True; _ -> False}) "should throw error")
+        (assertContractError @() contract (Trace.walletInstanceTag w1) (\case { Error1 _ -> True; _ -> False}) "should throw error")
         $ do
-            hdl <- Trace.activateContractWallet @_ @MyError w1 contract
+            hdl <- Trace.activateContractWallet @() @_ @MyError w1 contract
             Trace.callEndpoint @"throwError" hdl ()
             void $ Trace.nextSlot
 
     , checkPredicate "catch an error"
-        (assertDone @_ @MyError contract (Trace.walletInstanceTag w1) (const True) "should be done")
+        (assertDone @() @_ @MyError contract (Trace.walletInstanceTag w1) (const True) "should be done")
         $ do
-            hdl <- Trace.activateContractWallet @_ @MyError w1 contract
+            hdl <- Trace.activateContractWallet @() @_ @MyError w1 contract
             Trace.callEndpoint @"catchError" hdl ()
             void $ Trace.nextSlot
 

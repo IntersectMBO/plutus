@@ -63,14 +63,14 @@ instance AsContractError PubKeyError where
 -- | Lock some funds in a 'PayToPubKey' contract, returning the output's address
 --   and a 'TxIn' transaction input that can spend it.
 pubKeyContract
-    :: forall s e.
+    :: forall w s e.
     ( HasWriteTx s
     , HasTxConfirmation s
     , AsPubKeyError e
     )
     => PubKeyHash
     -> Value
-    -> Contract s e (TxOutRef, TxOutTx, ScriptInstance PubKeyContract)
+    -> Contract w s e (TxOutRef, TxOutTx, ScriptInstance PubKeyContract)
 pubKeyContract pk vl = mapError (review _PubKeyError   ) $ do
     let inst = scriptInstance pk
         address = Scripts.scriptAddress inst
