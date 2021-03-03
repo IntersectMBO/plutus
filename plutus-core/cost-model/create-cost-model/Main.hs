@@ -1,5 +1,4 @@
--- | Create the cost model from the CSV data and save it in data/costModel.json
-module UpdateCostModel where
+module Main where
 
 import           Data.Aeson.Encode.Pretty
 import qualified Data.ByteString.Lazy     as BSL
