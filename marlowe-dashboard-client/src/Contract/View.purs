@@ -5,13 +5,16 @@ module Contract.View
 
 import Prelude hiding (div)
 import Contract.Types (Action(..), State)
+import Css (classNames)
+import Css as Css
 import Data.Foldable (foldr)
 import Data.Lens (view)
 import Data.Map (Map)
 import Data.Map as Map
 import Data.Maybe (Maybe(..))
-import Halogen.HTML (HTML, button, div, div_, h2_, text)
-import Halogen.HTML.Events (onClick)
+import Halogen.HTML (HTML, a, button, div, div_, h2_, span, text)
+import Halogen.HTML.Events.Extra (onClick_)
+import Material.Icons as Icon
 import Play.Types (ContractStatus)
 import Marlowe.Execution (ExecutionStep, NamedAction(..))
 import Marlowe.Semantics (Accounts, ChoiceId(..), Input(..), Party, TransactionInput(..), _accounts)
@@ -20,7 +23,16 @@ contractsScreen :: forall p. ContractStatus -> HTML p Action
 contractsScreen contractStatus =
   div_
     [ h2_
-        [ text "Dashboard home" ]
+        [ text "Home" ]
+    , a
+        [ classNames Css.fixedPrimaryButton
+        , onClick_ $ ToggleTemplateLibraryCard
+        ]
+        [ span
+            [ classNames [ "mr-0.5" ] ]
+            [ text "New" ]
+        , Icon.libraryAdd
+        ]
     ]
 
 contractDetailsCard :: forall p. State -> HTML p Action
@@ -71,27 +83,27 @@ renderNamedAction (MakeDeposit accountId party token amount) =
   let
     input = IDeposit accountId party token amount
   in
-    button [ onClick <<< const <<< Just $ ChooseInput (Just input) ]
+    button [ onClick_ $ ChooseInput (Just input) ]
       [ div [] [ text "deposit", text "some ada" ] ]
 
 renderNamedAction (MakeChoice choiceId bounds chosenNum) =
   let
     input = IChoice choiceId chosenNum
   in
-    button [ onClick <<< const <<< Just $ ChooseInput (Just input) ]
+    button [ onClick_ $ ChooseInput (Just input) ]
       [ div [] [ text "deposit", text "some ada" ] ]
 
 renderNamedAction (MakeNotify observation) =
   let
     input = INotify
   in
-    button [ onClick <<< const <<< Just $ ChooseInput (Just input) ]
+    button [ onClick_ $ ChooseInput (Just input) ]
       [ div [] [ text "deposit", text "some ada" ] ]
 
 renderNamedAction (Evaluate { payments, bindings }) =
-  button [ onClick <<< const <<< Just $ ChooseInput Nothing ]
+  button [ onClick_ $ ChooseInput Nothing ]
     [ div [] [ text "deposit", text "some ada" ] ]
 
 renderNamedAction CloseContract =
-  button [ onClick <<< const <<< Just $ ChooseInput Nothing ]
+  button [ onClick_ $ ChooseInput Nothing ]
     [ div [] [ text "deposit", text "some ada" ] ]

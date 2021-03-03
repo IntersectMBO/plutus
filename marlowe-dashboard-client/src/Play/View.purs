@@ -3,7 +3,8 @@ module Play.View (renderPlayState) where
 import Prelude hiding (div)
 import Contract.Types (State) as Contract
 import Contract.View (contractsScreen, contractDetailsCard)
-import Css (classNames, hideWhen)
+import Css (applyWhen, classNames, hideWhen)
+import Css as Css
 import Data.Either (Either(..))
 import Data.Foldable (foldMap)
 import Data.Lens (view)
@@ -41,54 +42,35 @@ renderPlayState wallets newWalletNicknameKey templates playState =
 renderHeader :: forall p. PubKey -> Boolean -> HTML p Action
 renderHeader wallet menuOpen =
   header
-    [ classNames [ "relative", "flex", "justify-between", "text-green" ] ]
+    [ classNames $ [ "relative", "flex", "justify-between", "border-b", "border-darkgray" ] <> applyWhen menuOpen [ "border-0", "bg-black", "text-white" ] ]
     [ h1
-        [ classNames $ itemClasses <> [ "cursor-pointer" ]
-        , onClick_ $ SetScreen $ ContractsScreen Running
-        ]
-        [ Icon.image
-        , span
-            [ classNames [ "ml-0.5" ] ]
-            [ text "Demo" ]
-        ]
+        [ classNames [ "text-xl", "font-bold", "px-1", "py-0.5" ] ]
+        [ text "Marlowe" ]
     , nav
         [ classNames [ "flex" ] ]
-        [ a
-            [ classNames $ itemClasses <> [ "hidden", "md:flex" ]
-            , onClick_ $ SetScreen WalletLibraryScreen
-            ]
-            [ Icon.contacts
-            , span
-                [ classNames [ "ml-0.5" ] ]
-                [ text "Contacts" ]
-            ]
+        [ navigation (SetScreen $ ContractsScreen Running) Icon.home "Home"
+        , navigation (SetScreen WalletLibraryScreen) Icon.contacts "Contacts"
+        , navigation (ToggleCard PutdownWalletCard) Icon.wallet "Wallet"
         , a
-            [ classNames itemClasses
-            , onClick_ $ ToggleCard PutdownWalletCard
-            ]
-            [ Icon.wallet
-            , span
-                [ classNames [ "ml-0.5", "hidden", "md:inline" ] ]
-                [ text "Wallet" ]
-            ]
-        , a
-            [ classNames $ itemClasses <> [ "md:hidden" ]
+            [ classNames [ "p-0.5", "md:hidden" ]
             , onClick_ ToggleMenu
             ]
             [ if menuOpen then Icon.close else Icon.menu ]
-        , a
-            [ classNames $ itemClasses <> [ "px-1", "bg-green", "text-white" ]
-            , onClick_ $ ToggleCard TemplateLibraryCard
-            ]
-            [ span
-                [ classNames [ "mr-0.5" ] ]
-                [ text "New" ]
-            , Icon.libraryAdd
-            ]
         ]
     ]
   where
-  itemClasses = [ "flex", "items-center", "p-0.5" ]
+  navigation action icon label =
+    a
+      [ classNames [ "p-0.5" ]
+      , onClick_ action
+      ]
+      [ span
+          [ classNames [ "md:hidden" ] ]
+          [ icon ]
+      , span
+          [ classNames [ "hidden", "md:inline" ] ]
+          [ text label ]
+      ]
 
 ------------------------------------------------------------
 renderMain :: forall p. WalletNicknameKey -> WalletLibrary -> Array Template -> State -> HTML p Action
@@ -107,7 +89,7 @@ renderMain newWalletNicknameKey wallets templates playState =
     contractState = view _contractState playState
   in
     main
-      [ classNames [ "relative", "bg-lightblue", "text-blue" ] ]
+      [ classNames [ "relative" ] ]
       [ renderMobileMenu menuOpen
       , renderCards newWalletNicknameKey wallets templates wallet card contractState
       , renderScreen wallets screen templateState
@@ -115,26 +97,23 @@ renderMain newWalletNicknameKey wallets templates playState =
 
 renderMobileMenu :: forall p. Boolean -> HTML p Action
 renderMobileMenu menuOpen =
-  div
-    [ classNames $ [ "md:hidden", "absolute", "top-0", "bottom-0", "left-0", "right-0", "z-20", "bg-transgray" ] <> hideWhen (not menuOpen) ]
-    [ nav
-        [ classNames $ [ "absolute", "top-0", "bottom-0.5", "left-0.5", "right-0.5", "bg-gray", "overflow-auto", "flex", "flex-col", "justify-between" ] ]
-        [ div
-            [ classNames [ "flex", "flex-col" ] ]
-            $ [ link "Dashboard home" $ Right $ SetScreen $ ContractsScreen Running
-              , link "Contacts" $ Right $ SetScreen WalletLibraryScreen
-              ]
-            <> dashboardLinks
-        , div
-            [ classNames [ "flex", "flex-col" ] ]
-            iohkLinks
-        ]
+  nav
+    [ classNames $ [ "md:hidden", "absolute", "top-0", "bottom-0", "left-0", "right-0", "z-20", "bg-black", "text-white", "overflow-auto", "flex", "flex-col", "justify-between" ] <> hideWhen (not menuOpen) ]
+    [ div
+        [ classNames [ "flex", "flex-col" ] ]
+        $ [ link "Dashboard home" $ Right $ SetScreen $ ContractsScreen Running
+          , link "Contacts" $ Right $ SetScreen WalletLibraryScreen
+          ]
+        <> dashboardLinks
+    , div
+        [ classNames [ "flex", "flex-col" ] ]
+        iohkLinks
     ]
 
 renderCards :: forall p. WalletNicknameKey -> WalletLibrary -> Array Template -> PubKey -> Maybe Card -> Contract.State -> HTML p Action
 renderCards newWalletNicknameKey wallets templates wallet card contractState =
   div
-    [ classNames $ [ "absolute", "top-0", "bottom-0", "left-0", "right-0", "z-10", "flex", "flex-col", "justify-end", "md:justify-center", "bg-transgray" ] <> hideWhen (isNothing card) ]
+    [ classNames $ Css.cardWrapper $ isNothing card ]
     [ div
         [ classNames cardClasses ]
         [ div
@@ -159,9 +138,9 @@ renderCards newWalletNicknameKey wallets templates wallet card contractState =
     ]
   where
   cardClasses = case card of
-    Just TemplateLibraryCard -> [ "max-h-full", "overflow-auto", "mt-3", "mx-1", "shadow-md", "bg-gray", "md:mb-3", "lg:mx-3" ]
-    Just ContractCard -> [ "max-h-full", "overflow-auto", "mt-1", "mx-1", "shadow-md", "bg-gray", "md:mb-1", "lg:mx-3" ]
-    Just _ -> [ "mx-1", "shadow-md", "bg-white", "md:mx-auto", "md:w-card" ]
+    Just TemplateLibraryCard -> Css.largeCard
+    Just ContractCard -> Css.largeCard
+    Just _ -> Css.card
     Nothing -> [ "hidden" ]
 
 renderScreen :: forall p. WalletLibrary -> Screen -> Template.State -> HTML p Action
@@ -176,7 +155,7 @@ renderScreen wallets screen templateState =
 renderFooter :: forall p. HTML p Action
 renderFooter =
   footer
-    [ classNames [ "hidden", "md:flex", "justify-between" ] ]
+    [ classNames [ "hidden", "md:flex", "justify-between", "border-t", "border-darkgray" ] ]
     [ nav
         [ classNames [ "flex" ] ]
         dashboardLinks

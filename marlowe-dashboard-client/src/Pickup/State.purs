@@ -17,7 +17,7 @@ import Pickup.Types (Action(..), Screen(..), State)
 
 initialState :: State
 initialState =
-  { screen: GenerateWalletScreen
+  { screen: GDPRScreen
   , card: Nothing
   }
 
