@@ -112,10 +112,6 @@ To build a full HTML version of the site that you can view locally, build the `d
 
 The online version of the tutorial can be found https://docs.cardano.org/projects/plutus/en/latest/index.html[here]
 
-=== How to learn about the terminology we use
-
-There is a comprehensive glossary in link:GLOSSARY{outfilesuffix}[GLOSSARY].
-
 === How to submit an issue
 
 We track our issues on the
