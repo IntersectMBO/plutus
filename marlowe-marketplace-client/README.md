@@ -9,7 +9,7 @@ The Marlowe Marketplace is written in [PureScript](https://www.purescript.org/) 
 
 ### Starting the frontend server
 
-With the backend server running you can get started using the `npm start` script:
+Get started using the `npm start` script:
 
 ```bash
 $ npm run start
