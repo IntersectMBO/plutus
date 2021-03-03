@@ -38,6 +38,7 @@ type PlaygroundFiles
     , blockly :: Maybe String
     , javascript :: Maybe String
     , actus :: Maybe XML
+    , metadata :: Maybe String
     }
 
 toArray :: PlaygroundFiles -> Array NewGistFile
@@ -59,6 +60,7 @@ filenames ::
   , blockly :: String
   , javascript :: String
   , actus :: String
+  , metadata :: String
   }
 filenames =
   { playground: "playground.marlowe.json"
@@ -67,6 +69,7 @@ filenames =
   , blockly: "blockly.xml"
   , javascript: "playground.js"
   , actus: "actus.xml"
+  , metadata: "metadata.json"
   }
 
 isPlaygroundGist :: Gist -> Boolean
@@ -80,6 +83,7 @@ playgroundFiles gist =
   , blockly: getFile filenames.blockly
   , javascript: getFile filenames.javascript
   , actus: wrap <$> getFile filenames.actus
+  , metadata: getFile filenames.metadata
   }
   where
   getFile name = view (gistFiles <<< ix name <<< gistFileContent) gist
