@@ -41,6 +41,7 @@ module Plutus.V1.Ledger.Value(
       -- * Etc.
     , isZero
     , split
+    , unionWith
     ) where
 
 import qualified Prelude                          as Haskell
@@ -62,6 +63,7 @@ import qualified Language.PlutusTx                as PlutusTx
 import qualified Language.PlutusTx.AssocMap       as Map
 import qualified Language.PlutusTx.Builtins       as Builtins
 import           Language.PlutusTx.Lift           (makeLift)
+import qualified Language.PlutusTx.Ord            as Ord
 import           Language.PlutusTx.Prelude
 import           Language.PlutusTx.These
 import           Plutus.V1.Ledger.Bytes           (LedgerBytes (LedgerBytes))
@@ -215,6 +217,14 @@ deriving via (Additive Value) instance AdditiveGroup Value
 instance Module Integer Value where
     {-# INLINABLE scale #-}
     scale i (Value xs) = Value (fmap (fmap (\i' -> i * i')) xs)
+
+instance JoinSemiLattice Value where
+    {-# INLINABLE (\/) #-}
+    (\/) = unionWith Ord.max
+
+instance MeetSemiLattice Value where
+    {-# INLINABLE (/\) #-}
+    (/\) = unionWith Ord.min
 
 {- note [Currencies]
 

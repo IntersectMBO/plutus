@@ -105,6 +105,12 @@ foreign import debugBlockly_ :: EffectFn2 String BlocklyState Unit
 
 foreign import workspaceToDom_ :: EffectFn2 Blockly Workspace Element
 
+foreign import select_ :: EffectFn1 Block Unit
+
+foreign import centerOnBlock_ :: EffectFn2 Workspace String Unit
+
+foreign import hideChaff_ :: EffectFn1 Blockly Unit
+
 newtype ElementId
   = ElementId String
 
@@ -157,13 +163,13 @@ resize :: Blockly -> Workspace -> Effect Unit
 resize = runEffectFn2 resizeBlockly_
 
 addBlockType :: Blockly -> BlockDefinition -> Effect Unit
-addBlockType blocklyRef (BlockDefinition fields) =
+addBlockType blockly (BlockDefinition fields) =
   let
     definition = JSON.write $ Record.delete type_ fields
 
     type' = fields.type
   in
-    runEffectFn3 addBlockType_ blocklyRef type' definition
+    runEffectFn3 addBlockType_ blockly type' definition
 
 addBlockTypes :: forall f. Foldable f => Blockly -> f BlockDefinition -> Effect Unit
 addBlockTypes blocklyState = traverse_ (addBlockType blocklyState)
@@ -191,6 +197,15 @@ loadWorkspace = runEffectFn3 loadWorkspace_
 
 workspaceToDom :: Blockly -> Workspace -> Effect Element
 workspaceToDom = runEffectFn2 workspaceToDom_
+
+select :: Block -> Effect Unit
+select = runEffectFn1 select_
+
+centerOnBlock :: Workspace -> String -> Effect Unit
+centerOnBlock = runEffectFn2 centerOnBlock_
+
+hideChaff :: Blockly -> Effect Unit
+hideChaff = runEffectFn1 hideChaff_
 
 data Pair
   = Pair String String

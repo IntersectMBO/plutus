@@ -10,9 +10,8 @@ import Data.Maybe (Maybe(..))
 import Data.String (take)
 import Data.String.Extra (unlines)
 import Data.Tuple.Nested ((/\))
-import Halogen.Classes (aHorizontal, flexLeft, underline)
-import Halogen.Classes as Classes
-import Halogen.HTML (ClassName(..), HTML, a, div, li, pre, section, text, ul_)
+import Halogen.Classes (flex, flexCol, fontBold, fullWidth, grid, gridColsDescriptionLocation, justifySelfEnd, minW0, overflowXScroll, paddingRight, underline)
+import Halogen.HTML (HTML, a, div, pre_, section, section_, span_, text)
 import Halogen.HTML.Events (onClick)
 import Halogen.HTML.Properties (class_, classes)
 import MarloweEditor.Types (Action(..), BottomPanelView(..), State, _editorErrors, _editorWarnings, _showErrorDetail, contractHasErrors)
@@ -22,14 +21,14 @@ import Text.Parsing.StringParser.Basic (lines)
 
 panelContents :: forall p. State -> BottomPanelView -> HTML p Action
 panelContents state StaticAnalysisView =
-  section
-    [ classes [ ClassName "panel-sub-header", aHorizontal, Classes.panelContents ]
-    ]
+  section [ classes [ flex, flexCol ] ]
     [ analysisResultPane SetIntegerTemplateParam state
-    , analyzeButton loadingWarningAnalysis analysisEnabled "Analyse for warnings" AnalyseContract
-    , analyzeButton loadingReachability analysisEnabled "Analyse reachability" AnalyseReachabilityContract
-    , analyzeButton loadingCloseAnalysis analysisEnabled "Analyse for refunds on Close" AnalyseContractForCloseRefund
-    , clearButton clearEnabled "Clear" ClearAnalysisResults
+    , div [ classes [ paddingRight ] ]
+        [ analyzeButton loadingWarningAnalysis analysisEnabled "Analyse for warnings" AnalyseContract
+        , analyzeButton loadingReachability analysisEnabled "Analyse reachability" AnalyseReachabilityContract
+        , analyzeButton loadingCloseAnalysis analysisEnabled "Analyse for refunds on Close" AnalyseContractForCloseRefund
+        , clearButton clearEnabled "Clear" ClearAnalysisResults
+        ]
     ]
   where
   loadingWarningAnalysis = state ^. _analysisState <<< _analysisExecutionState <<< to isStaticLoading
@@ -47,68 +46,63 @@ panelContents state StaticAnalysisView =
   analysisEnabled = nothingLoading && not contractHasErrors state
 
 panelContents state MarloweWarningsView =
-  section
-    [ classes [ ClassName "panel-sub-header", aHorizontal, Classes.panelContents, flexLeft ]
-    ]
-    content
+  section_
+    if Array.null warnings then
+      [ pre_ [ text "No warnings" ] ]
+    else
+      [ div [ classes [ grid, gridColsDescriptionLocation, fullWidth ] ]
+          (headers <> (renderWarning =<< warnings))
+      ]
   where
   warnings = state ^. _editorWarnings
 
-  content =
-    if Array.null warnings then
-      [ pre [ class_ (ClassName "error-content") ] [ text "No warnings" ] ]
-    else
-      [ div [ classes [ ClassName "error-headers", ClassName "error-row" ] ]
-          [ div [] [ text "Description" ]
-          , div [] [ text "Line Number" ]
-          ]
-      , ul_ (map renderWarning warnings)
-      ]
+  headers =
+    [ div [ class_ fontBold ] [ text "Description" ]
+    , div [ class_ fontBold ] [ text "Line Number" ]
+    ]
 
   renderWarning warning =
-    li [ classes [ ClassName "error-row" ] ]
-      [ text warning.message
-      , a
-          [ onClick $ const $ Just $ MoveToPosition warning.startLineNumber warning.startColumn
-          , class_ underline
-          ]
-          [ text $ show warning.startLineNumber ]
-      ]
+    [ span_ $ [ text warning.message ]
+    , a
+        [ onClick $ const $ Just $ MoveToPosition warning.startLineNumber warning.startColumn
+        , classes [ underline, justifySelfEnd ]
+        ]
+        [ text $ show warning.startLineNumber ]
+    ]
 
 panelContents state MarloweErrorsView =
-  section
-    [ classes [ ClassName "panel-sub-header", aHorizontal, Classes.panelContents, flexLeft ]
-    ]
-    content
+  section_
+    if Array.null errors then
+      [ pre_ [ text "No errors" ] ]
+    else
+      [ div [ classes [ grid, gridColsDescriptionLocation, fullWidth ] ]
+          (headers <> (renderError =<< errors))
+      ]
   where
   errors = state ^. (_editorErrors <<< to (map formatError))
 
-  content =
-    if Array.null errors then
-      [ pre [ class_ (ClassName "error-content") ] [ text "No errors" ] ]
-    else
-      [ div [ classes [ ClassName "error-headers", ClassName "error-row" ] ]
-          [ div [] [ text "Description" ]
-          , div [] [ text "Line Number" ]
-          ]
-      , ul_ (map renderError errors)
-      ]
+  headers =
+    [ div [ class_ fontBold ] [ text "Description" ]
+    , div [ class_ fontBold ] [ text "Line Number" ]
+    ]
 
   renderError error =
-    li [ classes [ ClassName "error-row", ClassName "flex-wrap" ] ]
-      ( [ a [ onClick $ const $ Just $ ShowErrorDetail (state ^. (_showErrorDetail <<< to not)) ]
-            [ text $ (if state ^. _showErrorDetail then "- " else "+ ") <> error.firstLine ]
-        , a
-            [ onClick $ const $ Just $ MoveToPosition error.startLineNumber error.startColumn
-            , class_ underline
-            ]
-            [ text $ show error.startLineNumber ]
+    [ div [ classes [ minW0, overflowXScroll ] ]
+        ( [ a
+              [ onClick $ const $ Just $ ShowErrorDetail (state ^. (_showErrorDetail <<< to not)) ]
+              [ text $ (if state ^. _showErrorDetail then "- " else "+ ") <> error.firstLine ]
+          ]
+            <> if (state ^. _showErrorDetail) then
+                [ pre_ [ text error.restLines ] ]
+              else
+                []
+        )
+    , a
+        [ onClick $ const $ Just $ MoveToPosition error.startLineNumber error.startColumn
+        , class_ underline
         ]
-          <> if (state ^. _showErrorDetail) then
-              [ pre [ class_ (ClassName "error-content") ] [ text error.restLines ] ]
-            else
-              []
-      )
+        [ text $ show error.startLineNumber ]
+    ]
 
   formatError { message, startColumn, startLineNumber } =
     let

@@ -70,6 +70,7 @@ import           Wallet.Effects                                  (ChainIndexEffe
                                                                   SigningProcessEffect, WalletEffect)
 import           Wallet.Emulator.LogMessages                     (TxBalanceMsg)
 
+import           Data.Text.Extras                                (tshow)
 import           Plutus.PAB.Command                              (saveBalancedTx, saveBalancedTxResult,
                                                                   sendContractEvent)
 import           Plutus.PAB.Effects.Contract                     (ContractCommand (..), ContractEffect)
@@ -85,7 +86,6 @@ import qualified Plutus.PAB.Events.Contract                      as Events.Contr
 import qualified Plutus.PAB.Query                                as Query
 import           Plutus.PAB.Types                                (PABError (..),
                                                                   Source (ContractEventSource, NodeEventSource, WalletEventSource))
-import           Plutus.PAB.Utils                                (tshow)
 
 import qualified Plutus.PAB.Core.Projections                     as Projections
 

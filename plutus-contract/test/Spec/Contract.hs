@@ -13,37 +13,37 @@
 module Spec.Contract(tests) where
 
 import           Control.Lens
-import           Control.Monad                                 (forever, void)
+import           Control.Monad                                   (forever, void)
 import           Control.Monad.Error.Lens
-import           Control.Monad.Except                          (catchError, throwError)
-import           Control.Monad.Freer                           (Eff)
-import           Control.Monad.Freer.Extras.Log                (LogLevel (..))
-import qualified Control.Monad.Freer.Extras.Log                as Log
+import           Control.Monad.Except                            (catchError, throwError)
+import           Control.Monad.Freer                             (Eff)
+import           Control.Monad.Freer.Extras.Log                  (LogLevel (..))
+import qualified Control.Monad.Freer.Extras.Log                  as Log
 import           Test.Tasty
 
-import           Language.Plutus.Contract                      as Con
+import           Language.Plutus.Contract                        as Con
 import           Language.Plutus.Contract.Test
-import           Language.Plutus.Contract.Types                (ResumableResult (..))
-import           Language.Plutus.Contract.Util                 (loopM)
-import qualified Language.PlutusTx                             as PlutusTx
+import           Language.Plutus.Contract.Types                  (ResumableResult (..))
+import           Language.Plutus.Contract.Util                   (loopM)
+import qualified Language.PlutusTx                               as PlutusTx
 import           Language.PlutusTx.Lattice
-import           Ledger                                        (Address, PubKey, Slot)
-import qualified Ledger                                        as Ledger
-import qualified Ledger.Ada                                    as Ada
-import qualified Ledger.Constraints                            as Constraints
-import qualified Ledger.Crypto                                 as Crypto
-import qualified Plutus.Trace                                  as Trace
-import           Plutus.Trace.Emulator                         (ContractInstanceTag, Emulator, EmulatorTrace,
-                                                                activateContract, callEndpoint)
-import           Plutus.Trace.Emulator.Types                   (ContractInstanceLog (..), ContractInstanceMsg (..),
-                                                                ContractInstanceState (..), UserThreadMsg (..))
-import           Prelude                                       hiding (not)
-import qualified Wallet.Emulator                               as EM
+import           Ledger                                          (Address, PubKey, Slot)
+import qualified Ledger                                          as Ledger
+import qualified Ledger.Ada                                      as Ada
+import qualified Ledger.Constraints                              as Constraints
+import qualified Ledger.Crypto                                   as Crypto
+import qualified Plutus.Trace                                    as Trace
+import           Plutus.Trace.Emulator                           (ContractInstanceTag, Emulator, EmulatorTrace,
+                                                                  activateContract, activeEndpoints, callEndpoint)
+import           Plutus.Trace.Emulator.Types                     (ContractInstanceLog (..), ContractInstanceMsg (..),
+                                                                  ContractInstanceState (..), UserThreadMsg (..))
+import           Prelude                                         hiding (not)
+import qualified Prelude                                         as P
+import qualified Wallet.Emulator                                 as EM
 
-import qualified Language.Plutus.Contract.Effects.AwaitSlot    as AwaitSlot
-import           Language.Plutus.Contract.Trace.RequestHandler (maybeToHandler)
-
-
+import qualified Language.Plutus.Contract.Effects.AwaitSlot      as AwaitSlot
+import           Language.Plutus.Contract.Effects.ExposeEndpoint (ActiveEndpoint (..))
+import           Language.Plutus.Contract.Trace.RequestHandler   (maybeToHandler)
 
 tests :: TestTree
 tests =
@@ -110,6 +110,16 @@ tests =
                 (not (endpointAvailable @"2" theContract tag)
                     .&&. not (endpointAvailable @"1" theContract tag))
                 (activateContract w1 theContract tag >>= \hdl -> callEndpoint @"1" hdl 1 >> callEndpoint @"2" hdl 2)
+
+        , let theContract :: Contract Schema ContractError [ActiveEndpoint] = endpoint @"5" @[ActiveEndpoint]
+              expected = ActiveEndpoint{ aeDescription = (EndpointDescription "5"), aeMetadata = Nothing}
+          in run 5 "active endpoints"
+                (assertDone theContract tag ((==) [expected]) "should be done")
+                $ do
+                    hdl <- activateContract w1 theContract tag
+                    _ <- Trace.waitNSlots 1
+                    eps <- activeEndpoints hdl
+                    void $ callEndpoint @"5" hdl eps
 
         , let theContract :: Contract Schema ContractError () = void $ submitTx mempty >> watchAddressUntil someAddress 20
           in run 1 "submit tx"
@@ -233,3 +243,4 @@ type Schema =
         .\/ Endpoint "3" Int
         .\/ Endpoint "4" Int
         .\/ Endpoint "ep" ()
+        .\/ Endpoint "5" [ActiveEndpoint]

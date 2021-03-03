@@ -40,7 +40,7 @@ import           Control.Monad.Freer                (Eff, Members, interpret, su
 import           Control.Monad.Freer.Error          (Error, handleError, throwError)
 import           Control.Monad.Freer.Extras.Log     (LogLevel (..), LogMessage, LogMsg, LogObserve, handleLogWriter,
                                                      handleObserveLog, logMessage)
-import           Control.Monad.Freer.Extras.Modify  (handleZoomedState, handleZoomedWriter, raiseEnd10, raiseEnd18)
+import           Control.Monad.Freer.Extras.Modify  (handleZoomedState, handleZoomedWriter, raiseEnd17, raiseEnd9)
 import           Control.Monad.Freer.State          (State)
 import           Control.Monad.Freer.TH             (makeEffect)
 import           Control.Monad.Freer.Writer         (Writer)
@@ -51,9 +51,6 @@ import           Eventful.Store.Memory              (EventMap, emptyEventMap)
 
 import           Cardano.ChainIndex.Server          (ChainIndexServerMsg)
 import qualified Cardano.ChainIndex.Types           as CI
-import           Cardano.Node.Follower              (NodeFollowerEffect)
-import qualified Cardano.Node.Follower              as NF
-import           Cardano.Node.Types
 import           Ledger.Slot                        (Slot)
 
 import           Plutus.PAB.Core                    (CoreMsg)
@@ -114,7 +111,6 @@ agentState wallet = at wallet . anon (emptyAgentState wallet) (const False)
 data PABMultiAgentMsg =
     EmulatorMsg EmulatorEvent
     | ContractMsg ContractTestMsg
-    | NodeFollowerMsg NodeFollowerLogMsg
     | MetadataLog MetadataLogMessage
     | ChainIndexServerLog ChainIndexServerMsg
     | ContractInstanceLog (ContractInstanceMsg TestContracts)
@@ -125,7 +121,6 @@ instance Pretty PABMultiAgentMsg where
     pretty = \case
         EmulatorMsg m         -> pretty m
         ContractMsg m         -> pretty m
-        NodeFollowerMsg m     -> pretty m
         MetadataLog m         -> pretty m
         ChainIndexServerLog m -> pretty m
         ContractInstanceLog m -> pretty m
@@ -144,7 +139,6 @@ type PABClientEffects =
     , SigningProcessEffect
     , UUIDEffect
     , EventLogEffect (ChainEvent TestContracts)
-    , NodeFollowerEffect
     , Error WalletAPIError
     , Error PABError
     , LogMsg NodeClientEvent
@@ -158,7 +152,6 @@ type PABClientEffects =
 type PABControlEffects =
     '[ChainIndexControlEffect
     , MetadataEffect
-    , NodeFollowerEffect
     , NodeClientControlEffect
     , SigningProcessControlEffect
     , State CI.AppState
@@ -171,12 +164,10 @@ type PABControlEffects =
 type MultiAgentEffs =
     '[State (Map Wallet AgentState)
     , State Chain.ChainState
-    , State NodeFollowerState
     , Error WalletAPIError
     , Chain.ChainEffect
     , Error PABError
     , LogMsg ContractTestMsg
-    , LogMsg NodeFollowerLogMsg
     , Writer [LogMessage PABMultiAgentMsg]
     , UUIDEffect
     ]
@@ -211,7 +202,7 @@ handleMultiAgent = interpret $ \effect -> do
             p8 :: AReview [LogMessage PABMultiAgentMsg] (LogMessage ContractRuntimeMsg)
             p8 = _singleton . below _RuntimeLog
         action
-            & raiseEnd18
+            & raiseEnd17
             & Wallet.handleWallet
             & interpret (handleContractRuntime @TestContracts)
             & handleContractTest
@@ -221,7 +212,6 @@ handleMultiAgent = interpret $ \effect -> do
             & handleSigningProcess
             & subsume
             & handleEventLogState
-            & NF.handleNodeFollower
             & subsume
             & subsume
             & interpret (handleLogWriter p2)
@@ -255,10 +245,10 @@ handleMultiAgent = interpret $ \effect -> do
             p6 :: AReview [LogMessage PABMultiAgentMsg] (LogMessage MetadataLogMessage)
             p6 = _singleton . below _MetadataLog
         action
-            & raiseEnd10
+            & raiseEnd9
             & ChainIndex.handleChainIndexControl
             & handleMetadata
-            & NF.handleNodeFollower
+            -- & NF.handleNodeFollower
             & NC.handleNodeControl
             & handleSigningProcessControl
             & interpret (handleZoomedState (agentState wallet . chainIndexState))

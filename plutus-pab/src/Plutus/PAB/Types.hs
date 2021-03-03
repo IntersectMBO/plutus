@@ -14,9 +14,9 @@ module Plutus.PAB.Types where
 import           Cardano.BM.Data.Tracer.Extras  (StructuredLog (..))
 import qualified Cardano.ChainIndex.Types       as ChainIndex
 import qualified Cardano.Metadata.Types         as Metadata
-import qualified Cardano.Node.Server            as NodeServer
-import qualified Cardano.SigningProcess.Server  as SigningProcess
-import qualified Cardano.Wallet.Server          as WalletServer
+import           Cardano.Node.Types             (MockServerConfig (..))
+import qualified Cardano.SigningProcess.Types   as SigningProcess
+import qualified Cardano.Wallet.Types           as Wallet
 import           Control.Lens.TH                (makePrisms)
 import           Data.Aeson                     (FromJSON, ToJSON (..))
 import qualified Data.HashMap.Strict            as HM
@@ -57,6 +57,7 @@ data PABError
     | PABContractError ContractError
     | WalletClientError ClientError
     | NodeClientError ClientError
+    | RandomTxClientError ClientError
     | MetadataError Metadata.MetadataError
     | SigningProcessError ClientError
     | ChainIndexError ClientError
@@ -76,6 +77,7 @@ instance Pretty PABError where
         PABContractError e         -> "Contract error:" <+> pretty e
         WalletClientError e        -> "Wallet client error:" <+> viaShow e
         NodeClientError e          -> "Node client error:" <+> viaShow e
+        RandomTxClientError e      -> "Random tx client error:" <+> viaShow e
         MetadataError e            -> "Metadata error:" <+> viaShow e
         SigningProcessError e      -> "Signing process error:" <+> viaShow e
         ChainIndexError e          -> "Chain index error:" <+> viaShow e
@@ -98,8 +100,8 @@ data DbConfig =
 data Config =
     Config
         { dbConfig                :: DbConfig
-        , walletServerConfig      :: WalletServer.Config
-        , nodeServerConfig        :: NodeServer.MockServerConfig
+        , walletServerConfig      :: Wallet.WalletConfig
+        , nodeServerConfig        :: MockServerConfig
         , metadataServerConfig    :: Metadata.MetadataConfig
         , pabWebserverConfig      :: WebserverConfig
         , chainIndexConfig        :: ChainIndex.ChainIndexConfig
@@ -158,7 +160,7 @@ mkChainOverview = foldl reducer emptyChainOverview
                           } txs =
         let unprunedTxById =
                 foldl (\m tx -> Map.insert (txId tx) tx m) oldTxById txs
-            newTxById = id unprunedTxById -- TODO Prune spent keys.
+            newTxById = unprunedTxById -- TODO Prune spent keys.
             newUtxoIndex = UtxoIndex.insertBlock txs oldUtxoIndex
          in ChainOverview
                 { chainOverviewBlockchain = txs : oldBlockchain

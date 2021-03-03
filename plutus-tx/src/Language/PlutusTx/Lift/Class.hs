@@ -1,6 +1,6 @@
 {-# LANGUAGE ConstraintKinds       #-}
 {-# LANGUAGE DefaultSignatures     #-}
-{-# LANGUAGE DeriveDataTypeable    #-}
+{-# LANGUAGE DeriveAnyClass        #-}
 {-# LANGUAGE DerivingStrategies    #-}
 {-# LANGUAGE FlexibleContexts      #-}
 {-# LANGUAGE FlexibleInstances     #-}
@@ -54,7 +54,6 @@ import           Data.Proxy
 import qualified Data.Text                              as T
 import qualified Data.Text.Prettyprint.Doc              as PP
 import           Data.Traversable
-import qualified Data.Typeable                          as Prelude
 import           ErrorCode
 
 {- Note [Compiling at TH time and runtime]
@@ -93,9 +92,7 @@ data LiftError = UnsupportedLiftKind TH.Kind
                | UserLiftError T.Text
                | LiftMissingDataCons TH.Name
                | LiftMissingVar TH.Name
-               deriving stock Prelude.Typeable -- for Control.Exception
-
-instance Prelude.Exception LiftError
+               deriving anyclass (Prelude.Exception)
 
 instance PP.Pretty LiftError where
     pretty (UnsupportedLiftType t) = "Unsupported lift type: " PP.<+> PP.viaShow t

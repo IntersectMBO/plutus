@@ -18,7 +18,7 @@ Any machine (including OSX) can be used for deployment as long as it has the fol
 ## Getting Started
 
 ### Remote Builder for OSX
-If you are using OSX then you cannot build the lambdas and NixOS machines, therefore if you want to update the infrastructure you will need to build the lambdas on a remote builder with system type "x86_64-linux". See [the nix remote builders documentation](https://nixos.wiki/wiki/Distributed_build) for more details about setting up a remote builder. [nix on docker](https://github.com/LnL7/nix-docker) could be useful for this. 
+If you are using OSX then you cannot build the lambdas and NixOS machines, therefore if you want to update the infrastructure you will need to build the lambdas on a remote builder with system type "x86_64-linux". See [the nix remote builders documentation](https://nixos.wiki/wiki/Distributed_build) for more details about setting up a remote builder. [nix on docker](https://github.com/LnL7/nix-docker) could be useful for this.
 
 You then need to add your remote build machine to your `/etc/nix/machines` file, then nix will try to use this machine to build the lambdas and NixOS closures. See [this guide](https://docs.nixbuild.net/getting-started/#nix-configuration) for more information.
 
@@ -28,7 +28,8 @@ We use [pass](https://www.passwordstore.org/) to store secrets in the repository
 2. Add your name, key filename and key id to the [default.nix](./default.nix) `keys` attribute set
 3. Run `$(nix-build -A deployment.importKeys)` to make sure you have everyone else's keys
 4. Add your key name to any environment you want to be able to deploy in [default.nix](./default.nix) `envs`
-4. Once you've added your key you will need to get someone else who already has access to enable you. To do this commit your changes to a branch and ask this person to checkout the branch, run `$(nix-build -A deployment.the_env_you_want.initPass)` and commit the changes this will have made.
+5. Once you've added your key you will need to get someone else who already has access to enable you. To do this commit your changes to a branch and ask this person to checkout the branch, run `$(nix-build -A deployment.the_env_you_want.initPass)` and commit the changes this will have made.
+6. Once the person that has the access pushes the changes, you can pull and use `nix-shell --run "pass show the_env_you_want/marlowe/jwtSignature"` to check that you have access.
 
 ### Multi-Factor Authentication (MFA)
 
@@ -74,7 +75,7 @@ eval $(getcreds <user.name> <CODE>)
 ```
 
 ### Environments
-The infrastructure is based around multiple environments, for example `alpha`, `david` etc. Scripts exist for updating a particular environment under the `deployment` attribute, e.g. the main deployment script for the environment `david` can be run with `$(nix-build -A deployment.david.deploy)`. This will run other scripts that will do everything needed. These other scripts can be run individually, which can be useful if you are playing around with the infrastructure.
+The infrastructure is based around multiple environments, for example `alpha`, `david` etc. Scripts exist for updating a particular environment under the `deployment` attribute, e.g. the main deployment script for the environment `david` can be run with `$(nix-build -A deployment.david.deploy)` inside `nix-shell`. This will run other scripts that will do everything needed. These other scripts can be run individually, which can be useful if you are playing around with the infrastructure.
 
 * `deployment.env.applyTerraform` will run only the terraform apply command
 * `deployment.env.syncS3` will sync the marlowe client, marlowe tutorial and plutus client static code with S3
@@ -85,7 +86,41 @@ The infrastructure is based around multiple environments, for example `alpha`, `
 
 Note: terraform is run from a clean, temporary directory every time you make changes so it will always need to re-create some files, even if no infrastructure changes are required. However, don't get lazy and not read through the proposed changes before pressing yes!
 
+Note: We need to run the build inside `nix-shell` because the secrets are stored encrypted inside the repository, and we use `PASSWORD_STORE_DIR` to let `pass` know where the passwords are.
+
 Once you have setup an environment with `$(nix-build -A deployment.david.deploy)` you will probably want to stick to using `$(nix-build -A deployment.david.applyTerraform)` and `$(nix-build -A deployment.david.syncS3)` only, avoiding dealing with the large plutus tutorial.
+
+#### Creating a new environment
+
+In order to create a new environment you need to:
+
+1. Add an entry in the `envs` object inside the deployment's [default.nix](./default.nix).
+2. Create two github applications, one for marlowe and one for plutus as described [here](https://github.com/input-output-hk/plutus/blob/master/marlowe-playground-server/README.md#configure-a-github-application).
+3. Create a pass for all these entries.
+
+```
+alpha
+├── marlowe
+│   ├── githubClientId
+│   ├── githubClientSecret
+│   └── jwtSignature
+└── plutus
+    ├── githubClientId
+    ├── githubClientSecret
+    └── jwtSignature
+```
+
+```
+$ nix-shell
+$ pass insert new_env/marlowe/githubClientId
+$ pass insert new_env/marlowe/githubClientSecret
+$ ...
+```
+
+4. Modify [deployment/terraform/locals.tf](./terraform/locals.tf) and add the `ssh_keys` for the new env and the corresponding entries in `root_ssh_keys_ks`, `monitoring_ssh_keys_ks` and `bastion_ssh_keys_ks`.
+5. Make sure you have set the credentiasl `eval $(getcreds your_user 111222)`.
+6. Deploy `$(nix-build -A deployment.new_env.deploy)`.
+
 
 ### SSH configuration
 Running the terraform scripts will place an ssh config file in your [~/.ssh/config.d](~/.ssh/config.d) directory. This will give you easy ssh access to the servers by setting the jump hosts, usernames, dns names etc but in order for it to work you must include it in your main ssh config. Open or create the file ~/.ssh/config and add the following line at the top `Include config.d/plutus_playground.conf`. You can then test the config by running `ssh prometheus.plutus_playground` which should open an ssh on the prometheus machine.
@@ -94,6 +129,9 @@ Running the terraform scripts will place an ssh config file in your [~/.ssh/conf
 
 ### Morph - Deploying Server Configuration
 Once you have run the terraform scripts you will have an up-to-date environment with EC2 instances running, however these instances won't have the required NixOS configuration yet. In order to configure them we use [morph](https://github.com/DBCDK/morph), there is just one command for normal use: `morph deploy ./deployment/morph/default.nix switch`.
+
+<!-- TODO: Write shell script to start all services -->
+The first time you do this, services won't start therefore you will need to start the services manually. You can do this with commands such as `morph exec --on "marlowe-dash-*.internal.myenv.plutus.iohkdev.io" ./deployment/morph/default.nix "systemctl start pab-node chain-index metadata-server pab-webserver wallet-server signing-process process-outboxes"`.
 
 It is important to note that this is somewhat stateful in that you must run the terraform scripts beforehand to make sure that both the ssh configuration and the machine definitions (machines.json generated by terraform) are correct. Otherwise morph could try to deploy to incorrect EC2 instances. Be especially careful when switching between multiple different environments!
 

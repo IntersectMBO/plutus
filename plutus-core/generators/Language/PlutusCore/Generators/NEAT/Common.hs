@@ -1,4 +1,3 @@
-{-# LANGUAGE DeriveDataTypeable  #-}
 {-# LANGUAGE EmptyCase           #-}
 {-# LANGUAGE EmptyDataDeriving   #-}
 {-# LANGUAGE FlexibleContexts    #-}
@@ -20,18 +19,17 @@ module Language.PlutusCore.Generators.NEAT.Common where
 
 
 
-
 import           Control.Enumerable
 import qualified Data.Stream               as Stream
 import qualified Data.Text                 as Text
 import           Language.PlutusCore.Name  (Name, TyName (..))
 import           Language.PlutusCore.Quote (MonadQuote (..), freshName)
 
-data Z deriving (Typeable, Eq, Ord, Show)
+data Z deriving (Eq, Ord, Show)
 
 data S n = FZ
          | FS n
-             deriving (Typeable, Eq, Ord, Show, Functor)
+             deriving (Eq, Ord, Show, Functor)
 
 instance Enumerable Z where
   enumerate = datatype []

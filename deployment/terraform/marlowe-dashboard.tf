@@ -13,8 +13,8 @@ resource "aws_security_group" "marlowe_dash" {
   ## inbound (world): http
 
   ingress {
-    from_port   = 80
-    to_port     = 80
+    from_port   = 8080
+    to_port     = 8080
     protocol    = "TCP"
     cidr_blocks = concat(var.public_subnet_cidrs, var.private_subnet_cidrs)
   }

@@ -1,13 +1,6 @@
 /*
-  The classes provided here were taken from tailwind's display and flex
-  modules.
+  The classes provided here were taken from several tailwind's modules.
 */
-
-// --------------------------------------------
-// https://tailwindcss.com/docs/display#flex
-.flex {
-  display: flex;
-}
 
 // --------------------------------------------
 // https://tailwindcss.com/docs/flex-direction
@@ -95,4 +88,26 @@
 
 .justify-self-stretch {
   justify-self: stretch;
+}
+
+// --------------------------------------------
+// https://tailwindcss.com/docs/flex-grow
+
+.flex-grow-0 {
+  flex-grow: 0;
+}
+
+.flex-grow {
+  flex-grow: 1;
+}
+
+// --------------------------------------------
+// https://tailwindcss.com/docs/flex-shrink
+
+.flex-shrink-0 {
+  flex-shrink: 0;
+}
+
+.flex-shrink {
+  flex-shrink: 1;
 }

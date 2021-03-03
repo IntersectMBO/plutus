@@ -1,62 +1,73 @@
-{-# LANGUAGE DataKinds          #-}
-{-# LANGUAGE DeriveAnyClass     #-}
-{-# LANGUAGE DeriveGeneric      #-}
-{-# LANGUAGE DerivingStrategies #-}
-{-# LANGUAGE LambdaCase         #-}
-{-# LANGUAGE OverloadedStrings  #-}
-{-# LANGUAGE StrictData         #-}
-{-# LANGUAGE TypeApplications   #-}
+{-# LANGUAGE DataKinds         #-}
+{-# LANGUAGE DeriveAnyClass    #-}
+{-# LANGUAGE DeriveGeneric     #-}
+{-# LANGUAGE DerivingVia       #-}
+{-# LANGUAGE LambdaCase        #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE StrictData        #-}
+{-# LANGUAGE TypeApplications  #-}
 
-module Cardano.Wallet.Types where
+module Cardano.Wallet.Types (
+     -- * effect type for the mock wallet
+      WalletEffects
 
-import           Cardano.BM.Data.Tracer        (ToObject (..))
-import           Cardano.BM.Data.Tracer.Extras (Tagged (..), mkObjectStr)
-import           Data.Aeson                    (FromJSON, ToJSON)
-import           Data.Text                     (Text)
-import           Data.Text.Prettyprint.Doc     (Pretty (..), (<+>))
-import           GHC.Generics                  (Generic)
-import           Servant.Client                (BaseUrl)
-import           Wallet.Emulator.Wallet        (Wallet)
+     -- * wallet configuration
+    , WalletConfig (..)
 
-type NodeUrl = BaseUrl
-type ChainIndexUrl = BaseUrl
-type WalletId = Integer
-type Port     = Int
+     -- * wallet log messages
+    , WalletMsg (..)
 
-data Amount =
-    Amount
-        { quantity :: Integer
-        , unit     :: Text
-        }
-    deriving (Show, Eq, Generic)
-    deriving anyclass (FromJSON, ToJSON)
+     -- * newtypes for convenience
+    , Port (..)
+    , NodeClient (..)
+    , ChainClient (..)
+    , WalletUrl (..)
+    , ChainIndexUrl
+    ) where
 
-data Coin =
-    Coin
-        { address :: Text
-        , amount  :: Amount
-        }
-    deriving (Show, Eq, Generic)
-    deriving anyclass (FromJSON, ToJSON)
+import           Control.Monad.Freer.Error          (Error)
+import           Control.Monad.Freer.Extras.Log     (LogMsg)
+import           Control.Monad.Freer.State          (State)
+import           Data.Aeson                         (FromJSON, ToJSON)
+import           Data.Text                          (Text)
+import           Data.Text.Prettyprint.Doc          (Pretty (..), (<+>))
+import           GHC.Generics                       (Generic)
+import           Servant                            (ServerError (..))
+import           Servant.Client                     (BaseUrl, ClientError)
 
-newtype CoinSelectionRequest =
-    CoinSelectionRequest
-        { payments :: [Coin]
-        }
-    deriving (Show, Eq, Generic)
-    deriving anyclass (FromJSON, ToJSON)
+import           Cardano.BM.Data.Tracer             (ToObject (..))
+import           Cardano.BM.Data.Tracer.Extras      (Tagged (..), mkObjectStr)
+import           Cardano.ChainIndex.Types           (ChainIndexUrl)
+import           Plutus.PAB.Arbitrary               ()
+import           Servant.Client.Internal.HttpClient (ClientEnv)
+import           Wallet.Effects                     (ChainIndexEffect, NodeClientEffect, WalletEffect)
+import           Wallet.Emulator.Error              (WalletAPIError)
+import           Wallet.Emulator.Wallet             (Wallet, WalletState)
 
-data CoinSelectionResponse =
-    CoinSelectionResponse
-        { inputs  :: [Coin]
-        , outputs :: [Coin]
-        }
-    deriving (Show, Eq, Generic)
-    deriving anyclass (FromJSON, ToJSON)
+type WalletEffects m = '[ WalletEffect
+                        , NodeClientEffect
+                        , ChainIndexEffect
+                        , State WalletState
+                        , LogMsg Text
+                        , Error WalletAPIError
+                        , Error ClientError
+                        , Error ServerError
+                        , m]
 
-data Config =
-    Config
-        { baseUrl :: BaseUrl
+newtype NodeClient = NodeClient ClientEnv
+
+newtype ChainClient = ChainClient ClientEnv
+
+newtype WalletUrl = WalletUrl BaseUrl
+    deriving (Eq, Show, ToJSON, FromJSON) via BaseUrl
+
+newtype Port = Port Int
+    deriving (Show)
+    deriving (Eq, Num, ToJSON, FromJSON, Pretty) via Int
+
+data WalletConfig =
+    WalletConfig
+        { baseUrl :: WalletUrl
         , wallet  :: Wallet
         }
     deriving (Show, Eq, Generic)

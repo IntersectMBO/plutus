@@ -5,6 +5,7 @@
 {-# LANGUAGE LambdaCase                #-}
 {-# LANGUAGE MultiParamTypeClasses     #-}
 {-# LANGUAGE OverloadedStrings         #-}
+{-# LANGUAGE RankNTypes                #-}
 {-# LANGUAGE TypeApplications          #-}
 {-# LANGUAGE TypeFamilies              #-}
 {-# LANGUAGE TypeOperators             #-}
@@ -16,8 +17,11 @@ module Language.PlutusCore.Evaluation.Machine.Ck
     , CkM
     , CkValue
     , extractEvaluationResult
+    , runCk
     , evaluateCk
+    , evaluateCkNoEmit
     , unsafeEvaluateCk
+    , unsafeEvaluateCkNoEmit
     , readKnownCk
     ) where
 
@@ -32,9 +36,14 @@ import           Language.PlutusCore.Name
 import           Language.PlutusCore.Pretty                         (PrettyConfigPlc, PrettyConst)
 import           Language.PlutusCore.Universe
 
+import           Control.Monad.Except
 import           Control.Monad.Morph
 import           Control.Monad.Reader
+import           Control.Monad.ST
 import           Data.Array
+import           Data.DList                                         (DList)
+import qualified Data.DList                                         as DList
+import           Data.STRef
 
 infix 4 |>, <|
 
@@ -90,8 +99,11 @@ ckValueToTerm = \case
     {- When we're dealing with VBuiltin we use arity0 to get the type and
        term arguments into the right sequence. -}
 
-newtype CkEnv uni fun = CkEnv
-    { ckEnvRuntime :: BuiltinsRuntime fun (CkValue uni fun)
+data CkEnv uni fun s = CkEnv
+    { ckEnvRuntime    :: BuiltinsRuntime fun (CkValue uni fun)
+    -- 'Nothing' means no logging. 'DList' is due to the fact that we need efficient append
+    -- as we store logs as "latest go last".
+    , ckEnvMayEmitRef :: Maybe (STRef s (DList String))
     }
 
 instance (Closed uni, GShow uni, uni `Everywhere` PrettyConst, Pretty fun) =>
@@ -107,7 +119,10 @@ type CkEvaluationExceptionCarrying term fun =
     EvaluationException CkUserError (MachineError fun term) term
 
 -- See Note [Being generic over @term@ in 'CekM']
-type CkCarryingM term uni fun = ReaderT (CkEnv uni fun) (Either (CkEvaluationExceptionCarrying term fun))
+type CkCarryingM term uni fun s =
+    ReaderT (CkEnv uni fun s)
+        (ExceptT (CkEvaluationExceptionCarrying term fun)
+            (ST s))
 
 -- | The CK machine-specific 'EvaluationException'.
 type CkEvaluationException uni fun =
@@ -119,7 +134,7 @@ instance AsEvaluationFailure CkUserError where
 instance Pretty CkUserError where
     pretty CkEvaluationFailure = "The provided Plutus code called 'error'."
 
-type CkM uni fun = ReaderT (CkEnv uni fun) (Either (CkEvaluationException uni fun))
+type CkM uni fun s = CkCarryingM (Term TyName Name uni fun ()) uni fun s
 
 {- | Note [Errors and CkValues]
 Most errors take an optional argument that can be used to report the
@@ -132,7 +147,14 @@ to look up a free variable in an environment: there's no CkValue for
 Var, so we can't report which variable caused the error.
 -}
 
-instance ToExMemory term => SpendBudget (CkCarryingM term uni fun) fun () term where
+instance MonadEmitter (CkCarryingM term uni fun s) where
+    emit str = do
+        mayLogsRef <- asks ckEnvMayEmitRef
+        case mayLogsRef of
+            Nothing      -> pure ()
+            Just logsRef -> lift . lift $ modifySTRef logsRef (`DList.snoc` str)
+
+instance ToExMemory term => SpendBudget (CkCarryingM term uni fun s) fun () term where
     spendBudget _key _budget = pure ()
 
 type instance UniOf (CkValue uni fun) = uni
@@ -147,7 +169,6 @@ instance AsConstant (CkValue uni fun) where
 instance ToExMemory (CkValue uni fun) where
     toExMemory _ = 0
 
-
 data Frame uni fun
     = FrameApplyFun (CkValue uni fun)                       -- ^ @[V _]@
     | FrameApplyArg (Term TyName Name uni fun ())           -- ^ @[_ N]@
@@ -156,6 +177,19 @@ data Frame uni fun
     | FrameIWrap (Type TyName uni ()) (Type TyName uni ())  -- ^ @(iwrap A B _)@
 
 type Context uni fun = [Frame uni fun]
+
+runCkM
+    :: BuiltinsRuntime fun (CkValue uni fun)
+    -> Bool
+    -> (forall s. CkM uni fun s a)
+    -> (Either (CkEvaluationException uni fun) a, [String])
+runCkM runtime emitting a = runST $ do
+    mayLogsRef <- if emitting then Just <$> newSTRef DList.empty else pure Nothing
+    errOrRes <- runExceptT . runReaderT a $ CkEnv runtime mayLogsRef
+    logs <- case mayLogsRef of
+        Nothing      -> pure []
+        Just logsRef -> DList.toList <$> readSTRef logsRef
+    pure (errOrRes, logs)
 
 -- | Substitute a 'Term' for a variable in a 'Term' that can contain duplicate binders.
 -- Do not descend under binders that bind the same variable as the one we're substituting for.
@@ -226,7 +260,7 @@ substTyInTy tn0 ty0 = go where
 -- > s ▷ error A    ↦ ◆
 (|>)
     :: (GShow uni, GEq uni, Ix fun)
-    => Context uni fun -> Term TyName Name uni fun () -> CkM uni fun (Term TyName Name uni fun ())
+    => Context uni fun -> Term TyName Name uni fun () -> CkM uni fun s (Term TyName Name uni fun ())
 stack |> TyInst  _ fun ty        = FrameTyInstArg ty  : stack |> fun
 stack |> Apply   _ fun arg       = FrameApplyArg arg  : stack |> fun
 stack |> IWrap   _ pat arg term  = FrameIWrap pat arg : stack |> term
@@ -256,7 +290,7 @@ _     |> var@Var{}               =
 -- > s , (unwrap _)      ◁ wrap α A V ↦ s ◁ V
 (<|)
     :: (GShow uni, GEq uni, Ix fun)
-    => Context uni fun -> CkValue uni fun -> CkM uni fun (Term TyName Name uni fun ())
+    => Context uni fun -> CkValue uni fun -> CkM uni fun s (Term TyName Name uni fun ())
 []                         <| val     = pure $ ckValueToTerm val
 FrameTyInstArg ty  : stack <| fun     = instantiateEvaluate stack ty fun
 FrameApplyArg arg  : stack <| fun     = FrameApplyFun fun : stack |> arg
@@ -289,7 +323,7 @@ instantiateEvaluate
     => Context uni fun
     -> Type TyName uni ()
     -> CkValue uni fun
-    -> CkM uni fun (Term TyName Name uni fun ())
+    -> CkM uni fun s (Term TyName Name uni fun ())
 instantiateEvaluate stack ty (VTyAbs tn _k body) = stack |> (substTyInTerm tn ty body) -- No kind check - too expensive at run time.
 instantiateEvaluate stack ty val@(VBuiltin bn arity0 arity tys args) =
     case arity of
@@ -315,7 +349,7 @@ applyEvaluate
     => Context uni fun
     -> CkValue uni fun
     -> CkValue uni fun
-    -> CkM uni fun (Term TyName Name uni fun ())
+    -> CkM uni fun s (Term TyName Name uni fun ())
 applyEvaluate stack (VLamAbs name _ body) arg = stack |> substituteDb name (ckValueToTerm arg) body
 applyEvaluate stack val@(VBuiltin bn arity0 arity tyargs args) arg = do
     case arity of
@@ -337,22 +371,38 @@ applyBuiltin
     => Context uni fun
     -> fun
     -> [CkValue uni fun]
-    -> CkM uni fun (Term TyName Name uni fun ())
+    -> CkM uni fun s (Term TyName Name uni fun ())
 applyBuiltin stack bn args = do
-    let ckValueToTermInError = hoist $ first $ mapCauseInMachineException ckValueToTerm
+    let dischargeError = hoist $ withExceptT $ mapCauseInMachineException ckValueToTerm
     BuiltinRuntime sch _ f exF <- asksM $ lookupBuiltin bn . ckEnvRuntime
-    result <- ckValueToTermInError $ applyTypeSchemed bn sch f exF args
+    result <- dischargeError $ applyTypeSchemed bn sch f exF args
     stack <| result
 
--- | Evaluate a term using the CK machine. May throw a 'CkEvaluationException'.
+runCk
+    :: (GShow uni, GEq uni, Ix fun)
+    => BuiltinsRuntime fun (CkValue uni fun)
+    -> Bool
+    -> Term TyName Name uni fun ()
+    -> (Either (CkEvaluationException uni fun) (Term TyName Name uni fun ()), [String])
+runCk runtime emitting term = runCkM runtime emitting $ [] |> term
+
+-- | Evaluate a term using the CK machine with logging enabled.
 evaluateCk
     :: (GShow uni, GEq uni, Ix fun)
     => BuiltinsRuntime fun (CkValue uni fun)
     -> Term TyName Name uni fun ()
-    -> Either (CkEvaluationException uni fun) (Term TyName Name uni fun ())
-evaluateCk runtime term = runReaderT ([] |> term) $ CkEnv runtime
+    -> (Either (CkEvaluationException uni fun) (Term TyName Name uni fun ()), [String])
+evaluateCk runtime = runCk runtime True
 
--- | Evaluate a term using the CK machine. May throw a 'CkEvaluationException'.
+-- | Evaluate a term using the CK machine with logging disabled.
+evaluateCkNoEmit
+    :: (GShow uni, GEq uni, Ix fun)
+    => BuiltinsRuntime fun (CkValue uni fun)
+    -> Term TyName Name uni fun ()
+    -> Either (CkEvaluationException uni fun) (Term TyName Name uni fun ())
+evaluateCkNoEmit runtime = fst . runCk runtime False
+
+-- | Evaluate a term using the CK machine with logging enabled. May throw a 'CkEvaluationException'.
 unsafeEvaluateCk
     :: ( GShow uni, GEq uni, Closed uni
        , Typeable uni, Typeable fun, uni `Everywhere` PrettyConst
@@ -360,8 +410,19 @@ unsafeEvaluateCk
        )
     => BuiltinsRuntime fun (CkValue uni fun)
     -> Term TyName Name uni fun ()
+    -> (EvaluationResult (Term TyName Name uni fun ()), [String])
+unsafeEvaluateCk runtime = first unsafeExtractEvaluationResult . evaluateCk runtime
+
+-- | Evaluate a term using the CK machine with logging disabled. May throw a 'CkEvaluationException'.
+unsafeEvaluateCkNoEmit
+    :: ( GShow uni, GEq uni, Closed uni
+       , Typeable uni, Typeable fun, uni `Everywhere` PrettyConst
+       , Pretty fun, Ix fun
+       )
+    => BuiltinsRuntime fun (CkValue uni fun)
+    -> Term TyName Name uni fun ()
     -> EvaluationResult (Term TyName Name uni fun ())
-unsafeEvaluateCk runtime = either throw id . extractEvaluationResult . evaluateCk runtime
+unsafeEvaluateCkNoEmit runtime = unsafeExtractEvaluationResult . evaluateCkNoEmit runtime
 
 -- | Unlift a value using the CK machine.
 readKnownCk
@@ -369,4 +430,4 @@ readKnownCk
     => BuiltinsRuntime fun (CkValue uni fun)
     -> Term TyName Name uni fun ()
     -> Either (CkEvaluationException uni fun) a
-readKnownCk runtime = evaluateCk runtime >=> readKnown
+readKnownCk runtime = evaluateCkNoEmit runtime >=> readKnown

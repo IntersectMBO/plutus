@@ -99,7 +99,6 @@ TAGS
 gh-pages
 .importify/
 .envrc
-*.org
 *.db
 *.db-shm
 *.db-wal

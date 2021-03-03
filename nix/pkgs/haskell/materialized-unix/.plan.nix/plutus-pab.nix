@@ -116,22 +116,21 @@
           "Servant/Extra"
           "Cardano/BM/Data/Tracer/Extras"
           "Cardano/ChainIndex/API"
+          "Cardano/ChainIndex/ChainIndex"
           "Cardano/ChainIndex/Client"
           "Cardano/ChainIndex/Server"
           "Cardano/ChainIndex/Types"
           "Cardano/Metadata/API"
           "Cardano/Metadata/Client"
+          "Cardano/Metadata/Mock"
           "Cardano/Metadata/Server"
           "Cardano/Metadata/Types"
           "Cardano/Node/API"
           "Cardano/Node/Client"
-          "Cardano/Node/Follower"
           "Cardano/Node/Mock"
           "Cardano/Node/RandomTx"
           "Cardano/Node/Server"
           "Cardano/Node/Types"
-          "Cardano/Protocol/ChainEffect"
-          "Cardano/Protocol/FollowerEffect"
           "Cardano/Protocol/Socket/Type"
           "Cardano/Protocol/Socket/Server"
           "Cardano/Protocol/Socket/Client"
@@ -166,8 +165,11 @@
           "Plutus/PAB/Effects/MultiAgent"
           "Plutus/PAB/Effects/UUID"
           "Plutus/PAB/Instances"
-          "Plutus/PAB/MonadLoggerBridge"
-          "Plutus/PAB/Monitoring"
+          "Plutus/PAB/Monitoring/MonadLoggerBridge"
+          "Plutus/PAB/Monitoring/Monitoring"
+          "Plutus/PAB/Monitoring/PABLogMsg"
+          "Plutus/PAB/Monitoring/Config"
+          "Plutus/PAB/Monitoring/Util"
           "Plutus/PAB/Webserver/API"
           "Plutus/PAB/Webserver/Handler"
           "Plutus/PAB/Webserver/Server"
@@ -180,10 +182,7 @@
           "Plutus/PAB/Events/Wallet"
           "Plutus/PAB/ParseStringifiedJSON"
           "Plutus/PAB/Query"
-          "Plutus/PAB/Relation"
-          "Plutus/PAB/PABLogMsg"
           "Plutus/PAB/Types"
-          "Plutus/PAB/Utils"
           ];
         hsSourceDirs = [ "src" ];
         };
@@ -242,6 +241,7 @@
             (hsPkgs."base" or (errorHandler.buildDepError "base"))
             (hsPkgs."plutus-pab" or (errorHandler.buildDepError "plutus-pab"))
             (hsPkgs."plutus-use-cases" or (errorHandler.buildDepError "plutus-use-cases"))
+            (hsPkgs."text" or (errorHandler.buildDepError "text"))
             ];
           buildable = true;
           hsSourceDirs = [ "currency-contract" ];
@@ -250,6 +250,7 @@
         "plutus-atomic-swap" = {
           depends = [
             (hsPkgs."base" or (errorHandler.buildDepError "base"))
+            (hsPkgs."text" or (errorHandler.buildDepError "text"))
             (hsPkgs."plutus-pab" or (errorHandler.buildDepError "plutus-pab"))
             ];
           buildable = true;
@@ -260,6 +261,7 @@
           depends = [
             (hsPkgs."base" or (errorHandler.buildDepError "base"))
             (hsPkgs."plutus-pab" or (errorHandler.buildDepError "plutus-pab"))
+            (hsPkgs."text" or (errorHandler.buildDepError "text"))
             ];
           buildable = true;
           hsSourceDirs = [ "pay-to-wallet-contract" ];
@@ -385,7 +387,6 @@
           buildable = true;
           modules = [
             "Plutus/PAB/CoreSpec"
-            "Plutus/PAB/RelationSpec"
             "Plutus/PAB/Events/ContractSpec"
             "Cardano/Metadata/ServerSpec"
             "Cardano/Metadata/TypesSpec"

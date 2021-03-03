@@ -8,14 +8,19 @@
 
 module Language.PlutusCore.Examples.Everything
     ( examples
+    , builtins
     ) where
+
+import           PlutusPrelude
 
 import           Language.PlutusCore.Builtins
 import           Language.PlutusCore.FsTree
+import           Language.PlutusCore.MkPlc
 import           Language.PlutusCore.Universe
 
 import           Language.PlutusCore.StdLib.Type
 
+import           Language.PlutusCore.Examples.Builtins
 import           Language.PlutusCore.Examples.Data.InterList
 import           Language.PlutusCore.Examples.Data.Shad
 import           Language.PlutusCore.Examples.Data.TreeForest
@@ -63,3 +68,10 @@ examples =
               ]
           ]
       ]
+
+builtins :: PlcFolderContents DefaultUni ExtensionFun
+builtins =
+    FolderContents
+        [ treeFolderContents "Builtins" $
+            map (\fun -> plcTermFile (show fun) $ builtin () fun) enumeration
+        ]

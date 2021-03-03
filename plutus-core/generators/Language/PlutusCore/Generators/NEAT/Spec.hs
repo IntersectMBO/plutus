@@ -29,25 +29,21 @@ module Language.PlutusCore.Generators.NEAT.Spec
   ) where
 
 import           Language.PlutusCore
-import           Language.PlutusCore.Builtins
-import           Language.PlutusCore.Constant
 import           Language.PlutusCore.Evaluation.Machine.Ck
-import           Language.PlutusCore.Evaluation.Machine.ExBudgetingDefaults
 import           Language.PlutusCore.Generators.NEAT.Common
 import           Language.PlutusCore.Generators.NEAT.Term
 import           Language.PlutusCore.Normalize
 import           Language.PlutusCore.Pretty
-import qualified Language.UntypedPlutusCore                                 as U
-import qualified Language.UntypedPlutusCore.Evaluation.Machine.Cek          as U
+import qualified Language.UntypedPlutusCore                        as U
+import qualified Language.UntypedPlutusCore.Evaluation.Machine.Cek as U
 
 import           Control.Monad.Except
-import           Control.Search                                             (Enumerable (..), Options (..), ctrex',
-                                                                             search')
-import           Data.Coolean                                               (Cool, toCool, (!=>))
+import           Control.Search                                    (Enumerable (..), Options (..), ctrex', search')
+import           Data.Coolean                                      (Cool, toCool, (!=>))
 import           Data.Either
 import           Data.Maybe
-import qualified Data.Stream                                                as Stream
-import qualified Data.Text                                                  as Text
+import qualified Data.Stream                                       as Stream
+import qualified Data.Text                                         as Text
 import           System.IO.Unsafe
 import           Test.Tasty
 import           Test.Tasty.HUnit
@@ -65,16 +61,6 @@ defaultGenOptions = GenOptions
   { genDepth = 13
   , genMode  = OF
   }
-
-
--- a version of the `plc` runtime which behaves the same as the
--- default except trace is silent and doesn't end up in the test log
-
-testDefaultFunDyn :: DefaultFunDyn
-testDefaultFunDyn = DefaultFunDyn (const $ return ())
-
-testBuiltinsRuntime :: HasConstantIn DefaultUni term => BuiltinsRuntime DefaultFun term
-testBuiltinsRuntime = toBuiltinsRuntime testDefaultFunDyn defaultCostModel
 
 tests :: GenOptions -> TestTree
 tests genOpts@GenOptions{} =
@@ -148,7 +134,7 @@ prop_typePreservation tyG tmG = do
   -- Check if the converted term, when evaluated by CK, still has the same type:
 
   tmCK <- withExceptT CkP $ liftEither $
-    evaluateCk testBuiltinsRuntime tm `catchError` handleError ty
+    evaluateCkNoEmit defBuiltinsRuntime tm `catchError` handleError ty
   withExceptT TypeError $ checkType tcConfig () tmCK (Normalized ty)
 
 -- |Property: check if both the typed CK and untyped CEK machines produce the same ouput
@@ -166,19 +152,18 @@ prop_agree_termEval tyG tmG = do
 
   -- run typed CK on input
   tmCk <- withExceptT CkP $ liftEither $
-    evaluateCk testBuiltinsRuntime tm `catchError` handleError ty
+    evaluateCkNoEmit defBuiltinsRuntime tm `catchError` handleError ty
 
   -- erase CK output
   let tmUCk = U.erase tmCk
 
   -- run untyped CEK on erased input
   tmUCek <- withExceptT UCekP $ liftEither $
-    U.evaluateCek testBuiltinsRuntime (U.erase tm) `catchError` handleUError
+    U.evaluateCekNoEmit defBuiltinsRuntime (U.erase tm) `catchError` handleUError
 
   -- check if typed CK and untyped CEK give the same output modulo erasure
   unless (tmUCk == tmUCek) $
     throwCtrex (CtrexUntypedTermEvaluationMismatch tyG tmG [tmUCk,tmUCek])
-
 
 -- |Property: the following diagram commutes for well-kinded types...
 --

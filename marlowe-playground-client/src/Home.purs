@@ -3,7 +3,7 @@ module Home where
 import Prelude hiding (div)
 import Data.Maybe (Maybe(..))
 import Halogen (ClassName(..), ComponentHTML)
-import Halogen.Classes (flex, option1, option2, option3, vl)
+import Halogen.Classes (flex, option1, option2, option3, paddingBottom, vl)
 import Halogen.HTML (a, button, div, h2_, hr_, img, p_, text)
 import Halogen.HTML.Events (onClick)
 import Halogen.HTML.Properties (classes, href, src, target)
@@ -11,7 +11,7 @@ import MainFrame.Types (Action(..), ChildSlots, ModalView(..), State)
 
 render :: forall m. State -> ComponentHTML Action ChildSlots m
 render state =
-  div [ classes [ ClassName "homepage-container" ] ]
+  div [ classes [ ClassName "homepage-container", paddingBottom ] ]
     [ div [ classes [ ClassName "marlowe-intro-container" ] ]
         [ div [ classes [ ClassName "text-block" ] ]
             [ h2_ [ text "What is Marlowe?" ]

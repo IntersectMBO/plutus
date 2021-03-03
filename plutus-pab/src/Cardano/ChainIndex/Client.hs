@@ -40,14 +40,14 @@ handleChainIndexClient ::
   , MonadIO m
   , Member (Error ClientError) effs)
   => ClientEnv
-  -> Eff (ChainIndexEffect ': effs)
+  -> ChainIndexEffect
   ~> Eff effs
 handleChainIndexClient clientEnv =
     let
         runClient :: forall a. ClientM a -> Eff effs a
         runClient a = (sendM $ liftIO $ runClientM a clientEnv) >>= either throwError pure
     in
-      interpret $ \case
+      \case
         StartWatching a           -> void (runClient (startWatching a))
         WatchedAddresses          -> runClient watchedAddresses
         ConfirmedBlocks           -> runClient confirmedBlocks

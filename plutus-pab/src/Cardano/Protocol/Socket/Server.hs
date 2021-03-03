@@ -15,19 +15,12 @@ import           Data.Foldable                                       (traverse_)
 import           Data.List                                           (intersect)
 import           Data.Maybe                                          (listToMaybe)
 import           Data.Text                                           (Text)
-import           Data.Text.Extras                                    (tshow)
 import           Data.Void                                           (Void)
 
 import           Control.Concurrent
 import           Control.Concurrent.Async
 import           Control.Concurrent.STM
 import           Control.Lens                                        hiding (ix)
-import qualified Control.Monad.Freer                                 as Free
-import           Control.Monad.Freer.Extras.Log                      (LogMessage, LogMsg)
-import qualified Control.Monad.Freer.Extras.Log                      as Free
-import qualified Control.Monad.Freer.State                           as Free
-import           Control.Monad.Freer.Writer                          (Writer)
-import qualified Control.Monad.Freer.Writer                          as Free
 import           Control.Monad.Reader
 import           Control.Tracer
 
@@ -52,10 +45,14 @@ import           Ouroboros.Network.Socket
 import           Cardano.Protocol.Socket.Type
 
 import           Ledger                                              (Block, Slot (..), Tx (..))
-import           Wallet.Emulator.Chain                               (ChainEvent (..), ChainState (..))
+import           Wallet.Emulator.Chain                               (ChainState (..))
 import qualified Wallet.Emulator.Chain                               as Chain
 
-type CommandQueue = TQueue (Either ServerCommand ServerResponse)
+data CommandChannel = CommandChannel
+  { ccCommand  :: TQueue ServerCommand
+  , ccResponse :: TQueue ServerResponse
+  }
+
 type Error a = Either Text a
 
 {- | Clone the original channel for each connected client, then use
@@ -66,10 +63,10 @@ newtype LocalChannel = LocalChannel (TChan Block)
 {- | A handler used to pass around the path to the server
      and channels used for controlling the server. -}
 data ServerHandler = ServerHandler {
-    shSocketPath   :: FilePath,
+    shSocketPath     :: FilePath,
     -- The client will send a `ServerCommand` and the server will
     -- respond with a `ServerResponse`.
-    shCommandQueue :: CommandQueue
+    shCommandChannel :: CommandChannel
 }
 
 {- | The commands that control the server. For now we have only
@@ -77,7 +74,7 @@ data ServerHandler = ServerHandler {
 data ServerCommand =
     -- This command will add a new block by processing
     -- transactions in the memory pool.
-    ProcessBlock
+    ProcessBlocks [Block]
     deriving Show
 
 {- | The response from the server. Can be used for the information
@@ -85,47 +82,33 @@ data ServerCommand =
 -}
 data ServerResponse =
     -- A block was added.
-    BlockAdded Block
-    -- A response was received instead of a request.
-    | IgnoredResponse ServerResponse
+    BlocksAdded [Block]
     deriving Show
 
 {- | Tell the server to process a new block, by validating the transactions
      in the memory pool. This function will block waiting for a response. -}
-processBlock :: ServerHandler -> IO (Error Block)
-processBlock ServerHandler {shCommandQueue} = atomically $ do
-    writeTQueue shCommandQueue (Left ProcessBlock)
-    readTQueue  shCommandQueue >>= \case
-      Right (BlockAdded block) ->
-          pure $ Right block
-      Right (IgnoredResponse response) ->
-          pure $ Left ("Ignored response: " <> tshow response)
-      response ->
-          pure $ Left ("Unexpected response: " <> tshow response)
+processBlocks :: ServerHandler -> [Block] -> IO (Error [Block])
+processBlocks ServerHandler {shCommandChannel} blocks = do
+  atomically $ writeTQueue (ccCommand  shCommandChannel) $   ProcessBlocks blocks
+  atomically $ readTQueue  (ccResponse shCommandChannel) >>= \case
+      BlocksAdded blocks' ->
+          pure $ Right blocks'
 
 handleCommand ::
-    CommandQueue
+    CommandChannel
  -> InternalState
  -> IO ()
-handleCommand commandQueue InternalState {isBlocks, isState} =
-    atomically (readTQueue commandQueue) >>= \case
-        -- Use the same code to add a block as the pure client.
-        Left ProcessBlock -> do
-            state <- takeMVar isState
-            let ((block, _events), newState) = Free.run
-                    $ Free.runState state
-                    $ Free.runWriter @[LogMessage ChainEvent]
-                    $ Free.reinterpret @(LogMsg ChainEvent) @(Writer [LogMessage ChainEvent]) (Free.handleLogWriter @ChainEvent @[LogMessage ChainEvent] (unto return))
-                    $ Free.interpret Chain.handleControlChain Chain.processBlock
-            putMVar isState newState
+handleCommand CommandChannel {ccCommand, ccResponse}
+              InternalState  {isBlocks , isState   } =
+    atomically (readTQueue ccCommand) >>= \case
+        -- Update the blocks queue with these blocks.
+        ProcessBlocks blocks -> do
+            modifyMVar_ isState (pure . over Chain.chainNewestFirst (mconcat blocks :))
             atomically $ do
                 -- It is important for the blocks channel and chain
                 -- state to remain synchronised.
-                writeTChan isBlocks block
-                writeTQueue commandQueue (Right (BlockAdded block))
-        -- A client sent a response instead of a request.
-        Right response ->
-            atomically $ writeTQueue commandQueue (Right (IgnoredResponse response))
+                traverse_   (writeTChan isBlocks)   blocks
+                writeTQueue ccResponse (BlocksAdded blocks)
 
 {- | Start the server in a new thread, and return a server handler
      used to control the server -}
@@ -134,19 +117,19 @@ runServerNode ::
  -> ChainState
  -> IO ServerHandler
 runServerNode shSocketPath initialState = do
-    serverState    <- initialiseInternalState initialState
-    shCommandQueue <- newTQueueIO
-    _ <- forkIO . void    $ protocolLoop  shSocketPath   serverState
-    _ <- forkIO . forever $ handleCommand shCommandQueue serverState
-    pure $ ServerHandler { shSocketPath, shCommandQueue }
+    serverState      <- initialiseInternalState initialState
+    shCommandChannel <- CommandChannel <$> newTQueueIO <*> newTQueueIO
+    void $ forkIO . void    $ protocolLoop  shSocketPath     serverState
+    void $ forkIO . forever $ handleCommand shCommandChannel serverState
+    pure $ ServerHandler { shSocketPath, shCommandChannel }
 
 -- * Internal state
 
 {- Store a channel (that is *never* cleared, for now) containing all
    the blocks, and the state required for validating the next block. -}
 data InternalState = InternalState {
-    isBlocks :: TChan Block,
-    isState  :: MVar ChainState
+    isBlocks :: TChan Block,      -- ^ Broadcast channel for the whole chain.
+    isState  :: MVar ChainState   -- ^ Used to track the tip of the chain.
 }
 
 initialiseInternalState ::

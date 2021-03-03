@@ -16,7 +16,6 @@ import qualified Data.ByteArray                                     as BA
 import qualified Data.ByteString                                    as BS
 import qualified Data.ByteString.Lazy                               as BSL
 import           Data.Text.Prettyprint.Doc                          (Pretty)
-import           Data.Typeable
 
 import           GHC.Generics
 import           NoThunks.Class                                     (NoThunks)

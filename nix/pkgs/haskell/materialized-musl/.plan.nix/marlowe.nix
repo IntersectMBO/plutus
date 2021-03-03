@@ -60,6 +60,7 @@
         buildable = true;
         modules = [
           "Language/Marlowe"
+          "Language/Marlowe/Extended"
           "Language/Marlowe/Semantics"
           "Language/Marlowe/Client"
           "Language/Marlowe/Util"

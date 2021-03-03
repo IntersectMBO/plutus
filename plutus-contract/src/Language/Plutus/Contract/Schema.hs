@@ -15,6 +15,7 @@
 module Language.Plutus.Contract.Schema(
       Handlers(..)
     , handlerName
+    , handlerArgument
     , Event(..)
     , eventName
     , initialise
@@ -22,7 +23,7 @@ module Language.Plutus.Contract.Schema(
     , Output
     ) where
 
-import           Data.Aeson                (FromJSON, ToJSON)
+import           Data.Aeson                (FromJSON, ToJSON (toJSON), Value)
 import           Data.Row
 import           Data.Row.Internal
 import qualified Data.Row.Variants         as Variants
@@ -73,6 +74,9 @@ newtype Handlers s = Handlers { unHandlers :: Var (Output s) }
 
 handlerName :: Forall (Output s) Unconstrained1 => Handlers s -> String
 handlerName (Handlers v) = fst $ Variants.eraseWithLabels @Unconstrained1 (const ()) v
+
+handlerArgument :: Forall (Output s) ToJSON => Handlers s -> Value
+handlerArgument (Handlers v) = Variants.erase @ToJSON toJSON v
 
 deriving via (JsonVar (Output s)) instance Forall (Output s) ToJSON => ToJSON (Handlers s)
 deriving via (JsonVar (Output s)) instance (AllUniqueLabels (Output s), Forall (Output s) FromJSON) => FromJSON (Handlers s)

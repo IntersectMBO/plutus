@@ -13,6 +13,7 @@
 
 module Language.PlutusCore.Builtins where
 
+import           Language.PlutusCore.Constant.Dynamic.Emit
 import           Language.PlutusCore.Constant.Meaning
 import           Language.PlutusCore.Constant.Typed
 import           Language.PlutusCore.Evaluation.Machine.ExBudgeting
@@ -31,11 +32,9 @@ import qualified Data.ByteString                                            as B
 import qualified Data.ByteString.Hash                                       as Hash
 import           Data.Ix
 import           Data.Word                                                  (Word8)
-import           Debug.Trace                                                (traceIO)
 import           Flat
 import           Flat.Decoder
 import           Flat.Encoder                                               as Flat
-import           System.IO.Unsafe
 
 -- TODO: I think we should have the following structure:
 --
@@ -111,13 +110,6 @@ instance Pretty DefaultFun where
 instance ExMemoryUsage DefaultFun where
     memoryUsage _ = 1
 
-newtype DefaultFunDyn = DefaultFunDyn
-    { defaultFunDynTrace :: String -> IO ()
-    }
-
-defDefaultFunDyn :: DefaultFunDyn
-defDefaultFunDyn = DefaultFunDyn traceIO
-
 -- | Turn a function into another function that returns 'EvaluationFailure' when its second argument
 -- is 0 or calls the original function otherwise and wraps the result in 'EvaluationSuccess'.
 -- Useful for correctly handling `div`, `mod`, etc.
@@ -126,10 +118,10 @@ nonZeroArg _ _ 0 = EvaluationFailure
 nonZeroArg f x y = EvaluationSuccess $ f x y
 
 defBuiltinsRuntime :: HasConstantIn DefaultUni term => BuiltinsRuntime DefaultFun term
-defBuiltinsRuntime = toBuiltinsRuntime defDefaultFunDyn defaultCostModel
+defBuiltinsRuntime = toBuiltinsRuntime () defaultCostModel
 
 instance (GShow uni, GEq uni, DefaultUni <: uni) => ToBuiltinMeaning uni DefaultFun where
-    type DynamicPart uni DefaultFun = DefaultFunDyn
+    type DynamicPart uni DefaultFun = ()
     type CostingPart uni DefaultFun = CostModel
     toBuiltinMeaning AddInteger =
         toStaticBuiltinMeaning
@@ -228,8 +220,8 @@ instance (GShow uni, GEq uni, DefaultUni <: uni) => ToBuiltinMeaning uni Default
             ((++) :: String -> String -> String)
             mempty  -- TODO: budget.
     toBuiltinMeaning Trace =
-        toDynamicBuiltinMeaning
-            (\env -> unsafePerformIO . defaultFunDynTrace env)
+        toStaticBuiltinMeaning
+            (emit :: String -> Emitter ())
             mempty  -- TODO: budget.
 
 -- See Note [Stable encoding of PLC]

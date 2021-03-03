@@ -17,6 +17,7 @@ let
     prometheus = 9090;
     nodeExporter = 9100;
     webGhcExporter = 9091;
+    pab-webserver = 8080;
   };
   options = { inherit stdOverlays machines nixpkgsLocation ports; };
   monitoringKeys = machines.monitoringSshKeys;
@@ -26,6 +27,9 @@ let
   marloweDash = plutus.marlowe-dashboard;
   marloweDashMachine = import ./marlowe-dash.nix;
   prometheusMachine = import ./prometheus.nix;
+  plutus-pab = plutus.plutus-pab;
+  marlowe-app = plutus.marlowe-app;
+  pabMachine = import ./pab.nix;
 in
 {
   # We partially apply mkInstance, it also expects other values like hostName
@@ -34,5 +38,6 @@ in
   marloweDash = marloweDashMachine.mkInstance (options // { inherit defaultMachine marloweDash pkgs; });
   webGhc = webGhcMachine.mkInstance (options // { inherit defaultMachine web-ghc monitoringKeys; });
   prometheus = prometheusMachine.mkInstance (options // { inherit defaultMachine monitoringKeys; });
+  pab = pabMachine.mkInstance (options // { inherit defaultMachine monitoringKeys plutus-pab marlowe-app pkgs;inherit (plutus) marlowe-dashboard; });
   inherit pkgs ports;
 }

@@ -30,5 +30,5 @@ testMachine machine eval =
 test_machines :: TestTree
 test_machines = testGroup
     "machines"
-    [ testMachine "CK" $ evaluateCk defBuiltinsRuntime
+    [ testMachine "CK" $ evaluateCkNoEmit defBuiltinsRuntime
     ]

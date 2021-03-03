@@ -15,8 +15,8 @@ import Data.Map (Map)
 import Data.Map as Map
 import Data.Tuple.Nested ((/\))
 import Examples.Haskell.Contracts (contractForDifference, couponBondGuaranteed, escrow, escrowWithCollateral, example, swap, zeroCouponBond) as HE
-import Examples.JS.Contracts (cfd, couponBondGuaranteed, escrow, escrowWithCollateral, example, swap, zeroCouponBond) as JSE
-import Examples.Marlowe.Contracts (contractForDifference, escrow, escrowWithCollateral, example, option, swap, zeroCouponBond) as ME
+import Examples.JS.Contracts (contractForDifference, couponBondGuaranteed, escrow, escrowWithCollateral, example, swap, zeroCouponBond) as JSE
+import Examples.Marlowe.Contracts (contractForDifference, couponBondGuaranteed, escrow, escrowWithCollateral, example, swap, zeroCouponBond) as ME
 import LocalStorage as LocalStorage
 
 type Label
@@ -48,7 +48,7 @@ demoFilesJS =
     , "ZeroCouponBond" /\ JSE.zeroCouponBond
     , "CouponBondGuaranteed" /\ JSE.couponBondGuaranteed
     , "Swap" /\ JSE.swap
-    , "CFD" /\ JSE.cfd
+    , "CFD" /\ JSE.contractForDifference
     ]
 
 marloweContracts ::
@@ -59,7 +59,7 @@ marloweContracts =
     , "Escrow" /\ ME.escrow
     , "EscrowWithCollateral" /\ ME.escrowWithCollateral
     , "ZeroCouponBond" /\ ME.zeroCouponBond
-    , "Option" /\ ME.option
+    , "CouponBondGuaranteed" /\ ME.couponBondGuaranteed
     , "Swap" /\ ME.swap
     , "CFD" /\ ME.contractForDifference
     ]

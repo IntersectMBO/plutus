@@ -29,11 +29,6 @@ common lang
                         DeriveGeneric StandaloneDeriving DeriveLift
                         GeneralizedNewtypeDeriving DeriveFunctor DeriveFoldable
                         DeriveTraversable
-    other-extensions: DeriveAnyClass FlexibleContexts FlexibleInstances
-                      MultiParamTypeClasses TypeFamilies OverloadedStrings
-                      MonadComprehensions ConstrainedClassMethods TupleSections GADTs
-                      RankNTypes TemplateHaskell QuasiQuotes TypeApplications
-                      ExistentialQuantification
     ghc-options: -Wall -Wnoncanonical-monad-instances
                  -Wincomplete-uni-patterns -Wincomplete-record-updates
                  -Wredundant-constraints -Widentities
@@ -47,22 +42,21 @@ library
     exposed-modules:
         Cardano.BM.Data.Tracer.Extras
         Cardano.ChainIndex.API
+        Cardano.ChainIndex.ChainIndex
         Cardano.ChainIndex.Client
         Cardano.ChainIndex.Server
         Cardano.ChainIndex.Types
         Cardano.Metadata.API
         Cardano.Metadata.Client
+        Cardano.Metadata.Mock
         Cardano.Metadata.Server
         Cardano.Metadata.Types
         Cardano.Node.API
         Cardano.Node.Client
-        Cardano.Node.Follower
         Cardano.Node.Mock
         Cardano.Node.RandomTx
         Cardano.Node.Server
         Cardano.Node.Types
-        Cardano.Protocol.ChainEffect
-        Cardano.Protocol.FollowerEffect
         Cardano.Protocol.Socket.Type
         Cardano.Protocol.Socket.Server
         Cardano.Protocol.Socket.Client
@@ -97,8 +91,11 @@ library
         Plutus.PAB.Effects.MultiAgent
         Plutus.PAB.Effects.UUID
         Plutus.PAB.Instances
-        Plutus.PAB.MonadLoggerBridge
-        Plutus.PAB.Monitoring
+        Plutus.PAB.Monitoring.MonadLoggerBridge
+        Plutus.PAB.Monitoring.Monitoring
+        Plutus.PAB.Monitoring.PABLogMsg
+        Plutus.PAB.Monitoring.Config
+        Plutus.PAB.Monitoring.Util
         Plutus.PAB.Webserver.API
         Plutus.PAB.Webserver.Handler
         Plutus.PAB.Webserver.Server
@@ -111,10 +108,7 @@ library
         Plutus.PAB.Events.Wallet
         Plutus.PAB.ParseStringifiedJSON
         Plutus.PAB.Query
-        Plutus.PAB.Relation
-        Plutus.PAB.PABLogMsg
         Plutus.PAB.Types
-        Plutus.PAB.Utils
     other-modules:
         Servant.Extra
     hs-source-dirs: src
@@ -267,7 +261,8 @@ executable plutus-currency
     build-depends:
         base >=4.9 && <5,
         plutus-pab,
-        plutus-use-cases -any
+        plutus-use-cases -any,
+        text -any
 
 executable plutus-atomic-swap
     main-is: Main.hs
@@ -278,6 +273,7 @@ executable plutus-atomic-swap
                  -Wno-missing-import-lists -Wredundant-constraints -O0
     build-depends:
         base >=4.9 && <5,
+        text -any,
         plutus-pab
 
 executable plutus-pay-to-wallet
@@ -289,7 +285,8 @@ executable plutus-pay-to-wallet
                  -Wno-missing-import-lists -Wredundant-constraints -O0
     build-depends:
         base >=4.9 && <5,
-        plutus-pab
+        plutus-pab,
+        text -any
 
 test-suite plutus-pab-test
     default-language: Haskell2010
@@ -298,7 +295,6 @@ test-suite plutus-pab-test
     main-is: Spec.hs
     other-modules:
         Plutus.PAB.CoreSpec
-        Plutus.PAB.RelationSpec
         Plutus.PAB.Events.ContractSpec
         Cardano.Metadata.ServerSpec
         Cardano.Metadata.TypesSpec

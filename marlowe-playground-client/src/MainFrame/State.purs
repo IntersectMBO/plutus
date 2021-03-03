@@ -869,7 +869,7 @@ selectView view = do
     JSEditor -> do
       void $ query _jsEditorSlot unit (Monaco.Resize unit)
       void $ query _jsEditorSlot unit (Monaco.SetTheme HM.daylightTheme.name unit)
-    BlocklyEditor -> void $ query _blocklySlot unit (Blockly.Resize unit)
+    BlocklyEditor -> pure unit
     WalletEmulator -> pure unit
     ActusBlocklyEditor -> do
       void $ query _actusBlocklySlot unit (ActusBlockly.Resize unit)

@@ -9,10 +9,9 @@ import Effect.Aff.Class (class MonadAff)
 import Gists.Types (GistAction(..))
 import Halogen (ComponentHTML)
 import Halogen.ActusBlockly as ActusBlockly
-import Halogen.Classes (aHorizontal, active, flex, fontSemibold, fullHeight, fullWidth, group, hide, noMargins, smallSpaceBottom, spaceLeft, spaceRight, text3xl, textWhite, uppercase, vl)
-import Halogen.Classes as Classes
+import Halogen.Classes (aHorizontal, active, bgDark, flex, flexCol, fontSemibold, fullHeight, fullWidth, group, hide, justifyBetween, noMargins, paddingLeft, paddingX, smallPaddingLeft, smallPaddingRight, smallPaddingY, smallSpaceBottom, spaceRight, text3xl, textLg, textWhite, uppercase, vl)
 import Halogen.Extra (renderSubmodule)
-import Halogen.HTML (ClassName(ClassName), HTML, a, div, div_, h1_, h2, header, hr_, main, section, slot, span, text)
+import Halogen.HTML (ClassName(ClassName), HTML, a, div, div_, footer, h1, h2, header, main, section, slot, span, text)
 import Halogen.HTML.Events (onClick)
 import Halogen.HTML.Properties (class_, classes, href, id_, target)
 import Halogen.SVG (GradientUnits(..), Translate(..), d, defs, gradientUnits, linearGradient, offset, path, stop, stopColour, svg, transform, x1, x2, y2)
@@ -36,11 +35,11 @@ render ::
   ComponentHTML Action ChildSlots m
 render state =
   div [ class_ (ClassName "site-wrap") ]
-    ( [ header [ classes [ noMargins, aHorizontal ] ]
-          [ div [ classes [ aHorizontal, fullWidth ] ]
+    ( [ header [ classes [ noMargins, flex, flexCol ] ]
+          [ div [ classes [ aHorizontal, fullWidth, bgDark, paddingX, smallPaddingY ] ]
               [ div [ classes [ group, aHorizontal, ClassName "marlowe-title-group" ] ]
                   [ div [ class_ (ClassName "marlowe-logo"), onClick $ const $ Just $ ChangeView HomePage ] [ marloweIcon ]
-                  , h2 [ classes [ spaceLeft, uppercase, spaceRight ] ] [ text "Marlowe Playground" ]
+                  , h2 [ classes [ paddingLeft, uppercase, spaceRight ] ] [ text "Marlowe Playground" ]
                   ]
               , projectTitle
               , div [ classes [ group, ClassName "marlowe-links-group" ] ]
@@ -48,11 +47,10 @@ render state =
                   , a [ onClick $ const $ Just $ ChangeView ActusBlocklyEditor, classes [ ClassName "external-links" ] ] [ text "Actus Labs" ]
                   ]
               ]
+          , topBar
           ]
       , main []
-          [ topBar
-          , hr_
-          , section [ id_ "main-panel" ]
+          [ section [ id_ "main-panel" ]
               [ tabContents HomePage [ Home.render state ]
               , tabContents Simulation [ renderSubmodule _simulationState SimulationAction Simulation.render state ]
               , tabContents MarloweEditor [ renderSubmodule _marloweEditorState MarloweEditorAction MarloweEditor.render state ]
@@ -72,17 +70,17 @@ render state =
           ]
       , modal state
       , globalLoadingOverlay
-      , div [ classes [ ClassName "footer" ] ]
-          [ div [ classes [ flex, ClassName "links" ] ]
-              [ a [ href "https://cardano.org/", target "_blank" ] [ text "cardano.org" ]
+      , footer [ classes [ flex, justifyBetween, paddingX, smallPaddingY, bgDark ] ]
+          [ div [ classes [ flex ] ]
+              [ a [ href "https://cardano.org/", target "_blank", class_ smallPaddingRight ] [ text "cardano.org" ]
               , vl
-              , a [ href "https://iohk.io/", target "_blank" ] [ text "iohk.io" ]
+              , a [ href "https://iohk.io/", target "_blank", class_ smallPaddingLeft ] [ text "iohk.io" ]
               ]
           , div [] [ text (copyright <> " 2020 IOHK Ltd") ]
-          , div [ classes [ flex, ClassName "links" ] ]
-              [ a [ href "https://t.me/IOHK_Marlowe", target "_blank" ] [ text "Telegram" ]
+          , div [ classes [ flex ] ]
+              [ a [ href "https://t.me/IOHK_Marlowe", target "_blank", class_ smallPaddingRight ] [ text "Telegram" ]
               , vl
-              , a [ href "https://twitter.com/hashtag/Marlowe", target "_blank" ] [ text "Twitter" ]
+              , a [ href "https://twitter.com/hashtag/Marlowe", target "_blank", class_ smallPaddingLeft ] [ text "Twitter" ]
               ]
           ]
       ]
@@ -103,7 +101,7 @@ render state =
         spinner = if isLoading then icon Spinner else div [ classes [ ClassName "empty" ] ] []
       in
         div [ classes [ ClassName "project-title" ] ]
-          [ h1_
+          [ h1 [ class_ textLg ]
               {- TODO: Fix style when name is super long -}
               [ text title
               , span [ class_ (ClassName "unsave-change-indicator") ] [ text unsavedChangesIndicator ]
@@ -115,7 +113,7 @@ render state =
 
   isActiveTab activeView = if isActiveView activeView then [ active ] else []
 
-  tabContents activeView contents = if isActiveView activeView then div [ classes [ fullHeight, Classes.scroll ] ] contents else div [ classes [ hide ] ] contents
+  tabContents activeView contents = if isActiveView activeView then div [ classes [ fullHeight ] ] contents else div [ classes [ hide ] ] contents
 
   topBar = div [ class_ (ClassName "global-actions") ] ([ menuBar state ] <> otherActions (state ^. _view))
 

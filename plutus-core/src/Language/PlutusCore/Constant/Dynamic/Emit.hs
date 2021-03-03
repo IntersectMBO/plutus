@@ -1,31 +1,48 @@
+{-# LANGUAGE RankNTypes #-}
+
 module Language.PlutusCore.Constant.Dynamic.Emit
-    ( withEmit
+    ( MonadEmitter (..)
+    , Emitter (..)
+    , NoEmitterT (..)
     ) where
 
-import           Data.IORef
-import           System.IO.Unsafe
+import           Control.Monad.Except
+import           Control.Monad.Reader
+import           Control.Monad.State
+import           Control.Monad.Trans.Identity
 
--- | Feed the provided continuation with a function tracing a value to the outside of the
--- continuation where traced values get collected in a list.
---
--- If the tracing function is used in pure code via 'unsafePerformIO' and a @b@ returned by the
--- continuation is not forced inside the continuation, then no traced values will be collected as
--- no computation will occur. It is however not too late to force the resulting @b@ outside of the
--- continuation and reference the list of traced value afterwards. We don't attempt to force
--- anything ourselves, because the caller may want to force the resulting @b@ to WHNF or to NF or
--- not to force at all and just not trace anything if the result of the continuation is not used.
---
--- This function does not stream values lazily. There is a version that allows for lazy streaming,
--- but we do not have it here because it's way too convoluted.
--- See https://github.com/input-output-hk/plutus/pull/336 if you do need lazy streaming.
-withEmit :: ((a -> IO ()) -> IO b) -> IO ([a], b)
-withEmit k = do
-    xsVar <- newIORef id
-    -- 'atomicModifyIORef' is to make tracing thread-safe. We don't bother using the strict version,
-    -- since values get collected in a difference list (i.e. a function) anyway.
-    y <- k $ \x -> atomicModifyIORef xsVar $ \ds -> (ds . (x :), ())
-    -- We need the 'unsafeInterleaveIO' in order to support this: "It is however not too late to
-    -- force the resulting @b@ outside of the continuation and reference the list of traced value
-    -- afterwards".
-    ds <- unsafeInterleaveIO $ readIORef xsVar
-    return (ds [], y)
+-- | A class for emitting 'String's in a monadic context (basically, for logging).
+class Monad m => MonadEmitter m where
+    emit :: String -> m ()
+
+-- | A concrete type implementing 'MonadEmitter'. Useful in signatures of built-in functions that
+-- do logging. We don't use any concrete first-order encoding and instead pack a @MonadEmitter m@
+-- constraint internally, so that built-in functions that do logging can work in any monad
+-- implementing 'MonadEmitter' (for example, @CkM@ or @CekM@).
+newtype Emitter a = Emitter
+    { unEmitter :: forall m. MonadEmitter m => m a
+    } deriving (Functor)
+
+-- newtype-deriving doesn't work with 'Emitter'.
+instance Applicative Emitter where
+    pure x = Emitter $ pure x
+    Emitter f <*> Emitter a = Emitter $ f <*> a
+
+instance Monad Emitter where
+    Emitter a >>= f = Emitter $ a >>= unEmitter . f
+
+instance MonadEmitter Emitter where
+    emit str = Emitter $ emit str
+
+-- | A newtype wrapper for via-deriving a vacuous 'MonadEmitter' instance for a monad.
+newtype NoEmitterT m a = NoEmitterT
+    { unNoEmitterT :: m a
+    } deriving
+        ( Functor, Applicative, Monad
+        , MonadReader r, MonadError e, MonadState s
+        )
+      via
+        IdentityT m
+
+instance Monad m => MonadEmitter (NoEmitterT m) where
+    emit _ = pure ()

@@ -6,27 +6,26 @@ import BottomPanel.View (render) as BottomPanel
 import Data.Array as Array
 import Data.Either (Either(..))
 import Data.Enum (toEnum, upFromIncluding)
-import Data.Lens (to, view, (^.))
+import Data.Lens (_Right, has, to, view, (^.))
 import Data.Maybe (Maybe(..))
 import Data.String (Pattern(..), split)
 import Data.String as String
 import Effect.Aff.Class (class MonadAff)
 import Halogen (ClassName(..), ComponentHTML)
-import Halogen.Classes (aHorizontal, codeEditor, group)
-import Halogen.Classes as Classes
+import Halogen.Classes (bgWhite, flex, flexCol, flexGrow, fullHeight, group, maxH70p, minH0, overflowHidden, paddingX, spaceBottom)
 import Halogen.Extra (renderSubmodule)
-import Halogen.HTML (HTML, button, code_, div, div_, option, pre_, section, select, slot, text)
+import Halogen.HTML (HTML, button, code_, div, div_, option, pre_, section, section_, select, slot, text)
 import Halogen.HTML.Events (onClick, onSelectedIndexChange)
 import Halogen.HTML.Properties (class_, classes, enabled)
 import Halogen.HTML.Properties as HTML
 import Halogen.Monaco (monacoComponent)
-import HaskellEditor.Types (Action(..), BottomPanelView(..), State, _bottomPanelState, _compilationResult, _haskellEditorKeybindings, isCompiling)
+import HaskellEditor.Types (Action(..), BottomPanelView(..), State, _bottomPanelState, _compilationResult, _haskellEditorKeybindings)
 import Language.Haskell.Interpreter (CompilationError(..), InterpreterError(..), InterpreterResult(..))
 import Language.Haskell.Monaco as HM
 import MainFrame.Types (ChildSlots, _haskellEditorSlot)
-import Network.RemoteData (RemoteData(..))
-import StaticAnalysis.BottomPanel (analysisResultPane, analyzeButton)
-import StaticAnalysis.Types (_analysisExecutionState, _analysisState, isCloseAnalysisLoading, isReachabilityLoading, isStaticLoading)
+import Network.RemoteData (RemoteData(..), _Success)
+import StaticAnalysis.BottomPanel (analysisResultPane, analyzeButton, clearButton)
+import StaticAnalysis.Types (_analysisExecutionState, _analysisState, isCloseAnalysisLoading, isNoneAsked, isReachabilityLoading, isStaticLoading)
 
 render ::
   forall m.
@@ -34,12 +33,16 @@ render ::
   State ->
   ComponentHTML Action ChildSlots m
 render state =
-  div_
-    [ section [ class_ (ClassName "code-panel") ]
-        [ div [ classes [ codeEditor ] ]
-            [ haskellEditor state ]
+  div [ classes [ flex, flexCol, fullHeight ] ]
+    [ section [ classes [ paddingX, minH0, flexGrow, overflowHidden ] ]
+        [ haskellEditor state ]
+    , section [ classes [ paddingX, maxH70p ] ]
+        [ renderSubmodule
+            _bottomPanelState
+            BottomPanelAction
+            (BottomPanel.render panelTitles wrapBottomPanelContents)
+            state
         ]
-    , renderSubmodule _bottomPanelState BottomPanelAction (BottomPanel.render panelTitles wrapBottomPanelContents) state
     ]
   where
   panelTitles =
@@ -131,11 +134,9 @@ sendToSimulationButton state =
 
 panelContents :: forall p. State -> BottomPanelView -> HTML p Action
 panelContents state GeneratedOutputView =
-  section
-    [ classes [ ClassName "panel-sub-header", aHorizontal, Classes.panelContents ]
-    ] case view _compilationResult state of
+  section_ case view _compilationResult state of
     Success (Right (InterpreterResult result)) ->
-      [ div [ classes [ ClassName "code-editor", ClassName "expanded", ClassName "code" ] ]
+      [ div [ classes [ bgWhite, spaceBottom, ClassName "code" ] ]
           numberedText
       ]
       where
@@ -143,14 +144,15 @@ panelContents state GeneratedOutputView =
     _ -> [ text "There is no generated code" ]
 
 panelContents state StaticAnalysisView =
-  section
-    [ classes [ ClassName "panel-sub-header", aHorizontal, Classes.panelContents ]
-    ]
-    [ analysisResultPane SetIntegerTemplateParam state
-    , analyzeButton loadingWarningAnalysis analysisEnabled "Analyse for warnings" AnalyseContract
-    , analyzeButton loadingReachability analysisEnabled "Analyse reachability" AnalyseReachabilityContract
-    , analyzeButton loadingCloseAnalysis analysisEnabled "Analyse for refunds on Close" AnalyseContractForCloseRefund
-    ]
+  section_
+    ( [ analysisResultPane SetIntegerTemplateParam state
+      , analyzeButton loadingWarningAnalysis analysisEnabled "Analyse for warnings" AnalyseContract
+      , analyzeButton loadingReachability analysisEnabled "Analyse reachability" AnalyseReachabilityContract
+      , analyzeButton loadingCloseAnalysis analysisEnabled "Analyse for refunds on Close" AnalyseContractForCloseRefund
+      , clearButton clearEnabled "Clear" ClearAnalysisResults
+      ]
+        <> (if isCompiled then [] else [ div [ classes [ ClassName "choice-error" ] ] [ text "Haskell code needs to be compiled in order to run static analysis" ] ])
+    )
   where
   loadingWarningAnalysis = state ^. _analysisState <<< _analysisExecutionState <<< to isStaticLoading
 
@@ -158,12 +160,18 @@ panelContents state StaticAnalysisView =
 
   loadingCloseAnalysis = state ^. _analysisState <<< _analysisExecutionState <<< to isCloseAnalysisLoading
 
-  analysisEnabled = not loadingWarningAnalysis && not loadingReachability && not loadingCloseAnalysis && not (isCompiling state)
+  noneAskedAnalysis = state ^. _analysisState <<< _analysisExecutionState <<< to isNoneAsked
+
+  anyAnalysisLoading = loadingWarningAnalysis || loadingReachability || loadingCloseAnalysis
+
+  analysisEnabled = not anyAnalysisLoading && isCompiled
+
+  clearEnabled = not (anyAnalysisLoading || noneAskedAnalysis)
+
+  isCompiled = has (_compilationResult <<< _Success <<< _Right) state
 
 panelContents state ErrorsView =
-  section
-    [ classes [ ClassName "panel-sub-header", aHorizontal, Classes.panelContents ]
-    ] case view _compilationResult state of
+  section_ case view _compilationResult state of
     Success (Left (TimeoutError error)) -> [ text error ]
     Success (Left (CompilationErrors errors)) -> map compilationErrorPane errors
     _ -> [ text "No errors" ]

@@ -32,11 +32,6 @@ common lang
                         DeriveGeneric StandaloneDeriving DeriveLift
                         GeneralizedNewtypeDeriving DeriveFunctor DeriveFoldable
                         DeriveTraversable DerivingStrategies DerivingVia
-    other-extensions: DeriveAnyClass FlexibleInstances
-                      MultiParamTypeClasses TypeFamilies OverloadedStrings
-                      MonadComprehensions ConstrainedClassMethods TupleSections GADTs
-                      RankNTypes TemplateHaskell QuasiQuotes TypeApplications
-                      ExistentialQuantification
     ghc-options: -Wall -Wnoncanonical-monad-instances
                  -Wincomplete-uni-patterns -Wincomplete-record-updates
                  -Wredundant-constraints -Widentities
@@ -89,6 +84,7 @@ library
         Language.PlutusCore.StdLib.Meta.Data.Tuple
         Language.PlutusCore.StdLib.Meta.Data.Function
         Language.PlutusCore.StdLib.Type
+        Language.PlutusCore.Examples.Builtins
         Language.PlutusCore.Examples.Everything
         Language.PlutusCore.Generators
         Language.PlutusCore.Generators.AST
@@ -191,6 +187,7 @@ library
         Language.PlutusIR.Compiler.Recursion
         Language.PlutusIR.Compiler.Types
         Language.PlutusIR.Compiler.Lower
+        Language.PlutusIR.Compiler.Error
         Language.PlutusIR.Normalize
         Language.PlutusIR.TypeCheck.Internal
 
@@ -217,11 +214,12 @@ library
         Data.Aeson.THReader
         Data.Functor.Foldable.Monadic
     build-depends:
-        array -any,
+        Stream -any,
         aeson -any,
         algebraic-graphs >= 0.3,
-        base >=4.9 && <5,
+        array -any,
         barbies -any,
+        base >=4.9 && <5,
         bifunctors -any,
         bimap -any,
         bytestring -any,
@@ -230,18 +228,20 @@ library
         composition-prelude >=1.1.0.1,
         containers -any,
         cryptonite -any,
+        data-default-class -any,
+        deepseq -any,
         dependent-map -any,
         dependent-sum <0.7,
         dependent-sum-template -any,
         deriving-aeson >= 0.2.3,
         deriving-compat -any,
-        deepseq -any,
+        dlist -any,
         filepath -any,
         flat -any,
+        ghc-prim -any,
         hashable,
         hedgehog >=1.0,
         integer-gmp -any,
-        ghc-prim -any,
         lazy-search -any,
         lens -any,
         megaparsec -any,
@@ -254,22 +254,20 @@ library
         prettyprinter >=1.1.0.1,
         prettyprinter-configurable -any,
         recursion-schemes -any,
-        semigroups -any,
         semigroupoids -any,
+        semigroups -any,
         serialise -any,
         size-based -any,
         tasty -any,
         tasty-golden -any,
         tasty-hunit -any,
+        template-haskell -any,
         text -any,
         th-lift -any,
         th-lift-instances -any,
         th-utilities -any,
-        template-haskell -any,
-        data-default-class -any,
         transformers -any,
-        witherable -any,
-        Stream -any
+        witherable -any
 
 executable plutus-core-generate-evaluation-test
     import: lang
@@ -463,7 +461,9 @@ benchmark plutus-core-create-cost-model
     other-modules:
         CostModelCreation
 
-test-suite plutus-core-test-cost-model
+-- This test is problematic in CI: pretending that it's a benchmark will prevent
+-- it from being run automatically but will still allow us to run it manually.
+benchmark plutus-core-test-cost-model
     type: exitcode-stdio-1.0
     main-is: TestCostModels.hs
     hs-source-dirs: test-cost-model, cost-model-creation

@@ -28,16 +28,16 @@ import Halogen.Monaco (Message(..), Query(..)) as Monaco
 import HaskellEditor.Types (Action(..), BottomPanelView(..), State, _bottomPanelState, _compilationResult, _haskellEditorKeybindings)
 import Language.Haskell.Interpreter (CompilationError(..), InterpreterError(..), InterpreterResult(..))
 import Language.Haskell.Monaco as HM
-import SessionStorage as SessionStorage
 import MainFrame.Types (ChildSlots, _haskellEditorSlot)
 import Marlowe (postRunghc)
-import Marlowe.Extended (Contract, typeToLens)
+import Marlowe.Extended (Contract, getPlaceholderIds, typeToLens, updateTemplateContent)
 import Marlowe.Holes (fromTerm)
 import Marlowe.Parser (parseContract)
 import Monaco (IMarkerData, markerSeverity)
 import Network.RemoteData (RemoteData(..))
 import Network.RemoteData as RemoteData
 import Servant.PureScript.Ajax (AjaxError)
+import SessionStorage as SessionStorage
 import StaticAnalysis.Reachability (analyseReachability)
 import StaticAnalysis.StaticTools (analyseContract)
 import StaticAnalysis.Types (AnalysisExecutionState(..), MultiStageAnalysisData(..), _analysisExecutionState, _analysisState, _templateContent)
@@ -83,6 +83,12 @@ handleAction Compile = do
       -- Update the error display.
       case result of
         Success (Left _) -> handleAction $ BottomPanelAction (BottomPanel.ChangePanel ErrorsView)
+        Success (Right (InterpreterResult interpretedResult)) ->
+          let
+            mContract :: Maybe Contract
+            mContract = (fromTerm <=< hush <<< parseContract) interpretedResult.result
+          in
+            for_ mContract $ (modifying (_analysisState <<< _templateContent)) <<< updateTemplateContent <<< getPlaceholderIds
         _ -> pure unit
       let
         markers = case result of
@@ -104,39 +110,34 @@ handleAction (InitHaskellProject contents) = do
 
 handleAction (SetIntegerTemplateParam templateType key value) = modifying (_analysisState <<< _templateContent <<< typeToLens templateType) (Map.insert key value)
 
-handleAction AnalyseContract = compileAndAnalyze (WarningAnalysis Loading) $ analyseContract
+handleAction AnalyseContract = analyze (WarningAnalysis Loading) $ analyseContract
 
 handleAction AnalyseReachabilityContract =
-  compileAndAnalyze (ReachabilityAnalysis AnalysisNotStarted)
+  analyze (ReachabilityAnalysis AnalysisNotStarted)
     $ analyseReachability
 
 handleAction AnalyseContractForCloseRefund =
-  compileAndAnalyze (CloseAnalysis AnalysisNotStarted)
+  analyze (CloseAnalysis AnalysisNotStarted)
     $ analyseClose
 
--- This function runs a static analysis to the compiled code. It calls the compiler if
--- it wasn't runned before and it switches to the error panel if the compilation failed
-compileAndAnalyze ::
+handleAction ClearAnalysisResults = assign (_analysisState <<< _analysisExecutionState) NoneAsked
+
+-- This function runs a static analysis to the compiled code if it compiled successfully.
+analyze ::
   forall m.
   MonadAff m =>
   MonadAsk Env m =>
   AnalysisExecutionState ->
   (Contract -> HalogenM State Action ChildSlots Void m Unit) ->
   HalogenM State Action ChildSlots Void m Unit
-compileAndAnalyze initialAnalysisState doAnalyze = do
+analyze initialAnalysisState doAnalyze = do
   compilationResult <- use _compilationResult
   case compilationResult of
-    NotAsked -> do
-      -- The initial analysis state allow us to show an "Analysing..." indicator
-      assign (_analysisState <<< _analysisExecutionState) initialAnalysisState
-      handleAction Compile
-      compileAndAnalyze initialAnalysisState doAnalyze
     Success (Right (InterpreterResult interpretedResult)) ->
       let
         mContract = (fromTerm <=< hush <<< parseContract) interpretedResult.result
       in
         for_ mContract doAnalyze
-    Success (Left _) -> handleAction $ BottomPanelAction $ BottomPanel.ChangePanel ErrorsView
     _ -> pure unit
 
 runAjax ::

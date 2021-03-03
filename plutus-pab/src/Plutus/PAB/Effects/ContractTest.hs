@@ -30,12 +30,12 @@ import           Data.Text.Prettyprint.Doc
 import           Data.Void                                         (Void, absurd)
 import           GHC.Generics                                      (Generic)
 
+import           Data.Text.Extras                                  (tshow)
 import           Plutus.PAB.Effects.Contract                       (ContractCommand (..), ContractEffect (..))
 import           Plutus.PAB.Events.Contract                        (ContractHandlersResponse (..), ContractPABRequest,
                                                                     PartiallyDecodedResponse)
 import qualified Plutus.PAB.Events.Contract                        as C
 import           Plutus.PAB.Types                                  (PABError (..))
-import           Plutus.PAB.Utils                                  (tshow)
 
 import           Control.Monad.Freer.Extras.Log                    (LogMsg, logDebug)
 

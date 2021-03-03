@@ -28,7 +28,6 @@ import           Language.PlutusCore.Name
 import           Language.PlutusCore.Pretty
 import           Language.PlutusCore.Universe
 
-import           Control.Exception
 import           Control.Lens                                     (ix, (^?))
 import           Control.Lens.TH
 import           Control.Monad.Except
@@ -116,6 +115,8 @@ newtype EvalM unique name uni fun ann a = EvalM
         ( Functor, Applicative, Monad
         , MonadError (HoasException fun (Value unique name uni fun ann))
         )
+      -- No logging for now.
+      deriving (MonadEmitter) via (NoEmitterT (EvalM unique name uni fun ann))
 
 makeClassyPrisms ''UserHoasError
 makeClassyPrisms ''InternalHoasError
@@ -306,4 +307,4 @@ unsafeEvaluateHoas
        , Pretty fun, PrettyPlc term
        )
     => BuiltinsRuntime fun value -> term -> EvaluationResult term
-unsafeEvaluateHoas runtime = either throw id . extractEvaluationResult . evaluateHoas runtime
+unsafeEvaluateHoas runtime = unsafeExtractEvaluationResult . evaluateHoas runtime

@@ -4,7 +4,7 @@
 {-# OPTIONS_GHC -Wno-overlapping-patterns #-}
 
 {-# LANGUAGE DataKinds              #-}
-{-# LANGUAGE DerivingStrategies     #-}
+{-# LANGUAGE DeriveAnyClass         #-}
 {-# LANGUAGE FlexibleInstances      #-}
 {-# LANGUAGE FunctionalDependencies #-}
 {-# LANGUAGE OverloadedStrings      #-}
@@ -29,6 +29,7 @@ module Language.PlutusCore.Evaluation.Machine.Exception
     , throwing_
     , throwingWithCause
     , extractEvaluationResult
+    , unsafeExtractEvaluationResult
     ) where
 
 import           PlutusPrelude
@@ -174,6 +175,12 @@ extractEvaluationResult (Left (ErrorWithCause evalErr cause)) = case evalErr of
     InternalEvaluationError err -> Left  $ ErrorWithCause err cause
     UserEvaluationError _       -> Right $ EvaluationFailure
 
+unsafeExtractEvaluationResult
+    :: (PrettyPlc internal, PrettyPlc term, Typeable internal, Typeable term)
+    => Either (EvaluationException user internal term) a
+    -> EvaluationResult a
+unsafeExtractEvaluationResult = either throw id . extractEvaluationResult
+
 instance Pretty UnliftingError where
     pretty (UnliftingErrorE err) = fold
         [ "Could not unlift a builtin:", hardline
@@ -236,9 +243,8 @@ instance (PrettyPlc term, PrettyPlc err) =>
             Show (ErrorWithCause err term) where
     show = render . prettyPlcReadableDebug
 
-instance (PrettyPlc term, PrettyPlc err, Typeable term, Typeable err) =>
-            Exception (ErrorWithCause err term)
-
+deriving anyclass instance
+    (PrettyPlc term, PrettyPlc err, Typeable term, Typeable err) => Exception (ErrorWithCause err term)
 
 instance HasErrorCode UnliftingError where
       errorCode        UnliftingErrorE {}        = ErrorCode 30
@@ -262,7 +268,6 @@ instance HasErrorCode (MachineError err _a) where
 instance (HasErrorCode user, HasErrorCode internal) => HasErrorCode (EvaluationError user internal) where
   errorCode (InternalEvaluationError e) = errorCode e
   errorCode (UserEvaluationError e)     = errorCode e
-
 
 instance HasErrorCode err => HasErrorCode (ErrorWithCause err t) where
     errorCode (ErrorWithCause e _) = errorCode e

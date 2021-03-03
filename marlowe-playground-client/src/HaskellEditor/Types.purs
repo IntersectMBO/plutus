@@ -34,6 +34,7 @@ data Action
   | AnalyseContract
   | AnalyseReachabilityContract
   | AnalyseContractForCloseRefund
+  | ClearAnalysisResults
 
 defaultEvent :: String -> Event
 defaultEvent s = A.defaultEvent $ "Haskell." <> s
@@ -50,6 +51,7 @@ instance actionIsEvent :: IsEvent Action where
   toEvent AnalyseContract = Just $ defaultEvent "AnalyseContract"
   toEvent AnalyseReachabilityContract = Just $ defaultEvent "AnalyseReachabilityContract"
   toEvent AnalyseContractForCloseRefund = Just $ defaultEvent "AnalyseContractForCloseRefund"
+  toEvent ClearAnalysisResults = Just $ defaultEvent "ClearAnalysisResults"
 
 type State
   = { keybindings :: KeyBindings

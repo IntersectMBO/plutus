@@ -12,7 +12,7 @@ import Data.Tuple (Tuple(..))
 import Data.Tuple.Nested ((/\))
 import Halogen.Classes (first, rTable, rTable4cols, rTableCell, rTableEmptyRow)
 import Halogen.Classes as Classes
-import Halogen.HTML (ClassName(..), HTML, div, text)
+import Halogen.HTML (HTML, div, text)
 import Halogen.HTML.Properties (class_, classes)
 import Marlowe.Semantics (ChoiceId(..), Party, Token, ValueId(..), _accounts, _boundValues, _choices)
 import Pretty (renderPrettyParty, renderPrettyToken, showPrettyMoney)
@@ -20,28 +20,26 @@ import SimulationPage.Types (Action, BottomPanelView(..), State, _SimulationNotS
 
 panelContents :: forall p. State -> BottomPanelView -> HTML p Action
 panelContents state CurrentStateView =
-  div [ class_ Classes.panelContents ]
-    [ div [ classes [ rTable, rTable4cols, ClassName "panel-table" ] ]
-        ( tableRow
-            { title: "Accounts"
-            , emptyMessage: "No accounts have been used"
-            , columns: ("Participant" /\ "Token" /\ "Money")
-            , rowData: accountsData
+  div [ classes [ rTable, rTable4cols ] ]
+    ( tableRow
+        { title: "Accounts"
+        , emptyMessage: "No accounts have been used"
+        , columns: ("Participant" /\ "Token" /\ "Money")
+        , rowData: accountsData
+        }
+        <> tableRow
+            { title: "Choices"
+            , emptyMessage: "No Choices have been made"
+            , columns: ("Choice ID" /\ "Participant" /\ "Chosen Value")
+            , rowData: choicesData
             }
-            <> tableRow
-                { title: "Choices"
-                , emptyMessage: "No Choices have been made"
-                , columns: ("Choice ID" /\ "Participant" /\ "Chosen Value")
-                , rowData: choicesData
-                }
-            <> tableRow
-                { title: "Let Bindings"
-                , emptyMessage: "No values have been bound"
-                , columns: ("Identifier" /\ "Value" /\ mempty)
-                , rowData: bindingsData
-                }
-        )
-    ]
+        <> tableRow
+            { title: "Let Bindings"
+            , emptyMessage: "No values have been bound"
+            , columns: ("Identifier" /\ "Value" /\ mempty)
+            , rowData: bindingsData
+            }
+    )
   where
   slotText = case previewOn state (_marloweState <<< _Head <<< _executionState <<< _SimulationNotStarted <<< _initialSlot) of
     Just initialSlot -> Right $ show initialSlot

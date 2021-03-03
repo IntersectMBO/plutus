@@ -28,7 +28,6 @@ import           Control.Monad.Except
 
 import qualified Data.Text                  as T
 import qualified Data.Text.Prettyprint.Doc  as PP
-import           Data.Typeable
 import           ErrorCode
 
 -- | An error with some (nested) context. The integer argument to 'WithContextC' represents
@@ -75,7 +74,6 @@ data Error uni fun a = PLCError (PLC.Error uni fun a)
                  | FreeVariableError T.Text
                  | InvalidMarkerError String
                  | CoreNameLookupError TH.Name
-                 deriving Typeable
 makeClassyPrisms ''Error
 
 instance HasErrorCode (Error _a _b _c) where

@@ -127,7 +127,7 @@ module.exports = {
     stroke: false,
     strokeWidth: false,
     tableLayout: false,
-    textAlign: false,
+    textAlign: true,
     textOpacity: false,
     textOverflow: false,
     fontStyle: false,

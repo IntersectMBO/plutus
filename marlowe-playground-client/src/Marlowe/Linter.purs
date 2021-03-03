@@ -7,6 +7,7 @@ module Marlowe.Linter
   , _holes
   , hasHoles
   , _warnings
+  , _location
   ) where
 
 import Prelude
@@ -67,6 +68,11 @@ newtype Warning
   -- FIXME: The Maybe TextEdit only makes sense for LinterText
   , refactoring :: Maybe TextEdit
   }
+
+derive instance newtypeWarning :: Newtype Warning _
+
+_location :: Lens' Warning Location
+_location = _Newtype <<< prop (SProxy :: SProxy "location")
 
 data WarningDetail
   = NegativePayment
@@ -313,7 +319,7 @@ addMoneyToEnvAccount amountToAdd accTerm tokenTerm = over _deposits (Map.alter (
 lint :: List ContractPath -> Term Contract -> State
 lint unreachablePaths contract =
   let
-    env = (emptyEnvironment unreachablePaths)
+    env = emptyEnvironment unreachablePaths
   in
     CMS.execState (lintContract env contract) mempty
 
@@ -321,9 +327,7 @@ lintContract :: LintEnv -> Term Contract -> CMS.State State Unit
 lintContract env (Term Close _) = pure unit
 
 lintContract env t@(Term (Pay acc payee token payment cont) pos) = do
-  let
-    gatherHoles = getHoles acc <> getHoles payee <> getHoles token
-  modifying _holes gatherHoles
+  modifying _holes (getHoles acc <> getHoles payee <> getHoles token) -- First we calculate the value and warn for non positive values
   sa <- lintValue env payment
   payedValue <- case sa of
     (ConstantSimp _ _ c)
@@ -333,30 +337,43 @@ lintContract env t@(Term (Pay acc payee token payment cont) pos) = do
       | otherwise -> pure (Just c)
     _ -> pure Nothing
   markSimplification constToVal SimplifiableValue payment sa
-  tmpEnv <- case (fromTerm acc /\ fromTerm token) of
-    Just accTerm /\ Just tokenTerm -> do
+  tmpEnv /\ actualPaidMoney <- case fromTerm acc /\ fromTerm token of -- Second we account for withdrawing money from source account (using the info we know)
+    Just accTerm /\ Just tokenTerm -> do -- We know source account
       let
         deposits = view _deposits env
 
         key = accTerm /\ tokenTerm
-      unless (Map.member key deposits)
-        (addWarning (PayBeforeDeposit accTerm) t pos)
-      case (Map.lookup key deposits /\ payedValue) of
-        (Just (Just avMoney)) /\ (Just paidMoney) -> do
-          unless (avMoney >= paidMoney) (addWarning (PartialPayment accTerm tokenTerm avMoney paidMoney) t pos)
-          let
-            actualPaidMoney = min avMoney paidMoney
-          let
-            tempEnv = over _deposits (Map.insert key (Just (avMoney - actualPaidMoney))) env
-          pure
-            ( case fromTerm payee of
-                Just (EM.Account newAcc) -> addMoneyToEnvAccount actualPaidMoney newAcc tokenTerm tempEnv
-                _ -> tempEnv
-            )
-        Nothing /\ _ -> pure env
-        _ -> pure (over _deposits (Map.insert key Nothing) env)
-    _ -> pure env
-  newEnv <- stepPrefixMapEnv_ tmpEnv PayContPath
+      newSrcAccVal /\ actualPaidMoney <- case Map.lookup key deposits /\ payedValue of
+        Just (Just avMoney) /\ Just paidMoney ->  -- We know exactly what is happening (everything is constant)
+          if (avMoney >= paidMoney) then
+            pure $ Just (Just (avMoney - paidMoney)) /\ Just paidMoney
+          else do
+            addWarning (PartialPayment accTerm tokenTerm avMoney paidMoney) t pos
+            pure $ Just (Just zero) /\ Just avMoney
+        Nothing /\ _ -> do
+          addWarning (PayBeforeDeposit accTerm) t pos -- There is definitely no money in that account
+          pure $ Nothing /\ Nothing
+        _ -> pure $ Just Nothing /\ Nothing -- We don't know how much is left in the account nor how much was paid
+      let
+        tmpEnv = over _deposits (Map.alter (const newSrcAccVal) key) env -- We set the source account with what we know
+      pure $ tmpEnv /\ actualPaidMoney
+    _ -> pure $ env /\ Nothing -- We don't know source account and thus we don't know how much was withdrawn either
+  let
+    tmpDeposits = view _deposits tmpEnv
+
+    fixTargetAcc = case fromTerm payee /\ fromTerm token of -- Thirdly, if target is an account we account for adding money to it
+      Just (EM.Account newAcc) /\ Just tokenTerm ->
+        let
+          destKey = newAcc /\ tokenTerm
+        in
+          Map.insert destKey case Map.lookup destKey tmpDeposits /\ actualPaidMoney of
+            Just (Just avMoney) /\ Just paidMoney -> Just (avMoney + paidMoney) -- We know exactly what is happening (everything is constant)
+            Nothing /\ Just paidMoney -> Just paidMoney -- We still know what is happening (there was no money, now there is)
+            _ -> Nothing -- Either we don't know how much money there was or how money we are adding or both (so we don't know how much there will be)
+      _ -> identity -- Either is not an account or we don't know so we do nothing     
+
+    tmpEnv2 = over _deposits fixTargetAcc tmpEnv
+  newEnv <- stepPrefixMapEnv_ tmpEnv2 PayContPath
   lintContract newEnv cont
 
 lintContract env (Term (If obs c1 c2) _) = do
@@ -695,9 +712,7 @@ lintAction env t@(Term (Deposit acc party token value) pos) = do
     accTerm = maybe NoEffect (maybe (const NoEffect) UnknownDeposit (fromTerm acc)) (fromTerm token)
 
     isReachable = view _isReachable env
-
-    gatherHoles = getHoles acc <> getHoles party <> getHoles token
-  modifying _holes (gatherHoles)
+  modifying _holes (getHoles acc <> getHoles party <> getHoles token)
   sa <- lintValue env value
   (\effect -> effect /\ isReachable)
     <$> case sa of

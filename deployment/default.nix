@@ -143,7 +143,7 @@ let
 
       echo "apply terraform"
       ${terraform}/bin/terraform init
-      ${terraform}/bin/terraform workspace select ${env}
+      ${terraform}/bin/terraform workspace select ${env} || ${terraform}/bin/terraform workspace new ${env}
       ${terraform}/bin/terraform apply -var-file=${env}.tfvars
 
       marlowe_api_id=$(${terraform}/bin/terraform output marlowe_rest_api_id)
@@ -156,8 +156,8 @@ let
 
       echo "json files created in $tmp_dir"
 
-      # This is a nasty way to make deployment with morph easier since I cannot yet find a way to get morph deployments to work 
-      # from within a nix derivation shell script. 
+      # This is a nasty way to make deployment with morph easier since I cannot yet find a way to get morph deployments to work
+      # from within a nix derivation shell script.
       # Once you have run this script you will have the correct information in the morph directory for morph to deploy to the EC2 instances
       if [[ ! -z "$PLUTUS_ROOT" ]]; then
         echo "copying machine information to $PLUTUS_ROOT/deployment/morph"
@@ -190,6 +190,13 @@ let
       ln -s ${terraform-vars env region}/* "$tmp_dir"
       cd "$tmp_dir"
 
+      echo "deleting S3 buckets"
+      aws s3 rm s3://marlowe-playground-website-${env} --recursive
+      aws s3 rm s3://plutus-playground-website-${env} --recursive
+
+      echo "set output directory"
+      export TF_VAR_output_path="$tmp_dir"
+
       echo "apply terraform"
       export TF_VAR_marlowe_github_client_id=$(pass ${env}/marlowe/githubClientId)
       export TF_VAR_marlowe_github_client_secret=$(pass ${env}/marlowe/githubClientSecret)
@@ -211,6 +218,7 @@ let
     david = { name = "david.smith.gpg"; id = "97AC81FA54660BD539BE34F0B9D7A61EC23259A6"; };
     kris = { name = "kris.jenkins.gpg"; id = "7EE9B7DE0F3CA25DB5B93D88A1ABC88D19C8136C"; };
     pablo = { name = "pablo.lamela.gpg"; id = "52AB1370A5BB41307470F9B05BA76ACFF04A2ACD"; };
+    hernan = { name = "hernan.rajchert.gpg"; id = "AFF6767D33EFF77D519EE6B8C7BBC002683C8DCB"; };
   };
 
   /* We store developers public gpg keys in this project so this is a little
@@ -250,11 +258,11 @@ let
   envs = {
     david = mkEnv "david" "eu-west-1" [ keys.david ];
     kris = mkEnv "kris" "eu-west-1" [ keys.kris ];
-    alpha = mkEnv "alpha" "eu-west-2" [ keys.david keys.kris keys.pablo ];
+    alpha = mkEnv "alpha" "eu-west-2" [ keys.david keys.kris keys.pablo keys.hernan ];
     pablo = mkEnv "pablo" "eu-west-3" [ keys.pablo ];
-    playground = mkEnv "playground" "us-west-1" [ keys.david keys.kris keys.pablo ];
-    wyohack = mkEnv "wyohack" "us-west-2" [ keys.david keys.kris keys.pablo ];
-    testing = mkEnv "testing" "eu-west-3" [ keys.david keys.kris keys.pablo ];
+    playground = mkEnv "playground" "us-west-1" [ keys.david keys.kris keys.pablo keys.hernan ];
+    testing = mkEnv "testing" "eu-west-3" [ keys.david keys.kris keys.pablo keys.hernan ];
+    hernan = mkEnv "hernan" "us-west-2" [ keys.hernan ];
   };
 
   configTest = import ./morph/test.nix;

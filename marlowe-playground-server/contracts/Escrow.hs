@@ -1,7 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Escrow where
 
-import           Language.Marlowe
+import           Language.Marlowe.Extended
 
 main :: IO ()
 main = print . pretty $ contract
@@ -90,15 +90,16 @@ carolChoice = choice "carol" both
 
 -- the values chosen in choices
 
-aliceChosen, bobChosen :: (Value Observation)
+aliceChosen, bobChosen :: Value
 
 aliceChosen = ChoiceValue (ChoiceId choiceName "alice")
 bobChosen   = ChoiceValue (ChoiceId choiceName "bob")
 
-defValue :: (Value Observation)
+defValue :: Value
 defValue = Constant 42
 
 -- Value under escrow
 
-price :: (Value Observation)
+price :: Value
 price = Constant 450
+

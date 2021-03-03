@@ -33,10 +33,12 @@ module Language.PlutusCore.Constant.Typed
     , HasConstantIn
     , KnownTypeAst (..)
     , KnownType (..)
+    , makeKnownNoEmit
     ) where
 
 import           PlutusPrelude
 
+import           Language.PlutusCore.Constant.Dynamic.Emit
 import           Language.PlutusCore.Core
 import           Language.PlutusCore.Evaluation.Machine.ExBudgeting
 import           Language.PlutusCore.Evaluation.Machine.ExMemory
@@ -341,7 +343,7 @@ class KnownTypeAst (UniOf term) a => KnownType term a where
     -- | Convert a Haskell value to the corresponding PLC term.
     -- The inverse of 'readKnown'.
     makeKnown
-        :: ( MonadError err m, AsEvaluationFailure err
+        :: ( MonadEmitter m, MonadError err m, AsEvaluationFailure err
            )
         => a -> m term
     default makeKnown
@@ -349,9 +351,9 @@ class KnownTypeAst (UniOf term) a => KnownType term a where
            , KnownBuiltinType term a
            )
         => a -> m term
-    -- We need @($!)@, because otherwise Haskell expressions are thrown away rather than being
-    -- evaluated and we use 'unsafePerformIO' for logging, so we want to compute the Haskell value
-    -- just for side effects that the evaluation may cause.
+    -- Forcing the value to avoid space leaks. Note that the value is only forced to WHNF,
+    -- so care must be taken to ensure that every value of a type from the universe gets forced
+    -- to NF whenever it's forced to WHNF.
     makeKnown x = pure . fromConstant . someValue $! x
 
     -- | Convert a PLC term to the corresponding Haskell value.
@@ -367,6 +369,9 @@ class KnownTypeAst (UniOf term) a => KnownType term a where
         => term -> m a
     readKnown = unliftConstant
 
+makeKnownNoEmit :: (KnownType term a, MonadError err m, AsEvaluationFailure err) => a -> m term
+makeKnownNoEmit = unNoEmitterT . makeKnown
+
 instance KnownTypeAst uni a => KnownTypeAst uni (EvaluationResult a) where
     toTypeAst _ = toTypeAst $ Proxy @a
 
@@ -379,9 +384,17 @@ instance (KnownTypeAst (UniOf term) a, KnownType term a) =>
     -- to read a Haskell value of type @a@. Instead, in the denotation of the builtin function
     -- the programmer would be given an explicit 'EvaluationResult' value to handle, which means
     -- that when this value is 'EvaluationFailure', a PLC 'Error' was caught.
-    -- I.e. it would essentially allow to catch errors and handle them in a programmable way.
-    -- We forbid this, because it complicates code and is not supported by evaluation engines anyway.
+    -- I.e. it would essentially allow us to catch errors and handle them in a programmable way.
+    -- We forbid this, because it complicates code and isn't supported by evaluation engines anyway.
     readKnown = throwingWithCause _UnliftingError "Error catching is not supported" . Just
+
+instance KnownTypeAst uni a => KnownTypeAst uni (Emitter a) where
+    toTypeAst _ = toTypeAst $ Proxy @a
+
+instance KnownType term a => KnownType term (Emitter a) where
+    makeKnown = unEmitter >=> makeKnown
+    -- TODO: we really should tear 'KnownType' apart into two separate type classes.
+    readKnown = throwingWithCause _UnliftingError "Can't unlift an 'Emitter'" . Just
 
 toTyNameAst
     :: forall text uniq. (KnownSymbol text, KnownNat uniq)

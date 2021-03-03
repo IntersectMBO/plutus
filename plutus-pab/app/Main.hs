@@ -15,23 +15,24 @@ module Main
 import           Cli
 import           CommandParser
 
-import qualified Cardano.BM.Backend.EKGView      as EKGView
-import qualified Cardano.BM.Configuration.Model  as CM
-import           Cardano.BM.Data.Trace           (Trace)
-import           Cardano.BM.Plugin               (loadPlugin)
-import           Cardano.BM.Setup                (setupTrace_)
-import           Control.Concurrent.Availability (newToken)
-import           Control.Monad                   (when)
-import           Control.Monad.IO.Class          (liftIO)
-import           Control.Monad.Logger            (runStdoutLoggingT)
-import           Data.Foldable                   (for_)
-import           Data.Yaml                       (decodeFileThrow)
-import           Plutus.PAB.App                  (monadLoggerTracer, runApp)
-import           Plutus.PAB.Monitoring           (convertLog, defaultConfig, handleLogMsgTrace, loadConfig)
-import           Plutus.PAB.PABLogMsg            (AppMsg (..))
-import           Plutus.PAB.Utils                (logErrorS)
-import           System.Exit                     (ExitCode (ExitFailure), exitSuccess, exitWith)
-
+import qualified Cardano.BM.Backend.EKGView       as EKGView
+import qualified Cardano.BM.Configuration.Model   as CM
+import           Cardano.BM.Data.Trace            (Trace)
+import           Cardano.BM.Plugin                (loadPlugin)
+import           Cardano.BM.Setup                 (setupTrace_)
+import           Control.Concurrent.Availability  (newToken)
+import           Control.Monad                    (when)
+import           Control.Monad.IO.Class           (liftIO)
+import           Control.Monad.Logger             (logErrorN, runStdoutLoggingT)
+import           Data.Foldable                    (for_)
+import           Data.Text.Extras                 (tshow)
+import           Data.Yaml                        (decodeFileThrow)
+import           Plutus.PAB.App                   (runApp)
+import           Plutus.PAB.Monitoring.Config     (defaultConfig, loadConfig)
+import           Plutus.PAB.Monitoring.Monitoring (monadLoggerTracer)
+import           Plutus.PAB.Monitoring.PABLogMsg  (AppMsg (..))
+import           Plutus.PAB.Monitoring.Util       (convertLog, handleLogMsgTrace)
+import           System.Exit                      (ExitCode (ExitFailure), exitSuccess, exitWith)
 
 main :: IO ()
 main = do
@@ -56,7 +57,7 @@ main = do
         where
 
             handleError err = do
-                runStdoutLoggingT $ logErrorS err
+                runStdoutLoggingT $ (logErrorN . tshow) err
                 exitWith (ExitFailure 1)
 
             executePABCommand t logConfig config availability cmd = runApp (convertLog PABMsg t) logConfig config
