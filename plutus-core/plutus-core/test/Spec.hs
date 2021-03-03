@@ -41,10 +41,10 @@ import           Test.Tasty.Hedgehog
 
 main :: IO ()
 main = do
-    plcFiles <- findByExtension [".plc"] "test/data"
-    rwFiles <- findByExtension [".plc"] "test/scopes"
-    typeFiles <- findByExtension [".plc"] "test/types"
-    typeErrorFiles <- findByExtension [".plc"] "test/type-errors"
+    plcFiles <- findByExtension [".plc"] "plutus-core/test/data"
+    rwFiles <- findByExtension [".plc"] "plutus-core/test/scopes"
+    typeFiles <- findByExtension [".plc"] "plutus-core/test/types"
+    typeErrorFiles <- findByExtension [".plc"] "plutus-core/test/type-errors"
     defaultMain (allTests plcFiles rwFiles typeFiles typeErrorFiles)
 
 compareName :: Name -> Name -> Bool
