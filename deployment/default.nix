@@ -21,15 +21,6 @@ let
             | awk '{printf("export AWS_ACCESS_KEY_ID=%s\nexport AWS_SECRET_ACCESS_KEY=\"%s\"\nexport AWS_SESSION_TOKEN=\"%s\"\n",$2,$4,$5)}'
   '';
 
-  terraform-vars = env: region:
-    writeTextFile {
-      name = "terraform-vars";
-      destination = "/${env}.tfvars";
-      text = ''
-        env="${env}"
-        aws_region="${region}"'';
-    };
-
   refreshTerraform = env: region:
     writeShellScript "refresh" ''
       set -eou pipefail
@@ -42,7 +33,6 @@ let
       # in case we have some tfvars around in ./terraform (note: don't use "" as it stops wildcards from working)
       rm $tmp_dir/*.tfvars || true
 
-      ln -s ${terraform-vars env region}/* "$tmp_dir"
       cd "$tmp_dir"
 
       echo "set output directory"
@@ -63,10 +53,14 @@ let
       export TF_VAR_plutus_github_client_secret
       export TF_VAR_plutus_jwt_signature
 
+      # other terraform variables
+      export TF_VAR_env="${env}"
+      export TF_VAR_aws_region="${region}"
+
       echo "refresh terraform"
       ${terraform}/bin/terraform init
       ${terraform}/bin/terraform workspace select ${env}
-      ${terraform}/bin/terraform refresh -var-file=${env}.tfvars
+      ${terraform}/bin/terraform refresh
     '';
 
   applyTerraform = env: region:
@@ -81,7 +75,6 @@ let
       # in case we have some tfvars around in ./terraform (note: don't use "" as it stops wildcards from working)
       rm $tmp_dir/*.tfvars || true
 
-      ln -s ${terraform-vars env region}/* "$tmp_dir"
       cd "$tmp_dir"
 
       echo "set output directory"
@@ -102,10 +95,14 @@ let
       export TF_VAR_plutus_github_client_secret
       export TF_VAR_plutus_jwt_signature
 
+      # other terraform variables
+      export TF_VAR_env="${env}"
+      export TF_VAR_aws_region="${region}"
+
       echo "apply terraform"
       ${terraform}/bin/terraform init
       ${terraform}/bin/terraform workspace select ${env} || ${terraform}/bin/terraform workspace new ${env}
-      ${terraform}/bin/terraform apply -var-file=${env}.tfvars
+      ${terraform}/bin/terraform apply
 
       region=$(${terraform}/bin/terraform output region)
 
@@ -161,7 +158,6 @@ let
       # in case we have some tfvars around in ./terraform
       rm $tmp_dir/*.tfvars || true
 
-      ln -s ${terraform-vars env region}/* "$tmp_dir"
       cd "$tmp_dir"
 
       echo "set output directory"
@@ -174,9 +170,14 @@ let
       export TF_VAR_plutus_github_client_id=$(pass ${env}/plutus/githubClientId)
       export TF_VAR_plutus_github_client_secret=$(pass ${env}/plutus/githubClientSecret)
       export TF_VAR_plutus_jwt_signature=$(pass ${env}/plutus/jwtSignature)
+
+      # other terraform variables
+      export TF_VAR_env="${env}"
+      export TF_VAR_aws_region="${region}"
+
       ${terraform}/bin/terraform init
       ${terraform}/bin/terraform workspace select ${env}
-      ${terraform}/bin/terraform destroy -var-file=${env}.tfvars
+      ${terraform}/bin/terraform destroy
     '';
 
   /* The set of all gpg keys that can be used by pass
@@ -216,8 +217,7 @@ let
     '';
 
   mkEnv = env: region: keyNames: {
-    inherit terraform-vars terraform;
-    syncS3 = (syncS3 env region);
+    inherit terraform;
     applyTerraform = (applyTerraform env region);
     refreshTerraform = (refreshTerraform env region);
     deploy = (deploy env region);
