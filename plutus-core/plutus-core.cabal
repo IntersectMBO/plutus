@@ -362,7 +362,7 @@ test-suite untyped-plutus-core-test
 executable plc
     import: lang
     main-is: Main.hs
-    hs-source-dirs: exe
+    hs-source-dirs: plc
     build-depends:
         base <5,
         bytestring -any,
