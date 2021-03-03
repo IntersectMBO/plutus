@@ -38,28 +38,28 @@ import           Language.R
 -- The names of the models in R
 costModelNames :: CostModelBase (Const Text)
 costModelNames = CostModel
-  { paramAddInteger = "addIntegerModel"
-  , paramSubtractInteger = "subtractIntegerModel"
-  , paramMultiplyInteger = "multiplyIntegerModel"
-  , paramDivideInteger = "divideIntegerModel"
-  , paramQuotientInteger = "quotientIntegerModel"
-  , paramRemainderInteger = "remainderIntegerModel"
-  , paramModInteger = "modIntegerModel"
-  , paramLessThanInteger = "lessThanIntegerModel"
-  , paramLessThanEqInteger = "lessThanEqIntegerModel"
-  , paramGreaterThanInteger = "greaterThanIntegerModel"
+  { paramAddInteger           = "addIntegerModel"
+  , paramSubtractInteger      = "subtractIntegerModel"
+  , paramMultiplyInteger      = "multiplyIntegerModel"
+  , paramDivideInteger        = "divideIntegerModel"
+  , paramQuotientInteger      = "quotientIntegerModel"
+  , paramRemainderInteger     = "remainderIntegerModel"
+  , paramModInteger           = "modIntegerModel"
+  , paramLessThanInteger      = "lessThanIntegerModel"
+  , paramLessThanEqInteger    = "lessThanEqIntegerModel"
+  , paramGreaterThanInteger   = "greaterThanIntegerModel"
   , paramGreaterThanEqInteger = "greaterThanEqIntegerModel"
-  , paramEqInteger = "eqIntegerModel"
-  , paramConcatenate = "concatenateModel"
-  , paramTakeByteString = "takeByteStringModel"
-  , paramDropByteString = "dropByteStringModel"
-  , paramSHA2 = "sHA2Model"
-  , paramSHA3 = "sHA3Model"
-  , paramVerifySignature = "verifySignatureModel"
-  , paramEqByteString = "eqByteStringModel"
-  , paramLtByteString = "ltByteStringModel"
-  , paramGtByteString = "gtByteStringModel"
-  , paramIfThenElse = "ifThenElseModel"
+  , paramEqInteger            = "eqIntegerModel"
+  , paramConcatenate          = "concatenateModel"
+  , paramTakeByteString       = "takeByteStringModel"
+  , paramDropByteString       = "dropByteStringModel"
+  , paramSHA2                 = "sHA2Model"
+  , paramSHA3                 = "sHA3Model"
+  , paramVerifySignature      = "verifySignatureModel"
+  , paramEqByteString         = "eqByteStringModel"
+  , paramLtByteString         = "ltByteStringModel"
+  , paramGtByteString         = "gtByteStringModel"
+  , paramIfThenElse           = "ifThenElseModel"
   }
 
 -- Loads the models from R
@@ -78,29 +78,29 @@ createCostModel =
   withEmbeddedR defaultConfig $ runRegion $ do
     models <- costModelsR
     -- TODO: refactor with barbies
-    let f x y = x (getConst $ y models)
-    paramAddInteger           <- f addInteger           paramAddInteger
-    paramSubtractInteger      <- f subtractInteger      paramSubtractInteger
-    paramMultiplyInteger      <- f multiplyInteger      paramMultiplyInteger
-    paramDivideInteger        <- f divideInteger        paramDivideInteger
-    paramQuotientInteger      <- f quotientInteger      paramQuotientInteger
-    paramRemainderInteger     <- f remainderInteger     paramRemainderInteger
-    paramModInteger           <- f modInteger           paramModInteger
-    paramLessThanInteger      <- f lessThanInteger      paramLessThanInteger
-    paramGreaterThanInteger   <- f greaterThanInteger   paramGreaterThanInteger
-    paramLessThanEqInteger    <- f lessThanEqInteger    paramLessThanEqInteger
-    paramGreaterThanEqInteger <- f greaterThanEqInteger paramGreaterThanEqInteger
-    paramEqInteger            <- f eqInteger            paramEqInteger
-    paramConcatenate          <- f concatenate          paramConcatenate
-    paramTakeByteString       <- f takeByteString       paramTakeByteString
-    paramDropByteString       <- f dropByteString       paramDropByteString
-    paramSHA2                 <- f sHA2                 paramSHA2
-    paramSHA3                 <- f sHA3                 paramSHA3
-    paramVerifySignature      <- f verifySignature      paramVerifySignature
-    paramEqByteString         <- f eqByteString         paramEqByteString
-    paramLtByteString         <- f ltByteString         paramLtByteString
-    paramGtByteString         <- f gtByteString         paramGtByteString
-    paramIfThenElse           <- f ifThenElse           paramIfThenElse
+    let getParams x y = x (getConst $ y models)
+    paramAddInteger           <- getParams addInteger           paramAddInteger
+    paramSubtractInteger      <- getParams subtractInteger      paramSubtractInteger
+    paramMultiplyInteger      <- getParams multiplyInteger      paramMultiplyInteger
+    paramDivideInteger        <- getParams divideInteger        paramDivideInteger
+    paramQuotientInteger      <- getParams quotientInteger      paramQuotientInteger
+    paramRemainderInteger     <- getParams remainderInteger     paramRemainderInteger
+    paramModInteger           <- getParams modInteger           paramModInteger
+    paramLessThanInteger      <- getParams lessThanInteger      paramLessThanInteger
+    paramGreaterThanInteger   <- getParams greaterThanInteger   paramGreaterThanInteger
+    paramLessThanEqInteger    <- getParams lessThanEqInteger    paramLessThanEqInteger
+    paramGreaterThanEqInteger <- getParams greaterThanEqInteger paramGreaterThanEqInteger
+    paramEqInteger            <- getParams eqInteger            paramEqInteger
+    paramConcatenate          <- getParams concatenate          paramConcatenate
+    paramTakeByteString       <- getParams takeByteString       paramTakeByteString
+    paramDropByteString       <- getParams dropByteString       paramDropByteString
+    paramSHA2                 <- getParams sHA2                 paramSHA2
+    paramSHA3                 <- getParams sHA3                 paramSHA3
+    paramVerifySignature      <- getParams verifySignature      paramVerifySignature
+    paramEqByteString         <- getParams eqByteString         paramEqByteString
+    paramLtByteString         <- getParams ltByteString         paramLtByteString
+    paramGtByteString         <- getParams gtByteString         paramGtByteString
+    paramIfThenElse           <- getParams ifThenElse           paramIfThenElse
 
     pure $ CostModel {..}
 
@@ -139,7 +139,7 @@ unsafeReadModelFromR formula rmodel = do
         model <- Data.Csv.decode HasHeader $ BSL.fromStrict $ T.encodeUtf8 $ (fromSomeSEXP j :: Text)
         intercept <- linearModelRawEstimate <$> findInRaw "(Intercept)" model
         slope <- linearModelRawEstimate <$> findInRaw formula model
-        pure $ (max intercept 0, slope)
+        pure $ (intercept, slope)
   case m of
     Left err -> throwM (TypeError err)
     Right x  -> pure x
@@ -153,7 +153,7 @@ unsafeReadModelFromR2 formula1 formula2 rmodel = do
         intercept <- linearModelRawEstimate <$> findInRaw "(Intercept)" model
         slope1 <- linearModelRawEstimate <$> findInRaw formula1 model
         slope2 <- linearModelRawEstimate <$> findInRaw formula2 model
-        pure $ (max intercept 0, slope1, slope2)
+        pure $ (intercept, slope1, slope2)
   case m of
     Left err -> throwM (TypeError err)
     Right x  -> pure x
