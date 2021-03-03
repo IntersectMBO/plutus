@@ -13,8 +13,8 @@ resource "aws_security_group" "marlowe_dash" {
   ## inbound (world): http
 
   ingress {
-    from_port   = 8080
-    to_port     = 8080
+    from_port   = local.pab_port
+    to_port     = local.pab_port
     protocol    = "TCP"
     cidr_blocks = concat(var.public_subnet_cidrs, var.private_subnet_cidrs)
   }
@@ -46,16 +46,16 @@ data "template_file" "marlowe_dash_user_data" {
   template = file("${path.module}/templates/default_configuration.nix")
 
   vars = {
-    root_ssh_keys      = join(" ", formatlist("\"%s\"", local.root_ssh_keys))
+    root_ssh_keys = join(" ", formatlist("\"%s\"", local.root_ssh_keys))
   }
 }
 
 resource "aws_instance" "marlowe_dash_a" {
   ami = module.nixos_image.ami
 
-  instance_type        = var.marlowe_dash_instance_type
-  subnet_id            = aws_subnet.private.*.id[0]
-  user_data            = data.template_file.marlowe_dash_user_data.rendered
+  instance_type = var.marlowe_dash_instance_type
+  subnet_id     = aws_subnet.private.*.id[0]
+  user_data     = data.template_file.marlowe_dash_user_data.rendered
 
   vpc_security_group_ids = [
     aws_security_group.marlowe_dash.id,
@@ -83,9 +83,9 @@ resource "aws_route53_record" "marlowe_dash_internal_a" {
 resource "aws_instance" "marlowe_dash_b" {
   ami = module.nixos_image.ami
 
-  instance_type        = var.marlowe_dash_instance_type
-  subnet_id            = aws_subnet.private.*.id[1]
-  user_data            = data.template_file.marlowe_dash_user_data.rendered
+  instance_type = var.marlowe_dash_instance_type
+  subnet_id     = aws_subnet.private.*.id[1]
+  user_data     = data.template_file.marlowe_dash_user_data.rendered
 
   vpc_security_group_ids = [
     aws_security_group.marlowe_dash.id,

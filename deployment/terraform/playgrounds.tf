@@ -1,8 +1,9 @@
 # Security Group
-resource "aws_security_group" "webghc" {
+resource "aws_security_group" "playgrounds" {
   vpc_id = aws_vpc.plutus.id
-  name   = "${local.project}_${var.env}_webghc"
+  name   = "${local.project}_${var.env}_playgrounds"
 
+  ## inbound (bastion hosts): ssh
   ingress {
     from_port   = 22
     to_port     = 22
@@ -19,7 +20,6 @@ resource "aws_security_group" "webghc" {
     cidr_blocks = concat(var.public_subnet_cidrs, var.private_subnet_cidrs)
   }
 
-  # prometheus node exporter
   ingress {
     from_port   = local.node_exporter_port
     to_port     = local.node_exporter_port
@@ -28,10 +28,17 @@ resource "aws_security_group" "webghc" {
   }
 
   ingress {
-    from_port   = local.webghc_exporter_port
-    to_port     = local.webghc_exporter_port
+    from_port   = local.plutus_playground_port
+    to_port     = local.plutus_playground_port
     protocol    = "TCP"
-    cidr_blocks = var.private_subnet_cidrs
+    cidr_blocks = concat(var.public_subnet_cidrs, var.private_subnet_cidrs)
+  }
+
+  ingress {
+    from_port   = local.marlowe_playground_port
+    to_port     = local.marlowe_playground_port
+    protocol    = "TCP"
+    cidr_blocks = concat(var.public_subnet_cidrs, var.private_subnet_cidrs)
   }
 
   ## outgoing: all
@@ -43,13 +50,13 @@ resource "aws_security_group" "webghc" {
   }
 
   tags = {
-    Name        = "${local.project}_${var.env}_webghc"
+    Name        = "${local.project}_${var.env}_playgrounds"
     Project     = local.project
     Environment = var.env
   }
 }
 
-data "template_file" "webghc_user_data" {
+data "template_file" "playgrounds_user_data" {
   template = file("${path.module}/templates/default_configuration.nix")
 
   vars = {
@@ -57,15 +64,15 @@ data "template_file" "webghc_user_data" {
   }
 }
 
-resource "aws_instance" "webghc_a" {
+resource "aws_instance" "playgrounds_a" {
   ami = module.nixos_image.ami
 
-  instance_type = var.webghc_instance_type
+  instance_type = var.playgrounds_instance_type
   subnet_id     = aws_subnet.private.*.id[0]
-  user_data     = data.template_file.webghc_user_data.rendered
+  user_data     = data.template_file.playgrounds_user_data.rendered
 
   vpc_security_group_ids = [
-    aws_security_group.webghc.id,
+    aws_security_group.playgrounds.id,
   ]
 
   root_block_device {
@@ -73,29 +80,29 @@ resource "aws_instance" "webghc_a" {
   }
 
   tags = {
-    Name        = "${local.project}_${var.env}_webghc_a"
+    Name        = "${local.project}_${var.env}_playgrounds_a"
     Project     = local.project
     Environment = var.env
   }
 }
 
-resource "aws_route53_record" "webghc_internal_a" {
+resource "aws_route53_record" "playgrounds_internal_a" {
   zone_id = aws_route53_zone.plutus_private_zone.zone_id
   type    = "A"
-  name    = "webghc-a.${aws_route53_zone.plutus_private_zone.name}"
+  name    = "playgrounds-a.${aws_route53_zone.plutus_private_zone.name}"
   ttl     = 300
-  records = [aws_instance.webghc_a.private_ip]
+  records = [aws_instance.playgrounds_a.private_ip]
 }
 
-resource "aws_instance" "webghc_b" {
+resource "aws_instance" "playgrounds_b" {
   ami = module.nixos_image.ami
 
-  instance_type = var.webghc_instance_type
+  instance_type = var.playgrounds_instance_type
   subnet_id     = aws_subnet.private.*.id[1]
-  user_data     = data.template_file.webghc_user_data.rendered
+  user_data     = data.template_file.playgrounds_user_data.rendered
 
   vpc_security_group_ids = [
-    aws_security_group.webghc.id,
+    aws_security_group.playgrounds.id,
   ]
 
   root_block_device {
@@ -103,16 +110,16 @@ resource "aws_instance" "webghc_b" {
   }
 
   tags = {
-    Name        = "${local.project}_${var.env}_webghc_b"
+    Name        = "${local.project}_${var.env}_playgrounds_b"
     Project     = local.project
     Environment = var.env
   }
 }
 
-resource "aws_route53_record" "webghc_internal_b" {
+resource "aws_route53_record" "playgrounds_internal_b" {
   zone_id = aws_route53_zone.plutus_private_zone.zone_id
   type    = "A"
-  name    = "webghc-b.${aws_route53_zone.plutus_private_zone.name}"
+  name    = "playgrounds-b.${aws_route53_zone.plutus_private_zone.name}"
   ttl     = 300
-  records = [aws_instance.webghc_b.private_ip]
+  records = [aws_instance.playgrounds_b.private_ip]
 }

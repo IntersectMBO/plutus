@@ -11,7 +11,6 @@
 , config ? { allowUnfreePredicate = (import ./lib.nix).unfreePredicate; }
   # Overrides for niv
 , sourcesOverride ? { }
-  # { pkgs pkgsMusl plutus }
 , packages ? import ./nix { inherit system crossSystem config sourcesOverride rev checkMaterialization enableHaskellProfiling; }
   # An explicit git rev to use, passed when we are in Hydra
 , rev ? null
@@ -22,13 +21,13 @@
 , enableHaskellProfiling ? false
 }:
 let
-  inherit (packages) pkgs plutus pkgsMusl;
+  inherit (packages) pkgs plutus;
   inherit (pkgs) lib haskell-nix;
   inherit (plutus) haskell iohkNix git-rev set-git-rev agdaPackages;
   inherit (plutus) easyPS sphinxcontrib-haddock;
 in
 rec {
-  inherit pkgs plutus pkgsMusl;
+  inherit pkgs plutus;
 
   inherit (plutus) web-ghc;
 
@@ -72,18 +71,6 @@ rec {
     }) client server-invoker generated-purescript generate-purescript;
   };
 
-  marlowe-symbolic-lambda = pkgsMusl.callPackage ./marlowe-symbolic/lambda.nix {
-    inherit (haskell.muslProject) ghcWithPackages;
-  };
-
-  marlowe-playground-lambda = pkgsMusl.callPackage ./marlowe-playground-server/lambda.nix {
-    inherit (haskell.muslProject) ghcWithPackages;
-  };
-
-  plutus-playground-lambda = pkgsMusl.callPackage ./plutus-playground-server/lambda.nix {
-    inherit (haskell.muslProject) ghcWithPackages;
-  };
-
   plutus-pab = pkgs.recurseIntoAttrs (pkgs.callPackage ./plutus-pab-client {
     inherit (plutus.lib) buildPursPackage buildNodeModules gitignore-nix filterNpm;
     inherit set-git-rev haskell webCommon webCommonPlutus;
@@ -98,7 +85,7 @@ rec {
   docs = import ./nix/docs.nix { inherit pkgs plutus; };
 
   deployment = pkgs.callPackage ./deployment {
-    inherit plutus marlowe-playground plutus-playground marlowe-symbolic-lambda marlowe-playground-lambda plutus-playground-lambda;
+    inherit plutus marlowe-playground plutus-playground;
   };
 
   docker = import ./nix/docker.nix {

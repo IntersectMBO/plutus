@@ -133,8 +133,8 @@ data "template_file" "bastion_user_data" {
 
 resource "aws_instance" "bastion" {
   count                       = length(var.azs)
-  ami                         = lookup(var.aws_amis, var.aws_region)
-  instance_type               = "t2.nano"
+  ami                         = module.nixos_image.ami
+  instance_type               = var.bastion_instance_type
   associate_public_ip_address = true
   user_data                   = data.template_file.bastion_user_data.rendered
   source_dest_check           = false
@@ -221,7 +221,7 @@ resource "aws_route53_zone" "plutus_private_zone" {
   vpc {
     vpc_id = aws_vpc.plutus.id
   }
-  name   = "internal.${var.env}.${var.plutus_tld}"
+  name = "internal.${var.env}.${var.plutus_tld}"
 
   tags = {
     Name        = "${local.project}_${var.env}"

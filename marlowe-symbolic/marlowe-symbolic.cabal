@@ -10,15 +10,12 @@ cabal-version:          >= 1.10
 
 library
     exposed-modules:
-        Marlowe.Symbolic.Lambda
         Marlowe.Symbolic.Server
         Marlowe.Symbolic.Types.Request
         Marlowe.Symbolic.Types.Response
     hs-source-dirs: src
     default-language: Haskell2010
     build-depends:      aeson -any,
-                        aws-lambda-haskell-runtime -any,
-                        aws-lambda-haskell-runtime-wai -any,
                         base >=4.9,
                         deriving-aeson -any,
                         http-client,

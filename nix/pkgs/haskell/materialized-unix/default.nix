@@ -59,7 +59,6 @@
         "formatting".revision = (((hackage."formatting")."7.1.1").revisions).default;
         "pipes".revision = (((hackage."pipes")."4.3.15").revisions).default;
         "deriving-aeson".revision = (((hackage."deriving-aeson")."0.2.6.1").revisions).default;
-        "aws-lambda-haskell-runtime".revision = (((hackage."aws-lambda-haskell-runtime")."3.0.3").revisions).default;
         "ghc-prim".revision = (((hackage."ghc-prim")."0.6.1").revisions).default;
         "eventful-memory".revision = (((hackage."eventful-memory")."0.2.0").revisions).default;
         "utf8-string".revision = (((hackage."utf8-string")."1.0.2").revisions).default;
@@ -425,7 +424,6 @@
         "testing-type-modifiers".revision = (((hackage."testing-type-modifiers")."0.1.0.1").revisions).default;
         "base58-bytestring".revision = (((hackage."base58-bytestring")."0.1.0").revisions).default;
         "StateVar".revision = (((hackage."StateVar")."1.2.1").revisions).default;
-        "safe-exceptions-checked".revision = (((hackage."safe-exceptions-checked")."0.1.0").revisions).default;
         "typed-process".revision = (((hackage."typed-process")."0.2.6.0").revisions).default;
         "vault".revision = (((hackage."vault")."0.3.1.5").revisions).default;
         "vault".flags.useghc = true;
@@ -451,15 +449,12 @@
         "prometheus".revision = (((hackage."prometheus")."2.2.2").revisions).default;
         "rate-limit".revision = (((hackage."rate-limit")."1.4.2").revisions).default;
         "type-equality".revision = (((hackage."type-equality")."1").revisions).default;
-        "aws-lambda-haskell-runtime-wai".revision = (((hackage."aws-lambda-haskell-runtime-wai")."1.0.2").revisions).default;
         "indexed-traversable".revision = (((hackage."indexed-traversable")."0.1.1").revisions).default;
         "optics-extra".revision = (((hackage."optics-extra")."0.3").revisions).default;
         "freer-simple".revision = (((hackage."freer-simple")."1.2.1.1").revisions).default;
         "parser-combinators".revision = (((hackage."parser-combinators")."1.3.0").revisions).default;
         "parser-combinators".flags.dev = false;
         "blaze-markup".revision = (((hackage."blaze-markup")."0.8.2.7").revisions).default;
-        "path".revision = (((hackage."path")."0.8.0").revisions).default;
-        "path".flags.dev = false;
         "eventful-core".revision = (((hackage."eventful-core")."0.2.0").revisions).default;
         "tasty-golden".revision = (((hackage."tasty-golden")."2.3.4").revisions).default;
         "tasty-golden".flags.build-example = false;
@@ -585,8 +580,6 @@
         "tls".flags.hans = false;
         "kan-extensions".revision = (((hackage."kan-extensions")."5.2.2").revisions).default;
         "nonempty-vector".revision = (((hackage."nonempty-vector")."0.2.1.0").revisions).default;
-        "path-io".revision = (((hackage."path-io")."1.6.2").revisions).default;
-        "path-io".flags.dev = false;
         "wai-logger".revision = (((hackage."wai-logger")."2.3.6").revisions).default;
         "th-lift".revision = (((hackage."th-lift")."0.8.2").revisions).default;
         "microlens-mtl".revision = (((hackage."microlens-mtl")."0.2.0.1").revisions).default;

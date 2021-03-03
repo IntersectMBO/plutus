@@ -34,8 +34,6 @@
       "library" = {
         depends = [
           (hsPkgs."aeson" or (errorHandler.buildDepError "aeson"))
-          (hsPkgs."aws-lambda-haskell-runtime" or (errorHandler.buildDepError "aws-lambda-haskell-runtime"))
-          (hsPkgs."aws-lambda-haskell-runtime-wai" or (errorHandler.buildDepError "aws-lambda-haskell-runtime-wai"))
           (hsPkgs."base" or (errorHandler.buildDepError "base"))
           (hsPkgs."deriving-aeson" or (errorHandler.buildDepError "deriving-aeson"))
           (hsPkgs."http-client" or (errorHandler.buildDepError "http-client"))
@@ -55,7 +53,6 @@
           ];
         buildable = true;
         modules = [
-          "Marlowe/Symbolic/Lambda"
           "Marlowe/Symbolic/Server"
           "Marlowe/Symbolic/Types/Request"
           "Marlowe/Symbolic/Types/Response"

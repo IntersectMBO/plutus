@@ -19,7 +19,6 @@ library
     exposed-modules:
         Server
         API
-        Lambda
         Marlowe.Contracts
         Marlowe.Config
     -- Include 'contracts' so haskell.nix knows to include the files that we embed with TH
@@ -37,8 +36,6 @@ library
         directory -any,
         exceptions -any,
         file-embed -any,
-        aws-lambda-haskell-runtime -any,
-        aws-lambda-haskell-runtime-wai -any,
         filepath -any,
         http-client -any,
         http-client-tls -any,

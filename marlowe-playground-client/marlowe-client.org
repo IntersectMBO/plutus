@@ -1,0 +1,10 @@
+#+TITLE: Marlowe Client
+* TODO fix account editor layout
+* DONE change account id values
+* DONE fill in constants when running contract
+* DONE fix no refactorings without hole
+* DONE remove displayRefactoring thing
+* TODO only do certain things for direction keys
+* DONE rename Hole module
+* TODO maintain accountIds when applying transactions
+* TODO keep accountIds state

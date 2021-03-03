@@ -18,26 +18,25 @@ let
     nodeExporter = 9100;
     webGhcExporter = 9091;
     pab-webserver = 8080;
+    plutus-playground-webserver = 8080;
+    marlowe-playground-webserver = 9080;
   };
   options = { inherit stdOverlays machines nixpkgsLocation ports; };
   monitoringKeys = machines.monitoringSshKeys;
   defaultMachine = (import ./default-machine.nix) options;
   web-ghc = plutus.web-ghc;
   webGhcMachine = import ./webghc.nix;
-  marloweDash = plutus.marlowe-dashboard;
-  marloweDashMachine = import ./marlowe-dash.nix;
   prometheusMachine = import ./prometheus.nix;
-  plutus-pab = plutus.plutus-pab;
-  marlowe-app = plutus.marlowe-app;
   pabMachine = import ./pab.nix;
+  playgroundsMachine = import ./playgrounds.nix;
 in
 {
   # We partially apply mkInstance, it also expects other values like hostName
   # however this means we can add it later on a host-by-host basis while haveing exactly 
   # the same config that we can test separately in Hydra with a fake values
-  marloweDash = marloweDashMachine.mkInstance (options // { inherit defaultMachine marloweDash pkgs; });
   webGhc = webGhcMachine.mkInstance (options // { inherit defaultMachine web-ghc monitoringKeys; });
   prometheus = prometheusMachine.mkInstance (options // { inherit defaultMachine monitoringKeys; });
-  pab = pabMachine.mkInstance (options // { inherit defaultMachine monitoringKeys plutus-pab marlowe-app pkgs;inherit (plutus) marlowe-dashboard; });
+  pab = pabMachine.mkInstance (options // { inherit defaultMachine monitoringKeys pkgs;inherit (plutus) marlowe-dashboard plutus-pab marlowe-app; });
+  playgrounds = playgroundsMachine.mkInstance (options // { inherit defaultMachine monitoringKeys pkgs;inherit (plutus) marlowe-dashboard plutus-playground marlowe-playground; });
   inherit pkgs ports;
 }

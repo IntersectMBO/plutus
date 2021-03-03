@@ -1,6 +1,6 @@
 # Plutus Playground SSL Certificate
 resource "aws_acm_certificate" "plutus_private" {
-  domain_name      = "*.${var.plutus_tld}"
+  domain_name       = "*.${var.plutus_tld}"
   validation_method = "DNS"
 }
 
@@ -29,7 +29,7 @@ resource "aws_acm_certificate_validation" "plutus_private" {
 
 # Marlowe Playground SSL Certificate
 resource "aws_acm_certificate" "marlowe_private" {
-  domain_name      = "*.${var.marlowe_tld}"
+  domain_name       = "*.${var.marlowe_tld}"
   validation_method = "DNS"
 }
 
@@ -57,7 +57,7 @@ resource "aws_acm_certificate_validation" "marlowe_private" {
 
 # Marlowe Dash SSL Certificate
 resource "aws_acm_certificate" "marlowe_dash_private" {
-  domain_name      = "*.${var.marlowe_dash_tld}"
+  domain_name       = "*.${var.marlowe_dash_tld}"
   validation_method = "DNS"
 }
 
@@ -85,7 +85,7 @@ resource "aws_acm_certificate_validation" "marlowe_dash_private" {
 
 # Monitoring SSL Certificate
 resource "aws_acm_certificate" "monitoring_private" {
-  domain_name      = "*.${var.monitoring_tld}"
+  domain_name       = "*.${var.monitoring_tld}"
   validation_method = "DNS"
 }
 

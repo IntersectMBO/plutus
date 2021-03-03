@@ -1,22 +1,8 @@
-{ pkgs, plutus, marlowe-playground, plutus-playground, marlowe-symbolic-lambda, marlowe-playground-lambda, plutus-playground-lambda }:
+{ pkgs, plutus, marlowe-playground, plutus-playground }:
 with pkgs;
 let
   # 20.03 version of terraform is broken on some versions of OSX so I have copied the last 0_12 version from nixpkgs
   terraform = (callPackage ./terraform.nix { }).terraform_0_12;
-
-  # We want to combine clients and tutorials in one directory so that we can sync one folder with S3
-  static = {
-    plutus = pkgs.runCommand "plutus" { } ''
-      mkdir -p $out/tutorial
-      find ${plutus-playground.client} -mindepth 1 -maxdepth 1 -exec ln -s -t $out {} +
-      find ${plutus-playground.tutorial} -mindepth 1 -maxdepth 1 -exec ln -s -t $out/tutorial {} +
-    '';
-    marlowe = pkgs.runCommand "marlowe" { } ''
-      mkdir -p $out/tutorial
-      find ${marlowe-playground.client} -mindepth 1 -maxdepth 1 -exec ln -s -t $out {} +
-      find ${marlowe-playground.tutorial} -mindepth 1 -maxdepth 1 -exec ln -s -t $out/tutorial {} +
-    '';
-  };
 
   # This creates a script that will set AWS env vars by getting a session token based on your user name and MFA
   getCreds = pkgs.writeShellScriptBin "getcreds" ''
@@ -35,39 +21,13 @@ let
             | awk '{printf("export AWS_ACCESS_KEY_ID=%s\nexport AWS_SECRET_ACCESS_KEY=\"%s\"\nexport AWS_SESSION_TOKEN=\"%s\"\n",$2,$4,$5)}'
   '';
 
-  terraform-locals = env:
-    writeTextFile {
-      name = "terraform-locals";
-      destination = "/generated.tf.json";
-      text = (builtins.toJSON {
-        locals = { marlowe_client = "${marlowe-playground.client}"; };
-      });
-    };
+  mkExtraTerraformVars = attrs:
+    let
+      lines = lib.mapAttrsToList (name: value: "export TF_VAR_${name}=${value}") attrs;
+    in
+    lib.concatStringsSep "\n" lines;
 
-  terraform-vars = env: region:
-    writeTextFile {
-      name = "terraform-vars";
-      destination = "/${env}.tfvars";
-      text = ''
-        env="${env}"
-        aws_region="${region}"
-        symbolic_lambda_file="${marlowe-symbolic-lambda}/marlowe-symbolic.zip"
-        playground_lambda_file="${marlowe-playground-lambda}/marlowe-playground-lambda.zip"
-        plutus_playground_lambda_file="${plutus-playground-lambda}/plutus-playground-lambda.zip"'';
-    };
-
-  syncS3 = env: region:
-    writeShellScript "syncs3" ''
-      set -eou pipefail
-
-      export AWS_REGION=${region}
-
-      echo "sync with S3"
-      ${plutus.thorp}/bin/thorp -b marlowe-playground-website-${env} -s ${static.marlowe}
-      ${plutus.thorp}/bin/thorp -b plutus-playground-website-${env} -s ${static.plutus}
-    '';
-
-  refreshTerraform = env: region:
+  refreshTerraform = env: region: { extraTerraformVars ? { } }:
     writeShellScript "refresh" ''
       set -eou pipefail
 
@@ -79,8 +39,6 @@ let
       # in case we have some tfvars around in ./terraform (note: don't use "" as it stops wildcards from working)
       rm $tmp_dir/*.tfvars || true
 
-      ln -s ${terraform-locals env}/* "$tmp_dir"
-      ln -s ${terraform-vars env region}/* "$tmp_dir"
       cd "$tmp_dir"
 
       echo "set output directory"
@@ -101,13 +59,18 @@ let
       export TF_VAR_plutus_github_client_secret
       export TF_VAR_plutus_jwt_signature
 
+      # other terraform variables
+      export TF_VAR_env="${env}"
+      export TF_VAR_aws_region="${region}"
+      ${mkExtraTerraformVars extraTerraformVars}
+
       echo "refresh terraform"
       ${terraform}/bin/terraform init
       ${terraform}/bin/terraform workspace select ${env}
-      ${terraform}/bin/terraform refresh -var-file=${env}.tfvars
+      ${terraform}/bin/terraform refresh
     '';
 
-  applyTerraform = env: region:
+  applyTerraform = env: region: { extraTerraformVars ? { } }:
     writeShellScript "deploy" ''
       set -eou pipefail
 
@@ -119,8 +82,6 @@ let
       # in case we have some tfvars around in ./terraform (note: don't use "" as it stops wildcards from working)
       rm $tmp_dir/*.tfvars || true
 
-      ln -s ${terraform-locals env}/* "$tmp_dir"
-      ln -s ${terraform-vars env region}/* "$tmp_dir"
       cd "$tmp_dir"
 
       echo "set output directory"
@@ -141,20 +102,36 @@ let
       export TF_VAR_plutus_github_client_secret
       export TF_VAR_plutus_jwt_signature
 
+      # other terraform variables
+      export TF_VAR_env="${env}"
+      export TF_VAR_aws_region="${region}"
+      ${mkExtraTerraformVars extraTerraformVars}
+
       echo "apply terraform"
       ${terraform}/bin/terraform init
       ${terraform}/bin/terraform workspace select ${env} || ${terraform}/bin/terraform workspace new ${env}
-      ${terraform}/bin/terraform apply -var-file=${env}.tfvars
-
-      marlowe_api_id=$(${terraform}/bin/terraform output marlowe_rest_api_id)
-      plutus_api_id=$(${terraform}/bin/terraform output plutus_rest_api_id)
-      region=$(${terraform}/bin/terraform output region)
-
-      echo "deploy api"
-      ${awscli}/bin/aws apigateway create-deployment --region "$region" --rest-api-id "$marlowe_api_id" --stage-name ${env}
-      ${awscli}/bin/aws apigateway create-deployment --region "$region" --rest-api-id "$plutus_api_id" --stage-name ${env}
+      ${terraform}/bin/terraform apply
 
       echo "json files created in $tmp_dir"
+
+      plutus_tld=$(cat $tmp_dir/machines.json | jq -r '.plutusTld')
+      cat > $tmp_dir/secrets.plutus.${env}.env <<EOL
+      JWT_SIGNATURE="$(pass ${env}/plutus/jwtSignature)"
+      FRONTEND_URL="https://${env}.$plutus_tld"
+      GITHUB_CALLBACK_PATH="/#/gh-oauth-cb"
+      GITHUB_CLIENT_ID="$(pass ${env}/plutus/githubClientId)"
+      GITHUB_CLIENT_SECRET="$(pass ${env}/plutus/githubClientSecret)"
+      WEBGHC_URL="https://${env}.$plutus_tld"
+      EOL
+
+      marlowe_tld=$(cat $tmp_dir/machines.json | jq -r '.marloweTld')
+      cat > $tmp_dir/secrets.marlowe.${env}.env <<EOL
+      JWT_SIGNATURE="$(pass ${env}/marlowe/jwtSignature)"
+      FRONTEND_URL="https://${env}.$marlowe_tld"
+      GITHUB_CALLBACK_PATH="/#/gh-oauth-cb"
+      GITHUB_CLIENT_ID="$(pass ${env}/marlowe/githubClientId)"
+      GITHUB_CLIENT_SECRET="$(pass ${env}/marlowe/githubClientSecret)"
+      EOL
 
       # This is a nasty way to make deployment with morph easier since I cannot yet find a way to get morph deployments to work
       # from within a nix derivation shell script.
@@ -162,19 +139,24 @@ let
       if [[ ! -z "$PLUTUS_ROOT" ]]; then
         echo "copying machine information to $PLUTUS_ROOT/deployment/morph"
         cp $tmp_dir/machines.json $PLUTUS_ROOT/deployment/morph/
+        cp $tmp_dir/secrets.plutus.${env}.env $PLUTUS_ROOT/deployment/morph/
+        cp $tmp_dir/secrets.marlowe.${env}.env $PLUTUS_ROOT/deployment/morph/
       fi
+
+      # It is important to note that in terraform, a local_file will not be updated if it exists in the location that you define.
+      # Since we are using a temporary working directory, the file will always be re-created.
+      cp $tmp_dir/plutus_playground.${env}.conf ~/.ssh/config.d/
     '';
 
-  deploy = env: region:
+  deploy = env: region: extraParams:
     writeShellScript "deploy" ''
       set -eou pipefail
 
-      ${applyTerraform env region}
-      ${syncS3 env region}
+      ${applyTerraform env region extraParams}
       echo "done"
     '';
 
-  destroy = env: region:
+  destroy = env: region: { extraTerraformVars ? { } }:
     writeShellScript "destroy" ''
       set -eou pipefail
 
@@ -186,13 +168,7 @@ let
       # in case we have some tfvars around in ./terraform
       rm $tmp_dir/*.tfvars || true
 
-      ln -s ${terraform-locals env}/* "$tmp_dir"
-      ln -s ${terraform-vars env region}/* "$tmp_dir"
       cd "$tmp_dir"
-
-      echo "deleting S3 buckets"
-      aws s3 rm s3://marlowe-playground-website-${env} --recursive
-      aws s3 rm s3://plutus-playground-website-${env} --recursive
 
       echo "set output directory"
       export TF_VAR_output_path="$tmp_dir"
@@ -204,9 +180,15 @@ let
       export TF_VAR_plutus_github_client_id=$(pass ${env}/plutus/githubClientId)
       export TF_VAR_plutus_github_client_secret=$(pass ${env}/plutus/githubClientSecret)
       export TF_VAR_plutus_jwt_signature=$(pass ${env}/plutus/jwtSignature)
+
+      # other terraform variables
+      export TF_VAR_env="${env}"
+      export TF_VAR_aws_region="${region}"
+      ${mkExtraTerraformVars extraTerraformVars}
+
       ${terraform}/bin/terraform init
       ${terraform}/bin/terraform workspace select ${env}
-      ${terraform}/bin/terraform destroy -var-file=${env}.tfvars
+      ${terraform}/bin/terraform destroy
     '';
 
   /* The set of all gpg keys that can be used by pass
@@ -245,24 +227,25 @@ let
       pass init -p ${env} ${lib.concatStringsSep " " ids}
     '';
 
-  mkEnv = env: region: keyNames: {
-    inherit terraform-vars terraform-locals terraform;
-    syncS3 = (syncS3 env region);
-    applyTerraform = (applyTerraform env region);
-    refreshTerraform = (refreshTerraform env region);
-    deploy = (deploy env region);
-    destroy = (destroy env region);
+  mkEnv = env: region: keyNames: extraParams: {
+    inherit terraform;
+    applyTerraform = (applyTerraform env region extraParams);
+    refreshTerraform = (refreshTerraform env region extraParams);
+    deploy = (deploy env region extraParams);
+    destroy = (destroy env region extraParams);
     initPass = (initPass env keyNames);
   };
 
   envs = {
-    david = mkEnv "david" "eu-west-1" [ keys.david ];
-    kris = mkEnv "kris" "eu-west-1" [ keys.kris ];
-    alpha = mkEnv "alpha" "eu-west-2" [ keys.david keys.kris keys.pablo keys.hernan ];
-    pablo = mkEnv "pablo" "eu-west-3" [ keys.pablo ];
-    playground = mkEnv "playground" "us-west-1" [ keys.david keys.kris keys.pablo keys.hernan ];
-    testing = mkEnv "testing" "eu-west-3" [ keys.david keys.kris keys.pablo keys.hernan ];
-    hernan = mkEnv "hernan" "us-west-2" [ keys.hernan ];
+    david = mkEnv "david" "sa-east-1" [ keys.david ] {
+      extraTerraformVars = { bastion_instance_type = "t3.small"; };
+    };
+    kris = mkEnv "kris" "eu-west-1" [ keys.kris ] { };
+    alpha = mkEnv "alpha" "eu-west-2" [ keys.david keys.kris keys.pablo keys.hernan ] { };
+    pablo = mkEnv "pablo" "eu-west-3" [ keys.pablo ] { };
+    playground = mkEnv "playground" "us-west-1" [ keys.david keys.kris keys.pablo keys.hernan ] { };
+    testing = mkEnv "testing" "eu-west-3" [ keys.david keys.kris keys.pablo keys.hernan ] { };
+    hernan = mkEnv "hernan" "us-west-2" [ keys.hernan ] { };
   };
 
   configTest = import ./morph/test.nix;

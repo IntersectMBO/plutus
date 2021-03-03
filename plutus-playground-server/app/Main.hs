@@ -13,8 +13,8 @@ import qualified Data.Text              as Text
 import           Git                    (gitRev)
 import           Options.Applicative    (CommandFields, Mod, Parser, argument, auto, command, customExecParser,
                                          disambiguate, fullDesc, help, helper, idm, info, infoOption, long, metavar,
-                                         option, prefs, progDesc, short, showDefault, showHelpOnEmpty, showHelpOnError,
-                                         str, subparser, value)
+                                         option, optional, prefs, progDesc, short, showDefault, showHelpOnEmpty,
+                                         showHelpOnError, str, subparser, value)
 import qualified PSGenerator
 import qualified Webserver
 
@@ -29,15 +29,14 @@ versionOption =
         (Text.unpack gitRev)
         (short 'v' <> long "version" <> help "Show the version")
 
-commandLineParser :: Parser (FilePath, Command)
+commandLineParser :: Parser (Maybe FilePath, Command)
 commandLineParser = (,) <$> configFileParser <*> commandParser
 
-configFileParser :: Parser FilePath
-configFileParser =
+configFileParser :: Parser (Maybe FilePath)
+configFileParser = optional $
     option
         str
-        (long "config" <> metavar "CONFIG_FILE" <> help "Config file location." <>
-         value "playground.yaml")
+        (long "config" <> metavar "CONFIG_FILE" <> help "Config file location.")
 
 commandParser :: Parser Command
 commandParser = subparser $ webserverCommandParser <> psGeneratorCommandParser
@@ -65,9 +64,9 @@ webserverCommandParser =
                  value 8080)
         pure Webserver {..}
 
-runCommand :: MonadIO m => FilePath -> Command -> m ()
-runCommand _ Webserver {..}   = liftIO $ Webserver.run _port
-runCommand _ PSGenerator {..} = liftIO $ PSGenerator.generate _outputDir
+runCommand :: MonadIO m => Maybe FilePath -> Command -> m ()
+runCommand secrets Webserver {..} = liftIO $ Webserver.run _port secrets
+runCommand _ PSGenerator {..}     = liftIO $ PSGenerator.generate _outputDir
 
 main :: IO ()
 main = do
