@@ -148,6 +148,44 @@ close-comp (E l⇒ B) E' A = cong (_⇒ B) (close-comp E E' A)
 close-comp (μr V E) E' A = cong (μ (discharge V)) (close-comp E E' A)
 close-comp (μl E B) E' A = cong (λ E → μ E B) (close-comp E E' A)
 
+open import Data.Sum
+
+-- existence
+existence : (M : ∅ ⊢⋆ K)
+  → Value⋆ M
+  ⊎ Σ Kind λ J →
+    Σ (EvalCtx K J) λ E →
+    Σ Kind λ I → 
+    Σ (∅ ⊢⋆ I ⇒ J)  λ L →
+    Σ (∅ ⊢⋆ I)      λ N →
+      Value⋆ L
+    × Value⋆ N
+    × M ≡ closeEvalCtx E (L · N)
+existence (Π M)    = inj₁ (V-Π M)
+existence (M ⇒ M') with existence M
+... | inj₂ (J , E , I , L , N , VL , VN , p) =
+  inj₂ (J , E l⇒ M' , I , L , N , VL , VN , cong (_⇒ M') p)
+... | inj₁ VM with existence M'
+... | inj₂ (J , E , I , L , N , VL , VN , p) =
+  inj₂ (J , VM ⇒r E , I , L , N , VL , VN , cong (M ⇒_) p)
+... | inj₁ VM' = inj₁ (VM V-⇒ VM')
+existence (ƛ M)    = inj₁ (V-ƛ M)
+existence (M · M') with existence M
+... | inj₂ (J , E , I , L , N , VL , VN , p) =
+  inj₂ (J , E l· M' , I , L , N , VL , VN , cong (_· M') p)
+... | inj₁ VM with existence M'
+... | inj₂ (J , E , I , L , N , VL , VN , p) =
+  inj₂ (J , VM ·r E , I , L , N , VL , VN , cong (M ·_) p)
+... | inj₁ VM' = inj₂ (_ , [] , _ , M , M' , VM , VM' , refl)
+existence (μ M M')  with existence M
+... | inj₂ (J , E , I , L , N , VL , VN , p) =
+  inj₂ (J , μl E M' , I , L , N , VL , VN , cong (λ M → μ M M') p)
+... | inj₁ VM with existence M'
+... | inj₂ (J , E , I , L , N , VL , VN , p) =
+  inj₂ (J , μr VM E , I , L , N , VL , VN , cong (μ M) p)
+... | inj₁ VM' = inj₁ (V-μ VM VM')
+existence (con c)  = inj₁ (V-con c)
+
 -- an inductive version of the graph of closeEvalCtx
 data _~_⟦_⟧ : ∅ ⊢⋆ K → EvalCtx K J → ∅ ⊢⋆ J → Set where
   ~[] : (P : ∅ ⊢⋆ K) → P ~ [] ⟦ P ⟧
