@@ -6,7 +6,7 @@ import           Language.PlutusCore.Evaluation.Machine.ExBudgeting
 
 defaultCostModel :: CostModel
 defaultCostModel =
-  $$(readJSONFromFile "src/costModel.json")
+  $$(readJSONFromFile "plutus-core/src/costModel.json")
 
 -- Use this one when you've changed the type of `CostModel` and you can't load the json.
 -- Then rerun

@@ -15,11 +15,20 @@ cradle:
     - path: "doc/tutorials/BasicApps.hs"
       component: "plutus-doc:exe:doc-doctests"
 
+    - path: "doc/tutorials/HelloWorldApp.hs"
+      component: "plutus-doc:exe:doc-doctests"
+
+    - path: "freer-extras/src"
+      component: "lib:freer-extras"
+
     - path: "marlowe/src"
       component: "lib:marlowe"
 
     - path: "marlowe/test"
       component: "marlowe:test:marlowe-test"
+
+    - path: "marlowe/app/Main.hs"
+      component: "marlowe:exe:marlowe-app"
 
     - path: "marlowe-actus/src"
       component: "lib:marlowe-actus"
@@ -345,7 +354,21 @@ cradle:
     - path: "marlowe-actus/test"
       component: "marlowe-actus:test:marlowe-actus-test"
 
-    # Marlowe Playground
+    - path: "marlowe-dashboard-server/src"
+      component: "lib:marlowe-dashboard-server"
+
+    - path: "marlowe-dashboard-server/app/Main.hs"
+      component: "marlowe-dashboard-server:exe:marlowe-dashboard-server"
+
+    - path: "marlowe-dashboard-server/app/Webserver.hs"
+      component: "marlowe-dashboard-server:exe:marlowe-dashboard-server"
+
+    - path: "marlowe-dashboard-server/app/PSGenerator.hs"
+      component: "marlowe-dashboard-server:exe:marlowe-dashboard-server"
+
+    - path: "marlowe-dashboard-server/test"
+      component: "marlowe-dashboard-server:test:marlowe-dashboard-server-test"
+
     - path: "marlowe-playground-server/src"
       component: "lib:marlowe-playground-server"
 
@@ -368,6 +391,9 @@ cradle:
       component: "marlowe-playground-server:exe:marlowe-playground-server"
 
     - path: "marlowe-playground-server/app/Escrow.hs"
+      component: "marlowe-playground-server:exe:marlowe-playground-server"
+
+    - path: "marlowe-playground-server/app/EscrowWithCollateral.hs"
       component: "marlowe-playground-server:exe:marlowe-playground-server"
 
     - path: "marlowe-playground-server/app/Example.hs"
@@ -400,6 +426,9 @@ cradle:
     - path: "marlowe-playground-server/contracts/Escrow.hs"
       component: "marlowe-playground-server:exe:marlowe-playground-server"
 
+    - path: "marlowe-playground-server/contracts/EscrowWithCollateral.hs"
+      component: "marlowe-playground-server:exe:marlowe-playground-server"
+
     - path: "marlowe-playground-server/contracts/Example.hs"
       component: "marlowe-playground-server:exe:marlowe-playground-server"
 
@@ -421,24 +450,6 @@ cradle:
     - path: "marlowe-playground-server/test"
       component: "marlowe-playground-server:test:marlowe-playground-server-test"
 
-    # Marlowe Dashboard
-    - path: "marlowe-dashboard-server/src"
-      component: "lib:marlowe-dashboard-server"
-
-    - path: "marlowe-dashboard-server/app/Main.hs"
-      component: "marlowe-dashboard-server:exe:marlowe-dashboard-server"
-
-    - path: "marlowe-dashboard-server/app/Webserver.hs"
-      component: "marlowe-dashboard-server:exe:marlowe-dashboard-server"
-
-    - path: "marlowe-dashboard-server/app/PSGenerator.hs"
-      component: "marlowe-dashboard-server:exe:marlowe-dashboard-server"
-
-    - path: "marlowe-dashboard-server/test"
-      component: "marlowe-dashboard-server:test:marlowe-dashboard-server-test"
-
-
-    # Marlowe Symbolic
     - path: "marlowe-symbolic/src"
       component: "lib:marlowe-symbolic"
 
@@ -508,40 +519,40 @@ cradle:
     - path: "plutus-contract/test"
       component: "plutus-contract:test:plutus-contract-test"
 
-    - path: "plutus-core/src"
+    - path: "plutus-core/plutus-core/src"
       component: "lib:plutus-core"
 
-    - path: "plutus-core/prelude"
+    - path: "plutus-core/plutus-core/stdlib"
       component: "lib:plutus-core"
 
-    - path: "plutus-core/stdlib"
+    - path: "plutus-core/plutus-core/examples"
       component: "lib:plutus-core"
 
-    - path: "plutus-core/examples"
+    - path: "plutus-core/plutus-ir/src"
+      component: "lib:plutus-core"
+
+    - path: "plutus-core/untyped-plutus-core/src"
       component: "lib:plutus-core"
 
     - path: "plutus-core/generators"
       component: "lib:plutus-core"
 
+    - path: "plutus-core/prelude"
+      component: "lib:plutus-core"
+
     - path: "plutus-core/common"
-      component: "lib:plutus-core"
-
-    - path: "plutus-core/plutus-ir"
-      component: "lib:plutus-core"
-
-    - path: "plutus-core/untyped-plutus-core"
       component: "lib:plutus-core"
 
     - path: "plutus-core/generate-evaluation-test/Main.hs"
       component: "plutus-core:exe:plutus-core-generate-evaluation-test"
 
-    - path: "plutus-core/test"
+    - path: "plutus-core/plutus-core/test"
       component: "plutus-core:test:plutus-core-test"
 
-    - path: "plutus-core/plutus-ir-test"
+    - path: "plutus-core/plutus-ir/test"
       component: "plutus-core:test:plutus-ir-test"
 
-    - path: "plutus-core/untyped-plutus-core-test"
+    - path: "plutus-core/untyped-plutus-core/test"
       component: "plutus-core:test:untyped-plutus-core-test"
 
     - path: "plutus-core/bench/Bench.hs"
@@ -553,26 +564,32 @@ cradle:
     - path: "plutus-core/exe/Main.hs"
       component: "plutus-core:exe:plc"
 
-    - path: "plutus-core/budgeting-bench/Bench.hs"
-      component: "plutus-core:bench:plutus-core-budgeting-bench"
+    - path: "plutus-core/cost-model/budgeting-bench/Bench.hs"
+      component: "plutus-core:bench:cost-model-budgeting-bench"
 
-    - path: "plutus-core/create-cost-model/CreateCostModel.hs"
-      component: "plutus-core:bench:plutus-core-create-cost-model"
+    - path: "plutus-core/cost-model/create-cost-model/CreateCostModel.hs"
+      component: "plutus-core:bench:cost-model-create-cost-model"
 
-    - path: "plutus-core/cost-model-creation/CreateCostModel.hs"
-      component: "plutus-core:bench:plutus-core-create-cost-model"
+    - path: "plutus-core/cost-model/creation/CreateCostModel.hs"
+      component: "plutus-core:bench:cost-model-create-cost-model"
 
-    - path: "plutus-core/create-cost-model/CostModelCreation.hs"
-      component: "plutus-core:bench:plutus-core-create-cost-model"
+    - path: "plutus-core/cost-model/create-cost-model/CostModelCreation.hs"
+      component: "plutus-core:bench:cost-model-create-cost-model"
 
-    - path: "plutus-core/cost-model-creation/CostModelCreation.hs"
-      component: "plutus-core:bench:plutus-core-create-cost-model"
+    - path: "plutus-core/cost-model/creation/CostModelCreation.hs"
+      component: "plutus-core:bench:cost-model-create-cost-model"
 
-    - path: "plutus-core/test-cost-model"
-      component: "plutus-core:test:plutus-core-test-cost-model"
+    - path: "plutus-core/cost-model/test/TestCostModels.hs"
+      component: "plutus-core:bench:cost-model-test"
 
-    - path: "plutus-core/cost-model-creation"
-      component: "plutus-core:test:plutus-core-test-cost-model"
+    - path: "plutus-core/cost-model/creation/TestCostModels.hs"
+      component: "plutus-core:bench:cost-model-test"
+
+    - path: "plutus-core/cost-model/test/CostModelCreation.hs"
+      component: "plutus-core:bench:cost-model-test"
+
+    - path: "plutus-core/cost-model/creation/CostModelCreation.hs"
+      component: "plutus-core:bench:cost-model-test"
 
     - path: "plutus-errors/src"
       component: "lib:plutus-errors"
@@ -619,6 +636,15 @@ cradle:
     - path: "plutus-pab/app/PSGenerator.hs"
       component: "plutus-pab:exe:plutus-pab"
 
+    - path: "plutus-pab/app/Cli.hs"
+      component: "plutus-pab:exe:plutus-pab"
+
+    - path: "plutus-pab/app/Command.hs"
+      component: "plutus-pab:exe:plutus-pab"
+
+    - path: "plutus-pab/app/CommandParser.hs"
+      component: "plutus-pab:exe:plutus-pab"
+
     - path: "plutus-pab/game-contract/Main.hs"
       component: "plutus-pab:exe:plutus-game"
 
@@ -645,7 +671,7 @@ cradle:
 
     - path: "plutus-pab/prism/unlock-exchange/Main.hs"
       component: "plutus-pab:exe:prism-unlock-exchange"
-    
+
     - path: "plutus-pab/tx-inject/Main.hs"
       component: "plutus-pab:exe:tx-inject"
 
@@ -787,6 +813,9 @@ cradle:
     - path: "plutus-use-cases/test/Main.hs"
       component: "plutus-use-cases:exe:plutus-use-cases-scripts"
 
+    - path: "plutus-use-cases/scripts/Spec/Auction.hs"
+      component: "plutus-use-cases:exe:plutus-use-cases-scripts"
+
     - path: "plutus-use-cases/scripts/Spec/Crowdfunding.hs"
       component: "plutus-use-cases:exe:plutus-use-cases-scripts"
 
@@ -839,6 +868,9 @@ cradle:
       component: "plutus-use-cases:exe:plutus-use-cases-scripts"
 
     - path: "plutus-use-cases/scripts/Spec/Vesting.hs"
+      component: "plutus-use-cases:exe:plutus-use-cases-scripts"
+
+    - path: "plutus-use-cases/test/Spec/Auction.hs"
       component: "plutus-use-cases:exe:plutus-use-cases-scripts"
 
     - path: "plutus-use-cases/test/Spec/Crowdfunding.hs"
