@@ -26,7 +26,6 @@ let
   defaultMachine = (import ./default-machine.nix) options;
   web-ghc = plutus.web-ghc;
   webGhcMachine = import ./webghc.nix;
-  marloweDashMachine = import ./marlowe-dash.nix;
   prometheusMachine = import ./prometheus.nix;
   pabMachine = import ./pab.nix;
   playgroundsMachine = import ./playgrounds.nix;
@@ -35,7 +34,6 @@ in
   # We partially apply mkInstance, it also expects other values like hostName
   # however this means we can add it later on a host-by-host basis while haveing exactly 
   # the same config that we can test separately in Hydra with a fake values
-  # marloweDash = marloweDashMachine.mkInstance (options // { inherit defaultMachine pkgs;inherit (plutus) marlowe-dashboard; });
   webGhc = webGhcMachine.mkInstance (options // { inherit defaultMachine web-ghc monitoringKeys; });
   prometheus = prometheusMachine.mkInstance (options // { inherit defaultMachine monitoringKeys; });
   pab = pabMachine.mkInstance (options // { inherit defaultMachine monitoringKeys pkgs;inherit (plutus) marlowe-dashboard plutus-pab marlowe-app; });

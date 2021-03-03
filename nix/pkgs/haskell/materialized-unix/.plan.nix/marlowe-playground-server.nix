@@ -42,8 +42,6 @@
           (hsPkgs."directory" or (errorHandler.buildDepError "directory"))
           (hsPkgs."exceptions" or (errorHandler.buildDepError "exceptions"))
           (hsPkgs."file-embed" or (errorHandler.buildDepError "file-embed"))
-          (hsPkgs."aws-lambda-haskell-runtime" or (errorHandler.buildDepError "aws-lambda-haskell-runtime"))
-          (hsPkgs."aws-lambda-haskell-runtime-wai" or (errorHandler.buildDepError "aws-lambda-haskell-runtime-wai"))
           (hsPkgs."filepath" or (errorHandler.buildDepError "filepath"))
           (hsPkgs."http-client" or (errorHandler.buildDepError "http-client"))
           (hsPkgs."http-client-tls" or (errorHandler.buildDepError "http-client-tls"))
@@ -76,13 +74,7 @@
           (hsPkgs."validation" or (errorHandler.buildDepError "validation"))
           ];
         buildable = true;
-        modules = [
-          "Server"
-          "API"
-          "Lambda"
-          "Marlowe/Contracts"
-          "Marlowe/Config"
-          ];
+        modules = [ "Server" "API" "Marlowe/Contracts" "Marlowe/Config" ];
         hsSourceDirs = [ "src" "contracts" ];
         };
       exes = {
