@@ -1,6 +1,6 @@
 { crossSystem ? null
 , system ? builtins.currentSystem
-, config ? { allowUnfreePredicate = (import ./lib.nix).unfreePredicate; }
+, config ? { allowUnfreePredicate = (import ./nix/lib/unfree.nix).unfreePredicate; }
 , rev ? "in-nix-shell"
 , sourcesOverride ? { }
 , packages ? import ./. { inherit crossSystem config sourcesOverride rev enableHaskellProfiling; }

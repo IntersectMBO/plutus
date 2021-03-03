@@ -1,7 +1,7 @@
 { pkgs
 , checkMaterialization
 , system ? builtins.currentSystem
-, config ? { allowUnfreePredicate = (import ./lib.nix).unfreePredicate; }
+, config ? { allowUnfreePredicate = (import ../lib/unfree.nix).unfreePredicate; }
 , rev ? null
 , sources
 , enableHaskellProfiling
