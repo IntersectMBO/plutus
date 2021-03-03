@@ -10,4 +10,4 @@ import           CostModelCreation
 main :: IO ()
 main = do
   model <- createCostModel
-  BSL.writeFile "plutus-core/src/costModel.json" $ encodePretty' (defConfig { confCompare = \_ _-> EQ }) model
+  BSL.writeFile "cost-model/data/costModel.json" $ encodePretty' (defConfig { confCompare = \_ _-> EQ }) model
