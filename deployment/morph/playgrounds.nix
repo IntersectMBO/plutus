@@ -30,13 +30,11 @@
         "plutus-secrets" = {
           source = "./secrets.plutus.${machines.environment}.env";
           destination = "/etc/playground/secrets.plutus.${machines.environment}.env";
-          # permissions = "0644"; # FIXME: this seems like a bad idea
           action = [ "systemctl" "restart" "plutus-playground" ];
         };
         "marlowe-secrets" = {
           source = "./secrets.marlowe.${machines.environment}.env";
           destination = "/etc/playground/secrets.marlowe.${machines.environment}.env";
-          permissions = "0644"; # FIXME: this seems like a bad idea
           action = [ "systemctl" "restart" "marlowe-playground" ];
         };
       };
