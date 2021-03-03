@@ -11,7 +11,6 @@
 , config ? { allowUnfreePredicate = (import ./lib.nix).unfreePredicate; }
   # Overrides for niv
 , sourcesOverride ? { }
-  # { pkgs pkgsMusl plutus }
 , packages ? import ./nix { inherit system crossSystem config sourcesOverride rev checkMaterialization enableHaskellProfiling; }
   # An explicit git rev to use, passed when we are in Hydra
 , rev ? null
@@ -22,13 +21,13 @@
 , enableHaskellProfiling ? false
 }:
 let
-  inherit (packages) pkgs plutus pkgsMusl;
+  inherit (packages) pkgs plutus;
   inherit (pkgs) lib haskell-nix;
   inherit (plutus) haskell iohkNix git-rev set-git-rev agdaPackages;
   inherit (plutus) easyPS sphinxcontrib-haddock;
 in
 rec {
-  inherit pkgs plutus pkgsMusl;
+  inherit pkgs plutus;
 
   inherit (plutus) web-ghc;
 

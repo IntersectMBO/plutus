@@ -1,5 +1,4 @@
 { pkgs
-, pkgsMusl
 , checkMaterialization
 , system ? builtins.currentSystem
 , config ? { allowUnfreePredicate = (import ./lib.nix).unfreePredicate; }
@@ -23,9 +22,8 @@ let
   # it is read using IFD and git, which is avilable on local builds.
   git-rev = if isNull rev then pkgs.lib.commitIdFromGitRepo ../../.git else rev;
 
-  # { index-state, project, projectPackages, packages, muslProject, muslPackages, extraPackages }
+  # { index-state, project, projectPackages, packages, extraPackages }
   haskell = pkgs.callPackage ./haskell {
-    inherit pkgsMusl;
     inherit gitignore-nix;
     inherit agdaWithStdlib checkMaterialization enableHaskellProfiling;
   };
@@ -78,10 +76,6 @@ let
 
     # Update the linux files (will do for all unixes atm).
     $(nix-build default.nix -A plutus.haskell.project.plan-nix.passthru.updateMaterialized --argstr system x86_64-linux)
-
-    # Update the musl files. This isn't quite as simple as just passing a system, since it's inherently a "cross" build,
-    # but we actually have a variant project exposed already, so we can just use that.
-    $(nix-build default.nix -A plutus.haskell.muslProject.plan-nix.passthru.updateMaterialized --argstr system x86_64-linux)
   '';
   updateHie = pkgs.callPackage ./update-hie { inherit gen-hie; };
   updateMetadataSamples = pkgs.callPackage ./update-metadata-samples { };

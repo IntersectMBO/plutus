@@ -29,9 +29,6 @@ let
     ++ [
       # Modifications to derivations from nixpkgs
       (import ./overlays/nixpkgs-overrides.nix)
-      # This contains musl-specific stuff, but it's all guarded by appropriate host-platform
-      # checks, so we can include it unconditionally
-      (import ./overlays/musl.nix)
       # fix r-modules
       (import ./overlays/r.nix)
     ];
@@ -42,16 +39,9 @@ let
     config = haskellNix.config // config;
   };
 
-  pkgsMusl = import sources.nixpkgs {
-    system = "x86_64-linux";
-    crossSystem = pkgs.lib.systems.examples.musl64;
-    overlays = extraOverlays ++ overlays;
-    config = haskellNix.config // config;
-  };
-
-  plutus = import ./pkgs { inherit rev pkgs pkgsMusl checkMaterialization enableHaskellProfiling sources; };
+  plutus = import ./pkgs { inherit rev pkgs checkMaterialization enableHaskellProfiling sources; };
 
 in
 {
-  inherit pkgs pkgsMusl plutus;
+  inherit pkgs plutus;
 }

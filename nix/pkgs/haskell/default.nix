@@ -2,7 +2,6 @@
 , fetchFromGitHub
 , fetchFromGitLab
 , agdaWithStdlib
-, pkgsMusl
 , stdenv
 , haskell-nix
 , buildPackages
@@ -48,17 +47,6 @@ let
     # Need to list this manually to work around https://github.com/input-output-hk/haskell.nix/issues/464
     // { inherit (packages) plutus-metatheory; };
 
-
-  # The haskell project created by haskell-nix.stackProject' (musl version)
-  muslProject = import ./haskell.nix {
-    inherit (pkgsMusl) lib stdenv haskell-nix buildPackages R rPackages z3;
-    inherit agdaWithStdlib checkMaterialization compiler-nix-name gitignore-nix;
-    inherit enableHaskellProfiling;
-  };
-
-  # All the packages defined by our project, built for musl
-  muslPackages = muslProject.hsPkgs;
-
   extraPackages = import ./extra.nix {
     inherit stdenv lib haskell-nix fetchFromGitHub fetchFromGitLab buildPackages;
     inherit index-state checkMaterialization compiler-nix-name;
@@ -67,6 +55,5 @@ let
 in
 rec {
   inherit index-state project projectPackages packages;
-  inherit muslProject muslPackages;
   inherit extraPackages;
 }
