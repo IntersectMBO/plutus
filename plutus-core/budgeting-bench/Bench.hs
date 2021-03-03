@@ -9,23 +9,23 @@
 -- See Note [Creation of the Cost Model]
 module Main (main) where
 
-import qualified Criterion.Types                                    as C
-import qualified Data.ByteString                                    as BS
-import           Hedgehog
-import           Hedgehog.Internal.Gen
-import           Hedgehog.Internal.Tree
-import           Hedgehog.Range
 import           Language.PlutusCore                                as PLC
 import           Language.PlutusCore.Evaluation.Machine.ExBudgeting
 import           Language.PlutusCore.Evaluation.Machine.ExMemory
 import           Language.PlutusCore.MkPlc
 import           Language.UntypedPlutusCore                         as UT
 import           Language.UntypedPlutusCore.Evaluation.Machine.Cek
-import           System.Directory
 
 import           Criterion.Main
+import qualified Criterion.Types                                    as C
+import qualified Data.ByteString                                    as BS
 import           Data.Functor
 import qualified Data.Kind                                          as GHC
+import           Hedgehog
+import           Hedgehog.Internal.Gen
+import           Hedgehog.Internal.Tree
+import           Hedgehog.Range
+import           System.Directory
 
 type UntypedPlain f (uni :: GHC.Type -> GHC.Type) (fun :: GHC.Type) = f Name uni fun ()
 
@@ -130,4 +130,4 @@ main = do
     defaultMainWith (defaultConfig { C.csvFile = Just $ "budgeting-bench/csvs/benching.csv" }) $ (benchTwoInt <$> twoIntNames) <> (benchTwoByteStrings <$> [Concatenate]) <> (benchBytestringOperations <$> [DropByteString, TakeByteString]) <> (benchHashOperations <$> [SHA2, SHA3]) <> (benchSameTwoByteStrings <$> [EqByteString, LtByteString, GtByteString]) <> [benchVerifySignature] <> benchComparison
     pure ()
     where
-        twoIntNames = [AddInteger, SubtractInteger, MultiplyInteger, DivideInteger, QuotientInteger, RemainderInteger, ModInteger, LessThanInteger, LessThanEqInteger, GreaterThanEqInteger, GreaterThanEqInteger, EqInteger]
+        twoIntNames = [AddInteger, SubtractInteger, MultiplyInteger, DivideInteger, QuotientInteger, RemainderInteger, ModInteger, LessThanInteger, LessThanEqInteger, GreaterThanInteger, GreaterThanEqInteger, EqInteger]

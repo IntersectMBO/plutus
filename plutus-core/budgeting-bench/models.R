@@ -50,7 +50,6 @@ modelFun <- function(path) {
 
   addIntegerModel <- {
     filtered <- data %>% filter(BuiltinName == "AddInteger") %>% filter(x_mem < 2000) %>% filter(y_mem < 2000)
-
     lm(Mean ~ I(x_mem + y_mem), filtered)
   }
 
