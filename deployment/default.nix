@@ -112,8 +112,6 @@ let
       ${terraform}/bin/terraform workspace select ${env} || ${terraform}/bin/terraform workspace new ${env}
       ${terraform}/bin/terraform apply
 
-      region=$(${terraform}/bin/terraform output region)
-
       echo "json files created in $tmp_dir"
 
       plutus_tld=$(cat $tmp_dir/machines.json | jq -r '.plutusTld')
