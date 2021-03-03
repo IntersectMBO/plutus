@@ -1,3 +1,0 @@
-=== `deployment`
-
-This folder contains the nixops/Terraform code used for deploying the Playgrounds.

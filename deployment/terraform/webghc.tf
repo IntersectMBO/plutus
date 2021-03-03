@@ -65,7 +65,7 @@ data "template_file" "webghc_user_data" {
 }
 
 resource "aws_instance" "webghc_a" {
-  ami = lookup(var.amis_20_03, var.aws_region)
+  ami = module.nixos_image.ami
 
   instance_type        = var.webghc_instance_type
   subnet_id            = aws_subnet.private.*.id[0]
@@ -95,7 +95,7 @@ resource "aws_route53_record" "webghc_internal_a" {
 }
 
 resource "aws_instance" "webghc_b" {
-  ami = lookup(var.amis_20_03, var.aws_region)
+  ami = module.nixos_image.ami
 
   instance_type        = var.webghc_instance_type
   subnet_id            = aws_subnet.private.*.id[1]

@@ -41,6 +41,20 @@ resource "aws_security_group" "playgrounds" {
     cidr_blocks = var.private_subnet_cidrs
   }
 
+  ingress {
+    from_port   = 8080
+    to_port     = 8080
+    protocol    = "TCP"
+    cidr_blocks = concat(var.public_subnet_cidrs, var.private_subnet_cidrs)
+  }
+
+  ingress {
+    from_port   = 9080
+    to_port     = 9080
+    protocol    = "TCP"
+    cidr_blocks = concat(var.public_subnet_cidrs, var.private_subnet_cidrs)
+  }
+
   ## outgoing: all
   egress {
     from_port   = 0
@@ -60,16 +74,16 @@ data "template_file" "playgrounds_user_data" {
   template = file("${path.module}/templates/default_configuration.nix")
 
   vars = {
-    root_ssh_keys      = join(" ", formatlist("\"%s\"", local.root_ssh_keys))
+    root_ssh_keys = join(" ", formatlist("\"%s\"", local.root_ssh_keys))
   }
 }
 
 resource "aws_instance" "playgrounds_a" {
   ami = module.nixos_image.ami
 
-  instance_type        = var.playgrounds_instance_type
-  subnet_id            = aws_subnet.private.*.id[0]
-  user_data            = data.template_file.playgrounds_user_data.rendered
+  instance_type = var.playgrounds_instance_type
+  subnet_id     = aws_subnet.private.*.id[0]
+  user_data     = data.template_file.playgrounds_user_data.rendered
 
   vpc_security_group_ids = [
     aws_security_group.playgrounds.id,
@@ -97,9 +111,9 @@ resource "aws_route53_record" "playgrounds_internal_a" {
 resource "aws_instance" "playgrounds_b" {
   ami = module.nixos_image.ami
 
-  instance_type        = var.playgrounds_instance_type
-  subnet_id            = aws_subnet.private.*.id[1]
-  user_data            = data.template_file.playgrounds_user_data.rendered
+  instance_type = var.playgrounds_instance_type
+  subnet_id     = aws_subnet.private.*.id[1]
+  user_data     = data.template_file.playgrounds_user_data.rendered
 
   vpc_security_group_ids = [
     aws_security_group.playgrounds.id,

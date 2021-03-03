@@ -5,7 +5,10 @@ module Lambda where
 import           Aws.Lambda
 import           Aws.Lambda.Wai (WaiHandler, waiHandler)
 import           Data.IORef     (readIORef)
-import           Server         (AppConfig, initializeApplication, initializeContext)
+import           Server         (AppConfig, initializeApplication, initializeServerContext)
+
+initializeContext :: IO AppConfig
+initializeContext = initializeServerContext Nothing
 
 handler :: WaiHandler AppConfig
 handler request context = do
