@@ -17,4 +17,4 @@ main =
     commandLineApp'
         (Proxy @(BlockchainActions .\/ RPCServer CredentialManager))
         $ first tshow
-        $ credentialManager @CredentialManagerSchema
+        $ credentialManager @() @CredentialManagerSchema

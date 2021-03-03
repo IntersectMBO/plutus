@@ -200,10 +200,10 @@ instance Pretty t => Pretty (ContractInstanceState t) where
 
 data PartiallyDecodedResponse v =
     PartiallyDecodedResponse
-        { newState :: Contract.State Value
-        , hooks    :: [Contract.Request v]
-        , logs     :: [LogMessage Value]
-        -- FIXME: observableState
+        { newState        :: Contract.State Value
+        , hooks           :: [Contract.Request v]
+        , logs            :: [LogMessage Value]
+        , observableState :: Value
         }
     deriving (Show, Eq, Generic, Functor, Foldable, Traversable)
     deriving anyclass (ToJSON, FromJSON)

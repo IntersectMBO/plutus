@@ -16,4 +16,4 @@ main =
     commandLineApp'
         (Proxy @(BlockchainActions .\/ RPCClient CredentialManager))
         $ first tshow
-        $ Prism.subscribeSTO @Prism.STOSubscriberSchema
+        $ Prism.subscribeSTO @() @Prism.STOSubscriberSchema

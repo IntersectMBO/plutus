@@ -129,6 +129,7 @@ doContractUpdate ::
     , Forall (Input schema) Show
     , Member (LogMsg ContractTestMsg) effs
     , Monoid w
+    , ToJSON w
     )
     => Contract w schema Text ()
     -> ContractRequest Value
@@ -148,14 +149,16 @@ mkResponse ::
     forall w schema err.
     ( Forall (Output schema) ToJSON
     , Forall (Input schema) ToJSON
+    , ToJSON w
     )
     => ContractResponse w err (Event schema) (Handlers schema)
     -> PartiallyDecodedResponse ContractPABRequest
-mkResponse ContractResponse{newState, hooks, logs} =
+mkResponse ContractResponse{newState, hooks, logs, observableState} =
     C.PartiallyDecodedResponse
         { C.newState = fmap JSON.toJSON newState
         , C.hooks    = fmap (fmap (encodeRequest @schema)) hooks
         , C.logs     = logs
+        , C.observableState = JSON.toJSON observableState
         }
 
 encodeRequest ::

@@ -11,4 +11,4 @@ main :: IO ()
 main =
     commandLineApp
         $ first tshow
-        $ mirror @MirrorSchema
+        $ mirror @MirrorSchema @()
