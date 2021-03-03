@@ -28,8 +28,6 @@ import           Cardano.Node.Client                     (handleNodeClientClient
 import           Cardano.Node.RandomTx                   (GenRandomTx)
 import           Cardano.Node.Types                      (MockServerConfig (..))
 import qualified Cardano.Protocol.Socket.Client          as Client
--- import qualified Cardano.SigningProcess.Client           as SigningProcessClient
--- import qualified Cardano.SigningProcess.Types            as SigningProcess
 import qualified Cardano.Wallet.Client                   as WalletClient
 import qualified Cardano.Wallet.Types                    as Wallet
 import           Control.Monad.Catch                     (MonadCatch)

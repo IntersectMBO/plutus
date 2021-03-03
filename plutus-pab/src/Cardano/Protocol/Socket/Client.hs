@@ -51,7 +51,7 @@ getCurrentSlot ::
      ClientHandler
   -> IO Slot
 getCurrentSlot ClientHandler { chCurrentSlot } =
-    takeMVar chCurrentSlot
+    readMVar chCurrentSlot
 
 -- | Forks and starts a new client node, returning the newly allocated thread id.
 runClientNode :: FilePath

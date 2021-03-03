@@ -11,7 +11,7 @@ module Cardano.Node.Client where
 import           Control.Monad.Freer
 import           Control.Monad.IO.Class
 import           Data.Proxy                     (Proxy (Proxy))
-import           Ledger                         (Slot, Tx)
+import           Ledger                         (Tx)
 import           Servant                        (NoContent, (:<|>) (..))
 import           Servant.Client                 (ClientEnv, ClientError, ClientM, client, runClientM)
 
@@ -24,17 +24,15 @@ import           Control.Monad.Freer.Extras.Log (LogMessage)
 import           Wallet.Effects                 (NodeClientEffect (..))
 
 healthcheck :: ClientM NoContent
-getCurrentSlot :: ClientM Slot
 randomTx :: ClientM Tx
 consumeEventHistory :: ClientM [LogMessage MockServerLogMsg]
-(healthcheck, getCurrentSlot, randomTx, consumeEventHistory) =
+(healthcheck, randomTx, consumeEventHistory) =
     ( healthcheck_
-    , getCurrentSlot_
     , randomTx_
     , consumeEventHistory_
     )
   where
-    healthcheck_ :<|> getCurrentSlot_ :<|> (randomTx_ :<|> consumeEventHistory_) =
+    healthcheck_ :<|> (randomTx_ :<|> consumeEventHistory_) =
         client (Proxy @API)
 
 handleRandomTxClient ::

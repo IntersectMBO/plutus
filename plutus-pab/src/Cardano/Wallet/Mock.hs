@@ -41,19 +41,10 @@ import           Ledger.Crypto                    (PrivateKey (..), getPubKeyHas
 import           Servant                          (ServerError (..), err400, err401, err404)
 import           Servant.Client                   (ClientEnv)
 
-import           Cardano.BM.Data.Trace            (Trace)
-import qualified Cardano.ChainIndex.Client        as ChainIndexClient
-import qualified Cardano.Node.Client              as NodeClient
 import qualified Cardano.Protocol.Socket.Client   as Client
-import           Cardano.Wallet.Types             (WalletEffects, WalletMsg (..))
-import           Control.Concurrent               (MVar)
-import           Control.Concurrent.MVar          (putMVar, takeMVar)
-import           Control.Monad.Error              (MonadError)
 import           Plutus.PAB.Arbitrary             ()
 import qualified Plutus.PAB.Monitoring.Monitoring as LM
 import qualified Plutus.V1.Ledger.Bytes           as KB
-import           Servant                          (ServerError (..), err400, err401, err404)
-import           Servant.Client                   (ClientEnv)
 import           Servant.Server                   (err500)
 import           Wallet.API                       (WalletAPIError (InsufficientFunds, OtherError, PrivateKeyNotFound))
 import qualified Wallet.API                       as WAPI
@@ -140,17 +131,10 @@ runWalletEffects ::
     -> ClientEnv -- ^ chain index client
     -> Wallets -- ^ current state
     -> Eff (WalletEffects m) a -- ^ wallet effect
--- <<<<<<< HEAD
     -> m (Either ServerError (a, Wallets))
 runWalletEffects trace clientHandler chainIndexEnv wallets action =
     handleMultiWallet action
     & interpret (NodeClient.handleNodeClientClient clientHandler)
--- ======
---     -> m (Either ServerError (a, WalletState))
--- runWalletEffects trace clientHandler chainIndexEnv walletState action =
---     Wallet.handleWallet action
---     & interpret (NodeClient.handleNodeClientClient clientHandler)
--- >>>>>>> 7ec037c53 (Make addTx go directly to the socket based node.)
     & interpret (ChainIndexClient.handleChainIndexClient chainIndexEnv)
     & runState wallets
     & LM.handleLogMsgTrace (toWalletMsg trace)
