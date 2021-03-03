@@ -86,13 +86,13 @@ let
           # Relies on cabal-doctest, just turn it off in the Nix build
           prettyprinter-configurable.components.tests.prettyprinter-configurable-doctest.buildable = lib.mkForce false;
 
-          plutus-core.components.benchmarks.plutus-core-test-cost-model = {
+          plutus-core.components.benchmarks.cost-model-test = {
             build-tools = r-packages;
             # Seems to be broken on darwin for some reason
             platforms = lib.platforms.linux;
           };
 
-          plutus-core.components.benchmarks.plutus-core-create-cost-model = {
+          plutus-core.components.benchmarks.cost-model-create-cost-model = {
             build-tools = r-packages;
             # Seems to be broken on darwin for some reason
             platforms = lib.platforms.linux;

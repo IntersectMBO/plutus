@@ -12,7 +12,7 @@
 # Here's a sample of the sort of thing I did to get the plots (extracted from .Rhistory)
 
 require(rgl)
-frame <- "~/plutus/plutus/plutus-core/budgeting-bench/csvs/benching.frame"
+frame <- "~/plutus/plutus/plutus-core/cost-model/budgeting-bench/csvs/benching.frame"
 h <- read.table(frame, header=T, stringsAsFactors=F)
 h$z <- h$z * 1e6                                          # Rescale: should really have done this in the input file.
 f <- h[h$name=="DivideInteger" & h$x < 2000 &h$y < 2000,] # filter data of interest

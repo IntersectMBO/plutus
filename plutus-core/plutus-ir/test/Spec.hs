@@ -27,7 +27,7 @@ import           Test.Tasty
 import           Flat                     (flat, unflat)
 
 main :: IO ()
-main = defaultMain $ runTestNestedIn ["plutus-ir-test"] tests
+main = defaultMain $ runTestNestedIn ["plutus-ir/test"] tests
 
 tests :: TestNested
 tests = testGroup "plutus-ir" <$> sequence

@@ -27,12 +27,9 @@
       dataDir = "";
       dataFiles = [];
       extraSrcFiles = [
-        "src/costModel.json"
         "plutus-core/src/costModel.json"
-        "budgeting-bench/csvs/*.csv"
-        "plutus-core/budgeting-bench/csvs/*.csv"
-        "budgeting-bench/*.R"
-        "plutus-core/budgeting-bench/*.R"
+        "cost-model/budgeting-bench/csvs/*.csv"
+        "cost-model/budgeting-bench/*.R"
         ];
       extraTmpFiles = [];
       extraDocFiles = [ "README.md" ];
@@ -265,28 +262,17 @@
           "Data/Text/Prettyprint/Doc/Custom"
           ];
         hsSourceDirs = [
-          "src"
-          "prelude"
-          "stdlib"
-          "examples"
+          "plutus-core/src"
+          "plutus-core/stdlib"
+          "plutus-core/examples"
+          "plutus-ir/src"
+          "untyped-plutus-core/src"
           "generators"
+          "prelude"
           "common"
-          "plutus-ir"
-          "untyped-plutus-core"
           ];
         };
       exes = {
-        "plutus-core-generate-evaluation-test" = {
-          depends = [
-            (hsPkgs."base" or (errorHandler.buildDepError "base"))
-            (hsPkgs."hedgehog" or (errorHandler.buildDepError "hedgehog"))
-            (hsPkgs."plutus-core" or (errorHandler.buildDepError "plutus-core"))
-            (hsPkgs."text" or (errorHandler.buildDepError "text"))
-            ];
-          buildable = true;
-          hsSourceDirs = [ "generate-evaluation-test" ];
-          mainPath = [ "Main.hs" ];
-          };
         "plc" = {
           depends = [
             (hsPkgs."base" or (errorHandler.buildDepError "base"))
@@ -303,7 +289,7 @@
             (hsPkgs."transformers" or (errorHandler.buildDepError "transformers"))
             ];
           buildable = true;
-          hsSourceDirs = [ "exe" ];
+          hsSourceDirs = [ "plc" ];
           mainPath = [ "Main.hs" ];
           };
         };
@@ -342,7 +328,7 @@
             "Check/Spec"
             "TypeSynthesis/Spec"
             ];
-          hsSourceDirs = [ "test" ];
+          hsSourceDirs = [ "plutus-core/test" ];
           mainPath = [ "Spec.hs" ];
           };
         "plutus-ir-test" = {
@@ -369,7 +355,7 @@
             "TypeSpec"
             "TestLib"
             ];
-          hsSourceDirs = [ "plutus-ir-test" ];
+          hsSourceDirs = [ "plutus-ir/test" ];
           mainPath = [ "Spec.hs" ];
           };
         "untyped-plutus-core-test" = {
@@ -391,34 +377,12 @@
             "Evaluation/Golden"
             "Evaluation/Machines"
             ];
-          hsSourceDirs = [ "untyped-plutus-core-test" ];
+          hsSourceDirs = [ "untyped-plutus-core/test" ];
           mainPath = [ "Spec.hs" ];
           };
         };
       benchmarks = {
-        "plutus-core-bench" = {
-          depends = [
-            (hsPkgs."base" or (errorHandler.buildDepError "base"))
-            (hsPkgs."bytestring" or (errorHandler.buildDepError "bytestring"))
-            (hsPkgs."mtl" or (errorHandler.buildDepError "mtl"))
-            (hsPkgs."criterion" or (errorHandler.buildDepError "criterion"))
-            (hsPkgs."plutus-core" or (errorHandler.buildDepError "plutus-core"))
-            (hsPkgs."serialise" or (errorHandler.buildDepError "serialise"))
-            ];
-          buildable = true;
-          hsSourceDirs = [ "bench" ];
-          };
-        "plutus-core-weigh" = {
-          depends = [
-            (hsPkgs."base" or (errorHandler.buildDepError "base"))
-            (hsPkgs."bytestring" or (errorHandler.buildDepError "bytestring"))
-            (hsPkgs."plutus-core" or (errorHandler.buildDepError "plutus-core"))
-            (hsPkgs."weigh" or (errorHandler.buildDepError "weigh"))
-            ];
-          buildable = true;
-          hsSourceDirs = [ "weigh" ];
-          };
-        "plutus-core-budgeting-bench" = {
+        "cost-model-budgeting-bench" = {
           depends = [
             (hsPkgs."base" or (errorHandler.buildDepError "base"))
             (hsPkgs."bytestring" or (errorHandler.buildDepError "bytestring"))
@@ -429,9 +393,9 @@
             (hsPkgs."hedgehog" or (errorHandler.buildDepError "hedgehog"))
             ];
           buildable = true;
-          hsSourceDirs = [ "budgeting-bench" ];
+          hsSourceDirs = [ "cost-model/budgeting-bench" ];
           };
-        "plutus-core-create-cost-model" = {
+        "cost-model-create-cost-model" = {
           depends = [
             (hsPkgs."base" or (errorHandler.buildDepError "base"))
             (hsPkgs."barbies" or (errorHandler.buildDepError "barbies"))
@@ -458,9 +422,12 @@
             ];
           buildable = true;
           modules = [ "CostModelCreation" ];
-          hsSourceDirs = [ "create-cost-model" "cost-model-creation" ];
+          hsSourceDirs = [
+            "cost-model/create-cost-model"
+            "cost-model/creation"
+            ];
           };
-        "plutus-core-test-cost-model" = {
+        "cost-model-test" = {
           depends = [
             (hsPkgs."base" or (errorHandler.buildDepError "base"))
             (hsPkgs."bytestring" or (errorHandler.buildDepError "bytestring"))
@@ -488,7 +455,7 @@
             ];
           buildable = true;
           modules = [ "CostModelCreation" ];
-          hsSourceDirs = [ "test-cost-model" "cost-model-creation" ];
+          hsSourceDirs = [ "cost-model/test" "cost-model/creation" ];
           };
         };
       };

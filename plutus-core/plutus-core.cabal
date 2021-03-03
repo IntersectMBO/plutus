@@ -15,12 +15,9 @@ category: Language, Plutus
 build-type: Simple
 extra-doc-files: README.md
 extra-source-files:
-    src/costModel.json
     plutus-core/src/costModel.json
-    budgeting-bench/csvs/*.csv
-    plutus-core/budgeting-bench/csvs/*.csv
-    budgeting-bench/*.R
-    plutus-core/budgeting-bench/*.R
+    cost-model/budgeting-bench/csvs/*.csv
+    cost-model/budgeting-bench/*.R
 
 source-repository head
     type: git
@@ -131,7 +128,15 @@ library
         Crypto
         Data.Text.Prettyprint.Doc.Custom
     build-tool-depends: alex:alex -any, happy:happy >=1.17.1
-    hs-source-dirs: src prelude stdlib examples generators common plutus-ir untyped-plutus-core
+    hs-source-dirs: 
+        plutus-core/src 
+        plutus-core/stdlib 
+        plutus-core/examples 
+        plutus-ir/src 
+        untyped-plutus-core/src 
+        generators 
+        prelude 
+        common 
     other-modules:
         Language.PlutusCore.Pretty.ConfigName
         Language.PlutusCore.Core.Type
@@ -269,22 +274,11 @@ library
         transformers -any,
         witherable -any
 
-executable plutus-core-generate-evaluation-test
-    import: lang
-    main-is: Main.hs
-    hs-source-dirs: generate-evaluation-test
-    ghc-options: -threaded -rtsopts -with-rtsopts=-N
-    build-depends:
-        base -any,
-        hedgehog -any,
-        plutus-core -any,
-        text -any
-
 test-suite plutus-core-test
     import: lang
     type: exitcode-stdio-1.0
     main-is: Spec.hs
-    hs-source-dirs: test
+    hs-source-dirs: plutus-core/test
     ghc-options: -threaded -rtsopts -with-rtsopts=-N
     other-modules:
         Evaluation.ApplyBuiltinName
@@ -322,7 +316,7 @@ test-suite plutus-ir-test
     import: lang
     type: exitcode-stdio-1.0
     main-is: Spec.hs
-    hs-source-dirs: plutus-ir-test
+    hs-source-dirs: plutus-ir/test
     other-modules:
         OptimizerSpec
         TransformSpec
@@ -348,7 +342,7 @@ test-suite untyped-plutus-core-test
     import: lang
     type: exitcode-stdio-1.0
     main-is: Spec.hs
-    hs-source-dirs: untyped-plutus-core-test
+    hs-source-dirs: untyped-plutus-core/test
     other-modules:
         Evaluation.ApplyBuiltinName
         Evaluation.Golden
@@ -365,36 +359,10 @@ test-suite untyped-plutus-core-test
         tasty-hedgehog -any,
         text -any
 
-benchmark plutus-core-bench
-    import: lang
-    type: exitcode-stdio-1.0
-    main-is: Bench.hs
-    hs-source-dirs: bench
-    ghc-options: -rtsopts
-    build-depends:
-        base -any,
-        bytestring -any,
-        mtl -any,
-        criterion -any,
-        plutus-core -any,
-        serialise -any
-
-benchmark plutus-core-weigh
-    import: lang
-    type: exitcode-stdio-1.0
-    main-is: Bench.hs
-    hs-source-dirs: weigh
-    ghc-options: -rtsopts
-    build-depends:
-        base -any,
-        bytestring -any,
-        plutus-core -any,
-        weigh -any
-
 executable plc
     import: lang
     main-is: Main.hs
-    hs-source-dirs: exe
+    hs-source-dirs: plc
     build-depends:
         base <5,
         bytestring -any,
@@ -409,11 +377,11 @@ executable plc
         text -any,
         transformers -any
 
-benchmark plutus-core-budgeting-bench
+benchmark cost-model-budgeting-bench
     import: lang
     type: exitcode-stdio-1.0
     main-is: Bench.hs
-    hs-source-dirs: budgeting-bench
+    hs-source-dirs: cost-model/budgeting-bench
     default-language: Haskell2010
     ghc-options: -threaded -rtsopts -with-rtsopts=-N -Wall -Wincomplete-uni-patterns
                  -Wincomplete-record-updates -Wredundant-constraints -Widentities
@@ -427,11 +395,11 @@ benchmark plutus-core-budgeting-bench
         hedgehog -any
 
 -- benchmark sets the correct PWD and doesn't get run by `stack test`
-benchmark plutus-core-create-cost-model
+benchmark cost-model-create-cost-model
     type: exitcode-stdio-1.0
     main-is: CreateCostModel.hs
     -- cost-model-creation should be its own library, but stack + HIE really don't like sub-libraries.
-    hs-source-dirs: create-cost-model, cost-model-creation
+    hs-source-dirs: cost-model/create-cost-model, cost-model/creation
     default-language: Haskell2010
     ghc-options: -threaded -rtsopts -with-rtsopts=-N -Wall -Wincomplete-uni-patterns
                  -Wincomplete-record-updates -Wredundant-constraints -Widentities
@@ -463,10 +431,10 @@ benchmark plutus-core-create-cost-model
 
 -- This test is problematic in CI: pretending that it's a benchmark will prevent
 -- it from being run automatically but will still allow us to run it manually.
-benchmark plutus-core-test-cost-model
+benchmark cost-model-test
     type: exitcode-stdio-1.0
     main-is: TestCostModels.hs
-    hs-source-dirs: test-cost-model, cost-model-creation
+    hs-source-dirs: cost-model/test, cost-model/creation
     default-language: Haskell2010
     ghc-options: -threaded -rtsopts -with-rtsopts=-N -Wall -Wincomplete-uni-patterns
                  -Wincomplete-record-updates -Wredundant-constraints -Widentities
