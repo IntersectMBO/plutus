@@ -9,6 +9,7 @@ let
     { ip = machines.webghcB.ip; label = machines.webghcB.dns; port = configurations.ports.nodeExporter; }
   ];
 in
+# A and B refer to the 2 AWS availability zones
 {
   "${machines.marloweDashA.dns}" = configurations.pab "marlowe-dash-a";
   "${machines.marloweDashB.dns}" = configurations.pab "marlowe-dash-b";

@@ -23,6 +23,8 @@
       killallz3 = pkgs.writeScriptBin "killallz3" ''
         kill -9 $(ps aux | grep z3 | grep -v grep | awk '{print $2}')
       '';
+      plutusPlaygroundLocalPort = "4000";
+      marlowePlaygroundLocalPort = "4001";
     in
     { config, pkgs, lib, ... }:
     {
@@ -54,7 +56,7 @@
         serviceConfig = playgroundServiceConfig // {
           EnvironmentFile = "/etc/playground/secrets.plutus.${machines.environment}.env";
         };
-        script = "${plutusPlayground} webserver -p 4000";
+        script = "${plutusPlayground} webserver -p ${plutusPlaygroundLocalPort}";
       };
 
       systemd.services.marlowe-playground = {
@@ -66,7 +68,7 @@
           EnvironmentFile = "/etc/playground/secrets.marlowe.${machines.environment}.env";
         };
         path = [ pkgs.z3 killallz3 ];
-        script = "${marlowePlayground} webserver -p 4001";
+        script = "${marlowePlayground} webserver -p ${marlowePlaygroundLocalPort}";
       };
 
       services.nginx = {
@@ -76,6 +78,7 @@
         recommendedProxySettings = true;
         recommendedOptimisation = true;
 
+        # some useful nginx config including the zone for rate limits
         appendHttpConfig = ''
           limit_req_zone $binary_remote_addr zone=plutuslimit:10m rate=1r/s;
           server_names_hash_bucket_size 128;
@@ -84,8 +87,8 @@
           '"$http_referer" "$http_user_agent" "$gzip_ratio"';
         '';
 
-        upstreams.plutus-playground.servers."127.0.0.1:4000" = { };
-        upstreams.marlowe-playground.servers."127.0.0.1:4001" = { };
+        upstreams.plutus-playground.servers."127.0.0.1:${plutusPlaygroundLocalPort}" = { };
+        upstreams.marlowe-playground.servers."127.0.0.1:${marlowePlaygroundLocalPort}" = { };
 
         virtualHosts = {
           "plutus-playground" = {

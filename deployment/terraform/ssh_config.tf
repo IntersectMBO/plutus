@@ -84,17 +84,17 @@ data "template_file" "ssh_config" {
   template = "\n$${prometheus_node}\n$${webghc_a}\n$${webghc_b}\n$${marlowe_dash_a}\n$${marlowe_dash_b}\n$${playgrounds_a}\n$${playgrounds_b}"
 
   vars = {
-    prometheus_node    = data.template_file.ssh_config_section_prometheus.rendered
-    webghc_a       = data.template_file.ssh_config_section_webghc_a.rendered
-    webghc_b       = data.template_file.ssh_config_section_webghc_b.rendered
-    marlowe_dash_a = data.template_file.ssh_config_section_marlowe_dash_a.rendered
-    marlowe_dash_b = data.template_file.ssh_config_section_marlowe_dash_b.rendered
-    playgrounds_a = data.template_file.ssh_config_section_playgrounds_a.rendered
-    playgrounds_b = data.template_file.ssh_config_section_playgrounds_b.rendered
+    prometheus_node = data.template_file.ssh_config_section_prometheus.rendered
+    webghc_a        = data.template_file.ssh_config_section_webghc_a.rendered
+    webghc_b        = data.template_file.ssh_config_section_webghc_b.rendered
+    marlowe_dash_a  = data.template_file.ssh_config_section_marlowe_dash_a.rendered
+    marlowe_dash_b  = data.template_file.ssh_config_section_marlowe_dash_b.rendered
+    playgrounds_a   = data.template_file.ssh_config_section_playgrounds_a.rendered
+    playgrounds_b   = data.template_file.ssh_config_section_playgrounds_b.rendered
   }
 }
 
 resource "local_file" "ssh_config" {
   content  = data.template_file.ssh_config.rendered
-  filename = "${pathexpand(var.ssh_config_root)}/config.d/${local.project}.conf"
+  filename = "${pathexpand(var.output_path)}/${local.project}.${var.env}.conf"
 }

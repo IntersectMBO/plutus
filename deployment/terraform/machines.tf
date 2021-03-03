@@ -50,7 +50,7 @@ locals {
     marloweDashB      = "${local.marloweDashB}"
     playgroundsA      = "${local.playgroundsA}"
     playgroundsB      = "${local.playgroundsB}"
-    prometheus            = "${local.prometheus}"
+    prometheus        = "${local.prometheus}"
     rootSshKeys       = local.root_ssh_keys
     monitoringSshKeys = local.monitoring_ssh_keys
     awsRegion         = "${var.aws_region}"

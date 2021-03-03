@@ -3,6 +3,7 @@ resource "aws_security_group" "playgrounds" {
   vpc_id = aws_vpc.plutus.id
   name   = "${local.project}_${var.env}_playgrounds"
 
+  ## inbound (bastion hosts): ssh
   ingress {
     from_port   = 22
     to_port     = 22
@@ -19,7 +20,6 @@ resource "aws_security_group" "playgrounds" {
     cidr_blocks = concat(var.public_subnet_cidrs, var.private_subnet_cidrs)
   }
 
-  # prometheus node exporter
   ingress {
     from_port   = local.node_exporter_port
     to_port     = local.node_exporter_port
@@ -28,29 +28,15 @@ resource "aws_security_group" "playgrounds" {
   }
 
   ingress {
-    from_port   = 9091
-    to_port     = 9091
-    protocol    = "TCP"
-    cidr_blocks = var.private_subnet_cidrs
-  }
-
-  ingress {
-    from_port   = 9113
-    to_port     = 9113
-    protocol    = "TCP"
-    cidr_blocks = var.private_subnet_cidrs
-  }
-
-  ingress {
-    from_port   = 8080
-    to_port     = 8080
+    from_port   = local.plutus_playground_port
+    to_port     = local.plutus_playground_port
     protocol    = "TCP"
     cidr_blocks = concat(var.public_subnet_cidrs, var.private_subnet_cidrs)
   }
 
   ingress {
-    from_port   = 9080
-    to_port     = 9080
+    from_port   = local.marlowe_playground_port
+    to_port     = local.marlowe_playground_port
     protocol    = "TCP"
     cidr_blocks = concat(var.public_subnet_cidrs, var.private_subnet_cidrs)
   }

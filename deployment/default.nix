@@ -21,7 +21,13 @@ let
             | awk '{printf("export AWS_ACCESS_KEY_ID=%s\nexport AWS_SECRET_ACCESS_KEY=\"%s\"\nexport AWS_SESSION_TOKEN=\"%s\"\n",$2,$4,$5)}'
   '';
 
-  refreshTerraform = env: region:
+  mkExtraTerraformVars = attrs:
+    let
+      lines = lib.mapAttrsToList (name: value: "export TF_VAR_${name}=${value}") attrs;
+    in
+    lib.concatStringsSep "\n" lines;
+
+  refreshTerraform = env: region: { extraTerraformVars ? { } }:
     writeShellScript "refresh" ''
       set -eou pipefail
 
@@ -56,6 +62,7 @@ let
       # other terraform variables
       export TF_VAR_env="${env}"
       export TF_VAR_aws_region="${region}"
+      ${mkExtraTerraformVars extraTerraformVars}
 
       echo "refresh terraform"
       ${terraform}/bin/terraform init
@@ -63,7 +70,7 @@ let
       ${terraform}/bin/terraform refresh
     '';
 
-  applyTerraform = env: region:
+  applyTerraform = env: region: { extraTerraformVars ? { } }:
     writeShellScript "deploy" ''
       set -eou pipefail
 
@@ -98,6 +105,7 @@ let
       # other terraform variables
       export TF_VAR_env="${env}"
       export TF_VAR_aws_region="${region}"
+      ${mkExtraTerraformVars extraTerraformVars}
 
       echo "apply terraform"
       ${terraform}/bin/terraform init
@@ -136,17 +144,21 @@ let
         cp $tmp_dir/secrets.plutus.${env}.env $PLUTUS_ROOT/deployment/morph/
         cp $tmp_dir/secrets.marlowe.${env}.env $PLUTUS_ROOT/deployment/morph/
       fi
+
+      # It is important to note that in terraform, a local_file will not be updated if it exists in the location that you define.
+      # Since we are using a temporary working directory, the file will always be re-created.
+      cp $tmp_dir/plutus_playground.${env}.conf ~/.ssh/config.d/
     '';
 
-  deploy = env: region:
+  deploy = env: region: extraParams:
     writeShellScript "deploy" ''
       set -eou pipefail
 
-      ${applyTerraform env region}
+      ${applyTerraform env region extraParams}
       echo "done"
     '';
 
-  destroy = env: region:
+  destroy = env: region: { extraTerraformVars ? { } }:
     writeShellScript "destroy" ''
       set -eou pipefail
 
@@ -174,6 +186,7 @@ let
       # other terraform variables
       export TF_VAR_env="${env}"
       export TF_VAR_aws_region="${region}"
+      ${mkExtraTerraformVars extraTerraformVars}
 
       ${terraform}/bin/terraform init
       ${terraform}/bin/terraform workspace select ${env}
@@ -216,23 +229,25 @@ let
       pass init -p ${env} ${lib.concatStringsSep " " ids}
     '';
 
-  mkEnv = env: region: keyNames: {
+  mkEnv = env: region: keyNames: extraParams: {
     inherit terraform;
-    applyTerraform = (applyTerraform env region);
-    refreshTerraform = (refreshTerraform env region);
-    deploy = (deploy env region);
-    destroy = (destroy env region);
+    applyTerraform = (applyTerraform env region extraParams);
+    refreshTerraform = (refreshTerraform env region extraParams);
+    deploy = (deploy env region extraParams);
+    destroy = (destroy env region extraParams);
     initPass = (initPass env keyNames);
   };
 
   envs = {
-    david = mkEnv "david" "sa-east-1" [ keys.david ];
-    kris = mkEnv "kris" "eu-west-1" [ keys.kris ];
-    alpha = mkEnv "alpha" "eu-west-2" [ keys.david keys.kris keys.pablo keys.hernan ];
-    pablo = mkEnv "pablo" "eu-west-3" [ keys.pablo ];
-    playground = mkEnv "playground" "us-west-1" [ keys.david keys.kris keys.pablo keys.hernan ];
-    testing = mkEnv "testing" "eu-west-3" [ keys.david keys.kris keys.pablo keys.hernan ];
-    hernan = mkEnv "hernan" "us-west-2" [ keys.hernan ];
+    david = mkEnv "david" "sa-east-1" [ keys.david ] {
+      extraTerraformVars = { bastion_instance_type = "t3.small"; };
+    };
+    kris = mkEnv "kris" "eu-west-1" [ keys.kris ] { };
+    alpha = mkEnv "alpha" "eu-west-2" [ keys.david keys.kris keys.pablo keys.hernan ] { };
+    pablo = mkEnv "pablo" "eu-west-3" [ keys.pablo ] { };
+    playground = mkEnv "playground" "us-west-1" [ keys.david keys.kris keys.pablo keys.hernan ] { };
+    testing = mkEnv "testing" "eu-west-3" [ keys.david keys.kris keys.pablo keys.hernan ] { };
+    hernan = mkEnv "hernan" "us-west-2" [ keys.hernan ] { };
   };
 
   configTest = import ./morph/test.nix;

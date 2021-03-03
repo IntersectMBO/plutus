@@ -43,15 +43,16 @@ resource "aws_security_group" "public_alb" {
   }
 
   egress {
-    from_port   = 8080
-    to_port     = 8080
+    # both PAB and plutus playground use the same port
+    from_port   = local.plutus_playground_port
+    to_port     = local.plutus_playground_port
     protocol    = "TCP"
     cidr_blocks = var.private_subnet_cidrs
   }
 
   egress {
-    from_port   = 9080
-    to_port     = 9080
+    from_port   = local.marlowe_playground_port
+    to_port     = local.marlowe_playground_port
     protocol    = "TCP"
     cidr_blocks = var.private_subnet_cidrs
   }
@@ -250,13 +251,13 @@ resource "aws_alb_listener_rule" "marlowe_dash" {
 resource "aws_alb_target_group_attachment" "marlowe_dash_a" {
   target_group_arn = aws_alb_target_group.marlowe_dash.arn
   target_id        = aws_instance.marlowe_dash_a.id
-  port             = "8080"
+  port             = local.pab_port
 }
 
 # resource "aws_alb_target_group_attachment" "marlowe_dash_b" {
 #   target_group_arn = aws_alb_target_group.marlowe_dash.arn
 #   target_id        = aws_instance.marlowe_dash_b.id
-#   port             = "8080"
+#   port             = local.pab_port
 # }
 
 resource "aws_route53_record" "marlowe_dash_alb" {
@@ -307,13 +308,13 @@ resource "aws_alb_listener_rule" "marlowe_playground" {
 resource "aws_alb_target_group_attachment" "marlowe_playground_a" {
   target_group_arn = aws_alb_target_group.marlowe_playground.arn
   target_id        = aws_instance.playgrounds_a.id
-  port             = "9080"
+  port             = local.marlowe_playground_port
 }
 
 resource "aws_alb_target_group_attachment" "marlowe_playground_b" {
   target_group_arn = aws_alb_target_group.marlowe_playground.arn
   target_id        = aws_instance.playgrounds_b.id
-  port             = "9080"
+  port             = local.marlowe_playground_port
 }
 
 resource "aws_route53_record" "marlowe_playground_alb" {
@@ -364,13 +365,13 @@ resource "aws_alb_listener_rule" "plutus_playground" {
 resource "aws_alb_target_group_attachment" "plutus_playground_a" {
   target_group_arn = aws_alb_target_group.plutus_playground.arn
   target_id        = aws_instance.playgrounds_a.id
-  port             = "8080"
+  port             = local.plutus_playground_port
 }
 
 resource "aws_alb_target_group_attachment" "plutus_playground_b" {
   target_group_arn = aws_alb_target_group.plutus_playground.arn
   target_id        = aws_instance.playgrounds_b.id
-  port             = "8080"
+  port             = local.plutus_playground_port
 }
 
 resource "aws_route53_record" "plutus_playground_alb" {

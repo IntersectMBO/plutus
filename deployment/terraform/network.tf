@@ -132,9 +132,9 @@ data "template_file" "bastion_user_data" {
 }
 
 resource "aws_instance" "bastion" {
-  count = length(var.azs)
+  count                       = length(var.azs)
   ami                         = module.nixos_image.ami
-  instance_type               = "t3.small"
+  instance_type               = var.bastion_instance_type
   associate_public_ip_address = true
   user_data                   = data.template_file.bastion_user_data.rendered
   source_dest_check           = false

@@ -6,10 +6,6 @@ variable "env" {}
 variable "output_path" {
 }
 
-variable "ssh_config_root" {
-  default = "~/.ssh"
-}
-
 variable "plutus_tld" {
   default = "plutus.iohkdev.io"
 }
@@ -52,6 +48,10 @@ variable "monitoring_full_domain" {
 
 variable "monitoring_public_zone" {
   default = "Z2Y3TWJMJ0Q6Z7"
+}
+
+variable "bastion_instance_type" {
+  default = "t3.nano"
 }
 
 variable "webghc_instance_type" {

@@ -10,8 +10,12 @@ locals {
   marlowe_dash_domain_name = "${var.env}.${var.marlowe_dash_tld}"
   monitoring_domain_name   = "${var.monitoring_full_domain != "" ? var.monitoring_full_domain : "${var.env}.${var.monitoring_tld}"}"
 
-  prometheus_port = 9090
-  node_exporter_port = 9100
+  prometheus_port         = 9090
+  node_exporter_port      = 9100
+  webghc_exporter_port    = 9091
+  plutus_playground_port  = 8080
+  marlowe_playground_port = 9080
+  pab_port                = 8080
 
   # SSH Keys
   ssh_keys = {
@@ -68,6 +72,6 @@ locals {
 }
 
 module "nixos_image" {
-    source  = "git::https://github.com/tweag/terraform-nixos.git//aws_image_nixos?ref=5f5a0408b299874d6a29d1271e9bffeee4c9ca71"
-    release = "20.09"
+  source  = "git::https://github.com/tweag/terraform-nixos.git//aws_image_nixos?ref=5f5a0408b299874d6a29d1271e9bffeee4c9ca71"
+  release = "20.09"
 }

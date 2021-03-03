@@ -28,15 +28,8 @@ resource "aws_security_group" "webghc" {
   }
 
   ingress {
-    from_port   = 9091
-    to_port     = 9091
-    protocol    = "TCP"
-    cidr_blocks = var.private_subnet_cidrs
-  }
-
-  ingress {
-    from_port   = 9113
-    to_port     = 9113
+    from_port   = local.webghc_exporter_port
+    to_port     = local.webghc_exporter_port
     protocol    = "TCP"
     cidr_blocks = var.private_subnet_cidrs
   }
@@ -60,16 +53,16 @@ data "template_file" "webghc_user_data" {
   template = file("${path.module}/templates/default_configuration.nix")
 
   vars = {
-    root_ssh_keys      = join(" ", formatlist("\"%s\"", local.root_ssh_keys))
+    root_ssh_keys = join(" ", formatlist("\"%s\"", local.root_ssh_keys))
   }
 }
 
 resource "aws_instance" "webghc_a" {
   ami = module.nixos_image.ami
 
-  instance_type        = var.webghc_instance_type
-  subnet_id            = aws_subnet.private.*.id[0]
-  user_data            = data.template_file.webghc_user_data.rendered
+  instance_type = var.webghc_instance_type
+  subnet_id     = aws_subnet.private.*.id[0]
+  user_data     = data.template_file.webghc_user_data.rendered
 
   vpc_security_group_ids = [
     aws_security_group.webghc.id,
@@ -97,9 +90,9 @@ resource "aws_route53_record" "webghc_internal_a" {
 resource "aws_instance" "webghc_b" {
   ami = module.nixos_image.ami
 
-  instance_type        = var.webghc_instance_type
-  subnet_id            = aws_subnet.private.*.id[1]
-  user_data            = data.template_file.webghc_user_data.rendered
+  instance_type = var.webghc_instance_type
+  subnet_id     = aws_subnet.private.*.id[1]
+  user_data     = data.template_file.webghc_user_data.rendered
 
   vpc_security_group_ids = [
     aws_security_group.webghc.id,
