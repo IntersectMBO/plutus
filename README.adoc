@@ -116,10 +116,6 @@ The online version of the tutorial can be found https://docs.cardano.org/project
 
 There is a comprehensive glossary in link:GLOSSARY{outfilesuffix}[GLOSSARY].
 
-=== Where to find the changelog
-
-The changelog is stored in link:./CHANGELOG.md[CHANGELOG].
-
 === How to submit an issue
 
 We track our issues on the
