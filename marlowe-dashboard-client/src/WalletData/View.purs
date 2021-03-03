@@ -9,10 +9,12 @@ module WalletData.View
 import Prelude hiding (div)
 import Css (applyWhen, classNames, hideWhen)
 import Css as Css
+import Data.Foldable (foldMap)
 import Data.Lens (view)
 import Data.Map (isEmpty, toUnfoldable)
 import Data.Map.Extra (findIndex)
 import Data.Maybe (Maybe(..), isJust)
+import Data.String (null)
 import Data.Tuple (Tuple(..), fst, snd)
 import Halogen.HTML (HTML, button, datalist, div, div_, h2, h3, input, label, li, option, p, p_, span, text, ul_)
 import Halogen.HTML.Events.Extra (onClick_, onValueInput_)
@@ -41,9 +43,9 @@ newWalletCard newWalletNicknameKey wallets =
           [ classNames [ "mb-1" ] ]
           [ text "Create new contact" ]
       , div
-          [ classNames $ [ "mb-1" ] <> (applyWhen (nickname /= "") Css.hasNestedLabel) ]
+          [ classNames $ [ "mb-1" ] <> (applyWhen (not null nickname) Css.hasNestedLabel) ]
           [ label
-              [ classNames $ Css.nestedLabel <> hideWhen (nickname == "") ]
+              [ classNames $ Css.nestedLabel <> hideWhen (null nickname) ]
               [ text "Nickname:" ]
           , input
               [ type_ InputText
@@ -54,14 +56,12 @@ newWalletCard newWalletNicknameKey wallets =
               ]
           , div
               [ classNames Css.inputError ]
-              $ case mNicknameError of
-                  Just nicknameError -> [ text $ show nicknameError ]
-                  Nothing -> []
+              [ text $ foldMap show mNicknameError ]
           ]
       , div
-          [ classNames $ [ "mb-1" ] <> (applyWhen (key /= "") Css.hasNestedLabel) ]
+          [ classNames $ [ "mb-1" ] <> (applyWhen (not null key) Css.hasNestedLabel) ]
           [ label
-              [ classNames $ Css.nestedLabel <> hideWhen (key == "") ]
+              [ classNames $ Css.nestedLabel <> hideWhen (null key) ]
               [ text "Public key:" ]
           , input
               [ type_ InputText
@@ -72,9 +72,7 @@ newWalletCard newWalletNicknameKey wallets =
               ]
           , div
               [ classNames Css.inputError ]
-              $ case mKeyError of
-                  Just keyError -> [ text $ show keyError ]
-                  Nothing -> []
+              [ text $ foldMap show mKeyError ]
           ]
       , div
           [ classNames [ "flex" ] ]
@@ -124,9 +122,7 @@ putdownWalletCard pubKeyHash wallets =
 
     mNickname = map fst mKey
 
-    showNickname = case mNickname of
-      Just nickname -> " " <> nickname
-      Nothing -> ""
+    showNickname = foldMap (append " ") mNickname
   in
     div_
       [ h3

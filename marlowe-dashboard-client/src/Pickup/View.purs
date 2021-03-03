@@ -3,6 +3,7 @@ module Pickup.View (renderPickupState) where
 import Prelude hiding (div)
 import Css (classNames)
 import Css as Css
+import Data.Foldable (foldMap)
 import Data.Lens (view)
 import Data.Maybe (Maybe(..), isJust, isNothing)
 import Halogen.HTML (HTML, a, button, div, div_, footer, h1, header, hr_, input, label, main, p, span_, text)
@@ -11,6 +12,7 @@ import Halogen.HTML.Properties (InputType(..), disabled, for, href, id_, list, p
 import MainFrame.Lenses (_card, _screen)
 import Material.Icons as Icon
 import Pickup.Types (Action(..), Card(..), Screen(..), State)
+import Prim.TypeError (class Warn, Text)
 import WalletData.Lenses (_key, _nickname)
 import WalletData.Types (WalletLibrary, WalletNicknameKey)
 import WalletData.Validation (nicknameError)
@@ -49,14 +51,13 @@ renderPickupCard pickupCard newWalletNicknameKey wallets =
             ]
         , div
             [ classNames [ "px-1", "pb-1" ] ] case pickupCard of
-            Just PickupNewWalletCard -> [ pickupWalletCard newWalletNicknameKey wallets true ]
-            Just (PickupWalletCard walletNicknameKey) -> [ pickupWalletCard walletNicknameKey wallets false ]
+            Just card -> [ pickupWalletCard card newWalletNicknameKey wallets ]
             Nothing -> []
         ]
     ]
 
-pickupWalletCard :: forall p. WalletNicknameKey -> WalletLibrary -> Boolean -> HTML p Action
-pickupWalletCard newWalletNicknameKey wallets new =
+pickupWalletCard :: forall p. Card -> WalletNicknameKey -> WalletLibrary -> HTML p Action
+pickupWalletCard card newWalletNicknameKey wallets =
   let
     nickname = view _nickname newWalletNicknameKey
 
@@ -67,7 +68,11 @@ pickupWalletCard newWalletNicknameKey wallets new =
     div_
       [ p
           [ classNames [ "font-bold", "mb-1" ] ]
-          [ text if new then "Play wallet generated" else "Play wallet " <> nickname ]
+          [ text
+              $ case card of
+                  PickupNewWalletCard -> "Play wallet generated"
+                  PickupWalletCard _ -> "Play wallet " <> nickname
+          ]
       , div
           [ classNames $ Css.hasNestedLabel <> [ "mb-1" ] ]
           $ [ label
@@ -77,22 +82,22 @@ pickupWalletCard newWalletNicknameKey wallets new =
                 [ text "Nickname" ]
             , input
                 $ [ type_ InputText
-                  , classNames $ Css.input $ if new then isJust mNicknameError else false
+                  , classNames $ Css.input
+                      $ case card of
+                          PickupNewWalletCard -> isJust mNicknameError
+                          PickupWalletCard _ -> false
                   , id_ "newWalletNickname"
                   , placeholder "Nickname"
                   , value nickname
+                  , case card of
+                      PickupNewWalletCard -> onValueInput_ SetNewWalletNickname
+                      PickupWalletCard _ -> readOnly true
                   ]
-                <> if new then [ onValueInput_ SetNewWalletNickname ] else [ readOnly true ]
+            , div
+                [ classNames Css.inputError ] case card of
+                PickupNewWalletCard -> [ text $ foldMap show mNicknameError ]
+                PickupWalletCard _ -> []
             ]
-          <> if new then
-              [ div
-                  [ classNames Css.inputError ]
-                  $ case mNicknameError of
-                      Just nicknameError -> [ text $ show nicknameError ]
-                      Nothing -> []
-              ]
-            else
-              []
       , div
           [ classNames $ Css.hasNestedLabel <> [ "mb-1" ] ]
           [ label
@@ -117,8 +122,14 @@ pickupWalletCard newWalletNicknameKey wallets new =
               [ text "Cancel" ]
           , button
               [ classNames $ Css.primaryButton <> [ "flex-1" ]
-              , disabled $ if new then isJust mNicknameError else false
-              , onClick_ if new then PickupNewWallet else PickupWallet key
+              , disabled
+                  $ case card of
+                      PickupNewWalletCard -> isJust mNicknameError
+                      PickupWalletCard _ -> false
+              , onClick_
+                  $ case card of
+                      PickupNewWalletCard -> PickupNewWallet
+                      PickupWalletCard _ -> PickupWallet key
               ]
               [ text "Pickup" ]
           ]
@@ -142,7 +153,7 @@ renderPickupScreen wallets screen =
         ]
     ]
 
-gdprScreen :: forall p. HTML p Action
+gdprScreen :: forall p. Warn (Text "We need to add the GDPR text.") => HTML p Action
 gdprScreen =
   main
     [ classNames [ "p-1", "w-22", "mx-auto", "text-center" ] ]
