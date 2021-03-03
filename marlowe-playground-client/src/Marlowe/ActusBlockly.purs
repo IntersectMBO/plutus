@@ -2,8 +2,9 @@ module Marlowe.ActusBlockly where
 
 import Prelude
 import Blockly.Generator (Generator, getFieldValue, getType, insertGeneratorFunction, mkGenerator, statementToCode)
-import Blockly.Internal (AlignDirection(..), Arg(..), BlockDefinition(..), block, blockType, category, colour, defaultBlockDefinition, name, style, x, xml, y)
-import Blockly.Types (Block, Blockly, BlocklyState)
+import Blockly.Internal (AlignDirection(..), Arg(..), BlockDefinition(..), block, blockType, defaultBlockDefinition, style, x, xml, y)
+import Blockly.Types (Block, Blockly)
+import Blockly.Toolbox (Toolbox(..), category, leaf)
 import Control.Alternative ((<|>))
 import Control.Monad.Except (runExcept)
 import Data.Bifunctor (lmap, rmap)
@@ -453,16 +454,13 @@ toDefinition (ActusPeriodType PeriodYearType) =
         }
         defaultBlockDefinition
 
-toolbox :: forall a b. HTML a b
+toolbox :: Toolbox
 toolbox =
-  xml [ id_ "actusBlocklyToolbox", style "display:none" ]
-    [ category [ name "Contracts", colour actusColour ] (map mkBlock actusContractTypes)
-    , category [ name "Values", colour valueColour ] (map mkBlock actusValueTypes)
-    , category [ name "Periods", colour periodColour ] (map mkBlock actusPeriodTypes)
+  CategoryToolbox
+    [ category "Contracts" actusColour $ map (leaf <<< show) actusContractTypes
+    , category "Values" valueColour $ map (leaf <<< show) actusValueTypes
+    , category "Periods" periodColour $ map (leaf <<< show) actusPeriodTypes
     ]
-  where
-  mkBlock :: forall t. Show t => t -> _
-  mkBlock t = block [ blockType (show t) ] []
 
 workspaceBlocks :: forall a b. HTML a b
 workspaceBlocks =

@@ -2,9 +2,12 @@ module BlocklyComponent.State (blocklyComponent) where
 
 import Prelude hiding (div)
 import Blockly.Dom (explainError, getDom)
+import Blockly.Events (newElementId)
 import Blockly.Generator (newBlock)
-import Blockly.Internal (BlockDefinition, ElementId(..), centerOnBlock, getBlockById, select)
+import Blockly.Internal (BlockDefinition, ElementId(..), centerOnBlock, getBlockById, getBlockType, select, updateToolbox)
 import Blockly.Internal as Blockly
+import Blockly.Toolbox (Toolbox)
+import Blockly.Types as BT
 import BlocklyComponent.Types (Action(..), Message(..), Query(..), State, _blocklyEventSubscription, _blocklyState, _errorMessage, blocklyRef, emptyState)
 import BlocklyComponent.View (render)
 import Control.Monad.Except (ExceptT(..), runExceptT, withExceptT)
@@ -15,7 +18,7 @@ import Data.Maybe (Maybe(..))
 import Data.Traversable (for, for_)
 import Effect.Aff.Class (class MonadAff)
 import Effect.Exception.Unsafe (unsafeThrow)
-import Halogen (Component, HalogenM, getHTMLElementRef, liftEffect, mkComponent, modify_)
+import Halogen (Component, HalogenM, getHTMLElementRef, liftEffect, mkComponent, modify_, raise)
 import Halogen as H
 import Halogen.BlocklyCommons (blocklyEvents, runWithoutEventSubscription, detectCodeChanges)
 import Halogen.ElementResize (elementResize)
@@ -35,8 +38,9 @@ blocklyComponent ::
   MonadAff m =>
   String ->
   Array BlockDefinition ->
+  Toolbox ->
   Component HTML Query Unit Message m
-blocklyComponent rootBlockName blockDefinitions =
+blocklyComponent rootBlockName blockDefinitions toolbox =
   mkComponent
     { initialState: const emptyState
     , render
@@ -44,7 +48,7 @@ blocklyComponent rootBlockName blockDefinitions =
         H.mkEval
           { handleQuery
           , handleAction
-          , initialize: Just $ Inject rootBlockName blockDefinitions
+          , initialize: Just $ Inject rootBlockName blockDefinitions toolbox
           , finalize: Nothing
           , receive: Just <<< SetData
           }
@@ -115,6 +119,13 @@ handleQuery (SelectWarning warning next) = do
               centerOnBlock blocklyState.workspace blockId
   pure $ Just next
 
+handleQuery (SetToolbox toolbox next) = do
+  void
+    $ runMaybeT do
+        blocklyState <- MaybeT $ use _blocklyState
+        MaybeT $ map pure $ liftEffect $ updateToolbox toolbox blocklyState.workspace
+  pure $ Just next
+
 -- We cannot guarantee at the type level that the only type of location we handle in this editor
 -- is a BlockId location, so we throw a useful error if we ever get to this situation
 locationToBlockId :: Location -> String
@@ -129,13 +140,13 @@ handleAction ::
   MonadAff m =>
   Action ->
   HalogenM State Action slots Message m Unit
-handleAction (Inject rootBlockName blockDefinitions) = do
+handleAction (Inject rootBlockName blockDefinitions toolbox) = do
   mElement <- (pure <<< map HTMLElement.toElement) =<< getHTMLElementRef blocklyRef
   blocklyState <-
     liftEffect do
       -- TODO: once we refactor ActusBlockly to use BlocklyComponent we should remove ElementId from
       --       createBlocklyInstance and receive two HTMLElements that should be handled by RefElement
-      state <- Blockly.createBlocklyInstance rootBlockName (ElementId "blocklyWorkspace") (ElementId "blocklyToolbox")
+      state <- Blockly.createBlocklyInstance rootBlockName (ElementId "blocklyWorkspace") toolbox
       Blockly.addBlockTypes state.blockly blockDefinitions
       Blockly.initializeWorkspace state.blockly state.workspace
       pure state
@@ -151,6 +162,16 @@ handleAction (Inject rootBlockName blockDefinitions) = do
     )
 
 handleAction (SetData _) = pure unit
+
+handleAction (BlocklyEvent (BT.Select event)) = case newElementId event of
+  Nothing -> raise $ BlockSelection Nothing
+  Just blockId -> do
+    void
+      $ runMaybeT do
+          blocklyState <- MaybeT $ use _blocklyState
+          block <- MaybeT $ liftEffect $ getBlockById blocklyState.workspace blockId
+          blockType <- MaybeT $ map pure $ liftEffect $ getBlockType block
+          MaybeT $ map pure $ raise $ BlockSelection $ Just { blockId, blockType }
 
 handleAction (BlocklyEvent event) = detectCodeChanges CodeChange event
 

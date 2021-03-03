@@ -2,7 +2,7 @@
 'use strict';
 
 exports.createBlocklyInstance_ = function() {
-    return require('node-blockly');
+    return require('blockly/blockly-node');
 }
 
 exports.createWorkspace_ = function(blockly) {

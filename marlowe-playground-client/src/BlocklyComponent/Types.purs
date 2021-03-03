@@ -3,6 +3,7 @@ module BlocklyComponent.Types where
 import Prelude hiding (div)
 import Blockly.Dom (Block)
 import Blockly.Internal (BlockDefinition, XML)
+import Blockly.Toolbox (Toolbox)
 import Blockly.Types as BT
 import Data.Lens (Lens')
 import Data.Lens.Record (prop)
@@ -43,9 +44,10 @@ data Query a
   | LoadWorkspace XML a
   | GetBlockRepresentation (Block -> a)
   | SelectWarning Warning a
+  | SetToolbox Toolbox a
 
 data Action
-  = Inject String (Array BlockDefinition)
+  = Inject String (Array BlockDefinition) Toolbox
   | SetData Unit
   | BlocklyEvent BT.BlocklyEvent
   | ResizeWorkspace
@@ -53,6 +55,7 @@ data Action
 
 data Message
   = CodeChange
+  | BlockSelection (Maybe { blockId :: String, blockType :: String })
 
 blocklyRef :: RefLabel
 blocklyRef = RefLabel "blockly"

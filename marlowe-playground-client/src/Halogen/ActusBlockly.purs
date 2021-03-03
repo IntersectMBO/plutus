@@ -4,6 +4,7 @@ import Prelude hiding (div)
 import Blockly.Generator (Generator, blockToCode)
 import Blockly.Internal (BlockDefinition, ElementId(..), XML, getBlockById)
 import Blockly.Internal as Blockly
+import Blockly.Toolbox (Toolbox)
 import Blockly.Types as BT
 import Control.Monad.Except (ExceptT(..), except, runExceptT)
 import Data.Bifunctor (lmap)
@@ -69,7 +70,7 @@ data ContractFlavour
   | F
 
 data Action
-  = Inject String (Array BlockDefinition)
+  = Inject String (Array BlockDefinition) Toolbox
   | GetTerms ContractFlavour
   | BlocklyEvent BT.BlocklyEvent
   | RunAnalysis
@@ -83,8 +84,14 @@ type DSL m a
   = HalogenM State Action () Message m a
 
 -- FIXME: rename to mkBlockly to avoid shadowing in handleQuery
-blockly :: forall m. MonadAff m => String -> Array BlockDefinition -> Component HTML Query Unit Message m
-blockly rootBlockName blockDefinitions =
+blockly ::
+  forall m.
+  MonadAff m =>
+  String ->
+  Array BlockDefinition ->
+  Toolbox ->
+  Component HTML Query Unit Message m
+blockly rootBlockName blockDefinitions toolbox =
   mkComponent
     { initialState:
         const
@@ -99,7 +106,7 @@ blockly rootBlockName blockDefinitions =
         H.mkEval
           { handleQuery
           , handleAction
-          , initialize: Just $ Inject rootBlockName blockDefinitions
+          , initialize: Just $ Inject rootBlockName blockDefinitions toolbox
           , finalize: Nothing
           , receive: const Nothing
           }
@@ -130,10 +137,10 @@ handleQuery (LoadWorkspace xml next) = do
   pure $ Just next
 
 handleAction :: forall m. MonadAff m => Action -> DSL m Unit
-handleAction (Inject rootBlockName blockDefinitions) = do
+handleAction (Inject rootBlockName blockDefinitions toolbox) = do
   blocklyState /\ generator <-
     liftEffect do
-      state <- Blockly.createBlocklyInstance rootBlockName (ElementId "actusBlocklyWorkspace") (ElementId "actusBlocklyToolbox")
+      state <- Blockly.createBlocklyInstance rootBlockName (ElementId "actusBlocklyWorkspace") toolbox
       Blockly.addBlockTypes state.blockly blockDefinitions
       Blockly.initializeWorkspace state.blockly state.workspace
       generator <- buildGenerator state.blockly

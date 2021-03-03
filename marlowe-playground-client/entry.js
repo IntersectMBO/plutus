@@ -2,7 +2,7 @@
 /*global global*/
 import '@fortawesome/fontawesome-free/css/all.css';
 import './static/css/main.scss';
-import 'node-blockly/browser';
+import 'blockly';
 
 import './grammar.ne';
 import * as monaco from 'monaco-editor/esm/vs/editor/editor.api';

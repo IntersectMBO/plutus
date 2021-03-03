@@ -41,13 +41,14 @@ blocklyEvents toAction workspace =
         let
           mEvent =
             -- Blockly can fire all of the following events https://developers.google.com/blockly/guides/configure/web/events
-            -- but at the moment we only care for the ones that may affect the unsaved changes.
+            -- but at the moment we only care for the following ones
             oneOf
               [ BT.Create <$> fromEvent event
               , BT.Move <$> fromEvent event
               , BT.Change <$> fromEvent event
               , BT.FinishLoading <$> fromEvent event
               , BT.UI <$> fromEvent event
+              , BT.Select <$> fromEvent event
               ]
         in
           for_ mEvent \ev -> EventSource.emit emitter (toAction ev)

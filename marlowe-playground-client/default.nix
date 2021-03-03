@@ -46,9 +46,6 @@ let
     packageLockJson = ./package-lock.json;
     githubSourceHashMap = {
       shmish111.nearley-webpack-loader."939360f9d1bafa9019b6ff8739495c6c9101c4a1" = "1brx669dgsryakf7my00m25xdv7a02snbwzhzgc9ylmys4p8c10x";
-      # Note: for some unknown reason, it is necessary to add libxmljs to package.json even though it is a transitive dependency
-      # failure to do this meant that node_modules was being built without it there, even though it is in package-lock.json
-      znerol.libxmljs."0517e063347ea2532c9fdf38dc47878c628bf0ae" = "0g3kgwnqfr6v2xp1i7dfbm4z45inz1019ln06lfxl9mwxlc31wfg";
     };
   };
 
