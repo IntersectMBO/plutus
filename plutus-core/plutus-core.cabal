@@ -274,17 +274,6 @@ library
         transformers -any,
         witherable -any
 
-executable plutus-core-generate-evaluation-test
-    import: lang
-    main-is: Main.hs
-    hs-source-dirs: generate-evaluation-test
-    ghc-options: -threaded -rtsopts -with-rtsopts=-N
-    build-depends:
-        base -any,
-        hedgehog -any,
-        plutus-core -any,
-        text -any
-
 test-suite plutus-core-test
     import: lang
     type: exitcode-stdio-1.0
@@ -369,32 +358,6 @@ test-suite untyped-plutus-core-test
         tasty-golden -any,
         tasty-hedgehog -any,
         text -any
-
-benchmark plutus-core-bench
-    import: lang
-    type: exitcode-stdio-1.0
-    main-is: Bench.hs
-    hs-source-dirs: bench
-    ghc-options: -rtsopts
-    build-depends:
-        base -any,
-        bytestring -any,
-        mtl -any,
-        criterion -any,
-        plutus-core -any,
-        serialise -any
-
-benchmark plutus-core-weigh
-    import: lang
-    type: exitcode-stdio-1.0
-    main-is: Bench.hs
-    hs-source-dirs: weigh
-    ghc-options: -rtsopts
-    build-depends:
-        base -any,
-        bytestring -any,
-        plutus-core -any,
-        weigh -any
 
 executable plc
     import: lang
