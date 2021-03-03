@@ -543,9 +543,6 @@ cradle:
     - path: "plutus-core/common"
       component: "plutus-core:lib"
 
-    - path: "plutus-core/generate-evaluation-test/Main.hs"
-      component: "plutus-core:exe:plutus-core-generate-evaluation-test"
-
     - path: "plutus-core/plutus-core/test"
       component: "plutus-core:test:plutus-core-test"
 
@@ -555,13 +552,7 @@ cradle:
     - path: "plutus-core/untyped-plutus-core/test"
       component: "plutus-core:test:untyped-plutus-core-test"
 
-    - path: "plutus-core/bench/Bench.hs"
-      component: "plutus-core:bench:plutus-core-bench"
-
-    - path: "plutus-core/weigh/Bench.hs"
-      component: "plutus-core:bench:plutus-core-weigh"
-
-    - path: "plutus-core/exe/Main.hs"
+    - path: "plutus-core/plc/Main.hs"
       component: "plutus-core:exe:plc"
 
     - path: "plutus-core/cost-model/budgeting-bench/Bench.hs"

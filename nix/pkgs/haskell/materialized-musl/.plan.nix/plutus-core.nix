@@ -273,17 +273,6 @@
           ];
         };
       exes = {
-        "plutus-core-generate-evaluation-test" = {
-          depends = [
-            (hsPkgs."base" or (errorHandler.buildDepError "base"))
-            (hsPkgs."hedgehog" or (errorHandler.buildDepError "hedgehog"))
-            (hsPkgs."plutus-core" or (errorHandler.buildDepError "plutus-core"))
-            (hsPkgs."text" or (errorHandler.buildDepError "text"))
-            ];
-          buildable = true;
-          hsSourceDirs = [ "generate-evaluation-test" ];
-          mainPath = [ "Main.hs" ];
-          };
         "plc" = {
           depends = [
             (hsPkgs."base" or (errorHandler.buildDepError "base"))
@@ -300,7 +289,7 @@
             (hsPkgs."transformers" or (errorHandler.buildDepError "transformers"))
             ];
           buildable = true;
-          hsSourceDirs = [ "exe" ];
+          hsSourceDirs = [ "plc" ];
           mainPath = [ "Main.hs" ];
           };
         };
@@ -393,28 +382,6 @@
           };
         };
       benchmarks = {
-        "plutus-core-bench" = {
-          depends = [
-            (hsPkgs."base" or (errorHandler.buildDepError "base"))
-            (hsPkgs."bytestring" or (errorHandler.buildDepError "bytestring"))
-            (hsPkgs."mtl" or (errorHandler.buildDepError "mtl"))
-            (hsPkgs."criterion" or (errorHandler.buildDepError "criterion"))
-            (hsPkgs."plutus-core" or (errorHandler.buildDepError "plutus-core"))
-            (hsPkgs."serialise" or (errorHandler.buildDepError "serialise"))
-            ];
-          buildable = true;
-          hsSourceDirs = [ "bench" ];
-          };
-        "plutus-core-weigh" = {
-          depends = [
-            (hsPkgs."base" or (errorHandler.buildDepError "base"))
-            (hsPkgs."bytestring" or (errorHandler.buildDepError "bytestring"))
-            (hsPkgs."plutus-core" or (errorHandler.buildDepError "plutus-core"))
-            (hsPkgs."weigh" or (errorHandler.buildDepError "weigh"))
-            ];
-          buildable = true;
-          hsSourceDirs = [ "weigh" ];
-          };
         "cost-model-budgeting-bench" = {
           depends = [
             (hsPkgs."base" or (errorHandler.buildDepError "base"))
