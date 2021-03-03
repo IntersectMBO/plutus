@@ -79,8 +79,8 @@ autoexecZCBTest = checkPredicate "ZCB Auto Execute Contract"
     T..&&. walletFundsChange bob (lovelaceValueOf (-150))
     ) $ do
 
-    bobHdl <- Trace.activateContractWallet @MarloweSchema @MarloweError bob marlowePlutusContract
-    aliceHdl <- Trace.activateContractWallet @MarloweSchema @MarloweError alice marlowePlutusContract
+    bobHdl <- Trace.activateContractWallet bob marlowePlutusContract
+    aliceHdl <- Trace.activateContractWallet alice marlowePlutusContract
 
     -- Bob will wait for the contract to appear on chain
     Trace.callEndpoint @"auto" bobHdl (params, bobPk, contractLifespan)
@@ -114,8 +114,8 @@ autoexecZCBTestAliceWalksAway = checkPredicate
     T..&&. walletFundsChange alice (P.inv defaultLovelaceAmount)
     T..&&. walletFundsChange carol defaultLovelaceAmount
     ) $ do
-    bobHdl <- Trace.activateContractWallet @MarloweSchema @MarloweError bob marlowePlutusContract
-    aliceHdl <- Trace.activateContractWallet @MarloweSchema @MarloweError alice marlowePlutusContract
+    bobHdl <- Trace.activateContractWallet bob marlowePlutusContract
+    aliceHdl <- Trace.activateContractWallet alice marlowePlutusContract
 
     -- Bob will wait for the contract to appear on chain
     Trace.callEndpoint @"auto" bobHdl (params, bobPk, contractLifespan)
@@ -145,8 +145,8 @@ autoexecZCBTestBobWalksAway = checkPredicate
     T..&&. walletFundsChange alice (lovelaceValueOf (-850))
     T..&&. walletFundsChange carol defaultLovelaceAmount
     ) $ do
-    bobHdl <- Trace.activateContractWallet @MarloweSchema @MarloweError bob marlowePlutusContract
-    aliceHdl <- Trace.activateContractWallet @MarloweSchema @MarloweError alice marlowePlutusContract
+    bobHdl <- Trace.activateContractWallet bob marlowePlutusContract
+    aliceHdl <- Trace.activateContractWallet alice marlowePlutusContract
 
     -- Bob will wait for the contract to appear on chain
     Trace.callEndpoint @"auto" bobHdl (params, bobPk, contractLifespan)
@@ -172,8 +172,8 @@ awaitUntilTimeoutTest = checkPredicate "Party waits for contract to appear on ch
     T..&&. assertNotDone marlowePlutusContract (Trace.walletInstanceTag bob) "contract should close"
     ) $ do
 
-    bobHdl <- Trace.activateContractWallet @MarloweSchema @MarloweError bob marlowePlutusContract
-    aliceHdl <- Trace.activateContractWallet @MarloweSchema @MarloweError alice marlowePlutusContract
+    bobHdl <- Trace.activateContractWallet bob marlowePlutusContract
+    aliceHdl <- Trace.activateContractWallet alice marlowePlutusContract
 
     -- Bob will wait for the contract to appear on chain
     Trace.callEndpoint @"auto" bobHdl (params, bobPk, contractLifespan)
