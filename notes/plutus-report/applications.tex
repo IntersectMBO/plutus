@@ -300,7 +300,7 @@ Any other transition that removes a token from $p_s$ is expected to put it back 
   \centering
   \begin{tikzpicture}[node distance=1.3cm,>=stealth',bend angle=45,auto]
     % Styles are from https://texample.net/tikz/examples/nodetutorial/
-    \tikzstyle{place-time}=[circle,thick,draw=blue!75,fill=black!20,minimum size=6mm]
+    \tikzstyle{place-time}=[circle,thick,draw=blue!75,fill=black!20,minimum size=7mm]
     \tikzstyle{transition}=[rectangle,thick,draw=black!75,
     fill=black!20,minimum size=4mm]
 
@@ -334,7 +334,7 @@ For each of the four states of a transaction there is one place in the petri net
   \centering
   \begin{tikzpicture}[node distance=1.3cm,>=stealth',bend angle=45,auto]
     % Styles are from https://texample.net/tikz/examples/nodetutorial/
-    \tikzstyle{place-status}=[circle,thick,draw=red!75,fill=black!20,minimum size=6mm]
+    \tikzstyle{place-status}=[circle,thick,draw=red!75,fill=black!20,minimum size=7mm]
     \tikzstyle{transition}=[rectangle,thick,draw=black!75,
     fill=black!20,minimum size=4mm]
 
@@ -380,7 +380,7 @@ Endpoints are places $e_1, \ldots, e_n$ in the petri net (see \ref{fig:petri-net
   \centering
   \begin{tikzpicture}[node distance=1.3cm,>=stealth',bend angle=45,auto]
     % Styles are from https://texample.net/tikz/examples/nodetutorial/
-    \tikzstyle{place-endpoint}=[circle,thick,draw=yellow!75,fill=black!20,minimum size=6mm]
+    \tikzstyle{place-endpoint}=[circle,thick,draw=yellow!75,fill=black!20,minimum size=7mm]
     \tikzstyle{transition}=[rectangle,thick,draw=black!75,
     fill=black!20,minimum size=4mm]
 
@@ -405,31 +405,38 @@ The app transitions (green) involve queries to the chain index, transaction subm
 These requests are not shown in the petri net.
 We still record their responses however, in order to meet the replayability requirements (see \ref{req:app-synch} and \ref{req:app-reproducibility}).
 
-The diagram also illustrates what the observable state of the application is: The marking of its state places.
-
 \begin{figure}
   \centering
-  \begin{tikzpicture}[node distance=1.3cm,>=stealth',bend angle=45,auto]
+  \begin{tikzpicture}[node distance=1.8cm,>=stealth',bend angle=45,auto]
     % Styles are from https://texample.net/tikz/examples/nodetutorial/
-    \tikzstyle{place-endpoint}=[circle,thick,draw=yellow!75,fill=black!20,minimum size=6mm]
-    \tikzstyle{place-status}=[circle,thick,draw=red!75,fill=black!20,minimum size=6mm]
-    \tikzstyle{place-time}=[circle,thick,draw=blue!75,fill=black!20,minimum size=6mm]
-    \tikzstyle{place-app}=[circle,thick,draw=green!75,fill=black!20,minimum size=6mm]
+    \tikzstyle{place-endpoint}=[circle,thick,draw=yellow!75,fill=black!20,minimum size=7mm]
+    \tikzstyle{place-status}=[circle,thick,draw=red!75,fill=black!20,minimum size=7mm]
+    \tikzstyle{place-time}=[circle,thick,draw=blue!75,fill=black!20,minimum size=7mm]
+    \tikzstyle{place-app}=[circle,thick,draw=green!75,fill=black!20,minimum size=7mm]
+    \tikzstyle{place-writer}=[circle,thick,draw=black!50,fill=black!10,minimum size=4mm]
     \tikzstyle{transition-app}=[rectangle,thick,draw=green!75,fill=green!20,minimum size=4mm]
 
     \node [place-status]   (confirmed) [label=above:$\mathsf{confirmed}$]     {};
     \node [place-app]      (s1)        [below of=confirmed,tokens=1,label=below:$s_1$] {};
     \node [transition-app] (t1)        [above right of=s1]                    {};
+    \node [place-writer]   (w1)        [below=0.5cm of t1] {\code{w}};
+
     \path (confirmed) edge [->,bend right] (t1);
     \coordinate[yshift=0,left=1cm of confirmed.west] (aux1);
     \path (aux1) edge [->,dashed] (confirmed);
     \path (t1) edge [->,bend right] (confirmed);
     \path (s1) edge [->] (t1);
+    \path (t1) edge [->] (w1);
 
     \node [place-app]      (s2)        [right of=t1,label=below:$s_2$] {};
     \path (t1) edge [->] (s2);
     \node [transition-app] (t2) [above right of=s2] {};
+    \node [place-writer]   (w2)        [below=0.5cm of t2] {\code{w}};
+    \path (t2) edge [->] (w2);
+
     \node [transition-app] (t3) [below right of=s2] {};
+    \node [place-writer]   (w3)        [below=1.2cm of t3] {\code{w}};
+    \path (t3) edge [->] (w3);
 
     \node [place-app]      (s3)        [right of=t2,label=below:$s_3$] {};
     \path (s2) edge [->] (t2);
@@ -447,13 +454,24 @@ The diagram also illustrates what the observable state of the application is: Th
 
     \node [place-time] (p10) [below left of=t3,tokens=0,label=below:$p_{10}$] {};
     \coordinate[yshift=0,left=1cm of p10.west] (aux3);
+    \coordinate[yshift=0,right=1cm of p10.east] (aux4);
     \path (aux3) edge [->,dashed] (p10);
     \path (p10) edge [->, bend right] (t3);
     \path (t3) edge [->, bend right] (p10);
   \end{tikzpicture}
-\caption{Petri net for an \gls{app} (green) that waits for a transaction to be confirmed and then waits for slot number ten to begin, or for user input}
+\caption{
+  Petri net for an \gls{app} (green) that waits for a transaction to be confirmed and then waits for slot number ten to begin, or for user input.
+  The app emits values of type \code{w} on every transition.
+  }
 \label{fig:plutus-app-net}
 \end{figure}
+
+\subsubsection{Observable state}
+
+\glspl{app} need to be able to notify the outside world of changes.
+To this end, the application can emit values of some user-defined type \code{w} whenever one of its transition fires.
+In the Haskell library, this is realised using the \code{Writer w} effect, with \code{Monoid w} constraint.
+Clients of the \gls{app} can subscribe to receive updates whenever the accumulated total of all values changes.
 
 \subsubsection{Multiple instances, on-chain state}
 
