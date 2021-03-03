@@ -3,6 +3,7 @@ module MainFrame.Types where
 import Prelude hiding (div)
 import Analytics (class IsEvent, defaultEvent, toEvent)
 import Auth (AuthStatus)
+import BlocklyComponent.Types as Blockly
 import BlocklyEditor.Types as BE
 import ConfirmUnsavedNavigation.Types as ConfirmUnsavedNavigation
 import Data.Either (Either)
@@ -11,20 +12,23 @@ import Data.Generic.Rep.Show (genericShow)
 import Data.Lens (Lens', has, (^.))
 import Data.Lens.Record (prop)
 import Data.Maybe (Maybe(..))
+import Data.Newtype (class Newtype)
 import Data.Symbol (SProxy(..))
 import Demos.Types as Demos
+import Foreign.Class (class Decode, class Encode)
+import Foreign.Generic (defaultOptions, genericDecode, genericEncode)
 import Gist (Gist, GistId)
 import Gists.Types (GistAction)
 import Halogen (ClassName)
 import Halogen as H
 import Halogen.ActusBlockly as AB
-import BlocklyComponent.Types as Blockly
 import Halogen.Classes (activeClass)
 import Halogen.Monaco (KeyBindings)
 import Halogen.Monaco as Monaco
 import HaskellEditor.Types as HE
 import JavascriptEditor.Types (CompilationState)
 import JavascriptEditor.Types as JS
+import Marlowe.Extended (MetaData)
 import MarloweEditor.Types as ME
 import Network.RemoteData (_Loading)
 import NewProject.Types as NewProject
@@ -37,9 +41,6 @@ import SimulationPage.Types as Simulation
 import Types (WebData)
 import WalletSimulation.Types as Wallet
 import Web.UIEvent.KeyboardEvent (KeyboardEvent)
-import Foreign.Class (class Decode, class Encode)
-import Foreign.Generic (defaultOptions, genericDecode, genericEncode)
-import Data.Newtype (class Newtype)
 
 data ModalView
   = NewProject
@@ -190,6 +191,7 @@ type State
     , marloweEditorState :: ME.State
     , blocklyEditorState :: BE.State
     , simulationState :: Simulation.State
+    , contractMetadata :: MetaData
     , projects :: Projects.State
     , newProject :: NewProject.State
     , rename :: Rename.State
@@ -238,6 +240,9 @@ _javascriptState = prop (SProxy :: SProxy "javascriptState")
 
 _simulationState :: Lens' State Simulation.State
 _simulationState = prop (SProxy :: SProxy "simulationState")
+
+_contractMetadata :: Lens' State MetaData
+_contractMetadata = prop (SProxy :: SProxy "contractMetadata")
 
 _projects :: Lens' State Projects.State
 _projects = prop (SProxy :: SProxy "projects")

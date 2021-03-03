@@ -5,6 +5,7 @@ module StaticData
   , demoFilesJS
   , marloweBufferLocalStorageKey
   , simulatorBufferLocalStorageKey
+  , metadataLocalStorageKey
   , marloweContract
   , marloweContracts
   , gistIdLocalStorageKey
@@ -83,6 +84,10 @@ marloweBufferLocalStorageKey = LocalStorage.Key "MarloweBuffer"
 simulatorBufferLocalStorageKey ::
   LocalStorage.Key
 simulatorBufferLocalStorageKey = LocalStorage.Key "SimulationBuffer"
+
+metadataLocalStorageKey ::
+  LocalStorage.Key
+metadataLocalStorageKey = LocalStorage.Key "MarloweMetadata"
 
 gistIdLocalStorageKey ::
   LocalStorage.Key

@@ -11,11 +11,14 @@ import Data.Generic.Rep.Show (genericShow)
 import Data.Lens (Lens', to, view)
 import Data.Lens.Record (prop)
 import Data.Maybe (Maybe(..))
+import Data.Set (Set)
 import Data.Symbol (SProxy(..))
 import Halogen.Monaco (KeyBindings(..))
 import Halogen.Monaco as Monaco
-import Marlowe.Extended (IntegerTemplateType)
+import Marlowe.Extended (IntegerTemplateType, MetaData, MetadataHintInfo)
 import Monaco (IMarkerData)
+import StaticAnalysis.Types (AnalysisState, initAnalysisState)
+import Plutus.V1.Ledger.Value as S
 import StaticAnalysis.Types (AnalysisState, initAnalysisState)
 import Text.Parsing.StringParser (Pos)
 import Web.HTML.Event.DragEvent (DragEvent)
@@ -84,6 +87,7 @@ type State
     , bottomPanelState :: BottomPanel.State BottomPanelView
     , showErrorDetail :: Boolean
     , selectedHole :: Maybe String
+    , metadataHintInfo :: MetadataHintInfo
     , analysisState :: AnalysisState
     , editorErrors :: Array IMarkerData
     , editorWarnings :: Array IMarkerData
@@ -98,6 +102,9 @@ _showErrorDetail = prop (SProxy :: SProxy "showErrorDetail")
 
 _selectedHole :: Lens' State (Maybe String)
 _selectedHole = prop (SProxy :: SProxy "selectedHole")
+
+_metadataHintInfo :: Lens' State MetadataHintInfo
+_metadataHintInfo = prop (SProxy :: SProxy "metadataHintInfo")
 
 _editorErrors :: forall s a. Lens' { editorErrors :: a | s } a
 _editorErrors = prop (SProxy :: SProxy "editorErrors")
@@ -117,6 +124,7 @@ initialState =
   , bottomPanelState: BottomPanel.initialState StaticAnalysisView
   , showErrorDetail: false
   , selectedHole: Nothing
+  , metadataHintInfo: mempty
   , analysisState: initAnalysisState
   , editorErrors: mempty
   , editorWarnings: mempty

@@ -13,7 +13,7 @@ import Control.Monad.Maybe.Trans (MaybeT(..), runMaybeT)
 import Control.Monad.Reader (class MonadAsk, asks, runReaderT)
 import Control.Monad.State (modify_)
 import Data.Bifunctor (lmap)
-import Data.Either (Either(..), hush, note)
+import Data.Either (Either(..), either, hush, note)
 import Data.Foldable (fold, for_)
 import Data.Lens (assign, has, preview, set, use, view, (^.))
 import Data.Lens.Extra (peruse)
@@ -47,11 +47,12 @@ import JavascriptEditor.Types (Action(..), State, _ContractString, initialState)
 import JavascriptEditor.Types (CompilationState(..))
 import Language.Haskell.Monaco as HM
 import LoginPopup (openLoginPopup, informParentAndClose)
-import MainFrame.Types (Action(..), ChildSlots, ModalView(..), Query(..), State, View(..), _actusBlocklySlot, _authStatus, _blocklyEditorState, _createGistResult, _gistId, _hasUnsavedChanges, _haskellState, _javascriptState, _jsEditorSlot, _loadGistResult, _marloweEditorState, _newProject, _projectName, _projects, _rename, _saveAs, _showBottomPanel, _showModal, _simulationState, _view, _walletSlot, _workflow, sessionToState, stateToSession)
+import MainFrame.Types (Action(..), ChildSlots, ModalView(..), Query(..), State, View(..), _actusBlocklySlot, _authStatus, _blocklyEditorState, _contractMetadata, _createGistResult, _gistId, _hasUnsavedChanges, _haskellState, _javascriptState, _jsEditorSlot, _loadGistResult, _marloweEditorState, _newProject, _projectName, _projects, _rename, _saveAs, _showBottomPanel, _showModal, _simulationState, _view, _walletSlot, _workflow, sessionToState, stateToSession)
 import MainFrame.View (render)
 import Marlowe (getApiGistsByGistId)
 import Marlowe as Server
 import Marlowe.ActusBlockly as AMB
+import Marlowe.Extended (MetaData, emptyContractMetadata)
 import Marlowe.Gists (mkNewGist, playgroundFiles, PlaygroundFiles)
 import MarloweEditor.State as MarloweEditor
 import MarloweEditor.Types as ME
@@ -74,7 +75,7 @@ import Servant.PureScript.Ajax (AjaxError, ErrorDescription(..), errorToString, 
 import SessionStorage as SessionStorage
 import SimulationPage.State as Simulation
 import SimulationPage.Types as ST
-import StaticData (gistIdLocalStorageKey)
+import StaticData (gistIdLocalStorageKey, metadataLocalStorageKey)
 import StaticData as StaticData
 import Types (WebData)
 import WalletSimulation.Types as Wallet
@@ -97,6 +98,7 @@ initialState =
   , simulationState: ST.mkState
   , jsEditorKeybindings: DefaultBindings
   , activeJSDemo: mempty
+  , contractMetadata: emptyContractMetadata
   , projects: Projects.emptyState
   , newProject: NewProject.emptyState
   , rename: Rename.emptyState
@@ -304,6 +306,10 @@ handleAction Init = do
   void
     $ runMaybeT do
         sessionJSON <- MaybeT $ liftEffect $ SessionStorage.getItem StaticData.sessionStorageKey
+        metadataJSON <- fromMaybe "" <$> (liftEffect $ SessionStorage.getItem metadataLocalStorageKey)
+        let
+          metadata = either (const emptyContractMetadata) identity $ runExcept (decodeJSON metadataJSON)
+        assign _contractMetadata metadata
         session <- hoistMaybe $ hush $ runExcept $ decodeJSON sessionJSON
         H.modify_ (sessionToState session)
 
@@ -346,7 +352,7 @@ handleAction (MarloweEditorAction action) = do
   case action of
     ME.SendToSimulator -> do
       mContents <- MarloweEditor.editorGetValue
-      for_ mContents \contents -> do
+      for_ mContents \contents ->
         sendToSimulation contents
     ME.ViewAsBlockly -> do
       mSource <- MarloweEditor.editorGetValue
@@ -409,9 +415,7 @@ handleAction (HandleActusBlocklyMessage (ActusBlockly.CurrentTerms flavour terms
         ActusBlockly.FS -> runAjax $ flip runReaderT settings $ (Server.postApiActusGenerate parsedTerms)
         ActusBlockly.F -> runAjax $ flip runReaderT settings $ (Server.postApiActusGeneratestatic parsedTerms)
       case result of
-        Success contractAST -> do
-          selectView Simulation
-          void $ toSimulation $ Simulation.handleAction (ST.LoadContract contractAST)
+        Success contractAST -> sendToSimulation contractAST
         Failure e -> void $ query _actusBlocklySlot unit (ActusBlockly.SetError ("Server error! " <> (showErrorDescription (runAjaxError e).description)) unit)
         _ -> void $ query _actusBlocklySlot unit (ActusBlockly.SetError "Unknown server error!" unit)
 
@@ -453,8 +457,11 @@ handleAction (NewProjectAction (NewProject.CreateProject lang)) = do
     ( set _projectName "New Project"
         <<< set _gistId Nothing
         <<< set _createGistResult NotAsked
+        <<< set _contractMetadata emptyContractMetadata
     )
-  liftEffect $ SessionStorage.setItem gistIdLocalStorageKey mempty
+  liftEffect do
+    SessionStorage.setItem gistIdLocalStorageKey mempty
+    SessionStorage.setItem metadataLocalStorageKey (encodeJSON (emptyContractMetadata :: MetaData))
   -- We reset all editors and then initialize the selected language.
   toHaskellEditor $ HaskellEditor.handleAction $ HE.InitHaskellProject mempty
   toJavascriptEditor $ JavascriptEditor.handleAction $ JS.InitJavascriptProject mempty
@@ -485,6 +492,7 @@ handleAction (NewProjectAction (NewProject.CreateProject lang)) = do
 handleAction (NewProjectAction NewProject.Cancel) = fullHandleAction CloseModal
 
 handleAction (DemosAction action@(Demos.LoadDemo lang (Demos.Demo key))) = do
+  liftEffect $ SessionStorage.setItem metadataLocalStorageKey (encodeJSON (emptyContractMetadata :: MetaData)) -- ToDo: Load metadata for example (SCP-1912)
   case lang of
     Haskell ->
       for_ (Map.lookup key StaticData.demoFiles) \contents ->
@@ -503,6 +511,7 @@ handleAction (DemosAction action@(Demos.LoadDemo lang (Demos.Demo key))) = do
     ( set _showModal Nothing
         <<< set _workflow (Just lang)
         <<< set _hasUnsavedChanges false
+        <<< set _contractMetadata emptyContractMetadata -- ToDo: Load metadata for example (SCP-1912)
     )
   selectView $ selectLanguageView lang
 
