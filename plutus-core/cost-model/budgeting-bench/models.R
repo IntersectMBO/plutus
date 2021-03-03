@@ -32,7 +32,7 @@ benchData <- function(path) {
     mutate_at(c("Mean", "MeanLB", "MeanUB", "Stddev", "StddevLB", "StddevUB"), function(x) { x * 1000 * 1000 })
 }
 
-# path <- "plutus-core/budgeting-bench/csvs/benching.csv"
+# path <- "plutus-core/cost-model/budgeting-bench/csvs/benching.csv"
 
 modelFun <- function(path) {
   data <- benchData(path)

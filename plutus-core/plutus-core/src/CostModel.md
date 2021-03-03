@@ -9,8 +9,8 @@ $(nix-build default.nix -A haskell.projectPackages.plutus-core.components.benchm
 ## To rerun the benching data
 
 ```bash
-rm plutus-core/budgeting-bench/csvs/benching.csv
-$(nix-build default.nix -A haskell.projectPackages.plutus-core.components.benchmarks.plutus-core-budgeting-bench)/bin/plutus-core-budgeting-bench
+rm plutus-core/cost-model/budgeting-bench/csvs/benching.csv
+$(nix-build default.nix -A haskell.projectPackages.plutus-core.components.benchmarks.cost-model-budgeting-bench)/bin/cost-model-budgeting-bench
 ```
 
 ## Note [Creation of the Cost Model]
