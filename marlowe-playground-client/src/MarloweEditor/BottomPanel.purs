@@ -10,17 +10,26 @@ import Data.Maybe (Maybe(..))
 import Data.String (take)
 import Data.String.Extra (unlines)
 import Data.Tuple.Nested ((/\))
+import Foreign.Generic (encodeJSON)
 import Halogen.Classes (flex, flexCol, fontBold, fullWidth, grid, gridColsDescriptionLocation, justifySelfEnd, minW0, overflowXScroll, paddingRight, underline)
 import Halogen.HTML (HTML, a, div, div_, pre_, section, section_, span_, text)
 import Halogen.HTML.Events (onClick)
 import Halogen.HTML.Properties (class_, classes)
 import MarloweEditor.Types (Action(..), BottomPanelView(..), State, _editorErrors, _editorWarnings, _hasHoles, _showErrorDetail, contractHasErrors)
+import Marlowe.Extended (MetaData)
+import MarloweEditor.Types (Action(..), BottomPanelView(..), State, _editorErrors, _editorWarnings, _metadataHintInfo, _showErrorDetail, contractHasErrors)
 import StaticAnalysis.BottomPanel (analysisResultPane, analyzeButton, clearButton)
 import StaticAnalysis.Types (_analysisExecutionState, _analysisState, isCloseAnalysisLoading, isNoneAsked, isReachabilityLoading, isStaticLoading)
 import Text.Parsing.StringParser.Basic (lines)
 
-panelContents :: forall p. State -> BottomPanelView -> HTML p Action
-panelContents state StaticAnalysisView =
+panelContents :: forall p. State -> MetaData -> BottomPanelView -> HTML p Action
+panelContents state metadata MetadataView =
+  div_
+    [ div_ [ text (encodeJSON metadata) ]
+    , div_ [ text (show (state ^. _metadataHintInfo)) ]
+    ]
+
+panelContents state _ StaticAnalysisView =
   section [ classes [ flex, flexCol ] ]
     if (state ^. _hasHoles) then
       [ div_ [ text "The contract needs to be complete (no holes) before doing static analysis." ]
@@ -49,7 +58,7 @@ panelContents state StaticAnalysisView =
 
   analysisEnabled = nothingLoading && not contractHasErrors state
 
-panelContents state MarloweWarningsView =
+panelContents state _ MarloweWarningsView =
   section_
     if Array.null warnings then
       [ pre_ [ text "No warnings" ] ]
@@ -74,7 +83,7 @@ panelContents state MarloweWarningsView =
         [ text $ show warning.startLineNumber ]
     ]
 
-panelContents state MarloweErrorsView =
+panelContents state _ MarloweErrorsView =
   section_
     if Array.null errors then
       [ pre_ [ text "No errors" ] ]
