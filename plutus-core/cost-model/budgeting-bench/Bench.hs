@@ -141,6 +141,12 @@ benchTwoInt builtinName =
 -- Creates the .csv file consumed by create-cost-model. The data in said csv is
 -- time taken for all the builtin operations, as measured by criterion.
 -- See also Note [Creation of the Cost Model]
+--
+-- TODO: Some care is required here regarding the current working directory.  If
+-- you run this benchmark via `cabal bench` or `stack bench` (but not `cabal
+-- run`) then the current directory will be `plutus-core`.  If you use nix it'll
+-- be the current shell directory, so you'll need to run it from `plutus-core`
+-- (NOT `plutus`, where `default.nix` is).  See SCP-2005.
 main :: IO ()
 main = do
   let dataDir = "cost-model" </> "data" :: FilePath
