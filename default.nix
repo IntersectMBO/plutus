@@ -71,6 +71,14 @@ rec {
     }) client server-invoker generated-purescript generate-purescript;
   };
 
+  marlowe-marketplace = pkgs.recurseIntoAttrs rec {
+    inherit (pkgs.callPackage ./marlowe-marketplace-client {
+      inherit (plutus.lib) buildPursPackage buildNodeModules filterNpm gitignore-nix;
+      inherit webCommon webCommonMarlowe;
+    }) client;
+  };
+
+
   plutus-pab = pkgs.recurseIntoAttrs (pkgs.callPackage ./plutus-pab-client {
     inherit (plutus.lib) buildPursPackage buildNodeModules gitignore-nix filterNpm;
     inherit set-git-rev haskell webCommon webCommonPlutus;
