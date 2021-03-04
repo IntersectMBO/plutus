@@ -26,6 +26,7 @@ import           Hedgehog.Internal.Gen
 import           Hedgehog.Internal.Tree
 import           Hedgehog.Range
 import           System.Directory
+import           System.FilePath
 
 type UntypedPlain f (uni :: GHC.Type -> GHC.Type) (fun :: GHC.Type) = f Name uni fun ()
 
@@ -50,12 +51,18 @@ benchBytestringOperations name = createTwoTermBuiltinBench @Integer @BS.ByteStri
     where
         numbers = expToBenchingInteger <$> expsToBench
 
-createTwoTermBuiltinBench :: (DefaultUni `Includes` a, DefaultUni `Includes` b) => DefaultFun -> [(a, ExMemory)] -> [(b, ExMemory)] -> Benchmark
+createTwoTermBuiltinBench
+    :: (DefaultUni `Includes` a, DefaultUni `Includes` b)
+    => DefaultFun
+    -> [(a, ExMemory)]
+    -> [(b, ExMemory)]
+    -> Benchmark
 createTwoTermBuiltinBench name as bs =
     bgroup (show name) $
         as <&> (\(x, xMem) ->
             bgroup (show xMem) $ bs <&> (\(y, yMem) ->
-                runTermBench (show yMem) $ erase $ mkIterApp () (builtin () name) [(mkConstant () x), (mkConstant () y)]
+                runTermBench (show yMem) $ erase $
+                             mkIterApp () (builtin () name) [mkConstant () x,  mkConstant () y]
             ))
 
 benchComparison :: [Benchmark]
@@ -63,7 +70,12 @@ benchComparison = (\n -> runTermBench ("CalibratingBench/ExMemory " <> show n) (
 
 -- Creates a cheap builtin operation to measure the base cost of executing one.
 createRecursiveTerm :: Integer -> Plain PLC.Term DefaultUni DefaultFun
-createRecursiveTerm d = mkIterApp () (builtin () AddInteger) [(mkConstant () (1::Integer)), if d == 0 then (mkConstant () (1::Integer)) else (createRecursiveTerm (d - 1))]
+createRecursiveTerm d = mkIterApp () (builtin () AddInteger)
+                        [ (mkConstant () (1::Integer))
+                        , if d == 0
+                          then mkConstant () (1::Integer)
+                          else createRecursiveTerm (d - 1)
+                        ]
 
 benchHashOperations :: DefaultFun -> Benchmark
 benchHashOperations name =
@@ -81,7 +93,12 @@ benchVerifySignature :: Benchmark
 benchVerifySignature =
     bgroup (show name) $
         bs <&> (\(x, xMem) ->
-            runTermBench (show xMem) $ erase $ mkIterApp () (builtin () name) [(mkConstant () pubKey), (mkConstant () x), (mkConstant () sig)]
+            runTermBench (show xMem) $ erase $
+                         mkIterApp () (builtin () name)
+                         [ mkConstant () pubKey
+                         , mkConstant () x
+                         , mkConstant () sig
+                         ]
         )
     where
         name = VerifySignature
@@ -112,7 +129,7 @@ expToBenchingBytestring seed e = let x = genSample seed (bytes (Hedgehog.Range.s
 expToBenchingInteger :: Integer -> (Integer, ExMemory)
 expToBenchingInteger e =
             let
-                x = ((3 :: Integer) ^ e)
+                x = (3 :: Integer) ^ e
             in (x, memoryUsage x)
 
 benchTwoInt :: DefaultFun -> Benchmark
@@ -124,10 +141,30 @@ benchTwoInt builtinName =
 -- Creates the .csv file consumed by create-cost-model. The data in said csv is
 -- time taken for all the builtin operations, as measured by criterion.
 -- See also Note [Creation of the Cost Model]
+--
+-- TODO: Some care is required here regarding the current working directory.  If
+-- you run this benchmark via `cabal bench` or `stack bench` (but not `cabal
+-- run`) then the current directory will be `plutus-core`.  If you use nix it'll
+-- be the current shell directory, so you'll need to run it from `plutus-core`
+-- (NOT `plutus`, where `default.nix` is).  See SCP-2005.
 main :: IO ()
 main = do
-    createDirectoryIfMissing True "budgeting-bench/csvs/"
-    defaultMainWith (defaultConfig { C.csvFile = Just $ "budgeting-bench/csvs/benching.csv" }) $ (benchTwoInt <$> twoIntNames) <> (benchTwoByteStrings <$> [Concatenate]) <> (benchBytestringOperations <$> [DropByteString, TakeByteString]) <> (benchHashOperations <$> [SHA2, SHA3]) <> (benchSameTwoByteStrings <$> [EqByteString, LtByteString, GtByteString]) <> [benchVerifySignature] <> benchComparison
-    pure ()
-    where
-        twoIntNames = [AddInteger, SubtractInteger, MultiplyInteger, DivideInteger, QuotientInteger, RemainderInteger, ModInteger, LessThanInteger, LessThanEqInteger, GreaterThanInteger, GreaterThanEqInteger, EqInteger]
+  let dataDir = "cost-model" </> "data"
+      csvFile = dataDir </> "benching.csv"
+      backupFile = dataDir </> "benching.csv.backup"
+  createDirectoryIfMissing True dataDir
+  csvExists <- doesFileExist csvFile
+  if csvExists then renameFile csvFile backupFile else pure ()
+
+  defaultMainWith (defaultConfig { C.csvFile = Just csvFile })
+                        $  (benchTwoInt <$> twoIntNames)
+                        <> (benchTwoByteStrings <$> [Concatenate])
+                        <> (benchBytestringOperations <$> [DropByteString, TakeByteString])
+                        <> (benchHashOperations <$> [SHA2, SHA3])
+                        <> (benchSameTwoByteStrings <$> [EqByteString, LtByteString, GtByteString])
+                        <> [benchVerifySignature]
+                        <> benchComparison
+  pure ()
+    where twoIntNames = [ AddInteger, SubtractInteger, MultiplyInteger, DivideInteger
+                        , QuotientInteger, RemainderInteger, ModInteger, LessThanInteger
+                        , LessThanEqInteger, GreaterThanInteger, GreaterThanEqInteger, EqInteger]
