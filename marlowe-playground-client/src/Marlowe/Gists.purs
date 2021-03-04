@@ -4,6 +4,7 @@ module Marlowe.Gists
   , playgroundFiles
   , filenames
   , fileExists
+  , PlaygroundFiles
   ) where
 
 import Prelude
