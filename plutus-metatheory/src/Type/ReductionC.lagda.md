@@ -350,33 +350,36 @@ infix 2 _—→⋆_
 infix 2 _—↠⋆_
 
 data _—→⋆_ : ∀{J} → (∅ ⊢⋆ J) → (∅ ⊢⋆ J) → Set where
-  contextRule : ∀{K K'} → (E : EvalCtx K K')
+  β-ƛ : Value⋆ B
+        -------------------
+      → ƛ A · B —→⋆ A [ B ]
+
+data _—→E_ : ∀{J} → (∅ ⊢⋆ J) → (∅ ⊢⋆ J) → Set where
+  contextRule : ∀{K K'}
+    → (E : EvalCtx K K')
     → ∀{A A' : ∅ ⊢⋆ K'}
     → A —→⋆ A'
     → {B B' : ∅ ⊢⋆ K}
     → B  ≡ closeEvalCtx E A
     → B' ≡ closeEvalCtx E A'
       --------------------
-    → B —→⋆ B'
+    → B —→E B'
     -- ^ explicit equality proofs make pattern matching easier and this uglier
 
-  β-ƛ : Value⋆ B
-        -------------------
-      → ƛ A · B —→⋆ A [ B ]
 ```
 
 ## Reflexive transitie closure of reduction
 
 ```
-data _—↠⋆_ : (∅ ⊢⋆ J) → (∅ ⊢⋆ J) → Set where
+data _—↠E_ : (∅ ⊢⋆ J) → (∅ ⊢⋆ J) → Set where
 
-  refl—↠⋆ : --------
-             A —↠⋆ A
+  refl—↠E : --------
+             A —↠E A
 
-  trans—↠⋆ : A —→⋆ B
-           → B —↠⋆ C
+  trans—↠E : A —→E B
+           → B —↠E C
              -------
-           → A —↠⋆ C
+           → A —↠E C
 ```
 
 ## Progress
@@ -385,7 +388,7 @@ An enumeration of possible outcomes of progress: a step or we hit a value.
 
 ```
 data Progress⋆ (A : ∅ ⊢⋆ K) : Set where
-  step : A —→⋆ B
+  step : A —→E B
          -----------
        → Progress⋆ A
   done : Value⋆ A
@@ -401,24 +404,29 @@ variables in the empty context.
 progress⋆ : (A : ∅ ⊢⋆ K) → Progress⋆ A
 progress⋆ (` ())
 progress⋆ (μ A B) with progress⋆ A
-... | step p = step (contextRule (μl [] B) p refl refl)
+... | step (contextRule E p refl refl) =
+  step (contextRule (μl E B) p refl refl)
 ... | done VA with progress⋆ B
-... | step p = step (contextRule (μr VA []) p refl refl)
+... | step (contextRule E p refl refl) =
+  step (contextRule (μr VA E) p refl refl)
 ... | done VB = done (V-μ VA VB)
 progress⋆ (Π A) = done (V-Π A)
 progress⋆ (A ⇒ B) with progress⋆ A
-... | step p = step (contextRule ([] l⇒ B) p refl refl)
+... | step (contextRule E p refl refl) =
+  step (contextRule (E l⇒ B) p refl refl)
 ... | done VA with progress⋆ B
-... | step q = step (contextRule (VA ⇒r []) q refl refl)
+... | step (contextRule E p refl refl) =
+  step (contextRule (VA ⇒r E) p refl refl)
 ... | done VB = done (VA V-⇒ VB)
 progress⋆ (ƛ A) = done (V-ƛ A)
 progress⋆ (A · B) with progress⋆ A
-... | step p =
-  step (contextRule ([] l· B) p refl refl)
+... | step (contextRule E p refl refl) =
+  step (contextRule (E l· B) p refl refl)
 ... | done V with progress⋆ B
-... | step p =
-  step (contextRule (V ·r []) p refl refl)
-progress⋆ (.(ƛ _) · B) | done (V-ƛ A) | done VB = step (β-ƛ VB)
+... | step (contextRule E p refl refl) =
+  step (contextRule (V ·r E) p refl refl)
+progress⋆ (.(ƛ _) · B) | done (V-ƛ A) | done VB =
+  step (contextRule [] (β-ƛ VB) refl refl)
 progress⋆ (con tcn) = done (V-con tcn)
 ```
 
@@ -434,8 +442,8 @@ lem0 A (E l⇒ B) (W V-⇒ W') = lem0 A E W
 lem0 A (μr _ E) (V-μ W W') = lem0 A E W'
 lem0 A (μl E B) (V-μ W W') = lem0 A E W
 
-notboth : (A : ∅ ⊢⋆ K) → ¬ (Value⋆ A × (Σ (∅ ⊢⋆ K) (A —→⋆_)))
-notboth A (V , A' , contextRule [] p refl refl) = notboth A (V , A' , p)
+notboth : (A : ∅ ⊢⋆ K) → ¬ (Value⋆ A × (Σ (∅ ⊢⋆ K) (A —→E_)))
+notboth .(ƛ _ · _) (() , _ , contextRule [] (β-ƛ x) refl refl)
 notboth _ (() , _ , contextRule (V ·r E) p refl refl)
 notboth _ (() , _ , contextRule (E l· B) p refl refl)
 notboth _ ((V V-⇒ W) , _ , contextRule (_ ⇒r E) p refl refl) =
@@ -534,4 +542,10 @@ det (contextRule E p x x₁) (β-ƛ x₂) = {!!}
 det (β-ƛ x) (contextRule E q x₁ x₂) = {!!}
 det (β-ƛ x) (β-ƛ x₁) = {!!}
 -}
+```
+
+```
+v-refl :  (A B : ∅ ⊢⋆ K)(V : Value⋆ A) → A —↠E B → A ≡ B
+v-refl A .A V refl—↠E       = refl
+v-refl A B V (trans—↠E p q) = ⊥-elim (notboth A (V , _ , p)) 
 ```
