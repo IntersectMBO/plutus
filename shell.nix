@@ -66,7 +66,6 @@ let
     fixStylishHaskell
     haskell-language-server
     hie-bios
-    gen-hie
     hlint
     marlowe-dashboard.generate-purescript
     marlowe-playground.generate-purescript
@@ -80,7 +79,6 @@ let
     spago
     stylish-haskell
     updateMaterialized
-    updateHie
     updateClientDeps
     updateMetadataSamples
     deployment.getCreds

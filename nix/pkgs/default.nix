@@ -37,7 +37,6 @@ let
   hlint = exeFromExtras "hlint";
   haskell-language-server = exeFromExtras "haskell-language-server";
   hie-bios = exeFromExtras "hie-bios";
-  gen-hie = haskell.extraPackages.implicit-hie.components.exes.gen-hie;
   haskellNixAgda = haskell.extraPackages.Agda;
 
   # We want to keep control of which version of Agda we use, so we supply our own and override
@@ -77,7 +76,6 @@ let
     # Update the linux files (will do for all unixes atm).
     $(nix-build default.nix -A plutus.haskell.project.plan-nix.passthru.updateMaterialized --argstr system x86_64-linux)
   '';
-  updateHie = pkgs.callPackage ./update-hie { inherit gen-hie; };
   updateMetadataSamples = pkgs.callPackage ./update-metadata-samples { };
   updateClientDeps = pkgs.callPackage ./update-client-deps {
     inherit purs psc-package spago spago2nix;
@@ -194,9 +192,9 @@ in
 {
   inherit sphinx-markdown-tables sphinxemoji sphinxcontrib-haddock;
   inherit nix-pre-commit-hooks;
-  inherit haskell agdaPackages cabal-install stylish-haskell hlint haskell-language-server hie-bios gen-hie;
+  inherit haskell agdaPackages cabal-install stylish-haskell hlint haskell-language-server hie-bios;
   inherit purty purty-pre-commit purs spago spago2nix;
-  inherit fixPurty fixStylishHaskell updateMaterialized updateHie updateMetadataSamples updateClientDeps;
+  inherit fixPurty fixStylishHaskell updateMaterialized updateMetadataSamples updateClientDeps;
   inherit iohkNix set-git-rev web-ghc thorp;
   inherit easyPS plutus-haddock-combined;
   inherit agdaWithStdlib;
