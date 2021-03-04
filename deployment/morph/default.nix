@@ -7,6 +7,8 @@ let
     { ip = machines.marloweDashB.ip; label = machines.marloweDashB.dns; port = configurations.ports.nodeExporter; }
     { ip = machines.webghcA.ip; label = machines.webghcA.dns; port = configurations.ports.nodeExporter; }
     { ip = machines.webghcB.ip; label = machines.webghcB.dns; port = configurations.ports.nodeExporter; }
+    { ip = machines.playgroundsA.ip; label = machines.playgroundsA.dns; port = configurations.ports.nodeExporter; }
+    { ip = machines.playgroundsB.ip; label = machines.playgroundsB.dns; port = configurations.ports.nodeExporter; }
   ];
 in
 # A and B refer to the 2 AWS availability zones

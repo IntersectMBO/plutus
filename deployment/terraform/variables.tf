@@ -51,7 +51,7 @@ variable "monitoring_public_zone" {
 }
 
 variable "bastion_instance_type" {
-  default = "t3.nano"
+  default = "t3.micro"
 }
 
 variable "webghc_instance_type" {

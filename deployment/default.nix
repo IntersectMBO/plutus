@@ -246,6 +246,8 @@ let
     playground = mkEnv "playground" "us-west-1" [ keys.david keys.kris keys.pablo keys.hernan ] { };
     testing = mkEnv "testing" "eu-west-3" [ keys.david keys.kris keys.pablo keys.hernan ] { };
     hernan = mkEnv "hernan" "us-west-2" [ keys.hernan ] { };
+    # this is anything that is defined in $PLUTUS_HOME/infrastructure such as the grafana instance
+    global = { initPass = (initPass "global" [ keys.david keys.kris keys.pablo keys.hernan ]); };
   };
 
   configTest = import ./morph/test.nix;
