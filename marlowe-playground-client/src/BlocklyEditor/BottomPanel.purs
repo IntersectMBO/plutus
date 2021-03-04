@@ -3,12 +3,12 @@ module BlocklyEditor.BottomPanel
   ) where
 
 import Prelude hiding (div)
-import BlocklyEditor.Types (Action(..), BottomPanelView(..), State, _warnings)
+import BlocklyEditor.Types (Action(..), BottomPanelView(..), State, _hasHoles, _warnings)
 import Data.Array as Array
 import Data.Lens (to, (^.))
 import Data.Maybe (Maybe(..))
 import Halogen.Classes (flex, flexCol, fontBold, fullWidth, grid, gridColsDescriptionLocation, justifySelfEnd, paddingRight, underline)
-import Halogen.HTML (HTML, a, div, pre_, section, section_, span_, text)
+import Halogen.HTML (HTML, a, div, div_, pre_, section, section_, span_, text)
 import Halogen.HTML.Events (onClick)
 import Halogen.HTML.Properties (class_, classes)
 import StaticAnalysis.BottomPanel (analysisResultPane, analyzeButton, clearButton)
@@ -17,14 +17,18 @@ import StaticAnalysis.Types (_analysisExecutionState, _analysisState, isCloseAna
 panelContents :: forall p. State -> BottomPanelView -> HTML p Action
 panelContents state StaticAnalysisView =
   section [ classes [ flex, flexCol ] ]
-    [ analysisResultPane SetIntegerTemplateParam state
-    , div [ classes [ paddingRight ] ]
-        [ analyzeButton loadingWarningAnalysis analysisEnabled "Analyse for warnings" AnalyseContract
-        , analyzeButton loadingReachability analysisEnabled "Analyse reachability" AnalyseReachabilityContract
-        , analyzeButton loadingCloseAnalysis analysisEnabled "Analyse for refunds on Close" AnalyseContractForCloseRefund
-        , clearButton clearEnabled "Clear" ClearAnalysisResults
-        ]
-    ]
+    if (state ^. _hasHoles) then
+      [ div_ [ text "The contract needs to be complete (no holes) before doing static analysis." ]
+      ]
+    else
+      [ analysisResultPane SetIntegerTemplateParam state
+      , div [ classes [ paddingRight ] ]
+          [ analyzeButton loadingWarningAnalysis analysisEnabled "Analyse for warnings" AnalyseContract
+          , analyzeButton loadingReachability analysisEnabled "Analyse reachability" AnalyseReachabilityContract
+          , analyzeButton loadingCloseAnalysis analysisEnabled "Analyse for refunds on Close" AnalyseContractForCloseRefund
+          , clearButton clearEnabled "Clear" ClearAnalysisResults
+          ]
+      ]
   where
   loadingWarningAnalysis = state ^. _analysisState <<< _analysisExecutionState <<< to isStaticLoading
 

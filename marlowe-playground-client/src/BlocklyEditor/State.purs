@@ -26,7 +26,7 @@ import Halogen.Extra (mapSubmodule)
 import MainFrame.Types (ChildSlots, _blocklySlot)
 import Marlowe.Blockly as MB
 import Marlowe.Extended (TemplateContent)
-import Marlowe.Extended as EM
+import Marlowe.Extended as Extended
 import Marlowe.Holes as Holes
 import Marlowe.Linter as Linter
 import SessionStorage as SessionStorage
@@ -83,7 +83,7 @@ handleAction (BottomPanelAction action) = toBottomPanel (BottomPanel.handleActio
 
 handleAction (SetIntegerTemplateParam templateType key value) =
   modifying
-    (_analysisState <<< _templateContent <<< EM.typeToLens templateType)
+    (_analysisState <<< _templateContent <<< Extended.typeToLens templateType)
     (Map.insert key value)
 
 handleAction AnalyseContract = runAnalysis $ analyseContract
@@ -125,7 +125,7 @@ processBlocklyCode = do
         -- then update the template content. If not, leave them as they are
         maybeUpdateTemplateContent :: TemplateContent -> TemplateContent
         maybeUpdateTemplateContent = case Holes.fromTerm holesContract of
-          Just (contract :: EM.Contract) -> EM.updateTemplateContent $ EM.getPlaceholderIds contract
+          Just (contract :: Extended.Contract) -> Extended.updateTemplateContent $ Extended.getPlaceholderIds contract
           Nothing -> identity
       liftEffect $ SessionStorage.setItem marloweBufferLocalStorageKey prettyContract
       modify_
@@ -141,7 +141,7 @@ processBlocklyCode = do
 runAnalysis ::
   forall m.
   MonadAff m =>
-  (EM.Contract -> HalogenM State Action ChildSlots Void m Unit) ->
+  (Extended.Contract -> HalogenM State Action ChildSlots Void m Unit) ->
   HalogenM State Action ChildSlots Void m Unit
 runAnalysis doAnalyze =
   void

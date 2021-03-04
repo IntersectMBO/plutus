@@ -4,21 +4,19 @@ import Prelude
 import Analytics (class IsEvent, Event)
 import Analytics as A
 import BottomPanel.Types as BottomPanel
-import Data.Array (filter)
 import Data.Array as Array
 import Data.BigInteger (BigInteger)
 import Data.Generic.Rep (class Generic)
 import Data.Generic.Rep.Show (genericShow)
-import Data.Lens (Lens', to, view, (^.))
+import Data.Lens (Lens', to, view)
 import Data.Lens.Record (prop)
 import Data.Maybe (Maybe(..))
-import Data.String (Pattern(..), contains)
 import Data.Symbol (SProxy(..))
 import Halogen.Monaco (KeyBindings(..))
 import Halogen.Monaco as Monaco
 import Marlowe.Extended (IntegerTemplateType)
-import Monaco (IMarker)
-import StaticAnalysis.Types (AnalysisExecutionState(..), AnalysisState, initAnalysisState)
+import Monaco (IMarkerData)
+import StaticAnalysis.Types (AnalysisState, initAnalysisState)
 import Text.Parsing.StringParser (Pos)
 import Web.HTML.Event.DragEvent (DragEvent)
 
@@ -87,8 +85,9 @@ type State
     , showErrorDetail :: Boolean
     , selectedHole :: Maybe String
     , analysisState :: AnalysisState
-    , editorErrors :: Array IMarker
-    , editorWarnings :: Array IMarker
+    , editorErrors :: Array IMarkerData
+    , editorWarnings :: Array IMarkerData
+    , hasHoles :: Boolean
     }
 
 _keybindings :: Lens' State KeyBindings
@@ -109,6 +108,9 @@ _editorWarnings = prop (SProxy :: SProxy "editorWarnings")
 _bottomPanelState :: Lens' State (BottomPanel.State BottomPanelView)
 _bottomPanelState = prop (SProxy :: SProxy "bottomPanelState")
 
+_hasHoles :: Lens' State Boolean
+_hasHoles = prop (SProxy :: SProxy "hasHoles")
+
 initialState :: State
 initialState =
   { keybindings: DefaultBindings
@@ -118,16 +120,11 @@ initialState =
   , analysisState: initAnalysisState
   , editorErrors: mempty
   , editorWarnings: mempty
+  , hasHoles: false
   }
 
 contractHasHoles :: State -> Boolean
-contractHasHoles state =
-  let
-    warnings = state ^. _editorWarnings
-
-    holes = filter (\warning -> contains (Pattern "hole") warning.message) warnings
-  in
-    not $ Array.null holes
+contractHasHoles = view _hasHoles
 
 contractHasErrors :: State -> Boolean
 contractHasErrors state = not $ view (_editorErrors <<< to Array.null) state

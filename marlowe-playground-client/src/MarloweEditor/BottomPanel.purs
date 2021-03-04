@@ -11,10 +11,10 @@ import Data.String (take)
 import Data.String.Extra (unlines)
 import Data.Tuple.Nested ((/\))
 import Halogen.Classes (flex, flexCol, fontBold, fullWidth, grid, gridColsDescriptionLocation, justifySelfEnd, minW0, overflowXScroll, paddingRight, underline)
-import Halogen.HTML (HTML, a, div, pre_, section, section_, span_, text)
+import Halogen.HTML (HTML, a, div, div_, pre_, section, section_, span_, text)
 import Halogen.HTML.Events (onClick)
 import Halogen.HTML.Properties (class_, classes)
-import MarloweEditor.Types (Action(..), BottomPanelView(..), State, _editorErrors, _editorWarnings, _showErrorDetail, contractHasErrors)
+import MarloweEditor.Types (Action(..), BottomPanelView(..), State, _editorErrors, _editorWarnings, _hasHoles, _showErrorDetail, contractHasErrors)
 import StaticAnalysis.BottomPanel (analysisResultPane, analyzeButton, clearButton)
 import StaticAnalysis.Types (_analysisExecutionState, _analysisState, isCloseAnalysisLoading, isNoneAsked, isReachabilityLoading, isStaticLoading)
 import Text.Parsing.StringParser.Basic (lines)
@@ -22,14 +22,18 @@ import Text.Parsing.StringParser.Basic (lines)
 panelContents :: forall p. State -> BottomPanelView -> HTML p Action
 panelContents state StaticAnalysisView =
   section [ classes [ flex, flexCol ] ]
-    [ analysisResultPane SetIntegerTemplateParam state
-    , div [ classes [ paddingRight ] ]
-        [ analyzeButton loadingWarningAnalysis analysisEnabled "Analyse for warnings" AnalyseContract
-        , analyzeButton loadingReachability analysisEnabled "Analyse reachability" AnalyseReachabilityContract
-        , analyzeButton loadingCloseAnalysis analysisEnabled "Analyse for refunds on Close" AnalyseContractForCloseRefund
-        , clearButton clearEnabled "Clear" ClearAnalysisResults
-        ]
-    ]
+    if (state ^. _hasHoles) then
+      [ div_ [ text "The contract needs to be complete (no holes) before doing static analysis." ]
+      ]
+    else
+      [ analysisResultPane SetIntegerTemplateParam state
+      , div [ classes [ paddingRight ] ]
+          [ analyzeButton loadingWarningAnalysis analysisEnabled "Analyse for warnings" AnalyseContract
+          , analyzeButton loadingReachability analysisEnabled "Analyse reachability" AnalyseReachabilityContract
+          , analyzeButton loadingCloseAnalysis analysisEnabled "Analyse for refunds on Close" AnalyseContractForCloseRefund
+          , clearButton clearEnabled "Clear" ClearAnalysisResults
+          ]
+      ]
   where
   loadingWarningAnalysis = state ^. _analysisState <<< _analysisExecutionState <<< to isStaticLoading
 
