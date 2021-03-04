@@ -149,8 +149,8 @@ benchTwoInt builtinName =
 -- (NOT `plutus`, where `default.nix` is).  See SCP-2005.
 main :: IO ()
 main = do
-  let dataDir = "cost-model" </> "data" :: FilePath
-      csvFile = dataDir </> "benching4.csv"
+  let dataDir = "cost-model" </> "data"
+      csvFile = dataDir </> "benching.csv"
       backupFile = dataDir </> "benching.csv.backup"
   createDirectoryIfMissing True dataDir
   csvExists <- doesFileExist csvFile
