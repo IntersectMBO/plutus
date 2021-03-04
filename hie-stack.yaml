@@ -559,27 +559,9 @@ cradle:
       component: "plutus-core:bench:cost-model-budgeting-bench"
 
     - path: "plutus-core/cost-model/create-cost-model/CreateCostModel.hs"
-      component: "plutus-core:bench:cost-model-create-cost-model"
-
-    - path: "plutus-core/cost-model/creation/CreateCostModel.hs"
-      component: "plutus-core:bench:cost-model-create-cost-model"
-
-    - path: "plutus-core/cost-model/create-cost-model/CostModelCreation.hs"
-      component: "plutus-core:bench:cost-model-create-cost-model"
-
-    - path: "plutus-core/cost-model/creation/CostModelCreation.hs"
-      component: "plutus-core:bench:cost-model-create-cost-model"
+      component: "plutus-core:bench:update-cost-model"
 
     - path: "plutus-core/cost-model/test/TestCostModels.hs"
-      component: "plutus-core:bench:cost-model-test"
-
-    - path: "plutus-core/cost-model/creation/TestCostModels.hs"
-      component: "plutus-core:bench:cost-model-test"
-
-    - path: "plutus-core/cost-model/test/CostModelCreation.hs"
-      component: "plutus-core:bench:cost-model-test"
-
-    - path: "plutus-core/cost-model/creation/CostModelCreation.hs"
       component: "plutus-core:bench:cost-model-test"
 
     - path: "plutus-errors/src"
