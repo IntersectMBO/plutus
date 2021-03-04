@@ -32,10 +32,23 @@ We use [pass](https://www.passwordstore.org/) to store secrets in the repository
 
 1. Add your key to [./keys/my.name.gpg](./keys/my.name.gpg)
 2. Add your name, key filename and key id to the [default.nix](./default.nix) `keys` attribute set
-3. Run `$(nix-build -A deployment.importKeys)` to make sure you have everyone else's keys
+3. Run `$(nix-build -A deployment.importKeys)` to make sure you have everyone else's keys. 
 4. Add your key name to any environment you want to be able to deploy in [default.nix](./default.nix) `envs`
 5. Once you've added your key you will need to get someone else who already has access to enable you. To do this commit your changes to a branch and ask this person to checkout the branch, run `$(nix-build -A deployment.the_env_you_want.initPass)` and commit the changes this will have made.
 6. Once the person that has the access pushes the changes, you can pull and use `nix-shell --run "pass show the_env_you_want/marlowe/jwtSignature"` to check that you have access.
+
+If you get an error like the following during step 5:
+```bash
+   gpg: 0123456789ABCDEF: There is no assurance this key belongs to the named user
+   gpg: [stdin]: encryption failed: Unusable public key
+```
+You may need to give ultimate trust to the new keys, by using `gpg --edit-key`:
+```bash
+gpg --edit-key 0123456789ABCDEF
+gpg> trust
+...
+
+```
 
 ### Multi-Factor Authentication (MFA)
 
