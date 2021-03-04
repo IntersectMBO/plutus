@@ -45,7 +45,7 @@ data "template_file" "prometheus_user_data" {
   template = "${file("${path.module}/templates/prometheus_configuration.nix")}"
 
   vars = {
-    ssh_keys      = "${join(" ", formatlist("\"%s\"", local.root_ssh_keys))}"
+    ssh_keys = "${join(" ", formatlist("\"%s\"", local.root_ssh_keys))}"
   }
 }
 

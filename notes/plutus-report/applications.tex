@@ -201,13 +201,16 @@ You might think that since the \gls{pab} has a node client itself, it could do i
 However, transactions made by the \gls{pab} will likely use outputs ``owned'' by the \gls{wallet-backend} (e.g. those selected by coin selection from the user's outputs).
 Hence it is important that the \gls{wallet-backend} knows about such outputs, so that it does not attempt to spend them somewhere else.
 
-\subsubsection{Event system}
+\subsubsection{Concurrency}
 
-The \gls{pab} needs to handle incoming events from a number of sources concurrently, so we need some kind of message bus.
-In addition, the persistence story for \glspl{app-inst} involves persisting their incoming events, so this is a good fit.
+\glspl{app-inst} managed by the \gls{pab} spend most of their time waiting for changes to the blockchain, user input, or the passage of time.
+When they are not waiting, they are making requests to services managed by the \gls{pab}, for example the \gls{chain-index} or the \gls{wallet-backend}.
+
+% In addition, the persistence story for \glspl{app-inst} involves persisting their incoming events, so this is a good fit.
 
 We are currently using an event-sourced architecture here.
-We hope that this will make backups and synchronization easier (\cref{req:app-backups,req:app-synch}).
+However, we plan to switch to a simpler database model.
+% We hope that this will make backups and synchronization easier (\cref{req:app-backups,req:app-synch}).
 
 \subsubsection{Application management}
 
@@ -217,8 +220,8 @@ We hope that this will make backups and synchronization easier (\cref{req:app-ba
 \item Create \glspl{app-inst}
 \item Instantiate and run \glspl{app-exe} in a sandbox
 \item Handle communication with the \gls{app-exe}
-\item Handle own message queue (``mailbox'') for each \gls{app-inst}
-\item Manage/dump/load \glspl{app-inst}
+\item Mediate requests to \glspl{pab-services} by the \gls{app-inst}
+\item Manage/dump/load \glspl{app-inst} state
 \item Create/destroy \glspl{app-inst}
 \item Handle rollbacks
 \end{itemize}
@@ -273,3 +276,206 @@ Over time we hope to unify the experiences of working locally and working in the
 \subsection{Application design}
 
 \todompj{Talk about state machines and our ideas for handling rollbacks.}
+
+\subsection{Application concurrency model}
+
+\glspl{app} react to events that happen either on the blockchain or outside the \gls{plutus-platform}.
+The following types of events can be reacted to:
+\begin{itemize}
+  \item Wall clock time progresses.
+  \item The status of a transaction changes as a result of transaction validation or a rollback.
+  \item The set of unspent outputs at an address changes as a result of a transaction status change.
+  \item Input is provided to the \gls{app} from outside the system.
+\end{itemize}
+
+The meaning of these interactions is described by the following Petri nets.
+
+\subsubsection{Slot change}
+
+For each slot $s$ there is a place $p_s$.
+A \emph{clock} transition $c_s$ takes a token from $p_s$ and places it in $p_{s+1}$ to signal that slot $s + 1$ has begun.
+Any other transition that removes a token from $p_s$ is expected to put it back immediately, so that there is always exactly one token in $p_s$ after it has been filled for the first time. See \ref{fig:petri-net-time} for an illustration.
+
+\begin{figure}
+  \centering
+  \begin{tikzpicture}[node distance=1.3cm,>=stealth',bend angle=45,auto]
+    % Styles are from https://texample.net/tikz/examples/nodetutorial/
+    \tikzstyle{place-time}=[circle,thick,draw=blue!75,fill=black!20,minimum size=7mm]
+    \tikzstyle{transition}=[rectangle,thick,draw=black!75,
+    fill=black!20,minimum size=4mm]
+
+    \node [place-time,tokens=1] (p1) [label=above:$p_1$] {};
+    \node [transition] (t1) [right of=p1,label=above:$c_1$] {};
+    \node [place-time]          (p2) [right of=t1,tokens=0,label=above:$p_2$] {};
+    \node [transition] (t2) [right of=p2,label=$c_2$] {};
+    \node [place-time]          (pn) [right of=t2,tokens=0,label=above:$p_n$] {};
+
+    \path (p1) edge [->] (t1);
+    \path (t1) edge [->] (p2);
+    \path (p2) edge [->] (t2);
+    \path (t2) edge [->,dashed] (pn);
+
+  \end{tikzpicture}
+\caption{Petri net modeling the passage of time as observed by \glspl{app}}
+\label{fig:petri-net-time}
+\end{figure}
+
+\subsubsection{Transaction status change}
+
+The status of a transaction changes multiple times after it has been sent to the node.
+Transactions start out in the node's \emph{mempool}.
+Then their status changes to \emph{tentatively confirmed} or to \emph{rejected}.
+Finally, a transaction that is tentatively confirmed can revert back to \emph{mempool} or it can become \emph{permantently confirmed} when enough blocks have been added to make it irreversible.
+
+For each of the four states of a transaction there is one place in the petri net, as shown in \ref{fig:petri-net-txn}.
+% TODO: Should probably use colored tokens here for different transactions that we can distinguish.
+
+\begin{figure}
+  \centering
+  \begin{tikzpicture}[node distance=1.3cm,>=stealth',bend angle=45,auto]
+    % Styles are from https://texample.net/tikz/examples/nodetutorial/
+    \tikzstyle{place-status}=[circle,thick,draw=red!75,fill=black!20,minimum size=7mm]
+    \tikzstyle{transition}=[rectangle,thick,draw=black!75,
+    fill=black!20,minimum size=4mm]
+
+    \node [place-status,tokens=1] (mempool)   [label=left:$\mathsf{mempool}$] {};
+    \node [transition]     (confirm)   [below right of=mempool] {};
+    \node [transition]     (rollback)   [above right of=mempool,label=above:$\mathsf{rollback}$] {};
+    \node [place-status]          (confirmed) [below right of=rollback,tokens=0,label=below right:$\mathsf{confirmed}$] {};
+    \node [transition]     (commit)    [right of=confirmed] {};
+    \node [place-status]          (committed) [right of=commit,tokens=0,label=above:$\mathsf{committed}$] {};
+    \node [transition]     (reject)  [below of=mempool] {};
+    \node [place-status]          (invalid)  [left of=reject,label=$\mathsf{invalid}$] {};
+
+    \path (mempool) edge [->] (confirm);
+    \path (confirm) edge [->] (confirmed);
+    \path (confirmed) edge [->] (rollback);
+    \path (rollback) edge [->] (mempool);
+    \path (confirmed) edge [->] (commit);
+    \path (commit) edge [->] (committed);
+    \path (mempool) edge [->] (reject);
+    \path (reject) edge [->] (invalid);
+
+  \end{tikzpicture}
+\caption{Petri net for the status of transactions}
+\label{fig:petri-net-txn}
+\end{figure}
+
+\subsubsection{Address change}
+
+The set of unspent outputs at an address is modified by transactions that spend and produce outputs.
+Therefore, whenever the status of a transaction changes, the status of its inputs and outputs changes also.
+
+We represent the outputs at each address with two petri nets, one for unspent outputs and one for spent outputs.
+There is one place each for outputs that are in the mempool, tentatively confirmed, permantently confirmed, rejected.
+
+% TODO: Think about how to do it properly. What level of detail do we need here? Maybe we don't need an extra petri net (address change is just a function of tx change). Or maybe we should include tx dependencies via their outputs as well.
+
+\subsubsection{Endpoint}
+
+Users and other applications may call endpoints on the \gls{app}.
+Endpoints are places $e_1, \ldots, e_n$ in the petri net (see \ref{fig:petri-net-endpoint}).
+
+\begin{figure}
+  \centering
+  \begin{tikzpicture}[node distance=1.3cm,>=stealth',bend angle=45,auto]
+    % Styles are from https://texample.net/tikz/examples/nodetutorial/
+    \tikzstyle{place-endpoint}=[circle,thick,draw=yellow!75,fill=black!20,minimum size=7mm]
+    \tikzstyle{transition}=[rectangle,thick,draw=black!75,
+    fill=black!20,minimum size=4mm]
+
+    \node [place-endpoint,tokens=1] (ep1) [label=left:$e_1$] {};
+    \node [place-endpoint]          (ep2) [right of=ep1,label=below right:$e_2$] {};
+
+  \end{tikzpicture}
+\caption{Petri net for endpoints. The token in $e_1$ signifies that input is available to be consumed by this contract.}
+\label{fig:petri-net-endpoint}
+\end{figure}
+
+\subsubsection{Apps}
+
+Given the places for time, transaction status and endpoints we can describe \glspl{app} as sequences of transitions.
+The states of the app are represented by places.
+\ref{fig:plutus-app-net} shows a \gls{app} with three possible state, $s_1$, $s_2$ and $s_3$.
+As soon as a transaction is confirmed, the state can progress from $s_1$ to $s_2$.
+
+After that, endpoint $e_1$ becomes \emph{active}, meaning that the app can make progress as soon as input is provided. The next state depends on which of two possible events happens first: The endpoint being called by the user, or the clock reaching slot ten.
+
+The app transitions (green) involve queries to the chain index, transaction submission, etc.
+These requests are not shown in the petri net.
+We still record their responses however, in order to meet the replayability requirements (see \ref{req:app-synch} and \ref{req:app-reproducibility}).
+
+\begin{figure}
+  \centering
+  \begin{tikzpicture}[node distance=1.8cm,>=stealth',bend angle=45,auto]
+    % Styles are from https://texample.net/tikz/examples/nodetutorial/
+    \tikzstyle{place-endpoint}=[circle,thick,draw=yellow!75,fill=black!20,minimum size=7mm]
+    \tikzstyle{place-status}=[circle,thick,draw=red!75,fill=black!20,minimum size=7mm]
+    \tikzstyle{place-time}=[circle,thick,draw=blue!75,fill=black!20,minimum size=7mm]
+    \tikzstyle{place-app}=[circle,thick,draw=green!75,fill=black!20,minimum size=7mm]
+    \tikzstyle{place-writer}=[circle,thick,draw=black!50,fill=black!10,minimum size=4mm]
+    \tikzstyle{transition-app}=[rectangle,thick,draw=green!75,fill=green!20,minimum size=4mm]
+
+    \node [place-status]   (confirmed) [label=above:$\mathsf{confirmed}$]     {};
+    \node [place-app]      (s1)        [below of=confirmed,tokens=1,label=below:$s_1$] {};
+    \node [transition-app] (t1)        [above right of=s1]                    {};
+    \node [place-writer]   (w1)        [below=0.5cm of t1] {\code{w}};
+
+    \path (confirmed) edge [->,bend right] (t1);
+    \coordinate[yshift=0,left=1cm of confirmed.west] (aux1);
+    \path (aux1) edge [->,dashed] (confirmed);
+    \path (t1) edge [->,bend right] (confirmed);
+    \path (s1) edge [->] (t1);
+    \path (t1) edge [->] (w1);
+
+    \node [place-app]      (s2)        [right of=t1,label=below:$s_2$] {};
+    \path (t1) edge [->] (s2);
+    \node [transition-app] (t2) [above right of=s2] {};
+    \node [place-writer]   (w2)        [below=0.5cm of t2] {\code{w}};
+    \path (t2) edge [->] (w2);
+
+    \node [transition-app] (t3) [below right of=s2] {};
+    \node [place-writer]   (w3)        [below=1.2cm of t3] {\code{w}};
+    \path (t3) edge [->] (w3);
+
+    \node [place-app]      (s3)        [right of=t2,label=below:$s_3$] {};
+    \path (s2) edge [->] (t2);
+    \path (t2) edge [->] (s3);
+
+    \node [place-endpoint] (e1) [above left of=t2,label=above:$e_1$] {};
+    \coordinate[yshift=0,left=1cm of e1.west] (aux2);
+    \path (aux2) edge [->,dashed] (e1);
+    \path (e1) edge [->, bend right] (t2);
+    \path (t2) edge [->, bend right] (e1);
+
+    \node [place-app]      (s4)        [right of=t3,label=below:$s_4$] {};
+    \path (s2) edge [->] (t3);
+    \path (t3) edge [->] (s4);
+
+    \node [place-time] (p10) [below left of=t3,tokens=0,label=below:$p_{10}$] {};
+    \coordinate[yshift=0,left=1cm of p10.west] (aux3);
+    \coordinate[yshift=0,right=1cm of p10.east] (aux4);
+    \path (aux3) edge [->,dashed] (p10);
+    \path (p10) edge [->, bend right] (t3);
+    \path (t3) edge [->, bend right] (p10);
+  \end{tikzpicture}
+\caption{
+  Petri net for an \gls{app} (green) that waits for a transaction to be confirmed and then waits for slot number ten to begin, or for user input.
+  The app emits values of type \code{w} on every transition.
+  }
+\label{fig:plutus-app-net}
+\end{figure}
+
+\subsubsection{Observable state}
+
+\glspl{app} need to be able to notify the outside world of changes.
+To this end, the application can emit values of some user-defined type \code{w} whenever one of its transition fires.
+In the Haskell library, this is realised using the \code{Writer w} effect, with \code{Monoid w} constraint.
+Clients of the \gls{app} can subscribe to receive updates whenever the accumulated total of all values changes.
+
+\subsubsection{Multiple instances, on-chain state}
+
+There are some possible extensions of the basic model of apps and events.
+For example, we could model an on-chain state machine (in a Plutus script) as a petri net.
+Then we could describe the interactions of multiple \glspl{app-inst} interacting with that state machine, including possible race conditions.
+The petri net model is simple, but it scales easily over multiple machines and contracts.

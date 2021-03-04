@@ -14,8 +14,8 @@ import qualified Data.Text              as Text
 import           Git                    (gitRev)
 import           Options.Applicative    (CommandFields, Mod, Parser, argument, auto, command, customExecParser,
                                          disambiguate, fullDesc, help, helper, idm, info, infoOption, long, metavar,
-                                         option, prefs, progDesc, short, showDefault, showHelpOnEmpty, showHelpOnError,
-                                         str, subparser, value)
+                                         option, optional, prefs, progDesc, short, showDefault, showHelpOnEmpty,
+                                         showHelpOnError, str, subparser, value)
 import qualified PSGenerator
 import qualified Webserver
 
@@ -37,8 +37,18 @@ versionOption =
     (Text.unpack gitRev)
     (short 'v' <> long "version" <> help "Show the version")
 
+configFileParser :: Parser (Maybe FilePath)
+configFileParser =
+  optional $
+    option
+      str
+      (long "config" <> metavar "CONFIG_FILE" <> help "Config file location.")
+
 commandParser :: Parser Command
 commandParser = subparser $ webserverCommandParser <> psGeneratorCommandParser
+
+commandLineParser :: Parser (Maybe FilePath, Command)
+commandLineParser = (,) <$> configFileParser <*> commandParser
 
 psGeneratorCommandParser :: Mod CommandFields Command
 psGeneratorCommandParser =
@@ -65,16 +75,16 @@ webserverCommandParser =
           )
       pure Webserver {..}
 
-runCommand :: (MonadIO m, MonadLogger m) => Command -> m ()
-runCommand Webserver {..}   = liftIO $ Webserver.run _port
-runCommand PSGenerator {..} = liftIO $ PSGenerator.generate _outputDir
+runCommand :: (MonadIO m, MonadLogger m) => Maybe FilePath -> Command -> m ()
+runCommand secrets Webserver {..} = liftIO $ Webserver.run _port secrets
+runCommand _ PSGenerator {..}     = liftIO $ PSGenerator.generate _outputDir
 
 main :: IO ()
 main = do
   options <-
     customExecParser
       (prefs $ disambiguate <> showHelpOnEmpty <> showHelpOnError)
-      (info (helper <*> versionOption <*> commandParser) idm)
+      (info (helper <*> versionOption <*> commandLineParser) idm)
   runStderrLoggingT $ do
     logInfoN $ "Running: " <> Text.pack (show options)
-    runCommand options
+    uncurry runCommand options

@@ -41,8 +41,6 @@
       "library" = {
         depends = [
           (hsPkgs."aeson" or (errorHandler.buildDepError "aeson"))
-          (hsPkgs."aws-lambda-haskell-runtime" or (errorHandler.buildDepError "aws-lambda-haskell-runtime"))
-          (hsPkgs."aws-lambda-haskell-runtime-wai" or (errorHandler.buildDepError "aws-lambda-haskell-runtime-wai"))
           (hsPkgs."base" or (errorHandler.buildDepError "base"))
           (hsPkgs."bytestring" or (errorHandler.buildDepError "bytestring"))
           (hsPkgs."containers" or (errorHandler.buildDepError "containers"))
@@ -87,7 +85,6 @@
           ] ++ (pkgs.lib).optional (!(compiler.isGhcjs && true || system.isGhcjs)) (hsPkgs."plutus-tx-plugin" or (errorHandler.buildDepError "plutus-tx-plugin"));
         buildable = true;
         modules = [
-          "Playground/Lambda"
           "Playground/Server"
           "Playground/Interpreter"
           "Playground/Usecases"

@@ -1,0 +1,14 @@
+# FIXME: @michaelpj to remove this in favour of root .giignore file
+# once he figures out what's going on with nix-gitignore
+generated
+generated/
+generated-docs/
+node_modules/
+output/
+yarn-error.log
+yarn.lock
+.psci_modules/
+.psc-package/
+.psc-package2nix/
+.spago/
+.spago2nix/

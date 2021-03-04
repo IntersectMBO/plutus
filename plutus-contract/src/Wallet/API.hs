@@ -26,8 +26,6 @@ module Wallet.API(
     NodeClientEffect,
     publishTx,
     getClientSlot,
-    SigningProcessEffect,
-    addSignatures,
     ChainIndexEffect,
     startWatching,
     watchedAddresses,
@@ -78,7 +76,6 @@ createPaymentWithChange v =
 --   transaction that was submitted.
 payToPublicKey ::
     ( Member WalletEffect effs
-    , Member SigningProcessEffect effs
     )
     => SlotRange -> Value -> PubKey -> Eff effs Tx
 payToPublicKey range v pk = do
@@ -89,7 +86,6 @@ payToPublicKey range v pk = do
 -- | Transfer some funds to an address locked by a public key.
 payToPublicKey_ ::
     ( Member WalletEffect effs
-    , Member SigningProcessEffect effs
     )
     => SlotRange -> Value -> PubKey -> Eff effs ()
 payToPublicKey_ r v = void . payToPublicKey r v
@@ -98,9 +94,7 @@ payToPublicKey_ r v = void . payToPublicKey r v
 --   TODO: This is here to make the calculation of fees easier for old-style contracts
 --         and should be removed when all contracts have been ported to the new API.
 createTxAndSubmit ::
-    ( Member WalletEffect effs
-    , Member SigningProcessEffect effs
-    )
+    ( Member WalletEffect effs )
     => SlotRange
     -> Set.Set TxIn
     -> [TxOut]
@@ -118,21 +112,16 @@ createTxAndSubmit range ins outs datas = do
 -- | Add the wallet's signature to the transaction and submit it. Returns
 --   the transaction with the wallet's signature.
 signTxAndSubmit ::
-    ( Member WalletEffect effs
-    , Member SigningProcessEffect effs
-    )
+    ( Member WalletEffect effs )
     => Tx -> Eff effs Tx
 signTxAndSubmit t = do
-    pk <- ownPubKey
-    tx' <- addSignatures [pubKeyHash pk] t
+    tx' <- walletAddSignature t
     submitTxn tx'
     pure tx'
 
 -- | A version of 'signTxAndSubmit' that discards the result.
 signTxAndSubmit_ ::
-    ( Member WalletEffect effs
-    , Member SigningProcessEffect effs
-    )
+    ( Member WalletEffect effs )
     => Tx -> Eff effs ()
 signTxAndSubmit_ = void . signTxAndSubmit
 

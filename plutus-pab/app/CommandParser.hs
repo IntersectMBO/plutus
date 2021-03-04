@@ -93,7 +93,6 @@ commandParser =
         , mockNodeParser
         , chainIndexParser
         , metadataParser
-        , signingProcessParser
         , reportTxHistoryParser
         , defaultConfigParser
         , command
@@ -180,7 +179,6 @@ allServersParser =
                   , Metadata
                   , MockWallet
                   , PABWebserver
-                  , SigningProcess
                   , ProcessAllContractOutboxes
                   ]))
         (fullDesc <> progDesc "Run all the mock servers needed.")
@@ -195,15 +193,9 @@ clientServicesParser =
                   , Metadata
                   , MockWallet
                   , PABWebserver
-                  , SigningProcess
                   , ProcessAllContractOutboxes
                   ]))
         (fullDesc <> progDesc "Run the client services (all services except the mock node).")
-
-signingProcessParser :: Mod CommandFields Command
-signingProcessParser =
-    command "signing-process" $
-    info (pure SigningProcess) (fullDesc <> progDesc "Run the signing process.")
 
 activateContractParser :: Mod CommandFields Command
 activateContractParser =

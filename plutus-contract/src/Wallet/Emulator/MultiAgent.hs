@@ -22,7 +22,7 @@ import           Control.Monad
 import           Control.Monad.Freer
 import           Control.Monad.Freer.Error
 import           Control.Monad.Freer.Extras.Log    (LogMessage, LogMsg, LogObserve, handleObserveLog, mapLog)
-import           Control.Monad.Freer.Extras.Modify (handleZoomedState, raiseEnd5, raiseEnd9, writeIntoState)
+import           Control.Monad.Freer.Extras.Modify (handleZoomedState, raiseEnd5, raiseEnd8, writeIntoState)
 import           Control.Monad.Freer.State
 import           Data.Aeson                        (FromJSON, ToJSON)
 import           Data.Map                          (Map)
@@ -193,7 +193,6 @@ handleMultiAgentEffects wallet =
         . interpret (raiseWallet @(LogMsg TxBalanceMsg) wallet)
         . interpret (raiseWallet @(LogMsg RequestHandlerLogMsg) wallet)
         . interpret (raiseWallet @(LogObserve (LogMessage T.Text)) wallet)
-        . interpret (raiseWallet @WAPI.SigningProcessEffect wallet)
         . interpret (raiseWallet @WAPI.ChainIndexEffect wallet)
         . interpret (raiseWallet @WAPI.NodeClientEffect wallet)
         . interpret (raiseWallet @(Error WAPI.WalletAPIError) wallet)
@@ -355,12 +354,11 @@ handleMultiAgent = interpret $ \case
             p7 :: AReview EmulatorEvent' Notify.EmulatorNotifyLogMsg
             p7 = notificationEvent
         act
-            & raiseEnd9
+            & raiseEnd8
             & Wallet.handleWallet
             & subsume
             & NC.handleNodeClient
             & ChainIndex.handleChainIndex
-            & Wallet.handleSigningProcess
             & handleObserveLog
             & interpret (mapLog (review p5))
             & interpret (mapLog (review p6))

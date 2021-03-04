@@ -43,8 +43,16 @@ resource "aws_security_group" "public_alb" {
   }
 
   egress {
-    from_port   = 8080
-    to_port     = 8080
+    # both PAB and plutus playground use the same port
+    from_port   = local.plutus_playground_port
+    to_port     = local.plutus_playground_port
+    protocol    = "TCP"
+    cidr_blocks = var.private_subnet_cidrs
+  }
+
+  egress {
+    from_port   = local.marlowe_playground_port
+    to_port     = local.marlowe_playground_port
     protocol    = "TCP"
     cidr_blocks = var.private_subnet_cidrs
   }
@@ -129,11 +137,7 @@ resource "aws_alb_target_group" "webghc" {
 
 resource "aws_alb_listener_rule" "runghc" {
   depends_on   = [aws_alb_target_group.webghc]
-  # The API Gateway uses http for proxying rather than https so we
-  # have to go through the redirect listener to get here
-  # If we moved away from API Gateway we would need to use the
-  # playground listener instead
-  listener_arn = aws_lb_listener.redirect.arn
+  listener_arn = aws_alb_listener.playground.arn
   priority     = 100
 
   action {
@@ -219,7 +223,7 @@ resource "aws_alb_target_group" "marlowe_dash" {
   vpc_id   = aws_vpc.plutus.id
 
   health_check {
-    path = "/version"
+    path = "/"
   }
 
   stickiness {
@@ -247,18 +251,132 @@ resource "aws_alb_listener_rule" "marlowe_dash" {
 resource "aws_alb_target_group_attachment" "marlowe_dash_a" {
   target_group_arn = aws_alb_target_group.marlowe_dash.arn
   target_id        = aws_instance.marlowe_dash_a.id
-  port             = "8080"
+  port             = local.pab_port
 }
 
 # resource "aws_alb_target_group_attachment" "marlowe_dash_b" {
 #   target_group_arn = aws_alb_target_group.marlowe_dash.arn
 #   target_id        = aws_instance.marlowe_dash_b.id
-#   port             = "8080"
+#   port             = local.pab_port
 # }
 
 resource "aws_route53_record" "marlowe_dash_alb" {
   zone_id = var.marlowe_dash_public_zone
   name    = local.marlowe_dash_domain_name
+  type    = "A"
+
+  alias {
+    name                   = aws_alb.plutus.dns_name
+    zone_id                = aws_alb.plutus.zone_id
+    evaluate_target_health = true
+  }
+}
+
+## ALB rule for marlowe-playground
+resource "aws_alb_target_group" "marlowe_playground" {
+  # ALB is taking care of SSL termination so we listen to port 80 here
+  port     = "80"
+  protocol = "HTTP"
+  vpc_id   = aws_vpc.plutus.id
+
+  health_check {
+    path = "/version"
+  }
+
+  stickiness {
+    type = "lb_cookie"
+  }
+}
+
+resource "aws_alb_listener_rule" "marlowe_playground" {
+  depends_on   = [aws_alb_target_group.marlowe_playground]
+  listener_arn = aws_alb_listener.playground.arn
+  priority     = 115
+
+  action {
+    type             = "forward"
+    target_group_arn = aws_alb_target_group.marlowe_playground.id
+  }
+
+  condition {
+    host_header {
+      values = [local.marlowe_domain_name]
+    }
+  }
+}
+
+resource "aws_alb_target_group_attachment" "marlowe_playground_a" {
+  target_group_arn = aws_alb_target_group.marlowe_playground.arn
+  target_id        = aws_instance.playgrounds_a.id
+  port             = local.marlowe_playground_port
+}
+
+resource "aws_alb_target_group_attachment" "marlowe_playground_b" {
+  target_group_arn = aws_alb_target_group.marlowe_playground.arn
+  target_id        = aws_instance.playgrounds_b.id
+  port             = local.marlowe_playground_port
+}
+
+resource "aws_route53_record" "marlowe_playground_alb" {
+  zone_id = var.marlowe_public_zone
+  name    = local.marlowe_domain_name
+  type    = "A"
+
+  alias {
+    name                   = aws_alb.plutus.dns_name
+    zone_id                = aws_alb.plutus.zone_id
+    evaluate_target_health = true
+  }
+}
+
+## ALB rule for plutus-playground
+resource "aws_alb_target_group" "plutus_playground" {
+  # ALB is taking care of SSL termination so we listen to port 80 here
+  port     = "80"
+  protocol = "HTTP"
+  vpc_id   = aws_vpc.plutus.id
+
+  health_check {
+    path = "/version"
+  }
+
+  stickiness {
+    type = "lb_cookie"
+  }
+}
+
+resource "aws_alb_listener_rule" "plutus_playground" {
+  depends_on   = [aws_alb_target_group.plutus_playground]
+  listener_arn = aws_alb_listener.playground.arn
+  priority     = 116
+
+  action {
+    type             = "forward"
+    target_group_arn = aws_alb_target_group.plutus_playground.id
+  }
+
+  condition {
+    host_header {
+      values = [local.plutus_domain_name]
+    }
+  }
+}
+
+resource "aws_alb_target_group_attachment" "plutus_playground_a" {
+  target_group_arn = aws_alb_target_group.plutus_playground.arn
+  target_id        = aws_instance.playgrounds_a.id
+  port             = local.plutus_playground_port
+}
+
+resource "aws_alb_target_group_attachment" "plutus_playground_b" {
+  target_group_arn = aws_alb_target_group.plutus_playground.arn
+  target_id        = aws_instance.playgrounds_b.id
+  port             = local.plutus_playground_port
+}
+
+resource "aws_route53_record" "plutus_playground_alb" {
+  zone_id = var.plutus_public_zone
+  name    = local.plutus_domain_name
   type    = "A"
 
   alias {

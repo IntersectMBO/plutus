@@ -32,7 +32,6 @@ flag defer-plugin-errors
 
 library
     exposed-modules:
-        Playground.Lambda
         Playground.Server
         Playground.Interpreter
         Playground.Usecases
@@ -59,8 +58,6 @@ library
                  -fobject-code -fno-ignore-interface-pragmas -fno-omit-interface-pragmas
     build-depends:
         aeson -any,
-        aws-lambda-haskell-runtime -any,
-        aws-lambda-haskell-runtime-wai -any,
         base >=4.7 && <5,
         bytestring -any,
         containers -any,

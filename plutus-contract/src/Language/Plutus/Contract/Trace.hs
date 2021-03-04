@@ -81,7 +81,7 @@ import qualified Ledger.Ada                                        as Ada
 import           Ledger.Value                                      (Value)
 
 import           Plutus.Trace.Emulator.Types                       (EmulatedWalletEffects)
-import           Wallet.API                                        (ChainIndexEffect, SigningProcessEffect)
+import           Wallet.API                                        (ChainIndexEffect)
 import           Wallet.Effects                                    (ContractRuntimeEffect, WalletEffect)
 import           Wallet.Emulator                                   (EmulatorState, Wallet)
 import qualified Wallet.Emulator                                   as EM
@@ -161,7 +161,6 @@ handlePendingTransactions ::
     , Member (LogObserve (LogMessage Text)) effs
     , Member (LogMsg RequestHandlerLogMsg) effs
     , Member WalletEffect effs
-    , Member SigningProcessEffect effs
     , Member ChainIndexEffect effs
     , Member (LogMsg TxBalanceMsg) effs
     )

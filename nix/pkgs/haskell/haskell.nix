@@ -30,11 +30,10 @@ let
     # These files need to be regenerated when you change the cabal files.
     # See ../CONTRIBUTING.doc for more information.
     # Unfortuntely, they are *not* constant across all possible systems, so in some circumstances we need different sets of files
-    # At the moment, we only need a different one for musl, but conceivably we might need one for darwin in future.
+    # At the moment, we only need one but conceivably we might need one for darwin in future.
     # See https://github.com/input-output-hk/nix-tools/issues/97
     materialized =
-      if stdenv.hostPlatform.isMusl then ./materialized-musl
-      else if stdenv.hostPlatform.isUnix then ./materialized-unix
+      if stdenv.hostPlatform.isUnix then ./materialized-unix
       else builtins.error "Don't have materialized files for this platform";
     # If true, we check that the generated files are correct. Set in the CI so we don't make mistakes.
     inherit checkMaterialization;

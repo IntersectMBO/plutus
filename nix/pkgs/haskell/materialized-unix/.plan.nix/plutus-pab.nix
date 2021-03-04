@@ -46,6 +46,7 @@
           (hsPkgs."async" or (errorHandler.buildDepError "async"))
           (hsPkgs."base" or (errorHandler.buildDepError "base"))
           (hsPkgs."bytestring" or (errorHandler.buildDepError "bytestring"))
+          (hsPkgs."cardano-crypto" or (errorHandler.buildDepError "cardano-crypto"))
           (hsPkgs."cardano-prelude" or (errorHandler.buildDepError "cardano-prelude"))
           (hsPkgs."cardano-slotting" or (errorHandler.buildDepError "cardano-slotting"))
           (hsPkgs."containers" or (errorHandler.buildDepError "containers"))
@@ -77,6 +78,7 @@
           (hsPkgs."ouroboros-network-framework" or (errorHandler.buildDepError "ouroboros-network-framework"))
           (hsPkgs."persistent" or (errorHandler.buildDepError "persistent"))
           (hsPkgs."persistent-sqlite" or (errorHandler.buildDepError "persistent-sqlite"))
+          (hsPkgs."plutus-ledger-api" or (errorHandler.buildDepError "plutus-ledger-api"))
           (hsPkgs."prettyprinter" or (errorHandler.buildDepError "prettyprinter"))
           (hsPkgs."process" or (errorHandler.buildDepError "process"))
           (hsPkgs."quickcheck-instances" or (errorHandler.buildDepError "quickcheck-instances"))
@@ -134,10 +136,6 @@
           "Cardano/Protocol/Socket/Type"
           "Cardano/Protocol/Socket/Server"
           "Cardano/Protocol/Socket/Client"
-          "Cardano/SigningProcess/API"
-          "Cardano/SigningProcess/Server"
-          "Cardano/SigningProcess/Client"
-          "Cardano/SigningProcess/Types"
           "Cardano/Wallet/API"
           "Cardano/Wallet/Client"
           "Cardano/Wallet/Mock"
@@ -390,6 +388,7 @@
             "Plutus/PAB/Events/ContractSpec"
             "Cardano/Metadata/ServerSpec"
             "Cardano/Metadata/TypesSpec"
+            "Cardano/Wallet/ServerSpec"
             ];
           hsSourceDirs = [ "test" ];
           mainPath = [ "Spec.hs" ];

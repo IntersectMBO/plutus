@@ -66,8 +66,7 @@ import           Language.Plutus.Contract.Trace.RequestHandler   (RequestHandler
 import qualified Language.Plutus.Contract.Trace.RequestHandler   as RequestHandler
 
 import           Ledger.Tx                                       (Tx, txId)
-import           Wallet.Effects                                  (ChainIndexEffect, ContractRuntimeEffect,
-                                                                  SigningProcessEffect, WalletEffect)
+import           Wallet.Effects                                  (ChainIndexEffect, ContractRuntimeEffect, WalletEffect)
 import           Wallet.Emulator.LogMessages                     (TxBalanceMsg)
 
 import           Data.Text.Extras                                (tshow)
@@ -471,7 +470,6 @@ processWriteTxRequests ::
     , Member (LogMsg RequestHandlerLogMsg) effs
     , Member (LogMsg (ContractInstanceMsg t)) effs
     , Member (LogMsg TxBalanceMsg) effs
-    , Member SigningProcessEffect effs
     )
     => RequestHandler effs ContractPABRequest ContractResponse
 processWriteTxRequests =
@@ -589,7 +587,6 @@ processAllContractOutboxes ::
     , Member (EventLogEffect (ChainEvent t)) effs
     , Member WalletEffect effs
     , Member ChainIndexEffect effs
-    , Member SigningProcessEffect effs
     , Member ContractRuntimeEffect effs
     , Member (Error PABError) effs
     , Member (ContractEffect t) effs
@@ -608,7 +605,6 @@ contractRequestHandler ::
     ( Member (EventLogEffect (ChainEvent t)) effs
     , Member ChainIndexEffect effs
     , Member WalletEffect effs
-    , Member SigningProcessEffect effs
     , Member ContractRuntimeEffect effs
     , Member (LogMsg RequestHandlerLogMsg) effs
     , Member (LogObserve (LogMessage Text.Text)) effs
