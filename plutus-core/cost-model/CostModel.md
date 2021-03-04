@@ -4,7 +4,12 @@
 ## To rerun the benching data
 
 ```bash
-$(nix-build default.nix -A plutus.haskell.packages.plutus-core.components.benchmarks.cost-model-budgeting-bench)/bin/cost-model-budgeting-bench
+cabal bench plutus-core:cost-model-budgeting-bench
+```
+or
+```bash
+cd <path-to-plutus-repository>/plutus-core
+$(nix-build .../default.nix -A plutus.haskell.packages.plutus-core.components.benchmarks.cost-model-budgeting-bench)/bin/cost-model-budgeting-bench
 ```
 This runs microbenchmarks for built-in functions and writes the results into `plutus-core/cost-model/data/benching.csv`.  This will take many hours.
 If `benching.csv` already exists then it will be copied into `benching.csv.backup` and replaced with the new results.
@@ -12,7 +17,12 @@ If `benching.csv` already exists then it will be copied into `benching.csv.backu
 ## To regenerate costModel.json
 
 ```bash
-$(nix-build default.nix -A plutus.haskell.packages.plutus-core.components.benchmarks.update-cost-model)/bin/update-cost-model
+cabal bench plutus-core:update-budgeting-bench
+```
+or
+```bash
+cd <path-to-plutus-repository>/plutus-core
+$(nix-build ../default.nix -A plutus.haskell.packages.plutus-core.components.benchmarks.update-cost-model)/bin/update-cost-model
 ```
 This reads the benchmark results in `benching.csv`, constructs linear cost functions using R, and
 writes the results into `plutus-core/cost-model/data/constModel.json`.  This data is used tby the Plutus Core evaluator to calculate

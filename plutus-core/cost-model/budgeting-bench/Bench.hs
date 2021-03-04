@@ -144,7 +144,7 @@ benchTwoInt builtinName =
 main :: IO ()
 main = do
   let dataDir = "cost-model" </> "data" :: FilePath
-      csvFile = dataDir </> "benching.csv"
+      csvFile = dataDir </> "benching4.csv"
       backupFile = dataDir </> "benching.csv.backup"
   createDirectoryIfMissing True dataDir
   csvExists <- doesFileExist csvFile
