@@ -47,12 +47,12 @@ import JavascriptEditor.Types (Action(..), State, _ContractString, initialState)
 import JavascriptEditor.Types (CompilationState(..))
 import Language.Haskell.Monaco as HM
 import LoginPopup (openLoginPopup, informParentAndClose)
-import MainFrame.Types (Action(..), ChildSlots, ModalView(..), Query(..), State, View(..), _actusBlocklySlot, _authStatus, _blocklyEditorState, _blocklySlot, _createGistResult, _gistId, _hasUnsavedChanges, _haskellState, _javascriptState, _jsEditorSlot, _loadGistResult, _marloweEditorState, _newProject, _projectName, _projects, _rename, _saveAs, _showBottomPanel, _showModal, _simulationState, _view, _walletSlot, _workflow, sessionToState, stateToSession)
+import MainFrame.Types (Action(..), ChildSlots, ModalView(..), Query(..), State, View(..), _actusBlocklySlot, _authStatus, _blocklyEditorState, _createGistResult, _gistId, _hasUnsavedChanges, _haskellState, _javascriptState, _jsEditorSlot, _loadGistResult, _marloweEditorState, _newProject, _projectName, _projects, _rename, _saveAs, _showBottomPanel, _showModal, _simulationState, _view, _walletSlot, _workflow, sessionToState, stateToSession)
 import MainFrame.View (render)
 import Marlowe (getApiGistsByGistId)
 import Marlowe as Server
 import Marlowe.ActusBlockly as AMB
-import Marlowe.Gists (mkNewGist, playgroundFiles)
+import Marlowe.Gists (mkNewGist, playgroundFiles, PlaygroundFiles)
 import MarloweEditor.State as MarloweEditor
 import MarloweEditor.Types as ME
 import Network.RemoteData (RemoteData(..), _Success)
@@ -670,22 +670,24 @@ handleGistAction PublishGist = do
     -- playground is a meta-data file that we currently just use as a tag to check if a gist is a marlowe playground gist
     playground = "{}"
   workflow <- use _workflow
+  let
+    emptyFiles = (mempty :: PlaygroundFiles) { playground = playground }
   files <- case workflow of
     Just Marlowe -> do
       marlowe <- pruneEmpty <$> MarloweEditor.editorGetValue
-      pure $ mempty { marlowe }
+      pure $ emptyFiles { marlowe = marlowe }
     Just Blockly -> do
       blockly <- pruneEmpty <$> BlocklyEditor.editorGetValue
-      pure $ mempty { blockly }
+      pure $ emptyFiles { blockly = blockly }
     Just Haskell -> do
       haskell <- pruneEmpty <$> HaskellEditor.editorGetValue
-      pure $ mempty { haskell }
+      pure $ emptyFiles { haskell = haskell }
     Just Javascript -> do
       javascript <- pruneEmpty <$> toJavascriptEditor JavascriptEditor.editorGetValue
-      pure $ mempty { javascript }
+      pure $ emptyFiles { javascript = javascript }
     Just Actus -> do
       actus <- pruneEmpty <$> query _actusBlocklySlot unit (H.request ActusBlockly.GetWorkspace)
-      pure $ mempty { actus }
+      pure $ emptyFiles { actus = actus }
     Nothing -> mempty
   let
     newGist = mkNewGist description files
