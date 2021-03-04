@@ -47,6 +47,14 @@
         allowedTCPPorts = with ports; [ ssh plutus-playground-webserver marlowe-playground-webserver nodeExporter ];
       };
 
+      services.prometheus.exporters = {
+        node = {
+          enable = true;
+          enabledCollectors = [ "systemd" ];
+          extraFlags =
+            [ "--collector.textfile.directory ${promNodeTextfileDir}" ];
+        };
+      };
 
       systemd.services.plutus-playground = {
         enable = true;
