@@ -250,7 +250,7 @@ templateLibraryCard templates =
               , onClick_ $ SetTemplate template
               ]
               [ span_ [ text "Setup" ]
-              , span_ [ Icon.navigateNext ]
+              , span_ [ Icon.rightArrow ]
               ]
           ]
       , p_

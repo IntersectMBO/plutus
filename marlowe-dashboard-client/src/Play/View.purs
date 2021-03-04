@@ -16,31 +16,34 @@ import MainFrame.Lenses (_card, _screen)
 import Marlowe.Extended (ContractTemplate)
 import Marlowe.Semantics (PubKey)
 import Material.Icons as Icon
-import Play.Lenses (_contractState, _menuOpen, _templateState, _wallet)
+import Network.RemoteData (RemoteData)
+import Play.Lenses (_contractState, _menuOpen, _templateState, _walletDetails)
 import Play.Types (Action(..), Card(..), ContractStatus(..), Screen(..), State)
 import Prim.TypeError (class Warn, Text)
+import Servant.PureScript.Ajax (AjaxError)
 import Template.Types (State) as Template
 import Template.View (contractSetupConfirmationCard, contractSetupScreen, templateLibraryCard)
-import WalletData.Types (WalletLibrary, WalletNicknameKey)
+import WalletData.Lenses (_nickname)
+import WalletData.Types (Nickname, WalletDetails, WalletLibrary)
 import WalletData.View (newWalletCard, walletDetailsCard, putdownWalletCard, walletLibraryScreen)
 
-renderPlayState :: forall p. WalletLibrary -> WalletNicknameKey -> Array ContractTemplate -> State -> HTML p Action
-renderPlayState wallets newWalletNicknameKey templates playState =
+renderPlayState :: forall p. WalletLibrary -> WalletDetails -> RemoteData AjaxError PubKey -> Array Template -> State -> HTML p Action
+renderPlayState wallets newWalletDetails newWalletPubKey templates playState =
   let
-    wallet = view _wallet playState
+    walletNickname = view (_walletDetails <<< _nickname) playState
 
     menuOpen = view _menuOpen playState
   in
     div
       [ classNames [ "grid", "h-full", "grid-rows-main" ] ]
-      [ renderHeader wallet menuOpen
-      , renderMain newWalletNicknameKey wallets templates playState
+      [ renderHeader walletNickname menuOpen
+      , renderMain wallets newWalletDetails newWalletPubKey templates playState
       , renderFooter
       ]
 
 ------------------------------------------------------------
 renderHeader :: forall p. PubKey -> Boolean -> HTML p Action
-renderHeader wallet menuOpen =
+renderHeader walletNickname menuOpen =
   header
     [ classNames $ [ "relative", "flex", "justify-between", "border-b", "border-darkgray" ] <> applyWhen menuOpen [ "border-0", "bg-black", "text-white" ] ]
     [ h1
@@ -50,7 +53,7 @@ renderHeader wallet menuOpen =
         [ classNames [ "flex" ] ]
         [ navigation (SetScreen $ ContractsScreen Running) Icon.home "Home"
         , navigation (SetScreen WalletLibraryScreen) Icon.contacts "Contacts"
-        , navigation (ToggleCard PutdownWalletCard) Icon.wallet "Wallet"
+        , navigation (ToggleCard PutdownWalletCard) Icon.wallet walletNickname
         , a
             [ classNames [ "p-0.5", "md:hidden" ]
             , onClick_ ToggleMenu
@@ -73,10 +76,10 @@ renderHeader wallet menuOpen =
       ]
 
 ------------------------------------------------------------
-renderMain :: forall p. WalletNicknameKey -> WalletLibrary -> Array ContractTemplate -> State -> HTML p Action
-renderMain newWalletNicknameKey wallets templates playState =
+renderMain :: forall p. WalletLibrary -> WalletDetails -> RemoteData AjaxError PubKey -> Array Template -> State -> HTML p Action
+renderMain wallets newWalletDetails newWalletPubKey templates playState =
   let
-    wallet = view _wallet playState
+    walletDetails = view _walletDetails playState
 
     menuOpen = view _menuOpen playState
 
@@ -91,7 +94,7 @@ renderMain newWalletNicknameKey wallets templates playState =
     main
       [ classNames [ "relative" ] ]
       [ renderMobileMenu menuOpen
-      , renderCards newWalletNicknameKey wallets templates wallet card contractState
+      , renderCards wallets newWalletDetails newWalletPubKey templates walletDetails card contractState
       , renderScreen wallets screen templateState
       ]
 
@@ -110,8 +113,8 @@ renderMobileMenu menuOpen =
         iohkLinks
     ]
 
-renderCards :: forall p. WalletNicknameKey -> WalletLibrary -> Array ContractTemplate -> PubKey -> Maybe Card -> Contract.State -> HTML p Action
-renderCards newWalletNicknameKey wallets templates wallet card contractState =
+renderCards :: forall p. WalletLibrary -> WalletDetails -> RemoteData AjaxError PubKey -> Array Template -> WalletDetails -> Maybe Card -> Contract.State -> HTML p Action
+renderCards wallets newWalletDetails newWalletPubKey templates walletDetails card contractState =
   div
     [ classNames $ Css.cardWrapper $ isNothing card ]
     [ div
@@ -127,9 +130,9 @@ renderCards newWalletNicknameKey wallets templates wallet card contractState =
         , div
             [ classNames [ "px-1", "pb-1" ] ]
             $ (flip foldMap card) \cardType -> case cardType of
-                CreateWalletCard -> [ newWalletCard newWalletNicknameKey wallets ]
-                ViewWalletCard walletNicknameKey walletDetails -> [ walletDetailsCard walletNicknameKey walletDetails ]
-                PutdownWalletCard -> [ putdownWalletCard wallet wallets ]
+                CreateWalletCard -> [ newWalletCard wallets newWalletDetails newWalletPubKey ]
+                ViewWalletCard nickname contractId -> [ walletDetailsCard nickname contractId ]
+                PutdownWalletCard -> [ putdownWalletCard walletDetails ]
                 TemplateLibraryCard -> [ TemplateAction <$> templateLibraryCard templates ]
                 NewContractForRoleCard -> []
                 ContractSetupConfirmationCard -> [ TemplateAction <$> contractSetupConfirmationCard ]

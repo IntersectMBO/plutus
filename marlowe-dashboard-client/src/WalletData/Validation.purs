@@ -1,17 +1,17 @@
 module WalletData.Validation
   ( NicknameError(..)
-  , KeyError(..)
+  , ContractIdError(..)
   , nicknameError
-  , keyError
+  , contractIdError
   ) where
 
 import Prelude
-import Data.Map (member)
-import Data.Map.Extra (mapIndex)
+import Data.Map (isEmpty, filter, member)
 import Data.Maybe (Maybe(..))
-import Data.Tuple (fst, snd)
 import Marlowe.Semantics (PubKey)
-import WalletData.Types (WalletLibrary)
+import Network.RemoteData (RemoteData(..))
+import Servant.PureScript.Ajax (AjaxError)
+import WalletData.Types (Nickname, WalletLibrary)
 
 data NicknameError
   = EmptyNickname
@@ -23,30 +23,38 @@ instance showNicknameError :: Show NicknameError where
   show EmptyNickname = "Nickname cannot be blank"
   show DuplicateNickname = "Nickname is already in use in your contacts"
 
-data KeyError
-  = EmptyKey
-  | DuplicateKey
+data ContractIdError
+  = EmptyContractId
+  | DuplicateContractId
+  | UnconfirmedContractId
+  | NonexistentContractId
 
-derive instance eqKeyError :: Eq KeyError
+derive instance eqKeyError :: Eq ContractIdError
 
-instance showKeyError :: Show KeyError where
-  show EmptyKey = "Wallet key cannot be blank"
-  show DuplicateKey = "Wallet key is already in your contacts"
+instance showContracyIdError :: Show ContractIdError where
+  show EmptyContractId = "Wallet ID cannot be blank"
+  show DuplicateContractId = "Wallet ID is already in your contacts"
+  show UnconfirmedContractId = "Looking up wallet ID..."
+  show NonexistentContractId = "Wallet ID not found"
 
-nicknameError :: String -> WalletLibrary -> Maybe NicknameError
+nicknameError :: Nickname -> WalletLibrary -> Maybe NicknameError
 nicknameError "" _ = Just EmptyNickname
 
-nicknameError nickname contacts =
-  if member nickname $ mapIndex fst contacts then
+nicknameError nickname library =
+  if member nickname library then
     Just DuplicateNickname
   else
     Nothing
 
-keyError :: PubKey -> WalletLibrary -> Maybe KeyError
-keyError "" _ = Just EmptyKey
+contractIdError :: String -> RemoteData AjaxError PubKey -> WalletLibrary -> Maybe ContractIdError
+contractIdError "" _ _ = Just EmptyContractId
 
-keyError key contacts =
-  if member key $ mapIndex snd contacts then
-    Just DuplicateKey
+contractIdError contractId pubKey library =
+  if not $ isEmpty $ filter (\walletDetails -> walletDetails.contractId == contractId) library then
+    Just DuplicateContractId
   else
-    Nothing
+    case pubKey of
+      Success _ -> Nothing
+      Failure _ -> Just NonexistentContractId
+      _ -> Just UnconfirmedContractId
+

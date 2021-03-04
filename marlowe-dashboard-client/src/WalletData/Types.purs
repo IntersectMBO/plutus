@@ -1,20 +1,23 @@
 module WalletData.Types
   ( WalletLibrary
-  , WalletNicknameKey
+  , Nickname
   , WalletDetails
   ) where
 
-import Data.Tuple (Tuple)
 import Data.Map (Map)
-import Marlowe.Semantics (PubKey)
+import Marlowe.Semantics (Assets, PubKey)
+import Network.RemoteData (RemoteData)
+import Servant.PureScript.Ajax (AjaxError)
 
 type WalletLibrary
-  = Map WalletNicknameKey WalletDetails
+  = Map Nickname WalletDetails
 
--- make the nickname (string) the first key so we get alphabetical ordering for free
-type WalletNicknameKey
-  = Tuple String PubKey
+type Nickname
+  = String
 
 type WalletDetails
-  = { userHasPickedUp :: Boolean
+  = { nickname :: Nickname
+    , contractId :: String
+    , pubKey :: PubKey
+    , balance :: RemoteData AjaxError (Array Assets)
     }

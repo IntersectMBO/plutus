@@ -1,5 +1,5 @@
 module Play.Lenses
-  ( _wallet
+  ( _walletDetails
   , _menuOpen
   , _templateState
   , _contractState
@@ -9,12 +9,12 @@ import Contract.Types (State) as Contract
 import Data.Lens (Lens')
 import Data.Lens.Record (prop)
 import Data.Symbol (SProxy(..))
-import Marlowe.Semantics (PubKey)
+import WalletData.Types (WalletDetails)
 import Play.Types (State)
 import Template.Types (State) as Template
 
-_wallet :: Lens' State PubKey
-_wallet = prop (SProxy :: SProxy "wallet")
+_walletDetails :: Lens' State WalletDetails
+_walletDetails = prop (SProxy :: SProxy "walletDetails")
 
 _menuOpen :: Lens' State Boolean
 _menuOpen = prop (SProxy :: SProxy "menuOpen")

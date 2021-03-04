@@ -6,37 +6,38 @@ import Css as Css
 import Data.Foldable (foldMap)
 import Data.Lens (view)
 import Data.Maybe (Maybe(..), isJust, isNothing)
-import Halogen.HTML (HTML, a, button, div, div_, footer, h1, header, hr_, input, label, main, p, span_, text)
+import Halogen.HTML (HTML, a, button, div, div_, footer, h1, header, hr_, input, label, main, p, text)
 import Halogen.HTML.Events.Extra (onClick_, onValueInput_)
 import Halogen.HTML.Properties (InputType(..), disabled, for, href, id_, list, placeholder, readOnly, type_, value)
-import MainFrame.Lenses (_card, _screen)
+import MainFrame.Lenses (_card)
+import Marlowe.Semantics (PubKey)
 import Material.Icons as Icon
-import Pickup.Types (Action(..), Card(..), Screen(..), State)
+import Network.RemoteData (RemoteData)
+import Pickup.Types (Action(..), Card(..), State)
 import Prim.TypeError (class Warn, Text)
-import WalletData.Lenses (_key, _nickname)
-import WalletData.Types (WalletLibrary, WalletNicknameKey)
-import WalletData.Validation (nicknameError)
+import Servant.PureScript.Ajax (AjaxError)
+import WalletData.Lenses (_contractId, _nickname)
+import WalletData.Types (WalletDetails, WalletLibrary)
+import WalletData.Validation (contractIdError, nicknameError)
 import WalletData.View (nicknamesDataList)
 
-renderPickupState :: forall p. WalletLibrary -> WalletNicknameKey -> State -> HTML p Action
-renderPickupState wallets newWalletNicknameKey pickupState =
+renderPickupState :: forall p. WalletLibrary -> WalletDetails -> RemoteData AjaxError PubKey -> State -> HTML p Action
+renderPickupState wallets newWalletDetails newWalletPubKey pickupState =
   let
-    screen = view _screen pickupState
-
     card = view _card pickupState
   in
     div
       [ classNames [ "grid", "h-full" ] ]
       [ main
           [ classNames [ "relative" ] ]
-          [ renderPickupCard card newWalletNicknameKey wallets
-          , renderPickupScreen wallets screen
+          [ renderPickupCard wallets newWalletDetails newWalletPubKey card
+          , renderPickupScreen wallets
           ]
       ]
 
 ------------------------------------------------------------
-renderPickupCard :: forall p. Maybe Card -> WalletNicknameKey -> WalletLibrary -> HTML p Action
-renderPickupCard pickupCard newWalletNicknameKey wallets =
+renderPickupCard :: forall p. WalletLibrary -> WalletDetails -> RemoteData AjaxError PubKey -> Maybe Card -> HTML p Action
+renderPickupCard wallets newWalletDetails newWalletPubKey pickupCard =
   div
     [ classNames $ Css.cardWrapper $ isNothing pickupCard ]
     [ div
@@ -51,19 +52,21 @@ renderPickupCard pickupCard newWalletNicknameKey wallets =
             ]
         , div
             [ classNames [ "px-1", "pb-1" ] ] case pickupCard of
-            Just card -> [ pickupWalletCard card newWalletNicknameKey wallets ]
+            Just card -> [ pickupWalletCard wallets newWalletDetails newWalletPubKey card ]
             Nothing -> []
         ]
     ]
 
-pickupWalletCard :: forall p. Card -> WalletNicknameKey -> WalletLibrary -> HTML p Action
-pickupWalletCard card newWalletNicknameKey wallets =
+pickupWalletCard :: forall p. WalletLibrary -> WalletDetails -> RemoteData AjaxError PubKey -> Card -> HTML p Action
+pickupWalletCard wallets newWalletDetails newWalletPubKey card =
   let
-    nickname = view _nickname newWalletNicknameKey
+    nickname = view _nickname newWalletDetails
 
-    key = view _key newWalletNicknameKey
+    contractId = view _contractId newWalletDetails
 
     mNicknameError = nicknameError nickname wallets
+
+    mContractIdError = contractIdError contractId newWalletPubKey wallets
   in
     div_
       [ p
@@ -104,12 +107,12 @@ pickupWalletCard card newWalletNicknameKey wallets =
               [ classNames Css.nestedLabel
               , for "newWalletKey"
               ]
-              [ text "Public key" ]
+              [ text "Wallet ID" ]
           , input
               [ type_ InputText
               , classNames $ Css.input false
               , id_ "newWalletKey"
-              , value key
+              , value contractId
               , readOnly true
               ]
           ]
@@ -124,56 +127,30 @@ pickupWalletCard card newWalletNicknameKey wallets =
               [ classNames $ Css.primaryButton <> [ "flex-1" ]
               , disabled
                   $ case card of
-                      PickupNewWalletCard -> isJust mNicknameError
-                      PickupWalletCard _ -> false
+                      PickupNewWalletCard -> isJust mNicknameError || isJust mContractIdError
+                      PickupWalletCard _ -> isJust mContractIdError
               , onClick_
                   $ case card of
                       PickupNewWalletCard -> PickupNewWallet
-                      PickupWalletCard _ -> PickupWallet key
+                      PickupWalletCard _ -> PickupWallet nickname
               ]
               [ text "Pickup" ]
           ]
       ]
 
 ------------------------------------------------------------
-renderPickupScreen :: forall p. WalletLibrary -> Screen -> HTML p Action
-renderPickupScreen wallets screen =
+renderPickupScreen :: forall p. Warn (Text "We need to add the Marlowe links.") => WalletLibrary -> HTML p Action
+renderPickupScreen wallets =
   div
     [ classNames [ "absolute", "top-0", "bottom-0", "left-0", "right-0", "overflow-auto", "z-0", "flex", "flex-col", "justify-between" ] ]
     [ header
         [ classNames [ "flex" ] ]
-        [ link Icon.navigateBefore "Back to marlowe.io" "" ]
-    , case screen of
-        GDPRScreen -> gdprScreen
-        GenerateWalletScreen -> pickupWalletScreen wallets
+        [ link "marlowe.io" "" ]
+    , pickupWalletScreen wallets
     , footer
         [ classNames [ "flex" ] ]
-        [ link Icon.navigateNext "Docs" ""
-        , link Icon.navigateNext "Library" ""
-        ]
-    ]
-
-gdprScreen :: forall p. Warn (Text "We need to add the GDPR text.") => HTML p Action
-gdprScreen =
-  main
-    [ classNames [ "p-1", "w-22", "mx-auto", "text-center" ] ]
-    [ p
-        [ classNames [ "mb-1" ] ]
-        [ text "Welcome to" ]
-    , h1
-        [ classNames [ "text-2xl", "font-bold", "mb-1" ] ]
-        [ text "Marlowe" ]
-    , p
-        [ classNames [ "mb-1" ] ]
-        [ text "GDPR text - Tiramisu toffee gingerbread lemon drops jelly cake lemon drops" ]
-    , button
-        [ classNames $ Css.primaryButton <> [ "w-12", "mx-auto", "justify-between" ]
-        , onClick_ $ SetScreen GenerateWalletScreen
-        ]
-        [ span_
-            [ text "I Agree" ]
-        , span_
-            [ Icon.navigateNext ]
+        [ link "Docs" ""
+        , link "Marketplace" ""
         ]
     ]
 
@@ -207,10 +184,10 @@ pickupWalletScreen wallets =
     , nicknamesDataList wallets
     ]
 
-link :: forall p a. HTML p a -> String -> String -> HTML p a
-link icon label url =
+link :: forall p a. String -> String -> HTML p a
+link label url =
   a
     [ classNames [ "flex", "items-center", "p-0.5" ]
     , href url
     ]
-    [ icon, text label ]
+    [ text label ]

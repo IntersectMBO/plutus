@@ -1,11 +1,12 @@
 module MainFrame.State (mkMainFrame) where
 
 import Prelude
+
 import Control.Monad.Except (runExcept)
 import Control.Monad.Reader (class MonadAsk)
 import Data.Either (Either(..))
 import Data.Foldable (for_)
-import Data.Lens (assign, over, set, use)
+import Data.Lens (assign, over, set, use, view)
 import Data.Map (empty, insert, member)
 import Data.Map.Extra (findIndex)
 import Data.Maybe (Maybe(..))
@@ -17,19 +18,21 @@ import Foreign.Generic (decodeJSON, encodeJSON)
 import Halogen (Component, HalogenM, liftEffect, mkComponent, mkEval, modify_)
 import Halogen.HTML (HTML)
 import LocalStorage (getItem, removeItem, setItem)
-import MainFrame.Lenses (_card, _newWalletNicknameKey, _pickupState, _subState, _playState, _wallets, _webSocketStatus)
+import MainFrame.Lenses (_card, _newWalletDetails, _newWalletPubKey, _pickupState, _subState, _templates, _playState, _wallets, _webSocketStatus)
 import MainFrame.Types (Action(..), ChildSlots, Msg, Query(..), State, WebSocketStatus(..))
 import MainFrame.View (render)
 import Marlowe.Market (contractTemplates)
+import Network.RemoteData (RemoteData(..))
 import Pickup.State (handleAction, initialState) as Pickup
 import Pickup.Types (Action(..), Card(..)) as Pickup
 import Play.State (handleAction, mkInitialState) as Play
 import Play.Types (Action(..)) as Play
 import Plutus.PAB.Webserver.Types (StreamToClient(..))
 import StaticData (walletLocalStorageKey, walletsLocalStorageKey)
-import WalletData.Lenses (_key, _nickname)
+import WalletData.Lenses (_contractId, _nickname)
 import WalletData.Types (WalletDetails)
 import WebSocket.Support as WS
+import StaticData (walletDetailsLocalStorageKey, walletLibraryLocalStorageKey)
 
 mkMainFrame ::
   forall m.
@@ -53,14 +56,15 @@ mkMainFrame =
 initialState :: State
 initialState =
   { wallets: empty
-  , newWalletNicknameKey: mempty
+  , newWalletDetails: defaultWalletDetails
+  , newWalletPubKey: NotAsked
   , templates: contractTemplates
   , subState: Left Pickup.initialState
   , webSocketStatus: WebSocketClosed Nothing
   }
 
 defaultWalletDetails :: WalletDetails
-defaultWalletDetails = { userHasPickedUp: false }
+defaultWalletDetails = { nickname: mempty, contractID: mempty, pubKey: mempty, balance: NotAsked }
 
 handleQuery :: forall a m. Query a -> HalogenM State Action ChildSlots Msg m (Maybe a)
 handleQuery (ReceiveWebSocketMessage msg next) = do
@@ -93,49 +97,71 @@ handleAction ::
   MonadAsk Env m =>
   Action -> HalogenM State Action ChildSlots Msg m Unit
 handleAction Init = do
-  mCachedWalletsJson <- liftEffect $ getItem walletsLocalStorageKey
-  for_ mCachedWalletsJson \json ->
-    for_ (runExcept $ decodeJSON json) \cachedWallets ->
-      assign _wallets cachedWallets
-  mCachedWalletJson <- liftEffect $ getItem walletLocalStorageKey
-  for_ mCachedWalletJson \json ->
-    for_ (runExcept $ decodeJSON json) \cachedWallet ->
-      assign _subState $ Right $ Play.mkInitialState cachedWallet
+  mWalletLibraryJson <- liftEffect $ getItem walletLibraryLocalStorageKey
+  for_ mWalletLibraryJson \json ->
+    for_ (runExcept $ decodeJSON json) \wallets ->
+      assign _wallets wallets
+  mWalletDetailsJson <- liftEffect $ getItem walletDetailsLocalStorageKey
+  for_ mWalletDetailsJson \json ->
+    for_ (runExcept $ decodeJSON json) \walletDetails ->
+      assign _subState $ Right $ Play.mkInitialState walletDetails
 
-handleAction (SetNewWalletNickname nickname) = assign (_newWalletNicknameKey <<< _nickname) nickname
-
-handleAction AddNewWallet = do
+handleAction (AddWallet walletDetails) = do
   oldWallets <- use _wallets
-  newWalletNicknameKey <- use _newWalletNicknameKey
-  when (not $ member newWalletNicknameKey oldWallets) do
+  let
+    newWalletNickname = view _nickname walletDetails
+  when (not $ member newWalletNickname oldWallets) do
     modify_
-      $ (over _wallets) (insert newWalletNicknameKey defaultWalletDetails)
-      <<< set _newWalletNicknameKey mempty
+      $ (over _wallets) (insert newWalletNickname walletDetails)
+      <<< set _newWalletDetails { nickname: mempty, contractId: mempty, pubKey: mempty, balance: NotAsked }
       <<< set (_playState <<< _card) Nothing
     newWallets <- use _wallets
-    liftEffect $ setItem walletsLocalStorageKey $ encodeJSON newWallets
+    liftEffect $ setItem walletLibraryLocalStorageKey $ encodeJSON newWallets
+
+handleAction (SetNewWalletNickname nickname) = assign (_newWalletDetails <<< _nickname) nickname
+
+handleAction (SetNewWalletContractId contractId) = assign (_newWalletDetails <<< _contractId) contractId
+
+handleAction FetchNewWalletPubKey = do
+  contractId <- use (_newWalletDetails <<< _contractId)
+  -- TODO: lookup wallet pubKey from the PAB using the wallet's companion contract ID
+  randomNumber <- liftEffect random
+  let
+    pubKey = show randomNumber
+  assign _newWalletPubKey $ Success pubKey
 
 -- pickup actions that need to be handled here
 handleAction (PickupAction (Pickup.SetNewWalletNickname nickname)) = handleAction $ SetNewWalletNickname nickname
 
+handleAction (PickupAction (Pickup.SetNewWalletContractId contractId)) = handleAction $ SetNewWalletContractId contractId
+
 handleAction (PickupAction Pickup.PickupNewWallet) = do
-  newPubKey <- use (_newWalletNicknameKey <<< _key)
-  handleAction AddNewWallet
-  handleAction $ PickupAction $ Pickup.PickupWallet newPubKey
-
-handleAction (PickupAction (Pickup.PickupWallet pubKey)) = do
-  modify_
-    $ set _subState (Right $ Play.mkInitialState pubKey)
-    <<< set (_pickupState <<< _card) Nothing
-  liftEffect $ setItem walletLocalStorageKey $ encodeJSON pubKey
-
--- TODO: generate wallet on the backend; for now just create a random number
-handleAction (PickupAction Pickup.GenerateNewWallet) = do
+  nickname <- use (_newWalletDetails <<< _nickname)
+  contractId <- use (_newWalletDetails <<< _contractId)
+  --TODO: use the contract ID to lookup the wallet's public key from PAB
   randomNumber <- liftEffect random
   let
-    key = show $ randomNumber
+    pubKey = show randomNumber
+
+    walletDetails = { nickname, contractId, pubKey, balance: NotAsked }
+  handleAction $ AddWallet walletDetails
+  handleAction $ PickupAction $ Pickup.PickupWallet walletDetails
+
+handleAction (PickupAction (Pickup.PickupWallet walletDetails)) = do
+  -- TODO: fetch current balance of the wallet from PAB
+  -- TODO: open up websocket to this wallet's companion contract from PAB
   modify_
-    $ set (_newWalletNicknameKey <<< _key) key
+    $ set _subState (Right $ Play.mkInitialState walletDetails)
+    <<< set (_pickupState <<< _card) Nothing
+  liftEffect $ setItem walletDetailsLocalStorageKey $ encodeJSON walletDetails
+
+handleAction (PickupAction Pickup.GenerateNewWallet) = do
+  -- TODO: ask PAB to generate a new wallet and get the wallet's companion contract ID in return
+  randomNumber <- liftEffect random
+  let
+    contractId = show $ randomNumber
+  modify_
+    $ set (_newWalletDetails <<< _contractId) contractId
     <<< set (_pickupState <<< _card) (Just Pickup.PickupNewWalletCard)
 
 handleAction (PickupAction (Pickup.LookupWallet string)) = do
@@ -155,13 +181,13 @@ handleAction (PickupAction pickupAction) = Pickup.handleAction pickupAction
 -- play actions that need to be handled here
 handleAction (PlayAction Play.PutdownWallet) = do
   assign _subState $ Left Pickup.initialState
-  liftEffect $ removeItem walletLocalStorageKey
+  liftEffect $ removeItem walletDetailsLocalStorageKey
 
 handleAction (PlayAction (Play.SetNewWalletNickname nickname)) = handleAction $ SetNewWalletNickname nickname
 
-handleAction (PlayAction (Play.SetNewWalletKey key)) = assign (_newWalletNicknameKey <<< _key) key
+handleAction (PlayAction (Play.SetNewWalletContractId contractId)) = handleAction $ SetNewWalletContractId contractId
 
-handleAction (PlayAction Play.AddNewWallet) = handleAction AddNewWallet
+handleAction (PlayAction (Play.AddWallet walletDetails)) = handleAction $ AddWallet walletDetails
 
 -- other play actions
 handleAction (PlayAction playAction) = Play.handleAction playAction
