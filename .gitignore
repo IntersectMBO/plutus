@@ -105,4 +105,4 @@ gh-pages
 hie.yaml
 node-server.sock
 .pre-commit-config.yaml
-secrets/.gpg-id
+secrets/*/.gpg-id
