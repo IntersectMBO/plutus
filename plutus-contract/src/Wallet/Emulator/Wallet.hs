@@ -42,8 +42,7 @@ import qualified Ledger.Value                        as Value
 import           Prelude                             as P
 import           Servant.API                         (FromHttpApiData (..), ToHttpApiData (..))
 import qualified Wallet.API                          as WAPI
-import           Wallet.Effects                      (ChainIndexEffect, NodeClientEffect, SigningProcessEffect (..),
-                                                      WalletEffect (..))
+import           Wallet.Effects                      (ChainIndexEffect, NodeClientEffect, WalletEffect (..))
 import qualified Wallet.Effects                      as W
 import           Wallet.Emulator.ChainIndex          (ChainIndexState)
 import           Wallet.Emulator.LogMessages         (RequestHandlerLogMsg, TxBalanceMsg)
@@ -192,6 +191,9 @@ handleWallet = interpret $ \case
     OwnOutputs -> do
         addr <- gets ownAddress
         view (at addr . non mempty) <$> W.watchedAddresses
+    WalletAddSignature tx -> do
+        privKey <- gets _ownPrivateKey
+        pure (addSignature privKey tx)
 
 -- Make a transaction output from a positive value.
 mkChangeOutput :: PubKey -> Value -> Maybe TxOut
@@ -273,9 +275,3 @@ type SigningProcessEffs = '[State SigningProcess, Error WAPI.WalletAPIError]
 handleSigningProcessControl :: (Members SigningProcessEffs effs) => Eff (SigningProcessControlEffect ': effs) ~> Eff effs
 handleSigningProcessControl = interpret $ \case
     SetSigningProcess proc -> put proc
-
-handleSigningProcess :: (Members SigningProcessEffs effs) => Eff (SigningProcessEffect ': effs) ~> Eff effs
-handleSigningProcess = interpret $ \case
-    AddSignatures sigs tx -> do
-        SigningProcess process <- get
-        process sigs tx

@@ -27,8 +27,6 @@ import qualified Cardano.Metadata.Types                  as Metadata
 import           Cardano.Node.Client                     (handleNodeClientClient, handleRandomTxClient)
 import           Cardano.Node.RandomTx                   (GenRandomTx)
 import           Cardano.Node.Types                      (MockServerConfig (..))
-import qualified Cardano.SigningProcess.Client           as SigningProcessClient
-import qualified Cardano.SigningProcess.Types            as SigningProcess
 import qualified Cardano.Wallet.Client                   as WalletClient
 import qualified Cardano.Wallet.Types                    as Wallet
 import           Control.Monad.Catch                     (MonadCatch)
@@ -63,12 +61,12 @@ import           Plutus.PAB.Monitoring.Monitoring        (handleLogMsgTrace, han
 import           Plutus.PAB.Monitoring.PABLogMsg         (ContractExeLogMsg (..), PABLogMsg (..))
 import           Plutus.PAB.Types                        (Config (Config), ContractExe (..), PABError (..),
                                                           chainIndexConfig, dbConfig, metadataServerConfig,
-                                                          nodeServerConfig, signingProcessConfig, walletServerConfig)
+                                                          nodeServerConfig, walletServerConfig)
 import           Servant.Client                          (ClientEnv, ClientError, mkClientEnv)
 import           System.Exit                             (ExitCode (ExitFailure, ExitSuccess))
 import           System.Process                          (readProcessWithExitCode)
 import           Wallet.Effects                          (ChainIndexEffect, ContractRuntimeEffect, NodeClientEffect,
-                                                          SigningProcessEffect, WalletEffect)
+                                                          WalletEffect)
 
 
 ------------------------------------------------------------
@@ -78,7 +76,6 @@ data Env =
         , walletClientEnv   :: ClientEnv
         , nodeClientEnv     :: ClientEnv
         , metadataClientEnv :: ClientEnv
-        , signingProcessEnv :: ClientEnv
         , chainIndexEnv     :: ClientEnv
         }
 
@@ -88,7 +85,6 @@ type AppBackend m =
          , WalletEffect
          , NodeClientEffect
          , MetadataEffect
-         , SigningProcessEffect
          , UUIDEffect
          , ContractEffect ContractExe
          , ChainIndexEffect
@@ -120,20 +116,14 @@ runAppBackend trace loggingConfig config action = do
             , nodeClientEnv
             , metadataClientEnv
             , walletClientEnv
-            , signingProcessEnv
             , chainIndexEnv
             } <- mkEnv config
     let
+        wllt = Wallet.wallet $ walletServerConfig config
         handleChainIndex :: Eff (ChainIndexEffect ': _) a -> Eff _ a
         handleChainIndex =
             flip handleError (throwError . ChainIndexError) .
             reinterpret @_ @(Error ClientError) (handleChainIndexClient chainIndexEnv)
-        handleSigningProcess ::
-               Eff (SigningProcessEffect ': _) a -> Eff _ a
-        handleSigningProcess =
-            interpret (mapLog SWebsocketMsg) .
-            flip handleError (throwError . SigningProcessError) .
-            reinterpret2 @_ @(Error ClientError) (SigningProcessClient.handleSigningProcessClient signingProcessEnv)
         handleNodeClient ::
                Eff (NodeClientEffect ': _) a -> Eff _ a
         handleNodeClient =
@@ -150,7 +140,7 @@ runAppBackend trace loggingConfig config action = do
         handleWallet =
             flip handleError (throwError . WalletClientError) .
             flip handleError (throwError . WalletError) .
-            reinterpret2 (WalletClient.handleWalletClient walletClientEnv)
+            reinterpret2 (WalletClient.handleWalletClient walletClientEnv wllt)
         handleRandomTx :: Eff (GenRandomTx ': _) a -> Eff _ a
         handleRandomTx =
             flip handleError (throwError . RandomTxClientError) .
@@ -169,7 +159,6 @@ runAppBackend trace loggingConfig config action = do
         . handleChainIndex
         . interpret (mapLog SContractExeLogMsg) . reinterpret handleContractEffectApp
         . handleUUIDEffect
-        . handleSigningProcess
         . handleMetadata
         . handleNodeClient
         . handleWallet
@@ -183,14 +172,11 @@ mkEnv Config { dbConfig
              , nodeServerConfig
              , metadataServerConfig
              , walletServerConfig
-             , signingProcessConfig
              , chainIndexConfig
              } = do
     walletClientEnv <- clientEnv (Wallet.baseUrl walletServerConfig)
     nodeClientEnv <- clientEnv (mscBaseUrl nodeServerConfig)
     metadataClientEnv <- clientEnv (Metadata.mdBaseUrl metadataServerConfig)
-    signingProcessEnv <-
-        clientEnv $ SigningProcess.spBaseUrl signingProcessConfig
     chainIndexEnv <- clientEnv (ChainIndex.ciBaseUrl chainIndexConfig)
     dbConnection <- dbConnect dbConfig
     pure Env {..}

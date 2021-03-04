@@ -60,10 +60,6 @@ library
         Cardano.Protocol.Socket.Type
         Cardano.Protocol.Socket.Server
         Cardano.Protocol.Socket.Client
-        Cardano.SigningProcess.API
-        Cardano.SigningProcess.Server
-        Cardano.SigningProcess.Client
-        Cardano.SigningProcess.Types
         Cardano.Wallet.API
         Cardano.Wallet.Client
         Cardano.Wallet.Mock
@@ -127,6 +123,7 @@ library
         async -any,
         base >=4.7 && <5,
         bytestring -any,
+        cardano-crypto -any,
         cardano-prelude -any,
         cardano-slotting -any,
         containers -any,
@@ -159,6 +156,7 @@ library
         persistent -any,
         persistent-sqlite -any,
         playground-common -any,
+        plutus-ledger-api -any,
         prettyprinter >=1.1.0.1,
         process -any,
         quickcheck-instances -any,
@@ -298,6 +296,7 @@ test-suite plutus-pab-test
         Plutus.PAB.Events.ContractSpec
         Cardano.Metadata.ServerSpec
         Cardano.Metadata.TypesSpec
+        Cardano.Wallet.ServerSpec
 
     build-depends:
         QuickCheck -any,

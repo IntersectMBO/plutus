@@ -21,24 +21,31 @@ import           Ledger.Tx                 (Tx)
 import           Servant                   ((:<|>) (..))
 import           Servant.Client            (ClientEnv, ClientError, ClientM, client, runClientM)
 import           Wallet.Effects            (Payment (..), WalletEffect (..))
+import           Wallet.Emulator.Wallet    (Wallet)
 
-submitTxn :: Tx -> ClientM ()
-ownPublicKey :: ClientM PubKey
-updatePaymentWithChange :: (Value, Payment) -> ClientM Payment
-walletSlot :: ClientM Slot
-ownOutputs :: ClientM UtxoMap
-(submitTxn, ownPublicKey, updatePaymentWithChange, walletSlot, ownOutputs) =
-  ( fmap void submitTxn_
+createWallet :: ClientM Wallet
+submitTxn :: Wallet -> Tx -> ClientM ()
+ownPublicKey :: Wallet -> ClientM PubKey
+updatePaymentWithChange :: Wallet -> (Value, Payment) -> ClientM Payment
+walletSlot :: Wallet -> ClientM Slot
+ownOutputs :: Wallet -> ClientM UtxoMap
+sign :: Wallet -> Tx -> ClientM Tx
+(createWallet, submitTxn, ownPublicKey, updatePaymentWithChange, walletSlot, ownOutputs, sign) =
+  ( createWallet_
+  , \wid tx -> void (submitTxn_ wid tx)
   , ownPublicKey_
   , updatePaymentWithChange_
   , walletSlot_
-  , ownOutputs_)
+  , ownOutputs_
+  , sign_)
   where
-    ( submitTxn_
+    ( createWallet_
+      :<|> (submitTxn_
       :<|> ownPublicKey_
       :<|> updatePaymentWithChange_
       :<|> walletSlot_
-      :<|> ownOutputs_) = client (Proxy @API)
+      :<|> ownOutputs_
+      :<|> sign_)) = client (Proxy @API)
 
 handleWalletClient ::
   forall m effs.
@@ -47,15 +54,17 @@ handleWalletClient ::
   , Member (Error ClientError) effs
   )
   => ClientEnv
+  -> Wallet
   -> WalletEffect
   ~> Eff effs
-handleWalletClient clientEnv =
+handleWalletClient clientEnv wallet =
     let
         runClient :: forall a. ClientM a -> Eff effs a
         runClient a = (sendM $ liftIO $ runClientM a clientEnv) >>= either throwError pure
     in \case
-        SubmitTxn t                    -> runClient (submitTxn t)
-        OwnPubKey                      -> runClient ownPublicKey
-        UpdatePaymentWithChange vl pmt -> runClient $ updatePaymentWithChange (vl, pmt)
-        WalletSlot                     -> runClient walletSlot
-        OwnOutputs                     -> runClient ownOutputs
+        SubmitTxn t                    -> runClient (submitTxn wallet t)
+        OwnPubKey                      -> runClient (ownPublicKey wallet)
+        UpdatePaymentWithChange vl pmt -> runClient $ updatePaymentWithChange wallet (vl, pmt)
+        WalletSlot                     -> runClient $ walletSlot wallet
+        OwnOutputs                     -> runClient $ ownOutputs wallet
+        WalletAddSignature tx          -> runClient $ sign wallet tx

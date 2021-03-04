@@ -5,6 +5,7 @@
 {-# LANGUAGE DerivingVia        #-}
 {-# LANGUAGE FlexibleContexts   #-}
 {-# LANGUAGE GADTs              #-}
+{-# LANGUAGE KindSignatures     #-}
 {-# LANGUAGE LambdaCase         #-}
 {-# LANGUAGE NamedFieldPuns     #-}
 {-# LANGUAGE OverloadedStrings  #-}
@@ -19,13 +20,11 @@ module Wallet.Effects(
     , updatePaymentWithChange
     , walletSlot
     , ownOutputs
+    , walletAddSignature
     -- * Node client
     , NodeClientEffect(..)
     , publishTx
     , getClientSlot
-    -- * Signing process
-    , SigningProcessEffect(..)
-    , addSignatures
     -- * Chain index
     , ChainIndexEffect(..)
     , AddressChangeRequest(..)
@@ -41,7 +40,7 @@ module Wallet.Effects(
     ) where
 
 import           Control.Monad.Freer.TH (makeEffect)
-import           Ledger                 (Address, PubKey, PubKeyHash, Slot, Tx, TxId, Value)
+import           Ledger                 (Address, PubKey, Slot, Tx, TxId, Value)
 import           Ledger.AddressMap      (AddressMap, UtxoMap)
 import           Wallet.Types           (AddressChangeRequest (..), AddressChangeResponse (..), Notification,
                                          NotificationError, Payment (..))
@@ -52,16 +51,13 @@ data WalletEffect r where
     UpdatePaymentWithChange :: Value -> Payment -> WalletEffect Payment
     WalletSlot :: WalletEffect Slot
     OwnOutputs :: WalletEffect UtxoMap
+    WalletAddSignature :: Tx -> WalletEffect Tx
 makeEffect ''WalletEffect
 
 data NodeClientEffect r where
     PublishTx :: Tx -> NodeClientEffect ()
     GetClientSlot :: NodeClientEffect Slot
 makeEffect ''NodeClientEffect
-
-data SigningProcessEffect r where
-    AddSignatures :: [PubKeyHash] -> Tx -> SigningProcessEffect Tx
-makeEffect ''SigningProcessEffect
 
 {-| Access the chain index. The chain index keeps track of the
     datums that are associated with unspent transaction outputs. Addresses that
@@ -88,7 +84,6 @@ makeEffect ''ContractRuntimeEffect
 type WalletEffects =
     '[ WalletEffect
     , NodeClientEffect
-    , SigningProcessEffect
     , ChainIndexEffect
     , ContractRuntimeEffect
     ]

@@ -23,7 +23,6 @@ data Command
     | ChainIndex -- ^ Run the chain index service
     | Metadata -- ^ Run the mock meta-data service
     | ForkCommands [Command] -- ^ Fork  a list of commands
-    | SigningProcess -- ^ Run the signing process service
     | InstallContract FilePath -- ^ Install a contract
     | ActivateContract FilePath -- ^ Activate a contract
     | ContractState UUID -- ^ Display the contract identified by 'UUID'

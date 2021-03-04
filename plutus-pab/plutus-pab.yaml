@@ -30,10 +30,5 @@ chainIndexConfig:
 requestProcessingConfig:
   requestProcessingInterval: 1
 
-signingProcessConfig:
-  spBaseUrl: http://localhost:8084
-  spWallet:
-    getWallet: 1
-
 metadataServerConfig:
   mdBaseUrl: http://localhost:8085

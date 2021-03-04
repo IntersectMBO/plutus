@@ -61,7 +61,6 @@ import           Cardano.BM.Data.Trace                           (Trace)
 import qualified Cardano.ChainIndex.Server                       as ChainIndex
 import qualified Cardano.Metadata.Server                         as Metadata
 import qualified Cardano.Node.Server                             as NodeServer
-import qualified Cardano.SigningProcess.Server                   as SigningProcess
 import qualified Cardano.Wallet.Server                           as WalletServer
 import           Cardano.Wallet.Types
 import           Control.Concurrent                              (threadDelay)
@@ -94,8 +93,7 @@ import qualified Plutus.PAB.Monitoring.Monitoring                as LM
 import           Plutus.PAB.Types                                (Config (Config), ContractExe (..), PABError,
                                                                   RequestProcessingConfig (..), chainIndexConfig,
                                                                   metadataServerConfig, nodeServerConfig,
-                                                                  requestProcessingConfig, signingProcessConfig,
-                                                                  walletServerConfig)
+                                                                  requestProcessingConfig, walletServerConfig)
 import qualified Plutus.PAB.Webserver.Server                     as PABServer
 
 -- | Interpret a 'Command' in 'Eff' using the provided tracer and configurations
@@ -165,14 +163,6 @@ runCliCommand t _ Config {nodeServerConfig, chainIndexConfig} serviceAvailabilit
         (toChainIndexLog t)
         chainIndexConfig
         (mscSocketPath nodeServerConfig)
-        serviceAvailability
-
-
--- Run the signing-process service
-runCliCommand t _ Config {signingProcessConfig} serviceAvailability SigningProcess =
-    liftIO $ SigningProcess.main
-        (toSigningProcessLog t)
-        signingProcessConfig
         serviceAvailability
 
 -- Install a contract
@@ -255,9 +245,6 @@ toPABMsg = LM.convertLog LM.PABMsg
 
 toChainIndexLog :: Trace m LM.AppMsg -> Trace m LM.ChainIndexServerMsg
 toChainIndexLog = LM.convertLog $ LM.PABMsg . LM.SChainIndexServerMsg
-
-toSigningProcessLog :: Trace m LM.AppMsg -> Trace m LM.SigningProcessMsg
-toSigningProcessLog = LM.convertLog $ LM.PABMsg . LM.SSigningProcessMsg
 
 toWalletLog :: Trace m LM.AppMsg -> Trace m WalletMsg
 toWalletLog = LM.convertLog $ LM.PABMsg . LM.SWalletMsg
