@@ -109,6 +109,27 @@ instance encodeJsonContractType :: Encode ContractType where
 instance decodeJsonContractType :: Decode ContractType where
   decode ct = decode ct >>= pure <<< initialsToContractType
 
+_contractName :: Lens' MetaData String
+_contractName = prop (SProxy :: SProxy "contractName")
+
+_contractType :: Lens' MetaData ContractType
+_contractType = prop (SProxy :: SProxy "contractType")
+
+_contractDescription :: Lens' MetaData String
+_contractDescription = prop (SProxy :: SProxy "contractDescription")
+
+_roleDescriptions :: Lens' MetaData (Map S.TokenName String)
+_roleDescriptions = prop (SProxy :: SProxy "roleDescriptions")
+
+_slotParameterDescriptions :: Lens' MetaData (Map String String)
+_slotParameterDescriptions = prop (SProxy :: SProxy "slotParameterDescriptions")
+
+_valueParameterDescriptions :: Lens' MetaData (Map String String)
+_valueParameterDescriptions = prop (SProxy :: SProxy "valueParameterDescriptions")
+
+_choiceDescriptions :: Lens' MetaData (Map String String)
+_choiceDescriptions = prop (SProxy :: SProxy "choiceDescriptions")
+
 type MetadataHintInfo
   = { roles :: Set S.TokenName
     , slotParameters :: Set String

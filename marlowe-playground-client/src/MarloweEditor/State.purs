@@ -120,6 +120,8 @@ handleAction (SelectHole hole) = assign _selectedHole hole
 
 handleAction (SetIntegerTemplateParam templateType key value) = modifying (_analysisState <<< _templateContent <<< Extended.typeToLens templateType) (Map.insert key value)
 
+handleAction (MetadataAction _) = pure unit
+
 handleAction AnalyseContract = runAnalysis $ analyseContract
 
 handleAction AnalyseReachabilityContract = runAnalysis $ analyseReachability

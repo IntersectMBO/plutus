@@ -11,11 +11,11 @@ import Control.Monad.Except (ExceptT(..), lift, runExcept, runExceptT)
 import Control.Monad.Maybe.Extra (hoistMaybe)
 import Control.Monad.Maybe.Trans (MaybeT(..), runMaybeT)
 import Control.Monad.Reader (class MonadAsk, asks, runReaderT)
-import Control.Monad.State (modify_)
+import Control.Monad.State (modify, modify_)
 import Data.Bifunctor (lmap)
 import Data.Either (Either(..), either, hush, note)
 import Data.Foldable (fold, for_)
-import Data.Lens (assign, has, preview, set, use, view, (^.))
+import Data.Lens (assign, has, modifying, over, preview, set, use, view, (^.))
 import Data.Lens.Extra (peruse)
 import Data.Lens.Index (ix)
 import Data.Map as Map
@@ -52,9 +52,10 @@ import MainFrame.View (render)
 import Marlowe (getApiGistsByGistId)
 import Marlowe as Server
 import Marlowe.ActusBlockly as AMB
-import Marlowe.Extended (MetaData, emptyContractMetadata)
 import Marlowe.Gists (mkNewGist, playgroundFiles, PlaygroundFiles)
+import Marlowe.Extended (MetaData, _choiceDescriptions, _contractDescription, _contractName, _contractType, _roleDescriptions, _slotParameterDescriptions, _valueParameterDescriptions, emptyContractMetadata)
 import MarloweEditor.State as MarloweEditor
+import MarloweEditor.Types (MetadataAction(..))
 import MarloweEditor.Types as ME
 import Network.RemoteData (RemoteData(..), _Success)
 import Network.RemoteData as RemoteData
@@ -280,6 +281,26 @@ handleActionWithoutNavigationGuard =
         ( handleAction
         )
 
+carryMetadataAction ::
+  forall m.
+  MonadAff m =>
+  MonadAsk Env m =>
+  ME.MetadataAction ->
+  HalogenM State Action ChildSlots Void m Unit
+carryMetadataAction action =
+  modifying (_contractMetadata) case action of
+    SetContractName name -> set _contractName name
+    SetContractType typeName -> set _contractType typeName
+    SetContractDescription description -> set _contractDescription description
+    SetRoleDescription tokenName description -> over _roleDescriptions $ Map.insert tokenName description
+    DeleteRoleDescription tokenName -> over _roleDescriptions $ Map.delete tokenName
+    SetSlotParameterDescription slotParam description -> over _slotParameterDescriptions $ Map.insert slotParam description
+    DeleteSlotParameterDescription slotParam -> over _slotParameterDescriptions $ Map.delete slotParam
+    SetValueParameterDescription valueParam description -> over _valueParameterDescriptions $ Map.insert valueParam description
+    DeleteValueParameterDescription valueParam -> over _valueParameterDescriptions $ Map.delete valueParam
+    SetChoiceDescription choiceName description -> over _choiceDescriptions $ Map.insert choiceName description
+    DeleteChoiceDescription choiceName -> over _choiceDescriptions $ Map.delete choiceName
+
 -- This handleAction can be called recursively, but because we use HOF to extend the functionality
 -- of the component, whenever we need to recurse we most likely be calling one of the extended functions
 -- defined above (handleActionWithoutNavigationGuard or fullHandleAction)
@@ -360,8 +381,9 @@ handleAction (MarloweEditorAction action) = do
         void $ toBlocklyEditor $ BlocklyEditor.handleAction (BE.InitBlocklyProject source)
         assign _workflow (Just Blockly)
         selectView BlocklyEditor
-    (ME.HandleEditorMessage (Monaco.TextChanged _)) -> setUnsavedChangesForLanguage Marlowe true
-    (ME.InitMarloweProject _) -> setUnsavedChangesForLanguage Marlowe false
+    ME.HandleEditorMessage (Monaco.TextChanged _) -> setUnsavedChangesForLanguage Marlowe true
+    ME.InitMarloweProject _ -> setUnsavedChangesForLanguage Marlowe false
+    ME.MetadataAction action -> carryMetadataAction action
     _ -> pure unit
 
 handleAction (BlocklyEditorAction action) = do
