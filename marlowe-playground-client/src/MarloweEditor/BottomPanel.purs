@@ -3,7 +3,6 @@ module MarloweEditor.BottomPanel
   ) where
 
 import Prelude hiding (div)
-
 import Data.Array (drop, head)
 import Data.Array as Array
 import Data.Lens (to, (^.))
@@ -23,7 +22,7 @@ import Text.Parsing.StringParser.Basic (lines)
 panelContents :: forall p. State -> BottomPanelView -> HTML p Action
 panelContents state StaticAnalysisView =
   section [ classes [ flex, flexCol ] ]
-    if (state ^. _hasHoles ) then
+    if (state ^. _hasHoles) then
       [ div_ [ text "The contract needs to be complete (no holes) before doing static analysis." ]
       ]
     else

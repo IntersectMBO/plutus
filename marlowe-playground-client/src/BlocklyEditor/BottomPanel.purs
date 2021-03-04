@@ -3,7 +3,6 @@ module BlocklyEditor.BottomPanel
   ) where
 
 import Prelude hiding (div)
-
 import BlocklyEditor.Types (Action(..), BottomPanelView(..), State, _hasHoles, _warnings)
 import Data.Array as Array
 import Data.Lens (to, (^.))
@@ -18,7 +17,7 @@ import StaticAnalysis.Types (_analysisExecutionState, _analysisState, isCloseAna
 panelContents :: forall p. State -> BottomPanelView -> HTML p Action
 panelContents state StaticAnalysisView =
   section [ classes [ flex, flexCol ] ]
-    if (state ^. _hasHoles ) then
+    if (state ^. _hasHoles) then
       [ div_ [ text "The contract needs to be complete (no holes) before doing static analysis." ]
       ]
     else
