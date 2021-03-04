@@ -201,6 +201,7 @@ let
     kris = { name = "kris.jenkins.gpg"; id = "7EE9B7DE0F3CA25DB5B93D88A1ABC88D19C8136C"; };
     pablo = { name = "pablo.lamela.gpg"; id = "52AB1370A5BB41307470F9B05BA76ACFF04A2ACD"; };
     hernan = { name = "hernan.rajchert.gpg"; id = "AFF6767D33EFF77D519EE6B8C7BBC002683C8DCB"; };
+    amyas = { name = "amyas.merivale.gpg"; id = "657EDC6E2E9B81AC49A7239A6B9DBE79627CEF29"; };
   };
 
   /* We store developers public gpg keys in this project so this is a little
@@ -241,11 +242,12 @@ let
       extraTerraformVars = { bastion_instance_type = "t3.small"; };
     };
     kris = mkEnv "kris" "eu-west-1" [ keys.kris ] { };
-    alpha = mkEnv "alpha" "eu-west-2" [ keys.david keys.kris keys.pablo keys.hernan ] { };
+    alpha = mkEnv "alpha" "eu-west-2" [ keys.david keys.kris keys.pablo keys.hernan keys.amyas ] { };
     pablo = mkEnv "pablo" "eu-west-3" [ keys.pablo ] { };
-    playground = mkEnv "playground" "us-west-1" [ keys.david keys.kris keys.pablo keys.hernan ] { };
-    testing = mkEnv "testing" "eu-west-3" [ keys.david keys.kris keys.pablo keys.hernan ] { };
+    playground = mkEnv "playground" "us-west-1" [ keys.david keys.kris keys.pablo keys.hernan keys.amyas ] { };
+    testing = mkEnv "testing" "eu-west-3" [ keys.david keys.kris keys.pablo keys.hernan keys.amyas ] { };
     hernan = mkEnv "hernan" "us-west-2" [ keys.hernan ] { };
+    amyas = mkEnv "amyas" "eu-west-2" [ keys.amyas ] { };
   };
 
   configTest = import ./morph/test.nix;
