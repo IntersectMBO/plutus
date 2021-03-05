@@ -17,9 +17,9 @@ import Data.Lens.Prism.Either (_Left, _Right)
 import Data.Lens.Record (prop)
 import Data.Symbol (SProxy(..))
 import MainFrame.Types (State, WebSocketStatus)
+import Marlowe.Extended (ContractTemplate)
 import Play.Types (State) as Play
 import Pickup.Types (State) as Pickup
-import Template.Types (Template) as Template
 import WalletData.Types (WalletLibrary, WalletNicknameKey)
 
 _wallets :: Lens' State WalletLibrary
@@ -28,7 +28,7 @@ _wallets = prop (SProxy :: SProxy "wallets")
 _newWalletNicknameKey :: Lens' State WalletNicknameKey
 _newWalletNicknameKey = prop (SProxy :: SProxy "newWalletNicknameKey")
 
-_templates :: Lens' State (Array Template.Template)
+_templates :: Lens' State (Array ContractTemplate)
 _templates = prop (SProxy :: SProxy "templates")
 
 _subState :: Lens' State (Either Pickup.State Play.State)

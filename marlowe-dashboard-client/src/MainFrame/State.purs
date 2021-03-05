@@ -17,16 +17,16 @@ import Foreign.Generic (decodeJSON, encodeJSON)
 import Halogen (Component, HalogenM, liftEffect, mkComponent, mkEval, modify_)
 import Halogen.HTML (HTML)
 import LocalStorage (getItem, removeItem, setItem)
-import MainFrame.Lenses (_card, _newWalletNicknameKey, _pickupState, _subState, _templates, _playState, _wallets, _webSocketStatus)
+import MainFrame.Lenses (_card, _newWalletNicknameKey, _pickupState, _subState, _playState, _wallets, _webSocketStatus)
 import MainFrame.Types (Action(..), ChildSlots, Msg, Query(..), State, WebSocketStatus(..))
 import MainFrame.View (render)
+import Marlowe.Market (contractTemplates)
 import Pickup.State (handleAction, initialState) as Pickup
 import Pickup.Types (Action(..), Card(..)) as Pickup
 import Play.State (handleAction, mkInitialState) as Play
 import Play.Types (Action(..)) as Play
 import Plutus.PAB.Webserver.Types (StreamToClient(..))
 import StaticData (walletLocalStorageKey, walletsLocalStorageKey)
-import Template.Library (templates)
 import WalletData.Lenses (_key, _nickname)
 import WalletData.Types (WalletDetails)
 import WebSocket.Support as WS
@@ -54,7 +54,7 @@ initialState :: State
 initialState =
   { wallets: empty
   , newWalletNicknameKey: mempty
-  , templates: mempty
+  , templates: contractTemplates
   , subState: Left Pickup.initialState
   , webSocketStatus: WebSocketClosed Nothing
   }
@@ -101,8 +101,6 @@ handleAction Init = do
   for_ mCachedWalletJson \json ->
     for_ (runExcept $ decodeJSON json) \cachedWallet ->
       assign _subState $ Right $ Play.mkInitialState cachedWallet
-  -- TODO: fetch contract templates from the library ??
-  assign _templates templates
 
 handleAction (SetNewWalletNickname nickname) = assign (_newWalletNicknameKey <<< _nickname) nickname
 

@@ -135,7 +135,7 @@ module.exports = {
     textOpacity: false,
     textOverflow: false,
     fontStyle: false,
-    textTransform: false,
+    textTransform: true,
     textDecoration: false,
     fontSmoothing: false,
     fontVariantNumeric: false,
