@@ -32,7 +32,7 @@ import           Cardano.Metadata.API             (API)
 import           Cardano.Metadata.Mock
 import           Cardano.Metadata.Types
 import           Control.Concurrent.Availability  (Availability, available)
-import           Control.Monad.Freer.Extras.Log   (LogMsg, handleLogTrace, logInfo)
+import           Control.Monad.Freer.Extras.Log   (LogMsg, logInfo)
 import           Data.Coerce                      (coerce)
 import qualified Plutus.PAB.Monitoring.Monitoring as LM
 
@@ -45,13 +45,14 @@ handler =
     (\subject -> getProperties subject :<|> getProperty subject) :<|> batchQuery
 
 asHandler ::
-       Eff '[ MetadataEffect, LogMsg MetadataLogMessage, Error MetadataError, IO] a
+    Trace IO MetadataLogMessage
+    -> Eff '[ MetadataEffect, LogMsg MetadataLogMessage, Error MetadataError, IO] a
     -> Handler a
-asHandler =
+asHandler trace =
     Handler .
     ExceptT .
     runM .
-    fmap (first toServerError) . runError . handleLogTrace . handleMetadata
+    fmap (first toServerError) . runError . LM.handleLogMsgTrace trace . handleMetadata
 
 toServerError :: MetadataError -> ServerError
 toServerError err@(SubjectNotFound _) = err404 {errBody = BSL.pack $ show err}
@@ -60,16 +61,16 @@ toServerError err@(SubjectPropertyNotFound _ _) =
 toServerError err@(MetadataClientError _) =
     err500 {errBody = BSL.pack $ show err}
 
-app :: Application
-app = serve api apiServer
+app :: Trace IO MetadataLogMessage -> Application
+app trace = serve api apiServer
   where
     api = Proxy @(API 'AesonEncoding)
-    apiServer = hoistServer api asHandler handler
+    apiServer = hoistServer api (asHandler trace) handler
 
 main :: Trace IO MetadataLogMessage -> MetadataConfig ->  Availability -> IO ()
 main trace MetadataConfig {mdBaseUrl} availability = LM.runLogEffects trace $ do
     logInfo $ StartingMetadataServer port
-    liftIO $ Warp.runSettings warpSettings app
+    liftIO $ Warp.runSettings warpSettings (app trace)
         where
             port = baseUrlPort (coerce mdBaseUrl)
             warpSettings = Warp.defaultSettings &

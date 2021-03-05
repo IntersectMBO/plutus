@@ -18,7 +18,7 @@ module Cardano.Metadata.Mock
 import           Cardano.Metadata.Types
 import           Control.Monad.Freer            (Eff, Member, interpret, type (~>))
 import           Control.Monad.Freer.Error      (Error, throwError)
-import           Control.Monad.Freer.Extras.Log (LogMsg, logInfo)
+import           Control.Monad.Freer.Extras.Log (LogMsg, logDebug)
 import           Data.Aeson                     ((.=))
 import qualified Data.Aeson                     as JSON
 import           Data.ByteString                (ByteString)
@@ -114,18 +114,18 @@ handleMetadata ::
 handleMetadata =
     interpret $ \case
         GetProperties subject -> do
-            logInfo $ FetchingSubject subject
+            logDebug $ FetchingSubject subject
             case fetchSubject subject of
                 Nothing     -> throwError $ SubjectNotFound subject
                 Just result -> pure result
         GetProperty subject propertyKey -> do
-            logInfo $ FetchingProperty subject propertyKey
+            logDebug $ FetchingProperty subject propertyKey
             case fetchById subject propertyKey of
                 Nothing ->
                     throwError $ SubjectPropertyNotFound subject propertyKey
                 Just result -> pure result
         BatchQuery query@QuerySubjects {subjects, propertyNames} -> do
-            logInfo $ Querying query
+            logDebug $ Querying query
             pure .
                 QueryResult .
                 fmap (filterSubjectProperties propertyNames) .

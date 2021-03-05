@@ -225,7 +225,7 @@ sendContractStateMessages ::
     => ContractInstanceState t
     -> Eff effs ()
 sendContractStateMessages is = do
-    logInfo @(ContractInstanceMsg t) $ SendingContractStateMessages (csContract is) (csCurrentIteration is) (hooks (csCurrentState is))
+    logDebug @(ContractInstanceMsg t) $ SendingContractStateMessages (csContract is) (csCurrentIteration is) (hooks (csCurrentState is))
     void
         $ runCommand (sendContractEvent @t) ContractEventSource
         $ ContractInstanceStateUpdateEvent is
@@ -269,11 +269,11 @@ processFirstInboxMessage ::
     -> Last (Response ContractResponse)
     -> Eff effs ()
 processFirstInboxMessage instanceID (Last msg) = surroundInfo @Text.Text "processFirstInboxMessage" $ do
-    logInfo @(ContractInstanceMsg t) $ ProcessFirstInboxMessage instanceID msg
+    logDebug @(ContractInstanceMsg t) $ ProcessFirstInboxMessage instanceID msg
     logDebug @(ContractInstanceMsg t) $ LookingUpStateOfContractInstance
     -- look up contract 't'
     ContractInstanceState{csCurrentIteration, csCurrentState, csContractDefinition} <- lookupContractState @t instanceID
-    logInfo @(ContractInstanceMsg t) $ CurrentIteration csCurrentIteration
+    logDebug @(ContractInstanceMsg t) $ CurrentIteration csCurrentIteration
     if csCurrentIteration /= rspItID msg
         then logDebug @(ContractInstanceMsg t) $ InboxMessageDoesntMatchIteration (rspItID msg) csCurrentIteration
         else do
@@ -357,15 +357,15 @@ activateContract ::
     => t
     -> Eff effs (ContractInstanceState t)
 activateContract contract = do
-    logInfo @(ContractInstanceMsg t) $ LookingUpContract contract
+    logDebug @(ContractInstanceMsg t) $ LookingUpContract contract
     contractDef <-
         either (throwError . ContractNotFound . unContractLookupError) pure =<<
         lookupContract @t contract
     activeContractInstanceId <- ContractInstanceId <$> uuidNextRandom
-    logInfo $ InitialisingContract contract activeContractInstanceId
+    logDebug $ InitialisingContract contract activeContractInstanceId
     let initialIteration = succ mempty -- FIXME get max it. from initial response
     response <- fmap (fmap unContractHandlersResponse) <$> Contract.invokeContract @t $ InitContract contractDef
-    logInfo @(ContractInstanceMsg t) $ InitialContractResponse response
+    logDebug @(ContractInstanceMsg t) $ InitialContractResponse response
     let instanceState = ContractInstanceState
                           { csContract = activeContractInstanceId
                           , csCurrentIteration = initialIteration
@@ -476,7 +476,7 @@ processWriteTxRequests =
     let store result = case result of
             Left err -> pure (Left err)
             Right signedTx -> do
-                logInfo @(ContractInstanceMsg t) $ StoringSignedTx signedTx
+                logDebug @(ContractInstanceMsg t) $ StoringSignedTx signedTx
                 void $ runCommand (saveBalancedTx @t) WalletEventSource signedTx
                 void $ runCommand (saveBalancedTxResult @t) NodeEventSource signedTx
                 pure (Right signedTx)
