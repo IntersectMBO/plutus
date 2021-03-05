@@ -29,24 +29,24 @@ import           Language.Plutus.Contract.State  (ContractRequest, ContractRespo
 import qualified Language.Plutus.Contract.State  as ContractState
 import           Language.Plutus.Contract.Types  (Contract)
 
-type ContractAPI e s =
-       "initialise" :> Get '[JSON] (ContractResponse e (Event s) (Handlers s))
-  :<|> "run" :> ReqBody '[JSON] (ContractRequest (Event s)) :> Post '[JSON] (ContractResponse e (Event s) (Handlers s))
+type ContractAPI w e s =
+       "initialise" :> Get '[JSON] (ContractResponse w e (Event s) (Handlers s))
+  :<|> "run" :> ReqBody '[JSON] (ContractRequest (Event s)) :> Post '[JSON] (ContractResponse w e (Event s) (Handlers s))
 
 -- | Serve a 'PlutusContract' via the contract API.
 contractServer
-    :: forall s e.
-    ( Show e )
-    => Contract s e ()
-    -> Server (ContractAPI e s)
+    :: forall w s e.
+    (Show e, Monoid w)
+    => Contract w s e ()
+    -> Server (ContractAPI w e s)
 contractServer con = initialise :<|> run where
     initialise = servantResp $ ContractState.initialiseContract con
     run req = servantResp $ ContractState.insertAndUpdateContract con req
 
 servantResp
     :: (Show e, MonadError ServerError m)
-    => (ContractResponse e (Event s) (Handlers s))
-    -> m (ContractResponse e (Event s) (Handlers s))
+    => (ContractResponse w e (Event s) (Handlers s))
+    -> m (ContractResponse w e (Event s) (Handlers s))
 servantResp r = case err r of
         Just e ->
             let bd = "'insertAndUpdate' failed. " in
@@ -55,13 +55,15 @@ servantResp r = case err r of
 
 -- | A servant 'Application' that serves a Plutus contract
 contractApp
-    :: forall s e.
+    :: forall w s e.
        ( AllUniqueLabels (Input s)
        , Forall (Input s) FromJSON
        , Forall (Input s) ToJSON
        , Forall (Output s) ToJSON
        , ToJSON e
+       , ToJSON w
+       , Monoid w
        , Show e
        )
-    => Contract s e () -> Application
-contractApp = serve (Proxy @(ContractAPI e s)) . contractServer @s
+    => Contract w s e () -> Application
+contractApp = serve (Proxy @(ContractAPI w e s)) . contractServer @w @s

@@ -28,7 +28,7 @@ t1, t2 :: ContractInstanceTag
 t1 = Trace.walletInstanceTag w1
 t2 = Trace.walletInstanceTag w2
 
-theContract :: Contract GameSchema ContractError ()
+theContract :: Contract () GameSchema ContractError ()
 theContract = game
 
 tests :: TestTree

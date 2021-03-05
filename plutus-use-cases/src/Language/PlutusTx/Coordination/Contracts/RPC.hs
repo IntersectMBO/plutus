@@ -41,7 +41,7 @@ data CancelRPC = CancelRPC
     deriving anyclass (ToJSON, FromJSON)
 
 -- | Contract that calls the RPC (client)
-callAdder :: Contract AdderSchema AdderError (Either CancelRPC Integer)
+callAdder :: Contract () AdderSchema AdderError (Either CancelRPC Integer)
 callAdder = do
     instanceId <- mapError AdderContractError $ endpoint @"target instance"
     logInfo @String $ "Calling contract " <> show instanceId
@@ -49,7 +49,7 @@ callAdder = do
     logInfo @String $ "2+2=" <> show result
     return result
 
-callAdderCancel :: Contract AdderSchema AdderError (Either CancelRPC Integer)
+callAdderCancel :: Contract () AdderSchema AdderError (Either CancelRPC Integer)
 callAdderCancel = do
     instanceId <- mapError AdderContractError $ endpoint @"target instance"
     logInfo @String $ "Calling contract " <> show instanceId
@@ -58,11 +58,11 @@ callAdderCancel = do
     return result
 
 -- | Contract that responds to the RPC (server)
-respondAdder :: Contract AdderSchema AdderError ()
+respondAdder :: Contract () AdderSchema AdderError ()
 respondAdder = do
     _ <- mapError AdderContractError $ endpoint @"serve"
     mapError AdderRespondRPCError
-        $ respondRPC @Adder $ \(a, b) -> do
+        $ respondRPC @() @Adder $ \(a, b) -> do
             logInfo @String "Responding to RPC"
             Monad.when (a == 10) (throwError CancelRPC)
             pure (a + b)

@@ -106,22 +106,22 @@ instance Currency.AsCurrencyError TokenAccountError where
 
 -- | 'transfer', 'redeem', 'pay' and 'newAccount' with endpoints.
 tokenAccountContract
-    :: forall s e.
+    :: forall w s e.
        ( HasTokenAccountSchema s
        , AsTokenAccountError e
        )
-    => Contract s e ()
+    => Contract w s e ()
 tokenAccountContract = mapError (review _TokenAccountError) (redeem_ `select` pay_ `select` newAccount_) where
     redeem_ = do
-        (accountOwner, destination) <- endpoint @"redeem" @(Account, PubKeyHash) @s
+        (accountOwner, destination) <- endpoint @"redeem" @(Account, PubKeyHash) @w @s
         void $ redeem destination accountOwner
         tokenAccountContract
     pay_ = do
-        (accountOwner, value) <- endpoint @"pay" @_ @s
+        (accountOwner, value) <- endpoint @"pay" @_ @w @s
         void $ pay accountOwner value
         tokenAccountContract
     newAccount_ = do
-        (tokenName, initialOwner) <- endpoint @"new-account" @_ @s
+        (tokenName, initialOwner) <- endpoint @"new-account" @_ @w @s
         void $ newAccount tokenName initialOwner
         tokenAccountContract
 
@@ -162,9 +162,9 @@ pay
     :: ( HasWriteTx s
        , AsTokenAccountError e
        )
-    => Account --Scripts.ScriptInstance TokenAccount
+    => Account
     -> Value
-    -> Contract s e Tx
+    -> Contract w s e Tx
 pay account vl = do
     let inst = scriptInstance account
     logInfo @String
@@ -177,13 +177,13 @@ pay account vl = do
         $ payTx vl
 
 -- | Create a transaction that spends all outputs belonging to the 'Account'.
-redeemTx :: forall s e.
+redeemTx :: forall w s e.
     ( HasUtxoAt s
     , AsTokenAccountError e
     )
     => Account
     -> PubKeyHash
-    -> Contract s e (TxConstraints () (), ScriptLookups TokenAccount)
+    -> Contract w s e (TxConstraints () (), ScriptLookups TokenAccount)
 redeemTx account pk = mapError (review _TAContractError) $ do
     let inst = scriptInstance account
     utxos <- utxoAt (address account)
@@ -213,7 +213,7 @@ redeem
   -- ^ Where the token should go after the transaction
   -> Account
   -- ^ The token account
-  -> Contract s e Tx
+  -> Contract w s e Tx
 redeem pk account = mapError (review _TokenAccountError) $ do
     (constraints, lookups) <- redeemTx account pk
     tx <- either (throwing _ConstraintResolutionError) pure (Constraints.mkTx lookups constraints)
@@ -226,7 +226,7 @@ balance
        , AsTokenAccountError e
        )
     => Account
-    -> Contract s e Value
+    -> Contract w s e Value
 balance account = mapError (review _TAContractError) $ do
     utxos <- utxoAt (address account)
     let inner =
@@ -244,7 +244,7 @@ newAccount
     -- ^ Name of the token
     -> PubKeyHash
     -- ^ Public key of the token's initial owner
-    -> Contract s e Account
+    -> Contract w s e Account
 newAccount tokenName pk = mapError (review _TokenAccountError) $ do
     cur <- Currency.forgeContract pk [(tokenName, 1)]
     let sym = Currency.currencySymbol cur

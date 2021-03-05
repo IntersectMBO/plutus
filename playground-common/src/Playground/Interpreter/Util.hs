@@ -108,11 +108,13 @@ evaluationResultFold wallets =
 
 -- | Evaluate a JSON payload from the Playground frontend against a given contract schema.
 stage ::
-       forall s a.
+       forall w s a.
        ( HasBlockchainActions s
        , ContractConstraints s
+       , JSON.ToJSON w
+       , Monoid w
        )
-    => Contract s Text a
+    => Contract w s Text a
     -> BSL.ByteString
     -> BSL.ByteString
     -> Either PlaygroundError EvaluationResult

@@ -393,7 +393,7 @@ data StablecoinError =
 
 -- | A 'Contract' that initialises the state machine and then accepts 'Input'
 --   transitions.
-contract :: Contract StablecoinSchema StablecoinError ()
+contract :: Contract () StablecoinSchema StablecoinError ()
 contract = do
     sc <- mapError InitialiseEPError $ endpoint @"initialise"
     let theClient = machineClient (scriptInstance sc) sc
@@ -405,7 +405,7 @@ contract = do
 
 -- | Apply 'checkValidState' to the states before and after a transition
 --   and log a warning if something isn't right.
-checkTransition :: StateMachineClient BankState Input -> Stablecoin -> Input -> Contract StablecoinSchema StablecoinError ()
+checkTransition :: StateMachineClient BankState Input -> Stablecoin -> Input -> Contract () StablecoinSchema StablecoinError ()
 checkTransition theClient sc i@Input{inpConversionRate} = do
         currentState <- mapError StateMachineError $ StateMachine.getOnChainState theClient
         case checkHashOffChain inpConversionRate of

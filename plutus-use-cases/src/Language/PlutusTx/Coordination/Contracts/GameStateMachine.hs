@@ -102,7 +102,7 @@ data GameError =
     deriving anyclass (ToJSON, FromJSON)
 
 -- | Top-level contract, exposing both endpoints.
-contract :: Contract GameStateMachineSchema GameError ()
+contract :: Contract () GameStateMachineSchema GameError ()
 contract = (lock `select` guess) >> contract
 
 -- | The token that represents the right to make a guess
@@ -194,7 +194,7 @@ client :: SM.StateMachineClient GameState GameInput
 client = SM.mkStateMachineClient machineInstance
 
 -- | The @"guess"@ endpoint.
-guess :: Contract GameStateMachineSchema GameError ()
+guess :: Contract () GameStateMachineSchema GameError ()
 guess = do
     GuessArgs{guessArgsOldSecret,guessArgsNewSecret, guessArgsValueTakenOut} <- mapError GameContractError $ endpoint @"guess"
 
@@ -206,7 +206,7 @@ guess = do
         $ SM.runStep client
             (Guess guessedSecret newSecret guessArgsValueTakenOut)
 
-lock :: Contract GameStateMachineSchema GameError ()
+lock :: Contract () GameStateMachineSchema GameError ()
 lock = do
     LockArgs{lockArgsSecret, lockArgsValue} <- mapError GameContractError $ endpoint @"lock"
     let secret = HashedString (sha2_256 (C.pack lockArgsSecret))

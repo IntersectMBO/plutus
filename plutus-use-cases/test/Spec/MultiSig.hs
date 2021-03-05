@@ -60,7 +60,7 @@ w1 = Wallet 1
 w2 = Wallet 2
 w3 = Wallet 3
 
-theContract :: Contract MultiSigSchema ContractError ()
+theContract :: Contract () MultiSigSchema ContractError ()
 theContract = MS.contract
 
 -- a 'MultiSig' contract that requires three out of five signatures

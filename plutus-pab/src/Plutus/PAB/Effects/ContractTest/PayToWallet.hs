@@ -34,7 +34,7 @@ data PayToWalletParams =
 type PayToWalletSchema =
   BlockchainActions .\/ Endpoint "Pay to wallet" PayToWalletParams
 
-payToWallet :: Contract PayToWalletSchema ContractError ()
+payToWallet :: Contract () PayToWalletSchema ContractError ()
 payToWallet = do
   PayToWalletParams{amount, wallet} <- endpoint @"Pay to wallet"
   let pkh = pubKeyHash $ walletPubKey wallet

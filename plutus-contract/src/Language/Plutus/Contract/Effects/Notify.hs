@@ -35,24 +35,24 @@ type ContractInstanceNotify = NotifySym .== (Maybe NotificationError, Notificati
 --
 --   TODO: In the future the runtime should check that the contract instance
 --   does indeed conform with 'otherSchema'.
-notifyInstance :: forall ep a otherSchema s.
+notifyInstance :: forall ep a otherSchema w s.
     ( HasContractNotify s
     , HasEndpoint ep a otherSchema
     , ToJSON a
     )
     => ContractInstanceId
     -> a
-    -> Contract s NotificationError ()
+    -> Contract w s NotificationError ()
 notifyInstance i v = notifyInstanceUnsafe @ep i (toJSON v)
 
 -- | Send a notification to a contract instance.
-notifyInstanceUnsafe :: forall ep s.
+notifyInstanceUnsafe :: forall ep w s.
     ( HasContractNotify s
     , KnownSymbol ep
     )
     => ContractInstanceId
     -> Value
-    -> Contract s NotificationError ()
+    -> Contract w s NotificationError ()
 notifyInstanceUnsafe i a = do
     let notification = Notification
             { notificationContractID = i
@@ -60,7 +60,7 @@ notifyInstanceUnsafe i a = do
             , notificationContractArg = a
             }
     r <- mapError OtherNotificationError
-            $ R.request @NotifySym @_ @_ @s notification
+            $ R.request @w @NotifySym @_ @_ @s notification
     traverse_ throwError r
 
 

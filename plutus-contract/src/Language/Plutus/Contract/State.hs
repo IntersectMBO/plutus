@@ -27,7 +27,7 @@ import           Data.Text.Prettyprint.Doc.Extras    (Pretty, PrettyShow (..))
 import           Language.Plutus.Contract.Checkpoint (CheckpointStore)
 import           Language.Plutus.Contract.Resumable
 import           Language.Plutus.Contract.Schema     (Event (..), Handlers (..))
-import           Language.Plutus.Contract.Types      hiding (logs)
+import           Language.Plutus.Contract.Types      hiding (logs, observableState)
 
 -- $contractstate
 -- Types for initialising and running instances of 'Contract's. The types and
@@ -69,12 +69,13 @@ data ContractRequest s = ContractRequest
 
 -- | A response produced by a contract instance. It contains the new 'State',
 --   the list of endpoints that can be called, logs produced by the contract,
---   and possibly an error
-data ContractResponse e s h = ContractResponse
-    { newState :: State s
-    , hooks    :: [Request h]
-    , logs     :: [LogMessage Value]
-    , err      :: Maybe e
+--   possibly an error message, and the accumulated observable state.
+data ContractResponse w e s h = ContractResponse
+    { newState        :: State s -- ^ Serialised state of the contract (internal)
+    , hooks           :: [Request h] -- ^ Open requests that can be handled
+    , logs            :: [LogMessage Value] -- ^ Logs produced by the contract
+    , err             :: Maybe e -- ^ Error that happened during contract execution
+    , observableState :: w -- ^ Observable, accumulated state of the contract
     }
     deriving stock (Generic, Eq, Show)
     deriving anyclass (ToJSON, FromJSON)
@@ -82,27 +83,30 @@ data ContractResponse e s h = ContractResponse
 -- | Run one step of the contract by restoring it to its previous state and
 --   feeding it a single new 'Response' event.
 insertAndUpdateContract ::
-    forall s e a.
-    Contract s e a -- ^ The 'Contract' with schema @s@ error type @e@.
+    forall w s e a.
+    Monoid w
+    => Contract w s e a -- ^ The 'Contract' with schema @s@ error type @e@.
     -> ContractRequest (Event s) -- ^  The 'ContractRequest' value with the previous state and the new event.
-    -> ContractResponse e (Event s) (Handlers s)
+    -> ContractResponse w e (Event s) (Handlers s)
 insertAndUpdateContract (Contract con) ContractRequest{oldState=State record checkpoints, event} =
     mkResponse $ insertAndUpdate con checkpoints record event
 
-mkResponse :: forall e s h a.
-    ResumableResult e s h a
-    -> ContractResponse e s h
-mkResponse ResumableResult{_responses, _requests=Requests{unRequests},_checkpointStore, _logs, _finalState} =
+mkResponse :: forall w e s h a.
+    ResumableResult w e s h a
+    -> ContractResponse w e s h
+mkResponse ResumableResult{_responses, _requests=Requests{unRequests},_checkpointStore, _logs, _finalState, _observableState=observableState} =
     ContractResponse
         { hooks = unRequests
         , newState = State { record = _responses, checkpoints=_checkpointStore }
         , logs = toList _logs
         , err = either Just (const Nothing) _finalState
+        , observableState
         }
 
 -- | The 'ContractResponse' with the initial state of the contract.
-initialiseContract
-    :: forall s e a.
-    Contract s e a
-    -> ContractResponse e (Event s) (Handlers s)
+initialiseContract ::
+    forall w s e a.
+    Monoid w
+    => Contract w s e a
+    -> ContractResponse w e (Event s) (Handlers s)
 initialiseContract (Contract c) = mkResponse $ runResumable [] mempty c

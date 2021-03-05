@@ -260,7 +260,7 @@ contract ::
     , AsSMContractError e
     )
     => Params
-    -> Contract MultiSigSchema e ()
+    -> Contract () MultiSigSchema e ()
 contract params = forever endpoints where
     theClient = client params
     endpoints = (TransitionSuccess <$> lock) `select` propose `select` cancel `select` addSignature `select` pay

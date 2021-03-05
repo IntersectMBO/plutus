@@ -72,8 +72,8 @@ import           Wallet.Types                                  (ContractInstance
 
 -- | Effects available to threads that run in the context of specific
 --   agents (ie wallets)
-type ContractInstanceThreadEffs s e effs =
-    State (ContractInstanceStateInternal s e ())
+type ContractInstanceThreadEffs w s e effs =
+    State (ContractInstanceStateInternal w s e ())
     ': Reader ContractInstanceId
     ': ContractRuntimeEffect
     ': LogMsg ContractInstanceMsg
@@ -110,15 +110,17 @@ handleContractRuntime = interpret $ \case
 
 -- | Start a new thread for a contract. Most of the work happens in
 --   'runInstance'.
-contractThread :: forall s e effs.
+contractThread :: forall w s e effs.
     ( Member (State EmulatorThreads) effs
     , Member (Error EmulatorRuntimeError) effs
     , ContractConstraints s
     , HasBlockchainActions s
     , Show e
     , JSON.ToJSON e
+    , JSON.ToJSON w
+    , Monoid w
     )
-    => ContractHandle s e
+    => ContractHandle w s e
     -> Eff (EmulatorAgentThreadEffs effs) ()
 contractThread ContractHandle{chInstanceId, chContract, chInstanceTag} = do
     ask @ThreadId >>= registerInstance chInstanceId
@@ -128,8 +130,8 @@ contractThread ContractHandle{chInstanceId, chContract, chInstanceTag} = do
         $ evalState (emptyInstanceState chContract)
         $ do
             logInfo Started
-            logNewMessages @s @e
-            logCurrentRequests @s @e
+            logNewMessages @w @s @e
+            logCurrentRequests @w @s @e
             msg <- mkAgentSysCall @_ @EmulatorMessage Normal WaitForMessage
             runInstance chContract msg
 
@@ -150,11 +152,11 @@ getThread t = do
     r <- gets (view $ instanceIdThreads . at t)
     maybe (throwError $ ThreadIdNotFound t) pure r
 
-logStopped :: forall s e effs.
+logStopped :: forall w s e effs.
     ( Member (LogMsg ContractInstanceMsg) effs
     , Show e
     )
-    => ResumableResult e (Event s) (Handlers s) ()
+    => ResumableResult w e (Event s) (Handlers s) ()
     -> Eff effs ()
 logStopped ResumableResult{_finalState} =
     case _finalState of
@@ -162,20 +164,22 @@ logStopped ResumableResult{_finalState} =
         Right _ -> logInfo $ StoppedNoError
 
 -- | Run an instance of a contract
-runInstance :: forall s e effs.
+runInstance :: forall w s e effs.
     ( ContractConstraints s
     , HasBlockchainActions s
     , Member (Error EmulatorRuntimeError) effs
     , Show e
     , JSON.ToJSON e
+    , JSON.ToJSON w
+    , Monoid w
     )
-    => Contract s e ()
+    => Contract w s e ()
     -> Maybe EmulatorMessage
-    -> Eff (ContractInstanceThreadEffs s e effs) ()
+    -> Eff (ContractInstanceThreadEffs w s e effs) ()
 runInstance contract event = do
-    hks <- getHooks @s @e
+    hks <- getHooks @w @s @e
     when (null hks) $
-        gets @(ContractInstanceStateInternal s e ()) (view resumableResult . cisiSuspState) >>= logStopped
+        gets @(ContractInstanceStateInternal w s e ()) (view resumableResult . cisiSuspState) >>= logStopped
     unless (null hks) $ do
         case event of
             Just Freeze -> do
@@ -185,10 +189,10 @@ runInstance contract event = do
             Just (EndpointCall _ _ vl) -> do
                 logInfo $ ReceiveEndpointCall vl
                 e <- decodeEvent @s vl
-                _ <- respondToEvent @s @e e
+                _ <- respondToEvent @w @s @e e
                 mkAgentSysCall Normal WaitForMessage >>= runInstance contract
             Just (ContractInstanceStateRequest sender) -> do
-                state <- get @(ContractInstanceStateInternal s e ())
+                state <- get @(ContractInstanceStateInternal w s e ())
 
                 -- TODO: Maybe we should send it as a 'Dynamic' instead of
                 -- JSON? It all stays in the same process, and it would save
@@ -198,7 +202,7 @@ runInstance contract event = do
                 void $ mkAgentSysCall Normal (Message sender $ ContractInstanceStateResponse stateJSON)
                 mkAgentSysCall Normal WaitForMessage >>= runInstance contract
             _ -> do
-                response <- respondToRequest @s @e handleBlockchainQueries
+                response <- respondToRequest @w @s @e handleBlockchainQueries
                 let prio =
                         maybe
                             -- If no events could be handled we go to sleep
@@ -230,22 +234,23 @@ decodeEvent vl =
                 throwError msg
             JSON.Success event' -> pure event'
 
-getHooks :: forall s e effs. Member (State (ContractInstanceStateInternal s e ())) effs => Eff effs [Request (Handlers s)]
-getHooks = gets @(ContractInstanceStateInternal s e ()) (State.unRequests . view requests . view resumableResult . cisiSuspState)
+getHooks :: forall w s e effs. Member (State (ContractInstanceStateInternal w s e ())) effs => Eff effs [Request (Handlers s)]
+getHooks = gets @(ContractInstanceStateInternal w s e ()) (State.unRequests . view requests . view resumableResult . cisiSuspState)
 
 -- | Add a 'Response' to the contract instance state
 addResponse
-    :: forall s e effs.
-    ( Member (State (ContractInstanceStateInternal s e ())) effs
+    :: forall w s e effs.
+    ( Member (State (ContractInstanceStateInternal w s e ())) effs
     , Member (LogMsg ContractInstanceMsg) effs
+    , Monoid w
     )
     => Response (Event s)
     -> Eff effs ()
 addResponse e = do
-    oldState <- get @(ContractInstanceStateInternal s e ())
+    oldState <- get @(ContractInstanceStateInternal w s e ())
     let newState = addEventInstanceState e oldState
     traverse_ put newState
-    logNewMessages @s @e
+    logNewMessages @w @s @e
 
 type ContractInstanceRequests effs =
         Reader ContractInstanceId
@@ -254,37 +259,39 @@ type ContractInstanceRequests effs =
 
 -- | Respond to a specific event
 respondToEvent ::
-    forall s e effs.
-    ( Member (State (ContractInstanceStateInternal s e ())) effs
+    forall w s e effs.
+    ( Member (State (ContractInstanceStateInternal w s e ())) effs
     , Members EmulatedWalletEffects effs
     , Member ContractRuntimeEffect effs
     , Member (Reader ContractInstanceId) effs
     , Member (LogMsg ContractInstanceMsg) effs
     , ContractConstraints s
+    , Monoid w
     )
     => Event s
     -> Eff effs (Maybe (Response (Event s)))
 respondToEvent e =
-    respondToRequest @s @e $ RequestHandler $ \h -> do
+    respondToRequest @w @s @e $ RequestHandler $ \h -> do
         guard $ handlerName h == eventName e
         pure e
 
 -- | Inspect the open requests of a contract instance,
 --   and maybe respond to them. Returns the response that was provided to the
 --   contract, if any.
-respondToRequest :: forall s e effs.
-    ( Member (State (ContractInstanceStateInternal s e ())) effs
+respondToRequest :: forall w s e effs.
+    ( Member (State (ContractInstanceStateInternal w s e ())) effs
     , Member ContractRuntimeEffect effs
     , Member (Reader ContractInstanceId) effs
     , Member (LogMsg ContractInstanceMsg) effs
     , Members EmulatedWalletEffects effs
     , ContractConstraints s
+    , Monoid w
     )
     => RequestHandler (Reader ContractInstanceId ': ContractRuntimeEffect ': EmulatedWalletEffects) (Handlers s) (Event s)
     -- ^ How to respond to the requests.
     ->  Eff effs (Maybe (Response (Event s)))
 respondToRequest f = do
-    hks <- getHooks @s @e
+    hks <- getHooks @w @s @e
     let hdl :: (Eff (Reader ContractInstanceId ': ContractRuntimeEffect ': EmulatedWalletEffects) (Maybe (Response (Event s)))) = tryHandler (wrapHandler f) hks
         hdl' :: (Eff (ContractInstanceRequests effs) (Maybe (Response (Event s)))) = raiseEnd10 hdl
 
@@ -300,18 +307,18 @@ respondToRequest f = do
                     $ subsume @ContractRuntimeEffect
                     $ subsume @(Reader ContractInstanceId) hdl'
     response <- response_
-    traverse_ (addResponse @s @e) response
-    logResponse @s @e response
+    traverse_ (addResponse @w @s @e) response
+    logResponse @w @s @e response
     pure response
 
 ---
 -- Logging
 ---
 
-logResponse ::  forall s e effs.
+logResponse ::  forall w s e effs.
     ( ContractConstraints s
     , Member (LogMsg ContractInstanceMsg) effs
-    , Member (State (ContractInstanceStateInternal s e ())) effs
+    , Member (State (ContractInstanceStateInternal w s e ())) effs
     )
     => Maybe (Response (Event s))
     -> Eff effs ()
@@ -319,25 +326,25 @@ logResponse = \case
     Nothing -> logDebug NoRequestsHandled
     Just rsp -> do
         logDebug $ HandledRequest $ fmap JSON.toJSON rsp
-        logCurrentRequests @s @e
+        logCurrentRequests @w @s @e
 
-logCurrentRequests :: forall s e effs.
+logCurrentRequests :: forall w s e effs.
     ( ContractConstraints s
-    , Member (State (ContractInstanceStateInternal s e ())) effs
+    , Member (State (ContractInstanceStateInternal w s e ())) effs
     , Member (LogMsg ContractInstanceMsg) effs
     )
     => Eff effs ()
 logCurrentRequests = do
-    hks <- getHooks @s @e
+    hks <- getHooks @w @s @e
     logDebug $ CurrentRequests $ fmap (fmap JSON.toJSON) hks
 
 -- | Take the new log messages that were produced by the contract
 --   instance and log them with the 'LogMsg' effect.
-logNewMessages :: forall s e effs.
+logNewMessages :: forall w s e effs.
     ( Member (LogMsg ContractInstanceMsg) effs
-    , Member (State (ContractInstanceStateInternal s e ())) effs
+    , Member (State (ContractInstanceStateInternal w s e ())) effs
     )
     => Eff effs ()
 logNewMessages = do
-    newContractLogs <- gets @(ContractInstanceStateInternal s e ()) (view (resumableResult . logs) . cisiSuspState)
+    newContractLogs <- gets @(ContractInstanceStateInternal w s e ()) (view (resumableResult . logs) . cisiSuspState)
     traverse_ (send . LMessage . fmap ContractLog) newContractLogs

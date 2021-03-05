@@ -25,13 +25,13 @@ import           Ledger.Crypto               (PubKey)
 import           Ledger.Slot                 (Slot)
 ----
 
-The type of contracts is `Contract s a`. It has two type parameters: `s` describes the interactions between the contract and the outside world (the contract's schema), and `a` is the return type of the contract. You can think of `s` as a list of capabilities, or permissions, that the contract must be allowed to do in order to function. Commonly `s` contains effects such as producing transactions, collecting input from users, and watching the blockchain for changes.
+The type of contracts is `Contract () s a`. It has two type parameters: `s` describes the interactions between the contract and the outside world (the contract's schema), and `a` is the return type of the contract. You can think of `s` as a list of capabilities, or permissions, that the contract must be allowed to do in order to function. Commonly `s` contains effects such as producing transactions, collecting input from users, and watching the blockchain for changes.
 
 The simplest contract is the one that produces no transactions, and does not interact with the user or the wallet at all:
 
 [source,haskell]
 ----
-c1 :: Contract Empty e () -- <1>
+c1 :: Contract () Empty e () -- <1>
 c1 = return () -- <2>
 ----
 <1> The type of `c1` is a Plutus contract that produces a unit value when it's finished. The fact that `s` is `Empty` tells us that `c1` does not have any effects. The fact that `e` is unconstrained tells us that it does not throw any kind of error.
@@ -43,11 +43,11 @@ If we compiled `c1` and deployed it, it would finish right away without doing an
 
 === Waiting
 
-For example, `awaitSlot {2c} (HasAwaitSlot s) => Slot -> Contract s e Slot` is a function that takes a `Slot` argument and produces a contract that waits until the slot has been reached. The `HasAwaitSlot s` constraint tells us that `awaitSlot` requires the contract's schema (the type variable `s`) to contain the `AwaitSlot` effect. This ensures that we can see all the effects that a contract may have just from the contract's type signature, without having to look at its implementation. The second type variable `e` describes the errors that the contract can produce.
+For example, `awaitSlot {2c} (HasAwaitSlot s) => Slot -> Contract () s e Slot` is a function that takes a `Slot` argument and produces a contract that waits until the slot has been reached. The `HasAwaitSlot s` constraint tells us that `awaitSlot` requires the contract's schema (the type variable `s`) to contain the `AwaitSlot` effect. This ensures that we can see all the effects that a contract may have just from the contract's type signature, without having to look at its implementation. The second type variable `e` describes the errors that the contract can produce.
 
 [source,haskell]
 ----
-c2 :: (HasAwaitSlot s) => Contract s ContractError Slot
+c2 :: (HasAwaitSlot s) => Contract () s ContractError Slot
 c2 = awaitSlot 2765 -- <1>
 ----
 <1> `c2` waits until slot 2765 and then returns the current slot. The value returns may be greater than 2765, for example if execution of the contract was suspended for a while.
@@ -56,17 +56,17 @@ c2 = awaitSlot 2765 -- <1>
 
 Smart contracts often involve multiple participants that synchronise their actions over the blockchain. To be notified of changes to the contract state we need the `WatchAddress` effect. It lets us watch any address on the blockchain for transactions that modify them. `Language.Plutus.Contract` contains a couple of basic functions for watching addresses.
 
-`nextTransactionAt {2c} (HasWatchAddress s) => Address -> Contract s e Tx` waits for the next transaction that changes the outputs at the given address, either by spending an output or by producing a new output. It returns the entire transaction.
+`nextTransactionAt {2c} (HasWatchAddress s) => Address -> Contract () s e Tx` waits for the next transaction that changes the outputs at the given address, either by spending an output or by producing a new output. It returns the entire transaction.
 
-Sometimes we want to see what outputs accumulate at an address, and spend all of them after a while. `watchAddressUntil {2c} (HasAwaitSlot s, HasWatchAddress s) => Address -> Slot -> Contract s e AddressMap` keeps track of all changes to the address that happen between now and the given slot. It returns a value of `AddressMap` - a collection of outputs that can be used in transactions of the contract.
+Sometimes we want to see what outputs accumulate at an address, and spend all of them after a while. `watchAddressUntil {2c} (HasAwaitSlot s, HasWatchAddress s) => Address -> Slot -> Contract () s e AddressMap` keeps track of all changes to the address that happen between now and the given slot. It returns a value of `AddressMap` - a collection of outputs that can be used in transactions of the contract.
 
 === Unspent outputs
 
-The `UtxoAt` effect, available through `utxoAt {2c} HasUtxoAt s => Address -> Contract s e AddressMap`,  lets us query the node client for all unspent outputs at an address. The difference between `utxoAt` and `nextTransactionAt` is that the former returns right away with the current UTXO set at the address, and the latter only returns when the set of unspent outputs at the address has been changed (so it may not return at all, if there are no transactions that touch the address).
+The `UtxoAt` effect, available through `utxoAt {2c} HasUtxoAt s => Address -> Contract () s e AddressMap`,  lets us query the node client for all unspent outputs at an address. The difference between `utxoAt` and `nextTransactionAt` is that the former returns right away with the current UTXO set at the address, and the latter only returns when the set of unspent outputs at the address has been changed (so it may not return at all, if there are no transactions that touch the address).
 
 === Transactions
 
-Contracts write transactions using `submitTx {2c} (HasWriteTx s) => UnbalancedTx -> Contract s e TxId`. The transactions submitted that way are unbalanced and unsigned. When executing a `submitTx` instruction, the app platform forwards the transaction to the user's wallet to balance it (by adding appropriate public key inputs or outputs) and compute the gas cost of any scripts involved. The finished transaction is then signed by the signing process, and submitted to the wallet which sends it to the blockchain. `submitTx` returns the final transaction's ID once it has been submitted to the blockchain (or throws an error if the balancing or signing failed). The easiest way to construct a value of `UnbalancedTx` is by using `Ledger.Constraints.mkTx` to turn a list of constraints into an unbalanced transaction. `Language.Plutus.Contract` exports a number of conveniences for working with constraints, for example `submitTxConstraints` (which requires a script instance) and `submitTxConstraintsUtxo` (which requires a script instance and a map containing the unspent outputs at the contract address).
+Contracts write transactions using `submitTx {2c} (HasWriteTx s) => UnbalancedTx -> Contract () s e TxId`. The transactions submitted that way are unbalanced and unsigned. When executing a `submitTx` instruction, the app platform forwards the transaction to the user's wallet to balance it (by adding appropriate public key inputs or outputs) and compute the gas cost of any scripts involved. The finished transaction is then signed by the signing process, and submitted to the wallet which sends it to the blockchain. `submitTx` returns the final transaction's ID once it has been submitted to the blockchain (or throws an error if the balancing or signing failed). The easiest way to construct a value of `UnbalancedTx` is by using `Ledger.Constraints.mkTx` to turn a list of constraints into an unbalanced transaction. `Language.Plutus.Contract` exports a number of conveniences for working with constraints, for example `submitTxConstraints` (which requires a script instance) and `submitTxConstraintsUtxo` (which requires a script instance and a map containing the unspent outputs at the contract address).
 
 === Endpoints
 
@@ -78,7 +78,7 @@ Let's say we write a contract that expects the user to enter an `Int` using an e
 
 [source,haskell]
 ----
-c3 :: (HasEndpoint "amount" Int s) => Contract s ContractError Int -- <1>
+c3 :: (HasEndpoint "amount" Int s) => Contract () s ContractError Int -- <1>
 c3 = endpoint @"amount" -- <2>
 ----
 <1> The `HasEndpoint` constraint describes user-defined endpoints. In this case, the contract exposes an endpoint called "amount" that requires the user to enter an 'Int'.
@@ -88,7 +88,7 @@ c3 = endpoint @"amount" -- <2>
 
 Given two contracts we can combine them by running them in parallel, in sequence, or by selecting the one that finishes first.
 
-Let's say we have two contracts `collect {2c} Contract s e AddressMap` and `recipient {2c} Contract s e PubKey'`. `collect` watches the blockchain for payments to a script address, and after a while returns an address map with all the inputs that are currently there. `recipient` asks the user for an address to make the payment to. Now we would like to build a contract that combines `collect` and `recipient` and then submits a transaction that spends all inputs and pays the value to the given address.
+Let's say we have two contracts `collect {2c} Contract () s e AddressMap` and `recipient {2c} Contract () s e PubKey'`. `collect` watches the blockchain for payments to a script address, and after a while returns an address map with all the inputs that are currently there. `recipient` asks the user for an address to make the payment to. Now we would like to build a contract that combines `collect` and `recipient` and then submits a transaction that spends all inputs and pays the value to the given address.
 
 === Parallel
 
@@ -96,13 +96,13 @@ Let's say we have two contracts `collect {2c} Contract s e AddressMap` and `reci
 
 [source,haskell]
 ----
-collect :: HasBlockchainActions s => Contract s e AddressMap
+collect :: HasBlockchainActions s => Contract () s e AddressMap
 collect = undefined
 
-recipient :: HasBlockchainActions s => Contract s e PubKey
+recipient :: HasBlockchainActions s => Contract () s e PubKey
 recipient = undefined
 
-collectRec :: HasBlockchainActions s => Contract s e (AddressMap, PubKey) -- <1>
+collectRec :: HasBlockchainActions s => Contract () s e (AddressMap, PubKey) -- <1>
 collectRec = both collect recipient -- <2>
 ----
 <1> `collectRec` is a contract that may use an endpoint asking for a public key. It returns two things: A list of transaction inputs and a public key.
@@ -119,7 +119,7 @@ After having obtained the inputs and the public key we can proceed to produce th
 mkTx :: AddressMap -> PubKey -> UnbalancedTx
 mkTx = undefined
 
-spend :: (HasBlockchainActions s) => Contract s ContractError ()
+spend :: (HasBlockchainActions s) => Contract () s ContractError ()
 spend = do -- <1>
     (ins, pk) <- collectRec
     void (submitUnbalancedTx (mkTx ins pk))
@@ -144,13 +144,13 @@ Then we define two contracts, `buy {2c} Contract r e Buy` and `sell {2c} Contrac
 
 [source, haskell]
 ----
-buy :: HasBlockchainActions s => Contract s e Buy
+buy :: HasBlockchainActions s => Contract () s e Buy
 buy = undefined
 
-sell :: HasBlockchainActions s => Contract s e Sell
+sell :: HasBlockchainActions s => Contract () s e Sell
 sell = undefined
 
-buyOrSell :: HasBlockchainActions r => Contract r e (Either Buy Sell)
+buyOrSell :: HasBlockchainActions r => Contract () r e (Either Buy Sell)
 buyOrSell = selectEither buy sell
 ----
 
@@ -160,7 +160,7 @@ NOTE: The `Alternative` instance of `Contract` is used to select one of two bran
 
 == Compiling Contracts
 
-Once we've written our conract we can compile it into a form that can be run by the application platform. To this end the `Language.Plutus.Contract.App` module exposes a `run` function, which takes a `Contract s e ()` and turns it into an `IO ()` action. The contracts we've seen so far have been parameterised over the schema (that is, they were of the form `contract {2c} c s => Contract s e ()` for some set of constraints `s`). When we call `run contract` we need to commit to a specific value for the schema `s`, because it can't be inferred by the compiler. As the schema describes all possible interactions between the contract and the outside world, it usually consists of two parts: Interactions with the blockchain (via the wallet), and interactions with the user (via endpoints). The first part of the schema is always the same: The `BlockchainActions` type found in `Language.Plutus.Contract`. The second part depends on the specific set of user-facing endpoints that the contract has. We use the `Endpoint` type constructor to describe the name and type of each endpoint. The `.\/` operator combines two schemas. So a contract with a single endpoint called "amount" of type `Int` would have the following schema type:
+Once we've written our conract we can compile it into a form that can be run by the application platform. To this end the `Language.Plutus.Contract.App` module exposes a `run` function, which takes a `Contract w s e ()` and turns it into an `IO ()` action. The contracts we've seen so far have been parameterised over the schema (that is, they were of the form `contract {2c} c s => Contract () s e ()` for some set of constraints `c`). When we call `run contract` we need to commit to a specific value for the schema `s`, because it can't be inferred by the compiler. As the schema describes all possible interactions between the contract and the outside world, it usually consists of two parts: Interactions with the blockchain (via the wallet), and interactions with the user (via endpoints). The first part of the schema is always the same: The `BlockchainActions` type found in `Language.Plutus.Contract`. The second part depends on the specific set of user-facing endpoints that the contract has. We use the `Endpoint` type constructor to describe the name and type of each endpoint. The `.\/` operator combines two schemas. So a contract with a single endpoint called "amount" of type `Int` would have the following schema type:
 
 [source, haskell]
 ----

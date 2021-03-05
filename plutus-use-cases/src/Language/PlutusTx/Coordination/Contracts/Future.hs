@@ -209,7 +209,7 @@ type FutureSchema =
 instance AsEscrowError FutureError where
     _EscrowError = prism' EscrowFailed (\case { EscrowFailed e -> Just e; _ -> Nothing})
 
-futureContract :: Future -> Contract FutureSchema FutureError ()
+futureContract :: Future -> Contract () FutureSchema FutureError ()
 futureContract ft = do
     client <- joinFuture ft `select` initialiseFuture ft
     void $ loopM (const $ selectEither (increaseMargin client) (settleFuture client `select` settleEarly client)) ()
@@ -468,7 +468,7 @@ initialiseFuture
        , AsFutureError e
        )
     => Future
-    -> Contract s e (SM.StateMachineClient FutureState FutureAction)
+    -> Contract w s e (SM.StateMachineClient FutureState FutureAction)
 initialiseFuture future = mapError (review _FutureError) $ do
     (s, ownRole) <- endpoint @"initialise-future" @(FutureSetup, Role)
     -- Start by setting up the two tokens for the short and long positions.
@@ -520,7 +520,7 @@ settleFuture
        , AsFutureError e
        )
     => SM.StateMachineClient FutureState FutureAction
-    -> Contract s e ()
+    -> Contract w s e ()
 settleFuture client = mapError (review _FutureError) $ do
     ov <- endpoint @"settle-future"
     void $ SM.runStep client (Settle ov)
@@ -537,7 +537,7 @@ settleEarly
        , AsContractError e
        )
     => SM.StateMachineClient FutureState FutureAction
-    -> Contract s e ()
+    -> Contract w s e ()
 settleEarly client = do
     ov <- endpoint @"settle-early"
     void $ SM.runStep client (SettleEarly ov)
@@ -554,7 +554,7 @@ increaseMargin
        , AsContractError e
        )
     => SM.StateMachineClient FutureState FutureAction
-    -> Contract s e ()
+    -> Contract w s e ()
 increaseMargin client = do
     (value, role) <- endpoint @"increase-margin"
     void $ SM.runStep client (AdjustMargin role value)
@@ -567,7 +567,7 @@ joinFuture
        , AsFutureError e
        )
     => Future
-    -> Contract s e (SM.StateMachineClient FutureState FutureAction)
+    -> Contract w s e (SM.StateMachineClient FutureState FutureAction)
 joinFuture ft = mapError (review _FutureError) $ do
     (owners, stp) <- endpoint @"join-future" @(FutureAccounts, FutureSetup)
     inst <- checkpoint $ pure (scriptInstance ft owners)
@@ -583,12 +583,13 @@ joinFuture ft = mapError (review _FutureError) $ do
 --   Note that after 'setupTokens' is complete, both tokens will be locked by a
 --   public key output belonging to the wallet that ran 'setupTokens'.
 setupTokens
-    :: ( HasWriteTx s
-       , HasOwnPubKey s
-       , HasTxConfirmation s
-       , AsFutureError e
-       )
-    => Contract s e FutureAccounts
+    :: forall w s e.
+    ( HasWriteTx s
+    , HasOwnPubKey s
+    , HasTxConfirmation s
+    , AsFutureError e
+    )
+    => Contract w s e FutureAccounts
 setupTokens = mapError (review _FutureError) $ do
     pk <- ownPubKey
 
@@ -624,7 +625,7 @@ escrowParams client future ftos FutureSetup{longPK, shortPK, contractStart} =
 
 testAccounts :: FutureAccounts
 testAccounts =
-    let con = setupTokens @FutureSchema @FutureError
+    let con = setupTokens @() @FutureSchema @FutureError
         fld = Folds.instanceOutcome con (Trace.walletInstanceTag (Wallet.Wallet 1))
         getOutcome (Folds.Done a) = a
         getOutcome e              = Haskell.error $ "not finished: " <> show e
@@ -639,7 +640,7 @@ testAccounts =
 setupTokensTrace :: Trace.EmulatorTrace ()
 setupTokensTrace = do
     _ <- Trace.waitNSlots 1
-    _ <- Trace.activateContractWallet (Wallet.Wallet 1) (void $ setupTokens @FutureSchema @FutureError)
+    _ <- Trace.activateContractWallet (Wallet.Wallet 1) (void $ setupTokens @() @FutureSchema @FutureError)
     void $ Trace.waitNSlots 2
 
 PlutusTx.makeLift ''Future

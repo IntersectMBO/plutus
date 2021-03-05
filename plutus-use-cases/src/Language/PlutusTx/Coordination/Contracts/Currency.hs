@@ -149,14 +149,14 @@ instance AsPubKeyError CurrencyError where
 --   script is used to ensure that no more units of the currency can
 --   be forged afterwards.
 forgeContract
-    :: forall s e.
+    :: forall w s e.
     ( HasWriteTx s
     , HasTxConfirmation s
     , AsCurrencyError e
     )
     => PubKeyHash
     -> [(TokenName, Integer)]
-    -> Contract s e Currency
+    -> Contract w s e Currency
 forgeContract pk amounts = mapError (review _CurrencyError) $ do
     (txOutRef, txOutTx, pkInst) <- PK.pubKeyContract pk (Ada.lovelaceValueOf 1)
     let theCurrency = mkCurrency txOutRef amounts
@@ -186,7 +186,7 @@ type CurrencySchema =
 
 -- | Use 'forgeContract' to create the currency specified by a 'SimpleMPS'
 forgeCurrency
-    :: Contract CurrencySchema CurrencyError Currency
+    :: Contract () CurrencySchema CurrencyError Currency
 forgeCurrency = do
     SimpleMPS{tokenName, amount} <- endpoint @"Create native token"
     ownPK <- pubKeyHash <$> ownPubKey

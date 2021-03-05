@@ -106,19 +106,21 @@ handleContractTest = interpret $ \case
         adderSchema = endpointsToSchemas @(Contracts.RPC.AdderSchema .\\ (BlockchainActions .\/ RPCClient Contracts.RPC.Adder))
 
 doContractInit ::
-    forall schema effs.
+    forall w schema effs.
     ( Member (Error PABError) effs
     , Forall (Output schema) ToJSON
     , Forall (Input schema) ToJSON
+    , Monoid w
+    , ToJSON w
     )
-    => Contract schema Text ()
+    => Contract w schema Text ()
     -> Eff effs (PartiallyDecodedResponse ContractPABRequest)
 doContractInit contract = either throwError pure $ do
     let value = ContractState.initialiseContract contract
     fromString $ fmap (fmap unContractHandlersResponse) $ JSON.eitherDecode $ JSON.encode value
 
 doContractUpdate ::
-    forall schema effs.
+    forall w schema effs.
     ( Member (Error PABError) effs
     , AllUniqueLabels (Input schema)
     , Forall (Input schema) FromJSON
@@ -126,8 +128,10 @@ doContractUpdate ::
     , Forall (Output schema) ToJSON
     , Forall (Input schema) Show
     , Member (LogMsg ContractTestMsg) effs
+    , Monoid w
+    , ToJSON w
     )
-    => Contract schema Text ()
+    => Contract w schema Text ()
     -> ContractRequest Value
     -> Eff effs (PartiallyDecodedResponse ContractPABRequest)
 doContractUpdate contract payload = do
@@ -142,17 +146,19 @@ doContractUpdate contract payload = do
     pure response
 
 mkResponse ::
-    forall schema err.
+    forall w schema err.
     ( Forall (Output schema) ToJSON
     , Forall (Input schema) ToJSON
+    , ToJSON w
     )
-    => ContractResponse err (Event schema) (Handlers schema)
+    => ContractResponse w err (Event schema) (Handlers schema)
     -> PartiallyDecodedResponse ContractPABRequest
-mkResponse ContractResponse{newState, hooks, logs} =
+mkResponse ContractResponse{newState, hooks, logs, observableState} =
     C.PartiallyDecodedResponse
         { C.newState = fmap JSON.toJSON newState
         , C.hooks    = fmap (fmap (encodeRequest @schema)) hooks
         , C.logs     = logs
+        , C.observableState = JSON.toJSON observableState
         }
 
 encodeRequest ::

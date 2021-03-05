@@ -10,11 +10,11 @@ import           Playground.Contract
 
 -- BLOCK1
 -- | A 'Contract' that logs a message.
-hello :: Contract BlockchainActions T.Text ()
+hello :: Contract () BlockchainActions T.Text ()
 hello = logInfo @String "Hello, world"
 -- BLOCK2
 
-endpoints :: Contract BlockchainActions T.Text ()
+endpoints :: Contract () BlockchainActions T.Text ()
 endpoints = hello
 
 mkSchemaDefinitions ''BlockchainActions

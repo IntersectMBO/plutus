@@ -142,9 +142,9 @@ type EmulatorAgentThreadEffs effs =
 data Emulator
 
 -- | A reference to a running contract in the emulator.
-data ContractHandle s e =
+data ContractHandle w s e =
     ContractHandle
-        { chContract    :: Contract s e ()
+        { chContract    :: Contract w s e ()
         , chInstanceId  :: ContractInstanceId
         , chInstanceTag :: ContractInstanceTag
         }
@@ -245,9 +245,9 @@ instance Pretty ContractInstanceLog where
 -- | State of the contract instance, internal to the contract instance thread.
 --   It contains both the serialisable state of the contract instance and the
 --   non-serialisable continuations in 'SuspendedContract'.
-data ContractInstanceStateInternal s e a =
+data ContractInstanceStateInternal w s e a =
     ContractInstanceStateInternal
-        { cisiSuspState       :: SuspendedContract e (Event s) (Handlers s) a
+        { cisiSuspState       :: SuspendedContract w e (Event s) (Handlers s) a
         , cisiEvents          :: Seq (Response (Event s))
         , cisiHandlersHistory :: Seq [State.Request (Handlers s)]
         }
@@ -255,7 +255,7 @@ data ContractInstanceStateInternal s e a =
 -- | Extract the serialisable 'ContractInstanceState' from the
 --   'ContractInstanceStateInternal'. We need to do this when
 --   we want to send the instance state to another thread.
-toInstanceState :: ContractInstanceStateInternal s e a -> ContractInstanceState s e a
+toInstanceState :: ContractInstanceStateInternal w s e a -> ContractInstanceState w s e a
 toInstanceState ContractInstanceStateInternal{cisiSuspState=SuspendedContract{_resumableResult}, cisiEvents, cisiHandlersHistory} =
     ContractInstanceState
         { instContractState = _resumableResult
@@ -265,18 +265,18 @@ toInstanceState ContractInstanceStateInternal{cisiSuspState=SuspendedContract{_r
 
 -- | The state of a running contract instance with schema @s@ and error type @e@
 --   Serialisable to JSON.
-data ContractInstanceState s e a =
+data ContractInstanceState w s e a =
     ContractInstanceState
-        { instContractState   :: ResumableResult e (Event s) (Handlers s) a
+        { instContractState   :: ResumableResult w e (Event s) (Handlers s) a
         , instEvents          :: Seq (Response (Event s))
         , instHandlersHistory :: Seq [State.Request (Handlers s)]
         }
         deriving stock Generic
 
-deriving anyclass instance  (V.Forall (Input s) JSON.ToJSON, V.Forall (Output s) JSON.ToJSON, JSON.ToJSON e, JSON.ToJSON a) => JSON.ToJSON (ContractInstanceState s e a)
-deriving anyclass instance  (V.Forall (Input s) JSON.FromJSON, V.Forall (Output s) JSON.FromJSON, JSON.FromJSON e, JSON.FromJSON a, V.AllUniqueLabels (Input s), V.AllUniqueLabels (Output s)) => JSON.FromJSON (ContractInstanceState s e a)
+deriving anyclass instance  (V.Forall (Input s) JSON.ToJSON, V.Forall (Output s) JSON.ToJSON, JSON.ToJSON e, JSON.ToJSON a, JSON.ToJSON w) => JSON.ToJSON (ContractInstanceState w s e a)
+deriving anyclass instance  (V.Forall (Input s) JSON.FromJSON, V.Forall (Output s) JSON.FromJSON, JSON.FromJSON e, JSON.FromJSON a, V.AllUniqueLabels (Input s), V.AllUniqueLabels (Output s), JSON.FromJSON w) => JSON.FromJSON (ContractInstanceState w s e a)
 
-emptyInstanceState :: Contract s e a -> ContractInstanceStateInternal s e a
+emptyInstanceState :: Monoid w => Contract w s e a -> ContractInstanceStateInternal w s e a
 emptyInstanceState (Contract c) =
     ContractInstanceStateInternal
         { cisiSuspState = Contract.Types.suspend c
@@ -284,10 +284,11 @@ emptyInstanceState (Contract c) =
         , cisiHandlersHistory = mempty
         }
 
-addEventInstanceState :: forall s e a.
-    Response (Event s)
-    -> ContractInstanceStateInternal s e a
-    -> Maybe (ContractInstanceStateInternal s e a)
+addEventInstanceState :: forall w s e a.
+    Monoid w
+    => Response (Event s)
+    -> ContractInstanceStateInternal w s e a
+    -> Maybe (ContractInstanceStateInternal w s e a)
 addEventInstanceState event ContractInstanceStateInternal{cisiSuspState, cisiEvents, cisiHandlersHistory} =
     case Contract.Types.runStep cisiSuspState event of
         Nothing -> Nothing

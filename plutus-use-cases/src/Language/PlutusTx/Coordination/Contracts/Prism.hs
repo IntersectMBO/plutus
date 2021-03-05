@@ -107,8 +107,7 @@ data PrismError =
 --   for the emulator, where we can only ever run a single 'Contract'. In
 --   the PAB we could simply start all four contracts (credentialManager,
 --   mirror, subscribeSTO, subscribeExchange) separately.
-contract ::
-    Contract PrismSchema PrismError ()
+contract :: Contract () PrismSchema PrismError ()
 contract = do
     r <- mapError EPError $ endpoint @"role"
     case r of

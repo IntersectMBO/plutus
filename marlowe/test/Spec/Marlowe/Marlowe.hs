@@ -111,8 +111,8 @@ zeroCouponBondTest = checkPredicateOptions (defaultCheckOptions & maxSlot .~ 250
                     [ Case (Deposit alicePk bobPk ada (Constant 1000)) Close] (Slot 200) Close
                 ))] (Slot 100) Close
 
-    bobHdl <- Trace.activateContractWallet @MarloweSchema @MarloweError bob marlowePlutusContract
-    aliceHdl <- Trace.activateContractWallet @MarloweSchema @MarloweError alice marlowePlutusContract
+    bobHdl <- Trace.activateContractWallet bob marlowePlutusContract
+    aliceHdl <- Trace.activateContractWallet alice marlowePlutusContract
 
     Trace.callEndpoint @"create" aliceHdl (AssocMap.empty, zeroCouponBond)
     Trace.waitNSlots 2
@@ -141,8 +141,8 @@ trustFundTest = checkPredicateOptions (defaultCheckOptions & maxSlot .~ 200) "Tr
     -- Init a contract
     let alicePkh = pubKeyHash $ walletPubKey alice
         bobPkh = pubKeyHash $ walletPubKey bob
-    bobHdl <- Trace.activateContractWallet @MarloweSchema @MarloweError bob marlowePlutusContract
-    aliceHdl <- Trace.activateContractWallet @MarloweSchema @MarloweError alice marlowePlutusContract
+    bobHdl <- Trace.activateContractWallet bob marlowePlutusContract
+    aliceHdl <- Trace.activateContractWallet alice marlowePlutusContract
 
     Trace.callEndpoint @"create" aliceHdl
         (AssocMap.fromList [("alice", alicePkh), ("bob", bobPkh)],
@@ -192,7 +192,7 @@ trustFundTest = checkPredicateOptions (defaultCheckOptions & maxSlot .~ 200) "Tr
                     $ foldEmulatorStreamM fld
                     $ Trace.runEmulatorStream Trace.defaultEmulatorConfig
                     $ do
-                        void $ Trace.activateContractWallet @MarloweSchema @MarloweError alice (void con)
+                        void $ Trace.activateContractWallet alice (void con)
                         Trace.waitNSlots 10
 
 

@@ -143,7 +143,7 @@ scriptInstance vesting = Scripts.validator @Vesting
 contractAddress :: VestingParams -> Ledger.Address
 contractAddress = Scripts.scriptAddress . scriptInstance
 
-vestingContract :: VestingParams -> Contract VestingSchema T.Text ()
+vestingContract :: VestingParams -> Contract () VestingSchema T.Text ()
 vestingContract vesting = vest `select` retrieve
   where
     vest = endpoint @"vest funds" >> vestFundsC vesting
@@ -161,7 +161,7 @@ vestFundsC
     :: ( HasWriteTx s
        )
     => VestingParams
-    -> Contract s T.Text ()
+    -> Contract () s T.Text ()
 vestFundsC vesting = do
     let tx = payIntoContract (totalAmount vesting)
     void $ submitTxConstraints (scriptInstance vesting) tx
@@ -175,7 +175,7 @@ retrieveFundsC
        )
     => VestingParams
     -> Value
-    -> Contract s T.Text Liveness
+    -> Contract () s T.Text Liveness
 retrieveFundsC vesting payment = do
     let inst = scriptInstance vesting
         addr = Scripts.scriptAddress inst
@@ -213,7 +213,7 @@ retrieveFundsC vesting payment = do
     void $ submitTxConstraintsSpending inst unspentOutputs tx
     return liveness
 
-endpoints :: Contract VestingSchema T.Text ()
+endpoints :: Contract () VestingSchema T.Text ()
 endpoints = vestingContract vestingParams
   where
     vestingOwner = pubKeyHash $ walletPubKey $ Wallet 1

@@ -93,11 +93,13 @@ type PlaygroundTrace a =
         ] a
 
 handlePlaygroundTrace ::
-    forall s e effs a.
+    forall w s e effs a.
     ( HasBlockchainActions s
     , ContractConstraints s
     , Show e
     , JSON.ToJSON e
+    , JSON.ToJSON w
+    , Monoid w
     , Member MultiAgentEffect effs
     , Member (LogMsg EmulatorEvent') effs
     , Member (Error EmulatorRuntimeError) effs
@@ -105,33 +107,35 @@ handlePlaygroundTrace ::
     , Member (State EmulatorThreads) effs
     , Member ContractInstanceIdEff effs
     )
-    => Contract s e ()
+    => Contract w s e ()
     -> PlaygroundTrace a
     -> Eff (Reader ThreadId ': Yield (EmSystemCall effs EmulatorMessage) (Maybe EmulatorMessage) ': effs) ()
 handlePlaygroundTrace contract action = do
     _ <- interpret handleEmulatedWalletAPI
             . interpret (handleWaiting @_ @effs)
             . subsume
-            . interpret (handleRunContractPlayground @s @e @_ @effs contract)
+            . interpret (handleRunContractPlayground @w @s @e @_ @effs contract)
             $ raiseEnd4 action
     void $ exit @effs @EmulatorMessage
 
 -- | Run a 'Trace Playground', streaming the log messages as they arrive
-runPlaygroundStream :: forall s e effs a.
+runPlaygroundStream :: forall w s e effs a.
     ( HasBlockchainActions s
     , ContractConstraints s
     , Show e
     , JSON.ToJSON e
+    , JSON.ToJSON w
+    , Monoid w
     )
     => EmulatorConfig
-    -> Contract s e ()
+    -> Contract w s e ()
     -> PlaygroundTrace a
     -> Stream (Of (LogMessage EmulatorEvent)) (Eff effs) (Maybe EmulatorErr, EmulatorState)
 runPlaygroundStream conf contract =
     let wallets = fromMaybe (Wallet <$> [1..10]) (preview (initialChainState . _Left . to Map.keys) conf)
     in runTraceStream conf . interpretPlaygroundTrace contract wallets
 
-interpretPlaygroundTrace :: forall s e effs a.
+interpretPlaygroundTrace :: forall w s e effs a.
     ( Member MultiAgentEffect effs
     , Member MultiAgentControlEffect effs
     , Member (Error EmulatorRuntimeError) effs
@@ -142,8 +146,10 @@ interpretPlaygroundTrace :: forall s e effs a.
     , ContractConstraints s
     , Show e
     , JSON.ToJSON e
+    , JSON.ToJSON w
+    , Monoid w
     )
-    => Contract s e () -- ^ The contract
+    => Contract w s e () -- ^ The contract
     -> [Wallet] -- ^ Wallets that should be simulated in the emulator
     -> PlaygroundTrace a
     -> Eff effs ()

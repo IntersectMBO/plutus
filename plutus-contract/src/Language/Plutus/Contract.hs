@@ -57,7 +57,7 @@ module Language.Plutus.Contract(
     , ownInstanceId
     -- * Notifications
     , notifyInstance
-    , notify
+    , tell
     -- * Transactions
     , HasWriteTx
     , WriteTx
@@ -113,6 +113,7 @@ import           Language.Plutus.Contract.Types                    (AsCheckpoint
                                                                     throwError)
 
 import qualified Control.Monad.Freer.Extras.Log                    as L
+import qualified Control.Monad.Freer.Writer                        as W
 import           Prelude                                           hiding (until)
 import           Wallet.API                                        (WalletAPIError)
 
@@ -140,28 +141,28 @@ type HasBlockchainActions s =
   )
 
 -- | Execute both contracts in any order
-both :: Contract s e a -> Contract s e b -> Contract s e (a, b)
+both :: Contract w s e a -> Contract w s e b -> Contract w s e (a, b)
 both a b =
   let swap (b_, a_) = (a_, b_) in
   ((,) <$> a <*> b) `select` (fmap swap ((,) <$> b <*> a))
 
 -- | Log a message at the 'Debug' level
-logDebug :: ToJSON a => a -> Contract s e ()
+logDebug :: ToJSON a => a -> Contract w s e ()
 logDebug = Contract . L.logDebug . toJSON
 
 -- | Log a message at the 'Info' level
-logInfo :: ToJSON a => a -> Contract s e ()
+logInfo :: ToJSON a => a -> Contract w s e ()
 logInfo = Contract . L.logInfo . toJSON
 
 -- | Log a message at the 'Warning' level
-logWarn :: ToJSON a => a -> Contract s e ()
+logWarn :: ToJSON a => a -> Contract w s e ()
 logWarn = Contract . L.logWarn . toJSON
 
 -- | Log a message at the 'Error' level
-logError :: ToJSON a => a -> Contract s e ()
+logError :: ToJSON a => a -> Contract w s e ()
 logError = Contract . L.logError . toJSON
 
--- | Send a notification to the outside world. (This is a placeholder
---   until we implement https://jira.iohk.io/browse/SCP-1837)
-notify :: ToJSON a => a -> Contract s e ()
-notify = logInfo
+-- | Update the contract's accumulating state @w@
+tell :: w -> Contract w s e ()
+tell = Contract . W.tell
+

@@ -67,13 +67,13 @@ type STOSubscriberSchema =
 
 -- | Obtain a token from the credential manager app,
 --   then participate in the STO
-subscribeSTO :: forall s.
+subscribeSTO :: forall w s.
     ( HasBlockchainActions s
     , HasRPCClient CredentialManager s
     , HasEndpoint "sto" STOSubscriber s
     , HasEndpoint "credential manager" ContractInstanceId s
     )
-    => Contract s UnlockError ()
+    => Contract w s UnlockError ()
 subscribeSTO = do
     STOSubscriber{wCredential, wSTOIssuer, wSTOTokenName, wSTOAmount} <-
         mapError WithdrawEndpointError
@@ -104,13 +104,13 @@ type UnlockExchangeSchema =
 
 -- | Obtain a token from the credential manager app,
 --   then use it to unlock funds that were locked by an exchange.
-unlockExchange :: forall s.
+unlockExchange :: forall w s.
     ( HasBlockchainActions s
     , HasRPCClient CredentialManager s
     , HasEndpoint "unlock from exchange" Credential s
     , HasEndpoint "credential manager" ContractInstanceId s
     )
-    => Contract s UnlockError ()
+    => Contract w s UnlockError ()
 unlockExchange = do
     credential <-
         mapError WithdrawEndpointError
@@ -128,13 +128,13 @@ unlockExchange = do
 
 -- | Get the constraints and script lookups that are needed to construct a
 --   transaction that presents the 'Credential'
-obtainCredentialTokenData :: forall s.
+obtainCredentialTokenData :: forall w s.
     ( HasBlockchainActions s
     , HasRPCClient CredentialManager s
     , HasEndpoint "credential manager" ContractInstanceId s
     )
     => Credential
-    -> Contract s UnlockError (RPCResponse CredentialManager)
+    -> Contract w s UnlockError (RPCResponse CredentialManager)
 obtainCredentialTokenData credential = do
     credentialManager <- mapError WithdrawEndpointError $ endpoint @"credential manager"
     userCredential <- mapError WithdrawPkError $

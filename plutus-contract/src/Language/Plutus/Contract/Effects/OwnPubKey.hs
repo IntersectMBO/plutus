@@ -63,8 +63,8 @@ deriving via (PrettyShow OwnPubKeyRequest) instance Pretty OwnPubKeyRequest
 --     'requiredSignatures' field of 'Tx'.
 --   * There is a 1-n relationship between wallets and public keys (although in
 --     the mockchain n=1)
-ownPubKey :: forall s e. (AsContractError e, HasOwnPubKey s) => Contract s e PubKey
-ownPubKey = requestMaybe @OwnPubKeySym @_ @_ @s WaitingForPubKey Just
+ownPubKey :: forall w s e. (AsContractError e, HasOwnPubKey s) => Contract w s e PubKey
+ownPubKey = requestMaybe @w @OwnPubKeySym @_ @_ @s WaitingForPubKey Just
 
 event
     :: forall s.

@@ -14,14 +14,14 @@ import qualified Plutus.Trace.Emulator                             as Trace
 
 import           Test.Tasty
 
-theContract :: Contract PingPongSchema PingPongError ()
+theContract :: Contract () PingPongSchema PingPongError ()
 theContract = do
     _ <- PingPong.initialise
     PingPong.runPong
     PingPong.runPing
     PingPong.runPong
 
-twoParties :: Contract PingPongSchema PingPongError (Maybe (OnChainState PingPongState Input))
+twoParties :: Contract () PingPongSchema PingPongError (Maybe (OnChainState PingPongState Input))
 twoParties =
     -- one party calls "initialise"
     -- the other party calls "stop"
