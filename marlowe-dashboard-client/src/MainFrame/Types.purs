@@ -15,11 +15,11 @@ import Data.Maybe (Maybe(..))
 import Marlowe.Extended (ContractTemplate)
 import Marlowe.Semantics (PubKey)
 import Network.RemoteData (RemoteData)
+import Pickup.Types (Action, State) as Pickup
 import Play.Types (Action, State) as Play
 import Plutus.PAB.Webserver.Types (StreamToClient, StreamToServer)
-import Pickup.Types (Action, State) as Pickup
 import Servant.PureScript.Ajax (AjaxError)
-import WalletData.Types (Nickname, WalletDetails, WalletLibrary)
+import WalletData.Types (Nickname, WalletLibrary)
 import Web.Socket.Event.CloseEvent (CloseEvent, reason) as WS
 import WebSocket.Support (FromSocket) as WS
 
@@ -29,8 +29,9 @@ import WebSocket.Support (FromSocket) as WS
 -- for when you have picked up a wallet, and can do all of the things.
 type State
   = { wallets :: WalletLibrary
-    , newWalletDetails :: WalletDetails
-    , newWalletPubKey :: RemoteData AjaxError PubKey
+    , newWalletNickname :: Nickname
+    , newWalletContractId :: String
+    , remoteDataPubKey :: RemoteData AjaxError PubKey
     , templates :: Array ContractTemplate
     , webSocketStatus :: WebSocketStatus
     , subState :: Either Pickup.State Play.State
@@ -62,10 +63,9 @@ data Msg
 ------------------------------------------------------------
 data Action
   = Init
-  | AddWallet WalletDetails
   | SetNewWalletNickname Nickname
   | SetNewWalletContractId String
-  | FetchNewWalletPubKey
+  | AddNewWallet
   | PickupAction Pickup.Action
   | PlayAction Play.Action
 
@@ -73,9 +73,8 @@ data Action
 -- how to classify them.
 instance actionIsEvent :: IsEvent Action where
   toEvent Init = Just $ defaultEvent "Init"
-  toEvent (AddWallet _) = Just $ defaultEvent "AddWallet"
   toEvent (SetNewWalletNickname _) = Nothing
   toEvent (SetNewWalletContractId _) = Nothing
-  toEvent (FetchNewWalletPubKey) = Nothing
+  toEvent AddNewWallet = Just $ defaultEvent "AddNewWallet"
   toEvent (PickupAction pickupAction) = toEvent pickupAction
   toEvent (PlayAction playAction) = toEvent playAction

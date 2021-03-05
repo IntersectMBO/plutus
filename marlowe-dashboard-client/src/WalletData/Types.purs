@@ -5,9 +5,8 @@ module WalletData.Types
   ) where
 
 import Data.Map (Map)
+import Data.Maybe (Maybe)
 import Marlowe.Semantics (Assets, PubKey)
-import Network.RemoteData (RemoteData)
-import Servant.PureScript.Ajax (AjaxError)
 
 type WalletLibrary
   = Map Nickname WalletDetails
@@ -19,5 +18,5 @@ type WalletDetails
   = { nickname :: Nickname
     , contractId :: String
     , pubKey :: PubKey
-    , balance :: RemoteData AjaxError (Array Assets)
+    , balance :: Maybe (Array Assets)
     }

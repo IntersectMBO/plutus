@@ -27,8 +27,8 @@ import WalletData.Lenses (_nickname)
 import WalletData.Types (Nickname, WalletDetails, WalletLibrary)
 import WalletData.View (newWalletCard, walletDetailsCard, putdownWalletCard, walletLibraryScreen)
 
-renderPlayState :: forall p. WalletLibrary -> WalletDetails -> RemoteData AjaxError PubKey -> Array Template -> State -> HTML p Action
-renderPlayState wallets newWalletDetails newWalletPubKey templates playState =
+renderPlayState :: forall p. WalletLibrary -> Nickname -> String -> RemoteData AjaxError PubKey -> Array ContractTemplate -> State -> HTML p Action
+renderPlayState wallets newWalletNickname newWalletContractId remoteDataPubKey templates playState =
   let
     walletNickname = view (_walletDetails <<< _nickname) playState
 
@@ -37,7 +37,7 @@ renderPlayState wallets newWalletDetails newWalletPubKey templates playState =
     div
       [ classNames [ "grid", "h-full", "grid-rows-main" ] ]
       [ renderHeader walletNickname menuOpen
-      , renderMain wallets newWalletDetails newWalletPubKey templates playState
+      , renderMain wallets newWalletNickname newWalletContractId remoteDataPubKey templates playState
       , renderFooter
       ]
 
@@ -76,8 +76,8 @@ renderHeader walletNickname menuOpen =
       ]
 
 ------------------------------------------------------------
-renderMain :: forall p. WalletLibrary -> WalletDetails -> RemoteData AjaxError PubKey -> Array Template -> State -> HTML p Action
-renderMain wallets newWalletDetails newWalletPubKey templates playState =
+renderMain :: forall p. WalletLibrary -> Nickname -> String -> RemoteData AjaxError PubKey -> Array ContractTemplate -> State -> HTML p Action
+renderMain wallets newWalletNickname newWalletContractId remoteDataPubKey templates playState =
   let
     walletDetails = view _walletDetails playState
 
@@ -94,7 +94,7 @@ renderMain wallets newWalletDetails newWalletPubKey templates playState =
     main
       [ classNames [ "relative" ] ]
       [ renderMobileMenu menuOpen
-      , renderCards wallets newWalletDetails newWalletPubKey templates walletDetails card contractState
+      , renderCards wallets newWalletNickname newWalletContractId remoteDataPubKey templates walletDetails card contractState
       , renderScreen wallets screen templateState
       ]
 
@@ -113,8 +113,8 @@ renderMobileMenu menuOpen =
         iohkLinks
     ]
 
-renderCards :: forall p. WalletLibrary -> WalletDetails -> RemoteData AjaxError PubKey -> Array Template -> WalletDetails -> Maybe Card -> Contract.State -> HTML p Action
-renderCards wallets newWalletDetails newWalletPubKey templates walletDetails card contractState =
+renderCards :: forall p. WalletLibrary -> Nickname -> String -> RemoteData AjaxError PubKey -> Array ContractTemplate -> WalletDetails -> Maybe Card -> Contract.State -> HTML p Action
+renderCards wallets newWalletNickname newWalletContractId remoteDataPubKey templates walletDetails card contractState =
   div
     [ classNames $ Css.cardWrapper $ isNothing card ]
     [ div
@@ -130,7 +130,7 @@ renderCards wallets newWalletDetails newWalletPubKey templates walletDetails car
         , div
             [ classNames [ "px-1", "pb-1" ] ]
             $ (flip foldMap card) \cardType -> case cardType of
-                CreateWalletCard -> [ newWalletCard wallets newWalletDetails newWalletPubKey ]
+                CreateWalletCard -> [ newWalletCard wallets newWalletNickname newWalletContractId remoteDataPubKey ]
                 ViewWalletCard nickname contractId -> [ walletDetailsCard nickname contractId ]
                 PutdownWalletCard -> [ putdownWalletCard walletDetails ]
                 TemplateLibraryCard -> [ TemplateAction <$> templateLibraryCard templates ]

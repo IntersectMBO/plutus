@@ -52,9 +52,7 @@ contractIdError "" _ _ = Just EmptyContractId
 contractIdError contractId pubKey library =
   if not $ isEmpty $ filter (\walletDetails -> walletDetails.contractId == contractId) library then
     Just DuplicateContractId
-  else
-    case pubKey of
-      Success _ -> Nothing
-      Failure _ -> Just NonexistentContractId
-      _ -> Just UnconfirmedContractId
-
+  else case pubKey of
+    Success _ -> Nothing
+    Failure _ -> Just NonexistentContractId
+    _ -> Just UnconfirmedContractId

@@ -7,10 +7,9 @@ module WalletData.Lenses
 
 import Data.Lens (Lens')
 import Data.Lens.Record (prop)
+import Data.Maybe (Maybe)
 import Data.Symbol (SProxy(..))
 import Marlowe.Semantics (Assets, PubKey)
-import Network.RemoteData (RemoteData)
-import Servant.PureScript.Ajax (AjaxError)
 import WalletData.Types (Nickname, WalletDetails)
 
 _nickname :: Lens' WalletDetails Nickname
@@ -22,5 +21,5 @@ _pubKey = prop (SProxy :: SProxy "pubKey")
 _contractId :: forall r. Lens' { contractId :: String | r } String
 _contractId = prop (SProxy :: SProxy "contractId")
 
-_balance :: Lens' WalletDetails (RemoteData AjaxError (Array Assets))
+_balance :: Lens' WalletDetails (Maybe (Array Assets))
 _balance = prop (SProxy :: SProxy "balance")

@@ -50,7 +50,7 @@ data Action
   = PutdownWallet
   | SetNewWalletNickname Nickname
   | SetNewWalletContractId String
-  | AddWallet WalletDetails
+  | AddNewWallet
   | ToggleMenu
   | SetScreen Screen
   | SetCard (Maybe Card)
@@ -64,7 +64,7 @@ instance actionIsEvent :: IsEvent Action where
   toEvent PutdownWallet = Just $ defaultEvent "PutdownWallet"
   toEvent (SetNewWalletNickname _) = Just $ defaultEvent "SetNewWalletNickname"
   toEvent (SetNewWalletContractId _) = Just $ defaultEvent "SetNewWalletContractId"
-  toEvent (AddWallet _) = Just $ defaultEvent "AddWallet"
+  toEvent AddNewWallet = Just $ defaultEvent "AddNewWallet"
   toEvent ToggleMenu = Just $ defaultEvent "ToggleMenu"
   toEvent (SetScreen _) = Just $ defaultEvent "SetScreen"
   toEvent (SetCard _) = Just $ defaultEvent "SetCard"

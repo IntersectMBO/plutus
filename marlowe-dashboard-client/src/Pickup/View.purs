@@ -17,12 +17,12 @@ import Pickup.Types (Action(..), Card(..), State)
 import Prim.TypeError (class Warn, Text)
 import Servant.PureScript.Ajax (AjaxError)
 import WalletData.Lenses (_contractId, _nickname)
-import WalletData.Types (WalletDetails, WalletLibrary)
+import WalletData.Types (Nickname, WalletDetails, WalletLibrary)
 import WalletData.Validation (contractIdError, nicknameError)
 import WalletData.View (nicknamesDataList)
 
-renderPickupState :: forall p. WalletLibrary -> WalletDetails -> RemoteData AjaxError PubKey -> State -> HTML p Action
-renderPickupState wallets newWalletDetails newWalletPubKey pickupState =
+renderPickupState :: forall p. WalletLibrary -> Nickname -> String -> RemoteData AjaxError PubKey -> State -> HTML p Action
+renderPickupState wallets newWalletNickname newWalletContractId remoteDataPubKey pickupState =
   let
     card = view _card pickupState
   in
@@ -30,16 +30,16 @@ renderPickupState wallets newWalletDetails newWalletPubKey pickupState =
       [ classNames [ "grid", "h-full" ] ]
       [ main
           [ classNames [ "relative" ] ]
-          [ renderPickupCard wallets newWalletDetails newWalletPubKey card
+          [ renderPickupCard wallets newWalletNickname newWalletContractId remoteDataPubKey card
           , renderPickupScreen wallets
           ]
       ]
 
 ------------------------------------------------------------
-renderPickupCard :: forall p. WalletLibrary -> WalletDetails -> RemoteData AjaxError PubKey -> Maybe Card -> HTML p Action
-renderPickupCard wallets newWalletDetails newWalletPubKey pickupCard =
+renderPickupCard :: forall p. WalletLibrary -> Nickname -> String -> RemoteData AjaxError PubKey -> Maybe Card -> HTML p Action
+renderPickupCard wallets newWalletNickname newWalletContractId remoteDataPubKey card =
   div
-    [ classNames $ Css.cardWrapper $ isNothing pickupCard ]
+    [ classNames $ Css.cardWrapper $ isNothing card ]
     [ div
         [ classNames $ Css.card ]
         [ div
@@ -51,31 +51,24 @@ renderPickupCard wallets newWalletDetails newWalletPubKey pickupCard =
                 [ Icon.close ]
             ]
         , div
-            [ classNames [ "px-1", "pb-1" ] ] case pickupCard of
-            Just card -> [ pickupWalletCard wallets newWalletDetails newWalletPubKey card ]
-            Nothing -> []
+            [ classNames [ "px-1", "pb-1" ] ]
+            $ (flip foldMap card) \cardType -> case cardType of
+                PickupNewWalletCard -> [ pickupNewWalletCard wallets newWalletNickname newWalletContractId remoteDataPubKey ]
+                PickupWalletCard walletDetails -> [ pickupWalletCard walletDetails ]
         ]
     ]
 
-pickupWalletCard :: forall p. WalletLibrary -> WalletDetails -> RemoteData AjaxError PubKey -> Card -> HTML p Action
-pickupWalletCard wallets newWalletDetails newWalletPubKey card =
+pickupNewWalletCard :: forall p. WalletLibrary -> Nickname -> String -> RemoteData AjaxError PubKey -> HTML p Action
+pickupNewWalletCard wallets newWalletNickname newWalletContractId remoteDataPubKey =
   let
-    nickname = view _nickname newWalletDetails
+    mNicknameError = nicknameError newWalletNickname wallets
 
-    contractId = view _contractId newWalletDetails
-
-    mNicknameError = nicknameError nickname wallets
-
-    mContractIdError = contractIdError contractId newWalletPubKey wallets
+    mContractIdError = contractIdError newWalletContractId remoteDataPubKey wallets
   in
     div_
       [ p
           [ classNames [ "font-bold", "mb-1" ] ]
-          [ text
-              $ case card of
-                  PickupNewWalletCard -> "Play wallet generated"
-                  PickupWalletCard _ -> "Play wallet " <> nickname
-          ]
+          [ text "Play wallet generated" ]
       , div
           [ classNames $ Css.hasNestedLabel <> [ "mb-1" ] ]
           $ [ label
@@ -85,21 +78,15 @@ pickupWalletCard wallets newWalletDetails newWalletPubKey card =
                 [ text "Nickname" ]
             , input
                 $ [ type_ InputText
-                  , classNames $ Css.input
-                      $ case card of
-                          PickupNewWalletCard -> isJust mNicknameError
-                          PickupWalletCard _ -> false
+                  , classNames $ Css.input $ isJust mNicknameError
                   , id_ "newWalletNickname"
                   , placeholder "Nickname"
-                  , value nickname
-                  , case card of
-                      PickupNewWalletCard -> onValueInput_ SetNewWalletNickname
-                      PickupWalletCard _ -> readOnly true
+                  , value newWalletNickname
+                  , onValueInput_ SetNewWalletNickname
                   ]
             , div
-                [ classNames Css.inputError ] case card of
-                PickupNewWalletCard -> [ text $ foldMap show mNicknameError ]
-                PickupWalletCard _ -> []
+                [ classNames Css.inputError ]
+                [ text $ foldMap show mNicknameError ]
             ]
       , div
           [ classNames $ Css.hasNestedLabel <> [ "mb-1" ] ]
@@ -112,7 +99,7 @@ pickupWalletCard wallets newWalletDetails newWalletPubKey card =
               [ type_ InputText
               , classNames $ Css.input false
               , id_ "newWalletKey"
-              , value contractId
+              , value newWalletContractId
               , readOnly true
               ]
           ]
@@ -125,14 +112,64 @@ pickupWalletCard wallets newWalletDetails newWalletPubKey card =
               [ text "Cancel" ]
           , button
               [ classNames $ Css.primaryButton <> [ "flex-1" ]
-              , disabled
-                  $ case card of
-                      PickupNewWalletCard -> isJust mNicknameError || isJust mContractIdError
-                      PickupWalletCard _ -> isJust mContractIdError
-              , onClick_
-                  $ case card of
-                      PickupNewWalletCard -> PickupNewWallet
-                      PickupWalletCard _ -> PickupWallet nickname
+              , disabled $ isJust mNicknameError || isJust mContractIdError
+              , onClick_ PickupNewWallet
+              ]
+              [ text "Pickup" ]
+          ]
+      ]
+
+pickupWalletCard :: forall p. WalletDetails -> HTML p Action
+pickupWalletCard walletDetails =
+  let
+    nickname = view _nickname walletDetails
+
+    contractId = view _contractId walletDetails
+  in
+    div_
+      [ p
+          [ classNames [ "font-bold", "mb-1" ] ]
+          [ text $ "Play wallet " <> nickname ]
+      , div
+          [ classNames $ Css.hasNestedLabel <> [ "mb-1" ] ]
+          $ [ label
+                [ classNames $ Css.nestedLabel
+                , for "nickname"
+                ]
+                [ text "Nickname" ]
+            , input
+                $ [ type_ InputText
+                  , classNames $ Css.input false
+                  , id_ "nickname"
+                  , value nickname
+                  , readOnly true
+                  ]
+            ]
+      , div
+          [ classNames $ Css.hasNestedLabel <> [ "mb-1" ] ]
+          [ label
+              [ classNames Css.nestedLabel
+              , for "walletId"
+              ]
+              [ text "Wallet ID" ]
+          , input
+              [ type_ InputText
+              , classNames $ Css.input false
+              , id_ "walletId"
+              , value $ view _contractId walletDetails
+              , readOnly true
+              ]
+          ]
+      , div
+          [ classNames [ "flex" ] ]
+          [ button
+              [ classNames $ Css.secondaryButton <> [ "flex-1", "mr-1" ]
+              , onClick_ $ SetCard Nothing
+              ]
+              [ text "Cancel" ]
+          , button
+              [ classNames $ Css.primaryButton <> [ "flex-1" ]
+              , onClick_ $ PickupWallet walletDetails
               ]
               [ text "Pickup" ]
           ]

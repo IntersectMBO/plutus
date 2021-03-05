@@ -27,16 +27,12 @@ import WalletData.Lenses (_contractId, _nickname)
 import WalletData.Types (Nickname, WalletDetails, WalletLibrary)
 import WalletData.Validation (contractIdError, nicknameError)
 
-newWalletCard :: forall p. WalletLibrary -> WalletDetails -> RemoteData AjaxError PubKey -> HTML p Action
-newWalletCard library newWalletDetails newWalletPubKey =
+newWalletCard :: forall p. WalletLibrary -> Nickname -> String -> RemoteData AjaxError PubKey -> HTML p Action
+newWalletCard library newWalletNickname newWalletContractId remoteDataPubKey =
   let
-    nickname = view _nickname newWalletDetails
+    mNicknameError = nicknameError newWalletNickname library
 
-    contractId = view _contractId newWalletDetails
-
-    mNicknameError = nicknameError nickname library
-
-    mContractIdError = contractIdError contractId newWalletPubKey library
+    mContractIdError = contractIdError newWalletContractId remoteDataPubKey library
   in
     div
       [ classNames [ "flex", "flex-col" ] ]
@@ -44,15 +40,15 @@ newWalletCard library newWalletDetails newWalletPubKey =
           [ classNames [ "mb-1" ] ]
           [ text "Create new contact" ]
       , div
-          [ classNames $ [ "mb-1" ] <> (applyWhen (not null nickname) Css.hasNestedLabel) ]
+          [ classNames $ [ "mb-1" ] <> (applyWhen (not null newWalletNickname) Css.hasNestedLabel) ]
           [ label
-              [ classNames $ Css.nestedLabel <> hideWhen (null nickname) ]
+              [ classNames $ Css.nestedLabel <> hideWhen (null newWalletNickname) ]
               [ text "Nickname" ]
           , input
               [ type_ InputText
               , classNames $ Css.input $ isJust mNicknameError
               , placeholder "Nickname"
-              , value nickname
+              , value newWalletNickname
               , onValueInput_ SetNewWalletNickname
               ]
           , div
@@ -60,15 +56,15 @@ newWalletCard library newWalletDetails newWalletPubKey =
               [ text $ foldMap show mNicknameError ]
           ]
       , div
-          [ classNames $ [ "mb-1" ] <> (applyWhen (not null contractId) Css.hasNestedLabel) ]
+          [ classNames $ [ "mb-1" ] <> (applyWhen (not null newWalletContractId) Css.hasNestedLabel) ]
           [ label
-              [ classNames $ Css.nestedLabel <> hideWhen (null contractId) ]
+              [ classNames $ Css.nestedLabel <> hideWhen (null newWalletContractId) ]
               [ text "Wallet ID" ]
           , input
               [ type_ InputText
               , classNames $ Css.input $ isJust mContractIdError
               , placeholder "Wallet ID"
-              , value contractId
+              , value newWalletContractId
               , onValueInput_ SetNewWalletContractId
               ]
           , div
@@ -85,7 +81,7 @@ newWalletCard library newWalletDetails newWalletPubKey =
           , button
               [ classNames $ Css.primaryButton <> [ "flex-1" ]
               , disabled $ isJust mNicknameError || isJust mContractIdError
-              , onClick_ AddNewWallet
+              , onClick_ $ AddNewWallet
               ]
               [ text "Save" ]
           ]

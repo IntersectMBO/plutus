@@ -15,7 +15,7 @@ type State
 
 data Card
   = PickupNewWalletCard
-  | PickupWalletCard Nickname
+  | PickupWalletCard WalletDetails
 
 derive instance eqCard :: Eq Card
 
@@ -36,5 +36,5 @@ instance actionIsEvent :: IsEvent Action where
   toEvent (LookupWallet _) = Nothing
   toEvent (SetNewWalletNickname _) = Nothing
   toEvent (SetNewWalletContractId _) = Nothing
-  toEvent PickupNewWallet = Just $ defaultEvent "PickupNewWallet"
+  toEvent PickupNewWallet = Just $ defaultEvent "PickupWallet"
   toEvent (PickupWallet _) = Just $ defaultEvent "PickupWallet"
