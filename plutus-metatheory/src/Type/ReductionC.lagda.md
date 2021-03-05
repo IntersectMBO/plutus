@@ -347,7 +347,8 @@ Reduction is intrinsically kind preserving. This doesn't require proof.
 
 ```
 infix 2 _—→⋆_
-infix 2 _—↠⋆_
+infix 2 _—→E_
+infix 2 _—↠E_
 
 data _—→⋆_ : ∀{J} → (∅ ⊢⋆ J) → (∅ ⊢⋆ J) → Set where
   β-ƛ : Value⋆ B
@@ -525,10 +526,29 @@ proj·r : {A : ∅ ⊢⋆ K ⇒ J}{A' : ∅ ⊢⋆ K' ⇒ J}{B : ∅ ⊢⋆ K}{B
   → (A · B) ≡ (A' · B') → ∃ λ (p : K' ≡ K) → subst (∅ ⊢⋆_) p B' ≡ B
 proj·r refl = refl , refl
 
-
 proj·l' : {A : ∅ ⊢⋆ K ⇒ J}{A' : ∅ ⊢⋆ K' ⇒ J}{B : ∅ ⊢⋆ K}{B' : ∅ ⊢⋆ K'}(p : (A · B) ≡ (A' · B')) → A ≡ subst (∅ ⊢⋆_) (sym (proj₁ (proj·l p)))  A'
 proj·l' refl = refl
 
+
+proj·l'' : {A : ∅ ⊢⋆ K ⇒ J}{A' : ∅ ⊢⋆ K' ⇒ J}{B : ∅ ⊢⋆ K}{B' : ∅ ⊢⋆ K'}(p : (A · B) ≡ (A' · B')) → subst (λ J₁ → ∅ ⊢⋆ J₁ ⇒ J) (proj₁ (proj·r p)) A' ≡ A
+proj·l'' refl = refl
+
+val-unique : ∀{A : ∅ ⊢⋆ K}(V V' : Value⋆ A) → V ≡ V'
+val-unique (V-Π N) (V-Π .N) = refl
+val-unique (V V-⇒ W) (V' V-⇒ W') =
+  cong₂ _V-⇒_ (val-unique V V') (val-unique W W') 
+val-unique (V-con tcn) (V-con .tcn) = refl
+val-unique (V-μ V W) (V-μ V' W') =
+  cong₂ V-μ (val-unique V V') (val-unique W W') 
+val-unique (V-ƛ N) (V-ƛ .N) = refl
+
+
+·r-cong : ∀{J J' K}(p : J ≡ J') → {A : ∅ ⊢⋆ J ⇒ K}{A' : ∅ ⊢⋆ J' ⇒ K}
+  (V : Value⋆ A)(V' : Value⋆ A')(E : EvalCtx J I) → 
+  (q : subst (λ J → ∅ ⊢⋆ J ⇒ K) p A ≡ A') →
+  V ·r E ≡ V' ·r subst (λ J → EvalCtx J I) p E
+·r-cong refl V V' E refl with val-unique V V'
+... | refl = refl
 
 subst-l⇒ : ∀ E B (p : J ≡ J') →  subst (EvalCtx *) p (E l⇒ B) ≡ subst (EvalCtx *) p E l⇒ B
 subst-l⇒ E B refl = refl
@@ -554,6 +574,11 @@ subst-l· : (E : EvalCtx (J ⇒ I) K)(B : ∅ ⊢⋆ J)(p : K ≡ K')
   → subst (EvalCtx I) p (E l· B) ≡ subst (EvalCtx (J ⇒ I)) p E l· B
 subst-l· E B refl = refl
 
+subst-r· : (E : EvalCtx I K){X : ∅ ⊢⋆ I ⇒ J}(V : Value⋆ X)(p : K ≡ K')
+  → subst (EvalCtx J) p (V ·r E) ≡ V ·r subst (EvalCtx I) p E
+subst-r· E B refl = refl
+
+
 subst-l·' : (E : EvalCtx (J ⇒ I) K)(B : ∅ ⊢⋆ J)(p : I ≡ I')
   → subst (λ I → EvalCtx I K) p (E l· B) ≡ subst (λ I → EvalCtx (J ⇒ I) K) p E l· B
 subst-l·' E B refl = refl
@@ -565,7 +590,6 @@ subst-l·'' : (E : EvalCtx (J ⇒ I) K)(B : ∅ ⊢⋆ J)(B' : ∅ ⊢⋆ J')
   → E l· B ≡ subst (λ J → EvalCtx J K) q E l· B'
 subst-l·'' E B B' refl refl refl = refl
 
-
 open Relation.Binary.PropositionalEquality
 cong₃ : {A : Set}{B : A → Set}{C D : Set}
       → (f : ∀ a (b : B a) → C → D) → {a a' : A}(p : a ≡ a')
@@ -573,20 +597,34 @@ cong₃ : {A : Set}{B : A → Set}{C D : Set}
       → {c c' : C} → c ≡ c' → f a b c ≡ f a' b' c'
 cong₃ f refl refl refl = refl
 
-val-unique : ∀{A : ∅ ⊢⋆ K}(V V' : Value⋆ A) → V ≡ V'
-val-unique (V-Π N) (V-Π .N) = refl
-val-unique (V V-⇒ W) (V' V-⇒ W') =
-  cong₂ _V-⇒_ (val-unique V V') (val-unique W W') 
-val-unique (V-con tcn) (V-con .tcn) = refl
-val-unique (V-μ V W) (V-μ V' W') =
-  cong₂ V-μ (val-unique V V') (val-unique W W') 
-val-unique (V-ƛ N) (V-ƛ .N) = refl
-
 subst-Val : ∀ {A : ∅ ⊢⋆ K}{A' : ∅ ⊢⋆ K'}
   → (p : K ≡ K') → subst (∅ ⊢⋆_) p A ≡ A' → Value⋆ A' → Value⋆ A
 subst-Val refl refl V = V
 
-
+-- postulate mu case for now, should be similar to arrow and application
+postulate
+ mu-case : ∀ M (M' : ∅ ⊢⋆ K) → Value⋆ (μ M M') ⊎
+  ¬ Value⋆ (μ M M') ×
+  ∃
+    (λ (J : Kind) →
+     ∃
+     (λ (E : EvalCtx * J) →
+        ∃
+        (λ (I : Kind) →
+           ∃
+           (λ (L : ∅ ⊢⋆ I ⇒ J) →
+              ∃
+              (λ N →
+                 Value⋆ L ×
+                 Value⋆ N ×
+                 μ M M' ≡ closeEvalCtx E (L · N) ×
+                 ((J' : Kind) (E' : EvalCtx * J') (I' : Kind) (L' : ∅ ⊢⋆ I' ⇒ J')
+                  (N' : ∅ ⊢⋆ I') →
+                  Value⋆ L' →
+                  Value⋆ N' →
+                  μ M M' ≡ closeEvalCtx E' (L' · N') →
+                  ∃ (λ p → subst (EvalCtx *) p E' ≡ E)))))))
+                  
 
 lemma51! : (M : ∅ ⊢⋆ K)
   → Value⋆ M
@@ -626,26 +664,18 @@ lemma51! (M · M') with lemma51! M
   (trans (proj·l' p)
    (subst-closeEvalCtx' E' (L' · N') (sym (proj₁ (proj·l p)))))))) ) (cong (_l· M') YY) })
 
-... | inj₁ VM = {!!}
-lemma51! (μ M M') = {!!}
+... | inj₁ VM with lemma51! M'
+... | inj₁ VM' =
+  inj₂ ((λ()) , _ , [] , _ , M , M' , VM , VM' , refl , λ{ J [] I L N VL VN p → refl , refl ; J (x ·r E) I L N VL VN p → ⊥-elim (lemV· (lem0 (L · N) E (subst-Val (proj₁ (proj·r p)) (proj₂ (proj·r p)) VM'))) ; J (E l· x) I L N VL VN p → ⊥-elim (lemV· (lem0 (L · N) E (subst-Val (proj₁ (proj·l (sym p))) (proj₂ (proj·l (sym p))) VM)))})
+... | inj₂ (¬VM' , J , E , I , L , N , VL , VN , refl , X) =
+  inj₂ ((λ()) , J , VM ·r E , I , L , N , VL , VN , refl , λ { J' [] I' L' N' VL' VN' p' → ⊥-elim (lemV· (lem0 (L · N) E (subst-Val (proj₁ (proj·r (sym p'))) (proj₂ (proj·r (sym p'))) VN')))  ; J' (x ·r E') I' L' N' VL' VN' p' → let (XX , YY) = X J' (subst (λ K → EvalCtx K J') (proj₁ (proj·r p')) E') I' L' N' VL' VN' (trans (sym (proj₂ (proj·r p'))) (subst-closeEvalCtx' E' (L' · N') (proj₁ (proj·r p')))) in XX , trans (trans (cong (subst (EvalCtx _) (proj₁
+ (X J' (subst (λ K₃ → EvalCtx K₃ J') (proj₁ (proj·r p')) E') I' L'
+  N' VL' VN'
+  (trans (sym (proj₂ (proj·r p')))
+   (subst-closeEvalCtx' E' (L' · N') (proj₁ (proj·r p'))))))) (·r-cong (proj₁ (proj·r p')) x VM E' (proj·l'' p'))) (subst-r· (subst (λ K₂ → EvalCtx K₂ J') (proj₁ (proj·r p')) E') VM XX)) (cong (VM ·r_) YY) ; J' (E' l· x) I' L' N' VL' VN' p' → ⊥-elim (lemV· (lem0 (L' · N') E' (subst-Val (proj₁ (proj·l (sym p'))) (proj₂ (proj·l (sym p'))) VM)))})
+lemma51! (μ M M') = mu-case M M'
 lemma51! (con x) = inj₁ (V-con x)
 
-{-
-lemma51' (M · M') with lemma51' M
-... | inj₂ (J , E , I , L , N , VL , VN , p) =
-  inj₂ (J , E l· M' , I , L , N , VL , VN , cong (_· M') p)
-... | inj₁ VM with lemma51' M'
-... | inj₂ (J , E , I , L , N , VL , VN , p) =
-  inj₂ (J , VM ·r E , I , L , N , VL , VN , cong (M ·_) p)
-... | inj₁ VM' = inj₂ (_ , [] , _ , M , M' , VM , VM' , refl)
-lemma51' (μ M M')  with lemma51' M
-... | inj₂ (J , E , I , L , N , VL , VN , p) =
-  inj₂ (J , μl E M' , I , L , N , VL , VN , cong (λ M → μ M M') p)
-... | inj₁ VM with lemma51' M'
-... | inj₂ (J , E , I , L , N , VL , VN , p) =
-  inj₂ (J , μr VM E , I , L , N , VL , VN , cong (μ M) p)
-... | inj₁ VM' = inj₁ (V-μ VM VM')
--}
 {-
 uniqueness : (A : ∅ ⊢⋆ K)
            → (B : ∅ ⊢⋆ J)(B' : ∅ ⊢⋆ J')
@@ -656,9 +686,8 @@ uniqueness : (A : ∅ ⊢⋆ K)
            → Σ (J ≡ J') λ p → subst (EvalCtx K) p E ≡ E' × subst (∅ ⊢⋆_) p B ≡ B'
 uniqueness = {!!}
 -}
-det : (p : A —→E B)(q : A —→E B') → B ≡ B'
-det (contextRule E p q r) (contextRule E' p' q' r') = {!!}
 {-
+det : (p : A —→E B)(q : A —→E B') → B ≡ B'
 det (contextRule [] p refl refl) C@(contextRule _ _ _ _) = det p C
 det C@(contextRule (_ ·r _) _ _ _) (contextRule [] q refl refl) = det C q
 det (contextRule (V ·r E) {A = B}{A' = B'} p x x') (contextRule (V' ·r E') {A = C}{A' = C'} q x'' x''')
