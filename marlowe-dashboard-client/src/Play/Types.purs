@@ -31,7 +31,7 @@ derive instance eqScreen :: Eq Screen
 
 data Card
   = CreateWalletCard
-  | ViewWalletCard Nickname String
+  | ViewWalletCard WalletDetails
   | PutdownWalletCard
   | TemplateLibraryCard
   | NewContractForRoleCard

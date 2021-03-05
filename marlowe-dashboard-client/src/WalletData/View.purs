@@ -87,58 +87,68 @@ newWalletCard library newWalletNickname newWalletContractId remoteDataPubKey =
           ]
       ]
 
-walletDetailsCard :: forall p a. Nickname -> String -> HTML p a
-walletDetailsCard nickname contractId =
-  div_
-    [ h3
-        [ classNames [ "font-bold", "mb-1" ] ]
-        [ text $ "Wallet " <> nickname ]
-    , div
-        [ classNames Css.hasNestedLabel ]
-        [ label
-            [ classNames Css.nestedLabel ]
-            [ text "Wallet ID" ]
-        , input
-            [ type_ InputText
-            , classNames $ Css.input false <> [ "mb-1" ]
-            , value contractId
-            , readOnly true
-            ]
-        ]
-    ]
+walletDetailsCard :: forall p a. WalletDetails -> HTML p a
+walletDetailsCard walletDetails =
+  let
+    nickname = view _nickname walletDetails
+
+    contractId = view _contractId walletDetails
+  in
+    div_
+      [ h3
+          [ classNames [ "font-bold", "mb-1" ] ]
+          [ text $ "Wallet " <> nickname ]
+      , div
+          [ classNames Css.hasNestedLabel ]
+          [ label
+              [ classNames Css.nestedLabel ]
+              [ text "Wallet ID" ]
+          , input
+              [ type_ InputText
+              , classNames $ Css.input false <> [ "mb-1" ]
+              , value contractId
+              , readOnly true
+              ]
+          ]
+      ]
 
 putdownWalletCard :: forall p. WalletDetails -> HTML p Action
 putdownWalletCard walletDetails =
-  div_
-    [ h3
-        [ classNames [ "font-bold", "mb-1" ] ]
-        [ text $ "Wallet " <> view _nickname walletDetails ]
-    , div
-        [ classNames Css.hasNestedLabel ]
-        [ label
-            [ classNames Css.nestedLabel ]
-            [ text "Wallet ID" ]
-        , input
-            [ type_ InputText
-            , classNames $ Css.input false <> [ "mb-1" ]
-            , value $ view _contractId walletDetails
-            , readOnly true
-            ]
-        ]
-    , div
-        [ classNames [ "flex" ] ]
-        [ button
-            [ classNames $ Css.secondaryButton <> [ "flex-1", "mr-1" ]
-            , onClick_ $ SetCard Nothing
-            ]
-            [ text "Cancel" ]
-        , button
-            [ classNames $ Css.primaryButton <> [ "flex-1" ]
-            , onClick_ PutdownWallet
-            ]
-            [ text "Drop wallet" ]
-        ]
-    ]
+  let
+    nickname = view _nickname walletDetails
+
+    contractId = view _contractId walletDetails
+  in
+    div_
+      [ h3
+          [ classNames [ "font-bold", "mb-1" ] ]
+          [ text $ "Wallet " <> nickname ]
+      , div
+          [ classNames Css.hasNestedLabel ]
+          [ label
+              [ classNames Css.nestedLabel ]
+              [ text "Wallet ID" ]
+          , input
+              [ type_ InputText
+              , classNames $ Css.input false <> [ "mb-1" ]
+              , value contractId
+              , readOnly true
+              ]
+          ]
+      , div
+          [ classNames [ "flex" ] ]
+          [ button
+              [ classNames $ Css.secondaryButton <> [ "flex-1", "mr-1" ]
+              , onClick_ $ SetCard Nothing
+              ]
+              [ text "Cancel" ]
+          , button
+              [ classNames $ Css.primaryButton <> [ "flex-1" ]
+              , onClick_ PutdownWallet
+              ]
+              [ text "Drop wallet" ]
+          ]
+      ]
 
 walletLibraryScreen :: forall p. WalletLibrary -> HTML p Action
 walletLibraryScreen library =
@@ -169,7 +179,7 @@ walletLibraryScreen library =
     in
       li
         [ classNames [ "mt-1", "hover:cursor-pointer", "hover:text-green" ]
-        , onClick_ $ ToggleCard $ ViewWalletCard nickname contractId
+        , onClick_ $ ToggleCard $ ViewWalletCard walletDetails
         ]
         [ text nickname ]
 

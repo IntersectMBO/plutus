@@ -114,7 +114,7 @@ renderMobileMenu menuOpen =
     ]
 
 renderCards :: forall p. WalletLibrary -> Nickname -> String -> RemoteData AjaxError PubKey -> Array ContractTemplate -> WalletDetails -> Maybe Card -> Contract.State -> HTML p Action
-renderCards wallets newWalletNickname newWalletContractId remoteDataPubKey templates walletDetails card contractState =
+renderCards wallets newWalletNickname newWalletContractId remoteDataPubKey templates currentWalletDetails card contractState =
   div
     [ classNames $ Css.cardWrapper $ isNothing card ]
     [ div
@@ -131,8 +131,8 @@ renderCards wallets newWalletNickname newWalletContractId remoteDataPubKey templ
             [ classNames [ "px-1", "pb-1" ] ]
             $ (flip foldMap card) \cardType -> case cardType of
                 CreateWalletCard -> [ newWalletCard wallets newWalletNickname newWalletContractId remoteDataPubKey ]
-                ViewWalletCard nickname contractId -> [ walletDetailsCard nickname contractId ]
-                PutdownWalletCard -> [ putdownWalletCard walletDetails ]
+                ViewWalletCard walletDetails -> [ walletDetailsCard walletDetails ]
+                PutdownWalletCard -> [ putdownWalletCard currentWalletDetails ]
                 TemplateLibraryCard -> [ TemplateAction <$> templateLibraryCard templates ]
                 NewContractForRoleCard -> []
                 ContractSetupConfirmationCard -> [ TemplateAction <$> contractSetupConfirmationCard ]
