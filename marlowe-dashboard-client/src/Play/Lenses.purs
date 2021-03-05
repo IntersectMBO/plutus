@@ -2,10 +2,10 @@ module Play.Lenses
   ( _walletDetails
   , _menuOpen
   , _templateState
-  , _contractState
+  , _contractsState
   ) where
 
-import Contract.Types (State) as Contract
+import ContractHome.Types (State) as ContractHome
 import Data.Lens (Lens')
 import Data.Lens.Record (prop)
 import Data.Symbol (SProxy(..))
@@ -22,5 +22,5 @@ _menuOpen = prop (SProxy :: SProxy "menuOpen")
 _templateState :: Lens' State Template.State
 _templateState = prop (SProxy :: SProxy "templateState")
 
-_contractState :: Lens' State Contract.State
-_contractState = prop (SProxy :: SProxy "contractState")
+_contractsState :: Lens' State ContractHome.State
+_contractsState = prop (SProxy :: SProxy "contractsState")

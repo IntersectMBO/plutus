@@ -1,4 +1,4 @@
-'use strict';
+"use strict";
 
 module.exports = {
   purge: [],
@@ -7,7 +7,7 @@ module.exports = {
     screens: {
       sm: "640px",
       md: "768px",
-      lg: "1024px"
+      lg: "1024px",
     },
     colors: {
       transparent: "transparent",
@@ -20,7 +20,7 @@ module.exports = {
       blue: "#4d48e1",
       lightblue: "#3688d5",
       red: "#de4c51",
-      transgray: "rgba(10,10,10,0.4)"
+      transgray: "rgba(10,10,10,0.4)",
     },
     spacing: {
       0: "0px",
@@ -32,7 +32,7 @@ module.exports = {
       2: "2rem",
       3: "3rem",
       12: "12rem",
-      22: "22rem"
+      22: "22rem",
     },
     fontSize: {
       xs: ["0.75rem", { lineHeight: "1rem" }],
@@ -40,24 +40,27 @@ module.exports = {
       base: ["1rem", { lineHeight: "1.5rem" }],
       lg: ["1.125rem", { lineHeight: "1.75rem" }],
       xl: ["1.5rem", { lineHeight: "1.75rem" }],
-      "2xl": ["2rem", { lineHeight: "1.75rem" }]
+      "2xl": ["2rem", { lineHeight: "1.75rem" }],
     },
     extend: {
       gridTemplateRows: {
-        main: "auto minmax(0, 1fr) auto"
-      }
-    }
+        main: "auto minmax(0, 1fr) auto",
+      },
+      boxShadow: {
+        deep: "0 2.5px 5px 0 rgba(0, 0, 0, 0.22)",
+      },
+    },
   },
   variants: {
     extend: {},
     backgroundColor: ["hover"],
     cursor: ["disabled", "hover"],
-    opacity: ["disabled"]
+    opacity: ["disabled"],
   },
   plugins: [],
   corePlugins: {
     container: false,
-    space: false,
+    space: true,
     divideWidth: false,
     divideColor: false,
     divideStyle: false,
@@ -94,8 +97,8 @@ module.exports = {
     justifyContent: true,
     justifySelf: false,
     flex: true,
-    flexGrow: false,
-    flexShrink: false,
+    flexGrow: true,
+    flexShrink: true,
     order: false,
     float: true,
     clear: false,
@@ -169,6 +172,6 @@ module.exports = {
     transitionTimingFunction: false,
     transitionDuration: true,
     transitionDelay: false,
-    animation: false
-  }
+    animation: false,
+  },
 };

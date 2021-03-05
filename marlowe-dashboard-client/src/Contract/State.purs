@@ -1,8 +1,8 @@
 module Contract.State
-  ( defaultState
-  , mkInitialState
-  , handleQuery
+  ( handleQuery
   , handleAction
+  , mkInitialState
+  , defaultState
   ) where
 
 import Prelude
@@ -24,20 +24,36 @@ import Foreign.JSON (unsafeStringify)
 import Halogen (HalogenM)
 import MainFrame.Types (ChildSlots, Msg)
 import Marlowe.Execution (NamedAction(..), _namedActions, _state, initExecution, merge, mkTx, nextState)
+import Marlowe.Extended (ContractType(..), MetaData)
 import Marlowe.Semantics (Contract(..), Slot, _minSlot)
 import Plutus.PAB.Webserver (postApiContractByContractinstanceidEndpointByEndpointname)
 
-defaultState :: State
-defaultState = mkInitialState zero Close
+-- I don't like having to provide emptyMetadata and default state
+-- for this component, but it is needed by the mapMaybeSubmodule in
+-- PlayState.
+emptyMetadata :: MetaData
+emptyMetadata =
+  { contractType: Escrow
+  , contractName: mempty
+  , contractDescription: mempty
+  , roleDescriptions: mempty
+  , slotParameterDescriptions: mempty
+  , valueParameterDescriptions: mempty
+  , choiceDescriptions: mempty
+  }
 
-mkInitialState :: Slot -> Contract -> State
-mkInitialState slot contract =
+defaultState :: State
+defaultState = mkInitialState zero Close emptyMetadata
+
+mkInitialState :: Slot -> Contract -> MetaData -> State
+mkInitialState slot contract metadata =
   { tab: Tasks
   , executionState: initExecution slot contract
   , side: Overview
   , confirmation: Nothing
   , contractId: Nothing
   , step: 0
+  , metadata
   }
 
 handleQuery :: forall a m. Query a -> HalogenM State Action ChildSlots Msg m (Maybe a)

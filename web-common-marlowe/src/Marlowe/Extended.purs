@@ -61,6 +61,19 @@ contractTypeInitials Swap = "S"
 
 contractTypeInitials ContractForDifferences = "CD"
 
+contractTypeName :: ContractType -> String
+contractTypeName Escrow = "Escrow"
+
+contractTypeName EscrowWithCollatoral = "Escrow with Collatoral"
+
+contractTypeName ZeroCouponBond = "Zero Coupon Bond"
+
+contractTypeName CouponBondGuaranteed = "Coupon Bond Guaranteed"
+
+contractTypeName Swap = "Swap"
+
+contractTypeName ContractForDifferences = "Contract for Differences"
+
 class ToCore a b where
   toCore :: a -> Maybe b
 

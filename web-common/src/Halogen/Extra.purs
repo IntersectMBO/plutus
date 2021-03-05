@@ -3,14 +3,13 @@ module Halogen.Extra where
 import Prelude
 import Control.Applicative.Free (hoistFreeAp)
 import Control.Monad.Free (hoistFree)
+import Control.Monad.State (get)
 import Data.Bifunctor (bimap)
 import Data.Foldable (for_)
 import Data.Lens (Lens', Traversal', preview, set, view)
-import Data.Lens.Extra (peruse)
-import Data.Maybe (fromMaybe)
+import Data.Maybe (Maybe, fromMaybe)
 import Data.Newtype (over)
 import Data.Tuple (Tuple(..))
-import Effect.Aff.Class (class MonadAff)
 import Effect.Class (class MonadEffect, liftEffect)
 import Effect.Uncurried (EffectFn1, runEffectFn1)
 import Halogen (ComponentHTML, HalogenF(..), HalogenM(..), RefLabel, getHTMLElementRef)
@@ -74,21 +73,24 @@ renderSubmodule lens wrapper renderer state = bimap (map wrapper) wrapper (rende
 -- | Halogen's `imapState` noted above. But for now, at least it works.
 mapMaybeSubmodule ::
   forall m state state' action action' slots msg.
-  MonadAff m =>
-  state ->
+  Functor m =>
   Traversal' state state' ->
   (action' -> action) ->
   state' ->
   HalogenM state' action' slots msg m Unit ->
   HalogenM state action slots msg m Unit
-mapMaybeSubmodule state traversal wrapper submoduleDefaultState submoduleHandleAction = do
-  mSubmoduleState <- peruse traversal
-  for_ mSubmoduleState \submoduleState ->
-    (Halogen.imapState subToMain mainToSub <<< mapAction wrapper) $ submoduleHandleAction
-  where
-  subToMain submoduleState = set traversal submoduleState state
+mapMaybeSubmodule traversal wrapper submoduleDefaultState submoduleHandleAction = do
+  state <- get
+  let
+    mSubmoduleState :: Maybe state'
+    mSubmoduleState = preview traversal state
 
-  mainToSub = fromMaybe submoduleDefaultState <<< preview traversal
+    subToMain :: state' -> state
+    subToMain submoduleState = set traversal submoduleState state
+
+    mainToSub :: state -> state'
+    mainToSub = fromMaybe submoduleDefaultState <<< preview traversal
+  Halogen.imapState subToMain mainToSub $ mapAction wrapper $ submoduleHandleAction
 
 foreign import scrollIntoView_ :: EffectFn1 HTMLElement Unit
 
