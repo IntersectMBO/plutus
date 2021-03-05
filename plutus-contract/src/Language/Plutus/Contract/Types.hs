@@ -290,9 +290,14 @@ mkResult ::
   forall w s e a.
   Monoid w
   => w
-  -> ((((Either e (Maybe (MultiRequestContStatus (Event s) (Handlers s) (SuspendedContractEffects w e (Event s)) a)), CheckpointKey), CheckpointStore), w), Seq (LogMessage Value))
+  -> ( Either e (Maybe (MultiRequestContStatus (Event s) (Handlers s) (SuspendedContractEffects w e (Event s)) a))
+     , CheckpointKey
+     , CheckpointStore
+     , w
+     , Seq (LogMessage Value)
+     )
   -> SuspendedContract w e (Event s) (Handlers s) a
-mkResult oldW ((((initialRes, cpKey), cpStore), w), newLogs) =
+mkResult oldW (initialRes, cpKey, cpStore, w, newLogs) =
   SuspendedContract
       { _resumableResult =
           ResumableResult
@@ -317,16 +322,18 @@ runSuspContractEffects ::
   => CheckpointKey
   -> CheckpointStore
   -> Eff (SuspendedContractEffects w e i) a
-  -> ((((Either e a, CheckpointKey), CheckpointStore), w), Seq (LogMessage Value)) -- FIXME
+  -> (Either e a, CheckpointKey, CheckpointStore, w, Seq (LogMessage Value))
 runSuspContractEffects cpKey cpStore =
-  run
+  flatten
+    . run
     . W.runWriter @(Seq (LogMessage Value))
     . interpret (handleLogWriter @Value @(Seq (LogMessage Value)) $ unto return)
     . W.runWriter @w
     . handleLogIgnore @CheckpointLogMsg
     . runState cpStore
     . runState cpKey
-    . E.runError @e
+    . E.runError @e where
+      flatten ((((e, k), s), w), l) = (e, k, s, w, l)
 
 -- | Run an action of @ContractEffs@ until it requests input for the first
 --   time, returning the 'SuspendedContract'
