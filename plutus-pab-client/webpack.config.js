@@ -36,7 +36,10 @@ module.exports = {
             },
             "/ws": {
                 target: 'ws://localhost:8080',
-                ws: true
+                ws: true,
+                onError(err) {
+                  console.log('Error with the WebSocket:', err);
+                }
             }
         }
     },
