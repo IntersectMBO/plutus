@@ -595,13 +595,3 @@ v-refl :  (A B : ∅ ⊢⋆ K)(V : Value⋆ A)(r : A —↠⋆ B)
 v-refl A .A V refl—↠⋆       = refl , refl
 v-refl A B V (trans—↠⋆ p q) = ⊥-elim (notboth A (V , _ , p)) 
 ```
-```
-variable J' : Kind
-
-one-step : (A B : ∅ ⊢⋆ K)(r : A —→⋆ B)
-         → (E : EvalCtx K J)(A' : ∅ ⊢⋆ J) → A ~ E ⟦ A' ⟧
-         → (E' : EvalCtx K J')(B' : ∅ ⊢⋆ J') → B ~ E' ⟦ B' ⟧
-         → Σ (∅ ⊢⋆ J') λ A'' → A'' —→⋆ B' → A ~ E' ⟦ A'' ⟧
-one-step A B (contextRule E₁ r x x₁) E A' p E' B' q = {!!}
-one-step .(ƛ _ · _) .(sub (sub-cons ` _) _) (β-ƛ x) E A' p E' B' q = {!!}
-```

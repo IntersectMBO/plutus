@@ -209,65 +209,32 @@ lem62 A .(μ A₁ B₁) E (μl E' B₁) (~μl .A A₁ .B₁ .E' x) = step*
   (lem62 A _ (extendEvalCtx E (μ- B₁)) E' x)
 
 
--- there are varous ways the E' can be related to E,
--- it coud be the same, it could be shorter, it could be an extension
--- but it is related in some way
-
+{-
 lem1 : (M : ∅ ⊢⋆ J)(B B' : ∅ ⊢⋆ K)(E : EvalCtx K J)
   → B ~ E ⟦ M ⟧ → B —→⋆ B'
   → Σ Kind λ J' → Σ (∅ ⊢⋆ J') λ N → Σ (EvalCtx K J') λ E'
   → B' ~ E' ⟦ N ⟧ × (E ▻ M) -→s (E' ▻ N)
   × Σ (∅ ⊢⋆ J') λ L →  (B ~ E' ⟦ L ⟧) × (L —→⋆ N)
-lem1 M B B' E p q = {!!} 
+-}
 
+{-
 unwind : (A : ∅ ⊢⋆ J)(A' : ∅ ⊢⋆ K)(E : EvalCtx K J) → A' ~ E ⟦ A ⟧ → (V : Value⋆ A') → (E ▻ A) -→s ([] ◅ V)
-unwind = {!!}
+-}
 
 -- thm2 follows from this stronger theorem
 
 
-
+{-
 thm1 : (A : ∅ ⊢⋆ J)(A' : ∅ ⊢⋆ K)(E : EvalCtx K J)
   → A' ~ E ⟦ A ⟧ → (B : ∅ ⊢⋆ K)(V : Value⋆ B) → A' —↠⋆ B -> (E ▻ A) -→s ([] ◅ V)
 thm1 A A' E p .A' V refl—↠⋆ = unwind A A' E p V
 thm1 A A' E p B V (trans—↠⋆ {B = B'} q r) with lemma51 B'
 ... | inj₂ (J , E' , I , L , N , VL , VN , X) = {!!}
--- ^ this means that B' is not a value (xor might be useful) and we have
--- a factoring of the term, with a place where beta should happen next
--- so what's next
--- lem62 is probably not used directly here, instead it is used in
--- the unnamed lemma
--- claims:
--- at least one step means, there exists an L...
--- there are only 4 cases
-
 ... | inj₁ V' with v-refl B' B V' r
--- ^ this means that r must be refl
 ... | refl , refl = step** {!!} (unwind {!!} {!!} {!!} {!!} V)
--- ^ so possibly we can unwind again...
 
-
-
-
-{-
-with lemma51 B'
-... | inj₁ V' = {!!}
--- ^ this means that r must be refl
--- ^ so possibly we can unwind again...
--- and we've already hit a value so we can probably generate the []<| V.
-... | inj₂ (J , E' , I , L , N , VL , VN , X) = {!lem62!}
--- ^ this means that we didn't hit a value (xor might be useful) and we have
--- a factoring of the term, with a place where beta should happen next
--- so what's next
--}
-{-
-let J' , N , E' , p' , p'' , L , X , Y = lem1 A A' B' E p x in step** p'' (thm1 A' B' E' p' B V q)
--}
-{-
-  let A' , E' , p' , p'' = lem1' A A' E B' p x in
-    step** p'' (thm1 A' B' E' p' _ _ q)
--}
 -- this is the result we want
 thm2 : (A B : ∅ ⊢⋆ K)(V : Value⋆ B) → A —↠⋆ B -> ([] ▻ A) -→s ([] ◅ V)
 thm2 A B V p = thm1 A A [] (~[] A) B V p
+-}
 ```

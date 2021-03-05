@@ -681,79 +681,11 @@ uniqueness : (A : ∅ ⊢⋆ K)
            → (B : ∅ ⊢⋆ J)(B' : ∅ ⊢⋆ J')
            → (E : EvalCtx K J)(E' : EvalCtx K J')
            → A ≡ closeEvalCtx E B
-           → A ≡ closeEvalCtx E' B'
+           → A ≡ closeEvalCtx E' B'           
+           → Σ (J ≡ J') λ p → subst (EvalCtx K) p E ≡ E' × subst (∅ ⊢⋆_) p B ≡ -}
            
-           → Σ (J ≡ J') λ p → subst (EvalCtx K) p E ≡ E' × subst (∅ ⊢⋆_) p B ≡ B'
-uniqueness = {!!}
--}
 {-
 det : (p : A —→E B)(q : A —→E B') → B ≡ B'
-det (contextRule [] p refl refl) C@(contextRule _ _ _ _) = det p C
-det C@(contextRule (_ ·r _) _ _ _) (contextRule [] q refl refl) = det C q
-det (contextRule (V ·r E) {A = B}{A' = B'} p x x') (contextRule (V' ·r E') {A = C}{A' = C'} q x'' x''')
-  with closeEvalCtx E B
-  | inspect (closeEvalCtx E) B
-  | closeEvalCtx E B'
-  | inspect (closeEvalCtx E) B'
-  | closeEvalCtx E' C
-  | inspect (closeEvalCtx E') C
-  | closeEvalCtx E' C'
-  | inspect (closeEvalCtx E') C'
-det (contextRule (V ·r E) p refl refl) (contextRule (V' ·r E') q refl refl)
-  | r
-  | blah x
-  | r'
-  | blah x'
-  | .r
-  | blah x''
-  | r'''
-  | blah x''' = cong
-    (_ ·_)
-    (det (contextRule E p (sym x) (sym x'))
-         (contextRule E' q (sym x'') (sym x''')))
-det (contextRule (x₄ ·r E) p x x₁) (contextRule (E₁ l· x₅) q x₂ x₃) = {!!}
-det (contextRule (x₄ ·r E) p x x₁) (contextRule (x₅ ⇒r E₁) q x₂ x₃) = {!!}
-det (contextRule (x₄ ·r E) p x x₁) (contextRule (E₁ l⇒ x₅) q x₂ x₃) = {!!}
-det (contextRule (x₄ ·r E) p x x₁) (contextRule (μr x₅ E₁) q x₂ x₃) = {!!}
-det (contextRule (x₄ ·r E) p x x₁) (contextRule (μl E₁ B) q x₂ x₃) = {!!}
-det (contextRule (E l· x₄) p x x₁) (contextRule [] q x₂ x₃) = {!!}
-det (contextRule (E l· x₄) p x x₁) (contextRule (x₅ ·r E₁) q x₂ x₃) = {!!}
-det (contextRule (E l· x₄) p x x₁) (contextRule (E₁ l· x₅) q x₂ x₃) = {!!}
-det (contextRule (E l· x₄) p x x₁) (contextRule (x₅ ⇒r E₁) q x₂ x₃) = {!!}
-det (contextRule (E l· x₄) p x x₁) (contextRule (E₁ l⇒ x₅) q x₂ x₃) = {!!}
-det (contextRule (E l· x₄) p x x₁) (contextRule (μr x₅ E₁) q x₂ x₃) = {!!}
-det (contextRule (E l· x₄) p x x₁) (contextRule (μl E₁ B) q x₂ x₃) = {!!}
-det (contextRule (x₄ ⇒r E) p x x₁) (contextRule [] q x₂ x₃) = {!!}
-det (contextRule (x₄ ⇒r E) p x x₁) (contextRule (x₅ ·r E₁) q x₂ x₃) = {!!}
-det (contextRule (x₄ ⇒r E) p x x₁) (contextRule (E₁ l· x₅) q x₂ x₃) = {!!}
-det (contextRule (x₄ ⇒r E) p x x₁) (contextRule (x₅ ⇒r E₁) q x₂ x₃) = {!!}
-det (contextRule (x₄ ⇒r E) p x x₁) (contextRule (E₁ l⇒ x₅) q x₂ x₃) = {!!}
-det (contextRule (x₄ ⇒r E) p x x₁) (contextRule (μr x₅ E₁) q x₂ x₃) = {!!}
-det (contextRule (x₄ ⇒r E) p x x₁) (contextRule (μl E₁ B) q x₂ x₃) = {!!}
-det (contextRule (E l⇒ x₄) p x x₁) (contextRule [] q x₂ x₃) = {!!}
-det (contextRule (E l⇒ x₄) p x x₁) (contextRule (x₅ ·r E₁) q x₂ x₃) = {!!}
-det (contextRule (E l⇒ x₄) p x x₁) (contextRule (E₁ l· x₅) q x₂ x₃) = {!!}
-det (contextRule (E l⇒ x₄) p x x₁) (contextRule (x₅ ⇒r E₁) q x₂ x₃) = {!!}
-det (contextRule (E l⇒ x₄) p x x₁) (contextRule (E₁ l⇒ x₅) q x₂ x₃) = {!!}
-det (contextRule (E l⇒ x₄) p x x₁) (contextRule (μr x₅ E₁) q x₂ x₃) = {!!}
-det (contextRule (E l⇒ x₄) p x x₁) (contextRule (μl E₁ B) q x₂ x₃) = {!!}
-det (contextRule (μr x₄ E) p x x₁) (contextRule [] q x₂ x₃) = {!!}
-det (contextRule (μr x₄ E) p x x₁) (contextRule (x₅ ·r E₁) q x₂ x₃) = {!!}
-det (contextRule (μr x₄ E) p x x₁) (contextRule (E₁ l· x₅) q x₂ x₃) = {!!}
-det (contextRule (μr x₄ E) p x x₁) (contextRule (x₅ ⇒r E₁) q x₂ x₃) = {!!}
-det (contextRule (μr x₄ E) p x x₁) (contextRule (E₁ l⇒ x₅) q x₂ x₃) = {!!}
-det (contextRule (μr x₄ E) p x x₁) (contextRule (μr x₅ E₁) q x₂ x₃) = {!!}
-det (contextRule (μr x₄ E) p x x₁) (contextRule (μl E₁ B) q x₂ x₃) = {!!}
-det (contextRule (μl E B) p x x₁) (contextRule [] q x₂ x₃) = {!!}
-det (contextRule (μl E B) p x x₁) (contextRule (x₄ ·r E₁) q x₂ x₃) = {!!}
-det (contextRule (μl E B) p x x₁) (contextRule (E₁ l· x₄) q x₂ x₃) = {!!}
-det (contextRule (μl E B) p x x₁) (contextRule (x₄ ⇒r E₁) q x₂ x₃) = {!!}
-det (contextRule (μl E B) p x x₁) (contextRule (E₁ l⇒ x₄) q x₂ x₃) = {!!}
-det (contextRule (μl E B) p x x₁) (contextRule (μr x₄ E₁) q x₂ x₃) = {!!}
-det (contextRule (μl E B) p x x₁) (contextRule (μl E₁ B₁) q x₂ x₃) = {!!}
-det (contextRule E p x x₁) (β-ƛ x₂) = {!!}
-det (β-ƛ x) (contextRule E q x₁ x₂) = {!!}
-det (β-ƛ x) (β-ƛ x₁) = {!!}
 -}
 ```
 
