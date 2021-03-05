@@ -1,6 +1,6 @@
 { crossSystem ? null
 , system ? builtins.currentSystem
-, config ? { allowUnfreePredicate = (import ./lib.nix).unfreePredicate; }
+, config ? { allowUnfreePredicate = (import ./nix/lib/unfree.nix).unfreePredicate; }
 , rev ? "in-nix-shell"
 , sourcesOverride ? { }
 , packages ? import ./. { inherit crossSystem config sourcesOverride rev enableHaskellProfiling; }
@@ -66,7 +66,6 @@ let
     fixStylishHaskell
     haskell-language-server
     hie-bios
-    gen-hie
     hlint
     marlowe-dashboard.generate-purescript
     marlowe-playground.generate-purescript
@@ -80,7 +79,6 @@ let
     spago
     stylish-haskell
     updateMaterialized
-    updateHie
     updateClientDeps
     updateMetadataSamples
     deployment.getCreds

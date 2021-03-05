@@ -8,7 +8,7 @@
 
 { system ? builtins.currentSystem
 , crossSystem ? null
-, config ? { allowUnfreePredicate = (import ./lib.nix).unfreePredicate; }
+, config ? { allowUnfreePredicate = (import ./nix/lib/unfree.nix).unfreePredicate; }
   # Overrides for niv
 , sourcesOverride ? { }
 , packages ? import ./nix { inherit system crossSystem config sourcesOverride rev checkMaterialization enableHaskellProfiling; }

@@ -68,14 +68,7 @@ The `nix-shell` environment has a `haskell-language-server` binary for the right
 
 IMPORTANT: this binary is called `haskell-language-server` not `haskell-language-server-wrapper`, which is what some of the editor integrations expect.
 
-Depending on your setup, symlink either `hie-cabal.yaml` or `hie-stack.yaml` to `hie.yaml`.
-
-[[update-hie]]
-==== How to update `hie-*.yaml`
-
-The `hie-*.yaml` files define the "cradle" setup for HLS, which tells it how to load the various components, depending on which build system we're using.
-This is annoyingly manual, and hopefully will improve in the future, but for now, please do try and update them when you change the set of components.
-You can find some documentation in the [hie-bios](https://github.com/mpickering/hie-bios) repository.
+We don't have a `hie.yaml`, the implicit cradle support in HLS seems to work fine these days.
 
 [[update-generated]]
 === How to update the generated Haskell package set
