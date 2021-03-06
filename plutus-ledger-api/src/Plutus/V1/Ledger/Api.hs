@@ -5,8 +5,9 @@
 The interface to Plutus V1 for the ledger.
 -}
 module Plutus.V1.Ledger.Api (
+    Script
     -- * Validating scripts
-    validateScript
+    , validateScript
     -- * Running scripts
     , evaluateScriptRestricting
     , evaluateScriptCounting
