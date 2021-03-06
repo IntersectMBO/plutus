@@ -12,7 +12,7 @@ module Type.CC where
 ```
 open import Type
 open import Type.RenamingSubstitution
-open import Type.ReductionC hiding (step)
+open import Type.ReductionCI hiding (step)
 
 open import Data.Product
 ```
@@ -128,15 +128,13 @@ step** : {s : State K J}{s' : State K I}{s'' : State K I'}
 step** base q = q
 step** (step* x p) q = step* x (step** p q)
 
-variable J' : Kind
+variable J' K' : Kind
 
 subst-step* : {s : State K J}{s' : State K J'}{s'' : State K I}
         → _≡_ {A = Σ Kind (State K)} (J , s) (J' , s')
         → s' -→s s''
         → s -→s s''
 subst-step* refl q = q
-
-variable K' : Kind
 
 helper·-lem : ∀(E : EvalCtx K J)(E' : EvalCtx K' I) B {A' : ∅ ⊢⋆ K' ⇒ J}(V : Value⋆ A') → 
    helper V (dissect (extendEvalCtx E (-· B))) ≡ (K' , extendEvalCtx E (V ·-) ▻ B)
@@ -210,29 +208,30 @@ lem62 A .(μ A₁ B₁) E (μl E' B₁) (~μl .A A₁ .B₁ .E' x) = step*
   refl
   (lem62 A _ (extendEvalCtx E (μ- B₁)) E' x)
 
+
 {-
-lem1 : (A : ∅ ⊢⋆ J)(B : ∅ ⊢⋆ K)(E : EvalCtx K J)
-       (A' : ∅ ⊢⋆ J)(B' : ∅ ⊢⋆ K)(E' : EvalCtx K J)
-  → B ~ E ⟦ A ⟧ → B' ~ E' ⟦ A' ⟧ → B —→⋆ B' -> (E ▻ A) -→s (E' ▻ A')
-lem1 A B E A' B' E' p q r = {!!}
+lem1 : (M : ∅ ⊢⋆ J)(B B' : ∅ ⊢⋆ K)(E : EvalCtx K J)
+  → B ~ E ⟦ M ⟧ → B —→⋆ B'
+  → Σ Kind λ J' → Σ (∅ ⊢⋆ J') λ N → Σ (EvalCtx K J') λ E'
+  → B' ~ E' ⟦ N ⟧ × (E ▻ M) -→s (E' ▻ N)
+  × Σ (∅ ⊢⋆ J') λ L →  (B ~ E' ⟦ L ⟧) × (L —→⋆ N)
+-}
 
-lem1' : (A : ∅ ⊢⋆ J)(B : ∅ ⊢⋆ K)(E : EvalCtx K J)
-       (B' : ∅ ⊢⋆ K) → B ~ E ⟦ A ⟧ → B —→⋆ B' →
-       Σ (∅ ⊢⋆ J) λ A' → Σ (EvalCtx K J) λ E' →  B' ~ E' ⟦ A' ⟧ ×(E ▻ A) -→s (E' ▻ A')
-lem1' A B E B' p (contextRule E₁ q x x₁) = {!lem1 !}
-lem1' A .(ƛ _ · _) E .(sub (sub-cons ` _) _) p (β-ƛ x) = -, -, -, {!!}
-
-
+{-
 unwind : (A : ∅ ⊢⋆ J)(A' : ∅ ⊢⋆ K)(E : EvalCtx K J) → A' ~ E ⟦ A ⟧ → (V : Value⋆ A') → (E ▻ A) -→s ([] ◅ V)
-unwind = {!!}
+-}
 
 -- thm2 follows from this stronger theorem
+
+
+{-
 thm1 : (A : ∅ ⊢⋆ J)(A' : ∅ ⊢⋆ K)(E : EvalCtx K J)
   → A' ~ E ⟦ A ⟧ → (B : ∅ ⊢⋆ K)(V : Value⋆ B) → A' —↠⋆ B -> (E ▻ A) -→s ([] ◅ V)
 thm1 A A' E p .A' V refl—↠⋆ = unwind A A' E p V
-thm1 A A' E p B V (trans—↠⋆ {B = B'} x q) =
-  let A' , E' , p' , p'' = lem1' A A' E B' p x in
-    step** p'' (thm1 A' B' E' p' _ _ q)
+thm1 A A' E p B V (trans—↠⋆ {B = B'} q r) with lemma51 B'
+... | inj₂ (J , E' , I , L , N , VL , VN , X) = {!!}
+... | inj₁ V' with v-refl B' B V' r
+... | refl , refl = step** {!!} (unwind {!!} {!!} {!!} {!!} V)
 
 -- this is the result we want
 thm2 : (A B : ∅ ⊢⋆ K)(V : Value⋆ B) → A —↠⋆ B -> ([] ▻ A) -→s ([] ◅ V)

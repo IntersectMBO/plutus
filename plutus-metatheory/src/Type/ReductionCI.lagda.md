@@ -148,6 +148,52 @@ close-comp (E l⇒ B) E' A = cong (_⇒ B) (close-comp E E' A)
 close-comp (μr V E) E' A = cong (μ (discharge V)) (close-comp E E' A)
 close-comp (μl E B) E' A = cong (λ E → μ E B) (close-comp E E' A)
 
+open import Data.Sum
+
+-- Lemma 5.1 from the book
+-- existence
+
+-- I haven't proved uniqueness yet..
+
+-- might we need uniqueness of just E the other stuff too (certainly
+-- they are unique but are they needed?)
+
+lemma51 : (M : ∅ ⊢⋆ K)
+  → Value⋆ M
+  ⊎ Σ Kind λ J →
+    Σ (EvalCtx K J) λ E →
+    Σ Kind λ I → 
+    Σ (∅ ⊢⋆ I ⇒ J)  λ L →
+    Σ (∅ ⊢⋆ I)      λ N →
+      Value⋆ L
+    × Value⋆ N
+    × M ≡ closeEvalCtx E (L · N)
+lemma51 (Π M)    = inj₁ (V-Π M)
+lemma51 (M ⇒ M') with lemma51 M
+... | inj₂ (J , E , I , L , N , VL , VN , p) =
+  inj₂ (J , E l⇒ M' , I , L , N , VL , VN , cong (_⇒ M') p)
+... | inj₁ VM with lemma51 M'
+... | inj₂ (J , E , I , L , N , VL , VN , p) =
+  inj₂ (J , VM ⇒r E , I , L , N , VL , VN , cong (M ⇒_) p)
+... | inj₁ VM' = inj₁ (VM V-⇒ VM')
+lemma51 (ƛ M)    = inj₁ (V-ƛ M)
+lemma51 (M · M') with lemma51 M
+... | inj₂ (J , E , I , L , N , VL , VN , p) =
+  inj₂ (J , E l· M' , I , L , N , VL , VN , cong (_· M') p)
+... | inj₁ VM with lemma51 M'
+... | inj₂ (J , E , I , L , N , VL , VN , p) =
+  inj₂ (J , VM ·r E , I , L , N , VL , VN , cong (M ·_) p)
+... | inj₁ VM' = inj₂ (_ , [] , _ , M , M' , VM , VM' , refl)
+lemma51 (μ M M')  with lemma51 M
+... | inj₂ (J , E , I , L , N , VL , VN , p) =
+  inj₂ (J , μl E M' , I , L , N , VL , VN , cong (λ M → μ M M') p)
+... | inj₁ VM with lemma51 M'
+... | inj₂ (J , E , I , L , N , VL , VN , p) =
+  inj₂ (J , μr VM E , I , L , N , VL , VN , cong (μ M) p)
+... | inj₁ VM' = inj₁ (V-μ VM VM')
+lemma51 (con c)  = inj₁ (V-con c)
+
+
 -- an inductive version of the graph of closeEvalCtx
 data _~_⟦_⟧ : ∅ ⊢⋆ K → EvalCtx K J → ∅ ⊢⋆ J → Set where
   ~[] : (P : ∅ ⊢⋆ K) → P ~ [] ⟦ P ⟧
@@ -541,4 +587,11 @@ det (β-ƛ x) (contextRule [] q (~[] .(ƛ _ · _)) (~[] _)) = det (β-ƛ x) q
 det (β-ƛ x) (contextRule (x₃ ·r E) q (~·r _ .x₃ _ .E x₁) (~·r _ .x₃ B .E x₂)) = ⊥-elim (notboth _ (lem0 _ _ _ x₁ x , _ , q))
 det (β-ƛ x) (contextRule (E l· x₃) q (~l· _ .(ƛ _) .x₃ _ x₁) (~l· _ A .x₃ _ x₂)) = ⊥-elim (notboth _ (lem0 _ _ _ x₁ (V-ƛ _) , _ , q))
 det (β-ƛ x) (β-ƛ x₁) = refl
+```
+
+```
+v-refl :  (A B : ∅ ⊢⋆ K)(V : Value⋆ A)(r : A —↠⋆ B)
+  → Σ (A ≡ B) λ p → subst (_—↠⋆ _)p r ≡ refl—↠⋆
+v-refl A .A V refl—↠⋆       = refl , refl
+v-refl A B V (trans—↠⋆ p q) = ⊥-elim (notboth A (V , _ , p)) 
 ```
