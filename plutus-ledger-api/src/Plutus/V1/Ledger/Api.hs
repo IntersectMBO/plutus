@@ -11,6 +11,8 @@ module Plutus.V1.Ledger.Api (
     -- * Running scripts
     , evaluateScriptRestricting
     , evaluateScriptCounting
+    -- * Serialising scripts
+    , plutusScriptEnvelopeType
     -- * Data
     , Data (..)
     , IsData (..)
@@ -90,6 +92,9 @@ import           Plutus.V1.Ledger.Interval
 import           Plutus.V1.Ledger.Scripts                           hiding (Script)
 import qualified Plutus.V1.Ledger.Scripts                           as Scripts
 import           Plutus.V1.Ledger.Slot
+
+plutusScriptEnvelopeType :: Text.Text
+plutusScriptEnvelopeType = "PlutusV1Script"
 
 {- Note [Abstract types in the ledger API]
 We need to support old versions of the ledger API as we update the code that it depends on. You
