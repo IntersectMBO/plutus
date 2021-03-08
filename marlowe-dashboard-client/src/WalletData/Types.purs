@@ -1,20 +1,22 @@
 module WalletData.Types
   ( WalletLibrary
-  , WalletNicknameKey
+  , Nickname
   , WalletDetails
   ) where
 
-import Data.Tuple (Tuple)
 import Data.Map (Map)
-import Marlowe.Semantics (PubKey)
+import Data.Maybe (Maybe)
+import Marlowe.Semantics (Assets, PubKey)
 
 type WalletLibrary
-  = Map WalletNicknameKey WalletDetails
+  = Map Nickname WalletDetails
 
--- make the nickname (string) the first key so we get alphabetical ordering for free
-type WalletNicknameKey
-  = Tuple String PubKey
+type Nickname
+  = String
 
 type WalletDetails
-  = { userHasPickedUp :: Boolean
+  = { nickname :: Nickname
+    , contractId :: String
+    , pubKey :: PubKey
+    , balance :: Maybe (Array Assets)
     }

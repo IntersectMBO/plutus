@@ -15,9 +15,7 @@ module Template.Validation
 import Prelude
 import Data.BigInteger (BigInteger)
 import Data.Map (Map, isEmpty, mapMaybe, member)
-import Data.Map.Extra (mapIndex)
 import Data.Maybe (Maybe(..))
-import Data.Tuple (fst)
 import WalletData.Types (WalletLibrary)
 
 data RoleError
@@ -41,8 +39,8 @@ instance showParameterError :: Show ParameterError where
 roleError :: String -> WalletLibrary -> Maybe RoleError
 roleError "" _ = Just EmptyNickname
 
-roleError nickname wallets =
-  if member nickname $ mapIndex fst wallets then
+roleError nickname library =
+  if member nickname library then
     Nothing
   else
     Just NonExistentNickname

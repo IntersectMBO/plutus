@@ -31,7 +31,7 @@ contractsScreen contractStatus =
         [ span
             [ classNames [ "mr-0.5" ] ]
             [ text "New" ]
-        , Icon.libraryAdd
+        , Icon.add
         ]
     ]
 

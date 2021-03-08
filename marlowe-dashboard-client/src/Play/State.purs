@@ -23,16 +23,16 @@ import MainFrame.Types (Action(..), State) as MainFrame
 import MainFrame.Types (ChildSlots, Msg)
 import Marlowe.Execution (_contract)
 import Marlowe.Extended (fillTemplate, toCore)
-import Marlowe.Semantics (PubKey)
 import Play.Lenses (_contractState, _menuOpen, _templateState)
 import Play.Types (Action(..), Card(..), ContractStatus(..), Screen(..), State)
 import Template.Lenses (_extendedContract, _template, _templateContent)
 import Template.State (defaultState, handleAction, mkInitialState) as Template
 import Template.Types (Action(..), Screen(..)) as Template
+import WalletData.Types (WalletDetails)
 
-mkInitialState :: PubKey -> State
-mkInitialState pubKeyHash =
-  { wallet: pubKeyHash
+mkInitialState :: WalletDetails -> State
+mkInitialState walletDetails =
+  { walletDetails: walletDetails
   , menuOpen: false
   , screen: ContractsScreen Running
   , card: Nothing

@@ -1,21 +1,25 @@
 module WalletData.Lenses
   ( _nickname
-  , _key
-  , _userHasPickedUp
+  , _contractId
+  , _balance
+  , _pubKey
   ) where
 
 import Data.Lens (Lens')
-import Data.Lens.Lens.Tuple (_1, _2)
 import Data.Lens.Record (prop)
+import Data.Maybe (Maybe)
 import Data.Symbol (SProxy(..))
-import Marlowe.Semantics (PubKey)
-import WalletData.Types (WalletDetails, WalletNicknameKey)
+import Marlowe.Semantics (Assets, PubKey)
+import WalletData.Types (Nickname, WalletDetails)
 
-_nickname :: Lens' WalletNicknameKey String
-_nickname = _1
+_nickname :: Lens' WalletDetails Nickname
+_nickname = prop (SProxy :: SProxy "nickname")
 
-_key :: Lens' WalletNicknameKey PubKey
-_key = _2
+_pubKey :: Lens' WalletDetails PubKey
+_pubKey = prop (SProxy :: SProxy "pubKey")
 
-_userHasPickedUp :: Lens' WalletDetails Boolean
-_userHasPickedUp = prop (SProxy :: SProxy "userHasPickedUp")
+_contractId :: forall r. Lens' { contractId :: String | r } String
+_contractId = prop (SProxy :: SProxy "contractId")
+
+_balance :: Lens' WalletDetails (Maybe (Array Assets))
+_balance = prop (SProxy :: SProxy "balance")

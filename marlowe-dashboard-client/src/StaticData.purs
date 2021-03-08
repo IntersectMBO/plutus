@@ -1,12 +1,12 @@
 module StaticData
-  ( walletsLocalStorageKey
-  , walletLocalStorageKey
+  ( walletLibraryLocalStorageKey
+  , walletDetailsLocalStorageKey
   ) where
 
 import LocalStorage (Key(..))
 
-walletsLocalStorageKey :: Key
-walletsLocalStorageKey = Key "wallets"
+walletLibraryLocalStorageKey :: Key
+walletLibraryLocalStorageKey = Key "walletLibrary"
 
-walletLocalStorageKey :: Key
-walletLocalStorageKey = Key "wallet"
+walletDetailsLocalStorageKey :: Key
+walletDetailsLocalStorageKey = Key "walletDetails"

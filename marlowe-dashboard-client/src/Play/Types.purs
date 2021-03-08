@@ -10,12 +10,11 @@ import Prelude
 import Analytics (class IsEvent, defaultEvent, toEvent)
 import Contract.Types (Action, State) as Contract
 import Data.Maybe (Maybe(..))
-import Marlowe.Semantics (PubKey)
+import WalletData.Types (Nickname, WalletDetails)
 import Template.Types (Action, Screen, State) as Template
-import WalletData.Types (WalletDetails, WalletNicknameKey)
 
 type State
-  = { wallet :: PubKey
+  = { walletDetails :: WalletDetails
     , menuOpen :: Boolean
     , screen :: Screen
     , card :: Maybe Card
@@ -32,7 +31,7 @@ derive instance eqScreen :: Eq Screen
 
 data Card
   = CreateWalletCard
-  | ViewWalletCard WalletNicknameKey WalletDetails
+  | ViewWalletCard WalletDetails
   | PutdownWalletCard
   | TemplateLibraryCard
   | NewContractForRoleCard
@@ -49,8 +48,8 @@ derive instance eqContractStatus :: Eq ContractStatus
 
 data Action
   = PutdownWallet
-  | SetNewWalletNickname String
-  | SetNewWalletKey PubKey
+  | SetNewWalletNickname Nickname
+  | SetNewWalletContractId String
   | AddNewWallet
   | ToggleMenu
   | SetScreen Screen
@@ -64,7 +63,7 @@ data Action
 instance actionIsEvent :: IsEvent Action where
   toEvent PutdownWallet = Just $ defaultEvent "PutdownWallet"
   toEvent (SetNewWalletNickname _) = Just $ defaultEvent "SetNewWalletNickname"
-  toEvent (SetNewWalletKey _) = Just $ defaultEvent "SetNewWalletKey"
+  toEvent (SetNewWalletContractId _) = Just $ defaultEvent "SetNewWalletContractId"
   toEvent AddNewWallet = Just $ defaultEvent "AddNewWallet"
   toEvent ToggleMenu = Just $ defaultEvent "ToggleMenu"
   toEvent (SetScreen _) = Just $ defaultEvent "SetScreen"
