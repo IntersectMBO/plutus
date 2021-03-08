@@ -14,14 +14,14 @@ import Data.Map (toUnfoldable) as Map
 import Data.Maybe (Maybe(..), fromMaybe, isJust)
 import Data.Set (toUnfoldable) as Set
 import Data.Tuple.Nested ((/\))
-import Halogen.HTML (HTML, a, button, div, div_, h2, h3, input, label, li, p_, span, span_, text, ul, ul_)
+import Halogen.HTML (HTML, a, button, div, div_, h2, input, label, li, p_, span, span_, text, ul, ul_)
 import Halogen.HTML.Events.Extra (onClick_, onValueInput_)
 import Halogen.HTML.Properties (InputType(..), enabled, for, id_, list, min, placeholder, readOnly, type_, value)
-import Marlowe.Extended (Contract, IntegerTemplateType(..), TemplateContent, _slotContent, _valueContent, getParties)
+import Marlowe.Extended (Contract, ContractTemplate, IntegerTemplateType(..), MetaData, TemplateContent, _slotContent, _valueContent, contractTypeInitials, getParties)
 import Marlowe.Semantics (PubKey, Party(..))
 import Material.Icons as Icon
 import Template.Lenses (_contractNickname, _extendedContract, _metaData, _roleWallets, _template, _templateContent)
-import Template.Types (Action(..), Screen(..), MetaData, State, Template)
+import Template.Types (Action(..), Screen(..), State)
 import Template.Validation (roleError, roleWalletsAreValid, slotError, valueError)
 import WalletData.Types (WalletLibrary)
 import WalletData.View (nicknamesDataList)
@@ -220,7 +220,7 @@ contractReviewScreen state =
     [ text "Summary information about the contract goes here." ]
 
 ------------------------------------------------------------
-templateLibraryCard :: forall p. Array Template -> HTML p Action
+templateLibraryCard :: forall p. Array ContractTemplate -> HTML p Action
 templateLibraryCard templates =
   div_
     [ h2
@@ -235,8 +235,16 @@ templateLibraryCard templates =
     div
       [ classNames [ "bg-white", "p-1" ] ]
       [ div
-          [ classNames [ "flex", "justify-between" ] ]
-          [ text template.metaData.contractType
+          [ classNames [ "flex", "justify-between", "mb-1" ] ]
+          [ div
+              [ classNames [ "flex", "align-top" ] ]
+              [ span
+                  [ classNames [ "text-2xl", "font-bold", "mr-0.5" ] ]
+                  [ text $ contractTypeInitials template.metaData.contractType ]
+              , span
+                  [ classNames [ "uppercase" ] ]
+                  [ text $ template.metaData.contractName ]
+              ]
           , button
               [ classNames Css.primaryButton
               , onClick_ $ SetTemplate template
@@ -245,9 +253,6 @@ templateLibraryCard templates =
               , span_ [ Icon.navigateNext ]
               ]
           ]
-      , h3
-          [ classNames [ "font-bold" ] ]
-          [ text template.metaData.contractName ]
       , p_
           [ text template.metaData.contractDescription ]
       ]

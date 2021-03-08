@@ -29,14 +29,37 @@ type ContractTemplate
     }
 
 type MetaData
-  = { contractName :: String
-    , contractType :: String
+  = { contractType :: ContractType
+    , contractName :: String
     , contractDescription :: String
     , roleDescriptions :: Map S.TokenName String
     , slotParameterDescriptions :: Map String String
     , valueParameterDescriptions :: Map String String
     , choiceDescriptions :: Map String String
     }
+
+data ContractType
+  = Escrow
+  | EscrowWithCollatoral
+  | ZeroCouponBond
+  | CouponBondGuaranteed
+  | Swap
+  | ContractForDifferences
+
+derive instance eqContractType :: Eq ContractType
+
+contractTypeInitials :: ContractType -> String
+contractTypeInitials Escrow = "ES"
+
+contractTypeInitials EscrowWithCollatoral = "EC"
+
+contractTypeInitials ZeroCouponBond = "ZC"
+
+contractTypeInitials CouponBondGuaranteed = "CB"
+
+contractTypeInitials Swap = "S"
+
+contractTypeInitials ContractForDifferences = "CD"
 
 class ToCore a b where
   toCore :: a -> Maybe b

@@ -20,19 +20,19 @@ import Effect.Aff.Class (class MonadAff)
 import Env (Env)
 import Halogen (HalogenM)
 import MainFrame.Lenses (_playState)
-import MainFrame.Types (ChildSlots, Msg)
 import MainFrame.Types (Action, State) as MainFrame
-import Marlowe.Extended (Contract, getParties, getPlaceholderIds, initializeTemplateContent, typeToLens)
+import MainFrame.Types (ChildSlots, Msg)
+import Marlowe.Extended (Contract, ContractTemplate, getParties, getPlaceholderIds, initializeTemplateContent, typeToLens)
 import Marlowe.Semantics (Party(..))
+import Marlowe.Market.Contract1 (contractTemplate)
 import Play.Lenses (_templateState)
 import Template.Lenses (_contractNickname, _roleWallets, _templateContent)
-import Template.Library (defaultTemplate)
-import Template.Types (Action(..), State, Template)
+import Template.Types (Action(..), State)
 
 defaultState :: State
-defaultState = mkInitialState defaultTemplate
+defaultState = mkInitialState contractTemplate
 
-mkInitialState :: Template -> State
+mkInitialState :: ContractTemplate -> State
 mkInitialState template =
   { template: template
   , contractNickname: template.metaData.contractName

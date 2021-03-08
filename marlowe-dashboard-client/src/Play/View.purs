@@ -13,18 +13,18 @@ import Halogen.HTML (HTML, a, div, footer, h1, header, main, nav, span, text)
 import Halogen.HTML.Events.Extra (onClick_)
 import Halogen.HTML.Properties (href)
 import MainFrame.Lenses (_card, _screen)
+import Marlowe.Extended (ContractTemplate)
 import Marlowe.Semantics (PubKey)
 import Material.Icons as Icon
 import Play.Lenses (_contractState, _menuOpen, _templateState, _wallet)
 import Play.Types (Action(..), Card(..), ContractStatus(..), Screen(..), State)
 import Prim.TypeError (class Warn, Text)
 import Template.Types (State) as Template
-import Template.Types (Template)
 import Template.View (contractSetupConfirmationCard, contractSetupScreen, templateLibraryCard)
 import WalletData.Types (WalletLibrary, WalletNicknameKey)
 import WalletData.View (newWalletCard, walletDetailsCard, putdownWalletCard, walletLibraryScreen)
 
-renderPlayState :: forall p. WalletLibrary -> WalletNicknameKey -> Array Template -> State -> HTML p Action
+renderPlayState :: forall p. WalletLibrary -> WalletNicknameKey -> Array ContractTemplate -> State -> HTML p Action
 renderPlayState wallets newWalletNicknameKey templates playState =
   let
     wallet = view _wallet playState
@@ -73,7 +73,7 @@ renderHeader wallet menuOpen =
       ]
 
 ------------------------------------------------------------
-renderMain :: forall p. WalletNicknameKey -> WalletLibrary -> Array Template -> State -> HTML p Action
+renderMain :: forall p. WalletNicknameKey -> WalletLibrary -> Array ContractTemplate -> State -> HTML p Action
 renderMain newWalletNicknameKey wallets templates playState =
   let
     wallet = view _wallet playState
@@ -110,7 +110,7 @@ renderMobileMenu menuOpen =
         iohkLinks
     ]
 
-renderCards :: forall p. WalletNicknameKey -> WalletLibrary -> Array Template -> PubKey -> Maybe Card -> Contract.State -> HTML p Action
+renderCards :: forall p. WalletNicknameKey -> WalletLibrary -> Array ContractTemplate -> PubKey -> Maybe Card -> Contract.State -> HTML p Action
 renderCards newWalletNicknameKey wallets templates wallet card contractState =
   div
     [ classNames $ Css.cardWrapper $ isNothing card ]

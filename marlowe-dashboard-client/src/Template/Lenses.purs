@@ -5,7 +5,6 @@ module Template.Lenses
   , _templateContent
   , _metaData
   , _extendedContract
-  , _contractName
   , _contractType
   , _contractDescription
   , _slotParameterDescriptions
@@ -17,11 +16,11 @@ import Data.Lens (Lens')
 import Data.Lens.Record (prop)
 import Data.Map (Map)
 import Data.Symbol (SProxy(..))
-import Template.Types (MetaData, State, Template)
-import Marlowe.Extended (Contract, TemplateContent)
+import Marlowe.Extended (Contract, ContractTemplate, ContractType, MetaData, TemplateContent)
 import Marlowe.Semantics (TokenName)
+import Template.Types (State)
 
-_template :: Lens' State Template
+_template :: Lens' State ContractTemplate
 _template = prop (SProxy :: SProxy "template")
 
 _contractNickname :: Lens' State String
@@ -34,17 +33,14 @@ _templateContent :: Lens' State TemplateContent
 _templateContent = prop (SProxy :: SProxy "templateContent")
 
 ------------------------------------------------------------
-_metaData :: Lens' Template MetaData
+_metaData :: Lens' ContractTemplate MetaData
 _metaData = prop (SProxy :: SProxy "metaData")
 
-_extendedContract :: Lens' Template Contract
+_extendedContract :: Lens' ContractTemplate Contract
 _extendedContract = prop (SProxy :: SProxy "extendedContract")
 
 ------------------------------------------------------------
-_contractName :: Lens' MetaData String
-_contractName = prop (SProxy :: SProxy "contractName")
-
-_contractType :: Lens' MetaData String
+_contractType :: Lens' MetaData ContractType
 _contractType = prop (SProxy :: SProxy "contractType")
 
 _contractDescription :: Lens' MetaData String

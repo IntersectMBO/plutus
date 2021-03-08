@@ -12,10 +12,10 @@ import Analytics (class IsEvent, defaultEvent, toEvent)
 import Data.Either (Either)
 import Data.Generic.Rep (class Generic)
 import Data.Maybe (Maybe(..))
+import Marlowe.Extended (ContractTemplate)
 import Play.Types (Action, State) as Play
 import Plutus.PAB.Webserver.Types (StreamToClient, StreamToServer)
 import Pickup.Types (Action, State) as Pickup
-import Template.Types (Template)
 import WalletData.Types (WalletLibrary, WalletNicknameKey)
 import Web.Socket.Event.CloseEvent (CloseEvent, reason) as WS
 import WebSocket.Support (FromSocket) as WS
@@ -27,7 +27,7 @@ import WebSocket.Support (FromSocket) as WS
 type State
   = { wallets :: WalletLibrary
     , newWalletNicknameKey :: WalletNicknameKey
-    , templates :: Array Template
+    , templates :: Array ContractTemplate
     , webSocketStatus :: WebSocketStatus
     , subState :: Either Pickup.State Play.State
     }
