@@ -145,6 +145,7 @@ let
 
       # It is important to note that in terraform, a local_file will not be updated if it exists in the location that you define.
       # Since we are using a temporary working directory, the file will always be re-created.
+      mkdir -p ~/.ssh/config.d
       cp $tmp_dir/plutus_playground.${env}.conf ~/.ssh/config.d/
     '';
 
