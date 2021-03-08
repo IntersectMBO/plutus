@@ -230,8 +230,14 @@ countingbudget = flag' (Verbose Counting)
                  <> short 'c'
                  <> help "Run machine in counting mode and report results" )
 
+tallyingbudget :: Parser BudgetMode
+tallyingbudget = flag' (Verbose Tallying)
+                 (  long "tallying"
+                 <> short 't'
+                 <> help "Run machine in tallying mode and report results" )
+
 budgetmode :: Parser BudgetMode
-budgetmode = restrictingbudget <|> countingbudget <|> pure Silent
+budgetmode = restrictingbudget <|> countingbudget <|> tallyingbudget <|> pure Silent
 
 -- -x -> run 100 times and print the mean time
 timing1 :: Parser TimingMode
@@ -757,10 +763,14 @@ printBudgetStateTally (ExTally costs) = do
         builtinsAndCosts = Data.List.foldl f [] (H.toList costs)
 
 printBudgetState :: (Eq fun, Hashable fun, Show fun) => Cek.CekExBudgetState fun -> IO ()
-printBudgetState bs = do
-    printBudgetStateBudget $ _exBudgetStateBudget bs
+printBudgetState (CountingSt budget) =
+    printBudgetStateBudget budget
+printBudgetState (TallyingSt tally budget) = do
+    printBudgetStateBudget budget
     putStrLn ""
-    printBudgetStateTally  $ _exBudgetStateTally bs
+    printBudgetStateTally tally
+printBudgetState (RestrictingSt _) =
+    fail "This execution path was supposed to be unreachable"
 
 
 ---------------- Evaluation ----------------
@@ -799,10 +809,6 @@ runEval (EvalOptions language inp ifmt evalMode printMode budgetMode timingMode)
                           case timingMode of
                             NoTiming -> evaluate body & handleResult
                             Timing n -> timeEval n evaluate body >>= handleTimingResults
-                            -- TODO: we can't currently run the machine without performing expensive cost
-                            -- tallying.  When we can do that, at this point we should run the progam
-                            -- in Restricting mode with a large intial budget to get a more realistic
-                            -- estimate of on-chain costs.
                     Verbose bm -> do
                           let evaluate = Cek.unsafeRunCekNoEmit PLC.defBuiltinsRuntime bm
                           case timingMode of

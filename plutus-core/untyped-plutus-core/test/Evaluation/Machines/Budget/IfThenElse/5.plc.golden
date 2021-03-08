@@ -1,13 +1,32 @@
-( (Left An error has occurred:  User error:
-The limit ({ cpu: 1000
-| mem: 1000
-}) was reached by the execution environment. Final state: ({ cpu: 0
-| mem: 1297
-}))
-, ({ tally: ({ BAST causes ({ cpu: 0
+( (Right (delay (\z -> \f -> f (delay (\z -> \f -> f (delay (\z -> \f -> f (delay (\z -> \f -> f (delay (\z -> \f -> f (delay (\z -> \f -> f (delay (\z -> \f -> f (delay (\z -> \f -> f (delay (\z -> \f -> f (delay (\z -> \f -> f (delay (\z -> \f -> z)))))))))))))))))))))))
+, ({ tally: ({ BConst causes ({ cpu: 5
+| mem: 0
+})
+| BVar causes ({ cpu: 152
+| mem: 0
+})
+| BLamAbs causes ({ cpu: 114
+| mem: 0
+})
+| BApply causes ({ cpu: 151
+| mem: 0
+})
+| BDelay causes ({ cpu: 43
+| mem: 0
+})
+| BForce causes ({ cpu: 36
+| mem: 0
+})
+| BBuiltin causes ({ cpu: 5
+| mem: 0
+})
+| BBuiltinApp IfThenElse causes ({ cpu: 5
+| mem: 5
+})
+| BAST causes ({ cpu: 0
 | mem: 1297
 })})
-| budget: ({ cpu: 0
-| mem: 1297
+| budget: ({ cpu: 511
+| mem: 1302
 })
 }) )

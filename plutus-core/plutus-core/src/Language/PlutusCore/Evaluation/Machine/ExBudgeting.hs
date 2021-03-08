@@ -82,9 +82,13 @@ possible to adjust them at runtime.
 -}
 
 module Language.PlutusCore.Evaluation.Machine.ExBudgeting
-    ( ExBudgetMode(..)
-    , ExBudget(..)
+    ( ExBudget(..)
+    , minusExBudget
+    , ExBudgetMode(..)
     , ExBudgetState(..)
+    , initExBudgetState
+    , toTally
+    , toRequiredExBudget
     , ExTally(..)
     , ExRestrictingBudget(..)
     , ToExMemory(..)
@@ -106,8 +110,6 @@ module Language.PlutusCore.Evaluation.Machine.ExBudgeting
     , ModelThreeArguments(..)
     , exBudgetCPU
     , exBudgetMemory
-    , exBudgetStateBudget
-    , exBudgetStateTally
     , exceedsBudget
     , runCostingFunOneArgument
     , runCostingFunTwoArguments
@@ -138,10 +140,8 @@ import           Language.PlutusCore.Evaluation.Machine.ExMemory
 
 newtype ExRestrictingBudget = ExRestrictingBudget ExBudget deriving (Show, Eq)
     deriving (Semigroup, Monoid) via (GenericSemigroupMonoid ExBudget)
-
-data ExBudgetMode =
-      Counting -- ^ For precalculation
-    | Restricting ExRestrictingBudget -- ^ For execution, to avoid overruns
+    deriving newtype (NFData)
+deriving newtype instance PrettyBy config ExBudget => PrettyBy config ExRestrictingBudget
 
 class ToExMemory term where
     -- | Get the 'ExMemory' of a @term@. If the @term@ is not annotated with 'ExMemory', then
@@ -186,20 +186,67 @@ instance PrettyDefaultBy config Integer => PrettyBy config ExBudget where
         , "}"
         ]
 
-data ExBudgetState exBudgetCat = ExBudgetState
-    { _exBudgetStateTally  :: ExTally exBudgetCat -- ^ for counting what cost how much
-    , _exBudgetStateBudget :: ExBudget -- ^ for making sure we don't spend too much
-    }
+-- | @(-)@ on 'ExCPU'.
+minusExCPU :: ExCPU -> ExCPU -> ExCPU
+minusExCPU = coerce $ (-) @Integer
+
+-- | @(-)@ on 'ExMemory'.
+minusExMemory :: ExMemory -> ExMemory -> ExMemory
+minusExMemory = coerce $ (-) @Integer
+
+-- | Subtract an 'ExBudget' from an 'ExRestrictingBudget'.
+minusExBudget :: ExRestrictingBudget -> ExBudget -> ExRestrictingBudget
+ExRestrictingBudget (ExBudget cpuL memL) `minusExBudget` ExBudget cpuR memR =
+    ExRestrictingBudget $ ExBudget (cpuL `minusExCPU` cpuR) (memL `minusExMemory` memR)
+
+-- | A budgeting mode to execute an evaluator in.
+data ExBudgetMode
+    = Counting                         -- ^ For calculating the cost of execution.
+    | Tallying                         -- ^ For a detailed report on what costs how much +
+                                       --     the same overall budget that 'Counting' gives.
+    | Restricting ExRestrictingBudget  -- ^ For execution, to avoid overruns.
+
+-- | The state of budgeting. Gets initialized from an 'ExBudgetMode'.
+data ExBudgetState exBudgetCat
+    = TallyingSt (ExTally exBudgetCat) ExBudget
+    | CountingSt ExBudget
+    | RestrictingSt ExRestrictingBudget
     deriving stock (Eq, Generic, Show)
-    deriving anyclass NFData
+    deriving anyclass (NFData)
 instance ( PrettyDefaultBy config Integer, PrettyBy config exBudgetCat
          , Eq exBudgetCat, Hashable exBudgetCat, Ord exBudgetCat
          ) => PrettyBy config (ExBudgetState exBudgetCat) where
-    prettyBy config (ExBudgetState tally budget) = parens $ fold
+    prettyBy config (TallyingSt tally budget) = parens $ fold
         [ "{ tally: ", prettyBy config tally, line
         , "| budget: ", prettyBy config budget, line
         , "}"
         ]
+    prettyBy config (CountingSt budget) =
+        parens $ "required budget:" <+> prettyBy config budget <> line
+    prettyBy config (RestrictingSt budget) =
+        parens $ "final budget:" <+> prettyBy config budget <> line
+
+initExBudgetState
+    :: (Eq exBudgetCat, Hashable exBudgetCat)
+    => ExBudgetMode -> ExBudgetState exBudgetCat
+initExBudgetState Tallying             = TallyingSt mempty mempty
+initExBudgetState Counting             = CountingSt mempty
+initExBudgetState (Restricting budget) = RestrictingSt budget
+
+-- | Extract tallying info from an 'ExBudgetState' if it's 'TallyingSt'.
+-- If it's not then return an empty 'ExTally'.
+toTally
+    :: (Eq exBudgetCat, Hashable exBudgetCat)
+    => ExBudgetState exBudgetCat -> ExTally exBudgetCat
+toTally (TallyingSt tally _) = tally
+toTally _                    = mempty
+
+-- | Extract the calculated budget from an 'ExBudgetState' if it's 'CountingSt' or 'TallyingSt'.
+-- If it's not then return an empty 'ExBudget'.
+toRequiredExBudget :: ExBudgetState exBudgetCat -> ExBudget
+toRequiredExBudget (CountingSt budget)   = budget
+toRequiredExBudget (TallyingSt _ budget) = budget
+toRequiredExBudget _                     = mempty
 
 newtype ExTally exBudgetCat = ExTally (MonoidalHashMap exBudgetCat ExBudget)
     deriving stock (Eq, Generic, Show)
@@ -416,7 +463,7 @@ runCostingFunThreeArguments :: CostingFun ModelThreeArguments -> ExMemory -> ExM
 runCostingFunThreeArguments (CostingFun cpu mem) mem1 mem2 mem3 =
     ExBudget (ExCPU $ runThreeArgumentModel cpu mem1 mem2 mem3) (ExMemory $ runThreeArgumentModel mem mem1 mem2 mem3)
 
-$(mtraverse makeLenses [''ExBudgetState, ''ExBudget])
+makeLenses ''ExBudget
 
 exceedsBudget :: ExRestrictingBudget -> ExBudget -> Bool
 exceedsBudget (ExRestrictingBudget ex) budget = (view exBudgetCPU budget) > (view exBudgetCPU ex) || (view exBudgetMemory budget) > (view exBudgetMemory ex)

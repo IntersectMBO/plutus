@@ -203,4 +203,4 @@ evaluateScriptCounting verbose costParams p args = swap $ runWriter @LogOutput $
 
     tell $ Prelude.map Text.pack logs
     liftEither $ first CekError $ void res
-    pure $ PLC._exBudgetStateBudget final
+    pure $ PLC.toRequiredExBudget final

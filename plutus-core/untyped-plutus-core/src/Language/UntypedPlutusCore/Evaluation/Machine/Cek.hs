@@ -28,7 +28,6 @@ module Language.UntypedPlutusCore.Evaluation.Machine.Cek
     , ErrorWithCause(..)
     , EvaluationError(..)
     , ExBudgetCategory(..)
-    , exBudgetStateTally
     , extractEvaluationResult
     , runCek
     , runCekNoEmit
@@ -57,8 +56,6 @@ import           Language.PlutusCore.Pretty
 import           Language.PlutusCore.Universe
 
 import           Control.Lens                                       (AReview)
-import           Control.Lens.Operators
-import           Control.Lens.Setter
 import           Control.Monad.Except
 import           Control.Monad.Morph
 import           Control.Monad.Reader
@@ -111,14 +108,13 @@ type CekValEnv uni fun = UniqueMap TermUnique (CekValue uni fun)
 -- | The environment the CEK machine runs in.
 data CekEnv uni fun s = CekEnv
     { cekEnvRuntime    :: BuiltinsRuntime fun (CekValue uni fun)
-    , cekEnvBudgetMode :: ExBudgetMode
     -- 'Nothing' means no logging. 'DList' is due to the fact that we need efficient append
     -- as we store logs as "latest go last".
     , cekEnvMayEmitRef :: Maybe (STRef s (DList String))
     }
 
 data CekUserError
-    = CekOutOfExError ExRestrictingBudget ExBudget
+    = CekOutOfExError ExRestrictingBudget -- ^ The final overspent (i.e. negative) budget.
     | CekEvaluationFailure -- ^ Error has been called or a builtin application has failed
     deriving (Show, Eq)
 
@@ -181,14 +177,14 @@ instance Show fun => PrettyBy config (ExBudgetCategory fun) where
     prettyBy _ = viaShow
 
 type CekExBudgetState fun = ExBudgetState (ExBudgetCategory fun)
-type CekExTally fun       = ExTally       (ExBudgetCategory fun)
+type CekExTally       fun = ExTally       (ExBudgetCategory fun)
 
 instance AsEvaluationFailure CekUserError where
     _EvaluationFailure = _EvaluationFailureVia CekEvaluationFailure
 
 instance Pretty CekUserError where
-    pretty (CekOutOfExError (ExRestrictingBudget res) b) =
-        group $ "The limit" <+> prettyClassicDef res <+> "was reached by the execution environment. Final state:" <+> prettyClassicDef b
+    pretty (CekOutOfExError (ExRestrictingBudget res)) =
+        group $ "The budget was overspent. Final negative state:" <+> prettyClassicDef res
     pretty CekEvaluationFailure = "The provided Plutus code called 'error'."
 
 {- | Given a possibly partially applied/instantiated builtin, reconstruct the
@@ -288,18 +284,23 @@ instance MonadEmitter (CekCarryingM term uni fun s) where
 -- @Ix fun@ which implies @Ord fun@ which implies @Eq fun@.
 instance (Eq fun, Hashable fun, ToExMemory term) =>
             SpendBudget (CekCarryingM term uni fun s) fun (ExBudgetCategory fun) term where
-    spendBudget key budget = do
-        modifying exBudgetStateTally
-                (<> (ExTally (singleton key budget)))
-        newBudget <- exBudgetStateBudget <%= (<> budget)
-        mode <- asks cekEnvBudgetMode
-        case mode of
-            Counting -> pure ()
-            Restricting resb ->
-                when (exceedsBudget resb newBudget) $
-                    throwingWithCause _EvaluationError
-                        (UserEvaluationError $ CekOutOfExError resb newBudget)
-                        Nothing  -- No value available for error
+    spendBudget key budgetSpent = do
+        exSt <- get
+        case exSt of
+            CountingSt budgetTotal -> do
+                let budgetTotal' = budgetTotal <> budgetSpent
+                put $! CountingSt budgetTotal'
+            TallyingSt tallies budgetTotal -> do
+                let budgetTotal' = budgetTotal <> budgetSpent
+                put $! TallyingSt (tallies <> ExTally (singleton key budgetSpent)) budgetTotal'
+            RestrictingSt budgetLeft -> do
+                let budgetLeft' = budgetLeft `minusExBudget` budgetSpent
+                if exceedsBudget budgetLeft budgetSpent
+                    then
+                        throwingWithCause _EvaluationError
+                            (UserEvaluationError $ CekOutOfExError budgetLeft')
+                            Nothing
+                    else put $! RestrictingSt budgetLeft'
 
 data Frame uni fun
     = FrameApplyFun (CekValue uni fun)                         -- ^ @[V _]@
@@ -310,16 +311,16 @@ data Frame uni fun
 type Context uni fun = [Frame uni fun]
 
 runCekM
-    :: forall a uni fun
-     . BuiltinsRuntime fun (CekValue uni fun)
+    :: forall a uni fun. (Eq fun, Hashable fun)
+    => BuiltinsRuntime fun (CekValue uni fun)
     -> ExBudgetMode
     -> Bool
-    -> CekExBudgetState fun
     -> (forall s. CekM uni fun s a)
     -> (Either (CekEvaluationException uni fun) a, CekExBudgetState fun, [String])
-runCekM runtime mode emitting s a = runST $ do
+runCekM runtime mode emitting a = runST $ do
     mayLogsRef <- if emitting then Just <$> newSTRef DList.empty else pure Nothing
-    (errOrRes, s') <- runStateT (runExceptT . runReaderT a $ CekEnv runtime mode mayLogsRef) s
+    let initSt = initExBudgetState mode
+    (errOrRes, s') <- runStateT (runExceptT . runReaderT a $ CekEnv runtime mayLogsRef) initSt
     logs <- case mayLogsRef of
         Nothing      -> pure []
         Just logsRef -> DList.toList <$> readSTRef logsRef
@@ -528,7 +529,7 @@ A function from the @runCek@ family takes an 'ExBudgetMode' parameter and return
 'CekExBudgetState' (and possibly logs).
 A function from the @evaluateCek@ family does not return the final 'ExBudgetMode', nor does it
 allow one to specify an 'ExBudgetMode'. I.e. such functions are only for fully evaluating programs
-(and possibly returning logs).
+(and possibly returning logs). See also haddocks of 'enormousBudget'.
 -}
 
 -- | Evaluate a term using the CEK machine and keep track of costing, logging is optional.
@@ -542,7 +543,7 @@ runCek
     -> Term Name uni fun ()
     -> (Either (CekEvaluationException uni fun) (Term Name uni fun ()), CekExBudgetState fun, [String])
 runCek runtime mode emitting term =
-    runCekM runtime mode emitting (ExBudgetState mempty mempty) $ do
+    runCekM runtime mode emitting $ do
         spendBudget BAST (ExBudget 0 (termAnn memTerm))
         computeCek [] mempty memTerm
   where
@@ -574,6 +575,11 @@ unsafeRunCekNoEmit
     -> (EvaluationResult (Term Name uni fun ()), CekExBudgetState fun)
 unsafeRunCekNoEmit runtime mode = first unsafeExtractEvaluationResult . runCekNoEmit runtime mode
 
+-- | When we want to just evaluate the program we use the 'Restricting' mode with an enormous
+-- budget, so that evaluation costs of on-chain budgeting are reflected accurately in benchmarks.
+enormousBudget :: ExBudgetMode
+enormousBudget = Restricting . ExRestrictingBudget $ ExBudget (10^(10::Int)) (10^(10::Int))
+
 -- | Evaluate a term using the CEK machine with logging enabled.
 evaluateCek
     :: ( GShow uni, GEq uni, Closed uni, uni `Everywhere` ExMemoryUsage
@@ -583,9 +589,7 @@ evaluateCek
     -> Term Name uni fun ()
     -> (Either (CekEvaluationException uni fun) (Term Name uni fun ()), [String])
 evaluateCek runtime term =
-    -- TODO: Oftentimes we want neither 'Restricting' nor 'Counting'. Should we have a third mode
-    -- 'JustEvaluateTheProgram'?
-    case runCek runtime Counting True term of
+    case runCek runtime enormousBudget True term of
         (errOrRes, _, logs) -> (errOrRes, logs)
 
 -- | Evaluate a term using the CEK machine with logging disabled.
@@ -596,7 +600,7 @@ evaluateCekNoEmit
     => BuiltinsRuntime fun (CekValue uni fun)
     -> Term Name uni fun ()
     -> Either (CekEvaluationException uni fun) (Term Name uni fun ())
-evaluateCekNoEmit runtime = fst . runCekNoEmit runtime Counting
+evaluateCekNoEmit runtime = fst . runCekNoEmit runtime enormousBudget
 
 -- | Evaluate a term using the CEK machine with logging enabled. May throw a 'CekMachineException'.
 unsafeEvaluateCek
