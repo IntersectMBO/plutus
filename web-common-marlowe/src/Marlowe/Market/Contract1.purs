@@ -15,7 +15,8 @@ contractTemplate = { metaData, extendedContract }
 
 metaData :: MetaData
 metaData =
-  { contractType: ES
+  { contractType: Escrow
+  , contractName: "Escrow"
   , contractDescription: "Escrow is a financial arrangement where a third party holds and regulates payment of the funds required for two parties involved in a given transaction."
   , roleDescriptions:
       fromFoldable

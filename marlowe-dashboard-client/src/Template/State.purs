@@ -22,7 +22,7 @@ import Halogen (HalogenM)
 import MainFrame.Lenses (_playState)
 import MainFrame.Types (Action, State) as MainFrame
 import MainFrame.Types (ChildSlots, Msg)
-import Marlowe.Extended (Contract, ContractTemplate, contractTypeName, getParties, getPlaceholderIds, initializeTemplateContent, typeToLens)
+import Marlowe.Extended (Contract, ContractTemplate, getParties, getPlaceholderIds, initializeTemplateContent, typeToLens)
 import Marlowe.Semantics (Party(..))
 import Marlowe.Market.Contract1 (contractTemplate)
 import Play.Lenses (_templateState)
@@ -35,7 +35,7 @@ defaultState = mkInitialState contractTemplate
 mkInitialState :: ContractTemplate -> State
 mkInitialState template =
   { template: template
-  , contractNickname: contractTypeName template.metaData.contractType
+  , contractNickname: template.metaData.contractName
   , roleWallets: mkRoleWallets template.extendedContract
   , templateContent: initializeTemplateContent $ getPlaceholderIds template.extendedContract
   }

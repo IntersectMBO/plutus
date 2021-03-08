@@ -30,6 +30,7 @@ type ContractTemplate
 
 type MetaData
   = { contractType :: ContractType
+    , contractName :: String
     , contractDescription :: String
     , roleDescriptions :: Map S.TokenName String
     , slotParameterDescriptions :: Map String String
@@ -38,35 +39,27 @@ type MetaData
     }
 
 data ContractType
-  = ES
-  | EC
-  | ZC
-  | CB
-  | S
-  | CD
+  = Escrow
+  | EscrowWithCollatoral
+  | ZeroCouponBond
+  | CouponBondGuaranteed
+  | Swap
+  | ContractForDifferences
 
 derive instance eqContractType :: Eq ContractType
 
-instance showContractType :: Show ContractType where
-  show ES = "ES"
-  show EC = "EC"
-  show ZC = "ZC"
-  show CB = "CB"
-  show S = "S"
-  show CD = "CD"
+contractTypeInitials :: ContractType -> String
+contractTypeInitials Escrow = "ES"
 
-contractTypeName :: ContractType -> String
-contractTypeName ES = "Escrow"
+contractTypeInitials EscrowWithCollatoral = "EC"
 
-contractTypeName EC = "Escrow with Collatoral"
+contractTypeInitials ZeroCouponBond = "ZC"
 
-contractTypeName ZC = "Zero Coupon Bond"
+contractTypeInitials CouponBondGuaranteed = "CB"
 
-contractTypeName CB = "Coupon Bond Guaranteed"
+contractTypeInitials Swap = "S"
 
-contractTypeName S = "Swap"
-
-contractTypeName CD = "Contract for Differences"
+contractTypeInitials ContractForDifferences = "CD"
 
 class ToCore a b where
   toCore :: a -> Maybe b

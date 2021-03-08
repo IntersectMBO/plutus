@@ -14,10 +14,10 @@ import Data.Map (toUnfoldable) as Map
 import Data.Maybe (Maybe(..), fromMaybe, isJust)
 import Data.Set (toUnfoldable) as Set
 import Data.Tuple.Nested ((/\))
-import Halogen.HTML (HTML, a, button, div, div_, h2, h3, input, label, li, p_, span, span_, text, ul, ul_)
+import Halogen.HTML (HTML, a, button, div, div_, h2, input, label, li, p_, span, span_, text, ul, ul_)
 import Halogen.HTML.Events.Extra (onClick_, onValueInput_)
 import Halogen.HTML.Properties (InputType(..), enabled, for, id_, list, min, placeholder, readOnly, type_, value)
-import Marlowe.Extended (Contract, ContractTemplate, IntegerTemplateType(..), MetaData, TemplateContent, _slotContent, _valueContent, contractTypeName, getParties)
+import Marlowe.Extended (Contract, ContractTemplate, IntegerTemplateType(..), MetaData, TemplateContent, _slotContent, _valueContent, contractTypeInitials, getParties)
 import Marlowe.Semantics (PubKey, Party(..))
 import Material.Icons as Icon
 import Template.Lenses (_contractNickname, _extendedContract, _metaData, _roleWallets, _template, _templateContent)
@@ -240,10 +240,10 @@ templateLibraryCard templates =
               [ classNames [ "flex", "align-top" ] ]
               [ span
                   [ classNames [ "text-2xl", "font-bold", "mr-0.5" ] ]
-                  [ text $ show template.metaData.contractType ]
+                  [ text $ contractTypeInitials template.metaData.contractType ]
               , span
                   [ classNames [ "uppercase" ] ]
-                  [ text $ contractTypeName template.metaData.contractType ]
+                  [ text $ template.metaData.contractName ]
               ]
           , button
               [ classNames Css.primaryButton

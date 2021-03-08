@@ -15,7 +15,8 @@ contractTemplate = { metaData, extendedContract }
 
 metaData :: MetaData
 metaData =
-  { contractType: ZC
+  { contractType: ZeroCouponBond
+  , contractName: "Zero Coupon Bond"
   , contractDescription: "A zero-coupon bond is a debt security that does not pay interest but instead trades at a deep discount, rendering a profit at maturity, when the bond is redeemed for its full face value."
   , roleDescriptions:
       fromFoldable

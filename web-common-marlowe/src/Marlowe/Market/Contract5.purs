@@ -15,7 +15,8 @@ contractTemplate = { metaData, extendedContract }
 
 metaData :: MetaData
 metaData =
-  { contractType: S
+  { contractType: Swap
+  , contractName: "Swap"
   , contractDescription: "A swap is a derivative contract through which two parties exchange the cash flows or liabilities from two different financial instruments. Most swaps involve cash flows based on a notional principal amount such as a loan or bond, although the instrument can be almost anything. Usually, the principal does not change hands. Each cash flow comprises one leg of the swap. One cash flow is generally fixed, while the other is variable and based on a benchmark interest rate, floating currency exchange rate or index price."
   , roleDescriptions:
       fromFoldable

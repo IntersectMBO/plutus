@@ -15,7 +15,8 @@ contractTemplate = { metaData, extendedContract }
 
 metaData :: MetaData
 metaData =
-  { contractType: CB
+  { contractType: CouponBondGuaranteed
+  , contractName: "Coupon Bond Guaranteed"
   , contractDescription: "A guaranteed bond is a debt security that offers a secondary guarantee that interest and principal payments will be made by a third party, should the issuer default. It can be backed by a bond insurance company, a fund or group entity, a government authority, or the corporate parents of subsidiaries or joint ventures that are issuing bonds."
   , roleDescriptions:
       fromFoldable

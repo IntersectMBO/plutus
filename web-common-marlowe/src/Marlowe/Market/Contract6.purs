@@ -15,7 +15,8 @@ contractTemplate = { metaData, extendedContract }
 
 metaData :: MetaData
 metaData =
-  { contractType: CD
+  { contractType: ContractForDifferences
+  , contractName: "Contract for Differences"
   , contractDescription: "A contract for differences (CFD) is an arrangement made in financial derivatives trading where the differences in the settlement between the open and closing trade prices are cash-settled."
   , roleDescriptions:
       fromFoldable
