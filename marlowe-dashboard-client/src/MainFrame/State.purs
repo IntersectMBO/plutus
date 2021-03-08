@@ -120,7 +120,7 @@ handleAction AddNewWallet = do
     $ \walletDetails ->
         when (not $ member newWalletNickname oldWallets) do
           modify_
-            $ (over _wallets) (insert newWalletNickname walletDetails)
+            $ over _wallets (insert newWalletNickname walletDetails)
             <<< set _newWalletNickname mempty
             <<< set _newWalletContractId mempty
             <<< set _remoteDataPubKey NotAsked
@@ -176,6 +176,7 @@ handleAction (PickupAction pickupAction) = Pickup.handleAction pickupAction
 handleAction (PlayAction Play.PutdownWallet) = do
   assign _subState $ Left Pickup.initialState
   liftEffect $ removeItem walletDetailsLocalStorageKey
+
 handleAction (PlayAction (Play.SetNewWalletNickname nickname)) = handleAction $ SetNewWalletNickname nickname
 
 handleAction (PlayAction (Play.SetNewWalletContractId contractId)) = handleAction $ SetNewWalletContractId contractId
@@ -190,6 +191,3 @@ mkNewWallet :: Nickname -> String -> RemoteData AjaxError PubKey -> Maybe Wallet
 mkNewWallet nickname contractId remoteDataPubKey = case remoteDataPubKey of
   Success pubKey -> Just { nickname, contractId, pubKey, balance: Nothing }
   _ -> Nothing
-
-defaultWalletDetails :: WalletDetails
-defaultWalletDetails = { nickname: mempty, contractId: mempty, pubKey: mempty, balance: Nothing }
