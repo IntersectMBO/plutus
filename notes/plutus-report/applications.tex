@@ -186,7 +186,7 @@ The \gls{pab} is a series of components which produce/consume events, and a mess
 Some of the components have additional complexity, e.g. the application management component needs to manage the state of \glspl{app-inst}.
 
 \subsubsection{Node client}
-The \gls{pab} needs to talk to the \gls{node}, primarily because it needs to populate the \gls{chain-index}, but it may also need to do some things that appear to be the \gls{wallet-backend}'s job (e.g. maintaining pending sets), because we can't guarantee that the \gls{wallet-backend}'s view of the world will match our own (since each is independently talking to the \gls{node}).
+The \gls{pab} needs to talk to the \gls{node}, primarily because it needs to populate the \gls{chain-index}, but it also needs to watch the stream of incoming transactions and rollbacks, and notify the \glspl{app-inst} of changes to transactions that they are interested in.
 
 \subsubsection{\Glsentrytext{wallet-backend} client}
 
@@ -250,7 +250,7 @@ At present, we have (or expect to have) emulators for:
   In the long run we should be able to use the real Goguen \gls{node}.
 \item
   The parts of the \gls{wallet-backend} that we need.
-  In the long run we \emph{might} be able to use the real \gls{wallet-backend}.
+  In the long run we will be able to use the real \gls{wallet-backend}.
 \item
   Basic \gls{wallet-frontend} functionality, such as displaying balances and interacting with \glspl{app-inst}.
   In the long run we \emph{might} be able to use the real \gls{wallet-frontend}, but this seems unlikely as it is quite heavyweight.
@@ -274,10 +274,26 @@ Over time we hope to unify the experiences of working locally and working in the
 \end{itemize}
 
 \subsection{Application design}
+\label{sec:application-design}
 
 \todompj{Talk about state machines and our ideas for handling rollbacks.}
 
-\subsection{Application concurrency model}
+\glspl{app} are distributed applications whose state is spread across multiple processes.
+One of those processes is the blockchain, or (operationally) the set of Cardano \glspl{node} that verify transactions.
+Here the state of the \gls{app} takes the form of \glspl{script-output}.
+There is no one-to-one correspondence between \glspl{app} and script outputs, or even \glspl{address}.
+
+\subsubsection{On-chain}
+
+To reason about the behavior of the on-chain parts of \glspl{app} we use a type of state machines called constraint-emitting machines (\gls{cem}), state machines that produce constraints on the next transition in every step.
+This approach has been published in \cite{DBLP:conf/isola/Chakravarty0MMM20a}.
+The \gls{plutus-sdk} offers support for writing \glspl{cem} in Haskell.
+
+An advantage of writing \glspl{script} as \glspl{cem} over directly writing the \gls{validator} function in Haskell is that the constraints can be used not only to verify the spending transaction on-chain, but also to construct it off-chain.
+Building a transaction that spends an output with a hand-written \gls{validator} often involves code that is very similar, but not quite identical, to the validator code itself.
+With \glspl{cem} we can capture exactly this overlap and reduce duplication.
+
+\subsubsection{Off-chain}
 
 \glspl{app} react to events that happen either on the blockchain or outside the \gls{plutus-platform}.
 The following types of events can be reacted to:
@@ -290,7 +306,7 @@ The following types of events can be reacted to:
 
 The meaning of these interactions is described by the following Petri nets.
 
-\subsubsection{Slot change}
+\paragraph{Slot change}
 
 For each slot $s$ there is a place $p_s$.
 A \emph{clock} transition $c_s$ takes a token from $p_s$ and places it in $p_{s+1}$ to signal that slot $s + 1$ has begun.
@@ -320,7 +336,7 @@ Any other transition that removes a token from $p_s$ is expected to put it back 
 \label{fig:petri-net-time}
 \end{figure}
 
-\subsubsection{Transaction status change}
+\paragraph{Transaction status change}
 
 The status of a transaction changes multiple times after it has been sent to the node.
 Transactions start out in the node's \emph{mempool}.
@@ -361,7 +377,7 @@ For each of the four states of a transaction there is one place in the petri net
 \label{fig:petri-net-txn}
 \end{figure}
 
-\subsubsection{Address change}
+\paragraph{Address change}
 
 The set of unspent outputs at an address is modified by transactions that spend and produce outputs.
 Therefore, whenever the status of a transaction changes, the status of its inputs and outputs changes also.
@@ -371,7 +387,7 @@ There is one place each for outputs that are in the mempool, tentatively confirm
 
 % TODO: Think about how to do it properly. What level of detail do we need here? Maybe we don't need an extra petri net (address change is just a function of tx change). Or maybe we should include tx dependencies via their outputs as well.
 
-\subsubsection{Endpoint}
+\paragraph{Endpoint}
 
 Users and other applications may call endpoints on the \gls{app}.
 Endpoints are places $e_1, \ldots, e_n$ in the petri net (see \ref{fig:petri-net-endpoint}).
@@ -392,7 +408,7 @@ Endpoints are places $e_1, \ldots, e_n$ in the petri net (see \ref{fig:petri-net
 \label{fig:petri-net-endpoint}
 \end{figure}
 
-\subsubsection{Apps}
+\paragraph{Apps}
 
 Given the places for time, transaction status and endpoints we can describe \glspl{app} as sequences of transitions.
 The states of the app are represented by places.
@@ -401,7 +417,7 @@ As soon as a transaction is confirmed, the state can progress from $s_1$ to $s_2
 
 After that, endpoint $e_1$ becomes \emph{active}, meaning that the app can make progress as soon as input is provided. The next state depends on which of two possible events happens first: The endpoint being called by the user, or the clock reaching slot ten.
 
-The app transitions (green) involve queries to the chain index, transaction submission, etc.
+The app transitions (green) involve queries to the \gls{chain-index}, transaction submission, etc.
 These requests are not shown in the petri net.
 We still record their responses however, in order to meet the replayability requirements (see \ref{req:app-synch} and \ref{req:app-reproducibility}).
 
@@ -466,14 +482,14 @@ We still record their responses however, in order to meet the replayability requ
 \label{fig:plutus-app-net}
 \end{figure}
 
-\subsubsection{Observable state}
+\paragraph{Observable state}
 
 \glspl{app} need to be able to notify the outside world of changes.
 To this end, the application can emit values of some user-defined type \code{w} whenever one of its transition fires.
 In the Haskell library, this is realised using the \code{Writer w} effect, with \code{Monoid w} constraint.
 Clients of the \gls{app} can subscribe to receive updates whenever the accumulated total of all values changes.
 
-\subsubsection{Multiple instances, on-chain state}
+\paragraph{Extensions}
 
 There are some possible extensions of the basic model of apps and events.
 For example, we could model an on-chain state machine (in a Plutus script) as a petri net.
