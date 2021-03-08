@@ -15,7 +15,7 @@ exports.trackEvent_ = function (action, category, label, value) {
 
 exports.trackSegmentEvent_ = function (action, payload) {
     // Segment.com.
-    if (analytics) {
+    if (typeof analytics !== 'undefined') {
         analytics.track(action, payload);
     };
 };
