@@ -8,12 +8,19 @@ The Marlowe Dashboard is written in [PureScript](https://www.purescript.org/) an
 
 ### Starting the backend server
 
+The Marlowe Dashboard requires a running instance of the PAB to work. First you need to set up the database:
+
 ```bash
-$ marlowe-dashboard-server
+$ plutus-pab-migrate
 ```
 
-The `marlowe-dashboard-server` script is provided by the global [shell.nix](../shell.nix) and starts the server (If the command
-is not available make sure you are in a nix-shell session or that lorri is ready). For additional information on invoking the backend server please refer to its [README.md](https://github.com/input-output-hk/plutus/blob/master/marlowe-dashboard-server/README.md).
+Then start all the PAB servers:
+
+```bash
+$ plutus-pab-all-servers
+```
+
+The `plutus-pab-migrate` and `plutus-pab-all-servers` scripts are provided by the global [shell.nix](../shell.nix). (If the commands are not available make sure you are in a nix-shell session or that lorri is ready.) For additional information on invoking the PAB please refer to its [README.md](https://github.com/input-output-hk/plutus/blob/master/plutus-pab/README.md).
 
 ### Starting the frontend server
 
