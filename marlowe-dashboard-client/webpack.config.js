@@ -30,10 +30,10 @@ module.exports = {
         https: true,
         proxy: {
             "/api": {
-                target: 'http://localhost:8080'
+                target: 'http://localhost:9080'
             },
             "/ws": {
-                target: 'ws://localhost:8080',
+                target: 'ws://localhost:9080',
                 ws: true,
                 onError(err) {
                   console.log('Error with the WebSocket:', err);

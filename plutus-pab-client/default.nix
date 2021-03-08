@@ -17,17 +17,31 @@ let
   '';
 
   # For dev usage
+  migrate = pkgs.writeShellScriptBin "plutus-pab-migrate" ''
+    # There might be local modifications so only copy when missing
+    ! test -f ./plutus-pab.yaml && cp ../plutus-pab/plutus-pab.yaml.sample plutus-pab.yaml
+    $(nix-build ../default.nix --quiet --no-build-output -A plutus-pab.server-invoker)/bin/plutus-pab migrate
+  '';
+
+  # For dev usage
   start-backend = pkgs.writeShellScriptBin "plutus-pab-server" ''
     export FRONTEND_URL=https://localhost:8009
     export WEBGHC_URL=http://localhost:8080
-    rm -rf ./generated
     # There might be local modifications so only copy when missing
     ! test -f ./plutus-pab.yaml && cp ../plutus-pab/plutus-pab.yaml.sample plutus-pab.yaml
     $(nix-build ../default.nix --quiet --no-build-output -A plutus-pab.server-invoker)/bin/plutus-pab webserver
   '';
 
-  cleanSrc = gitignore-nix.gitignoreSource ./.;
+  # For dev usage
+  start-all-servers = pkgs.writeShellScriptBin "plutus-pab-all-servers" ''
+    export FRONTEND_URL=https://localhost:8009
+    export WEBGHC_URL=http://localhost:8080
+    # There might be local modifications so only copy when missing
+    ! test -f ./plutus-pab.yaml && cp ../plutus-pab/plutus-pab.yaml.sample plutus-pab.yaml
+    $(nix-build ../default.nix --quiet --no-build-output -A plutus-pab.server-invoker)/bin/plutus-pab all-servers
+  '';
 
+  cleanSrc = gitignore-nix.gitignoreSource ./.;
 
   nodeModules = buildNodeModules {
     projectDir = filterNpm cleanSrc;
@@ -63,5 +77,5 @@ let
 
 in
 {
-  inherit client demo-scripts server-invoker generated-purescript generate-purescript start-backend mkConf pab-exes;
+  inherit client demo-scripts server-invoker generated-purescript generate-purescript migrate start-backend start-all-servers mkConf pab-exes;
 }

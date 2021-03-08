@@ -82,6 +82,7 @@ pkgs/.stack
 **/.spago2nix/
 
 # Backend config files
+marlowe-dashboard-client/plutus-pab.yaml
 marlowe-playground-server/playground.yaml
 plutus-playground-server/playground.yaml
 plutus-pab/plutus-pab.yaml
