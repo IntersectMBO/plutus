@@ -40,7 +40,7 @@ import           Control.Monad.Freer                (Eff, Members, interpret, su
 import           Control.Monad.Freer.Error          (Error, handleError, throwError)
 import           Control.Monad.Freer.Extras.Log     (LogLevel (..), LogMessage, LogMsg, LogObserve, handleLogWriter,
                                                      handleObserveLog, logMessage)
-import           Control.Monad.Freer.Extras.Modify  (handleZoomedState, handleZoomedWriter, raiseEnd16, raiseEnd9)
+import           Control.Monad.Freer.Extras.Modify  (handleZoomedState, handleZoomedWriter, raiseEnd)
 import           Control.Monad.Freer.State          (State)
 import           Control.Monad.Freer.TH             (makeEffect)
 import           Control.Monad.Freer.Writer         (Writer)
@@ -200,7 +200,7 @@ handleMultiAgent = interpret $ \effect -> do
             p8 :: AReview [LogMessage PABMultiAgentMsg] (LogMessage ContractRuntimeMsg)
             p8 = _singleton . below _RuntimeLog
         action
-            & raiseEnd16
+            & raiseEnd
             & Wallet.handleWallet
             & interpret (handleContractRuntime @TestContracts)
             & handleContractTest
@@ -242,7 +242,7 @@ handleMultiAgent = interpret $ \effect -> do
             p6 :: AReview [LogMessage PABMultiAgentMsg] (LogMessage MetadataLogMessage)
             p6 = _singleton . below _MetadataLog
         action
-            & raiseEnd9
+            & raiseEnd
             & ChainIndex.handleChainIndexControl
             & handleMetadata
             -- & NF.handleNodeFollower

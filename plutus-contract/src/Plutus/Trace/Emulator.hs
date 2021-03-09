@@ -63,7 +63,7 @@ import           Control.Monad.Freer
 import           Control.Monad.Freer.Coroutine           (Yield)
 import           Control.Monad.Freer.Error               (Error)
 import           Control.Monad.Freer.Extras.Log          (LogMessage (..), LogMsg (..), mapLog)
-import           Control.Monad.Freer.Extras.Modify       (raiseEnd5)
+import           Control.Monad.Freer.Extras.Modify       (raiseEnd)
 import           Control.Monad.Freer.Reader              (Reader)
 import           Control.Monad.Freer.State               (State, evalState)
 import qualified Data.Map                                as Map
@@ -121,7 +121,7 @@ handleEmulatorTrace action = do
             . interpret (handleEmulatorControl @_ @effs)
             . interpret (handleWaiting @_ @effs)
             . interpret (handleRunContract @_ @effs)
-            $ raiseEnd5 action
+            $ raiseEnd action
     void $ exit @effs @EmulatorMessage
 
 -- | Run a 'Trace Emulator', streaming the log messages as they arrive

@@ -31,7 +31,7 @@ import           Control.Monad.Freer                        (Eff, Member, interp
 import           Control.Monad.Freer.Coroutine              (Yield)
 import           Control.Monad.Freer.Error                  (Error)
 import           Control.Monad.Freer.Extras.Log             (LogMessage, LogMsg (..), mapLog)
-import           Control.Monad.Freer.Extras.Modify          (raiseEnd4)
+import           Control.Monad.Freer.Extras.Modify          (raiseEnd)
 import           Control.Monad.Freer.Reader                 (Reader)
 import           Control.Monad.Freer.State                  (State, evalState)
 import qualified Data.Aeson                                 as JSON
@@ -115,7 +115,7 @@ handlePlaygroundTrace contract action = do
             . interpret (handleWaiting @_ @effs)
             . subsume
             . interpret (handleRunContractPlayground @w @s @e @_ @effs contract)
-            $ raiseEnd4 action
+            $ raiseEnd action
     void $ exit @effs @EmulatorMessage
 
 -- | Run a 'Trace Playground', streaming the log messages as they arrive

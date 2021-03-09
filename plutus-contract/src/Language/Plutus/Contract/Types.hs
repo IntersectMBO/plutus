@@ -61,12 +61,10 @@ import           Control.Lens
 import           Control.Monad
 import           Control.Monad.Except                (MonadError (..))
 import           Control.Monad.Freer
-import           Control.Monad.Freer.Coroutine
 import           Control.Monad.Freer.Error           (Error)
 import qualified Control.Monad.Freer.Error           as E
 import           Control.Monad.Freer.Extras.Log      (LogMessage, LogMsg, handleLogIgnore, handleLogWriter)
-import           Control.Monad.Freer.Extras.Modify   (raiseEnd5, raiseUnderN)
-import           Control.Monad.Freer.NonDet
+import           Control.Monad.Freer.Extras.Modify   (raiseEnd, raiseUnderN)
 import           Control.Monad.Freer.State
 import           Control.Monad.Freer.Writer          (Writer)
 import qualified Control.Monad.Freer.Writer          as W
@@ -121,15 +119,7 @@ handleContractEffs =
   . subsume @(Writer w)
   . subsume @(LogMsg Value)
   . subsume @(Error e)
-  . raiseEnd5
-      @(Yield (Handlers s) (Event s)
-        ': State IterationID
-        ': NonDet
-        ': State RequestID
-        ': State (ReqMap (Event s) (Handlers s) effs a)
-        ': State (Requests (Handlers s))
-        ': effs
-        )
+  . raiseEnd
 
 getContractEnv ::
   forall effs.
@@ -303,8 +293,8 @@ mkResult oldW (initialRes, cpKey, cpStore, w, newLogs) =
           ResumableResult
             { _responses = mempty
             , _requests =
-                let getRequests = \case { AContinuation (MultiRequestContinuation{ndcRequests}) -> Just ndcRequests; _ -> Nothing }
-                in either mempty (fromMaybe mempty) $ fmap (>>= getRequests) initialRes
+                let getRequests = \case { AContinuation MultiRequestContinuation{ndcRequests} -> Just ndcRequests; _ -> Nothing }
+                in either mempty ((fromMaybe mempty) . (>>= getRequests)) initialRes
             , _finalState =
                 let getResult = \case { AResult a -> Just a; _ -> Nothing } in
                 fmap (>>= getResult) initialRes
