@@ -68,19 +68,12 @@ import           Wallet.Effects                                   (ChainIndexEff
                                                                    WalletEffect)
 import           Wallet.Emulator.LogMessages                      (TxBalanceMsg)
 
-import           Plutus.Contract                                  (AddressChangeRequest (..))
-import           Plutus.PAB.Core.ContractInstance.Polling         (ContractLookupError (..), activateContract,
-                                                                   callContractEndpoint, callContractEndpoint',
-                                                                   lookupContract, lookupContractState,
-                                                                   processAllContractInboxes,
-                                                                   processAllContractOutboxes, processContractInbox,
-                                                                   processFirstInboxMessage, sendContractMessage,
-                                                                   sendContractStateMessages)
+import           Plutus.Contract                         (AddressChangeRequest (..))
 import           Plutus.PAB.Core.ContractInstance.STM             (Activity (Done), BlockchainEnv (..),
                                                                    InstanceState (..), InstancesState,
                                                                    emptyInstanceState)
 import qualified Plutus.PAB.Core.ContractInstance.STM             as InstanceState
-import           Plutus.PAB.Effects.Contract                      (ContractCommand (..), ContractEffect)
+import           Plutus.PAB.Effects.Contract                      (ContractEffect, ContractStore)
 import qualified Plutus.PAB.Effects.Contract                      as Contract
 import           Plutus.PAB.Effects.EventLog                      (EventLogEffect)
 import           Plutus.PAB.Effects.UUID                          (UUIDEffect, uuidNextRandom)
@@ -96,10 +89,10 @@ import           Plutus.PAB.Types                                 (PABError (..)
 activateContractSTM ::
     forall t m appBackend effs.
     ( Member (LogMsg (ContractInstanceMsg t)) effs
-    , Member (EventLogEffect (ChainEvent t)) effs
     , Member (Error PABError) effs
     , Member UUIDEffect effs
     , Member (ContractEffect t) effs
+    , Member (ContractStore t) effs
     , Member (Reader InstancesState) effs
     , Show t
     , Ord t
@@ -108,29 +101,17 @@ activateContractSTM ::
     , LastMember m effs
     )
     => (Eff appBackend ~> IO)
-    -> t
-    -> Eff effs (ContractInstanceState t)
+    -> ContractDef t
+    -> Eff effs ContractInstanceId
 activateContractSTM runAppBackend contract = do
-    logInfo @(ContractInstanceMsg t) $ LookingUpContract contract
-    contractDef <-
-        either (throwError . ContractNotFound . unContractLookupError) pure =<<
-        lookupContract @t contract
     activeContractInstanceId <- ContractInstanceId <$> uuidNextRandom
     logDebug $ InitialisingContract contract activeContractInstanceId
-    let initialIteration = succ mempty -- FIXME get max it. from initial response
-    response <- fmap (fmap unContractHandlersResponse) <$> Contract.invokeContract @t $ InitContract contractDef
-    logDebug @(ContractInstanceMsg t) $ InitialContractResponse response
-    let instanceState = ContractInstanceState
-                          { csContract = activeContractInstanceId
-                          , csCurrentIteration = initialIteration
-                          , csCurrentState = response
-                          , csContractDefinition = contract
-                          }
-    sendContractStateMessages instanceState
+    initialState <- Contract.initialState contract
+    Contract.putState contract activeContractInstanceId initialState
     s <- startSTMInstanceThread @t @m runAppBackend activeContractInstanceId
     ask >>= void . liftIO . STM.atomically . InstanceState.insertInstance activeContractInstanceId s
-    logInfo @(ContractInstanceMsg t) $ ActivatedContractInstance activeContractInstanceId
-    pure instanceState
+    logInfo @(ContractInstanceMsg t) $ ActivatedContractInstance initialState activeContractInstanceId
+    pure activeContractInstanceId
 
 processAwaitSlotRequestsSTM ::
     forall effs.
@@ -201,7 +182,6 @@ stmRequestHandler = fmap sequence (wrapHandler (fmap pure nonBlockingRequests) <
 startSTMInstanceThread ::
     forall t m appBackend effs.
     ( LastMember m effs
-    , Member (Reader InstancesState) effs
     , AppBackendConstraints t m appBackend
     , LastMember m (Reader InstanceState ': Reader ContractInstanceId ': appBackend)
     )
@@ -209,11 +189,7 @@ startSTMInstanceThread ::
     -> ContractInstanceId
     -> Eff effs InstanceState
 startSTMInstanceThread runAppBackend instanceID = do
-    instancesState <- ask @InstancesState
-    state <- liftIO $ STM.atomically $ do
-        newState <- emptyInstanceState
-        InstanceState.insertInstance instanceID newState instancesState
-        pure newState
+    state <- liftIO $ STM.atomically emptyInstanceState
     _ <- liftIO
         $ forkIO
         $ runAppBackend
