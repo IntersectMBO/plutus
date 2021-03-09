@@ -58,6 +58,10 @@ inserting effects at the *end* of the list is tricky.
 
 I have no idea what I'm doing, these are partially stolen from freer-simple/polysemy
 with a lot of hacking around.
+
+The first instance of CanWeakenEnd is for the case where the fixed list has length 1.
+The second instance is for cases where the fixed list has a length of 2 or more,
+hence the double cons in the types to prevent overlap with the first instance.
 -}
 class CanWeakenEnd as effs where
     weakenEnd :: Union as ~> Union effs
