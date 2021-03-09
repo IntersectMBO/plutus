@@ -81,7 +81,8 @@ library
         Plutus.PAB.Core.ContractInstance.STM
         Plutus.PAB.Core.Projections
         Plutus.PAB.Effects.Contract
-        Plutus.PAB.Effects.ContractTest
+        Plutus.PAB.Effects.Contract.ContractTest
+        Plutus.PAB.Effects.Contract.CLI
         Plutus.PAB.Effects.ContractRuntime
         Plutus.PAB.Effects.ContractTest.AtomicSwap
         Plutus.PAB.Effects.ContractTest.PayToWallet
@@ -101,6 +102,7 @@ library
         Plutus.PAB.Webserver.WebSocket
         Plutus.PAB.Events
         Plutus.PAB.Events.Contract
+        Plutus.PAB.Events.ContractInstanceState
         Plutus.PAB.Events.Node
         Plutus.PAB.Events.User
         Plutus.PAB.Events.Wallet

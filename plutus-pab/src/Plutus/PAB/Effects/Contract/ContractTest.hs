@@ -10,8 +10,14 @@
 {-# LANGUAGE RankNTypes          #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeApplications    #-}
+{-# LANGUAGE TypeFamilies        #-}
 {-# LANGUAGE TypeOperators       #-}
-module Plutus.PAB.Effects.ContractTest(
+{-
+
+"inline" contracts from plutus-use-cases for testing
+
+-}
+module Plutus.PAB.Effects.Contract.ContractTest(
     TestContracts(..)
     , ContractTestMsg(..)
     , handleContractTest
@@ -20,8 +26,9 @@ module Plutus.PAB.Effects.ContractTest(
 import           Control.Monad                               (void)
 import           Control.Monad.Freer
 import           Control.Monad.Freer.Error                   (Error, throwError)
-import           Data.Aeson                                  as JSON
-import           Data.Aeson.Types                            as JSON
+import           Data.Aeson                                  (FromJSON, ToJSON, Value)
+import qualified Data.Aeson                                  as JSON
+import qualified Data.Aeson.Types                            as JSON
 import           Data.Bifunctor                              (Bifunctor (..))
 import           Data.Row
 import           Data.Text                                   (Text)
@@ -31,7 +38,7 @@ import           Data.Void                                   (Void, absurd)
 import           GHC.Generics                                (Generic)
 
 import           Data.Text.Extras                            (tshow)
-import           Plutus.PAB.Effects.Contract                 (ContractCommand (..), ContractEffect (..))
+import           Plutus.PAB.Effects.Contract                 (ContractEffect (..), PABContract (..))
 import           Plutus.PAB.Events.Contract                  (ContractHandlersResponse (..), ContractPABRequest,
                                                               PartiallyDecodedResponse)
 import qualified Plutus.PAB.Events.Contract                  as C
@@ -42,29 +49,35 @@ import           Control.Monad.Freer.Extras.Log              (LogMsg, logDebug)
 import           Playground.Schema                           (endpointsToSchemas)
 import           Plutus.Contract                             (BlockchainActions, Contract, ContractError)
 import           Plutus.Contract.Effects.RPC                 (RPCClient)
+import           Plutus.Contract.Resumable                   (Response)
 import           Plutus.Contract.Schema                      (Event, Handlers, Input, Output)
-import           Plutus.Contract.State                       (ContractRequest, ContractResponse (..))
+import           Plutus.Contract.State                       (ContractRequest (..), ContractResponse (..))
 import qualified Plutus.Contract.State                       as ContractState
-import qualified Plutus.Contracts.Currency                   as Contracts.Currency
-import qualified Plutus.Contracts.Game                       as Contracts.Game
-import qualified Plutus.Contracts.RPC                        as Contracts.RPC
 import qualified Plutus.PAB.Effects.ContractTest.AtomicSwap  as Contracts.AtomicSwap
 import qualified Plutus.PAB.Effects.ContractTest.PayToWallet as Contracts.PayToWallet
+import qualified PlutusTx.Coordination.Contracts.Currency    as Contracts.Currency
+import qualified PlutusTx.Coordination.Contracts.Game        as Contracts.Game
+import qualified PlutusTx.Coordination.Contracts.RPC         as Contracts.RPC
 
 data TestContracts = Game | Currency | AtomicSwap | PayToWallet | RPCClient | RPCServer
     deriving (Eq, Ord, Show, Generic)
     deriving anyclass (FromJSON, ToJSON)
 
+instance PABContract TestContracts where
+    type ContractDef TestContracts = TestContracts
+    type State TestContracts = PartiallyDecodedResponse ContractPABRequest
+    requests _ = C.hooks
+
 data ContractTestMsg =
     DoContractUpdate (ContractRequest Value)
-    | Request (Doc Void) -- Pretty-printed 'ContractRequest schema' for some schema.
-    | Response (PartiallyDecodedResponse ContractPABRequest)
+    | ContractTestRequest (Doc Void) -- Pretty-printed 'ContractRequest schema' for some schema.
+    | ContractTestResponse (PartiallyDecodedResponse ContractPABRequest)
 
 instance Pretty ContractTestMsg where
     pretty = \case
-        DoContractUpdate vl -> "doContractUpdate:" <+> pretty vl
-        Request rq          -> "Request:" <+> fmap absurd rq
-        Response rsp        -> "Response:" <+> pretty rsp
+        DoContractUpdate vl      -> "doContractUpdate:" <+> pretty vl
+        ContractTestRequest rq   -> "Request:" <+> fmap absurd rq
+        ContractTestResponse rsp -> "Response:" <+> pretty rsp
 
 instance Pretty TestContracts where
     pretty = viaShow
@@ -75,20 +88,20 @@ handleContractTest ::
     => Eff (ContractEffect TestContracts ': effs)
     ~> Eff effs
 handleContractTest = interpret $ \case
-    InvokeContract (InitContract c) -> fmap ContractHandlersResponse <$> case c of
+    InitialState c -> case c of
         Game        -> doContractInit game
         Currency    -> doContractInit currency
         AtomicSwap  -> doContractInit swp
         PayToWallet -> doContractInit payToWallet
         RPCClient   -> doContractInit rpcClient
         RPCServer   -> doContractInit rpcServer
-    InvokeContract (UpdateContract c p) -> fmap ContractHandlersResponse <$> case c of
-        Game        -> doContractUpdate game p
-        Currency    -> doContractUpdate currency p
-        AtomicSwap  -> doContractUpdate swp p
-        PayToWallet -> doContractUpdate payToWallet p
-        RPCClient   -> doContractUpdate rpcClient p
-        RPCServer   -> doContractUpdate rpcServer p
+    UpdateContract c state p -> case c of
+        Game        -> doContractUpdate game state p
+        Currency    -> doContractUpdate currency state p
+        AtomicSwap  -> doContractUpdate swp state p
+        PayToWallet -> doContractUpdate payToWallet state p
+        RPCClient   -> doContractUpdate rpcClient state p
+        RPCServer   -> doContractUpdate rpcServer state p
     ExportSchema t -> case t of
         Game        -> pure $ endpointsToSchemas @(Contracts.Game.GameSchema .\\ BlockchainActions)
         Currency    -> pure $ endpointsToSchemas @(Contracts.Currency.CurrencySchema .\\ BlockchainActions)
@@ -117,7 +130,7 @@ doContractInit ::
     -> Eff effs (PartiallyDecodedResponse ContractPABRequest)
 doContractInit contract = either throwError pure $ do
     let value = ContractState.initialiseContract contract
-    fromString $ fmap (fmap unContractHandlersResponse) $ JSON.eitherDecode $ JSON.encode value
+    fromString $ fmap (fmap C.unContractHandlerRequest) $ JSON.eitherDecode $ JSON.encode value
 
 doContractUpdate ::
     forall w schema effs.
@@ -132,17 +145,16 @@ doContractUpdate ::
     , ToJSON w
     )
     => Contract w schema Text ()
-    -> ContractRequest Value
+    -> PartiallyDecodedResponse ContractPABRequest
+    -> Response C.ContractResponse
     -> Eff effs (PartiallyDecodedResponse ContractPABRequest)
-doContractUpdate contract payload = do
-    logDebug $ DoContractUpdate payload
-    request :: (ContractRequest (Event schema)) <-
-        either throwError pure
-        $ fromString
-        $ traverse (JSON.parseEither JSON.parseJSON) payload
-    logDebug $ Request $ pretty request
-    let response = mkResponse $ ContractState.insertAndUpdateContract contract request
-    logDebug $ Response response
+doContractUpdate contract oldState response = do
+    let C.PartiallyDecodedResponse{C.newState} = oldState
+    oldState' <- traverse fromJSON newState
+    typedResp <- traverse (fromJSON . JSON.toJSON . C.ContractHandlersResponse) response
+    let conReq = ContractRequest{oldState = oldState', event = typedResp }
+    let response = mkResponse $ ContractState.insertAndUpdateContract contract conReq
+    logDebug $ ContractTestResponse response
     pure response
 
 mkResponse ::
@@ -167,7 +179,12 @@ encodeRequest ::
     )
     => Handlers schema
     -> ContractPABRequest
-encodeRequest = either error unContractHandlersResponse . JSON.eitherDecode . JSON.encode
+encodeRequest = either error C.unContractHandlerRequest . JSON.eitherDecode . JSON.encode
+
+fromJSON :: (Member (Error PABError) effs, FromJSON a) => Value -> Eff effs a
+fromJSON =
+    either (throwError . OtherError . Text.pack) pure
+    . JSON.parseEither JSON.parseJSON
 
 fromString :: Either String a -> Either PABError a
 fromString = first (ContractCommandError 0 . Text.pack)

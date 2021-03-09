@@ -17,21 +17,25 @@ module Plutus.PAB.Effects.ContractRuntime(
     , handleContractRuntime
     ) where
 
-import           Cardano.BM.Data.Tracer           (ToObject (..), TracingVerbosity (..))
-import           Cardano.BM.Data.Tracer.Extras    (Tagged (..), mkObjectStr)
-import           Control.Monad.Freer              (Eff, Member, type (~>))
-import           Control.Monad.Freer.Error        (runError)
-import           Control.Monad.Freer.Extras.Log   (LogMsg, logInfo, logWarn)
-import qualified Data.Aeson                       as JSON
-import           Data.Text.Prettyprint.Doc        (Pretty (..), (<+>))
-import           GHC.Generics                     (Generic)
-import           Plutus.Contract.Trace            (EndpointError, toNotifyError)
-import           Plutus.PAB.Core.ContractInstance (ContractInstanceMsg)
-import qualified Plutus.PAB.Core.ContractInstance as Instance
-import           Plutus.PAB.Effects.EventLog      (EventLogEffect)
-import           Plutus.PAB.Events                (ChainEvent)
-import           Wallet.Effects                   (ContractRuntimeEffect (..))
-import           Wallet.Types                     (EndpointDescription (..), Notification (..), NotificationError)
+import           Cardano.BM.Data.Tracer               (ToObject (..), TracingVerbosity (..))
+import           Cardano.BM.Data.Tracer.Extras        (Tagged (..), mkObjectStr)
+import qualified Control.Concurrent.STM               as STM
+import           Control.Monad.Freer                  (Eff, LastMember, Member, type (~>))
+import           Control.Monad.Freer.Error            (runError)
+import           Control.Monad.Freer.Extras.Log       (LogMsg, logInfo, logWarn)
+import           Control.Monad.Freer.Reader           (Reader, ask)
+import           Control.Monad.IO.Class               (MonadIO (..))
+import qualified Data.Aeson                           as JSON
+import           Data.Text.Prettyprint.Doc            (Pretty (..), (<+>))
+import           GHC.Generics                         (Generic)
+import           Language.Plutus.Contract.Trace       (EndpointError, toNotifyError)
+import           Plutus.PAB.Core.ContractInstance     (ContractInstanceMsg)
+import qualified Plutus.PAB.Core.ContractInstance     as Instance
+import           Plutus.PAB.Core.ContractInstance.STM (InstancesState)
+import           Plutus.PAB.Effects.EventLog          (EventLogEffect)
+import           Plutus.PAB.Events                    (ChainEvent)
+import           Wallet.Effects                       (ContractRuntimeEffect (..))
+import           Wallet.Types                         (EndpointDescription (..), Notification (..), NotificationError)
 
 data ContractRuntimeMsg =
     SendingNotification Notification
@@ -63,26 +67,28 @@ instance Pretty ContractRuntimeMsg where
         NotificationFailure e -> "Notification failure:" <+> pretty e
 
 handleContractRuntime ::
-    forall t effs.
-    ( Member (EventLogEffect (ChainEvent t)) effs
-    , Member (LogMsg (ContractInstanceMsg t)) effs
+    forall t m effs.
+    ( Member (LogMsg (ContractInstanceMsg t)) effs
     , Member (LogMsg ContractRuntimeMsg) effs
+    , Member (Reader InstancesState) effs
+    , LastMember m effs
+    , MonadIO m
     )
     => ContractRuntimeEffect
     ~> Eff effs
 handleContractRuntime = \case
     SendNotification n@Notification{notificationContractID, notificationContractEndpoint=EndpointDescription nm, notificationContractArg} -> do
         logInfo $ SendingNotification n
-        r <- runError @EndpointError
-                $ Instance.callContractEndpoint' @t
-                    notificationContractID
-                    nm
+        env <- ask @InstancesState
+        result <- liftIO $ STM.atomically $ Instance.callEndpointOnInstance
+                    env
+                    (EndpointDescription nm)
                     notificationContractArg
-        case r of
-            Left err -> do
-                let e = toNotifyError notificationContractID err
-                logWarn $ NotificationFailure e
-                pure $ Just e
-            Right _ -> do
+                    notificationContractID
+        case result of
+            Just err -> do
+                logWarn $ NotificationFailure err
+                pure $ Just err
+            Nothing -> do
                 logInfo $ NotificationSuccess n
                 pure Nothing

@@ -1,38 +1,45 @@
-{-# LANGUAGE DataKinds         #-}
-{-# LANGUAGE DeriveAnyClass    #-}
-{-# LANGUAGE DeriveGeneric     #-}
-{-# LANGUAGE DerivingVia       #-}
-{-# LANGUAGE LambdaCase        #-}
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE StrictData        #-}
+{-# LANGUAGE DataKinds            #-}
+{-# LANGUAGE DeriveAnyClass       #-}
+{-# LANGUAGE DeriveGeneric        #-}
+{-# LANGUAGE DerivingVia          #-}
+{-# LANGUAGE FlexibleContexts     #-}
+{-# LANGUAGE LambdaCase           #-}
+{-# LANGUAGE OverloadedStrings    #-}
+{-# LANGUAGE StrictData           #-}
+{-# LANGUAGE UndecidableInstances #-}
 
 module Plutus.PAB.Webserver.Types where
 
-import           Cardano.BM.Data.Tracer        (ToObject, toObject)
-import           Cardano.BM.Data.Tracer.Extras (StructuredLog, mkObjectStr)
-import qualified Cardano.Metadata.Types        as Metadata
-import           Data.Aeson                    (FromJSON, ToJSON)
-import           Data.Map                      (Map)
-import           Data.Tagged                   (Tagged (Tagged))
-import           Data.Text                     (Text)
-import           Data.Text.Prettyprint.Doc     (Pretty, pretty, viaShow, (<+>))
-import           Data.UUID                     (UUID)
-import           GHC.Generics                  (Generic)
-import           Ledger                        (Tx, TxId)
-import           Ledger.Index                  (UtxoIndex)
-import           Playground.Types              (FunctionSchema)
-import           Plutus.PAB.Events             (ChainEvent, ContractInstanceState)
-import           Plutus.PAB.Types              (ContractExe)
-import           Schema                        (FormSchema)
-import           Wallet.Rollup.Types           (AnnotatedTx)
+import           Cardano.BM.Data.Tracer          (ToObject, toObject)
+import           Cardano.BM.Data.Tracer.Extras   (StructuredLog, mkObjectStr)
+import qualified Cardano.Metadata.Types          as Metadata
+import           Data.Aeson                      (FromJSON, ToJSON)
+import           Data.Map                        (Map)
+import           Data.Tagged                     (Tagged (Tagged))
+import           Data.Text                       (Text)
+import           Data.Text.Prettyprint.Doc       (Pretty, pretty, viaShow, (<+>))
+import           Data.UUID                       (UUID)
+import           GHC.Generics                    (Generic)
+import           Ledger                          (Tx, TxId)
+import           Ledger.Index                    (UtxoIndex)
+import           Playground.Types                (FunctionSchema)
+import           Plutus.PAB.Effects.Contract     (PABContract (..))
+import           Plutus.PAB.Effects.Contract.CLI (ContractExe)
+import           Plutus.PAB.Events               (ChainEvent, ContractInstanceState)
+import           Schema                          (FormSchema)
+import           Wallet.Rollup.Types             (AnnotatedTx)
 
 data ContractReport t =
     ContractReport
         { crAvailableContracts   :: [ContractSignatureResponse t]
         , crActiveContractStates :: [ContractInstanceState t]
         }
-    deriving (Show, Eq, Generic)
-    deriving anyclass (FromJSON, ToJSON)
+    deriving stock (Generic)
+
+deriving stock instance (Show (ContractDef t)) => Show (ContractReport t)
+deriving stock instance (Eq (ContractDef t)) => Eq (ContractReport t)
+deriving anyclass instance (ToJSON (ContractDef t)) => ToJSON (ContractReport t)
+deriving anyclass instance (FromJSON (ContractDef t)) => FromJSON (ContractReport t)
 
 data ChainReport =
     ChainReport
@@ -50,16 +57,24 @@ data FullReport t =
         , chainReport    :: ChainReport
         , events         :: [ChainEvent t]
         }
-    deriving (Show, Eq, Generic)
-    deriving anyclass (FromJSON, ToJSON)
+    deriving stock Generic
+
+deriving stock instance (Show (ContractDef t)) => Show (FullReport t)
+deriving stock instance (Eq (ContractDef t)) => Eq (FullReport t)
+deriving anyclass instance (ToJSON (ContractDef t)) => ToJSON (FullReport t)
+deriving anyclass instance (FromJSON (ContractDef t)) => FromJSON (FullReport t)
 
 data ContractSignatureResponse t =
     ContractSignatureResponse
-        { csrDefinition :: t
+        { csrDefinition :: ContractDef t
         , csrSchemas    :: [FunctionSchema FormSchema]
         }
-    deriving (Show, Eq, Generic)
-    deriving anyclass (FromJSON, ToJSON)
+    deriving stock (Generic)
+
+deriving stock instance (Show (ContractDef t)) => Show (ContractSignatureResponse t)
+deriving stock instance (Eq (ContractDef t)) => Eq (ContractSignatureResponse t)
+deriving anyclass instance (ToJSON (ContractDef t)) => ToJSON (ContractSignatureResponse t)
+deriving anyclass instance (FromJSON (ContractDef t)) => FromJSON (ContractSignatureResponse t)
 
 data StreamToServer
     = FetchProperties Metadata.Subject

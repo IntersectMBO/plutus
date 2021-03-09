@@ -36,19 +36,6 @@ import           Plutus.PAB.Instances          ()
 import           Servant.Client                (BaseUrl, ClientError)
 import           Wallet.API                    (WalletAPIError)
 
-newtype ContractExe =
-    ContractExe
-        { contractPath :: FilePath
-        }
-    deriving (Show, Eq, Ord, Generic)
-    deriving anyclass (ToJSON, FromJSON)
-
-instance StructuredLog ContractExe where
-    toStructuredLog e = HM.singleton "contract" (toJSON e)
-
-instance Pretty ContractExe where
-    pretty ContractExe {contractPath} = "Path:" <+> pretty contractPath
-
 data PABError
     = FileNotFound FilePath
     | ContractNotFound FilePath
@@ -60,9 +47,9 @@ data PABError
     | MetadataError Metadata.MetadataError
     | ChainIndexError ClientError
     | WalletError WalletAPIError
-    | ContractCommandError Int Text
+    | ContractCommandError Int Text -- ?
     | InvalidUUIDError  Text
-    | OtherError Text
+    | OtherError Text -- ?
     | EndpointCallError ContractInstanceId EndpointError
     deriving stock (Show, Eq, Generic)
     deriving anyclass (ToJSON, FromJSON)

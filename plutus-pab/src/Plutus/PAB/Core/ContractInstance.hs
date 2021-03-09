@@ -13,29 +13,20 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeApplications    #-}
 {-# LANGUAGE TypeOperators       #-}
+{-
+
+Start the threads for contract instances
+
+-}
 module Plutus.PAB.Core.ContractInstance(
     ContractInstanceMsg(..)
-    , lookupContractState
-    , processFirstInboxMessage
-    , processAllContractInboxes
-    , processContractInbox
-    , lookupContract
-    , activateContract
     , activateContractSTM
-    -- * Contract outboxes
-    , MaxIterations(..)
-    , defaultMaxIterations
-    , processAllContractOutboxes
-    , processOwnPubkeyRequests
-    , processAwaitSlotRequests
-    , processUtxoAtRequests
     , processWriteTxRequests
-    -- * Calling an endpoint
-    , callContractEndpoint
-    , callContractEndpoint'
     -- * STM instances
     , startSTMInstanceThread
     , AppBackendConstraints
+    -- * Calling endpoints
+    , callEndpointOnInstance
     ) where
 
 import           Control.Arrow                                    ((>>>))
@@ -69,10 +60,10 @@ import           Wallet.Effects                                   (ChainIndexEff
                                                                    WalletEffect)
 import           Wallet.Emulator.LogMessages                      (TxBalanceMsg)
 
-import           Plutus.Contract                         (AddressChangeRequest (..))
+import           Plutus.Contract                                  (AddressChangeRequest (..))
 import           Plutus.PAB.Core.ContractInstance.STM             (Activity (Done), BlockchainEnv (..),
                                                                    InstanceState (..), InstancesState,
-                                                                   emptyInstanceState)
+                                                                   callEndpointOnInstance, emptyInstanceState)
 import qualified Plutus.PAB.Core.ContractInstance.STM             as InstanceState
 import           Plutus.PAB.Effects.Contract                      (ContractDef, ContractEffect, ContractStore)
 import qualified Plutus.PAB.Effects.Contract                      as Contract
@@ -147,8 +138,7 @@ processEndpointRequestsSTM =
 -- | 'RequestHandler' that uses TVars to wait for events
 stmRequestHandler ::
     forall t effs.
-    ( Member (EventLogEffect (ChainEvent t)) effs
-    , Member ChainIndexEffect effs
+    ( Member ChainIndexEffect effs
     , Member WalletEffect effs
     , Member ContractRuntimeEffect effs
     , Member (LogMsg RequestHandlerLogMsg) effs

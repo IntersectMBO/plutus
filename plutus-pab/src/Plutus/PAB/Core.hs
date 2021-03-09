@@ -18,7 +18,6 @@
 module Plutus.PAB.Core
     ( dbConnect
     , installContract
-    , activateContract
     , activateContractSTM
     , reportContractState
     , installedContracts
@@ -26,8 +25,6 @@ module Plutus.PAB.Core
     , txHistory
     , activeContractHistory
     , Connection(Connection)
-    , ContractCommand(..)
-    , invokeContract
     , refreshProjection
     , runCommand
     , runGlobalQuery
@@ -36,11 +33,6 @@ module Plutus.PAB.Core
     -- * Effects
     , ContractEffects
     , CoreMsg(..)
-    -- * Contract messages
-    , processAllContractInboxes
-    , processContractInbox
-    , processAllContractOutboxes
-    , callContractEndpoint
     ) where
 
 import           Cardano.BM.Data.Tracer           (ToObject (..), TracingVerbosity (..))
@@ -61,10 +53,8 @@ import           Eventful.Store.Sql               (defaultSqlEventStoreConfig)
 import           GHC.Generics                     (Generic)
 import qualified Ledger
 import           Plutus.PAB.Command               (installCommand)
-import           Plutus.PAB.Core.ContractInstance (activateContract, activateContractSTM, callContractEndpoint,
-                                                   processAllContractInboxes, processAllContractOutboxes,
-                                                   processContractInbox)
-import           Plutus.PAB.Effects.Contract      (ContractCommand (..), ContractEffect, invokeContract)
+import           Plutus.PAB.Core.ContractInstance (activateContractSTM)
+import           Plutus.PAB.Effects.Contract      (ContractEffect)
 import           Plutus.PAB.Effects.EventLog      (Connection (..), EventLogEffect, refreshProjection, runCommand,
                                                    runGlobalQuery)
 import qualified Plutus.PAB.Effects.EventLog      as EventLog

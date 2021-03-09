@@ -49,7 +49,9 @@ import qualified Plutus.PAB.Core                                  as Core
 import qualified Plutus.PAB.Core.ContractInstance                 as Instance
 import qualified Plutus.PAB.Core.ContractInstance.RequestHandlers as LM
 import           Plutus.PAB.Core.ContractInstance.STM             (InstancesState, callEndpointOnInstance)
-import           Plutus.PAB.Effects.Contract                      (ContractEffect, exportSchema)
+import           Plutus.PAB.Effects.Contract                      (ContractDefinitionStore, ContractEffect,
+                                                                   exportSchema, getDefinitions)
+import           Plutus.PAB.Effects.Contract.CLI                  (ContractExe)
 import           Plutus.PAB.Effects.EventLog                      (EventLogEffect)
 import           Plutus.PAB.Effects.UUID                          (UUIDEffect)
 import           Plutus.PAB.Events                                (ChainEvent, ContractInstanceId (ContractInstanceId),
@@ -70,17 +72,16 @@ healthcheck = pure ()
 
 getContractReport ::
        forall t effs.
-       ( Member (EventLogEffect (ChainEvent t)) effs
+       ( Member (ContractDefinitionStore t) effs
        , Member (ContractEffect t) effs
        , Ord t
        )
     => Eff effs (ContractReport t)
 getContractReport = do
-    installedContracts <-
-        Set.toList <$> runGlobalQuery (Query.installedContractsProjection @t)
+    installedContracts <- getDefinitions @t
     crAvailableContracts <-
         traverse
-            (\t -> ContractSignatureResponse t <$> exportSchema t)
+            (\t -> ContractSignatureResponse t <$> exportSchema @t t)
             installedContracts
     crActiveContractStates <-
         Map.elems <$> runGlobalQuery (Query.contractState @t)
@@ -185,12 +186,15 @@ getContractInstanceState contractId = do
         Just value -> pure value
 
 invokeEndpoint ::
-       forall t effs.
+       forall t m effs.
        ( Member (EventLogEffect (ChainEvent t)) effs
        , Member (LogMsg LM.ContractExeLogMsg) effs
        , Member (Error PABError) effs
        , Member (LogMsg (Instance.ContractInstanceMsg t)) effs
+       , Member (Reader InstancesState) effs
        , Pretty t
+       , MonadIO m
+       , LastMember m effs
        )
     => EndpointDescription
     -> JSON.Value
@@ -198,13 +202,15 @@ invokeEndpoint ::
     -> Eff effs (ContractInstanceState t)
 invokeEndpoint (EndpointDescription endpointDescription) payload contractId = do
     logInfo $ LM.InvokingEndpoint endpointDescription payload
-    newState :: [ChainEvent t] <-
-        Instance.callContractEndpoint @t contractId endpointDescription payload
-    logInfo $
-        LM.EndpointInvocationResponse $
-        fmap
-            (renderStrict . layoutPretty defaultLayoutOptions . pretty)
-            newState
+    env <- ask @InstancesState
+    result <- liftIO $ atomically $ Instance.callEndpointOnInstance env (EndpointDescription endpointDescription) payload contractId
+    -- newState :: [ChainEvent t] <-
+    --     Instance.callContractEndpoint @t contractId endpointDescription payload
+    -- logInfo $
+    --     LM.EndpointInvocationResponse $
+    --     fmap
+    --         (renderStrict . layoutPretty defaultLayoutOptions . pretty)
+    --         newState
     getContractInstanceState contractId
 
 -- | Call an endpoint using the STM-based contract runner.

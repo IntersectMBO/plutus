@@ -24,36 +24,36 @@ module Plutus.PAB.Core.ContractInstance.RequestHandlers(
     , defaultMaxIterations
     ) where
 
-import           Cardano.BM.Data.Tracer                        (ToObject (..), TracingVerbosity (..))
-import           Cardano.BM.Data.Tracer.Extras                 (Tagged (Tagged), mkObjectStr)
-import           Control.Arrow                                 ((>>>), (>>^))
-import           Control.Monad                                 (void)
-import           Control.Monad.Freer                           (Member)
-import           Control.Monad.Freer.Extras.Log                (LogMessage, LogMsg, LogObserve, logInfo)
-import           Control.Monad.Freer.Reader                    (Reader)
-import           Data.Aeson                                    (FromJSON, ToJSON)
-import qualified Data.Aeson                                    as JSON
-import qualified Data.Text                                     as Text
-import           Data.Text.Prettyprint.Doc                     (Pretty, parens, pretty, viaShow, (<+>))
-import           GHC.Generics                                  (Generic)
+import           Cardano.BM.Data.Tracer               (ToObject (..), TracingVerbosity (..))
+import           Cardano.BM.Data.Tracer.Extras        (Tagged (Tagged), mkObjectStr)
+import           Control.Arrow                        ((>>>), (>>^))
+import           Control.Monad                        (void)
+import           Control.Monad.Freer                  (Member)
+import           Control.Monad.Freer.Extras.Log       (LogMessage, LogMsg, LogObserve, logInfo)
+import           Control.Monad.Freer.Reader           (Reader)
+import           Data.Aeson                           (FromJSON, ToJSON)
+import qualified Data.Aeson                           as JSON
+import qualified Data.Text                            as Text
+import           Data.Text.Prettyprint.Doc            (Pretty, parens, pretty, viaShow, (<+>))
+import           GHC.Generics                         (Generic)
+import           Ledger.Tx                            (Tx, txId)
 import           Plutus.Contract.Effects.AwaitSlot    (WaitingForSlot (..))
 import           Plutus.Contract.Effects.WriteTx      (WriteTxResponse (..))
 import           Plutus.Contract.Resumable            (IterationID, Request (..), Response (..))
 import           Plutus.Contract.Trace.RequestHandler (RequestHandler (..), RequestHandlerLogMsg, extract,
-                                                                maybeToHandler)
+                                                       maybeToHandler)
 import qualified Plutus.Contract.Trace.RequestHandler as RequestHandler
-import           Ledger.Tx                                     (Tx, txId)
-import           Plutus.PAB.Command                            (saveBalancedTx, saveBalancedTxResult)
-import qualified Plutus.PAB.Effects.Contract                   as Contract
-import           Plutus.PAB.Effects.EventLog                   (EventLogEffect, runCommand)
-import           Plutus.PAB.Events                             (ChainEvent)
-import           Plutus.PAB.Events.Contract                    (ContractInstanceId (..), ContractPABRequest (..),
-                                                                ContractResponse (..))
-import qualified Plutus.PAB.Events.Contract                    as Events.Contract
-import           Plutus.PAB.Types                              (Source (NodeEventSource, WalletEventSource))
-import           Wallet.Effects                                (ChainIndexEffect, ContractRuntimeEffect, WalletEffect)
-import           Wallet.Emulator.LogMessages                   (TxBalanceMsg)
-import           Wallet.Types                                  (NotificationError)
+import           Plutus.PAB.Command                   (saveBalancedTx, saveBalancedTxResult)
+import qualified Plutus.PAB.Effects.Contract          as Contract
+import           Plutus.PAB.Effects.EventLog          (EventLogEffect, runCommand)
+import           Plutus.PAB.Events                    (ChainEvent)
+import           Plutus.PAB.Events.Contract           (ContractInstanceId (..), ContractPABRequest (..),
+                                                       ContractResponse (..))
+import qualified Plutus.PAB.Events.Contract           as Events.Contract
+import           Plutus.PAB.Types                     (Source (NodeEventSource, WalletEventSource))
+import           Wallet.Effects                       (ChainIndexEffect, ContractRuntimeEffect, WalletEffect)
+import           Wallet.Emulator.LogMessages          (TxBalanceMsg)
+import           Wallet.Types                         (NotificationError)
 
 processOwnPubkeyRequests ::
     forall effs.
@@ -91,8 +91,7 @@ processUtxoAtRequests =
 
 processWriteTxRequests ::
     forall t effs.
-    ( Member (EventLogEffect (ChainEvent t)) effs
-    , Member ChainIndexEffect effs
+    ( Member ChainIndexEffect effs
     , Member WalletEffect effs
     , Member (LogObserve (LogMessage Text.Text)) effs
     , Member (LogMsg RequestHandlerLogMsg) effs
@@ -101,18 +100,8 @@ processWriteTxRequests ::
     )
     => RequestHandler effs ContractPABRequest ContractResponse
 processWriteTxRequests =
-    let store result = case result of
-            Left err -> pure (Left err)
-            Right signedTx -> do
-                logInfo @(ContractInstanceMsg t) $ StoringSignedTx signedTx
-                void $ runCommand (saveBalancedTx @t) WalletEventSource signedTx
-                void $ runCommand (saveBalancedTxResult @t) NodeEventSource signedTx
-                pure (Right signedTx)
-    in
-
     maybeToHandler (extract Events.Contract._WriteTxRequest)
     >>> RequestHandler.handlePendingTransactions
-    >>> RequestHandler store
     >>^ WriteTxResponse . either WriteTxFailed WriteTxSuccess
 
 processNextTxAtRequests ::
@@ -197,6 +186,7 @@ data ContractInstanceMsg t =
     deriving stock (Generic)
 
 deriving stock instance (Eq (Contract.State t), Eq (Contract.ContractDef t)) => Eq (ContractInstanceMsg t)
+deriving stock instance (Show (Contract.State t), Show (Contract.ContractDef t)) => Show (ContractInstanceMsg t)
 deriving anyclass instance (ToJSON (Contract.State t), ToJSON (Contract.ContractDef t)) => ToJSON (ContractInstanceMsg t)
 deriving anyclass instance (FromJSON (Contract.State t), FromJSON (Contract.ContractDef t)) => FromJSON (ContractInstanceMsg t)
 

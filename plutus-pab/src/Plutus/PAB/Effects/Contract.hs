@@ -26,15 +26,19 @@ module Plutus.PAB.Effects.Contract(
     , ContractStore(..)
     , putState
     , getState
+    -- * Storing and retrieving definitions of contracts
+    , ContractDefinitionStore(..)
+    , addDefinition
+    , getDefinitions
     ) where
 
-import           Control.Monad.Freer                (Eff, Member, send)
-import           Data.Proxy                         (Proxy)
-import           Language.Plutus.Contract.Resumable (Request, Response)
-import           Playground.Types                   (FunctionSchema)
-import           Plutus.PAB.Events.Contract         (ContractPABRequest, ContractResponse)
-import           Schema                             (FormSchema)
-import           Wallet.Types                       (ContractInstanceId)
+import           Control.Monad.Freer        (Eff, Member, send)
+import           Data.Proxy                 (Proxy)
+import           Playground.Types           (FunctionSchema)
+import           Plutus.Contract.Resumable  (Request, Response)
+import           Plutus.PAB.Events.Contract (ContractPABRequest, ContractResponse)
+import           Schema                     (FormSchema)
+import           Wallet.Types               (ContractInstanceId)
 
 -- | A class of contracts running in the PAB. The purpose of the type
 --   parameter @t@ is to allow for different ways of running
@@ -55,18 +59,6 @@ class PABContract contract where
     -- | Extract the contract instance's open requests from the
     --   state.
     requests :: Proxy contract -> State contract -> [Request ContractPABRequest]
-
--- data ExternalProcessContract
-
--- instance PABContract ExternalProcessContract where
-
-    -- type ContractInput ExternalProcessContract = State.ContractRequest JSON.Value
-    -- type ContractState
-
--- type Request t = State.ContractRequest (Input t)
-
--- -- | The state of a contract instance.
--- type State t = State.ContractResponse (ObsState t) (Err t) (IntState t) (OpenRequest t)
 
 -- | An effect for sending updates to contracts that implement @PABContract@
 data ContractEffect t r where
@@ -141,3 +133,28 @@ getState ::
 getState def i =
     let command :: ContractStore t (State t) = GetState def i
     in send command
+
+-- | Storing and retrieving definitions of contracts.
+--   (Not all 't's support this)
+data ContractDefinitionStore t r where
+    AddDefinition :: ContractDef t -> ContractDefinitionStore t ()
+    GetDefinitions :: ContractDefinitionStore t [ContractDef t]
+
+addDefinition ::
+    forall t effs.
+    ( Member (ContractDefinitionStore t) effs
+    )
+    => ContractDef t
+    -> Eff effs ()
+addDefinition def =
+    let command :: ContractDefinitionStore t ()
+        command = AddDefinition def
+    in send command
+
+getDefinitions ::
+    forall t effs.
+    ( Member (ContractDefinitionStore t) effs
+    )
+    => Eff effs [ContractDef t]
+getDefinitions = send @(ContractDefinitionStore t) GetDefinitions
+-- Set.toList <$> runGlobalQuery (Query.installedContractsProjection @t)
