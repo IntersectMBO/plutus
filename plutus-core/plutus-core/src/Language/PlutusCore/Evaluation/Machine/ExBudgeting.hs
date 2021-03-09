@@ -111,7 +111,7 @@ module Language.PlutusCore.Evaluation.Machine.ExBudgeting
     , ModelThreeArguments(..)
     , exBudgetCPU
     , exBudgetMemory
-    , negativeBudget
+    , isNegativeBudget
     , runCostingFunOneArgument
     , runCostingFunTwoArguments
     , runCostingFunThreeArguments
@@ -469,5 +469,5 @@ runCostingFunThreeArguments (CostingFun cpu mem) mem1 mem2 mem3 =
 
 makeLenses ''ExBudget
 
-negativeBudget :: ExRestrictingBudget -> Bool
-negativeBudget (ExRestrictingBudget (ExBudget cpu mem)) = cpu < 0 || mem < 0
+isNegativeBudget :: ExRestrictingBudget -> Bool
+isNegativeBudget (ExRestrictingBudget (ExBudget cpu mem)) = cpu < 0 || mem < 0

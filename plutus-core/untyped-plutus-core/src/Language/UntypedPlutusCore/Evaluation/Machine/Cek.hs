@@ -298,7 +298,7 @@ instance (Eq fun, ToExMemory term, Hashable fun) =>
                 -- Note that even if we throw an out-of-budget error, we still need to record
                 -- what the final state was.
                 put $! RestrictingSt budgetLeft'
-                when (negativeBudget budgetLeft') $
+                when (isNegativeBudget budgetLeft') $
                     throwingWithCause _EvaluationError
                         (UserEvaluationError $ CekOutOfExError budgetLeft')
                         Nothing
