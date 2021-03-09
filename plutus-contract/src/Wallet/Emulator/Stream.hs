@@ -31,7 +31,7 @@ import           Control.Lens                           (filtered, makeLenses, p
 import           Control.Monad.Freer                    (Eff, Member, interpret, reinterpret, run, subsume, type (~>))
 import           Control.Monad.Freer.Coroutine          (Yield, yield)
 import           Control.Monad.Freer.Error              (Error, runError)
-import           Control.Monad.Freer.Extras             (raiseEnd7, wrapError)
+import           Control.Monad.Freer.Extras             (raiseEnd, wrapError)
 import           Control.Monad.Freer.Extras.Log         (LogLevel, LogMessage (..), LogMsg (..), logMessageContent,
                                                          mapMLog)
 import           Control.Monad.Freer.Extras.Stream      (runStream)
@@ -129,7 +129,7 @@ runTraceStream conf =
     . EM.processEmulated
     . subsume
     . subsume @(State EmulatorState)
-    . raiseEnd7
+    . raiseEnd
 
 data EmulatorConfig =
     EmulatorConfig

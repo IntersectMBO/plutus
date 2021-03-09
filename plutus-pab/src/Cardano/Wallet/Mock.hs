@@ -83,7 +83,7 @@ handleMultiWallet = do
                 Just privateKey -> do
                     let walletState = WalletState privateKey emptyNodeClientState mempty (defaultSigningProcess wallet)
                     evalState walletState $ action
-                        & raiseEnd @(State WalletState ': effs)
+                        & raiseEnd
                         & Wallet.handleWallet
                 Nothing -> throwError $ WAPI.OtherError "Wallet not found"
         CreateWallet -> do

@@ -22,7 +22,7 @@ import           Control.Monad
 import           Control.Monad.Freer
 import           Control.Monad.Freer.Error
 import           Control.Monad.Freer.Extras.Log    (LogMessage, LogMsg, LogObserve, handleObserveLog, mapLog)
-import           Control.Monad.Freer.Extras.Modify (handleZoomedState, raiseEnd5, raiseEnd8, writeIntoState)
+import           Control.Monad.Freer.Extras.Modify (handleZoomedState, raiseEnd, writeIntoState)
 import           Control.Monad.Freer.State
 import           Data.Aeson                        (FromJSON, ToJSON)
 import           Data.Map                          (Map)
@@ -316,7 +316,7 @@ handleMultiAgentControl = interpret $ \case
             p4 :: AReview EmulatorEvent' T.Text
             p4 =  walletEvent wallet . Wallet._GenericLog
         act
-            & raiseEnd5
+            & raiseEnd
             & NC.handleNodeControl
             & ChainIndex.handleChainIndexControl
             & Wallet.handleSigningProcessControl
@@ -354,7 +354,7 @@ handleMultiAgent = interpret $ \case
             p7 :: AReview EmulatorEvent' Notify.EmulatorNotifyLogMsg
             p7 = notificationEvent
         act
-            & raiseEnd8
+            & raiseEnd
             & Wallet.handleWallet
             & subsume
             & NC.handleNodeClient
