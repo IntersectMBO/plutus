@@ -67,7 +67,7 @@ testMemory name = nestedGoldenVsText name . fromString . show . memoryUsage
 
 test_memory :: TestTree
 test_memory =
-    runTestNestedIn ["untyped-plutus-core-test", "Evaluation", "Machines"]
+    runTestNestedIn ["untyped-plutus-core", "test", "Evaluation", "Machines"]
         .  testNested "Memory"
         .  foldPlcFolderContents testNested testMemory testMemory
         $  stdLib
@@ -127,7 +127,7 @@ bunchOfIfThenElseNats =
 
 test_budget :: TestTree
 test_budget
-    = runTestNestedIn ["untyped-plutus-core-test", "Evaluation", "Machines"]
+    = runTestNestedIn ["untyped-plutus-core", "test", "Evaluation", "Machines"]
     . testNested "Budget"
     $ concat
         [ folder defBuiltinsRuntime examples
@@ -151,7 +151,7 @@ testTallying name term =
 
 test_tallying :: TestTree
 test_tallying =
-    runTestNestedIn ["untyped-plutus-core-test", "Evaluation", "Machines"]
+    runTestNestedIn ["untyped-plutus-core", "test", "Evaluation", "Machines"]
         .  testNested "Tallying"
         .  foldPlcFolderContents testNested
                                  (\name _ -> pure $ testGroup name [])

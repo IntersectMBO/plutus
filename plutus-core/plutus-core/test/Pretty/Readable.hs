@@ -21,7 +21,7 @@ testReadable name = nestedGoldenVsDoc name . prettyBy prettyConfigReadable
 
 test_PrettyReadable :: TestTree
 test_PrettyReadable
-    = runTestNestedIn ["test", "Pretty", "Golden"]
+    = runTestNestedIn ["plutus-core", "test", "Pretty", "Golden"]
     . testNested "Readable"
     . foldPlcFolderContents testNested testReadable testReadable
     $ stdLib <> examples

@@ -1,3 +1,1 @@
-(Right [
-  { (builtin ifThenElse) (fun (con integer) (con integer)) } (con bool True)
-])
+(Right [ (force (builtin ifThenElse)) (con bool True) ])

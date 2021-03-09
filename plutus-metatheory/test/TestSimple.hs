@@ -49,7 +49,7 @@ blah (Just mode) = ["--mode",mode]
 
 modeType :: Maybe String -> [String]
 modeType (Just "U") = []
-modeType _          = ["-t"]
+modeType _          = ["--typed"]
 
 runTest :: String -> Maybe String -> String -> IO ()
 runTest command mode test = do
@@ -99,4 +99,3 @@ putStrLn "running succ L..."
   runFailingTests "evaluate" (Just "U") failingEvalTests
   putStrLn "running succ TC"
   runSucceedingTests "typecheck" Nothing succeedingTCTests
-

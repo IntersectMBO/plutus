@@ -116,7 +116,7 @@ data CekEnv uni fun s = CekEnv
 data CekUserError
     = CekOutOfExError ExRestrictingBudget -- ^ The final overspent (i.e. negative) budget.
     | CekEvaluationFailure -- ^ Error has been called or a builtin application has failed
-    deriving (Show, Eq)
+    deriving (Show, Eq, Generic, NFData)
 
 instance HasErrorCode CekUserError where
     errorCode CekEvaluationFailure {} = ErrorCode 37
@@ -284,23 +284,24 @@ instance MonadEmitter (CekCarryingM term uni fun s) where
 -- @Ix fun@ which implies @Ord fun@ which implies @Eq fun@.
 instance (Eq fun, ToExMemory term, Hashable fun) =>
             SpendBudget (CekCarryingM term uni fun s) fun (ExBudgetCategory fun) term where
-    spendBudget key budgetSpent = do
+    spendBudget key budgetToSpend = do
         exSt <- get
         case exSt of
             CountingSt budgetTotal -> do
-                let budgetTotal' = budgetTotal <> budgetSpent
+                let budgetTotal' = budgetTotal <> budgetToSpend
                 put $! CountingSt budgetTotal'
             TallyingSt tallies budgetTotal -> do
-                let budgetTotal' = budgetTotal <> budgetSpent
-                put $! TallyingSt (tallies <> ExTally (singleton key budgetSpent)) budgetTotal'
+                let budgetTotal' = budgetTotal <> budgetToSpend
+                put $! TallyingSt (tallies <> ExTally (singleton key budgetToSpend)) budgetTotal'
             RestrictingSt budgetLeft -> do
-                let budgetLeft' = budgetLeft `minusExBudget` budgetSpent
-                if exceedsBudget budgetLeft budgetSpent
-                    then
-                        throwingWithCause _EvaluationError
-                            (UserEvaluationError $ CekOutOfExError budgetLeft')
-                            Nothing
-                    else put $! RestrictingSt budgetLeft'
+                let budgetLeft' = budgetLeft `minusExBudget` budgetToSpend
+                -- Note that even if we throw an out-of-budget error, we still need to record
+                -- what the final state was.
+                put $! RestrictingSt budgetLeft'
+                when (negativeBudget budgetLeft') $
+                    throwingWithCause _EvaluationError
+                        (UserEvaluationError $ CekOutOfExError budgetLeft')
+                        Nothing
 
 data Frame uni fun
     = FrameApplyFun (CekValue uni fun)                         -- ^ @[V _]@

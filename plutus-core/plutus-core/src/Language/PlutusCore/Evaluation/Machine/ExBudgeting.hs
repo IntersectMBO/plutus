@@ -110,7 +110,7 @@ module Language.PlutusCore.Evaluation.Machine.ExBudgeting
     , ModelThreeArguments(..)
     , exBudgetCPU
     , exBudgetMemory
-    , exceedsBudget
+    , negativeBudget
     , runCostingFunOneArgument
     , runCostingFunTwoArguments
     , runCostingFunThreeArguments
@@ -167,7 +167,7 @@ instance ExBudgetBuiltin fun () where
     exBudgetBuiltin _ = ()
 
 -- This works nicely because @m@ contains @term@.
-class (ExBudgetBuiltin fun exBudgetCat, ToExMemory term, Hashable exBudgetCat) =>
+class (ExBudgetBuiltin fun exBudgetCat, ToExMemory term) =>
             SpendBudget m fun exBudgetCat term | m -> fun exBudgetCat term where
     -- | Spend the budget, which may mean different things depending on the monad:
     --
@@ -463,5 +463,5 @@ runCostingFunThreeArguments (CostingFun cpu mem) mem1 mem2 mem3 =
 
 makeLenses ''ExBudget
 
-exceedsBudget :: ExRestrictingBudget -> ExBudget -> Bool
-exceedsBudget (ExRestrictingBudget ex) budget = (view exBudgetCPU budget) > (view exBudgetCPU ex) || (view exBudgetMemory budget) > (view exBudgetMemory ex)
+negativeBudget :: ExRestrictingBudget -> Bool
+negativeBudget (ExRestrictingBudget (ExBudget cpu mem)) = cpu < 0 || mem < 0

@@ -529,7 +529,7 @@ writeProgram outp (Flat flatMode) _ prog = writeFlat outp flatMode prog
 ---------------- Conversions ----------------
 
 -- | Convert between textual and CBOR representations.  This subsumes the
--- `print` command: for example, `plc convert -i prog.plc -typed --fmt Readable`
+-- `print` command: for example, `plc convert -i prog.plc --typed --fmt Readable`
 -- will read a typed plc file and print it in the Readable format.  Having
 -- the separate `print` option may be more user-friendly though.
 runConvert :: ConvertOptions -> IO ()
@@ -787,7 +787,7 @@ runEval (EvalOptions language inp ifmt evalMode printMode budgetMode timingMode)
                                Silent    -> ()
                                Verbose _ -> errorWithoutStackTrace "There is no budgeting for typed Plutus Core"
                     TypedProgram prog <- getProgram TypedPLC ifmt inp
-                    let evaluate = Ck.unsafeEvaluateCkNoEmit PLC.defBuiltinsRuntime
+                    let evaluate = Ck.evaluateCkNoEmit PLC.defBuiltinsRuntime
                         body = void . PLC.toTerm $ prog
                         !_ = rnf body
                         -- Force evaluation of body to ensure that we're not timing parsing/deserialisation.
@@ -805,12 +805,12 @@ runEval (EvalOptions language inp ifmt evalMode printMode budgetMode timingMode)
                       !_ = rnf body
                   case budgetMode of
                     Silent -> do
-                          let evaluate = Cek.unsafeEvaluateCekNoEmit PLC.defBuiltinsRuntime
+                          let evaluate = Cek.evaluateCekNoEmit PLC.defBuiltinsRuntime
                           case timingMode of
                             NoTiming -> evaluate body & handleResult
                             Timing n -> timeEval n evaluate body >>= handleTimingResults
                     Verbose bm -> do
-                          let evaluate = Cek.unsafeRunCekNoEmit PLC.defBuiltinsRuntime bm
+                          let evaluate = Cek.runCekNoEmit PLC.defBuiltinsRuntime bm
                           case timingMode of
                             NoTiming -> do
                                     let (result, budget) = evaluate body
@@ -820,20 +820,27 @@ runEval (EvalOptions language inp ifmt evalMode printMode budgetMode timingMode)
 
     where handleResult result =
               case result of
-                PLC.EvaluationSuccess v -> (print $ getPrintMethod printMode v) >> exitSuccess
-                PLC.EvaluationFailure   -> exitFailure
+                Right v  -> (print $ getPrintMethod printMode v) >> exitSuccess
+                Left err -> print err *> exitFailure
           handleResultSilently = \case
-                PLC.EvaluationSuccess _ -> exitSuccess
-                PLC.EvaluationFailure   -> exitFailure
+                Right _  -> exitSuccess
+                Left err -> print err >> exitFailure
           handleTimingResults results =
               case nub results of
-                [PLC.EvaluationSuccess _] -> exitSuccess -- We don't want to see the result here
-                [PLC.EvaluationFailure]   -> exitFailure
-                _                         -> error "Timing evaluations returned inconsistent results" -- Should never happen
+                [Right _]  -> exitSuccess -- We don't want to see the result here
+                [Left err] -> print err >> exitFailure
+                _          -> error "Timing evaluations returned inconsistent results" -- Should never happen
           handleTimingResultsWithBudget results =
               case nub results of
-                [(PLC.EvaluationSuccess _, budget)] -> putStrLn "" >> printBudgetState budget >> exitSuccess
-                [(PLC.EvaluationFailure,   budget)] -> putStrLn "" >> printBudgetState budget >> exitFailure
+                [(Right _, budget)] -> do
+                    putStrLn ""
+                    printBudgetState budget
+                    exitSuccess
+                [(Left err,   budget)] -> do
+                    putStrLn ""
+                    print err
+                    printBudgetState budget
+                    exitFailure
                 _                                   -> error "Timing evaluations returned inconsistent results"
 
 
