@@ -6,12 +6,13 @@ import BlocklyComponent.Types as Blockly
 import BlocklyEditor.State as BlocklyEditor
 import BlocklyEditor.Types (_marloweCode)
 import BlocklyEditor.Types as BE
+import BottomPanel.Types as BP
 import ConfirmUnsavedNavigation.Types (Action(..)) as ConfirmUnsavedNavigation
 import Control.Monad.Except (ExceptT(..), lift, runExcept, runExceptT)
 import Control.Monad.Maybe.Extra (hoistMaybe)
 import Control.Monad.Maybe.Trans (MaybeT(..), runMaybeT)
 import Control.Monad.Reader (class MonadAsk, asks, runReaderT)
-import Control.Monad.State (modify, modify_)
+import Control.Monad.State (modify_)
 import Data.Bifunctor (lmap)
 import Data.Either (Either(..), either, hush, note)
 import Data.Foldable (fold, for_)
@@ -52,8 +53,8 @@ import MainFrame.View (render)
 import Marlowe (getApiGistsByGistId)
 import Marlowe as Server
 import Marlowe.ActusBlockly as AMB
-import Marlowe.Gists (mkNewGist, playgroundFiles, PlaygroundFiles)
 import Marlowe.Extended (MetaData, _choiceDescriptions, _contractDescription, _contractName, _contractType, _roleDescriptions, _slotParameterDescriptions, _valueParameterDescriptions, emptyContractMetadata)
+import Marlowe.Gists (mkNewGist, playgroundFiles, PlaygroundFiles)
 import MarloweEditor.State as MarloweEditor
 import MarloweEditor.Types (MetadataAction(..))
 import MarloweEditor.Types as ME
@@ -383,7 +384,7 @@ handleAction (MarloweEditorAction action) = do
         selectView BlocklyEditor
     ME.HandleEditorMessage (Monaco.TextChanged _) -> setUnsavedChangesForLanguage Marlowe true
     ME.InitMarloweProject _ -> setUnsavedChangesForLanguage Marlowe false
-    ME.MetadataAction action -> carryMetadataAction action
+    ME.BottomPanelAction (BP.PanelAction (ME.MetadataAction metadataAction)) -> carryMetadataAction metadataAction
     _ -> pure unit
 
 handleAction (BlocklyEditorAction action) = do

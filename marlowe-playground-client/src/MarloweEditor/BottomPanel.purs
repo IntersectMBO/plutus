@@ -12,20 +12,28 @@ import Data.String.Extra (unlines)
 import Data.Tuple.Nested ((/\))
 import Foreign.Generic (encodeJSON)
 import Halogen.Classes (flex, flexCol, fontBold, fullWidth, grid, gridColsDescriptionLocation, justifySelfEnd, minW0, overflowXScroll, paddingRight, underline)
-import Halogen.HTML (HTML, a, div, div_, pre_, section, section_, span_, text)
-import Halogen.HTML.Events (onClick)
-import Halogen.HTML.Properties (class_, classes)
-import MarloweEditor.Types (Action(..), BottomPanelView(..), State, _editorErrors, _editorWarnings, _hasHoles, _showErrorDetail, contractHasErrors)
+import Halogen.HTML (ClassName(..), HTML, a, div, div_, input, pre_, section, section_, span_, text)
+import Halogen.HTML.Events (onClick, onValueChange)
+import Halogen.HTML.Properties (InputType(..), class_, classes, placeholder, type_, value)
 import Marlowe.Extended (MetaData)
-import MarloweEditor.Types (Action(..), BottomPanelView(..), State, _editorErrors, _editorWarnings, _metadataHintInfo, _showErrorDetail, contractHasErrors)
+import MarloweEditor.Types (Action(..), BottomPanelView(..), MetadataAction(..), State, _editorErrors, _editorWarnings, _hasHoles, _metadataHintInfo, _showErrorDetail, contractHasErrors)
 import StaticAnalysis.BottomPanel (analysisResultPane, analyzeButton, clearButton)
 import StaticAnalysis.Types (_analysisExecutionState, _analysisState, isCloseAnalysisLoading, isNoneAsked, isReachabilityLoading, isStaticLoading)
 import Text.Parsing.StringParser.Basic (lines)
 
 panelContents :: forall p. State -> MetaData -> BottomPanelView -> HTML p Action
 panelContents state metadata MetadataView =
-  div_
-    [ div_ [ text (encodeJSON metadata) ]
+  div [ classes [ ClassName "padded-explanation" ] ]
+    [ div_
+        [ input
+            [ type_ InputText
+            , placeholder "Contract name"
+            , class_ $ ClassName "metadata-input"
+            , value $ metadata.contractName
+            , onValueChange $ Just <<< MetadataAction <<< SetContractName
+            ]
+        ]
+    , div_ [ text (encodeJSON metadata) ]
     , div_ [ text (show (state ^. _metadataHintInfo)) ]
     ]
 
