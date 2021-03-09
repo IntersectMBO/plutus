@@ -282,7 +282,7 @@ instance MonadEmitter (CekCarryingM term uni fun s) where
 
 -- We only need the @Eq fun@ constraint here and not anywhere else, because in other places we have
 -- @Ix fun@ which implies @Ord fun@ which implies @Eq fun@.
-instance (Eq fun, Hashable fun, ToExMemory term) =>
+instance (Eq fun, ToExMemory term, Hashable fun) =>
             SpendBudget (CekCarryingM term uni fun s) fun (ExBudgetCategory fun) term where
     spendBudget key budgetSpent = do
         exSt <- get
@@ -311,8 +311,8 @@ data Frame uni fun
 type Context uni fun = [Frame uni fun]
 
 runCekM
-    :: forall a uni fun. (Eq fun, Hashable fun)
-    => BuiltinsRuntime fun (CekValue uni fun)
+    :: forall a uni fun.
+       BuiltinsRuntime fun (CekValue uni fun)
     -> ExBudgetMode
     -> Bool
     -> (forall s. CekM uni fun s a)

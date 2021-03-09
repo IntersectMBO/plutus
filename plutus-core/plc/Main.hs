@@ -128,10 +128,10 @@ data Command = Apply     ApplyOptions
 ---------------- Option parsers ----------------
 
 typedPLC :: Parser Language
-typedPLC = flag UntypedPLC TypedPLC (long "typed" <> short 't' <> help "Use typed Plutus Core")
+typedPLC = flag UntypedPLC TypedPLC (long "typed" <> help "Use typed Plutus Core")
 
 untypedPLC :: Parser Language
-untypedPLC = flag UntypedPLC UntypedPLC (long "untyped" <> short 'u' <> help "Use untyped Plutus Core (default)")
+untypedPLC = flag UntypedPLC UntypedPLC (long "untyped" <> help "Use untyped Plutus Core (default)")
 -- ^ NB: default is always UntypedPLC
 
 languagemode :: Parser Language
@@ -529,7 +529,7 @@ writeProgram outp (Flat flatMode) _ prog = writeFlat outp flatMode prog
 ---------------- Conversions ----------------
 
 -- | Convert between textual and CBOR representations.  This subsumes the
--- `print` command: for example, `plc convert -i prog.plc -t --fmt Readable`
+-- `print` command: for example, `plc convert -i prog.plc -typed --fmt Readable`
 -- will read a typed plc file and print it in the Readable format.  Having
 -- the separate `print` option may be more user-friendly though.
 runConvert :: ConvertOptions -> IO ()
@@ -769,8 +769,8 @@ printBudgetState (TallyingSt tally budget) = do
     printBudgetStateBudget budget
     putStrLn ""
     printBudgetStateTally tally
-printBudgetState (RestrictingSt _) =
-    fail "This execution path was supposed to be unreachable"
+printBudgetState (RestrictingSt (ExRestrictingBudget budget)) =
+    printBudgetStateBudget budget
 
 
 ---------------- Evaluation ----------------

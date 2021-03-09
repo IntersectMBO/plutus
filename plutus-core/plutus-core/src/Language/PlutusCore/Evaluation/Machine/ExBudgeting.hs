@@ -128,6 +128,7 @@ import           Control.Lens.Indexed
 import           Control.Lens.TH                                 (makeLenses)
 import           Data.Default.Class
 import           Data.HashMap.Monoidal
+import qualified Data.HashMap.Strict                             as HashMap
 import           Data.Hashable
 import qualified Data.Kind                                       as Kind
 import           Data.List                                       (intersperse)
@@ -166,7 +167,7 @@ instance ExBudgetBuiltin fun () where
     exBudgetBuiltin _ = ()
 
 -- This works nicely because @m@ contains @term@.
-class (ExBudgetBuiltin fun exBudgetCat, ToExMemory term) =>
+class (ExBudgetBuiltin fun exBudgetCat, ToExMemory term, Hashable exBudgetCat) =>
             SpendBudget m fun exBudgetCat term | m -> fun exBudgetCat term where
     -- | Spend the budget, which may mean different things depending on the monad:
     --
@@ -208,38 +209,36 @@ data ExBudgetMode
 
 -- | The state of budgeting. Gets initialized from an 'ExBudgetMode'.
 data ExBudgetState exBudgetCat
-    = TallyingSt (ExTally exBudgetCat) ExBudget
-    | CountingSt ExBudget
+    = CountingSt ExBudget
+    | TallyingSt (ExTally exBudgetCat) ExBudget
     | RestrictingSt ExRestrictingBudget
     deriving stock (Eq, Generic, Show)
     deriving anyclass (NFData)
-instance ( PrettyDefaultBy config Integer, PrettyBy config exBudgetCat
-         , Eq exBudgetCat, Hashable exBudgetCat, Ord exBudgetCat
-         ) => PrettyBy config (ExBudgetState exBudgetCat) where
+instance (PrettyDefaultBy config Integer, PrettyBy config exBudgetCat, Ord exBudgetCat) =>
+            PrettyBy config (ExBudgetState exBudgetCat) where
+    prettyBy config (CountingSt budget) =
+        parens $ "required budget:" <+> prettyBy config budget <> line
     prettyBy config (TallyingSt tally budget) = parens $ fold
         [ "{ tally: ", prettyBy config tally, line
         , "| budget: ", prettyBy config budget, line
         , "}"
         ]
-    prettyBy config (CountingSt budget) =
-        parens $ "required budget:" <+> prettyBy config budget <> line
     prettyBy config (RestrictingSt budget) =
         parens $ "final budget:" <+> prettyBy config budget <> line
 
-initExBudgetState
-    :: (Eq exBudgetCat, Hashable exBudgetCat)
-    => ExBudgetMode -> ExBudgetState exBudgetCat
-initExBudgetState Tallying             = TallyingSt mempty mempty
+emptyExTally :: ExTally exBudgetCat
+emptyExTally = ExTally $ MonoidalHashMap HashMap.empty
+
+initExBudgetState :: ExBudgetMode -> ExBudgetState exBudgetCat
 initExBudgetState Counting             = CountingSt mempty
+initExBudgetState Tallying             = TallyingSt emptyExTally mempty
 initExBudgetState (Restricting budget) = RestrictingSt budget
 
 -- | Extract tallying info from an 'ExBudgetState' if it's 'TallyingSt'.
 -- If it's not then return an empty 'ExTally'.
-toTally
-    :: (Eq exBudgetCat, Hashable exBudgetCat)
-    => ExBudgetState exBudgetCat -> ExTally exBudgetCat
+toTally :: ExBudgetState exBudgetCat -> ExTally exBudgetCat
 toTally (TallyingSt tally _) = tally
-toTally _                    = mempty
+toTally _                    = emptyExTally
 
 -- | Extract the calculated budget from an 'ExBudgetState' if it's 'CountingSt' or 'TallyingSt'.
 -- If it's not then return an empty 'ExBudget'.
@@ -252,9 +251,8 @@ newtype ExTally exBudgetCat = ExTally (MonoidalHashMap exBudgetCat ExBudget)
     deriving stock (Eq, Generic, Show)
     deriving (Semigroup, Monoid) via (GenericSemigroupMonoid (ExTally exBudgetCat))
     deriving anyclass NFData
-instance ( PrettyDefaultBy config Integer, PrettyBy config exBudgetCat
-         , Eq exBudgetCat, Hashable exBudgetCat, Ord exBudgetCat
-         ) => PrettyBy config (ExTally exBudgetCat) where
+instance (PrettyDefaultBy config Integer, PrettyBy config exBudgetCat, Ord exBudgetCat) =>
+            PrettyBy config (ExTally exBudgetCat) where
     prettyBy config (ExTally m) =
         let
             om :: Map.Map exBudgetCat ExBudget
