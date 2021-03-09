@@ -5,7 +5,7 @@ module Evaluation.Machines
     ( test_machines
     , test_memory
     , test_budget
-    , test_counting
+    , test_tallying
     ) where
 
 import           Language.UntypedPlutusCore
@@ -67,7 +67,7 @@ testMemory name = nestedGoldenVsText name . fromString . show . memoryUsage
 
 test_memory :: TestTree
 test_memory =
-    runTestNestedIn ["untyped-plutus-core-test", "Evaluation", "Machines"]
+    runTestNestedIn ["untyped-plutus-core", "test", "Evaluation", "Machines"]
         .  testNested "Memory"
         .  foldPlcFolderContents testNested testMemory testMemory
         $  stdLib
@@ -83,7 +83,7 @@ testBudget runtime name term =
                        nestedGoldenVsText
     name
     (renderStrict $ layoutPretty defaultLayoutOptions {layoutPageWidth = AvailablePerLine maxBound 1.0} $
-        prettyPlcReadableDef $ runCekNoEmit runtime (Restricting (ExRestrictingBudget (ExBudget 1000 1000))) term)
+        prettyPlcReadableDef $ runCekNoEmit runtime Tallying term)
 
 bunchOfFibs :: PlcFolderContents DefaultUni DefaultFun
 bunchOfFibs = FolderContents [treeFolderContents "Fib" $ map fibFile [1..3]] where
@@ -127,7 +127,7 @@ bunchOfIfThenElseNats =
 
 test_budget :: TestTree
 test_budget
-    = runTestNestedIn ["untyped-plutus-core-test", "Evaluation", "Machines"]
+    = runTestNestedIn ["untyped-plutus-core", "test", "Evaluation", "Machines"]
     . testNested "Budget"
     $ concat
         [ folder defBuiltinsRuntime examples
@@ -142,18 +142,18 @@ test_budget
             (\name _ -> pure $ testGroup name [])
             (\name -> testBudget runtime name . erase)
 
-testCounting :: TestName -> Term Name DefaultUni DefaultFun () -> TestNested
-testCounting name term =
+testTallying :: TestName -> Term Name DefaultUni DefaultFun () -> TestNested
+testTallying name term =
                        nestedGoldenVsText
     name
     (renderStrict $ layoutPretty defaultLayoutOptions {layoutPageWidth = AvailablePerLine maxBound 1.0} $
-        prettyPlcReadableDef $ runCekNoEmit defBuiltinsRuntime Counting term)
+        prettyPlcReadableDef $ runCekNoEmit defBuiltinsRuntime Tallying term)
 
-test_counting :: TestTree
-test_counting =
-    runTestNestedIn ["untyped-plutus-core-test", "Evaluation", "Machines"]
-        .  testNested "Counting"
+test_tallying :: TestTree
+test_tallying =
+    runTestNestedIn ["untyped-plutus-core", "test", "Evaluation", "Machines"]
+        .  testNested "Tallying"
         .  foldPlcFolderContents testNested
                                  (\name _ -> pure $ testGroup name [])
-                                 (\name -> testCounting name . erase)
+                                 (\name -> testTallying name . erase)
         $ examples <> bunchOfFibs

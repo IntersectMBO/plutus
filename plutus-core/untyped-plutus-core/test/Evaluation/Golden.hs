@@ -310,7 +310,7 @@ takeTooMuch = mkIterApp () (Builtin () TakeByteString)
 
 goldenVsPretty :: PrettyPlc a => String -> String -> a -> TestTree
 goldenVsPretty extn name value =
-    goldenVsString name ("test/Evaluation/Golden/" ++ name ++ extn) $
+    goldenVsString name ("untyped-plutus-core/test/Evaluation/Golden/" ++ name ++ extn) $
         pure . BSL.fromStrict . encodeUtf8 . render $ prettyPlcClassicDebug value
 
 goldenVsEvaluatedCK :: String -> Term TyName Name DefaultUni DefaultFun () -> TestTree

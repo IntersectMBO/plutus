@@ -1,5 +1,6 @@
 -- | The CK machine.
 
+{-# LANGUAGE DeriveAnyClass            #-}
 {-# LANGUAGE ExistentialQuantification #-}
 {-# LANGUAGE FlexibleInstances         #-}
 {-# LANGUAGE LambdaCase                #-}
@@ -112,7 +113,7 @@ instance (Closed uni, GShow uni, uni `Everywhere` PrettyConst, Pretty fun) =>
 
 data CkUserError =
     CkEvaluationFailure -- Error has been called or a builtin application has failed
-    deriving (Show, Eq)
+    deriving (Show, Eq, Generic, NFData)
 
 -- | The CK machine-specific 'EvaluationException' parameterized over @term@.
 type CkEvaluationExceptionCarrying term fun =

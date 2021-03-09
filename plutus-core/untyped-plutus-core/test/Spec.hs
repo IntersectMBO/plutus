@@ -13,5 +13,5 @@ main = defaultMain $ testGroup "Untyped Plutus Core"
     , test_memory
     , test_budget
     , test_golden
-    , test_counting
+    , test_tallying
     ]

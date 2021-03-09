@@ -11,7 +11,7 @@ import qualified Language.PlutusCore.CBOR                           as PLC
 import qualified Language.PlutusCore.Evaluation.Machine.Ck          as Ck
 import           Language.PlutusCore.Evaluation.Machine.ExBudgeting (ExBudget (..), ExBudgetMode (..),
                                                                      ExBudgetState (..), ExRestrictingBudget (..),
-                                                                     ExTally (..), Hashable)
+                                                                     ExTally (..), Hashable, enormousBudget)
 import           Language.PlutusCore.Evaluation.Machine.ExMemory    (ExCPU (..), ExMemory (..))
 import qualified Language.PlutusCore.Generators                     as Gen
 import qualified Language.PlutusCore.Generators.Interesting         as Gen
@@ -30,7 +30,7 @@ import           Control.Monad
 import           Control.Monad.Trans.Except                         (runExcept, runExceptT)
 import           Data.Bifunctor                                     (second)
 import qualified Data.ByteString.Lazy                               as BSL
-import           Data.Foldable                                      (traverse_)
+import           Data.Foldable                                      (asum, traverse_)
 import           Data.Function                                      ((&))
 import           Data.Functor                                       ((<&>))
 import qualified Data.HashMap.Monoidal                              as H
@@ -128,10 +128,10 @@ data Command = Apply     ApplyOptions
 ---------------- Option parsers ----------------
 
 typedPLC :: Parser Language
-typedPLC = flag UntypedPLC TypedPLC (long "typed" <> short 't' <> help "Use typed Plutus Core")
+typedPLC = flag UntypedPLC TypedPLC (long "typed" <> help "Use typed Plutus Core")
 
 untypedPLC :: Parser Language
-untypedPLC = flag UntypedPLC UntypedPLC (long "untyped" <> short 'u' <> help "Use untyped Plutus Core (default)")
+untypedPLC = flag UntypedPLC UntypedPLC (long "untyped" <> help "Use untyped Plutus Core (default)")
 -- ^ NB: default is always UntypedPLC
 
 languagemode :: Parser Language
@@ -224,14 +224,32 @@ restrictingbudget = Verbose . Restricting . ExRestrictingBudget
                             <> metavar "ExCPU:ExMemory"
                             <> help "Run the machine in restricting mode with the given limits" )
 
+restrictingbudgetEnormous :: Parser BudgetMode
+restrictingbudgetEnormous = flag' (Verbose enormousBudget)
+                            (  long "restricting-enormous"
+                            <> short 'R'
+                            <> help "Run the machine in restricting mode with an enormous budget" )
+
 countingbudget :: Parser BudgetMode
 countingbudget = flag' (Verbose Counting)
                  (  long "counting"
                  <> short 'c'
                  <> help "Run machine in counting mode and report results" )
 
+tallyingbudget :: Parser BudgetMode
+tallyingbudget = flag' (Verbose Tallying)
+                 (  long "tallying"
+                 <> short 't'
+                 <> help "Run machine in tallying mode and report results" )
+
 budgetmode :: Parser BudgetMode
-budgetmode = restrictingbudget <|> countingbudget <|> pure Silent
+budgetmode = asum
+    [ restrictingbudget
+    , restrictingbudgetEnormous
+    , countingbudget
+    , tallyingbudget
+    , pure Silent
+    ]
 
 -- -x -> run 100 times and print the mean time
 timing1 :: Parser TimingMode
@@ -523,7 +541,7 @@ writeProgram outp (Flat flatMode) _ prog = writeFlat outp flatMode prog
 ---------------- Conversions ----------------
 
 -- | Convert between textual and CBOR representations.  This subsumes the
--- `print` command: for example, `plc convert -i prog.plc -t --fmt Readable`
+-- `print` command: for example, `plc convert -i prog.plc --typed --fmt Readable`
 -- will read a typed plc file and print it in the Readable format.  Having
 -- the separate `print` option may be more user-friendly though.
 runConvert :: ConvertOptions -> IO ()
@@ -725,8 +743,8 @@ printBudgetStateBudget :: ExBudget -> IO ()
 printBudgetStateBudget b = do
   let ExCPU cpu = _exBudgetCPU b
       ExMemory mem = _exBudgetMemory b
-  putStrLn $ "CPU budget used:    " ++ show cpu
-  putStrLn $ "Memory budget used: " ++ show mem
+  putStrLn $ "CPU budget:    " ++ show cpu
+  putStrLn $ "Memory budget: " ++ show mem
 
 printBudgetStateTally :: (Eq fun, Hashable fun, Show fun) => Cek.CekExTally fun -> IO ()
 printBudgetStateTally (ExTally costs) = do
@@ -757,10 +775,14 @@ printBudgetStateTally (ExTally costs) = do
         builtinsAndCosts = Data.List.foldl f [] (H.toList costs)
 
 printBudgetState :: (Eq fun, Hashable fun, Show fun) => Cek.CekExBudgetState fun -> IO ()
-printBudgetState bs = do
-    printBudgetStateBudget $ _exBudgetStateBudget bs
+printBudgetState (CountingSt budget) =
+    printBudgetStateBudget budget
+printBudgetState (TallyingSt tally budget) = do
+    printBudgetStateBudget budget
     putStrLn ""
-    printBudgetStateTally  $ _exBudgetStateTally bs
+    printBudgetStateTally tally
+printBudgetState (RestrictingSt (ExRestrictingBudget budget)) =
+    printBudgetStateBudget budget
 
 
 ---------------- Evaluation ----------------
@@ -777,7 +799,7 @@ runEval (EvalOptions language inp ifmt evalMode printMode budgetMode timingMode)
                                Silent    -> ()
                                Verbose _ -> errorWithoutStackTrace "There is no budgeting for typed Plutus Core"
                     TypedProgram prog <- getProgram TypedPLC ifmt inp
-                    let evaluate = Ck.unsafeEvaluateCkNoEmit PLC.defBuiltinsRuntime
+                    let evaluate = Ck.evaluateCkNoEmit PLC.defBuiltinsRuntime
                         body = void . PLC.toTerm $ prog
                         !_ = rnf body
                         -- Force evaluation of body to ensure that we're not timing parsing/deserialisation.
@@ -795,16 +817,12 @@ runEval (EvalOptions language inp ifmt evalMode printMode budgetMode timingMode)
                       !_ = rnf body
                   case budgetMode of
                     Silent -> do
-                          let evaluate = Cek.unsafeEvaluateCekNoEmit PLC.defBuiltinsRuntime
+                          let evaluate = Cek.evaluateCekNoEmit PLC.defBuiltinsRuntime
                           case timingMode of
                             NoTiming -> evaluate body & handleResult
                             Timing n -> timeEval n evaluate body >>= handleTimingResults
-                            -- TODO: we can't currently run the machine without performing expensive cost
-                            -- tallying.  When we can do that, at this point we should run the progam
-                            -- in Restricting mode with a large intial budget to get a more realistic
-                            -- estimate of on-chain costs.
                     Verbose bm -> do
-                          let evaluate = Cek.unsafeRunCekNoEmit PLC.defBuiltinsRuntime bm
+                          let evaluate = Cek.runCekNoEmit PLC.defBuiltinsRuntime bm
                           case timingMode of
                             NoTiming -> do
                                     let (result, budget) = evaluate body
@@ -814,20 +832,27 @@ runEval (EvalOptions language inp ifmt evalMode printMode budgetMode timingMode)
 
     where handleResult result =
               case result of
-                PLC.EvaluationSuccess v -> (print $ getPrintMethod printMode v) >> exitSuccess
-                PLC.EvaluationFailure   -> exitFailure
+                Right v  -> (print $ getPrintMethod printMode v) >> exitSuccess
+                Left err -> print err *> exitFailure
           handleResultSilently = \case
-                PLC.EvaluationSuccess _ -> exitSuccess
-                PLC.EvaluationFailure   -> exitFailure
+                Right _  -> exitSuccess
+                Left err -> print err >> exitFailure
           handleTimingResults results =
               case nub results of
-                [PLC.EvaluationSuccess _] -> exitSuccess -- We don't want to see the result here
-                [PLC.EvaluationFailure]   -> exitFailure
-                _                         -> error "Timing evaluations returned inconsistent results" -- Should never happen
+                [Right _]  -> exitSuccess -- We don't want to see the result here
+                [Left err] -> print err >> exitFailure
+                _          -> error "Timing evaluations returned inconsistent results" -- Should never happen
           handleTimingResultsWithBudget results =
               case nub results of
-                [(PLC.EvaluationSuccess _, budget)] -> putStrLn "" >> printBudgetState budget >> exitSuccess
-                [(PLC.EvaluationFailure,   budget)] -> putStrLn "" >> printBudgetState budget >> exitFailure
+                [(Right _, budget)] -> do
+                    putStrLn ""
+                    printBudgetState budget
+                    exitSuccess
+                [(Left err,   budget)] -> do
+                    putStrLn ""
+                    print err
+                    printBudgetState budget
+                    exitFailure
                 _                                   -> error "Timing evaluations returned inconsistent results"
 
 

@@ -1,6 +1,0 @@
-(Left Type mismatch at () in term
-  '(builtin ifThenElse)'.
-Expected type
-  '(fun *_0 *_0)',
-found type
-  '(all a_2 (type) (fun (con bool) (fun a_2 (fun a_2 a_2))))')

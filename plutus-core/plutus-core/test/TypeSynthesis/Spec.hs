@@ -102,7 +102,7 @@ test_typecheckIllTyped =
 test_typecheckFun :: (ToBuiltinMeaning DefaultUni fun, Show fun) => fun -> TestTree
 test_typecheckFun name = goldenVsDoc testName path doc where
     testName = show name
-    path     = "test" </> "TypeSynthesis" </> "Golden" </> (testName ++ ".plc.golden")
+    path     = "plutus-core" </> "test" </> "TypeSynthesis" </> "Golden" </> (testName ++ ".plc.golden")
     doc      = prettyPlcDef $ typeOfBuiltinFunction @DefaultUni name
 
 test_typecheckAllFun

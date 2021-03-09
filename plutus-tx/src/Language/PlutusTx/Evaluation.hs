@@ -15,8 +15,6 @@ module Language.PlutusTx.Evaluation
     )
 where
 
-import           PlutusPrelude
-
 import           Language.PlutusCore.Builtins
 import           Language.PlutusCore.Evaluation.Machine.ExBudgeting
 import           Language.PlutusCore.Evaluation.Machine.ExMemory
@@ -49,4 +47,4 @@ evaluateCekTrace
     -> ([String], CekExTally fun, Either (CekEvaluationException uni fun) (Term Name uni fun ()))
 evaluateCekTrace (Program _ _ t) =
     case runCek defBuiltinsRuntime Counting True t of
-        (errOrRes, st, logs) -> (logs, view exBudgetStateTally st, errOrRes)
+        (errOrRes, st, logs) -> (logs, toTally st, errOrRes)
