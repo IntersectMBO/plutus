@@ -86,6 +86,7 @@ module Language.PlutusCore.Evaluation.Machine.ExBudgeting
     , minusExBudget
     , ExBudgetMode(..)
     , ExBudgetState(..)
+    , enormousBudget
     , initExBudgetState
     , toTally
     , toRequiredExBudget
@@ -225,6 +226,11 @@ instance (PrettyDefaultBy config Integer, PrettyBy config exBudgetCat, Ord exBud
         ]
     prettyBy config (RestrictingSt budget) =
         parens $ "final budget:" <+> prettyBy config budget <> line
+
+-- | When we want to just evaluate the program we use the 'Restricting' mode with an enormous
+-- budget, so that evaluation costs of on-chain budgeting are reflected accurately in benchmarks.
+enormousBudget :: ExBudgetMode
+enormousBudget = Restricting . ExRestrictingBudget $ ExBudget (10^(10::Int)) (10^(10::Int))
 
 emptyExTally :: ExTally exBudgetCat
 emptyExTally = ExTally $ MonoidalHashMap HashMap.empty

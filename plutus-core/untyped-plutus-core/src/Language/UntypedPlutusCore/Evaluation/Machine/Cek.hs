@@ -576,11 +576,6 @@ unsafeRunCekNoEmit
     -> (EvaluationResult (Term Name uni fun ()), CekExBudgetState fun)
 unsafeRunCekNoEmit runtime mode = first unsafeExtractEvaluationResult . runCekNoEmit runtime mode
 
--- | When we want to just evaluate the program we use the 'Restricting' mode with an enormous
--- budget, so that evaluation costs of on-chain budgeting are reflected accurately in benchmarks.
-enormousBudget :: ExBudgetMode
-enormousBudget = Restricting . ExRestrictingBudget $ ExBudget (10^(10::Int)) (10^(10::Int))
-
 -- | Evaluate a term using the CEK machine with logging enabled.
 evaluateCek
     :: ( GShow uni, GEq uni, Closed uni, uni `Everywhere` ExMemoryUsage

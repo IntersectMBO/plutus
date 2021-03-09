@@ -11,7 +11,7 @@ import qualified Language.PlutusCore.CBOR                           as PLC
 import qualified Language.PlutusCore.Evaluation.Machine.Ck          as Ck
 import           Language.PlutusCore.Evaluation.Machine.ExBudgeting (ExBudget (..), ExBudgetMode (..),
                                                                      ExBudgetState (..), ExRestrictingBudget (..),
-                                                                     ExTally (..), Hashable)
+                                                                     ExTally (..), Hashable, enormousBudget)
 import           Language.PlutusCore.Evaluation.Machine.ExMemory    (ExCPU (..), ExMemory (..))
 import qualified Language.PlutusCore.Generators                     as Gen
 import qualified Language.PlutusCore.Generators.Interesting         as Gen
@@ -30,7 +30,7 @@ import           Control.Monad
 import           Control.Monad.Trans.Except                         (runExcept, runExceptT)
 import           Data.Bifunctor                                     (second)
 import qualified Data.ByteString.Lazy                               as BSL
-import           Data.Foldable                                      (traverse_)
+import           Data.Foldable                                      (asum, traverse_)
 import           Data.Function                                      ((&))
 import           Data.Functor                                       ((<&>))
 import qualified Data.HashMap.Monoidal                              as H
@@ -224,6 +224,12 @@ restrictingbudget = Verbose . Restricting . ExRestrictingBudget
                             <> metavar "ExCPU:ExMemory"
                             <> help "Run the machine in restricting mode with the given limits" )
 
+restrictingbudgetEnormous :: Parser BudgetMode
+restrictingbudgetEnormous = flag' (Verbose enormousBudget)
+                            (  long "restricting-enormous"
+                            <> short 'R'
+                            <> help "Run the machine in restricting mode with an enormous budget" )
+
 countingbudget :: Parser BudgetMode
 countingbudget = flag' (Verbose Counting)
                  (  long "counting"
@@ -237,7 +243,13 @@ tallyingbudget = flag' (Verbose Tallying)
                  <> help "Run machine in tallying mode and report results" )
 
 budgetmode :: Parser BudgetMode
-budgetmode = restrictingbudget <|> countingbudget <|> tallyingbudget <|> pure Silent
+budgetmode = asum
+    [ restrictingbudget
+    , restrictingbudgetEnormous
+    , countingbudget
+    , tallyingbudget
+    , pure Silent
+    ]
 
 -- -x -> run 100 times and print the mean time
 timing1 :: Parser TimingMode
@@ -731,8 +743,8 @@ printBudgetStateBudget :: ExBudget -> IO ()
 printBudgetStateBudget b = do
   let ExCPU cpu = _exBudgetCPU b
       ExMemory mem = _exBudgetMemory b
-  putStrLn $ "CPU budget used:    " ++ show cpu
-  putStrLn $ "Memory budget used: " ++ show mem
+  putStrLn $ "CPU budget:    " ++ show cpu
+  putStrLn $ "Memory budget: " ++ show mem
 
 printBudgetStateTally :: (Eq fun, Hashable fun, Show fun) => Cek.CekExTally fun -> IO ()
 printBudgetStateTally (ExTally costs) = do
