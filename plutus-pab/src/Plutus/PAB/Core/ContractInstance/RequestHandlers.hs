@@ -48,7 +48,7 @@ import qualified Plutus.PAB.Effects.Contract                   as Contract
 import           Plutus.PAB.Effects.EventLog                   (EventLogEffect, runCommand)
 import           Plutus.PAB.Events                             (ChainEvent)
 import           Plutus.PAB.Events.Contract                    (ContractInstanceId (..), ContractPABRequest (..),
-                                                                ContractResponse (..), PartiallyDecodedResponse (..))
+                                                                ContractResponse (..))
 import qualified Plutus.PAB.Events.Contract                    as Events.Contract
 import           Plutus.PAB.Types                              (Source (NodeEventSource, WalletEventSource))
 import           Wallet.Effects                                (ChainIndexEffect, ContractRuntimeEffect, WalletEffect)

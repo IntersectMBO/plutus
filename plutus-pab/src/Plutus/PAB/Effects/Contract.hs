@@ -28,11 +28,13 @@ module Plutus.PAB.Effects.Contract(
     , getState
     ) where
 
-import           Control.Monad.Freer (Eff, Member, send)
-import           Playground.Types    (FunctionSchema)
-import           Wallet.Types        (ContractInstanceId)
-
-import           Schema              (FormSchema)
+import           Control.Monad.Freer                (Eff, Member, send)
+import           Data.Proxy                         (Proxy)
+import           Language.Plutus.Contract.Resumable (Request, Response)
+import           Playground.Types                   (FunctionSchema)
+import           Plutus.PAB.Events.Contract         (ContractPABRequest, ContractResponse)
+import           Schema                             (FormSchema)
+import           Wallet.Types                       (ContractInstanceId)
 
 -- | A class of contracts running in the PAB. The purpose of the type
 --   parameter @t@ is to allow for different ways of running
@@ -47,11 +49,12 @@ class PABContract contract where
     -- | Any data needed to identify the contract. For example, the location of the executable.
     type ContractDef contract
 
-    -- | Type of requests sent to the contract
-    type Request contract
-
     -- | Contract state type
     type State contract
+
+    -- | Extract the contract instance's open requests from the
+    --   state.
+    requests :: Proxy contract -> State contract -> [Request ContractPABRequest]
 
 -- data ExternalProcessContract
 
@@ -69,7 +72,7 @@ class PABContract contract where
 data ContractEffect t r where
     ExportSchema   :: PABContract t => ContractDef t -> ContractEffect t [FunctionSchema FormSchema] -- ^ The schema of the contract
     InitialState   :: PABContract t => ContractDef t -> ContractEffect t (State t) -- ^ The initial state of the contract's instance
-    UpdateContract :: PABContract t => ContractDef t -> State t -> Request t -> ContractEffect t (State t) -- ^ Send an update to the contract and return the new state.
+    UpdateContract :: PABContract t => ContractDef t -> State t -> Response ContractResponse -> ContractEffect t (State t) -- ^ Send an update to the contract and return the new state.
 
 -- | Get the schema of a contract given its definition.
 exportSchema ::
@@ -103,7 +106,7 @@ updateContract ::
     )
     => ContractDef t
     -> State t
-    -> Request t
+    -> Response ContractResponse
     -> Eff effs (State t)
 updateContract def state request =
     let command :: ContractEffect t (State t) = UpdateContract def state request
@@ -118,7 +121,6 @@ data ContractStore t r where
 putState ::
     forall t effs.
     ( Member (ContractStore t) effs
-    , PABContract t
     )
     => ContractDef t
     -> ContractInstanceId
@@ -132,7 +134,6 @@ putState def i state =
 getState ::
     forall t effs.
     ( Member (ContractStore t) effs
-    , PABContract t
     )
     => ContractDef t
     -> ContractInstanceId

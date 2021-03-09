@@ -50,6 +50,7 @@ import           Control.Monad.Freer.Reader                       (Reader, ask, 
 import           Control.Monad.IO.Class                           (MonadIO (liftIO))
 import           Data.List.NonEmpty                               (NonEmpty (..))
 import qualified Data.List.NonEmpty                               as NEL
+import           Data.Proxy                                       (Proxy (..))
 import qualified Data.Text                                        as Text
 
 import           Plutus.Contract.Effects.AwaitSlot                (WaitingForSlot (..))
@@ -73,7 +74,7 @@ import           Plutus.PAB.Core.ContractInstance.STM             (Activity (Don
                                                                    InstanceState (..), InstancesState,
                                                                    emptyInstanceState)
 import qualified Plutus.PAB.Core.ContractInstance.STM             as InstanceState
-import           Plutus.PAB.Effects.Contract                      (ContractEffect, ContractStore)
+import           Plutus.PAB.Effects.Contract                      (ContractDef, ContractEffect, ContractStore)
 import qualified Plutus.PAB.Effects.Contract                      as Contract
 import           Plutus.PAB.Effects.EventLog                      (EventLogEffect)
 import           Plutus.PAB.Effects.UUID                          (UUIDEffect, uuidNextRandom)
@@ -94,8 +95,7 @@ activateContractSTM ::
     , Member (ContractEffect t) effs
     , Member (ContractStore t) effs
     , Member (Reader InstancesState) effs
-    , Show t
-    , Ord t
+    , Contract.PABContract t
     , AppBackendConstraints t m appBackend
     , LastMember m (Reader ContractInstanceId ': appBackend)
     , LastMember m effs
@@ -105,12 +105,12 @@ activateContractSTM ::
     -> Eff effs ContractInstanceId
 activateContractSTM runAppBackend contract = do
     activeContractInstanceId <- ContractInstanceId <$> uuidNextRandom
-    logDebug $ InitialisingContract contract activeContractInstanceId
-    initialState <- Contract.initialState contract
-    Contract.putState contract activeContractInstanceId initialState
-    s <- startSTMInstanceThread @t @m runAppBackend activeContractInstanceId
+    logDebug @(ContractInstanceMsg t) $ InitialisingContract contract activeContractInstanceId
+    initialState <- Contract.initialState @t contract
+    Contract.putState @t contract activeContractInstanceId initialState
+    s <- startSTMInstanceThread @t @m runAppBackend contract activeContractInstanceId
     ask >>= void . liftIO . STM.atomically . InstanceState.insertInstance activeContractInstanceId s
-    logInfo @(ContractInstanceMsg t) $ ActivatedContractInstance initialState activeContractInstanceId
+    logInfo @(ContractInstanceMsg t) $ ActivatedContractInstance contract activeContractInstanceId
     pure activeContractInstanceId
 
 processAwaitSlotRequestsSTM ::
@@ -182,20 +182,23 @@ stmRequestHandler = fmap sequence (wrapHandler (fmap pure nonBlockingRequests) <
 startSTMInstanceThread ::
     forall t m appBackend effs.
     ( LastMember m effs
+    , Member (ContractStore t) effs
+    , Contract.PABContract t
     , AppBackendConstraints t m appBackend
     , LastMember m (Reader InstanceState ': Reader ContractInstanceId ': appBackend)
     )
     => (Eff appBackend ~> IO)
+    -> ContractDef t
     -> ContractInstanceId
     -> Eff effs InstanceState
-startSTMInstanceThread runAppBackend instanceID = do
+startSTMInstanceThread runAppBackend def instanceID = do
     state <- liftIO $ STM.atomically emptyInstanceState
     _ <- liftIO
         $ forkIO
         $ runAppBackend
         $ runReader instanceID
         $ runReader state
-        $ stmInstanceLoop @t @m @(Reader InstanceState ': Reader ContractInstanceId ': appBackend) instanceID
+        $ stmInstanceLoop @t @m @(Reader InstanceState ': Reader ContractInstanceId ': appBackend) def instanceID
 
     pure state
     -- TODO: Separate chain index queries (non-blocking) from waiting for updates (blocking)
@@ -203,7 +206,6 @@ startSTMInstanceThread runAppBackend instanceID = do
 type AppBackendConstraints t m effs =
     ( LastMember m effs
     , MonadIO m
-    , Member (EventLogEffect (ChainEvent t)) effs
     , Member (Error PABError) effs
     , Member (LogMsg (ContractInstanceMsg t)) effs
     , Member ChainIndexEffect effs
@@ -212,31 +214,36 @@ type AppBackendConstraints t m effs =
     , Member (LogMsg RequestHandlerLogMsg) effs
     , Member (LogObserve (LogMessage Text.Text)) effs
     , Member (LogMsg TxBalanceMsg) effs
-    , Member (ContractEffect t) effs
     , Member (Reader BlockchainEnv) effs
+    , Member (ContractEffect t) effs
+    , Member (ContractStore t) effs
     )
 
 -- | Handle requests using 'respondToRequestsSTM' until the contract is done.
 stmInstanceLoop ::
     forall t m effs.
     ( AppBackendConstraints t m effs
+    , Member (ContractStore t) effs
     , Member (Reader InstanceState) effs
     , Member (Reader ContractInstanceId) effs
+    , Contract.PABContract t
     )
-    => ContractInstanceId
+    => ContractDef t
+    -> ContractInstanceId
     -> Eff effs ()
-stmInstanceLoop instanceId = do
-    requests <- hooks . csCurrentState <$> lookupContractState @t instanceId
-    updateState requests
-    case requests of
+stmInstanceLoop def instanceId = do
+    (currentState :: Contract.State t) <- Contract.getState @t def instanceId
+    let rqs = Contract.requests (Proxy @t) currentState
+    updateState rqs
+    case rqs of
         [] -> do
             ask >>= liftIO . STM.atomically . InstanceState.setActivity Done
         (x:xs) -> do
-            response <- respondToRequestsSTM @t instanceId (x :| xs)
+            response <- respondToRequestsSTM @t instanceId currentState
             event <- liftIO $ STM.atomically response
-            _ <- sendContractMessage @t instanceId event
-            processContractInbox @t instanceId
-            stmInstanceLoop @t instanceId
+            (newState :: Contract.State t) <- Contract.updateContract @t def currentState event
+            Contract.putState @t def instanceId newState
+            stmInstanceLoop @t def instanceId
 
 -- | Update the TVars in the 'InstanceState' with data from the list
 --   of requests.
@@ -265,8 +272,7 @@ updateState requests = do
 --   of requests.
 respondToRequestsSTM ::
     forall t effs.
-    ( Member (EventLogEffect (ChainEvent t)) effs
-    , Member ChainIndexEffect effs
+    ( Member ChainIndexEffect effs
     , Member WalletEffect effs
     , Member ContractRuntimeEffect effs
     , Member (LogMsg RequestHandlerLogMsg) effs
@@ -276,10 +282,12 @@ respondToRequestsSTM ::
     , Member (Reader ContractInstanceId) effs
     , Member (Reader BlockchainEnv) effs
     , Member (Reader InstanceState) effs
+    , Contract.PABContract t
     )
     => ContractInstanceId
-    -> NonEmpty (Request ContractPABRequest)
+    -> Contract.State t
     -> Eff effs (STM (Response ContractResponse))
-respondToRequestsSTM instanceId requests = do
-    logDebug @(ContractInstanceMsg t) $ HandlingRequests instanceId (NEL.toList requests)
-    tryHandler' (stmRequestHandler @t) (NEL.toList requests)
+respondToRequestsSTM instanceId currentState = do
+    let rqs = Contract.requests (Proxy @t) currentState
+    logDebug @(ContractInstanceMsg t) $ HandlingRequests instanceId rqs
+    tryHandler' (stmRequestHandler @t) rqs
