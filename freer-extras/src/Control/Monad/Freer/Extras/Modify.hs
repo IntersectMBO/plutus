@@ -10,6 +10,7 @@
 {-# LANGUAGE TypeApplications      #-}
 {-# LANGUAGE TypeFamilies          #-}
 {-# LANGUAGE TypeOperators         #-}
+{-# LANGUAGE UndecidableInstances  #-}
 
 module Control.Monad.Freer.Extras.Modify (
     -- * weaken functions
@@ -65,9 +66,9 @@ hence the double cons in the types to prevent overlap with the first instance.
 -}
 class CanWeakenEnd as effs where
     weakenEnd :: Union as ~> Union effs
-instance a ~ e => CanWeakenEnd '[a] (e ': effs) where
+instance effs ~ (a ': effs') => CanWeakenEnd '[a] effs where
     weakenEnd u = inj (extract u)
-instance (a ~ e, CanWeakenEnd (b ': as) (f ': effs)) => CanWeakenEnd (a ': b ': as) (e ': f ': effs) where
+instance (effs ~ (a ': effs'), CanWeakenEnd (b ': as) effs') => CanWeakenEnd (a ': b ': as) effs where
     weakenEnd u = case decomp u of
         Left u' -> weaken $ weakenEnd u'
         Right t -> inj t
