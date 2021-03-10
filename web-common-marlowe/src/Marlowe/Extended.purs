@@ -765,7 +765,7 @@ instance actionHasChoices :: HasChoices Action where
 
 instance actionHasParties :: HasParties Action where
   getParties (Deposit accId party _ value) = getParties accId <> getParties party <> getParties value
-  getParties (Choice _ _) = Set.empty
+  getParties (Choice choId _) = getParties choId
   getParties (Notify obs) = getParties obs
 
 data Payee
