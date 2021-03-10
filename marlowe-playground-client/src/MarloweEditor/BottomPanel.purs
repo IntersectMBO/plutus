@@ -14,7 +14,6 @@ import Data.Set (Set, toUnfoldable)
 import Data.String (take)
 import Data.String.Extra (unlines)
 import Data.Tuple.Nested (type (/\), (/\))
-import Foreign.Generic (encodeJSON)
 import Halogen.Classes (flex, flexCol, fontBold, fullWidth, grid, gridColsDescriptionLocation, justifySelfEnd, minW0, minusBtn, overflowXScroll, paddingRight, plusBtn, smallBtn, underline)
 import Halogen.HTML (ClassName(..), HTML, a, button, div, div_, em_, h6_, input, li_, ol_, option, pre_, section, section_, select, span, span_, text)
 import Halogen.HTML.Events (onClick, onValueChange)
@@ -47,7 +46,7 @@ metadataList metadataMap hintSet setAction deleteAction typeNameTitle typeNameSm
                               , onValueChange $ Just <<< MetadataAction <<< setAction key
                               ]
                           , button
-                              [ classes [ minusBtn, smallBtn, ClassName "align-top" ]
+                              [ classes [ if needed then plusBtn else minusBtn, smallBtn, ClassName "align-top" ]
                               , onClick $ const $ Just $ MetadataAction $ deleteAction key
                               ]
                               [ text "-" ]
