@@ -6,16 +6,21 @@ import Prelude hiding (div)
 import Data.Array (drop, head)
 import Data.Array as Array
 import Data.Lens (to, (^.))
+import Data.List (List)
+import Data.Map (Map)
+import Data.Map as Map
 import Data.Maybe (Maybe(..))
+import Data.Set (toUnfoldable)
 import Data.String (take)
 import Data.String.Extra (unlines)
-import Data.Tuple.Nested ((/\))
+import Data.Tuple.Nested (type (/\), (/\))
 import Foreign.Generic (encodeJSON)
-import Halogen.Classes (flex, flexCol, fontBold, fullWidth, grid, gridColsDescriptionLocation, justifySelfEnd, minW0, overflowXScroll, paddingRight, underline)
-import Halogen.HTML (ClassName(..), HTML, a, div, div_, input, pre_, section, section_, span_, text)
+import Halogen.Classes (flex, flexCol, fontBold, fullWidth, grid, gridColsDescriptionLocation, justifySelfEnd, minW0, minusBtn, overflowXScroll, paddingRight, plusBtn, smallBtn, underline)
+import Halogen.HTML (ClassName(..), HTML, a, button, div, div_, em_, h6_, input, li_, ol_, option, pre_, section, section_, select, span, span_, text)
 import Halogen.HTML.Events (onClick, onValueChange)
-import Halogen.HTML.Properties (InputType(..), class_, classes, placeholder, type_, value)
-import Marlowe.Extended (MetaData)
+import Halogen.HTML.Properties (InputType(..), class_, classes, placeholder, selected, type_, value)
+import Marlowe.Extended (MetaData, _choiceNames, contractTypeArray, contractTypeName, contractTypeInitials, initialsToContractType)
+import Marlowe.Semantics as S
 import MarloweEditor.Types (Action(..), BottomPanelView(..), MetadataAction(..), State, _editorErrors, _editorWarnings, _hasHoles, _metadataHintInfo, _showErrorDetail, contractHasErrors)
 import StaticAnalysis.BottomPanel (analysisResultPane, analyzeButton, clearButton)
 import StaticAnalysis.Types (_analysisExecutionState, _analysisState, isCloseAnalysisLoading, isNoneAsked, isReachabilityLoading, isStaticLoading)
@@ -24,18 +29,93 @@ import Text.Parsing.StringParser.Basic (lines)
 panelContents :: forall p. State -> MetaData -> BottomPanelView -> HTML p Action
 panelContents state metadata MetadataView =
   div [ classes [ ClassName "padded-explanation" ] ]
-    [ div_
-        [ input
+    [ div [ class_ $ ClassName "metadata-field-group" ]
+        [ text "Contract type: "
+        , select
+            [ class_ $ ClassName "metadata-input"
+            , onValueChange $ Just <<< MetadataAction <<< SetContractType <<< initialsToContractType
+            ] do
+            ct <- contractTypeArray
+            pure
+              $ option
+                  [ value $ contractTypeInitials ct
+                  , selected (ct == metadata.contractType)
+                  ]
+                  [ text $ contractTypeName ct
+                  ]
+        ]
+    , div [ class_ $ ClassName "metadata-field-group" ]
+        [ text "Contract name: "
+        , input
             [ type_ InputText
             , placeholder "Contract name"
             , class_ $ ClassName "metadata-input"
-            , value $ metadata.contractName
+            , value metadata.contractName
             , onValueChange $ Just <<< MetadataAction <<< SetContractName
             ]
         ]
+    , div [ class_ $ ClassName "metadata-field-group" ]
+        [ text "Contract description: "
+        , input
+            [ type_ InputText
+            , placeholder "Contract description"
+            , class_ $ ClassName "metadata-input"
+            , value metadata.contractDescription
+            , onValueChange $ Just <<< MetadataAction <<< SetContractDescription
+            ]
+        ]
+    , div [ class_ $ ClassName "metadata-field-group" ]
+        if Map.isEmpty choiceMap then
+          []
+        else
+          [ h6_ [ em_ [ text "Choice descriptions" ] ]
+          , ol_
+              $ map
+                  ( \(key /\ val) ->
+                      li_
+                        ( case val of
+                            Just (desc /\ needed) ->
+                              [ text $ "Choice " <> show key <> ": "
+                              , input
+                                  [ type_ InputText
+                                  , placeholder $ "Description for choice " <> show key
+                                  , class_ $ ClassName "metadata-input"
+                                  , value desc
+                                  , onValueChange $ Just <<< MetadataAction <<< SetChoiceDescription key
+                                  ]
+                              , button
+                                  [ classes [ minusBtn, smallBtn, ClassName "align-top" ]
+                                  , onClick $ const $ Just $ MetadataAction $ DeleteChoiceDescription key
+                                  ]
+                                  [ text "-" ]
+                              ]
+                                <> if needed then [] else [ span [ classes [ ClassName "metadata-error", ClassName "metadata-not-used" ] ] [ text "Not used" ] ]
+                            Nothing ->
+                              [ span [ class_ (ClassName "metadata-error") ] [ text $ "Choice " <> show key <> " description not defined" ]
+                              , button
+                                  [ classes [ plusBtn, smallBtn, ClassName "align-top" ]
+                                  , onClick $ const $ Just $ MetadataAction $ SetChoiceDescription key mempty
+                                  ]
+                                  [ text "+" ]
+                              ]
+                        )
+                  )
+              $ Map.toUnfoldable choiceMap
+          ]
     , div_ [ text (encodeJSON metadata) ]
     , div_ [ text (show (state ^. _metadataHintInfo)) ]
     ]
+  where
+  mergeMaps :: (Maybe (String /\ Boolean)) -> (Maybe (String /\ Boolean)) -> (Maybe (String /\ Boolean))
+  mergeMaps (Just (x /\ _)) _ = Just (x /\ true)
+
+  mergeMaps _ _ = Nothing
+
+  choiceMap :: Map S.TokenName (Maybe (String /\ Boolean))
+  choiceMap =
+    Map.unionWith mergeMaps
+      (map (\x -> Just (x /\ false)) metadata.choiceDescriptions)
+      (Map.fromFoldable (map (\x -> x /\ Nothing) ((toUnfoldable (state ^. (_metadataHintInfo <<< _choiceNames))) :: List String)))
 
 panelContents state _ StaticAnalysisView =
   section [ classes [ flex, flexCol ] ]

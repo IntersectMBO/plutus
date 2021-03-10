@@ -60,6 +60,9 @@ data ContractType
 
 derive instance eqContractType :: Eq ContractType
 
+contractTypeArray :: Array ContractType
+contractTypeArray = [ Escrow, EscrowWithCollatoral, ZeroCouponBond, CouponBondGuaranteed, Swap, ContractForDifferences, Other ]
+
 contractTypeInitials :: ContractType -> String
 contractTypeInitials Escrow = "ES"
 
@@ -87,6 +90,8 @@ contractTypeName CouponBondGuaranteed = "Coupon Bond Guaranteed"
 contractTypeName Swap = "Swap"
 
 contractTypeName ContractForDifferences = "Contract for Differences"
+
+contractTypeName Other = "Other"
 
 initialsToContractType :: String -> ContractType
 initialsToContractType "ES" = Escrow
@@ -136,6 +141,18 @@ type MetadataHintInfo
     , valueParameters :: Set String
     , choiceNames :: Set String
     }
+
+_roles :: Lens' MetadataHintInfo (Set S.TokenName)
+_roles = prop (SProxy :: SProxy "roles")
+
+_slotParameters :: Lens' MetadataHintInfo (Set String)
+_slotParameters = prop (SProxy :: SProxy "slotParameters")
+
+_valueParameters :: Lens' MetadataHintInfo (Set String)
+_valueParameters = prop (SProxy :: SProxy "valueParameters")
+
+_choiceNames :: Lens' MetadataHintInfo (Set String)
+_choiceNames = prop (SProxy :: SProxy "choiceNames")
 
 getMetadataHintInfo :: Contract -> MetadataHintInfo
 getMetadataHintInfo contract =
@@ -743,13 +760,13 @@ instance fillableAction :: Fillable Action TemplateContent where
 
 instance actionHasChoices :: HasChoices Action where
   getChoiceNames (Deposit _ _ _ value) = getChoiceNames value
+  getChoiceNames (Choice choId _) = getChoiceNames choId
   getChoiceNames (Notify obs) = getChoiceNames obs
-  getChoiceNames _ = Set.empty
 
 instance actionHasParties :: HasParties Action where
   getParties (Deposit accId party _ value) = getParties accId <> getParties party <> getParties value
+  getParties (Choice _ _) = Set.empty
   getParties (Notify obs) = getParties obs
-  getParties _ = Set.empty
 
 data Payee
   = Account S.AccountId

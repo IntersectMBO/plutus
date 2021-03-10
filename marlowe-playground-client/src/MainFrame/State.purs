@@ -288,7 +288,7 @@ carryMetadataAction ::
   MonadAsk Env m =>
   ME.MetadataAction ->
   HalogenM State Action ChildSlots Void m Unit
-carryMetadataAction action =
+carryMetadataAction action = do
   modifying (_contractMetadata) case action of
     SetContractName name -> set _contractName name
     SetContractType typeName -> set _contractType typeName
@@ -301,6 +301,9 @@ carryMetadataAction action =
     DeleteValueParameterDescription valueParam -> over _valueParameterDescriptions $ Map.delete valueParam
     SetChoiceDescription choiceName description -> over _choiceDescriptions $ Map.insert choiceName description
     DeleteChoiceDescription choiceName -> over _choiceDescriptions $ Map.delete choiceName
+  metadata <- use _contractMetadata
+  assign (_hasUnsavedChanges) true
+  liftEffect $ SessionStorage.setItem metadataLocalStorageKey (encodeJSON (metadata :: MetaData))
 
 -- This handleAction can be called recursively, but because we use HOF to extend the functionality
 -- of the component, whenever we need to recurse we most likely be calling one of the extended functions
