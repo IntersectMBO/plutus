@@ -4,8 +4,7 @@ module Template.View
   , contractSetupConfirmationCard
   ) where
 
-import Prelude hiding (div,min)
-
+import Prelude hiding (div, min)
 import Css (applyWhen, classNames)
 import Css as Css
 import Data.BigInteger (fromString) as BigInteger
@@ -227,12 +226,12 @@ contractParameters metaData templateContent =
 
 contractReview :: forall p. State -> HTML p Action
 contractReview state =
-    div
-      [ classNames [ "ml-12", "border-l", "border-darkgray" ] ]
-      [ div
-          [ classNames [ "mx-auto", "w-96", "mb-4", "bg-white", "p-4", "shadow", "rounded-lg" ] ]
-          [ text "Summary information about the contract goes here." ]
-      ]
+  div
+    [ classNames [ "ml-12", "border-l", "border-darkgray" ] ]
+    [ div
+        [ classNames [ "mx-auto", "w-96", "mb-4", "bg-white", "p-4", "shadow", "rounded-lg" ] ]
+        [ text "Summary information about the contract goes here." ]
+    ]
 
 ------------------------------------------------------------
 templateLibraryCard :: forall p. Array ContractTemplate -> HTML p Action

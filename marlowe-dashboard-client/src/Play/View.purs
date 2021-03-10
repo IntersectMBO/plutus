@@ -161,7 +161,7 @@ renderScreen wallets screen playState =
       [ classNames [ "absolute", "top-0", "bottom-0", "left-0", "right-0", "overflow-auto", "z-0" ] ] case screen of
       ContractsScreen -> [ ContractHomeAction <$> contractsScreen contractsState ]
       WalletLibraryScreen -> [ walletLibraryScreen wallets ]
-      TemplateScreen templateScreen -> [ TemplateAction <$> contractSetupScreen wallets templateScreen templateState ]
+      TemplateScreen -> [ TemplateAction <$> contractSetupScreen wallets templateState ]
 
 ------------------------------------------------------------
 renderFooter :: forall p. HTML p Action

@@ -9,9 +9,7 @@ module Template.State
 -- functions for use in MainFrame.Sate, separated out to keep modules
 -- relatively small and easier to read.
 -- Maybe we could do the same for Contract.State...?
-
 import Prelude
-
 import Control.Monad.Reader (class MonadAsk)
 import Data.Lens (assign, modifying)
 import Data.Map (Map, insert, fromFoldable)
