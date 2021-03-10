@@ -4,11 +4,6 @@ module.exports = {
   purge: [],
   darkMode: false, // or 'media' or 'class'
   theme: {
-    screens: {
-      sm: "640px",
-      md: "768px",
-      lg: "1024px",
-    },
     colors: {
       transparent: "transparent",
       current: "currentColor",
@@ -22,29 +17,13 @@ module.exports = {
       red: "#de4c51",
       transgray: "rgba(10,10,10,0.4)",
     },
-    spacing: {
-      0: "0px",
-      0.25: "0.25rem",
-      0.5: "0.5rem",
-      0.75: "0.75rem",
-      1: "1rem",
-      1.5: "1.5rem",
-      2: "2rem",
-      3: "3rem",
-      12: "12rem",
-      22: "22rem",
-    },
-    fontSize: {
-      xs: ["0.75rem", { lineHeight: "1rem" }],
-      sm: ["0.875rem", { lineHeight: "1.25rem" }],
-      base: ["1rem", { lineHeight: "1.5rem" }],
-      lg: ["1.125rem", { lineHeight: "1.75rem" }],
-      xl: ["1.5rem", { lineHeight: "1.75rem" }],
-      "2xl": ["2rem", { lineHeight: "1.75rem" }],
+    boxShadow: {
+      DEFAULT: "0 3px 6px 0 rgba(0, 0, 0, 0.21)"
     },
     extend: {
       gridTemplateRows: {
         main: "auto minmax(0, 1fr) auto",
+        contractSetup: "auto auto minmax(0, 1fr)",
       },
       boxShadow: {
         deep: "0 2.5px 5px 0 rgba(0, 0, 0, 0.22)",

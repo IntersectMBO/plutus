@@ -37,10 +37,10 @@ newWalletCard library newWalletNickname newWalletContractId remoteDataPubKey =
     div
       [ classNames [ "flex", "flex-col" ] ]
       [ p
-          [ classNames [ "mb-1" ] ]
+          [ classNames [ "mb-4" ] ]
           [ text "Create new contact" ]
       , div
-          [ classNames $ [ "mb-1" ] <> (applyWhen (not null newWalletNickname) Css.hasNestedLabel) ]
+          [ classNames $ [ "mb-4" ] <> (applyWhen (not null newWalletNickname) Css.hasNestedLabel) ]
           [ label
               [ classNames $ Css.nestedLabel <> hideWhen (null newWalletNickname) ]
               [ text "Nickname" ]
@@ -56,7 +56,7 @@ newWalletCard library newWalletNickname newWalletContractId remoteDataPubKey =
               [ text $ foldMap show mNicknameError ]
           ]
       , div
-          [ classNames $ [ "mb-1" ] <> (applyWhen (not null newWalletContractId) Css.hasNestedLabel) ]
+          [ classNames $ [ "mb-4" ] <> (applyWhen (not null newWalletContractId) Css.hasNestedLabel) ]
           [ label
               [ classNames $ Css.nestedLabel <> hideWhen (null newWalletContractId) ]
               [ text "Wallet ID" ]
@@ -74,7 +74,7 @@ newWalletCard library newWalletNickname newWalletContractId remoteDataPubKey =
       , div
           [ classNames [ "flex" ] ]
           [ button
-              [ classNames $ Css.secondaryButton <> [ "flex-1", "mr-1" ]
+              [ classNames $ Css.secondaryButton <> [ "flex-1", "mr-4" ]
               , onClick_ $ SetCard Nothing
               ]
               [ text "Cancel" ]
@@ -96,7 +96,7 @@ walletDetailsCard walletDetails =
   in
     div_
       [ h3
-          [ classNames [ "font-bold", "mb-1" ] ]
+          [ classNames [ "font-bold", "mb-4" ] ]
           [ text $ "Wallet " <> nickname ]
       , div
           [ classNames Css.hasNestedLabel ]
@@ -105,7 +105,7 @@ walletDetailsCard walletDetails =
               [ text "Wallet ID" ]
           , input
               [ type_ InputText
-              , classNames $ Css.input false <> [ "mb-1" ]
+              , classNames $ Css.input false <> [ "mb-4" ]
               , value contractId
               , readOnly true
               ]
@@ -121,7 +121,7 @@ putdownWalletCard walletDetails =
   in
     div_
       [ h3
-          [ classNames [ "font-bold", "mb-1" ] ]
+          [ classNames [ "font-bold", "mb-4" ] ]
           [ text $ "Wallet " <> nickname ]
       , div
           [ classNames Css.hasNestedLabel ]
@@ -130,7 +130,7 @@ putdownWalletCard walletDetails =
               [ text "Wallet ID" ]
           , input
               [ type_ InputText
-              , classNames $ Css.input false <> [ "mb-1" ]
+              , classNames $ Css.input false <> [ "mb-4" ]
               , value contractId
               , readOnly true
               ]
@@ -138,7 +138,7 @@ putdownWalletCard walletDetails =
       , div
           [ classNames [ "flex" ] ]
           [ button
-              [ classNames $ Css.secondaryButton <> [ "flex-1", "mr-1" ]
+              [ classNames $ Css.secondaryButton <> [ "flex-1", "mr-4" ]
               , onClick_ $ SetCard Nothing
               ]
               [ text "Cancel" ]
@@ -152,9 +152,10 @@ putdownWalletCard walletDetails =
 
 walletLibraryScreen :: forall p. WalletLibrary -> HTML p Action
 walletLibraryScreen library =
-  div_
+  div
+    [ classNames [ "p-4" ] ]
     [ h2
-        [ classNames [ "font-bold", "mb-1" ] ]
+        [ classNames [ "font-bold", "mb-4" ] ]
         [ text "Contacts" ]
     , if isEmpty library then
         p_ [ text "You do not have any contacts." ]
@@ -167,7 +168,7 @@ walletLibraryScreen library =
         , onClick_ $ ToggleCard CreateWalletCard
         ]
         [ span
-            [ classNames [ "mr-0.5" ] ]
+            [ classNames [ "mr-2" ] ]
             [ text "New contact" ]
         , Icon.add
         ]
@@ -178,7 +179,7 @@ walletLibraryScreen library =
       contractId = view _contractId walletDetails
     in
       li
-        [ classNames [ "mt-1", "hover:cursor-pointer", "hover:text-green" ]
+        [ classNames [ "mt-4", "hover:cursor-pointer", "hover:text-green" ]
         , onClick_ $ ToggleCard $ ViewWalletCard walletDetails
         ]
         [ text nickname ]

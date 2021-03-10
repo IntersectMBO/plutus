@@ -11,7 +11,7 @@ import Contract.Types (Action) as Contract
 import ContractHome.Types (Action, State) as ContractHome
 import Data.Maybe (Maybe(..))
 import WalletData.Types (Nickname, WalletDetails)
-import Template.Types (Action, Screen, State) as Template
+import Template.Types (Action, State) as Template
 
 type State
   = { walletDetails :: WalletDetails
@@ -25,7 +25,7 @@ type State
 data Screen
   = ContractsScreen
   | WalletLibraryScreen
-  | TemplateScreen Template.Screen
+  | TemplateScreen
 
 derive instance eqScreen :: Eq Screen
 

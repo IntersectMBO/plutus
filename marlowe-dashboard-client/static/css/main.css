@@ -16,7 +16,7 @@ a {
 }
 
 hr {
-  @apply border-darkgray mb-1;
+  @apply border-darkgray;
 }
 
 /*

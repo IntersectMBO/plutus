@@ -28,7 +28,7 @@ import Play.Lenses (_contractsState, _menuOpen, _templateState)
 import Play.Types (Action(..), Card(..), Screen(..), State)
 import Template.Lenses (_extendedContract, _metaData, _template, _templateContent)
 import Template.State (defaultState, handleAction, mkInitialState) as Template
-import Template.Types (Action(..), Screen(..)) as Template
+import Template.Types (Action(..)) as Template
 import WalletData.Types (WalletDetails)
 
 toContractHome ::
@@ -73,7 +73,6 @@ handleAction (SetScreen screen) =
 handleAction (SetCard card) = do
   previousCard <- peruse (_playState <<< _card)
   assign (_playState <<< _card) card
-  for_ previousCard $ const $ assign (_playState <<< _menuOpen) false
 
 handleAction (ToggleCard card) = do
   mCurrentCard <- peruse (_playState <<< _card <<< _Just)
@@ -86,9 +85,7 @@ handleAction (ToggleCard card) = do
 handleAction (TemplateAction (Template.SetTemplate template)) = do
   mCurrentTemplate <- peruse (_playState <<< _templateState <<< _template)
   when (mCurrentTemplate /= Just template) $ assign (_playState <<< _templateState) $ Template.mkInitialState template
-  handleAction $ SetScreen $ TemplateScreen Template.ContractRolesScreen
-
-handleAction (TemplateAction (Template.SetScreen screen)) = handleAction $ SetScreen $ TemplateScreen screen
+  handleAction $ SetScreen TemplateScreen
 
 handleAction (TemplateAction Template.ToggleTemplateLibraryCard) = handleAction $ ToggleCard TemplateLibraryCard
 
