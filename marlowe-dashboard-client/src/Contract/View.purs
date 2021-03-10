@@ -25,7 +25,7 @@ contractDetailsCard state =
   in
     div [ classNames [ "flex", "flex-col", "items-center" ] ]
       [ h1 [ classNames [ "text-xl", "font-medium" ] ] [ text metadata.contractName ]
-      , h2 [ classNames [ "mb-0.5" ] ] [ text $ contractTypeName metadata.contractType ]
+      , h2 [ classNames [ "mb-2" ] ] [ text $ contractTypeName metadata.contractType ]
       -- FIXME: Revisit width (at least on desktop)
       , div [ classNames [ "w-full" ] ] [ renderCurrentState state ]
       ]
@@ -42,7 +42,7 @@ renderCurrentState state =
     currentTab = state ^. _tab
 
     tabSelector isActive =
-      [ "flex-grow", "text-center", "font-semibold", "py-0.5", "trapesodial-card-selector" ]
+      [ "flex-grow", "text-center", "font-semibold", "py-2", "trapesodial-card-selector" ]
         <> case isActive of
             true -> [ "active" ]
             false -> []
@@ -60,11 +60,11 @@ renderCurrentState state =
               ]
               [ span_ $ [ text "Balances" ] ]
           ]
-      , div [ classNames [ "px-1", "py-0.5", "bg-white" ] ]
+      , div [ classNames [ "px-4", "py-2", "bg-white" ] ]
           [ span [] [ text $ "Step " <> show stepNumber ]
           , span [] [ text "Completed" ]
           ]
-      , div [ classNames [ "px-1", "py-0.5", "bg-white" ] ]
+      , div [ classNames [ "px-4", "py-2", "bg-white" ] ]
           [ renderTasks (executionState ^. _namedActions)
           ]
       ]
