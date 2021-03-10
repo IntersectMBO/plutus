@@ -89,7 +89,7 @@
         # some useful nginx config including the zone for rate limits
         appendHttpConfig = ''
           limit_req_zone $binary_remote_addr zone=plutuslimit:10m rate=2r/s;
-          limit_req_zone $binary_remote_addr zone=staticlimit:100m rate=15r/s;
+          limit_req_zone $binary_remote_addr zone=staticlimit:500m rate=100r/s;
           server_names_hash_bucket_size 128;
           log_format compression '$remote_addr - $remote_user [$time_local] '
           '"$request" $status $body_bytes_sent '
@@ -107,7 +107,7 @@
                 root = "${plutus-playground.client}";
                 extraConfig = ''
                   # static files should not be too costly to serve so we can allow more generous rates 
-                  limit_req zone=staticlimit burst=30;
+                  limit_req zone=staticlimit burst=1000;
                   add_header 'Cache-Control' 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0';
                   expires off;
                   error_page 404 = @fallback;
@@ -117,7 +117,7 @@
                 alias = "${plutus-playground.tutorial}/";
                 extraConfig = ''
                   # static files should not be too costly to serve so we can allow more generous rates 
-                  limit_req zone=staticlimit burst=30;
+                  limit_req zone=staticlimit burst=1000;
                   add_header 'Cache-Control' 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0';
                   expires off;
                   error_page 404 = @fallback;
@@ -140,7 +140,7 @@
                 root = "${marlowe-playground.client}";
                 extraConfig = ''
                   # static files should not be too costly to serve so we can allow more generous rates 
-                  limit_req zone=staticlimit burst=30;
+                  limit_req zone=staticlimit burst=1000;
                   add_header 'Cache-Control' 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0';
                   expires off;
                   error_page 404 = @fallback;
@@ -150,7 +150,7 @@
                 alias = "${marlowe-playground.tutorial}/";
                 extraConfig = ''
                   # static files should not be too costly to serve so we can allow more generous rates 
-                  limit_req zone=staticlimit burst=30;
+                  limit_req zone=staticlimit burst=1000;
                   add_header 'Cache-Control' 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0';
                   expires off;
                   error_page 404 = @fallback;
