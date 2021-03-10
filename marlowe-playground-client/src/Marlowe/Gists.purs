@@ -42,7 +42,7 @@ type PlaygroundFiles
     }
 
 toArray :: PlaygroundFiles -> Array NewGistFile
-toArray { playground, marlowe, haskell, blockly, javascript, actus } =
+toArray { playground, marlowe, haskell, blockly, javascript, actus, metadata } =
   [ mkNewGistFile filenames.playground playground
   ]
     <> catMaybes
@@ -51,6 +51,7 @@ toArray { playground, marlowe, haskell, blockly, javascript, actus } =
         , mkNewGistFile filenames.blockly <$> blockly
         , mkNewGistFile filenames.javascript <$> javascript
         , mkNewGistFile filenames.actus <<< unwrap <$> actus
+        , mkNewGistFile filenames.metadata <$> metadata
         ]
 
 filenames ::
