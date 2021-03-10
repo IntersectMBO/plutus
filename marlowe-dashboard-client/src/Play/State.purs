@@ -127,7 +127,7 @@ handleAction (ContractHomeAction a@(ContractHome.OpenContract _)) = do
 -- other contract home actions
 handleAction (ContractHomeAction contractAction) = void $ toContractHome $ ContractHome.handleAction contractAction
 
--- other contract home actions
+-- All contract actions are handled by the subcomponent for the moment
 handleAction (ContractAction contractAction) = void $ toContract $ Contract.handleAction contractAction
 
 -- all other actions are handled in `MainFrame.State`

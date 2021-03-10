@@ -82,7 +82,7 @@ contractCard contractState =
     -- starting from 1
     stepNumber = contractState ^. _step + 1
 
-    -- FIXME: not sure where to get this information from
+    -- FIXME: hardcoded time slot
     timeoutStr = "8hr 10m left"
   in
     div
