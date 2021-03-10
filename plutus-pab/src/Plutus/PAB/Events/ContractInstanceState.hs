@@ -68,5 +68,6 @@ instance Pretty (ContractDef t) => Pretty (ContractInstanceState t) where
             , "Contract definition:" <+> pretty csContractDefinition
             ]
 
-hasActiveRequests :: ContractInstanceState t -> Bool
-hasActiveRequests = not . null . hooks . csCurrentState
+-- | Whether the instance has any active requests
+hasActiveRequests :: forall a. PartiallyDecodedResponse a -> Bool
+hasActiveRequests = not . null . hooks

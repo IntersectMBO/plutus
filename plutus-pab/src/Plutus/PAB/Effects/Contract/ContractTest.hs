@@ -40,6 +40,7 @@ import           GHC.Generics                                      (Generic)
 import           Data.Text.Extras                                  (tshow)
 import           Plutus.PAB.Effects.Contract                       (ContractEffect (..), PABContract (..))
 import           Plutus.PAB.Events.Contract                        (ContractHandlersResponse (..), ContractPABRequest)
+import qualified Plutus.PAB.Events.Contract                        as C
 import           Plutus.PAB.Events.ContractInstanceState           (PartiallyDecodedResponse)
 import qualified Plutus.PAB.Events.ContractInstanceState           as C
 import           Plutus.PAB.Types                                  (PABError (..))

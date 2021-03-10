@@ -25,7 +25,9 @@ import           Ledger.Index                            (UtxoIndex)
 import           Playground.Types                        (FunctionSchema)
 import           Plutus.PAB.Effects.Contract             (PABContract (..))
 import           Plutus.PAB.Effects.Contract.CLI         (ContractExe)
-import           Plutus.PAB.Events.ContractInstanceState (ContractInstanceState)
+import           Plutus.PAB.Events                       (PABEvent)
+import           Plutus.PAB.Events.Contract              (ContractPABRequest)
+import           Plutus.PAB.Events.ContractInstanceState (ContractInstanceState, PartiallyDecodedResponse)
 import           Schema                                  (FormSchema)
 import           Wallet.Rollup.Types                     (AnnotatedTx)
 import           Wallet.Types                            (ContractInstanceId)
@@ -33,14 +35,10 @@ import           Wallet.Types                            (ContractInstanceId)
 data ContractReport t =
     ContractReport
         { crAvailableContracts   :: [ContractSignatureResponse t]
-        , crActiveContractStates :: [(ContractInstanceId, [Request ContractPABRequest])]
+        , crActiveContractStates :: [(ContractInstanceId, PartiallyDecodedResponse ContractPABRequest)]
         }
-    deriving stock (Generic)
-
-deriving stock instance (Show (ContractDef t)) => Show (ContractReport t)
-deriving stock instance (Eq (ContractDef t)) => Eq (ContractReport t)
-deriving anyclass instance (ToJSON (ContractDef t)) => ToJSON (ContractReport t)
-deriving anyclass instance (FromJSON (ContractDef t)) => FromJSON (ContractReport t)
+    deriving stock (Generic, Eq, Show)
+    deriving anyclass (ToJSON, FromJSON)
 
 data ChainReport =
     ChainReport
@@ -56,26 +54,18 @@ data FullReport t =
     FullReport
         { contractReport :: ContractReport t
         , chainReport    :: ChainReport
-        , events         :: [ChainEvent t]
+        , events         :: [PABEvent t]
         }
-    deriving stock Generic
-
-deriving stock instance (Show (ContractDef t)) => Show (FullReport t)
-deriving stock instance (Eq (ContractDef t)) => Eq (FullReport t)
-deriving anyclass instance (ToJSON (ContractDef t)) => ToJSON (FullReport t)
-deriving anyclass instance (FromJSON (ContractDef t)) => FromJSON (FullReport t)
+    deriving stock (Generic, Eq, Show)
+    deriving anyclass (ToJSON, FromJSON)
 
 data ContractSignatureResponse t =
     ContractSignatureResponse
-        { csrDefinition :: ContractDef t
+        { csrDefinition :: t
         , csrSchemas    :: [FunctionSchema FormSchema]
         }
-    deriving stock (Generic)
-
-deriving stock instance (Show (ContractDef t)) => Show (ContractSignatureResponse t)
-deriving stock instance (Eq (ContractDef t)) => Eq (ContractSignatureResponse t)
-deriving anyclass instance (ToJSON (ContractDef t)) => ToJSON (ContractSignatureResponse t)
-deriving anyclass instance (FromJSON (ContractDef t)) => FromJSON (ContractSignatureResponse t)
+    deriving stock (Generic, Eq, Show)
+    deriving anyclass (ToJSON, FromJSON)
 
 data StreamToServer
     = FetchProperties Metadata.Subject
@@ -89,7 +79,7 @@ deriving via (Tagged "stream_to_server" StreamToServer) instance
 data StreamToClient
     = NewChainReport ChainReport
     | NewContractReport (ContractReport ContractExe)
-    | NewChainEvents [ChainEvent ContractExe]
+    | NewChainEvents [PABEvent ContractExe]
     | FetchedProperties (Metadata.SubjectProperties 'Metadata.AesonEncoding)
     | FetchedProperty Metadata.Subject (Metadata.Property 'Metadata.AesonEncoding)
     | ErrorResponse Text

@@ -18,25 +18,26 @@
 -- ignoring the 'state'.
 module Plutus.PAB.Command
     ( installCommand
-    , saveBalancedTx
     , saveBalancedTxResult
     -- * Commands related to updating the contract state
-    , sendContractEvent
+    , updateContractInstanceState
     ) where
 
-import           Eventful                   (Aggregate (Aggregate), aggregateCommandHandler, aggregateProjection)
+import           Eventful                                (Aggregate (Aggregate), aggregateCommandHandler,
+                                                          aggregateProjection)
 import qualified Ledger
-import           Plutus.PAB.Events          (ChainEvent (ContractEvent, UserEvent), UserEvent (InstallContract))
-import qualified Plutus.PAB.Events          as Events
-import           Plutus.PAB.Query           (nullProjection)
-
-import qualified Plutus.PAB.Events.Contract as Events.Contract
+import           Plutus.PAB.Events                       (PABEvent (InstallContract, SubmitTx, UpdateContractInstanceState))
+import qualified Plutus.PAB.Events                       as Events
+import           Plutus.PAB.Events.Contract              (ContractPABRequest)
+import           Plutus.PAB.Events.ContractInstanceState (PartiallyDecodedResponse)
+import           Plutus.PAB.Query                        (nullProjection)
+import           Wallet.Types                            (ContractInstanceId)
 
 -- | An aggregate that just sends a list of events with no state
 sendEvents ::
   forall a t.
-  (a -> [ChainEvent t])
-  -> Aggregate () (ChainEvent t) a
+  (a -> [PABEvent t])
+  -> Aggregate () (PABEvent t) a
 sendEvents f =
   Aggregate
     { aggregateProjection = nullProjection
@@ -44,14 +45,11 @@ sendEvents f =
         \() a -> f a
     }
 
-installCommand :: Aggregate () (ChainEvent t) t
-installCommand = sendEvents (return . UserEvent . InstallContract)
+installCommand :: Aggregate () (PABEvent t) t
+installCommand = sendEvents (return . InstallContract)
 
-saveBalancedTx :: forall t. Aggregate () (ChainEvent t) Ledger.Tx
-saveBalancedTx = sendEvents (return . Events.WalletEvent . Events.BalancedTx)
+saveBalancedTxResult :: forall t. Aggregate () (PABEvent t) Ledger.Tx
+saveBalancedTxResult = sendEvents (return . SubmitTx)
 
-saveBalancedTxResult :: forall t. Aggregate () (ChainEvent t) Ledger.Tx
-saveBalancedTxResult = sendEvents (return . Events.NodeEvent . Events.SubmittedTx)
-
-sendContractEvent :: forall t. Aggregate () (ChainEvent t) (Events.Contract.ContractEvent t)
-sendContractEvent = sendEvents (return . ContractEvent)
+updateContractInstanceState :: forall t. Aggregate () (PABEvent t) (t, ContractInstanceId, (PartiallyDecodedResponse ContractPABRequest))
+updateContractInstanceState = sendEvents (\(x, y, z) -> return $ UpdateContractInstanceState x y z)

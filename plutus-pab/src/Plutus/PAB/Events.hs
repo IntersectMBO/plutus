@@ -1,11 +1,10 @@
-{-# LANGUAGE DeriveAnyClass       #-}
-{-# LANGUAGE DeriveGeneric        #-}
-{-# LANGUAGE DerivingStrategies   #-}
-{-# LANGUAGE FlexibleContexts     #-}
-{-# LANGUAGE LambdaCase           #-}
-{-# LANGUAGE OverloadedStrings    #-}
-{-# LANGUAGE TemplateHaskell      #-}
-{-# LANGUAGE UndecidableInstances #-}
+{-# LANGUAGE DeriveAnyClass     #-}
+{-# LANGUAGE DeriveGeneric      #-}
+{-# LANGUAGE DerivingStrategies #-}
+{-# LANGUAGE FlexibleContexts   #-}
+{-# LANGUAGE LambdaCase         #-}
+{-# LANGUAGE OverloadedStrings  #-}
+{-# LANGUAGE TemplateHaskell    #-}
 {-
 
 Events that we store in the database.
@@ -18,18 +17,20 @@ module Plutus.PAB.Events
     , _SubmitTx
     ) where
 
-import           Control.Lens.TH             (makePrisms)
-import           Data.Aeson                  (FromJSON, ToJSON)
-import           Data.Text.Prettyprint.Doc   (Pretty, pretty, (<+>))
-import           GHC.Generics                (Generic)
-import           Ledger.Tx                   (Tx)
-import           Plutus.PAB.Effects.Contract (PABContract (..))
-import           Plutus.PAB.Events.Contract  as Events.Contract
+import           Control.Lens.TH                         (makePrisms)
+import           Data.Aeson                              (FromJSON, ToJSON)
+import           Data.Text.Prettyprint.Doc               (Pretty, pretty, (<+>))
+import           GHC.Generics                            (Generic)
+import           Ledger.Tx                               (Tx)
+import           Plutus.PAB.Effects.Contract             (PABContract (..))
+import           Plutus.PAB.Events.Contract              (ContractPABRequest)
+import           Plutus.PAB.Events.ContractInstanceState (PartiallyDecodedResponse)
+import           Wallet.Types                            (ContractInstanceId)
 
 -- | A structure which ties together all possible event types into one parent.
 data PABEvent t =
     InstallContract !t -- ^ Install a contract
-    | UpdateContractInstanceState !t !ContractInstanceId !(State t) -- ^ Update the state of a contract instance
+    | UpdateContractInstanceState !t !ContractInstanceId !(PartiallyDecodedResponse ContractPABRequest) -- ^ Update the state of a contract instance
     | SubmitTx !Tx -- ^ Send a transaction to the node
     deriving stock (Eq, Show, Generic)
     deriving anyclass (ToJSON, FromJSON)

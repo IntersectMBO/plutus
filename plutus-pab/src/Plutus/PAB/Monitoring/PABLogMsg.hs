@@ -38,7 +38,8 @@ import           Plutus.PAB.Core                         (CoreMsg (..))
 import           Plutus.PAB.Core.ContractInstance        (ContractInstanceMsg (..))
 import           Plutus.PAB.Effects.Contract.CLI         (ContractExe)
 import           Plutus.PAB.Effects.ContractRuntime      (ContractRuntimeMsg)
-import           Plutus.PAB.Events.Contract              (ContractInstanceId, ContractInstanceState)
+import           Plutus.PAB.Events.Contract              (ContractInstanceId, ContractPABRequest)
+import           Plutus.PAB.Events.ContractInstanceState (PartiallyDecodedResponse)
 import           Plutus.PAB.Instances                    ()
 import           Plutus.PAB.Monitoring.MonadLoggerBridge (MonadLoggerMsg (..))
 import           Plutus.PAB.ParseStringifiedJSON         (UnStringifyJSONLog (..))
@@ -57,7 +58,7 @@ data AppMsg =
     | InstalledContract Text
     | ContractInstance ContractExe [ContractInstanceId]
     | TxHistoryItem Tx
-    | ContractHistoryItem Int (ContractInstanceState ContractExe)
+    | ContractHistoryItem Int (PartiallyDecodedResponse ContractPABRequest)
     deriving stock (Show, Generic)
     deriving anyclass (ToJSON, FromJSON)
 

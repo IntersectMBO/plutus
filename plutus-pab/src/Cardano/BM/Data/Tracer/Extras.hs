@@ -4,6 +4,7 @@
 {-# LANGUAGE FlexibleInstances    #-}
 {-# LANGUAGE GADTs                #-}
 {-# LANGUAGE KindSignatures       #-}
+{-# LANGUAGE NamedFieldPuns       #-}
 {-# LANGUAGE OverloadedStrings    #-}
 {-# LANGUAGE TypeApplications     #-}
 {-# LANGUAGE UndecidableInstances #-}
@@ -32,7 +33,7 @@ import           Plutus.Contract.Checkpoint              (CheckpointLogMsg)
 import           Plutus.Contract.State                   (ContractRequest)
 import           Plutus.PAB.Effects.Contract             (PABContract (..))
 import           Plutus.PAB.Events.Contract              (ContractInstanceId, IterationID)
-import           Plutus.PAB.Events.ContractInstanceState (ContractInstanceState)
+import           Plutus.PAB.Events.ContractInstanceState (ContractInstanceState, PartiallyDecodedResponse (..))
 import           Wallet.Emulator.LogMessages             (RequestHandlerLogMsg, TxBalanceMsg)
 import           Wallet.Types                            (EndpointDescription)
 
@@ -85,6 +86,9 @@ deriving via (Tagged "uuid" UUID) instance StructuredLog UUID
 deriving via (Tagged "request" (ContractRequest v)) instance ToJSON v => StructuredLog (ContractRequest v)
 deriving via (Tagged "value" V.Value) instance StructuredLog V.Value
 deriving via (Tagged "endpoint" EndpointDescription) instance StructuredLog EndpointDescription
+instance ToJSON v => StructuredLog (PartiallyDecodedResponse v) where
+    toStructuredLog PartiallyDecodedResponse{hooks, observableState} =
+        HM.fromList [("hooks", toJSON hooks), ("state", toJSON observableState)]
 
 instance (KnownSymbol s, ToJSON a) => StructuredLog (Tagged s a) where
     toStructuredLog = toStructuredLog'

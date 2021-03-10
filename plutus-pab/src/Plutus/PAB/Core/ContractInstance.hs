@@ -69,11 +69,8 @@ import           Plutus.PAB.Effects.Contract                      (ContractDef, 
 import qualified Plutus.PAB.Effects.Contract                      as Contract
 import           Plutus.PAB.Effects.EventLog                      (EventLogEffect)
 import           Plutus.PAB.Effects.UUID                          (UUIDEffect, uuidNextRandom)
-import           Plutus.PAB.Events                                (ChainEvent (..))
-import           Plutus.PAB.Events.Contract                       (ContractInstanceId (..), ContractInstanceState (..),
-                                                                   ContractPABRequest (..), ContractResponse (..),
-                                                                   PartiallyDecodedResponse (..),
-                                                                   unContractHandlersResponse)
+import           Plutus.PAB.Events.Contract                       (ContractInstanceId (..), ContractPABRequest (..),
+                                                                   ContractResponse (..), unContractHandlersResponse)
 import qualified Plutus.PAB.Events.Contract                       as Events.Contract
 import           Plutus.PAB.Types                                 (PABError (..))
 

@@ -18,7 +18,6 @@ Effects for running contract instances and for storing and loading their state.
 -}
 module Plutus.PAB.Effects.Contract(
     PABContract(..)
-    , hasActiveRequests
     , ContractEffect(..)
     , exportSchema
     , initialState
@@ -60,14 +59,6 @@ class PABContract contract where
     -- | Extract the contract instance's open requests from the
     --   state.
     requests :: Proxy contract -> State contract -> [Request ContractPABRequest]
-
--- | Whether the instance has any active requests
-hasActiveRequests ::
-    forall contract.
-    PABContract contract
-    => State contract
-    -> Bool
-hasActiveRequests = not . null . requests (Proxy @contract)
 
 -- | An effect for sending updates to contracts that implement @PABContract@
 data ContractEffect t r where

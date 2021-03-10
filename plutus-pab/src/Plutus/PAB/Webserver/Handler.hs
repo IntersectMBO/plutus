@@ -54,9 +54,7 @@ import           Plutus.PAB.Effects.Contract                      (ContractDefin
 import           Plutus.PAB.Effects.Contract.CLI                  (ContractExe)
 import           Plutus.PAB.Effects.EventLog                      (EventLogEffect)
 import           Plutus.PAB.Effects.UUID                          (UUIDEffect)
-import           Plutus.PAB.Events                                (ChainEvent, ContractInstanceId (ContractInstanceId),
-                                                                   ContractInstanceState (ContractInstanceState),
-                                                                   csContractDefinition)
+import           Plutus.PAB.Events                                (PABEvent, csContractDefinition)
 import qualified Plutus.PAB.Monitoring.PABLogMsg                  as LM
 import           Plutus.PAB.ParseStringifiedJSON                  (UnStringifyJSONLog, parseStringifiedJSON)
 import qualified Plutus.PAB.Query                                 as Query
@@ -120,13 +118,13 @@ getChainReport = do
             }
 
 getEvents ::
-       forall t effs. (Member (EventLogEffect (ChainEvent t)) effs)
-    => Eff effs [ChainEvent t]
+       forall t effs. (Member (EventLogEffect (PABEvent t)) effs)
+    => Eff effs [PABEvent t]
 getEvents = fmap streamEventEvent <$> runGlobalQuery Query.pureProjection
 
 getFullReport ::
        forall t effs.
-       ( Member (EventLogEffect (ChainEvent t)) effs
+       ( Member (EventLogEffect (PABEvent t)) effs
        , Member (ContractEffect t) effs
        , Member ChainIndexEffect effs
        , Member MetadataEffect effs
@@ -141,7 +139,7 @@ getFullReport = do
 
 contractSchema ::
        forall t effs.
-       ( Member (EventLogEffect (ChainEvent t)) effs
+       ( Member (EventLogEffect (PABEvent t)) effs
        , Member (ContractEffect t) effs
        , Member (Error PABError) effs
        )
@@ -155,7 +153,7 @@ contractSchema contractId = do
 
 activateContract ::
        forall t m appBackend effs.
-       ( Member (EventLogEffect (ChainEvent t)) effs
+       ( Member (EventLogEffect (PABEvent t)) effs
        , Instance.AppBackendConstraints t m appBackend
        , Member (Error PABError) effs
        , Member (ContractEffect t) effs
@@ -174,7 +172,7 @@ activateContract = Core.activateContractSTM @t @m @appBackend @effs
 
 getContractInstanceState ::
        forall t effs.
-       ( Member (EventLogEffect (ChainEvent t)) effs
+       ( Member (EventLogEffect (PABEvent t)) effs
        , Member (Error PABError) effs
        )
     => ContractInstanceId
@@ -187,7 +185,7 @@ getContractInstanceState contractId = do
 
 invokeEndpoint ::
        forall t m effs.
-       ( Member (EventLogEffect (ChainEvent t)) effs
+       ( Member (EventLogEffect (PABEvent t)) effs
        , Member (LogMsg LM.ContractExeLogMsg) effs
        , Member (Error PABError) effs
        , Member (LogMsg (Instance.ContractInstanceMsg t)) effs
@@ -204,7 +202,7 @@ invokeEndpoint (EndpointDescription endpointDescription) payload contractId = do
     logInfo $ LM.InvokingEndpoint endpointDescription payload
     env <- ask @InstancesState
     result <- liftIO $ atomically $ Instance.callEndpointOnInstance env (EndpointDescription endpointDescription) payload contractId
-    -- newState :: [ChainEvent t] <-
+    -- newState :: [PABEvent t] <-
     --     Instance.callContractEndpoint @t contractId endpointDescription payload
     -- logInfo $
     --     LM.EndpointInvocationResponse $
@@ -216,7 +214,7 @@ invokeEndpoint (EndpointDescription endpointDescription) payload contractId = do
 -- | Call an endpoint using the STM-based contract runner.
 invokeEndpointSTM ::
        forall t m effs.
-       ( Member (EventLogEffect (ChainEvent t)) effs
+       ( Member (EventLogEffect (PABEvent t)) effs
        , Member (LogMsg LM.ContractExeLogMsg) effs
        , Member (Error PABError) effs
        , Member (Reader InstancesState) effs
@@ -244,7 +242,7 @@ parseContractId t =
 
 handler ::
        forall effs m appBackend.
-       ( Member (EventLogEffect (ChainEvent ContractExe)) effs
+       ( Member (EventLogEffect (PABEvent ContractExe)) effs
        , Member (ContractEffect ContractExe) effs
        , Member ChainIndexEffect effs
        , Member MetadataEffect effs
