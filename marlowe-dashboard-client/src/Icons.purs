@@ -3,7 +3,8 @@ module Material.Icons
   ( add
   , close
   , contacts
-  , contracts
+  , east
+  , help
   , home
   , menu
   , rightArrow
@@ -27,8 +28,11 @@ close = icon "close"
 contacts :: forall p i. HTML p i
 contacts = icon "person"
 
-contracts :: forall p i. HTML p i
-contracts = icon "history_edu"
+east :: forall p i. HTML p i
+east = icon "east"
+
+help :: forall p i. HTML p i
+help = icon "help"
 
 home :: forall p i. HTML p i
 home = icon "home"

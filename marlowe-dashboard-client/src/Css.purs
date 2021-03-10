@@ -63,5 +63,5 @@ cardWrapper invisible = [ "absolute", "top-0", "bottom-0", "left-0", "right-0", 
 card :: Array String
 card = [ "shadow-lg", "bg-white", "mx-1", "rounded-t-lg", "md:mx-auto", "md:w-22", "md:rounded-b-lg" ]
 
-largeCard :: Array String
-largeCard = [ "shadow-lg", "max-h-full", "overflow-auto", "bg-gray", "mt-3", "mx-1", "rounded-t-lg", "md:rounded-b-lg", "md:mb-3", "lg:mx-3" ]
+largeCard :: String -> Array String
+largeCard bgColor = [ "shadow-lg", "max-h-full", "overflow-auto", "mt-3", "mx-0.5", "rounded-t-lg", "md:rounded-b-lg", "md:mb-3", "lg:mx-3", bgColor ]

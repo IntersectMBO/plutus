@@ -4,6 +4,7 @@ import Prelude
 import Analytics (class IsEvent, defaultEvent)
 import Data.Maybe (Maybe(..))
 import Marlowe.Execution (ExecutionState)
+import Marlowe.Extended (MetaData)
 import Marlowe.Semantics (ChoiceId, ChosenNum, Input, Slot, TransactionInput)
 
 type State
@@ -13,11 +14,14 @@ type State
     , side :: Side
     , confirmation :: Maybe Input
     , step :: Int
+    , metadata :: MetaData
     }
 
 data Tab
   = Tasks
   | Balances
+
+derive instance eqTab :: Eq Tab
 
 data Side
   = Overview
@@ -28,8 +32,7 @@ data Query a
   | ApplyTx TransactionInput a
 
 data Action
-  = ToggleTemplateLibraryCard
-  | ConfirmInput (Maybe Input)
+  = ConfirmInput (Maybe Input)
   | ChangeChoice ChoiceId ChosenNum
   | ChooseInput (Maybe Input)
   | SelectTab Tab
@@ -38,7 +41,6 @@ data Action
   | ChangeStep Int
 
 instance actionIsEvent :: IsEvent Action where
-  toEvent ToggleTemplateLibraryCard = Just $ defaultEvent "ToggleTemplateLibraryCard"
   toEvent (ConfirmInput _) = Just $ defaultEvent "ConfirmInput"
   toEvent (ChangeChoice _ _) = Just $ defaultEvent "ChangeChoice"
   toEvent (ChooseInput _) = Just $ defaultEvent "ChooseInput"

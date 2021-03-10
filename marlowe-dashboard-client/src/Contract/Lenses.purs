@@ -5,6 +5,7 @@ module Contract.Lenses
   , _side
   , _confirmation
   , _step
+  , _metadata
   ) where
 
 import Contract.Types (Side, State, Tab)
@@ -13,6 +14,7 @@ import Data.Lens.Record (prop)
 import Data.Maybe (Maybe)
 import Data.Symbol (SProxy(..))
 import Marlowe.Execution (ExecutionState)
+import Marlowe.Extended (MetaData)
 import Marlowe.Semantics (Input)
 
 _tab :: Lens' State Tab
@@ -32,3 +34,6 @@ _confirmation = prop (SProxy :: SProxy "confirmation")
 
 _step :: Lens' State Int
 _step = prop (SProxy :: SProxy "step")
+
+_metadata :: Lens' State MetaData
+_metadata = prop (SProxy :: SProxy "metadata")
