@@ -54,8 +54,9 @@ If you already have a GPG pubic key, skip straight to the next section.
     - AWS Secret Access Key: the key you decoded from `joe.bloggs.secret` at step 3.
     - Default region name: `eu-west-1`.
     - Default output format: leave blank.
-8. You should now be able to run `eval $(getcreds joe.blogs 123456)` where `123456` is the MFA code provided by your MFA device. This will export the necessary AWS env variables.
-9. You should now be able to access AWS resources. :tada:
+8. Edit `~/.aws/credentials` and `~/.aws/config` replacing `[default]` with `[dev-mantis]` in both of them.
+9. You should now be able to run `eval $(getcreds joe.blogs 123456)` where `123456` is the MFA code provided by your MFA device. This will export the necessary AWS env variables.
+10. You should now be able to access AWS resources. :tada:
 
 ### 5. And finally...
 
