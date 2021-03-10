@@ -54,7 +54,6 @@ let
     sqlite-interactive
     stack
     terraform
-    yubikey-manager
     z3
     zlib
   ] ++ (lib.optionals (!stdenv.isDarwin) [ rPackages.plotly R ]));
