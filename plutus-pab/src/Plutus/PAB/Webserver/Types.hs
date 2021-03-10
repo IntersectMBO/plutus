@@ -25,15 +25,15 @@ import           Ledger.Index                            (UtxoIndex)
 import           Playground.Types                        (FunctionSchema)
 import           Plutus.PAB.Effects.Contract             (PABContract (..))
 import           Plutus.PAB.Effects.Contract.CLI         (ContractExe)
-import           Plutus.PAB.Events                       (ChainEvent)
 import           Plutus.PAB.Events.ContractInstanceState (ContractInstanceState)
 import           Schema                                  (FormSchema)
 import           Wallet.Rollup.Types                     (AnnotatedTx)
+import           Wallet.Types                            (ContractInstanceId)
 
 data ContractReport t =
     ContractReport
         { crAvailableContracts   :: [ContractSignatureResponse t]
-        , crActiveContractStates :: [ContractInstanceState t]
+        , crActiveContractStates :: [(ContractInstanceId, [Request ContractPABRequest])]
         }
     deriving stock (Generic)
 

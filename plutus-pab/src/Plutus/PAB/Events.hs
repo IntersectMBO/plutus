@@ -6,47 +6,37 @@
 {-# LANGUAGE OverloadedStrings    #-}
 {-# LANGUAGE TemplateHaskell      #-}
 {-# LANGUAGE UndecidableInstances #-}
+{-
 
+Events that we store in the database.
+
+-}
 module Plutus.PAB.Events
-    ( module Events.Contract
-    , module Events.User
-    , module Events.Node
-    , module Events.Wallet
-    , ChainEvent(..)
-    , _UserEvent
-    , _NodeEvent
-    , _WalletEvent
-    -- , _ContractEvent
+    ( PABEvent(..)
+    , _InstallContract
+    , _UpdateContractInstanceState
+    , _SubmitTx
     ) where
 
 import           Control.Lens.TH             (makePrisms)
 import           Data.Aeson                  (FromJSON, ToJSON)
 import           Data.Text.Prettyprint.Doc   (Pretty, pretty, (<+>))
 import           GHC.Generics                (Generic)
+import           Ledger.Tx                   (Tx)
 import           Plutus.PAB.Effects.Contract (PABContract (..))
 import           Plutus.PAB.Events.Contract  as Events.Contract
-import           Plutus.PAB.Events.Node      as Events.Node
-import           Plutus.PAB.Events.User      as Events.User
-import           Plutus.PAB.Events.Wallet    as Events.Wallet
 
 -- | A structure which ties together all possible event types into one parent.
-data ChainEvent t =
-    UserEvent !(Events.User.UserEvent t)
-    | NodeEvent !Events.Node.NodeEvent
-    | WalletEvent !Events.Wallet.WalletEvent
-    deriving stock Generic
+data PABEvent t =
+    InstallContract !t -- ^ Install a contract
+    | UpdateContractInstanceState !t !ContractInstanceId !(State t) -- ^ Update the state of a contract instance
+    | SubmitTx !Tx -- ^ Send a transaction to the node
+    deriving stock (Eq, Show, Generic)
+    deriving anyclass (ToJSON, FromJSON)
 
-deriving stock instance Show (ContractDef t) => Show (ChainEvent t)
-deriving stock instance Eq (ContractDef t) => Eq (ChainEvent t)
+makePrisms ''PABEvent
 
-deriving anyclass instance FromJSON (ContractDef t) => FromJSON (ChainEvent t)
-deriving anyclass instance ToJSON (ContractDef t) => ToJSON (ChainEvent t)
-
-makePrisms ''ChainEvent
-
-instance Pretty (ContractDef t) => Pretty (ChainEvent t) where
+instance Pretty t => Pretty (PABEvent t) where
     pretty = \case
-        UserEvent t   -> "UserEvent:" <+> pretty t
-        NodeEvent t   -> "NodeEvent:" <+> pretty t
-        WalletEvent t -> "WalletEvent:" <+> pretty t
-        -- ContractEvent t -> "ContractEvent:" <+> pretty t
+        InstallContract t                 -> "Install contract:" <+> pretty t
+        UpdateContractInstanceState t i _ -> "Update state:" <+> pretty t <+> pretty i

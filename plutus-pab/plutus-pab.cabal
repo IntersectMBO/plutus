@@ -103,9 +103,6 @@ library
         Plutus.PAB.Events
         Plutus.PAB.Events.Contract
         Plutus.PAB.Events.ContractInstanceState
-        Plutus.PAB.Events.Node
-        Plutus.PAB.Events.User
-        Plutus.PAB.Events.Wallet
         Plutus.PAB.ParseStringifiedJSON
         Plutus.PAB.Query
         Plutus.PAB.Types

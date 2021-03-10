@@ -5,6 +5,7 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE StrictData          #-}
 {-# LANGUAGE TupleSections       #-}
+{-# LANGUAGE TypeApplications    #-}
 {-# LANGUAGE TypeFamilies        #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 
@@ -15,30 +16,20 @@
 -- projection, it will only process new events, rather than
 -- recalculating the fold from scratch.
 module Plutus.PAB.Query
-    ( nullProjection
-    , monoidProjection
-    , setProjection
-    , eventCount
-    , utxoAt
-    , blockCount
-    , pureProjection
+    ( utxoAt
     -- * Queries related to the installed and active contracts
     , activeContractHistoryProjection
     , activeContractsProjection
     , txHistoryProjection
     , installedContractsProjection
     -- * Queries related to contract instances
-    , contractStates
     , contractState
-    , ContractIterationState(..)
-    , contractIteration
-    , IteratedContractState(..)
-    , inboxMessages
     ) where
 
 import           Control.Lens
 import           Data.Map.Strict                         (Map)
 import qualified Data.Map.Strict                         as Map
+import           Data.Maybe                              (mapMaybe)
 import           Data.Monoid                             (Sum)
 import           Data.Semigroup                          (Last (..), Max (..))
 import           Data.Set                                (Set)
@@ -49,22 +40,14 @@ import           Eventful                                (Projection (Projection
                                                           projectionEventHandler, projectionMapMaybe, projectionSeed,
                                                           streamProjectionState)
 import           Plutus.Contract.Effects.UtxoAt (UtxoAtAddress (UtxoAtAddress), address, utxo)
-import           Plutus.Contract.Resumable      (Response)
+import           Plutus.Contract.Resumable      (Request (rqRequest), Response)
 import           Ledger                                  (Address, Tx, TxId, TxOutTx (TxOutTx), txOutAddress,
                                                           txOutRefId, txOutTxOut, txOutTxTx)
 import           Ledger.Index                            (UtxoIndex (UtxoIndex))
-import           Plutus.PAB.Events                       (ChainEvent (..), NodeEvent (SubmittedTx),
-                                                          UserEvent (InstallContract))
+import           Plutus.PAB.Effects.Contract             (PABContract (..), hasActiveRequests)
+import           Plutus.PAB.Events                       (PABEvent (InstallContract, SubmitTx, UpdateContractInstanceState))
 import           Plutus.PAB.Events.Contract              (ContractInstanceId, ContractResponse (..), IterationID)
-import           Plutus.PAB.Events.ContractInstanceState (ContractInstanceState (..), hasActiveRequests)
-
--- | The empty projection. Particularly useful for commands that have no 'state'.
-nullProjection :: Projection () event
-nullProjection = contramap (const ()) monoidProjection
-
--- | This projection just collects all events it sees into some applicative.
-pureProjection :: (Monoid (f e), Applicative f) => Projection (f e) e
-pureProjection = contramap pure monoidProjection
+import           Plutus.PAB.Events.ContractInstanceState (ContractInstanceState (..))
 
 -- | A projection that just accumulates any monoid you supply.
 -- This is particulatly useful when combined with function that filters down interesting events using 'projectionMapMaybe':
@@ -84,10 +67,6 @@ monoidProjection =
 -- | Similar to 'monoidProjection', but for accumulating sets instead of monoids.
 setProjection :: Ord a => Projection (Set a) a
 setProjection = contramap Set.singleton monoidProjection
-
--- | A simple counter of all the events. This is the simplest 'Projection' that does any work.
-eventCount :: Projection (Sum Int) (VersionedStreamEvent (ChainEvent t))
-eventCount = contramap (const 1) monoidProjection
 
 ------------------------------------------------------------
 -- | The Pretty instance for 'StreamProjection' just pretty prints its resulting 'state'.
@@ -115,15 +94,13 @@ utxoAt (txById, UtxoIndex utxoIndex) address =
      in UtxoAtAddress {address, utxo}
 
 
-blockCount :: forall t key position. Projection (Sum Integer) (StreamEvent key position (ChainEvent t))
-blockCount = contramap (const 1) monoidProjection
-
 -- | The last known state of the contract.
-contractState :: forall t key position. Projection (Map ContractInstanceId (ContractInstanceState t)) (StreamEvent key position (ChainEvent t))
+contractState :: forall t key position. Projection (Map ContractInstanceId (State t)) (StreamEvent key position (PABEvent t))
 contractState =
-    let projectionEventHandler oldMap = \case
-            (StreamEvent _ _ (ContractEvent (ContractInstanceStateUpdateEvent s))) ->
-                Map.union (Map.singleton (csContract s) s) oldMap
+    let projectionEventHandler :: Map ContractInstanceId (State t) -> StreamEvent key position (PABEvent t) -> Map ContractInstanceId (State t)
+        projectionEventHandler oldMap = \case
+            (StreamEvent _ _ (UpdateContractInstanceState _ i s)) ->
+                Map.union (Map.singleton i s) oldMap
             _ -> oldMap
 
     in Projection
@@ -131,89 +108,42 @@ contractState =
         , projectionEventHandler
         }
 
--- | Records the last known iteration of a contract. This allows us to discard
---   events from older iterations.
-newtype ContractIterationState =
-    ContractIterationState
-        { unContractIterationState :: Map ContractInstanceId (Max IterationID)
-        }
-
-instance Semigroup ContractIterationState where
-    ContractIterationState l <> ContractIterationState r =
-        ContractIterationState (Map.unionWith (<>) l r)
-
-instance Monoid ContractIterationState where
-    mappend = (<>)
-    mempty = ContractIterationState mempty
-
-updateContractIterationState :: ContractInstanceState t -> ContractIterationState -> ContractIterationState
-updateContractIterationState ContractInstanceState{csContract,csCurrentIteration} ContractIterationState{unContractIterationState} =
-    ContractIterationState (Map.insertWith (<>) csContract (Max csCurrentIteration) unContractIterationState)
-
--- | The last known iteration of the contract. Requests from iterations lower
---   than this can be ignored.
-contractIteration :: forall t key position. Projection ContractIterationState (StreamEvent key position (ChainEvent t))
-contractIteration =
-    let projectionEventHandler oldState = \case
-            (StreamEvent _ _ (ContractEvent (ContractInstanceStateUpdateEvent e))) -> updateContractIterationState e oldState
-            _ -> oldState
-
-    in Projection
-        { projectionSeed = mempty
-        , projectionEventHandler
-        }
-
--- | Holds instance-specific values of 'a' that are indexed by iteration.
---   See note [Contract Iterations] in Plutus.PAB.Events.Contract.
-data IteratedContractState a =
-    IteratedContractState
-        { icsContractIterations :: ContractIterationState
-        , icsContractState      :: Map ContractInstanceId a
-        }
-
--- | Get the values of the contract instances at their latest
---   iteration
-contractStates ::
-    IteratedContractState a
-    -> Map ContractInstanceId (IterationID, a)
-contractStates IteratedContractState{icsContractIterations=ContractIterationState its, icsContractState} =
-    Map.mapMaybeWithKey (\k (Max i) -> fmap (i,) (Map.lookup k icsContractState)) its
-
--- Queries about active contracts
-
 -- | IDs of active contracts by contract type
 activeContractsProjection ::
-       forall t key position. Ord t
-    => Projection (Map t (Set ContractInstanceId)) (StreamEvent key position (ChainEvent t))
+    forall t key position.
+    ( Ord (ContractDef t)
+    , PABContract t
+    )
+    => Projection (Map (ContractDef t) (Set ContractInstanceId)) (StreamEvent key position (PABEvent t))
 activeContractsProjection =
     let projectionEventHandler m = \case
-            (StreamEvent _ _ (ContractEvent (ContractInstanceStateUpdateEvent state))) ->
-                let key = csContractDefinition state
-                 in if hasActiveRequests state
-                        then Map.insertWith (<>) key (Set.singleton (csContract state)) m
-                        else Map.delete key m
+            (StreamEvent _ _ (UpdateContractInstanceState key i state)) ->
+                if hasActiveRequests @t state
+                    then Map.insertWith (<>) key (Set.singleton i) m
+                    else Map.delete key m
             _ -> m
      in Projection {projectionSeed = Map.empty, projectionEventHandler}
 
 -- | Transactions submitted to the node.
 txHistoryProjection ::
     forall t key position.
-       Projection [Ledger.Tx] (StreamEvent key position (ChainEvent t))
+    PABContract t
+    => Projection [Ledger.Tx] (StreamEvent key position (PABEvent t))
 txHistoryProjection = projectionMapMaybe submittedTxs monoidProjection
   where
-    submittedTxs (StreamEvent _ _ (NodeEvent (SubmittedTx tx))) = Just [tx]
-    submittedTxs _                                              = Nothing
+    submittedTxs (StreamEvent _ _ (SubmitTx tx)) = Just [tx]
+    submittedTxs _                               = Nothing
 
 -- | Past states of the contract instance.
 activeContractHistoryProjection ::
     forall t key position.
     ContractInstanceId
-    -> Projection [ContractInstanceState t] (StreamEvent key position (ChainEvent t))
+    -> Projection [State t] (StreamEvent key position (PABEvent t))
 activeContractHistoryProjection cid =
     projectionMapMaybe contractPaths monoidProjection
     where
-    contractPaths (StreamEvent _ _ (ContractEvent (ContractInstanceStateUpdateEvent state))) =
-        if csContract state == cid
+    contractPaths (StreamEvent _ _ (UpdateContractInstanceState _ key state)) =
+        if key == cid
             then Just [state]
             else Nothing
     contractPaths _ = Nothing
@@ -221,24 +151,8 @@ activeContractHistoryProjection cid =
 -- | Set of all contracts that have been installed.
 installedContractsProjection ::
     forall t key position.
-    Ord t => Projection (Set t) (StreamEvent key position (ChainEvent t))
+    Ord (ContractDef t) => Projection (Set (ContractDef t)) (StreamEvent key position (PABEvent t))
 installedContractsProjection = projectionMapMaybe contractPaths setProjection
   where
-    contractPaths (StreamEvent _ _ (UserEvent (InstallContract contract))) =
-        Just contract
-    contractPaths _ = Nothing
-
--- | Responses sent to the contract
-inboxMessages ::
-    forall t key position.
-    Projection (Map ContractInstanceId (Last (Response ContractResponse))) (StreamEvent key position (ChainEvent t))
-inboxMessages =
-    let projectionEventHandler oldMap = \case
-            (StreamEvent _ _ (ContractEvent (ContractInboxMessage i s))) ->
-                Map.unionWith (<>) oldMap (Map.singleton i (Last s))
-            _ -> oldMap
-
-    in Projection
-        { projectionSeed = Map.empty
-        , projectionEventHandler
-        }
+    contractPaths (StreamEvent _ _ (InstallContract contract)) = Just contract
+    contractPaths _                                            = Nothing

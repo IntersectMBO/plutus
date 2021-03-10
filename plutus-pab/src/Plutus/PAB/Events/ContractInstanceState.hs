@@ -44,6 +44,7 @@ instance Pretty v => Pretty (PartiallyDecodedResponse v) where
             , indent 2 (vsep $ pretty <$> hooks)
             ]
 
+-- | FIXME: Delete?
 data ContractInstanceState t =
     ContractInstanceState
         { csContract           :: ContractInstanceId
