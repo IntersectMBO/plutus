@@ -116,12 +116,3 @@ $ nix-build \
 ```
 
 **Note**: When building the client make sure that the generated directory is removed completely or you will get _Duplicate module_ errors.
-
-#### Building Docker Images With Nix
-
-```sh
-$ nix build -f default.nix plutus-playground.docker
-$ docker load < result
-# You can see the image name and tag as a result of the previous command and use it below
-$ docker run -p 8080:8080 plutus-playground-docker:somecrazytag
-```
