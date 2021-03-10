@@ -45,4 +45,8 @@
   users.extraUsers.root.openssh.authorizedKeys.keys = machines.rootSshKeys;
   services.fail2ban.enable = true;
 
+  # Allow `--substitute-on-destination` causing the target machine to fetch
+  # dependencies from the iohk binary cache instead of copying everything
+  # from the machine executing morph.
+  deployment.substituteOnDestination = true;
 }
