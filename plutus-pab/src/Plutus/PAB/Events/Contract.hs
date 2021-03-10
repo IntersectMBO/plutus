@@ -181,7 +181,7 @@ instance Pretty ContractResponse where
         NotificationResponse r     -> "Notification:" <+> pretty r
 
 -- | 'ContractResponse' with a 'ToJSON' instance that is compatible with
---   the 'FromJSON' instance of 'Language.Plutus.Contract.Schema.Event'.
+--   the 'FromJSON' instance of 'Plutus.Contract.Schema.Event'.
 newtype ContractHandlersResponse = ContractHandlersResponse { unContractHandlersResponse :: ContractResponse }
 
 instance ToJSON ContractHandlersResponse where

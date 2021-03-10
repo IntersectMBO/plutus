@@ -10,24 +10,25 @@
 
 module Plutus.PAB.Webserver.Types where
 
-import           Cardano.BM.Data.Tracer          (ToObject, toObject)
-import           Cardano.BM.Data.Tracer.Extras   (StructuredLog, mkObjectStr)
-import qualified Cardano.Metadata.Types          as Metadata
-import           Data.Aeson                      (FromJSON, ToJSON)
-import           Data.Map                        (Map)
-import           Data.Tagged                     (Tagged (Tagged))
-import           Data.Text                       (Text)
-import           Data.Text.Prettyprint.Doc       (Pretty, pretty, viaShow, (<+>))
-import           Data.UUID                       (UUID)
-import           GHC.Generics                    (Generic)
-import           Ledger                          (Tx, TxId)
-import           Ledger.Index                    (UtxoIndex)
-import           Playground.Types                (FunctionSchema)
-import           Plutus.PAB.Effects.Contract     (PABContract (..))
-import           Plutus.PAB.Effects.Contract.CLI (ContractExe)
-import           Plutus.PAB.Events               (ChainEvent, ContractInstanceState)
-import           Schema                          (FormSchema)
-import           Wallet.Rollup.Types             (AnnotatedTx)
+import           Cardano.BM.Data.Tracer                  (ToObject, toObject)
+import           Cardano.BM.Data.Tracer.Extras           (StructuredLog, mkObjectStr)
+import qualified Cardano.Metadata.Types                  as Metadata
+import           Data.Aeson                              (FromJSON, ToJSON)
+import           Data.Map                                (Map)
+import           Data.Tagged                             (Tagged (Tagged))
+import           Data.Text                               (Text)
+import           Data.Text.Prettyprint.Doc               (Pretty, pretty, viaShow, (<+>))
+import           Data.UUID                               (UUID)
+import           GHC.Generics                            (Generic)
+import           Ledger                                  (Tx, TxId)
+import           Ledger.Index                            (UtxoIndex)
+import           Playground.Types                        (FunctionSchema)
+import           Plutus.PAB.Effects.Contract             (PABContract (..))
+import           Plutus.PAB.Effects.Contract.CLI         (ContractExe)
+import           Plutus.PAB.Events                       (ChainEvent)
+import           Plutus.PAB.Events.ContractInstanceState (ContractInstanceState)
+import           Schema                                  (FormSchema)
+import           Wallet.Rollup.Types                     (AnnotatedTx)
 
 data ContractReport t =
     ContractReport

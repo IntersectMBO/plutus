@@ -37,25 +37,26 @@ module Plutus.PAB.Query
     ) where
 
 import           Control.Lens
-import           Data.Map.Strict                (Map)
-import qualified Data.Map.Strict                as Map
-import           Data.Monoid                    (Sum)
-import           Data.Semigroup                 (Last (..), Max (..))
-import           Data.Set                       (Set)
-import qualified Data.Set                       as Set
-import           Data.Text.Prettyprint.Doc      (Pretty, pretty)
-import           Eventful                       (Projection (Projection), StreamEvent (StreamEvent), StreamProjection,
-                                                 VersionedStreamEvent, projectionEventHandler, projectionMapMaybe,
-                                                 projectionSeed, streamProjectionState)
-import           Ledger                         (Address, Tx, TxId, TxOutTx (TxOutTx), txOutAddress, txOutRefId,
-                                                 txOutTxOut, txOutTxTx)
-import           Ledger.Index                   (UtxoIndex (UtxoIndex))
+import           Data.Map.Strict                         (Map)
+import qualified Data.Map.Strict                         as Map
+import           Data.Monoid                             (Sum)
+import           Data.Semigroup                          (Last (..), Max (..))
+import           Data.Set                                (Set)
+import qualified Data.Set                                as Set
+import           Data.Text.Prettyprint.Doc               (Pretty, pretty)
+import           Eventful                                (Projection (Projection), StreamEvent (StreamEvent),
+                                                          StreamProjection, VersionedStreamEvent,
+                                                          projectionEventHandler, projectionMapMaybe, projectionSeed,
+                                                          streamProjectionState)
 import           Plutus.Contract.Effects.UtxoAt (UtxoAtAddress (UtxoAtAddress), address, utxo)
 import           Plutus.Contract.Resumable      (Response)
-import           Plutus.PAB.Events              (ChainEvent (..), NodeEvent (SubmittedTx), UserEvent (InstallContract),
-                                                 hasActiveRequests)
-import           Plutus.PAB.Events.Contract     (ContractEvent (..), ContractInstanceId, ContractInstanceState (..),
-                                                 ContractResponse (..), IterationID)
+import           Ledger                                  (Address, Tx, TxId, TxOutTx (TxOutTx), txOutAddress,
+                                                          txOutRefId, txOutTxOut, txOutTxTx)
+import           Ledger.Index                            (UtxoIndex (UtxoIndex))
+import           Plutus.PAB.Events                       (ChainEvent (..), NodeEvent (SubmittedTx),
+                                                          UserEvent (InstallContract))
+import           Plutus.PAB.Events.Contract              (ContractInstanceId, ContractResponse (..), IterationID)
+import           Plutus.PAB.Events.ContractInstanceState (ContractInstanceState (..), hasActiveRequests)
 
 -- | The empty projection. Particularly useful for commands that have no 'state'.
 nullProjection :: Projection () event

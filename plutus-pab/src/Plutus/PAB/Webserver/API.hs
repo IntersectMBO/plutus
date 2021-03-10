@@ -12,13 +12,13 @@ module Plutus.PAB.Webserver.API
     , WalletInfo(..)
     ) where
 
-import qualified Data.Aeson                 as JSON
-import           Data.Text                  (Text)
-import           Plutus.PAB.Events          (ContractInstanceState)
-import           Plutus.PAB.Webserver.Types (ContractSignatureResponse, FullReport)
-import           Servant.API                (Capture, Get, JSON, Post, ReqBody, (:<|>), (:>))
-import           Servant.API.WebSocket      (WebSocketPending)
-import           Wallet.Emulator.Wallet     (Wallet)
+import qualified Data.Aeson                              as JSON
+import           Data.Text                               (Text)
+import           Plutus.PAB.Events.ContractInstanceState (ContractInstanceState)
+import           Plutus.PAB.Webserver.Types              (ContractSignatureResponse, FullReport)
+import           Servant.API                             (Capture, Get, JSON, Post, ReqBody, (:<|>), (:>))
+import           Servant.API.WebSocket                   (WebSocketPending)
+import           Wallet.Emulator.Wallet                  (Wallet)
 
 type API t
      = "api" :> ("healthcheck" :> Get '[ JSON] ()
