@@ -47,7 +47,7 @@ renderHeader walletNickname menuOpen =
   header
     [ classNames $ [ "relative", "flex", "justify-between", "border-b", "border-darkgray" ] <> applyWhen menuOpen [ "border-0", "bg-black", "text-white" ] ]
     [ h1
-        [ classNames [ "text-xl", "font-bold", "px-1", "py-0.5" ] ]
+        [ classNames [ "text-xl", "font-bold", "px-4", "py-2" ] ]
         [ text "Marlowe" ]
     , nav
         [ classNames [ "flex" ] ]
@@ -55,7 +55,7 @@ renderHeader walletNickname menuOpen =
         , navigation (SetScreen WalletLibraryScreen) Icon.contacts "Contacts"
         , navigation (ToggleCard PutdownWalletCard) Icon.wallet walletNickname
         , a
-            [ classNames [ "p-0.5", "md:hidden" ]
+            [ classNames [ "p-2", "md:hidden" ]
             , onClick_ ToggleMenu
             ]
             [ if menuOpen then Icon.close else Icon.menu ]
@@ -64,7 +64,7 @@ renderHeader walletNickname menuOpen =
   where
   navigation action icon label =
     a
-      [ classNames [ "p-0.5" ]
+      [ classNames [ "p-2" ]
       , onClick_ action
       ]
       [ span
@@ -93,7 +93,7 @@ renderMain wallets newWalletNickname newWalletContractId remoteDataPubKey templa
 renderMobileMenu :: forall p. Boolean -> HTML p Action
 renderMobileMenu menuOpen =
   nav
-    [ classNames $ [ "md:hidden", "absolute", "top-0", "bottom-0", "left-0", "right-0", "z-20", "bg-black", "text-white", "overflow-auto", "flex", "flex-col", "justify-between" ] <> hideWhen (not menuOpen) ]
+    [ classNames $ [ "md:hidden", "absolute", "top-0", "bottom-0", "left-0", "right-0", "z-10", "bg-black", "text-white", "overflow-auto", "flex", "flex-col", "justify-between" ] <> hideWhen (not menuOpen) ]
     [ div
         [ classNames [ "flex", "flex-col" ] ]
         $ [ link "Dashboard home" $ Right $ SetScreen ContractsScreen
@@ -127,13 +127,13 @@ renderCards wallets newWalletNickname newWalletContractId remoteDataPubKey templ
           [ div
               [ classNames [ "flex", "justify-end" ] ]
               [ a
-                  [ classNames [ "p-0.5", "leading-none", "text-green" ]
+                  [ classNames [ "p-2", "leading-none", "text-green" ]
                   , onClick_ $ SetCard Nothing
                   ]
                   [ Icon.close ]
               ]
           , div
-              [ classNames [ "px-1", "pb-1" ] ]
+              [ classNames [ "px-4", "pb-4" ] ]
               $ (flip foldMap mCard) \cardType -> case cardType of
                   CreateWalletCard -> [ newWalletCard wallets newWalletNickname newWalletContractId remoteDataPubKey ]
                   ViewWalletCard walletDetails -> [ walletDetailsCard walletDetails ]
@@ -158,10 +158,10 @@ renderScreen wallets screen playState =
     contractsState = view _contractsState playState
   in
     div
-      [ classNames [ "absolute", "top-0", "bottom-0", "left-0", "right-0", "overflow-auto", "z-0", "p-1" ] ] case screen of
+      [ classNames [ "absolute", "top-0", "bottom-0", "left-0", "right-0", "overflow-auto", "z-0" ] ] case screen of
       ContractsScreen -> [ ContractHomeAction <$> contractsScreen contractsState ]
       WalletLibraryScreen -> [ walletLibraryScreen wallets ]
-      TemplateScreen templateScreen -> [ TemplateAction <$> contractSetupScreen wallets templateScreen templateState ]
+      TemplateScreen -> [ TemplateAction <$> contractSetupScreen wallets templateState ]
 
 ------------------------------------------------------------
 renderFooter :: forall p. HTML p Action
@@ -194,7 +194,7 @@ iohkLinks =
 link :: forall p. String -> Either String Action -> HTML p Action
 link label urlOrAction =
   a
-    [ classNames [ "p-1", "text-green", "hover:underline", "cursor-pointer" ]
+    [ classNames [ "p-4", "text-green", "hover:underline", "cursor-pointer" ]
     , case urlOrAction of
         Left url -> href url
         Right action -> onClick_ action

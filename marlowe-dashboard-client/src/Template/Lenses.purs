@@ -3,9 +3,12 @@ module Template.Lenses
   , _contractNickname
   , _roleWallets
   , _templateContent
+  , _editingNickname
+  , _setupProgress
   , _metaData
   , _extendedContract
   , _contractType
+  , _contractName
   , _contractDescription
   , _slotParameterDescriptions
   , _valueParameterDescriptions
@@ -18,7 +21,7 @@ import Data.Map (Map)
 import Data.Symbol (SProxy(..))
 import Marlowe.Extended (Contract, ContractTemplate, ContractType, MetaData, TemplateContent)
 import Marlowe.Semantics (TokenName)
-import Template.Types (State)
+import Template.Types (SetupProgress, State)
 
 _template :: Lens' State ContractTemplate
 _template = prop (SProxy :: SProxy "template")
@@ -32,6 +35,12 @@ _roleWallets = prop (SProxy :: SProxy "roleWallets")
 _templateContent :: Lens' State TemplateContent
 _templateContent = prop (SProxy :: SProxy "templateContent")
 
+_editingNickname :: Lens' State Boolean
+_editingNickname = prop (SProxy :: SProxy "editingNickname")
+
+_setupProgress :: Lens' State SetupProgress
+_setupProgress = prop (SProxy :: SProxy "setupProgress")
+
 ------------------------------------------------------------
 _metaData :: Lens' ContractTemplate MetaData
 _metaData = prop (SProxy :: SProxy "metaData")
@@ -42,6 +51,9 @@ _extendedContract = prop (SProxy :: SProxy "extendedContract")
 ------------------------------------------------------------
 _contractType :: Lens' MetaData ContractType
 _contractType = prop (SProxy :: SProxy "contractType")
+
+_contractName :: Lens' MetaData String
+_contractName = prop (SProxy :: SProxy "contractName")
 
 _contractDescription :: Lens' MetaData String
 _contractDescription = prop (SProxy :: SProxy "contractDescription")

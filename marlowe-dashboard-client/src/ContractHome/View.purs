@@ -8,7 +8,7 @@ import ContractHome.Types (Action(..), ContractStatus(..), State)
 import Css (classNames)
 import Css as Css
 import Data.Lens ((^.))
-import Halogen.HTML (HTML, a, div, div_, h2, p_, span, text)
+import Halogen.HTML (HTML, a, div, h2, p_, span, text)
 import Halogen.HTML.Events.Extra (onClick_)
 import Marlowe.Extended (contractTypeName, contractTypeInitials)
 import Material.Icons as Icon
@@ -17,15 +17,15 @@ contractsScreen :: forall p. State -> HTML p Action
 contractsScreen state =
   let
     selectorButton isActive =
-      Css.button <> [ "font-bold", "w-12", "mr-1" ]
+      Css.button <> [ "font-bold", "w-48" ]
         <> case isActive of
             true -> [ "bg-white", "shadow-deep" ]
             false -> [ "bg-gray" ]
 
     viewSelector =
-      div [ classNames [ "flex", "my-1", "justify-center" ] ]
+      div [ classNames [ "flex", "my-4", "justify-center" ] ]
         [ a
-            [ classNames $ selectorButton $ state ^. _status == Running
+            [ classNames $ (selectorButton $ state ^. _status == Running) <> [ "mr-4" ]
             , onClick_ $ SelectView Running
             ]
             [ text "What's running" ]
@@ -36,7 +36,8 @@ contractsScreen state =
             [ text "History" ]
         ]
   in
-    div_
+    div
+      [ classNames [ "p-4" ] ]
       [ h2 [ classNames [ "font-semibold" ] ]
           [ text "Home" ]
       , viewSelector
@@ -46,7 +47,7 @@ contractsScreen state =
           , onClick_ $ ToggleTemplateLibraryCard
           ]
           [ span
-              [ classNames [ "mr-0.5" ] ]
+              [ classNames [ "mr-2" ] ]
               [ text "Create" ]
           , Icon.add
           ]
@@ -63,7 +64,7 @@ renderContractList state =
     contracts = state ^. _contracts
   in
     div
-      [ classNames [ "space-y-1" ] ]
+      [ classNames [ "space-y-4" ] ]
       $ contractCard
       <$> contracts
 
@@ -88,18 +89,18 @@ contractCard contractState =
     div
       -- NOTE: The overflow hidden helps fix a visual bug in which the background color eats away the border-radius
       [ classNames
-          [ "cursor-pointer", "shadow-lg", "bg-white", "rounded-xl", "md:mx-auto", "md:w-22", "overflow-hidden" ]
+          [ "cursor-pointer", "shadow-lg", "bg-white", "rounded-xl", "md:mx-auto", "md:w-96", "overflow-hidden" ]
       , onClick_ $ OpenContract contractState
       ]
-      [ div [ classNames [ "flex", "px-1", "pt-1" ] ]
+      [ div [ classNames [ "flex", "px-4", "pt-4" ] ]
           [ span [ classNames [ "text-xl", "font-semibold" ] ] [ text contractAcronym ]
           , span [ classNames [ "flex-grow", "text-xs" ] ] [ text contractType ]
           , Icon.east
           ]
-      , div [ classNames [ "font-semibold", "px-1", "py-0.5" ] ]
+      , div [ classNames [ "font-semibold", "px-4", "py-2" ] ]
           [ text longTitle
           ]
-      , div [ classNames [ "bg-gray", "flex", "flex-col", "px-1", "py-0.5" ] ]
+      , div [ classNames [ "bg-gray", "flex", "flex-col", "px-4", "py-2" ] ]
           [ span [ classNames [ "text-xs" ] ] [ text $ "Step " <> show stepNumber <> ":" ]
           , span [ classNames [ "text-xl" ] ] [ text timeoutStr ]
           ]
