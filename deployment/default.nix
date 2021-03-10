@@ -195,7 +195,6 @@ let
      and then finding the key id with `gpg --list-keys` and updating this set.
   */
   keys = {
-    david = { name = "david.smith.gpg"; id = "97AC81FA54660BD539BE34F0B9D7A61EC23259A6"; };
     kris = { name = "kris.jenkins.gpg"; id = "7EE9B7DE0F3CA25DB5B93D88A1ABC88D19C8136C"; };
     pablo = { name = "pablo.lamela.gpg"; id = "52AB1370A5BB41307470F9B05BA76ACFF04A2ACD"; };
     hernan = { name = "hernan.rajchert.gpg"; id = "AFF6767D33EFF77D519EE6B8C7BBC002683C8DCB"; };
@@ -237,19 +236,16 @@ let
   };
 
   envs = {
-    david = mkEnv "david" "sa-east-1" [ keys.david ] {
-      extraTerraformVars = { bastion_instance_type = "t3.small"; };
-    };
     kris = mkEnv "kris" "eu-west-1" [ keys.kris ] { };
-    alpha = mkEnv "alpha" "eu-west-2" [ keys.david keys.kris keys.pablo keys.hernan keys.tobias keys.amyas ] { };
+    alpha = mkEnv "alpha" "eu-west-2" [ keys.kris keys.pablo keys.hernan keys.tobias keys.amyas ] { };
     pablo = mkEnv "pablo" "eu-west-3" [ keys.pablo ] { };
-    playground = mkEnv "playground" "us-west-1" [ keys.david keys.kris keys.pablo keys.hernan keys.tobias keys.amyas ] { };
-    testing = mkEnv "testing" "eu-west-3" [ keys.david keys.kris keys.pablo keys.hernan keys.tobias keys.amyas ] { };
+    playground = mkEnv "playground" "us-west-1" [ keys.kris keys.pablo keys.hernan keys.tobias keys.amyas ] { };
+    testing = mkEnv "testing" "eu-west-3" [ keys.kris keys.pablo keys.hernan keys.tobias keys.amyas ] { };
     hernan = mkEnv "hernan" "us-west-2" [ keys.hernan ] { };
     tobias = mkEnv "tobias" "eu-west-1" [ keys.tobias ] { };
     amyas = mkEnv "amyas" "eu-west-2" [ keys.amyas ] { };
     # this is anything that is defined in $PLUTUS_HOME/infrastructure such as the grafana instance
-    global = { initPass = (initPass "global" [ keys.david keys.kris keys.pablo keys.hernan ]); };
+    global = { initPass = (initPass "global" [ keys.kris keys.pablo keys.hernan ]); };
   };
 
   configTest = import ./morph/test.nix;
