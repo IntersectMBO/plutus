@@ -1,9 +1,6 @@
-{ pkgs, plutus, marlowe-playground, plutus-playground }:
+{ pkgs, plutus, marlowe-playground, plutus-playground, terraform }:
 with pkgs;
 let
-  # 20.03 version of terraform is broken on some versions of OSX so I have copied the last 0_12 version from nixpkgs
-  terraform = (callPackage ./terraform.nix { }).terraform_0_12;
-
   # This creates a script that will set AWS env vars by getting a session token based on your user name and MFA
   getCreds = pkgs.writeShellScriptBin "getcreds" ''
     set -eou pipefail
