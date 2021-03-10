@@ -1,17 +1,17 @@
-{-# LANGUAGE BangPatterns          #-}
-{-# LANGUAGE LambdaCase            #-}
-{-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE OverloadedStrings     #-}
-{-# LANGUAGE TypeApplications      #-}
+{-# LANGUAGE BangPatterns              #-}
+{-# LANGUAGE ExistentialQuantification #-}
+{-# LANGUAGE LambdaCase                #-}
+{-# LANGUAGE MultiParamTypeClasses     #-}
+{-# LANGUAGE OverloadedStrings         #-}
+{-# LANGUAGE TypeApplications          #-}
 
 module Main (main) where
 
 import qualified Language.PlutusCore                                as PLC
 import qualified Language.PlutusCore.CBOR                           as PLC
 import qualified Language.PlutusCore.Evaluation.Machine.Ck          as Ck
-import           Language.PlutusCore.Evaluation.Machine.ExBudgeting (ExBudget (..), ExBudgetMode (..),
-                                                                     ExBudgetState (..), ExRestrictingBudget (..),
-                                                                     ExTally (..), Hashable, enormousBudget)
+import           Language.PlutusCore.Evaluation.Machine.ExBudgeting (ExBudget (..), ExRestrictingBudget (..),
+                                                                     ExTally (..), Hashable)
 import           Language.PlutusCore.Evaluation.Machine.ExMemory    (ExCPU (..), ExMemory (..))
 import qualified Language.PlutusCore.Generators                     as Gen
 import qualified Language.PlutusCore.Generators.Interesting         as Gen
@@ -95,7 +95,8 @@ data PrintMode   = Classic | Debug | Readable | ReadableDebug deriving (Show, Re
 type ExampleName = T.Text
 data ExampleMode = ExampleSingle ExampleName | ExampleAvailable
 data EvalMode    = CK | CEK deriving (Show, Read)
-data BudgetMode  = Silent | Verbose ExBudgetMode
+data BudgetMode  = Silent
+                 | forall st. (Eq st, Show st, NFData st) => Verbose (Cek.ExBudgetMode st PLC.DefaultUni PLC.DefaultFun)
 data AstNameType = Named | DeBruijn  -- Do we use Names or de Bruijn indices when (de)serialising ASTs?
 type Files       = [FilePath]
 
@@ -217,7 +218,7 @@ exbudgetReader = do
     where badfmt = "Invalid budget (expected eg 10000:50000)"
 
 restrictingbudget :: Parser BudgetMode
-restrictingbudget = Verbose . Restricting . ExRestrictingBudget
+restrictingbudget = Verbose . Cek.restricting . ExRestrictingBudget
                     <$> option exbudgetReader
                             (  long "restricting"
                             <> short 'r'
@@ -225,19 +226,19 @@ restrictingbudget = Verbose . Restricting . ExRestrictingBudget
                             <> help "Run the machine in restricting mode with the given limits" )
 
 restrictingbudgetEnormous :: Parser BudgetMode
-restrictingbudgetEnormous = flag' (Verbose enormousBudget)
+restrictingbudgetEnormous = flag' (Verbose Cek.restrictingEnormous)
                             (  long "restricting-enormous"
                             <> short 'R'
                             <> help "Run the machine in restricting mode with an enormous budget" )
 
 countingbudget :: Parser BudgetMode
-countingbudget = flag' (Verbose Counting)
+countingbudget = flag' (Verbose Cek.counting)
                  (  long "counting"
                  <> short 'c'
                  <> help "Run machine in counting mode and report results" )
 
 tallyingbudget :: Parser BudgetMode
-tallyingbudget = flag' (Verbose Tallying)
+tallyingbudget = flag' (Verbose Cek.tallying)
                  (  long "tallying"
                  <> short 't'
                  <> help "Run machine in tallying mode and report results" )
@@ -774,15 +775,15 @@ printBudgetStateTally (ExTally costs) = do
         f l e = case e of {(Cek.BBuiltinApp b, cost)  -> (b,cost):l; _ -> l}
         builtinsAndCosts = Data.List.foldl f [] (H.toList costs)
 
-printBudgetState :: (Eq fun, Hashable fun, Show fun) => Cek.CekExBudgetState fun -> IO ()
-printBudgetState (CountingSt budget) =
-    printBudgetStateBudget budget
-printBudgetState (TallyingSt tally budget) = do
-    printBudgetStateBudget budget
-    putStrLn ""
-    printBudgetStateTally tally
-printBudgetState (RestrictingSt (ExRestrictingBudget budget)) =
-    printBudgetStateBudget budget
+-- printBudgetState :: (Eq fun, Hashable fun, Show fun) => Cek.CekExBudgetState fun -> IO ()
+-- printBudgetState (CountingSt budget) =
+--     printBudgetStateBudget budget
+-- printBudgetState (TallyingSt tally budget) = do
+--     printBudgetStateBudget budget
+--     putStrLn ""
+--     printBudgetStateTally tally
+-- printBudgetState (RestrictingSt (ExRestrictingBudget budget)) =
+--     printBudgetStateBudget budget
 
 
 ---------------- Evaluation ----------------
@@ -826,7 +827,7 @@ runEval (EvalOptions language inp ifmt evalMode printMode budgetMode timingMode)
                           case timingMode of
                             NoTiming -> do
                                     let (result, budget) = evaluate body
-                                    printBudgetState budget
+                                    print budget
                                     handleResultSilently result  -- We just want to see the budget information
                             Timing n -> timeEval n evaluate body >>= handleTimingResultsWithBudget
 
@@ -846,12 +847,12 @@ runEval (EvalOptions language inp ifmt evalMode printMode budgetMode timingMode)
               case nub results of
                 [(Right _, budget)] -> do
                     putStrLn ""
-                    printBudgetState budget
+                    print budget
                     exitSuccess
                 [(Left err,   budget)] -> do
                     putStrLn ""
                     print err
-                    printBudgetState budget
+                    print budget
                     exitFailure
                 _                                   -> error "Timing evaluations returned inconsistent results"
 

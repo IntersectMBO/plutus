@@ -84,10 +84,10 @@ possible to adjust them at runtime.
 module Language.PlutusCore.Evaluation.Machine.ExBudgeting
     ( ExBudget(..)
     , minusExBudget
-    , ExBudgetMode(..)
-    , ExBudgetState(..)
-    , enormousBudget
-    , initExBudgetState
+--     , ExBudgetMode(..)
+--     , ExBudgetState(..)
+--     , enormousBudget
+--     , initExBudgetState
     , toTally
     , toRequiredExBudget
     , ExTally(..)
@@ -111,6 +111,7 @@ module Language.PlutusCore.Evaluation.Machine.ExBudgeting
     , ModelThreeArguments(..)
     , exBudgetCPU
     , exBudgetMemory
+    , emptyExTally
     , isNegativeBudget
     , runCostingFunOneArgument
     , runCostingFunTwoArguments
