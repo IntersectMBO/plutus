@@ -30,7 +30,9 @@ import           Control.Monad.Freer.Extras.Log   (logInfo)
 import           Control.Monad.IO.Class           (liftIO)
 import           Data.Coerce                      (coerce)
 import           Data.Function                    ((&))
+import qualified Data.Map.Strict                  as Map
 import           Data.Proxy                       (Proxy (Proxy))
+import qualified Ledger.Crypto                    as Crypto
 import           Network.HTTP.Client              (defaultManagerSettings, newManager)
 import qualified Network.Wai.Handler.Warp         as Warp
 import           Plutus.PAB.Arbitrary             ()
@@ -48,10 +50,10 @@ app trace clientHandler chainIndexEnv mVarState =
     hoistServer
         (Proxy @API)
         (processWalletEffects trace clientHandler chainIndexEnv mVarState) $
-            (createWallet) :<|>
+            createWallet :<|>
             (\w tx -> multiWallet w (submitTxn tx) >>= const (pure NoContent)) :<|>
             (\w -> multiWallet w ownPubKey) :<|>
-            (\w -> multiWallet w . (uncurry updatePaymentWithChange)) :<|>
+            (\w -> multiWallet w . uncurry updatePaymentWithChange) :<|>
             (\w -> multiWallet w walletSlot) :<|>
             (\w -> multiWallet w ownOutputs) :<|>
             (\w tx -> multiWallet w (walletAddSignature tx))
@@ -60,7 +62,8 @@ main :: Trace IO WalletMsg -> WalletConfig -> FilePath -> ChainIndexUrl -> Avail
 main trace WalletConfig { baseUrl, wallet } serverSocket (ChainIndexUrl chainUrl) availability = LM.runLogEffects trace $ do
     clientHandler <- liftIO $ Client.runClientNode serverSocket (\_ _ -> pure ())
     chainIndexEnv <- buildEnv chainUrl defaultManagerSettings
-    mVarState <- liftIO $ newMVar mempty
+    let knownWallets = Map.fromList $ zip (fmap Wallet.Wallet [1..10]) Crypto.knownPrivateKeys
+    mVarState <- liftIO $ newMVar knownWallets
     runClient chainIndexEnv
     logInfo $ StartingWallet (Port servicePort)
     liftIO $ Warp.runSettings warpSettings $ app trace clientHandler chainIndexEnv mVarState

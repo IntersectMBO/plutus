@@ -16,6 +16,7 @@ module Cardano.Wallet.Mock
 import           Cardano.BM.Data.Trace            (Trace)
 import qualified Cardano.ChainIndex.Client        as ChainIndexClient
 import qualified Cardano.Node.Client              as NodeClient
+import qualified Cardano.Protocol.Socket.Client   as Client
 import           Cardano.Wallet.Types             (MultiWalletEffect (..), WalletEffects, WalletMsg (..), Wallets)
 import           Control.Concurrent               (MVar)
 import           Control.Concurrent.MVar          (putMVar, takeMVar)
@@ -37,14 +38,14 @@ import qualified Data.ByteString.Lazy.Char8       as Char8
 import           Data.Function                    ((&))
 import qualified Data.Map                         as Map
 import           Data.Text.Encoding               (encodeUtf8)
-import           Ledger.Crypto                    (PrivateKey (..), getPubKeyHash, pubKeyHash, toPublicKey)
-import           Servant                          (ServerError (..), err400, err401, err404)
-import           Servant.Client                   (ClientEnv)
-
-import qualified Cardano.Protocol.Socket.Client   as Client
+import qualified Ledger.Ada                       as Ada
+import           Ledger.Crypto                    (PrivateKey (..), getPubKeyHash, privateKey2, pubKeyHash, toPublicKey)
+import           Ledger.Tx                        (Tx)
 import           Plutus.PAB.Arbitrary             ()
 import qualified Plutus.PAB.Monitoring.Monitoring as LM
 import qualified Plutus.V1.Ledger.Bytes           as KB
+import           Servant                          (ServerError (..), err400, err401, err404)
+import           Servant.Client                   (ClientEnv)
 import           Servant.Server                   (err500)
 import           Wallet.API                       (WalletAPIError (InsufficientFunds, OtherError, PrivateKeyNotFound))
 import qualified Wallet.API                       as WAPI
@@ -93,11 +94,17 @@ handleMultiWallet = do
             Seed seed <- generateSeed
             let bytes = BS.pack . unpack $ seed
             let privateKey = PrivateKey (KB.fromBytes bytes)
-            let pkh = pubKeyHash (toPublicKey privateKey)
+            let pubKey = toPublicKey privateKey
+            let pkh = pubKeyHash pubKey
             let walletId = byteString2Integer (getPubKeyHash pkh)
             let wallet = Wallet walletId
             let wallets' = Map.insert wallet privateKey wallets
             put wallets'
+            let walletState = WalletState privateKey2 emptyNodeClientState mempty (defaultSigningProcess (Wallet 2))
+
+            let action :: Eff '[WAPI.WalletEffect] Tx
+                action = WAPI.payToPublicKey WAPI.defaultSlotRange (Ada.adaValueOf 10000) pubKey
+            _ <- evalState walletState $ Wallet.handleWallet (raiseEnd action)
             return wallet
 
 
