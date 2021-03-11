@@ -26,6 +26,7 @@ module Plutus.PAB.Effects.Contract(
     , ContractStore(..)
     , putState
     , getState
+    , getActiveContracts
     -- * Storing and retrieving definitions of contracts
     , ContractDefinitionStore(..)
     , addDefinition
@@ -33,7 +34,8 @@ module Plutus.PAB.Effects.Contract(
     ) where
 
 import           Control.Monad.Freer                (Eff, Member, send)
-import           Data.Proxy                         (Proxy (Proxy))
+import           Data.Map                           (Map)
+import           Data.Proxy                         (Proxy)
 import           Plutus.Contract.Resumable (Request, Response)
 import           Playground.Types                   (FunctionSchema)
 import           Plutus.PAB.Events.Contract         (ContractPABRequest, ContractResponse)
@@ -107,7 +109,8 @@ updateContract def state request =
 -- | Storing and retrieving the state of a contract instance
 data ContractStore t r where
     PutState :: ContractDef t -> ContractInstanceId -> State t -> ContractStore t ()
-    GetState :: ContractDef t -> ContractInstanceId -> ContractStore t (State t)
+    GetState :: ContractInstanceId -> ContractStore t (State t)
+    ActiveContracts :: ContractStore t (Map ContractInstanceId (ContractDef t))
 
 -- | Store the state of the contract instance
 putState ::
@@ -127,11 +130,20 @@ getState ::
     forall t effs.
     ( Member (ContractStore t) effs
     )
-    => ContractDef t
-    -> ContractInstanceId
+    => ContractInstanceId
     -> Eff effs (State t)
-getState def i =
-    let command :: ContractStore t (State t) = GetState def i
+getState i =
+    let command :: ContractStore t (State t) = GetState i
+    in send command
+
+-- | All active contracts with their definitions
+getActiveContracts ::
+    forall t effs.
+    ( Member (ContractStore t) effs
+    )
+    => Eff effs (Map ContractInstanceId (ContractDef t))
+getActiveContracts =
+    let command :: ContractStore t (Map ContractInstanceId (ContractDef t)) = ActiveContracts
     in send command
 
 -- | Storing and retrieving definitions of contracts.
@@ -157,4 +169,3 @@ getDefinitions ::
     )
     => Eff effs [ContractDef t]
 getDefinitions = send @(ContractDefinitionStore t) GetDefinitions
--- Set.toList <$> runGlobalQuery (Query.installedContractsProjection @t)

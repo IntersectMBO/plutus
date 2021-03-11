@@ -109,20 +109,14 @@ data WebserverConfig =
     deriving anyclass (FromJSON, ToJSON)
 
 data Source
-    = ContractEventSource
-    | WalletEventSource
-    | UserEventSource
-    | NodeEventSource
+    = PABEventSource
     deriving (Show, Eq)
 
 toUUID :: Source -> UUID
 toUUID source =
     UUID.sequenceIdToMockUUID $
     case source of
-        ContractEventSource -> 1
-        WalletEventSource   -> 2
-        UserEventSource     -> 3
-        NodeEventSource     -> 4
+        PABEventSource -> 1
 
 data ChainOverview =
     ChainOverview

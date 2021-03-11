@@ -17,8 +17,7 @@
 -- recalculating the fold from scratch.
 -- FIXME: Move this to Plutus.PAB.Db.Eventful.XXX namespace
 module Plutus.PAB.Query
-    ( utxoAt
-    , nullProjection
+    ( nullProjection
     , pureProjection
     , setProjection
     -- * Queries related to the installed and active contracts
@@ -34,27 +33,16 @@ module Plutus.PAB.Query
 import           Control.Lens
 import           Data.Map.Strict                         (Map)
 import qualified Data.Map.Strict                         as Map
-import           Data.Maybe                              (mapMaybe)
-import           Data.Monoid                             (Sum)
-import           Data.Semigroup                          (Last (..), Max (..))
 import           Data.Set                                (Set)
 import qualified Data.Set                                as Set
 import           Data.Text.Prettyprint.Doc               (Pretty, pretty)
 import           Eventful                                (Projection (Projection), StreamEvent (StreamEvent),
-                                                          StreamProjection, VersionedStreamEvent,
-                                                          projectionEventHandler, projectionMapMaybe, projectionSeed,
-                                                          streamProjectionState)
-import           Plutus.Contract.Effects.UtxoAt (UtxoAtAddress (UtxoAtAddress), address, utxo)
-import           Plutus.Contract.Resumable      (Request (rqRequest), Response)
-import           Ledger                                  (Address, Tx, TxId, TxOutTx (TxOutTx), txOutAddress,
-                                                          txOutRefId, txOutTxOut, txOutTxTx)
-import           Ledger.Index                            (UtxoIndex (UtxoIndex))
-import           Plutus.PAB.Effects.Contract             (PABContract (..))
+                                                          StreamProjection, projectionEventHandler, projectionMapMaybe,
+                                                          projectionSeed, streamProjectionState)
+import           Ledger                                  (Tx)
 import           Plutus.PAB.Events                       (PABEvent (InstallContract, SubmitTx, UpdateContractInstanceState))
-import           Plutus.PAB.Events.Contract              (ContractInstanceId, ContractPABRequest, ContractResponse (..),
-                                                          IterationID)
-import           Plutus.PAB.Events.ContractInstanceState (ContractInstanceState (..), PartiallyDecodedResponse,
-                                                          hasActiveRequests)
+import           Plutus.PAB.Events.Contract              (ContractInstanceId, ContractPABRequest)
+import           Plutus.PAB.Events.ContractInstanceState (PartiallyDecodedResponse, hasActiveRequests)
 
 -- | The empty projection. Particularly useful for commands that have no 'state'.
 nullProjection :: Projection () event
@@ -88,26 +76,6 @@ setProjection = contramap Set.singleton monoidProjection
 instance Pretty state =>
          Pretty (StreamProjection key position state event) where
     pretty = pretty . streamProjectionState
-
--- FIXME delete?
-utxoAt :: (Map TxId Tx, UtxoIndex) -> Address -> UtxoAtAddress
-utxoAt (txById, UtxoIndex utxoIndex) address =
-    let utxo =
-            Map.foldMapWithKey
-                (\txOutRef txOut ->
-                     case Map.lookup (txOutRefId txOutRef) txById of
-                         Nothing -> Map.empty
-                         Just tx ->
-                             if txOutAddress txOut == address
-                                 then Map.singleton
-                                          txOutRef
-                                          (TxOutTx
-                                               { txOutTxTx = tx
-                                               , txOutTxOut = txOut
-                                               })
-                                 else Map.empty)
-                utxoIndex
-     in UtxoAtAddress {address, utxo}
 
 -- | The last known state of the contract.
 contractState :: forall t key position. Projection (Map ContractInstanceId (PartiallyDecodedResponse ContractPABRequest)) (StreamEvent key position (PABEvent t))

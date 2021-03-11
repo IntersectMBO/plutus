@@ -54,7 +54,6 @@ data FullReport t =
     FullReport
         { contractReport :: ContractReport t
         , chainReport    :: ChainReport
-        , events         :: [PABEvent t]
         }
     deriving stock (Generic, Eq, Show)
     deriving anyclass (ToJSON, FromJSON)

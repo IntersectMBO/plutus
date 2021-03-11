@@ -219,7 +219,7 @@ stmInstanceLoop ::
     -> ContractInstanceId
     -> Eff effs ()
 stmInstanceLoop def instanceId = do
-    (currentState :: Contract.State t) <- Contract.getState @t def instanceId
+    (currentState :: Contract.State t) <- Contract.getState @t instanceId
     let rqs = Contract.requests (Proxy @t) currentState
     updateState rqs
     case rqs of

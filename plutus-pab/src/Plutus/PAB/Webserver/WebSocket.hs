@@ -28,14 +28,12 @@ import           Data.Time.Units                      (Second, TimeUnit)
 import           Network.WebSockets.Connection        (Connection, PendingConnection, withPingThread)
 import           Plutus.PAB.App                       (runApp)
 import           Plutus.PAB.Core.ContractInstance.STM (InstancesState)
-import           Plutus.PAB.Effects.Contract          (ContractDefinitionStore, ContractEffect)
+import           Plutus.PAB.Effects.Contract          (ContractDefinitionStore, ContractEffect, ContractStore)
 import           Plutus.PAB.Effects.Contract.CLI      (ContractExe)
-import           Plutus.PAB.Effects.EventLog          (EventLogEffect)
-import           Plutus.PAB.Events                    (PABEvent)
 import qualified Plutus.PAB.Monitoring.PABLogMsg      as LM
 import           Plutus.PAB.Types                     (Config, PABError)
-import           Plutus.PAB.Webserver.Handler         (getChainReport, getContractReport, getEvents)
-import           Plutus.PAB.Webserver.Types           (StreamToClient (ErrorResponse, FetchedProperties, FetchedProperty, NewChainReport, NewContractReport, NewPABEvents),
+import           Plutus.PAB.Webserver.Handler         (getChainReport, getContractReport)
+import           Plutus.PAB.Webserver.Types           (StreamToClient (ErrorResponse, FetchedProperties, FetchedProperty, NewChainReport, NewContractReport),
                                                        StreamToServer (FetchProperties, FetchProperty),
                                                        WebSocketLogMsg (ClosedConnection, CreatedConnection, ReceivedWebSocketRequest, SendingWebSocketResponse))
 import           Wallet.Effects                       (ChainIndexEffect)
@@ -55,25 +53,15 @@ chainReportThread = watchAndNotify (5 :: Second) getChainReport NewChainReport
 
 contractStateThread ::
        ( Member WebSocketEffect effs
-       , Member (EventLogEffect (PABEvent ContractExe)) effs
        , Member (ContractEffect ContractExe) effs
        , Member DelayEffect effs
        , Member (ContractDefinitionStore ContractExe) effs
+       , Member (ContractStore ContractExe) effs
        )
     => Connection
     -> Eff effs ()
 contractStateThread =
     watchAndNotify (3 :: Second) (getContractReport @ContractExe) NewContractReport
-
-eventsThread ::
-       ( Member WebSocketEffect effs
-       , Member (EventLogEffect (PABEvent ContractExe)) effs
-       , Member DelayEffect effs
-       )
-    => Connection
-    -> Eff effs ()
-eventsThread =
-    watchAndNotify (15 :: Second) (getEvents @ContractExe) NewPABEvents
 
 watchAndNotify ::
        ( TimeUnit t
@@ -146,7 +134,6 @@ threadApp instancesState trace logConfig config connection = do
             asyncApp
             [ chainReportThread connection
             , contractStateThread connection
-            , eventsThread connection
             , interpret (mapLog LM.SWebsocketMsg) (queryHandlerThread connection)
             ]
     void $ waitAnyCancel tasks

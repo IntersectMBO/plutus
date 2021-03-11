@@ -20,7 +20,6 @@ module Plutus.PAB.Core
     , installContract
     , activateContractSTM
     , reportContractState
-    , installedContracts
     , activeContracts
     , txHistory
     , activeContractHistory
@@ -37,7 +36,6 @@ module Plutus.PAB.Core
 
 import           Cardano.BM.Data.Tracer                  (ToObject (..), TracingVerbosity (..))
 import           Cardano.BM.Data.Tracer.Extras           (StructuredLog, mkObjectStr)
-import           Control.Monad                           (void)
 import           Control.Monad.Freer                     (Eff, Member)
 import           Control.Monad.Freer.Error               (Error)
 import           Control.Monad.Freer.Extras.Log          (LogMsg, logInfo)
@@ -52,9 +50,9 @@ import           Database.Persist.Sqlite                 (createSqlitePoolFromIn
 import           Eventful.Store.Sql                      (defaultSqlEventStoreConfig)
 import           GHC.Generics                            (Generic)
 import qualified Ledger
-import           Plutus.PAB.Command                      (installCommand)
 import           Plutus.PAB.Core.ContractInstance        (activateContractSTM)
-import           Plutus.PAB.Effects.Contract             (ContractEffect)
+import           Plutus.PAB.Effects.Contract             (ContractDefinitionStore, ContractEffect, ContractStore,
+                                                          PABContract (..), addDefinition, getState)
 import           Plutus.PAB.Effects.EventLog             (Connection (..), EventLogEffect, refreshProjection,
                                                           runCommand, runGlobalQuery)
 import qualified Plutus.PAB.Effects.EventLog             as EventLog
@@ -105,34 +103,28 @@ instance (StructuredLog t, ToJSON t) => ToObject (CoreMsg t) where
 
 installContract ::
     forall t effs.
-    ( Member (LogMsg (CoreMsg t)) effs
-    , Member (EventLogEffect (PABEvent t)) effs
+    ( Member (LogMsg (CoreMsg (ContractDef t))) effs
+    , Member (ContractDefinitionStore t) effs
     )
-    => t
+    => (ContractDef t)
     -> Eff effs ()
 installContract contractHandle = do
-    logInfo $ Installing contractHandle
-    void $
-        runCommand
-            installCommand
-            UserEventSource
-            contractHandle
-    logInfo @(CoreMsg t) Installed
+    logInfo @(CoreMsg (ContractDef t)) $ Installing contractHandle
+    addDefinition @t contractHandle
+    logInfo @(CoreMsg (ContractDef t)) Installed
 
 reportContractState ::
     forall t effs.
     ( Member (LogMsg (CoreMsg t)) effs
-    , Member (EventLogEffect (PABEvent t)) effs
+    , Member (ContractStore t) effs
+    , State t ~ PartiallyDecodedResponse ContractPABRequest
     )
     => ContractInstanceId
     -> Eff effs ()
 reportContractState cid = do
     logInfo @(CoreMsg t) $ FindingContract cid
-    contractState <- runGlobalQuery (Query.contractState @t)
-    logInfo @(CoreMsg t) $ FoundContract (Map.lookup cid contractState)
-
-installedContracts :: forall t effs. (Ord t, Member (EventLogEffect (PABEvent t)) effs) => Eff effs (Set t)
-installedContracts = runGlobalQuery Query.installedContractsProjection
+    contractState <- getState @t cid
+    logInfo @(CoreMsg t) $ FoundContract $ Just contractState
 
 activeContracts :: forall t effs. (Ord t, Member (EventLogEffect (PABEvent t)) effs) => Eff effs (Map.Map t (Set ContractInstanceId))
 activeContracts = runGlobalQuery Query.activeContractsProjection

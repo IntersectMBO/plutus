@@ -21,8 +21,7 @@ import           Control.Lens.TH                         (makePrisms)
 import           Data.Aeson                              (FromJSON, ToJSON)
 import           Data.Text.Prettyprint.Doc               (Pretty, pretty, (<+>))
 import           GHC.Generics                            (Generic)
-import           Ledger.Tx                               (Tx)
-import           Plutus.PAB.Effects.Contract             (PABContract (..))
+import           Ledger.Tx                               (Tx, txId)
 import           Plutus.PAB.Events.Contract              (ContractPABRequest)
 import           Plutus.PAB.Events.ContractInstanceState (PartiallyDecodedResponse)
 import           Wallet.Types                            (ContractInstanceId)
@@ -41,3 +40,4 @@ instance Pretty t => Pretty (PABEvent t) where
     pretty = \case
         InstallContract t                 -> "Install contract:" <+> pretty t
         UpdateContractInstanceState t i _ -> "Update state:" <+> pretty t <+> pretty i
+        SubmitTx t                        -> "SubmitTx:" <+> pretty (txId t)

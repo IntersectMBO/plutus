@@ -3,6 +3,7 @@
 {-# LANGUAGE DerivingStrategies    #-}
 {-# LANGUAGE FlexibleContexts      #-}
 {-# LANGUAGE FlexibleInstances     #-}
+{-# LANGUAGE GADTs                 #-}
 {-# LANGUAGE KindSignatures        #-}
 {-# LANGUAGE MonoLocalBinds        #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
@@ -18,7 +19,6 @@ module Plutus.PAB.Webserver.Handler
     , getFullReport
     , getChainReport
     , getContractReport
-    , getEvents
     , contractSchema
     , invokeEndpointSTM
     ) where
@@ -38,30 +38,22 @@ import           Data.Map                                         (Map)
 import qualified Data.Map                                         as Map
 import qualified Data.Set                                         as Set
 import           Data.Text                                        (Text)
-import           Data.Text.Prettyprint.Doc                        (Pretty (..), defaultLayoutOptions, layoutPretty)
-import           Data.Text.Prettyprint.Doc.Render.Text            (renderStrict)
 import qualified Data.UUID                                        as UUID
-import           Eventful                                         (streamEventEvent)
+import           Plutus.Contract.Effects.ExposeEndpoint  (EndpointDescription (EndpointDescription))
 import           Ledger                                           (pubKeyHash)
 import           Ledger.Blockchain                                (Blockchain)
-import           Plutus.Contract.Effects.ExposeEndpoint           (EndpointDescription (EndpointDescription))
-import           Plutus.PAB.Core                                  (runGlobalQuery)
 import qualified Plutus.PAB.Core                                  as Core
 import qualified Plutus.PAB.Core.ContractInstance                 as Instance
 import qualified Plutus.PAB.Core.ContractInstance.RequestHandlers as LM
 import           Plutus.PAB.Core.ContractInstance.STM             (InstancesState, callEndpointOnInstance)
 import           Plutus.PAB.Effects.Contract                      (ContractDefinitionStore, ContractEffect,
                                                                    ContractStore, PABContract (..), exportSchema,
-                                                                   getDefinitions)
+                                                                   getActiveContracts, getDefinitions, getState)
 import           Plutus.PAB.Effects.Contract.CLI                  (ContractExe)
-import           Plutus.PAB.Effects.EventLog                      (EventLogEffect)
 import           Plutus.PAB.Effects.UUID                          (UUIDEffect)
-import           Plutus.PAB.Events                                (PABEvent)
 import           Plutus.PAB.Events.Contract                       (ContractPABRequest)
 import           Plutus.PAB.Events.ContractInstanceState          (PartiallyDecodedResponse)
-import qualified Plutus.PAB.Monitoring.PABLogMsg                  as LM
 import           Plutus.PAB.ParseStringifiedJSON                  (UnStringifyJSONLog, parseStringifiedJSON)
-import qualified Plutus.PAB.Query                                 as Query
 import           Plutus.PAB.Types
 import           Plutus.PAB.Webserver.Types
 import           Servant                                          ((:<|>) ((:<|>)))
@@ -76,24 +68,27 @@ healthcheck = pure ()
 getContractReport ::
        forall t effs.
        ( Member (ContractDefinitionStore t) effs
+       , Member (ContractStore t) effs
        , Member (ContractEffect t) effs
-       , Ord t
        , PABContract t
-       , Member (EventLogEffect (PABEvent (ContractDef t))) effs
+       , State t ~ PartiallyDecodedResponse ContractPABRequest
        )
     => Eff effs (ContractReport (ContractDef t))
 getContractReport = do
     installedContracts <- getDefinitions @t
+    activeContractIDs <- fmap fst . Map.toList <$> getActiveContracts @t
     crAvailableContracts <-
         traverse
             (\t -> ContractSignatureResponse t <$> exportSchema @t t)
             installedContracts
-    crActiveContractStates <-
-        Map.toList <$> runGlobalQuery (Query.contractState @(ContractDef t))
+    crActiveContractStates <- traverse (\i -> getState @t i >>= \s -> pure (i, s)) activeContractIDs
     pure ContractReport {crAvailableContracts, crActiveContractStates}
 
 getChainReport ::
-       forall effs. (Member ChainIndexEffect effs, Member MetadataEffect effs)
+    forall effs.
+    ( Member ChainIndexEffect effs
+    , Member MetadataEffect effs
+    )
     => Eff effs ChainReport
 getChainReport = do
     blocks :: Blockchain <- confirmedBlocks
@@ -124,34 +119,28 @@ getChainReport = do
             , relatedMetadata
             }
 
-getEvents ::
-       forall t effs. (Member (EventLogEffect (PABEvent (ContractDef t))) effs)
-    => Eff effs [PABEvent (ContractDef t)]
-getEvents = fmap streamEventEvent <$> runGlobalQuery Query.pureProjection
-
 getFullReport ::
        forall t effs.
-       ( Member (EventLogEffect (PABEvent (ContractDef t))) effs
-       , Member (ContractEffect t) effs
+       ( Member (ContractEffect t) effs
        , Member ChainIndexEffect effs
        , Member MetadataEffect effs
-       , Ord t
        , Member (ContractDefinitionStore t) effs
        , PABContract t
+       , Member (ContractStore t) effs
+       , State t ~ PartiallyDecodedResponse ContractPABRequest
        )
     => Eff effs (FullReport (ContractDef t))
 getFullReport = do
-    events <- fmap streamEventEvent <$> runGlobalQuery Query.pureProjection
     contractReport <- getContractReport @t
     chainReport <- getChainReport
-    pure FullReport {contractReport, chainReport, events}
+    pure FullReport {contractReport, chainReport}
 
 contractSchema ::
        forall t effs.
-       ( Member (EventLogEffect (PABEvent (ContractDef t))) effs
-       , Member (ContractEffect t) effs
+       ( Member (ContractEffect t) effs
        , Member (Error PABError) effs
        , PABContract t
+       , Member (ContractStore t) effs
        )
     => ContractInstanceId
     -> Eff effs (ContractSignatureResponse (ContractDef t))
@@ -161,14 +150,11 @@ contractSchema contractId = do
 
 activateContract ::
        forall t m appBackend effs.
-       ( Member (EventLogEffect (PABEvent (ContractDef t))) effs
-       , Instance.AppBackendConstraints t m appBackend
+       ( Instance.AppBackendConstraints t m appBackend
        , Member (Error PABError) effs
        , Member (ContractEffect t) effs
        , Member UUIDEffect effs
        , Member (LogMsg (Instance.ContractInstanceMsg t)) effs
-       , Ord t
-       , Show t
        , LastMember m effs
        , LastMember m (Reader ContractInstanceId ': appBackend)
        , Member (Reader InstancesState) effs
@@ -180,39 +166,23 @@ activateContract ::
     -> Eff effs ContractInstanceId
 activateContract = Core.activateContractSTM @t @m @appBackend @effs
 
-getContractInstanceState ::
-       forall t effs.
-       ( Member (EventLogEffect (PABEvent (ContractDef t))) effs
-       , Member (Error PABError) effs
-       )
-    => ContractInstanceId
-    -> Eff effs (PartiallyDecodedResponse ContractPABRequest)
-getContractInstanceState contractId = do
-    contractStates <- runGlobalQuery (Query.contractState @(ContractDef t))
-    case Map.lookup contractId contractStates of
-        Nothing    -> throwError $ ContractInstanceNotFound contractId
-        Just value -> pure value
-
 getContractInstanceDefinition ::
        forall t effs.
-       ( Member (EventLogEffect (PABEvent (ContractDef t))) effs
-       , Member (Error PABError) effs
+       ( Member (Error PABError) effs
+       , Member (ContractStore t) effs
        )
     => ContractInstanceId
     -> Eff effs (ContractDef t)
 getContractInstanceDefinition contractId = do
-    contractDefinitions <- runGlobalQuery (Query.contractDefinition @(ContractDef t))
-    case Map.lookup contractId contractDefinitions of
+    activeContracts <- getActiveContracts @t
+    case Map.lookup contractId activeContracts of
         Nothing    -> throwError $ ContractInstanceNotFound contractId
         Just value -> pure value
 
 -- | Call an endpoint using the STM-based contract runner.
 invokeEndpointSTM ::
        forall t m effs.
-       ( Member (EventLogEffect (PABEvent (ContractDef t))) effs
-       , Member (LogMsg (LM.ContractInstanceMsg t)) effs
-       , Member (Error PABError) effs
-       , Member (Reader InstancesState) effs
+       ( Member (Reader InstancesState) effs
        , Member (LogMsg (Instance.ContractInstanceMsg t)) effs
        , LastMember m effs
        , MonadIO m
@@ -237,12 +207,10 @@ parseContractId t =
 
 handler ::
        forall effs m appBackend.
-       ( Member (EventLogEffect (PABEvent ContractExe)) effs
-       , Member (ContractEffect ContractExe) effs
+       ( Member (ContractEffect ContractExe) effs
        , Member ChainIndexEffect effs
        , Member MetadataEffect effs
        , Member UUIDEffect effs
-       , Member (LogMsg LM.ContractExeLogMsg) effs
        , Member (Error PABError) effs
        , Member (LogMsg UnStringifyJSONLog) effs
        , Member (LogMsg (Instance.ContractInstanceMsg ContractExe)) effs

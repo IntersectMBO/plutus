@@ -49,7 +49,7 @@ import           Plutus.PAB.Effects.EventLog                   (EventLogEffect, 
 import           Plutus.PAB.Events.Contract                    (ContractInstanceId (..), ContractPABRequest (..),
                                                                 ContractResponse (..))
 import qualified Plutus.PAB.Events.Contract                    as Events.Contract
-import           Plutus.PAB.Types                              (Source (NodeEventSource, WalletEventSource))
+import           Plutus.PAB.Types                              (Source (PABEventSource))
 import           Wallet.Effects                                (ChainIndexEffect, ContractRuntimeEffect, WalletEffect)
 import           Wallet.Emulator.LogMessages                   (TxBalanceMsg)
 import           Wallet.Types                                  (NotificationError)

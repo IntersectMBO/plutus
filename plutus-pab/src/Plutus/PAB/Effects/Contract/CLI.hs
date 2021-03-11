@@ -53,7 +53,7 @@ instance PABContract ContractExe where
     type ContractDef ContractExe = ContractExe
     type State ContractExe = PartiallyDecodedResponse ContractPABRequest
 
-    requests = error "FIXME"
+    requests _ = ContractInstanceState.hooks
 
 newtype ContractExe =
     ContractExe
