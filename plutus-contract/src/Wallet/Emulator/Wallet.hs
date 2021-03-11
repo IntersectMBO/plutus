@@ -173,8 +173,8 @@ handleWallet ::
     , Member (State WalletState) effs
     , Member (Error WAPI.WalletAPIError) effs
     )
-    => Eff (WalletEffect ': effs) ~> Eff effs
-handleWallet = interpret $ \case
+    => WalletEffect ~> Eff effs
+handleWallet = \case
     SubmitTxn tx -> W.publishTx tx
     OwnPubKey -> toPublicKey <$> gets _ownPrivateKey
     UpdatePaymentWithChange vl pmt -> do

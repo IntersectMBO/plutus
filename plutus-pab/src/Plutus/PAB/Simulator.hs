@@ -30,20 +30,21 @@ module Plutus.PAB.Simulator(
 
 import           Control.Concurrent.STM                   (TVar)
 import qualified Control.Concurrent.STM                   as STM
-import           Control.Lens                             (Lens', makeLenses, view)
+import           Control.Lens                             (Lens', makeLenses, view, (&), (.~))
 import           Control.Monad                            (forM, unless, void)
-import           Control.Monad.Freer                      (Eff, LastMember, Member, interpret, reinterpret, run, runM,
-                                                           send, subsume, type (~>))
-import           Control.Monad.Freer.Error                (Error, runError)
+import           Control.Monad.Freer                      (Eff, LastMember, Member, interpret, reinterpret,
+                                                           reinterpret2, run, runM, send, subsume, type (~>))
+import           Control.Monad.Freer.Error                (Error, handleError, runError, throwError)
 import           Control.Monad.Freer.Extras.Log           (LogMessage, LogMsg (..), LogObserve, handleLogWriter,
                                                            handleObserveLog, logInfo, mapLog)
 import qualified Control.Monad.Freer.Extras.Modify        as Modify
 import           Control.Monad.Freer.Reader               (Reader, ask, asks, runReader)
-import           Control.Monad.Freer.State                (runState)
+import           Control.Monad.Freer.State                (State (..), runState)
 import           Control.Monad.Freer.Writer               (Writer (..), runWriter)
 import           Control.Monad.IO.Class                   (MonadIO (..))
 import           Data.Foldable                            (traverse_)
 import           Data.Map                                 (Map)
+import qualified Data.Map                                 as Map
 import           Data.Text                                (Text)
 import           Wallet.Emulator.MultiAgent               (EmulatorTimeEvent (..))
 import           Wallet.Emulator.Wallet                   (Wallet (..), WalletEvent (..))
@@ -51,9 +52,10 @@ import           Wallet.Emulator.Wallet                   (Wallet (..), WalletEv
 import           Plutus.PAB.Core.ContractInstance         as ContractInstance
 import           Plutus.PAB.Effects.Contract.ContractTest (TestContracts (..))
 import           Plutus.PAB.Effects.MultiAgent            (PABMultiAgentMsg (..), _InstanceMsg)
-import           Plutus.PAB.Types                         (PABError)
+import           Plutus.PAB.Types                         (PABError (WalletError))
 import           Plutus.V1.Ledger.Slot                    (Slot)
-import           Wallet.Effects                           (ChainIndexEffect (..), NodeClientEffect (..))
+import qualified Wallet.API                               as WAPI
+import           Wallet.Effects                           (ChainIndexEffect (..), NodeClientEffect (..), WalletEffect)
 import qualified Wallet.Effects                           as WalletEffects
 import           Wallet.Emulator.Chain                    (ChainControlEffect, ChainState)
 import qualified Wallet.Emulator.Chain                    as Chain
@@ -67,6 +69,8 @@ data AgentState =
     AgentState
         { _walletState :: Wallet.WalletState
         }
+
+makeLenses ''AgentState
 
 initialAgentState :: Wallet -> AgentState
 initialAgentState wallet = AgentState{_walletState = Wallet.emptyWalletState wallet}
@@ -92,12 +96,12 @@ initialState = STM.atomically $
         <*> STM.newTVar mempty
 
 -- | Effects available to simulated agents that run in their own thread
---     , Member ChainIndexEffect effs
     -- , Member WalletEffect effs
     -- , Member ContractRuntimeEffect effs
 --   TODO: AppBackendConstraints for agent!
 type AgentEffects effs =
-    ChainIndexEffect
+    WalletEffect
+    ': ChainIndexEffect
     ': NodeClientEffect
     ': Chain.ChainEffect
     ': LogMsg TxBalanceMsg
@@ -117,7 +121,7 @@ handleAgentThread ::
     -> Eff (AgentEffects '[IO]) a
     -> IO (Either PABError a)
 handleAgentThread state wallet action = do
-    let action' :: Eff (AgentEffects '[IO, Writer [LogMessage PABMultiAgentMsg], Error PABError, Reader SimulatorState, IO]) a = Modify.raiseEnd10 action
+    let action' :: Eff (AgentEffects '[IO, Writer [LogMessage PABMultiAgentMsg], Error PABError, Reader SimulatorState, IO]) a = Modify.raiseEnd action
         makeTimedWalletEvent wllt =
             interpret @(LogMsg PABMultiAgentMsg) (handleLogWriter _singleton)
             . reinterpret (mapLog @_ @PABMultiAgentMsg EmulatorMsg)
@@ -144,12 +148,52 @@ handleAgentThread state wallet action = do
         $ interpret (handleLogWriter _InstanceMsg)
         $ (makeTimedWalletEvent wallet . reinterpret (mapLog RequestHandlerLog))
         $ (makeTimedWalletEvent wallet . reinterpret (mapLog TxBalanceLog))
+
         $ makeTimedChainEvent
         $ reinterpret @_ @(LogMsg Chain.ChainEvent) handleChainEffect
+
         $ interpret handleNodeClient
+
         $ makeTimedChainIndexEvent wallet
         $ reinterpret @_ @(LogMsg ChainIndex.ChainIndexEvent) handleChainIndexEffect
+
+        $ flip (handleError @WAPI.WalletAPIError) (throwError @PABError . WalletError)
+        $ interpret (runWalletState wallet)
+        $ reinterpret2 @_ @(State Wallet.WalletState) @(Error WAPI.WalletAPIError) Wallet.handleWallet
         $ action'
+
+runWalletState ::
+    forall m effs.
+    ( MonadIO m
+    , LastMember m effs
+    , Member (Reader SimulatorState) effs
+    )
+    => Wallet
+    -> State Wallet.WalletState
+    ~> Eff effs
+runWalletState wallet = \case
+    Get -> do
+        SimulatorState{_agentStates} <- ask
+        liftIO $ STM.atomically $ do
+            mp <- STM.readTVar _agentStates
+            case Map.lookup wallet mp of
+                Nothing -> do
+                    let newState = initialAgentState wallet
+                    STM.writeTVar _agentStates (Map.insert wallet newState mp)
+                    pure (_walletState newState)
+                Just s -> pure (_walletState s)
+    Put s -> do
+        SimulatorState{_agentStates} <- ask
+        liftIO $ STM.atomically $ do
+            mp <- STM.readTVar _agentStates
+            case Map.lookup wallet mp of
+                Nothing -> do
+                    let newState = initialAgentState wallet & walletState .~ s
+                    STM.writeTVar _agentStates (Map.insert wallet newState mp)
+                Just s' -> do
+                    let newState = s' & walletState .~ s
+                    STM.writeTVar _agentStates (Map.insert wallet newState mp)
+
 
 runAgentEffects ::
     forall a.
@@ -176,7 +220,7 @@ runControlEffects ::
     -> Eff '[Reader SimulatorState, IO] a
 runControlEffects action = do
     state <- ask
-    let action' :: Eff (ControlEffects '[IO, Writer [LogMessage PABMultiAgentMsg], Reader SimulatorState, IO]) a = Modify.raiseEnd5 action
+    let action' :: Eff (ControlEffects '[IO, Writer [LogMessage PABMultiAgentMsg], Reader SimulatorState, IO]) a = Modify.raiseEnd action
         makeTimedChainEvent =
             interpret @(LogMsg PABMultiAgentMsg) (handleLogWriter _singleton)
             . reinterpret (mapLog @_ @PABMultiAgentMsg EmulatorMsg)
@@ -370,6 +414,6 @@ handleChainIndexControlEffect ::
 handleChainIndexControlEffect = runChainIndexEffects . \case
     ChainIndex.ChainIndexNotify n -> ChainIndex.chainIndexNotify n
 
--- TODO
--- 1. Make timed emulator event
--- 2. Handler for node client effect
+-- TODO: make activateContractSTM work
+--       fix tests / app
+--       implement new client API
