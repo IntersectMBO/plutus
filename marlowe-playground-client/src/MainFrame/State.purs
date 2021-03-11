@@ -6,6 +6,7 @@ import BlocklyComponent.Types as Blockly
 import BlocklyEditor.State as BlocklyEditor
 import BlocklyEditor.Types (_marloweCode)
 import BlocklyEditor.Types as BE
+import BottomPanel.Types as BP
 import ConfirmUnsavedNavigation.Types (Action(..)) as ConfirmUnsavedNavigation
 import Control.Monad.Except (ExceptT(..), lift, runExcept, runExceptT)
 import Control.Monad.Maybe.Extra (hoistMaybe)
@@ -13,9 +14,9 @@ import Control.Monad.Maybe.Trans (MaybeT(..), runMaybeT)
 import Control.Monad.Reader (class MonadAsk, asks, runReaderT)
 import Control.Monad.State (modify_)
 import Data.Bifunctor (lmap)
-import Data.Either (Either(..), hush, note)
+import Data.Either (Either(..), either, hush, note)
 import Data.Foldable (fold, for_)
-import Data.Lens (assign, has, preview, set, use, view, (^.))
+import Data.Lens (assign, has, modifying, over, preview, set, use, view, (^.))
 import Data.Lens.Extra (peruse)
 import Data.Lens.Index (ix)
 import Data.Map as Map
@@ -47,13 +48,15 @@ import JavascriptEditor.Types (Action(..), State, _ContractString, initialState)
 import JavascriptEditor.Types (CompilationState(..))
 import Language.Haskell.Monaco as HM
 import LoginPopup (openLoginPopup, informParentAndClose)
-import MainFrame.Types (Action(..), ChildSlots, ModalView(..), Query(..), State, View(..), _actusBlocklySlot, _authStatus, _blocklyEditorState, _createGistResult, _gistId, _hasUnsavedChanges, _haskellState, _javascriptState, _jsEditorSlot, _loadGistResult, _marloweEditorState, _newProject, _projectName, _projects, _rename, _saveAs, _showBottomPanel, _showModal, _simulationState, _view, _walletSlot, _workflow, sessionToState, stateToSession)
+import MainFrame.Types (Action(..), ChildSlots, ModalView(..), Query(..), State, View(..), _actusBlocklySlot, _authStatus, _blocklyEditorState, _contractMetadata, _createGistResult, _gistId, _hasUnsavedChanges, _haskellState, _javascriptState, _jsEditorSlot, _loadGistResult, _marloweEditorState, _newProject, _projectName, _projects, _rename, _saveAs, _showBottomPanel, _showModal, _simulationState, _view, _walletSlot, _workflow, sessionToState, stateToSession)
 import MainFrame.View (render)
 import Marlowe (getApiGistsByGistId)
 import Marlowe as Server
 import Marlowe.ActusBlockly as AMB
+import Marlowe.Extended (_choiceDescriptions, _contractDescription, _contractName, _contractType, _roleDescriptions, _slotParameterDescriptions, _valueParameterDescriptions, emptyContractMetadata)
 import Marlowe.Gists (mkNewGist, playgroundFiles, PlaygroundFiles)
 import MarloweEditor.State as MarloweEditor
+import MarloweEditor.Types (MetadataAction(..))
 import MarloweEditor.Types as ME
 import Network.RemoteData (RemoteData(..), _Success)
 import Network.RemoteData as RemoteData
@@ -97,6 +100,7 @@ initialState =
   , simulationState: ST.mkState
   , jsEditorKeybindings: DefaultBindings
   , activeJSDemo: mempty
+  , contractMetadata: emptyContractMetadata
   , projects: Projects.emptyState
   , newProject: NewProject.emptyState
   , rename: Rename.emptyState
@@ -278,6 +282,27 @@ handleActionWithoutNavigationGuard =
         ( handleAction
         )
 
+carryMetadataAction ::
+  forall m.
+  MonadAff m =>
+  MonadAsk Env m =>
+  ME.MetadataAction ->
+  HalogenM State Action ChildSlots Void m Unit
+carryMetadataAction action = do
+  modifying (_contractMetadata) case action of
+    SetContractName name -> set _contractName name
+    SetContractType typeName -> set _contractType typeName
+    SetContractDescription description -> set _contractDescription description
+    SetRoleDescription tokenName description -> over _roleDescriptions $ Map.insert tokenName description
+    DeleteRoleDescription tokenName -> over _roleDescriptions $ Map.delete tokenName
+    SetSlotParameterDescription slotParam description -> over _slotParameterDescriptions $ Map.insert slotParam description
+    DeleteSlotParameterDescription slotParam -> over _slotParameterDescriptions $ Map.delete slotParam
+    SetValueParameterDescription valueParam description -> over _valueParameterDescriptions $ Map.insert valueParam description
+    DeleteValueParameterDescription valueParam -> over _valueParameterDescriptions $ Map.delete valueParam
+    SetChoiceDescription choiceName description -> over _choiceDescriptions $ Map.insert choiceName description
+    DeleteChoiceDescription choiceName -> over _choiceDescriptions $ Map.delete choiceName
+  assign (_hasUnsavedChanges) true
+
 -- This handleAction can be called recursively, but because we use HOF to extend the functionality
 -- of the component, whenever we need to recurse we most likely be calling one of the extended functions
 -- defined above (handleActionWithoutNavigationGuard or fullHandleAction)
@@ -346,7 +371,7 @@ handleAction (MarloweEditorAction action) = do
   case action of
     ME.SendToSimulator -> do
       mContents <- MarloweEditor.editorGetValue
-      for_ mContents \contents -> do
+      for_ mContents \contents ->
         sendToSimulation contents
     ME.ViewAsBlockly -> do
       mSource <- MarloweEditor.editorGetValue
@@ -354,8 +379,9 @@ handleAction (MarloweEditorAction action) = do
         void $ toBlocklyEditor $ BlocklyEditor.handleAction (BE.InitBlocklyProject source)
         assign _workflow (Just Blockly)
         selectView BlocklyEditor
-    (ME.HandleEditorMessage (Monaco.TextChanged _)) -> setUnsavedChangesForLanguage Marlowe true
-    (ME.InitMarloweProject _) -> setUnsavedChangesForLanguage Marlowe false
+    ME.HandleEditorMessage (Monaco.TextChanged _) -> setUnsavedChangesForLanguage Marlowe true
+    ME.InitMarloweProject _ -> setUnsavedChangesForLanguage Marlowe false
+    ME.BottomPanelAction (BP.PanelAction (ME.MetadataAction metadataAction)) -> carryMetadataAction metadataAction
     _ -> pure unit
 
 handleAction (BlocklyEditorAction action) = do
@@ -409,9 +435,7 @@ handleAction (HandleActusBlocklyMessage (ActusBlockly.CurrentTerms flavour terms
         ActusBlockly.FS -> runAjax $ flip runReaderT settings $ (Server.postApiActusGenerate parsedTerms)
         ActusBlockly.F -> runAjax $ flip runReaderT settings $ (Server.postApiActusGeneratestatic parsedTerms)
       case result of
-        Success contractAST -> do
-          selectView Simulation
-          void $ toSimulation $ Simulation.handleAction (ST.LoadContract contractAST)
+        Success contractAST -> sendToSimulation contractAST
         Failure e -> void $ query _actusBlocklySlot unit (ActusBlockly.SetError ("Server error! " <> (showErrorDescription (runAjaxError e).description)) unit)
         _ -> void $ query _actusBlocklySlot unit (ActusBlockly.SetError "Unknown server error!" unit)
 
@@ -453,6 +477,7 @@ handleAction (NewProjectAction (NewProject.CreateProject lang)) = do
     ( set _projectName "New Project"
         <<< set _gistId Nothing
         <<< set _createGistResult NotAsked
+        <<< set _contractMetadata emptyContractMetadata
     )
   liftEffect $ SessionStorage.setItem gistIdLocalStorageKey mempty
   -- We reset all editors and then initialize the selected language.
@@ -503,6 +528,7 @@ handleAction (DemosAction action@(Demos.LoadDemo lang (Demos.Demo key))) = do
     ( set _showModal Nothing
         <<< set _workflow (Just lang)
         <<< set _hasUnsavedChanges false
+        <<< set _contractMetadata emptyContractMetadata -- ToDo: Load metadata for example (SCP-1912)
     )
   selectView $ selectLanguageView lang
 
@@ -669,9 +695,10 @@ handleGistAction PublishGist = do
 
     -- playground is a meta-data file that we currently just use as a tag to check if a gist is a marlowe playground gist
     playground = "{}"
+  metadata <- Just <$> encodeJSON <$> use _contractMetadata
   workflow <- use _workflow
   let
-    emptyFiles = (mempty :: PlaygroundFiles) { playground = playground }
+    emptyFiles = (mempty :: PlaygroundFiles) { playground = playground, metadata = metadata }
   files <- case workflow of
     Just Marlowe -> do
       marlowe <- pruneEmpty <$> MarloweEditor.editorGetValue
@@ -690,7 +717,7 @@ handleGistAction PublishGist = do
       pure $ emptyFiles { actus = actus }
     Nothing -> mempty
   let
-    newGist = mkNewGist description files
+    newGist = mkNewGist description $ files
   void
     $ runMaybeT do
         mGist <- use _gistId
@@ -763,6 +790,7 @@ loadGist gist = do
     , haskell
     , javascript
     , actus
+    , metadata: mMetadataJSON
     } = playgroundFiles gist
 
     description = view gistDescription gist
@@ -773,6 +801,8 @@ loadGist gist = do
   toJavascriptEditor $ JavascriptEditor.handleAction $ JS.InitJavascriptProject $ fromMaybe mempty javascript
   toMarloweEditor $ MarloweEditor.handleAction $ ME.InitMarloweProject $ fromMaybe mempty marlowe
   toBlocklyEditor $ BlocklyEditor.handleAction $ BE.InitBlocklyProject $ fromMaybe mempty blockly
+  for_ mMetadataJSON \metadataJSON ->
+    assign _contractMetadata $ either (const emptyContractMetadata) identity $ runExcept (decodeJSON metadataJSON)
   -- Actus doesn't have a SetCode to reset for the moment, so we only set if present.
   -- TODO add SetCode to Actus
   for_ actus \xml -> query _actusBlocklySlot unit (ActusBlockly.LoadWorkspace xml unit)

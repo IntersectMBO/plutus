@@ -27,7 +27,7 @@ import Data.Profunctor.Strong (class Strong)
 import Data.Symbol (SProxy(..))
 import Foreign.Generic (class Decode, class Encode, genericDecode, genericEncode)
 import Help (HelpContext(..))
-import Marlowe.Extended (IntegerTemplateType, TemplateContent, getPlaceholderIds, initializeTemplateContent)
+import Marlowe.Extended (IntegerTemplateType, TemplateContent, MetaData, getPlaceholderIds, initializeTemplateContent)
 import Marlowe.Extended as EM
 import Marlowe.Holes (Holes)
 import Marlowe.Semantics (AccountId, Assets, Bound, ChoiceId, ChosenNum, Contract, Input, Party(..), Payment, Slot, SlotInterval, Token, TransactionError, TransactionInput, TransactionWarning, aesonCompatibleOptions, emptyState)

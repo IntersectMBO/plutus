@@ -20,7 +20,7 @@ import HaskellEditor.View (otherActions, render) as HaskellEditor
 import Home as Home
 import Icons (Icon(..), icon)
 import JavascriptEditor.View as JSEditor
-import MainFrame.Types (Action(..), ChildSlots, ModalView(..), State, View(..), _actusBlocklySlot, _authStatus, _blocklyEditorState, _createGistResult, _hasUnsavedChanges, _haskellState, _javascriptState, _marloweEditorState, _projectName, _simulationState, _view, _walletSlot, hasGlobalLoading)
+import MainFrame.Types (Action(..), ChildSlots, ModalView(..), State, View(..), _actusBlocklySlot, _authStatus, _blocklyEditorState, _contractMetadata, _createGistResult, _hasUnsavedChanges, _haskellState, _javascriptState, _marloweEditorState, _projectName, _simulationState, _view, _walletSlot, hasGlobalLoading)
 import Marlowe.ActusBlockly as AMB
 import MarloweEditor.View as MarloweEditor
 import Modal.View (modal)
@@ -53,7 +53,7 @@ render state =
           [ section [ id_ "main-panel" ]
               [ tabContents HomePage [ Home.render state ]
               , tabContents Simulation [ renderSubmodule _simulationState SimulationAction Simulation.render state ]
-              , tabContents MarloweEditor [ renderSubmodule _marloweEditorState MarloweEditorAction MarloweEditor.render state ]
+              , tabContents MarloweEditor [ renderSubmodule _marloweEditorState MarloweEditorAction (MarloweEditor.render (state ^. _contractMetadata)) state ]
               , tabContents HaskellEditor [ renderSubmodule _haskellState HaskellAction HaskellEditor.render state ]
               , tabContents JSEditor [ renderSubmodule _javascriptState JavascriptAction JSEditor.render state ]
               , tabContents BlocklyEditor [ renderSubmodule _blocklyEditorState BlocklyEditorAction BlocklyEditor.render state ]

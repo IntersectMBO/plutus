@@ -17,6 +17,7 @@ import Halogen.HTML.Properties (class_, classes, disabled, title)
 import Halogen.HTML.Properties as HTML
 import Halogen.Monaco (monacoComponent)
 import MainFrame.Types (ChildSlots, _marloweEditorPageSlot)
+import Marlowe.Extended (MetaData)
 import Marlowe.Monaco as MM
 import MarloweEditor.BottomPanel (panelContents)
 import MarloweEditor.Types (Action(..), BottomPanelView(..), State, _bottomPanelState, _editorErrors, _editorWarnings, _keybindings, contractHasErrors, contractHasHoles)
@@ -25,9 +26,10 @@ import Prim.TypeError (class Warn, Text)
 render ::
   forall m.
   MonadAff m =>
+  MetaData ->
   State ->
   ComponentHTML Action ChildSlots m
-render state =
+render metadata state =
   div [ classes [ flex, flexCol, fullHeight, paddingX ] ]
     [ section [ classes [ minH0, flexGrow, overflowHidden ] ]
         [ marloweEditor state ]
@@ -41,7 +43,8 @@ render state =
     ]
   where
   panelTitles =
-    [ { title: "Static Analysis", view: StaticAnalysisView, classes: [] }
+    [ { title: "Metadata", view: MetadataView, classes: [] }
+    , { title: "Static Analysis", view: StaticAnalysisView, classes: [] }
     , { title: warningsTitle, view: MarloweWarningsView, classes: [] }
     , { title: errorsTitle, view: MarloweErrorsView, classes: [] }
     ]
@@ -52,7 +55,7 @@ render state =
 
   errorsTitle = withCount "Errors" $ state ^. _editorErrors
 
-  wrapBottomPanelContents panelView = BottomPanel.PanelAction <$> panelContents state panelView
+  wrapBottomPanelContents panelView = BottomPanel.PanelAction <$> panelContents state metadata panelView
 
 otherActions :: forall p. State -> HTML p Action
 otherActions state =
