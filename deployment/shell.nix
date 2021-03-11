@@ -3,7 +3,8 @@
 }:
 let
   inherit (packages) pkgs;
-  inherit (pkgs) terraform awscli mkShell writeShellScriptBin pass;
+  inherit (pkgs) terraform awscli mkShell writeShellScriptBin pass lib morph;
+  inherit (pkgs.stdenv) isDarwin;
 
   e = "tobias";
   r = "eu-west-1";
@@ -40,8 +41,26 @@ let
     fi
   '';
 
+  # deploy-nix: wrapper around executing `morph deploy` which ensures that
+  # terraform is up to date.
+  deployNix = writeShellScriptBin "deploy-nix" ''
+    set -eou pipefail
+
+    echo "[deploy-nix]: Checking if terraform state is up to date"
+    if ! terraform plan --detailed-exitcode -compact-warnings ./terraform >/dev/null ; then
+      echo "[deploy-nix]: terraform state is not up to date - Aborting"
+      exit 1
+    fi
+
+    # TODO: Extract secrets from machines.json
+
+    echo "[deploy-nix]: Starting deployment ..."
+    ${morph}/bin/morph deploy ./morph/default.nix switch
+  '';
+
+
   # getCreds : Log in to AWS using MFA
-  # this will set the following variables:
+  # Sets the following variables:
   # - AWS_PROFILE
   # - AWS_SESSION_TOKEN
   # - AWS_SECRET_ACCESS_KEY
@@ -68,17 +87,24 @@ let
   '';
 in
 mkShell {
-  buildInputs = [ terraform aws-mfa-login pass ];
+  buildInputs = [ terraform aws-mfa-login pass deployNix ];
   shellHook = ''
-    echo "---------------------------------------------------------------------"
-    echo "-- deployment shell for '${e}'"
-    echo "---------------------------------------------------------------------"
     ${setupEnvSecrets e}
     ${setupTerraform e r}
 
     echo "---------------------------------------------------------------------"
-    echo "-- Use 'aws-mfa-login <aws user> <mfa code>' to login to AWS"
+    echo "deployment shell for '${e}'"
     echo "---------------------------------------------------------------------"
-
-  '';
+    echo "Available commands:"
+    echo ""
+    echo -e "\t* aws-mfa-login:    login to aws"
+    echo -e "\t* provision-infra:  provision infrastructure"
+    echo -e "\t* deploy-nix:       deploy nix configuration to infrastructure"
+    echo -e "\t* deploy:           provision infrastructure and deploy nix configuration"
+    echo -e ""
+    echo "Notes:"
+    echo ""
+    echo "- Running 'aws-mfa-login' is a prerequisite to all commands"
+    echo "- The './terraform' dir has to be specified to run arbitrary terraform commands"
+  '' + lib.optionalString (isDarwin) ''echo "- Deploying on macOS requires a remote builder to work"'';
 }
