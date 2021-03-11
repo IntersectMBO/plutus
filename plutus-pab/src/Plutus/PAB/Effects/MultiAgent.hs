@@ -40,7 +40,7 @@ import           Control.Monad.Freer                      (Eff, Members, interpr
 import           Control.Monad.Freer.Error                (Error, handleError, throwError)
 import           Control.Monad.Freer.Extras.Log           (LogLevel (..), LogMessage, LogMsg, LogObserve,
                                                            handleLogWriter, handleObserveLog, logMessage)
-import           Control.Monad.Freer.Extras.Modify        (handleZoomedState, handleZoomedWriter, raiseEnd16, raiseEnd9)
+import           Control.Monad.Freer.Extras.Modify        (handleZoomedState, handleZoomedWriter, raiseEnd)
 import           Control.Monad.Freer.State                (State)
 import           Control.Monad.Freer.TH                   (makeEffect)
 import           Control.Monad.Freer.Writer               (Writer)

@@ -23,7 +23,7 @@ import qualified Control.Concurrent.STM                         as STM
 import           Control.Monad                                  ((<=<))
 import           Control.Monad.Except                           (ExceptT (ExceptT))
 import           Control.Monad.Freer                            (Eff, interpret)
-import           Control.Monad.Freer.Reader                     (Reader, runReader)
+import           Control.Monad.Freer.Reader                     (runReader)
 import           Control.Monad.IO.Class                         (liftIO)
 import           Data.Bifunctor                                 (first)
 import qualified Data.ByteString.Lazy.Char8                     as LBS
@@ -44,26 +44,27 @@ import           Plutus.PAB.Core.ContractInstance               (ContractInstanc
 import qualified Plutus.PAB.Core.ContractInstance.BlockchainEnv as BlockchainEnv
 import           Plutus.PAB.Core.ContractInstance.STM           (BlockchainEnv, InstancesState)
 import qualified Plutus.PAB.Core.ContractInstance.STM           as ContractInstance
+import           Plutus.PAB.Effects.Contract.CLI                (ContractExe)
+import qualified Plutus.PAB.Effects.Contract.CLI                as LM
 import qualified Plutus.PAB.Monitoring.PABLogMsg                as LM
 import           Plutus.PAB.ParseStringifiedJSON                (UnStringifyJSONLog)
-import           Plutus.PAB.Types                               (Config (..), ContractExe, PABError (InvalidUUIDError),
-                                                                 baseUrl, pabWebserverConfig, staticDir)
+import           Plutus.PAB.Types                               (Config (..), PABError (InvalidUUIDError), baseUrl,
+                                                                 pabWebserverConfig, staticDir)
 import           Plutus.PAB.Webserver.API                       (API, WSAPI)
 import           Plutus.PAB.Webserver.Handler                   (handler)
 import           Plutus.PAB.Webserver.Types                     (WebSocketLogMsg)
 import           Plutus.PAB.Webserver.WebSocket                 (handleWS)
 import qualified Wallet.Emulator.Wallet                         as Wallet
 
-runHandler :: InstancesState -> Trace IO LM.PABLogMsg -> CM.Configuration -> Config -> Eff (Reader InstancesState ': LogMsg LM.ContractExeLogMsg ': LogMsg (ContractInstanceMsg ContractExe) ': LogMsg WebSocketLogMsg ': LogMsg UnStringifyJSONLog ': AppBackend _) a -> IO (Either PABError a)
+runHandler :: InstancesState -> Trace IO LM.PABLogMsg -> CM.Configuration -> Config -> Eff (LogMsg LM.ContractExeLogMsg ': LogMsg (ContractInstanceMsg ContractExe) ': LogMsg WebSocketLogMsg ': LogMsg UnStringifyJSONLog ': AppBackend _) a -> IO (Either PABError a)
 runHandler instancesState trace logConfig config =
-  runApp trace logConfig config
+  runApp instancesState trace logConfig config
       . interpret (mapLog LM.SUnstringifyJSON)
       . interpret (mapLog LM.SWebsocketMsg)
       . interpret (mapLog LM.SContractInstanceMsg)
       . interpret (mapLog LM.SContractExeLogMsg)
-      . runReader instancesState
 
-asHandler :: InstancesState -> Trace IO LM.PABLogMsg -> CM.Configuration -> Config -> Eff (Reader InstancesState ': LogMsg LM.ContractExeLogMsg ': LogMsg (ContractInstanceMsg ContractExe) ': LogMsg WebSocketLogMsg ': LogMsg UnStringifyJSONLog ': AppBackend _) a -> Handler a
+asHandler :: InstancesState -> Trace IO LM.PABLogMsg -> CM.Configuration -> Config -> Eff (LogMsg LM.ContractExeLogMsg ': LogMsg (ContractInstanceMsg ContractExe) ': LogMsg WebSocketLogMsg ': LogMsg UnStringifyJSONLog ': AppBackend _) a -> Handler a
 asHandler instancesState trace logConfig config =
   Handler . ExceptT . fmap (first decodeErr) . runHandler instancesState trace logConfig config
   where
@@ -87,7 +88,7 @@ app instancesState env trace logConfig config = do
       hoistServer
         (Proxy @(API ContractExe :<|> WSAPI))
         (asHandler instancesState trace logConfig config)
-        (handler hdl :<|> handleWS trace logConfig)
+        (handler hdl :<|> handleWS instancesState trace logConfig)
 
     fileServer :: ServerT Raw Handler
     fileServer = serveDirectoryFileServer (staticDir . pabWebserverConfig $ config)

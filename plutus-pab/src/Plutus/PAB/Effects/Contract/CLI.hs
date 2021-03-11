@@ -38,8 +38,8 @@ import           Data.Text                               (Text)
 import qualified Data.Text                               as Text
 import           Data.Text.Prettyprint.Doc               (Pretty, hang, pretty, viaShow, vsep, (<+>))
 import           GHC.Generics                            (Generic)
-import           Language.Plutus.Contract.Resumable      (Response)
-import           Language.Plutus.Contract.State          (ContractRequest (..))
+import           Plutus.Contract.Resumable      (Response)
+import           Plutus.Contract.State          (ContractRequest (..))
 import           Plutus.PAB.Effects.Contract             (ContractEffect (..), PABContract (..))
 import           Plutus.PAB.Events.Contract              (ContractPABRequest)
 import qualified Plutus.PAB.Events.Contract              as Events.Contract

@@ -17,58 +17,57 @@
 
 module Plutus.PAB.App where
 
-import qualified Cardano.BM.Configuration.Model          as CM
-import           Cardano.BM.Trace                        (Trace)
-import           Cardano.ChainIndex.Client               (handleChainIndexClient)
-import qualified Cardano.ChainIndex.Types                as ChainIndex
-import           Cardano.Metadata.Client                 (handleMetadataClient)
-import           Cardano.Metadata.Types                  (MetadataEffect)
-import qualified Cardano.Metadata.Types                  as Metadata
-import           Cardano.Node.Client                     (handleNodeClientClient, handleRandomTxClient)
-import           Cardano.Node.RandomTx                   (GenRandomTx)
-import           Cardano.Node.Types                      (MockServerConfig (..))
-import qualified Cardano.Protocol.Socket.Client          as Client
-import qualified Cardano.Wallet.Client                   as WalletClient
-import qualified Cardano.Wallet.Types                    as Wallet
-import           Control.Monad.Catch                     (MonadCatch)
+import qualified Cardano.BM.Configuration.Model                 as CM
+import           Cardano.BM.Trace                               (Trace)
+import           Cardano.ChainIndex.Client                      (handleChainIndexClient)
+import qualified Cardano.ChainIndex.Types                       as ChainIndex
+import           Cardano.Metadata.Client                        (handleMetadataClient)
+import           Cardano.Metadata.Types                         (MetadataEffect)
+import qualified Cardano.Metadata.Types                         as Metadata
+import           Cardano.Node.Client                            (handleNodeClientClient, handleRandomTxClient)
+import           Cardano.Node.RandomTx                          (GenRandomTx)
+import           Cardano.Node.Types                             (MockServerConfig (..))
+import qualified Cardano.Wallet.Client                          as WalletClient
+import qualified Cardano.Wallet.Types                           as Wallet
+import           Control.Monad.Catch                            (MonadCatch)
 import           Control.Monad.Freer
-import           Control.Monad.Freer.Error               (Error, handleError, runError, throwError)
-import           Control.Monad.Freer.Extras.Log          (LogMessage, LogMsg, LogObserve, logDebug, logInfo, mapLog)
-import           Control.Monad.Freer.Reader              (Reader, asks, runReader)
-import           Control.Monad.Freer.WebSocket           (WebSocketEffect, handleWebSocket)
-import           Control.Monad.IO.Class                  (MonadIO, liftIO)
-import           Control.Monad.IO.Unlift                 (MonadUnliftIO)
-import           Control.Monad.Logger                    (MonadLogger)
-import           Data.Aeson                              (FromJSON, eitherDecode)
-import qualified Data.Aeson.Encode.Pretty                as JSON
-import           Data.Bifunctor                          (Bifunctor (..))
-import qualified Data.ByteString.Lazy.Char8              as BSL8
-import           Data.Coerce                             (coerce)
-import           Data.Functor.Contravariant              (Contravariant (..))
-import qualified Data.Text                               as Text
-import           Database.Persist.Sqlite                 (runSqlPool)
-import           Eventful.Store.Sqlite                   (initializeSqliteEventStore)
-import           Network.HTTP.Client                     (managerModifyRequest, newManager, setRequestIgnoreStatus)
-import           Network.HTTP.Client.TLS                 (tlsManagerSettings)
-import           Plutus.PAB.Core                         (Connection (Connection), dbConnect)
-import           Plutus.PAB.Core.ContractInstance.STM    (InstancesState)
-import           Plutus.PAB.Effects.Contract             (ContractDefinitionStore, ContractEffect (..))
-import           Plutus.PAB.Effects.Contract.CLI         (ContractExe, ContractExeLogMsg (..),
-                                                          handleContractEffectContractExe)
-import           Plutus.PAB.Effects.ContractRuntime      (handleContractRuntime)
-import           Plutus.PAB.Effects.EventLog             (EventLogEffect (..), handleEventLogSql)
-import           Plutus.PAB.Effects.UUID                 (UUIDEffect, handleUUIDEffect)
-import           Plutus.PAB.Events                       (PABEvent)
-import           Plutus.PAB.Monitoring.MonadLoggerBridge (TraceLoggerT (..), monadLoggerTracer)
-import           Plutus.PAB.Monitoring.Monitoring        (handleLogMsgTrace, handleObserveTrace)
-import           Plutus.PAB.Monitoring.PABLogMsg         (ContractExeLogMsg (..), PABLogMsg (..))
-import           Plutus.PAB.Types                        (Config (Config), PABError (..), chainIndexConfig, dbConfig,
-                                                          metadataServerConfig, nodeServerConfig, walletServerConfig)
-import           Servant.Client                          (ClientEnv, ClientError, mkClientEnv)
-import           System.Exit                             (ExitCode (ExitFailure, ExitSuccess))
-import           System.Process                          (readProcessWithExitCode)
-import           Wallet.Effects                          (ChainIndexEffect, ContractRuntimeEffect, NodeClientEffect,
-                                                          WalletEffect)
+import           Control.Monad.Freer.Error                      (Error, handleError, runError, throwError)
+import           Control.Monad.Freer.Extras.Log                 (LogMessage, LogMsg, LogObserve, logInfo, mapLog)
+import           Control.Monad.Freer.Reader                     (Reader, asks, runReader)
+import           Control.Monad.Freer.WebSocket                  (WebSocketEffect, handleWebSocket)
+import           Control.Monad.IO.Class                         (MonadIO, liftIO)
+import           Control.Monad.IO.Unlift                        (MonadUnliftIO)
+import           Control.Monad.Logger                           (MonadLogger)
+import           Data.Bifunctor                                 (Bifunctor (..))
+import           Data.Coerce                                    (coerce)
+import           Data.Functor.Contravariant                     (Contravariant (..))
+import qualified Data.Text                                      as Text
+import           Database.Persist.Sqlite                        (runSqlPool)
+import           Eventful.Store.Sqlite                          (initializeSqliteEventStore)
+import           Network.HTTP.Client                            (managerModifyRequest, newManager,
+                                                                 setRequestIgnoreStatus)
+import           Network.HTTP.Client.TLS                        (tlsManagerSettings)
+import           Plutus.PAB.Core                                (Connection (Connection), dbConnect)
+import           Plutus.PAB.Core.ContractInstance.STM           (InstancesState)
+import           Plutus.PAB.Db.Eventful.ContractDefinitionStore (handleContractDefinitionStore)
+import           Plutus.PAB.Db.Eventful.ContractStore           (handleContractStore)
+import           Plutus.PAB.Effects.Contract                    (ContractDefinitionStore, ContractEffect (..),
+                                                                 ContractStore)
+import           Plutus.PAB.Effects.Contract.CLI                (ContractExe, ContractExeLogMsg (..),
+                                                                 handleContractEffectContractExe)
+import           Plutus.PAB.Effects.ContractRuntime             (handleContractRuntime)
+import           Plutus.PAB.Effects.EventLog                    (EventLogEffect (..), handleEventLogSql)
+import           Plutus.PAB.Effects.UUID                        (UUIDEffect, handleUUIDEffect)
+import           Plutus.PAB.Events                              (PABEvent)
+import           Plutus.PAB.Monitoring.MonadLoggerBridge        (TraceLoggerT (..), monadLoggerTracer)
+import           Plutus.PAB.Monitoring.Monitoring               (handleLogMsgTrace, handleObserveTrace)
+import           Plutus.PAB.Monitoring.PABLogMsg                (PABLogMsg (..))
+import           Plutus.PAB.Types                               (Config (Config), PABError (..), chainIndexConfig,
+                                                                 dbConfig, metadataServerConfig, nodeServerConfig,
+                                                                 walletServerConfig)
+import           Servant.Client                                 (ClientEnv, ClientError, mkClientEnv)
+import           Wallet.Effects                                 (ChainIndexEffect, ContractRuntimeEffect,
+                                                                 NodeClientEffect, WalletEffect)
 
 ------------------------------------------------------------
 data Env =
@@ -90,6 +89,7 @@ type AppBackend m =
          , UUIDEffect
          , ContractEffect ContractExe
          , ContractDefinitionStore ContractExe
+         , ContractStore ContractExe
          , ChainIndexEffect
          , EventLogEffect (PABEvent ContractExe)
          , WebSocketEffect
@@ -164,7 +164,8 @@ runAppBackend instancesState trace loggingConfig config action = do
         . handleWebSocket
         . handleEventLogSql
         . handleChainIndex
-        . interpret _
+        . interpret handleContractStore
+        . interpret handleContractDefinitionStore
         . interpret (mapLog SContractExeLogMsg) . reinterpret handleContractEffectContractExe
         . handleUUIDEffect
         . handleMetadata

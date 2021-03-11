@@ -34,49 +34,48 @@ module Plutus.PAB.MockApp
     , processAllMsgBoxes
     ) where
 
-import qualified Cardano.Node.Types                    as NodeServer
-import           Control.Lens                          hiding (use)
-import           Control.Monad                         (void)
-import           Control.Monad.Freer                   (Eff, Member, interpret, reinterpret, runM, type (~>))
-import           Control.Monad.Freer.Error             (Error, handleError, runError, throwError)
-import           Control.Monad.Freer.Extras.Log        (LogMessage, LogMsg, handleLogWriter)
-import           Control.Monad.Freer.Extras.State      (use)
-import           Control.Monad.Freer.State             (State, runState)
-import           Control.Monad.Freer.Writer            (Writer)
-import           Control.Monad.IO.Class                (MonadIO (..))
-import           Data.Foldable                         (toList, traverse_)
-import           Data.Map                              (Map)
-import qualified Data.Map                              as Map
-import           Data.OpenUnion                        ((:++:))
-import           Data.Text                             (Text)
-import qualified Data.Text                             as Text
+import qualified Cardano.Node.Types                       as NodeServer
+import           Control.Lens                             hiding (use)
+import           Control.Monad                            (void)
+import           Control.Monad.Freer                      (Eff, Member, interpret, reinterpret, runM, type (~>))
+import           Control.Monad.Freer.Error                (Error, handleError, runError, throwError)
+import           Control.Monad.Freer.Extras.Log           (LogMessage, LogMsg, handleLogWriter)
+import           Control.Monad.Freer.Extras.State         (use)
+import           Control.Monad.Freer.State                (State, runState)
+import           Control.Monad.Freer.Writer               (Writer)
+import           Control.Monad.IO.Class                   (MonadIO (..))
+import           Data.Foldable                            (toList, traverse_)
+import           Data.Map                                 (Map)
+import qualified Data.Map                                 as Map
+import           Data.OpenUnion                           ((:++:))
+import           Data.Text                                (Text)
+import qualified Data.Text                                as Text
 import           Data.Text.Prettyprint.Doc
-import           Data.Text.Prettyprint.Doc.Render.Text (renderStrict)
-import           Ledger                                (Address, Blockchain, Slot)
+import           Data.Text.Prettyprint.Doc.Render.Text    (renderStrict)
+import qualified Plutus.Contract.Trace           as Trace
+import           Ledger                                   (Address, Blockchain, Slot)
 import qualified Ledger
-import qualified Ledger.AddressMap                     as AM
-import qualified Plutus.Contract.Trace                 as Trace
-import           Plutus.PAB.Command                    ()
+import qualified Ledger.AddressMap                        as AM
+import           Plutus.PAB.Command                       ()
 import           Plutus.PAB.Core
-import           Plutus.PAB.Core.ContractInstance      (defaultMaxIterations)
-import           Plutus.PAB.Effects.ContractTest       (ContractTestMsg, TestContracts)
-import           Plutus.PAB.Effects.MultiAgent         (AgentState, MultiAgentPABEffect, PABMultiAgentMsg)
-import qualified Plutus.PAB.Effects.MultiAgent         as PAB.MultiAgent
-import           Plutus.PAB.Effects.UUID               (UUIDEffect, handleUUIDEffect)
-import           Plutus.PAB.Types                      (PABError (..))
-import           Test.QuickCheck.Instances.UUID        ()
+import           Plutus.PAB.Effects.Contract.ContractTest (ContractTestMsg, TestContracts)
+import           Plutus.PAB.Effects.MultiAgent            (AgentState, MultiAgentPABEffect, PABMultiAgentMsg)
+import qualified Plutus.PAB.Effects.MultiAgent            as PAB.MultiAgent
+import           Plutus.PAB.Effects.UUID                  (UUIDEffect, handleUUIDEffect)
+import           Plutus.PAB.Types                         (PABError (..))
+import           Test.QuickCheck.Instances.UUID           ()
 
-import qualified Cardano.ChainIndex.Types              as ChainIndex
-import           Cardano.Node.Types                    (MockServerLogMsg)
-import           Control.Monad.Freer.Extras.Modify     (handleZoomedState, handleZoomedWriter, writeIntoState)
-import           Wallet.API                            (WalletAPIError)
-import           Wallet.Emulator.Chain                 (ChainControlEffect (..), ChainEffect, ChainEvent, ChainState,
-                                                        handleChain, handleControlChain, processBlock)
+import qualified Cardano.ChainIndex.Types                 as ChainIndex
+import           Cardano.Node.Types                       (MockServerLogMsg)
+import           Control.Monad.Freer.Extras.Modify        (handleZoomedState, handleZoomedWriter, writeIntoState)
+import           Wallet.API                               (WalletAPIError)
+import           Wallet.Emulator.Chain                    (ChainControlEffect (..), ChainEffect, ChainEvent, ChainState,
+                                                           handleChain, handleControlChain, processBlock)
 import qualified Wallet.Emulator.Chain
-import           Wallet.Emulator.ChainIndex            (ChainIndexEvent, chainIndexNotify)
-import           Wallet.Emulator.MultiAgent            (EmulatorEvent, _singleton, chainEvent, emulatorTimeEvent)
-import           Wallet.Emulator.NodeClient            (ChainClientNotification (..))
-import           Wallet.Emulator.Wallet                (Wallet (..))
+import           Wallet.Emulator.ChainIndex               (ChainIndexEvent, chainIndexNotify)
+import           Wallet.Emulator.MultiAgent               (EmulatorEvent, _singleton, chainEvent, emulatorTimeEvent)
+import           Wallet.Emulator.NodeClient               (ChainClientNotification (..))
+import           Wallet.Emulator.Wallet                   (Wallet (..))
 
 data TestState =
     TestState
@@ -290,10 +289,7 @@ processMsgBox ::
     )
     => Wallet
     -> Eff effs ()
-processMsgBox wllt = do
-    PAB.MultiAgent.agentAction wllt $ do
-        processAllContractInboxes @TestContracts
-        processAllContractOutboxes @TestContracts defaultMaxIterations
+processMsgBox wllt = pure () -- FIXME: Repair mock app
 
 -- | Process the message boxes of wallets 1-10.
 processAllMsgBoxes :: Member MultiAgentPABEffect effs => Eff effs ()

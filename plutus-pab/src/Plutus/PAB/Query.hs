@@ -15,10 +15,12 @@
 -- a memory of the last event they saw, such that if you rerun a
 -- projection, it will only process new events, rather than
 -- recalculating the fold from scratch.
+-- FIXME: Move this to Plutus.PAB.Db.Eventful.XXX namespace
 module Plutus.PAB.Query
     ( utxoAt
     , nullProjection
     , pureProjection
+    , setProjection
     -- * Queries related to the installed and active contracts
     , activeContractHistoryProjection
     , activeContractsProjection

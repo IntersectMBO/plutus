@@ -80,6 +80,8 @@ library
         Plutus.PAB.Core.ContractInstance.RequestHandlers
         Plutus.PAB.Core.ContractInstance.STM
         Plutus.PAB.Core.Projections
+        Plutus.PAB.Db.Eventful.ContractDefinitionStore
+        Plutus.PAB.Db.Eventful.ContractStore
         Plutus.PAB.Effects.Contract
         Plutus.PAB.Effects.Contract.ContractTest
         Plutus.PAB.Effects.Contract.CLI
