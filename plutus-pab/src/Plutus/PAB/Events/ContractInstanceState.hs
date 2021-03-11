@@ -7,6 +7,8 @@
 module Plutus.PAB.Events.ContractInstanceState(
     ContractInstanceState(..)
     , PartiallyDecodedResponse(..)
+    , toResp
+    , fromResp
     , hasActiveRequests
     ) where
 
@@ -22,18 +24,29 @@ import           Plutus.Contract.Resumable (IterationID)
 import qualified Plutus.Contract.Resumable as Contract
 import qualified Plutus.Contract.State     as Contract
 import           Plutus.PAB.Effects.Contract        (PABContract (..))
-import           Plutus.PAB.Events.Contract         (ContractPABRequest)
+import           Plutus.PAB.Events.Contract         (ContractPABRequest, ContractResponse (..))
 import           Wallet.Types                       (ContractInstanceId)
 
+-- FIXME: ContractResponse Value Value Value h
 data PartiallyDecodedResponse v =
     PartiallyDecodedResponse
         { newState        :: Contract.State Value
         , hooks           :: [Contract.Request v]
         , logs            :: [LogMessage Value]
+        , err             :: Maybe Value
         , observableState :: Value
         }
     deriving (Show, Eq, Generic, Functor, Foldable, Traversable)
     deriving anyclass (ToJSON, FromJSON)
+
+
+toResp :: PartiallyDecodedResponse v -> Contract.ContractResponse Value Value Value v
+toResp PartiallyDecodedResponse{newState, hooks, logs, err, observableState} =
+    Contract.ContractResponse{Contract.newState = newState, Contract.hooks=hooks, Contract.logs=logs, Contract.err=err, Contract.observableState=observableState}
+
+fromResp :: Contract.ContractResponse Value Value Value v -> PartiallyDecodedResponse v
+fromResp Contract.ContractResponse{Contract.newState, Contract.hooks, Contract.logs, Contract.err, Contract.observableState} =
+    PartiallyDecodedResponse{newState, hooks, logs, err, observableState}
 
 instance Pretty v => Pretty (PartiallyDecodedResponse v) where
     pretty PartiallyDecodedResponse {newState, hooks} =

@@ -36,7 +36,7 @@ import           Ledger.Tx                               (Tx)
 import           Plutus.Contract.State                   (ContractRequest)
 import           Plutus.PAB.Core                         (CoreMsg (..))
 import           Plutus.PAB.Core.ContractInstance        (ContractInstanceMsg (..))
-import           Plutus.PAB.Effects.Contract.CLI         (ContractExe)
+import           Plutus.PAB.Effects.Contract.CLI         (ContractExe, ContractExeLogMsg)
 import           Plutus.PAB.Effects.ContractRuntime      (ContractRuntimeMsg)
 import           Plutus.PAB.Events.Contract              (ContractInstanceId, ContractPABRequest)
 import           Plutus.PAB.Events.ContractInstanceState (PartiallyDecodedResponse)
@@ -109,47 +109,6 @@ instance Pretty PABLogMsg where
         SMockserverLogMsg m    -> pretty m
 
 
--- | Messages from the Signing Process
-
-data ContractExeLogMsg =
-    InvokeContractMsg
-    | InitContractMsg FilePath
-    | UpdateContractMsg FilePath (ContractRequest Value)
-    | ExportSignatureMsg FilePath
-    | ProcessExitFailure String
-    | ContractResponse String
-    | Migrating
-    | InvokingEndpoint String Value
-    | EndpointInvocationResponse [Text]
-    | ContractExePABError PABError
-    | StartingPABBackendServer Int
-    | StartingMetadataServer Int
-    deriving stock (Show, Generic)
-    deriving anyclass (ToJSON, FromJSON)
-
-instance Pretty ContractExeLogMsg where
-    pretty = \case
-        InvokeContractMsg -> "InvokeContract"
-        InitContractMsg fp -> fromString fp <+> "init"
-        UpdateContractMsg fp vl ->
-            let pl = BSL8.unpack (JSON.encodePretty vl) in
-            fromString fp
-            <+> "update"
-            <+> fromString pl
-        ExportSignatureMsg fp -> fromString fp <+> "export-signature"
-        ProcessExitFailure err -> "ExitFailure" <+> pretty err
-        ContractResponse str -> pretty str
-        Migrating -> "Migrating"
-        InvokingEndpoint s v ->
-            "Invoking:" <+> pretty s <+> "/" <+> viaShow v
-        EndpointInvocationResponse v ->
-            hang 2 $ vsep ("Invocation response:" : fmap pretty v)
-        ContractExePABError e ->
-            "PAB error:" <+> pretty e
-        StartingPABBackendServer port ->
-            "Starting PAB backend server on port:" <+> pretty port
-        StartingMetadataServer port ->
-            "Starting metadata server on port:" <+> pretty port
 
 {- ToObject instances
 
@@ -211,37 +170,3 @@ instance ToObject PABLogMsg where
         SWalletMsg m           -> toObject v m
         SMetaDataLogMsg m      -> toObject v m
         SMockserverLogMsg m    -> toObject v m
-
-instance ToObject ContractExeLogMsg where
-    toObject v = \case
-        InvokeContractMsg -> mkObjectStr "invoking contract" ()
-        InitContractMsg fp ->
-            mkObjectStr "Initialising contract" (Tagged @"file_path" fp)
-        UpdateContractMsg fp rq ->
-            let f =  Tagged @"file_path" fp in
-            mkObjectStr "updating contract" $ case v of
-                MaximalVerbosity -> Left (f, rq)
-                _                -> Right f
-        ExportSignatureMsg fp ->
-            mkObjectStr "exporting signature" (Tagged @"file_path" fp)
-        ProcessExitFailure f ->
-            mkObjectStr "process exit failure" (Tagged @"error" f)
-        ContractResponse r ->
-            mkObjectStr "received contract response" $
-                case v of
-                    MaximalVerbosity -> Left (Tagged @"response" r)
-                    _                -> Right ()
-        Migrating -> mkObjectStr "migrating database" ()
-        InvokingEndpoint ep vl ->
-            mkObjectStr "Invoking endpoint" $
-                case v of
-                    MinimalVerbosity -> Left (Tagged @"endpoint" ep)
-                    _                -> Right (Tagged @"endpoint" ep, Tagged @"argument" vl)
-        EndpointInvocationResponse lns ->
-            mkObjectStr "endpoint invocation response"  (Tagged @"reponse" lns)
-        ContractExePABError err ->
-            mkObjectStr "contract executable error" (Tagged @"error" err)
-        StartingPABBackendServer i ->
-            mkObjectStr "starting PAB backend server" (Tagged @"port" i)
-        StartingMetadataServer i ->
-            mkObjectStr "starting PAB metadata server" (Tagged @"port" i)

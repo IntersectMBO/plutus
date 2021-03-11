@@ -50,25 +50,25 @@ import           Database.Persist.Sqlite                 (runSqlPool)
 import           Eventful.Store.Sqlite                   (initializeSqliteEventStore)
 import           Network.HTTP.Client                     (managerModifyRequest, newManager, setRequestIgnoreStatus)
 import           Network.HTTP.Client.TLS                 (tlsManagerSettings)
-import           Plutus.PAB.Core                         (Connection (Connection),
-                                                          ContractCommand (InitContract, UpdateContract), dbConnect)
-import           Plutus.PAB.Effects.Contract             (ContractEffect (..))
+import           Plutus.PAB.Core                         (Connection (Connection), dbConnect)
+import           Plutus.PAB.Core.ContractInstance.STM    (InstancesState)
+import           Plutus.PAB.Effects.Contract             (ContractDefinitionStore, ContractEffect (..))
+import           Plutus.PAB.Effects.Contract.CLI         (ContractExe, ContractExeLogMsg (..),
+                                                          handleContractEffectContractExe)
 import           Plutus.PAB.Effects.ContractRuntime      (handleContractRuntime)
 import           Plutus.PAB.Effects.EventLog             (EventLogEffect (..), handleEventLogSql)
 import           Plutus.PAB.Effects.UUID                 (UUIDEffect, handleUUIDEffect)
-import           Plutus.PAB.Events                       (ChainEvent)
+import           Plutus.PAB.Events                       (PABEvent)
 import           Plutus.PAB.Monitoring.MonadLoggerBridge (TraceLoggerT (..), monadLoggerTracer)
 import           Plutus.PAB.Monitoring.Monitoring        (handleLogMsgTrace, handleObserveTrace)
 import           Plutus.PAB.Monitoring.PABLogMsg         (ContractExeLogMsg (..), PABLogMsg (..))
-import           Plutus.PAB.Types                        (Config (Config), ContractExe (..), PABError (..),
-                                                          chainIndexConfig, dbConfig, metadataServerConfig,
-                                                          nodeServerConfig, walletServerConfig)
+import           Plutus.PAB.Types                        (Config (Config), PABError (..), chainIndexConfig, dbConfig,
+                                                          metadataServerConfig, nodeServerConfig, walletServerConfig)
 import           Servant.Client                          (ClientEnv, ClientError, mkClientEnv)
 import           System.Exit                             (ExitCode (ExitFailure, ExitSuccess))
 import           System.Process                          (readProcessWithExitCode)
 import           Wallet.Effects                          (ChainIndexEffect, ContractRuntimeEffect, NodeClientEffect,
                                                           WalletEffect)
-
 
 ------------------------------------------------------------
 data Env =
@@ -89,8 +89,9 @@ type AppBackend m =
          , MetadataEffect
          , UUIDEffect
          , ContractEffect ContractExe
+         , ContractDefinitionStore ContractExe
          , ChainIndexEffect
-         , EventLogEffect (ChainEvent ContractExe)
+         , EventLogEffect (PABEvent ContractExe)
          , WebSocketEffect
          , Error PABError
          , LogMsg PABLogMsg
@@ -98,6 +99,7 @@ type AppBackend m =
          , Reader Connection
          , Reader Config
          , Reader Env
+         , Reader InstancesState
          , m
          ]
 
@@ -108,12 +110,13 @@ runAppBackend ::
     , MonadLogger m
     , MonadCatch m
     )
-    => Trace m PABLogMsg -- ^ Top-level tracer
+    => InstancesState -- ^ State of currently active contract instances
+    -> Trace m PABLogMsg -- ^ Top-level tracer
     -> CM.Configuration -- ^ Logging / monitoring configuration
     -> Config -- ^ Client configuration
     -> Eff (AppBackend m) a -- ^ Action
     -> m (Either PABError a)
-runAppBackend trace loggingConfig config action = do
+runAppBackend instancesState trace loggingConfig config action = do
     env@Env { dbConnection
             , nodeClientEnv
             , metadataClientEnv
@@ -151,6 +154,7 @@ runAppBackend trace loggingConfig config action = do
 
 
     runM
+        . runReader instancesState
         . runReader env
         . runReader config
         . runReader dbConnection
@@ -160,12 +164,13 @@ runAppBackend trace loggingConfig config action = do
         . handleWebSocket
         . handleEventLogSql
         . handleChainIndex
-        . interpret (mapLog SContractExeLogMsg) . reinterpret handleContractEffectApp
+        . interpret _
+        . interpret (mapLog SContractExeLogMsg) . reinterpret handleContractEffectContractExe
         . handleUUIDEffect
         . handleMetadata
         . handleNodeClient
         . handleWallet
-        . interpret (mapLog SContractRuntimeMsg) . interpret (mapLog SContractInstanceMsg) . reinterpret2 (handleContractRuntime @ContractExe)
+        . interpret (mapLog SContractRuntimeMsg) . interpret (mapLog SContractInstanceMsg) . reinterpret2 (handleContractRuntime @ContractExe @m)
         $ handleRandomTx action
 
 type App a = Eff (AppBackend (TraceLoggerT IO)) a
@@ -191,52 +196,12 @@ mkEnv Config { dbConfig
         newManager $
         tlsManagerSettings {managerModifyRequest = pure . setRequestIgnoreStatus}
 
-runApp :: Trace IO PABLogMsg -> CM.Configuration -> Config -> App a -> IO (Either PABError a)
-runApp theTrace logConfig config action =
+runApp :: InstancesState -> Trace IO PABLogMsg -> CM.Configuration -> Config -> App a -> IO (Either PABError a)
+runApp instancesState theTrace logConfig config action =
     runTraceLoggerT
     -- see note [Use of iohk-monitoring in PAB]
-    (runAppBackend @(TraceLoggerT IO) (monadLoggerTracer theTrace) logConfig config action)
+    (runAppBackend @(TraceLoggerT IO) instancesState (monadLoggerTracer theTrace) logConfig config action)
     (contramap (second (fmap SLoggerBridge)) theTrace)
-
-handleContractEffectApp ::
-       ( Member (LogMsg ContractExeLogMsg) effs
-       , Member (Error PABError) effs
-       , LastMember m effs
-       , MonadIO m)
-    => ContractEffect ContractExe
-    ~> Eff effs
-handleContractEffectApp =
-    \case
-        InvokeContract contractCommand -> do
-            logDebug InvokeContractMsg
-            case contractCommand of
-                InitContract (ContractExe contractPath) -> do
-                    logDebug $ InitContractMsg contractPath
-                    liftProcess $ readProcessWithExitCode contractPath ["init"] ""
-                UpdateContract (ContractExe contractPath) payload -> do
-                    let pl = BSL8.unpack (JSON.encodePretty payload)
-                    logDebug $ UpdateContractMsg contractPath payload
-                    liftProcess $ readProcessWithExitCode contractPath ["update"] pl
-        ExportSchema (ContractExe contractPath) -> do
-            logDebug $ ExportSignatureMsg contractPath
-            liftProcess $
-                readProcessWithExitCode contractPath ["export-signature"] ""
-
-liftProcess ::
-       (LastMember m effs, MonadIO m, FromJSON b, Member (LogMsg ContractExeLogMsg) effs, Member (Error PABError) effs)
-    => IO (ExitCode, String, String)
-    -> Eff effs b
-liftProcess process = do
-    (exitCode, stdout, stderr) <- sendM $ liftIO process
-    case exitCode of
-        ExitFailure code -> do
-            logDebug $ ProcessExitFailure stderr
-            throwError $ ContractCommandError code (Text.pack stderr)
-        ExitSuccess -> do
-            logDebug $ ContractResponse stdout
-            case eitherDecode (BSL8.pack stdout) of
-                Right value -> pure value
-                Left err    -> throwError $ ContractCommandError 0 (Text.pack err)
 
 -- | Initialize/update the database to hold events.
 migrate :: App ()

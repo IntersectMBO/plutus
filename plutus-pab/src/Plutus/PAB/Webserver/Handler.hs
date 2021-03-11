@@ -1,3 +1,4 @@
+{-# LANGUAGE AllowAmbiguousTypes   #-}
 {-# LANGUAGE DataKinds             #-}
 {-# LANGUAGE DerivingStrategies    #-}
 {-# LANGUAGE FlexibleContexts      #-}
@@ -19,7 +20,7 @@ module Plutus.PAB.Webserver.Handler
     , getContractReport
     , getEvents
     , contractSchema
-    , invokeEndpoint
+    , invokeEndpointSTM
     ) where
 
 import           Cardano.Metadata.Types                           (MetadataEffect, QueryResult, Subject,
@@ -50,11 +51,14 @@ import qualified Plutus.PAB.Core.ContractInstance                 as Instance
 import qualified Plutus.PAB.Core.ContractInstance.RequestHandlers as LM
 import           Plutus.PAB.Core.ContractInstance.STM             (InstancesState, callEndpointOnInstance)
 import           Plutus.PAB.Effects.Contract                      (ContractDefinitionStore, ContractEffect,
-                                                                   exportSchema, getDefinitions)
+                                                                   ContractStore, PABContract (..), exportSchema,
+                                                                   getDefinitions)
 import           Plutus.PAB.Effects.Contract.CLI                  (ContractExe)
 import           Plutus.PAB.Effects.EventLog                      (EventLogEffect)
 import           Plutus.PAB.Effects.UUID                          (UUIDEffect)
-import           Plutus.PAB.Events                                (PABEvent, csContractDefinition)
+import           Plutus.PAB.Events                                (PABEvent)
+import           Plutus.PAB.Events.Contract                       (ContractPABRequest)
+import           Plutus.PAB.Events.ContractInstanceState          (PartiallyDecodedResponse)
 import qualified Plutus.PAB.Monitoring.PABLogMsg                  as LM
 import           Plutus.PAB.ParseStringifiedJSON                  (UnStringifyJSONLog, parseStringifiedJSON)
 import qualified Plutus.PAB.Query                                 as Query
@@ -64,6 +68,7 @@ import           Servant                                          ((:<|>) ((:<|>
 import           Wallet.Effects                                   (ChainIndexEffect, confirmedBlocks)
 import           Wallet.Emulator.Wallet                           (Wallet (Wallet), walletPubKey)
 import qualified Wallet.Rollup                                    as Rollup
+import           Wallet.Types                                     (ContractInstanceId (..), NotificationError)
 
 healthcheck :: Monad m => m ()
 healthcheck = pure ()
@@ -73,8 +78,10 @@ getContractReport ::
        ( Member (ContractDefinitionStore t) effs
        , Member (ContractEffect t) effs
        , Ord t
+       , PABContract t
+       , Member (EventLogEffect (PABEvent (ContractDef t))) effs
        )
-    => Eff effs (ContractReport t)
+    => Eff effs (ContractReport (ContractDef t))
 getContractReport = do
     installedContracts <- getDefinitions @t
     crAvailableContracts <-
@@ -82,7 +89,7 @@ getContractReport = do
             (\t -> ContractSignatureResponse t <$> exportSchema @t t)
             installedContracts
     crActiveContractStates <-
-        Map.elems <$> runGlobalQuery (Query.contractState @t)
+        Map.toList <$> runGlobalQuery (Query.contractState @(ContractDef t))
     pure ContractReport {crAvailableContracts, crActiveContractStates}
 
 getChainReport ::
@@ -118,42 +125,43 @@ getChainReport = do
             }
 
 getEvents ::
-       forall t effs. (Member (EventLogEffect (PABEvent t)) effs)
-    => Eff effs [PABEvent t]
+       forall t effs. (Member (EventLogEffect (PABEvent (ContractDef t))) effs)
+    => Eff effs [PABEvent (ContractDef t)]
 getEvents = fmap streamEventEvent <$> runGlobalQuery Query.pureProjection
 
 getFullReport ::
        forall t effs.
-       ( Member (EventLogEffect (PABEvent t)) effs
+       ( Member (EventLogEffect (PABEvent (ContractDef t))) effs
        , Member (ContractEffect t) effs
        , Member ChainIndexEffect effs
        , Member MetadataEffect effs
        , Ord t
+       , Member (ContractDefinitionStore t) effs
+       , PABContract t
        )
-    => Eff effs (FullReport t)
+    => Eff effs (FullReport (ContractDef t))
 getFullReport = do
     events <- fmap streamEventEvent <$> runGlobalQuery Query.pureProjection
-    contractReport <- getContractReport
+    contractReport <- getContractReport @t
     chainReport <- getChainReport
     pure FullReport {contractReport, chainReport, events}
 
 contractSchema ::
        forall t effs.
-       ( Member (EventLogEffect (PABEvent t)) effs
+       ( Member (EventLogEffect (PABEvent (ContractDef t))) effs
        , Member (ContractEffect t) effs
        , Member (Error PABError) effs
+       , PABContract t
        )
     => ContractInstanceId
-    -> Eff effs (ContractSignatureResponse t)
+    -> Eff effs (ContractSignatureResponse (ContractDef t))
 contractSchema contractId = do
-    ContractInstanceState {csContractDefinition} <-
-        getContractInstanceState @t contractId
-    ContractSignatureResponse csContractDefinition <$>
-        exportSchema csContractDefinition
+    definition <- getContractInstanceDefinition @t contractId
+    ContractSignatureResponse definition <$> exportSchema @t definition
 
 activateContract ::
        forall t m appBackend effs.
-       ( Member (EventLogEffect (PABEvent t)) effs
+       ( Member (EventLogEffect (PABEvent (ContractDef t))) effs
        , Instance.AppBackendConstraints t m appBackend
        , Member (Error PABError) effs
        , Member (ContractEffect t) effs
@@ -164,58 +172,45 @@ activateContract ::
        , LastMember m effs
        , LastMember m (Reader ContractInstanceId ': appBackend)
        , Member (Reader InstancesState) effs
+       , Member (ContractStore t) effs
+       , PABContract t
        )
     => (Eff appBackend ~> IO) -- ^ How to run the @appBackend@ effects in a new thread.
-    -> t -- ^ The contract that is to be activated
-    -> Eff effs (ContractInstanceState t)
+    -> ContractDef t -- ^ The contract that is to be activated
+    -> Eff effs ContractInstanceId
 activateContract = Core.activateContractSTM @t @m @appBackend @effs
 
 getContractInstanceState ::
        forall t effs.
-       ( Member (EventLogEffect (PABEvent t)) effs
+       ( Member (EventLogEffect (PABEvent (ContractDef t))) effs
        , Member (Error PABError) effs
        )
     => ContractInstanceId
-    -> Eff effs (ContractInstanceState t)
+    -> Eff effs (PartiallyDecodedResponse ContractPABRequest)
 getContractInstanceState contractId = do
-    contractStates <- runGlobalQuery (Query.contractState @t)
+    contractStates <- runGlobalQuery (Query.contractState @(ContractDef t))
     case Map.lookup contractId contractStates of
         Nothing    -> throwError $ ContractInstanceNotFound contractId
         Just value -> pure value
 
-invokeEndpoint ::
-       forall t m effs.
-       ( Member (EventLogEffect (PABEvent t)) effs
-       , Member (LogMsg LM.ContractExeLogMsg) effs
+getContractInstanceDefinition ::
+       forall t effs.
+       ( Member (EventLogEffect (PABEvent (ContractDef t))) effs
        , Member (Error PABError) effs
-       , Member (LogMsg (Instance.ContractInstanceMsg t)) effs
-       , Member (Reader InstancesState) effs
-       , Pretty t
-       , MonadIO m
-       , LastMember m effs
        )
-    => EndpointDescription
-    -> JSON.Value
-    -> ContractInstanceId
-    -> Eff effs (ContractInstanceState t)
-invokeEndpoint (EndpointDescription endpointDescription) payload contractId = do
-    logInfo $ LM.InvokingEndpoint endpointDescription payload
-    env <- ask @InstancesState
-    result <- liftIO $ atomically $ Instance.callEndpointOnInstance env (EndpointDescription endpointDescription) payload contractId
-    -- newState :: [PABEvent t] <-
-    --     Instance.callContractEndpoint @t contractId endpointDescription payload
-    -- logInfo $
-    --     LM.EndpointInvocationResponse $
-    --     fmap
-    --         (renderStrict . layoutPretty defaultLayoutOptions . pretty)
-    --         newState
-    getContractInstanceState contractId
+    => ContractInstanceId
+    -> Eff effs (ContractDef t)
+getContractInstanceDefinition contractId = do
+    contractDefinitions <- runGlobalQuery (Query.contractDefinition @(ContractDef t))
+    case Map.lookup contractId contractDefinitions of
+        Nothing    -> throwError $ ContractInstanceNotFound contractId
+        Just value -> pure value
 
 -- | Call an endpoint using the STM-based contract runner.
 invokeEndpointSTM ::
        forall t m effs.
-       ( Member (EventLogEffect (PABEvent t)) effs
-       , Member (LogMsg LM.ContractExeLogMsg) effs
+       ( Member (EventLogEffect (PABEvent (ContractDef t))) effs
+       , Member (LogMsg (LM.ContractInstanceMsg t)) effs
        , Member (Error PABError) effs
        , Member (Reader InstancesState) effs
        , Member (LogMsg (Instance.ContractInstanceMsg t)) effs
@@ -225,13 +220,13 @@ invokeEndpointSTM ::
     => EndpointDescription
     -> JSON.Value
     -> ContractInstanceId
-    -> Eff effs (ContractInstanceState t)
+    -> Eff effs (Maybe NotificationError)
 invokeEndpointSTM d@(EndpointDescription endpointDescription) payload contractId = do
-    logInfo $ LM.InvokingEndpoint endpointDescription payload
+    logInfo @(LM.ContractInstanceMsg t) $ LM.CallingEndpoint endpointDescription contractId payload
     inst <- ask @InstancesState
     response <- liftIO $ atomically $ callEndpointOnInstance inst d payload contractId
     traverse_ (logWarn @(Instance.ContractInstanceMsg t) . LM.NotificationFailed) response
-    getContractInstanceState contractId
+    pure response
 
 parseContractId ::
        (Member (Error PABError) effs) => Text -> Eff effs ContractInstanceId
@@ -254,26 +249,28 @@ handler ::
        , Instance.AppBackendConstraints ContractExe m appBackend
        , LastMember m effs
        , Member (Reader InstancesState) effs
+       , Member (ContractDefinitionStore ContractExe) effs
+       , Member (ContractStore ContractExe) effs
        , LastMember m (Reader ContractInstanceId ': appBackend)
        )
     => (Eff appBackend ~> IO)
     -> Eff effs ()
        :<|> (Eff effs (FullReport ContractExe)
-             :<|> (ContractExe -> Eff effs (ContractInstanceState ContractExe))
+             :<|> (ContractExe -> Eff effs ContractInstanceId)
              :<|> (Text -> Eff effs (ContractSignatureResponse ContractExe)
-                           :<|> (String -> JSON.Value -> Eff effs (ContractInstanceState ContractExe))))
+                           :<|> (String -> JSON.Value -> Eff effs (Maybe NotificationError))))
 handler runAppBackend =
-    healthcheck :<|> getFullReport :<|>
+    healthcheck :<|> getFullReport @ContractExe :<|>
     (activateContract @ContractExe @m @appBackend runAppBackend :<|> byContractInstanceId)
   where
     byContractInstanceId rawInstanceId =
         (do instanceId <- parseContractId rawInstanceId
-            contractSchema instanceId) :<|>
+            contractSchema @ContractExe instanceId) :<|>
         handleInvokeEndpoint rawInstanceId
     handleInvokeEndpoint rawInstanceId rawEndpointDescription rawPayload = do
         instanceId <- parseContractId rawInstanceId
         payload <- parseStringifiedJSON rawPayload
-        invokeEndpointSTM
+        invokeEndpointSTM @ContractExe
             (EndpointDescription rawEndpointDescription)
             payload
             instanceId

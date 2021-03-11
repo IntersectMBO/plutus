@@ -18,6 +18,7 @@
 module Plutus.PAB.Query
     ( utxoAt
     , nullProjection
+    , pureProjection
     -- * Queries related to the installed and active contracts
     , activeContractHistoryProjection
     , activeContractsProjection
@@ -25,6 +26,7 @@ module Plutus.PAB.Query
     , installedContractsProjection
     -- * Queries related to contract instances
     , contractState
+    , contractDefinition
     ) where
 
 import           Control.Lens
@@ -105,7 +107,6 @@ utxoAt (txById, UtxoIndex utxoIndex) address =
                 utxoIndex
      in UtxoAtAddress {address, utxo}
 
-
 -- | The last known state of the contract.
 contractState :: forall t key position. Projection (Map ContractInstanceId (PartiallyDecodedResponse ContractPABRequest)) (StreamEvent key position (PABEvent t))
 contractState =
@@ -113,6 +114,20 @@ contractState =
         projectionEventHandler oldMap = \case
             (StreamEvent _ _ (UpdateContractInstanceState _ i s)) ->
                 Map.union (Map.singleton i s) oldMap
+            _ -> oldMap
+
+    in Projection
+        { projectionSeed = Map.empty
+        , projectionEventHandler
+        }
+
+-- | The definition of the contract.
+contractDefinition :: forall t key position. Projection (Map ContractInstanceId t) (StreamEvent key position (PABEvent t))
+contractDefinition =
+    let projectionEventHandler :: Map ContractInstanceId t -> StreamEvent key position (PABEvent t) -> Map ContractInstanceId t
+        projectionEventHandler oldMap = \case
+            (StreamEvent _ _ (UpdateContractInstanceState d i _)) ->
+                Map.union (Map.singleton i d) oldMap
             _ -> oldMap
 
     in Projection

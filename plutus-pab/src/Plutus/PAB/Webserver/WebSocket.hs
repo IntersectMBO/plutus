@@ -4,38 +4,41 @@
 {-# LANGUAGE KindSignatures      #-}
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TypeApplications    #-}
 
 module Plutus.PAB.Webserver.WebSocket
     ( handleWS
     ) where
 
-import qualified Cardano.BM.Configuration.Model  as CM
-import           Cardano.BM.Trace                (Trace)
-import           Cardano.Metadata.Types          (MetadataEffect)
-import qualified Cardano.Metadata.Types          as Metadata
-import           Control.Concurrent.Async        (Async, async, waitAnyCancel)
-import           Control.Exception               (SomeException, handle)
-import           Control.Monad                   (forever, void, when)
-import           Control.Monad.Freer             (Eff, LastMember, Member, interpret)
-import           Control.Monad.Freer.Delay       (DelayEffect, delayThread, handleDelayEffect)
-import           Control.Monad.Freer.Extras.Log  (LogMsg, logDebug, logInfo, mapLog)
-import           Control.Monad.Freer.Reader      (Reader, ask)
-import           Control.Monad.Freer.WebSocket   (WebSocketEffect, acceptConnection, receiveJSON, sendJSON)
-import           Control.Monad.IO.Class          (MonadIO, liftIO)
-import           Data.Aeson                      (ToJSON)
-import           Data.Time.Units                 (Second, TimeUnit)
-import           Network.WebSockets.Connection   (Connection, PendingConnection, withPingThread)
-import           Plutus.PAB.App                  (runApp)
-import           Plutus.PAB.Effects.Contract     (ContractEffect)
-import           Plutus.PAB.Effects.EventLog     (EventLogEffect)
-import           Plutus.PAB.Events               (ChainEvent)
-import qualified Plutus.PAB.Monitoring.PABLogMsg as LM
-import           Plutus.PAB.Types                (Config, ContractExe, PABError)
-import           Plutus.PAB.Webserver.Handler    (getChainReport, getContractReport, getEvents)
-import           Plutus.PAB.Webserver.Types      (StreamToClient (ErrorResponse, FetchedProperties, FetchedProperty, NewChainEvents, NewChainReport, NewContractReport),
-                                                  StreamToServer (FetchProperties, FetchProperty),
-                                                  WebSocketLogMsg (ClosedConnection, CreatedConnection, ReceivedWebSocketRequest, SendingWebSocketResponse))
-import           Wallet.Effects                  (ChainIndexEffect)
+import qualified Cardano.BM.Configuration.Model       as CM
+import           Cardano.BM.Trace                     (Trace)
+import           Cardano.Metadata.Types               (MetadataEffect)
+import qualified Cardano.Metadata.Types               as Metadata
+import           Control.Concurrent.Async             (Async, async, waitAnyCancel)
+import           Control.Exception                    (SomeException, handle)
+import           Control.Monad                        (forever, void, when)
+import           Control.Monad.Freer                  (Eff, LastMember, Member, interpret)
+import           Control.Monad.Freer.Delay            (DelayEffect, delayThread, handleDelayEffect)
+import           Control.Monad.Freer.Extras.Log       (LogMsg, logDebug, logInfo, mapLog)
+import           Control.Monad.Freer.Reader           (Reader, ask)
+import           Control.Monad.Freer.WebSocket        (WebSocketEffect, acceptConnection, receiveJSON, sendJSON)
+import           Control.Monad.IO.Class               (MonadIO, liftIO)
+import           Data.Aeson                           (ToJSON)
+import           Data.Time.Units                      (Second, TimeUnit)
+import           Network.WebSockets.Connection        (Connection, PendingConnection, withPingThread)
+import           Plutus.PAB.App                       (runApp)
+import           Plutus.PAB.Core.ContractInstance.STM (InstancesState)
+import           Plutus.PAB.Effects.Contract          (ContractDefinitionStore, ContractEffect)
+import           Plutus.PAB.Effects.Contract.CLI      (ContractExe)
+import           Plutus.PAB.Effects.EventLog          (EventLogEffect)
+import           Plutus.PAB.Events                    (PABEvent)
+import qualified Plutus.PAB.Monitoring.PABLogMsg      as LM
+import           Plutus.PAB.Types                     (Config, PABError)
+import           Plutus.PAB.Webserver.Handler         (getChainReport, getContractReport, getEvents)
+import           Plutus.PAB.Webserver.Types           (StreamToClient (ErrorResponse, FetchedProperties, FetchedProperty, NewChainReport, NewContractReport, NewPABEvents),
+                                                       StreamToServer (FetchProperties, FetchProperty),
+                                                       WebSocketLogMsg (ClosedConnection, CreatedConnection, ReceivedWebSocketRequest, SendingWebSocketResponse))
+import           Wallet.Effects                       (ChainIndexEffect)
 
 ------------------------------------------------------------
 -- Message processors.
@@ -52,24 +55,25 @@ chainReportThread = watchAndNotify (5 :: Second) getChainReport NewChainReport
 
 contractStateThread ::
        ( Member WebSocketEffect effs
-       , Member (EventLogEffect (ChainEvent ContractExe)) effs
+       , Member (EventLogEffect (PABEvent ContractExe)) effs
        , Member (ContractEffect ContractExe) effs
        , Member DelayEffect effs
+       , Member (ContractDefinitionStore ContractExe) effs
        )
     => Connection
     -> Eff effs ()
 contractStateThread =
-    watchAndNotify (3 :: Second) getContractReport NewContractReport
+    watchAndNotify (3 :: Second) (getContractReport @ContractExe) NewContractReport
 
 eventsThread ::
        ( Member WebSocketEffect effs
-       , Member (EventLogEffect (ChainEvent ContractExe)) effs
+       , Member (EventLogEffect (PABEvent ContractExe)) effs
        , Member DelayEffect effs
        )
     => Connection
     -> Eff effs ()
 eventsThread =
-    watchAndNotify (15 :: Second) getEvents NewChainEvents
+    watchAndNotify (15 :: Second) (getEvents @ContractExe) NewPABEvents
 
 watchAndNotify ::
        ( TimeUnit t
@@ -135,8 +139,8 @@ queryHandlerThread connection =
 ------------------------------------------------------------
 -- Plumbing
 ------------------------------------------------------------
-threadApp :: Trace IO LM.PABLogMsg -> CM.Configuration -> Config -> Connection -> IO ()
-threadApp trace logConfig config connection = do
+threadApp :: InstancesState -> Trace IO LM.PABLogMsg -> CM.Configuration -> Config -> Connection -> IO ()
+threadApp instancesState trace logConfig config connection = do
     tasks :: [Async (Either PABError ())] <-
         traverse
             asyncApp
@@ -147,12 +151,12 @@ threadApp trace logConfig config connection = do
             ]
     void $ waitAnyCancel tasks
   where
-    asyncApp = async . runApp trace logConfig config . handleDelayEffect
+    asyncApp = async . runApp instancesState trace logConfig config . handleDelayEffect
 
-handleClient :: Trace IO LM.PABLogMsg -> CM.Configuration -> Config -> Connection -> IO ()
-handleClient trace logConfig config connection =
+handleClient :: InstancesState -> Trace IO LM.PABLogMsg -> CM.Configuration -> Config -> Connection -> IO ()
+handleClient instancesState trace logConfig config connection =
     handle disconnect . withPingThread connection 30 (pure ()) $
-    threadApp trace logConfig config connection
+    threadApp instancesState trace logConfig config connection
   where
     disconnect :: SomeException -> IO ()
     disconnect _ = pure ()
@@ -164,13 +168,14 @@ handleWS ::
        , Member (Reader Config) effs
        , Member WebSocketEffect effs
        )
-    => Trace IO LM.PABLogMsg
+    => InstancesState
+    -> Trace IO LM.PABLogMsg
     -> CM.Configuration
     -> PendingConnection
     -> Eff effs ()
-handleWS trace logConfig pending = do
+handleWS instancesState trace logConfig pending = do
     (uuid, connection) <- acceptConnection pending
     config <- ask
     logInfo $ CreatedConnection uuid
-    liftIO $ handleClient trace logConfig config connection
+    liftIO $ handleClient instancesState trace logConfig config connection
     logInfo $ ClosedConnection uuid

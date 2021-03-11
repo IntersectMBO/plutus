@@ -79,7 +79,7 @@ deriving via (Tagged "stream_to_server" StreamToServer) instance
 data StreamToClient
     = NewChainReport ChainReport
     | NewContractReport (ContractReport ContractExe)
-    | NewChainEvents [PABEvent ContractExe]
+    | NewPABEvents [PABEvent ContractExe]
     | FetchedProperties (Metadata.SubjectProperties 'Metadata.AesonEncoding)
     | FetchedProperty Metadata.Subject (Metadata.Property 'Metadata.AesonEncoding)
     | ErrorResponse Text
