@@ -117,6 +117,7 @@ data PABMultiAgentMsg =
     | ContractInstanceLog (ContractInstanceMsg TestContracts)
     | CoreLog (CoreMsg TestContracts)
     | RuntimeLog ContractRuntimeMsg
+    deriving Show
 
 instance Pretty PABMultiAgentMsg where
     pretty = \case

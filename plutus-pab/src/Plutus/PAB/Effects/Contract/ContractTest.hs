@@ -73,6 +73,7 @@ data ContractTestMsg =
     DoContractUpdate (ContractRequest Value)
     | ContractTestRequest (Doc Void) -- Pretty-printed 'ContractRequest schema' for some schema.
     | ContractTestResponse (PartiallyDecodedResponse ContractPABRequest)
+    deriving Show
 
 instance Pretty ContractTestMsg where
     pretty = \case
