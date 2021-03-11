@@ -9,18 +9,17 @@
 -- See Note [Creation of the Cost Model]
 module Main (main) where
 
-import           Language.PlutusCore                                as PLC
-import           Language.PlutusCore.Evaluation.Machine.ExBudgeting
+import           Language.PlutusCore                               as PLC
 import           Language.PlutusCore.Evaluation.Machine.ExMemory
 import           Language.PlutusCore.MkPlc
-import           Language.UntypedPlutusCore                         as UT
+import           Language.UntypedPlutusCore                        as UT
 import           Language.UntypedPlutusCore.Evaluation.Machine.Cek
 
 import           Criterion.Main
-import qualified Criterion.Types                                    as C
-import qualified Data.ByteString                                    as BS
+import qualified Criterion.Types                                   as C
+import qualified Data.ByteString                                   as BS
 import           Data.Functor
-import qualified Data.Kind                                          as GHC
+import qualified Data.Kind                                         as GHC
 import           Hedgehog
 import           Hedgehog.Internal.Gen
 import           Hedgehog.Internal.Tree
@@ -34,7 +33,7 @@ runTermBench :: String -> UntypedPlain UT.Term DefaultUni DefaultFun -> Benchmar
 runTermBench name term = env
     (do
         (_result, budget) <-
-          pure $ runCekNoEmit defBuiltinsRuntime Counting term
+          pure $ runCekNoEmit defBuiltinsRuntime counting term
         pure budget
         )
     (\_ -> bench name $ nf (unsafeEvaluateCek defBuiltinsRuntime) term)
