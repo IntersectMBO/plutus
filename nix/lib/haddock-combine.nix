@@ -1,4 +1,4 @@
-{ runCommand, lib, ghc, sphinxcontrib-haddock }:
+{ runCommand, lib, ghc, jq, sphinxcontrib-haddock }:
 { hspkgs # Haskell packages to make documentation for. Only those with a "doc" output will be used.
   # Note: we do not provide arbitrary additional Haddock options, as these would not be
   # applied consistently, since we're reusing the already built Haddock for the packages.
@@ -62,4 +62,18 @@ runCommand "haddock-join" { buildInputs = [ hsdocs ]; } ''
     --quickjump \
     ${lib.optionalString (prologue != null) "--prologue ${prologue}"} \
     "''${interfaceOpts[@]}"
+
+  # Following: https://github.com/input-output-hk/ouroboros-network/blob/2068d091bc7dcd3f4538fb76f1b598f219d1e0c8/scripts/haddocs.sh#L87
+  # Assemble a toplevel `doc-index.json` from package level ones.
+  shopt -s globstar
+  echo "[]" > "doc-index.json"
+  for file in $(ls **/doc-index.json); do
+    project=$(dirname $file);
+    ${jq}/bin/jq -s \
+      ".[0] + [.[1][] | (. + {link: (\"$project/\" + .link)}) ]" \
+      "doc-index.json" \
+      $file \
+      > /tmp/doc-index.json
+    mv /tmp/doc-index.json "doc-index.json"
+  done
 ''
