@@ -1,4 +1,4 @@
-{ pkgs, iohkNix, fixStylishHaskell, fixPurty, src }:
+{ pkgs, iohkNix, fixStylishHaskell, fixPurty, src, terraform }:
 let
   inherit (pkgs) lib;
   cleanSrc = lib.cleanSourceWith {
@@ -25,5 +25,10 @@ pkgs.recurseIntoAttrs {
   nixpkgsFmt = pkgs.callPackage ./nixpkgs-fmt.nix {
     src = cleanSrc;
     inherit (pkgs) nixpkgs-fmt;
+  };
+
+  terraform = pkgs.callPackage ./terraform.nix {
+    src = cleanSrc;
+    inherit (pkgs) terraform;
   };
 }

@@ -28,6 +28,7 @@ let
     hooks = {
       purty.enable = true;
       stylish-haskell.enable = true;
+      terraform-format.enable = true;
       nixpkgs-fmt = {
         enable = true;
         # While nixpkgs-fmt does exclude patterns specified in `.ignore` this
