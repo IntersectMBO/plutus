@@ -9,19 +9,19 @@ module TypeSynthesis.Spec
 
 import           PlutusPrelude
 
-import           Language.PlutusCore
-import           Language.PlutusCore.Constant
-import           Language.PlutusCore.FsTree
-import           Language.PlutusCore.Pretty
+import           PlutusCore
+import           PlutusCore.Constant
+import           PlutusCore.FsTree
+import           PlutusCore.Pretty
 
-import           Language.PlutusCore.Examples.Builtins
-import           Language.PlutusCore.Examples.Everything (builtins, examples)
-import           Language.PlutusCore.StdLib.Everything   (stdLib)
+import           PlutusCore.Examples.Builtins
+import           PlutusCore.Examples.Everything (builtins, examples)
+import           PlutusCore.StdLib.Everything   (stdLib)
 
 import           Common
 
 import           Control.Monad.Except
-import           System.FilePath                         ((</>))
+import           System.FilePath                ((</>))
 import           Test.Tasty
 import           Test.Tasty.HUnit
 

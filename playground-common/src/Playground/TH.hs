@@ -15,18 +15,18 @@ module Playground.TH
     , mkKnownCurrencies
     ) where
 
-import           Data.Row                                        (type (.\\))
-import           Language.Haskell.TH                             (Body (NormalB), Clause (Clause),
-                                                                  Dec (FunD, SigD, TySynD, ValD), Exp (ListE, VarE),
-                                                                  Info (TyConI, VarI), Name, Pat (VarP), Q,
-                                                                  Type (AppT, ArrowT, ConT, ForallT, ListT, TupleT, VarT),
-                                                                  lookupValueName, mkName, nameBase, normalB, reify,
-                                                                  sigD, valD, varP)
-import           Language.Plutus.Contract                        (BlockchainActions)
-import           Language.Plutus.Contract.Effects.ExposeEndpoint (EndpointDescription (EndpointDescription))
-import           Playground.Schema                               (endpointsToSchemas)
-import           Playground.Types                                (FunctionSchema (FunctionSchema), adaCurrency)
-import           Schema                                          (FormSchema, toSchema)
+import           Data.Row                               (type (.\\))
+import           Language.Haskell.TH                    (Body (NormalB), Clause (Clause),
+                                                         Dec (FunD, SigD, TySynD, ValD), Exp (ListE, VarE),
+                                                         Info (TyConI, VarI), Name, Pat (VarP), Q,
+                                                         Type (AppT, ArrowT, ConT, ForallT, ListT, TupleT, VarT),
+                                                         lookupValueName, mkName, nameBase, normalB, reify, sigD, valD,
+                                                         varP)
+import           Playground.Schema                      (endpointsToSchemas)
+import           Playground.Types                       (FunctionSchema (FunctionSchema), adaCurrency)
+import           Plutus.Contract                        (BlockchainActions)
+import           Plutus.Contract.Effects.ExposeEndpoint (EndpointDescription (EndpointDescription))
+import           Schema                                 (FormSchema, toSchema)
 
 mkFunctions :: [Name] -> Q [Dec]
 mkFunctions names = do

@@ -3,12 +3,12 @@
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE TypeFamilies    #-}
 
-module Language.UntypedPlutusCore.Core.Instance.Recursive
+module UntypedPlutusCore.Core.Instance.Recursive
     ( -- * Base functors
       TermF (..)
     ) where
 
-import           Language.UntypedPlutusCore.Core.Type
+import           UntypedPlutusCore.Core.Type
 
 import           Data.Functor.Foldable.TH
 

@@ -8,7 +8,7 @@
 {-# LANGUAGE TypeApplications  #-}
 -- | Turn 'UnbalancedTx' values into transactions using the
 --   wallet API.
-module Language.Plutus.Contract.Wallet(
+module Plutus.Contract.Wallet(
       balanceWallet
     , balanceTx
     , handleTx
@@ -23,7 +23,6 @@ import           Data.Bifunctor                 (second)
 import qualified Data.Map                       as Map
 import qualified Data.Set                       as Set
 import           Data.String                    (IsString (fromString))
-import qualified Language.PlutusTx.Prelude      as P
 import qualified Ledger                         as L
 import           Ledger.AddressMap              (UtxoMap)
 import qualified Ledger.AddressMap              as AM
@@ -32,6 +31,7 @@ import           Ledger.Tx                      (Tx (..))
 import qualified Ledger.Tx                      as Tx
 import           Ledger.Value                   (Value)
 import qualified Ledger.Value                   as Value
+import qualified PlutusTx.Prelude               as P
 import           Wallet.API                     (PubKey, WalletAPIError)
 import qualified Wallet.API                     as WAPI
 import           Wallet.Effects

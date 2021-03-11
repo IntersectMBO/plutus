@@ -5,7 +5,7 @@
 {-# LANGUAGE TypeOperators     #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 
-module Language.PlutusIR.Parser
+module PlutusIR.Parser
     ( topSourcePos
     , parse
     , parseQuoted
@@ -25,10 +25,10 @@ import           Prelude                            hiding (fail)
 import           Control.Applicative                hiding (many, some)
 import           Control.Monad.State                hiding (fail)
 
-import qualified Language.PlutusCore                as PLC
-import qualified Language.PlutusCore.Parsable       as PLC
-import           Language.PlutusIR                  as PIR
-import qualified Language.PlutusIR.MkPir            as PIR
+import qualified PlutusCore                         as PLC
+import qualified PlutusCore.Parsable                as PLC
+import           PlutusIR                           as PIR
+import qualified PlutusIR.MkPir                     as PIR
 import           PlutusPrelude                      (Pretty, display)
 import           Text.Megaparsec                    hiding (ParseError, State, parse)
 import qualified Text.Megaparsec                    as Parsec

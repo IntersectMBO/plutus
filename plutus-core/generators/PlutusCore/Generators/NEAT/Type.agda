@@ -2,7 +2,7 @@
 -- Edit this file not Type.hs
 -- The warning below will be written to Type.hs
 
-module Language.PlutusCore.Generators.NEAT.Type where
+module PlutusCore.Generators.NEAT.Type where
 
 -- warning to be written to Haskell file:
 {-# FOREIGN AGDA2HS
@@ -27,14 +27,14 @@ module Language.PlutusCore.Generators.NEAT.Type where
 
 import           Control.Enumerable
 import           Control.Monad.Except
-import           Language.PlutusCore
-import           Language.PlutusCore.Generators.NEAT.Common
+import           PlutusCore
+import           PlutusCore.Generators.NEAT.Common
 
 #-}
 
 open import Relation.Binary.PropositionalEquality
 open import Haskell.Prelude hiding (m)
-open import Language.PlutusCore.Generators.NEAT.Common
+open import PlutusCore.Generators.NEAT.Common
 
 {-# FOREIGN AGDA2HS
 newtype Neutral a = Neutral

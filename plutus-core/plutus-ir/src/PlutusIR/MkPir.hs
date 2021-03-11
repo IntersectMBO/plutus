@@ -2,16 +2,16 @@
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 
-module Language.PlutusIR.MkPir ( module MkPlc
+module PlutusIR.MkPir ( module MkPlc
                                , DatatypeDef
                                , mkLet
                                ) where
 
-import           Language.PlutusIR
+import           PlutusIR
 
-import           Language.PlutusCore.MkPlc as MkPlc
+import           PlutusCore.MkPlc   as MkPlc
 
-import qualified Data.List.NonEmpty        as NE
+import qualified Data.List.NonEmpty as NE
 
 
 -- | A datatype definition as a type variable.

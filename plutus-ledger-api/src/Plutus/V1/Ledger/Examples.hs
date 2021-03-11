@@ -6,11 +6,11 @@ module Plutus.V1.Ledger.Examples where
 
 import           Data.ByteString.Short
 import qualified Flat
-import qualified Language.PlutusCore        as PLC
-import qualified Language.UntypedPlutusCore as UPLC
 import           Numeric.Natural
 import           Plutus.V1.Ledger.Api
-import qualified Plutus.V1.Ledger.Scripts   as Scripts
+import qualified Plutus.V1.Ledger.Scripts as Scripts
+import qualified PlutusCore               as PLC
+import qualified UntypedPlutusCore        as UPLC
 
 {- Note [Manually constructing scripts]
 The scripts we provide here are *manually* constructed Plutus Core. Why not use our great machinery for easily creating

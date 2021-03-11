@@ -6,7 +6,7 @@
 {-# LANGUAGE TypeApplications    #-}
 {-# LANGUAGE TypeOperators       #-}
 
-module Language.PlutusCore.StdLib.Data.List
+module PlutusCore.StdLib.Data.List
     ( listData
     , listTy
     , nil
@@ -20,20 +20,20 @@ module Language.PlutusCore.StdLib.Data.List
     , product
     ) where
 
-import           Prelude                                  hiding (enumFromTo, map, product, reverse, sum)
+import           Prelude                         hiding (enumFromTo, map, product, reverse, sum)
 
-import           Language.PlutusCore.Builtins
-import           Language.PlutusCore.Core
-import           Language.PlutusCore.MkPlc
-import           Language.PlutusCore.Name
-import           Language.PlutusCore.Quote
-import           Language.PlutusCore.Universe
+import           PlutusCore.Builtins
+import           PlutusCore.Core
+import           PlutusCore.MkPlc
+import           PlutusCore.Name
+import           PlutusCore.Quote
+import           PlutusCore.Universe
 
-import           Language.PlutusCore.StdLib.Data.Bool
-import           Language.PlutusCore.StdLib.Data.Function
-import           Language.PlutusCore.StdLib.Data.Integer
-import           Language.PlutusCore.StdLib.Data.Unit
-import           Language.PlutusCore.StdLib.Type
+import           PlutusCore.StdLib.Data.Bool
+import           PlutusCore.StdLib.Data.Function
+import           PlutusCore.StdLib.Data.Integer
+import           PlutusCore.StdLib.Data.Unit
+import           PlutusCore.StdLib.Type
 
 -- | @List@ as a PLC type.
 --

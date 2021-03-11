@@ -4,17 +4,17 @@
 {-# LANGUAGE TypeApplications  #-}
 {-# LANGUAGE TypeOperators     #-}
 
-module Language.PlutusCore.StdLib.Data.Unit
+module PlutusCore.StdLib.Data.Unit
     ( unit
     , unitval
     , sequ
     ) where
 
-import           Language.PlutusCore.Core
-import           Language.PlutusCore.MkPlc
-import           Language.PlutusCore.Name
-import           Language.PlutusCore.Quote
-import           Language.PlutusCore.Universe
+import           PlutusCore.Core
+import           PlutusCore.MkPlc
+import           PlutusCore.Name
+import           PlutusCore.Quote
+import           PlutusCore.Universe
 
 -- | '()' as a PLC type.
 unit :: uni `Includes` () => Type TyName uni ()

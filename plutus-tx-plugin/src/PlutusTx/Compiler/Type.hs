@@ -6,7 +6,7 @@
 
 -- | Functions for compiling GHC types into PlutusCore types, as well as compiling constructors,
 -- matchers, and pattern match alternatives.
-module Language.PlutusTx.Compiler.Type (
+module PlutusTx.Compiler.Type (
     compileTypeNorm,
     compileType,
     compileKind,
@@ -16,31 +16,31 @@ module Language.PlutusTx.Compiler.Type (
     getMatch,
     getMatchInstantiated) where
 
-import           Language.PlutusTx.Compiler.Binders
-import           Language.PlutusTx.Compiler.Builtins
-import           Language.PlutusTx.Compiler.Error
-import           Language.PlutusTx.Compiler.Kind
-import           Language.PlutusTx.Compiler.Names
-import           Language.PlutusTx.Compiler.Types
-import           Language.PlutusTx.Compiler.Utils
-import           Language.PlutusTx.PIRTypes
+import           PlutusTx.Compiler.Binders
+import           PlutusTx.Compiler.Builtins
+import           PlutusTx.Compiler.Error
+import           PlutusTx.Compiler.Kind
+import           PlutusTx.Compiler.Names
+import           PlutusTx.Compiler.Types
+import           PlutusTx.Compiler.Utils
+import           PlutusTx.PIRTypes
 
-import qualified FamInstEnv                             as GHC
-import qualified GhcPlugins                             as GHC
-import qualified TysPrim                                as GHC
+import qualified FamInstEnv                    as GHC
+import qualified GhcPlugins                    as GHC
+import qualified TysPrim                       as GHC
 
-import qualified Language.PlutusIR                      as PIR
-import qualified Language.PlutusIR.Compiler.Definitions as PIR
-import qualified Language.PlutusIR.MkPir                as PIR
+import qualified PlutusIR                      as PIR
+import qualified PlutusIR.Compiler.Definitions as PIR
+import qualified PlutusIR.MkPir                as PIR
 
-import qualified Language.PlutusCore.Name               as PLC
+import qualified PlutusCore.Name               as PLC
 
 import           Control.Monad.Extra
 import           Control.Monad.Reader
 
-import           Data.List                              (sortBy)
-import qualified Data.List.NonEmpty                     as NE
-import qualified Data.Set                               as Set
+import           Data.List                     (sortBy)
+import qualified Data.List.NonEmpty            as NE
+import qualified Data.Set                      as Set
 import           Data.Traversable
 
 -- Types

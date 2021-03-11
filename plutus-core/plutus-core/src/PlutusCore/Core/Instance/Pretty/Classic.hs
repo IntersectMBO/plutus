@@ -10,16 +10,16 @@
 {-# LANGUAGE TypeOperators         #-}
 {-# LANGUAGE UndecidableInstances  #-}
 
-module Language.PlutusCore.Core.Instance.Pretty.Classic () where
+module PlutusCore.Core.Instance.Pretty.Classic () where
 
 import           PlutusPrelude
 
-import           Language.PlutusCore.Core.Instance.Pretty.Common ()
-import           Language.PlutusCore.Core.Instance.Recursive
-import           Language.PlutusCore.Core.Type
-import           Language.PlutusCore.Pretty.Classic
-import           Language.PlutusCore.Pretty.PrettyConst
-import           Language.PlutusCore.Universe
+import           PlutusCore.Core.Instance.Pretty.Common ()
+import           PlutusCore.Core.Instance.Recursive
+import           PlutusCore.Core.Type
+import           PlutusCore.Pretty.Classic
+import           PlutusCore.Pretty.PrettyConst
+import           PlutusCore.Universe
 
 import           Data.Functor.Foldable
 import           Data.Text.Prettyprint.Doc

@@ -3,7 +3,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TypeFamilies      #-}
 
-module Language.PlutusCore.Examples.Data.TreeForest
+module PlutusCore.Examples.Data.TreeForest
     ( treeData
     , forestData
     , treeNode
@@ -11,13 +11,13 @@ module Language.PlutusCore.Examples.Data.TreeForest
     , forestCons
     ) where
 
-import           Language.PlutusCore.Core
-import           Language.PlutusCore.MkPlc
-import           Language.PlutusCore.Name
-import           Language.PlutusCore.Normalize
-import           Language.PlutusCore.Quote
+import           PlutusCore.Core
+import           PlutusCore.MkPlc
+import           PlutusCore.Name
+import           PlutusCore.Normalize
+import           PlutusCore.Quote
 
-import           Language.PlutusCore.StdLib.Type
+import           PlutusCore.StdLib.Type
 
 {- Note [Tree]
 Here we encode the following:

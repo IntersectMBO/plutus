@@ -19,8 +19,8 @@
 {-# OPTIONS_GHC -fno-strictness #-}
 {-# OPTIONS_GHC -fno-ignore-interface-pragmas #-}
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
-{-# OPTIONS -fplugin-opt Language.PlutusTx.Plugin:debug-context #-}
-module Language.PlutusTx.Coordination.Contracts.Future(
+{-# OPTIONS -fplugin-opt PlutusTx.Plugin:debug-context #-}
+module Plutus.Contracts.Future(
     -- $future
       Future(..)
     , FutureAccounts(..)
@@ -44,51 +44,49 @@ module Language.PlutusTx.Coordination.Contracts.Future(
     , setupTokensTrace
     ) where
 
-import           Control.Lens                                          (makeClassyPrisms, prism', review)
-import           Control.Monad                                         (void)
-import           Control.Monad.Error.Lens                              (throwing)
-import qualified Control.Monad.Freer                                   as Freer
-import qualified Control.Monad.Freer.Error                             as Freer
-import           Data.Aeson                                            (FromJSON, ToJSON)
-import           GHC.Generics                                          (Generic)
-import           Language.Plutus.Contract
-import           Language.Plutus.Contract.Util                         (loopM)
-import qualified Language.PlutusTx                                     as PlutusTx
-import           Language.PlutusTx.Prelude
-import           Ledger                                                (Address, Datum (..), PubKey, Slot (..),
-                                                                        Validator, ValidatorHash, pubKeyHash)
+import           Control.Lens                     (makeClassyPrisms, prism', review)
+import           Control.Monad                    (void)
+import           Control.Monad.Error.Lens         (throwing)
+import qualified Control.Monad.Freer              as Freer
+import qualified Control.Monad.Freer.Error        as Freer
+import           Data.Aeson                       (FromJSON, ToJSON)
+import           GHC.Generics                     (Generic)
+import           Ledger                           (Address, Datum (..), PubKey, Slot (..), Validator, ValidatorHash,
+                                                   pubKeyHash)
 import qualified Ledger
-import qualified Ledger.Constraints                                    as Constraints
-import           Ledger.Constraints.TxConstraints                      (TxConstraints)
-import qualified Ledger.Interval                                       as Interval
-import           Ledger.Oracle                                         (Observation (..), SignedMessage (..))
-import qualified Ledger.Oracle                                         as Oracle
-import           Ledger.Scripts                                        (unitDatum)
+import qualified Ledger.Constraints               as Constraints
+import           Ledger.Constraints.TxConstraints (TxConstraints)
+import qualified Ledger.Interval                  as Interval
+import           Ledger.Oracle                    (Observation (..), SignedMessage (..))
+import qualified Ledger.Oracle                    as Oracle
+import           Ledger.Scripts                   (unitDatum)
 import           Ledger.Tokens
-import qualified Ledger.Typed.Scripts                                  as Scripts
-import           Ledger.Value                                          as Value
+import qualified Ledger.Typed.Scripts             as Scripts
+import           Ledger.Value                     as Value
+import           Plutus.Contract
+import           Plutus.Contract.Util             (loopM)
+import qualified PlutusTx                         as PlutusTx
+import           PlutusTx.Prelude
 
-import           Language.Plutus.Contract.StateMachine                 (AsSMContractError, State (..),
-                                                                        StateMachine (..), Void)
-import qualified Language.Plutus.Contract.StateMachine                 as SM
-import qualified Language.PlutusTx.Coordination.Contracts.Currency     as Currency
-import           Language.PlutusTx.Coordination.Contracts.Escrow       (AsEscrowError (..), EscrowError,
-                                                                        EscrowParams (..), RefundSuccess)
-import qualified Language.PlutusTx.Coordination.Contracts.Escrow       as Escrow
-import           Language.PlutusTx.Coordination.Contracts.TokenAccount (Account (..))
-import qualified Language.PlutusTx.Coordination.Contracts.TokenAccount as TokenAccount
-import qualified Plutus.Trace.Emulator                                 as Trace
-import qualified Streaming.Prelude                                     as S
-import qualified Wallet.Emulator.Folds                                 as Folds
-import qualified Wallet.Emulator.Stream                                as Stream
-import qualified Wallet.Emulator.Wallet                                as Wallet
+import           Plutus.Contract.StateMachine     (AsSMContractError, State (..), StateMachine (..), Void)
+import qualified Plutus.Contract.StateMachine     as SM
+import qualified Plutus.Contracts.Currency        as Currency
+import           Plutus.Contracts.Escrow          (AsEscrowError (..), EscrowError, EscrowParams (..), RefundSuccess)
+import qualified Plutus.Contracts.Escrow          as Escrow
+import           Plutus.Contracts.TokenAccount    (Account (..))
+import qualified Plutus.Contracts.TokenAccount    as TokenAccount
+import qualified Plutus.Trace.Emulator            as Trace
+import qualified Streaming.Prelude                as S
+import qualified Wallet.Emulator.Folds            as Folds
+import qualified Wallet.Emulator.Stream           as Stream
+import qualified Wallet.Emulator.Wallet           as Wallet
 
-import qualified Prelude                                               as Haskell
+import qualified Prelude                          as Haskell
 
 -- $future
 -- A futures contract in Plutus. This example illustrates a number of concepts.
 --   1. Maintaining a margin (a kind of deposit) during the duration of the contract to protect against breach of contract (see note [Futures in Plutus])
---   2. Using oracle values to obtain current pricing information (see note [Oracles] in Language.PlutusTx.Coordination.Contracts)
+--   2. Using oracle values to obtain current pricing information (see note [Oracles] in Plutus.Contracts)
 --   3. Writing contracts as state machines
 --   4. Using tokens to represent claims on future cash flows
 
@@ -258,7 +256,7 @@ their margin. If either party fails to make a margin payment then the contract
 will be settled early.
 
 The current value of the underlying asset is determined by an oracle. See note
-[Oracles] in Language.PlutusTx.Coordination.Contracts. Also note that we
+[Oracles] in Plutus.Contracts. Also note that we
 wouldn't need oracles if this was a contract with physical settlement,
 
 The contract has three phases: Initialisation, runtime, and settlement. In the

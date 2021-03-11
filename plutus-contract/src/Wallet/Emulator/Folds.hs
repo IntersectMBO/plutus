@@ -46,44 +46,44 @@ module Wallet.Emulator.Folds (
     , postMapM
     ) where
 
-import           Control.Foldl                            (Fold (..), FoldM (..))
-import qualified Control.Foldl                            as L
-import           Control.Lens                             hiding (Empty, Fold)
-import           Control.Monad                            ((>=>))
+import           Control.Foldl                          (Fold (..), FoldM (..))
+import qualified Control.Foldl                          as L
+import           Control.Lens                           hiding (Empty, Fold)
+import           Control.Monad                          ((>=>))
 import           Control.Monad.Freer
 import           Control.Monad.Freer.Error
-import qualified Data.Aeson                               as JSON
-import           Data.Foldable                            (toList)
-import           Data.Maybe                               (fromMaybe, mapMaybe)
-import           Data.Text                                (Text)
-import           Data.Text.Prettyprint.Doc                (Pretty (..), defaultLayoutOptions, layoutPretty, vsep)
-import           Data.Text.Prettyprint.Doc.Render.Text    (renderStrict)
-import           Language.Plutus.Contract                 (Contract)
-import           Language.Plutus.Contract.Effects.WriteTx (HasWriteTx, pendingTransaction)
-import           Language.Plutus.Contract.Resumable       (Request, Response)
-import qualified Language.Plutus.Contract.Resumable       as State
-import           Language.Plutus.Contract.Schema          (Event (..), Handlers)
-import           Language.Plutus.Contract.Types           (ResumableResult (..))
-import           Ledger                                   (TxId)
-import           Ledger.AddressMap                        (UtxoMap)
-import qualified Ledger.AddressMap                        as AM
-import           Ledger.Constraints.OffChain              (UnbalancedTx)
-import           Ledger.Index                             (ScriptValidationEvent, ValidationError)
-import           Ledger.Tx                                (Address, Tx, TxOut (..), TxOutTx (..))
-import           Ledger.Value                             (Value)
-import           Plutus.Trace.Emulator.ContractInstance   (ContractInstanceState, addEventInstanceState,
-                                                           emptyInstanceState, instContractState, instEvents,
-                                                           instHandlersHistory)
-import           Plutus.Trace.Emulator.Types              (ContractConstraints, ContractInstanceLog,
-                                                           ContractInstanceTag, UserThreadMsg, _HandledRequest,
-                                                           cilMessage, cilTag, toInstanceState)
-import           Wallet.Emulator.Chain                    (ChainEvent (..), _TxnValidate, _TxnValidationFail)
-import           Wallet.Emulator.ChainIndex               (_AddressStartWatching)
-import           Wallet.Emulator.MultiAgent               (EmulatorEvent, EmulatorTimeEvent, chainEvent,
-                                                           chainIndexEvent, eteEvent, instanceEvent, userThreadEvent)
-import           Wallet.Emulator.Wallet                   (Wallet, walletAddress)
-import qualified Wallet.Rollup                            as Rollup
-import           Wallet.Rollup.Types                      (AnnotatedTx)
+import qualified Data.Aeson                             as JSON
+import           Data.Foldable                          (toList)
+import           Data.Maybe                             (fromMaybe, mapMaybe)
+import           Data.Text                              (Text)
+import           Data.Text.Prettyprint.Doc              (Pretty (..), defaultLayoutOptions, layoutPretty, vsep)
+import           Data.Text.Prettyprint.Doc.Render.Text  (renderStrict)
+import           Ledger                                 (TxId)
+import           Ledger.AddressMap                      (UtxoMap)
+import qualified Ledger.AddressMap                      as AM
+import           Ledger.Constraints.OffChain            (UnbalancedTx)
+import           Ledger.Index                           (ScriptValidationEvent, ValidationError)
+import           Ledger.Tx                              (Address, Tx, TxOut (..), TxOutTx (..))
+import           Ledger.Value                           (Value)
+import           Plutus.Contract                        (Contract)
+import           Plutus.Contract.Effects.WriteTx        (HasWriteTx, pendingTransaction)
+import           Plutus.Contract.Resumable              (Request, Response)
+import qualified Plutus.Contract.Resumable              as State
+import           Plutus.Contract.Schema                 (Event (..), Handlers)
+import           Plutus.Contract.Types                  (ResumableResult (..))
+import           Plutus.Trace.Emulator.ContractInstance (ContractInstanceState, addEventInstanceState,
+                                                         emptyInstanceState, instContractState, instEvents,
+                                                         instHandlersHistory)
+import           Plutus.Trace.Emulator.Types            (ContractConstraints, ContractInstanceLog, ContractInstanceTag,
+                                                         UserThreadMsg, _HandledRequest, cilMessage, cilTag,
+                                                         toInstanceState)
+import           Wallet.Emulator.Chain                  (ChainEvent (..), _TxnValidate, _TxnValidationFail)
+import           Wallet.Emulator.ChainIndex             (_AddressStartWatching)
+import           Wallet.Emulator.MultiAgent             (EmulatorEvent, EmulatorTimeEvent, chainEvent, chainIndexEvent,
+                                                         eteEvent, instanceEvent, userThreadEvent)
+import           Wallet.Emulator.Wallet                 (Wallet, walletAddress)
+import qualified Wallet.Rollup                          as Rollup
+import           Wallet.Rollup.Types                    (AnnotatedTx)
 
 type EmulatorEventFold a = Fold EmulatorEvent a
 

@@ -1,18 +1,18 @@
 -- | The user-facing API of the normalizer.
 
-module Language.PlutusCore.Normalize
+module PlutusCore.Normalize
     ( normalizeType
     , normalizeTypesIn
     , normalizeTypesInProgram
     ) where
 
-import           Language.PlutusCore.Core
-import           Language.PlutusCore.Name
-import           Language.PlutusCore.Normalize.Internal
-import           Language.PlutusCore.Quote
-import           Language.PlutusCore.Rename
+import           PlutusCore.Core
+import           PlutusCore.Name
+import           PlutusCore.Normalize.Internal
+import           PlutusCore.Quote
+import           PlutusCore.Rename
 
-import           Control.Monad                          ((>=>))
+import           Control.Monad                 ((>=>))
 
 -- See Note [Normalization].
 -- | Normalize a 'Type'.

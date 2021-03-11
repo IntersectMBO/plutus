@@ -8,32 +8,32 @@
 -- across to the test suite.
 module Plutus.PAB.Arbitrary where
 
-import           Data.Aeson                                        (Value)
-import qualified Data.Aeson                                        as Aeson
-import           Language.Plutus.Contract.Effects.AwaitSlot        (WaitingForSlot (..))
-import           Language.Plutus.Contract.Effects.AwaitTxConfirmed (TxConfirmed (..))
-import           Language.Plutus.Contract.Effects.ExposeEndpoint   (ActiveEndpoint (..), EndpointDescription (..),
-                                                                    EndpointValue (..))
-import           Language.Plutus.Contract.Effects.OwnPubKey        (OwnPubKeyRequest (..))
-import qualified Language.PlutusTx                                 as PlutusTx
-import qualified Language.PlutusTx.AssocMap                        as AssocMap
-import           Ledger                                            (ValidatorHash (ValidatorHash))
+import           Data.Aeson                               (Value)
+import qualified Data.Aeson                               as Aeson
+import           Ledger                                   (ValidatorHash (ValidatorHash))
 import qualified Ledger
-import           Ledger.Address                                    (Address (..))
-import           Ledger.Bytes                                      (LedgerBytes)
-import qualified Ledger.Bytes                                      as LedgerBytes
-import           Ledger.Crypto                                     (PubKey, PubKeyHash, Signature)
-import           Ledger.Interval                                   (Extended, Interval, LowerBound, UpperBound)
-import           Ledger.Slot                                       (Slot)
-import           Ledger.Tx                                         (TxIn, TxInType, TxOutRef, TxOutType)
-import           Ledger.TxId                                       (TxId)
+import           Ledger.Address                           (Address (..))
+import           Ledger.Bytes                             (LedgerBytes)
+import qualified Ledger.Bytes                             as LedgerBytes
+import           Ledger.Crypto                            (PubKey, PubKeyHash, Signature)
+import           Ledger.Interval                          (Extended, Interval, LowerBound, UpperBound)
+import           Ledger.Slot                              (Slot)
+import           Ledger.Tx                                (TxIn, TxInType, TxOutRef, TxOutType)
+import           Ledger.TxId                              (TxId)
+import           Plutus.Contract.Effects.AwaitSlot        (WaitingForSlot (..))
+import           Plutus.Contract.Effects.AwaitTxConfirmed (TxConfirmed (..))
+import           Plutus.Contract.Effects.ExposeEndpoint   (ActiveEndpoint (..), EndpointDescription (..),
+                                                           EndpointValue (..))
+import           Plutus.Contract.Effects.OwnPubKey        (OwnPubKeyRequest (..))
 import           Plutus.PAB.Events.Contract
-import           Test.QuickCheck                                   (Gen, oneof)
-import           Test.QuickCheck.Arbitrary.Generic                 (Arbitrary, arbitrary, genericArbitrary,
-                                                                    genericShrink, shrink)
-import           Test.QuickCheck.Instances                         ()
-import           Wallet                                            (WalletAPIError)
-import           Wallet.Effects                                    (AddressChangeRequest (..))
+import qualified PlutusTx                                 as PlutusTx
+import qualified PlutusTx.AssocMap                        as AssocMap
+import           Test.QuickCheck                          (Gen, oneof)
+import           Test.QuickCheck.Arbitrary.Generic        (Arbitrary, arbitrary, genericArbitrary, genericShrink,
+                                                           shrink)
+import           Test.QuickCheck.Instances                ()
+import           Wallet                                   (WalletAPIError)
+import           Wallet.Effects                           (AddressChangeRequest (..))
 
 -- | A validator that always succeeds.
 acceptingValidator :: Ledger.Validator

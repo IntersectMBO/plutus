@@ -2,7 +2,7 @@
 
 {-# LANGUAGE OverloadedStrings #-}
 
-module Language.PlutusCore.StdLib.Data.Function
+module PlutusCore.StdLib.Data.Function
     ( const
     , idFun
     , applyFun
@@ -20,17 +20,17 @@ module Language.PlutusCore.StdLib.Data.Function
     ) where
 
 import           PlutusPrelude
-import           Prelude                                    hiding (const)
+import           Prelude                           hiding (const)
 
-import           Language.PlutusCore.Core
-import           Language.PlutusCore.MkPlc
-import           Language.PlutusCore.Name
-import           Language.PlutusCore.Quote
+import           PlutusCore.Core
+import           PlutusCore.MkPlc
+import           PlutusCore.Name
+import           PlutusCore.Quote
 
-import           Language.PlutusCore.StdLib.Meta.Data.Tuple
-import           Language.PlutusCore.StdLib.Type
+import           PlutusCore.StdLib.Meta.Data.Tuple
+import           PlutusCore.StdLib.Type
 
-import           Control.Lens.Indexed                       (ifor)
+import           Control.Lens.Indexed              (ifor)
 import           Control.Monad
 
 -- | 'id' as a PLC term.

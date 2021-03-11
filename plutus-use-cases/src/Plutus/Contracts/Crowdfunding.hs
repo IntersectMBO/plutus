@@ -19,9 +19,9 @@
 {-# LANGUAGE TypeOperators       #-}
 {-# LANGUAGE ViewPatterns        #-}
 {-# OPTIONS_GHC -fno-ignore-interface-pragmas #-}
-{-# OPTIONS -fplugin-opt Language.PlutusTx.Plugin:debug-context #-}
+{-# OPTIONS -fplugin-opt PlutusTx.Plugin:debug-context #-}
 
-module Language.PlutusTx.Coordination.Contracts.Crowdfunding (
+module Plutus.Contracts.Crowdfunding (
     -- * Campaign parameters
       Campaign(..)
     , CrowdfundingSchema
@@ -45,35 +45,35 @@ module Language.PlutusTx.Coordination.Contracts.Crowdfunding (
     , successfulCampaign
     ) where
 
-import           Control.Applicative               (Applicative (..))
-import           Control.Monad                     (void)
-import           Data.Aeson                        (FromJSON, ToJSON)
-import           Data.Text                         (Text)
-import qualified Data.Text                         as Text
-import           GHC.Generics                      (Generic)
+import           Control.Applicative      (Applicative (..))
+import           Control.Monad            (void)
+import           Data.Aeson               (FromJSON, ToJSON)
+import           Data.Text                (Text)
+import qualified Data.Text                as Text
+import           GHC.Generics             (Generic)
 
-import           Language.Plutus.Contract
-import qualified Language.Plutus.Contract.Typed.Tx as Typed
-import qualified Language.PlutusTx                 as PlutusTx
-import           Language.PlutusTx.Prelude         hiding (Applicative (..), Semigroup (..), return, (<$>), (>>), (>>=))
-import           Ledger                            (PubKeyHash, Slot, Validator, txId)
-import qualified Ledger                            as Ledger
-import qualified Ledger.Ada                        as Ada
-import qualified Ledger.Constraints                as Constraints
-import           Ledger.Contexts                   as V
-import qualified Ledger.Interval                   as Interval
-import qualified Ledger.Scripts                    as Scripts
-import           Ledger.Slot                       (SlotRange)
-import qualified Ledger.Typed.Scripts              as Scripts
-import           Ledger.Value                      (Value)
-import qualified Ledger.Value                      as Value
-import           Plutus.Trace.Emulator             (ContractHandle, EmulatorTrace)
-import qualified Plutus.Trace.Emulator             as Trace
-import           Prelude                           (Semigroup (..))
-import qualified Prelude                           as Haskell
-import           Schema                            (ToArgument, ToSchema)
-import           Wallet.Emulator                   (Wallet (..))
-import qualified Wallet.Emulator                   as Emulator
+import           Ledger                   (PubKeyHash, Slot, Validator, txId)
+import qualified Ledger                   as Ledger
+import qualified Ledger.Ada               as Ada
+import qualified Ledger.Constraints       as Constraints
+import           Ledger.Contexts          as V
+import qualified Ledger.Interval          as Interval
+import qualified Ledger.Scripts           as Scripts
+import           Ledger.Slot              (SlotRange)
+import qualified Ledger.Typed.Scripts     as Scripts
+import           Ledger.Value             (Value)
+import qualified Ledger.Value             as Value
+import           Plutus.Contract
+import qualified Plutus.Contract.Typed.Tx as Typed
+import           Plutus.Trace.Emulator    (ContractHandle, EmulatorTrace)
+import qualified Plutus.Trace.Emulator    as Trace
+import qualified PlutusTx                 as PlutusTx
+import           PlutusTx.Prelude         hiding (Applicative (..), Semigroup (..), return, (<$>), (>>), (>>=))
+import           Prelude                  (Semigroup (..))
+import qualified Prelude                  as Haskell
+import           Schema                   (ToArgument, ToSchema)
+import           Wallet.Emulator          (Wallet (..))
+import qualified Wallet.Emulator          as Emulator
 
 -- | A crowdfunding campaign.
 data Campaign = Campaign

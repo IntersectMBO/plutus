@@ -1,13 +1,13 @@
 {-# LANGUAGE FlexibleContexts  #-}
 {-# LANGUAGE LambdaCase        #-}
 {-# LANGUAGE OverloadedStrings #-}
-module Language.PlutusIR.Compiler.Lower where
+module PlutusIR.Compiler.Lower where
 
-import           Language.PlutusIR
-import           Language.PlutusIR.Compiler.Types
-import           Language.PlutusIR.Error
+import           PlutusIR
+import           PlutusIR.Compiler.Types
+import           PlutusIR.Error
 
-import qualified Language.PlutusCore              as PLC
+import qualified PlutusCore               as PLC
 
 import           Control.Monad.Error.Lens
 

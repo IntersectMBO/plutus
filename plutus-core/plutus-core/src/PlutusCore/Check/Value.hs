@@ -1,10 +1,10 @@
 {-# LANGUAGE OverloadedStrings #-}
-module Language.PlutusCore.Check.Value
+module PlutusCore.Check.Value
     ( isTermValue
     ) where
 
-import           Language.PlutusCore.Core
-import           Language.PlutusCore.Error
+import           PlutusCore.Core
+import           PlutusCore.Error
 
 import           Data.Either
 

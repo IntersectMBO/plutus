@@ -6,16 +6,16 @@ module TransformSpec where
 import           Common
 import           TestLib
 
-import           Language.PlutusCore.Quote
+import           PlutusCore.Quote
 
-import qualified Language.PlutusCore                         as PLC
+import qualified PlutusCore                         as PLC
 
-import           Language.PlutusIR.Parser
-import qualified Language.PlutusIR.Transform.Inline          as Inline
-import qualified Language.PlutusIR.Transform.LetFloat        as LetFloat
-import qualified Language.PlutusIR.Transform.NonStrict       as NonStrict
-import           Language.PlutusIR.Transform.Rename          ()
-import qualified Language.PlutusIR.Transform.ThunkRecursions as ThunkRec
+import           PlutusIR.Parser
+import qualified PlutusIR.Transform.Inline          as Inline
+import qualified PlutusIR.Transform.LetFloat        as LetFloat
+import qualified PlutusIR.Transform.NonStrict       as NonStrict
+import           PlutusIR.Transform.Rename          ()
+import qualified PlutusIR.Transform.ThunkRecursions as ThunkRec
 
 import           Text.Megaparsec.Pos
 

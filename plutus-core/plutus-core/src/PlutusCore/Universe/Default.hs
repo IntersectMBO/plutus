@@ -11,14 +11,14 @@
 {-# LANGUAGE TypeFamilies          #-}
 {-# LANGUAGE TypeOperators         #-}
 
-module Language.PlutusCore.Universe.Default
+module PlutusCore.Universe.Default
     ( DefaultUni (..)
     ) where
 
-import           Language.PlutusCore.Parsable
-import           Language.PlutusCore.Universe.Core
+import           PlutusCore.Parsable
+import           PlutusCore.Universe.Core
 
-import qualified Data.ByteString                   as BS
+import qualified Data.ByteString          as BS
 
 {- Note [PLC types and universes]
 We encode built-in types in PLC as tags for Haskell types (the latter are also called meta-types),

@@ -11,7 +11,7 @@
 {-# LANGUAGE TypeOperators         #-}
 {-# LANGUAGE UndecidableInstances  #-}
 
-module Language.PlutusCore.Evaluation.Machine.ExMemory
+module PlutusCore.Evaluation.Machine.ExMemory
 ( Plain
 , WithMemory
 , ExMemory(..)
@@ -21,17 +21,17 @@ module Language.PlutusCore.Evaluation.Machine.ExMemory
 , withMemory
 ) where
 
-import           Language.PlutusCore.Core
-import           Language.PlutusCore.Name
-import           Language.PlutusCore.Pretty
-import           Language.PlutusCore.Universe
+import           PlutusCore.Core
+import           PlutusCore.Name
+import           PlutusCore.Pretty
+import           PlutusCore.Universe
 import           PlutusPrelude
 
 import           Control.Monad.RWS.Strict
-import qualified Data.ByteString              as BS
-import qualified Data.Kind                    as GHC
+import qualified Data.ByteString          as BS
+import qualified Data.Kind                as GHC
 import           Data.Proxy
-import qualified Data.Text                    as T
+import qualified Data.Text                as T
 import           Foreign.Storable
 import           GHC.Generics
 import           GHC.Integer

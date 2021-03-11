@@ -9,22 +9,22 @@
 {-# OPTIONS_GHC -fno-warn-incomplete-uni-patterns -fno-warn-unused-do-bind #-}
 module Spec.Vesting(tests, retrieveFundsTrace, vesting) where
 
-import           Control.Monad                                    (void)
+import           Control.Monad            (void)
 import           Test.Tasty
-import qualified Test.Tasty.HUnit                                 as HUnit
+import qualified Test.Tasty.HUnit         as HUnit
 
-import           Spec.Lib                                         as Lib
+import           Spec.Lib                 as Lib
 
-import qualified Language.PlutusTx                                as PlutusTx
-import           Language.PlutusTx.Coordination.Contracts.Vesting
-import qualified Language.PlutusTx.Numeric                        as Numeric
 import qualified Ledger
-import qualified Ledger.Ada                                       as Ada
+import qualified Ledger.Ada               as Ada
+import           Plutus.Contracts.Vesting
+import qualified PlutusTx                 as PlutusTx
+import qualified PlutusTx.Numeric         as Numeric
 
-import           Language.Plutus.Contract.Test
-import           Plutus.Trace.Emulator                            (EmulatorTrace)
-import qualified Plutus.Trace.Emulator                            as Trace
-import           Prelude                                          hiding (not)
+import           Plutus.Contract.Test
+import           Plutus.Trace.Emulator    (EmulatorTrace)
+import qualified Plutus.Trace.Emulator    as Trace
+import           Prelude                  hiding (not)
 
 w1, w2 :: Wallet
 w1 = Wallet 1

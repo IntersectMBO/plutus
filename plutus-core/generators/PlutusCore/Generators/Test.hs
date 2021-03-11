@@ -3,7 +3,7 @@
 {-# LANGUAGE TypeFamilies  #-}
 {-# LANGUAGE TypeOperators #-}
 
-module Language.PlutusCore.Generators.Test
+module PlutusCore.Generators.Test
     ( TypeEvalCheckError (..)
     , TypeEvalCheckResult (..)
     , TypeEvalCheckM
@@ -16,27 +16,27 @@ module Language.PlutusCore.Generators.Test
     , propEvaluate
     ) where
 
-import           PlutusPrelude                                         (ShowPretty (..))
+import           PlutusPrelude                                (ShowPretty (..))
 
-import           Language.PlutusCore.Builtins
-import           Language.PlutusCore.Constant
-import           Language.PlutusCore.Core
-import           Language.PlutusCore.Evaluation.Machine.ExMemory
-import           Language.PlutusCore.Evaluation.Machine.Exception
-import           Language.PlutusCore.Evaluation.Result
-import           Language.PlutusCore.Generators.Interesting
-import           Language.PlutusCore.Generators.Internal.TypeEvalCheck
-import           Language.PlutusCore.Generators.Internal.Utils
-import           Language.PlutusCore.Name
-import           Language.PlutusCore.Pretty
-import           Language.PlutusCore.Universe
+import           PlutusCore.Builtins
+import           PlutusCore.Constant
+import           PlutusCore.Core
+import           PlutusCore.Evaluation.Machine.ExMemory
+import           PlutusCore.Evaluation.Machine.Exception
+import           PlutusCore.Evaluation.Result
+import           PlutusCore.Generators.Interesting
+import           PlutusCore.Generators.Internal.TypeEvalCheck
+import           PlutusCore.Generators.Internal.Utils
+import           PlutusCore.Name
+import           PlutusCore.Pretty
+import           PlutusCore.Universe
 
 import           Control.Monad.Except
-import           Data.Functor                                          ((<&>))
-import qualified Data.Text.IO                                          as Text
-import           Hedgehog                                              hiding (Size, Var, eval)
-import qualified Hedgehog.Gen                                          as Gen
-import           System.FilePath                                       ((</>))
+import           Data.Functor                                 ((<&>))
+import qualified Data.Text.IO                                 as Text
+import           Hedgehog                                     hiding (Size, Var, eval)
+import qualified Hedgehog.Gen                                 as Gen
+import           System.FilePath                              ((</>))
 
 -- | Generate a term using a given generator and check that it's well-typed and evaluates correctly.
 getSampleTermValue

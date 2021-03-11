@@ -29,7 +29,7 @@ import Halogen.HTML (ClassName(ClassName), HTML, button, br_, code_, div, div_, 
 import Halogen.HTML.Events (onClick)
 import Halogen.HTML.Properties (class_, classes)
 import Icons (Icon(..), icon)
-import Language.PlutusTx.AssocMap as AssocMap
+import PlutusTx.AssocMap as AssocMap
 import MainFrame.Lenses (_balancesChartSlot)
 import MainFrame.Types (ChildSlots, HAction(..), View(..))
 import Playground.Lenses (_tokenName, _contractInstanceTag)

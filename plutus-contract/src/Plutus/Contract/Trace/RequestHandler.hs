@@ -9,7 +9,7 @@
 {-# LANGUAGE RankNTypes         #-}
 {-# LANGUAGE TypeApplications   #-}
 {-# LANGUAGE TypeOperators      #-}
-module Language.Plutus.Contract.Trace.RequestHandler(
+module Plutus.Contract.Trace.RequestHandler(
     RequestHandler(..)
     , RequestHandlerLogMsg(..)
     , tryHandler
@@ -27,40 +27,39 @@ module Language.Plutus.Contract.Trace.RequestHandler(
     , handleContractNotifications
     ) where
 
-import           Control.Applicative                               (Alternative (empty))
-import           Control.Arrow                                     (Arrow, Kleisli (..))
-import           Control.Category                                  (Category)
+import           Control.Applicative                      (Alternative (empty))
+import           Control.Arrow                            (Arrow, Kleisli (..))
+import           Control.Category                         (Category)
 import           Control.Lens
-import           Control.Monad                                     (foldM, guard)
+import           Control.Monad                            (foldM, guard)
 import           Control.Monad.Freer
-import qualified Control.Monad.Freer.Error                         as Eff
-import           Control.Monad.Freer.NonDet                        (NonDet)
-import qualified Control.Monad.Freer.NonDet                        as NonDet
-import           Control.Monad.Freer.Reader                        (Reader, ask)
-import           Data.Foldable                                     (traverse_)
-import qualified Data.Map                                          as Map
-import           Data.Monoid                                       (Alt (..), Ap (..))
-import           Data.Text                                         (Text)
-import qualified Ledger.AddressMap                                 as AM
+import qualified Control.Monad.Freer.Error                as Eff
+import           Control.Monad.Freer.NonDet               (NonDet)
+import qualified Control.Monad.Freer.NonDet               as NonDet
+import           Control.Monad.Freer.Reader               (Reader, ask)
+import           Data.Foldable                            (traverse_)
+import qualified Data.Map                                 as Map
+import           Data.Monoid                              (Alt (..), Ap (..))
+import           Data.Text                                (Text)
+import qualified Ledger.AddressMap                        as AM
 
-import           Language.Plutus.Contract.Resumable                (Request (..), Response (..))
+import           Plutus.Contract.Resumable                (Request (..), Response (..))
 
-import           Control.Monad.Freer.Extras.Log                    (LogMessage, LogMsg, LogObserve, logDebug, logWarn,
-                                                                    surroundDebug)
-import           Language.Plutus.Contract.Effects.AwaitTxConfirmed (TxConfirmed (..))
-import           Language.Plutus.Contract.Effects.Instance         (OwnIdRequest)
-import           Language.Plutus.Contract.Effects.UtxoAt           (UtxoAtAddress (..))
-import qualified Language.Plutus.Contract.Wallet                   as Wallet
-import           Ledger                                            (Address, PubKey, Slot, Tx, TxId)
-import           Ledger.AddressMap                                 (AddressMap (..))
-import           Ledger.Constraints.OffChain                       (UnbalancedTx (unBalancedTxTx))
-import           Wallet.API                                        (WalletAPIError)
-import           Wallet.Effects                                    (ChainIndexEffect, ContractRuntimeEffect,
-                                                                    WalletEffect)
+import           Control.Monad.Freer.Extras.Log           (LogMessage, LogMsg, LogObserve, logDebug, logWarn,
+                                                           surroundDebug)
+import           Ledger                                   (Address, PubKey, Slot, Tx, TxId)
+import           Ledger.AddressMap                        (AddressMap (..))
+import           Ledger.Constraints.OffChain              (UnbalancedTx (unBalancedTxTx))
+import           Plutus.Contract.Effects.AwaitTxConfirmed (TxConfirmed (..))
+import           Plutus.Contract.Effects.Instance         (OwnIdRequest)
+import           Plutus.Contract.Effects.UtxoAt           (UtxoAtAddress (..))
+import qualified Plutus.Contract.Wallet                   as Wallet
+import           Wallet.API                               (WalletAPIError)
+import           Wallet.Effects                           (ChainIndexEffect, ContractRuntimeEffect, WalletEffect)
 import qualified Wallet.Effects
-import           Wallet.Emulator.LogMessages                       (RequestHandlerLogMsg (..), TxBalanceMsg)
-import           Wallet.Types                                      (AddressChangeRequest (..), AddressChangeResponse,
-                                                                    ContractInstanceId, Notification, NotificationError)
+import           Wallet.Emulator.LogMessages              (RequestHandlerLogMsg (..), TxBalanceMsg)
+import           Wallet.Types                             (AddressChangeRequest (..), AddressChangeResponse,
+                                                           ContractInstanceId, Notification, NotificationError)
 
 
 -- | Request handlers that can choose whether to handle an effect (using

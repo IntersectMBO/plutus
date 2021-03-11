@@ -1,29 +1,29 @@
-module Language.UntypedPlutusCore
+module UntypedPlutusCore
     ( module Export
     , applyProgram
     , parseScoped
     ) where
 
-import           Language.UntypedPlutusCore.Check.Uniques      as Uniques
-import           Language.UntypedPlutusCore.Parser             as Parser
-import           Language.UntypedPlutusCore.Rename             as Rename
+import           UntypedPlutusCore.Check.Uniques      as Uniques
+import           UntypedPlutusCore.Parser             as Parser
+import           UntypedPlutusCore.Rename             as Rename
 
-import           Language.PlutusCore.Name                      as Export
-import           Language.UntypedPlutusCore.Core               as Export
-import           Language.UntypedPlutusCore.Core.Instance.CBOR as Export
-import           Language.UntypedPlutusCore.Core.Instance.Flat as Export
-import           Language.UntypedPlutusCore.DeBruijn           as Export
-import           Language.UntypedPlutusCore.Size               as Export
-import           Language.UntypedPlutusCore.Subst              as Export
+import           PlutusCore.Name                      as Export
+import           UntypedPlutusCore.Core               as Export
+import           UntypedPlutusCore.Core.Instance.CBOR as Export
+import           UntypedPlutusCore.Core.Instance.Flat as Export
+import           UntypedPlutusCore.DeBruijn           as Export
+import           UntypedPlutusCore.Size               as Export
+import           UntypedPlutusCore.Subst              as Export
 -- Also has some functions
 
 
-import qualified Language.PlutusCore                           as PLC
-import qualified Language.PlutusCore.Error                     as PLC
-import           PlutusPrelude                                 (through)
+import qualified PlutusCore                           as PLC
+import qualified PlutusCore.Error                     as PLC
+import           PlutusPrelude                        (through)
 
 import           Control.Monad.Except
-import qualified Data.ByteString.Lazy                          as BSL
+import qualified Data.ByteString.Lazy                 as BSL
 
 
 -- | Take one PLC program and apply it to another.

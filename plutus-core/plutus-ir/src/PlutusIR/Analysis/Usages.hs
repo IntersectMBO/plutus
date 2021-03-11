@@ -1,19 +1,19 @@
 {-# LANGUAGE FlexibleContexts #-}
 -- | Functions for computing variable usage inside terms and types.
-module Language.PlutusIR.Analysis.Usages (runTermUsages, runTypeUsages, Usages, isUsed, allUsed) where
+module PlutusIR.Analysis.Usages (runTermUsages, runTypeUsages, Usages, isUsed, allUsed) where
 
-import           Language.PlutusIR
+import           PlutusIR
 
-import qualified Language.PlutusCore      as PLC
-import qualified Language.PlutusCore.Name as PLC
+import qualified PlutusCore          as PLC
+import qualified PlutusCore.Name     as PLC
 
 import           Control.Lens
 import           Control.Monad.State
 
 import           Data.Coerce
 import           Data.Foldable
-import qualified Data.Map                 as Map
-import qualified Data.Set                 as Set
+import qualified Data.Map            as Map
+import qualified Data.Set            as Set
 
 -- | Variable uses, as a map from the 'PLC.Unique' to its usage count. Unused variables may be missing
 -- or have usage count 0.

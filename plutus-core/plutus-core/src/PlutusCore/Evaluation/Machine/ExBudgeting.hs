@@ -7,7 +7,7 @@
 
 {-# LANGUAGE StrictData           #-}
 
-module Language.PlutusCore.Evaluation.Machine.ExBudgeting
+module PlutusCore.Evaluation.Machine.ExBudgeting
     ( CostModel
     , CostModelBase(..)
     , CostingFun(..)
@@ -29,17 +29,17 @@ module Language.PlutusCore.Evaluation.Machine.ExBudgeting
     )
 where
 
-import           PlutusPrelude                                   hiding (toList)
+import           PlutusPrelude                          hiding (toList)
 
-import           Language.PlutusCore.Evaluation.Machine.ExBudget
-import           Language.PlutusCore.Evaluation.Machine.ExMemory
+import           PlutusCore.Evaluation.Machine.ExBudget
+import           PlutusCore.Evaluation.Machine.ExMemory
 
 import           Barbies
 import           Data.Default.Class
 import           Data.Hashable
-import qualified Data.Kind                                       as Kind
+import qualified Data.Kind                              as Kind
 import           Deriving.Aeson
-import           Language.Haskell.TH.Syntax                      hiding (Name)
+import           Language.Haskell.TH.Syntax             hiding (Name)
 
 type CostModel = CostModelBase CostingFun
 

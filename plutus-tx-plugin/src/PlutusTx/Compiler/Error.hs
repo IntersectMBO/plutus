@@ -7,7 +7,7 @@
 {-# LANGUAGE TypeFamilies           #-}
 {-# LANGUAGE TypeOperators          #-}
 {-# LANGUAGE UndecidableInstances   #-}
-module Language.PlutusTx.Compiler.Error (
+module PlutusTx.Compiler.Error (
     CompileError
     , Error (..)
     , WithContext (..)
@@ -16,18 +16,18 @@ module Language.PlutusTx.Compiler.Error (
     , throwPlain
     , pruneContext) where
 
-import qualified Language.PlutusIR.Compiler as PIR
+import qualified PlutusIR.Compiler         as PIR
 
-import qualified Language.Haskell.TH        as TH
-import qualified Language.PlutusCore        as PLC
-import qualified Language.PlutusCore.Pretty as PLC
-import qualified Language.PlutusIR          as PIR
+import qualified Language.Haskell.TH       as TH
+import qualified PlutusCore                as PLC
+import qualified PlutusCore.Pretty         as PLC
+import qualified PlutusIR                  as PIR
 
 import           Control.Lens
 import           Control.Monad.Except
 
-import qualified Data.Text                  as T
-import qualified Data.Text.Prettyprint.Doc  as PP
+import qualified Data.Text                 as T
+import qualified Data.Text.Prettyprint.Doc as PP
 import           ErrorCode
 
 -- | An error with some (nested) context. The integer argument to 'WithContextC' represents

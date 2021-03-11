@@ -1,6 +1,6 @@
 {-# LANGUAGE LambdaCase          #-}
 {-# LANGUAGE ScopedTypeVariables #-}
-module Language.UntypedPlutusCore.Subst
+module UntypedPlutusCore.Subst
     ( substVarA
     , substVar
     , termSubstNamesM
@@ -15,13 +15,13 @@ module Language.UntypedPlutusCore.Subst
 
 import           PlutusPrelude
 
-import           Language.UntypedPlutusCore.Core
+import           UntypedPlutusCore.Core
 
-import           Language.PlutusCore.Core        (HasUniques)
-import           Language.PlutusCore.Name
+import           PlutusCore.Core        (HasUniques)
+import           PlutusCore.Name
 
 import           Control.Lens
-import           Data.Set                        as Set
+import           Data.Set               as Set
 
 purely :: ((a -> Identity b) -> c -> Identity d) -> (a -> b) -> c -> d
 purely = coerce

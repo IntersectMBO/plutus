@@ -3,12 +3,12 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeApplications    #-}
 {-# LANGUAGE TypeOperators       #-}
-module Language.PlutusIR.Purity (isPure) where
+module PlutusIR.Purity (isPure) where
 
-import           Language.PlutusIR
+import           PlutusIR
 
-import           Language.PlutusCore.Constant.Meaning
-import           Language.PlutusCore.Constant.Typed
+import           PlutusCore.Constant.Meaning
+import           PlutusCore.Constant.Typed
 
 import           Data.Proxy
 

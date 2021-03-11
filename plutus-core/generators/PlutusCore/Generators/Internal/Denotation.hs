@@ -5,7 +5,7 @@
 {-# LANGUAGE GADTs                     #-}
 {-# LANGUAGE TypeOperators             #-}
 
-module Language.PlutusCore.Generators.Internal.Denotation
+module PlutusCore.Generators.Internal.Denotation
     ( Denotation(..)
     , DenotationContextMember(..)
     , DenotationContext(..)
@@ -15,16 +15,16 @@ module Language.PlutusCore.Generators.Internal.Denotation
     , typedBuiltins
     ) where
 
-import           Language.PlutusCore.Generators.Internal.Dependent
+import           PlutusCore.Generators.Internal.Dependent
 
-import           Language.PlutusCore.Builtins
-import           Language.PlutusCore.Constant
-import           Language.PlutusCore.Core
-import           Language.PlutusCore.Name
-import           Language.PlutusCore.Universe
+import           PlutusCore.Builtins
+import           PlutusCore.Constant
+import           PlutusCore.Core
+import           PlutusCore.Name
+import           PlutusCore.Universe
 
-import           Data.Dependent.Map                                (DMap)
-import qualified Data.Dependent.Map                                as DMap
+import           Data.Dependent.Map                       (DMap)
+import qualified Data.Dependent.Map                       as DMap
 import           Data.Functor.Compose
 import           Data.Proxy
 
@@ -106,7 +106,7 @@ insertBuiltin fun =
                    insertDenotation $ Denotation fun (Builtin ()) (meta ()) sch
 
 -- Builtins that may fail are commented out, because we cannot handle them right now.
--- Look for "UNDEFINED BEHAVIOR" in "Language.PlutusCore.Generators.Internal.Dependent".
+-- Look for "UNDEFINED BEHAVIOR" in "PlutusCore.Generators.Internal.Dependent".
 -- | A 'DenotationContext' that consists of 'TypedStaticBuiltin's.
 typedBuiltins
     :: DenotationContext (Term TyName Name DefaultUni DefaultFun ())

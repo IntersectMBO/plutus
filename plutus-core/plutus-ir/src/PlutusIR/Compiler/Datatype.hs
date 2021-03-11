@@ -4,7 +4,7 @@
 {-# LANGUAGE TypeApplications  #-}
 {-# LANGUAGE TypeOperators     #-}
 -- | Functions for compiling let-bound PIR datatypes into PLC.
-module Language.PlutusIR.Compiler.Datatype
+module PlutusIR.Compiler.Datatype
     ( compileDatatype
     , compileDatatypeDefs
     , compileRecDatatypes
@@ -16,26 +16,26 @@ module Language.PlutusIR.Compiler.Datatype
     , resultTypeName
     ) where
 
-import           PlutusPrelude                          (showText)
+import           PlutusPrelude                 (showText)
 
-import           Language.PlutusIR
-import           Language.PlutusIR.Compiler.Names
-import           Language.PlutusIR.Compiler.Provenance
-import           Language.PlutusIR.Compiler.Types
-import           Language.PlutusIR.Error
-import qualified Language.PlutusIR.MkPir                as PIR
-import           Language.PlutusIR.Transform.Substitute
+import           PlutusIR
+import           PlutusIR.Compiler.Names
+import           PlutusIR.Compiler.Provenance
+import           PlutusIR.Compiler.Types
+import           PlutusIR.Error
+import qualified PlutusIR.MkPir                as PIR
+import           PlutusIR.Transform.Substitute
 
-import qualified Language.PlutusCore.MkPlc              as PLC
-import           Language.PlutusCore.Quote
-import qualified Language.PlutusCore.StdLib.Type        as Types
+import qualified PlutusCore.MkPlc              as PLC
+import           PlutusCore.Quote
+import qualified PlutusCore.StdLib.Type        as Types
 
 import           Control.Monad.Error.Lens
 
-import qualified Data.Text                              as T
+import qualified Data.Text                     as T
 import           Data.Traversable
 
-import qualified Data.List.NonEmpty                     as NE
+import qualified Data.List.NonEmpty            as NE
 
 {- NOTE [Normalization of data-constructors' types]
 

@@ -6,7 +6,7 @@
 {-# LANGUAGE TypeOperators         #-}
 {-# LANGUAGE UndecidableInstances  #-}
 
-module Language.UntypedPlutusCore.Core.Type
+module UntypedPlutusCore.Core.Type
     ( TPLC.UniOf
     , TPLC.Version (..)
     , Term (..)
@@ -23,13 +23,13 @@ module Language.UntypedPlutusCore.Core.Type
 import           Data.Functor.Identity
 import           PlutusPrelude
 
-import qualified Language.PlutusCore.Constant                    as TPLC
-import qualified Language.PlutusCore.Core                        as TPLC
-import           Language.PlutusCore.Evaluation.Machine.ExBudget
-import           Language.PlutusCore.Evaluation.Machine.ExMemory
-import           Language.PlutusCore.MkPlc
-import qualified Language.PlutusCore.Name                        as TPLC
-import           Language.PlutusCore.Universe
+import qualified PlutusCore.Constant                    as TPLC
+import qualified PlutusCore.Core                        as TPLC
+import           PlutusCore.Evaluation.Machine.ExBudget
+import           PlutusCore.Evaluation.Machine.ExMemory
+import           PlutusCore.MkPlc
+import qualified PlutusCore.Name                        as TPLC
+import           PlutusCore.Universe
 
 -- | The type of Untyped Plutus Core terms. Mirrors the type of Typed Plutus Core terms except
 --

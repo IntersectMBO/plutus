@@ -3,7 +3,7 @@
 {-# LANGUAGE GADTs             #-}
 {-# LANGUAGE OverloadedStrings #-}
 
-module Language.PlutusCore.StdLib.Meta.Data.Tuple
+module PlutusCore.StdLib.Meta.Data.Tuple
     ( Tuple (..)
     , getTupleType
     , tupleTypeTermAt
@@ -16,14 +16,14 @@ module Language.PlutusCore.StdLib.Meta.Data.Tuple
     , getSpineToTuple
     ) where
 
-import           PlutusPrelude             (showText)
+import           PlutusPrelude        (showText)
 
-import           Language.PlutusCore.Core
-import           Language.PlutusCore.MkPlc
-import           Language.PlutusCore.Name
-import           Language.PlutusCore.Quote
+import           PlutusCore.Core
+import           PlutusCore.MkPlc
+import           PlutusCore.Name
+import           PlutusCore.Quote
 
-import           Control.Lens.Indexed      (ifor, itraverse)
+import           Control.Lens.Indexed (ifor, itraverse)
 import           Data.Traversable
 
 -- | A Plutus Core (Scott-encoded) tuple.

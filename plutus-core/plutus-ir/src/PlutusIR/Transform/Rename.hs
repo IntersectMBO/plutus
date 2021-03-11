@@ -7,18 +7,18 @@
 
 -- | Renaming of PIR terms. Import this module to bring the @PLC.Rename (Term tyname name uni fun ann)@
 -- instance in scope.
-module Language.PlutusIR.Transform.Rename () where
+module PlutusIR.Transform.Rename () where
 
-import           Language.PlutusIR
+import           PlutusIR
 
-import qualified Language.PlutusCore                 as PLC
-import qualified Language.PlutusCore.Name            as PLC
-import qualified Language.PlutusCore.Rename.Internal as PLC
+import qualified PlutusCore                 as PLC
+import qualified PlutusCore.Name            as PLC
+import qualified PlutusCore.Rename.Internal as PLC
 
 import           Control.Monad.Reader
-import           Control.Monad.Trans.Cont            (ContT (..))
+import           Control.Monad.Trans.Cont   (ContT (..))
 
-import           Data.List.NonEmpty                  (NonEmpty)
+import           Data.List.NonEmpty         (NonEmpty)
 
 {- Note [Renaming of mutually recursive bindings]
 The 'RenameM' monad is a newtype wrapper around @ReaderT renaming Quote@, so in order to bring

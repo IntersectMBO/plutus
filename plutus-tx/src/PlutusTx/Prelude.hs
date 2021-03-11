@@ -3,7 +3,7 @@
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
 {-# OPTIONS_GHC -fmax-simplifier-iterations=0 #-}
 
-module Language.PlutusTx.Prelude (
+module PlutusTx.Prelude (
     -- $prelude
     -- * Classes
     module Eq,
@@ -63,35 +63,34 @@ module Language.PlutusTx.Prelude (
     module Prelude
     ) where
 
-import           Data.String                   (IsString (..))
-import           Language.PlutusTx.Applicative as Applicative
-import           Language.PlutusTx.Bool        as Bool
-import           Language.PlutusTx.Builtins    (ByteString, concatenate, dropByteString, emptyByteString,
-                                                equalsByteString, greaterThanByteString, lessThanByteString, sha2_256,
-                                                sha3_256, takeByteString, verifySignature)
-import qualified Language.PlutusTx.Builtins    as Builtins
-import           Language.PlutusTx.Either      as Either
-import           Language.PlutusTx.Eq          as Eq
-import           Language.PlutusTx.Foldable    as Foldable
-import           Language.PlutusTx.Functor     as Functor
-import           Language.PlutusTx.Lattice     as Lattice
-import           Language.PlutusTx.List        as List hiding (foldr)
-import           Language.PlutusTx.Maybe       as Maybe
-import           Language.PlutusTx.Monoid      as Monoid
-import           Language.PlutusTx.Numeric     as Numeric
-import           Language.PlutusTx.Ord         as Ord
-import           Language.PlutusTx.Ratio       as Ratio
-import           Language.PlutusTx.Semigroup   as Semigroup
-import           Language.PlutusTx.String      as String
-import           Language.PlutusTx.Traversable as Traversable
-import           Prelude                       as Prelude hiding (Applicative (..), Eq (..), Foldable (..),
-                                                           Functor (..), Monoid (..), Num (..), Ord (..), Rational,
-                                                           Semigroup (..), Traversable (..), all, and, any, concat,
-                                                           concatMap, const, divMod, either, elem, error, filter, fst,
-                                                           id, length, map, max, maybe, min, not, notElem, null, or,
-                                                           quotRem, reverse, round, sequence, snd, zip, (!!), ($), (&&),
-                                                           (++), (<$>), (||))
-import           Prelude                       as Prelude (maximum, minimum)
+import           Data.String          (IsString (..))
+import           PlutusTx.Applicative as Applicative
+import           PlutusTx.Bool        as Bool
+import           PlutusTx.Builtins    (ByteString, concatenate, dropByteString, emptyByteString, equalsByteString,
+                                       greaterThanByteString, lessThanByteString, sha2_256, sha3_256, takeByteString,
+                                       verifySignature)
+import qualified PlutusTx.Builtins    as Builtins
+import           PlutusTx.Either      as Either
+import           PlutusTx.Eq          as Eq
+import           PlutusTx.Foldable    as Foldable
+import           PlutusTx.Functor     as Functor
+import           PlutusTx.Lattice     as Lattice
+import           PlutusTx.List        as List hiding (foldr)
+import           PlutusTx.Maybe       as Maybe
+import           PlutusTx.Monoid      as Monoid
+import           PlutusTx.Numeric     as Numeric
+import           PlutusTx.Ord         as Ord
+import           PlutusTx.Ratio       as Ratio
+import           PlutusTx.Semigroup   as Semigroup
+import           PlutusTx.String      as String
+import           PlutusTx.Traversable as Traversable
+import           Prelude              as Prelude hiding (Applicative (..), Eq (..), Foldable (..), Functor (..),
+                                                  Monoid (..), Num (..), Ord (..), Rational, Semigroup (..),
+                                                  Traversable (..), all, and, any, concat, concatMap, const, divMod,
+                                                  either, elem, error, filter, fst, id, length, map, max, maybe, min,
+                                                  not, notElem, null, or, quotRem, reverse, round, sequence, snd, zip,
+                                                  (!!), ($), (&&), (++), (<$>), (||))
+import           Prelude              as Prelude (maximum, minimum)
 
 -- this module does lots of weird stuff deliberately
 {-# ANN module ("HLint: ignore"::String) #-}
@@ -102,12 +101,12 @@ import           Prelude                       as Prelude (maximum, minimum)
 -- will be compiled with the Plutus Tx compiler.
 -- @
 --     {-# LANGUAGE NoImplicitPrelude #-}
---     import Language.PlutusTx.Prelude
+--     import PlutusTx.Prelude
 -- @
 
 -- $setup
 -- >>> :set -XNoImplicitPrelude
--- >>> import Language.PlutusTx.Prelude
+-- >>> import PlutusTx.Prelude
 
 {-# INLINABLE error #-}
 -- | Terminate the evaluation of the script with an error message.

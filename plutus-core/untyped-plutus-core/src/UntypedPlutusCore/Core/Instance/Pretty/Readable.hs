@@ -8,16 +8,16 @@
 {-# LANGUAGE TypeOperators         #-}
 {-# LANGUAGE UndecidableInstances  #-}
 
-module Language.UntypedPlutusCore.Core.Instance.Pretty.Readable () where
+module UntypedPlutusCore.Core.Instance.Pretty.Readable () where
 
 import           PlutusPrelude
 
-import           Language.UntypedPlutusCore.Core.Type
+import           UntypedPlutusCore.Core.Type
 
-import           Language.PlutusCore.Core.Instance.Pretty.Common ()
-import           Language.PlutusCore.Pretty.PrettyConst
-import           Language.PlutusCore.Pretty.Readable
-import           Language.PlutusCore.Universe
+import           PlutusCore.Core.Instance.Pretty.Common ()
+import           PlutusCore.Pretty.PrettyConst
+import           PlutusCore.Pretty.Readable
+import           PlutusCore.Universe
 
 import           Data.Text.Prettyprint.Doc
 

@@ -12,7 +12,7 @@
 -- file.  Also see the Notes [Serialising unit annotations] and
 -- [Serialising Scripts] before using anything in this file.
 
-module Language.PlutusCore.CBOR ( encode
+module PlutusCore.CBOR ( encode
                                 , decode
                                 , encodeConstructorTag
                                 , decodeConstructorTag
@@ -22,19 +22,19 @@ module Language.PlutusCore.CBOR ( encode
                                 , InvisibleUnit (..)
                                 ) where
 
-import           Language.PlutusCore.Core
-import           Language.PlutusCore.DeBruijn
-import           Language.PlutusCore.Lexer.Type
-import           Language.PlutusCore.MkPlc      (TyVarDecl (..), VarDecl (..))
-import           Language.PlutusCore.Name
-import           Language.PlutusCore.Universe
+import           PlutusCore.Core
+import           PlutusCore.DeBruijn
+import           PlutusCore.Lexer.Type
+import           PlutusCore.MkPlc      (TyVarDecl (..), VarDecl (..))
+import           PlutusCore.Name
+import           PlutusCore.Universe
 
 import           Codec.CBOR.Decoding
 import           Codec.CBOR.Encoding
 import           Codec.Serialise
 import           Data.Proxy
 
-import qualified Data.ByteString.Lazy           as BSL
+import qualified Data.ByteString.Lazy  as BSL
 
 {- Note [Stable encoding of PLC]
 READ THIS BEFORE TOUCHING ANYTHING IN THIS FILE

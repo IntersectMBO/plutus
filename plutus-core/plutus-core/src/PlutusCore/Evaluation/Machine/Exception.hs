@@ -14,7 +14,7 @@
 {-# LANGUAGE TypeOperators          #-}
 {-# LANGUAGE UndecidableInstances   #-}
 
-module Language.PlutusCore.Evaluation.Machine.Exception
+module PlutusCore.Evaluation.Machine.Exception
     ( UnliftingError (..)
     , AsUnliftingError (..)
     , ConstAppError (..)
@@ -34,15 +34,15 @@ module Language.PlutusCore.Evaluation.Machine.Exception
 
 import           PlutusPrelude
 
-import           Language.PlutusCore.Core.Instance.Pretty.Common ()
-import           Language.PlutusCore.Evaluation.Result
-import           Language.PlutusCore.Pretty
+import           PlutusCore.Core.Instance.Pretty.Common ()
+import           PlutusCore.Evaluation.Result
+import           PlutusCore.Pretty
 
 import           Control.Lens
-import           Control.Monad.Error.Lens                        (throwing_)
+import           Control.Monad.Error.Lens               (throwing_)
 import           Control.Monad.Except
-import           Data.String                                     (IsString)
-import           Data.Text                                       (Text)
+import           Data.String                            (IsString)
+import           Data.Text                              (Text)
 import           Data.Text.Prettyprint.Doc
 import           ErrorCode
 

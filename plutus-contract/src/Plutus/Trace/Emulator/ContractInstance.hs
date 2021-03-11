@@ -30,45 +30,43 @@ module Plutus.Trace.Emulator.ContractInstance(
     ) where
 
 import           Control.Lens
-import           Control.Monad                                 (guard, unless, void, when)
+import           Control.Monad                        (guard, unless, void, when)
 import           Control.Monad.Freer
-import           Control.Monad.Freer.Coroutine                 (Yield)
-import           Control.Monad.Freer.Error                     (Error, throwError)
-import           Control.Monad.Freer.Extras.Log                (LogMessage, LogMsg (..), LogObserve, logDebug, logError,
-                                                                logInfo, logWarn, mapLog)
-import           Control.Monad.Freer.Extras.Modify             (raiseEnd)
-import           Control.Monad.Freer.Reader                    (Reader, ask, runReader)
-import           Control.Monad.Freer.State                     (State, evalState, get, gets, modify, put)
-import           Data.Aeson                                    (object)
-import qualified Data.Aeson                                    as JSON
-import           Data.Foldable                                 (traverse_)
-import qualified Data.Text                                     as T
-import           Language.Plutus.Contract                      (Contract (..), HasBlockchainActions)
-import           Language.Plutus.Contract.Resumable            (Request (..), Response (..))
-import qualified Language.Plutus.Contract.Resumable            as State
-import           Language.Plutus.Contract.Schema               (Event (..), Handlers (..), eventName, handlerName)
-import           Language.Plutus.Contract.Trace                (handleBlockchainQueries)
-import           Language.Plutus.Contract.Trace.RequestHandler (RequestHandler (..), RequestHandlerLogMsg, tryHandler,
-                                                                wrapHandler)
-import           Language.Plutus.Contract.Types                (ResumableResult (..), logs, requests, resumableResult)
-import           Plutus.Trace.Emulator.Types                   (ContractConstraints, ContractHandle (..),
-                                                                ContractInstanceLog (..), ContractInstanceMsg (..),
-                                                                ContractInstanceState (..),
-                                                                ContractInstanceStateInternal (..),
-                                                                EmulatedWalletEffects, EmulatedWalletEffects',
-                                                                EmulatorAgentThreadEffs, EmulatorMessage (..),
-                                                                EmulatorRuntimeError (..), EmulatorThreads,
-                                                                addEventInstanceState, emptyInstanceState,
-                                                                instanceIdThreads, toInstanceState)
-import           Plutus.Trace.Scheduler                        (AgentSystemCall, MessageCall (..), Priority (..),
-                                                                ThreadId, mkAgentSysCall)
-import qualified Wallet.API                                    as WAPI
-import           Wallet.Effects                                (ChainIndexEffect, ContractRuntimeEffect (..),
-                                                                NodeClientEffect, WalletEffect)
-import           Wallet.Emulator.LogMessages                   (TxBalanceMsg)
-import           Wallet.Types                                  (ContractInstanceId, EndpointDescription (..),
-                                                                EndpointValue (..), Notification (..),
-                                                                NotificationError (..))
+import           Control.Monad.Freer.Coroutine        (Yield)
+import           Control.Monad.Freer.Error            (Error, throwError)
+import           Control.Monad.Freer.Extras.Log       (LogMessage, LogMsg (..), LogObserve, logDebug, logError, logInfo,
+                                                       logWarn, mapLog)
+import           Control.Monad.Freer.Extras.Modify    (raiseEnd)
+import           Control.Monad.Freer.Reader           (Reader, ask, runReader)
+import           Control.Monad.Freer.State            (State, evalState, get, gets, modify, put)
+import           Data.Aeson                           (object)
+import qualified Data.Aeson                           as JSON
+import           Data.Foldable                        (traverse_)
+import qualified Data.Text                            as T
+import           Plutus.Contract                      (Contract (..), HasBlockchainActions)
+import           Plutus.Contract.Resumable            (Request (..), Response (..))
+import qualified Plutus.Contract.Resumable            as State
+import           Plutus.Contract.Schema               (Event (..), Handlers (..), eventName, handlerName)
+import           Plutus.Contract.Trace                (handleBlockchainQueries)
+import           Plutus.Contract.Trace.RequestHandler (RequestHandler (..), RequestHandlerLogMsg, tryHandler,
+                                                       wrapHandler)
+import           Plutus.Contract.Types                (ResumableResult (..), logs, requests, resumableResult)
+import           Plutus.Trace.Emulator.Types          (ContractConstraints, ContractHandle (..),
+                                                       ContractInstanceLog (..), ContractInstanceMsg (..),
+                                                       ContractInstanceState (..), ContractInstanceStateInternal (..),
+                                                       EmulatedWalletEffects, EmulatedWalletEffects',
+                                                       EmulatorAgentThreadEffs, EmulatorMessage (..),
+                                                       EmulatorRuntimeError (..), EmulatorThreads,
+                                                       addEventInstanceState, emptyInstanceState, instanceIdThreads,
+                                                       toInstanceState)
+import           Plutus.Trace.Scheduler               (AgentSystemCall, MessageCall (..), Priority (..), ThreadId,
+                                                       mkAgentSysCall)
+import qualified Wallet.API                           as WAPI
+import           Wallet.Effects                       (ChainIndexEffect, ContractRuntimeEffect (..), NodeClientEffect,
+                                                       WalletEffect)
+import           Wallet.Emulator.LogMessages          (TxBalanceMsg)
+import           Wallet.Types                         (ContractInstanceId, EndpointDescription (..), EndpointValue (..),
+                                                       Notification (..), NotificationError (..))
 
 -- | Effects available to threads that run in the context of specific
 --   agents (ie wallets)

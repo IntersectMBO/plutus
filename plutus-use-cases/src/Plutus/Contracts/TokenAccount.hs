@@ -12,9 +12,9 @@
 {-# LANGUAGE TypeOperators      #-}
 -- | Plutus implementation of an account that can be unlocked with a token.
 --   Whoever owns the token can spend the outputs locked by the contract.
---   (A suitable token can be created with the 'Language.PlutusTx.Coordination.Contracts.Currency'
+--   (A suitable token can be created with the 'Plutus.Contracts.Currency'
 --   contract, or with 'newAccount' in this module)
-module Language.PlutusTx.Coordination.Contracts.TokenAccount(
+module Plutus.Contracts.TokenAccount(
   Account(..)
   -- * Contract functionality
   , pay
@@ -38,30 +38,29 @@ module Language.PlutusTx.Coordination.Contracts.TokenAccount(
   ) where
 
 import           Control.Lens
-import           Control.Monad                                     (void)
+import           Control.Monad               (void)
 import           Control.Monad.Error.Lens
-import           Data.Aeson                                        (FromJSON, ToJSON)
-import qualified Data.Map                                          as Map
+import           Data.Aeson                  (FromJSON, ToJSON)
+import qualified Data.Map                    as Map
 import           Data.Text.Prettyprint.Doc
-import           GHC.Generics                                      (Generic)
+import           GHC.Generics                (Generic)
 
-import           Language.Plutus.Contract
-import           Language.Plutus.Contract.Constraints
-import qualified Language.PlutusTx                                 as PlutusTx
+import           Plutus.Contract
+import           Plutus.Contract.Constraints
+import qualified PlutusTx                    as PlutusTx
 
-import qualified Language.Plutus.Contract.Typed.Tx                 as TypedTx
-import           Ledger                                            (Address, PubKeyHash, Tx, TxOutTx (..),
-                                                                    ValidatorHash)
-import qualified Ledger                                            as Ledger
-import qualified Ledger.Constraints                                as Constraints
-import qualified Ledger.Contexts                                   as V
+import           Ledger                      (Address, PubKeyHash, Tx, TxOutTx (..), ValidatorHash)
+import qualified Ledger                      as Ledger
+import qualified Ledger.Constraints          as Constraints
+import qualified Ledger.Contexts             as V
 import qualified Ledger.Scripts
-import           Ledger.Typed.Scripts                              (ScriptType (..))
-import qualified Ledger.Typed.Scripts                              as Scripts
-import           Ledger.Value                                      (CurrencySymbol, TokenName, Value)
-import qualified Ledger.Value                                      as Value
+import           Ledger.Typed.Scripts        (ScriptType (..))
+import qualified Ledger.Typed.Scripts        as Scripts
+import           Ledger.Value                (CurrencySymbol, TokenName, Value)
+import qualified Ledger.Value                as Value
+import qualified Plutus.Contract.Typed.Tx    as TypedTx
 
-import qualified Language.PlutusTx.Coordination.Contracts.Currency as Currency
+import qualified Plutus.Contracts.Currency   as Currency
 
 newtype Account = Account { accountOwner :: (CurrencySymbol, TokenName) }
     deriving stock    (Eq, Show, Generic)

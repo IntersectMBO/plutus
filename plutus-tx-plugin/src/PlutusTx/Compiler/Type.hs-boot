@@ -1,9 +1,9 @@
 {-# LANGUAGE FlexibleContexts  #-}
 
-module Language.PlutusTx.Compiler.Type where
+module PlutusTx.Compiler.Type where
 
-import Language.PlutusTx.Compiler.Types
-import Language.PlutusTx.PIRTypes
+import PlutusTx.Compiler.Types
+import PlutusTx.PIRTypes
 
 import qualified GhcPlugins                               as GHC
 

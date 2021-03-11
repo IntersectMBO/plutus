@@ -2,15 +2,15 @@
 {-# LANGUAGE TypeApplications #-}
 module Spec.PingPong(tests, pingPongTrace, twoPartiesTrace) where
 
-import           Control.Monad                                     (void)
-import           Data.Maybe                                        (isNothing)
-import           Language.Plutus.Contract
-import           Language.Plutus.Contract.Test
+import           Control.Monad                (void)
+import           Data.Maybe                   (isNothing)
+import           Plutus.Contract
+import           Plutus.Contract.Test
 
-import           Language.Plutus.Contract.StateMachine             (OnChainState)
-import           Language.PlutusTx.Coordination.Contracts.PingPong (Input, PingPongError, PingPongSchema, PingPongState)
-import qualified Language.PlutusTx.Coordination.Contracts.PingPong as PingPong
-import qualified Plutus.Trace.Emulator                             as Trace
+import           Plutus.Contract.StateMachine (OnChainState)
+import           Plutus.Contracts.PingPong    (Input, PingPongError, PingPongSchema, PingPongState)
+import qualified Plutus.Contracts.PingPong    as PingPong
+import qualified Plutus.Trace.Emulator        as Trace
 
 import           Test.Tasty
 

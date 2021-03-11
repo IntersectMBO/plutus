@@ -7,15 +7,15 @@
 {-# LANGUAGE TypeOperators        #-}
 {-# LANGUAGE UndecidableInstances #-}
 
-module Language.UntypedPlutusCore.Core.Instance.Pretty.Default () where
+module UntypedPlutusCore.Core.Instance.Pretty.Default () where
 
 import           PlutusPrelude
 
-import           Language.PlutusCore.Pretty.Classic
-import           Language.PlutusCore.Pretty.PrettyConst
-import           Language.PlutusCore.Universe
-import           Language.UntypedPlutusCore.Core.Instance.Pretty.Classic ()
-import           Language.UntypedPlutusCore.Core.Type
+import           PlutusCore.Pretty.Classic
+import           PlutusCore.Pretty.PrettyConst
+import           PlutusCore.Universe
+import           UntypedPlutusCore.Core.Instance.Pretty.Classic ()
+import           UntypedPlutusCore.Core.Type
 
 instance
         ( PrettyClassic name

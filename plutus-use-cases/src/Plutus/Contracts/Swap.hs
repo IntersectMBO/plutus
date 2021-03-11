@@ -9,24 +9,24 @@
 {-# LANGUAGE ViewPatterns      #-}
 {-# OPTIONS_GHC -Wno-incomplete-uni-patterns #-}
 {-# OPTIONS_GHC -fno-ignore-interface-pragmas #-}
-module Language.PlutusTx.Coordination.Contracts.Swap(
+module Plutus.Contracts.Swap(
     Swap(..),
     -- * Script
     swapValidator
     ) where
 
-import qualified Language.PlutusTx         as PlutusTx
-import           Language.PlutusTx.Prelude
-import           Ledger                    (PubKey, PubKeyHash, Slot, Validator)
-import qualified Ledger                    as Ledger
-import           Ledger.Ada                (Ada)
-import qualified Ledger.Ada                as Ada
-import           Ledger.Contexts           (TxInInfo (..), TxInfo (..), TxOut (..), ValidatorCtx (..))
-import qualified Ledger.Contexts           as Validation
-import           Ledger.Oracle             (Observation (..), SignedMessage)
-import qualified Ledger.Oracle             as Oracle
-import qualified Ledger.Typed.Scripts      as Scripts
-import           Ledger.Value              (Value)
+import           Ledger               (PubKey, PubKeyHash, Slot, Validator)
+import qualified Ledger               as Ledger
+import           Ledger.Ada           (Ada)
+import qualified Ledger.Ada           as Ada
+import           Ledger.Contexts      (TxInInfo (..), TxInfo (..), TxOut (..), ValidatorCtx (..))
+import qualified Ledger.Contexts      as Validation
+import           Ledger.Oracle        (Observation (..), SignedMessage)
+import qualified Ledger.Oracle        as Oracle
+import qualified Ledger.Typed.Scripts as Scripts
+import           Ledger.Value         (Value)
+import qualified PlutusTx             as PlutusTx
+import           PlutusTx.Prelude
 
 -- | A swap is an agreement to exchange cashflows at future dates. To keep
 --  things simple, this is an interest rate swap (meaning that the cashflows are
@@ -44,7 +44,7 @@ data Swap = Swap
     , swapFixedRate       :: !Rational -- ^ Interest rate fixed at the beginning of the contract
     , swapFloatingRate    :: !Rational -- ^ Interest rate whose value will be observed (by an oracle) on the day of the payment
     , swapMargin          :: !Ada -- ^ Margin deposited at the beginning of the contract to protect against default (one party failing to pay)
-    , swapOracle          :: !PubKey -- ^ Public key of the oracle (see note [Oracles] in [[Language.PlutusTx.Coordination.Contracts]])
+    , swapOracle          :: !PubKey -- ^ Public key of the oracle (see note [Oracles] in [[Plutus.Contracts]])
     }
 
 PlutusTx.makeLift ''Swap

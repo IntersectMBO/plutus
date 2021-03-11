@@ -3,7 +3,7 @@
 {-# LANGUAGE RankNTypes            #-}
 
 -- | This module makes sure types are normalized inside programs.
-module Language.PlutusCore.Check.Normal
+module PlutusCore.Check.Normal
     ( checkProgram
     , checkTerm
     , isNormalType
@@ -12,8 +12,8 @@ module Language.PlutusCore.Check.Normal
 
 import           PlutusPrelude
 
-import           Language.PlutusCore.Core
-import           Language.PlutusCore.Error
+import           PlutusCore.Core
+import           PlutusCore.Error
 
 import           Control.Monad.Except
 

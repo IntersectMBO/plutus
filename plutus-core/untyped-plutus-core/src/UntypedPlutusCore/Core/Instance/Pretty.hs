@@ -1,6 +1,6 @@
-module Language.UntypedPlutusCore.Core.Instance.Pretty () where
+module UntypedPlutusCore.Core.Instance.Pretty () where
 
-import           Language.UntypedPlutusCore.Core.Instance.Pretty.Classic  ()
-import           Language.UntypedPlutusCore.Core.Instance.Pretty.Default  ()
-import           Language.UntypedPlutusCore.Core.Instance.Pretty.Plc      ()
-import           Language.UntypedPlutusCore.Core.Instance.Pretty.Readable ()
+import           UntypedPlutusCore.Core.Instance.Pretty.Classic  ()
+import           UntypedPlutusCore.Core.Instance.Pretty.Default  ()
+import           UntypedPlutusCore.Core.Instance.Pretty.Plc      ()
+import           UntypedPlutusCore.Core.Instance.Pretty.Readable ()

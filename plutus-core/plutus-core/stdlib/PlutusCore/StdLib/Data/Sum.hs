@@ -2,18 +2,18 @@
 
 {-# LANGUAGE OverloadedStrings #-}
 
-module Language.PlutusCore.StdLib.Data.Sum
+module PlutusCore.StdLib.Data.Sum
     ( sum
     , left
     , right
     ) where
 
-import           Prelude                   hiding (sum)
+import           Prelude          hiding (sum)
 
-import           Language.PlutusCore.Core
-import           Language.PlutusCore.MkPlc
-import           Language.PlutusCore.Name
-import           Language.PlutusCore.Quote
+import           PlutusCore.Core
+import           PlutusCore.MkPlc
+import           PlutusCore.Name
+import           PlutusCore.Quote
 
 -- | 'Either' as a PLC type.
 --

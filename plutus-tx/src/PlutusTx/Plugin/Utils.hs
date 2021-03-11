@@ -4,12 +4,12 @@
 {-# LANGUAGE KindSignatures     #-}
 {-# LANGUAGE OverloadedStrings  #-}
 {-# OPTIONS_GHC -Wno-unused-foralls #-}
-module Language.PlutusTx.Plugin.Utils where
+module PlutusTx.Plugin.Utils where
 
 import           Data.Proxy
 import           GHC.TypeLits
-import           Language.PlutusTx.Code
-import           Language.PlutusTx.Utils
+import           PlutusTx.Code
+import           PlutusTx.Utils
 
 {- Note [plc and Proxy]
 It would be nice to use TypeApplications instead of passing a Proxy to plc.

@@ -8,17 +8,17 @@
 --
 -- See @/docs/fomega/gadts/ScottVec.agda@ for how Scott-encoded vectors work.
 
-module Language.PlutusCore.Examples.Data.Vec where
+module PlutusCore.Examples.Data.Vec where
 
-import           Language.PlutusCore.Builtins
-import           Language.PlutusCore.Core
-import           Language.PlutusCore.MkPlc
-import           Language.PlutusCore.Name
-import           Language.PlutusCore.Quote
-import           Language.PlutusCore.Universe
+import           PlutusCore.Builtins
+import           PlutusCore.Core
+import           PlutusCore.MkPlc
+import           PlutusCore.Name
+import           PlutusCore.Quote
+import           PlutusCore.Universe
 
-import           Language.PlutusCore.StdLib.Data.Integer
-import           Language.PlutusCore.StdLib.Data.Unit
+import           PlutusCore.StdLib.Data.Integer
+import           PlutusCore.StdLib.Data.Unit
 
 -- |
 --

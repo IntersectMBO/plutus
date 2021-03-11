@@ -12,7 +12,7 @@ generators.
 {-# LANGUAGE RecordWildCards       #-}
 {-# LANGUAGE TypeSynonymInstances  #-}
 
-module Language.PlutusCore.Generators.NEAT.Spec
+module PlutusCore.Generators.NEAT.Spec
   ( tests
   , GenOptions (..)
   , defaultGenOptions
@@ -28,22 +28,22 @@ module Language.PlutusCore.Generators.NEAT.Spec
   , handleError
   ) where
 
-import           Language.PlutusCore
-import           Language.PlutusCore.Evaluation.Machine.Ck
-import           Language.PlutusCore.Generators.NEAT.Common
-import           Language.PlutusCore.Generators.NEAT.Term
-import           Language.PlutusCore.Normalize
-import           Language.PlutusCore.Pretty
-import qualified Language.UntypedPlutusCore                        as U
-import qualified Language.UntypedPlutusCore.Evaluation.Machine.Cek as U
+import           PlutusCore
+import           PlutusCore.Evaluation.Machine.Ck
+import           PlutusCore.Generators.NEAT.Common
+import           PlutusCore.Generators.NEAT.Term
+import           PlutusCore.Normalize
+import           PlutusCore.Pretty
+import qualified UntypedPlutusCore                        as U
+import qualified UntypedPlutusCore.Evaluation.Machine.Cek as U
 
 import           Control.Monad.Except
-import           Control.Search                                    (Enumerable (..), Options (..), ctrex', search')
-import           Data.Coolean                                      (Cool, toCool, (!=>))
+import           Control.Search                           (Enumerable (..), Options (..), ctrex', search')
+import           Data.Coolean                             (Cool, toCool, (!=>))
 import           Data.Either
 import           Data.Maybe
-import qualified Data.Stream                                       as Stream
-import qualified Data.Text                                         as Text
+import qualified Data.Stream                              as Stream
+import qualified Data.Text                                as Text
 import           System.IO.Unsafe
 import           Test.Tasty
 import           Test.Tasty.HUnit

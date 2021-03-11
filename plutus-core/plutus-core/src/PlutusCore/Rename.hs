@@ -5,7 +5,7 @@
 {-# LANGUAGE TypeApplications     #-}
 {-# LANGUAGE UndecidableInstances #-}
 
-module Language.PlutusCore.Rename
+module PlutusCore.Rename
     ( Rename (..)
     , Dupable
     , liftDupable
@@ -13,11 +13,11 @@ module Language.PlutusCore.Rename
 
 import           PlutusPrelude
 
-import           Language.PlutusCore.Core
-import           Language.PlutusCore.Mark
-import           Language.PlutusCore.Name
-import           Language.PlutusCore.Quote
-import           Language.PlutusCore.Rename.Internal
+import           PlutusCore.Core
+import           PlutusCore.Mark
+import           PlutusCore.Name
+import           PlutusCore.Quote
+import           PlutusCore.Rename.Internal
 
 import           Data.Functor.Identity
 

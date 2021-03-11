@@ -8,7 +8,7 @@
 {-# LANGUAGE TypeOperators        #-}
 {-# LANGUAGE UndecidableInstances #-}
 
-module Language.PlutusCore.Core.Instance.Eq
+module PlutusCore.Core.Instance.Eq
     ( eqTypeM
     , eqTermM
     , eqProgramM
@@ -16,11 +16,11 @@ module Language.PlutusCore.Core.Instance.Eq
 
 import           PlutusPrelude
 
-import           Language.PlutusCore.Core.Type
-import           Language.PlutusCore.Eq
-import           Language.PlutusCore.Name
-import           Language.PlutusCore.Rename.Monad
-import           Language.PlutusCore.Universe
+import           PlutusCore.Core.Type
+import           PlutusCore.Eq
+import           PlutusCore.Name
+import           PlutusCore.Rename.Monad
+import           PlutusCore.Universe
 
 -- See Note [Annotations and equality].
 

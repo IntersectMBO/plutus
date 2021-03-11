@@ -12,20 +12,20 @@
 -- file.  Also see the Notes [Serialising unit annotations] and
 -- [Serialising Scripts] before using anything in this file.
 
-module Language.PlutusCore.Flat ( encode
+module PlutusCore.Flat ( encode
                                 , decode
                                 , safeEncodeBits
                                 ) where
 
-import           Language.PlutusCore.Core
-import           Language.PlutusCore.DeBruijn
-import           Language.PlutusCore.Lexer.Type
-import           Language.PlutusCore.MkPlc      (TyVarDecl (..), VarDecl (..))
-import           Language.PlutusCore.Name
-import           Language.PlutusCore.Universe
+import           PlutusCore.Core
+import           PlutusCore.DeBruijn
+import           PlutusCore.Lexer.Type
+import           PlutusCore.MkPlc      (TyVarDecl (..), VarDecl (..))
+import           PlutusCore.Name
+import           PlutusCore.Universe
 
 import           Data.Proxy
-import           Data.Word                      (Word8)
+import           Data.Word             (Word8)
 import           Flat
 import           Flat.Decoder
 import           Flat.Encoder

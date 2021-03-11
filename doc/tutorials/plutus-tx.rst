@@ -59,7 +59,7 @@ Simply put, a quote allows us to talk about Haskell programs as *values*.
 The Plutus Tx compiler compiles Haskell *expressions* (not values!), so
 naturally it takes a quote (representing an expression) as an argument.
 The result is a new quote, this time for a Haskell program that
-represents the *compiled* program. In Haskell, the type of :hsobj:`Language.PlutusTx.TH.compile`
+represents the *compiled* program. In Haskell, the type of :hsobj:`PlutusTx.TH.compile`
 is ``TExpQ a → TExpQ (CompiledCode a)``. This is just
 what we already said:
 
@@ -70,23 +70,23 @@ what we already said:
 
 .. note::
 
-   :hsobj:`Language.PlutusTx.CompiledCode` also has a type parameter ``a``, which
+   :hsobj:`PlutusTx.CompiledCode` also has a type parameter ``a``, which
    corresponds to the type of the original expression. This lets us
    "remember" the type of the original Haskell program we compiled.
 
-Since :hsobj:`Language.PlutusTx.TH.compile` produces a quote, to use the result we need to splice
+Since :hsobj:`PlutusTx.TH.compile` produces a quote, to use the result we need to splice
 it back into our program. The Plutus Tx compiler runs when compiling the main program,
 and the compiled program will be inserted into the main program.
 
 This is all you need to know about the Template Haskell! We often use the same simple pattern: make a quote,
-immediately call :hsobj:`Language.PlutusTx.TH.compile`, and then splice the result back in.
+immediately call :hsobj:`PlutusTx.TH.compile`, and then splice the result back in.
 
 .. _writing_basic_plutustx_programs:
 
 Writing basic PlutusTx programs
 -------------------------------
 
-.. literalinclude:: PlutusTx.hs
+.. literalinclude:: BasicPlutusTx.hs
    :start-after: BLOCK1
    :end-before: BLOCK2
 
@@ -98,7 +98,7 @@ This simple program just evaluates to the integer ``1``.
     might look unfamiliar, since this syntax is used for the 'assembly language, which means you don't need to inspect
     the compiler's output. But for the purpose of this tutorial, it is useful to understand what is happening.
 
-.. literalinclude:: PlutusTx.hs
+.. literalinclude:: BasicPlutusTx.hs
    :start-after: BLOCK2
    :end-before: BLOCK3
 
@@ -108,13 +108,13 @@ time, which we spliced into our Haskell program. We can inspect at runtime
 to see the generated Plutus Core (or to put it on the blockchain).
 
 We also see the standard usage pattern: a TH quote, wrapped in a
-call to :hsobj:`Language.PlutusTx.TH.compile`, wrapped in a ``$$`` splice. This is how all our Plutus Tx
+call to :hsobj:`PlutusTx.TH.compile`, wrapped in a ``$$`` splice. This is how all our Plutus Tx
 programs are written.
 
 This is a slightly more complex program. It includes the identity function on
 integers.
 
-.. literalinclude:: PlutusTx.hs
+.. literalinclude:: BasicPlutusTx.hs
    :start-after: BLOCK3
    :end-before: BLOCK4
 
@@ -127,13 +127,13 @@ You can use functions inside your expression. In practice, you will
 usually want to define the entirety of your Plutus Tx program as a
 definition outside the quote, and then simply call it inside the quote.
 
-.. literalinclude:: PlutusTx.hs
+.. literalinclude:: BasicPlutusTx.hs
    :start-after: BLOCK4
    :end-before: BLOCK5
 
 We can use normal Haskell datatypes and pattern matching freely:
 
-.. literalinclude:: PlutusTx.hs
+.. literalinclude:: BasicPlutusTx.hs
    :start-after: BLOCK5
    :end-before: BLOCK6
 
@@ -143,7 +143,7 @@ the Haskell ``Prelude``. This works for your own datatypes too!
 
 Here’s a small example with a datatype representing a potentially open-ended end date.
 
-.. literalinclude:: PlutusTx.hs
+.. literalinclude:: BasicPlutusTx.hs
    :start-after: BLOCK6
    :end-before: BLOCK7
 
@@ -171,7 +171,7 @@ you should be able to use most typeclass functions in your Plutus Tx programs.
 For example, here is a version of the ``pastEnd`` function using ``<``.
 This will be compiled to exactly the same code as the previous definition.
 
-.. literalinclude:: PlutusTx.hs
+.. literalinclude:: BasicPlutusTx.hs
    :start-after: BLOCK7
    :end-before: BLOCK8
 
@@ -180,7 +180,7 @@ This will be compiled to exactly the same code as the previous definition.
 The Plutus Tx Prelude
 ---------------------
 
-The :hsmod:`Language.PlutusTx.Prelude` module is a drop-in replacement for
+The :hsmod:`PlutusTx.Prelude` module is a drop-in replacement for
 the normal Haskell Prelude, with some redefined functions and typeclasses
 that makes it easier for the Plutus Tx compiler to handle (i.e.``INLINABLE``).
 
@@ -190,13 +190,13 @@ you can use them in normal Haskell code too, although the Haskell Prelude versio
 probably perform better.
 
 To use the Plutus Tx Prelude, use the ``NoImplicitPrelude`` language
-pragma and import :hsmod:`Language.PlutusTx.Prelude`.
+pragma and import :hsmod:`PlutusTx.Prelude`.
 
 Plutus Tx includes some built-in types and functions for working
 with primitive data (integers and bytestrings), as well as a few special
 functions. These types are also exported from the Plutus Tx Prelude.
 
-The :hsobj:`Language.PlutusTx.Builtins.error` built-in deserves a special mention. :hsobj:`Language.PlutusTx.Builtins.error` causes the
+The :hsobj:`PlutusTx.Builtins.error` built-in deserves a special mention. :hsobj:`PlutusTx.Builtins.error` causes the
 transaction to abort when it is evaluated, which is one way to trigger a
 validation failure.
 
@@ -230,7 +230,7 @@ the external code that uses it.
 
 In this example, we add an add-one function.
 
-.. literalinclude:: PlutusTx.hs
+.. literalinclude:: BasicPlutusTx.hs
    :start-after: BLOCK8
    :end-before: BLOCK9
 
@@ -239,20 +239,20 @@ program that computes to ``5``. We need to *lift* the argument (``4``)
 from Haskell to Plutus Core, and then we need to apply the function to
 it.
 
-.. literalinclude:: PlutusTx.hs
+.. literalinclude:: BasicPlutusTx.hs
    :start-after: BLOCK9
    :end-before: BLOCK10
 
-We lifted the argument using the :hsobj:`Language.PlutusTx.liftCode` function. To use this,
-a type must have an instance of the :hsobj:`Language.PlutusTx.Lift` class. In practice,
-you should generate these with the :hsobj:`Language.PlutusTx.makeLift` TH function from
-:hsmod:`Language.PlutusTx.Lift`.
+We lifted the argument using the :hsobj:`PlutusTx.liftCode` function. To use this,
+a type must have an instance of the :hsobj:`PlutusTx.Lift` class. In practice,
+you should generate these with the :hsobj:`PlutusTx.makeLift` TH function from
+:hsmod:`PlutusTx.Lift`.
 
 .. note::
 
-   :hsobj:`Language.PlutusTx.liftCode` is relatively unsafe because it ignores any errors that
+   :hsobj:`PlutusTx.liftCode` is relatively unsafe because it ignores any errors that
    might occur from lifting something that might not be supported. There is a
-   :hsobj:`Language.PlutusTx.safeLiftCode` if you want to explicitly handle these occurrences.
+   :hsobj:`PlutusTx.safeLiftCode` if you want to explicitly handle these occurrences.
 
 The combined program applies the original compiled lambda to the lifted
 value (notice that the lambda is a bit complicated now, since we have
@@ -261,6 +261,6 @@ compiled the addition into a built-in).
 Here’s an example with our custom datatype. The output is the encoded
 version of ``False``.
 
-.. literalinclude:: PlutusTx.hs
+.. literalinclude:: BasicPlutusTx.hs
    :start-after: BLOCK10
    :end-before: BLOCK11

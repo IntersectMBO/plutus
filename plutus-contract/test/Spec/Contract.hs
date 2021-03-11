@@ -13,37 +13,37 @@
 module Spec.Contract(tests) where
 
 import           Control.Lens
-import           Control.Monad                                   (forever, void)
+import           Control.Monad                          (forever, void)
 import           Control.Monad.Error.Lens
-import           Control.Monad.Except                            (catchError, throwError)
-import           Control.Monad.Freer                             (Eff)
-import           Control.Monad.Freer.Extras.Log                  (LogLevel (..))
-import qualified Control.Monad.Freer.Extras.Log                  as Log
+import           Control.Monad.Except                   (catchError, throwError)
+import           Control.Monad.Freer                    (Eff)
+import           Control.Monad.Freer.Extras.Log         (LogLevel (..))
+import qualified Control.Monad.Freer.Extras.Log         as Log
 import           Test.Tasty
 
-import           Language.Plutus.Contract                        as Con
-import           Language.Plutus.Contract.Test
-import           Language.Plutus.Contract.Types                  (ResumableResult (..))
-import           Language.Plutus.Contract.Util                   (loopM)
-import qualified Language.PlutusTx                               as PlutusTx
-import           Language.PlutusTx.Lattice
-import           Ledger                                          (Address, PubKey, Slot)
-import qualified Ledger                                          as Ledger
-import qualified Ledger.Ada                                      as Ada
-import qualified Ledger.Constraints                              as Constraints
-import qualified Ledger.Crypto                                   as Crypto
-import qualified Plutus.Trace                                    as Trace
-import           Plutus.Trace.Emulator                           (ContractInstanceTag, Emulator, EmulatorTrace,
-                                                                  activateContract, activeEndpoints, callEndpoint)
-import           Plutus.Trace.Emulator.Types                     (ContractInstanceLog (..), ContractInstanceMsg (..),
-                                                                  ContractInstanceState (..), UserThreadMsg (..))
-import           Prelude                                         hiding (not)
-import qualified Prelude                                         as P
-import qualified Wallet.Emulator                                 as EM
+import           Ledger                                 (Address, PubKey, Slot)
+import qualified Ledger                                 as Ledger
+import qualified Ledger.Ada                             as Ada
+import qualified Ledger.Constraints                     as Constraints
+import qualified Ledger.Crypto                          as Crypto
+import           Plutus.Contract                        as Con
+import           Plutus.Contract.Test
+import           Plutus.Contract.Types                  (ResumableResult (..))
+import           Plutus.Contract.Util                   (loopM)
+import qualified Plutus.Trace                           as Trace
+import           Plutus.Trace.Emulator                  (ContractInstanceTag, Emulator, EmulatorTrace, activateContract,
+                                                         activeEndpoints, callEndpoint)
+import           Plutus.Trace.Emulator.Types            (ContractInstanceLog (..), ContractInstanceMsg (..),
+                                                         ContractInstanceState (..), UserThreadMsg (..))
+import qualified PlutusTx                               as PlutusTx
+import           PlutusTx.Lattice
+import           Prelude                                hiding (not)
+import qualified Prelude                                as P
+import qualified Wallet.Emulator                        as EM
 
-import qualified Language.Plutus.Contract.Effects.AwaitSlot      as AwaitSlot
-import           Language.Plutus.Contract.Effects.ExposeEndpoint (ActiveEndpoint (..))
-import           Language.Plutus.Contract.Trace.RequestHandler   (maybeToHandler)
+import qualified Plutus.Contract.Effects.AwaitSlot      as AwaitSlot
+import           Plutus.Contract.Effects.ExposeEndpoint (ActiveEndpoint (..))
+import           Plutus.Contract.Trace.RequestHandler   (maybeToHandler)
 
 tests :: TestTree
 tests =

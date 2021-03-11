@@ -1,14 +1,14 @@
 {-# LANGUAGE OverloadedStrings #-}
 -- | Meta-functions relating to functions.
-module Language.PlutusCore.StdLib.Meta.Data.Function
+module PlutusCore.StdLib.Meta.Data.Function
     ( constPartial
     , etaExpand
     ) where
 
-import           Language.PlutusCore.Core
-import           Language.PlutusCore.MkPlc
-import           Language.PlutusCore.Name
-import           Language.PlutusCore.Quote
+import           PlutusCore.Core
+import           PlutusCore.MkPlc
+import           PlutusCore.Name
+import           PlutusCore.Quote
 
 -- | 'const' as a PLC term.
 --

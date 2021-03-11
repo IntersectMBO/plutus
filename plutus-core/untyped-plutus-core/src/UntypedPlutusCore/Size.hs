@@ -1,15 +1,15 @@
 {-# LANGUAGE LambdaCase #-}
 
-module Language.UntypedPlutusCore.Size
+module UntypedPlutusCore.Size
     ( termSize
     , programSize
     , serialisedSize
     ) where
 
-import           Language.UntypedPlutusCore.Core
+import           UntypedPlutusCore.Core
 
 import           Codec.Serialise
-import qualified Data.ByteString.Lazy            as BSL
+import qualified Data.ByteString.Lazy   as BSL
 
 -- | Count the number of AST nodes in a term.
 termSize :: Term name uni fun ann -> Integer

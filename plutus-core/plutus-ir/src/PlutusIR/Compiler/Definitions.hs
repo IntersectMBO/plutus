@@ -11,7 +11,7 @@
 {-# LANGUAGE TypeApplications       #-}
 {-# LANGUAGE UndecidableInstances   #-}
 -- | Support for generating PIR with global definitions with dependencies between them.
-module Language.PlutusIR.Compiler.Definitions (DefT
+module PlutusIR.Compiler.Definitions (DefT
                                               , MonadDefs (..)
                                               , TermDefWithStrictness
                                               , runDefT
@@ -26,11 +26,11 @@ module Language.PlutusIR.Compiler.Definitions (DefT
                                               , lookupConstructors
                                               , lookupDestructor) where
 
-import           Language.PlutusIR
-import           Language.PlutusIR.MkPir              hiding (error)
+import           PlutusIR
+import           PlutusIR.MkPir                       hiding (error)
 
-import qualified Language.PlutusCore.MkPlc            as PLC
-import           Language.PlutusCore.Quote
+import qualified PlutusCore.MkPlc                     as PLC
+import           PlutusCore.Quote
 
 import           Control.Lens
 import           Control.Monad.Except

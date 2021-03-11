@@ -13,7 +13,7 @@
 {-# LANGUAGE TemplateHaskell     #-}
 {-# LANGUAGE TypeApplications    #-}
 {-# LANGUAGE TypeOperators       #-}
-module Language.Plutus.Contract.Checkpoint(
+module Plutus.Contract.Checkpoint(
     -- * Checkpoints
     -- $checkpoints
     Checkpoint(..)

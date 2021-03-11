@@ -59,7 +59,7 @@ import           Cardano.BM.Data.Tracer.Extras  (Tagged (..), mkObjectStr)
 import           Control.Monad.Freer.Extras.Log (LogMessage, LogMsg (..))
 import           Control.Monad.Freer.Reader     (Reader)
 import           Control.Monad.Freer.State      (State)
-import qualified Language.Plutus.Contract.Trace as Trace
+import qualified Plutus.Contract.Trace          as Trace
 import           Wallet.Emulator                (Wallet)
 import qualified Wallet.Emulator                as EM
 import           Wallet.Emulator.Chain          (ChainControlEffect, ChainEffect, ChainEvent, ChainState)

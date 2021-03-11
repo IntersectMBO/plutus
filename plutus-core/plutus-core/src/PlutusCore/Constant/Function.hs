@@ -2,7 +2,7 @@
 {-# LANGUAGE GADTs            #-}
 {-# LANGUAGE TypeApplications #-}
 
-module Language.PlutusCore.Constant.Function
+module PlutusCore.Constant.Function
     ( typeSchemeToType
     , countTermArgs
     , ArgumentClass (..)
@@ -10,12 +10,12 @@ module Language.PlutusCore.Constant.Function
     , getArity
     ) where
 
-import           Language.PlutusCore.Constant.Typed
-import           Language.PlutusCore.Core
-import           Language.PlutusCore.Name
+import           PlutusCore.Constant.Typed
+import           PlutusCore.Core
+import           PlutusCore.Name
 
 import           Data.Proxy
-import qualified Data.Text                          as Text
+import qualified Data.Text                 as Text
 import           GHC.TypeLits
 
 -- | Convert a 'TypeScheme' to the corresponding 'Type'.

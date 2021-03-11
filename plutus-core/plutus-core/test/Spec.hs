@@ -8,32 +8,32 @@ module Main
 
 import           PlutusPrelude
 
-import qualified Check.Spec                                 as Check
-import           Evaluation.Spec                            (test_evaluation)
+import qualified Check.Spec                        as Check
+import           Evaluation.Spec                   (test_evaluation)
 import           Normalization.Check
 import           Normalization.Type
 import           Pretty.Readable
-import           TypeSynthesis.Spec                         (test_typecheck)
+import           TypeSynthesis.Spec                (test_typecheck)
 
-import           Language.PlutusCore
-import           Language.PlutusCore.DeBruijn
-import           Language.PlutusCore.Generators
-import           Language.PlutusCore.Generators.AST         as AST
-import           Language.PlutusCore.Generators.Interesting
-import qualified Language.PlutusCore.Generators.NEAT.Spec   as NEAT
-import           Language.PlutusCore.MkPlc
-import           Language.PlutusCore.Pretty
+import           PlutusCore
+import           PlutusCore.DeBruijn
+import           PlutusCore.Generators
+import           PlutusCore.Generators.AST         as AST
+import           PlutusCore.Generators.Interesting
+import qualified PlutusCore.Generators.NEAT.Spec   as NEAT
+import           PlutusCore.MkPlc
+import           PlutusCore.Pretty
 
 import           Codec.Serialise
 import           Control.Monad.Except
-import qualified Data.ByteString.Lazy                       as BSL
-import qualified Data.Text                                  as T
-import           Data.Text.Encoding                         (encodeUtf8)
-import           Flat                                       (flat)
-import qualified Flat                                       as Flat
-import           Hedgehog                                   hiding (Var)
-import qualified Hedgehog.Gen                               as Gen
-import qualified Hedgehog.Range                             as Range
+import qualified Data.ByteString.Lazy              as BSL
+import qualified Data.Text                         as T
+import           Data.Text.Encoding                (encodeUtf8)
+import           Flat                              (flat)
+import qualified Flat                              as Flat
+import           Hedgehog                          hiding (Var)
+import qualified Hedgehog.Gen                      as Gen
+import qualified Hedgehog.Range                    as Range
 import           Test.Tasty
 import           Test.Tasty.Golden
 import           Test.Tasty.HUnit
@@ -143,7 +143,7 @@ testLexConstant =
   possible formats we have generators for Unicode characters and ASCII
   characters, and also Latin-1 ones (characters 0-255, including standard ASCII
   from 0-127); there is also a generator for UTF8-encoded Unicode. -}
--- TODO: replace Language.PlutusCore.Generators.AST.genConstant with this.  We
+-- TODO: replace PlutusCore.Generators.AST.genConstant with this.  We
 -- can't do that at the moment because genConstant is used by the tests for the
 -- plutus-ir parser, and that can't handle the full range of constants at the
 -- moment.

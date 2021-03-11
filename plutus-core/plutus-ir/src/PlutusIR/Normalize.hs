@@ -1,22 +1,22 @@
 {-# LANGUAGE FlexibleContexts #-}
--- | PlutusIR versions of the functions in Language.PlutusCore.Normalize
-module Language.PlutusIR.Normalize
+-- | PlutusIR versions of the functions in PlutusCore.Normalize
+module PlutusIR.Normalize
     ( Export.normalizeType
     , normalizeTypesIn
     , normalizeTypesInProgram
     ) where
 
-import           Language.PlutusCore.Core               as PLC (Normalized (..))
-import           Language.PlutusCore.Name
-import           Language.PlutusCore.Normalize          as Export (normalizeType)
-import           Language.PlutusCore.Normalize.Internal hiding (normalizeTypesInM)
-import           Language.PlutusCore.Quote
-import           Language.PlutusCore.Rename             (rename)
-import           Language.PlutusIR
-import           Language.PlutusIR.Transform.Rename     ()
+import           PlutusCore.Core               as PLC (Normalized (..))
+import           PlutusCore.Name
+import           PlutusCore.Normalize          as Export (normalizeType)
+import           PlutusCore.Normalize.Internal hiding (normalizeTypesInM)
+import           PlutusCore.Quote
+import           PlutusCore.Rename             (rename)
+import           PlutusIR
+import           PlutusIR.Transform.Rename     ()
 
 import           Control.Lens
-import           Control.Monad                          ((>=>))
+import           Control.Monad                 ((>=>))
 
 -- | Normalize every 'Type' in a 'Term'.
 normalizeTypesIn
@@ -31,7 +31,7 @@ normalizeTypesInProgram
 normalizeTypesInProgram (Program x t) = Program x <$> normalizeTypesIn t
 
 -- | Normalize every 'Type' in a 'Term'.
--- Mirrors the `normalizeTypesInM` of 'Language.PlutusCore.Normalize.Internal', working on PIR.Term instead
+-- Mirrors the `normalizeTypesInM` of 'PlutusCore.Normalize.Internal', working on PIR.Term instead
 normalizeTypesInM
     :: (HasUnique tyname TypeUnique, MonadQuote m)
     => Term tyname name uni fun ann -> NormalizeTypeT m tyname uni ann (Term tyname name uni fun ann)

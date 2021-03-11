@@ -10,10 +10,10 @@
 
 module Command (Command (..)) where
 
-import qualified Data.Aeson                                      as JSON
-import           Data.UUID                                       (UUID)
-import           GHC.Generics                                    (Generic)
-import           Language.Plutus.Contract.Effects.ExposeEndpoint (EndpointDescription (..))
+import qualified Data.Aeson                             as JSON
+import           Data.UUID                              (UUID)
+import           GHC.Generics                           (Generic)
+import           Plutus.Contract.Effects.ExposeEndpoint (EndpointDescription (..))
 
 -- | Commands that can be interpreted with 'runCliCommand'
 data Command

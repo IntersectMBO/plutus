@@ -18,10 +18,10 @@ import qualified Data.SBV.Tuple             as ST
 import           Data.Set                   (Set)
 import qualified Data.Set                   as S
 import           Language.Marlowe.Semantics
-import qualified Language.PlutusTx.AssocMap as AssocMap
-import qualified Language.PlutusTx.Prelude  as P
-import qualified Language.PlutusTx.Ratio    as P
 import           Ledger                     (Slot (..))
+import qualified PlutusTx.AssocMap          as AssocMap
+import qualified PlutusTx.Prelude           as P
+import qualified PlutusTx.Ratio             as P
 
 ---------------------------------------------------
 -- Static analysis logic and symbolic operations --

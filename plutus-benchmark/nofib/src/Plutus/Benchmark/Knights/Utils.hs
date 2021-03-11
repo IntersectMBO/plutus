@@ -2,7 +2,7 @@
 
 module Plutus.Benchmark.Knights.Utils where
 
-import           Language.PlutusTx.Prelude
+import           PlutusTx.Prelude
 
 {-# INLINABLE take' #-}
 take' :: Integer -> [a] -> [a]

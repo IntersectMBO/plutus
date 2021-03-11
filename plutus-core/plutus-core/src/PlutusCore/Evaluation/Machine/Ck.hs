@@ -12,7 +12,7 @@
 {-# LANGUAGE TypeOperators             #-}
 {-# LANGUAGE UndecidableInstances      #-}
 
-module Language.PlutusCore.Evaluation.Machine.Ck
+module PlutusCore.Evaluation.Machine.Ck
     ( EvaluationResult (..)
     , CkEvaluationException
     , CkM
@@ -28,22 +28,22 @@ module Language.PlutusCore.Evaluation.Machine.Ck
 
 import           PlutusPrelude
 
-import           Language.PlutusCore.Constant
-import           Language.PlutusCore.Core
-import           Language.PlutusCore.Evaluation.Machine.ExBudget
-import           Language.PlutusCore.Evaluation.Machine.Exception
-import           Language.PlutusCore.Evaluation.Result
-import           Language.PlutusCore.Name
-import           Language.PlutusCore.Pretty                       (PrettyConfigPlc, PrettyConst)
-import           Language.PlutusCore.Universe
+import           PlutusCore.Constant
+import           PlutusCore.Core
+import           PlutusCore.Evaluation.Machine.ExBudget
+import           PlutusCore.Evaluation.Machine.Exception
+import           PlutusCore.Evaluation.Result
+import           PlutusCore.Name
+import           PlutusCore.Pretty                       (PrettyConfigPlc, PrettyConst)
+import           PlutusCore.Universe
 
 import           Control.Monad.Except
 import           Control.Monad.Morph
 import           Control.Monad.Reader
 import           Control.Monad.ST
 import           Data.Array
-import           Data.DList                                       (DList)
-import qualified Data.DList                                       as DList
+import           Data.DList                              (DList)
+import qualified Data.DList                              as DList
 import           Data.STRef
 
 infix 4 |>, <|

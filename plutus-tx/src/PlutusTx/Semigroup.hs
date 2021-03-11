@@ -1,11 +1,11 @@
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
-module Language.PlutusTx.Semigroup (Semigroup (..)) where
+module PlutusTx.Semigroup (Semigroup (..)) where
 
-import           Data.Monoid                (First (..))
-import           Data.Semigroup             (Dual (..), Endo (..))
-import qualified Language.PlutusTx.Builtins as Builtins
-import           Language.PlutusTx.List
-import           Prelude                    hiding (Functor (..), Semigroup (..), (++))
+import           Data.Monoid       (First (..))
+import           Data.Semigroup    (Dual (..), Endo (..))
+import qualified PlutusTx.Builtins as Builtins
+import           PlutusTx.List
+import           Prelude           hiding (Functor (..), Semigroup (..), (++))
 
 {-# ANN module ("HLint: ignore"::String) #-}
 

@@ -59,16 +59,16 @@ import qualified Data.Text.Encoding               as E
 import           Data.Text.Prettyprint.Doc
 import           Data.Text.Prettyprint.Doc.Extras
 import           GHC.Generics                     (Generic)
-import qualified Language.PlutusTx                as PlutusTx
-import qualified Language.PlutusTx.AssocMap       as Map
-import qualified Language.PlutusTx.Builtins       as Builtins
-import           Language.PlutusTx.Lift           (makeLift)
-import qualified Language.PlutusTx.Ord            as Ord
-import           Language.PlutusTx.Prelude
-import           Language.PlutusTx.These
 import           Plutus.V1.Ledger.Bytes           (LedgerBytes (LedgerBytes))
 import           Plutus.V1.Ledger.Orphans         ()
 import           Plutus.V1.Ledger.Scripts
+import qualified PlutusTx                         as PlutusTx
+import qualified PlutusTx.AssocMap                as Map
+import qualified PlutusTx.Builtins                as Builtins
+import           PlutusTx.Lift                    (makeLift)
+import qualified PlutusTx.Ord                     as Ord
+import           PlutusTx.Prelude
+import           PlutusTx.These
 
 newtype CurrencySymbol = CurrencySymbol { unCurrencySymbol :: Builtins.ByteString }
     deriving (IsString, Show, Serialise, Pretty) via LedgerBytes

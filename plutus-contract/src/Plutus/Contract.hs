@@ -2,7 +2,7 @@
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE MonoLocalBinds   #-}
 {-# LANGUAGE TypeOperators    #-}
-module Language.Plutus.Contract(
+module Plutus.Contract(
       Contract(..)
     , ContractError(..)
     , AsContractError(..)
@@ -90,32 +90,31 @@ module Language.Plutus.Contract(
     , type Empty
     ) where
 
-import           Data.Aeson                                        (ToJSON (toJSON))
-import           Data.Row                                          hiding (type (.\/))
+import           Data.Aeson                               (ToJSON (toJSON))
+import           Data.Row                                 hiding (type (.\/))
 
-import           Language.Plutus.Contract.Effects.AwaitSlot        as AwaitSlot
-import           Language.Plutus.Contract.Effects.AwaitTxConfirmed as AwaitTxConfirmed
-import           Language.Plutus.Contract.Effects.ExposeEndpoint
-import           Language.Plutus.Contract.Effects.Instance
-import           Language.Plutus.Contract.Effects.Notify
-import           Language.Plutus.Contract.Effects.OwnPubKey        as OwnPubKey
-import           Language.Plutus.Contract.Effects.UtxoAt           as UtxoAt
-import           Language.Plutus.Contract.Effects.WatchAddress     as WatchAddress
-import           Language.Plutus.Contract.Effects.WriteTx
+import           Plutus.Contract.Effects.AwaitSlot        as AwaitSlot
+import           Plutus.Contract.Effects.AwaitTxConfirmed as AwaitTxConfirmed
+import           Plutus.Contract.Effects.ExposeEndpoint
+import           Plutus.Contract.Effects.Instance
+import           Plutus.Contract.Effects.Notify
+import           Plutus.Contract.Effects.OwnPubKey        as OwnPubKey
+import           Plutus.Contract.Effects.UtxoAt           as UtxoAt
+import           Plutus.Contract.Effects.WatchAddress     as WatchAddress
+import           Plutus.Contract.Effects.WriteTx
 
-import           Data.Row.Extras                                   (type (.\/))
-import           Language.Plutus.Contract.Request                  (ContractRow)
-import           Language.Plutus.Contract.Typed.Tx                 as Tx
-import           Language.Plutus.Contract.Types                    (AsCheckpointError (..), AsContractError (..),
-                                                                    CheckpointError (..), Contract (..),
-                                                                    ContractError (..), checkpoint, handleError,
-                                                                    mapError, runError, select, selectEither,
-                                                                    throwError)
+import           Data.Row.Extras                          (type (.\/))
+import           Plutus.Contract.Request                  (ContractRow)
+import           Plutus.Contract.Typed.Tx                 as Tx
+import           Plutus.Contract.Types                    (AsCheckpointError (..), AsContractError (..),
+                                                           CheckpointError (..), Contract (..), ContractError (..),
+                                                           checkpoint, handleError, mapError, runError, select,
+                                                           selectEither, throwError)
 
-import qualified Control.Monad.Freer.Extras.Log                    as L
-import qualified Control.Monad.Freer.Writer                        as W
-import           Prelude                                           hiding (until)
-import           Wallet.API                                        (WalletAPIError)
+import qualified Control.Monad.Freer.Extras.Log           as L
+import qualified Control.Monad.Freer.Writer               as W
+import           Prelude                                  hiding (until)
+import           Wallet.API                               (WalletAPIError)
 
 -- | Schema for contracts that can interact with the blockchain (via a node
 --   client & signing process)

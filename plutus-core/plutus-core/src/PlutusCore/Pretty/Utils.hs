@@ -1,6 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module Language.PlutusCore.Pretty.Utils
+module PlutusCore.Pretty.Utils
     ( prettyBytes
     ) where
 

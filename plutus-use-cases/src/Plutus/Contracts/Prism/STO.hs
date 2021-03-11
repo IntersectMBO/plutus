@@ -22,25 +22,25 @@ transaction. In a more realistic setting we would also need constraints on the
 validity range of the forging transaction.
 
 -}
-module Language.PlutusTx.Coordination.Contracts.Prism.STO(
+module Plutus.Contracts.Prism.STO(
     STOData(..)
     , policy
     , coins
     ) where
 
-import           Data.Aeson                (FromJSON, ToJSON)
-import           GHC.Generics              (Generic)
-import qualified Language.PlutusTx         as PlutusTx
-import           Language.PlutusTx.Prelude
-import           Ledger.Ada                (Ada (..), fromValue)
-import           Ledger.Contexts           (PolicyCtx (..))
-import qualified Ledger.Contexts           as Validation
-import           Ledger.Crypto             (PubKeyHash)
-import           Ledger.Scripts            (MonetaryPolicy, mkMonetaryPolicyScript, monetaryPolicyHash)
-import qualified Ledger.Typed.Scripts      as Scripts
-import           Ledger.Value              (TokenName, Value)
-import qualified Ledger.Value              as Value
-import qualified Prelude                   as Haskell
+import           Data.Aeson           (FromJSON, ToJSON)
+import           GHC.Generics         (Generic)
+import           Ledger.Ada           (Ada (..), fromValue)
+import           Ledger.Contexts      (PolicyCtx (..))
+import qualified Ledger.Contexts      as Validation
+import           Ledger.Crypto        (PubKeyHash)
+import           Ledger.Scripts       (MonetaryPolicy, mkMonetaryPolicyScript, monetaryPolicyHash)
+import qualified Ledger.Typed.Scripts as Scripts
+import           Ledger.Value         (TokenName, Value)
+import qualified Ledger.Value         as Value
+import qualified PlutusTx             as PlutusTx
+import           PlutusTx.Prelude
+import qualified Prelude              as Haskell
 
 
 data STOData =

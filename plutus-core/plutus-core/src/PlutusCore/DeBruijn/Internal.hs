@@ -5,7 +5,7 @@
 {-# LANGUAGE OverloadedStrings     #-}
 {-# LANGUAGE TemplateHaskell       #-}
 -- | Support for using de Bruijn indices for term and type names.
-module Language.PlutusCore.DeBruijn.Internal
+module PlutusCore.DeBruijn.Internal
     ( Index (..)
     , DeBruijn (..)
     , NamedDeBruijn (..)
@@ -31,23 +31,23 @@ module Language.PlutusCore.DeBruijn.Internal
     , deBruijnToTyName
     ) where
 
-import           Language.PlutusCore.Name
-import           Language.PlutusCore.Pretty
-import           Language.PlutusCore.Quote
+import           PlutusCore.Name
+import           PlutusCore.Pretty
+import           PlutusCore.Quote
 
 import           Control.Exception
-import           Control.Lens               hiding (Index, Level, index, ix)
+import           Control.Lens              hiding (Index, Level, index, ix)
 import           Control.Monad.Error.Lens
 import           Control.Monad.Except
 import           Control.Monad.Reader
 
-import qualified Data.Bimap                 as BM
-import qualified Data.Text                  as T
+import qualified Data.Bimap                as BM
+import qualified Data.Text                 as T
 import           Data.Text.Prettyprint.Doc
 
 import           Numeric.Natural
 
-import           Control.DeepSeq            (NFData)
+import           Control.DeepSeq           (NFData)
 import           ErrorCode
 import           GHC.Generics
 

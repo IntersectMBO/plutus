@@ -2,27 +2,27 @@
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 -- | Functions for compiling PIR recursive let-bound functions into PLC.
-module Language.PlutusIR.Compiler.Recursion where
+module PlutusIR.Compiler.Recursion where
 
-import           Language.PlutusIR
-import           Language.PlutusIR.Compiler.Definitions
-import           Language.PlutusIR.Compiler.Provenance
-import           Language.PlutusIR.Compiler.Types
-import           Language.PlutusIR.Error
-import qualified Language.PlutusIR.MkPir                    as PIR
+import           PlutusIR
+import           PlutusIR.Compiler.Definitions
+import           PlutusIR.Compiler.Provenance
+import           PlutusIR.Compiler.Types
+import           PlutusIR.Error
+import qualified PlutusIR.MkPir                    as PIR
 
 import           Control.Monad
 import           Control.Monad.Error.Lens
 import           Control.Monad.Trans
 
-import           Data.List.NonEmpty                         hiding (length)
-import qualified Data.Set                                   as Set
+import           Data.List.NonEmpty                hiding (length)
+import qualified Data.Set                          as Set
 
-import qualified Language.PlutusCore                        as PLC
-import qualified Language.PlutusCore.MkPlc                  as PLC
-import           Language.PlutusCore.Quote
-import qualified Language.PlutusCore.StdLib.Data.Function   as Function
-import qualified Language.PlutusCore.StdLib.Meta.Data.Tuple as Tuple
+import qualified PlutusCore                        as PLC
+import qualified PlutusCore.MkPlc                  as PLC
+import           PlutusCore.Quote
+import qualified PlutusCore.StdLib.Data.Function   as Function
+import qualified PlutusCore.StdLib.Meta.Data.Tuple as Tuple
 
 {- Note [Recursive lets]
 We need to define these with a fixpoint. We can derive a fixpoint operator for values

@@ -4,7 +4,7 @@
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings     #-}
 -- | Support for using de Bruijn indices for term and type names.
-module Language.PlutusCore.DeBruijn
+module PlutusCore.DeBruijn
     ( Index (..)
     , DeBruijn (..)
     , NamedDeBruijn (..)
@@ -23,16 +23,16 @@ module Language.PlutusCore.DeBruijn
     , fakeNameDeBruijn
     ) where
 
-import           Language.PlutusCore.DeBruijn.Internal
+import           PlutusCore.DeBruijn.Internal
 
-import           Language.PlutusCore.Core
-import           Language.PlutusCore.Name
-import           Language.PlutusCore.Quote
+import           PlutusCore.Core
+import           PlutusCore.Name
+import           PlutusCore.Quote
 
 import           Control.Monad.Except
 import           Control.Monad.Reader
 
-import qualified Data.Bimap                            as BM
+import qualified Data.Bimap                   as BM
 
 -- | Convert a 'Type' with 'TyName's into a 'Type' with 'NamedTyDeBruijn's.
 deBruijnTy

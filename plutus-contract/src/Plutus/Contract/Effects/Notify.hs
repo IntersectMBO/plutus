@@ -6,19 +6,18 @@
 {-# LANGUAGE TypeApplications    #-}
 {-# LANGUAGE TypeOperators       #-}
 -- | Send notifications to other contract instances
-module Language.Plutus.Contract.Effects.Notify where
+module Plutus.Contract.Effects.Notify where
 
-import           Data.Aeson                                      (ToJSON (toJSON), Value)
-import           Data.Foldable                                   (traverse_)
-import           Data.Proxy                                      (Proxy (..))
+import           Data.Aeson                             (ToJSON (toJSON), Value)
+import           Data.Foldable                          (traverse_)
+import           Data.Proxy                             (Proxy (..))
 import           Data.Row
-import           Language.Plutus.Contract.Effects.ExposeEndpoint (HasEndpoint, endpointDescription)
-import           Language.Plutus.Contract.Request                (ContractRow)
-import qualified Language.Plutus.Contract.Request                as R
-import           Language.Plutus.Contract.Schema                 (Event (..), Handlers (..), Input, Output)
-import           Language.Plutus.Contract.Types                  (Contract, mapError, throwError)
-import           Wallet.Types                                    (ContractInstanceId, Notification (..),
-                                                                  NotificationError (..))
+import           Plutus.Contract.Effects.ExposeEndpoint (HasEndpoint, endpointDescription)
+import           Plutus.Contract.Request                (ContractRow)
+import qualified Plutus.Contract.Request                as R
+import           Plutus.Contract.Schema                 (Event (..), Handlers (..), Input, Output)
+import           Plutus.Contract.Types                  (Contract, mapError, throwError)
+import           Wallet.Types                           (ContractInstanceId, Notification (..), NotificationError (..))
 
 type NotifySym = "notify-instance"
 

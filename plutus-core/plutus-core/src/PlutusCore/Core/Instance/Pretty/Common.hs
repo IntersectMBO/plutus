@@ -2,11 +2,11 @@
 
 {-# LANGUAGE OverloadedStrings #-}
 
-module Language.PlutusCore.Core.Instance.Pretty.Common () where
+module PlutusCore.Core.Instance.Pretty.Common () where
 
 import           PlutusPrelude
 
-import           Language.PlutusCore.Core.Type
+import           PlutusCore.Core.Type
 
 instance Pretty (Version ann) where
     pretty (Version _ i j k) = pretty i <> "." <> pretty j <> "." <> pretty k

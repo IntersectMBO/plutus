@@ -3,34 +3,34 @@
 {-# LANGUAGE LambdaCase       #-}
 {-# LANGUAGE TemplateHaskell  #-}
 {-# LANGUAGE TypeOperators    #-}
-module Language.PlutusIR.Transform.LetFloat (floatTerm) where
+module PlutusIR.Transform.LetFloat (floatTerm) where
 
-import           Language.PlutusIR
-import           Language.PlutusIR.Analysis.Dependencies
-import           Language.PlutusIR.MkPir                 hiding (error)
-import           Language.PlutusIR.Purity
+import           PlutusIR
+import           PlutusIR.Analysis.Dependencies
+import           PlutusIR.MkPir                       hiding (error)
+import           PlutusIR.Purity
 
-import           Control.Lens                            hiding (Strict)
+import           Control.Lens                         hiding (Strict)
 import           Control.Monad.RWS
 import           Control.Monad.Reader
 import           Control.Monad.State
 
-import qualified Language.PlutusCore                     as PLC
-import qualified Language.PlutusCore.Constant            as PLC
-import qualified Language.PlutusCore.Name                as PLC
+import qualified PlutusCore                           as PLC
+import qualified PlutusCore.Constant                  as PLC
+import qualified PlutusCore.Name                      as PLC
 
-import qualified Algebra.Graph.AdjacencyMap              as AM
-import qualified Algebra.Graph.AdjacencyMap.Algorithm    as AM
-import qualified Algebra.Graph.NonEmpty.AdjacencyMap     as AMN
+import qualified Algebra.Graph.AdjacencyMap           as AM
+import qualified Algebra.Graph.AdjacencyMap.Algorithm as AM
+import qualified Algebra.Graph.NonEmpty.AdjacencyMap  as AMN
 
-import           Data.Either                             (fromRight)
-import qualified Data.IntMap                             as IM
-import qualified Data.Map                                as M
-import qualified Data.Set                                as S
-import qualified Data.Set.NonEmpty                       as NS
+import           Data.Either                          (fromRight)
+import qualified Data.IntMap                          as IM
+import qualified Data.Map                             as M
+import qualified Data.Set                             as S
+import qualified Data.Set.NonEmpty                    as NS
 
-import qualified Data.List.NonEmpty                      as NE
-import           Data.Maybe                              (catMaybes, mapMaybe)
+import qualified Data.List.NonEmpty                   as NE
+import           Data.Maybe                           (catMaybes, mapMaybe)
 import           Data.Semigroup.Foldable
 
 {- Note [Float algorithm]

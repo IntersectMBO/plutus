@@ -2,10 +2,10 @@
 {-# LANGUAGE TypeFamilies      #-}
 {-# LANGUAGE TypeOperators     #-}
 
-module Language.PlutusTx.Compiler.Expr (compileExpr, compileExprWithDefs, compileDataConRef) where
+module PlutusTx.Compiler.Expr (compileExpr, compileExprWithDefs, compileDataConRef) where
 
-import           Language.PlutusTx.Compiler.Types
-import           Language.PlutusTx.PIRTypes
+import           PlutusTx.Compiler.Types
+import           PlutusTx.PIRTypes
 
 import qualified GhcPlugins                               as GHC
 

@@ -3,27 +3,27 @@
 {-# LANGUAGE LambdaCase       #-}
 {-# LANGUAGE TypeOperators    #-}
 -- | Optimization passes for removing dead code, mainly dead let bindings.
-module Language.PlutusIR.Optimizer.DeadCode (removeDeadBindings) where
+module PlutusIR.Optimizer.DeadCode (removeDeadBindings) where
 
-import           Language.PlutusIR
-import qualified Language.PlutusIR.Analysis.Dependencies as Deps
-import           Language.PlutusIR.MkPir
-import           Language.PlutusIR.Transform.Rename      ()
+import           PlutusIR
+import qualified PlutusIR.Analysis.Dependencies as Deps
+import           PlutusIR.MkPir
+import           PlutusIR.Transform.Rename      ()
 
-import qualified Language.PlutusCore                     as PLC
-import qualified Language.PlutusCore.Constant            as PLC
-import qualified Language.PlutusCore.Name                as PLC
+import qualified PlutusCore                     as PLC
+import qualified PlutusCore.Constant            as PLC
+import qualified PlutusCore.Name                as PLC
 
 import           Control.Lens
 import           Control.Monad
 import           Control.Monad.Reader
 
 import           Data.Coerce
-import qualified Data.Set                                as Set
+import qualified Data.Set                       as Set
 
-import qualified Algebra.Graph                           as G
-import qualified Algebra.Graph.ToGraph                   as T
-import qualified Data.List.NonEmpty                      as NE
+import qualified Algebra.Graph                  as G
+import qualified Algebra.Graph.ToGraph          as T
+import qualified Data.List.NonEmpty             as NE
 
 -- | Remove all the dead let bindings in a term.
 removeDeadBindings

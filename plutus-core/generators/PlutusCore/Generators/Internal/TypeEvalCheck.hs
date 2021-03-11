@@ -10,7 +10,7 @@
 {-# LANGUAGE TypeOperators          #-}
 {-# LANGUAGE UndecidableInstances   #-}
 
-module Language.PlutusCore.Generators.Internal.TypeEvalCheck
+module PlutusCore.Generators.Internal.TypeEvalCheck
     ( TypeEvalCheckError (..)
     , TypeEvalCheckResult (..)
     , TypeEvalCheckM
@@ -20,22 +20,22 @@ module Language.PlutusCore.Generators.Internal.TypeEvalCheck
 
 import           PlutusPrelude
 
-import           Language.PlutusCore.Generators.Internal.TypedBuiltinGen
-import           Language.PlutusCore.Generators.Internal.Utils
+import           PlutusCore.Generators.Internal.TypedBuiltinGen
+import           PlutusCore.Generators.Internal.Utils
 
-import           Language.PlutusCore.Builtins
-import           Language.PlutusCore.Constant
-import           Language.PlutusCore.Core
-import           Language.PlutusCore.Error
-import           Language.PlutusCore.Evaluation.Machine.Ck
-import           Language.PlutusCore.Evaluation.Machine.ExMemory
-import           Language.PlutusCore.Evaluation.Machine.Exception
-import           Language.PlutusCore.Name
-import           Language.PlutusCore.Normalize
-import           Language.PlutusCore.Pretty
-import           Language.PlutusCore.Quote
-import           Language.PlutusCore.TypeCheck
-import           Language.PlutusCore.Universe
+import           PlutusCore.Builtins
+import           PlutusCore.Constant
+import           PlutusCore.Core
+import           PlutusCore.Error
+import           PlutusCore.Evaluation.Machine.Ck
+import           PlutusCore.Evaluation.Machine.ExMemory
+import           PlutusCore.Evaluation.Machine.Exception
+import           PlutusCore.Name
+import           PlutusCore.Normalize
+import           PlutusCore.Pretty
+import           PlutusCore.Quote
+import           PlutusCore.TypeCheck
+import           PlutusCore.Universe
 
 import           Control.Lens.TH
 import           Control.Monad.Except

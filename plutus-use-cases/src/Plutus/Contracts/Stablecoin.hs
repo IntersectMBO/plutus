@@ -55,7 +55,7 @@ We use the 'Ratio' type for all calculations in the script, using 'round' to
 obtain 'Integer' values at the very end.
 
 -}
-module Language.PlutusTx.Coordination.Contracts.Stablecoin(
+module Plutus.Contracts.Stablecoin(
     SC(..)
     , RC(..)
     , BC(..)
@@ -79,30 +79,30 @@ module Language.PlutusTx.Coordination.Contracts.Stablecoin(
     , checkValidState
     ) where
 
-import           Control.Monad                         (forever, guard)
-import           Data.Aeson                            (FromJSON, ToJSON)
-import           Data.Functor.Identity                 (Identity (..))
-import           GHC.Generics                          (Generic)
-import           Language.Plutus.Contract
-import           Language.Plutus.Contract.StateMachine (SMContractError, State (..), StateMachine,
-                                                        StateMachineClient (..), StateMachineInstance (..), Void)
-import qualified Language.Plutus.Contract.StateMachine as StateMachine
-import qualified Language.PlutusTx                     as PlutusTx
-import           Language.PlutusTx.Prelude
-import           Language.PlutusTx.Ratio               as R
-import           Ledger.Constraints                    (TxConstraints)
-import qualified Ledger.Constraints                    as Constraints
-import           Ledger.Crypto                         (PubKey)
-import qualified Ledger.Interval                       as Interval
+import           Control.Monad                   (forever, guard)
+import           Data.Aeson                      (FromJSON, ToJSON)
+import           Data.Functor.Identity           (Identity (..))
+import           GHC.Generics                    (Generic)
+import           Ledger.Constraints              (TxConstraints)
+import qualified Ledger.Constraints              as Constraints
+import           Ledger.Crypto                   (PubKey)
+import qualified Ledger.Interval                 as Interval
 import           Ledger.Oracle
-import           Ledger.Scripts                        (MonetaryPolicyHash, monetaryPolicyHash)
-import           Ledger.Typed.Scripts                  (scriptHash)
-import qualified Ledger.Typed.Scripts                  as Scripts
-import           Ledger.Typed.Scripts.Validators       (forwardingMPS)
-import           Ledger.Typed.Tx                       (TypedScriptTxOut (..))
-import           Ledger.Value                          (CurrencySymbol, TokenName, Value)
-import qualified Ledger.Value                          as Value
-import qualified Prelude                               as Haskell
+import           Ledger.Scripts                  (MonetaryPolicyHash, monetaryPolicyHash)
+import           Ledger.Typed.Scripts            (scriptHash)
+import qualified Ledger.Typed.Scripts            as Scripts
+import           Ledger.Typed.Scripts.Validators (forwardingMPS)
+import           Ledger.Typed.Tx                 (TypedScriptTxOut (..))
+import           Ledger.Value                    (CurrencySymbol, TokenName, Value)
+import qualified Ledger.Value                    as Value
+import           Plutus.Contract
+import           Plutus.Contract.StateMachine    (SMContractError, State (..), StateMachine, StateMachineClient (..),
+                                                  StateMachineInstance (..), Void)
+import qualified Plutus.Contract.StateMachine    as StateMachine
+import qualified PlutusTx                        as PlutusTx
+import           PlutusTx.Prelude
+import           PlutusTx.Ratio                  as R
+import qualified Prelude                         as Haskell
 
 -- | Conversion rate from peg currency (eg. USD) to base currency (eg. Ada)
 type ConversionRate = Ratio Integer

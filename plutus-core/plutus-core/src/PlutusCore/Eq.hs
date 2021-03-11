@@ -7,7 +7,7 @@
 {-# LANGUAGE TypeApplications      #-}
 {-# LANGUAGE UndecidableInstances  #-}
 
-module Language.PlutusCore.Eq
+module PlutusCore.Eq
     ( LR (..)
     , RL (..)
     , EqRename
@@ -20,8 +20,8 @@ module Language.PlutusCore.Eq
 
 import           PlutusPrelude
 
-import           Language.PlutusCore.Name
-import           Language.PlutusCore.Rename.Monad
+import           PlutusCore.Name
+import           PlutusCore.Rename.Monad
 
 import           Control.Lens
 

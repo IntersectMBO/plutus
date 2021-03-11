@@ -1,4 +1,4 @@
-module Language.PlutusCore.Pretty.Default
+module PlutusCore.Pretty.Default
     ( prettyPlcDef
     , displayPlcDef
     , displayPlcCondensedErrorClassic
@@ -6,7 +6,7 @@ module Language.PlutusCore.Pretty.Default
 
 import           PlutusPrelude
 
-import           Language.PlutusCore.Pretty.Plc
+import           PlutusCore.Pretty.Plc
 
 -- | Pretty-print a value in the default mode using the classic view.
 prettyPlcDef :: PrettyPlc a => a -> Doc ann

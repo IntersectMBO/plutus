@@ -5,25 +5,25 @@
 {-# LANGUAGE TypeOperators    #-}
 -- | Functions for computing the dependency graph of variables within a term or type. A "dependency" between
 -- two nodes "A depends on B" means that B cannot be removed from the program without also removing A.
-module Language.PlutusIR.Analysis.Dependencies (Node (..), DepGraph, StrictnessMap, runTermDeps, runTypeDeps) where
+module PlutusIR.Analysis.Dependencies (Node (..), DepGraph, StrictnessMap, runTermDeps, runTypeDeps) where
 
-import qualified Language.PlutusCore               as PLC
-import qualified Language.PlutusCore.Constant      as PLC
-import qualified Language.PlutusCore.Name          as PLC
+import qualified PlutusCore               as PLC
+import qualified PlutusCore.Constant      as PLC
+import qualified PlutusCore.Name          as PLC
 
-import           Language.PlutusIR
-import qualified Language.PlutusIR.Analysis.Usages as Usages
-import           Language.PlutusIR.Purity
+import           PlutusIR
+import qualified PlutusIR.Analysis.Usages as Usages
+import           PlutusIR.Purity
 
-import           Control.Lens                      hiding (Strict)
+import           Control.Lens             hiding (Strict)
 import           Control.Monad.Reader
 import           Control.Monad.State
 
-import qualified Algebra.Graph.Class               as G
-import qualified Data.Map                          as Map
-import qualified Data.Set                          as Set
+import qualified Algebra.Graph.Class      as G
+import qualified Data.Map                 as Map
+import qualified Data.Set                 as Set
 
-import qualified Data.List.NonEmpty                as NE
+import qualified Data.List.NonEmpty       as NE
 
 import           Data.Foldable
 

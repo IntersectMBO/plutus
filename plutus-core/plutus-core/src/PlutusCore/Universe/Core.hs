@@ -13,7 +13,7 @@
 {-# LANGUAGE TypeOperators         #-}
 {-# LANGUAGE UndecidableInstances  #-}
 
-module Language.PlutusCore.Universe.Core
+module PlutusCore.Universe.Core
     ( Some (..)
     , TypeIn (..)
     , ValueOf (..)

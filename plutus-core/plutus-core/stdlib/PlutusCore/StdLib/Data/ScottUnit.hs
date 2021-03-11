@@ -2,15 +2,15 @@
 
 {-# LANGUAGE OverloadedStrings #-}
 
-module Language.PlutusCore.StdLib.Data.ScottUnit
+module PlutusCore.StdLib.Data.ScottUnit
     ( unit
     , unitval
     ) where
 
-import           Language.PlutusCore.Core
-import           Language.PlutusCore.MkPlc
-import           Language.PlutusCore.Name
-import           Language.PlutusCore.Quote
+import           PlutusCore.Core
+import           PlutusCore.MkPlc
+import           PlutusCore.Name
+import           PlutusCore.Quote
 
 -- | '()' as a PLC type.
 --

@@ -11,7 +11,7 @@
 {-# LANGUAGE TypeOperators         #-}
 {-# LANGUAGE UndecidableInstances  #-}
 
-module Language.PlutusCore.Generators.Internal.TypedBuiltinGen
+module PlutusCore.Generators.Internal.TypedBuiltinGen
     ( TermOf(..)
     , TypedBuiltinGenT
     , TypedBuiltinGen
@@ -23,20 +23,20 @@ module Language.PlutusCore.Generators.Internal.TypedBuiltinGen
 
 import           PlutusPrelude
 
-import           Language.PlutusCore.Generators.Internal.Dependent
+import           PlutusCore.Generators.Internal.Dependent
 
-import           Language.PlutusCore.Constant
-import           Language.PlutusCore.Core
-import           Language.PlutusCore.Evaluation.Result
-import           Language.PlutusCore.Pretty.PrettyConst
-import           Language.PlutusCore.Universe
+import           PlutusCore.Constant
+import           PlutusCore.Core
+import           PlutusCore.Evaluation.Result
+import           PlutusCore.Pretty.PrettyConst
+import           PlutusCore.Universe
 
-import qualified Data.ByteString                                   as BS
+import qualified Data.ByteString                          as BS
 import           Data.Functor.Identity
 import           Data.Text.Prettyprint.Doc
-import           Hedgehog                                          hiding (Size, Var)
-import qualified Hedgehog.Gen                                      as Gen
-import qualified Hedgehog.Range                                    as Range
+import           Hedgehog                                 hiding (Size, Var)
+import qualified Hedgehog.Gen                             as Gen
+import qualified Hedgehog.Range                           as Range
 
 -- | Generate a UTF-8 lazy 'ByteString' containg lower-case letters.
 genLowerBytes :: Monad m => Range Int -> GenT m BS.ByteString

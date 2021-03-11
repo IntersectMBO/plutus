@@ -1,17 +1,17 @@
 {-# LANGUAGE LambdaCase #-}
 -- | Definition analysis for untyped Plutus Core.
--- This just adapts term-related code from Language.PlutusCore.Analysis.Definitions;
+-- This just adapts term-related code from PlutusCore.Analysis.Definitions;
 -- we just re-use the typed machinery to do the hard work here.
-module Language.UntypedPlutusCore.Analysis.Definitions
+module UntypedPlutusCore.Analysis.Definitions
     ( termDefs
     , runTermDefs
     ) where
 
-import           Language.UntypedPlutusCore.Core
+import           UntypedPlutusCore.Core
 
-import           Language.PlutusCore.Analysis.Definitions (ScopeType (TermScope), UniqueInfos, addDef, addUsage)
-import           Language.PlutusCore.Error
-import           Language.PlutusCore.Name
+import           PlutusCore.Analysis.Definitions (ScopeType (TermScope), UniqueInfos, addDef, addUsage)
+import           PlutusCore.Error
+import           PlutusCore.Name
 
 import           Data.Functor.Foldable
 

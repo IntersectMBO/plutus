@@ -20,7 +20,7 @@
 -- | A trace is a sequence of actions by simulated wallets that can be run
 --   on the mockchain. This module contains the functions needed to build
 --   traces.
-module Language.Plutus.Contract.Trace
+module Plutus.Contract.Trace
     ( TraceError(..)
     , EndpointError(..)
     , AsTraceError(..)
@@ -44,52 +44,51 @@ module Language.Plutus.Contract.Trace
     , makeTimed
     ) where
 
-import           Control.Arrow                                     ((>>>), (>>^))
-import           Control.Lens                                      (from, makeClassyPrisms, review, view)
+import           Control.Arrow                            ((>>>), (>>^))
+import           Control.Lens                             (from, makeClassyPrisms, review, view)
 import           Control.Monad.Freer
-import           Control.Monad.Freer.Extras.Log                    (LogMessage, LogMsg, LogObserve)
-import           Control.Monad.Freer.Reader                        (Reader)
-import           Control.Monad.Freer.State                         (State, gets)
-import qualified Data.Aeson.Types                                  as JSON
-import           Data.Map                                          (Map)
-import qualified Data.Map                                          as Map
-import           Data.Text.Prettyprint.Doc                         (Pretty, pretty, (<+>))
-import           GHC.Generics                                      (Generic)
+import           Control.Monad.Freer.Extras.Log           (LogMessage, LogMsg, LogObserve)
+import           Control.Monad.Freer.Reader               (Reader)
+import           Control.Monad.Freer.State                (State, gets)
+import qualified Data.Aeson.Types                         as JSON
+import           Data.Map                                 (Map)
+import qualified Data.Map                                 as Map
+import           Data.Text.Prettyprint.Doc                (Pretty, pretty, (<+>))
+import           GHC.Generics                             (Generic)
 
-import           Data.Text                                         (Text)
-import           Language.Plutus.Contract                          (HasAwaitSlot, HasTxConfirmation, HasUtxoAt,
-                                                                    HasWatchAddress, HasWriteTx)
-import           Language.Plutus.Contract.Schema                   (Event (..), Handlers (..))
+import           Data.Text                                (Text)
+import           Plutus.Contract                          (HasAwaitSlot, HasTxConfirmation, HasUtxoAt, HasWatchAddress,
+                                                           HasWriteTx)
+import           Plutus.Contract.Schema                   (Event (..), Handlers (..))
 
-import qualified Language.Plutus.Contract.Effects.AwaitSlot        as AwaitSlot
-import           Language.Plutus.Contract.Effects.AwaitTxConfirmed (TxConfirmed (..))
-import qualified Language.Plutus.Contract.Effects.AwaitTxConfirmed as AwaitTxConfirmed
-import           Language.Plutus.Contract.Effects.Instance         (HasOwnId)
-import qualified Language.Plutus.Contract.Effects.Instance         as OwnInstance
-import           Language.Plutus.Contract.Effects.Notify           (HasContractNotify)
-import qualified Language.Plutus.Contract.Effects.Notify           as Notify
-import           Language.Plutus.Contract.Effects.OwnPubKey        (HasOwnPubKey)
-import qualified Language.Plutus.Contract.Effects.OwnPubKey        as OwnPubKey
-import qualified Language.Plutus.Contract.Effects.UtxoAt           as UtxoAt
-import qualified Language.Plutus.Contract.Effects.WatchAddress     as WatchAddress
-import qualified Language.Plutus.Contract.Effects.WriteTx          as WriteTx
-import           Language.Plutus.Contract.Trace.RequestHandler     (RequestHandler (..), RequestHandlerLogMsg,
-                                                                    maybeToHandler)
-import qualified Language.Plutus.Contract.Trace.RequestHandler     as RequestHandler
+import qualified Plutus.Contract.Effects.AwaitSlot        as AwaitSlot
+import           Plutus.Contract.Effects.AwaitTxConfirmed (TxConfirmed (..))
+import qualified Plutus.Contract.Effects.AwaitTxConfirmed as AwaitTxConfirmed
+import           Plutus.Contract.Effects.Instance         (HasOwnId)
+import qualified Plutus.Contract.Effects.Instance         as OwnInstance
+import           Plutus.Contract.Effects.Notify           (HasContractNotify)
+import qualified Plutus.Contract.Effects.Notify           as Notify
+import           Plutus.Contract.Effects.OwnPubKey        (HasOwnPubKey)
+import qualified Plutus.Contract.Effects.OwnPubKey        as OwnPubKey
+import qualified Plutus.Contract.Effects.UtxoAt           as UtxoAt
+import qualified Plutus.Contract.Effects.WatchAddress     as WatchAddress
+import qualified Plutus.Contract.Effects.WriteTx          as WriteTx
+import           Plutus.Contract.Trace.RequestHandler     (RequestHandler (..), RequestHandlerLogMsg, maybeToHandler)
+import qualified Plutus.Contract.Trace.RequestHandler     as RequestHandler
 
-import qualified Ledger.Ada                                        as Ada
-import           Ledger.Value                                      (Value)
+import qualified Ledger.Ada                               as Ada
+import           Ledger.Value                             (Value)
 
-import           Plutus.Trace.Emulator.Types                       (EmulatedWalletEffects)
-import           Wallet.API                                        (ChainIndexEffect)
-import           Wallet.Effects                                    (ContractRuntimeEffect, WalletEffect)
-import           Wallet.Emulator                                   (EmulatorState, Wallet)
-import qualified Wallet.Emulator                                   as EM
-import           Wallet.Emulator.LogMessages                       (TxBalanceMsg)
-import qualified Wallet.Emulator.MultiAgent                        as EM
-import           Wallet.Emulator.Notify                            (EmulatorNotifyLogMsg (..))
-import           Wallet.Types                                      (ContractInstanceId, EndpointDescription (..),
-                                                                    NotificationError (..))
+import           Plutus.Trace.Emulator.Types              (EmulatedWalletEffects)
+import           Wallet.API                               (ChainIndexEffect)
+import           Wallet.Effects                           (ContractRuntimeEffect, WalletEffect)
+import           Wallet.Emulator                          (EmulatorState, Wallet)
+import qualified Wallet.Emulator                          as EM
+import           Wallet.Emulator.LogMessages              (TxBalanceMsg)
+import qualified Wallet.Emulator.MultiAgent               as EM
+import           Wallet.Emulator.Notify                   (EmulatorNotifyLogMsg (..))
+import           Wallet.Types                             (ContractInstanceId, EndpointDescription (..),
+                                                           NotificationError (..))
 
 data EndpointError =
     EndpointNotActive (Maybe Wallet) EndpointDescription

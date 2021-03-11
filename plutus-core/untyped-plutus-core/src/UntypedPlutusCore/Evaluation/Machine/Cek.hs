@@ -3,7 +3,7 @@
 {-# LANGUAGE DataKinds     #-}
 {-# LANGUAGE TypeOperators #-}
 
-module Language.UntypedPlutusCore.Evaluation.Machine.Cek
+module UntypedPlutusCore.Evaluation.Machine.Cek
     ( EvaluationResult(..)
     , CekValue(..)
     , CekUserError(..)
@@ -36,17 +36,17 @@ where
 
 import           PlutusPrelude
 
-import           Language.UntypedPlutusCore.Core
-import           Language.UntypedPlutusCore.Evaluation.Machine.Cek.ExBudgetMode
-import           Language.UntypedPlutusCore.Evaluation.Machine.Cek.Internal
+import           UntypedPlutusCore.Core
+import           UntypedPlutusCore.Evaluation.Machine.Cek.ExBudgetMode
+import           UntypedPlutusCore.Evaluation.Machine.Cek.Internal
 
-import           Language.PlutusCore.Constant
-import           Language.PlutusCore.Evaluation.Machine.ExBudget
-import           Language.PlutusCore.Evaluation.Machine.ExMemory
-import           Language.PlutusCore.Evaluation.Machine.Exception
-import           Language.PlutusCore.Name
-import           Language.PlutusCore.Pretty
-import           Language.PlutusCore.Universe
+import           PlutusCore.Constant
+import           PlutusCore.Evaluation.Machine.ExBudget
+import           PlutusCore.Evaluation.Machine.ExMemory
+import           PlutusCore.Evaluation.Machine.Exception
+import           PlutusCore.Name
+import           PlutusCore.Pretty
+import           PlutusCore.Universe
 
 import           Data.Ix
 

@@ -9,7 +9,7 @@
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE TypeApplications    #-}
 {-# LANGUAGE TypeOperators       #-}
-module Language.Plutus.Contract.Effects.WatchAddress(
+module Plutus.Contract.Effects.WatchAddress(
     AddressSymbol,
     HasWatchAddress,
     WatchAddress,
@@ -25,22 +25,22 @@ module Language.Plutus.Contract.Effects.WatchAddress(
     event
     ) where
 
-import           Data.Map                                   (Map)
-import qualified Data.Map                                   as Map
+import           Data.Map                          (Map)
+import qualified Data.Map                          as Map
 import           Data.Row
-import           Ledger                                     (Address, Slot, Value)
-import           Ledger.AddressMap                          (AddressMap, UtxoMap)
-import qualified Ledger.AddressMap                          as AM
-import           Ledger.Tx                                  (Tx, txOutTxOut, txOutValue)
-import qualified Ledger.Value                               as V
+import           Ledger                            (Address, Slot, Value)
+import           Ledger.AddressMap                 (AddressMap, UtxoMap)
+import qualified Ledger.AddressMap                 as AM
+import           Ledger.Tx                         (Tx, txOutTxOut, txOutValue)
+import qualified Ledger.Value                      as V
 
-import           Language.Plutus.Contract.Effects.AwaitSlot (HasAwaitSlot, awaitSlot, currentSlot)
-import           Language.Plutus.Contract.Effects.UtxoAt    (HasUtxoAt, utxoAt)
-import           Language.Plutus.Contract.Request           (ContractRow, requestMaybe)
-import           Language.Plutus.Contract.Schema            (Event (..), Handlers (..), Input, Output)
-import           Language.Plutus.Contract.Types             (AsContractError, Contract)
-import           Language.Plutus.Contract.Util              (loopM)
-import           Wallet.Types                               (AddressChangeRequest (..), AddressChangeResponse (..))
+import           Plutus.Contract.Effects.AwaitSlot (HasAwaitSlot, awaitSlot, currentSlot)
+import           Plutus.Contract.Effects.UtxoAt    (HasUtxoAt, utxoAt)
+import           Plutus.Contract.Request           (ContractRow, requestMaybe)
+import           Plutus.Contract.Schema            (Event (..), Handlers (..), Input, Output)
+import           Plutus.Contract.Types             (AsContractError, Contract)
+import           Plutus.Contract.Util              (loopM)
+import           Wallet.Types                      (AddressChangeRequest (..), AddressChangeResponse (..))
 
 type AddressSymbol = "address"
 

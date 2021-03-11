@@ -6,7 +6,7 @@
 
 {-# LANGUAGE StrictData            #-}
 
-module Language.UntypedPlutusCore.Evaluation.Machine.Cek.ExBudgetMode
+module UntypedPlutusCore.Evaluation.Machine.Cek.ExBudgetMode
     ( CekExTally (..)
     , ExBudgetMode (..)
     , CountingSt (..)
@@ -22,21 +22,21 @@ where
 
 import           PlutusPrelude
 
-import           Language.UntypedPlutusCore.Evaluation.Machine.Cek.Internal
+import           UntypedPlutusCore.Evaluation.Machine.Cek.Internal
 
-import           Language.PlutusCore.Evaluation.Machine.ExBudget
-import           Language.PlutusCore.Evaluation.Machine.Exception
+import           PlutusCore.Evaluation.Machine.ExBudget
+import           PlutusCore.Evaluation.Machine.Exception
 
-import           Control.Lens                                               (ifoldMap)
+import           Control.Lens                                      (ifoldMap)
 import           Control.Monad.Except
 import           Control.Monad.State.Strict
-import           Data.HashMap.Monoidal                                      as HashMap
-import           Data.Hashable                                              (Hashable)
-import           Data.List                                                  (intersperse)
-import qualified Data.Map.Strict                                            as Map
+import           Data.HashMap.Monoidal                             as HashMap
+import           Data.Hashable                                     (Hashable)
+import           Data.List                                         (intersperse)
+import qualified Data.Map.Strict                                   as Map
 import           Data.Semigroup.Generic
 import           Data.Text.Prettyprint.Doc
-import           Text.PrettyBy                                              (IgnorePrettyConfig (..))
+import           Text.PrettyBy                                     (IgnorePrettyConfig (..))
 
 -- | A budgeting mode to execute an evaluator in.
 data ExBudgetMode cost uni fun = ExBudgetMode

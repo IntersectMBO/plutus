@@ -1,4 +1,4 @@
-module Language.PlutusTx (
+module PlutusTx (
     module Export,
     CompiledCode,
     CompiledCodeIn,
@@ -15,9 +15,9 @@ module Language.PlutusTx (
     safeLiftCode,
     liftCode) where
 
-import           Language.PlutusTx.Code       (CompiledCode, CompiledCodeIn, applyCode, getPir, getPlc)
-import           Language.PlutusTx.Data       (Data (..))
-import           Language.PlutusTx.IsData     (IsData (..), makeIsDataIndexed, unstableMakeIsData)
-import           Language.PlutusTx.Lift       (liftCode, makeLift, safeLiftCode)
-import           Language.PlutusTx.Lift.Class (Lift, Typeable)
-import           Language.PlutusTx.TH         as Export
+import           PlutusTx.Code       (CompiledCode, CompiledCodeIn, applyCode, getPir, getPlc)
+import           PlutusTx.Data       (Data (..))
+import           PlutusTx.IsData     (IsData (..), makeIsDataIndexed, unstableMakeIsData)
+import           PlutusTx.Lift       (liftCode, makeLift, safeLiftCode)
+import           PlutusTx.Lift.Class (Lift, Typeable)
+import           PlutusTx.TH         as Export

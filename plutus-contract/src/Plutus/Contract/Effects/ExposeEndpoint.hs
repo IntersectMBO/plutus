@@ -12,7 +12,7 @@
 {-# LANGUAGE TypeApplications    #-}
 {-# LANGUAGE TypeFamilies        #-}
 {-# LANGUAGE TypeOperators       #-}
-module Language.Plutus.Contract.Effects.ExposeEndpoint(
+module Plutus.Contract.Effects.ExposeEndpoint(
     HasEndpoint
     , Endpoint
     , ActiveEndpoint(..)
@@ -25,19 +25,19 @@ module Language.Plutus.Contract.Effects.ExposeEndpoint(
     , isActive
     ) where
 
-import           Data.Aeson                       (FromJSON, ToJSON)
-import qualified Data.Aeson                       as JSON
-import           Data.Maybe                       (isJust)
+import           Data.Aeson                (FromJSON, ToJSON)
+import qualified Data.Aeson                as JSON
+import           Data.Maybe                (isJust)
 import           Data.Proxy
 import           Data.Row
 import           Data.Text.Prettyprint.Doc
-import           GHC.Generics                     (Generic)
-import           GHC.TypeLits                     (Symbol, symbolVal)
+import           GHC.Generics              (Generic)
+import           GHC.TypeLits              (Symbol, symbolVal)
 
-import           Language.Plutus.Contract.Request as Req
-import           Language.Plutus.Contract.Schema  (Event (..), Handlers (..), Input, Output)
-import           Language.Plutus.Contract.Types   (AsContractError, Contract)
-import           Wallet.Types                     (EndpointDescription (..), EndpointValue (..))
+import           Plutus.Contract.Request   as Req
+import           Plutus.Contract.Schema    (Event (..), Handlers (..), Input, Output)
+import           Plutus.Contract.Types     (AsContractError, Contract)
+import           Wallet.Types              (EndpointDescription (..), EndpointValue (..))
 
 type HasEndpoint l a s =
   ( HasType l (EndpointValue a) (Input s)

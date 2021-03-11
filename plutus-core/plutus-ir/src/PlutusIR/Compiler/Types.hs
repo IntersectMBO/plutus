@@ -5,25 +5,25 @@
 {-# LANGUAGE OverloadedStrings     #-}
 {-# LANGUAGE TemplateHaskell       #-}
 {-# LANGUAGE TypeOperators         #-}
-module Language.PlutusIR.Compiler.Types where
+module PlutusIR.Compiler.Types where
 
-import qualified Language.PlutusIR                      as PIR
-import           Language.PlutusIR.Compiler.Provenance
-import           Language.PlutusIR.Error
+import qualified PlutusIR                      as PIR
+import           PlutusIR.Compiler.Provenance
+import           PlutusIR.Error
 
 import           Control.Monad.Except
 import           Control.Monad.Reader
 
 import           Control.Lens
 
-import qualified Language.PlutusCore                    as PLC
-import qualified Language.PlutusCore.Constant           as PLC
-import qualified Language.PlutusCore.MkPlc              as PLC
-import           Language.PlutusCore.Quote
-import qualified Language.PlutusCore.StdLib.Type        as Types
-import qualified Language.PlutusCore.TypeCheck.Internal as PLC
+import qualified PlutusCore                    as PLC
+import qualified PlutusCore.Constant           as PLC
+import qualified PlutusCore.MkPlc              as PLC
+import           PlutusCore.Quote
+import qualified PlutusCore.StdLib.Type        as Types
+import qualified PlutusCore.TypeCheck.Internal as PLC
 
-import qualified Data.Text                              as T
+import qualified Data.Text                     as T
 
 -- | Extra flag to be passed in the TypeCheckM Reader context,
 -- to signal if the PIR expression currently being typechecked is at the top-level

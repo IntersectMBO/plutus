@@ -2,13 +2,13 @@
 {-# OPTIONS_GHC -Wno-orphans #-}
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
 
-module Language.PlutusTx.String (stringToBuiltinString) where
+module PlutusTx.String (stringToBuiltinString) where
 
-import qualified Language.PlutusTx.Builtins as Builtins
+import qualified PlutusTx.Builtins as Builtins
 
-import           Data.String                (IsString (..))
+import           Data.String       (IsString (..))
 
-import qualified GHC.Magic                  as Magic
+import qualified GHC.Magic         as Magic
 {- Note [noinline hack]
 For some functions we have two conflicting desires:
 - We want to have the unfolding available for the plugin.

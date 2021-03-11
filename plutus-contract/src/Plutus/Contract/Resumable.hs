@@ -51,7 +51,7 @@ space for a solution"). 'Resumable' programs do not have the ability to call
 the 'Control.Applicative.Alternative' class.
 
 -}
-module Language.Plutus.Contract.Resumable(
+module Plutus.Contract.Resumable(
     -- * The 'Resumable' effect
     Resumable(..)
     , prompt

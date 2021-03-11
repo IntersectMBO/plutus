@@ -7,9 +7,9 @@
 {-# LANGUAGE TypeOperators        #-}
 {-# LANGUAGE UndecidableInstances #-}
 
-module Language.PlutusCore.Pretty.PrettyConst where
+module PlutusCore.Pretty.PrettyConst where
 
-import           Language.PlutusCore.Universe
+import           PlutusCore.Universe
 
 import qualified Data.ByteString                    as BS
 import           Data.Foldable                      (fold)
@@ -35,7 +35,7 @@ import           Numeric                            (showHex)
    successfuly parsed using `read`.  This class provides a
    `prettyConst` method which should be used whenever it's necessary
    to render a built-in constant: see for example
-   `Language.PlutusCore.Core.Instance.Pretty.Classic`.  The constraint
+   `PlutusCore.Core.Instance.Pretty.Classic`.  The constraint
    `uni `Everywhere` PrettyConst` occurs in many places in the
    codebase to make sure that we know how to print a constant from any
    type appearing in a universe of built-in types.
@@ -69,7 +69,7 @@ instance PrettyConst String
 instance GShow uni => Pretty (TypeIn uni a) where
     pretty (TypeIn uni) = pretty $ gshow uni
 
--- | Special treatment for built-in constants: see the Note in Language.PlutusCore.Pretty.PrettyConst.
+-- | Special treatment for built-in constants: see the Note in PlutusCore.Pretty.PrettyConst.
 instance (Closed uni, uni `Everywhere` PrettyConst) => Pretty (ValueOf uni a) where
     pretty (ValueOf uni x) = bring (Proxy @PrettyConst) uni $ prettyConst x
 

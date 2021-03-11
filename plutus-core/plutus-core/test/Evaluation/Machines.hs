@@ -6,13 +6,13 @@ module Evaluation.Machines
     )
 where
 
-import           Language.PlutusCore
-import           Language.PlutusCore.Evaluation.Machine.Ck
-import           Language.PlutusCore.Evaluation.Machine.ExMemory
-import           Language.PlutusCore.Evaluation.Machine.Exception
-import           Language.PlutusCore.Generators.Interesting
-import           Language.PlutusCore.Generators.Test
-import           Language.PlutusCore.Pretty
+import           PlutusCore
+import           PlutusCore.Evaluation.Machine.Ck
+import           PlutusCore.Evaluation.Machine.ExMemory
+import           PlutusCore.Evaluation.Machine.Exception
+import           PlutusCore.Generators.Interesting
+import           PlutusCore.Generators.Test
+import           PlutusCore.Pretty
 
 import           Test.Tasty
 import           Test.Tasty.Hedgehog

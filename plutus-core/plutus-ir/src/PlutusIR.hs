@@ -7,7 +7,7 @@
 {-# LANGUAGE TypeOperators         #-}
 {-# LANGUAGE UndecidableInstances  #-}
 {-# OPTIONS_GHC -Wno-orphans       #-}
-module Language.PlutusIR (
+module PlutusIR (
     TyName (..),
     Name (..),
     VarDecl (..),
@@ -35,14 +35,14 @@ module Language.PlutusIR (
 
 import           PlutusPrelude
 
-import           Language.PlutusCore              (Kind, Name, TyName, Type (..), typeSubtypes)
-import qualified Language.PlutusCore              as PLC
-import           Language.PlutusCore.Constant     (AsConstant (..), FromConstant (..))
-import           Language.PlutusCore.Core         (UniOf)
-import           Language.PlutusCore.Flat         ()
-import           Language.PlutusCore.MkPlc        (Def (..), TermLike (..), TyVarDecl (..), VarDecl (..))
-import qualified Language.PlutusCore.Name         as PLC
-import qualified Language.PlutusCore.Pretty       as PLC
+import           PlutusCore                       (Kind, Name, TyName, Type (..), typeSubtypes)
+import qualified PlutusCore                       as PLC
+import           PlutusCore.Constant              (AsConstant (..), FromConstant (..))
+import           PlutusCore.Core                  (UniOf)
+import           PlutusCore.Flat                  ()
+import           PlutusCore.MkPlc                 (Def (..), TermLike (..), TyVarDecl (..), VarDecl (..))
+import qualified PlutusCore.Name                  as PLC
+import qualified PlutusCore.Pretty                as PLC
 
 import           Control.Lens                     hiding (Strict)
 

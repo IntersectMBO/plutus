@@ -6,7 +6,7 @@
 {-# LANGUAGE OverloadedStrings  #-}
 {-# LANGUAGE RankNTypes         #-}
 {-# LANGUAGE TypeOperators      #-}
-module Language.PlutusIR.TypeCheck.Internal
+module PlutusIR.TypeCheck.Internal
     ( BuiltinTypes (..)
     , TypeCheckConfig (..)
     , TypeCheckM
@@ -24,22 +24,22 @@ import           Control.Monad.Except
 import           Control.Monad.Reader
 import           Data.Foldable
 import           Data.Ix
-import           Language.PlutusCore                    (typeAnn)
-import           Language.PlutusCore.Error              as PLC
-import           Language.PlutusCore.Quote
-import           Language.PlutusCore.Rename             as PLC
-import           Language.PlutusCore.Universe
-import           Language.PlutusIR
-import           Language.PlutusIR.Compiler.Datatype
-import           Language.PlutusIR.Compiler.Provenance
-import           Language.PlutusIR.Compiler.Types
-import           Language.PlutusIR.Error
-import           Language.PlutusIR.Transform.Rename     ()
+import           PlutusCore                    (typeAnn)
+import           PlutusCore.Error              as PLC
+import           PlutusCore.Quote
+import           PlutusCore.Rename             as PLC
+import           PlutusCore.Universe
+import           PlutusIR
+import           PlutusIR.Compiler.Datatype
+import           PlutusIR.Compiler.Provenance
+import           PlutusIR.Compiler.Types
+import           PlutusIR.Error
+import           PlutusIR.Transform.Rename     ()
 import           PlutusPrelude
 
 -- we mirror inferTypeM, checkTypeM of plc-tc and extend it for plutus-ir terms
-import           Language.PlutusCore.TypeCheck.Internal hiding (checkTypeM, inferTypeM, runTypeCheckM)
-import qualified Language.PlutusIR.MkPir                as PIR
+import           PlutusCore.TypeCheck.Internal hiding (checkTypeM, inferTypeM, runTypeCheckM)
+import qualified PlutusIR.MkPir                as PIR
 
 {- Note [PLC Typechecker code reuse]
 For PIR kind-checking, we reuse `checkKindM`, `inferKindM` directly from the PLC typechecker.
@@ -49,7 +49,7 @@ and error type signatures and `throwError` to accomodate for the new pir type-er
 These modifications are currently necesessary since PIR.Term ADT /= PLC.Term ADT.
 We then extend this ported `PIR.inferTypeM` with cases for inferring type of LetRec and LetNonRec.
 
-See Note [Notation] of Language.PlutusCore.TypeCheck.Internal for the notation of inference rules, which appear in the comments.
+See Note [Notation] of PlutusCore.TypeCheck.Internal for the notation of inference rules, which appear in the comments.
 -}
 
 {- Note [PIR vs Paper Syntax Difference]
@@ -67,7 +67,7 @@ More importantly, since the type for the PIR data-constructor can be any syntax-
 the PIR user may have placed inside there a non-normalized type there. Currently, the PIR typechecker will
 assume the types of all data-constructors are prior normalized *before* type-checking, otherwise
 the PIR typechecking and PIR compilation will fail.
-See NOTE [Normalization of data-constructors' types] at Language.PlutusIR.Compiler.Datatype
+See NOTE [Normalization of data-constructors' types] at PlutusIR.Compiler.Datatype
 -}
 
 {- Note [PIR vs Paper Escaping Types Difference]
@@ -95,7 +95,7 @@ type PirTCEnv uni fun e a = TypeCheckM uni fun (PirTCConfig uni fun) e a
 -- ###########################
 -- ## Port of Type checking ##
 -- ##########################
---  Taken from `Language.PlutusCore.Typecheck.Internal`
+--  Taken from `PlutusCore.Typecheck.Internal`
 
 -- See the [Global uniqueness] and [Type rules] notes.
 -- | Check a 'Term' against a 'NormalizedType'.

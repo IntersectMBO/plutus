@@ -15,19 +15,19 @@ module Plutus.Benchmark.Queens where
 	See Proceedings of WAAAPL '99
 -}
 
-import           Control.DeepSeq              (NFData)
-import           Control.Monad                (forM_)
-import           Data.Char                    (isSpace)
+import           Control.DeepSeq     (NFData)
+import           Control.Monad       (forM_)
+import           Data.Char           (isSpace)
 import           GHC.Generics
 import qualified Prelude
 import           System.Environment
 
-import           Language.PlutusCore.Builtins
-import qualified Language.PlutusCore.Pretty   as PLC
-import           Language.PlutusCore.Universe
-import qualified Language.PlutusTx            as Tx
-import           Language.PlutusTx.Prelude    as TxPrelude hiding (head, notElem, tail)
-import           Language.UntypedPlutusCore
+import           PlutusCore.Builtins
+import qualified PlutusCore.Pretty   as PLC
+import           PlutusCore.Universe
+import qualified PlutusTx            as Tx
+import           PlutusTx.Prelude    as TxPrelude hiding (head, notElem, tail)
+import           UntypedPlutusCore
 
 
 -----------------------------

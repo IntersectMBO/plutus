@@ -7,7 +7,7 @@
 -- defunctionalised version of this machine.
 
 -- | The CEK machine.
--- Rules are the same as for the CK machine from "Language.PlutusCore.Evaluation.CkMachine",
+-- Rules are the same as for the CK machine from "PlutusCore.Evaluation.CkMachine",
 -- except we do not use substitution and use environments instead.
 -- The CEK machine relies on variables having non-equal 'Unique's whenever they have non-equal
 -- string names. I.e. 'Unique's are used instead of string names, so the renamer pass is required.
@@ -17,25 +17,25 @@
 -- The CEK machine generates booleans along the way which might contain globally non-unique 'Unique's.
 -- This is not a problem as the CEK machines handles name capture by design.
 
-module Language.PlutusCore.Interpreter.CekMachine
+module PlutusCore.Interpreter.CekMachine
     ( EvaluationResult (..)
     , evaluateCek
     , runCek
     ) where
 
-import           Language.PlutusCore
-import           Language.PlutusCore.Constant
-import           Language.PlutusCore.Evaluation.MachineException (MachineError (..), MachineException (..))
-import           Language.PlutusCore.Evaluation.Result           (EvaluationResult (..))
-import           Language.PlutusCore.View
+import           PlutusCore
+import           PlutusCore.Constant
+import           PlutusCore.Evaluation.MachineException (MachineError (..), MachineException (..))
+import           PlutusCore.Evaluation.Result           (EvaluationResult (..))
+import           PlutusCore.View
 import           PlutusPrelude
 
-import qualified Data.Text                                       as T
-import qualified Data.Text.IO                                    as T
-import qualified Language.PlutusCore.Pretty                      as PLC
+import qualified Data.Text                              as T
+import qualified Data.Text.IO                           as T
+import qualified PlutusCore.Pretty                      as PLC
 
-import           Data.IntMap                                     (IntMap)
-import qualified Data.IntMap                                     as IntMap
+import           Data.IntMap                            (IntMap)
+import qualified Data.IntMap                            as IntMap
 
 termStr :: Plain Term -> String
 termStr = T.unpack . PLC.prettyPlcDefText

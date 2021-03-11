@@ -6,18 +6,18 @@
 {-# LANGUAGE TemplateHaskell   #-}
 {-# LANGUAGE TypeFamilies      #-}
 
-module Language.PlutusCore.Pretty.Readable
+module PlutusCore.Pretty.Readable
     ( module Export
-    , module Language.PlutusCore.Pretty.Readable
+    , module PlutusCore.Pretty.Readable
     ) where
 
 import           PlutusPrelude
 
-import           Language.PlutusCore.Pretty.ConfigName
+import           PlutusCore.Pretty.ConfigName
 
 import           Control.Lens
 import           Text.Pretty
-import           Text.PrettyBy.Fixity                  as Export
+import           Text.PrettyBy.Fixity         as Export
 
 data ShowKinds
     = ShowKindsYes

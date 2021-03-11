@@ -13,7 +13,7 @@
 {-# LANGUAGE TemplateHaskell       #-}
 {-# LANGUAGE TypeApplications      #-}
 {-# LANGUAGE ViewPatterns          #-}
-module Language.PlutusTx.Lift.Class
+module PlutusTx.Lift.Class
     ( Typeable (..)
     , Lift (..)
     , RTCompile
@@ -23,36 +23,36 @@ module Language.PlutusTx.Lift.Class
     , LiftError (..)
     ) where
 
-import           Language.PlutusTx.Lift.THUtils
+import           PlutusTx.Lift.THUtils
 
-import           Language.PlutusIR
-import           Language.PlutusIR.Compiler.Definitions
-import           Language.PlutusIR.Compiler.Names
-import           Language.PlutusIR.MkPir
+import           PlutusIR
+import           PlutusIR.Compiler.Definitions
+import           PlutusIR.Compiler.Names
+import           PlutusIR.MkPir
 
-import qualified Language.PlutusCore.MkPlc              as PLC
-import           Language.PlutusCore.Quote
-import qualified Language.PlutusCore.Universe           as PLC
+import qualified PlutusCore.MkPlc              as PLC
+import           PlutusCore.Quote
+import qualified PlutusCore.Universe           as PLC
 
-import           Control.Monad.Except                   hiding (lift)
-import           Control.Monad.Reader                   hiding (lift)
-import           Control.Monad.State                    hiding (lift)
-import qualified Control.Monad.Trans                    as Trans
+import           Control.Monad.Except          hiding (lift)
+import           Control.Monad.Reader          hiding (lift)
+import           Control.Monad.State           hiding (lift)
+import qualified Control.Monad.Trans           as Trans
 
-import qualified Language.Haskell.TH                    as TH
-import qualified Language.Haskell.TH.Datatype           as TH
-import qualified Language.Haskell.TH.Syntax             as TH
+import qualified Language.Haskell.TH           as TH
+import qualified Language.Haskell.TH.Datatype  as TH
+import qualified Language.Haskell.TH.Syntax    as TH
 
-import qualified Data.Map                               as Map
-import qualified Data.Set                               as Set
+import qualified Data.Map                      as Map
+import qualified Data.Set                      as Set
 
-import qualified Control.Exception                      as Prelude (Exception, throw)
+import qualified Control.Exception             as Prelude (Exception, throw)
 import           Data.Foldable
-import           Data.List                              (sortBy)
+import           Data.List                     (sortBy)
 import           Data.Maybe
 import           Data.Proxy
-import qualified Data.Text                              as T
-import qualified Data.Text.Prettyprint.Doc              as PP
+import qualified Data.Text                     as T
+import qualified Data.Text.Prettyprint.Doc     as PP
 import           Data.Traversable
 import           ErrorCode
 

@@ -2,18 +2,18 @@
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE LambdaCase       #-}
 
-module Language.PlutusTx.Compiler.Utils where
+module PlutusTx.Compiler.Utils where
 
-import           Language.PlutusTx.Compiler.Error
-import           Language.PlutusTx.Compiler.Types
+import           PlutusTx.Compiler.Error
+import           PlutusTx.Compiler.Types
 
-import qualified CoreSyn                          as GHC
-import qualified GhcPlugins                       as GHC
+import qualified CoreSyn                 as GHC
+import qualified GhcPlugins              as GHC
 
 import           Control.Monad.Except
 import           Control.Monad.Reader
 
-import qualified Data.Text                        as T
+import qualified Data.Text               as T
 
 sdToTxt :: MonadReader (CompileContext uni fun) m => GHC.SDoc -> m T.Text
 sdToTxt sd = do

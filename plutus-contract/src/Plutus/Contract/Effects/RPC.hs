@@ -13,7 +13,7 @@
 {-# LANGUAGE TypeApplications    #-}
 {-# LANGUAGE TypeFamilies        #-}
 -- | Request-response calls to other instances
-module Language.Plutus.Contract.Effects.RPC(
+module Plutus.Contract.Effects.RPC(
     RPC(..)
     , RPCClient
     , HasRPCClient
@@ -27,24 +27,23 @@ module Language.Plutus.Contract.Effects.RPC(
     , respondRPC
     ) where
 
-import           Control.Monad                                   (unless)
-import           Data.Aeson                                      (FromJSON, ToJSON (toJSON))
-import           Data.Void                                       (absurd)
-import           GHC.Generics                                    (Generic)
-import           GHC.Natural                                     (Natural)
-import           GHC.TypeLits                                    (KnownSymbol, Symbol)
-import           Language.Plutus.Contract.Effects.AwaitSlot      (HasAwaitSlot, waitNSlots)
-import           Language.Plutus.Contract.Effects.ExposeEndpoint (Endpoint, HasEndpoint, endpoint)
-import           Language.Plutus.Contract.Effects.Instance       (HasOwnId, ownInstanceId)
-import           Language.Plutus.Contract.Effects.Notify
-import           Language.Plutus.Contract.Types                  (Contract, ContractError, mapError, runError,
-                                                                  throwError)
+import           Control.Monad                          (unless)
+import           Data.Aeson                             (FromJSON, ToJSON (toJSON))
+import           Data.Void                              (absurd)
+import           GHC.Generics                           (Generic)
+import           GHC.Natural                            (Natural)
+import           GHC.TypeLits                           (KnownSymbol, Symbol)
+import           Plutus.Contract.Effects.AwaitSlot      (HasAwaitSlot, waitNSlots)
+import           Plutus.Contract.Effects.ExposeEndpoint (Endpoint, HasEndpoint, endpoint)
+import           Plutus.Contract.Effects.Instance       (HasOwnId, ownInstanceId)
+import           Plutus.Contract.Effects.Notify
+import           Plutus.Contract.Types                  (Contract, ContractError, mapError, runError, throwError)
 
-import           Wallet.Types                                    (ContractInstanceId, NotificationError (..))
+import           Wallet.Types                           (ContractInstanceId, NotificationError (..))
 
 -- $rpc
 -- This module provides request-response communication between contract
--- instances, implemented using the 'Language.Plutus.Contract.Effects.Notify'
+-- instances, implemented using the 'Plutus.Contract.Effects.Notify'
 -- effect.
 
 -- To define an RPC we need five pieces of data: The request, response, and

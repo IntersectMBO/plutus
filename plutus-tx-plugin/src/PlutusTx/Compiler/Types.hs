@@ -6,29 +6,29 @@
 {-# LANGUAGE TypeFamilies      #-}
 {-# LANGUAGE TypeOperators     #-}
 
-module Language.PlutusTx.Compiler.Types where
+module PlutusTx.Compiler.Types where
 
-import           Language.PlutusTx.Compiler.Error
-import           Language.PlutusTx.PLCTypes
+import           PlutusTx.Compiler.Error
+import           PlutusTx.PLCTypes
 
-import           Language.PlutusIR.Compiler.Definitions
+import           PlutusIR.Compiler.Definitions
 
-import qualified Language.PlutusCore.Builtins           as PLC
-import qualified Language.PlutusCore.Constant           as PLC
-import           Language.PlutusCore.Quote
-import qualified Language.PlutusCore.Universe           as PLC
+import qualified PlutusCore.Builtins           as PLC
+import qualified PlutusCore.Constant           as PLC
+import           PlutusCore.Quote
+import qualified PlutusCore.Universe           as PLC
 
-import qualified FamInstEnv                             as GHC
-import qualified GhcPlugins                             as GHC
+import qualified FamInstEnv                    as GHC
+import qualified GhcPlugins                    as GHC
 
 import           Control.Monad.Except
 import           Control.Monad.Reader
 
-import qualified Data.List.NonEmpty                     as NE
-import qualified Data.Map                               as Map
-import qualified Data.Set                               as Set
+import qualified Data.List.NonEmpty            as NE
+import qualified Data.Map                      as Map
+import qualified Data.Set                      as Set
 
-import qualified Language.Haskell.TH.Syntax             as TH
+import qualified Language.Haskell.TH.Syntax    as TH
 
 type BuiltinNameInfo = Map.Map TH.Name GHC.TyThing
 

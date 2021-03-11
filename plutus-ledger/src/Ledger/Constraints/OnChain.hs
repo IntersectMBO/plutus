@@ -11,8 +11,8 @@
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
 module Ledger.Constraints.OnChain where
 
-import           Language.PlutusTx                (IsData (..))
-import           Language.PlutusTx.Prelude
+import           PlutusTx                         (IsData (..))
+import           PlutusTx.Prelude
 
 import           Ledger.Constraints.TxConstraints
 import qualified Plutus.V1.Ledger.Address         as Address

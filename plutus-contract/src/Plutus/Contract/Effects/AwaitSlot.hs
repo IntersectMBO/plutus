@@ -10,7 +10,7 @@
 {-# LANGUAGE TypeApplications    #-}
 {-# LANGUAGE TypeFamilies        #-}
 {-# LANGUAGE TypeOperators       #-}
-module Language.Plutus.Contract.Effects.AwaitSlot where
+module Plutus.Contract.Effects.AwaitSlot where
 
 import           Data.Aeson                       (FromJSON, ToJSON)
 import           Data.Row
@@ -18,10 +18,10 @@ import           Data.Text.Prettyprint.Doc.Extras
 import           GHC.Generics                     (Generic)
 import           Prelude                          hiding (until)
 
-import           Language.Plutus.Contract.Request as Req
-import           Language.Plutus.Contract.Schema  (Event (..), Handlers (..), Input, Output)
-import           Language.Plutus.Contract.Types   (AsContractError, Contract, selectEither)
-import           Language.Plutus.Contract.Util    (foldMaybe)
+import           Plutus.Contract.Request          as Req
+import           Plutus.Contract.Schema           (Event (..), Handlers (..), Input, Output)
+import           Plutus.Contract.Types            (AsContractError, Contract, selectEither)
+import           Plutus.Contract.Util             (foldMaybe)
 
 import           Ledger.Slot                      (Slot (..))
 

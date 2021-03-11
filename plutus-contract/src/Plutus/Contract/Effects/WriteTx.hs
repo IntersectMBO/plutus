@@ -10,31 +10,30 @@
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE TypeApplications    #-}
 {-# LANGUAGE TypeOperators       #-}
-module Language.Plutus.Contract.Effects.WriteTx where
+module Plutus.Contract.Effects.WriteTx where
 
 import           Control.Lens
-import           Data.Aeson                                        (FromJSON, ToJSON)
+import           Data.Aeson                               (FromJSON, ToJSON)
 import           Data.Row
 import           Data.Text.Prettyprint.Doc
-import           Data.Void                                         (Void)
-import           GHC.Generics                                      (Generic)
+import           Data.Void                                (Void)
+import           GHC.Generics                             (Generic)
 
-import           Language.Plutus.Contract.Effects.AwaitTxConfirmed (HasTxConfirmation, awaitTxConfirmed)
-import           Language.Plutus.Contract.Request                  as Req
-import           Language.Plutus.Contract.Schema                   (Event (..), Handlers (..), Input, Output)
-import           Language.Plutus.Contract.Types                    (AsContractError, Contract,
-                                                                    _ConstraintResolutionError, _WalletError,
-                                                                    throwError)
-import qualified Language.PlutusTx                                 as PlutusTx
+import           Plutus.Contract.Effects.AwaitTxConfirmed (HasTxConfirmation, awaitTxConfirmed)
+import           Plutus.Contract.Request                  as Req
+import           Plutus.Contract.Schema                   (Event (..), Handlers (..), Input, Output)
+import           Plutus.Contract.Types                    (AsContractError, Contract, _ConstraintResolutionError,
+                                                           _WalletError, throwError)
+import qualified PlutusTx                                 as PlutusTx
 
-import           Ledger.AddressMap                                 (UtxoMap)
-import           Ledger.Constraints                                (TxConstraints)
-import           Ledger.Constraints.OffChain                       (ScriptLookups, UnbalancedTx)
-import qualified Ledger.Constraints.OffChain                       as Constraints
-import           Ledger.Tx                                         (Tx, txId)
-import           Ledger.Typed.Scripts                              (ScriptInstance, ScriptType (..))
+import           Ledger.AddressMap                        (UtxoMap)
+import           Ledger.Constraints                       (TxConstraints)
+import           Ledger.Constraints.OffChain              (ScriptLookups, UnbalancedTx)
+import qualified Ledger.Constraints.OffChain              as Constraints
+import           Ledger.Tx                                (Tx, txId)
+import           Ledger.Typed.Scripts                     (ScriptInstance, ScriptType (..))
 
-import           Wallet.API                                        (WalletAPIError)
+import           Wallet.API                               (WalletAPIError)
 
 type TxSymbol = "tx"
 

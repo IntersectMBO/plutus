@@ -11,18 +11,18 @@
 {-# LANGUAGE TypeApplications       #-}
 {-# LANGUAGE TypeOperators          #-}
 
-module Language.PlutusCore.TypeCheck.Internal
+module PlutusCore.TypeCheck.Internal
   -- export all because a lot are used by the pir-typechecker
   where
 
-import           Language.PlutusCore.Core
-import           Language.PlutusCore.Error
-import           Language.PlutusCore.MkPlc
-import           Language.PlutusCore.Name
-import qualified Language.PlutusCore.Normalize.Internal as Norm
-import           Language.PlutusCore.Quote
-import           Language.PlutusCore.Rename
-import           Language.PlutusCore.Universe
+import           PlutusCore.Core
+import           PlutusCore.Error
+import           PlutusCore.MkPlc
+import           PlutusCore.Name
+import qualified PlutusCore.Normalize.Internal as Norm
+import           PlutusCore.Quote
+import           PlutusCore.Rename
+import           PlutusCore.Universe
 import           PlutusPrelude
 
 import           Control.Lens

@@ -16,7 +16,7 @@
 {-# LANGUAGE TemplateHaskell        #-}
 {-# LANGUAGE TypeApplications       #-}
 {-# LANGUAGE TypeOperators          #-}
-module Language.Plutus.Contract.Types(
+module Plutus.Contract.Types(
     ContractEffs
     , handleContractEffs
     , Contract(..)
@@ -59,35 +59,35 @@ module Language.Plutus.Contract.Types(
 import           Control.Applicative
 import           Control.Lens
 import           Control.Monad
-import           Control.Monad.Except                (MonadError (..))
+import           Control.Monad.Except              (MonadError (..))
 import           Control.Monad.Freer
-import           Control.Monad.Freer.Error           (Error)
-import qualified Control.Monad.Freer.Error           as E
-import           Control.Monad.Freer.Extras.Log      (LogMessage, LogMsg, handleLogIgnore, handleLogWriter)
-import           Control.Monad.Freer.Extras.Modify   (raiseEnd, raiseUnderN)
+import           Control.Monad.Freer.Error         (Error)
+import qualified Control.Monad.Freer.Error         as E
+import           Control.Monad.Freer.Extras.Log    (LogMessage, LogMsg, handleLogIgnore, handleLogWriter)
+import           Control.Monad.Freer.Extras.Modify (raiseEnd, raiseUnderN)
 import           Control.Monad.Freer.State
-import           Control.Monad.Freer.Writer          (Writer)
-import qualified Control.Monad.Freer.Writer          as W
-import           Data.Aeson                          (Value)
-import qualified Data.Aeson                          as Aeson
-import           Data.Foldable                       (foldl')
-import           Data.Maybe                          (fromMaybe)
-import           Data.Sequence                       (Seq)
-import           Data.Void                           (Void)
-import           GHC.Generics                        (Generic)
+import           Control.Monad.Freer.Writer        (Writer)
+import qualified Control.Monad.Freer.Writer        as W
+import           Data.Aeson                        (Value)
+import qualified Data.Aeson                        as Aeson
+import           Data.Foldable                     (foldl')
+import           Data.Maybe                        (fromMaybe)
+import           Data.Sequence                     (Seq)
+import           Data.Void                         (Void)
+import           GHC.Generics                      (Generic)
 
-import           Language.Plutus.Contract.Schema     (Event (..), Handlers (..))
+import           Plutus.Contract.Schema            (Event (..), Handlers (..))
 
-import           Language.Plutus.Contract.Checkpoint (AsCheckpointError (..), Checkpoint (..), CheckpointError (..),
-                                                      CheckpointKey, CheckpointLogMsg, CheckpointStore,
-                                                      handleCheckpoint, jsonCheckpoint)
-import           Language.Plutus.Contract.Resumable  hiding (responses, select)
-import qualified Language.Plutus.Contract.Resumable  as Resumable
+import           Plutus.Contract.Checkpoint        (AsCheckpointError (..), Checkpoint (..), CheckpointError (..),
+                                                    CheckpointKey, CheckpointLogMsg, CheckpointStore, handleCheckpoint,
+                                                    jsonCheckpoint)
+import           Plutus.Contract.Resumable         hiding (responses, select)
+import qualified Plutus.Contract.Resumable         as Resumable
 
-import qualified Language.PlutusTx.Applicative       as PlutusTx
-import qualified Language.PlutusTx.Functor           as PlutusTx
-import           Prelude                             as Haskell
-import           Wallet.Types                        (AsContractError (..), ContractError (..), MatchingError (..))
+import qualified PlutusTx.Applicative              as PlutusTx
+import qualified PlutusTx.Functor                  as PlutusTx
+import           Prelude                           as Haskell
+import           Wallet.Types                      (AsContractError (..), ContractError (..), MatchingError (..))
 
 -- | Effects that are available to contracts.
 type ContractEffs w s e =

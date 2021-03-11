@@ -58,7 +58,7 @@ import           Wallet.Emulator.MultiAgent             (EmulatorState, Emulator
 import           Wallet.Emulator.Wallet                 (Wallet (..), walletAddress)
 
 -- TODO: Move these two to 'Wallet.Emulator.XXX'?
-import           Language.Plutus.Contract.Trace         (InitialDistribution, defaultDist)
+import           Plutus.Contract.Trace                  (InitialDistribution, defaultDist)
 import           Plutus.Trace.Emulator.ContractInstance (EmulatorRuntimeError)
 
 {- Note [Emulator event stream]

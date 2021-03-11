@@ -2,16 +2,16 @@
 
 {-# LANGUAGE OverloadedStrings #-}
 
-module Language.PlutusCore.StdLib.Data.ChurchNat
+module PlutusCore.StdLib.Data.ChurchNat
     ( churchNat
     , churchZero
     , churchSucc
     ) where
 
-import           Language.PlutusCore.Core
-import           Language.PlutusCore.MkPlc
-import           Language.PlutusCore.Name
-import           Language.PlutusCore.Quote
+import           PlutusCore.Core
+import           PlutusCore.MkPlc
+import           PlutusCore.Name
+import           PlutusCore.Quote
 
 -- | Church-encoded @Nat@ as a PLC type.
 --

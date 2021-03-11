@@ -3,23 +3,23 @@
 {-# LANGUAGE TypeApplications  #-}
 {-# LANGUAGE TypeOperators     #-}
 
-module Language.PlutusCore.Parser.Internal where
+module PlutusCore.Parser.Internal where
 
 import           PlutusPrelude
 
-import           Language.PlutusCore.Core
-import           Language.PlutusCore.Error
-import           Language.PlutusCore.Lexer
-import           Language.PlutusCore.Lexer.Type
-import           Language.PlutusCore.Name
-import           Language.PlutusCore.Parsable
-import           Language.PlutusCore.Universe
+import           PlutusCore.Core
+import           PlutusCore.Error
+import           PlutusCore.Lexer
+import           PlutusCore.Lexer.Type
+import           PlutusCore.Name
+import           PlutusCore.Parsable
+import           PlutusCore.Universe
 
 import           Control.Monad.Except
 
-import           Data.List                      (find)
+import           Data.List             (find)
 import           Data.Proxy
-import qualified Data.Text                      as T
+import qualified Data.Text             as T
 
 --- The Parse monad ---
 

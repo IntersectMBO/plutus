@@ -11,39 +11,39 @@
 {-# LANGUAGE TypeOperators         #-}
 {-# LANGUAGE UndecidableInstances  #-}
 
-module Language.PlutusCore.Builtins where
+module PlutusCore.Builtins where
 
-import           Language.PlutusCore.Constant.Dynamic.Emit
-import           Language.PlutusCore.Constant.Meaning
-import           Language.PlutusCore.Constant.Typed
-import           Language.PlutusCore.Evaluation.Machine.ExBudgeting
-import           Language.PlutusCore.Evaluation.Machine.ExBudgetingDefaults
-import           Language.PlutusCore.Evaluation.Machine.ExMemory
-import           Language.PlutusCore.Evaluation.Result
-import           Language.PlutusCore.Pretty
-import           Language.PlutusCore.Universe
+import           PlutusCore.Constant.Dynamic.Emit
+import           PlutusCore.Constant.Meaning
+import           PlutusCore.Constant.Typed
+import           PlutusCore.Evaluation.Machine.ExBudgeting
+import           PlutusCore.Evaluation.Machine.ExBudgetingDefaults
+import           PlutusCore.Evaluation.Machine.ExMemory
+import           PlutusCore.Evaluation.Result
+import           PlutusCore.Pretty
+import           PlutusCore.Universe
 
 import           Codec.CBOR.Decoding
 import           Codec.CBOR.Encoding
 import           Codec.Serialise
 import           Control.DeepSeq
 import           Crypto
-import qualified Data.ByteString                                            as BS
-import qualified Data.ByteString.Hash                                       as Hash
+import qualified Data.ByteString                                   as BS
+import qualified Data.ByteString.Hash                              as Hash
 import           Data.Ix
-import           Data.Word                                                  (Word8)
+import           Data.Word                                         (Word8)
 import           Flat
 import           Flat.Decoder
-import           Flat.Encoder                                               as Flat
+import           Flat.Encoder                                      as Flat
 
 -- TODO: I think we should have the following structure:
 --
--- Language.PlutusCore.Default.Universe
--- Language.PlutusCore.Default.Builtins
+-- PlutusCore.Default.Universe
+-- PlutusCore.Default.Builtins
 --
 -- and
 --
--- Language.PlutusCore.Default
+-- PlutusCore.Default
 --
 -- reexporting stuff from these two.
 

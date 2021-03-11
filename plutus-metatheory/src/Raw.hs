@@ -6,13 +6,13 @@ module Raw where
 
 import           GHC.Natural
 
-import           Data.ByteString              as BS
-import qualified Data.Text                    as T
-import           Language.PlutusCore
-import           Language.PlutusCore.Builtins
-import           Language.PlutusCore.DeBruijn
-import           Language.PlutusCore.Parser
-import           Language.PlutusCore.Pretty
+import           Data.ByteString     as BS
+import qualified Data.Text           as T
+import           PlutusCore
+import           PlutusCore.Builtins
+import           PlutusCore.DeBruijn
+import           PlutusCore.Parser
+import           PlutusCore.Pretty
 
 import           Data.Either
 

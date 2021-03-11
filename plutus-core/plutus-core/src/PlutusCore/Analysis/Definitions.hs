@@ -1,6 +1,6 @@
 {-# LANGUAGE LambdaCase #-}
 -- | Definition analysis for Plutus Core.
-module Language.PlutusCore.Analysis.Definitions
+module PlutusCore.Analysis.Definitions
     ( UniqueInfos
     , ScopeType(..)
     , termDefs
@@ -11,19 +11,19 @@ module Language.PlutusCore.Analysis.Definitions
     , addUsage
     ) where
 
-import           Language.PlutusCore.Core
-import           Language.PlutusCore.Error
-import           Language.PlutusCore.Name
+import           PlutusCore.Core
+import           PlutusCore.Error
+import           PlutusCore.Name
 
 import           Data.Functor.Foldable
 
-import           Control.Lens              hiding (use, uses)
+import           Control.Lens          hiding (use, uses)
 import           Control.Monad.Except
 import           Control.Monad.State
 import           Control.Monad.Writer
 
 import           Data.Foldable
-import qualified Data.Set                  as Set
+import qualified Data.Set              as Set
 
 {- Note [Unique usage errors]
 The definitions analysis can find a number of problems with usage of uniques, however

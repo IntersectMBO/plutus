@@ -16,9 +16,9 @@ import           Control.Monad.Error.Lens (catching, throwing, throwing_)
 import           Data.Text                (Text)
 import qualified Data.Text                as T
 
-import           Language.Plutus.Contract (AsContractError (_ContractError), ContractError, HasAwaitSlot, logInfo,
-                                           mapError, select)
 import           Playground.Contract
+import           Plutus.Contract          (AsContractError (_ContractError), ContractError, HasAwaitSlot, logInfo,
+                                           mapError, select)
 import           Prelude                  (Maybe (..), const, show, ($), (.), (<>), (>>), (>>=))
 
 -- Demonstrates how to deal with errors in Plutus contracts. We define a custom
@@ -46,7 +46,7 @@ makeClassyPrisms ''MyError
 
 instance AsContractError MyError where
     -- 'ContractError' is another error type. It is defined in
-    -- 'Language.Plutus.Contract.Request'. By making 'MyError' an
+    -- 'Plutus.Contract.Request'. By making 'MyError' an
     -- instance of 'AsContractError' we can handle 'ContractError's
     -- thrown by other contracts in our code (see 'catchContractError')
     _ContractError = _AContractError

@@ -4,7 +4,7 @@ The Haskell package `plutus-core` implements a range of functionality for manipu
 
 ## Specification
 
-### Exported functionality: `Language.PlutusCore`
+### Exported functionality: `PlutusCore`
 
 * Parser and pretty-printer for textual Plutus Core representation as per the Plutus Core specification
 
@@ -36,7 +36,7 @@ The Haskell package `plutus-core` implements a range of functionality for manipu
 
 ### Parser and pretty printer
 
-The lexer & parser are based on Alex & Happy and the pretty printer uses the `prettyprinter` package. Names (identifiers) are interned using uniques as per `Language.PlutusCore.Name`. They are also parameterised with an attribute used differently in different stages.
+The lexer & parser are based on Alex & Happy and the pretty printer uses the `prettyprinter` package. Names (identifiers) are interned using uniques as per `PlutusCore.Name`. They are also parameterised with an attribute used differently in different stages.
 
 Parsing, pretty-printing and the AST representation closely follow the Plutus Core specification. AST nodes are parametereised with the same attribute as the embedded names.
 
@@ -82,7 +82,7 @@ Copied executables to ~/.local/bin:
 
 The CK machine can be used to evaluate programs. For this, feed a type checked
 Plutus Core term to the `unsafeEvaluateCk` function defined in the
-[`Language.PlutusCore.Evaluation.Machine.Ck`](src/Language/PlutusCore/Evaluation/Machine/Ck.hs)
+[`PlutusCore.Evaluation.Machine.Ck`](src/PlutusCore/Evaluation/Machine/Ck.hs)
 module (the `DynamicBuiltinNameMeanings` argument contains information about
 extra built-in functions and can safely be set to `Data.Map.empty` for simple
 programs):
@@ -112,7 +112,7 @@ echo "(program 0.1.0 [(lam x (con integer) x) (con integer 271)])" | plc evaluat
 
 #### Tests
 
-A term generation machinery sits in the [`Language.PlutusCore.Generators.Internal.Entity`](generators/Language/PlutusCore/Generators/Internal/Entity.hs) module. It allows to generate terms that contain built-ins (integers, bytestrings, sizes and booleans), constant applications and first-order functions.
+A term generation machinery sits in the [`PlutusCore.Generators.Internal.Entity`](plutus-core/generators/PlutusCore/Generators/Internal/Entity.hs) module. It allows to generate terms that contain built-ins (integers, bytestrings, sizes and booleans), constant applications and first-order functions.
 
 The generator makes sure a term is well-typed and keeps track of what it's supposed to evaluate to.
 

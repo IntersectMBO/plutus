@@ -23,37 +23,35 @@
 
 module Language.Marlowe.Client where
 import           Control.Lens
-import           Control.Monad.Error.Lens                          (catching, throwing)
-import           Data.Aeson                                        (FromJSON, ToJSON)
-import qualified Data.Map.Strict                                   as Map
-import qualified Data.Set                                          as Set
-import qualified Data.Text                                         as T
-import           GHC.Generics                                      (Generic)
-import           Language.Marlowe.Semantics                        hiding (Contract)
-import qualified Language.Marlowe.Semantics                        as Marlowe
-import           Language.Marlowe.Util                             (extractContractRoles)
-import           Language.Plutus.Contract
-import           Language.Plutus.Contract.StateMachine             (AsSMContractError (..), StateMachine (..),
-                                                                    StateMachineClient (..), StateMachineInstance (..),
-                                                                    Void, WaitingResult (..))
-import qualified Language.Plutus.Contract.StateMachine             as SM
-import qualified Language.PlutusTx                                 as PlutusTx
-import qualified Language.PlutusTx.AssocMap                        as AssocMap
-import qualified Language.PlutusTx.Coordination.Contracts.Currency as Currency
-import qualified Language.PlutusTx.Prelude                         as P
-import           Ledger                                            (Address (..), CurrencySymbol, Datum (..),
-                                                                    PubKeyHash, Slot (..), TokenName, TxOutTx (..),
-                                                                    ValidatorCtx (..), ValidatorHash, mkValidatorScript,
-                                                                    pubKeyHash, txOutDatum, txOutValue, validatorHash,
-                                                                    valueSpent)
-import           Ledger.Ada                                        (adaSymbol, adaValueOf)
+import           Control.Monad.Error.Lens     (catching, throwing)
+import           Data.Aeson                   (FromJSON, ToJSON)
+import qualified Data.Map.Strict              as Map
+import qualified Data.Set                     as Set
+import qualified Data.Text                    as T
+import           GHC.Generics                 (Generic)
+import           Language.Marlowe.Semantics   hiding (Contract)
+import qualified Language.Marlowe.Semantics   as Marlowe
+import           Language.Marlowe.Util        (extractContractRoles)
+import           Ledger                       (Address (..), CurrencySymbol, Datum (..), PubKeyHash, Slot (..),
+                                               TokenName, TxOutTx (..), ValidatorCtx (..), ValidatorHash,
+                                               mkValidatorScript, pubKeyHash, txOutDatum, txOutValue, validatorHash,
+                                               valueSpent)
+import           Ledger.Ada                   (adaSymbol, adaValueOf)
 import           Ledger.Constraints
-import qualified Ledger.Constraints                                as Constraints
-import qualified Ledger.Interval                                   as Interval
-import           Ledger.Scripts                                    (Validator, datumHash, unitRedeemer)
-import qualified Ledger.Typed.Scripts                              as Scripts
-import           Ledger.Typed.Tx                                   (TypedScriptTxOut (..), tyTxOutData)
-import qualified Ledger.Value                                      as Val
+import qualified Ledger.Constraints           as Constraints
+import qualified Ledger.Interval              as Interval
+import           Ledger.Scripts               (Validator, datumHash, unitRedeemer)
+import qualified Ledger.Typed.Scripts         as Scripts
+import           Ledger.Typed.Tx              (TypedScriptTxOut (..), tyTxOutData)
+import qualified Ledger.Value                 as Val
+import           Plutus.Contract
+import           Plutus.Contract.StateMachine (AsSMContractError (..), StateMachine (..), StateMachineClient (..),
+                                               StateMachineInstance (..), Void, WaitingResult (..))
+import qualified Plutus.Contract.StateMachine as SM
+import qualified Plutus.Contracts.Currency    as Currency
+import qualified PlutusTx                     as PlutusTx
+import qualified PlutusTx.AssocMap            as AssocMap
+import qualified PlutusTx.Prelude             as P
 
 type MarloweSlotRange = (Slot, Slot)
 type MarloweInput = (MarloweSlotRange, [Input])

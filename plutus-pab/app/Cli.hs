@@ -55,46 +55,45 @@ We have to use 'natTracer' in some places to turn 'Trace IO a' into
 
 import           Command
 
-import           Cardano.BM.Configuration                        (Configuration)
-import qualified Cardano.BM.Configuration.Model                  as CM
-import           Cardano.BM.Data.Trace                           (Trace)
-import qualified Cardano.ChainIndex.Server                       as ChainIndex
-import qualified Cardano.Metadata.Server                         as Metadata
-import qualified Cardano.Node.Server                             as NodeServer
-import qualified Cardano.Wallet.Server                           as WalletServer
+import           Cardano.BM.Configuration                (Configuration)
+import qualified Cardano.BM.Configuration.Model          as CM
+import           Cardano.BM.Data.Trace                   (Trace)
+import qualified Cardano.ChainIndex.Server               as ChainIndex
+import qualified Cardano.Metadata.Server                 as Metadata
+import qualified Cardano.Node.Server                     as NodeServer
+import qualified Cardano.Wallet.Server                   as WalletServer
 import           Cardano.Wallet.Types
-import           Control.Concurrent                              (threadDelay)
-import           Control.Concurrent.Async                        (Async, async, waitAny)
-import           Control.Concurrent.Availability                 (Availability, starting)
-import           Control.Lens.Indexed                            (itraverse_)
-import           Control.Monad                                   (forever, void)
-import           Control.Monad.Freer                             (Eff, interpret, raise)
-import           Control.Monad.Freer.Error                       (handleError)
-import           Control.Monad.Freer.Extras.Log                  (LogMsg, logError, logInfo, mapLog)
-import           Control.Monad.IO.Class                          (liftIO)
-import           Data.Foldable                                   (traverse_)
-import qualified Data.Map                                        as Map
-import qualified Data.Set                                        as Set
-import           Data.Text.Prettyprint.Doc                       (Pretty (..), defaultLayoutOptions, layoutPretty,
-                                                                  pretty)
-import           Data.Text.Prettyprint.Doc.Render.Text           (renderStrict)
+import           Control.Concurrent                      (threadDelay)
+import           Control.Concurrent.Async                (Async, async, waitAny)
+import           Control.Concurrent.Availability         (Availability, starting)
+import           Control.Lens.Indexed                    (itraverse_)
+import           Control.Monad                           (forever, void)
+import           Control.Monad.Freer                     (Eff, interpret, raise)
+import           Control.Monad.Freer.Error               (handleError)
+import           Control.Monad.Freer.Extras.Log          (LogMsg, logError, logInfo, mapLog)
+import           Control.Monad.IO.Class                  (liftIO)
+import           Data.Foldable                           (traverse_)
+import qualified Data.Map                                as Map
+import qualified Data.Set                                as Set
+import           Data.Text.Prettyprint.Doc               (Pretty (..), defaultLayoutOptions, layoutPretty, pretty)
+import           Data.Text.Prettyprint.Doc.Render.Text   (renderStrict)
 
-import           Cardano.Node.Types                              (MockServerConfig (..), NodeUrl (..))
-import           Data.Time.Units                                 (toMicroseconds)
-import           Language.Plutus.Contract.Effects.ExposeEndpoint (EndpointDescription (..))
+import           Cardano.Node.Types                      (MockServerConfig (..), NodeUrl (..))
+import           Data.Time.Units                         (toMicroseconds)
 import qualified PSGenerator
-import           Plutus.PAB.App                                  (AppBackend, runApp)
-import qualified Plutus.PAB.App                                  as App
-import qualified Plutus.PAB.Core                                 as Core
-import qualified Plutus.PAB.Core.ContractInstance                as Instance
-import           Plutus.PAB.Events.Contract                      (ContractInstanceId (..))
-import           Plutus.PAB.Monitoring.MonadLoggerBridge         (TraceLoggerT, monadLoggerTracer)
-import qualified Plutus.PAB.Monitoring.Monitoring                as LM
-import           Plutus.PAB.Types                                (Config (Config), ContractExe (..), PABError,
-                                                                  RequestProcessingConfig (..), chainIndexConfig,
-                                                                  metadataServerConfig, nodeServerConfig,
-                                                                  requestProcessingConfig, walletServerConfig)
-import qualified Plutus.PAB.Webserver.Server                     as PABServer
+import           Plutus.Contract.Effects.ExposeEndpoint  (EndpointDescription (..))
+import           Plutus.PAB.App                          (AppBackend, runApp)
+import qualified Plutus.PAB.App                          as App
+import qualified Plutus.PAB.Core                         as Core
+import qualified Plutus.PAB.Core.ContractInstance        as Instance
+import           Plutus.PAB.Events.Contract              (ContractInstanceId (..))
+import           Plutus.PAB.Monitoring.MonadLoggerBridge (TraceLoggerT, monadLoggerTracer)
+import qualified Plutus.PAB.Monitoring.Monitoring        as LM
+import           Plutus.PAB.Types                        (Config (Config), ContractExe (..), PABError,
+                                                          RequestProcessingConfig (..), chainIndexConfig,
+                                                          metadataServerConfig, nodeServerConfig,
+                                                          requestProcessingConfig, walletServerConfig)
+import qualified Plutus.PAB.Webserver.Server             as PABServer
 
 -- | Interpret a 'Command' in 'Eff' using the provided tracer and configurations
 --

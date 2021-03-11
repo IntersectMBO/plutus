@@ -4,15 +4,15 @@
 {-# LANGUAGE TypeFamilies          #-}
 {-# LANGUAGE UndecidableInstances  #-}
 
-module Language.UntypedPlutusCore.Core.Instance.Pretty.Plc () where
+module UntypedPlutusCore.Core.Instance.Pretty.Plc () where
 
 import           PlutusPrelude
 
-import           Language.UntypedPlutusCore.Core.Instance.Pretty.Classic  ()
-import           Language.UntypedPlutusCore.Core.Instance.Pretty.Readable ()
-import           Language.UntypedPlutusCore.Core.Type
+import           UntypedPlutusCore.Core.Instance.Pretty.Classic  ()
+import           UntypedPlutusCore.Core.Instance.Pretty.Readable ()
+import           UntypedPlutusCore.Core.Type
 
-import           Language.PlutusCore.Pretty.Plc
+import           PlutusCore.Pretty.Plc
 
 deriving via PrettyAny (Term name uni fun ann)
     instance DefaultPrettyPlcStrategy (Term name uni fun ann) =>

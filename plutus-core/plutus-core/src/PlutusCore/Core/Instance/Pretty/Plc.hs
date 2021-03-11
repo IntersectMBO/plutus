@@ -4,14 +4,14 @@
 {-# LANGUAGE TypeFamilies          #-}
 {-# LANGUAGE UndecidableInstances  #-}
 
-module Language.PlutusCore.Core.Instance.Pretty.Plc () where
+module PlutusCore.Core.Instance.Pretty.Plc () where
 
 import           PlutusPrelude
 
-import           Language.PlutusCore.Core.Instance.Pretty.Classic  ()
-import           Language.PlutusCore.Core.Instance.Pretty.Readable ()
-import           Language.PlutusCore.Core.Type
-import           Language.PlutusCore.Pretty.Plc
+import           PlutusCore.Core.Instance.Pretty.Classic  ()
+import           PlutusCore.Core.Instance.Pretty.Readable ()
+import           PlutusCore.Core.Type
+import           PlutusCore.Pretty.Plc
 
 deriving via PrettyAny (Kind ann)
     instance DefaultPrettyPlcStrategy (Kind ann) =>

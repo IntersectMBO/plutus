@@ -4,11 +4,11 @@
 {-# OPTIONS_GHC -fno-strictness #-}
 {-# OPTIONS_GHC -fno-specialise #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
-module Language.PlutusTx.IsData.Instances where
+module PlutusTx.IsData.Instances where
 
-import           Prelude                     (Bool (..), Either (..), Maybe (..))
+import           Prelude            (Bool (..), Either (..), Maybe (..))
 
-import           Language.PlutusTx.IsData.TH
+import           PlutusTx.IsData.TH
 
 -- While these types should be stable, we really don't want them changing, so index
 -- them explicitly to be sure.

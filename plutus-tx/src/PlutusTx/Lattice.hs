@@ -1,8 +1,8 @@
 {-# LANGUAGE ConstraintKinds #-}
-module Language.PlutusTx.Lattice where
+module PlutusTx.Lattice where
 
-import           Language.PlutusTx.Bool
-import           Prelude                hiding (not, (&&), (||))
+import           PlutusTx.Bool
+import           Prelude       hiding (not, (&&), (||))
 
 -- | A join semi-lattice, i.e. a partially ordered set equipped with a
 -- binary operation '(\/)'.

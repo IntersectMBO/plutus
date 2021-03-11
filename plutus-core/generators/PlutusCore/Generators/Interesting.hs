@@ -6,7 +6,7 @@
 {-# LANGUAGE TypeApplications  #-}
 {-# LANGUAGE TypeOperators     #-}
 
-module Language.PlutusCore.Generators.Interesting
+module PlutusCore.Generators.Interesting
     ( TermGen
     , TermOf(..)
     , genOverapplication
@@ -21,29 +21,29 @@ module Language.PlutusCore.Generators.Interesting
     , fromInterestingTermGens
     ) where
 
-import           Language.PlutusCore.Builtins
-import           Language.PlutusCore.Constant
-import           Language.PlutusCore.Core
-import           Language.PlutusCore.Evaluation.Result
-import           Language.PlutusCore.MkPlc
-import           Language.PlutusCore.Name
-import           Language.PlutusCore.Quote
-import           Language.PlutusCore.Universe
+import           PlutusCore.Builtins
+import           PlutusCore.Constant
+import           PlutusCore.Core
+import           PlutusCore.Evaluation.Result
+import           PlutusCore.MkPlc
+import           PlutusCore.Name
+import           PlutusCore.Quote
+import           PlutusCore.Universe
 
-import           Language.PlutusCore.StdLib.Data.Bool
-import           Language.PlutusCore.StdLib.Data.Function as Function
-import           Language.PlutusCore.StdLib.Data.List     as List
-import           Language.PlutusCore.StdLib.Data.Nat
-import           Language.PlutusCore.StdLib.Data.Unit
-import           Language.PlutusCore.StdLib.Meta
-import           Language.PlutusCore.StdLib.Type
+import           PlutusCore.StdLib.Data.Bool
+import           PlutusCore.StdLib.Data.Function as Function
+import           PlutusCore.StdLib.Data.List     as List
+import           PlutusCore.StdLib.Data.Nat
+import           PlutusCore.StdLib.Data.Unit
+import           PlutusCore.StdLib.Meta
+import           PlutusCore.StdLib.Type
 
-import           Language.PlutusCore.Generators
+import           PlutusCore.Generators
 
-import           Data.List                                (genericIndex)
-import           Hedgehog                                 hiding (Size, Var)
-import qualified Hedgehog.Gen                             as Gen
-import qualified Hedgehog.Range                           as Range
+import           Data.List                       (genericIndex)
+import           Hedgehog                        hiding (Size, Var)
+import qualified Hedgehog.Gen                    as Gen
+import qualified Hedgehog.Range                  as Range
 
 -- | The type of terms-and-their-values generators.
 type TermGen a = Gen (TermOf (Term TyName Name DefaultUni DefaultFun ()) a)

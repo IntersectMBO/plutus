@@ -10,20 +10,20 @@
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE TypeApplications    #-}
 {-# LANGUAGE TypeOperators       #-}
-module Language.Plutus.Contract.Effects.UtxoAt where
+module Plutus.Contract.Effects.UtxoAt where
 
-import           Data.Aeson                                 (FromJSON, ToJSON)
-import qualified Data.Map                                   as Map
+import           Data.Aeson                        (FromJSON, ToJSON)
+import qualified Data.Map                          as Map
 import           Data.Row
 import           Data.Text.Prettyprint.Doc
-import           GHC.Generics                               (Generic)
-import           Ledger                                     (Address, Slot, TxOut (..), TxOutTx (..))
-import           Ledger.AddressMap                          (UtxoMap)
+import           GHC.Generics                      (Generic)
+import           Ledger                            (Address, Slot, TxOut (..), TxOutTx (..))
+import           Ledger.AddressMap                 (UtxoMap)
 
-import           Language.Plutus.Contract.Effects.AwaitSlot (HasAwaitSlot, awaitSlot)
-import           Language.Plutus.Contract.Request           (ContractRow, requestMaybe)
-import           Language.Plutus.Contract.Schema            (Event (..), Handlers (..), Input, Output)
-import           Language.Plutus.Contract.Types             (AsContractError, Contract)
+import           Plutus.Contract.Effects.AwaitSlot (HasAwaitSlot, awaitSlot)
+import           Plutus.Contract.Request           (ContractRow, requestMaybe)
+import           Plutus.Contract.Schema            (Event (..), Handlers (..), Input, Output)
+import           Plutus.Contract.Types             (AsContractError, Contract)
 
 type UtxoAtSym = "utxo-at"
 

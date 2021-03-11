@@ -33,60 +33,59 @@ module Plutus.PAB.Core.ContractInstance(
     , callContractEndpoint'
     ) where
 
-import           Cardano.BM.Data.Tracer                          (ToObject (..), TracingVerbosity (..))
-import           Cardano.BM.Data.Tracer.Extras                   (Tagged (..), mkObjectStr)
-import           Control.Arrow                                   ((>>>), (>>^))
+import           Cardano.BM.Data.Tracer                 (ToObject (..), TracingVerbosity (..))
+import           Cardano.BM.Data.Tracer.Extras          (Tagged (..), mkObjectStr)
+import           Control.Arrow                          ((>>>), (>>^))
 import           Control.Lens
-import           Control.Monad                                   (unless, void, when)
+import           Control.Monad                          (unless, void, when)
 import           Control.Monad.Freer
-import           Control.Monad.Freer.Error                       (Error, throwError)
-import           Control.Monad.Freer.Extras.Log                  (LogMessage, LogMsg, LogObserve, logDebug, logInfo,
-                                                                  logWarn, mapLog, surroundInfo)
-import           Control.Monad.Freer.Extras.Modify               (wrapError)
-import           Control.Monad.Freer.Reader                      (Reader, runReader)
-import           Data.Aeson                                      (ToJSON (..))
-import qualified Data.Aeson                                      as JSON
-import           Data.Foldable                                   (for_, traverse_)
-import qualified Data.Map                                        as Map
-import           Data.Maybe                                      (mapMaybe)
-import           Data.Semigroup                                  (Last (..))
-import qualified Data.Set                                        as Set
-import qualified Data.Text                                       as Text
-import           Data.Text.Prettyprint.Doc                       (Pretty, parens, pretty, viaShow, (<+>))
-import           GHC.Generics                                    (Generic)
+import           Control.Monad.Freer.Error              (Error, throwError)
+import           Control.Monad.Freer.Extras.Log         (LogMessage, LogMsg, LogObserve, logDebug, logInfo, logWarn,
+                                                         mapLog, surroundInfo)
+import           Control.Monad.Freer.Extras.Modify      (wrapError)
+import           Control.Monad.Freer.Reader             (Reader, runReader)
+import           Data.Aeson                             (ToJSON (..))
+import qualified Data.Aeson                             as JSON
+import           Data.Foldable                          (for_, traverse_)
+import qualified Data.Map                               as Map
+import           Data.Maybe                             (mapMaybe)
+import           Data.Semigroup                         (Last (..))
+import qualified Data.Set                               as Set
+import qualified Data.Text                              as Text
+import           Data.Text.Prettyprint.Doc              (Pretty, parens, pretty, viaShow, (<+>))
+import           GHC.Generics                           (Generic)
 
-import           Language.Plutus.Contract.Effects.AwaitSlot      (WaitingForSlot (..))
-import           Language.Plutus.Contract.Effects.ExposeEndpoint (ActiveEndpoint (..), EndpointDescription (..),
-                                                                  EndpointValue (..))
-import           Language.Plutus.Contract.Effects.WriteTx        (WriteTxResponse (..))
-import           Language.Plutus.Contract.Resumable              (IterationID, Request (..), Response (..))
-import           Language.Plutus.Contract.Trace                  (EndpointError (..))
-import           Language.Plutus.Contract.Trace.RequestHandler   (RequestHandler (..), RequestHandlerLogMsg, extract,
-                                                                  maybeToHandler, tryHandler, wrapHandler)
-import qualified Language.Plutus.Contract.Trace.RequestHandler   as RequestHandler
+import           Plutus.Contract.Effects.AwaitSlot      (WaitingForSlot (..))
+import           Plutus.Contract.Effects.ExposeEndpoint (ActiveEndpoint (..), EndpointDescription (..),
+                                                         EndpointValue (..))
+import           Plutus.Contract.Effects.WriteTx        (WriteTxResponse (..))
+import           Plutus.Contract.Resumable              (IterationID, Request (..), Response (..))
+import           Plutus.Contract.Trace                  (EndpointError (..))
+import           Plutus.Contract.Trace.RequestHandler   (RequestHandler (..), RequestHandlerLogMsg, extract,
+                                                         maybeToHandler, tryHandler, wrapHandler)
+import qualified Plutus.Contract.Trace.RequestHandler   as RequestHandler
 
-import           Ledger.Tx                                       (Tx, txId)
-import           Wallet.Effects                                  (ChainIndexEffect, ContractRuntimeEffect, WalletEffect)
-import           Wallet.Emulator.LogMessages                     (TxBalanceMsg)
+import           Ledger.Tx                              (Tx, txId)
+import           Wallet.Effects                         (ChainIndexEffect, ContractRuntimeEffect, WalletEffect)
+import           Wallet.Emulator.LogMessages            (TxBalanceMsg)
 
-import           Data.Text.Extras                                (tshow)
-import           Plutus.PAB.Command                              (saveBalancedTx, saveBalancedTxResult,
-                                                                  sendContractEvent)
-import           Plutus.PAB.Effects.Contract                     (ContractCommand (..), ContractEffect)
-import qualified Plutus.PAB.Effects.Contract                     as Contract
-import           Plutus.PAB.Effects.EventLog                     (EventLogEffect, runCommand, runGlobalQuery)
-import           Plutus.PAB.Effects.UUID                         (UUIDEffect, uuidNextRandom)
-import           Plutus.PAB.Events                               (ChainEvent (..))
-import           Plutus.PAB.Events.Contract                      (ContractEvent (..), ContractInstanceId (..),
-                                                                  ContractInstanceState (..), ContractPABRequest (..),
-                                                                  ContractResponse (..), PartiallyDecodedResponse (..),
-                                                                  unContractHandlersResponse)
-import qualified Plutus.PAB.Events.Contract                      as Events.Contract
-import qualified Plutus.PAB.Query                                as Query
-import           Plutus.PAB.Types                                (PABError (..),
-                                                                  Source (ContractEventSource, NodeEventSource, WalletEventSource))
+import           Data.Text.Extras                       (tshow)
+import           Plutus.PAB.Command                     (saveBalancedTx, saveBalancedTxResult, sendContractEvent)
+import           Plutus.PAB.Effects.Contract            (ContractCommand (..), ContractEffect)
+import qualified Plutus.PAB.Effects.Contract            as Contract
+import           Plutus.PAB.Effects.EventLog            (EventLogEffect, runCommand, runGlobalQuery)
+import           Plutus.PAB.Effects.UUID                (UUIDEffect, uuidNextRandom)
+import           Plutus.PAB.Events                      (ChainEvent (..))
+import           Plutus.PAB.Events.Contract             (ContractEvent (..), ContractInstanceId (..),
+                                                         ContractInstanceState (..), ContractPABRequest (..),
+                                                         ContractResponse (..), PartiallyDecodedResponse (..),
+                                                         unContractHandlersResponse)
+import qualified Plutus.PAB.Events.Contract             as Events.Contract
+import qualified Plutus.PAB.Query                       as Query
+import           Plutus.PAB.Types                       (PABError (..),
+                                                         Source (ContractEventSource, NodeEventSource, WalletEventSource))
 
-import qualified Plutus.PAB.Core.Projections                     as Projections
+import qualified Plutus.PAB.Core.Projections            as Projections
 
 newtype MaxIterations = MaxIterations Int
     deriving stock (Eq, Ord, Show, Generic)

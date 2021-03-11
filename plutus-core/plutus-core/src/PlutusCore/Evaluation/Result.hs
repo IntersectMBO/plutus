@@ -7,7 +7,7 @@
 {-# LANGUAGE RankNTypes            #-}
 {-# LANGUAGE UndecidableInstances  #-}
 
-module Language.PlutusCore.Evaluation.Result
+module PlutusCore.Evaluation.Result
     ( AsEvaluationFailure (..)
     , _EvaluationFailureVia
     , EvaluationResult (..)
@@ -17,7 +17,7 @@ module Language.PlutusCore.Evaluation.Result
 
 import           PlutusPrelude
 
-import           Language.PlutusCore.Pretty
+import           PlutusCore.Pretty
 
 import           Control.Lens
 import           Control.Monad.Except

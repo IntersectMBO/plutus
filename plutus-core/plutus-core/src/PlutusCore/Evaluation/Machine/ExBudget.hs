@@ -73,7 +73,7 @@ possible to adjust them at runtime.
 
 -}
 
-module Language.PlutusCore.Evaluation.Machine.ExBudget
+module PlutusCore.Evaluation.Machine.ExBudget
     ( ExBudget(..)
     , ToExMemory(..)
     , ExBudgetBuiltin(..)
@@ -86,14 +86,14 @@ module Language.PlutusCore.Evaluation.Machine.ExBudget
     )
 where
 
-import           PlutusPrelude                                   hiding (toList)
+import           PlutusPrelude                          hiding (toList)
 
-import           Language.PlutusCore.Core
-import           Language.PlutusCore.Name
+import           PlutusCore.Core
+import           PlutusCore.Name
 
 import           Data.Semigroup.Generic
 import           Data.Text.Prettyprint.Doc
-import           Language.PlutusCore.Evaluation.Machine.ExMemory
+import           PlutusCore.Evaluation.Machine.ExMemory
 
 class ToExMemory term where
     -- | Get the 'ExMemory' of a @term@. If the @term@ is not annotated with 'ExMemory', then

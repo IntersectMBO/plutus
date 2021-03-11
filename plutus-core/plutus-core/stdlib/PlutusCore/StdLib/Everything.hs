@@ -6,24 +6,24 @@
 
 {-# LANGUAGE ScopedTypeVariables #-}
 
-module Language.PlutusCore.StdLib.Everything
+module PlutusCore.StdLib.Everything
     ( stdLib
     ) where
 
-import           Language.PlutusCore.Builtins
-import           Language.PlutusCore.FsTree
-import           Language.PlutusCore.Universe
+import           PlutusCore.Builtins
+import           PlutusCore.FsTree
+import           PlutusCore.Universe
 
-import           Language.PlutusCore.StdLib.Data.Bool
-import           Language.PlutusCore.StdLib.Data.ChurchNat
-import           Language.PlutusCore.StdLib.Data.Function   as Function
-import           Language.PlutusCore.StdLib.Data.Integer
-import           Language.PlutusCore.StdLib.Data.List       as List
-import           Language.PlutusCore.StdLib.Data.Nat        as Nat
-import           Language.PlutusCore.StdLib.Data.Sum        as Sum
-import           Language.PlutusCore.StdLib.Data.Unit
-import           Language.PlutusCore.StdLib.Meta.Data.Tuple
-import           Language.PlutusCore.StdLib.Type
+import           PlutusCore.StdLib.Data.Bool
+import           PlutusCore.StdLib.Data.ChurchNat
+import           PlutusCore.StdLib.Data.Function   as Function
+import           PlutusCore.StdLib.Data.Integer
+import           PlutusCore.StdLib.Data.List       as List
+import           PlutusCore.StdLib.Data.Nat        as Nat
+import           PlutusCore.StdLib.Data.Sum        as Sum
+import           PlutusCore.StdLib.Data.Unit
+import           PlutusCore.StdLib.Meta.Data.Tuple
+import           PlutusCore.StdLib.Type
 
 -- | The entire stdlib exported as a single value.
 stdLib :: PlcFolderContents DefaultUni DefaultFun

@@ -4,16 +4,16 @@
 {-# LANGUAGE TypeOperators        #-}
 {-# LANGUAGE UndecidableInstances #-}
 
-module Language.UntypedPlutusCore.Core.Instance.CBOR where
+module UntypedPlutusCore.Core.Instance.CBOR where
 
-import           Language.UntypedPlutusCore.Core.Type
+import           UntypedPlutusCore.Core.Type
 
-import           Language.PlutusCore.CBOR
-import           Language.PlutusCore.Universe
+import           PlutusCore.CBOR
+import           PlutusCore.Universe
 
 import           Codec.Serialise
 
-import qualified Data.ByteString.Lazy                 as BSL
+import qualified Data.ByteString.Lazy        as BSL
 
 instance ( Closed uni
          , uni `Everywhere` Serialise
@@ -53,7 +53,7 @@ instance ( Closed uni
 
 {- Note [Serialising Scripts]
 
-See also Note [Serialising unit annotations] in Language.PlutusCore.CBOR.
+See also Note [Serialising unit annotations] in PlutusCore.CBOR.
 
 At first sight, all we need to do to serialise a script without unit
 annotations appearing in the CBOR is to coerce from `()` to

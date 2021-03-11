@@ -2,18 +2,18 @@
 {-# LANGUAGE TypeApplications  #-}
 {-# LANGUAGE TypeOperators     #-}
 
-module Language.PlutusCore.Examples.Data.Shad
+module PlutusCore.Examples.Data.Shad
     ( shad
     , mkShad
     , recUnit
     , runRecUnit
     ) where
 
-import           Language.PlutusCore.Core
-import           Language.PlutusCore.MkPlc
-import           Language.PlutusCore.Name
-import           Language.PlutusCore.Quote
-import           Language.PlutusCore.Universe
+import           PlutusCore.Core
+import           PlutusCore.MkPlc
+import           PlutusCore.Name
+import           PlutusCore.Quote
+import           PlutusCore.Universe
 
 -- |
 --

@@ -43,38 +43,36 @@ module Plutus.PAB.Events.Contract(
   , _ContractInstanceStateUpdateEvent
   ) where
 
-import           Control.Lens.TH                                   (makePrisms)
-import           Control.Monad.Freer.Extras.Log                    (LogMessage)
-import           Data.Aeson                                        (FromJSON, ToJSON, Value, (.:))
-import qualified Data.Aeson                                        as JSON
-import qualified Data.Aeson.Encode.Pretty                          as JSON
-import qualified Data.ByteString.Lazy.Char8                        as BS8
-import qualified Data.Text                                         as Text
+import           Control.Lens.TH                          (makePrisms)
+import           Control.Monad.Freer.Extras.Log           (LogMessage)
+import           Data.Aeson                               (FromJSON, ToJSON, Value, (.:))
+import qualified Data.Aeson                               as JSON
+import qualified Data.Aeson.Encode.Pretty                 as JSON
+import qualified Data.ByteString.Lazy.Char8               as BS8
+import qualified Data.Text                                as Text
 import           Data.Text.Prettyprint.Doc
-import           GHC.Generics                                      (Generic)
+import           GHC.Generics                             (Generic)
 
-import qualified Language.Plutus.Contract.Effects.WriteTx          as W
-import           Language.Plutus.Contract.Resumable                (IterationID)
-import qualified Language.Plutus.Contract.Resumable                as Contract
-import qualified Language.Plutus.Contract.State                    as Contract
-import           Ledger                                            (TxId)
-import           Ledger.Address                                    (Address)
-import           Ledger.Constraints.OffChain                       (UnbalancedTx)
-import           Ledger.Crypto                                     (PubKey)
-import           Ledger.Slot                                       (Slot)
+import           Ledger                                   (TxId)
+import           Ledger.Address                           (Address)
+import           Ledger.Constraints.OffChain              (UnbalancedTx)
+import           Ledger.Crypto                            (PubKey)
+import           Ledger.Slot                              (Slot)
+import qualified Plutus.Contract.Effects.WriteTx          as W
+import           Plutus.Contract.Resumable                (IterationID)
+import qualified Plutus.Contract.Resumable                as Contract
+import qualified Plutus.Contract.State                    as Contract
 
-import           Language.Plutus.Contract.Effects.AwaitSlot        (WaitingForSlot)
-import           Language.Plutus.Contract.Effects.AwaitTxConfirmed (TxConfirmed (..))
-import           Language.Plutus.Contract.Effects.ExposeEndpoint   (ActiveEndpoint (..), EndpointDescription (..),
-                                                                    EndpointValue)
-import           Language.Plutus.Contract.Effects.Instance         (OwnIdRequest)
-import           Language.Plutus.Contract.Effects.OwnPubKey        (OwnPubKeyRequest)
-import           Language.Plutus.Contract.Effects.UtxoAt           (UtxoAtAddress)
+import           Plutus.Contract.Effects.AwaitSlot        (WaitingForSlot)
+import           Plutus.Contract.Effects.AwaitTxConfirmed (TxConfirmed (..))
+import           Plutus.Contract.Effects.ExposeEndpoint   (ActiveEndpoint (..), EndpointDescription (..), EndpointValue)
+import           Plutus.Contract.Effects.Instance         (OwnIdRequest)
+import           Plutus.Contract.Effects.OwnPubKey        (OwnPubKeyRequest)
+import           Plutus.Contract.Effects.UtxoAt           (UtxoAtAddress)
 
-import           Data.Text.Extras                                  (abbreviate)
-import           Wallet.Effects                                    (AddressChangeRequest, AddressChangeResponse)
-import           Wallet.Types                                      (ContractInstanceId (..), Notification,
-                                                                    NotificationError)
+import           Data.Text.Extras                         (abbreviate)
+import           Wallet.Effects                           (AddressChangeRequest, AddressChangeResponse)
+import           Wallet.Types                             (ContractInstanceId (..), Notification, NotificationError)
 
 -- $contract-events
 -- The events that compiled Plutus contracts are concerned with. For each type
@@ -125,7 +123,7 @@ data ContractPABRequest =
   deriving anyclass (FromJSON, ToJSON)
 
 -- | 'ContractPABRequest' with a 'FromJSON' instance that is compatible with
---   the 'ToJSON' instance of 'Language.Plutus.Contract.Schema.Handlers'.
+--   the 'ToJSON' instance of 'Plutus.Contract.Schema.Handlers'.
 newtype ContractHandlersResponse = ContractHandlersResponse { unContractHandlersResponse :: ContractPABRequest }
 
 instance FromJSON ContractHandlersResponse where

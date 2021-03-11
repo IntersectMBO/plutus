@@ -1,6 +1,6 @@
 {-# LANGUAGE FlexibleContexts    #-}
 {-# LANGUAGE ScopedTypeVariables #-}
-module Language.PlutusIR.Compiler (
+module PlutusIR.Compiler (
     compileTerm,
     compileToReadable,
     compileReadableToPlc,
@@ -22,22 +22,22 @@ module Language.PlutusIR.Compiler (
     AllowEscape(..),
     toDefaultCompilationCtx) where
 
-import           Language.PlutusIR
+import           PlutusIR
 
-import qualified Language.PlutusIR.Compiler.Let              as Let
-import           Language.PlutusIR.Compiler.Lower
-import           Language.PlutusIR.Compiler.Provenance
-import           Language.PlutusIR.Compiler.Types
-import           Language.PlutusIR.Error
-import qualified Language.PlutusIR.Optimizer.DeadCode        as DeadCode
-import qualified Language.PlutusIR.Transform.Inline          as Inline
-import qualified Language.PlutusIR.Transform.LetFloat        as LetFloat
-import qualified Language.PlutusIR.Transform.NonStrict       as NonStrict
-import           Language.PlutusIR.Transform.Rename          ()
-import qualified Language.PlutusIR.Transform.ThunkRecursions as ThunkRec
-import           Language.PlutusIR.TypeCheck.Internal
+import qualified PlutusIR.Compiler.Let              as Let
+import           PlutusIR.Compiler.Lower
+import           PlutusIR.Compiler.Provenance
+import           PlutusIR.Compiler.Types
+import           PlutusIR.Error
+import qualified PlutusIR.Optimizer.DeadCode        as DeadCode
+import qualified PlutusIR.Transform.Inline          as Inline
+import qualified PlutusIR.Transform.LetFloat        as LetFloat
+import qualified PlutusIR.Transform.NonStrict       as NonStrict
+import           PlutusIR.Transform.Rename          ()
+import qualified PlutusIR.Transform.ThunkRecursions as ThunkRec
+import           PlutusIR.TypeCheck.Internal
 
-import qualified Language.PlutusCore                         as PLC
+import qualified PlutusCore                         as PLC
 
 import           Control.Monad
 import           Control.Monad.Reader

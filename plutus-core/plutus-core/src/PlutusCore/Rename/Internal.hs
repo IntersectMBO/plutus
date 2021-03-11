@@ -1,7 +1,7 @@
 -- | The internal module of the renamer that defines the actual algorithms,
 -- but not the user-facing API.
 
-module Language.PlutusCore.Rename.Internal
+module PlutusCore.Rename.Internal
     ( module Export
     , withFreshenedTyVarDecl
     , withFreshenedVarDecl
@@ -10,11 +10,11 @@ module Language.PlutusCore.Rename.Internal
     , renameProgramM
     ) where
 
-import           Language.PlutusCore.Core
-import           Language.PlutusCore.MkPlc
-import           Language.PlutusCore.Name
-import           Language.PlutusCore.Quote
-import           Language.PlutusCore.Rename.Monad as Export
+import           PlutusCore.Core
+import           PlutusCore.MkPlc
+import           PlutusCore.Name
+import           PlutusCore.Quote
+import           PlutusCore.Rename.Monad as Export
 
 -- | Replace the unique in the name stored in a 'TyVarDecl' by a new unique, save the mapping
 -- from the old unique to the new one and supply the updated 'TyVarDecl' to a continuation.

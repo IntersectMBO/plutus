@@ -2,7 +2,7 @@
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeApplications    #-}
-{-# OPTIONS -fplugin Language.PlutusTx.Plugin -fplugin-opt Language.PlutusTx.Plugin:defer-errors -fplugin-opt Language.PlutusTx.Plugin:no-context #-}
+{-# OPTIONS -fplugin PlutusTx.Plugin -fplugin-opt PlutusTx.Plugin:defer-errors -fplugin-opt PlutusTx.Plugin:no-context #-}
 
 module StdLib.Spec where
 
@@ -10,26 +10,26 @@ import           Common
 import           Control.DeepSeq
 import           Control.Exception
 import           Control.Monad.IO.Class
-import           Data.Ratio                ((%))
-import           GHC.Real                  (reduce)
-import           Hedgehog                  (MonadGen, Property)
+import           Data.Ratio             ((%))
+import           GHC.Real               (reduce)
+import           Hedgehog               (MonadGen, Property)
 import qualified Hedgehog
-import qualified Hedgehog.Gen              as Gen
-import qualified Hedgehog.Range            as Range
+import qualified Hedgehog.Gen           as Gen
+import qualified Hedgehog.Range         as Range
 import           Lib
 import           PlcTestUtils
-import           Test.Tasty                (TestName)
-import           Test.Tasty.Hedgehog       (testProperty)
+import           Test.Tasty             (TestName)
+import           Test.Tasty.Hedgehog    (testProperty)
 
-import           Language.PlutusTx.Data    (Data (..))
-import qualified Language.PlutusTx.Eq      as PlutusTx
-import qualified Language.PlutusTx.Ord     as PlutusTx
-import qualified Language.PlutusTx.Prelude as PlutusTx
-import qualified Language.PlutusTx.Ratio   as Ratio
+import           PlutusTx.Data          (Data (..))
+import qualified PlutusTx.Eq            as PlutusTx
+import qualified PlutusTx.Ord           as PlutusTx
+import qualified PlutusTx.Prelude       as PlutusTx
+import qualified PlutusTx.Ratio         as Ratio
 
-import           Language.PlutusTx.Code
-import qualified Language.PlutusTx.Lift    as Lift
-import           Language.PlutusTx.Plugin
+import           PlutusTx.Code
+import qualified PlutusTx.Lift          as Lift
+import           PlutusTx.Plugin
 
 import           Data.Proxy
 

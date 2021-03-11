@@ -7,7 +7,7 @@
 {-# LANGUAGE TypeFamilies          #-}
 {-# LANGUAGE UndecidableInstances  #-}
 
-module Language.PlutusCore.Core.Type
+module PlutusCore.Core.Type
     ( Kind(..)
     , Type(..)
     , Term(..)
@@ -27,13 +27,13 @@ where
 
 import           PlutusPrelude
 
-import           Language.PlutusCore.Name
-import           Language.PlutusCore.Universe
+import           PlutusCore.Name
+import           PlutusCore.Universe
 
 import           Control.Lens
 import           Data.Hashable
-import           GHC.Exts                     (Constraint)
-import           Instances.TH.Lift            ()
+import           GHC.Exts            (Constraint)
+import           Instances.TH.Lift   ()
 
 {- Note [Annotations and equality]
 Equality of two things does not depend on their annotations.

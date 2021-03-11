@@ -1,4 +1,4 @@
-module Language.PlutusTx.AssocMapTests
+module PlutusTx.AssocMapTests
   ( all
   ) where
 
@@ -13,7 +13,7 @@ import Data.Maybe (Maybe(..))
 import Data.Newtype (wrap)
 import Data.Tuple (Tuple(..))
 import Data.Tuple.Nested ((/\))
-import Language.PlutusTx.AssocMap (Map(..), fromTuples, unionWith)
+import PlutusTx.AssocMap (Map(..), fromTuples, unionWith)
 import Ledger.Extra (sum)
 import Plutus.V1.Ledger.Value (CurrencySymbol(..), TokenName(..), Value(..))
 import Test.Unit (TestSuite, suite, test)
@@ -22,7 +22,7 @@ import TestUtils (equalGenericShow)
 
 all :: TestSuite
 all =
-  suite "Language.PlutusTx.AssocMap" do
+  suite "PlutusTx.AssocMap" do
     indexTests
     atTests
     unionWithTests

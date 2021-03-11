@@ -15,10 +15,10 @@ import qualified Data.ByteString                    as BS
 import qualified Data.ByteString.Lazy               as LBS
 import           Data.Text                          (Text)
 
-import           Language.PlutusCore                (DefaultFun (..))
-import           Language.PlutusCore.CBOR           (InvisibleUnit (..))
-import           Language.PlutusCore.Universe
-import           Language.UntypedPlutusCore         hiding (OmitUnitAnnotations, restoreUnitAnnotations)
+import           PlutusCore                         (DefaultFun (..))
+import           PlutusCore.CBOR                    (InvisibleUnit (..))
+import           PlutusCore.Universe
+import           UntypedPlutusCore                  hiding (OmitUnitAnnotations, restoreUnitAnnotations)
 
 import           "pure-zlib" Codec.Compression.Zlib as PureZlib
 import           "zlib" Codec.Compression.Zlib      as Zlib
@@ -43,7 +43,7 @@ flatCodec = Codec
   }
 
 {- CBOR serialisation omitting units: see Note [Serialising unit annotations] in
- Language.PlutusCore.CBOR -}
+ PlutusCore.CBOR -}
 newtype OmitUnitAnnotations name  = OmitUnitAnnotations { restoreUnitAnnotations :: Tm name }
     deriving Serialise via Term name DefaultUni DefaultFun InvisibleUnit
 

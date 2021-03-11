@@ -9,25 +9,25 @@
 {-# LANGUAGE TypeApplications     #-}
 {-# LANGUAGE TypeOperators        #-}
 {-# LANGUAGE UndecidableInstances #-}
-module Language.Plutus.Contract.Servant(
+module Plutus.Contract.Servant(
       contractServer
     , contractApp
     , ContractRequest
     , ContractResponse
     ) where
 
-import           Control.Monad.Except            (MonadError (..))
-import           Data.Aeson                      (FromJSON, ToJSON)
-import           Data.Proxy                      (Proxy (..))
+import           Control.Monad.Except   (MonadError (..))
+import           Data.Aeson             (FromJSON, ToJSON)
+import           Data.Proxy             (Proxy (..))
 import           Data.Row
-import           Data.String                     (IsString (fromString))
-import           Servant                         (Get, JSON, Post, ReqBody, (:<|>) ((:<|>)), (:>))
-import           Servant.Server                  (Application, Server, ServerError, err500, errBody, serve)
+import           Data.String            (IsString (fromString))
+import           Servant                (Get, JSON, Post, ReqBody, (:<|>) ((:<|>)), (:>))
+import           Servant.Server         (Application, Server, ServerError, err500, errBody, serve)
 
-import           Language.Plutus.Contract.Schema (Event, Handlers, Input, Output)
-import           Language.Plutus.Contract.State  (ContractRequest, ContractResponse, err)
-import qualified Language.Plutus.Contract.State  as ContractState
-import           Language.Plutus.Contract.Types  (Contract)
+import           Plutus.Contract.Schema (Event, Handlers, Input, Output)
+import           Plutus.Contract.State  (ContractRequest, ContractResponse, err)
+import qualified Plutus.Contract.State  as ContractState
+import           Plutus.Contract.Types  (Contract)
 
 type ContractAPI w e s =
        "initialise" :> Get '[JSON] (ContractResponse w e (Event s) (Handlers s))

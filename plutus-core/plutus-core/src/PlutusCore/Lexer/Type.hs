@@ -1,7 +1,7 @@
 {-# LANGUAGE DeriveAnyClass    #-}
 {-# LANGUAGE OverloadedStrings #-}
 
-module Language.PlutusCore.Lexer.Type
+module PlutusCore.Lexer.Type
     ( Keyword (..)
     , Special (..)
     , Token (..)
@@ -14,11 +14,11 @@ module Language.PlutusCore.Lexer.Type
 
 import           PlutusPrelude
 
-import           Language.PlutusCore.Name
+import           PlutusCore.Name
 
 import           Control.Monad.State
-import qualified Data.Map                 as M
-import qualified Data.Text                as T
+import qualified Data.Map            as M
+import qualified Data.Text           as T
 
 -- | A keyword in Plutus Core. Some of these are only for UPLC or TPLC, but it's simplest to share
 -- the lexer, so we have a joint enumeration of them.

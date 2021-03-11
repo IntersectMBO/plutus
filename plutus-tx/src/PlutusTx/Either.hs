@@ -1,5 +1,5 @@
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
-module Language.PlutusTx.Either (isLeft, isRight, either) where
+module PlutusTx.Either (isLeft, isRight, either) where
 
 import           Prelude (Bool (..), Either (..), String)
 

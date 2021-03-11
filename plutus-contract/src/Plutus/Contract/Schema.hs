@@ -12,7 +12,7 @@
 {-# LANGUAGE UndecidableInstances    #-}
 {-# LANGUAGE UndecidableSuperClasses #-}
 {-# OPTIONS_GHC -fno-warn-unticked-promoted-constructors #-}
-module Language.Plutus.Contract.Schema(
+module Plutus.Contract.Schema(
       Handlers(..)
     , handlerName
     , handlerArgument

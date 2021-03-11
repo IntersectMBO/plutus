@@ -39,7 +39,6 @@ import qualified Language.Marlowe                                 as S
 import qualified Language.Marlowe.ACTUS.Definitions.ContractTerms as CT
 import           Language.Marlowe.Extended
 import           Language.Marlowe.Semantics                       (State (..))
-import qualified Language.PlutusTx.AssocMap                       as Map
 import           Language.PureScript.Bridge                       (BridgePart, Language (Haskell), PSType, SumType,
                                                                    TypeInfo (TypeInfo), buildBridge, genericShow,
                                                                    mkSumType, psTypeParameters, typeModule, typeName,
@@ -55,6 +54,7 @@ import qualified Marlowe.Symbolic.Server                          as MS
 import qualified Marlowe.Symbolic.Types.Request                   as MSReq
 import qualified Marlowe.Symbolic.Types.Response                  as MSRes
 import qualified PSGenerator.Common
+import qualified PlutusTx.AssocMap                                as Map
 import           Servant                                          ((:<|>), (:>))
 import           Servant.PureScript                               (HasBridge, Settings, _generateSubscriberAPI,
                                                                    apiModuleName, defaultBridge, defaultSettings,

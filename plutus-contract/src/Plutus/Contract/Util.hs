@@ -1,4 +1,4 @@
-module Language.Plutus.Contract.Util where
+module Plutus.Contract.Util where
 
 -- | A monadic version of 'loop', where the predicate returns 'Left' as a seed
 --   for the next loop or 'Right' to abort the loop.

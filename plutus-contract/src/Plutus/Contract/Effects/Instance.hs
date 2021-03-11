@@ -12,7 +12,7 @@
 {-# LANGUAGE TypeApplications           #-}
 {-# LANGUAGE TypeOperators              #-}
 -- | Dealing with instances of running contract.
-module Language.Plutus.Contract.Effects.Instance(
+module Plutus.Contract.Effects.Instance(
     HasOwnId
     , ContractInstanceId
     , ownInstanceId
@@ -30,9 +30,9 @@ import           Data.Text.Prettyprint.Doc
 import           Data.Text.Prettyprint.Doc.Extras (PrettyShow (..))
 import           GHC.Generics                     (Generic)
 
-import           Language.Plutus.Contract.Request (ContractRow, requestMaybe)
-import           Language.Plutus.Contract.Schema  (Event (..), Handlers (..), Input, Output)
-import           Language.Plutus.Contract.Types   (AsContractError, Contract)
+import           Plutus.Contract.Request          (ContractRow, requestMaybe)
+import           Plutus.Contract.Schema           (Event (..), Handlers (..), Input, Output)
+import           Plutus.Contract.Types            (AsContractError, Contract)
 import           Wallet.Types                     (ContractInstanceId)
 
 type OwnIdSym = "own-instance-id"

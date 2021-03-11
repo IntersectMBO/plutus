@@ -2,13 +2,13 @@
 {-# LANGUAGE FunctionalDependencies #-}
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
 {-# OPTIONS_GHC -Wno-orphans #-}
-module Language.PlutusTx.Numeric (AdditiveSemigroup (..), AdditiveMonoid (..), AdditiveGroup (..), negate, Additive (..), MultiplicativeSemigroup (..), MultiplicativeMonoid (..), Multiplicative (..), Semiring, Ring, Module (..)) where
+module PlutusTx.Numeric (AdditiveSemigroup (..), AdditiveMonoid (..), AdditiveGroup (..), negate, Additive (..), MultiplicativeSemigroup (..), MultiplicativeMonoid (..), Multiplicative (..), Semiring, Ring, Module (..)) where
 
-import           Data.Semigroup              (Product (..), Sum (..))
-import           Language.PlutusTx.Builtins
-import           Language.PlutusTx.Monoid
-import           Language.PlutusTx.Semigroup
-import           Prelude                     hiding (Functor (..), Monoid (..), Num (..), Semigroup (..))
+import           Data.Semigroup     (Product (..), Sum (..))
+import           PlutusTx.Builtins
+import           PlutusTx.Monoid
+import           PlutusTx.Semigroup
+import           Prelude            hiding (Functor (..), Monoid (..), Num (..), Semigroup (..))
 
 infixl 7 *
 infixl 6 +, -

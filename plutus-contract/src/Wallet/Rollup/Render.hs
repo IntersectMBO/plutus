@@ -29,9 +29,6 @@ import qualified Data.Text                             as Text
 import           Data.Text.Prettyprint.Doc             (Doc, Pretty, defaultLayoutOptions, fill, indent, layoutPretty,
                                                         line, parens, pretty, viaShow, vsep, (<+>))
 import           Data.Text.Prettyprint.Doc.Render.Text (renderStrict)
-import qualified Language.PlutusTx                     as PlutusTx
-import qualified Language.PlutusTx.AssocMap            as AssocMap
-import qualified Language.PlutusTx.Builtins            as Builtins
 import           Ledger                                (Address, PubKey, PubKeyHash, Signature, Tx (Tx), TxId,
                                                         TxIn (TxIn, txInRef, txInType),
                                                         TxInType (ConsumePublicKeyAddress, ConsumeScriptAddress),
@@ -43,6 +40,9 @@ import           Ledger.Scripts                        (Datum (getDatum), Script
                                                         ValidatorHash (ValidatorHash), unValidatorScript)
 import           Ledger.Value                          (CurrencySymbol (CurrencySymbol), TokenName (TokenName))
 import qualified Ledger.Value                          as Value
+import qualified PlutusTx                              as PlutusTx
+import qualified PlutusTx.AssocMap                     as AssocMap
+import qualified PlutusTx.Builtins                     as Builtins
 import           Wallet.Emulator.Folds                 (EmulatorEventFold)
 import qualified Wallet.Emulator.Folds                 as Folds
 import           Wallet.Emulator.Types                 (Wallet (Wallet))

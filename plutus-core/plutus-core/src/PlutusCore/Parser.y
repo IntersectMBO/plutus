@@ -6,7 +6,7 @@
 {-# LANGUAGE TypeApplications    #-}
 {-# LANGUAGE TypeOperators       #-}
 
-module Language.PlutusCore.Parser
+module PlutusCore.Parser
     ( parseProgram
     , parseTerm
     , parseType
@@ -17,21 +17,21 @@ module Language.PlutusCore.Parser
 
 import PlutusPrelude
 
-import Language.PlutusCore.Parser.Internal
+import PlutusCore.Parser.Internal
 
-import Language.PlutusCore.Builtins
-import Language.PlutusCore.Constant.Typed
-import Language.PlutusCore.Core
-import Language.PlutusCore.Core.Type
-import Language.PlutusCore.Error
-import Language.PlutusCore.Lexer.Type
-import Language.PlutusCore.Lexer
-import Language.PlutusCore.Mark
-import Language.PlutusCore.MkPlc           (mkTyBuiltin, mkConstant)
-import Language.PlutusCore.Name
-import Language.PlutusCore.Parsable
-import Language.PlutusCore.Quote
-import Language.PlutusCore.Universe
+import PlutusCore.Builtins
+import PlutusCore.Constant.Typed
+import PlutusCore.Core
+import PlutusCore.Core.Type
+import PlutusCore.Error
+import PlutusCore.Lexer.Type
+import PlutusCore.Lexer
+import PlutusCore.Mark
+import PlutusCore.MkPlc           (mkTyBuiltin, mkConstant)
+import PlutusCore.Name
+import PlutusCore.Parsable
+import PlutusCore.Quote
+import PlutusCore.Universe
 
 import           Data.ByteString.Lazy      (ByteString)
 import qualified Data.List.NonEmpty        as NE

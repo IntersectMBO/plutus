@@ -1,4 +1,4 @@
--- | Orphan 'GEq' and 'GCompare' instances of data types from "Language.PlutusCore.Constant.Typed".
+-- | Orphan 'GEq' and 'GCompare' instances of data types from "PlutusCore.Constant.Typed".
 -- The reason we keep the instances separate is that they are highly unsafe ('unsafeCoerce' is used)
 -- and needed only for tests.
 
@@ -8,16 +8,16 @@
 {-# LANGUAGE TypeApplications     #-}
 {-# LANGUAGE UndecidableInstances #-}
 
-module Language.PlutusCore.Generators.Internal.Dependent
+module PlutusCore.Generators.Internal.Dependent
     ( AsKnownType (..)
     , proxyAsKnownType
     ) where
 
 import           PlutusPrelude
 
-import           Language.PlutusCore.Constant
-import           Language.PlutusCore.Core
-import           Language.PlutusCore.Universe
+import           PlutusCore.Constant
+import           PlutusCore.Core
+import           PlutusCore.Universe
 
 import           Data.GADT.Compare
 import           Unsafe.Coerce

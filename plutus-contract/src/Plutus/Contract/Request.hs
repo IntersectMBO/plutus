@@ -14,25 +14,25 @@
 {-# LANGUAGE TemplateHaskell       #-}
 {-# LANGUAGE TypeApplications      #-}
 {-# LANGUAGE TypeOperators         #-}
-module Language.Plutus.Contract.Request(
+module Plutus.Contract.Request(
   ContractRow
   , request
   , requestMaybe
   ) where
 
 import           Control.Applicative
-import           Control.Lens                       (review)
-import qualified Control.Monad.Freer.Error          as E
+import           Control.Lens              (review)
+import qualified Control.Monad.Freer.Error as E
 import           Data.Row
-import           Data.Text.Extras                   (tshow)
+import           Data.Text.Extras          (tshow)
 
-import           Language.Plutus.Contract.Schema    (Event (..), Handlers (..), Input, Output)
-import qualified Language.Plutus.Contract.Schema    as Events
+import           Plutus.Contract.Schema    (Event (..), Handlers (..), Input, Output)
+import qualified Plutus.Contract.Schema    as Events
 
-import           Language.Plutus.Contract.Resumable
-import           Language.Plutus.Contract.Types
+import           Plutus.Contract.Resumable
+import           Plutus.Contract.Types
 
-import           Prelude                            as Haskell
+import           Prelude                   as Haskell
 
 -- | Constraints on the contract schema, ensuring that the requests produced
 --   by the contracts are 'Monoid's (so that we can produce a record with

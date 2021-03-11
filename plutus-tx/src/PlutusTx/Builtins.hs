@@ -5,7 +5,7 @@
 -- they're NOINLINE!
 {-# OPTIONS_GHC -O0 #-}
 -- | Primitive names and functions for working with Plutus Core builtins.
-module Language.PlutusTx.Builtins (
+module PlutusTx.Builtins (
                                 -- * Bytestring builtins
                                 ByteString
                                 , concatenate
@@ -45,13 +45,13 @@ module Language.PlutusTx.Builtins (
                                 ) where
 
 import qualified Crypto
-import           Data.ByteString         as BS
-import qualified Data.ByteString.Hash    as Hash
-import           Data.Maybe              (fromMaybe)
-import           Prelude                 hiding (String, error)
+import           Data.ByteString      as BS
+import qualified Data.ByteString.Hash as Hash
+import           Data.Maybe           (fromMaybe)
+import           Prelude              hiding (String, error)
 
-import           Language.PlutusTx.Data
-import           Language.PlutusTx.Utils (mustBeReplaced)
+import           PlutusTx.Data
+import           PlutusTx.Utils       (mustBeReplaced)
 
 {- Note [Builtin name definitions]
 The builtins here have definitions so they can be used in off-chain code too.

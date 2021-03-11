@@ -1,6 +1,6 @@
 {-# OPTIONS_GHC -fno-specialise #-}
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
-module Language.PlutusTx.Foldable
+module PlutusTx.Foldable
   ( Foldable(..)
   , fold
   , foldr
@@ -27,20 +27,20 @@ module Language.PlutusTx.Foldable
   , find
   ) where
 
-import           Control.Applicative           (Alternative (..), Const (..))
-import           Data.Coerce                   (Coercible, coerce)
-import           Data.Functor.Identity         (Identity (..))
-import           Data.Monoid                   (First (..))
-import           Data.Semigroup                (Dual (..), Endo (..), Product (..), Sum (..))
-import           GHC.Exts                      (build)
-import           Language.PlutusTx.Applicative (Applicative (pure), (*>))
-import           Language.PlutusTx.Bool        (not)
-import           Language.PlutusTx.Eq          (Eq (..))
-import           Language.PlutusTx.Functor     (id)
-import           Language.PlutusTx.Monoid      (Monoid (..))
-import           Language.PlutusTx.Numeric     (AdditiveMonoid, AdditiveSemigroup ((+)), MultiplicativeMonoid)
-import           Language.PlutusTx.Semigroup   ((<>))
-import           Prelude                       (Bool (..), Either (..), Integer, Maybe (..), Monad (..), flip, (.))
+import           Control.Applicative   (Alternative (..), Const (..))
+import           Data.Coerce           (Coercible, coerce)
+import           Data.Functor.Identity (Identity (..))
+import           Data.Monoid           (First (..))
+import           Data.Semigroup        (Dual (..), Endo (..), Product (..), Sum (..))
+import           GHC.Exts              (build)
+import           PlutusTx.Applicative  (Applicative (pure), (*>))
+import           PlutusTx.Bool         (not)
+import           PlutusTx.Eq           (Eq (..))
+import           PlutusTx.Functor      (id)
+import           PlutusTx.Monoid       (Monoid (..))
+import           PlutusTx.Numeric      (AdditiveMonoid, AdditiveSemigroup ((+)), MultiplicativeMonoid)
+import           PlutusTx.Semigroup    ((<>))
+import           Prelude               (Bool (..), Either (..), Integer, Maybe (..), Monad (..), flip, (.))
 
 -- | Plutus Tx version of 'Data.Foldable.Foldable'.
 class Foldable t where

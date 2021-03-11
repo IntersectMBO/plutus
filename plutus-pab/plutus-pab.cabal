@@ -35,7 +35,7 @@ common lang
                  -- See Plutus Tx readme
                  -fobject-code -fno-ignore-interface-pragmas -fno-omit-interface-pragmas
     if flag(defer-plugin-errors)
-        ghc-options: -fplugin-opt Language.PlutusTx.Plugin:defer-errors
+        ghc-options: -fplugin-opt PlutusTx.Plugin:defer-errors
 
 library
     import: lang

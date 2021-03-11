@@ -147,9 +147,9 @@ type OriginalType = Type U
 type OriginalTerm = Term U
 ```
 
-Now we can parameterize the AST by different universes of types. Of course, this requires support from all procedures (type checking, evaluation, etc) and every universe must implement a certain interface (see the [default universe](..//src/Language/PlutusCore/Universe/Default.hs) for an example).
+Now we can parameterize the AST by different universes of types. Of course, this requires support from all procedures (type checking, evaluation, etc) and every universe must implement a certain interface (see the [default universe](..//src/PlutusCore/Universe/Default.hs) for an example).
 
-There are some technical difficulties on how to provide instances of various type classes for `SomeType` and `SomeValueIn`, how to make deriving work, etc (you can read about those in [source code of Plutus Core](..//src/Language/PlutusCore/Universe/Core.hs)), but otherwise this is pretty much the entire encoding.
+There are some technical difficulties on how to provide instances of various type classes for `SomeType` and `SomeValueIn`, how to make deriving work, etc (you can read about those in [source code of Plutus Core](..//src/PlutusCore/Universe/Core.hs)), but otherwise this is pretty much the entire encoding.
 
 Implemented in [this PR](https://github.com/input-output-hk/plutus/pull/1849).
 

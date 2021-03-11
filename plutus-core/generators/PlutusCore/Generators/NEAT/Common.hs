@@ -4,7 +4,7 @@
 {-# LANGUAGE RecordWildCards     #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
-module Language.PlutusCore.Generators.NEAT.Common where
+module PlutusCore.Generators.NEAT.Common where
 
 {-
 !!! THIS FILE IS GENERATED FROM Common.agda
@@ -20,10 +20,10 @@ module Language.PlutusCore.Generators.NEAT.Common where
 
 
 import           Control.Enumerable
-import qualified Data.Stream               as Stream
-import qualified Data.Text                 as Text
-import           Language.PlutusCore.Name  (Name, TyName (..))
-import           Language.PlutusCore.Quote (MonadQuote (..), freshName)
+import qualified Data.Stream        as Stream
+import qualified Data.Text          as Text
+import           PlutusCore.Name    (Name, TyName (..))
+import           PlutusCore.Quote   (MonadQuote (..), freshName)
 
 data Z deriving (Eq, Ord, Show)
 

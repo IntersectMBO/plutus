@@ -12,9 +12,9 @@
 {-# LANGUAGE TypeFamilies         #-}
 {-# LANGUAGE TypeOperators        #-}
 {-# LANGUAGE UndecidableInstances #-}
-{-# OPTIONS -fplugin-opt Language.PlutusTx.Plugin:debug-context #-}
+{-# OPTIONS -fplugin-opt PlutusTx.Plugin:debug-context #-}
 -- | A general-purpose escrow contract in Plutus
-module Language.PlutusTx.Coordination.Contracts.Escrow(
+module Plutus.Contracts.Escrow(
     -- $escrow
     Escrow
     , EscrowError(..)
@@ -40,33 +40,32 @@ module Language.PlutusTx.Coordination.Contracts.Escrow(
     , EscrowSchema
     ) where
 
-import           Control.Lens                      (makeClassyPrisms, review)
-import           Control.Monad                     (void)
-import           Control.Monad.Error.Lens          (throwing)
-import           Data.Aeson                        (FromJSON, ToJSON)
-import           GHC.Generics                      (Generic)
+import           Control.Lens             (makeClassyPrisms, review)
+import           Control.Monad            (void)
+import           Control.Monad.Error.Lens (throwing)
+import           Data.Aeson               (FromJSON, ToJSON)
+import           GHC.Generics             (Generic)
 
-import           Ledger                            (Datum (..), DatumHash, PubKeyHash, Slot, TxId, TxOutTx (..),
-                                                    ValidatorHash, interval, scriptOutputsAt, txId, txSignedBy,
-                                                    valuePaidTo)
+import           Ledger                   (Datum (..), DatumHash, PubKeyHash, Slot, TxId, TxOutTx (..), ValidatorHash,
+                                           interval, scriptOutputsAt, txId, txSignedBy, valuePaidTo)
 import qualified Ledger
-import           Ledger.Constraints                (TxConstraints)
-import qualified Ledger.Constraints                as Constraints
-import           Ledger.Contexts                   (TxInfo (..), ValidatorCtx (..))
-import           Ledger.Interval                   (after, before, from)
-import qualified Ledger.Interval                   as Interval
-import qualified Ledger.Tx                         as Tx
-import           Ledger.Typed.Scripts              (ScriptInstance)
-import qualified Ledger.Typed.Scripts              as Scripts
-import           Ledger.Value                      (Value, geq, lt)
+import           Ledger.Constraints       (TxConstraints)
+import qualified Ledger.Constraints       as Constraints
+import           Ledger.Contexts          (TxInfo (..), ValidatorCtx (..))
+import           Ledger.Interval          (after, before, from)
+import qualified Ledger.Interval          as Interval
+import qualified Ledger.Tx                as Tx
+import           Ledger.Typed.Scripts     (ScriptInstance)
+import qualified Ledger.Typed.Scripts     as Scripts
+import           Ledger.Value             (Value, geq, lt)
 
-import           Language.Plutus.Contract
-import qualified Language.Plutus.Contract.Typed.Tx as Typed
-import qualified Language.PlutusTx                 as PlutusTx
-import           Language.PlutusTx.Prelude         hiding (Applicative (..), Semigroup (..), check, foldMap)
+import           Plutus.Contract
+import qualified Plutus.Contract.Typed.Tx as Typed
+import qualified PlutusTx                 as PlutusTx
+import           PlutusTx.Prelude         hiding (Applicative (..), Semigroup (..), check, foldMap)
 
-import           Prelude                           (Semigroup (..), foldMap)
-import qualified Prelude                           as Haskell
+import           Prelude                  (Semigroup (..), foldMap)
+import qualified Prelude                  as Haskell
 
 type EscrowSchema =
     BlockchainActions

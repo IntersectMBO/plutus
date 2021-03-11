@@ -10,7 +10,7 @@
 -- appears in the generated instances
 {-# OPTIONS_GHC -Wno-overlapping-patterns #-}
 
-module Language.PlutusCore.Error
+module PlutusCore.Error
     ( ParseError (..)
     , AsParseError (..)
     , NormCheckError (..)
@@ -28,19 +28,19 @@ module Language.PlutusCore.Error
 
 import           PlutusPrelude
 
-import           Language.PlutusCore.Core
-import           Language.PlutusCore.DeBruijn.Internal
-import           Language.PlutusCore.Lexer.Type
-import           Language.PlutusCore.Name
-import           Language.PlutusCore.Pretty
-import           Language.PlutusCore.Universe
+import           PlutusCore.Core
+import           PlutusCore.DeBruijn.Internal
+import           PlutusCore.Lexer.Type
+import           PlutusCore.Name
+import           PlutusCore.Pretty
+import           PlutusCore.Universe
 
-import           Control.Lens                          hiding (use)
+import           Control.Lens                       hiding (use)
 import           Control.Monad.Error.Lens
 import           Control.Monad.Except
-import qualified Data.Text                             as T
+import qualified Data.Text                          as T
 import           Data.Text.Prettyprint.Doc
-import           Data.Text.Prettyprint.Doc.Internal    (Doc (Text))
+import           Data.Text.Prettyprint.Doc.Internal (Doc (Text))
 import           ErrorCode
 
 {- Note [Annotations and equality]

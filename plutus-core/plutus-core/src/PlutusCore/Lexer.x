@@ -9,7 +9,7 @@
 {-# LANGUAGE OverloadedStrings     #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 
-module Language.PlutusCore.Lexer ( alexMonadScan
+module PlutusCore.Lexer ( alexMonadScan
                                  , runAlexST'
                                  -- * Types
                                  , AlexPosn (..)
@@ -19,9 +19,9 @@ module Language.PlutusCore.Lexer ( alexMonadScan
 
 import PlutusPrelude
 
-import Language.PlutusCore.Error
-import Language.PlutusCore.Lexer.Type
-import Language.PlutusCore.Name
+import PlutusCore.Error
+import PlutusCore.Lexer.Type
+import PlutusCore.Name
 
 import           Control.Monad.Except
 import           Control.Monad.State

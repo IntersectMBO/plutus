@@ -16,7 +16,7 @@
 {-# LANGUAGE TypeOperators         #-}
 {-# LANGUAGE UndecidableInstances  #-}
 
-module Language.PlutusCore.Constant.Typed
+module PlutusCore.Constant.Typed
     ( KnownKind (..)
     , TypeScheme (..)
     , FoldArgs
@@ -38,22 +38,22 @@ module Language.PlutusCore.Constant.Typed
 
 import           PlutusPrelude
 
-import           Language.PlutusCore.Constant.Dynamic.Emit
-import           Language.PlutusCore.Core
-import           Language.PlutusCore.Evaluation.Machine.ExBudget
-import           Language.PlutusCore.Evaluation.Machine.ExMemory
-import           Language.PlutusCore.Evaluation.Machine.Exception
-import           Language.PlutusCore.Evaluation.Result
-import           Language.PlutusCore.MkPlc
-import           Language.PlutusCore.Name
-import           Language.PlutusCore.Universe
+import           PlutusCore.Constant.Dynamic.Emit
+import           PlutusCore.Core
+import           PlutusCore.Evaluation.Machine.ExBudget
+import           PlutusCore.Evaluation.Machine.ExMemory
+import           PlutusCore.Evaluation.Machine.Exception
+import           PlutusCore.Evaluation.Result
+import           PlutusCore.MkPlc
+import           PlutusCore.Name
+import           PlutusCore.Universe
 
 import           Control.Monad.Except
-import qualified Data.ByteString                                  as BS
-import qualified Data.Kind                                        as GHC (Type)
+import qualified Data.ByteString                         as BS
+import qualified Data.Kind                               as GHC (Type)
 import           Data.Proxy
 import           Data.String
-import qualified Data.Text                                        as Text
+import qualified Data.Text                               as Text
 import           GHC.TypeLits
 
 infixr 9 `TypeSchemeArrow`
@@ -120,7 +120,7 @@ We need to support polymorphism for built-in functions for these reasons:
 
    Previously we had 'Bool' as a Scott-encoded type, but this required plenty of supporting machinery,
    because unlifting (aka Scott-decoding) a PLC 'Bool' into a Haskell 'Bool' is quite a non-trivial
-   thing, see https://github.com/input-output-hk/plutus/blob/e222466e6d46bbca9f76243bb496b3c88ed02ca1/language-plutus-core/src/Language/PlutusCore/Constant/Typed.hs#L165-L252
+   thing, see https://github.com/input-output-hk/plutus/blob/e222466e6d46bbca9f76243bb496b3c88ed02ca1/language-plutus-core/src/PlutusCore/Constant/Typed.hs#L165-L252
 
    Now that we got rid of all this complexity we have to pay for that by supporting polymorphic
    built-in functions (but we added that support long ago anyway, 'cause it was easy to do).

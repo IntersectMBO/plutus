@@ -1,22 +1,22 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TypeOperators     #-}
 
-module Language.PlutusCore.Examples.Data.InterList
+module PlutusCore.Examples.Data.InterList
     ( interListData
     , interNil
     , interCons
     , foldrInterList
     ) where
 
-import           Language.PlutusCore.Core
-import           Language.PlutusCore.MkPlc
-import           Language.PlutusCore.Name
-import           Language.PlutusCore.Quote
-import           Language.PlutusCore.Universe
+import           PlutusCore.Core
+import           PlutusCore.MkPlc
+import           PlutusCore.Name
+import           PlutusCore.Quote
+import           PlutusCore.Universe
 
-import           Language.PlutusCore.StdLib.Data.Function
-import           Language.PlutusCore.StdLib.Data.Unit
-import           Language.PlutusCore.StdLib.Type
+import           PlutusCore.StdLib.Data.Function
+import           PlutusCore.StdLib.Data.Unit
+import           PlutusCore.StdLib.Type
 
 {- Note [InterList]
 We encode the following in this module:
@@ -34,7 +34,7 @@ We encode the following in this module:
       go A B f (InterCons x y xs) = f x y $ go B A (flip f) xs
 -}
 
--- This definition is used as an example in Note [Spiney API] in "Language.PlutusCore.StdLib.Type",
+-- This definition is used as an example in Note [Spiney API] in "PlutusCore.StdLib.Type",
 -- so if you change it here, then also change it there.
 -- | @InterList@ as a PLC type.
 --

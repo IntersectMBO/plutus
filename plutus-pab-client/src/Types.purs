@@ -1,6 +1,6 @@
 module Types where
 
-import Language.Plutus.Contract.Effects.ExposeEndpoint (ActiveEndpoint)
+import Plutus.Contract.Effects.ExposeEndpoint (ActiveEndpoint)
 import Prelude
 import Cardano.Metadata.Types (Property(..), PropertyKey(..))
 import Cardano.Metadata.Types as Metadata
@@ -22,7 +22,7 @@ import Data.Symbol (SProxy(..))
 import Data.Tuple.Nested (type (/\))
 import Data.UUID as UUID
 import Foreign (MultipleErrors)
-import Language.Plutus.Contract.Resumable (Request)
+import Plutus.Contract.Resumable (Request)
 import Ledger.Index (UtxoIndex)
 import Plutus.V1.Ledger.Tx (Tx)
 import Plutus.V1.Ledger.TxId (TxId)

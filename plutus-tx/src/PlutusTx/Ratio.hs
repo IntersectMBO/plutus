@@ -7,10 +7,10 @@
 {-# LANGUAGE NoImplicitPrelude     #-}
 {-# LANGUAGE TemplateHaskell       #-}
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
-{-# OPTIONS_GHC -fplugin-opt Language.PlutusTx.Plugin:debug-context #-}
+{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:debug-context #-}
 {-# OPTIONS_GHC -fno-strictness #-}
 {-# OPTIONS_GHC -fno-ignore-interface-pragmas #-}
-module Language.PlutusTx.Ratio(
+module PlutusTx.Ratio(
     Ratio
     , Rational
     , (%)
@@ -32,21 +32,20 @@ module Language.PlutusTx.Ratio(
     , reduce
     ) where
 
-import qualified Language.PlutusTx.Bool     as P
-import qualified Language.PlutusTx.Eq       as P
-import qualified Language.PlutusTx.IsData   as P
-import qualified Language.PlutusTx.Lift     as P
-import qualified Language.PlutusTx.Numeric  as P
-import qualified Language.PlutusTx.Ord      as P
+import qualified PlutusTx.Bool     as P
+import qualified PlutusTx.Eq       as P
+import qualified PlutusTx.IsData   as P
+import qualified PlutusTx.Lift     as P
+import qualified PlutusTx.Numeric  as P
+import qualified PlutusTx.Ord      as P
 
-import qualified Language.PlutusTx.Builtins as Builtins
+import qualified PlutusTx.Builtins as Builtins
 
-import           Data.Aeson                 (FromJSON, ToJSON)
-import           GHC.Generics               (Generic)
-import qualified GHC.Real                   as Ratio
-import           Prelude                    (Bool (True), Eq, Integer, Integral, Ord (..), Show (..), showParen,
-                                             showString, (*))
-import qualified Prelude                    as Haskell
+import           Data.Aeson        (FromJSON, ToJSON)
+import           GHC.Generics      (Generic)
+import qualified GHC.Real          as Ratio
+import           Prelude           (Bool (True), Eq, Integer, Integral, Ord (..), Show (..), showParen, showString, (*))
+import qualified Prelude           as Haskell
 
 data Ratio a = a :% a
     deriving stock (Eq,Generic)
@@ -197,11 +196,11 @@ fromInteger :: Integer -> Ratio Integer
 fromInteger n = n :% 1
 
 -- | Convert a 'Data.Ratio.Rational' to a
---   Plutus-compatible 'Language.PlutusTx.Ratio.Rational'
+--   Plutus-compatible 'PlutusTx.Ratio.Rational'
 fromGHC :: Ratio.Rational -> Ratio Integer
 fromGHC (n Ratio.:% d) = n :% d
 
--- | Convert a 'Language.PlutusTx.Ratio.Rational' to a
+-- | Convert a 'PlutusTx.Ratio.Rational' to a
 --   'Data.Ratio.Rational'
 toGHC :: Rational -> Ratio.Rational
 toGHC (n :% d) = n Ratio.:% d

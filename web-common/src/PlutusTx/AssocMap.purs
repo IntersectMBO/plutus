@@ -1,4 +1,4 @@
-module Language.PlutusTx.AssocMap where
+module PlutusTx.AssocMap where
 
 import Prelude
 import AjaxUtils (defaultJsonOptions)

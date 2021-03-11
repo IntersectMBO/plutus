@@ -128,13 +128,13 @@ postulate
   unconvTmU : Untyped → TermU
   
 
-{-# FOREIGN GHC import Language.PlutusCore.Name #-}
-{-# FOREIGN GHC import Language.PlutusCore.Lexer #-}
-{-# FOREIGN GHC import Language.PlutusCore.Parser #-}
-{-# FOREIGN GHC import Language.PlutusCore.Pretty #-}
-{-# FOREIGN GHC import Language.PlutusCore.DeBruijn #-}
-{-# FOREIGN GHC import qualified Language.UntypedPlutusCore as U #-}
-{-# FOREIGN GHC import qualified Language.UntypedPlutusCore.Parser as U #-}
+{-# FOREIGN GHC import PlutusCore.Name #-}
+{-# FOREIGN GHC import PlutusCore.Lexer #-}
+{-# FOREIGN GHC import PlutusCore.Parser #-}
+{-# FOREIGN GHC import PlutusCore.Pretty #-}
+{-# FOREIGN GHC import PlutusCore.DeBruijn #-}
+{-# FOREIGN GHC import qualified UntypedPlutusCore as U #-}
+{-# FOREIGN GHC import qualified UntypedPlutusCore.Parser as U #-}
 
 {-# FOREIGN GHC import Raw #-}
 {-# COMPILE GHC convP = convP #-}
@@ -153,18 +153,18 @@ postulate
 {-# COMPILE GHC deBruijnify = second (() <$) . runExcept . deBruijnProgram #-}
 {-# COMPILE GHC deBruijnifyTm = second (() <$) . runExcept . deBruijnTerm #-}
 {-# COMPILE GHC deBruijnifyTy = second (() <$) . runExcept . deBruijnTy #-}
-{-# FOREIGN GHC import Language.PlutusCore #-}
-{-# COMPILE GHC ProgramN = type Language.PlutusCore.Program TyName Name DefaultUni DefaultFun Language.PlutusCore.Lexer.AlexPosn #-}
-{-# COMPILE GHC Program = type Language.PlutusCore.Program NamedTyDeBruijn NamedDeBruijn DefaultUni DefaultFun () #-}
-{-# COMPILE GHC TermN = type Language.PlutusCore.Term TyName Name DefaultUni DefaultFun Language.PlutusCore.Lexer.AlexPosn #-}
-{-# COMPILE GHC Term = type Language.PlutusCore.Term NamedTyDeBruijn NamedDeBruijn DefaultUni DefaultFun () #-}
-{-# COMPILE GHC TypeN = type Language.PlutusCore.Type TyName DefaultUni Language.PlutusCore.Lexer.AlexPosn #-}
-{-# COMPILE GHC Type = type Language.PlutusCore.Type NamedTyDeBruijn DefaultUni () #-}
+{-# FOREIGN GHC import PlutusCore #-}
+{-# COMPILE GHC ProgramN = type PlutusCore.Program TyName Name DefaultUni DefaultFun PlutusCore.Lexer.AlexPosn #-}
+{-# COMPILE GHC Program = type PlutusCore.Program NamedTyDeBruijn NamedDeBruijn DefaultUni DefaultFun () #-}
+{-# COMPILE GHC TermN = type PlutusCore.Term TyName Name DefaultUni DefaultFun PlutusCore.Lexer.AlexPosn #-}
+{-# COMPILE GHC Term = type PlutusCore.Term NamedTyDeBruijn NamedDeBruijn DefaultUni DefaultFun () #-}
+{-# COMPILE GHC TypeN = type PlutusCore.Type TyName DefaultUni PlutusCore.Lexer.AlexPosn #-}
+{-# COMPILE GHC Type = type PlutusCore.Type NamedTyDeBruijn DefaultUni () #-}
 {-# COMPILE GHC showTerm = T.pack . show #-}
 
-{-# COMPILE GHC ProgramNU = type U.Program Name DefaultUni DefaultFun Language.PlutusCore.Lexer.AlexPosn #-}
+{-# COMPILE GHC ProgramNU = type U.Program Name DefaultUni DefaultFun PlutusCore.Lexer.AlexPosn #-}
 {-# COMPILE GHC ProgramU = type U.Program NamedDeBruijn DefaultUni DefaultFun () #-}
-{-# COMPILE GHC TermNU = type U.Term Name DefaultUni DefaultFun Language.PlutusCore.Lexer.AlexPosn #-}
+{-# COMPILE GHC TermNU = type U.Term Name DefaultUni DefaultFun PlutusCore.Lexer.AlexPosn #-}
 {-# COMPILE GHC TermU = type U.Term NamedDeBruijn DefaultUni DefaultFun () #-}
 {-# COMPILE GHC deBruijnifyU = second (() <$) . runExcept . U.deBruijnProgram #-}
 {-# COMPILE GHC deBruijnifyTmU = second (() <$) . runExcept . U.deBruijnTerm #-}

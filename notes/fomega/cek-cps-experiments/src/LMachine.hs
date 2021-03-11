@@ -32,22 +32,22 @@
 -- evaluating e.
 
 
-module Language.PlutusCore.Interpreter.LMachine
+module PlutusCore.Interpreter.LMachine
     ( EvaluationResultF (EvaluationSuccess, EvaluationFailure)
     , EvaluationResult
     , evaluateL
     , runL
     ) where
 
-import           Language.PlutusCore
-import           Language.PlutusCore.Constant
-import           Language.PlutusCore.Evaluation.MachineException
-import           Language.PlutusCore.View
+import           PlutusCore
+import           PlutusCore.Constant
+import           PlutusCore.Evaluation.MachineException
+import           PlutusCore.View
 import           PlutusPrelude
 
 import           Control.Monad.Identity
-import           Data.IntMap                                     (IntMap)
-import qualified Data.IntMap                                     as IntMap
+import           Data.IntMap                            (IntMap)
+import qualified Data.IntMap                            as IntMap
 
 type Plain f = f TyName Name ()
 

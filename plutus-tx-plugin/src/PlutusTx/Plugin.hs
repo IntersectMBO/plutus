@@ -8,49 +8,49 @@
 {-# LANGUAGE TypeApplications           #-}
 {-# LANGUAGE TypeFamilies               #-}
 {-# LANGUAGE ViewPatterns               #-}
-module Language.PlutusTx.Plugin (plugin, plc) where
+module PlutusTx.Plugin (plugin, plc) where
 
 import           Data.Bifunctor
-import           Language.PlutusTx.Code
-import           Language.PlutusTx.Compiler.Builtins
-import           Language.PlutusTx.Compiler.Error
-import           Language.PlutusTx.Compiler.Expr
-import           Language.PlutusTx.Compiler.Types
-import           Language.PlutusTx.Compiler.Utils
-import           Language.PlutusTx.PIRTypes
-import           Language.PlutusTx.PLCTypes
-import           Language.PlutusTx.Plugin.Utils
+import           PlutusTx.Code
+import           PlutusTx.Compiler.Builtins
+import           PlutusTx.Compiler.Error
+import           PlutusTx.Compiler.Expr
+import           PlutusTx.Compiler.Types
+import           PlutusTx.Compiler.Utils
+import           PlutusTx.PIRTypes
+import           PlutusTx.PLCTypes
+import           PlutusTx.Plugin.Utils
 
-import qualified GhcPlugins                             as GHC
-import qualified Panic                                  as GHC
+import qualified GhcPlugins                    as GHC
+import qualified Panic                         as GHC
 
-import qualified Language.PlutusCore                    as PLC
-import           Language.PlutusCore.Pretty             as PLC
-import           Language.PlutusCore.Quote
+import qualified PlutusCore                    as PLC
+import           PlutusCore.Pretty             as PLC
+import           PlutusCore.Quote
 
-import qualified Language.UntypedPlutusCore             as UPLC
+import qualified UntypedPlutusCore             as UPLC
 
-import qualified Language.PlutusIR                      as PIR
-import qualified Language.PlutusIR.Compiler             as PIR
-import qualified Language.PlutusIR.Compiler.Definitions as PIR
+import qualified PlutusIR                      as PIR
+import qualified PlutusIR.Compiler             as PIR
+import qualified PlutusIR.Compiler.Definitions as PIR
 
-import           Language.Haskell.TH.Syntax             as TH hiding (lift)
+import           Language.Haskell.TH.Syntax    as TH hiding (lift)
 
 import           Control.Lens
 import           Control.Monad
 import           Control.Monad.Except
 import           Control.Monad.Reader
-import           Flat                                   (flat)
+import           Flat                          (flat)
 
-import qualified Data.ByteString                        as BS
-import qualified Data.ByteString.Unsafe                 as BSUnsafe
-import qualified Data.Map                               as Map
-import qualified Data.Text.Prettyprint.Doc              as PP
+import qualified Data.ByteString               as BS
+import qualified Data.ByteString.Unsafe        as BSUnsafe
+import qualified Data.Map                      as Map
+import qualified Data.Text.Prettyprint.Doc     as PP
 import           Data.Traversable
 import           ErrorCode
-import qualified FamInstEnv                             as GHC
+import qualified FamInstEnv                    as GHC
 
-import           System.IO.Unsafe                       (unsafePerformIO)
+import           System.IO.Unsafe              (unsafePerformIO)
 
 data PluginOptions = PluginOptions {
     poDoTypecheck    :: Bool
@@ -116,7 +116,7 @@ mkSimplPass flags =
             , GHC.sm_eta_expand = False
             }
 
--- | Parses the arguments that were given to ghc at commandline as "-fplugin-optLanguage.PlutusTx.Plugin:arg1"
+-- | Parses the arguments that were given to ghc at commandline as "-fplugin-opt PlutusTx.Plugin:arg1"
 parsePluginArgs :: [GHC.CommandLineOption] -> GHC.CoreM PluginOptions
 parsePluginArgs args = do
     let opts = PluginOptions {

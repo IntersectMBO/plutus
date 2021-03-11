@@ -1,4 +1,4 @@
-module Language.PlutusCore.Pretty.ConfigName
+module PlutusCore.Pretty.ConfigName
     ( PrettyConfigName (..)
     , HasPrettyConfigName (..)
     , defPrettyConfigName

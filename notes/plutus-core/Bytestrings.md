@@ -48,7 +48,7 @@ appropriate types (but see below for some complications involving Strings).
 However there is a subtlety: Plutus Core actually has _two_ representations of
 Haskell Strings.  The PlutusTx plugin compiles normal Haskell strings into
 Scott-encoded lists of PLC's `char` type ("Scott strings" for short), but there
-is also a special type called `Language.PlutusTx.Builtins.String` which is
+is also a special type called `PlutusTx.Builtins.String` which is
 compiled into PLCs' `string` type.  Many standard string operations can be
 compiled into PLC code acting on Scott strings, but support for builtin strings
 in PlutusTx is limited.

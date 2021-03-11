@@ -1,19 +1,19 @@
 {-# LANGUAGE LambdaCase      #-}
 {-# LANGUAGE TemplateHaskell #-}
-module Language.PlutusTx.Lift.THUtils where
+module PlutusTx.Lift.THUtils where
 
-import           Language.PlutusIR
-import           Language.PlutusIR.Compiler.Names
+import           PlutusIR
+import           PlutusIR.Compiler.Names
 
-import           Language.PlutusCore.Quote
+import           PlutusCore.Quote
 
 import           Control.Monad
 
-import qualified Data.Text                        as T
+import qualified Data.Text                    as T
 
-import qualified Language.Haskell.TH              as TH
-import qualified Language.Haskell.TH.Datatype     as TH
-import qualified Language.Haskell.TH.Syntax       as TH
+import qualified Language.Haskell.TH          as TH
+import qualified Language.Haskell.TH.Datatype as TH
+import qualified Language.Haskell.TH.Syntax   as TH
 
 -- | Very nearly the same as 'TH.showName', but doesn't print uniques, since we don't need to
 -- incorporate them into our names.

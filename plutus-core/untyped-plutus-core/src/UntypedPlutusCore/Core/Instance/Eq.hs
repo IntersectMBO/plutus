@@ -3,16 +3,16 @@
 {-# LANGUAGE TypeOperators        #-}
 {-# LANGUAGE UndecidableInstances #-}
 
-module Language.UntypedPlutusCore.Core.Instance.Eq where
+module UntypedPlutusCore.Core.Instance.Eq where
 
 import           PlutusPrelude
 
-import           Language.UntypedPlutusCore.Core.Type
+import           UntypedPlutusCore.Core.Type
 
-import           Language.PlutusCore.Eq
-import           Language.PlutusCore.Name
-import           Language.PlutusCore.Rename.Monad
-import           Language.PlutusCore.Universe
+import           PlutusCore.Eq
+import           PlutusCore.Name
+import           PlutusCore.Rename.Monad
+import           PlutusCore.Universe
 
 instance (GEq uni, Closed uni, uni `Everywhere` Eq, Eq fun, HasUnique name TermUnique) =>
             Eq (Term name uni fun ann) where

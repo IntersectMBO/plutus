@@ -5,7 +5,7 @@
 -- just for the type equality constraint
 {-# LANGUAGE GADTs                 #-}
 
-module Language.PlutusCore.Quote
+module PlutusCore.Quote
     ( runQuoteT
     , runQuote
     , freshUnique
@@ -25,7 +25,7 @@ module Language.PlutusCore.Quote
 
 import           PlutusPrelude
 
-import           Language.PlutusCore.Name
+import           PlutusCore.Name
 
 import           Control.Monad.Except
 import           Control.Monad.Morph       as MM

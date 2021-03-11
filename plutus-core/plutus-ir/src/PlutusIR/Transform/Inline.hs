@@ -10,24 +10,24 @@ A simple inlining pass.
 The point of this pass is mainly to tidy up the code, not to particularly optimize performance.
 In particular, we want to get rid of "trivial" let bindings which the Plutus Tx compiler sometimes creates.
 -}
-module Language.PlutusIR.Transform.Inline where
+module PlutusIR.Transform.Inline where
 
-import           Language.PlutusIR
-import qualified Language.PlutusIR.Analysis.Dependencies as Deps
-import           Language.PlutusIR.MkPir
-import           Language.PlutusIR.Purity
+import           PlutusIR
+import qualified PlutusIR.Analysis.Dependencies as Deps
+import           PlutusIR.MkPir
+import           PlutusIR.Purity
 
-import qualified Language.PlutusCore                     as PLC
-import qualified Language.PlutusCore.Constant.Meaning    as PLC
-import           Language.PlutusCore.Name
+import qualified PlutusCore                     as PLC
+import qualified PlutusCore.Constant.Meaning    as PLC
+import           PlutusCore.Name
 
-import           Control.Lens                            hiding (Strict)
+import           Control.Lens                   hiding (Strict)
 import           Control.Monad.Reader
 import           Control.Monad.State
 
-import qualified Algebra.Graph                           as G
+import qualified Algebra.Graph                  as G
 import           Data.Foldable
-import qualified Data.Map                                as Map
+import qualified Data.Map                       as Map
 import           Witherable
 
 {- Note [Inlining approach and 'Secrets of the GHC Inliner']

@@ -1,15 +1,15 @@
-module Language.UntypedPlutusCore.Check.Uniques
+module UntypedPlutusCore.Check.Uniques
     ( checkProgram
     , checkTerm
     , UniqueError (..)
     , AsUniqueError (..)
     ) where
 
-import           Language.UntypedPlutusCore.Analysis.Definitions
-import           Language.UntypedPlutusCore.Core
+import           UntypedPlutusCore.Analysis.Definitions
+import           UntypedPlutusCore.Core
 
-import           Language.PlutusCore.Error
-import           Language.PlutusCore.Name
+import           PlutusCore.Error
+import           PlutusCore.Name
 
 import           Control.Monad.Error.Lens
 import           Control.Monad.Except

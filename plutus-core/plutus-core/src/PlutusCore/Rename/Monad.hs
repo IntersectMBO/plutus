@@ -5,7 +5,7 @@
 {-# LANGUAGE TemplateHaskell       #-}
 {-# LANGUAGE TypeFamilies          #-}
 
-module Language.PlutusCore.Rename.Monad
+module PlutusCore.Rename.Monad
     ( RenameT (..)
     , ScopedRenameT
     , Renaming (..)
@@ -23,8 +23,8 @@ module Language.PlutusCore.Rename.Monad
 
 import           PlutusPrelude
 
-import           Language.PlutusCore.Name
-import           Language.PlutusCore.Quote
+import           PlutusCore.Name
+import           PlutusCore.Quote
 
 import           Control.Lens
 import           Control.Monad.Reader

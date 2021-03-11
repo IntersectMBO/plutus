@@ -9,7 +9,7 @@ generating Plutus Core types and terms.
 
 -}
 
-module Language.PlutusCore.Generators.NEAT.Common where
+module PlutusCore.Generators.NEAT.Common where
 
 -- warning to be written to Haskell file:
 {-# FOREIGN AGDA2HS
@@ -32,8 +32,8 @@ module Language.PlutusCore.Generators.NEAT.Common where
 import           Control.Enumerable
 import qualified Data.Stream               as Stream
 import qualified Data.Text                 as Text
-import           Language.PlutusCore.Name  (Name, TyName (..))
-import           Language.PlutusCore.Quote (MonadQuote (..), freshName)
+import           PlutusCore.Name  (Name, TyName (..))
+import           PlutusCore.Quote (MonadQuote (..), freshName)
 #-}
 -- * Enumerating deBruijn indices
 

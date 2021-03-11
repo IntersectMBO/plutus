@@ -1,6 +1,6 @@
 {-# LANGUAGE RankNTypes #-}
 
-module Language.PlutusCore.Constant.Dynamic.Emit
+module PlutusCore.Constant.Dynamic.Emit
     ( MonadEmitter (..)
     , Emitter (..)
     , NoEmitterT (..)

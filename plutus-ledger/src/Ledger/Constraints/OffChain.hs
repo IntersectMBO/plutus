@@ -53,9 +53,9 @@ import qualified Data.Set                         as Set
 import           Data.Text.Prettyprint.Doc
 import           GHC.Generics                     (Generic)
 
-import           Language.PlutusTx                (IsData (..))
-import           Language.PlutusTx.Lattice
-import qualified Language.PlutusTx.Numeric        as N
+import           PlutusTx                         (IsData (..))
+import           PlutusTx.Lattice
+import qualified PlutusTx.Numeric                 as N
 
 import           Ledger.Constraints.TxConstraints hiding (requiredSignatories)
 import           Ledger.Orphans                   ()
@@ -149,7 +149,7 @@ ownPubKeyHash ph = mempty { slOwnPubkey = Just ph}
 
 -- | An unbalanced transaction. It needs to be balanced and signed before it
 --   can be submitted to the ledeger. See note [Submitting transactions from
---   Plutus contracts] in 'Language.Plutus.Contract.Wallet'.
+--   Plutus contracts] in 'Plutus.Contract.Wallet'.
 data UnbalancedTx =
     UnbalancedTx
         { unBalancedTxTx                  :: Tx
@@ -285,7 +285,7 @@ processLookupsAndConstraints lookups TxConstraints{txConstraints, txOwnInputs, t
 
 -- | Turn a 'TxConstraints' value into an unbalanced transaction that satisfies
 --   the constraints. To use this in a contract, see
---   'Language.Plutus.Contract.Effects.WriteTx.submitTxConstraints'
+--   'Plutus.Contract.Effects.WriteTx.submitTxConstraints'
 --   and related functions.
 mkTx
     :: ( IsData (DatumType a)

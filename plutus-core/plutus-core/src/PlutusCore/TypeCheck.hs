@@ -4,7 +4,7 @@
 {-# LANGUAGE TypeFamilies     #-}
 {-# LANGUAGE TypeOperators    #-}
 
-module Language.PlutusCore.TypeCheck
+module PlutusCore.TypeCheck
     (
     -- * Configuration.
       BuiltinTypes (..)
@@ -23,15 +23,15 @@ module Language.PlutusCore.TypeCheck
 
 import           PlutusPrelude
 
-import           Language.PlutusCore.Constant
-import           Language.PlutusCore.Core
-import           Language.PlutusCore.Error
-import           Language.PlutusCore.Name
-import           Language.PlutusCore.Normalize
-import           Language.PlutusCore.Quote
-import           Language.PlutusCore.Rename
-import           Language.PlutusCore.TypeCheck.Internal
-import           Language.PlutusCore.Universe
+import           PlutusCore.Constant
+import           PlutusCore.Core
+import           PlutusCore.Error
+import           PlutusCore.Name
+import           PlutusCore.Normalize
+import           PlutusCore.Quote
+import           PlutusCore.Rename
+import           PlutusCore.TypeCheck.Internal
+import           PlutusCore.Universe
 
 import           Control.Monad.Except
 import           Data.Array

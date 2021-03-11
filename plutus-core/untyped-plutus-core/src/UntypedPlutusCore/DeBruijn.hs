@@ -4,7 +4,7 @@
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings     #-}
 -- | Support for using de Bruijn indices for term names.
-module Language.UntypedPlutusCore.DeBruijn
+module UntypedPlutusCore.DeBruijn
     ( Index (..)
     , DeBruijn (..)
     , NamedDeBruijn (..)
@@ -17,16 +17,16 @@ module Language.UntypedPlutusCore.DeBruijn
     , unNameDeBruijn
     ) where
 
-import           Language.PlutusCore.DeBruijn.Internal
+import           PlutusCore.DeBruijn.Internal
 
-import           Language.PlutusCore.Name
-import           Language.PlutusCore.Quote
-import           Language.UntypedPlutusCore.Core
+import           PlutusCore.Name
+import           PlutusCore.Quote
+import           UntypedPlutusCore.Core
 
 import           Control.Monad.Except
 import           Control.Monad.Reader
 
-import qualified Data.Bimap                            as BM
+import qualified Data.Bimap                   as BM
 
 {- Note [Comparison with typed deBruijn conversion]
 This module is just a boring port of the typed version.

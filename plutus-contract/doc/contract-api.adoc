@@ -18,7 +18,7 @@ When you have a `PlutusContract` you can compile it to a contract bundle (a form
 {-# LANGUAGE MonoLocalBinds   #-}
 module ContractAPI where
 import           Control.Monad               (void)
-import           Language.Plutus.Contract
+import           Plutus.Contract
 import           Ledger.Constraints.OffChain (UnbalancedTx)
 import           Ledger.AddressMap           (AddressMap)
 import           Ledger.Crypto               (PubKey)
@@ -39,7 +39,7 @@ c1 = return () -- <2>
 
 == Common effects
 
-If we compiled `c1` and deployed it, it would finish right away without doing anything. To get the contract to interact with the environment we can use the functions exported by the `Language.Plutus.Contract` module.
+If we compiled `c1` and deployed it, it would finish right away without doing anything. To get the contract to interact with the environment we can use the functions exported by the `Plutus.Contract` module.
 
 === Waiting
 
@@ -54,7 +54,7 @@ c2 = awaitSlot 2765 -- <1>
 
 === Blockchain Events
 
-Smart contracts often involve multiple participants that synchronise their actions over the blockchain. To be notified of changes to the contract state we need the `WatchAddress` effect. It lets us watch any address on the blockchain for transactions that modify them. `Language.Plutus.Contract` contains a couple of basic functions for watching addresses.
+Smart contracts often involve multiple participants that synchronise their actions over the blockchain. To be notified of changes to the contract state we need the `WatchAddress` effect. It lets us watch any address on the blockchain for transactions that modify them. `Plutus.Contract` contains a couple of basic functions for watching addresses.
 
 `nextTransactionAt {2c} (HasWatchAddress s) => Address -> Contract () s e Tx` waits for the next transaction that changes the outputs at the given address, either by spending an output or by producing a new output. It returns the entire transaction.
 
@@ -66,7 +66,7 @@ The `UtxoAt` effect, available through `utxoAt {2c} HasUtxoAt s => Address -> Co
 
 === Transactions
 
-Contracts write transactions using `submitTx {2c} (HasWriteTx s) => UnbalancedTx -> Contract () s e TxId`. The transactions submitted that way are unbalanced and unsigned. When executing a `submitTx` instruction, the app platform forwards the transaction to the user's wallet to balance it (by adding appropriate public key inputs or outputs) and compute the gas cost of any scripts involved. The finished transaction is then signed by the signing process, and submitted to the wallet which sends it to the blockchain. `submitTx` returns the final transaction's ID once it has been submitted to the blockchain (or throws an error if the balancing or signing failed). The easiest way to construct a value of `UnbalancedTx` is by using `Ledger.Constraints.mkTx` to turn a list of constraints into an unbalanced transaction. `Language.Plutus.Contract` exports a number of conveniences for working with constraints, for example `submitTxConstraints` (which requires a script instance) and `submitTxConstraintsUtxo` (which requires a script instance and a map containing the unspent outputs at the contract address).
+Contracts write transactions using `submitTx {2c} (HasWriteTx s) => UnbalancedTx -> Contract () s e TxId`. The transactions submitted that way are unbalanced and unsigned. When executing a `submitTx` instruction, the app platform forwards the transaction to the user's wallet to balance it (by adding appropriate public key inputs or outputs) and compute the gas cost of any scripts involved. The finished transaction is then signed by the signing process, and submitted to the wallet which sends it to the blockchain. `submitTx` returns the final transaction's ID once it has been submitted to the blockchain (or throws an error if the balancing or signing failed). The easiest way to construct a value of `UnbalancedTx` is by using `Ledger.Constraints.mkTx` to turn a list of constraints into an unbalanced transaction. `Plutus.Contract` exports a number of conveniences for working with constraints, for example `submitTxConstraints` (which requires a script instance) and `submitTxConstraintsUtxo` (which requires a script instance and a map containing the unspent outputs at the contract address).
 
 === Endpoints
 
@@ -160,7 +160,7 @@ NOTE: The `Alternative` instance of `Contract` is used to select one of two bran
 
 == Compiling Contracts
 
-Once we've written our conract we can compile it into a form that can be run by the application platform. To this end the `Language.Plutus.Contract.App` module exposes a `run` function, which takes a `Contract w s e ()` and turns it into an `IO ()` action. The contracts we've seen so far have been parameterised over the schema (that is, they were of the form `contract {2c} c s => Contract () s e ()` for some set of constraints `c`). When we call `run contract` we need to commit to a specific value for the schema `s`, because it can't be inferred by the compiler. As the schema describes all possible interactions between the contract and the outside world, it usually consists of two parts: Interactions with the blockchain (via the wallet), and interactions with the user (via endpoints). The first part of the schema is always the same: The `BlockchainActions` type found in `Language.Plutus.Contract`. The second part depends on the specific set of user-facing endpoints that the contract has. We use the `Endpoint` type constructor to describe the name and type of each endpoint. The `.\/` operator combines two schemas. So a contract with a single endpoint called "amount" of type `Int` would have the following schema type:
+Once we've written our conract we can compile it into a form that can be run by the application platform. To this end the `Plutus.Contract.App` module exposes a `run` function, which takes a `Contract w s e ()` and turns it into an `IO ()` action. The contracts we've seen so far have been parameterised over the schema (that is, they were of the form `contract {2c} c s => Contract () s e ()` for some set of constraints `c`). When we call `run contract` we need to commit to a specific value for the schema `s`, because it can't be inferred by the compiler. As the schema describes all possible interactions between the contract and the outside world, it usually consists of two parts: Interactions with the blockchain (via the wallet), and interactions with the user (via endpoints). The first part of the schema is always the same: The `BlockchainActions` type found in `Plutus.Contract`. The second part depends on the specific set of user-facing endpoints that the contract has. We use the `Endpoint` type constructor to describe the name and type of each endpoint. The `.\/` operator combines two schemas. So a contract with a single endpoint called "amount" of type `Int` would have the following schema type:
 
 [source, haskell]
 ----

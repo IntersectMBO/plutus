@@ -4,7 +4,7 @@
 -- none of the tests is required to be adapted, instead all the tests see the new definition
 -- automatically.
 
-module Language.PlutusCore.FsTree
+module PlutusCore.FsTree
     ( FsTree (..)
     , FolderContents (..)
     , PlcEntity (..)
@@ -18,8 +18,8 @@ module Language.PlutusCore.FsTree
     , foldPlcFolderContents
     ) where
 
-import           Language.PlutusCore.Core
-import           Language.PlutusCore.Name
+import           PlutusCore.Core
+import           PlutusCore.Name
 
 -- We use 'String's for names, because 'FilePath's are 'String's.
 -- | An 'FsTree' is either a file or a folder with a list of 'FsTree's inside.

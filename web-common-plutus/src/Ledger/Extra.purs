@@ -5,8 +5,8 @@ import Data.Lens.Record (prop)
 import Data.Json.JsonTuple (JsonTuple(..))
 import Data.Symbol (SProxy(..))
 import Data.Tuple (Tuple(..))
-import Language.PlutusTx.AssocMap (unionWith)
-import Language.PlutusTx.AssocMap as AssocMap
+import PlutusTx.AssocMap (unionWith)
+import PlutusTx.AssocMap as AssocMap
 import Plutus.V1.Ledger.Ada (Ada(..))
 import Plutus.V1.Ledger.Interval (Extended(..), Interval, LowerBound(..), UpperBound(..), _Interval)
 import Plutus.V1.Ledger.Slot (Slot(..))

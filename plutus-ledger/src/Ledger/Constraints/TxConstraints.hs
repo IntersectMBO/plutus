@@ -17,25 +17,25 @@
 -- | Constraints for transactions
 module Ledger.Constraints.TxConstraints where
 
-import           Data.Aeson                 (FromJSON, ToJSON)
-import           Data.Bifunctor             (Bifunctor (..))
-import qualified Data.Map                   as Map
-import           Data.Text.Prettyprint.Doc  hiding ((<>))
-import           GHC.Generics               (Generic)
+import           Data.Aeson                (FromJSON, ToJSON)
+import           Data.Bifunctor            (Bifunctor (..))
+import qualified Data.Map                  as Map
+import           Data.Text.Prettyprint.Doc hiding ((<>))
+import           GHC.Generics              (Generic)
 
-import qualified Language.PlutusTx          as PlutusTx
-import qualified Language.PlutusTx.AssocMap as AssocMap
-import           Language.PlutusTx.Prelude
+import qualified PlutusTx                  as PlutusTx
+import qualified PlutusTx.AssocMap         as AssocMap
+import           PlutusTx.Prelude
 
-import           Plutus.V1.Ledger.Crypto    (PubKeyHash)
-import qualified Plutus.V1.Ledger.Interval  as I
-import           Plutus.V1.Ledger.Scripts   (Datum (..), DatumHash, MonetaryPolicyHash, Redeemer, ValidatorHash)
-import           Plutus.V1.Ledger.Slot      (SlotRange)
-import           Plutus.V1.Ledger.Tx        (TxOutRef)
-import           Plutus.V1.Ledger.Value     (TokenName, Value, isZero)
-import qualified Plutus.V1.Ledger.Value     as Value
+import           Plutus.V1.Ledger.Crypto   (PubKeyHash)
+import qualified Plutus.V1.Ledger.Interval as I
+import           Plutus.V1.Ledger.Scripts  (Datum (..), DatumHash, MonetaryPolicyHash, Redeemer, ValidatorHash)
+import           Plutus.V1.Ledger.Slot     (SlotRange)
+import           Plutus.V1.Ledger.Tx       (TxOutRef)
+import           Plutus.V1.Ledger.Value    (TokenName, Value, isZero)
+import qualified Plutus.V1.Ledger.Value    as Value
 
-import qualified Prelude                    as Haskell
+import qualified Prelude                   as Haskell
 
 -- | Constraints on transactions that want to spend script outputs
 data TxConstraint =

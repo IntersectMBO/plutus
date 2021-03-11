@@ -7,7 +7,7 @@
 {-# LANGUAGE NamedFieldPuns       #-}
 {-# LANGUAGE TypeOperators        #-}
 {-# LANGUAGE UndecidableInstances #-}
-module Language.Plutus.Contract.State(
+module Plutus.Contract.State(
     -- * Contract state
     -- $contractstate
     Contract
@@ -18,21 +18,21 @@ module Language.Plutus.Contract.State(
     , initialiseContract
     ) where
 
-import           Control.Monad.Freer.Extras.Log      (LogMessage)
-import           Data.Aeson                          (FromJSON, ToJSON, Value)
-import           Data.Foldable                       (toList)
-import           GHC.Generics                        (Generic)
+import           Control.Monad.Freer.Extras.Log   (LogMessage)
+import           Data.Aeson                       (FromJSON, ToJSON, Value)
+import           Data.Foldable                    (toList)
+import           GHC.Generics                     (Generic)
 
-import           Data.Text.Prettyprint.Doc.Extras    (Pretty, PrettyShow (..))
-import           Language.Plutus.Contract.Checkpoint (CheckpointStore)
-import           Language.Plutus.Contract.Resumable
-import           Language.Plutus.Contract.Schema     (Event (..), Handlers (..))
-import           Language.Plutus.Contract.Types      hiding (logs, observableState)
+import           Data.Text.Prettyprint.Doc.Extras (Pretty, PrettyShow (..))
+import           Plutus.Contract.Checkpoint       (CheckpointStore)
+import           Plutus.Contract.Resumable
+import           Plutus.Contract.Schema           (Event (..), Handlers (..))
+import           Plutus.Contract.Types            hiding (logs, observableState)
 
 -- $contractstate
 -- Types for initialising and running instances of 'Contract's. The types and
 -- functions in this module are convenient wrappers around types and functions
--- from 'Language.Plutus.Contract.Types', exposing an interface that is suitable
+-- from 'Plutus.Contract.Types', exposing an interface that is suitable
 -- for consumption by the PAB. In particular this means that
 -- 'insertAndUpdateContract' has a single argument, and its argument & return
 -- types can be serialised to JSON easily.

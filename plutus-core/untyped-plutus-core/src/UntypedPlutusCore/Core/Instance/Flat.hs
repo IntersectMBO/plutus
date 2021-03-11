@@ -3,21 +3,21 @@
 {-# LANGUAGE UndecidableInstances #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 
-module Language.UntypedPlutusCore.Core.Instance.Flat where
+module UntypedPlutusCore.Core.Instance.Flat where
 
-import           Language.UntypedPlutusCore.Core.Type
+import           UntypedPlutusCore.Core.Type
 
-import           Language.PlutusCore.Flat
-import           Language.PlutusCore.Universe
+import           PlutusCore.Flat
+import           PlutusCore.Universe
 
-import           Data.Word                            (Word8)
+import           Data.Word                   (Word8)
 import           Flat
 import           Flat.Decoder
 import           Flat.Encoder
 
 {-
 The definitions in this file rely on some Flat instances defined for typed plutus core.
-You can find those in Language.PlutusCore.Flat.
+You can find those in PlutusCore.Flat.
 -}
 
 {- Note [Stable encoding of PLC]

@@ -7,7 +7,7 @@
 {-# LANGUAGE TemplateHaskell    #-}
 
 -- | Forging policy script for credential tokens.
-module Language.PlutusTx.Coordination.Contracts.Prism.Credential(
+module Plutus.Contracts.Prism.Credential(
     CredentialAuthority(..)
     , Credential(..)
     , policy
@@ -16,21 +16,20 @@ module Language.PlutusTx.Coordination.Contracts.Prism.Credential(
     , tokenAccount
     ) where
 
-import           Data.Aeson                                            (FromJSON, ToJSON)
-import           Data.Hashable                                         (Hashable)
-import           GHC.Generics                                          (Generic)
-import qualified Language.PlutusTx                                     as PlutusTx
-import           Language.PlutusTx.Coordination.Contracts.TokenAccount (Account (..))
-import           Language.PlutusTx.Prelude
-import           Ledger.Contexts                                       (PolicyCtx (..), txSignedBy)
-import           Ledger.Crypto                                         (PubKeyHash)
-import           Ledger.Scripts                                        (MonetaryPolicy, mkMonetaryPolicyScript,
-                                                                        monetaryPolicyHash)
-import qualified Ledger.Typed.Scripts                                  as Scripts
-import           Ledger.Value                                          (TokenName, Value)
-import qualified Ledger.Value                                          as Value
-import qualified Prelude                                               as Haskell
-import           Schema                                                (ToSchema)
+import           Data.Aeson                    (FromJSON, ToJSON)
+import           Data.Hashable                 (Hashable)
+import           GHC.Generics                  (Generic)
+import           Ledger.Contexts               (PolicyCtx (..), txSignedBy)
+import           Ledger.Crypto                 (PubKeyHash)
+import           Ledger.Scripts                (MonetaryPolicy, mkMonetaryPolicyScript, monetaryPolicyHash)
+import qualified Ledger.Typed.Scripts          as Scripts
+import           Ledger.Value                  (TokenName, Value)
+import qualified Ledger.Value                  as Value
+import           Plutus.Contracts.TokenAccount (Account (..))
+import qualified PlutusTx                      as PlutusTx
+import           PlutusTx.Prelude
+import qualified Prelude                       as Haskell
+import           Schema                        (ToSchema)
 
 -- | Entity that is authorised to forge credential tokens
 newtype CredentialAuthority =

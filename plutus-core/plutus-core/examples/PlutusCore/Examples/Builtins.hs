@@ -13,21 +13,21 @@
 {-# LANGUAGE TypeOperators         #-}
 {-# LANGUAGE UndecidableInstances  #-}
 
-module Language.PlutusCore.Examples.Builtins where
+module PlutusCore.Examples.Builtins where
 
-import           Language.PlutusCore
-import           Language.PlutusCore.Constant
-import           Language.PlutusCore.Evaluation.Machine.ExBudget
-import           Language.PlutusCore.Evaluation.Machine.ExBudgetingDefaults
-import           Language.PlutusCore.Evaluation.Machine.ExMemory
-import           Language.PlutusCore.Evaluation.Machine.Exception
-import           Language.PlutusCore.Pretty
+import           PlutusCore
+import           PlutusCore.Constant
+import           PlutusCore.Evaluation.Machine.ExBudget
+import           PlutusCore.Evaluation.Machine.ExBudgetingDefaults
+import           PlutusCore.Evaluation.Machine.ExMemory
+import           PlutusCore.Evaluation.Machine.Exception
+import           PlutusCore.Pretty
 
-import qualified Language.PlutusCore.StdLib.Data.List                       as Plc
+import qualified PlutusCore.StdLib.Data.List                       as Plc
 
 import           Data.Either
-import           Data.Hashable                                              (Hashable)
-import qualified Data.Kind                                                  as GHC (Type)
+import           Data.Hashable                                     (Hashable)
+import qualified Data.Kind                                         as GHC (Type)
 import           Data.Proxy
 import           Data.Text.Prettyprint.Doc
 import           Data.Void

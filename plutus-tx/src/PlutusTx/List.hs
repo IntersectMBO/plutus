@@ -1,9 +1,9 @@
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
-module Language.PlutusTx.List (map, filter, listToMaybe, uniqueElement, findIndices, findIndex, foldr, reverse, zip, (++), (!!)) where
+module PlutusTx.List (map, filter, listToMaybe, uniqueElement, findIndices, findIndex, foldr, reverse, zip, (++), (!!)) where
 
-import qualified Language.PlutusTx.Builtins as Builtins
-import           Prelude                    hiding (Eq (..), all, any, elem, filter, foldl, foldr, length, map, null,
-                                             reverse, zip, (!!), (&&), (++), (||))
+import qualified PlutusTx.Builtins as Builtins
+import           Prelude           hiding (Eq (..), all, any, elem, filter, foldl, foldr, length, map, null, reverse,
+                                    zip, (!!), (&&), (++), (||))
 
 {-# ANN module ("HLint: ignore"::String) #-}
 

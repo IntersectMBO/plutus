@@ -4,16 +4,16 @@
 {-# LANGUAGE TypeApplications    #-}
 {-# OPTIONS_GHC -fno-strictness #-}
 {-# OPTIONS_GHC -fno-specialise #-}
-module Language.PlutusTx.IsData.Class where
+module PlutusTx.IsData.Class where
 
-import           Data.ByteString               as BS
+import           Data.ByteString      as BS
 
-import           Prelude                       (Integer, Maybe (..))
+import           Prelude              (Integer, Maybe (..))
 
-import           Language.PlutusTx.Data
+import           PlutusTx.Data
 
-import           Language.PlutusTx.Functor
-import           Language.PlutusTx.Traversable
+import           PlutusTx.Functor
+import           PlutusTx.Traversable
 
 import           Data.Kind
 import           Data.Void

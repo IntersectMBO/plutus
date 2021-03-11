@@ -11,7 +11,7 @@
 {-# LANGUAGE NamedFieldPuns         #-}
 {-# LANGUAGE TemplateHaskell        #-}
 {-# LANGUAGE TypeApplications       #-}
-module Language.Plutus.Contract.StateMachine(
+module Plutus.Contract.StateMachine(
     -- $statemachine
     StateMachineClient(..)
     , TxConstraints
@@ -47,32 +47,31 @@ module Language.Plutus.Contract.StateMachine(
 
 import           Control.Lens
 import           Control.Monad.Error.Lens
-import           Data.Aeson                                    (FromJSON, ToJSON)
-import           Data.Either                                   (rights)
-import           Data.Map                                      (Map)
-import qualified Data.Map                                      as Map
-import           Data.Text                                     (Text)
-import qualified Data.Text                                     as Text
-import           Data.Void                                     (Void, absurd)
-import           GHC.Generics                                  (Generic)
+import           Data.Aeson                           (FromJSON, ToJSON)
+import           Data.Either                          (rights)
+import           Data.Map                             (Map)
+import qualified Data.Map                             as Map
+import           Data.Text                            (Text)
+import qualified Data.Text                            as Text
+import           Data.Void                            (Void, absurd)
+import           GHC.Generics                         (Generic)
 
-import           Language.Plutus.Contract
-import           Language.Plutus.Contract.StateMachine.OnChain (State (..), StateMachine (..),
-                                                                StateMachineInstance (..))
-import qualified Language.Plutus.Contract.StateMachine.OnChain as SM
-import qualified Language.PlutusTx                             as PlutusTx
-import           Ledger                                        (Slot, Value)
+import           Ledger                               (Slot, Value)
 import qualified Ledger
-import           Ledger.AddressMap                             (UtxoMap)
-import           Ledger.Constraints                            (ScriptLookups, TxConstraints (..), mustPayToTheScript)
-import           Ledger.Constraints.OffChain                   (UnbalancedTx)
-import qualified Ledger.Constraints.OffChain                   as Constraints
-import           Ledger.Constraints.TxConstraints              (InputConstraint (..), OutputConstraint (..))
-import           Ledger.Crypto                                 (pubKeyHash)
-import           Ledger.Tx                                     as Tx
-import qualified Ledger.Typed.Scripts                          as Scripts
-import           Ledger.Typed.Tx                               (TypedScriptTxOut (..))
-import qualified Ledger.Typed.Tx                               as Typed
+import           Ledger.AddressMap                    (UtxoMap)
+import           Ledger.Constraints                   (ScriptLookups, TxConstraints (..), mustPayToTheScript)
+import           Ledger.Constraints.OffChain          (UnbalancedTx)
+import qualified Ledger.Constraints.OffChain          as Constraints
+import           Ledger.Constraints.TxConstraints     (InputConstraint (..), OutputConstraint (..))
+import           Ledger.Crypto                        (pubKeyHash)
+import           Ledger.Tx                            as Tx
+import qualified Ledger.Typed.Scripts                 as Scripts
+import           Ledger.Typed.Tx                      (TypedScriptTxOut (..))
+import qualified Ledger.Typed.Tx                      as Typed
+import           Plutus.Contract
+import           Plutus.Contract.StateMachine.OnChain (State (..), StateMachine (..), StateMachineInstance (..))
+import qualified Plutus.Contract.StateMachine.OnChain as SM
+import qualified PlutusTx                             as PlutusTx
 
 -- $statemachine
 -- To write your contract as a state machine you need

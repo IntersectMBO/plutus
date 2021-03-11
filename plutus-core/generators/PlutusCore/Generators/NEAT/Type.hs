@@ -9,7 +9,7 @@
 {-# LANGUAGE StandaloneDeriving        #-}
 {-# LANGUAGE TemplateHaskell           #-}
 
-module Language.PlutusCore.Generators.NEAT.Type where
+module PlutusCore.Generators.NEAT.Type where
 
 {-
 !!! THIS FILE IS GENERATED FROM Type.agda
@@ -30,8 +30,8 @@ module Language.PlutusCore.Generators.NEAT.Type where
 
 import           Control.Enumerable
 import           Control.Monad.Except
-import           Language.PlutusCore
-import           Language.PlutusCore.Generators.NEAT.Common
+import           PlutusCore
+import           PlutusCore.Generators.NEAT.Common
 
 newtype Neutral a = Neutral
   { unNeutral :: a

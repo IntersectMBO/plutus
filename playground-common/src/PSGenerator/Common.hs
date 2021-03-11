@@ -11,8 +11,6 @@ import           Control.Applicative                       (empty, (<|>))
 import           Control.Monad.Reader                      (MonadReader)
 import           Data.Proxy                                (Proxy (Proxy))
 import           Gist                                      (Gist, GistFile, GistId, NewGist, NewGistFile, Owner)
-import           Language.Plutus.Contract.Checkpoint       (CheckpointError)
-import           Language.Plutus.Contract.Resumable        (IterationID, Request, RequestID, Response)
 import           Language.PureScript.Bridge                (BridgePart, Language (Haskell), PSType, SumType,
                                                             TypeInfo (TypeInfo), doCheck, equal, equal1, functor,
                                                             genericShow, haskType, isTuple, mkSumType, order,
@@ -32,6 +30,8 @@ import           Ledger.Slot                               (Slot)
 import           Ledger.Typed.Tx                           (ConnectionError)
 import           Ledger.Value                              (CurrencySymbol, TokenName, Value)
 import           Playground.Types                          (ContractCall, FunctionSchema, KnownCurrency)
+import           Plutus.Contract.Checkpoint                (CheckpointError)
+import           Plutus.Contract.Resumable                 (IterationID, Request, RequestID, Response)
 import           Plutus.Trace.Emulator.Types               (ContractInstanceLog, ContractInstanceMsg,
                                                             ContractInstanceTag, EmulatorRuntimeError, UserThreadMsg)
 import           Plutus.Trace.Scheduler                    (Priority, SchedulerLog, StopReason, ThreadEvent, ThreadId)
@@ -156,19 +156,19 @@ psBigInteger = TypeInfo "purescript-foreign-generic" "Data.BigInteger" "BigInteg
 
 psAssocMap :: MonadReader BridgeData m => m PSType
 psAssocMap =
-    TypeInfo "plutus-playground-client" "Language.PlutusTx.AssocMap" "Map" <$>
+    TypeInfo "plutus-playground-client" "PlutusTx.AssocMap" "Map" <$>
     psTypeParameters
 
 dataBridge :: BridgePart
 dataBridge = do
     typeName ^== "Data"
-    typeModule ^== "Language.PlutusTx.Data"
+    typeModule ^== "PlutusTx.Data"
     pure psString
 
 assocMapBridge :: BridgePart
 assocMapBridge = do
     typeName ^== "Map"
-    typeModule ^== "Language.PlutusTx.AssocMap"
+    typeModule ^== "PlutusTx.AssocMap"
     psAssocMap
 
 languageBridge :: BridgePart

@@ -79,10 +79,10 @@ import qualified Data.Set                  as Set
 import           Data.Text.Prettyprint.Doc
 import           GHC.Generics              (Generic)
 
-import qualified Language.PlutusTx         as PlutusTx
-import qualified Language.PlutusTx.Bool    as PlutusTx
-import qualified Language.PlutusTx.Eq      as PlutusTx
-import           Language.PlutusTx.Lattice
+import qualified PlutusTx                  as PlutusTx
+import qualified PlutusTx.Bool             as PlutusTx
+import qualified PlutusTx.Eq               as PlutusTx
+import           PlutusTx.Lattice
 
 import           Plutus.V1.Ledger.Address
 import           Plutus.V1.Ledger.Crypto

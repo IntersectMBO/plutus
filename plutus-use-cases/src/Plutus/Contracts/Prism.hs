@@ -37,7 +37,7 @@ that locks a specific credential token for a specific user, identified by their
 public key address.
 
 -}
-module Language.PlutusTx.Coordination.Contracts.Prism(
+module Plutus.Contracts.Prism(
     -- * Unlock (STO)
     STOSubscriber(..)
     , STOSubscriberSchema
@@ -65,15 +65,15 @@ module Language.PlutusTx.Coordination.Contracts.Prism(
     , contract
     ) where
 
-import           Data.Aeson                                                       (FromJSON, ToJSON)
-import           GHC.Generics                                                     (Generic)
-import           Language.PlutusTx.Coordination.Contracts.Prism.Credential
-import           Language.PlutusTx.Coordination.Contracts.Prism.CredentialManager
-import           Language.PlutusTx.Coordination.Contracts.Prism.Mirror
-import           Language.PlutusTx.Coordination.Contracts.Prism.StateMachine
-import           Language.PlutusTx.Coordination.Contracts.Prism.Unlock
+import           Data.Aeson                               (FromJSON, ToJSON)
+import           GHC.Generics                             (Generic)
+import           Plutus.Contracts.Prism.Credential
+import           Plutus.Contracts.Prism.CredentialManager
+import           Plutus.Contracts.Prism.Mirror
+import           Plutus.Contracts.Prism.StateMachine
+import           Plutus.Contracts.Prism.Unlock
 
-import           Language.Plutus.Contract
+import           Plutus.Contract
 
 -- | The roles that we pass to 'contract'.
 data Role

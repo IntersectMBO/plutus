@@ -6,25 +6,25 @@
 
 {-# LANGUAGE ScopedTypeVariables #-}
 
-module Language.PlutusCore.Examples.Everything
+module PlutusCore.Examples.Everything
     ( examples
     , builtins
     ) where
 
 import           PlutusPrelude
 
-import           Language.PlutusCore.Builtins
-import           Language.PlutusCore.FsTree
-import           Language.PlutusCore.MkPlc
-import           Language.PlutusCore.Universe
+import           PlutusCore.Builtins
+import           PlutusCore.FsTree
+import           PlutusCore.MkPlc
+import           PlutusCore.Universe
 
-import           Language.PlutusCore.StdLib.Type
+import           PlutusCore.StdLib.Type
 
-import           Language.PlutusCore.Examples.Builtins
-import           Language.PlutusCore.Examples.Data.InterList
-import           Language.PlutusCore.Examples.Data.Shad
-import           Language.PlutusCore.Examples.Data.TreeForest
-import           Language.PlutusCore.Examples.Data.Vec
+import           PlutusCore.Examples.Builtins
+import           PlutusCore.Examples.Data.InterList
+import           PlutusCore.Examples.Data.Shad
+import           PlutusCore.Examples.Data.TreeForest
+import           PlutusCore.Examples.Data.Vec
 
 -- | All examples exported as a single value.
 examples :: PlcFolderContents DefaultUni DefaultFun

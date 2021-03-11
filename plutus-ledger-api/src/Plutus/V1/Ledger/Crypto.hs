@@ -31,31 +31,31 @@ module Plutus.V1.Ledger.Crypto(
     , privateKey10
     ) where
 
-import           Codec.Serialise.Class      (Serialise)
-import           Control.DeepSeq            (NFData)
-import           Control.Newtype.Generics   (Newtype)
-import qualified Crypto.ECC.Ed25519Donna    as ED25519
-import           Crypto.Error               (throwCryptoError)
-import           Data.Aeson                 (FromJSON (parseJSON), FromJSONKey, FromJSONKeyFunction (FromJSONKeyValue),
-                                             ToJSON (toJSON), ToJSONKey, ToJSONKeyFunction (ToJSONKeyValue),
-                                             genericParseJSON, genericToJSON, (.:))
-import qualified Data.Aeson                 as JSON
-import qualified Data.Aeson.Extras          as JSON
-import qualified Data.ByteArray             as BA
-import qualified Data.ByteString            as BS
-import           Data.Either.Extras         (unsafeFromEither)
-import           Data.Hashable              (Hashable)
+import           Codec.Serialise.Class     (Serialise)
+import           Control.DeepSeq           (NFData)
+import           Control.Newtype.Generics  (Newtype)
+import qualified Crypto.ECC.Ed25519Donna   as ED25519
+import           Crypto.Error              (throwCryptoError)
+import           Data.Aeson                (FromJSON (parseJSON), FromJSONKey, FromJSONKeyFunction (FromJSONKeyValue),
+                                            ToJSON (toJSON), ToJSONKey, ToJSONKeyFunction (ToJSONKeyValue),
+                                            genericParseJSON, genericToJSON, (.:))
+import qualified Data.Aeson                as JSON
+import qualified Data.Aeson.Extras         as JSON
+import qualified Data.ByteArray            as BA
+import qualified Data.ByteString           as BS
+import           Data.Either.Extras        (unsafeFromEither)
+import           Data.Hashable             (Hashable)
 import           Data.String
 import           Data.Text.Prettyprint.Doc
-import           GHC.Generics               (Generic)
-import qualified Language.PlutusTx          as PlutusTx
-import qualified Language.PlutusTx.Builtins as Builtins
-import           Language.PlutusTx.Lift     (makeLift)
-import qualified Language.PlutusTx.Prelude  as P
-import           Plutus.V1.Ledger.Bytes     (LedgerBytes (..))
-import qualified Plutus.V1.Ledger.Bytes     as KB
-import           Plutus.V1.Ledger.Orphans   ()
+import           GHC.Generics              (Generic)
+import           Plutus.V1.Ledger.Bytes    (LedgerBytes (..))
+import qualified Plutus.V1.Ledger.Bytes    as KB
+import           Plutus.V1.Ledger.Orphans  ()
 import           Plutus.V1.Ledger.TxId
+import qualified PlutusTx                  as PlutusTx
+import qualified PlutusTx.Builtins         as Builtins
+import           PlutusTx.Lift             (makeLift)
+import qualified PlutusTx.Prelude          as P
 
 -- | A cryptographic public key.
 newtype PubKey = PubKey { getPubKey :: LedgerBytes }

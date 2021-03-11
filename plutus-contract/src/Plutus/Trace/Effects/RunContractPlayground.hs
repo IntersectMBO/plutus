@@ -35,7 +35,7 @@ import           Control.Monad.Freer.State               (State, gets, modify)
 import           Control.Monad.Freer.TH                  (makeEffect)
 import qualified Data.Aeson                              as JSON
 import           Data.Map                                (Map)
-import           Language.Plutus.Contract                (Contract (..), ContractInstanceId, EndpointDescription (..),
+import           Plutus.Contract                         (Contract (..), ContractInstanceId, EndpointDescription (..),
                                                           HasBlockchainActions)
 import           Plutus.Trace.Effects.ContractInstanceId (ContractInstanceIdEff, nextId)
 import           Plutus.Trace.Effects.RunContract        (startContractThread)

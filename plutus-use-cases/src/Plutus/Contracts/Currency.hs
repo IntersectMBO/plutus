@@ -13,7 +13,7 @@
 {-# OPTIONS_GHC -fno-ignore-interface-pragmas #-}
 -- | Implements a custom currency with a monetary policy that allows
 --   the forging of a fixed amount of units.
-module Language.PlutusTx.Coordination.Contracts.Currency(
+module Plutus.Contracts.Currency(
       Currency(..)
     , CurrencySchema
     , CurrencyError(..)
@@ -29,30 +29,30 @@ module Language.PlutusTx.Coordination.Contracts.Currency(
     ) where
 
 import           Control.Lens
-import           Language.PlutusTx.Coordination.Contracts.PubKey (AsPubKeyError (..), PubKeyError)
-import qualified Language.PlutusTx.Coordination.Contracts.PubKey as PK
-import           Language.PlutusTx.Prelude                       hiding (Monoid (..), Semigroup (..))
+import           Plutus.Contracts.PubKey (AsPubKeyError (..), PubKeyError)
+import qualified Plutus.Contracts.PubKey as PK
+import           PlutusTx.Prelude        hiding (Monoid (..), Semigroup (..))
 
-import           Language.Plutus.Contract                        as Contract
+import           Plutus.Contract         as Contract
 
-import qualified Language.PlutusTx                               as PlutusTx
-import qualified Language.PlutusTx.AssocMap                      as AssocMap
-import           Ledger                                          (CurrencySymbol, PubKeyHash, TxId, TxOutRef (..),
-                                                                  pubKeyHash, scriptCurrencySymbol, txId)
-import qualified Ledger.Ada                                      as Ada
-import qualified Ledger.Constraints                              as Constraints
-import qualified Ledger.Contexts                                 as V
+import           Ledger                  (CurrencySymbol, PubKeyHash, TxId, TxOutRef (..), pubKeyHash,
+                                          scriptCurrencySymbol, txId)
+import qualified Ledger.Ada              as Ada
+import qualified Ledger.Constraints      as Constraints
+import qualified Ledger.Contexts         as V
 import           Ledger.Scripts
-import qualified Ledger.Typed.Scripts                            as Scripts
-import           Ledger.Value                                    (TokenName, Value)
-import qualified Ledger.Value                                    as Value
+import qualified Ledger.Typed.Scripts    as Scripts
+import           Ledger.Value            (TokenName, Value)
+import qualified Ledger.Value            as Value
+import qualified PlutusTx                as PlutusTx
+import qualified PlutusTx.AssocMap       as AssocMap
 
-import           Data.Aeson                                      (FromJSON, ToJSON)
-import qualified Data.Map                                        as Map
-import           GHC.Generics                                    (Generic)
-import           Prelude                                         (Semigroup (..))
+import           Data.Aeson              (FromJSON, ToJSON)
+import qualified Data.Map                as Map
+import           GHC.Generics            (Generic)
+import           Prelude                 (Semigroup (..))
 import qualified Prelude
-import           Schema                                          (ToSchema)
+import           Schema                  (ToSchema)
 
 {-# ANN module ("HLint: ignore Use uncurry" :: String) #-}
 

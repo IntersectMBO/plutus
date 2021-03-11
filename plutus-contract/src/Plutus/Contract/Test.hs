@@ -15,11 +15,11 @@
 {-# LANGUAGE TypeSynonymInstances #-}
 {-# LANGUAGE UndecidableInstances #-}
 -- | Testing contracts with HUnit and Tasty
-module Language.Plutus.Contract.Test(
+module Plutus.Contract.Test(
       module X
     , TracePredicate
     , ContractConstraints
-    , Language.Plutus.Contract.Test.not
+    , Plutus.Contract.Test.not
     , (.&&.)
     -- * Assertions
     , endpointAvailable
@@ -59,67 +59,67 @@ module Language.Plutus.Contract.Test(
     , emulatorConfig
     ) where
 
-import           Control.Applicative                             (liftA2)
-import           Control.Foldl                                   (FoldM)
-import qualified Control.Foldl                                   as L
-import           Control.Lens                                    (at, makeLenses, to, (&), (.~), (^.))
-import           Control.Monad                                   (guard, unless)
-import           Control.Monad.Freer                             (Eff, reinterpret, runM, sendM)
-import           Control.Monad.Freer.Error                       (Error, runError)
-import           Control.Monad.Freer.Extras.Log                  (LogLevel (..), LogMessage (..))
+import           Control.Applicative                    (liftA2)
+import           Control.Foldl                          (FoldM)
+import qualified Control.Foldl                          as L
+import           Control.Lens                           (at, makeLenses, to, (&), (.~), (^.))
+import           Control.Monad                          (guard, unless)
+import           Control.Monad.Freer                    (Eff, reinterpret, runM, sendM)
+import           Control.Monad.Freer.Error              (Error, runError)
+import           Control.Monad.Freer.Extras.Log         (LogLevel (..), LogMessage (..))
 import           Control.Monad.Freer.Reader
-import           Control.Monad.Freer.Writer                      (Writer (..), tell)
-import           Data.Foldable                                   (fold, toList, traverse_)
-import           Data.Maybe                                      (mapMaybe)
-import           Data.Proxy                                      (Proxy (..))
-import           Data.Row                                        (Forall, HasType)
-import           Data.String                                     (IsString (..))
-import qualified Data.Text                                       as Text
+import           Control.Monad.Freer.Writer             (Writer (..), tell)
+import           Data.Foldable                          (fold, toList, traverse_)
+import           Data.Maybe                             (mapMaybe)
+import           Data.Proxy                             (Proxy (..))
+import           Data.Row                               (Forall, HasType)
+import           Data.String                            (IsString (..))
+import qualified Data.Text                              as Text
 import           Data.Text.Prettyprint.Doc
-import           Data.Text.Prettyprint.Doc.Render.Text           (renderStrict)
+import           Data.Text.Prettyprint.Doc.Render.Text  (renderStrict)
 import           Data.Void
-import           GHC.TypeLits                                    (KnownSymbol, Symbol, symbolVal)
+import           GHC.TypeLits                           (KnownSymbol, Symbol, symbolVal)
 
 
-import           Hedgehog                                        (Property, forAll, property)
+import           Hedgehog                               (Property, forAll, property)
 import qualified Hedgehog
-import qualified Test.Tasty.HUnit                                as HUnit
-import           Test.Tasty.Providers                            (TestTree)
+import qualified Test.Tasty.HUnit                       as HUnit
+import           Test.Tasty.Providers                   (TestTree)
 
-import           Language.Plutus.Contract.Effects.AwaitSlot      (SlotSymbol)
-import qualified Language.Plutus.Contract.Effects.AwaitSlot      as AwaitSlot
-import qualified Language.Plutus.Contract.Effects.ExposeEndpoint as Endpoints
-import qualified Language.Plutus.Contract.Effects.UtxoAt         as UtxoAt
-import qualified Language.Plutus.Contract.Effects.WatchAddress   as WatchAddress
-import           Language.Plutus.Contract.Effects.WriteTx        (HasWriteTx)
-import           Language.Plutus.Contract.Resumable              (Request (..), Response (..))
-import qualified Language.Plutus.Contract.Resumable              as State
-import           Language.Plutus.Contract.Types                  (Contract (..))
-import qualified Language.PlutusTx.Prelude                       as P
-import           Ledger.Constraints.OffChain                     (UnbalancedTx)
-import           Ledger.Tx                                       (Tx)
+import           Ledger.Constraints.OffChain            (UnbalancedTx)
+import           Ledger.Tx                              (Tx)
+import           Plutus.Contract.Effects.AwaitSlot      (SlotSymbol)
+import qualified Plutus.Contract.Effects.AwaitSlot      as AwaitSlot
+import qualified Plutus.Contract.Effects.ExposeEndpoint as Endpoints
+import qualified Plutus.Contract.Effects.UtxoAt         as UtxoAt
+import qualified Plutus.Contract.Effects.WatchAddress   as WatchAddress
+import           Plutus.Contract.Effects.WriteTx        (HasWriteTx)
+import           Plutus.Contract.Resumable              (Request (..), Response (..))
+import qualified Plutus.Contract.Resumable              as State
+import           Plutus.Contract.Types                  (Contract (..))
+import qualified PlutusTx.Prelude                       as P
 
-import           Ledger.Address                                  (Address)
-import           Ledger.Generators                               (GeneratorModel, Mockchain (..))
-import qualified Ledger.Generators                               as Gen
-import           Ledger.Index                                    (ScriptValidationEvent, ValidationError)
-import           Ledger.Slot                                     (Slot)
-import           Ledger.Value                                    (Value)
-import           Wallet.Emulator                                 (EmulatorEvent, EmulatorTimeEvent)
+import           Ledger.Address                         (Address)
+import           Ledger.Generators                      (GeneratorModel, Mockchain (..))
+import qualified Ledger.Generators                      as Gen
+import           Ledger.Index                           (ScriptValidationEvent, ValidationError)
+import           Ledger.Slot                            (Slot)
+import           Ledger.Value                           (Value)
+import           Wallet.Emulator                        (EmulatorEvent, EmulatorTimeEvent)
 
-import           Language.Plutus.Contract.Schema                 (Event (..), Handlers (..), Input, Output)
-import           Language.Plutus.Contract.Trace                  as X
-import           Plutus.Trace                                    (defaultEmulatorConfig)
-import           Plutus.Trace.Emulator                           (EmulatorConfig (..), EmulatorTrace, runEmulatorStream)
-import           Plutus.Trace.Emulator.Types                     (ContractConstraints, ContractInstanceLog,
-                                                                  ContractInstanceTag, UserThreadMsg)
-import qualified Streaming                                       as S
-import qualified Streaming.Prelude                               as S
-import           Wallet.Emulator.Chain                           (ChainEvent)
-import           Wallet.Emulator.Folds                           (EmulatorFoldErr, Outcome (..), postMapM)
-import qualified Wallet.Emulator.Folds                           as Folds
-import           Wallet.Emulator.Stream                          (filterLogLevel, foldEmulatorStreamM,
-                                                                  initialChainState, initialDist, takeUntilSlot)
+import           Plutus.Contract.Schema                 (Event (..), Handlers (..), Input, Output)
+import           Plutus.Contract.Trace                  as X
+import           Plutus.Trace                           (defaultEmulatorConfig)
+import           Plutus.Trace.Emulator                  (EmulatorConfig (..), EmulatorTrace, runEmulatorStream)
+import           Plutus.Trace.Emulator.Types            (ContractConstraints, ContractInstanceLog, ContractInstanceTag,
+                                                         UserThreadMsg)
+import qualified Streaming                              as S
+import qualified Streaming.Prelude                      as S
+import           Wallet.Emulator.Chain                  (ChainEvent)
+import           Wallet.Emulator.Folds                  (EmulatorFoldErr, Outcome (..), postMapM)
+import qualified Wallet.Emulator.Folds                  as Folds
+import           Wallet.Emulator.Stream                 (filterLogLevel, foldEmulatorStreamM, initialChainState,
+                                                         initialDist, takeUntilSlot)
 
 type TracePredicate = FoldM (Eff '[Reader InitialDistribution, Error EmulatorFoldErr, Writer (Doc Void)]) EmulatorEvent Bool
 

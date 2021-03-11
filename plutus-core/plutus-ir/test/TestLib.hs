@@ -14,26 +14,26 @@ import           PlcTestUtils
 import           PlutusPrelude
 
 import           Control.Exception
-import           Control.Lens                 hiding (op, transform)
+import           Control.Lens         hiding (op, transform)
 import           Control.Monad.Except
 import           Control.Monad.Morph
-import           Control.Monad.Reader         as Reader
+import           Control.Monad.Reader as Reader
 
-import qualified Language.PlutusCore          as PLC
-import qualified Language.PlutusCore.Constant as PLC
-import           Language.PlutusCore.Name
-import           Language.PlutusCore.Pretty
-import           Language.PlutusCore.Quote
-import           Language.PlutusIR            as PIR
-import           Language.PlutusIR.Compiler   as PIR
-import           Language.PlutusIR.Parser     as Parser
-import           Language.PlutusIR.TypeCheck
-import qualified Language.UntypedPlutusCore   as UPLC
-import           System.FilePath              (joinPath, (</>))
+import qualified PlutusCore           as PLC
+import qualified PlutusCore.Constant  as PLC
+import           PlutusCore.Name
+import           PlutusCore.Pretty
+import           PlutusCore.Quote
+import           PlutusIR             as PIR
+import           PlutusIR.Compiler    as PIR
+import           PlutusIR.Parser      as Parser
+import           PlutusIR.TypeCheck
+import           System.FilePath      (joinPath, (</>))
 import           Text.Megaparsec.Pos
+import qualified UntypedPlutusCore    as UPLC
 
-import qualified Data.Text                    as T
-import qualified Data.Text.IO                 as T
+import qualified Data.Text            as T
+import qualified Data.Text.IO         as T
 
 
 instance ( PLC.GShow uni, PLC.GEq uni, PLC.ToBuiltinMeaning uni fun

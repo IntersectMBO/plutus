@@ -2,7 +2,7 @@
 
 {-# LANGUAGE GADTs #-}
 
-module Language.PlutusCore.Constant.Make
+module PlutusCore.Constant.Make
     ( toBoundsInt
     , makeBuiltinInt
     , makeBuiltinBS
@@ -13,15 +13,15 @@ module Language.PlutusCore.Constant.Make
     , unsafeMakeBuiltin
     ) where
 
-import           Language.PlutusCore.Constant.Typed
-import           Language.PlutusCore.Name
-import           Language.PlutusCore.Quote
-import           Language.PlutusCore.StdLib.Data.Bool
-import           Language.PlutusCore.Type
+import           PlutusCore.Constant.Typed
+import           PlutusCore.Name
+import           PlutusCore.Quote
+import           PlutusCore.StdLib.Data.Bool
+import           PlutusCore.Type
 import           PlutusPrelude
 
-import           Data.Bits                            (bit)
-import qualified Data.ByteString.Lazy                 as BSL
+import           Data.Bits                   (bit)
+import qualified Data.ByteString.Lazy        as BSL
 import           Data.Maybe
 
 -- | Return the @[-2^(8s - 1), 2^(8s - 1))@ bounds for integers of a given 'Size'.

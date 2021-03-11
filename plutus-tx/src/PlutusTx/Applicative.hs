@@ -1,12 +1,12 @@
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
-module Language.PlutusTx.Applicative where
+module PlutusTx.Applicative where
 
-import           Control.Applicative       (Const (..))
-import           Data.Functor.Identity     (Identity (..))
-import           Language.PlutusTx.Functor
-import           Language.PlutusTx.Monoid  (Monoid (..), mappend)
-import           Prelude                   (Bool, Either (..), Maybe (..))
+import           Control.Applicative   (Const (..))
+import           Data.Functor.Identity (Identity (..))
+import           PlutusTx.Functor
+import           PlutusTx.Monoid       (Monoid (..), mappend)
+import           Prelude               (Bool, Either (..), Maybe (..))
 
 {-# ANN module "HLint: ignore" #-}
 

@@ -3,7 +3,7 @@
 {-# LANGUAGE GADTs      #-}
 {-# LANGUAGE RankNTypes #-}
 
-module Language.PlutusCore.Generators.Internal.Utils
+module PlutusCore.Generators.Internal.Utils
     ( liftT
     , generalizeT
     , hoistSupply
@@ -17,7 +17,7 @@ module Language.PlutusCore.Generators.Internal.Utils
     , prettyPlcErrorString
     ) where
 
-import           Language.PlutusCore.Pretty
+import           PlutusCore.Pretty
 
 import           Control.Monad.Morph
 import           Control.Monad.Reader

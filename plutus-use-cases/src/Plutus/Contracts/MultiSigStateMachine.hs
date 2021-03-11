@@ -19,7 +19,7 @@
 {-# OPTIONS_GHC -fno-specialise #-}
 -- | A multisig contract written as a state machine.
 --   $multisig
-module Language.PlutusTx.Coordination.Contracts.MultiSigStateMachine(
+module Plutus.Contracts.MultiSigStateMachine(
       Params(..)
     , Payment(..)
     , State
@@ -30,26 +30,26 @@ module Language.PlutusTx.Coordination.Contracts.MultiSigStateMachine(
     , contract
     ) where
 
-import           Control.Lens                          (makeClassyPrisms)
-import           Control.Monad                         (forever)
-import           Data.Aeson                            (FromJSON, ToJSON)
-import           GHC.Generics                          (Generic)
-import           Ledger                                (PubKeyHash, Slot, pubKeyHash)
-import           Ledger.Constraints                    (TxConstraints)
-import qualified Ledger.Constraints                    as Constraints
-import           Ledger.Contexts                       (TxInfo (..), ValidatorCtx (..))
-import qualified Ledger.Contexts                       as Validation
-import qualified Ledger.Interval                       as Interval
-import qualified Ledger.Typed.Scripts                  as Scripts
-import           Ledger.Value                          (Value)
-import qualified Ledger.Value                          as Value
+import           Control.Lens                 (makeClassyPrisms)
+import           Control.Monad                (forever)
+import           Data.Aeson                   (FromJSON, ToJSON)
+import           GHC.Generics                 (Generic)
+import           Ledger                       (PubKeyHash, Slot, pubKeyHash)
+import           Ledger.Constraints           (TxConstraints)
+import qualified Ledger.Constraints           as Constraints
+import           Ledger.Contexts              (TxInfo (..), ValidatorCtx (..))
+import qualified Ledger.Contexts              as Validation
+import qualified Ledger.Interval              as Interval
+import qualified Ledger.Typed.Scripts         as Scripts
+import           Ledger.Value                 (Value)
+import qualified Ledger.Value                 as Value
 
-import           Language.Plutus.Contract
-import           Language.Plutus.Contract.StateMachine (AsSMContractError, State (..), StateMachine (..),
-                                                        TransitionResult (..), Void)
-import qualified Language.Plutus.Contract.StateMachine as SM
-import qualified Language.PlutusTx                     as PlutusTx
-import           Language.PlutusTx.Prelude             hiding (Applicative (..))
+import           Plutus.Contract
+import           Plutus.Contract.StateMachine (AsSMContractError, State (..), StateMachine (..), TransitionResult (..),
+                                               Void)
+import qualified Plutus.Contract.StateMachine as SM
+import qualified PlutusTx                     as PlutusTx
+import           PlutusTx.Prelude             hiding (Applicative (..))
 
 --   $multisig
 --   The n-out-of-m multisig contract works like a joint account of
@@ -58,7 +58,7 @@ import           Language.PlutusTx.Prelude             hiding (Applicative (..))
 --   and approval takes the form of signatures on transactions.
 --
 --   The multisig contract in
---   'Language.PlutusTx.Coordination.Contracts.MultiSig' expects n signatures on
+--   'Plutus.Contracts.MultiSig' expects n signatures on
 --   a single transaction. This requires an off-chain communication channel. The
 --   multisig contract implemented in this module uses a proposal system that
 --   allows participants to propose payments and attach their signatures to

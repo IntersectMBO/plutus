@@ -10,29 +10,29 @@
 {-# LANGUAGE TypeFamilies       #-}
 {-# LANGUAGE TypeOperators      #-}
 -- | The Atala Mirror application that initialises the state machine
-module Language.PlutusTx.Coordination.Contracts.Prism.Mirror(
+module Plutus.Contracts.Prism.Mirror(
     MirrorSchema
     , CredentialOwnerReference(..)
     , MirrorError(..)
     , mirror
     ) where
 
-import           Control.Monad                                               (forever, void)
-import           Data.Aeson                                                  (FromJSON, ToJSON)
-import           GHC.Generics                                                (Generic)
-import           Language.Plutus.Contract
-import           Language.Plutus.Contract.StateMachine                       (SMContractError, runInitialise, runStep)
-import           Language.PlutusTx.Coordination.Contracts.Prism.Credential   (Credential (..), CredentialAuthority (..))
-import qualified Language.PlutusTx.Coordination.Contracts.Prism.Credential   as Credential
-import           Language.PlutusTx.Coordination.Contracts.Prism.StateMachine as StateMachine
-import           Ledger                                                      (txId)
-import qualified Ledger.Constraints                                          as Constraints
-import           Ledger.Crypto                                               (PubKeyHash, pubKeyHash)
-import qualified Ledger.Typed.Scripts                                        as Scripts
-import           Ledger.Value                                                (TokenName)
-import           Schema                                                      (ToSchema)
-import           Wallet.Emulator                                             (walletPubKey)
-import           Wallet.Emulator.Wallet                                      (Wallet)
+import           Control.Monad                       (forever, void)
+import           Data.Aeson                          (FromJSON, ToJSON)
+import           GHC.Generics                        (Generic)
+import           Ledger                              (txId)
+import qualified Ledger.Constraints                  as Constraints
+import           Ledger.Crypto                       (PubKeyHash, pubKeyHash)
+import qualified Ledger.Typed.Scripts                as Scripts
+import           Ledger.Value                        (TokenName)
+import           Plutus.Contract
+import           Plutus.Contract.StateMachine        (SMContractError, runInitialise, runStep)
+import           Plutus.Contracts.Prism.Credential   (Credential (..), CredentialAuthority (..))
+import qualified Plutus.Contracts.Prism.Credential   as Credential
+import           Plutus.Contracts.Prism.StateMachine as StateMachine
+import           Schema                              (ToSchema)
+import           Wallet.Emulator                     (walletPubKey)
+import           Wallet.Emulator.Wallet              (Wallet)
 
 -- | Reference to a credential tied to a specific owner (public key address).
 --   From this, and the public key of the Mirror instance, we can compute the

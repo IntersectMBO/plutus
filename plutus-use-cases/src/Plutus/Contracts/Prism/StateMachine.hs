@@ -7,7 +7,7 @@
 {-# LANGUAGE TemplateHaskell    #-}
 {-# LANGUAGE TypeApplications   #-}
 -- | State machine that manages credential tokens
-module Language.PlutusTx.Coordination.Contracts.Prism.StateMachine(
+module Plutus.Contracts.Prism.StateMachine(
     IDState(..)
     , IDAction(..)
     , UserCredential(..)
@@ -16,23 +16,22 @@ module Language.PlutusTx.Coordination.Contracts.Prism.StateMachine(
     , mkMachineClient
     ) where
 
-import           Data.Aeson                                                (FromJSON, ToJSON)
-import           Data.Hashable                                             (Hashable)
-import           GHC.Generics                                              (Generic)
-import           Language.Plutus.Contract.StateMachine                     (State (..), StateMachine (..),
-                                                                            StateMachineClient (..),
-                                                                            StateMachineInstance (..), Void)
-import qualified Language.Plutus.Contract.StateMachine                     as StateMachine
-import qualified Language.PlutusTx                                         as PlutusTx
-import           Language.PlutusTx.Coordination.Contracts.Prism.Credential (Credential (..), CredentialAuthority (..))
-import qualified Language.PlutusTx.Coordination.Contracts.Prism.Credential as Credential
-import           Language.PlutusTx.Prelude
-import qualified Ledger.Constraints                                        as Constraints
-import           Ledger.Constraints.TxConstraints                          (TxConstraints)
-import           Ledger.Crypto                                             (PubKeyHash)
-import qualified Ledger.Typed.Scripts                                      as Scripts
-import           Ledger.Value                                              (TokenName, Value)
-import qualified Prelude                                                   as Haskell
+import           Data.Aeson                        (FromJSON, ToJSON)
+import           Data.Hashable                     (Hashable)
+import           GHC.Generics                      (Generic)
+import qualified Ledger.Constraints                as Constraints
+import           Ledger.Constraints.TxConstraints  (TxConstraints)
+import           Ledger.Crypto                     (PubKeyHash)
+import qualified Ledger.Typed.Scripts              as Scripts
+import           Ledger.Value                      (TokenName, Value)
+import           Plutus.Contract.StateMachine      (State (..), StateMachine (..), StateMachineClient (..),
+                                                    StateMachineInstance (..), Void)
+import qualified Plutus.Contract.StateMachine      as StateMachine
+import           Plutus.Contracts.Prism.Credential (Credential (..), CredentialAuthority (..))
+import qualified Plutus.Contracts.Prism.Credential as Credential
+import qualified PlutusTx                          as PlutusTx
+import           PlutusTx.Prelude
+import qualified Prelude                           as Haskell
 
 data IDState =
     Active -- ^ The credential is active and can be used in transactions

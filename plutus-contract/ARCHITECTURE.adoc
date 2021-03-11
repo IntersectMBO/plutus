@@ -7,10 +7,10 @@ replace much of it.
 
 Noteworthy modules:
 
-* `Language.Plutus.Contract`: Exports the `Contract` type which encodes the client (off-chain) part of Plutus contracts, including blockchain queries, user-facing endpoints, and the ability to submit transactions to the ledger
-* `Language.Plutus.Contract.StateMachine`: State machine client library, building on the `Contract` type and on the (mostly) on-chain code in `Language.PlutusTx.StateMachine`
-* `Language.Plutus.Contract.Trace`: The `ContractTrace` type for describing sequences of emulator actions that can be used in the Playgound and in unit tests.
-* `Language.Plutus.Contract.App`: Exposes a wrapper to turn `Contract` values into standalone executables, to be consumed by the SCB
+* `Contract`: Exports the `Contract` type which encodes the client (off-chain) part of Plutus contracts, including blockchain queries, user-facing endpoints, and the ability to submit transactions to the ledger
+* `Contract.StateMachine`: State machine client library, building on the `Contract` type and on the (mostly) on-chain code in `PlutusTx.StateMachine`
+* `Contract.Trace`: The `ContractTrace` type for describing sequences of emulator actions that can be used in the Playgound and in unit tests.
+* `Contract.App`: Exposes a wrapper to turn `Contract` values into standalone executables, to be consumed by the SCB
 
 It also defines the chain emulator, which is used for tests, and to back
 the simulations in the Plutus Playground.

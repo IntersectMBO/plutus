@@ -1,17 +1,17 @@
 {-# LANGUAGE TemplateHaskell #-}
-module Language.PlutusTx.IsData.TH (unstableMakeIsData, makeIsDataIndexed) where
+module PlutusTx.IsData.TH (unstableMakeIsData, makeIsDataIndexed) where
 
 import           Data.Foldable
 import           Data.Traversable
 
-import qualified Language.Haskell.TH            as TH
-import qualified Language.Haskell.TH.Datatype   as TH
+import qualified Language.Haskell.TH          as TH
+import qualified Language.Haskell.TH.Datatype as TH
 
-import qualified Language.PlutusTx.Applicative  as PlutusTx
-import           Language.PlutusTx.Data
-import qualified Language.PlutusTx.Eq           as PlutusTx
+import qualified PlutusTx.Applicative         as PlutusTx
+import           PlutusTx.Data
+import qualified PlutusTx.Eq                  as PlutusTx
 
-import           Language.PlutusTx.IsData.Class
+import           PlutusTx.IsData.Class
 
 toDataClause :: (TH.ConstructorInfo, Int) -> TH.Q TH.Clause
 toDataClause (TH.ConstructorInfo{TH.constructorName=name, TH.constructorFields=argTys}, index) = do

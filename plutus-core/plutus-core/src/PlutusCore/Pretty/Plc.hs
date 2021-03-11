@@ -8,7 +8,7 @@
 {-# LANGUAGE TypeFamilies          #-}
 {-# LANGUAGE UndecidableInstances  #-}
 
-module Language.PlutusCore.Pretty.Plc
+module PlutusCore.Pretty.Plc
     (
     -- * Global configuration
       CondensedErrors (..)
@@ -32,9 +32,9 @@ module Language.PlutusCore.Pretty.Plc
 
 import           PlutusPrelude
 
-import           Language.PlutusCore.Pretty.Classic
-import           Language.PlutusCore.Pretty.ConfigName
-import           Language.PlutusCore.Pretty.Readable
+import           PlutusCore.Pretty.Classic
+import           PlutusCore.Pretty.ConfigName
+import           PlutusCore.Pretty.Readable
 
 -- | Whether to pretty-print PLC errors in full or with some information omitted.
 data CondensedErrors

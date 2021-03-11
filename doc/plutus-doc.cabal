@@ -43,7 +43,7 @@ executable doc-doctests
     ghc-options: -pgmL unlit -optL--ghc -optL--language=haskell -optL--from=asciidoc -Wno-unused-imports
     build-tool-depends: unlit:unlit -any, doctest:doctest -any
     other-modules:
-      PlutusTx
+      BasicPlutusTx
       BasicValidators
       BasicPolicies
       BasicApps

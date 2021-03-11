@@ -3,7 +3,7 @@
 {-# LANGUAGE TypeFamilies     #-}
 {-# LANGUAGE TypeOperators    #-}
 
-module Language.PlutusTx.Evaluation
+module PlutusTx.Evaluation
     ( evaluateCek
     , unsafeEvaluateCek
     , evaluateCekTrace
@@ -15,14 +15,14 @@ module Language.PlutusTx.Evaluation
     )
 where
 
-import           Language.PlutusCore.Builtins
-import           Language.PlutusCore.Evaluation.Machine.ExMemory
-import           Language.PlutusCore.Name
-import           Language.PlutusCore.Universe
+import           PlutusCore.Builtins
+import           PlutusCore.Evaluation.Machine.ExMemory
+import           PlutusCore.Name
+import           PlutusCore.Universe
 
-import           Language.UntypedPlutusCore
-import           Language.UntypedPlutusCore.Evaluation.Machine.Cek hiding (evaluateCek, unsafeEvaluateCek)
-import qualified Language.UntypedPlutusCore.Evaluation.Machine.Cek as Cek
+import           UntypedPlutusCore
+import           UntypedPlutusCore.Evaluation.Machine.Cek hiding (evaluateCek, unsafeEvaluateCek)
+import qualified UntypedPlutusCore.Evaluation.Machine.Cek as Cek
 
 -- | Evaluate a program in the CEK machine with the usual string dynamic builtins.
 evaluateCek

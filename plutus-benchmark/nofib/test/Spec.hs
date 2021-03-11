@@ -9,24 +9,23 @@ run to completion. -}
 
 module Main where
 
-import qualified Plutus.Benchmark.Clausify                         as Clausify
-import qualified Plutus.Benchmark.Knights                          as Knights
-import           Plutus.Benchmark.Prime                            (Result (Composite, Prime))
-import qualified Plutus.Benchmark.Prime                            as Prime
-import qualified Plutus.Benchmark.Queens                           as Queens
+import qualified Plutus.Benchmark.Clausify                as Clausify
+import qualified Plutus.Benchmark.Knights                 as Knights
+import           Plutus.Benchmark.Prime                   (Result (Composite, Prime))
+import qualified Plutus.Benchmark.Prime                   as Prime
+import qualified Plutus.Benchmark.Queens                  as Queens
 
 import           Control.Exception
 import           Control.Monad.Except
-import qualified Language.PlutusCore                               as PLC
-import           Language.PlutusCore.Builtins
-import           Language.PlutusCore.Universe                      (DefaultUni)
-import qualified Language.PlutusTx                                 as Tx
-import qualified Language.UntypedPlutusCore                        as UPLC
-import           Language.UntypedPlutusCore.Evaluation.Machine.Cek as UPLC (EvaluationResult (..),
-                                                                            unsafeEvaluateCekNoEmit)
+import qualified PlutusCore                               as PLC
+import           PlutusCore.Builtins
+import           PlutusCore.Universe                      (DefaultUni)
+import qualified PlutusTx                                 as Tx
 import           Test.Tasty
 import           Test.Tasty.HUnit
 import           Test.Tasty.QuickCheck
+import qualified UntypedPlutusCore                        as UPLC
+import           UntypedPlutusCore.Evaluation.Machine.Cek as UPLC (EvaluationResult (..), unsafeEvaluateCekNoEmit)
 
 ---------------- Evaluation ----------------
 

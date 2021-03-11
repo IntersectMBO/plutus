@@ -2,19 +2,19 @@
 
 {-# LANGUAGE OverloadedStrings #-}
 
-module Language.PlutusCore.StdLib.Meta
+module PlutusCore.StdLib.Meta
     ( metaIntegerToNat
     , metaEitherToSum
     , metaListToList
     ) where
 
-import           Language.PlutusCore.Core
-import           Language.PlutusCore.MkPlc
-import           Language.PlutusCore.Name
+import           PlutusCore.Core
+import           PlutusCore.MkPlc
+import           PlutusCore.Name
 
-import           Language.PlutusCore.StdLib.Data.List
-import           Language.PlutusCore.StdLib.Data.Nat  as Plc
-import           Language.PlutusCore.StdLib.Data.Sum
+import           PlutusCore.StdLib.Data.List
+import           PlutusCore.StdLib.Data.Nat  as Plc
+import           PlutusCore.StdLib.Data.Sum
 
 -- | Convert an 'Integer' to a @nat@. TODO: convert PLC's @integer@ to @nat@ instead.
 metaIntegerToNat :: TermLike term TyName Name uni fun => Integer -> term ()

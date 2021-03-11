@@ -2,7 +2,7 @@
 -- It should only contain those generators that can't be reused from PLC
 -- (PIR-exclusive constructs, Term, and Program)
 {-# LANGUAGE OverloadedStrings #-}
-module Language.PlutusIR.Generators.AST
+module PlutusIR.Generators.AST
     ( module Export
     , genProgram
     , genTerm
@@ -13,17 +13,17 @@ module Language.PlutusIR.Generators.AST
     , genRecursivity
     ) where
 
-import           Language.PlutusIR
+import           PlutusIR
 
-import qualified Language.PlutusCore.Builtins       as PLC
-import           Language.PlutusCore.Generators.AST as Export (AstGen, genBuiltin, genConstant, genKind, genVersion,
-                                                               runAstGen, simpleRecursive)
-import qualified Language.PlutusCore.Generators.AST as PLC
-import qualified Language.PlutusCore.Universe       as PLC
+import qualified PlutusCore.Builtins       as PLC
+import           PlutusCore.Generators.AST as Export (AstGen, genBuiltin, genConstant, genKind, genVersion, runAstGen,
+                                                      simpleRecursive)
+import qualified PlutusCore.Generators.AST as PLC
+import qualified PlutusCore.Universe       as PLC
 
-import           Hedgehog                           hiding (Var)
-import qualified Hedgehog.Gen                       as Gen
-import qualified Hedgehog.Range                     as Range
+import           Hedgehog                  hiding (Var)
+import qualified Hedgehog.Gen              as Gen
+import qualified Hedgehog.Range            as Range
 
 genName :: PLC.AstGen Name
 genName = Gen.filterT (not . isPirKw . nameString) PLC.genName where

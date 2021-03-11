@@ -5,7 +5,7 @@
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 -- | Functions for working with the contract interface using typed transactions.
-module Language.Plutus.Contract.Typed.Tx where
+module Plutus.Contract.Typed.Tx where
 
 import           Ledger.Constraints               (TxConstraints)
 import           Ledger.Constraints.TxConstraints (addTxIn)

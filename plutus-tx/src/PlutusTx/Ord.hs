@@ -1,12 +1,12 @@
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
-module Language.PlutusTx.Ord (Ord(..), Max (..), Min (..)) where
+module PlutusTx.Ord (Ord(..), Max (..), Min (..)) where
 
-import qualified Language.PlutusTx.Builtins  as Builtins
-import           Language.PlutusTx.Data
-import           Language.PlutusTx.Eq
-import           Language.PlutusTx.Semigroup
+import qualified PlutusTx.Builtins  as Builtins
+import           PlutusTx.Data
+import           PlutusTx.Eq
+import           PlutusTx.Semigroup
 
-import           Prelude                     hiding (Eq (..), Ord (..), Semigroup (..))
+import           Prelude            hiding (Eq (..), Ord (..), Semigroup (..))
 
 {-# ANN module ("HLint: ignore"::String) #-}
 

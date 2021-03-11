@@ -5,21 +5,21 @@
 {-# LANGUAGE TypeApplications  #-}
 {-# LANGUAGE TypeOperators     #-}
 
-module Language.PlutusCore.StdLib.Data.Bool
+module PlutusCore.StdLib.Data.Bool
     ( bool
     , true
     , false
     , ifThenElse
     ) where
 
-import           Language.PlutusCore.Builtins
-import           Language.PlutusCore.Core
-import           Language.PlutusCore.MkPlc
-import           Language.PlutusCore.Name
-import           Language.PlutusCore.Quote
-import           Language.PlutusCore.Universe
+import           PlutusCore.Builtins
+import           PlutusCore.Core
+import           PlutusCore.MkPlc
+import           PlutusCore.Name
+import           PlutusCore.Quote
+import           PlutusCore.Universe
 
-import           Language.PlutusCore.StdLib.Data.Unit
+import           PlutusCore.StdLib.Data.Unit
 
 -- | 'Bool' as a PLC type.
 bool :: uni `Includes` Bool => Type TyName uni ()

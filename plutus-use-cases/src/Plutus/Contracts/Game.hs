@@ -20,7 +20,7 @@
 {-# LANGUAGE ViewPatterns               #-}
 {-# OPTIONS_GHC -fno-ignore-interface-pragmas #-}
 -- | A guessing game
-module Language.PlutusTx.Coordination.Contracts.Game
+module Plutus.Contracts.Game
     ( lock
     , guess
     , game
@@ -40,25 +40,25 @@ module Language.PlutusTx.Coordination.Contracts.Game
     , lockTrace
     ) where
 
-import           Control.Monad                   (void)
-import           Data.Aeson                      (FromJSON, ToJSON)
-import           GHC.Generics                    (Generic)
-import           Language.Plutus.Contract
-import           Language.Plutus.Contract.Schema ()
-import qualified Language.PlutusTx               as PlutusTx
-import           Language.PlutusTx.Prelude
-import           Ledger                          (Address, Validator, ValidatorCtx, Value)
-import qualified Ledger.Constraints              as Constraints
-import qualified Ledger.Typed.Scripts            as Scripts
-import           Plutus.Trace.Emulator           (EmulatorTrace)
-import qualified Plutus.Trace.Emulator           as Trace
-import           Schema                          (ToArgument, ToSchema)
-import           Wallet.Emulator                 (Wallet (..))
+import           Control.Monad          (void)
+import           Data.Aeson             (FromJSON, ToJSON)
+import           GHC.Generics           (Generic)
+import           Ledger                 (Address, Validator, ValidatorCtx, Value)
+import qualified Ledger.Constraints     as Constraints
+import qualified Ledger.Typed.Scripts   as Scripts
+import           Plutus.Contract
+import           Plutus.Contract.Schema ()
+import           Plutus.Trace.Emulator  (EmulatorTrace)
+import qualified Plutus.Trace.Emulator  as Trace
+import qualified PlutusTx               as PlutusTx
+import           PlutusTx.Prelude
+import           Schema                 (ToArgument, ToSchema)
+import           Wallet.Emulator        (Wallet (..))
 
-import qualified Ledger                          as Ledger
-import qualified Ledger.Ada                      as Ada
+import qualified Ledger                 as Ledger
+import qualified Ledger.Ada             as Ada
 
-import qualified Data.ByteString.Char8           as C
+import qualified Data.ByteString.Char8  as C
 import qualified Prelude
 
 newtype HashedString = HashedString ByteString deriving newtype PlutusTx.IsData

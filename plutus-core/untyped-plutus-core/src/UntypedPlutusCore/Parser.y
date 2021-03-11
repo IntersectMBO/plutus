@@ -8,7 +8,7 @@
 
 -- | This is a parser for untyped Plutus Core. It's largely a copy of the one for
 -- typed Plutus Core.
-module Language.UntypedPlutusCore.Parser
+module UntypedPlutusCore.Parser
     ( parseProgram
     , parseTerm
     , ParseError(..)
@@ -16,22 +16,22 @@ module Language.UntypedPlutusCore.Parser
 
 import PlutusPrelude
 
-import Language.PlutusCore.Parser.Internal
+import PlutusCore.Parser.Internal
 
-import Language.PlutusCore.Builtins
-import Language.PlutusCore.Constant.Typed
-import Language.PlutusCore.Error
-import Language.PlutusCore.Lexer.Type
-import Language.PlutusCore.Lexer
-import Language.PlutusCore.Mark
-import Language.PlutusCore.MkPlc           (mkTyBuiltin, mkConstant)
-import Language.PlutusCore.Name
-import Language.PlutusCore.Parsable
-import Language.PlutusCore.Quote
-import Language.PlutusCore.Universe
+import PlutusCore.Builtins
+import PlutusCore.Constant.Typed
+import PlutusCore.Error
+import PlutusCore.Lexer.Type
+import PlutusCore.Lexer
+import PlutusCore.Mark
+import PlutusCore.MkPlc           (mkTyBuiltin, mkConstant)
+import PlutusCore.Name
+import PlutusCore.Parsable
+import PlutusCore.Quote
+import PlutusCore.Universe
 
-import Language.UntypedPlutusCore.Core
-import Language.UntypedPlutusCore.Core.Type
+import UntypedPlutusCore.Core
+import UntypedPlutusCore.Core.Type
 
 import           Data.ByteString.Lazy      (ByteString)
 import qualified Data.List.NonEmpty        as NE

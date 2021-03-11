@@ -1,4 +1,4 @@
-module Language.PlutusCore.Subst
+module PlutusCore.Subst
     ( substTyVarA
     , substVarA
     , substTyVar
@@ -23,12 +23,12 @@ module Language.PlutusCore.Subst
 
 import           PlutusPrelude
 
-import           Language.PlutusCore.Core
-import           Language.PlutusCore.Name
+import           PlutusCore.Core
+import           PlutusCore.Name
 
 import           Control.Lens
-import           Data.Functor.Foldable    (cata)
-import           Data.Set                 as Set
+import           Data.Functor.Foldable (cata)
+import           Data.Set              as Set
 
 purely :: ((a -> Identity b) -> c -> Identity d) -> (a -> b) -> c -> d
 purely = coerce

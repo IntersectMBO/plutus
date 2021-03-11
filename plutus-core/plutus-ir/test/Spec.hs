@@ -17,14 +17,14 @@ import           ParserSpec
 import           TransformSpec
 import           TypeSpec
 
-import           Language.PlutusIR
-import           Language.PlutusIR.Parser hiding (Error)
+import           PlutusIR
+import           PlutusIR.Parser hiding (Error)
 
-import qualified Language.PlutusCore      as PLC
+import qualified PlutusCore      as PLC
 
 import           Test.Tasty
 
-import           Flat                     (flat, unflat)
+import           Flat            (flat, unflat)
 
 main :: IO ()
 main = defaultMain $ runTestNestedIn ["plutus-ir/test"] tests

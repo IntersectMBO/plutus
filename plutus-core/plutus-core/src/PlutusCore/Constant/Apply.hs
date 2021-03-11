@@ -2,15 +2,15 @@
 
 {-# LANGUAGE GADTs #-}
 
-module Language.PlutusCore.Constant.Apply
+module PlutusCore.Constant.Apply
     ( applyTypeSchemed
     ) where
 
-import           Language.PlutusCore.Constant.Dynamic.Emit
-import           Language.PlutusCore.Constant.Typed
-import           Language.PlutusCore.Evaluation.Machine.ExBudget
-import           Language.PlutusCore.Evaluation.Machine.Exception
-import           Language.PlutusCore.Evaluation.Result
+import           PlutusCore.Constant.Dynamic.Emit
+import           PlutusCore.Constant.Typed
+import           PlutusCore.Evaluation.Machine.ExBudget
+import           PlutusCore.Evaluation.Machine.Exception
+import           PlutusCore.Evaluation.Result
 
 import           Control.Monad.Except
 import           Data.Proxy

@@ -2,10 +2,10 @@
 {-# LANGUAGE TypeApplications #-}
 module HelloWorldApp where
 
-import qualified Data.Text                 as T
-import           Language.Plutus.Contract  hiding (when)
-import           Language.PlutusTx.Prelude
+import qualified Data.Text           as T
 import           Playground.Contract
+import           Plutus.Contract     hiding (when)
+import           PlutusTx.Prelude
 
 
 -- BLOCK1

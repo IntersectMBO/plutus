@@ -1,5 +1,5 @@
-module Language.PlutusTx.IsData (module Export) where
+module PlutusTx.IsData (module Export) where
 
-import           Language.PlutusTx.IsData.Class     as Export
-import           Language.PlutusTx.IsData.Instances ()
-import           Language.PlutusTx.IsData.TH        as Export
+import           PlutusTx.IsData.Class     as Export
+import           PlutusTx.IsData.Instances ()
+import           PlutusTx.IsData.TH        as Export

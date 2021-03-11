@@ -3,7 +3,7 @@
 {-# LANGUAGE PartialTypeSignatures #-}
 {-# LANGUAGE ScopedTypeVariables   #-}
 {-# LANGUAGE TypeOperators         #-}
-module Language.PlutusTx.Lift (
+module PlutusTx.Lift (
     makeLift,
     safeLift,
     safeLiftProgram,
@@ -15,35 +15,35 @@ module Language.PlutusTx.Lift (
     typeCheckAgainst,
     typeCode) where
 
-import           Language.PlutusTx.Code
-import           Language.PlutusTx.Lift.Class             (makeLift)
-import qualified Language.PlutusTx.Lift.Class             as Lift
-import           Language.PlutusTx.Lift.Instances         ()
+import           PlutusTx.Code
+import           PlutusTx.Lift.Class             (makeLift)
+import qualified PlutusTx.Lift.Class             as Lift
+import           PlutusTx.Lift.Instances         ()
 
 import           Data.Bifunctor
-import           Language.PlutusIR
-import qualified Language.PlutusIR                        as PIR
-import           Language.PlutusIR.Compiler
-import           Language.PlutusIR.Compiler.Definitions
-import qualified Language.PlutusIR.Error                  as PIR
-import qualified Language.PlutusIR.MkPir                  as PIR
+import           PlutusIR
+import qualified PlutusIR                        as PIR
+import           PlutusIR.Compiler
+import           PlutusIR.Compiler.Definitions
+import qualified PlutusIR.Error                  as PIR
+import qualified PlutusIR.MkPir                  as PIR
 
-import qualified Language.PlutusCore                      as PLC
-import qualified Language.PlutusCore.Constant             as PLC
-import           Language.PlutusCore.Pretty               (PrettyConst)
-import           Language.PlutusCore.Quote
-import qualified Language.PlutusCore.StdLib.Data.Function as PLC
+import qualified PlutusCore                      as PLC
+import qualified PlutusCore.Constant             as PLC
+import           PlutusCore.Pretty               (PrettyConst)
+import           PlutusCore.Quote
+import qualified PlutusCore.StdLib.Data.Function as PLC
 
-import qualified Language.UntypedPlutusCore               as UPLC
+import qualified UntypedPlutusCore               as UPLC
 
 import           Control.Exception
-import           Control.Lens                             hiding (lifted)
-import           Control.Monad.Except                     hiding (lift)
-import           Control.Monad.Reader                     hiding (lift)
+import           Control.Lens                    hiding (lifted)
+import           Control.Monad.Except            hiding (lift)
+import           Control.Monad.Reader            hiding (lift)
 
 import           Data.Proxy
 import           Data.Text.Prettyprint.Doc
-import qualified Data.Typeable                            as GHC
+import qualified Data.Typeable                   as GHC
 
 type Throwable uni fun =
     ( PLC.GShow uni, PLC.GEq uni, PLC.Closed uni, uni `PLC.Everywhere` PrettyConst, GHC.Typeable uni

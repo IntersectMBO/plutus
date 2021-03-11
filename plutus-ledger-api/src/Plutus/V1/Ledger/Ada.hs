@@ -35,12 +35,12 @@ import           Data.Aeson                       (FromJSON, ToJSON)
 import           Data.Tagged
 import           Data.Text.Prettyprint.Doc.Extras
 import           GHC.Generics                     (Generic)
-import qualified Language.PlutusTx                as PlutusTx
-import           Language.PlutusTx.Lift           (makeLift)
-import           Language.PlutusTx.Prelude        hiding (divide)
-import qualified Language.PlutusTx.Prelude        as P
 import           Plutus.V1.Ledger.Value           (CurrencySymbol, TokenName, Value)
 import qualified Plutus.V1.Ledger.Value           as TH
+import qualified PlutusTx                         as PlutusTx
+import           PlutusTx.Lift                    (makeLift)
+import           PlutusTx.Prelude                 hiding (divide)
+import qualified PlutusTx.Prelude                 as P
 
 {-# INLINABLE adaSymbol #-}
 -- | The 'CurrencySymbol' of the 'Ada' currency.

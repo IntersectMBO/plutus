@@ -7,7 +7,7 @@
 {-# LANGUAGE TypeFamilies           #-}
 {-# LANGUAGE UndecidableInstances   #-}
 
-module Language.UntypedPlutusCore.Evaluation.HOAS
+module UntypedPlutusCore.Evaluation.HOAS
     ( HTerm
     , UserHoasError (..)
     , InternalHoasError (..)
@@ -19,16 +19,16 @@ module Language.UntypedPlutusCore.Evaluation.HOAS
     , unsafeEvaluateHoas
     ) where
 
-import           Language.UntypedPlutusCore.Core
+import           UntypedPlutusCore.Core
 
-import           Language.PlutusCore.Constant                     hiding (lookupBuiltin)
-import           Language.PlutusCore.Evaluation.Machine.Exception
-import           Language.PlutusCore.Evaluation.Result
-import           Language.PlutusCore.Name
-import           Language.PlutusCore.Pretty
-import           Language.PlutusCore.Universe
+import           PlutusCore.Constant                     hiding (lookupBuiltin)
+import           PlutusCore.Evaluation.Machine.Exception
+import           PlutusCore.Evaluation.Result
+import           PlutusCore.Name
+import           PlutusCore.Pretty
+import           PlutusCore.Universe
 
-import           Control.Lens                                     (ix, (^?))
+import           Control.Lens                            (ix, (^?))
 import           Control.Lens.TH
 import           Control.Monad.Except
 import           Data.Array

@@ -1,11 +1,11 @@
 -- | Reexports from modules from the @Constant@ folder.
 
-module Language.PlutusCore.Constant
+module PlutusCore.Constant
     ( module Export
     ) where
 
-import           Language.PlutusCore.Constant.Apply        as Export
-import           Language.PlutusCore.Constant.Dynamic.Emit as Export
-import           Language.PlutusCore.Constant.Function     as Export
-import           Language.PlutusCore.Constant.Meaning      as Export
-import           Language.PlutusCore.Constant.Typed        as Export
+import           PlutusCore.Constant.Apply        as Export
+import           PlutusCore.Constant.Dynamic.Emit as Export
+import           PlutusCore.Constant.Function     as Export
+import           PlutusCore.Constant.Meaning      as Export
+import           PlutusCore.Constant.Typed        as Export

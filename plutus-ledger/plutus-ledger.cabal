@@ -110,7 +110,7 @@ library
     ghc-options: -fprint-potential-instances
 
     if flag(defer-plugin-errors)
-        ghc-options: -fplugin-opt Language.PlutusTx.Plugin:defer-errors
+        ghc-options: -fplugin-opt PlutusTx.Plugin:defer-errors
 
 test-suite plutus-ledger-test
     type: exitcode-stdio-1.0

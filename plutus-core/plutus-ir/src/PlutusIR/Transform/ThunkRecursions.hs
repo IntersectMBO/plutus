@@ -2,11 +2,11 @@
 {-# LANGUAGE LambdaCase       #-}
 -- | Implements a PIR-to-PIR transformation that makes all recursive term definitions
 -- compilable to PLC. See Note [Thunking recursions] for details.
-module Language.PlutusIR.Transform.ThunkRecursions (thunkRecursions) where
+module PlutusIR.Transform.ThunkRecursions (thunkRecursions) where
 
 import           PlutusPrelude
 
-import           Language.PlutusIR
+import           PlutusIR
 
 {- Note [Thunking recursions]
 Our fixpoint combinators in Plutus Core know how to handle mutually recursive values

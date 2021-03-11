@@ -8,7 +8,7 @@
 {-# LANGUAGE TemplateHaskell    #-}
 {-# LANGUAGE TypeApplications   #-}
 {-# LANGUAGE TypeOperators      #-}
-module Language.PlutusTx.Coordination.Contracts.ErrorHandling(
+module Plutus.Contracts.ErrorHandling(
     Schema
     , MyError(..)
     , AsMyError(..)
@@ -22,7 +22,7 @@ import           Data.Aeson               (FromJSON, ToJSON)
 import           Data.Text                (Text)
 import           GHC.Generics             (Generic)
 
-import           Language.Plutus.Contract
+import           Plutus.Contract
 
 -- $errorHandling
 -- Demonstrates how to deal with errors in Plutus contracts. We define a custom
@@ -51,7 +51,7 @@ makeClassyPrisms ''MyError
 
 instance AsContractError MyError where
     -- 'ContractError' is another error type. It is defined in
-    -- 'Language.Plutus.Contract.Request'. By making 'MyError' an
+    -- 'Plutus.Contract.Request'. By making 'MyError' an
     -- instance of 'AsContractError' we can handle 'ContractError's
     -- thrown by other contracts in our code (see 'catchContractError')
     _ContractError = _MyContractError

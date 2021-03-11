@@ -13,9 +13,9 @@ import           PlcTestUtils
 import           Plugin.Data.Spec
 import           Plugin.Primitives.Spec
 
-import qualified Language.PlutusTx.Builtins as Builtins
-import           Language.PlutusTx.Code
-import qualified Language.PlutusTx.Lift     as Lift
+import qualified PlutusTx.Builtins      as Builtins
+import           PlutusTx.Code
+import qualified PlutusTx.Lift          as Lift
 
 Lift.makeLift ''MyMonoData
 Lift.makeLift ''MyMonoRecord

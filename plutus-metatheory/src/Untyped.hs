@@ -2,12 +2,12 @@
 
 module Untyped where
 
-import           Language.PlutusCore.Builtins
-import           Language.PlutusCore.Universe
-import           Language.UntypedPlutusCore
+import           PlutusCore.Builtins
+import           PlutusCore.Universe
+import           UntypedPlutusCore
 
-import           Data.ByteString              as BS
-import           Data.Text                    as T
+import           Data.ByteString     as BS
+import           Data.Text           as T
 import           GHC.Natural
 
 

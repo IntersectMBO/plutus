@@ -5,7 +5,7 @@
 {-# LANGUAGE OverloadedStrings  #-}
 {-# LANGUAGE ViewPatterns       #-}
 
-module Language.PlutusTx.Data (Data (..)) where
+module PlutusTx.Data (Data (..)) where
 
 import           Codec.Serialise           (Serialise)
 import           Control.DeepSeq           (NFData)

@@ -1,4 +1,4 @@
-module Language.PlutusCore.Check.Uniques
+module PlutusCore.Check.Uniques
     ( checkProgram
     , checkTerm
     , checkType
@@ -6,10 +6,10 @@ module Language.PlutusCore.Check.Uniques
     , AsUniqueError (..)
     ) where
 
-import           Language.PlutusCore.Analysis.Definitions
-import           Language.PlutusCore.Core
-import           Language.PlutusCore.Error
-import           Language.PlutusCore.Name
+import           PlutusCore.Analysis.Definitions
+import           PlutusCore.Core
+import           PlutusCore.Error
+import           PlutusCore.Name
 
 import           Control.Monad.Error.Lens
 import           Control.Monad.Except

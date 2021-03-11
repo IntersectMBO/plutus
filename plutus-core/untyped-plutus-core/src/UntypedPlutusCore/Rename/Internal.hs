@@ -1,18 +1,18 @@
 -- | The internal module of the renamer that defines the actual algorithms,
 -- but not the user-facing API.
 
-module Language.UntypedPlutusCore.Rename.Internal
+module UntypedPlutusCore.Rename.Internal
     ( module Export
     , renameTermM
     , renameProgramM
     ) where
 
-import           Language.UntypedPlutusCore.Core
+import           UntypedPlutusCore.Core
 
-import           Language.PlutusCore.Core         (HasUniques)
-import           Language.PlutusCore.Name
-import           Language.PlutusCore.Quote
-import           Language.PlutusCore.Rename.Monad as Export
+import           PlutusCore.Core         (HasUniques)
+import           PlutusCore.Name
+import           PlutusCore.Quote
+import           PlutusCore.Rename.Monad as Export
 
 
 -- | Rename a 'Term' in the 'RenameM' monad.

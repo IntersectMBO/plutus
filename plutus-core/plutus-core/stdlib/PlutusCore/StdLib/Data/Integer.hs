@@ -4,17 +4,17 @@
 {-# LANGUAGE TypeApplications  #-}
 {-# LANGUAGE TypeOperators     #-}
 
-module Language.PlutusCore.StdLib.Data.Integer
+module PlutusCore.StdLib.Data.Integer
     ( integer
     , succInteger
     ) where
 
-import           Language.PlutusCore.Builtins
-import           Language.PlutusCore.Core
-import           Language.PlutusCore.MkPlc
-import           Language.PlutusCore.Name
-import           Language.PlutusCore.Quote
-import           Language.PlutusCore.Universe
+import           PlutusCore.Builtins
+import           PlutusCore.Core
+import           PlutusCore.MkPlc
+import           PlutusCore.Name
+import           PlutusCore.Quote
+import           PlutusCore.Universe
 
 integer :: uni `Includes` Integer => Type tyname uni ()
 integer = mkTyBuiltin @Integer ()

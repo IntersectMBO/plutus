@@ -4,18 +4,18 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE Rank2Types        #-}
 
-module Language.PlutusCore.StdLib.Type
+module PlutusCore.StdLib.Type
     ( RecursiveType (..)
     , makeRecursiveType
     ) where
 
 import           PlutusPrelude
 
-import           Language.PlutusCore.Core
-import           Language.PlutusCore.MkPlc
-import           Language.PlutusCore.Name
-import           Language.PlutusCore.Pretty
-import           Language.PlutusCore.Quote
+import           PlutusCore.Core
+import           PlutusCore.MkPlc
+import           PlutusCore.Name
+import           PlutusCore.Pretty
+import           PlutusCore.Quote
 
 {- Note [Arity of patterns functors]
 The arity of a pattern functor is the number of arguments the pattern functor receives in addition

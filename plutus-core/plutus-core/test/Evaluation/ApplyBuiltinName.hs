@@ -12,15 +12,15 @@ module Evaluation.ApplyBuiltinName
     ( test_applyStaticBuiltin
     ) where
 
-import           Language.PlutusCore
-import           Language.PlutusCore.Constant
-import           Language.PlutusCore.Evaluation.Machine.ExBudget
-import           Language.PlutusCore.Evaluation.Machine.ExBudgetingDefaults (defaultCostModel)
-import           Language.PlutusCore.Evaluation.Machine.Exception
-import           Language.PlutusCore.Generators
+import           PlutusCore
+import           PlutusCore.Constant
+import           PlutusCore.Evaluation.Machine.ExBudget
+import           PlutusCore.Evaluation.Machine.ExBudgetingDefaults (defaultCostModel)
+import           PlutusCore.Evaluation.Machine.Exception
+import           PlutusCore.Generators
 
 import           Control.Monad.Except
-import           Hedgehog                                                   hiding (Var)
+import           Hedgehog                                          hiding (Var)
 import           Test.Tasty
 import           Test.Tasty.Hedgehog
 

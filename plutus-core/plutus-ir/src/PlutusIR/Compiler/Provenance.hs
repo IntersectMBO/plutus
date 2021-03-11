@@ -2,15 +2,15 @@
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings     #-}
 -- | Module handling provenances of terms.
-module Language.PlutusIR.Compiler.Provenance where
+module PlutusIR.Compiler.Provenance where
 
-import           Language.PlutusIR
+import           PlutusIR
 
-import qualified Language.PlutusCore.Pretty as PLC
+import qualified PlutusCore.Pretty         as PLC
 
-import qualified Data.Set                   as S
-import           Data.Text.Prettyprint.Doc  ((<+>))
-import qualified Data.Text.Prettyprint.Doc  as PP
+import qualified Data.Set                  as S
+import           Data.Text.Prettyprint.Doc ((<+>))
+import qualified Data.Text.Prettyprint.Doc as PP
 
 -- | Indicates where a value comes from.
 --

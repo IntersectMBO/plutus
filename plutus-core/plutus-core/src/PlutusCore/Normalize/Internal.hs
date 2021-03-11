@@ -2,7 +2,7 @@
 
 {-# LANGUAGE TemplateHaskell #-}
 
-module Language.PlutusCore.Normalize.Internal
+module PlutusCore.Normalize.Internal
     ( NormalizeTypeT
     , runNormalizeTypeM
     , withExtendedTypeVarEnv
@@ -11,10 +11,10 @@ module Language.PlutusCore.Normalize.Internal
     , normalizeTypesInM
     ) where
 
-import           Language.PlutusCore.Core
-import           Language.PlutusCore.Name
-import           Language.PlutusCore.Quote
-import           Language.PlutusCore.Rename
+import           PlutusCore.Core
+import           PlutusCore.Name
+import           PlutusCore.Quote
+import           PlutusCore.Rename
 import           PlutusPrelude
 
 import           Control.Lens

@@ -5,13 +5,13 @@
 {-# LANGUAGE TypeApplications   #-}
 {-# LANGUAGE TypeFamilies       #-}
 {-# LANGUAGE TypeOperators      #-}
-module Language.PlutusTx.Coordination.Contracts.RPC where
+module Plutus.Contracts.RPC where
 
-import qualified Control.Monad                        as Monad
-import           Data.Aeson                           (FromJSON, ToJSON)
-import           GHC.Generics                         (Generic)
-import           Language.Plutus.Contract
-import           Language.Plutus.Contract.Effects.RPC
+import qualified Control.Monad               as Monad
+import           Data.Aeson                  (FromJSON, ToJSON)
+import           GHC.Generics                (Generic)
+import           Plutus.Contract
+import           Plutus.Contract.Effects.RPC
 
 data Adder
 

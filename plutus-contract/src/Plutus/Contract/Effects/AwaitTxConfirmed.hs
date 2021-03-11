@@ -9,17 +9,17 @@
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE TypeApplications    #-}
 {-# LANGUAGE TypeOperators       #-}
-module Language.Plutus.Contract.Effects.AwaitTxConfirmed where
+module Plutus.Contract.Effects.AwaitTxConfirmed where
 
-import           Data.Aeson                       (FromJSON, ToJSON)
+import           Data.Aeson                (FromJSON, ToJSON)
 import           Data.Row
 import           Data.Text.Prettyprint.Doc
-import           GHC.Generics                     (Generic)
-import           Ledger                           (TxId)
+import           GHC.Generics              (Generic)
+import           Ledger                    (TxId)
 
-import           Language.Plutus.Contract.Request (ContractRow, requestMaybe)
-import           Language.Plutus.Contract.Schema  (Event (..), Handlers (..), Input, Output)
-import           Language.Plutus.Contract.Types   (AsContractError, Contract)
+import           Plutus.Contract.Request   (ContractRow, requestMaybe)
+import           Plutus.Contract.Schema    (Event (..), Handlers (..), Input, Output)
+import           Plutus.Contract.Types     (AsContractError, Contract)
 
 type TxConfirmationSym = "tx-confirmation"
 

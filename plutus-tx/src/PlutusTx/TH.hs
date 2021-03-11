@@ -1,16 +1,16 @@
 {-# LANGUAGE DataKinds        #-}
 {-# LANGUAGE TemplateHaskell  #-}
 {-# LANGUAGE TypeApplications #-}
-module Language.PlutusTx.TH (
+module PlutusTx.TH (
     compile,
     compileUntyped) where
 
 import           Data.Proxy
-import           Language.PlutusTx.Code
-import           Language.PlutusTx.Plugin.Utils
+import           PlutusTx.Code
+import           PlutusTx.Plugin.Utils
 
-import qualified Language.Haskell.TH            as TH
-import qualified Language.Haskell.TH.Syntax     as TH
+import qualified Language.Haskell.TH        as TH
+import qualified Language.Haskell.TH.Syntax as TH
 
 
 -- | Compile a quoted Haskell expression into a corresponding Plutus Core program.
@@ -33,7 +33,7 @@ going to typecheck, and the result is always a 'CompiledCode', so that's also fi
 -- | Compile a quoted Haskell expression into a corresponding Plutus Core program.
 compileUntyped :: TH.Q TH.Exp -> TH.Q TH.Exp
 compileUntyped e = do
-    TH.addCorePlugin "Language.PlutusTx.Plugin"
+    TH.addCorePlugin "PlutusTx.Plugin"
     loc <- TH.location
     let locStr = TH.pprint loc
     -- See note [Typed TH]

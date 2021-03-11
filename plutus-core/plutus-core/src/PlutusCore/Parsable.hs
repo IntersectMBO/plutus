@@ -8,7 +8,7 @@ literal constants belonging to extensible built-in types without having to
 modify the main Plutus Core parser. We expect parseConstant . prettyConst to be
 the identity function. -}
 
-module Language.PlutusCore.Parsable
+module PlutusCore.Parsable
     (
      Parsable(..)
     )

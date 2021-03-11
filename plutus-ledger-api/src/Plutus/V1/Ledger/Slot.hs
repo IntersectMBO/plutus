@@ -29,9 +29,9 @@ import           GHC.Generics              (Generic)
 import qualified Prelude                   as Haskell
 
 
-import qualified Language.PlutusTx         as PlutusTx
-import           Language.PlutusTx.Lift    (makeLift)
-import           Language.PlutusTx.Prelude
+import qualified PlutusTx                  as PlutusTx
+import           PlutusTx.Lift             (makeLift)
+import           PlutusTx.Prelude
 
 import           Plutus.V1.Ledger.Interval
 

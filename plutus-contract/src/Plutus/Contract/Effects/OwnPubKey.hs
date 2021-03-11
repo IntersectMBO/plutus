@@ -10,7 +10,7 @@
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE TypeApplications    #-}
 {-# LANGUAGE TypeOperators       #-}
-module Language.Plutus.Contract.Effects.OwnPubKey where
+module Plutus.Contract.Effects.OwnPubKey where
 
 import           Data.Aeson                       (FromJSON, ToJSON, toJSON)
 import qualified Data.Aeson                       as JSON
@@ -22,9 +22,9 @@ import           Data.Text.Prettyprint.Doc.Extras
 import           GHC.Generics                     (Generic)
 import           Ledger.Crypto                    (PubKey)
 
-import           Language.Plutus.Contract.Request (ContractRow, requestMaybe)
-import           Language.Plutus.Contract.Schema  (Event (..), Handlers (..), Input, Output)
-import           Language.Plutus.Contract.Types   (AsContractError, Contract)
+import           Plutus.Contract.Request          (ContractRow, requestMaybe)
+import           Plutus.Contract.Schema           (Event (..), Handlers (..), Input, Output)
+import           Plutus.Contract.Types            (AsContractError, Contract)
 
 type OwnPubKeySym = "own-pubkey"
 

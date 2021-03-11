@@ -17,18 +17,18 @@ module Plutus.PAB.Effects.ContractTest.AtomicSwap(
     ) where
 
 import           Control.Lens
-import           Control.Monad                                   (void)
-import           Data.Aeson                                      (FromJSON, ToJSON)
-import           GHC.Generics                                    (Generic)
-import           Language.PlutusTx.Coordination.Contracts.Escrow (EscrowParams (..))
-import qualified Language.PlutusTx.Coordination.Contracts.Escrow as Escrow
-import           Schema                                          (ToSchema)
+import           Control.Monad           (void)
+import           Data.Aeson              (FromJSON, ToJSON)
+import           GHC.Generics            (Generic)
+import           Plutus.Contracts.Escrow (EscrowParams (..))
+import qualified Plutus.Contracts.Escrow as Escrow
+import           Schema                  (ToSchema)
 
-import           Language.Plutus.Contract
-import           Ledger                                          (CurrencySymbol, PubKey, Slot, TokenName, Value)
+import           Ledger                  (CurrencySymbol, PubKey, Slot, TokenName, Value)
 import qualified Ledger
-import qualified Ledger.Value                                    as Value
-import           Wallet.Emulator.Wallet                          (Wallet, walletPubKey)
+import qualified Ledger.Value            as Value
+import           Plutus.Contract
+import           Wallet.Emulator.Wallet  (Wallet, walletPubKey)
 
 -- | Describes an exchange of two
 --   'Value' amounts between two parties

@@ -1,5 +1,5 @@
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
-module Language.PlutusTx.Bool ((&&), (||), not) where
+module PlutusTx.Bool ((&&), (||), not) where
 
 import           Prelude hiding (not, (&&), (||))
 

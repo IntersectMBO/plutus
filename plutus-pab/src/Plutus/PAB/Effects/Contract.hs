@@ -23,18 +23,18 @@ module Plutus.PAB.Effects.Contract(
     ) where
 
 import           Control.Monad.Freer
-import           Control.Monad.Freer.TH                          (makeEffect)
-import           Data.Aeson                                      ((.=))
-import qualified Data.Aeson                                      as JSON
-import           Language.Plutus.Contract.Effects.ExposeEndpoint (EndpointDescription (..))
-import           Language.Plutus.Contract.Resumable              (Response (..))
-import           Playground.Types                                (FunctionSchema)
+import           Control.Monad.Freer.TH                 (makeEffect)
+import           Data.Aeson                             ((.=))
+import qualified Data.Aeson                             as JSON
+import           Playground.Types                       (FunctionSchema)
+import           Plutus.Contract.Effects.ExposeEndpoint (EndpointDescription (..))
+import           Plutus.Contract.Resumable              (Response (..))
 
-import           Language.Plutus.Contract.State                  (ContractRequest (..))
-import           Plutus.PAB.Events.Contract                      (ContractHandlersResponse, ContractPABRequest (..),
-                                                                  ContractResponse (..), PartiallyDecodedResponse (..),
-                                                                  unContractHandlersResponse)
-import           Schema                                          (FormSchema)
+import           Plutus.Contract.State                  (ContractRequest (..))
+import           Plutus.PAB.Events.Contract             (ContractHandlersResponse, ContractPABRequest (..),
+                                                         ContractResponse (..), PartiallyDecodedResponse (..),
+                                                         unContractHandlersResponse)
+import           Schema                                 (FormSchema)
 
 -- | Commands to update a contract. 't' identifies the contract.
 data ContractCommand t

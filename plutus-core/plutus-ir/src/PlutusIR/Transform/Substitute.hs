@@ -1,7 +1,7 @@
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE ViewPatterns     #-}
 -- | Implements naive substitution functions for replacing type and term variables.
-module Language.PlutusIR.Transform.Substitute (
+module PlutusIR.Transform.Substitute (
       substVar
     , substTyVar
     , typeSubstTyNames
@@ -11,9 +11,9 @@ module Language.PlutusIR.Transform.Substitute (
     , bindingSubstTyNames
     ) where
 
-import           Language.PlutusIR
+import           PlutusIR
 
-import           Language.PlutusCore.Subst (substTyVar, typeSubstTyNames)
+import           PlutusCore.Subst (substTyVar, typeSubstTyNames)
 
 import           Control.Lens
 

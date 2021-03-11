@@ -15,7 +15,7 @@
 --   contract. This is useful if you need something that behaves like
 --   a pay-to-pubkey output, but is not (easily) identified by wallets
 --   as one.
-module Language.PlutusTx.Coordination.Contracts.PubKey(pubKeyContract, scriptInstance, PubKeyError(..), AsPubKeyError(..)) where
+module Plutus.Contracts.PubKey(pubKeyContract, scriptInstance, PubKeyError(..), AsPubKeyError(..)) where
 
 import           Control.Lens
 import           Control.Monad.Error.Lens
@@ -23,14 +23,14 @@ import           Data.Aeson               (FromJSON, ToJSON)
 import qualified Data.Map                 as Map
 import           GHC.Generics             (Generic)
 
-import qualified Language.PlutusTx        as PlutusTx
 import           Ledger                   as Ledger hiding (initialise, to)
 import           Ledger.Contexts          as V
 import           Ledger.Typed.Scripts     (ScriptInstance)
 import qualified Ledger.Typed.Scripts     as Scripts
+import qualified PlutusTx                 as PlutusTx
 
-import           Language.Plutus.Contract as Contract
 import qualified Ledger.Constraints       as Constraints
+import           Plutus.Contract          as Contract
 
 mkValidator :: PubKeyHash -> () -> () -> ValidatorCtx -> Bool
 mkValidator pk' _ _ p = V.txSignedBy (valCtxTxInfo p) pk'

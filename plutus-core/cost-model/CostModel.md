@@ -37,7 +37,7 @@ The overall goal of this module is to create the functions and calibrate the num
 
 #### budgeting-bench
 
-The code in budgeting-bench runs a benchmark for each `Builtin` (as defined in `Language.PlutusCore.Core.Type`). Because the inputs to the costing model are not the values passed to the builtin function, but rather its sizes, these values are stored in the csv. This may have to change for a few builtins, e.g. `TakeBytestring`, because the complexity there depends on the input values as well, instead of just the size of it. The benchmarks aim to cover a wide range of input sizes, and are generated with a predefined seed, so the generated values don't differ between runs.
+The code in budgeting-bench runs a benchmark for each `Builtin` (as defined in `PlutusCore.Core.Type`). Because the inputs to the costing model are not the values passed to the builtin function, but rather its sizes, these values are stored in the csv. This may have to change for a few builtins, e.g. `TakeBytestring`, because the complexity there depends on the input values as well, instead of just the size of it. The benchmarks aim to cover a wide range of input sizes, and are generated with a predefined seed, so the generated values don't differ between runs.
 
 #### create-cost-model
 

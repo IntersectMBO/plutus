@@ -1,22 +1,22 @@
 -- | The user-facing API of the untyped renamer.
--- See Language.PlutusCore.Rename for details.
+-- See PlutusCore.Rename for details.
 
 {-# LANGUAGE UndecidableInstances #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 
-module Language.UntypedPlutusCore.Rename
+module UntypedPlutusCore.Rename
     ( Rename (..)
     ) where
 
 import           PlutusPrelude
 
-import           Language.UntypedPlutusCore.Core
-import           Language.UntypedPlutusCore.Mark
-import           Language.UntypedPlutusCore.Rename.Internal
+import           UntypedPlutusCore.Core
+import           UntypedPlutusCore.Mark
+import           UntypedPlutusCore.Rename.Internal
 
-import           Language.PlutusCore.Core                   (HasUniques)
-import           Language.PlutusCore.Name
-import           Language.PlutusCore.Rename                 (Rename (..))
+import           PlutusCore.Core                   (HasUniques)
+import           PlutusCore.Name
+import           PlutusCore.Rename                 (Rename (..))
 
 instance HasUniques (Term name uni fun ann) => Rename (Term name uni fun ann) where
     -- See Note [Marking].

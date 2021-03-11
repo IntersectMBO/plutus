@@ -48,8 +48,6 @@ import qualified Data.Set                         as Set
 import           Data.Text.Prettyprint.Doc        (Pretty)
 import           Data.Text.Prettyprint.Doc.Extras (PrettyShow (..))
 import           GHC.Generics                     (Generic)
-import           Language.PlutusTx                (toData)
-import qualified Language.PlutusTx.Numeric        as P
 import           Ledger.Blockchain
 import qualified Plutus.V1.Ledger.Ada             as Ada
 import           Plutus.V1.Ledger.Address
@@ -63,6 +61,8 @@ import qualified Plutus.V1.Ledger.Slot            as Slot
 import           Plutus.V1.Ledger.Tx
 import           Plutus.V1.Ledger.TxId
 import qualified Plutus.V1.Ledger.Value           as V
+import           PlutusTx                         (toData)
+import qualified PlutusTx.Numeric                 as P
 
 -- | Context for validating transactions. We need access to the unspent
 --   transaction outputs of the blockchain, and we can throw 'ValidationError's.

@@ -1,7 +1,7 @@
 {-# LANGUAGE TypeFamilies  #-}
 {-# LANGUAGE TypeOperators #-}
--- | Kind/type inference/checking, mirroring Language.PlutusCore.TypeCheck
-module Language.PlutusIR.TypeCheck
+-- | Kind/type inference/checking, mirroring PlutusCore.TypeCheck
+module PlutusIR.TypeCheck
     (
     -- * Configuration.
       BuiltinTypes (..)
@@ -15,15 +15,15 @@ module Language.PlutusIR.TypeCheck
     , checkTypeOfProgram
     ) where
 
-import           Language.PlutusCore.Constant
-import           Language.PlutusCore.Quote
-import           Language.PlutusCore.Rename
-import qualified Language.PlutusCore.TypeCheck        as PLC
-import           Language.PlutusCore.Universe
-import           Language.PlutusIR
-import           Language.PlutusIR.Error
-import           Language.PlutusIR.Transform.Rename   ()
-import           Language.PlutusIR.TypeCheck.Internal
+import           PlutusCore.Constant
+import           PlutusCore.Quote
+import           PlutusCore.Rename
+import qualified PlutusCore.TypeCheck        as PLC
+import           PlutusCore.Universe
+import           PlutusIR
+import           PlutusIR.Error
+import           PlutusIR.Transform.Rename   ()
+import           PlutusIR.TypeCheck.Internal
 
 import           Control.Monad.Except
 import           Data.Ix
@@ -45,7 +45,7 @@ the PIR typechecker as an extra step on the compiler pipeline:
 - Although PIR is an IR and as such is not supposed to be written by humans, we do have some hand-written PIR code
 in our examples/samples/testcases that we would like to make sure they typecheck.
 
-- Our deadcode eliminator which works on PIR (in `Language.PlutusIR.Optimizer.Deadcode`) may eliminate ill-typed code, which
+- Our deadcode eliminator which works on PIR (in `PlutusIR.Optimizer.Deadcode`) may eliminate ill-typed code, which
 would turn, much to a surprise, an ill-typed program to a well-typed one.
 
 - Some lets of the PIR user may be declared as recursive although they do not *have to* be, e.g. `let (rec) x = 3 in`

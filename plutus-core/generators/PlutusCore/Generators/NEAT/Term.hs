@@ -15,7 +15,7 @@ This file contains
 {-# LANGUAGE ScopedTypeVariables       #-}
 {-# LANGUAGE TemplateHaskell           #-}
 
-module Language.PlutusCore.Generators.NEAT.Term
+module PlutusCore.Generators.NEAT.Term
   ( TypeBuiltinG (..)
   , TypeG (..)
   , ClosedTypeG
@@ -33,16 +33,16 @@ module Language.PlutusCore.Generators.NEAT.Term
 import           Control.Enumerable
 import           Control.Monad.Except
 import           Data.Bifunctor.TH
-import           Data.ByteString                            (ByteString, pack)
-import           Data.Coolean                               (Cool, false, toCool, true, (&&&))
-import qualified Data.Map                                   as Map
-import qualified Data.Stream                                as Stream
-import qualified Data.Text                                  as Text
-import           Language.PlutusCore
-import           Language.PlutusCore.Generators.NEAT.Common
+import           Data.ByteString                   (ByteString, pack)
+import           Data.Coolean                      (Cool, false, toCool, true, (&&&))
+import qualified Data.Map                          as Map
+import qualified Data.Stream                       as Stream
+import qualified Data.Text                         as Text
+import           PlutusCore
+import           PlutusCore.Generators.NEAT.Common
 import           Text.Printf
 
-import           Language.PlutusCore.Generators.NEAT.Type
+import           PlutusCore.Generators.NEAT.Type
 
 {-
 

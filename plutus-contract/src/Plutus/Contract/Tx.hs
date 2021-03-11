@@ -4,17 +4,17 @@
 {-# LANGUAGE FlexibleInstances  #-}
 {-# LANGUAGE NamedFieldPuns     #-}
 {-# LANGUAGE TypeApplications   #-}
-module Language.Plutus.Contract.Tx where
+module Plutus.Contract.Tx where
 
 import           Control.Lens
-import           Data.Maybe                        (fromMaybe)
+import           Data.Maybe                       (fromMaybe)
 
-import qualified Language.Plutus.Contract.Typed.Tx as Typed
-import qualified Language.PlutusTx                 as PlutusTx
-import           Ledger                            (Redeemer (..), TxOutRef, TxOutTx, Validator)
-import qualified Ledger.Address                    as Address
-import           Ledger.AddressMap                 (AddressMap)
-import           Ledger.Constraints.TxConstraints  (UntypedConstraints)
+import           Ledger                           (Redeemer (..), TxOutRef, TxOutTx, Validator)
+import qualified Ledger.Address                   as Address
+import           Ledger.AddressMap                (AddressMap)
+import           Ledger.Constraints.TxConstraints (UntypedConstraints)
+import qualified Plutus.Contract.Typed.Tx         as Typed
+import qualified PlutusTx                         as PlutusTx
 
 -- | A set of constraints for a transaction that collects script outputs
 --   from the address of the given validator script, using the same redeemer

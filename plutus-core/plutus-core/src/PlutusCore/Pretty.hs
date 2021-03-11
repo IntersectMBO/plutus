@@ -1,4 +1,4 @@
-module Language.PlutusCore.Pretty
+module PlutusCore.Pretty
     (
     -- * Basic types and functions
       Doc
@@ -53,13 +53,13 @@ module Language.PlutusCore.Pretty
     , PrettyConst (..)
     ) where
 
-import           Language.PlutusCore.Pretty.Classic
-import           Language.PlutusCore.Pretty.ConfigName
-import           Language.PlutusCore.Pretty.Default
-import           Language.PlutusCore.Pretty.Plc
-import           Language.PlutusCore.Pretty.PrettyConst
-import           Language.PlutusCore.Pretty.Readable
-import           Language.PlutusCore.Pretty.Utils
+import           PlutusCore.Pretty.Classic
+import           PlutusCore.Pretty.ConfigName
+import           PlutusCore.Pretty.Default
+import           PlutusCore.Pretty.Plc
+import           PlutusCore.Pretty.PrettyConst
+import           PlutusCore.Pretty.Readable
+import           PlutusCore.Pretty.Utils
 
 import           Text.Pretty
 import           Text.PrettyBy

@@ -5,17 +5,17 @@ module Check.Spec (tests) where
 
 import           PlutusPrelude
 
-import           Language.PlutusCore
-import qualified Language.PlutusCore.Check.Normal   as Normal
-import qualified Language.PlutusCore.Check.Uniques  as Uniques
-import qualified Language.PlutusCore.Check.Value    as VR
-import           Language.PlutusCore.Generators
-import           Language.PlutusCore.Generators.AST
-import           Language.PlutusCore.MkPlc
+import           PlutusCore
+import qualified PlutusCore.Check.Normal   as Normal
+import qualified PlutusCore.Check.Uniques  as Uniques
+import qualified PlutusCore.Check.Value    as VR
+import           PlutusCore.Generators
+import           PlutusCore.Generators.AST
+import           PlutusCore.MkPlc
 
 import           Control.Monad.Except
 import           Data.Either
-import           Hedgehog                           hiding (Var)
+import           Hedgehog                  hiding (Var)
 import           Test.Tasty
 import           Test.Tasty.HUnit
 import           Test.Tasty.Hedgehog

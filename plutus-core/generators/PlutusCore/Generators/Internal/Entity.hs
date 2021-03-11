@@ -11,7 +11,7 @@
 {-# LANGUAGE TypeOperators         #-}
 {-# LANGUAGE UndecidableInstances  #-}
 
-module Language.PlutusCore.Generators.Internal.Entity
+module PlutusCore.Generators.Internal.Entity
     ( PlcGenT
     , IterApp(..)
     , IterAppValue(..)
@@ -26,31 +26,31 @@ module Language.PlutusCore.Generators.Internal.Entity
 
 import           PlutusPrelude
 
-import           Language.PlutusCore.Generators.Internal.Denotation
-import           Language.PlutusCore.Generators.Internal.Dependent
-import           Language.PlutusCore.Generators.Internal.TypeEvalCheck
-import           Language.PlutusCore.Generators.Internal.TypedBuiltinGen
-import           Language.PlutusCore.Generators.Internal.Utils
+import           PlutusCore.Generators.Internal.Denotation
+import           PlutusCore.Generators.Internal.Dependent
+import           PlutusCore.Generators.Internal.TypeEvalCheck
+import           PlutusCore.Generators.Internal.TypedBuiltinGen
+import           PlutusCore.Generators.Internal.Utils
 
-import           Language.PlutusCore.Builtins
-import           Language.PlutusCore.Constant
-import           Language.PlutusCore.Core
-import           Language.PlutusCore.Evaluation.Machine.ExMemory
-import           Language.PlutusCore.Evaluation.Result
-import           Language.PlutusCore.Name
-import           Language.PlutusCore.Pretty                              (PrettyConst (..))
-import           Language.PlutusCore.Quote
-import           Language.PlutusCore.Universe
+import           PlutusCore.Builtins
+import           PlutusCore.Constant
+import           PlutusCore.Core
+import           PlutusCore.Evaluation.Machine.ExMemory
+import           PlutusCore.Evaluation.Result
+import           PlutusCore.Name
+import           PlutusCore.Pretty                              (PrettyConst (..))
+import           PlutusCore.Quote
+import           PlutusCore.Universe
 
-import qualified Control.Monad.Morph                                     as Morph
+import qualified Control.Monad.Morph                            as Morph
 import           Control.Monad.Reader
-import qualified Data.ByteString                                         as BS
-import qualified Data.Dependent.Map                                      as DMap
+import qualified Data.ByteString                                as BS
+import qualified Data.Dependent.Map                             as DMap
 import           Data.Functor.Compose
 import           Data.Proxy
 import           Data.Text.Prettyprint.Doc
-import           Hedgehog                                                hiding (Size, Var)
-import qualified Hedgehog.Gen                                            as Gen
+import           Hedgehog                                       hiding (Size, Var)
+import qualified Hedgehog.Gen                                   as Gen
 
 -- | Generators of built-ins supplied to computations that run in the 'PlcGenT' monad.
 newtype BuiltinGensT uni fun m = BuiltinGensT

@@ -11,19 +11,19 @@ import           Common
 import           PlcTestUtils
 
 import           Language.Haskell.TH
-import           Language.PlutusTx.Prelude
+import           PlutusTx.Prelude
 
-import qualified Language.PlutusTx.Builtins   as Builtins
-import           Language.PlutusTx.Code
-import           Language.PlutusTx.Evaluation
-import           Language.PlutusTx.Prelude
-import           Language.PlutusTx.TH
+import qualified PlutusTx.Builtins         as Builtins
+import           PlutusTx.Code
+import           PlutusTx.Evaluation
+import           PlutusTx.Prelude
+import           PlutusTx.TH
 
-import           Language.PlutusCore.Pretty   (PrettyConst)
-import qualified Language.PlutusCore.Universe as PLC
-import qualified Language.UntypedPlutusCore   as UPLC
+import           PlutusCore.Pretty         (PrettyConst)
+import qualified PlutusCore.Universe       as PLC
+import qualified UntypedPlutusCore         as UPLC
 
-import           Codec.Serialise              (Serialise)
+import           Codec.Serialise           (Serialise)
 import           Data.Text.Prettyprint.Doc
 
 -- This is here for the Plugin spec, but we're testing using things from a different module

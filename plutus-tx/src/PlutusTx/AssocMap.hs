@@ -15,7 +15,7 @@
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
 
 -- | A map represented as an "association list" of key-value pairs.
-module Language.PlutusTx.AssocMap (
+module PlutusTx.AssocMap (
     Map
     , singleton
     , empty
@@ -32,13 +32,13 @@ module Language.PlutusTx.AssocMap (
     , mapThese
     ) where
 
-import           Control.DeepSeq           (NFData)
-import           GHC.Generics              (Generic)
-import           Language.PlutusTx.IsData
-import           Language.PlutusTx.Lift    (makeLift)
-import           Language.PlutusTx.Prelude hiding (all, lookup, null, toList)
-import qualified Language.PlutusTx.Prelude as P
-import           Language.PlutusTx.These
+import           Control.DeepSeq  (NFData)
+import           GHC.Generics     (Generic)
+import           PlutusTx.IsData
+import           PlutusTx.Lift    (makeLift)
+import           PlutusTx.Prelude hiding (all, lookup, null, toList)
+import qualified PlutusTx.Prelude as P
+import           PlutusTx.These
 
 {-# ANN module ("HLint: ignore Use newtype instead of data"::String) #-}
 

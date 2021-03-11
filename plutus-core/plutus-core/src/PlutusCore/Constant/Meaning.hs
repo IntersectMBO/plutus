@@ -14,24 +14,24 @@
 {-# LANGUAGE TypeOperators             #-}
 {-# LANGUAGE UndecidableInstances      #-}
 
-module Language.PlutusCore.Constant.Meaning where
+module PlutusCore.Constant.Meaning where
 
 import           PlutusPrelude
 
-import           Language.PlutusCore.Constant.Dynamic.Emit
-import           Language.PlutusCore.Constant.Function
-import           Language.PlutusCore.Constant.Typed
-import           Language.PlutusCore.Core
-import           Language.PlutusCore.Evaluation.Machine.Exception
-import           Language.PlutusCore.Evaluation.Result
-import           Language.PlutusCore.Name
-import           Language.PlutusCore.Universe
+import           PlutusCore.Constant.Dynamic.Emit
+import           PlutusCore.Constant.Function
+import           PlutusCore.Constant.Typed
+import           PlutusCore.Core
+import           PlutusCore.Evaluation.Machine.Exception
+import           PlutusCore.Evaluation.Result
+import           PlutusCore.Name
+import           PlutusCore.Universe
 
-import           Control.Lens                                     (ix, (^?))
+import           Control.Lens                            (ix, (^?))
 import           Control.Monad.Except
 import           Data.Array
-import qualified Data.ByteString                                  as BS
-import qualified Data.Kind                                        as GHC
+import qualified Data.ByteString                         as BS
+import qualified Data.Kind                               as GHC
 import           Data.Proxy
 import           Data.Type.Bool
 import           Data.Type.Equality

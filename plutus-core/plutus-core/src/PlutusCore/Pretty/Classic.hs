@@ -4,7 +4,7 @@
 {-# LANGUAGE DataKinds       #-}
 {-# LANGUAGE TypeFamilies    #-}
 
-module Language.PlutusCore.Pretty.Classic
+module PlutusCore.Pretty.Classic
     ( PrettyConfigClassic (..)
     , PrettyClassicBy
     , PrettyClassic
@@ -14,7 +14,7 @@ module Language.PlutusCore.Pretty.Classic
 
 import           PlutusPrelude
 
-import           Language.PlutusCore.Pretty.ConfigName
+import           PlutusCore.Pretty.ConfigName
 
 -- | Configuration for the classic pretty-printing.
 newtype PrettyConfigClassic configName = PrettyConfigClassic

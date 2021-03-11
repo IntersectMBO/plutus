@@ -13,15 +13,15 @@ module Plutus.PAB.Effects.ContractTest.PayToWallet(
     , PayToWalletSchema
     ) where
 
-import           Data.Aeson               (FromJSON, ToJSON)
-import           GHC.Generics             (Generic)
-import           Schema                   (ToSchema)
+import           Data.Aeson            (FromJSON, ToJSON)
+import           GHC.Generics          (Generic)
+import           Schema                (ToSchema)
 
-import           Language.Plutus.Contract
-import           Ledger                   (Value, txId)
+import           Ledger                (Value, txId)
 import           Ledger.Constraints
-import           Ledger.Crypto            (pubKeyHash)
-import           Wallet.Emulator.Types    (Wallet, walletPubKey)
+import           Ledger.Crypto         (pubKeyHash)
+import           Plutus.Contract
+import           Wallet.Emulator.Types (Wallet, walletPubKey)
 
 data PayToWalletParams =
     PayToWalletParams
