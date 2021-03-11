@@ -45,17 +45,17 @@ renderPlayState wallets newWalletNickname newWalletContractId remoteDataPubKey t
 renderHeader :: forall p. PubKey -> Boolean -> HTML p Action
 renderHeader walletNickname menuOpen =
   header
-    [ classNames $ [ "relative", "flex", "justify-between", "border-b", "border-darkgray" ] <> applyWhen menuOpen [ "border-0", "bg-black", "text-white" ] ]
+    [ classNames $ [ "relative", "flex", "justify-between", "items-center", "leading-none", "border-b", "border-darkgray", "px-6", "py-2" ] <> applyWhen menuOpen [ "border-0", "bg-black", "text-white" ] ]
     [ h1
-        [ classNames [ "text-xl", "font-bold", "px-4", "py-2" ] ]
+        [ classNames [ "text-2xl", "font-bold" ] ]
         [ text "Marlowe" ]
     , nav
-        [ classNames [ "flex" ] ]
+        [ classNames [ "flex", "items-center" ] ]
         [ navigation (SetScreen ContractsScreen) Icon.home "Home"
         , navigation (SetScreen WalletLibraryScreen) Icon.contacts "Contacts"
         , navigation (ToggleCard PutdownWalletCard) Icon.wallet walletNickname
         , a
-            [ classNames [ "p-2", "md:hidden" ]
+            [ classNames [ "ml-4", "md:hidden" ]
             , onClick_ ToggleMenu
             ]
             [ if menuOpen then Icon.close else Icon.menu ]
@@ -64,7 +64,7 @@ renderHeader walletNickname menuOpen =
   where
   navigation action icon label =
     a
-      [ classNames [ "p-2" ]
+      [ classNames [ "ml-4" ]
       , onClick_ action
       ]
       [ span
@@ -135,11 +135,10 @@ renderCards wallets newWalletNickname newWalletContractId remoteDataPubKey templ
           , div
               [ classNames [ "px-4", "pb-4" ] ]
               $ (flip foldMap mCard) \cardType -> case cardType of
-                  CreateWalletCard -> [ newWalletCard wallets newWalletNickname newWalletContractId remoteDataPubKey ]
+                  CreateWalletCard mTokenName -> [ newWalletCard wallets newWalletNickname newWalletContractId remoteDataPubKey mTokenName ]
                   ViewWalletCard walletDetails -> [ walletDetailsCard walletDetails ]
                   PutdownWalletCard -> [ putdownWalletCard currentWalletDetails ]
                   TemplateLibraryCard -> [ TemplateAction <$> templateLibraryCard templates ]
-                  NewContractForRoleCard -> []
                   ContractSetupConfirmationCard -> [ TemplateAction <$> contractSetupConfirmationCard ]
                   -- FIXME: We need to pattern match on the Maybe because the selectedContractState
                   --        could be Nothing. We could add the state as part of the view, but is not ideal

@@ -5,6 +5,7 @@ module Template.Validation
   , slotError
   , valueError
   , roleWalletsAreValid
+  , templateContentIsValid
   ) where
 
 -- General note: Validating number inputs is a pain. I cannot find a nice way
@@ -16,6 +17,7 @@ import Prelude
 import Data.BigInteger (BigInteger)
 import Data.Map (Map, isEmpty, mapMaybe, member)
 import Data.Maybe (Maybe(..))
+import Marlowe.Extended (TemplateContent(..))
 import WalletData.Types (WalletLibrary)
 
 data RoleError
@@ -56,5 +58,11 @@ slotError timeout =
 valueError :: BigInteger -> Maybe ParameterError
 valueError _ = Nothing
 
+------------------------------------------------------------
 roleWalletsAreValid :: Map String String -> WalletLibrary -> Boolean
 roleWalletsAreValid roleWallets wallets = isEmpty $ mapMaybe (\value -> roleError value wallets) roleWallets
+
+templateContentIsValid :: TemplateContent -> Boolean
+templateContentIsValid (TemplateContent { slotContent, valueContent }) =
+  (isEmpty $ mapMaybe (\value -> slotError value) slotContent)
+    && (isEmpty $ mapMaybe (\value -> valueError value) valueContent)

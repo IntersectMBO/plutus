@@ -4,26 +4,29 @@ module Template.View
   , contractSetupConfirmationCard
   ) where
 
-import Prelude hiding (div, min)
-import Css (applyWhen, classNames)
+import Prelude hiding (div)
+import Css (classNames, hideWhen)
 import Css as Css
+import Data.Array (mapWithIndex)
+import Data.BigInteger (BigInteger)
 import Data.BigInteger (fromString) as BigInteger
 import Data.Lens (view)
 import Data.Map (Map, lookup)
 import Data.Map (toUnfoldable) as Map
 import Data.Maybe (Maybe(..), fromMaybe, isJust)
 import Data.Set (toUnfoldable) as Set
+import Data.String (null)
+import Data.Tuple (Tuple)
 import Data.Tuple.Nested ((/\))
-import Halogen.HTML (HTML, a, button, div, div_, h2, hr, input, label, li, p_, span, span_, text, ul, ul_)
-import Halogen.HTML.Events (onBlur)
+import Halogen.HTML (HTML, a, br_, button, div, div_, h2, hr, input, label, li, p_, span, span_, text, ul, ul_)
 import Halogen.HTML.Events.Extra (onClick_, onValueInput_)
-import Halogen.HTML.Properties (InputType(..), autofocus, enabled, for, id_, list, min, placeholder, readOnly, type_, value)
-import Marlowe.Extended (Contract, ContractTemplate, IntegerTemplateType(..), MetaData, TemplateContent, _slotContent, _valueContent, contractTypeInitials, getParties)
-import Marlowe.Semantics (PubKey, Party(..))
+import Halogen.HTML.Properties (InputType(..), for, id_, list, placeholder, readOnly, type_, value)
+import Marlowe.Extended (ContractTemplate, IntegerTemplateType(..), MetaData, _slotContent, _valueContent, contractTypeInitials, getParties)
+import Marlowe.Semantics (Party(..))
 import Material.Icons as Icon
-import Template.Lenses (_contractName, _contractNickname, _editingNickname, _extendedContract, _metaData, _roleWallets, _setupProgress, _template, _templateContent)
-import Template.Types (Action(..), SetupProgress(..), State)
-import Template.Validation (roleError, roleWalletsAreValid, slotError, valueError)
+import Template.Lenses (_contractName, _contractNickname, _extendedContract, _metaData, _roleWallets, _template, _templateContent)
+import Template.Types (Action(..), State)
+import Template.Validation (roleError, roleWalletsAreValid, slotError, templateContentIsValid, valueError)
 import WalletData.Types (WalletLibrary)
 import WalletData.View (nicknamesDataList)
 
@@ -42,196 +45,237 @@ contractSetupScreen wallets state =
 
     templateContent = view _templateContent state
 
-    editingNickname = view _editingNickname state
+    slotContent = view _slotContent templateContent
 
-    setupProgress = view _setupProgress state
+    valueContent = view _valueContent templateContent
+
+    termsAreAccessible = roleWalletsAreValid roleWallets wallets
+
+    payIsAccessible = termsAreAccessible && templateContentIsValid templateContent
   in
     div
-      [ classNames [ "grid", "grid-rows-contract-setup", "h-full", "overflow-hidden" ] ]
+      [ classNames [ "grid", "grid-rows-contractSetup", "h-full", "overflow-hidden" ] ]
       [ div
-          [ classNames [ "border-b", "border-darkgray", "bg-grayblue" ] ]
+          [ classNames [ "flex", "justify-between", "items-center", "px-6", "py-2", "border-b", "border-darkgray" ] ]
           [ a
-              [ classNames [ "flex", "items-center", "p-2", "font-semibold" ]
+              -- "-ml-2" shifts things to the left so that the icon lines up properly
+              [ classNames [ "flex", "items-center", "font-semibold", "-ml-2" ]
               , onClick_ ToggleTemplateLibraryCard
               ]
               [ Icon.previous
               , span_
                   [ text "Choose template" ]
               ]
+          , span
+              [ classNames [ "text-sm", "uppercase" ] ]
+              [ text contractName ]
           ]
-      , contractNicknameDisplay contractName contractNickname editingNickname
+      , contractNicknameDisplay contractName contractNickname
       , div
-          [ classNames [ "h-full", "overflow-y-auto", "grid" ] ]
-          [ subHeader "top-0" Icon.roles "Roles"
-          , contractRoles wallets metaData extendedContract roleWallets
-          , subHeader "top-10" Icon.terms "Terms"
-          , contractParameters metaData templateContent
-          , subHeader "top-20" Icon.pay "Review and pay"
-          , contractReview state
+          [ classNames [] ]
+          [ div
+              [ classNames [ "h-full", "overflow-y-auto" ] ]
+              [ subHeader "top-0" "pb-2" Icon.roles "Roles" true
+              , subSection true
+                  [ ul
+                      [ classNames [] ]
+                      $ mapWithIndex (partyInput metaData wallets roleWallets) (Set.toUnfoldable $ getParties extendedContract)
+                  ]
+              , subHeader "top-12" "pb-2" Icon.terms "Terms" termsAreAccessible
+              , subSection termsAreAccessible
+                  [ ul
+                      [ classNames [ "mb-4" ] ]
+                      $ mapWithIndex (parameterInput metaData SlotContent) (Map.toUnfoldable slotContent)
+                  , ul_
+                      $ mapWithIndex (parameterInput metaData ValueContent) (Map.toUnfoldable valueContent)
+                  ]
+              , subHeader "top-24" "pb-0" Icon.pay "Review and pay" payIsAccessible
+              , subSection payIsAccessible
+                  [ div
+                      [ classNames [ "mb-4", "bg-white", "p-4", "shadow", "rounded-lg" ] ]
+                      [ text "Summary information about the contract goes here." ]
+                  , div
+                      [ classNames [ "flex", "justify-end", "pb-8" ] ]
+                      [ button
+                          [ classNames Css.primaryButton
+                          , onClick_ $ ToggleSetupConfirmationCard
+                          ]
+                          [ text "Pay" ]
+                      ]
+                  ]
+              ]
           ]
       ]
 
-contractNicknameDisplay :: forall p. String -> String -> Boolean -> HTML p Action
-contractNicknameDisplay contractName contractNickname editingNickname =
+contractNicknameDisplay :: forall p. String -> String -> HTML p Action
+contractNicknameDisplay contractName contractNickname =
   div
-    [ classNames [ "ml-12", "border-l", "border-darkgray", "p-2", "pl-6" ] ]
+    [ classNames [ "ml-12", "border-l", "border-darkgray" ] ]
     [ div
-        [ classNames [] ]
-        [ div
-            [ classNames [ "uppercase", "text-sm" ] ]
-            [ text contractName ]
-        , if editingNickname then
-            input
-              [ classNames [ "bg-transparent", "font-semibold" ]
-              , type_ InputText
-              , placeholder "Contract name"
-              , value contractNickname
-              , onValueInput_ SetContractNickname
-              , onBlur $ const $ Just ToggleEditingNickname
-              ]
-          else
-            div_
-              [ span
-                  [ classNames [ "font-semibold", "mr-2" ] ]
-                  [ text contractNickname ]
-              , a
-                  [ classNames [ "inline-block", "-mt-4", "text-sm" ]
-                  , onClick_ ToggleEditingNickname -- TODO: focus the nickname input
-                  ]
-                  [ text "edit" ]
-              ]
+        [ classNames [ "mx-auto", "max-w-xs", "px-6", "pt-4", "pb-2" ] ]
+        [ input
+            [ classNames $ (Css.inputDark $ null contractNickname) <> [ "bg-transparent", "font-semibold" ]
+            , type_ InputText
+            , placeholder "Contract name *"
+            , value contractNickname
+            , onValueInput_ SetContractNickname
+            ]
         ]
     ]
 
-subHeader :: forall p. String -> HTML p Action -> String -> HTML p Action
-subHeader topMargin icon title =
+subHeader :: forall p. String -> String -> HTML p Action -> String -> Boolean -> HTML p Action
+subHeader topMargin bottomPadding icon title accessible =
   div
-    [ classNames [ "sticky", topMargin, "ml-12", "border-l", "border-darkgray", "bg-grayblue" ] ]
+    [ classNames [ "ml-12", "border-l", "border-darkgray", "sticky", "z-10", topMargin, bottomPadding, "bg-grayblue" ] ]
     [ div
         [ classNames [ "flex", "items-center" ] ]
         [ span
-            [ classNames $ Css.iconCircle <> [ "-ml-4" ] ]
+            [ classNames $ Css.iconCircle accessible <> [ "-ml-5" ] ]
             [ icon ]
         , h2
-            [ classNames [ "p-2", "font-semibold" ] ]
+            [ classNames [ "py-1", "px-2", "text-lg", "font-semibold" ] ]
             [ text title ]
         , hr [ classNames [ "flex-1" ] ]
         ]
     ]
 
-contractRoles :: forall p. WalletLibrary -> MetaData -> Contract -> Map String PubKey -> HTML p Action
-contractRoles wallets metaData extendedContract roleWallets =
+subSection :: forall p. Boolean -> Array (HTML p Action) -> HTML p Action
+subSection accessible content =
   div
-    [ classNames [ "ml-12", "border-l", "border-darkgray" ] ]
-    [ ul
-        [ classNames [ "mx-auto", "w-96" ] ]
-        $ map partyInput (Set.toUnfoldable $ getParties extendedContract)
-    ]
-  where
-  partyInput (PK pubKey) =
-    li
-      [ classNames [ "mb-4" ] ]
-      [ label
-          [ classNames [ "block", "mb-2" ]
-          , for pubKey
-          ]
-          [ text "Wallet" ]
-      , input
-          [ classNames $ Css.input false <> [ "shadow" ]
-          , id_ pubKey
-          , type_ InputText
-          , value pubKey
-          , readOnly true
-          ]
-      ]
-
-  partyInput (Role tokenName) =
-    let
-      description = fromMaybe "no description available" $ lookup tokenName metaData.roleDescriptions
-
-      assigned = fromMaybe "" $ lookup tokenName roleWallets
-
-      mRoleError = roleError assigned wallets
-    in
-      li
-        [ classNames [ "mb-4" ] ]
-        [ label
-            [ classNames [ "block", "mb-2" ]
-            , for tokenName
-            ]
-            [ text $ tokenName <> ": " <> description ]
-        , input
-            [ classNames $ Css.input (isJust mRoleError) <> [ "shadow" ]
-            , id_ tokenName
-            , type_ InputText
-            , list "walletNicknames"
-            , onValueInput_ $ SetRoleWallet tokenName
-            , value assigned
-            ]
-        , div
-            [ classNames Css.inputError ]
-            $ case mRoleError of
-                Just roleError -> [ text $ show roleError ]
-                Nothing -> []
-        , nicknamesDataList wallets
-        ]
-
-contractParameters :: forall p. MetaData -> TemplateContent -> HTML p Action
-contractParameters metaData templateContent =
-  let
-    slotContent = view _slotContent templateContent
-
-    valueContent = view _valueContent templateContent
-  in
-    div
-      [ classNames [ "ml-12", "border-l", "border-darkgray" ] ]
-      [ div
-          [ classNames [ "mx-auto", "w-96" ] ]
-          [ ul
-              [ classNames [ "mb-4" ] ]
-              $ map (parameterInput SlotContent) (Map.toUnfoldable slotContent)
-          , ul_
-              $ map (parameterInput ValueContent) (Map.toUnfoldable valueContent)
-          ]
-      ]
-  where
-  parameterInput integerTemplateType (key /\ parameterValue) =
-    let
-      description = case integerTemplateType of
-        SlotContent -> fromMaybe "no description available" $ lookup key metaData.slotParameterDescriptions
-        ValueContent -> fromMaybe "no description available" $ lookup key metaData.valueParameterDescriptions
-
-      mParameterError = case integerTemplateType of
-        SlotContent -> slotError parameterValue
-        ValueContent -> valueError parameterValue
-    in
-      li
-        [ classNames [ "mb-4" ] ]
-        [ label
-            [ classNames [ "block", "mb-2" ] ]
-            [ text $ key <> ": " <> description ]
-        , input
-            [ classNames $ Css.input (isJust mParameterError) <> [ "shadow" ]
-            , type_ InputNumber
-            , min one
-            , onValueInput_ $ SetParameter integerTemplateType key <<< BigInteger.fromString
-            , value $ show parameterValue
-            ]
-        , div
-            [ classNames Css.inputError ]
-            $ case mParameterError of
-                Just parameterError -> [ text $ show parameterError ]
-                Nothing -> []
-        ]
-
-contractReview :: forall p. State -> HTML p Action
-contractReview state =
-  div
-    [ classNames [ "ml-12", "border-l", "border-darkgray" ] ]
+    [ classNames $ [ "ml-12", "border-l", "border-darkgray", "py-2" ] <> (hideWhen $ not accessible) ]
     [ div
-        [ classNames [ "mx-auto", "w-96", "mb-4", "bg-white", "p-4", "shadow", "rounded-lg" ] ]
-        [ text "Summary information about the contract goes here." ]
+        [ classNames [ "mx-auto", "max-w-xs", "px-6" ] ]
+        content
     ]
+
+partyInput :: forall p. MetaData -> WalletLibrary -> Map String String -> Int -> Party -> HTML p Action
+partyInput metaData wallets roleWallets index (PK pubKey) =
+  li
+    [ classNames [ "mb-4", "last:mb-0" ] ]
+    [ label
+        [ classNames [ "block", "text-sm" ]
+        , for pubKey
+        ]
+        [ text $ "Party " <> (show $ index + 1) ]
+    , input
+        [ classNames $ Css.input false <> [ "shadow" ]
+        , id_ pubKey
+        , type_ InputText
+        , value pubKey
+        , readOnly true
+        ]
+    ]
+
+partyInput metaData wallets roleWallets index (Role tokenName) =
+  let
+    description = fromMaybe "no description available" $ lookup tokenName metaData.roleDescriptions
+
+    assigned = fromMaybe "" $ lookup tokenName roleWallets
+
+    mRoleError = roleError assigned wallets
+  in
+    li
+      [ classNames [ "mb-4", "last:mb-0" ] ]
+      [ label
+          [ classNames [ "block", "text-sm" ]
+          , for tokenName
+          ]
+          [ span
+              [ classNames [ "font-bold" ] ]
+              [ text $ "Role " <> (show $ index + 1) <> " (" <> tokenName <> ")*" ]
+          , br_
+          , text description
+          ]
+      , div
+          [ classNames [ "relative" ] ]
+          [ input
+              [ classNames $ Css.input (isJust mRoleError) <> [ "shadow", "pr-10" ]
+              , id_ tokenName
+              , type_ InputText
+              , list "walletNicknames"
+              , onValueInput_ $ SetRoleWallet tokenName
+              , value assigned
+              ]
+          , button
+              [ classNames [ "absolute", "top-3", "right-3" ]
+              , onClick_ $ ToggleCreateWalletCard tokenName
+              ]
+              [ Icon.addCircle ]
+          ]
+      , div
+          [ classNames Css.inputError ]
+          $ case mRoleError of
+              Just roleError -> [ text $ show roleError ]
+              Nothing -> []
+      , nicknamesDataList wallets
+      ]
+
+parameterInput :: forall p. MetaData -> IntegerTemplateType -> Int -> Tuple String BigInteger -> HTML p Action
+parameterInput metaData SlotContent index (key /\ parameterValue) =
+  let
+    description = fromMaybe "no description available" $ lookup key metaData.slotParameterDescriptions
+
+    mParameterError = slotError parameterValue
+  in
+    li
+      [ classNames [ "mb-4", "last:mb-0" ] ]
+      [ label
+          [ classNames [ "block", "text-sm" ]
+          , for $ "slot-" <> key
+          ]
+          [ span
+              [ classNames [ "font-bold" ] ]
+              [ text $ "Timeout " <> (show $ index + 1) <> " (" <> key <> ")*" ]
+          , br_
+          , text description
+          ]
+      , input
+          [ classNames $ Css.input (isJust mParameterError) <> [ "shadow" ]
+          , id_ $ "slot-" <> key
+          , type_ InputDatetimeLocal
+          -- FIXME: convert datetime to slot
+          , onValueInput_ $ SetParameter SlotContent key <<< BigInteger.fromString
+          -- FIXEME: convert slot to datetime
+          , value $ show parameterValue
+          ]
+      , div
+          [ classNames Css.inputError ]
+          $ case mParameterError of
+              Just parameterError -> [ text $ show parameterError ]
+              Nothing -> []
+      ]
+
+parameterInput metaData ValueContent index (key /\ parameterValue) =
+  let
+    description = fromMaybe "no description available" $ lookup key metaData.valueParameterDescriptions
+
+    mParameterError = valueError parameterValue
+  in
+    li
+      [ classNames [ "mb-4", "last:mb-0" ] ]
+      [ label
+          [ classNames [ "block", "text-sm" ]
+          , for $ "value-" <> key
+          ]
+          [ span
+              [ classNames [ "font-bold" ] ]
+              [ text $ "Value " <> (show $ index + 1) <> " (" <> key <> ")*" ]
+          , br_
+          , text description
+          ]
+      , input
+          [ classNames $ Css.input (isJust mParameterError) <> [ "shadow" ]
+          , id_ $ "value-" <> key
+          , type_ InputNumber
+          , onValueInput_ $ SetParameter ValueContent key <<< BigInteger.fromString
+          , value $ show parameterValue
+          ]
+      , div
+          [ classNames Css.inputError ]
+          $ case mParameterError of
+              Just parameterError -> [ text $ show parameterError ]
+              Nothing -> []
+      ]
 
 ------------------------------------------------------------
 templateLibraryCard :: forall p. Array ContractTemplate -> HTML p Action
@@ -263,8 +307,8 @@ templateLibraryCard templates =
               [ classNames Css.primaryButton
               , onClick_ $ SetTemplate template
               ]
-              [ span_ [ text "Setup" ]
-              , span_ [ Icon.next ]
+              [ span [ classNames [ "mr-2" ] ] [ text "Setup" ]
+              , span_ [ Icon.east ]
               ]
           ]
       , p_
@@ -289,56 +333,3 @@ contractSetupConfirmationCard =
             [ text "Pay" ]
         ]
     ]
-
-{-
-    , div
-        [ classNames [ "flex", "justify-between" ] ]
-        [ span
-            [ classNames $ screenClasses setupScreen ContractRolesScreen ]
-            [ text "Roles" ]
-        , span
-            [ classNames $ screenClasses setupScreen ContractParametersScreen ]
-            [ text "Parameters" ]
-        , span
-            [ classNames $ screenClasses setupScreen ContractReviewScreen ]
-            [ text "Review" ]
-        ]
-  where
-  screenClasses currentScreen screen = [ "p-4" ] <> applyWhen (currentScreen == screen) [ "text-blue" ]
-
-
-contractNavigationButtons :: forall p. Screen -> Map String String -> WalletLibrary -> Array (HTML p Action)
-contractNavigationButtons screen roleWallets wallets = case screen of
-  ContractRolesScreen ->
-    [ a
-        [ onClick_ ToggleTemplateLibraryCard ]
-        [ text "< Library quick access" ]
-    , button
-        [ classNames Css.primaryButton
-        , onClick_ $ SetScreen ContractParametersScreen
-        , enabled $ roleWalletsAreValid roleWallets wallets
-        ]
-        [ text "Next >" ]
-    ]
-  ContractParametersScreen ->
-    [ a
-        [ onClick_ $ SetScreen ContractRolesScreen ]
-        [ text "< Roles" ]
-    , button
-        [ classNames Css.primaryButton
-        , onClick_ $ SetScreen ContractReviewScreen
-        ]
-        [ text "Next >" ]
-    ]
-  ContractReviewScreen ->
-    [ a
-        [ onClick_ $ SetScreen ContractParametersScreen ]
-        [ text "< Parameters" ]
-    , button
-        [ classNames Css.primaryButton
-        , onClick_ $ ToggleSetupConfirmationCard
-        ]
-        [ text "Pay and start >" ]
-    ]
-
--}

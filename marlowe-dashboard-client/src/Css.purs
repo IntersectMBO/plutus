@@ -8,6 +8,7 @@ module Css
   , secondaryButton
   , fixedPrimaryButton
   , input
+  , inputDark
   , inputError
   , hasNestedLabel
   , nestedLabel
@@ -35,7 +36,7 @@ hideWhen condition = applyWhen condition [ "hidden" ]
 
 ------------------------------------------------------------
 button :: Array String
-button = [ "flex", "items-center", "justify-center", "px-4", "py-3", "leading-none", "disabled:opacity-50", "disabled:cursor-not-allowed", "rounded-3xl" ]
+button = [ "flex", "items-center", "justify-center", "px-4", "py-3", "leading-none", "font-bold", "disabled:opacity-50", "disabled:cursor-not-allowed", "rounded-3xl" ]
 
 primaryButton :: Array String
 primaryButton = button <> [ "bg-gradient-to-r", "from-blue", "to-lightblue", "text-white", "shadow" ]
@@ -46,8 +47,14 @@ secondaryButton = button <> [ "bg-gray", "text-black" ]
 fixedPrimaryButton :: Array String
 fixedPrimaryButton = primaryButton <> [ "absolute", "bottom-4", "right-4" ]
 
+inputBase :: Array String
+inputBase = [ "block", "w-full", "border", "px-4", "py-3", "rounded-lg" ]
+
 input :: Boolean -> Array String
-input invalid = [ "block", "w-full", "border", "border-darkgray", "py-2", "px-3", "rounded-lg" ] <> applyWhen invalid [ "border-red" ]
+input invalid = inputBase <> toggleWhen invalid [ "border-red" ] [ "border-darkgray" ]
+
+inputDark :: Boolean -> Array String
+inputDark invalid = inputBase <> toggleWhen invalid [ "border-red" ] [ "border-black" ]
 
 inputError :: Array String
 inputError = [ "text-red", "text-sm" ]
@@ -56,7 +63,7 @@ hasNestedLabel :: Array String
 hasNestedLabel = [ "-mt-6" ]
 
 nestedLabel :: Array String
-nestedLabel = [ "relative", "left-2", "top-3", "px-1", "bg-white", "text-sm" ]
+nestedLabel = [ "relative", "left-2", "top-2.5", "px-1", "bg-white", "text-xs" ]
 
 cardWrapper :: Boolean -> Array String
 cardWrapper invisible = [ "absolute", "top-0", "bottom-0", "left-0", "right-0", "z-20", "flex", "flex-col", "justify-end", "md:justify-center", "bg-transgray" ] <> hideWhen invisible
@@ -67,5 +74,5 @@ card = [ "shadow", "bg-white", "mx-4", "rounded-t-lg", "md:mx-auto", "md:w-96", 
 largeCard :: String -> Array String
 largeCard bgColor = [ "shadow", "max-h-full", "overflow-auto", "mt-12", "mx-4", "rounded-t-lg", "md:rounded-b-lg", "md:mb-12", "lg:mx-12", bgColor ]
 
-iconCircle :: Array String
-iconCircle = [ "inline-flex", "items-center", "justify-center", "w-8", "h-8", "rounded-full", "bg-gradient-to-r", "from-blue", "to-lightblue", "text-white" ]
+iconCircle :: Boolean -> Array String
+iconCircle enabled = [ "inline-flex", "items-center", "justify-center", "w-10", "h-10", "rounded-full" ] <> toggleWhen enabled [ "bg-gradient-to-r", "from-blue", "to-lightblue", "text-white" ] [ "bg-gray", "text-darkgray" ]

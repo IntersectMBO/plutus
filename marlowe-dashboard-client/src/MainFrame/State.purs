@@ -28,6 +28,8 @@ import Play.Types (Action(..)) as Play
 import Plutus.PAB.Webserver.Types (StreamToClient(..))
 import Servant.PureScript.Ajax (AjaxError)
 import StaticData (walletDetailsLocalStorageKey, walletLibraryLocalStorageKey)
+import Template.State (handleAction) as Template
+import Template.Types (Action(..)) as Template
 import WalletData.Types (Nickname, WalletDetails)
 import WebSocket.Support as WS
 
@@ -181,7 +183,11 @@ handleAction (PlayAction (Play.SetNewWalletNickname nickname)) = handleAction $ 
 
 handleAction (PlayAction (Play.SetNewWalletContractId contractId)) = handleAction $ SetNewWalletContractId contractId
 
-handleAction (PlayAction Play.AddNewWallet) = handleAction AddNewWallet
+handleAction (PlayAction (Play.AddNewWallet mTokenName)) = do
+  walletNickname <- use _newWalletNickname
+  handleAction AddNewWallet
+  for_ mTokenName \tokenName ->
+    Template.handleAction $ Template.SetRoleWallet tokenName walletNickname
 
 -- other play actions
 handleAction (PlayAction playAction) = Play.handleAction playAction

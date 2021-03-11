@@ -89,6 +89,8 @@ handleAction (TemplateAction (Template.SetTemplate template)) = do
 
 handleAction (TemplateAction Template.ToggleTemplateLibraryCard) = handleAction $ ToggleCard TemplateLibraryCard
 
+handleAction (TemplateAction (Template.ToggleCreateWalletCard tokenName)) = handleAction $ ToggleCard $ CreateWalletCard $ Just tokenName
+
 handleAction (TemplateAction Template.ToggleSetupConfirmationCard) = handleAction $ ToggleCard ContractSetupConfirmationCard
 
 handleAction (TemplateAction Template.StartContract) = do

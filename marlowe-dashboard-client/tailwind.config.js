@@ -34,6 +34,7 @@ module.exports = {
     extend: {},
     backgroundColor: ["hover"],
     cursor: ["disabled", "hover"],
+    spacing: ["last"],
     opacity: ["disabled"],
   },
   plugins: [],

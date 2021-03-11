@@ -30,11 +30,10 @@ data Screen
 derive instance eqScreen :: Eq Screen
 
 data Card
-  = CreateWalletCard
+  = CreateWalletCard (Maybe String)
   | ViewWalletCard WalletDetails
   | PutdownWalletCard
   | TemplateLibraryCard
-  | NewContractForRoleCard
   | ContractSetupConfirmationCard
   | ContractCard
 
@@ -44,7 +43,7 @@ data Action
   = PutdownWallet
   | SetNewWalletNickname Nickname
   | SetNewWalletContractId String
-  | AddNewWallet
+  | AddNewWallet (Maybe String)
   | ToggleMenu
   | SetScreen Screen
   | SetCard (Maybe Card)
@@ -60,7 +59,7 @@ instance actionIsEvent :: IsEvent Action where
   toEvent PutdownWallet = Just $ defaultEvent "PutdownWallet"
   toEvent (SetNewWalletNickname _) = Just $ defaultEvent "SetNewWalletNickname"
   toEvent (SetNewWalletContractId _) = Just $ defaultEvent "SetNewWalletContractId"
-  toEvent AddNewWallet = Just $ defaultEvent "AddNewWallet"
+  toEvent (AddNewWallet _) = Just $ defaultEvent "AddNewWallet"
   toEvent ToggleMenu = Just $ defaultEvent "ToggleMenu"
   toEvent (SetScreen _) = Just $ defaultEvent "SetScreen"
   toEvent (SetCard _) = Just $ defaultEvent "SetCard"
