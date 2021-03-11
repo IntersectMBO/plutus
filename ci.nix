@@ -78,9 +78,6 @@ let
             disallowedRequisites = [ plutus.haskell.packages.plutus-core.components.library ];
           });
 
-          # build deployment tools
-          inherit (plutus) thorp;
-
           # build all haskell packages and tests
           haskell = pkgs.recurseIntoAttrs (mkHaskellDimension pkgs plutus.haskell.projectPackages);
         };

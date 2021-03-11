@@ -86,6 +86,7 @@ rec {
   tests = import ./nix/tests/default.nix {
     inherit pkgs iohkNix;
     inherit (plutus) fixStylishHaskell fixPurty;
+    inherit (pkgs) terraform;
     src = ./.;
   };
 

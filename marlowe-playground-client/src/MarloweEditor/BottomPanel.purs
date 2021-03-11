@@ -6,21 +6,128 @@ import Prelude hiding (div)
 import Data.Array (drop, head)
 import Data.Array as Array
 import Data.Lens (to, (^.))
+import Data.List (List)
+import Data.Map (Map)
+import Data.Map as Map
 import Data.Maybe (Maybe(..))
+import Data.Set (Set, toUnfoldable)
 import Data.String (take)
 import Data.String.Extra (unlines)
-import Data.Tuple.Nested ((/\))
-import Halogen.Classes (flex, flexCol, fontBold, fullWidth, grid, gridColsDescriptionLocation, justifySelfEnd, minW0, overflowXScroll, paddingRight, underline)
-import Halogen.HTML (HTML, a, div, div_, pre_, section, section_, span_, text)
-import Halogen.HTML.Events (onClick)
-import Halogen.HTML.Properties (class_, classes)
-import MarloweEditor.Types (Action(..), BottomPanelView(..), State, _editorErrors, _editorWarnings, _hasHoles, _showErrorDetail, contractHasErrors)
+import Data.Tuple.Nested (type (/\), (/\))
+import Halogen.Classes (flex, flexCol, fontBold, fullWidth, grid, gridColsDescriptionLocation, justifySelfEnd, minW0, minusBtn, overflowXScroll, paddingRight, plusBtn, smallBtn, underline)
+import Halogen.HTML (ClassName(..), HTML, a, button, div, div_, em_, h6_, input, li_, ol_, option, pre_, section, section_, select, span, span_, text)
+import Halogen.HTML.Events (onClick, onValueChange)
+import Halogen.HTML.Properties (InputType(..), class_, classes, placeholder, selected, type_, value)
+import Marlowe.Extended (MetaData, _choiceDescriptions, _choiceNames, _roleDescriptions, _roles, _slotParameterDescriptions, _slotParameters, _valueParameterDescriptions, _valueParameters, contractTypeArray, contractTypeName, contractTypeInitials, initialsToContractType)
+import MarloweEditor.Types (Action(..), BottomPanelView(..), MetadataAction(..), State, _editorErrors, _editorWarnings, _hasHoles, _metadataHintInfo, _showErrorDetail, contractHasErrors)
 import StaticAnalysis.BottomPanel (analysisResultPane, analyzeButton, clearButton)
 import StaticAnalysis.Types (_analysisExecutionState, _analysisState, isCloseAnalysisLoading, isNoneAsked, isReachabilityLoading, isStaticLoading)
 import Text.Parsing.StringParser.Basic (lines)
 
-panelContents :: forall p. State -> BottomPanelView -> HTML p Action
-panelContents state StaticAnalysisView =
+metadataList :: forall p. Map String String -> Set String -> (String -> String -> MetadataAction) -> (String -> MetadataAction) -> String -> String -> HTML p Action
+metadataList metadataMap hintSet setAction deleteAction typeNameTitle typeNameSmall =
+  div [ class_ $ ClassName "metadata-field-group" ]
+    if Map.isEmpty combinedMap then
+      []
+    else
+      [ h6_ [ em_ [ text $ typeNameTitle <> " descriptions" ] ]
+      , ol_
+          $ map
+              ( \(key /\ val) ->
+                  li_
+                    ( case val of
+                        Just (desc /\ needed) ->
+                          [ text $ typeNameTitle <> " " <> show key <> ": "
+                          , input
+                              [ type_ InputText
+                              , placeholder $ "Description for " <> typeNameSmall <> " " <> show key
+                              , class_ $ ClassName "metadata-input"
+                              , value desc
+                              , onValueChange $ Just <<< MetadataAction <<< setAction key
+                              ]
+                          , button
+                              [ classes [ if needed then plusBtn else minusBtn, smallBtn, ClassName "align-top" ]
+                              , onClick $ const $ Just $ MetadataAction $ deleteAction key
+                              ]
+                              [ text "-" ]
+                          ]
+                            <> if needed then [] else [ span [ classes [ ClassName "metadata-error", ClassName "metadata-not-used" ] ] [ text "Not used" ] ]
+                        Nothing ->
+                          [ span [ class_ (ClassName "metadata-error") ] [ text $ typeNameTitle <> " " <> show key <> " description not defined" ]
+                          , button
+                              [ classes [ plusBtn, smallBtn, ClassName "align-top" ]
+                              , onClick $ const $ Just $ MetadataAction $ setAction key mempty
+                              ]
+                              [ text "+" ]
+                          ]
+                    )
+              )
+          $ Map.toUnfoldable combinedMap
+      ]
+  where
+  mergeMaps :: (Maybe (String /\ Boolean)) -> (Maybe (String /\ Boolean)) -> (Maybe (String /\ Boolean))
+  mergeMaps (Just (x /\ _)) _ = Just (x /\ true)
+
+  mergeMaps _ _ = Nothing
+
+  -- The value of the Map has the following meaning:
+  -- * Nothing means the entry is in the contract but not in the metadata
+  -- * Just (_ /\ false) means the entry is in the metadata but not in the contract
+  -- * Just (_ /\ true) means the entry is both in the contract and in the metadata
+  -- If it is nowhere we just don't store it in the map
+  combinedMap :: Map String (Maybe (String /\ Boolean))
+  combinedMap =
+    Map.unionWith mergeMaps
+      (map (\x -> Just (x /\ false)) metadataMap)
+      (Map.fromFoldable (map (\x -> x /\ Nothing) ((toUnfoldable hintSet) :: List String)))
+
+panelContents :: forall p. State -> MetaData -> BottomPanelView -> HTML p Action
+panelContents state metadata MetadataView =
+  div [ classes [ ClassName "padded-explanation" ] ]
+    [ div [ class_ $ ClassName "metadata-field-group" ]
+        [ text "Contract type: "
+        , select
+            [ class_ $ ClassName "metadata-input"
+            , onValueChange $ Just <<< MetadataAction <<< SetContractType <<< initialsToContractType
+            ] do
+            ct <- contractTypeArray
+            pure
+              $ option
+                  [ value $ contractTypeInitials ct
+                  , selected (ct == metadata.contractType)
+                  ]
+                  [ text $ contractTypeName ct
+                  ]
+        ]
+    , div [ class_ $ ClassName "metadata-field-group" ]
+        [ text "Contract name: "
+        , input
+            [ type_ InputText
+            , placeholder "Contract name"
+            , class_ $ ClassName "metadata-input"
+            , value metadata.contractName
+            , onValueChange $ Just <<< MetadataAction <<< SetContractName
+            ]
+        ]
+    , div [ class_ $ ClassName "metadata-field-group" ]
+        [ text "Contract description: "
+        , input
+            [ type_ InputText
+            , placeholder "Contract description"
+            , class_ $ ClassName "metadata-input"
+            , value metadata.contractDescription
+            , onValueChange $ Just <<< MetadataAction <<< SetContractDescription
+            ]
+        ]
+    , generateMetadataList _roleDescriptions _roles SetRoleDescription DeleteRoleDescription "Role" "role"
+    , generateMetadataList _choiceDescriptions _choiceNames SetChoiceDescription DeleteChoiceDescription "Choice" "choice"
+    , generateMetadataList _slotParameterDescriptions _slotParameters SetSlotParameterDescription DeleteSlotParameterDescription "Slot parameter" "slot parameter"
+    , generateMetadataList _valueParameterDescriptions _valueParameters SetValueParameterDescription DeleteValueParameterDescription "Value parameter" "value parameter"
+    ]
+  where
+  generateMetadataList mapLens setLens = metadataList (metadata ^. mapLens) (state ^. (_metadataHintInfo <<< setLens))
+
+panelContents state _ StaticAnalysisView =
   section [ classes [ flex, flexCol ] ]
     if (state ^. _hasHoles) then
       [ div_ [ text "The contract needs to be complete (no holes) before doing static analysis." ]
@@ -49,7 +156,7 @@ panelContents state StaticAnalysisView =
 
   analysisEnabled = nothingLoading && not contractHasErrors state
 
-panelContents state MarloweWarningsView =
+panelContents state _ MarloweWarningsView =
   section_
     if Array.null warnings then
       [ pre_ [ text "No warnings" ] ]
@@ -74,7 +181,7 @@ panelContents state MarloweWarningsView =
         [ text $ show warning.startLineNumber ]
     ]
 
-panelContents state MarloweErrorsView =
+panelContents state _ MarloweErrorsView =
   section_
     if Array.null errors then
       [ pre_ [ text "No errors" ] ]

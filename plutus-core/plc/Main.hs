@@ -216,19 +216,19 @@ exbudgetReader = do
     _     -> readerError badfmt
     where badfmt = "Invalid budget (expected eg 10000:50000)"
 
+restrictingbudgetEnormous :: Parser BudgetMode
+restrictingbudgetEnormous = flag' (Verbose Cek.restrictingEnormous)
+                            (  long "restricting-enormous"
+                            <> short 'r'
+                            <> help "Run the machine in restricting mode with an enormous budget" )
+
 restrictingbudget :: Parser BudgetMode
 restrictingbudget = Verbose . Cek.restricting . ExRestrictingBudget
                     <$> option exbudgetReader
                             (  long "restricting"
-                            <> short 'r'
+                            <> short 'R'
                             <> metavar "ExCPU:ExMemory"
                             <> help "Run the machine in restricting mode with the given limits" )
-
-restrictingbudgetEnormous :: Parser BudgetMode
-restrictingbudgetEnormous = flag' (Verbose Cek.restrictingEnormous)
-                            (  long "restricting-enormous"
-                            <> short 'R'
-                            <> help "Run the machine in restricting mode with an enormous budget" )
 
 countingbudget :: Parser BudgetMode
 countingbudget = flag' (Verbose Cek.counting)
@@ -244,8 +244,8 @@ tallyingbudget = flag' (Verbose Cek.tallying)
 
 budgetmode :: Parser BudgetMode
 budgetmode = asum
-    [ restrictingbudget
-    , restrictingbudgetEnormous
+    [ restrictingbudgetEnormous
+    , restrictingbudget
     , countingbudget
     , tallyingbudget
     , pure Silent

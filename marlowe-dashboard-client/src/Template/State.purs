@@ -23,11 +23,11 @@ import MainFrame.Lenses (_playState)
 import MainFrame.Types (Action, State) as MainFrame
 import MainFrame.Types (ChildSlots, Msg)
 import Marlowe.Extended (Contract, ContractTemplate, getParties, getPlaceholderIds, initializeTemplateContent, typeToLens)
-import Marlowe.Semantics (Party(..))
 import Marlowe.Market.Contract1 (contractTemplate)
+import Marlowe.Semantics (Party(..))
 import Play.Lenses (_templateState)
-import Template.Lenses (_contractNickname, _roleWallets, _templateContent)
-import Template.Types (Action(..), State)
+import Template.Lenses (_contractNickname, _editingNickname, _roleWallets, _setupProgress, _templateContent)
+import Template.Types (Action(..), SetupProgress(..), State)
 
 defaultState :: State
 defaultState = mkInitialState contractTemplate
@@ -38,6 +38,8 @@ mkInitialState template =
   , contractNickname: template.metaData.contractName
   , roleWallets: mkRoleWallets template.extendedContract
   , templateContent: initializeTemplateContent $ getPlaceholderIds template.extendedContract
+  , editingNickname: false
+  , setupProgress: Roles
   }
 
 mkRoleWallets :: Contract -> Map String String
@@ -54,17 +56,11 @@ handleAction ::
   MonadAff m =>
   MonadAsk Env m =>
   Action -> HalogenM MainFrame.State MainFrame.Action ChildSlots Msg m Unit
-handleAction (SetTemplate _) = pure unit -- handled in `Play.State`
-
-handleAction (SetScreen _) = pure unit -- handled in `Play.State`
-
-handleAction ToggleTemplateLibraryCard = pure unit -- handled in `Play.State`
-
-handleAction ToggleSetupConfirmationCard = pure unit -- handled in `Play.State`
-
-handleAction StartContract = pure unit -- handled in `Play.State`
+handleAction ToggleEditingNickname = modifying (_playState <<< _templateState <<< _editingNickname) not
 
 handleAction (SetContractNickname nickname) = assign (_playState <<< _templateState <<< _contractNickname) nickname
+
+handleAction (SetSetupProgress setupProgress) = assign (_playState <<< _templateState <<< _setupProgress) setupProgress
 
 handleAction (SetRoleWallet roleName walletNickname) = modifying (_playState <<< _templateState <<< _roleWallets) $ insert roleName walletNickname
 
@@ -72,3 +68,6 @@ handleAction (SetParameter integerTemplateType key mValue) = do
   let
     value = fromMaybe zero mValue
   modifying (_playState <<< _templateState <<< _templateContent <<< typeToLens integerTemplateType) $ insert key value
+
+-- all other actions are handled in `Play.State`
+handleAction _ = pure unit

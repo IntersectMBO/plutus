@@ -38,7 +38,6 @@ import Foreign.JSON (parseJSON)
 import Halogen (HalogenM, get, query)
 import Halogen.Extra (mapSubmodule)
 import Halogen.Monaco (Query(..)) as Monaco
-import SessionStorage as SessionStorage
 import MainFrame.Types (ChildSlots, _simulatorEditorSlot)
 import Marlowe as Server
 import Marlowe.Extended (fillTemplate, toCore, typeToLens)
@@ -51,6 +50,7 @@ import Marlowe.Semantics as S
 import Network.RemoteData (RemoteData(..))
 import Network.RemoteData as RemoteData
 import Servant.PureScript.Ajax (AjaxError, errorToString)
+import SessionStorage as SessionStorage
 import SimulationPage.Types (Action(..), ActionInput(..), ActionInputId(..), BottomPanelView, ExecutionState(..), Parties(..), State, _SimulationNotStarted, _SimulationRunning, _bottomPanelState, _currentMarloweState, _executionState, _extendedContract, _helpContext, _initialSlot, _marloweState, _moveToAction, _possibleActions, _showRightPanel, _templateContent, emptyExecutionStateWithSlot, emptyMarloweState, mapPartiesActionInput)
 import Simulator (applyInput, inFuture, moveToSignificantSlot, moveToSlot, nextSignificantSlot, updateMarloweState, updatePossibleActions, updateStateP)
 import StaticData (simulatorBufferLocalStorageKey)
@@ -79,8 +79,8 @@ handleAction ::
   HalogenM State Action ChildSlots Void m Unit
 handleAction Init = do
   editorSetTheme
-  mContents <- liftEffect $ SessionStorage.getItem simulatorBufferLocalStorageKey
-  handleAction $ LoadContract $ fromMaybe "" mContents
+  contents <- fromMaybe "" <$> (liftEffect $ SessionStorage.getItem simulatorBufferLocalStorageKey)
+  handleAction $ LoadContract contents
 
 handleAction (SetInitialSlot initialSlot) = do
   assign (_currentMarloweState <<< _executionState <<< _SimulationNotStarted <<< _initialSlot) initialSlot

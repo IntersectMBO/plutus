@@ -28,6 +28,7 @@ let
     hooks = {
       purty.enable = true;
       stylish-haskell.enable = true;
+      terraform-format.enable = true;
       nixpkgs-fmt = {
         enable = true;
         # While nixpkgs-fmt does exclude patterns specified in `.ignore` this
@@ -54,7 +55,6 @@ let
     sqlite-interactive
     stack
     terraform
-    yubikey-manager
     z3
     zlib
   ] ++ (lib.optionals (!stdenv.isDarwin) [ rPackages.plotly R ]));

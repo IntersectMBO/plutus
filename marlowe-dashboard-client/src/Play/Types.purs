@@ -1,17 +1,17 @@
 module Play.Types
   ( State
   , Screen(..)
-  , ContractStatus(..)
   , Card(..)
   , Action(..)
   ) where
 
 import Prelude
 import Analytics (class IsEvent, defaultEvent, toEvent)
-import Contract.Types (Action, State) as Contract
+import Contract.Types (Action) as Contract
+import ContractHome.Types (Action, State) as ContractHome
 import Data.Maybe (Maybe(..))
 import WalletData.Types (Nickname, WalletDetails)
-import Template.Types (Action, Screen, State) as Template
+import Template.Types (Action, State) as Template
 
 type State
   = { walletDetails :: WalletDetails
@@ -19,13 +19,13 @@ type State
     , screen :: Screen
     , card :: Maybe Card
     , templateState :: Template.State
-    , contractState :: Contract.State
+    , contractsState :: ContractHome.State
     }
 
 data Screen
-  = ContractsScreen ContractStatus
+  = ContractsScreen
   | WalletLibraryScreen
-  | TemplateScreen Template.Screen
+  | TemplateScreen
 
 derive instance eqScreen :: Eq Screen
 
@@ -40,12 +40,6 @@ data Card
 
 derive instance eqCard :: Eq Card
 
-data ContractStatus
-  = Running
-  | Completed
-
-derive instance eqContractStatus :: Eq ContractStatus
-
 data Action
   = PutdownWallet
   | SetNewWalletNickname Nickname
@@ -56,7 +50,9 @@ data Action
   | SetCard (Maybe Card)
   | ToggleCard Card
   | TemplateAction Template.Action
+  -- FIXME: see if we should remove ContractAction
   | ContractAction Contract.Action
+  | ContractHomeAction ContractHome.Action
 
 -- | Here we decide which top-level queries to track as GA events, and
 -- how to classify them.
@@ -71,3 +67,4 @@ instance actionIsEvent :: IsEvent Action where
   toEvent (ToggleCard _) = Just $ defaultEvent "ToggleCard"
   toEvent (TemplateAction templateAction) = toEvent templateAction
   toEvent (ContractAction contractAction) = toEvent contractAction
+  toEvent (ContractHomeAction contractAction) = toEvent contractAction

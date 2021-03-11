@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Barlow:ital,wght@0,400;0,700;1,400;1,700&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Barlow:ital,wght@0,400;0,700;1,400;1,700&display=swap");
 
 @tailwind base;
 @tailwind components;
@@ -6,7 +6,8 @@
 
 html,
 body {
-  font-family: Barlow, -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
+  font-family: Barlow, -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica,
+    Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
   @apply h-full bg-grayblue text-black;
 }
 
@@ -15,5 +16,60 @@ a {
 }
 
 hr {
-  @apply border-darkgray mb-1;
+  @apply border-darkgray;
+}
+
+/*
+  The trapesodial card selector is an horizontal tab that has a left straight
+  rounded corner and a diagonal right rounded corner.
+  In order to achieve the effect we need to position to pseudo elements, one before and
+  one after the element itself.
+  The element before is going to make the left straight rounded corner and
+  the element after is going to make the right diagonal rounded corner.
+*/
+.trapesodial-card-selector {
+  /* We make each :before and :after relative to the element */
+  position: relative;
+}
+
+/* We play with z-indexes so that active selectors are displayed above inactive ones.
+  With this rule we make sure that the content of the selector is always visible*/
+.trapesodial-card-selector * {
+  position: relative;
+  z-index: 4;
+}
+
+.trapesodial-card-selector:before {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  transform: translateX(-27px);
+  border-top-left-radius: 0.75rem;
+  z-index: 2;
+  @apply bg-gray;
+}
+.active.trapesodial-card-selector:before {
+  @apply bg-white;
+}
+.trapesodial-card-selector:after {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  transform-origin: bottom left;
+  transform: skewX(15deg);
+  border-top-right-radius: 0.75rem;
+  z-index: 1;
+  @apply bg-gray;
+}
+.active.trapesodial-card-selector:after {
+  /* This z-index makes the right diagonal of an active element be more visible than
+     the straight left of an inactive element */
+  z-index: 3;
+  @apply bg-white;
 }

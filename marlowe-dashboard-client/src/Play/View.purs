@@ -1,8 +1,9 @@
 module Play.View (renderPlayState) where
 
 import Prelude hiding (div)
-import Contract.Types (State) as Contract
-import Contract.View (contractsScreen, contractDetailsCard)
+import Contract.View (contractDetailsCard)
+import ContractHome.Lenses (_selectedContract)
+import ContractHome.View (contractsScreen)
 import Css (applyWhen, classNames, hideWhen)
 import Css as Css
 import Data.Either (Either(..))
@@ -17,14 +18,13 @@ import Marlowe.Extended (ContractTemplate)
 import Marlowe.Semantics (PubKey)
 import Material.Icons as Icon
 import Network.RemoteData (RemoteData)
-import Play.Lenses (_contractState, _menuOpen, _templateState, _walletDetails)
-import Play.Types (Action(..), Card(..), ContractStatus(..), Screen(..), State)
+import Play.Lenses (_contractsState, _menuOpen, _templateState, _walletDetails)
+import Play.Types (Action(..), Card(..), Screen(..), State)
 import Prim.TypeError (class Warn, Text)
 import Servant.PureScript.Ajax (AjaxError)
-import Template.Types (State) as Template
 import Template.View (contractSetupConfirmationCard, contractSetupScreen, templateLibraryCard)
 import WalletData.Lenses (_nickname)
-import WalletData.Types (Nickname, WalletDetails, WalletLibrary)
+import WalletData.Types (Nickname, WalletLibrary)
 import WalletData.View (newWalletCard, walletDetailsCard, putdownWalletCard, walletLibraryScreen)
 
 renderPlayState :: forall p. WalletLibrary -> Nickname -> String -> RemoteData AjaxError PubKey -> Array ContractTemplate -> State -> HTML p Action
@@ -47,15 +47,15 @@ renderHeader walletNickname menuOpen =
   header
     [ classNames $ [ "relative", "flex", "justify-between", "border-b", "border-darkgray" ] <> applyWhen menuOpen [ "border-0", "bg-black", "text-white" ] ]
     [ h1
-        [ classNames [ "text-xl", "font-bold", "px-1", "py-0.5" ] ]
+        [ classNames [ "text-xl", "font-bold", "px-4", "py-2" ] ]
         [ text "Marlowe" ]
     , nav
         [ classNames [ "flex" ] ]
-        [ navigation (SetScreen $ ContractsScreen Running) Icon.home "Home"
+        [ navigation (SetScreen ContractsScreen) Icon.home "Home"
         , navigation (SetScreen WalletLibraryScreen) Icon.contacts "Contacts"
         , navigation (ToggleCard PutdownWalletCard) Icon.wallet walletNickname
         , a
-            [ classNames [ "p-0.5", "md:hidden" ]
+            [ classNames [ "p-2", "md:hidden" ]
             , onClick_ ToggleMenu
             ]
             [ if menuOpen then Icon.close else Icon.menu ]
@@ -64,7 +64,7 @@ renderHeader walletNickname menuOpen =
   where
   navigation action icon label =
     a
-      [ classNames [ "p-0.5" ]
+      [ classNames [ "p-2" ]
       , onClick_ action
       ]
       [ span
@@ -79,32 +79,24 @@ renderHeader walletNickname menuOpen =
 renderMain :: forall p. WalletLibrary -> Nickname -> String -> RemoteData AjaxError PubKey -> Array ContractTemplate -> State -> HTML p Action
 renderMain wallets newWalletNickname newWalletContractId remoteDataPubKey templates playState =
   let
-    walletDetails = view _walletDetails playState
-
     menuOpen = view _menuOpen playState
 
     screen = view _screen playState
-
-    card = view _card playState
-
-    templateState = view _templateState playState
-
-    contractState = view _contractState playState
   in
     main
       [ classNames [ "relative" ] ]
       [ renderMobileMenu menuOpen
-      , renderCards wallets newWalletNickname newWalletContractId remoteDataPubKey templates walletDetails card contractState
-      , renderScreen wallets screen templateState
+      , renderCards wallets newWalletNickname newWalletContractId remoteDataPubKey templates playState
+      , renderScreen wallets screen playState
       ]
 
 renderMobileMenu :: forall p. Boolean -> HTML p Action
 renderMobileMenu menuOpen =
   nav
-    [ classNames $ [ "md:hidden", "absolute", "top-0", "bottom-0", "left-0", "right-0", "z-20", "bg-black", "text-white", "overflow-auto", "flex", "flex-col", "justify-between" ] <> hideWhen (not menuOpen) ]
+    [ classNames $ [ "md:hidden", "absolute", "top-0", "bottom-0", "left-0", "right-0", "z-10", "bg-black", "text-white", "overflow-auto", "flex", "flex-col", "justify-between" ] <> hideWhen (not menuOpen) ]
     [ div
         [ classNames [ "flex", "flex-col" ] ]
-        $ [ link "Dashboard home" $ Right $ SetScreen $ ContractsScreen Running
+        $ [ link "Dashboard home" $ Right $ SetScreen ContractsScreen
           , link "Contacts" $ Right $ SetScreen WalletLibraryScreen
           ]
         <> dashboardLinks
@@ -113,46 +105,63 @@ renderMobileMenu menuOpen =
         iohkLinks
     ]
 
-renderCards :: forall p. WalletLibrary -> Nickname -> String -> RemoteData AjaxError PubKey -> Array ContractTemplate -> WalletDetails -> Maybe Card -> Contract.State -> HTML p Action
-renderCards wallets newWalletNickname newWalletContractId remoteDataPubKey templates currentWalletDetails card contractState =
-  div
-    [ classNames $ Css.cardWrapper $ isNothing card ]
-    [ div
-        [ classNames cardClasses ]
-        [ div
-            [ classNames [ "flex", "justify-end" ] ]
-            [ a
-                [ classNames [ "p-0.5", "leading-none", "text-green" ]
-                , onClick_ $ SetCard Nothing
-                ]
-                [ Icon.close ]
-            ]
-        , div
-            [ classNames [ "px-1", "pb-1" ] ]
-            $ (flip foldMap card) \cardType -> case cardType of
-                CreateWalletCard -> [ newWalletCard wallets newWalletNickname newWalletContractId remoteDataPubKey ]
-                ViewWalletCard walletDetails -> [ walletDetailsCard walletDetails ]
-                PutdownWalletCard -> [ putdownWalletCard currentWalletDetails ]
-                TemplateLibraryCard -> [ TemplateAction <$> templateLibraryCard templates ]
-                NewContractForRoleCard -> []
-                ContractSetupConfirmationCard -> [ TemplateAction <$> contractSetupConfirmationCard ]
-                ContractCard -> [ ContractAction <$> contractDetailsCard contractState ]
-        ]
-    ]
-  where
-  cardClasses = case card of
-    Just TemplateLibraryCard -> Css.largeCard
-    Just ContractCard -> Css.largeCard
-    Just _ -> Css.card
-    Nothing -> [ "hidden" ]
+renderCards :: forall p. WalletLibrary -> Nickname -> String -> RemoteData AjaxError PubKey -> Array ContractTemplate -> State -> HTML p Action
+renderCards wallets newWalletNickname newWalletContractId remoteDataPubKey templates playState =
+  let
+    currentWalletDetails = view _walletDetails playState
 
-renderScreen :: forall p. WalletLibrary -> Screen -> Template.State -> HTML p Action
-renderScreen wallets screen templateState =
-  div
-    [ classNames [ "absolute", "top-0", "bottom-0", "left-0", "right-0", "overflow-auto", "z-0", "p-1" ] ] case screen of
-    ContractsScreen contractStatus -> [ ContractAction <$> contractsScreen contractStatus ]
-    WalletLibraryScreen -> [ walletLibraryScreen wallets ]
-    TemplateScreen templateScreen -> [ TemplateAction <$> contractSetupScreen wallets templateScreen templateState ]
+    mCard = view _card playState
+
+    mSelectedContractState = view (_contractsState <<< _selectedContract) playState
+
+    cardClasses = case mCard of
+      Just TemplateLibraryCard -> Css.largeCard "bg-gray"
+      Just ContractCard -> Css.largeCard "bg-grayblue"
+      Just _ -> Css.card
+      Nothing -> [ "hidden" ]
+  in
+    div
+      [ classNames $ Css.cardWrapper $ isNothing mCard ]
+      [ div
+          [ classNames cardClasses ]
+          [ div
+              [ classNames [ "flex", "justify-end" ] ]
+              [ a
+                  [ classNames [ "p-2", "leading-none", "text-green" ]
+                  , onClick_ $ SetCard Nothing
+                  ]
+                  [ Icon.close ]
+              ]
+          , div
+              [ classNames [ "px-4", "pb-4" ] ]
+              $ (flip foldMap mCard) \cardType -> case cardType of
+                  CreateWalletCard -> [ newWalletCard wallets newWalletNickname newWalletContractId remoteDataPubKey ]
+                  ViewWalletCard walletDetails -> [ walletDetailsCard walletDetails ]
+                  PutdownWalletCard -> [ putdownWalletCard currentWalletDetails ]
+                  TemplateLibraryCard -> [ TemplateAction <$> templateLibraryCard templates ]
+                  NewContractForRoleCard -> []
+                  ContractSetupConfirmationCard -> [ TemplateAction <$> contractSetupConfirmationCard ]
+                  -- FIXME: We need to pattern match on the Maybe because the selectedContractState
+                  --        could be Nothing. We could add the state as part of the view, but is not ideal
+                  --        Will have to rethink how to deal with this once the overall state is more mature.
+                  ContractCard -> case mSelectedContractState of
+                    Just contractState -> [ ContractAction <$> contractDetailsCard contractState ]
+                    Nothing -> []
+          ]
+      ]
+
+renderScreen :: forall p. WalletLibrary -> Screen -> State -> HTML p Action
+renderScreen wallets screen playState =
+  let
+    templateState = view _templateState playState
+
+    contractsState = view _contractsState playState
+  in
+    div
+      [ classNames [ "absolute", "top-0", "bottom-0", "left-0", "right-0", "overflow-auto", "z-0" ] ] case screen of
+      ContractsScreen -> [ ContractHomeAction <$> contractsScreen contractsState ]
+      WalletLibraryScreen -> [ walletLibraryScreen wallets ]
+      TemplateScreen -> [ TemplateAction <$> contractSetupScreen wallets templateState ]
 
 ------------------------------------------------------------
 renderFooter :: forall p. HTML p Action
@@ -185,7 +194,7 @@ iohkLinks =
 link :: forall p. String -> Either String Action -> HTML p Action
 link label urlOrAction =
   a
-    [ classNames [ "p-1", "text-green", "hover:underline", "cursor-pointer" ]
+    [ classNames [ "p-4", "text-green", "hover:underline", "cursor-pointer" ]
     , case urlOrAction of
         Left url -> href url
         Right action -> onClick_ action

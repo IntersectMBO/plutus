@@ -94,15 +94,6 @@ let
     inherit git-rev;
   };
 
-  # Thorp is an S3 sync tool used for deployments
-  thorp =
-    let mvn2nix = import sources.mvn2nix { };
-    in
-    pkgs.callPackage ./thorp {
-      thorpSrc = sources.thorp;
-      inherit mvn2nix;
-    };
-
   # By default pre-commit-hooks.nix uses its own pinned version of nixpkgs. In order to
   # to get it to use our version we have to (somewhat awkwardly) use `nix/default.nix`
   # to which both `nixpkgs` and `system` can be passed.
@@ -195,7 +186,7 @@ in
   inherit haskell agdaPackages cabal-install stylish-haskell hlint haskell-language-server hie-bios;
   inherit purty purty-pre-commit purs spago spago2nix;
   inherit fixPurty fixStylishHaskell updateMaterialized updateMetadataSamples updateClientDeps;
-  inherit iohkNix set-git-rev web-ghc thorp;
+  inherit iohkNix set-git-rev web-ghc;
   inherit easyPS plutus-haddock-combined;
   inherit agdaWithStdlib;
   inherit lib;

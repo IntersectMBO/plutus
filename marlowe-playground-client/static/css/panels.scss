@@ -231,3 +231,61 @@ button.minus-btn:hover {
 .template-fields > input {
   margin-left: 1rem;
 }
+
+.metadata-input {
+  margin-left: 1rem;
+  width: 50%;
+  display: inline;
+  padding: 0.3rem 0.5rem;
+  box-sizing: border-box;
+  border: 1px solid var(--primary-color);
+  box-shadow: 0 1px 0 1px rgba(0, 0, 0, .04);
+  border-radius: .3em;
+  -moz-appearance: none;
+  -webkit-appearance: none;
+  appearance: none;
+  background-color: #fff;
+}
+
+.metadata-input::-ms-expand {
+  display: none;
+}
+
+.metadata-input:hover {
+  border-color: #888;
+}
+
+.metadata-input:focus {
+  border-color: #aaa;
+  box-shadow: 0 0 1px 3px rgba(59, 153, 252, .7);
+  box-shadow: 0 0 0 3px -moz-mac-focusring;
+  color: #222;
+  outline: none;
+}
+
+.metadata-field-group {
+  margin: 0.5rem;
+}
+
+.metadata-field-group h6 {
+  margin-top: 1rem;
+  margin-bottom: 0.5rem;
+  font-weight: bold;
+}
+
+.metadata-field-group li {
+  margin-left: 1rem;
+}
+
+.metadata-field-group li::marker {
+  display: none;
+  content: " ";
+}
+
+.metadata-error {
+  color: var(--error-color);
+}
+
+.metadata-not-used {
+  margin-left: 1rem;
+}

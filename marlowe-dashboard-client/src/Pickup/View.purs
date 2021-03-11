@@ -45,13 +45,13 @@ renderPickupCard wallets newWalletNickname newWalletContractId remoteDataPubKey 
         [ div
             [ classNames [ "flex", "justify-end" ] ]
             [ a
-                [ classNames [ "p-0.5", "text-green" ]
+                [ classNames [ "p-2", "text-green" ]
                 , onClick_ $ SetCard Nothing
                 ]
                 [ Icon.close ]
             ]
         , div
-            [ classNames [ "px-1", "pb-1" ] ]
+            [ classNames [ "px-4", "pb-4" ] ]
             $ (flip foldMap card) \cardType -> case cardType of
                 PickupNewWalletCard -> [ pickupNewWalletCard wallets newWalletNickname newWalletContractId remoteDataPubKey ]
                 PickupWalletCard walletDetails -> [ pickupWalletCard walletDetails ]
@@ -67,10 +67,10 @@ pickupNewWalletCard wallets newWalletNickname newWalletContractId remoteDataPubK
   in
     div_
       [ p
-          [ classNames [ "font-bold", "mb-1" ] ]
+          [ classNames [ "font-bold", "mb-4" ] ]
           [ text "Play wallet generated" ]
       , div
-          [ classNames $ Css.hasNestedLabel <> [ "mb-1" ] ]
+          [ classNames $ Css.hasNestedLabel <> [ "mb-4" ] ]
           $ [ label
                 [ classNames $ Css.nestedLabel
                 , for "newWalletNickname"
@@ -89,7 +89,7 @@ pickupNewWalletCard wallets newWalletNickname newWalletContractId remoteDataPubK
                 [ text $ foldMap show mNicknameError ]
             ]
       , div
-          [ classNames $ Css.hasNestedLabel <> [ "mb-1" ] ]
+          [ classNames $ Css.hasNestedLabel <> [ "mb4" ] ]
           [ label
               [ classNames Css.nestedLabel
               , for "newWalletKey"
@@ -106,7 +106,7 @@ pickupNewWalletCard wallets newWalletNickname newWalletContractId remoteDataPubK
       , div
           [ classNames [ "flex" ] ]
           [ button
-              [ classNames $ Css.secondaryButton <> [ "flex-1", "mr-1" ]
+              [ classNames $ Css.secondaryButton <> [ "flex-1", "mr-4" ]
               , onClick_ $ SetCard Nothing
               ]
               [ text "Cancel" ]
@@ -128,10 +128,10 @@ pickupWalletCard walletDetails =
   in
     div_
       [ p
-          [ classNames [ "font-bold", "mb-1" ] ]
+          [ classNames [ "font-bold", "mb-4" ] ]
           [ text $ "Play wallet " <> nickname ]
       , div
-          [ classNames $ Css.hasNestedLabel <> [ "mb-1" ] ]
+          [ classNames $ Css.hasNestedLabel <> [ "mb-4" ] ]
           $ [ label
                 [ classNames $ Css.nestedLabel
                 , for "nickname"
@@ -146,7 +146,7 @@ pickupWalletCard walletDetails =
                   ]
             ]
       , div
-          [ classNames $ Css.hasNestedLabel <> [ "mb-1" ] ]
+          [ classNames $ Css.hasNestedLabel <> [ "mb-4" ] ]
           [ label
               [ classNames Css.nestedLabel
               , for "walletId"
@@ -163,7 +163,7 @@ pickupWalletCard walletDetails =
       , div
           [ classNames [ "flex" ] ]
           [ button
-              [ classNames $ Css.secondaryButton <> [ "flex-1", "mr-1" ]
+              [ classNames $ Css.secondaryButton <> [ "flex-1", "mr-4" ]
               , onClick_ $ SetCard Nothing
               ]
               [ text "Cancel" ]
@@ -194,21 +194,21 @@ renderPickupScreen wallets =
 pickupWalletScreen :: forall p. WalletLibrary -> HTML p Action
 pickupWalletScreen wallets =
   main
-    [ classNames [ "p-1", "w-22", "mx-auto", "text-center" ] ]
+    [ classNames [ "p-4", "w-96", "mx-auto", "text-center" ] ]
     [ h1
-        [ classNames [ "text-2xl", "font-bold", "mb-1" ] ]
+        [ classNames [ "text-2xl", "font-bold", "mb-4" ] ]
         [ text "Marlowe" ]
     , p
-        [ classNames [ "mb-1" ] ]
+        [ classNames [ "mb-4" ] ]
         [ text "To use the Marlowe demo, generate a new wallet." ]
     , button
-        [ classNames $ Css.primaryButton <> [ "w-full", "mb-1" ]
+        [ classNames $ Css.primaryButton <> [ "w-full", "mb-4" ]
         , onClick_ GenerateNewWallet
         ]
         [ text "Generate play wallet" ]
     , hr_
     , p
-        [ classNames [ "mb-1" ] ]
+        [ classNames [ "mb-4" ] ]
         [ text "Or pickup an existing one by selecting from the list or typing a public key or nickname." ]
     , input
         [ type_ InputText
@@ -224,7 +224,7 @@ pickupWalletScreen wallets =
 link :: forall p a. String -> String -> HTML p a
 link label url =
   a
-    [ classNames [ "flex", "items-center", "p-0.5" ]
+    [ classNames [ "flex", "items-center", "p-2" ]
     , href url
     ]
     [ text label ]

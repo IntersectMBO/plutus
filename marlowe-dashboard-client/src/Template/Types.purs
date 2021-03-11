@@ -1,6 +1,6 @@
 module Template.Types
   ( State
-  , Screen(..)
+  , SetupProgress(..)
   , Action(..)
   ) where
 
@@ -16,21 +16,24 @@ type State
     , contractNickname :: String
     , roleWallets :: Map String String
     , templateContent :: TemplateContent
+    , editingNickname :: Boolean
+    , setupProgress :: SetupProgress
     }
 
-data Screen
-  = ContractRolesScreen
-  | ContractParametersScreen
-  | ContractReviewScreen
+data SetupProgress
+  = Roles
+  | Parameters
+  | Review
 
-derive instance eqScreen :: Eq Screen
+derive instance eqSetupProgress :: Eq SetupProgress
 
 data Action
   = SetTemplate ContractTemplate
-  | SetScreen Screen
   | ToggleTemplateLibraryCard
   | ToggleSetupConfirmationCard
+  | ToggleEditingNickname
   | SetContractNickname String
+  | SetSetupProgress SetupProgress
   | SetRoleWallet String String
   | SetParameter IntegerTemplateType String (Maybe BigInteger)
   | StartContract
@@ -39,10 +42,11 @@ data Action
 -- how to classify them.
 instance actionIsEvent :: IsEvent Action where
   toEvent (SetTemplate _) = Just $ defaultEvent "SetTemplate"
-  toEvent (SetScreen _) = Just $ defaultEvent "SetTemplateScreen"
-  toEvent ToggleTemplateLibraryCard = Just $ defaultEvent "ToggleTemplateLibraryCard"
-  toEvent ToggleSetupConfirmationCard = Just $ defaultEvent "ToggleSetupConfirmationCard"
+  toEvent ToggleTemplateLibraryCard = Nothing
+  toEvent ToggleSetupConfirmationCard = Nothing
+  toEvent ToggleEditingNickname = Nothing
   toEvent (SetContractNickname _) = Just $ defaultEvent "SetContractNickname"
+  toEvent (SetSetupProgress _) = Nothing
   toEvent (SetRoleWallet _ _) = Just $ defaultEvent "SetRoleWallet"
   toEvent (SetParameter _ _ _) = Just $ defaultEvent "SetParameter"
   toEvent StartContract = Just $ defaultEvent "StartContract"

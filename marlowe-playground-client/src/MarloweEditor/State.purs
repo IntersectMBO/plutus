@@ -15,17 +15,15 @@ import Control.Monad.Maybe.Trans (MaybeT(..), runMaybeT)
 import Control.Monad.Reader (class MonadAsk)
 import Data.Array as Array
 import Data.Either (Either(..), hush)
-import Data.Foldable (for_, traverse_)
+import Data.Foldable (for_)
 import Data.Lens (assign, modifying, over, preview, set, use)
 import Data.Lens.Index (ix)
 import Data.Map as Map
-import Data.Maybe (Maybe(..), fromMaybe)
+import Data.Maybe (Maybe(..), fromMaybe, maybe)
 import Data.String (Pattern(..), codePointFromChar, contains)
 import Data.String as String
 import Data.Tuple (Tuple(..))
-import Debug.Trace (spy)
 import Effect.Aff.Class (class MonadAff, liftAff)
-import Effect.Class (class MonadEffect)
 import Env (Env)
 import Examples.Marlowe.Contracts (example) as ME
 import Halogen (HalogenM, liftEffect, modify_, query)
@@ -33,15 +31,15 @@ import Halogen as H
 import Halogen.Extra (mapSubmodule)
 import Halogen.Monaco (Message(..), Query(..)) as Monaco
 import MainFrame.Types (ChildSlots, _marloweEditorPageSlot)
-import Marlowe.Extended (TemplateContent(..))
+import Marlowe.Extended (MetadataHintInfo, TemplateContent, getMetadataHintInfo)
 import Marlowe.Extended as Extended
 import Marlowe.Holes as Holes
 import Marlowe.LinterText as Linter
 import Marlowe.Monaco (updateAdditionalContext)
 import Marlowe.Monaco as MM
 import Marlowe.Parser (parseContract)
-import MarloweEditor.Types (Action(..), BottomPanelView, State, _hasHoles, _bottomPanelState, _editorErrors, _editorWarnings, _keybindings, _selectedHole, _showErrorDetail)
-import Monaco (IMarker, IMarkerData, isError, isWarning)
+import MarloweEditor.Types (Action(..), BottomPanelView, State, _hasHoles, _bottomPanelState, _editorErrors, _editorWarnings, _keybindings, _metadataHintInfo, _selectedHole, _showErrorDetail)
+import Monaco (isError, isWarning)
 import Network.RemoteData as RemoteData
 import Servant.PureScript.Ajax (AjaxError)
 import SessionStorage as SessionStorage
@@ -122,6 +120,8 @@ handleAction (SelectHole hole) = assign _selectedHole hole
 
 handleAction (SetIntegerTemplateParam templateType key value) = modifying (_analysisState <<< _templateContent <<< Extended.typeToLens templateType) (Map.insert key value)
 
+handleAction (MetadataAction _) = pure unit
+
 handleAction AnalyseContract = runAnalysis $ analyseContract
 
 handleAction AnalyseReachabilityContract = runAnalysis $ analyseReachability
@@ -188,22 +188,27 @@ processMarloweCode text = do
             in
               marker { message = trimmedMessage }
 
-    -- If we can get an Extended contract from the holes contract (basically if it has no holes)
-    -- then update the template content. If not, leave them as they are
-    maybeUpdateTemplateContent :: TemplateContent -> TemplateContent
-    maybeUpdateTemplateContent = case Holes.fromTerm =<< hush eParsedContract of
-      Just (contract :: Extended.Contract) -> Extended.updateTemplateContent $ Extended.getPlaceholderIds contract
-      Nothing -> identity
+    mContract :: Maybe Extended.Contract
+    mContract = Holes.fromTerm =<< hush eParsedContract
+
+    metadataInfo :: MetadataHintInfo
+    metadataInfo = maybe mempty getMetadataHintInfo mContract -- ToDo: Implement function that supports holes instead (SCP-2012)
 
     hasHoles =
       not $ Array.null
         $ Array.filter (contains (Pattern "hole") <<< _.message) warningMarkers
+
+    -- If we can get an Extended contract from the holes contract (basically if it has no holes)
+    -- then update the template content. If not, leave them as they are
+    maybeUpdateTemplateContent :: TemplateContent -> TemplateContent
+    maybeUpdateTemplateContent = maybe identity (Extended.updateTemplateContent <<< Extended.getPlaceholderIds) mContract
   void $ query _marloweEditorPageSlot unit $ H.request $ Monaco.SetModelMarkers markerData
   modify_
     ( set _editorWarnings warningMarkers
         <<< set _editorErrors errorMarkers
         <<< set _hasHoles hasHoles
         <<< over (_analysisState <<< _templateContent) maybeUpdateTemplateContent
+        <<< set _metadataHintInfo metadataInfo
     )
   {-
     There are three different Monaco objects that require the linting information:
