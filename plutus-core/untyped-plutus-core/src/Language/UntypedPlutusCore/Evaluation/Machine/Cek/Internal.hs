@@ -116,6 +116,11 @@ data CekValue uni fun =
 
 type CekValEnv uni fun = UniqueMap TermUnique (CekValue uni fun)
 
+-- | The CEK machine is parameterized over a @spendBudget@ function that has (roughly) the same type
+-- as the one from the 'SpendBudget' class (and so the @SpendBudget@ instance for 'CekCarryingM'
+-- defers to the function stored in the environment). This makes the budgeting machinery extensible
+-- and allows us to separate budgeting logic from evaluation logic and avoid branching on a hardcoded
+-- budgeting state type during evaluation.
 newtype CekBudgetSpender st uni fun = CekBudgetSpender
     { unCekBudgetSpender
         :: forall term s. ToExMemory term

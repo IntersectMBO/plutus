@@ -41,10 +41,12 @@ import           Data.Text.Prettyprint.Doc
 
 -- | A budgeting mode to execute an evaluator in.
 data ExBudgetMode st uni fun = ExBudgetMode
-    { _exBudgetModeSpender :: CekBudgetSpender st uni fun
-    , _exBudgetModeInitSt  :: st
+    { _exBudgetModeSpender :: CekBudgetSpender st uni fun  -- ^ A spending function.
+    , _exBudgetModeInitSt  :: st                           -- ^ An initial state.
     }
 
+-- | Construct an 'ExBudgetMode' out of a function returning a value of the budgeting state type.
+-- The value then gets added to the current state via @(<>)@.
 monoidalBudgeting
     :: Monoid st => (ExBudgetCategory fun -> ExBudget -> st) -> ExBudgetMode st uni fun
 monoidalBudgeting toSt = ExBudgetMode spender mempty where
