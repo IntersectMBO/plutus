@@ -56,10 +56,10 @@ import           Data.Ix
 {- Note [CEK runners naming convention]
 A function whose name ends in @NoEmit@ does not perform logging and so does not return any logs.
 A function whose name starts with @unsafe@ throws exceptions instead of returning them purely.
-A function from the @runCek@ family takes an 'ExExBudgetMode' parameter and returns the final
+A function from the @runCek@ family takes an 'ExBudgetMode' parameter and returns the final
 'CekExBudgetState' (and possibly logs).
-A function from the @evaluateCek@ family does not return the final 'ExExBudgetMode', nor does it
-allow one to specify an 'ExExBudgetMode'. I.e. such functions are only for fully evaluating programs
+A function from the @evaluateCek@ family does not return the final 'ExBudgetMode', nor does it
+allow one to specify an 'ExBudgetMode'. I.e. such functions are only for fully evaluating programs
 (and possibly returning logs). See also haddocks of 'enormousBudget'.
 -}
 
