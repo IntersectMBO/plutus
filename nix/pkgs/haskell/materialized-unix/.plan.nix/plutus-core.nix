@@ -283,7 +283,6 @@
             (hsPkgs."bytestring" or (errorHandler.buildDepError "bytestring"))
             (hsPkgs."deepseq" or (errorHandler.buildDepError "deepseq"))
             (hsPkgs."flat" or (errorHandler.buildDepError "flat"))
-            (hsPkgs."monoidal-containers" or (errorHandler.buildDepError "monoidal-containers"))
             (hsPkgs."optparse-applicative" or (errorHandler.buildDepError "optparse-applicative"))
             (hsPkgs."prettyprinter" or (errorHandler.buildDepError "prettyprinter"))
             (hsPkgs."serialise" or (errorHandler.buildDepError "serialise"))
