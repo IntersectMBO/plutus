@@ -63,6 +63,7 @@ runCommand "haddock-join" { buildInputs = [ hsdocs ]; } ''
     ${lib.optionalString (prologue != null) "--prologue ${prologue}"} \
     "''${interfaceOpts[@]}"
 
+  # Following: https://github.com/input-output-hk/ouroboros-network/blob/2068d091bc7dcd3f4538fb76f1b598f219d1e0c8/scripts/haddocs.sh#L87
   # Assemble a toplevel `doc-index.json` from package level ones.
   shopt -s globstar
   echo "[]" > "doc-index.json"
