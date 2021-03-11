@@ -23,9 +23,6 @@ module Plutus.PAB.Webserver.Handler
     , invokeEndpointSTM
     ) where
 
-import           Cardano.Metadata.Types                           (MetadataEffect, QueryResult, Subject,
-                                                                   SubjectProperties (SubjectProperties), batchQuery)
-import qualified Cardano.Metadata.Types                           as Metadata
 import           Control.Concurrent.STM                           (atomically)
 import           Control.Monad.Freer                              (Eff, LastMember, Member, type (~>))
 import           Control.Monad.Freer.Error                        (Error, throwError)
@@ -34,13 +31,10 @@ import           Control.Monad.Freer.Reader                       (Reader, ask)
 import           Control.Monad.IO.Class                           (MonadIO (..))
 import qualified Data.Aeson                                       as JSON
 import           Data.Foldable                                    (traverse_)
-import           Data.Map                                         (Map)
 import qualified Data.Map                                         as Map
-import qualified Data.Set                                         as Set
 import           Data.Text                                        (Text)
 import qualified Data.UUID                                        as UUID
 import           Plutus.Contract.Effects.ExposeEndpoint  (EndpointDescription (EndpointDescription))
-import           Ledger                                           (pubKeyHash)
 import           Ledger.Blockchain                                (Blockchain)
 import qualified Plutus.PAB.Core                                  as Core
 import qualified Plutus.PAB.Core.ContractInstance                 as Instance
@@ -58,7 +52,6 @@ import           Plutus.PAB.Types
 import           Plutus.PAB.Webserver.Types
 import           Servant                                          ((:<|>) ((:<|>)))
 import           Wallet.Effects                                   (ChainIndexEffect, confirmedBlocks)
-import           Wallet.Emulator.Wallet                           (Wallet (Wallet), walletPubKey)
 import qualified Wallet.Rollup                                    as Rollup
 import           Wallet.Types                                     (ContractInstanceId (..), NotificationError)
 
@@ -87,7 +80,6 @@ getContractReport = do
 getChainReport ::
     forall effs.
     ( Member ChainIndexEffect effs
-    , Member MetadataEffect effs
     )
     => Eff effs ChainReport
 getChainReport = do
@@ -96,34 +88,18 @@ getChainReport = do
                       , chainOverviewUnspentTxsById
                       , chainOverviewUtxoIndex
                       } = mkChainOverview blocks
-    let wallets = Wallet <$> [1 .. 10]
-        subjects = Metadata.toSubject . pubKeyHash . walletPubKey <$> wallets
-        toMap ::
-               SubjectProperties (encoding :: Metadata.JSONEncoding)
-            -> Map Subject [Metadata.Property encoding]
-        toMap (SubjectProperties subject properties) =
-            Map.singleton subject properties
-    batchQueryResult :: QueryResult (encoding :: Metadata.JSONEncoding) <-
-        batchQuery
-            (Metadata.QuerySubjects
-                 { Metadata.subjects = Set.fromList subjects
-                 , Metadata.propertyNames = Nothing
-                 })
-    let relatedMetadata = foldMap toMap . Metadata.results $ batchQueryResult
     annotatedBlockchain <- Rollup.doAnnotateBlockchain chainOverviewBlockchain
     pure
         ChainReport
             { transactionMap = chainOverviewUnspentTxsById
             , utxoIndex = chainOverviewUtxoIndex
             , annotatedBlockchain
-            , relatedMetadata
             }
 
 getFullReport ::
        forall t effs.
        ( Member (ContractEffect t) effs
        , Member ChainIndexEffect effs
-       , Member MetadataEffect effs
        , Member (ContractDefinitionStore t) effs
        , PABContract t
        , Member (ContractStore t) effs
@@ -209,7 +185,6 @@ handler ::
        forall effs m appBackend.
        ( Member (ContractEffect ContractExe) effs
        , Member ChainIndexEffect effs
-       , Member MetadataEffect effs
        , Member UUIDEffect effs
        , Member (Error PABError) effs
        , Member (LogMsg UnStringifyJSONLog) effs

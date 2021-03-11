@@ -44,7 +44,6 @@ data ChainReport =
         { transactionMap      :: Map TxId Tx
         , utxoIndex           :: UtxoIndex
         , annotatedBlockchain :: [[AnnotatedTx]]
-        , relatedMetadata     :: Map Metadata.Subject [Metadata.Property 'Metadata.AesonEncoding]
         }
     deriving (Show, Eq, Generic)
     deriving anyclass (FromJSON, ToJSON)
