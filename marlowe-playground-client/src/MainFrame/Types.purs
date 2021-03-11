@@ -325,6 +325,7 @@ newtype Session
   { projectName :: String
   , gistId :: Maybe GistId
   , workflow :: Maybe Lang
+  , contractMetadata :: MetaData
   }
 
 derive instance newtypeSession :: Newtype Session _
@@ -343,11 +344,13 @@ stateToSession :: State -> Session
 stateToSession { projectName
 , gistId
 , workflow
+, contractMetadata
 } =
   Session
     { projectName
     , gistId
     , workflow
+    , contractMetadata
     }
 
 sessionToState :: Session -> State -> State
@@ -356,4 +359,5 @@ sessionToState (Session sessionData) defaultState =
     { projectName = sessionData.projectName
     , gistId = sessionData.gistId
     , workflow = sessionData.workflow
+    , contractMetadata = sessionData.contractMetadata
     }

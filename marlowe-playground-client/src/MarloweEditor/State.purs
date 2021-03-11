@@ -188,11 +188,11 @@ processMarloweCode text = do
             in
               marker { message = trimmedMessage }
 
-    maybeContract :: Maybe Extended.Contract
-    maybeContract = Holes.fromTerm =<< hush eParsedContract
+    mContract :: Maybe Extended.Contract
+    mContract = Holes.fromTerm =<< hush eParsedContract
 
     metadataInfo :: MetadataHintInfo
-    metadataInfo = maybe mempty getMetadataHintInfo maybeContract -- ToDo: Implement function that supports holes instead (SCP-2012)
+    metadataInfo = maybe mempty getMetadataHintInfo mContract -- ToDo: Implement function that supports holes instead (SCP-2012)
 
     hasHoles =
       not $ Array.null
@@ -201,7 +201,7 @@ processMarloweCode text = do
     -- If we can get an Extended contract from the holes contract (basically if it has no holes)
     -- then update the template content. If not, leave them as they are
     maybeUpdateTemplateContent :: TemplateContent -> TemplateContent
-    maybeUpdateTemplateContent = maybe identity (Extended.updateTemplateContent <<< Extended.getPlaceholderIds) maybeContract
+    maybeUpdateTemplateContent = maybe identity (Extended.updateTemplateContent <<< Extended.getPlaceholderIds) mContract
   void $ query _marloweEditorPageSlot unit $ H.request $ Monaco.SetModelMarkers markerData
   modify_
     ( set _editorWarnings warningMarkers

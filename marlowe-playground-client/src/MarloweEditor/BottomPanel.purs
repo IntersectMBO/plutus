@@ -70,6 +70,11 @@ metadataList metadataMap hintSet setAction deleteAction typeNameTitle typeNameSm
 
   mergeMaps _ _ = Nothing
 
+  -- The value of the Map has the following meaning:
+  -- * Nothing means the entry is in the contract but not in the metadata
+  -- * Just (_ /\ false) means the entry is in the metadata but not in the contract
+  -- * Just (_ /\ true) means the entry is both in the contract and in the metadata
+  -- If it is nowhere we just don't store it in the map
   combinedMap :: Map String (Maybe (String /\ Boolean))
   combinedMap =
     Map.unionWith mergeMaps

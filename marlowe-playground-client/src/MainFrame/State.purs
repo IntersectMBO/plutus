@@ -53,7 +53,7 @@ import MainFrame.View (render)
 import Marlowe (getApiGistsByGistId)
 import Marlowe as Server
 import Marlowe.ActusBlockly as AMB
-import Marlowe.Extended (MetaData, _choiceDescriptions, _contractDescription, _contractName, _contractType, _roleDescriptions, _slotParameterDescriptions, _valueParameterDescriptions, emptyContractMetadata)
+import Marlowe.Extended (_choiceDescriptions, _contractDescription, _contractName, _contractType, _roleDescriptions, _slotParameterDescriptions, _valueParameterDescriptions, emptyContractMetadata)
 import Marlowe.Gists (mkNewGist, playgroundFiles, PlaygroundFiles)
 import MarloweEditor.State as MarloweEditor
 import MarloweEditor.Types (MetadataAction(..))
@@ -77,7 +77,7 @@ import Servant.PureScript.Ajax (AjaxError, ErrorDescription(..), errorToString, 
 import SessionStorage as SessionStorage
 import SimulationPage.State as Simulation
 import SimulationPage.Types as ST
-import StaticData (gistIdLocalStorageKey, metadataLocalStorageKey)
+import StaticData (gistIdLocalStorageKey)
 import StaticData as StaticData
 import Types (WebData)
 import WalletSimulation.Types as Wallet
@@ -301,9 +301,7 @@ carryMetadataAction action = do
     DeleteValueParameterDescription valueParam -> over _valueParameterDescriptions $ Map.delete valueParam
     SetChoiceDescription choiceName description -> over _choiceDescriptions $ Map.insert choiceName description
     DeleteChoiceDescription choiceName -> over _choiceDescriptions $ Map.delete choiceName
-  metadata <- use _contractMetadata
   assign (_hasUnsavedChanges) true
-  liftEffect $ SessionStorage.setItem metadataLocalStorageKey (encodeJSON (metadata :: MetaData))
 
 -- This handleAction can be called recursively, but because we use HOF to extend the functionality
 -- of the component, whenever we need to recurse we most likely be calling one of the extended functions
@@ -331,10 +329,6 @@ handleAction Init = do
   void
     $ runMaybeT do
         sessionJSON <- MaybeT $ liftEffect $ SessionStorage.getItem StaticData.sessionStorageKey
-        metadataJSON <- fromMaybe "" <$> (liftEffect $ SessionStorage.getItem metadataLocalStorageKey)
-        let
-          metadata = either (const emptyContractMetadata) identity $ runExcept (decodeJSON metadataJSON)
-        assign _contractMetadata metadata
         session <- hoistMaybe $ hush $ runExcept $ decodeJSON sessionJSON
         H.modify_ (sessionToState session)
 
@@ -485,9 +479,7 @@ handleAction (NewProjectAction (NewProject.CreateProject lang)) = do
         <<< set _createGistResult NotAsked
         <<< set _contractMetadata emptyContractMetadata
     )
-  liftEffect do
-    SessionStorage.setItem gistIdLocalStorageKey mempty
-    SessionStorage.setItem metadataLocalStorageKey (encodeJSON (emptyContractMetadata :: MetaData))
+  liftEffect $ SessionStorage.setItem gistIdLocalStorageKey mempty
   -- We reset all editors and then initialize the selected language.
   toHaskellEditor $ HaskellEditor.handleAction $ HE.InitHaskellProject mempty
   toJavascriptEditor $ JavascriptEditor.handleAction $ JS.InitJavascriptProject mempty
@@ -518,7 +510,6 @@ handleAction (NewProjectAction (NewProject.CreateProject lang)) = do
 handleAction (NewProjectAction NewProject.Cancel) = fullHandleAction CloseModal
 
 handleAction (DemosAction action@(Demos.LoadDemo lang (Demos.Demo key))) = do
-  liftEffect $ SessionStorage.setItem metadataLocalStorageKey (encodeJSON (emptyContractMetadata :: MetaData)) -- ToDo: Load metadata for example (SCP-1912)
   case lang of
     Haskell ->
       for_ (Map.lookup key StaticData.demoFiles) \contents ->
