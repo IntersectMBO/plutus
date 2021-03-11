@@ -20,6 +20,7 @@ module Plutus.PAB.Simulator(
     , runAgentEffects
     , chainState
     , agentStates
+    , chainIndex
     -- * Agents
     , AgentState(..)
     , initialAgentState
@@ -52,11 +53,14 @@ import           Plutus.PAB.Effects.Contract.ContractTest (TestContracts (..))
 import           Plutus.PAB.Effects.MultiAgent            (PABMultiAgentMsg (..), _InstanceMsg)
 import           Plutus.PAB.Types                         (PABError)
 import           Plutus.V1.Ledger.Slot                    (Slot)
-import           Wallet.Effects                           (NodeClientEffect (..))
+import           Wallet.Effects                           (ChainIndexEffect (..), NodeClientEffect (..))
+import qualified Wallet.Effects                           as WalletEffects
 import           Wallet.Emulator.Chain                    (ChainControlEffect, ChainState)
 import qualified Wallet.Emulator.Chain                    as Chain
+import qualified Wallet.Emulator.ChainIndex               as ChainIndex
 import           Wallet.Emulator.LogMessages              (RequestHandlerLogMsg, TxBalanceMsg)
 import           Wallet.Emulator.MultiAgent               (EmulatorEvent' (..), _singleton)
+import           Wallet.Emulator.NodeClient               (ChainClientNotification (..))
 import qualified Wallet.Emulator.Wallet                   as Wallet
 
 data AgentState =
@@ -73,6 +77,7 @@ data SimulatorState =
         , _currentSlot :: TVar Slot
         , _chainState  :: TVar ChainState
         , _agentStates :: TVar (Map Wallet AgentState)
+        , _chainIndex  :: TVar ChainIndex.ChainIndexState
         }
 
 makeLenses ''SimulatorState
@@ -84,11 +89,16 @@ initialState = STM.atomically $
         <*> STM.newTVar 0
         <*> STM.newTVar Chain.emptyChainState
         <*> STM.newTVar mempty
+        <*> STM.newTVar mempty
 
 -- | Effects available to simulated agents that run in their own thread
+--     , Member ChainIndexEffect effs
+    -- , Member WalletEffect effs
+    -- , Member ContractRuntimeEffect effs
 --   TODO: AppBackendConstraints for agent!
 type AgentEffects effs =
-    NodeClientEffect
+    ChainIndexEffect
+    ': NodeClientEffect
     ': Chain.ChainEffect
     ': LogMsg TxBalanceMsg
     ': LogMsg RequestHandlerLogMsg
@@ -107,7 +117,7 @@ handleAgentThread ::
     -> Eff (AgentEffects '[IO]) a
     -> IO (Either PABError a)
 handleAgentThread state wallet action = do
-    let action' :: Eff (AgentEffects '[IO, Writer [LogMessage PABMultiAgentMsg], Error PABError, Reader SimulatorState, IO]) a = Modify.raiseEnd9 action
+    let action' :: Eff (AgentEffects '[IO, Writer [LogMessage PABMultiAgentMsg], Error PABError, Reader SimulatorState, IO]) a = Modify.raiseEnd10 action
         makeTimedWalletEvent wllt =
             interpret @(LogMsg PABMultiAgentMsg) (handleLogWriter _singleton)
             . reinterpret (mapLog @_ @PABMultiAgentMsg EmulatorMsg)
@@ -118,6 +128,11 @@ handleAgentThread state wallet action = do
             . reinterpret (mapLog @_ @PABMultiAgentMsg EmulatorMsg)
             . reinterpret (timed @EmulatorEvent')
             . reinterpret (mapLog ChainEvent)
+        makeTimedChainIndexEvent wllt =
+            interpret @(LogMsg PABMultiAgentMsg) (handleLogWriter _singleton)
+            . reinterpret (mapLog @_ @PABMultiAgentMsg EmulatorMsg)
+            . reinterpret (timed @EmulatorEvent')
+            . reinterpret (mapLog (ChainIndexEvent wllt))
     runM
         $ runReader state
         $ runError
@@ -132,6 +147,8 @@ handleAgentThread state wallet action = do
         $ makeTimedChainEvent
         $ reinterpret @_ @(LogMsg Chain.ChainEvent) handleChainEffect
         $ interpret handleNodeClient
+        $ makeTimedChainIndexEvent wallet
+        $ reinterpret @_ @(LogMsg ChainIndex.ChainIndexEvent) handleChainIndexEffect
         $ action'
 
 runAgentEffects ::
@@ -146,7 +163,9 @@ runAgentEffects action = do
 -- | Control effects for managing the chain
 type ControlEffects effs =
     ChainControlEffect
+    ': ChainIndex.ChainIndexControlEffect
     ': LogMsg Chain.ChainEvent
+    ': LogMsg ChainIndex.ChainIndexEvent
     ': effs
 
 type ControlThread a = Eff (ControlEffects '[IO]) a
@@ -157,18 +176,25 @@ runControlEffects ::
     -> Eff '[Reader SimulatorState, IO] a
 runControlEffects action = do
     state <- ask
-    let action' :: Eff (ControlEffects '[IO, Writer [LogMessage PABMultiAgentMsg], Reader SimulatorState, IO]) a = Modify.raiseEnd3 action
+    let action' :: Eff (ControlEffects '[IO, Writer [LogMessage PABMultiAgentMsg], Reader SimulatorState, IO]) a = Modify.raiseEnd5 action
         makeTimedChainEvent =
             interpret @(LogMsg PABMultiAgentMsg) (handleLogWriter _singleton)
             . reinterpret (mapLog @_ @PABMultiAgentMsg EmulatorMsg)
             . reinterpret (timed @EmulatorEvent')
             . reinterpret (mapLog ChainEvent)
+        makeTimedChainIndexEvent =
+            interpret @(LogMsg PABMultiAgentMsg) (handleLogWriter _singleton)
+            . reinterpret (mapLog @_ @PABMultiAgentMsg EmulatorMsg)
+            . reinterpret (timed @EmulatorEvent')
+            . reinterpret (mapLog (ChainIndexEvent (Wallet 0)))
     liftIO
         $ runM
         $ runReader state
         $ interpret (writeIntoStateTVar logMessages) -- TODO: We could also print it to the terminal
         $ subsume @IO
+        $ makeTimedChainIndexEvent
         $ makeTimedChainEvent
+        $ interpret handleChainIndexControlEffect
         $ interpret handleChainControl action'
 
 
@@ -222,11 +248,20 @@ handleChainControl ::
     , LastMember m effs
     , Member (Reader SimulatorState) effs
     , Member (LogMsg Chain.ChainEvent) effs
+    , Member (LogMsg ChainIndex.ChainIndexEvent) effs
     )
     => ChainControlEffect
     ~> Eff effs
 handleChainControl = \case
-    Chain.ProcessBlock -> runChainEffects @_ @m Chain.processBlock
+    Chain.ProcessBlock -> do
+        (txns, slot) <- runChainEffects @_ @m $ do
+                txns <- Chain.processBlock
+                sl <- Chain.getCurrentSlot
+                pure (txns, sl)
+        runChainIndexEffects $ do
+            ChainIndex.chainIndexNotify $ BlockValidated txns
+            ChainIndex.chainIndexNotify $ SlotChanged slot
+        pure txns
 
 runChainEffects ::
     forall a m effs.
@@ -257,6 +292,33 @@ runChainEffects action = do
     traverse_ (send . LMessage) logs
     pure a
 
+runChainIndexEffects ::
+    forall a m effs.
+    ( Member (Reader SimulatorState) effs
+    , Member (LogMsg ChainIndex.ChainIndexEvent) effs
+    , LastMember m effs
+    , MonadIO m
+    )
+    => Eff (ChainIndexEffect ': ChainIndex.ChainIndexControlEffect ': ChainIndex.ChainIndexEffs) a
+    -> Eff effs a
+runChainIndexEffects action = do
+    SimulatorState{_chainIndex} <- ask
+    (a, logs) <- liftIO $ STM.atomically $ do
+                    oldState <- STM.readTVar _chainIndex
+                    let ((a, newState), logs) =
+                            run
+                            $ runWriter @[LogMessage ChainIndex.ChainIndexEvent]
+                            $ reinterpret @(LogMsg ChainIndex.ChainIndexEvent) @(Writer [LogMessage ChainIndex.ChainIndexEvent]) (handleLogWriter _singleton)
+                            $ runState oldState
+                            $ ChainIndex.handleChainIndexControl
+                            $ ChainIndex.handleChainIndex
+                            $ action
+                    STM.writeTVar _chainIndex newState
+                    pure (a, logs)
+    traverse_ (send . LMessage) logs
+    pure a
+
+
 handleNodeClient ::
     forall effs.
     ( Member Chain.ChainEffect effs
@@ -279,6 +341,34 @@ handleChainEffect ::
 handleChainEffect = \case
     Chain.QueueTx tx     -> runChainEffects $ Chain.queueTx tx
     Chain.GetCurrentSlot -> runChainEffects $ Chain.getCurrentSlot
+
+handleChainIndexEffect ::
+    forall m effs.
+    ( LastMember m effs
+    , MonadIO m
+    , Member (Reader SimulatorState) effs
+    , Member (LogMsg ChainIndex.ChainIndexEvent) effs
+    )
+    => ChainIndexEffect
+    ~> Eff effs
+handleChainIndexEffect = runChainIndexEffects . \case
+    StartWatching a           -> WalletEffects.startWatching a
+    WatchedAddresses          -> WalletEffects.watchedAddresses
+    ConfirmedBlocks           -> WalletEffects.confirmedBlocks
+    TransactionConfirmed txid -> WalletEffects.transactionConfirmed txid
+    NextTx r                  -> WalletEffects.nextTx r
+
+handleChainIndexControlEffect ::
+    forall m effs.
+    ( LastMember m effs
+    , MonadIO m
+    , Member (Reader SimulatorState) effs
+    , Member (LogMsg ChainIndex.ChainIndexEvent) effs
+    )
+    => ChainIndex.ChainIndexControlEffect
+    ~> Eff effs
+handleChainIndexControlEffect = runChainIndexEffects . \case
+    ChainIndex.ChainIndexNotify n -> ChainIndex.chainIndexNotify n
 
 -- TODO
 -- 1. Make timed emulator event
