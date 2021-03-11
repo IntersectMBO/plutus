@@ -1,6 +1,7 @@
 -- TODO: replace web-common Icons module with this one
 module Material.Icons
   ( add
+  , addCircle
   , close
   , contacts
   , east
@@ -25,6 +26,9 @@ icon str = span [ class_ $ ClassName "material-icons-round" ] [ text str ]
 -----
 add :: forall p i. HTML p i
 add = icon "add"
+
+addCircle :: forall p i. HTML p i
+addCircle = icon "add_circle_outline"
 
 close :: forall p i. HTML p i
 close = icon "close"

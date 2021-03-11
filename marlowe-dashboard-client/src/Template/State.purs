@@ -26,8 +26,8 @@ import Marlowe.Extended (Contract, ContractTemplate, getParties, getPlaceholderI
 import Marlowe.Market.Contract1 (contractTemplate)
 import Marlowe.Semantics (Party(..))
 import Play.Lenses (_templateState)
-import Template.Lenses (_contractNickname, _editingNickname, _roleWallets, _setupProgress, _templateContent)
-import Template.Types (Action(..), SetupProgress(..), State)
+import Template.Lenses (_contractNickname, _roleWallets, _templateContent)
+import Template.Types (Action(..), State)
 
 defaultState :: State
 defaultState = mkInitialState contractTemplate
@@ -38,8 +38,6 @@ mkInitialState template =
   , contractNickname: template.metaData.contractName
   , roleWallets: mkRoleWallets template.extendedContract
   , templateContent: initializeTemplateContent $ getPlaceholderIds template.extendedContract
-  , editingNickname: false
-  , setupProgress: Roles
   }
 
 mkRoleWallets :: Contract -> Map String String
@@ -56,11 +54,7 @@ handleAction ::
   MonadAff m =>
   MonadAsk Env m =>
   Action -> HalogenM MainFrame.State MainFrame.Action ChildSlots Msg m Unit
-handleAction ToggleEditingNickname = modifying (_playState <<< _templateState <<< _editingNickname) not
-
 handleAction (SetContractNickname nickname) = assign (_playState <<< _templateState <<< _contractNickname) nickname
-
-handleAction (SetSetupProgress setupProgress) = assign (_playState <<< _templateState <<< _setupProgress) setupProgress
 
 handleAction (SetRoleWallet roleName walletNickname) = modifying (_playState <<< _templateState <<< _roleWallets) $ insert roleName walletNickname
 

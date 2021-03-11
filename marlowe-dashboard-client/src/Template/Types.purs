@@ -1,6 +1,5 @@
 module Template.Types
   ( State
-  , SetupProgress(..)
   , Action(..)
   ) where
 
@@ -16,24 +15,14 @@ type State
     , contractNickname :: String
     , roleWallets :: Map String String
     , templateContent :: TemplateContent
-    , editingNickname :: Boolean
-    , setupProgress :: SetupProgress
     }
-
-data SetupProgress
-  = Roles
-  | Parameters
-  | Review
-
-derive instance eqSetupProgress :: Eq SetupProgress
 
 data Action
   = SetTemplate ContractTemplate
   | ToggleTemplateLibraryCard
+  | ToggleCreateWalletCard String
   | ToggleSetupConfirmationCard
-  | ToggleEditingNickname
   | SetContractNickname String
-  | SetSetupProgress SetupProgress
   | SetRoleWallet String String
   | SetParameter IntegerTemplateType String (Maybe BigInteger)
   | StartContract
@@ -43,10 +32,9 @@ data Action
 instance actionIsEvent :: IsEvent Action where
   toEvent (SetTemplate _) = Just $ defaultEvent "SetTemplate"
   toEvent ToggleTemplateLibraryCard = Nothing
+  toEvent (ToggleCreateWalletCard tokenName) = Nothing
   toEvent ToggleSetupConfirmationCard = Nothing
-  toEvent ToggleEditingNickname = Nothing
   toEvent (SetContractNickname _) = Just $ defaultEvent "SetContractNickname"
-  toEvent (SetSetupProgress _) = Nothing
   toEvent (SetRoleWallet _ _) = Just $ defaultEvent "SetRoleWallet"
   toEvent (SetParameter _ _ _) = Just $ defaultEvent "SetParameter"
   toEvent StartContract = Just $ defaultEvent "StartContract"

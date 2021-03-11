@@ -27,8 +27,8 @@ import WalletData.Lenses (_contractId, _nickname)
 import WalletData.Types (Nickname, WalletDetails, WalletLibrary)
 import WalletData.Validation (contractIdError, nicknameError)
 
-newWalletCard :: forall p. WalletLibrary -> Nickname -> String -> RemoteData AjaxError PubKey -> HTML p Action
-newWalletCard library newWalletNickname newWalletContractId remoteDataPubKey =
+newWalletCard :: forall p. WalletLibrary -> Nickname -> String -> RemoteData AjaxError PubKey -> Maybe String -> HTML p Action
+newWalletCard library newWalletNickname newWalletContractId remoteDataPubKey mTokenName =
   let
     mNicknameError = nicknameError newWalletNickname library
 
@@ -38,7 +38,7 @@ newWalletCard library newWalletNickname newWalletContractId remoteDataPubKey =
       [ classNames [ "flex", "flex-col" ] ]
       [ p
           [ classNames [ "mb-4" ] ]
-          [ text "Create new contact" ]
+          [ text $ "Create new contact" <> foldMap (\tokenName -> " for role " <> show tokenName) mTokenName ]
       , div
           [ classNames $ [ "mb-4" ] <> (applyWhen (not null newWalletNickname) Css.hasNestedLabel) ]
           [ label
@@ -81,7 +81,7 @@ newWalletCard library newWalletNickname newWalletContractId remoteDataPubKey =
           , button
               [ classNames $ Css.primaryButton <> [ "flex-1" ]
               , disabled $ isJust mNicknameError || isJust mContractIdError
-              , onClick_ $ AddNewWallet
+              , onClick_ $ AddNewWallet mTokenName
               ]
               [ text "Save" ]
           ]
@@ -165,7 +165,7 @@ walletLibraryScreen library =
           <$> toUnfoldable library
     , button
         [ classNames Css.fixedPrimaryButton
-        , onClick_ $ ToggleCard CreateWalletCard
+        , onClick_ $ ToggleCard $ CreateWalletCard Nothing
         ]
         [ span
             [ classNames [ "mr-2" ] ]

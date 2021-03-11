@@ -6,7 +6,7 @@ import Css as Css
 import Data.Foldable (foldMap)
 import Data.Lens (view)
 import Data.Maybe (Maybe(..), isJust, isNothing)
-import Halogen.HTML (HTML, a, button, div, div_, footer, h1, header, hr_, input, label, main, p, text)
+import Halogen.HTML (HTML, a, button, div, div_, footer, h1, header, hr, input, label, main, p, text)
 import Halogen.HTML.Events.Extra (onClick_, onValueInput_)
 import Halogen.HTML.Properties (InputType(..), disabled, for, href, id_, list, placeholder, readOnly, type_, value)
 import MainFrame.Lenses (_card)
@@ -78,7 +78,7 @@ pickupNewWalletCard wallets newWalletNickname newWalletContractId remoteDataPubK
                 [ text "Nickname" ]
             , input
                 $ [ type_ InputText
-                  , classNames $ Css.input $ isJust mNicknameError
+                  , classNames $ (Css.input $ isJust mNicknameError) <> [ "text-lg" ]
                   , id_ "newWalletNickname"
                   , placeholder "Nickname"
                   , value newWalletNickname
@@ -89,7 +89,7 @@ pickupNewWalletCard wallets newWalletNickname newWalletContractId remoteDataPubK
                 [ text $ foldMap show mNicknameError ]
             ]
       , div
-          [ classNames $ Css.hasNestedLabel <> [ "mb4" ] ]
+          [ classNames $ Css.hasNestedLabel <> [ "mb-4" ] ]
           [ label
               [ classNames Css.nestedLabel
               , for "newWalletKey"
@@ -97,7 +97,7 @@ pickupNewWalletCard wallets newWalletNickname newWalletContractId remoteDataPubK
               [ text "Wallet ID" ]
           , input
               [ type_ InputText
-              , classNames $ Css.input false
+              , classNames $ (Css.input false) <> [ "text-lg" ]
               , id_ "newWalletKey"
               , value newWalletContractId
               , readOnly true
@@ -194,22 +194,22 @@ renderPickupScreen wallets =
 pickupWalletScreen :: forall p. WalletLibrary -> HTML p Action
 pickupWalletScreen wallets =
   main
-    [ classNames [ "p-4", "w-96", "mx-auto", "text-center" ] ]
+    [ classNames [ "p-4", "max-w-sm", "mx-auto", "text-center" ] ]
     [ h1
-        [ classNames [ "text-2xl", "font-bold", "mb-4" ] ]
+        [ classNames [ "text-4xl", "font-bold", "mb-4" ] ]
         [ text "Marlowe" ]
     , p
         [ classNames [ "mb-4" ] ]
-        [ text "To use the Marlowe demo, generate a new wallet." ]
+        [ text "To use Marlowe Run, generate a new demo wallet." ]
     , button
         [ classNames $ Css.primaryButton <> [ "w-full", "mb-4" ]
         , onClick_ GenerateNewWallet
         ]
         [ text "Generate play wallet" ]
-    , hr_
+    , hr [ classNames [ "mb-4" ] ]
     , p
         [ classNames [ "mb-4" ] ]
-        [ text "Or pickup an existing one by selecting from the list or typing a public key or nickname." ]
+        [ text "Or use an existing one by selecting from the list or typing a public key or nickname." ]
     , input
         [ type_ InputText
         , classNames $ Css.input false <> [ "w-full" ]
