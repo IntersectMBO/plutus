@@ -82,8 +82,6 @@ let
     updateMaterialized
     updateClientDeps
     updateMetadataSamples
-    deployment.getCreds
-    docs.build-and-serve-docs
   ]);
 
 in

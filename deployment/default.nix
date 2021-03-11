@@ -1,72 +1,6 @@
 { pkgs, plutus, marlowe-playground, plutus-playground, terraform }:
 with pkgs;
 let
-  # This creates a script that will set AWS env vars by getting a session token based on your user name and MFA
-  getCreds = pkgs.writeShellScriptBin "getcreds" ''
-    set -eou pipefail
-
-    if [[ $# -ne 2 ]]; then
-      echo "Please call the script with your AWS account username followed by the MFA code"
-      exit 1
-    fi
-    export AWS_PROFILE=dev-mantis
-    unset AWS_SESSION_TOKEN
-    unset AWS_SECRET_ACCESS_KEY
-    unset AWS_ACCESS_KEY_ID
-
-    ${awscli}/bin/aws sts get-session-token --serial-number "arn:aws:iam::454236594309:mfa/$1" --output text --duration-seconds 86400 --token-code "$2" \
-            | awk '{printf("export AWS_ACCESS_KEY_ID=%s\nexport AWS_SECRET_ACCESS_KEY=\"%s\"\nexport AWS_SESSION_TOKEN=\"%s\"\n",$2,$4,$5)}'
-  '';
-
-  mkExtraTerraformVars = attrs:
-    let
-      lines = lib.mapAttrsToList (name: value: "export TF_VAR_${name}=${value}") attrs;
-    in
-    lib.concatStringsSep "\n" lines;
-
-  refreshTerraform = env: region: { extraTerraformVars ? { } }:
-    writeShellScript "refresh" ''
-      set -eou pipefail
-
-      tmp_dir=$(mktemp -d)
-      echo "using tmp_dir $tmp_dir"
-
-      ln -s ${./terraform}/* "$tmp_dir"
-
-      # in case we have some tfvars around in ./terraform (note: don't use "" as it stops wildcards from working)
-      rm $tmp_dir/*.tfvars || true
-
-      cd "$tmp_dir"
-
-      echo "set output directory"
-      export TF_VAR_output_path="$tmp_dir"
-
-      echo "read secrets"
-      TF_VAR_marlowe_github_client_id=$(pass ${env}/marlowe/githubClientId)
-      TF_VAR_marlowe_github_client_secret=$(pass ${env}/marlowe/githubClientSecret)
-      TF_VAR_marlowe_jwt_signature=$(pass ${env}/marlowe/jwtSignature)
-      TF_VAR_plutus_github_client_id=$(pass ${env}/plutus/githubClientId)
-      TF_VAR_plutus_github_client_secret=$(pass ${env}/plutus/githubClientSecret)
-      TF_VAR_plutus_jwt_signature=$(pass ${env}/plutus/jwtSignature)
-
-      export TF_VAR_marlowe_github_client_id
-      export TF_VAR_marlowe_github_client_secret
-      export TF_VAR_marlowe_jwt_signature
-      export TF_VAR_plutus_github_client_id
-      export TF_VAR_plutus_github_client_secret
-      export TF_VAR_plutus_jwt_signature
-
-      # other terraform variables
-      export TF_VAR_env="${env}"
-      export TF_VAR_aws_region="${region}"
-      ${mkExtraTerraformVars extraTerraformVars}
-
-      echo "refresh terraform"
-      ${terraform}/bin/terraform init
-      ${terraform}/bin/terraform workspace select ${env}
-      ${terraform}/bin/terraform refresh
-    '';
-
   applyTerraform = env: region: { extraTerraformVars ? { } }:
     writeShellScript "deploy" ''
       set -eou pipefail
@@ -146,49 +80,6 @@ let
       cp $tmp_dir/plutus_playground.${env}.conf ~/.ssh/config.d/
     '';
 
-  deploy = env: region: extraParams:
-    writeShellScript "deploy" ''
-      set -eou pipefail
-
-      ${applyTerraform env region extraParams}
-      echo "done"
-    '';
-
-  destroy = env: region: { extraTerraformVars ? { } }:
-    writeShellScript "destroy" ''
-      set -eou pipefail
-
-      tmp_dir=$(mktemp -d)
-      echo "using tmp_dir $tmp_dir"
-
-      ln -s ${./terraform}/* "$tmp_dir"
-
-      # in case we have some tfvars around in ./terraform
-      rm $tmp_dir/*.tfvars || true
-
-      cd "$tmp_dir"
-
-      echo "set output directory"
-      export TF_VAR_output_path="$tmp_dir"
-
-      echo "apply terraform"
-      export TF_VAR_marlowe_github_client_id=$(pass ${env}/marlowe/githubClientId)
-      export TF_VAR_marlowe_github_client_secret=$(pass ${env}/marlowe/githubClientSecret)
-      export TF_VAR_marlowe_jwt_signature=$(pass ${env}/marlowe/jwtSignature)
-      export TF_VAR_plutus_github_client_id=$(pass ${env}/plutus/githubClientId)
-      export TF_VAR_plutus_github_client_secret=$(pass ${env}/plutus/githubClientSecret)
-      export TF_VAR_plutus_jwt_signature=$(pass ${env}/plutus/jwtSignature)
-
-      # other terraform variables
-      export TF_VAR_env="${env}"
-      export TF_VAR_aws_region="${region}"
-      ${mkExtraTerraformVars extraTerraformVars}
-
-      ${terraform}/bin/terraform init
-      ${terraform}/bin/terraform workspace select ${env}
-      ${terraform}/bin/terraform destroy
-    '';
-
   /* The set of all gpg keys that can be used by pass
      To add a new user, put their key in ./deployment/keys and add the key filename and id here.
      You can cheat the id by putting an empty value and then running `$(nix-build -A deployment.importKeys)`
@@ -229,9 +120,7 @@ let
   mkEnv = env: region: keyNames: extraParams: {
     inherit terraform;
     applyTerraform = (applyTerraform env region extraParams);
-    refreshTerraform = (refreshTerraform env region extraParams);
     deploy = (deploy env region extraParams);
-    destroy = (destroy env region extraParams);
     initPass = (initPass env keyNames);
   };
 
@@ -250,4 +139,4 @@ let
 
   configTest = import ./morph/test.nix;
 in
-envs // { inherit getCreds static configTest importKeys; }
+envs // { inherit configTest importKeys; }
