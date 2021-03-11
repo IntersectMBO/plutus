@@ -13,12 +13,12 @@ import           Control.Monad.Freer                     (Eff, Member, type (~>)
 import           Control.Monad.Freer.Error               (Error, throwError)
 import qualified Data.Map                                as Map
 import qualified Plutus.PAB.Command                      as Command
+import qualified Plutus.PAB.Db.Eventful.Query            as Query
 import           Plutus.PAB.Effects.Contract             (ContractStore (..), PABContract (..))
 import           Plutus.PAB.Effects.EventLog             (EventLogEffect, runCommand, runGlobalQuery)
 import           Plutus.PAB.Events                       (PABEvent)
 import           Plutus.PAB.Events.Contract              (ContractPABRequest)
 import           Plutus.PAB.Events.ContractInstanceState (PartiallyDecodedResponse)
-import qualified Plutus.PAB.Query                        as Query
 import           Plutus.PAB.Types                        (PABError (..), Source (..))
 
 -- | Handle the 'ContractStore' effect by storing states

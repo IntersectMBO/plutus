@@ -44,8 +44,8 @@ import           Plutus.PAB.Core.ContractInstance               (ContractInstanc
 import qualified Plutus.PAB.Core.ContractInstance.BlockchainEnv as BlockchainEnv
 import           Plutus.PAB.Core.ContractInstance.STM           (BlockchainEnv, InstancesState)
 import qualified Plutus.PAB.Core.ContractInstance.STM           as ContractInstance
-import           Plutus.PAB.Effects.Contract.CLI                (ContractExe)
-import qualified Plutus.PAB.Effects.Contract.CLI                as LM
+import           Plutus.PAB.Effects.Contract.ContractExe        (ContractExe)
+import qualified Plutus.PAB.Effects.Contract.ContractExe        as LM
 import qualified Plutus.PAB.Monitoring.PABLogMsg                as LM
 import           Plutus.PAB.ParseStringifiedJSON                (UnStringifyJSONLog)
 import           Plutus.PAB.Types                               (Config (..), PABError (InvalidUUIDError), baseUrl,

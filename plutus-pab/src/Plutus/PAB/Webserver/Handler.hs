@@ -49,7 +49,7 @@ import           Plutus.PAB.Core.ContractInstance.STM             (InstancesStat
 import           Plutus.PAB.Effects.Contract                      (ContractDefinitionStore, ContractEffect,
                                                                    ContractStore, PABContract (..), exportSchema,
                                                                    getActiveContracts, getDefinitions, getState)
-import           Plutus.PAB.Effects.Contract.CLI                  (ContractExe)
+import           Plutus.PAB.Effects.Contract.ContractExe          (ContractExe)
 import           Plutus.PAB.Effects.UUID                          (UUIDEffect)
 import           Plutus.PAB.Events.Contract                       (ContractPABRequest)
 import           Plutus.PAB.Events.ContractInstanceState          (PartiallyDecodedResponse)

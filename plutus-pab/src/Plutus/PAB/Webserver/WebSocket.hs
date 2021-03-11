@@ -10,33 +10,33 @@ module Plutus.PAB.Webserver.WebSocket
     ( handleWS
     ) where
 
-import qualified Cardano.BM.Configuration.Model       as CM
-import           Cardano.BM.Trace                     (Trace)
-import           Cardano.Metadata.Types               (MetadataEffect)
-import qualified Cardano.Metadata.Types               as Metadata
-import           Control.Concurrent.Async             (Async, async, waitAnyCancel)
-import           Control.Exception                    (SomeException, handle)
-import           Control.Monad                        (forever, void, when)
-import           Control.Monad.Freer                  (Eff, LastMember, Member, interpret)
-import           Control.Monad.Freer.Delay            (DelayEffect, delayThread, handleDelayEffect)
-import           Control.Monad.Freer.Extras.Log       (LogMsg, logDebug, logInfo, mapLog)
-import           Control.Monad.Freer.Reader           (Reader, ask)
-import           Control.Monad.Freer.WebSocket        (WebSocketEffect, acceptConnection, receiveJSON, sendJSON)
-import           Control.Monad.IO.Class               (MonadIO, liftIO)
-import           Data.Aeson                           (ToJSON)
-import           Data.Time.Units                      (Second, TimeUnit)
-import           Network.WebSockets.Connection        (Connection, PendingConnection, withPingThread)
-import           Plutus.PAB.App                       (runApp)
-import           Plutus.PAB.Core.ContractInstance.STM (InstancesState)
-import           Plutus.PAB.Effects.Contract          (ContractDefinitionStore, ContractEffect, ContractStore)
-import           Plutus.PAB.Effects.Contract.CLI      (ContractExe)
-import qualified Plutus.PAB.Monitoring.PABLogMsg      as LM
-import           Plutus.PAB.Types                     (Config, PABError)
-import           Plutus.PAB.Webserver.Handler         (getChainReport, getContractReport)
-import           Plutus.PAB.Webserver.Types           (StreamToClient (ErrorResponse, FetchedProperties, FetchedProperty, NewChainReport, NewContractReport),
-                                                       StreamToServer (FetchProperties, FetchProperty),
-                                                       WebSocketLogMsg (ClosedConnection, CreatedConnection, ReceivedWebSocketRequest, SendingWebSocketResponse))
-import           Wallet.Effects                       (ChainIndexEffect)
+import qualified Cardano.BM.Configuration.Model          as CM
+import           Cardano.BM.Trace                        (Trace)
+import           Cardano.Metadata.Types                  (MetadataEffect)
+import qualified Cardano.Metadata.Types                  as Metadata
+import           Control.Concurrent.Async                (Async, async, waitAnyCancel)
+import           Control.Exception                       (SomeException, handle)
+import           Control.Monad                           (forever, void, when)
+import           Control.Monad.Freer                     (Eff, LastMember, Member, interpret)
+import           Control.Monad.Freer.Delay               (DelayEffect, delayThread, handleDelayEffect)
+import           Control.Monad.Freer.Extras.Log          (LogMsg, logDebug, logInfo, mapLog)
+import           Control.Monad.Freer.Reader              (Reader, ask)
+import           Control.Monad.Freer.WebSocket           (WebSocketEffect, acceptConnection, receiveJSON, sendJSON)
+import           Control.Monad.IO.Class                  (MonadIO, liftIO)
+import           Data.Aeson                              (ToJSON)
+import           Data.Time.Units                         (Second, TimeUnit)
+import           Network.WebSockets.Connection           (Connection, PendingConnection, withPingThread)
+import           Plutus.PAB.App                          (runApp)
+import           Plutus.PAB.Core.ContractInstance.STM    (InstancesState)
+import           Plutus.PAB.Effects.Contract             (ContractDefinitionStore, ContractEffect, ContractStore)
+import           Plutus.PAB.Effects.Contract.ContractExe (ContractExe)
+import qualified Plutus.PAB.Monitoring.PABLogMsg         as LM
+import           Plutus.PAB.Types                        (Config, PABError)
+import           Plutus.PAB.Webserver.Handler            (getChainReport, getContractReport)
+import           Plutus.PAB.Webserver.Types              (StreamToClient (ErrorResponse, FetchedProperties, FetchedProperty, NewChainReport, NewContractReport),
+                                                          StreamToServer (FetchProperties, FetchProperty),
+                                                          WebSocketLogMsg (ClosedConnection, CreatedConnection, ReceivedWebSocketRequest, SendingWebSocketResponse))
+import           Wallet.Effects                          (ChainIndexEffect)
 
 ------------------------------------------------------------
 -- Message processors.

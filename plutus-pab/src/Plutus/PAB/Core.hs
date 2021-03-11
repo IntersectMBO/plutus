@@ -51,6 +51,7 @@ import           Eventful.Store.Sql                      (defaultSqlEventStoreCo
 import           GHC.Generics                            (Generic)
 import qualified Ledger
 import           Plutus.PAB.Core.ContractInstance        (activateContractSTM)
+import qualified Plutus.PAB.Db.Eventful.Query            as Query
 import           Plutus.PAB.Effects.Contract             (ContractDefinitionStore, ContractEffect, ContractStore,
                                                           PABContract (..), addDefinition, getState)
 import           Plutus.PAB.Effects.EventLog             (Connection (..), EventLogEffect, refreshProjection,
@@ -60,7 +61,6 @@ import           Plutus.PAB.Effects.UUID                 (UUIDEffect)
 import           Plutus.PAB.Events                       (PABEvent)
 import           Plutus.PAB.Events.Contract              (ContractPABRequest)
 import           Plutus.PAB.Events.ContractInstanceState (PartiallyDecodedResponse)
-import qualified Plutus.PAB.Query                        as Query
 import           Plutus.PAB.Types                        (DbConfig (DbConfig), PABError, Source (..), dbConfigFile,
                                                           dbConfigPoolSize, toUUID)
 import           Wallet.Types                            (ContractInstanceId)

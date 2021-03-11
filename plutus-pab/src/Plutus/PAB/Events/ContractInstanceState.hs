@@ -27,7 +27,7 @@ import           Plutus.PAB.Effects.Contract        (PABContract (..))
 import           Plutus.PAB.Events.Contract         (ContractPABRequest, ContractResponse (..))
 import           Wallet.Types                       (ContractInstanceId)
 
--- FIXME: ContractResponse Value Value Value h
+-- TODO: Replace with type synonym for @ContractResponse Value Value Value h@
 data PartiallyDecodedResponse v =
     PartiallyDecodedResponse
         { newState        :: Contract.State Value

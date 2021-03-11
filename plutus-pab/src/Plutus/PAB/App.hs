@@ -53,7 +53,7 @@ import           Plutus.PAB.Db.Eventful.ContractDefinitionStore (handleContractD
 import           Plutus.PAB.Db.Eventful.ContractStore           (handleContractStore)
 import           Plutus.PAB.Effects.Contract                    (ContractDefinitionStore, ContractEffect (..),
                                                                  ContractStore)
-import           Plutus.PAB.Effects.Contract.CLI                (ContractExe, ContractExeLogMsg (..),
+import           Plutus.PAB.Effects.Contract.ContractExe        (ContractExe, ContractExeLogMsg (..),
                                                                  handleContractEffectContractExe)
 import           Plutus.PAB.Effects.ContractRuntime             (handleContractRuntime)
 import           Plutus.PAB.Effects.EventLog                    (EventLogEffect (..), handleEventLogSql)

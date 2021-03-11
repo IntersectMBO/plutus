@@ -11,12 +11,11 @@
 {-# LANGUAGE TypeOperators      #-}
 {-
 
-'ContractEffect' handler for contracts that use the CLI
+'ContractEffect' handler for contracts compiled that use the CLI
 interface (see 'Plutus.PAB.ContractCLI').
 
 -}
--- FIXME: Plutus.PAB.Effects.Contract.ContractExe
-module Plutus.PAB.Effects.Contract.CLI(
+module Plutus.PAB.Effects.Contract.ContractExe(
     ContractExe(..)
     , handleContractEffectContractExe
     , ContractExeLogMsg(..)

@@ -79,12 +79,13 @@ library
         Plutus.PAB.Core.ContractInstance.BlockchainEnv
         Plutus.PAB.Core.ContractInstance.RequestHandlers
         Plutus.PAB.Core.ContractInstance.STM
-        Plutus.PAB.Core.Projections
         Plutus.PAB.Db.Eventful.ContractDefinitionStore
         Plutus.PAB.Db.Eventful.ContractStore
+        Plutus.PAB.Db.Eventful.Projections
+        Plutus.PAB.Db.Eventful.Query
         Plutus.PAB.Effects.Contract
         Plutus.PAB.Effects.Contract.ContractTest
-        Plutus.PAB.Effects.Contract.CLI
+        Plutus.PAB.Effects.Contract.ContractExe
         Plutus.PAB.Effects.ContractRuntime
         Plutus.PAB.Effects.ContractTest.AtomicSwap
         Plutus.PAB.Effects.ContractTest.PayToWallet
@@ -106,7 +107,6 @@ library
         Plutus.PAB.Events.Contract
         Plutus.PAB.Events.ContractInstanceState
         Plutus.PAB.ParseStringifiedJSON
-        Plutus.PAB.Query
         Plutus.PAB.Types
     other-modules:
         Servant.Extra

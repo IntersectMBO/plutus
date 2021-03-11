@@ -30,6 +30,7 @@ import           Plutus.Contracts.Currency        (SimpleMPS (..))
 import qualified Plutus.Contracts.Game            as Contracts.Game
 import           Plutus.PAB.Command               ()
 import           Plutus.PAB.Core
+<<<<<<< HEAD
 import           Plutus.PAB.Core.ContractInstance (ContractInstanceMsg)
 import           Plutus.PAB.Effects.Contract      (ContractEffect)
 import           Plutus.PAB.Effects.ContractTest  (TestContracts (..))
@@ -47,6 +48,28 @@ import           Wallet.API                       (WalletAPIError, ownPubKey)
 import qualified Wallet.Emulator.Chain            as Chain
 import           Wallet.Rollup                    (doAnnotateBlockchain)
 import           Wallet.Rollup.Types              (DereferencedInput, dereferencedInputs, isFound)
+=======
+import           Plutus.PAB.Core.ContractInstance                  (ContractInstanceMsg)
+import qualified Plutus.PAB.Db.Eventful.Query                      as Query
+import           Plutus.PAB.Effects.Contract                       (ContractEffect)
+import           Plutus.PAB.Effects.ContractTest                   (TestContracts (..))
+import           Plutus.PAB.Effects.EventLog                       (EventLogEffect)
+import           Plutus.PAB.Effects.MultiAgent                     (PABClientEffects, agentAction)
+import           Plutus.PAB.Events                                 (ChainEvent, ContractInstanceId,
+                                                                    ContractInstanceState (..), hooks)
+import           Plutus.PAB.MockApp                                (TestState, TxCounts (..), blockchainNewestFirst,
+                                                                    defaultWallet, processAllMsgBoxes, runScenario,
+                                                                    txCounts, txValidated, valueAt)
+import           Plutus.PAB.Types                                  (PABError (..), chainOverviewBlockchain,
+                                                                    mkChainOverview)
+import           Test.QuickCheck.Instances.UUID                    ()
+import           Test.Tasty                                        (TestTree, testGroup)
+import           Test.Tasty.HUnit                                  (testCase)
+import           Wallet.API                                        (WalletAPIError, ownPubKey)
+import qualified Wallet.Emulator.Chain                             as Chain
+import           Wallet.Rollup                                     (doAnnotateBlockchain)
+import           Wallet.Rollup.Types                               (DereferencedInput, dereferencedInputs, isFound)
+>>>>>>> Update some modules
 
 tests :: TestTree
 tests = testGroup "Plutus.PAB.Core" [installContractTests, executionTests]

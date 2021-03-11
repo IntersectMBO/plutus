@@ -1,19 +1,23 @@
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE MonoLocalBinds   #-}
-module Plutus.PAB.Core.Projections(
+{-
+
+@eventful@ projections for the PAB
+
+-}
+module Plutus.PAB.Db.Eventful.Projections(
     installedContracts
     , installedContractsProjection
     ) where
 
 import           Control.Monad.Freer
-import           Data.Set                    (Set)
-import           Eventful                    (Projection, StreamEvent (..), projectionMapMaybe)
+import           Data.Set                     (Set)
+import           Eventful                     (Projection, StreamEvent (..), projectionMapMaybe)
 
-import           Plutus.PAB.Effects.EventLog (EventLogEffect, runGlobalQuery)
-import           Plutus.PAB.Events           (PABEvent (..))
-import           Plutus.PAB.Query            (setProjection)
+import           Plutus.PAB.Db.Eventful.Query (setProjection)
+import           Plutus.PAB.Effects.EventLog  (EventLogEffect, runGlobalQuery)
+import           Plutus.PAB.Events            (PABEvent (..))
 
--- FIXME: move to Plutus.PAB.Db.Eventful.Projections
 installedContracts ::
     forall t effs.
     ( Ord t

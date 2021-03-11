@@ -26,11 +26,10 @@ module Plutus.PAB.Command
 import           Eventful                                (Aggregate (Aggregate), aggregateCommandHandler,
                                                           aggregateProjection)
 import qualified Ledger
+import           Plutus.PAB.Db.Eventful.Query            (nullProjection)
 import           Plutus.PAB.Events                       (PABEvent (InstallContract, SubmitTx, UpdateContractInstanceState))
-import qualified Plutus.PAB.Events                       as Events
 import           Plutus.PAB.Events.Contract              (ContractPABRequest)
 import           Plutus.PAB.Events.ContractInstanceState (PartiallyDecodedResponse)
-import           Plutus.PAB.Query                        (nullProjection)
 import           Wallet.Types                            (ContractInstanceId)
 
 -- | An aggregate that just sends a list of events with no state
