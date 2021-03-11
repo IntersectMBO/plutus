@@ -38,6 +38,7 @@ import           Data.List                                                  (int
 import qualified Data.Map.Strict                                            as Map
 import           Data.Semigroup.Generic
 import           Data.Text.Prettyprint.Doc
+import           Text.PrettyBy                                              (IgnorePrettyConfig (..))
 
 -- | A budgeting mode to execute an evaluator in.
 data ExBudgetMode st uni fun = ExBudgetMode
@@ -54,7 +55,7 @@ monoidalBudgeting toSt = ExBudgetMode spender mempty where
 
 newtype CountingSt = CountingSt ExBudget
     deriving stock (Eq, Show)
-    deriving newtype (Semigroup, Monoid, NFData)
+    deriving newtype (Semigroup, Monoid, PrettyBy config, NFData)
 
 instance Pretty CountingSt where
     pretty (CountingSt budget) = parens $ "required budget:" <+> pretty budget <> line
@@ -67,6 +68,7 @@ newtype CekExTally fun = CekExTally (MonoidalHashMap (ExBudgetCategory fun) ExBu
     deriving stock (Eq, Generic, Show)
     deriving (Semigroup, Monoid) via (GenericSemigroupMonoid (CekExTally fun))
     deriving anyclass (NFData)
+    deriving (PrettyBy config) via (IgnorePrettyConfig (CekExTally fun))
 
 instance (Show fun, Ord fun) => Pretty (CekExTally fun) where
     pretty (CekExTally m) =
@@ -78,6 +80,7 @@ data TallyingSt fun = TallyingSt (CekExTally fun) ExBudget
     deriving stock (Eq, Show, Generic)
     deriving (Semigroup, Monoid) via (GenericSemigroupMonoid (TallyingSt fun))
     deriving anyclass (NFData)
+    deriving (PrettyBy config) via (IgnorePrettyConfig (TallyingSt fun))
 
 instance (Show fun, Ord fun) => Pretty (TallyingSt fun) where
     pretty (TallyingSt tally budget) = parens $ fold
@@ -95,6 +98,7 @@ tallying =
 newtype RestrictingSt = RestrictingSt ExRestrictingBudget
     deriving stock (Eq, Show)
     deriving newtype (NFData)
+    deriving anyclass (PrettyBy config)
 
 instance Pretty RestrictingSt where
     pretty (RestrictingSt budget) = parens $ "final budget:" <+> pretty budget <> line

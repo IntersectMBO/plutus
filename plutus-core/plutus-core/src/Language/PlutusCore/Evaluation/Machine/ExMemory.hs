@@ -59,6 +59,7 @@ newtype ExMemory = ExMemory Integer
   deriving (Eq, Ord, Show)
   deriving newtype (Num, Pretty, NFData)
   deriving (Semigroup, Monoid) via (Sum Integer)
+deriving newtype instance PrettyDefaultBy config Integer => PrettyBy config ExMemory
 
 -- TODO: 'Integer's are not particularly fast. Should we use @Int64@?
 -- | Counts CPU units - no fixed base, proportional.
@@ -66,6 +67,7 @@ newtype ExCPU = ExCPU Integer
   deriving (Eq, Ord, Show)
   deriving newtype (Num, Pretty, NFData)
   deriving (Semigroup, Monoid) via (Sum Integer)
+deriving newtype instance PrettyDefaultBy config Integer => PrettyBy config ExCPU
 
 -- Based on https://github.com/ekmett/semigroups/blob/master/src/Data/Semigroup/Generic.hs
 class GExMemoryUsage f where

@@ -14,7 +14,7 @@ module Evaluation.ApplyBuiltinName
 
 import           Language.PlutusCore
 import           Language.PlutusCore.Constant
-import           Language.PlutusCore.Evaluation.Machine.ExBudgeting
+import           Language.PlutusCore.Evaluation.Machine.ExBudget
 import           Language.PlutusCore.Evaluation.Machine.ExBudgetingDefaults (defaultCostModel)
 import           Language.PlutusCore.Evaluation.Machine.Exception
 import           Language.PlutusCore.Generators

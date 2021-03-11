@@ -126,7 +126,7 @@ class (ExBudgetBuiltin fun exBudgetCat, ToExMemory term) =>
 data ExBudget = ExBudget { _exBudgetCPU :: ExCPU, _exBudgetMemory :: ExMemory }
     deriving stock (Eq, Show, Generic)
     deriving (Semigroup, Monoid) via (GenericSemigroupMonoid ExBudget)
-    deriving anyclass (NFData)
+    deriving anyclass (PrettyBy config, NFData)
 
 instance Pretty ExBudget where
     pretty (ExBudget cpu memory) = parens $ fold
@@ -137,7 +137,7 @@ instance Pretty ExBudget where
 
 newtype ExRestrictingBudget = ExRestrictingBudget ExBudget deriving (Show, Eq)
     deriving (Semigroup, Monoid) via (GenericSemigroupMonoid ExBudget)
-    deriving newtype (Pretty, NFData)
+    deriving newtype (Pretty, PrettyBy config, NFData)
 
 isNegativeBudget :: ExRestrictingBudget -> Bool
 isNegativeBudget (ExRestrictingBudget (ExBudget cpu mem)) = cpu < 0 || mem < 0
