@@ -24,8 +24,7 @@ import qualified Cardano.ChainIndex.Types                       as ChainIndex
 import           Cardano.Metadata.Client                        (handleMetadataClient)
 import           Cardano.Metadata.Types                         (MetadataEffect)
 import qualified Cardano.Metadata.Types                         as Metadata
-import           Cardano.Node.Client                            (handleNodeClientClient, handleRandomTxClient)
-import           Cardano.Node.RandomTx                          (GenRandomTx)
+import           Cardano.Node.Client                            (handleNodeClientClient)
 import           Cardano.Node.Types                             (MockServerConfig (..))
 import qualified Cardano.Wallet.Client                          as WalletClient
 import qualified Cardano.Wallet.Types                           as Wallet
@@ -81,8 +80,7 @@ data Env =
         }
 
 type AppBackend m =
-        '[ GenRandomTx
-         , ContractRuntimeEffect
+        '[ ContractRuntimeEffect
          , WalletEffect
          , NodeClientEffect
          , MetadataEffect
@@ -91,7 +89,7 @@ type AppBackend m =
          , ContractDefinitionStore ContractExe
          , ContractStore ContractExe
          , ChainIndexEffect
-         , EventLogEffect (PABEvent ContractExe)
+         , EventLogEffect (PABEvent ContractExe) -- TODO: We don't actually need this in the 'AppBackend' list
          , WebSocketEffect
          , Error PABError
          , LogMsg PABLogMsg
@@ -147,11 +145,6 @@ runAppBackend instancesState trace loggingConfig config action = do
             flip handleError (throwError . WalletClientError) .
             flip handleError (throwError . WalletError) .
             reinterpret2 (WalletClient.handleWalletClient walletClientEnv wllt)
-        handleRandomTx :: Eff (GenRandomTx ': _) a -> Eff _ a
-        handleRandomTx =
-            flip handleError (throwError . RandomTxClientError) .
-            reinterpret (handleRandomTxClient nodeClientEnv)
-
 
     runM
         . runReader instancesState
@@ -171,8 +164,7 @@ runAppBackend instancesState trace loggingConfig config action = do
         . handleMetadata
         . handleNodeClient
         . handleWallet
-        . interpret (mapLog SContractRuntimeMsg) . interpret (mapLog SContractInstanceMsg) . reinterpret2 (handleContractRuntime @ContractExe @m)
-        $ handleRandomTx action
+        . interpret (mapLog SContractRuntimeMsg) . interpret (mapLog SContractInstanceMsg) $ reinterpret2 (handleContractRuntime @ContractExe @m) action
 
 type App a = Eff (AppBackend (TraceLoggerT IO)) a
 
