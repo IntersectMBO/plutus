@@ -12,44 +12,35 @@
 module Plutus.PAB.Core.ContractInstance.RequestHandlers(
     ContractInstanceMsg(..)
     , processOwnPubkeyRequests
-    , processAwaitSlotRequests
     , processUtxoAtRequests
     , processWriteTxRequests
     , processNextTxAtRequests
     , processTxConfirmedRequests
     , processInstanceRequests
     , processNotificationEffects
-    -- * Etc.
-    , MaxIterations(..)
-    , defaultMaxIterations
     ) where
 
 import           Cardano.BM.Data.Tracer                        (ToObject (..), TracingVerbosity (..))
 import           Cardano.BM.Data.Tracer.Extras                 (Tagged (Tagged), mkObjectStr)
 import           Control.Arrow                                 ((>>>), (>>^))
-import           Control.Monad                                 (void)
 import           Control.Monad.Freer                           (Member)
-import           Control.Monad.Freer.Extras.Log                (LogMessage, LogMsg, LogObserve, logInfo)
+import           Control.Monad.Freer.Extras.Log                (LogMessage, LogMsg, LogObserve)
 import           Control.Monad.Freer.Reader                    (Reader)
 import           Data.Aeson                                    (FromJSON, ToJSON)
 import qualified Data.Aeson                                    as JSON
 import qualified Data.Text                                     as Text
 import           Data.Text.Prettyprint.Doc                     (Pretty, parens, pretty, viaShow, (<+>))
 import           GHC.Generics                                  (Generic)
-import           Plutus.Contract.Effects.AwaitSlot    (WaitingForSlot (..))
 import           Plutus.Contract.Effects.WriteTx      (WriteTxResponse (..))
 import           Plutus.Contract.Resumable            (IterationID, Request (..), Response (..))
 import           Plutus.Contract.Trace.RequestHandler (RequestHandler (..), RequestHandlerLogMsg, extract,
                                                                 maybeToHandler)
 import qualified Plutus.Contract.Trace.RequestHandler as RequestHandler
 import           Ledger.Tx                                     (Tx, txId)
-import           Plutus.PAB.Command                            (saveBalancedTxResult)
 import qualified Plutus.PAB.Effects.Contract                   as Contract
-import           Plutus.PAB.Effects.EventLog                   (EventLogEffect, runCommand)
 import           Plutus.PAB.Events.Contract                    (ContractInstanceId (..), ContractPABRequest (..),
                                                                 ContractResponse (..))
 import qualified Plutus.PAB.Events.Contract                    as Events.Contract
-import           Plutus.PAB.Types                              (Source (PABEventSource))
 import           Wallet.Effects                                (ChainIndexEffect, ContractRuntimeEffect, WalletEffect)
 import           Wallet.Emulator.LogMessages                   (TxBalanceMsg)
 import           Wallet.Types                                  (NotificationError)
@@ -64,18 +55,6 @@ processOwnPubkeyRequests =
     maybeToHandler (extract Events.Contract._OwnPubkeyRequest) >>>
         fmap OwnPubkeyResponse RequestHandler.handleOwnPubKey
 
-processAwaitSlotRequests ::
-    forall effs.
-    ( Member (LogObserve (LogMessage Text.Text)) effs
-    , Member (LogMsg RequestHandlerLogMsg) effs
-    , Member WalletEffect effs
-    )
-    => RequestHandler effs ContractPABRequest ContractResponse
-processAwaitSlotRequests =
-    maybeToHandler (fmap unWaitingForSlot . extract Events.Contract._AwaitSlotRequest)
-    >>> RequestHandler.handleSlotNotifications
-    >>^ AwaitSlotResponse
-
 processUtxoAtRequests ::
     forall effs.
     ( Member ChainIndexEffect effs
@@ -89,12 +68,11 @@ processUtxoAtRequests =
     >>^ UtxoAtResponse
 
 processWriteTxRequests ::
-    forall t effs.
+    forall effs.
     ( Member ChainIndexEffect effs
     , Member WalletEffect effs
     , Member (LogObserve (LogMessage Text.Text)) effs
     , Member (LogMsg RequestHandlerLogMsg) effs
-    , Member (LogMsg (ContractInstanceMsg t)) effs
     , Member (LogMsg TxBalanceMsg) effs
     )
     => RequestHandler effs ContractPABRequest ContractResponse
@@ -149,14 +127,6 @@ processNotificationEffects =
     >>> RequestHandler.handleContractNotifications
     >>^ NotificationResponse
 
-
-newtype MaxIterations = MaxIterations Int
-    deriving stock (Eq, Ord, Show, Generic)
-    deriving newtype (ToJSON, FromJSON)
-
-defaultMaxIterations :: MaxIterations
-defaultMaxIterations = MaxIterations 20
-
 -- | Log messages about the
 data ContractInstanceMsg t =
     ProcessFirstInboxMessage ContractInstanceId (Response ContractResponse)
@@ -180,7 +150,6 @@ data ContractInstanceMsg t =
     | HandlingRequest RequestHandlerLogMsg
     | HandlingRequests ContractInstanceId [Request ContractPABRequest]
     | BalancingTx TxBalanceMsg
-    | MaxIterationsExceeded ContractInstanceId MaxIterations
     | NotificationFailed NotificationError
     deriving stock (Generic)
 
@@ -253,9 +222,6 @@ instance (ToJSON (Contract.State t), ToJSON (Contract.ContractDef t)) => ToObjec
                 case v of
                     MaximalVerbosity -> Left m
                     _                -> Right ()
-        MaxIterationsExceeded instanceID maxIts ->
-            mkObjectStr "exceeded maximum number of iterations"
-                (instanceID, Tagged @"max_iterations" maxIts)
         NotificationFailed _ ->
             mkObjectStr "notification failed" ()
 
@@ -285,5 +251,4 @@ instance (Pretty (Contract.State t), Pretty (Contract.ContractDef t)) => Pretty 
         HandlingRequest msg -> pretty msg
         HandlingRequests i rqs -> "Handling" <+> pretty (length rqs) <+> "requests for" <+> pretty i
         BalancingTx msg -> pretty msg
-        MaxIterationsExceeded i (MaxIterations is) -> "Max iterations" <+> parens (pretty is) <+> "exceeded for" <+> pretty i
         NotificationFailed e -> "Notification failed:" <+> pretty e

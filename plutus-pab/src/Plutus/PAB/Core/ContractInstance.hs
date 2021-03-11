@@ -35,12 +35,10 @@ import           Control.Concurrent.STM                           (STM)
 import qualified Control.Concurrent.STM                           as STM
 import           Control.Monad                                    (forM_, void)
 import           Control.Monad.Freer
-import           Control.Monad.Freer.Error                        (Error, throwError)
+import           Control.Monad.Freer.Error                        (Error)
 import           Control.Monad.Freer.Extras.Log                   (LogMessage, LogMsg, LogObserve, logDebug, logInfo)
 import           Control.Monad.Freer.Reader                       (Reader, ask, runReader)
 import           Control.Monad.IO.Class                           (MonadIO (liftIO))
-import           Data.List.NonEmpty                               (NonEmpty (..))
-import qualified Data.List.NonEmpty                               as NEL
 import           Data.Proxy                                       (Proxy (..))
 import qualified Data.Text                                        as Text
 
@@ -49,12 +47,10 @@ import           Plutus.Contract.Effects.ExposeEndpoint           (ActiveEndpoin
 import           Plutus.Contract.Resumable                        (Request (..), Response (..))
 import           Plutus.Contract.Trace.RequestHandler             (RequestHandler (..), RequestHandlerLogMsg, extract,
                                                                    maybeToHandler, tryHandler', wrapHandler)
-import           Plutus.PAB.Core.ContractInstance.RequestHandlers (ContractInstanceMsg (..), MaxIterations (..),
-                                                                   defaultMaxIterations, processAwaitSlotRequests,
-                                                                   processInstanceRequests, processNextTxAtRequests,
-                                                                   processNotificationEffects, processOwnPubkeyRequests,
-                                                                   processTxConfirmedRequests, processUtxoAtRequests,
-                                                                   processWriteTxRequests)
+import           Plutus.PAB.Core.ContractInstance.RequestHandlers (ContractInstanceMsg (..), processInstanceRequests,
+                                                                   processNextTxAtRequests, processNotificationEffects,
+                                                                   processOwnPubkeyRequests, processTxConfirmedRequests,
+                                                                   processUtxoAtRequests, processWriteTxRequests)
 
 import           Wallet.Effects                                   (ChainIndexEffect, ContractRuntimeEffect,
                                                                    WalletEffect)
@@ -67,10 +63,9 @@ import           Plutus.PAB.Core.ContractInstance.STM             (Activity (Don
 import qualified Plutus.PAB.Core.ContractInstance.STM             as InstanceState
 import           Plutus.PAB.Effects.Contract                      (ContractDef, ContractEffect, ContractStore)
 import qualified Plutus.PAB.Effects.Contract                      as Contract
-import           Plutus.PAB.Effects.EventLog                      (EventLogEffect)
 import           Plutus.PAB.Effects.UUID                          (UUIDEffect, uuidNextRandom)
 import           Plutus.PAB.Events.Contract                       (ContractInstanceId (..), ContractPABRequest (..),
-                                                                   ContractResponse (..), unContractHandlersResponse)
+                                                                   ContractResponse (..))
 import qualified Plutus.PAB.Events.Contract                       as Events.Contract
 import           Plutus.PAB.Types                                 (PABError (..))
 
@@ -134,13 +129,12 @@ processEndpointRequestsSTM =
 
 -- | 'RequestHandler' that uses TVars to wait for events
 stmRequestHandler ::
-    forall t effs.
+    forall effs.
     ( Member ChainIndexEffect effs
     , Member WalletEffect effs
     , Member ContractRuntimeEffect effs
     , Member (LogMsg RequestHandlerLogMsg) effs
     , Member (LogObserve (LogMessage Text.Text)) effs
-    , Member (LogMsg (ContractInstanceMsg t)) effs
     , Member (LogMsg TxBalanceMsg) effs
     , Member (Reader ContractInstanceId) effs
     , Member (Reader BlockchainEnv) effs
@@ -153,7 +147,7 @@ stmRequestHandler = fmap sequence (wrapHandler (fmap pure nonBlockingRequests) <
     nonBlockingRequests =
         processOwnPubkeyRequests @effs
         <> processUtxoAtRequests @effs
-        <> processWriteTxRequests @t @effs
+        <> processWriteTxRequests @effs
         <> processTxConfirmedRequests @effs
         <> processNextTxAtRequests @effs
         <> processInstanceRequests @effs
@@ -277,4 +271,4 @@ respondToRequestsSTM ::
 respondToRequestsSTM instanceId currentState = do
     let rqs = Contract.requests (Proxy @t) currentState
     logDebug @(ContractInstanceMsg t) $ HandlingRequests instanceId rqs
-    tryHandler' (stmRequestHandler @t) rqs
+    tryHandler' stmRequestHandler rqs

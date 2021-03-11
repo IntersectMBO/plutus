@@ -20,57 +20,33 @@ module Plutus.PAB.Core
     , installContract
     , activateContractSTM
     , reportContractState
-    , activeContracts
-    , txHistory
-    , activeContractHistory
     , Connection(Connection)
-    , refreshProjection
-    , runCommand
-    , runGlobalQuery
-    , Source(..)
     , toUUID
     -- * Effects
-    , ContractEffects
     , CoreMsg(..)
     ) where
 
 import           Cardano.BM.Data.Tracer                  (ToObject (..), TracingVerbosity (..))
 import           Cardano.BM.Data.Tracer.Extras           (StructuredLog, mkObjectStr)
 import           Control.Monad.Freer                     (Eff, Member)
-import           Control.Monad.Freer.Error               (Error)
 import           Control.Monad.Freer.Extras.Log          (LogMsg, logInfo)
 import           Control.Monad.IO.Unlift                 (MonadUnliftIO)
 import           Control.Monad.Logger                    (MonadLogger)
 import qualified Control.Monad.Logger                    as MonadLogger
 import           Data.Aeson                              (FromJSON, ToJSON (..))
-import qualified Data.Map.Strict                         as Map
-import           Data.Set                                (Set)
 import           Data.Text.Prettyprint.Doc               (Pretty, pretty, (<+>))
 import           Database.Persist.Sqlite                 (createSqlitePoolFromInfo, mkSqliteConnectionInfo)
 import           Eventful.Store.Sql                      (defaultSqlEventStoreConfig)
 import           GHC.Generics                            (Generic)
-import qualified Ledger
 import           Plutus.PAB.Core.ContractInstance        (activateContractSTM)
-import qualified Plutus.PAB.Db.Eventful.Query            as Query
-import           Plutus.PAB.Effects.Contract             (ContractDefinitionStore, ContractEffect, ContractStore,
-                                                          PABContract (..), addDefinition, getState)
-import           Plutus.PAB.Effects.EventLog             (Connection (..), EventLogEffect, refreshProjection,
-                                                          runCommand, runGlobalQuery)
+import           Plutus.PAB.Effects.Contract             (ContractDefinitionStore, ContractStore, PABContract (..),
+                                                          addDefinition, getState)
+import           Plutus.PAB.Effects.EventLog             (Connection (..))
 import qualified Plutus.PAB.Effects.EventLog             as EventLog
-import           Plutus.PAB.Effects.UUID                 (UUIDEffect)
-import           Plutus.PAB.Events                       (PABEvent)
 import           Plutus.PAB.Events.Contract              (ContractPABRequest)
 import           Plutus.PAB.Events.ContractInstanceState (PartiallyDecodedResponse)
-import           Plutus.PAB.Types                        (DbConfig (DbConfig), PABError, Source (..), dbConfigFile,
-                                                          dbConfigPoolSize, toUUID)
+import           Plutus.PAB.Types                        (DbConfig (DbConfig), dbConfigFile, dbConfigPoolSize, toUUID)
 import           Wallet.Types                            (ContractInstanceId)
-
-type ContractEffects t =
-        '[ EventLogEffect (PABEvent t)
-         , UUIDEffect
-         , ContractEffect FilePath
-         , Error PABError
-         ]
 
 data CoreMsg t =
     Installing t
@@ -125,17 +101,6 @@ reportContractState cid = do
     logInfo @(CoreMsg t) $ FindingContract cid
     contractState <- getState @t cid
     logInfo @(CoreMsg t) $ FoundContract $ Just contractState
-
-activeContracts :: forall t effs. (Ord t, Member (EventLogEffect (PABEvent t)) effs) => Eff effs (Map.Map t (Set ContractInstanceId))
-activeContracts = runGlobalQuery Query.activeContractsProjection
-
-txHistory :: forall t effs. (Member (EventLogEffect (PABEvent t)) effs) => Eff effs [Ledger.Tx]
-txHistory = runGlobalQuery (Query.txHistoryProjection @t)
-
-activeContractHistory ::
-    forall t effs.
-    Member (EventLogEffect (PABEvent t)) effs => ContractInstanceId -> Eff effs [PartiallyDecodedResponse ContractPABRequest]
-activeContractHistory = runGlobalQuery . Query.activeContractHistoryProjection @t
 
 ------------------------------------------------------------
 -- | Create a database 'Connection' containing the connection pool

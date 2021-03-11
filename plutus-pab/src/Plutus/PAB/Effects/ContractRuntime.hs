@@ -32,7 +32,6 @@ import           Plutus.Contract.Trace       (EndpointError, toNotifyError)
 import           Plutus.PAB.Core.ContractInstance     (ContractInstanceMsg)
 import qualified Plutus.PAB.Core.ContractInstance     as Instance
 import           Plutus.PAB.Core.ContractInstance.STM (InstancesState)
-import           Plutus.PAB.Effects.EventLog          (EventLogEffect)
 import           Wallet.Effects                       (ContractRuntimeEffect (..))
 import           Wallet.Types                         (EndpointDescription (..), Notification (..), NotificationError)
 
