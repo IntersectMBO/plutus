@@ -1,13 +1,14 @@
-{-# LANGUAGE DataKinds         #-}
-{-# LANGUAGE FlexibleContexts  #-}
-{-# LANGUAGE GADTs             #-}
-{-# LANGUAGE LambdaCase        #-}
-{-# LANGUAGE NamedFieldPuns    #-}
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE RankNTypes        #-}
-{-# LANGUAGE TemplateHaskell   #-}
-{-# LANGUAGE TypeApplications  #-}
-{-# LANGUAGE TypeOperators     #-}
+{-# LANGUAGE AllowAmbiguousTypes #-}
+{-# LANGUAGE DataKinds           #-}
+{-# LANGUAGE FlexibleContexts    #-}
+{-# LANGUAGE GADTs               #-}
+{-# LANGUAGE LambdaCase          #-}
+{-# LANGUAGE NamedFieldPuns      #-}
+{-# LANGUAGE OverloadedStrings   #-}
+{-# LANGUAGE RankNTypes          #-}
+{-# LANGUAGE TemplateHaskell     #-}
+{-# LANGUAGE TypeApplications    #-}
+{-# LANGUAGE TypeOperators       #-}
 {-
 
 A multi-threaded PAB simulator
@@ -18,24 +19,30 @@ module Plutus.PAB.Simulator(
     , ControlThread
     , runAgentEffects
     , chainState
+    , agentStates
+    -- * Agents
+    , AgentState(..)
+    , initialAgentState
+    -- Testing
     , test
     ) where
 
 import           Control.Concurrent.STM                   (TVar)
 import qualified Control.Concurrent.STM                   as STM
 import           Control.Lens                             (Lens', makeLenses, view)
-import           Control.Monad                            (forM, void)
+import           Control.Monad                            (forM, unless, void)
 import           Control.Monad.Freer                      (Eff, LastMember, Member, interpret, reinterpret, run, runM,
                                                            send, subsume, type (~>))
 import           Control.Monad.Freer.Error                (Error, runError)
 import           Control.Monad.Freer.Extras.Log           (LogMessage, LogMsg (..), LogObserve, handleLogWriter,
                                                            handleObserveLog, logInfo, mapLog)
-import           Control.Monad.Freer.Extras.Modify        (raiseEnd3, raiseEnd7)
+import qualified Control.Monad.Freer.Extras.Modify        as Modify
 import           Control.Monad.Freer.Reader               (Reader, ask, asks, runReader)
 import           Control.Monad.Freer.State                (runState)
 import           Control.Monad.Freer.Writer               (Writer (..), runWriter)
 import           Control.Monad.IO.Class                   (MonadIO (..))
 import           Data.Foldable                            (traverse_)
+import           Data.Map                                 (Map)
 import           Data.Text                                (Text)
 import           Wallet.Emulator.MultiAgent               (EmulatorTimeEvent (..))
 import           Wallet.Emulator.Wallet                   (Wallet (..), WalletEvent (..))
@@ -45,16 +52,27 @@ import           Plutus.PAB.Effects.Contract.ContractTest (TestContracts (..))
 import           Plutus.PAB.Effects.MultiAgent            (PABMultiAgentMsg (..), _InstanceMsg)
 import           Plutus.PAB.Types                         (PABError)
 import           Plutus.V1.Ledger.Slot                    (Slot)
+import           Wallet.Effects                           (NodeClientEffect (..))
 import           Wallet.Emulator.Chain                    (ChainControlEffect, ChainState)
 import qualified Wallet.Emulator.Chain                    as Chain
 import           Wallet.Emulator.LogMessages              (RequestHandlerLogMsg, TxBalanceMsg)
 import           Wallet.Emulator.MultiAgent               (EmulatorEvent' (..), _singleton)
+import qualified Wallet.Emulator.Wallet                   as Wallet
+
+data AgentState =
+    AgentState
+        { _walletState :: Wallet.WalletState
+        }
+
+initialAgentState :: Wallet -> AgentState
+initialAgentState wallet = AgentState{_walletState = Wallet.emptyWalletState wallet}
 
 data SimulatorState =
     SimulatorState
         { _logMessages :: TVar [LogMessage PABMultiAgentMsg]
         , _currentSlot :: TVar Slot
         , _chainState  :: TVar ChainState
+        , _agentStates :: TVar (Map Wallet AgentState)
         }
 
 makeLenses ''SimulatorState
@@ -65,11 +83,14 @@ initialState = STM.atomically $
         <$> STM.newTVar mempty
         <*> STM.newTVar 0
         <*> STM.newTVar Chain.emptyChainState
+        <*> STM.newTVar mempty
 
 -- | Effects available to simulated agents that run in their own thread
 --   TODO: AppBackendConstraints for agent!
 type AgentEffects effs =
-    LogMsg TxBalanceMsg
+    NodeClientEffect
+    ': Chain.ChainEffect
+    ': LogMsg TxBalanceMsg
     ': LogMsg RequestHandlerLogMsg
     ': LogMsg (ContractInstanceMsg TestContracts)
     ': LogObserve (LogMessage Text)
@@ -86,12 +107,17 @@ handleAgentThread ::
     -> Eff (AgentEffects '[IO]) a
     -> IO (Either PABError a)
 handleAgentThread state wallet action = do
-    let action' :: Eff (AgentEffects '[IO, Writer [LogMessage PABMultiAgentMsg], Error PABError, Reader SimulatorState, IO]) a = raiseEnd7 action
+    let action' :: Eff (AgentEffects '[IO, Writer [LogMessage PABMultiAgentMsg], Error PABError, Reader SimulatorState, IO]) a = Modify.raiseEnd9 action
         makeTimedWalletEvent wllt =
             interpret @(LogMsg PABMultiAgentMsg) (handleLogWriter _singleton)
             . reinterpret (mapLog @_ @PABMultiAgentMsg EmulatorMsg)
             . reinterpret (timed @EmulatorEvent')
             . reinterpret (mapLog (WalletEvent wllt))
+        makeTimedChainEvent =
+            interpret @(LogMsg PABMultiAgentMsg) (handleLogWriter _singleton)
+            . reinterpret (mapLog @_ @PABMultiAgentMsg EmulatorMsg)
+            . reinterpret (timed @EmulatorEvent')
+            . reinterpret (mapLog ChainEvent)
     runM
         $ runReader state
         $ runError
@@ -103,6 +129,9 @@ handleAgentThread state wallet action = do
         $ interpret (handleLogWriter _InstanceMsg)
         $ (makeTimedWalletEvent wallet . reinterpret (mapLog RequestHandlerLog))
         $ (makeTimedWalletEvent wallet . reinterpret (mapLog TxBalanceLog))
+        $ makeTimedChainEvent
+        $ reinterpret @_ @(LogMsg Chain.ChainEvent) handleChainEffect
+        $ interpret handleNodeClient
         $ action'
 
 runAgentEffects ::
@@ -128,7 +157,7 @@ runControlEffects ::
     -> Eff '[Reader SimulatorState, IO] a
 runControlEffects action = do
     state <- ask
-    let action' :: Eff (ControlEffects '[IO, Writer [LogMessage PABMultiAgentMsg], Reader SimulatorState, IO]) a = raiseEnd3 action
+    let action' :: Eff (ControlEffects '[IO, Writer [LogMessage PABMultiAgentMsg], Reader SimulatorState, IO]) a = Modify.raiseEnd3 action
         makeTimedChainEvent =
             interpret @(LogMsg PABMultiAgentMsg) (handleLogWriter _singleton)
             . reinterpret (mapLog @_ @PABMultiAgentMsg EmulatorMsg)
@@ -197,24 +226,59 @@ handleChainControl ::
     => ChainControlEffect
     ~> Eff effs
 handleChainControl = \case
-    Chain.ProcessBlock -> do
-        SimulatorState{_chainState, _currentSlot} <- ask
-        (txns, logs) <- liftIO $ STM.atomically $ do
-                            oldState <- STM.readTVar _chainState
-                            let ((txns, logs), newState) =
-                                    run
-                                    $ runState oldState
-                                    $ runWriter @[LogMessage Chain.ChainEvent]
-                                    $ interpret @(LogMsg Chain.ChainEvent) (handleLogWriter _singleton)
-                                    $ interpret Chain.handleControlChain
-                                    $ Chain.processBlock
-                                newSlot = view Chain.currentSlot newState
-                            STM.writeTVar _currentSlot newSlot
-                            STM.writeTVar _chainState newState
-                            pure (txns, logs)
-        traverse_ (send . LMessage) logs
-        pure txns
+    Chain.ProcessBlock -> runChainEffects @_ @m Chain.processBlock
 
+runChainEffects ::
+    forall a m effs.
+    ( Member (Reader SimulatorState) effs
+    , Member (LogMsg Chain.ChainEvent) effs
+    , LastMember m effs
+    , MonadIO m
+    )
+    => Eff (Chain.ChainEffect ': Chain.ChainControlEffect ': Chain.ChainEffs) a
+    -> Eff effs a
+runChainEffects action = do
+    SimulatorState{_chainState, _currentSlot} <- ask
+    (a, logs) <- liftIO $ STM.atomically $ do
+                        oldState <- STM.readTVar _chainState
+                        let ((a, newState), logs) =
+                                run
+                                $ runWriter @[LogMessage Chain.ChainEvent]
+                                $ reinterpret @(LogMsg Chain.ChainEvent) @(Writer [LogMessage Chain.ChainEvent]) (handleLogWriter _singleton)
+                                $ runState oldState
+                                $ interpret Chain.handleControlChain
+                                $ interpret Chain.handleChain
+                                $ action
+                            newSlot = view Chain.currentSlot newState
+                        oldSlot <- STM.readTVar _currentSlot
+                        unless (newSlot == oldSlot) $  STM.writeTVar _currentSlot newSlot
+                        STM.writeTVar _chainState newState
+                        pure (a, logs)
+    traverse_ (send . LMessage) logs
+    pure a
+
+handleNodeClient ::
+    forall effs.
+    ( Member Chain.ChainEffect effs
+    )
+    => NodeClientEffect
+    ~> Eff effs
+handleNodeClient = \case
+    PublishTx tx  -> Chain.queueTx tx
+    GetClientSlot -> Chain.getCurrentSlot
+
+handleChainEffect ::
+    forall m effs.
+    ( LastMember m effs
+    , MonadIO m
+    , Member (Reader SimulatorState) effs
+    , Member (LogMsg Chain.ChainEvent) effs
+    )
+    => Chain.ChainEffect
+    ~> Eff effs
+handleChainEffect = \case
+    Chain.QueueTx tx     -> runChainEffects $ Chain.queueTx tx
+    Chain.GetCurrentSlot -> runChainEffects $ Chain.getCurrentSlot
 
 -- TODO
 -- 1. Make timed emulator event
