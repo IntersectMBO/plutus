@@ -29,11 +29,8 @@ import           Data.UUID                               (UUID)
 import           GHC.TypeLits                            (KnownSymbol, symbolVal)
 import           Ledger.Tx                               (Tx)
 import qualified Ledger.Value                            as V
-import           Plutus.Contract.Checkpoint              (CheckpointLogMsg)
-import           Plutus.Contract.State                   (ContractRequest)
-import           Plutus.PAB.Effects.Contract             (PABContract (..))
 import           Plutus.PAB.Events.Contract              (ContractInstanceId, IterationID)
-import           Plutus.PAB.Events.ContractInstanceState (ContractInstanceState, PartiallyDecodedResponse (..))
+import           Plutus.PAB.Events.ContractInstanceState (PartiallyDecodedResponse (..))
 import           Wallet.Emulator.LogMessages             (RequestHandlerLogMsg, TxBalanceMsg)
 import           Wallet.Types                            (EndpointDescription)
 
@@ -81,7 +78,6 @@ deriving via (Tagged "message" CheckpointLogMsg) instance StructuredLog Checkpoi
 deriving via (Tagged "message" RequestHandlerLogMsg) instance StructuredLog RequestHandlerLogMsg
 deriving via (Tagged "message" TxBalanceMsg) instance StructuredLog TxBalanceMsg
 deriving via (Tagged "tx" Tx) instance StructuredLog Tx
-deriving via (Tagged "contract" (ContractInstanceState t)) instance ToJSON (ContractDef t) => StructuredLog (ContractInstanceState t)
 deriving via (Tagged "uuid" UUID) instance StructuredLog UUID
 deriving via (Tagged "request" (ContractRequest v)) instance ToJSON v => StructuredLog (ContractRequest v)
 deriving via (Tagged "value" V.Value) instance StructuredLog V.Value

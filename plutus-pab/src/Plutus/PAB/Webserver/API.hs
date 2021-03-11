@@ -12,14 +12,14 @@ module Plutus.PAB.Webserver.API
     , WalletInfo(..)
     ) where
 
-import qualified Data.Aeson                              as JSON
-import           Data.Text                               (Text)
-import           Plutus.PAB.Events.ContractInstanceState (ContractInstanceState)
-import           Plutus.PAB.Webserver.Types              (ContractSignatureResponse, FullReport)
-import           Servant.API                             (Capture, Get, JSON, Post, ReqBody, (:<|>), (:>))
-import           Servant.API.WebSocket                   (WebSocketPending)
-import           Wallet.Emulator.Wallet                  (Wallet)
-import           Wallet.Types                            (ContractInstanceId, NotificationError)
+import qualified Data.Aeson                  as JSON
+import           Data.Text                   (Text)
+import           Plutus.PAB.Effects.Contract (PABContract (..))
+import           Plutus.PAB.Webserver.Types  (ContractSignatureResponse, FullReport)
+import           Servant.API                 (Capture, Get, JSON, Post, ReqBody, (:<|>), (:>))
+import           Servant.API.WebSocket       (WebSocketPending)
+import           Wallet.Emulator.Wallet      (Wallet)
+import           Wallet.Types                (ContractInstanceId, NotificationError)
 
 type API t
      = "api" :> ("healthcheck" :> Get '[ JSON] ()
@@ -33,17 +33,13 @@ type WSAPI = "ws" :> WebSocketPending
 type DocumentationAPI t
      = "api" :> "healthcheck" :> Get '[ JSON] ()
 
-
-type family ContractID t
-type family InstanceID t
-
 -- | Describes the wallet that should be used for the contract instance. 'Wallet' is a placeholder, we probably need a URL or some other data.
 newtype WalletInfo = WalletInfo { unWalletInfo :: Wallet }
 
 -- | Data needed to start a new instance of a contract.
 data ContractActivationArgs t =
     ContractActivationArgs
-        { caID     :: ContractID t -- ^ ID of the contract
+        { caID     :: ContractDef t -- ^ ID of the contract
         , caWallet :: WalletInfo -- ^ Wallet that should be used for this instance
         }
 
@@ -52,10 +48,10 @@ data ContractActivationArgs t =
 --   * "Builtin" contracts that run in the same process as the PAB (ie. the PAB is compiled & distributed with these contracts)
 type NewAPI t
     = "contract" :>
-        ("activate" :> ReqBody '[ JSON] (ContractActivationArgs t) :> Post '[JSON] (ContractInstanceState t) -- start a new instance
+        ("activate" :> ReqBody '[ JSON] (ContractActivationArgs t) :> Post '[JSON] ContractInstanceId -- start a new instance
             :<|> "instance" :>
-                    (Capture "instance-id" (InstanceID t) :> WebSocketPending -- status updates & endpoints for specific instance
-                        :<|> Get '[ JSON] [ContractInstanceState t] -- list of all instances
+                    (Capture "instance-id" ContractInstanceId :> WebSocketPending -- status updates & endpoints for specific instance
+                        :<|> Get '[ JSON] [(ContractDef t, ContractInstanceId)] -- list of all instances
                     )
             :<|> Get '[JSON] [ContractSignatureResponse t] -- list of available contracts
         )
