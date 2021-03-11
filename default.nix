@@ -95,4 +95,6 @@ rec {
   deployment = pkgs.callPackage ./deployment {
     inherit plutus marlowe-playground plutus-playground;
   };
+
+  deployment-shell = pkgs.callPackage ./deployment/shell.nix { };
 }
