@@ -1,26 +1,11 @@
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
-module Language.PlutusTx.List (null, map, foldr, foldl, length, all, any, elem, filter, listToMaybe, uniqueElement, findIndices, findIndex, find, reverse, zip, (++), (!!)) where
+module Language.PlutusTx.List (map, filter, listToMaybe, uniqueElement, findIndices, findIndex, foldr, reverse, zip, (++), (!!)) where
 
-import           Language.PlutusTx.Bool
 import qualified Language.PlutusTx.Builtins as Builtins
-import           Language.PlutusTx.Eq
 import           Prelude                    hiding (Eq (..), all, any, elem, filter, foldl, foldr, length, map, null,
                                              reverse, zip, (!!), (&&), (++), (||))
 
 {-# ANN module ("HLint: ignore"::String) #-}
-
-{-# INLINABLE null #-}
--- | PlutusTx version of 'Data.List.null'.
---
---   >>> null [1]
---   False
---   >>> null []
---   True
---
-null :: [a] -> Bool
-null l = case l of
-    [] -> True
-    _  -> False
 
 {-# INLINABLE map #-}
 -- | PlutusTx version of 'Data.List.map'.
@@ -43,51 +28,6 @@ foldr :: (a -> b -> b) -> b -> [a] -> b
 foldr f acc l = case l of
     []   -> acc
     x:xs -> f x (foldr f acc xs)
-
-{-# INLINABLE foldl #-}
--- | PlutusTx version of 'Data.List.foldl'.
---
---   >>> foldl (\s i -> s + i) 0 [1, 2, 3, 4]
---   10
---
-foldl :: (b -> a -> b) -> b -> [a] -> b
-foldl f acc l = case l of
-    []   -> acc
-    x:xs -> foldl f (f acc x) xs
-
-{-# INLINABLE length #-}
--- | 'length' @xs@ is the number of elements in @xs@.
---
---   >>> length [1, 2, 3, 4]
---   4
---
-length :: [a] -> Integer
-length = foldr (\_ acc -> Builtins.addInteger acc 1) 0
-
-{-# INLINABLE all #-}
--- | PlutusTx version of 'Data.List.all'.
---
---   >>> all (\i -> i > 5) [6, 8, 12]
---   True
---
-all :: (a -> Bool) -> [a] -> Bool
-all p = foldr (\a acc -> acc && p a) True
-
-{-# INLINABLE any #-}
--- | PlutusTx version of 'Data.List.any'.
---
---   >>> any (\i -> i > 5) [6, 2, 1]
---   True
---
-any :: (a -> Bool) -> [a] -> Bool
-any p = foldr (\a acc -> acc || p a) False
-
-{-# INLINABLE elem #-}
--- | PlutusTx version of 'Data.List.elem'.
-elem :: Eq a => a -> [a] -> Bool
-elem needle haystack = case haystack of
-    []   -> False
-    x:xs -> if x == needle then True else needle `elem` xs
 
 {-# INLINABLE (++) #-}
 -- | PlutusTx version of 'Data.List.(++)'.
@@ -133,15 +73,6 @@ findIndices p = go 0
 -- | PlutusTx version of 'Data.List.findIndex'.
 findIndex :: (a -> Bool) -> [a] -> Maybe Integer
 findIndex p l = listToMaybe (findIndices p l)
-
-{-# INLINABLE find #-}
--- | PlutusTx version of 'Data.List.find'.
-find :: (a -> Bool) -> [a] -> Maybe a
-find p = go
-    where
-        go l = case l of
-            []     -> Nothing
-            (x:xs) -> if p x then Just x else go xs
 
 {-# INLINABLE (!!) #-}
 -- | PlutusTx version of 'GHC.List.(!!)'.

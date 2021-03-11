@@ -3,9 +3,12 @@
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
 module Language.PlutusTx.Monoid (Monoid (..), mappend, mconcat, Group (..), gsub) where
 
+import           Data.Monoid                 (First (..))
+import           Data.Semigroup              (Dual (..), Endo (..))
 import qualified Language.PlutusTx.Builtins  as Builtins
+import           Language.PlutusTx.Functor   (id)
 import           Language.PlutusTx.Semigroup
-import           Prelude                     hiding (Monoid (..), Semigroup (..), mconcat)
+import           Prelude                     hiding (Monoid (..), Semigroup (..), id, mconcat)
 
 {-# ANN module ("HLint: ignore"::String) #-}
 
@@ -46,6 +49,18 @@ instance Monoid () where
 instance (Monoid a, Monoid b) => Monoid (a, b) where
     {-# INLINABLE mempty #-}
     mempty = (mempty, mempty)
+
+instance Monoid a => Monoid (Dual a) where
+    {-# INLINABLE mempty #-}
+    mempty = Dual mempty
+
+instance Monoid (Endo a) where
+    {-# INLINABLE mempty #-}
+    mempty = Endo id
+
+instance Monoid (First a) where
+    {-# INLINABLE mempty #-}
+    mempty = First Nothing
 
 class Monoid a => Group a where
     inv :: a -> a

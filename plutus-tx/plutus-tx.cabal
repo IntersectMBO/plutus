@@ -45,6 +45,7 @@ library
         Language.PlutusTx.IsData.Class
         Language.PlutusTx.Eq
         Language.PlutusTx.Either
+        Language.PlutusTx.Foldable
         Language.PlutusTx.Functor
         Language.PlutusTx.Lattice
         Language.PlutusTx.List

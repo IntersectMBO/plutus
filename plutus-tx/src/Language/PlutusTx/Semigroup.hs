@@ -1,6 +1,8 @@
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
 module Language.PlutusTx.Semigroup (Semigroup (..)) where
 
+import           Data.Monoid                (First (..))
+import           Data.Semigroup             (Dual (..), Endo (..))
 import qualified Language.PlutusTx.Builtins as Builtins
 import           Language.PlutusTx.List
 import           Prelude                    hiding (Functor (..), Semigroup (..), (++))
@@ -43,3 +45,16 @@ instance Semigroup Ordering where
 
 instance Semigroup () where
     _ <> _ = ()
+
+instance Semigroup a => Semigroup (Dual a) where
+    {-# INLINABLE (<>) #-}
+    Dual a1 <> Dual a2 = Dual (a2 <> a1)
+
+instance Semigroup (Endo a) where
+    {-# INLINABLE (<>) #-}
+    Endo f1 <> Endo f2 = Endo (f1 . f2)
+
+instance Semigroup (First a) where
+    {-# INLINABLE (<>) #-}
+    First Nothing <> b = b
+    a             <> _ = a
