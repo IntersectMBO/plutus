@@ -7,47 +7,45 @@
 
 module Main (main) where
 
-import qualified Language.PlutusCore                                as PLC
-import qualified Language.PlutusCore.CBOR                           as PLC
-import qualified Language.PlutusCore.Evaluation.Machine.Ck          as Ck
-import           Language.PlutusCore.Evaluation.Machine.ExBudgeting (ExBudget (..), ExRestrictingBudget (..),
-                                                                     ExTally (..), Hashable)
-import           Language.PlutusCore.Evaluation.Machine.ExMemory    (ExCPU (..), ExMemory (..))
-import qualified Language.PlutusCore.Generators                     as Gen
-import qualified Language.PlutusCore.Generators.Interesting         as Gen
-import qualified Language.PlutusCore.Generators.Test                as Gen
-import qualified Language.PlutusCore.Pretty                         as PP
-import qualified Language.PlutusCore.StdLib.Data.Bool               as StdLib
-import qualified Language.PlutusCore.StdLib.Data.ChurchNat          as StdLib
-import qualified Language.PlutusCore.StdLib.Data.Integer            as StdLib
-import qualified Language.PlutusCore.StdLib.Data.Unit               as StdLib
-import qualified Language.UntypedPlutusCore                         as UPLC
-import qualified Language.UntypedPlutusCore.Evaluation.Machine.Cek  as Cek
+import qualified Language.PlutusCore                               as PLC
+import qualified Language.PlutusCore.CBOR                          as PLC
+import qualified Language.PlutusCore.Evaluation.Machine.Ck         as Ck
+import           Language.PlutusCore.Evaluation.Machine.ExBudget   (ExBudget (..), ExRestrictingBudget (..))
+import           Language.PlutusCore.Evaluation.Machine.ExMemory   (ExCPU (..), ExMemory (..))
+import qualified Language.PlutusCore.Generators                    as Gen
+import qualified Language.PlutusCore.Generators.Interesting        as Gen
+import qualified Language.PlutusCore.Generators.Test               as Gen
+import qualified Language.PlutusCore.Pretty                        as PP
+import qualified Language.PlutusCore.StdLib.Data.Bool              as StdLib
+import qualified Language.PlutusCore.StdLib.Data.ChurchNat         as StdLib
+import qualified Language.PlutusCore.StdLib.Data.Integer           as StdLib
+import qualified Language.PlutusCore.StdLib.Data.Unit              as StdLib
+import qualified Language.UntypedPlutusCore                        as UPLC
+import qualified Language.UntypedPlutusCore.Evaluation.Machine.Cek as Cek
 
 import           Codec.Serialise
-import           Control.DeepSeq                                    (NFData, rnf)
+import           Control.DeepSeq                                   (NFData, rnf)
 import           Control.Monad
-import           Control.Monad.Trans.Except                         (runExcept, runExceptT)
-import           Data.Bifunctor                                     (second)
-import qualified Data.ByteString.Lazy                               as BSL
-import           Data.Foldable                                      (asum, traverse_)
-import           Data.Function                                      ((&))
-import           Data.Functor                                       ((<&>))
-import qualified Data.HashMap.Monoidal                              as H
-import           Data.List                                          (foldl, nub)
-import           Data.List.Split                                    (splitOn)
-import qualified Data.Text                                          as T
-import           Data.Text.Encoding                                 (encodeUtf8)
-import qualified Data.Text.IO                                       as T
-import           Data.Text.Prettyprint.Doc                          (Doc, pretty, (<+>))
-import           Data.Traversable                                   (for)
+import           Control.Monad.Trans.Except                        (runExcept, runExceptT)
+import           Data.Bifunctor                                    (second)
+import qualified Data.ByteString.Lazy                              as BSL
+import           Data.Foldable                                     (asum, traverse_)
+import           Data.Function                                     ((&))
+import           Data.Functor                                      ((<&>))
+import           Data.List                                         (nub)
+import           Data.List.Split                                   (splitOn)
+import qualified Data.Text                                         as T
+import           Data.Text.Encoding                                (encodeUtf8)
+import qualified Data.Text.IO                                      as T
+import           Data.Text.Prettyprint.Doc                         (Doc, pretty, (<+>))
+import           Data.Traversable                                  (for)
 import           Flat
 import           Options.Applicative
-import           System.CPUTime                                     (getCPUTime)
-import           System.Exit                                        (exitFailure, exitSuccess)
-import           System.Mem                                         (performGC)
-import           Text.Printf                                        (printf)
-import           Text.Read                                          (readMaybe)
+import           System.CPUTime                                    (getCPUTime)
+import           System.Exit                                       (exitFailure, exitSuccess)
+import           System.Mem                                        (performGC)
+import           Text.Printf                                       (printf)
+import           Text.Read                                         (readMaybe)
 
 {- Note [Annotation types] This program now reads and writes CBOR-serialised PLC
    ASTs.  In all cases we require the annotation type to be ().  There are two
@@ -96,7 +94,8 @@ type ExampleName = T.Text
 data ExampleMode = ExampleSingle ExampleName | ExampleAvailable
 data EvalMode    = CK | CEK deriving (Show, Read)
 data BudgetMode  = Silent
-                 | forall st. (Eq st, Show st, NFData st) => Verbose (Cek.ExBudgetMode st PLC.DefaultUni PLC.DefaultFun)
+                 | forall st. (Eq st, PP.Pretty st, NFData st) =>
+                     Verbose (Cek.ExBudgetMode st PLC.DefaultUni PLC.DefaultFun)
 data AstNameType = Named | DeBruijn  -- Do we use Names or de Bruijn indices when (de)serialising ASTs?
 type Files       = [FilePath]
 
@@ -738,54 +737,6 @@ timeEval n evaluate prog
             pure $ (result, end - start)
 
 
----------------- Printing budgets and costs ----------------
-
-printBudgetStateBudget :: ExBudget -> IO ()
-printBudgetStateBudget b = do
-  let ExCPU cpu = _exBudgetCPU b
-      ExMemory mem = _exBudgetMemory b
-  putStrLn $ "CPU budget:    " ++ show cpu
-  putStrLn $ "Memory budget: " ++ show mem
-
-printBudgetStateTally :: (Eq fun, Hashable fun, Show fun) => Cek.CekExTally fun -> IO ()
-printBudgetStateTally (ExTally costs) = do
-  putStrLn $ "Const      " ++ pbudget Cek.BConst
-  putStrLn $ "Var        " ++ pbudget Cek.BVar
-  putStrLn $ "LamAbs     " ++ pbudget Cek.BLamAbs
-  putStrLn $ "Apply      " ++ pbudget Cek.BApply
-  putStrLn $ "Delay      " ++ pbudget Cek.BDelay
-  putStrLn $ "Force      " ++ pbudget Cek.BForce
-  putStrLn $ "Error      " ++ pbudget Cek.BError
-  putStrLn $ "Builtin    " ++ pbudget Cek.BBuiltin
-  putStrLn ""
-  putStrLn $ "AST        " ++ pbudget Cek.BAST
-  putStrLn $ "compute    " ++ printf "%-20s" (budgetToString totalComputeSteps)
-  putStrLn $ "BuiltinApp " ++ budgetToString (mconcat (map snd builtinsAndCosts))
-  putStrLn ""
-  traverse_ (\(b,cost) -> putStrLn $ printf "%-20s %s" (show b) (budgetToString cost :: String)) builtinsAndCosts
-      where
-        get k =
-            case H.lookup k costs of
-              Just v  -> v
-              Nothing -> ExBudget 0 0
-        allNodeTags = [Cek.BConst, Cek.BVar, Cek.BLamAbs, Cek.BApply, Cek.BDelay, Cek.BForce, Cek.BError, Cek.BBuiltin]
-        totalComputeSteps = mconcat $ map get allNodeTags  -- Depends on the fact that we have a unit cost for each AST node type
-        budgetToString (ExBudget (ExCPU cpu) (ExMemory mem)) = printf "%10d  %10d" cpu mem :: String
-        pbudget k = budgetToString $ get k
-        f l e = case e of {(Cek.BBuiltinApp b, cost)  -> (b,cost):l; _ -> l}
-        builtinsAndCosts = Data.List.foldl f [] (H.toList costs)
-
--- printBudgetState :: (Eq fun, Hashable fun, Show fun) => Cek.CekExBudgetState fun -> IO ()
--- printBudgetState (CountingSt budget) =
---     printBudgetStateBudget budget
--- printBudgetState (TallyingSt tally budget) = do
---     printBudgetStateBudget budget
---     putStrLn ""
---     printBudgetStateTally tally
--- printBudgetState (RestrictingSt (ExRestrictingBudget budget)) =
---     printBudgetStateBudget budget
-
-
 ---------------- Evaluation ----------------
 
 runEval :: EvalOptions -> IO ()
@@ -827,7 +778,7 @@ runEval (EvalOptions language inp ifmt evalMode printMode budgetMode timingMode)
                           case timingMode of
                             NoTiming -> do
                                     let (result, budget) = evaluate body
-                                    print budget
+                                    putStrLn $ PP.display budget
                                     handleResultSilently result  -- We just want to see the budget information
                             Timing n -> timeEval n evaluate body >>= handleTimingResultsWithBudget
 
@@ -847,12 +798,12 @@ runEval (EvalOptions language inp ifmt evalMode printMode budgetMode timingMode)
               case nub results of
                 [(Right _, budget)] -> do
                     putStrLn ""
-                    print budget
+                    putStrLn $ PP.display budget
                     exitSuccess
                 [(Left err,   budget)] -> do
                     putStrLn ""
                     print err
-                    print budget
+                    putStrLn $ PP.display budget
                     exitFailure
                 _                                   -> error "Timing evaluations returned inconsistent results"
 

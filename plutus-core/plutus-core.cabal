@@ -42,6 +42,7 @@ library
         Language.PlutusCore.Quote
         Language.PlutusCore.MkPlc
         Language.PlutusCore.Evaluation.Machine.Ck
+        Language.PlutusCore.Evaluation.Machine.ExBudget
         Language.PlutusCore.Evaluation.Machine.ExBudgeting
         Language.PlutusCore.Evaluation.Machine.ExBudgetingDefaults
         Language.PlutusCore.Evaluation.Machine.Exception
@@ -211,6 +212,7 @@ library
         Language.UntypedPlutusCore.Core.Instance.Recursive
         Language.UntypedPlutusCore.Core.Plated
         Language.UntypedPlutusCore.Core.Type
+        Language.UntypedPlutusCore.Evaluation.Machine.Cek.ExBudgetMode
         Language.UntypedPlutusCore.Evaluation.Machine.Cek.Internal
         Language.UntypedPlutusCore.Mark
         Language.UntypedPlutusCore.Rename.Internal
@@ -273,7 +275,6 @@ library
         th-lift-instances -any,
         th-utilities -any,
         transformers -any,
-        unordered-containers -any,
         witherable -any
 
 test-suite plutus-core-test

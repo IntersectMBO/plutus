@@ -37,8 +37,6 @@ unsafeEvaluateCek
     => Program Name uni fun () -> EvaluationResult (Term Name uni fun ())
 unsafeEvaluateCek (Program _ _ t) = UPLC.unsafeEvaluateCekNoEmit defBuiltinsRuntime t
 
--- TODO: pretty sure we shouldn't need the unsafePerformIOs here, we should expose a pure interface even if it has IO hacks under the hood
-
 -- | Evaluate a program in the CEK machine with the usual string dynamic builtins and tracing, additionally
 -- returning the trace output.
 evaluateCekTrace
@@ -46,5 +44,5 @@ evaluateCekTrace
     => Program Name uni fun ()
     -> ([String], CekExTally fun, Either (CekEvaluationException uni fun) (Term Name uni fun ()))
 evaluateCekTrace (Program _ _ t) =
-    case runCek defBuiltinsRuntime Counting True t of
-        (errOrRes, st, logs) -> (logs, toTally st, errOrRes)
+    case runCek defBuiltinsRuntime tallying True t of
+        (errOrRes, TallyingSt st _, logs) -> (logs, st, errOrRes)

@@ -8,7 +8,7 @@ module Language.PlutusCore.Constant.Apply
 
 import           Language.PlutusCore.Constant.Dynamic.Emit
 import           Language.PlutusCore.Constant.Typed
-import           Language.PlutusCore.Evaluation.Machine.ExBudgeting
+import           Language.PlutusCore.Evaluation.Machine.ExBudget
 import           Language.PlutusCore.Evaluation.Machine.Exception
 import           Language.PlutusCore.Evaluation.Result
 

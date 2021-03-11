@@ -21,7 +21,7 @@ module Language.UntypedPlutusCore.Evaluation.Machine.Cek.Internal
     , CekValue(..)
     , CekUserError(..)
     , CekEvaluationException
-    , BudgetSpender(..)
+    , CekBudgetSpender(..)
     , CekM
     , ErrorWithCause(..)
     , EvaluationError(..)
@@ -39,7 +39,7 @@ import           Language.UntypedPlutusCore.Core
 import           Language.UntypedPlutusCore.Subst
 
 import           Language.PlutusCore.Constant
-import           Language.PlutusCore.Evaluation.Machine.ExBudgeting
+import           Language.PlutusCore.Evaluation.Machine.ExBudget
 import           Language.PlutusCore.Evaluation.Machine.ExMemory
 import           Language.PlutusCore.Evaluation.Machine.Exception
 import           Language.PlutusCore.Evaluation.Result
@@ -47,15 +47,16 @@ import           Language.PlutusCore.Name
 import           Language.PlutusCore.Pretty
 import           Language.PlutusCore.Universe
 
-import           Control.Lens                                       (AReview)
+import           Control.Lens                                     (AReview)
 import           Control.Monad.Except
 import           Control.Monad.Morph
 import           Control.Monad.Reader
 import           Control.Monad.ST
 import           Control.Monad.State.Strict
 import           Data.Array
-import           Data.DList                                         (DList)
-import qualified Data.DList                                         as DList
+import           Data.DList                                       (DList)
+import qualified Data.DList                                       as DList
+import           Data.Hashable                                    (Hashable)
 import           Data.STRef
 import           Data.Text.Prettyprint.Doc
 
@@ -63,6 +64,25 @@ import           Data.Text.Prettyprint.Doc
    The CEK machine does not rely on the global uniqueness condition, so the renamer pass is not a
    prerequisite. The CEK machine correctly handles name shadowing.
 -}
+
+data ExBudgetCategory fun
+    = BConst
+    | BVar
+    | BLamAbs
+    | BApply
+    | BDelay
+    | BForce
+    | BError
+    | BBuiltin         -- Cost of evaluating a Builtin AST node
+    | BBuiltinApp fun  -- Cost of evaluating a fully applied builtin function
+    | BAST
+    deriving stock (Show, Eq, Ord, Generic)
+    deriving anyclass (NFData, Hashable)
+instance Show fun => Pretty (ExBudgetCategory fun) where
+    pretty = viaShow
+
+instance ExBudgetBuiltin fun (ExBudgetCategory fun) where
+    exBudgetBuiltin = BBuiltinApp
 
 type TermWithMem uni fun = Term Name uni fun ExMemory
 
@@ -96,19 +116,19 @@ data CekValue uni fun =
 
 type CekValEnv uni fun = UniqueMap TermUnique (CekValue uni fun)
 
-newtype BudgetSpender st uni fun = BudgetSpender
-    { unBudgetSpender
+newtype CekBudgetSpender st uni fun = CekBudgetSpender
+    { unCekBudgetSpender
         :: forall term s. ToExMemory term
         => ExBudgetCategory fun -> ExBudget -> CekCarryingM st term uni fun s ()
     }
 
 -- | The environment the CEK machine runs in.
 data CekEnv st uni fun s = CekEnv
-    { cekEnvRuntime       :: BuiltinsRuntime fun (CekValue uni fun)
+    { cekEnvRuntime          :: BuiltinsRuntime fun (CekValue uni fun)
     -- 'Nothing' means no logging. 'DList' is due to the fact that we need efficient append
     -- as we store logs as "latest go last".
-    , cekEnvMayEmitRef    :: Maybe (STRef s (DList String))
-    , cekEnvBudgetSpender :: BudgetSpender st uni fun
+    , cekEnvMayEmitRef       :: Maybe (STRef s (DList String))
+    , cekEnvCekBudgetSpender :: CekBudgetSpender st uni fun
     }
 
 data CekUserError
@@ -158,28 +178,12 @@ type CekEvaluationException uni fun = CekEvaluationExceptionCarrying (Term Name 
 -- | The monad the CEK machine runs in.
 type CekM st uni fun s = CekCarryingM st (Term Name uni fun ()) uni fun s
 
-data ExBudgetCategory fun
-    = BConst
-    | BVar
-    | BLamAbs
-    | BApply
-    | BDelay
-    | BForce
-    | BError
-    | BBuiltin         -- Cost of evaluating a Builtin AST node
-    | BBuiltinApp fun  -- Cost of evaluating a fully applied builtin function
-    | BAST
-    deriving stock (Show, Eq, Ord, Generic)
-    deriving anyclass (NFData, Hashable)
-instance Show fun => PrettyBy config (ExBudgetCategory fun) where
-    prettyBy _ = viaShow
-
 instance AsEvaluationFailure CekUserError where
     _EvaluationFailure = _EvaluationFailureVia CekEvaluationFailure
 
 instance Pretty CekUserError where
     pretty (CekOutOfExError (ExRestrictingBudget res)) =
-        group $ "The budget was overspent. Final negative state:" <+> prettyClassicDef res
+        group $ "The budget was overspent. Final negative state:" <+> pretty res
     pretty CekEvaluationFailure = "The provided Plutus code called 'error'."
 
 {- | Given a possibly partially applied/instantiated builtin, reconstruct the
@@ -265,9 +269,6 @@ instance ToExMemory (CekValue uni fun) where
         VLamAbs  ex _ _ _     -> ex
         VBuiltin ex _ _ _ _ _ -> ex
 
-instance ExBudgetBuiltin fun (ExBudgetCategory fun) where
-    exBudgetBuiltin = BBuiltinApp
-
 instance MonadEmitter (CekCarryingM st term uni fun s) where
     emit str = do
         mayLogsRef <- asks cekEnvMayEmitRef
@@ -280,7 +281,7 @@ instance MonadEmitter (CekCarryingM st term uni fun s) where
 instance ToExMemory term =>
             SpendBudget (CekCarryingM st term uni fun s) fun (ExBudgetCategory fun) term where
     spendBudget key budgetToSpend = do
-        BudgetSpender spend <- asks cekEnvBudgetSpender
+        CekBudgetSpender spend <- asks cekEnvCekBudgetSpender
         spend key budgetToSpend
 
 data Frame uni fun
@@ -294,7 +295,7 @@ type Context uni fun = [Frame uni fun]
 runCekM
     :: forall a st uni fun.
        BuiltinsRuntime fun (CekValue uni fun)
-    -> BudgetSpender st uni fun
+    -> CekBudgetSpender st uni fun
     -> st
     -> Bool
     -> (forall s. CekM st uni fun s a)

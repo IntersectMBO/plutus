@@ -40,7 +40,7 @@ import           PlutusPrelude
 
 import           Language.PlutusCore.Constant.Dynamic.Emit
 import           Language.PlutusCore.Core
-import           Language.PlutusCore.Evaluation.Machine.ExBudgeting
+import           Language.PlutusCore.Evaluation.Machine.ExBudget
 import           Language.PlutusCore.Evaluation.Machine.ExMemory
 import           Language.PlutusCore.Evaluation.Machine.Exception
 import           Language.PlutusCore.Evaluation.Result
@@ -49,11 +49,11 @@ import           Language.PlutusCore.Name
 import           Language.PlutusCore.Universe
 
 import           Control.Monad.Except
-import qualified Data.ByteString                                    as BS
-import qualified Data.Kind                                          as GHC (Type)
+import qualified Data.ByteString                                  as BS
+import qualified Data.Kind                                        as GHC (Type)
 import           Data.Proxy
 import           Data.String
-import qualified Data.Text                                          as Text
+import qualified Data.Text                                        as Text
 import           GHC.TypeLits
 
 infixr 9 `TypeSchemeArrow`

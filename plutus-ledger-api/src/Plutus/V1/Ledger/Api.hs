@@ -75,8 +75,9 @@ import qualified Flat
 import qualified Language.PlutusCore                                as PLC
 import qualified Language.PlutusCore.Constant                       as PLC
 import qualified Language.PlutusCore.DeBruijn                       as PLC
-import           Language.PlutusCore.Evaluation.Machine.ExBudgeting (CostModel, ExBudget (..))
-import qualified Language.PlutusCore.Evaluation.Machine.ExBudgeting as PLC
+import           Language.PlutusCore.Evaluation.Machine.ExBudget    (ExBudget (..))
+import qualified Language.PlutusCore.Evaluation.Machine.ExBudget    as PLC
+import           Language.PlutusCore.Evaluation.Machine.ExBudgeting (CostModel)
 import           Language.PlutusCore.Evaluation.Machine.ExMemory    (ExCPU (..), ExMemory (..))
 import qualified Language.PlutusCore.MkPlc                          as PLC
 import           Language.PlutusCore.Pretty
@@ -177,7 +178,7 @@ evaluateScriptRestricting verbose costParams budget p args = swap $ runWriter @L
 
     let (res, _, logs) = UPLC.runCek
           (PLC.toBuiltinsRuntime () model)
-          (PLC.Restricting $ PLC.ExRestrictingBudget budget)
+          (UPLC.restricting $ PLC.ExRestrictingBudget budget)
           (verbose == Verbose)
          appliedTerm
 
@@ -195,12 +196,12 @@ evaluateScriptCounting verbose costParams p args = swap $ runWriter @LogOutput $
     appliedTerm <- mkTermToEvaluate p args
     model <- liftEither $ mkCostModel costParams
 
-    let (res, final, logs) = UPLC.runCek
+    let (res, UPLC.CountingSt final, logs) = UPLC.runCek
           (PLC.toBuiltinsRuntime () model)
-          PLC.Counting
+          UPLC.counting
           (verbose == Verbose)
           appliedTerm
 
     tell $ Prelude.map Text.pack logs
     liftEither $ first CekError $ void res
-    pure $ PLC.toRequiredExBudget final
+    pure final
