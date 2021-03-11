@@ -95,6 +95,7 @@ elem needle haystack = case haystack of
 --   >>> [0, 1, 2] ++ [1, 2, 3, 4]
 --   [0,1,2,1,2,3,4]
 --
+infixr 5 ++
 (++) :: [a] -> [a] -> [a]
 (++) l r = foldr (:) r l
 
@@ -148,6 +149,7 @@ find p = go
 --   >>> [10, 11, 12] !! 2
 --   12
 --
+infixl 9 !!
 (!!) :: [a] -> Integer -> a
 []       !! _ = Builtins.error ()
 (x : xs) !! i = if Builtins.equalsInteger i 0
@@ -159,7 +161,7 @@ find p = go
 -- | 'reverse' @xs@ returns the elements of @xs@ in reverse order.
 -- @xs@ must be finite.
 reverse :: [a] -> [a]
-reverse l =  rev l []
+reverse l = rev l []
   where
     rev []      a = a
     rev (x:xs) a  = rev xs (x:a)

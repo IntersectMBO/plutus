@@ -182,6 +182,7 @@ instance P.Ord (Ratio Integer) where
     {-# INLINABLE (<=) #-}
     (x :% y) <= (x' :% y') = x P.* y' P.<= (x' P.* y)
 
+infixl 7 %
 {-# INLINABLE (%) #-}
 -- | Forms the ratio of two integral numbers.
 (%) :: Integer -> Integer -> Ratio Integer

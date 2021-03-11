@@ -8,6 +8,9 @@ import           Language.PlutusTx.Monoid
 import           Language.PlutusTx.Semigroup
 import           Prelude                     hiding (Functor (..), Monoid (..), Num (..), Semigroup (..))
 
+infixl 7 *
+infixl 6 +, -
+
 -- | A 'Semigroup' that it is sensible to describe using addition.
 class AdditiveSemigroup a where
     (+) :: a -> a -> a

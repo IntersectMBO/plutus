@@ -7,6 +7,8 @@ import           Prelude                    hiding (Functor (..), Semigroup (..)
 
 {-# ANN module ("HLint: ignore"::String) #-}
 
+infixr 6 <>
+
 class Semigroup a where
     (<>) :: a -> a -> a
     -- sconcat and stimes deliberately omitted, to make this a one-method class which has a

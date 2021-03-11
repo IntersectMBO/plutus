@@ -10,6 +10,8 @@ import           Prelude                     hiding (Eq (..), Ord (..), Semigrou
 
 {-# ANN module ("HLint: ignore"::String) #-}
 
+infix 4 <, <=, >, >=
+
 -- Copied from the GHC definition
 -- | The 'Ord' class is used for totally ordered datatypes.
 --
