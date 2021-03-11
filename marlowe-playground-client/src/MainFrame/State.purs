@@ -53,7 +53,7 @@ import MainFrame.View (render)
 import Marlowe (getApiGistsByGistId)
 import Marlowe as Server
 import Marlowe.ActusBlockly as AMB
-import Marlowe.Extended (_choiceDescriptions, _contractDescription, _contractName, _contractType, _roleDescriptions, _slotParameterDescriptions, _valueParameterDescriptions, emptyContractMetadata)
+import Marlowe.Extended.Metadata (_choiceDescriptions, _contractDescription, _contractName, _contractType, _roleDescriptions, _slotParameterDescriptions, _valueParameterDescriptions, emptyContractMetadata)
 import Marlowe.Gists (mkNewGist, playgroundFiles, PlaygroundFiles)
 import MarloweEditor.State as MarloweEditor
 import MarloweEditor.Types (MetadataAction(..))

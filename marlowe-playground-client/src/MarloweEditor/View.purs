@@ -17,7 +17,7 @@ import Halogen.HTML.Properties (class_, classes, disabled, title)
 import Halogen.HTML.Properties as HTML
 import Halogen.Monaco (monacoComponent)
 import MainFrame.Types (ChildSlots, _marloweEditorPageSlot)
-import Marlowe.Extended (MetaData)
+import Marlowe.Extended.Metadata (MetaData)
 import Marlowe.Monaco as MM
 import MarloweEditor.BottomPanel (panelContents)
 import MarloweEditor.Types (Action(..), BottomPanelView(..), State, _bottomPanelState, _editorErrors, _editorWarnings, _keybindings, contractHasErrors, contractHasHoles)

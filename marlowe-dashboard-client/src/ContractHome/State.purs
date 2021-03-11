@@ -38,9 +38,16 @@ filledContract1 =
               ]
         }
 
+    roleWallets =
+      Map.fromFoldable
+        [ "alice" /\ "Alice user"
+        , "bob" /\ "Bob user"
+        , "carol" /\ "Carol user"
+        ]
+
     mContract = toCore $ fillTemplate templateContent Contract1.extendedContract
   in
-    mContract <#> \contract -> Contract.mkInitialState zero contract Contract1.metaData
+    mContract <#> \contract -> Contract.mkInitialState zero contract Contract1.metaData roleWallets
 
 {-
 filledContract2 :: Maybe Contract.State

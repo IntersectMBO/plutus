@@ -26,7 +26,7 @@ import MainFrame.Types (ChildSlots, Msg)
 import Marlowe.Extended (fillTemplate, toCore)
 import Play.Lenses (_contractsState, _menuOpen, _templateState)
 import Play.Types (Action(..), Card(..), Screen(..), State)
-import Template.Lenses (_extendedContract, _metaData, _template, _templateContent)
+import Template.Lenses (_extendedContract, _metaData, _roleWallets, _template, _templateContent)
 import Template.State (defaultState, handleAction, mkInitialState) as Template
 import Template.Types (Action(..)) as Template
 import WalletData.Types (WalletDetails)
@@ -103,11 +103,13 @@ handleAction (TemplateAction Template.StartContract) = do
 
       metadata = view (_template <<< _metaData) templateState
 
+      roleWallets = view _roleWallets templateState
+
       mContract = toCore $ fillTemplate templateContent extendedContract
     in
       for_ mContract \contract -> do
         let
-          contractState = Contract.mkInitialState zero contract metadata
+          contractState = Contract.mkInitialState zero contract metadata roleWallets
         modifying (_playState <<< _contractsState <<< _contracts) (Array.cons contractState)
         toContractHome $ ContractHome.handleAction $ ContractHome.OpenContract contractState
         handleAction $ SetScreen $ ContractsScreen

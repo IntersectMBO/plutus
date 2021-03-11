@@ -31,7 +31,8 @@ import Halogen as H
 import Halogen.Extra (mapSubmodule)
 import Halogen.Monaco (Message(..), Query(..)) as Monaco
 import MainFrame.Types (ChildSlots, _marloweEditorPageSlot)
-import Marlowe.Extended (MetadataHintInfo, TemplateContent, getMetadataHintInfo)
+import Marlowe.Extended.Metadata (MetadataHintInfo, getMetadataHintInfo)
+import Marlowe.Extended (TemplateContent)
 import Marlowe.Extended as Extended
 import Marlowe.Holes as Holes
 import Marlowe.LinterText as Linter

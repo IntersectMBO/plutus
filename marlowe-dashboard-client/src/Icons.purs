@@ -1,3 +1,4 @@
+-- All available icons can be found here: https://material.io/resources/icons/?icon=timer&style=round
 -- TODO: replace web-common Icons module with this one
 module Material.Icons
   ( add
@@ -13,15 +14,23 @@ module Material.Icons
   , previous
   , roles
   , terms
+  , timer
+  , timer'
   , wallet
   ) where
 
 import Prelude
 import Halogen.HTML (ClassName(ClassName), HTML, span, text)
-import Halogen.HTML.Properties (class_)
+import Halogen.HTML.Properties (classes)
+import Data.Array (cons)
 
 icon :: forall p i. String -> HTML p i
-icon str = span [ class_ $ ClassName "material-icons-round" ] [ text str ]
+icon str = icon' str []
+
+-- The apostrophe helpers should we used when we need to apply other styles to the icons, as wrapping them
+-- between a div or another span generates weird vertical alignment issues.
+icon' :: forall p i. String -> Array String -> HTML p i
+icon' str extraClasses = span [ classes $ ClassName <$> cons "material-icons-round" extraClasses ] [ text str ]
 
 -----
 add :: forall p i. HTML p i
@@ -62,6 +71,12 @@ roles = icon "person_pin_circle"
 
 terms :: forall p i. HTML p i
 terms = icon "alarm_add"
+
+timer :: forall p i. HTML p i
+timer = icon "timer"
+
+timer' :: forall p i. Array String -> HTML p i
+timer' = icon' "timer"
 
 wallet :: forall p i. HTML p i
 wallet = icon "layers"

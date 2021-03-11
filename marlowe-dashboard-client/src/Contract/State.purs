@@ -14,6 +14,7 @@ import Control.Monad.Reader (class MonadAsk)
 import Control.Monad.Reader.Extra (mapEnvReaderT)
 import Data.Foldable (for_)
 import Data.Lens (assign, modifying, use)
+import Data.Map (Map)
 import Data.Maybe (Maybe(..))
 import Data.RawJson (RawJson(..))
 import Data.Unfoldable as Unfoldable
@@ -24,7 +25,8 @@ import Foreign.JSON (unsafeStringify)
 import Halogen (HalogenM)
 import MainFrame.Types (ChildSlots, Msg)
 import Marlowe.Execution (NamedAction(..), _namedActions, _state, initExecution, merge, mkTx, nextState)
-import Marlowe.Extended (ContractType(..), MetaData)
+import Marlowe.Extended (ContractType(..))
+import Marlowe.Extended.Metadata (MetaData)
 import Marlowe.Semantics (Contract(..), Slot, _minSlot)
 import Plutus.PAB.Webserver (postApiContractByContractinstanceidEndpointByEndpointname)
 
@@ -43,10 +45,10 @@ emptyMetadata =
   }
 
 defaultState :: State
-defaultState = mkInitialState zero Close emptyMetadata
+defaultState = mkInitialState zero Close emptyMetadata mempty
 
-mkInitialState :: Slot -> Contract -> MetaData -> State
-mkInitialState slot contract metadata =
+mkInitialState :: Slot -> Contract -> MetaData -> Map String String -> State
+mkInitialState slot contract metadata roleWallets =
   { tab: Tasks
   , executionState: initExecution slot contract
   , side: Overview
@@ -54,6 +56,7 @@ mkInitialState slot contract metadata =
   , contractId: Nothing
   , step: 0
   , metadata
+  , roleWallets
   }
 
 handleQuery :: forall a m. Query a -> HalogenM State Action ChildSlots Msg m (Maybe a)
