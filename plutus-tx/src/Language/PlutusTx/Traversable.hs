@@ -1,6 +1,6 @@
 {-# LANGUAGE TupleSections #-}
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
-module Language.PlutusTx.Traversable (Traversable(..), sequenceA, for, fmapDefault, foldMapDefault) where
+module Language.PlutusTx.Traversable (Traversable(..), sequenceA, mapM, sequence, for, fmapDefault, foldMapDefault) where
 
 import           Control.Applicative           (Const (..))
 import           Data.Coerce                   (coerce)
@@ -109,15 +109,29 @@ instance Traversable Identity where
     {-# INLINABLE traverse #-}
     traverse f (Identity a) = Identity <$> f a
 
+instance Traversable (Const c) where
+    {-# INLINABLE traverse #-}
+    traverse _ (Const c) = pure (Const c)
+
 -- | Evaluate each action in the structure from left to right, and
 -- collect the results. For a version that ignores the results
--- see 'Data.Foldable.sequenceA_'.
+-- see 'Language.PlutusTx.sequenceA_'.
 sequenceA :: (Traversable t, Applicative f) => t (f a) -> f (t a)
-{-# INLINE sequenceA #-}  -- See Note [Inline default methods]
+{-# INLINE sequenceA #-}
 sequenceA = traverse id
 
+-- | Same as 'sequenceA', for backwards compatibility.
+sequence :: (Traversable t, Applicative f) => t (f a) -> f (t a)
+{-# INLINE sequence #-}
+sequence = sequenceA
+
+-- | Same as 'traverse', for backwards compatibility.
+mapM :: (Traversable t, Applicative f) => (a -> f b) -> t a -> f (t b)
+{-# INLINE mapM #-}
+mapM = traverse
+
 -- | 'for' is 'traverse' with its arguments flipped. For a version
--- that ignores the results see 'Data.Foldable.for_'.
+-- that ignores the results see 'Language.PlutusTx.for_'.
 for :: (Traversable t, Applicative f) => t a -> (a -> f b) -> f (t b)
 {-# INLINE for #-}
 for = flip traverse
@@ -133,10 +147,9 @@ for = flip traverse
 fmapDefault :: forall t a b . Traversable t
             => (a -> b) -> t a -> t b
 {-# INLINE fmapDefault #-}
--- See Note [Function coercion] in Data.Functor.Utils.
 fmapDefault = coerce (traverse :: (a -> Identity b) -> t a -> Identity (t b))
 
--- | This function may be used as a value for `Data.Foldable.foldMap`
+-- | This function may be used as a value for `Language.PlutusTx.foldMap`
 -- in a `Foldable` instance.
 --
 -- @
@@ -145,5 +158,4 @@ fmapDefault = coerce (traverse :: (a -> Identity b) -> t a -> Identity (t b))
 foldMapDefault :: forall t m a . (Traversable t, Monoid m)
                => (a -> m) -> t a -> m
 {-# INLINE foldMapDefault #-}
--- See Note [Function coercion] in Data.Functor.Utils.
 foldMapDefault = coerce (traverse :: (a -> Const m ()) -> t a -> Const m (t ()))

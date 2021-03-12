@@ -2,19 +2,12 @@
 module Language.PlutusTx.Foldable
   ( Foldable(..)
   , fold
-  , foldMap'
   , foldr
-  , foldr'
   , foldl
-  , foldl'
-  , foldr1
-  , foldl1
   , toList
   , null
   , length
   , elem
-  , maximum
-  , minimum
   , sum
   , product
   , foldrM
@@ -29,30 +22,24 @@ module Language.PlutusTx.Foldable
   , or
   , any
   , all
-  , maximumBy
-  , minimumBy
   , notElem
   , find
   ) where
 
-import           Control.Applicative           (Alternative (..))
+import           Control.Applicative           (Alternative (..), Const (..))
 import           Data.Coerce                   (Coercible, coerce)
 import           Data.Functor.Identity         (Identity (..))
 import           Data.Monoid                   (First (..))
 import           Data.Semigroup                (Dual (..), Endo (..), Product (..), Sum (..))
-import           GHC.Base                      (errorWithoutStackTrace)
 import           GHC.Exts                      (build)
 import           Language.PlutusTx.Applicative (Applicative (pure), (*>))
 import           Language.PlutusTx.Bool        (not)
 import           Language.PlutusTx.Eq          (Eq (..))
 import           Language.PlutusTx.Functor     (id)
-import           Language.PlutusTx.Maybe       (fromMaybe)
 import           Language.PlutusTx.Monoid      (Monoid (..))
 import           Language.PlutusTx.Numeric     (AdditiveMonoid, AdditiveSemigroup ((+)), MultiplicativeMonoid)
-import           Language.PlutusTx.Ord         (Max (..), Min (..), Ord)
 import           Language.PlutusTx.Semigroup   ((<>))
-import           Prelude                       (Bool (..), Either (..), Integer, Maybe (..), Monad (..), Ordering (..),
-                                                flip, ($!), (.))
+import           Prelude                       (Bool (..), Either (..), Integer, Maybe (..), Monad (..), flip, (.))
 
 -- | Data structures that can be folded.
 --
@@ -117,15 +104,14 @@ instance Foldable Identity where
     {-# INLINABLE foldMap #-}
     foldMap f (Identity a) = f a
 
+instance Foldable (Const c) where
+    {-# INLINABLE foldMap #-}
+    foldMap _ _ = mempty
+
 -- | Combine the elements of a structure using a monoid.
 {-# INLINABLE fold #-}
 fold :: (Foldable t, Monoid m) => t m -> m
 fold = foldMap id
-
--- | A variant of 'foldMap' that is strict in the accumulator.
-{-# INLINABLE foldMap' #-}
-foldMap' :: (Foldable t, Monoid m) => (a -> m) -> t a -> m
-foldMap' f = foldl' (\ acc a -> acc <> f a) mempty
 
 -- | Right-associative fold of a structure.
 --
@@ -147,13 +133,6 @@ foldMap' f = foldl' (\ acc a -> acc <> f a) mempty
 {-# INLINABLE foldr #-}
 foldr :: Foldable t => (a -> b -> b) -> b -> t a -> b
 foldr f z t = appEndo (foldMap (Endo #. f) t) z
-
--- | Right-associative fold of a structure, but with strict application of
--- the operator.
-{-# INLINABLE foldr' #-}
-foldr' :: Foldable t => (a -> b -> b) -> b -> t a -> b
-foldr' f z0 xs = foldl f' id xs z0
-  where f' k x z = k $! f x z
 
 -- | Left-associative fold of a structure.
 --
@@ -183,51 +162,6 @@ foldr' f z0 xs = foldl f' id xs z0
 {-# INLINABLE foldl #-}
 foldl :: Foldable t => (b -> a -> b) -> b -> t a -> b
 foldl f z t = appEndo (getDual (foldMap (Dual . Endo . flip f) t)) z
--- There's no point mucking around with coercions here,
--- because flip forces us to build a new function anyway.
-
--- | Left-associative fold of a structure but with strict application of
--- the operator.
---
--- This ensures that each step of the fold is forced to weak head normal
--- form before being applied, avoiding the collection of thunks that would
--- otherwise occur. This is often what you want to strictly reduce a finite
--- list to a single, monolithic result (e.g. 'length').
---
--- For a general 'Foldable' structure this should be semantically identical
--- to,
---
--- @foldl' f z = 'List.foldl'' f z . 'toList'@
-{-# INLINABLE foldl' #-}
-foldl' :: Foldable t => (b -> a -> b) -> b -> t a -> b
-foldl' f z0 xs = foldr f' id xs z0
-  where f' x k z = k $! f z x
-
--- | A variant of 'foldr' that has no base case,
--- and thus may only be applied to non-empty structures.
---
--- @'foldr1' f = 'List.foldr1' f . 'toList'@
-{-# INLINABLE foldr1 #-}
-foldr1 :: Foldable t => (a -> a -> a) -> t a -> a
-foldr1 f xs = fromMaybe (errorWithoutStackTrace "foldr1: empty structure")
-                (foldr mf Nothing xs)
-  where
-    mf x m = Just (case m of
-                      Nothing -> x
-                      Just y  -> f x y)
-
--- | A variant of 'foldl' that has no base case,
--- and thus may only be applied to non-empty structures.
---
--- @'foldl1' f = 'List.foldl1' f . 'toList'@
-{-# INLINABLE foldl1 #-}
-foldl1 :: Foldable t => (a -> a -> a) -> t a -> a
-foldl1 f xs = fromMaybe (errorWithoutStackTrace "foldl1: empty structure")
-                (foldl mf Nothing xs)
-  where
-    mf m y = Just (case m of
-                      Nothing -> y
-                      Just x  -> f x y)
 
 -- | List of elements of a structure, from left to right.
 toList :: Foldable t => t a -> [a]
@@ -246,27 +180,15 @@ null = foldr (\_ _ -> False) True
 -- cons-lists, because there is no general way to do better.
 {-# INLINABLE length #-}
 length :: Foldable t => t a -> Integer
-length = foldl' (\c _ -> c + 1) 0
+length = foldl (\c _ -> c + 1) 0
 
 -- | Does the element occur in the structure?
 {-# INLINABLE elem #-}
 elem :: (Foldable t, Eq a) => a -> t a -> Bool
 elem = any . (==)
 
--- | The largest element of a non-empty structure.
-{-# INLINABLE maximum #-}
-maximum :: forall t a . (Foldable t, Ord a) => t a -> a
-maximum = getMax . fromMaybe (errorWithoutStackTrace "maximum: empty structure") .
-    foldMap (Just . Max)
-
--- | The least element of a non-empty structure.
-{-# INLINABLE minimum #-}
-minimum :: forall t a . (Foldable t, Ord a) => t a -> a
-minimum = getMin . fromMaybe (errorWithoutStackTrace "minimum: empty structure") .
-    foldMap (Just . Min)
-
 -- | The 'sum' function computes the sum of the numbers of a structure.
-{-# INLINABLE sum #-}
+{-# INLINEABLE sum #-}
 sum :: (Foldable t, AdditiveMonoid a) => t a -> a
 sum = getSum #. foldMap Sum
 
@@ -282,7 +204,6 @@ product = getProduct #. foldMap Product
 -- associating to the right, i.e. from right to left.
 foldrM :: (Foldable t, Monad m) => (a -> b -> m b) -> b -> t a -> m b
 foldrM f z0 xs = foldl c return xs z0
-  -- See Note [List fusion and continuations in 'c']
   where c k x z = f x z >>= k
         {-# INLINE c #-}
 
@@ -290,7 +211,6 @@ foldrM f z0 xs = foldl c return xs z0
 -- associating to the left, i.e. from left to right.
 foldlM :: (Foldable t, Monad m) => (b -> a -> m b) -> b -> t a -> m b
 foldlM f z0 xs = foldr c return xs z0
-  -- See Note [List fusion and continuations in 'c']
   where c x k z = f z x >>= k
         {-# INLINE c #-}
 
@@ -299,7 +219,6 @@ foldlM f z0 xs = foldr c return xs z0
 -- that doesn't ignore the results see 'Language.PlutusTx.traverse'.
 traverse_ :: (Foldable t, Applicative f) => (a -> f b) -> t a -> f ()
 traverse_ f = foldr c (pure ())
-  -- See Note [List fusion and continuations in 'c']
   where c x k = f x *> k
         {-# INLINE c #-}
 
@@ -320,7 +239,6 @@ for_ = flip traverse_
 -- see 'Language.PlutusTx.sequenceA'.
 sequenceA_ :: (Foldable t, Applicative f) => t (f a) -> f ()
 sequenceA_ = foldr c (pure ())
-  -- See Note [List fusion and continuations in 'c']
   where c m k = m *> k
         {-# INLINE c #-}
 
@@ -368,28 +286,6 @@ any p = getSum #. foldMap (Sum #. p)
 {-# INLINABLE all #-}
 all :: Foldable t => (a -> Bool) -> t a -> Bool
 all p = getProduct #. foldMap (Product #. p)
-
--- | The largest element of a non-empty structure with respect to the
--- given comparison function.
-
--- See Note [maximumBy/minimumBy space usage]
-{-# INLINABLE maximumBy #-}
-maximumBy :: Foldable t => (a -> a -> Ordering) -> t a -> a
-maximumBy cmp = foldl1 max'
-  where max' x y = case cmp x y of
-                        GT -> x
-                        _  -> y
-
--- | The least element of a non-empty structure with respect to the
--- given comparison function.
-
--- See Note [maximumBy/minimumBy space usage]
-{-# INLINABLE minimumBy #-}
-minimumBy :: Foldable t => (a -> a -> Ordering) -> t a -> a
-minimumBy cmp = foldl1 min'
-  where min' x y = case cmp x y of
-                        GT -> y
-                        _  -> x
 
 -- | 'notElem' is the negation of 'elem'.
 {-# INLINABLE notElem #-}
