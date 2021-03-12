@@ -92,7 +92,7 @@ partialApplication :: CompiledCode (Integer -> Integer -> Ordering)
 partialApplication = plc (Proxy @"partialApplication") (P.compare @Integer)
 
 sequenceTest :: CompiledCode (Maybe [Integer])
-sequenceTest = plc (Proxy @"sequenceTests") (P.sequence [Just (1 :: Integer), Just (2 :: Integer)])
+sequenceTest = plc (Proxy @"sequenceTests") (P.sequenceA [Just (1 :: Integer), Just (2 :: Integer)])
 
 opCompare :: P.Ord a => a -> a -> Ordering
 opCompare a b = case P.compare a b of
