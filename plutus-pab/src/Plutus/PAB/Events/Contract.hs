@@ -41,16 +41,10 @@ module Plutus.PAB.Events.Contract(
 import           Control.Lens.TH                                   (makePrisms)
 import           Data.Aeson                                        (FromJSON, ToJSON (..), Value, object, (.:), (.=))
 import qualified Data.Aeson                                        as JSON
-import qualified Data.ByteString.Lazy.Char8                        as BS8
 import qualified Data.Text                                         as Text
 import           Data.Text.Prettyprint.Doc
-import           GHC.Generics                             (Generic)
+import           GHC.Generics                                      (Generic)
 
-import           Ledger                                   (TxId)
-import           Ledger.Address                           (Address)
-import           Ledger.Constraints.OffChain              (UnbalancedTx)
-import           Ledger.Crypto                            (PubKey)
-import           Ledger.Slot                              (Slot)
 import qualified Plutus.Contract.Effects.AwaitSlot        as AwaitSlot
 import qualified Plutus.Contract.Effects.AwaitTxConfirmed as AwaitTxConfirmed
 import qualified Plutus.Contract.Effects.Instance         as Instance
@@ -61,19 +55,23 @@ import qualified Plutus.Contract.Effects.WatchAddress     as NextTxAt
 import qualified Plutus.Contract.Effects.WriteTx          as W
 import qualified Plutus.Contract.Effects.WriteTx          as WriteTx
 import           Plutus.Contract.Resumable                (IterationID)
-import qualified Plutus.Contract.Resumable                as Contract
-import qualified Plutus.Contract.State                    as Contract
+import           Ledger                                            (TxId)
+import           Ledger.Address                                    (Address)
+import           Ledger.Constraints.OffChain                       (UnbalancedTx)
+import           Ledger.Crypto                                     (PubKey)
+import           Ledger.Slot                                       (Slot)
 
 import           Plutus.Contract.Effects.AwaitSlot        (WaitingForSlot)
 import           Plutus.Contract.Effects.AwaitTxConfirmed (TxConfirmed (..))
-import           Plutus.Contract.Effects.ExposeEndpoint   (ActiveEndpoint (..), EndpointDescription (..), EndpointValue)
+import           Plutus.Contract.Effects.ExposeEndpoint   (ActiveEndpoint (..), EndpointDescription (..),
+                                                                    EndpointValue)
 import           Plutus.Contract.Effects.Instance         (OwnIdRequest)
 import           Plutus.Contract.Effects.OwnPubKey        (OwnPubKeyRequest)
 import           Plutus.Contract.Effects.UtxoAt           (UtxoAtAddress)
 
-import           Data.Text.Extras                         (abbreviate)
-import           Wallet.Effects                           (AddressChangeRequest, AddressChangeResponse)
-import           Wallet.Types                             (ContractInstanceId (..), Notification, NotificationError)
+import           Wallet.Effects                                    (AddressChangeRequest, AddressChangeResponse)
+import           Wallet.Types                                      (ContractInstanceId (..), Notification,
+                                                                    NotificationError)
 
 -- $contract-events
 -- The events that compiled Plutus contracts are concerned with. For each type

@@ -43,3 +43,6 @@ handleContractStore = \case
         case Map.lookup i contractState of
             Nothing -> throwError $ ContractInstanceNotFound i
             Just k  -> pure k
+    ActiveContracts ->
+        runGlobalQuery (Query.contractDefinition @(ContractDef t))
+

@@ -19,12 +19,8 @@ import qualified Data.Text                          as Text
 import           Data.Text.Extras                   (abbreviate)
 import           Data.Text.Prettyprint.Doc
 import           GHC.Generics                       (Generic)
-import           Plutus.Contract.Resumable (IterationID)
 import qualified Plutus.Contract.Resumable as Contract
 import qualified Plutus.Contract.State     as Contract
-import           Plutus.PAB.Effects.Contract        (PABContract (..))
-import           Plutus.PAB.Events.Contract         (ContractPABRequest)
-import           Wallet.Types                       (ContractInstanceId)
 
 -- TODO: Replace with type synonym for @ContractResponse Value Value Value h@
 data PartiallyDecodedResponse v =

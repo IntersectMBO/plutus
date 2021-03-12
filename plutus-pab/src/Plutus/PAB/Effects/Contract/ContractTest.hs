@@ -39,7 +39,7 @@ import           GHC.Generics                                      (Generic)
 
 import           Data.Text.Extras                                  (tshow)
 import           Plutus.PAB.Effects.Contract                       (ContractEffect (..), PABContract (..))
-import           Plutus.PAB.Events.Contract                        (ContractHandlersResponse (..), ContractPABRequest)
+import           Plutus.PAB.Events.Contract                        (ContractPABRequest)
 import qualified Plutus.PAB.Events.Contract                        as C
 import           Plutus.PAB.Events.ContractInstanceState           (PartiallyDecodedResponse)
 import qualified Plutus.PAB.Events.ContractInstanceState           as C
@@ -141,7 +141,6 @@ doContractUpdate ::
     , Forall (Input schema) FromJSON
     , Forall (Input schema) ToJSON
     , Forall (Output schema) ToJSON
-    , Forall (Input schema) Show
     , Member (LogMsg ContractTestMsg) effs
     , Monoid w
     , ToJSON w
@@ -155,24 +154,26 @@ doContractUpdate contract oldState response = do
     oldState' <- traverse fromJSON newState
     typedResp <- traverse (fromJSON . JSON.toJSON . C.ContractHandlersResponse) response
     let conReq = ContractRequest{oldState = oldState', event = typedResp }
-    let response = mkResponse $ ContractState.insertAndUpdateContract contract conReq
-    logDebug $ ContractTestResponse response
-    pure response
+    let response' = mkResponse $ ContractState.insertAndUpdateContract contract conReq
+    logDebug $ ContractTestResponse response'
+    pure response'
 
 mkResponse ::
     forall w schema err.
     ( Forall (Output schema) ToJSON
     , Forall (Input schema) ToJSON
+    , ToJSON err
     , ToJSON w
     )
     => ContractResponse w err (Event schema) (Handlers schema)
     -> PartiallyDecodedResponse ContractPABRequest
-mkResponse ContractResponse{newState, hooks, logs, observableState} =
+mkResponse ContractResponse{newState, hooks, logs, observableState, err} =
     C.PartiallyDecodedResponse
         { C.newState = fmap JSON.toJSON newState
         , C.hooks    = fmap (fmap (encodeRequest @schema)) hooks
         , C.logs     = logs
         , C.observableState = JSON.toJSON observableState
+        , C.err = fmap JSON.toJSON err
         }
 
 encodeRequest ::

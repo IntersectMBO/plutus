@@ -73,7 +73,6 @@ import           Plutus.PAB.Types                                 (PABError (..)
 activateContractSTM ::
     forall t m appBackend effs.
     ( Member (LogMsg (ContractInstanceMsg t)) effs
-    , Member (Error PABError) effs
     , Member UUIDEffect effs
     , Member (ContractEffect t) effs
     , Member (ContractStore t) effs
@@ -163,7 +162,6 @@ stmRequestHandler = fmap sequence (wrapHandler (fmap pure nonBlockingRequests) <
 startSTMInstanceThread ::
     forall t m appBackend effs.
     ( LastMember m effs
-    , Member (ContractStore t) effs
     , Contract.PABContract t
     , AppBackendConstraints t m appBackend
     , LastMember m (Reader InstanceState ': Reader ContractInstanceId ': appBackend)
@@ -204,7 +202,6 @@ type AppBackendConstraints t m effs =
 stmInstanceLoop ::
     forall t m effs.
     ( AppBackendConstraints t m effs
-    , Member (ContractStore t) effs
     , Member (Reader InstanceState) effs
     , Member (Reader ContractInstanceId) effs
     , Contract.PABContract t
@@ -219,7 +216,7 @@ stmInstanceLoop def instanceId = do
     case rqs of
         [] -> do
             ask >>= liftIO . STM.atomically . InstanceState.setActivity Done
-        (x:xs) -> do
+        _ -> do
             response <- respondToRequestsSTM @t instanceId currentState
             event <- liftIO $ STM.atomically response
             (newState :: Contract.State t) <- Contract.updateContract @t def currentState event

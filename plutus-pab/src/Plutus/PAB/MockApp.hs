@@ -23,6 +23,9 @@ module Plutus.PAB.MockApp
     , MockAppEffects
     , defaultWallet
     , TestState
+    , agentStates
+    , emulatorEventLog
+    , initialTestState
     -- * Queries of the emulated state
     , valueAt
     , TxCounts(..)
@@ -30,51 +33,38 @@ module Plutus.PAB.MockApp
     , txValidated
     , txMemPool
     , blockchainNewestFirst
-    , processMsgBox
-    , processAllMsgBoxes
     ) where
 
 import qualified Cardano.Node.Types                       as NodeServer
 import           Control.Lens                             hiding (use)
-import           Control.Monad                            (void)
-import           Control.Monad.Freer                      (Eff, Member, interpret, reinterpret, runM, type (~>))
-import           Control.Monad.Freer.Error                (Error, handleError, runError, throwError)
-import           Control.Monad.Freer.Extras.Log           (LogMessage, LogMsg, handleLogWriter)
+import           Control.Monad.Freer                      (Eff, Member)
+import           Control.Monad.Freer.Error                (Error)
+import           Control.Monad.Freer.Extras.Log           (LogMessage, LogMsg)
 import           Control.Monad.Freer.Extras.State         (use)
-import           Control.Monad.Freer.State                (State, runState)
+import           Control.Monad.Freer.State                (State)
 import           Control.Monad.Freer.Writer               (Writer)
-import           Control.Monad.IO.Class                   (MonadIO (..))
-import           Data.Foldable                            (toList, traverse_)
 import           Data.Map                                 (Map)
 import qualified Data.Map                                 as Map
-import           Data.OpenUnion                           ((:++:))
 import           Data.Text                                (Text)
-import qualified Data.Text                                as Text
 import           Data.Text.Prettyprint.Doc
-import           Data.Text.Prettyprint.Doc.Render.Text    (renderStrict)
 import qualified Plutus.Contract.Trace           as Trace
-import           Ledger                                   (Address, Blockchain, Slot)
+import           Ledger                                   (Address, Blockchain)
 import qualified Ledger
 import qualified Ledger.AddressMap                        as AM
 import           Plutus.PAB.Command                       ()
-import           Plutus.PAB.Core
-import           Plutus.PAB.Effects.Contract.ContractTest (ContractTestMsg, TestContracts)
-import           Plutus.PAB.Effects.MultiAgent            (AgentState, MultiAgentPABEffect, PABMultiAgentMsg)
-import qualified Plutus.PAB.Effects.MultiAgent            as PAB.MultiAgent
-import           Plutus.PAB.Effects.UUID                  (UUIDEffect, handleUUIDEffect)
+import           Plutus.PAB.Effects.Contract.ContractTest (ContractTestMsg)
+import           Plutus.PAB.Effects.MultiAgent            (PABMultiAgentMsg)
+import           Plutus.PAB.Effects.UUID                  (UUIDEffect)
+import           Plutus.PAB.Simulator                     (AgentState)
 import           Plutus.PAB.Types                         (PABError (..))
 import           Test.QuickCheck.Instances.UUID           ()
 
-import qualified Cardano.ChainIndex.Types                 as ChainIndex
 import           Cardano.Node.Types                       (MockServerLogMsg)
-import           Control.Monad.Freer.Extras.Modify        (handleZoomedState, handleZoomedWriter, writeIntoState)
 import           Wallet.API                               (WalletAPIError)
-import           Wallet.Emulator.Chain                    (ChainControlEffect (..), ChainEffect, ChainEvent, ChainState,
-                                                           handleChain, handleControlChain, processBlock)
+import           Wallet.Emulator.Chain                    (ChainControlEffect (..), ChainEffect, ChainEvent, ChainState)
 import qualified Wallet.Emulator.Chain
-import           Wallet.Emulator.ChainIndex               (ChainIndexEvent, chainIndexNotify)
-import           Wallet.Emulator.MultiAgent               (EmulatorEvent, _singleton, chainEvent, emulatorTimeEvent)
-import           Wallet.Emulator.NodeClient               (ChainClientNotification (..))
+import           Wallet.Emulator.ChainIndex               (ChainIndexEvent)
+import           Wallet.Emulator.MultiAgent               (EmulatorEvent)
 import           Wallet.Emulator.Wallet                   (Wallet (..))
 
 data TestState =
@@ -114,7 +104,7 @@ initialTestState =
 
 type MockAppEffects =
     '[ ChainControlEffect
-     , MultiAgentPABEffect
+    --  , MultiAgentPABEffect
      , ChainEffect
      ]
 
@@ -144,7 +134,7 @@ instance Pretty MockAppReport where
 
 runScenario ::
   Eff '[ ChainControlEffect
-       , MultiAgentPABEffect
+    --    , MultiAgentPABEffect
        , ChainEffect
        , LogMsg ContractTestMsg
        , LogMsg ChainEvent
@@ -158,142 +148,31 @@ runScenario ::
        , UUIDEffect
        , IO] a
   -> IO a
-runScenario action = do
-    (result, finalState) <- runMockApp initialTestState $ do
-                void Wallet.Emulator.Chain.processBlock
-                processAllMsgBoxes
-                action
-    case result of
-        Left err -> do
-            void $ runMockApp finalState $ do
-                chainEvents <- use (nodeState . NodeServer.eventHistory)
-                emulatorEvents <- use emulatorEventLog
-                chainIndexEvents <- use (agentStates . at defaultWallet . anon (PAB.MultiAgent.emptyAgentState defaultWallet) (const False) . PAB.MultiAgent.chainIndexState  . ChainIndex.indexEvents)
+runScenario = undefined -- FIXME: implement runScenario
+    -- (result, finalState) <- runMockApp initialTestState $ do
+    --             -- void Wallet.Emulator.Chain.processBlock
+    --             action
+    -- case result of
+    --     Left err -> do
+    --         void $ runMockApp finalState $ do
+    --             chainEvents <- use (nodeState . NodeServer.eventHistory)
+    --             emulatorEvents <- use emulatorEventLog
+    --             chainIndexEvents <- undefined -- FIXME: get chainIndexEvents
 
-                let theReport = MockAppReport (toList chainEvents) emulatorEvents (toList chainIndexEvents)
-                    doc = renderStrict . layoutPretty defaultLayoutOptions . pretty $ theReport
-                liftIO $ putStrLn $ Text.unpack doc
-            error $ show err
-        Right value -> pure value
-
-runMockApp :: TestState
-    -> Eff (MockAppEffects
-            :++: '[LogMsg ContractTestMsg, LogMsg ChainEvent]
-            :++: '[Writer [LogMessage PABMultiAgentMsg], Writer [LogMessage MockAppLog]]
-            :++: '[State ChainState, State (Map Wallet AgentState)]
-            :++: '[Error WalletAPIError]
-            :++: '[Error PABError, State TestState, UUIDEffect, IO]
-           ) a
-    -> IO (Either PABError a, TestState)
-runMockApp state action =
-  action
-    & handleTopLevelEffects
-    & handleLogMessages emulatorTime
-    & handleWriters
-    & handleStates
-    & handleErrors
-    & handleFinalEffects state
-  where
-    emulatorTime = view (nodeState .  NodeServer.chainState . Wallet.Emulator.Chain.currentSlot) state
-
-handleFinalEffects :: TestState
-    -> Eff '[Error PABError, State TestState, UUIDEffect, IO] a
-    -> IO (Either PABError a, TestState)
-handleFinalEffects state action =
-  action
-    & runError
-    & runState state
-    & handleUUIDEffect
-    & runM
-
-notifyChainIndex ::
-       ( Member ChainEffect effs
-       , Member MultiAgentPABEffect effs
-       )
-    =>   ChainControlEffect ~> Eff (ChainControlEffect ': effs)
-notifyChainIndex = \case
-    ProcessBlock -> do
-        block <- processBlock
-        slot  <- Wallet.Emulator.Chain.getCurrentSlot
-        traverse_ (notifyWallet block slot) (Wallet <$> [1..10])
-        pure block
-    where
-        notifyWallet ::
-               ( Member MultiAgentPABEffect effs)
-            => Ledger.Block
-            -> Slot
-            -> Wallet
-            -> Eff effs ()
-        notifyWallet block slot wallet =
-            PAB.MultiAgent.agentControlAction wallet $
-                traverse_ chainIndexNotify [BlockValidated block, SlotChanged slot]
-
-handleTopLevelEffects ::
-       ( Member (State (Map Wallet AgentState)) effs
-       , Member (State ChainState) effs
-       , Member (Error WalletAPIError) effs
-       , Member (Error PABError) effs
-       , Member (LogMsg ChainEvent) effs
-       , Member (Writer [LogMessage PABMultiAgentMsg]) effs
-       , Member UUIDEffect effs
-       , Member (LogMsg ContractTestMsg) effs
-       )
-    => Eff (ChainControlEffect ': MultiAgentPABEffect ': ChainEffect ': effs) ~> Eff effs
-handleTopLevelEffects action =
-  action
-    & reinterpret notifyChainIndex
-    & interpret handleControlChain
-    & PAB.MultiAgent.handleMultiAgent
-    & interpret handleChain
-
-handleLogMessages ::
-       Member (Writer [LogMessage MockAppLog]) effs
-    => Slot
-    -> Eff (LogMsg ContractTestMsg ': LogMsg ChainEvent ': effs)
-    ~> Eff effs
-handleLogMessages emulatorTime action =
-  action
-    & interpret (handleLogWriter @ContractTestMsg @[LogMessage MockAppLog] (_singleton . below _MockAppContractTest))
-    & interpret (handleLogWriter @ChainEvent @[LogMessage MockAppLog] (_singleton . below (_MockAppEmulatorLog . emulatorTimeEvent emulatorTime . chainEvent)))
-
-handleWriters ::
-       Member (State TestState) effs
-    => Eff (Writer [LogMessage PABMultiAgentMsg] ': Writer [LogMessage MockAppLog] ': effs)
-    ~> Eff effs
-handleWriters action =
-  action
-    & interpret (handleZoomedWriter @[LogMessage MockAppLog] @_ @[LogMessage PABMultiAgentMsg] (below (below _MockAppMultiAgent)))
-    & interpret (writeIntoState emulatorEventLog)
-
-handleStates ::
-       Member (State TestState) effs
-    => Eff (State ChainState ': State (Map Wallet AgentState) ': effs)
-    ~> Eff effs
-handleStates action =
-  action
-    & interpret (handleZoomedState (nodeState . NodeServer.chainState))
-    & interpret (handleZoomedState agentStates)
-
-handleErrors ::
-       Member (Error PABError) effs
-    => Eff (Error WalletAPIError ': effs)
-    ~> Eff effs
-handleErrors action =
-  action
-    & flip handleError (throwError . WalletError)
-
--- | Process wallet / contract inbox and outbox messages
-processMsgBox ::
-    forall effs.
-    ( Member MultiAgentPABEffect effs
-    )
-    => Wallet
-    -> Eff effs ()
-processMsgBox wllt = pure () -- FIXME: Repair mock app
-
--- | Process the message boxes of wallets 1-10.
-processAllMsgBoxes :: Member MultiAgentPABEffect effs => Eff effs ()
-processAllMsgBoxes = traverse_ processMsgBox (Wallet <$> [1..10])
+    --             let theReport = MockAppReport (toList chainEvents) emulatorEvents (toList chainIndexEvents)
+    --                 doc = renderStrict . layoutPretty defaultLayoutOptions . pretty $ theReport
+    --             liftIO $ putStrLn $ Text.unpack doc
+    --         error $ show err
+    --     Right value -> pure value
+--   action
+--     & handleTopLevelEffects
+--     & handleLogMessages emulatorTime
+--     & handleWriters
+--     & handleStates
+--     & handleErrors
+--     & handleFinalEffects state
+--   where
+--     emulatorTime = view (nodeState .  NodeServer.chainState . Wallet.Emulator.Chain.currentSlot) state
 
 -- | Statistics about the transactions that have been validated by the emulated node.
 data TxCounts =

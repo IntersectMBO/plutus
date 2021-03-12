@@ -24,13 +24,14 @@ module Plutus.PAB.Simulator(
     -- * Agents
     , AgentState(..)
     , initialAgentState
+    , agentState
     -- Testing
     , test
     ) where
 
 import           Control.Concurrent.STM                   (TVar)
 import qualified Control.Concurrent.STM                   as STM
-import           Control.Lens                             (Lens', makeLenses, view, (&), (.~))
+import           Control.Lens                             (Lens', anon, at, makeLenses, view, (&), (.~))
 import           Control.Monad                            (forM, unless, void)
 import           Control.Monad.Freer                      (Eff, LastMember, Member, interpret, reinterpret,
                                                            reinterpret2, run, runM, send, subsume, type (~>))
@@ -46,7 +47,11 @@ import           Data.Foldable                            (traverse_)
 import           Data.Map                                 (Map)
 import qualified Data.Map                                 as Map
 import           Data.Text                                (Text)
+import qualified Ledger.Ada                               as Ada
+import qualified Wallet.Emulator                          as Emulator
 import           Wallet.Emulator.MultiAgent               (EmulatorTimeEvent (..))
+import qualified Wallet.Emulator.MultiAgent               as Emulator
+import qualified Wallet.Emulator.Stream                   as Emulator
 import           Wallet.Emulator.Wallet                   (Wallet (..), WalletEvent (..))
 
 import           Plutus.PAB.Core.ContractInstance         as ContractInstance
@@ -75,6 +80,9 @@ makeLenses ''AgentState
 initialAgentState :: Wallet -> AgentState
 initialAgentState wallet = AgentState{_walletState = Wallet.emptyWalletState wallet}
 
+agentState :: Wallet.Wallet -> Lens' (Map Wallet AgentState) AgentState
+agentState wallet = at wallet . anon (initialAgentState wallet) (const False)
+
 data SimulatorState =
     SimulatorState
         { _logMessages :: TVar [LogMessage PABMultiAgentMsg]
@@ -87,13 +95,15 @@ data SimulatorState =
 makeLenses ''SimulatorState
 
 initialState :: IO SimulatorState
-initialState = STM.atomically $
-    SimulatorState
-        <$> STM.newTVar mempty
-        <*> STM.newTVar 0
-        <*> STM.newTVar Chain.emptyChainState
-        <*> STM.newTVar mempty
-        <*> STM.newTVar mempty
+initialState = do
+    let Emulator.EmulatorState{Emulator._chainState} = Emulator.initialState Emulator.defaultEmulatorConfig
+    STM.atomically $
+        SimulatorState
+            <$> STM.newTVar mempty
+            <*> STM.newTVar 0
+            <*> STM.newTVar _chainState
+            <*> STM.newTVar mempty
+            <*> STM.newTVar mempty
 
 -- | Effects available to simulated agents that run in their own thread
     -- , Member WalletEffect effs
@@ -197,11 +207,12 @@ runWalletState wallet = \case
 
 runAgentEffects ::
     forall a.
-    AgentThread a
+    Wallet
+    -> AgentThread a
     -> Eff '[Reader SimulatorState, IO] (Either PABError a)
-runAgentEffects action = do
+runAgentEffects wallet action = do
     state <- ask
-    result <- liftIO $ handleAgentThread state (Wallet 1) action
+    result <- liftIO $ handleAgentThread state wallet action
     pure result
 
 -- | Control effects for managing the chain
@@ -247,7 +258,8 @@ test = do
     state <- initialState
     _ <- runM $ runReader state $ do
         _ <- runControlEffects Chain.processBlock
-        _ <- runAgentEffects $ logInfo @(ContractInstanceMsg TestContracts) InboxMessageMatchesIteration
+        _ <- runAgentEffects (Wallet 1) $ logInfo @(ContractInstanceMsg TestContracts) InboxMessageMatchesIteration
+        _ <- runAgentEffects (Wallet 1) $ WAPI.payToPublicKey WAPI.defaultSlotRange (Ada.adaValueOf 1) (Emulator.walletPubKey (Wallet 2))
         void $ runControlEffects Chain.processBlock
     let SimulatorState{_logMessages, _currentSlot} = state
     lms <- STM.atomically $ STM.readTVar _logMessages
@@ -414,6 +426,9 @@ handleChainIndexControlEffect ::
 handleChainIndexControlEffect = runChainIndexEffects . \case
     ChainIndex.ChainIndexNotify n -> ChainIndex.chainIndexNotify n
 
--- TODO: make activateContractSTM work
+-- TODO: Delete MultiAgent, MockApp (all replaced by this module)
+-- TODO: Maybe use InMemory eventful stuff?
+-- TODO: Initial transaction
+---      make activateContractSTM work
 --       fix tests / app
 --       implement new client API
