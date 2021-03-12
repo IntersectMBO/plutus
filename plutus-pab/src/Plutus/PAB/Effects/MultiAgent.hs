@@ -50,7 +50,7 @@ data PABMultiAgentMsg =
     | ContractInstanceLog (ContractInstanceMsg TestContracts)
     | CoreLog (CoreMsg TestContracts)
     | RuntimeLog ContractRuntimeMsg
-    | UserLog String
+    | UserLog T.Text
     deriving Show
 
 instance Pretty PABMultiAgentMsg where

@@ -18,9 +18,13 @@ module Plutus.PAB.Simulator(
     runSimulator
     -- * Simulator actions
     , logString
+    , logPretty
     , payToWallet
     , activateContract
     , callEndpointOnInstance
+    , nextSlot
+    , nextSlotNoDelay
+    , instanceState
     -- * Types
     , AgentThread
     , ControlThread
@@ -65,6 +69,7 @@ import           Data.Foldable                                     (traverse_)
 import           Data.Map                                          (Map)
 import qualified Data.Map                                          as Map
 import           Data.Text                                         (Text)
+import qualified Data.Text                                         as Text
 import qualified Data.Text.IO                                      as Text
 import           Data.Text.Prettyprint.Doc                         (Pretty (pretty), defaultLayoutOptions, layoutPretty)
 import qualified Data.Text.Prettyprint.Doc.Render.Text             as Render
@@ -392,8 +397,13 @@ callEndpointOnInstance instanceID ep value = do
 
 -- | Log some output to the console
 logString :: Member (LogMsg PABMultiAgentMsg) effs => String -> Eff effs ()
-logString = logInfo . UserLog
+logString = logInfo . UserLog . Text.pack
 
+-- | Pretty-prin a value to the console
+logPretty :: forall a effs. (Pretty a, Member (LogMsg PABMultiAgentMsg) effs) => a -> Eff effs ()
+logPretty = logInfo . UserLog . render
+
+-- | Wait half a second, then add a new block.
 nextSlot ::
     ( LastMember IO effs
     , Member (Reader (SimulatorState TestContracts)) effs
@@ -404,6 +414,27 @@ nextSlot ::
 nextSlot = do
     delayThread (500 :: Millisecond)
     void $ runControlEffects Chain.processBlock
+
+-- | Add a new block immediately.
+nextSlotNoDelay ::
+    ( LastMember IO effs
+    , Member (Reader (SimulatorState TestContracts)) effs
+    , Member (Reader InstancesState) effs
+    , Member (Reader BlockchainEnv) effs
+    ) => Eff effs ()
+nextSlotNoDelay = void $ runControlEffects Chain.processBlock
+
+-- | Get the current state of the contract instance.
+instanceState ::
+    ( LastMember IO effs
+    , Member (Reader (SimulatorState TestContracts)) effs
+    , Member (Reader InstancesState) effs
+    , Member (Reader BlockchainEnv) effs
+    )
+    => Wallet
+    -> ContractInstanceId
+    -> Eff effs (Either PABError (Contract.State TestContracts))
+instanceState wallet instanceId = runAgentEffects wallet (Contract.getState @TestContracts instanceId)
 
 -- | Run a simulation on a mockchain with initial values
 runSimulator ::
@@ -430,14 +461,16 @@ runSimulator action = do
 test :: IO ()
 test = void $ runSimulator $ do
         _ <- runAgentEffects (Wallet 1) $ payToWallet (Wallet 2) (Ada.adaValueOf 1)
-        nextSlot
-        instanceID <- runAgentEffects (Wallet 1) $ activateContract Currency
-        nextSlot
-        result <- callEndpointOnInstance (either (error . show) id instanceID) "Create native token" (Currency.SimpleMPS{Currency.tokenName = "my token", Currency.amount = 1000})
+        nextSlotNoDelay
+        instanceID <- either (error . show) id <$> (runAgentEffects (Wallet 1) $ activateContract Currency)
+        nextSlotNoDelay
+        result <- callEndpointOnInstance instanceID "Create native token" (Currency.SimpleMPS{Currency.tokenName = "my token", Currency.amount = 1000})
         logString (show result)
         nextSlot
         nextSlot
         nextSlot
+        nextSlot
+        instanceState (Wallet 1) instanceID >>= logPretty
 
 -- | Annotate log messages with the current slot number.
 timed ::
@@ -603,8 +636,8 @@ handleChainIndexControlEffect ::
 handleChainIndexControlEffect = runChainIndexEffects . \case
     ChainIndex.ChainIndexNotify n -> ChainIndex.chainIndexNotify n
 
+-- TODO: Wait until all messages have been written, then exit (in runSimulator)
 -- TODO: Delete MultiAgent, MockApp (all replaced by this module)
--- TODO: Call endpoint
 --       fix tests / app
 --       implement new client API
 
@@ -616,10 +649,11 @@ printLogMessages ::
     -> IO ()
 printLogMessages queue = void $ forkIO $ forever $ do
     msg <- STM.atomically $ STM.readTQueue queue
-    when (msg ^. logLevel >= Info) $ do
-        let t = Render.renderStrict $ layoutPretty defaultLayoutOptions $ pretty msg
-        Text.putStrLn t
+    when (msg ^. logLevel >= Info) $
+        Text.putStrLn (render msg)
 
+-- | Handle the 'ContractStore' effect by writing the state to the
+--   TVar in 'SimulatorState'
 handleContractStore ::
     forall t m effs.
     ( LastMember m effs
@@ -669,3 +703,6 @@ handleContractStore wallet = \case
 --             { _txValidated = lengthOf folded chain
 --             , _txMemPool   = length pool
 --             }
+
+render :: forall a. Pretty a => a -> Text
+render = Render.renderStrict . layoutPretty defaultLayoutOptions . pretty
