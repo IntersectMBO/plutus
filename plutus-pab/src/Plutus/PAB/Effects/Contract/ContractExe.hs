@@ -52,7 +52,7 @@ instance PABContract ContractExe where
     type ContractDef ContractExe = ContractExe
     type State ContractExe = PartiallyDecodedResponse ContractPABRequest
 
-    requests _ = ContractInstanceState.hooks
+    serialisableState _ = id
 
 newtype ContractExe =
     ContractExe

@@ -21,6 +21,7 @@ module Plutus.PAB.Core.ContractInstance.STM(
     , addAddress
     , addTransaction
     , setActivity
+    , setObservableState
     , openEndpoints
     , callEndpoint
     , Activity(..)
@@ -32,6 +33,7 @@ module Plutus.PAB.Core.ContractInstance.STM(
     , watchedAddresses
     , watchedTransactions
     , callEndpointOnInstance
+    , contractState
     ) where
 
 import           Control.Applicative                               (Alternative (..))
@@ -185,10 +187,11 @@ data Activity = Active | Done
 -- | The state of an active contract instance.
 data InstanceState =
     InstanceState
-        { issEndpoints    :: TVar (Map (RequestID, IterationID) OpenEndpoint) -- ^ Open endpoints that can be responded to.
-        , issAddresses    :: TVar (Set Address) -- ^ Addresses that the contract wants to watch
-        , issTransactions :: TVar (Set TxId) -- ^ Transactions whose status the contract is interested in
-        , issStatus       :: TVar Activity -- ^ Whether the instance is still running.
+        { issEndpoints       :: TVar (Map (RequestID, IterationID) OpenEndpoint) -- ^ Open endpoints that can be responded to.
+        , issAddresses       :: TVar (Set Address) -- ^ Addresses that the contract wants to watch
+        , issTransactions    :: TVar (Set TxId) -- ^ Transactions whose status the contract is interested in
+        , issStatus          :: TVar Activity -- ^ Whether the instance is still running.
+        , issObservableState :: TVar (Maybe Value) -- ^ Serialised observable state of the contract instance (if available)
         }
 
 -- | An 'InstanceState' value with empty fields
@@ -199,6 +202,7 @@ emptyInstanceState =
         <*> STM.newTVar mempty
         <*> STM.newTVar mempty
         <*> STM.newTVar Active
+        <*> STM.newTVar Nothing
 
 -- | Add an address to the set of addresses that the instance is watching
 addAddress :: Address -> InstanceState -> STM ()
@@ -222,6 +226,11 @@ addEndpoint :: Request ActiveEndpoint -> InstanceState -> STM ()
 addEndpoint Request{rqID, itID, rqRequest} InstanceState{issEndpoints} = do
     endpoint <- OpenEndpoint rqRequest Nothing <$> STM.newEmptyTMVar
     STM.modifyTVar issEndpoints (Map.insert (rqID, itID) endpoint)
+
+-- | Write a new value into the contract instance's observable state.
+setObservableState :: Value -> InstanceState -> STM ()
+setObservableState vl InstanceState{issObservableState} =
+    STM.writeTVar issObservableState (Just vl)
 
 -- | The list of all endpoints that can be called on the instance
 openEndpoints :: InstanceState -> STM (Map (RequestID, IterationID) OpenEndpoint)
@@ -251,6 +260,19 @@ newtype InstancesState = InstancesState (TVar (Map ContractInstanceId InstanceSt
 -- | Initialise the 'InstancesState' with an empty value
 emptyInstancesState :: STM InstancesState
 emptyInstancesState = InstancesState <$> STM.newTVar mempty
+
+-- | Get the observable state of the contract instance. Blocks if the
+--   state is not available yet.
+contractState :: ContractInstanceId -> InstancesState -> STM Value
+contractState instanceId (InstancesState m) = do
+    mp <- STM.readTVar m
+    case Map.lookup instanceId mp of
+        Nothing -> empty
+        Just InstanceState{issObservableState} -> do
+            v <- STM.readTVar issObservableState
+            case v of
+                Nothing -> empty
+                Just k  -> pure k
 
 -- | Insert an 'InstanceState' value into the 'InstancesState'
 insertInstance :: ContractInstanceId -> InstanceState -> InstancesState -> STM ()

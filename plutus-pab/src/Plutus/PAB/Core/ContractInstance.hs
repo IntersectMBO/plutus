@@ -61,12 +61,13 @@ import           Plutus.PAB.Core.ContractInstance.STM             (Activity (Don
                                                                    InstanceState (..), InstancesState,
                                                                    callEndpointOnInstance, emptyInstanceState)
 import qualified Plutus.PAB.Core.ContractInstance.STM             as InstanceState
-import           Plutus.PAB.Effects.Contract                      (ContractDef, ContractEffect, ContractStore)
+import           Plutus.PAB.Effects.Contract                      (ContractEffect, ContractStore, PABContract (..))
 import qualified Plutus.PAB.Effects.Contract                      as Contract
 import           Plutus.PAB.Effects.UUID                          (UUIDEffect, uuidNextRandom)
 import           Plutus.PAB.Events.Contract                       (ContractInstanceId (..), ContractPABRequest (..),
                                                                    ContractResponse (..))
 import qualified Plutus.PAB.Events.Contract                       as Events.Contract
+import           Plutus.PAB.Events.ContractInstanceState          (PartiallyDecodedResponse (..))
 import           Plutus.PAB.Types                                 (PABError (..))
 
 -- | Create a new instance of the contract
@@ -211,9 +212,8 @@ stmInstanceLoop ::
     -> Eff effs ()
 stmInstanceLoop def instanceId = do
     (currentState :: Contract.State t) <- Contract.getState @t instanceId
-    let rqs = Contract.requests (Proxy @t) currentState
-    updateState rqs
-    case rqs of
+    updateState (serialisableState (Proxy @t) currentState)
+    case Contract.requests @t currentState of
         [] -> do
             ask >>= liftIO . STM.atomically . InstanceState.setActivity Done
         _ -> do
@@ -231,19 +231,20 @@ updateState ::
     , MonadIO m
     , Member (Reader InstanceState) effs
     )
-    => [Request ContractPABRequest]
+    => PartiallyDecodedResponse ContractPABRequest
     -> Eff effs ()
-updateState requests = do
+updateState PartiallyDecodedResponse{observableState, hooks} = do
     state <- ask
     liftIO $ STM.atomically $ do
         InstanceState.clearEndpoints state
-        forM_ requests $ \r -> do
+        forM_ hooks $ \r -> do
             case rqRequest r of
                 AwaitTxConfirmedRequest txid -> InstanceState.addTransaction txid state
                 UtxoAtRequest addr -> InstanceState.addAddress addr state
                 NextTxAtRequest AddressChangeRequest{acreqAddress} -> InstanceState.addAddress acreqAddress state
                 UserEndpointRequest endpoint -> InstanceState.addEndpoint (r { rqRequest = endpoint}) state
                 _ -> pure ()
+        InstanceState.setObservableState observableState state
 
 -- | Run the STM-based request handler on a non-empty list
 --   of requests.
@@ -265,6 +266,6 @@ respondToRequestsSTM ::
     -> Contract.State t
     -> Eff effs (STM (Response ContractResponse))
 respondToRequestsSTM instanceId currentState = do
-    let rqs = Contract.requests (Proxy @t) currentState
+    let rqs = Contract.requests @t currentState
     logDebug @(ContractInstanceMsg t) $ HandlingRequests instanceId rqs
     tryHandler' stmRequestHandler rqs

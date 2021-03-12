@@ -18,6 +18,7 @@ Effects for running contract instances and for storing and loading their state.
 -}
 module Plutus.PAB.Effects.Contract(
     PABContract(..)
+    , requests
     , ContractEffect(..)
     , exportSchema
     , initialState
@@ -33,14 +34,15 @@ module Plutus.PAB.Effects.Contract(
     , getDefinitions
     ) where
 
-import           Control.Monad.Freer                (Eff, Member, send)
-import           Data.Map                           (Map)
-import           Data.Proxy                         (Proxy)
-import           Plutus.Contract.Resumable (Request, Response)
-import           Playground.Types                   (FunctionSchema)
-import           Plutus.PAB.Events.Contract         (ContractPABRequest, ContractResponse)
-import           Schema                             (FormSchema)
-import           Wallet.Types                       (ContractInstanceId)
+import           Control.Monad.Freer                     (Eff, Member, send)
+import           Data.Map                                (Map)
+import           Data.Proxy                              (Proxy (..))
+import           Plutus.Contract.Resumable      (Request, Response)
+import           Playground.Types                        (FunctionSchema)
+import           Plutus.PAB.Events.Contract              (ContractPABRequest, ContractResponse)
+import           Plutus.PAB.Events.ContractInstanceState (PartiallyDecodedResponse (hooks))
+import           Schema                                  (FormSchema)
+import           Wallet.Types                            (ContractInstanceId)
 
 -- | A class of contracts running in the PAB. The purpose of the type
 --   parameter @t@ is to allow for different ways of running
@@ -58,9 +60,12 @@ class PABContract contract where
     -- | Contract state type
     type State contract
 
-    -- | Extract the contract instance's open requests from the
-    --   state.
-    requests :: Proxy contract -> State contract -> [Request ContractPABRequest]
+    -- | Extract the serialisable state from the contract instance state.
+    serialisableState :: Proxy contract -> State contract -> PartiallyDecodedResponse ContractPABRequest
+
+-- | The open requests of the contract instance.
+requests :: forall contract. PABContract contract => State contract -> [Request ContractPABRequest]
+requests = hooks . serialisableState (Proxy @contract)
 
 -- | An effect for sending updates to contracts that implement @PABContract@
 data ContractEffect t r where

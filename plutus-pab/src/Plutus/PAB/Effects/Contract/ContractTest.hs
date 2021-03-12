@@ -67,7 +67,7 @@ data TestContracts = Game | Currency | AtomicSwap | PayToWallet | RPCClient | RP
 instance PABContract TestContracts where
     type ContractDef TestContracts = TestContracts
     type State TestContracts = PartiallyDecodedResponse ContractPABRequest
-    requests _ = C.hooks
+    serialisableState _ = id
 
 data ContractTestMsg =
     DoContractUpdate (ContractRequest Value)

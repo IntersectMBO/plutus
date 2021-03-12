@@ -27,6 +27,8 @@ module Plutus.PAB.Simulator(
     , nextSlot
     , nextSlotNoDelay
     , instanceState
+    , observableState
+    , waitForState
     -- * Types
     , AgentThread
     , ControlThread
@@ -50,7 +52,7 @@ module Plutus.PAB.Simulator(
 
 import           Control.Applicative                               (Alternative (..))
 import           Control.Concurrent                                (forkIO)
-import           Control.Concurrent.STM                            (TMVar, TQueue, TVar)
+import           Control.Concurrent.STM                            (STM, TMVar, TQueue, TVar)
 import qualified Control.Concurrent.STM                            as STM
 import           Control.Lens                                      (Lens', _Just, anon, at, makeLenses, preview, set,
                                                                     to, view, (&), (.~), (^.))
@@ -68,9 +70,11 @@ import           Control.Monad.Freer.State                         (State (..), 
 import           Control.Monad.Freer.Writer                        (Writer (..), runWriter)
 import           Control.Monad.IO.Class                            (MonadIO (..))
 import qualified Data.Aeson                                        as JSON
+import qualified Data.Aeson.Types                                  as JSON
 import           Data.Foldable                                     (traverse_)
 import           Data.Map                                          (Map)
 import qualified Data.Map                                          as Map
+import           Data.Semigroup                                    (Last (..))
 import           Data.Text                                         (Text)
 import qualified Data.Text                                         as Text
 import qualified Data.Text.IO                                      as Text
@@ -453,6 +457,33 @@ instanceState ::
     -> Eff effs (Either PABError (Contract.State TestContracts))
 instanceState wallet instanceId = runAgentEffects wallet (Contract.getState @TestContracts instanceId)
 
+-- | An STM transaction that returns the observable state of the contract instance.
+observableState ::
+    forall effs.
+    ( Member (Reader InstancesState) effs )
+    => ContractInstanceId
+    -> Eff effs (STM JSON.Value)
+observableState instanceId = do
+    instancesState <- ask @InstancesState
+    pure $ Instances.contractState instanceId instancesState
+
+-- | Wait until the observable state of the instance matches a predicate.
+waitForState ::
+    forall a effs.
+    ( Member (Reader InstancesState) effs
+    , LastMember IO effs
+    )
+    => (JSON.Value -> Maybe a)
+    -> ContractInstanceId
+    -> Eff effs a
+waitForState extract instanceId = do
+    stm <- observableState instanceId
+    liftIO $ STM.atomically $ do
+        state <- stm
+        case extract state of
+            Nothing -> empty
+            Just k  -> pure k
+
 -- | Run a simulation on a mockchain with initial values
 runSimulator ::
     Eff '[LogMsg PABMultiAgentMsg, Reader (SimulatorState TestContracts), Reader InstancesState, Reader BlockchainEnv, DelayEffect, IO] a
@@ -486,12 +517,17 @@ test = void $ runSimulator $ do
         nextSlot
         instanceID <- either (error . show) id <$> (runAgentEffects (Wallet 1) $ activateContract Currency)
         nextSlot
-        result <- callEndpointOnInstance instanceID "Create native token" (Currency.SimpleMPS{Currency.tokenName = "my token", Currency.amount = 1000})
-        logString (show result)
+        void $ callEndpointOnInstance instanceID "Create native token" (Currency.SimpleMPS{Currency.tokenName = "my token", Currency.amount = 1000})
         nextSlot
         nextSlot
         nextSlot
-        instanceState (Wallet 1) instanceID >>= logPretty
+        let conv :: JSON.Value -> Maybe Currency.Currency
+            conv vl = do
+                case JSON.parseEither JSON.parseJSON vl of
+                    Right (Just (Last cur)) -> Just cur
+                    _                       -> Nothing
+
+        waitForState conv instanceID >>= logString . show
 
 -- | Annotate log messages with the current slot number.
 timed ::
@@ -662,8 +698,8 @@ handleChainIndexControlEffect ::
 handleChainIndexControlEffect = runChainIndexEffects . \case
     ChainIndex.ChainIndexNotify n -> ChainIndex.chainIndexNotify n
 
--- TODO: Wait until all messages have been written, then exit (in runSimulator)
--- TODO: Delete MultiAgent, MockApp (all replaced by this module)
+-- TODO: (1) Update currency contract to write out state
+--       (2) Look at state in emulator
 --       fix tests / app
 --       implement new client API
 

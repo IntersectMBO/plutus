@@ -41,16 +41,18 @@ import qualified Ledger.Ada              as Ada
 import qualified Ledger.Constraints      as Constraints
 import qualified Ledger.Contexts         as V
 import           Ledger.Scripts
-import qualified Ledger.Typed.Scripts    as Scripts
-import           Ledger.Value            (TokenName, Value)
-import qualified Ledger.Value            as Value
 import qualified PlutusTx                as PlutusTx
-import qualified PlutusTx.AssocMap       as AssocMap
 
-import           Data.Aeson              (FromJSON, ToJSON)
-import qualified Data.Map                as Map
-import           GHC.Generics            (Generic)
-import           Prelude                 (Semigroup (..))
+import qualified Ledger.Typed.Scripts                            as Scripts
+import           Ledger.Value                                    (TokenName, Value)
+import qualified Ledger.Value                                    as Value
+
+import           Data.Aeson                                      (FromJSON, ToJSON)
+import qualified Data.Map                                        as Map
+import           Data.Semigroup                                  (Last (..))
+import           GHC.Generics                                    (Generic)
+import           Prelude                                         (Semigroup (..))
+import qualified PlutusTx.AssocMap       as AssocMap
 import qualified Prelude
 import           Schema                  (ToSchema)
 
@@ -64,6 +66,8 @@ data Currency = Currency
   -- ^ How many units of each 'TokenName' are to
   --   be forged.
   }
+  deriving stock (Generic, Prelude.Show)
+  deriving anyclass (ToJSON, FromJSON)
 
 PlutusTx.makeLift ''Currency
 
@@ -186,8 +190,10 @@ type CurrencySchema =
 
 -- | Use 'forgeContract' to create the currency specified by a 'SimpleMPS'
 forgeCurrency
-    :: Contract () CurrencySchema CurrencyError Currency
+    :: Contract (Maybe (Last Currency)) CurrencySchema CurrencyError Currency
 forgeCurrency = do
     SimpleMPS{tokenName, amount} <- endpoint @"Create native token"
     ownPK <- pubKeyHash <$> ownPubKey
-    forgeContract ownPK [(tokenName, amount)]
+    cur <- forgeContract ownPK [(tokenName, amount)]
+    tell (Just (Last cur))
+    pure cur
