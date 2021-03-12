@@ -14,7 +14,6 @@ module Plutus.PAB.Effects.MultiAgent(
     -- * Multi-agent effect
     PABMultiAgentMsg(..)
     -- * Misc.
-    , _InstanceMsg
     , _LogMessageText
     ) where
 
@@ -64,9 +63,6 @@ instance Pretty PABMultiAgentMsg where
         RuntimeLog m          -> pretty m
 
 makeClassyPrisms ''PABMultiAgentMsg
-
-_InstanceMsg :: AReview [LogMessage PABMultiAgentMsg] (LogMessage (ContractInstanceMsg TestContracts))
-_InstanceMsg = _singleton . below _ContractInstanceLog
 
 _LogMessageText :: Slot -> Wallet -> AReview [LogMessage PABMultiAgentMsg] (LogMessage T.Text)
 _LogMessageText s w = _singleton . below (_EmulatorMsg . emulatorTimeEvent s . walletEvent w . Wallet._GenericLog)
