@@ -40,16 +40,17 @@ module Plutus.PAB.Simulator(
     , test
     ) where
 
-import           Control.Concurrent.STM                   (TVar)
+import           Control.Concurrent                       (forkIO)
+import           Control.Concurrent.STM                   (TQueue, TVar)
 import qualified Control.Concurrent.STM                   as STM
 import           Control.Lens                             (Lens', _Just, anon, at, makeLenses, preview, set, to, view,
-                                                           (&), (.~))
-import           Control.Monad                            (forM, unless, void)
+                                                           (&), (.~), (^.))
+import           Control.Monad                            (forM, forever, unless, void, when)
 import           Control.Monad.Freer                      (Eff, LastMember, Member, interpret, reinterpret,
                                                            reinterpret2, run, runM, send, subsume, type (~>))
 import           Control.Monad.Freer.Error                (Error, handleError, runError, throwError)
-import           Control.Monad.Freer.Extras.Log           (LogMessage, LogMsg (..), LogObserve, handleLogWriter,
-                                                           handleObserveLog, mapLog)
+import           Control.Monad.Freer.Extras.Log           (LogLevel (Info), LogMessage, LogMsg (..), LogObserve,
+                                                           handleLogWriter, handleObserveLog, logLevel, mapLog)
 import qualified Control.Monad.Freer.Extras.Modify        as Modify
 import           Control.Monad.Freer.Reader               (Reader, ask, asks, runReader)
 import           Control.Monad.Freer.State                (State (..), runState)
@@ -59,6 +60,9 @@ import           Data.Foldable                            (traverse_)
 import           Data.Map                                 (Map)
 import qualified Data.Map                                 as Map
 import           Data.Text                                (Text)
+import qualified Data.Text.IO                             as Text
+import           Data.Text.Prettyprint.Doc                (Pretty (pretty), defaultLayoutOptions, layoutPretty)
+import qualified Data.Text.Prettyprint.Doc.Render.Text    as Render
 import qualified Ledger.Ada                               as Ada
 import           Ledger.Tx                                (Tx)
 import           Ledger.Value                             (Value)
@@ -120,7 +124,7 @@ agentState wallet = at wallet . anon (initialAgentState wallet) (const False)
 
 data SimulatorState t =
     SimulatorState
-        { _logMessages :: TVar [LogMessage PABMultiAgentMsg]
+        { _logMessages :: TQueue (LogMessage PABMultiAgentMsg)
         , _currentSlot :: TVar Slot
         , _chainState  :: TVar ChainState
         , _agentStates :: TVar (Map Wallet (AgentState t))
@@ -134,7 +138,7 @@ initialState = do
     let Emulator.EmulatorState{Emulator._chainState} = Emulator.initialState Emulator.defaultEmulatorConfig
     STM.atomically $
         SimulatorState
-            <$> STM.newTVar mempty
+            <$> STM.newTQueue
             <*> STM.newTVar 0
             <*> STM.newTVar _chainState
             <*> STM.newTVar mempty
@@ -197,8 +201,8 @@ handleAgentThread state blockchainEnv instancesState wallet action = do
     runM
         $ runReader state
         $ runError
-        $ interpret (writeIntoStateTVar @_ @(SimulatorState TestContracts) logMessages)
-        $ reinterpret @(LogMsg PABMultiAgentMsg) @(Writer [LogMessage PABMultiAgentMsg]) (handleLogWriter _singleton)  -- TODO: We could also print it to the terminal
+        $ interpret (writeIntoTQueue @_ @(SimulatorState TestContracts) logMessages)
+        $ reinterpret @(LogMsg PABMultiAgentMsg) @(Writer (LogMessage PABMultiAgentMsg)) (handleLogWriter id)  -- TODO: We could also print it to the terminal
         $ subsume @IO
         $ subsume @(Reader (SimulatorState TestContracts))
         $ runReader wallet
@@ -304,21 +308,21 @@ runControlEffects ::
     -> Eff effs a
 runControlEffects action = do
     state <- ask
-    let action' :: Eff (ControlEffects '[IO, Writer [LogMessage PABMultiAgentMsg], Reader (SimulatorState TestContracts), IO]) a = Modify.raiseEnd action
+    let action' :: Eff (ControlEffects '[IO, Writer (LogMessage PABMultiAgentMsg), Reader (SimulatorState TestContracts), IO]) a = Modify.raiseEnd action
         makeTimedChainEvent =
-            interpret @(LogMsg PABMultiAgentMsg) (handleLogWriter _singleton)
+            interpret @(LogMsg PABMultiAgentMsg) (handleLogWriter id)
             . reinterpret (mapLog @_ @PABMultiAgentMsg EmulatorMsg)
             . reinterpret (timed @EmulatorEvent')
             . reinterpret (mapLog ChainEvent)
         makeTimedChainIndexEvent =
-            interpret @(LogMsg PABMultiAgentMsg) (handleLogWriter _singleton)
+            interpret @(LogMsg PABMultiAgentMsg) (handleLogWriter id)
             . reinterpret (mapLog @_ @PABMultiAgentMsg EmulatorMsg)
             . reinterpret (timed @EmulatorEvent')
             . reinterpret (mapLog (ChainIndexEvent (Wallet 0)))
     liftIO
         $ runM
         $ runReader state
-        $ interpret (writeIntoStateTVar @_ @(SimulatorState TestContracts) logMessages) -- TODO: We could also print it to the terminal
+        $ interpret (writeIntoTQueue @_ @(SimulatorState TestContracts) logMessages) -- TODO: We could also print it to the terminal
         $ subsume @IO
         $ makeTimedChainIndexEvent
         $ makeTimedChainEvent
@@ -361,6 +365,7 @@ runSimulator action = do
     state <- initialState
     inst <- STM.atomically Instances.emptyInstancesState
     blockchainEnv <- STM.atomically Instances.emptyBlockchainEnv
+    printLogMessages (_logMessages state)
     a <- runM $ runReader blockchainEnv $ runReader inst $ runReader state $ do
             -- Make 1st block with initial transaction
             _ <- runControlEffects Chain.processBlock
@@ -368,15 +373,12 @@ runSimulator action = do
     pure (state, a)
 
 test :: IO ()
-test = do
-    (state, _) <- runSimulator $ do
+test = void $ runSimulator $ do
         _ <- runAgentEffects (Wallet 1) $ payToWallet (Wallet 2) (Ada.adaValueOf 1)
         void $ runControlEffects Chain.processBlock
         void $ runAgentEffects (Wallet 1) $ activateContract Currency
-    let SimulatorState{_logMessages, _currentSlot} = state
-    lms <- STM.atomically $ STM.readTVar _logMessages
-    traverse_ print lms
-    STM.atomically (STM.readTVar _currentSlot) >>= print
+        void $ runControlEffects Chain.processBlock
+        void $ runControlEffects Chain.processBlock
 
 -- | Annotate log messages with the current slot number.
 timed ::
@@ -396,19 +398,18 @@ timed = \case
         send (LMessage m')
 
 -- | Handle a 'Writer' effect in terms of a "larger" 'State' effect from which we have a setter.
-writeIntoStateTVar ::
+writeIntoTQueue ::
     forall s1 s2 m effs.
-    ( Monoid s1
-    , Member (Reader s2) effs
+    ( Member (Reader s2) effs
     , LastMember m effs
     , MonadIO m
     )
-    => Lens' s2 (TVar s1)
+    => Lens' s2 (TQueue s1)
     -> (Writer s1 ~> Eff effs)
-writeIntoStateTVar s = \case
+writeIntoTQueue s = \case
     Tell w -> do
         tv <- asks (view s)
-        liftIO $ STM.atomically $ STM.modifyTVar tv (<> w)
+        liftIO $ STM.atomically $ STM.writeTQueue tv w
 
 handleChainControl ::
     forall m effs.
@@ -540,11 +541,22 @@ handleChainIndexControlEffect = runChainIndexEffects . \case
 
 -- TODO: Delete MultiAgent, MockApp (all replaced by this module)
 -- TODO: Maybe use InMemory eventful stuff?
--- TODO: make activateContractSTM work
 -- TODO: Update blockchain env!
 -- TODO: pretty log to stdout (info level)
 --       fix tests / app
 --       implement new client API
+
+-- | Start a thread that prints log messages to the terminal when they come in.
+printLogMessages ::
+    forall t.
+    Pretty t
+    => TQueue (LogMessage t)
+    -> IO ()
+printLogMessages queue = void $ forkIO $ forever $ do
+    msg <- STM.atomically $ STM.readTQueue queue
+    when (msg ^. logLevel >= Info) $ do
+        let t = Render.renderStrict $ layoutPretty defaultLayoutOptions $ pretty msg
+        Text.putStrLn t
 
 handleContractStore ::
     forall t m effs.

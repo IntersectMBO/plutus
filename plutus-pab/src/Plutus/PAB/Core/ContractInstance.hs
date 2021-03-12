@@ -235,7 +235,6 @@ updateState ::
     -> Eff effs ()
 updateState requests = do
     state <- ask
-    liftIO $ putStrLn "ContractInstance: updateState"
     liftIO $ STM.atomically $ do
         InstanceState.clearEndpoints state
         forM_ requests $ \r -> do
