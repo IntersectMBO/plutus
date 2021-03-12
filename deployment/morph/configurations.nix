@@ -10,7 +10,7 @@ let
     then plutus.pkgs.lib.importJSON p
     else { rootSshKeys = [ ]; monitoringSshKeys = [ ]; };
   stdOverlays = [ ];
-  nixpkgsLocation = https://github.com/NixOS/nixpkgs/archive/5272327b81ed355bbed5659b8d303cf2979b6953.tar.gz;
+  nixpkgsLocation = (builtins.fromJSON (builtins.readFile ../../nix/sources.json)).nixpkgs.url;
   ports = {
     http = 80;
     ssh = 22;
