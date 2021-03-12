@@ -7,6 +7,7 @@
 module Plutus.PAB.Core.ContractInstance.BlockchainEnv(
   startNodeClient
   , ClientEnv(..)
+  , processBlock
   ) where
 
 import qualified Cardano.Protocol.Socket.Client       as Client

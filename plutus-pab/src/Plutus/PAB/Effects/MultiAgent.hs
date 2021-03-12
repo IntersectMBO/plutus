@@ -50,6 +50,7 @@ data PABMultiAgentMsg =
     | ContractInstanceLog (ContractInstanceMsg TestContracts)
     | CoreLog (CoreMsg TestContracts)
     | RuntimeLog ContractRuntimeMsg
+    | UserLog String
     deriving Show
 
 instance Pretty PABMultiAgentMsg where
@@ -61,6 +62,7 @@ instance Pretty PABMultiAgentMsg where
         ContractInstanceLog m -> pretty m
         CoreLog m             -> pretty m
         RuntimeLog m          -> pretty m
+        UserLog m             -> pretty m
 
 makeClassyPrisms ''PABMultiAgentMsg
 

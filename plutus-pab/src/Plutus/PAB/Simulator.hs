@@ -17,8 +17,10 @@ A multi-threaded PAB simulator
 module Plutus.PAB.Simulator(
     runSimulator
     -- * Simulator actions
+    , logString
     , payToWallet
     , activateContract
+    , callEndpointOnInstance
     -- * Types
     , AgentThread
     , ControlThread
@@ -40,60 +42,68 @@ module Plutus.PAB.Simulator(
     , test
     ) where
 
-import           Control.Concurrent                       (forkIO)
-import           Control.Concurrent.STM                   (TQueue, TVar)
-import qualified Control.Concurrent.STM                   as STM
-import           Control.Lens                             (Lens', _Just, anon, at, makeLenses, preview, set, to, view,
-                                                           (&), (.~), (^.))
-import           Control.Monad                            (forM, forever, unless, void, when)
-import           Control.Monad.Freer                      (Eff, LastMember, Member, interpret, reinterpret,
-                                                           reinterpret2, run, runM, send, subsume, type (~>))
-import           Control.Monad.Freer.Error                (Error, handleError, runError, throwError)
-import           Control.Monad.Freer.Extras.Log           (LogLevel (Info), LogMessage, LogMsg (..), LogObserve,
-                                                           handleLogWriter, handleObserveLog, logLevel, mapLog)
-import qualified Control.Monad.Freer.Extras.Modify        as Modify
-import           Control.Monad.Freer.Reader               (Reader, ask, asks, runReader)
-import           Control.Monad.Freer.State                (State (..), runState)
-import           Control.Monad.Freer.Writer               (Writer (..), runWriter)
-import           Control.Monad.IO.Class                   (MonadIO (..))
-import           Data.Foldable                            (traverse_)
-import           Data.Map                                 (Map)
-import qualified Data.Map                                 as Map
-import           Data.Text                                (Text)
-import qualified Data.Text.IO                             as Text
-import           Data.Text.Prettyprint.Doc                (Pretty (pretty), defaultLayoutOptions, layoutPretty)
-import qualified Data.Text.Prettyprint.Doc.Render.Text    as Render
-import qualified Ledger.Ada                               as Ada
-import           Ledger.Tx                                (Tx)
-import           Ledger.Value                             (Value)
-import           Plutus.PAB.Effects.UUID                  (UUIDEffect, handleUUIDEffect)
-import qualified Wallet.Emulator                          as Emulator
-import           Wallet.Emulator.MultiAgent               (EmulatorTimeEvent (..))
-import qualified Wallet.Emulator.Stream                   as Emulator
-import           Wallet.Emulator.Wallet                   (Wallet (..), WalletEvent (..))
+import           Control.Concurrent                                (forkIO)
+import           Control.Concurrent.STM                            (TQueue, TVar)
+import qualified Control.Concurrent.STM                            as STM
+import           Control.Lens                                      (Lens', _Just, anon, at, makeLenses, preview, set,
+                                                                    to, view, (&), (.~), (^.))
+import           Control.Monad                                     (forM, forever, unless, void, when)
+import           Control.Monad.Freer                               (Eff, LastMember, Member, interpret, reinterpret,
+                                                                    reinterpret2, run, runM, send, subsume, type (~>))
+import           Control.Monad.Freer.Delay                         (DelayEffect, delayThread, handleDelayEffect)
+import           Control.Monad.Freer.Error                         (Error, handleError, runError, throwError)
+import           Control.Monad.Freer.Extras.Log                    (LogLevel (Info), LogMessage, LogMsg (..),
+                                                                    LogObserve, handleLogWriter, handleObserveLog,
+                                                                    logInfo, logLevel, mapLog)
+import qualified Control.Monad.Freer.Extras.Modify                 as Modify
+import           Control.Monad.Freer.Reader                        (Reader, ask, asks, runReader)
+import           Control.Monad.Freer.State                         (State (..), runState)
+import           Control.Monad.Freer.Writer                        (Writer (..), runWriter)
+import           Control.Monad.IO.Class                            (MonadIO (..))
+import qualified Data.Aeson                                        as JSON
+import           Data.Foldable                                     (traverse_)
+import           Data.Map                                          (Map)
+import qualified Data.Map                                          as Map
+import           Data.Text                                         (Text)
+import qualified Data.Text.IO                                      as Text
+import           Data.Text.Prettyprint.Doc                         (Pretty (pretty), defaultLayoutOptions, layoutPretty)
+import qualified Data.Text.Prettyprint.Doc.Render.Text             as Render
+import           Data.Time.Units                                   (Millisecond)
+import qualified Language.PlutusTx.Coordination.Contracts.Currency as Currency
+import qualified Ledger.Ada                                        as Ada
+import           Ledger.Tx                                         (Tx)
+import           Ledger.Value                                      (Value)
+import           Plutus.PAB.Effects.UUID                           (UUIDEffect, handleUUIDEffect)
+import qualified Wallet.Emulator                                   as Emulator
+import           Wallet.Emulator.MultiAgent                        (EmulatorTimeEvent (..))
+import qualified Wallet.Emulator.Stream                            as Emulator
+import           Wallet.Emulator.Wallet                            (Wallet (..), WalletEvent (..))
 
-import           Plutus.PAB.Core.ContractInstance         as ContractInstance
-import           Plutus.PAB.Core.ContractInstance.STM     (BlockchainEnv, InstancesState)
-import qualified Plutus.PAB.Core.ContractInstance.STM     as Instances
-import           Plutus.PAB.Effects.Contract              (ContractEffect, ContractStore)
-import qualified Plutus.PAB.Effects.Contract              as Contract
-import           Plutus.PAB.Effects.Contract.ContractTest (ContractTestMsg, TestContracts (..), handleContractTest)
-import qualified Plutus.PAB.Effects.ContractRuntime       as ContractRuntime
-import           Plutus.PAB.Effects.MultiAgent            (PABMultiAgentMsg (..))
-import           Plutus.PAB.Types                         (PABError (ContractInstanceNotFound, WalletError))
-import           Plutus.V1.Ledger.Slot                    (Slot)
-import qualified Wallet.API                               as WAPI
-import           Wallet.Effects                           (ChainIndexEffect (..), ContractRuntimeEffect,
-                                                           NodeClientEffect (..), WalletEffect)
-import qualified Wallet.Effects                           as WalletEffects
-import           Wallet.Emulator.Chain                    (ChainControlEffect, ChainState)
-import qualified Wallet.Emulator.Chain                    as Chain
-import qualified Wallet.Emulator.ChainIndex               as ChainIndex
-import           Wallet.Emulator.LogMessages              (RequestHandlerLogMsg, TxBalanceMsg)
-import           Wallet.Emulator.MultiAgent               (EmulatorEvent' (..), _singleton)
-import           Wallet.Emulator.NodeClient               (ChainClientNotification (..))
-import qualified Wallet.Emulator.Wallet                   as Wallet
-import           Wallet.Types                             (ContractInstanceId)
+import qualified Plutus.PAB.Core.ContractInstance                  as ContractInstance
+import qualified Plutus.PAB.Core.ContractInstance.BlockchainEnv    as BlockchainEnv
+import           Plutus.PAB.Core.ContractInstance.STM              (BlockchainEnv, InstancesState)
+import qualified Plutus.PAB.Core.ContractInstance.STM              as Instances
+import           Plutus.PAB.Effects.Contract                       (ContractEffect, ContractStore)
+import qualified Plutus.PAB.Effects.Contract                       as Contract
+import           Plutus.PAB.Effects.Contract.ContractTest          (ContractTestMsg, TestContracts (..),
+                                                                    handleContractTest)
+import qualified Plutus.PAB.Effects.ContractRuntime                as ContractRuntime
+import           Plutus.PAB.Effects.MultiAgent                     (PABMultiAgentMsg (..))
+import           Plutus.PAB.Types                                  (PABError (ContractInstanceNotFound, WalletError))
+import           Plutus.V1.Ledger.Slot                             (Slot)
+import qualified Wallet.API                                        as WAPI
+import           Wallet.Effects                                    (ChainIndexEffect (..), ContractRuntimeEffect,
+                                                                    NodeClientEffect (..), WalletEffect)
+import qualified Wallet.Effects                                    as WalletEffects
+import           Wallet.Emulator.Chain                             (ChainControlEffect, ChainState)
+import qualified Wallet.Emulator.Chain                             as Chain
+import qualified Wallet.Emulator.ChainIndex                        as ChainIndex
+import           Wallet.Emulator.LogMessages                       (RequestHandlerLogMsg, TxBalanceMsg)
+import           Wallet.Emulator.MultiAgent                        (EmulatorEvent' (..), _singleton)
+import           Wallet.Emulator.NodeClient                        (ChainClientNotification (..))
+import qualified Wallet.Emulator.Wallet                            as Wallet
+import           Wallet.Types                                      (ContractInstanceId, EndpointDescription (..),
+                                                                    NotificationError)
 
 -- | The current state of a contract instance
 data SimulatorContractInstanceState t =
@@ -158,7 +168,7 @@ type AgentEffects effs =
     ': UUIDEffect
     ': LogMsg TxBalanceMsg
     ': LogMsg RequestHandlerLogMsg
-    ': LogMsg (ContractInstanceMsg TestContracts)
+    ': LogMsg (ContractInstance.ContractInstanceMsg TestContracts)
     ': LogObserve (LogMessage Text)
     ': LogMsg Text
     ': Error PABError
@@ -295,19 +305,25 @@ type ControlEffects effs =
     ': ChainIndex.ChainIndexControlEffect
     ': LogMsg Chain.ChainEvent
     ': LogMsg ChainIndex.ChainIndexEvent
+    ': Reader InstancesState
+    ': Reader BlockchainEnv
     ': effs
 
 type ControlThread a = Eff (ControlEffects '[IO]) a
 
 runControlEffects ::
     forall a effs.
-    ( Member (Reader (SimulatorState TestContracts)) effs
+    ( Member (Reader InstancesState) effs
+    , Member (Reader (SimulatorState TestContracts)) effs
+    , Member (Reader BlockchainEnv) effs
     , LastMember IO effs
     )
     => ControlThread a
     -> Eff effs a
 runControlEffects action = do
-    state <- ask
+    state <- ask @(SimulatorState TestContracts)
+    instancesState <- ask @InstancesState
+    blockchainEnv <- ask @BlockchainEnv
     let action' :: Eff (ControlEffects '[IO, Writer (LogMessage PABMultiAgentMsg), Reader (SimulatorState TestContracts), IO]) a = Modify.raiseEnd action
         makeTimedChainEvent =
             interpret @(LogMsg PABMultiAgentMsg) (handleLogWriter id)
@@ -322,8 +338,10 @@ runControlEffects action = do
     liftIO
         $ runM
         $ runReader state
-        $ interpret (writeIntoTQueue @_ @(SimulatorState TestContracts) logMessages) -- TODO: We could also print it to the terminal
+        $ interpret (writeIntoTQueue @_ @(SimulatorState TestContracts) logMessages)
         $ subsume @IO
+        $ runReader blockchainEnv
+        $ runReader instancesState
         $ makeTimedChainIndexEvent
         $ makeTimedChainEvent
         $ interpret handleChainIndexControlEffect
@@ -336,7 +354,7 @@ payToWallet target amount = WAPI.payToPublicKey WAPI.defaultSlotRange amount (Em
 -- | Start a new instance of a contract
 activateContract ::
     forall effs.
-    ( Member (LogMsg (ContractInstanceMsg TestContracts)) effs
+    ( Member (LogMsg (ContractInstance.ContractInstanceMsg TestContracts)) effs
     , Member (ContractEffect TestContracts) effs
     , Member (ContractStore TestContracts) effs
     , Member (Reader Wallet) effs
@@ -357,16 +375,53 @@ activateContract def = do
         handler x = fmap (either (error . show) id) (handleAgentThread simState blockchainEnv instancesState w x)
     ContractInstance.activateContractSTM @TestContracts @IO @(AgentEffects '[IO]) handler def
 
+-- | Call a named endpoint on a contract instance
+callEndpointOnInstance ::
+    forall a effs.
+    ( Member (Reader InstancesState) effs
+    , JSON.ToJSON a
+    , LastMember IO effs
+    )
+    => ContractInstanceId
+    -> String
+    -> a
+    -> Eff effs (Maybe NotificationError)
+callEndpointOnInstance instanceID ep value = do
+    state <- ask @InstancesState
+    liftIO $ STM.atomically $ Instances.callEndpointOnInstance state (EndpointDescription ep) (JSON.toJSON value) instanceID
+
+-- | Log some output to the console
+logString :: Member (LogMsg PABMultiAgentMsg) effs => String -> Eff effs ()
+logString = logInfo . UserLog
+
+nextSlot ::
+    ( LastMember IO effs
+    , Member (Reader (SimulatorState TestContracts)) effs
+    , Member (Reader InstancesState) effs
+    , Member (Reader BlockchainEnv) effs
+    , Member DelayEffect effs
+    ) => Eff effs ()
+nextSlot = do
+    delayThread (500 :: Millisecond)
+    void $ runControlEffects Chain.processBlock
+
 -- | Run a simulation on a mockchain with initial values
 runSimulator ::
-    Eff '[Reader (SimulatorState TestContracts), Reader InstancesState, Reader BlockchainEnv, IO] a
+    Eff '[LogMsg PABMultiAgentMsg, Reader (SimulatorState TestContracts), Reader InstancesState, Reader BlockchainEnv, DelayEffect, IO] a
     -> IO (SimulatorState TestContracts, a)
 runSimulator action = do
     state <- initialState
     inst <- STM.atomically Instances.emptyInstancesState
     blockchainEnv <- STM.atomically Instances.emptyBlockchainEnv
     printLogMessages (_logMessages state)
-    a <- runM $ runReader blockchainEnv $ runReader inst $ runReader state $ do
+    a <- runM
+            $ handleDelayEffect
+            $ runReader blockchainEnv
+            $ runReader inst
+            $ runReader state
+            $ interpret (writeIntoTQueue @_ @(SimulatorState TestContracts) logMessages)
+            $ reinterpret @(LogMsg PABMultiAgentMsg) (handleLogWriter id)
+            $ do
             -- Make 1st block with initial transaction
             _ <- runControlEffects Chain.processBlock
             action
@@ -375,10 +430,14 @@ runSimulator action = do
 test :: IO ()
 test = void $ runSimulator $ do
         _ <- runAgentEffects (Wallet 1) $ payToWallet (Wallet 2) (Ada.adaValueOf 1)
-        void $ runControlEffects Chain.processBlock
-        void $ runAgentEffects (Wallet 1) $ activateContract Currency
-        void $ runControlEffects Chain.processBlock
-        void $ runControlEffects Chain.processBlock
+        nextSlot
+        instanceID <- runAgentEffects (Wallet 1) $ activateContract Currency
+        nextSlot
+        result <- callEndpointOnInstance (either (error . show) id instanceID) "Create native token" (Currency.SimpleMPS{Currency.tokenName = "my token", Currency.amount = 1000})
+        logString (show result)
+        nextSlot
+        nextSlot
+        nextSlot
 
 -- | Annotate log messages with the current slot number.
 timed ::
@@ -416,6 +475,8 @@ handleChainControl ::
     ( MonadIO m
     , LastMember m effs
     , Member (Reader (SimulatorState TestContracts)) effs
+    , Member (Reader BlockchainEnv) effs
+    , Member (Reader InstancesState) effs
     , Member (LogMsg Chain.ChainEvent) effs
     , Member (LogMsg ChainIndex.ChainIndexEvent) effs
     )
@@ -423,6 +484,8 @@ handleChainControl ::
     ~> Eff effs
 handleChainControl = \case
     Chain.ProcessBlock -> do
+        blockchainEnv <- ask @BlockchainEnv
+        instancesState <- ask @InstancesState
         (txns, slot) <- runChainEffects @_ @m $ do
                 txns <- Chain.processBlock
                 sl <- Chain.getCurrentSlot
@@ -430,6 +493,7 @@ handleChainControl = \case
         runChainIndexEffects $ do
             ChainIndex.chainIndexNotify $ BlockValidated txns
             ChainIndex.chainIndexNotify $ SlotChanged slot
+        liftIO $ STM.atomically $ BlockchainEnv.processBlock blockchainEnv instancesState txns slot
         pure txns
 
 runChainEffects ::
@@ -540,9 +604,7 @@ handleChainIndexControlEffect = runChainIndexEffects . \case
     ChainIndex.ChainIndexNotify n -> ChainIndex.chainIndexNotify n
 
 -- TODO: Delete MultiAgent, MockApp (all replaced by this module)
--- TODO: Maybe use InMemory eventful stuff?
--- TODO: Update blockchain env!
--- TODO: pretty log to stdout (info level)
+-- TODO: Call endpoint
 --       fix tests / app
 --       implement new client API
 
@@ -583,6 +645,8 @@ handleContractStore wallet = \case
     Contract.ActiveContracts -> do
         agentStatesTVar <- asks @(SimulatorState t) (view agentStates)
         view (agentState wallet . instances . to (fmap _contractDef)) <$> liftIO (STM.readTVarIO agentStatesTVar)
+
+-- TODO: Inspect instance state
 
 -- valueAt :: Member (State TestState) effs => Address -> Eff effs Ledger.Value
 -- blockchainNewestFirst :: Lens' TestState Blockchain
