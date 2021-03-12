@@ -18,7 +18,7 @@ module Plutus.PAB.Webserver.API
 import qualified Data.Aeson                                      as JSON
 import           Data.Text                                       (Text)
 import           GHC.Generics                                    (Generic)
-import           Language.Plutus.Contract.Effects.ExposeEndpoint (ActiveEndpoint)
+import           Plutus.Contract.Effects.ExposeEndpoint (ActiveEndpoint)
 import           Plutus.PAB.Events.ContractInstanceState         (PartiallyDecodedResponse)
 
 import           Plutus.PAB.Webserver.Types                      (ContractSignatureResponse, FullReport)
@@ -76,6 +76,6 @@ type NewAPI t
                         :<|> "ws" :> WebSocketPending -- status updates, incl. open endpoints, for contract instance
                         )
                     )
-            :<|> Get '[ JSON] [ContractInstanceClientState] -- list of all active contract instances
-            :<|> Get '[JSON] [ContractSignatureResponse t] -- list of available contracts
+            :<|> "instances" :> Get '[ JSON] [ContractInstanceClientState] -- list of all active contract instances
+            :<|> "definitions" :> Get '[JSON] [ContractSignatureResponse t] -- list of available contracts
         )

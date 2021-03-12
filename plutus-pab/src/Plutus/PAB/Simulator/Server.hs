@@ -13,34 +13,40 @@ Experimental webserver implementing the new PAB API.
 -}
 module Plutus.PAB.Simulator.Server(
     startServer,
-    StatusStreamToClient(..)
+    StatusStreamToClient(..),
+    -- * Testing
+    main
     ) where
 
 import           Control.Applicative                             (Alternative (..))
+import           Control.Concurrent                              (forkIO)
 import qualified Control.Concurrent.STM                          as STM
 import           Control.Exception                               (SomeException, handle)
-import           Control.Lens                                    (preview)
+import           Control.Lens                                    (preview, (&))
 import           Control.Monad                                   (guard, void)
+import           Control.Monad.Except                            (ExceptT (ExceptT))
 import           Control.Monad.IO.Class                          (liftIO)
 import           Data.Aeson                                      (FromJSON, ToJSON)
 import qualified Data.Aeson                                      as JSON
+import           Data.Bifunctor                                  (Bifunctor (..))
+import qualified Data.ByteString.Lazy.Char8                      as LBS
 import qualified Data.Map                                        as Map
 import           Data.Maybe                                      (mapMaybe)
 import           Data.Proxy                                      (Proxy (..))
 import           GHC.Generics                                    (Generic)
-import           Language.Plutus.Contract.Effects.ExposeEndpoint (ActiveEndpoint (..))
-import           Language.Plutus.Contract.Resumable              (Request (..))
+import           Plutus.Contract.Effects.ExposeEndpoint (ActiveEndpoint (..))
+import qualified Network.Wai.Handler.Warp                        as Warp
 import qualified Network.WebSockets                              as WS
-import           Network.WebSockets.Connection                   (Connection, PendingConnection, receiveData,
-                                                                  withPingThread)
+import           Network.WebSockets.Connection                   (Connection, PendingConnection, withPingThread)
 import           Plutus.PAB.Core.ContractInstance.STM            (OpenEndpoint (..))
-import           Plutus.PAB.Effects.Contract                     (PABContract (..))
 import qualified Plutus.PAB.Effects.Contract                     as Contract
 import           Plutus.PAB.Effects.Contract.ContractTest        (TestContracts (AtomicSwap, Currency))
 import           Plutus.PAB.Events.Contract                      (ContractPABRequest, _UserEndpointRequest)
 import           Plutus.PAB.Events.ContractInstanceState         (PartiallyDecodedResponse (hooks))
+import           Plutus.PAB.Instances                            ()
 import           Plutus.PAB.Simulator                            (SimRunner (..), Simulation)
 import qualified Plutus.PAB.Simulator                            as Simulator
+import           Plutus.PAB.Types                                (PABError)
 import           Plutus.PAB.Webserver.API                        (ContractActivationArgs (..),
                                                                   ContractInstanceClientState (..), NewAPI,
                                                                   WalletInfo (..))
@@ -76,7 +82,9 @@ fromInternalState i resp =
         }
 
 asHandler :: SimRunner -> Simulation a -> Handler a
-asHandler = undefined
+asHandler SimRunner{runSim} = Servant.Handler . ExceptT . fmap (first mapError) . runSim where
+    mapError :: PABError -> Servant.ServerError
+    mapError e = Servant.err500 { Servant.errBody = LBS.pack $ show e }
 
 app :: SimRunner -> Application
 app simRunner = do
@@ -88,13 +96,25 @@ app simRunner = do
                 (asHandler simRunner)
                 handler
 
-    Servant.serve rest _
+    Servant.serve rest apiServer
 
--- | Start the server. Returns an action that shuts it down again.
-startServer :: Simulation (Simulation ())
-startServer = do
+-- | Start the server on the port. Returns an action that shuts it down again.
+startServer :: Warp.Port -> Simulation (Simulation ())
+startServer port = do
+    simRunner <- Simulator.mkRunSim
+    shutdownVar <- liftIO $ STM.atomically $ STM.newEmptyTMVar @()
 
-    pure $ pure ()
+    let shutdownHandler :: IO () -> IO ()
+        shutdownHandler doShutdown = void $ forkIO $ do
+            STM.atomically $ STM.takeTMVar shutdownVar
+            putStrLn "webserver: shutting down"
+            doShutdown
+        warpSettings :: Warp.Settings
+        warpSettings = Warp.defaultSettings
+            & Warp.setPort port
+            & Warp.setInstallShutdownHandler shutdownHandler
+    _ <- liftIO $ forkIO $ Warp.runSettings warpSettings $ app simRunner
+    pure (liftIO $ STM.atomically $ STM.putTMVar shutdownVar ())
 
 -- HANDLERS
 
@@ -161,3 +181,10 @@ data StatusStreamToClient
     | ContractFinished (Maybe JSON.Value) -- ^ Contract instance is done with an optional error message.
     deriving stock (Generic, Eq, Show)
     deriving anyclass (ToJSON, FromJSON)
+
+main :: IO ()
+main = void $ Simulator.runSimulation $ do
+        void $ Simulator.runAgentEffects (Wallet 1) $ Simulator.activateContract Currency
+        shutdown <- startServer 8080
+        _ <- liftIO $ getLine
+        shutdown
