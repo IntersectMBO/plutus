@@ -8,6 +8,8 @@ module Plutus.PAB.Core.ContractInstance.BlockchainEnv(
   startNodeClient
   , ClientEnv(..)
   , processBlock
+  , getClientEnv
+  , updateInterestingAddresses
   ) where
 
 import qualified Cardano.Protocol.Socket.Client       as Client
@@ -38,7 +40,7 @@ startNodeClient ::
   -> IO BlockchainEnv
 startNodeClient socket instancesState =  do
     env <- STM.atomically emptyBlockchainEnv
-    _ <- Client.runClientNode socket (\block -> STM.atomically . processBlock env instancesState block)
+    _ <- Client.runClientNode socket (\block -> STM.atomically . processBlock env block)
     _ <- forkIO (clientEnvLoop env instancesState)
     pure env
 
@@ -65,30 +67,29 @@ nextClientEnv instancesState currentEnv = do
 clientEnvLoop :: BlockchainEnv -> InstancesState -> IO ()
 clientEnvLoop env instancesState = go initialClientEnv where
   go currentEnv = do
-    updateInterestingAddresses env currentEnv
+    STM.atomically (updateInterestingAddresses env currentEnv)
     STM.atomically (nextClientEnv instancesState currentEnv) >>= go
 
-updateInterestingAddresses :: BlockchainEnv -> ClientEnv -> IO ()
+updateInterestingAddresses :: BlockchainEnv -> ClientEnv -> STM ()
 updateInterestingAddresses BlockchainEnv{beAddressMap} ClientEnv{ceAddresses} = do
-  STM.atomically $ STM.modifyTVar beAddressMap (AddressMap.addAddresses (Set.toList ceAddresses))
+  STM.modifyTVar beAddressMap (AddressMap.addAddresses (Set.toList ceAddresses))
 
 -- | Go through the transactions in a block, updating the 'BlockchainEnv'
 --   when any interesting addresses or transactions have changed.
-processBlock :: BlockchainEnv -> InstancesState -> Block -> Slot -> STM ()
-processBlock BlockchainEnv{beAddressMap, beTxChanges, beCurrentSlot, beTxIndex} instancesState transactions slot = do
-  clientEnv <- getClientEnv instancesState
+processBlock :: BlockchainEnv -> Block -> Slot -> STM ()
+processBlock BlockchainEnv{beAddressMap, beTxChanges, beCurrentSlot, beTxIndex} transactions slot = do
   addressMap <- STM.readTVar beAddressMap
   chainIndex <- STM.readTVar beTxIndex
   txStatusMap <- STM.readTVar beTxChanges
-  let (addressMap', txStatusMap', chainIndex') = foldl' (processTx slot clientEnv) (addressMap, txStatusMap, chainIndex) transactions
+  let (addressMap', txStatusMap', chainIndex') = foldl' (processTx slot) (addressMap, txStatusMap, chainIndex) transactions
   STM.writeTVar beAddressMap addressMap'
   STM.writeTVar beTxChanges txStatusMap'
   STM.writeTVar beTxIndex chainIndex'
   lastSlot <- STM.readTVar beCurrentSlot
   when (slot /= lastSlot) (STM.writeTVar beCurrentSlot slot)
 
-processTx :: Slot -> ClientEnv -> (AddressMap, Map TxId TxStatus, ChainIndex) -> Tx -> (AddressMap, Map TxId TxStatus, ChainIndex)
-processTx currentSlot _ (addressMap, txStatusMap, chainIndex) tx = (addressMap', txStatusMap', chainIndex') where
+processTx :: Slot -> (AddressMap, Map TxId TxStatus, ChainIndex) -> Tx -> (AddressMap, Map TxId TxStatus, ChainIndex)
+processTx currentSlot (addressMap, txStatusMap, chainIndex) tx = (addressMap', txStatusMap', chainIndex') where
   addressMap' = AddressMap.updateAddresses tx addressMap
   chainIndex' =
     let itm = ChainIndexItem{ciSlot = currentSlot, ciTx = tx, ciTxId = txId tx} in

@@ -11,35 +11,22 @@
 {-# LANGUAGE TypeApplications  #-}
 {-# LANGUAGE TypeOperators     #-}
 module Plutus.PAB.Effects.MultiAgent(
-    -- * Multi-agent effect
+    -- * Multi-agent effect -- FIXME move to Simulator?
     PABMultiAgentMsg(..)
-    -- * Misc.
-    , _LogMessageText
     ) where
 
 import           Cardano.Metadata.Types                   (MetadataLogMessage)
-import           Control.Lens                             (AReview, below, makeClassyPrisms)
-import           Control.Monad.Freer.Extras.Log           (LogMessage)
 import qualified Data.Text                                as T
 import           Data.Text.Prettyprint.Doc
 
 import           Cardano.ChainIndex.Server                (ChainIndexServerMsg)
-import           Ledger.Slot                              (Slot)
 
 import           Plutus.PAB.Core                          (CoreMsg)
 import           Plutus.PAB.Core.ContractInstance         (ContractInstanceMsg)
 import           Plutus.PAB.Effects.Contract.ContractTest (ContractTestMsg, TestContracts (..))
 import           Plutus.PAB.Effects.ContractRuntime       (ContractRuntimeMsg)
 
-import           Wallet.Emulator.MultiAgent               (EmulatorEvent, _singleton, emulatorTimeEvent, walletEvent)
-import           Wallet.Emulator.Wallet                   (Wallet)
-import qualified Wallet.Emulator.Wallet                   as Wallet
-
--- $multiagent
--- An PAB version of 'Wallet.Emulator.MultiAgent', with agent-specific states and actions on them.
--- Agents are represented by the 'Wallet' type.
--- Each agent corresponds to one PAB, with its own view of the world, all acting
--- on the same blockchain.
+import           Wallet.Emulator.MultiAgent               (EmulatorEvent)
 
 -- FIXME: Replace with PABLogMsg?
 data PABMultiAgentMsg =
@@ -63,8 +50,3 @@ instance Pretty PABMultiAgentMsg where
         CoreLog m             -> pretty m
         RuntimeLog m          -> pretty m
         UserLog m             -> pretty m
-
-makeClassyPrisms ''PABMultiAgentMsg
-
-_LogMessageText :: Slot -> Wallet -> AReview [LogMessage PABMultiAgentMsg] (LogMessage T.Text)
-_LogMessageText s w = _singleton . below (_EmulatorMsg . emulatorTimeEvent s . walletEvent w . Wallet._GenericLog)

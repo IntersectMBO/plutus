@@ -127,7 +127,6 @@ contractSchema contractId = do
 activateContract ::
        forall t m appBackend effs.
        ( Instance.AppBackendConstraints t m appBackend
-       , Member (Error PABError) effs
        , Member (ContractEffect t) effs
        , Member UUIDEffect effs
        , Member (LogMsg (Instance.ContractInstanceMsg t)) effs

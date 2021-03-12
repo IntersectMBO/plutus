@@ -11,7 +11,9 @@
 {-# LANGUAGE TypeOperators       #-}
 {-
 
-A multi-threaded PAB simulator
+A live, multi-threaded PAB simulator with agent-specific states and actions
+on them. Agents are represented by the 'Wallet' type. Each agent corresponds
+to one PAB, with its own view of the world, all acting on the same blockchain.
 
 -}
 module Plutus.PAB.Simulator(
@@ -46,12 +48,13 @@ module Plutus.PAB.Simulator(
     , test
     ) where
 
+import           Control.Applicative                               (Alternative (..))
 import           Control.Concurrent                                (forkIO)
-import           Control.Concurrent.STM                            (TQueue, TVar)
+import           Control.Concurrent.STM                            (TMVar, TQueue, TVar)
 import qualified Control.Concurrent.STM                            as STM
 import           Control.Lens                                      (Lens', _Just, anon, at, makeLenses, preview, set,
                                                                     to, view, (&), (.~), (^.))
-import           Control.Monad                                     (forM, forever, unless, void, when)
+import           Control.Monad                                     (forM, unless, void, when)
 import           Control.Monad.Freer                               (Eff, LastMember, Member, interpret, reinterpret,
                                                                     reinterpret2, run, runM, send, subsume, type (~>))
 import           Control.Monad.Freer.Delay                         (DelayEffect, delayThread, handleDelayEffect)
@@ -144,6 +147,7 @@ data SimulatorState t =
         , _chainState  :: TVar ChainState
         , _agentStates :: TVar (Map Wallet (AgentState t))
         , _chainIndex  :: TVar ChainIndex.ChainIndexState
+        , _shouldStop  :: TMVar () -- ^ Signal for the logs-printing thread to terminate.
         }
 
 makeLenses ''SimulatorState
@@ -158,10 +162,9 @@ initialState = do
             <*> STM.newTVar _chainState
             <*> STM.newTVar mempty
             <*> STM.newTVar mempty
+            <*> STM.newEmptyTMVar
 
 -- | Effects available to simulated agents that run in their own thread
-    -- , Member ContractRuntimeEffect effs
---   TODO: AppBackendConstraints for agent!
 type AgentEffects effs =
     ContractRuntimeEffect
     ': ContractEffect TestContracts
@@ -250,7 +253,7 @@ handleAgentThread state blockchainEnv instancesState wallet action = do
         $ reinterpret @(ContractEffect TestContracts) @(LogMsg ContractTestMsg) handleContractTest
 
         $ handleContractRuntimeMsg
-        $ reinterpret @ContractRuntimeEffect @(LogMsg ContractRuntime.ContractRuntimeMsg) (ContractRuntime.handleContractRuntime @TestContracts)
+        $ reinterpret @ContractRuntimeEffect @(LogMsg ContractRuntime.ContractRuntimeMsg) ContractRuntime.handleContractRuntime
 
         $ action'
 
@@ -286,7 +289,6 @@ runWalletState wallet = \case
                     let newState = s' & walletState .~ s
                     STM.writeTVar _agentStates (Map.insert wallet newState mp)
 
-
 runAgentEffects ::
     forall a effs.
     ( Member (Reader InstancesState) effs
@@ -310,6 +312,7 @@ type ControlEffects effs =
     ': ChainIndex.ChainIndexControlEffect
     ': LogMsg Chain.ChainEvent
     ': LogMsg ChainIndex.ChainIndexEvent
+    ': LogMsg PABMultiAgentMsg
     ': Reader InstancesState
     ': Reader BlockchainEnv
     ': effs
@@ -347,6 +350,7 @@ runControlEffects action = do
         $ subsume @IO
         $ runReader blockchainEnv
         $ runReader instancesState
+        $ interpret (handleLogWriter id)
         $ makeTimedChainIndexEvent
         $ makeTimedChainEvent
         $ interpret handleChainIndexControlEffect
@@ -403,7 +407,20 @@ logString = logInfo . UserLog . Text.pack
 logPretty :: forall a effs. (Pretty a, Member (LogMsg PABMultiAgentMsg) effs) => a -> Eff effs ()
 logPretty = logInfo . UserLog . render
 
--- | Wait half a second, then add a new block.
+-- | Stop the logging thread after a grace period.
+stopThreads ::
+    forall effs.
+    ( Member (Reader (SimulatorState TestContracts)) effs
+    , LastMember IO effs
+    , Member DelayEffect effs
+    )
+    => Eff effs ()
+stopThreads = do
+    v <- asks @(SimulatorState TestContracts) (view shouldStop)
+    delayThread (500 :: Millisecond) -- need to wait a little to avoid garbled terminal output in GHCi.
+    liftIO $ STM.atomically $ STM.putTMVar v ()
+
+-- | Wait 0.2 seconds, then add a new block.
 nextSlot ::
     ( LastMember IO effs
     , Member (Reader (SimulatorState TestContracts)) effs
@@ -412,7 +429,7 @@ nextSlot ::
     , Member DelayEffect effs
     ) => Eff effs ()
 nextSlot = do
-    delayThread (500 :: Millisecond)
+    delayThread (200 :: Millisecond)
     void $ runControlEffects Chain.processBlock
 
 -- | Add a new block immediately.
@@ -444,7 +461,10 @@ runSimulator action = do
     state <- initialState
     inst <- STM.atomically Instances.emptyInstancesState
     blockchainEnv <- STM.atomically Instances.emptyBlockchainEnv
-    printLogMessages (_logMessages state)
+    -- TODO: Optionally start the webserver?
+
+    printLogMessages (_shouldStop state) (_logMessages state)
+
     a <- runM
             $ handleDelayEffect
             $ runReader blockchainEnv
@@ -455,18 +475,19 @@ runSimulator action = do
             $ do
             -- Make 1st block with initial transaction
             _ <- runControlEffects Chain.processBlock
-            action
+            result <- action
+            stopThreads
+            pure result
     pure (state, a)
 
 test :: IO ()
 test = void $ runSimulator $ do
         _ <- runAgentEffects (Wallet 1) $ payToWallet (Wallet 2) (Ada.adaValueOf 1)
-        nextSlotNoDelay
+        nextSlot
         instanceID <- either (error . show) id <$> (runAgentEffects (Wallet 1) $ activateContract Currency)
-        nextSlotNoDelay
+        nextSlot
         result <- callEndpointOnInstance instanceID "Create native token" (Currency.SimpleMPS{Currency.tokenName = "my token", Currency.amount = 1000})
         logString (show result)
-        nextSlot
         nextSlot
         nextSlot
         nextSlot
@@ -526,7 +547,12 @@ handleChainControl = \case
         runChainIndexEffects $ do
             ChainIndex.chainIndexNotify $ BlockValidated txns
             ChainIndex.chainIndexNotify $ SlotChanged slot
-        liftIO $ STM.atomically $ BlockchainEnv.processBlock blockchainEnv instancesState txns slot
+
+        void $ liftIO $ STM.atomically $ do
+            cenv <- BlockchainEnv.getClientEnv instancesState
+            BlockchainEnv.updateInterestingAddresses blockchainEnv cenv
+            BlockchainEnv.processBlock blockchainEnv txns slot
+
         pure txns
 
 runChainEffects ::
@@ -645,12 +671,17 @@ handleChainIndexControlEffect = runChainIndexEffects . \case
 printLogMessages ::
     forall t.
     Pretty t
-    => TQueue (LogMessage t)
+    => TMVar () -- ^ Termination signal
+    -> TQueue (LogMessage t) -- ^ log messages
     -> IO ()
-printLogMessages queue = void $ forkIO $ forever $ do
-    msg <- STM.atomically $ STM.readTQueue queue
-    when (msg ^. logLevel >= Info) $
-        Text.putStrLn (render msg)
+printLogMessages terminate queue = void $ forkIO $ go where
+    go = do
+        input <- STM.atomically $ (Left <$> STM.readTQueue queue) <|> (Right <$> STM.readTMVar terminate)
+        case input of
+            Left msg -> do
+                when (msg ^. logLevel >= Info) (Text.putStrLn (render msg))
+                go
+            Right _ -> pure ()
 
 -- | Handle the 'ContractStore' effect by writing the state to the
 --   TVar in 'SimulatorState'

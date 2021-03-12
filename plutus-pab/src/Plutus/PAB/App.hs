@@ -171,8 +171,7 @@ runAppBackend instancesState trace loggingConfig config action = do
         . handleMetadata
         . handleNodeClient
         . handleWallet
-        . interpret (mapLog SContractRuntimeMsg) . interpret (mapLog SContractInstanceMsg) . reinterpret2 (handleContractRuntime @ContractExe @m)
-        $ handleRandomTx action
+        . interpret (mapLog SContractRuntimeMsg) . interpret (mapLog SContractInstanceMsg) $ reinterpret2 (handleContractRuntime @m) action
 
 type App a = Eff (AppBackend (TraceLoggerT IO)) a
 

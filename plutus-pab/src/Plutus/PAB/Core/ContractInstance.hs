@@ -110,12 +110,12 @@ processTxConfirmedRequestsSTM ::
     )
     => RequestHandler effs ContractPABRequest (STM ContractResponse)
 processTxConfirmedRequestsSTM =
-    maybeToHandler (extract Events.Contract._NextTxAtRequest)
+    maybeToHandler (extract Events.Contract._AwaitTxConfirmedRequest)
     >>> RequestHandler handler
     where
         handler req = do
             env <- ask
-            pure (NextTxAtResponse <$> InstanceState.waitForAddressChange req env)
+            pure (AwaitTxConfirmedResponse <$> InstanceState.waitForTxConfirmed req env)
 
 processEndpointRequestsSTM ::
     forall effs.

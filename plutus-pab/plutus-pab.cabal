@@ -70,7 +70,6 @@ library
         Control.Concurrent.Availability
         Data.Time.Units.Extra
         Plutus.PAB.App
-        Plutus.PAB.MockApp
         Plutus.PAB.Arbitrary
         Plutus.PAB.Command
         Plutus.PAB.ContractCLI

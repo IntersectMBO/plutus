@@ -11,6 +11,7 @@ module Plutus.PAB.Core.ContractInstance.STM(
     , awaitSlot
     , awaitEndpointResponse
     , waitForAddressChange
+    , waitForTxConfirmed
     -- * State of a contract instance
     , InstanceState(..)
     , emptyInstanceState
@@ -33,25 +34,26 @@ module Plutus.PAB.Core.ContractInstance.STM(
     , callEndpointOnInstance
     ) where
 
-import           Control.Applicative                    (Alternative (..))
-import           Control.Concurrent.STM                 (STM, TMVar, TVar)
-import qualified Control.Concurrent.STM                 as STM
-import           Control.Monad                          (guard)
-import           Data.Aeson                             (Value)
-import           Data.Foldable                          (fold)
-import           Data.Map                               (Map)
-import qualified Data.Map                               as Map
-import           Data.Set                               (Set)
-import qualified Data.Set                               as Set
-import           Ledger                                 (Address, Slot, TxId)
-import           Ledger.AddressMap                      (AddressMap)
-import           Plutus.Contract.Effects.ExposeEndpoint (ActiveEndpoint (..), EndpointValue (..))
-import           Plutus.Contract.Resumable              (IterationID, Request (..), RequestID)
-import           Wallet.Emulator.ChainIndex.Index       (ChainIndex)
-import qualified Wallet.Emulator.ChainIndex.Index       as Index
-import           Wallet.Types                           (AddressChangeRequest (..), AddressChangeResponse (..),
-                                                         ContractInstanceId, EndpointDescription,
-                                                         NotificationError (..))
+import           Control.Applicative                               (Alternative (..))
+import           Control.Concurrent.STM                            (STM, TMVar, TVar)
+import qualified Control.Concurrent.STM                            as STM
+import           Control.Monad                                     (guard)
+import           Data.Aeson                                        (Value)
+import           Data.Foldable                                     (fold)
+import           Data.Map                                          (Map)
+import qualified Data.Map                                          as Map
+import           Data.Set                                          (Set)
+import qualified Data.Set                                          as Set
+import           Plutus.Contract.Effects.AwaitTxConfirmed (TxConfirmed (..))
+import           Plutus.Contract.Effects.ExposeEndpoint   (ActiveEndpoint (..), EndpointValue (..))
+import           Plutus.Contract.Resumable                (IterationID, Request (..), RequestID)
+import           Ledger                                            (Address, Slot, TxId)
+import           Ledger.AddressMap                                 (AddressMap)
+import           Wallet.Emulator.ChainIndex.Index                  (ChainIndex)
+import qualified Wallet.Emulator.ChainIndex.Index                  as Index
+import           Wallet.Types                                      (AddressChangeRequest (..),
+                                                                    AddressChangeResponse (..), ContractInstanceId,
+                                                                    EndpointDescription, NotificationError (..))
 
 {- Note [Contract instance thread model]
 
@@ -134,6 +136,12 @@ data TxStatus =
     | Invalid -- ^ Invalid (its inputs were spent or its validation range has passed)
     | TentativelyConfirmed -- ^ On chain, can still be rolled back
     | DefinitelyConfirmed -- ^ Cannot be rolled back
+    deriving (Eq, Ord, Show)
+
+isConfirmed :: TxStatus -> Bool
+isConfirmed TentativelyConfirmed = True
+isConfirmed DefinitelyConfirmed  = True
+isConfirmed _                    = False
 
 -- | Data about the blockchain that contract instances
 --   may be interested in.
@@ -273,3 +281,10 @@ waitForAddressChange AddressChangeRequest{acreqSlot, acreqAddress} b@BlockchainE
         , acrSlot    = acreqSlot
         , acrTxns    = Index.ciTx <$> Index.transactionsAt idx acreqSlot acreqAddress
         }
+
+-- | Wait for the status of a transaction to be confirmed. TODO: Should be "status changed", some txns may never get to confirmed status
+waitForTxConfirmed :: TxId -> BlockchainEnv -> STM TxConfirmed
+waitForTxConfirmed tx BlockchainEnv{beTxChanges} = do
+    idx <- STM.readTVar beTxChanges
+    guard $ maybe False isConfirmed (Map.lookup tx idx)
+    pure (TxConfirmed tx)

@@ -21,15 +21,12 @@ import           Cardano.BM.Data.Tracer               (ToObject (..), TracingVer
 import           Cardano.BM.Data.Tracer.Extras        (Tagged (..), mkObjectStr)
 import qualified Control.Concurrent.STM               as STM
 import           Control.Monad.Freer                  (Eff, LastMember, Member, type (~>))
-import           Control.Monad.Freer.Error            (runError)
 import           Control.Monad.Freer.Extras.Log       (LogMsg, logInfo, logWarn)
 import           Control.Monad.Freer.Reader           (Reader, ask)
 import           Control.Monad.IO.Class               (MonadIO (..))
 import qualified Data.Aeson                           as JSON
 import           Data.Text.Prettyprint.Doc            (Pretty (..), (<+>))
 import           GHC.Generics                         (Generic)
-import           Plutus.Contract.Trace       (EndpointError, toNotifyError)
-import           Plutus.PAB.Core.ContractInstance     (ContractInstanceMsg)
 import qualified Plutus.PAB.Core.ContractInstance     as Instance
 import           Plutus.PAB.Core.ContractInstance.STM (InstancesState)
 import           Wallet.Effects                       (ContractRuntimeEffect (..))
@@ -65,9 +62,8 @@ instance Pretty ContractRuntimeMsg where
         NotificationFailure e -> "Notification failure:" <+> pretty e
 
 handleContractRuntime ::
-    forall t m effs.
-    ( Member (LogMsg (ContractInstanceMsg t)) effs
-    , Member (LogMsg ContractRuntimeMsg) effs
+    forall m effs.
+    ( Member (LogMsg ContractRuntimeMsg) effs
     , Member (Reader InstancesState) effs
     , LastMember m effs
     , MonadIO m
