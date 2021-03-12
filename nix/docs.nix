@@ -46,7 +46,7 @@ let
       };
     };
 in
-pkgs.recurseIntoAttrs {
+pkgs.recurseIntoAttrs rec {
   papers = pkgs.recurseIntoAttrs {
     system-f-in-agda = import ../papers/system-f-in-agda { inherit buildLatexDoc; };
     eutxo = import ../papers/eutxo { inherit buildLatexDoc; };
@@ -72,4 +72,6 @@ pkgs.recurseIntoAttrs {
     combined-haddock = plutus.plutus-haddock-combined;
     pythonPackages = pkgs.python3Packages;
   };
+
+  serve-docs = plutus.serveDir { path = site; scriptName = "serve-docs"; port = 8002; };
 }
