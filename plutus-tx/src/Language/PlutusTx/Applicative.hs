@@ -2,7 +2,10 @@
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
 module Language.PlutusTx.Applicative where
 
+import           Control.Applicative       (Const (..))
+import           Data.Functor.Identity     (Identity (..))
 import           Language.PlutusTx.Functor
+import           Language.PlutusTx.Monoid  (Monoid (..), mappend)
 import           Prelude                   (Bool, Either (..), Maybe (..))
 
 {-# ANN module "HLint: ignore" #-}
@@ -32,17 +35,6 @@ a1 *> a2 = (id <$ a1) <*> a2
 (<*) :: Applicative f => f a -> f b -> f a
 (<*) = liftA2 const
 
-{-# INLINABLE traverse #-}
--- | Run an applicative function over a list of inputs.
-traverse :: Applicative f => (a -> f b) -> [a] -> f [b]
-traverse _ []    = pure []
-traverse f (h:t) = (:) <$> f h <*> traverse f t
-
-{-# INLINABLE sequence #-}
--- | Sequence a list of applicative actions.
-sequence :: Applicative f => [f a] -> f [a]
-sequence = traverse id
-
 {-# INLINABLE unless #-}
 unless :: (Applicative f) => Bool -> f () -> f ()
 unless p s =  if p then pure () else s
@@ -61,3 +53,15 @@ instance Applicative (Either a) where
     {-# INLINABLE (<*>) #-}
     Left  e <*> _ = Left e
     Right f <*> r = fmap f r
+
+instance Applicative Identity where
+    {-# INLINABLE pure #-}
+    pure = Identity
+    {-# INLINABLE (<*>) #-}
+    Identity f <*> Identity a = Identity (f a)
+
+instance Monoid m => Applicative (Const m) where
+    {-# INLINABLE pure #-}
+    pure _ = Const mempty
+    {-# INLINABLE (<*>) #-}
+    Const m1 <*> Const m2 = Const (mappend m1 m2)

@@ -15,6 +15,7 @@ module Language.PlutusTx.Prelude (
     module Applicative,
     module Lattice,
     module Foldable,
+    module Traversable,
     -- * Standard functions
     ($),
     -- * String and tracing functions
@@ -82,13 +83,14 @@ import           Language.PlutusTx.Ord         as Ord
 import           Language.PlutusTx.Ratio       as Ratio
 import           Language.PlutusTx.Semigroup   as Semigroup
 import           Language.PlutusTx.String      as String
+import           Language.PlutusTx.Traversable as Traversable
 import           Prelude                       as Prelude hiding (Applicative (..), Eq (..), Foldable (..),
                                                            Functor (..), Monoid (..), Num (..), Ord (..), Rational,
-                                                           Semigroup (..), all, and, any, concat, concatMap, const,
-                                                           divMod, either, elem, error, filter, fst, id, length, map,
-                                                           max, maybe, min, not, notElem, null, or, quotRem, reverse,
-                                                           round, sequence, snd, traverse, zip, (!!), ($), (&&), (++),
-                                                           (<$>), (||))
+                                                           Semigroup (..), Traversable (..), all, and, any, concat,
+                                                           concatMap, const, divMod, either, elem, error, filter, fst,
+                                                           id, length, map, max, maybe, min, not, notElem, null, or,
+                                                           quotRem, reverse, round, sequence, snd, zip, (!!), ($), (&&),
+                                                           (++), (<$>), (||))
 
 -- this module does lots of weird stuff deliberately
 {-# ANN module ("HLint: ignore"::String) #-}

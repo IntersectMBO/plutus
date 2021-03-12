@@ -12,8 +12,8 @@ import           Prelude                       (Integer, Maybe (..))
 
 import           Language.PlutusTx.Data
 
-import           Language.PlutusTx.Applicative
 import           Language.PlutusTx.Functor
+import           Language.PlutusTx.Traversable
 
 import           Data.Kind
 import           Data.Void

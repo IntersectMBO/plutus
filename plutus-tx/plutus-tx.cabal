@@ -51,10 +51,11 @@ library
         Language.PlutusTx.List
         Language.PlutusTx.Ord
         Language.PlutusTx.Maybe
+        Language.PlutusTx.Monoid
         Language.PlutusTx.Numeric
         Language.PlutusTx.Ratio
         Language.PlutusTx.Semigroup
-        Language.PlutusTx.Monoid
+        Language.PlutusTx.Traversable
         Language.PlutusTx.AssocMap
         Language.PlutusTx.These
         Language.PlutusTx.Code

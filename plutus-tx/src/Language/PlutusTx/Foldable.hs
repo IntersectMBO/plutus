@@ -1,8 +1,43 @@
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
-module Language.PlutusTx.Foldable where
+module Language.PlutusTx.Foldable
+  ( Foldable(..)
+  , fold
+  , foldMap'
+  , foldr
+  , foldr'
+  , foldl
+  , foldl'
+  , foldr1
+  , foldl1
+  , toList
+  , null
+  , length
+  , elem
+  , maximum
+  , minimum
+  , sum
+  , product
+  , foldrM
+  , foldlM
+  , traverse_
+  , for_
+  , sequenceA_
+  , asum
+  , concat
+  , concatMap
+  , and
+  , or
+  , any
+  , all
+  , maximumBy
+  , minimumBy
+  , notElem
+  , find
+  ) where
 
 import           Control.Applicative           (Alternative (..))
 import           Data.Coerce                   (Coercible, coerce)
+import           Data.Functor.Identity         (Identity (..))
 import           Data.Monoid                   (First (..))
 import           Data.Semigroup                (Dual (..), Endo (..), Product (..), Sum (..))
 import           GHC.Base                      (errorWithoutStackTrace)
@@ -77,6 +112,10 @@ instance Foldable (Either c) where
 instance Foldable ((,) c) where
     {-# INLINABLE foldMap #-}
     foldMap f (_, a) = f a
+
+instance Foldable Identity where
+    {-# INLINABLE foldMap #-}
+    foldMap f (Identity a) = f a
 
 -- | Combine the elements of a structure using a monoid.
 {-# INLINABLE fold #-}
@@ -257,7 +296,7 @@ foldlM f z0 xs = foldr c return xs z0
 
 -- | Map each element of a structure to an action, evaluate these
 -- actions from left to right, and ignore the results. For a version
--- that doesn't ignore the results see 'Data.Traversable.traverse'.
+-- that doesn't ignore the results see 'Language.PlutusTx.traverse'.
 traverse_ :: (Foldable t, Applicative f) => (a -> f b) -> t a -> f ()
 traverse_ f = foldr c (pure ())
   -- See Note [List fusion and continuations in 'c']
@@ -265,7 +304,7 @@ traverse_ f = foldr c (pure ())
         {-# INLINE c #-}
 
 -- | 'for_' is 'traverse_' with its arguments flipped. For a version
--- that doesn't ignore the results see 'Data.Traversable.for'.
+-- that doesn't ignore the results see 'Language.PlutusTx.for'.
 --
 -- >>> for_ [1..4] print
 -- 1
@@ -278,7 +317,7 @@ for_ = flip traverse_
 
 -- | Evaluate each action in the structure from left to right, and
 -- ignore the results. For a version that doesn't ignore the results
--- see 'Data.Traversable.sequenceA'.
+-- see 'Language.PlutusTx.sequenceA'.
 sequenceA_ :: (Foldable t, Applicative f) => t (f a) -> f ()
 sequenceA_ = foldr c (pure ())
   -- See Note [List fusion and continuations in 'c']

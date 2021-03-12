@@ -1,6 +1,7 @@
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
 module Language.PlutusTx.Functor (Functor(..), (<$>), (<$), const, id) where
 
+import           Control.Applicative   (Const (..))
 import           Data.Functor.Identity (Identity (..))
 import           Prelude               hiding (Functor (..), const, id, (<$), (<$>))
 
@@ -53,6 +54,10 @@ instance Functor ((,) c) where
 instance Functor Identity where
     {-# INLINABLE fmap #-}
     fmap f (Identity a) = Identity (f a)
+
+instance Functor (Const m) where
+    {-# INLINABLE fmap #-}
+    fmap _ (Const c) = Const c
 
 {-# INLINABLE const #-}
 -- | Plutus Tx version of 'Prelude.const'.
