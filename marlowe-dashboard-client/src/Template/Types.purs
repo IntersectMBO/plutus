@@ -8,11 +8,13 @@ import Analytics (class IsEvent, defaultEvent)
 import Data.BigInteger (BigInteger)
 import Data.Map (Map)
 import Data.Maybe (Maybe(..))
-import Marlowe.Extended (IntegerTemplateType, TemplateContent, ContractTemplate)
+import Marlowe.Extended (IntegerTemplateType, TemplateContent)
+import Marlowe.Extended.Template (ContractTemplate)
 
 type State
   = { template :: ContractTemplate
     , contractNickname :: String
+    -- FIXME: We should add type aliases to these Strings
     , roleWallets :: Map String String
     , templateContent :: TemplateContent
     }

@@ -19,7 +19,7 @@ import Data.Lens.Prism.Either (_Left, _Right)
 import Data.Lens.Record (prop)
 import Data.Symbol (SProxy(..))
 import MainFrame.Types (State, WebSocketStatus)
-import Marlowe.Extended (ContractTemplate)
+import Marlowe.Extended.Template (ContractTemplate)
 import Marlowe.Semantics (PubKey)
 import Network.RemoteData (RemoteData)
 import Pickup.Types (State) as Pickup

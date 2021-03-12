@@ -12,7 +12,7 @@ import Analytics (class IsEvent, defaultEvent, toEvent)
 import Data.Either (Either)
 import Data.Generic.Rep (class Generic)
 import Data.Maybe (Maybe(..))
-import Marlowe.Extended (ContractTemplate)
+import Marlowe.Extended.Template (ContractTemplate)
 import Marlowe.Semantics (PubKey)
 import Network.RemoteData (RemoteData)
 import Pickup.Types (Action, State) as Pickup

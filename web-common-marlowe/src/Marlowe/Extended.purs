@@ -23,32 +23,6 @@ import Marlowe.Semantics (decodeProp)
 import Marlowe.Semantics as S
 import Text.Pretty (class Args, class Pretty, genericHasArgs, genericHasNestedArgs, genericPretty, pretty)
 
-type ContractTemplate
-  = { metaData :: MetaData
-    , extendedContract :: Contract
-    }
-
-type MetaData
-  = { contractType :: ContractType
-    , contractName :: String
-    , contractDescription :: String
-    , roleDescriptions :: Map S.TokenName String
-    , slotParameterDescriptions :: Map String String
-    , valueParameterDescriptions :: Map String String
-    , choiceDescriptions :: Map String String
-    }
-
-emptyContractMetadata :: MetaData
-emptyContractMetadata =
-  { contractType: Other
-  , contractName: ""
-  , contractDescription: ""
-  , roleDescriptions: mempty
-  , slotParameterDescriptions: mempty
-  , valueParameterDescriptions: mempty
-  , choiceDescriptions: mempty
-  }
-
 data ContractType
   = Escrow
   | EscrowWithCollatoral
@@ -113,63 +87,6 @@ instance encodeJsonContractType :: Encode ContractType where
 
 instance decodeJsonContractType :: Decode ContractType where
   decode ct = decode ct >>= pure <<< initialsToContractType
-
-_contractName :: Lens' MetaData String
-_contractName = prop (SProxy :: SProxy "contractName")
-
-_contractType :: Lens' MetaData ContractType
-_contractType = prop (SProxy :: SProxy "contractType")
-
-_contractDescription :: Lens' MetaData String
-_contractDescription = prop (SProxy :: SProxy "contractDescription")
-
-_roleDescriptions :: Lens' MetaData (Map S.TokenName String)
-_roleDescriptions = prop (SProxy :: SProxy "roleDescriptions")
-
-_slotParameterDescriptions :: Lens' MetaData (Map String String)
-_slotParameterDescriptions = prop (SProxy :: SProxy "slotParameterDescriptions")
-
-_valueParameterDescriptions :: Lens' MetaData (Map String String)
-_valueParameterDescriptions = prop (SProxy :: SProxy "valueParameterDescriptions")
-
-_choiceDescriptions :: Lens' MetaData (Map String String)
-_choiceDescriptions = prop (SProxy :: SProxy "choiceDescriptions")
-
-type MetadataHintInfo
-  = { roles :: Set S.TokenName
-    , slotParameters :: Set String
-    , valueParameters :: Set String
-    , choiceNames :: Set String
-    }
-
-_roles :: Lens' MetadataHintInfo (Set S.TokenName)
-_roles = prop (SProxy :: SProxy "roles")
-
-_slotParameters :: Lens' MetadataHintInfo (Set String)
-_slotParameters = prop (SProxy :: SProxy "slotParameters")
-
-_valueParameters :: Lens' MetadataHintInfo (Set String)
-_valueParameters = prop (SProxy :: SProxy "valueParameters")
-
-_choiceNames :: Lens' MetadataHintInfo (Set String)
-_choiceNames = prop (SProxy :: SProxy "choiceNames")
-
-getMetadataHintInfo :: Contract -> MetadataHintInfo
-getMetadataHintInfo contract =
-  let
-    Placeholders placeholders = getPlaceholderIds contract
-  in
-    { roles:
-        Set.mapMaybe
-          ( case _ of
-              S.Role name -> Just name
-              _ -> Nothing
-          )
-          $ getParties contract
-    , slotParameters: placeholders.slotPlaceholderIds
-    , valueParameters: placeholders.valuePlaceholderIds
-    , choiceNames: getChoiceNames contract
-    }
 
 class ToCore a b where
   toCore :: a -> Maybe b
@@ -239,26 +156,14 @@ class Template a b where
 class Fillable a b where
   fillTemplate :: b -> a -> a
 
-class HasParties a where
-  getParties :: a -> Set S.Party
-
 class HasChoices a where
   getChoiceNames :: a -> Set String
 
 instance arrayHasChoices :: HasChoices a => HasChoices (Array a) where
   getChoiceNames = foldMap getChoiceNames
 
-instance arrayHasParties :: HasParties a => HasParties (Array a) where
-  getParties = foldMap getParties
-
-instance sPartyHasParties :: HasParties S.Party where
-  getParties party = Set.singleton party
-
 instance sChoiceIdHasChoices :: HasChoices S.ChoiceId where
   getChoiceNames (S.ChoiceId choiceName _) = Set.singleton choiceName
-
-instance sChoiceIdHasParties :: HasParties S.ChoiceId where
-  getParties (S.ChoiceId _ party) = getParties party
 
 data Timeout
   = SlotParam String
@@ -493,21 +398,6 @@ instance valueHasChoices :: HasChoices Value where
   getChoiceNames (UseValue _) = Set.empty
   getChoiceNames (Cond obs lhs rhs) = getChoiceNames obs <> getChoiceNames lhs <> getChoiceNames rhs
 
-instance valueHasParties :: HasParties Value where
-  getParties (AvailableMoney accId _) = getParties accId
-  getParties (Constant _) = Set.empty
-  getParties (ConstantParam _) = Set.empty
-  getParties (NegValue val) = getParties val
-  getParties (AddValue lhs rhs) = getParties lhs <> getParties rhs
-  getParties (SubValue lhs rhs) = getParties lhs <> getParties rhs
-  getParties (MulValue lhs rhs) = getParties lhs <> getParties rhs
-  getParties (Scale _ val) = getParties val
-  getParties (ChoiceValue choId) = getParties choId
-  getParties SlotIntervalStart = Set.empty
-  getParties SlotIntervalEnd = Set.empty
-  getParties (UseValue _) = Set.empty
-  getParties (Cond obs lhs rhs) = getParties obs <> getParties lhs <> getParties rhs
-
 data Observation
   = AndObs Observation Observation
   | OrObs Observation Observation
@@ -674,19 +564,6 @@ instance observationHasChoices :: HasChoices Observation where
   getChoiceNames TrueObs = Set.empty
   getChoiceNames FalseObs = Set.empty
 
-instance observationHasParties :: HasParties Observation where
-  getParties (AndObs lhs rhs) = getParties lhs <> getParties rhs
-  getParties (OrObs lhs rhs) = getParties lhs <> getParties rhs
-  getParties (NotObs v) = getParties v
-  getParties (ChoseSomething a) = getParties a
-  getParties (ValueGE lhs rhs) = getParties lhs <> getParties rhs
-  getParties (ValueGT lhs rhs) = getParties lhs <> getParties rhs
-  getParties (ValueLT lhs rhs) = getParties lhs <> getParties rhs
-  getParties (ValueLE lhs rhs) = getParties lhs <> getParties rhs
-  getParties (ValueEQ lhs rhs) = getParties lhs <> getParties rhs
-  getParties TrueObs = Set.empty
-  getParties FalseObs = Set.empty
-
 data Action
   = Deposit S.AccountId S.Party S.Token Value
   | Choice S.ChoiceId (Array S.Bound)
@@ -763,11 +640,6 @@ instance actionHasChoices :: HasChoices Action where
   getChoiceNames (Choice choId _) = getChoiceNames choId
   getChoiceNames (Notify obs) = getChoiceNames obs
 
-instance actionHasParties :: HasParties Action where
-  getParties (Deposit accId party _ value) = getParties accId <> getParties party <> getParties value
-  getParties (Choice choId _) = getParties choId
-  getParties (Notify obs) = getParties obs
-
 data Payee
   = Account S.AccountId
   | Party S.Party
@@ -800,10 +672,6 @@ instance hasArgsPayee :: Args Payee where
 instance toCorePayee :: ToCore Payee S.Payee where
   toCore (Account accId) = Just $ S.Account accId
   toCore (Party roleName) = Just $ S.Party roleName
-
-instance payeeHasParties :: HasParties Payee where
-  getParties (Account accountId) = getParties accountId
-  getParties (Party party) = getParties party
 
 data Case
   = Case Action Contract
@@ -851,9 +719,6 @@ instance fillableCase :: Fillable Case TemplateContent where
 
 instance caseHasChoices :: HasChoices Case where
   getChoiceNames (Case action contract) = getChoiceNames action <> getChoiceNames contract
-
-instance caseHasParties :: HasParties Case where
-  getParties (Case action contract) = getParties action <> getParties contract
 
 data Contract
   = Close
@@ -976,11 +841,3 @@ instance contractHasChoices :: HasChoices Contract where
   getChoiceNames (When cases _ cont) = getChoiceNames cases <> getChoiceNames cont
   getChoiceNames (Let _ val cont) = getChoiceNames val <> getChoiceNames cont
   getChoiceNames (Assert obs cont) = getChoiceNames obs <> getChoiceNames cont
-
-instance contractHasParties :: HasParties Contract where
-  getParties Close = Set.empty
-  getParties (Pay accId payee _ val cont) = getParties accId <> getParties payee <> getParties val <> getParties cont
-  getParties (If obs cont1 cont2) = getParties obs <> getParties cont1 <> getParties cont2
-  getParties (When cases _ cont) = getParties cases <> getParties cont
-  getParties (Let _ val cont) = getParties val <> getParties cont
-  getParties (Assert obs cont) = getParties obs <> getParties cont

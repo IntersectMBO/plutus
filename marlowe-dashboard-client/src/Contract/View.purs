@@ -12,37 +12,44 @@ import Data.Lens (view, (^.))
 import Data.Map (Map)
 import Data.Map as Map
 import Data.Maybe (Maybe(..))
+import Data.Set as Set
 import Halogen.HTML (HTML, a, button, div, h1, h2, span, span_, text)
 import Halogen.HTML.Events.Extra (onClick_)
-import Marlowe.Execution (ExecutionStep, NamedAction(..), _namedActions)
+import Marlowe.Execution (ExecutionStep, NamedAction(..), _contract, _namedActions)
 import Marlowe.Extended (contractTypeName)
+import Marlowe.HasParties (getParties)
 import Marlowe.Semantics (Accounts, ChoiceId(..), Input(..), Party(..), Token(..), TransactionInput(..), _accounts)
+import Material.Icons as Icons
+import WalletData.Types (WalletDetails)
 
-contractDetailsCard :: forall p. State -> HTML p Action
-contractDetailsCard state =
+contractDetailsCard :: forall p. WalletDetails -> State -> HTML p Action
+contractDetailsCard walletDetails state =
   let
     metadata = state ^. _metadata
   in
     div [ classNames [ "flex", "flex-col", "items-center" ] ]
-      [ h1 [ classNames [ "text-xl", "font-medium" ] ] [ text metadata.contractName ]
-      , h2 [ classNames [ "mb-2" ] ] [ text $ contractTypeName metadata.contractType ]
+      [ h1 [ classNames [ "text-xl", "font-semibold" ] ] [ text metadata.contractName ]
+      -- FIXME: in zeplin the contractType is defined with color #283346, we need to define
+      --        the color palette with russ.
+      , h2 [ classNames [ "mb-2", "text-xs", "uppercase" ] ] [ text $ contractTypeName metadata.contractType ]
       -- FIXME: Revisit width (at least on desktop)
-      , div [ classNames [ "w-full" ] ] [ renderCurrentState state ]
+      , div [ classNames [ "w-full" ] ] [ renderCurrentState walletDetails state ]
       ]
 
-renderCurrentState :: forall p. State -> HTML p Action
-renderCurrentState state =
+renderCurrentState :: forall p. WalletDetails -> State -> HTML p Action
+renderCurrentState walletDetails state =
   let
     -- As programmers we use 0-indexed arrays and steps, but we number steps
     -- starting from 1
     stepNumber = state ^. _step + 1
 
-    executionState = state ^. _executionState
-
     currentTab = state ^. _tab
 
+    -- FIXME: in zepplin the font size is 6px (I think the scale is wrong), but proportionally is half of
+    --        of the size of the Contract Title. I've set it a little bit bigger as it looked weird. Check with
+    --        russ.
     tabSelector isActive =
-      [ "flex-grow", "text-center", "font-semibold", "py-2", "trapesodial-card-selector" ]
+      [ "flex-grow", "text-center", "py-2", "trapesodial-card-selector", "text-sm", "font-semibold" ]
         <> case isActive of
             true -> [ "active" ]
             false -> []
@@ -60,25 +67,53 @@ renderCurrentState state =
               ]
               [ span_ $ [ text "Balances" ] ]
           ]
-      , div [ classNames [ "px-4", "py-2", "bg-white" ] ]
-          [ span [] [ text $ "Step " <> show stepNumber ]
-          , span [] [ text "Completed" ]
-          ]
-      , div [ classNames [ "px-4", "py-2", "bg-white" ] ]
-          [ renderTasks (executionState ^. _namedActions)
+      , div [ classNames [ "px-4", "bg-white" ] ]
+          -- FIXME: zeplin has border color #dfdfdf, see if it makes sense to add that one to the pallete
+          --        or if this gray is fine
+          [ div [ classNames [ "py-2.5", "flex", "items-center", "border-b", "border-gray" ] ]
+              [ span
+                  [ classNames [ "text-xl", "font-semibold", "flex-grow" ] ]
+                  [ text $ "Step " <> show stepNumber ]
+              , span
+                  -- [ "flex", "items-center", "justify-center", "px-4", "py-3", "leading-none", "disabled:opacity-50", "disabled:cursor-not-allowed",  ]
+                  [ classNames [ "flex-grow", "rounded-3xl", "bg-gray", "py-2", "flex", "items-center" ] ]
+                  [ Icons.timer' [ "pl-3" ]
+                  , span [ classNames [ "text-xs", "flex-grow", "text-center", "font-semibold" ] ]
+                      [ text "1hr 2mins left" ]
+                  ]
+              ]
+          , div [ classNames [ "py-2" ] ]
+              [ renderTasks walletDetails state
+              ]
           ]
       ]
 
-renderTasks :: forall p. Array NamedAction -> HTML p Action
-renderTasks actions =
+renderTasks :: forall p. WalletDetails -> State -> HTML p Action
+renderTasks walletDetails state =
   let
+    executionState = state ^. _executionState
+
+    actions = executionState ^. _namedActions
+
+    contract = executionState ^. _contract
+
+    getRoleEntry = case _ of
+      (PK _) -> Nothing
+      (Role roleName) -> Just roleName
+
+    roles :: Array String
+    roles = Set.toUnfoldable $ Set.mapMaybe getRoleEntry (getParties contract)
+
     -- FIXME: We fake the namedActions for development until we fix the semantics
     actions' =
       [ MakeDeposit (Role "into account") (Role "by") (Token "" "") $ fromInt 1500
       ]
   in
     -- FIXME: need to group by role
-    div [] $ actions' <#> renderAction
+    div []
+      [ span_ [ text $ "Role (" <> walletDetails.nickname <> ")" ]
+      , div [] $ actions' <#> renderAction
+      ]
 
 renderAction :: forall p. NamedAction -> HTML p Action
 renderAction (MakeDeposit intoAccountOf by token value) = text "make deposit"

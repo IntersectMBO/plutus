@@ -14,7 +14,7 @@ import Halogen.HTML (HTML, a, div, footer, h1, header, main, nav, span, text)
 import Halogen.HTML.Events.Extra (onClick_)
 import Halogen.HTML.Properties (href)
 import MainFrame.Lenses (_card, _screen)
-import Marlowe.Extended (ContractTemplate)
+import Marlowe.Extended.Template (ContractTemplate)
 import Marlowe.Semantics (PubKey)
 import Material.Icons as Icon
 import Network.RemoteData (RemoteData)
@@ -144,7 +144,7 @@ renderCards wallets newWalletNickname newWalletContractId remoteDataPubKey templ
                   --        could be Nothing. We could add the state as part of the view, but is not ideal
                   --        Will have to rethink how to deal with this once the overall state is more mature.
                   ContractCard -> case mSelectedContractState of
-                    Just contractState -> [ ContractAction <$> contractDetailsCard contractState ]
+                    Just contractState -> [ ContractAction <$> contractDetailsCard currentWalletDetails contractState ]
                     Nothing -> []
           ]
       ]

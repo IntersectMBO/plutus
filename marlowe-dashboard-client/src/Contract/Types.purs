@@ -2,9 +2,10 @@ module Contract.Types where
 
 import Prelude
 import Analytics (class IsEvent, defaultEvent)
+import Data.Map (Map)
 import Data.Maybe (Maybe(..))
 import Marlowe.Execution (ExecutionState)
-import Marlowe.Extended (MetaData)
+import Marlowe.Extended.Metadata (MetaData)
 import Marlowe.Semantics (ChoiceId, ChosenNum, Input, Slot, TransactionInput)
 
 type State
@@ -15,6 +16,8 @@ type State
     , confirmation :: Maybe Input
     , step :: Int
     , metadata :: MetaData
+    -- FIXME: We should add type aliases to these Strings
+    , roleWallets :: Map String String
     }
 
 data Tab

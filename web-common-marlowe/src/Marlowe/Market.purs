@@ -2,7 +2,7 @@ module Marlowe.Market (contractTemplates) where
 
 -- At some point we will want to keep contract templates in a database. In the
 -- meantime, this is a simple solution to get things up and running.
-import Marlowe.Extended (ContractTemplate)
+import Marlowe.Extended.Template (ContractTemplate)
 import Marlowe.Market.Contract1 as Contract1
 import Marlowe.Market.Contract2 as Contract2
 import Marlowe.Market.Contract3 as Contract3

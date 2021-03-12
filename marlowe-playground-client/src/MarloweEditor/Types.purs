@@ -14,7 +14,8 @@ import Data.Maybe (Maybe(..))
 import Data.Symbol (SProxy(..))
 import Halogen.Monaco (KeyBindings(..))
 import Halogen.Monaco as Monaco
-import Marlowe.Extended (ContractType, IntegerTemplateType, MetadataHintInfo)
+import Marlowe.Extended (ContractType, IntegerTemplateType)
+import Marlowe.Extended.Metadata (MetadataHintInfo)
 import Marlowe.Semantics as S
 import Monaco (IMarkerData)
 import StaticAnalysis.Types (AnalysisState, initAnalysisState)

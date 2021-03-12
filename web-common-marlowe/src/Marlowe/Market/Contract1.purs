@@ -7,7 +7,9 @@ module Marlowe.Market.Contract1
 import Prelude
 import Data.Map (fromFoldable)
 import Data.Tuple.Nested ((/\))
-import Marlowe.Extended (Action(..), Case(..), Contract(..), ContractTemplate, ContractType(..), MetaData, Observation(..), Payee(..), Timeout(..), Value(..))
+import Marlowe.Extended (Action(..), Case(..), Contract(..), ContractType(..), Observation(..), Payee(..), Timeout(..), Value(..))
+import Marlowe.Extended.Metadata (MetaData)
+import Marlowe.Extended.Template (ContractTemplate)
 import Marlowe.Semantics (Bound(..), ChoiceId(..), Party(..), Token(..))
 
 contractTemplate :: ContractTemplate
@@ -22,6 +24,7 @@ metaData =
       fromFoldable
         [ "alice" /\ "about the alice role"
         , "bob" /\ "about the bob role"
+        , "carol" /\ "about the carol role"
         ]
   , slotParameterDescriptions:
       fromFoldable

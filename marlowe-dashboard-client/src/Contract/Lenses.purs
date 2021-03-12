@@ -14,7 +14,7 @@ import Data.Lens.Record (prop)
 import Data.Maybe (Maybe)
 import Data.Symbol (SProxy(..))
 import Marlowe.Execution (ExecutionState)
-import Marlowe.Extended (MetaData)
+import Marlowe.Extended.Metadata (MetaData)
 import Marlowe.Semantics (Input)
 
 _tab :: Lens' State Tab

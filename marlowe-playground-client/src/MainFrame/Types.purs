@@ -28,7 +28,7 @@ import Halogen.Monaco as Monaco
 import HaskellEditor.Types as HE
 import JavascriptEditor.Types (CompilationState)
 import JavascriptEditor.Types as JS
-import Marlowe.Extended (MetaData)
+import Marlowe.Extended.Metadata (MetaData)
 import MarloweEditor.Types as ME
 import Network.RemoteData (_Loading)
 import NewProject.Types as NewProject
