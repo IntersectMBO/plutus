@@ -1,6 +1,7 @@
 {-# LANGUAGE DataKinds           #-}
 {-# LANGUAGE FlexibleContexts    #-}
 {-# LANGUAGE MonoLocalBinds      #-}
+{-# LANGUAGE NamedFieldPuns      #-}
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE RankNTypes          #-}
 {-# LANGUAGE ScopedTypeVariables #-}
@@ -10,56 +11,39 @@ module Plutus.PAB.CoreSpec
     ( tests
     ) where
 
-import           Control.Lens                     ((&), (+~))
-import           Control.Monad                    (unless, void)
-import           Control.Monad.Freer              (Eff, Member, Members)
-import           Control.Monad.Freer.Error        (Error, throwError)
-import           Control.Monad.Freer.Extras.Log   (LogMsg)
-import qualified Control.Monad.Freer.Extras.Log   as EmulatorLog
-import           Control.Monad.Freer.Extras.State (use)
-import           Control.Monad.Freer.State        (State)
-import           Data.Foldable                    (fold)
-import qualified Data.Map                         as Map
-import qualified Data.Set                         as Set
-import           Data.Text                        (Text)
-import qualified Data.Text                        as Text
-import           Data.Text.Extras                 (tshow)
-import           Ledger                           (pubKeyAddress)
-import           Ledger.Ada                       (lovelaceValueOf)
-import           Plutus.Contracts.Currency        (SimpleMPS (..))
-import qualified Plutus.Contracts.Game            as Contracts.Game
-import           Plutus.PAB.Command               ()
+import           Control.Lens                                      ((&), (+~))
+import           Control.Monad                                     (unless, void)
+import           Control.Monad.Freer                               (Eff, Member, Members)
+import           Control.Monad.Freer.Error                         (Error, throwError)
+import           Control.Monad.Freer.Extras.Log                    (LogMsg)
+import qualified Control.Monad.Freer.Extras.Log                    as EmulatorLog
+import           Control.Monad.Freer.Extras.State                  (use)
+import           Control.Monad.Freer.State                         (State)
+import qualified Data.Aeson                                        as JSON
+import           Data.Foldable                                     (fold)
+
+import qualified Data.Aeson.Types                                  as JSON
+import           Data.Either                                       (isRight)
+import qualified Data.Map                                          as Map
+import           Data.Semigroup                                    (Last (..))
+import qualified Data.Set                                          as Set
+import           Data.Text                                         (Text)
+import qualified Data.Text                                         as Text
+import           Data.Text.Extras                                  (tshow)
+import           Plutus.Contracts.Currency (Currency, SimpleMPS (..))
+import qualified Plutus.Contracts.Game     as Contracts.Game
+import           Ledger                                            (pubKeyAddress)
+import           Ledger.Ada                                        (lovelaceValueOf)
+import           Plutus.PAB.Command                                ()
 import           Plutus.PAB.Core
-<<<<<<< HEAD
-import           Plutus.PAB.Core.ContractInstance (ContractInstanceMsg)
-import           Plutus.PAB.Effects.Contract      (ContractEffect)
-import           Plutus.PAB.Effects.ContractTest  (TestContracts (..))
-import           Plutus.PAB.Effects.EventLog      (EventLogEffect)
-import           Plutus.PAB.Effects.MultiAgent    (PABClientEffects, agentAction)
-import           Plutus.PAB.Events                (ChainEvent, ContractInstanceId, ContractInstanceState (..), hooks)
-import           Plutus.PAB.MockApp               (TestState, TxCounts (..), blockchainNewestFirst, defaultWallet,
-                                                   processAllMsgBoxes, runScenario, txCounts, txValidated, valueAt)
-import qualified Plutus.PAB.Query                 as Query
-import           Plutus.PAB.Types                 (PABError (..), chainOverviewBlockchain, mkChainOverview)
-import           Test.QuickCheck.Instances.UUID   ()
-import           Test.Tasty                       (TestTree, testGroup)
-import           Test.Tasty.HUnit                 (testCase)
-import           Wallet.API                       (WalletAPIError, ownPubKey)
-import qualified Wallet.Emulator.Chain            as Chain
-import           Wallet.Rollup                    (doAnnotateBlockchain)
-import           Wallet.Rollup.Types              (DereferencedInput, dereferencedInputs, isFound)
-=======
 import           Plutus.PAB.Core.ContractInstance                  (ContractInstanceMsg)
 import qualified Plutus.PAB.Db.Eventful.Query                      as Query
 import           Plutus.PAB.Effects.Contract                       (ContractEffect)
-import           Plutus.PAB.Effects.ContractTest                   (TestContracts (..))
+import           Plutus.PAB.Effects.Contract.ContractTest          (TestContracts (..))
 import           Plutus.PAB.Effects.EventLog                       (EventLogEffect)
-import           Plutus.PAB.Effects.MultiAgent                     (PABClientEffects, agentAction)
-import           Plutus.PAB.Events                                 (ChainEvent, ContractInstanceId,
-                                                                    ContractInstanceState (..), hooks)
-import           Plutus.PAB.MockApp                                (TestState, TxCounts (..), blockchainNewestFirst,
-                                                                    defaultWallet, processAllMsgBoxes, runScenario,
-                                                                    txCounts, txValidated, valueAt)
+import           Plutus.PAB.Events.ContractInstanceState           (PartiallyDecodedResponse (..))
+import           Plutus.PAB.Simulator                              (Simulation, TxCounts (..))
+import qualified Plutus.PAB.Simulator                              as Simulator
 import           Plutus.PAB.Types                                  (PABError (..), chainOverviewBlockchain,
                                                                     mkChainOverview)
 import           Test.QuickCheck.Instances.UUID                    ()
@@ -67,46 +51,38 @@ import           Test.Tasty                                        (TestTree, te
 import           Test.Tasty.HUnit                                  (testCase)
 import           Wallet.API                                        (WalletAPIError, ownPubKey)
 import qualified Wallet.Emulator.Chain                             as Chain
+import           Wallet.Emulator.Wallet                            (Wallet (..))
 import           Wallet.Rollup                                     (doAnnotateBlockchain)
 import           Wallet.Rollup.Types                               (DereferencedInput, dereferencedInputs, isFound)
->>>>>>> Update some modules
+import           Wallet.Types                                      (ContractInstanceId)
 
 tests :: TestTree
 tests = testGroup "Plutus.PAB.Core" [installContractTests, executionTests]
+
+runScenario :: Simulator.Simulation a -> IO ()
+runScenario sim = do
+    result <- Simulator.runSimulation sim
+    case result of
+        Left err -> error (show err)
+        Right _  -> pure ()
+
+defaultWallet :: Wallet
+defaultWallet = Wallet 1
 
 installContractTests :: TestTree
 installContractTests =
     testGroup
         "installContract scenario"
-        [ testCase "Initially there are no contracts installed" $
-          runScenario $ do
-              installed <- agentAction defaultWallet (installedContracts @TestContracts)
-              assertEqual "" 0 $ Set.size installed
-        , testCase "Initially there are no contracts active" $
-          runScenario $ do
-              active <- agentAction defaultWallet (activeContracts @TestContracts)
-              assertEqual "" 0 $ Set.size $ fold active
-        , testCase
-              "Installing a contract successfully increases the installed contract count" $
-          runScenario $ agentAction defaultWallet $ do
-              installContract @TestContracts Game
-              --
-              installed <- installedContracts @TestContracts
-              assertEqual "" 1 $ Set.size installed
-              --
-              active <- activeContracts @TestContracts
-              assertEqual "" 0 $ Set.size $ fold active
+        [ testCase "Initially there are no contracts active" $
+            runScenario $ do
+                active <- Simulator.activeContracts
+                assertEqual "" 0 $ Set.size active
         , testCase "We can activate a contract" $
-          runScenario $ agentAction defaultWallet $ do
-              installContract Game
+          runScenario $ do
+              void $ Simulator.agentAction defaultWallet $ Simulator.activateContract Game
               --
-              installed <- installedContracts @TestContracts
-              assertEqual "" 1 $ Set.size installed
-              --
-              void $ activateContract Game
-              --
-              active <- activeContracts @TestContracts
-              assertEqual "" 1 $ Set.size $ fold active
+              active <- Simulator.activeContracts
+              assertEqual "" 1 $ Set.size active
         ]
 
 executionTests :: TestTree
@@ -120,41 +96,39 @@ executionTests =
 
 currencyTest :: TestTree
 currencyTest =
-    let mps = SimpleMPS{tokenName="my token", amount = 10000} in
+    let mps = SimpleMPS{tokenName="my token", amount = 10000}
+        getCurrency :: JSON.Value -> Maybe Currency
+        getCurrency vl = do
+            case JSON.parseEither JSON.parseJSON vl of
+                Right (Just (Last cur)) -> Just cur
+                _                       -> Nothing
+    in
     testCase "Currency" $
         runScenario $ do
-              initialTxCounts <- txCounts
-              agentAction defaultWallet (installContract Currency)
-              contractState <- agentAction defaultWallet (activateContract Currency)
-              let instanceId = csContract contractState
+              initialTxCounts <- Simulator.txCounts
+              instanceId <- Simulator.agentAction defaultWallet (Simulator.activateContract Currency)
               assertTxCounts
                   "Activating the currency contract does not generate transactions."
                   initialTxCounts
-              agentAction defaultWallet $ createCurrency instanceId mps
-              void Chain.processBlock
-              void Chain.processBlock
+              Simulator.agentAction defaultWallet $ createCurrency instanceId mps
+              result <- Simulator.waitForState getCurrency instanceId
               assertTxCounts
                 "Forging the currency should produce two valid transactions."
-                (initialTxCounts & txValidated +~ 2)
+                (initialTxCounts & Simulator.txValidated +~ 2)
 
 rpcTest :: TestTree
 rpcTest =
     testCase "RPC" $
         runScenario $ do
-            agentAction defaultWallet (installContract RPCClient)
-            agentAction defaultWallet (installContract RPCServer)
-            ContractInstanceState{csContract=clientId} <- agentAction defaultWallet (activateContract RPCClient)
-            ContractInstanceState{csContract=serverId} <- agentAction defaultWallet (activateContract RPCServer)
-            processAllMsgBoxes
-            agentAction defaultWallet $ void $ callContractEndpoint @TestContracts serverId "serve" ()
-            processAllMsgBoxes
-            agentAction defaultWallet $ callAdder clientId serverId
-            processAllMsgBoxes
-            processAllMsgBoxes
-            processAllMsgBoxes
-            agentAction defaultWallet $ do
-                assertDone clientId
-                assertDone serverId
+            clientId <- Simulator.agentAction defaultWallet (Simulator.activateContract RPCClient)
+            serverId <- Simulator.agentAction defaultWallet (Simulator.activateContract RPCServer)
+            Simulator.waitNSlots 1
+            Simulator.agentAction defaultWallet $ void $ Simulator.callEndpointOnInstance serverId "serve" ()
+            Simulator.waitNSlots 1
+            Simulator.agentAction defaultWallet $ callAdder clientId serverId
+            Simulator.waitNSlots 5
+            assertDone defaultWallet clientId
+            assertDone defaultWallet serverId
 
 guessingGameTest :: TestTree
 guessingGameTest =
@@ -162,67 +136,64 @@ guessingGameTest =
           runScenario $ do
               let openingBalance = 100000000
                   lockAmount = 15
-              address <- pubKeyAddress <$> agentAction defaultWallet ownPubKey
-              balance0 <- valueAt address
-              initialTxCounts <- txCounts
+              address <- pubKeyAddress <$> Simulator.agentAction defaultWallet ownPubKey
+              balance0 <- Simulator.valueAt address
+              initialTxCounts <- Simulator.txCounts
               assertEqual
                     "Check our opening balance."
                     (lovelaceValueOf openingBalance)
                     balance0
-              agentAction defaultWallet (installContract Game)
               -- need to add contract address to wallet's watched addresses
-              contractState <- agentAction defaultWallet (activateContract Game)
-              let instanceId = csContract contractState
-              processAllMsgBoxes
+              instanceId <- Simulator.agentAction defaultWallet (Simulator.activateContract Game)
+
               assertTxCounts
                   "Activating the game does not generate transactions."
                   initialTxCounts
-              agentAction defaultWallet $ lock
+              _ <- Simulator.waitNSlots 2
+              Simulator.agentAction defaultWallet $ lock
                   instanceId
                   Contracts.Game.LockParams
                       { Contracts.Game.amount = lovelaceValueOf lockAmount
                       , Contracts.Game.secretWord = "password"
                       }
-              processAllMsgBoxes
-              void Chain.processBlock
-              processAllMsgBoxes
+              _ <- Simulator.waitNSlots 2
               assertTxCounts
                   "Locking the game should produce one transaction"
-                  (initialTxCounts & txValidated +~ 1)
-              balance1 <- valueAt address
+                  (initialTxCounts & Simulator.txValidated +~ 1)
+              balance1 <- Simulator.valueAt address
               assertEqual
                   "Locking the game should reduce our balance."
                   (lovelaceValueOf (openingBalance - lockAmount))
                   balance1
+              game1Id <- Simulator.agentAction defaultWallet (Simulator.activateContract Game)
 
-              game1State <- agentAction defaultWallet (activateContract Game)
-              processAllMsgBoxes
-              agentAction defaultWallet $ guess
-                  (csContract game1State)
+              Simulator.agentAction defaultWallet $ guess
+                  game1Id
                   Contracts.Game.GuessParams
                       {Contracts.Game.guessWord = "wrong"}
-              processAllMsgBoxes
-              void Chain.processBlock
+
+              _ <- Simulator.waitNSlots 2
               assertTxCounts
-                "A wrong guess still produces a transaction."
-                (initialTxCounts & txValidated +~ 2)
-              game2State <- agentAction defaultWallet (activateContract Game)
-              processAllMsgBoxes
-              agentAction defaultWallet $ guess
-                  (csContract game2State)
+                "A wrong guess does not produce a valid transaction on the chain."
+                (initialTxCounts & Simulator.txValidated +~ 1)
+              game2Id <- Simulator.agentAction defaultWallet (Simulator.activateContract Game)
+
+              _ <- Simulator.waitNSlots 2
+              Simulator.agentAction defaultWallet $ guess
+                  game2Id
                   Contracts.Game.GuessParams
                       {Contracts.Game.guessWord = "password"}
-              processAllMsgBoxes
-              void Chain.processBlock
+
+              _ <- Simulator.waitNSlots 2
               assertTxCounts
-                "A correct guess creates a third transaction."
-                (initialTxCounts & txValidated +~ 3)
-              balance2 <- valueAt address
+                "A correct guess creates a second transaction."
+                (initialTxCounts & Simulator.txValidated +~ 2)
+              balance2 <- Simulator.valueAt address
               assertEqual
                 "The wallet should now have its money back."
                 (lovelaceValueOf openingBalance)
                 balance2
-              blocks <- use blockchainNewestFirst
+              blocks <- Simulator.blockchain
               assertBool
                   "We have some confirmed blocks in this test."
                   (not (null (mconcat blocks)))
@@ -239,25 +210,20 @@ guessingGameTest =
                   (all isFound allDereferencedInputs)
 
 assertTxCounts ::
-    ( Member (State TestState) effs
-    , Member (Error PABError) effs
-    )
-    => Text
+    Text
     -> TxCounts
-    -> Eff effs ()
-assertTxCounts msg expected =  txCounts >>= assertEqual msg expected
+    -> Simulation ()
+assertTxCounts msg expected = Simulator.txCounts >>= assertEqual msg expected
 
 assertDone ::
-    ( Member (EventLogEffect (ChainEvent TestContracts)) effs
-    , Member (Error PABError) effs
-    )
-    => ContractInstanceId
-    -> Eff effs ()
-assertDone i = do
-    h <- fmap (hooks . csCurrentState) <$> runGlobalQuery (Query.contractState @TestContracts)
-    case Map.lookup i h of
-        Just [] -> pure ()
-        Just xs ->
+    Wallet
+    -> ContractInstanceId
+    -> Simulation ()
+assertDone wallet i = do
+    PartiallyDecodedResponse{hooks} <- Simulator.instanceState wallet i >>= either throwError pure
+    case hooks of
+        [] -> pure ()
+        xs ->
             throwError
                 $ OtherError
                 $ Text.unwords
@@ -266,51 +232,43 @@ assertDone i = do
                     , "not done. Open requests:"
                     , tshow xs
                     ]
-        Nothing -> throwError $ ContractInstanceNotFound i
-
-type SpecEffects =
-        '[Error WalletAPIError
-        , Error PABError
-        , EventLogEffect (ChainEvent TestContracts)
-        , ContractEffect TestContracts
-        , LogMsg Text
-        , LogMsg (ContractInstanceMsg TestContracts)
-        , EmulatorLog.LogObserve (EmulatorLog.LogMessage Text)
-        ]
 
 lock ::
-    ( Members PABClientEffects effs
-    )
-    => ContractInstanceId
+    ContractInstanceId
     -> Contracts.Game.LockParams
-    -> Eff effs ()
-lock uuid params =
-    void $ callContractEndpoint @TestContracts uuid "lock" params
+    -> Simulator.AgentThread ()
+lock uuid params = do
+    let ep = "lock"
+    _ <- Simulator.waitForEndpoint uuid ep
+    void $ Simulator.callEndpointOnInstance uuid ep params
 
 guess ::
-    Members SpecEffects effs
-    => ContractInstanceId
+    ContractInstanceId
     -> Contracts.Game.GuessParams
-    -> Eff effs ()
-guess uuid params =
-    void $ callContractEndpoint @TestContracts uuid "guess" params
+    -> Simulator.AgentThread ()
+guess uuid params = do
+    let ep = "guess"
+    _ <- Simulator.waitForEndpoint uuid ep
+    void $ Simulator.callEndpointOnInstance uuid ep params
 
 callAdder ::
-    Members SpecEffects effs
-    => ContractInstanceId
+    ContractInstanceId
     -> ContractInstanceId
-    -> Eff effs ()
-callAdder source target =
-    void $ callContractEndpoint @TestContracts source "target instance" target
+    -> Simulator.AgentThread ()
+callAdder source target = do
+    let ep = "target instance"
+    _ <- Simulator.waitForEndpoint source ep
+    void $ Simulator.callEndpointOnInstance source ep target
 
 -- | Call the @"Create native token"@ endpoint on the currency contract.
 createCurrency ::
-    Members SpecEffects effs
-    => ContractInstanceId
+    ContractInstanceId
     -> SimpleMPS
-    -> Eff effs ()
-createCurrency uuid value =
-    void $ callContractEndpoint @TestContracts uuid "Create native token" value
+    -> Simulator.AgentThread ()
+createCurrency uuid value = do
+    let ep = "Create native token"
+    _ <- Simulator.waitForEndpoint uuid ep
+    void $ Simulator.callEndpointOnInstance uuid ep value
 
 assertEqual ::
     forall a effs.

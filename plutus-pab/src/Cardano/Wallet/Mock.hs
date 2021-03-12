@@ -111,7 +111,7 @@ handleMultiWallet = do
             -- works just fine with (Wallet 2)/privateKey2
             -- ¯\_(ツ)_/¯
             let walletState = WalletState privateKey2 emptyNodeClientState mempty (defaultSigningProcess (Wallet 2))
-            _ <- evalState walletState $ Wallet.handleWallet (raiseEnd $ distributeNewWalletFunds pubKey)
+            _ <- evalState walletState $ interpret Wallet.handleWallet (raiseEnd $ distributeNewWalletFunds pubKey)
             return wallet
 
 

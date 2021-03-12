@@ -17,13 +17,17 @@ to one PAB, with its own view of the world, all acting on the same blockchain.
 
 -}
 module Plutus.PAB.Simulator(
-    runSimulator
+    runSimulation
+    , Simulation
     -- * Simulator actions
     , logString
     , logPretty
+    -- ** Agent actions
+    , agentAction
     , payToWallet
     , activateContract
     , callEndpointOnInstance
+    -- ** Control actions
     , makeBlock
     -- * Querying the state
     , instanceState
@@ -33,6 +37,15 @@ module Plutus.PAB.Simulator(
     , waitForEndpoint
     , currentSlot
     , waitUntilSlot
+    , waitNSlots
+    , activeContracts
+    , valueAt
+    , blockchain
+    -- ** Transaction counts
+    , TxCounts(..)
+    , txCounts
+    , txValidated
+    , txMemPool
     -- * Types
     , AgentThread
     , ControlThread
@@ -79,14 +92,16 @@ import           Data.Foldable                                     (traverse_)
 import           Data.Map                                          (Map)
 import qualified Data.Map                                          as Map
 import           Data.Semigroup                                    (Last (..))
+import           Data.Set                                          (Set)
 import           Data.Text                                         (Text)
 import qualified Data.Text                                         as Text
 import qualified Data.Text.IO                                      as Text
 import           Data.Text.Prettyprint.Doc                         (Pretty (pretty), defaultLayoutOptions, layoutPretty)
 import qualified Data.Text.Prettyprint.Doc.Render.Text             as Render
 import           Data.Time.Units                                   (Millisecond)
-import qualified Language.PlutusTx.Coordination.Contracts.Currency as Currency
-import           Ledger.Tx                                         (Tx)
+import qualified Plutus.Contracts.Currency as Currency
+import qualified Ledger.Index                                      as UtxoIndex
+import           Ledger.Tx                                         (Address, Tx, TxOut (..))
 import           Ledger.Value                                      (Value)
 import           Plutus.PAB.Effects.UUID                           (UUIDEffect, handleUUIDEffect)
 import qualified Wallet.Emulator                                   as Emulator
@@ -94,7 +109,7 @@ import           Wallet.Emulator.MultiAgent                        (EmulatorTime
 import qualified Wallet.Emulator.Stream                            as Emulator
 import           Wallet.Emulator.Wallet                            (Wallet (..), WalletEvent (..))
 
-import           Language.Plutus.Contract.Effects.ExposeEndpoint   (ActiveEndpoint (..))
+import           Plutus.Contract.Effects.ExposeEndpoint   (ActiveEndpoint (..))
 import qualified Plutus.PAB.Core.ContractInstance                  as ContractInstance
 import qualified Plutus.PAB.Core.ContractInstance.BlockchainEnv    as BlockchainEnv
 import           Plutus.PAB.Core.ContractInstance.STM              (BlockchainEnv, InstancesState, OpenEndpoint)
@@ -312,6 +327,20 @@ runAgentEffects wallet action = do
     result <- liftIO $ handleAgentThread state blockchainEnv inst wallet action
     pure result
 
+agentAction ::
+    forall a effs.
+    ( Member (Reader InstancesState) effs
+    , Member (Reader (SimulatorState TestContracts)) effs
+    , Member (Reader BlockchainEnv) effs
+    , LastMember IO effs
+    , Member (Error PABError) effs
+    )
+    => Wallet
+    -> AgentThread a
+    -> Eff effs a
+agentAction wallet action = runAgentEffects wallet action >>= either throwError pure
+
+
 -- | Control effects for managing the chain
 type ControlEffects effs =
     ChainControlEffect
@@ -452,7 +481,8 @@ instanceState ::
     => Wallet
     -> ContractInstanceId
     -> Eff effs (Either PABError (Contract.State TestContracts))
-instanceState wallet instanceId = runAgentEffects wallet (Contract.getState @TestContracts instanceId)
+instanceState wallet instanceId =
+    runAgentEffects wallet (Contract.getState @TestContracts instanceId)
 
 -- | An STM transaction that returns the observable state of the contract instance.
 observableState ::
@@ -531,11 +561,34 @@ waitUntilSlot targetSlot = do
         s <- tx
         guard (s >= targetSlot)
 
+waitNSlots ::
+    forall effs.
+    ( Member (Reader BlockchainEnv) effs
+    , LastMember IO effs
+    )
+    => Int
+    -> Eff effs ()
+waitNSlots i = do
+    current <- currentSlot >>= liftIO . STM.atomically
+    waitUntilSlot (current + fromIntegral i)
+
+type SimulatorEffects =
+    '[ LogMsg PABMultiAgentMsg
+     , Reader (SimulatorState TestContracts)
+     , Reader InstancesState
+     , Reader BlockchainEnv
+     , DelayEffect
+     , Error PABError
+     , IO
+     ]
+
+type Simulation a = Eff SimulatorEffects a
+
 -- | Run a simulation on a mockchain with initial values
-runSimulator ::
-    Eff '[LogMsg PABMultiAgentMsg, Reader (SimulatorState TestContracts), Reader InstancesState, Reader BlockchainEnv, DelayEffect, IO] a
-    -> IO (SimulatorState TestContracts, a)
-runSimulator action = do
+runSimulation ::
+    Simulation a
+    -> IO (Either PABError a)
+runSimulation action = do
     state <- initialState
     inst <- STM.atomically Instances.emptyInstancesState
     blockchainEnv <- STM.atomically Instances.emptyBlockchainEnv
@@ -544,6 +597,7 @@ runSimulator action = do
     printLogMessages (_shouldStop state) (_logMessages state)
 
     a <- runM
+            $ runError
             $ handleDelayEffect
             $ runReader blockchainEnv
             $ runReader inst
@@ -556,10 +610,10 @@ runSimulator action = do
             result <- action
             stopThreads
             pure result
-    pure (state, a)
+    pure a
 
-test :: IO Currency.Currency
-test = fmap snd $ runSimulator $ do
+test :: IO (Either PABError Currency.Currency)
+test = runSimulation $ do
         let epName = "Create native token"
         instanceID <- either (error . show) id <$> (runAgentEffects (Wallet 1) $ activateContract Currency)
         waitForEndpoint instanceID epName
@@ -740,9 +794,6 @@ handleChainIndexControlEffect ::
 handleChainIndexControlEffect = runChainIndexEffects . \case
     ChainIndex.ChainIndexNotify n -> ChainIndex.chainIndexNotify n
 
---       fix tests / app
---       implement new client API
-
 -- | Start a thread that prints log messages to the terminal when they come in.
 printLogMessages ::
     forall t.
@@ -798,27 +849,62 @@ handleContractStore wallet = \case
         agentStatesTVar <- asks @(SimulatorState t) (view agentStates)
         view (agentState wallet . instances . to (fmap _contractDef)) <$> liftIO (STM.readTVarIO agentStatesTVar)
 
--- valueAt :: Member (State TestState) effs => Address -> Eff effs Ledger.Value
--- blockchainNewestFirst :: Lens' TestState Blockchain
-
--- | Statistics about the transactions that have been validated by the emulated node.
--- data TxCounts =
---     TxCounts
---         { _txValidated :: Int
---         -- ^ How many transactions were checked and added to the ledger
---         , _txMemPool   :: Int
---         -- ^ How many transactions remain in the mempool of the emulated node
---         } deriving (Eq, Ord, Show)
-
--- txCounts :: Member (State TestState) effs => Eff effs TxCounts
--- txCounts = do
---     chain <- use blockchainNewestFirst
---     pool <- use (nodeState . NodeServer.chainState . Wallet.Emulator.Chain.txPool)
---     return
---         $ TxCounts
---             { _txValidated = lengthOf folded chain
---             , _txMemPool   = length pool
---             }
-
 render :: forall a. Pretty a => a -> Text
 render = Render.renderStrict . layoutPretty defaultLayoutOptions . pretty
+
+
+-- | Statistics about the transactions that have been validated by the emulated node.
+data TxCounts =
+    TxCounts
+        { _txValidated :: Int
+        -- ^ How many transactions were checked and added to the ledger
+        , _txMemPool   :: Int
+        -- ^ How many transactions remain in the mempool of the emulated node
+        } deriving (Eq, Ord, Show)
+
+makeLenses ''TxCounts
+
+-- | Get the 'TxCounts' of the emulated blockchain
+txCounts ::
+    ( Member (Reader (SimulatorState TestContracts)) effs
+    , LastMember IO effs
+    )
+    => Eff effs TxCounts
+txCounts = do
+    SimulatorState{_chainState} <- ask @(SimulatorState TestContracts)
+    Chain.ChainState{Chain._chainNewestFirst, Chain._txPool} <- liftIO $ STM.readTVarIO _chainState
+    return
+        $ TxCounts
+            { _txValidated = sum (length <$> _chainNewestFirst)
+            , _txMemPool   = length _txPool
+            }
+
+activeContracts ::
+    ( Member (Reader InstancesState) effs
+    , LastMember IO effs
+    )
+    => Eff effs (Set ContractInstanceId)
+activeContracts = ask >>= liftIO . STM.atomically . Instances.instanceIDs
+
+-- | The total value currently at an address
+valueAt ::
+    ( Member (Reader (SimulatorState TestContracts)) effs
+    , LastMember IO effs
+    )
+    => Address
+    -> Eff effs Value
+valueAt address = do
+    SimulatorState{_chainState} <- ask @(SimulatorState TestContracts)
+    Chain.ChainState{Chain._index=UtxoIndex.UtxoIndex mp} <- liftIO $ STM.readTVarIO _chainState
+    pure $ foldMap txOutValue $ filter (\TxOut{txOutAddress} -> txOutAddress == address) $ fmap snd $ Map.toList mp
+
+-- | The entire chain (newest transactions first)
+blockchain ::
+    ( Member (Reader (SimulatorState TestContracts)) effs
+    , LastMember IO effs
+    )
+    => Eff effs [[Tx]]
+blockchain = do
+    SimulatorState{_chainState} <- ask @(SimulatorState TestContracts)
+    Chain.ChainState{Chain._chainNewestFirst} <- liftIO $ STM.readTVarIO _chainState
+    pure _chainNewestFirst

@@ -35,6 +35,7 @@ module Plutus.PAB.Core.ContractInstance.STM(
     , callEndpointOnInstance
     , obervableContractState
     , instanceState
+    , instanceIDs
     ) where
 
 import           Control.Applicative                               (Alternative (..))
@@ -260,6 +261,10 @@ newtype InstancesState = InstancesState (TVar (Map ContractInstanceId InstanceSt
 -- | Initialise the 'InstancesState' with an empty value
 emptyInstancesState :: STM InstancesState
 emptyInstancesState = InstancesState <$> STM.newTVar mempty
+
+-- | The IDs of all contract instances
+instanceIDs :: InstancesState -> STM (Set ContractInstanceId)
+instanceIDs (InstancesState m) = Map.keysSet <$> STM.readTVar m
 
 -- | The 'InstanceState' of the contract instance. Retries of the state can't
 --   be found in the map.

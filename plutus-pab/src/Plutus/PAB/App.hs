@@ -25,6 +25,7 @@ import           Cardano.Metadata.Client                        (handleMetadataC
 import           Cardano.Metadata.Types                         (MetadataEffect)
 import qualified Cardano.Metadata.Types                         as Metadata
 import           Cardano.Node.Client                            (handleNodeClientClient, handleRandomTxClient)
+import qualified Cardano.Protocol.Socket.Client          as Client
 import           Cardano.Node.RandomTx                          (GenRandomTx)
 import           Cardano.Node.Types                             (MockServerConfig (..))
 import qualified Cardano.Wallet.Client                          as WalletClient
@@ -53,7 +54,7 @@ import           Plutus.PAB.Db.Eventful.ContractDefinitionStore (handleContractD
 import           Plutus.PAB.Db.Eventful.ContractStore           (handleContractStore)
 import           Plutus.PAB.Effects.Contract                    (ContractDefinitionStore, ContractEffect (..),
                                                                  ContractStore)
-import           Plutus.PAB.Effects.Contract.CLI                (ContractExe, ContractExeLogMsg (..),
+import           Plutus.PAB.Effects.Contract.ContractExe                (ContractExe, ContractExeLogMsg (..),
                                                                  handleContractEffectContractExe)
 import           Plutus.PAB.Effects.ContractRuntime             (handleContractRuntime)
 import           Plutus.PAB.Effects.EventLog                    (EventLogEffect (..), handleEventLogSql)

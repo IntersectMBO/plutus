@@ -29,6 +29,8 @@ import           Data.UUID                               (UUID)
 import           GHC.TypeLits                            (KnownSymbol, symbolVal)
 import           Ledger.Tx                               (Tx)
 import qualified Ledger.Value                            as V
+import           Plutus.Contract.Checkpoint              (CheckpointLogMsg)
+import           Plutus.Contract.State                   (ContractRequest)
 import           Plutus.PAB.Events.Contract              (ContractInstanceId, IterationID)
 import           Plutus.PAB.Events.ContractInstanceState (PartiallyDecodedResponse (..))
 import           Wallet.Emulator.LogMessages             (RequestHandlerLogMsg, TxBalanceMsg)
