@@ -107,6 +107,7 @@ library
         Plutus.PAB.Events.ContractInstanceState
         Plutus.PAB.ParseStringifiedJSON
         Plutus.PAB.Simulator
+        Plutus.PAB.Simulator.Server
         Plutus.PAB.Types
     other-modules:
         Servant.Extra
