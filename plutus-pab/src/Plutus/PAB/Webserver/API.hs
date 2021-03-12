@@ -1,6 +1,8 @@
-{-# LANGUAGE DataKinds     #-}
-{-# LANGUAGE TypeFamilies  #-}
-{-# LANGUAGE TypeOperators #-}
+{-# LANGUAGE DataKinds          #-}
+{-# LANGUAGE DeriveAnyClass     #-}
+{-# LANGUAGE DerivingStrategies #-}
+{-# LANGUAGE TypeFamilies       #-}
+{-# LANGUAGE TypeOperators      #-}
 
 module Plutus.PAB.Webserver.API
     ( API
@@ -10,16 +12,20 @@ module Plutus.PAB.Webserver.API
     , NewAPI
     , ContractActivationArgs(..)
     , WalletInfo(..)
+    , ContractInstanceClientState(..)
     ) where
 
-import qualified Data.Aeson                  as JSON
-import           Data.Text                   (Text)
-import           Plutus.PAB.Effects.Contract (PABContract (..))
-import           Plutus.PAB.Webserver.Types  (ContractSignatureResponse, FullReport)
-import           Servant.API                 (Capture, Get, JSON, Post, ReqBody, (:<|>), (:>))
-import           Servant.API.WebSocket       (WebSocketPending)
-import           Wallet.Emulator.Wallet      (Wallet)
-import           Wallet.Types                (ContractInstanceId, NotificationError)
+import qualified Data.Aeson                                      as JSON
+import           Data.Text                                       (Text)
+import           GHC.Generics                                    (Generic)
+import           Language.Plutus.Contract.Effects.ExposeEndpoint (ActiveEndpoint)
+import           Plutus.PAB.Events.ContractInstanceState         (PartiallyDecodedResponse)
+
+import           Plutus.PAB.Webserver.Types                      (ContractSignatureResponse, FullReport)
+import           Servant.API                                     (Capture, Get, JSON, Post, ReqBody, (:<|>), (:>))
+import           Servant.API.WebSocket                           (WebSocketPending)
+import           Wallet.Emulator.Wallet                          (Wallet)
+import           Wallet.Types                                    (ContractInstanceId, NotificationError)
 
 type API t
      = "api" :> ("healthcheck" :> Get '[ JSON] ()
@@ -35,24 +41,41 @@ type DocumentationAPI t
 
 -- | Describes the wallet that should be used for the contract instance. 'Wallet' is a placeholder, we probably need a URL or some other data.
 newtype WalletInfo = WalletInfo { unWalletInfo :: Wallet }
+    deriving stock (Eq, Show, Generic)
+    deriving anyclass (JSON.ToJSON, JSON.FromJSON)
 
 -- | Data needed to start a new instance of a contract.
 data ContractActivationArgs t =
     ContractActivationArgs
-        { caID     :: ContractDef t -- ^ ID of the contract
+        { caID     :: t -- ^ ID of the contract
         , caWallet :: WalletInfo -- ^ Wallet that should be used for this instance
         }
+    deriving stock (Eq, Show, Generic)
+    deriving anyclass (JSON.ToJSON, JSON.FromJSON)
+
+-- | Current state of a contract instance
+--   (to be sent to external clients)
+data ContractInstanceClientState =
+    ContractInstanceClientState
+        { cicContract     :: ContractInstanceId
+        , cicCurrentState :: PartiallyDecodedResponse ActiveEndpoint
+        }
+        deriving stock (Eq, Show, Generic)
+        deriving anyclass (JSON.ToJSON, JSON.FromJSON)
 
 -- | PAB client API for contracts of type @t@. Examples of @t@ are
 --   * Contract executables that reside in the user's file system
 --   * "Builtin" contracts that run in the same process as the PAB (ie. the PAB is compiled & distributed with these contracts)
 type NewAPI t
-    = "contract" :>
-        ("activate" :> ReqBody '[ JSON] (ContractActivationArgs t) :> Post '[JSON] ContractInstanceId -- start a new instance
+    = "api" :> "new" :> "contract" :>
+        ("activate" :> ReqBody '[ JSON] (ContractActivationArgs t) :> Post '[JSON] (ContractInstanceClientState) -- start a new instance
             :<|> "instance" :>
-                    (Capture "instance-id" ContractInstanceId :> WebSocketPending -- status updates & endpoints for specific instance
-                        :<|> Get '[ JSON] [(ContractDef t, ContractInstanceId)] -- list of all instances
+                    (Capture "contract-instance-id" ContractInstanceId :>
+                        ( "status" :> Get '[JSON] (ContractInstanceClientState) -- ^ Current status of contract instance
+                        :<|> "endpoint" :> Capture "endpoint-name" String :> ReqBody '[JSON] JSON.Value :> Post '[JSON] () -- ^ Call an endpoint. Make
+                        :<|> "ws" :> WebSocketPending -- status updates, incl. open endpoints, for contract instance
+                        )
                     )
+            :<|> Get '[ JSON] [ContractInstanceClientState] -- list of all active contract instances
             :<|> Get '[JSON] [ContractSignatureResponse t] -- list of available contracts
         )
-
