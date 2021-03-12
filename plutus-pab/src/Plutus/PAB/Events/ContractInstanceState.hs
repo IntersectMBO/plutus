@@ -18,9 +18,9 @@ import qualified Data.ByteString.Lazy.Char8     as BS8
 import qualified Data.Text                      as Text
 import           Data.Text.Extras               (abbreviate)
 import           Data.Text.Prettyprint.Doc
-import           GHC.Generics                   (Generic)
-import qualified Plutus.Contract.Resumable      as Contract
-import qualified Plutus.Contract.State          as Contract
+import           GHC.Generics                       (Generic)
+import qualified Plutus.Contract.Resumable as Contract
+import qualified Plutus.Contract.State     as Contract
 
 -- TODO: Replace with type synonym for @ContractResponse Value Value Value h@
 data PartiallyDecodedResponse v =

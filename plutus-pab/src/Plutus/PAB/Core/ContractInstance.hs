@@ -217,8 +217,7 @@ stmInstanceLoop def instanceId = do
     updateState resp
     case Contract.requests @t currentState of
         [] -> do
-            let PartiallyDecodedResponse{err} = resp
-            ask >>= liftIO . STM.atomically . InstanceState.setActivity (Done err)
+            ask >>= liftIO . STM.atomically . InstanceState.setActivity Done
         _ -> do
             response <- respondToRequestsSTM @t instanceId currentState
             event <- liftIO $ STM.atomically response
