@@ -212,10 +212,12 @@ stmInstanceLoop ::
     -> Eff effs ()
 stmInstanceLoop def instanceId = do
     (currentState :: Contract.State t) <- Contract.getState @t instanceId
-    updateState (serialisableState (Proxy @t) currentState)
+    let resp = serialisableState (Proxy @t) currentState
+    updateState resp
     case Contract.requests @t currentState of
         [] -> do
-            ask >>= liftIO . STM.atomically . InstanceState.setActivity Done
+            let PartiallyDecodedResponse{err} = resp
+            ask >>= liftIO . STM.atomically . InstanceState.setActivity (Done err)
         _ -> do
             response <- respondToRequestsSTM @t instanceId currentState
             event <- liftIO $ STM.atomically response

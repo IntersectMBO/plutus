@@ -39,6 +39,8 @@ module Plutus.PAB.Simulator(
     , waitUntilSlot
     , waitNSlots
     , activeContracts
+    , finalResult
+    , waitUntilFinished
     , valueAt
     , blockchain
     -- ** Transaction counts
@@ -508,6 +510,28 @@ activeEndpoints instanceId = do
     pure $ do
         is <- Instances.instanceState instanceId instancesState
         fmap snd . Map.toList <$> Instances.openEndpoints is
+
+-- | The final result of the instance (waits until it is available)
+finalResult ::
+    forall effs.
+    ( Member (Reader InstancesState) effs)
+    => ContractInstanceId
+    -> Eff effs (STM (Maybe JSON.Value))
+finalResult instanceId = do
+    instancesState <- ask @InstancesState
+    pure $ Instances.finalResult instanceId instancesState
+
+-- | Wait until the contract is done, then return
+--   the error (if any)
+waitUntilFinished ::
+    forall effs.
+    ( Member (Reader InstancesState) effs
+    , LastMember IO effs
+    )
+    => ContractInstanceId
+    -> Eff effs (Maybe JSON.Value)
+waitUntilFinished i =
+    finalResult i >>= liftIO . STM.atomically
 
 -- | Wait until the endpoint becomes active.
 waitForEndpoint ::

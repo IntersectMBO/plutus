@@ -24,6 +24,7 @@ module Plutus.PAB.Core.ContractInstance.STM(
     , setObservableState
     , openEndpoints
     , callEndpoint
+    , finalResult
     , Activity(..)
     , TxStatus(..)
     -- * State of all running contract instances
@@ -183,7 +184,9 @@ awaitEndpointResponse Request{rqID, itID} InstanceState{issEndpoints} = do
         Just OpenEndpoint{oepResponse} -> STM.readTMVar oepResponse
 
 -- | Whether the contract instance is still waiting for an event.
-data Activity = Active | Done
+data Activity =
+        Active
+        | Done (Maybe Value) -- ^ Instance finished, possibly with an error
 
 -- | The state of an active contract instance.
 data InstanceState =
@@ -278,12 +281,22 @@ instanceState instanceId (InstancesState m) = do
 -- | Get the observable state of the contract instance. Blocks if the
 --   state is not available yet.
 obervableContractState :: ContractInstanceId -> InstancesState -> STM Value
-obervableContractState instanceId (InstancesState m) = do
-    InstanceState{issObservableState} <- instanceState instanceId (InstancesState m)
+obervableContractState instanceId m = do
+    InstanceState{issObservableState} <- instanceState instanceId m
     v <- STM.readTVar issObservableState
     case v of
         Nothing -> empty
         Just k  -> pure k
+
+-- | Return the final state of the contract when it is finished (possibly an
+--   error)
+finalResult :: ContractInstanceId -> InstancesState -> STM (Maybe Value)
+finalResult instanceId m = do
+    InstanceState{issStatus} <- instanceState instanceId m
+    v <- STM.readTVar issStatus
+    case v of
+        Done r -> pure r
+        _      -> empty
 
 -- | Insert an 'InstanceState' value into the 'InstancesState'
 insertInstance :: ContractInstanceId -> InstanceState -> InstancesState -> STM ()
