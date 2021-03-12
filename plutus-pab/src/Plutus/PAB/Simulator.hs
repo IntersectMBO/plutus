@@ -24,11 +24,15 @@ module Plutus.PAB.Simulator(
     , payToWallet
     , activateContract
     , callEndpointOnInstance
-    , nextSlot
-    , nextSlotNoDelay
+    , makeBlock
+    -- * Querying the state
     , instanceState
     , observableState
     , waitForState
+    , activeEndpoints
+    , waitForEndpoint
+    , currentSlot
+    , waitUntilSlot
     -- * Types
     , AgentThread
     , ControlThread
@@ -56,7 +60,7 @@ import           Control.Concurrent.STM                            (STM, TMVar, 
 import qualified Control.Concurrent.STM                            as STM
 import           Control.Lens                                      (Lens', _Just, anon, at, makeLenses, preview, set,
                                                                     to, view, (&), (.~), (^.))
-import           Control.Monad                                     (forM, unless, void, when)
+import           Control.Monad                                     (forM, forever, guard, void, when)
 import           Control.Monad.Freer                               (Eff, LastMember, Member, interpret, reinterpret,
                                                                     reinterpret2, run, runM, send, subsume, type (~>))
 import           Control.Monad.Freer.Delay                         (DelayEffect, delayThread, handleDelayEffect)
@@ -82,7 +86,6 @@ import           Data.Text.Prettyprint.Doc                         (Pretty (pret
 import qualified Data.Text.Prettyprint.Doc.Render.Text             as Render
 import           Data.Time.Units                                   (Millisecond)
 import qualified Language.PlutusTx.Coordination.Contracts.Currency as Currency
-import qualified Ledger.Ada                                        as Ada
 import           Ledger.Tx                                         (Tx)
 import           Ledger.Value                                      (Value)
 import           Plutus.PAB.Effects.UUID                           (UUIDEffect, handleUUIDEffect)
@@ -91,9 +94,10 @@ import           Wallet.Emulator.MultiAgent                        (EmulatorTime
 import qualified Wallet.Emulator.Stream                            as Emulator
 import           Wallet.Emulator.Wallet                            (Wallet (..), WalletEvent (..))
 
+import           Language.Plutus.Contract.Effects.ExposeEndpoint   (ActiveEndpoint (..))
 import qualified Plutus.PAB.Core.ContractInstance                  as ContractInstance
 import qualified Plutus.PAB.Core.ContractInstance.BlockchainEnv    as BlockchainEnv
-import           Plutus.PAB.Core.ContractInstance.STM              (BlockchainEnv, InstancesState)
+import           Plutus.PAB.Core.ContractInstance.STM              (BlockchainEnv, InstancesState, OpenEndpoint)
 import qualified Plutus.PAB.Core.ContractInstance.STM              as Instances
 import           Plutus.PAB.Effects.Contract                       (ContractEffect, ContractStore)
 import qualified Plutus.PAB.Effects.Contract                       as Contract
@@ -147,7 +151,6 @@ agentState wallet = at wallet . anon (initialAgentState wallet) (const False)
 data SimulatorState t =
     SimulatorState
         { _logMessages :: TQueue (LogMessage PABMultiAgentMsg)
-        , _currentSlot :: TVar Slot
         , _chainState  :: TVar ChainState
         , _agentStates :: TVar (Map Wallet (AgentState t))
         , _chainIndex  :: TVar ChainIndex.ChainIndexState
@@ -162,7 +165,6 @@ initialState = do
     STM.atomically $
         SimulatorState
             <$> STM.newTQueue
-            <*> STM.newTVar 0
             <*> STM.newTVar _chainState
             <*> STM.newTVar mempty
             <*> STM.newTVar mempty
@@ -319,6 +321,8 @@ type ControlEffects effs =
     ': LogMsg PABMultiAgentMsg
     ': Reader InstancesState
     ': Reader BlockchainEnv
+    ': Reader (SimulatorState TestContracts)
+    ': DelayEffect
     ': effs
 
 type ControlThread a = Eff (ControlEffects '[IO]) a
@@ -352,6 +356,8 @@ runControlEffects action = do
         $ runReader state
         $ interpret (writeIntoTQueue @_ @(SimulatorState TestContracts) logMessages)
         $ subsume @IO
+        $ handleDelayEffect
+        $ runReader state
         $ runReader blockchainEnv
         $ runReader instancesState
         $ interpret (handleLogWriter id)
@@ -425,25 +431,16 @@ stopThreads = do
     liftIO $ STM.atomically $ STM.putTMVar v ()
 
 -- | Wait 0.2 seconds, then add a new block.
-nextSlot ::
+makeBlock ::
     ( LastMember IO effs
     , Member (Reader (SimulatorState TestContracts)) effs
     , Member (Reader InstancesState) effs
     , Member (Reader BlockchainEnv) effs
     , Member DelayEffect effs
     ) => Eff effs ()
-nextSlot = do
+makeBlock = do
     delayThread (200 :: Millisecond)
     void $ runControlEffects Chain.processBlock
-
--- | Add a new block immediately.
-nextSlotNoDelay ::
-    ( LastMember IO effs
-    , Member (Reader (SimulatorState TestContracts)) effs
-    , Member (Reader InstancesState) effs
-    , Member (Reader BlockchainEnv) effs
-    ) => Eff effs ()
-nextSlotNoDelay = void $ runControlEffects Chain.processBlock
 
 -- | Get the current state of the contract instance.
 instanceState ::
@@ -465,7 +462,7 @@ observableState ::
     -> Eff effs (STM JSON.Value)
 observableState instanceId = do
     instancesState <- ask @InstancesState
-    pure $ Instances.contractState instanceId instancesState
+    pure $ Instances.obervableContractState instanceId instancesState
 
 -- | Wait until the observable state of the instance matches a predicate.
 waitForState ::
@@ -483,6 +480,56 @@ waitForState extract instanceId = do
         case extract state of
             Nothing -> empty
             Just k  -> pure k
+
+-- | The list of endpoints that are currently open
+activeEndpoints ::
+    forall effs.
+    ( Member (Reader InstancesState) effs)
+    => ContractInstanceId
+    -> Eff effs (STM [OpenEndpoint])
+activeEndpoints instanceId = do
+    instancesState <- ask @InstancesState
+    pure $ do
+        is <- Instances.instanceState instanceId instancesState
+        fmap snd . Map.toList <$> Instances.openEndpoints is
+
+-- | Wait until the endpoint becomes active.
+waitForEndpoint ::
+    forall effs.
+    ( Member (Reader InstancesState) effs
+    , LastMember IO effs
+    )
+    => ContractInstanceId
+    -> String
+    -> Eff effs ()
+waitForEndpoint instanceId endpointName = do
+    tx <- activeEndpoints instanceId
+    liftIO $ STM.atomically $ do
+        eps <- tx
+        guard $ any (\Instances.OpenEndpoint{Instances.oepName=ActiveEndpoint{aeDescription=EndpointDescription nm}} -> nm == endpointName) eps
+
+currentSlot ::
+    forall effs.
+    ( Member (Reader BlockchainEnv) effs
+    )
+    => Eff effs (STM Slot)
+currentSlot = do
+    Instances.BlockchainEnv{Instances.beCurrentSlot} <- ask
+    pure $ STM.readTVar beCurrentSlot
+
+-- | Wait until the target slot number has been reached
+waitUntilSlot ::
+    forall effs.
+    ( Member (Reader BlockchainEnv) effs
+    , LastMember IO effs
+    )
+    => Slot
+    -> Eff effs ()
+waitUntilSlot targetSlot = do
+    tx <- currentSlot
+    void $ liftIO $ STM.atomically $ do
+        s <- tx
+        guard (s >= targetSlot)
 
 -- | Run a simulation on a mockchain with initial values
 runSimulator ::
@@ -504,36 +551,34 @@ runSimulator action = do
             $ interpret (writeIntoTQueue @_ @(SimulatorState TestContracts) logMessages)
             $ reinterpret @(LogMsg PABMultiAgentMsg) (handleLogWriter id)
             $ do
-            -- Make 1st block with initial transaction
-            _ <- runControlEffects Chain.processBlock
+            void $ liftIO $ forkIO $ runM $ runReader state $ runReader inst $ runReader blockchainEnv $ handleDelayEffect $ advanceClock
+            waitUntilSlot 1
             result <- action
             stopThreads
             pure result
     pure (state, a)
 
-test :: IO ()
-test = void $ runSimulator $ do
-        _ <- runAgentEffects (Wallet 1) $ payToWallet (Wallet 2) (Ada.adaValueOf 1)
-        nextSlot
+test :: IO Currency.Currency
+test = fmap snd $ runSimulator $ do
+        let epName = "Create native token"
         instanceID <- either (error . show) id <$> (runAgentEffects (Wallet 1) $ activateContract Currency)
-        nextSlot
-        void $ callEndpointOnInstance instanceID "Create native token" (Currency.SimpleMPS{Currency.tokenName = "my token", Currency.amount = 1000})
-        nextSlot
-        nextSlot
-        nextSlot
+        waitForEndpoint instanceID epName
+        void $ callEndpointOnInstance instanceID epName (Currency.SimpleMPS{Currency.tokenName = "my token", Currency.amount = 1000})
         let conv :: JSON.Value -> Maybe Currency.Currency
             conv vl = do
                 case JSON.parseEither JSON.parseJSON vl of
                     Right (Just (Last cur)) -> Just cur
                     _                       -> Nothing
 
-        waitForState conv instanceID >>= logString . show
+        result <- waitForState conv instanceID
+        logString (show result)
+        pure result
 
 -- | Annotate log messages with the current slot number.
 timed ::
     forall e m effs.
-    ( Member (Reader (SimulatorState TestContracts)) effs
-    , Member (LogMsg (EmulatorTimeEvent e)) effs
+    ( Member (LogMsg (EmulatorTimeEvent e)) effs
+    , Member (Reader BlockchainEnv) effs
     , LastMember m effs
     , MonadIO m
     )
@@ -542,7 +587,7 @@ timed ::
 timed = \case
     LMessage m -> do
         m' <- forM m $ \msg -> do
-            sl <- asks @(SimulatorState TestContracts) (view currentSlot) >>= liftIO . STM.readTVarIO
+            sl <- asks @Instances.BlockchainEnv Instances.beCurrentSlot >>= liftIO . STM.readTVarIO
             pure (EmulatorTimeEvent sl msg)
         send (LMessage m')
 
@@ -601,7 +646,7 @@ runChainEffects ::
     => Eff (Chain.ChainEffect ': Chain.ChainControlEffect ': Chain.ChainEffs) a
     -> Eff effs a
 runChainEffects action = do
-    SimulatorState{_chainState, _currentSlot} <- ask @(SimulatorState TestContracts)
+    SimulatorState{_chainState} <- ask @(SimulatorState TestContracts)
     (a, logs) <- liftIO $ STM.atomically $ do
                         oldState <- STM.readTVar _chainState
                         let ((a, newState), logs) =
@@ -612,9 +657,6 @@ runChainEffects action = do
                                 $ interpret Chain.handleControlChain
                                 $ interpret Chain.handleChain
                                 $ action
-                            newSlot = view Chain.currentSlot newState
-                        oldSlot <- STM.readTVar _currentSlot
-                        unless (newSlot == oldSlot) $  STM.writeTVar _currentSlot newSlot
                         STM.writeTVar _chainState newState
                         pure (a, logs)
     traverse_ (send . LMessage) logs
@@ -698,8 +740,6 @@ handleChainIndexControlEffect ::
 handleChainIndexControlEffect = runChainIndexEffects . \case
     ChainIndex.ChainIndexNotify n -> ChainIndex.chainIndexNotify n
 
--- TODO: (1) Update currency contract to write out state
---       (2) Look at state in emulator
 --       fix tests / app
 --       implement new client API
 
@@ -718,6 +758,17 @@ printLogMessages terminate queue = void $ forkIO $ go where
                 when (msg ^. logLevel >= Info) (Text.putStrLn (render msg))
                 go
             Right _ -> pure ()
+
+advanceClock ::
+    forall effs.
+    ( LastMember IO effs
+    , Member (Reader (SimulatorState TestContracts)) effs
+    , Member (Reader InstancesState) effs
+    , Member (Reader BlockchainEnv) effs
+    , Member DelayEffect effs
+    )
+    => Eff effs ()
+advanceClock = forever makeBlock
 
 -- | Handle the 'ContractStore' effect by writing the state to the
 --   TVar in 'SimulatorState'
@@ -746,8 +797,6 @@ handleContractStore wallet = \case
     Contract.ActiveContracts -> do
         agentStatesTVar <- asks @(SimulatorState t) (view agentStates)
         view (agentState wallet . instances . to (fmap _contractDef)) <$> liftIO (STM.readTVarIO agentStatesTVar)
-
--- TODO: Inspect instance state
 
 -- valueAt :: Member (State TestState) effs => Address -> Eff effs Ledger.Value
 -- blockchainNewestFirst :: Lens' TestState Blockchain

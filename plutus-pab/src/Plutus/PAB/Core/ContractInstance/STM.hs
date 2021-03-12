@@ -33,7 +33,8 @@ module Plutus.PAB.Core.ContractInstance.STM(
     , watchedAddresses
     , watchedTransactions
     , callEndpointOnInstance
-    , contractState
+    , obervableContractState
+    , instanceState
     ) where
 
 import           Control.Applicative                               (Alternative (..))
@@ -112,7 +113,6 @@ tx construction and signing).
 data OpenEndpoint =
         OpenEndpoint
             { oepName     :: ActiveEndpoint -- ^ Name of the endpoint
-            , oepMeta     :: Maybe Value -- ^ Metadata that was provided by the contract
             , oepResponse :: TMVar (EndpointValue Value) -- ^ A place to write the response to.
             }
 
@@ -224,7 +224,7 @@ clearEndpoints InstanceState{issEndpoints} = STM.writeTVar issEndpoints Map.empt
 -- | Add an active endpoint to the instance's list of active endpoints.
 addEndpoint :: Request ActiveEndpoint -> InstanceState -> STM ()
 addEndpoint Request{rqID, itID, rqRequest} InstanceState{issEndpoints} = do
-    endpoint <- OpenEndpoint rqRequest Nothing <$> STM.newEmptyTMVar
+    endpoint <- OpenEndpoint rqRequest <$> STM.newEmptyTMVar
     STM.modifyTVar issEndpoints (Map.insert (rqID, itID) endpoint)
 
 -- | Write a new value into the contract instance's observable state.
@@ -261,18 +261,24 @@ newtype InstancesState = InstancesState (TVar (Map ContractInstanceId InstanceSt
 emptyInstancesState :: STM InstancesState
 emptyInstancesState = InstancesState <$> STM.newTVar mempty
 
--- | Get the observable state of the contract instance. Blocks if the
---   state is not available yet.
-contractState :: ContractInstanceId -> InstancesState -> STM Value
-contractState instanceId (InstancesState m) = do
+-- | The 'InstanceState' of the contract instance. Retries of the state can't
+--   be found in the map.
+instanceState :: ContractInstanceId -> InstancesState -> STM InstanceState
+instanceState instanceId (InstancesState m) = do
     mp <- STM.readTVar m
     case Map.lookup instanceId mp of
         Nothing -> empty
-        Just InstanceState{issObservableState} -> do
-            v <- STM.readTVar issObservableState
-            case v of
-                Nothing -> empty
-                Just k  -> pure k
+        Just s  -> pure s
+
+-- | Get the observable state of the contract instance. Blocks if the
+--   state is not available yet.
+obervableContractState :: ContractInstanceId -> InstancesState -> STM Value
+obervableContractState instanceId (InstancesState m) = do
+    InstanceState{issObservableState} <- instanceState instanceId (InstancesState m)
+    v <- STM.readTVar issObservableState
+    case v of
+        Nothing -> empty
+        Just k  -> pure k
 
 -- | Insert an 'InstanceState' value into the 'InstancesState'
 insertInstance :: ContractInstanceId -> InstanceState -> InstancesState -> STM ()
