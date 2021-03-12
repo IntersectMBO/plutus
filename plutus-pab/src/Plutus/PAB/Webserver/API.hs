@@ -68,7 +68,7 @@ data ContractInstanceClientState =
 --   * "Builtin" contracts that run in the same process as the PAB (ie. the PAB is compiled & distributed with these contracts)
 type NewAPI t
     = "api" :> "new" :> "contract" :>
-        ("activate" :> ReqBody '[ JSON] (ContractActivationArgs t) :> Post '[JSON] (ContractInstanceClientState) -- start a new instance
+        ("activate" :> ReqBody '[ JSON] (ContractActivationArgs t) :> Post '[JSON] ContractInstanceId -- start a new instance
             :<|> "instance" :>
                     (Capture "contract-instance-id" ContractInstanceId :>
                         ( "status" :> Get '[JSON] (ContractInstanceClientState) -- ^ Current status of contract instance

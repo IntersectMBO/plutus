@@ -50,29 +50,29 @@ module Plutus.PAB.Simulator(
     , AgentThread
     , ControlThread
     , runAgentEffects
+    , SimulatorState(..)
     , chainState
     , agentStates
     , chainIndex
+    , instances
+    , contractDef
     -- * Agents
     , AgentState(..)
     , initialAgentState
     , agentState
-    , instances
-    -- * Contract instances
-    , SimulatorContractInstanceState
-    , contractState
-    , contractDef
-
+    -- * Runnning simulations
+    , SimRunner(..)
+    , mkRunSim
     -- Testing
     , test
     ) where
 
 import           Control.Applicative                               (Alternative (..))
 import           Control.Concurrent                                (forkIO)
-import           Control.Concurrent.STM                            (STM, TMVar, TQueue, TVar)
+import           Control.Concurrent.STM                            (STM, TQueue, TVar)
 import qualified Control.Concurrent.STM                            as STM
 import           Control.Lens                                      (Lens', _Just, anon, at, makeLenses, preview, set,
-                                                                    to, view, (&), (.~), (^.))
+                                                                    view, (&), (.~), (^.))
 import           Control.Monad                                     (forM, forever, guard, void, when)
 import           Control.Monad.Freer                               (Eff, LastMember, Member, interpret, reinterpret,
                                                                     reinterpret2, run, runM, send, subsume, type (~>))
@@ -148,7 +148,6 @@ makeLenses ''SimulatorContractInstanceState
 data AgentState t =
     AgentState
         { _walletState :: Wallet.WalletState
-        , _instances   :: Map ContractInstanceId (SimulatorContractInstanceState t)
         }
 
 makeLenses ''AgentState
@@ -157,7 +156,6 @@ initialAgentState :: forall t. Wallet -> AgentState t
 initialAgentState wallet =
     AgentState
         { _walletState = Wallet.emptyWalletState wallet
-        , _instances   = Map.empty
         }
 
 agentState :: forall t. Wallet.Wallet -> Lens' (Map Wallet (AgentState t)) (AgentState t)
@@ -169,7 +167,7 @@ data SimulatorState t =
         , _chainState  :: TVar ChainState
         , _agentStates :: TVar (Map Wallet (AgentState t))
         , _chainIndex  :: TVar ChainIndex.ChainIndexState
-        , _shouldStop  :: TMVar () -- ^ Signal for the logs-printing thread to terminate.
+        , _instances   :: TVar (Map ContractInstanceId (SimulatorContractInstanceState t))
         }
 
 makeLenses ''SimulatorState
@@ -183,7 +181,7 @@ initialState = do
             <*> STM.newTVar _chainState
             <*> STM.newTVar mempty
             <*> STM.newTVar mempty
-            <*> STM.newEmptyTMVar
+            <*> STM.newTVar mempty
 
 -- | Effects available to simulated agents that run in their own thread
 type AgentEffects effs =
@@ -209,6 +207,12 @@ type AgentEffects effs =
 
 type AgentThread a = Eff (AgentEffects '[IO]) a
 
+handleContractTestMsg :: forall x effs. Member (LogMsg PABMultiAgentMsg) effs => Eff (LogMsg ContractTestMsg ': effs) x -> Eff effs x
+handleContractTestMsg = interpret (mapLog @_ @PABMultiAgentMsg ContractMsg)
+
+handleContractRuntimeMsg :: forall x effs. Member (LogMsg PABMultiAgentMsg) effs => Eff (LogMsg ContractRuntime.ContractRuntimeMsg ': effs) x -> Eff effs x
+handleContractRuntimeMsg = interpret (mapLog @_ @PABMultiAgentMsg RuntimeLog)
+
 handleAgentThread ::
     forall a.
     SimulatorState TestContracts
@@ -232,11 +236,6 @@ handleAgentThread state blockchainEnv instancesState wallet action = do
             . reinterpret (timed @EmulatorEvent')
             . reinterpret (mapLog (ChainIndexEvent wllt))
 
-        handleContractTestMsg :: forall x effs. Member (LogMsg PABMultiAgentMsg) effs => Eff (LogMsg ContractTestMsg ': effs) x -> Eff effs x
-        handleContractTestMsg = interpret (mapLog @_ @PABMultiAgentMsg ContractMsg)
-
-        handleContractRuntimeMsg :: forall x effs. Member (LogMsg PABMultiAgentMsg) effs => Eff (LogMsg ContractRuntime.ContractRuntimeMsg ': effs) x -> Eff effs x
-        handleContractRuntimeMsg = interpret (mapLog @_ @PABMultiAgentMsg RuntimeLog)
     runM
         $ runReader state
         $ runError
@@ -268,7 +267,7 @@ handleAgentThread state blockchainEnv instancesState wallet action = do
         $ interpret (runWalletState wallet)
         $ reinterpret2 @_ @(State Wallet.WalletState) @(Error WAPI.WalletAPIError) Wallet.handleWallet
 
-        $ interpret @(ContractStore TestContracts) (handleContractStore wallet)
+        $ interpret @(ContractStore TestContracts) handleContractStore
 
         $ handleContractTestMsg
         $ reinterpret @(ContractEffect TestContracts) @(LogMsg ContractTestMsg) handleContractTest
@@ -446,19 +445,6 @@ logString = logInfo . UserLog . Text.pack
 logPretty :: forall a effs. (Pretty a, Member (LogMsg PABMultiAgentMsg) effs) => a -> Eff effs ()
 logPretty = logInfo . UserLog . render
 
--- | Stop the logging thread after a grace period.
-stopThreads ::
-    forall effs.
-    ( Member (Reader (SimulatorState TestContracts)) effs
-    , LastMember IO effs
-    , Member DelayEffect effs
-    )
-    => Eff effs ()
-stopThreads = do
-    v <- asks @(SimulatorState TestContracts) (view shouldStop)
-    delayThread (500 :: Millisecond) -- need to wait a little to avoid garbled terminal output in GHCi.
-    liftIO $ STM.atomically $ STM.putTMVar v ()
-
 -- | Wait 0.2 seconds, then add a new block.
 makeBlock ::
     ( LastMember IO effs
@@ -573,7 +559,9 @@ waitNSlots i = do
     waitUntilSlot (current + fromIntegral i)
 
 type SimulatorEffects =
-    '[ LogMsg PABMultiAgentMsg
+    '[ ContractStore TestContracts
+     , ContractEffect TestContracts
+     , LogMsg PABMultiAgentMsg
      , Reader (SimulatorState TestContracts)
      , Reader InstancesState
      , Reader BlockchainEnv
@@ -583,6 +571,30 @@ type SimulatorEffects =
      ]
 
 type Simulation a = Eff SimulatorEffects a
+
+-- | Simulation running function
+newtype SimRunner = SimRunner { runSim :: forall a. Simulation a -> IO (Either PABError a)}
+
+-- | Use the environment of the simulation to build
+--   a simulation running function.
+mkRunSim :: Simulation SimRunner
+mkRunSim = do
+    simState <- ask @(SimulatorState TestContracts)
+    instancesState <- ask @InstancesState
+    blockchainEnv <- ask @BlockchainEnv
+    pure $ SimRunner $ \action -> do
+        runM
+            $ runError
+            $ handleDelayEffect
+            $ runReader blockchainEnv
+            $ runReader instancesState
+            $ runReader simState
+            $ interpret (writeIntoTQueue @_ @(SimulatorState TestContracts) logMessages)
+            $ reinterpret @(LogMsg PABMultiAgentMsg) (handleLogWriter id)
+            $ handleContractTestMsg
+            $ reinterpret @_ @(LogMsg ContractTestMsg) handleContractTest
+            $ interpret handleContractStore
+            $ action
 
 -- | Run a simulation on a mockchain with initial values
 runSimulation ::
@@ -594,7 +606,7 @@ runSimulation action = do
     blockchainEnv <- STM.atomically Instances.emptyBlockchainEnv
     -- TODO: Optionally start the webserver?
 
-    printLogMessages (_shouldStop state) (_logMessages state)
+    printLogMessages (_logMessages state)
 
     a <- runM
             $ runError
@@ -604,11 +616,14 @@ runSimulation action = do
             $ runReader state
             $ interpret (writeIntoTQueue @_ @(SimulatorState TestContracts) logMessages)
             $ reinterpret @(LogMsg PABMultiAgentMsg) (handleLogWriter id)
+            $ handleContractTestMsg
+            $ reinterpret @_ @(LogMsg ContractTestMsg) handleContractTest
+            $ interpret handleContractStore
             $ do
             void $ liftIO $ forkIO $ runM $ runReader state $ runReader inst $ runReader blockchainEnv $ handleDelayEffect $ advanceClock
             waitUntilSlot 1
             result <- action
-            stopThreads
+            delayThread (500 :: Millisecond) -- need to wait a little to avoid garbled terminal output in GHCi.
             pure result
     pure a
 
@@ -798,17 +813,11 @@ handleChainIndexControlEffect = runChainIndexEffects . \case
 printLogMessages ::
     forall t.
     Pretty t
-    => TMVar () -- ^ Termination signal
-    -> TQueue (LogMessage t) -- ^ log messages
+    => TQueue (LogMessage t) -- ^ log messages
     -> IO ()
-printLogMessages terminate queue = void $ forkIO $ go where
-    go = do
-        input <- STM.atomically $ (Left <$> STM.readTQueue queue) <|> (Right <$> STM.readTMVar terminate)
-        case input of
-            Left msg -> do
-                when (msg ^. logLevel >= Info) (Text.putStrLn (render msg))
-                go
-            Right _ -> pure ()
+printLogMessages queue = void $ forkIO $ forever $ do
+    msg <- STM.atomically $ STM.readTQueue queue
+    when (msg ^. logLevel >= Info) (Text.putStrLn (render msg))
 
 advanceClock ::
     forall effs.
@@ -830,24 +839,23 @@ handleContractStore ::
     , Member (Reader (SimulatorState t)) effs
     , Member (Error PABError) effs
     )
-    => Wallet
-    -> ContractStore t
+    => ContractStore t
     ~> Eff effs
-handleContractStore wallet = \case
+handleContractStore = \case
     Contract.PutState def instanceId state -> do
-        agentStatesTVar <- asks @(SimulatorState t) (view agentStates)
+        instancesTVar <- asks @(SimulatorState t) (view instances)
         liftIO $ STM.atomically $ do
             let instState = SimulatorContractInstanceState{_contractDef = def, _contractState = state}
-            STM.modifyTVar agentStatesTVar (set (agentState wallet . instances . at instanceId) (Just instState))
+            STM.modifyTVar instancesTVar (set (at instanceId) (Just instState))
     Contract.GetState instanceId -> do
-        agentStatesTVar <- asks @(SimulatorState t) (view agentStates)
-        result <- preview (agentState wallet . instances . at instanceId . _Just . contractState) <$> liftIO (STM.readTVarIO agentStatesTVar)
+        instancesTVar <- asks @(SimulatorState t) (view instances)
+        result <- preview (at instanceId . _Just . contractState) <$> liftIO (STM.readTVarIO instancesTVar)
         case result of
             Just s  -> pure s
             Nothing -> throwError (ContractInstanceNotFound instanceId)
     Contract.ActiveContracts -> do
-        agentStatesTVar <- asks @(SimulatorState t) (view agentStates)
-        view (agentState wallet . instances . to (fmap _contractDef)) <$> liftIO (STM.readTVarIO agentStatesTVar)
+        instancesTVar <- asks @(SimulatorState t) (view instances)
+        fmap _contractDef <$> liftIO (STM.readTVarIO instancesTVar)
 
 render :: forall a. Pretty a => a -> Text
 render = Render.renderStrict . layoutPretty defaultLayoutOptions . pretty
