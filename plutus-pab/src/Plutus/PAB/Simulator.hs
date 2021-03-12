@@ -68,7 +68,7 @@ import qualified Wallet.Emulator.Stream                   as Emulator
 import           Wallet.Emulator.Wallet                   (Wallet (..), WalletEvent (..))
 
 import           Plutus.PAB.Core.ContractInstance         as ContractInstance
-import           Plutus.PAB.Core.ContractInstance.STM     (InstancesState)
+import           Plutus.PAB.Core.ContractInstance.STM     (BlockchainEnv, InstancesState)
 import qualified Plutus.PAB.Core.ContractInstance.STM     as Instances
 import           Plutus.PAB.Effects.Contract              (ContractEffect, ContractStore)
 import qualified Plutus.PAB.Effects.Contract              as Contract
@@ -158,6 +158,7 @@ type AgentEffects effs =
     ': LogMsg Text
     ': Error PABError
     ': Reader InstancesState
+    ': Reader BlockchainEnv
     ': effs
 
 type AgentThread a = Eff (AgentEffects '[IO]) a
@@ -165,11 +166,12 @@ type AgentThread a = Eff (AgentEffects '[IO]) a
 handleAgentThread ::
     forall a.
     SimulatorState TestContracts
+    -> BlockchainEnv
     -> InstancesState
     -> Wallet
     -> Eff (AgentEffects '[IO]) a
     -> IO (Either PABError a)
-handleAgentThread state instancesState wallet action = do
+handleAgentThread state blockchainEnv instancesState wallet action = do
     let action' :: Eff (AgentEffects '[IO, Writer [LogMessage PABMultiAgentMsg], Error PABError, Reader (SimulatorState TestContracts), IO]) a = Modify.raiseEnd action
         makeTimedWalletEvent wllt =
             interpret @(LogMsg PABMultiAgentMsg) (handleLogWriter _singleton)
@@ -201,6 +203,7 @@ handleAgentThread state instancesState wallet action = do
         $ runError
         $ interpret (writeIntoStateTVar @_ @(SimulatorState TestContracts) logMessages) -- TODO: We could also print it to the terminal
         $ subsume @IO
+        $ runReader blockchainEnv
         $ runReader instancesState
         $ subsume @(Error PABError)
         $ (makeTimedWalletEvent wallet . reinterpret (mapLog GenericLog))
@@ -270,6 +273,7 @@ runAgentEffects ::
     forall a effs.
     ( Member (Reader InstancesState) effs
     , Member (Reader (SimulatorState TestContracts)) effs
+    , Member (Reader BlockchainEnv) effs
     , LastMember IO effs
     )
     => Wallet
@@ -278,7 +282,8 @@ runAgentEffects ::
 runAgentEffects wallet action = do
     state <- ask @(SimulatorState TestContracts)
     inst <- ask @InstancesState
-    result <- liftIO $ handleAgentThread state inst wallet action
+    blockchainEnv <- ask @BlockchainEnv
+    result <- liftIO $ handleAgentThread state blockchainEnv inst wallet action
     pure result
 
 -- | Control effects for managing the chain
@@ -335,12 +340,13 @@ payToWallet target amount = WAPI.payToPublicKey WAPI.defaultSlotRange amount (Em
 
 -- | Run a simulation on a mockchain with initial values
 runSimulator ::
-    Eff '[Reader (SimulatorState TestContracts), Reader InstancesState, IO] a
+    Eff '[Reader (SimulatorState TestContracts), Reader InstancesState, Reader BlockchainEnv, IO] a
     -> IO (SimulatorState TestContracts, a)
 runSimulator action = do
     state <- initialState
     inst <- STM.atomically Instances.emptyInstancesState
-    a <- runM $ runReader inst $ runReader state $ do
+    blockchainEnv <- STM.atomically Instances.emptyBlockchainEnv
+    a <- runM $ runReader blockchainEnv $ runReader inst $ runReader state $ do
             -- Make 1st block with initial transaction
             _ <- runControlEffects Chain.processBlock
             action
