@@ -42,6 +42,7 @@ import qualified Wallet.Emulator.Wallet                   as Wallet
 -- Each agent corresponds to one PAB, with its own view of the world, all acting
 -- on the same blockchain.
 
+-- FIXME: Replace with PABLogMsg?
 data PABMultiAgentMsg =
     EmulatorMsg EmulatorEvent
     | ContractMsg ContractTestMsg

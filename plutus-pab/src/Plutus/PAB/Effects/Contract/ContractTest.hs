@@ -86,10 +86,12 @@ instance Pretty TestContracts where
 
 -- | A mock/test handler for 'ContractEffect'
 handleContractTest ::
-    (Member (Error PABError) effs, Member (LogMsg ContractTestMsg) effs)
-    => Eff (ContractEffect TestContracts ': effs)
+    ( Member (Error PABError) effs
+    , Member (LogMsg ContractTestMsg) effs
+    )
+    => ContractEffect TestContracts
     ~> Eff effs
-handleContractTest = interpret $ \case
+handleContractTest = \case
     InitialState c -> case c of
         Game        -> doContractInit game
         Currency    -> doContractInit currency
