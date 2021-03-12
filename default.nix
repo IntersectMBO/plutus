@@ -95,9 +95,4 @@ rec {
   deployment = pkgs.callPackage ./deployment {
     inherit plutus marlowe-playground plutus-playground;
   };
-
-  docker = import ./nix/docker.nix {
-    inherit (pkgs) dockerTools binutils-unwrapped coreutils bash git cabal-install writeTextFile;
-    inherit plutus-playground marlowe-playground haskell;
-  };
 }
