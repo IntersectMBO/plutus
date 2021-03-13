@@ -7,7 +7,6 @@ let
       # the playground uses ghc at runtime so it needs one packaged up with the dependencies it needs in one place
       runtimeGhc = haskell.project.ghcWithPackages (ps: [
         ps.marlowe
-        ps.marlowe-playground-server
       ]);
     in
     pkgs.runCommand "marlowe-server-invoker" { buildInputs = [ pkgs.makeWrapper ]; } ''
