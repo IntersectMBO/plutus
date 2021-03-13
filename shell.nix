@@ -61,6 +61,7 @@ let
 
   # local build inputs ( -> ./nix/pkgs/default.nix )
   localInputs = (with plutus; [
+    aws-mfa-login
     cabal-install
     fixPurty
     fixStylishHaskell

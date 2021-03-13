@@ -3,7 +3,7 @@
 }:
 let
   inherit (packages) pkgs;
-  inherit (pkgs) terraform awscli mkShell writeShellScriptBin pass lib morph;
+  inherit (pkgs) terraform awscli mkShell writeShellScriptBin pass lib morph jq;
   inherit (pkgs.stdenv) isDarwin;
 
   e = "tobias";
@@ -16,6 +16,7 @@ let
     export PASSWORD_STORE_DIR="$(pwd)/../secrets"
 
     # Set up environment we want to work on
+    export DEPLOYMENT_ENV="${env}"
 
     # Set up secrets for the environment
     export TF_VAR_marlowe_github_client_id=$(pass ${env}/marlowe/githubClientId)
@@ -41,8 +42,17 @@ let
     fi
   '';
 
-  # deploy-nix: wrapper around executing `morph deploy` which ensures that
-  # terraform is up to date.
+  provisionInfra = writeShellScriptBin "provision-infra" ''
+    set -eou pipefail
+
+    echo "[provision-infra]: Provisioning infrastructure using terraform"
+    terraform apply ./terraform
+  '';
+
+  # deploy-nix: wrapper around executing `morph deploy` 
+  # - Checks if `machines.json` is present - aborts if not
+  # - Checks if terraform is up to date - aborts if not
+  # - Writes secrets files
   deployNix = writeShellScriptBin "deploy-nix" ''
     set -eou pipefail
 
@@ -52,43 +62,58 @@ let
       exit 1
     fi
 
-    # TODO: Extract secrets from machines.json
-
-    echo "[deploy-nix]: Starting deployment ..."
-    ${morph}/bin/morph deploy ./morph/default.nix switch
-  '';
-
-
-  # getCreds : Log in to AWS using MFA
-  # Sets the following variables:
-  # - AWS_PROFILE
-  # - AWS_SESSION_TOKEN
-  # - AWS_SECRET_ACCESS_KEY
-  # - AWS_ACCESS_KEY_ID
-  aws-mfa-login = writeShellScriptBin "aws-mfa-login" ''
-    set -eou pipefail
-
-    if [[ $# -ne 2 ]]; then
-      echo "Please call the script with your AWS account username followed by the MFA code"
+    if ! [ -f ./machines.json ]; then
+      echo "[deploy-nix]: machines.json is not present. Aborting."
       exit 1
     fi
-    export AWS_PROFILE=dev-mantis
-    unset AWS_SESSION_TOKEN
-    unset AWS_SECRET_ACCESS_KEY
-    unset AWS_ACCESS_KEY_ID
 
-    read AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY AWS_SESSION_TOKEN <<< \
-      $(${awscli}/bin/aws sts get-session-token --serial-number "arn:aws:iam::454236594309:mfa/$1" \
-                                                --output text \
-                                                --duration-seconds 86400 \
-                                                --token-code "$2" \
-                                                | awk '{ print $2 $4 $5 }')
-    ${awscli}/bin/aws sts get-caller-identity
+    echo "[deploy-nix]: copying machines.json .."
+    cp ./machines.json ./morph
+
+    if [ -z "$DEPLOYMENT_ENV" ]; then
+      echo "[deploy-nix]: Error, 'DEPLOYMENT_ENV' is not set! Aborting."
+      exit 1
+    fi
+
+    echo "[deploy-nix]: Writing secrets ..."
+    plutus_tld=$(cat ./machines.json | ${jq}/bin/jq -r '.plutusTld')
+    cat > ./morph/secrets.plutus.$DEPLOYMENT_ENV.env <<EOL
+    JWT_SIGNATURE="$(pass $DEPLOYMENT_ENV/plutus/jwtSignature)"
+    FRONTEND_URL="https://$DEPLOYMENT_ENV.$plutus_tld"
+    GITHUB_CALLBACK_PATH="/#/gh-oauth-cb"
+    GITHUB_CLIENT_ID="$(pass $DEPLOYMENT_ENV/plutus/githubClientId)"
+    GITHUB_CLIENT_SECRET="$(pass $DEPLOYMENT_ENV/plutus/githubClientSecret)"
+    WEBGHC_URL="https://$DEPLOYMENT_ENV.$plutus_tld"
+    EOL
+
+    marlowe_tld=$(cat ./machines.json | ${jq}/bin/jq -r '.marloweTld')
+    cat > ./morph/secrets.marlowe.$DEPLOYMENT_ENV.env <<EOL
+    JWT_SIGNATURE="$(pass $DEPLOYMENT_ENV/marlowe/jwtSignature)"
+    FRONTEND_URL="https://$DEPLOYMENT_ENV.$marlowe_tld"
+    GITHUB_CALLBACK_PATH="/#/gh-oauth-cb"
+    GITHUB_CLIENT_ID="$(pass $DEPLOYMENT_ENV/marlowe/githubClientId)"
+    GITHUB_CLIENT_SECRET="$(pass $DEPLOYMENT_ENV/marlowe/githubClientSecret)"
+    EOL
+
+    echo "[deploy-nix]: Installing ssh configuration ..."
+    mkdir -p ~/.ssh/config.d
+    cp plutus_playground.$DEPLOYMENT_ENV.conf ~/.ssh/config.d/
+
+    echo "[deploy-nix]: Starting deployment ..."
+    ${morph}/bin/morph deploy --upload-secrets ./morph/default.nix switch
   '';
+
+
 in
 mkShell {
-  buildInputs = [ terraform aws-mfa-login pass deployNix ];
+  buildInputs = [ terraform pass deployNix provisionInfra ];
   shellHook = ''
+    if ! ${awscli}/bin/aws sts get-caller-identity 2>/dev/null ; then
+      echo "Error: Not logged in to aws. Aborting"
+      echo "Use 'aws-mfa-login <user> <code>' to log in"
+      exit 1
+    fi
+
     ${setupEnvSecrets e}
     ${setupTerraform e r}
 
@@ -97,7 +122,6 @@ mkShell {
     echo "---------------------------------------------------------------------"
     echo "Available commands:"
     echo ""
-    echo -e "\t* aws-mfa-login:    login to aws"
     echo -e "\t* provision-infra:  provision infrastructure"
     echo -e "\t* deploy-nix:       deploy nix configuration to infrastructure"
     echo -e "\t* deploy:           provision infrastructure and deploy nix configuration"
