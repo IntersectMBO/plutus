@@ -38,12 +38,14 @@ stdenv.mkDerivation {
   buildPhase = ''
     export HOME=$NIX_BUILD_TOP
     shopt -s globstar
-    ln -s ${nodeModules}/node_modules node_modules
+    cp -R ${nodeModules}/node_modules .
+    chmod -R u+rw ./node_modules
     ${addExtraSrcs}
 
     install-spago-style
     build-spago-style src/**/*.purs test/**/*.purs ${extraPSPaths}
     npm run webpack
+    npm prune --production
   '';
   doCheck = true;
   installPhase = ''
