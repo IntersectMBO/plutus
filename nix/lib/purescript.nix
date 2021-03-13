@@ -45,10 +45,13 @@ stdenv.mkDerivation {
     install-spago-style
     build-spago-style src/**/*.purs test/**/*.purs ${extraPSPaths}
     npm run webpack
-    npm prune --production
   '';
   doCheck = true;
   installPhase = ''
     mv dist $out
+  '';
+
+  postInstall = ''
+    npm prune --production
   '';
 }
