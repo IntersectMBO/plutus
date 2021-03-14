@@ -18,7 +18,7 @@ import Marlowe.Extended.Template (ContractTemplate)
 import Marlowe.Semantics (PubKey)
 import Material.Icons as Icon
 import Network.RemoteData (RemoteData)
-import Play.Lenses (_contractsState, _menuOpen, _templateState, _walletDetails)
+import Play.Lenses (_contractsState, _currentSlot, _menuOpen, _templateState, _walletDetails)
 import Play.Types (Action(..), Card(..), Screen(..), State)
 import Prim.TypeError (class Warn, Text)
 import Servant.PureScript.Ajax (AjaxError)
@@ -152,6 +152,8 @@ renderCards wallets newWalletNickname newWalletContractId remoteDataPubKey templ
 renderScreen :: forall p. WalletLibrary -> Screen -> State -> HTML p Action
 renderScreen wallets screen playState =
   let
+    currentSlot = view _currentSlot playState
+
     templateState = view _templateState playState
 
     contractsState = view _contractsState playState
@@ -160,7 +162,7 @@ renderScreen wallets screen playState =
       [ classNames [ "absolute", "top-0", "bottom-0", "left-0", "right-0", "overflow-auto", "z-0" ] ] case screen of
       ContractsScreen -> [ ContractHomeAction <$> contractsScreen contractsState ]
       WalletLibraryScreen -> [ walletLibraryScreen wallets ]
-      TemplateScreen -> [ TemplateAction <$> contractSetupScreen wallets templateState ]
+      TemplateScreen -> [ TemplateAction <$> contractSetupScreen wallets currentSlot templateState ]
 
 ------------------------------------------------------------
 renderFooter :: forall p. HTML p Action

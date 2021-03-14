@@ -8,7 +8,7 @@ import Analytics (class IsEvent, defaultEvent)
 import Data.BigInteger (BigInteger)
 import Data.Map (Map)
 import Data.Maybe (Maybe(..))
-import Marlowe.Extended (IntegerTemplateType, TemplateContent)
+import Marlowe.Extended (TemplateContent)
 import Marlowe.Extended.Template (ContractTemplate)
 
 type State
@@ -17,6 +17,7 @@ type State
     -- FIXME: We should add type aliases to these Strings
     , roleWallets :: Map String String
     , templateContent :: TemplateContent
+    , slotContentStrings :: Map String String
     }
 
 data Action
@@ -26,7 +27,8 @@ data Action
   | ToggleSetupConfirmationCard
   | SetContractNickname String
   | SetRoleWallet String String
-  | SetParameter IntegerTemplateType String (Maybe BigInteger)
+  | SetSlotContent String String -- slot input comes from the HTML as a dateTimeString
+  | SetValueContent String (Maybe BigInteger)
   | StartContract
 
 -- | Here we decide which top-level queries to track as GA events, and
@@ -38,5 +40,6 @@ instance actionIsEvent :: IsEvent Action where
   toEvent ToggleSetupConfirmationCard = Nothing
   toEvent (SetContractNickname _) = Just $ defaultEvent "SetContractNickname"
   toEvent (SetRoleWallet _ _) = Just $ defaultEvent "SetRoleWallet"
-  toEvent (SetParameter _ _ _) = Just $ defaultEvent "SetParameter"
+  toEvent (SetSlotContent _ _) = Just $ defaultEvent "SetSlotContent"
+  toEvent (SetValueContent _ _) = Just $ defaultEvent "SetValueContent"
   toEvent StartContract = Just $ defaultEvent "StartContract"

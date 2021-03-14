@@ -9,6 +9,7 @@ import Data.Lens (assign, over, set, use)
 import Data.Map (empty, filter, findMin, insert, lookup, member)
 import Data.Maybe (Maybe(..))
 import Effect.Aff.Class (class MonadAff)
+import Effect.Now (getTimezoneOffset)
 import Effect.Random (random)
 import Env (Env)
 import Foreign.Generic (decodeJSON, encodeJSON)
@@ -59,8 +60,8 @@ initialState =
   , newWalletContractId: mempty
   , remoteDataPubKey: NotAsked
   , templates: contractTemplates
-  , subState: Left Pickup.initialState
   , webSocketStatus: WebSocketClosed Nothing
+  , subState: Left Pickup.initialState
   }
 
 handleQuery :: forall a m. Query a -> HalogenM State Action ChildSlots Msg m (Maybe a)
@@ -101,7 +102,7 @@ handleAction Init = do
   mWalletDetailsJson <- liftEffect $ getItem walletDetailsLocalStorageKey
   for_ mWalletDetailsJson \json ->
     for_ (runExcept $ decodeJSON json) \walletDetails ->
-      assign _subState $ Right $ Play.mkInitialState walletDetails
+      handleAction $ PickupAction $ Pickup.PickupWallet walletDetails
 
 handleAction (SetNewWalletNickname nickname) = assign _newWalletNickname nickname
 
@@ -145,11 +146,14 @@ handleAction (PickupAction Pickup.PickupNewWallet) = do
         handleAction $ PickupAction $ Pickup.PickupWallet walletDetails
 
 handleAction (PickupAction (Pickup.PickupWallet walletDetails)) = do
+  -- we need the local timezoneOffset in play state in order to convert datetimeLocal
+  -- values to UTC (and vice versa), so we can manage date-to-slot conversions
+  timezoneOffset <- liftEffect getTimezoneOffset
+  modify_
+    $ set _subState (Right $ Play.mkInitialState walletDetails timezoneOffset)
+    <<< set (_pickupState <<< _card) Nothing
   -- TODO: fetch current balance of the wallet from PAB
   -- TODO: open up websocket to this wallet's companion contract from PAB
-  modify_
-    $ set _subState (Right $ Play.mkInitialState walletDetails)
-    <<< set (_pickupState <<< _card) Nothing
   liftEffect $ setItem walletDetailsLocalStorageKey $ encodeJSON walletDetails
 
 handleAction (PickupAction Pickup.GenerateNewWallet) = do
