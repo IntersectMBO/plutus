@@ -20,7 +20,6 @@ import Data.Map (Map)
 import Data.Map as Map
 import Data.Maybe (Maybe(..))
 import Data.Time.Duration (Minutes)
-import Data.Set as Set
 import Data.Set.Extra (setToMap)
 import Effect.Aff.Class (class MonadAff)
 import Env (Env)

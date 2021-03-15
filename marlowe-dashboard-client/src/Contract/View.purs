@@ -6,16 +6,14 @@ import Prelude hiding (div)
 import Contract.Lenses (_executionState, _mActiveUserParty, _metadata, _participants, _step, _tab)
 import Contract.Types (Action(..), State, Tab(..))
 import Css (applyWhen, classNames)
-import Css as Css
 import Data.Array (intercalate, nub, range)
 import Data.Array as Array
 import Data.Array.NonEmpty (NonEmptyArray)
 import Data.Array.NonEmpty as NEA
-import Data.BigInteger (fromInt, toNumber)
-import Data.Foldable (foldMap, foldr)
+import Data.BigInteger (BigInteger, fromInt, toNumber)
+import Data.Foldable (foldMap)
 import Data.Int (floor)
-import Data.Lens (view, (^.))
-import Data.Map (Map)
+import Data.Lens ((^.))
 import Data.Map as Map
 import Data.Maybe (Maybe(..))
 import Data.Set (Set)
@@ -26,10 +24,10 @@ import Data.Tuple (Tuple(..), fst, uncurry)
 import Data.Tuple.Nested ((/\))
 import Halogen.HTML (HTML, a, button, div, div_, h1, h2, option_, select, span, span_, text)
 import Halogen.HTML.Events.Extra (onClick_)
-import Halogen.HTML.Properties (disabled, enabled)
-import Marlowe.Execution (ExecutionStep, NamedAction(..), _contract, _namedActions, getActionParticipant)
+import Halogen.HTML.Properties (enabled)
+import Marlowe.Execution (NamedAction(..), _contract, _namedActions, _state, getActionParticipant)
 import Marlowe.Extended (contractTypeName)
-import Marlowe.Semantics (Accounts, Bound(..), ChoiceId(..), Input(..), Party(..), Token(..), TransactionInput(..), _accounts)
+import Marlowe.Semantics (Bound(..), ChoiceId(..), Input(..), Party(..), Token(..), _accounts)
 import Material.Icons as Icons
 
 contractDetailsCard :: forall p. State -> HTML p Action
@@ -92,9 +90,10 @@ renderCurrentState state =
                       [ text "1hr 2mins left" ]
                   ]
               ]
-          , div [ classNames [ "pb-3" ] ]
-              [ renderTasks state
-              ]
+          , if currentTab == Tasks then
+              renderTasks state
+            else
+              renderBalances state
           ]
       ]
 
@@ -164,35 +163,39 @@ renderTasks state =
 
     contract = executionState ^. _contract
   in
-    div_ $ expandedActions <#> uncurry (renderPartyTasks state)
+    div [ classNames [ "pb-4" ] ] $ expandedActions <#> uncurry (renderPartyTasks state)
+
+participantWithNickname :: State -> Party -> String
+participantWithNickname state party =
+  let
+    mNickname :: Maybe String
+    mNickname = join $ Map.lookup party (state ^. _participants)
+  in
+    capitalize case party /\ mNickname of
+      -- TODO: For the demo we wont have PK, but eventually we probably want to limit the amount of characters
+      PK publicKey /\ _ -> publicKey
+      Role roleName /\ Just nickname -> roleName <> " (" <> nickname <> ")"
+      Role roleName /\ Nothing -> roleName
 
 renderPartyTasks :: forall p. State -> Party -> Array NamedAction -> HTML p Action
 renderPartyTasks state party actions =
   let
-    mNickname :: Maybe String
-    mNickname = join $ Map.lookup party (state ^. _participants)
-
     isActiveParticipant = (state ^. _mActiveUserParty) == Just party
-
-    participant =
-      capitalize case party /\ mNickname of
-        -- TODO: For the demo we wont have PK, but eventually we probably want to limit the amount of characters
-        PK publicKey /\ _ -> publicKey
-        Role roleName /\ Just nickname -> roleName <> " (" <> nickname <> ")"
-        Role roleName /\ Nothing -> roleName
 
     actionsSeparatedByOr =
       intercalate
         [ div [ classNames [ "font-semibold", "text-center", "my-2", "text-xs" ] ] [ text "OR" ]
         ]
         (Array.singleton <<< renderAction isActiveParticipant <$> actions)
+
+    participantName = participantWithNickname state party
   in
     div [ classNames [ "mt-3" ] ]
       ( [ div [ classNames [ "text-xs", "flex", "mb-2" ] ]
             -- TODO: In zeplin all participants have a different color. We need to decide how are we going to assing
             --       colors to users. For now they all have blue
-            [ div [ classNames [ "bg-gradient-to-r", "from-blue", "to-lightblue", "text-white", "rounded-full", "w-4", "h-4", "text-center", "mr-1" ] ] [ text $ String.take 1 participant ]
-            , div [ classNames [ "font-semibold" ] ] [ text participant ]
+            [ div [ classNames [ "bg-gradient-to-r", "from-blue", "to-lightblue", "text-white", "rounded-full", "w-4", "h-4", "text-center", "mr-1" ] ] [ text $ String.take 1 participantName ]
+            , div [ classNames [ "font-semibold" ] ] [ text participantName ]
             ]
         ]
           <> actionsSeparatedByOr
@@ -200,28 +203,23 @@ renderPartyTasks state party actions =
 
 renderAction :: forall p. Boolean -> NamedAction -> HTML p Action
 renderAction isActiveParticipant (MakeDeposit intoAccountOf by token value) =
-  let
-    symbol = case token of
-      Token "" "" -> "₳"
-      Token s _ -> s
-  in
-    div_
-      [ shortDescription isActiveParticipant "chocolate pastry apple pie lemon drops apple pie halvah FIXME"
-      , button
-          [ classNames $ [ "flex", "justify-between", "px-6", "font-bold", "w-full", "py-5", "mt-2", "rounded-3xl", "shadow" ]
-              <> if isActiveParticipant then
-                  [ "bg-gradient-to-r", "from-blue", "to-lightblue", "text-white" ]
-                else
-                  [ "bg-gray", "text-black", "opacity-50", "cursor-default" ]
-          , enabled isActiveParticipant
-          -- FIXME
-          -- , onClick_ $ NEEDACTION
-          ]
-          [ span_ [ text "Deposit:" ]
-          -- FIXME: Install purescript-formatters to separate by thousands
-          , span_ [ text $ symbol <> show value ]
-          ]
-      ]
+  div_
+    [ shortDescription isActiveParticipant "chocolate pastry apple pie lemon drops apple pie halvah FIXME"
+    , button
+        [ classNames $ [ "flex", "justify-between", "px-6", "font-bold", "w-full", "py-5", "mt-2", "rounded-3xl", "shadow" ]
+            <> if isActiveParticipant then
+                [ "bg-gradient-to-r", "from-blue", "to-lightblue", "text-white" ]
+              else
+                [ "bg-gray", "text-black", "opacity-50", "cursor-default" ]
+        , enabled isActiveParticipant
+        -- FIXME
+        -- , onClick_ $ NEEDACTION
+        ]
+        [ span_ [ text "Deposit:" ]
+        -- FIXME: Install purescript-formatters to separate by thousands
+        , span_ [ currency token value ]
+        ]
+    ]
 
 renderAction isActiveParticipant (MakeChoice choiceId bounds chosen) =
   let
@@ -277,6 +275,38 @@ renderAction isActiveParticipant CloseContract =
         [ text "Close contract" ]
     ]
 
+currency :: forall p a. Token -> BigInteger -> HTML p a
+currency (Token "" "") value = text ("₳" <> show value)
+
+currency (Token symbol _) value = text (symbol <> show value)
+
+renderBalances :: forall p action. State -> HTML p action
+renderBalances state =
+  let
+    accounts :: Array (Tuple (Tuple Party Token) BigInteger)
+    accounts = Map.toUnfoldable $ state ^. (_executionState <<< _state <<< _accounts)
+
+    -- FIXME: What should we show if a participant doesn't have balance yet?
+    -- FIXME: We fake the accounts for development until we fix the semantics
+    accounts' =
+      [ (Role "alice" /\ Token "" "") /\ (fromInt 500)
+      , (Role "bob" /\ Token "" "") /\ (fromInt 0)
+      ]
+  in
+    div [ classNames [ "text-xs" ] ]
+      ( append
+          [ div [ classNames [ "font-semibold", "py-3" ] ] [ text "Balance of accounts when the step was initiated." ]
+          ]
+          ( accounts'
+              <#> ( \((party /\ token) /\ amount) ->
+                    div [ classNames [ "flex", "justify-between", "py-3", "border-t" ] ]
+                      [ span_ [ text $ participantWithNickname state party ]
+                      , span [ classNames [ "font-semibold" ] ] [ currency token amount ]
+                      ]
+                )
+          )
+      )
+
 shortDescription :: forall p. Boolean -> String -> HTML p Action
 shortDescription isActiveParticipant description =
   div [ classNames ([ "text-xs" ] <> applyWhen (not isActiveParticipant) [ "opacity-50" ]) ]
@@ -291,16 +321,17 @@ getParty (IChoice (ChoiceId _ p) _) = Just p
 
 getParty _ = Nothing
 
+{-
 renderPastStep :: forall p. ExecutionStep -> HTML p Action
 renderPastStep { state, timedOut: true } =
   let
-    balances = renderBalances (view _accounts state)
+    balances = renderBalances state
   in
     text ""
 
 renderPastStep { txInput: TransactionInput { inputs }, state } =
   let
-    balances = renderBalances (view _accounts state)
+    balances = renderBalances state
 
     f :: Input -> Map (Maybe Party) (Array Input) -> Map (Maybe Party) (Array Input)
     f input acc = Map.insertWith append (getParty input) [ input ] acc
@@ -313,9 +344,6 @@ renderPastStep { txInput: TransactionInput { inputs }, state } =
 
 renderCompletedTasks :: forall p. Map (Maybe Party) (Array Input) -> HTML p Action
 renderCompletedTasks inputsMap = text ""
-
-renderBalances :: forall p. Accounts -> HTML p Action
-renderBalances accounts = text ""
 
 renderNamedAction :: forall p. NamedAction -> HTML p Action
 renderNamedAction (MakeDeposit accountId party token amount) =
@@ -346,3 +374,4 @@ renderNamedAction (Evaluate { payments, bindings }) =
 renderNamedAction CloseContract =
   button [ onClick_ $ ChooseInput Nothing ]
     [ div [] [ text "deposit", text "some ada" ] ]
+-}
