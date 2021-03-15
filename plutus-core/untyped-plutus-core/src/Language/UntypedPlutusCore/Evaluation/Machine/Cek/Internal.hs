@@ -121,19 +121,19 @@ type CekValEnv uni fun = UniqueMap TermUnique (CekValue uni fun)
 -- defers to the function stored in the environment). This makes the budgeting machinery extensible
 -- and allows us to separate budgeting logic from evaluation logic and avoid branching on the union
 -- of all possible budgeting state types during evaluation.
-newtype CekBudgetSpender st uni fun = CekBudgetSpender
+newtype CekBudgetSpender cost uni fun = CekBudgetSpender
     { unCekBudgetSpender
         :: forall term s. ToExMemory term
-        => ExBudgetCategory fun -> ExBudget -> CekCarryingM st term uni fun s ()
+        => ExBudgetCategory fun -> ExBudget -> CekCarryingM cost term uni fun s ()
     }
 
 -- | The environment the CEK machine runs in.
-data CekEnv st uni fun s = CekEnv
+data CekEnv cost uni fun s = CekEnv
     { cekEnvRuntime          :: BuiltinsRuntime fun (CekValue uni fun)
     -- 'Nothing' means no logging. 'DList' is due to the fact that we need efficient append
     -- as we store logs as "latest go last".
     , cekEnvMayEmitRef       :: Maybe (STRef s (DList String))
-    , cekEnvCekBudgetSpender :: CekBudgetSpender st uni fun
+    , cekEnvCekBudgetSpender :: CekBudgetSpender cost uni fun
     }
 
 data CekUserError
@@ -171,17 +171,18 @@ type CekEvaluationExceptionCarrying term fun =
 -- See Note [Being generic over @term@ in 'CekM'].
 -- | A generalized version of 'CekM' carrying a @term@.
 -- 'State' is inside the 'ExceptT', so we can get it back in case of error.
-type CekCarryingM st term uni fun s =
-    ReaderT (CekEnv st uni fun s)
+-- The 'cost' parameter is for keeping track of costing in the 'StateT' monad.
+type CekCarryingM cost term uni fun s =
+    ReaderT (CekEnv cost uni fun s)
         (ExceptT (CekEvaluationExceptionCarrying term fun)
-            (StateT st
+            (StateT cost
                 (ST s)))
 
 -- | The CEK machine-specific 'EvaluationException'.
 type CekEvaluationException uni fun = CekEvaluationExceptionCarrying (Term Name uni fun ()) fun
 
 -- | The monad the CEK machine runs in.
-type CekM st uni fun s = CekCarryingM st (Term Name uni fun ()) uni fun s
+type CekM cost uni fun s = CekCarryingM cost (Term Name uni fun ()) uni fun s
 
 instance AsEvaluationFailure CekUserError where
     _EvaluationFailure = _EvaluationFailureVia CekEvaluationFailure
@@ -274,7 +275,7 @@ instance ToExMemory (CekValue uni fun) where
         VLamAbs  ex _ _ _     -> ex
         VBuiltin ex _ _ _ _ _ -> ex
 
-instance MonadEmitter (CekCarryingM st term uni fun s) where
+instance MonadEmitter (CekCarryingM cost term uni fun s) where
     emit str = do
         mayLogsRef <- asks cekEnvMayEmitRef
         case mayLogsRef of
@@ -284,7 +285,7 @@ instance MonadEmitter (CekCarryingM st term uni fun s) where
 -- We only need the @Eq fun@ constraint here and not anywhere else, because in other places we have
 -- @Ix fun@ which implies @Ord fun@ which implies @Eq fun@.
 instance ToExMemory term =>
-            SpendBudget (CekCarryingM st term uni fun s) fun (ExBudgetCategory fun) term where
+            SpendBudget (CekCarryingM cost term uni fun s) fun (ExBudgetCategory fun) term where
     spendBudget key budgetToSpend = do
         CekBudgetSpender spend <- asks cekEnvCekBudgetSpender
         spend key budgetToSpend
@@ -298,13 +299,13 @@ data Frame uni fun
 type Context uni fun = [Frame uni fun]
 
 runCekM
-    :: forall a st uni fun.
+    :: forall a cost uni fun.
        BuiltinsRuntime fun (CekValue uni fun)
-    -> CekBudgetSpender st uni fun
-    -> st
+    -> CekBudgetSpender cost uni fun
+    -> cost
     -> Bool
-    -> (forall s. CekM st uni fun s a)
-    -> (Either (CekEvaluationException uni fun) a, st, [String])
+    -> (forall s. CekM cost uni fun s a)
+    -> (Either (CekEvaluationException uni fun) a, cost, [String])
 runCekM runtime spender st emitting a = runST $ do
     mayLogsRef <- if emitting then Just <$> newSTRef DList.empty else pure Nothing
     (errOrRes, st') <- runStateT (runExceptT . runReaderT a $ CekEnv runtime mayLogsRef spender) st
@@ -319,7 +320,7 @@ extendEnv :: Name -> CekValue uni fun -> CekValEnv uni fun -> CekValEnv uni fun
 extendEnv = insertByName
 
 -- | Look up a variable name in the environment.
-lookupVarName :: Name -> CekValEnv uni fun -> CekM st uni fun s (CekValue uni fun)
+lookupVarName :: Name -> CekValEnv uni fun -> CekM cost uni fun s (CekValue uni fun)
 lookupVarName varName varEnv = do
     case lookupName varName varEnv of
         Nothing  -> throwingWithCause _MachineError OpenTermEvaluatedMachineError $ Just var where
@@ -345,7 +346,7 @@ computeCek
     :: ( GShow uni, GEq uni, Closed uni, uni `Everywhere` ExMemoryUsage
        , Hashable fun, Ix fun
        )
-    => Context uni fun -> CekValEnv uni fun -> TermWithMem uni fun -> CekM st uni fun s (Term Name uni fun ())
+    => Context uni fun -> CekValEnv uni fun -> TermWithMem uni fun -> CekM cost uni fun s (Term Name uni fun ())
 -- s ; ρ ▻ {L A}  ↦ s , {_ A} ; ρ ▻ L
 computeCek ctx env (Var _ varName) = do
     spendBudget BVar astNodeCost
@@ -407,7 +408,7 @@ returnCek
     :: ( GShow uni, GEq uni, Closed uni, uni `Everywhere` ExMemoryUsage
        , Hashable fun, Ix fun
        )
-    => Context uni fun -> CekValue uni fun -> CekM st uni fun s (Term Name uni fun ())
+    => Context uni fun -> CekValue uni fun -> CekM cost uni fun s (Term Name uni fun ())
 --- Instantiate all the free variable of the resulting term in case there are any.
 -- . ◅ V           ↦  [] V
 returnCek [] val = pure $ void $ dischargeCekValue val
@@ -444,7 +445,7 @@ forceEvaluate
     :: ( GShow uni, GEq uni, Closed uni, uni `Everywhere` ExMemoryUsage
        , Hashable fun, Ix fun
        )
-    => Context uni fun -> CekValue uni fun -> CekM st uni fun s (Term Name uni fun ())
+    => Context uni fun -> CekValue uni fun -> CekM cost uni fun s (Term Name uni fun ())
 forceEvaluate ctx (VDelay _ body env) = computeCek ctx env body
 forceEvaluate ctx val@(VBuiltin ex bn arity0 arity forces args) =
     case arity of
@@ -476,7 +477,7 @@ applyEvaluate
     => Context uni fun
     -> CekValue uni fun   -- lhs of application
     -> CekValue uni fun   -- rhs of application
-    -> CekM st uni fun s (Term Name uni fun ())
+    -> CekM cost uni fun s (Term Name uni fun ())
 applyEvaluate ctx (VLamAbs _ name body env) arg =
     computeCek ctx (extendEnv name arg env) body
 applyEvaluate ctx val@(VBuiltin ex bn arity0 arity forces args) arg = do
@@ -500,7 +501,7 @@ applyBuiltin
     => Context uni fun
     -> fun
     -> [CekValue uni fun]
-    -> CekM st uni fun s (Term Name uni fun ())
+    -> CekM cost uni fun s (Term Name uni fun ())
 applyBuiltin ctx bn args = do
   -- Turn the cause of a possible failure, being a 'CekValue', into a 'Term'.
   -- See Note [Being generic over @term@ in 'CekM'].

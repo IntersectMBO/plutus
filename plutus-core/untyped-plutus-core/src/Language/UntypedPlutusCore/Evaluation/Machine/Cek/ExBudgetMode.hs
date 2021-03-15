@@ -39,18 +39,19 @@ import           Data.Text.Prettyprint.Doc
 import           Text.PrettyBy                                              (IgnorePrettyConfig (..))
 
 -- | A budgeting mode to execute an evaluator in.
-data ExBudgetMode st uni fun = ExBudgetMode
-    { _exBudgetModeSpender :: CekBudgetSpender st uni fun  -- ^ A spending function.
-    , _exBudgetModeInitSt  :: st                           -- ^ An initial state.
+data ExBudgetMode cost uni fun = ExBudgetMode
+    { _exBudgetModeSpender :: CekBudgetSpender cost uni fun  -- ^ A spending function.
+    , _exBudgetModeInitSt  :: cost                           -- ^ An initial state.
     }
 
 -- | Construct an 'ExBudgetMode' out of a function returning a value of the budgeting state type.
 -- The value then gets added to the current state via @(<>)@.
 monoidalBudgeting
-    :: Monoid st => (ExBudgetCategory fun -> ExBudget -> st) -> ExBudgetMode st uni fun
+    :: Monoid cost => (ExBudgetCategory fun -> ExBudget -> cost) -> ExBudgetMode cost uni fun
 monoidalBudgeting toSt = ExBudgetMode spender mempty where
     spender = CekBudgetSpender $ \key budgetToSpend -> modify' (<> toSt key budgetToSpend)
 
+-- | For calculating the cost of execution by counting up using the 'Monoid' instance of 'ExBudget'.
 newtype CountingSt = CountingSt ExBudget
     deriving stock (Eq, Show)
     deriving newtype (Semigroup, Monoid, PrettyBy config, NFData)
@@ -62,6 +63,8 @@ instance Pretty CountingSt where
 counting :: ExBudgetMode CountingSt uni fun
 counting = monoidalBudgeting $ const CountingSt
 
+-- | For a detailed report on what costs how much + the same overall budget that 'Counting' gives.
+-- The (derived) 'Monoid' instance of 'CekExTally' is the main piece of the machinery.
 newtype CekExTally fun = CekExTally (MonoidalHashMap (ExBudgetCategory fun) ExBudget)
     deriving stock (Eq, Generic, Show)
     deriving (Semigroup, Monoid) via (GenericSemigroupMonoid (CekExTally fun))

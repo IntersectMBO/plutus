@@ -94,8 +94,8 @@ type ExampleName = T.Text
 data ExampleMode = ExampleSingle ExampleName | ExampleAvailable
 data EvalMode    = CK | CEK deriving (Show, Read)
 data BudgetMode  = Silent
-                 | forall st. (Eq st, PP.Pretty st, NFData st) =>
-                     Verbose (Cek.ExBudgetMode st PLC.DefaultUni PLC.DefaultFun)
+                 | forall cost. (Eq cost, PP.Pretty cost, NFData cost) =>
+                     Verbose (Cek.ExBudgetMode cost PLC.DefaultUni PLC.DefaultFun)
 data AstNameType = Named | DeBruijn  -- Do we use Names or de Bruijn indices when (de)serialising ASTs?
 type Files       = [FilePath]
 

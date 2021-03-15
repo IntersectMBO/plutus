@@ -1,7 +1,4 @@
--- | The CEK machine.
--- The CEK machine relies on variables having non-equal 'Unique's whenever they have non-equal
--- string names. I.e. 'Unique's are used instead of string names. This is for efficiency reasons.
--- The CEK machines handles name capture by design.
+-- | The API to the CEK machine.
 
 {-# LANGUAGE DataKinds     #-}
 {-# LANGUAGE TypeOperators #-}
@@ -69,12 +66,12 @@ runCek
        , Hashable fun, Ix fun, ExMemoryUsage fun
        )
     => BuiltinsRuntime fun (CekValue uni fun)
-    -> ExBudgetMode st uni fun
+    -> ExBudgetMode cost uni fun
     -> Bool
     -> Term Name uni fun ()
-    -> (Either (CekEvaluationException uni fun) (Term Name uni fun ()), st, [String])
-runCek runtime (ExBudgetMode spender st) emitting term =
-    runCekM runtime spender st emitting $ do
+    -> (Either (CekEvaluationException uni fun) (Term Name uni fun ()), cost, [String])
+runCek runtime (ExBudgetMode spender costInit) emitting term =
+    runCekM runtime spender costInit emitting $ do
         spendBudget BAST (ExBudget 0 (termAnn memTerm))
         computeCek [] mempty memTerm
   where
@@ -86,12 +83,12 @@ runCekNoEmit
        , Hashable fun, Ix fun, ExMemoryUsage fun
        )
     => BuiltinsRuntime fun (CekValue uni fun)
-    -> ExBudgetMode st uni fun
+    -> ExBudgetMode cost uni fun
     -> Term Name uni fun ()
-    -> (Either (CekEvaluationException uni fun) (Term Name uni fun ()), st)
+    -> (Either (CekEvaluationException uni fun) (Term Name uni fun ()), cost)
 runCekNoEmit runtime mode term =
     case runCek runtime mode False term of
-        (errOrRes, st', _) -> (errOrRes, st')
+        (errOrRes, cost', _) -> (errOrRes, cost')
 
 -- | Unsafely evaluate a term using the CEK machine with logging disabled and keep track of costing.
 -- May throw a 'CekMachineException'.
@@ -101,9 +98,9 @@ unsafeRunCekNoEmit
        , Hashable fun, Ix fun, Pretty fun, Typeable fun, ExMemoryUsage fun
        )
     => BuiltinsRuntime fun (CekValue uni fun)
-    -> ExBudgetMode st uni fun
+    -> ExBudgetMode cost uni fun
     -> Term Name uni fun ()
-    -> (EvaluationResult (Term Name uni fun ()), st)
+    -> (EvaluationResult (Term Name uni fun ()), cost)
 unsafeRunCekNoEmit runtime mode =
     first unsafeExtractEvaluationResult . runCekNoEmit runtime mode
 
