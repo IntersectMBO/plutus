@@ -91,6 +91,7 @@ import           Prelude                       as Prelude hiding (Applicative (.
                                                            id, length, map, max, maybe, min, not, notElem, null, or,
                                                            quotRem, reverse, round, sequence, snd, zip, (!!), ($), (&&),
                                                            (++), (<$>), (||))
+import           Prelude                       as Prelude (maximum, minimum)
 
 -- this module does lots of weird stuff deliberately
 {-# ANN module ("HLint: ignore"::String) #-}

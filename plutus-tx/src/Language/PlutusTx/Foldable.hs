@@ -1,3 +1,4 @@
+{-# OPTIONS_GHC -fno-specialise #-}
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
 module Language.PlutusTx.Foldable
   ( Foldable(..)
@@ -81,10 +82,8 @@ class Foldable t where
 
 instance Foldable [] where
     {-# INLINABLE foldMap #-}
-    foldMap f = go
-      where
-        go []     = mempty
-        go (x:xs) = f x <> go xs
+    foldMap _ []     = mempty
+    foldMap f (x:xs) = f x <> foldMap f xs
 
 instance Foldable Maybe where
     {-# INLINABLE foldMap #-}

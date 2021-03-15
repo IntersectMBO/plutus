@@ -58,12 +58,12 @@ import           Language.PlutusTx          (makeIsDataIndexed)
 import           Language.PlutusTx.AssocMap (Map)
 import qualified Language.PlutusTx.AssocMap as Map
 import           Language.PlutusTx.Lift     (makeLift)
-import           Language.PlutusTx.Prelude  hiding ((<$>), (<*>), (<>))
+import           Language.PlutusTx.Prelude  hiding (mapM, (<$>), (<*>), (<>))
 import           Language.PlutusTx.Ratio    (denominator, numerator)
 import           Ledger                     (PubKeyHash (..), Slot (..), ValidatorHash)
 import           Ledger.Value               (CurrencySymbol (..), TokenName (..))
 import qualified Ledger.Value               as Val
-import           Prelude                    ((<$>))
+import           Prelude                    (mapM, (<$>))
 import qualified Prelude                    as P
 import           Text.PrettyPrint.Leijen    (comma, hang, lbrace, line, rbrace, space, text, (<>))
 
