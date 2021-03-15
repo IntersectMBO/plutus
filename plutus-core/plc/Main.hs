@@ -1,53 +1,53 @@
-{-# LANGUAGE BangPatterns          #-}
-{-# LANGUAGE LambdaCase            #-}
-{-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE OverloadedStrings     #-}
-{-# LANGUAGE TypeApplications      #-}
+{-# LANGUAGE BangPatterns              #-}
+{-# LANGUAGE ExistentialQuantification #-}
+{-# LANGUAGE LambdaCase                #-}
+{-# LANGUAGE MultiParamTypeClasses     #-}
+{-# LANGUAGE OverloadedStrings         #-}
+{-# LANGUAGE TypeApplications          #-}
 
 module Main (main) where
 
-import qualified Language.PlutusCore                                as PLC
-import qualified Language.PlutusCore.CBOR                           as PLC
-import qualified Language.PlutusCore.Evaluation.Machine.Ck          as Ck
-import           Language.PlutusCore.Evaluation.Machine.ExBudgeting (ExBudget (..), ExBudgetMode (..),
-                                                                     ExBudgetState (..), ExRestrictingBudget (..),
-                                                                     ExTally (..), Hashable, enormousBudget)
-import           Language.PlutusCore.Evaluation.Machine.ExMemory    (ExCPU (..), ExMemory (..))
-import qualified Language.PlutusCore.Generators                     as Gen
-import qualified Language.PlutusCore.Generators.Interesting         as Gen
-import qualified Language.PlutusCore.Generators.Test                as Gen
-import qualified Language.PlutusCore.Pretty                         as PP
-import qualified Language.PlutusCore.StdLib.Data.Bool               as StdLib
-import qualified Language.PlutusCore.StdLib.Data.ChurchNat          as StdLib
-import qualified Language.PlutusCore.StdLib.Data.Integer            as StdLib
-import qualified Language.PlutusCore.StdLib.Data.Unit               as StdLib
-import qualified Language.UntypedPlutusCore                         as UPLC
-import qualified Language.UntypedPlutusCore.Evaluation.Machine.Cek  as Cek
+import qualified Language.PlutusCore                               as PLC
+import qualified Language.PlutusCore.CBOR                          as PLC
+import qualified Language.PlutusCore.Evaluation.Machine.Ck         as Ck
+import           Language.PlutusCore.Evaluation.Machine.ExBudget   (ExBudget (..), ExRestrictingBudget (..))
+import           Language.PlutusCore.Evaluation.Machine.ExMemory   (ExCPU (..), ExMemory (..))
+import qualified Language.PlutusCore.Generators                    as Gen
+import qualified Language.PlutusCore.Generators.Interesting        as Gen
+import qualified Language.PlutusCore.Generators.Test               as Gen
+import qualified Language.PlutusCore.Pretty                        as PP
+import qualified Language.PlutusCore.StdLib.Data.Bool              as StdLib
+import qualified Language.PlutusCore.StdLib.Data.ChurchNat         as StdLib
+import qualified Language.PlutusCore.StdLib.Data.Integer           as StdLib
+import qualified Language.PlutusCore.StdLib.Data.Unit              as StdLib
+import qualified Language.UntypedPlutusCore                        as UPLC
+import qualified Language.UntypedPlutusCore.Evaluation.Machine.Cek as Cek
 
 import           Codec.Serialise
-import           Control.DeepSeq                                    (NFData, rnf)
+import           Control.DeepSeq                                   (NFData, rnf)
 import           Control.Monad
-import           Control.Monad.Trans.Except                         (runExcept, runExceptT)
-import           Data.Bifunctor                                     (second)
-import qualified Data.ByteString.Lazy                               as BSL
-import           Data.Foldable                                      (asum, traverse_)
-import           Data.Function                                      ((&))
-import           Data.Functor                                       ((<&>))
-import qualified Data.HashMap.Monoidal                              as H
-import           Data.List                                          (foldl, nub)
-import           Data.List.Split                                    (splitOn)
-import qualified Data.Text                                          as T
-import           Data.Text.Encoding                                 (encodeUtf8)
-import qualified Data.Text.IO                                       as T
-import           Data.Text.Prettyprint.Doc                          (Doc, pretty, (<+>))
-import           Data.Traversable                                   (for)
+import           Control.Monad.Trans.Except                        (runExcept, runExceptT)
+import           Data.Bifunctor                                    (second)
+import qualified Data.ByteString.Lazy                              as BSL
+import           Data.Foldable                                     (asum, traverse_)
+import           Data.Function                                     ((&))
+import           Data.Functor                                      ((<&>))
+import qualified Data.HashMap.Monoidal                             as H
+import           Data.List                                         (nub)
+import qualified Data.List                                         as List
+import           Data.List.Split                                   (splitOn)
+import qualified Data.Text                                         as T
+import           Data.Text.Encoding                                (encodeUtf8)
+import qualified Data.Text.IO                                      as T
+import           Data.Text.Prettyprint.Doc                         (Doc, pretty, (<+>))
+import           Data.Traversable                                  (for)
 import           Flat
 import           Options.Applicative
-import           System.CPUTime                                     (getCPUTime)
-import           System.Exit                                        (exitFailure, exitSuccess)
-import           System.Mem                                         (performGC)
-import           Text.Printf                                        (printf)
-import           Text.Read                                          (readMaybe)
+import           System.CPUTime                                    (getCPUTime)
+import           System.Exit                                       (exitFailure, exitSuccess)
+import           System.Mem                                        (performGC)
+import           Text.Printf                                       (printf)
+import           Text.Read                                         (readMaybe)
 
 {- Note [Annotation types] This program now reads and writes CBOR-serialised PLC
    ASTs.  In all cases we require the annotation type to be ().  There are two
@@ -95,7 +95,9 @@ data PrintMode   = Classic | Debug | Readable | ReadableDebug deriving (Show, Re
 type ExampleName = T.Text
 data ExampleMode = ExampleSingle ExampleName | ExampleAvailable
 data EvalMode    = CK | CEK deriving (Show, Read)
-data BudgetMode  = Silent | Verbose ExBudgetMode
+data BudgetMode  = Silent
+                 | forall cost. (Eq cost, NFData cost, PrintBudgetState cost) =>
+                     Verbose (Cek.ExBudgetMode cost PLC.DefaultUni PLC.DefaultFun)
 data AstNameType = Named | DeBruijn  -- Do we use Names or de Bruijn indices when (de)serialising ASTs?
 type Files       = [FilePath]
 
@@ -217,13 +219,13 @@ exbudgetReader = do
     where badfmt = "Invalid budget (expected eg 10000:50000)"
 
 restrictingbudgetEnormous :: Parser BudgetMode
-restrictingbudgetEnormous = flag' (Verbose enormousBudget)
+restrictingbudgetEnormous = flag' (Verbose Cek.restrictingEnormous)
                             (  long "restricting-enormous"
                             <> short 'r'
                             <> help "Run the machine in restricting mode with an enormous budget" )
 
 restrictingbudget :: Parser BudgetMode
-restrictingbudget = Verbose . Restricting . ExRestrictingBudget
+restrictingbudget = Verbose . Cek.restricting . ExRestrictingBudget
                     <$> option exbudgetReader
                             (  long "restricting"
                             <> short 'R'
@@ -231,13 +233,13 @@ restrictingbudget = Verbose . Restricting . ExRestrictingBudget
                             <> help "Run the machine in restricting mode with the given limits" )
 
 countingbudget :: Parser BudgetMode
-countingbudget = flag' (Verbose Counting)
+countingbudget = flag' (Verbose Cek.counting)
                  (  long "counting"
                  <> short 'c'
                  <> help "Run machine in counting mode and report results" )
 
 tallyingbudget :: Parser BudgetMode
-tallyingbudget = flag' (Verbose Tallying)
+tallyingbudget = flag' (Verbose Cek.tallying)
                  (  long "tallying"
                  <> short 't'
                  <> help "Run machine in tallying mode and report results" )
@@ -746,8 +748,8 @@ printBudgetStateBudget b = do
   putStrLn $ "CPU budget:    " ++ show cpu
   putStrLn $ "Memory budget: " ++ show mem
 
-printBudgetStateTally :: (Eq fun, Hashable fun, Show fun) => Cek.CekExTally fun -> IO ()
-printBudgetStateTally (ExTally costs) = do
+printBudgetStateTally :: (Eq fun, Cek.Hashable fun, Show fun) => Cek.CekExTally fun -> IO ()
+printBudgetStateTally (Cek.CekExTally costs) = do
   putStrLn $ "Const      " ++ pbudget Cek.BConst
   putStrLn $ "Var        " ++ pbudget Cek.BVar
   putStrLn $ "LamAbs     " ++ pbudget Cek.BLamAbs
@@ -772,17 +774,23 @@ printBudgetStateTally (ExTally costs) = do
         budgetToString (ExBudget (ExCPU cpu) (ExMemory mem)) = printf "%10d  %10d" cpu mem :: String
         pbudget k = budgetToString $ get k
         f l e = case e of {(Cek.BBuiltinApp b, cost)  -> (b,cost):l; _ -> l}
-        builtinsAndCosts = Data.List.foldl f [] (H.toList costs)
+        builtinsAndCosts = List.foldl f [] (H.toList costs)
 
-printBudgetState :: (Eq fun, Hashable fun, Show fun) => Cek.CekExBudgetState fun -> IO ()
-printBudgetState (CountingSt budget) =
-    printBudgetStateBudget budget
-printBudgetState (TallyingSt tally budget) = do
-    printBudgetStateBudget budget
-    putStrLn ""
-    printBudgetStateTally tally
-printBudgetState (RestrictingSt (ExRestrictingBudget budget)) =
-    printBudgetStateBudget budget
+class PrintBudgetState cost where
+    printBudgetState :: cost -> IO ()
+
+instance PrintBudgetState Cek.CountingSt where
+    printBudgetState (Cek.CountingSt budget) = printBudgetStateBudget budget
+
+instance (Eq fun, Cek.Hashable fun, Show fun) => PrintBudgetState (Cek.TallyingSt fun) where
+    printBudgetState (Cek.TallyingSt tally budget) = do
+        printBudgetStateBudget budget
+        putStrLn ""
+        printBudgetStateTally tally
+
+instance PrintBudgetState Cek.RestrictingSt where
+    printBudgetState (Cek.RestrictingSt (ExRestrictingBudget budget)) =
+        printBudgetStateBudget budget
 
 
 ---------------- Evaluation ----------------

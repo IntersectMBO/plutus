@@ -75,15 +75,16 @@ import qualified Flat
 import qualified Language.PlutusCore                                as PLC
 import qualified Language.PlutusCore.Constant                       as PLC
 import qualified Language.PlutusCore.DeBruijn                       as PLC
-import           Language.PlutusCore.Evaluation.Machine.ExBudgeting (CostModel, ExBudget (..))
-import qualified Language.PlutusCore.Evaluation.Machine.ExBudgeting as PLC
+import           Language.PlutusCore.Evaluation.Machine.ExBudget    (ExBudget (..))
+import qualified Language.PlutusCore.Evaluation.Machine.ExBudget    as PLC
+import           Language.PlutusCore.Evaluation.Machine.ExBudgeting (CostModel)
 import           Language.PlutusCore.Evaluation.Machine.ExMemory    (ExCPU (..), ExMemory (..))
 import qualified Language.PlutusCore.MkPlc                          as PLC
 import           Language.PlutusCore.Pretty
 import           Language.PlutusTx                                  (Data (..), IsData (..))
 import qualified Language.PlutusTx.Lift                             as PlutusTx
 import qualified Language.UntypedPlutusCore                         as UPLC
-import qualified Language.UntypedPlutusCore.Evaluation.Machine.Cek  as UPLC
+import qualified Language.UntypedPlutusCore.Evaluation.Machine.Cek  as Cek
 import           Plutus.V1.Ledger.Address
 import           Plutus.V1.Ledger.Bytes
 import           Plutus.V1.Ledger.Contexts
@@ -138,7 +139,7 @@ type Script = ShortByteString
 
 -- | Errors that can be thrown when evaluating a Plutus script.
 data EvaluationError =
-    CekError (UPLC.CekEvaluationException PLC.DefaultUni PLC.DefaultFun) -- ^ An error from the evaluator itself
+    CekError (Cek.CekEvaluationException PLC.DefaultUni PLC.DefaultFun) -- ^ An error from the evaluator itself
     | DeBruijnError PLC.FreeVariableError -- ^ An error in the pre-evaluation step of converting from de-Bruijn indices
     | CodecError Flat.DecodeException -- ^ A serialisation error
     | IncompatibleVersionError (PLC.Version ()) -- ^ An error indicating a version tag that we don't support
@@ -175,9 +176,9 @@ evaluateScriptRestricting verbose costParams budget p args = swap $ runWriter @L
     appliedTerm <- mkTermToEvaluate p args
     model <- liftEither $ mkCostModel costParams
 
-    let (res, _, logs) = UPLC.runCek
+    let (res, _, logs) = Cek.runCek
           (PLC.toBuiltinsRuntime () model)
-          (PLC.Restricting $ PLC.ExRestrictingBudget budget)
+          (Cek.restricting $ PLC.ExRestrictingBudget budget)
           (verbose == Verbose)
          appliedTerm
 
@@ -195,12 +196,12 @@ evaluateScriptCounting verbose costParams p args = swap $ runWriter @LogOutput $
     appliedTerm <- mkTermToEvaluate p args
     model <- liftEither $ mkCostModel costParams
 
-    let (res, final, logs) = UPLC.runCek
+    let (res, Cek.CountingSt final, logs) = Cek.runCek
           (PLC.toBuiltinsRuntime () model)
-          PLC.Counting
+          Cek.counting
           (verbose == Verbose)
           appliedTerm
 
     tell $ Prelude.map Text.pack logs
     liftEither $ first CekError $ void res
-    pure $ PLC.toRequiredExBudget final
+    pure final

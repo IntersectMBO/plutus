@@ -17,7 +17,7 @@ module Language.PlutusCore.Examples.Builtins where
 
 import           Language.PlutusCore
 import           Language.PlutusCore.Constant
-import           Language.PlutusCore.Evaluation.Machine.ExBudgeting
+import           Language.PlutusCore.Evaluation.Machine.ExBudget
 import           Language.PlutusCore.Evaluation.Machine.ExBudgetingDefaults
 import           Language.PlutusCore.Evaluation.Machine.ExMemory
 import           Language.PlutusCore.Evaluation.Machine.Exception
@@ -26,6 +26,7 @@ import           Language.PlutusCore.Pretty
 import qualified Language.PlutusCore.StdLib.Data.List                       as Plc
 
 import           Data.Either
+import           Data.Hashable                                              (Hashable)
 import qualified Data.Kind                                                  as GHC (Type)
 import           Data.Proxy
 import           Data.Text.Prettyprint.Doc

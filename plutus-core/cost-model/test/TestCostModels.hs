@@ -9,6 +9,7 @@
 {-# LANGUAGE TemplateHaskell     #-}
 {-# LANGUAGE TypeApplications    #-}
 
+import           Language.PlutusCore.Evaluation.Machine.ExBudget
 import           Language.PlutusCore.Evaluation.Machine.ExBudgeting
 import           Language.PlutusCore.Evaluation.Machine.ExMemory
 

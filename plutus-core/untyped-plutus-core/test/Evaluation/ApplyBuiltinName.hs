@@ -12,7 +12,7 @@ import           Language.UntypedPlutusCore
 
 import           Language.PlutusCore.Builtins
 import           Language.PlutusCore.Constant
-import           Language.PlutusCore.Evaluation.Machine.ExBudgeting
+import           Language.PlutusCore.Evaluation.Machine.ExBudget
 import           Language.PlutusCore.Evaluation.Machine.ExBudgetingDefaults
 import           Language.PlutusCore.Evaluation.Machine.Exception
 import           Language.PlutusCore.Generators
