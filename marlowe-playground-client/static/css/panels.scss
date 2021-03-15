@@ -279,10 +279,9 @@ button.minus-btn:hover {
   display: grid;
   grid-template-columns: auto 1fr auto auto;
   gap: 0.5rem 0px;
-  width: 100%;
+  width: clamp(calc(100% - 3rem), 75rem, 100%);
   box-sizing: border-box;
   align-items: center;
-  max-width: 75rem;
   margin: auto;
   padding: 1rem;
 }
