@@ -11,7 +11,9 @@ import           Prelude                    hiding (Functor (..), Semigroup (..)
 
 infixr 6 <>
 
+-- | Plutus Tx version of 'Data.Semigroup.Semigroup'.
 class Semigroup a where
+    -- | Plutus Tx version of '(Data.Semigroup.<>)'.
     (<>) :: a -> a -> a
     -- sconcat and stimes deliberately omitted, to make this a one-method class which has a
     -- simpler representation

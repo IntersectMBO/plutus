@@ -180,12 +180,12 @@ remainder :: Integer -> Integer -> Integer
 remainder = Builtins.remainderInteger
 
 {-# INLINABLE fst #-}
--- | PlutusTx version of 'Data.Tuple.fst'
+-- | Plutus Tx version of 'Data.Tuple.fst'
 fst :: (a, b) -> a
 fst (a, _) = a
 
 {-# INLINABLE snd #-}
--- | PlutusTx version of 'Data.Tuple.snd'
+-- | Plutus Tx version of 'Data.Tuple.snd'
 snd :: (a, b) -> b
 snd (_, b) = b
 

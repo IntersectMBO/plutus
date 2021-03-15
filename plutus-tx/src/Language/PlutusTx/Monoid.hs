@@ -12,17 +12,20 @@ import           Prelude                     hiding (Monoid (..), Semigroup (..)
 
 {-# ANN module ("HLint: ignore"::String) #-}
 
+-- | Plutus Tx version of 'Data.Monoid.Monoid'.
 class Semigroup a => Monoid a where
+    -- | Plutus Tx version of 'Data.Monoid.mempty'.
     mempty :: a
     -- mappend and mconcat deliberately omitted, to make this a one-method class which has a
     -- simpler representation
 
 {-# INLINABLE mappend #-}
+-- | Plutus Tx version of 'Data.Monoid.mappend'.
 mappend :: Monoid a => a -> a -> a
 mappend = (<>)
 
 {-# INLINABLE mconcat #-}
--- | Fold a list using the monoid.
+-- | Plutus Tx version of 'Data.Monoid.mconcat'.
 mconcat :: Monoid a => [a] -> a
 mconcat = foldr mappend mempty
 

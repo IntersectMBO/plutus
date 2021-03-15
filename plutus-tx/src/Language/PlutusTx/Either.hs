@@ -19,7 +19,7 @@ isRight (Left _)  = False
 isRight (Right _) = True
 
 {-# INLINABLE either #-}
--- | PlutusTx version of 'Prelude.either'
+-- | Plutus Tx version of 'Prelude.either'
 either :: (a -> c) -> (b -> c) -> Either a b -> c
 either f _ (Left x)  = f x
 either _ g (Right y) = g y

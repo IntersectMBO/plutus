@@ -8,7 +8,7 @@ import           Prelude                    hiding (Eq (..), all, any, elem, fil
 {-# ANN module ("HLint: ignore"::String) #-}
 
 {-# INLINABLE map #-}
--- | PlutusTx version of 'Data.List.map'.
+-- | Plutus Tx version of 'Data.List.map'.
 --
 --   >>> map (\i -> i + 1) [1, 2, 3]
 --   [2,3,4]
@@ -19,7 +19,7 @@ map f l = case l of
     x:xs -> f x : map f xs
 
 {-# INLINABLE foldr #-}
--- | PlutusTx version of 'Data.List.foldr'.
+-- | Plutus Tx version of 'Data.List.foldr'.
 --
 --   >>> foldr (\i s -> s + i) 0 [1, 2, 3, 4]
 --   10
@@ -30,7 +30,7 @@ foldr f acc l = case l of
     x:xs -> f x (foldr f acc xs)
 
 {-# INLINABLE (++) #-}
--- | PlutusTx version of 'Data.List.(++)'.
+-- | Plutus Tx version of '(Data.List.++)'.
 --
 --   >>> [0, 1, 2] ++ [1, 2, 3, 4]
 --   [0,1,2,1,2,3,4]
@@ -40,7 +40,7 @@ infixr 5 ++
 (++) l r = foldr (:) r l
 
 {-# INLINABLE filter #-}
--- | PlutusTx version of 'Data.List.filter'.
+-- | Plutus Tx version of 'Data.List.filter'.
 --
 --   >>> filter (> 1) [1, 2, 3, 4]
 --   [2,3,4]
@@ -49,7 +49,7 @@ filter :: (a -> Bool) -> [a] -> [a]
 filter p = foldr (\e xs -> if p e then e:xs else xs) []
 
 {-# INLINABLE listToMaybe #-}
--- | PlutusTx version of 'Data.List.listToMaybe'.
+-- | Plutus Tx version of 'Data.List.listToMaybe'.
 listToMaybe :: [a] -> Maybe a
 listToMaybe []    = Nothing
 listToMaybe (x:_) = Just x
@@ -61,7 +61,7 @@ uniqueElement [x] = Just x
 uniqueElement _   = Nothing
 
 {-# INLINABLE findIndices #-}
--- | PlutusTx version of 'Data.List.findIndices'.
+-- | Plutus Tx version of 'Data.List.findIndices'.
 findIndices :: (a -> Bool) -> [a] -> [Integer]
 findIndices p = go 0
     where
@@ -70,12 +70,12 @@ findIndices p = go 0
             (x:xs) -> let indices = go (Builtins.addInteger i 1) xs in if p x then i:indices else indices
 
 {-# INLINABLE findIndex #-}
--- | PlutusTx version of 'Data.List.findIndex'.
+-- | Plutus Tx version of 'Data.List.findIndex'.
 findIndex :: (a -> Bool) -> [a] -> Maybe Integer
 findIndex p l = listToMaybe (findIndices p l)
 
 {-# INLINABLE (!!) #-}
--- | PlutusTx version of 'GHC.List.(!!)'.
+-- | Plutus Tx version of '(GHC.List.!!)'.
 --
 --   >>> [10, 11, 12] !! 2
 --   12
@@ -89,8 +89,7 @@ infixl 9 !!
 
 
 {-# INLINABLE reverse #-}
--- | 'reverse' @xs@ returns the elements of @xs@ in reverse order.
--- @xs@ must be finite.
+-- | Plutus Tx version of 'Data.List.reverse'.
 reverse :: [a] -> [a]
 reverse l = rev l []
   where
@@ -99,6 +98,7 @@ reverse l = rev l []
 
 
 {-# INLINABLE zip #-}
+-- | Plutus Tx version of 'Data.List.zip'.
 zip :: [a] -> [b] -> [(a,b)]
 zip []     _bs    = []
 zip _as    []     = []

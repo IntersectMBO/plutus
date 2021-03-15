@@ -29,7 +29,7 @@ isNothing :: Maybe a -> Bool
 isNothing m = case m of { Just _ -> False; _ -> True; }
 
 {-# INLINABLE maybe #-}
--- | PlutusTx version of 'Prelude.maybe'.
+-- | Plutus Tx version of 'Prelude.maybe'.
 --
 --   >>> maybe "platypus" (\s -> s) (Just "plutus")
 --   "plutus"
@@ -42,12 +42,12 @@ maybe b f m = case m of
     Just a  -> f a
 
 {-# INLINABLE fromMaybe #-}
--- | PlutusTx version of 'Data.Maybe.fromMaybe'
+-- | Plutus Tx version of 'Data.Maybe.fromMaybe'
 fromMaybe :: a -> Maybe a -> a
 fromMaybe a = maybe a id
 
 {-# INLINABLE mapMaybe #-}
--- | PlutusTx version of 'Data.Maybe.mapMaybe'.
+-- | Plutus Tx version of 'Data.Maybe.mapMaybe'.
 --
 --   >>> mapMaybe (\i -> if i == 2 then Just '2' else Nothing) [1, 2, 3, 4]
 --   "2"
