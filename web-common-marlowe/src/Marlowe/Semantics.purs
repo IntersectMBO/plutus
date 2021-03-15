@@ -804,11 +804,11 @@ newtype State
   , choices :: Map ChoiceId ChosenNum
   , boundValues :: Map ValueId BigInteger
   -- The minSlot is a lower bound for the current slot. When we are in the context of a Wallet or Dashboard
-  -- we can just ask the time and calculate the current blockchain slot. But when we are in the context
+  -- we can just ask the time and calculate the current blockchain slot. But when we just have the context
   -- of a running contract we can't know the exact slot as transactions only provide an interval
   -- [lowSlot, highSlot].
   -- So the minSlot is the maximum number of the lowSlot we had so far, and we know that the current slot is
-  -- higher than that (because slots don't go back in time).
+  -- higher or equal than that (because slots don't go back in time).
   -- The reason we keep track of it, is so that we can refine transaction intervals.
   -- If in a new transaction we have a lowSlot that is smaller than the minSlot, we can narrow the interval
   -- from [lowSlot, highSlot] to [minSlot, highSlot]

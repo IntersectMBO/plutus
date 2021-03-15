@@ -3,27 +3,36 @@ module Contract.View
   ) where
 
 import Prelude hiding (div)
-import Contract.Lenses (_executionState, _metadata, _step, _tab)
+import Contract.Lenses (_executionState, _mActiveUserParty, _metadata, _participants, _step, _tab)
 import Contract.Types (Action(..), State, Tab(..))
 import Css (classNames)
-import Data.BigInteger (fromInt)
-import Data.Foldable (foldr)
+import Css as Css
+import Data.Array (intercalate, nub, range)
+import Data.Array as Array
+import Data.Array.NonEmpty (NonEmptyArray)
+import Data.Array.NonEmpty as NEA
+import Data.BigInteger (fromInt, toNumber)
+import Data.Foldable (foldMap, foldr)
+import Data.Int (floor)
 import Data.Lens (view, (^.))
 import Data.Map (Map)
 import Data.Map as Map
 import Data.Maybe (Maybe(..))
+import Data.Set (Set)
 import Data.Set as Set
-import Halogen.HTML (HTML, a, button, div, h1, h2, span, span_, text)
+import Data.String as String
+import Data.String.Extra (capitalize)
+import Data.Tuple (Tuple(..), fst, uncurry)
+import Data.Tuple.Nested ((/\))
+import Halogen.HTML (HTML, a, button, div, div_, h1, h2, option_, select, span, span_, text)
 import Halogen.HTML.Events.Extra (onClick_)
-import Marlowe.Execution (ExecutionStep, NamedAction(..), _contract, _namedActions)
+import Marlowe.Execution (ExecutionStep, NamedAction(..), _contract, _namedActions, getActionParticipant)
 import Marlowe.Extended (contractTypeName)
-import Marlowe.HasParties (getParties)
-import Marlowe.Semantics (Accounts, ChoiceId(..), Input(..), Party(..), Token(..), TransactionInput(..), _accounts)
+import Marlowe.Semantics (Accounts, Bound(..), ChoiceId(..), Input(..), Party(..), Token(..), TransactionInput(..), _accounts)
 import Material.Icons as Icons
-import WalletData.Types (WalletDetails)
 
-contractDetailsCard :: forall p. WalletDetails -> State -> HTML p Action
-contractDetailsCard walletDetails state =
+contractDetailsCard :: forall p. State -> HTML p Action
+contractDetailsCard state =
   let
     metadata = state ^. _metadata
   in
@@ -33,11 +42,11 @@ contractDetailsCard walletDetails state =
       --        the color palette with russ.
       , h2 [ classNames [ "mb-2", "text-xs", "uppercase" ] ] [ text $ contractTypeName metadata.contractType ]
       -- FIXME: Revisit width (at least on desktop)
-      , div [ classNames [ "w-full" ] ] [ renderCurrentState walletDetails state ]
+      , div [ classNames [ "w-full" ] ] [ renderCurrentState state ]
       ]
 
-renderCurrentState :: forall p. WalletDetails -> State -> HTML p Action
-renderCurrentState walletDetails state =
+renderCurrentState :: forall p. State -> HTML p Action
+renderCurrentState state =
   let
     -- As programmers we use 0-indexed arrays and steps, but we number steps
     -- starting from 1
@@ -82,49 +91,181 @@ renderCurrentState walletDetails state =
                       [ text "1hr 2mins left" ]
                   ]
               ]
-          , div [ classNames [ "py-2" ] ]
-              [ renderTasks walletDetails state
+          , div [ classNames [ "pb-3" ] ]
+              [ renderTasks state
               ]
           ]
       ]
 
-renderTasks :: forall p. WalletDetails -> State -> HTML p Action
-renderTasks walletDetails state =
+-- This helper function expands actions that can be taken by anybody,
+-- then groups by participant and sorts it so that the owner starts first and the rest go
+-- in alphabetical order
+expandAndGroupByRole ::
+  Maybe Party ->
+  Set Party ->
+  Array NamedAction ->
+  Array (Tuple Party (Array NamedAction))
+expandAndGroupByRole mActiveUserParty allParticipants actions =
+  expandedActions
+    # Array.sortBy currentPartyFirst
+    # Array.groupBy sameParty
+    # map extractGroupedParty
+  where
+  -- If an action has a participant, just use that, if it doesn't expand it to all
+  -- participants
+  expandedActions :: Array (Tuple Party NamedAction)
+  expandedActions =
+    actions
+      # foldMap \action -> case getActionParticipant action of
+          Just participant -> [ participant /\ action ]
+          Nothing -> Set.toUnfoldable allParticipants <#> \participant -> participant /\ action
+
+  currentPartyFirst = \(Tuple party1 _) (Tuple party2 _) ->
+    if (Just party1) == mActiveUserParty then
+      LT
+    else
+      if (Just party2) == mActiveUserParty then
+        GT
+      else
+        compare party1 party2
+
+  sameParty a b = fst a == fst b
+
+  extractGroupedParty :: NonEmptyArray (Tuple Party NamedAction) -> Tuple Party (Array NamedAction)
+  extractGroupedParty group = case NEA.unzip group of
+    Tuple tokens actions' -> Tuple (NEA.head tokens) (NEA.toArray actions')
+
+renderTasks :: forall p. State -> HTML p Action
+renderTasks state =
   let
     executionState = state ^. _executionState
 
     actions = executionState ^. _namedActions
 
-    contract = executionState ^. _contract
-
-    getRoleEntry = case _ of
-      (PK _) -> Nothing
-      (Role roleName) -> Just roleName
-
-    roles :: Array String
-    roles = Set.toUnfoldable $ Set.mapMaybe getRoleEntry (getParties contract)
-
     -- FIXME: We fake the namedActions for development until we fix the semantics
     actions' =
-      [ MakeDeposit (Role "into account") (Role "by") (Token "" "") $ fromInt 1500
+      [ MakeDeposit (Role "into account") (Role "bob") (Token "" "") $ fromInt 200
+      , MakeDeposit (Role "into account") (Role "alice") (Token "" "") $ fromInt 1500
+      , MakeChoice (ChoiceId "choice id" (Role "alice"))
+          [ Bound (fromInt 0) (fromInt 3)
+          , Bound (fromInt 2) (fromInt 4)
+          , Bound (fromInt 6) (fromInt 8)
+          ]
+          (fromInt 0)
+      , CloseContract
       ]
+
+    expandedActions =
+      expandAndGroupByRole
+        (state ^. _mActiveUserParty)
+        (Map.keys $ state ^. _participants)
+        actions'
+
+    contract = executionState ^. _contract
   in
-    -- FIXME: need to group by role
-    div []
-      [ span_ [ text $ "Role (" <> walletDetails.nickname <> ")" ]
-      , div [] $ actions' <#> renderAction
-      ]
+    div_ $ expandedActions <#> uncurry (renderPartyTasks state)
+
+renderPartyTasks :: forall p. State -> Party -> Array NamedAction -> HTML p Action
+renderPartyTasks state party actions =
+  let
+    mNickname :: Maybe String
+    mNickname = join $ Map.lookup party (state ^. _participants)
+
+    participant =
+      capitalize case party /\ mNickname of
+        -- TODO: For the demo we wont have PK, but eventually we probably want to limit the amount of characters
+        PK publicKey /\ _ -> publicKey
+        Role roleName /\ Just nickname -> roleName <> " (" <> nickname <> ")"
+        Role roleName /\ Nothing -> roleName
+
+    actionsSeparatedByOr =
+      intercalate
+        [ div [ classNames [ "font-semibold", "text-center", "my-2", "text-xs" ] ] [ text "OR" ]
+        ]
+        (Array.singleton <<< renderAction <$> actions)
+  in
+    div [ classNames [ "mt-3" ] ]
+      ( [ div [ classNames [ "text-xs", "flex", "mb-2" ] ]
+            [ div [ classNames [ "bg-gradient-to-r", "from-blue", "to-lightblue", "text-white", "rounded-full", "w-4", "h-4", "text-center", "mr-1" ] ] [ text $ String.take 1 participant ]
+            , div [ classNames [ "font-semibold" ] ] [ text participant ]
+            ]
+        ]
+          <> actionsSeparatedByOr
+      )
 
 renderAction :: forall p. NamedAction -> HTML p Action
-renderAction (MakeDeposit intoAccountOf by token value) = text "make deposit"
+renderAction (MakeDeposit intoAccountOf by token value) =
+  let
+    symbol = case token of
+      Token "" "" -> "₳"
+      Token s _ -> s
+  in
+    div_
+      [ shortDescription "chocolate pastry apple pie lemon drops apple pie halvah FIXME"
+      , button
+          [ classNames $ Css.primaryButton <> [ "w-full", "justify-between", "px-6", "py-5", "mt-2" ]
+          -- FIXME
+          -- , onClick_ $ NEEDACTION
+          ]
+          [ span_ [ text "Deposit:" ]
+          -- FIXME: Install purescript-formatters to separate by thousands
+          , span_ [ text $ symbol <> show value ]
+          ]
+      ]
 
-renderAction (MakeChoice _ _ _) = text "make choice"
+renderAction (MakeChoice choiceId bounds chosen) =
+  let
+    bigNumberToInt = floor <<< toNumber
 
-renderAction (MakeNotify _) = text "awaiting observation?"
+    options :: Array Int
+    options =
+      nub
+        $ bounds
+        >>= \(Bound fromB toB) -> range (bigNumberToInt fromB) (bigNumberToInt toB)
+  in
+    div_
+      [ shortDescription "chocolate pastry apple pie lemon drops apple pie halvah FIXME"
+      -- FIXME: we need to use @tailwindcss/forms to reset forms inputs and then restyle
+      --        https://www.youtube.com/watch?v=pONeWAzDsQg&ab_channel=TailwindLabs
+      , select
+          [ classNames [ "w-full", "py-4", "px-4", "shadow", "rounded-3xl", "mt-2" ]
+          -- FIXME: I need to rethink how to make this select. The option items do not have
+          --        an onChange event, at most an onClick, which is probably not what I want
+          --        and I need to get the chosen value.
+          -- , onChange
+          --     $ \ev -> do
+          --         let
+          --           ww = spy "Event" ev
+          --         trg <- target ev
+          --         let
+          --           xx = spy "target" trg
+          --         -- value :: HTMLSelectElement -> Effect String
+          --         Just $ ChangeChoice choiceId (fromInt 1)
+          ]
+          (options <#> \n -> option_ [ text $ show n ])
+      ]
 
-renderAction (Evaluate _) = text "FIXME: what should we put here? Evaluate"
+renderAction (MakeNotify _) = div [] [ text "awaiting observation?" ]
 
-renderAction CloseContract = text "FIXME: what should we put here? CloseContract"
+renderAction (Evaluate _) = div [] [ text "FIXME: what should we put here? Evaluate" ]
+
+renderAction CloseContract =
+  div_
+    [ shortDescription "chocolate pastry apple pie lemon drops apple pie halvah FIXME"
+    , button
+        [ classNames $ Css.primaryButton <> [ "w-full", "py-5", "mt-2" ]
+        -- FIXME
+        -- , onClick_ $ NEEDACTION
+        ]
+        [ text "Close contract" ]
+    ]
+
+shortDescription :: forall p. String -> HTML p Action
+shortDescription description =
+  div [ classNames [ "text-xs" ] ]
+    [ span [ classNames [ "font-semibold" ] ] [ text "Short description: " ]
+    , span_ [ text description ]
+    ]
 
 getParty :: Input -> Maybe Party
 getParty (IDeposit _ p _ _) = Just p

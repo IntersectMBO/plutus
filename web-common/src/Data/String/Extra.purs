@@ -4,12 +4,14 @@ module Data.String.Extra
   , leftPadTo
   , repeat
   , unlines
+  , capitalize
   ) where
 
 import Data.Array (intercalate)
 import Data.Char as Char
 import Data.Int as Int
 import Data.Monoid (class Monoid, mempty)
+import Data.String (splitAt, toUpper)
 import Data.String as String
 import Data.String.CodeUnits as CodeUnits
 import Prelude (map, max, (-), (<>), (==), (>>>))
@@ -46,3 +48,11 @@ repeat n str = str <> repeat (n - 1) str
 
 unlines :: Array String -> String
 unlines = String.joinWith "\n"
+
+-- | Capitalize the first `Char` in a `String`
+capitalize :: String -> String
+capitalize str =
+  let
+    { before, after } = splitAt 1 str
+  in
+    toUpper before <> after

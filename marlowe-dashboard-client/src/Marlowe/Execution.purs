@@ -12,12 +12,12 @@ import Data.Map as Map
 import Data.Maybe (Maybe(..))
 import Data.Ord (greaterThanOrEq)
 import Data.Symbol (SProxy(..))
-import Marlowe.Semantics (AccountId, Action(..), Bound, Case(..), ChoiceId, ChosenNum, Contract(..), Input, Observation, Party, Payment, Slot(..), SlotInterval(..), State, Timeout, Token, TransactionInput(..), TransactionOutput(..), ValueId, _boundValues, _minSlot, computeTransaction, emptyState, evalValue, makeEnvironment)
+import Marlowe.Semantics (AccountId, Action(..), Bound, Case(..), ChoiceId(..), ChosenNum, Contract(..), Input, Observation, Party, Payment, Slot(..), SlotInterval(..), State, Timeout, Token, TransactionInput(..), TransactionOutput(..), ValueId, _boundValues, _minSlot, computeTransaction, emptyState, evalValue, makeEnvironment)
 
 -- Represents a historical step in a contract's life and is what you see on a Step card that is in the past,
 -- that is the State as it was before it was executed and the TransactionInput that was applied.
 -- We don't bother storing the Contract because it is not needed for displaying a hostorical card but this means
--- we need to store if the step timed out. This is all (possibly premature) optimization to avoid storing the 
+-- we need to store if the step timed out. This is all (possibly premature) optimization to avoid storing the
 -- contract many times as it could be quite large
 type ExecutionStep
   = { txInput :: TransactionInput
@@ -103,12 +103,13 @@ nextState { steps, state, contract } txInput =
 -- Represents the possible buttons that can be displayed on a contract stage card
 data NamedAction
   -- Equivalent to Semantics.Action(Deposit)
-  -- Creates IDeposit 
+  -- Creates IDeposit
   = MakeDeposit AccountId Party Token BigInteger
   -- Equivalent to Semantics.Action(Choice) but has ChosenNum since it is a stateful element that stores the users choice
   -- Creates IChoice
+  -- FIXME: Why does this option have a ChosenNum? Shouldn't that be in the transaction?
   | MakeChoice ChoiceId (Array Bound) ChosenNum
-  -- Equivalent to Semantics.Action(Notify) (can be applied by any user) 
+  -- Equivalent to Semantics.Action(Notify) (can be applied by any user)
   -- Creates INotify
   | MakeNotify Observation
   -- An empty transaction needs to be submitted in order to trigger a change in the contract
@@ -116,16 +117,24 @@ data NamedAction
   -- in any payments that will be made and new bindings that will be evaluated
   -- Creates empty tx
   | Evaluate { payments :: Array Payment, bindings :: Map ValueId BigInteger }
-  -- A special case of Evaluate where the only way the Contract can progress is to apply an empty 
+  -- A special case of Evaluate where the only way the Contract can progress is to apply an empty
   -- transaction which results in the contract being closed
   -- Creates empty tx
   | CloseContract
 
+getActionParticipant :: NamedAction -> Maybe Party
+getActionParticipant (MakeDeposit _ party _ _) = Just party
+
+getActionParticipant (MakeChoice (ChoiceId _ party) _ _) = Just party
+
+getActionParticipant _ = Nothing
+
 extractNamedActions :: State -> Contract -> Array NamedAction
 extractNamedActions _ Close = mempty
 
+-- FIXME We need to provide the current slot instead of minSlot
+-- a When can only progress if it has timed out or has Cases
 extractNamedActions state (When cases timeout cont)
-  -- a When can only progress if it has timed out or has Cases
   -- in the case of a timeout we need to provide an Evaluate action to all users to "manually" progress the contract
   | has (_minSlot <<< to (greaterThanOrEq timeout) <<< only true) state =
     let
@@ -147,7 +156,7 @@ extractNamedActions state (When cases timeout cont)
     in
       [ Evaluate outputs ]
   -- if there are no cases then there is no action that any user can take to progress the contract
-  | otherwise = map (\(Case action _) -> toNamedAction action) cases
+  | otherwise = cases <#> \(Case action _) -> toNamedAction action
     where
     toNamedAction (Deposit a p t v) =
       let
@@ -164,6 +173,6 @@ extractNamedActions state (When cases timeout cont)
     toNamedAction (Notify obs) = MakeNotify obs
 
 -- In reality other situations should never occur as contracts always reduce to When or Close
--- however someone could in theory publish a contract that starts with another Contract constructor 
+-- however someone could in theory publish a contract that starts with another Contract constructor
 -- and we would want to enable moving forward with Evaluate
 extractNamedActions _ _ = [ Evaluate mempty ]

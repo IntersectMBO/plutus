@@ -144,7 +144,7 @@ renderCards wallets newWalletNickname newWalletContractId remoteDataPubKey templ
                   --        could be Nothing. We could add the state as part of the view, but is not ideal
                   --        Will have to rethink how to deal with this once the overall state is more mature.
                   ContractCard -> case mSelectedContractState of
-                    Just contractState -> [ ContractAction <$> contractDetailsCard currentWalletDetails contractState ]
+                    Just contractState -> [ ContractAction <$> contractDetailsCard contractState ]
                     Nothing -> []
           ]
       ]
