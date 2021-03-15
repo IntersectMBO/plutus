@@ -32,7 +32,9 @@ import qualified Data.ByteString.Lazy                              as BSL
 import           Data.Foldable                                     (asum, traverse_)
 import           Data.Function                                     ((&))
 import           Data.Functor                                      ((<&>))
+import qualified Data.HashMap.Monoidal                             as H
 import           Data.List                                         (nub)
+import qualified Data.List                                         as List
 import           Data.List.Split                                   (splitOn)
 import qualified Data.Text                                         as T
 import           Data.Text.Encoding                                (encodeUtf8)
@@ -94,7 +96,7 @@ type ExampleName = T.Text
 data ExampleMode = ExampleSingle ExampleName | ExampleAvailable
 data EvalMode    = CK | CEK deriving (Show, Read)
 data BudgetMode  = Silent
-                 | forall cost. (Eq cost, PP.Pretty cost, NFData cost) =>
+                 | forall cost. (Eq cost, NFData cost, PrintBudgetState cost) =>
                      Verbose (Cek.ExBudgetMode cost PLC.DefaultUni PLC.DefaultFun)
 data AstNameType = Named | DeBruijn  -- Do we use Names or de Bruijn indices when (de)serialising ASTs?
 type Files       = [FilePath]
@@ -737,6 +739,60 @@ timeEval n evaluate prog
             pure $ (result, end - start)
 
 
+---------------- Printing budgets and costs ----------------
+
+printBudgetStateBudget :: ExBudget -> IO ()
+printBudgetStateBudget b = do
+  let ExCPU cpu = _exBudgetCPU b
+      ExMemory mem = _exBudgetMemory b
+  putStrLn $ "CPU budget:    " ++ show cpu
+  putStrLn $ "Memory budget: " ++ show mem
+
+printBudgetStateTally :: (Eq fun, Cek.Hashable fun, Show fun) => Cek.CekExTally fun -> IO ()
+printBudgetStateTally (Cek.CekExTally costs) = do
+  putStrLn $ "Const      " ++ pbudget Cek.BConst
+  putStrLn $ "Var        " ++ pbudget Cek.BVar
+  putStrLn $ "LamAbs     " ++ pbudget Cek.BLamAbs
+  putStrLn $ "Apply      " ++ pbudget Cek.BApply
+  putStrLn $ "Delay      " ++ pbudget Cek.BDelay
+  putStrLn $ "Force      " ++ pbudget Cek.BForce
+  putStrLn $ "Error      " ++ pbudget Cek.BError
+  putStrLn $ "Builtin    " ++ pbudget Cek.BBuiltin
+  putStrLn ""
+  putStrLn $ "AST        " ++ pbudget Cek.BAST
+  putStrLn $ "compute    " ++ printf "%-20s" (budgetToString totalComputeSteps)
+  putStrLn $ "BuiltinApp " ++ budgetToString (mconcat (map snd builtinsAndCosts))
+  putStrLn ""
+  traverse_ (\(b,cost) -> putStrLn $ printf "%-20s %s" (show b) (budgetToString cost :: String)) builtinsAndCosts
+      where
+        get k =
+            case H.lookup k costs of
+              Just v  -> v
+              Nothing -> ExBudget 0 0
+        allNodeTags = [Cek.BConst, Cek.BVar, Cek.BLamAbs, Cek.BApply, Cek.BDelay, Cek.BForce, Cek.BError, Cek.BBuiltin]
+        totalComputeSteps = mconcat $ map get allNodeTags  -- Depends on the fact that we have a unit cost for each AST node type
+        budgetToString (ExBudget (ExCPU cpu) (ExMemory mem)) = printf "%10d  %10d" cpu mem :: String
+        pbudget k = budgetToString $ get k
+        f l e = case e of {(Cek.BBuiltinApp b, cost)  -> (b,cost):l; _ -> l}
+        builtinsAndCosts = List.foldl f [] (H.toList costs)
+
+class PrintBudgetState cost where
+    printBudgetState :: cost -> IO ()
+
+instance PrintBudgetState Cek.CountingSt where
+    printBudgetState (Cek.CountingSt budget) = printBudgetStateBudget budget
+
+instance (Eq fun, Cek.Hashable fun, Show fun) => PrintBudgetState (Cek.TallyingSt fun) where
+    printBudgetState (Cek.TallyingSt tally budget) = do
+        printBudgetStateBudget budget
+        putStrLn ""
+        printBudgetStateTally tally
+
+instance PrintBudgetState Cek.RestrictingSt where
+    printBudgetState (Cek.RestrictingSt (ExRestrictingBudget budget)) =
+        printBudgetStateBudget budget
+
+
 ---------------- Evaluation ----------------
 
 runEval :: EvalOptions -> IO ()
@@ -778,7 +834,7 @@ runEval (EvalOptions language inp ifmt evalMode printMode budgetMode timingMode)
                           case timingMode of
                             NoTiming -> do
                                     let (result, budget) = evaluate body
-                                    putStrLn $ PP.display budget
+                                    printBudgetState budget
                                     handleResultSilently result  -- We just want to see the budget information
                             Timing n -> timeEval n evaluate body >>= handleTimingResultsWithBudget
 
@@ -798,12 +854,12 @@ runEval (EvalOptions language inp ifmt evalMode printMode budgetMode timingMode)
               case nub results of
                 [(Right _, budget)] -> do
                     putStrLn ""
-                    putStrLn $ PP.display budget
+                    printBudgetState budget
                     exitSuccess
                 [(Left err,   budget)] -> do
                     putStrLn ""
                     print err
-                    putStrLn $ PP.display budget
+                    printBudgetState budget
                     exitFailure
                 _                                   -> error "Timing evaluations returned inconsistent results"
 
