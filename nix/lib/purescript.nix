@@ -51,6 +51,15 @@ stdenv.mkDerivation {
     mv dist $out
   '';
 
+  # The `nodeModules` we symlinked above contain `devDependencies` which
+  # are only required at build-time and not at run-time. `npm prune --production`
+  # removes all packages that belong to `devDependencies`.
+  #
+  # [Note 1]: that we have to run this during `postInstall` because 
+  # `devDependencies` may be required during `checkPhase` which runs before.
+  #
+  # [Note 2]: *currently* the installPhase only uses `dist` but this may change
+  # or may be overriden so we follow the best-practice of pruning dependencies here.
   postInstall = ''
     npm prune --production
   '';
