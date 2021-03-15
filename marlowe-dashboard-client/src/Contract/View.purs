@@ -5,7 +5,7 @@ module Contract.View
 import Prelude hiding (div)
 import Contract.Lenses (_executionState, _mActiveUserParty, _metadata, _participants, _step, _tab)
 import Contract.Types (Action(..), State, Tab(..))
-import Css (classNames)
+import Css (applyWhen, classNames)
 import Css as Css
 import Data.Array (intercalate, nub, range)
 import Data.Array as Array
@@ -26,6 +26,7 @@ import Data.Tuple (Tuple(..), fst, uncurry)
 import Data.Tuple.Nested ((/\))
 import Halogen.HTML (HTML, a, button, div, div_, h1, h2, option_, select, span, span_, text)
 import Halogen.HTML.Events.Extra (onClick_)
+import Halogen.HTML.Properties (disabled, enabled)
 import Marlowe.Execution (ExecutionStep, NamedAction(..), _contract, _namedActions, getActionParticipant)
 import Marlowe.Extended (contractTypeName)
 import Marlowe.Semantics (Accounts, Bound(..), ChoiceId(..), Input(..), Party(..), Token(..), TransactionInput(..), _accounts)
@@ -171,6 +172,8 @@ renderPartyTasks state party actions =
     mNickname :: Maybe String
     mNickname = join $ Map.lookup party (state ^. _participants)
 
+    isActiveParticipant = (state ^. _mActiveUserParty) == Just party
+
     participant =
       capitalize case party /\ mNickname of
         -- TODO: For the demo we wont have PK, but eventually we probably want to limit the amount of characters
@@ -182,10 +185,12 @@ renderPartyTasks state party actions =
       intercalate
         [ div [ classNames [ "font-semibold", "text-center", "my-2", "text-xs" ] ] [ text "OR" ]
         ]
-        (Array.singleton <<< renderAction <$> actions)
+        (Array.singleton <<< renderAction isActiveParticipant <$> actions)
   in
     div [ classNames [ "mt-3" ] ]
       ( [ div [ classNames [ "text-xs", "flex", "mb-2" ] ]
+            -- TODO: In zeplin all participants have a different color. We need to decide how are we going to assing
+            --       colors to users. For now they all have blue
             [ div [ classNames [ "bg-gradient-to-r", "from-blue", "to-lightblue", "text-white", "rounded-full", "w-4", "h-4", "text-center", "mr-1" ] ] [ text $ String.take 1 participant ]
             , div [ classNames [ "font-semibold" ] ] [ text participant ]
             ]
@@ -193,17 +198,22 @@ renderPartyTasks state party actions =
           <> actionsSeparatedByOr
       )
 
-renderAction :: forall p. NamedAction -> HTML p Action
-renderAction (MakeDeposit intoAccountOf by token value) =
+renderAction :: forall p. Boolean -> NamedAction -> HTML p Action
+renderAction isActiveParticipant (MakeDeposit intoAccountOf by token value) =
   let
     symbol = case token of
       Token "" "" -> "₳"
       Token s _ -> s
   in
     div_
-      [ shortDescription "chocolate pastry apple pie lemon drops apple pie halvah FIXME"
+      [ shortDescription isActiveParticipant "chocolate pastry apple pie lemon drops apple pie halvah FIXME"
       , button
-          [ classNames $ Css.primaryButton <> [ "w-full", "justify-between", "px-6", "py-5", "mt-2" ]
+          [ classNames $ [ "flex", "justify-between", "px-6", "font-bold", "w-full", "py-5", "mt-2", "rounded-3xl", "shadow" ]
+              <> if isActiveParticipant then
+                  [ "bg-gradient-to-r", "from-blue", "to-lightblue", "text-white" ]
+                else
+                  [ "bg-gray", "text-black", "opacity-50", "cursor-default" ]
+          , enabled isActiveParticipant
           -- FIXME
           -- , onClick_ $ NEEDACTION
           ]
@@ -213,7 +223,7 @@ renderAction (MakeDeposit intoAccountOf by token value) =
           ]
       ]
 
-renderAction (MakeChoice choiceId bounds chosen) =
+renderAction isActiveParticipant (MakeChoice choiceId bounds chosen) =
   let
     bigNumberToInt = floor <<< toNumber
 
@@ -224,11 +234,12 @@ renderAction (MakeChoice choiceId bounds chosen) =
         >>= \(Bound fromB toB) -> range (bigNumberToInt fromB) (bigNumberToInt toB)
   in
     div_
-      [ shortDescription "chocolate pastry apple pie lemon drops apple pie halvah FIXME"
+      [ shortDescription isActiveParticipant "chocolate pastry apple pie lemon drops apple pie halvah FIXME"
       -- FIXME: we need to use @tailwindcss/forms to reset forms inputs and then restyle
       --        https://www.youtube.com/watch?v=pONeWAzDsQg&ab_channel=TailwindLabs
       , select
           [ classNames [ "w-full", "py-4", "px-4", "shadow", "rounded-3xl", "mt-2" ]
+          , enabled isActiveParticipant
           -- FIXME: I need to rethink how to make this select. The option items do not have
           --        an onChange event, at most an onClick, which is probably not what I want
           --        and I need to get the chosen value.
@@ -245,24 +256,30 @@ renderAction (MakeChoice choiceId bounds chosen) =
           (options <#> \n -> option_ [ text $ show n ])
       ]
 
-renderAction (MakeNotify _) = div [] [ text "awaiting observation?" ]
+renderAction isActiveParticipant (MakeNotify _) = div [] [ text "awaiting observation?" ]
 
-renderAction (Evaluate _) = div [] [ text "FIXME: what should we put here? Evaluate" ]
+renderAction isActiveParticipant (Evaluate _) = div [] [ text "FIXME: what should we put here? Evaluate" ]
 
-renderAction CloseContract =
+renderAction isActiveParticipant CloseContract =
   div_
-    [ shortDescription "chocolate pastry apple pie lemon drops apple pie halvah FIXME"
+    [ shortDescription isActiveParticipant "chocolate pastry apple pie lemon drops apple pie halvah FIXME"
     , button
-        [ classNames $ Css.primaryButton <> [ "w-full", "py-5", "mt-2" ]
+        [ classNames
+            $ [ "font-bold", "w-full", "py-5", "mt-2", "rounded-3xl", "shadow" ]
+            <> if isActiveParticipant then
+                [ "bg-gradient-to-r", "from-blue", "to-lightblue", "text-white" ]
+              else
+                [ "bg-gray", "text-black", "opacity-50", "cursor-default" ]
+        , enabled isActiveParticipant
         -- FIXME
         -- , onClick_ $ NEEDACTION
         ]
         [ text "Close contract" ]
     ]
 
-shortDescription :: forall p. String -> HTML p Action
-shortDescription description =
-  div [ classNames [ "text-xs" ] ]
+shortDescription :: forall p. Boolean -> String -> HTML p Action
+shortDescription isActiveParticipant description =
+  div [ classNames ([ "text-xs" ] <> applyWhen (not isActiveParticipant) [ "opacity-50" ]) ]
     [ span [ classNames [ "font-semibold" ] ] [ text "Short description: " ]
     , span_ [ text description ]
     ]
