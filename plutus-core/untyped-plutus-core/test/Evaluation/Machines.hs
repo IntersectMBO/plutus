@@ -10,7 +10,7 @@ module Evaluation.Machines
 
 import           Language.UntypedPlutusCore
 import           Language.UntypedPlutusCore.Evaluation.HOAS
-import           Language.UntypedPlutusCore.Evaluation.Machine.Cek
+import           Language.UntypedPlutusCore.Evaluation.Machine.Cek as Cek
 
 import qualified Language.PlutusCore                               as Plc
 import           Language.PlutusCore.Builtins
@@ -82,7 +82,7 @@ testBudget runtime name term =
                        nestedGoldenVsText
     name
     (renderStrict $ layoutPretty defaultLayoutOptions {layoutPageWidth = AvailablePerLine maxBound 1.0} $
-        prettyPlcReadableDef $ runCekNoEmit runtime tallying term)
+        prettyPlcReadableDef $ runCekNoEmit runtime Cek.tallying term)
 
 bunchOfFibs :: PlcFolderContents DefaultUni DefaultFun
 bunchOfFibs = FolderContents [treeFolderContents "Fib" $ map fibFile [1..3]] where
@@ -146,7 +146,7 @@ testTallying name term =
                        nestedGoldenVsText
     name
     (renderStrict $ layoutPretty defaultLayoutOptions {layoutPageWidth = AvailablePerLine maxBound 1.0} $
-        prettyPlcReadableDef $ runCekNoEmit defBuiltinsRuntime tallying term)
+        prettyPlcReadableDef $ runCekNoEmit defBuiltinsRuntime Cek.tallying term)
 
 test_tallying :: TestTree
 test_tallying =

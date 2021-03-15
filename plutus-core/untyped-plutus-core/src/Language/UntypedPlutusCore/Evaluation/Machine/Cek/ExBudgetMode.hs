@@ -2,7 +2,6 @@
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings     #-}
-{-# LANGUAGE TypeApplications      #-}
 {-# LANGUAGE UndecidableInstances  #-}
 
 {-# LANGUAGE StrictData            #-}
@@ -26,7 +25,6 @@ import           PlutusPrelude
 import           Language.UntypedPlutusCore.Evaluation.Machine.Cek.Internal
 
 import           Language.PlutusCore.Evaluation.Machine.ExBudget
-import           Language.PlutusCore.Evaluation.Machine.ExMemory
 import           Language.PlutusCore.Evaluation.Machine.Exception
 
 import           Control.Lens                                               (ifoldMap)
@@ -102,19 +100,6 @@ newtype RestrictingSt = RestrictingSt ExRestrictingBudget
 
 instance Pretty RestrictingSt where
     pretty (RestrictingSt budget) = parens $ "final budget:" <+> pretty budget <> line
-
--- | @(-)@ on 'ExCPU'.
-minusExCPU :: ExCPU -> ExCPU -> ExCPU
-minusExCPU = coerce $ (-) @Integer
-
--- | @(-)@ on 'ExMemory'.
-minusExMemory :: ExMemory -> ExMemory -> ExMemory
-minusExMemory = coerce $ (-) @Integer
-
--- | Subtract an 'ExBudget' from an 'ExRestrictingBudget'.
-minusExBudget :: ExRestrictingBudget -> ExBudget -> ExRestrictingBudget
-ExRestrictingBudget (ExBudget cpuL memL) `minusExBudget` ExBudget cpuR memR =
-    ExRestrictingBudget $ ExBudget (cpuL `minusExCPU` cpuR) (memL `minusExMemory` memR)
 
 -- | For execution, to avoid overruns.
 restricting :: ExRestrictingBudget -> ExBudgetMode RestrictingSt uni fun

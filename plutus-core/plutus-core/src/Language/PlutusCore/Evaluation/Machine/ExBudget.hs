@@ -2,6 +2,7 @@
 {-# LANGUAGE FlexibleInstances      #-}
 {-# LANGUAGE FunctionalDependencies #-}
 {-# LANGUAGE OverloadedStrings      #-}
+{-# LANGUAGE TypeApplications       #-}
 
 {-# LANGUAGE StrictData             #-}
 
@@ -76,9 +77,12 @@ module Language.PlutusCore.Evaluation.Machine.ExBudget
     ( ExBudget(..)
     , ToExMemory(..)
     , ExBudgetBuiltin(..)
+    , SpendBudget(..)
     , ExRestrictingBudget(..)
     , isNegativeBudget
-    , SpendBudget(..)
+    , minusExCPU
+    , minusExMemory
+    , minusExBudget
     )
 where
 
@@ -141,3 +145,16 @@ newtype ExRestrictingBudget = ExRestrictingBudget ExBudget deriving (Show, Eq)
 
 isNegativeBudget :: ExRestrictingBudget -> Bool
 isNegativeBudget (ExRestrictingBudget (ExBudget cpu mem)) = cpu < 0 || mem < 0
+
+-- | @(-)@ on 'ExCPU'.
+minusExCPU :: ExCPU -> ExCPU -> ExCPU
+minusExCPU = coerce $ (-) @Integer
+
+-- | @(-)@ on 'ExMemory'.
+minusExMemory :: ExMemory -> ExMemory -> ExMemory
+minusExMemory = coerce $ (-) @Integer
+
+-- | Subtract an 'ExBudget' from an 'ExRestrictingBudget'.
+minusExBudget :: ExRestrictingBudget -> ExBudget -> ExRestrictingBudget
+ExRestrictingBudget (ExBudget cpuL memL) `minusExBudget` ExBudget cpuR memR =
+    ExRestrictingBudget $ ExBudget (cpuL `minusExCPU` cpuR) (memL `minusExMemory` memR)
