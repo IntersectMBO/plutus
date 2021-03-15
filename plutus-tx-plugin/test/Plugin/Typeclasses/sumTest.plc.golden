@@ -81,213 +81,223 @@
         (datatypebind
           (datatype (tyvardecl Unit (type))  Unit_match (vardecl Unit Unit))
         )
-        (termbind
-          (strict)
-          (vardecl
-            fFoldableNil_cfoldMap
-            (all m (type) (all a (type) (fun [Monoid m] (fun (fun a m) (fun [List a] m)))))
-          )
-          (abs
-            m
-            (type)
+        (let
+          (rec)
+          (termbind
+            (nonstrict)
+            (vardecl
+              fFoldableNil_cfoldMap
+              (all m (type) (all a (type) (fun [Monoid m] (fun (fun a m) (fun [List a] m)))))
+            )
             (abs
-              a
+              m
               (type)
-              (lam
-                dMonoid
-                [Monoid m]
-                (let
-                  (nonrec)
-                  (termbind
-                    (nonstrict)
-                    (vardecl dSemigroup [(lam a (type) (fun a (fun a a))) m])
-                    [ { p1Monoid m } dMonoid ]
-                  )
-                  (lam
-                    f
-                    (fun a m)
-                    (let
-                      (rec)
-                      (termbind
-                        (strict)
-                        (vardecl go (fun [List a] m))
-                        (lam
-                          ds
-                          [List a]
+              (abs
+                a
+                (type)
+                (lam
+                  dMonoid
+                  [Monoid m]
+                  (let
+                    (nonrec)
+                    (termbind
+                      (nonstrict)
+                      (vardecl dSemigroup [(lam a (type) (fun a (fun a a))) m])
+                      [ { p1Monoid m } dMonoid ]
+                    )
+                    (lam
+                      ds
+                      (fun a m)
+                      (lam
+                        ds
+                        [List a]
+                        [
                           [
                             [
-                              [
-                                { [ { Nil_match a } ds ] (fun Unit m) }
-                                (lam thunk Unit [ { mempty m } dMonoid ])
-                              ]
+                              { [ { Nil_match a } ds ] (fun Unit m) }
+                              (lam thunk Unit [ { mempty m } dMonoid ])
+                            ]
+                            (lam
+                              x
+                              a
                               (lam
-                                x
-                                a
+                                xs
+                                [List a]
                                 (lam
-                                  xs
-                                  [List a]
-                                  (lam
-                                    thunk
-                                    Unit
-                                    [ [ dSemigroup [ f x ] ] [ go xs ] ]
-                                  )
+                                  thunk
+                                  Unit
+                                  [
+                                    [ dSemigroup [ ds x ] ]
+                                    [
+                                      [
+                                        [
+                                          { { fFoldableNil_cfoldMap m } a }
+                                          dMonoid
+                                        ]
+                                        ds
+                                      ]
+                                      xs
+                                    ]
+                                  ]
                                 )
                               )
-                            ]
-                            Unit
+                            )
                           ]
-                        )
+                          Unit
+                        ]
                       )
-                      go
                     )
                   )
                 )
               )
             )
           )
-        )
-        (termbind
-          (strict)
-          (vardecl
-            build
-            (all a (type) (fun (all b (type) (fun (fun a (fun b b)) (fun b b))) [List a]))
-          )
-          (abs
-            a
-            (type)
-            (lam
-              g
-              (all b (type) (fun (fun a (fun b b)) (fun b b)))
-              [ [ { g [List a] } { Cons a } ] { Nil a } ]
-            )
-          )
-        )
-        (termbind
-          (strict)
-          (vardecl
-            p1AdditiveMonoid
-            (all a (type) (fun [AdditiveMonoid a] [(lam a (type) (fun a (fun a a))) a]))
-          )
-          (abs
-            a
-            (type)
-            (lam
-              v
-              [AdditiveMonoid a]
-              [
-                {
-                  [ { AdditiveMonoid_match a } v ]
-                  [(lam a (type) (fun a (fun a a))) a]
-                }
-                (lam v [(lam a (type) (fun a (fun a a))) a] (lam v a v))
-              ]
-            )
-          )
-        )
-        (termbind
-          (strict)
-          (vardecl zero (all a (type) (fun [AdditiveMonoid a] a)))
-          (abs
-            a
-            (type)
-            (lam
-              v
-              [AdditiveMonoid a]
-              [
-                { [ { AdditiveMonoid_match a } v ] a }
-                (lam v [(lam a (type) (fun a (fun a a))) a] (lam v a v))
-              ]
-            )
-          )
-        )
-        (termbind
-          (strict)
-          (vardecl
-            fMonoidSum
-            (all a (type) (fun [AdditiveMonoid a] [Monoid [(lam a (type) a) a]]))
-          )
-          (abs
-            a
-            (type)
-            (lam
-              v
-              [AdditiveMonoid a]
-              [
-                [
-                  { CConsMonoid [(lam a (type) a) a] }
-                  (lam
-                    eta
-                    [(lam a (type) a) a]
-                    (lam
-                      eta
-                      [(lam a (type) a) a]
-                      [ [ [ { p1AdditiveMonoid a } v ] eta ] eta ]
-                    )
-                  )
-                ]
-                [ { zero a } v ]
-              ]
-            )
-          )
-        )
-        (termbind
-          (strict)
-          (vardecl
-            sum
-            (all t (fun (type) (type)) (all a (type) (fun [(lam t (fun (type) (type)) (all m (type) (all a (type) (fun [Monoid m] (fun (fun a m) (fun [t a] m)))))) t] (fun [AdditiveMonoid a] (fun [t a] a)))))
-          )
-          (abs
-            t
-            (fun (type) (type))
-            (abs
-              a
-              (type)
-              (lam
-                dFoldable
-                [(lam t (fun (type) (type)) (all m (type) (all a (type) (fun [Monoid m] (fun (fun a m) (fun [t a] m)))))) t]
+          (let
+            (nonrec)
+            (termbind
+              (strict)
+              (vardecl
+                build
+                (all a (type) (fun (all b (type) (fun (fun a (fun b b)) (fun b b))) [List a]))
+              )
+              (abs
+                a
+                (type)
                 (lam
-                  dAdditiveMonoid
+                  g
+                  (all b (type) (fun (fun a (fun b b)) (fun b b)))
+                  [ [ { g [List a] } { Cons a } ] { Nil a } ]
+                )
+              )
+            )
+            (termbind
+              (strict)
+              (vardecl
+                p1AdditiveMonoid
+                (all a (type) (fun [AdditiveMonoid a] [(lam a (type) (fun a (fun a a))) a]))
+              )
+              (abs
+                a
+                (type)
+                (lam
+                  v
+                  [AdditiveMonoid a]
+                  [
+                    {
+                      [ { AdditiveMonoid_match a } v ]
+                      [(lam a (type) (fun a (fun a a))) a]
+                    }
+                    (lam v [(lam a (type) (fun a (fun a a))) a] (lam v a v))
+                  ]
+                )
+              )
+            )
+            (termbind
+              (strict)
+              (vardecl zero (all a (type) (fun [AdditiveMonoid a] a)))
+              (abs
+                a
+                (type)
+                (lam
+                  v
+                  [AdditiveMonoid a]
+                  [
+                    { [ { AdditiveMonoid_match a } v ] a }
+                    (lam v [(lam a (type) (fun a (fun a a))) a] (lam v a v))
+                  ]
+                )
+              )
+            )
+            (termbind
+              (strict)
+              (vardecl
+                fMonoidSum
+                (all a (type) (fun [AdditiveMonoid a] [Monoid [(lam a (type) a) a]]))
+              )
+              (abs
+                a
+                (type)
+                (lam
+                  v
                   [AdditiveMonoid a]
                   [
                     [
-                      { { dFoldable [(lam a (type) a) a] } a }
-                      [ { fMonoidSum a } dAdditiveMonoid ]
+                      { CConsMonoid [(lam a (type) a) a] }
+                      (lam
+                        eta
+                        [(lam a (type) a) a]
+                        (lam
+                          eta
+                          [(lam a (type) a) a]
+                          [ [ [ { p1AdditiveMonoid a } v ] eta ] eta ]
+                        )
+                      )
                     ]
-                    (lam v a v)
+                    [ { zero a } v ]
                   ]
                 )
               )
             )
+            (termbind
+              (strict)
+              (vardecl
+                sum
+                (all t (fun (type) (type)) (all a (type) (fun [(lam t (fun (type) (type)) (all m (type) (all a (type) (fun [Monoid m] (fun (fun a m) (fun [t a] m)))))) t] (fun [AdditiveMonoid a] (fun [t a] a)))))
+              )
+              (abs
+                t
+                (fun (type) (type))
+                (abs
+                  a
+                  (type)
+                  (lam
+                    dFoldable
+                    [(lam t (fun (type) (type)) (all m (type) (all a (type) (fun [Monoid m] (fun (fun a m) (fun [t a] m)))))) t]
+                    (lam
+                      dAdditiveMonoid
+                      [AdditiveMonoid a]
+                      [
+                        [
+                          { { dFoldable [(lam a (type) a) a] } a }
+                          [ { fMonoidSum a } dAdditiveMonoid ]
+                        ]
+                        (lam v a v)
+                      ]
+                    )
+                  )
+                )
+              )
+            )
+            [
+              [
+                [ { { sum List } (con integer) } fFoldableNil_cfoldMap ]
+                fAdditiveMonoidInteger
+              ]
+              [
+                { build (con integer) }
+                (abs
+                  a
+                  (type)
+                  (lam
+                    c
+                    (fun (con integer) (fun a a))
+                    (lam
+                      n
+                      a
+                      [
+                        [ c (con integer 1) ]
+                        [
+                          [ c (con integer 2) ]
+                          [ [ c (con integer 3) ] [ [ c (con integer 4) ] n ] ]
+                        ]
+                      ]
+                    )
+                  )
+                )
+              ]
+            ]
           )
         )
-        [
-          [
-            [ { { sum List } (con integer) } fFoldableNil_cfoldMap ]
-            fAdditiveMonoidInteger
-          ]
-          [
-            { build (con integer) }
-            (abs
-              a
-              (type)
-              (lam
-                c
-                (fun (con integer) (fun a a))
-                (lam
-                  n
-                  a
-                  [
-                    [ c (con integer 1) ]
-                    [
-                      [ c (con integer 2) ]
-                      [ [ c (con integer 3) ] [ [ c (con integer 4) ] n ] ]
-                    ]
-                  ]
-                )
-              )
-            )
-          ]
-        ]
       )
     )
   )
