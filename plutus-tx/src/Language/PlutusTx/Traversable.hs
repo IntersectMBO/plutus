@@ -86,10 +86,8 @@ class (Functor t, Foldable t) => Traversable t where
 
 instance Traversable [] where
     {-# INLINABLE traverse #-}
-    traverse f = go
-      where
-        go []     = pure []
-        go (x:xs) = liftA2 (:) (f x) (go xs)
+    traverse _ []     = pure []
+    traverse f (x:xs) = liftA2 (:) (f x) (traverse f xs)
 
 instance Traversable Maybe where
     {-# INLINABLE traverse #-}

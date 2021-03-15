@@ -401,250 +401,268 @@
                   )
                 )
               )
-              (termbind
-                (strict)
-                (vardecl
-                  fTraversableNil_ctraverse
-                  (all f (fun (type) (type)) (all a (type) (all b (type) (fun [Applicative f] (fun (fun a [f b]) (fun [List a] [f [List b]]))))))
-                )
-                (abs
-                  f
-                  (fun (type) (type))
-                  (abs
-                    a
-                    (type)
-                    (abs
-                      b
-                      (type)
-                      (lam
-                        dApplicative
-                        [Applicative f]
-                        (lam
-                          f
-                          (fun a [f b])
-                          (let
-                            (rec)
-                            (termbind
-                              (strict)
-                              (vardecl go (fun [List a] [f [List b]]))
-                              (lam
-                                ds
-                                [List a]
-                                [
-                                  [
-                                    [
-                                      {
-                                        [ { Nil_match a } ds ]
-                                        (fun Unit [f [List b]])
-                                      }
-                                      (lam
-                                        thunk
-                                        Unit
-                                        [
-                                          {
-                                            [ { pure f } dApplicative ] [List b]
-                                          }
-                                          { Nil b }
-                                        ]
-                                      )
-                                    ]
-                                    (lam
-                                      x
-                                      a
-                                      (lam
-                                        xs
-                                        [List a]
-                                        (lam
-                                          thunk
-                                          Unit
-                                          [
-                                            [
-                                              {
-                                                {
-                                                  [
-                                                    { bad_name f } dApplicative
-                                                  ]
-                                                  [List b]
-                                                }
-                                                [List b]
-                                              }
-                                              [
-                                                [
-                                                  {
-                                                    {
-                                                      [
-                                                        { p1Applicative f }
-                                                        dApplicative
-                                                      ]
-                                                      b
-                                                    }
-                                                    (fun [List b] [List b])
-                                                  }
-                                                  { Cons b }
-                                                ]
-                                                [ f x ]
-                                              ]
-                                            ]
-                                            [ go xs ]
-                                          ]
-                                        )
-                                      )
-                                    )
-                                  ]
-                                  Unit
-                                ]
-                              )
-                            )
-                            go
-                          )
-                        )
-                      )
-                    )
-                  )
-                )
-              )
-              (datatypebind
-                (datatype
-                  (tyvardecl Traversable (fun (fun (type) (type)) (type)))
-                  (tyvardecl t (fun (type) (type)))
-                  Traversable_match
+              (let
+                (rec)
+                (termbind
+                  (nonstrict)
                   (vardecl
-                    CConsTraversable
-                    (fun [(lam f (fun (type) (type)) (all a (type) (all b (type) (fun (fun a b) (fun [f a] [f b]))))) t] (fun [(lam t (fun (type) (type)) (all m (type) (all a (type) (fun [Monoid m] (fun (fun a m) (fun [t a] m)))))) t] (fun (all f (fun (type) (type)) (all a (type) (all b (type) (fun [Applicative f] (fun (fun a [f b]) (fun [t a] [f [t b]])))))) [Traversable t])))
+                    fTraversableNil_ctraverse
+                    (all f (fun (type) (type)) (all a (type) (all b (type) (fun [Applicative f] (fun (fun a [f b]) (fun [List a] [f [List b]]))))))
                   )
-                )
-              )
-              (termbind
-                (nonstrict)
-                (vardecl fTraversableNil [Traversable List])
-                [
-                  [
-                    [ { CConsTraversable List } fFunctorNil_cfmap ]
-                    fFoldableNil_cfoldMap
-                  ]
-                  fTraversableNil_ctraverse
-                ]
-              )
-              (termbind
-                (strict)
-                (vardecl
-                  build
-                  (all a (type) (fun (all b (type) (fun (fun a (fun b b)) (fun b b))) [List a]))
-                )
-                (abs
-                  a
-                  (type)
-                  (lam
-                    g
-                    (all b (type) (fun (fun a (fun b b)) (fun b b)))
-                    [ [ { g [List a] } { Cons a } ] { Nil a } ]
-                  )
-                )
-              )
-              (termbind
-                (strict)
-                (vardecl id (all a (type) (fun a a)))
-                (abs a (type) (lam x a x))
-              )
-              (termbind
-                (strict)
-                (vardecl
-                  traverse
-                  (all t (fun (type) (type)) (fun [Traversable t] (all f (fun (type) (type)) (all a (type) (all b (type) (fun [Applicative f] (fun (fun a [f b]) (fun [t a] [f [t b]]))))))))
-                )
-                (abs
-                  t
-                  (fun (type) (type))
-                  (lam
-                    v
-                    [Traversable t]
-                    [
-                      {
-                        [ { Traversable_match t } v ]
-                        (all f (fun (type) (type)) (all a (type) (all b (type) (fun [Applicative f] (fun (fun a [f b]) (fun [t a] [f [t b]]))))))
-                      }
-                      (lam
-                        v
-                        [(lam f (fun (type) (type)) (all a (type) (all b (type) (fun (fun a b) (fun [f a] [f b]))))) t]
-                        (lam
-                          v
-                          [(lam t (fun (type) (type)) (all m (type) (all a (type) (fun [Monoid m] (fun (fun a m) (fun [t a] m)))))) t]
-                          (lam
-                            v
-                            (all f (fun (type) (type)) (all a (type) (all b (type) (fun [Applicative f] (fun (fun a [f b]) (fun [t a] [f [t b]]))))))
-                            v
-                          )
-                        )
-                      )
-                    ]
-                  )
-                )
-              )
-              (termbind
-                (strict)
-                (vardecl
-                  sequenceA
-                  (all t (fun (type) (type)) (all f (fun (type) (type)) (all a (type) (fun [Traversable t] (fun [Applicative f] (fun [t [f a]] [f [t a]]))))))
-                )
-                (abs
-                  t
-                  (fun (type) (type))
                   (abs
                     f
                     (fun (type) (type))
                     (abs
                       a
                       (type)
-                      (lam
-                        dTraversable
-                        [Traversable t]
+                      (abs
+                        b
+                        (type)
                         (lam
                           dApplicative
                           [Applicative f]
-                          [
-                            [
-                              {
-                                { { [ { traverse t } dTraversable ] f } [f a] }
-                                a
-                              }
-                              dApplicative
-                            ]
-                            { id [f a] }
-                          ]
+                          (lam
+                            ds
+                            (fun a [f b])
+                            (lam
+                              ds
+                              [List a]
+                              [
+                                [
+                                  [
+                                    {
+                                      [ { Nil_match a } ds ]
+                                      (fun Unit [f [List b]])
+                                    }
+                                    (lam
+                                      thunk
+                                      Unit
+                                      [
+                                        { [ { pure f } dApplicative ] [List b] }
+                                        { Nil b }
+                                      ]
+                                    )
+                                  ]
+                                  (lam
+                                    x
+                                    a
+                                    (lam
+                                      xs
+                                      [List a]
+                                      (lam
+                                        thunk
+                                        Unit
+                                        [
+                                          [
+                                            {
+                                              {
+                                                [ { bad_name f } dApplicative ]
+                                                [List b]
+                                              }
+                                              [List b]
+                                            }
+                                            [
+                                              [
+                                                {
+                                                  {
+                                                    [
+                                                      { p1Applicative f }
+                                                      dApplicative
+                                                    ]
+                                                    b
+                                                  }
+                                                  (fun [List b] [List b])
+                                                }
+                                                { Cons b }
+                                              ]
+                                              [ ds x ]
+                                            ]
+                                          ]
+                                          [
+                                            [
+                                              [
+                                                {
+                                                  {
+                                                    {
+                                                      fTraversableNil_ctraverse
+                                                      f
+                                                    }
+                                                    a
+                                                  }
+                                                  b
+                                                }
+                                                dApplicative
+                                              ]
+                                              ds
+                                            ]
+                                            xs
+                                          ]
+                                        ]
+                                      )
+                                    )
+                                  )
+                                ]
+                                Unit
+                              ]
+                            )
+                          )
                         )
                       )
                     )
                   )
                 )
-              )
-              [
-                [
-                  [
-                    { { { sequenceA List } Maybe } (con integer) }
-                    fTraversableNil
-                  ]
-                  fApplicativeMaybe
-                ]
-                [
-                  { build [Maybe (con integer)] }
-                  (abs
-                    a
-                    (type)
-                    (lam
-                      c
-                      (fun [Maybe (con integer)] (fun a a))
+                (let
+                  (nonrec)
+                  (datatypebind
+                    (datatype
+                      (tyvardecl Traversable (fun (fun (type) (type)) (type)))
+                      (tyvardecl t (fun (type) (type)))
+                      Traversable_match
+                      (vardecl
+                        CConsTraversable
+                        (fun [(lam f (fun (type) (type)) (all a (type) (all b (type) (fun (fun a b) (fun [f a] [f b]))))) t] (fun [(lam t (fun (type) (type)) (all m (type) (all a (type) (fun [Monoid m] (fun (fun a m) (fun [t a] m)))))) t] (fun (all f (fun (type) (type)) (all a (type) (all b (type) (fun [Applicative f] (fun (fun a [f b]) (fun [t a] [f [t b]])))))) [Traversable t])))
+                      )
+                    )
+                  )
+                  (termbind
+                    (nonstrict)
+                    (vardecl fTraversableNil [Traversable List])
+                    [
+                      [
+                        [ { CConsTraversable List } fFunctorNil_cfmap ]
+                        fFoldableNil_cfoldMap
+                      ]
+                      fTraversableNil_ctraverse
+                    ]
+                  )
+                  (termbind
+                    (strict)
+                    (vardecl
+                      build
+                      (all a (type) (fun (all b (type) (fun (fun a (fun b b)) (fun b b))) [List a]))
+                    )
+                    (abs
+                      a
+                      (type)
                       (lam
-                        n
-                        a
+                        g
+                        (all b (type) (fun (fun a (fun b b)) (fun b b)))
+                        [ [ { g [List a] } { Cons a } ] { Nil a } ]
+                      )
+                    )
+                  )
+                  (termbind
+                    (strict)
+                    (vardecl id (all a (type) (fun a a)))
+                    (abs a (type) (lam x a x))
+                  )
+                  (termbind
+                    (strict)
+                    (vardecl
+                      traverse
+                      (all t (fun (type) (type)) (fun [Traversable t] (all f (fun (type) (type)) (all a (type) (all b (type) (fun [Applicative f] (fun (fun a [f b]) (fun [t a] [f [t b]]))))))))
+                    )
+                    (abs
+                      t
+                      (fun (type) (type))
+                      (lam
+                        v
+                        [Traversable t]
                         [
-                          [ c [ { Just (con integer) } (con integer 1) ] ]
-                          [ [ c [ { Just (con integer) } (con integer 2) ] ] n ]
+                          {
+                            [ { Traversable_match t } v ]
+                            (all f (fun (type) (type)) (all a (type) (all b (type) (fun [Applicative f] (fun (fun a [f b]) (fun [t a] [f [t b]]))))))
+                          }
+                          (lam
+                            v
+                            [(lam f (fun (type) (type)) (all a (type) (all b (type) (fun (fun a b) (fun [f a] [f b]))))) t]
+                            (lam
+                              v
+                              [(lam t (fun (type) (type)) (all m (type) (all a (type) (fun [Monoid m] (fun (fun a m) (fun [t a] m)))))) t]
+                              (lam
+                                v
+                                (all f (fun (type) (type)) (all a (type) (all b (type) (fun [Applicative f] (fun (fun a [f b]) (fun [t a] [f [t b]]))))))
+                                v
+                              )
+                            )
+                          )
                         ]
                       )
                     )
                   )
-                ]
-              ]
+                  (termbind
+                    (strict)
+                    (vardecl
+                      sequenceA
+                      (all t (fun (type) (type)) (all f (fun (type) (type)) (all a (type) (fun [Traversable t] (fun [Applicative f] (fun [t [f a]] [f [t a]]))))))
+                    )
+                    (abs
+                      t
+                      (fun (type) (type))
+                      (abs
+                        f
+                        (fun (type) (type))
+                        (abs
+                          a
+                          (type)
+                          (lam
+                            dTraversable
+                            [Traversable t]
+                            (lam
+                              dApplicative
+                              [Applicative f]
+                              [
+                                [
+                                  {
+                                    {
+                                      { [ { traverse t } dTraversable ] f }
+                                      [f a]
+                                    }
+                                    a
+                                  }
+                                  dApplicative
+                                ]
+                                { id [f a] }
+                              ]
+                            )
+                          )
+                        )
+                      )
+                    )
+                  )
+                  [
+                    [
+                      [
+                        { { { sequenceA List } Maybe } (con integer) }
+                        fTraversableNil
+                      ]
+                      fApplicativeMaybe
+                    ]
+                    [
+                      { build [Maybe (con integer)] }
+                      (abs
+                        a
+                        (type)
+                        (lam
+                          c
+                          (fun [Maybe (con integer)] (fun a a))
+                          (lam
+                            n
+                            a
+                            [
+                              [ c [ { Just (con integer) } (con integer 1) ] ]
+                              [
+                                [ c [ { Just (con integer) } (con integer 2) ] ]
+                                n
+                              ]
+                            ]
+                          )
+                        )
+                      )
+                    ]
+                  ]
+                )
+              )
             )
           )
         )
