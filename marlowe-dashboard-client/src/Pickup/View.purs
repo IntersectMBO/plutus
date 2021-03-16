@@ -48,7 +48,7 @@ renderPickupCard wallets newWalletNickname newWalletContractId remoteDataPubKey 
                 [ classNames [ "p-2", "text-green" ]
                 , onClick_ $ SetCard Nothing
                 ]
-                [ Icon.close ]
+                [ Icon.close_ ]
             ]
         , div
             [ classNames [ "px-4", "pb-4" ] ]

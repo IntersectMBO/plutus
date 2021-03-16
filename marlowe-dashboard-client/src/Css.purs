@@ -71,8 +71,8 @@ cardWrapper invisible = [ "absolute", "top-0", "bottom-0", "left-0", "right-0", 
 card :: Array String
 card = [ "shadow", "bg-white", "mx-4", "rounded-t-lg", "md:mx-auto", "md:w-96", "md:rounded-b-lg" ]
 
-largeCard :: String -> Array String
-largeCard bgColor = [ "shadow", "max-h-full", "overflow-auto", "mt-12", "mx-4", "rounded-t-lg", "md:rounded-b-lg", "md:mb-12", "lg:mx-12", bgColor ]
+largeCard :: Array String
+largeCard = [ "shadow", "h-full", "overflow-auto", "mt-2", "md:mb-2", "mx-2", "rounded-t-lg", "md:rounded-b-lg", "lg:mx-12", "bg-grayblue" ]
 
 iconCircle :: Boolean -> Array String
 iconCircle enabled = [ "inline-flex", "items-center", "justify-center", "w-10", "h-10", "rounded-full" ] <> toggleWhen enabled [ "bg-gradient-to-r", "from-blue", "to-lightblue", "text-white" ] [ "bg-gray", "text-darkgray" ]

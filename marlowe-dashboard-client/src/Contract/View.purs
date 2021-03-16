@@ -35,13 +35,12 @@ contractDetailsCard state =
   let
     metadata = state ^. _metadata
   in
-    div [ classNames [ "flex", "flex-col", "items-center" ] ]
+    div [ classNames [ "flex", "flex-col", "items-center", "mt-5" ] ]
       [ h1 [ classNames [ "text-xl", "font-semibold" ] ] [ text metadata.contractName ]
       -- FIXME: in zeplin the contractType is defined with color #283346, we need to define
       --        the color palette with russ.
       , h2 [ classNames [ "mb-2", "text-xs", "uppercase" ] ] [ text $ contractTypeName metadata.contractType ]
-      -- FIXME: Revisit width (at least on desktop)
-      , div [ classNames [ "w-full" ] ] [ renderCurrentState state ]
+      , div [ classNames [ "w-full", "px-5", "max-w-contract-card" ] ] [ renderCurrentState state ]
       ]
 
 renderCurrentState :: forall p. State -> HTML p Action
@@ -62,7 +61,7 @@ renderCurrentState state =
             true -> [ "active" ]
             false -> []
   in
-    div [ classNames [ "rounded-xl", "overflow-hidden" ] ]
+    div [ classNames [ "rounded-xl", "shadow-current-step", "overflow-hidden" ] ]
       [ div [ classNames [ "flex", "overflow-hidden" ] ]
           [ a
               [ classNames (tabSelector $ currentTab == Tasks)
@@ -75,25 +74,26 @@ renderCurrentState state =
               ]
               [ span_ $ [ text "Balances" ] ]
           ]
-      , div [ classNames [ "px-4", "bg-white" ] ]
+      , div [ classNames [ "max-h-contract-card", "bg-white" ] ]
           -- FIXME: zeplin has border color #dfdfdf, see if it makes sense to add that one to the pallete
           --        or if this gray is fine
-          [ div [ classNames [ "py-2.5", "flex", "items-center", "border-b", "border-gray" ] ]
+          [ div [ classNames [ "py-2.5", "px-4", "flex", "items-center", "border-b", "border-gray" ] ]
               [ span
                   [ classNames [ "text-xl", "font-semibold", "flex-grow" ] ]
                   [ text $ "Step " <> show stepNumber ]
               , span
-                  -- [ "flex", "items-center", "justify-center", "px-4", "py-3", "leading-none", "disabled:opacity-50", "disabled:cursor-not-allowed",  ]
                   [ classNames [ "flex-grow", "rounded-3xl", "bg-gray", "py-2", "flex", "items-center" ] ]
-                  [ Icons.timer' [ "pl-3" ]
+                  [ Icons.timer [ "pl-3" ]
                   , span [ classNames [ "text-xs", "flex-grow", "text-center", "font-semibold" ] ]
                       [ text "1hr 2mins left" ]
                   ]
               ]
-          , if currentTab == Tasks then
-              renderTasks state
-            else
-              renderBalances state
+          , div [ classNames [ "h-contract-card", "overflow-y-scroll", "px-4" ] ]
+              [ if currentTab == Tasks then
+                  renderTasks state
+                else
+                  renderBalances state
+              ]
           ]
       ]
 
@@ -120,20 +120,16 @@ expandAndGroupByRole mActiveUserParty allParticipants actions =
           Just participant -> [ participant /\ action ]
           Nothing -> Set.toUnfoldable allParticipants <#> \participant -> participant /\ action
 
-  currentPartyFirst = \(Tuple party1 _) (Tuple party2 _) ->
-    if (Just party1) == mActiveUserParty then
-      LT
-    else
-      if (Just party2) == mActiveUserParty then
-        GT
-      else
-        compare party1 party2
+  currentPartyFirst (Tuple party1 _) (Tuple party2 _)
+    | Just party1 == mActiveUserParty = LT
+    | Just party2 == mActiveUserParty = GT
+    | otherwise = compare party1 party2
 
   sameParty a b = fst a == fst b
 
   extractGroupedParty :: NonEmptyArray (Tuple Party NamedAction) -> Tuple Party (Array NamedAction)
   extractGroupedParty group = case NEA.unzip group of
-    Tuple tokens actions' -> Tuple (NEA.head tokens) (NEA.toArray actions')
+    tokens /\ actions' -> NEA.head tokens /\ NEA.toArray actions'
 
 renderTasks :: forall p. State -> HTML p Action
 renderTasks state =

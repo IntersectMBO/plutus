@@ -75,11 +75,11 @@ contractSetupScreen wallets currentSlot state =
                   [ classNames [ "lg:grid", "lg:grid-cols-contract-setup" ] ]
                   [ div -- this is all we need for small screens
                       [ classNames [] ]
-                      [ subHeader "top-0" true Icon.roles "Roles" true
+                      [ subHeader "top-0" true Icon.roles_ "Roles" true
                       , roleInputs true wallets extendedContract metaData roleWallets
-                      , subHeader "top-12" true Icon.terms "Terms" termsAreAccessible
+                      , subHeader "top-12" true Icon.terms_ "Terms" termsAreAccessible
                       , parameterInputs true wallets currentSlot metaData templateContent slotContentStrings roleWallets termsAreAccessible
-                      , subHeader "top-24" false Icon.pay "Review and pay" payIsAccessible
+                      , subHeader "top-24" false Icon.pay_ "Review and pay" payIsAccessible
                       , reviewAndPay true payIsAccessible metaData
                       ]
                   , div -- for medium screens we show the second column
@@ -105,7 +105,7 @@ navigationBar contractName =
         [ classNames [ "flex", "items-center", "font-semibold", "-ml-2" ]
         , onClick_ ToggleTemplateLibraryCard
         ]
-        [ Icon.previous
+        [ Icon.previous_
         , span_
             [ text "Choose template" ]
         ]
@@ -212,7 +212,7 @@ roleInputs forMobile wallets extendedContract metaData roleWallets =
                 [ classNames [ "absolute", "top-3", "right-3" ]
                 , onClick_ $ ToggleCreateWalletCard tokenName
                 ]
-                [ Icon.addCircle ]
+                [ Icon.addCircle_ ]
             ]
         , div
             [ classNames Css.inputError ]
@@ -336,9 +336,9 @@ subSection forMobile accessible border content =
 ------------------------------------------------------------
 templateLibraryCard :: forall p. Array ContractTemplate -> HTML p Action
 templateLibraryCard templates =
-  div_
+  div [ classNames [ "px-4", "pb-4" ] ]
     [ h2
-        [ classNames [ "text-lg", "text-center", "font-semibold", "mb-4" ] ]
+        [ classNames [ "text-lg", "font-semibold", "mt-2", "mb-4" ] ]
         [ text "Choose a contract template" ]
     , div
         [ classNames [ "grid", "gap-4", "md:grid-cols-2", "lg:grid-cols-3" ] ]
@@ -356,7 +356,7 @@ templateLibraryCard templates =
               , onClick_ $ SetTemplate template
               ]
               [ span [ classNames [ "mr-2" ] ] [ text "Setup" ]
-              , span_ [ Icon.east ]
+              , span_ [ Icon.east_ ]
               ]
           ]
       , p_
@@ -377,7 +377,7 @@ contractTitle metaData =
 
 contractSetupConfirmationCard :: forall p. HTML p Action
 contractSetupConfirmationCard =
-  div_
+  div [ classNames [ "px-4", "pb-4" ] ]
     [ p_ [ text "Are you sure?" ]
     , div
         [ classNames [ "flex" ] ]

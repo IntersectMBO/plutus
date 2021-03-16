@@ -1,22 +1,23 @@
 -- All available icons can be found here: https://material.io/resources/icons/?icon=timer&style=round
 -- TODO: replace web-common Icons module with this one
 module Material.Icons
-  ( add
-  , addCircle
+  ( add_
+  , addCircle_
+  , close_
   , close
-  , contacts
-  , east
-  , help
-  , home
-  , menu
-  , next
-  , pay
-  , previous
-  , roles
-  , terms
+  , contacts_
+  , east_
+  , help_
+  , home_
+  , menu_
+  , next_
+  , pay_
+  , previous_
+  , roles_
+  , terms_
+  , timer_
   , timer
-  , timer'
-  , wallet
+  , wallet_
   ) where
 
 import Prelude
@@ -24,59 +25,60 @@ import Halogen.HTML (ClassName(ClassName), HTML, span, text)
 import Halogen.HTML.Properties (classes)
 import Data.Array (cons)
 
-icon :: forall p i. String -> HTML p i
-icon str = icon' str []
+icon_ :: forall p i. String -> HTML p i
+icon_ str = icon str []
 
--- The apostrophe helpers should we used when we need to apply other styles to the icons, as wrapping them
--- between a div or another span generates weird vertical alignment issues.
-icon' :: forall p i. String -> Array String -> HTML p i
-icon' str extraClasses = span [ classes $ ClassName <$> cons "material-icons-round" extraClasses ] [ text str ]
+icon :: forall p i. String -> Array String -> HTML p i
+icon str extraClasses = span [ classes $ ClassName <$> cons "material-icons-round" extraClasses ] [ text str ]
 
 -----
-add :: forall p i. HTML p i
-add = icon "add"
+add_ :: forall p i. HTML p i
+add_ = icon_ "add"
 
-addCircle :: forall p i. HTML p i
-addCircle = icon "add_circle_outline"
+addCircle_ :: forall p i. HTML p i
+addCircle_ = icon_ "add_circle_outline"
 
-close :: forall p i. HTML p i
+close_ :: forall p i. HTML p i
+close_ = icon_ "close"
+
+close :: Array String -> forall p i. HTML p i
 close = icon "close"
 
-contacts :: forall p i. HTML p i
-contacts = icon "person"
+contacts_ :: forall p i. HTML p i
+contacts_ = icon_ "person"
 
-east :: forall p i. HTML p i
-east = icon "east"
+east_ :: forall p i. HTML p i
+east_ = icon_ "east"
 
-help :: forall p i. HTML p i
-help = icon "help"
+help_ :: forall p i. HTML p i
+help_ = icon_ "help"
 
-home :: forall p i. HTML p i
-home = icon "home"
+home_ :: forall p i. HTML p i
+home_ = icon_ "home"
 
-menu :: forall p i. HTML p i
-menu = icon "short_text"
+menu_ :: forall p i. HTML p i
+menu_ = icon_ "short_text"
 
-next :: forall p i. HTML p i
-next = icon "chevron_right"
+next_ :: forall p i. HTML p i
+next_ = icon_ "chevron_right"
 
-pay :: forall p i. HTML p i
-pay = icon "credit_score"
+pay_ :: forall p i. HTML p i
+pay_ = icon_ "credit_score"
 
-previous :: forall p i. HTML p i
-previous = icon "chevron_left"
+previous_ :: forall p i. HTML p i
+previous_ = icon_ "chevron_left"
 
-roles :: forall p i. HTML p i
-roles = icon "person_pin_circle"
+roles_ :: forall p i. HTML p i
+roles_ = icon_ "person_pin_circle"
 
-terms :: forall p i. HTML p i
-terms = icon "alarm_add"
+terms_ :: forall p i. HTML p i
+terms_ = icon_ "alarm_add"
 
-timer :: forall p i. HTML p i
+timer_ :: forall p i. HTML p i
+timer_ = icon_ "timer"
+
+timer :: forall p i. Array String -> HTML p i
 timer = icon "timer"
 
-timer' :: forall p i. Array String -> HTML p i
-timer' = icon' "timer"
-
-wallet :: forall p i. HTML p i
-wallet = icon "layers"
+wallet_ :: forall p i. HTML p i
+wallet_ = icon_ "layers"
