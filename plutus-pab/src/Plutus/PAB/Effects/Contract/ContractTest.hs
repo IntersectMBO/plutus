@@ -19,7 +19,6 @@
 -}
 module Plutus.PAB.Effects.Contract.ContractTest(
     TestContracts(..)
-    , ContractTestMsg(..)
     , handleContractTest
     ) where
 
@@ -38,7 +37,8 @@ import           Data.Void                                         (Void, absurd
 import           GHC.Generics                                      (Generic)
 
 import           Data.Text.Extras                                  (tshow)
-import           Plutus.PAB.Effects.Contract                       (ContractEffect (..), PABContract (..))
+import           Plutus.PAB.Effects.Contract                       (ContractEffect (..), ContractEffectMsg (..),
+                                                                    PABContract (..))
 import           Plutus.PAB.Events.Contract                        (ContractPABRequest)
 import qualified Plutus.PAB.Events.Contract                        as C
 import           Plutus.PAB.Events.ContractInstanceState           (PartiallyDecodedResponse)
@@ -69,25 +69,13 @@ instance PABContract TestContracts where
     type State TestContracts = PartiallyDecodedResponse ContractPABRequest
     serialisableState _ = id
 
-data ContractTestMsg =
-    DoContractUpdate (ContractRequest Value)
-    | ContractTestRequest (Doc Void) -- Pretty-printed 'ContractRequest schema' for some schema.
-    | ContractTestResponse (PartiallyDecodedResponse ContractPABRequest)
-    deriving Show
-
-instance Pretty ContractTestMsg where
-    pretty = \case
-        DoContractUpdate vl      -> "doContractUpdate:" <+> pretty vl
-        ContractTestRequest rq   -> "Request:" <+> fmap absurd rq
-        ContractTestResponse rsp -> "Response:" <+> pretty rsp
-
 instance Pretty TestContracts where
     pretty = viaShow
 
 -- | A mock/test handler for 'ContractEffect'
 handleContractTest ::
     ( Member (Error PABError) effs
-    , Member (LogMsg ContractTestMsg) effs
+    , Member (LogMsg ContractEffectMsg) effs
     )
     => ContractEffect TestContracts
     ~> Eff effs
@@ -143,7 +131,7 @@ doContractUpdate ::
     , Forall (Input schema) FromJSON
     , Forall (Input schema) ToJSON
     , Forall (Output schema) ToJSON
-    , Member (LogMsg ContractTestMsg) effs
+    , Member (LogMsg ContractEffectMsg) effs
     , Monoid w
     , ToJSON w
     )
@@ -156,8 +144,9 @@ doContractUpdate contract oldState response = do
     oldState' <- traverse fromJSON newState
     typedResp <- traverse (fromJSON . JSON.toJSON . C.ContractHandlersResponse) response
     let conReq = ContractRequest{oldState = oldState', event = typedResp }
+    logDebug $ SendContractRequest (_ conReq)
     let response' = mkResponse $ ContractState.insertAndUpdateContract contract conReq
-    logDebug $ ContractTestResponse response'
+    logDebug $ ReceiveContractResponse response'
     pure response'
 
 mkResponse ::

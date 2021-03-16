@@ -28,25 +28,4 @@ import           Plutus.PAB.Effects.ContractRuntime       (ContractRuntimeMsg)
 
 import           Wallet.Emulator.MultiAgent               (EmulatorEvent)
 
--- FIXME: Replace with PABLogMsg?
-data PABMultiAgentMsg =
-    EmulatorMsg EmulatorEvent
-    | ContractMsg ContractTestMsg
-    | MetadataLog MetadataLogMessage
-    | ChainIndexServerLog ChainIndexServerMsg
-    | ContractInstanceLog (ContractInstanceMsg TestContracts)
-    | CoreLog (CoreMsg TestContracts)
-    | RuntimeLog ContractRuntimeMsg
-    | UserLog T.Text
-    deriving Show
-
-instance Pretty PABMultiAgentMsg where
-    pretty = \case
-        EmulatorMsg m         -> pretty m
-        ContractMsg m         -> pretty m
-        MetadataLog m         -> pretty m
-        ChainIndexServerLog m -> pretty m
-        ContractInstanceLog m -> pretty m
-        CoreLog m             -> pretty m
-        RuntimeLog m          -> pretty m
-        UserLog m             -> pretty m
+-- FIXME: Replace with PABLogMsg / Move to types?

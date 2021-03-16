@@ -14,7 +14,9 @@ module Plutus.PAB.Monitoring.PABLogMsg(
     MetadataLogMessage,
     WalletMsg,
     MockServerLogMsg,
-    AppMsg(..)
+    AppMsg(..),
+    CoreMsg(..),
+    PABMultiAgentMsg(..)
     ) where
 
 import           Data.Aeson                              (FromJSON, ToJSON)
@@ -30,9 +32,13 @@ import           Cardano.Metadata.Types                  (MetadataLogMessage)
 import           Cardano.Node.Types                      (MockServerLogMsg)
 import           Cardano.Wallet.Types                    (WalletMsg)
 import           Ledger.Tx                               (Tx)
+<<<<<<< HEAD
 import           Plutus.Contract.State                   (ContractRequest)
 import           Plutus.PAB.Core                         (CoreMsg (..))
 import           Plutus.PAB.Core.ContractInstance        (ContractInstanceMsg (..))
+=======
+-- import           Plutus.PAB.Core.ContractInstance        (ContractInstanceMsg (..))
+>>>>>>> WIP
 import           Plutus.PAB.Effects.Contract.ContractExe (ContractExe, ContractExeLogMsg (..))
 import           Plutus.PAB.Effects.ContractRuntime      (ContractRuntimeMsg)
 import           Plutus.PAB.Events.Contract              (ContractInstanceId, ContractPABRequest)
@@ -40,7 +46,7 @@ import           Plutus.PAB.Events.ContractInstanceState (PartiallyDecodedRespon
 import           Plutus.PAB.Instances                    ()
 import           Plutus.PAB.Monitoring.MonadLoggerBridge (MonadLoggerMsg (..))
 import           Plutus.PAB.ParseStringifiedJSON         (UnStringifyJSONLog (..))
-import           Plutus.PAB.Webserver.Types              (WebSocketLogMsg)
+import           Wallet.Emulator.MultiAgent              (EmulatorEvent)
 import           Wallet.Emulator.Wallet                  (WalletEvent (..))
 
 data AppMsg =
@@ -166,3 +172,65 @@ instance ToObject PABLogMsg where
         SWalletMsg m           -> toObject v m
         SMetaDataLogMsg m      -> toObject v m
         SMockserverLogMsg m    -> toObject v m
+
+-- | FIXME: Redundant?
+data PABMultiAgentMsg t =
+    EmulatorMsg EmulatorEvent
+    | ContractMsg ContractEffectMsg
+    | MetadataLog MetadataLogMessage
+    | ChainIndexServerLog ChainIndexServerMsg
+    | ContractInstanceLog (ContractInstanceMsg t)
+    | CoreLog (CoreMsg t)
+    | RuntimeLog ContractRuntimeMsg
+    | UserLog T.Text
+    deriving Show
+
+instance Pretty PABMultiAgentMsg where
+    pretty = \case
+        EmulatorMsg m         -> pretty m
+        ContractMsg m         -> pretty m
+        MetadataLog m         -> pretty m
+        ChainIndexServerLog m -> pretty m
+        ContractInstanceLog m -> pretty m
+        CoreLog m             -> pretty m
+        RuntimeLog m          -> pretty m
+        UserLog m             -> pretty m
+
+data CoreMsg t =
+    Installing t
+    | Installed
+    | FindingContract ContractInstanceId
+    | FoundContract (Maybe (PartiallyDecodedResponse ContractPABRequest))
+    deriving stock (Eq, Show, Generic)
+    deriving anyclass (ToJSON, FromJSON)
+
+instance Pretty t => Pretty (CoreMsg t) where
+    pretty = \case
+        Installing d      -> "Installing" <+> pretty d
+        Installed         -> "Installed"
+        FindingContract i -> "Finding contract" <+> pretty i
+        FoundContract c   -> "Found contract" <+> pretty c
+
+instance (StructuredLog t, ToJSON t) => ToObject (CoreMsg t) where
+    toObject v = \case
+        Installing t ->
+            mkObjectStr "installing contract" t
+        Installed ->
+            mkObjectStr "contract installed" ()
+        FindingContract instanceID ->
+            mkObjectStr "finding contract instance" instanceID
+        FoundContract state ->
+            mkObjectStr "found contract" $
+                case v of
+                    MaximalVerbosity -> Left state
+                    _                -> Right ()
+
+data ContractEffectMsg =
+    SendContractRequest (ContractRequest JSON.Value)
+    | ReceiveContractResponse (PartiallyDecodedResponse ContractPABRequest)
+    deriving Show
+
+instance Pretty ContractEffectMsg where
+    pretty = \case
+        SendContractRequest vl      -> "Request:" <+> pretty vl
+        ReceiveContractResponse rsp -> "Response:" <+> pretty rsp

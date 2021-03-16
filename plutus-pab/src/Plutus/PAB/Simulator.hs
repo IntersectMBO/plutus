@@ -53,6 +53,7 @@ module Plutus.PAB.Simulator(
     , ControlThread
     , runAgentEffects
     , SimulatorState(..)
+    , initialState
     , chainState
     , agentStates
     , chainIndex
@@ -628,7 +629,6 @@ runSimulation action = do
     state <- initialState
     inst <- STM.atomically Instances.emptyInstancesState
     blockchainEnv <- STM.atomically Instances.emptyBlockchainEnv
-    -- TODO: Optionally start the webserver?
 
     printLogMessages (_logMessages state)
 

@@ -8,6 +8,7 @@
 {-# LANGUAGE NamedFieldPuns        #-}
 {-# LANGUAGE OverloadedStrings     #-}
 {-# LANGUAGE PartialTypeSignatures #-}
+{-# LANGUAGE RankNTypes            #-}
 {-# LANGUAGE RecordWildCards       #-}
 {-# LANGUAGE ScopedTypeVariables   #-}
 {-# LANGUAGE StrictData            #-}
@@ -49,26 +50,31 @@ import           Network.HTTP.Client                            (managerModifyRe
                                                                  setRequestIgnoreStatus)
 import           Network.HTTP.Client.TLS                        (tlsManagerSettings)
 import           Plutus.PAB.Core                                (Connection (Connection), dbConnect)
-import           Plutus.PAB.Core.ContractInstance.STM           (InstancesState)
+import           Plutus.PAB.Core.ContractInstance.STM           (BlockchainEnv, InstancesState)
 import           Plutus.PAB.Db.Eventful.ContractDefinitionStore (handleContractDefinitionStore)
 import           Plutus.PAB.Db.Eventful.ContractStore           (handleContractStore)
 import           Plutus.PAB.Effects.Contract                    (ContractDefinitionStore, ContractEffect (..),
                                                                  ContractStore)
 import           Plutus.PAB.Effects.Contract.ContractExe                (ContractExe, ContractExeLogMsg (..),
                                                                  handleContractEffectContractExe)
+import           Plutus.PAB.Effects.Contract.ContractTest       (TestContracts)
 import           Plutus.PAB.Effects.ContractRuntime             (handleContractRuntime)
 import           Plutus.PAB.Effects.EventLog                    (EventLogEffect (..), handleEventLogSql)
+import           Plutus.PAB.Effects.MultiAgent                  (PABMultiAgentMsg (..))
 import           Plutus.PAB.Effects.UUID                        (UUIDEffect, handleUUIDEffect)
 import           Plutus.PAB.Events                              (PABEvent)
 import           Plutus.PAB.Monitoring.MonadLoggerBridge        (TraceLoggerT (..), monadLoggerTracer)
 import           Plutus.PAB.Monitoring.Monitoring               (handleLogMsgTrace, handleObserveTrace)
 import           Plutus.PAB.Monitoring.PABLogMsg                (PABLogMsg (..))
+import           Plutus.PAB.Simulator                           (SimulatorState)
+import qualified Plutus.PAB.Simulator                           as Simulator
 import           Plutus.PAB.Types                               (Config (Config), PABError (..), chainIndexConfig,
                                                                  dbConfig, metadataServerConfig, nodeServerConfig,
                                                                  walletServerConfig)
 import           Servant.Client                                 (ClientEnv, ClientError, mkClientEnv)
 import           Wallet.Effects                                 (ChainIndexEffect, ContractRuntimeEffect,
                                                                  NodeClientEffect, WalletEffect)
+import           Wallet.Emulator.Wallet                         (Wallet)
 
 ------------------------------------------------------------
 data Env =
