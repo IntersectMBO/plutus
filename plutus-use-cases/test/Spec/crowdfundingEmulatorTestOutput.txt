@@ -10,19 +10,19 @@ Slot 1: 00000000-0000-4000-8000-000000000001 {Contract instance for wallet 2}:
 Slot 1: 00000000-0000-4000-8000-000000000001 {Contract instance for wallet 2}:
           Receive endpoint call: Object (fromList [("tag",String "contribute"),("value",Object (fromList [("unEndpointValue",Object (fromList [("contribValue",Object (fromList [("getValue",Array [Array [Object (fromList [("unCurrencySymbol",String "")]),Array [Array [Object (fromList [("unTokenName",String "")]),Number 10.0]]]])]))]))]))])
 Slot 1: 00000000-0000-4000-8000-000000000001 {Contract instance for wallet 2}:
-          Contract log: String "Contributing Value {getValue = Map {unMap = [(,Map {unMap = [(,10)]})]}}"
+          Contract log: String "Contributing Value {getValue = Map {unMap = [(,Map {unMap = [(\"\",10)]})]}}"
 Slot 1: 00000000-0000-4000-8000-000000000002 {Contract instance for wallet 3}:
           Contract instance started
 Slot 1: 00000000-0000-4000-8000-000000000002 {Contract instance for wallet 3}:
           Receive endpoint call: Object (fromList [("tag",String "contribute"),("value",Object (fromList [("unEndpointValue",Object (fromList [("contribValue",Object (fromList [("getValue",Array [Array [Object (fromList [("unCurrencySymbol",String "")]),Array [Array [Object (fromList [("unTokenName",String "")]),Number 10.0]]]])]))]))]))])
 Slot 1: 00000000-0000-4000-8000-000000000002 {Contract instance for wallet 3}:
-          Contract log: String "Contributing Value {getValue = Map {unMap = [(,Map {unMap = [(,10)]})]}}"
+          Contract log: String "Contributing Value {getValue = Map {unMap = [(,Map {unMap = [(\"\",10)]})]}}"
 Slot 1: W2: Balancing an unbalanced transaction:
               Tx:
                 Tx 6405a6a9b07f4e97695cc56c66dc683d5353e08e93a9e28fef933ae153014ab2:
                   {inputs:
                   outputs:
-                    - Value {getValue = Map {unMap = [(,Map {unMap = [(,10)]})]}} addressed to
+                    - Value {getValue = Map {unMap = [(,Map {unMap = [("",10)]})]}} addressed to
                       ScriptAddress: d94c674ad693729b7d1f48454a90fb042bb6fd97673f55094b0ff3cd11e83dce
                   forge: Value {getValue = Map {unMap = []}}
                   fee: Value {getValue = Map {unMap = []}}
@@ -38,13 +38,13 @@ Slot 1: 00000000-0000-4000-8000-000000000003 {Contract instance for wallet 4}:
 Slot 1: 00000000-0000-4000-8000-000000000003 {Contract instance for wallet 4}:
           Receive endpoint call: Object (fromList [("tag",String "contribute"),("value",Object (fromList [("unEndpointValue",Object (fromList [("contribValue",Object (fromList [("getValue",Array [Array [Object (fromList [("unCurrencySymbol",String "")]),Array [Array [Object (fromList [("unTokenName",String "")]),Number 1.0]]]])]))]))]))])
 Slot 1: 00000000-0000-4000-8000-000000000003 {Contract instance for wallet 4}:
-          Contract log: String "Contributing Value {getValue = Map {unMap = [(,Map {unMap = [(,1)]})]}}"
+          Contract log: String "Contributing Value {getValue = Map {unMap = [(,Map {unMap = [(\"\",1)]})]}}"
 Slot 1: W3: Balancing an unbalanced transaction:
               Tx:
                 Tx 00479398a5da90683da2cc698d56edcbeef8c528dd4fdc93d0a30ecaceacef3a:
                   {inputs:
                   outputs:
-                    - Value {getValue = Map {unMap = [(,Map {unMap = [(,10)]})]}} addressed to
+                    - Value {getValue = Map {unMap = [(,Map {unMap = [("",10)]})]}} addressed to
                       ScriptAddress: d94c674ad693729b7d1f48454a90fb042bb6fd97673f55094b0ff3cd11e83dce
                   forge: Value {getValue = Map {unMap = []}}
                   fee: Value {getValue = Map {unMap = []}}
@@ -60,7 +60,7 @@ Slot 1: W4: Balancing an unbalanced transaction:
                 Tx 46d46c86530758858503fb0e0e4056f6ed48eb34f61ea08fe76a484e6145ebcc:
                   {inputs:
                   outputs:
-                    - Value {getValue = Map {unMap = [(,Map {unMap = [(,1)]})]}} addressed to
+                    - Value {getValue = Map {unMap = [(,Map {unMap = [("",1)]})]}} addressed to
                       ScriptAddress: d94c674ad693729b7d1f48454a90fb042bb6fd97673f55094b0ff3cd11e83dce
                   forge: Value {getValue = Map {unMap = []}}
                   fee: Value {getValue = Map {unMap = []}}
