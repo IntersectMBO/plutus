@@ -48,13 +48,13 @@ import           Test.Tasty
 runPlcCek :: ToUPlc a PLC.DefaultUni PLC.DefaultFun => [a] -> ExceptT SomeException IO (Term PLC.Name PLC.DefaultUni PLC.DefaultFun ())
 runPlcCek values = do
      ps <- Haskell.traverse toUPlc values
-     let p = foldl1 UPLC.applyProgram ps
+     let p = Haskell.foldl1 UPLC.applyProgram ps
      either (throwError . SomeException) Haskell.pure $ evaluateCek p
 
 runPlcCekTrace :: ToUPlc a PLC.DefaultUni PLC.DefaultFun => [a] -> ExceptT SomeException IO ([String], CekExTally PLC.DefaultFun, (Term PLC.Name PLC.DefaultUni PLC.DefaultFun ()))
 runPlcCekTrace values = do
      ps <- Haskell.traverse toUPlc values
-     let p = foldl1 UPLC.applyProgram ps
+     let p = Haskell.foldl1 UPLC.applyProgram ps
      let (logOut, tally, result) = evaluateCekTrace p
      res <- either (throwError . SomeException) Haskell.pure result
      Haskell.pure (logOut, tally, res)

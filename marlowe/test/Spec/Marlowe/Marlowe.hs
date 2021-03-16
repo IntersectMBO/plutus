@@ -239,7 +239,7 @@ checkEqValue = property $ do
             return (a, b, c)
     forAll gen $ \(a, b, c) ->
         (a P.== a) -- reflective
-            .&&. (a P.== b == b P.== a) -- symmetric
+            .&&. ((a P.== b) == (b P.== a)) -- symmetric
             .&&. (if a P.== b && b P.== c then a P.== c else True) -- transitive
 
 

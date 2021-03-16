@@ -1,32 +1,29 @@
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
 module Language.PlutusTx.Functor (Functor(..), (<$>), (<$), const, id) where
 
+import           Control.Applicative   (Const (..))
 import           Data.Functor.Identity (Identity (..))
 import           Prelude               hiding (Functor (..), const, id, (<$), (<$>))
 
 {-# ANN module ("HLint: ignore"::String) #-}
 
-{- | The 'Functor' class is used for types that can be mapped over.
-Instances of 'Functor' should satisfy the following laws:
-
-> fmap id  ==  id
-> fmap (f . g)  ==  fmap f . fmap g
--}
+-- | Plutus Tx version of 'Data.Functor.Functor'.
 class Functor f where
+    -- | Plutus Tx version of 'Data.Functor.fmap'.
     fmap :: (a -> b) -> f a -> f b
 
     -- (<$) deliberately omitted, to make this a one-method class which has a
     -- simpler representation
 
 infixl 4 <$>
--- | An infix synonym for 'fmap'.
+-- | Plutus Tx version of '(Data.Functor.<$>)'.
 {-# INLINABLE (<$>) #-}
 (<$>) :: Functor f => (a -> b) -> f a -> f b
 (<$>) f fa = fmap f fa
 
 infixl 4 <$
 {-# INLINABLE (<$) #-}
--- | Replace all locations in the input with the same value.
+-- | Plutus Tx version of '(Data.Functor.<$)'.
 (<$) :: Functor f => a -> f b -> f a
 (<$) a fb = fmap (const a) fb
 
@@ -53,6 +50,10 @@ instance Functor ((,) c) where
 instance Functor Identity where
     {-# INLINABLE fmap #-}
     fmap f (Identity a) = Identity (f a)
+
+instance Functor (Const m) where
+    {-# INLINABLE fmap #-}
+    fmap _ (Const c) = Const c
 
 {-# INLINABLE const #-}
 -- | Plutus Tx version of 'Prelude.const'.

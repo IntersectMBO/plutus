@@ -36,7 +36,7 @@ import           Control.DeepSeq           (NFData)
 import           GHC.Generics              (Generic)
 import           Language.PlutusTx.IsData
 import           Language.PlutusTx.Lift    (makeLift)
-import           Language.PlutusTx.Prelude hiding (all, lookup, null)
+import           Language.PlutusTx.Prelude hiding (all, lookup, null, toList)
 import qualified Language.PlutusTx.Prelude as P
 import           Language.PlutusTx.These
 

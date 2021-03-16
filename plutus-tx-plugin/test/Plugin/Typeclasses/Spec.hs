@@ -33,6 +33,9 @@ typeclasses = testNested "Typeclasses" [
     , goldenPir "partialApplication" partialApplication
     , goldenPir "sequenceTest" sequenceTest
     , goldenPir "compareTest" compareTest
+    , goldenPir "concatTest" concatTest
+    , goldenPir "sumTest" sumTest
+    , goldenPir "fmapDefaultTest" fmapDefaultTest
   ]
 
 class Sized a where
@@ -100,5 +103,14 @@ opCompare a b = case P.compare a b of
     EQ -> EQ
     GT -> LT
 
-compareTest :: CompiledCode (Ordering)
+compareTest :: CompiledCode Ordering
 compareTest = plc (Proxy @"compareTest") (opCompare (1::Integer) (2::Integer))
+
+concatTest :: CompiledCode [Integer]
+concatTest = plc (Proxy @"concatTest") (P.concat [[(1 :: Integer), 2], [3, 4]])
+
+sumTest :: CompiledCode Integer
+sumTest = plc (Proxy @"sumTest") (P.sum [(1 :: Integer), 2, 3, 4])
+
+fmapDefaultTest :: CompiledCode [Integer]
+fmapDefaultTest = plc (Proxy @"fmapDefaultTest") (P.fmapDefault (P.+ 1) [(1 :: Integer), 2, 3, 4])

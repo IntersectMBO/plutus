@@ -9,6 +9,8 @@ import           Prelude                    hiding (Eq (..), not, (&&))
 
 {-# ANN module ("HLint: ignore"::String) #-}
 
+infix 4 ==, /=
+
 -- Copied from the GHC definition
 -- | The 'Eq' class defines equality ('==').
 class Eq a where

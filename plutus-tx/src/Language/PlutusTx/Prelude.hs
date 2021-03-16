@@ -14,6 +14,8 @@ module Language.PlutusTx.Prelude (
     module Functor,
     module Applicative,
     module Lattice,
+    module Foldable,
+    module Traversable,
     -- * Standard functions
     ($),
     -- * String and tracing functions
@@ -41,8 +43,6 @@ module Language.PlutusTx.Prelude (
     module Either,
     -- * Lists
     module List,
-    fold,
-    foldMap,
     -- * ByteStrings
     ByteString,
     takeByteString,
@@ -72,9 +72,10 @@ import           Language.PlutusTx.Builtins    (ByteString, concatenate, dropByt
 import qualified Language.PlutusTx.Builtins    as Builtins
 import           Language.PlutusTx.Either      as Either
 import           Language.PlutusTx.Eq          as Eq
+import           Language.PlutusTx.Foldable    as Foldable
 import           Language.PlutusTx.Functor     as Functor
 import           Language.PlutusTx.Lattice     as Lattice
-import           Language.PlutusTx.List        as List
+import           Language.PlutusTx.List        as List hiding (foldr)
 import           Language.PlutusTx.Maybe       as Maybe
 import           Language.PlutusTx.Monoid      as Monoid
 import           Language.PlutusTx.Numeric     as Numeric
@@ -82,12 +83,15 @@ import           Language.PlutusTx.Ord         as Ord
 import           Language.PlutusTx.Ratio       as Ratio
 import           Language.PlutusTx.Semigroup   as Semigroup
 import           Language.PlutusTx.String      as String
-import           Prelude                       as Prelude hiding (Applicative (..), Eq (..), Functor (..), Monoid (..),
-                                                           Num (..), Ord (..), Rational, Semigroup (..), all, any,
-                                                           const, divMod, either, elem, error, filter, foldMap, foldl,
-                                                           foldr, fst, id, length, map, max, maybe, min, not, null,
-                                                           quotRem, reverse, round, sequence, snd, traverse, zip, (!!),
-                                                           ($), (&&), (++), (<$>), (||))
+import           Language.PlutusTx.Traversable as Traversable
+import           Prelude                       as Prelude hiding (Applicative (..), Eq (..), Foldable (..),
+                                                           Functor (..), Monoid (..), Num (..), Ord (..), Rational,
+                                                           Semigroup (..), Traversable (..), all, and, any, concat,
+                                                           concatMap, const, divMod, either, elem, error, filter, fst,
+                                                           id, length, map, max, maybe, min, not, notElem, null, or,
+                                                           quotRem, reverse, round, sequence, snd, zip, (!!), ($), (&&),
+                                                           (++), (<$>), (||))
+import           Prelude                       as Prelude (maximum, minimum)
 
 -- this module does lots of weird stuff deliberately
 {-# ANN module ("HLint: ignore"::String) #-}
@@ -176,22 +180,14 @@ remainder :: Integer -> Integer -> Integer
 remainder = Builtins.remainderInteger
 
 {-# INLINABLE fst #-}
--- | PlutusTx version of 'Data.Tuple.fst'
+-- | Plutus Tx version of 'Data.Tuple.fst'
 fst :: (a, b) -> a
 fst (a, _) = a
 
 {-# INLINABLE snd #-}
--- | PlutusTx version of 'Data.Tuple.snd'
+-- | Plutus Tx version of 'Data.Tuple.snd'
 snd :: (a, b) -> b
 snd (_, b) = b
-
-{-# INLINABLE fold #-}
-fold :: Monoid m => [m] -> m
-fold = foldr (<>) mempty
-
-{-# INLINABLE foldMap #-}
-foldMap :: Monoid m => (a -> m) -> [a] -> m
-foldMap f = foldr (\a m -> f a <> m) mempty
 
 infixr 0 $
 -- Normal $ is levity-polymorphic, which we can't handle.

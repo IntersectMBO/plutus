@@ -1,12 +1,17 @@
 {-# LANGUAGE ConstraintKinds        #-}
 {-# LANGUAGE FunctionalDependencies #-}
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
+{-# OPTIONS_GHC -Wno-orphans #-}
 module Language.PlutusTx.Numeric (AdditiveSemigroup (..), AdditiveMonoid (..), AdditiveGroup (..), negate, Additive (..), MultiplicativeSemigroup (..), MultiplicativeMonoid (..), Multiplicative (..), Semiring, Ring, Module (..)) where
 
+import           Data.Semigroup              (Product (..), Sum (..))
 import           Language.PlutusTx.Builtins
 import           Language.PlutusTx.Monoid
 import           Language.PlutusTx.Semigroup
 import           Prelude                     hiding (Functor (..), Monoid (..), Num (..), Semigroup (..))
+
+infixl 7 *
+infixl 6 +, -
 
 -- | A 'Semigroup' that it is sensible to describe using addition.
 class AdditiveSemigroup a where
@@ -86,6 +91,38 @@ instance MultiplicativeMonoid Integer where
     {-# INLINABLE one #-}
     one = 1
 
+instance AdditiveSemigroup Bool where
+    {-# INLINABLE (+) #-}
+    (+) = (||)
+
+instance AdditiveMonoid Bool where
+    {-# INLINABLE zero #-}
+    zero = False
+
+instance MultiplicativeSemigroup Bool where
+    {-# INLINABLE (*) #-}
+    (*) = (&&)
+
+instance MultiplicativeMonoid Bool where
+    {-# INLINABLE one #-}
+    one = True
+
 -- | A module, with a type of scalars which can be used to scale the values.
 class (Ring s, AdditiveGroup v) => Module s v | v -> s where
     scale :: s -> v -> v
+
+instance AdditiveSemigroup a => Semigroup (Sum a) where
+    {-# INLINABLE (<>) #-}
+    Sum a1 <> Sum a2 = Sum (a1 + a2)
+
+instance AdditiveMonoid a => Monoid (Sum a) where
+    {-# INLINABLE mempty #-}
+    mempty = Sum zero
+
+instance MultiplicativeSemigroup a => Semigroup (Product a) where
+    {-# INLINABLE (<>) #-}
+    Product a1 <> Product a2 = Product (a1 * a2)
+
+instance MultiplicativeMonoid a => Monoid (Product a) where
+    {-# INLINABLE mempty #-}
+    mempty = Product one

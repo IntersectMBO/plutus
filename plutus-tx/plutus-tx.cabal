@@ -45,15 +45,17 @@ library
         Language.PlutusTx.IsData.Class
         Language.PlutusTx.Eq
         Language.PlutusTx.Either
+        Language.PlutusTx.Foldable
         Language.PlutusTx.Functor
         Language.PlutusTx.Lattice
         Language.PlutusTx.List
         Language.PlutusTx.Ord
         Language.PlutusTx.Maybe
+        Language.PlutusTx.Monoid
         Language.PlutusTx.Numeric
         Language.PlutusTx.Ratio
         Language.PlutusTx.Semigroup
-        Language.PlutusTx.Monoid
+        Language.PlutusTx.Traversable
         Language.PlutusTx.AssocMap
         Language.PlutusTx.These
         Language.PlutusTx.Code
