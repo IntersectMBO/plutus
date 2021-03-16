@@ -3,6 +3,7 @@
 {-# LANGUAGE FlexibleContexts   #-}
 {-# LANGUAGE GADTs              #-}
 {-# LANGUAGE NamedFieldPuns     #-}
+{-# LANGUAGE OverloadedStrings  #-}
 {-# LANGUAGE RankNTypes         #-}
 {-# LANGUAGE TypeApplications   #-}
 {-# LANGUAGE TypeOperators      #-}
@@ -18,43 +19,44 @@ module Plutus.PAB.Simulator.Server(
     main
     ) where
 
-import           Control.Applicative                             (Alternative (..))
-import           Control.Concurrent                              (forkIO)
-import qualified Control.Concurrent.STM                          as STM
-import           Control.Exception                               (SomeException, handle)
-import           Control.Lens                                    (preview, (&))
-import           Control.Monad                                   (guard, void)
-import           Control.Monad.Except                            (ExceptT (ExceptT))
-import           Control.Monad.IO.Class                          (liftIO)
-import           Data.Aeson                                      (FromJSON, ToJSON)
-import qualified Data.Aeson                                      as JSON
-import           Data.Bifunctor                                  (Bifunctor (..))
-import qualified Data.ByteString.Lazy.Char8                      as LBS
-import qualified Data.Map                                        as Map
-import           Data.Maybe                                      (mapMaybe)
-import           Data.Proxy                                      (Proxy (..))
-import           GHC.Generics                                    (Generic)
-import           Plutus.Contract.Effects.ExposeEndpoint (ActiveEndpoint (..))
-import qualified Network.Wai.Handler.Warp                        as Warp
-import qualified Network.WebSockets                              as WS
-import           Network.WebSockets.Connection                   (Connection, PendingConnection, withPingThread)
-import           Plutus.PAB.Core.ContractInstance.STM            (OpenEndpoint (..))
-import qualified Plutus.PAB.Effects.Contract                     as Contract
-import           Plutus.PAB.Effects.Contract.ContractTest        (TestContracts (AtomicSwap, Currency))
-import           Plutus.PAB.Events.Contract                      (ContractPABRequest, _UserEndpointRequest)
-import           Plutus.PAB.Events.ContractInstanceState         (PartiallyDecodedResponse (hooks))
-import           Plutus.PAB.Instances                            ()
-import           Plutus.PAB.Simulator                            (SimRunner (..), Simulation)
-import qualified Plutus.PAB.Simulator                            as Simulator
-import           Plutus.PAB.Types                                (PABError)
-import           Plutus.PAB.Webserver.API                        (ContractActivationArgs (..),
-                                                                  ContractInstanceClientState (..), NewAPI,
-                                                                  WalletInfo (..))
-import           Plutus.PAB.Webserver.Types                      (ContractSignatureResponse (..))
-import           Servant                                         (Application, Handler, ServerT, (:<|>) ((:<|>)))
-import qualified Servant                                         as Servant
-import           Wallet.Emulator.Wallet                          (Wallet (..))
-import           Wallet.Types                                    (ContractInstanceId)
+import           Control.Applicative                               (Alternative (..))
+import           Control.Concurrent                                (forkIO)
+import qualified Control.Concurrent.STM                            as STM
+import           Control.Exception                                 (SomeException, handle)
+import           Control.Lens                                      (preview, (&))
+import           Control.Monad                                     (guard, void)
+import           Control.Monad.Except                              (ExceptT (ExceptT))
+import           Control.Monad.IO.Class                            (liftIO)
+import           Data.Aeson                                        (FromJSON, ToJSON)
+import qualified Data.Aeson                                        as JSON
+import           Data.Bifunctor                                    (Bifunctor (..))
+import qualified Data.ByteString.Lazy.Char8                        as LBS
+import qualified Data.Map                                          as Map
+import           Data.Maybe                                        (mapMaybe)
+import           Data.Proxy                                        (Proxy (..))
+import           GHC.Generics                                      (Generic)
+import           Language.Plutus.Contract.Effects.ExposeEndpoint   (ActiveEndpoint (..))
+import           Language.PlutusTx.Coordination.Contracts.Currency (SimpleMPS (..))
+import qualified Network.Wai.Handler.Warp                          as Warp
+import qualified Network.WebSockets                                as WS
+import           Network.WebSockets.Connection                     (Connection, PendingConnection, withPingThread)
+import           Plutus.PAB.Core.ContractInstance.STM              (OpenEndpoint (..))
+import qualified Plutus.PAB.Effects.Contract                       as Contract
+import           Plutus.PAB.Effects.Contract.ContractTest          (TestContracts (AtomicSwap, Currency))
+import           Plutus.PAB.Events.Contract                        (ContractPABRequest, _UserEndpointRequest)
+import           Plutus.PAB.Events.ContractInstanceState           (PartiallyDecodedResponse (hooks))
+import           Plutus.PAB.Instances                              ()
+import           Plutus.PAB.Simulator                              (SimRunner (..), Simulation)
+import qualified Plutus.PAB.Simulator                              as Simulator
+import           Plutus.PAB.Types                                  (PABError)
+import           Plutus.PAB.Webserver.API                          (ContractActivationArgs (..),
+                                                                    ContractInstanceClientState (..), NewAPI,
+                                                                    WalletInfo (..))
+import           Plutus.PAB.Webserver.Types                        (ContractSignatureResponse (..))
+import           Servant                                           (Application, Handler, ServerT, (:<|>) ((:<|>)))
+import qualified Servant                                           as Servant
+import           Wallet.Emulator.Wallet                            (Wallet (..))
+import           Wallet.Types                                      (ContractInstanceId)
 
 handler ::
        (ContractActivationArgs TestContracts -> Simulation ContractInstanceId)
@@ -184,7 +186,13 @@ data StatusStreamToClient
 
 main :: IO ()
 main = void $ Simulator.runSimulation $ do
-        void $ Simulator.runAgentEffects (Wallet 1) $ Simulator.activateContract Currency
+        instanceId <- Simulator.agentAction (Wallet 1) $ Simulator.activateContract Currency
         shutdown <- startServer 8080
-        _ <- liftIO $ getLine
+        _ <- liftIO getLine
+
+        void $ do
+            let endpointName = "Create native token"
+                monetaryPolicy = SimpleMPS{tokenName="my token", amount = 10000}
+            Simulator.callEndpointOnInstance instanceId endpointName monetaryPolicy
+        _ <- liftIO getLine
         shutdown

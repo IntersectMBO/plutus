@@ -306,6 +306,8 @@ runWalletState wallet = \case
                     let newState = s' & walletState .~ s
                     STM.writeTVar _agentStates (Map.insert wallet newState mp)
 
+-- | Run an action in the context of a specific wallet, returning the error (if
+--   any)
 runAgentEffects ::
     forall a effs.
     ( Member (Reader InstancesState) effs
@@ -323,6 +325,8 @@ runAgentEffects wallet action = do
     result <- liftIO $ handleAgentThread state blockchainEnv inst wallet action
     pure result
 
+-- | Run an action in the context of a specific wallet. Errors are propagated
+--   to the top level.
 agentAction ::
     forall a effs.
     ( Member (Reader InstancesState) effs
@@ -352,6 +356,7 @@ type ControlEffects effs =
 
 type ControlThread a = Eff (ControlEffects '[IO]) a
 
+-- | Run a
 runControlEffects ::
     forall a effs.
     ( Member (Reader InstancesState) effs
@@ -864,7 +869,8 @@ render :: forall a. Pretty a => a -> Text
 render = Render.renderStrict . layoutPretty defaultLayoutOptions . pretty
 
 
--- | Statistics about the transactions that have been validated by the emulated node.
+-- | Statistics about the transactions that have been validated by the emulated
+--   node.
 data TxCounts =
     TxCounts
         { _txValidated :: Int
@@ -890,6 +896,7 @@ txCounts = do
             , _txMemPool   = length _txPool
             }
 
+-- | The set of all active contracts.
 activeContracts ::
     ( Member (Reader InstancesState) effs
     , LastMember IO effs

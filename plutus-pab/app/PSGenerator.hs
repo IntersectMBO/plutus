@@ -31,39 +31,23 @@ import           Language.PureScript.Bridge.CodeGenSwitches (ForeignOptions (For
 import           Language.PureScript.Bridge.TypeParameters  (A)
 import           Ledger.Constraints.OffChain                (UnbalancedTx)
 import qualified PSGenerator.Common
-import           Plutus.Contract.Checkpoint                 (CheckpointKey, CheckpointStore)
-import           Plutus.Contract.Effects.AwaitSlot          (WaitingForSlot)
-import           Plutus.Contract.Effects.AwaitTxConfirmed   (TxConfirmed)
-import           Plutus.Contract.Effects.ExposeEndpoint     (ActiveEndpoint, EndpointValue)
-import           Plutus.Contract.Effects.Instance           (OwnIdRequest)
-import           Plutus.Contract.Effects.OwnPubKey          (OwnPubKeyRequest)
-import           Plutus.Contract.Effects.UtxoAt             (UtxoAtAddress)
-import           Plutus.Contract.Effects.WriteTx            (WriteTxResponse)
-import           Plutus.Contract.Resumable                  (Responses)
-import           Plutus.Contract.State                      (ContractRequest, State)
-import           Plutus.Contracts.Currency                  (SimpleMPS (..))
-import           Plutus.PAB.Core                            (activateContract, callContractEndpoint, installContract)
-import           Plutus.PAB.Effects.ContractTest            (TestContracts (Currency, Game))
-import           Plutus.PAB.Effects.MultiAgent              (agentAction)
-import           Plutus.PAB.Events                          (ChainEvent, ContractPABRequest, csContract)
-import           Plutus.PAB.Events.Contract                 (ContractEvent, ContractInstanceState, ContractResponse,
-                                                             PartiallyDecodedResponse)
-import           Plutus.PAB.Events.Node                     (NodeEvent)
-import           Plutus.PAB.Events.User                     (UserEvent)
-import           Plutus.PAB.Events.Wallet                   (WalletEvent)
-import           Plutus.PAB.MockApp                         (defaultWallet)
-import qualified Plutus.PAB.MockApp                         as MockApp
-import           Plutus.PAB.Types                           (ContractExe)
-import qualified Plutus.PAB.Webserver.API                   as API
-import qualified Plutus.PAB.Webserver.Handler               as Webserver
-import           Plutus.PAB.Webserver.Types                 (ChainReport, ContractReport, ContractSignatureResponse,
-                                                             FullReport, StreamToClient, StreamToServer)
-import           Servant.PureScript                         (HasBridge, Settings, _generateSubscriberAPI, apiModuleName,
-                                                             defaultBridge, defaultSettings, languageBridge,
-                                                             writeAPIModuleWithSettings)
-import           System.FilePath                            ((</>))
-import           Wallet.Effects                             (AddressChangeRequest (..), AddressChangeResponse (..))
-import qualified Wallet.Emulator.Chain                      as Chain
+import           Plutus.PAB.Core                                   (installContract)
+import           Plutus.PAB.Effects.Contract.ContractExe           (ContractExe)
+import           Plutus.PAB.Effects.Contract.ContractTest          (TestContracts (Currency, Game))
+import           Plutus.PAB.Events.Contract                        (ContractPABRequest, ContractResponse)
+import           Plutus.PAB.Events.ContractInstanceState           (PartiallyDecodedResponse)
+import qualified Plutus.PAB.Webserver.API                          as API
+import qualified Plutus.PAB.Webserver.Handler                      as Webserver
+import           Plutus.PAB.Webserver.Types                        (ChainReport, ContractReport,
+                                                                    ContractSignatureResponse, FullReport,
+                                                                    StreamToClient, StreamToServer)
+import           Servant.PureScript                                (HasBridge, Settings, _generateSubscriberAPI,
+                                                                    apiModuleName, defaultBridge, defaultSettings,
+                                                                    languageBridge, writeAPIModuleWithSettings)
+import           System.FilePath                                   ((</>))
+import           Wallet.Effects                                    (AddressChangeRequest (..),
+                                                                    AddressChangeResponse (..))
+import qualified Wallet.Emulator.Chain                             as Chain
 
 myBridge :: BridgePart
 myBridge =
@@ -106,7 +90,6 @@ myTypes =
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @(FullReport A))
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @ChainReport)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @(ContractReport A))
-    , (equal <*> (genericShow <*> mkSumType)) (Proxy @(ChainEvent A))
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @StreamToServer)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @StreamToClient)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @(ContractInstanceState A))
