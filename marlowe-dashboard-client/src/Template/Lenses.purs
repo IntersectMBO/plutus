@@ -3,6 +3,7 @@ module Template.Lenses
   , _contractNickname
   , _roleWallets
   , _templateContent
+  , _slotContentStrings
   , _metaData
   , _extendedContract
   , _contractType
@@ -34,6 +35,9 @@ _roleWallets = prop (SProxy :: SProxy "roleWallets")
 
 _templateContent :: Lens' State TemplateContent
 _templateContent = prop (SProxy :: SProxy "templateContent")
+
+_slotContentStrings :: Lens' State (Map String String)
+_slotContentStrings = prop (SProxy :: SProxy "slotContentStrings")
 
 ------------------------------------------------------------
 _metaData :: Lens' ContractTemplate MetaData

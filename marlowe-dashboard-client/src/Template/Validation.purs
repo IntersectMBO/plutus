@@ -18,6 +18,8 @@ import Data.BigInteger (BigInteger)
 import Data.Map (Map, isEmpty, mapMaybe, member)
 import Data.Maybe (Maybe(..))
 import Marlowe.Extended (TemplateContent(..))
+import Marlowe.Semantics (Slot)
+import Marlowe.Slot (dateTimeStringToSlot)
 import WalletData.Types (WalletLibrary)
 
 data RoleError
@@ -31,12 +33,16 @@ instance showRoleError :: Show RoleError where
   show NonExistentNickname = "Nickname not found in your wallet library"
 
 data ParameterError
-  = NonPositiveTimeout
+  = EmptyTimeout
+  | PastTimeout
+  | BadDateTimeString
 
 derive instance eqParameterError :: Eq ParameterError
 
 instance showParameterError :: Show ParameterError where
-  show NonPositiveTimeout = "Timeout must be positive"
+  show EmptyTimeout = "Timeout cannot be blank"
+  show PastTimeout = "Timeout date is past"
+  show BadDateTimeString = "Invalid timeout"
 
 roleError :: String -> WalletLibrary -> Maybe RoleError
 roleError "" _ = Just EmptyNickname
@@ -47,12 +53,17 @@ roleError nickname library =
   else
     Just NonExistentNickname
 
-slotError :: BigInteger -> Maybe ParameterError
-slotError timeout =
-  if timeout <= zero then
-    Just NonPositiveTimeout
-  else
-    Nothing
+-- note: we validate slot inputs against the dateTimeString that we get from HTML
+slotError :: String -> Slot -> Maybe ParameterError
+slotError "" _ = Just EmptyTimeout
+
+slotError dateTimeString currentSlot = case dateTimeStringToSlot dateTimeString of
+  Just slot ->
+    if slot <= currentSlot then
+      Just PastTimeout
+    else
+      Nothing
+  Nothing -> Just BadDateTimeString
 
 -- placeholder in case we add value validation in the future
 valueError :: BigInteger -> Maybe ParameterError
@@ -62,7 +73,7 @@ valueError _ = Nothing
 roleWalletsAreValid :: Map String String -> WalletLibrary -> Boolean
 roleWalletsAreValid roleWallets wallets = isEmpty $ mapMaybe (\value -> roleError value wallets) roleWallets
 
-templateContentIsValid :: TemplateContent -> Boolean
-templateContentIsValid (TemplateContent { slotContent, valueContent }) =
-  (isEmpty $ mapMaybe (\value -> slotError value) slotContent)
+templateContentIsValid :: TemplateContent -> Map String String -> Slot -> Boolean
+templateContentIsValid (TemplateContent { valueContent }) slotContentStrings currentSlot =
+  (isEmpty $ mapMaybe (\value -> slotError value currentSlot) slotContentStrings)
     && (isEmpty $ mapMaybe (\value -> valueError value) valueContent)

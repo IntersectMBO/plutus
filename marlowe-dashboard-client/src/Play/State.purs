@@ -16,6 +16,7 @@ import Data.Lens (assign, modifying, set, view)
 import Data.Lens.Extra (peruse)
 import Data.Lens.Prism.Maybe (_Just)
 import Data.Maybe (Maybe(..))
+import Data.Time.Duration (Minutes)
 import Effect.Aff.Class (class MonadAff)
 import Env (Env)
 import Halogen (HalogenM, modify_)
@@ -24,6 +25,7 @@ import MainFrame.Lenses (_card, _playState, _screen)
 import MainFrame.Types (Action(..), State) as MainFrame
 import MainFrame.Types (ChildSlots, Msg)
 import Marlowe.Extended (fillTemplate, toCore)
+import Marlowe.Slot (shelleyInitialSlot)
 import Play.Lenses (_contractsState, _menuOpen, _templateState)
 import Play.Types (Action(..), Card(..), Screen(..), State)
 import Template.Lenses (_extendedContract, _metaData, _roleWallets, _template, _templateContent)
@@ -45,12 +47,14 @@ toContract ::
   HalogenM MainFrame.State MainFrame.Action slots msg m Unit
 toContract = mapMaybeSubmodule (_playState <<< _contractsState <<< _selectedContract <<< _Just) (MainFrame.PlayAction <<< ContractAction) $ Contract.defaultState
 
-mkInitialState :: WalletDetails -> State
-mkInitialState walletDetails =
+mkInitialState :: WalletDetails -> Minutes -> State
+mkInitialState walletDetails timezoneOffset =
   { walletDetails: walletDetails
   , menuOpen: false
   , screen: ContractsScreen
   , card: Nothing
+  , currentSlot: shelleyInitialSlot -- TODO: this needs to be updated continuously through the websocket
+  , timezoneOffset
   , templateState: Template.defaultState
   , contractsState: ContractHome.defaultState
   }
@@ -108,6 +112,8 @@ handleAction (TemplateAction Template.StartContract) = do
       mContract = toCore $ fillTemplate templateContent extendedContract
     in
       for_ mContract \contract -> do
+        -- TODO: get walletIDs from nicknames in roleWallets
+        -- TODO: pass these walletIDs along with the contract to the PAB to start the contract
         let
           contractState = Contract.mkInitialState zero contract metadata roleWallets
         modifying (_playState <<< _contractsState <<< _contracts) (Array.cons contractState)

@@ -164,6 +164,12 @@ let additions =
           , repo = "https://github.com/slamdata/purescript-matryoshka.git"
           , version = "v0.4.0"
           }
+      , now =
+          { dependencies =
+              [ "console", "datetime", "effect", "psci-support" ]
+          , repo = "https://github.com/purescript-contrib/purescript-now"
+          , version = "v5.0.0"
+          }
       , numerics =
           { dependencies =
             [ "prelude", "integers", "rationals", "uint", "bigints" ]

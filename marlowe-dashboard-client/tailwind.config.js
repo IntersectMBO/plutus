@@ -23,7 +23,10 @@ module.exports = {
     extend: {
       gridTemplateRows: {
         main: "auto minmax(0, 1fr) auto",
-        contractSetup: "auto auto minmax(0, 1fr)",
+        "contract-setup": "auto auto minmax(0, 1fr)",
+      },
+      gridTemplateColumns: {
+        "contract-setup": "1fr 24rem 1fr",
       },
       boxShadow: {
         deep: "0 2.5px 5px 0 rgba(0, 0, 0, 0.22)",
@@ -125,7 +128,7 @@ module.exports = {
     letterSpacing: false,
     userSelect: false,
     verticalAlign: false,
-    visibility: false,
+    visibility: true,
     whitespace: false,
     wordBreak: false,
     width: true,

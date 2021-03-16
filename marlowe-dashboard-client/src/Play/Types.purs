@@ -10,14 +10,18 @@ import Analytics (class IsEvent, defaultEvent, toEvent)
 import Contract.Types (Action) as Contract
 import ContractHome.Types (Action, State) as ContractHome
 import Data.Maybe (Maybe(..))
-import WalletData.Types (Nickname, WalletDetails)
+import Data.Time.Duration (Minutes)
+import Marlowe.Semantics (Slot)
 import Template.Types (Action, State) as Template
+import WalletData.Types (Nickname, WalletDetails)
 
 type State
   = { walletDetails :: WalletDetails
     , menuOpen :: Boolean
     , screen :: Screen
     , card :: Maybe Card
+    , currentSlot :: Slot
+    , timezoneOffset :: Minutes
     , templateState :: Template.State
     , contractsState :: ContractHome.State
     }
