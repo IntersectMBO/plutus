@@ -41,7 +41,7 @@ an isolated environment where the packages and tools defined in that file are av
 
 Once the `nix-shell` environment has loaded, you can edit your project files
 with any Haskell editor you prefer, then in the `nix-shell` you can build your project with 
-`cabal v2-build` or compile and run your project's executable with `cabal v2-run`.
+`cabal v2-build` or compile and run your project's executable with `cabal v2-run example-exe`.
 
 ### Developing with Docker and VSCode
 
@@ -98,5 +98,5 @@ the container that is [bind mounted](https://docs.docker.com/storage/bind-mounts
 to your project's folder.
 
 Once inside the dev container, you can build your project with `cabal v2-build`
-or compile and run your project's executable with `cabal v2-run`. You can
+or compile and run your project's executable with `cabal v2-run example-exe`. You can
 also stop/restart/remove the container whenever.
