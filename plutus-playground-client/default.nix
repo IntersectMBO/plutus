@@ -6,9 +6,11 @@ let
     let
       # the playground uses ghc at runtime so it needs one packaged up with the dependencies it needs in one place
       runtimeGhc = haskell.project.ghcWithPackages (ps: [
+        ps.plutus-core
+        ps.plutus-tx
+        ps.plutus-contract
+        ps.plutus-ledger
         ps.playground-common
-        ps.plutus-playground-server
-        ps.plutus-use-cases
       ]);
     in
     pkgs.runCommand "plutus-server-invoker" { buildInputs = [ pkgs.makeWrapper ]; } ''
