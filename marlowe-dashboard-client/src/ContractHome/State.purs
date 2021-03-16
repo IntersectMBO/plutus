@@ -18,6 +18,7 @@ import Halogen (HalogenM)
 import Marlowe.Extended (TemplateContent(..), fillTemplate, toCore)
 import Marlowe.Market.Contract1 as Contract1
 import Marlowe.Market.Contract3 as Contract3
+import Marlowe.Semantics (Party(..))
 
 -- FIXME: debug purposes only, delete later
 filledContract1 :: Maybe Contract.State
@@ -38,16 +39,16 @@ filledContract1 =
               ]
         }
 
-    roleWallets =
+    participants =
       Map.fromFoldable
-        [ "alice" /\ "Alice user"
-        , "bob" /\ "Bob user"
-        , "carol" /\ "Carol user"
+        [ (Role "alice") /\ Just "Alice user"
+        , (Role "bob") /\ Just "Bob user"
+        , (Role "carol") /\ Nothing
         ]
 
     mContract = toCore $ fillTemplate templateContent Contract1.extendedContract
   in
-    mContract <#> \contract -> Contract.mkInitialState zero contract Contract1.metaData roleWallets
+    mContract <#> \contract -> Contract.mkInitialState zero contract Contract1.metaData participants (Just $ Role "alice")
 
 {-
 filledContract2 :: Maybe Contract.State

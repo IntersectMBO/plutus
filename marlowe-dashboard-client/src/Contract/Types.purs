@@ -7,6 +7,8 @@ import Data.Maybe (Maybe(..))
 import Marlowe.Execution (ExecutionState)
 import Marlowe.Extended.Metadata (MetaData)
 import Marlowe.Semantics (ChoiceId, ChosenNum, Input, Slot, TransactionInput)
+import Marlowe.Semantics as Semantic
+import WalletData.Types (Nickname)
 
 type State
   = { tab :: Tab
@@ -16,8 +18,12 @@ type State
     , confirmation :: Maybe Input
     , step :: Int
     , metadata :: MetaData
-    -- FIXME: We should add type aliases to these Strings
-    , roleWallets :: Map String String
+    , participants :: Map Semantic.Party (Maybe Nickname)
+    -- This field represents the logged-user party in the contract.
+    -- If it's Nothing, then the logged-user is an observant of the contract. That could happen
+    -- if the person who creates the contract does not put him/herself as a participant of the contract
+    -- or if a Role participant sells the role token to another participant
+    , mActiveUserParty :: Maybe Semantic.Party
     }
 
 data Tab

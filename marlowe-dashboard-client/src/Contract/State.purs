@@ -28,7 +28,9 @@ import Marlowe.Execution (NamedAction(..), _namedActions, _state, initExecution,
 import Marlowe.Extended (ContractType(..))
 import Marlowe.Extended.Metadata (MetaData)
 import Marlowe.Semantics (Contract(..), Slot, _minSlot)
+import Marlowe.Semantics as Semantic
 import Plutus.PAB.Webserver (postApiContractByContractinstanceidEndpointByEndpointname)
+import WalletData.Types (Nickname)
 
 -- I don't like having to provide emptyMetadata and default state
 -- for this component, but it is needed by the mapMaybeSubmodule in
@@ -45,10 +47,16 @@ emptyMetadata =
   }
 
 defaultState :: State
-defaultState = mkInitialState zero Close emptyMetadata mempty
+defaultState = mkInitialState zero Close emptyMetadata mempty Nothing
 
-mkInitialState :: Slot -> Contract -> MetaData -> Map String String -> State
-mkInitialState slot contract metadata roleWallets =
+mkInitialState ::
+  Slot ->
+  Contract ->
+  MetaData ->
+  Map Semantic.Party (Maybe Nickname) ->
+  Maybe Semantic.Party ->
+  State
+mkInitialState slot contract metadata participants mActiveUserParty =
   { tab: Tasks
   , executionState: initExecution slot contract
   , side: Overview
@@ -56,7 +64,8 @@ mkInitialState slot contract metadata roleWallets =
   , contractId: Nothing
   , step: 0
   , metadata
-  , roleWallets
+  , participants
+  , mActiveUserParty
   }
 
 handleQuery :: forall a m. Query a -> HalogenM State Action ChildSlots Msg m (Maybe a)

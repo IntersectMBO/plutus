@@ -91,6 +91,7 @@ instance decodeJsonContractType :: Decode ContractType where
 class ToCore a b where
   toCore :: a -> Maybe b
 
+-- TODO: Move to Marlowe.Extended.Template
 newtype Placeholders
   = Placeholders
   { slotPlaceholderIds :: Set String
@@ -103,6 +104,7 @@ derive newtype instance semigroupPlaceholders :: Semigroup Placeholders
 
 derive newtype instance monoidPlaceholders :: Monoid Placeholders
 
+-- TODO: Move to Marlowe.Extended.Template
 data IntegerTemplateType
   = SlotContent
   | ValueContent
@@ -150,6 +152,7 @@ updateTemplateContent ( Placeholders { slotPlaceholderIds, valuePlaceholderIds }
     , valueContent: initializeWith (\x -> fromMaybe zero $ Map.lookup x valueContent) valuePlaceholderIds
     }
 
+-- TODO: Move to Marlowe.Extended.Template
 class Template a b where
   getPlaceholderIds :: a -> b
 

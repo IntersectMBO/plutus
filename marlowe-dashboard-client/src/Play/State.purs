@@ -12,11 +12,15 @@ import ContractHome.Types (Action(..), State) as ContractHome
 import Control.Monad.Reader (class MonadAsk)
 import Data.Array as Array
 import Data.Foldable (for_)
-import Data.Lens (assign, modifying, set, view)
+import Data.FunctorWithIndex (mapWithIndex)
+import Data.Lens (assign, modifying, set, (^.))
 import Data.Lens.Extra (peruse)
 import Data.Lens.Prism.Maybe (_Just)
+import Data.Map (Map)
+import Data.Map as Map
 import Data.Maybe (Maybe(..))
 import Data.Time.Duration (Minutes)
+import Data.Set.Extra (setToMap)
 import Effect.Aff.Class (class MonadAff)
 import Env (Env)
 import Halogen (HalogenM, modify_)
@@ -25,13 +29,16 @@ import MainFrame.Lenses (_card, _playState, _screen)
 import MainFrame.Types (Action(..), State) as MainFrame
 import MainFrame.Types (ChildSlots, Msg)
 import Marlowe.Extended (fillTemplate, toCore)
+import Marlowe.HasParties (getParties)
+import Marlowe.Semantics (Party(..))
+import Marlowe.Semantics as Semantic
 import Marlowe.Slot (shelleyInitialSlot)
 import Play.Lenses (_contractsState, _menuOpen, _templateState)
 import Play.Types (Action(..), Card(..), Screen(..), State)
 import Template.Lenses (_extendedContract, _metaData, _roleWallets, _template, _templateContent)
 import Template.State (defaultState, handleAction, mkInitialState) as Template
 import Template.Types (Action(..)) as Template
-import WalletData.Types (WalletDetails)
+import WalletData.Types (WalletDetails, Nickname)
 
 toContractHome ::
   forall m msg slots.
@@ -97,17 +104,31 @@ handleAction (TemplateAction (Template.ToggleCreateWalletCard tokenName)) = hand
 
 handleAction (TemplateAction Template.ToggleSetupConfirmationCard) = handleAction $ ToggleCard ContractSetupConfirmationCard
 
+-- NOTE:  This handler makes works with the assumption than the contract was created from the template functionality
+--        but that will only be the case for the person setting up the contract. Once we connect the backend, and a
+--        contract is created by another participant, we won't be dealing with Extended contracts but actually
+--        Semantic contracts and specially we won't have the roleWallets.
 handleAction (TemplateAction Template.StartContract) = do
   mTemplateState <- peruse (_playState <<< _templateState)
   for_ mTemplateState \templateState ->
     let
-      extendedContract = view (_template <<< _extendedContract) templateState
+      extendedContract = templateState ^. (_template <<< _extendedContract)
 
-      templateContent = view _templateContent templateState
+      templateContent = templateState ^. _templateContent
 
-      metadata = view (_template <<< _metaData) templateState
+      metadata = templateState ^. (_template <<< _metaData)
 
-      roleWallets = view _roleWallets templateState
+      participants :: Map Semantic.Party (Maybe Nickname)
+      participants =
+        mapWithIndex
+          ( \party _ -> case party of
+              PK _ -> Nothing
+              Role roleName -> Map.lookup roleName (templateState ^. _roleWallets)
+          )
+          (setToMap $ getParties extendedContract)
+
+      -- FIXME: Need to see how do I tie the current user to a role in the contract
+      mActiveUserParty = Nothing
 
       mContract = toCore $ fillTemplate templateContent extendedContract
     in
@@ -115,7 +136,7 @@ handleAction (TemplateAction Template.StartContract) = do
         -- TODO: get walletIDs from nicknames in roleWallets
         -- TODO: pass these walletIDs along with the contract to the PAB to start the contract
         let
-          contractState = Contract.mkInitialState zero contract metadata roleWallets
+          contractState = Contract.mkInitialState zero contract metadata participants mActiveUserParty
         modifying (_playState <<< _contractsState <<< _contracts) (Array.cons contractState)
         toContractHome $ ContractHome.handleAction $ ContractHome.OpenContract contractState
         handleAction $ SetScreen $ ContractsScreen
