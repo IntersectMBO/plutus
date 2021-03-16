@@ -109,7 +109,7 @@ currencyMPSHash (CurrencySymbol h) = MonetaryPolicyHash h
 currencySymbol :: ByteString -> CurrencySymbol
 currencySymbol = CurrencySymbol
 
--- | UTF-8 encoded ByteString of a name of a token
+-- | ByteString of a name of a token, shown as UTF-8 string when possible
 newtype TokenName = TokenName { unTokenName :: Builtins.ByteString }
     deriving (Serialise) via LedgerBytes
     deriving stock (Generic)
@@ -118,30 +118,48 @@ newtype TokenName = TokenName { unTokenName :: Builtins.ByteString }
     deriving Pretty via (PrettyShow TokenName)
 
 instance IsString TokenName where
-  fromString = fromText . Text.pack
+    fromString = fromText . Text.pack
 
 fromText :: Text -> TokenName
 fromText = TokenName . E.encodeUtf8
 
-toText :: TokenName -> Text
-toText = E.decodeUtf8 . unTokenName
+fromTokenName :: (Builtins.ByteString -> r) -> (Text -> r) -> TokenName -> r
+fromTokenName handleBytestring handleText (TokenName bs) = either (\_ -> handleBytestring bs) handleText $ E.decodeUtf8' bs
+
+asBase16 :: Builtins.ByteString -> Text
+asBase16 bs = Text.concat ["0x", JSON.encodeByteString bs]
+
+quoted :: Text -> Text
+quoted s = Text.concat ["\"", s, "\""]
 
 toString :: TokenName -> String
-toString = Text.unpack . toText
+toString = Text.unpack . fromTokenName asBase16 id
 
 instance Show TokenName where
-  show = toString
+    show = Text.unpack . fromTokenName asBase16 quoted
+
+{- note [Roundtripping token names]
+
+How to properly roundtrip a token name that is not valid UTF-8 through PureScript
+without a big rewrite of the API?
+We prefix it with a zero byte so we can recognize it when we get a bytestring value back,
+and we serialize it base16 encoded, with 0x in front so it will look as a hex string.
+(Browsers don't render the zero byte.)
+-}
 
 instance ToJSON TokenName where
-    toJSON tokenName =
-        JSON.object
-        [ ( "unTokenName", JSON.toJSON $ toText tokenName)]
+    toJSON = JSON.object . Haskell.pure . (,) "unTokenName" . JSON.toJSON .
+        fromTokenName (\bs -> Text.cons '\0' (asBase16 bs)) id
 
 instance FromJSON TokenName where
     parseJSON =
         JSON.withObject "TokenName" $ \object -> do
         raw <- object .: "unTokenName"
-        Haskell.pure . fromText $ raw
+        fromJSONText raw
+        where
+            fromJSONText t = case Text.take 1 t of
+                "\0" -> either fail (Haskell.pure . TokenName) . JSON.tryDecode . Text.drop 3 $ t
+                _    -> Haskell.pure . fromText $ t
 
 makeLift ''TokenName
 
