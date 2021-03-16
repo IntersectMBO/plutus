@@ -65,7 +65,7 @@ what we already said:
 
 -  ``TExpQ a`` is a quoted representing a program of type ``a``.
 
--  ``TExprQ (CompiledCode a)`` is quote representing a
+-  ``TExpQ (CompiledCode a)`` is quote representing a
    compiled Plutus Core program.
 
 .. note::
