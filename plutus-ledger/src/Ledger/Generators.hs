@@ -202,7 +202,7 @@ genSizedByteStringExact s =
     in Gen.bytes range
 
 genTokenName :: MonadGen m => m TokenName
-genTokenName = Value.TokenName <$> Gen.utf8 (Range.linear 0 32) Gen.unicode
+genTokenName = Value.TokenName <$> genSizedByteString 32
 
 genValue' :: MonadGen m => Range Integer -> m Value
 genValue' valueRange = do

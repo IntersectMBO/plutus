@@ -128,7 +128,7 @@ data Token = Token CurrencySymbol TokenName
 
 instance Show Token where
   showsPrec p (Token cs tn) =
-    showParen (p P.>= 11) (showString $ "Token \"" P.++ show cs P.++ "\" \"" P.++ show tn P.++ "\"")
+    showParen (p P.>= 11) (showString $ "Token \"" P.++ show cs P.++ "\" " P.++ show tn)
 
 {-| Values, as defined using Let ar e identified by name,
     and can be used by 'UseValue' construct.
