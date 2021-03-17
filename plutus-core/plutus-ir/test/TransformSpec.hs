@@ -11,6 +11,8 @@ import           PlutusCore.Quote
 import qualified PlutusCore                         as PLC
 
 import           PlutusIR.Parser
+import qualified PlutusIR.Transform.Beta            as Beta
+import qualified PlutusIR.Transform.DeadCode        as DeadCode
 import qualified PlutusIR.Transform.Inline          as Inline
 import qualified PlutusIR.Transform.LetFloat        as LetFloat
 import qualified PlutusIR.Transform.NonStrict       as NonStrict
@@ -25,6 +27,7 @@ transform = testNested "transform" [
     , nonStrict
     , letFloat
     , inline
+    , beta
     ]
 
 thunkRecursions :: TestNested
@@ -87,6 +90,35 @@ inline =
     , "builtin"
     , "constant"
     , "transitive"
-    -- We don't do beta reduction, but we could
-    , "lamapp"
+    ]
+
+
+beta :: TestNested
+beta =
+    testNested "beta"
+    $ map (goldenPir (Beta.beta . runQuote . PLC.rename) $ term @PLC.DefaultUni @PLC.DefaultFun)
+    [ "lamapp"
+    , "absapp"
+    ]
+
+
+deadCode :: TestNested
+deadCode =
+    testNested "deadCode"
+    $ map (goldenPir DeadCode.removeDeadBindings $ term @PLC.DefaultUni @PLC.DefaultFun)
+    [ "typeLet"
+    , "termLet"
+    , "strictLet"
+    , "nonstrictLet"
+    , "datatypeLiveType"
+    , "datatypeLiveConstr"
+    , "datatypeLiveDestr"
+    , "datatypeDead"
+    , "singleBinding"
+    , "builtinBinding"
+    , "etaBuiltinBinding"
+    , "nestedBindings"
+    , "nestedBindingsIndirect"
+    , "recBindingSimple"
+    , "recBindingComplex"
     ]

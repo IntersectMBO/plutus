@@ -247,13 +247,14 @@
           "PlutusIR/Parser"
           "PlutusIR/MkPir"
           "PlutusIR/Purity"
-          "PlutusIR/Optimizer/DeadCode"
+          "PlutusIR/Transform/DeadCode"
           "PlutusIR/Transform/Substitute"
           "PlutusIR/Transform/ThunkRecursions"
           "PlutusIR/Transform/Rename"
           "PlutusIR/Transform/NonStrict"
           "PlutusIR/Transform/LetFloat"
           "PlutusIR/Transform/Inline"
+          "PlutusIR/Transform/Beta"
           "PlutusIR/TypeCheck"
           "UntypedPlutusCore"
           "UntypedPlutusCore/DeBruijn"
@@ -356,13 +357,7 @@
             (hsPkgs."text" or (errorHandler.buildDepError "text"))
             ];
           buildable = true;
-          modules = [
-            "OptimizerSpec"
-            "TransformSpec"
-            "ParserSpec"
-            "TypeSpec"
-            "TestLib"
-            ];
+          modules = [ "TransformSpec" "ParserSpec" "TypeSpec" "TestLib" ];
           hsSourceDirs = [ "plutus-ir/test" ];
           mainPath = [ "Spec.hs" ];
           };
