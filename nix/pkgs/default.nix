@@ -80,7 +80,6 @@ let
   updateClientDeps = pkgs.callPackage ./update-client-deps {
     inherit purs psc-package spago spago2nix;
   };
-  serveDir = pkgs.callPackage ./serve-dir { };
 
   #
   # sphinx python packages
@@ -186,7 +185,7 @@ in
   inherit nix-pre-commit-hooks;
   inherit haskell agdaPackages cabal-install stylish-haskell hlint haskell-language-server hie-bios;
   inherit purty purty-pre-commit purs spago spago2nix;
-  inherit fixPurty fixStylishHaskell updateMaterialized updateMetadataSamples updateClientDeps serveDir;
+  inherit fixPurty fixStylishHaskell updateMaterialized updateMetadataSamples updateClientDeps;
   inherit iohkNix set-git-rev web-ghc;
   inherit easyPS plutus-haddock-combined;
   inherit agdaWithStdlib;

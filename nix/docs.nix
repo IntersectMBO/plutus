@@ -46,7 +46,7 @@ let
       };
     };
 in
-pkgs.recurseIntoAttrs rec {
+pkgs.recurseIntoAttrs {
   papers = pkgs.recurseIntoAttrs {
     system-f-in-agda = import ../papers/system-f-in-agda { inherit buildLatexDoc; };
     eutxo = import ../papers/eutxo { inherit buildLatexDoc; };
@@ -73,5 +73,8 @@ pkgs.recurseIntoAttrs rec {
     pythonPackages = pkgs.python3Packages;
   };
 
-  serve-docs = plutus.serveDir { path = site; scriptName = "serve-docs"; port = 8002; };
+  build-and-serve-docs = pkgs.writeShellScriptBin "build-and-serve-docs" ''
+    cd $(nix-build default.nix -A docs.site) && \
+    ${pkgs.python3}/bin/python3 -m http.server 8002
+  '';
 }
