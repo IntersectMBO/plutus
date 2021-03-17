@@ -231,6 +231,8 @@ lem1 : (M : ∅ ⊢⋆ J)(B B' : ∅ ⊢⋆ K)(E : EvalCtx K J)
   × (L —→E N)
 lem1 M B B' p = {!!}
 
+-- this is a really a view or case analysis principle
+-- "there are only 4 possibilities"
 lem2 : (M : ∅ ⊢⋆ J)(B : ∅ ⊢⋆ K)(E : EvalCtx K J)
   → (N : ∅ ⊢⋆ J')(B' : ∅ ⊢⋆ K)(E' : EvalCtx K J')
   → B ≡ closeEvalCtx E M
@@ -253,12 +255,12 @@ thm1 : (A : ∅ ⊢⋆ J)(A' : ∅ ⊢⋆ K)(E : EvalCtx K J)
 thm1 A A' E p .A' V refl—↠E = unwind A A' E p V
 thm1 A A' E p B V (trans—↠E {B = B'} q r) with lemma51 B'
 ... | inj₁ V' with v-refl B' B V' r
-... | refl = {!q!}
+... | refl = {!V!}
 thm1 A A' E p B V (trans—↠E {B = B'} q r)
   | inj₂ (J , E' , I , L , N , VL , VN , X)
   with lem2 A A' E (L · N) B' E' p X q
-... | L' , p' , XX , inj₁ (E'' , p'') = step** (step** (lem62 L' A E E'' p'') (subst-step* (cong (λ E → J , E ▻ L') {!!}) (lem-→⋆ _ _ E' XX)) ) (thm1 (L · N) B' E' X B V r)
-... | L' , p' , XX , inj₂ y = {!!}
+... | L' , p' , XX , inj₁ (E'' , p'') = step** (step** (lem62 L' A E E'' p'') (subst-step* (cong (λ E → J , E ▻ L') (sym (uniqueness A' (λ V → notboth A' (V , _ , q)) L' E' (compEvalCtx' E E'') p' (trans p (trans (cong (closeEvalCtx E) p'') (trans (sym (close-comp E E'' L')) (cong (λ E → closeEvalCtx E L') (compEvalCtx-eq E E'')))))))) (lem-→⋆ _ _ E' XX)) ) (thm1 (L · N) B' E' X B V r)
+... | L' , p' , XX , inj₂ y = {!y!}
 --  = step** {!lem2 A A' E (L · N) B' E' p X q!} (thm1 (L · N) B' E' X B V r)
 -- we have E [ A ] -> E [ L . N ]
 -- then r is reflexivity but we still have one step which goes to a value

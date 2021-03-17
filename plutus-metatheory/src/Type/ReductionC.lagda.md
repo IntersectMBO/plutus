@@ -676,14 +676,17 @@ lemma51! (M · M') with lemma51! M
 lemma51! (μ M M') = mu-case M M'
 lemma51! (con x) = inj₁ (V-con x)
 
-{-
-uniqueness : (A : ∅ ⊢⋆ K)
-           → (B : ∅ ⊢⋆ J)(B' : ∅ ⊢⋆ J')
-           → (E : EvalCtx K J)(E' : EvalCtx K J')
+-- this one is specialised to having types of the same kind
+postulate
+  uniqueness : (A : ∅ ⊢⋆ K)
+           → ¬ (Value⋆ A)
+           → (B : ∅ ⊢⋆ J)
+           → (E : EvalCtx K J)(E' : EvalCtx K J)
            → A ≡ closeEvalCtx E B
-           → A ≡ closeEvalCtx E' B'           
-           → Σ (J ≡ J') λ p → subst (EvalCtx K) p E ≡ E' × subst (∅ ⊢⋆_) p B ≡ -}
-           
+           → A ≡ closeEvalCtx E' B
+           → E ≡ E'
+-- the above lemma51! isn't directly useful as it wants a (L · N) not a B...
+
 {-
 det : (p : A —→E B)(q : A —→E B') → B ≡ B'
 -}
