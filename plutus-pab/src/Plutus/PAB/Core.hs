@@ -9,10 +9,12 @@
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE NamedFieldPuns        #-}
 {-# LANGUAGE OverloadedStrings     #-}
+{-# LANGUAGE RankNTypes            #-}
 {-# LANGUAGE ScopedTypeVariables   #-}
 {-# LANGUAGE TypeApplications      #-}
 {-# LANGUAGE TypeFamilies          #-}
 {-# LANGUAGE TypeOperators         #-}
+{-# LANGUAGE UndecidableInstances  #-}
 {-# OPTIONS_GHC -Wno-orphans #-}
 
 module Plutus.PAB.Core
@@ -22,14 +24,11 @@ module Plutus.PAB.Core
     , reportContractState
     , Connection(Connection)
     , toUUID
-    -- * Effects
-    , CoreMsg(..)
+    -- * Effect handlers
+    , EffectHandlers(..)
+    , AppMsg(..)
     ) where
 
-import           Cardano.BM.Data.Tracer                  (ToObject (..), TracingVerbosity (..))
-import           Cardano.BM.Data.Tracer.Extras           (StructuredLog, mkObjectStr)
-import           Cardano.ChainIndex.Server               (ChainIndexServerMsg)
-import           Cardano.Metadata.Types                  (MetadataLogMessage)
 import           Control.Monad.Freer                     (Eff, LastMember, Member, type (~>))
 import           Control.Monad.Freer.Error               (Error)
 import           Control.Monad.Freer.Extras.Log          (LogMsg, logInfo)
@@ -39,19 +38,21 @@ import           Control.Monad.IO.Unlift                 (MonadUnliftIO)
 import           Control.Monad.Logger                    (MonadLogger)
 import qualified Control.Monad.Logger                    as MonadLogger
 import           Data.Aeson                              (FromJSON, ToJSON (..))
-import           Data.Text.Prettyprint.Doc               (Pretty, pretty, (<+>))
+import           Data.Text                               (Text)
+import           Data.Text.Prettyprint.Doc               (Pretty, colon, pretty, (<+>))
 import           Database.Persist.Sqlite                 (createSqlitePoolFromInfo, mkSqliteConnectionInfo)
 import           Eventful.Store.Sql                      (defaultSqlEventStoreConfig)
 import           GHC.Generics                            (Generic)
+import           Ledger.Tx                               (Tx)
 import           Plutus.PAB.Core.ContractInstance        (activateContractSTM)
 import           Plutus.PAB.Core.ContractInstance.STM    (BlockchainEnv, InstancesState)
-import           Plutus.PAB.Effects.Contract             (ContractDefinitionStore, ContractEffect, ContractEffectMsg,
-                                                          ContractStore, PABContract (..), addDefinition, getState)
+import           Plutus.PAB.Effects.Contract             (ContractDefinitionStore, ContractEffect, ContractStore,
+                                                          PABContract (..), addDefinition, getState)
 import           Plutus.PAB.Effects.EventLog             (Connection (..))
 import qualified Plutus.PAB.Effects.EventLog             as EventLog
 import           Plutus.PAB.Events.Contract              (ContractPABRequest)
 import           Plutus.PAB.Events.ContractInstanceState (PartiallyDecodedResponse)
-import           Plutus.PAB.Monitoring.PABLogMsg         ()
+import           Plutus.PAB.Monitoring.PABLogMsg         (CoreMsg (..), PABLogMsg, PABMultiAgentMsg)
 import           Plutus.PAB.Types                        (DbConfig (DbConfig), PABError, dbConfigFile, dbConfigPoolSize,
                                                           toUUID)
 import           Wallet.Effects                          (ChainIndexEffect, NodeClientEffect, WalletEffect)
@@ -82,14 +83,14 @@ data EffectHandlers t env =
             , MonadIO m
             , LastMember m effs
             )
-            => Eff (LogMsg PABMultiAgentMsg ': effs)
+            => Eff (LogMsg (PABMultiAgentMsg t) ': effs)
             ~> Eff effs
 
         -- | Handle the 'ContractStore' effect
         , handleContractStoreEffect :: forall m effs.
             ( Member (Reader env) effs
             , Member (Error PABError) effs
-            , Member (LogMsg PABMultiAgentMsg) effs
+            , Member (LogMsg (PABMultiAgentMsg t)) effs
             , MonadIO m
             , LastMember m effs
             )
@@ -100,7 +101,7 @@ data EffectHandlers t env =
         , handleContractEffect :: forall m effs.
             ( Member (Reader env) effs
             , Member (Error PABError) effs
-            , Member (LogMsg PABMultiAgentMsg) effs
+            , Member (LogMsg (PABMultiAgentMsg t)) effs
             , MonadIO m
             , LastMember m effs
             )
@@ -112,9 +113,10 @@ data EffectHandlers t env =
         , handleServicesEffects :: forall m effs.
             ( Member (Reader env) effs
             , Member (Error PABError) effs
-            , Member (LogMsg PABMultiAgentMsg) effs
+            , Member (LogMsg (PABMultiAgentMsg t)) effs
             , Member (Reader Wallet) effs
-            , LastMember IO effs
+            , MonadIO m
+            , LastMember m effs
             )
             => Eff (WalletEffect ': NodeClientEffect ': ChainIndexEffect ': effs)
             ~> Eff effs
@@ -123,7 +125,7 @@ data EffectHandlers t env =
         , onStartup :: forall m effs.
             ( Member (Reader env) effs
             , Member (Error PABError) effs
-            , Member (LogMsg PABMultiAgentMsg) effs
+            , Member (LogMsg (PABMultiAgentMsg t)) effs
             , MonadIO m
             , LastMember m effs
             ) => Eff effs ()
@@ -132,7 +134,7 @@ data EffectHandlers t env =
         , onShutdown :: forall m effs.
             ( Member (Reader env) effs
             , Member (Error PABError) effs
-            , Member (LogMsg PABMultiAgentMsg) effs
+            , Member (LogMsg (PABMultiAgentMsg t)) effs
             , MonadIO m
             , LastMember m effs
             ) => Eff effs ()
@@ -197,3 +199,34 @@ dbConnect DbConfig {dbConfigFile, dbConfigPoolSize} = do
     MonadLogger.logDebugN "Connecting to DB"
     connectionPool <- createSqlitePoolFromInfo connectionInfo dbConfigPoolSize
     pure $ EventLog.Connection (defaultSqlEventStoreConfig, connectionPool)
+
+data AppMsg t =
+    InstalledContractsMsg
+    | ActiveContractsMsg
+    | TransactionHistoryMsg
+    | ContractHistoryMsg
+    | ProcessInboxMsg
+    | PABMsg PABLogMsg
+    | InstalledContract Text
+    | ContractInstances (ContractDef t) [ContractInstanceId]
+    | TxHistoryItem Tx
+    | ContractHistoryItem Int (PartiallyDecodedResponse ContractPABRequest)
+    deriving stock (Generic)
+
+deriving stock instance (Show (ContractDef t)) => Show (AppMsg t)
+deriving anyclass instance (ToJSON (ContractDef t)) => ToJSON (AppMsg t)
+deriving anyclass instance (FromJSON (ContractDef t)) => FromJSON (AppMsg t)
+
+
+instance Pretty (ContractDef t) => Pretty (AppMsg t) where
+    pretty = \case
+        InstalledContractsMsg   -> "Installed contracts"
+        ActiveContractsMsg      -> "Active contracts"
+        TransactionHistoryMsg   -> "Transaction history"
+        ContractHistoryMsg      -> "Contract history"
+        ProcessInboxMsg         -> "Process contract inbox"
+        PABMsg m                -> pretty m
+        InstalledContract t     -> pretty t
+        ContractInstances t s   -> pretty t <+> pretty s
+        TxHistoryItem t         -> pretty t
+        ContractHistoryItem i s -> pretty i <> colon <+> pretty s

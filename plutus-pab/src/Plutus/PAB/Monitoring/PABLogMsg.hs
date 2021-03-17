@@ -20,25 +20,24 @@ module Plutus.PAB.Monitoring.PABLogMsg(
     ) where
 
 import           Data.Aeson                              (FromJSON, ToJSON)
+import qualified Data.Aeson as JSON
 import           Data.Text                               (Text)
 import           Data.Text.Prettyprint.Doc               (Pretty (..), colon, (<+>))
 import           Data.Time.Units                         (Second)
 import           GHC.Generics                            (Generic)
 
 import           Cardano.BM.Data.Tracer                  (ToObject (..), TracingVerbosity (..))
-import           Cardano.BM.Data.Tracer.Extras           (Tagged (..), mkObjectStr)
+import           Cardano.BM.Data.Tracer.Extras           (Tagged (..), mkObjectStr, StructuredLog)
 import           Cardano.ChainIndex.Types                (ChainIndexServerMsg)
 import           Cardano.Metadata.Types                  (MetadataLogMessage)
 import           Cardano.Node.Types                      (MockServerLogMsg)
 import           Cardano.Wallet.Types                    (WalletMsg)
 import           Ledger.Tx                               (Tx)
-<<<<<<< HEAD
-import           Plutus.Contract.State                   (ContractRequest)
-import           Plutus.PAB.Core                         (CoreMsg (..))
-import           Plutus.PAB.Core.ContractInstance        (ContractInstanceMsg (..))
-=======
+import qualified Data.Text as T
+import Plutus.PAB.Core.ContractInstance.RequestHandlers (ContractInstanceMsg)
+import Plutus.PAB.Webserver.Types (WebSocketLogMsg)
+import Plutus.Contract.State (ContractRequest)
 -- import           Plutus.PAB.Core.ContractInstance        (ContractInstanceMsg (..))
->>>>>>> WIP
 import           Plutus.PAB.Effects.Contract.ContractExe (ContractExe, ContractExeLogMsg (..))
 import           Plutus.PAB.Effects.ContractRuntime      (ContractRuntimeMsg)
 import           Plutus.PAB.Events.Contract              (ContractInstanceId, ContractPABRequest)

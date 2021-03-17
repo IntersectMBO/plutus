@@ -18,7 +18,6 @@ Effects for running contract instances and for storing and loading their state.
 -}
 module Plutus.PAB.Effects.Contract(
     PABContract(..)
-    , ContractEffectMsg(..)
     , requests
     , ContractEffect(..)
     , exportSchema
@@ -36,17 +35,12 @@ module Plutus.PAB.Effects.Contract(
     ) where
 
 import           Control.Monad.Freer                     (Eff, Member, send)
-import qualified Data.Aeson                              as JSON
 import           Data.Map                                (Map)
 import           Data.Proxy                              (Proxy (..))
-import           Data.Text.Prettyprint.Doc               (Doc, Pretty (..), (<+>))
-import           Data.Void                               (Void)
 import           Plutus.Contract.Resumable      (Request, Response)
-import           Plutus.Contract.State          (ContractRequest (..))
 import           Playground.Types                        (FunctionSchema)
 import           Plutus.PAB.Events.Contract              (ContractPABRequest, ContractResponse)
 import           Plutus.PAB.Events.ContractInstanceState (PartiallyDecodedResponse (hooks))
-import           Plutus.PAB.Monitoring.PABLogMsg         (ContractEffectMsg (..))
 import           Schema                                  (FormSchema)
 import           Wallet.Types                            (ContractInstanceId)
 

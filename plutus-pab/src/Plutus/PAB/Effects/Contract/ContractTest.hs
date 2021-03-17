@@ -33,16 +33,15 @@ import           Data.Row
 import           Data.Text                                   (Text)
 import qualified Data.Text                                   as Text
 import           Data.Text.Prettyprint.Doc
-import           Data.Void                                         (Void, absurd)
 import           GHC.Generics                                      (Generic)
 
 import           Data.Text.Extras                                  (tshow)
-import           Plutus.PAB.Effects.Contract                       (ContractEffect (..), ContractEffectMsg (..),
-                                                                    PABContract (..))
+import           Plutus.PAB.Effects.Contract                       (ContractEffect (..), PABContract (..))
 import           Plutus.PAB.Events.Contract                        (ContractPABRequest)
 import qualified Plutus.PAB.Events.Contract                        as C
 import           Plutus.PAB.Events.ContractInstanceState           (PartiallyDecodedResponse)
 import qualified Plutus.PAB.Events.ContractInstanceState           as C
+import           Plutus.PAB.Monitoring.PABLogMsg                   (ContractEffectMsg (..))
 import           Plutus.PAB.Types                                  (PABError (..))
 
 import           Control.Monad.Freer.Extras.Log                    (LogMsg, logDebug)
@@ -144,7 +143,7 @@ doContractUpdate contract oldState response = do
     oldState' <- traverse fromJSON newState
     typedResp <- traverse (fromJSON . JSON.toJSON . C.ContractHandlersResponse) response
     let conReq = ContractRequest{oldState = oldState', event = typedResp }
-    logDebug $ SendContractRequest (_ conReq)
+    logDebug $ SendContractRequest (fmap JSON.toJSON conReq)
     let response' = mkResponse $ ContractState.insertAndUpdateContract contract conReq
     logDebug $ ReceiveContractResponse response'
     pure response'
