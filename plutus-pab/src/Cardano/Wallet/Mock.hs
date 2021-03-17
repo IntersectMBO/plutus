@@ -47,7 +47,8 @@ import qualified Plutus.V1.Ledger.Bytes           as KB
 import           Servant                          (ServerError (..), err400, err401, err404)
 import           Servant.Client                   (ClientEnv)
 import           Servant.Server                   (err500)
-import           Wallet.API                       (WalletAPIError (InsufficientFunds, OtherError, PrivateKeyNotFound))
+import           Wallet.API                       (PubKey,
+                                                   WalletAPIError (InsufficientFunds, OtherError, PrivateKeyNotFound))
 import qualified Wallet.API                       as WAPI
 import           Wallet.Effects                   (ChainIndexEffect, NodeClientEffect)
 import           Wallet.Emulator.NodeClient       (emptyNodeClientState)
@@ -72,6 +73,12 @@ integer2ByteString32 :: Integer -> BS.ByteString
 integer2ByteString32 i = BS.unfoldr (\l' -> if l' < 0 then Nothing else Just (fromIntegral (i `shiftR` l'), l' - 8)) (31*8)
 {-# INLINE integer2ByteString32 #-}
 
+
+distributeNewWalletFunds :: PubKey -> Eff '[WAPI.WalletEffect] Tx
+distributeNewWalletFunds = WAPI.payToPublicKey WAPI.defaultSlotRange (Ada.adaValueOf 10000)
+
+
+-- | Handle multiple wallets using existing @Wallet.handleWallet@ handler
 handleMultiWallet :: forall m effs. ( Member NodeClientEffect effs
     , Member ChainIndexEffect effs
     , Member (State Wallets) effs
@@ -100,13 +107,12 @@ handleMultiWallet = do
             let wallet = Wallet walletId
             let wallets' = Map.insert wallet privateKey wallets
             put wallets'
+            -- For some reason this doesn't work with (Wallet 1)/privateKey1,
+            -- works just fine with (Wallet 2)/privateKey2
+            -- ¯\_(ツ)_/¯
             let walletState = WalletState privateKey2 emptyNodeClientState mempty (defaultSigningProcess (Wallet 2))
-
-            let action :: Eff '[WAPI.WalletEffect] Tx
-                action = WAPI.payToPublicKey WAPI.defaultSlotRange (Ada.adaValueOf 10000) pubKey
-            _ <- evalState walletState $ Wallet.handleWallet (raiseEnd action)
+            _ <- evalState walletState $ Wallet.handleWallet (raiseEnd $ distributeNewWalletFunds pubKey)
             return wallet
-
 
 
 -- | Process wallet effects. Retain state and yield HTTP400 on error
