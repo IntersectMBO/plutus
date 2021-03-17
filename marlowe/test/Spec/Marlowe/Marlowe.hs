@@ -25,7 +25,7 @@ import           Language.Marlowe.Analysis.FSSemantics
 import           Language.Marlowe.Client
 import           Language.Marlowe.Semantics
 import           Language.Marlowe.Util
-import qualified Language.PlutusTx.AssocMap            as AssocMap
+import qualified PlutusTx.AssocMap                     as AssocMap
 import           System.IO.Unsafe                      (unsafePerformIO)
 
 import           Data.Aeson                            (decode, encode)
@@ -41,17 +41,17 @@ import qualified Codec.Serialise                       as Serialise
 import           Language.Haskell.Interpreter          (Extension (OverloadedStrings), MonadInterpreter,
                                                         OptionVal ((:=)), as, interpret, languageExtensions,
                                                         runInterpreter, set, setImports)
-import           Language.Plutus.Contract.Test         hiding ((.&&.))
-import qualified Language.Plutus.Contract.Test         as T
-import           Language.PlutusTx.Lattice
+import           Plutus.Contract.Test                  hiding ((.&&.))
+import qualified Plutus.Contract.Test                  as T
 import qualified Plutus.Trace.Emulator                 as Trace
+import           PlutusTx.Lattice
 
-import qualified Language.PlutusTx.Prelude             as P
 import           Ledger                                hiding (Value)
 import           Ledger.Ada                            (lovelaceValueOf)
 import           Ledger.Constraints.TxConstraints      (TxConstraints)
 import           Ledger.Typed.Scripts                  (scriptHash, validatorScript)
 import qualified Ledger.Value                          as Val
+import qualified PlutusTx.Prelude                      as P
 import           Spec.Marlowe.Common
 import qualified Streaming.Prelude                     as S
 import           Test.Tasty

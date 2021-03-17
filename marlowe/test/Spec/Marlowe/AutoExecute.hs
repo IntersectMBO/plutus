@@ -36,16 +36,16 @@ import qualified Codec.Serialise                       as Serialise
 import           Language.Haskell.Interpreter          (Extension (OverloadedStrings), MonadInterpreter,
                                                         OptionVal ((:=)), as, interpret, languageExtensions,
                                                         runInterpreter, set, setImports)
-import           Language.Plutus.Contract.Test         as T
-import qualified Language.PlutusTx.AssocMap            as AssocMap
-import           Language.PlutusTx.Lattice
+import           Plutus.Contract.Test                  as T
 import qualified Plutus.Trace.Emulator                 as Trace
+import qualified PlutusTx.AssocMap                     as AssocMap
+import           PlutusTx.Lattice
 
-import qualified Language.PlutusTx.Prelude             as P
 import           Ledger                                hiding (Value)
 import qualified Ledger
 import           Ledger.Ada                            (lovelaceValueOf)
 import           Ledger.Typed.Scripts                  (scriptHash, validatorScript)
+import qualified PlutusTx.Prelude                      as P
 import           Spec.Marlowe.Common
 import           Test.Tasty
 import           Test.Tasty.HUnit

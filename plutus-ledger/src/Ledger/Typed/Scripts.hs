@@ -27,7 +27,7 @@ module Ledger.Typed.Scripts(
     , Any
     ) where
 
-import           Language.PlutusTx
+import           PlutusTx
 
 import qualified Plutus.V1.Ledger.Address        as Addr
 import           Plutus.V1.Ledger.Scripts        hiding (monetaryPolicyHash)

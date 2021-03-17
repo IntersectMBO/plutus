@@ -10,37 +10,37 @@
 {-# OPTIONS_GHC -fno-ignore-interface-pragmas #-}
 module Main (main) where
 
-import           Prelude                                               hiding (tail)
+import           Prelude                       hiding (tail)
 
 import           Control.Lens.Indexed
 import           Control.Monad.Except
 import           Criterion.Main
-import           Crypto.Hash                                           hiding (Context)
-import qualified Data.ByteArray                                        as BA
-import qualified Data.ByteString                                       as BS
-import qualified Language.PlutusTx.Coordination.Contracts.Future       as FT
-import qualified Language.PlutusTx.Coordination.Contracts.MultiSig     as MS
-import qualified Language.PlutusTx.Coordination.Contracts.PubKey       as PK
-import qualified Language.PlutusTx.Coordination.Contracts.TokenAccount as TA
-import qualified Language.PlutusTx.Prelude                             as P
+import           Crypto.Hash                   hiding (Context)
+import qualified Data.ByteArray                as BA
+import qualified Data.ByteString               as BS
 import           Ledger
-import qualified Ledger.Ada                                            as Ada
+import qualified Ledger.Ada                    as Ada
 import           Ledger.Bytes
-import qualified Ledger.Crypto                                         as Crypto
-import qualified Ledger.Typed.Scripts                                  as Scripts
+import qualified Ledger.Crypto                 as Crypto
+import qualified Ledger.Typed.Scripts          as Scripts
+import qualified Plutus.Contracts.Future       as FT
+import qualified Plutus.Contracts.MultiSig     as MS
+import qualified Plutus.Contracts.PubKey       as PK
+import qualified Plutus.Contracts.TokenAccount as TA
+import qualified PlutusTx.Prelude              as P
 import           Wallet
-import           Wallet.Emulator.Types                                 (Wallet (..), walletPubKey)
+import           Wallet.Emulator.Types         (Wallet (..), walletPubKey)
 
-import qualified Language.PlutusCore                                   as PLC
-import qualified Language.PlutusCore.Evaluation.Result                 as PLC
-import qualified Language.PlutusTx                                     as PlutusTx
-import           Language.PlutusTx.Evaluation                          (unsafeEvaluateCek)
-import qualified Language.PlutusTx.Prelude                             as PlutusTx
-import qualified Language.UntypedPlutusCore                            as UPLC
+import qualified PlutusCore                    as PLC
+import qualified PlutusCore.Evaluation.Result  as PLC
+import qualified PlutusTx                      as PlutusTx
+import           PlutusTx.Evaluation           (unsafeEvaluateCek)
+import qualified PlutusTx.Prelude              as PlutusTx
+import qualified UntypedPlutusCore             as UPLC
 
 import           Opt
-import qualified Recursion                                             as Rec
-import qualified Scott                                                 as Scott
+import qualified Recursion                     as Rec
+import qualified Scott                         as Scott
 
 main :: IO ()
 main = defaultMain [ functions, validators, scriptHashes ]

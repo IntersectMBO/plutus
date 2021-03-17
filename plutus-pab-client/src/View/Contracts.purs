@@ -15,7 +15,7 @@ import Halogen.HTML (ClassName(..), HTML, br_, button, div, div_, h2_, h3_, tabl
 import Halogen.HTML.Events (onClick)
 import Halogen.HTML.Properties (class_, classes, colSpan, disabled)
 import Icons (Icon(..), icon)
-import Language.Plutus.Contract.Resumable (IterationID(..), Request(..), RequestID(..))
+import Plutus.Contract.Resumable (IterationID(..), Request(..), RequestID(..))
 import Network.StreamData as Stream
 import Playground.Lenses (_endpointDescription, _getEndpointDescription, _schema)
 import Playground.Types (_FunctionSchema)

@@ -7,35 +7,34 @@
 {-# OPTIONS_GHC -fno-warn-incomplete-uni-patterns -fno-warn-unused-do-bind #-}
 module Spec.Crowdfunding(tests) where
 
-import qualified Control.Foldl                                         as L
-import           Control.Lens                                          ((&), (.~))
-import           Control.Monad                                         (void)
-import           Control.Monad.Freer                                   (run)
-import           Control.Monad.Freer.Extras.Log                        (LogLevel (..))
-import           Data.ByteString.Lazy                                  (ByteString)
-import qualified Data.ByteString.Lazy                                  as BSL
-import qualified Data.Text.Encoding                                    as T
-import           Data.Text.Prettyprint.Doc                             (Pretty (..), defaultLayoutOptions, layoutPretty,
-                                                                        vsep)
-import           Data.Text.Prettyprint.Doc.Render.Text                 (renderStrict)
-import           Spec.Lib                                              (timesFeeAdjust)
-import qualified Spec.Lib                                              as Lib
+import qualified Control.Foldl                         as L
+import           Control.Lens                          ((&), (.~))
+import           Control.Monad                         (void)
+import           Control.Monad.Freer                   (run)
+import           Control.Monad.Freer.Extras.Log        (LogLevel (..))
+import           Data.ByteString.Lazy                  (ByteString)
+import qualified Data.ByteString.Lazy                  as BSL
+import qualified Data.Text.Encoding                    as T
+import           Data.Text.Prettyprint.Doc             (Pretty (..), defaultLayoutOptions, layoutPretty, vsep)
+import           Data.Text.Prettyprint.Doc.Render.Text (renderStrict)
+import           Spec.Lib                              (timesFeeAdjust)
+import qualified Spec.Lib                              as Lib
 import           Test.Tasty
-import           Test.Tasty.Golden                                     (goldenVsString)
-import qualified Test.Tasty.HUnit                                      as HUnit
+import           Test.Tasty.Golden                     (goldenVsString)
+import qualified Test.Tasty.HUnit                      as HUnit
 
-import           Language.Plutus.Contract                              hiding (runError)
-import           Language.Plutus.Contract.Test
-import qualified Language.PlutusTx                                     as PlutusTx
-import           Language.PlutusTx.Coordination.Contracts.Crowdfunding
-import qualified Language.PlutusTx.Prelude                             as PlutusTx
-import qualified Ledger.Ada                                            as Ada
-import           Ledger.Slot                                           (Slot (..))
-import           Plutus.Trace.Emulator                                 (ContractHandle (..), EmulatorTrace)
-import qualified Plutus.Trace.Emulator                                 as Trace
-import qualified Streaming.Prelude                                     as S
-import qualified Wallet.Emulator.Folds                                 as Folds
-import           Wallet.Emulator.Stream                                (filterLogLevel, foldEmulatorStreamM)
+import qualified Ledger.Ada                            as Ada
+import           Ledger.Slot                           (Slot (..))
+import           Plutus.Contract                       hiding (runError)
+import           Plutus.Contract.Test
+import           Plutus.Contracts.Crowdfunding
+import           Plutus.Trace.Emulator                 (ContractHandle (..), EmulatorTrace)
+import qualified Plutus.Trace.Emulator                 as Trace
+import qualified PlutusTx                              as PlutusTx
+import qualified PlutusTx.Prelude                      as PlutusTx
+import qualified Streaming.Prelude                     as S
+import qualified Wallet.Emulator.Folds                 as Folds
+import           Wallet.Emulator.Stream                (filterLogLevel, foldEmulatorStreamM)
 
 w1, w2, w3, w4 :: Wallet
 w1 = Wallet 1

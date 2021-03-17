@@ -5,10 +5,10 @@
 module HelloWorld where
 
 -- TRIM TO HERE
-import qualified Data.Text                 as T
-import           Language.Plutus.Contract  hiding (when)
-import           Language.PlutusTx.Prelude
+import qualified Data.Text           as T
 import           Playground.Contract
+import           Plutus.Contract     hiding (when)
+import           PlutusTx.Prelude
 
 -- | A 'Contract' that logs a message.
 hello :: Contract () BlockchainActions T.Text ()

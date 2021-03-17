@@ -3,7 +3,7 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeApplications    #-}
 {-# LANGUAGE TypeFamilies        #-}
-{-# OPTIONS -fplugin Language.PlutusTx.Plugin -fplugin-opt Language.PlutusTx.Plugin:defer-errors -fplugin-opt Language.PlutusTx.Plugin:no-context #-}
+{-# OPTIONS -fplugin PlutusTx.Plugin -fplugin-opt PlutusTx.Plugin:defer-errors -fplugin-opt PlutusTx.Plugin:no-context #-}
 
 module Plugin.Data.Spec where
 
@@ -12,12 +12,12 @@ import           Lib
 import           PlcTestUtils
 import           Plugin.Lib
 
-import qualified Language.PlutusTx.Builtins   as Builtins
-import           Language.PlutusTx.Code
-import           Language.PlutusTx.Plugin
+import qualified PlutusTx.Builtins   as Builtins
+import           PlutusTx.Code
+import           PlutusTx.Plugin
 
-import qualified Language.PlutusCore.Builtins as PLC
-import qualified Language.PlutusCore.Universe as PLC
+import qualified PlutusCore.Builtins as PLC
+import qualified PlutusCore.Universe as PLC
 
 import           Data.Proxy
 

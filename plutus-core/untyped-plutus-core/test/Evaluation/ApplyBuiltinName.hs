@@ -8,15 +8,15 @@ module Evaluation.ApplyBuiltinName
     ( test_applyStaticBuiltin
     ) where
 
-import           Language.UntypedPlutusCore
+import           UntypedPlutusCore
 
-import           Language.PlutusCore.Builtins
-import           Language.PlutusCore.Constant
-import           Language.PlutusCore.Evaluation.Machine.ExBudget
-import           Language.PlutusCore.Evaluation.Machine.ExBudgetingDefaults
-import           Language.PlutusCore.Evaluation.Machine.Exception
-import           Language.PlutusCore.Generators
-import           Language.PlutusCore.Universe
+import           PlutusCore.Builtins
+import           PlutusCore.Constant
+import           PlutusCore.Evaluation.Machine.ExBudget
+import           PlutusCore.Evaluation.Machine.ExBudgetingDefaults
+import           PlutusCore.Evaluation.Machine.Exception
+import           PlutusCore.Generators
+import           PlutusCore.Universe
 
 import           Control.Monad.Except
 import           Data.Proxy
@@ -26,7 +26,7 @@ import           Test.Tasty.Hedgehog
 
 -- | A simplified (because we don't need the full generality here) CPS-transformed
 -- (so that we can provide the 'KnownType' constraint to the caller) version of
--- 'Language.PlutusCore.Generators.Internal.Entity.genIterAppValue'.
+-- 'PlutusCore.Generators.Internal.Entity.genIterAppValue'.
 withGenArgsRes
     :: (Generatable uni, Monad m)
     => TypeScheme (Term Name uni fun ()) as res

@@ -5,7 +5,7 @@ module Plutus.Benchmark.Knights.Queue
     emptyQueue
   ) where
 
-import           Language.PlutusTx.Prelude as Tx
+import           PlutusTx.Prelude as Tx
 
 type Queue a = [a]
 

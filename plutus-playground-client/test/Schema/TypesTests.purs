@@ -18,7 +18,7 @@ import Foreign (Foreign)
 import Foreign.Class (encode)
 import Foreign.Generic (encodeJSON)
 import Foreign.Object as FO
-import Language.PlutusTx.AssocMap as AssocMap
+import PlutusTx.AssocMap as AssocMap
 import Plutus.V1.Ledger.Value (CurrencySymbol(..), TokenName(..), Value(..))
 import Playground.Types (ContractCall(..), FunctionSchema(..), KnownCurrency(..))
 import Schema (FormSchema(..), FormArgumentF(..))

@@ -29,28 +29,28 @@ module Wallet.Types(
     , AsNotificationError(..)
     ) where
 
-import           Control.Lens                        (prism')
-import           Control.Lens.TH                     (makeClassyPrisms)
-import           Data.Aeson                          (FromJSON, FromJSONKey, ToJSON, ToJSONKey)
-import qualified Data.Aeson                          as Aeson
-import qualified Data.Aeson.Encode.Pretty            as JSON
-import qualified Data.ByteString.Lazy.Char8          as BSL8
-import qualified Data.Set                            as Set
-import           Data.String                         (IsString (..))
-import           Data.Text                           (Text)
-import qualified Data.Text                           as T
-import           Data.Text.Prettyprint.Doc           (Pretty (..), colon, hang, viaShow, vsep, (<+>))
-import           Data.Text.Prettyprint.Doc.Extras    (PrettyShow (..), Tagged (..))
-import           Data.UUID                           (UUID)
-import qualified Data.UUID.Extras                    as UUID
-import qualified Data.UUID.V4                        as UUID
-import           GHC.Generics                        (Generic)
-import qualified Language.Haskell.TH.Syntax          as TH
+import           Control.Lens                     (prism')
+import           Control.Lens.TH                  (makeClassyPrisms)
+import           Data.Aeson                       (FromJSON, FromJSONKey, ToJSON, ToJSONKey)
+import qualified Data.Aeson                       as Aeson
+import qualified Data.Aeson.Encode.Pretty         as JSON
+import qualified Data.ByteString.Lazy.Char8       as BSL8
+import qualified Data.Set                         as Set
+import           Data.String                      (IsString (..))
+import           Data.Text                        (Text)
+import qualified Data.Text                        as T
+import           Data.Text.Prettyprint.Doc        (Pretty (..), colon, hang, viaShow, vsep, (<+>))
+import           Data.Text.Prettyprint.Doc.Extras (PrettyShow (..), Tagged (..))
+import           Data.UUID                        (UUID)
+import qualified Data.UUID.Extras                 as UUID
+import qualified Data.UUID.V4                     as UUID
+import           GHC.Generics                     (Generic)
+import qualified Language.Haskell.TH.Syntax       as TH
 
-import           Language.Plutus.Contract.Checkpoint (AsCheckpointError (..), CheckpointError)
-import           Ledger                              (Address, Slot, Tx, TxIn, TxOut, txId)
-import           Ledger.Constraints.OffChain         (MkTxError)
-import           Wallet.Emulator.Error               (WalletAPIError)
+import           Ledger                           (Address, Slot, Tx, TxIn, TxOut, txId)
+import           Ledger.Constraints.OffChain      (MkTxError)
+import           Plutus.Contract.Checkpoint       (AsCheckpointError (..), CheckpointError)
+import           Wallet.Emulator.Error            (WalletAPIError)
 
 
 -- | A payment consisting of a set of inputs to be spent, and

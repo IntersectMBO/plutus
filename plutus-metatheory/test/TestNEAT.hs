@@ -4,24 +4,24 @@ import           Control.Monad.Except
 import           Data.Coolean
 import           Data.Either
 import           Data.List
-import           Language.PlutusCore
-import           Language.PlutusCore.Evaluation.Machine.Ck
-import           Language.PlutusCore.Generators.NEAT.Spec
-import           Language.PlutusCore.Generators.NEAT.Term
-import           Language.PlutusCore.Lexer
-import           Language.PlutusCore.Normalize
-import           Language.PlutusCore.Pretty
-import qualified Language.UntypedPlutusCore                as U
+import           PlutusCore
+import           PlutusCore.Evaluation.Machine.Ck
+import           PlutusCore.Generators.NEAT.Spec
+import           PlutusCore.Generators.NEAT.Term
+import           PlutusCore.Lexer
+import           PlutusCore.Normalize
+import           PlutusCore.Pretty
 import           Test.Tasty
 import           Test.Tasty.HUnit
+import qualified UntypedPlutusCore                as U
 
-import           MAlonzo.Code.Main                         (checkKindAgda, checkTypeAgda, inferKindAgda, inferTypeAgda,
-                                                            normalizeTypeAgda, normalizeTypeTermAgda, runCKAgda,
-                                                            runTCEKAgda, runTCKAgda, runTLAgda, runUAgda)
-import           MAlonzo.Code.Scoped                       (deBruijnifyK, unDeBruijnifyK)
+import           MAlonzo.Code.Main                (checkKindAgda, checkTypeAgda, inferKindAgda, inferTypeAgda,
+                                                   normalizeTypeAgda, normalizeTypeTermAgda, runCKAgda, runTCEKAgda,
+                                                   runTCKAgda, runTLAgda, runUAgda)
+import           MAlonzo.Code.Scoped              (deBruijnifyK, unDeBruijnifyK)
 
-import           Language.PlutusCore.DeBruijn
-import           Raw                                       hiding (TypeError, tynames)
+import           PlutusCore.DeBruijn
+import           Raw                              hiding (TypeError, tynames)
 
 import           Debug.Trace
 

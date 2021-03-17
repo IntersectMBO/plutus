@@ -7,24 +7,23 @@ module Plutus.PAB.Events.ContractSpec
     ( tests
     ) where
 
-import           Control.Monad.Except                            (ExceptT (ExceptT), runExceptT)
-import           Control.Monad.Trans.Except                      (except)
-import qualified Data.Aeson                                      as JSON
-import           Data.Bifunctor                                  (first)
-import qualified Data.ByteString.Char8                           as BS
-import qualified Data.ByteString.Lazy                            as BSL
-import           Data.Proxy                                      (Proxy (Proxy))
-import           GHC.TypeLits                                    (symbolVal)
-import           Language.Plutus.Contract                        (BlockchainActions)
-import           Language.Plutus.Contract.Effects.ExposeEndpoint (ActiveEndpoint (..),
-                                                                  EndpointDescription (EndpointDescription))
-import qualified Language.Plutus.Contract.Schema                 as Schema
-import           Language.PlutusTx.Coordination.Contracts.Game   (GameSchema, game)
-import           Plutus.PAB.Arbitrary                            ()
-import           Plutus.PAB.ContractCLI                          (Command (Initialise), runCliCommand)
-import           Plutus.PAB.Events.Contract                      (ContractHandlersResponse, PartiallyDecodedResponse)
-import           Test.Tasty                                      (TestTree, testGroup)
-import           Test.Tasty.HUnit                                (assertFailure, testCase)
+import           Control.Monad.Except                   (ExceptT (ExceptT), runExceptT)
+import           Control.Monad.Trans.Except             (except)
+import qualified Data.Aeson                             as JSON
+import           Data.Bifunctor                         (first)
+import qualified Data.ByteString.Char8                  as BS
+import qualified Data.ByteString.Lazy                   as BSL
+import           Data.Proxy                             (Proxy (Proxy))
+import           GHC.TypeLits                           (symbolVal)
+import           Plutus.Contract                        (BlockchainActions)
+import           Plutus.Contract.Effects.ExposeEndpoint (ActiveEndpoint (..), EndpointDescription (EndpointDescription))
+import qualified Plutus.Contract.Schema                 as Schema
+import           Plutus.Contracts.Game                  (GameSchema, game)
+import           Plutus.PAB.Arbitrary                   ()
+import           Plutus.PAB.ContractCLI                 (Command (Initialise), runCliCommand)
+import           Plutus.PAB.Events.Contract             (ContractHandlersResponse, PartiallyDecodedResponse)
+import           Test.Tasty                             (TestTree, testGroup)
+import           Test.Tasty.HUnit                       (assertFailure, testCase)
 
 tests :: TestTree
 tests = testGroup "Plutus.PAB.Events.Contract" [jsonTests]

@@ -5,15 +5,15 @@ module Normalization.Type
     ( test_typeNormalization
     ) where
 
-import           Language.PlutusCore
-import           Language.PlutusCore.Generators.AST
-import           Language.PlutusCore.MkPlc
-import           Language.PlutusCore.Normalize
+import           PlutusCore
+import           PlutusCore.Generators.AST
+import           PlutusCore.MkPlc
+import           PlutusCore.Normalize
 
-import           Control.Monad.Morph                (hoist)
+import           Control.Monad.Morph        (hoist)
 
 import           Hedgehog
-import           Hedgehog.Internal.Property         (forAllT)
+import           Hedgehog.Internal.Property (forAllT)
 import           Test.Tasty
 import           Test.Tasty.HUnit
 import           Test.Tasty.Hedgehog

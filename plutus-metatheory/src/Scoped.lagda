@@ -259,7 +259,7 @@ data ScopeError : Set where
   deBError : ScopeError
   freeVariableError : FreeVariableError → ScopeError
 
-{-# FOREIGN GHC import Language.PlutusCore.DeBruijn #-}
+{-# FOREIGN GHC import PlutusCore.DeBruijn #-}
 {-# FOREIGN GHC import Raw #-}
 {-# COMPILE GHC ScopeError = data ScopeError (DeBError | FreeVariableError) #-}
 

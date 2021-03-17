@@ -5,11 +5,11 @@ module OptimizerSpec where
 import           Common
 import           TestLib
 
-import           Language.PlutusIR.Optimizer.DeadCode
-import           Language.PlutusIR.Parser
-import           Language.PlutusIR.Transform.Rename   ()
+import           PlutusIR.Optimizer.DeadCode
+import           PlutusIR.Parser
+import           PlutusIR.Transform.Rename   ()
 
-import qualified Language.PlutusCore                  as PLC
+import qualified PlutusCore                  as PLC
 
 optimizer :: TestNested
 optimizer = testNested "optimizer" [

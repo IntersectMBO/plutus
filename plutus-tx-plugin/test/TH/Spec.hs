@@ -8,7 +8,7 @@
 {-# LANGUAGE TemplateHaskell       #-}
 {-# LANGUAGE TypeApplications      #-}
 {-# LANGUAGE TypeFamilies          #-}
-{-# OPTIONS -fplugin Language.PlutusTx.Plugin -fplugin-opt Language.PlutusTx.Plugin:defer-errors -fplugin-opt Language.PlutusTx.Plugin:debug-context #-}
+{-# OPTIONS -fplugin PlutusTx.Plugin -fplugin-opt PlutusTx.Plugin:defer-errors -fplugin-opt PlutusTx.Plugin:debug-context #-}
 {-# OPTIONS_GHC -Wno-orphans #-}
 {-# OPTIONS_GHC   -g #-}
 
@@ -17,29 +17,29 @@ module TH.Spec (tests) where
 import           Common
 import           Lib
 import           PlcTestUtils
-import           PlutusPrelude                (view)
+import           PlutusPrelude             (view)
 
 import           TH.TestTH
 
-import qualified Prelude                      as Haskell
+import qualified Prelude                   as Haskell
 
-import           Language.PlutusTx
-import qualified Language.PlutusTx.Builtins   as Builtins
-import           Language.PlutusTx.Code
-import           Language.PlutusTx.Evaluation
-import           Language.PlutusTx.Prelude
-import           Language.PlutusTx.TH
+import           PlutusTx
+import qualified PlutusTx.Builtins         as Builtins
+import           PlutusTx.Code
+import           PlutusTx.Evaluation
+import           PlutusTx.Prelude
+import           PlutusTx.TH
 
-import qualified Language.PlutusIR            as PIR
+import qualified PlutusIR                  as PIR
 
-import qualified Language.PlutusCore          as PLC
-import           Language.PlutusCore.Pretty
-import qualified Language.PlutusCore.Universe as PLC
-import           Language.UntypedPlutusCore
-import qualified Language.UntypedPlutusCore   as UPLC
+import qualified PlutusCore                as PLC
+import           PlutusCore.Pretty
+import qualified PlutusCore.Universe       as PLC
+import           UntypedPlutusCore
+import qualified UntypedPlutusCore         as UPLC
 
 import           Control.Exception
-import           Control.Lens.Combinators     (_1)
+import           Control.Lens.Combinators  (_1)
 import           Control.Monad.Except
 
 import           Data.Text.Prettyprint.Doc

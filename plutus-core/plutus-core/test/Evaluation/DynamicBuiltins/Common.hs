@@ -11,11 +11,11 @@ module Evaluation.DynamicBuiltins.Common
 
 import           PlutusPrelude
 
-import           Language.PlutusCore
-import           Language.PlutusCore.Constant
-import           Language.PlutusCore.Pretty
+import           PlutusCore
+import           PlutusCore.Constant
+import           PlutusCore.Pretty
 
-import           Language.PlutusCore.Evaluation.Machine.Ck
+import           PlutusCore.Evaluation.Machine.Ck
 
 import           Control.Monad.Except
 

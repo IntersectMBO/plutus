@@ -29,11 +29,11 @@ import           Data.Maybe                     (isNothing)
 import           Data.Text.Prettyprint.Doc
 import           Data.Traversable               (for)
 import           GHC.Generics                   (Generic)
-import           Language.Plutus.Contract.Util  (uncurry3)
 import           Ledger                         (Block, Blockchain, ScriptValidationEvent, Slot (..), Tx (..), TxId,
                                                  txId)
 import qualified Ledger.Index                   as Index
 import qualified Ledger.Interval                as Interval
+import           Plutus.Contract.Util           (uncurry3)
 
 -- | Events produced by the blockchain emulator.
 data ChainEvent =

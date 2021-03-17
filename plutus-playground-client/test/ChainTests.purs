@@ -7,7 +7,7 @@ import Data.Array (mapWithIndex)
 import Data.BigInteger as BigInteger
 import Data.Maybe (Maybe(..))
 import Data.Tuple.Nested ((/\))
-import Language.PlutusTx.AssocMap as AssocMap
+import PlutusTx.AssocMap as AssocMap
 import Plutus.V1.Ledger.Value (CurrencySymbol(..), TokenName(..), Value(..))
 import Playground.Types (SimulatorWallet(..))
 import Test.Unit (TestSuite, suite, test)

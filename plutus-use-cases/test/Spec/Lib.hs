@@ -15,12 +15,12 @@ import           Data.Maybe
 import           Data.String
 import           Data.Text.Prettyprint.Doc
 
-import           Language.PlutusTx
-import qualified Language.PlutusTx.Prelude as P
 import           Ledger                    (Validator)
 import qualified Ledger
 import qualified Ledger.Ada                as Ada
 import           Ledger.Value              (Value)
+import           PlutusTx
+import qualified PlutusTx.Prelude          as P
 
 -- | Assert that the size of a 'Validator' is below
 --   the maximum.

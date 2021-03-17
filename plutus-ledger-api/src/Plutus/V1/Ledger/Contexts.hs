@@ -56,22 +56,22 @@ module Plutus.V1.Ledger.Contexts
     , fromSymbol
     ) where
 
-import           GHC.Generics               (Generic)
-import           Language.PlutusTx
-import qualified Language.PlutusTx.Builtins as Builtins
-import           Language.PlutusTx.Prelude
+import           GHC.Generics             (Generic)
+import           PlutusTx
+import qualified PlutusTx.Builtins        as Builtins
+import           PlutusTx.Prelude
 
-import           Plutus.V1.Ledger.Ada       (Ada)
-import qualified Plutus.V1.Ledger.Ada       as Ada
-import           Plutus.V1.Ledger.Address   (Address (..), scriptHashAddress)
-import           Plutus.V1.Ledger.Bytes     (LedgerBytes (..))
-import           Plutus.V1.Ledger.Crypto    (PubKey (..), PubKeyHash (..), Signature (..), pubKeyHash)
+import           Plutus.V1.Ledger.Ada     (Ada)
+import qualified Plutus.V1.Ledger.Ada     as Ada
+import           Plutus.V1.Ledger.Address (Address (..), scriptHashAddress)
+import           Plutus.V1.Ledger.Bytes   (LedgerBytes (..))
+import           Plutus.V1.Ledger.Crypto  (PubKey (..), PubKeyHash (..), Signature (..), pubKeyHash)
 import           Plutus.V1.Ledger.Scripts
-import           Plutus.V1.Ledger.Slot      (SlotRange)
-import           Plutus.V1.Ledger.Tx        (TxOut (..), TxOutRef (..), TxOutType (..))
+import           Plutus.V1.Ledger.Slot    (SlotRange)
+import           Plutus.V1.Ledger.Tx      (TxOut (..), TxOutRef (..), TxOutType (..))
 import           Plutus.V1.Ledger.TxId
-import           Plutus.V1.Ledger.Value     (CurrencySymbol (..), Value)
-import qualified Plutus.V1.Ledger.Value     as Value
+import           Plutus.V1.Ledger.Value   (CurrencySymbol (..), Value)
+import qualified Plutus.V1.Ledger.Value   as Value
 
 {- Note [Script types in pending transactions]
 To validate a transaction, we have to evaluate the validation script of each of

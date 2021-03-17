@@ -4,20 +4,20 @@
 
 module Main where
 
-import qualified Language.PlutusCore                               as PLC
-import qualified Language.PlutusCore.Pretty                        as PP
+import qualified PlutusCore                               as PLC
+import qualified PlutusCore.Pretty                        as PP
 
 import           Criterion.Main
-import           Criterion.Types                                   (Config (..))
-import qualified Language.UntypedPlutusCore                        as UPLC
-import qualified Language.UntypedPlutusCore.Evaluation.Machine.Cek as UPLC
-import           Paths_plutus_benchmark                            (getDataFileName)
+import           Criterion.Types                          (Config (..))
+import           Paths_plutus_benchmark                   (getDataFileName)
+import qualified UntypedPlutusCore                        as UPLC
+import qualified UntypedPlutusCore.Evaluation.Machine.Cek as UPLC
 
 import           Control.Monad
-import           Control.Monad.Trans.Except                        (runExceptT)
-import qualified Data.ByteString.Lazy                              as BSL
+import           Control.Monad.Trans.Except               (runExceptT)
+import qualified Data.ByteString.Lazy                     as BSL
 import           System.FilePath
-import           Text.Printf                                       (printf)
+import           Text.Printf                              (printf)
 
 {-- | This set of benchmarks is based on validations occurring in the tests in
   plutus-use-cases.  Those tests are run on the blockchain simulator, and a

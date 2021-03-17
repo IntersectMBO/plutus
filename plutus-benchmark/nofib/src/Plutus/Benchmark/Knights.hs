@@ -8,12 +8,12 @@ import           Plutus.Benchmark.Knights.ChessSetList
 import           Plutus.Benchmark.Knights.KnightHeuristic
 import           Plutus.Benchmark.Knights.Queue
 
-import           Language.PlutusCore.Builtins
-import qualified Language.PlutusCore.Pretty               as PLC
-import           Language.PlutusCore.Universe
-import qualified Language.PlutusTx                        as Tx
-import           Language.PlutusTx.Prelude                as Tx
-import           Language.UntypedPlutusCore
+import           PlutusCore.Builtins
+import qualified PlutusCore.Pretty                        as PLC
+import           PlutusCore.Universe
+import qualified PlutusTx                                 as Tx
+import           PlutusTx.Prelude                         as Tx
+import           UntypedPlutusCore
 
 {-# INLINABLE zipConst #-}
 zipConst :: a -> [b] -> [(a,b)]

@@ -11,30 +11,30 @@
 
 module Plutus.PAB.Types where
 
-import           Cardano.BM.Data.Tracer.Extras  (StructuredLog (..))
-import qualified Cardano.ChainIndex.Types       as ChainIndex
-import qualified Cardano.Metadata.Types         as Metadata
-import           Cardano.Node.Types             (MockServerConfig (..))
-import qualified Cardano.Wallet.Types           as Wallet
-import           Control.Lens.TH                (makePrisms)
-import           Data.Aeson                     (FromJSON, ToJSON (..))
-import qualified Data.HashMap.Strict            as HM
-import           Data.Map.Strict                (Map)
-import qualified Data.Map.Strict                as Map
-import           Data.Text                      (Text)
-import           Data.Text.Prettyprint.Doc      (Pretty, pretty, viaShow, (<+>))
-import           Data.Time.Units                (Second)
-import           Data.UUID                      (UUID)
-import qualified Data.UUID.Extras               as UUID
-import           GHC.Generics                   (Generic)
-import           Language.Plutus.Contract.Trace (EndpointError (..))
-import           Language.Plutus.Contract.Types (ContractError)
-import           Ledger                         (Block, Blockchain, Tx, TxId, txId)
-import           Ledger.Index                   as UtxoIndex
-import           Plutus.PAB.Events              (ContractInstanceId)
-import           Plutus.PAB.Instances           ()
-import           Servant.Client                 (BaseUrl, ClientError)
-import           Wallet.API                     (WalletAPIError)
+import           Cardano.BM.Data.Tracer.Extras (StructuredLog (..))
+import qualified Cardano.ChainIndex.Types      as ChainIndex
+import qualified Cardano.Metadata.Types        as Metadata
+import           Cardano.Node.Types            (MockServerConfig (..))
+import qualified Cardano.Wallet.Types          as Wallet
+import           Control.Lens.TH               (makePrisms)
+import           Data.Aeson                    (FromJSON, ToJSON (..))
+import qualified Data.HashMap.Strict           as HM
+import           Data.Map.Strict               (Map)
+import qualified Data.Map.Strict               as Map
+import           Data.Text                     (Text)
+import           Data.Text.Prettyprint.Doc     (Pretty, pretty, viaShow, (<+>))
+import           Data.Time.Units               (Second)
+import           Data.UUID                     (UUID)
+import qualified Data.UUID.Extras              as UUID
+import           GHC.Generics                  (Generic)
+import           Ledger                        (Block, Blockchain, Tx, TxId, txId)
+import           Ledger.Index                  as UtxoIndex
+import           Plutus.Contract.Trace         (EndpointError (..))
+import           Plutus.Contract.Types         (ContractError)
+import           Plutus.PAB.Events             (ContractInstanceId)
+import           Plutus.PAB.Instances          ()
+import           Servant.Client                (BaseUrl, ClientError)
+import           Wallet.API                    (WalletAPIError)
 
 newtype ContractExe =
     ContractExe

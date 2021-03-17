@@ -8,34 +8,34 @@ module Evaluation.Machines
     , test_tallying
     ) where
 
-import           Language.UntypedPlutusCore
-import           Language.UntypedPlutusCore.Evaluation.HOAS
-import           Language.UntypedPlutusCore.Evaluation.Machine.Cek as Cek
+import           UntypedPlutusCore
+import           UntypedPlutusCore.Evaluation.HOAS
+import           UntypedPlutusCore.Evaluation.Machine.Cek as Cek
 
-import qualified Language.PlutusCore                               as Plc
-import           Language.PlutusCore.Builtins
-import           Language.PlutusCore.Constant
-import           Language.PlutusCore.Evaluation.Machine.ExMemory
-import           Language.PlutusCore.Evaluation.Machine.Exception
-import           Language.PlutusCore.FsTree
-import           Language.PlutusCore.Generators.Interesting
-import           Language.PlutusCore.MkPlc
-import           Language.PlutusCore.Pretty
-import           Language.PlutusCore.Universe
+import qualified PlutusCore                               as Plc
+import           PlutusCore.Builtins
+import           PlutusCore.Constant
+import           PlutusCore.Evaluation.Machine.ExMemory
+import           PlutusCore.Evaluation.Machine.Exception
+import           PlutusCore.FsTree
+import           PlutusCore.Generators.Interesting
+import           PlutusCore.MkPlc
+import           PlutusCore.Pretty
+import           PlutusCore.Universe
 
-import           Language.PlutusCore.Examples.Builtins
-import           Language.PlutusCore.Examples.Everything           (examples)
-import qualified Language.PlutusCore.StdLib.Data.Nat               as Plc
-import           Language.PlutusCore.StdLib.Everything             (stdLib)
-import           Language.PlutusCore.StdLib.Meta
-import           Language.PlutusCore.StdLib.Meta.Data.Function     (etaExpand)
+import           PlutusCore.Examples.Builtins
+import           PlutusCore.Examples.Everything           (examples)
+import qualified PlutusCore.StdLib.Data.Nat               as Plc
+import           PlutusCore.StdLib.Everything             (stdLib)
+import           PlutusCore.StdLib.Meta
+import           PlutusCore.StdLib.Meta.Data.Function     (etaExpand)
 
 import           Common
 import           Data.String
 import           Data.Text.Prettyprint.Doc
 import           Data.Text.Prettyprint.Doc.Render.Text
 import           GHC.Ix
-import           Hedgehog                                          hiding (Size, Var, eval)
+import           Hedgehog                                 hiding (Size, Var, eval)
 import           Test.Tasty
 import           Test.Tasty.Hedgehog
 

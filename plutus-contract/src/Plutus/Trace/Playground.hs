@@ -40,7 +40,7 @@ import           Data.Map                                   (Map)
 import qualified Data.Map                                   as Map
 import           Data.Maybe                                 (fromMaybe)
 
-import           Language.Plutus.Contract                   (Contract (..), HasBlockchainActions)
+import           Plutus.Contract                            (Contract (..), HasBlockchainActions)
 import           Plutus.Trace.Effects.ContractInstanceId    (ContractInstanceIdEff, handleDeterministicIds)
 import           Plutus.Trace.Effects.EmulatedWalletAPI     (EmulatedWalletAPI, handleEmulatedWalletAPI)
 import qualified Plutus.Trace.Effects.EmulatedWalletAPI     as EmulatedWalletAPI

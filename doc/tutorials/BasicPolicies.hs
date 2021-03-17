@@ -4,11 +4,11 @@
 {-# LANGUAGE TemplateHaskell     #-}
 module BasicPolicies where
 
-import qualified Language.PlutusCore.Builtins as PLC
-import qualified Language.PlutusCore.Universe as PLC
-import           Language.PlutusTx
-import           Language.PlutusTx.Lift
-import           Language.PlutusTx.Prelude
+import qualified PlutusCore.Builtins  as PLC
+import qualified PlutusCore.Universe  as PLC
+import           PlutusTx
+import           PlutusTx.Lift
+import           PlutusTx.Prelude
 
 import           Ledger
 import           Ledger.Ada

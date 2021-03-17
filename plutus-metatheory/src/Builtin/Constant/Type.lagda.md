@@ -46,7 +46,7 @@ data TyCon : Set where
   bool       : TyCon
 
 {-# FOREIGN GHC {-# LANGUAGE GADTs, PatternSynonyms #-}                   #-}
-{-# FOREIGN GHC import Language.PlutusCore                                #-}
+{-# FOREIGN GHC import PlutusCore                                #-}
 {-# FOREIGN GHC type TypeBuiltin = Some (TypeIn DefaultUni)               #-}
 {-# FOREIGN GHC pattern TyInteger    = Some (TypeIn DefaultUniInteger)    #-}
 {-# FOREIGN GHC pattern TyByteString = Some (TypeIn DefaultUniByteString) #-}

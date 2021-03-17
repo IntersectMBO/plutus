@@ -34,9 +34,9 @@ The ``SplitData`` type has instances for a number of typeclasses.
 These instances enable the serialisation of ``SplitData`` to different formats.
 ``ToJSON`` and ``FromJSON`` are needed for JSON serialization.
 JSON objects are passed between the frontend (for example, the Playground) and the app instance.
-:hsobj:`Language.PlutusTx.IsData` is used for values that are attached to transactions, for example as the <redeemer> of a script output.
+:hsobj:`PlutusTx.IsData` is used for values that are attached to transactions, for example as the <redeemer> of a script output.
 This class is used by the Plutus app at runtime to construct ``Data`` values.
-Finally, :hsobj:`Language.PlutusTx.makeLift` is a Template Haskell statement that generates an instance of the :hsobj:`Language.PlutusTx.Lift.Class.Lift` class for ``SplitData``.
+Finally, :hsobj:`PlutusTx.makeLift` is a Template Haskell statement that generates an instance of the :hsobj:`PlutusTx.Lift.Class.Lift` class for ``SplitData``.
 This class is used by the Plutus compiler at compile-time to construct Plutus core programs.
 
 Defining the validator script
@@ -98,7 +98,7 @@ You are going to convert the wallet values to their corresponding public key has
 That way, the user can simply identify the recipient by a number and doesn't have to enter a public key into a text box.
 This type of conversion from a nickname to a unique identifier is a common task for Plutus apps.
 
-To use the ``lock`` endpoint in our app, you call the :hsobj:`Language.Plutus.Contract.Effects.ExposeEndpoint.endpoint` function:
+To use the ``lock`` endpoint in our app, you call the :hsobj:`Plutus.Contract.Effects.ExposeEndpoint.endpoint` function:
 
 .. literalinclude:: BasicApps.hs
    :start-after: BLOCK5

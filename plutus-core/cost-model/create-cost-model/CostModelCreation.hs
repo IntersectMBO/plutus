@@ -7,27 +7,27 @@
 
 module CostModelCreation where
 
-import           Language.PlutusCore.Evaluation.Machine.ExBudgeting
-import           Language.PlutusCore.Evaluation.Machine.ExMemory
+import           PlutusCore.Evaluation.Machine.ExBudgeting
+import           PlutusCore.Evaluation.Machine.ExMemory
 
 import           Barbies
 import           Control.Applicative
-import           Control.Exception                                  (TypeError (..))
+import           Control.Exception                         (TypeError (..))
 import           Control.Monad.Catch
-import qualified Data.ByteString.Hash                               as PlutusHash
-import qualified Data.ByteString.Lazy                               as BSL
+import qualified Data.ByteString.Hash                      as PlutusHash
+import qualified Data.ByteString.Lazy                      as BSL
 import           Data.Coerce
 import           Data.Csv
 import           Data.Default
 import           Data.Either.Extra
 import           Data.Functor.Compose
-import           Data.Text                                          as T
-import qualified Data.Text.Encoding                                 as T
+import           Data.Text                                 as T
+import qualified Data.Text.Encoding                        as T
 import           Data.Vector
 import           GHC.Generics
 
 import           Foreign.R
-import           H.Prelude                                          (MonadR, Region, r)
+import           H.Prelude                                 (MonadR, Region, r)
 import           Language.R
 
 {- See Note [Creation of the Cost Model]

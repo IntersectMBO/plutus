@@ -55,34 +55,34 @@ module Plutus.Trace.Emulator.Types(
 import           Control.Lens
 import           Control.Monad.Freer.Coroutine
 import           Control.Monad.Freer.Error
-import           Control.Monad.Freer.Extras.Log     (LogMessage, LogMsg, LogObserve)
-import           Control.Monad.Freer.Reader         (Reader)
-import           Data.Aeson                         (FromJSON, ToJSON)
-import qualified Data.Aeson                         as JSON
-import           Data.Map                           (Map)
-import qualified Data.Row.Internal                  as V
-import           Data.Sequence                      (Seq)
-import           Data.String                        (IsString (..))
-import           Data.Text                          (Text)
-import qualified Data.Text                          as T
-import           Data.Text.Prettyprint.Doc          (Pretty (..), braces, colon, fillSep, hang, parens, viaShow, vsep,
-                                                     (<+>))
-import           GHC.Generics                       (Generic)
-import           Language.Plutus.Contract           (Contract (..))
-import           Language.Plutus.Contract.Resumable (Request (..), Requests (..), Response (..))
-import qualified Language.Plutus.Contract.Resumable as State
-import           Language.Plutus.Contract.Schema    (Event, Handlers, Input, Output)
-import           Language.Plutus.Contract.Types     (ResumableResult (..), SuspendedContract (..))
-import qualified Language.Plutus.Contract.Types     as Contract.Types
-import           Ledger.Slot                        (Slot (..))
-import           Ledger.Tx                          (Tx)
-import           Plutus.Trace.Scheduler             (AgentSystemCall, ThreadId)
-import qualified Wallet.API                         as WAPI
-import qualified Wallet.Effects                     as Wallet
-import           Wallet.Emulator.LogMessages        (RequestHandlerLogMsg, TxBalanceMsg)
-import           Wallet.Emulator.Wallet             (Wallet (..))
-import           Wallet.Types                       (ContractInstanceId, EndpointDescription, Notification (..),
-                                                     NotificationError)
+import           Control.Monad.Freer.Extras.Log (LogMessage, LogMsg, LogObserve)
+import           Control.Monad.Freer.Reader     (Reader)
+import           Data.Aeson                     (FromJSON, ToJSON)
+import qualified Data.Aeson                     as JSON
+import           Data.Map                       (Map)
+import qualified Data.Row.Internal              as V
+import           Data.Sequence                  (Seq)
+import           Data.String                    (IsString (..))
+import           Data.Text                      (Text)
+import qualified Data.Text                      as T
+import           Data.Text.Prettyprint.Doc      (Pretty (..), braces, colon, fillSep, hang, parens, viaShow, vsep,
+                                                 (<+>))
+import           GHC.Generics                   (Generic)
+import           Ledger.Slot                    (Slot (..))
+import           Ledger.Tx                      (Tx)
+import           Plutus.Contract                (Contract (..))
+import           Plutus.Contract.Resumable      (Request (..), Requests (..), Response (..))
+import qualified Plutus.Contract.Resumable      as State
+import           Plutus.Contract.Schema         (Event, Handlers, Input, Output)
+import           Plutus.Contract.Types          (ResumableResult (..), SuspendedContract (..))
+import qualified Plutus.Contract.Types          as Contract.Types
+import           Plutus.Trace.Scheduler         (AgentSystemCall, ThreadId)
+import qualified Wallet.API                     as WAPI
+import qualified Wallet.Effects                 as Wallet
+import           Wallet.Emulator.LogMessages    (RequestHandlerLogMsg, TxBalanceMsg)
+import           Wallet.Emulator.Wallet         (Wallet (..))
+import           Wallet.Types                   (ContractInstanceId, EndpointDescription, Notification (..),
+                                                 NotificationError)
 
 type ContractConstraints s =
     ( V.Forall (Output s) V.Unconstrained1

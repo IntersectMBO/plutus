@@ -2,20 +2,20 @@
 {-# LANGUAGE TypeApplications #-}
 module Spec.Escrow(tests, redeemTrace, redeem2Trace, refundTrace) where
 
-import           Control.Monad                                   (void)
+import           Control.Monad           (void)
 
-import           Language.Plutus.Contract
-import           Language.Plutus.Contract.Test
-import           Ledger                                          (pubKeyHash)
-import qualified Ledger.Ada                                      as Ada
-import qualified Ledger.Typed.Scripts                            as Scripts
-import qualified Spec.Lib                                        as Lib
+import           Ledger                  (pubKeyHash)
+import qualified Ledger.Ada              as Ada
+import qualified Ledger.Typed.Scripts    as Scripts
+import           Plutus.Contract
+import           Plutus.Contract.Test
+import qualified Spec.Lib                as Lib
 
-import           Language.PlutusTx.Coordination.Contracts.Escrow
-import qualified Plutus.Trace.Emulator                           as Trace
+import           Plutus.Contracts.Escrow
+import qualified Plutus.Trace.Emulator   as Trace
 
 import           Test.Tasty
-import qualified Test.Tasty.HUnit                                as HUnit
+import qualified Test.Tasty.HUnit        as HUnit
 
 tests :: TestTree
 tests = testGroup "escrow"

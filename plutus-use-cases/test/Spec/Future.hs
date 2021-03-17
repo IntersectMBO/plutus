@@ -11,28 +11,28 @@
 {-# OPTIONS_GHC -fno-warn-incomplete-uni-patterns #-}
 module Spec.Future(tests, theFuture, increaseMarginTrace, settleEarlyTrace, payOutTrace) where
 
-import           Control.Monad                                   (void)
+import           Control.Monad           (void)
 import           Test.Tasty
-import qualified Test.Tasty.HUnit                                as HUnit
+import qualified Test.Tasty.HUnit        as HUnit
 
-import qualified Spec.Lib                                        as Lib
-import           Spec.TokenAccount                               (assertAccountBalance)
+import qualified Spec.Lib                as Lib
+import           Spec.TokenAccount       (assertAccountBalance)
 
 import qualified Ledger
-import qualified Ledger.Ada                                      as Ada
-import           Ledger.Crypto                                   (PrivateKey, PubKey (..))
-import           Ledger.Oracle                                   (Observation (..), SignedMessage)
-import qualified Ledger.Oracle                                   as Oracle
-import           Ledger.Slot                                     (Slot)
-import           Ledger.Value                                    (Value, scale)
+import qualified Ledger.Ada              as Ada
+import           Ledger.Crypto           (PrivateKey, PubKey (..))
+import           Ledger.Oracle           (Observation (..), SignedMessage)
+import qualified Ledger.Oracle           as Oracle
+import           Ledger.Slot             (Slot)
+import           Ledger.Value            (Value, scale)
 
-import           Language.Plutus.Contract.Test
-import qualified Language.PlutusTx                               as PlutusTx
-import           Language.PlutusTx.Coordination.Contracts.Future (Future (..), FutureAccounts (..), FutureError,
-                                                                  FutureSchema, FutureSetup (..), Role (..))
-import qualified Language.PlutusTx.Coordination.Contracts.Future as F
-import           Plutus.Trace.Emulator                           (ContractHandle, EmulatorTrace)
-import qualified Plutus.Trace.Emulator                           as Trace
+import           Plutus.Contract.Test
+import           Plutus.Contracts.Future (Future (..), FutureAccounts (..), FutureError, FutureSchema, FutureSetup (..),
+                                          Role (..))
+import qualified Plutus.Contracts.Future as F
+import           Plutus.Trace.Emulator   (ContractHandle, EmulatorTrace)
+import qualified Plutus.Trace.Emulator   as Trace
+import qualified PlutusTx                as PlutusTx
 
 tests :: TestTree
 tests =

@@ -1,15 +1,15 @@
 {-# LANGUAGE TypeApplications #-}
 module Main(main) where
 
-import qualified Codec.CBOR.FlatTerm    as FlatTerm
-import           Codec.Serialise        (deserialiseOrFail, serialise)
-import qualified Codec.Serialise        as Serialise
-import           Hedgehog               (MonadGen, Property, annotateShow, assert, forAll, property)
-import qualified Hedgehog.Gen           as Gen
-import qualified Hedgehog.Range         as Range
-import           Language.PlutusTx.Data (Data (..))
+import qualified Codec.CBOR.FlatTerm as FlatTerm
+import           Codec.Serialise     (deserialiseOrFail, serialise)
+import qualified Codec.Serialise     as Serialise
+import           Hedgehog            (MonadGen, Property, annotateShow, assert, forAll, property)
+import qualified Hedgehog.Gen        as Gen
+import qualified Hedgehog.Range      as Range
+import           PlutusTx.Data       (Data (..))
 import           Test.Tasty
-import           Test.Tasty.Hedgehog    (testProperty)
+import           Test.Tasty.Hedgehog (testProperty)
 
 main :: IO ()
 main = defaultMain tests

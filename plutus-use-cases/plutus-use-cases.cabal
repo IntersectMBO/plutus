@@ -25,31 +25,31 @@ flag defer-plugin-errors
 
 library
     exposed-modules:
-        Language.PlutusTx.Coordination.Contracts
-        Language.PlutusTx.Coordination.Contracts.Auction
-        Language.PlutusTx.Coordination.Contracts.TokenAccount
-        Language.PlutusTx.Coordination.Contracts.Crowdfunding
-        Language.PlutusTx.Coordination.Contracts.Currency
-        Language.PlutusTx.Coordination.Contracts.Escrow
-        Language.PlutusTx.Coordination.Contracts.Future
-        Language.PlutusTx.Coordination.Contracts.Game
-        Language.PlutusTx.Coordination.Contracts.GameStateMachine
-        Language.PlutusTx.Coordination.Contracts.ErrorHandling
-        Language.PlutusTx.Coordination.Contracts.MultiSig
-        Language.PlutusTx.Coordination.Contracts.MultiSigStateMachine
-        Language.PlutusTx.Coordination.Contracts.PingPong
-        Language.PlutusTx.Coordination.Contracts.Prism
-        Language.PlutusTx.Coordination.Contracts.Prism.Credential
-        Language.PlutusTx.Coordination.Contracts.Prism.CredentialManager
-        Language.PlutusTx.Coordination.Contracts.Prism.STO
-        Language.PlutusTx.Coordination.Contracts.Prism.Mirror
-        Language.PlutusTx.Coordination.Contracts.Prism.StateMachine
-        Language.PlutusTx.Coordination.Contracts.Prism.Unlock
-        Language.PlutusTx.Coordination.Contracts.PubKey
-        Language.PlutusTx.Coordination.Contracts.RPC
-        Language.PlutusTx.Coordination.Contracts.Stablecoin
-        Language.PlutusTx.Coordination.Contracts.Swap
-        Language.PlutusTx.Coordination.Contracts.Vesting
+        Plutus.Contracts
+        Plutus.Contracts.Auction
+        Plutus.Contracts.TokenAccount
+        Plutus.Contracts.Crowdfunding
+        Plutus.Contracts.Currency
+        Plutus.Contracts.Escrow
+        Plutus.Contracts.Future
+        Plutus.Contracts.Game
+        Plutus.Contracts.GameStateMachine
+        Plutus.Contracts.ErrorHandling
+        Plutus.Contracts.MultiSig
+        Plutus.Contracts.MultiSigStateMachine
+        Plutus.Contracts.PingPong
+        Plutus.Contracts.Prism
+        Plutus.Contracts.Prism.Credential
+        Plutus.Contracts.Prism.CredentialManager
+        Plutus.Contracts.Prism.STO
+        Plutus.Contracts.Prism.Mirror
+        Plutus.Contracts.Prism.StateMachine
+        Plutus.Contracts.Prism.Unlock
+        Plutus.Contracts.PubKey
+        Plutus.Contracts.RPC
+        Plutus.Contracts.Stablecoin
+        Plutus.Contracts.Swap
+        Plutus.Contracts.Vesting
     hs-source-dirs: src
     default-language: Haskell2010
     default-extensions: ExplicitForAll ScopedTypeVariables
@@ -85,7 +85,7 @@ library
         build-depends: plutus-tx-plugin -any
 
     if flag(defer-plugin-errors)
-        ghc-options: -fplugin-opt Language.PlutusTx.Plugin:defer-errors
+        ghc-options: -fplugin-opt PlutusTx.Plugin:defer-errors
 
 test-suite plutus-use-cases-test
     type: exitcode-stdio-1.0

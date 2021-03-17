@@ -6,48 +6,48 @@
 module Main(main) where
 
 import           Control.Lens
-import           Control.Monad                (forM_, guard, void)
-import           Control.Monad.Trans.Except   (runExcept)
-import qualified Data.Aeson                   as JSON
-import qualified Data.Aeson.Extras            as JSON
-import qualified Data.Aeson.Internal          as Aeson
-import qualified Data.ByteString              as BSS
-import qualified Data.ByteString.Lazy         as BSL
-import           Data.Either                  (isLeft, isRight)
-import           Data.Foldable                (fold, foldl', traverse_)
-import           Data.List                    (sort)
-import qualified Data.Map                     as Map
-import           Data.Monoid                  (Sum (..))
-import qualified Data.Set                     as Set
-import           Data.String                  (IsString (fromString))
-import           Hedgehog                     (Property, forAll, property)
+import           Control.Monad               (forM_, guard, void)
+import           Control.Monad.Trans.Except  (runExcept)
+import qualified Data.Aeson                  as JSON
+import qualified Data.Aeson.Extras           as JSON
+import qualified Data.Aeson.Internal         as Aeson
+import qualified Data.ByteString             as BSS
+import qualified Data.ByteString.Lazy        as BSL
+import           Data.Either                 (isLeft, isRight)
+import           Data.Foldable               (fold, foldl', traverse_)
+import           Data.List                   (sort)
+import qualified Data.Map                    as Map
+import           Data.Monoid                 (Sum (..))
+import qualified Data.Set                    as Set
+import           Data.String                 (IsString (fromString))
+import           Hedgehog                    (Property, forAll, property)
 import qualified Hedgehog
-import qualified Hedgehog.Gen                 as Gen
-import qualified Hedgehog.Range               as Range
-import qualified Language.PlutusCore.Builtins as PLC
-import qualified Language.PlutusCore.Universe as PLC
-import           Language.PlutusTx            (CompiledCode, applyCode, liftCode)
-import qualified Language.PlutusTx            as PlutusTx
-import qualified Language.PlutusTx.AssocMap   as AMap
-import qualified Language.PlutusTx.AssocMap   as AssocMap
-import qualified Language.PlutusTx.Builtins   as Builtins
-import qualified Language.PlutusTx.Prelude    as PlutusTx
+import qualified Hedgehog.Gen                as Gen
+import qualified Hedgehog.Range              as Range
 import           Ledger
-import qualified Ledger.Ada                   as Ada
-import           Ledger.Bytes                 as Bytes
-import qualified Ledger.Constraints.OffChain  as OC
-import qualified Ledger.Contexts              as Validation
-import qualified Ledger.Crypto                as Crypto
-import qualified Ledger.Generators            as Gen
-import qualified Ledger.Index                 as Index
-import qualified Ledger.Interval              as Interval
-import qualified Ledger.Scripts               as Scripts
-import           Ledger.Value                 (CurrencySymbol, Value (Value))
-import qualified Ledger.Value                 as Value
+import qualified Ledger.Ada                  as Ada
+import           Ledger.Bytes                as Bytes
+import qualified Ledger.Constraints.OffChain as OC
+import qualified Ledger.Contexts             as Validation
+import qualified Ledger.Crypto               as Crypto
+import qualified Ledger.Generators           as Gen
+import qualified Ledger.Index                as Index
+import qualified Ledger.Interval             as Interval
+import qualified Ledger.Scripts              as Scripts
+import           Ledger.Value                (CurrencySymbol, Value (Value))
+import qualified Ledger.Value                as Value
+import qualified PlutusCore.Builtins         as PLC
+import qualified PlutusCore.Universe         as PLC
+import           PlutusTx                    (CompiledCode, applyCode, liftCode)
+import qualified PlutusTx                    as PlutusTx
+import qualified PlutusTx.AssocMap           as AMap
+import qualified PlutusTx.AssocMap           as AssocMap
+import qualified PlutusTx.Builtins           as Builtins
+import qualified PlutusTx.Prelude            as PlutusTx
 import           Test.Tasty
-import           Test.Tasty.HUnit             (testCase)
-import qualified Test.Tasty.HUnit             as HUnit
-import           Test.Tasty.Hedgehog          (testProperty)
+import           Test.Tasty.HUnit            (testCase)
+import qualified Test.Tasty.HUnit            as HUnit
+import           Test.Tasty.Hedgehog         (testProperty)
 
 main :: IO ()
 main = defaultMain tests

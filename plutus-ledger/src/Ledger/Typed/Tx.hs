@@ -33,7 +33,7 @@ import           Plutus.V1.Ledger.Tx
 import           Plutus.V1.Ledger.TxId
 import qualified Plutus.V1.Ledger.Value    as Value
 
-import           Language.PlutusTx
+import           PlutusTx
 
 import           Data.Aeson                (FromJSON (..), ToJSON (..), Value (Object), object, (.:), (.=))
 import           Data.Aeson.Types          (typeMismatch)

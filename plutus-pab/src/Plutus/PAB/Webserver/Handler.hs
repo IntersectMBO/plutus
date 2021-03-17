@@ -20,42 +20,42 @@ module Plutus.PAB.Webserver.Handler
     , contractSchema
     ) where
 
-import           Cardano.Metadata.Types                          (MetadataEffect, QueryResult, Subject,
-                                                                  SubjectProperties (SubjectProperties), batchQuery)
-import qualified Cardano.Metadata.Types                          as Metadata
-import           Control.Monad.Freer                             (Eff, Member)
-import           Control.Monad.Freer.Error                       (Error, throwError)
-import           Control.Monad.Freer.Extras.Log                  (LogMsg, logInfo)
-import qualified Data.Aeson                                      as JSON
-import           Data.Map                                        (Map)
-import qualified Data.Map                                        as Map
-import qualified Data.Set                                        as Set
-import           Data.Text                                       (Text)
-import           Data.Text.Prettyprint.Doc                       (Pretty (..), defaultLayoutOptions, layoutPretty)
-import           Data.Text.Prettyprint.Doc.Render.Text           (renderStrict)
-import qualified Data.UUID                                       as UUID
-import           Eventful                                        (streamEventEvent)
-import           Language.Plutus.Contract.Effects.ExposeEndpoint (EndpointDescription (EndpointDescription))
-import           Ledger                                          (pubKeyHash)
-import           Ledger.Blockchain                               (Blockchain)
-import           Plutus.PAB.Core                                 (runGlobalQuery)
-import qualified Plutus.PAB.Core                                 as Core
-import qualified Plutus.PAB.Core.ContractInstance                as Instance
-import           Plutus.PAB.Effects.Contract                     (ContractEffect, exportSchema)
-import           Plutus.PAB.Effects.EventLog                     (EventLogEffect)
-import           Plutus.PAB.Effects.UUID                         (UUIDEffect)
-import           Plutus.PAB.Events                               (ChainEvent, ContractInstanceId (ContractInstanceId),
-                                                                  ContractInstanceState (ContractInstanceState),
-                                                                  csContractDefinition)
-import qualified Plutus.PAB.Monitoring.PABLogMsg                 as LM
-import           Plutus.PAB.ParseStringifiedJSON                 (UnStringifyJSONLog, parseStringifiedJSON)
-import qualified Plutus.PAB.Query                                as Query
+import           Cardano.Metadata.Types                 (MetadataEffect, QueryResult, Subject,
+                                                         SubjectProperties (SubjectProperties), batchQuery)
+import qualified Cardano.Metadata.Types                 as Metadata
+import           Control.Monad.Freer                    (Eff, Member)
+import           Control.Monad.Freer.Error              (Error, throwError)
+import           Control.Monad.Freer.Extras.Log         (LogMsg, logInfo)
+import qualified Data.Aeson                             as JSON
+import           Data.Map                               (Map)
+import qualified Data.Map                               as Map
+import qualified Data.Set                               as Set
+import           Data.Text                              (Text)
+import           Data.Text.Prettyprint.Doc              (Pretty (..), defaultLayoutOptions, layoutPretty)
+import           Data.Text.Prettyprint.Doc.Render.Text  (renderStrict)
+import qualified Data.UUID                              as UUID
+import           Eventful                               (streamEventEvent)
+import           Ledger                                 (pubKeyHash)
+import           Ledger.Blockchain                      (Blockchain)
+import           Plutus.Contract.Effects.ExposeEndpoint (EndpointDescription (EndpointDescription))
+import           Plutus.PAB.Core                        (runGlobalQuery)
+import qualified Plutus.PAB.Core                        as Core
+import qualified Plutus.PAB.Core.ContractInstance       as Instance
+import           Plutus.PAB.Effects.Contract            (ContractEffect, exportSchema)
+import           Plutus.PAB.Effects.EventLog            (EventLogEffect)
+import           Plutus.PAB.Effects.UUID                (UUIDEffect)
+import           Plutus.PAB.Events                      (ChainEvent, ContractInstanceId (ContractInstanceId),
+                                                         ContractInstanceState (ContractInstanceState),
+                                                         csContractDefinition)
+import qualified Plutus.PAB.Monitoring.PABLogMsg        as LM
+import           Plutus.PAB.ParseStringifiedJSON        (UnStringifyJSONLog, parseStringifiedJSON)
+import qualified Plutus.PAB.Query                       as Query
 import           Plutus.PAB.Types
 import           Plutus.PAB.Webserver.Types
-import           Servant                                         ((:<|>) ((:<|>)))
-import           Wallet.Effects                                  (ChainIndexEffect, confirmedBlocks)
-import           Wallet.Emulator.Wallet                          (Wallet (Wallet), walletPubKey)
-import qualified Wallet.Rollup                                   as Rollup
+import           Servant                                ((:<|>) ((:<|>)))
+import           Wallet.Effects                         (ChainIndexEffect, confirmedBlocks)
+import           Wallet.Emulator.Wallet                 (Wallet (Wallet), walletPubKey)
+import qualified Wallet.Rollup                          as Rollup
 
 healthcheck :: Monad m => m ()
 healthcheck = pure ()

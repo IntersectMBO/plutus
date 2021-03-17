@@ -23,7 +23,7 @@ import Data.Tuple.Nested ((/\))
 import Foreign (Foreign)
 import Foreign.Class (encode)
 import Foreign.Object as FO
-import Language.PlutusTx.AssocMap as AssocMap
+import PlutusTx.AssocMap as AssocMap
 import Plutus.V1.Ledger.Interval (Extended(..), Interval(..), LowerBound(..), UpperBound(..))
 import Plutus.V1.Ledger.Slot (Slot)
 import Plutus.V1.Ledger.Value (CurrencySymbol(..), Value(..))

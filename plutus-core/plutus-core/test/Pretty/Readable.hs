@@ -1,10 +1,10 @@
 module Pretty.Readable (test_Pretty) where
 
-import           Language.PlutusCore.FsTree              (foldPlcFolderContents)
-import           Language.PlutusCore.Pretty
+import           PlutusCore.FsTree              (foldPlcFolderContents)
+import           PlutusCore.Pretty
 
-import           Language.PlutusCore.Examples.Everything (examples)
-import           Language.PlutusCore.StdLib.Everything   (stdLib)
+import           PlutusCore.Examples.Everything (examples)
+import           PlutusCore.StdLib.Everything   (stdLib)
 
 import           Common
 

@@ -12,7 +12,7 @@ trying to work out what's going on wrt costing].
 ### Budgeting strategy
 
 The (untyped) CEK machine in
-`plutus-core/untyped-plutus-core/Language/UntypedPlutusCore/Evaluation/Machine/Cek.hs`
+`plutus-core/untyped-plutus-core/scrc/UntypedPlutusCore/Evaluation/Machine/Cek.hs`
 monitors execution costs by defining a type
 
 ``` data ExBudgetCategory fun =
@@ -25,7 +25,7 @@ monitors execution costs by defining a type
 
 with a constructor for each of the Plutus Core AST node types.  This implements
 the `SpendBudget` class from
-`Language.PlutusCore.Evaluation.Machine.ExBudgeting` which provides a
+`PlutusCore.Evaluation.Machine.ExBudgeting` which provides a
 `spendBudget` method which knows the CPU and memory costs of each operation. The
 machine can run in two modes: `Counting`, in which calling `spendBudget` adds
 the cost of the current operation to a cumulative total so that the overall cost
@@ -35,7 +35,7 @@ execution being terminated if the budget falls below zero.
 
 The `spendBudget` function is called in two places: (1) in `Cek.hs`, whenever
 `computeCek` is called, and (2) in the `applyTypeSchemed` function in
-`Language.PlutusCore.Constant.Apply`, which is called to execute a built-in
+`PlutusCore.Constant.Apply`, which is called to execute a built-in
 function once all of its arguments are available.
 
 
@@ -184,7 +184,7 @@ In `Counting` mode, `unsafeEvaluateCek` takes up 95.8% of the execution time,
 with the rest being accounted for by initialisation code, including setting up a
 tables of built-in function meanings.  `spendBudget` takes up a total of 11.25%
 + 53.45% = 64.7% of the execution time (there are two entries, one inside
-`Language.PlutusCore.Constant.Apply.applyTypeSchemed` (on the left) for costs of
+`PlutusCore.Constant.Apply.applyTypeSchemed` (on the left) for costs of
 builtin functions, and a more obvious one accounting for most of the right hand
 side of the graph).  This suggests that budgeting accounts for about 2/3 of the
 execution time, and this agrees well with the earlier table of benchmark results,
@@ -195,7 +195,7 @@ In the main occurrence of `spendBudget`, the cost is mostly accounted for by thr
 
   1. `Data.HashMap.Internal.Singleton`  (14.19% of total runtime)
   2. `Data.Profunctor.Unsafe.#.` (28.17%)
-  3. `Language.PlutusCore.Evaluation.Machine.ExBudgeting.<>` (5.0%)
+  3. `PlutusCore.Evaluation.Machine.ExBudgeting.<>` (5.0%)
 
 The instance of `spendBudget` in `Cek.hs` begins
 

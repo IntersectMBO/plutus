@@ -7,25 +7,25 @@
 {-# LANGUAGE TypeApplications    #-}
 {-# OPTIONS_GHC -fno-strictness  #-}
 {-# OPTIONS_GHC -fno-ignore-interface-pragmas #-}
-{-# OPTIONS -fplugin-opt Language.PlutusTx.Plugin:debug-context #-}
+{-# OPTIONS -fplugin-opt PlutusTx.Plugin:debug-context #-}
 module Spec.MultiSigStateMachine(tests, lockProposeSignPay) where
 
-import           Data.Foldable                                                 (traverse_)
-import           Test.Tasty                                                    (TestTree, testGroup)
-import qualified Test.Tasty.HUnit                                              as HUnit
+import           Data.Foldable                         (traverse_)
+import           Test.Tasty                            (TestTree, testGroup)
+import qualified Test.Tasty.HUnit                      as HUnit
 
-import           Spec.Lib                                                      as Lib
+import           Spec.Lib                              as Lib
 
 import qualified Ledger
-import qualified Ledger.Ada                                                    as Ada
-import qualified Ledger.Typed.Scripts                                          as Scripts
-import qualified Wallet.Emulator                                               as EM
+import qualified Ledger.Ada                            as Ada
+import qualified Ledger.Typed.Scripts                  as Scripts
+import qualified Wallet.Emulator                       as EM
 
-import           Language.Plutus.Contract.Test
-import qualified Language.PlutusTx                                             as PlutusTx
-import qualified Language.PlutusTx.Coordination.Contracts.MultiSigStateMachine as MS
-import           Plutus.Trace.Emulator                                         (EmulatorTrace)
-import qualified Plutus.Trace.Emulator                                         as Trace
+import           Plutus.Contract.Test
+import qualified Plutus.Contracts.MultiSigStateMachine as MS
+import           Plutus.Trace.Emulator                 (EmulatorTrace)
+import qualified Plutus.Trace.Emulator                 as Trace
+import qualified PlutusTx                              as PlutusTx
 
 tests :: TestTree
 tests =

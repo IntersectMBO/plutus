@@ -7,20 +7,20 @@ module Evaluation.DynamicBuiltins.MakeRead
     ( test_dynamicMakeRead
     ) where
 
-import           Language.PlutusCore
-import           Language.PlutusCore.Constant
-import           Language.PlutusCore.Evaluation.Machine.ExBudgetingDefaults
-import           Language.PlutusCore.Evaluation.Machine.Exception
-import           Language.PlutusCore.Evaluation.Result
-import           Language.PlutusCore.MkPlc                                  hiding (error)
-import           Language.PlutusCore.Pretty
-import           Language.PlutusCore.StdLib.Data.Unit
+import           PlutusCore
+import           PlutusCore.Constant
+import           PlutusCore.Evaluation.Machine.ExBudgetingDefaults
+import           PlutusCore.Evaluation.Machine.Exception
+import           PlutusCore.Evaluation.Result
+import           PlutusCore.MkPlc                                  hiding (error)
+import           PlutusCore.Pretty
+import           PlutusCore.StdLib.Data.Unit
 
 import           Evaluation.DynamicBuiltins.Common
 
-import           Hedgehog                                                   hiding (Size, Var)
-import qualified Hedgehog.Gen                                               as Gen
-import qualified Hedgehog.Range                                             as Range
+import           Hedgehog                                          hiding (Size, Var)
+import qualified Hedgehog.Gen                                      as Gen
+import qualified Hedgehog.Range                                    as Range
 import           Test.Tasty
 import           Test.Tasty.HUnit
 import           Test.Tasty.Hedgehog

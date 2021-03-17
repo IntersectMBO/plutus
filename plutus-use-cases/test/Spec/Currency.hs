@@ -2,18 +2,18 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Spec.Currency(tests, currencyTrace) where
 
-import           Control.Monad                                     (void)
-import           Language.Plutus.Contract
-import           Language.Plutus.Contract.Test
+import           Control.Monad             (void)
 import qualified Ledger
+import           Plutus.Contract
+import           Plutus.Contract.Test
 
-import           Language.PlutusTx.Coordination.Contracts.Currency (Currency)
-import qualified Language.PlutusTx.Coordination.Contracts.Currency as Cur
-import qualified Plutus.Trace.Emulator                             as Trace
+import           Plutus.Contracts.Currency (Currency)
+import qualified Plutus.Contracts.Currency as Cur
+import qualified Plutus.Trace.Emulator     as Trace
 
 import           Test.Tasty
 
--- | Runs 'Language.PlutusTx.Coordination.Contracts.Currency.forgeContract' for
+-- | Runs 'Plutus.Contracts.Currency.forgeContract' for
 --   a sample currency.
 currencyTrace :: Trace.EmulatorTrace ()
 currencyTrace = do

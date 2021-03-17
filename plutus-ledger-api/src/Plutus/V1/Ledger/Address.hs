@@ -21,8 +21,8 @@ import           Data.Aeson                (FromJSON, FromJSONKey (..), ToJSON, 
 import           Data.Hashable             (Hashable)
 import           Data.Text.Prettyprint.Doc
 import           GHC.Generics              (Generic)
-import qualified Language.PlutusTx         as PlutusTx
-import qualified Language.PlutusTx.Eq      as PlutusTx
+import qualified PlutusTx                  as PlutusTx
+import qualified PlutusTx.Eq               as PlutusTx
 
 import           Plutus.V1.Ledger.Crypto
 import           Plutus.V1.Ledger.Orphans  ()

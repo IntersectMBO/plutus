@@ -30,10 +30,10 @@ import qualified Data.Text                        as Text
 import           Data.Text.Prettyprint.Doc.Extras (Pretty, PrettyShow (..))
 import           Data.Word                        (Word8)
 import           GHC.Generics                     (Generic)
-import qualified Language.PlutusTx                as PlutusTx
-import qualified Language.PlutusTx.Builtins       as Builtins
-import           Language.PlutusTx.Lift
-import qualified Language.PlutusTx.Prelude        as P
+import qualified PlutusTx                         as PlutusTx
+import qualified PlutusTx.Builtins                as Builtins
+import           PlutusTx.Lift
+import qualified PlutusTx.Prelude                 as P
 
 fromHex :: BS.ByteString -> Either String LedgerBytes
 fromHex = fmap LedgerBytes . asBSLiteral

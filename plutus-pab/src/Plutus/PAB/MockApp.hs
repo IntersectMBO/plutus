@@ -52,10 +52,10 @@ import           Data.Text                             (Text)
 import qualified Data.Text                             as Text
 import           Data.Text.Prettyprint.Doc
 import           Data.Text.Prettyprint.Doc.Render.Text (renderStrict)
-import qualified Language.Plutus.Contract.Trace        as Trace
 import           Ledger                                (Address, Blockchain, Slot)
 import qualified Ledger
 import qualified Ledger.AddressMap                     as AM
+import qualified Plutus.Contract.Trace                 as Trace
 import           Plutus.PAB.Command                    ()
 import           Plutus.PAB.Core
 import           Plutus.PAB.Core.ContractInstance      (defaultMaxIterations)

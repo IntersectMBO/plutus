@@ -23,7 +23,7 @@ import           GHC.Generics
 import           Plutus.Benchmark.Knights.Sort
 import           Plutus.Benchmark.Knights.Utils
 
-import           Language.PlutusTx.Prelude      as Tx hiding (init)
+import           PlutusTx.Prelude               as Tx hiding (init)
 
 
 type Tile     = (Integer,Integer)

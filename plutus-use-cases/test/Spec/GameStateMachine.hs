@@ -7,21 +7,21 @@
 module Spec.GameStateMachine(tests, successTrace, successTrace2, failTrace) where
 
 import           Test.Tasty
-import qualified Test.Tasty.HUnit                                          as HUnit
+import qualified Test.Tasty.HUnit                  as HUnit
 
-import qualified Spec.Lib                                                  as Lib
+import qualified Spec.Lib                          as Lib
 
-import qualified Language.PlutusTx                                         as PlutusTx
+import qualified PlutusTx                          as PlutusTx
 
-import           Control.Monad                                             (void)
-import           Language.Plutus.Contract.Test
-import           Language.PlutusTx.Coordination.Contracts.GameStateMachine as G
-import qualified Ledger.Ada                                                as Ada
-import qualified Ledger.Typed.Scripts                                      as Scripts
-import           Ledger.Value                                              (Value)
-import           Plutus.Trace.Emulator                                     (EmulatorTrace)
-import qualified Plutus.Trace.Emulator                                     as Trace
-import qualified Wallet.Emulator                                           as EM
+import           Control.Monad                     (void)
+import qualified Ledger.Ada                        as Ada
+import qualified Ledger.Typed.Scripts              as Scripts
+import           Ledger.Value                      (Value)
+import           Plutus.Contract.Test
+import           Plutus.Contracts.GameStateMachine as G
+import           Plutus.Trace.Emulator             (EmulatorTrace)
+import qualified Plutus.Trace.Emulator             as Trace
+import qualified Wallet.Emulator                   as EM
 
 tests :: TestTree
 tests =

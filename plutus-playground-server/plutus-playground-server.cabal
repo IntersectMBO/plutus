@@ -149,7 +149,7 @@ library plutus-playground-usecases
         build-depends: plutus-tx-plugin -any
 
     if flag(defer-plugin-errors)
-        ghc-options: -fplugin-opt Language.PlutusTx.Plugin:defer-errors
+        ghc-options: -fplugin-opt PlutusTx.Plugin:defer-errors
 
 executable plutus-playground-server
     main-is: Main.hs

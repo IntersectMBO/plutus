@@ -31,7 +31,7 @@ import Data.Tuple.Nested ((/\))
 import Halogen.HTML (ClassName(..), HTML, IProp, br_, div, div_, h2_, hr_, li_, p_, small_, span_, strong_, table, tbody_, td, text, th, th_, thead_, tr, tr_, ul_)
 import Halogen.HTML.Events (onClick)
 import Halogen.HTML.Properties (class_, classes, colSpan, rowSpan)
-import Language.PlutusTx.AssocMap as AssocMap
+import PlutusTx.AssocMap as AssocMap
 import Plutus.V1.Ledger.Crypto (PubKey(..), PubKeyHash(..))
 import Ledger.Extra (humaniseInterval)
 import Plutus.V1.Ledger.Tx (TxOut(..))

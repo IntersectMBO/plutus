@@ -12,19 +12,19 @@ import           PlcTestUtils
 
 import           Language.Haskell.TH
 
-import qualified Language.PlutusTx.Builtins          as Builtins
-import           Language.PlutusTx.Code
-import           Language.PlutusTx.Evaluation
-import           Language.PlutusTx.TH
+import qualified PlutusTx.Builtins          as Builtins
+import           PlutusTx.Code
+import           PlutusTx.Evaluation
+import           PlutusTx.TH
 
-import qualified Language.PlutusCore                 as PLC
-import           Language.PlutusCore.Pretty          (PrettyConst)
-import qualified Language.PlutusCore.Universe        as PLC
-import qualified Language.UntypedPlutusCore          as UPLC
-import qualified Language.UntypedPlutusCore.DeBruijn as UPLC
+import qualified PlutusCore                 as PLC
+import           PlutusCore.Pretty          (PrettyConst)
+import qualified PlutusCore.Universe        as PLC
+import qualified UntypedPlutusCore          as UPLC
+import qualified UntypedPlutusCore.DeBruijn as UPLC
 
 import           Data.Text.Prettyprint.Doc
-import           Flat                                (Flat)
+import           Flat                       (Flat)
 
 instance (PLC.Closed uni, uni `PLC.Everywhere` Flat, Flat fun) =>
             ToUPlc (CompiledCodeIn uni fun a) uni fun where

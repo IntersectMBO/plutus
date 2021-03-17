@@ -7,18 +7,18 @@ import           PlutusPrelude
 import           Common
 
 import           Data.Char
-import qualified Data.Text                        as T
+import qualified Data.Text               as T
 
-import qualified Language.PlutusCore.Builtins     as PLC
-import qualified Language.PlutusCore.Universe     as PLC
+import qualified PlutusCore.Builtins     as PLC
+import qualified PlutusCore.Universe     as PLC
 
-import           Language.PlutusIR
-import           Language.PlutusIR.Generators.AST
-import           Language.PlutusIR.Parser
+import           PlutusIR
+import           PlutusIR.Generators.AST
+import           PlutusIR.Parser
 
-import           Hedgehog                         hiding (Var)
-import qualified Hedgehog.Gen                     as Gen
-import qualified Hedgehog.Range                   as Range
+import           Hedgehog                hiding (Var)
+import qualified Hedgehog.Gen            as Gen
+import qualified Hedgehog.Range          as Range
 
 import           Test.Tasty
 import           Test.Tasty.Hedgehog

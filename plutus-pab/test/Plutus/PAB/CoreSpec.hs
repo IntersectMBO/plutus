@@ -10,46 +10,43 @@ module Plutus.PAB.CoreSpec
     ( tests
     ) where
 
-import           Control.Lens                                      ((&), (+~))
-import           Control.Monad                                     (unless, void)
-import           Control.Monad.Freer                               (Eff, Member, Members)
-import           Control.Monad.Freer.Error                         (Error, throwError)
-import           Control.Monad.Freer.Extras.Log                    (LogMsg)
-import qualified Control.Monad.Freer.Extras.Log                    as EmulatorLog
-import           Control.Monad.Freer.Extras.State                  (use)
-import           Control.Monad.Freer.State                         (State)
-import           Data.Foldable                                     (fold)
-import qualified Data.Map                                          as Map
-import qualified Data.Set                                          as Set
-import           Data.Text                                         (Text)
-import qualified Data.Text                                         as Text
-import           Data.Text.Extras                                  (tshow)
-import           Language.PlutusTx.Coordination.Contracts.Currency (SimpleMPS (..))
-import qualified Language.PlutusTx.Coordination.Contracts.Game     as Contracts.Game
-import           Ledger                                            (pubKeyAddress)
-import           Ledger.Ada                                        (lovelaceValueOf)
-import           Plutus.PAB.Command                                ()
+import           Control.Lens                     ((&), (+~))
+import           Control.Monad                    (unless, void)
+import           Control.Monad.Freer              (Eff, Member, Members)
+import           Control.Monad.Freer.Error        (Error, throwError)
+import           Control.Monad.Freer.Extras.Log   (LogMsg)
+import qualified Control.Monad.Freer.Extras.Log   as EmulatorLog
+import           Control.Monad.Freer.Extras.State (use)
+import           Control.Monad.Freer.State        (State)
+import           Data.Foldable                    (fold)
+import qualified Data.Map                         as Map
+import qualified Data.Set                         as Set
+import           Data.Text                        (Text)
+import qualified Data.Text                        as Text
+import           Data.Text.Extras                 (tshow)
+import           Ledger                           (pubKeyAddress)
+import           Ledger.Ada                       (lovelaceValueOf)
+import           Plutus.Contracts.Currency        (SimpleMPS (..))
+import qualified Plutus.Contracts.Game            as Contracts.Game
+import           Plutus.PAB.Command               ()
 import           Plutus.PAB.Core
-import           Plutus.PAB.Core.ContractInstance                  (ContractInstanceMsg)
-import           Plutus.PAB.Effects.Contract                       (ContractEffect)
-import           Plutus.PAB.Effects.ContractTest                   (TestContracts (..))
-import           Plutus.PAB.Effects.EventLog                       (EventLogEffect)
-import           Plutus.PAB.Effects.MultiAgent                     (PABClientEffects, agentAction)
-import           Plutus.PAB.Events                                 (ChainEvent, ContractInstanceId,
-                                                                    ContractInstanceState (..), hooks)
-import           Plutus.PAB.MockApp                                (TestState, TxCounts (..), blockchainNewestFirst,
-                                                                    defaultWallet, processAllMsgBoxes, runScenario,
-                                                                    txCounts, txValidated, valueAt)
-import qualified Plutus.PAB.Query                                  as Query
-import           Plutus.PAB.Types                                  (PABError (..), chainOverviewBlockchain,
-                                                                    mkChainOverview)
-import           Test.QuickCheck.Instances.UUID                    ()
-import           Test.Tasty                                        (TestTree, testGroup)
-import           Test.Tasty.HUnit                                  (testCase)
-import           Wallet.API                                        (WalletAPIError, ownPubKey)
-import qualified Wallet.Emulator.Chain                             as Chain
-import           Wallet.Rollup                                     (doAnnotateBlockchain)
-import           Wallet.Rollup.Types                               (DereferencedInput, dereferencedInputs, isFound)
+import           Plutus.PAB.Core.ContractInstance (ContractInstanceMsg)
+import           Plutus.PAB.Effects.Contract      (ContractEffect)
+import           Plutus.PAB.Effects.ContractTest  (TestContracts (..))
+import           Plutus.PAB.Effects.EventLog      (EventLogEffect)
+import           Plutus.PAB.Effects.MultiAgent    (PABClientEffects, agentAction)
+import           Plutus.PAB.Events                (ChainEvent, ContractInstanceId, ContractInstanceState (..), hooks)
+import           Plutus.PAB.MockApp               (TestState, TxCounts (..), blockchainNewestFirst, defaultWallet,
+                                                   processAllMsgBoxes, runScenario, txCounts, txValidated, valueAt)
+import qualified Plutus.PAB.Query                 as Query
+import           Plutus.PAB.Types                 (PABError (..), chainOverviewBlockchain, mkChainOverview)
+import           Test.QuickCheck.Instances.UUID   ()
+import           Test.Tasty                       (TestTree, testGroup)
+import           Test.Tasty.HUnit                 (testCase)
+import           Wallet.API                       (WalletAPIError, ownPubKey)
+import qualified Wallet.Emulator.Chain            as Chain
+import           Wallet.Rollup                    (doAnnotateBlockchain)
+import           Wallet.Rollup.Types              (DereferencedInput, dereferencedInputs, isFound)
 
 tests :: TestTree
 tests = testGroup "Plutus.PAB.Core" [installContractTests, executionTests]

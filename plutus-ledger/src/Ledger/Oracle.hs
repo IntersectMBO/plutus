@@ -33,8 +33,8 @@ module Ledger.Oracle(
 import           Data.Aeson                (FromJSON, ToJSON)
 import           GHC.Generics              (Generic)
 
-import           Language.PlutusTx
-import           Language.PlutusTx.Prelude
+import           PlutusTx
+import           PlutusTx.Prelude
 
 import           Ledger.Constraints        (TxConstraints)
 import qualified Ledger.Constraints        as Constraints

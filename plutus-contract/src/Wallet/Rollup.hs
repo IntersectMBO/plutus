@@ -21,10 +21,10 @@ import           Data.List                (groupBy)
 import           Data.Map                 (Map)
 import qualified Data.Map                 as Map
 import qualified Data.Set                 as Set
-import           Language.PlutusTx.Monoid (inv)
 import           Ledger                   (Tx (Tx), TxIn (TxIn), TxOut (TxOut), Value, outValue, txInRef, txOutRefId,
                                            txOutRefIdx, txOutValue, txOutputs)
 import qualified Ledger.Tx                as Tx
+import           PlutusTx.Monoid          (inv)
 import           Wallet.Emulator.Chain    (ChainEvent (..))
 import           Wallet.Rollup.Types
 

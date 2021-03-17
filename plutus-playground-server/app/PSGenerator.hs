@@ -45,7 +45,6 @@ import qualified Interpreter                                as Webghc
 import           Language.Haskell.Interpreter               (CompilationError, InterpreterError,
                                                              InterpreterResult (InterpreterResult),
                                                              SourceCode (SourceCode), Warning, result, warnings)
-import           Language.Plutus.Contract.Checkpoint        (CheckpointKey, CheckpointLogMsg)
 import           Language.PureScript.Bridge                 (BridgePart, Language (Haskell), SumType, buildBridge,
                                                              equal, genericShow, mkSumType, order, writePSTypesWith)
 import           Language.PureScript.Bridge.CodeGenSwitches (ForeignOptions (ForeignOptions), genForeign,
@@ -66,6 +65,7 @@ import           Playground.Types                           (CompilationResult (
                                                              simulationWallets, sourceCode, wallets)
 import           Playground.Usecases                        (crowdFunding, errorHandling, game, starter, vesting)
 import qualified Playground.Usecases                        as Usecases
+import           Plutus.Contract.Checkpoint                 (CheckpointKey, CheckpointLogMsg)
 import           Schema                                     (FormSchema, formArgumentToJson)
 import           Servant                                    ((:<|>))
 import           Servant.PureScript                         (HasBridge, Settings, _generateSubscriberAPI, apiModuleName,

@@ -27,27 +27,27 @@ module Plutus.PAB.ContractCLI
     , Command(..)
     ) where
 
-import           Control.Monad.IO.Class          (MonadIO, liftIO)
-import           Data.Aeson                      (FromJSON, ToJSON)
-import qualified Data.Aeson                      as JSON
-import qualified Data.Aeson.Encode.Pretty        as JSON
-import           Data.Bifunctor                  (bimap)
-import qualified Data.ByteString                 as BS
-import qualified Data.ByteString.Char8           as BS8
-import qualified Data.ByteString.Lazy            as BSL
-import           Data.Proxy                      (Proxy (..))
-import           Data.Row                        (AllUniqueLabels, Forall, type (.\\))
-import           Data.Text                       (Text)
-import qualified Data.Text                       as Text
-import           Git                             (gitRev)
-import           Language.Plutus.Contract        (BlockchainActions, Contract)
-import           Language.Plutus.Contract.Schema (Input, Output)
-import qualified Language.Plutus.Contract.State  as ContractState
-import           Options.Applicative             (CommandFields, Mod, Parser, command, customExecParser, disambiguate,
-                                                  fullDesc, help, helper, idm, info, infoOption, long, prefs, progDesc,
-                                                  short, showHelpOnEmpty, showHelpOnError, subparser)
-import           Playground.Schema               (EndpointToSchema, endpointsToSchemas)
-import           System.Exit                     (ExitCode (ExitFailure), exitSuccess, exitWith)
+import           Control.Monad.IO.Class   (MonadIO, liftIO)
+import           Data.Aeson               (FromJSON, ToJSON)
+import qualified Data.Aeson               as JSON
+import qualified Data.Aeson.Encode.Pretty as JSON
+import           Data.Bifunctor           (bimap)
+import qualified Data.ByteString          as BS
+import qualified Data.ByteString.Char8    as BS8
+import qualified Data.ByteString.Lazy     as BSL
+import           Data.Proxy               (Proxy (..))
+import           Data.Row                 (AllUniqueLabels, Forall, type (.\\))
+import           Data.Text                (Text)
+import qualified Data.Text                as Text
+import           Git                      (gitRev)
+import           Options.Applicative      (CommandFields, Mod, Parser, command, customExecParser, disambiguate,
+                                           fullDesc, help, helper, idm, info, infoOption, long, prefs, progDesc, short,
+                                           showHelpOnEmpty, showHelpOnError, subparser)
+import           Playground.Schema        (EndpointToSchema, endpointsToSchemas)
+import           Plutus.Contract          (BlockchainActions, Contract)
+import           Plutus.Contract.Schema   (Input, Output)
+import qualified Plutus.Contract.State    as ContractState
+import           System.Exit              (ExitCode (ExitFailure), exitSuccess, exitWith)
 import qualified System.IO
 
 data Command

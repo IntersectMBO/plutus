@@ -40,7 +40,7 @@ data Builtin : Set where
   append                   : Builtin
   trace                    : Builtin
 
-{-# FOREIGN GHC import Language.PlutusCore.Builtins #-}
+{-# FOREIGN GHC import PlutusCore.Builtins #-}
 {-# COMPILE GHC Builtin = data DefaultFun (AddInteger 
                                           | SubtractInteger
                                           | MultiplyInteger

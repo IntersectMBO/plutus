@@ -11,7 +11,7 @@ import EditorTests as EditorTests
 import Effect (Effect)
 import GistsTests as GistsTests
 import StaticDataTests as StaticDataTests
-import Language.PlutusTx.AssocMapTests as Language.PlutusTx.AssocMapTests
+import PlutusTx.AssocMapTests as PlutusTx.AssocMapTests
 import MainFrameTests as MainFrameTests
 import Test.Unit.Main (runTest)
 import Schema.TypesTests as Schema.TypesTests
@@ -30,6 +30,6 @@ main =
     EditorTests.all
     GistsTests.all
     StaticDataTests.all
-    Language.PlutusTx.AssocMapTests.all
+    PlutusTx.AssocMapTests.all
     MainFrameTests.all
     Schema.TypesTests.all

@@ -53,7 +53,7 @@
             ];
           buildable = true;
           modules = [
-            "PlutusTx"
+            "BasicPlutusTx"
             "BasicValidators"
             "BasicPolicies"
             "BasicApps"

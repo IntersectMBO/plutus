@@ -43,29 +43,29 @@ and actions (i.e. /Choices/) are passed as
 
 module Language.Marlowe.Semantics where
 
-import           Control.Applicative        ((<*>), (<|>))
-import           Control.Newtype.Generics   (Newtype)
-import qualified Data.Aeson                 as JSON
-import qualified Data.Aeson.Extras          as JSON
-import           Data.Aeson.Types           hiding (Error, Value)
-import qualified Data.Foldable              as F
-import           Data.Scientific            (Scientific, floatingOrInteger)
-import           Data.Text                  (pack)
-import           Data.Text.Encoding         (decodeUtf8, encodeUtf8)
+import           Control.Applicative      ((<*>), (<|>))
+import           Control.Newtype.Generics (Newtype)
+import qualified Data.Aeson               as JSON
+import qualified Data.Aeson.Extras        as JSON
+import           Data.Aeson.Types         hiding (Error, Value)
+import qualified Data.Foldable            as F
+import           Data.Scientific          (Scientific, floatingOrInteger)
+import           Data.Text                (pack)
+import           Data.Text.Encoding       (decodeUtf8, encodeUtf8)
 import           Deriving.Aeson
-import           Language.Marlowe.Pretty    (Pretty (..))
-import           Language.PlutusTx          (makeIsDataIndexed)
-import           Language.PlutusTx.AssocMap (Map)
-import qualified Language.PlutusTx.AssocMap as Map
-import           Language.PlutusTx.Lift     (makeLift)
-import           Language.PlutusTx.Prelude  hiding (mapM, (<$>), (<*>), (<>))
-import           Language.PlutusTx.Ratio    (denominator, numerator)
-import           Ledger                     (PubKeyHash (..), Slot (..), ValidatorHash)
-import           Ledger.Value               (CurrencySymbol (..), TokenName (..))
-import qualified Ledger.Value               as Val
-import           Prelude                    (mapM, (<$>))
-import qualified Prelude                    as P
-import           Text.PrettyPrint.Leijen    (comma, hang, lbrace, line, rbrace, space, text, (<>))
+import           Language.Marlowe.Pretty  (Pretty (..))
+import           Ledger                   (PubKeyHash (..), Slot (..), ValidatorHash)
+import           Ledger.Value             (CurrencySymbol (..), TokenName (..))
+import qualified Ledger.Value             as Val
+import           PlutusTx                 (makeIsDataIndexed)
+import           PlutusTx.AssocMap        (Map)
+import qualified PlutusTx.AssocMap        as Map
+import           PlutusTx.Lift            (makeLift)
+import           PlutusTx.Prelude         hiding (mapM, (<$>), (<*>), (<>))
+import           PlutusTx.Ratio           (denominator, numerator)
+import           Prelude                  (mapM, (<$>))
+import qualified Prelude                  as P
+import           Text.PrettyPrint.Leijen  (comma, hang, lbrace, line, rbrace, space, text, (<>))
 
 {-# ANN module ("HLint: ignore Avoid restricted function" :: String) #-}
 

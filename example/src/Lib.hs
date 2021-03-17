@@ -2,7 +2,7 @@ module Lib
     ( someFunc
     ) where
 
-import           Language.PlutusCore
+import           PlutusCore
 
 someFunc :: IO ()
 someFunc = putStrLn "someFunc"

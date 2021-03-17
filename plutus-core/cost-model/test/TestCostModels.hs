@@ -9,23 +9,23 @@
 {-# LANGUAGE TemplateHaskell     #-}
 {-# LANGUAGE TypeApplications    #-}
 
-import           Language.PlutusCore.Evaluation.Machine.ExBudget
-import           Language.PlutusCore.Evaluation.Machine.ExBudgeting
-import           Language.PlutusCore.Evaluation.Machine.ExMemory
+import           PlutusCore.Evaluation.Machine.ExBudget
+import           PlutusCore.Evaluation.Machine.ExBudgeting
+import           PlutusCore.Evaluation.Machine.ExMemory
 
-import           Foreign.R                                          hiding (unsafeCoerce)
-import           H.Prelude                                          (MonadR, Region, r)
-import           Language.R                                         hiding (unsafeCoerce)
+import           Foreign.R                                 hiding (unsafeCoerce)
+import           H.Prelude                                 (MonadR, Region, r)
+import           Language.R                                hiding (unsafeCoerce)
 
 import           Control.Applicative
 import           Control.Monad.Morph
 import           CostModelCreation
 import           Data.Coerce
 import           Hedgehog
-import qualified Hedgehog.Gen                                       as Gen
+import qualified Hedgehog.Gen                              as Gen
 import           Hedgehog.Main
-import qualified Hedgehog.Range                                     as Range
-import           Unsafe.Coerce                                      (unsafeCoerce)
+import qualified Hedgehog.Range                            as Range
+import           Unsafe.Coerce                             (unsafeCoerce)
 
 prop_addInteger :: Property
 prop_addInteger = testPredict addInteger (getConst . paramAddInteger)

@@ -7,22 +7,22 @@ module Evaluation.DynamicBuiltins.Definition
     ( test_definition
     ) where
 
-import           Language.PlutusCore
-import           Language.PlutusCore.Constant
-import           Language.PlutusCore.Generators.Interesting
-import           Language.PlutusCore.MkPlc                  hiding (error)
+import           PlutusCore
+import           PlutusCore.Constant
+import           PlutusCore.Generators.Interesting
+import           PlutusCore.MkPlc                  hiding (error)
 
-import           Language.PlutusCore.Examples.Builtins
-import           Language.PlutusCore.StdLib.Data.Bool
-import qualified Language.PlutusCore.StdLib.Data.Function   as Plc
-import qualified Language.PlutusCore.StdLib.Data.List       as Plc
+import           PlutusCore.Examples.Builtins
+import           PlutusCore.StdLib.Data.Bool
+import qualified PlutusCore.StdLib.Data.Function   as Plc
+import qualified PlutusCore.StdLib.Data.List       as Plc
 
 import           Evaluation.DynamicBuiltins.Common
 
 import           Data.Either
 import           Data.Proxy
-import           Hedgehog                                   hiding (Opaque, Size, Var)
-import qualified Hedgehog.Gen                               as Gen
+import           Hedgehog                          hiding (Opaque, Size, Var)
+import qualified Hedgehog.Gen                      as Gen
 import           Test.Tasty
 import           Test.Tasty.HUnit
 import           Test.Tasty.Hedgehog

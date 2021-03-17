@@ -25,10 +25,10 @@ import           Data.Text.Prettyprint.Doc             (Pretty (..), defaultLayo
 import qualified Data.Text.Prettyprint.Doc.Render.Text as Render
 import           Data.UUID                             (UUID)
 import           GHC.TypeLits                          (KnownSymbol, symbolVal)
-import           Language.Plutus.Contract.Checkpoint   (CheckpointLogMsg)
-import           Language.Plutus.Contract.State        (ContractRequest)
 import           Ledger.Tx                             (Tx)
 import qualified Ledger.Value                          as V
+import           Plutus.Contract.Checkpoint            (CheckpointLogMsg)
+import           Plutus.Contract.State                 (ContractRequest)
 import           Plutus.PAB.Events.Contract            (ContractInstanceId, ContractInstanceState, IterationID)
 import           Wallet.Emulator.LogMessages           (RequestHandlerLogMsg, TxBalanceMsg)
 import           Wallet.Types                          (EndpointDescription)

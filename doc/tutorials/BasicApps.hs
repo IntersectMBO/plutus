@@ -16,17 +16,17 @@ module BasicApps where
 
 -- BLOCK0
 
-import           Control.Monad             (void)
-import           Data.Aeson                (FromJSON, ToJSON)
-import qualified Data.Text                 as T
-import           GHC.Generics              (Generic)
-import           Language.Plutus.Contract
-import qualified Language.PlutusTx         as PlutusTx
-import           Language.PlutusTx.Prelude
+import           Control.Monad          (void)
+import           Data.Aeson             (FromJSON, ToJSON)
+import qualified Data.Text              as T
+import           GHC.Generics           (Generic)
 import           Ledger
-import qualified Ledger.Ada                as Ada
-import qualified Ledger.Constraints        as Constraints
-import qualified Ledger.Typed.Scripts      as Scripts
+import qualified Ledger.Ada             as Ada
+import qualified Ledger.Constraints     as Constraints
+import qualified Ledger.Typed.Scripts   as Scripts
+import           Plutus.Contract
+import qualified PlutusTx               as PlutusTx
+import           PlutusTx.Prelude
 import           Schema
 import           Wallet.Emulator.Wallet
 

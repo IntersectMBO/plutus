@@ -20,7 +20,7 @@ Forging policies, like validators, receive some information from the validating 
 
 The forging policy is a function which receives these two inputs as *arguments*.
 The validating node is responsible for passing them in and running the forging policy.
-As with validator scripts, the arguments are passed encoded as :hsobj:`Language.PlutusTx.Data.Data`.
+As with validator scripts, the arguments are passed encoded as :hsobj:`PlutusTx.Data.Data`.
 
 Using the forging context
 -------------------------

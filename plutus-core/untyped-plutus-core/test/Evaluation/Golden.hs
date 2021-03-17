@@ -6,28 +6,28 @@ module Evaluation.Golden
     ( test_golden
     ) where
 
-import           Prelude                                           hiding (even)
+import           Prelude                                  hiding (even)
 
-import           Language.PlutusCore.StdLib.Data.Bool
-import           Language.PlutusCore.StdLib.Data.Function
-import           Language.PlutusCore.StdLib.Data.List
-import           Language.PlutusCore.StdLib.Data.Nat
-import           Language.PlutusCore.StdLib.Meta
-import           Language.PlutusCore.StdLib.Meta.Data.Tuple
-import           Language.PlutusCore.StdLib.Type
+import           PlutusCore.StdLib.Data.Bool
+import           PlutusCore.StdLib.Data.Function
+import           PlutusCore.StdLib.Data.List
+import           PlutusCore.StdLib.Data.Nat
+import           PlutusCore.StdLib.Meta
+import           PlutusCore.StdLib.Meta.Data.Tuple
+import           PlutusCore.StdLib.Type
 
-import           Language.PlutusCore
-import           Language.PlutusCore.Evaluation.Machine.Ck
-import           Language.PlutusCore.Generators.Interesting
-import           Language.PlutusCore.MkPlc
-import           Language.PlutusCore.Pretty
-import qualified Language.UntypedPlutusCore                        as UPLC
-import           Language.UntypedPlutusCore.Evaluation.Machine.Cek
+import           PlutusCore
+import           PlutusCore.Evaluation.Machine.Ck
+import           PlutusCore.Generators.Interesting
+import           PlutusCore.MkPlc
+import           PlutusCore.Pretty
+import qualified UntypedPlutusCore                        as UPLC
+import           UntypedPlutusCore.Evaluation.Machine.Cek
 
 import           Data.Bifunctor
-import qualified Data.ByteString                                   as BS
-import qualified Data.ByteString.Lazy                              as BSL
-import           Data.Text.Encoding                                (encodeUtf8)
+import qualified Data.ByteString                          as BS
+import qualified Data.ByteString.Lazy                     as BSL
+import           Data.Text.Encoding                       (encodeUtf8)
 import           Test.Tasty
 import           Test.Tasty.Golden
 

@@ -9,15 +9,15 @@ import           Common
 
 import           Control.Exception
 import           Control.Monad.Except
-import qualified Language.PlutusCore                               as PLC
-import           Language.PlutusCore.Builtins
-import           Language.PlutusCore.Universe
-import           Language.UntypedPlutusCore
-import           Language.UntypedPlutusCore.Evaluation.Machine.Cek
-import qualified Plutus.Benchmark.Clausify                         as Clausify
-import qualified Plutus.Benchmark.Knights                          as Knights
-import qualified Plutus.Benchmark.Prime                            as Prime
-import qualified Plutus.Benchmark.Queens                           as Queens
+import qualified Plutus.Benchmark.Clausify                as Clausify
+import qualified Plutus.Benchmark.Knights                 as Knights
+import qualified Plutus.Benchmark.Prime                   as Prime
+import qualified Plutus.Benchmark.Queens                  as Queens
+import qualified PlutusCore                               as PLC
+import           PlutusCore.Builtins
+import           PlutusCore.Universe
+import           UntypedPlutusCore
+import           UntypedPlutusCore.Evaluation.Machine.Cek
 
 
 benchCek :: Term NamedDeBruijn DefaultUni DefaultFun () -> Benchmarkable

@@ -44,7 +44,7 @@ common lang
     build-depends: plutus-tx-plugin -any
 
   if flag(defer-plugin-errors)
-    ghc-options: -fplugin-opt Language.PlutusTx.Plugin:defer-errors
+    ghc-options: -fplugin-opt PlutusTx.Plugin:defer-errors
 
 library
   import: lang
