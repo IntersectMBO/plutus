@@ -49,7 +49,7 @@ contractsScreen state =
           [ span
               [ classNames [ "mr-2" ] ]
               [ text "Create" ]
-          , Icon.add
+          , Icon.add_
           ]
       ]
 
@@ -95,7 +95,7 @@ contractCard contractState =
       [ div [ classNames [ "flex", "px-4", "pt-4" ] ]
           [ span [ classNames [ "text-xl", "font-semibold" ] ] [ text contractAcronym ]
           , span [ classNames [ "flex-grow", "text-xs" ] ] [ text contractType ]
-          , Icon.east
+          , Icon.east_
           ]
       , div [ classNames [ "font-semibold", "px-4", "py-2" ] ]
           [ text longTitle

@@ -32,6 +32,7 @@
     "raw-loader": "^4.0.1",
     "style-loader": "^0.23.1",
     "tailwindcss": "^2.0.2",
+    "@tailwindcss/forms": "^0.2.1",
     "url-loader": "^1.1.2",
     "uuid-validate": "^0.0.3",
     "webpack": "^4.41.0",

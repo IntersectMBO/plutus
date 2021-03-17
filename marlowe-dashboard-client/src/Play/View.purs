@@ -10,7 +10,7 @@ import Data.Either (Either(..))
 import Data.Foldable (foldMap)
 import Data.Lens (view)
 import Data.Maybe (Maybe(..), isNothing)
-import Halogen.HTML (HTML, a, div, footer, h1, header, main, nav, span, text)
+import Halogen.HTML (HTML, a, div, div_, footer, h1, header, main, nav, span, text)
 import Halogen.HTML.Events.Extra (onClick_)
 import Halogen.HTML.Properties (href)
 import MainFrame.Lenses (_card, _screen)
@@ -51,14 +51,14 @@ renderHeader walletNickname menuOpen =
         [ text "Marlowe" ]
     , nav
         [ classNames [ "flex", "items-center" ] ]
-        [ navigation (SetScreen ContractsScreen) Icon.home "Home"
-        , navigation (SetScreen WalletLibraryScreen) Icon.contacts "Contacts"
-        , navigation (ToggleCard PutdownWalletCard) Icon.wallet walletNickname
+        [ navigation (SetScreen ContractsScreen) Icon.home_ "Home"
+        , navigation (SetScreen WalletLibraryScreen) Icon.contacts_ "Contacts"
+        , navigation (ToggleCard PutdownWalletCard) Icon.wallet_ walletNickname
         , a
             [ classNames [ "ml-4", "md:hidden" ]
             , onClick_ ToggleMenu
             ]
-            [ if menuOpen then Icon.close else Icon.menu ]
+            [ if menuOpen then Icon.close_ else Icon.menu_ ]
         ]
     ]
   where
@@ -93,7 +93,7 @@ renderMain wallets newWalletNickname newWalletContractId remoteDataPubKey templa
 renderMobileMenu :: forall p. Boolean -> HTML p Action
 renderMobileMenu menuOpen =
   nav
-    [ classNames $ [ "md:hidden", "absolute", "top-0", "bottom-0", "left-0", "right-0", "z-10", "bg-black", "text-white", "overflow-auto", "flex", "flex-col", "justify-between" ] <> hideWhen (not menuOpen) ]
+    [ classNames $ [ "md:hidden", "absolute", "inset-0", "z-30", "bg-black", "text-white", "overflow-auto", "flex", "flex-col", "justify-between" ] <> hideWhen (not menuOpen) ]
     [ div
         [ classNames [ "flex", "flex-col" ] ]
         $ [ link "Dashboard home" $ Right $ SetScreen ContractsScreen
@@ -115,25 +115,23 @@ renderCards wallets newWalletNickname newWalletContractId remoteDataPubKey templ
     mSelectedContractState = view (_contractsState <<< _selectedContract) playState
 
     cardClasses = case mCard of
-      Just TemplateLibraryCard -> Css.largeCard "bg-gray"
-      Just ContractCard -> Css.largeCard "bg-grayblue"
+      Just TemplateLibraryCard -> Css.largeCard
+      Just ContractCard -> Css.largeCard
       Just _ -> Css.card
       Nothing -> [ "hidden" ]
   in
     div
       [ classNames $ Css.cardWrapper $ isNothing mCard ]
       [ div
-          [ classNames cardClasses ]
+          [ classNames $ cardClasses <> [ "relative" ] ]
           [ div
-              [ classNames [ "flex", "justify-end" ] ]
+              [ classNames [ "absolute", "top-0", "right-0" ] ]
               [ a
-                  [ classNames [ "p-2", "leading-none", "text-green" ]
-                  , onClick_ $ SetCard Nothing
+                  [ onClick_ $ SetCard Nothing
                   ]
-                  [ Icon.close ]
+                  [ Icon.close [ "p-2", "leading-none" ] ]
               ]
-          , div
-              [ classNames [ "px-4", "pb-4" ] ]
+          , div_
               $ (flip foldMap mCard) \cardType -> case cardType of
                   CreateWalletCard mTokenName -> [ newWalletCard wallets newWalletNickname newWalletContractId remoteDataPubKey mTokenName ]
                   ViewWalletCard walletDetails -> [ walletDetailsCard walletDetails ]

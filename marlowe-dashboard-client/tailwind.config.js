@@ -18,7 +18,7 @@ module.exports = {
       transgray: "rgba(10,10,10,0.4)",
     },
     boxShadow: {
-      DEFAULT: "0 3px 6px 0 rgba(0, 0, 0, 0.21)"
+      DEFAULT: "0 3px 6px 0 rgba(0, 0, 0, 0.21)",
     },
     extend: {
       gridTemplateRows: {
@@ -30,6 +30,13 @@ module.exports = {
       },
       boxShadow: {
         deep: "0 2.5px 5px 0 rgba(0, 0, 0, 0.22)",
+        "current-step": "0 25px 50px -12px rgb(0 0 0 / 25%)",
+      },
+      height: {
+        "contract-card": "500px",
+      },
+      maxWidth: {
+        "contract-card": "360px",
       },
     },
   },
@@ -40,7 +47,7 @@ module.exports = {
     spacing: ["last"],
     opacity: ["disabled"],
   },
-  plugins: [],
+  plugins: [require("@tailwindcss/forms")],
   corePlugins: {
     container: false,
     space: true,
