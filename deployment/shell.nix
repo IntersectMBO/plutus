@@ -34,6 +34,18 @@ let
       ${pass}/bin/pass init -p ${env} ${lib.concatStringsSep " " ids}
     '';
 
+
+  # keyInitShell: convenience shell for simply importing all existing keys
+  # ```
+  # $ nix-shell -A importKeys
+  # ```
+  keyInitShell = mkShell {
+    shellHook = ''
+      ${importKeys keys}/bin/import-gpg-keys
+      exit 0
+    '';
+  };
+
   # mkDeploymentShell : Provide a deployment shell for a specific environment
   # The shell expects to be executed from within the `deployment` directory and will
   # not work when invoked from elsewhere.
@@ -222,4 +234,4 @@ builtins.mapAttrs
     inherit env;
     inherit keys;
   })
-  envs
+  envs // { importKeys = keyInitShell; }
