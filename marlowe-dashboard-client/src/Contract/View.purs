@@ -12,6 +12,7 @@ import Data.Array.NonEmpty (NonEmptyArray)
 import Data.Array.NonEmpty as NEA
 import Data.BigInteger (BigInteger, fromInt, toNumber)
 import Data.Foldable (foldMap)
+import Data.Formatter.Number (Formatter(..), format)
 import Data.Int (floor)
 import Data.Lens ((^.))
 import Data.Map as Map
@@ -211,7 +212,6 @@ renderAction isActiveParticipant (MakeDeposit intoAccountOf by token value) =
         -- , onClick_ $ NEEDACTION
         ]
         [ span_ [ text "Deposit:" ]
-        -- FIXME: Install purescript-formatters to separate by thousands
         , span_ [ currency token value ]
         ]
     ]
@@ -254,10 +254,23 @@ renderAction isActiveParticipant CloseContract =
         [ text "Close contract" ]
     ]
 
-currency :: forall p a. Token -> BigInteger -> HTML p a
-currency (Token "" "") value = text ("₳" <> show value)
+currencyFormatter :: Formatter
+currencyFormatter =
+  Formatter
+    { sign: false
+    , before: 0
+    , comma: true
+    , after: 0
+    , abbreviations: false
+    }
 
-currency (Token symbol _) value = text (symbol <> show value)
+formatBigInteger :: BigInteger -> String
+formatBigInteger = format currencyFormatter <<< toNumber
+
+currency :: forall p a. Token -> BigInteger -> HTML p a
+currency (Token "" "") value = text ("₳" <> formatBigInteger value)
+
+currency (Token symbol _) value = text (symbol <> formatBigInteger value)
 
 renderBalances :: forall p action. State -> HTML p action
 renderBalances state =
@@ -268,8 +281,8 @@ renderBalances state =
     -- FIXME: What should we show if a participant doesn't have balance yet?
     -- FIXME: We fake the accounts for development until we fix the semantics
     accounts' =
-      [ (Role "alice" /\ Token "" "") /\ (fromInt 500)
-      , (Role "bob" /\ Token "" "") /\ (fromInt 0)
+      [ (Role "alice" /\ Token "" "") /\ (fromInt 2500)
+      , (Role "bob" /\ Token "" "") /\ (fromInt 10)
       ]
   in
     div [ classNames [ "text-xs" ] ]
