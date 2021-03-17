@@ -3,10 +3,11 @@ module Contract.View
   ) where
 
 import Prelude hiding (div)
-import Contract.Lenses (_executionState, _mActiveUserParty, _metadata, _participants, _step, _tab)
-import Contract.Types (Action(..), State, Tab(..))
+import Contract.Lenses (_choiceValidStatus, _executionState, _mActiveUserParty, _metadata, _participants, _side, _step, _tab)
+import Contract.Types (Action(..), Side(..), State, Tab(..))
 import Css (applyWhen, classNames)
-import Data.Array (intercalate, nub, range)
+import Css as Css
+import Data.Array (foldl, intercalate, nub, range)
 import Data.Array as Array
 import Data.Array.NonEmpty (NonEmptyArray)
 import Data.Array.NonEmpty as NEA
@@ -16,19 +17,21 @@ import Data.Formatter.Number (Formatter(..), format)
 import Data.Int (floor)
 import Data.Lens ((^.))
 import Data.Map as Map
-import Data.Maybe (Maybe(..))
+import Data.Maybe (Maybe(..), fromMaybe)
 import Data.Set (Set)
 import Data.Set as Set
 import Data.String as String
 import Data.String.Extra (capitalize)
 import Data.Tuple (Tuple(..), fst, uncurry)
 import Data.Tuple.Nested ((/\))
+import Halogen (RefLabel(..))
 import Halogen.HTML (HTML, a, button, div, div_, h1, h2, input, option_, select, span, span_, text)
+import Halogen.HTML.Events (onChange, onInput)
 import Halogen.HTML.Events.Extra (onClick_)
-import Halogen.HTML.Properties (InputType(..), enabled, type_)
+import Halogen.HTML.Properties (InputType(..), enabled, placeholder, ref, type_)
 import Marlowe.Execution (NamedAction(..), _contract, _namedActions, _state, getActionParticipant)
 import Marlowe.Extended (contractTypeName)
-import Marlowe.Semantics (Bound(..), ChoiceId(..), Input(..), Party(..), Token(..), _accounts)
+import Marlowe.Semantics (Bound(..), ChoiceId(..), Input(..), Party(..), Token(..), _accounts, getEncompassBound)
 import Material.Icons (Icon(..), icon)
 
 contractDetailsCard :: forall p. State -> HTML p Action
@@ -41,11 +44,61 @@ contractDetailsCard state =
       -- FIXME: in zeplin the contractType is defined with color #283346, we need to define
       --        the color palette with russ.
       , h2 [ classNames [ "mb-2", "text-xs", "uppercase" ] ] [ text $ contractTypeName metadata.contractType ]
-      , div [ classNames [ "w-full", "px-5", "max-w-contract-card" ] ] [ renderCurrentState state ]
+      , div [ classNames [ "w-full", "px-5", "max-w-contract-card" ] ] [ renderCurrentStep state ]
       ]
 
-renderCurrentState :: forall p. State -> HTML p Action
-renderCurrentState state =
+renderCurrentStep :: forall p. State -> HTML p Action
+renderCurrentStep state = case state ^. _side of
+  Overview -> renderStepOverview state
+  Confirmation namedAction -> renderStepConfirmation state namedAction
+
+renderStepConfirmation :: forall p. State -> NamedAction -> HTML p Action
+renderStepConfirmation state namedAction =
+  let
+    -- As programmers we use 0-indexed arrays and steps, but we number steps
+    -- starting from 1
+    stepNumber = state ^. _step + 1
+
+    title = case namedAction of
+      MakeDeposit _ _ _ _ -> "Deposit confirmation"
+      MakeChoice _ _ _ -> "Choice confirmation"
+      CloseContract -> "Close contract"
+      _ -> "Fixme, this should not happen"
+
+    cta = case namedAction of
+      MakeDeposit _ _ _ _ -> "Deposit"
+      MakeChoice _ _ _ -> "Choose"
+      CloseContract -> "Pay to close"
+      _ -> "Fixme, this should not happen"
+  in
+    div [ classNames [ "rounded-xl", "shadow-current-step", "bg-white" ] ]
+      [ div [ classNames [ "flex", "flex-col", "items-center" ] ]
+          [ div
+              [ classNames [ "text-xl", "font-semibold" ] ]
+              [ text $ "Step " <> show stepNumber ]
+          , div
+              [ classNames [ "text-xs", "font-semibold" ] ]
+              [ text title ]
+          ]
+      , div_ [ text "TODO items" ]
+      , div_ [ text "TODO total" ]
+      , div [ classNames [ "flex", "justify-center" ] ]
+          [ button
+              [ classNames $ Css.secondaryButton <> [ "mr-2" ]
+              , onClick_ CancelStepConfirmation
+              ]
+              [ text "Cancel" ]
+          , button
+              [ classNames Css.primaryButton
+              , onClick_ $ AskWalletConfirmation namedAction
+              ]
+              [ text cta ]
+          ]
+      , div_ [ text "TODO docs" ]
+      ]
+
+renderStepOverview :: forall p. State -> HTML p Action
+renderStepOverview state =
   let
     -- As programmers we use 0-indexed arrays and steps, but we number steps
     -- starting from 1
@@ -181,7 +234,7 @@ renderPartyTasks state party actions =
       intercalate
         [ div [ classNames [ "font-semibold", "text-center", "my-2", "text-xs" ] ] [ text "OR" ]
         ]
-        (Array.singleton <<< renderAction isActiveParticipant <$> actions)
+        (Array.singleton <<< renderAction state isActiveParticipant <$> actions)
 
     participantName = participantWithNickname state party
   in
@@ -196,8 +249,8 @@ renderPartyTasks state party actions =
           <> actionsSeparatedByOr
       )
 
-renderAction :: forall p. Boolean -> NamedAction -> HTML p Action
-renderAction isActiveParticipant (MakeDeposit intoAccountOf by token value) =
+renderAction :: forall p. State -> Boolean -> NamedAction -> HTML p Action
+renderAction _ isActiveParticipant namedAction@(MakeDeposit intoAccountOf by token value) =
   div_
     [ shortDescription isActiveParticipant "chocolate pastry apple pie lemon drops apple pie halvah FIXME"
     , button
@@ -208,36 +261,56 @@ renderAction isActiveParticipant (MakeDeposit intoAccountOf by token value) =
               else
                 [ "bg-gray", "text-black", "opacity-50", "cursor-default" ]
         , enabled isActiveParticipant
-        -- FIXME
-        -- , onClick_ $ NEEDACTION
+        , onClick_ $ AskStepConfirmation namedAction
         ]
         [ span_ [ text "Deposit:" ]
         , span_ [ currency token value ]
         ]
     ]
 
-renderAction isActiveParticipant (MakeChoice choiceId bounds chosen) =
-  div_
-    [ shortDescription isActiveParticipant "chocolate pastry apple pie lemon drops apple pie halvah FIXME"
-    , div
-        [ classNames [ "flex", "w-full", "shadow", "rounded-lg", "mt-2", "overflow-hidden" ]
-        ]
-        [ input
-            [ classNames [ "border-0", "py-4", "pl-4", "pr-1", "flex-grow" ]
-            , type_ InputNumber
-            ]
-        , button
-            [ classNames [ "bg-gradient-to-b", "from-blue", "to-lightblue", "px-5", "text-white", "font-bold" ]
-            ]
-            [ text "..." ]
-        ]
-    ]
+renderAction state isActiveParticipant namedAction@(MakeChoice (ChoiceId choiceId _) bounds _) =
+  let
+    -- NOTE': We could eventually add an heuristic that if the difference between min and max is less
+    --        than 10 elements, we could show a `select` instead of a input[number] and if the min==max
+    --        we use a button that says "Choose `min`"
+    Bound minBound maxBound = getEncompassBound bounds
 
-renderAction isActiveParticipant (MakeNotify _) = div [] [ text "awaiting observation?" ]
+    choiceRef = RefLabel choiceId
 
-renderAction isActiveParticipant (Evaluate _) = div [] [ text "FIXME: what should we put here? Evaluate" ]
+    isValid = fromMaybe false $ Map.lookup choiceRef $ state ^. _choiceValidStatus
+  in
+    div_
+      [ shortDescription isActiveParticipant "chocolate pastry apple pie lemon drops apple pie halvah FIXME"
+      , div
+          [ classNames [ "flex", "w-full", "shadow", "rounded-lg", "mt-2", "overflow-hidden" ]
+          ]
+          [ input
+              [ classNames [ "border-0", "py-4", "pl-4", "pr-1", "flex-grow" ]
+              , type_ InputNumber
+              , placeholder $ "Choose between " <> show minBound <> " and " <> show maxBound
+              , ref choiceRef
+              , onInput $ const $ Just $ OnChoiceChange choiceRef bounds
+              ]
+          , button
+              [ classNames
+                  ( [ "px-5", "font-bold" ]
+                      <> if isValid then
+                          [ "bg-gradient-to-b", "from-blue", "to-lightblue", "text-white" ]
+                        else
+                          [ "bg-gray", "text-black", "opacity-50", "cursor-default" ]
+                  )
+              , onClick_ $ AskStepConfirmation namedAction
+              , enabled isValid
+              ]
+              [ text "..." ]
+          ]
+      ]
 
-renderAction isActiveParticipant CloseContract =
+renderAction _ isActiveParticipant (MakeNotify _) = div [] [ text "FIXME: awaiting observation?" ]
+
+renderAction _ isActiveParticipant (Evaluate _) = div [] [ text "FIXME: what should we put here? Evaluate" ]
+
+renderAction _ isActiveParticipant CloseContract =
   div_
     [ shortDescription isActiveParticipant "chocolate pastry apple pie lemon drops apple pie halvah FIXME"
     , button
@@ -248,8 +321,7 @@ renderAction isActiveParticipant CloseContract =
               else
                 [ "bg-gray", "text-black", "opacity-50", "cursor-default" ]
         , enabled isActiveParticipant
-        -- FIXME
-        -- , onClick_ $ NEEDACTION
+        , onClick_ $ AskStepConfirmation CloseContract
         ]
         [ text "Close contract" ]
     ]

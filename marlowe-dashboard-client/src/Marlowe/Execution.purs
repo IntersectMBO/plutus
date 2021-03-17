@@ -107,7 +107,6 @@ data NamedAction
   = MakeDeposit AccountId Party Token BigInteger
   -- Equivalent to Semantics.Action(Choice) but has ChosenNum since it is a stateful element that stores the users choice
   -- Creates IChoice
-  -- FIXME: Why does this option have a ChosenNum? Shouldn't that be in the transaction?
   | MakeChoice ChoiceId (Array Bound) ChosenNum
   -- Equivalent to Semantics.Action(Notify) (can be applied by any user)
   -- Creates INotify
