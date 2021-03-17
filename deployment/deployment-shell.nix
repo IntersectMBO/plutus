@@ -1,16 +1,31 @@
-{ system ? builtins.currentSystem
-, packages ? import ./.. { }
+{ terraform
+, awscli
+, mkShell
+, writeShellScriptBin
+, pass
+, lib
+, morph
+, jq
+, stdenv
+}:
+
+# mkDeploymentShell : Provide a deployment shell for a specific environment
+#
+# Returns shell environment for
+# - provisioning, deploying and destroying infrastructure
+# - password initialization
+#
+# NOTE: The shell expects to be executed from within the `deployment` directory and will
+# not work when invoked from elsewhere.
+
+{ e          # environment to work on
+, r          # region to deploy to
+, initPass   # init secrets for environment
+, importKeys # script to import all relevant keys
 }:
 let
-  inherit (packages) pkgs;
-  inherit (pkgs) terraform awscli mkShell writeShellScriptBin pass lib morph jq;
-  inherit (pkgs.stdenv) isDarwin;
-
-  e = "tobias";
-  r = "eu-west-1";
-
   # setupEnvSecrets : Set environment variables with secrets from pass
-  # for `env` and `region`.
+  # - env: Environment to setup
   setupEnvSecrets = env: ''
     # Set the password store
     export PASSWORD_STORE_DIR="$(pwd)/../secrets"
@@ -28,6 +43,8 @@ let
   '';
 
   # setupTerraform : Switch to `env` workspace (create it if neccessary)
+  # - env: environment to work on
+  # - region: region the environment is in
   setupTerraform = env: region: ''
     export TF_VAR_env="${env}"
     export TF_VAR_aws_region="${region}"
@@ -42,6 +59,8 @@ let
     fi
   '';
 
+  # provisionInfra: Apply a terraform configuration
+  # Provision the current environment.
   provisionInfra = writeShellScriptBin "provision-infra" ''
     set -eou pipefail
 
@@ -49,10 +68,17 @@ let
     terraform apply ./terraform
   '';
 
+  destroyInfra = writeShellScriptBin "destroy-infra" ''
+    set -eou pipefail
+
+    echo "[provision-infra]: Destroying infrastructure using terraform"
+    terraform destroy ./terraform
+  '';
+
   # deploy-nix: wrapper around executing `morph deploy` 
   # - Checks if `machines.json` is present - aborts if not
   # - Checks if terraform is up to date - aborts if not
-  # - Writes secrets files
+  # - Writes ssh configuration and copies secrets to the morph config directory
   deployNix = writeShellScriptBin "deploy-nix" ''
     set -eou pipefail
 
@@ -106,11 +132,11 @@ let
 
 in
 mkShell {
-  buildInputs = [ terraform pass deployNix provisionInfra ];
+  buildInputs = [ importKeys initPass terraform pass deployNix provisionInfra destroyInfra ];
   shellHook = ''
     if ! ${awscli}/bin/aws sts get-caller-identity 2>/dev/null ; then
       echo "Error: Not logged in to aws. Aborting"
-      echo "Use 'aws-mfa-login <user> <code>' to log in"
+      echo "Use 'eval \$(aws-mfa-login <user> <code>)' to log in"
       exit 1
     fi
 
@@ -123,12 +149,19 @@ mkShell {
     echo "Available commands:"
     echo ""
     echo -e "\t* provision-infra:  provision infrastructure"
+    echo -e "\t* destroy-infra:    destroy the infrastructure completely"
     echo -e "\t* deploy-nix:       deploy nix configuration to infrastructure"
     echo -e "\t* deploy:           provision infrastructure and deploy nix configuration"
+    echo ""
+    echo "Key handling"
+    echo ""
+    echo -e "\t* import-gpg-keys:  import all relevant gpg keys"
+    echo -e "\t* init-keys-${e}:   allow configured keys access to this environment"
     echo -e ""
     echo "Notes:"
     echo ""
-    echo "- Running 'aws-mfa-login' is a prerequisite to all commands"
-    echo "- The './terraform' dir has to be specified to run arbitrary terraform commands"
-  '' + lib.optionalString (isDarwin) ''echo "- Deploying on macOS requires a remote builder to work"'';
+    echo "- Being logged in to aws via 'aws-mfa-login' is a prerequisite to all infrastructure commands"
+    echo "- The './terraform' dir has to be specified to run arbitrary terraform commands (e.g. 'terraform plan ./terraform')"
+    echo "- The './morph/configurations.nix' file has to be specified to run arbitrary morph commands (e.g. 'morph build ./morph/configurations.nix) "
+  '' + lib.optionalString (stdenv.isDarwin) ''echo "- Deploying on macOS requires a remote builder to work"'';
 }

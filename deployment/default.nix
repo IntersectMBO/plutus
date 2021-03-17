@@ -1,83 +1,32 @@
-{ pkgs, plutus, marlowe-playground, plutus-playground, terraform }:
+{ pkgs ? (import ./.. { }).pkgs }:
 with pkgs;
 let
-  applyTerraform = env: region: { extraTerraformVars ? { } }:
-    writeShellScript "deploy" ''
-      set -eou pipefail
+  # Creates a deployment shell environment
+  mkDeploymentShell = pkgs.callPackage ./deployment-shell.nix { };
 
-      tmp_dir=$(mktemp -d)
-      echo "using tmp_dir $tmp_dir"
 
-      ln -s ${./terraform}/* "$tmp_dir"
+  /* We store developers public gpg keys in this project so this is a little
+     script that imports all the relevant keys.
+  */
+  importKeys =
+    let
+      nameToFile = name: ./. + "/keys/${name}";
+      keyFiles = lib.mapAttrsToList (name: value: nameToFile value.name) keys;
+      lines = map (k: "gpg --import ${k}") keyFiles;
+    in
+    writeShellScriptBin "import-gpg-keys" (lib.concatStringsSep "\n" lines);
 
-      # in case we have some tfvars around in ./terraform (note: don't use "" as it stops wildcards from working)
-      rm $tmp_dir/*.tfvars || true
-
-      cd "$tmp_dir"
-
-      echo "set output directory"
-      export TF_VAR_output_path="$tmp_dir"
-
-      echo "read secrets"
-      TF_VAR_marlowe_github_client_id=$(pass ${env}/marlowe/githubClientId)
-      TF_VAR_marlowe_github_client_secret=$(pass ${env}/marlowe/githubClientSecret)
-      TF_VAR_marlowe_jwt_signature=$(pass ${env}/marlowe/jwtSignature)
-      TF_VAR_plutus_github_client_id=$(pass ${env}/plutus/githubClientId)
-      TF_VAR_plutus_github_client_secret=$(pass ${env}/plutus/githubClientSecret)
-      TF_VAR_plutus_jwt_signature=$(pass ${env}/plutus/jwtSignature)
-
-      export TF_VAR_marlowe_github_client_id
-      export TF_VAR_marlowe_github_client_secret
-      export TF_VAR_marlowe_jwt_signature
-      export TF_VAR_plutus_github_client_id
-      export TF_VAR_plutus_github_client_secret
-      export TF_VAR_plutus_jwt_signature
-
-      # other terraform variables
-      export TF_VAR_env="${env}"
-      export TF_VAR_aws_region="${region}"
-      ${mkExtraTerraformVars extraTerraformVars}
-
-      echo "apply terraform"
-      ${terraform}/bin/terraform init
-      ${terraform}/bin/terraform workspace select ${env} || ${terraform}/bin/terraform workspace new ${env}
-      ${terraform}/bin/terraform apply
-
-      echo "json files created in $tmp_dir"
-
-      plutus_tld=$(cat $tmp_dir/machines.json | jq -r '.plutusTld')
-      cat > $tmp_dir/secrets.plutus.${env}.env <<EOL
-      JWT_SIGNATURE="$(pass ${env}/plutus/jwtSignature)"
-      FRONTEND_URL="https://${env}.$plutus_tld"
-      GITHUB_CALLBACK_PATH="/#/gh-oauth-cb"
-      GITHUB_CLIENT_ID="$(pass ${env}/plutus/githubClientId)"
-      GITHUB_CLIENT_SECRET="$(pass ${env}/plutus/githubClientSecret)"
-      WEBGHC_URL="https://${env}.$plutus_tld"
-      EOL
-
-      marlowe_tld=$(cat $tmp_dir/machines.json | jq -r '.marloweTld')
-      cat > $tmp_dir/secrets.marlowe.${env}.env <<EOL
-      JWT_SIGNATURE="$(pass ${env}/marlowe/jwtSignature)"
-      FRONTEND_URL="https://${env}.$marlowe_tld"
-      GITHUB_CALLBACK_PATH="/#/gh-oauth-cb"
-      GITHUB_CLIENT_ID="$(pass ${env}/marlowe/githubClientId)"
-      GITHUB_CLIENT_SECRET="$(pass ${env}/marlowe/githubClientSecret)"
-      EOL
-
-      # This is a nasty way to make deployment with morph easier since I cannot yet find a way to get morph deployments to work
-      # from within a nix derivation shell script.
-      # Once you have run this script you will have the correct information in the morph directory for morph to deploy to the EC2 instances
-      if [[ ! -z "$PLUTUS_ROOT" ]]; then
-        echo "copying machine information to $PLUTUS_ROOT/deployment/morph"
-        cp $tmp_dir/machines.json $PLUTUS_ROOT/deployment/morph/
-        cp $tmp_dir/secrets.plutus.${env}.env $PLUTUS_ROOT/deployment/morph/
-        cp $tmp_dir/secrets.marlowe.${env}.env $PLUTUS_ROOT/deployment/morph/
-      fi
-
-      # It is important to note that in terraform, a local_file will not be updated if it exists in the location that you define.
-      # Since we are using a temporary working directory, the file will always be re-created.
-      mkdir -p ~/.ssh/config.d
-      cp $tmp_dir/plutus_playground.${env}.conf ~/.ssh/config.d/
+  /* This will change an environment's pass entry to work with specific people's keys
+     i.e. If you want to enable a new developer to deploy to a specific environment you
+     need to add them to the list of keys for the environment and then re-encrypt with
+     this script.
+  */
+  initPass = env: keys:
+    let
+      ids = map (k: k.id) keys;
+    in
+    writeShellScriptBin "init-keys-${env}" ''
+      pass init -p ${env} ${lib.concatStringsSep " " ids}
     '';
 
   /* The set of all gpg keys that can be used by pass
@@ -93,50 +42,27 @@ let
     amyas = { name = "amyas.merivale.gpg"; id = "8504C0C97F2164419433AAF63F91FB4358BD1137"; };
   };
 
-  /* We store developers public gpg keys in this project so this is a little
-     script that imports all the relevant keys.
-  */
-  importKeys =
-    let
-      nameToFile = name: ./. + "/keys/${name}";
-      keyFiles = lib.mapAttrsToList (name: value: nameToFile value.name) keys;
-      lines = map (k: "gpg --import ${k}") keyFiles;
-    in
-    writeShellScript "import-gpg-keys" (lib.concatStringsSep "\n" lines);
-
-  /* This will change an environment's pass entry to work with specific people's keys
-     i.e. If you want to enable a new developer to deploy to a specific environment you
-     need to add them to the list of keys for the environment and then re-encrypt with
-     this script.
-  */
-  initPass = env: keys:
-    let
-      ids = map (k: k.id) keys;
-    in
-    writeShellScript "init-keys-${env}" ''
-      pass init -p ${env} ${lib.concatStringsSep " " ids}
-    '';
-
-  mkEnv = env: region: keyNames: extraParams: {
-    inherit terraform;
-    applyTerraform = (applyTerraform env region extraParams);
-    deploy = (deploy env region extraParams);
-    initPass = (initPass env keyNames);
-  };
-
   envs = {
-    kris = mkEnv "kris" "eu-west-1" [ keys.kris ] { };
-    alpha = mkEnv "alpha" "eu-west-2" [ keys.kris keys.pablo keys.hernan keys.tobias keys.amyas ] { };
-    pablo = mkEnv "pablo" "eu-west-3" [ keys.pablo ] { };
-    playground = mkEnv "playground" "us-west-1" [ keys.kris keys.pablo keys.hernan keys.tobias keys.amyas ] { };
-    testing = mkEnv "testing" "eu-west-3" [ keys.kris keys.pablo keys.hernan keys.tobias keys.amyas ] { };
-    hernan = mkEnv "hernan" "us-west-2" [ keys.hernan ] { };
-    tobias = mkEnv "tobias" "eu-west-1" [ keys.tobias ] { };
-    amyas = mkEnv "amyas" "eu-west-2" [ keys.amyas ] { };
+    kris = { region = "eu-west-1"; keys = [ keys.kris ]; };
+    alpha = { region = "eu-west-2"; keys = with keys; [ kris pablo hernan tobias amyas ]; };
+    pablo = { region = "eu-west-3"; keys = [ keys.pablo ]; };
+    playground = { region = "us-west-1"; keys = with keys; [ kris pablo hernan tobias amyas ]; };
+    testing = { region = "eu-west-3"; keys = with keys; [ kris pablo hernan tobias amyas ]; };
+    hernan = { region = "us-west-2"; keys = [ keys.hernan ]; };
+    tobias = { region = "eu-west-1"; keys = [ keys.tobias ]; };
+    amyas = { region = "eu-west-2"; keys = [ keys.amyas ]; };
+
     # this is anything that is defined in $PLUTUS_HOME/infrastructure such as the grafana instance
-    global = { initPass = (initPass "global" [ keys.kris keys.pablo keys.hernan ]); };
+    #TODO: global = { initPass = (initPass "global" [ keys.kris keys.pablo keys.hernan ]); };
   };
 
-  configTest = import ./morph/test.nix;
+
 in
-envs // { inherit configTest importKeys; }
+builtins.mapAttrs
+  (env: cfg: mkDeploymentShell {
+    e = env;
+    r = cfg.region;
+    initPass = (initPass env cfg.keys);
+    inherit importKeys;
+  })
+  envs
