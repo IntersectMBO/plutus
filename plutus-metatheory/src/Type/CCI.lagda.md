@@ -4,7 +4,7 @@ layout: page
 ---
 
 ```
-module Type.CC where
+module Type.CCI where
 ```
 
 ## Imports
@@ -12,7 +12,7 @@ module Type.CC where
 ```
 open import Type
 open import Type.RenamingSubstitution
-open import Type.ReductionC hiding (step)
+open import Type.ReductionCI hiding (step)
 
 open import Data.Product
 ```
@@ -111,6 +111,8 @@ step (E ◅ V) = helper V (dissect E)
 ```
 
 ```
+variable I' J' K' : Kind
+
 data _-→s_ : State K J → State K I → Set where
   base  : {s : State K J}
         → s -→s s
@@ -132,15 +134,9 @@ subst-step* : {s : State K J}{s' : State K J'}{s'' : State K I}
         → s -→s s''
 subst-step* refl q = q
 
-
-helper·r-lem : ∀(E : EvalCtx K J) B {A : ∅ ,⋆ K' ⊢⋆ J}(V : Value⋆ B) → 
-  helper V (dissect (extendEvalCtx E (V-ƛ A ·-))) ≡ (J , E ▻ (A [ B ]))
-helper·r-lem E B {A} V rewrite lemma E (V-ƛ A ·-) = refl
-
-
-helper·l-lem : ∀(E : EvalCtx K J) B {A' : ∅ ⊢⋆ K' ⇒ J}(V : Value⋆ A') → 
+helper·-lem : ∀(E : EvalCtx K J)(E' : EvalCtx K' I) B {A' : ∅ ⊢⋆ K' ⇒ J}(V : Value⋆ A') → 
    helper V (dissect (extendEvalCtx E (-· B))) ≡ (K' , extendEvalCtx E (V ·-) ▻ B)
-helper·l-lem E B V rewrite lemma E (-· B) = refl
+helper·-lem E E' B V rewrite lemma E (-· B) = refl
 
 helper⇒r-lem : ∀(E : EvalCtx K *){B}(W : Value⋆ B){A'}(V : Value⋆ A') →
    helper W (dissect (extendEvalCtx E (V ⇒-))) ≡ (* , E ◅ (V V-⇒ W))
@@ -179,90 +175,58 @@ lemV .(μ _ _) (V-μ V W) E = step*
                                       (step* refl (subst-step* ( helperμr-lem E W V) base))))))
 
 lem62 : (A : ∅ ⊢⋆ I)(B : ∅ ⊢⋆ J)(E : EvalCtx K J)(E' : EvalCtx J I)
-      → B ≡ closeEvalCtx E' A
+      → B ~  E' ⟦ A ⟧
       → (E ▻ B) -→s (compEvalCtx' E E' ▻ A)
-lem62 A .A E [] refl = base
-lem62 A .(_ · closeEvalCtx E' A) E (V ·r E') refl = step*
+lem62 A .A E [] (~[] .A) = base
+lem62 A .(_ · B) E (V ·r E') (~·r .A .V B .E' x) = step*
   refl
-  (step**
-    (lemV _ V (extendEvalCtx E (-· closeEvalCtx E' A)))
-    (step*
-      refl
-      (subst-step*
-        (helper·l-lem E (closeEvalCtx E' A) V)
-        (lem62 A (closeEvalCtx E' A) (extendEvalCtx E (V ·-)) E' refl))))
-lem62 A .(closeEvalCtx E' A · C) E (E' l· C) refl = step*
+  (step** (lemV _ V (extendEvalCtx E (-· B)))
+          (step* refl
+                 (subst-step* (helper·-lem E E' B V)
+                              (lem62 A B (extendEvalCtx E (V ·-)) E' x))))
+lem62 A .(A₁ · x₁) E (E' l· x₁) (~l· .A A₁ .x₁ .E' x) = step*
   refl
-  (lem62 A (closeEvalCtx E' A) (extendEvalCtx E (-· C)) E' refl)
-lem62 A .(_ ⇒ closeEvalCtx E' A) E (V ⇒r E') refl = step*
+  (lem62 A A₁ (extendEvalCtx E (-· x₁)) E' x)
+lem62 A .(_ ⇒ B) E (V ⇒r E') (~⇒r .A _ .V .E' B x) = step*
   refl
-  (step**
-    (lemV _ V (extendEvalCtx E (-⇒ closeEvalCtx E' A)))
-    (step*
-      refl
-      (subst-step* (helper⇒l-lem E _ V)
-                   (lem62 A _ (extendEvalCtx E (V ⇒-)) E' refl))))
-lem62 A B E (E' l⇒ C) refl = step*
+  (step** (lemV _ V (extendEvalCtx E (-⇒ B)))
+          (step* refl
+                 (subst-step* (helper⇒l-lem E B V)
+                              (lem62 A B (extendEvalCtx E (V ⇒-)) E' x))))
+lem62 A .(A₁ ⇒ x₁) E (E' l⇒ x₁) (~l⇒ .A A₁ .x₁ .E' x) = step*
   refl
-  (lem62 A _ (extendEvalCtx E (-⇒ C)) E' refl)
-lem62 A B E (μr V E') refl = step*
+  (lem62 A _ (extendEvalCtx E (-⇒ x₁)) E' x)
+lem62 A .(μ _ B) E (μr x₁ E') (~μr .A _ .x₁ .E' B x) = step*
   refl
-  (step**
-    (lemV _ V (extendEvalCtx E (μ- _)))
-    (step*
-      refl
-      (subst-step*
-        (helperμl-lem E _ V)
-        (lem62 A _ (extendEvalCtx E (μ V -)) E' refl))))
-lem62 A B E (μl E' C) refl = step*
+  (step** (lemV _ x₁ (extendEvalCtx E (μ- B)))
+          (step* refl
+                 (subst-step* (helperμl-lem E B x₁)
+                              (lem62 A B (extendEvalCtx E (μ x₁ -)) E' x))))
+lem62 A .(μ A₁ B₁) E (μl E' B₁) (~μl .A A₁ .B₁ .E' x) = step*
   refl
-  (lem62 A _ (extendEvalCtx E (μ- C)) E' refl)
+  (lem62 A _ (extendEvalCtx E (μ- B₁)) E' x)
 
 lem1 : (M : ∅ ⊢⋆ J)(B B' : ∅ ⊢⋆ K)(E : EvalCtx K J)
-  → B ≡ closeEvalCtx E M
-  → B —→E B'
-  → Σ Kind λ J'
-  → Σ (∅ ⊢⋆ J') λ N
-  → Σ (EvalCtx K J') λ E'
-  → B' ≡ closeEvalCtx E' N
-  × (E ▻ M) -→s (E' ▻ N)
-  × Σ (∅ ⊢⋆ J') λ L
-  → (B ≡ closeEvalCtx E' L)
-  × (L —→E N)
+  → B ~ E ⟦ M ⟧ → B —→⋆ B'
+  → Σ Kind λ J' → Σ (∅ ⊢⋆ J') λ N → Σ (EvalCtx K J') λ E'
+  → B' ~ E' ⟦ N ⟧ × (E ▻ M) -→s (E' ▻ N)
+  × Σ (∅ ⊢⋆ J') λ L →  (B ~ E' ⟦ L ⟧) × (L —→⋆ N)
 lem1 M B B' p = {!!}
-
-lem2 : (M : ∅ ⊢⋆ J)(B : ∅ ⊢⋆ K)(E : EvalCtx K J)
-  → (N : ∅ ⊢⋆ J')(B' : ∅ ⊢⋆ K)(E' : EvalCtx K J')
-  → B ≡ closeEvalCtx E M
-  → B' ≡ closeEvalCtx E' N
-  → B —→E B'
-  → Σ (∅ ⊢⋆ J') λ L → (B ≡ closeEvalCtx E' L)
-  × (L —→⋆ N) × 
-  ((Σ (EvalCtx J J') λ E'' → M ≡ closeEvalCtx E'' L) ⊎ Value⋆ M)
-lem2 M B E N B' E' p q r = {!!}
-
-lem-→⋆ : (A B : ∅ ⊢⋆ J)(E : EvalCtx K J) → A —→⋆ B → (E ▻ A) -→s (E ▻ B)
-lem-→⋆ (ƛ A · B) ._ E (β-ƛ V) = step* refl (step* refl (step* (helper·l-lem E B (V-ƛ A) ) (step** (lemV B V (extendEvalCtx E (V-ƛ A ·-))) (step* (helper·r-lem E B V) base))))
 
 unwind : (A : ∅ ⊢⋆ J)(A' : ∅ ⊢⋆ K)(E : EvalCtx K J) → A' ≡ closeEvalCtx E A → (V : Value⋆ A') → (E ▻ A) -→s ([] ◅ V)
 unwind = {!!}
 
 -- thm2 follows from this stronger theorem
 thm1 : (A : ∅ ⊢⋆ J)(A' : ∅ ⊢⋆ K)(E : EvalCtx K J)
-  → A' ≡ closeEvalCtx E A → (B : ∅ ⊢⋆ K)(V : Value⋆ B) → A' —↠E B -> (E ▻ A) -→s ([] ◅ V)
-thm1 A A' E p .A' V refl—↠E = unwind A A' E p V
-thm1 A A' E p B V (trans—↠E {B = B'} q r) with lemma51 B'
+  → A' ≡ closeEvalCtx E A → (B : ∅ ⊢⋆ K)(V : Value⋆ B) → A' —↠⋆ B -> (E ▻ A) -→s ([] ◅ V)
+thm1 A A' E p .A' V refl—↠⋆ = unwind A A' E p V
+thm1 A A' E p B V (trans—↠⋆ {B = B'} q r) with lemma51 B'
+... | inj₂ (J , E' , I , L , N , VL , VN , X) = step** {!!} (thm1 (L · N) B' E' X B V r)
+
 ... | inj₁ V' with v-refl B' B V' r
-... | refl = {!q!}
-thm1 A A' E p B V (trans—↠E {B = B'} q r)
-  | inj₂ (J , E' , I , L , N , VL , VN , X)
-  with lem2 A A' E (L · N) B' E' p X q
-... | L' , p' , XX , inj₁ (E'' , p'') = step** (step** (lem62 L' A E E'' p'') (subst-step* (cong (λ E → J , E ▻ L') {!!}) (lem-→⋆ _ _ E' XX)) ) (thm1 (L · N) B' E' X B V r)
-... | L' , p' , XX , inj₂ y = {!!}
---  = step** {!lem2 A A' E (L · N) B' E' p X q!} (thm1 (L · N) B' E' X B V r)
--- we have E [ A ] -> E [ L . N ]
--- then r is reflexivity but we still have one step which goes to a value
+... | refl , refl = step** {!!} (unwind {!!} {!!} {!!} {!!} V)
+
 -- this is the result we want
-thm2 : (A B : ∅ ⊢⋆ K)(V : Value⋆ B) → A —↠E B -> ([] ▻ A) -→s ([] ◅ V)
+thm2 : (A B : ∅ ⊢⋆ K)(V : Value⋆ B) → A —↠⋆ B -> ([] ▻ A) -→s ([] ◅ V)
 thm2 A B V p = thm1 A A [] refl B V p
 ```
