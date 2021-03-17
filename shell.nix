@@ -7,7 +7,7 @@
 , enableHaskellProfiling ? false
 }:
 let
-  inherit (packages) pkgs plutus plutus-playground marlowe-playground plutus-pab marlowe-dashboard deployment;
+  inherit (packages) pkgs plutus plutus-playground marlowe-playground plutus-pab marlowe-dashboard deployment docs;
   inherit (pkgs) stdenv lib utillinux python3 nixpkgs-fmt;
   inherit (plutus) haskell agdaPackages stylish-haskell sphinxcontrib-haddock nix-pre-commit-hooks;
   inherit (plutus) agdaWithStdlib;
@@ -83,6 +83,7 @@ let
     updateClientDeps
     updateMetadataSamples
     deployment.getCreds
+    docs.serve-docs
   ]);
 
 in
