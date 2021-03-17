@@ -10,3 +10,4 @@ Tutorials
    plutus-tx
    basic-validators
    basic-forging-policies
+   troubleshooting
