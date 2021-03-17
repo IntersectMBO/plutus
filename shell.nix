@@ -83,7 +83,7 @@ let
     updateClientDeps
     updateMetadataSamples
     deployment.getCreds
-    docs.serve-docs
+    docs.build-and-serve-docs
   ]);
 
 in
