@@ -37,8 +37,6 @@ import           Cardano.Protocol.Socket.Client  (runClientNode)
 import           Control.Concurrent.Availability (Availability, available)
 import           Ledger.Slot                     (Slot (..))
 
-import qualified Debug.Trace                     as Dbg
-
 -- $chainIndex
 -- The PAB chain index that keeps track of transaction data (UTXO set enriched
 -- with datums)
@@ -48,7 +46,7 @@ app trace stateVar =
     serve (Proxy @API) $
     hoistServer
         (Proxy @API)
-        (liftIO . Dbg.trace "[xxx] Processing index effects from web server" . processIndexEffects trace stateVar)
+        (liftIO . processIndexEffects trace stateVar)
         (healthcheck :<|> startWatching :<|> watchedAddresses :<|> confirmedBlocks :<|> WalletEffects.transactionConfirmed :<|> WalletEffects.nextTx)
 
 main :: ChainIndexTrace -> ChainIndexConfig -> FilePath -> Availability -> IO ()
@@ -66,5 +64,4 @@ main trace ChainIndexConfig{ciBaseUrl} socketPath availability = runLogEffects t
             warpSettings = Warp.defaultSettings & Warp.setPort servicePort & Warp.setBeforeMainLoop isAvailable
             updateChainState :: MVar AppState -> Block -> Slot -> IO ()
             updateChainState mv block slot =
-                Dbg.trace "[xxx] Client chain state updating.." $
-                    processIndexEffects trace mv $ syncState block slot
+                processIndexEffects trace mv $ syncState block slot

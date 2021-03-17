@@ -9,11 +9,11 @@
 module Cardano.Protocol.Socket.Client where
 
 import qualified Data.ByteString.Lazy                                as LBS
+import           Data.Time.Units                                     (Second, TimeUnit, toMicroseconds)
 import           Data.Void                                           (Void)
 
 import           Control.Concurrent
 import           Control.Concurrent.STM
-import qualified Control.Exception                                   as E
 import           Control.Tracer
 
 import           Ouroboros.Network.Block                             (Point (..))
@@ -32,13 +32,10 @@ import           Ouroboros.Network.Socket
 import           Cardano.Protocol.Socket.Type
 import           Ledger                                              (Block, Slot (..), Tx (..))
 
-import qualified Debug.Trace                                         as Dbg
-
 -- | Client handler, used to communicate with the client thread.
 data ClientHandler = ClientHandler
     { chInputQueue  :: TQueue Tx
     , chSocketPath  :: FilePath
-    -- , chThreadId    :: ThreadId
     , chCurrentSlot :: MVar Slot
     , chHandler     :: (Block -> Slot -> IO ())
     }
@@ -57,12 +54,14 @@ getCurrentSlot ::
 getCurrentSlot ClientHandler { chCurrentSlot } =
     readMVar chCurrentSlot
 
--- | Forks and starts a new client node, returning the newly allocated thread id.
+{-| Forks and starts a new client node, returning the newly allocated thread id.
+    The client will retry connecting if the the protocol connection drops, or
+    cannot be established. -}
 runClientNode :: FilePath
               -> (Block -> Slot -> IO ())
               -> IO ClientHandler
 runClientNode socketPath onNewBlock = do
-    inputQueue  <- Dbg.trace "[xxx] running client node" $ newTQueueIO
+    inputQueue  <- newTQueueIO
     -- Right now we synchronise the whole blockchain so we can initialise the first
     -- slot to be 0. This will change when we start looking for intersection points.
     mSlot    <- newMVar (Slot 0)
@@ -72,13 +71,12 @@ runClientNode socketPath onNewBlock = do
                                , chHandler = onNewBlock
                                }
 
-    _ <- forkIO $ withIOManager $ loop handle
+    _ <- forkIO $ withIOManager $ loop (1 :: Second) handle
     pure handle
-
     where
-      loop :: ClientHandler -> IOManager -> IO ()
-      loop ch@ClientHandler{chSocketPath, chInputQueue, chCurrentSlot, chHandler} iocp = do
-        ((Dbg.trace ("[xxx] node client starting [" <> chSocketPath <> "]") $ connectToNode
+      loop :: TimeUnit a => a -> ClientHandler -> IOManager -> IO ()
+      loop timeout ch@ClientHandler{chSocketPath, chInputQueue, chCurrentSlot, chHandler} iocp = do
+        connectToNode
           (localSnocket iocp socketPath)
           unversionedHandshakeCodec
           (cborTermVersionDataCodec unversionedProtocolDataCodec)
@@ -86,10 +84,9 @@ runClientNode socketPath onNewBlock = do
           acceptableVersion
           (unversionedProtocol (app chCurrentSlot chHandler chInputQueue))
           Nothing
-          (localAddressFromPath chSocketPath)) `E.catch` (\(e :: E.SomeException) -> putStrLn ("\n[xxx] " <> show e <> " " <> chSocketPath <> "\n")))
-        (Dbg.trace "[xxx] CONNECTION FAILED" $ putStrLn "CONNECTION FAILED")
-        threadDelay (1 * 1000000)
-        loop ch iocp
+          (localAddressFromPath chSocketPath)
+        threadDelay (fromIntegral $ toMicroseconds timeout)
+        loop timeout ch iocp
 
       {- Application that communicates using 2 multiplexed protocols
          (ChainSync and TxSubmission). -}

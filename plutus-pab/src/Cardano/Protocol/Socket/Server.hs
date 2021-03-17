@@ -51,8 +51,6 @@ import           Ledger                                              (Block, Slo
 import           Wallet.Emulator.Chain                               (ChainState (..))
 import qualified Wallet.Emulator.Chain                               as Chain
 
-import qualified Debug.Trace                                         as Dbg
-
 data CommandChannel = CommandChannel
   { ccCommand  :: TQueue ServerCommand
   , ccResponse :: TQueue ServerResponse
@@ -142,7 +140,7 @@ runServerNode ::
  -> ChainState
  -> m ServerHandler
 runServerNode shSocketPath initialState = liftIO $ do
-    serverState      <- Dbg.trace "[xxx] running server node" $ initialiseInternalState initialState
+    serverState      <- initialiseInternalState initialState
     shCommandChannel <- CommandChannel <$> newTQueueIO <*> newTQueueIO
     void $ forkIO . void    $ protocolLoop  shSocketPath     serverState
     void $ forkIO . forever $ handleCommand shCommandChannel serverState

@@ -13,7 +13,7 @@ walletServerConfig:
 
 nodeServerConfig:
   mscBaseUrl: http://localhost:9082
-  mscSocketPath: /Users/roa/Spaces/iohk/plutus/plutus-pab/tx-inject/node-server.sock
+  mscSocketPath: ./node-server.sock
   mscSlotLength: 5
   mscBlockReaper:
     brcInterval: 6000000

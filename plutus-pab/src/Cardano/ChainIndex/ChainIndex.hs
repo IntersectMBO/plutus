@@ -35,8 +35,6 @@ import           Wallet.Emulator.ChainIndex       (ChainIndexControlEffect, Chai
 import qualified Wallet.Emulator.ChainIndex       as ChainIndex
 import           Wallet.Emulator.NodeClient       (ChainClientNotification (BlockValidated, SlotChanged))
 
-import qualified Debug.Trace                      as Dbg
-
 healthcheck :: Monad m => m NoContent
 healthcheck = pure NoContent
 
@@ -57,7 +55,7 @@ syncState ::
     -> Slot
     -> Eff effs ()
 syncState block slot =
-    Dbg.trace "doing notify" $ traverse_ ChainIndex.chainIndexNotify [BlockValidated block, SlotChanged slot]
+    traverse_ ChainIndex.chainIndexNotify [BlockValidated block, SlotChanged slot]
 
 processIndexEffects ::
     MonadIO m
@@ -66,7 +64,7 @@ processIndexEffects ::
     -> Eff (ChainIndexEffects IO) a
     -> m a
 processIndexEffects trace stateVar eff = do
-    AppState {_indexState, _indexEvents} <- Dbg.trace "[xxx] Processing index effects" $ liftIO $ takeMVar stateVar
+    AppState {_indexState, _indexEvents} <- liftIO $ takeMVar stateVar
     (result, newState) <- liftIO
         $ ChainIndex.handleChainIndexControl eff
         & ChainIndex.handleChainIndex

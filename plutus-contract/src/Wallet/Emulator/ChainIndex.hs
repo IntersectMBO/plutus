@@ -42,8 +42,6 @@ import           Ledger.Slot                      (Slot)
 import           Ledger.Tx                        (txId)
 import           Ledger.TxId                      (TxId)
 
-import qualified Debug.Trace                      as Dbg
-
 data ChainIndexControlEffect r where
     ChainIndexNotify :: ChainClientNotification -> ChainIndexControlEffect ()
 makeEffect ''ChainIndexControlEffect
@@ -87,10 +85,10 @@ type ChainIndexEffs = '[State ChainIndexState, LogMsg ChainIndexEvent]
 handleChainIndexControl
     :: (Members ChainIndexEffs effs)
     => Eff (ChainIndexControlEffect ': effs) ~> Eff effs
-handleChainIndexControl = Dbg.trace "[xxx] Chain Index Control" $ interpret $ \case
-    ChainIndexNotify (SlotChanged sl) -> Dbg.trace "[xxx] slot changed" $ modify (idxCurrentSlot .~ Just (Max sl))
+handleChainIndexControl = interpret $ \case
+    ChainIndexNotify (SlotChanged sl) -> modify (idxCurrentSlot .~ Just (Max sl))
     ChainIndexNotify (BlockValidated txns) -> do
-        Dbg.trace "[xxx] block validated" $ logDebug $ ReceiveBlockNotification (length txns)
+        logDebug $ ReceiveBlockNotification (length txns)
         modify (idxConfirmedBlocks <>~ pure txns)
         (cs, addressMap) <- (,) <$> gets _idxCurrentSlot <*> gets _idxWatchedAddresses
         let currentSlot = maybe 0 getMax cs
