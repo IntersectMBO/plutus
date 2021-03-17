@@ -11,7 +11,7 @@ import Halogen.HTML.Events.Extra (onClick_, onValueInput_)
 import Halogen.HTML.Properties (InputType(..), disabled, for, href, id_, list, placeholder, readOnly, type_, value)
 import MainFrame.Lenses (_card)
 import Marlowe.Semantics (PubKey)
-import Material.Icons as Icon
+import Material.Icons (Icon(..), icon_)
 import Network.RemoteData (RemoteData)
 import Pickup.Types (Action(..), Card(..), State)
 import Prim.TypeError (class Warn, Text)
@@ -39,22 +39,22 @@ renderPickupState wallets newWalletNickname newWalletContractId remoteDataPubKey
 renderPickupCard :: forall p. WalletLibrary -> Nickname -> String -> RemoteData AjaxError PubKey -> Maybe Card -> HTML p Action
 renderPickupCard wallets newWalletNickname newWalletContractId remoteDataPubKey card =
   div
-    [ classNames $ Css.cardWrapper $ isNothing card ]
+    [ classNames $ Css.overlay $ isNothing card ]
     [ div
-        [ classNames $ Css.card ]
+        [ classNames Css.cardWrapper ]
         [ div
-            [ classNames [ "flex", "justify-end" ] ]
-            [ a
-                [ classNames [ "p-2", "text-green" ]
-                , onClick_ $ SetCard Nothing
+            [ classNames $ Css.card $ isNothing card ]
+            [ div
+                [ classNames [ "flex", "justify-end", "-m-3", "mb-3", "sticky", "top-0" ] ]
+                [ a
+                    [ onClick_ $ SetCard Nothing ]
+                    [ icon_ Close ]
                 ]
-                [ Icon.close_ ]
+            , div_
+                $ (flip foldMap card) \cardType -> case cardType of
+                    PickupNewWalletCard -> [ pickupNewWalletCard wallets newWalletNickname newWalletContractId remoteDataPubKey ]
+                    PickupWalletCard walletDetails -> [ pickupWalletCard walletDetails ]
             ]
-        , div
-            [ classNames [ "px-4", "pb-4" ] ]
-            $ (flip foldMap card) \cardType -> case cardType of
-                PickupNewWalletCard -> [ pickupNewWalletCard wallets newWalletNickname newWalletContractId remoteDataPubKey ]
-                PickupWalletCard walletDetails -> [ pickupWalletCard walletDetails ]
         ]
     ]
 
@@ -67,10 +67,10 @@ pickupNewWalletCard wallets newWalletNickname newWalletContractId remoteDataPubK
   in
     div_
       [ p
-          [ classNames [ "font-bold", "mb-4" ] ]
-          [ text "Play wallet generated" ]
+          [ classNames [ "font-bold", "mb-3" ] ]
+          [ text "Demo wallet generated" ]
       , div
-          [ classNames $ Css.hasNestedLabel <> [ "mb-4" ] ]
+          [ classNames $ Css.hasNestedLabel <> [ "mb-3" ] ]
           $ [ label
                 [ classNames $ Css.nestedLabel
                 , for "newWalletNickname"
@@ -89,7 +89,7 @@ pickupNewWalletCard wallets newWalletNickname newWalletContractId remoteDataPubK
                 [ text $ foldMap show mNicknameError ]
             ]
       , div
-          [ classNames $ Css.hasNestedLabel <> [ "mb-4" ] ]
+          [ classNames $ Css.hasNestedLabel <> [ "mb-3" ] ]
           [ label
               [ classNames Css.nestedLabel
               , for "newWalletKey"
@@ -106,7 +106,7 @@ pickupNewWalletCard wallets newWalletNickname newWalletContractId remoteDataPubK
       , div
           [ classNames [ "flex" ] ]
           [ button
-              [ classNames $ Css.secondaryButton <> [ "flex-1", "mr-4" ]
+              [ classNames $ Css.secondaryButton <> [ "flex-1", "mr-3" ]
               , onClick_ $ SetCard Nothing
               ]
               [ text "Cancel" ]
@@ -128,10 +128,10 @@ pickupWalletCard walletDetails =
   in
     div_
       [ p
-          [ classNames [ "font-bold", "mb-4" ] ]
+          [ classNames [ "font-bold", "mb-3" ] ]
           [ text $ "Play wallet " <> nickname ]
       , div
-          [ classNames $ Css.hasNestedLabel <> [ "mb-4" ] ]
+          [ classNames $ Css.hasNestedLabel <> [ "mb-3" ] ]
           $ [ label
                 [ classNames $ Css.nestedLabel
                 , for "nickname"
@@ -146,7 +146,7 @@ pickupWalletCard walletDetails =
                   ]
             ]
       , div
-          [ classNames $ Css.hasNestedLabel <> [ "mb-4" ] ]
+          [ classNames $ Css.hasNestedLabel <> [ "mb-3" ] ]
           [ label
               [ classNames Css.nestedLabel
               , for "walletId"
@@ -163,7 +163,7 @@ pickupWalletCard walletDetails =
       , div
           [ classNames [ "flex" ] ]
           [ button
-              [ classNames $ Css.secondaryButton <> [ "flex-1", "mr-4" ]
+              [ classNames $ Css.secondaryButton <> [ "flex-1", "mr-3" ]
               , onClick_ $ SetCard Nothing
               ]
               [ text "Cancel" ]
@@ -194,25 +194,25 @@ renderPickupScreen wallets =
 pickupWalletScreen :: forall p. WalletLibrary -> HTML p Action
 pickupWalletScreen wallets =
   main
-    [ classNames [ "p-4", "max-w-sm", "mx-auto", "text-center" ] ]
+    [ classNames [ "p-3", "max-w-sm", "mx-auto", "text-center" ] ]
     [ h1
-        [ classNames [ "text-4xl", "font-bold", "mb-4" ] ]
+        [ classNames [ "text-3xl", "font-bold", "mb-3" ] ]
         [ text "Marlowe" ]
     , p
-        [ classNames [ "mb-4" ] ]
+        [ classNames [ "mb-3" ] ]
         [ text "To use Marlowe Run, generate a new demo wallet." ]
     , button
-        [ classNames $ Css.primaryButton <> [ "w-full", "mb-4" ]
+        [ classNames $ Css.primaryButton <> [ "w-full", "text-center", "mb-3" ]
         , onClick_ GenerateNewWallet
         ]
-        [ text "Generate play wallet" ]
-    , hr [ classNames [ "mb-4" ] ]
+        [ text "Generate demo wallet" ]
+    , hr [ classNames [ "mb-3", "max-w-xs", "mx-auto" ] ]
     , p
-        [ classNames [ "mb-4" ] ]
+        [ classNames [ "mb-3" ] ]
         [ text "Or use an existing one by selecting from the list or typing a public key or nickname." ]
     , input
         [ type_ InputText
-        , classNames $ Css.input false <> [ "w-full" ]
+        , classNames $ Css.inputCard false
         , id_ "existingWallet"
         , list "walletNicknames"
         , placeholder "Chose or input key/nickname"
@@ -224,7 +224,7 @@ pickupWalletScreen wallets =
 link :: forall p a. String -> String -> HTML p a
 link label url =
   a
-    [ classNames [ "flex", "items-center", "p-2" ]
+    [ classNames [ "flex", "items-center", "p-2", "font-bold" ]
     , href url
     ]
     [ text label ]

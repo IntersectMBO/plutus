@@ -6,6 +6,7 @@ import Prelude hiding (div)
 import Contract.Lenses (_executionState, _mActiveUserParty, _metadata, _participants, _step, _tab)
 import Contract.Types (Action(..), State, Tab(..))
 import Css (applyWhen, classNames)
+import Css as Css
 import Data.Array (intercalate, nub, range)
 import Data.Array as Array
 import Data.Array.NonEmpty (NonEmptyArray)
@@ -28,7 +29,7 @@ import Halogen.HTML.Properties (enabled)
 import Marlowe.Execution (NamedAction(..), _contract, _namedActions, _state, getActionParticipant)
 import Marlowe.Extended (contractTypeName)
 import Marlowe.Semantics (Bound(..), ChoiceId(..), Input(..), Party(..), Token(..), _accounts)
-import Material.Icons as Icons
+import Material.Icons (Icon(..), icon)
 
 contractDetailsCard :: forall p. State -> HTML p Action
 contractDetailsCard state =
@@ -61,7 +62,7 @@ renderCurrentState state =
             true -> [ "active" ]
             false -> []
   in
-    div [ classNames [ "rounded-xl", "shadow-current-step", "overflow-hidden" ] ]
+    div [ classNames [ "rounded", "shadow-current-step", "overflow-hidden" ] ]
       [ div [ classNames [ "flex", "overflow-hidden" ] ]
           [ a
               [ classNames (tabSelector $ currentTab == Tasks)
@@ -75,15 +76,13 @@ renderCurrentState state =
               [ span_ $ [ text "Balances" ] ]
           ]
       , div [ classNames [ "max-h-contract-card", "bg-white" ] ]
-          -- FIXME: zeplin has border color #dfdfdf, see if it makes sense to add that one to the pallete
-          --        or if this gray is fine
-          [ div [ classNames [ "py-2.5", "px-4", "flex", "items-center", "border-b", "border-gray" ] ]
+          [ div [ classNames [ "py-2.5", "px-4", "flex", "items-center", "border-b", "border-lightgray" ] ]
               [ span
                   [ classNames [ "text-xl", "font-semibold", "flex-grow" ] ]
                   [ text $ "Step " <> show stepNumber ]
               , span
-                  [ classNames [ "flex-grow", "rounded-3xl", "bg-gray", "py-2", "flex", "items-center" ] ]
-                  [ Icons.timer [ "pl-3" ]
+                  [ classNames [ "flex-grow", "rounded", "bg-lightgray", "py-2", "flex", "items-center" ] ]
+                  [ icon Timer [ "pl-3" ]
                   , span [ classNames [ "text-xs", "flex-grow", "text-center", "font-semibold" ] ]
                       [ text "1hr 2mins left" ]
                   ]
@@ -202,11 +201,11 @@ renderAction isActiveParticipant (MakeDeposit intoAccountOf by token value) =
   div_
     [ shortDescription isActiveParticipant "chocolate pastry apple pie lemon drops apple pie halvah FIXME"
     , button
-        [ classNames $ [ "flex", "justify-between", "px-6", "font-bold", "w-full", "py-5", "mt-2", "rounded-3xl", "shadow" ]
+        [ classNames $ [ "w-full", "flex", "justify-between", "mt-2" ]
             <> if isActiveParticipant then
-                [ "bg-gradient-to-r", "from-blue", "to-lightblue", "text-white" ]
+                Css.primaryButton
               else
-                [ "bg-gray", "text-black", "opacity-50", "cursor-default" ]
+                Css.secondaryButton
         , enabled isActiveParticipant
         -- FIXME
         -- , onClick_ $ NEEDACTION
@@ -259,11 +258,11 @@ renderAction isActiveParticipant CloseContract =
     [ shortDescription isActiveParticipant "chocolate pastry apple pie lemon drops apple pie halvah FIXME"
     , button
         [ classNames
-            $ [ "font-bold", "w-full", "py-5", "mt-2", "rounded-3xl", "shadow" ]
+            $ [ "w-full", "flex", "justify-between", "mt-2" ]
             <> if isActiveParticipant then
-                [ "bg-gradient-to-r", "from-blue", "to-lightblue", "text-white" ]
+                Css.primaryButton
               else
-                [ "bg-gray", "text-black", "opacity-50", "cursor-default" ]
+                Css.secondaryButton
         , enabled isActiveParticipant
         -- FIXME
         -- , onClick_ $ NEEDACTION

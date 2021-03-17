@@ -11,16 +11,14 @@ import Data.Lens ((^.))
 import Halogen.HTML (HTML, a, div, h2, p_, span, text)
 import Halogen.HTML.Events.Extra (onClick_)
 import Marlowe.Extended (contractTypeName, contractTypeInitials)
-import Material.Icons as Icon
+import Material.Icons (Icon(..), icon_)
 
 contractsScreen :: forall p. State -> HTML p Action
 contractsScreen state =
   let
-    selectorButton isActive =
-      Css.button <> [ "font-bold", "w-48" ]
-        <> case isActive of
-            true -> [ "bg-white", "shadow-deep" ]
-            false -> [ "bg-gray" ]
+    selectorButton true = Css.whiteButton
+
+    selectorButton false = Css.secondaryButton
 
     viewSelector =
       div [ classNames [ "flex", "my-4", "justify-center" ] ]
@@ -37,20 +35,16 @@ contractsScreen state =
         ]
   in
     div
-      [ classNames [ "p-4" ] ]
+      [ classNames [ "p-3", "md:px-5pc" ] ]
       [ h2 [ classNames [ "font-semibold" ] ]
           [ text "Home" ]
       , viewSelector
       , renderContractList state
       , a
-          [ classNames Css.fixedPrimaryButton
+          [ classNames $ Css.primaryButton <> Css.withIcon Add <> Css.fixedBottomRight
           , onClick_ $ ToggleTemplateLibraryCard
           ]
-          [ span
-              [ classNames [ "mr-2" ] ]
-              [ text "Create" ]
-          , Icon.add_
-          ]
+          [ text "Create" ]
       ]
 
 renderContractList :: forall p. State -> HTML p Action
@@ -89,18 +83,18 @@ contractCard contractState =
     div
       -- NOTE: The overflow hidden helps fix a visual bug in which the background color eats away the border-radius
       [ classNames
-          [ "cursor-pointer", "shadow-lg", "bg-white", "rounded-xl", "md:mx-auto", "md:w-96", "overflow-hidden" ]
+          [ "cursor-pointer", "shadow", "bg-white", "rounded", "md:mx-auto", "md:w-96", "overflow-hidden" ]
       , onClick_ $ OpenContract contractState
       ]
-      [ div [ classNames [ "flex", "px-4", "pt-4" ] ]
+      [ div [ classNames [ "flex", "px-3", "pt-3" ] ]
           [ span [ classNames [ "text-xl", "font-semibold" ] ] [ text contractAcronym ]
           , span [ classNames [ "flex-grow", "text-xs" ] ] [ text contractType ]
-          , Icon.east_
+          , icon_ ArrowRight
           ]
-      , div [ classNames [ "font-semibold", "px-4", "py-2" ] ]
+      , div [ classNames [ "font-semibold", "px-3", "py-1" ] ]
           [ text longTitle
           ]
-      , div [ classNames [ "bg-gray", "flex", "flex-col", "px-4", "py-2" ] ]
+      , div [ classNames [ "bg-lightgray", "flex", "flex-col", "px-3", "py-1" ] ]
           [ span [ classNames [ "text-xs" ] ] [ text $ "Step " <> show stepNumber <> ":" ]
           , span [ classNames [ "text-xl" ] ] [ text timeoutStr ]
           ]
