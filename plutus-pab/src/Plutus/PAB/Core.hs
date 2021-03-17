@@ -21,6 +21,7 @@ module Plutus.PAB.Core
     , PABAction
     , EffectHandlers(..)
     , runPAB
+    , PABEnvironment(appEnv)
     -- * Logging
     , logString
     , logPretty
@@ -53,13 +54,18 @@ module Plutus.PAB.Core
     , toUUID
     -- * Effect handlers
     , AppMsg(..)
+    , handleMappedReader
+    , handleUserEnvReader
+    , handleBlockchainEnvReader
+    , handleInstancesStateReader
+    , timed
     ) where
 
 import           Control.Concurrent.STM                          (STM)
 import qualified Control.Concurrent.STM                          as STM
 import           Control.Monad                                   (forM, guard, void)
-import           Control.Monad.Freer                             (Eff, LastMember, Member, interpret, reinterpret, runM,
-                                                                  send, subsume, type (~>))
+import           Control.Monad.Freer                             (Eff, Member, interpret, reinterpret, runM, send,
+                                                                  subsume, type (~>))
 import           Control.Monad.Freer.Error                       (Error, runError)
 import           Control.Monad.Freer.Extras.Log                  (LogMessage, LogMsg (..), LogObserve, handleObserveLog,
                                                                   logInfo, mapLog)
@@ -232,13 +238,13 @@ handleAgentThread wallet action = do
         $ runReader instancesState
         $ runReader blockchainEnv
         $ subsume @(Error PABError)
-        $ (interpret (mapLog @_ @(PABMultiAgentMsg t) EmulatorMsg) . reinterpret (timed @EmulatorEvent' @t @env @IO) . reinterpret (mapLog (WalletEvent wallet)) . reinterpret (mapLog GenericLog))
+        $ (interpret (mapLog @_ @(PABMultiAgentMsg t) EmulatorMsg) . reinterpret (timed @EmulatorEvent' @t @env) . reinterpret (mapLog (WalletEvent wallet)) . reinterpret (mapLog GenericLog))
         $ handleObserveLog
         $ interpret (mapLog ContractInstanceLog)
-        $ (interpret (mapLog @_ @(PABMultiAgentMsg t) EmulatorMsg) . reinterpret (timed @EmulatorEvent' @t @env @IO) . reinterpret (mapLog (WalletEvent wallet)) . reinterpret (mapLog RequestHandlerLog))
-        $ (interpret (mapLog @_ @(PABMultiAgentMsg t) EmulatorMsg) . reinterpret (timed @EmulatorEvent' @t @env @IO) . reinterpret (mapLog (WalletEvent wallet)) . reinterpret (mapLog TxBalanceLog))
+        $ (interpret (mapLog @_ @(PABMultiAgentMsg t) EmulatorMsg) . reinterpret (timed @EmulatorEvent' @t @env) . reinterpret (mapLog (WalletEvent wallet)) . reinterpret (mapLog RequestHandlerLog))
+        $ (interpret (mapLog @_ @(PABMultiAgentMsg t) EmulatorMsg) . reinterpret (timed @EmulatorEvent' @t @env) . reinterpret (mapLog (WalletEvent wallet)) . reinterpret (mapLog TxBalanceLog))
         $ handleUUIDEffect
-        $ handleServicesEffects
+        $ handleServicesEffects wallet
         $ handleContractStoreEffect
         $ handleContractEffect
         $ (handleContractRuntimeMsg @t . reinterpret @ContractRuntimeEffect @(LogMsg ContractRuntime.ContractRuntimeMsg) ContractRuntime.handleContractRuntime)
@@ -252,8 +258,7 @@ data EffectHandlers t env =
           --   started by the PAB.
           initialiseEnvironment :: forall m effs.
             ( Member (Error PABError) effs
-            , MonadIO m
-            , LastMember m effs
+            , MonadIO (Eff effs)
             )
             => Eff effs (InstancesState, BlockchainEnv, env)
 
@@ -261,8 +266,7 @@ data EffectHandlers t env =
         , handleLogMessages :: forall m effs.
             ( Member (Reader (PABEnvironment t env)) effs
             , Member (Error PABError) effs
-            , MonadIO m
-            , LastMember m effs
+            , MonadIO (Eff effs)
             )
             => Eff (LogMsg (PABMultiAgentMsg t) ': effs)
             ~> Eff effs
@@ -272,8 +276,7 @@ data EffectHandlers t env =
             ( Member (Reader (PABEnvironment t env)) effs
             , Member (Error PABError) effs
             , Member (LogMsg (PABMultiAgentMsg t)) effs
-            , MonadIO m
-            , LastMember m effs
+            , MonadIO (Eff effs)
             )
             => Eff (ContractStore t ': effs)
             ~> Eff effs
@@ -283,23 +286,21 @@ data EffectHandlers t env =
             ( Member (Reader (PABEnvironment t env)) effs
             , Member (Error PABError) effs
             , Member (LogMsg (PABMultiAgentMsg t)) effs
-            , MonadIO m
-            , LastMember m effs
+            , MonadIO (Eff effs)
             )
             => Eff (ContractEffect t ': effs)
             ~> Eff effs
 
         -- | Handle effects that serve requests to external services managed by the PAB
-        --   Runs in the context of a particular wallet (note the 'Reader Wallet' effect)
+        --   Runs in the context of a particular wallet.
         , handleServicesEffects :: forall m effs.
             ( Member (Reader (PABEnvironment t env)) effs
             , Member (Error PABError) effs
             , Member (LogMsg (PABMultiAgentMsg t)) effs
-            , Member (Reader Wallet) effs
-            , MonadIO m
-            , LastMember m effs
+            , MonadIO (Eff effs)
             )
-            => Eff (WalletEffect ': ChainIndexEffect ': NodeClientEffect ': effs)
+            => Wallet
+            -> Eff (WalletEffect ': ChainIndexEffect ': NodeClientEffect ': effs)
             ~> Eff effs
 
         -- | Action to run on startup
@@ -308,23 +309,6 @@ data EffectHandlers t env =
         -- | Action to run on shutdown
         , onShutdown :: PABAction t env ()
         }
-
--- -- | 'EffectHandlers' for running the PAB as a simulator (no connectivity to
--- --   out-of-process services such as wallet backend, node, etc.)
--- simulatorHandlers :: EffectHandlers TestContracts (SimulatorState TestContracts)
--- simulatorHandlers =
---     EffectHandlers
---         { initialiseEnvironment = liftIO Simulator.initialState
---         , handleContractStoreEffect =
---             interpret handleContractStore
---         , handleContractEffect =
---             handleContractTestMsg
---             . reinterpret handleContractTest
---         , handleLogMessages = undefined -- FIXME
---         , handleServicesEffects = undefined -- FIXME
---         , onStartup = pure () -- FIXME: Start clock thread
---         , onShutdown = pure ()
---         }
 
 -- applicationHandlers :: EffectHandlers ContractExe ()
 -- applicationHandlers = undefined
@@ -402,11 +386,10 @@ instance Pretty (ContractDef t) => Pretty (AppMsg t) where
 
 -- | Annotate log messages with the current slot number.
 timed ::
-    forall e t env m effs.
+    forall e t env effs.
     ( Member (LogMsg (EmulatorTimeEvent e)) effs
     , Member (Reader (PABEnvironment t env)) effs
-    , LastMember m effs
-    , MonadIO m
+    , MonadIO (Eff effs)
     )
     => LogMsg e
     ~> Eff effs
@@ -504,5 +487,34 @@ waitUntilFinished i =
     finalResult i >>= liftIO . STM.atomically
 
 -- | Read the 'env' from the environment
-userEnv :: forall t env. PABAction t env env
-userEnv = asks @(PABEnvironment t env) appEnv
+userEnv :: forall t env effs. Member (Reader (PABEnvironment t env)) effs => Eff effs env
+userEnv = interpret (handleUserEnvReader @t @env) ask
+
+handleMappedReader :: forall f g effs.
+    Member (Reader f) effs
+    => (f -> g)
+    -> Reader g
+    ~> Eff effs
+handleMappedReader f = \case
+    Ask -> asks @f f
+
+handleUserEnvReader :: forall t env effs.
+    Member (Reader (PABEnvironment t env)) effs
+    => Reader env
+    ~> Eff effs
+handleUserEnvReader = \case
+    Ask -> asks @(PABEnvironment t env) appEnv
+
+handleBlockchainEnvReader :: forall t env effs.
+    Member (Reader (PABEnvironment t env)) effs
+    => Reader BlockchainEnv
+    ~> Eff effs
+handleBlockchainEnvReader = \case
+    Ask -> asks @(PABEnvironment t env) blockchainEnv
+
+handleInstancesStateReader :: forall t env effs.
+    Member (Reader (PABEnvironment t env)) effs
+    => Reader InstancesState
+    ~> Eff effs
+handleInstancesStateReader = \case
+    Ask -> asks @(PABEnvironment t env) instancesState
