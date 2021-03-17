@@ -35,9 +35,12 @@ module Plutus.PAB.Core
     , AppMsg(..)
     ) where
 
-import           Control.Monad.Freer                     (Eff, LastMember, Member, runM, type (~>))
+import qualified Control.Concurrent.STM                  as STM
+import           Control.Monad.Freer                     (Eff, LastMember, Member, interpret, reinterpret, runM,
+                                                          subsume, type (~>))
 import           Control.Monad.Freer.Error               (Error, runError)
-import           Control.Monad.Freer.Extras.Log          (LogMsg, logInfo)
+import           Control.Monad.Freer.Extras.Log          (LogMessage, LogMsg (..), LogObserve, logInfo, mapLog)
+import qualified Control.Monad.Freer.Extras.Modify       as Modify
 import           Control.Monad.Freer.Reader              (Reader, ask, runReader)
 import           Control.Monad.IO.Class                  (MonadIO (..))
 import           Control.Monad.IO.Unlift                 (MonadUnliftIO)
@@ -50,18 +53,26 @@ import           Database.Persist.Sqlite                 (createSqlitePoolFromIn
 import           Eventful.Store.Sql                      (defaultSqlEventStoreConfig)
 import           GHC.Generics                            (Generic)
 import           Ledger.Tx                               (Tx)
-import           Plutus.PAB.Core.ContractInstance        (activateContractSTM)
+import           Plutus.PAB.Core.ContractInstance        (ContractInstanceMsg, activateContractSTM)
 import           Plutus.PAB.Core.ContractInstance.STM    (BlockchainEnv, InstancesState)
+import qualified Plutus.PAB.Core.ContractInstance.STM    as Instances
 import           Plutus.PAB.Effects.Contract             (ContractDefinitionStore, ContractEffect, ContractStore,
                                                           PABContract (..), addDefinition, getState)
+import qualified Plutus.PAB.Effects.ContractRuntime      as ContractRuntime
 import           Plutus.PAB.Effects.EventLog             (Connection (..))
 import qualified Plutus.PAB.Effects.EventLog             as EventLog
+import           Plutus.PAB.Effects.UUID                 (UUIDEffect, handleUUIDEffect)
 import           Plutus.PAB.Events.Contract              (ContractPABRequest)
 import           Plutus.PAB.Events.ContractInstanceState (PartiallyDecodedResponse)
-import           Plutus.PAB.Monitoring.PABLogMsg         (CoreMsg (..), PABLogMsg, PABMultiAgentMsg)
+import           Plutus.PAB.Monitoring.PABLogMsg         (ContractEffectMsg, CoreMsg (..), PABLogMsg (..),
+                                                          PABMultiAgentMsg (..))
 import           Plutus.PAB.Types                        (DbConfig (DbConfig), PABError, dbConfigFile, dbConfigPoolSize,
                                                           toUUID)
-import           Wallet.Effects                          (ChainIndexEffect, NodeClientEffect, WalletEffect)
+import           Wallet.Effects                          (ChainIndexEffect, ContractRuntimeEffect, NodeClientEffect,
+                                                          WalletEffect)
+import qualified Wallet.Emulator.Chain                   as Chain
+import           Wallet.Emulator.LogMessages             (RequestHandlerLogMsg, TxBalanceMsg)
+import           Wallet.Emulator.MultiAgent              (EmulatorEvent' (..), EmulatorTimeEvent (..), _singleton)
 import           Wallet.Emulator.Wallet                  (Wallet)
 import           Wallet.Types                            (ContractInstanceId)
 
@@ -121,28 +132,24 @@ runPAB effectHandlers action = runM $ runError $ do
 
 -- | Start a new instance of a contract
 activateContract :: forall t env a. PABContract t => Wallet -> ContractDef t -> PABAction t env ContractInstanceId
-activateContract w def = do
-    w
-    blockchainEnv <- ask @BlockchainEnv
-    instancesState <- ask @InstancesState
-    simState <- ask @(SimulatorState TestContracts)
-    let handler :: forall a. Eff (AgentEffects '[IO]) a -> IO a
-        handler x = fmap (either (error . show) id) (handleAgentThread simState blockchainEnv instancesState w x)
-    ContractInstance.activateContractSTM @TestContracts @IO @(AgentEffects '[IO]) handler def
+activateContract w def = undefined
+
+    -- let handler :: forall a. Eff (AgentEffects '[IO]) a -> IO a
+    --     handler x = fmap (either (error . show) id) (handleAgentThread simState blockchainEnv instancesState w x)
+    -- ContractInstance.activateContractSTM @TestContracts @IO @(AgentEffects '[IO]) handler def
 
 -- | Effects available to contract instances that run in their own thread
 type ContractInstanceEffects t env effs =
     ContractRuntimeEffect
-    ': ContractEffect TestContracts
-    ': ContractStore TestContracts
+    ': ContractEffect t
+    ': ContractStore t
     ': WalletEffect
     ': ChainIndexEffect
     ': NodeClientEffect
-    ': Chain.ChainEffect
     ': UUIDEffect
     ': LogMsg TxBalanceMsg
     ': LogMsg RequestHandlerLogMsg
-    ': LogMsg (ContractInstance.ContractInstanceMsg t)
+    ': LogMsg (ContractInstanceMsg t)
     ': LogObserve (LogMessage Text)
     ': LogMsg Text
     ': Error PABError
@@ -155,30 +162,32 @@ type ContractInstanceEffects t env effs =
 -- | Handle
 handleAgentThread ::
     forall t env a.
-    Eff (ContractInstanceEffects '[IO]) a
+    Wallet
+    -> Eff (ContractInstanceEffects t env '[IO]) a
     -> PABAction t env a
-handleAgentThread state blockchainEnv instancesState wallet action = do
-    let action' :: Eff (AgentEffects '[IO, LogMsg (PABMultiAgentMsg TestContracts), Error PABError, Reader (SimulatorState TestContracts), IO]) a = Modify.raiseEnd action
+handleAgentThread wallet action = do
+    e@PABEnvironment{effectHandlers, instancesState, blockchainEnv, appEnv} <- ask @(PABEnvironment t env)
+    let EffectHandlers{handleLogMessages} = effectHandlers
+    let action' :: Eff (ContractInstanceEffects t env '[IO, LogMsg (PABMultiAgentMsg t), Error PABError, Reader (PABEnvironment t env), IO]) a = Modify.raiseEnd action
         makeTimedWalletEvent wllt =
-            interpret (mapLog @_ @(PABMultiAgentMsg TestContracts) EmulatorMsg)
+            interpret (mapLog @_ @(PABMultiAgentMsg t) EmulatorMsg)
             . reinterpret (timed @EmulatorEvent')
             . reinterpret (mapLog (WalletEvent wllt))
         makeTimedChainEvent =
-            interpret (mapLog @_ @(PABMultiAgentMsg TestContracts) EmulatorMsg)
+            interpret (mapLog @_ @(PABMultiAgentMsg t) EmulatorMsg)
             . reinterpret (timed @EmulatorEvent')
             . reinterpret (mapLog ChainEvent)
         makeTimedChainIndexEvent wllt =
-            interpret (mapLog @_ @(PABMultiAgentMsg TestContracts) EmulatorMsg)
+            interpret (mapLog @_ @(PABMultiAgentMsg t) EmulatorMsg)
             . reinterpret (timed @EmulatorEvent')
             . reinterpret (mapLog (ChainIndexEvent wllt))
 
     runM
-        $ runReader state
+        $ runReader e
         $ runError
-        $ interpret (writeIntoTQueue @_ @(SimulatorState TestContracts) logMessages)
-        $ reinterpret @(LogMsg (PABMultiAgentMsg TestContracts)) @(Writer (LogMessage (PABMultiAgentMsg TestContracts))) (handleLogWriter id)  -- TODO: We could also print it to the terminal
+        $ interpret handleLogMessages
         $ subsume @IO
-        $ subsume @(Reader (SimulatorState TestContracts))
+        $ subsume @(Reader env)
         $ runReader wallet
         $ runReader blockchainEnv
         $ runReader instancesState
@@ -191,24 +200,26 @@ handleAgentThread state blockchainEnv instancesState wallet action = do
 
         $ handleUUIDEffect
 
-        $ makeTimedChainEvent
-        $ reinterpret @_ @(LogMsg Chain.ChainEvent) handleChainEffect
+        -- $ makeTimedChainEvent
+        -- $ reinterpret @_ @(LogMsg Chain.ChainEvent) handleChainEffect
 
-        $ interpret handleNodeClient
+        -- $ interpret handleNodeClient
 
-        $ makeTimedChainIndexEvent wallet
-        $ reinterpret @_ @(LogMsg ChainIndex.ChainIndexEvent) handleChainIndexEffect
+        -- $ makeTimedChainIndexEvent wallet
+        -- $ reinterpret @_ @(LogMsg ChainIndex.ChainIndexEvent) handleChainIndexEffect
 
-        $ flip (handleError @WAPI.WalletAPIError) (throwError @PABError . WalletError)
-        $ interpret (runWalletState wallet)
-        $ reinterpret2 @_ @(State Wallet.WalletState) @(Error WAPI.WalletAPIError) Wallet.handleWallet
+        -- $ flip (handleError @WAPI.WalletAPIError) (throwError @PABError . WalletError)
+        -- $ interpret (runWalletState wallet)
+        -- $ reinterpret2 @_ @(State Wallet.WalletState) @(Error WAPI.WalletAPIError) Wallet.handleWallet
 
-        $ interpret @(ContractStore TestContracts) handleContractStore
+        $ handleServicesEffects
 
-        $ handleContractEffectMsg @TestContracts
-        $ reinterpret @(ContractEffect TestContracts) @(LogMsg ContractEffectMsg) handleContractTest
+        $ interpret @(ContractStore t) handleContractStore
 
-        $ handleContractRuntimeMsg @TestContracts
+        $ handleContractEffectMsg @t
+        $ reinterpret @(ContractEffect t) @(LogMsg ContractEffectMsg) handleContractTest
+
+        $ handleContractRuntimeMsg @t
         $ reinterpret @ContractRuntimeEffect @(LogMsg ContractRuntime.ContractRuntimeMsg) ContractRuntime.handleContractRuntime
 
         $ action'
@@ -368,3 +379,20 @@ instance Pretty (ContractDef t) => Pretty (AppMsg t) where
         ContractInstances t s   -> pretty t <+> pretty s
         TxHistoryItem t         -> pretty t
         ContractHistoryItem i s -> pretty i <> colon <+> pretty s
+
+-- | Annotate log messages with the current slot number.
+timed ::
+    forall e m effs.
+    ( Member (LogMsg (EmulatorTimeEvent e)) effs
+    , Member (Reader BlockchainEnv) effs
+    , LastMember m effs
+    , MonadIO m
+    )
+    => LogMsg e
+    ~> Eff effs
+timed = \case
+    LMessage m -> do
+        m' <- forM m $ \msg -> do
+            sl <- asks @Instances.BlockchainEnv Instances.beCurrentSlot >>= liftIO . STM.readTVarIO
+            pure (EmulatorTimeEvent sl msg)
+        send (LMessage m')
