@@ -46,7 +46,7 @@ renderPlayState wallets newWalletNickname newWalletContractId remoteDataPubKey t
 renderHeader :: forall p. PubKey -> Boolean -> HTML p Action
 renderHeader walletNickname menuOpen =
   header
-    [ classNames $ [ "relative", "flex", "justify-between", "items-center", "leading-none", "border-b", "border-gray", "py-2", "px-3", "md:px-5pc" ] <> applyWhen menuOpen [ "border-0", "bg-black", "text-white" ] ]
+    [ classNames $ [ "relative", "flex", "justify-between", "items-center", "leading-none", "border-b", "border-gray", "py-2", "px-4", "md:px-5pc" ] <> applyWhen menuOpen [ "border-0", "bg-black", "text-white" ] ]
     [ h1
         [ classNames [ "text-xl", "font-bold" ] ]
         [ text "Marlowe" ]
@@ -99,7 +99,7 @@ renderMain wallets newWalletNickname newWalletContractId remoteDataPubKey templa
     screen = view _screen playState
   in
     main
-      [ classNames [ "relative", "px-3", "md:px-5pc" ] ]
+      [ classNames [ "relative", "px-4", "md:px-5pc" ] ]
       [ renderMobileMenu menuOpen
       , renderCards wallets newWalletNickname newWalletContractId remoteDataPubKey templates playState
       , renderScreen wallets screen playState
@@ -147,7 +147,7 @@ renderCards wallets newWalletNickname newWalletContractId remoteDataPubKey templ
           [ div
               [ classNames cardClasses ]
               [ div
-                  [ classNames [ "flex", "justify-end", "mb-3", "sticky", "top-0" ] ]
+                  [ classNames [ "flex", "justify-end", "mb-4", "sticky", "top-0" ] ]
                   [ a
                       [ onClick_ $ SetCard Nothing ]
                       [ icon_ Close ]
@@ -188,7 +188,7 @@ renderScreen wallets screen playState =
 renderFooter :: forall p. HTML p Action
 renderFooter =
   footer
-    [ classNames [ "hidden", "md:flex", "p-3", "md:px-5pc", "justify-between", "border-t", "border-gray" ] ]
+    [ classNames [ "hidden", "md:flex", "p-4", "md:px-5pc", "justify-between", "border-t", "border-gray" ] ]
     [ nav
         [ classNames [ "flex" ] ]
         dashboardLinks
@@ -215,7 +215,7 @@ iohkLinks =
 link :: forall p. String -> Either String Action -> HTML p Action
 link label urlOrAction =
   a
-    [ classNames [ "px-3", "py-2", "first:ml-0", "last:mr-0", "font-bold", "text-sm", "cursor-pointer" ]
+    [ classNames [ "px-4", "py-2", "first:ml-0", "last:mr-0", "font-bold", "text-sm", "cursor-pointer" ]
     , case urlOrAction of
         Left url -> href url
         Right action -> onClick_ action

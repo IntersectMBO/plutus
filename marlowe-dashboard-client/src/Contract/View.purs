@@ -82,7 +82,7 @@ renderCurrentState state =
                   [ text $ "Step " <> show stepNumber ]
               , span
                   [ classNames [ "flex-grow", "rounded", "bg-lightgray", "py-2", "flex", "items-center" ] ]
-                  [ icon Timer [ "pl-3" ]
+                  [ icon Timer [ "pl-4" ]
                   , span [ classNames [ "text-xs", "flex-grow", "text-center", "font-semibold" ] ]
                       [ text "1hr 2mins left" ]
                   ]
@@ -185,7 +185,7 @@ renderPartyTasks state party actions =
 
     participantName = participantWithNickname state party
   in
-    div [ classNames [ "mt-3" ] ]
+    div [ classNames [ "mt-4" ] ]
       ( [ div [ classNames [ "text-xs", "flex", "mb-2" ] ]
             -- TODO: In zeplin all participants have a different color. We need to decide how are we going to assing
             --       colors to users. For now they all have blue
@@ -290,11 +290,11 @@ renderBalances state =
   in
     div [ classNames [ "text-xs" ] ]
       ( append
-          [ div [ classNames [ "font-semibold", "py-3" ] ] [ text "Balance of accounts when the step was initiated." ]
+          [ div [ classNames [ "font-semibold", "py-4" ] ] [ text "Balance of accounts when the step was initiated." ]
           ]
           ( accounts'
               <#> ( \((party /\ token) /\ amount) ->
-                    div [ classNames [ "flex", "justify-between", "py-3", "border-t" ] ]
+                    div [ classNames [ "flex", "justify-between", "py-4", "border-t" ] ]
                       [ span_ [ text $ participantWithNickname state party ]
                       , span [ classNames [ "font-semibold" ] ] [ currency token amount ]
                       ]

@@ -57,7 +57,7 @@ contractSetupScreen wallets currentSlot state =
       [ navigationBar contractName
       , contractNicknameDisplay contractName contractNickname
       , div -- the containing grid sets the height of this div
-          [ classNames [ "px-3", "md:px-5pc" ] ]
+          [ classNames [ "px-4", "md:px-5pc" ] ]
           [ div -- and then this fills that height fully
               [ classNames [ "h-full", "overflow-y-auto" ] ]
               [ subHeader "top-0" true Roles "Roles" true
@@ -73,7 +73,7 @@ contractSetupScreen wallets currentSlot state =
 navigationBar :: forall p. String -> HTML p Action
 navigationBar contractName =
   div
-    [ classNames [ "flex", "justify-between", "items-center", "px-3", "py-2", "border-b", "border-gray", "md:px-5pc" ] ]
+    [ classNames [ "flex", "justify-between", "items-center", "px-4", "py-2", "border-b", "border-gray", "md:px-5pc" ] ]
     [ a
         -- "-ml-1" makes the icon line up properly
         [ classNames [ "flex", "items-center", "font-semibold", "-ml-1" ]
@@ -91,11 +91,11 @@ navigationBar contractName =
 contractNicknameDisplay :: forall p. String -> String -> HTML p Action
 contractNicknameDisplay contractName contractNickname =
   div
-    [ classNames [ "px-3", "md:px-5pc" ] ]
+    [ classNames [ "px-4", "md:px-5pc" ] ]
     [ div
-        [ classNames [ "ml-4", "border-l", "border-gray", "lg:ml-0", "lg:border-0" ] ]
+        [ classNames [ "ml-4", "border-l", "border-gray" ] ]
         [ div
-            [ classNames [ "max-w-sm", "lg:w-sm", "mx-auto", "px-3", "pt-2", "pb-1" ] ]
+            [ classNames [ "max-w-sm", "mx-auto", "px-4", "pt-2" ] ]
             [ input
                 [ classNames $ (Css.input $ null contractNickname) <> [ "bg-transparent", "font-semibold" ]
                 , type_ InputText
@@ -110,11 +110,11 @@ contractNicknameDisplay contractName contractNickname =
 subHeader :: forall p. String -> Boolean -> Icon -> String -> Boolean -> HTML p Action
 subHeader topMargin border i title accessible =
   div
-    [ classNames $ [ "ml-4", "sticky", "z-10", topMargin, "pb-1", "bg-grayblue" ] <> applyWhen border [ "border-l", "border-gray" ] ]
+    [ classNames $ [ "ml-4", "sticky", "z-10", topMargin, "py-2", "bg-grayblue" ] <> applyWhen border [ "border-l", "border-gray" ] ]
     [ div
         [ classNames [ "flex", "items-center" ] ]
         [ span
-            [ classNames $ Css.iconCircle accessible <> [ "-ml-3" ] ]
+            [ classNames $ Css.iconCircle accessible <> [ "-ml-4" ] ]
             [ icon_ i ]
         , h2
             [ classNames [ "py-1", "px-2", "text-lg", "font-semibold" ] ]
@@ -180,7 +180,7 @@ roleInputs wallets extendedContract metaData roleWallets =
                 , value assigned
                 ]
             , button
-                [ classNames [ "absolute", "top-3", "right-3" ]
+                [ classNames [ "absolute", "top-4", "right-4" ]
                 , onClick_ $ ToggleCreateWalletCard tokenName
                 ]
                 [ icon_ AddCircle ]
@@ -291,7 +291,7 @@ subSection accessible border content =
   div
     [ classNames $ [ "py-2", "ml-4", "mb-1" ] <> applyWhen border [ "border-l", "border-gray" ] <> (hideWhen $ not accessible) ]
     [ div
-        [ classNames $ [ "max-w-sm", "mx-auto", "px-3" ] ]
+        [ classNames $ [ "max-w-sm", "mx-auto", "px-4" ] ]
         content
     ]
 

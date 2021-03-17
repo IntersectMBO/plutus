@@ -19,24 +19,6 @@ module.exports = {
       purple: '#4c41e5',
       red: '#de4c51',
     },
-    spacing: {
-      // basic spacers
-      0: '0px',
-      1: '5px',
-      2: '10px',
-      3: '15px',
-      4: '20px',
-      5: '25px',
-      6: '30px',
-      7: '35px',
-      8: '40px',
-      9: '45px',
-      10: '50px',
-      // % spacers
-      '5pc': '5%',
-      '7pc': '7%',
-      '97pc': '97%',
-    },
     fontSize: {
       xs: '12px',
       sm: '14px',
@@ -57,7 +39,7 @@ module.exports = {
       sm: '0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06)',
       DEFAULT: '0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05)',
       lg: '0 20px 25px -5px rgba(0,0,0,0.2), 0 10px 10px -5px rgba(0,0,0,0.04)',
-      xl: '0 25px 50px -12px rgba(0,0,0,0.25)'
+      xl: '0 25px 50px -12px rgba(0,0,0,0.25)',
     },
     extend: {
       gridTemplateRows: {
@@ -66,6 +48,9 @@ module.exports = {
       },
       gridTemplateColumns: {
         'contract-setup': '1fr 24rem 1fr',
+      },
+      spacing: {
+        '5pc': '5%',
       },
       width: {
         'sm': '375px',

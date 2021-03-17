@@ -35,7 +35,7 @@ contractsScreen state =
         ]
   in
     div
-      [ classNames [ "p-3", "md:px-5pc" ] ]
+      [ classNames [ "p-4", "md:px-5pc" ] ]
       [ h2 [ classNames [ "font-semibold" ] ]
           [ text "Home" ]
       , viewSelector
@@ -83,18 +83,18 @@ contractCard contractState =
     div
       -- NOTE: The overflow hidden helps fix a visual bug in which the background color eats away the border-radius
       [ classNames
-          [ "cursor-pointer", "shadow", "bg-white", "rounded", "md:mx-auto", "md:w-96", "overflow-hidden" ]
+          [ "cursor-pointer", "shadow", "bg-white", "rounded", "mx-auto", "md:w-96", "overflow-hidden" ]
       , onClick_ $ OpenContract contractState
       ]
-      [ div [ classNames [ "flex", "px-3", "pt-3" ] ]
+      [ div [ classNames [ "flex", "px-4", "pt-4" ] ]
           [ span [ classNames [ "text-xl", "font-semibold" ] ] [ text contractAcronym ]
           , span [ classNames [ "flex-grow", "text-xs" ] ] [ text contractType ]
           , icon_ ArrowRight
           ]
-      , div [ classNames [ "font-semibold", "px-3", "py-1" ] ]
+      , div [ classNames [ "font-semibold", "px-4", "py-2" ] ]
           [ text longTitle
           ]
-      , div [ classNames [ "bg-lightgray", "flex", "flex-col", "px-3", "py-1" ] ]
+      , div [ classNames [ "bg-lightgray", "flex", "flex-col", "px-4", "py-2" ] ]
           [ span [ classNames [ "text-xs" ] ] [ text $ "Step " <> show stepNumber <> ":" ]
           , span [ classNames [ "text-xl" ] ] [ text timeoutStr ]
           ]

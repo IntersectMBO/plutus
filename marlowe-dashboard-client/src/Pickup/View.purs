@@ -45,7 +45,7 @@ renderPickupCard wallets newWalletNickname newWalletContractId remoteDataPubKey 
         [ div
             [ classNames $ Css.card $ isNothing card ]
             [ div
-                [ classNames [ "flex", "justify-end", "-m-3", "mb-3", "sticky", "top-0" ] ]
+                [ classNames [ "flex", "justify-end", "mb-4", "sticky", "top-0" ] ]
                 [ a
                     [ onClick_ $ SetCard Nothing ]
                     [ icon_ Close ]
@@ -67,10 +67,10 @@ pickupNewWalletCard wallets newWalletNickname newWalletContractId remoteDataPubK
   in
     div_
       [ p
-          [ classNames [ "font-bold", "mb-3" ] ]
+          [ classNames [ "font-bold", "mb-4" ] ]
           [ text "Demo wallet generated" ]
       , div
-          [ classNames $ Css.hasNestedLabel <> [ "mb-3" ] ]
+          [ classNames $ Css.hasNestedLabel <> [ "mb-4" ] ]
           $ [ label
                 [ classNames $ Css.nestedLabel
                 , for "newWalletNickname"
@@ -89,7 +89,7 @@ pickupNewWalletCard wallets newWalletNickname newWalletContractId remoteDataPubK
                 [ text $ foldMap show mNicknameError ]
             ]
       , div
-          [ classNames $ Css.hasNestedLabel <> [ "mb-3" ] ]
+          [ classNames $ Css.hasNestedLabel <> [ "mb-4" ] ]
           [ label
               [ classNames Css.nestedLabel
               , for "newWalletKey"
@@ -106,7 +106,7 @@ pickupNewWalletCard wallets newWalletNickname newWalletContractId remoteDataPubK
       , div
           [ classNames [ "flex" ] ]
           [ button
-              [ classNames $ Css.secondaryButton <> [ "flex-1", "mr-3" ]
+              [ classNames $ Css.secondaryButton <> [ "flex-1", "mr-4" ]
               , onClick_ $ SetCard Nothing
               ]
               [ text "Cancel" ]
@@ -128,10 +128,10 @@ pickupWalletCard walletDetails =
   in
     div_
       [ p
-          [ classNames [ "font-bold", "mb-3" ] ]
+          [ classNames [ "font-bold", "mb-4" ] ]
           [ text $ "Play wallet " <> nickname ]
       , div
-          [ classNames $ Css.hasNestedLabel <> [ "mb-3" ] ]
+          [ classNames $ Css.hasNestedLabel <> [ "mb-4" ] ]
           $ [ label
                 [ classNames $ Css.nestedLabel
                 , for "nickname"
@@ -146,7 +146,7 @@ pickupWalletCard walletDetails =
                   ]
             ]
       , div
-          [ classNames $ Css.hasNestedLabel <> [ "mb-3" ] ]
+          [ classNames $ Css.hasNestedLabel <> [ "mb-4" ] ]
           [ label
               [ classNames Css.nestedLabel
               , for "walletId"
@@ -163,7 +163,7 @@ pickupWalletCard walletDetails =
       , div
           [ classNames [ "flex" ] ]
           [ button
-              [ classNames $ Css.secondaryButton <> [ "flex-1", "mr-3" ]
+              [ classNames $ Css.secondaryButton <> [ "flex-1", "mr-4" ]
               , onClick_ $ SetCard Nothing
               ]
               [ text "Cancel" ]
@@ -194,21 +194,21 @@ renderPickupScreen wallets =
 pickupWalletScreen :: forall p. WalletLibrary -> HTML p Action
 pickupWalletScreen wallets =
   main
-    [ classNames [ "p-3", "max-w-sm", "mx-auto", "text-center" ] ]
+    [ classNames [ "p-4", "max-w-sm", "mx-auto", "text-center" ] ]
     [ h1
-        [ classNames [ "text-3xl", "font-bold", "mb-3" ] ]
+        [ classNames [ "text-3xl", "font-bold", "mb-4" ] ]
         [ text "Marlowe" ]
     , p
-        [ classNames [ "mb-3" ] ]
+        [ classNames [ "mb-4" ] ]
         [ text "To use Marlowe Run, generate a new demo wallet." ]
     , button
-        [ classNames $ Css.primaryButton <> [ "w-full", "text-center", "mb-3" ]
+        [ classNames $ Css.primaryButton <> [ "w-full", "text-center", "mb-4" ]
         , onClick_ GenerateNewWallet
         ]
         [ text "Generate demo wallet" ]
-    , hr [ classNames [ "mb-3", "max-w-xs", "mx-auto" ] ]
+    , hr [ classNames [ "mb-4", "max-w-xs", "mx-auto" ] ]
     , p
-        [ classNames [ "mb-3" ] ]
+        [ classNames [ "mb-4" ] ]
         [ text "Or use an existing one by selecting from the list or typing a public key or nickname." ]
     , input
         [ type_ InputText

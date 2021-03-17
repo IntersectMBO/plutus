@@ -48,7 +48,7 @@ bgBlueGradiant = [ "bg-gradient-to-r", "from-blue", "to-lightblue", "text-white"
 
 -- buttons
 button :: Array String
-button = [ "leading-none", "whitespace-nowrap", "px-4", "py-3", "font-black", "rounded-lg", "transition-all", "duration-200", "hover:shadow", "outline-none", "focus:outline-none", "disabled:bg-none", "disabled:bg-lightgray", "disabled:text-darkgray", "disabled:shadow-none" ]
+button = [ "leading-none", "whitespace-nowrap", "px-6", "py-4", "font-black", "rounded-lg", "transition-all", "duration-200", "hover:shadow", "outline-none", "focus:outline-none", "disabled:bg-none", "disabled:bg-lightgray", "disabled:text-darkgray", "disabled:shadow-none" ]
 
 withShadow :: Array String
 withShadow = [ "shadow", "hover:shadow-lg" ]
@@ -67,7 +67,7 @@ withIcon icon = [ "with-icon", "with-icon-" <> iconClass icon ]
 
 --- inputs
 inputBase :: Array String
-inputBase = [ "block", "w-full", "border", "p-3", "rounded", "transition-all", "duration-200", "outline-none", "focus:outline-none" ]
+inputBase = [ "block", "w-full", "border", "p-4", "rounded", "transition-all", "duration-200", "outline-none", "focus:outline-none" ]
 
 input :: Boolean -> Array String
 input invalid = inputBase <> [ "hover:shadow", "focus:shadow" ] <> toggleWhen invalid [ "border-red" ] [ "border-gray", "hover:border-black", "focus:border-black" ]
@@ -79,7 +79,7 @@ inputError :: Array String
 inputError = [ "text-red", "text-sm" ]
 
 hasNestedLabel :: Array String
-hasNestedLabel = [ "-mt-3" ]
+hasNestedLabel = [ "-mt-4" ]
 
 nestedLabel :: Array String
 nestedLabel = [ "relative", "left-2", "top-2", "px-1", "bg-white", "text-xs" ]
@@ -89,22 +89,20 @@ overlay :: Boolean -> Array String
 overlay invisible = [ "absolute", "top-0", "bottom-0", "left-0", "right-0", "z-20", "flex", "flex-col", "justify-end", "md:justify-center", "bg-overlay", "transition-opacity", "duration-400" ] <> toggleWhen invisible [ "opacity-0", "pointer-events-none" ] [ "opacity-1" ]
 
 cardWrapper :: Array String
-cardWrapper = [ "w-sm", "mx-auto", "px-3" ]
+cardWrapper = [ "w-sm", "mx-auto", "px-4" ]
 
 card :: Boolean -> Array String
-card invisible = [ "w-full", "shadow", "bg-white", "p-4", "pb-6", "rounded-t", "md:p-6", "md:pb-10", "md:rounded-b", "transform", "transition-transform", "duration-400" ] <> applyWhen invisible [ "translate-y-10" ]
+card invisible = [ "w-full", "shadow", "bg-white", "p-5", "pb-6", "rounded-t", "md:pb-8", "md:rounded-b", "transform", "transition-transform", "duration-400" ] <> applyWhen invisible [ "translate-y-10" ]
 
 largeCardWrapper :: Array String
-largeCardWrapper = [ "max-h-full", "pt-3", "px-3", "md:py-3", "md:px-5pc" ]
+largeCardWrapper = [ "max-h-full", "pt-4", "px-4", "md:py-4", "md:px-5pc" ]
 
 largeCard :: Boolean -> String -> Array String
-largeCard invisible bgColor = [ "shadow", "max-h-full", "w-full", "overflow-auto", "p-4", "rounded-t", "md:rounded-b", "md:mb-6", "lg:mx-6", "transform", "transition-transform", "duration-400", bgColor ] <> applyWhen invisible [ "translate-y-10" ]
+largeCard invisible bgColor = [ "shadow", "max-h-full", "w-full", "overflow-auto", "p-5", "pb-6", "rounded-t", "md:rounded-b", "md:mb-8", "lg:mx-6", "transform", "transition-transform", "duration-400", bgColor ] <> applyWhen invisible [ "translate-y-10" ]
 
---largeCard :: Array String
---largeCard = [ "shadow", "h-full", "overflow-auto", "mt-2", "md:mb-2", "mx-2", "rounded-t-lg", "md:rounded-b-lg", "lg:mx-12", "bg-grayblue" ]
 --- miscellaneous
 iconCircle :: Boolean -> Array String
-iconCircle enabled = [ "inline-flex", "items-center", "justify-center", "w-6", "h-6", "rounded-full" ] <> toggleWhen enabled bgBlueGradiant [ "bg-lightgray", "text-darkgray" ]
+iconCircle enabled = [ "inline-flex", "items-center", "justify-center", "w-8", "h-8", "rounded-full" ] <> toggleWhen enabled bgBlueGradiant [ "bg-lightgray", "text-darkgray" ]
 
 fixedBottomRight :: Array String
-fixedBottomRight = [ "absolute", "bottom-3", "right-3", "md:right-5pc" ]
+fixedBottomRight = [ "absolute", "bottom-4", "right-4", "md:right-5pc" ]
