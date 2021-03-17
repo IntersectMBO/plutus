@@ -22,9 +22,9 @@ import Data.String as String
 import Data.String.Extra (capitalize)
 import Data.Tuple (Tuple(..), fst, uncurry)
 import Data.Tuple.Nested ((/\))
-import Halogen.HTML (HTML, a, button, div, div_, h1, h2, option_, select, span, span_, text)
+import Halogen.HTML (HTML, a, button, div, div_, h1, h2, input, option_, select, span, span_, text)
 import Halogen.HTML.Events.Extra (onClick_)
-import Halogen.HTML.Properties (enabled)
+import Halogen.HTML.Properties (InputType(..), enabled, type_)
 import Marlowe.Execution (NamedAction(..), _contract, _namedActions, _state, getActionParticipant)
 import Marlowe.Extended (contractTypeName)
 import Marlowe.Semantics (Bound(..), ChoiceId(..), Input(..), Party(..), Token(..), _accounts)
@@ -217,37 +217,21 @@ renderAction isActiveParticipant (MakeDeposit intoAccountOf by token value) =
     ]
 
 renderAction isActiveParticipant (MakeChoice choiceId bounds chosen) =
-  let
-    bigNumberToInt = floor <<< toNumber
-
-    options :: Array Int
-    options =
-      nub
-        $ bounds
-        >>= \(Bound fromB toB) -> range (bigNumberToInt fromB) (bigNumberToInt toB)
-  in
-    div_
-      [ shortDescription isActiveParticipant "chocolate pastry apple pie lemon drops apple pie halvah FIXME"
-      -- FIXME: we need to use @tailwindcss/forms to reset forms inputs and then restyle
-      --        https://www.youtube.com/watch?v=pONeWAzDsQg&ab_channel=TailwindLabs
-      , select
-          [ classNames [ "w-full", "py-4", "px-4", "shadow", "rounded-3xl", "mt-2" ]
-          , enabled isActiveParticipant
-          -- FIXME: I need to rethink how to make this select. The option items do not have
-          --        an onChange event, at most an onClick, which is probably not what I want
-          --        and I need to get the chosen value.
-          -- , onChange
-          --     $ \ev -> do
-          --         let
-          --           ww = spy "Event" ev
-          --         trg <- target ev
-          --         let
-          --           xx = spy "target" trg
-          --         -- value :: HTMLSelectElement -> Effect String
-          --         Just $ ChangeChoice choiceId (fromInt 1)
-          ]
-          (options <#> \n -> option_ [ text $ show n ])
-      ]
+  div_
+    [ shortDescription isActiveParticipant "chocolate pastry apple pie lemon drops apple pie halvah FIXME"
+    , div
+        [ classNames [ "flex", "w-full", "shadow", "rounded-lg", "mt-2", "overflow-hidden" ]
+        ]
+        [ input
+            [ classNames [ "border-0", "py-4", "pl-4", "pr-1", "flex-grow" ]
+            , type_ InputNumber
+            ]
+        , button
+            [ classNames [ "bg-gradient-to-b", "from-blue", "to-lightblue", "px-5", "text-white", "font-bold" ]
+            ]
+            [ text "..." ]
+        ]
+    ]
 
 renderAction isActiveParticipant (MakeNotify _) = div [] [ text "awaiting observation?" ]
 
