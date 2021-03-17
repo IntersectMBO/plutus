@@ -36,11 +36,7 @@ import           Text.Pretty.Simple             (pPrint)
 
 import           Cardano.Node.RandomTx          (generateTx)
 import           Cardano.Node.Types             (MockServerConfig (..))
--- <<<<<<< HEAD
--- =======
--- import           Cardano.Protocol.Socket.Client (ClientHandler (..), queueTx, runClientNode)
--- import           Language.Plutus.Contract.Trace (defaultDist)
--- >>>>>>> bb26cbc28 (Make addTx go directly to the socket based node.)
+import           Cardano.Protocol.Socket.Client (ClientHandler (..), queueTx, runClientNode)
 import           Ledger.Index                   (UtxoIndex (..), insertBlock)
 import           Ledger.Tx                      (Tx (..))
 import           Plutus.Contract.Trace          (defaultDist)

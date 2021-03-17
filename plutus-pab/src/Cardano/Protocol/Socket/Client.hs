@@ -13,6 +13,7 @@ import           Data.Void                                           (Void)
 
 import           Control.Concurrent
 import           Control.Concurrent.STM
+import qualified Control.Exception                                   as E
 import           Control.Tracer
 
 import           Ouroboros.Network.Block                             (Point (..))
@@ -31,12 +32,15 @@ import           Ouroboros.Network.Socket
 import           Cardano.Protocol.Socket.Type
 import           Ledger                                              (Block, Slot (..), Tx (..))
 
+import qualified Debug.Trace                                         as Dbg
+
 -- | Client handler, used to communicate with the client thread.
 data ClientHandler = ClientHandler
     { chInputQueue  :: TQueue Tx
     , chSocketPath  :: FilePath
-    , chThreadId    :: ThreadId
+    -- , chThreadId    :: ThreadId
     , chCurrentSlot :: MVar Slot
+    , chHandler     :: (Block -> Slot -> IO ())
     }
 
 -- | Queue a transaction to be sent to the server.
@@ -58,27 +62,35 @@ runClientNode :: FilePath
               -> (Block -> Slot -> IO ())
               -> IO ClientHandler
 runClientNode socketPath onNewBlock = do
-    inputQueue  <- newTQueueIO
+    inputQueue  <- Dbg.trace "[xxx] running client node" $ newTQueueIO
     -- Right now we synchronise the whole blockchain so we can initialise the first
     -- slot to be 0. This will change when we start looking for intersection points.
     mSlot    <- newMVar (Slot 0)
-    threadId <- forkIO $ withIOManager $ \iocp ->
-        connectToNode
+    let handle = ClientHandler { chInputQueue = inputQueue
+                               , chSocketPath = socketPath
+                               , chCurrentSlot = mSlot
+                               , chHandler = onNewBlock
+                               }
+
+    _ <- forkIO $ withIOManager $ loop handle
+    pure handle
+
+    where
+      loop :: ClientHandler -> IOManager -> IO ()
+      loop ch@ClientHandler{chSocketPath, chInputQueue, chCurrentSlot, chHandler} iocp = do
+        ((Dbg.trace ("[xxx] node client starting [" <> chSocketPath <> "]") $ connectToNode
           (localSnocket iocp socketPath)
           unversionedHandshakeCodec
           (cborTermVersionDataCodec unversionedProtocolDataCodec)
           nullNetworkConnectTracers
           acceptableVersion
-          (unversionedProtocol (app mSlot onNewBlock inputQueue))
+          (unversionedProtocol (app chCurrentSlot chHandler chInputQueue))
           Nothing
-          (localAddressFromPath socketPath)
-    pure ClientHandler { chInputQueue  = inputQueue
-                       , chSocketPath  = socketPath
-                       , chThreadId    = threadId
-                       , chCurrentSlot = mSlot
-                       }
+          (localAddressFromPath chSocketPath)) `E.catch` (\(e :: E.SomeException) -> putStrLn ("\n[xxx] " <> show e <> " " <> chSocketPath <> "\n")))
+        (Dbg.trace "[xxx] CONNECTION FAILED" $ putStrLn "CONNECTION FAILED")
+        threadDelay (1 * 1000000)
+        loop ch iocp
 
-    where
       {- Application that communicates using 2 multiplexed protocols
          (ChainSync and TxSubmission). -}
       app :: MVar Slot
