@@ -11,7 +11,7 @@ import Data.Lens.Iso.Newtype (_Newtype)
 import Data.Lens.NonEmptyList (_Head)
 import Data.Map (Map)
 import Data.Map as Map
-import Data.Maybe (Maybe(..), isJust)
+import Data.Maybe (Maybe(..), isJust, maybe)
 import Data.Newtype (unwrap, wrap)
 import Data.Tuple (Tuple(..), snd)
 import Data.Tuple.Nested ((/\))
@@ -26,6 +26,7 @@ import Halogen.HTML.Properties (InputType(..), class_, classes, disabled, placeh
 import Halogen.Monaco (Settings, monacoComponent)
 import MainFrame.Types (ChildSlots, _simulatorEditorSlot)
 import Marlowe.Extended (IntegerTemplateType(..))
+import Marlowe.Extended.Metadata (MetaData)
 import Marlowe.Monaco (daylightTheme, languageExtensionPoint)
 import Marlowe.Monaco as MM
 import Marlowe.Semantics (AccountId, Assets(..), Bound(..), ChoiceId(..), Input(..), Party(..), Payment(..), PubKey, Slot, SlotInterval(..), Token(..), TransactionInput(..), inBounds, timeouts)
@@ -39,9 +40,10 @@ import Simulator (hasHistory, inFuture)
 render ::
   forall m.
   MonadAff m =>
+  MetaData ->
   State ->
   ComponentHTML Action ChildSlots m
-render state =
+render metadata state =
   div [ classes [ fullHeight, paddingX, flex ] ]
     [ div [ classes [ flex, flexCol, fullHeight, flexGrow ] ]
         [ section [ classes [ minH0, flexGrow, overflowHidden ] ]
@@ -55,7 +57,7 @@ render state =
             ]
         ]
     , aside [ classes [ flexShrink0, spaceLeft, overflowScroll, w30p ] ]
-        (sidebar state)
+        (sidebar metadata state)
     ]
   where
   panelTitles =
@@ -194,13 +196,14 @@ settings setup =
 ------------------------------------------------------------
 sidebar ::
   forall p.
+  MetaData ->
   State ->
   Array (HTML p Action)
-sidebar state = case view (_marloweState <<< _Head <<< _executionState) state of
+sidebar metadata state = case view (_marloweState <<< _Head <<< _executionState) state of
   SimulationNotStarted notStartedRecord -> [ startSimulationWidget notStartedRecord ]
   SimulationRunning _ ->
     [ div [ class_ smallSpaceBottom ] [ simulationStateWidget state ]
-    , div [ class_ spaceBottom ] [ actionWidget state ]
+    , div [ class_ spaceBottom ] [ actionWidget metadata state ]
     , logWidget state
     ]
 
@@ -286,9 +289,10 @@ simulationStateWidget state =
 ------------------------------------------------------------
 actionWidget ::
   forall p.
+  MetaData ->
   State ->
   HTML p Action
-actionWidget state =
+actionWidget metadata state =
   cardWidget "Actions"
     $ div [ classes [] ]
         [ ul [ class_ (ClassName "participants") ]
@@ -326,26 +330,34 @@ actionWidget state =
   sortParties = sortWith (\(Tuple party _) -> party == otherActionsParty)
 
   actionsForParties :: Map Party (Map ActionInputId ActionInput) -> Array (HTML p Action)
-  actionsForParties m = map (\(Tuple k v) -> participant state k (vs v)) (sortParties (kvs m))
+  actionsForParties m = map (\(Tuple k v) -> participant metadata state k (vs v)) (sortParties (kvs m))
 
 participant ::
   forall p.
+  MetaData ->
   State ->
   Party ->
   Array ActionInput ->
   HTML p Action
-participant state party actionInputs =
+participant metadata state party actionInputs =
   li [ classes [ ClassName "participant-a", noMargins ] ]
-    ( [ h6_ [ em_ title ] ]
+    ( [ title ]
         <> (map (inputItem state partyName) actionInputs)
     )
   where
   title =
-    if party == otherActionsParty then
-      -- QUESTION: if we only have "move to slot", could we rename this to "Slot Actions"?
-      [ text "Other Actions" ]
-    else
-      [ text "Participant ", strong_ [ text partyName ] ]
+    div [ classes [ ClassName "action-group" ] ]
+      if party == otherActionsParty then
+        -- QUESTION: if we only have "move to slot", could we rename this to "Slot Actions"?
+        [ div [ classes [ ClassName "action-group-title" ] ] [ h6_ [ em_ [ text "Other Actions" ] ] ] ]
+      else
+        [ div [ classes [ ClassName "action-group-title" ] ] [ h6_ [ em_ [ text "Participant ", strong_ [ text partyName ] ] ] ] ]
+          <> [ div [ classes [ ClassName "action-group-explanation" ] ]
+                ( case party of
+                    Role roleName -> maybe [] (\explanation -> [ text ("“" <> explanation <> "„") ]) $ Map.lookup roleName metadata.roleDescriptions
+                    _ -> []
+                )
+            ]
 
   partyName = case party of
     (PK name) -> name
@@ -358,9 +370,9 @@ inputItem ::
   ActionInput ->
   HTML p Action
 inputItem _ person (DepositInput accountId party token value) =
-  div [ classes [ aHorizontal ] ]
+  div [ classes [ ClassName "action", aHorizontal ] ]
     [ p_ (renderDeposit accountId party token value)
-    , div [ class_ (ClassName "align-top") ]
+    , div [ class_ (ClassName "align-center") ]
         [ button
             [ classes [ plusBtn, smallBtn ]
             , onClick $ const $ Just
@@ -372,7 +384,7 @@ inputItem _ person (DepositInput accountId party token value) =
 
 inputItem _ person (ChoiceInput choiceId@(ChoiceId choiceName choiceOwner) bounds chosenNum) =
   div
-    [ classes [ aHorizontal, ClassName "flex-wrap" ] ]
+    [ classes [ ClassName "action", aHorizontal, ClassName "flex-wrap" ] ]
     ( [ div []
           [ p [ class_ (ClassName "choice-input") ]
               [ spanText "Choice "
@@ -390,7 +402,7 @@ inputItem _ person (ChoiceInput choiceId@(ChoiceId choiceName choiceOwner) bound
   addButton =
     if inBounds chosenNum bounds then
       [ button
-          [ classes [ plusBtn, smallBtn, ClassName "align-top" ]
+          [ classes [ plusBtn, smallBtn, ClassName "align-center" ]
           , onClick $ const $ Just
               $ AddInput (IChoice (ChoiceId choiceName choiceOwner) chosenNum) bounds
           ]
@@ -411,10 +423,10 @@ inputItem _ person (ChoiceInput choiceId@(ChoiceId choiceName choiceOwner) bound
 
 inputItem _ person NotifyInput =
   li
-    [ classes [ ClassName "choice-a", aHorizontal ] ]
+    [ classes [ ClassName "action", ClassName "choice-a", aHorizontal ] ]
     [ p_ [ text "Notify Contract" ]
     , button
-        [ classes [ plusBtn, smallBtn, ClassName "align-top" ]
+        [ classes [ plusBtn, smallBtn, ClassName "align-center" ]
         , onClick $ const $ Just
             $ AddInput INotify []
         ]
@@ -424,7 +436,7 @@ inputItem _ person NotifyInput =
 inputItem state person (MoveToSlot slot) =
   div
     [ classes [ aHorizontal, ClassName "flex-wrap" ] ]
-    ( [ div []
+    ( [ div [ classes [ ClassName "action" ] ]
           [ p [ class_ (ClassName "slot-input") ]
               [ spanText "Move to slot "
               , marloweActionInput (SetSlot <<< wrap) slot
@@ -438,7 +450,7 @@ inputItem state person (MoveToSlot slot) =
   addButton =
     if inFuture state slot then
       [ button
-          [ classes [ plusBtn, smallBtn, ClassName "align-top" ]
+          [ classes [ plusBtn, smallBtn, ClassName "align-center" ]
           , onClick $ const $ Just $ MoveSlot slot
           ]
           [ text "+" ]

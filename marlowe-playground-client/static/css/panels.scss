@@ -28,6 +28,10 @@
   align-self: flex-start;
 }
 
+.align-center {
+  align-self: center;
+}
+
 button.plus-btn {
   padding: 0.25rem 0.5rem;
   margin-left: 0.5rem;
@@ -206,6 +210,15 @@ button.minus-btn:hover {
 .participants em {
   display: inline-block;
   margin-bottom: 0.5rem;
+}
+
+.action-group-explanation {
+  margin-left: 2rem;
+  margin-bottom: 0.5rem;
+}
+
+.action {
+  padding-left: 1rem;
 }
 
 .templates li {
