@@ -15,7 +15,26 @@
 {-# LANGUAGE TypeFamilies          #-}
 {-# LANGUAGE TypeOperators         #-}
 {-# LANGUAGE UndecidableInstances  #-}
+{-
 
+The core of the PAB. Runs contract instances, handling their requests by
+talking to external services (wallet backend, chain index) and forwarding
+notifications from node and user endpoints to them.
+
+The main entry point is 'runPAB'. It runs a 'PABAction t env' using the
+@EffectHandlers@ provided. The @EffectHandlers@ makes it easy to customise
+the handlers for external effects and for actually submitting requests
+to compiled contracts. By choosing different @EffectHandlers@ we can use the
+same @runPAB@ function for test and live environments.
+
+A number @PABAction@s are defined in this module. The most important one is
+@activateContract@, which starts a new contract instance.
+
+Another important @PABAction@ is 'Plutus.PAB.Core.Server.startServer', which
+starts a webserver that implements the API defined in
+'Plutus.PAB.Webserver.API'.
+
+-}
 module Plutus.PAB.Core
     ( PABEffects
     , PABAction
@@ -25,7 +44,9 @@ module Plutus.PAB.Core
     -- * Logging
     , logString
     , logPretty
-    -- * Contract instances
+    -- * Contracts and instances
+    , installContract
+    , reportContractState
     , activateContract
     , callEndpointOnInstance
     , payToPublicKey
@@ -50,8 +71,6 @@ module Plutus.PAB.Core
     , pabRunner
     -- * Other stuff (TODO: Move to Plutus.PAB.App)
     , dbConnect
-    , installContract
-    , reportContractState
     , Connection(Connection)
     , toUUID
     -- * Effect handlers
@@ -80,6 +99,7 @@ import qualified Control.Monad.Logger                            as MonadLogger
 import           Data.Aeson                                      (FromJSON, ToJSON (..))
 import qualified Data.Aeson                                      as JSON
 import qualified Data.Map                                        as Map
+import           Data.Proxy                                      (Proxy (..))
 import           Data.Set                                        (Set)
 import           Data.Text                                       (Text)
 import qualified Data.Text                                       as Text
@@ -119,8 +139,7 @@ import           Wallet.Emulator.MultiAgent                      (EmulatorEvent'
 import           Wallet.Emulator.Wallet                          (Wallet, WalletEvent (..))
 import           Wallet.Types                                    (ContractInstanceId, EndpointDescription (..),
                                                                   NotificationError)
-
-
+-- | Effects that are available in 'PABAction's.
 type PABEffects t env =
     '[ ContractStore t
      , ContractEffect t
@@ -132,18 +151,11 @@ type PABEffects t env =
      , IO
      ]
 
+-- | Actions that are run by the PAB.
 type PABAction t env a = Eff (PABEffects t env) a
 
+-- | A handler for 'PABAction' types.
 newtype PABRunner t env = PABRunner { runPABAction :: forall a. PABAction t env a -> IO (Either PABError a) }
-
--- | Shared data that is needed by all PAB threads.
-data PABEnvironment t env =
-    PABEnvironment
-        { instancesState :: InstancesState
-        , blockchainEnv  :: BlockchainEnv
-        , appEnv         :: env
-        , effectHandlers :: EffectHandlers t env
-        }
 
 -- | Get a 'PABRunner' that uses the current environment.
 pabRunner :: forall t env. PABAction t env (PABRunner t env)
@@ -160,8 +172,18 @@ pabRunner = do
             $ handleContractStoreEffect
             $ action
 
--- | Top-level entry point. Run a 'PABAction', using the 'EffectHandlers' to deal with logs,
---   startup and shutdown, etc.
+-- | Shared data that is needed by all PAB threads.
+data PABEnvironment t env =
+    PABEnvironment
+        { instancesState :: InstancesState
+        , blockchainEnv  :: BlockchainEnv
+        , appEnv         :: env
+        , effectHandlers :: EffectHandlers t env
+        }
+
+-- | Top-level entry point. Run a 'PABAction', using the 'EffectHandlers' to
+--   deal with logs, startup and shutdown, contract requests and communication
+--   with external services.
 runPAB ::
     forall t env a.
     EffectHandlers t env
@@ -201,13 +223,12 @@ callEndpointOnInstance instanceID ep value = do
     state <- asks @(PABEnvironment t env) instancesState
     liftIO $ STM.atomically $ Instances.callEndpointOnInstance state (EndpointDescription ep) (JSON.toJSON value) instanceID
 
-
 -- | Make a payment to a public key
 payToPublicKey :: Wallet -> PubKey -> Value -> PABAction t env Tx
 payToPublicKey source target amount =
     handleAgentThread source $ WAPI.payToPublicKey WAPI.defaultSlotRange amount target
 
--- | Effects available to contract instances that run in their own thread
+-- | Effects available to contract instances with access to external services.
 type ContractInstanceEffects t env effs =
     ContractRuntimeEffect
     ': ContractEffect t
@@ -229,7 +250,7 @@ type ContractInstanceEffects t env effs =
     ': Reader Wallet
     ': effs
 
--- | Handle
+-- | Handle an action with 'ContractInstanceEffects' in the context of a wallet.
 handleAgentThread ::
     forall t env a.
     Wallet
@@ -258,7 +279,6 @@ handleAgentThread wallet action = do
         $ handleContractEffect
         $ (handleContractRuntimeMsg @t . reinterpret @ContractRuntimeEffect @(LogMsg ContractRuntime.ContractRuntimeMsg) ContractRuntime.handleContractRuntime)
         $ action'
-
 
 -- | Effect handlers for running the PAB.
 data EffectHandlers t env =
@@ -334,9 +354,6 @@ data EffectHandlers t env =
         , onShutdown :: PABAction t env ()
         }
 
--- applicationHandlers :: EffectHandlers ContractExe ()
--- applicationHandlers = undefined
-
 installContract ::
     forall t effs.
     ( Member (LogMsg (CoreMsg (ContractDef t))) effs
@@ -353,13 +370,13 @@ reportContractState ::
     forall t effs.
     ( Member (LogMsg (CoreMsg t)) effs
     , Member (ContractStore t) effs
-    , State t ~ PartiallyDecodedResponse ContractPABRequest
+    , PABContract t
     )
     => ContractInstanceId
     -> Eff effs ()
 reportContractState cid = do
     logInfo @(CoreMsg t) $ FindingContract cid
-    contractState <- getState @t cid
+    contractState <- Contract.serialisableState (Proxy @t) <$> getState @t cid
     logInfo @(CoreMsg t) $ FoundContract $ Just contractState
 
 ------------------------------------------------------------
@@ -393,7 +410,6 @@ data AppMsg t =
 deriving stock instance (Show (ContractDef t)) => Show (AppMsg t)
 deriving anyclass instance (ToJSON (ContractDef t)) => ToJSON (AppMsg t)
 deriving anyclass instance (FromJSON (ContractDef t)) => FromJSON (AppMsg t)
-
 
 instance Pretty (ContractDef t) => Pretty (AppMsg t) where
     pretty = \case
@@ -506,8 +522,7 @@ finalResult instanceId = do
 -- | Wait until the contract is done, then return
 --   the error (if any)
 waitUntilFinished :: forall t env. ContractInstanceId -> PABAction t env (Maybe JSON.Value)
-waitUntilFinished i =
-    finalResult i >>= liftIO . STM.atomically
+waitUntilFinished i = finalResult i >>= liftIO . STM.atomically
 
 -- | Read the 'env' from the environment
 userEnv :: forall t env effs. Member (Reader (PABEnvironment t env)) effs => Eff effs env
