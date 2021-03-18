@@ -752,4 +752,38 @@ lemmaE M E B p with lemma51 (closeEvalCtx E M)
 ... | inj₁ V = ⊥-elim (notboth (closeEvalCtx E M) (V , _ , p))
 ... | inj₂ (J' , E' , I , _ , N , V-ƛ L , VN , q)  =
   J' , E' , ƛ L · N , (L [ N ]) , β-ƛ VN , q , sym (det p (contextRule E' (β-ƛ VN) q refl))
-```
+
+dissect' : (E : EvalCtx K J) → (Σ (K ≡ J) λ p → subst (λ K → EvalCtx K J) p E ≡ []) ⊎ Σ Kind λ I → EvalCtx K I × Frame I J
+dissect' [] = inj₁ (refl , refl)
+dissect' (V ·r E) with dissect' E 
+... | inj₁ (refl , refl) = inj₂ (-, [] , V ·-)
+... | inj₂ (_ , E' , f) = inj₂ (-, V ·r E' , f)
+dissect' (E l· B) with dissect' E 
+... | inj₁ (refl , refl) = inj₂ (-, [] , -· B)
+... | inj₂ (_ , E' , f) = inj₂ (-, E' l· B , f)
+dissect' (V ⇒r E) with dissect' E
+... | inj₁ (refl , refl) = inj₂ (-, [] , V ⇒-)
+... | inj₂ (_ , E' , f) = inj₂ (-, V ⇒r E' , f)
+dissect' (E l⇒ B) with dissect' E
+... | inj₁ (refl , refl) = inj₂ (-, [] , -⇒ B)
+... | inj₂ (_ , E' , f) = inj₂ (-, E' l⇒ B , f)
+dissect' (μr V E) with dissect' E
+... | inj₁ (refl , refl)         = inj₂ (-, [] , μ V -)
+... | inj₂ (_ , E' , f) = inj₂ (-, μr V E' , f)
+dissect' (μl E B) with dissect' E
+... | inj₁ (refl , refl) = inj₂ (-, [] , μ- B)
+... | inj₂ (_ , E' , f) = inj₂ (-, μl E' B , f)
+
+
+lemmaE' : ∀ (M : ∅ ⊢⋆ J)(E : EvalCtx K J) B
+  → closeEvalCtx E M —→E B
+  → ∃ λ J' → ∃ λ (E' : EvalCtx K J') → ∃ λ (L : ∅ ⊢⋆ J') → ∃ λ N → (L —→⋆ N)
+  × closeEvalCtx E  M ≡ closeEvalCtx E' L
+  × closeEvalCtx E' N ≡ B
+  × ((∃ λ (E'' : EvalCtx J J') → M ≡ closeEvalCtx E'' L) ⊎ (Value⋆ M))
+lemmaE' M E B p with lemma51! (closeEvalCtx E M)
+... | inj₁ V = ⊥-elim (notboth (closeEvalCtx E M) (V , _ , p))
+... | inj₂ (¬VA , J' , E' , I , _ , N , V-ƛ L , VN , q , X) with lemma51! M
+... | inj₁ VM = J' , E' , ƛ L · N , (L [ N ]) , β-ƛ VN , q , sym (det p (contextRule E' (β-ƛ VN) q refl)) , inj₂ VM
+... | inj₂ (¬VM , J'' , E'' , I'' , L' , N' , VL' , VN' , q' , X') with X J'' (compEvalCtx E E'') I'' L' N' VL' VN' (trans (cong (closeEvalCtx E) q') (sym (close-comp E E'' (L' · N'))))
+... | refl , Y = J' , E' , ƛ L · N , (L [ N ]) , β-ƛ VN , q , sym (det p (contextRule E' (β-ƛ VN) q refl)) , inj₁ (E'' , uniqueness⋆ _ _ E (trans (trans q (cong (λ E → closeEvalCtx E (ƛ L · N)) (sym Y))) (close-comp E E'' (ƛ L · N))) ) where
