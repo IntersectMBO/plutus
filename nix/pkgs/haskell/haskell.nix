@@ -13,6 +13,9 @@
 , checkMaterialization
 , compiler-nix-name
 , enableHaskellProfiling
+  # Whether to set the `defer-plugin-errors` flag on those packages that need
+  # it. If set to true, we will also build the haddocks for those packages.
+, deferPluginErrors
 }:
 let
   r-packages = with rPackages; [ R tidyverse dplyr stringr MASS plotly shiny shinyjs purrr ];
@@ -53,10 +56,18 @@ let
       {
         reinstallableLibGhc = false;
         packages = {
-          # See https://github.com/input-output-hk/plutus/issues/1213
-          marlowe.doHaddock = false;
-          plutus-use-cases.doHaddock = false;
-          plutus-ledger.doHaddock = false;
+          # See https://github.com/input-output-hk/plutus/issues/1213 and
+          # https://github.com/input-output-hk/plutus/pull/2865.
+          marlowe.doHaddock = deferPluginErrors;
+          marlowe.flags.defer-plugin-errors = deferPluginErrors;
+
+          plutus-use-cases.doHaddock = deferPluginErrors;
+          plutus-use-cases.flags.defer-plugin-errors = deferPluginErrors;
+
+          plutus-ledger.doHaddock = deferPluginErrors;
+          plutus-ledger.flags.defer-plugin-errors = deferPluginErrors;
+
+          # Packages we just don't want docs for
           plutus-benchmark.doHaddock = false;
           # FIXME: Haddock mysteriously gives a spurious missing-home-modules warning
           plutus-tx-plugin.doHaddock = false;

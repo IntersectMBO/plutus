@@ -33,19 +33,31 @@ let
   compiler-nix-name = "ghc810220201118";
 
   # The haskell project created by haskell-nix.stackProject'
-  project = import ./haskell.nix {
-    inherit lib stdenv haskell-nix buildPackages R rPackages z3;
-    inherit agdaWithStdlib checkMaterialization compiler-nix-name gitignore-nix;
-    inherit enableHaskellProfiling;
-  };
+  baseProject =
+    { deferPluginErrors }:
+    import ./haskell.nix {
+      inherit lib stdenv haskell-nix buildPackages R rPackages z3;
+      inherit agdaWithStdlib checkMaterialization compiler-nix-name gitignore-nix;
+      inherit enableHaskellProfiling;
+      inherit deferPluginErrors;
+    };
+  project = baseProject { deferPluginErrors = false; };
+  # The same as above, but this time with we defer plugin errors so that we
+  # can build "all" (the interesting) haddocks that would otherwise fail.
+  projectAllHaddock = baseProject { deferPluginErrors = true; };
 
   # All the packages defined by our project, including dependencies
   packages = project.hsPkgs;
 
   # Just the packages in the project
-  projectPackages = haskell-nix.haskellLib.selectProjectPackages packages
-    # Need to list this manually to work around https://github.com/input-output-hk/haskell.nix/issues/464
-    // { inherit (packages) plutus-metatheory; };
+  basePackages =
+    packages:
+    (haskell-nix.haskellLib.selectProjectPackages packages
+      # Need to list this manually to work around https://github.com/input-output-hk/haskell.nix/issues/464
+      // { inherit (packages) plutus-metatheory; });
+
+  projectPackages = basePackages packages;
+  projectPackagesAllHaddock = basePackages projectAllHaddock.hsPkgs;
 
   extraPackages = import ./extra.nix {
     inherit stdenv lib haskell-nix fetchFromGitHub fetchFromGitLab buildPackages;
@@ -54,6 +66,6 @@ let
 
 in
 rec {
-  inherit index-state project projectPackages packages;
+  inherit index-state project projectAllHaddock projectPackages projectPackagesAllHaddock packages;
   inherit extraPackages;
 }

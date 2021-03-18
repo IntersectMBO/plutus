@@ -154,7 +154,7 @@ let
   plutus-haddock-combined =
     let
       haddock-combine = pkgs.callPackage ../lib/haddock-combine.nix {
-        ghc = haskell.project.pkg-set.config.ghc.package;
+        ghc = haskell.projectAllHaddock.pkg-set.config.ghc.package;
         inherit (sphinxcontrib-haddock) sphinxcontrib-haddock;
       };
     in
