@@ -18,7 +18,7 @@ open import Data.Product
 ```
 
 ```
-open import Relation.Binary.PropositionalEquality hiding ([_])
+open import Relation.Binary.PropositionalEquality renaming ([_] to I[_])
 open import Data.Sum
 
 
@@ -240,7 +240,8 @@ lem2 : (M : ∅ ⊢⋆ J)(B : ∅ ⊢⋆ K)(E : EvalCtx K J)
   → B —→E B'
   → Σ (∅ ⊢⋆ J') λ L → (B ≡ closeEvalCtx E' L)
   × (L —→⋆ N) × 
-  ((Σ (EvalCtx J J') λ E'' → M ≡ closeEvalCtx E'' L) ⊎ Value⋆ M)
+  ((Σ (EvalCtx J J') λ E'' → M ≡ closeEvalCtx E'' L)
+  ⊎ Value⋆ M × Σ (Frame J' J) λ F → E ≡ extendEvalCtx E' F)
 lem2 M B E N B' E' p q r = {!!}
 
 lem-→⋆ : (A B : ∅ ⊢⋆ J)(E : EvalCtx K J) → A —→⋆ B → (E ▻ A) -→s (E ▻ B)
@@ -248,6 +249,9 @@ lem-→⋆ (ƛ A · B) ._ E (β-ƛ V) = step* refl (step* refl (step* (helper·l
 
 unwind : (A : ∅ ⊢⋆ J)(A' : ∅ ⊢⋆ K)(E : EvalCtx K J) → A' ≡ closeEvalCtx E A → (V : Value⋆ A') → (E ▻ A) -→s ([] ◅ V)
 unwind = {!!}
+
+β-lem : A ≡ ƛ A' · B' → A —→⋆ B → B ≡ A' [ B' ]
+β-lem refl (β-ƛ x) = refl
 
 -- thm2 follows from this stronger theorem
 thm1 : (A : ∅ ⊢⋆ J)(A' : ∅ ⊢⋆ K)(E : EvalCtx K J)
@@ -259,8 +263,42 @@ thm1 A A' E p B V (trans—↠E {B = B'} q r) with lemma51 B'
 thm1 A A' E p B V (trans—↠E {B = B'} q r)
   | inj₂ (J , E' , I , L , N , VL , VN , X)
   with lem2 A A' E (L · N) B' E' p X q
-... | L' , p' , XX , inj₁ (E'' , p'') = step** (step** (lem62 L' A E E'' p'') (subst-step* (cong (λ E → J , E ▻ L') (sym (uniqueness A' (λ V → notboth A' (V , _ , q)) L' E' (compEvalCtx' E E'') p' (trans p (trans (cong (closeEvalCtx E) p'') (trans (sym (close-comp E E'' L')) (cong (λ E → closeEvalCtx E L') (compEvalCtx-eq E E'')))))))) (lem-→⋆ _ _ E' XX)) ) (thm1 (L · N) B' E' X B V r)
-... | L' , p' , XX , inj₂ y = {!y!}
+... | L' , p' , XX , inj₁ (E'' , p'') = step**
+  (step** (lem62 L' A E E'' p'')
+          (subst-step* (cong (λ E → J , E ▻ L')
+                       (sym (uniquenessE
+                         A'
+                         (λ V → notboth A' (V , _ , q))
+                         L'
+                         E'
+                         (compEvalCtx' E E'')
+                         p'
+                         (trans
+                           p
+                           (trans (cong (closeEvalCtx E) p'')
+                                  (trans (sym (close-comp E E'' L'))
+                                         (cong (λ E → closeEvalCtx E L')
+                                               (compEvalCtx-eq E E''))))))))
+                       (lem-→⋆ _ _ E' XX)))
+  (thm1 (L · N) B' E' X B V r)
+... | L' , p' , XX , inj₂ (VA , (-· x) , snd) = {!!}
+... | L' , p' , XX , inj₂ (VA , (V-ƛ N₁ ·-) , refl) = step**
+  (step** (lemV A VA _)
+          (step* (cong (helper VA) (lemma E' (V-ƛ N₁ ·-)))
+                 (subst-step* (cong (λ A → J , E' ▻ A) (sym (β-lem ZZ XX)))
+                              base)))
+  (thm1 (L · N) B' E' X B V r)
+  where
+  YY : A' ≡ closeEvalCtx E' (ƛ N₁ · A)
+  YY = trans p (closeEF E' (V-ƛ N₁ ·-) A)
+  ZZ : L' ≡ ƛ N₁ · A
+  ZZ = uniqueness⋆ L' (ƛ N₁ · A) E' (trans (sym p') YY)
+... | L' , p' , XX , inj₂ (VA , (-⇒ x) , snd) = {!!}
+... | L' , p' , XX , inj₂ (VA , (x ⇒-) , snd) = {!!}
+... | L' , p' , XX , inj₂ (VA , (μ- B₁) , snd) = {!!}
+... | L' , p' , XX , inj₂ (VA , μ x - , snd) = {!!}
+
+-- step** (lemV A VA E)
 --  = step** {!lem2 A A' E (L · N) B' E' p X q!} (thm1 (L · N) B' E' X B V r)
 -- we have E [ A ] -> E [ L . N ]
 -- then r is reflexivity but we still have one step which goes to a value

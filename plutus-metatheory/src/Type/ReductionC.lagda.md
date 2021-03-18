@@ -533,6 +533,13 @@ proj·l' refl = refl
 proj·l'' : {A : ∅ ⊢⋆ K ⇒ J}{A' : ∅ ⊢⋆ K' ⇒ J}{B : ∅ ⊢⋆ K}{B' : ∅ ⊢⋆ K'}(p : (A · B) ≡ (A' · B')) → subst (λ J₁ → ∅ ⊢⋆ J₁ ⇒ J) (proj₁ (proj·r p)) A' ≡ A
 proj·l'' refl = refl
 
+projμl : {A : ∅ ⊢⋆ _}{A' : ∅ ⊢⋆ _}{B : ∅ ⊢⋆ K}{B' : ∅ ⊢⋆ K'} → (μ A B) ≡ (μ A' B') → ∃ λ (p : _ ≡ _) → subst (∅ ⊢⋆_) p A ≡ A'
+projμl refl = refl , refl
+
+projμr : {A : ∅ ⊢⋆ _}{A' : ∅ ⊢⋆ _}{B : ∅ ⊢⋆ K}{B' : ∅ ⊢⋆ K'} → (μ A B) ≡ (μ A' B') → ∃ λ (p : _ ≡ _) → subst (∅ ⊢⋆_) p B ≡ B'
+projμr refl = refl , refl
+
+
 val-unique : ∀{A : ∅ ⊢⋆ K}(V V' : Value⋆ A) → V ≡ V'
 val-unique (V-Π N) (V-Π .N) = refl
 val-unique (V V-⇒ W) (V' V-⇒ W') =
@@ -678,7 +685,7 @@ lemma51! (con x) = inj₁ (V-con x)
 
 -- this one is specialised to having types of the same kind
 postulate
-  uniqueness : (A : ∅ ⊢⋆ K)
+  uniquenessE : (A : ∅ ⊢⋆ K)
            → ¬ (Value⋆ A)
            → (B : ∅ ⊢⋆ J)
            → (E : EvalCtx K J)(E' : EvalCtx K J)
@@ -686,6 +693,25 @@ postulate
            → A ≡ closeEvalCtx E' B
            → E ≡ E'
 -- the above lemma51! isn't directly useful as it wants a (L · N) not a B...
+
+-- this one is simpler, just injectivity...
+uniqueness⋆ : (B B' : ∅ ⊢⋆ J)
+            → (E : EvalCtx K J)
+            → closeEvalCtx E B ≡ closeEvalCtx E B'
+            → B ≡ B'
+uniqueness⋆ B .B [] refl = refl
+uniqueness⋆ B B' (V ·r E) p with proj·r p
+... | refl , q = uniqueness⋆ B B' E (sym q)
+uniqueness⋆ B B' (E l· C) p with proj·l p
+... | refl , q = uniqueness⋆ B B' E q
+uniqueness⋆ B B' (V ⇒r E) p = uniqueness⋆ B B' E (proj⇒r p)
+uniqueness⋆ B B' (E l⇒ C) p = uniqueness⋆ B B' E (proj⇒l p)
+uniqueness⋆ B B' (μr V E) p with projμr p
+... | refl , q = uniqueness⋆ B B' E q
+uniqueness⋆ B B' (μl E C) p  with projμl p
+... | refl , q = uniqueness⋆ B B' E q
+
+
 
 {-
 det : (p : A —→E B)(q : A —→E B') → B ≡ B'
