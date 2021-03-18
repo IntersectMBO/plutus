@@ -3,19 +3,19 @@ dbConfig:
     dbConfigPoolSize: 20
 
 pabWebserverConfig:
-  baseUrl: http://localhost:8080
+  baseUrl: http://localhost:9080
   staticDir: plutus-pab-client/dist
 
 walletServerConfig:
-  baseUrl: http://localhost:8081
+  baseUrl: http://localhost:9081
   wallet:
     getWallet: 1
 
 nodeServerConfig:
-  mscBaseUrl: http://localhost:8082
+  mscBaseUrl: http://localhost:9082
   mscSocketPath: ./node-server.sock
-  mscSlotLength: 5
-  mscRandomTxInterval: 20
+  mscSlotLength: 1
+  # mscRandomTxInterval: 20
   mscBlockReaper:
     brcInterval: 600
     brcBlocksToKeep: 100
@@ -25,10 +25,16 @@ nodeServerConfig:
     - getWallet: 3
 
 chainIndexConfig:
-  ciBaseUrl: http://localhost:8083
+  ciBaseUrl: http://localhost:9083
+  ciWatchedAddresses: []
 
 requestProcessingConfig:
   requestProcessingInterval: 1
 
 metadataServerConfig:
-  mdBaseUrl: http://localhost:8085
+  mdBaseUrl: http://localhost:9085
+
+# Optional EKG Server Config
+# ----
+# monitoringConfig:
+#   monitoringPort: 9090
