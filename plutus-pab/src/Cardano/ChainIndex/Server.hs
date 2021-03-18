@@ -22,7 +22,8 @@ import           Data.Coerce                     (coerce)
 import           Plutus.PAB.Monitoring.Util      (runLogEffects)
 import qualified Wallet.Effects                  as WalletEffects
 
-import           Cardano.ChainIndex.ChainIndex
+import           Cardano.ChainIndex.ChainIndex   (confirmedBlocks, healthcheck, processIndexEffects, startWatching,
+                                                  syncState, watchedAddresses)
 import           Control.Monad.IO.Class          (MonadIO (..))
 import           Data.Function                   ((&))
 import           Data.Proxy                      (Proxy (Proxy))
@@ -63,4 +64,4 @@ main trace ChainIndexConfig{ciBaseUrl} socketPath availability = runLogEffects t
             warpSettings = Warp.defaultSettings & Warp.setPort servicePort & Warp.setBeforeMainLoop isAvailable
             updateChainState :: MVar AppState -> Block -> Slot -> IO ()
             updateChainState mv block slot =
-                processIndexEffects trace mv $ do syncState block slot
+                processIndexEffects trace mv $ syncState block slot

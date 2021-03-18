@@ -78,7 +78,7 @@ import qualified Data.Set                                as Set
 import           Data.Text.Prettyprint.Doc               (Pretty (..), defaultLayoutOptions, layoutPretty, pretty)
 import           Data.Text.Prettyprint.Doc.Render.Text   (renderStrict)
 
-import           Cardano.Node.Types                      (MockServerConfig (..), NodeUrl (..))
+import           Cardano.Node.Types                      (MockServerConfig (..))
 import           Data.Time.Units                         (toMicroseconds)
 import qualified PSGenerator
 import           Plutus.Contract.Effects.ExposeEndpoint  (EndpointDescription (..))
@@ -113,7 +113,7 @@ runCliCommand trace _ Config {..} serviceAvailability MockWallet =
     liftIO $ WalletServer.main
         (toWalletLog trace)
         walletServerConfig
-        (NodeUrl $ mscBaseUrl nodeServerConfig)
+        (mscSocketPath nodeServerConfig)
         (ChainIndex.ciBaseUrl chainIndexConfig)
         serviceAvailability
 

@@ -26,20 +26,17 @@ import qualified Data.Text.IO                   as T
 import           Data.Time.Units                (Microsecond, fromMicroseconds)
 import           Data.Yaml                      (decodeFileThrow)
 import           GHC.Generics                   (Generic)
-import           Network.HTTP.Client            (ManagerSettings (..), newManager, setRequestIgnoreStatus)
-import           Network.HTTP.Conduit           (tlsManagerSettings)
 import           Options.Applicative            (Parser, ParserInfo, auto, execParser, fullDesc, help, helper, info,
                                                  long, metavar, option, progDesc, short, showDefault, strOption, value,
                                                  (<**>))
-import           Servant.Client                 (ClientEnv (..), mkClientEnv, runClientM)
 import           System.Clock                   (Clock (..), TimeSpec (..), getTime)
 import           System.Random.MWC              (GenIO, createSystemRandom)
 import           System.Signal                  (installHandler, sigINT)
 import           Text.Pretty.Simple             (pPrint)
 
-import           Cardano.Node.Client            (addTx)
 import           Cardano.Node.RandomTx          (generateTx)
 import           Cardano.Node.Types             (MockServerConfig (..))
+import           Cardano.Protocol.Socket.Client (ClientHandler (..), queueTx, runClientNode)
 import           Ledger.Index                   (UtxoIndex (..), insertBlock)
 import           Ledger.Tx                      (Tx (..))
 import           Plutus.Contract.Trace          (defaultDist)
@@ -62,10 +59,10 @@ data Stats = Stats
      required for execution
 -}
 data AppEnv = AppEnv
-  { clientEnv :: ClientEnv
-  , txQueue   :: TBQueue Tx
-  , stats     :: TVar Stats
-  , utxoIndex :: UtxoIndex
+  { clientHandler :: ClientHandler
+  , txQueue       :: TBQueue Tx
+  , stats         :: TVar Stats
+  , utxoIndex     :: UtxoIndex
   }
 
 -- | This builds the default UTxO index, using 10 wallets.
@@ -95,10 +92,10 @@ runProducer AppEnv{txQueue, stats, utxoIndex} = do
 -- | Default consumer will take transactions from the queue and send them
 --   as REST requests to the PAB.
 consumer :: AppEnv -> IO ()
-consumer AppEnv {clientEnv, txQueue, stats} = do
+consumer AppEnv {clientHandler, txQueue, stats} = do
   tx <- atomically $ readTBQueue txQueue
   atomically $ modifyTVar' stats incrementCount
-  _ <- runClientM (addTx tx) clientEnv
+  _ <- queueTx clientHandler tx
   pure ()
   where
     incrementCount :: Stats -> Stats
@@ -185,15 +182,10 @@ initializeInterruptHandler stats = do
   installHandler sigINT (const $ completeStats tid stats)
 
 -- | Build a client environment for servant.
-initializeClientEnv :: Config -> IO ClientEnv
-initializeClientEnv cfg =
-  mkClientEnv <$> liftIO mkManager
-              <*> pure (mscBaseUrl . nodeServerConfig $ cfg)
-  where
-    mkManager =
-      newManager $
-      tlsManagerSettings
-        { managerModifyRequest = pure . setRequestIgnoreStatus }
+initializeClient :: Config -> IO ClientHandler
+initializeClient cfg = do
+    let serverSocket = mscSocketPath $ nodeServerConfig cfg
+    runClientNode serverSocket (\_ _ -> pure ())
 
 main :: IO ()
 main = do
@@ -201,7 +193,7 @@ main = do
   pPrint opts
   config <- liftIO $ decodeFileThrow (ioServerConfig opts)
   env    <-
-    AppEnv <$> initializeClientEnv config
+    AppEnv <$> initializeClient config
            -- Increasing the size beyond this point adds quite a bit of overhead.
            <*> newTBQueueIO 1000
            <*> initializeStats

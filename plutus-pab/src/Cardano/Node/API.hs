@@ -6,16 +6,14 @@ module Cardano.Node.API
     , NodeAPI
     ) where
 
-import           Servant.API                    (Get, JSON, NoContent, Post, ReqBody, (:<|>), (:>))
+import           Servant.API                    (Get, JSON, NoContent, Post, (:<|>), (:>))
 
 import           Cardano.Node.Types             (MockServerLogMsg)
 import           Control.Monad.Freer.Extras.Log (LogMessage)
-import           Ledger                         (Slot, Tx)
+import           Ledger                         (Tx)
 
 type API
      = "healthcheck" :> Get '[ JSON] NoContent
-       :<|> "mempool" :> ReqBody '[ JSON] Tx :> Post '[ JSON] NoContent
-       :<|> "slot" :> Get '[ JSON] Slot
        :<|> "mock" :> NodeAPI
 
 -- Routes that are not guaranteed to exist on the real node

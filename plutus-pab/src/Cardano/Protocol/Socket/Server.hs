@@ -21,6 +21,9 @@ import           Control.Concurrent
 import           Control.Concurrent.Async
 import           Control.Concurrent.STM
 import           Control.Lens                                        hiding (ix)
+import           Control.Monad.Freer                                 (interpret, run)
+import qualified Control.Monad.Freer.Extras.Log                      as Log
+import           Control.Monad.Freer.State                           (runState)
 import           Control.Monad.Reader
 import           Control.Tracer
 
@@ -69,54 +72,74 @@ data ServerHandler = ServerHandler {
     shCommandChannel :: CommandChannel
 }
 
-{- | The commands that control the server. For now we have only
-     a command used to add a new block. -}
+{- | The commands that control the server. This API is not part of the client
+     interface, and in order to call them directly you will need access to the
+     returned ServerHandler -}
 data ServerCommand =
     -- This command will add a new block by processing
     -- transactions in the memory pool.
-    ProcessBlocks [Block]
+    ProcessBlock
+    -- Append a transaction to the transaction pool.
+  | AddTx Tx
+    -- Trim the blockchain to the size given by the argument
+  | TrimTo Int
     deriving Show
 
 {- | The response from the server. Can be used for the information
      passed back, or for synchronisation.
 -}
 data ServerResponse =
-    -- A block was added.
-    BlocksAdded [Block]
+    -- A block was added. We are using this for synchronization.
+    BlockAdded Block
     deriving Show
 
-{- | Tell the server to process a new block, by validating the transactions
-     in the memory pool. This function will block waiting for a response. -}
-processBlocks :: ServerHandler -> [Block] -> IO (Error [Block])
-processBlocks ServerHandler {shCommandChannel} blocks = do
-  atomically $ writeTQueue (ccCommand  shCommandChannel) $   ProcessBlocks blocks
-  atomically $ readTQueue  (ccResponse shCommandChannel) >>= \case
-      BlocksAdded blocks' ->
-          pure $ Right blocks'
+processBlock :: MonadIO m => ServerHandler -> m Block
+processBlock ServerHandler {shCommandChannel} = do
+    liftIO $ atomically $ writeTQueue (ccCommand shCommandChannel) $ ProcessBlock
+    -- Wait for the server to finish processing blocks.
+    liftIO $ atomically $ readTQueue (ccResponse shCommandChannel) >>= \case
+        BlockAdded block -> pure block
+
+addTx :: MonadIO m => ServerHandler -> Tx -> m ()
+addTx ServerHandler { shCommandChannel } tx = do
+    liftIO $ atomically $ writeTQueue (ccCommand  shCommandChannel) $ AddTx tx
+
+trimTo :: MonadIO m => ServerHandler -> Int -> m ()
+trimTo ServerHandler {shCommandChannel} size =
+    liftIO $ atomically $ writeTQueue (ccCommand shCommandChannel) $ TrimTo size
 
 handleCommand ::
-    CommandChannel
+    MonadIO m
+ => CommandChannel
  -> InternalState
- -> IO ()
+ -> m ()
 handleCommand CommandChannel {ccCommand, ccResponse}
               InternalState  {isBlocks , isState   } =
-    atomically (readTQueue ccCommand) >>= \case
-        -- Update the blocks queue with these blocks.
-        ProcessBlocks blocks -> do
-            modifyMVar_ isState (pure . over Chain.chainNewestFirst (mconcat blocks :))
+    liftIO (atomically $ readTQueue ccCommand) >>= \case
+        AddTx tx     ->
+            liftIO $ modifyMVar_ isState (pure . over Chain.txPool (tx :))
+        ProcessBlock -> liftIO $ do
+            state <- liftIO $ takeMVar isState
+            let (block, nextState') = Chain.processBlock
+                  & interpret Chain.handleControlChain
+                  & Log.handleLogIgnore @Chain.ChainEvent
+                  & runState state
+                  & run
+            putMVar isState nextState'
             atomically $ do
-                -- It is important for the blocks channel and chain
-                -- state to remain synchronised.
-                traverse_   (writeTChan isBlocks)   blocks
-                writeTQueue ccResponse (BlocksAdded blocks)
+                writeTChan  isBlocks   block
+                writeTQueue ccResponse (BlockAdded block)
+        TrimTo size ->
+            liftIO $ modifyMVar_ isState (pure . over Chain.chainNewestFirst (take size))
 
 {- | Start the server in a new thread, and return a server handler
      used to control the server -}
 runServerNode ::
-    FilePath
+    MonadIO m
+ => FilePath
  -> ChainState
- -> IO ServerHandler
-runServerNode shSocketPath initialState = do
+ -> m ServerHandler
+runServerNode shSocketPath initialState = liftIO $ do
     serverState      <- initialiseInternalState initialState
     shCommandChannel <- CommandChannel <$> newTQueueIO <*> newTQueueIO
     void $ forkIO . void    $ protocolLoop  shSocketPath     serverState
@@ -133,9 +156,10 @@ data InternalState = InternalState {
 }
 
 initialiseInternalState ::
-    ChainState
- -> IO InternalState
-initialiseInternalState chainState = do
+    MonadIO m
+ => ChainState
+ -> m InternalState
+initialiseInternalState chainState = liftIO $ do
     isBlocks <- newTChanIO
     isState  <- newMVar chainState
     traverse_ (atomically . writeTChan isBlocks)
@@ -326,10 +350,11 @@ hoistStNext (SendMsgRollBackward header tip nextState') =
      ouroboros-network/ouroboros-network/demo/chain-sync.hs -}
 
 protocolLoop ::
-    FilePath
+    MonadIO m
+ => FilePath
  -> InternalState
- -> IO Void
-protocolLoop socketPath internalState = withIOManager $ \iocp -> do
+ -> m Void
+protocolLoop socketPath internalState = liftIO $ withIOManager $ \iocp -> do
     networkState <- newNetworkMutableState
     _ <- async $ cleanNetworkMutableState networkState
     withServerNode

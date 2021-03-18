@@ -38,11 +38,13 @@ import           Data.Function                    ((&))
 import qualified Data.Map                         as Map
 import           Data.Text.Encoding               (encodeUtf8)
 import           Ledger.Crypto                    (PrivateKey (..), getPubKeyHash, pubKeyHash, toPublicKey)
+import           Servant                          (ServerError (..), err400, err401, err404)
+import           Servant.Client                   (ClientEnv)
+
+import qualified Cardano.Protocol.Socket.Client   as Client
 import           Plutus.PAB.Arbitrary             ()
 import qualified Plutus.PAB.Monitoring.Monitoring as LM
 import qualified Plutus.V1.Ledger.Bytes           as KB
-import           Servant                          (ServerError (..), err400, err401, err404)
-import           Servant.Client                   (ClientEnv)
 import           Servant.Server                   (err500)
 import           Wallet.API                       (WalletAPIError (InsufficientFunds, OtherError, PrivateKeyNotFound))
 import qualified Wallet.API                       as WAPI
@@ -105,14 +107,14 @@ handleMultiWallet = do
 processWalletEffects ::
     (MonadIO m, MonadError ServerError m)
     => Trace IO WalletMsg -- ^ trace for logging
-    -> ClientEnv          -- ^ node client
+    -> Client.ClientHandler -- ^ node client
     -> ClientEnv          -- ^ chain index client
     -> MVar Wallets   -- ^ wallets state
     -> Eff (WalletEffects IO) a -- ^ wallet effect
     -> m a
-processWalletEffects trace nodeClientEnv chainIndexEnv mVarState action = do
+processWalletEffects trace clientHandler chainIndexEnv mVarState action = do
     oldState <- liftIO $ takeMVar mVarState
-    result <- liftIO $ runWalletEffects trace nodeClientEnv chainIndexEnv oldState action
+    result <- liftIO $ runWalletEffects trace clientHandler chainIndexEnv oldState action
     case result of
         Left e -> do
             liftIO $ putMVar mVarState oldState
@@ -125,14 +127,14 @@ processWalletEffects trace nodeClientEnv chainIndexEnv mVarState action = do
 runWalletEffects ::
      MonadIO m
     => Trace m WalletMsg -- ^ trace for logging
-    -> ClientEnv -- ^ node client
+    -> Client.ClientHandler -- ^ node client
     -> ClientEnv -- ^ chain index client
     -> Wallets -- ^ current state
     -> Eff (WalletEffects m) a -- ^ wallet effect
     -> m (Either ServerError (a, Wallets))
-runWalletEffects trace nodeClientEnv chainIndexEnv wallets action =
+runWalletEffects trace clientHandler chainIndexEnv wallets action =
     handleMultiWallet action
-    & interpret (NodeClient.handleNodeClientClient nodeClientEnv)
+    & interpret (NodeClient.handleNodeClientClient clientHandler)
     & interpret (ChainIndexClient.handleChainIndexClient chainIndexEnv)
     & runState wallets
     & LM.handleLogMsgTrace (toWalletMsg trace)

@@ -3,11 +3,13 @@
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE GADTs             #-}
 {-# LANGUAGE LambdaCase        #-}
+{-# LANGUAGE NamedFieldPuns    #-}
 {-# LANGUAGE TypeFamilies      #-}
 
 module Cardano.Protocol.Socket.Client where
 
 import qualified Data.ByteString.Lazy                                as LBS
+import           Data.Time.Units                                     (Second, TimeUnit, toMicroseconds)
 import           Data.Void                                           (Void)
 
 import           Control.Concurrent
@@ -31,10 +33,11 @@ import           Cardano.Protocol.Socket.Type
 import           Ledger                                              (Block, Slot (..), Tx (..))
 
 -- | Client handler, used to communicate with the client thread.
-data ClientHandler = ClientHandler {
-        chInputQueue :: TQueue Tx,
-        chSocketPath :: FilePath,
-        chThreadId   :: ThreadId
+data ClientHandler = ClientHandler
+    { chInputQueue  :: TQueue Tx
+    , chSocketPath  :: FilePath
+    , chCurrentSlot :: MVar Slot
+    , chHandler     :: (Block -> Slot -> IO ())
     }
 
 -- | Queue a transaction to be sent to the server.
@@ -42,10 +45,18 @@ queueTx ::
     ClientHandler
  -> Tx
  -> IO ()
-queueTx (ClientHandler inputQueue _ _) tx =
-    atomically (writeTQueue inputQueue tx)
+queueTx ClientHandler { chInputQueue } tx =
+    atomically (writeTQueue chInputQueue tx)
 
--- | Forks and starts a new client node, returning the newly allocated thread id.
+getCurrentSlot ::
+     ClientHandler
+  -> IO Slot
+getCurrentSlot ClientHandler { chCurrentSlot } =
+    readMVar chCurrentSlot
+
+{-| Forks and starts a new client node, returning the newly allocated thread id.
+    The client will retry connecting if the the protocol connection drops, or
+    cannot be established. -}
 runClientNode :: FilePath
               -> (Block -> Slot -> IO ())
               -> IO ClientHandler
@@ -54,23 +65,29 @@ runClientNode socketPath onNewBlock = do
     -- Right now we synchronise the whole blockchain so we can initialise the first
     -- slot to be 0. This will change when we start looking for intersection points.
     mSlot    <- newMVar (Slot 0)
-    threadId <- forkIO $ withIOManager $ \iocp ->
+    let handle = ClientHandler { chInputQueue = inputQueue
+                               , chSocketPath = socketPath
+                               , chCurrentSlot = mSlot
+                               , chHandler = onNewBlock
+                               }
+
+    _ <- forkIO $ withIOManager $ loop (1 :: Second) handle
+    pure handle
+    where
+      loop :: TimeUnit a => a -> ClientHandler -> IOManager -> IO ()
+      loop timeout ch@ClientHandler{chSocketPath, chInputQueue, chCurrentSlot, chHandler} iocp = do
         connectToNode
           (localSnocket iocp socketPath)
           unversionedHandshakeCodec
           (cborTermVersionDataCodec unversionedProtocolDataCodec)
           nullNetworkConnectTracers
           acceptableVersion
-          (unversionedProtocol (app mSlot onNewBlock inputQueue))
+          (unversionedProtocol (app chCurrentSlot chHandler chInputQueue))
           Nothing
-          (localAddressFromPath socketPath)
-    pure ClientHandler {
-        chInputQueue  = inputQueue,
-        chSocketPath  = socketPath,
-        chThreadId    = threadId
-    }
+          (localAddressFromPath chSocketPath)
+        threadDelay (fromIntegral $ toMicroseconds timeout)
+        loop timeout ch iocp
 
-    where
       {- Application that communicates using 2 multiplexed protocols
          (ChainSync and TxSubmission). -}
       app :: MVar Slot

@@ -27,6 +27,7 @@ import qualified Cardano.Metadata.Types                  as Metadata
 import           Cardano.Node.Client                     (handleNodeClientClient, handleRandomTxClient)
 import           Cardano.Node.RandomTx                   (GenRandomTx)
 import           Cardano.Node.Types                      (MockServerConfig (..))
+import qualified Cardano.Protocol.Socket.Client          as Client
 import qualified Cardano.Wallet.Client                   as WalletClient
 import qualified Cardano.Wallet.Types                    as Wallet
 import           Control.Monad.Catch                     (MonadCatch)
@@ -77,6 +78,7 @@ data Env =
         , nodeClientEnv     :: ClientEnv
         , metadataClientEnv :: ClientEnv
         , chainIndexEnv     :: ClientEnv
+        , clientHandler     :: Client.ClientHandler
         }
 
 type AppBackend m =
@@ -117,6 +119,7 @@ runAppBackend trace loggingConfig config action = do
             , metadataClientEnv
             , walletClientEnv
             , chainIndexEnv
+            , clientHandler
             } <- mkEnv config
     let
         wllt = Wallet.wallet $ walletServerConfig config
@@ -128,7 +131,7 @@ runAppBackend trace loggingConfig config action = do
                Eff (NodeClientEffect ': _) a -> Eff _ a
         handleNodeClient =
             flip handleError (throwError . NodeClientError) .
-            reinterpret @_ @(Error ClientError) (handleNodeClientClient nodeClientEnv)
+            reinterpret @_ @(Error ClientError) (handleNodeClientClient clientHandler)
         handleMetadata ::
                Eff (MetadataEffect ': _) a -> Eff _ a
         handleMetadata =
@@ -179,6 +182,7 @@ mkEnv Config { dbConfig
     metadataClientEnv <- clientEnv (Metadata.mdBaseUrl metadataServerConfig)
     chainIndexEnv <- clientEnv (ChainIndex.ciBaseUrl chainIndexConfig)
     dbConnection <- dbConnect dbConfig
+    clientHandler <- liftIO $ Client.runClientNode (mscSocketPath nodeServerConfig) (\_ _ -> pure ())
     pure Env {..}
   where
     clientEnv baseUrl = mkClientEnv <$> liftIO mkManager <*> pure (coerce baseUrl)
