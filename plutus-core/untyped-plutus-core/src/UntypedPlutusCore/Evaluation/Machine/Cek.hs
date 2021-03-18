@@ -41,7 +41,6 @@ import           UntypedPlutusCore.Evaluation.Machine.Cek.ExBudgetMode
 import           UntypedPlutusCore.Evaluation.Machine.Cek.Internal
 
 import           PlutusCore.Constant
-import           PlutusCore.Evaluation.Machine.ExBudget
 import           PlutusCore.Evaluation.Machine.ExMemory
 import           PlutusCore.Evaluation.Machine.Exception
 import           PlutusCore.Name
@@ -54,28 +53,12 @@ import           Data.Ix
 A function whose name ends in @NoEmit@ does not perform logging and so does not return any logs.
 A function whose name starts with @unsafe@ throws exceptions instead of returning them purely.
 A function from the @runCek@ family takes an 'ExBudgetMode' parameter and returns the final
-'CekExBudgetState' (and possibly logs).
+'CekExBudgetState' (and possibly logs). Note that 'runCek' is defined in @...Cek.Internal@ for
+reasons explained in Note [Compilation peculiarities].
 A function from the @evaluateCek@ family does not return the final 'ExBudgetMode', nor does it
 allow one to specify an 'ExBudgetMode'. I.e. such functions are only for fully evaluating programs
 (and possibly returning logs). See also haddocks of 'enormousBudget'.
 -}
-
--- | Evaluate a term using the CEK machine and keep track of costing, logging is optional.
-runCek
-    :: ( GShow uni, GEq uni, Closed uni, uni `Everywhere` ExMemoryUsage
-       , Hashable fun, Ix fun, ExMemoryUsage fun
-       )
-    => BuiltinsRuntime fun (CekValue uni fun)
-    -> ExBudgetMode cost uni fun
-    -> Bool
-    -> Term Name uni fun ()
-    -> (Either (CekEvaluationException uni fun) (Term Name uni fun ()), cost, [String])
-runCek runtime (ExBudgetMode spender costInit) emitting term =
-    runCekM runtime spender costInit emitting $ do
-        spendBudget BAST (ExBudget 0 (termAnn memTerm))
-        computeCek [] mempty memTerm
-  where
-    memTerm = withMemory term
 
 -- | Evaluate a term using the CEK machine with logging disabled and keep track of costing.
 runCekNoEmit
