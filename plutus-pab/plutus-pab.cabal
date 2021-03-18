@@ -78,6 +78,7 @@ library
         Plutus.PAB.Core.ContractInstance.BlockchainEnv
         Plutus.PAB.Core.ContractInstance.RequestHandlers
         Plutus.PAB.Core.ContractInstance.STM
+        Plutus.PAB.Core.Server
         Plutus.PAB.Db.Eventful.ContractDefinitionStore
         Plutus.PAB.Db.Eventful.ContractStore
         Plutus.PAB.Db.Eventful.Projections
@@ -91,6 +92,7 @@ library
         Plutus.PAB.Effects.EventLog
         Plutus.PAB.Effects.MultiAgent
         Plutus.PAB.Effects.UUID
+        Plutus.PAB.Effects.TimeEffect
         Plutus.PAB.Instances
         Plutus.PAB.Monitoring.MonadLoggerBridge
         Plutus.PAB.Monitoring.Monitoring
@@ -107,7 +109,6 @@ library
         Plutus.PAB.Events.ContractInstanceState
         Plutus.PAB.ParseStringifiedJSON
         Plutus.PAB.Simulator
-        Plutus.PAB.Simulator.Server
         Plutus.PAB.Types
     other-modules:
         Servant.Extra

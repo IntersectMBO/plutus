@@ -29,6 +29,9 @@ module Plutus.PAB.Core
     , activateContract
     , callEndpointOnInstance
     , payToPublicKey
+    -- * Agent threads
+    , ContractInstanceEffects
+    , handleAgentThread
     -- * Querying the state
     , instanceState
     , observableState
@@ -48,7 +51,6 @@ module Plutus.PAB.Core
     -- * Other stuff (TODO: Move to Plutus.PAB.App)
     , dbConnect
     , installContract
-    , activateContractSTM
     , reportContractState
     , Connection(Connection)
     , toUUID
@@ -64,8 +66,8 @@ module Plutus.PAB.Core
 import           Control.Concurrent.STM                          (STM)
 import qualified Control.Concurrent.STM                          as STM
 import           Control.Monad                                   (forM, guard, void)
-import           Control.Monad.Freer                             (Eff, Member, interpret, reinterpret, runM, send,
-                                                                  subsume, type (~>))
+import           Control.Monad.Freer                             (Eff, LastMember, Member, interpret, reinterpret, runM,
+                                                                  send, subsume, type (~>))
 import           Control.Monad.Freer.Error                       (Error, runError)
 import           Control.Monad.Freer.Extras.Log                  (LogMessage, LogMsg (..), LogObserve, handleObserveLog,
                                                                   logInfo, mapLog)
@@ -90,7 +92,7 @@ import           GHC.Generics                                    (Generic)
 import           Language.Plutus.Contract.Effects.ExposeEndpoint (ActiveEndpoint (..))
 import           Ledger.Tx                                       (Tx)
 import           Ledger.Value                                    (Value)
-import           Plutus.PAB.Core.ContractInstance                (ContractInstanceMsg, activateContractSTM)
+import           Plutus.PAB.Core.ContractInstance                (ContractInstanceMsg)
 import qualified Plutus.PAB.Core.ContractInstance                as ContractInstance
 import           Plutus.PAB.Core.ContractInstance.STM            (BlockchainEnv, InstancesState, OpenEndpoint (..))
 import qualified Plutus.PAB.Core.ContractInstance.STM            as Instances
@@ -101,6 +103,7 @@ import qualified Plutus.PAB.Effects.Contract                     as Contract
 import qualified Plutus.PAB.Effects.ContractRuntime              as ContractRuntime
 import           Plutus.PAB.Effects.EventLog                     (Connection (..))
 import qualified Plutus.PAB.Effects.EventLog                     as EventLog
+import           Plutus.PAB.Effects.TimeEffect                   (TimeEffect (..), systemTime)
 import           Plutus.PAB.Effects.UUID                         (UUIDEffect, handleUUIDEffect)
 import           Plutus.PAB.Events.Contract                      (ContractPABRequest)
 import           Plutus.PAB.Events.ContractInstanceState         (PartiallyDecodedResponse)
@@ -121,7 +124,9 @@ import           Wallet.Types                                    (ContractInstan
 type PABEffects t env =
     '[ ContractStore t
      , ContractEffect t
+     , ContractDefinitionStore t
      , LogMsg (PABMultiAgentMsg t)
+     , TimeEffect
      , Reader (PABEnvironment t env)
      , Error PABError
      , IO
@@ -143,12 +148,14 @@ data PABEnvironment t env =
 -- | Get a 'PABRunner' that uses the current environment.
 pabRunner :: forall t env. PABAction t env (PABRunner t env)
 pabRunner = do
-    h@PABEnvironment{effectHandlers=EffectHandlers{handleLogMessages, handleContractStoreEffect, handleContractEffect}} <- ask @(PABEnvironment t env)
+    h@PABEnvironment{effectHandlers=EffectHandlers{handleLogMessages, handleContractStoreEffect, handleContractEffect, handleContractDefinitionStoreEffect}} <- ask @(PABEnvironment t env)
     pure $ PABRunner $ \action -> do
         runM
             $ runError
             $ runReader h
+            $ interpret (handleTimeEffect @t @env)
             $ handleLogMessages
+            $ handleContractDefinitionStoreEffect
             $ handleContractEffect
             $ handleContractStoreEffect
             $ action
@@ -161,11 +168,11 @@ runPAB ::
     -> PABAction t env a
     -> IO (Either PABError a)
 runPAB effectHandlers action = runM $ runError $ do
-    let EffectHandlers{initialiseEnvironment, onStartup, onShutdown, handleLogMessages, handleContractStoreEffect, handleContractEffect} = effectHandlers
+    let EffectHandlers{initialiseEnvironment, onStartup, onShutdown, handleLogMessages, handleContractStoreEffect, handleContractEffect, handleContractDefinitionStoreEffect} = effectHandlers
     (instancesState, blockchainEnv, appEnv) <- initialiseEnvironment
     let env = PABEnvironment{instancesState, blockchainEnv, appEnv, effectHandlers}
 
-    runReader env $ handleLogMessages $ handleContractEffect $ handleContractStoreEffect $ do
+    runReader env $ interpret (handleTimeEffect @t @env) $ handleLogMessages $ handleContractDefinitionStoreEffect $ handleContractEffect $ handleContractStoreEffect $ do
         onStartup
         result <- action
         onShutdown
@@ -215,6 +222,7 @@ type ContractInstanceEffects t env effs =
     ': LogObserve (LogMessage Text)
     ': LogMsg Text
     ': Error PABError
+    ': TimeEffect
     ': Reader BlockchainEnv
     ': Reader InstancesState
     ': Reader (PABEnvironment t env)
@@ -237,12 +245,13 @@ handleAgentThread wallet action = do
         $ subsume @(Reader (PABEnvironment t env))
         $ runReader instancesState
         $ runReader blockchainEnv
+        $ interpret (handleTimeEffect @t @env @IO)
         $ subsume @(Error PABError)
-        $ (interpret (mapLog @_ @(PABMultiAgentMsg t) EmulatorMsg) . reinterpret (timed @EmulatorEvent' @t @env) . reinterpret (mapLog (WalletEvent wallet)) . reinterpret (mapLog GenericLog))
+        $ (interpret (mapLog @_ @(PABMultiAgentMsg t) EmulatorMsg) . reinterpret (timed @EmulatorEvent') . reinterpret (mapLog (WalletEvent wallet)) . reinterpret (mapLog GenericLog))
         $ handleObserveLog
         $ interpret (mapLog ContractInstanceLog)
-        $ (interpret (mapLog @_ @(PABMultiAgentMsg t) EmulatorMsg) . reinterpret (timed @EmulatorEvent' @t @env) . reinterpret (mapLog (WalletEvent wallet)) . reinterpret (mapLog RequestHandlerLog))
-        $ (interpret (mapLog @_ @(PABMultiAgentMsg t) EmulatorMsg) . reinterpret (timed @EmulatorEvent' @t @env) . reinterpret (mapLog (WalletEvent wallet)) . reinterpret (mapLog TxBalanceLog))
+        $ (interpret (mapLog @_ @(PABMultiAgentMsg t) EmulatorMsg) . reinterpret (timed @EmulatorEvent') . reinterpret (mapLog (WalletEvent wallet)) . reinterpret (mapLog RequestHandlerLog))
+        $ (interpret (mapLog @_ @(PABMultiAgentMsg t) EmulatorMsg) . reinterpret (timed @EmulatorEvent') . reinterpret (mapLog (WalletEvent wallet)) . reinterpret (mapLog TxBalanceLog))
         $ handleUUIDEffect
         $ handleServicesEffects wallet
         $ handleContractStoreEffect
@@ -256,48 +265,63 @@ data EffectHandlers t env =
     EffectHandlers
         { -- | Create the initial environment. This value is shared between all threads
           --   started by the PAB.
-          initialiseEnvironment :: forall m effs.
+          initialiseEnvironment :: forall effs.
             ( Member (Error PABError) effs
-            , MonadIO (Eff effs)
+            , LastMember IO effs
             )
             => Eff effs (InstancesState, BlockchainEnv, env)
 
         -- | Handle log messages
-        , handleLogMessages :: forall m effs.
+        , handleLogMessages :: forall effs.
             ( Member (Reader (PABEnvironment t env)) effs
+            , Member TimeEffect effs
             , Member (Error PABError) effs
-            , MonadIO (Eff effs)
+            , LastMember IO effs
             )
             => Eff (LogMsg (PABMultiAgentMsg t) ': effs)
             ~> Eff effs
 
         -- | Handle the 'ContractStore' effect
-        , handleContractStoreEffect :: forall m effs.
+        , handleContractStoreEffect :: forall effs.
             ( Member (Reader (PABEnvironment t env)) effs
             , Member (Error PABError) effs
+            , Member TimeEffect effs
             , Member (LogMsg (PABMultiAgentMsg t)) effs
-            , MonadIO (Eff effs)
+            , LastMember IO effs
             )
             => Eff (ContractStore t ': effs)
             ~> Eff effs
 
         -- | Handle the 'ContractEffect'
-        , handleContractEffect :: forall m effs.
+        , handleContractEffect :: forall effs.
             ( Member (Reader (PABEnvironment t env)) effs
             , Member (Error PABError) effs
+            , Member TimeEffect effs
             , Member (LogMsg (PABMultiAgentMsg t)) effs
-            , MonadIO (Eff effs)
+            , LastMember IO effs
             )
             => Eff (ContractEffect t ': effs)
             ~> Eff effs
 
-        -- | Handle effects that serve requests to external services managed by the PAB
-        --   Runs in the context of a particular wallet.
-        , handleServicesEffects :: forall m effs.
+        -- | Handle the 'ContractDefinitionStore' effect
+        , handleContractDefinitionStoreEffect :: forall effs.
             ( Member (Reader (PABEnvironment t env)) effs
             , Member (Error PABError) effs
+            , Member TimeEffect effs
             , Member (LogMsg (PABMultiAgentMsg t)) effs
-            , MonadIO (Eff effs)
+            , LastMember IO effs
+            )
+            => Eff (ContractDefinitionStore t ': effs)
+            ~> Eff effs
+
+        -- | Handle effects that serve requests to external services managed by the PAB
+        --   Runs in the context of a particular wallet.
+        , handleServicesEffects :: forall effs.
+            ( Member (Reader (PABEnvironment t env)) effs
+            , Member (Error PABError) effs
+            , Member TimeEffect effs
+            , Member (LogMsg (PABMultiAgentMsg t)) effs
+            , LastMember IO effs
             )
             => Wallet
             -> Eff (WalletEffect ': ChainIndexEffect ': NodeClientEffect ': effs)
@@ -386,17 +410,16 @@ instance Pretty (ContractDef t) => Pretty (AppMsg t) where
 
 -- | Annotate log messages with the current slot number.
 timed ::
-    forall e t env effs.
+    forall e effs.
     ( Member (LogMsg (EmulatorTimeEvent e)) effs
-    , Member (Reader (PABEnvironment t env)) effs
-    , MonadIO (Eff effs)
+    , Member TimeEffect effs
     )
     => LogMsg e
     ~> Eff effs
 timed = \case
     LMessage m -> do
         m' <- forM m $ \msg -> do
-            sl <- asks @(PABEnvironment t env) (Instances.beCurrentSlot . blockchainEnv) >>= liftIO . STM.readTVarIO
+            sl <- systemTime
             pure (EmulatorTimeEvent sl msg)
         send (LMessage m')
 
@@ -518,3 +541,16 @@ handleInstancesStateReader :: forall t env effs.
     ~> Eff effs
 handleInstancesStateReader = \case
     Ask -> asks @(PABEnvironment t env) instancesState
+
+handleTimeEffect ::
+    forall t env m effs.
+    ( Member (Reader (PABEnvironment t env)) effs
+    , LastMember m effs
+    , MonadIO m
+    )
+    => TimeEffect
+    ~> Eff effs
+handleTimeEffect = \case
+    SystemTime -> do
+        Instances.BlockchainEnv{Instances.beCurrentSlot} <- asks @(PABEnvironment t env) blockchainEnv
+        liftIO $ STM.readTVarIO beCurrentSlot

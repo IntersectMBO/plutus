@@ -11,7 +11,5 @@
 {-# LANGUAGE TypeApplications  #-}
 {-# LANGUAGE TypeOperators     #-}
 module Plutus.PAB.Effects.MultiAgent(
-    -- * Multi-agent effect -- FIXME move to Simulator?
+    -- * Multi-agent effect -- FIXME DELETE
     ) where
-
--- FIXME: Replace with PABLogMsg / Move to types?

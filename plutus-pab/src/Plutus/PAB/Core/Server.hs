@@ -9,10 +9,11 @@
 {-# LANGUAGE TypeOperators      #-}
 {-
 
-Experimental webserver implementing the new PAB API.
+Servant handler for the Plutus PAB API
+as a @PABAction t env@s.
 
 -}
-module Plutus.PAB.Simulator.Server(
+module Plutus.PAB.Core.Server(
     startServer,
     StatusStreamToClient(..),
     -- * Testing
@@ -40,13 +41,14 @@ import           Language.PlutusTx.Coordination.Contracts.Currency (SimpleMPS (.
 import qualified Network.Wai.Handler.Warp                          as Warp
 import qualified Network.WebSockets                                as WS
 import           Network.WebSockets.Connection                     (Connection, PendingConnection, withPingThread)
+import           Plutus.PAB.Core                                   (PABAction, PABRunner (..))
+import qualified Plutus.PAB.Core                                   as Core
 import           Plutus.PAB.Core.ContractInstance.STM              (OpenEndpoint (..))
 import qualified Plutus.PAB.Effects.Contract                       as Contract
-import           Plutus.PAB.Effects.Contract.ContractTest          (TestContracts (AtomicSwap, Currency))
+import           Plutus.PAB.Effects.Contract.ContractTest          (TestContracts (Currency))
 import           Plutus.PAB.Events.Contract                        (ContractPABRequest, _UserEndpointRequest)
 import           Plutus.PAB.Events.ContractInstanceState           (PartiallyDecodedResponse (hooks))
 import           Plutus.PAB.Instances                              ()
-import           Plutus.PAB.Simulator                              (SimRunner (..), Simulation)
 import qualified Plutus.PAB.Simulator                              as Simulator
 import           Plutus.PAB.Types                                  (PABError)
 import           Plutus.PAB.Webserver.API                          (ContractActivationArgs (..),
@@ -59,12 +61,14 @@ import           Wallet.Emulator.Wallet                            (Wallet (..))
 import           Wallet.Types                                      (ContractInstanceId)
 
 handler ::
-       (ContractActivationArgs TestContracts -> Simulation ContractInstanceId)
-            :<|> (ContractInstanceId -> Simulation (ContractInstanceClientState)
-                                        :<|> (String -> JSON.Value -> Simulation ())
-                                        :<|> (PendingConnection -> Simulation ()))
-            :<|> Simulation [ContractInstanceClientState]
-            :<|> Simulation [ContractSignatureResponse TestContracts]
+       forall t env.
+       Contract.PABContract t =>
+       (ContractActivationArgs (Contract.ContractDef t) -> PABAction t env ContractInstanceId)
+            :<|> (ContractInstanceId -> PABAction t env (ContractInstanceClientState)
+                                        :<|> (String -> JSON.Value -> PABAction t env ())
+                                        :<|> (PendingConnection -> PABAction t env ()))
+            :<|> PABAction t env [ContractInstanceClientState]
+            :<|> PABAction t env [ContractSignatureResponse (Contract.ContractDef t)]
 handler =
         (activateContract
             :<|> (\x -> contractInstanceState x :<|> callEndpoint x :<|> contractInstanceUpdates x)
@@ -83,27 +87,37 @@ fromInternalState i resp =
             in resp { hooks = hks' }
         }
 
-asHandler :: SimRunner -> Simulation a -> Handler a
-asHandler SimRunner{runSim} = Servant.Handler . ExceptT . fmap (first mapError) . runSim where
+asHandler :: forall t env a. PABRunner t env -> PABAction t env a -> Handler a
+asHandler PABRunner{runPABAction} = Servant.Handler . ExceptT . fmap (first mapError) . runPABAction where
     mapError :: PABError -> Servant.ServerError
     mapError e = Servant.err500 { Servant.errBody = LBS.pack $ show e }
 
-app :: SimRunner -> Application
-app simRunner = do
-    let rest = Proxy @(NewAPI TestContracts)
-        apiServer :: ServerT (NewAPI TestContracts) Handler
+app ::
+    forall t env.
+    ( FromJSON (Contract.ContractDef t)
+    , ToJSON (Contract.ContractDef t)
+    , Contract.PABContract t
+    ) => PABRunner t env -> Application
+app pabRunner = do
+    let rest = Proxy @(NewAPI (Contract.ContractDef t))
+        apiServer :: ServerT (NewAPI (Contract.ContractDef t)) Handler
         apiServer =
             Servant.hoistServer
-                (Proxy @(NewAPI TestContracts))
-                (asHandler simRunner)
+                (Proxy @(NewAPI (Contract.ContractDef t)))
+                (asHandler pabRunner)
                 handler
 
     Servant.serve rest apiServer
 
 -- | Start the server on the port. Returns an action that shuts it down again.
-startServer :: Warp.Port -> Simulation (Simulation ())
+startServer ::
+    forall t env.
+    ( FromJSON (Contract.ContractDef t)
+    , ToJSON (Contract.ContractDef t)
+    , Contract.PABContract t
+    ) => Warp.Port -> PABAction t env (PABAction t env ())
 startServer port = do
-    simRunner <- Simulator.mkRunSim
+    simRunner <- Core.pabRunner
     shutdownVar <- liftIO $ STM.atomically $ STM.newEmptyTMVar @()
 
     let shutdownHandler :: IO () -> IO ()
@@ -120,31 +134,29 @@ startServer port = do
 
 -- HANDLERS
 
-activateContract ::
-    ContractActivationArgs TestContracts
-    -> Simulation ContractInstanceId
+activateContract :: forall t env. Contract.PABContract t => ContractActivationArgs (Contract.ContractDef t) -> PABAction t env ContractInstanceId
 activateContract ContractActivationArgs{caID, caWallet=WalletInfo{unWalletInfo=wallet}} = do
-    Simulator.agentAction wallet $ Simulator.activateContract caID
+    Core.activateContract wallet caID
 
-contractInstanceState :: ContractInstanceId -> Simulation ContractInstanceClientState
-contractInstanceState i = fromInternalState i <$> Contract.getState @TestContracts i
+contractInstanceState :: forall t env. Contract.PABContract t => ContractInstanceId -> PABAction t env ContractInstanceClientState
+contractInstanceState i = fromInternalState i . Contract.serialisableState (Proxy @t) <$> Contract.getState @t i
 
-callEndpoint :: ContractInstanceId -> String -> JSON.Value -> Simulation ()
-callEndpoint a b = void . Simulator.callEndpointOnInstance a b
+callEndpoint :: forall t env. ContractInstanceId -> String -> JSON.Value -> PABAction t env ()
+callEndpoint a b = void . Core.callEndpointOnInstance a b
 
-contractInstanceUpdates :: ContractInstanceId -> PendingConnection -> Simulation ()
+contractInstanceUpdates :: forall t env. ContractInstanceId -> PendingConnection -> PABAction t env ()
 contractInstanceUpdates contractInstanceId pending = do
-    Simulator.SimRunner{Simulator.runSim} <- Simulator.mkRunSim
+    Core.PABRunner{Core.runPABAction} <- Core.pabRunner
     liftIO $ do
         connection <- WS.acceptRequest pending
-        handle disconnect . withPingThread connection 30 (pure ()) $ fmap (either (error . show) id) . runSim $ sendUpdatesToClient contractInstanceId connection
+        handle disconnect . withPingThread connection 30 (pure ()) $ fmap (either (error . show) id) . runPABAction $ sendUpdatesToClient contractInstanceId connection
   where
     disconnect :: SomeException -> IO ()
     disconnect _ = pure ()
 
-sendUpdatesToClient :: ContractInstanceId -> Connection -> Simulation ()
+sendUpdatesToClient :: forall t env. ContractInstanceId -> Connection -> PABAction t env ()
 sendUpdatesToClient instanceId connection = do
-    (getState, getEndpoints, finalValue) <- (,,) <$> Simulator.observableState instanceId <*> fmap (fmap (fmap oepName)) (Simulator.activeEndpoints instanceId) <*> Simulator.finalResult instanceId
+    (getState, getEndpoints, finalValue) <- (,,) <$> Core.observableState instanceId <*> fmap (fmap (fmap oepName)) (Core.activeEndpoints instanceId) <*> Core.finalResult instanceId
     (initialState, initialEndpoints) <- liftIO $ STM.atomically $ (,) <$> getState <*> getEndpoints
     let nextState oldState = do
             newState <- getState
@@ -165,16 +177,17 @@ sendUpdatesToClient instanceId connection = do
                 ContractFinished _          -> pure ()
     go initialState initialEndpoints
 
-allInstanceStates :: Simulation [ContractInstanceClientState]
+allInstanceStates :: forall t env. Contract.PABContract t => PABAction t env [ContractInstanceClientState]
 allInstanceStates = do
-    mp <- Contract.getActiveContracts @TestContracts
-    let get i = fromInternalState i <$> Contract.getState @TestContracts i
+    mp <- Contract.getActiveContracts @t
+    let get i = fromInternalState i . Contract.serialisableState (Proxy @t) <$> Contract.getState @t i
     traverse get $ fst <$> Map.toList mp
 
-availableContracts :: Simulation [ContractSignatureResponse TestContracts]
-availableContracts =
-    let mkSchema s = ContractSignatureResponse s <$> Contract.exportSchema @TestContracts s
-    in traverse mkSchema [Currency, AtomicSwap]
+availableContracts :: forall t env. Contract.PABContract t => PABAction t env [ContractSignatureResponse (Contract.ContractDef t)]
+availableContracts = do
+    def <- Contract.getDefinitions @t
+    let mkSchema s = ContractSignatureResponse s <$> Contract.exportSchema @t s
+    traverse mkSchema def
 
 -- | Status updates for contract instances streamed to client
 data StatusStreamToClient
@@ -184,9 +197,10 @@ data StatusStreamToClient
     deriving stock (Generic, Eq, Show)
     deriving anyclass (ToJSON, FromJSON)
 
+-- | A little simulator test
 main :: IO ()
 main = void $ Simulator.runSimulation $ do
-        instanceId <- Simulator.agentAction (Wallet 1) $ Simulator.activateContract Currency
+        instanceId <- Simulator.activateContract (Wallet 1) Currency
         shutdown <- startServer 8080
         _ <- liftIO getLine
 
