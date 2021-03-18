@@ -259,7 +259,15 @@ thm1 : (A : ∅ ⊢⋆ J)(A' : ∅ ⊢⋆ K)(E : EvalCtx K J)
 thm1 A A' E p .A' V refl—↠E = unwind A A' E p V
 thm1 A A' E p B V (trans—↠E {B = B'} q r) with lemma51 B'
 ... | inj₁ V' with v-refl B' B V' r
-... | refl = {!V!}
+thm1 A A' E p B' V (trans—↠E {B = B'} (contextRule E₁ (β-ƛ x) x₁ x₂) .refl—↠E) | inj₁ V' | refl , refl = ?
+-- what's going on here?
+
+-- we get to a value immediately, this comes out of lemma51 it's the
+-- otherside of getting a unique decomposition...
+
+-- in that case, B' is already a value, so we could plug in the [] for the recursive call... 
+
+
 thm1 A A' E p B V (trans—↠E {B = B'} q r)
   | inj₂ (J , E' , I , L , N , VL , VN , X)
   with lem2 A A' E (L · N) B' E' p X q

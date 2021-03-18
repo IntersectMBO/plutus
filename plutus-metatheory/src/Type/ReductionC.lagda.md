@@ -597,7 +597,6 @@ subst-l·'' : (E : EvalCtx (J ⇒ I) K)(B : ∅ ⊢⋆ J)(B' : ∅ ⊢⋆ J')
   → E l· B ≡ subst (λ J → EvalCtx J K) q E l· B'
 subst-l·'' E B B' refl refl refl = refl
 
-open Relation.Binary.PropositionalEquality
 cong₃ : {A : Set}{B : A → Set}{C D : Set}
       → (f : ∀ a (b : B a) → C → D) → {a a' : A}(p : a ≡ a')
       → {b : B a}{b' : B a'} → subst B p b ≡ b'
@@ -683,6 +682,23 @@ lemma51! (M · M') with lemma51! M
 lemma51! (μ M M') = mu-case M M'
 lemma51! (con x) = inj₁ (V-con x)
 
+{- 
+
+possibly lemma51! might be more useful if it wasn't so picky about
+the shape of the unique thing in the context...
+
+
+
+lemma51!! : (M : ∅ ⊢⋆ K) → Value⋆ M ⊎ ¬ (Value⋆ M) × ∃ λ J → ∃ λ (E : EvalCtx K J) → ∃ λ I → ∃ λ (L : ∅ ⊢⋆ I ⇒ J) → ∃ λ (N : ∅ ⊢⋆ I) → Value⋆ L × Value⋆ N × M ≡ closeEvalCtx E (L · N)
+    -- uniqueness condition
+    × ∀ J'
+      (E' : EvalCtx K J')
+      (O : ∅ ⊢⋆ J') →
+      M ≡ closeEvalCtx E' O →
+      ∃ λ (p : J' ≡ J) → subst (EvalCtx K) p E' ≡ E
+lemma51!! = {!!}
+ 
+-}
 -- this one is specialised to having types of the same kind
 postulate
   uniquenessE : (A : ∅ ⊢⋆ K)
@@ -713,13 +729,27 @@ uniqueness⋆ B B' (μl E C) p  with projμl p
 
 
 
-{-
-det : (p : A —→E B)(q : A —→E B') → B ≡ B'
--}
+postulate
+  det : (p : A —→E B)(q : A —→E B') → B ≡ B'
 ```
 
 ```
-v-refl :  (A B : ∅ ⊢⋆ K)(V : Value⋆ A) → A —↠E B → A ≡ B
-v-refl A .A V refl—↠E       = refl
+v-refl :  (A B : ∅ ⊢⋆ K)(V : Value⋆ A)(p : A —↠E B)
+  → Σ (A ≡ B) λ q → subst (_—↠E B) q p ≡ refl—↠E
+v-refl A .A V refl—↠E       = refl , refl
 v-refl A B V (trans—↠E p q) = ⊥-elim (notboth A (V , _ , p)) 
+```
+
+```
+-- there's not particular reason why this doesn't take an arbitrary
+-- term instead of E [ M ]
+lemmaE : ∀ (M : ∅ ⊢⋆ J)(E : EvalCtx K J) B
+  → closeEvalCtx E M —→E B
+  → ∃ λ J' → ∃ λ E' → ∃ λ (L : ∅ ⊢⋆ J') → ∃ λ N → (L —→⋆ N)
+  × closeEvalCtx E  M ≡ closeEvalCtx E' L
+  × closeEvalCtx E' N ≡ B  
+lemmaE M E B p with lemma51 (closeEvalCtx E M)
+... | inj₁ V = ⊥-elim (notboth (closeEvalCtx E M) (V , _ , p))
+... | inj₂ (J' , E' , I , _ , N , V-ƛ L , VN , q)  =
+  J' , E' , ƛ L · N , (L [ N ]) , β-ƛ VN , q , sym (det p (contextRule E' (β-ƛ VN) q refl))
 ```
