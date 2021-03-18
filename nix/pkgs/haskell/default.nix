@@ -50,14 +50,8 @@ let
   packages = project.hsPkgs;
 
   # Just the packages in the project
-  basePackages =
-    packages:
-    (haskell-nix.haskellLib.selectProjectPackages packages
-      # Need to list this manually to work around https://github.com/input-output-hk/haskell.nix/issues/464
-      // { inherit (packages) plutus-metatheory; });
-
-  projectPackages = basePackages packages;
-  projectPackagesAllHaddock = basePackages projectAllHaddock.hsPkgs;
+  projectPackages = haskell-nix.haskellLib.selectProjectPackages packages;
+  projectPackagesAllHaddock = haskell-nix.haskellLib.selectProjectPackages projectAllHaddock.hsPkgs;
 
   extraPackages = import ./extra.nix {
     inherit stdenv lib haskell-nix fetchFromGitHub fetchFromGitLab buildPackages;
