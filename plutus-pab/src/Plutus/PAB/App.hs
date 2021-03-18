@@ -40,16 +40,17 @@ import           Control.Monad.Freer.WebSocket                  (WebSocketEffect
 import           Control.Monad.IO.Class                         (MonadIO, liftIO)
 import           Control.Monad.IO.Unlift                        (MonadUnliftIO)
 import           Control.Monad.Logger                           (MonadLogger)
+import qualified Control.Monad.Logger                           as MonadLogger
 import           Data.Bifunctor                                 (Bifunctor (..))
 import           Data.Coerce                                    (coerce)
 import           Data.Functor.Contravariant                     (Contravariant (..))
 import qualified Data.Text                                      as Text
-import           Database.Persist.Sqlite                        (runSqlPool)
-import           Eventful.Store.Sqlite                          (initializeSqliteEventStore)
+import           Database.Persist.Sqlite                        (createSqlitePoolFromInfo, mkSqliteConnectionInfo,
+                                                                 runSqlPool)
+import           Eventful.Store.Sqlite                          (defaultSqlEventStoreConfig, initializeSqliteEventStore)
 import           Network.HTTP.Client                            (managerModifyRequest, newManager,
                                                                  setRequestIgnoreStatus)
 import           Network.HTTP.Client.TLS                        (tlsManagerSettings)
-import           Plutus.PAB.Core                                (Connection (Connection), dbConnect)
 import           Plutus.PAB.Core.ContractInstance.STM           (InstancesState)
 import           Plutus.PAB.Db.Eventful.ContractDefinitionStore (handleContractDefinitionStore)
 import           Plutus.PAB.Db.Eventful.ContractStore           (handleContractStore)
@@ -58,14 +59,16 @@ import           Plutus.PAB.Effects.Contract                    (ContractDefinit
 import           Plutus.PAB.Effects.Contract.ContractExe                (ContractExe, ContractExeLogMsg (..),
                                                                  handleContractEffectContractExe)
 import           Plutus.PAB.Effects.ContractRuntime             (handleContractRuntime)
-import           Plutus.PAB.Effects.EventLog                    (EventLogEffect (..), handleEventLogSql)
+import           Plutus.PAB.Effects.EventLog                    (Connection (..), EventLogEffect (..),
+                                                                 handleEventLogSql)
+import qualified Plutus.PAB.Effects.EventLog                    as EventLog
 import           Plutus.PAB.Effects.UUID                        (UUIDEffect, handleUUIDEffect)
 import           Plutus.PAB.Events                              (PABEvent)
 import           Plutus.PAB.Monitoring.MonadLoggerBridge        (TraceLoggerT (..), monadLoggerTracer)
 import           Plutus.PAB.Monitoring.Monitoring               (handleLogMsgTrace, handleObserveTrace)
 import           Plutus.PAB.Monitoring.PABLogMsg                (PABLogMsg (..))
-import           Plutus.PAB.Types                               (Config (Config), PABError (..), chainIndexConfig,
-                                                                 dbConfig, metadataServerConfig, nodeServerConfig,
+import           Plutus.PAB.Types                               (Config (Config), DbConfig (..), PABError (..),
+                                                                 chainIndexConfig, dbConfig, nodeServerConfig,
                                                                  walletServerConfig)
 import           Servant.Client                                 (ClientEnv, ClientError, mkClientEnv)
 import           Wallet.Effects                                 (ChainIndexEffect, ContractRuntimeEffect,
@@ -213,3 +216,18 @@ migrate = interpret (mapLog SContractExeLogMsg) $ do
     liftIO
         $ flip runSqlPool connectionPool
         $ initializeSqliteEventStore sqlConfig connectionPool
+
+------------------------------------------------------------
+-- | Create a database 'Connection' containing the connection pool
+-- plus some configuration information.
+dbConnect ::
+    ( MonadUnliftIO m
+    , MonadLogger m
+    )
+    => DbConfig
+    -> m EventLog.Connection
+dbConnect DbConfig {dbConfigFile, dbConfigPoolSize} = do
+    let connectionInfo = mkSqliteConnectionInfo dbConfigFile
+    MonadLogger.logDebugN "Connecting to DB"
+    connectionPool <- createSqlitePoolFromInfo connectionInfo dbConfigPoolSize
+    pure $ EventLog.Connection (defaultSqlEventStoreConfig, connectionPool)

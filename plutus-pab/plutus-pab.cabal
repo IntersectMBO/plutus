@@ -90,7 +90,6 @@ library
         Plutus.PAB.Effects.ContractTest.AtomicSwap
         Plutus.PAB.Effects.ContractTest.PayToWallet
         Plutus.PAB.Effects.EventLog
-        Plutus.PAB.Effects.MultiAgent
         Plutus.PAB.Effects.UUID
         Plutus.PAB.Effects.TimeEffect
         Plutus.PAB.Instances

@@ -69,10 +69,6 @@ module Plutus.PAB.Core
     -- * Run PAB effects in separate threads
     , PABRunner(..)
     , pabRunner
-    -- * Other stuff (TODO: Move to Plutus.PAB.App)
-    , dbConnect
-    , Connection(Connection)
-    , toUUID
     -- * Effect handlers
     , AppMsg(..)
     , handleMappedReader
@@ -93,9 +89,6 @@ import           Control.Monad.Freer.Extras.Log                  (LogMessage, Lo
 import qualified Control.Monad.Freer.Extras.Modify               as Modify
 import           Control.Monad.Freer.Reader                      (Reader (..), ask, asks, runReader)
 import           Control.Monad.IO.Class                          (MonadIO (..))
-import           Control.Monad.IO.Unlift                         (MonadUnliftIO)
-import           Control.Monad.Logger                            (MonadLogger)
-import qualified Control.Monad.Logger                            as MonadLogger
 import           Data.Aeson                                      (FromJSON, ToJSON (..))
 import qualified Data.Aeson                                      as JSON
 import qualified Data.Map                                        as Map
@@ -106,8 +99,6 @@ import qualified Data.Text                                       as Text
 import           Data.Text.Prettyprint.Doc                       (Pretty, colon, defaultLayoutOptions, layoutPretty,
                                                                   pretty, (<+>))
 import qualified Data.Text.Prettyprint.Doc.Render.Text           as Render
-import           Database.Persist.Sqlite                         (createSqlitePoolFromInfo, mkSqliteConnectionInfo)
-import           Eventful.Store.Sql                              (defaultSqlEventStoreConfig)
 import           GHC.Generics                                    (Generic)
 import           Language.Plutus.Contract.Effects.ExposeEndpoint (ActiveEndpoint (..))
 import           Ledger.Tx                                       (Tx)
@@ -121,15 +112,12 @@ import           Plutus.PAB.Effects.Contract                     (ContractDefini
                                                                   getState)
 import qualified Plutus.PAB.Effects.Contract                     as Contract
 import qualified Plutus.PAB.Effects.ContractRuntime              as ContractRuntime
-import           Plutus.PAB.Effects.EventLog                     (Connection (..))
-import qualified Plutus.PAB.Effects.EventLog                     as EventLog
 import           Plutus.PAB.Effects.TimeEffect                   (TimeEffect (..), systemTime)
 import           Plutus.PAB.Effects.UUID                         (UUIDEffect, handleUUIDEffect)
 import           Plutus.PAB.Events.Contract                      (ContractPABRequest)
 import           Plutus.PAB.Events.ContractInstanceState         (PartiallyDecodedResponse)
-import           Plutus.PAB.Monitoring.PABLogMsg                 (CoreMsg (..), PABLogMsg (..), PABMultiAgentMsg (..))
-import           Plutus.PAB.Types                                (DbConfig (DbConfig), PABError, dbConfigFile,
-                                                                  dbConfigPoolSize, toUUID)
+import           Plutus.PAB.Monitoring.PABLogMsg                 (PABLogMsg (..), PABMultiAgentMsg (..))
+import           Plutus.PAB.Types                                (PABError)
 import           Wallet.API                                      (PubKey, Slot)
 import qualified Wallet.API                                      as WAPI
 import           Wallet.Effects                                  (ChainIndexEffect, ContractRuntimeEffect,
@@ -347,52 +335,32 @@ data EffectHandlers t env =
             -> Eff (WalletEffect ': ChainIndexEffect ': NodeClientEffect ': effs)
             ~> Eff effs
 
-        -- | Action to run on startup
+        -- | Action to run on startup.
         , onStartup :: PABAction t env ()
 
         -- | Action to run on shutdown
         , onShutdown :: PABAction t env ()
         }
 
+-- | Install a contract by saving its definition in the contract definition
+--   store.
 installContract ::
     forall t effs.
-    ( Member (LogMsg (CoreMsg (ContractDef t))) effs
-    , Member (ContractDefinitionStore t) effs
+    ( Member (ContractDefinitionStore t) effs
     )
     => (ContractDef t)
     -> Eff effs ()
-installContract contractHandle = do
-    logInfo @(CoreMsg (ContractDef t)) $ Installing contractHandle
-    addDefinition @t contractHandle
-    logInfo @(CoreMsg (ContractDef t)) Installed
+installContract contractHandle = addDefinition @t contractHandle
 
+-- | Report the state of a running contract.
 reportContractState ::
     forall t effs.
-    ( Member (LogMsg (CoreMsg t)) effs
-    , Member (ContractStore t) effs
+    ( Member (ContractStore t) effs
     , PABContract t
     )
     => ContractInstanceId
-    -> Eff effs ()
-reportContractState cid = do
-    logInfo @(CoreMsg t) $ FindingContract cid
-    contractState <- Contract.serialisableState (Proxy @t) <$> getState @t cid
-    logInfo @(CoreMsg t) $ FoundContract $ Just contractState
-
-------------------------------------------------------------
--- | Create a database 'Connection' containing the connection pool
--- plus some configuration information.
-dbConnect ::
-    ( MonadUnliftIO m
-    , MonadLogger m
-    )
-    => DbConfig
-    -> m EventLog.Connection
-dbConnect DbConfig {dbConfigFile, dbConfigPoolSize} = do
-    let connectionInfo = mkSqliteConnectionInfo dbConfigFile
-    MonadLogger.logDebugN "Connecting to DB"
-    connectionPool <- createSqlitePoolFromInfo connectionInfo dbConfigPoolSize
-    pure $ EventLog.Connection (defaultSqlEventStoreConfig, connectionPool)
+    -> Eff effs (PartiallyDecodedResponse ContractPABRequest)
+reportContractState cid = Contract.serialisableState (Proxy @t) <$> getState @t cid
 
 data AppMsg t =
     InstalledContractsMsg
@@ -557,6 +525,8 @@ handleInstancesStateReader :: forall t env effs.
 handleInstancesStateReader = \case
     Ask -> asks @(PABEnvironment t env) instancesState
 
+-- | Handle the 'TimeEffect' by reading the current slot number from
+--   the blockchain env.
 handleTimeEffect ::
     forall t env m effs.
     ( Member (Reader (PABEnvironment t env)) effs
