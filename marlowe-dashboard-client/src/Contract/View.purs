@@ -6,7 +6,6 @@ import Prelude hiding (div)
 import Contract.Lenses (_executionState, _mActiveUserParty, _metadata, _participants, _step, _tab)
 import Contract.Types (Action(..), State, Tab(..))
 import Css (applyWhen, classNames)
-import Css as Css
 import Data.Array (intercalate, nub, range)
 import Data.Array as Array
 import Data.Array.NonEmpty (NonEmptyArray)
@@ -41,7 +40,7 @@ contractDetailsCard state =
       -- FIXME: in zeplin the contractType is defined with color #283346, we need to define
       --        the color palette with russ.
       , h2 [ classNames [ "mb-2", "text-xs", "uppercase" ] ] [ text $ contractTypeName metadata.contractType ]
-      , div [ classNames [ "w-full", "px-5", "max-w-contract-card" ] ] [ renderCurrentState state ]
+      , div [ classNames [ "w-full", "max-w-contract-card" ] ] [ renderCurrentState state ]
       ]
 
 renderCurrentState :: forall p. State -> HTML p Action
@@ -81,8 +80,8 @@ renderCurrentState state =
                   [ classNames [ "text-xl", "font-semibold", "flex-grow" ] ]
                   [ text $ "Step " <> show stepNumber ]
               , span
-                  [ classNames [ "flex-grow", "rounded", "bg-lightgray", "py-2", "flex", "items-center" ] ]
-                  [ icon Timer [ "pl-4" ]
+                  [ classNames [ "flex-grow", "rounded-lg", "bg-lightgray", "py-2", "flex", "items-center" ] ]
+                  [ icon Timer [ "pl-3" ]
                   , span [ classNames [ "text-xs", "flex-grow", "text-center", "font-semibold" ] ]
                       [ text "1hr 2mins left" ]
                   ]
@@ -185,11 +184,11 @@ renderPartyTasks state party actions =
 
     participantName = participantWithNickname state party
   in
-    div [ classNames [ "mt-4" ] ]
+    div [ classNames [ "mt-3" ] ]
       ( [ div [ classNames [ "text-xs", "flex", "mb-2" ] ]
             -- TODO: In zeplin all participants have a different color. We need to decide how are we going to assing
             --       colors to users. For now they all have blue
-            [ div [ classNames [ "bg-gradient-to-r", "from-blue", "to-lightblue", "text-white", "rounded-full", "w-4", "h-4", "text-center", "mr-1" ] ] [ text $ String.take 1 participantName ]
+            [ div [ classNames [ "bg-gradient-to-r", "from-blue", "to-lightblue", "text-white", "rounded-full", "w-5", "h-5", "text-center", "mr-1" ] ] [ text $ String.take 1 participantName ]
             , div [ classNames [ "font-semibold" ] ] [ text participantName ]
             ]
         ]
@@ -201,11 +200,12 @@ renderAction isActiveParticipant (MakeDeposit intoAccountOf by token value) =
   div_
     [ shortDescription isActiveParticipant "chocolate pastry apple pie lemon drops apple pie halvah FIXME"
     , button
-        [ classNames $ [ "w-full", "flex", "justify-between", "mt-2" ]
+        -- FIXME: adapt to use button classes from Css module
+        [ classNames $ [ "flex", "justify-between", "px-6", "font-bold", "w-full", "py-4", "mt-2", "rounded-lg", "shadow" ]
             <> if isActiveParticipant then
-                Css.primaryButton
+                [ "bg-gradient-to-r", "from-blue", "to-lightblue", "text-white" ]
               else
-                Css.secondaryButton
+                [ "bg-gray", "text-black", "opacity-50", "cursor-default" ]
         , enabled isActiveParticipant
         -- FIXME
         -- , onClick_ $ NEEDACTION
@@ -257,12 +257,12 @@ renderAction isActiveParticipant CloseContract =
   div_
     [ shortDescription isActiveParticipant "chocolate pastry apple pie lemon drops apple pie halvah FIXME"
     , button
-        [ classNames
-            $ [ "w-full", "flex", "justify-between", "mt-2" ]
+        -- FIXME: adapt to use button classes from Css module
+        [ classNames $ [ "font-bold", "w-full", "py-4", "mt-2", "rounded-lg", "shadow" ]
             <> if isActiveParticipant then
-                Css.primaryButton
+                [ "bg-gradient-to-r", "from-blue", "to-lightblue", "text-white" ]
               else
-                Css.secondaryButton
+                [ "bg-gray", "text-black", "opacity-50", "cursor-default" ]
         , enabled isActiveParticipant
         -- FIXME
         -- , onClick_ $ NEEDACTION
@@ -290,11 +290,11 @@ renderBalances state =
   in
     div [ classNames [ "text-xs" ] ]
       ( append
-          [ div [ classNames [ "font-semibold", "py-4" ] ] [ text "Balance of accounts when the step was initiated." ]
+          [ div [ classNames [ "font-semibold", "py-3" ] ] [ text "Balance of accounts when the step was initiated." ]
           ]
           ( accounts'
               <#> ( \((party /\ token) /\ amount) ->
-                    div [ classNames [ "flex", "justify-between", "py-4", "border-t" ] ]
+                    div [ classNames [ "flex", "justify-between", "py-3", "border-t" ] ]
                       [ span_ [ text $ participantWithNickname state party ]
                       , span [ classNames [ "font-semibold" ] ] [ currency token amount ]
                       ]

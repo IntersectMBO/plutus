@@ -52,11 +52,6 @@ module.exports = {
       spacing: {
         '5pc': '5%',
       },
-      width: {
-        'sm': '375px',
-        'md': '640px',
-        'lg': '768px',
-      },
       boxShadow: {
         deep: "0 2.5px 5px 0 rgba(0, 0, 0, 0.22)",
         "current-step": "0 25px 50px -12px rgb(0 0 0 / 25%)",

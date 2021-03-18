@@ -38,18 +38,22 @@ renderPickupState wallets newWalletNickname newWalletContractId remoteDataPubKey
 ------------------------------------------------------------
 renderPickupCard :: forall p. WalletLibrary -> Nickname -> String -> RemoteData AjaxError PubKey -> Maybe Card -> HTML p Action
 renderPickupCard wallets newWalletNickname newWalletContractId remoteDataPubKey card =
+  -- TODO: currently there is only one card rendered at any time, with different content
+  -- depending on the card selected in the state; we should change it so that all the
+  -- cards are rendered, with at most one visible at any time (likewise in Play.State).
+  -- The snag here is that some cards (like the `PickupWalletCard` below) take arguments
+  -- from the current card, so we will either need to remodel or use placeholders.
   div
     [ classNames $ Css.overlay $ isNothing card ]
     [ div
         [ classNames Css.cardWrapper ]
         [ div
             [ classNames $ Css.card $ isNothing card ]
-            [ div
-                [ classNames [ "flex", "justify-end", "mb-4", "sticky", "top-0" ] ]
-                [ a
-                    [ onClick_ $ SetCard Nothing ]
-                    [ icon_ Close ]
+            [ a
+                [ classNames [ "absolute", "top-4", "right-4" ]
+                , onClick_ $ SetCard Nothing
                 ]
+                [ icon_ Close ]
             , div_
                 $ (flip foldMap card) \cardType -> case cardType of
                     PickupNewWalletCard -> [ pickupNewWalletCard wallets newWalletNickname newWalletContractId remoteDataPubKey ]

@@ -46,7 +46,7 @@ renderPlayState wallets newWalletNickname newWalletContractId remoteDataPubKey t
 renderHeader :: forall p. PubKey -> Boolean -> HTML p Action
 renderHeader walletNickname menuOpen =
   header
-    [ classNames $ [ "relative", "flex", "justify-between", "items-center", "leading-none", "border-b", "border-gray", "py-2", "px-4", "md:px-5pc" ] <> applyWhen menuOpen [ "border-0", "bg-black", "text-white" ] ]
+    [ classNames $ [ "relative", "flex", "justify-between", "items-center", "leading-none", "border-b", "border-gray", "py-1", "px-4", "md:px-5pc" ] <> applyWhen menuOpen [ "border-0", "bg-black", "text-white" ] ]
     [ h1
         [ classNames [ "text-xl", "font-bold" ] ]
         [ text "Marlowe" ]
@@ -129,29 +129,23 @@ renderCards wallets newWalletNickname newWalletContractId remoteDataPubKey templ
 
     mSelectedContractState = view (_contractsState <<< _selectedContract) playState
 
-    cardWrapperClasses = case mCard of
-      Just TemplateLibraryCard -> Css.largeCardWrapper
-      Just ContractCard -> Css.largeCardWrapper
-      _ -> Css.cardWrapper
-
     cardClasses = case mCard of
-      Just TemplateLibraryCard -> Css.largeCard false "bg-lightgray"
-      Just ContractCard -> Css.largeCard false "bg-grayblue"
+      Just TemplateLibraryCard -> Css.largeCard false
+      Just ContractCard -> Css.largeCard false
       Just _ -> Css.card false
       Nothing -> Css.card true
   in
     div
       [ classNames $ Css.overlay $ isNothing mCard ]
       [ div
-          [ classNames cardWrapperClasses ]
+          [ classNames Css.cardWrapper ]
           [ div
               [ classNames cardClasses ]
-              [ div
-                  [ classNames [ "flex", "justify-end", "mb-4", "sticky", "top-0" ] ]
-                  [ a
-                      [ onClick_ $ SetCard Nothing ]
-                      [ icon_ Close ]
+              [ a
+                  [ classNames [ "absolute", "top-4", "right-4" ]
+                  , onClick_ $ SetCard Nothing
                   ]
+                  [ icon_ Close ]
               , div_
                   $ (flip foldMap mCard) \cardType -> case cardType of
                       CreateWalletCard mTokenName -> [ newWalletCard wallets newWalletNickname newWalletContractId remoteDataPubKey mTokenName ]
@@ -215,7 +209,7 @@ iohkLinks =
 link :: forall p. String -> Either String Action -> HTML p Action
 link label urlOrAction =
   a
-    [ classNames [ "px-4", "py-2", "first:ml-0", "last:mr-0", "font-bold", "text-sm", "cursor-pointer" ]
+    [ classNames [ "px-4", "first:ml-0", "last:mr-0", "font-bold", "text-sm", "cursor-pointer" ]
     , case urlOrAction of
         Left url -> href url
         Right action -> onClick_ action

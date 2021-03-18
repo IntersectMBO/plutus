@@ -16,9 +16,11 @@ import Material.Icons (Icon(..), icon_)
 contractsScreen :: forall p. State -> HTML p Action
 contractsScreen state =
   let
-    selectorButton true = Css.whiteButton
+    buttonClasses = [ "w-40", "text-center" ]
 
-    selectorButton false = Css.secondaryButton
+    selectorButton true = Css.whiteButton <> buttonClasses
+
+    selectorButton false = Css.secondaryButton <> buttonClasses
 
     viewSelector =
       div [ classNames [ "flex", "my-4", "justify-center" ] ]

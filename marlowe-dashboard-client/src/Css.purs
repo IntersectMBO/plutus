@@ -18,7 +18,6 @@ module Css
   , overlay
   , cardWrapper
   , card
-  , largeCardWrapper
   , largeCard
   , iconCircle
   , fixedBottomRight
@@ -89,16 +88,13 @@ overlay :: Boolean -> Array String
 overlay invisible = [ "absolute", "top-0", "bottom-0", "left-0", "right-0", "z-20", "flex", "flex-col", "justify-end", "md:justify-center", "bg-overlay", "transition-opacity", "duration-400" ] <> toggleWhen invisible [ "opacity-0", "pointer-events-none" ] [ "opacity-1" ]
 
 cardWrapper :: Array String
-cardWrapper = [ "w-sm", "mx-auto", "px-4" ]
+cardWrapper = [ "max-h-full", "px-4", "md:py-4" ]
 
 card :: Boolean -> Array String
-card invisible = [ "w-full", "shadow", "bg-white", "p-5", "pb-6", "rounded-t", "md:pb-8", "md:rounded-b", "transform", "transition-transform", "duration-400" ] <> applyWhen invisible [ "translate-y-10" ]
+card invisible = [ "max-w-sm", "mx-auto", "shadow", "bg-white", "p-5", "pb-6", "rounded-t", "md:pb-8", "md:rounded-b", "transform", "transition-transform", "duration-400" ] <> applyWhen invisible [ "translate-y-20" ]
 
-largeCardWrapper :: Array String
-largeCardWrapper = [ "max-h-full", "pt-4", "px-4", "md:py-4", "md:px-5pc" ]
-
-largeCard :: Boolean -> String -> Array String
-largeCard invisible bgColor = [ "shadow", "max-h-full", "w-full", "overflow-auto", "p-5", "pb-6", "rounded-t", "md:rounded-b", "md:mb-8", "lg:mx-6", "transform", "transition-transform", "duration-400", bgColor ] <> applyWhen invisible [ "translate-y-10" ]
+largeCard :: Boolean -> Array String
+largeCard invisible = [ "shadow", "max-h-full", "w-full", "overflow-auto", "p-5", "pb-6", "rounded-t", "md:rounded-b", "md:mb-8", "lg:mx-6", "transform", "transition-transform", "duration-400", "bg-grayblue" ] <> applyWhen invisible [ "translate-y-20" ]
 
 --- miscellaneous
 iconCircle :: Boolean -> Array String
