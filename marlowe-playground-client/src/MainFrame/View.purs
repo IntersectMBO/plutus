@@ -52,7 +52,7 @@ render state =
       , main []
           [ section [ id_ "main-panel" ]
               [ tabContents HomePage [ Home.render state ]
-              , tabContents Simulation [ renderSubmodule _simulationState SimulationAction Simulation.render state ]
+              , tabContents Simulation [ renderSubmodule _simulationState SimulationAction (Simulation.render (state ^. _contractMetadata)) state ]
               , tabContents MarloweEditor [ renderSubmodule _marloweEditorState MarloweEditorAction (MarloweEditor.render (state ^. _contractMetadata)) state ]
               , tabContents HaskellEditor [ renderSubmodule _haskellState HaskellAction HaskellEditor.render state ]
               , tabContents JSEditor [ renderSubmodule _javascriptState JavascriptAction JSEditor.render state ]
