@@ -91,11 +91,14 @@ cardWrapper :: Array String
 cardWrapper = [ "max-h-full", "px-4", "md:py-4" ]
 
 card :: Boolean -> Array String
-card invisible = [ "max-w-sm", "mx-auto", "shadow", "bg-white", "p-5", "pb-6", "rounded-t", "md:pb-8", "md:rounded-b", "transform", "transition-transform", "duration-400" ] <> applyWhen invisible [ "translate-y-20" ]
+card invisible = [ "bg-white", "max-w-sm", "mx-auto", "shadow", "p-5", "pb-6", "md:pb-8", "rounded-t", "md:rounded-b", "transform", "transition-transform", "duration-400" ] <> applyWhen invisible [ "translate-y-20" ]
 
 largeCard :: Boolean -> Array String
-largeCard invisible = [ "shadow", "max-h-full", "w-full", "overflow-auto", "p-5", "pb-6", "rounded-t", "md:rounded-b", "md:mb-8", "lg:mx-6", "transform", "transition-transform", "duration-400", "bg-grayblue" ] <> applyWhen invisible [ "translate-y-20" ]
+largeCard invisible = [ "bg-grayblue", "shadow", "h-full", "overflow-auto", "mt-2", "md:mb-2", "mx-2", "lg:my-4", "lg:mx-12", "rounded-t", "md:rounded-b", "transform", "transition-transform", "duration-400" ] <> applyWhen invisible [ "translate-y-20" ]
 
+-- Keeping it here until we figure things out, but it seems to be that w-full was not needed (actually causes a visual bug with the addition of a margin, as the
+-- size is both the width + the margin.)
+-- "w-full"
 --- miscellaneous
 iconCircle :: Boolean -> Array String
 iconCircle enabled = [ "inline-flex", "items-center", "justify-center", "w-8", "h-8", "rounded-full" ] <> toggleWhen enabled bgBlueGradiant [ "bg-lightgray", "text-darkgray" ]

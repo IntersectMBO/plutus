@@ -299,9 +299,9 @@ subSection accessible border content =
 templateLibraryCard :: forall p. Array ContractTemplate -> HTML p Action
 templateLibraryCard templates =
   div
-    [ classNames [ "md:px-5pc" ] ]
+    [ classNames [ "md:px-5pc", "p-4" ] ]
     [ h2
-        [ classNames [ "text-lg", "font-semibold", "mt-2", "mb-4" ] ]
+        [ classNames [ "text-lg", "font-semibold", "mb-4" ] ]
         [ text "Choose a contract template" ]
     , div
         [ classNames [ "grid", "gap-4", "md:grid-cols-2", "xl:grid-cols-3" ] ]

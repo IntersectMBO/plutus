@@ -40,7 +40,7 @@ contractDetailsCard state =
       -- FIXME: in zeplin the contractType is defined with color #283346, we need to define
       --        the color palette with russ.
       , h2 [ classNames [ "mb-2", "text-xs", "uppercase" ] ] [ text $ contractTypeName metadata.contractType ]
-      , div [ classNames [ "w-full", "max-w-contract-card" ] ] [ renderCurrentState state ]
+      , div [ classNames [ "w-full", "px-5", "max-w-contract-card" ] ] [ renderCurrentState state ]
       ]
 
 renderCurrentState :: forall p. State -> HTML p Action

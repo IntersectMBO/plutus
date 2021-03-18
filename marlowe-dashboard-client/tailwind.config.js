@@ -37,7 +37,8 @@ module.exports = {
     boxShadow: {
       none: 'none',
       sm: '0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06)',
-      DEFAULT: '0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05)',
+      DEFAULT:
+        '0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05)',
       lg: '0 20px 25px -5px rgba(0,0,0,0.2), 0 10px 10px -5px rgba(0,0,0,0.04)',
       xl: '0 25px 50px -12px rgba(0,0,0,0.25)',
     },
@@ -53,37 +54,40 @@ module.exports = {
         '5pc': '5%',
       },
       width: {
-        'sm': '375px',
-        'md': '640px',
-        'lg': '768px',
+        sm: '375px',
+        md: '640px',
+        lg: '768px',
       },
       boxShadow: {
-        deep: "0 2.5px 5px 0 rgba(0, 0, 0, 0.22)",
-        "current-step": "0 25px 50px -12px rgb(0 0 0 / 25%)",
+        deep: '0 2.5px 5px 0 rgba(0, 0, 0, 0.22)',
+        'current-step': '0 25px 50px -12px rgb(0 0 0 / 25%)',
       },
       height: {
         'contract-card': '500px',
       },
       maxWidth: {
-        'sm': '375px',
-        'md': '640px',
-        'lg': '768px',
+        sm: '375px',
+        md: '640px',
+        lg: '768px',
         'contract-card': '360px',
       },
       minWidth: {
-        'button': '120px',
+        button: '120px',
       },
     },
   },
   variants: {
-    // note 'disabled' goes last so that it takes priority
-    backgroundColor: ['hover', 'disabled'],
-    backgroundImage: ['hover', 'disabled'],
-    boxShadow: ['hover', 'disabled'],
-    cursor: ['hover', 'disabled'],
-    spacing: ['first', 'last'],
-    margin: ['first', 'last'],
-    textColor: ['hover', 'disabled'],
+    extend: {
+      // note 'disabled' goes last so that it takes priority
+      backgroundColor: ['hover', 'disabled'],
+      backgroundImage: ['hover', 'disabled'],
+      boxShadow: ['hover', 'disabled'],
+      cursor: ['hover', 'disabled'],
+      // This causes an error
+      // spacing: ['first', 'last'],
+      textColor: ['hover', 'disabled'],
+      margin: ['first', 'last'],
+    },
   },
   plugins: [require('@tailwindcss/forms')],
   corePlugins: {
