@@ -10,7 +10,6 @@
 html,
 body {
   font-family: Barlow, sans-serif;
-  min-width: 375px;
   @apply text-base h-full bg-grayblue text-black;
 }
 

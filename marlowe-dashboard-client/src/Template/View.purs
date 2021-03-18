@@ -315,7 +315,7 @@ templateLibraryCard templates =
           [ classNames [ "flex", "justify-between", "items-start", "mb-4" ] ]
           [ contractTitle template.metaData
           , button
-              [ classNames $ Css.primaryButton <> Css.withIcon ArrowRight <> [ "min-w-button-min" ]
+              [ classNames $ Css.primaryButton <> Css.withIcon ArrowRight <> [ "min-w-button" ]
               , onClick_ $ SetTemplate template
               ]
               [ text "Setup" ]
