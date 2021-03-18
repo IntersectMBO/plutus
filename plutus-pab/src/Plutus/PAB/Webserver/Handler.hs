@@ -36,7 +36,6 @@ import           Data.Text                                        (Text)
 import qualified Data.UUID                                        as UUID
 import           Plutus.Contract.Effects.ExposeEndpoint  (EndpointDescription (EndpointDescription))
 import           Ledger.Blockchain                                (Blockchain)
-import qualified Plutus.PAB.Core                                  as Core
 import qualified Plutus.PAB.Core.ContractInstance                 as Instance
 import qualified Plutus.PAB.Core.ContractInstance.RequestHandlers as LM
 import           Plutus.PAB.Core.ContractInstance.STM             (InstancesState, callEndpointOnInstance)
@@ -139,7 +138,7 @@ activateContract ::
     => (Eff appBackend ~> IO) -- ^ How to run the @appBackend@ effects in a new thread.
     -> ContractDef t -- ^ The contract that is to be activated
     -> Eff effs ContractInstanceId
-activateContract = Core.activateContractSTM @t @m @appBackend @effs
+activateContract = Instance.activateContractSTM @t @m @appBackend @effs
 
 getContractInstanceDefinition ::
        forall t effs.

@@ -47,24 +47,13 @@ module Plutus.PAB.Simulator(
     , txCounts
     , txValidated
     , txMemPool
-    -- * Types
-    , SimulatorState(..)
-    , initialState
-    , chainState
-    , agentStates
-    , chainIndex
-    , instances
-    , contractDef
-    -- * Agents
-    , AgentState(..)
-    , initialAgentState
     ) where
 
 import           Control.Applicative                             (Alternative (..))
 import           Control.Concurrent                              (forkIO)
 import           Control.Concurrent.STM                          (STM, TQueue, TVar)
 import qualified Control.Concurrent.STM                          as STM
-import           Control.Lens                                    (Lens', _Just, anon, at, makeLenses, preview, set,
+import           Control.Lens                                    (_Just, at, makeLenses, makeLensesFor, preview, set,
                                                                   view, (&), (.~), (^.))
 import           Control.Monad                                   (forever, guard, void, when)
 import           Control.Monad.Freer                             (Eff, LastMember, Member, interpret, reinterpret,
@@ -120,7 +109,6 @@ import qualified Wallet.Emulator.Wallet                          as Wallet
 import           Wallet.Types                                    (ContractInstanceId, EndpointDescription (..),
                                                                   NotificationError)
 
-
 -- | The current state of a contract instance
 data SimulatorContractInstanceState t =
     SimulatorContractInstanceState
@@ -128,7 +116,7 @@ data SimulatorContractInstanceState t =
         , _contractState :: Contract.State t
         }
 
-makeLenses ''SimulatorContractInstanceState
+makeLensesFor [("_contractState", "contractState")] ''SimulatorContractInstanceState
 
 data AgentState t =
     AgentState
@@ -152,7 +140,7 @@ data SimulatorState t =
         , _instances   :: TVar (Map ContractInstanceId (SimulatorContractInstanceState t))
         }
 
-makeLenses ''SimulatorState
+makeLensesFor [("_logMessages", "logMessages"), ("_instances", "instances")] ''SimulatorState
 
 initialState :: forall t. IO (SimulatorState t)
 initialState = do
@@ -293,11 +281,11 @@ payToWallet :: Member WalletEffect effs => Wallet -> Value -> Eff effs Tx
 payToWallet target amount = WAPI.payToPublicKey WAPI.defaultSlotRange amount (Emulator.walletPubKey target)
 
 -- | Start a new instance of a contract
-activateContract :: Wallet -> TestContracts -> Simulation ContractInstanceId
+activateContract :: forall t. Contract.PABContract t => Wallet -> Contract.ContractDef t -> Simulation t ContractInstanceId
 activateContract = Core.activateContract
 
 -- | Call a named endpoint on a contract instance
-callEndpointOnInstance :: forall a. (JSON.ToJSON a) => ContractInstanceId -> String -> a -> Simulation (Maybe NotificationError)
+callEndpointOnInstance :: forall a t. (JSON.ToJSON a) => ContractInstanceId -> String -> a -> Simulation t (Maybe NotificationError)
 callEndpointOnInstance = Core.callEndpointOnInstance
 
 -- | Log some output to the console
@@ -337,10 +325,10 @@ makeBlock = do
         $ Chain.processBlock
 
 -- | Get the current state of the contract instance.
-instanceState ::
+instanceState :: forall t.
     Wallet
     -> ContractInstanceId
-    -> Simulation (Contract.State TestContracts)
+    -> Simulation t (Contract.State t)
 instanceState = Core.instanceState
 
 -- | An STM transaction that returns the observable state of the contract instance.
@@ -453,9 +441,9 @@ waitNSlots i = do
     current <- currentSlot >>= liftIO . STM.atomically
     waitUntilSlot (current + fromIntegral i)
 
-type Simulation a = Core.PABAction TestContracts (SimulatorState TestContracts) a
+type Simulation t a = Core.PABAction t (SimulatorState t) a
 
-runSimulation :: Simulation a -> IO (Either PABError a)
+runSimulation :: Simulation TestContracts a -> IO (Either PABError a)
 runSimulation = Core.runPAB simulatorHandlers
 
 -- | Handle a 'LogMsg' effect in terms of a "larger" 'State' effect from which we have a setter.
@@ -669,13 +657,9 @@ data TxCounts =
 makeLenses ''TxCounts
 
 -- | Get the 'TxCounts' of the emulated blockchain
-txCounts ::
-    ( Member (Reader (SimulatorState TestContracts)) effs
-    , LastMember IO effs
-    )
-    => Eff effs TxCounts
+txCounts :: forall t. Simulation t TxCounts
 txCounts = do
-    SimulatorState{_chainState} <- ask @(SimulatorState TestContracts)
+    SimulatorState{_chainState} <- Core.userEnv @t @(SimulatorState t)
     Chain.ChainState{Chain._chainNewestFirst, Chain._txPool} <- liftIO $ STM.readTVarIO _chainState
     return
         $ TxCounts
@@ -684,28 +668,19 @@ txCounts = do
             }
 
 -- | The set of all active contracts.
-activeContracts :: Simulation (Set ContractInstanceId)
+activeContracts :: forall t. Simulation t (Set ContractInstanceId)
 activeContracts = Core.activeContracts
 
 -- | The total value currently at an address
-valueAt ::
-    ( Member (Reader (SimulatorState TestContracts)) effs
-    , LastMember IO effs
-    )
-    => Address
-    -> Eff effs Value
+valueAt :: forall t. Address -> Simulation t Value
 valueAt address = do
-    SimulatorState{_chainState} <- ask @(SimulatorState TestContracts)
+    SimulatorState{_chainState} <- Core.userEnv @t @(SimulatorState t)
     Chain.ChainState{Chain._index=UtxoIndex.UtxoIndex mp} <- liftIO $ STM.readTVarIO _chainState
     pure $ foldMap txOutValue $ filter (\TxOut{txOutAddress} -> txOutAddress == address) $ fmap snd $ Map.toList mp
 
 -- | The entire chain (newest transactions first)
-blockchain ::
-    ( Member (Reader (SimulatorState TestContracts)) effs
-    , LastMember IO effs
-    )
-    => Eff effs [[Tx]]
+blockchain :: forall t. Simulation t [[Tx]]
 blockchain = do
-    SimulatorState{_chainState} <- ask @(SimulatorState TestContracts)
+    SimulatorState{_chainState} <- Core.userEnv @t @(SimulatorState t)
     Chain.ChainState{Chain._chainNewestFirst} <- liftIO $ STM.readTVarIO _chainState
     pure _chainNewestFirst
