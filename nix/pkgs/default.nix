@@ -80,6 +80,7 @@ let
   updateClientDeps = pkgs.callPackage ./update-client-deps {
     inherit purs psc-package spago spago2nix;
   };
+  aws-mfa-login = pkgs.callPackage ./aws-mfa-login { };
 
   #
   # sphinx python packages
@@ -188,6 +189,6 @@ in
   inherit fixPurty fixStylishHaskell updateMaterialized updateMetadataSamples updateClientDeps;
   inherit iohkNix set-git-rev web-ghc;
   inherit easyPS plutus-haddock-combined;
-  inherit agdaWithStdlib;
+  inherit agdaWithStdlib aws-mfa-login;
   inherit lib;
 }

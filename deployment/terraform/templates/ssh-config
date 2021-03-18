@@ -1,12 +1,15 @@
 Host ${full_hostname}
   User ${user_name}
   ProxyJump bastion@${bastion_hostname}
+  StrictHostKeyChecking no
 
 Host ${short_hostname}
   Hostname ${full_hostname}
   User ${user_name}
   ProxyJump bastion@${bastion_hostname}
+  StrictHostKeyChecking no
 
 Host ${ip}
   User ${user_name}
   ProxyJump bastion@${bastion_hostname}
+  StrictHostKeyChecking no

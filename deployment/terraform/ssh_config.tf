@@ -81,16 +81,34 @@ data "template_file" "ssh_config_section_playgrounds_b" {
 }
 
 data "template_file" "ssh_config" {
-  template = "\n$${prometheus_node}\n$${webghc_a}\n$${webghc_b}\n$${marlowe_dash_a}\n$${marlowe_dash_b}\n$${playgrounds_a}\n$${playgrounds_b}"
+  template = <<EOT
+$${prometheus_node}
+
+$${webghc_a}
+
+$${webghc_b}
+
+$${marlowe_dash_a}
+
+$${marlowe_dash_b}
+
+$${playgrounds_a}
+
+$${playgrounds_b}
+
+Host $${bastion_hostname}
+  StrictHostKeyChecking no
+EOT
 
   vars = {
-    prometheus_node = data.template_file.ssh_config_section_prometheus.rendered
-    webghc_a        = data.template_file.ssh_config_section_webghc_a.rendered
-    webghc_b        = data.template_file.ssh_config_section_webghc_b.rendered
-    marlowe_dash_a  = data.template_file.ssh_config_section_marlowe_dash_a.rendered
-    marlowe_dash_b  = data.template_file.ssh_config_section_marlowe_dash_b.rendered
-    playgrounds_a   = data.template_file.ssh_config_section_playgrounds_a.rendered
-    playgrounds_b   = data.template_file.ssh_config_section_playgrounds_b.rendered
+    prometheus_node  = data.template_file.ssh_config_section_prometheus.rendered
+    webghc_a         = data.template_file.ssh_config_section_webghc_a.rendered
+    webghc_b         = data.template_file.ssh_config_section_webghc_b.rendered
+    marlowe_dash_a   = data.template_file.ssh_config_section_marlowe_dash_a.rendered
+    marlowe_dash_b   = data.template_file.ssh_config_section_marlowe_dash_b.rendered
+    playgrounds_a    = data.template_file.ssh_config_section_playgrounds_a.rendered
+    playgrounds_b    = data.template_file.ssh_config_section_playgrounds_b.rendered
+    bastion_hostname = aws_instance.bastion.*.public_ip[0]
   }
 }
 
