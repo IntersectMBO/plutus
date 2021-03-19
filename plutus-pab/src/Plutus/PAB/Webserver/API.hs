@@ -14,6 +14,7 @@ module Plutus.PAB.Webserver.API
     , ContractInstanceClientState(..)
     , InstanceStatusToClient(..)
     , CombinedWSStreamToClient(..)
+    , CombinedWSStreamToServer(..)
     ) where
 
 import           Data.Aeson                                      (FromJSON, ToJSON)
@@ -24,6 +25,7 @@ import           Plutus.Contract.Effects.ExposeEndpoint (ActiveEndpoint)
 import           Plutus.PAB.Events.ContractInstanceState         (PartiallyDecodedResponse)
 
 import           Ledger.Slot                                     (Slot)
+import           Ledger.Value                                    (Value)
 import           Plutus.PAB.Webserver.Types                      (ContractSignatureResponse, FullReport)
 import           Servant.API                                     (Capture, Get, JSON, Post, ReqBody, (:<|>), (:>))
 import           Servant.API.WebSocket                           (WebSocketPending)
@@ -91,6 +93,14 @@ data InstanceStatusToClient
 -- | Data sent to the client through the combined websocket API
 data CombinedWSStreamToClient
     = InstanceUpdate ContractInstanceId InstanceStatusToClient
-    | SlotChange Slot
+    | SlotChange Slot -- ^ New slot number
+    | WalletFundsChange Wallet Value -- ^ The funds of the wallet have changed
+    deriving stock (Generic, Eq, Show)
+    deriving anyclass (ToJSON, FromJSON)
+
+-- | Instructions sent to the server through the combined websocket API
+data CombinedWSStreamToServer
+    = Subscribe (Either ContractInstanceId Wallet)
+    | Unsubscribe (Either ContractInstanceId Wallet)
     deriving stock (Generic, Eq, Show)
     deriving anyclass (ToJSON, FromJSON)

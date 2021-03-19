@@ -134,6 +134,7 @@ myTypes =
     , (genericShow <*> mkSumType) (Proxy @API.ContractInstanceClientState)
     , (genericShow <*> mkSumType) (Proxy @API.InstanceStatusToClient)
     , (genericShow <*> mkSumType) (Proxy @API.CombinedWSStreamToClient)
+    , (genericShow <*> mkSumType) (Proxy @API.CombinedWSStreamToServer)
     ]
 
 mySettings :: Settings

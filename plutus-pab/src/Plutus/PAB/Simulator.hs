@@ -41,6 +41,7 @@ module Plutus.PAB.Simulator(
     , finalResult
     , waitUntilFinished
     , valueAt
+    , valueAtSTM
     , blockchain
     -- ** Transaction counts
     , TxCounts(..)
@@ -592,11 +593,18 @@ activeContracts :: forall t. Simulation t (Set ContractInstanceId)
 activeContracts = Core.activeContracts
 
 -- | The total value currently at an address
+valueAtSTM :: forall t. Address -> Simulation t (STM Value)
+valueAtSTM address = do
+    SimulatorState{_chainState} <- Core.userEnv @t @(SimulatorState t)
+    pure $ do
+        Chain.ChainState{Chain._index=UtxoIndex.UtxoIndex mp} <- STM.readTVar _chainState
+        pure $ foldMap txOutValue $ filter (\TxOut{txOutAddress} -> txOutAddress == address) $ fmap snd $ Map.toList mp
+
+-- | The total value currently at an address
 valueAt :: forall t. Address -> Simulation t Value
 valueAt address = do
-    SimulatorState{_chainState} <- Core.userEnv @t @(SimulatorState t)
-    Chain.ChainState{Chain._index=UtxoIndex.UtxoIndex mp} <- liftIO $ STM.readTVarIO _chainState
-    pure $ foldMap txOutValue $ filter (\TxOut{txOutAddress} -> txOutAddress == address) $ fmap snd $ Map.toList mp
+    stm <- valueAtSTM address
+    liftIO $ STM.atomically stm
 
 -- | The entire chain (newest transactions first)
 blockchain :: forall t. Simulation t [[Tx]]

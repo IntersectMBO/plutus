@@ -28,6 +28,8 @@ import           Data.Aeson                           (ToJSON)
 import qualified Data.Aeson                           as JSON
 import           Data.Map                             as Map
 import           Data.Proxy                           (Proxy (..))
+import           Data.Set                             (Set)
+import qualified Data.Set                             as Set
 import qualified Network.WebSockets                   as WS
 import           Network.WebSockets.Connection        (Connection, PendingConnection)
 import           Plutus.PAB.Core                      (PABAction)
@@ -36,6 +38,7 @@ import           Plutus.PAB.Core.ContractInstance.STM (OpenEndpoint (..))
 import qualified Plutus.PAB.Effects.Contract          as Contract
 import           Plutus.PAB.Webserver.API             (CombinedWSStreamToClient (..), InstanceStatusToClient (..))
 import           Plutus.PAB.Webserver.Types           (ContractReport (..), ContractSignatureResponse (..))
+import           Wallet.Emulator.Wallet               (Wallet)
 import           Wallet.Types                         (ContractInstanceId (..))
 
 
@@ -76,6 +79,16 @@ combinedUpdates = do
                     _             -> Nothing -- FIXME
             pure STMStream{iuUpdate=update', iuNext=next}
     pure $ go initialSlot
+
+-- | The subscriptions for a websocket (wallet funds and contract instance notifications)
+data WSState = WSState
+    { wsInstances :: STM.TVar (Set ContractInstanceId) -- ^ Contract instances that we want updates for
+    , wsWallets   :: STM.TVar (Set Wallet) -- ^ Wallets whose funds we are watching
+    }
+
+initialWSState :: STM WSState
+initialWSState = WSState <$> STM.newTVar mempty <*> STM.newTVar mempty
+
 
 -- | An STM stream of 'InstanceStatusToClient' updates
 type InstanceUpdate = STMStream InstanceStatusToClient
