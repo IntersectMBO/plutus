@@ -87,16 +87,6 @@ handleContractEffectContractExe =
                 pl = BSL8.unpack (JSON.encodePretty req)
             logDebug $ UpdateContractMsg contractPath req
             liftProcess $ readProcessWithExitCode contractPath ["update"] pl
-        -- InvokeContract contractCommand -> do
-        --     logDebug InvokeContractMsg
-        --     case contractCommand of
-        --         InitContract (ContractExe contractPath) -> do
-        --             logDebug $ InitContractMsg contractPath
-        --             liftProcess $ readProcessWithExitCode contractPath ["init"] ""
-        --         UpdateContract (ContractExe contractPath) payload -> do
-        --             let pl = BSL8.unpack (JSON.encodePretty payload)
-        --             logDebug $ UpdateContractMsg contractPath payload
-        --             liftProcess $ readProcessWithExitCode contractPath ["update"] pl
         ExportSchema (ContractExe contractPath) -> do
             logDebug $ ExportSignatureMsg contractPath
             liftProcess $
@@ -118,17 +108,6 @@ liftProcess process = do
                 Right value -> pure value
                 Left err    -> throwError $ ContractCommandError 0 (Text.pack err)
 
--- data ExternalProcessContract
-
--- instance PABContract ExternalProcessContract where
-
-    -- type ContractInput ExternalProcessContract = State.ContractRequest JSON.Value
-    -- type ContractState
-
--- type Request t = State.ContractRequest (Input t)
-
--- -- | The state of a contract instance.
--- type State t = State.ContractResponse (ObsState t) (Err t) (IntState t) (OpenRequest t)
 data ContractExeLogMsg =
     InvokeContractMsg
     | InitContractMsg FilePath
@@ -140,8 +119,6 @@ data ContractExeLogMsg =
     | InvokingEndpoint String Value
     | EndpointInvocationResponse [Text]
     | ContractExePABError PABError
-    | StartingPABBackendServer Int
-    | StartingMetadataServer Int
     deriving stock (Show, Generic)
     deriving anyclass (ToJSON, FromJSON)
 
@@ -164,10 +141,6 @@ instance Pretty ContractExeLogMsg where
             hang 2 $ vsep ("Invocation response:" : fmap pretty v)
         ContractExePABError e ->
             "PAB error:" <+> pretty e
-        StartingPABBackendServer port ->
-            "Starting PAB backend server on port:" <+> pretty port
-        StartingMetadataServer port ->
-            "Starting metadata server on port:" <+> pretty port
 
 instance ToObject ContractExeLogMsg where
     toObject v = \case
@@ -198,7 +171,3 @@ instance ToObject ContractExeLogMsg where
             mkObjectStr "endpoint invocation response"  (Tagged @"reponse" lns)
         ContractExePABError err ->
             mkObjectStr "contract executable error" (Tagged @"error" err)
-        StartingPABBackendServer i ->
-            mkObjectStr "starting PAB backend server" (Tagged @"port" i)
-        StartingMetadataServer i ->
-            mkObjectStr "starting PAB metadata server" (Tagged @"port" i)

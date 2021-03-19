@@ -12,8 +12,10 @@ module Plutus.PAB.Webserver.API
     , ContractActivationArgs(..)
     , WalletInfo(..)
     , ContractInstanceClientState(..)
+    , StatusStreamToClient(..)
     ) where
 
+import           Data.Aeson                                      (FromJSON, ToJSON)
 import qualified Data.Aeson                                      as JSON
 import           Data.Text                                       (Text)
 import           GHC.Generics                                    (Generic)
@@ -75,3 +77,11 @@ type NewAPI t
             :<|> "instances" :> Get '[ JSON] [ContractInstanceClientState] -- list of all active contract instances
             :<|> "definitions" :> Get '[JSON] [ContractSignatureResponse t] -- list of available contracts
         )
+
+-- | Status updates for contract instances streamed to client
+data StatusStreamToClient
+    = NewObservableState JSON.Value -- ^ The observable state of the contract has changed.
+    | NewActiveEndpoints [ActiveEndpoint] -- ^ The set of active endpoints has changed.
+    | ContractFinished (Maybe JSON.Value) -- ^ Contract instance is done with an optional error message.
+    deriving stock (Generic, Eq, Show)
+    deriving anyclass (ToJSON, FromJSON)

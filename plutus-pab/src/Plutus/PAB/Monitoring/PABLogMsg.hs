@@ -1,3 +1,5 @@
+{-# LANGUAGE UndecidableInstances #-}
+{-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE DataKinds         #-}
 {-# LANGUAGE DeriveAnyClass    #-}
 {-# LANGUAGE DeriveGeneric     #-}
@@ -16,7 +18,8 @@ module Plutus.PAB.Monitoring.PABLogMsg(
     MockServerLogMsg,
     AppMsg(..),
     CoreMsg(..),
-    PABMultiAgentMsg(..)
+    PABMultiAgentMsg(..),
+    ContractEffectMsg(..)
     ) where
 
 import           Data.Aeson                              (FromJSON, ToJSON)
@@ -36,6 +39,7 @@ import           Ledger.Tx                               (Tx)
 import qualified Data.Text as T
 import Plutus.PAB.Core.ContractInstance.RequestHandlers (ContractInstanceMsg)
 import Plutus.PAB.Webserver.Types (WebSocketLogMsg)
+import qualified Plutus.PAB.Effects.Contract as Contract
 import Plutus.Contract.State (ContractRequest)
 -- import           Plutus.PAB.Core.ContractInstance        (ContractInstanceMsg (..))
 import           Plutus.PAB.Effects.Contract.ContractExe (ContractExe, ContractExeLogMsg (..))
@@ -182,9 +186,10 @@ data PABMultiAgentMsg t =
     | CoreLog (CoreMsg t)
     | RuntimeLog ContractRuntimeMsg
     | UserLog T.Text
-    deriving Show
+    | StartingPABBackendServer Int
+    | StartingMetadataServer Int
 
-instance Pretty PABMultiAgentMsg where
+instance (Pretty (Contract.ContractDef t), Pretty t, Pretty (Contract.State t)) => Pretty (PABMultiAgentMsg t) where
     pretty = \case
         EmulatorMsg m         -> pretty m
         ContractMsg m         -> pretty m
@@ -194,6 +199,10 @@ instance Pretty PABMultiAgentMsg where
         CoreLog m             -> pretty m
         RuntimeLog m          -> pretty m
         UserLog m             -> pretty m
+        StartingPABBackendServer port ->
+            "Starting PAB backend server on port:" <+> pretty port
+        StartingMetadataServer port ->
+            "Starting metadata server on port:" <+> pretty port
 
 data CoreMsg t =
     Installing t

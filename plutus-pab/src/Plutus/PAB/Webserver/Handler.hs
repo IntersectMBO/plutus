@@ -5,6 +5,7 @@
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE GADTs                 #-}
 {-# LANGUAGE KindSignatures        #-}
+{-# LANGUAGE LambdaCase            #-}
 {-# LANGUAGE MonoLocalBinds        #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE NamedFieldPuns        #-}
@@ -15,203 +16,166 @@
 {-# LANGUAGE TypeOperators         #-}
 
 module Plutus.PAB.Webserver.Handler
-    ( handler
-    , getFullReport
-    , getChainReport
-    , getContractReport
-    , contractSchema
-    , invokeEndpointSTM
+    ( handlerNew
+    , handlerOld
     ) where
 
+import           Control.Applicative                              (Alternative (..))
 import           Control.Concurrent.STM                           (atomically)
+import qualified Control.Concurrent.STM                           as STM
+import           Control.Exception                                (SomeException, handle)
+import           Control.Lens                                     (preview)
+import           Control.Monad                                    (guard, void)
+import           Control.Monad.Except                             (ExceptT (ExceptT))
 import           Control.Monad.Freer                              (Eff, LastMember, Member, type (~>))
 import           Control.Monad.Freer.Error                        (Error, throwError)
 import           Control.Monad.Freer.Extras.Log                   (LogMsg, logInfo, logWarn)
 import           Control.Monad.Freer.Reader                       (Reader, ask)
 import           Control.Monad.IO.Class                           (MonadIO (..))
+import           Data.Aeson                                       (FromJSON, ToJSON)
 import qualified Data.Aeson                                       as JSON
+import           Data.Bifunctor                                   (Bifunctor (..))
+import qualified Data.ByteString.Lazy.Char8                       as LBS
 import           Data.Foldable                                    (traverse_)
 import qualified Data.Map                                         as Map
+import           Data.Maybe                                       (mapMaybe)
+import           Data.Proxy                                       (Proxy (..))
 import           Data.Text                                        (Text)
 import qualified Data.UUID                                        as UUID
-import           Plutus.Contract.Effects.ExposeEndpoint  (EndpointDescription (EndpointDescription))
+import           Plutus.Contract.Effects.ExposeEndpoint  (ActiveEndpoint,
+                                                                   EndpointDescription (EndpointDescription))
 import           Ledger.Blockchain                                (Blockchain)
+import           Network.WebSockets.Connection                    (Connection, PendingConnection)
+import           Plutus.PAB.Core                                  (PABAction, PABRunner (..))
+import qualified Plutus.PAB.Core                                  as Core
 import qualified Plutus.PAB.Core.ContractInstance                 as Instance
 import qualified Plutus.PAB.Core.ContractInstance.RequestHandlers as LM
-import           Plutus.PAB.Core.ContractInstance.STM             (InstancesState, callEndpointOnInstance)
+import           Plutus.PAB.Core.ContractInstance.STM             (InstancesState, OpenEndpoint (..),
+                                                                   callEndpointOnInstance)
 import           Plutus.PAB.Effects.Contract                      (ContractDefinitionStore, ContractEffect,
                                                                    ContractStore, PABContract (..), exportSchema,
                                                                    getActiveContracts, getDefinitions, getState)
+import qualified Plutus.PAB.Effects.Contract                      as Contract
 import           Plutus.PAB.Effects.Contract.ContractExe          (ContractExe)
 import           Plutus.PAB.Effects.UUID                          (UUIDEffect)
-import           Plutus.PAB.Events.Contract                       (ContractPABRequest)
-import           Plutus.PAB.Events.ContractInstanceState          (PartiallyDecodedResponse)
+import           Plutus.PAB.Events.Contract                       (ContractPABRequest, _UserEndpointRequest)
+import           Plutus.PAB.Events.ContractInstanceState          (PartiallyDecodedResponse (..))
 import           Plutus.PAB.ParseStringifiedJSON                  (UnStringifyJSONLog, parseStringifiedJSON)
 import           Plutus.PAB.Types
+import           Plutus.PAB.Webserver.API                         (API, ContractActivationArgs (..),
+                                                                   ContractInstanceClientState (..), NewAPI,
+                                                                   StatusStreamToClient (..), WSAPI, WalletInfo (..))
 import           Plutus.PAB.Webserver.Types
-import           Servant                                          ((:<|>) ((:<|>)))
+import qualified Plutus.PAB.Webserver.WebSocket                   as WS
+import           Servant                                          (Application, Handler, ServerT (..), (:<|>) ((:<|>)))
+import qualified Servant
 import           Wallet.Effects                                   (ChainIndexEffect, confirmedBlocks)
+import           Wallet.Emulator.Wallet                           (Wallet (..))
 import qualified Wallet.Rollup                                    as Rollup
 import           Wallet.Types                                     (ContractInstanceId (..), NotificationError)
 
-healthcheck :: Monad m => m ()
+-- | Handler for the "old" API
+handlerOld ::
+    forall t env.
+    Contract.PABContract t =>
+    PABAction t env ()
+    :<|> (PABAction t env (FullReport (Contract.ContractDef t))
+        :<|> ((Contract.ContractDef t) -> PABAction t env ContractInstanceId)
+        :<|> (Text -> PABAction t env (ContractSignatureResponse (Contract.ContractDef t))
+            :<|> (String -> JSON.Value -> PABAction t env (Maybe NotificationError))
+            )
+        )
+handlerOld =
+    healthcheck
+        :<|> (getFullReport
+            :<|> (\def -> activateContract ContractActivationArgs{caID=def, caWallet=WalletInfo{unWalletInfo=Wallet 1}}) -- TODO: Delete "contract/activate" route without wallet argument
+            :<|> byContractInstanceId
+        )
+    where
+        byContractInstanceId :: Text -> (PABAction t env (ContractSignatureResponse (Contract.ContractDef t)) :<|> (String -> JSON.Value -> PABAction t env (Maybe NotificationError)))
+        byContractInstanceId rawInstanceId =
+            (parseContractId rawInstanceId >>= contractSchema) :<|> undefined
+
+
+healthcheck :: forall t env. PABAction t env ()
 healthcheck = pure ()
 
-getContractReport ::
-       forall t effs.
-       ( Member (ContractDefinitionStore t) effs
-       , Member (ContractStore t) effs
-       , Member (ContractEffect t) effs
-       , PABContract t
-       , State t ~ PartiallyDecodedResponse ContractPABRequest
-       )
-    => Eff effs (ContractReport (ContractDef t))
+getContractReport :: forall t env. Contract.PABContract t => PABAction t env (ContractReport (Contract.ContractDef t))
 getContractReport = do
-    installedContracts <- getDefinitions @t
-    activeContractIDs <- fmap fst . Map.toList <$> getActiveContracts @t
+    installedContracts <- Contract.getDefinitions @t
+    activeContractIDs <- fmap fst . Map.toList <$> Contract.getActiveContracts @t
     crAvailableContracts <-
         traverse
-            (\t -> ContractSignatureResponse t <$> exportSchema @t t)
+            (\t -> ContractSignatureResponse t <$> Contract.exportSchema @t t)
             installedContracts
-    crActiveContractStates <- traverse (\i -> getState @t i >>= \s -> pure (i, s)) activeContractIDs
+    crActiveContractStates <- traverse (\i -> Contract.getState @t i >>= \s -> pure (i, Contract.serialisableState (Proxy @t) s)) activeContractIDs
     pure ContractReport {crAvailableContracts, crActiveContractStates}
 
-getChainReport ::
-    forall effs.
-    ( Member ChainIndexEffect effs
-    )
-    => Eff effs ChainReport
-getChainReport = do
-    blocks :: Blockchain <- confirmedBlocks
-    let ChainOverview { chainOverviewBlockchain
-                      , chainOverviewUnspentTxsById
-                      , chainOverviewUtxoIndex
-                      } = mkChainOverview blocks
-    annotatedBlockchain <- Rollup.doAnnotateBlockchain chainOverviewBlockchain
-    pure
-        ChainReport
-            { transactionMap = chainOverviewUnspentTxsById
-            , utxoIndex = chainOverviewUtxoIndex
-            , annotatedBlockchain
-            }
-
-getFullReport ::
-       forall t effs.
-       ( Member (ContractEffect t) effs
-       , Member ChainIndexEffect effs
-       , Member (ContractDefinitionStore t) effs
-       , PABContract t
-       , Member (ContractStore t) effs
-       , State t ~ PartiallyDecodedResponse ContractPABRequest
-       )
-    => Eff effs (FullReport (ContractDef t))
+getFullReport :: forall t env. Contract.PABContract t => PABAction t env (FullReport (Contract.ContractDef t))
 getFullReport = do
     contractReport <- getContractReport @t
-    chainReport <- getChainReport
-    pure FullReport {contractReport, chainReport}
+    pure FullReport {contractReport, chainReport = emptyChainReport}
 
-contractSchema ::
-       forall t effs.
-       ( Member (ContractEffect t) effs
-       , Member (Error PABError) effs
-       , PABContract t
-       , Member (ContractStore t) effs
-       )
-    => ContractInstanceId
-    -> Eff effs (ContractSignatureResponse (ContractDef t))
-contractSchema contractId = do
-    definition <- getContractInstanceDefinition @t contractId
-    ContractSignatureResponse definition <$> exportSchema @t definition
+contractSchema :: forall t env. Contract.PABContract t => ContractInstanceId -> PABAction t env (ContractSignatureResponse (Contract.ContractDef t))
+contractSchema contractId = Contract.getDefinition @t contractId >>= \case
+    Just definition -> ContractSignatureResponse definition <$> Contract.exportSchema @t definition
+    Nothing         -> throwError (ContractInstanceNotFound contractId)
 
-activateContract ::
-       forall t m appBackend effs.
-       ( Instance.AppBackendConstraints t m appBackend
-       , Member (ContractEffect t) effs
-       , Member UUIDEffect effs
-       , Member (LogMsg (Instance.ContractInstanceMsg t)) effs
-       , LastMember m effs
-       , LastMember m (Reader ContractInstanceId ': appBackend)
-       , Member (Reader InstancesState) effs
-       , Member (ContractStore t) effs
-       , PABContract t
-       )
-    => (Eff appBackend ~> IO) -- ^ How to run the @appBackend@ effects in a new thread.
-    -> ContractDef t -- ^ The contract that is to be activated
-    -> Eff effs ContractInstanceId
-activateContract = Instance.activateContractSTM @t @m @appBackend @effs
-
-getContractInstanceDefinition ::
-       forall t effs.
-       ( Member (Error PABError) effs
-       , Member (ContractStore t) effs
-       )
-    => ContractInstanceId
-    -> Eff effs (ContractDef t)
-getContractInstanceDefinition contractId = do
-    activeContracts <- getActiveContracts @t
-    case Map.lookup contractId activeContracts of
-        Nothing    -> throwError $ ContractInstanceNotFound contractId
-        Just value -> pure value
-
--- | Call an endpoint using the STM-based contract runner.
-invokeEndpointSTM ::
-       forall t m effs.
-       ( Member (Reader InstancesState) effs
-       , Member (LogMsg (Instance.ContractInstanceMsg t)) effs
-       , LastMember m effs
-       , MonadIO m
-       )
-    => EndpointDescription
-    -> JSON.Value
-    -> ContractInstanceId
-    -> Eff effs (Maybe NotificationError)
-invokeEndpointSTM d@(EndpointDescription endpointDescription) payload contractId = do
-    logInfo @(LM.ContractInstanceMsg t) $ LM.CallingEndpoint endpointDescription contractId payload
-    inst <- ask @InstancesState
-    response <- liftIO $ atomically $ callEndpointOnInstance inst d payload contractId
-    traverse_ (logWarn @(Instance.ContractInstanceMsg t) . LM.NotificationFailed) response
-    pure response
-
-parseContractId ::
-       (Member (Error PABError) effs) => Text -> Eff effs ContractInstanceId
+parseContractId :: Text -> PABAction t env ContractInstanceId
 parseContractId t =
     case UUID.fromText t of
         Just uuid -> pure $ ContractInstanceId uuid
         Nothing   -> throwError $ InvalidUUIDError t
 
-handler ::
-       forall effs m appBackend.
-       ( Member (ContractEffect ContractExe) effs
-       , Member ChainIndexEffect effs
-       , Member UUIDEffect effs
-       , Member (Error PABError) effs
-       , Member (LogMsg UnStringifyJSONLog) effs
-       , Member (LogMsg (Instance.ContractInstanceMsg ContractExe)) effs
-       , Instance.AppBackendConstraints ContractExe m appBackend
-       , LastMember m effs
-       , Member (Reader InstancesState) effs
-       , Member (ContractDefinitionStore ContractExe) effs
-       , Member (ContractStore ContractExe) effs
-       , LastMember m (Reader ContractInstanceId ': appBackend)
-       )
-    => (Eff appBackend ~> IO)
-    -> Eff effs ()
-       :<|> (Eff effs (FullReport ContractExe)
-             :<|> (ContractExe -> Eff effs ContractInstanceId)
-             :<|> (Text -> Eff effs (ContractSignatureResponse ContractExe)
-                           :<|> (String -> JSON.Value -> Eff effs (Maybe NotificationError))))
-handler runAppBackend =
-    healthcheck :<|> getFullReport @ContractExe :<|>
-    (activateContract @ContractExe @m @appBackend runAppBackend :<|> byContractInstanceId)
-  where
-    byContractInstanceId rawInstanceId =
-        (do instanceId <- parseContractId rawInstanceId
-            contractSchema @ContractExe instanceId) :<|>
-        handleInvokeEndpoint rawInstanceId
-    handleInvokeEndpoint rawInstanceId rawEndpointDescription rawPayload = do
-        instanceId <- parseContractId rawInstanceId
-        payload <- parseStringifiedJSON rawPayload
-        invokeEndpointSTM @ContractExe
-            (EndpointDescription rawEndpointDescription)
-            payload
-            instanceId
+-- | Handler for the "new" API
+handlerNew ::
+       forall t env.
+       Contract.PABContract t =>
+       (ContractActivationArgs (Contract.ContractDef t) -> PABAction t env ContractInstanceId)
+            :<|> (ContractInstanceId -> PABAction t env (ContractInstanceClientState)
+                                        :<|> (String -> JSON.Value -> PABAction t env ())
+                                        :<|> (PendingConnection -> PABAction t env ()))
+            :<|> PABAction t env [ContractInstanceClientState]
+            :<|> PABAction t env [ContractSignatureResponse (Contract.ContractDef t)]
+handlerNew =
+        (activateContract
+            :<|> (\x -> contractInstanceState x :<|> callEndpoint x :<|> WS.contractInstanceUpdates x)
+            :<|> allInstanceStates
+            :<|> availableContracts)
+
+fromInternalState ::
+    ContractInstanceId
+    -> PartiallyDecodedResponse ContractPABRequest
+    -> ContractInstanceClientState
+fromInternalState i resp =
+    ContractInstanceClientState
+        { cicContract = i
+        , cicCurrentState =
+            let hks' = mapMaybe (traverse (preview _UserEndpointRequest)) (hooks resp)
+            in resp { hooks = hks' }
+        }
+
+-- HANDLERS
+
+activateContract :: forall t env. Contract.PABContract t => ContractActivationArgs (Contract.ContractDef t) -> PABAction t env ContractInstanceId
+activateContract ContractActivationArgs{caID, caWallet=WalletInfo{unWalletInfo=wallet}} = do
+    Core.activateContract wallet caID
+
+contractInstanceState :: forall t env. Contract.PABContract t => ContractInstanceId -> PABAction t env ContractInstanceClientState
+contractInstanceState i = fromInternalState i . Contract.serialisableState (Proxy @t) <$> Contract.getState @t i
+
+callEndpoint :: forall t env. ContractInstanceId -> String -> JSON.Value -> PABAction t env ()
+callEndpoint a b = void . Core.callEndpointOnInstance a b
+
+allInstanceStates :: forall t env. Contract.PABContract t => PABAction t env [ContractInstanceClientState]
+allInstanceStates = do
+    mp <- Contract.getActiveContracts @t
+    let get i = fromInternalState i . Contract.serialisableState (Proxy @t) <$> Contract.getState @t i
+    traverse get $ fst <$> Map.toList mp
+
+availableContracts :: forall t env. Contract.PABContract t => PABAction t env [ContractSignatureResponse (Contract.ContractDef t)]
+availableContracts = do
+    def <- Contract.getDefinitions @t
+    let mkSchema s = ContractSignatureResponse s <$> Contract.exportSchema @t s
+    traverse mkSchema def
+

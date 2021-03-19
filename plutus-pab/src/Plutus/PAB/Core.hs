@@ -100,7 +100,7 @@ import           Data.Text.Prettyprint.Doc                       (Pretty, colon,
                                                                   pretty, (<+>))
 import qualified Data.Text.Prettyprint.Doc.Render.Text           as Render
 import           GHC.Generics                                    (Generic)
-import           Language.Plutus.Contract.Effects.ExposeEndpoint (ActiveEndpoint (..))
+import           Plutus.Contract.Effects.ExposeEndpoint (ActiveEndpoint (..))
 import           Ledger.Tx                                       (Tx)
 import           Ledger.Value                                    (Value)
 import           Plutus.PAB.Core.ContractInstance                (ContractInstanceMsg)
