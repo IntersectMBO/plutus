@@ -52,14 +52,6 @@ jsonHandlingTests = do
       assertDecodesTo
         (Proxy :: Proxy KnownCurrency)
         "test/known_currency.json"
-    -- Note; temporarily disabled
-    --    test "Decode a compilation response." do
-    --      assertDecodesTo
-    --        (Proxy :: Proxy (InterpreterResult CompilationResult))
-    --        "generated/compilation_response.json"
-    --    test "Decode an EvaluationResult." do
-    --      assertDecodesTo (Proxy :: Proxy (InterpreterResult EvaluationResult))
-    --        "generated/evaluation_response0.json"
     test "Decode an AuthStatus." do
       assertDecodesTo
         (Proxy :: Proxy AuthStatus)
