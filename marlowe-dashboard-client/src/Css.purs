@@ -3,7 +3,7 @@ module Css
   , toggleWhen
   , applyWhen
   , hideWhen
-  , bgBlueGradiant
+  , bgBlueGradient
   , button
   , withIcon
   , withShadow
@@ -41,9 +41,9 @@ applyWhen condition classes = if condition then classes else []
 hideWhen :: Boolean -> Array String
 hideWhen condition = applyWhen condition [ "hidden" ]
 
---- color gradiant
-bgBlueGradiant :: Array String
-bgBlueGradiant = [ "bg-gradient-to-r", "from-blue", "to-lightblue", "text-white" ]
+--- color gradients
+bgBlueGradient :: Array String
+bgBlueGradient = [ "bg-gradient-to-r", "from-blue", "to-lightblue", "text-white" ]
 
 -- buttons
 button :: Array String
@@ -53,7 +53,7 @@ withShadow :: Array String
 withShadow = [ "shadow", "hover:shadow-lg" ]
 
 primaryButton :: Array String
-primaryButton = button <> bgBlueGradiant <> withShadow
+primaryButton = button <> bgBlueGradient <> withShadow
 
 secondaryButton :: Array String
 secondaryButton = button <> [ "bg-lightgray", "text-black" ]
@@ -101,7 +101,7 @@ largeCard invisible = [ "bg-grayblue", "shadow", "h-full", "overflow-auto", "rou
 
 --- miscellaneous
 iconCircle :: Boolean -> Array String
-iconCircle enabled = [ "inline-flex", "items-center", "justify-center", "w-8", "h-8", "rounded-full" ] <> toggleWhen enabled bgBlueGradiant [ "bg-lightgray", "text-darkgray" ]
+iconCircle enabled = [ "inline-flex", "items-center", "justify-center", "w-8", "h-8", "rounded-full" ] <> toggleWhen enabled bgBlueGradient [ "bg-lightgray", "text-darkgray" ]
 
 fixedBottomRight :: Array String
 fixedBottomRight = [ "absolute", "bottom-4", "right-4", "md:right-5pc" ]

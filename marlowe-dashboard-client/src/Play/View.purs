@@ -63,7 +63,7 @@ renderHeader walletNickname menuOpen =
             , span
                 [ classNames $ [ "hidden", "md:flex", "md:items-baseline" ] <> Css.button <> [ "bg-white" ] ]
                 [ span
-                    [ classNames $ [ "-m-1", "mr-2", "rounded-full", "text-white", "w-5", "h-5", "flex", "justify-center", "items-center", "uppercase" ] <> Css.bgBlueGradiant ]
+                    [ classNames $ [ "-m-1", "mr-2", "rounded-full", "text-white", "w-5", "h-5", "flex", "justify-center", "items-center", "uppercase" ] <> Css.bgBlueGradient ]
                     [ text $ take 1 walletNickname ]
                 , text walletNickname
                 ]
