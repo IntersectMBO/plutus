@@ -103,18 +103,17 @@ instance Pretty ExtensionFun where pretty = viaShow
 
 instance (ToBuiltinMeaning uni fun1, ToBuiltinMeaning uni fun2) =>
             ToBuiltinMeaning uni (Either fun1 fun2) where
-    type DynamicPart uni (Either fun1 fun2) = (DynamicPart uni fun1, DynamicPart uni fun2)
     type CostingPart uni (Either fun1 fun2) = (CostingPart uni fun1, CostingPart uni fun2)
 
     toBuiltinMeaning (Left  fun) = case toBuiltinMeaning fun of
-        BuiltinMeaning sch toF toExF -> BuiltinMeaning sch (toF . fst) (toExF . fst)
+        BuiltinMeaning sch toF toExF -> BuiltinMeaning sch toF (toExF . fst)
     toBuiltinMeaning (Right fun) = case toBuiltinMeaning fun of
-        BuiltinMeaning sch toF toExF -> BuiltinMeaning sch (toF . snd) (toExF . snd)
+        BuiltinMeaning sch toF toExF -> BuiltinMeaning sch toF (toExF . snd)
 
 defBuiltinsRuntimeExt
     :: HasConstantIn DefaultUni term
     => BuiltinsRuntime (Either DefaultFun ExtensionFun) term
-defBuiltinsRuntimeExt = toBuiltinsRuntime mempty (defaultCostModel, ())
+defBuiltinsRuntimeExt = toBuiltinsRuntime (defaultCostModel, ())
 
 data ListRep (a :: GHC.Type)
 instance KnownTypeAst uni a => KnownTypeAst uni (ListRep a) where
@@ -148,34 +147,33 @@ type instance ToBinds Void = '[]
 --    account automatically as well: just think that having @\x -> f x x@ as a PLC term is supposed
 --    to be handled correctly by design
 instance (GShow uni, GEq uni, uni `Includes` Integer) => ToBuiltinMeaning uni ExtensionFun where
-    type DynamicPart uni ExtensionFun = ()
     type CostingPart uni ExtensionFun = ()
     toBuiltinMeaning Factorial =
-        toStaticBuiltinMeaning
+        makeBuiltinMeaning
             (\(n :: Integer) -> product [1..n])
             mempty  -- Whatever.
     toBuiltinMeaning Const =
-        toStaticBuiltinMeaning
+        makeBuiltinMeaning
             const
             (\_ _ _ -> ExBudget 1 0)
     toBuiltinMeaning Id =
-        toStaticBuiltinMeaning
+        makeBuiltinMeaning
             Prelude.id
             (\_ _ -> ExBudget 1 0)
     toBuiltinMeaning IdFInteger =
-        toStaticBuiltinMeaning
+        makeBuiltinMeaning
             (Prelude.id
                 :: a ~ Opaque term (TyAppRep (TyVarRep ('TyNameRep "f" 0)) Integer)
                 => a -> a)
             (\_ _ -> ExBudget 1 0)
     toBuiltinMeaning IdList =
-        toStaticBuiltinMeaning
+        makeBuiltinMeaning
             (Prelude.id
                 :: a ~ Opaque term (ListRep (TyVarRep ('TyNameRep "a" 0)))
                 => a -> a)
             (\_ _ -> ExBudget 1 0)
     toBuiltinMeaning IdRank2 =
-        toStaticBuiltinMeaning
+        makeBuiltinMeaning
             (Prelude.id
                 :: ( f ~ 'TyNameRep "f" 0
                    , a ~ 'TyNameRep @GHC.Type "a" 1
@@ -184,7 +182,7 @@ instance (GShow uni, GEq uni, uni `Includes` Integer) => ToBuiltinMeaning uni Ex
                 => afa -> afa)
             (\_ _ -> ExBudget 1 0)
     toBuiltinMeaning Absurd =
-        toStaticBuiltinMeaning
+        makeBuiltinMeaning
             (absurd
                 :: a ~ Opaque term (TyVarRep ('TyNameRep "a" 0))
                 => Void -> a)
