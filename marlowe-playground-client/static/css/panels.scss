@@ -62,6 +62,8 @@ button.minus-btn:hover {
 .choice-input {
   line-height: 1.4;
   flex: 1;
+  display: flex;
+  flex-wrap: wrap;
 }
 
 .transaction-btns {
@@ -212,17 +214,52 @@ button.minus-btn:hover {
   margin-bottom: 0.5rem;
 }
 
+.action-group {
+  display: flex;
+  flex-wrap: wrap;
+}
+
 .action-group-explanation {
   margin-left: 2rem;
   margin-bottom: 0.5rem;
+  line-height: normal;
+  min-width: 0;
+  flex-shrink: 1;
+  word-wrap: break-word;
 }
 
 .action-explanation {
   margin-left: 1rem;
+  margin-right: 1rem;
+  line-height: normal;
+  word-wrap: break-word;
+  min-width: 0;
+  flex-shrink: 1;
+}
+
+.action-label {
+  min-width: 0;
+  flex-grow: 1;
 }
 
 .action {
   padding-left: 1rem;
+  align-self: center;
+  min-width: 0;
+  flex-grow: 1;
+  margin: 0.5rem 0;
+}
+
+.slot-input {
+  display: flex;
+  flex-wrap: wrap;
+  line-height: normal;
+}
+
+.action-input {
+  flex-grow: 1;
+  margin-left: 0.5rem;
+  min-width: 4rem;
   align-self: center;
 }
 
