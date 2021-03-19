@@ -250,6 +250,9 @@ disabled false = ClassName ""
 spanText :: forall p i. String -> HTML p i
 spanText s = span [] [ text s ]
 
+spanTextBreakWord :: forall p i. String -> HTML p i
+spanTextBreakWord s = span [ classes [ ClassName "break-word-span" ] ] [ text s ]
+
 sidebarComposer :: ClassName
 sidebarComposer = ClassName "sidebar-composer"
 

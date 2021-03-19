@@ -18,9 +18,9 @@ import Data.Tuple.Nested ((/\))
 import Effect.Aff.Class (class MonadAff)
 import Effect.Class (liftEffect)
 import Halogen (RefLabel(..))
-import Halogen.Classes (aHorizontal, bold, btn, flex, flexCol, flexGrow, flexShrink0, fontBold, fullHeight, fullWidth, grid, gridColsDescriptionLocation, group, justifyBetween, justifyCenter, justifyEnd, maxH70p, minH0, noMargins, overflowHidden, overflowScroll, paddingX, plusBtn, smallBtn, smallSpaceBottom, spaceBottom, spaceLeft, spaceRight, spanText, textSecondaryColor, textXs, uppercase, w30p)
+import Halogen.Classes (aHorizontal, bold, btn, flex, flexCol, flexGrow, flexShrink0, fontBold, fullHeight, fullWidth, grid, gridColsDescriptionLocation, group, justifyBetween, justifyCenter, justifyEnd, maxH70p, minH0, noMargins, overflowHidden, overflowScroll, paddingX, plusBtn, smallBtn, smallSpaceBottom, spaceBottom, spaceLeft, spaceRight, spanText, spanTextBreakWord, textSecondaryColor, textXs, uppercase, w30p)
 import Halogen.Extra (renderSubmodule)
-import Halogen.HTML (ClassName(..), ComponentHTML, HTML, aside, b_, br_, button, div, div_, em_, h6, h6_, input, li, li_, p, p_, section, slot, span, span_, strong_, text, ul)
+import Halogen.HTML (ClassName(..), ComponentHTML, HTML, aside, b_, button, div, div_, em_, h6, h6_, input, li, li_, p, p_, section, slot, span, span_, strong_, text, ul)
 import Halogen.HTML.Events (onClick, onValueChange)
 import Halogen.HTML.Properties (InputType(..), class_, classes, disabled, placeholder, type_, value)
 import Halogen.Monaco (Settings, monacoComponent)
@@ -372,8 +372,8 @@ inputItem ::
   HTML p Action
 inputItem _ _ person (DepositInput accountId party token value) =
   div [ classes [ ClassName "action", aHorizontal ] ]
-    [ p_ (renderDeposit accountId party token value)
-    , div [ class_ (ClassName "align-center") ]
+    [ renderDeposit accountId party token value
+    , div [ class_ (ClassName "align-top") ]
         [ button
             [ classes [ plusBtn, smallBtn ]
             , onClick $ const $ Just
@@ -386,10 +386,9 @@ inputItem _ _ person (DepositInput accountId party token value) =
 inputItem metadata _ person (ChoiceInput choiceId@(ChoiceId choiceName choiceOwner) bounds chosenNum) =
   div
     [ classes [ ClassName "action", aHorizontal, ClassName "flex-nowrap" ] ]
-    ( [ div []
+    ( [ div [ classes [ ClassName "action-label" ] ]
           ( [ div [ class_ (ClassName "choice-input") ]
-                [ spanText "Choice "
-                , b_ [ spanText (show choiceName <> ": ") ]
+                [ span [ class_ (ClassName "break-word-span") ] [ text "Choice ", b_ [ text (show choiceName <> ": ") ] ]
                 , marloweActionInput (SetChoice choiceId) chosenNum
                 ]
             , div [ class_ (ClassName "choice-error") ] error
@@ -410,7 +409,7 @@ inputItem metadata _ person (ChoiceInput choiceId@(ChoiceId choiceName choiceOwn
   addButton =
     if inBounds chosenNum bounds then
       [ button
-          [ classes [ plusBtn, smallBtn, ClassName "align-center", ClassName "flex-noshrink" ]
+          [ classes [ plusBtn, smallBtn, ClassName "align-top", ClassName "flex-noshrink" ]
           , onClick $ const $ Just
               $ AddInput (IChoice (ChoiceId choiceName choiceOwner) chosenNum) bounds
           ]
@@ -434,7 +433,7 @@ inputItem _ _ person NotifyInput =
     [ classes [ ClassName "action", ClassName "choice-a", aHorizontal ] ]
     [ p_ [ text "Notify Contract" ]
     , button
-        [ classes [ plusBtn, smallBtn, ClassName "align-center" ]
+        [ classes [ plusBtn, smallBtn, ClassName "align-top" ]
         , onClick $ const $ Just
             $ AddInput INotify []
         ]
@@ -446,7 +445,7 @@ inputItem _ state person (MoveToSlot slot) =
     [ classes [ aHorizontal, ClassName "flex-nowrap" ] ]
     ( [ div [ classes [ ClassName "action" ] ]
           [ p [ class_ (ClassName "slot-input") ]
-              [ spanText "Move to slot "
+              [ spanTextBreakWord "Move to slot "
               , marloweActionInput (SetSlot <<< wrap) slot
               ]
           , p [ class_ (ClassName "choice-error") ] error
@@ -458,7 +457,7 @@ inputItem _ state person (MoveToSlot slot) =
   addButton =
     if inFuture state slot then
       [ button
-          [ classes [ plusBtn, smallBtn, ClassName "align-center", ClassName "flex-noshrink" ]
+          [ classes [ plusBtn, smallBtn, ClassName "align-top", ClassName "flex-noshrink" ]
           , onClick $ const $ Just $ MoveSlot slot
           ]
           [ text "+" ]
@@ -488,17 +487,18 @@ marloweActionInput f current =
           )
     ]
 
-renderDeposit :: forall p. AccountId -> Party -> Token -> BigInteger -> Array (HTML p Action)
+renderDeposit :: forall p. AccountId -> Party -> Token -> BigInteger -> HTML p Action
 renderDeposit accountOwner party tok money =
-  [ spanText "Deposit "
-  , b_ [ spanText (showPrettyMoney money) ]
-  , spanText " units of "
-  , b_ [ renderPrettyToken tok ]
-  , spanText " into account of "
-  , b_ [ renderPrettyParty accountOwner ]
-  , spanText " as "
-  , b_ [ renderPrettyParty party ]
-  ]
+  span [ classes [ ClassName "break-word-span" ] ]
+    [ text "Deposit "
+    , strong_ [ text (showPrettyMoney money) ]
+    , text " units of "
+    , strong_ [ renderPrettyToken tok ]
+    , text " into account of "
+    , strong_ [ renderPrettyParty accountOwner ]
+    , text " as "
+    , strong_ [ renderPrettyParty party ]
+    ]
 
 ------------------------------------------------------------
 logWidget ::
