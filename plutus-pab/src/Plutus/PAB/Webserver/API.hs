@@ -92,3 +92,5 @@ data InstanceStatusToClient
 data CombinedWSStreamToClient
     = InstanceUpdate ContractInstanceId InstanceStatusToClient
     | SlotChange Slot
+    deriving stock (Generic, Eq, Show)
+    deriving anyclass (ToJSON, FromJSON)
