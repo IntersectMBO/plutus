@@ -40,6 +40,7 @@ import qualified Data.Text as T
 import Plutus.PAB.Core.ContractInstance.RequestHandlers (ContractInstanceMsg)
 import Plutus.PAB.Webserver.Types (WebSocketLogMsg)
 import qualified Plutus.PAB.Effects.Contract as Contract
+import Plutus.PAB.Effects.Contract (PABContract(..))
 import Plutus.Contract.State (ContractRequest)
 -- import           Plutus.PAB.Core.ContractInstance        (ContractInstanceMsg (..))
 import           Plutus.PAB.Effects.Contract.ContractExe (ContractExe, ContractExeLogMsg (..))
@@ -95,6 +96,7 @@ data PABLogMsg =
     | SWalletMsg WalletMsg
     | SMetaDataLogMsg MetadataLogMessage
     | SMockserverLogMsg MockServerLogMsg
+    | SMultiAgent (PABMultiAgentMsg ContractExe)
     deriving stock (Show, Generic)
     deriving anyclass (ToJSON, FromJSON)
 
@@ -188,6 +190,11 @@ data PABMultiAgentMsg t =
     | UserLog T.Text
     | StartingPABBackendServer Int
     | StartingMetadataServer Int
+    deriving stock Generic
+
+deriving stock instance (Show t, Show (ContractDef t), Show (State t)) => Show (PABMultiAgentMsg t)
+deriving anyclass instance (ToJSON t, ToJSON (ContractDef t), ToJSON (State t)) => ToJSON (PABMultiAgentMsg t)
+deriving anyclass instance (FromJSON t, FromJSON (ContractDef t), FromJSON (State t)) => FromJSON (PABMultiAgentMsg t)
 
 instance (Pretty (Contract.ContractDef t), Pretty t, Pretty (Contract.State t)) => Pretty (PABMultiAgentMsg t) where
     pretty = \case
@@ -236,7 +243,8 @@ instance (StructuredLog t, ToJSON t) => ToObject (CoreMsg t) where
 data ContractEffectMsg =
     SendContractRequest (ContractRequest JSON.Value)
     | ReceiveContractResponse (PartiallyDecodedResponse ContractPABRequest)
-    deriving Show
+    deriving stock (Show, Generic)
+    deriving anyclass (ToJSON, FromJSON)
 
 instance Pretty ContractEffectMsg where
     pretty = \case

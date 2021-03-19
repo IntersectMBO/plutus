@@ -316,7 +316,7 @@ makeBlock = do
             . reinterpret (mapLog @_ @(PABMultiAgentMsg TestContracts) EmulatorMsg)
             . reinterpret (Core.timed @EmulatorEvent')
             . reinterpret (mapLog (ChainIndexEvent (Wallet 0)))
-    delayThread (200 :: Millisecond)
+    delayThread (1000 :: Millisecond)
     void
         $ makeTimedChainIndexEvent
         $ makeTimedChainEvent

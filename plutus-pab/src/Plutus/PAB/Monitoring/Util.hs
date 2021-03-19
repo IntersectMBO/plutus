@@ -81,11 +81,9 @@ runLogEffects ::
     ~> m
 runLogEffects trace = runM . handleLogMsgTrace trace
 
-
 -- | Convert tracer structured log data
 convertLog :: (a -> b) -> Trace m b -> Trace m a
 convertLog f = contramap (second (fmap f))
-
 
 -- | Handle the 'LogObserve' effect using the 'Cardano.BM.Observer.Monadic'
 --   observer functions
