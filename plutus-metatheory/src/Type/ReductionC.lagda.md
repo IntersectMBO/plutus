@@ -695,6 +695,26 @@ lemma51! (M · M') with lemma51! M
 lemma51! (μ M M') = mu-case M M'
 lemma51! (con x) = inj₁ (V-con x)
 
+lemma51-good : (M : ∅ ⊢⋆ K)
+             → (E : EvalCtx K J)
+             → (L : ∅ ⊢⋆ I ⇒ J)
+             → (N : ∅ ⊢⋆ I)
+             → M ≡ closeEvalCtx E (L · N)
+             → Value⋆ L
+             → Value⋆ N
+             → ∀ {I' J'}
+             → (E' : EvalCtx K J')
+             → (L' : ∅ ⊢⋆ I' ⇒ J')
+             → (N' : ∅ ⊢⋆ I')
+             → Value⋆ L'
+             → Value⋆ N'
+             → ∃ λ (p : I' ≡ I)
+             → ∃ λ (q : J' ≡ J)
+             → E ≡ subst (EvalCtx K) q E'
+             × L ≡ subst (∅ ⊢⋆_) (cong₂ _⇒_ p q) L'
+             × N ≡ subst (∅ ⊢⋆_) p N'
+lemma51-good = {!!}
+
 {- 
 
 possibly lemma51! might be more useful if it wasn't so picky about
@@ -721,6 +741,7 @@ postulate
            → A ≡ closeEvalCtx E B
            → A ≡ closeEvalCtx E' B
            → E ≡ E'
+
 -- the above lemma51! isn't directly useful as it wants a (L · N) not a B...
 
 -- this one is simpler, just injectivity...
@@ -861,6 +882,22 @@ perhaps I'll try to prove that
 
 -}
 
+decVal : (M : ∅ ⊢⋆ K) → Value⋆ M ⊎ ¬ (Value⋆ M)
+decVal (Π M) = inj₁ (V-Π M)
+decVal (M ⇒ N) with decVal M
+... | inj₂ ¬VM = inj₂ (λ {(VM V-⇒ VN) → ¬VM VM})
+... | inj₁ VM with decVal N
+... | inj₂ ¬VN = inj₂ (λ {(VM V-⇒ VN) → ¬VN VN})
+... | inj₁ VN = inj₁ (VM V-⇒ VN)
+decVal (ƛ M) = inj₁ (V-ƛ M)
+decVal (M · N) = inj₂ lemV·
+decVal (μ M N) with decVal M
+... | inj₂ ¬VM = inj₂ (λ {(V-μ VM VN) → ¬VM VM})
+... | inj₁ VM with decVal N
+... | inj₂ ¬VN = inj₂ (λ {(V-μ VM VN) → ¬VN VN})
+... | inj₁ VN = inj₁ (V-μ VM VN)
+decVal (con c) = inj₁ (V-con c)
+
 dissect-lemma : ∀ (E : EvalCtx K J)(E' : EvalCtx K J') F → dissect' E ≡ inj₂ (_ , E' , F) -> E ≡ extendEvalCtx E' F
 dissect-lemma (x ·r E) E' F p with dissect' E | inspect dissect' E
 dissect-lemma (x ·r .[]) .[] .(x ·-) refl | inj₁ (refl , refl) | _ = refl
@@ -885,13 +922,32 @@ lemmaX : ∀ (M : ∅ ⊢⋆ J)(E : EvalCtx K J)(E' : EvalCtx K J')
     (L : ∅ ⊢⋆ I ⇒ J') N
   → Value⋆ M → (VL : Value⋆ L) → Value⋆ N
   → closeEvalCtx E M ≡ closeEvalCtx E' (L · N)
-  → ∃ λ (E'' : EvalCtx J' J) → E ≡ compEvalCtx E' E''
+  -- cases:
+  → (∃ λ (p : I ≡ J) → E ≡ extendEvalCtx E' (subst (Frame _) p (VL ·-)))
+  ⊎ (∃ λ (p : I ⇒ J' ≡ J) → E ≡ extendEvalCtx E' (subst (Frame _) p (-· N)))
+  
+{-
+  E == extendEvalCtx E' (L ·-), i.e., M = N
+  ⊎
+  E == extendEvalCtx E' (-· N), i.e., M = L
+  ⊎
+  E  == extendEvalCtx E'' (-· E''' [ L . M ])
+  E' == compEvalCtx E'' (M ·r E''') and 
+-}
+  --
+  -- → ∃ λ (E'' : EvalCtx J' J) → E ≡ compEvalCtx E' E''
 lemmaX M E E' L N VM VL VN p with dissect' E | inspect dissect' E
-... | inj₁ x         | _ = {!!}
-... | inj₂ (fst , y) | blah eq = {!!}
-  where
-  -- it's impossible that the whole thing is a value
-  X : ¬ (Value⋆ (closeEvalCtx E' (L · N)))
-  X = lemE· E'
-  X' : ¬ (Value⋆ (closeEvalCtx E M))
-  X' = subst (λ M → ¬ (Value⋆ M)) (sym p) X 
+... | inj₁ (refl , refl) | r =
+  ⊥-elim (subst (λ M → ¬ (Value⋆ M)) (sym p) (lemE· E') VM)
+-- here (and below) we must be inside the somewhere
+-- I guess these are valid, I was hoping they would be impossible
+... | inj₂ (.* , E'' , (-⇒ B)) | blah eq = {!!}
+... | inj₂ (.* , E'' , (x ⇒-)) | blah eq = {!!}
+... | inj₂ (.* , E'' , (μ- B)) | blah eq = {!!}
+... | inj₂ (.* , E'' , μ x -) | blah eq = {!!}
+lemmaX M E E' L N VM VL VN p | inj₂ (I , E'' , (-· B)) | blah eq with decVal B
+... | inj₂ ¬VB = {!!}
+... | inj₁ VB rewrite (dissect-lemma _ _ _ eq) with lemma51-good (closeEvalCtx (extendEvalCtx E'' (-· B)) M) E' L N p VL VN E'' M B VM VB
+... | (refl , refl , refl , refl , refl) = inj₂ (refl , refl)
+lemmaX M E E' L N VM VL VN p | inj₂ (I , E'' , (x ·-)) | blah eq rewrite (dissect-lemma _ _ _ eq) with lemma51-good (closeEvalCtx (extendEvalCtx E'' (x ·-)) M) E' L N p VL VN E'' _ M x VM
+lemmaX M E E' L N VM VL VN p | inj₂ (I , E'' , (x ·-)) | blah eq | (refl , refl , refl , refl , refl) rewrite val-unique VL x = inj₁ (refl , uniquenessE _ (λ V → lemE· E' (subst Value⋆ p V)) _ _ _ refl refl)
