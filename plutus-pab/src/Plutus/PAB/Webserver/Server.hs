@@ -13,10 +13,11 @@
 
 module Plutus.PAB.Webserver.Server
     ( startServer
+    , startServerDebug
     ) where
 
 import           Control.Concurrent              (forkIO)
-import           Control.Concurrent.Availability (Availability, available)
+import           Control.Concurrent.Availability (Availability, available, newToken)
 import qualified Control.Concurrent.STM          as STM
 import           Control.Monad                   (void)
 import           Control.Monad.Except            (ExceptT (ExceptT))
@@ -60,32 +61,60 @@ app ::
     , ToJSON (Contract.ContractDef t)
     , Contract.PABContract t
     , Servant.MimeUnrender Servant.JSON (Contract.ContractDef t)
-    ) => WebserverConfig -> PABRunner t env -> Application
-app WebserverConfig{staticDir} pabRunner = do
-    let rest = Proxy @(CombinedAPI t :<|> Raw)
-        apiServer :: ServerT (CombinedAPI t) Handler
+    ) =>
+    Maybe FilePath
+    -> PABRunner t env
+    -> Application
+app fp pabRunner = do
+    let apiServer :: ServerT (CombinedAPI t) Handler
         apiServer =
             Servant.hoistServer
                 (Proxy @(CombinedAPI t))
                 (asHandler pabRunner)
                 (handlerOld :<|> WS.combinedWebsocket :<|> handlerNew) -- :<|> fileServer)
 
-        fileServer :: ServerT Raw Handler
-        fileServer = serveDirectoryFileServer staticDir
+    case fp of
+        Nothing -> do
+            let rest = Proxy @(CombinedAPI t)
+            Servant.serve rest apiServer
+        Just filePath -> do
+            let fileServer :: ServerT Raw Handler
+                fileServer = serveDirectoryFileServer filePath
 
-    Servant.serve rest (apiServer :<|> fileServer)
+                rest = Proxy @(CombinedAPI t :<|> Raw)
+            Servant.serve rest (apiServer :<|> fileServer)
 
 
--- | Start the server using the config. Returns an action that shuts it down again.
+-- | Start the server using the config. Returns an action that shuts it down
+--   again.
 startServer ::
     forall t env.
     ( FromJSON (Contract.ContractDef t)
     , ToJSON (Contract.ContractDef t)
     , Contract.PABContract t
     , Servant.MimeUnrender Servant.JSON (Contract.ContractDef t)
-    ) => WebserverConfig -> Availability -> PABAction t env (PABAction t env ())
-startServer config@WebserverConfig{baseUrl} availability = do
-    let port = baseUrlPort baseUrl
+    )
+    => WebserverConfig -- ^ Optional file path for static assets
+    -> Availability
+    -> PABAction t env (PABAction t env ())
+startServer WebserverConfig{baseUrl, staticDir} availability =
+    startServer' (baseUrlPort baseUrl) (Just staticDir) availability
+
+-- | Start the server. Returns an action that shuts it down
+--   again.
+startServer' ::
+    forall t env.
+    ( FromJSON (Contract.ContractDef t)
+    , ToJSON (Contract.ContractDef t)
+    , Contract.PABContract t
+    , Servant.MimeUnrender Servant.JSON (Contract.ContractDef t)
+    )
+    => Int -- ^ Port
+    -> Maybe FilePath -- ^ Optional file path for static assets
+    -> Availability
+    -> PABAction t env (PABAction t env ())
+startServer' port fp availability = do
+    -- let port = baseUrlPort baseUrl
     simRunner <- Core.pabRunner
     shutdownVar <- liftIO $ STM.atomically $ STM.newEmptyTMVar @()
 
@@ -100,5 +129,17 @@ startServer config@WebserverConfig{baseUrl} availability = do
             & Warp.setInstallShutdownHandler shutdownHandler
             & Warp.setBeforeMainLoop (available availability)
     logInfo @(LM.PABMultiAgentMsg t) (LM.StartingPABBackendServer port)
-    _ <- liftIO $ forkIO $ Warp.runSettings warpSettings $ app config simRunner
+    _ <- liftIO $ forkIO $ Warp.runSettings warpSettings $ app fp simRunner
     pure (liftIO $ STM.atomically $ STM.putTMVar shutdownVar ())
+
+-- | Start the server using default configuration for debugging.
+startServerDebug ::
+    ( FromJSON (Contract.ContractDef t)
+    , ToJSON (Contract.ContractDef t)
+    , Contract.PABContract t
+    , Servant.MimeUnrender Servant.JSON (Contract.ContractDef t)
+    )
+    => PABAction t env (PABAction t env ())
+startServerDebug = do
+    tk <- newToken
+    startServer' 8080 Nothing tk

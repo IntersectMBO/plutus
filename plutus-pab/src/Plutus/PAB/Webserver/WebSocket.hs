@@ -6,7 +6,11 @@
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeApplications    #-}
+{-
 
+Handlers for the websockets exposed by the PAB.
+
+-}
 module Plutus.PAB.Webserver.WebSocket
     ( combinedWebsocket
     , contractInstanceUpdates
