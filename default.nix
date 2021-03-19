@@ -51,7 +51,7 @@ rec {
     inherit (pkgs.callPackage ./plutus-playground-client {
       inherit (plutus.lib) buildPursPackage buildNodeModules filterNpm gitignore-nix;
       inherit set-git-rev haskell webCommon webCommonPlutus webCommonPlayground;
-    }) client server-invoker generated-purescript generate-purescript start-backend;
+    }) client generated-purescript generate-purescript start-backend;
   };
 
   marlowe-playground = pkgs.recurseIntoAttrs rec {

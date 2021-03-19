@@ -240,18 +240,19 @@ evalTests =
       equal' "Script gets loaded."
         (view _contractDemoEditorContents <$> lookupContractDemo "Game" contractDemos)
         finalWorld.editorContents
-    test "Loading a script switches back to the editor." do
-      loadCompilationResponse1
-        >>= case _ of
-            Left err -> failure err
-            Right compilationResult -> do
-              Tuple _ finalState <-
-                execMockApp (mockWorld { compilationResult = compilationResult })
-                  [ ChangeView Simulations
-                  , LoadScript "Game"
-                  ]
-              equal' "View is reset." Editor $ view _currentView finalState
 
+-- NOTE: temporarily disabled
+--     test "Loading a script switches back to the editor." do
+--       loadCompilationResponse1
+--         >>= case _ of
+--             Left err -> failure err
+--             Right compilationResult -> do
+--               Tuple _ finalState <-
+--                 execMockApp (mockWorld { compilationResult = compilationResult })
+--                   [ ChangeView Simulations
+--                   , LoadScript "Game"
+--                   ]
+--               equal' "View is reset." Editor $ view _currentView finalState
 loadCompilationResponse1 ::
   forall m.
   MonadEffect m =>
