@@ -264,10 +264,10 @@ renderAction state isActiveParticipant namedAction@(MakeChoice choiceId bounds m
     div_
       [ shortDescription isActiveParticipant "chocolate pastry apple pie lemon drops apple pie halvah FIXME"
       , div
-          [ classNames [ "flex", "w-full", "shadow", "rounded-lg", "mt-2", "overflow-hidden" ]
+          [ classNames [ "flex", "w-full", "shadow", "rounded-lg", "mt-2", "overflow-hidden", "focus-within:ring-1", "ring-black" ]
           ]
           [ input
-              [ classNames [ "border-0", "py-4", "pl-4", "pr-1", "flex-grow" ]
+              [ classNames [ "border-0", "py-4", "pl-4", "pr-1", "flex-grow", "focus:ring-0" ]
               , type_ InputNumber
               , maybe'
                   (\_ -> placeholder $ "Choose between " <> show minBound <> " and " <> show maxBound)
