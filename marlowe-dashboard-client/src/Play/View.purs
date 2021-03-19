@@ -6,7 +6,6 @@ import ContractHome.Lenses (_selectedContract)
 import ContractHome.View (contractsScreen)
 import Css (applyWhen, classNames, hideWhen)
 import Css as Css
-import Data.Either (Either(..))
 import Data.Foldable (foldMap)
 import Data.Lens (view)
 import Data.Maybe (Maybe(..), isNothing)
@@ -108,7 +107,7 @@ renderMain wallets newWalletNickname newWalletContractId remoteDataPubKey templa
 renderMobileMenu :: forall p. Boolean -> HTML p Action
 renderMobileMenu menuOpen =
   nav
-    [ classNames $ [ "md:hidden", "absolute", "inset-0", "z-30", "bg-black", "text-white", "text-lg", "overflow-auto", "flex", "flex-col", "justify-between", "p-4", "pt-8" ] <> hideWhen (not menuOpen) ]
+    [ classNames $ [ "md:hidden", "absolute", "inset-0", "z-30", "bg-black", "text-white", "text-lg", "overflow-auto", "flex", "flex-col", "justify-between", "pt-8", "pb-4" ] <> hideWhen (not menuOpen) ]
     [ div
         [ classNames [ "flex", "flex-col" ] ]
         dashboardLinks
@@ -179,12 +178,12 @@ renderScreen wallets screen playState =
 renderFooter :: forall p. HTML p Action
 renderFooter =
   footer
-    [ classNames [ "hidden", "md:flex", "p-4", "md:px-5pc", "justify-between", "border-t", "border-gray" ] ]
+    [ classNames [ "hidden", "md:flex", "py-2", "px-4", "md:px-5pc", "justify-between", "border-t", "border-gray", "text-sm" ] ]
     [ nav
-        [ classNames [ "flex" ] ]
+        [ classNames [ "flex", "-ml-4" ] ] -- -ml-4 to offset the padding of the first link
         dashboardLinks
     , nav
-        [ classNames [ "flex" ] ]
+        [ classNames [ "flex", "-mr-4" ] ] -- -mr-4 to offset the padding of the last link
         iohkLinks
     ]
 
@@ -206,7 +205,7 @@ iohkLinks =
 link :: forall p. String -> String -> HTML p Action
 link label url =
   a
-    [ classNames [ "py-2", "font-bold", "cursor-pointer" ]
+    [ classNames [ "px-4", "py-2", "font-bold", "cursor-pointer" ]
     , href url
     ]
     [ text label ]

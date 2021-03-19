@@ -16,7 +16,7 @@ import Data.Maybe (Maybe(..), fromMaybe, isJust)
 import Data.Set (toUnfoldable) as Set
 import Data.String (null)
 import Data.Tuple.Nested ((/\))
-import Halogen.HTML (HTML, a, br_, button, div, h2, hr, input, label, li, p_, span, span_, text, ul, ul_)
+import Halogen.HTML (HTML, a, br_, button, div, h2, hr, input, label, li, p, p_, span, span_, text, ul, ul_)
 import Halogen.HTML.Events.Extra (onClick_, onValueInput_)
 import Halogen.HTML.Properties (InputType(..), for, id_, list, placeholder, readOnly, type_, value)
 import Marlowe.Extended (Contract, TemplateContent, _valueContent, contractTypeInitials)
@@ -53,7 +53,7 @@ contractSetupScreen wallets currentSlot state =
     payIsAccessible = termsAreAccessible && templateContentIsValid templateContent slotContentStrings currentSlot
   in
     div
-      [ classNames [ "grid", "grid-rows-contract-setup", "h-full", "overflow-hidden" ] ]
+      [ classNames [ "grid", "grid-rows-contract-setup", "max-h-full", "overflow-hidden" ] ]
       [ navigationBar contractName
       , contractNicknameDisplay contractName contractNickname
       , div -- the containing grid sets the height of this div
@@ -62,9 +62,9 @@ contractSetupScreen wallets currentSlot state =
               [ classNames [ "h-full", "overflow-y-auto" ] ]
               [ subHeader "top-0" true Roles "Roles" true
               , roleInputs wallets extendedContract metaData roleWallets
-              , subHeader "top-12" true Terms "Terms" termsAreAccessible
+              , subHeader "top-10" true Terms "Terms" termsAreAccessible
               , parameterInputs wallets currentSlot metaData templateContent slotContentStrings roleWallets termsAreAccessible
-              , subHeader "top-24" false Pay "Review and pay" payIsAccessible
+              , subHeader "top-20" false Pay "Review and pay" payIsAccessible
               , reviewAndPay payIsAccessible metaData
               ]
           ]
@@ -93,7 +93,7 @@ contractNicknameDisplay contractName contractNickname =
   div
     [ classNames [ "px-4", "md:px-5pc" ] ]
     [ div
-        [ classNames [ "ml-4", "border-l", "border-gray" ] ]
+        [ classNames [ "ml-5", "border-l", "border-gray", "pt-2" ] ]
         [ div
             [ classNames [ "max-w-sm", "mx-auto", "px-4", "pt-2" ] ]
             [ input
@@ -110,7 +110,7 @@ contractNicknameDisplay contractName contractNickname =
 subHeader :: forall p. String -> Boolean -> Icon -> String -> Boolean -> HTML p Action
 subHeader topMargin border i title accessible =
   div
-    [ classNames $ [ "ml-4", "sticky", "z-10", topMargin, "py-2", "bg-grayblue" ] <> applyWhen border [ "border-l", "border-gray" ] ]
+    [ classNames $ [ "ml-5", "sticky", "z-10", topMargin, "pb-2", "bg-grayblue" ] <> applyWhen border [ "border-l", "border-gray" ] ]
     [ div
         [ classNames [ "flex", "items-center" ] ]
         [ span
@@ -289,7 +289,7 @@ reviewAndPay accessible metaData =
 subSection :: forall p. Boolean -> Boolean -> Array (HTML p Action) -> HTML p Action
 subSection accessible border content =
   div
-    [ classNames $ [ "py-2", "ml-4", "mb-1" ] <> applyWhen border [ "border-l", "border-gray" ] <> (hideWhen $ not accessible) ]
+    [ classNames $ [ "py-2", "ml-5" ] <> applyWhen border [ "border-l", "border-gray" ] <> (hideWhen $ not accessible) ]
     [ div
         [ classNames $ [ "max-w-sm", "mx-auto", "px-4" ] ]
         content
@@ -339,7 +339,9 @@ contractTitle metaData =
 contractSetupConfirmationCard :: forall p. HTML p Action
 contractSetupConfirmationCard =
   div [ classNames [ "px-4", "pb-4" ] ]
-    [ p_ [ text "Are you sure?" ]
+    [ p
+        [ classNames [ "mb-4" ] ]
+        [ text "Confirm" ]
     , div
         [ classNames [ "flex" ] ]
         [ button
@@ -351,6 +353,6 @@ contractSetupConfirmationCard =
             [ classNames $ Css.primaryButton <> [ "flex-1" ]
             , onClick_ StartContract
             ]
-            [ text "Pay" ]
+            [ text "Pay and run" ]
         ]
     ]

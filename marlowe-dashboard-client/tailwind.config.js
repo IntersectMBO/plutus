@@ -45,6 +45,7 @@ module.exports = {
     extend: {
       gridTemplateRows: {
         main: 'auto minmax(0, 1fr) auto',
+        'contract-setup': 'auto auto minmax(0, 1fr)',
       },
       spacing: {
         '5pc': '5%',
