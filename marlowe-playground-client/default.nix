@@ -2,6 +2,8 @@
 let
   playground-exe = set-git-rev haskell.packages.marlowe-playground-server.components.exes.marlowe-playground-server;
 
+  build-playground-exe = "$(nix-build --quiet --no-build-output ../default.nix -A plutus.haskell.packages.marlowe-playground-server.components.exes.marlowe-playground-server)";
+
   generated-purescript = pkgs.runCommand "marlowe-playground-purescript" { } ''
     mkdir $out
     ${playground-exe}/bin/marlowe-playground-server psgenerator $out
@@ -13,11 +15,18 @@ let
     $(nix-build --quiet --no-build-output ../default.nix -A plutus.haskell.packages.marlowe-playground-server.components.exes.marlowe-playground-server)/bin/marlowe-playground-server psgenerator generated
   '';
 
-  # For dev usage
-  start-backend = pkgs.writeShellScriptBin "marlowe-playground-server" ''
-    export FRONTEND_URL=https://localhost:8009
-    $(nix-build --quiet --no-build-output ../default.nix -A plutus.haskell.packages.marlowe-playground-server.components.exes.marlowe-playground-server)/bin/marlowe-playground-server webserver
-  '';
+  # For dev usage only
+  start-backend =
+    let
+      ghcWithMarlowe = haskell.project.ghcWithPackages (ps: [ ps.marlowe ]);
+    in
+    pkgs.writeShellScriptBin "marlowe-playground-server" ''
+      echo "marlowe-playground-server: for development use only"
+      export PATH=${ghcWithMarlowe}/bin:$PATH
+      export FRONTEND_URL=https://localhost:8009
+
+      ${build-playground-exe}/bin/marlowe-playground-server webserver
+    '';
 
   cleanSrc = gitignore-nix.gitignoreSource ./.;
 
