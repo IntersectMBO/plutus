@@ -4,6 +4,8 @@ let
 
   build-playground-exe = "$(nix-build --quiet --no-build-output ../default.nix -A plutus.haskell.packages.plutus-playground-server.components.exes.plutus-playground-server)";
 
+  build-ghc-with-plutus = "$(nix-build --quiet --no-build-output -E '(import ./.. {}).plutus.haskell.project.ghcWithPackages(ps: [ ps.plutus-core ps.plutus-tx ps.plutus-contract ps.plutus-ledger ps.playground-common ])')";
+
   generated-purescript = pkgs.runCommand "plutus-playground-purescript" { } ''
     mkdir $out
     ${playground-exe}/bin/plutus-playground-server psgenerator $out
@@ -16,19 +18,16 @@ let
   '';
 
   # For dev usage only
-  start-backend =
-    let
-      ghcWithPlutus = haskell.project.ghcWithPackages (ps: [ ps.plutus-core ps.plutus-tx ps.plutus-contract ps.plutus-ledger ps.playground-common ]);
-    in
-    pkgs.writeShellScriptBin "plutus-playground-server" ''
-      echo "plutus-playground-server: for development use only"
-      export PATH=${ghcWithPlutus}/bin:$PATH
-      export FRONTEND_URL=https://localhost:8009
-      export WEBGHC_URL=http://localhost:8080
-      export GITHUB_CALLBACK_PATH=https://localhost:8009/api/oauth/github/callback
+  start-backend = pkgs.writeShellScriptBin "plutus-playground-server" ''
+    echo "plutus-playground-server: for development use only"
+    GHC_WITH_PKGS=${build-ghc-with-plutus}
+    export PATH=$GHC_WITH_PKGS/bin:$PATH
+    export FRONTEND_URL=https://localhost:8009
+    export WEBGHC_URL=http://localhost:8080
+    export GITHUB_CALLBACK_PATH=https://localhost:8009/api/oauth/github/callback
 
-      ${build-playground-exe}/bin/plutus-playground-server webserver
-    '';
+    ${build-playground-exe}/bin/plutus-playground-server webserver
+  '';
 
   cleanSrc = gitignore-nix.gitignoreSource ./.;
 
