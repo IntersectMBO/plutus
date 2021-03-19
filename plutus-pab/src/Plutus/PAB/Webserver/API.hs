@@ -7,7 +7,6 @@
 module Plutus.PAB.Webserver.API
     ( API
     , WSAPI
-    , DocumentationAPI
     -- * New API that will eventually replace 'API'
     , NewAPI
     , ContractActivationArgs(..)
@@ -35,9 +34,6 @@ type API t
                                                                                   :<|> "endpoint" :> Capture "endpoint-name" String :> ReqBody '[ JSON] JSON.Value :> Post '[JSON] (Maybe NotificationError))))
 
 type WSAPI = "ws" :> WebSocketPending
-
-type DocumentationAPI t
-     = "api" :> "healthcheck" :> Get '[ JSON] ()
 
 -- | Describes the wallet that should be used for the contract instance. 'Wallet' is a placeholder, we probably need a URL or some other data.
 newtype WalletInfo = WalletInfo { unWalletInfo :: Wallet }

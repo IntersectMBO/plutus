@@ -2,6 +2,7 @@
 {-# LANGUAGE DerivingStrategies #-}
 {-# LANGUAGE FlexibleContexts   #-}
 {-# LANGUAGE GADTs              #-}
+{-# LANGUAGE LambdaCase         #-}
 {-# LANGUAGE NamedFieldPuns     #-}
 {-# LANGUAGE OverloadedStrings  #-}
 {-# LANGUAGE RankNTypes         #-}
@@ -27,6 +28,7 @@ import           Control.Exception                                 (SomeExceptio
 import           Control.Lens                                      (preview, (&))
 import           Control.Monad                                     (guard, void)
 import           Control.Monad.Except                              (ExceptT (ExceptT))
+import           Control.Monad.Freer.Error                         (throwError)
 import           Control.Monad.IO.Class                            (liftIO)
 import           Data.Aeson                                        (FromJSON, ToJSON)
 import qualified Data.Aeson                                        as JSON
@@ -35,6 +37,8 @@ import qualified Data.ByteString.Lazy.Char8                        as LBS
 import qualified Data.Map                                          as Map
 import           Data.Maybe                                        (mapMaybe)
 import           Data.Proxy                                        (Proxy (..))
+import           Data.Text                                         (Text)
+import qualified Data.UUID                                         as UUID
 import           GHC.Generics                                      (Generic)
 import           Language.Plutus.Contract.Effects.ExposeEndpoint   (ActiveEndpoint (..))
 import           Language.PlutusTx.Coordination.Contracts.Currency (SimpleMPS (..))
@@ -50,17 +54,72 @@ import           Plutus.PAB.Events.Contract                        (ContractPABR
 import           Plutus.PAB.Events.ContractInstanceState           (PartiallyDecodedResponse (hooks))
 import           Plutus.PAB.Instances                              ()
 import qualified Plutus.PAB.Simulator                              as Simulator
-import           Plutus.PAB.Types                                  (PABError)
-import           Plutus.PAB.Webserver.API                          (ContractActivationArgs (..),
-                                                                    ContractInstanceClientState (..), NewAPI,
+import           Plutus.PAB.Types                                  (PABError (ContractInstanceNotFound, InvalidUUIDError))
+import           Plutus.PAB.Webserver.API                          (API, ContractActivationArgs (..),
+                                                                    ContractInstanceClientState (..), NewAPI, WSAPI,
                                                                     WalletInfo (..))
-import           Plutus.PAB.Webserver.Types                        (ContractSignatureResponse (..))
+import           Plutus.PAB.Webserver.Types                        (ContractReport (..), ContractSignatureResponse (..),
+                                                                    FullReport (..), emptyChainReport)
 import           Servant                                           (Application, Handler, ServerT, (:<|>) ((:<|>)))
 import qualified Servant                                           as Servant
 import           Wallet.Emulator.Wallet                            (Wallet (..))
-import           Wallet.Types                                      (ContractInstanceId)
+import           Wallet.Types                                      (ContractInstanceId (..), NotificationError)
 
-handler ::
+-- | Handler for the "old" API
+handlerOld ::
+    forall t env.
+    Contract.PABContract t =>
+    PABAction t env ()
+    :<|> (PABAction t env (FullReport (Contract.ContractDef t))
+        :<|> ((Contract.ContractDef t) -> PABAction t env ContractInstanceId)
+        :<|> (Text -> PABAction t env (ContractSignatureResponse (Contract.ContractDef t))
+            :<|> (String -> JSON.Value -> PABAction t env (Maybe NotificationError))
+            )
+        )
+handlerOld =
+    healthcheck
+        :<|> (getFullReport
+            :<|> (\def -> activateContract ContractActivationArgs{caID=def, caWallet=WalletInfo{unWalletInfo=Wallet 1}}) -- TODO: Delete "contract/activate" route without wallet argument
+            :<|> byContractInstanceId
+        )
+    where
+        byContractInstanceId :: Text -> (PABAction t env (ContractSignatureResponse (Contract.ContractDef t)) :<|> (String -> JSON.Value -> PABAction t env (Maybe NotificationError)))
+        byContractInstanceId rawInstanceId =
+            (parseContractId rawInstanceId >>= contractSchema) :<|> undefined
+
+
+healthcheck :: forall t env. PABAction t env ()
+healthcheck = pure ()
+
+getContractReport :: forall t env. Contract.PABContract t => PABAction t env (ContractReport (Contract.ContractDef t))
+getContractReport = do
+    installedContracts <- Contract.getDefinitions @t
+    activeContractIDs <- fmap fst . Map.toList <$> Contract.getActiveContracts @t
+    crAvailableContracts <-
+        traverse
+            (\t -> ContractSignatureResponse t <$> Contract.exportSchema @t t)
+            installedContracts
+    crActiveContractStates <- traverse (\i -> Contract.getState @t i >>= \s -> pure (i, Contract.serialisableState (Proxy @t) s)) activeContractIDs
+    pure ContractReport {crAvailableContracts, crActiveContractStates}
+
+getFullReport :: forall t env. Contract.PABContract t => PABAction t env (FullReport (Contract.ContractDef t))
+getFullReport = do
+    contractReport <- getContractReport @t
+    pure FullReport {contractReport, chainReport = emptyChainReport}
+
+contractSchema :: forall t env. Contract.PABContract t => ContractInstanceId -> PABAction t env (ContractSignatureResponse (Contract.ContractDef t))
+contractSchema contractId = Contract.getDefinition @t contractId >>= \case
+    Just definition -> ContractSignatureResponse definition <$> Contract.exportSchema @t definition
+    Nothing         -> throwError (ContractInstanceNotFound contractId)
+
+parseContractId :: Text -> PABAction t env ContractInstanceId
+parseContractId t =
+    case UUID.fromText t of
+        Just uuid -> pure $ ContractInstanceId uuid
+        Nothing   -> throwError $ InvalidUUIDError t
+
+-- | Handler for the "new" API
+handlerNew ::
        forall t env.
        Contract.PABContract t =>
        (ContractActivationArgs (Contract.ContractDef t) -> PABAction t env ContractInstanceId)
@@ -69,7 +128,7 @@ handler ::
                                         :<|> (PendingConnection -> PABAction t env ()))
             :<|> PABAction t env [ContractInstanceClientState]
             :<|> PABAction t env [ContractSignatureResponse (Contract.ContractDef t)]
-handler =
+handlerNew =
         (activateContract
             :<|> (\x -> contractInstanceState x :<|> callEndpoint x :<|> contractInstanceUpdates x)
             :<|> allInstanceStates
@@ -92,20 +151,23 @@ asHandler PABRunner{runPABAction} = Servant.Handler . ExceptT . fmap (first mapE
     mapError :: PABError -> Servant.ServerError
     mapError e = Servant.err500 { Servant.errBody = LBS.pack $ show e }
 
+type CombinedAPI t = API (Contract.ContractDef t) :<|> WSAPI :<|> NewAPI (Contract.ContractDef t) -- API t :<|>
+
 app ::
     forall t env.
     ( FromJSON (Contract.ContractDef t)
     , ToJSON (Contract.ContractDef t)
     , Contract.PABContract t
+    , Servant.MimeUnrender Servant.JSON (Contract.ContractDef t)
     ) => PABRunner t env -> Application
 app pabRunner = do
-    let rest = Proxy @(NewAPI (Contract.ContractDef t))
-        apiServer :: ServerT (NewAPI (Contract.ContractDef t)) Handler
+    let rest = Proxy @(CombinedAPI t)
+        apiServer :: ServerT (CombinedAPI t) Handler
         apiServer =
             Servant.hoistServer
-                (Proxy @(NewAPI (Contract.ContractDef t)))
+                (Proxy @(CombinedAPI t))
                 (asHandler pabRunner)
-                handler
+                (handlerOld :<|> combinedWebsocket :<|> handlerNew)
 
     Servant.serve rest apiServer
 
@@ -115,6 +177,7 @@ startServer ::
     ( FromJSON (Contract.ContractDef t)
     , ToJSON (Contract.ContractDef t)
     , Contract.PABContract t
+    , Servant.MimeUnrender Servant.JSON (Contract.ContractDef t)
     ) => Warp.Port -> PABAction t env (PABAction t env ())
 startServer port = do
     simRunner <- Core.pabRunner
@@ -143,6 +206,13 @@ contractInstanceState i = fromInternalState i . Contract.serialisableState (Prox
 
 callEndpoint :: forall t env. ContractInstanceId -> String -> JSON.Value -> PABAction t env ()
 callEndpoint a b = void . Core.callEndpointOnInstance a b
+
+combinedWebsocket :: forall t env. PendingConnection -> PABAction t env ()
+combinedWebsocket pending = do
+    Core.PABRunner{Core.runPABAction} <- Core.pabRunner
+    -- Subscribe / unsubscribe to updates
+    -- slot updates
+    pure ()
 
 contractInstanceUpdates :: forall t env. ContractInstanceId -> PendingConnection -> PABAction t env ()
 contractInstanceUpdates contractInstanceId pending = do

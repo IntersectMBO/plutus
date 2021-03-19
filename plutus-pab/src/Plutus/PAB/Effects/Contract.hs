@@ -27,6 +27,7 @@ module Plutus.PAB.Effects.Contract(
     , ContractStore(..)
     , putState
     , getState
+    , getDefinition
     , getActiveContracts
     -- * Storing and retrieving definitions of contracts
     , ContractDefinitionStore(..)
@@ -36,6 +37,7 @@ module Plutus.PAB.Effects.Contract(
 
 import           Control.Monad.Freer                     (Eff, Member, send)
 import           Data.Map                                (Map)
+import qualified Data.Map                                as Map
 import           Data.Proxy                              (Proxy (..))
 import           Plutus.Contract.Resumable      (Request, Response)
 import           Playground.Types                        (FunctionSchema)
@@ -150,6 +152,14 @@ getActiveContracts ::
 getActiveContracts =
     let command :: ContractStore t (Map ContractInstanceId (ContractDef t)) = ActiveContracts
     in send command
+
+-- | Get the definition of a running contract
+getDefinition ::
+    forall t effs.
+    ( Member (ContractStore t) effs)
+    => ContractInstanceId
+    -> Eff effs (Maybe (ContractDef t))
+getDefinition i = Map.lookup i <$> (getActiveContracts @t)
 
 -- | Storing and retrieving definitions of contracts.
 --   (Not all 't's support this)

@@ -48,6 +48,9 @@ data ChainReport =
     deriving (Show, Eq, Generic)
     deriving anyclass (FromJSON, ToJSON)
 
+emptyChainReport :: ChainReport
+emptyChainReport = ChainReport mempty mempty mempty
+
 data FullReport t =
     FullReport
         { contractReport :: ContractReport t
