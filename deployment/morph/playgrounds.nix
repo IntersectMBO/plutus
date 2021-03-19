@@ -7,7 +7,7 @@
           machine_role{role="playgrounds"} 1
         '';
       plutusPlayground = "${plutus-playground.server}/bin/plutus-playground-server";
-      marlowePlayground = "${plutus-playground.server}/bin/marlowe-playground";
+      marlowePlayground = "${marlowe-playground.server}/bin/marlowe-playground-server";
       playgroundServiceConfig = {
         TimeoutStartSec = "0";
         Restart = "always";
