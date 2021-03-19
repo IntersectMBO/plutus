@@ -7,9 +7,9 @@
 {-# LANGUAGE StrictData            #-}
 
 module UntypedPlutusCore.Evaluation.Machine.Cek.ExBudgetMode
-    ( CekExTally (..)
-    , ExBudgetMode (..)
+    ( ExBudgetMode (..)
     , CountingSt (..)
+    , CekExTally (..)
     , TallyingSt (..)
     , RestrictingSt (..)
     , Hashable
@@ -37,12 +37,6 @@ import qualified Data.Map.Strict                                   as Map
 import           Data.Semigroup.Generic
 import           Data.Text.Prettyprint.Doc
 import           Text.PrettyBy                                     (IgnorePrettyConfig (..))
-
--- | A budgeting mode to execute an evaluator in.
-data ExBudgetMode cost uni fun = ExBudgetMode
-    { _exBudgetModeSpender :: CekBudgetSpender cost uni fun  -- ^ A spending function.
-    , _exBudgetModeInitSt  :: cost                           -- ^ An initial state.
-    }
 
 -- | Construct an 'ExBudgetMode' out of a function returning a value of the budgeting state type.
 -- The value then gets added to the current state via @(<>)@.
