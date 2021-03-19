@@ -47,6 +47,7 @@ executable doc-doctests
       BasicValidators
       BasicPolicies
       BasicApps
+      GameModel
       HelloWorldApp
     build-depends:
       base >=4.9 && <5,
@@ -57,8 +58,12 @@ executable doc-doctests
       plutus-ledger -any,
       plutus-contract -any,
       playground-common -any,
+      plutus-use-cases -any,
       prettyprinter -any,
       containers -any,
+      lens -any,
+      QuickCheck -any,
+      random -any,
       text -any,
       aeson -any
 
