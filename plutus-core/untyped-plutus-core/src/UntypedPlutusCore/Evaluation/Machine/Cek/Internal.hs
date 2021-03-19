@@ -273,9 +273,7 @@ mkBuiltinApplication ex bn arity0 forces0 args0 =
 -- see Note [Scoping].
 -- | Instantiate all the free variables of a term by looking them up in an environment.
 -- Mutually recursive with dischargeCekVal.
-dischargeCekValEnv
-    :: (Closed uni, uni `Everywhere` ExMemoryUsage)
-    => CekValEnv uni fun -> TermWithMem uni fun -> TermWithMem uni fun
+dischargeCekValEnv :: CekValEnv uni fun -> TermWithMem uni fun -> TermWithMem uni fun
 dischargeCekValEnv valEnv =
     -- We recursively discharge the environments of Cek values, but we will gradually end up doing
     -- this to terms which have no free variables remaining, at which point we won't call this
@@ -286,9 +284,7 @@ dischargeCekValEnv valEnv =
 
 -- Convert a CekValue into a term by replacing all bound variables with the terms
 -- they're bound to (which themselves have to be obtain by recursively discharging values).
-dischargeCekValue
-    :: (Closed uni, uni `Everywhere` ExMemoryUsage)
-    => CekValue uni fun -> TermWithMem uni fun
+dischargeCekValue :: CekValue uni fun -> TermWithMem uni fun
 dischargeCekValue = \case
     VCon     ex val                     -> Constant ex val
     VDelay   ex body env                -> Delay ex (dischargeCekValEnv env body)
@@ -386,9 +382,7 @@ astNodeCost = ExBudget 1 0
 
 -- See Note [Compilation peculiarities].
 computeCek
-    :: ( GShow uni, GEq uni, Closed uni, uni `Everywhere` ExMemoryUsage
-       , Hashable fun, Ix fun
-       )
+    :: Ix fun
     => Context uni fun -> CekValEnv uni fun -> TermWithMem uni fun -> CekM cost uni fun s (Term Name uni fun ())
 -- s ; ρ ▻ {L A}  ↦ s , {_ A} ; ρ ▻ L
 computeCek ctx env (Var _ varName) = do
@@ -427,9 +421,7 @@ computeCek _ _ (Error _) = do
 -- | Call 'dischargeCekValue' over the received 'CekVal' and feed the resulting 'Term' to
 -- 'throwingWithCause' as the cause of the failure.
 throwingDischarged
-    :: ( MonadError (ErrorWithCause e (Term Name uni fun ())) m
-       , Closed uni, uni `Everywhere` ExMemoryUsage
-       )
+    :: (MonadError (ErrorWithCause e (Term Name uni fun ())) m)
     => AReview e t -> t -> CekValue uni fun -> m x
 throwingDischarged l t = throwingWithCause l t . Just . void . dischargeCekValue
 
@@ -448,9 +440,7 @@ from the context and uses it to decide how to proceed with the current value v.
       returnCek.  If v is anything else, fail.
 -}
 returnCek
-    :: ( GShow uni, GEq uni, Closed uni, uni `Everywhere` ExMemoryUsage
-       , Hashable fun, Ix fun
-       )
+    :: Ix fun
     => Context uni fun -> CekValue uni fun -> CekM cost uni fun s (Term Name uni fun ())
 --- Instantiate all the free variable of the resulting term in case there are any.
 -- . ◅ V           ↦  [] V
@@ -485,9 +475,7 @@ instead of lists.
 -- or extend the value with @force@ and call returnCek;
 -- if v is anything else, fail.
 forceEvaluate
-    :: ( GShow uni, GEq uni, Closed uni, uni `Everywhere` ExMemoryUsage
-       , Hashable fun, Ix fun
-       )
+    :: Ix fun
     => Context uni fun -> CekValue uni fun -> CekM cost uni fun s (Term Name uni fun ())
 forceEvaluate ctx (VDelay _ body env) = computeCek ctx env body
 forceEvaluate ctx val@(VBuiltin ex bn arity0 arity forces args) =
@@ -514,9 +502,7 @@ forceEvaluate _ val =
 -- it's the final argument then apply the builtin to its arguments, return the result, or extend
 -- the value with the new argument and call 'returnCek'. If v is anything else, fail.
 applyEvaluate
-    :: ( GShow uni, GEq uni, Closed uni, uni `Everywhere` ExMemoryUsage
-       , Hashable fun, Ix fun
-       )
+    :: Ix fun
     => Context uni fun
     -> CekValue uni fun   -- lhs of application
     -> CekValue uni fun   -- rhs of application
@@ -538,9 +524,7 @@ applyEvaluate _ val _ = throwingDischarged _MachineError NonFunctionalApplicatio
 
 -- | Apply a builtin to a list of CekValue arguments
 applyBuiltin
-    :: ( GShow uni, GEq uni, Closed uni, uni `Everywhere` ExMemoryUsage
-       , Hashable fun, Ix fun
-       )
+    :: Ix fun
     => Context uni fun
     -> fun
     -> [CekValue uni fun]
@@ -556,8 +540,8 @@ applyBuiltin ctx bn args = do
 -- See Note [Compilation peculiarities].
 -- | Evaluate a term using the CEK machine and keep track of costing, logging is optional.
 runCek
-    :: ( GShow uni, GEq uni, Closed uni, uni `Everywhere` ExMemoryUsage
-       , Hashable fun, Ix fun, ExMemoryUsage fun
+    :: ( Closed uni, uni `Everywhere` ExMemoryUsage
+       , Ix fun, ExMemoryUsage fun
        )
     => BuiltinsRuntime fun (CekValue uni fun)
     -> ExBudgetMode cost uni fun

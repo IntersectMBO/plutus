@@ -260,7 +260,7 @@ substTyInTy tn0 ty0 = go where
 -- > s ▷ con cn     ↦ s ◁ con cn
 -- > s ▷ error A    ↦ ◆
 (|>)
-    :: (GShow uni, GEq uni, Ix fun)
+    :: Ix fun
     => Context uni fun -> Term TyName Name uni fun () -> CkM uni fun s (Term TyName Name uni fun ())
 stack |> TyInst  _ fun ty        = FrameTyInstArg ty  : stack |> fun
 stack |> Apply   _ fun arg       = FrameApplyArg arg  : stack |> fun
@@ -290,7 +290,7 @@ _     |> var@Var{}               =
 -- > s , (wrap α S _)    ◁ V          ↦ s ◁ wrap α S V
 -- > s , (unwrap _)      ◁ wrap α A V ↦ s ◁ V
 (<|)
-    :: (GShow uni, GEq uni, Ix fun)
+    :: Ix fun
     => Context uni fun -> CkValue uni fun -> CkM uni fun s (Term TyName Name uni fun ())
 []                         <| val     = pure $ ckValueToTerm val
 FrameTyInstArg ty  : stack <| fun     = instantiateEvaluate stack ty fun
@@ -320,7 +320,7 @@ instead of lists.
 -- iterated application of a 'Builtin' to a list of 'Value's and, if succesful,
 -- apply the term to the type via 'TyInst'.
 instantiateEvaluate
-    :: (GShow uni, GEq uni, Ix fun)
+    :: Ix fun
     => Context uni fun
     -> Type TyName uni ()
     -> CkValue uni fun
@@ -346,7 +346,7 @@ instantiateEvaluate _ _ val =
 -- If succesful, proceed with either this same term or with the result of the computation
 -- depending on whether 'Builtin' is saturated or not.
 applyEvaluate
-    :: (GShow uni, GEq uni, Ix fun)
+    :: Ix fun
     => Context uni fun
     -> CkValue uni fun
     -> CkValue uni fun
@@ -368,7 +368,7 @@ applyEvaluate _ val _ =
 
 -- | Apply a (static or dynamic) built-in function to some arguments
 applyBuiltin
-    :: (GShow uni, GEq uni, Ix fun)
+    :: Ix fun
     => Context uni fun
     -> fun
     -> [CkValue uni fun]
@@ -380,7 +380,7 @@ applyBuiltin stack bn args = do
     stack <| result
 
 runCk
-    :: (GShow uni, GEq uni, Ix fun)
+    :: Ix fun
     => BuiltinsRuntime fun (CkValue uni fun)
     -> Bool
     -> Term TyName Name uni fun ()
@@ -389,7 +389,7 @@ runCk runtime emitting term = runCkM runtime emitting $ [] |> term
 
 -- | Evaluate a term using the CK machine with logging enabled.
 evaluateCk
-    :: (GShow uni, GEq uni, Ix fun)
+    :: Ix fun
     => BuiltinsRuntime fun (CkValue uni fun)
     -> Term TyName Name uni fun ()
     -> (Either (CkEvaluationException uni fun) (Term TyName Name uni fun ()), [String])
@@ -397,7 +397,7 @@ evaluateCk runtime = runCk runtime True
 
 -- | Evaluate a term using the CK machine with logging disabled.
 evaluateCkNoEmit
-    :: (GShow uni, GEq uni, Ix fun)
+    :: Ix fun
     => BuiltinsRuntime fun (CkValue uni fun)
     -> Term TyName Name uni fun ()
     -> Either (CkEvaluationException uni fun) (Term TyName Name uni fun ())
@@ -405,7 +405,7 @@ evaluateCkNoEmit runtime = fst . runCk runtime False
 
 -- | Evaluate a term using the CK machine with logging enabled. May throw a 'CkEvaluationException'.
 unsafeEvaluateCk
-    :: ( GShow uni, GEq uni, Closed uni
+    :: ( GShow uni, Closed uni
        , Typeable uni, Typeable fun, uni `Everywhere` PrettyConst
        , Pretty fun, Ix fun
        )
@@ -416,7 +416,7 @@ unsafeEvaluateCk runtime = first unsafeExtractEvaluationResult . evaluateCk runt
 
 -- | Evaluate a term using the CK machine with logging disabled. May throw a 'CkEvaluationException'.
 unsafeEvaluateCkNoEmit
-    :: ( GShow uni, GEq uni, Closed uni
+    :: ( GShow uni, Closed uni
        , Typeable uni, Typeable fun, uni `Everywhere` PrettyConst
        , Pretty fun, Ix fun
        )
@@ -427,7 +427,7 @@ unsafeEvaluateCkNoEmit runtime = unsafeExtractEvaluationResult . evaluateCkNoEmi
 
 -- | Unlift a value using the CK machine.
 readKnownCk
-    :: (GShow uni, GEq uni, Ix fun, KnownType (Term TyName Name uni fun ()) a)
+    :: (Ix fun, KnownType (Term TyName Name uni fun ()) a)
     => BuiltinsRuntime fun (CkValue uni fun)
     -> Term TyName Name uni fun ()
     -> Either (CkEvaluationException uni fun) a
