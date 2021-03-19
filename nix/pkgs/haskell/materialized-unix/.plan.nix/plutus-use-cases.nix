@@ -165,6 +165,7 @@
             (hsPkgs."lens" or (errorHandler.buildDepError "lens"))
             (hsPkgs."mtl" or (errorHandler.buildDepError "mtl"))
             (hsPkgs."row-types" or (errorHandler.buildDepError "row-types"))
+            (hsPkgs."QuickCheck" or (errorHandler.buildDepError "QuickCheck"))
             (hsPkgs."freer-simple" or (errorHandler.buildDepError "freer-simple"))
             (hsPkgs."foldl" or (errorHandler.buildDepError "foldl"))
             (hsPkgs."streaming" or (errorHandler.buildDepError "streaming"))
@@ -174,6 +175,8 @@
             "Spec/Auction"
             "Spec/Crowdfunding"
             "Spec/Currency"
+            "Spec/DynamicLogic/Registry"
+            "Spec/DynamicLogic/RegistryModel"
             "Spec/ErrorHandling"
             "Spec/Escrow"
             "Spec/Future"
