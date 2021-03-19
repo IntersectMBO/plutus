@@ -342,7 +342,7 @@ participant ::
 participant metadata state party actionInputs =
   li [ classes [ ClassName "participant-a", noMargins ] ]
     ( [ title ]
-        <> (map (inputItem state partyName) actionInputs)
+        <> (map (inputItem metadata state partyName) actionInputs)
     )
   where
   title =
@@ -365,11 +365,12 @@ participant metadata state party actionInputs =
 
 inputItem ::
   forall p.
+  MetaData ->
   State ->
   PubKey ->
   ActionInput ->
   HTML p Action
-inputItem _ person (DepositInput accountId party token value) =
+inputItem _ _ person (DepositInput accountId party token value) =
   div [ classes [ ClassName "action", aHorizontal ] ]
     [ p_ (renderDeposit accountId party token value)
     , div [ class_ (ClassName "align-center") ]
@@ -382,19 +383,26 @@ inputItem _ person (DepositInput accountId party token value) =
         ]
     ]
 
-inputItem _ person (ChoiceInput choiceId@(ChoiceId choiceName choiceOwner) bounds chosenNum) =
+inputItem metadata _ person (ChoiceInput choiceId@(ChoiceId choiceName choiceOwner) bounds chosenNum) =
   div
-    [ classes [ ClassName "action", aHorizontal, ClassName "flex-wrap" ] ]
+    [ classes [ ClassName "action", aHorizontal, ClassName "flex-nowrap" ] ]
     ( [ div []
-          [ p [ class_ (ClassName "choice-input") ]
-              [ spanText "Choice "
-              , b_ [ spanText (show choiceName <> ":") ]
-              , br_
-              , spanText "Choose value "
-              , marloweActionInput (SetChoice choiceId) chosenNum
-              ]
-          , p [ class_ (ClassName "choice-error") ] error
-          ]
+          ( [ div [ class_ (ClassName "choice-input") ]
+                [ spanText "Choice "
+                , b_ [ spanText (show choiceName <> ": ") ]
+                , marloweActionInput (SetChoice choiceId) chosenNum
+                ]
+            , div [ class_ (ClassName "choice-error") ] error
+            ]
+              <> ( maybe []
+                    ( \explanation ->
+                        [ div [ class_ (ClassName "action-explanation") ]
+                            [ text ("“" <> explanation <> "„") ]
+                        ]
+                    )
+                    $ Map.lookup choiceName metadata.choiceDescriptions
+                )
+          )
       ]
         <> addButton
     )
@@ -402,7 +410,7 @@ inputItem _ person (ChoiceInput choiceId@(ChoiceId choiceName choiceOwner) bound
   addButton =
     if inBounds chosenNum bounds then
       [ button
-          [ classes [ plusBtn, smallBtn, ClassName "align-center" ]
+          [ classes [ plusBtn, smallBtn, ClassName "align-center", ClassName "flex-noshrink" ]
           , onClick $ const $ Just
               $ AddInput (IChoice (ChoiceId choiceName choiceOwner) chosenNum) bounds
           ]
@@ -421,7 +429,7 @@ inputItem _ person (ChoiceInput choiceId@(ChoiceId choiceName choiceOwner) bound
 
   boundError (Bound from to) = show from <> " and " <> show to
 
-inputItem _ person NotifyInput =
+inputItem _ _ person NotifyInput =
   li
     [ classes [ ClassName "action", ClassName "choice-a", aHorizontal ] ]
     [ p_ [ text "Notify Contract" ]
@@ -433,9 +441,9 @@ inputItem _ person NotifyInput =
         [ text "+" ]
     ]
 
-inputItem state person (MoveToSlot slot) =
+inputItem _ state person (MoveToSlot slot) =
   div
-    [ classes [ aHorizontal, ClassName "flex-wrap" ] ]
+    [ classes [ aHorizontal, ClassName "flex-nowrap" ] ]
     ( [ div [ classes [ ClassName "action" ] ]
           [ p [ class_ (ClassName "slot-input") ]
               [ spanText "Move to slot "
@@ -450,7 +458,7 @@ inputItem state person (MoveToSlot slot) =
   addButton =
     if inFuture state slot then
       [ button
-          [ classes [ plusBtn, smallBtn, ClassName "align-center" ]
+          [ classes [ plusBtn, smallBtn, ClassName "align-center", ClassName "flex-noshrink" ]
           , onClick $ const $ Just $ MoveSlot slot
           ]
           [ text "+" ]
