@@ -8,7 +8,6 @@ module Contract.Lenses
   , _metadata
   , _participants
   , _mActiveUserParty
-  , _choiceValidStatus
   ) where
 
 import Contract.Types (Side, State, Tab)
@@ -17,7 +16,6 @@ import Data.Lens.Record (prop)
 import Data.Map (Map)
 import Data.Maybe (Maybe)
 import Data.Symbol (SProxy(..))
-import Halogen (RefLabel)
 import Marlowe.Execution (ExecutionState)
 import Marlowe.Extended.Metadata (MetaData)
 import Marlowe.Semantics as Semantic
@@ -49,6 +47,3 @@ _participants = prop (SProxy :: SProxy "participants")
 
 _mActiveUserParty :: Lens' State (Maybe Semantic.Party)
 _mActiveUserParty = prop (SProxy :: SProxy "mActiveUserParty")
-
-_choiceValidStatus :: Lens' State (Map RefLabel Boolean)
-_choiceValidStatus = prop (SProxy :: SProxy "choiceValidStatus")

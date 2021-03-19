@@ -12,7 +12,7 @@ import Data.Map as Map
 import Data.Maybe (Maybe(..))
 import Data.Ord (greaterThanOrEq)
 import Data.Symbol (SProxy(..))
-import Marlowe.Semantics (AccountId, Action(..), Bound, Case(..), ChoiceId(..), ChosenNum, Contract(..), Input, Observation, Party, Payment, Slot(..), SlotInterval(..), State, Timeout, Token, TransactionInput(..), TransactionOutput(..), ValueId, _boundValues, _minSlot, computeTransaction, emptyState, evalValue, makeEnvironment)
+import Marlowe.Semantics (AccountId, Action(..), Bound(..), Case(..), ChoiceId(..), ChosenNum, Contract(..), Input, Observation, Party(..), Payment, Slot(..), SlotInterval(..), State, Timeout, Token(..), TransactionInput(..), TransactionOutput(..), ValueId, _boundValues, _minSlot, computeTransaction, emptyState, evalValue, makeEnvironment)
 
 -- Represents a historical step in a contract's life and is what you see on a Step card that is in the past,
 -- that is the State as it was before it was executed and the TransactionInput that was applied.
@@ -59,7 +59,19 @@ initExecution currentSlot contract =
 
     state = emptyState currentSlot
 
-    namedActions = extractNamedActions state contract
+    -- FIXME: We fake the namedActions for development until we fix the semantics
+    namedActions =
+      [ MakeDeposit (Role "into account") (Role "bob") (Token "" "") $ fromInt 200
+      , MakeDeposit (Role "into account") (Role "alice") (Token "" "") $ fromInt 1500
+      , MakeChoice (ChoiceId "choice id" (Role "alice"))
+          [ Bound (fromInt 0) (fromInt 3)
+          , Bound (fromInt 2) (fromInt 4)
+          , Bound (fromInt 6) (fromInt 8)
+          ]
+          Nothing
+      , CloseContract
+      ]
+  -- namedActions = extractNamedActions state contract
   in
     { steps, state, contract, namedActions }
 
@@ -107,7 +119,7 @@ data NamedAction
   = MakeDeposit AccountId Party Token BigInteger
   -- Equivalent to Semantics.Action(Choice) but has ChosenNum since it is a stateful element that stores the users choice
   -- Creates IChoice
-  | MakeChoice ChoiceId (Array Bound) ChosenNum
+  | MakeChoice ChoiceId (Array Bound) (Maybe ChosenNum)
   -- Equivalent to Semantics.Action(Notify) (can be applied by any user)
   -- Creates INotify
   | MakeNotify Observation
@@ -167,7 +179,7 @@ extractNamedActions state (When cases timeout cont)
       in
         MakeDeposit a p t amount
 
-    toNamedAction (Choice cid bounds) = MakeChoice cid bounds zero
+    toNamedAction (Choice cid bounds) = MakeChoice cid bounds Nothing
 
     toNamedAction (Notify obs) = MakeNotify obs
 

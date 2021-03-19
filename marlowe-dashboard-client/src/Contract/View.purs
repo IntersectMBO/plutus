@@ -3,32 +3,29 @@ module Contract.View
   ) where
 
 import Prelude hiding (div)
-import Contract.Lenses (_choiceValidStatus, _executionState, _mActiveUserParty, _metadata, _participants, _side, _step, _tab)
+import Contract.Lenses (_executionState, _mActiveUserParty, _metadata, _participants, _side, _step, _tab)
 import Contract.Types (Action(..), Side(..), State, Tab(..))
 import Css (applyWhen, classNames)
 import Css as Css
-import Data.Array (foldl, intercalate, nub, range)
+import Data.Array (intercalate)
 import Data.Array as Array
 import Data.Array.NonEmpty (NonEmptyArray)
 import Data.Array.NonEmpty as NEA
-import Data.BigInteger (BigInteger, fromInt, toNumber)
+import Data.BigInteger (BigInteger, fromInt, fromString, toNumber)
 import Data.Foldable (foldMap)
 import Data.Formatter.Number (Formatter(..), format)
-import Data.Int (floor)
 import Data.Lens ((^.))
 import Data.Map as Map
-import Data.Maybe (Maybe(..), fromMaybe)
+import Data.Maybe (Maybe(..), maybe, maybe')
 import Data.Set (Set)
 import Data.Set as Set
 import Data.String as String
 import Data.String.Extra (capitalize)
 import Data.Tuple (Tuple(..), fst, uncurry)
 import Data.Tuple.Nested ((/\))
-import Halogen (RefLabel(..))
-import Halogen.HTML (HTML, a, button, div, div_, h1, h2, input, option_, select, span, span_, text)
-import Halogen.HTML.Events (onChange, onInput)
-import Halogen.HTML.Events.Extra (onClick_)
-import Halogen.HTML.Properties (InputType(..), enabled, placeholder, ref, type_)
+import Halogen.HTML (HTML, a, button, div, div_, h1, h2, input, span, span_, text)
+import Halogen.HTML.Events.Extra (onClick_, onValueInput_)
+import Halogen.HTML.Properties (InputType(..), enabled, placeholder, type_, value)
 import Marlowe.Execution (NamedAction(..), _contract, _namedActions, _state, getActionParticipant)
 import Marlowe.Extended (contractTypeName)
 import Marlowe.Semantics (Bound(..), ChoiceId(..), Input(..), Party(..), Token(..), _accounts, getEncompassBound)
@@ -190,24 +187,11 @@ renderTasks state =
 
     actions = executionState ^. _namedActions
 
-    -- FIXME: We fake the namedActions for development until we fix the semantics
-    actions' =
-      [ MakeDeposit (Role "into account") (Role "bob") (Token "" "") $ fromInt 200
-      , MakeDeposit (Role "into account") (Role "alice") (Token "" "") $ fromInt 1500
-      , MakeChoice (ChoiceId "choice id" (Role "alice"))
-          [ Bound (fromInt 0) (fromInt 3)
-          , Bound (fromInt 2) (fromInt 4)
-          , Bound (fromInt 6) (fromInt 8)
-          ]
-          (fromInt 0)
-      , CloseContract
-      ]
-
     expandedActions =
       expandAndGroupByRole
         (state ^. _mActiveUserParty)
         (Map.keys $ state ^. _participants)
-        actions'
+        actions
 
     contract = executionState ^. _contract
   in
@@ -268,16 +252,14 @@ renderAction _ isActiveParticipant namedAction@(MakeDeposit intoAccountOf by tok
         ]
     ]
 
-renderAction state isActiveParticipant namedAction@(MakeChoice (ChoiceId choiceId _) bounds _) =
+renderAction state isActiveParticipant namedAction@(MakeChoice choiceId bounds mChosenNum) =
   let
     -- NOTE': We could eventually add an heuristic that if the difference between min and max is less
     --        than 10 elements, we could show a `select` instead of a input[number] and if the min==max
     --        we use a button that says "Choose `min`"
     Bound minBound maxBound = getEncompassBound bounds
 
-    choiceRef = RefLabel choiceId
-
-    isValid = fromMaybe false $ Map.lookup choiceRef $ state ^. _choiceValidStatus
+    isValid = maybe false (between minBound maxBound) mChosenNum
   in
     div_
       [ shortDescription isActiveParticipant "chocolate pastry apple pie lemon drops apple pie halvah FIXME"
@@ -287,9 +269,11 @@ renderAction state isActiveParticipant namedAction@(MakeChoice (ChoiceId choiceI
           [ input
               [ classNames [ "border-0", "py-4", "pl-4", "pr-1", "flex-grow" ]
               , type_ InputNumber
-              , placeholder $ "Choose between " <> show minBound <> " and " <> show maxBound
-              , ref choiceRef
-              , onInput $ const $ Just $ OnChoiceChange choiceRef bounds
+              , maybe'
+                  (\_ -> placeholder $ "Choose between " <> show minBound <> " and " <> show maxBound)
+                  (value <<< show)
+                  mChosenNum
+              , onValueInput_ $ ChangeChoice choiceId <<< fromString
               ]
           , button
               [ classNames
