@@ -18,6 +18,9 @@
 module Plutus.PAB.Webserver.Handler
     ( handlerNew
     , handlerOld
+    -- * Reports
+    , getFullReport
+    , contractSchema
     ) where
 
 import           Control.Lens                            (preview)

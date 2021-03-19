@@ -32,6 +32,7 @@ import           Plutus.PAB.Monitoring.Config     (defaultConfig, loadConfig)
 import           Plutus.PAB.Monitoring.Monitoring (monadLoggerTracer)
 import           Plutus.PAB.Monitoring.PABLogMsg  (AppMsg (..))
 import           Plutus.PAB.Monitoring.Util       (convertLog, handleLogMsgTrace)
+import           Plutus.PAB.Types                 (PABError)
 import           System.Exit                      (ExitCode (ExitFailure), exitSuccess, exitWith)
 
 main :: IO ()
@@ -56,10 +57,13 @@ main = do
 
         where
 
-            handleError err = do
+            handleError (err :: PABError) = do
                 runStdoutLoggingT $ (logErrorN . tshow) err
                 exitWith (ExitFailure 1)
 
-            executePABCommand t logConfig config availability cmd = runApp (convertLog PABMsg t) logConfig config
-                $ handleLogMsgTrace (monadLoggerTracer t)
+            executePABCommand t logConfig config availability cmd =
+                fmap Right
                 $ runCliCommand t logConfig config availability cmd
+                -- runApp (convertLog PABMsg t) logConfig config
+                -- $ handleLogMsgTrace (monadLoggerTracer t)
+                -- $ runCliCommand t logConfig config availability cmd

@@ -95,6 +95,7 @@ commandParser =
         , metadataParser
         , reportTxHistoryParser
         , defaultConfigParser
+        , simulatorParser
         , command
               "contracts"
               (info
@@ -123,6 +124,13 @@ defaultConfigParser =
                 (metavar "OUTPUT_FILE" <>
                  help "Output file to write logging config YAML to.")
         pure WriteDefaultConfig {_outputFile}
+
+simulatorParser :: Mod CommandFields Command
+simulatorParser =
+    command "simulator" $
+    info
+        (pure StartSimulatorWebServer)
+        (fullDesc <> progDesc "Start a simulator with some pre-installed contracts. No external services required.")
 
 psGeneratorCommandParser :: Mod CommandFields Command
 psGeneratorCommandParser =

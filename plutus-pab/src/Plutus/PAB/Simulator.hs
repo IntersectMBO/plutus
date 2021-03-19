@@ -49,65 +49,62 @@ module Plutus.PAB.Simulator(
     , txMemPool
     ) where
 
-import           Control.Applicative                             (Alternative (..))
-import           Control.Concurrent                              (forkIO)
-import           Control.Concurrent.STM                          (STM, TQueue, TVar)
-import qualified Control.Concurrent.STM                          as STM
-import           Control.Lens                                    (_Just, at, makeLenses, makeLensesFor, preview, set,
-                                                                  view, (&), (.~), (^.))
-import           Control.Monad                                   (forever, guard, void, when)
-import           Control.Monad.Freer                             (Eff, LastMember, Member, interpret, reinterpret,
-                                                                  reinterpret2, reinterpretN, run, send, type (~>))
-import           Control.Monad.Freer.Delay                       (DelayEffect, delayThread, handleDelayEffect)
-import           Control.Monad.Freer.Error                       (Error, handleError, throwError)
-import           Control.Monad.Freer.Extras.Log                  (LogLevel (Info), LogMessage, LogMsg (..),
-                                                                  handleLogWriter, logInfo, logLevel, mapLog)
-import           Control.Monad.Freer.Reader                      (Reader, ask, asks)
-import           Control.Monad.Freer.State                       (State (..), runState)
-import           Control.Monad.Freer.Writer                      (Writer (..), runWriter)
-import           Control.Monad.IO.Class                          (MonadIO (..))
-import qualified Data.Aeson                                      as JSON
-import           Data.Foldable                                   (traverse_)
-import           Data.Map                                        (Map)
-import qualified Data.Map                                        as Map
-import           Data.Set                                        (Set)
-import           Data.Text                                       (Text)
-import qualified Data.Text                                       as Text
-import qualified Data.Text.IO                                    as Text
-import           Data.Text.Prettyprint.Doc                       (Pretty (pretty), defaultLayoutOptions, layoutPretty)
-import qualified Data.Text.Prettyprint.Doc.Render.Text           as Render
-import           Data.Time.Units                                 (Millisecond)
-import           Plutus.Contract.Effects.ExposeEndpoint (ActiveEndpoint (..))
-import qualified Ledger.Index                                    as UtxoIndex
-import           Ledger.Tx                                       (Address, Tx, TxOut (..))
-import           Ledger.Value                                    (Value)
-import           Plutus.PAB.Core                                 (EffectHandlers (..))
-import qualified Plutus.PAB.Core                                 as Core
-import qualified Plutus.PAB.Core.ContractInstance.BlockchainEnv  as BlockchainEnv
-import           Plutus.PAB.Core.ContractInstance.STM            (BlockchainEnv, InstancesState, OpenEndpoint)
-import qualified Plutus.PAB.Core.ContractInstance.STM            as Instances
-import           Plutus.PAB.Effects.Contract                     (ContractStore)
-import qualified Plutus.PAB.Effects.Contract                     as Contract
-import           Plutus.PAB.Effects.Contract.ContractTest        (TestContracts (..), handleContractTest)
-import           Plutus.PAB.Effects.TimeEffect                   (TimeEffect)
-import           Plutus.PAB.Monitoring.PABLogMsg                 (ContractEffectMsg, PABMultiAgentMsg (..))
-import           Plutus.PAB.Types                                (PABError (ContractInstanceNotFound, WalletError))
-import           Plutus.V1.Ledger.Slot                           (Slot)
-import qualified Wallet.API                                      as WAPI
-import           Wallet.Effects                                  (ChainIndexEffect (..), NodeClientEffect (..),
-                                                                  WalletEffect)
-import qualified Wallet.Effects                                  as WalletEffects
-import qualified Wallet.Emulator                                 as Emulator
-import           Wallet.Emulator.Chain                           (ChainControlEffect, ChainState)
-import qualified Wallet.Emulator.Chain                           as Chain
-import qualified Wallet.Emulator.ChainIndex                      as ChainIndex
-import           Wallet.Emulator.MultiAgent                      (EmulatorEvent' (..), _singleton)
-import           Wallet.Emulator.NodeClient                      (ChainClientNotification (..))
-import qualified Wallet.Emulator.Stream                          as Emulator
-import           Wallet.Emulator.Wallet                          (Wallet (..))
-import qualified Wallet.Emulator.Wallet                          as Wallet
-import           Wallet.Types                                    (ContractInstanceId, EndpointDescription (..),
-                                                                  NotificationError)
+import           Control.Concurrent                             (forkIO)
+import           Control.Concurrent.STM                         (STM, TQueue, TVar)
+import qualified Control.Concurrent.STM                         as STM
+import           Control.Lens                                   (_Just, at, makeLenses, makeLensesFor, preview, set,
+                                                                 view, (&), (.~), (^.))
+import           Control.Monad                                  (forever, void, when)
+import           Control.Monad.Freer                            (Eff, LastMember, Member, interpret, reinterpret,
+                                                                 reinterpret2, reinterpretN, run, send, type (~>))
+import           Control.Monad.Freer.Delay                      (DelayEffect, delayThread, handleDelayEffect)
+import           Control.Monad.Freer.Error                      (Error, handleError, throwError)
+import           Control.Monad.Freer.Extras.Log                 (LogLevel (Info), LogMessage, LogMsg (..),
+                                                                 handleLogWriter, logInfo, logLevel, mapLog)
+import           Control.Monad.Freer.Reader                     (Reader, ask, asks)
+import           Control.Monad.Freer.State                      (State (..), runState)
+import           Control.Monad.Freer.Writer                     (Writer (..), runWriter)
+import           Control.Monad.IO.Class                         (MonadIO (..))
+import qualified Data.Aeson                                     as JSON
+import           Data.Foldable                                  (traverse_)
+import           Data.Map                                       (Map)
+import qualified Data.Map                                       as Map
+import           Data.Set                                       (Set)
+import           Data.Text                                      (Text)
+import qualified Data.Text                                      as Text
+import qualified Data.Text.IO                                   as Text
+import           Data.Text.Prettyprint.Doc                      (Pretty (pretty), defaultLayoutOptions, layoutPretty)
+import qualified Data.Text.Prettyprint.Doc.Render.Text          as Render
+import           Data.Time.Units                                (Millisecond)
+import qualified Ledger.Index                                   as UtxoIndex
+import           Ledger.Tx                                      (Address, Tx, TxOut (..))
+import           Ledger.Value                                   (Value)
+import           Plutus.PAB.Core                                (EffectHandlers (..))
+import qualified Plutus.PAB.Core                                as Core
+import qualified Plutus.PAB.Core.ContractInstance.BlockchainEnv as BlockchainEnv
+import           Plutus.PAB.Core.ContractInstance.STM           (BlockchainEnv, InstancesState, OpenEndpoint)
+import qualified Plutus.PAB.Core.ContractInstance.STM           as Instances
+import           Plutus.PAB.Effects.Contract                    (ContractStore)
+import qualified Plutus.PAB.Effects.Contract                    as Contract
+import           Plutus.PAB.Effects.Contract.ContractTest       (TestContracts (..), handleContractTest)
+import           Plutus.PAB.Effects.TimeEffect                  (TimeEffect)
+import           Plutus.PAB.Monitoring.PABLogMsg                (ContractEffectMsg, PABMultiAgentMsg (..))
+import           Plutus.PAB.Types                               (PABError (ContractInstanceNotFound, WalletError))
+import           Plutus.V1.Ledger.Slot                          (Slot)
+import qualified Wallet.API                                     as WAPI
+import           Wallet.Effects                                 (ChainIndexEffect (..), NodeClientEffect (..),
+                                                                 WalletEffect)
+import qualified Wallet.Effects                                 as WalletEffects
+import qualified Wallet.Emulator                                as Emulator
+import           Wallet.Emulator.Chain                          (ChainControlEffect, ChainState)
+import qualified Wallet.Emulator.Chain                          as Chain
+import qualified Wallet.Emulator.ChainIndex                     as ChainIndex
+import           Wallet.Emulator.MultiAgent                     (EmulatorEvent' (..), _singleton)
+import           Wallet.Emulator.NodeClient                     (ChainClientNotification (..))
+import qualified Wallet.Emulator.Stream                         as Emulator
+import           Wallet.Emulator.Wallet                         (Wallet (..))
+import qualified Wallet.Emulator.Wallet                         as Wallet
+import           Wallet.Types                                   (ContractInstanceId, NotificationError)
 
 -- | The current state of a contract instance
 data SimulatorContractInstanceState t =
@@ -325,121 +322,44 @@ makeBlock = do
         $ Chain.processBlock
 
 -- | Get the current state of the contract instance.
-instanceState :: forall t.
-    Wallet
-    -> ContractInstanceId
-    -> Simulation t (Contract.State t)
+instanceState :: forall t. Wallet -> ContractInstanceId -> Simulation t (Contract.State t)
 instanceState = Core.instanceState
 
 -- | An STM transaction that returns the observable state of the contract instance.
-observableState ::
-    forall effs.
-    ( Member (Reader InstancesState) effs )
-    => ContractInstanceId
-    -> Eff effs (STM JSON.Value)
-observableState instanceId = do
-    instancesState <- ask @InstancesState
-    pure $ Instances.obervableContractState instanceId instancesState
+observableState :: forall t. ContractInstanceId -> Simulation t (STM JSON.Value)
+observableState = Core.observableState
 
 -- | Wait until the observable state of the instance matches a predicate.
-waitForState ::
-    forall a effs.
-    ( Member (Reader InstancesState) effs
-    , LastMember IO effs
-    )
-    => (JSON.Value -> Maybe a)
-    -> ContractInstanceId
-    -> Eff effs a
-waitForState extract instanceId = do
-    stm <- observableState instanceId
-    liftIO $ STM.atomically $ do
-        state <- stm
-        case extract state of
-            Nothing -> empty
-            Just k  -> pure k
+waitForState :: forall t a. (JSON.Value -> Maybe a) -> ContractInstanceId -> Simulation t a
+waitForState = Core.waitForState
 
 -- | The list of endpoints that are currently open
-activeEndpoints ::
-    forall effs.
-    ( Member (Reader InstancesState) effs)
-    => ContractInstanceId
-    -> Eff effs (STM [OpenEndpoint])
-activeEndpoints instanceId = do
-    instancesState <- ask @InstancesState
-    pure $ do
-        is <- Instances.instanceState instanceId instancesState
-        fmap snd . Map.toList <$> Instances.openEndpoints is
+activeEndpoints :: forall t. ContractInstanceId -> Simulation t (STM [OpenEndpoint])
+activeEndpoints = Core.activeEndpoints
 
 -- | The final result of the instance (waits until it is available)
-finalResult ::
-    forall effs.
-    ( Member (Reader InstancesState) effs)
-    => ContractInstanceId
-    -> Eff effs (STM (Maybe JSON.Value))
-finalResult instanceId = do
-    instancesState <- ask @InstancesState
-    pure $ Instances.finalResult instanceId instancesState
+finalResult :: forall t. ContractInstanceId -> Simulation t (STM (Maybe JSON.Value))
+finalResult = Core.finalResult
 
 -- | Wait until the contract is done, then return
 --   the error (if any)
-waitUntilFinished ::
-    forall effs.
-    ( Member (Reader InstancesState) effs
-    , LastMember IO effs
-    )
-    => ContractInstanceId
-    -> Eff effs (Maybe JSON.Value)
-waitUntilFinished i =
-    finalResult i >>= liftIO . STM.atomically
+waitUntilFinished :: forall t. ContractInstanceId -> Simulation t (Maybe JSON.Value)
+waitUntilFinished = Core.waitUntilFinished
 
 -- | Wait until the endpoint becomes active.
-waitForEndpoint ::
-    forall effs.
-    ( Member (Reader InstancesState) effs
-    , LastMember IO effs
-    )
-    => ContractInstanceId
-    -> String
-    -> Eff effs ()
-waitForEndpoint instanceId endpointName = do
-    tx <- activeEndpoints instanceId
-    liftIO $ STM.atomically $ do
-        eps <- tx
-        guard $ any (\Instances.OpenEndpoint{Instances.oepName=ActiveEndpoint{aeDescription=EndpointDescription nm}} -> nm == endpointName) eps
+waitForEndpoint :: forall t. ContractInstanceId -> String -> Simulation t ()
+waitForEndpoint = Core.waitForEndpoint
 
-currentSlot ::
-    forall effs.
-    ( Member (Reader BlockchainEnv) effs
-    )
-    => Eff effs (STM Slot)
-currentSlot = do
-    Instances.BlockchainEnv{Instances.beCurrentSlot} <- ask
-    pure $ STM.readTVar beCurrentSlot
+currentSlot :: forall t. Simulation t (STM Slot)
+currentSlot = Core.currentSlot
 
 -- | Wait until the target slot number has been reached
-waitUntilSlot ::
-    forall effs.
-    ( Member (Reader BlockchainEnv) effs
-    , LastMember IO effs
-    )
-    => Slot
-    -> Eff effs ()
-waitUntilSlot targetSlot = do
-    tx <- currentSlot
-    void $ liftIO $ STM.atomically $ do
-        s <- tx
-        guard (s >= targetSlot)
+waitUntilSlot :: forall t. Slot -> Simulation t ()
+waitUntilSlot = Core.waitUntilSlot
 
-waitNSlots ::
-    forall effs.
-    ( Member (Reader BlockchainEnv) effs
-    , LastMember IO effs
-    )
-    => Int
-    -> Eff effs ()
-waitNSlots i = do
-    current <- currentSlot >>= liftIO . STM.atomically
-    waitUntilSlot (current + fromIntegral i)
+-- | Wait for the given number of slots.
+waitNSlots :: forall t. Int -> Simulation t ()
+waitNSlots = Core.waitNSlots
 
 type Simulation t a = Core.PABAction t (SimulatorState t) a
 

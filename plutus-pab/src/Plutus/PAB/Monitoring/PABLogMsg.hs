@@ -114,6 +114,7 @@ instance Pretty PABLogMsg where
         SWalletMsg m           -> pretty m
         SMetaDataLogMsg m      -> pretty m
         SMockserverLogMsg m    -> pretty m
+        SMultiAgent m          -> pretty m
 
 
 
@@ -177,6 +178,7 @@ instance ToObject PABLogMsg where
         SWalletMsg m           -> toObject v m
         SMetaDataLogMsg m      -> toObject v m
         SMockserverLogMsg m    -> toObject v m
+        SMultiAgent m          -> toObject v m
 
 -- | FIXME: Redundant?
 data PABMultiAgentMsg t =
@@ -191,6 +193,19 @@ data PABMultiAgentMsg t =
     | StartingPABBackendServer Int
     | StartingMetadataServer Int
     deriving stock Generic
+
+instance (StructuredLog t, ToJSON t, ToJSON (State t), ToJSON (ContractDef t)) => ToObject (PABMultiAgentMsg t) where
+    toObject v = \case
+        EmulatorMsg e              -> mkObjectStr "emulator message" (Tagged @"payload" e)
+        ContractMsg e              -> mkObjectStr "contract message" (Tagged @"payload" e)
+        MetadataLog m              -> toObject v m
+        ChainIndexServerLog m      -> toObject v m
+        ContractInstanceLog m      -> toObject v m
+        CoreLog m                  -> toObject v m
+        RuntimeLog m               -> toObject v m
+        UserLog t                  -> toObject v t
+        StartingPABBackendServer i -> mkObjectStr "starting backend server" (Tagged @"port" i)
+        StartingMetadataServer i   -> mkObjectStr "starting backend server" (Tagged @"port" i)
 
 deriving stock instance (Show t, Show (ContractDef t), Show (State t)) => Show (PABMultiAgentMsg t)
 deriving anyclass instance (ToJSON t, ToJSON (ContractDef t), ToJSON (State t)) => ToJSON (PABMultiAgentMsg t)
