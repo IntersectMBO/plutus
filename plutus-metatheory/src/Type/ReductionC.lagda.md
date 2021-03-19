@@ -443,8 +443,23 @@ lem0 A (E l⇒ B) (W V-⇒ W') = lem0 A E W
 lem0 A (μr _ E) (V-μ W W') = lem0 A E W'
 lem0 A (μl E B) (V-μ W W') = lem0 A E W
 
+-- TODO: can also have if there is a non-value inside then the outer thing
+-- cannot be a value...
+
 lemV· : ∀{A : ∅ ⊢⋆ K ⇒ J}{B} → Value⋆ (A · B) → ⊥
 lemV· ()
+
+variable K' : Kind
+lemE· : ∀{A : ∅ ⊢⋆ K ⇒ J}{B}(E : EvalCtx K' J)
+  → ¬ (Value⋆ (closeEvalCtx E (A · B)))
+lemE· [] = lemV·
+lemE· (V ·r E) = lemV·
+lemE· (E l· B) = lemV·
+lemE· (V ⇒r E) = λ {(V V-⇒ W) → lemE· E W}
+lemE· (E l⇒ B) = λ {(V V-⇒ W) → lemE· E V}
+lemE· (μr V E) = λ {(V-μ V W) → lemE· E W}
+lemE· (μl E B) = λ {(V-μ V W) → lemE· E V}
+
 
 notboth : (A : ∅ ⊢⋆ K) → ¬ (Value⋆ A × (Σ (∅ ⊢⋆ K) (A —→E_)))
 notboth .(ƛ _ · _) (() , _ , contextRule [] (β-ƛ x) refl refl)
@@ -465,8 +480,6 @@ the top level or we can have beta inside the empty evaluation
 context. Different rules, same answer. So, we have B ≡ B' but not p ≡ q
 
 ```
-variable K' : Kind
-
 inv·l : ∀ A A' (B : ∅ ⊢⋆ K)(B' : ∅ ⊢⋆ K')
   → A · B ≡ A' · B' → Σ (K' ⇒ J ≡ K ⇒ J) λ p → A ≡ subst (∅ ⊢⋆_) p A'
 inv·l A .A B .B refl = refl , refl
@@ -774,7 +787,6 @@ dissect' (μl E B) with dissect' E
 ... | inj₁ (refl , refl) = inj₂ (-, [] , μ- B)
 ... | inj₂ (_ , E' , f) = inj₂ (-, μl E' B , f)
 
-
 lemmaE' : ∀ (M : ∅ ⊢⋆ J)(E : EvalCtx K J) B
   → closeEvalCtx E M —→E B
   → ∃ λ J' → ∃ λ (E' : EvalCtx K J') → ∃ λ (L : ∅ ⊢⋆ J') → ∃ λ N → (L —→⋆ N)
@@ -787,3 +799,50 @@ lemmaE' M E B p with lemma51! (closeEvalCtx E M)
 ... | inj₁ VM = J' , E' , ƛ L · N , (L [ N ]) , β-ƛ VN , q , sym (det p (contextRule E' (β-ƛ VN) q refl)) , inj₂ VM
 ... | inj₂ (¬VM , J'' , E'' , I'' , L' , N' , VL' , VN' , q' , X') with X J'' (compEvalCtx E E'') I'' L' N' VL' VN' (trans (cong (closeEvalCtx E) q') (sym (close-comp E E'' (L' · N'))))
 ... | refl , Y = J' , E' , ƛ L · N , (L [ N ]) , β-ƛ VN , q , sym (det p (contextRule E' (β-ƛ VN) q refl)) , inj₁ (E'' , uniqueness⋆ _ _ E (trans (trans q (cong (λ E → closeEvalCtx E (ƛ L · N)) (sym Y))) (close-comp E E'' (ƛ L · N))) ) where
+
+
+--if E [ M ] and Value M then E ≡ E' [ λ N ·- ] or E ≡ E' [ -· K ]
+
+lemmaE'' : ∀ (M : ∅ ⊢⋆ J)(E : EvalCtx K J) B
+  → closeEvalCtx E M —→E B
+  → ∃ λ J' → ∃ λ (E' : EvalCtx K J') → ∃ λ (L : ∅ ⊢⋆ J') → ∃ λ N → (L —→⋆ N)
+  × closeEvalCtx E  M ≡ closeEvalCtx E' L
+  × closeEvalCtx E' N ≡ B
+  × ((∃ λ (E'' : EvalCtx J J') → M ≡ closeEvalCtx E'' L) ⊎ (Value⋆ M))
+lemmaE'' M E B p with lemma51! (closeEvalCtx E M)
+... | inj₁ V = ⊥-elim (notboth (closeEvalCtx E M) (V , _ , p))
+... | inj₂ (¬VA , J' , E' , I , _ , N , V-ƛ L , VN , q , X) with lemma51! M
+... | inj₂ (¬VM , J'' , E'' , I'' , L' , N' , VL' , VN' , q' , X') with X J'' (compEvalCtx E E'') I'' L' N' VL' VN' (trans (cong (closeEvalCtx E) q') (sym (close-comp E E'' (L' · N'))))
+... | refl , Y = J' , E' , ƛ L · N , (L [ N ]) , β-ƛ VN , q , sym (det p (contextRule E' (β-ƛ VN) q refl)) , inj₁ (E'' , uniqueness⋆ _ _ E (trans (trans q (cong (λ E → closeEvalCtx E (ƛ L · N)) (sym Y))) (close-comp E E'' (ƛ L · N))) )
+-- ... doesn't seem to work after this...
+lemmaE'' M E B p | inj₂ (¬VA , J' , E' , I , L , N , VL , VN , q , X) | inj₁ VM with dissect' E | inspect dissect' E
+lemmaE'' M .[] B p | inj₂ (¬VA , J' , E' , I , L , N , VL , VN , q , X) | inj₁ VM | inj₁ (refl , refl) | _ = ⊥-elim (¬VA VM)
+lemmaE'' M E B p | inj₂ (¬VA , J' , E' , I , L , N , VL , VN , q , X) | inj₁ VM | inj₂ (I' , E'' , F) | blah eq = {!!}
+-- if M is a value then we should immediately put it into action,
+-- we want that E decomposes to a E' and an application frame, if E = [] we would get a contradiction I think
+
+{-
+J' , E' , ƛ L · N , (L [ N ]) , β-ƛ VN , q , sym (det p (contextRule E' (β-ƛ VN) q refl)) , inj₂ VM -}
+
+-- TODO: an attempt to get the remaining bits of the case analysis
+-- note: things refering to L · N can also refer to an L -→⋆
+lemmaBlah : ∀ (M : ∅ ⊢⋆ J)(E : EvalCtx K J)(E' : EvalCtx K J')
+    (L : ∅ ⊢⋆ I ⇒ J') N
+  → Value⋆ M → (VL : Value⋆ L) → Value⋆ N
+  → closeEvalCtx E M ≡ closeEvalCtx E' (L · N)
+  → (∃ λ (p : I ≡ J) → E ≡ extendEvalCtx E' (subst (Frame J') p (VL ·-))) ⊎ ∃ λ (p : I ⇒ J' ≡ J) → ∃ λ N' → ∃ λ E'' → E ≡ extendEvalCtx E'' (subst (Frame J') p (-· N')) × ∃ λ E''' → N' ≡ closeEvalCtx E''' (L · N)
+lemmaBlah M [] E' L N VM VL VN p = ⊥-elim (lemE· E' (subst Value⋆ p VM))
+lemmaBlah M (x ·r E) [] L N VM VL VN p = {!!}
+lemmaBlah M (x ·r E) (x₁ ·r E') L N VM VL VN p = {!!} -- rec call 
+lemmaBlah M (x ·r E) (E' l· x₁) L N VM VL VN p = {!!} -- impossible
+lemmaBlah M (E l· x) [] L N VM VL VN p = {!!}  -- maybe impossible, if we also have E [ M ] is not a value
+lemmaBlah M (E l· x) (x₁ ·r E') L N VM VL VN p = {!!} -- same again
+lemmaBlah M (E l· x) (E' l· x₁) L N VM VL VN p = {!lemmaBlah M E ? L N VM VL VN!} -- rec call
+lemmaBlah M (x ⇒r E) (x₁ ⇒r E') L N VM VL VN p = {!!} -- rec call
+lemmaBlah M (x ⇒r E) (E' l⇒ x₁) L N VM VL VN p = {!!} -- impossible
+lemmaBlah M (E l⇒ x) (x₁ ⇒r E') L N VM VL VN p = {!!} -- impossible
+lemmaBlah M (E l⇒ x) (E' l⇒ x₁) L N VM VL VN p = {!!}
+lemmaBlah M (μr x E) (μr x₁ E') L N VM VL VN p = {!!}
+lemmaBlah M (μr x E) (μl E' B) L N VM VL VN p = {!!}
+lemmaBlah M (μl E B) (μr x E') L N VM VL VN p = {!!}
+lemmaBlah M (μl E B) (μl E' B₁) L N VM VL VN p = {!!}
