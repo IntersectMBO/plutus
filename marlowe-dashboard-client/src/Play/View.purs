@@ -46,7 +46,7 @@ renderPlayState wallets newWalletNickname newWalletContractId remoteDataPubKey t
 renderHeader :: forall p. PubKey -> Boolean -> HTML p Action
 renderHeader walletNickname menuOpen =
   header
-    [ classNames $ [ "relative", "flex", "justify-between", "items-center", "leading-none", "border-b", "border-gray", "py-1", "px-4", "md:px-5pc" ] <> applyWhen menuOpen [ "border-0", "bg-black", "text-white" ] ]
+    [ classNames $ [ "relative", "flex", "justify-between", "items-center", "leading-none", "border-b", "border-gray", "py-3", "md:py-1", "px-4", "md:px-5pc" ] <> applyWhen menuOpen [ "border-0", "bg-black", "text-white" ] ]
     [ h1
         [ classNames [ "text-xl", "font-bold" ] ]
         [ text "Marlowe" ]
@@ -64,7 +64,7 @@ renderHeader walletNickname menuOpen =
             , span
                 [ classNames $ [ "hidden", "md:flex", "md:items-baseline" ] <> Css.button <> [ "bg-white" ] ]
                 [ span
-                    [ classNames $ [ "-m-1", "mr-2", "rounded-full", "text-white", "w-5", "h-5", "flex", "justify-center", "items-center" ] <> Css.bgBlueGradiant ]
+                    [ classNames $ [ "-m-1", "mr-2", "rounded-full", "text-white", "w-5", "h-5", "flex", "justify-center", "items-center", "uppercase" ] <> Css.bgBlueGradiant ]
                     [ text $ take 1 walletNickname ]
                 , text walletNickname
                 ]
@@ -108,13 +108,10 @@ renderMain wallets newWalletNickname newWalletContractId remoteDataPubKey templa
 renderMobileMenu :: forall p. Boolean -> HTML p Action
 renderMobileMenu menuOpen =
   nav
-    [ classNames $ [ "md:hidden", "absolute", "inset-0", "z-30", "bg-black", "text-white", "overflow-auto", "flex", "flex-col", "justify-between", "py-1" ] <> hideWhen (not menuOpen) ]
+    [ classNames $ [ "md:hidden", "absolute", "inset-0", "z-30", "bg-black", "text-white", "text-lg", "overflow-auto", "flex", "flex-col", "justify-between", "p-4", "pt-8" ] <> hideWhen (not menuOpen) ]
     [ div
         [ classNames [ "flex", "flex-col" ] ]
-        $ [ link "Dashboard home" $ Right $ SetScreen ContractsScreen
-          , link "Contacts" $ Right $ SetScreen WalletLibraryScreen
-          ]
-        <> dashboardLinks
+        dashboardLinks
     , div
         [ classNames [ "flex", "flex-col" ] ]
         iohkLinks
@@ -138,25 +135,28 @@ renderCards wallets newWalletNickname newWalletContractId remoteDataPubKey templ
     div
       [ classNames $ Css.overlay $ isNothing mCard ]
       [ div
-          [ classNames cardClasses ]
-          [ a
-              [ classNames [ "absolute", "top-4", "right-4" ]
-              , onClick_ $ SetCard Nothing
+          [ classNames Css.cardWrapper ]
+          [ div
+              [ classNames cardClasses ]
+              [ a
+                  [ classNames [ "absolute", "top-4", "right-4" ]
+                  , onClick_ $ SetCard Nothing
+                  ]
+                  [ icon_ Close ]
+              , div_
+                  $ (flip foldMap mCard) \cardType -> case cardType of
+                      CreateWalletCard mTokenName -> [ newWalletCard wallets newWalletNickname newWalletContractId remoteDataPubKey mTokenName ]
+                      ViewWalletCard walletDetails -> [ walletDetailsCard walletDetails ]
+                      PutdownWalletCard -> [ putdownWalletCard currentWalletDetails ]
+                      TemplateLibraryCard -> [ TemplateAction <$> templateLibraryCard templates ]
+                      ContractSetupConfirmationCard -> [ TemplateAction <$> contractSetupConfirmationCard ]
+                      -- FIXME: We need to pattern match on the Maybe because the selectedContractState
+                      --        could be Nothing. We could add the state as part of the view, but is not ideal
+                      --        Will have to rethink how to deal with this once the overall state is more mature.
+                      ContractCard -> case mSelectedContractState of
+                        Just contractState -> [ ContractAction <$> contractDetailsCard contractState ]
+                        Nothing -> []
               ]
-              [ icon_ Close ]
-          , div_
-              $ (flip foldMap mCard) \cardType -> case cardType of
-                  CreateWalletCard mTokenName -> [ newWalletCard wallets newWalletNickname newWalletContractId remoteDataPubKey mTokenName ]
-                  ViewWalletCard walletDetails -> [ walletDetailsCard walletDetails ]
-                  PutdownWalletCard -> [ putdownWalletCard currentWalletDetails ]
-                  TemplateLibraryCard -> [ TemplateAction <$> templateLibraryCard templates ]
-                  ContractSetupConfirmationCard -> [ TemplateAction <$> contractSetupConfirmationCard ]
-                  -- FIXME: We need to pattern match on the Maybe because the selectedContractState
-                  --        could be Nothing. We could add the state as part of the view, but is not ideal
-                  --        Will have to rethink how to deal with this once the overall state is more mature.
-                  ContractCard -> case mSelectedContractState of
-                    Just contractState -> [ ContractAction <$> contractDetailsCard contractState ]
-                    Nothing -> []
           ]
       ]
 
@@ -191,24 +191,22 @@ renderFooter =
 ------------------------------------------------------------
 dashboardLinks :: forall p. Warn (Text "We need to add the dashboard links.") => Array (HTML p Action)
 dashboardLinks =
-  [ link "Market" $ Left ""
-  , link "Docs" $ Left ""
-  , link "Support" $ Left ""
+  [ link "Market" ""
+  , link "Docs" ""
+  , link "Support" ""
   ]
 
 iohkLinks :: forall p. Warn (Text "We need to add the IOHK links.") => Array (HTML p Action)
 iohkLinks =
-  [ link "marlowe.io" $ Left ""
-  , link "cardano.org" $ Left "https://cardano.org"
-  , link "iohk.io" $ Left "https://iohk.io"
+  [ link "marlowe.io" ""
+  , link "cardano.org" "https://cardano.org"
+  , link "iohk.io" "https://iohk.io"
   ]
 
-link :: forall p. String -> Either String Action -> HTML p Action
-link label urlOrAction =
+link :: forall p. String -> String -> HTML p Action
+link label url =
   a
-    [ classNames [ "px-4", "first:ml-0", "last:mr-0", "font-bold", "text-sm", "cursor-pointer" ]
-    , case urlOrAction of
-        Left url -> href url
-        Right action -> onClick_ action
+    [ classNames [ "py-2", "font-bold", "cursor-pointer" ]
+    , href url
     ]
     [ text label ]

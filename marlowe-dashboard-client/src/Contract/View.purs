@@ -35,7 +35,7 @@ contractDetailsCard state =
   let
     metadata = state ^. _metadata
   in
-    div [ classNames [ "flex", "flex-col", "items-center", "mt-5" ] ]
+    div [ classNames [ "flex", "flex-col", "items-center", "my-5" ] ]
       [ h1 [ classNames [ "text-xl", "font-semibold" ] ] [ text metadata.contractName ]
       -- FIXME: in zeplin the contractType is defined with color #283346, we need to define
       --        the color palette with russ.

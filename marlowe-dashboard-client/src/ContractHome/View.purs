@@ -38,7 +38,8 @@ contractsScreen state =
   in
     div
       [ classNames [ "p-4", "md:px-5pc" ] ]
-      [ h2 [ classNames [ "font-semibold" ] ]
+      [ h2
+          [ classNames [ "font-semibold", "text-lg", "mb-4" ] ]
           [ text "Home" ]
       , viewSelector
       , renderContractList state

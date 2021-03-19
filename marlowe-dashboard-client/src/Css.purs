@@ -87,18 +87,18 @@ nestedLabel = [ "relative", "left-2", "top-2.5", "px-1", "bg-white", "text-xs" ]
 overlay :: Boolean -> Array String
 overlay invisible = [ "overflow-hidden", "absolute", "top-0", "bottom-0", "left-0", "right-0", "z-20", "flex", "flex-col", "justify-end", "md:justify-center", "bg-overlay", "transition-opacity", "duration-400" ] <> toggleWhen invisible [ "opacity-0", "pointer-events-none" ] [ "opacity-1" ]
 
+-- the padding on the card wrapper provides a minimum margin around the card
+-- if we set it as margin here instead of padding (arguably more "correct"), then the "h-full"
+-- of the large card makes the large card too big
 cardWrapper :: Array String
-cardWrapper = [ "max-h-full", "px-4", "md:py-4" ]
+cardWrapper = [ "max-h-full", "px-2", "pt-2", "md:pb-2", "lg:py-4", "lg:px-5pc" ]
 
 card :: Boolean -> Array String
-card invisible = [ "bg-white", "md:w-sm", "mx-2", "md:self-center", "shadow", "p-5", "pb-6", "md:pb-8", "rounded-t", "md:rounded-b", "transform", "transition-transform", "duration-400" ] <> applyWhen invisible [ "translate-y-20" ]
+card invisible = [ "bg-white", "max-w-sm", "mx-auto", "shadow", "rounded-t", "md:rounded-b", "px-4", "py-6", "transform", "transition-transform", "duration-400" ] <> applyWhen invisible [ "translate-y-20" ]
 
 largeCard :: Boolean -> Array String
-largeCard invisible = [ "bg-grayblue", "shadow", "h-full", "overflow-auto", "mt-2", "md:mb-2", "mx-2", "lg:my-4", "lg:mx-12", "rounded-t", "md:rounded-b", "transform", "transition-transform", "duration-400" ] <> applyWhen invisible [ "translate-y-20" ]
+largeCard invisible = [ "bg-grayblue", "shadow", "h-full", "overflow-auto", "rounded-t", "md:rounded-b", "transform", "transition-transform", "duration-400" ] <> applyWhen invisible [ "translate-y-20" ]
 
--- Keeping it here until we figure things out, but it seems to be that w-full was not needed (actually causes a visual bug with the addition of a margin, as the
--- size is both the width + the margin.)
--- "w-full"
 --- miscellaneous
 iconCircle :: Boolean -> Array String
 iconCircle enabled = [ "inline-flex", "items-center", "justify-center", "w-8", "h-8", "rounded-full" ] <> toggleWhen enabled bgBlueGradiant [ "bg-lightgray", "text-darkgray" ]
