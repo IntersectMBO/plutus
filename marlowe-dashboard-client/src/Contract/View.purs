@@ -1,10 +1,11 @@
 module Contract.View
   ( contractDetailsCard
+  , actionConfirmationCard
   ) where
 
 import Prelude hiding (div)
-import Contract.Lenses (_executionState, _mActiveUserParty, _metadata, _participants, _side, _step, _tab)
-import Contract.Types (Action(..), Side(..), State, Tab(..))
+import Contract.Lenses (_executionState, _mActiveUserParty, _metadata, _participants, _step, _tab)
+import Contract.Types (Action(..), State, Tab(..))
 import Css (applyWhen, classNames)
 import Css as Css
 import Data.Array (intercalate)
@@ -44,13 +45,8 @@ contractDetailsCard state =
       , div [ classNames [ "w-full", "px-5", "max-w-contract-card" ] ] [ renderCurrentStep state ]
       ]
 
-renderCurrentStep :: forall p. State -> HTML p Action
-renderCurrentStep state = case state ^. _side of
-  Overview -> renderStepOverview state
-  Confirmation namedAction -> renderStepConfirmation state namedAction
-
-renderStepConfirmation :: forall p. State -> NamedAction -> HTML p Action
-renderStepConfirmation state namedAction =
+actionConfirmationCard :: forall p. State -> NamedAction -> HTML p Action
+actionConfirmationCard state namedAction =
   let
     -- As programmers we use 0-indexed arrays and steps, but we number steps
     -- starting from 1
@@ -82,20 +78,21 @@ renderStepConfirmation state namedAction =
       , div [ classNames [ "flex", "justify-center" ] ]
           [ button
               [ classNames $ Css.secondaryButton <> [ "mr-2" ]
-              , onClick_ CancelStepConfirmation
+              , onClick_ CancelConfirmation
               ]
               [ text "Cancel" ]
           , button
               [ classNames Css.primaryButton
-              , onClick_ $ AskWalletConfirmation namedAction
+              -- FIXME: Create an action that comunicates with the backend
+              -- , onClick_ $ AskWalletConfirmation namedAction
               ]
               [ text cta ]
           ]
       , div_ [ text "TODO docs" ]
       ]
 
-renderStepOverview :: forall p. State -> HTML p Action
-renderStepOverview state =
+renderCurrentStep :: forall p. State -> HTML p Action
+renderCurrentStep state =
   let
     -- As programmers we use 0-indexed arrays and steps, but we number steps
     -- starting from 1
@@ -245,7 +242,7 @@ renderAction _ isActiveParticipant namedAction@(MakeDeposit intoAccountOf by tok
               else
                 [ "bg-gray", "text-black", "opacity-50", "cursor-default" ]
         , enabled isActiveParticipant
-        , onClick_ $ AskStepConfirmation namedAction
+        , onClick_ $ AskConfirmation namedAction
         ]
         [ span_ [ text "Deposit:" ]
         , span_ [ currency token value ]
@@ -283,7 +280,7 @@ renderAction state isActiveParticipant namedAction@(MakeChoice choiceId bounds m
                         else
                           [ "bg-gray", "text-black", "opacity-50", "cursor-default" ]
                   )
-              , onClick_ $ AskStepConfirmation namedAction
+              , onClick_ $ AskConfirmation namedAction
               , enabled isValid
               ]
               [ text "..." ]
@@ -305,7 +302,7 @@ renderAction _ isActiveParticipant CloseContract =
               else
                 [ "bg-gray", "text-black", "opacity-50", "cursor-default" ]
         , enabled isActiveParticipant
-        , onClick_ $ AskStepConfirmation CloseContract
+        , onClick_ $ AskConfirmation CloseContract
         ]
         [ text "Close contract" ]
     ]

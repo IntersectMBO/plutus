@@ -1,7 +1,7 @@
 module Play.View (renderPlayState) where
 
 import Prelude hiding (div)
-import Contract.View (contractDetailsCard)
+import Contract.View (actionConfirmationCard, contractDetailsCard)
 import ContractHome.Lenses (_selectedContract)
 import ContractHome.View (contractsScreen)
 import Css (applyWhen, classNames, hideWhen)
@@ -152,6 +152,9 @@ renderCards wallets newWalletNickname newWalletContractId remoteDataPubKey templ
                   --        Will have to rethink how to deal with this once the overall state is more mature.
                   ContractCard -> case mSelectedContractState of
                     Just contractState -> [ ContractAction <$> contractDetailsCard contractState ]
+                    Nothing -> []
+                  ContractActionConfirmationCard action -> case mSelectedContractState of
+                    Just contractState -> [ ContractAction <$> actionConfirmationCard contractState action ]
                     Nothing -> []
           ]
       ]

@@ -133,6 +133,8 @@ data NamedAction
   -- Creates empty tx
   | CloseContract
 
+derive instance eqNamedAction :: Eq NamedAction
+
 getActionParticipant :: NamedAction -> Maybe Party
 getActionParticipant (MakeDeposit _ party _ _) = Just party
 

@@ -6,8 +6,8 @@ module Contract.State
   ) where
 
 import Prelude
-import Contract.Lenses (_confirmation, _contractId, _executionState, _side, _tab)
-import Contract.Types (Action(..), Query(..), Side(..), State, Tab(..))
+import Contract.Lenses (_confirmation, _contractId, _executionState, _tab)
+import Contract.Types (Action(..), Query(..), State, Tab(..))
 import Control.Monad.Except (runExceptT)
 import Control.Monad.Maybe.Trans (runMaybeT)
 import Control.Monad.Reader (class MonadAsk)
@@ -59,7 +59,6 @@ mkInitialState ::
 mkInitialState slot contract metadata participants mActiveUserParty =
   { tab: Tasks
   , executionState: initExecution slot contract
-  , side: Overview
   , confirmation: Nothing
   , contractId: Nothing
   , step: 0
@@ -109,8 +108,6 @@ handleAction (ChangeChoice choiceId chosenNum) = modifying (_executionState <<< 
 
 handleAction (SelectTab tab) = assign _tab tab
 
-handleAction (AskStepConfirmation action) = assign _side $ Confirmation action
+handleAction (AskConfirmation action) = pure unit -- Managed by Play.State
 
-handleAction CancelStepConfirmation = assign _side Overview
-
-handleAction (AskWalletConfirmation _) = pure unit -- FIXME: we need to make cards a stack, and this handler should push a new validation card into it
+handleAction CancelConfirmation = pure unit -- Managed by Play.State
