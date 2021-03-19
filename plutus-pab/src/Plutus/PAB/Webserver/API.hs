@@ -12,7 +12,8 @@ module Plutus.PAB.Webserver.API
     , ContractActivationArgs(..)
     , WalletInfo(..)
     , ContractInstanceClientState(..)
-    , StatusStreamToClient(..)
+    , InstanceStatusToClient(..)
+    , CombinedWSStreamToClient(..)
     ) where
 
 import           Data.Aeson                                      (FromJSON, ToJSON)
@@ -22,6 +23,7 @@ import           GHC.Generics                                    (Generic)
 import           Plutus.Contract.Effects.ExposeEndpoint (ActiveEndpoint)
 import           Plutus.PAB.Events.ContractInstanceState         (PartiallyDecodedResponse)
 
+import           Ledger.Slot                                     (Slot)
 import           Plutus.PAB.Webserver.Types                      (ContractSignatureResponse, FullReport)
 import           Servant.API                                     (Capture, Get, JSON, Post, ReqBody, (:<|>), (:>))
 import           Servant.API.WebSocket                           (WebSocketPending)
@@ -79,9 +81,14 @@ type NewAPI t
         )
 
 -- | Status updates for contract instances streamed to client
-data StatusStreamToClient
+data InstanceStatusToClient
     = NewObservableState JSON.Value -- ^ The observable state of the contract has changed.
     | NewActiveEndpoints [ActiveEndpoint] -- ^ The set of active endpoints has changed.
     | ContractFinished (Maybe JSON.Value) -- ^ Contract instance is done with an optional error message.
     deriving stock (Generic, Eq, Show)
     deriving anyclass (ToJSON, FromJSON)
+
+-- | Data sent to the client through the combined websocket API
+data CombinedWSStreamToClient
+    = InstanceUpdate ContractInstanceId InstanceStatusToClient
+    | SlotChange Slot

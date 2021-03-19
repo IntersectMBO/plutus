@@ -20,59 +20,29 @@ module Plutus.PAB.Webserver.Handler
     , handlerOld
     ) where
 
-import           Control.Applicative                              (Alternative (..))
-import           Control.Concurrent.STM                           (atomically)
-import qualified Control.Concurrent.STM                           as STM
-import           Control.Exception                                (SomeException, handle)
-import           Control.Lens                                     (preview)
-import           Control.Monad                                    (guard, void)
-import           Control.Monad.Except                             (ExceptT (ExceptT))
-import           Control.Monad.Freer                              (Eff, LastMember, Member, type (~>))
-import           Control.Monad.Freer.Error                        (Error, throwError)
-import           Control.Monad.Freer.Extras.Log                   (LogMsg, logInfo, logWarn)
-import           Control.Monad.Freer.Reader                       (Reader, ask)
-import           Control.Monad.IO.Class                           (MonadIO (..))
-import           Data.Aeson                                       (FromJSON, ToJSON)
-import qualified Data.Aeson                                       as JSON
-import           Data.Bifunctor                                   (Bifunctor (..))
-import qualified Data.ByteString.Lazy.Char8                       as LBS
-import           Data.Foldable                                    (traverse_)
-import qualified Data.Map                                         as Map
-import           Data.Maybe                                       (mapMaybe)
-import           Data.Proxy                                       (Proxy (..))
-import           Data.Text                                        (Text)
-import qualified Data.UUID                                        as UUID
-import           Plutus.Contract.Effects.ExposeEndpoint  (ActiveEndpoint,
-                                                                   EndpointDescription (EndpointDescription))
-import           Ledger.Blockchain                                (Blockchain)
-import           Network.WebSockets.Connection                    (Connection, PendingConnection)
-import           Plutus.PAB.Core                                  (PABAction, PABRunner (..))
-import qualified Plutus.PAB.Core                                  as Core
-import qualified Plutus.PAB.Core.ContractInstance                 as Instance
-import qualified Plutus.PAB.Core.ContractInstance.RequestHandlers as LM
-import           Plutus.PAB.Core.ContractInstance.STM             (InstancesState, OpenEndpoint (..),
-                                                                   callEndpointOnInstance)
-import           Plutus.PAB.Effects.Contract                      (ContractDefinitionStore, ContractEffect,
-                                                                   ContractStore, PABContract (..), exportSchema,
-                                                                   getActiveContracts, getDefinitions, getState)
-import qualified Plutus.PAB.Effects.Contract                      as Contract
-import           Plutus.PAB.Effects.Contract.ContractExe          (ContractExe)
-import           Plutus.PAB.Effects.UUID                          (UUIDEffect)
-import           Plutus.PAB.Events.Contract                       (ContractPABRequest, _UserEndpointRequest)
-import           Plutus.PAB.Events.ContractInstanceState          (PartiallyDecodedResponse (..))
-import           Plutus.PAB.ParseStringifiedJSON                  (UnStringifyJSONLog, parseStringifiedJSON)
+import           Control.Lens                            (preview)
+import           Control.Monad                           (void)
+import           Control.Monad.Freer.Error               (throwError)
+import qualified Data.Aeson                              as JSON
+import qualified Data.Map                                as Map
+import           Data.Maybe                              (mapMaybe)
+import           Data.Proxy                              (Proxy (..))
+import           Data.Text                               (Text)
+import qualified Data.UUID                               as UUID
+import           Network.WebSockets.Connection           (PendingConnection)
+import           Plutus.PAB.Core                         (PABAction)
+import qualified Plutus.PAB.Core                         as Core
+import qualified Plutus.PAB.Effects.Contract             as Contract
+import           Plutus.PAB.Events.Contract              (ContractPABRequest, _UserEndpointRequest)
+import           Plutus.PAB.Events.ContractInstanceState (PartiallyDecodedResponse (..))
 import           Plutus.PAB.Types
-import           Plutus.PAB.Webserver.API                         (API, ContractActivationArgs (..),
-                                                                   ContractInstanceClientState (..), NewAPI,
-                                                                   StatusStreamToClient (..), WSAPI, WalletInfo (..))
+import           Plutus.PAB.Webserver.API                (ContractActivationArgs (..), ContractInstanceClientState (..),
+                                                          WalletInfo (..))
 import           Plutus.PAB.Webserver.Types
-import qualified Plutus.PAB.Webserver.WebSocket                   as WS
-import           Servant                                          (Application, Handler, ServerT (..), (:<|>) ((:<|>)))
-import qualified Servant
-import           Wallet.Effects                                   (ChainIndexEffect, confirmedBlocks)
-import           Wallet.Emulator.Wallet                           (Wallet (..))
-import qualified Wallet.Rollup                                    as Rollup
-import           Wallet.Types                                     (ContractInstanceId (..), NotificationError)
+import qualified Plutus.PAB.Webserver.WebSocket          as WS
+import           Servant                                 ((:<|>) ((:<|>)))
+import           Wallet.Emulator.Wallet                  (Wallet (..))
+import           Wallet.Types                            (ContractInstanceId (..), NotificationError)
 
 -- | Handler for the "old" API
 handlerOld ::

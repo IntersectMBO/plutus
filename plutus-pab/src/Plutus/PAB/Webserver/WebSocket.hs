@@ -28,40 +28,9 @@ import           Plutus.PAB.Core                      (PABAction)
 import qualified Plutus.PAB.Core                      as Core
 import           Plutus.PAB.Core.ContractInstance.STM (OpenEndpoint (..))
 import qualified Plutus.PAB.Effects.Contract          as Contract
-import           Plutus.PAB.Webserver.API             (StatusStreamToClient (..))
+import           Plutus.PAB.Webserver.API             (InstanceStatusToClient (..))
 import           Plutus.PAB.Webserver.Types           (ContractReport (..), ContractSignatureResponse (..))
 import           Wallet.Types                         (ContractInstanceId (..))
-
-------------------------------------------------------------
--- Message processors.
-------------------------------------------------------------
-
--- contractStateThread ::
---        ( Member WebSocketEffect effs
---        , Member (ContractEffect ContractExe) effs
---        , Member DelayEffect effs
---        , Member (ContractDefinitionStore ContractExe) effs
---        , Member (ContractStore ContractExe) effs
---        )
---     => Connection
---     -> Eff effs ()
--- contractStateThread _ = pure () -- FIXME
---     -- watchAndNotify (3 :: Second) (getContractReport @ContractExe) NewContractReport
-
--- watchAndNotify ::
---        ( TimeUnit t
---        , Member DelayEffect effs
---        , Member WebSocketEffect effs
---        , Eq a
---        , ToJSON b
---        )
---     => t
---     -> Eff effs a
---     -> (a -> b)
---     -> Connection
---     -> Eff effs ()
--- watchAndNotify time query wrapper connection = pure () -- FIXME
---     -- watchForChanges time query (sendJSON connection . wrapper)
 
 combinedWebsocket :: forall t env. PendingConnection -> PABAction t env ()
 combinedWebsocket _ = do
