@@ -1,22 +1,50 @@
-{-# LANGUAGE DataKinds         #-}
-{-# LANGUAGE LambdaCase        #-}
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TypeApplications  #-}
-module Spec.Prism(tests, prismTrace) where
+{-# LANGUAGE DataKinds                  #-}
+{-# LANGUAGE FlexibleContexts           #-}
+{-# LANGUAGE FlexibleInstances          #-}
+{-# LANGUAGE GADTs                      #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE LambdaCase                 #-}
+{-# LANGUAGE NamedFieldPuns             #-}
+{-# LANGUAGE OverloadedStrings          #-}
+{-# LANGUAGE RankNTypes                 #-}
+{-# LANGUAGE ScopedTypeVariables        #-}
+{-# LANGUAGE StandaloneDeriving         #-}
+{-# LANGUAGE TemplateHaskell            #-}
+{-# LANGUAGE TypeApplications           #-}
+{-# LANGUAGE TypeFamilies               #-}
+{-# LANGUAGE UndecidableInstances       #-}
+module Spec.Prism (tests, prismTrace, prop_Prism) where
 
-import           Control.Monad                     (void)
-import qualified Ledger.Ada                        as Ada
-import           Ledger.Crypto                     (pubKeyHash)
-import           Ledger.Value                      (TokenName)
-import           Plutus.Contract.Test
+import           Control.Arrow                            (first, second)
+import           Control.Lens
+import           Control.Monad
+import           Control.Monad.Freer.Error
+import           Control.Monad.Freer.State
+import           Data.Foldable                            (traverse_)
+import           Data.Map                                 (Map)
+import qualified Data.Map                                 as Map
+import           Data.Maybe
+import qualified Ledger.Ada                               as Ada
+import           Ledger.Crypto                            (pubKeyHash)
+import           Ledger.Value                             (TokenName)
+import           Plutus.Contract                          (Contract, HasEndpoint)
+import           Plutus.Contract.Test                     hiding (not)
+import           Plutus.Contract.Test.ContractModel       as ContractModel
+import           PlutusTx.Lattice
 
+import           Test.QuickCheck                          as QC hiding ((.&&.))
+import           Test.QuickCheck.Monadic
 import           Test.Tasty
 
-import           Plutus.Contracts.Prism            hiding (credentialManager, mirror)
-import qualified Plutus.Contracts.Prism.Credential as Credential
-import           Plutus.Contracts.Prism.STO        (STOData (..))
-import qualified Plutus.Contracts.Prism.STO        as STO
-import qualified Plutus.Trace.Emulator             as Trace
+import           Plutus.Contracts.Prism                   hiding (credentialManager, mirror)
+import qualified Plutus.Contracts.Prism.Credential        as Credential
+import qualified Plutus.Contracts.Prism.CredentialManager as C
+import qualified Plutus.Contracts.Prism.Mirror            as C
+import           Plutus.Contracts.Prism.STO               (STOData (..))
+import qualified Plutus.Contracts.Prism.STO               as STO
+import qualified Plutus.Contracts.Prism.Unlock            as C
+import qualified Plutus.Trace.Emulator                    as Trace
+import           PlutusTx.Monoid                          (inv)
 
 user, credentialManager, mirror, issuer :: Wallet
 user = Wallet 1
@@ -88,3 +116,108 @@ prismTrace = do
     _ <- Trace.waitNSlots 2 -- needed?
     Trace.callEndpoint @"credential manager" uhandle (Trace.chInstanceId chandle)
     void $ Trace.waitNSlots 2
+
+-- * QuickCheck model
+
+data STOState = STOReady | STOPending | STODone
+    deriving (Eq, Ord, Show)
+
+data IssueState = NoIssue | Revoked | Issued
+    deriving (Eq, Ord, Show)
+
+data PrismModel = PrismModel
+    { _walletState :: Map Wallet (IssueState, STOState)
+    }
+    deriving (Show)
+
+makeLenses 'PrismModel
+
+_fromJust :: Lens' (Maybe a) a
+_fromJust f (Just x) = Just <$> f x
+_fromJust f Nothing  = error "_fromJust: Nothing"
+
+isIssued :: Wallet -> Lens' PrismModel IssueState
+isIssued w = walletState . at w . _fromJust . _1
+
+stoState :: Wallet -> Lens' PrismModel STOState
+stoState w = walletState . at w . _fromJust . _2
+
+doRevoke :: IssueState -> IssueState
+doRevoke NoIssue = NoIssue
+doRevoke Revoked = Revoked
+doRevoke Issued  = Revoked
+
+waitSlots :: Integer
+waitSlots = 2
+
+users :: [Wallet]
+users = [user, Wallet 5]
+
+deriving instance Eq   (ContractInstanceKey PrismModel w s e)
+deriving instance Show (ContractInstanceKey PrismModel w s e)
+
+instance ContractModel PrismModel where
+
+    data Action PrismModel = Delay | Issue Wallet | Revoke Wallet | Call Wallet | Present Wallet
+        deriving (Eq, Show)
+
+    data ContractInstanceKey PrismModel w s e where
+        MirrorH  ::           ContractInstanceKey PrismModel () C.MirrorSchema            C.MirrorError
+        UserH    :: Wallet -> ContractInstanceKey PrismModel () C.STOSubscriberSchema     C.UnlockError
+        ManagerH ::           ContractInstanceKey PrismModel () C.CredentialManagerSchema C.CredentialManagerError
+
+    arbitraryAction _ = QC.oneof [pure Delay, genUser Revoke, genUser Issue,
+                                  genUser Call, genUser Present]
+        where genUser f = f <$> QC.elements users
+
+    initialState = PrismModel { _walletState = Map.fromList [(w, (NoIssue, STOReady)) | w <- users] }
+
+    precondition s (Issue w) = (s ^. contractState . isIssued w) /= Issued  -- Multiple Issue (without Revoke) breaks the contract
+    precondition _ _         = True
+
+    nextState cmd = do
+        wait waitSlots
+        case cmd of
+            Delay     -> wait 1
+            Revoke w  -> isIssued w $~ doRevoke
+            Issue w   -> isIssued w $= Issued
+            Call w    -> stoState w $~ \ case STOReady -> STOPending; sto -> sto
+            Present w -> do
+                iss <- (== Issued)     <$> viewContractState (isIssued w)
+                sto <- (== STOPending) <$> viewContractState (stoState w)
+                stoState w $= STOReady
+                when (iss && sto) $ do
+                    transfer w issuer (Ada.lovelaceValueOf numTokens)
+                    deposit w $ STO.coins stoData numTokens
+                return ()
+
+    perform handle s cmd = case cmd of
+        Delay     -> wrap $ delay 1
+        Issue w   -> wrap $ Trace.callEndpoint @"issue"              (handle MirrorH) CredentialOwnerReference{coTokenName=kyc, coOwner=w}
+        Revoke w  -> wrap $ Trace.callEndpoint @"revoke"             (handle MirrorH) CredentialOwnerReference{coTokenName=kyc, coOwner=w}
+        Call w    -> wrap $ Trace.callEndpoint @"sto"                (handle $ UserH w) stoSubscriber
+        Present w -> wrap $ Trace.callEndpoint @"credential manager" (handle $ UserH w) (Trace.chInstanceId $ handle ManagerH)
+        where                     -- v Wait a generous amount of blocks between calls
+            wrap m   = m *> delay waitSlots
+
+    shrinkAction _ Delay = []
+    shrinkAction _ _     = [Delay]
+
+    monitoring (_, s) _ = counterexample (show s)
+
+delay :: Integer -> Trace.EmulatorTrace ()
+delay n = void $ Trace.waitNSlots $ fromIntegral n
+
+finalPredicate :: ModelState PrismModel -> TracePredicate
+finalPredicate _ =
+    assertNotDone @() @C.STOSubscriberSchema     C.subscribeSTO      (Trace.walletInstanceTag user)              "User stopped"               .&&.
+    assertNotDone @() @C.MirrorSchema            C.mirror            (Trace.walletInstanceTag mirror)            "Mirror stopped"             .&&.
+    assertNotDone @() @C.CredentialManagerSchema C.credentialManager (Trace.walletInstanceTag credentialManager) "Credential manager stopped"
+
+prop_Prism :: Actions PrismModel -> Property
+prop_Prism = propRunActions @PrismModel spec finalPredicate
+    where
+        spec = [ ContractInstanceSpec (UserH w) w                 C.subscribeSTO | w <- users ] ++
+               [ ContractInstanceSpec MirrorH   mirror            C.mirror
+               , ContractInstanceSpec ManagerH  credentialManager C.credentialManager ]
+
