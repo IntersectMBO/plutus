@@ -6,22 +6,44 @@ let
 
   build-ghc-with-plutus = "$(nix-build --quiet --no-build-output -E '(import ./.. {}).plutus.haskell.project.ghcWithPackages(ps: [ ps.plutus-core ps.plutus-tx ps.plutus-contract ps.plutus-ledger ps.playground-common ])')";
 
-  generated-purescript = pkgs.runCommand "plutus-playground-purescript" { } ''
-    mkdir $out
-    ${playground-exe}/bin/plutus-playground-server psgenerator $out
-  '';
+  # Output containing the purescript bridge code
+  # We need to add ghc with dependecies because `psgenerator` needs to invoke ghc to
+  # create test data.
+  generated-purescript =
+    let
+      ghcWithPlutus = haskell.project.ghcWithPackages (ps: [ ps.plutus-core ps.plutus-tx ps.plutus-contract ps.plutus-ledger ps.playground-common ]);
+    in
+    pkgs.runCommand "plutus-playground-purescript" { } ''
+      PATH=${ghcWithPlutus}/bin:$PATH
+      mkdir $out
+      ${playground-exe}/bin/plutus-playground-server psgenerator $out
+    '';
 
-  # For dev usage only
+  # generate-purescript: script to create purescript bridge code
+  #
+  # * Note-1: We need to add ghc to the path because the purescript generator
+  # actually invokes ghc to generate test data so we need ghc with the necessary deps
+  #
+  # * Note-2: This command is supposed to be available in the nix-shell but want
+  # to avoid plutus-core in the shell closure so we do $(nix-build ..) instead
   generate-purescript = pkgs.writeShellScriptBin "plutus-playground-generate-purs" ''
+    GHC_WITH_PKGS=${build-ghc-with-plutus}
+    export PATH=$GHC_WITH_PKGS/bin:$PATH
+
     rm -rf ./generated
     ${build-playground-exe}/bin/plutus-playground-server psgenerator generated
   '';
 
-  # For dev usage only
+  # start-backend: script to start the plutus-playground-server
+  #
+  # Note-1: We need to add ghc to the path because the server provides /runghc
+  # which needs ghc and dependencies.
+  # Note-2: We want to avoid to pull the huge closure in so we use $(nix-build) instead
   start-backend = pkgs.writeShellScriptBin "plutus-playground-server" ''
     echo "plutus-playground-server: for development use only"
     GHC_WITH_PKGS=${build-ghc-with-plutus}
     export PATH=$GHC_WITH_PKGS/bin:$PATH
+
     export FRONTEND_URL=https://localhost:8009
     export WEBGHC_URL=http://localhost:8080
     export GITHUB_CALLBACK_PATH=https://localhost:8009/api/oauth/github/callback
@@ -58,6 +80,6 @@ let
   };
 in
 {
-  inherit client generated-purescript generate-purescript start-backend;
+  inherit client generate-purescript start-backend;
   server = playground-exe;
 }

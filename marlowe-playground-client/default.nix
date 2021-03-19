@@ -6,18 +6,23 @@ let
 
   build-ghc-with-marlowe = "$(nix-build --quiet --no-build-output -E '(import ./.. {}).plutus.haskell.project.ghcWithPackages(ps: [ ps.marlowe ])')";
 
+  # Output containing the purescript bridge code
   generated-purescript = pkgs.runCommand "marlowe-playground-purescript" { } ''
     mkdir $out
     ${playground-exe}/bin/marlowe-playground-server psgenerator $out
   '';
 
-  # For dev usage
+  # generate-purescript: script to create purescript bridge code
   generate-purescript = pkgs.writeShellScriptBin "marlowe-playground-generate-purs" ''
     rm -rf ./generated
     ${build-playground-exe}/bin/marlowe-playground-server psgenerator generated
   '';
 
-  # For dev usage only
+  # start-backend: script to start the plutus-playground-server
+  #
+  # Note-1: We need to add ghc to the path because the server provides /runghc
+  # which needs ghc and dependencies.
+  # Note-2: We want to avoid to pull the huge closure in so we use $(nix-build) instead
   start-backend = pkgs.writeShellScriptBin "marlowe-playground-server" ''
     echo "marlowe-playground-server: for development use only"
     GHC_WITH_PKGS=${build-ghc-with-marlowe}
@@ -56,6 +61,6 @@ let
   };
 in
 {
-  inherit client generated-purescript generate-purescript start-backend;
+  inherit client generate-purescript start-backend;
   server = playground-exe;
 }
