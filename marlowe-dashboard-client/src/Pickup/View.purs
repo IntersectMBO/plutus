@@ -46,19 +46,16 @@ renderPickupCard wallets newWalletNickname newWalletContractId remoteDataPubKey 
   div
     [ classNames $ Css.overlay $ isNothing card ]
     [ div
-        [ classNames Css.cardWrapper ]
-        [ div
-            [ classNames $ Css.card $ isNothing card ]
-            [ a
-                [ classNames [ "absolute", "top-4", "right-4" ]
-                , onClick_ $ SetCard Nothing
-                ]
-                [ icon_ Close ]
-            , div_
-                $ (flip foldMap card) \cardType -> case cardType of
-                    PickupNewWalletCard -> [ pickupNewWalletCard wallets newWalletNickname newWalletContractId remoteDataPubKey ]
-                    PickupWalletCard walletDetails -> [ pickupWalletCard walletDetails ]
+        [ classNames $ Css.card $ isNothing card ]
+        [ a
+            [ classNames [ "absolute", "top-4", "right-4" ]
+            , onClick_ $ SetCard Nothing
             ]
+            [ icon_ Close ]
+        , div_
+            $ (flip foldMap card) \cardType -> case cardType of
+                PickupNewWalletCard -> [ pickupNewWalletCard wallets newWalletNickname newWalletContractId remoteDataPubKey ]
+                PickupWalletCard walletDetails -> [ pickupWalletCard walletDetails ]
         ]
     ]
 
