@@ -5,7 +5,7 @@ module Template.View
   ) where
 
 import Prelude hiding (div)
-import Css (applyWhen, classNames, hideWhen, toggleWhen)
+import Css (applyWhen, classNames, hideWhen)
 import Css as Css
 import Data.Array (mapWithIndex)
 import Data.BigInteger (fromString) as BigInteger
@@ -16,7 +16,7 @@ import Data.Maybe (Maybe(..), fromMaybe, isJust)
 import Data.Set (toUnfoldable) as Set
 import Data.String (null)
 import Data.Tuple.Nested ((/\))
-import Halogen.HTML (HTML, a, br_, button, div, div_, h2, hr, input, label, li, p_, span, span_, text, ul, ul_)
+import Halogen.HTML (HTML, a, br_, button, div, h2, hr, input, label, li, p, p_, span, span_, text, ul, ul_)
 import Halogen.HTML.Events.Extra (onClick_, onValueInput_)
 import Halogen.HTML.Properties (InputType(..), for, id_, list, placeholder, readOnly, type_, value)
 import Marlowe.Extended (Contract, TemplateContent, _valueContent, contractTypeInitials)
@@ -24,7 +24,7 @@ import Marlowe.Extended.Metadata (MetaData)
 import Marlowe.Extended.Template (ContractTemplate)
 import Marlowe.HasParties (getParties)
 import Marlowe.Semantics (Party(..), Slot)
-import Material.Icons as Icon
+import Material.Icons (Icon(..), icon_)
 import Template.Lenses (_contractName, _contractNickname, _extendedContract, _metaData, _roleWallets, _slotContentStrings, _template, _templateContent)
 import Template.Types (Action(..), State)
 import Template.Validation (roleError, roleWalletsAreValid, slotError, templateContentIsValid, valueError)
@@ -52,46 +52,20 @@ contractSetupScreen wallets currentSlot state =
 
     payIsAccessible = termsAreAccessible && templateContentIsValid templateContent slotContentStrings currentSlot
   in
-    -- This screen needs to have sticky subHeaders _and_ have the sections initially beneath
-    -- those subHeaders go to the right of them on larger screens. Since the sticky subHeaders
-    -- need to have the same parent div (or the stickyness doesn't work), the only way I could
-    -- think to do the layout for larger screens was with a grid. However (bear with me)...
-    -- Cells in the same row on a grid are all the same height, which makes the cells containing
-    -- the subHeaders bigger than they need to be, which in turn pushes the subHeaders above
-    -- their sticky top limit when you scroll down. The only solution I could come up with was
-    -- to have _two_ divs next to each other, the first with the subHeaders and the inputs, and
-    -- the second with a _copy_ of the inputs. The second one is hidden on small screens. On
-    -- larger screens, we show the subHeaders from the first and make those inputs _invisible_
-    -- (not hidden) so that they fill the appropriate space and make the subHeaders line up as
-    -- they should.
     div
-      [ classNames [ "grid", "grid-rows-contract-setup", "h-full", "overflow-hidden" ] ]
+      [ classNames [ "grid", "grid-rows-contract-setup", "max-h-full", "overflow-hidden" ] ]
       [ navigationBar contractName
       , contractNicknameDisplay contractName contractNickname
-      , div_ -- the containing grid sets the height of this div
+      , div -- the containing grid sets the height of this div
+          [ classNames [ "px-4", "md:px-5pc" ] ]
           [ div -- and then this fills that height fully
               [ classNames [ "h-full", "overflow-y-auto" ] ]
-              [ div -- and then this div creates the grid (not necessarily full height) on large screens
-                  [ classNames [ "lg:grid", "lg:grid-cols-contract-setup" ] ]
-                  [ div -- this is all we need for small screens
-                      [ classNames [] ]
-                      [ subHeader "top-0" true Icon.roles_ "Roles" true
-                      , roleInputs true wallets extendedContract metaData roleWallets
-                      , subHeader "top-12" true Icon.terms_ "Terms" termsAreAccessible
-                      , parameterInputs true wallets currentSlot metaData templateContent slotContentStrings roleWallets termsAreAccessible
-                      , subHeader "top-24" false Icon.pay_ "Review and pay" payIsAccessible
-                      , reviewAndPay true payIsAccessible metaData
-                      ]
-                  , div -- for medium screens we show the second column
-                      [ classNames [ "hidden", "lg:block" ] ]
-                      [ roleInputs false wallets extendedContract metaData roleWallets
-                      , parameterInputs false wallets currentSlot metaData templateContent slotContentStrings roleWallets termsAreAccessible
-                      , reviewAndPay false payIsAccessible metaData
-                      ]
-                  , div -- for large screens we have an empty third column
-                      [ classNames [ "hidden", "lg:block" ] ]
-                      []
-                  ]
+              [ subHeader "top-0" true Roles "Roles" true
+              , roleInputs wallets extendedContract metaData roleWallets
+              , subHeader "top-10" true Terms "Terms" termsAreAccessible
+              , parameterInputs wallets currentSlot metaData templateContent slotContentStrings roleWallets termsAreAccessible
+              , subHeader "top-20" false Pay "Review and pay" payIsAccessible
+              , reviewAndPay payIsAccessible metaData
               ]
           ]
       ]
@@ -99,13 +73,13 @@ contractSetupScreen wallets currentSlot state =
 navigationBar :: forall p. String -> HTML p Action
 navigationBar contractName =
   div
-    [ classNames [ "flex", "justify-between", "items-center", "px-6", "py-2", "border-b", "border-darkgray" ] ]
+    [ classNames [ "flex", "justify-between", "items-center", "px-4", "py-2", "border-b", "border-gray", "md:px-5pc" ] ]
     [ a
-        -- "-ml-2" shifts things to the left so that the icon lines up properly
-        [ classNames [ "flex", "items-center", "font-semibold", "-ml-2" ]
+        -- "-ml-1" makes the icon line up properly
+        [ classNames [ "flex", "items-center", "font-semibold", "-ml-1" ]
         , onClick_ ToggleTemplateLibraryCard
         ]
-        [ Icon.previous_
+        [ icon_ Previous
         , span_
             [ text "Choose template" ]
         ]
@@ -117,14 +91,13 @@ navigationBar contractName =
 contractNicknameDisplay :: forall p. String -> String -> HTML p Action
 contractNicknameDisplay contractName contractNickname =
   div
-    [ classNames [ "lg:grid", "lg:grid-cols-contract-setup" ] ]
-    [ div [ classNames [ "hidden", "lg:block", "ml-11", "border-l", "border-darkgray" ] ] []
-    , div
-        [ classNames [ "ml-11", "border-l", "border-darkgray", "lg:ml-0", "lg:border-0" ] ]
+    [ classNames [ "px-4", "md:px-5pc" ] ]
+    [ div
+        [ classNames [ "ml-5", "border-l", "border-gray", "pt-2" ] ]
         [ div
-            [ classNames [ "max-w-sm", "lg:w-sm", "mx-auto", "px-6", "pt-4", "pb-2" ] ]
+            [ classNames [ "max-w-sm", "mx-auto", "px-4", "pt-2" ] ]
             [ input
-                [ classNames $ (Css.inputDark $ null contractNickname) <> [ "bg-transparent", "font-semibold" ]
+                [ classNames $ (Css.input $ null contractNickname) <> [ "bg-transparent", "font-semibold" ]
                 , type_ InputText
                 , placeholder "Contract name *"
                 , value contractNickname
@@ -132,30 +105,28 @@ contractNicknameDisplay contractName contractNickname =
                 ]
             ]
         ]
-    , div [ classNames [ "hidden", "lg:block" ] ] []
     ]
 
-subHeader :: forall p. String -> Boolean -> HTML p Action -> String -> Boolean -> HTML p Action
-subHeader topMargin border icon title accessible =
+subHeader :: forall p. String -> Boolean -> Icon -> String -> Boolean -> HTML p Action
+subHeader topMargin border i title accessible =
   div
-    [ classNames $ [ "ml-11", "sticky", "z-10", topMargin, "pb-2", "bg-grayblue" ] <> applyWhen border [ "border-l", "border-darkgray" ] ]
+    [ classNames $ [ "ml-5", "sticky", "z-10", topMargin, "pb-2", "bg-grayblue" ] <> applyWhen border [ "border-l", "border-gray" ] ]
     [ div
         [ classNames [ "flex", "items-center" ] ]
         [ span
-            [ classNames $ Css.iconCircle accessible <> [ "-ml-5" ] ]
-            [ icon ]
+            [ classNames $ Css.iconCircle accessible <> [ "-ml-4" ] ]
+            [ icon_ i ]
         , h2
             [ classNames [ "py-1", "px-2", "text-lg", "font-semibold" ] ]
             [ text title ]
-        , hr [ classNames $ [ "flex-1", "mr-6", "lg:mr-0" ] <> hideWhen (not accessible) ]
+        , hr [ classNames $ [ "flex-1" ] <> hideWhen (not accessible) ]
         ]
     ]
 
-roleInputs :: forall p. Boolean -> WalletLibrary -> Contract -> MetaData -> Map String String -> HTML p Action
-roleInputs forMobile wallets extendedContract metaData roleWallets =
-  subSection forMobile true true
-    [ ul
-        [ classNames [] ]
+roleInputs :: forall p. WalletLibrary -> Contract -> MetaData -> Map String String -> HTML p Action
+roleInputs wallets extendedContract metaData roleWallets =
+  subSection true true
+    [ ul_
         $ mapWithIndex partyInput
         $ Set.toUnfoldable
         $ getParties extendedContract
@@ -163,7 +134,7 @@ roleInputs forMobile wallets extendedContract metaData roleWallets =
   where
   partyInput index (PK pubKey) =
     li
-      [ classNames [ "mb-4", "last:mb-0" ] ]
+      [ classNames [ "mb-2", "last:mb-0" ] ]
       [ label
           [ classNames [ "block", "text-sm" ]
           , for pubKey
@@ -187,7 +158,7 @@ roleInputs forMobile wallets extendedContract metaData roleWallets =
       mRoleError = roleError assigned wallets
     in
       li
-        [ classNames [ "mb-4", "last:mb-0" ] ]
+        [ classNames [ "mb-2", "last:mb-0" ] ]
         [ label
             [ classNames [ "block", "text-sm" ]
             , for tokenName
@@ -201,7 +172,7 @@ roleInputs forMobile wallets extendedContract metaData roleWallets =
         , div
             [ classNames [ "relative" ] ]
             [ input
-                [ classNames $ Css.input (isJust mRoleError) <> [ "shadow", "pr-10" ]
+                [ classNames $ Css.input (isJust mRoleError) <> [ "shadow", "pr-9" ]
                 , id_ tokenName
                 , type_ InputText
                 , list "walletNicknames"
@@ -209,10 +180,10 @@ roleInputs forMobile wallets extendedContract metaData roleWallets =
                 , value assigned
                 ]
             , button
-                [ classNames [ "absolute", "top-3", "right-3" ]
+                [ classNames [ "absolute", "top-4", "right-4" ]
                 , onClick_ $ ToggleCreateWalletCard tokenName
                 ]
-                [ Icon.addCircle_ ]
+                [ icon_ AddCircle ]
             ]
         , div
             [ classNames Css.inputError ]
@@ -222,12 +193,12 @@ roleInputs forMobile wallets extendedContract metaData roleWallets =
         , nicknamesDataList wallets
         ]
 
-parameterInputs :: forall p. Boolean -> WalletLibrary -> Slot -> MetaData -> TemplateContent -> Map String String -> Map String String -> Boolean -> HTML p Action
-parameterInputs forMobile wallets currentSlot metaData templateContent slotContentStrings roleWallets accessible =
+parameterInputs :: forall p. WalletLibrary -> Slot -> MetaData -> TemplateContent -> Map String String -> Map String String -> Boolean -> HTML p Action
+parameterInputs wallets currentSlot metaData templateContent slotContentStrings roleWallets accessible =
   let
     valueContent = view _valueContent templateContent
   in
-    subSection forMobile accessible true
+    subSection accessible true
       [ ul
           [ classNames [ "mb-4" ] ]
           $ mapWithIndex slotInput (Map.toUnfoldable slotContentStrings)
@@ -257,9 +228,7 @@ parameterInputs forMobile wallets currentSlot metaData templateContent slotConte
             [ classNames $ Css.input (isJust mParameterError) <> [ "shadow" ]
             , id_ $ "slot-" <> key
             , type_ InputDatetimeLocal
-            -- FIXME: convert datetime to slot
             , onValueInput_ $ SetSlotContent key
-            -- FIXEME: convert slot to datetime
             , value dateTimeString
             ]
         , div
@@ -301,11 +270,11 @@ parameterInputs forMobile wallets currentSlot metaData templateContent slotConte
                 Nothing -> []
         ]
 
-reviewAndPay :: forall p. Boolean -> Boolean -> MetaData -> HTML p Action
-reviewAndPay forMobile accessible metaData =
-  subSection forMobile accessible false
+reviewAndPay :: forall p. Boolean -> MetaData -> HTML p Action
+reviewAndPay accessible metaData =
+  subSection accessible false
     [ div
-        [ classNames $ [ "mb-4", "bg-white", "p-4", "shadow", "rounded-lg" ] <> applyWhen (not forMobile) [ "mt-2" ] ]
+        [ classNames $ [ "mb-4", "bg-white", "p-4", "shadow", "rounded" ] ]
         [ contractTitle metaData ]
     , div
         [ classNames [ "flex", "justify-end", "mb-4" ] ]
@@ -317,31 +286,25 @@ reviewAndPay forMobile accessible metaData =
         ]
     ]
 
-subSection :: forall p. Boolean -> Boolean -> Boolean -> Array (HTML p Action) -> HTML p Action
-subSection forMobile accessible border content =
+subSection :: forall p. Boolean -> Boolean -> Array (HTML p Action) -> HTML p Action
+subSection accessible border content =
   div
-    [ classNames
-        $ [ "py-2" ]
-        <> toggleWhen forMobile [ "ml-11", "lg:-mr-12" ] [ "mb-2" ]
-        <> applyWhen (forMobile && border) [ "border-l", "border-darkgray" ]
-        <> applyWhen (forMobile && accessible) [ "lg:-mt-10" ]
-    ]
+    [ classNames $ [ "py-2", "ml-5" ] <> applyWhen border [ "border-l", "border-gray" ] <> (hideWhen $ not accessible) ]
     [ div
-        -- hide this div instead of the parent, because we want the parent to always take up
-        -- its alloted space in the grid
-        [ classNames $ [ "max-w-sm", "mx-auto", "px-6" ] <> (hideWhen $ not accessible) <> (applyWhen forMobile [ "lg:invisible" ]) ]
+        [ classNames $ [ "max-w-sm", "mx-auto", "px-4" ] ]
         content
     ]
 
 ------------------------------------------------------------
 templateLibraryCard :: forall p. Array ContractTemplate -> HTML p Action
 templateLibraryCard templates =
-  div [ classNames [ "px-4", "pb-4" ] ]
+  div
+    [ classNames [ "md:px-5pc", "p-4" ] ]
     [ h2
-        [ classNames [ "text-lg", "font-semibold", "mt-2", "mb-4" ] ]
+        [ classNames [ "text-lg", "font-semibold", "mb-4" ] ]
         [ text "Choose a contract template" ]
     , div
-        [ classNames [ "grid", "gap-4", "md:grid-cols-2", "lg:grid-cols-3" ] ]
+        [ classNames [ "grid", "gap-4", "md:grid-cols-2", "xl:grid-cols-3" ] ]
         (templateBox <$> templates)
     ]
   where
@@ -349,15 +312,13 @@ templateLibraryCard templates =
     div
       [ classNames [ "bg-white", "p-4" ] ]
       [ div
-          [ classNames [ "flex", "justify-between", "mb-4" ] ]
+          [ classNames [ "flex", "justify-between", "items-start", "mb-4" ] ]
           [ contractTitle template.metaData
           , button
-              [ classNames Css.primaryButton
+              [ classNames $ Css.primaryButton <> Css.withIcon ArrowRight <> [ "min-w-button" ]
               , onClick_ $ SetTemplate template
               ]
-              [ span [ classNames [ "mr-2" ] ] [ text "Setup" ]
-              , span_ [ Icon.east_ ]
-              ]
+              [ text "Setup" ]
           ]
       , p_
           [ text template.metaData.contractDescription ]
@@ -366,19 +327,21 @@ templateLibraryCard templates =
 contractTitle :: forall p. MetaData -> HTML p Action
 contractTitle metaData =
   div
-    [ classNames [ "flex", "align-top" ] ]
+    [ classNames [ "flex", "items-start", "leading-none", "mr-1" ] ]
     [ span
         [ classNames [ "text-2xl", "font-semibold", "mr-2" ] ]
         [ text $ contractTypeInitials metaData.contractType ]
     , span
-        [ classNames [ "uppercase" ] ]
+        [ classNames [ "text-sm", "pt-1", "uppercase" ] ]
         [ text $ metaData.contractName ]
     ]
 
 contractSetupConfirmationCard :: forall p. HTML p Action
 contractSetupConfirmationCard =
   div [ classNames [ "px-4", "pb-4" ] ]
-    [ p_ [ text "Are you sure?" ]
+    [ p
+        [ classNames [ "mb-4" ] ]
+        [ text "Confirm" ]
     , div
         [ classNames [ "flex" ] ]
         [ button
@@ -390,6 +353,6 @@ contractSetupConfirmationCard =
             [ classNames $ Css.primaryButton <> [ "flex-1" ]
             , onClick_ StartContract
             ]
-            [ text "Pay" ]
+            [ text "Pay and run" ]
         ]
     ]

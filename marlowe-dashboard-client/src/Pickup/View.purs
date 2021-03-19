@@ -11,7 +11,7 @@ import Halogen.HTML.Events.Extra (onClick_, onValueInput_)
 import Halogen.HTML.Properties (InputType(..), disabled, for, href, id_, list, placeholder, readOnly, type_, value)
 import MainFrame.Lenses (_card)
 import Marlowe.Semantics (PubKey)
-import Material.Icons as Icon
+import Material.Icons (Icon(..), icon_)
 import Network.RemoteData (RemoteData)
 import Pickup.Types (Action(..), Card(..), State)
 import Prim.TypeError (class Warn, Text)
@@ -38,20 +38,21 @@ renderPickupState wallets newWalletNickname newWalletContractId remoteDataPubKey
 ------------------------------------------------------------
 renderPickupCard :: forall p. WalletLibrary -> Nickname -> String -> RemoteData AjaxError PubKey -> Maybe Card -> HTML p Action
 renderPickupCard wallets newWalletNickname newWalletContractId remoteDataPubKey card =
+  -- TODO: currently there is only one card rendered at any time, with different content
+  -- depending on the card selected in the state; we should change it so that all the
+  -- cards are rendered, with at most one visible at any time (likewise in Play.State).
+  -- The snag here is that some cards (like the `PickupWalletCard` below) take arguments
+  -- from the current card, so we will either need to remodel or use placeholders.
   div
-    [ classNames $ Css.cardWrapper $ isNothing card ]
+    [ classNames $ Css.overlay $ isNothing card ]
     [ div
-        [ classNames $ Css.card ]
-        [ div
-            [ classNames [ "flex", "justify-end" ] ]
-            [ a
-                [ classNames [ "p-2", "text-green" ]
-                , onClick_ $ SetCard Nothing
-                ]
-                [ Icon.close_ ]
+        [ classNames $ Css.card $ isNothing card ]
+        [ a
+            [ classNames [ "absolute", "top-4", "right-4" ]
+            , onClick_ $ SetCard Nothing
             ]
-        , div
-            [ classNames [ "px-4", "pb-4" ] ]
+            [ icon_ Close ]
+        , div_
             $ (flip foldMap card) \cardType -> case cardType of
                 PickupNewWalletCard -> [ pickupNewWalletCard wallets newWalletNickname newWalletContractId remoteDataPubKey ]
                 PickupWalletCard walletDetails -> [ pickupWalletCard walletDetails ]
@@ -68,7 +69,7 @@ pickupNewWalletCard wallets newWalletNickname newWalletContractId remoteDataPubK
     div_
       [ p
           [ classNames [ "font-bold", "mb-4" ] ]
-          [ text "Play wallet generated" ]
+          [ text "Demo wallet generated" ]
       , div
           [ classNames $ Css.hasNestedLabel <> [ "mb-4" ] ]
           $ [ label
@@ -196,23 +197,23 @@ pickupWalletScreen wallets =
   main
     [ classNames [ "p-4", "max-w-sm", "mx-auto", "text-center" ] ]
     [ h1
-        [ classNames [ "text-4xl", "font-bold", "mb-4" ] ]
+        [ classNames [ "text-3xl", "font-bold", "mb-4" ] ]
         [ text "Marlowe" ]
     , p
         [ classNames [ "mb-4" ] ]
         [ text "To use Marlowe Run, generate a new demo wallet." ]
     , button
-        [ classNames $ Css.primaryButton <> [ "w-full", "mb-4" ]
+        [ classNames $ Css.primaryButton <> [ "w-full", "text-center", "mb-4" ]
         , onClick_ GenerateNewWallet
         ]
-        [ text "Generate play wallet" ]
-    , hr [ classNames [ "mb-4" ] ]
+        [ text "Generate demo wallet" ]
+    , hr [ classNames [ "mb-4", "max-w-xs", "mx-auto" ] ]
     , p
         [ classNames [ "mb-4" ] ]
         [ text "Or use an existing one by selecting from the list or typing a public key or nickname." ]
     , input
         [ type_ InputText
-        , classNames $ Css.input false <> [ "w-full" ]
+        , classNames $ Css.inputCard false
         , id_ "existingWallet"
         , list "walletNicknames"
         , placeholder "Chose or input key/nickname"
@@ -224,7 +225,7 @@ pickupWalletScreen wallets =
 link :: forall p a. String -> String -> HTML p a
 link label url =
   a
-    [ classNames [ "flex", "items-center", "p-2" ]
+    [ classNames [ "flex", "items-center", "p-2", "font-bold" ]
     , href url
     ]
     [ text label ]
