@@ -754,6 +754,8 @@ v-refl A B V (trans—↠E p q) = ⊥-elim (notboth A (V , _ , p))
 ```
 
 ```
+-- this is the first step of the case analysis from the paper proof
+
 -- there's not particular reason why this doesn't take an arbitrary
 -- term instead of E [ M ]
 lemmaE : ∀ (M : ∅ ⊢⋆ J)(E : EvalCtx K J) B
@@ -787,6 +789,9 @@ dissect' (μl E B) with dissect' E
 ... | inj₁ (refl , refl) = inj₂ (-, [] , μ- B)
 ... | inj₂ (_ , E' , f) = inj₂ (-, μl E' B , f)
 
+
+-- this gives part of the case analysis but we need further analysis
+-- of when M is a value
 lemmaE' : ∀ (M : ∅ ⊢⋆ J)(E : EvalCtx K J) B
   → closeEvalCtx E M —→E B
   → ∃ λ J' → ∃ λ (E' : EvalCtx K J') → ∃ λ (L : ∅ ⊢⋆ J') → ∃ λ N → (L —→⋆ N)
@@ -802,7 +807,7 @@ lemmaE' M E B p with lemma51! (closeEvalCtx E M)
 
 
 --if E [ M ] and Value M then E ≡ E' [ λ N ·- ] or E ≡ E' [ -· K ]
-
+{-
 lemmaE'' : ∀ (M : ∅ ⊢⋆ J)(E : EvalCtx K J) B
   → closeEvalCtx E M —→E B
   → ∃ λ J' → ∃ λ (E' : EvalCtx K J') → ∃ λ (L : ∅ ⊢⋆ J') → ∃ λ N → (L —→⋆ N)
@@ -818,6 +823,7 @@ lemmaE'' M E B p with lemma51! (closeEvalCtx E M)
 lemmaE'' M E B p | inj₂ (¬VA , J' , E' , I , L , N , VL , VN , q , X) | inj₁ VM with dissect' E | inspect dissect' E
 lemmaE'' M .[] B p | inj₂ (¬VA , J' , E' , I , L , N , VL , VN , q , X) | inj₁ VM | inj₁ (refl , refl) | _ = ⊥-elim (¬VA VM)
 lemmaE'' M E B p | inj₂ (¬VA , J' , E' , I , L , N , VL , VN , q , X) | inj₁ VM | inj₂ (I' , E'' , F) | blah eq = {!!}
+-}
 -- if M is a value then we should immediately put it into action,
 -- we want that E decomposes to a E' and an application frame, if E = [] we would get a contradiction I think
 
@@ -826,23 +832,66 @@ J' , E' , ƛ L · N , (L [ N ]) , β-ƛ VN , q , sym (det p (contextRule E' (β-
 
 -- TODO: an attempt to get the remaining bits of the case analysis
 -- note: things refering to L · N can also refer to an L -→⋆
+{-
 lemmaBlah : ∀ (M : ∅ ⊢⋆ J)(E : EvalCtx K J)(E' : EvalCtx K J')
     (L : ∅ ⊢⋆ I ⇒ J') N
   → Value⋆ M → (VL : Value⋆ L) → Value⋆ N
   → closeEvalCtx E M ≡ closeEvalCtx E' (L · N)
   → (∃ λ (p : I ≡ J) → E ≡ extendEvalCtx E' (subst (Frame J') p (VL ·-))) ⊎ ∃ λ (p : I ⇒ J' ≡ J) → ∃ λ N' → ∃ λ E'' → E ≡ extendEvalCtx E'' (subst (Frame J') p (-· N')) × ∃ λ E''' → N' ≡ closeEvalCtx E''' (L · N)
-lemmaBlah M [] E' L N VM VL VN p = ⊥-elim (lemE· E' (subst Value⋆ p VM))
-lemmaBlah M (x ·r E) [] L N VM VL VN p = {!!}
-lemmaBlah M (x ·r E) (x₁ ·r E') L N VM VL VN p = {!!} -- rec call 
-lemmaBlah M (x ·r E) (E' l· x₁) L N VM VL VN p = {!!} -- impossible
-lemmaBlah M (E l· x) [] L N VM VL VN p = {!!}  -- maybe impossible, if we also have E [ M ] is not a value
-lemmaBlah M (E l· x) (x₁ ·r E') L N VM VL VN p = {!!} -- same again
-lemmaBlah M (E l· x) (E' l· x₁) L N VM VL VN p = {!lemmaBlah M E ? L N VM VL VN!} -- rec call
-lemmaBlah M (x ⇒r E) (x₁ ⇒r E') L N VM VL VN p = {!!} -- rec call
-lemmaBlah M (x ⇒r E) (E' l⇒ x₁) L N VM VL VN p = {!!} -- impossible
-lemmaBlah M (E l⇒ x) (x₁ ⇒r E') L N VM VL VN p = {!!} -- impossible
-lemmaBlah M (E l⇒ x) (E' l⇒ x₁) L N VM VL VN p = {!!}
-lemmaBlah M (μr x E) (μr x₁ E') L N VM VL VN p = {!!}
-lemmaBlah M (μr x E) (μl E' B) L N VM VL VN p = {!!}
-lemmaBlah M (μl E B) (μr x E') L N VM VL VN p = {!!}
-lemmaBlah M (μl E B) (μl E' B₁) L N VM VL VN p = {!!}
+lemmaBlah M E E' L N VM VL VN p with dissect' E | inspect dissect' E
+... | inj₁ (refl , refl) | _ = ⊥-elim (lemE· E' (subst Value⋆ p VM))
+... | inj₂ (E'' , F) | blah eq = {!lemma51!}
+-}
+--lemmaBlah M [] E' L N VM VL VN p = ⊥-elim (lemE· E' (subst Value⋆ p VM))
+
+{-
+what do we know?
+we know M is a value, so it must be inside L . N
+L . N cannot be inside a value
+
+how do you say M is inside L . N
+we also know that E [ M ] == E' [ L . N ]
+L . N is 'the' redex, 
+
+so, there must be a E == E' [ E'' ]
+
+we cannot just say if E M ≡ E' M' then either M is inside M' or M' is inside M, as if ther whole thing is a value then they could be anywhere, however if the whole thing is not a value, then perhaps we can...
+
+perhaps I'll try to prove that
+
+-}
+
+dissect-lemma : ∀ (E : EvalCtx K J)(E' : EvalCtx K J') F → dissect' E ≡ inj₂ (_ , E' , F) -> E ≡ extendEvalCtx E' F
+dissect-lemma (x ·r E) E' F p with dissect' E | inspect dissect' E
+dissect-lemma (x ·r .[]) .[] .(x ·-) refl | inj₁ (refl , refl) | _ = refl
+dissect-lemma (x ·r E) .(x ·r E'') .F' refl | inj₂ (I , E'' , F') | blah eq = cong (_ ·r_) (dissect-lemma E E'' F' eq)
+dissect-lemma (E l· x) E' F p with dissect' E | inspect dissect' E
+dissect-lemma (.[] l· x) .[] .(-· x) refl | inj₁ (refl , refl) | _ = refl
+dissect-lemma (E l· x) .(E'' l· x) .F' refl | inj₂ (I , E'' , F') | blah eq = cong (_l· _) (dissect-lemma E E'' F' eq)
+dissect-lemma (x ⇒r E) E' F p with dissect' E | inspect dissect' E
+dissect-lemma (x ⇒r .[]) .[] .(x ⇒-) refl | inj₁ (refl , refl) | _ = refl
+dissect-lemma (x ⇒r E) .(x ⇒r E'') .F' refl | inj₂ (I , E'' , F') | blah eq = cong (_ ⇒r_) (dissect-lemma E E'' F' eq)
+dissect-lemma (E l⇒ x) E' F p with dissect' E | inspect dissect' E
+dissect-lemma (.[] l⇒ x) .[] .(-⇒ x) refl | inj₁ (refl , refl) | _ = refl
+dissect-lemma (E l⇒ x) .(E'' l⇒ x) .F' refl | inj₂ (I , E'' , F') | blah eq = cong (_l⇒ _) (dissect-lemma E E'' F' eq)
+dissect-lemma (μr x E) E' F p with dissect' E | inspect dissect' E
+dissect-lemma (μr x .[]) .[] .(μ x -) refl | inj₁ (refl , refl) | r = refl
+dissect-lemma (μr x E) .(μr x E'') .F' refl | inj₂ (I , E'' , F') | blah eq = cong (μr _) (dissect-lemma E E'' F' eq)
+dissect-lemma (μl E B) E' F p with dissect' E | inspect dissect' E
+dissect-lemma (μl .[] B) .[] .(μ- B) refl | inj₁ (refl , refl) | r = refl
+dissect-lemma (μl E B) .(μl E'' B) .F' refl | inj₂ (I , E'' , F') | blah eq = cong (λ E → μl E B) (dissect-lemma E E'' F' eq)
+
+lemmaX : ∀ (M : ∅ ⊢⋆ J)(E : EvalCtx K J)(E' : EvalCtx K J')
+    (L : ∅ ⊢⋆ I ⇒ J') N
+  → Value⋆ M → (VL : Value⋆ L) → Value⋆ N
+  → closeEvalCtx E M ≡ closeEvalCtx E' (L · N)
+  → ∃ λ (E'' : EvalCtx J' J) → E ≡ compEvalCtx E' E''
+lemmaX M E E' L N VM VL VN p with dissect' E | inspect dissect' E
+... | inj₁ x         | _ = {!!}
+... | inj₂ (fst , y) | blah eq = {!!}
+  where
+  -- it's impossible that the whole thing is a value
+  X : ¬ (Value⋆ (closeEvalCtx E' (L · N)))
+  X = lemE· E'
+  X' : ¬ (Value⋆ (closeEvalCtx E M))
+  X' = subst (λ M → ¬ (Value⋆ M)) (sym p) X 
