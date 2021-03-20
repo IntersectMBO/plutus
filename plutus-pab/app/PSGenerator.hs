@@ -129,7 +129,6 @@ myTypes =
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @(AnnotatedSignature A))
 
     -- * Web API types
-    , (genericShow <*> mkSumType) (Proxy @API.WalletInfo)
     , (genericShow <*> mkSumType) (Proxy @(API.ContractActivationArgs A))
     , (genericShow <*> mkSumType) (Proxy @API.ContractInstanceClientState)
     , (genericShow <*> mkSumType) (Proxy @API.InstanceStatusToClient)

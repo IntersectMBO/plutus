@@ -10,7 +10,6 @@ module Plutus.PAB.Webserver.API
     -- * New API that will eventually replace 'API'
     , NewAPI
     , ContractActivationArgs(..)
-    , WalletInfo(..)
     , ContractInstanceClientState(..)
     , InstanceStatusToClient(..)
     , CombinedWSStreamToClient(..)
@@ -41,16 +40,11 @@ type API t
 
 type WSAPI = "ws" :> WebSocketPending
 
--- | Describes the wallet that should be used for the contract instance. 'Wallet' is a placeholder, we probably need a URL or some other data.
-newtype WalletInfo = WalletInfo { unWalletInfo :: Wallet }
-    deriving stock (Eq, Show, Generic)
-    deriving anyclass (JSON.ToJSON, JSON.FromJSON)
-
 -- | Data needed to start a new instance of a contract.
 data ContractActivationArgs t =
     ContractActivationArgs
         { caID     :: t -- ^ ID of the contract
-        , caWallet :: WalletInfo -- ^ Wallet that should be used for this instance
+        , caWallet :: Wallet -- ^ Wallet that should be used for this instance
         }
     deriving stock (Eq, Show, Generic)
     deriving anyclass (JSON.ToJSON, JSON.FromJSON)

@@ -39,8 +39,7 @@ import qualified Plutus.PAB.Effects.Contract             as Contract
 import           Plutus.PAB.Events.Contract              (ContractPABRequest, _UserEndpointRequest)
 import           Plutus.PAB.Events.ContractInstanceState (PartiallyDecodedResponse (..))
 import           Plutus.PAB.Types
-import           Plutus.PAB.Webserver.API                (ContractActivationArgs (..), ContractInstanceClientState (..),
-                                                          WalletInfo (..))
+import           Plutus.PAB.Webserver.API                (ContractActivationArgs (..), ContractInstanceClientState (..))
 import           Plutus.PAB.Webserver.Types
 import qualified Plutus.PAB.Webserver.WebSocket          as WS
 import           Servant                                 ((:<|>) ((:<|>)))
@@ -61,7 +60,7 @@ handlerOld ::
 handlerOld =
     healthcheck
         :<|> (getFullReport
-            :<|> (\def -> activateContract ContractActivationArgs{caID=def, caWallet=WalletInfo{unWalletInfo=Wallet 1}}) -- TODO: Delete "contract/activate" route without wallet argument
+            :<|> (\def -> activateContract ContractActivationArgs{caID=def, caWallet=Wallet 1}) -- TODO: Delete "contract/activate" route without wallet argument
             :<|> byContractInstanceId
         )
     where
@@ -131,8 +130,8 @@ fromInternalState i resp =
 -- HANDLERS
 
 activateContract :: forall t env. Contract.PABContract t => ContractActivationArgs (Contract.ContractDef t) -> PABAction t env ContractInstanceId
-activateContract ContractActivationArgs{caID, caWallet=WalletInfo{unWalletInfo=wallet}} = do
-    Core.activateContract wallet caID
+activateContract ContractActivationArgs{caID, caWallet} = do
+    Core.activateContract caWallet caID
 
 contractInstanceState :: forall t env. Contract.PABContract t => ContractInstanceId -> PABAction t env ContractInstanceClientState
 contractInstanceState i = fromInternalState i . Contract.serialisableState (Proxy @t) <$> Contract.getState @t i
