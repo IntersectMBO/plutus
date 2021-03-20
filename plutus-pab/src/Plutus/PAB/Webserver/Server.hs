@@ -53,7 +53,6 @@ type CombinedAPI t =
       API (Contract.ContractDef t)
       :<|> WSAPI
       :<|> NewAPI (Contract.ContractDef t)
-      -- :<|> Raw
 
 app ::
     forall t env.
@@ -71,7 +70,7 @@ app fp pabRunner = do
             Servant.hoistServer
                 (Proxy @(CombinedAPI t))
                 (asHandler pabRunner)
-                (handlerOld :<|> WS.combinedWebsocket :<|> handlerNew) -- :<|> fileServer)
+                (handlerOld :<|> WS.combinedWebsocket :<|> handlerNew)
 
     case fp of
         Nothing -> do

@@ -65,7 +65,12 @@ module Plutus.PAB.Core
     , activeContracts
     , finalResult
     , waitUntilFinished
-    , userEnv
+    , blockchainEnv
+    , valueAtSTM
+    , valueAt
+    , askUserEnv
+    , askBlockchainEnv
+    , askInstancesState
     -- * Run PAB effects in separate threads
     , PABRunner(..)
     , pabRunner
@@ -101,7 +106,7 @@ import           Data.Text.Prettyprint.Doc                       (Pretty, colon,
 import qualified Data.Text.Prettyprint.Doc.Render.Text           as Render
 import           GHC.Generics                                    (Generic)
 import           Plutus.Contract.Effects.ExposeEndpoint (ActiveEndpoint (..))
-import           Ledger.Tx                                       (Tx)
+import           Ledger.Tx                                       (Address, Tx)
 import           Ledger.Value                                    (Value)
 import           Plutus.PAB.Core.ContractInstance                (ContractInstanceMsg)
 import qualified Plutus.PAB.Core.ContractInstance                as ContractInstance
@@ -487,14 +492,32 @@ finalResult instanceId = do
     instancesState <- asks @(PABEnvironment t env) instancesState
     pure $ Instances.finalResult instanceId instancesState
 
+-- | An STM transaction returning the value at an address
+valueAtSTM :: forall t env. Address -> PABAction t env (STM Value)
+valueAtSTM address = do
+    blockchainEnv <- asks @(PABEnvironment t env) blockchainEnv
+    return $ Instances.valueAt address blockchainEnv
+
+-- | The value at an address
+valueAt :: forall t env. Address -> PABAction t env Value
+valueAt address = valueAtSTM address >>= liftIO . STM.atomically
+
 -- | Wait until the contract is done, then return
 --   the error (if any)
 waitUntilFinished :: forall t env. ContractInstanceId -> PABAction t env (Maybe JSON.Value)
 waitUntilFinished i = finalResult i >>= liftIO . STM.atomically
 
 -- | Read the 'env' from the environment
-userEnv :: forall t env effs. Member (Reader (PABEnvironment t env)) effs => Eff effs env
-userEnv = interpret (handleUserEnvReader @t @env) ask
+askUserEnv :: forall t env effs. Member (Reader (PABEnvironment t env)) effs => Eff effs env
+askUserEnv = interpret (handleUserEnvReader @t @env) ask
+
+-- | Read the 'BlockchainEnv' from the environment
+askBlockchainEnv :: forall t env effs. Member (Reader (PABEnvironment t env)) effs => Eff effs BlockchainEnv
+askBlockchainEnv = interpret (handleBlockchainEnvReader @t @env) ask
+
+-- | Read the 'InstancesState' from the environment
+askInstancesState :: forall t env effs. Member (Reader (PABEnvironment t env)) effs => Eff effs InstancesState
+askInstancesState = interpret (handleInstancesStateReader @t @env) ask
 
 handleMappedReader :: forall f g effs.
     Member (Reader f) effs

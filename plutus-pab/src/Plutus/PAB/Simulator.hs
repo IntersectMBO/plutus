@@ -174,7 +174,7 @@ simulatorHandlers =
                 Contract.AddDefinition _ -> pure () -- not supported
                 Contract.GetDefinitions  -> pure [Game, Currency, AtomicSwap]
         , onStartup = do
-            SimulatorState{_logMessages} <- Core.userEnv @TestContracts @(SimulatorState TestContracts)
+            SimulatorState{_logMessages} <- Core.askUserEnv @TestContracts @(SimulatorState TestContracts)
             void $ liftIO $ forkIO (printLogMessages _logMessages)
             Core.PABRunner{Core.runPABAction} <- Core.pabRunner
             void
@@ -547,18 +547,18 @@ handleContractStore ::
     ~> Eff effs
 handleContractStore = \case
     Contract.PutState def instanceId state -> do
-        instancesTVar <- view instances <$> (Core.userEnv @t @(SimulatorState t))
+        instancesTVar <- view instances <$> (Core.askUserEnv @t @(SimulatorState t))
         liftIO $ STM.atomically $ do
             let instState = SimulatorContractInstanceState{_contractDef = def, _contractState = state}
             STM.modifyTVar instancesTVar (set (at instanceId) (Just instState))
     Contract.GetState instanceId -> do
-        instancesTVar <- view instances <$> (Core.userEnv @t @(SimulatorState t))
+        instancesTVar <- view instances <$> (Core.askUserEnv @t @(SimulatorState t))
         result <- preview (at instanceId . _Just . contractState) <$> liftIO (STM.readTVarIO instancesTVar)
         case result of
             Just s  -> pure s
             Nothing -> throwError (ContractInstanceNotFound instanceId)
     Contract.ActiveContracts -> do
-        instancesTVar <- view instances <$> (Core.userEnv @t @(SimulatorState t))
+        instancesTVar <- view instances <$> (Core.askUserEnv @t @(SimulatorState t))
         fmap _contractDef <$> liftIO (STM.readTVarIO instancesTVar)
 
 render :: forall a. Pretty a => a -> Text
@@ -580,7 +580,7 @@ makeLenses ''TxCounts
 -- | Get the 'TxCounts' of the emulated blockchain
 txCounts :: forall t. Simulation t TxCounts
 txCounts = do
-    SimulatorState{_chainState} <- Core.userEnv @t @(SimulatorState t)
+    SimulatorState{_chainState} <- Core.askUserEnv @t @(SimulatorState t)
     Chain.ChainState{Chain._chainNewestFirst, Chain._txPool} <- liftIO $ STM.readTVarIO _chainState
     return
         $ TxCounts
@@ -595,7 +595,7 @@ activeContracts = Core.activeContracts
 -- | The total value currently at an address
 valueAtSTM :: forall t. Address -> Simulation t (STM Value)
 valueAtSTM address = do
-    SimulatorState{_chainState} <- Core.userEnv @t @(SimulatorState t)
+    SimulatorState{_chainState} <- Core.askUserEnv @t @(SimulatorState t)
     pure $ do
         Chain.ChainState{Chain._index=UtxoIndex.UtxoIndex mp} <- STM.readTVar _chainState
         pure $ foldMap txOutValue $ filter (\TxOut{txOutAddress} -> txOutAddress == address) $ fmap snd $ Map.toList mp
@@ -609,6 +609,6 @@ valueAt address = do
 -- | The entire chain (newest transactions first)
 blockchain :: forall t. Simulation t [[Tx]]
 blockchain = do
-    SimulatorState{_chainState} <- Core.userEnv @t @(SimulatorState t)
+    SimulatorState{_chainState} <- Core.askUserEnv @t @(SimulatorState t)
     Chain.ChainState{Chain._chainNewestFirst} <- liftIO $ STM.readTVarIO _chainState
     pure _chainNewestFirst

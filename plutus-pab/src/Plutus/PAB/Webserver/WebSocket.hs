@@ -1,6 +1,7 @@
 {-# LANGUAGE DataKinds           #-}
 {-# LANGUAGE FlexibleContexts    #-}
 {-# LANGUAGE GADTs               #-}
+{-# LANGUAGE InstanceSigs        #-}
 {-# LANGUAGE KindSignatures      #-}
 {-# LANGUAGE NamedFieldPuns      #-}
 {-# LANGUAGE OverloadedStrings   #-}
@@ -18,29 +19,41 @@ module Plutus.PAB.Webserver.WebSocket
     , getContractReport
     ) where
 
-import           Control.Applicative                  (Alternative (..))
-import           Control.Concurrent.STM               (STM)
-import qualified Control.Concurrent.STM               as STM
-import           Control.Exception                    (SomeException, handle)
-import           Control.Monad                        (guard)
-import           Control.Monad.IO.Class               (liftIO)
-import           Data.Aeson                           (ToJSON)
-import qualified Data.Aeson                           as JSON
-import           Data.Map                             as Map
-import           Data.Proxy                           (Proxy (..))
-import           Data.Set                             (Set)
-import qualified Data.Set                             as Set
-import qualified Network.WebSockets                   as WS
-import           Network.WebSockets.Connection        (Connection, PendingConnection)
-import           Plutus.PAB.Core                      (PABAction)
-import qualified Plutus.PAB.Core                      as Core
-import           Plutus.PAB.Core.ContractInstance.STM (OpenEndpoint (..))
-import qualified Plutus.PAB.Effects.Contract          as Contract
-import           Plutus.PAB.Webserver.API             (CombinedWSStreamToClient (..), InstanceStatusToClient (..))
-import           Plutus.PAB.Webserver.Types           (ContractReport (..), ContractSignatureResponse (..))
-import           Wallet.Emulator.Wallet               (Wallet)
-import           Wallet.Types                         (ContractInstanceId (..))
-
+import           Control.Applicative                             (Alternative (..), Applicative (..))
+import           Control.Concurrent.Async                        (Async, async, waitAnyCancel)
+import           Control.Concurrent.STM                          (STM)
+import qualified Control.Concurrent.STM                          as STM
+import           Control.Exception                               (SomeException, handle)
+import           Control.Monad                                   (forever, guard, void)
+import           Control.Monad.IO.Class                          (liftIO)
+import           Data.Aeson                                      (ToJSON)
+import qualified Data.Aeson                                      as JSON
+import           Data.Bifunctor                                  (Bifunctor (..))
+import           Data.Foldable                                   (fold, traverse_)
+import qualified Data.Map                                        as Map
+import           Data.Proxy                                      (Proxy (..))
+import           Data.Set                                        (Set)
+import qualified Data.Set                                        as Set
+import           Data.Text                                       (Text)
+import qualified Data.Text                                       as Text
+import           Plutus.Contract.Effects.ExposeEndpoint (ActiveEndpoint (..))
+import qualified Ledger
+import           Ledger.Slot                                     (Slot)
+import qualified Network.WebSockets                              as WS
+import           Network.WebSockets.Connection                   (Connection, PendingConnection)
+import           Plutus.PAB.Core                                 (PABAction)
+import qualified Plutus.PAB.Core                                 as Core
+import           Plutus.PAB.Core.ContractInstance.STM            (BlockchainEnv, InstancesState, OpenEndpoint (..))
+import qualified Plutus.PAB.Core.ContractInstance.STM            as Instances
+import qualified Plutus.PAB.Effects.Contract                     as Contract
+import           Plutus.PAB.Types                                (PABError)
+import           Plutus.PAB.Webserver.API                        (CombinedWSStreamToClient (..),
+                                                                  CombinedWSStreamToServer (..),
+                                                                  InstanceStatusToClient (..))
+import           Plutus.PAB.Webserver.Types                      (ContractReport (..), ContractSignatureResponse (..))
+import           Wallet.Emulator.Wallet                          (Wallet)
+import qualified Wallet.Emulator.Wallet                          as Wallet
+import           Wallet.Types                                    (ContractInstanceId (..))
 
 getContractReport :: forall t env. Contract.PABContract t => PABAction t env (ContractReport (Contract.ContractDef t))
 getContractReport = do
@@ -53,32 +66,72 @@ getContractReport = do
     crActiveContractStates <- traverse (\i -> Contract.getState @t i >>= \s -> pure (i, Contract.serialisableState (Proxy @t) s)) activeContractIDs
     pure ContractReport {crAvailableContracts, crActiveContractStates}
 
--- | An STM stream of 'a's
-data STMStream a =
-    STMStream
-        { iuUpdate :: a
-        , iuNext   :: Maybe (STM (STMStream a))
-        }
-        deriving Functor
+-- | An STM stream of 'a's (poor man's FRP)
+newtype STMStream a = STMStream{ unSTMStream :: STM (a, Maybe (STMStream a)) }
+    deriving Functor
 
-type CombinedUpdate = STMStream CombinedWSStreamToClient
+-- | Join a stream of streams by producing values from the latest stream only.
+joinStream :: STMStream (STMStream a) -> STMStream a
+joinStream STMStream{unSTMStream} = STMStream $ unSTMStream >>= go where
 
-combinedUpdates :: forall t env. PABAction t env (STM CombinedUpdate)
-combinedUpdates = do
-    getSlot <- Core.currentSlot
-    initialSlot <- liftIO $ STM.atomically getSlot
-    let nextSlot currentSlot = do
-            s <- getSlot
-            guard (s > currentSlot)
-            pure s
+    go :: (STMStream a, Maybe (STMStream (STMStream a))) -> STM (a, Maybe (STMStream a))
+    go (STMStream currentStream, Nothing) = currentStream
+    go (STMStream currentStream, Just (STMStream nextStream)) = do
+        vl <- fmap Left currentStream <|> fmap Right nextStream
+        case vl of
+            Left (a, Just currentStream') -> pure (a, Just $ STMStream $ go (currentStream', Just (STMStream nextStream)))
+            Left (a, Nothing) -> pure (a, Just $ joinStream $ STMStream nextStream)
+            Right (newStream, Just nextStream') -> go (newStream, Just nextStream')
+            Right (newStream, Nothing) -> go (newStream, Nothing)
 
-        go currentSlot = do
-            update' <- SlotChange <$> nextSlot currentSlot
-            let next = case update' of
-                    SlotChange c' -> Just (go c')
-                    _             -> Nothing -- FIXME
-            pure STMStream{iuUpdate=update', iuNext=next}
-    pure $ go initialSlot
+singleton :: STM a -> STMStream a
+singleton = STMStream . fmap (\a -> (a, Nothing))
+
+instance Applicative STMStream where
+    pure = singleton . pure
+    -- | Updates when one of the two sides updates
+    liftA2 :: forall a b c. (a -> b -> c) -> STMStream a -> STMStream b -> STMStream c
+    liftA2 f (STMStream l) (STMStream r) = STMStream $ do
+        x <- (,) <$> l <*> r
+        let go :: ((a, Maybe (STMStream a)), (b, Maybe (STMStream b))) -> STM (c, Maybe (STMStream c))
+
+            go ((currentL, Just (STMStream restL)), (currentR, Just (STMStream restR))) = do
+                let next = do
+                        v <- fmap Left restL <|> fmap Right restR
+                        case v of
+                            Left (newL, restL')  -> go ((newL, restL'), (currentR, Just $ STMStream restR))
+                            Right (newR, restR') -> go ((currentL, Just $ STMStream restL), (newR, restR'))
+                pure (f currentL currentR, Just $ STMStream next)
+            go ((currentL, _), (currentR, _)) = pure (f currentL currentR, Nothing)
+        go x
+
+instance Monad STMStream where
+    x >>= f = joinStream (f <$> x)
+
+instance Semigroup (STMStream a) where
+    (STMStream l) <> (STMStream r) =
+        STMStream $ do
+            next <- fmap Left l <|> fmap Right r
+            case next of
+                Left (v, k)  -> pure (v, k <> Just (STMStream r))
+                Right (v, k) -> pure (v, Just (STMStream l) <> k)
+
+instance Monoid (STMStream a) where
+    mappend = (<>)
+    mempty = STMStream STM.retry
+
+unfold :: Eq a => STM a -> STMStream a
+unfold tx = STMStream $ go Nothing where
+    go lastVl = do
+        next <- tx
+        traverse_ (\last -> guard (last /= next)) lastVl
+        pure (next, Just $ STMStream $ go (Just next))
+
+combinedUpdates :: forall t env. WSState -> PABAction t env (STMStream CombinedWSStreamToClient)
+combinedUpdates wsState =
+    combinedWSStreamToClient wsState
+        <$> (Core.askBlockchainEnv @t @env)
+        <*> (Core.askInstancesState @t @env)
 
 -- | The subscriptions for a websocket (wallet funds and contract instance notifications)
 data WSState = WSState
@@ -86,49 +139,71 @@ data WSState = WSState
     , wsWallets   :: STM.TVar (Set Wallet) -- ^ Wallets whose funds we are watching
     }
 
+instancesAndWallets :: WSState -> STMStream (Set ContractInstanceId, Set Wallet)
+instancesAndWallets WSState{wsInstances, wsWallets} =
+    (,) <$> unfold (STM.readTVar wsInstances) <*> unfold (STM.readTVar wsWallets)
+
+combinedWSStreamToClient :: WSState -> BlockchainEnv -> InstancesState -> STMStream CombinedWSStreamToClient
+combinedWSStreamToClient wsState blockchainEnv instancesState = do
+    (instances, wallets) <- instancesAndWallets wsState
+    let mkWalletStream wallet = WalletFundsChange wallet <$> walletFundsChange wallet blockchainEnv
+        mkInstanceStream instanceId = InstanceUpdate instanceId <$> instanceUpdates instanceId instancesState
+    fold
+        [ SlotChange <$> slotChange blockchainEnv
+        , foldMap mkWalletStream wallets
+        , foldMap mkInstanceStream instances
+        ]
+
 initialWSState :: STM WSState
 initialWSState = WSState <$> STM.newTVar mempty <*> STM.newTVar mempty
 
+slotChange :: BlockchainEnv -> (STMStream Slot)
+slotChange = unfold . Instances.currentSlot
 
--- | An STM stream of 'InstanceStatusToClient' updates
-type InstanceUpdate = STMStream InstanceStatusToClient
+walletFundsChange :: Wallet -> BlockchainEnv -> STMStream Ledger.Value
+walletFundsChange wallet blockchainEnv =
+    let addr = Wallet.walletAddress wallet in
+    unfold (Instances.valueAt addr blockchainEnv)
+
+observableStateChange :: ContractInstanceId -> InstancesState -> STMStream JSON.Value
+observableStateChange contractInstanceId instancesState =
+    unfold (Instances.obervableContractState contractInstanceId instancesState)
+
+openEndpoints :: ContractInstanceId -> InstancesState -> STMStream [ActiveEndpoint]
+openEndpoints contractInstanceId instancesState = STMStream $ do
+    instanceState <- Instances.instanceState contractInstanceId instancesState
+    let tx = fmap (oepName . snd) . Map.toList <$> Instances.openEndpoints instanceState
+    first <- tx
+    pure (first, Just (unfold tx))
+
+finalValue :: ContractInstanceId -> InstancesState -> STMStream (Maybe JSON.Value)
+finalValue contractInstanceId instancesState =
+    singleton $ Instances.finalResult contractInstanceId instancesState
 
 -- | Get a stream of instance updates for a given instance ID
-instanceUpdates :: forall t env. ContractInstanceId -> PABAction t env (STM InstanceUpdate)
-instanceUpdates instanceId = do
-    (getState, getEndpoints, finalValue) <- (,,) <$> Core.observableState instanceId <*> fmap (fmap (fmap oepName)) (Core.activeEndpoints instanceId) <*> Core.finalResult instanceId
-    (initialState, initialEndpoints) <- liftIO $ STM.atomically $ (,) <$> getState <*> getEndpoints
-    let nextState oldState = do
-            newState <- getState
-            guard $ newState /= oldState
-            pure newState
-
-        nextEndpoints oldEndpoints = do
-            newEndpoints <- getEndpoints
-            guard $ newEndpoints /= oldEndpoints
-            pure newEndpoints
-
-        go currentState currentEndpoints = do
-            update' <- (NewObservableState <$> nextState currentState) <|> (NewActiveEndpoints <$> nextEndpoints currentEndpoints) <|> (ContractFinished <$> finalValue)
-            let next = case update' of
-                        NewObservableState newState -> Just $ go newState currentEndpoints
-                        NewActiveEndpoints eps      -> Just $ go currentState eps
-                        ContractFinished _          -> Nothing
-            pure STMStream{iuUpdate = update', iuNext = next}
-    pure $ go initialState initialEndpoints
+instanceUpdates :: forall t env. ContractInstanceId -> InstancesState -> STMStream InstanceStatusToClient
+instanceUpdates instanceId instancesState =
+    fold
+        [ NewObservableState <$> observableStateChange instanceId instancesState
+        , NewActiveEndpoints <$> openEndpoints instanceId instancesState
+        , ContractFinished   <$> finalValue instanceId instancesState
+        ]
 
 -- | Send all updates from an 'STMStream' to a websocket until it finishes.
 streamToWebsocket :: forall t env a. ToJSON a => Connection -> STMStream a -> PABAction t env ()
 streamToWebsocket connection stream = do
-    let go STMStream{iuUpdate, iuNext} = do
-            liftIO $ WS.sendTextData connection $ JSON.encode iuUpdate
-            case iuNext of
+    let go STMStream{unSTMStream} = do
+            (event, next) <- liftIO $ STM.atomically unSTMStream
+            liftIO $ WS.sendTextData connection $ JSON.encode event
+            case next of
                 Nothing -> pure ()
-                Just n  -> liftIO (STM.atomically n) >>= go
+                Just n  -> go n
     go stream
 
 sendContractInstanceUpdatesToClient :: forall t env. ContractInstanceId -> Connection -> PABAction t env ()
-sendContractInstanceUpdatesToClient instanceId connection = instanceUpdates instanceId >>= liftIO . STM.atomically >>= streamToWebsocket connection
+sendContractInstanceUpdatesToClient instanceId connection = do
+    instancesState <- Core.askInstancesState @t @env
+    streamToWebsocket connection (instanceUpdates instanceId instancesState)
 
 contractInstanceUpdates :: forall t env. ContractInstanceId -> PendingConnection -> PABAction t env ()
 contractInstanceUpdates contractInstanceId pending = do
@@ -142,14 +217,48 @@ contractInstanceUpdates contractInstanceId pending = do
 
 combinedWebsocket :: forall t env. PendingConnection -> PABAction t env ()
 combinedWebsocket pending = do
-    Core.PABRunner{Core.runPABAction} <- Core.pabRunner
+    pabRunner <- Core.pabRunner
+    wsState <- liftIO $ STM.atomically initialWSState
     liftIO $ do
         connection <- WS.acceptRequest pending
-        handle disconnect . WS.withPingThread connection 30 (pure ()) $ fmap (either (error . show) id) . runPABAction $ sendCombinedUpdatesToClient connection
+        handle disconnect . WS.withPingThread connection 30 (pure ()) $ combinedWebsocketThread pabRunner wsState connection
   where
     disconnect :: SomeException -> IO ()
     disconnect _ = pure ()
 
-sendCombinedUpdatesToClient :: forall t env. Connection -> PABAction t env ()
-sendCombinedUpdatesToClient connection = combinedUpdates >>= liftIO . STM.atomically >>= streamToWebsocket connection
+combinedWebsocketThread :: forall t env. Core.PABRunner t env -> WSState -> Connection -> IO ()
+combinedWebsocketThread Core.PABRunner{Core.runPABAction} wsState connection = do
+        tasks :: [Async (Either PABError ())] <-
+            traverse
+                asyncApp
+                [ sendCombinedUpdatesToClient connection wsState
+                , receiveMessagesFromClient connection wsState
+                ]
+        void $ waitAnyCancel tasks
+    where
+        asyncApp = async . runPABAction
 
+sendCombinedUpdatesToClient :: forall t env. Connection -> WSState -> PABAction t env ()
+sendCombinedUpdatesToClient connection wsState = combinedUpdates wsState >>= streamToWebsocket connection
+
+receiveMessagesFromClient :: forall t env. Connection -> WSState -> PABAction t env ()
+receiveMessagesFromClient connection wsState = forever $ do
+    msg <- liftIO $ WS.receiveData connection
+    let result :: Either Text CombinedWSStreamToServer
+        result = first Text.pack $ JSON.eitherDecode msg
+    liftIO $ STM.atomically $ case result of
+        Right (Subscribe l)   -> either (addInstanceId wsState) (addWallet wsState) l
+        Right (Unsubscribe l) -> either (removeInstanceId wsState) (removeWallet wsState) l
+        _                     -> pure () -- FIXME: Report error
+
+addInstanceId :: WSState -> ContractInstanceId -> STM ()
+addInstanceId WSState{wsInstances} i = STM.modifyTVar wsInstances (Set.insert i)
+
+addWallet :: WSState -> Wallet -> STM ()
+addWallet WSState{wsWallets} w = STM.modifyTVar wsWallets (Set.insert w)
+
+removeInstanceId :: WSState -> ContractInstanceId -> STM ()
+removeInstanceId WSState{wsInstances} i = STM.modifyTVar wsInstances (Set.delete i)
+
+removeWallet :: WSState -> Wallet -> STM ()
+removeWallet WSState{wsWallets} w = STM.modifyTVar wsWallets (Set.delete w)

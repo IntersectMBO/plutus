@@ -12,6 +12,8 @@ module Plutus.PAB.Core.ContractInstance.STM(
     , awaitEndpointResponse
     , waitForAddressChange
     , waitForTxConfirmed
+    , valueAt
+    , currentSlot
     -- * State of a contract instance
     , InstanceState(..)
     , emptyInstanceState
@@ -42,6 +44,7 @@ module Plutus.PAB.Core.ContractInstance.STM(
 import           Control.Applicative                               (Alternative (..))
 import           Control.Concurrent.STM                            (STM, TMVar, TVar)
 import qualified Control.Concurrent.STM                            as STM
+import           Control.Lens                                      (view)
 import           Control.Monad                                     (guard)
 import           Data.Aeson                                        (Value)
 import           Data.Foldable                                     (fold)
@@ -52,8 +55,10 @@ import qualified Data.Set                                          as Set
 import           Plutus.Contract.Effects.AwaitTxConfirmed (TxConfirmed (..))
 import           Plutus.Contract.Effects.ExposeEndpoint   (ActiveEndpoint (..), EndpointValue (..))
 import           Plutus.Contract.Resumable                (IterationID, Request (..), RequestID)
-import           Ledger                                            (Address, Slot, TxId)
+import           Ledger                                            (Address, Slot, TxId, txOutTxOut, txOutValue)
 import           Ledger.AddressMap                                 (AddressMap)
+import qualified Ledger.AddressMap                                 as AM
+import qualified Ledger.Value                                      as Value
 import           Wallet.Emulator.ChainIndex.Index                  (ChainIndex)
 import qualified Wallet.Emulator.ChainIndex.Index                  as Index
 import           Wallet.Types                                      (AddressChangeRequest (..),
@@ -334,3 +339,14 @@ waitForTxConfirmed tx BlockchainEnv{beTxChanges} = do
     idx <- STM.readTVar beTxChanges
     guard $ maybe False isConfirmed (Map.lookup tx idx)
     pure (TxConfirmed tx)
+
+-- | The value at an address
+valueAt :: Address -> BlockchainEnv -> STM Value.Value
+valueAt addr BlockchainEnv{beAddressMap} = do
+    am <- STM.readTVar beAddressMap
+    let utxos = view (AM.fundsAt addr) am
+    return $ foldMap (txOutValue . txOutTxOut) utxos
+
+-- | The current slot number
+currentSlot :: BlockchainEnv -> STM Slot
+currentSlot BlockchainEnv{beCurrentSlot} = STM.readTVar beCurrentSlot
