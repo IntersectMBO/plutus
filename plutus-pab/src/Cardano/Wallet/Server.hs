@@ -24,9 +24,10 @@ import           Cardano.Wallet.Types             (Port (..), WalletConfig (..),
                                                    Wallets, createWallet, multiWallet)
 import           Control.Concurrent.Availability  (Availability, available)
 import           Control.Concurrent.MVar          (MVar, newMVar)
-import           Control.Monad.Freer              (reinterpret, runM)
+import           Control.Monad.Freer              (reinterpret2, runM)
 import           Control.Monad.Freer.Error        (handleError)
 import           Control.Monad.Freer.Extras.Log   (logInfo)
+import           Control.Monad.Freer.Reader       (runReader)
 import           Control.Monad.IO.Class           (liftIO)
 import           Data.Coerce                      (coerce)
 import           Data.Function                    ((&))
@@ -77,5 +78,6 @@ main trace WalletConfig { baseUrl, wallet } serverSocket (ChainIndexUrl chainUrl
         runClient env = liftIO
              $ runM
              $ flip handleError (error . show @ClientError)
-             $ reinterpret (ChainIndexClient.handleChainIndexClient env)
+             $ runReader env
+             $ reinterpret2 (ChainIndexClient.handleChainIndexClient)
              $ startWatching (Wallet.ownAddress (emptyWalletState wallet))

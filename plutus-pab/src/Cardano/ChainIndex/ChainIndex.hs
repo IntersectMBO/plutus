@@ -69,7 +69,7 @@ processIndexEffects trace stateVar eff = do
         $ ChainIndex.handleChainIndexControl eff
         & ChainIndex.handleChainIndex
         & Eff.runState _indexState
-        & handleLogMsgTrace (toChainIndexServerMsg trace)
+        & interpret (handleLogMsgTrace (toChainIndexServerMsg trace))
         & runM
     liftIO $ putMVar stateVar AppState{_indexState=newState, _indexEvents=_indexEvents}
     pure result

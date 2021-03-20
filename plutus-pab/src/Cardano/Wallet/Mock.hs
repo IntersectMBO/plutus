@@ -25,6 +25,7 @@ import qualified Control.Monad.Except             as MonadError
 import           Control.Monad.Freer
 import           Control.Monad.Freer.Error
 import           Control.Monad.Freer.Extras
+import           Control.Monad.Freer.Reader       (runReader)
 import           Control.Monad.Freer.State        (State, evalState, get, put, runState)
 import           Control.Monad.IO.Class           (MonadIO, liftIO)
 import           Crypto.PubKey.Ed25519            (secretKeySize)
@@ -147,10 +148,12 @@ runWalletEffects ::
     -> m (Either ServerError (a, Wallets))
 runWalletEffects trace clientHandler chainIndexEnv wallets action =
     handleMultiWallet action
-    & interpret (NodeClient.handleNodeClientClient clientHandler)
-    & interpret (ChainIndexClient.handleChainIndexClient chainIndexEnv)
+    & reinterpret (NodeClient.handleNodeClientClient)
+    & runReader clientHandler
+    & reinterpret (ChainIndexClient.handleChainIndexClient)
+    & runReader chainIndexEnv
     & runState wallets
-    & LM.handleLogMsgTrace (toWalletMsg trace)
+    & interpret (LM.handleLogMsgTrace (toWalletMsg trace))
     & handleWalletApiErrors
     & handleClientErrors
     & runError

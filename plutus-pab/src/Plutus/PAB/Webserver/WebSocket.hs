@@ -25,6 +25,7 @@ import           Control.Concurrent.STM                          (STM)
 import qualified Control.Concurrent.STM                          as STM
 import           Control.Exception                               (SomeException, handle)
 import           Control.Monad                                   (forever, guard, void)
+import           Control.Monad.Freer.Error                       (throwError)
 import           Control.Monad.IO.Class                          (liftIO)
 import           Data.Aeson                                      (ToJSON)
 import qualified Data.Aeson                                      as JSON
@@ -46,7 +47,7 @@ import qualified Plutus.PAB.Core                                 as Core
 import           Plutus.PAB.Core.ContractInstance.STM            (BlockchainEnv, InstancesState, OpenEndpoint (..))
 import qualified Plutus.PAB.Core.ContractInstance.STM            as Instances
 import qualified Plutus.PAB.Effects.Contract                     as Contract
-import           Plutus.PAB.Types                                (PABError)
+import           Plutus.PAB.Types                                (PABError (OtherError))
 import           Plutus.PAB.Webserver.API                        (CombinedWSStreamToClient (..),
                                                                   CombinedWSStreamToServer (..),
                                                                   InstanceStatusToClient (..))
@@ -66,7 +67,7 @@ getContractReport = do
     crActiveContractStates <- traverse (\i -> Contract.getState @t i >>= \s -> pure (i, Contract.serialisableState (Proxy @t) s)) activeContractIDs
     pure ContractReport {crAvailableContracts, crActiveContractStates}
 
--- | An STM stream of 'a's (poor man's FRP)
+-- | An STM stream of 'a's (poor man's pull-based FRP)
 newtype STMStream a = STMStream{ unSTMStream :: STM (a, Maybe (STMStream a)) }
     deriving Functor
 
@@ -102,7 +103,14 @@ instance Applicative STMStream where
                             Left (newL, restL')  -> go ((newL, restL'), (currentR, Just $ STMStream restR))
                             Right (newR, restR') -> go ((currentL, Just $ STMStream restL), (newR, restR'))
                 pure (f currentL currentR, Just $ STMStream next)
-            go ((currentL, _), (currentR, _)) = pure (f currentL currentR, Nothing)
+            go ((currentL, Just (STMStream restL)), (currentR, Nothing)) =
+                let apply = flip f currentR in
+                pure (f currentL currentR, Just $ STMStream $ fmap (first apply . second (fmap (fmap apply))) restL)
+            go ((currentL, Nothing), (currentR, Just (STMStream restR))) =
+                let apply = f currentL in
+                pure (f currentL currentR, Just $ STMStream $ fmap (first apply . second (fmap (fmap apply))) restR)
+            go ((currentL, Nothing), (currentR, Nothing)) =
+                pure (f currentL currentR, Nothing)
         go x
 
 instance Monad STMStream where
@@ -124,7 +132,7 @@ unfold :: Eq a => STM a -> STMStream a
 unfold tx = STMStream $ go Nothing where
     go lastVl = do
         next <- tx
-        traverse_ (\last -> guard (last /= next)) lastVl
+        traverse_ (\previous -> guard (previous /= next)) lastVl
         pure (next, Just $ STMStream $ go (Just next))
 
 combinedUpdates :: forall t env. WSState -> PABAction t env (STMStream CombinedWSStreamToClient)
@@ -173,15 +181,15 @@ openEndpoints :: ContractInstanceId -> InstancesState -> STMStream [ActiveEndpoi
 openEndpoints contractInstanceId instancesState = STMStream $ do
     instanceState <- Instances.instanceState contractInstanceId instancesState
     let tx = fmap (oepName . snd) . Map.toList <$> Instances.openEndpoints instanceState
-    first <- tx
-    pure (first, Just (unfold tx))
+    initial <- tx
+    pure (initial, Just (unfold tx))
 
 finalValue :: ContractInstanceId -> InstancesState -> STMStream (Maybe JSON.Value)
 finalValue contractInstanceId instancesState =
     singleton $ Instances.finalResult contractInstanceId instancesState
 
 -- | Get a stream of instance updates for a given instance ID
-instanceUpdates :: forall t env. ContractInstanceId -> InstancesState -> STMStream InstanceStatusToClient
+instanceUpdates :: ContractInstanceId -> InstancesState -> STMStream InstanceStatusToClient
 instanceUpdates instanceId instancesState =
     fold
         [ NewObservableState <$> observableStateChange instanceId instancesState
@@ -246,10 +254,10 @@ receiveMessagesFromClient connection wsState = forever $ do
     msg <- liftIO $ WS.receiveData connection
     let result :: Either Text CombinedWSStreamToServer
         result = first Text.pack $ JSON.eitherDecode msg
-    liftIO $ STM.atomically $ case result of
-        Right (Subscribe l)   -> either (addInstanceId wsState) (addWallet wsState) l
-        Right (Unsubscribe l) -> either (removeInstanceId wsState) (removeWallet wsState) l
-        _                     -> pure () -- FIXME: Report error
+    case result of
+        Right (Subscribe l)   -> liftIO $ STM.atomically $ either (addInstanceId wsState) (addWallet wsState) l
+        Right (Unsubscribe l) -> liftIO $ STM.atomically $ either (removeInstanceId wsState) (removeWallet wsState) l
+        Left e                -> throwError (OtherError e)
 
 addInstanceId :: WSState -> ContractInstanceId -> STM ()
 addInstanceId WSState{wsInstances} i = STM.modifyTVar wsInstances (Set.insert i)

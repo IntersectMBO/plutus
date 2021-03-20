@@ -27,7 +27,7 @@ handleContractStore ::
     forall t effs.
     ( Member (EventLogEffect (PABEvent (ContractDef t))) effs
     , Member (Error PABError) effs
-    , State t ~ PartiallyDecodedResponse ContractPABRequest
+    , State t ~ PartiallyDecodedResponse ContractPABRequest -- FIXME
     )
     => ContractStore t
     ~> Eff effs

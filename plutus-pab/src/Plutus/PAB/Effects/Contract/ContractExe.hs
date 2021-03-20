@@ -70,6 +70,7 @@ instance Pretty ContractExe where
 -- | Handle 'ContractEffect ContractExe' by making calls to compiled contract
 --   executables
 handleContractEffectContractExe ::
+    forall m effs.
        ( Member (LogMsg ContractExeLogMsg) effs
        , Member (Error PABError) effs
        , LastMember m effs
