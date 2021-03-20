@@ -59,7 +59,7 @@ import           Wallet.Types                                      (ContractInst
 tests :: TestTree
 tests = testGroup "Plutus.PAB.Core" [installContractTests, executionTests]
 
-runScenario :: Simulator.Simulation a -> IO ()
+runScenario :: Simulation TestContracts a -> IO ()
 runScenario sim = do
     result <- Simulator.runSimulation sim
     case result of
@@ -79,7 +79,7 @@ installContractTests =
                 assertEqual "" 0 $ Set.size active
         , testCase "We can activate a contract" $
           runScenario $ do
-              void $ Simulator.agentAction defaultWallet $ Simulator.activateContract Game
+              void $ Simulator.activateContract defaultWallet Game
               --
               active <- Simulator.activeContracts
               assertEqual "" 1 $ Set.size active
@@ -106,11 +106,11 @@ currencyTest =
     testCase "Currency" $
         runScenario $ do
               initialTxCounts <- Simulator.txCounts
-              instanceId <- Simulator.agentAction defaultWallet (Simulator.activateContract Currency)
+              instanceId <- Simulator.activateContract defaultWallet Currency
               assertTxCounts
                   "Activating the currency contract does not generate transactions."
                   initialTxCounts
-              Simulator.agentAction defaultWallet $ createCurrency instanceId mps
+              createCurrency instanceId mps
               result <- Simulator.waitForState getCurrency instanceId
               assertTxCounts
                 "Forging the currency should produce two valid transactions."
@@ -120,12 +120,12 @@ rpcTest :: TestTree
 rpcTest =
     testCase "RPC" $
         runScenario $ do
-            clientId <- Simulator.agentAction defaultWallet (Simulator.activateContract RPCClient)
-            serverId <- Simulator.agentAction defaultWallet (Simulator.activateContract RPCServer)
+            clientId <- Simulator.activateContract defaultWallet RPCClient
+            serverId <- Simulator.activateContract defaultWallet RPCServer
             Simulator.waitNSlots 1
-            Simulator.agentAction defaultWallet $ void $ Simulator.callEndpointOnInstance serverId "serve" ()
+            void $ Simulator.callEndpointOnInstance serverId "serve" ()
             Simulator.waitNSlots 1
-            Simulator.agentAction defaultWallet $ callAdder clientId serverId
+            callAdder clientId serverId
             Simulator.waitNSlots 5
             assertDone defaultWallet clientId
             assertDone defaultWallet serverId
@@ -136,7 +136,7 @@ guessingGameTest =
           runScenario $ do
               let openingBalance = 100000000
                   lockAmount = 15
-              address <- pubKeyAddress <$> Simulator.agentAction defaultWallet ownPubKey
+              address <- pubKeyAddress <$> Simulator.handleAgentThread defaultWallet ownPubKey
               balance0 <- Simulator.valueAt address
               initialTxCounts <- Simulator.txCounts
               assertEqual
@@ -144,13 +144,13 @@ guessingGameTest =
                     (lovelaceValueOf openingBalance)
                     balance0
               -- need to add contract address to wallet's watched addresses
-              instanceId <- Simulator.agentAction defaultWallet (Simulator.activateContract Game)
+              instanceId <- Simulator.activateContract defaultWallet Game
 
               assertTxCounts
                   "Activating the game does not generate transactions."
                   initialTxCounts
               _ <- Simulator.waitNSlots 2
-              Simulator.agentAction defaultWallet $ lock
+              lock
                   instanceId
                   Contracts.Game.LockParams
                       { Contracts.Game.amount = lovelaceValueOf lockAmount
@@ -165,9 +165,9 @@ guessingGameTest =
                   "Locking the game should reduce our balance."
                   (lovelaceValueOf (openingBalance - lockAmount))
                   balance1
-              game1Id <- Simulator.agentAction defaultWallet (Simulator.activateContract Game)
+              game1Id <- Simulator.activateContract defaultWallet Game
 
-              Simulator.agentAction defaultWallet $ guess
+              guess
                   game1Id
                   Contracts.Game.GuessParams
                       {Contracts.Game.guessWord = "wrong"}
@@ -176,10 +176,10 @@ guessingGameTest =
               assertTxCounts
                 "A wrong guess does not produce a valid transaction on the chain."
                 (initialTxCounts & Simulator.txValidated +~ 1)
-              game2Id <- Simulator.agentAction defaultWallet (Simulator.activateContract Game)
+              game2Id <- Simulator.activateContract defaultWallet Game
 
               _ <- Simulator.waitNSlots 2
-              Simulator.agentAction defaultWallet $ guess
+              guess
                   game2Id
                   Contracts.Game.GuessParams
                       {Contracts.Game.guessWord = "password"}
@@ -212,15 +212,15 @@ guessingGameTest =
 assertTxCounts ::
     Text
     -> TxCounts
-    -> Simulation ()
+    -> Simulation TestContracts ()
 assertTxCounts msg expected = Simulator.txCounts >>= assertEqual msg expected
 
 assertDone ::
     Wallet
     -> ContractInstanceId
-    -> Simulation ()
+    -> Simulation TestContracts ()
 assertDone wallet i = do
-    PartiallyDecodedResponse{hooks} <- Simulator.instanceState wallet i >>= either throwError pure
+    PartiallyDecodedResponse{hooks} <- Simulator.instanceState wallet i
     case hooks of
         [] -> pure ()
         xs ->
@@ -236,7 +236,7 @@ assertDone wallet i = do
 lock ::
     ContractInstanceId
     -> Contracts.Game.LockParams
-    -> Simulator.AgentThread ()
+    -> Simulation TestContracts ()
 lock uuid params = do
     let ep = "lock"
     _ <- Simulator.waitForEndpoint uuid ep
@@ -245,7 +245,7 @@ lock uuid params = do
 guess ::
     ContractInstanceId
     -> Contracts.Game.GuessParams
-    -> Simulator.AgentThread ()
+    -> Simulation TestContracts ()
 guess uuid params = do
     let ep = "guess"
     _ <- Simulator.waitForEndpoint uuid ep
@@ -254,7 +254,7 @@ guess uuid params = do
 callAdder ::
     ContractInstanceId
     -> ContractInstanceId
-    -> Simulator.AgentThread ()
+    -> Simulation TestContracts ()
 callAdder source target = do
     let ep = "target instance"
     _ <- Simulator.waitForEndpoint source ep
@@ -264,7 +264,7 @@ callAdder source target = do
 createCurrency ::
     ContractInstanceId
     -> SimpleMPS
-    -> Simulator.AgentThread ()
+    -> Simulation TestContracts ()
 createCurrency uuid value = do
     let ep = "Create native token"
     _ <- Simulator.waitForEndpoint uuid ep

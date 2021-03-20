@@ -26,6 +26,7 @@ module Plutus.PAB.Simulator(
     , payToWallet
     , activateContract
     , callEndpointOnInstance
+    , handleAgentThread
     -- ** Control actions
     , makeBlock
     -- * Querying the state
@@ -612,3 +613,10 @@ blockchain = do
     SimulatorState{_chainState} <- Core.askUserEnv @t @(SimulatorState t)
     Chain.ChainState{Chain._chainNewestFirst} <- liftIO $ STM.readTVarIO _chainState
     pure _chainNewestFirst
+
+handleAgentThread ::
+    forall t a.
+    Wallet
+    -> Eff (Core.ContractInstanceEffects t (SimulatorState t) '[IO]) a
+    -> Simulation t a
+handleAgentThread = Core.handleAgentThread
