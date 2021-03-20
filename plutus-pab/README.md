@@ -33,7 +33,7 @@ to be started in order to access the web frontend. The required steps are descri
 First we build the startup scripts:
 
 ```
-$ nix-build ../default.nix plutus-pab.demo-scripts
+$ nix-build ../default.nix -A plutus-pab.demo-scripts
 ```
 
 Next we start all required servers and install several contracts:
