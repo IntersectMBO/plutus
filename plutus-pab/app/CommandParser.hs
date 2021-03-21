@@ -13,17 +13,14 @@ module CommandParser (parseOptions, AppOpts(..)) where
 import           Command
 
 import           Cardano.BM.Data.Severity                (Severity (..))
-import qualified Data.Aeson                              as JSON
-import qualified Data.ByteString.Lazy.Char8              as BS8
 import qualified Data.Text                               as Text
 
-import           Data.UUID                               (UUID)
 import           Git                                     (gitRev)
 import           Options.Applicative                     (CommandFields, Mod, Parser, argument, auto, command,
-                                                          customExecParser, disambiguate, eitherReader, flag, fullDesc,
-                                                          help, helper, idm, info, infoOption, long, metavar, option,
-                                                          prefs, progDesc, short, showHelpOnEmpty, showHelpOnError, str,
-                                                          strArgument, strOption, subparser, value)
+                                                          customExecParser, disambiguate, flag, fullDesc, help, helper,
+                                                          idm, info, infoOption, long, metavar, option, prefs, progDesc,
+                                                          short, showHelpOnEmpty, showHelpOnError, str, strOption,
+                                                          subparser, value)
 import           Plutus.PAB.Effects.Contract.ContractExe (ContractExe (..))
 import           Wallet.Types                            (ContractInstanceId (..))
 

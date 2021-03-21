@@ -88,7 +88,6 @@ import qualified Plutus.PAB.Db.Eventful                            as Eventful
 import           Plutus.PAB.Effects.Contract.ContractExe           (ContractExe)
 import           Plutus.PAB.Effects.Contract.ContractTest          (TestContracts (Currency))
 import           Plutus.PAB.Events.ContractInstanceState           (PartiallyDecodedResponse (..))
-import           Plutus.PAB.Monitoring.MonadLoggerBridge           (monadLoggerTracer)
 import qualified Plutus.PAB.Monitoring.Monitoring                  as LM
 import qualified Plutus.PAB.Simulator                              as Simulator
 import           Plutus.PAB.Types                                  (Config (..), chainIndexConfig, metadataServerConfig,
@@ -108,7 +107,7 @@ runCliCommand ::
     -> IO ()
 
 -- Run database migration
-runCliCommand t _ dbConfig _ Migrate =
+runCliCommand t _ Config{dbConfig} _ Migrate =
     App.migrate (LM.convertLog LM.PABMsg t) dbConfig
 
 -- Run mock wallet service
@@ -135,7 +134,7 @@ runCliCommand trace _ Config {metadataServerConfig} serviceAvailability Metadata
         serviceAvailability
 
 -- Run PAB webserver
-runCliCommand trace logConfig config@Config{pabWebserverConfig} serviceAvailability PABWebserver =
+runCliCommand trace _ config@Config{pabWebserverConfig} serviceAvailability PABWebserver =
         fmap (either (error . show) id)
         $ App.runApp (toPABMsg trace) config
         $ void $ PABServer.startServer pabWebserverConfig serviceAvailability
@@ -150,8 +149,6 @@ runCliCommand trace logConfig config serviceAvailability (ForkCommands commands)
     forkCommand ::  Command -> IO (Async ())
     forkCommand subcommand = do
       putStrLn $ "Starting: " <> show subcommand
-      -- see note [Use of iohk-monitoring in PAB]
-      let trace' = monadLoggerTracer trace
       asyncId <- async . void . runCliCommand trace logConfig config serviceAvailability $ subcommand
       putStrLn $ "Started: " <> show subcommand
       starting serviceAvailability
