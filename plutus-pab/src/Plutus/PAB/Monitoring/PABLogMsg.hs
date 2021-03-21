@@ -48,7 +48,6 @@ import           Plutus.PAB.Instances                    ()
 import           Plutus.PAB.Monitoring.MonadLoggerBridge (MonadLoggerMsg (..))
 import           Plutus.PAB.ParseStringifiedJSON         (UnStringifyJSONLog (..))
 import           Wallet.Emulator.MultiAgent              (EmulatorEvent)
-import Plutus.PAB.Webserver.Types (WebSocketLogMsg)
 import           Wallet.Emulator.Wallet                  (WalletEvent (..))
 
 data AppMsg t =
@@ -82,7 +81,6 @@ data PABLogMsg =
     | SUnstringifyJSON UnStringifyJSONLog
     | SWalletEvent Wallet.Emulator.Wallet.WalletEvent
     | SLoggerBridge MonadLoggerMsg
-    | SWebsocketMsg WebSocketLogMsg
     | SContractRuntimeMsg ContractRuntimeMsg
     | SChainIndexServerMsg ChainIndexServerMsg
     | SWalletMsg WalletMsg
@@ -100,7 +98,6 @@ instance Pretty PABLogMsg where
         SUnstringifyJSON m     -> pretty m
         SWalletEvent w         -> pretty w
         SLoggerBridge m        -> pretty m
-        SWebsocketMsg m        -> pretty m
         SContractRuntimeMsg m  -> pretty m
         SChainIndexServerMsg m -> pretty m
         SWalletMsg m           -> pretty m
@@ -152,7 +149,6 @@ instance ToObject PABLogMsg where
         SUnstringifyJSON m     -> toObject v m
         SWalletEvent e         -> toObject v e
         SLoggerBridge e        -> toObject v e
-        SWebsocketMsg e        -> toObject v e
         SContractRuntimeMsg e  -> toObject v e
         SChainIndexServerMsg m -> toObject v m
         SWalletMsg m           -> toObject v m

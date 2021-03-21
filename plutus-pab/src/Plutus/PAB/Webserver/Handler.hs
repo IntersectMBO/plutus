@@ -39,7 +39,6 @@ import qualified Plutus.PAB.Effects.Contract             as Contract
 import           Plutus.PAB.Events.Contract              (ContractPABRequest, _UserEndpointRequest)
 import           Plutus.PAB.Events.ContractInstanceState (PartiallyDecodedResponse (..))
 import           Plutus.PAB.Types
-import           Plutus.PAB.Webserver.API                (ContractActivationArgs (..), ContractInstanceClientState (..))
 import           Plutus.PAB.Webserver.Types
 import qualified Plutus.PAB.Webserver.WebSocket          as WS
 import           Servant                                 ((:<|>) ((:<|>)))

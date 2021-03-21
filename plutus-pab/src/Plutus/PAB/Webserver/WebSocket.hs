@@ -48,10 +48,11 @@ import           Plutus.PAB.Core.ContractInstance.STM            (BlockchainEnv,
 import qualified Plutus.PAB.Core.ContractInstance.STM            as Instances
 import qualified Plutus.PAB.Effects.Contract                     as Contract
 import           Plutus.PAB.Types                                (PABError (OtherError))
-import           Plutus.PAB.Webserver.API                        (CombinedWSStreamToClient (..),
-                                                                  CombinedWSStreamToServer (..),
+import           Plutus.PAB.Webserver.API                        ()
+import           Plutus.PAB.Webserver.Types                      (CombinedWSStreamToClient (..),
+                                                                  CombinedWSStreamToServer (..), ContractReport (..),
+                                                                  ContractSignatureResponse (..),
                                                                   InstanceStatusToClient (..))
-import           Plutus.PAB.Webserver.Types                      (ContractReport (..), ContractSignatureResponse (..))
 import           Wallet.Emulator.Wallet                          (Wallet)
 import qualified Wallet.Emulator.Wallet                          as Wallet
 import           Wallet.Types                                    (ContractInstanceId (..))

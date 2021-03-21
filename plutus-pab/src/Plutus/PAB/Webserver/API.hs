@@ -9,27 +9,15 @@ module Plutus.PAB.Webserver.API
     , WSAPI
     -- * New API that will eventually replace 'API'
     , NewAPI
-    , ContractActivationArgs(..)
-    , ContractInstanceClientState(..)
-    , InstanceStatusToClient(..)
-    , CombinedWSStreamToClient(..)
-    , CombinedWSStreamToServer(..)
     ) where
 
-import           Data.Aeson                                      (FromJSON, ToJSON)
-import qualified Data.Aeson                                      as JSON
-import           Data.Text                                       (Text)
-import           GHC.Generics                                    (Generic)
-import           Plutus.Contract.Effects.ExposeEndpoint (ActiveEndpoint)
-import           Plutus.PAB.Events.ContractInstanceState         (PartiallyDecodedResponse)
-
-import           Ledger.Slot                                     (Slot)
-import           Ledger.Value                                    (Value)
-import           Plutus.PAB.Webserver.Types                      (ContractSignatureResponse, FullReport)
-import           Servant.API                                     (Capture, Get, JSON, Post, ReqBody, (:<|>), (:>))
-import           Servant.API.WebSocket                           (WebSocketPending)
-import           Wallet.Emulator.Wallet                          (Wallet)
-import           Wallet.Types                                    (ContractInstanceId, NotificationError)
+import qualified Data.Aeson                 as JSON
+import           Data.Text                  (Text)
+import           Plutus.PAB.Webserver.Types (ContractActivationArgs, ContractInstanceClientState,
+                                             ContractSignatureResponse, FullReport)
+import           Servant.API                (Capture, Get, JSON, Post, ReqBody, (:<|>), (:>))
+import           Servant.API.WebSocket      (WebSocketPending)
+import           Wallet.Types               (ContractInstanceId, NotificationError)
 
 type API t
      = "api" :> ("healthcheck" :> Get '[ JSON] ()
@@ -39,25 +27,6 @@ type API t
                                                                                   :<|> "endpoint" :> Capture "endpoint-name" String :> ReqBody '[ JSON] JSON.Value :> Post '[JSON] (Maybe NotificationError))))
 
 type WSAPI = "ws" :> WebSocketPending
-
--- | Data needed to start a new instance of a contract.
-data ContractActivationArgs t =
-    ContractActivationArgs
-        { caID     :: t -- ^ ID of the contract
-        , caWallet :: Wallet -- ^ Wallet that should be used for this instance
-        }
-    deriving stock (Eq, Show, Generic)
-    deriving anyclass (JSON.ToJSON, JSON.FromJSON)
-
--- | Current state of a contract instance
---   (to be sent to external clients)
-data ContractInstanceClientState =
-    ContractInstanceClientState
-        { cicContract     :: ContractInstanceId
-        , cicCurrentState :: PartiallyDecodedResponse ActiveEndpoint
-        }
-        deriving stock (Eq, Show, Generic)
-        deriving anyclass (JSON.ToJSON, JSON.FromJSON)
 
 -- | PAB client API for contracts of type @t@. Examples of @t@ are
 --   * Contract executables that reside in the user's file system
@@ -75,26 +44,3 @@ type NewAPI t
             :<|> "instances" :> Get '[ JSON] [ContractInstanceClientState] -- list of all active contract instances
             :<|> "definitions" :> Get '[JSON] [ContractSignatureResponse t] -- list of available contracts
         )
-
--- | Status updates for contract instances streamed to client
-data InstanceStatusToClient
-    = NewObservableState JSON.Value -- ^ The observable state of the contract has changed.
-    | NewActiveEndpoints [ActiveEndpoint] -- ^ The set of active endpoints has changed.
-    | ContractFinished (Maybe JSON.Value) -- ^ Contract instance is done with an optional error message.
-    deriving stock (Generic, Eq, Show)
-    deriving anyclass (ToJSON, FromJSON)
-
--- | Data sent to the client through the combined websocket API
-data CombinedWSStreamToClient
-    = InstanceUpdate ContractInstanceId InstanceStatusToClient
-    | SlotChange Slot -- ^ New slot number
-    | WalletFundsChange Wallet Value -- ^ The funds of the wallet have changed
-    deriving stock (Generic, Eq, Show)
-    deriving anyclass (ToJSON, FromJSON)
-
--- | Instructions sent to the server through the combined websocket API
-data CombinedWSStreamToServer
-    = Subscribe (Either ContractInstanceId Wallet)
-    | Unsubscribe (Either ContractInstanceId Wallet)
-    deriving stock (Generic, Eq, Show)
-    deriving anyclass (ToJSON, FromJSON)
