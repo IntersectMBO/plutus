@@ -19,6 +19,7 @@
 module Plutus.PAB.App(
     App,
     runApp,
+    AppEnv(..),
     -- * App actions
     migrate,
     dbConnect

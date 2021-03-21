@@ -38,9 +38,11 @@ import           Plutus.PAB.Events.ContractInstanceState           (PartiallyDec
 import qualified Plutus.PAB.Simulator                              as Simulator
 import qualified Plutus.PAB.Webserver.API                          as API
 import qualified Plutus.PAB.Webserver.Handler                      as Webserver
-import           Plutus.PAB.Webserver.Types                        (ChainReport, ContractReport,
+import           Plutus.PAB.Webserver.Types                        (ChainReport, CombinedWSStreamToClient,
+                                                                    CombinedWSStreamToServer, ContractActivationArgs,
+                                                                    ContractInstanceClientState, ContractReport,
                                                                     ContractSignatureResponse, FullReport,
-                                                                    StreamToClient, StreamToServer)
+                                                                    InstanceStatusToClient)
 import           Servant.PureScript                                (HasBridge, Settings, _generateSubscriberAPI,
                                                                     apiModuleName, defaultBridge, defaultSettings,
                                                                     languageBridge, writeAPIModuleWithSettings)
@@ -90,8 +92,6 @@ myTypes =
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @(FullReport A))
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @ChainReport)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @(ContractReport A))
-    , (equal <*> (genericShow <*> mkSumType)) (Proxy @StreamToServer)
-    , (equal <*> (genericShow <*> mkSumType)) (Proxy @StreamToClient)
     , (equal <*> (genericShow <*> mkSumType))
           (Proxy @(ContractSignatureResponse A))
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @(PartiallyDecodedResponse A))
@@ -129,11 +129,11 @@ myTypes =
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @(AnnotatedSignature A))
 
     -- * Web API types
-    , (genericShow <*> mkSumType) (Proxy @(API.ContractActivationArgs A))
-    , (genericShow <*> mkSumType) (Proxy @API.ContractInstanceClientState)
-    , (genericShow <*> mkSumType) (Proxy @API.InstanceStatusToClient)
-    , (genericShow <*> mkSumType) (Proxy @API.CombinedWSStreamToClient)
-    , (genericShow <*> mkSumType) (Proxy @API.CombinedWSStreamToServer)
+    , (genericShow <*> mkSumType) (Proxy @(ContractActivationArgs A))
+    , (genericShow <*> mkSumType) (Proxy @ContractInstanceClientState)
+    , (genericShow <*> mkSumType) (Proxy @InstanceStatusToClient)
+    , (genericShow <*> mkSumType) (Proxy @CombinedWSStreamToClient)
+    , (genericShow <*> mkSumType) (Proxy @CombinedWSStreamToServer)
     ]
 
 mySettings :: Settings

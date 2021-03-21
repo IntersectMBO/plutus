@@ -84,6 +84,7 @@ import           Plutus.Contract.State                    (State (..))
 import           PlutusTx.Coordination.Contracts.Currency (SimpleMPS (..))
 import qualified PSGenerator
 import qualified Plutus.PAB.App                                    as App
+import qualified Plutus.PAB.Core                                   as Core
 import qualified Plutus.PAB.Db.Eventful                            as Eventful
 import           Plutus.PAB.Effects.Contract.ContractExe           (ContractExe)
 import           Plutus.PAB.Effects.Contract.ContractTest          (TestContracts (Currency))
@@ -137,7 +138,9 @@ runCliCommand trace _ Config {metadataServerConfig} serviceAvailability Metadata
 runCliCommand trace _ config@Config{pabWebserverConfig} serviceAvailability PABWebserver =
         fmap (either (error . show) id)
         $ App.runApp (toPABMsg trace) config
-        $ void $ PABServer.startServer pabWebserverConfig serviceAvailability
+        $ do
+            App.AppEnv{App.walletClientEnv} <- Core.askUserEnv @ContractExe @App.AppEnv
+            void $ PABServer.startServer pabWebserverConfig (Just walletClientEnv) serviceAvailability
 
 -- Fork a list of commands
 runCliCommand trace logConfig config serviceAvailability (ForkCommands commands) =
