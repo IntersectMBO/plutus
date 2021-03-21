@@ -75,7 +75,6 @@ module Plutus.PAB.Core
     , PABRunner(..)
     , pabRunner
     -- * Effect handlers
-    , AppMsg(..)
     , handleMappedReader
     , handleUserEnvReader
     , handleBlockchainEnvReader
@@ -94,17 +93,14 @@ import           Control.Monad.Freer.Extras.Log                  (LogMessage, Lo
 import qualified Control.Monad.Freer.Extras.Modify               as Modify
 import           Control.Monad.Freer.Reader                      (Reader (..), ask, asks, runReader)
 import           Control.Monad.IO.Class                          (MonadIO (..))
-import           Data.Aeson                                      (FromJSON, ToJSON (..))
 import qualified Data.Aeson                                      as JSON
 import qualified Data.Map                                        as Map
 import           Data.Proxy                                      (Proxy (..))
 import           Data.Set                                        (Set)
 import           Data.Text                                       (Text)
 import qualified Data.Text                                       as Text
-import           Data.Text.Prettyprint.Doc                       (Pretty, colon, defaultLayoutOptions, layoutPretty,
-                                                                  pretty, (<+>))
+import           Data.Text.Prettyprint.Doc                       (Pretty, defaultLayoutOptions, layoutPretty, pretty)
 import qualified Data.Text.Prettyprint.Doc.Render.Text           as Render
-import           GHC.Generics                                    (Generic)
 import           Plutus.Contract.Effects.ExposeEndpoint (ActiveEndpoint (..))
 import           Ledger.Tx                                       (Address, Tx)
 import           Ledger.Value                                    (Value)
@@ -121,7 +117,7 @@ import           Plutus.PAB.Effects.TimeEffect                   (TimeEffect (..
 import           Plutus.PAB.Effects.UUID                         (UUIDEffect, handleUUIDEffect)
 import           Plutus.PAB.Events.Contract                      (ContractPABRequest)
 import           Plutus.PAB.Events.ContractInstanceState         (PartiallyDecodedResponse)
-import           Plutus.PAB.Monitoring.PABLogMsg                 (PABLogMsg (..), PABMultiAgentMsg (..))
+import           Plutus.PAB.Monitoring.PABLogMsg                 (PABMultiAgentMsg (..))
 import           Plutus.PAB.Types                                (PABError)
 import           Wallet.API                                      (PubKey, Slot)
 import qualified Wallet.API                                      as WAPI
@@ -366,36 +362,6 @@ reportContractState ::
     => ContractInstanceId
     -> Eff effs (PartiallyDecodedResponse ContractPABRequest)
 reportContractState cid = Contract.serialisableState (Proxy @t) <$> getState @t cid
-
-data AppMsg t =
-    InstalledContractsMsg
-    | ActiveContractsMsg
-    | TransactionHistoryMsg
-    | ContractHistoryMsg
-    | ProcessInboxMsg
-    | PABMsg PABLogMsg
-    | InstalledContract Text
-    | ContractInstances (ContractDef t) [ContractInstanceId]
-    | TxHistoryItem Tx
-    | ContractHistoryItem Int (PartiallyDecodedResponse ContractPABRequest)
-    deriving stock (Generic)
-
-deriving stock instance (Show (ContractDef t)) => Show (AppMsg t)
-deriving anyclass instance (ToJSON (ContractDef t)) => ToJSON (AppMsg t)
-deriving anyclass instance (FromJSON (ContractDef t)) => FromJSON (AppMsg t)
-
-instance Pretty (ContractDef t) => Pretty (AppMsg t) where
-    pretty = \case
-        InstalledContractsMsg   -> "Installed contracts"
-        ActiveContractsMsg      -> "Active contracts"
-        TransactionHistoryMsg   -> "Transaction history"
-        ContractHistoryMsg      -> "Contract history"
-        ProcessInboxMsg         -> "Process contract inbox"
-        PABMsg m                -> pretty m
-        InstalledContract t     -> pretty t
-        ContractInstances t s   -> pretty t <+> pretty s
-        TxHistoryItem t         -> pretty t
-        ContractHistoryItem i s -> pretty i <> colon <+> pretty s
 
 -- | Annotate log messages with the current slot number.
 timed ::

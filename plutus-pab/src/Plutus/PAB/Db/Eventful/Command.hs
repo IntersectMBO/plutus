@@ -16,7 +16,7 @@
 --
 -- Of note in this module is the use of 'nullProjection' as a way of
 -- ignoring the 'state'.
-module Plutus.PAB.Command
+module Plutus.PAB.Db.Eventful.Command
     ( installCommand
     , saveBalancedTxResult
     -- * Commands related to updating the contract state

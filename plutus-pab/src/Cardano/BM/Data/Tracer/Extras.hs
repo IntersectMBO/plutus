@@ -27,6 +27,9 @@ import           Data.Text.Prettyprint.Doc               (Pretty (..), defaultLa
 import qualified Data.Text.Prettyprint.Doc.Render.Text   as Render
 import           Data.UUID                               (UUID)
 import           GHC.TypeLits                            (KnownSymbol, symbolVal)
+import           Plutus.Contract.Checkpoint     (CheckpointLogMsg)
+import           Plutus.Contract.Resumable      (Response (..))
+import           Plutus.Contract.State          (ContractRequest)
 import           Ledger.Tx                               (Tx)
 import qualified Ledger.Value                            as V
 import           Plutus.Contract.Checkpoint              (CheckpointLogMsg)
@@ -87,6 +90,13 @@ deriving via (Tagged "endpoint" EndpointDescription) instance StructuredLog Endp
 instance ToJSON v => StructuredLog (PartiallyDecodedResponse v) where
     toStructuredLog PartiallyDecodedResponse{hooks, observableState} =
         HM.fromList [("hooks", toJSON hooks), ("state", toJSON observableState)]
+instance ToJSON v => StructuredLog (Response v) where
+    toStructuredLog Response{rspRqID, rspItID, rspResponse} =
+        HM.fromList
+            [ ("requestID", toJSON rspRqID)
+            , ("iterationID", toJSON rspItID)
+            , ("response", toJSON rspResponse)
+            ]
 
 instance (KnownSymbol s, ToJSON a) => StructuredLog (Tagged s a) where
     toStructuredLog = toStructuredLog'

@@ -20,7 +20,8 @@ module Plutus.PAB.App(
     App,
     runApp,
     -- * App actions
-    migrate
+    migrate,
+    dbConnect
     ) where
 
 import           Cardano.BM.Trace                               (Trace)
@@ -34,11 +35,9 @@ import qualified Cardano.Wallet.Types                           as Wallet
 import qualified Control.Concurrent.STM                         as STM
 import           Control.Monad.Freer
 import           Control.Monad.Freer.Error                      (handleError, throwError)
-import           Control.Monad.Freer.Extras.Log                 (LogMsg, logInfo, mapLog)
-import           Control.Monad.Freer.Reader                     (Reader, ask, asks)
+import           Control.Monad.Freer.Extras.Log                 (mapLog)
+import           Control.Monad.Freer.Reader                     (Reader)
 import           Control.Monad.IO.Class                         (MonadIO (..))
-import           Control.Monad.IO.Unlift                        (MonadUnliftIO)
-import           Control.Monad.Logger                           (MonadLogger)
 import qualified Control.Monad.Logger                           as MonadLogger
 import           Data.Coerce                                    (coerce)
 import           Database.Persist.Sqlite                        (createSqlitePoolFromInfo, mkSqliteConnectionInfo,
@@ -53,8 +52,7 @@ import qualified Plutus.PAB.Core.ContractInstance.BlockchainEnv as BlockchainEnv
 import           Plutus.PAB.Core.ContractInstance.STM           as Instances
 import           Plutus.PAB.Db.Eventful.ContractDefinitionStore (handleContractDefinitionStore)
 import           Plutus.PAB.Db.Eventful.ContractStore           (handleContractStore)
-import           Plutus.PAB.Effects.Contract.ContractExe        (ContractExe, ContractExeLogMsg (..),
-                                                                 handleContractEffectContractExe)
+import           Plutus.PAB.Effects.Contract.ContractExe        (ContractExe, handleContractEffectContractExe)
 import           Plutus.PAB.Effects.EventLog                    (Connection (..), handleEventLogSql)
 import qualified Plutus.PAB.Effects.EventLog                    as EventLog
 import           Plutus.PAB.Events                              (PABEvent)
@@ -156,9 +154,7 @@ mkEnv appTrace appConfig@Config { dbConfig
     walletClientEnv <- clientEnv (Wallet.baseUrl walletServerConfig)
     nodeClientEnv <- clientEnv (mscBaseUrl nodeServerConfig)
     chainIndexEnv <- clientEnv (ChainIndex.ciBaseUrl chainIndexConfig)
-    dbConnection <-  runTraceLoggerT
-                        (dbConnect dbConfig)
-                        (convertLog SLoggerBridge appTrace)
+    dbConnection <-  dbConnect appTrace dbConfig
     clientHandler <- liftIO $ Client.runClientNode (mscSocketPath nodeServerConfig) (\_ _ -> pure ())
     pure AppEnv {..}
   where
@@ -169,15 +165,10 @@ mkEnv appTrace appConfig@Config { dbConfig
         tlsManagerSettings {managerModifyRequest = pure . setRequestIgnoreStatus}
 
 -- | Initialize/update the database to hold events.
-migrate :: App ()
-migrate =
-    interpret (Core.handleUserEnvReader @ContractExe @AppEnv)
-    $ interpret (Core.handleMappedReader appTrace)
-    $ interpret runAppLog
-    $ interpret (mapLog SContractExeLogMsg)
-    $ do
-        logInfo Migrating
-        Connection (sqlConfig, connectionPool) <- asks dbConnection
+migrate :: Trace IO PABLogMsg -> DbConfig -> IO ()
+migrate trace config = do
+    Connection (sqlConfig, connectionPool) <- dbConnect trace config
+    flip runTraceLoggerT (convertLog SLoggerBridge trace) $ do
         liftIO
             $ flip runSqlPool connectionPool
             $ initializeSqliteEventStore sqlConfig connectionPool
@@ -185,25 +176,10 @@ migrate =
 ------------------------------------------------------------
 -- | Create a database 'Connection' containing the connection pool
 -- plus some configuration information.
-dbConnect ::
-    ( MonadUnliftIO m
-    , MonadLogger m
-    )
-    => DbConfig
-    -> m EventLog.Connection
-dbConnect DbConfig {dbConfigFile, dbConfigPoolSize} = do
-    let connectionInfo = mkSqliteConnectionInfo dbConfigFile
-    MonadLogger.logDebugN "Connecting to DB"
-    connectionPool <- createSqlitePoolFromInfo connectionInfo dbConfigPoolSize
-    pure $ EventLog.Connection (defaultSqlEventStoreConfig, connectionPool)
-
-runAppLog ::
-    forall effs.
-    ( Member (Reader (Trace IO PABLogMsg)) effs
-    , LastMember IO effs
-    )
-    => LogMsg PABLogMsg
-    ~> Eff effs
-runAppLog event = do
-    trace <- ask @(Trace IO PABLogMsg)
-    handleLogMsgTrace trace event
+dbConnect :: Trace IO PABLogMsg -> DbConfig -> IO EventLog.Connection
+dbConnect trace DbConfig {dbConfigFile, dbConfigPoolSize} =
+    flip runTraceLoggerT (convertLog SLoggerBridge trace) $ do
+        let connectionInfo = mkSqliteConnectionInfo dbConfigFile
+        MonadLogger.logDebugN "Connecting to DB"
+        connectionPool <- createSqlitePoolFromInfo connectionInfo dbConfigPoolSize
+        pure $ EventLog.Connection (defaultSqlEventStoreConfig, connectionPool)

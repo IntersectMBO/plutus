@@ -26,7 +26,6 @@ import           Data.Aeson                              (FromJSON, ToJSON)
 import qualified Data.Aeson as JSON
 import           Data.Text                               (Text)
 import           Data.Text.Prettyprint.Doc               (Pretty (..), colon, (<+>))
-import           Data.Time.Units                         (Second)
 import           GHC.Generics                            (Generic)
 
 import           Cardano.BM.Data.Tracer                  (ToObject (..), TracingVerbosity (..))
@@ -35,14 +34,12 @@ import           Cardano.ChainIndex.Types                (ChainIndexServerMsg)
 import           Cardano.Metadata.Types                  (MetadataLogMessage)
 import           Cardano.Node.Types                      (MockServerLogMsg)
 import           Cardano.Wallet.Types                    (WalletMsg)
-import           Ledger.Tx                               (Tx)
-import qualified Data.Text as T
-import Plutus.PAB.Core.ContractInstance.RequestHandlers (ContractInstanceMsg)
-import Plutus.PAB.Webserver.Types (WebSocketLogMsg)
-import qualified Plutus.PAB.Effects.Contract as Contract
-import Plutus.PAB.Effects.Contract (PABContract(..))
-import Plutus.Contract.State (ContractRequest)
--- import           Plutus.PAB.Core.ContractInstance        (ContractInstanceMsg (..))
+import           Data.Aeson.Text                         (encodeToLazyText)
+import qualified Data.Text                               as T
+import           Plutus.Contract.Resumable      (Response)
+import           Plutus.Contract.State          (ContractRequest)
+import           Plutus.PAB.Core.ContractInstance        (ContractInstanceMsg (..))
+import           Plutus.PAB.Effects.Contract             (PABContract (..))
 import           Plutus.PAB.Effects.Contract.ContractExe (ContractExe, ContractExeLogMsg (..))
 import           Plutus.PAB.Effects.ContractRuntime      (ContractRuntimeMsg)
 import           Plutus.PAB.Events.Contract              (ContractInstanceId, ContractPABRequest)
@@ -51,37 +48,32 @@ import           Plutus.PAB.Instances                    ()
 import           Plutus.PAB.Monitoring.MonadLoggerBridge (MonadLoggerMsg (..))
 import           Plutus.PAB.ParseStringifiedJSON         (UnStringifyJSONLog (..))
 import           Wallet.Emulator.MultiAgent              (EmulatorEvent)
+import Plutus.PAB.Webserver.Types (WebSocketLogMsg)
 import           Wallet.Emulator.Wallet                  (WalletEvent (..))
 
-data AppMsg =
+data AppMsg t =
     InstalledContractsMsg
     | ActiveContractsMsg
-    | TransactionHistoryMsg
     | ContractHistoryMsg
-    | ProcessInboxMsg
-    | ProcessAllOutboxesMsg Second
     | PABMsg PABLogMsg
     | InstalledContract Text
-    | ContractInstance ContractExe [ContractInstanceId]
-    | TxHistoryItem Tx
-    | ContractHistoryItem Int (PartiallyDecodedResponse ContractPABRequest)
-    deriving stock (Show, Generic)
-    deriving anyclass (ToJSON, FromJSON)
+    | ContractInstances (ContractDef t) [ContractInstanceId]
+    | ContractHistoryItem ContractInstanceId (Response JSON.Value)
+    deriving stock (Generic)
 
+deriving stock instance (Show (ContractDef t)) => Show (AppMsg t)
+deriving anyclass instance (ToJSON (ContractDef t)) => ToJSON (AppMsg t)
+deriving anyclass instance (FromJSON (ContractDef t)) => FromJSON (AppMsg t)
 
-instance Pretty AppMsg where
+instance Pretty (ContractDef t) => Pretty (AppMsg t) where
     pretty = \case
-        InstalledContractsMsg -> "Installed contracts"
-        ActiveContractsMsg -> "Active contracts"
-        TransactionHistoryMsg -> "Transaction history"
-        ContractHistoryMsg -> "Contract history"
-        ProcessInboxMsg -> "Process contract inbox"
-        ProcessAllOutboxesMsg s -> "Processing contract outboxes every" <+> pretty (fromIntegral @_ @Double s) <+> "seconds"
-        PABMsg m -> pretty m
-        InstalledContract t -> pretty t
-        ContractInstance t s -> pretty t <+> pretty s
-        TxHistoryItem t -> pretty t
-        ContractHistoryItem i s -> pretty i <> colon <+> pretty s
+        InstalledContractsMsg            -> "Installed contracts"
+        ActiveContractsMsg               -> "Active contracts"
+        ContractHistoryMsg               -> "Contract history"
+        PABMsg m                         -> pretty m
+        InstalledContract t              -> pretty t
+        ContractInstances t s            -> pretty t <+> pretty s
+        ContractHistoryItem instanceId s -> pretty instanceId <> colon <+> pretty (fmap encodeToLazyText s)
 
 data PABLogMsg =
     SContractExeLogMsg ContractExeLogMsg
@@ -131,38 +123,26 @@ In the definitions below, every object produced by 'toObject' has a field
 
 -}
 
-instance ToObject AppMsg where
+instance StructuredLog (ContractDef t) => ToObject (AppMsg t) where
     toObject v = \case
         InstalledContractsMsg ->
             mkObjectStr "Listing installed contracts" ()
         ActiveContractsMsg ->
             mkObjectStr "Listing active contract instances" ()
-        TransactionHistoryMsg ->
-            mkObjectStr "Showing transaction history" ()
         ContractHistoryMsg ->
             mkObjectStr "Showing contract history" ()
-        ProcessInboxMsg ->
-            mkObjectStr "Processing inbox message" ()
-        ProcessAllOutboxesMsg second ->
-            mkObjectStr "Processing outbox messages"
-              (Tagged @"interval_seconds" $ fromIntegral @_ @Integer second)
         PABMsg m -> toObject v m
         InstalledContract t ->
             mkObjectStr "Installed contract" t
-        ContractInstance exe ids ->
+        ContractInstances exe ids ->
             mkObjectStr
                 "Active instances for contract"
                 (exe, Tagged @"instances" ids)
-        TxHistoryItem tx ->
-            mkObjectStr "Tx history item" $
-                case v of
-                    MaximalVerbosity -> Left tx
-                    _                -> Right ()
         ContractHistoryItem i state ->
             mkObjectStr "Contract history item" $
                 case v of
-                    MaximalVerbosity -> Left (Tagged @"index" i, state)
-                    _                -> Right (Tagged @"index" i)
+                    MaximalVerbosity -> Left (i, state)
+                    _                -> Right i
 
 instance ToObject PABLogMsg where
     toObject v = \case
@@ -211,7 +191,7 @@ deriving stock instance (Show t, Show (ContractDef t), Show (State t)) => Show (
 deriving anyclass instance (ToJSON t, ToJSON (ContractDef t), ToJSON (State t)) => ToJSON (PABMultiAgentMsg t)
 deriving anyclass instance (FromJSON t, FromJSON (ContractDef t), FromJSON (State t)) => FromJSON (PABMultiAgentMsg t)
 
-instance (Pretty (Contract.ContractDef t), Pretty t, Pretty (Contract.State t)) => Pretty (PABMultiAgentMsg t) where
+instance (Pretty (ContractDef t), Pretty t, Pretty (State t)) => Pretty (PABMultiAgentMsg t) where
     pretty = \case
         EmulatorMsg m         -> pretty m
         ContractMsg m         -> pretty m

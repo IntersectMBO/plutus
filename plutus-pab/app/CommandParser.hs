@@ -12,17 +12,20 @@ module CommandParser (parseOptions, AppOpts(..)) where
 
 import           Command
 
-import           Cardano.BM.Data.Severity   (Severity (..))
-import qualified Data.Aeson                 as JSON
-import qualified Data.ByteString.Lazy.Char8 as BS8
-import qualified Data.Text                  as Text
+import           Cardano.BM.Data.Severity                (Severity (..))
+import qualified Data.Aeson                              as JSON
+import qualified Data.ByteString.Lazy.Char8              as BS8
+import qualified Data.Text                               as Text
 
-import           Data.UUID                  (UUID)
-import           Git                        (gitRev)
-import           Options.Applicative        (CommandFields, Mod, Parser, argument, auto, command, customExecParser,
-                                             disambiguate, eitherReader, flag, fullDesc, help, helper, idm, info,
-                                             infoOption, long, metavar, option, prefs, progDesc, short, showHelpOnEmpty,
-                                             showHelpOnError, str, strArgument, strOption, subparser, value)
+import           Data.UUID                               (UUID)
+import           Git                                     (gitRev)
+import           Options.Applicative                     (CommandFields, Mod, Parser, argument, auto, command,
+                                                          customExecParser, disambiguate, eitherReader, flag, fullDesc,
+                                                          help, helper, idm, info, infoOption, long, metavar, option,
+                                                          prefs, progDesc, short, showHelpOnEmpty, showHelpOnError, str,
+                                                          strArgument, strOption, subparser, value)
+import           Plutus.PAB.Effects.Contract.ContractExe (ContractExe (..))
+import           Wallet.Types                            (ContractInstanceId (..))
 
 data AppOpts = AppOpts { minLogLevel   :: Maybe Severity
                        , configPath    :: FilePath
@@ -93,7 +96,6 @@ commandParser =
         , mockNodeParser
         , chainIndexParser
         , metadataParser
-        , reportTxHistoryParser
         , defaultConfigParser
         , simulatorParser
         , command
@@ -103,13 +105,9 @@ commandParser =
                         (mconcat
                              [ installContractParser
                              , reportInstalledContractsParser
-                             , activateContractParser
                              , reportActiveContractsParser
-                             , updateContractParser
                              , contractStateParser
                              , reportContractHistoryParser
-                             , processAllContractInboxesParser
-                             , processAllContractOutboxesParser
                              ]))
                    (fullDesc <> progDesc "Manage your smart contracts."))
         ]
@@ -200,27 +198,14 @@ clientServicesParser =
                   , Metadata
                   , MockWallet
                   , PABWebserver
-                  , ProcessAllContractOutboxes
                   ]))
         (fullDesc <> progDesc "Run the client services (all services except the mock node).")
-
-activateContractParser :: Mod CommandFields Command
-activateContractParser =
-    command "activate" $
-    info
-        (ActivateContract <$>
-         strOption
-             (short 'p' <>
-              long "path" <>
-              help
-                  "Name of the contract. (See 'installed-contracts' for a list.)"))
-        (fullDesc <> progDesc "Activate a smart contract.")
 
 installContractParser :: Mod CommandFields Command
 installContractParser =
     command "install" $
     info
-        (InstallContract <$>
+        (InstallContract . ContractExe <$>
          strOption
              (short 'p' <>
               long "path" <> help "Path to the executable contract."))
@@ -233,8 +218,8 @@ contractStateParser =
         (ContractState <$> contractIdParser)
         (fullDesc <> progDesc "Show the current state of a contract.")
 
-contractIdParser :: Parser UUID
-contractIdParser =
+contractIdParser :: Parser ContractInstanceId
+contractIdParser = fmap ContractInstanceId $
     argument
         auto
         (help "ID of the contract. (See 'active-contracts' for a list.)")
@@ -253,44 +238,12 @@ reportActiveContractsParser =
         (pure ReportActiveContracts)
         (fullDesc <> progDesc "Show all active contracts.")
 
-reportTxHistoryParser :: Mod CommandFields Command
-reportTxHistoryParser =
-    command "local-chain" $
-    info
-        (pure ReportTxHistory)
-        (fullDesc <> progDesc "Show all submitted transactions.")
-
 pabWebserverParser :: Mod CommandFields Command
 pabWebserverParser =
     command "webserver" $
     info
         (pure PABWebserver)
         (fullDesc <> progDesc "Start the PAB backend webserver.")
-
-updateContractParser :: Mod CommandFields Command
-updateContractParser =
-    command "update" $
-    info
-        (UpdateContract <$> contractIdParser <*>
-         strArgument (help "Endpoint name.") <*>
-         argument
-             (eitherReader (JSON.eitherDecode . BS8.pack))
-             (help "JSON Payload."))
-        (fullDesc <> progDesc "Update a smart contract.")
-
-processAllContractInboxesParser :: Mod CommandFields Command
-processAllContractInboxesParser =
-    command "process-inbox" $
-    info
-        (ProcessContractInbox <$> contractIdParser)
-        (fullDesc <> progDesc "Process the inbox of the contract instance.")
-
-processAllContractOutboxesParser :: Mod CommandFields Command
-processAllContractOutboxesParser =
-    command "process-outboxes" $
-    info
-        (pure ProcessAllContractOutboxes)
-        (fullDesc <> progDesc "Process all contract outboxes.")
 
 reportContractHistoryParser :: Mod CommandFields Command
 reportContractHistoryParser =

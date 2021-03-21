@@ -34,9 +34,9 @@ import           Plutus.Contracts.Currency (Currency, SimpleMPS (..))
 import qualified Plutus.Contracts.Game     as Contracts.Game
 import           Ledger                                            (pubKeyAddress)
 import           Ledger.Ada                                        (lovelaceValueOf)
-import           Plutus.PAB.Command                                ()
 import           Plutus.PAB.Core
 import           Plutus.PAB.Core.ContractInstance                  (ContractInstanceMsg)
+import           Plutus.PAB.Db.Eventful.Command                    ()
 import qualified Plutus.PAB.Db.Eventful.Query                      as Query
 import           Plutus.PAB.Effects.Contract                       (ContractEffect)
 import           Plutus.PAB.Effects.Contract.ContractTest          (TestContracts (..))
