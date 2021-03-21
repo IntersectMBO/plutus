@@ -20,6 +20,7 @@ import Data.Maybe (Maybe(..))
 import Data.Newtype (class Newtype)
 import Data.NonEmpty ((:|))
 import Data.Symbol (SProxy(..))
+import Data.Tuple (Tuple(..))
 import Data.Tuple.Nested (type (/\))
 import Data.UUID as UUID
 import Foreign (MultipleErrors)
@@ -31,11 +32,10 @@ import Network.RemoteData (RemoteData)
 import Network.StreamData (StreamData)
 import Network.StreamData as Stream
 import Playground.Types (FunctionSchema)
-import Plutus.PAB.Events (PABEvent)
 import Plutus.PAB.Events.Contract (ContractPABRequest, _UserEndpointRequest)
-import Plutus.PAB.Effects.Contract.ContractExe (ContractExe)
 import Plutus.PAB.Events.ContractInstanceState (PartiallyDecodedResponse)
-import Plutus.PAB.Webserver.Types (ChainReport, ContractReport, ContractSignatureResponse, _ChainReport, _ContractReport, _ContractSignatureResponse, CombinedWSStreamToClient, CombinedWSStreamToServer)
+import Plutus.PAB.Effects.Contract.ContractExe (ContractExe)
+import Plutus.PAB.Webserver.Types (ChainReport, ContractReport, ContractSignatureResponse, InstanceStatusToClient, CombinedWSStreamToClient, CombinedWSStreamToServer, _ChainReport, _ContractReport, _ContractSignatureResponse)
 import Schema (FormSchema)
 import Schema.Types (FormArgument, FormEvent)
 import Servant.PureScript.Ajax (AjaxError)
@@ -97,7 +97,6 @@ newtype State
   { currentView :: View
   , contractSignatures :: WebStreamData ContractSignatures
   , chainReport :: WebData ChainReport
-  , events :: WebData (Array (PABEvent ContractExe))
   , chainState :: Chain.State
   , contractStates :: ContractStates
   , webSocketMessage :: WebStreamData CombinedWSStreamToClient
@@ -165,12 +164,6 @@ _crActiveContractStates = _ContractReport <<< prop (SProxy :: SProxy "crActiveCo
 _csrDefinition :: forall t. Lens' (ContractSignatureResponse t) t
 _csrDefinition = _ContractSignatureResponse <<< prop (SProxy :: SProxy "csrDefinition")
 
--- _csContract :: forall t. Lens' (ContractInstanceState t) ContractInstanceId
--- _csContract = _Newtype <<< prop (SProxy :: SProxy "csContract")
--- _csCurrentState :: forall t. Lens' (ContractInstanceState t) (PartiallyDecodedResponse ContractPABRequest)
--- _csCurrentState = _Newtype <<< prop (SProxy :: SProxy "csCurrentState")
--- _csContractDefinition :: forall t. Lens' (ContractInstanceState t) t
--- _csContractDefinition = _ContractInstanceState <<< prop (SProxy :: SProxy "csContractDefinition")
 _hooks :: forall t. Lens' (PartiallyDecodedResponse t) (Array (Request t))
 _hooks = _Newtype <<< prop (SProxy :: SProxy "hooks")
 

@@ -20,4 +20,4 @@ annotatedBlockchainPane chainState (ChainReport { annotatedBlockchain }) =
         ]
     ]
   where
-  namingFn (PubKeyHash { getPubKeyHash: hash }) = Nothing
+  namingFn _ = Nothing

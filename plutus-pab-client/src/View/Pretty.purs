@@ -25,26 +25,7 @@ import Types (_contractInstanceIdString)
 class Pretty a where
   pretty :: forall p i. a -> HTML p i
 
-instance prettyPABEvent :: Pretty t => Pretty (PABEvent t) where
-  pretty e =
-    withHeading "PAB"
-      $ case e of
-          InstallContract contract -> span_ [ text $ "Install contract:", nbsp, pretty contract ]
-          UpdateContractInstanceState (ContractActivationArgs { caID }) instanceId (PartiallyDecodedResponse { hooks }) ->
-            span_
-              [ text "Update instance "
-              , text (view _contractInstanceIdString instanceId)
-              , text " of contract "
-              , pretty caID
-              , div_
-                  [ nbsp
-                  , text "with new active endpoint(s): "
-                  , text $ show hooks
-                  ]
-              ]
-          SubmitTx tx -> span_ [ text "SubmittedTx:", nbsp, pretty tx ]
-
-withHeading :: forall i p. String -> HTML p i -> HTML p i
+withHeading :: forall i p a. Pretty a => String -> a -> HTML p i
 withHeading prefix content =
   span_
     [ b_

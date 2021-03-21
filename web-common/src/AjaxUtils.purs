@@ -59,10 +59,7 @@ ajaxErrorClass = ClassName "ajax-error"
 showAjaxError :: forall p i. AjaxError -> HTML p i
 showAjaxError = runAjaxError >>> _.description >>> showErrorDescription
 
-showErrorDescription :: forall p i. ErrorDescription -> HTML p i
-showErrorDescription NotFound = text "Data not found."
-
-showErrorDescription (ResponseError statusCode err) = text $ "Server error " <> show statusCode <> ": " <> err
+-- showErrorDescription (ResponseError statusCode err) = text $ "Server error " <> show statusCode <> ": " <> err
 
 showErrorDescription (DecodingError err@"(\"Unexpected token E in JSON at position 0\" : Nil)") = text "Cannot connect to the server. Please check your network connection."
 

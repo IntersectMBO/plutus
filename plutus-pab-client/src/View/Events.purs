@@ -1,6 +1,5 @@
 module View.Events
-  ( eventsPane
-  , utxoIndexPane
+  ( utxoIndexPane
   ) where
 
 import Prelude
@@ -33,26 +32,3 @@ utxoIndexPane utxoIndex =
 
 utxoEntryPane :: forall p. (TxOutRef /\ TxOut) -> HTML p HAction
 utxoEntryPane (txOutRef /\ txOut) = ChainAction <$> Chain.txOutOfView (const Nothing) false txOut Nothing
-
-eventsPane :: forall p i. Array (PABEvent ContractExe) -> HTML p i
-eventsPane events =
-  card_
-    [ cardHeader_
-        [ h2_ [ text "Event log" ]
-        , text (show (Array.length events))
-        , nbsp
-        , text "Event(s)"
-        ]
-    , cardBody_ [ div_ (countedEventPane <$> countConsecutive events) ]
-    ]
-
-countedEventPane :: forall t p i. Pretty t => Int /\ PABEvent t -> HTML p i
-countedEventPane (count /\ event) =
-  div_
-    [ preWrap_
-        [ badgePrimary_
-            [ text $ show count <> "x" ]
-        , nbsp
-        , pretty event
-        ]
-    ]
