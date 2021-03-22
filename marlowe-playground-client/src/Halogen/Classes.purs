@@ -1,7 +1,6 @@
 module Halogen.Classes where
 
 import Prelude hiding (div)
-
 import Data.Lens (Getter', to)
 import Halogen (ClassName(..))
 import Halogen.HTML (HTML, IProp, div, span, text)
