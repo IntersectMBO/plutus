@@ -20,31 +20,31 @@ module Plutus.PAB.Core.ContractInstance.RequestHandlers(
     , processNotificationEffects
     ) where
 
-import           Cardano.BM.Data.Tracer                        (ToObject (..), TracingVerbosity (..))
-import           Cardano.BM.Data.Tracer.Extras                 (Tagged (Tagged), mkObjectStr)
-import           Control.Arrow                                 ((>>>), (>>^))
-import           Control.Monad.Freer                           (Member)
-import           Control.Monad.Freer.Extras.Log                (LogMessage, LogMsg, LogObserve)
-import           Control.Monad.Freer.Reader                    (Reader)
-import           Data.Aeson                                    (FromJSON, ToJSON)
-import qualified Data.Aeson                                    as JSON
-import qualified Data.Text                                     as Text
-import           Data.Text.Prettyprint.Doc                     (Pretty, parens, pretty, viaShow, (<+>))
-import           GHC.Generics                                  (Generic)
-import           Plutus.Contract.Effects.WriteTx      (WriteTxResponse (..))
-import           Plutus.Contract.Resumable            (IterationID, Request (..), Response (..))
-import           Plutus.Contract.Trace.RequestHandler (RequestHandler (..), RequestHandlerLogMsg, extract,
-                                                                maybeToHandler)
-import qualified Plutus.Contract.Trace.RequestHandler as RequestHandler
-import           Ledger.Tx                                     (Tx, txId)
-import qualified Plutus.PAB.Effects.Contract                   as Contract
-import           Plutus.PAB.Events.Contract                    (ContractInstanceId (..), ContractPABRequest (..),
-                                                                ContractResponse (..))
-import qualified Plutus.PAB.Events.Contract                    as Events.Contract
-import           Plutus.PAB.Events.ContractInstanceState       (PartiallyDecodedResponse)
-import           Wallet.Effects                                (ChainIndexEffect, ContractRuntimeEffect, WalletEffect)
-import           Wallet.Emulator.LogMessages                   (TxBalanceMsg)
-import           Wallet.Types                                  (NotificationError)
+import           Cardano.BM.Data.Tracer                  (ToObject (..), TracingVerbosity (..))
+import           Cardano.BM.Data.Tracer.Extras           (Tagged (Tagged), mkObjectStr)
+import           Control.Arrow                           ((>>>), (>>^))
+import           Control.Monad.Freer                     (Member)
+import           Control.Monad.Freer.Extras.Log          (LogMessage, LogMsg, LogObserve)
+import           Control.Monad.Freer.Reader              (Reader)
+import           Data.Aeson                              (FromJSON, ToJSON)
+import qualified Data.Aeson                              as JSON
+import qualified Data.Text                               as Text
+import           Data.Text.Prettyprint.Doc               (Pretty, parens, pretty, viaShow, (<+>))
+import           GHC.Generics                            (Generic)
+import           Ledger.Tx                               (Tx, txId)
+import           Plutus.Contract.Effects.WriteTx         (WriteTxResponse (..))
+import           Plutus.Contract.Resumable               (IterationID, Request (..), Response (..))
+import           Plutus.Contract.Trace.RequestHandler    (RequestHandler (..), RequestHandlerLogMsg, extract,
+                                                          maybeToHandler)
+import qualified Plutus.Contract.Trace.RequestHandler    as RequestHandler
+import qualified Plutus.PAB.Effects.Contract             as Contract
+import           Plutus.PAB.Events.Contract              (ContractInstanceId (..), ContractPABRequest (..),
+                                                          ContractResponse (..))
+import qualified Plutus.PAB.Events.Contract              as Events.Contract
+import           Plutus.PAB.Events.ContractInstanceState (PartiallyDecodedResponse)
+import           Wallet.Effects                          (ChainIndexEffect, ContractRuntimeEffect, WalletEffect)
+import           Wallet.Emulator.LogMessages             (TxBalanceMsg)
+import           Wallet.Types                            (NotificationError)
 
 processOwnPubkeyRequests ::
     forall effs.

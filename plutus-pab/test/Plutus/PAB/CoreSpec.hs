@@ -11,50 +11,49 @@ module Plutus.PAB.CoreSpec
     ( tests
     ) where
 
-import           Control.Lens                                      ((&), (+~))
-import           Control.Monad                                     (unless, void)
-import           Control.Monad.Freer                               (Eff, Member, Members)
-import           Control.Monad.Freer.Error                         (Error, throwError)
-import           Control.Monad.Freer.Extras.Log                    (LogMsg)
-import qualified Control.Monad.Freer.Extras.Log                    as EmulatorLog
-import           Control.Monad.Freer.Extras.State                  (use)
-import           Control.Monad.Freer.State                         (State)
-import qualified Data.Aeson                                        as JSON
-import           Data.Foldable                                     (fold)
+import           Control.Lens                             ((&), (+~))
+import           Control.Monad                            (unless, void)
+import           Control.Monad.Freer                      (Eff, Member, Members)
+import           Control.Monad.Freer.Error                (Error, throwError)
+import           Control.Monad.Freer.Extras.Log           (LogMsg)
+import qualified Control.Monad.Freer.Extras.Log           as EmulatorLog
+import           Control.Monad.Freer.Extras.State         (use)
+import           Control.Monad.Freer.State                (State)
+import qualified Data.Aeson                               as JSON
+import           Data.Foldable                            (fold)
 
-import qualified Data.Aeson.Types                                  as JSON
-import           Data.Either                                       (isRight)
-import qualified Data.Map                                          as Map
-import           Data.Semigroup                                    (Last (..))
-import qualified Data.Set                                          as Set
-import           Data.Text                                         (Text)
-import qualified Data.Text                                         as Text
-import           Data.Text.Extras                                  (tshow)
-import           Plutus.Contracts.Currency (Currency, SimpleMPS (..))
-import qualified Plutus.Contracts.Game     as Contracts.Game
-import           Ledger                                            (pubKeyAddress)
-import           Ledger.Ada                                        (lovelaceValueOf)
+import qualified Data.Aeson.Types                         as JSON
+import           Data.Either                              (isRight)
+import qualified Data.Map                                 as Map
+import           Data.Semigroup                           (Last (..))
+import qualified Data.Set                                 as Set
+import           Data.Text                                (Text)
+import qualified Data.Text                                as Text
+import           Data.Text.Extras                         (tshow)
+import           Ledger                                   (pubKeyAddress)
+import           Ledger.Ada                               (lovelaceValueOf)
+import           Plutus.Contracts.Currency                (Currency, SimpleMPS (..))
+import qualified Plutus.Contracts.Game                    as Contracts.Game
 import           Plutus.PAB.Core
-import           Plutus.PAB.Core.ContractInstance                  (ContractInstanceMsg)
-import           Plutus.PAB.Db.Eventful.Command                    ()
-import qualified Plutus.PAB.Db.Eventful.Query                      as Query
-import           Plutus.PAB.Effects.Contract                       (ContractEffect)
-import           Plutus.PAB.Effects.Contract.ContractTest          (TestContracts (..))
-import           Plutus.PAB.Effects.EventLog                       (EventLogEffect)
-import           Plutus.PAB.Events.ContractInstanceState           (PartiallyDecodedResponse (..))
-import           Plutus.PAB.Simulator                              (Simulation, TxCounts (..))
-import qualified Plutus.PAB.Simulator                              as Simulator
-import           Plutus.PAB.Types                                  (PABError (..), chainOverviewBlockchain,
-                                                                    mkChainOverview)
-import           Test.QuickCheck.Instances.UUID                    ()
-import           Test.Tasty                                        (TestTree, testGroup)
-import           Test.Tasty.HUnit                                  (testCase)
-import           Wallet.API                                        (WalletAPIError, ownPubKey)
-import qualified Wallet.Emulator.Chain                             as Chain
-import           Wallet.Emulator.Wallet                            (Wallet (..))
-import           Wallet.Rollup                                     (doAnnotateBlockchain)
-import           Wallet.Rollup.Types                               (DereferencedInput, dereferencedInputs, isFound)
-import           Wallet.Types                                      (ContractInstanceId)
+import           Plutus.PAB.Core.ContractInstance         (ContractInstanceMsg)
+import           Plutus.PAB.Db.Eventful.Command           ()
+import qualified Plutus.PAB.Db.Eventful.Query             as Query
+import           Plutus.PAB.Effects.Contract              (ContractEffect)
+import           Plutus.PAB.Effects.Contract.ContractTest (TestContracts (..))
+import           Plutus.PAB.Effects.EventLog              (EventLogEffect)
+import           Plutus.PAB.Events.ContractInstanceState  (PartiallyDecodedResponse (..))
+import           Plutus.PAB.Simulator                     (Simulation, TxCounts (..))
+import qualified Plutus.PAB.Simulator                     as Simulator
+import           Plutus.PAB.Types                         (PABError (..), chainOverviewBlockchain, mkChainOverview)
+import           Test.QuickCheck.Instances.UUID           ()
+import           Test.Tasty                               (TestTree, testGroup)
+import           Test.Tasty.HUnit                         (testCase)
+import           Wallet.API                               (WalletAPIError, ownPubKey)
+import qualified Wallet.Emulator.Chain                    as Chain
+import           Wallet.Emulator.Wallet                   (Wallet (..))
+import           Wallet.Rollup                            (doAnnotateBlockchain)
+import           Wallet.Rollup.Types                      (DereferencedInput, dereferencedInputs, isFound)
+import           Wallet.Types                             (ContractInstanceId)
 
 tests :: TestTree
 tests = testGroup "Plutus.PAB.Core" [installContractTests, executionTests]

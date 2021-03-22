@@ -27,12 +27,10 @@ import           Data.Text.Prettyprint.Doc               (Pretty (..), defaultLa
 import qualified Data.Text.Prettyprint.Doc.Render.Text   as Render
 import           Data.UUID                               (UUID)
 import           GHC.TypeLits                            (KnownSymbol, symbolVal)
-import           Plutus.Contract.Checkpoint     (CheckpointLogMsg)
-import           Plutus.Contract.Resumable      (Response (..))
-import           Plutus.Contract.State          (ContractRequest)
 import           Ledger.Tx                               (Tx)
 import qualified Ledger.Value                            as V
 import           Plutus.Contract.Checkpoint              (CheckpointLogMsg)
+import           Plutus.Contract.Resumable               (Response (..))
 import           Plutus.Contract.State                   (ContractRequest)
 import           Plutus.PAB.Events.Contract              (ContractInstanceId, IterationID)
 import           Plutus.PAB.Events.ContractInstanceState (PartiallyDecodedResponse (..))

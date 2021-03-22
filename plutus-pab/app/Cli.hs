@@ -55,47 +55,46 @@ We have to use 'natTracer' in some places to turn 'Trace IO a' into
 
 import           Command
 
-import           Cardano.BM.Configuration                          (Configuration)
-import qualified Cardano.BM.Configuration.Model                    as CM
-import           Cardano.BM.Data.Trace                             (Trace)
-import qualified Cardano.ChainIndex.Server                         as ChainIndex
-import qualified Cardano.Metadata.Server                           as Metadata
-import qualified Cardano.Node.Server                               as NodeServer
-import qualified Cardano.Wallet.Server                             as WalletServer
+import           Cardano.BM.Configuration                 (Configuration)
+import qualified Cardano.BM.Configuration.Model           as CM
+import           Cardano.BM.Data.Trace                    (Trace)
+import qualified Cardano.ChainIndex.Server                as ChainIndex
+import qualified Cardano.Metadata.Server                  as Metadata
+import qualified Cardano.Node.Server                      as NodeServer
+import qualified Cardano.Wallet.Server                    as WalletServer
 import           Cardano.Wallet.Types
-import           Control.Concurrent.Async                          (Async, async, waitAny)
-import           Control.Concurrent.Availability                   (Availability, starting)
-import           Control.Monad                                     (void)
-import           Control.Monad.Freer                               (interpret)
-import           Control.Monad.Freer.Extras.Log                    (logInfo)
-import           Control.Monad.IO.Class                            (liftIO)
-import           Data.Foldable                                     (traverse_)
-import qualified Data.Map                                          as Map
-import           Data.Proxy                                        (Proxy (..))
-import qualified Data.Set                                          as Set
-import           Data.Text.Prettyprint.Doc                         (Pretty (..), defaultLayoutOptions, layoutPretty,
-                                                                    pretty)
-import           Data.Text.Prettyprint.Doc.Render.Text             (renderStrict)
-import qualified Plutus.PAB.Effects.Contract                       as Contract
+import           Control.Concurrent.Async                 (Async, async, waitAny)
+import           Control.Concurrent.Availability          (Availability, starting)
+import           Control.Monad                            (void)
+import           Control.Monad.Freer                      (interpret)
+import           Control.Monad.Freer.Extras.Log           (logInfo)
+import           Control.Monad.IO.Class                   (liftIO)
+import           Data.Foldable                            (traverse_)
+import qualified Data.Map                                 as Map
+import           Data.Proxy                               (Proxy (..))
+import qualified Data.Set                                 as Set
+import           Data.Text.Prettyprint.Doc                (Pretty (..), defaultLayoutOptions, layoutPretty, pretty)
+import           Data.Text.Prettyprint.Doc.Render.Text    (renderStrict)
+import qualified Plutus.PAB.Effects.Contract              as Contract
 
-import           Cardano.Node.Types                                (MockServerConfig (..), NodeUrl (..))
+import           Cardano.Node.Types                       (MockServerConfig (..), NodeUrl (..))
+import qualified PSGenerator
 import           Plutus.Contract.Resumable                (responses)
 import           Plutus.Contract.State                    (State (..))
+import qualified Plutus.PAB.App                           as App
+import qualified Plutus.PAB.Core                          as Core
+import qualified Plutus.PAB.Db.Eventful                   as Eventful
+import           Plutus.PAB.Effects.Contract.ContractExe  (ContractExe)
+import           Plutus.PAB.Effects.Contract.ContractTest (TestContracts (Currency))
+import           Plutus.PAB.Events.ContractInstanceState  (PartiallyDecodedResponse (..))
+import qualified Plutus.PAB.Monitoring.Monitoring         as LM
+import qualified Plutus.PAB.Simulator                     as Simulator
+import           Plutus.PAB.Types                         (Config (..), chainIndexConfig, metadataServerConfig,
+                                                           nodeServerConfig, requestProcessingConfig,
+                                                           walletServerConfig)
+import qualified Plutus.PAB.Webserver.Server              as PABServer
 import           PlutusTx.Coordination.Contracts.Currency (SimpleMPS (..))
-import qualified PSGenerator
-import qualified Plutus.PAB.App                                    as App
-import qualified Plutus.PAB.Core                                   as Core
-import qualified Plutus.PAB.Db.Eventful                            as Eventful
-import           Plutus.PAB.Effects.Contract.ContractExe           (ContractExe)
-import           Plutus.PAB.Effects.Contract.ContractTest          (TestContracts (Currency))
-import           Plutus.PAB.Events.ContractInstanceState           (PartiallyDecodedResponse (..))
-import qualified Plutus.PAB.Monitoring.Monitoring                  as LM
-import qualified Plutus.PAB.Simulator                              as Simulator
-import           Plutus.PAB.Types                                  (Config (..), chainIndexConfig, metadataServerConfig,
-                                                                    nodeServerConfig, requestProcessingConfig,
-                                                                    walletServerConfig)
-import qualified Plutus.PAB.Webserver.Server                       as PABServer
-import           Wallet.Emulator.Wallet                            (Wallet (..))
+import           Wallet.Emulator.Wallet                   (Wallet (..))
 
 -- | Interpret a 'Command' in 'Eff' using the provided tracer and configurations
 --

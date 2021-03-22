@@ -27,10 +27,10 @@ module Plutus.PAB.App(
 
 import           Cardano.BM.Trace                               (Trace)
 import           Cardano.ChainIndex.Client                      (handleChainIndexClient)
-import qualified Cardano.Protocol.Socket.Client as Client
 import qualified Cardano.ChainIndex.Types                       as ChainIndex
 import           Cardano.Node.Client                            (handleNodeClientClient)
 import           Cardano.Node.Types                             (MockServerConfig (..))
+import qualified Cardano.Protocol.Socket.Client                 as Client
 import qualified Cardano.Wallet.Client                          as WalletClient
 import qualified Cardano.Wallet.Types                           as Wallet
 import qualified Control.Concurrent.STM                         as STM
@@ -72,7 +72,7 @@ data AppEnv =
         , walletClientEnv :: ClientEnv
         , nodeClientEnv   :: ClientEnv
         , chainIndexEnv   :: ClientEnv
-        , clientHandler     :: Client.ClientHandler
+        , clientHandler   :: Client.ClientHandler
         , appConfig       :: Config
         , appTrace        :: Trace IO PABLogMsg
         }

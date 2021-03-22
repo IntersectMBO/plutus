@@ -1,12 +1,12 @@
+{-# LANGUAGE DataKinds            #-}
+{-# LANGUAGE DeriveAnyClass       #-}
+{-# LANGUAGE DeriveGeneric        #-}
+{-# LANGUAGE DerivingVia          #-}
+{-# LANGUAGE FlexibleContexts     #-}
+{-# LANGUAGE LambdaCase           #-}
+{-# LANGUAGE OverloadedStrings    #-}
+{-# LANGUAGE TypeApplications     #-}
 {-# LANGUAGE UndecidableInstances #-}
-{-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE DataKinds         #-}
-{-# LANGUAGE DeriveAnyClass    #-}
-{-# LANGUAGE DeriveGeneric     #-}
-{-# LANGUAGE DerivingVia       #-}
-{-# LANGUAGE LambdaCase        #-}
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TypeApplications  #-}
 
 -- | PAB Log messages and instances
 module Plutus.PAB.Monitoring.PABLogMsg(
@@ -23,21 +23,21 @@ module Plutus.PAB.Monitoring.PABLogMsg(
     ) where
 
 import           Data.Aeson                              (FromJSON, ToJSON)
-import qualified Data.Aeson as JSON
+import qualified Data.Aeson                              as JSON
 import           Data.Text                               (Text)
 import           Data.Text.Prettyprint.Doc               (Pretty (..), colon, (<+>))
 import           GHC.Generics                            (Generic)
 
 import           Cardano.BM.Data.Tracer                  (ToObject (..), TracingVerbosity (..))
-import           Cardano.BM.Data.Tracer.Extras           (Tagged (..), mkObjectStr, StructuredLog)
+import           Cardano.BM.Data.Tracer.Extras           (StructuredLog, Tagged (..), mkObjectStr)
 import           Cardano.ChainIndex.Types                (ChainIndexServerMsg)
 import           Cardano.Metadata.Types                  (MetadataLogMessage)
 import           Cardano.Node.Types                      (MockServerLogMsg)
 import           Cardano.Wallet.Types                    (WalletMsg)
 import           Data.Aeson.Text                         (encodeToLazyText)
 import qualified Data.Text                               as T
-import           Plutus.Contract.Resumable      (Response)
-import           Plutus.Contract.State          (ContractRequest)
+import           Plutus.Contract.Resumable               (Response)
+import           Plutus.Contract.State                   (ContractRequest)
 import           Plutus.PAB.Core.ContractInstance        (ContractInstanceMsg (..))
 import           Plutus.PAB.Effects.Contract             (PABContract (..))
 import           Plutus.PAB.Effects.Contract.ContractExe (ContractExe, ContractExeLogMsg (..))

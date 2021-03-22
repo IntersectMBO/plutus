@@ -9,7 +9,7 @@
 module Cardano.Node.Client where
 
 import           Control.Monad.Freer
-import Control.Monad.Freer.Reader (Reader, ask)
+import           Control.Monad.Freer.Reader     (Reader, ask)
 import           Control.Monad.IO.Class
 import           Data.Proxy                     (Proxy (Proxy))
 import           Ledger                         (Tx)
@@ -61,7 +61,7 @@ handleNodeClientClient ::
     ~> Eff effs
 handleNodeClientClient e = do
     clientHandler <- ask @Client.ClientHandler
-    case e of 
+    case e of
         PublishTx tx  ->
             liftIO $ Client.queueTx clientHandler tx
         GetClientSlot ->

@@ -33,31 +33,31 @@ import           Data.Row
 import           Data.Text                                   (Text)
 import qualified Data.Text                                   as Text
 import           Data.Text.Prettyprint.Doc
-import           GHC.Generics                                      (Generic)
+import           GHC.Generics                                (Generic)
 
-import           Data.Text.Extras                                  (tshow)
-import           Plutus.PAB.Effects.Contract                       (ContractEffect (..), PABContract (..))
-import           Plutus.PAB.Events.Contract                        (ContractPABRequest)
-import qualified Plutus.PAB.Events.Contract                        as C
-import           Plutus.PAB.Events.ContractInstanceState           (PartiallyDecodedResponse)
-import qualified Plutus.PAB.Events.ContractInstanceState           as C
-import           Plutus.PAB.Monitoring.PABLogMsg                   (ContractEffectMsg (..))
-import           Plutus.PAB.Types                                  (PABError (..))
+import           Data.Text.Extras                            (tshow)
+import           Plutus.PAB.Effects.Contract                 (ContractEffect (..), PABContract (..))
+import           Plutus.PAB.Events.Contract                  (ContractPABRequest)
+import qualified Plutus.PAB.Events.Contract                  as C
+import           Plutus.PAB.Events.ContractInstanceState     (PartiallyDecodedResponse)
+import qualified Plutus.PAB.Events.ContractInstanceState     as C
+import           Plutus.PAB.Monitoring.PABLogMsg             (ContractEffectMsg (..))
+import           Plutus.PAB.Types                            (PABError (..))
 
-import           Control.Monad.Freer.Extras.Log                    (LogMsg, logDebug)
+import           Control.Monad.Freer.Extras.Log              (LogMsg, logDebug)
 
-import           Plutus.Contract                          (BlockchainActions, Contract, ContractError)
-import           Plutus.Contract.Effects.RPC              (RPCClient)
-import           Plutus.Contract.Resumable                (Response)
-import           Plutus.Contract.Schema                   (Event, Handlers, Input, Output)
-import           Plutus.Contract.State                    (ContractRequest (..), ContractResponse (..))
-import qualified Plutus.Contract.State                    as ContractState
-import qualified Plutus.Contracts.Currency as Contracts.Currency
-import qualified Plutus.Contracts.Game     as Contracts.Game
-import qualified Plutus.Contracts.RPC      as Contracts.RPC
-import           Playground.Schema                                 (endpointsToSchemas)
-import qualified Plutus.PAB.Effects.ContractTest.AtomicSwap        as Contracts.AtomicSwap
-import qualified Plutus.PAB.Effects.ContractTest.PayToWallet       as Contracts.PayToWallet
+import           Playground.Schema                           (endpointsToSchemas)
+import           Plutus.Contract                             (BlockchainActions, Contract, ContractError)
+import           Plutus.Contract.Effects.RPC                 (RPCClient)
+import           Plutus.Contract.Resumable                   (Response)
+import           Plutus.Contract.Schema                      (Event, Handlers, Input, Output)
+import           Plutus.Contract.State                       (ContractRequest (..), ContractResponse (..))
+import qualified Plutus.Contract.State                       as ContractState
+import qualified Plutus.Contracts.Currency                   as Contracts.Currency
+import qualified Plutus.Contracts.Game                       as Contracts.Game
+import qualified Plutus.Contracts.RPC                        as Contracts.RPC
+import qualified Plutus.PAB.Effects.ContractTest.AtomicSwap  as Contracts.AtomicSwap
+import qualified Plutus.PAB.Effects.ContractTest.PayToWallet as Contracts.PayToWallet
 
 data TestContracts = Game | Currency | AtomicSwap | PayToWallet | RPCClient | RPCServer
     deriving (Eq, Ord, Show, Generic)

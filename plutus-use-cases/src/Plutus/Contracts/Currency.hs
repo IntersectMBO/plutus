@@ -43,16 +43,16 @@ import qualified Ledger.Contexts         as V
 import           Ledger.Scripts
 import qualified PlutusTx                as PlutusTx
 
-import qualified Ledger.Typed.Scripts                            as Scripts
-import           Ledger.Value                                    (TokenName, Value)
-import qualified Ledger.Value                                    as Value
+import qualified Ledger.Typed.Scripts    as Scripts
+import           Ledger.Value            (TokenName, Value)
+import qualified Ledger.Value            as Value
 
-import           Data.Aeson                                      (FromJSON, ToJSON)
-import qualified Data.Map                                        as Map
-import           Data.Semigroup                                  (Last (..))
-import           GHC.Generics                                    (Generic)
-import           Prelude                                         (Semigroup (..))
+import           Data.Aeson              (FromJSON, ToJSON)
+import qualified Data.Map                as Map
+import           Data.Semigroup          (Last (..))
+import           GHC.Generics            (Generic)
 import qualified PlutusTx.AssocMap       as AssocMap
+import           Prelude                 (Semigroup (..))
 import qualified Prelude
 import           Schema                  (ToSchema)
 

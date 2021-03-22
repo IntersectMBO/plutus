@@ -10,22 +10,22 @@
 
 module Plutus.PAB.Webserver.Types where
 
-import           Data.Aeson                                      (FromJSON, ToJSON)
-import qualified Data.Aeson                                      as JSON
-import           Data.Map                                        (Map)
-import           GHC.Generics                                    (Generic)
-import           Plutus.Contract.Effects.ExposeEndpoint (ActiveEndpoint)
-import           Ledger                                          (Tx, TxId)
-import           Ledger.Index                                    (UtxoIndex)
-import           Ledger.Slot                                     (Slot)
-import           Ledger.Value                                    (Value)
-import           Playground.Types                                (FunctionSchema)
-import           Plutus.PAB.Events.Contract                      (ContractPABRequest)
-import           Plutus.PAB.Events.ContractInstanceState         (PartiallyDecodedResponse)
-import           Schema                                          (FormSchema)
-import           Wallet.Emulator.Wallet                          (Wallet)
-import           Wallet.Rollup.Types                             (AnnotatedTx)
-import           Wallet.Types                                    (ContractInstanceId)
+import           Data.Aeson                              (FromJSON, ToJSON)
+import qualified Data.Aeson                              as JSON
+import           Data.Map                                (Map)
+import           GHC.Generics                            (Generic)
+import           Ledger                                  (Tx, TxId)
+import           Ledger.Index                            (UtxoIndex)
+import           Ledger.Slot                             (Slot)
+import           Ledger.Value                            (Value)
+import           Playground.Types                        (FunctionSchema)
+import           Plutus.Contract.Effects.ExposeEndpoint  (ActiveEndpoint)
+import           Plutus.PAB.Events.Contract              (ContractPABRequest)
+import           Plutus.PAB.Events.ContractInstanceState (PartiallyDecodedResponse)
+import           Schema                                  (FormSchema)
+import           Wallet.Emulator.Wallet                  (Wallet)
+import           Wallet.Rollup.Types                     (AnnotatedTx)
+import           Wallet.Types                            (ContractInstanceId)
 
 data ContractReport t =
     ContractReport

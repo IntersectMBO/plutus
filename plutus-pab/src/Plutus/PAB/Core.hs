@@ -82,52 +82,51 @@ module Plutus.PAB.Core
     , timed
     ) where
 
-import           Control.Concurrent.STM                          (STM)
-import qualified Control.Concurrent.STM                          as STM
-import           Control.Monad                                   (forM, guard, void)
-import           Control.Monad.Freer                             (Eff, LastMember, Member, interpret, reinterpret, runM,
-                                                                  send, subsume, type (~>))
-import           Control.Monad.Freer.Error                       (Error, runError)
-import           Control.Monad.Freer.Extras.Log                  (LogMessage, LogMsg (..), LogObserve, handleObserveLog,
-                                                                  logInfo, mapLog)
-import qualified Control.Monad.Freer.Extras.Modify               as Modify
-import           Control.Monad.Freer.Reader                      (Reader (..), ask, asks, runReader)
-import           Control.Monad.IO.Class                          (MonadIO (..))
-import qualified Data.Aeson                                      as JSON
-import qualified Data.Map                                        as Map
-import           Data.Proxy                                      (Proxy (..))
-import           Data.Set                                        (Set)
-import           Data.Text                                       (Text)
-import qualified Data.Text                                       as Text
-import           Data.Text.Prettyprint.Doc                       (Pretty, defaultLayoutOptions, layoutPretty, pretty)
-import qualified Data.Text.Prettyprint.Doc.Render.Text           as Render
-import           Plutus.Contract.Effects.ExposeEndpoint (ActiveEndpoint (..))
-import           Ledger.Tx                                       (Address, Tx)
-import           Ledger.Value                                    (Value)
-import           Plutus.PAB.Core.ContractInstance                (ContractInstanceMsg)
-import qualified Plutus.PAB.Core.ContractInstance                as ContractInstance
-import           Plutus.PAB.Core.ContractInstance.STM            (BlockchainEnv, InstancesState, OpenEndpoint (..))
-import qualified Plutus.PAB.Core.ContractInstance.STM            as Instances
-import           Plutus.PAB.Effects.Contract                     (ContractDefinitionStore, ContractEffect,
-                                                                  ContractStore, PABContract (..), addDefinition,
-                                                                  getState)
-import qualified Plutus.PAB.Effects.Contract                     as Contract
-import qualified Plutus.PAB.Effects.ContractRuntime              as ContractRuntime
-import           Plutus.PAB.Effects.TimeEffect                   (TimeEffect (..), systemTime)
-import           Plutus.PAB.Effects.UUID                         (UUIDEffect, handleUUIDEffect)
-import           Plutus.PAB.Events.Contract                      (ContractPABRequest)
-import           Plutus.PAB.Events.ContractInstanceState         (PartiallyDecodedResponse)
-import           Plutus.PAB.Monitoring.PABLogMsg                 (PABMultiAgentMsg (..))
-import           Plutus.PAB.Types                                (PABError)
-import           Wallet.API                                      (PubKey, Slot)
-import qualified Wallet.API                                      as WAPI
-import           Wallet.Effects                                  (ChainIndexEffect, ContractRuntimeEffect,
-                                                                  NodeClientEffect, WalletEffect)
-import           Wallet.Emulator.LogMessages                     (RequestHandlerLogMsg, TxBalanceMsg)
-import           Wallet.Emulator.MultiAgent                      (EmulatorEvent' (..), EmulatorTimeEvent (..))
-import           Wallet.Emulator.Wallet                          (Wallet, WalletEvent (..))
-import           Wallet.Types                                    (ContractInstanceId, EndpointDescription (..),
-                                                                  NotificationError)
+import           Control.Concurrent.STM                  (STM)
+import qualified Control.Concurrent.STM                  as STM
+import           Control.Monad                           (forM, guard, void)
+import           Control.Monad.Freer                     (Eff, LastMember, Member, interpret, reinterpret, runM, send,
+                                                          subsume, type (~>))
+import           Control.Monad.Freer.Error               (Error, runError)
+import           Control.Monad.Freer.Extras.Log          (LogMessage, LogMsg (..), LogObserve, handleObserveLog,
+                                                          logInfo, mapLog)
+import qualified Control.Monad.Freer.Extras.Modify       as Modify
+import           Control.Monad.Freer.Reader              (Reader (..), ask, asks, runReader)
+import           Control.Monad.IO.Class                  (MonadIO (..))
+import qualified Data.Aeson                              as JSON
+import qualified Data.Map                                as Map
+import           Data.Proxy                              (Proxy (..))
+import           Data.Set                                (Set)
+import           Data.Text                               (Text)
+import qualified Data.Text                               as Text
+import           Data.Text.Prettyprint.Doc               (Pretty, defaultLayoutOptions, layoutPretty, pretty)
+import qualified Data.Text.Prettyprint.Doc.Render.Text   as Render
+import           Ledger.Tx                               (Address, Tx)
+import           Ledger.Value                            (Value)
+import           Plutus.Contract.Effects.ExposeEndpoint  (ActiveEndpoint (..))
+import           Plutus.PAB.Core.ContractInstance        (ContractInstanceMsg)
+import qualified Plutus.PAB.Core.ContractInstance        as ContractInstance
+import           Plutus.PAB.Core.ContractInstance.STM    (BlockchainEnv, InstancesState, OpenEndpoint (..))
+import qualified Plutus.PAB.Core.ContractInstance.STM    as Instances
+import           Plutus.PAB.Effects.Contract             (ContractDefinitionStore, ContractEffect, ContractStore,
+                                                          PABContract (..), addDefinition, getState)
+import qualified Plutus.PAB.Effects.Contract             as Contract
+import qualified Plutus.PAB.Effects.ContractRuntime      as ContractRuntime
+import           Plutus.PAB.Effects.TimeEffect           (TimeEffect (..), systemTime)
+import           Plutus.PAB.Effects.UUID                 (UUIDEffect, handleUUIDEffect)
+import           Plutus.PAB.Events.Contract              (ContractPABRequest)
+import           Plutus.PAB.Events.ContractInstanceState (PartiallyDecodedResponse)
+import           Plutus.PAB.Monitoring.PABLogMsg         (PABMultiAgentMsg (..))
+import           Plutus.PAB.Types                        (PABError)
+import           Wallet.API                              (PubKey, Slot)
+import qualified Wallet.API                              as WAPI
+import           Wallet.Effects                          (ChainIndexEffect, ContractRuntimeEffect, NodeClientEffect,
+                                                          WalletEffect)
+import           Wallet.Emulator.LogMessages             (RequestHandlerLogMsg, TxBalanceMsg)
+import           Wallet.Emulator.MultiAgent              (EmulatorEvent' (..), EmulatorTimeEvent (..))
+import           Wallet.Emulator.Wallet                  (Wallet, WalletEvent (..))
+import           Wallet.Types                            (ContractInstanceId, EndpointDescription (..),
+                                                          NotificationError)
 -- | Effects that are available in 'PABAction's.
 type PABEffects t env =
     '[ ContractStore t
