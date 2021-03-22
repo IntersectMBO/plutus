@@ -6,4 +6,5 @@ let
 in
 {
   plutus-playground-server = pkgs.callPackage ./vm-tests/plutus-playground.nix { inherit makeTest;inherit (plutus) plutus-playground; };
+  marlowe-playground-server = pkgs.callPackage ./vm-tests/marlowe-playground.nix { inherit makeTest;inherit (plutus) marlowe-playground; };
 }
