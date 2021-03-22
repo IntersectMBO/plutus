@@ -143,13 +143,13 @@ panelContents state metadata MetadataView =
   where
   generateMetadataList mapLens setLens = metadataList (metadata ^. mapLens) (state ^. (_metadataHintInfo <<< setLens))
 
-panelContents state _ StaticAnalysisView =
+panelContents state metadata StaticAnalysisView =
   section [ classes [ flex, flexCol ] ]
     if (state ^. _hasHoles) then
       [ div_ [ text "The contract needs to be complete (no holes) before doing static analysis." ]
       ]
     else
-      [ analysisResultPane SetIntegerTemplateParam state
+      [ analysisResultPane metadata SetIntegerTemplateParam state
       , div [ classes [ paddingRight ] ]
           [ analyzeButton loadingWarningAnalysis analysisEnabled "Analyse for warnings" AnalyseContract
           , analyzeButton loadingReachability analysisEnabled "Analyse reachability" AnalyseReachabilityContract

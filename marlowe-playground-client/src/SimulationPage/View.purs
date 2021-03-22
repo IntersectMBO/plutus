@@ -200,7 +200,7 @@ sidebar ::
   State ->
   Array (HTML p Action)
 sidebar metadata state = case view (_marloweState <<< _Head <<< _executionState) state of
-  SimulationNotStarted notStartedRecord -> [ startSimulationWidget notStartedRecord ]
+  SimulationNotStarted notStartedRecord -> [ startSimulationWidget metadata notStartedRecord ]
   SimulationRunning _ ->
     [ div [ class_ smallSpaceBottom ] [ simulationStateWidget state ]
     , div [ class_ spaceBottom ] [ actionWidget metadata state ]
@@ -208,8 +208,8 @@ sidebar metadata state = case view (_marloweState <<< _Head <<< _executionState)
     ]
 
 ------------------------------------------------------------
-startSimulationWidget :: forall p. InitialConditionsRecord -> HTML p Action
-startSimulationWidget { initialSlot, templateContent } =
+startSimulationWidget :: forall p. MetaData -> InitialConditionsRecord -> HTML p Action
+startSimulationWidget metadata { initialSlot, templateContent } =
   cardWidget "Simulation has not started yet"
     $ div_
         [ div [ classes [ ClassName "slot-input", ClassName "initial-slot-input" ] ]
@@ -218,8 +218,8 @@ startSimulationWidget { initialSlot, templateContent } =
             ]
         , div_
             [ ul [ class_ (ClassName "templates") ]
-                ( integerTemplateParameters SetIntegerTemplateParam SlotContent "Timeout template parameters" "Slot for" (unwrap templateContent).slotContent
-                    <> integerTemplateParameters SetIntegerTemplateParam ValueContent "Value template parameters" "Constant for" (unwrap templateContent).valueContent
+                ( integerTemplateParameters metadata.slotParameterDescriptions SetIntegerTemplateParam SlotContent "Timeout template parameters" "Slot for" (unwrap templateContent).slotContent
+                    <> integerTemplateParameters metadata.valueParameterDescriptions SetIntegerTemplateParam ValueContent "Value template parameters" "Constant for" (unwrap templateContent).valueContent
                 )
             ]
         , div [ classes [ ClassName "transaction-btns", flex, justifyCenter ] ]
@@ -231,8 +231,8 @@ startSimulationWidget { initialSlot, templateContent } =
             ]
         ]
 
-integerTemplateParameters :: forall action p. (IntegerTemplateType -> String -> BigInteger -> action) -> IntegerTemplateType -> String -> String -> Map String BigInteger -> Array (HTML p action)
-integerTemplateParameters actionGen typeName title prefix content =
+integerTemplateParameters :: forall action p. Map String String -> (IntegerTemplateType -> String -> BigInteger -> action) -> IntegerTemplateType -> String -> String -> Map String BigInteger -> Array (HTML p action)
+integerTemplateParameters explanations actionGen typeName title prefix content =
   [ li_
       if Map.isEmpty content then
         []
@@ -241,11 +241,18 @@ integerTemplateParameters actionGen typeName title prefix content =
           <> ( map
                 ( \(key /\ value) ->
                     ( ( div [ class_ (ClassName "template-fields") ]
-                          [ text (prefix <> " ")
-                          , strong_ [ text key ]
-                          , text ":"
-                          , marloweActionInput (actionGen typeName key) value
-                          ]
+                          ( [ div_
+                                [ text (prefix <> " ")
+                                , strong_ [ text key ]
+                                , text ":"
+                                ]
+                            , marloweActionInput (actionGen typeName key) value
+                            ]
+                              <> [ div [ classes [ ClassName "action-group-explanation" ] ]
+                                    $ maybe [] (\explanation -> [ text ("“" <> explanation <> "„") ])
+                                    $ Map.lookup key explanations
+                                ]
+                          )
                       )
                     )
                 )

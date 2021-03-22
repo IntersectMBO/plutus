@@ -22,6 +22,7 @@ import JavascriptEditor.Types (Action(..), BottomPanelView(..), State, _bottomPa
 import JavascriptEditor.Types as JS
 import Language.Javascript.Interpreter (CompilationError(..), InterpreterResult(..))
 import MainFrame.Types (ChildSlots, _jsEditorSlot)
+import Marlowe.Extended.Metadata (MetaData)
 import StaticAnalysis.BottomPanel (analysisResultPane, analyzeButton, clearButton)
 import StaticAnalysis.Types (_analysisExecutionState, _analysisState, isCloseAnalysisLoading, isNoneAsked, isReachabilityLoading, isStaticLoading)
 import Text.Pretty (pretty)
@@ -29,9 +30,10 @@ import Text.Pretty (pretty)
 render ::
   forall m.
   MonadAff m =>
+  MetaData ->
   State ->
   ComponentHTML Action ChildSlots m
-render state =
+render metadata state =
   div [ classes [ flex, flexCol, fullHeight ] ]
     [ section [ classes [ paddingX, minH0, flexGrow, overflowHidden ] ]
         [ jsEditor state ]
@@ -50,7 +52,7 @@ render state =
     , { title: "Errors", view: ErrorsView, classes: [] }
     ]
 
-  wrapBottomPanelContents panelView = BottomPanel.PanelAction <$> panelContents state panelView
+  wrapBottomPanelContents panelView = BottomPanel.PanelAction <$> panelContents state metadata panelView
 
 otherActions :: forall p. State -> HTML p Action
 otherActions state =
@@ -125,8 +127,8 @@ compileButton state =
           JS.CompilationError _ -> [ ClassName "error" ]
           _ -> []
 
-panelContents :: forall p. State -> BottomPanelView -> HTML p Action
-panelContents state GeneratedOutputView =
+panelContents :: forall p. State -> MetaData -> BottomPanelView -> HTML p Action
+panelContents state _ GeneratedOutputView =
   section_ case view _compilationResult state of
     JS.CompiledSuccessfully (InterpreterResult result) ->
       [ div [ classes [ bgWhite, spaceBottom, ClassName "code" ] ]
@@ -136,9 +138,9 @@ panelContents state GeneratedOutputView =
       numberedText = (code_ <<< Array.singleton <<< text) <$> split (Pattern "\n") ((show <<< pretty <<< _.result) result)
     _ -> [ text "There is no generated code" ]
 
-panelContents state StaticAnalysisView =
+panelContents state metadata StaticAnalysisView =
   section_
-    ( [ analysisResultPane SetIntegerTemplateParam state
+    ( [ analysisResultPane metadata SetIntegerTemplateParam state
       , analyzeButton loadingWarningAnalysis analysisEnabled "Analyse for warnings" AnalyseContract
       , analyzeButton loadingReachability analysisEnabled "Analyse reachability" AnalyseReachabilityContract
       , analyzeButton loadingCloseAnalysis analysisEnabled "Analyse for refunds on Close" AnalyseContractForCloseRefund
@@ -165,7 +167,7 @@ panelContents state StaticAnalysisView =
     JS.CompiledSuccessfully _ -> true
     _ -> false
 
-panelContents state ErrorsView =
+panelContents state _ ErrorsView =
   section_ case view _compilationResult state of
     JS.CompilationError err -> [ compilationErrorPane err ]
     _ -> [ text "No errors" ]
