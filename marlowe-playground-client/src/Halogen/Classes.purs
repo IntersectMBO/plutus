@@ -181,7 +181,7 @@ minusBtn :: ClassName
 minusBtn = ClassName "minus-btn"
 
 btn :: ClassName
-btn = ClassName "button"
+btn = ClassName "btn"
 
 btnSecondary :: ClassName
 btnSecondary = ClassName "btn-secondary"
@@ -444,3 +444,6 @@ overflowXScroll = ClassName "overflow-x-scroll"
 
 boxShadowInverted :: ClassName
 boxShadowInverted = ClassName "box-shadow-inverted"
+
+hidden :: ClassName
+hidden = ClassName "hidden"
