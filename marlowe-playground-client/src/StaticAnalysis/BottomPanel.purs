@@ -63,7 +63,7 @@ analysisResultPane metadata actionGen state =
           [ text ""
           , ul [ class_ (ClassName "templates") ]
               ( integerTemplateParameters metadata.slotParameterDescriptions actionGen SlotContent "Timeout template parameters" "Slot for" (unwrap templateContent).slotContent
-                  <> integerTemplateParameters metadata.slotParameterDescriptions actionGen ValueContent "Value template parameters" "Constant for" (unwrap templateContent).valueContent
+                  <> integerTemplateParameters metadata.valueParameterDescriptions actionGen ValueContent "Value template parameters" "Constant for" (unwrap templateContent).valueContent
               )
           ]
       WarningAnalysis staticSubResult -> case staticSubResult of
