@@ -19,6 +19,7 @@ module Plutus.PAB.Webserver.Handler
     ( handlerNew
     , handlerOld
     , walletProxy
+    , walletProxyClientEnv
     -- * Reports
     , getFullReport
     , contractSchema
@@ -50,6 +51,7 @@ import           Plutus.PAB.Webserver.Types
 import qualified Plutus.PAB.Webserver.WebSocket          as WS
 import           Servant                                 (NoContent (NoContent), (:<|>) ((:<|>)))
 import           Servant.Client                          (ClientEnv, ClientM, runClientM)
+import qualified Wallet.Effects                          as Wallet.Effects
 import           Wallet.Emulator.Wallet                  (Wallet (..))
 import           Wallet.Types                            (ContractInstanceId (..), NotificationError, Payment)
 
@@ -159,7 +161,7 @@ availableContracts = do
     traverse mkSchema def
 
 -- | Proxy for the wallet API
-walletProxy ::
+walletProxyClientEnv ::
     forall t env.
     ClientEnv ->
     (PABAction t env Wallet -- ^ Create new wallet
@@ -169,15 +171,9 @@ walletProxy ::
     :<|> (Wallet -> PABAction t env Slot) -- ^ Wallet slot
     :<|> (Wallet -> PABAction t env UtxoMap)
     :<|> (Wallet -> Tx -> PABAction t env Tx))
-walletProxy clientEnv =
-    ( runWalletClientM clientEnv Wallet.Client.createWallet
-    :<|> (\w tx -> fmap (const NoContent) (runWalletClientM clientEnv $ Wallet.Client.submitTxn w tx))
-    :<|> (runWalletClientM clientEnv . Wallet.Client.ownPublicKey)
-    :<|> (\w payment -> runWalletClientM clientEnv $ Wallet.Client.updatePaymentWithChange w payment)
-    :<|> (runWalletClientM clientEnv . Wallet.Client.walletSlot)
-    :<|> (runWalletClientM clientEnv . Wallet.Client.ownOutputs)
-    :<|> (\w tx -> runWalletClientM clientEnv $ Wallet.Client.sign w tx)
-    )
+walletProxyClientEnv clientEnv =
+    let createWallet = runWalletClientM clientEnv Wallet.Client.createWallet
+    in walletProxy createWallet
 
 -- | Run a 'ClientM' action against a remote host using the given 'ClientEnv'.
 runWalletClientM :: forall t env a. ClientEnv -> ClientM a -> PABAction t env a
@@ -186,3 +182,24 @@ runWalletClientM clientEnv action = do
     case x of
         Left err     -> throwError @PABError (WalletClientError err)
         Right result -> pure result
+
+-- | Proxy for the wallet API
+walletProxy ::
+    forall t env.
+    PABAction t env Wallet -> -- ^ default action for creating a new wallet
+    (PABAction t env Wallet -- ^ Create new wallet
+    :<|> (Wallet -> Tx -> PABAction t env NoContent) -- ^ Submit txn
+    :<|> (Wallet -> PABAction t env PubKey)
+    :<|> (Wallet -> (Value, Payment) -> PABAction t env Payment) -- ^ Update payment with change
+    :<|> (Wallet -> PABAction t env Slot) -- ^ Wallet slot
+    :<|> (Wallet -> PABAction t env UtxoMap)
+    :<|> (Wallet -> Tx -> PABAction t env Tx))
+walletProxy createNewWallet =
+    ( createNewWallet
+    :<|> (\w tx -> fmap (const NoContent) (Core.handleAgentThread w $ Wallet.Effects.submitTxn tx))
+    :<|> (\w -> Core.handleAgentThread w Wallet.Effects.ownPubKey)
+    :<|> (\w (value, payment) -> Core.handleAgentThread w $ Wallet.Effects.updatePaymentWithChange value payment)
+    :<|> (\w -> Core.handleAgentThread w Wallet.Effects.walletSlot)
+    :<|> (\w -> Core.handleAgentThread w Wallet.Effects.ownOutputs)
+    :<|> (\w tx -> Core.handleAgentThread w $ Wallet.Effects.walletAddSignature tx)
+    )

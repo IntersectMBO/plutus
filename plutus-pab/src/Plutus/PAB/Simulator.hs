@@ -25,6 +25,7 @@ module Plutus.PAB.Simulator(
     , handleContractEffectMsg
     , SimulatorEffectHandlers
     , mkSimulatorHandlers
+    , addWallet
     -- * Simulator actions
     , logString
     , logPretty
@@ -57,6 +58,7 @@ module Plutus.PAB.Simulator(
     , txMemPool
     ) where
 
+import qualified Cardano.Wallet.Mock                            as MockWallet
 import           Control.Concurrent                             (forkIO)
 import           Control.Concurrent.STM                         (STM, TQueue, TVar)
 import qualified Control.Concurrent.STM                         as STM
@@ -77,6 +79,7 @@ import qualified Data.Aeson                                     as JSON
 import           Data.Foldable                                  (traverse_)
 import           Data.Map                                       (Map)
 import qualified Data.Map                                       as Map
+import           Data.Semigroup                                 (Max (..))
 import           Data.Set                                       (Set)
 import           Data.Text                                      (Text)
 import qualified Data.Text                                      as Text
@@ -150,11 +153,12 @@ makeLensesFor [("_logMessages", "logMessages"), ("_instances", "instances")] ''S
 initialState :: forall t. IO (SimulatorState t)
 initialState = do
     let Emulator.EmulatorState{Emulator._chainState} = Emulator.initialState Emulator.defaultEmulatorConfig
+        initialWallets = Map.fromList $ fmap (\w -> (w, AgentState $ Wallet.emptyWalletState w)) $ Wallet <$> [1..10]
     STM.atomically $
         SimulatorState
             <$> STM.newTQueue
             <*> STM.newTVar _chainState
-            <*> STM.newTVar mempty
+            <*> STM.newTVar initialWallets
             <*> STM.newTVar mempty
             <*> STM.newTVar mempty
 
@@ -654,3 +658,16 @@ handleAgentThread ::
     -> Eff (Core.ContractInstanceEffects t (SimulatorState t) '[IO]) a
     -> Simulation t a
 handleAgentThread = Core.handleAgentThread
+
+-- | Create a new wallet with a random key and add it to the list of simulated wallets
+addWallet :: forall t. Simulation t Wallet
+addWallet = do
+    SimulatorState{_agentStates} <- Core.askUserEnv @t @(SimulatorState t)
+    (_, privateKey) <- MockWallet.newKeyPair
+    liftIO $ STM.atomically $ do
+        currentWallets <- STM.readTVar _agentStates
+        let newWalletId = maybe 0 (succ . getMax) $ foldMap (Just . Max . getWallet) $ Map.keysSet currentWallets
+            newWallet = Wallet newWalletId
+            newWallets = currentWallets & at newWallet .~ Just (AgentState $ Wallet.emptyWalletStateFromPrivateKey privateKey)
+        STM.writeTVar _agentStates newWallets
+        pure newWallet

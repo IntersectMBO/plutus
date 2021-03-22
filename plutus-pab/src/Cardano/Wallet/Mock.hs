@@ -11,6 +11,7 @@ module Cardano.Wallet.Mock
     ( processWalletEffects
     , integer2ByteString32
     , byteString2Integer
+    , newKeyPair
     ) where
 
 import           Cardano.BM.Data.Trace            (Trace)
@@ -78,6 +79,13 @@ integer2ByteString32 i = BS.unfoldr (\l' -> if l' < 0 then Nothing else Just (fr
 distributeNewWalletFunds :: PubKey -> Eff '[WAPI.WalletEffect] Tx
 distributeNewWalletFunds = WAPI.payToPublicKey WAPI.defaultSlotRange (Ada.adaValueOf 10000)
 
+newKeyPair :: forall m effs. (LastMember m effs, MonadIO m) => Eff effs (PubKey, PrivateKey)
+newKeyPair = do
+    Seed seed <- generateSeed
+    let bytes = BS.pack . unpack $ seed
+    let privateKey = PrivateKey (KB.fromBytes bytes)
+    let pubKey = toPublicKey privateKey
+    pure (pubKey, privateKey)
 
 -- | Handle multiple wallets using existing @Wallet.handleWallet@ handler
 handleMultiWallet :: forall m effs. ( Member NodeClientEffect effs

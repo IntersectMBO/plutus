@@ -120,6 +120,12 @@ emptyWalletState w = WalletState pk emptyNodeClientState mempty sp  where
     pk = walletPrivKey w
     sp = defaultSigningProcess w
 
+-- | An empty wallet using the given private key.
+-- for that wallet as the sole watched address.
+emptyWalletStateFromPrivateKey :: PrivateKey -> WalletState
+emptyWalletStateFromPrivateKey pk = WalletState pk emptyNodeClientState mempty sp where
+    sp = signWithPrivateKey pk
+
 data PaymentArgs =
     PaymentArgs
         { availableFunds :: Map.Map TxOutRef TxOutTx
@@ -243,6 +249,10 @@ takeUntil p (x:xs)
 defaultSigningProcess :: Wallet -> SigningProcess
 defaultSigningProcess = signWallet
 
+signWithPrivateKey :: PrivateKey -> SigningProcess
+signWithPrivateKey pk = SigningProcess $
+    \pks tx -> foldM (signTxWithPrivateKey pk) tx pks
+
 -- | Sign the transaction by calling 'WAPI.signTxnWithKey' (throwing a
 --   'PrivateKeyNotFound' error if called with a key other than the
 --   wallet's private key)
@@ -257,6 +267,15 @@ signTxnWithKey wllt tx pubK = do
     let ownPubK = walletPubKey wllt
     if pubKeyHash ownPubK == pubK
     then pure (signWithWallet wllt tx)
+    else throwError (WAPI.PrivateKeyNotFound pubK)
+
+-- | Sign the transaction with the private key, if the hash is that of the
+--   private key.
+signTxWithPrivateKey :: (Member (Error WAPI.WalletAPIError) r) => PrivateKey -> Tx -> PubKeyHash -> Eff r Tx
+signTxWithPrivateKey pk tx pubK = do
+    let ownPubKey = toPublicKey pk
+    if pubKeyHash ownPubKey == pubK
+    then pure (addSignature pk tx)
     else throwError (WAPI.PrivateKeyNotFound pubK)
 
 -- | Sign the transaction with the private keys of the given wallets,

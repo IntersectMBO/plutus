@@ -28,10 +28,11 @@ import qualified Data.ByteString.Lazy.Char8      as LBS
 import           Data.Function                   ((&))
 import           Data.Proxy                      (Proxy (Proxy))
 import qualified Network.Wai.Handler.Warp        as Warp
+import           Plutus.PAB.Simulator            (Simulation)
+import qualified Plutus.PAB.Simulator            as Simulator
 import           Servant                         (Application, Handler (Handler), Raw, ServerT, err500, errBody,
                                                   hoistServer, serve, serveDirectoryFileServer, (:<|>) ((:<|>)))
 import           Servant.Client                  (BaseUrl (baseUrlPort), ClientEnv)
-
 
 import qualified Cardano.Wallet.API              as Wallet
 import           Control.Monad.Freer.Extras.Log  (logInfo)
@@ -41,9 +42,10 @@ import qualified Plutus.PAB.Effects.Contract     as Contract
 import qualified Plutus.PAB.Monitoring.PABLogMsg as LM
 import           Plutus.PAB.Types                (PABError, WebserverConfig (..), baseUrl)
 import           Plutus.PAB.Webserver.API        (API, NewAPI, WSAPI)
-import           Plutus.PAB.Webserver.Handler    (handlerNew, handlerOld, walletProxy)
+import           Plutus.PAB.Webserver.Handler    (handlerNew, handlerOld, walletProxy, walletProxyClientEnv)
 import qualified Plutus.PAB.Webserver.WebSocket  as WS
 import qualified Servant
+import           Wallet.Emulator.Wallet          (Wallet)
 
 asHandler :: forall t env a. PABRunner t env -> PABAction t env a -> Handler a
 asHandler PABRunner{runPABAction} = Servant.Handler . ExceptT . fmap (first mapError) . runPABAction where
@@ -65,7 +67,7 @@ app ::
     , Servant.MimeUnrender Servant.JSON (Contract.ContractDef t)
     ) =>
     Maybe FilePath
-    -> Maybe ClientEnv -- ^ wallet client (if wallet proxy is enabled)
+    -> Either ClientEnv (PABAction t env Wallet) -- ^ wallet client (if wallet proxy is enabled)
     -> PABRunner t env
     -> Application
 app fp walletClient pabRunner = do
@@ -77,37 +79,26 @@ app fp walletClient pabRunner = do
                 (handlerOld :<|> WS.combinedWebsocket :<|> handlerNew)
 
     case fp of
-        Nothing ->
-            case walletClient of
-                Nothing -> do
-                    let rest = Proxy @(CombinedAPI t)
-                    Servant.serve rest apiServer
-                Just wc -> do
-                    let rest = Proxy @(CombinedAPI t :<|> WalletProxy)
-                        wpServer =
-                            Servant.hoistServer
-                                (Proxy @WalletProxy)
-                                (asHandler pabRunner)
-                                (walletProxy wc)
-                    Servant.serve rest (apiServer :<|> wpServer)
+        Nothing -> do
+            let wp = either walletProxyClientEnv walletProxy walletClient
+                rest = Proxy @(CombinedAPI t :<|> WalletProxy)
+                wpServer =
+                    Servant.hoistServer
+                        (Proxy @WalletProxy)
+                        (asHandler pabRunner)
+                        wp
+            Servant.serve rest (apiServer :<|> wpServer)
         Just filePath -> do
-            case walletClient of
-                Nothing -> do
-                    let fileServer :: ServerT Raw Handler
-                        fileServer = serveDirectoryFileServer filePath
-                        rest = Proxy @(CombinedAPI t :<|> Raw)
-                    Servant.serve rest (apiServer :<|> fileServer)
-                Just wc -> do
-                    let fileServer :: ServerT Raw Handler
-                        fileServer = serveDirectoryFileServer filePath
-                        wpServer =
-                            Servant.hoistServer
-                                (Proxy @WalletProxy)
-                                (asHandler pabRunner)
-                                (walletProxy wc)
-                        rest = Proxy @(CombinedAPI t :<|> WalletProxy :<|> Raw)
-                    Servant.serve rest (apiServer :<|> wpServer :<|> fileServer)
-
+            let wp = either walletProxyClientEnv walletProxy walletClient
+                wpServer =
+                    Servant.hoistServer
+                        (Proxy @WalletProxy)
+                        (asHandler pabRunner)
+                        wp
+                fileServer :: ServerT Raw Handler
+                fileServer = serveDirectoryFileServer filePath
+                rest = Proxy @(CombinedAPI t :<|> WalletProxy :<|> Raw)
+            Servant.serve rest (apiServer :<|> wpServer :<|> fileServer)
 
 -- | Start the server using the config. Returns an action that shuts it down
 --   again.
@@ -119,7 +110,7 @@ startServer ::
     , Servant.MimeUnrender Servant.JSON (Contract.ContractDef t)
     )
     => WebserverConfig -- ^ Optional file path for static assets
-    -> Maybe ClientEnv
+    -> Either ClientEnv (PABAction t env Wallet)
     -> Availability
     -> PABAction t env (PABAction t env ())
 startServer WebserverConfig{baseUrl, staticDir} walletClient availability =
@@ -135,7 +126,7 @@ startServer' ::
     , Servant.MimeUnrender Servant.JSON (Contract.ContractDef t)
     )
     => Int -- ^ Port
-    -> Maybe ClientEnv -- ^ Optional client env. for connecting to wallet server
+    -> Either ClientEnv (PABAction t env Wallet) -- ^ How to generate a new wallet, either by proxying the request to the wallet API, or by running the PAB action
     -> Maybe FilePath -- ^ Optional file path for static assets
     -> Availability
     -> PABAction t env (PABAction t env ())
@@ -164,7 +155,7 @@ startServerDebug ::
     , Contract.PABContract t
     , Servant.MimeUnrender Servant.JSON (Contract.ContractDef t)
     )
-    => PABAction t env (PABAction t env ())
+    => Simulation t (Simulation t ())
 startServerDebug = do
     tk <- newToken
-    startServer' 8080 Nothing Nothing tk
+    startServer' 8080 (Right Simulator.addWallet) Nothing tk

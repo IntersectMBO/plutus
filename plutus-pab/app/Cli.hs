@@ -77,10 +77,11 @@ import           Data.Text.Prettyprint.Doc                (Pretty (..), defaultL
 import           Data.Text.Prettyprint.Doc.Render.Text    (renderStrict)
 import qualified Plutus.PAB.Effects.Contract              as Contract
 
-import           Cardano.Node.Types                       (MockServerConfig (..), NodeUrl (..))
+import           Cardano.Node.Types                       (MockServerConfig (..))
 import qualified PSGenerator
 import           Plutus.Contract.Resumable                (responses)
 import           Plutus.Contract.State                    (State (..))
+import           Plutus.Contracts.Currency                (SimpleMPS (..))
 import qualified Plutus.PAB.App                           as App
 import qualified Plutus.PAB.Core                          as Core
 import qualified Plutus.PAB.Db.Eventful                   as Eventful
@@ -93,7 +94,6 @@ import           Plutus.PAB.Types                         (Config (..), chainInd
                                                            nodeServerConfig, requestProcessingConfig,
                                                            walletServerConfig)
 import qualified Plutus.PAB.Webserver.Server              as PABServer
-import           PlutusTx.Coordination.Contracts.Currency (SimpleMPS (..))
 import           Wallet.Emulator.Wallet                   (Wallet (..))
 
 -- | Interpret a 'Command' in 'Eff' using the provided tracer and configurations
@@ -115,7 +115,7 @@ runCliCommand trace _ Config {..} serviceAvailability MockWallet =
     liftIO $ WalletServer.main
         (toWalletLog trace)
         walletServerConfig
-        (NodeUrl $ mscBaseUrl nodeServerConfig)
+        (mscSocketPath nodeServerConfig)
         (ChainIndex.ciBaseUrl chainIndexConfig)
         serviceAvailability
 
@@ -139,7 +139,7 @@ runCliCommand trace _ config@Config{pabWebserverConfig} serviceAvailability PABW
         $ App.runApp (toPABMsg trace) config
         $ do
             App.AppEnv{App.walletClientEnv} <- Core.askUserEnv @ContractExe @App.AppEnv
-            void $ PABServer.startServer pabWebserverConfig (Just walletClientEnv) serviceAvailability
+            void $ PABServer.startServer pabWebserverConfig (Left walletClientEnv) serviceAvailability
 
 -- Fork a list of commands
 runCliCommand trace logConfig config serviceAvailability (ForkCommands commands) =
