@@ -1,6 +1,7 @@
 module Halogen.Classes where
 
 import Prelude hiding (div)
+
 import Data.Lens (Getter', to)
 import Halogen (ClassName(..))
 import Halogen.HTML (HTML, IProp, div, span, text)
@@ -181,7 +182,7 @@ minusBtn :: ClassName
 minusBtn = ClassName "minus-btn"
 
 btn :: ClassName
-btn = ClassName "button"
+btn = ClassName "btn"
 
 btnSecondary :: ClassName
 btnSecondary = ClassName "btn-secondary"
@@ -444,3 +445,6 @@ overflowXScroll = ClassName "overflow-x-scroll"
 
 boxShadowInverted :: ClassName
 boxShadowInverted = ClassName "box-shadow-inverted"
+
+hidden :: ClassName
+hidden = ClassName "hidden"
