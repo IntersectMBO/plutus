@@ -221,11 +221,11 @@ button.minus-btn:hover {
 
 .action-group-explanation {
   margin-left: 2rem;
-  margin-bottom: 0.5rem;
   line-height: normal;
   min-width: 0;
   flex-shrink: 1;
   word-wrap: break-word;
+  align-self: center;
 }
 
 .action-explanation {
@@ -276,11 +276,13 @@ button.minus-btn:hover {
 }
 
 .template-fields {
-  margin: 0.5rem 1.5rem;
+  margin: 0.5rem 0.5rem 0.5rem 1.5rem;
+  display: flex;
+  flex-wrap: wrap;
 }
 
 .template-fields * {
-  word-break: break-all;
+  word-break: break-word;
 }
 
 .template-fields > input {
