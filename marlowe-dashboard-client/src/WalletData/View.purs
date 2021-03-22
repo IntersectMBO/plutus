@@ -35,7 +35,7 @@ newWalletCard library newWalletNickname newWalletContractId remoteDataPubKey mTo
     mContractIdError = contractIdError newWalletContractId remoteDataPubKey library
   in
     div
-      [ classNames [ "flex", "flex-col" ] ]
+      [ classNames [ "flex", "flex-col", "p-5", "pb-6", "md:pb-8" ] ]
       [ p
           [ classNames [ "font-semibold", "mb-4" ] ]
           [ text $ "Create new contact" <> foldMap (\tokenName -> " for role " <> show tokenName) mTokenName ]
@@ -94,7 +94,7 @@ walletDetailsCard walletDetails =
 
     contractId = view _contractId walletDetails
   in
-    div_
+    div [ classNames [ "p-5", "pb-6", "md:pb-8" ] ]
       [ h3
           [ classNames [ "font-semibold", "mb-4" ] ]
           [ text $ "Wallet " <> nickname ]
@@ -119,7 +119,7 @@ putdownWalletCard walletDetails =
 
     contractId = view _contractId walletDetails
   in
-    div_
+    div [ classNames [ "p-5", "pb-6", "md:pb-8" ] ]
       [ h3
           [ classNames [ "font-semibold", "mb-4" ] ]
           [ text $ "Wallet " <> nickname ]

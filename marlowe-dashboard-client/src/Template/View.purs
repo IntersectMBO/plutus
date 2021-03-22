@@ -16,7 +16,7 @@ import Data.Maybe (Maybe(..), fromMaybe, isJust)
 import Data.Set (toUnfoldable) as Set
 import Data.String (null)
 import Data.Tuple.Nested ((/\))
-import Halogen.HTML (HTML, a, br_, button, div, h2, hr, input, label, li, p, p_, span, span_, text, ul, ul_)
+import Halogen.HTML (HTML, a, br_, button, div, div_, h2, hr, input, label, li, p, p_, span, span_, text, ul, ul_)
 import Halogen.HTML.Events.Extra (onClick_, onValueInput_)
 import Halogen.HTML.Properties (InputType(..), for, id_, list, placeholder, readOnly, type_, value)
 import Marlowe.Extended (Contract, TemplateContent, _valueContent, contractTypeInitials)
@@ -338,21 +338,32 @@ contractTitle metaData =
 
 contractSetupConfirmationCard :: forall p. HTML p Action
 contractSetupConfirmationCard =
-  div [ classNames [ "px-4", "pb-4" ] ]
-    [ p
-        [ classNames [ "mb-4" ] ]
-        [ text "Confirm" ]
-    , div
-        [ classNames [ "flex" ] ]
-        [ button
-            [ classNames $ Css.secondaryButton <> [ "flex-1", "mr-4" ]
-            , onClick_ ToggleSetupConfirmationCard
+  div_
+    [ div [ classNames [ "flex", "font-semibold", "justify-between", "bg-lightgray", "p-5" ] ]
+        [ span_ [ text "Demo wallet balance:" ]
+        -- FIXME: remove placeholder with actual value
+        , span_ [ text "$223,456.78" ]
+        ]
+    , div [ classNames [ "px-5", "pb-6", "md:pb-8" ] ]
+        [ p
+            [ classNames [ "mt-4", "text-sm", "font-semibold" ] ]
+            [ text "Confirm payment of:" ]
+        -- FIXME: remove placeholder with actual value
+        , p
+            [ classNames [ "mb-4", "text-blue", "font-semibold", "text-2xl" ] ]
+            [ text "$123.456" ]
+        , div
+            [ classNames [ "flex" ] ]
+            [ button
+                [ classNames $ Css.secondaryButton <> [ "flex-1", "mr-2" ]
+                , onClick_ ToggleSetupConfirmationCard
+                ]
+                [ text "Cancel" ]
+            , button
+                [ classNames $ Css.primaryButton <> [ "flex-1" ]
+                , onClick_ StartContract
+                ]
+                [ text "Pay and run" ]
             ]
-            [ text "Cancel" ]
-        , button
-            [ classNames $ Css.primaryButton <> [ "flex-1" ]
-            , onClick_ StartContract
-            ]
-            [ text "Pay and run" ]
         ]
     ]

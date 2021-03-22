@@ -24,9 +24,9 @@ import Data.String as String
 import Data.String.Extra (capitalize)
 import Data.Tuple (Tuple(..), fst, uncurry)
 import Data.Tuple.Nested ((/\))
-import Halogen.HTML (HTML, a, button, div, div_, h1, h2, input, span, span_, text)
+import Halogen.HTML (HTML, a, button, div, div_, h1, h2, h3, input, p, span, span_, sup_, text)
 import Halogen.HTML.Events.Extra (onClick_, onValueInput_)
-import Halogen.HTML.Properties (InputType(..), enabled, placeholder, type_, value)
+import Halogen.HTML.Properties (InputType(..), enabled, href, placeholder, target, type_, value)
 import Marlowe.Execution (NamedAction(..), _contract, _namedActions, _state, getActionParticipant)
 import Marlowe.Extended (contractTypeName)
 import Marlowe.Semantics (Bound(..), ChoiceId(..), Input(..), Party(..), Token(..), _accounts, getEncompassBound)
@@ -63,32 +63,81 @@ actionConfirmationCard state namedAction =
       MakeChoice _ _ _ -> "Choose"
       CloseContract -> "Pay to close"
       _ -> "Fixme, this should not happen"
+
+    detailItem titleHtml amountHtml hasLeftItem =
+      div [ classNames ([ "flex", "flex-col", "flex-1", "mb-2" ] <> applyWhen hasLeftItem [ "pl-2", "border-l", "border-gray" ]) ]
+        [ span [ classNames [ "text-xs" ] ] titleHtml
+        , span [ classNames [ "font-semibold" ] ] amountHtml
+        ]
+
+    transactionFeeItem = detailItem [ text "Transaction fee", sup_ [ text "*" ], text ":" ] [ text "₳ 0.00" ]
+
+    actionAmountItems = case namedAction of
+      MakeDeposit _ _ token amount ->
+        [ detailItem [ text "Deposit amount:" ] [ currency token amount ] false
+        , transactionFeeItem true
+        ]
+      MakeChoice _ _ (Just option) ->
+        [ detailItem [ text "You are choosing:" ] [ text $ "[ option " <> show option <> " ]" ] false
+        , transactionFeeItem true
+        ]
+      _ -> [ transactionFeeItem false ]
+
+    totalToPay = case namedAction of
+      MakeDeposit _ _ token amount -> currency token amount
+      _ -> currency (Token "" "") (fromInt 0)
   in
-    div [ classNames [ "rounded-xl", "shadow-current-step", "bg-white" ] ]
-      [ div [ classNames [ "flex", "flex-col", "items-center" ] ]
-          [ div
+    div_
+      [ div [ classNames [ "flex", "font-semibold", "justify-between", "bg-lightgray", "p-5" ] ]
+          [ span_ [ text "Demo wallet balance:" ]
+          -- FIXME: remove placeholder with actual value
+          , span_ [ text "$223,456.78" ]
+          ]
+      , div [ classNames [ "px-5", "pb-6", "pt-3", "md:pb-8" ] ]
+          [ h2
               [ classNames [ "text-xl", "font-semibold" ] ]
               [ text $ "Step " <> show stepNumber ]
-          , div
+          , h3
               [ classNames [ "text-xs", "font-semibold" ] ]
               [ text title ]
-          ]
-      , div_ [ text "TODO items" ]
-      , div_ [ text "TODO total" ]
-      , div [ classNames [ "flex", "justify-center" ] ]
-          [ button
-              [ classNames $ Css.secondaryButton <> [ "mr-2" ]
-              , onClick_ CancelConfirmation
+          , div [ classNames [ "flex", "border-b", "border-gray", "mt-4" ] ]
+              actionAmountItems
+          , h3
+              [ classNames [ "mt-4", "text-sm", "font-semibold" ] ]
+              [ text "Confirm payment of:" ]
+          , div
+              [ classNames [ "mb-4", "text-blue", "font-semibold", "text-2xl" ] ]
+              [ totalToPay ]
+          , div [ classNames [ "flex", "justify-center" ] ]
+              [ button
+                  [ classNames $ Css.secondaryButton <> [ "mr-2", "flex-1" ]
+                  , onClick_ CancelConfirmation
+                  ]
+                  [ text "Cancel" ]
+              , button
+                  [ classNames $ Css.primaryButton <> [ "flex-1" ]
+                  -- FIXME: Create an action that comunicates with the backend
+                  -- , onClick_ $ AskWalletConfirmation namedAction
+                  ]
+                  [ text cta ]
               ]
-              [ text "Cancel" ]
-          , button
-              [ classNames Css.primaryButton
-              -- FIXME: Create an action that comunicates with the backend
-              -- , onClick_ $ AskWalletConfirmation namedAction
+          , div [ classNames [ "bg-black", "text-white", "p-4", "mt-4", "rounded" ] ]
+              [ h3 [ classNames [ "text-sm", "font-semibold" ] ] [ sup_ [ text "*" ], text "Transaction fees are estimates only:" ]
+              , p [ classNames [ "pb-4", "border-b-half", "border-lightgray", "text-xs", "text-gray" ] ]
+                  -- FIXME: review text with simon
+                  [ text "In the demo all fees are free but in the live version the cost will depend on the status of the blockchain at the moment of the transaction" ]
+              , div [ classNames [ "pt-4", "flex", "justify-between", "items-center" ] ]
+                  [ a
+                      -- FIXME: where should this link point to?
+                      [ href "https://docs.cardano.org/en/latest/explore-cardano/cardano-fee-structure.html"
+                      , classNames [ "font-bold" ]
+                      , target "_blank"
+                      ]
+                      [ text "Read more in Docs" ]
+                  , icon ArrowRight [ "text-2xl" ]
+                  ]
               ]
-              [ text cta ]
           ]
-      , div_ [ text "TODO docs" ]
       ]
 
 renderCurrentStep :: forall p. State -> HTML p Action
@@ -321,9 +370,9 @@ formatBigInteger :: BigInteger -> String
 formatBigInteger = format currencyFormatter <<< toNumber
 
 currency :: forall p a. Token -> BigInteger -> HTML p a
-currency (Token "" "") value = text ("₳" <> formatBigInteger value)
+currency (Token "" "") value = text ("₳ " <> formatBigInteger value)
 
-currency (Token symbol _) value = text (symbol <> formatBigInteger value)
+currency (Token symbol _) value = text (symbol <> " " <> formatBigInteger value)
 
 renderBalances :: forall p action. State -> HTML p action
 renderBalances state =
