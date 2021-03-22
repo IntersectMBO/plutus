@@ -19,10 +19,12 @@ to one PAB, with its own view of the world, all acting on the same blockchain.
 module Plutus.PAB.Simulator(
     Simulation
     , runSimulation
-    , runSimulationWith
+    -- * Run with user-defined contracts
     , SimulatorContractHandler
-    , mkSimulatorHandlers
+    , runSimulationWith
     , handleContractEffectMsg
+    , SimulatorEffectHandlers
+    , mkSimulatorHandlers
     -- * Simulator actions
     , logString
     , logPretty
@@ -166,13 +168,15 @@ type SimulatorContractHandler t =
         => Eff (Contract.ContractEffect t ': effs)
         ~> Eff effs
 
+type SimulatorEffectHandlers t = EffectHandlers t (SimulatorState t)
+
 -- | Build 'EffectHandlers' for running a contract in the simulator
 mkSimulatorHandlers ::
     forall t.
     Pretty (Contract.ContractDef t)
     => [Contract.ContractDef t] -- ^ Available contract definitions
     -> SimulatorContractHandler t -- ^ Making calls to the contract (see 'Plutus.PAB.Effects.Contract.ContractTest.handleContractTest' for an example)
-    -> EffectHandlers t (SimulatorState t)
+    -> SimulatorEffectHandlers t
 mkSimulatorHandlers definitions handleContractEffect =
     EffectHandlers
         { initialiseEnvironment =
@@ -264,6 +268,7 @@ handleServicesSimulator wallet =
         . reinterpret (runWalletState @t wallet)
         . reinterpret2 @_ @(State Wallet.WalletState) @(Error WAPI.WalletAPIError) Wallet.handleWallet
 
+-- | Convenience for wrapping 'ContractEffectMsg' in 'PABMultiAgentMsg t'
 handleContractEffectMsg :: forall t x effs. Member (LogMsg (PABMultiAgentMsg t)) effs => Eff (LogMsg ContractEffectMsg ': effs) x -> Eff effs x
 handleContractEffectMsg = interpret (mapLog @_ @(PABMultiAgentMsg t) ContractMsg)
 
@@ -394,7 +399,7 @@ type Simulation t a = Core.PABAction t (SimulatorState t) a
 runSimulation :: Simulation TestContracts a -> IO (Either PABError a)
 runSimulation = runSimulationWith @TestContracts simulatorHandlers
 
-runSimulationWith :: EffectHandlers t (SimulatorState t) -> Simulation t a -> IO (Either PABError a)
+runSimulationWith :: SimulatorEffectHandlers t -> Simulation t a -> IO (Either PABError a)
 runSimulationWith handlers = Core.runPAB handlers
 
 -- | Handle a 'LogMsg' effect in terms of a "larger" 'State' effect from which we have a setter.
