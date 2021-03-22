@@ -41,6 +41,7 @@ import qualified Plutus.PAB.Effects.Contract                   as Contract
 import           Plutus.PAB.Events.Contract                    (ContractInstanceId (..), ContractPABRequest (..),
                                                                 ContractResponse (..))
 import qualified Plutus.PAB.Events.Contract                    as Events.Contract
+import           Plutus.PAB.Events.ContractInstanceState       (PartiallyDecodedResponse)
 import           Wallet.Effects                                (ChainIndexEffect, ContractRuntimeEffect, WalletEffect)
 import           Wallet.Emulator.LogMessages                   (TxBalanceMsg)
 import           Wallet.Types                                  (NotificationError)
@@ -140,7 +141,7 @@ data ContractInstanceMsg t =
     | UpdatedContract ContractInstanceId IterationID
     | LookingUpContract (Contract.ContractDef t)
     | InitialisingContract (Contract.ContractDef t) ContractInstanceId
-    | InitialContractResponse (Contract.State t)
+    | InitialContractResponse (PartiallyDecodedResponse ContractPABRequest)
     | ActivatedContractInstance (Contract.ContractDef t) ContractInstanceId
     | RunRequestHandler ContractInstanceId Int -- number of requests
     | RunRequestHandlerDidNotHandleAnyEvents
@@ -153,12 +154,12 @@ data ContractInstanceMsg t =
     | NotificationFailed NotificationError
     deriving stock (Generic)
 
-deriving stock instance (Eq (Contract.State t), Eq (Contract.ContractDef t)) => Eq (ContractInstanceMsg t)
-deriving stock instance (Show (Contract.State t), Show (Contract.ContractDef t)) => Show (ContractInstanceMsg t)
-deriving anyclass instance (ToJSON (Contract.State t), ToJSON (Contract.ContractDef t)) => ToJSON (ContractInstanceMsg t)
-deriving anyclass instance (FromJSON (Contract.State t), FromJSON (Contract.ContractDef t)) => FromJSON (ContractInstanceMsg t)
+deriving stock instance Eq (Contract.ContractDef t) => Eq (ContractInstanceMsg t)
+deriving stock instance Show (Contract.ContractDef t) => Show (ContractInstanceMsg t)
+deriving anyclass instance ToJSON (Contract.ContractDef t) => ToJSON (ContractInstanceMsg t)
+deriving anyclass instance FromJSON (Contract.ContractDef t) => FromJSON (ContractInstanceMsg t)
 
-instance (ToJSON (Contract.State t), ToJSON (Contract.ContractDef t)) => ToObject (ContractInstanceMsg t) where
+instance (ToJSON (Contract.ContractDef t)) => ToObject (ContractInstanceMsg t) where
     toObject v = \case
         ProcessFirstInboxMessage instanceID response ->
             mkObjectStr "Processing first contract inbox message" $
@@ -225,7 +226,7 @@ instance (ToJSON (Contract.State t), ToJSON (Contract.ContractDef t)) => ToObjec
         NotificationFailed _ ->
             mkObjectStr "notification failed" ()
 
-instance (Pretty (Contract.State t), Pretty (Contract.ContractDef t)) => Pretty (ContractInstanceMsg t) where
+instance Pretty (Contract.ContractDef t) => Pretty (ContractInstanceMsg t) where
     pretty = \case
         ProcessFirstInboxMessage instanceID response ->
             "processFirstInboxMessage for" <+> pretty instanceID <> ". The first message is:" <+> pretty response

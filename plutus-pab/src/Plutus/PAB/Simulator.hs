@@ -17,8 +17,11 @@ to one PAB, with its own view of the world, all acting on the same blockchain.
 
 -}
 module Plutus.PAB.Simulator(
-    runSimulation
-    , Simulation
+    Simulation
+    , runSimulation
+    , runSimulationWith
+    , SimulatorContractHandler
+    , mkSimulatorHandlers
     -- * Simulator actions
     , logString
     , logPretty
@@ -152,30 +155,41 @@ initialState = do
             <*> STM.newTVar mempty
             <*> STM.newTVar mempty
 
+-- | A handler for the 'ContractEffect' of @t@ that can run contracts in a
+--   simulated environment.
+type SimulatorContractHandler t =
+    (forall effs.
+        ( Member (Error PABError) effs
+        , Member (LogMsg (PABMultiAgentMsg t)) effs
+        )
+        => Eff (Contract.ContractEffect t ': effs)
+        ~> Eff effs)
 
--- | 'EffectHandlers' for running the PAB as a simulator (no connectivity to
---   out-of-process services such as wallet backend, node, etc.)
-simulatorHandlers :: EffectHandlers TestContracts (SimulatorState TestContracts)
-simulatorHandlers =
+-- | Build 'EffectHandlers' for running a contract in the simulator
+mkSimulatorHandlers ::
+    forall t.
+    Pretty (Contract.ContractDef t)
+    => [Contract.ContractDef t] -- ^ Available contract definitions
+    -> SimulatorContractHandler t -- ^ Making calls to the contract (see 'Plutus.PAB.Effects.Contract.ContractTest.handleContractTest' for an example)
+    -> EffectHandlers t (SimulatorState t)
+mkSimulatorHandlers definitions handleContractEffect =
     EffectHandlers
         { initialiseEnvironment =
             (,,)
                 <$> liftIO (STM.atomically Instances.emptyInstancesState)
                 <*> liftIO (STM.atomically Instances.emptyBlockchainEnv)
-                <*> liftIO (initialState @TestContracts)
+                <*> liftIO (initialState @t)
         , handleContractStoreEffect =
             interpret handleContractStore
-        , handleContractEffect =
-            handleContractEffectMsg @TestContracts
-            . reinterpret handleContractTest
-        , handleLogMessages = handleLogSimulator
-        , handleServicesEffects = handleServicesSimulator
+        , handleContractEffect
+        , handleLogMessages = handleLogSimulator @t
+        , handleServicesEffects = handleServicesSimulator @t
         , handleContractDefinitionStoreEffect =
             interpret $ \case
                 Contract.AddDefinition _ -> pure () -- not supported
-                Contract.GetDefinitions  -> pure [Game, Currency, AtomicSwap]
+                Contract.GetDefinitions  -> pure definitions
         , onStartup = do
-            SimulatorState{_logMessages} <- Core.askUserEnv @TestContracts @(SimulatorState TestContracts)
+            SimulatorState{_logMessages} <- Core.askUserEnv @t @(SimulatorState t)
             void $ liftIO $ forkIO (printLogMessages _logMessages)
             Core.PABRunner{Core.runPABAction} <- Core.pabRunner
             void
@@ -184,29 +198,39 @@ simulatorHandlers =
                 $ void
                 $ runPABAction
                 $ handleDelayEffect
-                $ interpret (Core.handleUserEnvReader @TestContracts @(SimulatorState TestContracts))
-                $ interpret (Core.handleBlockchainEnvReader @TestContracts @(SimulatorState TestContracts))
-                $ interpret (Core.handleInstancesStateReader @TestContracts @(SimulatorState TestContracts))
-                $ advanceClock
+                $ interpret (Core.handleUserEnvReader @t @(SimulatorState t))
+                $ interpret (Core.handleBlockchainEnvReader @t @(SimulatorState t))
+                $ interpret (Core.handleInstancesStateReader @t @(SimulatorState t))
+                $ advanceClock @t
             Core.waitUntilSlot 1
         , onShutdown = do
             handleDelayEffect $ delayThread (500 :: Millisecond) -- need to wait a little to avoid garbled terminal output in GHCi.
         }
 
+
+-- | 'EffectHandlers' for running the PAB as a simulator (no connectivity to
+--   out-of-process services such as wallet backend, node, etc.)
+simulatorHandlers :: EffectHandlers TestContracts (SimulatorState TestContracts)
+simulatorHandlers = mkSimulatorHandlers @TestContracts [Game, Currency, AtomicSwap] handler where
+    handler :: SimulatorContractHandler TestContracts
+    handler =
+        handleContractEffectMsg @TestContracts
+        . reinterpret handleContractTest
+
 handleLogSimulator ::
-    forall effs.
+    forall t effs.
     ( LastMember IO effs
-    , Member (Reader (Core.PABEnvironment TestContracts (SimulatorState TestContracts))) effs
+    , Member (Reader (Core.PABEnvironment t (SimulatorState t))) effs
     )
-    => Eff (LogMsg (PABMultiAgentMsg TestContracts) ': effs)
+    => Eff (LogMsg (PABMultiAgentMsg t) ': effs)
     ~> Eff effs
 handleLogSimulator =
-    interpret (logIntoTQueue @_ @(Core.PABEnvironment TestContracts (SimulatorState TestContracts)) @effs (view logMessages . Core.appEnv))
+    interpret (logIntoTQueue @_ @(Core.PABEnvironment t (SimulatorState t)) @effs (view logMessages . Core.appEnv))
 
 handleServicesSimulator ::
-    forall effs.
-    ( Member (LogMsg (PABMultiAgentMsg TestContracts)) effs
-    , Member (Reader (Core.PABEnvironment TestContracts (SimulatorState TestContracts))) effs
+    forall t effs.
+    ( Member (LogMsg (PABMultiAgentMsg t)) effs
+    , Member (Reader (Core.PABEnvironment t (SimulatorState t))) effs
     , Member TimeEffect effs
     , LastMember IO effs
     , Member (Error PABError) effs
@@ -216,27 +240,27 @@ handleServicesSimulator ::
     ~> Eff effs
 handleServicesSimulator wallet =
     let makeTimedChainIndexEvent wllt =
-            interpret (mapLog @_ @(PABMultiAgentMsg TestContracts) EmulatorMsg)
+            interpret (mapLog @_ @(PABMultiAgentMsg t) EmulatorMsg)
             . reinterpret (Core.timed @EmulatorEvent')
             . reinterpret (mapLog (ChainIndexEvent wllt))
         makeTimedChainEvent =
-            interpret (logIntoTQueue @_ @(Core.PABEnvironment TestContracts (SimulatorState TestContracts)) @effs (view logMessages . Core.appEnv))
-            . reinterpret (mapLog @_ @(PABMultiAgentMsg TestContracts) EmulatorMsg)
+            interpret (logIntoTQueue @_ @(Core.PABEnvironment t (SimulatorState t)) @effs (view logMessages . Core.appEnv))
+            . reinterpret (mapLog @_ @(PABMultiAgentMsg t) EmulatorMsg)
             . reinterpret (Core.timed @EmulatorEvent' @(LogMsg Emulator.EmulatorEvent ': effs))
             . reinterpret (mapLog ChainEvent)
     in
         makeTimedChainEvent
-        . interpret (Core.handleBlockchainEnvReader @TestContracts @(SimulatorState TestContracts))
-        . interpret (Core.handleUserEnvReader @TestContracts @(SimulatorState TestContracts))
-        . reinterpretN @'[Reader (SimulatorState TestContracts), Reader BlockchainEnv, LogMsg _] handleChainEffect
+        . interpret (Core.handleBlockchainEnvReader @t @(SimulatorState t))
+        . interpret (Core.handleUserEnvReader @t @(SimulatorState t))
+        . reinterpretN @'[Reader (SimulatorState t), Reader BlockchainEnv, LogMsg _] (handleChainEffect @t)
         . reinterpret handleNodeClient
         . makeTimedChainIndexEvent wallet
-        . interpret (Core.handleUserEnvReader @TestContracts @(SimulatorState TestContracts))
-        . reinterpretN @'[Reader (SimulatorState TestContracts), LogMsg _] handleChainIndexEffect
+        . interpret (Core.handleUserEnvReader @t @(SimulatorState t))
+        . reinterpretN @'[Reader (SimulatorState t), LogMsg _] (handleChainIndexEffect @t)
 
         . flip (handleError @WAPI.WalletAPIError) (throwError @PABError . WalletError)
-        . interpret (Core.handleUserEnvReader @TestContracts @(SimulatorState TestContracts))
-        . reinterpret (runWalletState wallet)
+        . interpret (Core.handleUserEnvReader @t @(SimulatorState t))
+        . reinterpret (runWalletState @t wallet)
         . reinterpret2 @_ @(State Wallet.WalletState) @(Error WAPI.WalletAPIError) Wallet.handleWallet
 
 handleContractEffectMsg :: forall t x effs. Member (LogMsg (PABMultiAgentMsg t)) effs => Eff (LogMsg ContractEffectMsg ': effs) x -> Eff effs x
@@ -245,16 +269,16 @@ handleContractEffectMsg = interpret (mapLog @_ @(PABMultiAgentMsg t) ContractMsg
 -- | Handle the 'State WalletState' effect by reading from and writing
 --   to a TVar in the 'SimulatorState'
 runWalletState ::
-    forall effs.
+    forall t effs.
     ( LastMember IO effs
-    , Member (Reader (SimulatorState TestContracts)) effs
+    , Member (Reader (SimulatorState t)) effs
     )
     => Wallet
     -> State Wallet.WalletState
     ~> Eff effs
 runWalletState wallet = \case
     Get -> do
-        SimulatorState{_agentStates} <- ask @(SimulatorState TestContracts)
+        SimulatorState{_agentStates} <- ask @(SimulatorState t)
         liftIO $ STM.atomically $ do
             mp <- STM.readTVar _agentStates
             case Map.lookup wallet mp of
@@ -264,7 +288,7 @@ runWalletState wallet = \case
                     pure (_walletState newState)
                 Just s -> pure (_walletState s)
     Put s -> do
-        SimulatorState{_agentStates} <- ask @(SimulatorState TestContracts)
+        SimulatorState{_agentStates} <- ask @(SimulatorState t)
         liftIO $ STM.atomically $ do
             mp <- STM.readTVar _agentStates
             case Map.lookup wallet mp of
@@ -297,8 +321,9 @@ logPretty = logInfo @(PABMultiAgentMsg t) . UserLog . render
 
 -- | Wait 0.2 seconds, then add a new block.
 makeBlock ::
+    forall t effs.
     ( LastMember IO effs
-    , Member (Reader (SimulatorState TestContracts)) effs
+    , Member (Reader (SimulatorState t)) effs
     , Member (Reader InstancesState) effs
     , Member (Reader BlockchainEnv) effs
     , Member DelayEffect effs
@@ -306,21 +331,21 @@ makeBlock ::
     ) => Eff effs ()
 makeBlock = do
     let makeTimedChainEvent =
-            interpret (logIntoTQueue @_ @(SimulatorState TestContracts) (view logMessages))
-            . reinterpret (mapLog @_ @(PABMultiAgentMsg TestContracts) EmulatorMsg)
+            interpret (logIntoTQueue @_ @(SimulatorState t) (view logMessages))
+            . reinterpret (mapLog @_ @(PABMultiAgentMsg t) EmulatorMsg)
             . reinterpret (Core.timed @EmulatorEvent')
             . reinterpret (mapLog ChainEvent)
         makeTimedChainIndexEvent =
-            interpret (logIntoTQueue @_ @(SimulatorState TestContracts) (view logMessages))
-            . reinterpret (mapLog @_ @(PABMultiAgentMsg TestContracts) EmulatorMsg)
+            interpret (logIntoTQueue @_ @(SimulatorState t) (view logMessages))
+            . reinterpret (mapLog @_ @(PABMultiAgentMsg t) EmulatorMsg)
             . reinterpret (Core.timed @EmulatorEvent')
             . reinterpret (mapLog (ChainIndexEvent (Wallet 0)))
     delayThread (1000 :: Millisecond)
     void
         $ makeTimedChainIndexEvent
         $ makeTimedChainEvent
-        $ interpret handleChainIndexControlEffect
-        $ interpret handleChainControl
+        $ interpret (handleChainIndexControlEffect @t)
+        $ interpret (handleChainControl @t)
         $ Chain.processBlock
 
 -- | Get the current state of the contract instance.
@@ -366,7 +391,10 @@ waitNSlots = Core.waitNSlots
 type Simulation t a = Core.PABAction t (SimulatorState t) a
 
 runSimulation :: Simulation TestContracts a -> IO (Either PABError a)
-runSimulation = Core.runPAB simulatorHandlers
+runSimulation = runSimulationWith @TestContracts simulatorHandlers
+
+runSimulationWith :: EffectHandlers t (SimulatorState t) -> Simulation t a -> IO (Either PABError a)
+runSimulationWith handlers = Core.runPAB handlers
 
 -- | Handle a 'LogMsg' effect in terms of a "larger" 'State' effect from which we have a setter.
 logIntoTQueue ::
@@ -383,9 +411,9 @@ logIntoTQueue f = \case
         liftIO $ STM.atomically $ STM.writeTQueue tv w
 
 handleChainControl ::
-    forall effs.
+    forall t effs.
     ( LastMember IO effs
-    , Member (Reader (SimulatorState TestContracts)) effs
+    , Member (Reader (SimulatorState t)) effs
     , Member (Reader BlockchainEnv) effs
     , Member (Reader InstancesState) effs
     , Member (LogMsg Chain.ChainEvent) effs
@@ -397,11 +425,11 @@ handleChainControl = \case
     Chain.ProcessBlock -> do
         blockchainEnv <- ask @BlockchainEnv
         instancesState <- ask @InstancesState
-        (txns, slot) <- runChainEffects @_ $ do
+        (txns, slot) <- runChainEffects @t @_ $ do
                 txns <- Chain.processBlock
                 sl <- Chain.getCurrentSlot
                 pure (txns, sl)
-        runChainIndexEffects $ do
+        runChainIndexEffects @t $ do
             ChainIndex.chainIndexNotify $ BlockValidated txns
             ChainIndex.chainIndexNotify $ SlotChanged slot
 
@@ -413,15 +441,15 @@ handleChainControl = \case
         pure txns
 
 runChainEffects ::
-    forall a effs.
-    ( Member (Reader (SimulatorState TestContracts)) effs
+    forall t a effs.
+    ( Member (Reader (SimulatorState t)) effs
     , Member (LogMsg Chain.ChainEvent) effs
     , LastMember IO effs
     )
     => Eff (Chain.ChainEffect ': Chain.ChainControlEffect ': Chain.ChainEffs) a
     -> Eff effs a
 runChainEffects action = do
-    SimulatorState{_chainState} <- ask @(SimulatorState TestContracts)
+    SimulatorState{_chainState} <- ask @(SimulatorState t)
     (a, logs) <- liftIO $ STM.atomically $ do
                         oldState <- STM.readTVar _chainState
                         let ((a, newState), logs) =
@@ -438,8 +466,8 @@ runChainEffects action = do
     pure a
 
 runChainIndexEffects ::
-    forall a m effs.
-    ( Member (Reader (SimulatorState TestContracts)) effs
+    forall t a m effs.
+    ( Member (Reader (SimulatorState t)) effs
     , Member (LogMsg ChainIndex.ChainIndexEvent) effs
     , LastMember m effs
     , MonadIO m
@@ -447,7 +475,7 @@ runChainIndexEffects ::
     => Eff (ChainIndexEffect ': ChainIndex.ChainIndexControlEffect ': ChainIndex.ChainIndexEffs) a
     -> Eff effs a
 runChainIndexEffects action = do
-    SimulatorState{_chainIndex} <- ask @(SimulatorState TestContracts)
+    SimulatorState{_chainIndex} <- ask @(SimulatorState t)
     (a, logs) <- liftIO $ STM.atomically $ do
                     oldState <- STM.readTVar _chainIndex
                     let ((a, newState), logs) =
@@ -476,26 +504,26 @@ handleNodeClient = \case
 
 -- | Handle the 'Chain.ChainEffect' using the 'SimulatorState'.
 handleChainEffect ::
-    forall effs.
+    forall t effs.
     ( LastMember IO effs
-    , Member (Reader (SimulatorState TestContracts)) effs
+    , Member (Reader (SimulatorState t)) effs
     , Member (LogMsg Chain.ChainEvent) effs
     )
     => Chain.ChainEffect
     ~> Eff effs
 handleChainEffect = \case
-    Chain.QueueTx tx     -> runChainEffects $ Chain.queueTx tx
-    Chain.GetCurrentSlot -> runChainEffects $ Chain.getCurrentSlot
+    Chain.QueueTx tx     -> runChainEffects @t $ Chain.queueTx tx
+    Chain.GetCurrentSlot -> runChainEffects @t $ Chain.getCurrentSlot
 
 handleChainIndexEffect ::
-    forall effs.
+    forall t effs.
     ( LastMember IO effs
-    , Member (Reader (SimulatorState TestContracts)) effs
+    , Member (Reader (SimulatorState t)) effs
     , Member (LogMsg ChainIndex.ChainIndexEvent) effs
     )
     => ChainIndexEffect
     ~> Eff effs
-handleChainIndexEffect = runChainIndexEffects . \case
+handleChainIndexEffect = runChainIndexEffects @t . \case
     StartWatching a           -> WalletEffects.startWatching a
     WatchedAddresses          -> WalletEffects.watchedAddresses
     ConfirmedBlocks           -> WalletEffects.confirmedBlocks
@@ -503,14 +531,14 @@ handleChainIndexEffect = runChainIndexEffects . \case
     NextTx r                  -> WalletEffects.nextTx r
 
 handleChainIndexControlEffect ::
-    forall effs.
+    forall t effs.
     ( LastMember IO effs
-    , Member (Reader (SimulatorState TestContracts)) effs
+    , Member (Reader (SimulatorState t)) effs
     , Member (LogMsg ChainIndex.ChainIndexEvent) effs
     )
     => ChainIndex.ChainIndexControlEffect
     ~> Eff effs
-handleChainIndexControlEffect = runChainIndexEffects . \case
+handleChainIndexControlEffect = runChainIndexEffects @t . \case
     ChainIndex.ChainIndexNotify n -> ChainIndex.chainIndexNotify n
 
 -- | Start a thread that prints log messages to the terminal when they come in.
@@ -525,16 +553,16 @@ printLogMessages queue = void $ forkIO $ forever $ do
 
 -- | Call 'makeBlock' forever.
 advanceClock ::
-    forall effs.
+    forall t effs.
     ( LastMember IO effs
-    , Member (Reader (SimulatorState TestContracts)) effs
+    , Member (Reader (SimulatorState t)) effs
     , Member (Reader InstancesState) effs
     , Member (Reader BlockchainEnv) effs
     , Member DelayEffect effs
     , Member TimeEffect effs
     )
     => Eff effs ()
-advanceClock = forever makeBlock
+advanceClock = forever (makeBlock @t)
 
 -- | Handle the 'ContractStore' effect by writing the state to the
 --   TVar in 'SimulatorState'

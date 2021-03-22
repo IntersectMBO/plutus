@@ -170,7 +170,7 @@ data PABMultiAgentMsg t =
     | StartingMetadataServer Int
     deriving stock Generic
 
-instance (StructuredLog t, ToJSON t, ToJSON (State t), ToJSON (ContractDef t)) => ToObject (PABMultiAgentMsg t) where
+instance (StructuredLog (ContractDef t), ToJSON (ContractDef t)) => ToObject (PABMultiAgentMsg t) where
     toObject v = \case
         EmulatorMsg e              -> mkObjectStr "emulator message" (Tagged @"payload" e)
         ContractMsg e              -> mkObjectStr "contract message" (Tagged @"payload" e)
@@ -183,11 +183,11 @@ instance (StructuredLog t, ToJSON t, ToJSON (State t), ToJSON (ContractDef t)) =
         StartingPABBackendServer i -> mkObjectStr "starting backend server" (Tagged @"port" i)
         StartingMetadataServer i   -> mkObjectStr "starting backend server" (Tagged @"port" i)
 
-deriving stock instance (Show t, Show (ContractDef t), Show (State t)) => Show (PABMultiAgentMsg t)
-deriving anyclass instance (ToJSON t, ToJSON (ContractDef t), ToJSON (State t)) => ToJSON (PABMultiAgentMsg t)
-deriving anyclass instance (FromJSON t, FromJSON (ContractDef t), FromJSON (State t)) => FromJSON (PABMultiAgentMsg t)
+deriving stock instance (Show t, Show (ContractDef t)) => Show (PABMultiAgentMsg t)
+deriving anyclass instance (ToJSON t, ToJSON (ContractDef t)) => ToJSON (PABMultiAgentMsg t)
+deriving anyclass instance (FromJSON t, FromJSON (ContractDef t)) => FromJSON (PABMultiAgentMsg t)
 
-instance (Pretty (ContractDef t), Pretty t, Pretty (State t)) => Pretty (PABMultiAgentMsg t) where
+instance Pretty (ContractDef t) => Pretty (PABMultiAgentMsg t) where
     pretty = \case
         EmulatorMsg m         -> pretty m
         ContractMsg m         -> pretty m
@@ -203,21 +203,24 @@ instance (Pretty (ContractDef t), Pretty t, Pretty (State t)) => Pretty (PABMult
             "Starting metadata server on port:" <+> pretty port
 
 data CoreMsg t =
-    Installing t
+    Installing (ContractDef t)
     | Installed
     | FindingContract ContractInstanceId
     | FoundContract (Maybe (PartiallyDecodedResponse ContractPABRequest))
-    deriving stock (Eq, Show, Generic)
-    deriving anyclass (ToJSON, FromJSON)
+    deriving stock Generic
 
-instance Pretty t => Pretty (CoreMsg t) where
+deriving stock instance (Show t, Show (ContractDef t)) => Show (CoreMsg t)
+deriving anyclass instance (ToJSON t, ToJSON (ContractDef t)) => ToJSON (CoreMsg t)
+deriving anyclass instance (FromJSON t, FromJSON (ContractDef t)) => FromJSON (CoreMsg t)
+
+instance Pretty (ContractDef t) => Pretty (CoreMsg t) where
     pretty = \case
         Installing d      -> "Installing" <+> pretty d
         Installed         -> "Installed"
         FindingContract i -> "Finding contract" <+> pretty i
         FoundContract c   -> "Found contract" <+> pretty c
 
-instance (StructuredLog t, ToJSON t) => ToObject (CoreMsg t) where
+instance (StructuredLog (ContractDef t), ToJSON (ContractDef t)) => ToObject (CoreMsg t) where
     toObject v = \case
         Installing t ->
             mkObjectStr "installing contract" t
