@@ -71,7 +71,7 @@ render metadata state =
 
   hasRuntimeError = has (_marloweState <<< _Head <<< _executionState <<< _SimulationRunning <<< _transactionError <<< to isJust <<< only true) state
 
-  wrapBottomPanelContents panelView = BottomPanelTypes.PanelAction <$> panelContents state panelView
+  wrapBottomPanelContents panelView = BottomPanelTypes.PanelAction <$> panelContents metadata state panelView
 
 otherActions :: forall p. State -> HTML p Action
 otherActions state =
@@ -204,7 +204,7 @@ sidebar metadata state = case view (_marloweState <<< _Head <<< _executionState)
   SimulationRunning _ ->
     [ div [ class_ smallSpaceBottom ] [ simulationStateWidget state ]
     , div [ class_ spaceBottom ] [ actionWidget metadata state ]
-    , logWidget state
+    , logWidget metadata state
     ]
 
 ------------------------------------------------------------
@@ -377,9 +377,9 @@ inputItem ::
   PubKey ->
   ActionInput ->
   HTML p Action
-inputItem _ _ person (DepositInput accountId party token value) =
+inputItem metadata _ person (DepositInput accountId party token value) =
   div [ classes [ ClassName "action", aHorizontal ] ]
-    [ renderDeposit accountId party token value
+    [ renderDeposit metadata accountId party token value
     , div [ class_ (ClassName "align-top") ]
         [ button
             [ classes [ plusBtn, smallBtn ]
@@ -494,25 +494,26 @@ marloweActionInput f current =
           )
     ]
 
-renderDeposit :: forall p. AccountId -> Party -> Token -> BigInteger -> HTML p Action
-renderDeposit accountOwner party tok money =
+renderDeposit :: forall p. MetaData -> AccountId -> Party -> Token -> BigInteger -> HTML p Action
+renderDeposit metadata accountOwner party tok money =
   span [ classes [ ClassName "break-word-span" ] ]
     [ text "Deposit "
     , strong_ [ text (showPrettyMoney money) ]
     , text " units of "
     , strong_ [ renderPrettyToken tok ]
     , text " into account of "
-    , strong_ [ renderPrettyParty accountOwner ]
+    , strong_ [ renderPrettyParty metadata accountOwner ]
     , text " as "
-    , strong_ [ renderPrettyParty party ]
+    , strong_ [ renderPrettyParty metadata party ]
     ]
 
 ------------------------------------------------------------
 logWidget ::
   forall p.
+  MetaData ->
   State ->
   HTML p Action
-logWidget state =
+logWidget metadata state =
   cardWidget "Transaction log"
     $ div [ classes [ grid, gridColsDescriptionLocation, fullWidth ] ]
         ( [ div [ class_ fontBold ] [ text "Action" ]
@@ -521,32 +522,32 @@ logWidget state =
             <> inputLines
         )
   where
-  inputLines = state ^. (_marloweState <<< _Head <<< _executionState <<< _SimulationRunning <<< _log <<< to (concatMap logToLines <<< reverse))
+  inputLines = state ^. (_marloweState <<< _Head <<< _executionState <<< _SimulationRunning <<< _log <<< to (concatMap (logToLines metadata) <<< reverse))
 
-logToLines :: forall p a. MarloweEvent -> Array (HTML p a)
-logToLines (InputEvent (TransactionInput { interval, inputs })) = inputToLine interval =<< Array.fromFoldable inputs
+logToLines :: forall p a. MetaData -> MarloweEvent -> Array (HTML p a)
+logToLines metadata (InputEvent (TransactionInput { interval, inputs })) = inputToLine metadata interval =<< Array.fromFoldable inputs
 
-logToLines (OutputEvent interval payment) = paymentToLines interval payment
+logToLines metadata (OutputEvent interval payment) = paymentToLines metadata interval payment
 
-inputToLine :: forall p a. SlotInterval -> Input -> Array (HTML p a)
-inputToLine (SlotInterval start end) (IDeposit accountOwner party token money) =
+inputToLine :: forall p a. MetaData -> SlotInterval -> Input -> Array (HTML p a)
+inputToLine metadata (SlotInterval start end) (IDeposit accountOwner party token money) =
   [ span_
       [ text "Deposit "
       , strong_ [ text (showPrettyMoney money) ]
       , text " units of "
       , strong_ [ renderPrettyToken token ]
       , text " into account of "
-      , strong_ [ renderPrettyParty accountOwner ]
+      , strong_ [ renderPrettyParty metadata accountOwner ]
       , text " as "
-      , strong_ [ renderPrettyParty party ]
+      , strong_ [ renderPrettyParty metadata party ]
       ]
   , span [ class_ justifyEnd ] [ text $ showSlotRange start end ]
   ]
 
-inputToLine (SlotInterval start end) (IChoice (ChoiceId choiceName choiceOwner) chosenNum) =
+inputToLine metadata (SlotInterval start end) (IChoice (ChoiceId choiceName choiceOwner) chosenNum) =
   [ span_
       [ text "Participant "
-      , strong_ [ renderPrettyParty choiceOwner ]
+      , strong_ [ renderPrettyParty metadata choiceOwner ]
       , text " chooses the value "
       , strong_ [ text (showPrettyMoney chosenNum) ]
       , text " for choice with id "
@@ -555,23 +556,23 @@ inputToLine (SlotInterval start end) (IChoice (ChoiceId choiceName choiceOwner) 
   , span [ class_ justifyEnd ] [ text $ showSlotRange start end ]
   ]
 
-inputToLine (SlotInterval start end) INotify =
+inputToLine _ (SlotInterval start end) INotify =
   [ text "Notify"
   , span [ class_ justifyEnd ] [ text $ showSlotRange start end ]
   ]
 
-paymentToLines :: forall p a. SlotInterval -> Payment -> Array (HTML p a)
-paymentToLines slotInterval (Payment party money) = join $ unfoldAssets money (paymentToLine slotInterval party)
+paymentToLines :: forall p a. MetaData -> SlotInterval -> Payment -> Array (HTML p a)
+paymentToLines metadata slotInterval (Payment party money) = join $ unfoldAssets money (paymentToLine metadata slotInterval party)
 
-paymentToLine :: forall p a. SlotInterval -> Party -> Token -> BigInteger -> Array (HTML p a)
-paymentToLine (SlotInterval start end) party token money =
+paymentToLine :: forall p a. MetaData -> SlotInterval -> Party -> Token -> BigInteger -> Array (HTML p a)
+paymentToLine metadata (SlotInterval start end) party token money =
   [ span_
       [ text "The contract pays "
       , strong_ [ text (showPrettyMoney money) ]
       , text " units of "
       , strong_ [ renderPrettyToken token ]
       , text " to participant "
-      , strong_ [ renderPrettyParty party ]
+      , strong_ [ renderPrettyParty metadata party ]
       ]
   , span [ class_ justifyEnd ] [ text $ showSlotRange start end ]
   ]
