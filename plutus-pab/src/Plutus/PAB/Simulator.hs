@@ -22,6 +22,7 @@ module Plutus.PAB.Simulator(
     , runSimulationWith
     , SimulatorContractHandler
     , mkSimulatorHandlers
+    , handleContractEffectMsg
     -- * Simulator actions
     , logString
     , logPretty
@@ -158,12 +159,12 @@ initialState = do
 -- | A handler for the 'ContractEffect' of @t@ that can run contracts in a
 --   simulated environment.
 type SimulatorContractHandler t =
-    (forall effs.
+    forall effs.
         ( Member (Error PABError) effs
         , Member (LogMsg (PABMultiAgentMsg t)) effs
         )
         => Eff (Contract.ContractEffect t ': effs)
-        ~> Eff effs)
+        ~> Eff effs
 
 -- | Build 'EffectHandlers' for running a contract in the simulator
 mkSimulatorHandlers ::
