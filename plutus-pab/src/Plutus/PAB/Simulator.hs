@@ -97,6 +97,7 @@ import           Plutus.PAB.Core.ContractInstance.STM           (BlockchainEnv, 
 import qualified Plutus.PAB.Core.ContractInstance.STM           as Instances
 import           Plutus.PAB.Effects.Contract                    (ContractStore)
 import qualified Plutus.PAB.Effects.Contract                    as Contract
+import           Plutus.PAB.Effects.Contract.Builtin            (Builtin)
 import           Plutus.PAB.Effects.Contract.ContractTest       (TestContracts (..), handleContractTest)
 import           Plutus.PAB.Effects.TimeEffect                  (TimeEffect)
 import           Plutus.PAB.Monitoring.PABLogMsg                (ContractEffectMsg, PABMultiAgentMsg (..))
@@ -167,7 +168,6 @@ initialState = do
 type SimulatorContractHandler t =
     forall effs.
         ( Member (Error PABError) effs
-        , Member (LogMsg (PABMultiAgentMsg t)) effs
         )
         => Eff (Contract.ContractEffect t ': effs)
         ~> Eff effs
@@ -219,12 +219,10 @@ mkSimulatorHandlers definitions handleContractEffect =
 
 -- | 'EffectHandlers' for running the PAB as a simulator (no connectivity to
 --   out-of-process services such as wallet backend, node, etc.)
-simulatorHandlers :: EffectHandlers TestContracts (SimulatorState TestContracts)
-simulatorHandlers = mkSimulatorHandlers @TestContracts [Game, Currency, AtomicSwap] handler where
-    handler :: SimulatorContractHandler TestContracts
-    handler =
-        handleContractEffectMsg @TestContracts
-        . reinterpret handleContractTest
+simulatorHandlers :: EffectHandlers (Builtin TestContracts) (SimulatorState (Builtin TestContracts))
+simulatorHandlers = mkSimulatorHandlers @(Builtin TestContracts) [Game, Currency, AtomicSwap] handler where
+    handler :: SimulatorContractHandler (Builtin TestContracts)
+    handler = interpret handleContractTest
 
 handleLogSimulator ::
     forall t effs.
@@ -400,8 +398,8 @@ waitNSlots = Core.waitNSlots
 
 type Simulation t a = Core.PABAction t (SimulatorState t) a
 
-runSimulation :: Simulation TestContracts a -> IO (Either PABError a)
-runSimulation = runSimulationWith @TestContracts simulatorHandlers
+runSimulation :: Simulation (Builtin TestContracts) a -> IO (Either PABError a)
+runSimulation = runSimulationWith @(Builtin TestContracts) simulatorHandlers
 
 runSimulationWith :: SimulatorEffectHandlers t -> Simulation t a -> IO (Either PABError a)
 runSimulationWith handlers = Core.runPAB handlers

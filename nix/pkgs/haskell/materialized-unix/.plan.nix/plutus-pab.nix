@@ -160,6 +160,7 @@
           "Plutus/PAB/Db/Eventful/Query"
           "Plutus/PAB/Effects/Contract"
           "Plutus/PAB/Effects/Contract/ContractTest"
+          "Plutus/PAB/Effects/Contract/Builtin"
           "Plutus/PAB/Effects/Contract/ContractExe"
           "Plutus/PAB/Effects/ContractRuntime"
           "Plutus/PAB/Effects/ContractTest/AtomicSwap"

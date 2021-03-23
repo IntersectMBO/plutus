@@ -25,6 +25,7 @@ import           Data.Foldable                            (fold)
 import qualified Data.Aeson.Types                         as JSON
 import           Data.Either                              (isRight)
 import qualified Data.Map                                 as Map
+import           Data.Proxy                               (Proxy (..))
 import           Data.Semigroup                           (Last (..))
 import qualified Data.Set                                 as Set
 import           Data.Text                                (Text)
@@ -38,7 +39,8 @@ import           Plutus.PAB.Core
 import           Plutus.PAB.Core.ContractInstance         (ContractInstanceMsg)
 import           Plutus.PAB.Db.Eventful.Command           ()
 import qualified Plutus.PAB.Db.Eventful.Query             as Query
-import           Plutus.PAB.Effects.Contract              (ContractEffect)
+import           Plutus.PAB.Effects.Contract              (ContractEffect, serialisableState)
+import           Plutus.PAB.Effects.Contract.Builtin      (Builtin)
 import           Plutus.PAB.Effects.Contract.ContractTest (TestContracts (..))
 import           Plutus.PAB.Effects.EventLog              (EventLogEffect)
 import           Plutus.PAB.Events.ContractInstanceState  (PartiallyDecodedResponse (..))
@@ -58,7 +60,7 @@ import           Wallet.Types                             (ContractInstanceId)
 tests :: TestTree
 tests = testGroup "Plutus.PAB.Core" [installContractTests, executionTests]
 
-runScenario :: Simulation TestContracts a -> IO ()
+runScenario :: Simulation (Builtin TestContracts) a -> IO ()
 runScenario sim = do
     result <- Simulator.runSimulation sim
     case result of
@@ -211,15 +213,15 @@ guessingGameTest =
 assertTxCounts ::
     Text
     -> TxCounts
-    -> Simulation TestContracts ()
+    -> Simulation (Builtin TestContracts) ()
 assertTxCounts msg expected = Simulator.txCounts >>= assertEqual msg expected
 
 assertDone ::
     Wallet
     -> ContractInstanceId
-    -> Simulation TestContracts ()
+    -> Simulation (Builtin TestContracts) ()
 assertDone wallet i = do
-    PartiallyDecodedResponse{hooks} <- Simulator.instanceState wallet i
+    PartiallyDecodedResponse{hooks} <- serialisableState (Proxy @(Builtin TestContracts)) <$> Simulator.instanceState wallet i
     case hooks of
         [] -> pure ()
         xs ->
@@ -235,7 +237,7 @@ assertDone wallet i = do
 lock ::
     ContractInstanceId
     -> Contracts.Game.LockParams
-    -> Simulation TestContracts ()
+    -> Simulation (Builtin TestContracts) ()
 lock uuid params = do
     let ep = "lock"
     _ <- Simulator.waitForEndpoint uuid ep
@@ -244,7 +246,7 @@ lock uuid params = do
 guess ::
     ContractInstanceId
     -> Contracts.Game.GuessParams
-    -> Simulation TestContracts ()
+    -> Simulation (Builtin TestContracts) ()
 guess uuid params = do
     let ep = "guess"
     _ <- Simulator.waitForEndpoint uuid ep
@@ -253,7 +255,7 @@ guess uuid params = do
 callAdder ::
     ContractInstanceId
     -> ContractInstanceId
-    -> Simulation TestContracts ()
+    -> Simulation (Builtin TestContracts) ()
 callAdder source target = do
     let ep = "target instance"
     _ <- Simulator.waitForEndpoint source ep
@@ -263,7 +265,7 @@ callAdder source target = do
 createCurrency ::
     ContractInstanceId
     -> SimpleMPS
-    -> Simulation TestContracts ()
+    -> Simulation (Builtin TestContracts) ()
 createCurrency uuid value = do
     let ep = "Create native token"
     _ <- Simulator.waitForEndpoint uuid ep
