@@ -9,4 +9,5 @@ in
   marlowe-playground-server = pkgs.callPackage ./vm-tests/marlowe-playground.nix { inherit makeTest;inherit (plutus) marlowe-playground; };
   web-ghc = pkgs.callPackage ./vm-tests/web-ghc.nix { inherit makeTest;inherit (plutus) web-ghc; };
   pab = pkgs.callPackage ./vm-tests/pab.nix { inherit makeTest;inherit (plutus) plutus-pab marlowe-dashboard; };
+  all = pkgs.callPackage ./vm-tests/all.nix { inherit makeTest;inherit (plutus) plutus-playground marlowe-playground marlowe-dashboard web-ghc plutus-pab; };
 }

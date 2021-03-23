@@ -153,16 +153,6 @@ in
   };
 
   config = mkIf cfg.enable {
-    networking.firewall = {
-      allowedTCPPorts = [
-        cfg.webserverPort
-        cfg.walletPort
-        cfg.nodePort
-        cfg.chainIndexPort
-        cfg.signingProcessPort
-        cfg.metadataPort
-      ];
-    };
 
     systemd.services.pab-init = {
       wantedBy = [ "multi-user.target" ];

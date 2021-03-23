@@ -36,10 +36,6 @@ in
 
   config = mkIf cfg.enable {
 
-    networking.firewall = {
-      allowedTCPPorts = [ cfg.port ];
-    };
-
     systemd.services.web-ghc = {
       after = [ "network.target" ];
       wantedBy = [ "multi-user.target" ];

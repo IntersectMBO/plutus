@@ -23,6 +23,7 @@ makeTest {
   testScript = ''
     # fmt: off
     machine.start()
+    machine.succeed("systemctl start marlowe-playground")
     machine.wait_for_unit("marlowe-playground.service")
     machine.wait_for_open_port(4001)
     machine.succeed("curl localhost:4001/health")

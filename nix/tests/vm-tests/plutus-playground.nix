@@ -23,6 +23,7 @@ makeTest {
   testScript = ''
     # fmt: off
     machine.start()
+    machine.succeed("systemctl start plutus-playground")
     machine.wait_for_unit("plutus-playground.service")
     machine.wait_for_open_port(4000)
     machine.succeed("curl localhost:4000/api/version")

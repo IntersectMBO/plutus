@@ -29,13 +29,11 @@ in
 
   config = mkIf cfg.enable {
 
-    networking.firewall = {
-      allowedTCPPorts = [ cfg.port ];
-    };
-
     systemd.services.plutus-playground = {
       after = [ "network.target" ];
-      wantedBy = [ "multi-user.target" ];
+      wantedBy = [ "nginx.service" ];
+      before = [ "nginx.service" ];
+
       serviceConfig = {
         # runtime behavior
         TimeoutStartSec = 5;

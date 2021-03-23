@@ -13,11 +13,13 @@
         Restart = "always";
         DynamicUser = true;
         StateDirectory = [ "pab" ];
+
         ProtectKernelTunables = true;
         ProtectControlGroups = true;
         ProtectKernelModules = true;
         PrivateDevices = true;
         SystemCallArchitectures = "native";
+
         ConfigurationDirectory = "playground";
       };
       killallz3 = pkgs.writeScriptBin "killallz3" ''

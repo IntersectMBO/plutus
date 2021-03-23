@@ -34,19 +34,16 @@ in
 
   config = mkIf cfg.enable {
 
-    networking.firewall = {
-      allowedTCPPorts = [ cfg.port ];
-    };
-
     systemd.services.marlowe-playground = {
       after = [ "network.target" ];
-      wantedBy = [ "multi-user.target" ];
+      wantedBy = [ "nginx.service" ];
+      before = [ "nginx.service" ];
+
       serviceConfig = {
         # runtime behavior
         TimeoutStartSec = 5;
         TimeoutStopSec = 5;
         Restart = "always";
-        path = [ pkgs.z3 killallz3 ];
 
         # sane defaults for security
         DynamicUser = true;
@@ -58,6 +55,7 @@ in
 
       };
 
+      path = [ pkgs.z3 killallz3 ];
       script = ''
         if [ -f /var/lib/playgrounds/marlowe.env ]; then
           echo "Loading environment config from '/var/lib/playgrounds/marlowe.env'"
