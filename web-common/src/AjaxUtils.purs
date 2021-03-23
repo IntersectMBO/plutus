@@ -14,7 +14,7 @@ import Data.Maybe (Maybe(Just))
 import Foreign (MultipleErrors, renderForeignError)
 import Foreign.Generic.Class (Options, aesonSumEncoding, defaultOptions)
 import Halogen (RefLabel(RefLabel))
-import Halogen.HTML (ClassName(..), HTML, br_, button, div, div_, p_, text)
+import Halogen.HTML (ClassName(..), HTML, br_, button, div, p_, text)
 import Halogen.HTML.Events (onClick)
 import Halogen.HTML.Properties (class_, classes, ref)
 import Icons (Icon(..), icon)
@@ -59,7 +59,10 @@ ajaxErrorClass = ClassName "ajax-error"
 showAjaxError :: forall p i. AjaxError -> HTML p i
 showAjaxError = runAjaxError >>> _.description >>> showErrorDescription
 
--- showErrorDescription (ResponseError statusCode err) = text $ "Server error " <> show statusCode <> ": " <> err
+showErrorDescription :: forall p i. ErrorDescription -> HTML p i
+showErrorDescription NotFound = text "Data not found."
+
+showErrorDescription (ResponseError statusCode err) = text $ "Server error " <> show statusCode <> ": " <> err
 
 showErrorDescription (DecodingError err@"(\"Unexpected token E in JSON at position 0\" : Nil)") = text "Cannot connect to the server. Please check your network connection."
 
