@@ -139,7 +139,9 @@ runCliCommand trace _ config@Config{pabWebserverConfig} serviceAvailability PABW
         $ App.runApp (toPABMsg trace) config
         $ do
             App.AppEnv{App.walletClientEnv} <- Core.askUserEnv @ContractExe @App.AppEnv
-            void $ PABServer.startServer pabWebserverConfig (Left walletClientEnv) serviceAvailability
+            shutdown <- PABServer.startServer pabWebserverConfig (Left walletClientEnv) serviceAvailability
+            _ <- liftIO getLine
+            shutdown
 
 -- Fork a list of commands
 runCliCommand trace logConfig config serviceAvailability (ForkCommands commands) =
