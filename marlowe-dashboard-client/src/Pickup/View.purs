@@ -66,7 +66,7 @@ pickupNewWalletCard wallets newWalletNickname newWalletContractId remoteDataPubK
 
     mContractIdError = contractIdError newWalletContractId remoteDataPubKey wallets
   in
-    div_
+    div [ classNames [ "p-5", "pb-6", "md:pb-8" ] ]
       [ p
           [ classNames [ "font-bold", "mb-4" ] ]
           [ text "Demo wallet generated" ]
@@ -127,7 +127,7 @@ pickupWalletCard walletDetails =
 
     contractId = view _contractId walletDetails
   in
-    div_
+    div [ classNames [ "p-5", "pb-6", "md:pb-8" ] ]
       [ p
           [ classNames [ "font-bold", "mb-4" ] ]
           [ text $ "Play wallet " <> nickname ]

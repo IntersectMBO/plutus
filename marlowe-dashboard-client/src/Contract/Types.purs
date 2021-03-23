@@ -4,7 +4,7 @@ import Prelude
 import Analytics (class IsEvent, defaultEvent)
 import Data.Map (Map)
 import Data.Maybe (Maybe(..))
-import Marlowe.Execution (ExecutionState)
+import Marlowe.Execution (ExecutionState, NamedAction)
 import Marlowe.Extended.Metadata (MetaData)
 import Marlowe.Semantics (ChoiceId, ChosenNum, Input, Slot, TransactionInput)
 import Marlowe.Semantics as Semantic
@@ -14,7 +14,6 @@ type State
   = { tab :: Tab
     , executionState :: ExecutionState
     , contractId :: Maybe String -- FIXME: what is a contract instance identified by
-    , side :: Side
     , confirmation :: Maybe Input
     , step :: Int
     , metadata :: MetaData
@@ -32,28 +31,22 @@ data Tab
 
 derive instance eqTab :: Eq Tab
 
-data Side
-  = Overview
-  | Confirmation
-
 data Query a
   = ChangeSlot Slot a
   | ApplyTx TransactionInput a
 
 data Action
   = ConfirmInput (Maybe Input)
-  | ChangeChoice ChoiceId ChosenNum
+  | ChangeChoice ChoiceId (Maybe ChosenNum)
   | ChooseInput (Maybe Input)
   | SelectTab Tab
-  | FlipCard Side
-  | ClosePanel
-  | ChangeStep Int
+  | AskConfirmation NamedAction
+  | CancelConfirmation
 
 instance actionIsEvent :: IsEvent Action where
   toEvent (ConfirmInput _) = Just $ defaultEvent "ConfirmInput"
   toEvent (ChangeChoice _ _) = Just $ defaultEvent "ChangeChoice"
   toEvent (ChooseInput _) = Just $ defaultEvent "ChooseInput"
   toEvent (SelectTab _) = Just $ defaultEvent "SelectTab"
-  toEvent (FlipCard _) = Just $ defaultEvent "FlipCard"
-  toEvent ClosePanel = Just $ defaultEvent "ClosePanel"
-  toEvent (ChangeStep _) = Just $ defaultEvent "ChangeStep"
+  toEvent (AskConfirmation _) = Just $ defaultEvent "AskConfirmation"
+  toEvent CancelConfirmation = Just $ defaultEvent "CancelConfirmation"

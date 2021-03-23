@@ -1,33 +1,35 @@
 module Contract.View
   ( contractDetailsCard
+  , actionConfirmationCard
   ) where
 
 import Prelude hiding (div)
 import Contract.Lenses (_executionState, _mActiveUserParty, _metadata, _participants, _step, _tab)
 import Contract.Types (Action(..), State, Tab(..))
 import Css (applyWhen, classNames)
-import Data.Array (intercalate, nub, range)
+import Css as Css
+import Data.Array (intercalate)
 import Data.Array as Array
 import Data.Array.NonEmpty (NonEmptyArray)
 import Data.Array.NonEmpty as NEA
-import Data.BigInteger (BigInteger, fromInt, toNumber)
+import Data.BigInteger (BigInteger, fromInt, fromString, toNumber)
 import Data.Foldable (foldMap)
-import Data.Int (floor)
+import Data.Formatter.Number (Formatter(..), format)
 import Data.Lens ((^.))
 import Data.Map as Map
-import Data.Maybe (Maybe(..))
+import Data.Maybe (Maybe(..), maybe, maybe')
 import Data.Set (Set)
 import Data.Set as Set
 import Data.String as String
 import Data.String.Extra (capitalize)
 import Data.Tuple (Tuple(..), fst, uncurry)
 import Data.Tuple.Nested ((/\))
-import Halogen.HTML (HTML, a, button, div, div_, h1, h2, option_, select, span, span_, text)
-import Halogen.HTML.Events.Extra (onClick_)
-import Halogen.HTML.Properties (enabled)
+import Halogen.HTML (HTML, a, button, div, div_, h1, h2, h3, input, p, span, span_, sup_, text)
+import Halogen.HTML.Events.Extra (onClick_, onValueInput_)
+import Halogen.HTML.Properties (InputType(..), enabled, href, placeholder, target, type_, value)
 import Marlowe.Execution (NamedAction(..), _contract, _namedActions, _state, getActionParticipant)
 import Marlowe.Extended (contractTypeName)
-import Marlowe.Semantics (Bound(..), ChoiceId(..), Input(..), Party(..), Token(..), _accounts)
+import Marlowe.Semantics (Bound(..), ChoiceId(..), Input(..), Party(..), Token(..), _accounts, getEncompassBound)
 import Material.Icons (Icon(..), icon)
 
 contractDetailsCard :: forall p. State -> HTML p Action
@@ -40,11 +42,106 @@ contractDetailsCard state =
       -- FIXME: in zeplin the contractType is defined with color #283346, we need to define
       --        the color palette with russ.
       , h2 [ classNames [ "mb-2", "text-xs", "uppercase" ] ] [ text $ contractTypeName metadata.contractType ]
-      , div [ classNames [ "w-full", "px-5", "max-w-contract-card" ] ] [ renderCurrentState state ]
+      , div [ classNames [ "w-full", "px-5", "max-w-contract-card" ] ] [ renderCurrentStep state ]
       ]
 
-renderCurrentState :: forall p. State -> HTML p Action
-renderCurrentState state =
+actionConfirmationCard :: forall p. State -> NamedAction -> HTML p Action
+actionConfirmationCard state namedAction =
+  let
+    -- As programmers we use 0-indexed arrays and steps, but we number steps
+    -- starting from 1
+    stepNumber = state ^. _step + 1
+
+    title = case namedAction of
+      MakeDeposit _ _ _ _ -> "Deposit confirmation"
+      MakeChoice _ _ _ -> "Choice confirmation"
+      CloseContract -> "Close contract"
+      _ -> "Fixme, this should not happen"
+
+    cta = case namedAction of
+      MakeDeposit _ _ _ _ -> "Deposit"
+      MakeChoice _ _ _ -> "Choose"
+      CloseContract -> "Pay to close"
+      _ -> "Fixme, this should not happen"
+
+    detailItem titleHtml amountHtml hasLeftItem =
+      div [ classNames ([ "flex", "flex-col", "flex-1", "mb-2" ] <> applyWhen hasLeftItem [ "pl-2", "border-l", "border-gray" ]) ]
+        [ span [ classNames [ "text-xs" ] ] titleHtml
+        , span [ classNames [ "font-semibold" ] ] amountHtml
+        ]
+
+    transactionFeeItem = detailItem [ text "Transaction fee", sup_ [ text "*" ], text ":" ] [ text "₳ 0.00" ]
+
+    actionAmountItems = case namedAction of
+      MakeDeposit _ _ token amount ->
+        [ detailItem [ text "Deposit amount:" ] [ currency token amount ] false
+        , transactionFeeItem true
+        ]
+      MakeChoice _ _ (Just option) ->
+        [ detailItem [ text "You are choosing:" ] [ text $ "[ option " <> show option <> " ]" ] false
+        , transactionFeeItem true
+        ]
+      _ -> [ transactionFeeItem false ]
+
+    totalToPay = case namedAction of
+      MakeDeposit _ _ token amount -> currency token amount
+      _ -> currency (Token "" "") (fromInt 0)
+  in
+    div_
+      [ div [ classNames [ "flex", "font-semibold", "justify-between", "bg-lightgray", "p-5" ] ]
+          [ span_ [ text "Demo wallet balance:" ]
+          -- FIXME: remove placeholder with actual value
+          , span_ [ text "$223,456.78" ]
+          ]
+      , div [ classNames [ "px-5", "pb-6", "pt-3", "md:pb-8" ] ]
+          [ h2
+              [ classNames [ "text-xl", "font-semibold" ] ]
+              [ text $ "Step " <> show stepNumber ]
+          , h3
+              [ classNames [ "text-xs", "font-semibold" ] ]
+              [ text title ]
+          , div [ classNames [ "flex", "border-b", "border-gray", "mt-4" ] ]
+              actionAmountItems
+          , h3
+              [ classNames [ "mt-4", "text-sm", "font-semibold" ] ]
+              [ text "Confirm payment of:" ]
+          , div
+              [ classNames [ "mb-4", "text-blue", "font-semibold", "text-2xl" ] ]
+              [ totalToPay ]
+          , div [ classNames [ "flex", "justify-center" ] ]
+              [ button
+                  [ classNames $ Css.secondaryButton <> [ "mr-2", "flex-1" ]
+                  , onClick_ CancelConfirmation
+                  ]
+                  [ text "Cancel" ]
+              , button
+                  [ classNames $ Css.primaryButton <> [ "flex-1" ]
+                  -- FIXME: Create an action that comunicates with the backend
+                  -- , onClick_ $ AskWalletConfirmation namedAction
+                  ]
+                  [ text cta ]
+              ]
+          , div [ classNames [ "bg-black", "text-white", "p-4", "mt-4", "rounded" ] ]
+              [ h3 [ classNames [ "text-sm", "font-semibold" ] ] [ sup_ [ text "*" ], text "Transaction fees are estimates only:" ]
+              , p [ classNames [ "pb-4", "border-b-half", "border-lightgray", "text-xs", "text-gray" ] ]
+                  -- FIXME: review text with simon
+                  [ text "In the demo all fees are free but in the live version the cost will depend on the status of the blockchain at the moment of the transaction" ]
+              , div [ classNames [ "pt-4", "flex", "justify-between", "items-center" ] ]
+                  [ a
+                      -- FIXME: where should this link point to?
+                      [ href "https://docs.cardano.org/en/latest/explore-cardano/cardano-fee-structure.html"
+                      , classNames [ "font-bold" ]
+                      , target "_blank"
+                      ]
+                      [ text "Read more in Docs" ]
+                  , icon ArrowRight [ "text-2xl" ]
+                  ]
+              ]
+          ]
+      ]
+
+renderCurrentStep :: forall p. State -> HTML p Action
+renderCurrentStep state =
   let
     -- As programmers we use 0-indexed arrays and steps, but we number steps
     -- starting from 1
@@ -136,24 +233,11 @@ renderTasks state =
 
     actions = executionState ^. _namedActions
 
-    -- FIXME: We fake the namedActions for development until we fix the semantics
-    actions' =
-      [ MakeDeposit (Role "into account") (Role "bob") (Token "" "") $ fromInt 200
-      , MakeDeposit (Role "into account") (Role "alice") (Token "" "") $ fromInt 1500
-      , MakeChoice (ChoiceId "choice id" (Role "alice"))
-          [ Bound (fromInt 0) (fromInt 3)
-          , Bound (fromInt 2) (fromInt 4)
-          , Bound (fromInt 6) (fromInt 8)
-          ]
-          (fromInt 0)
-      , CloseContract
-      ]
-
     expandedActions =
       expandAndGroupByRole
         (state ^. _mActiveUserParty)
         (Map.keys $ state ^. _participants)
-        actions'
+        actions
 
     contract = executionState ^. _contract
   in
@@ -180,7 +264,7 @@ renderPartyTasks state party actions =
       intercalate
         [ div [ classNames [ "font-semibold", "text-center", "my-2", "text-xs" ] ] [ text "OR" ]
         ]
-        (Array.singleton <<< renderAction isActiveParticipant <$> actions)
+        (Array.singleton <<< renderAction state isActiveParticipant <$> actions)
 
     participantName = participantWithNickname state party
   in
@@ -195,8 +279,8 @@ renderPartyTasks state party actions =
           <> actionsSeparatedByOr
       )
 
-renderAction :: forall p. Boolean -> NamedAction -> HTML p Action
-renderAction isActiveParticipant (MakeDeposit intoAccountOf by token value) =
+renderAction :: forall p. State -> Boolean -> NamedAction -> HTML p Action
+renderAction _ isActiveParticipant namedAction@(MakeDeposit intoAccountOf by token value) =
   div_
     [ shortDescription isActiveParticipant "chocolate pastry apple pie lemon drops apple pie halvah FIXME"
     , button
@@ -207,53 +291,56 @@ renderAction isActiveParticipant (MakeDeposit intoAccountOf by token value) =
               else
                 [ "bg-gray", "text-black", "opacity-50", "cursor-default" ]
         , enabled isActiveParticipant
-        -- FIXME
-        -- , onClick_ $ NEEDACTION
+        , onClick_ $ AskConfirmation namedAction
         ]
         [ span_ [ text "Deposit:" ]
-        -- FIXME: Install purescript-formatters to separate by thousands
         , span_ [ currency token value ]
         ]
     ]
 
-renderAction isActiveParticipant (MakeChoice choiceId bounds chosen) =
+renderAction state isActiveParticipant namedAction@(MakeChoice choiceId bounds mChosenNum) =
   let
-    bigNumberToInt = floor <<< toNumber
+    -- NOTE': We could eventually add an heuristic that if the difference between min and max is less
+    --        than 10 elements, we could show a `select` instead of a input[number] and if the min==max
+    --        we use a button that says "Choose `min`"
+    Bound minBound maxBound = getEncompassBound bounds
 
-    options :: Array Int
-    options =
-      nub
-        $ bounds
-        >>= \(Bound fromB toB) -> range (bigNumberToInt fromB) (bigNumberToInt toB)
+    isValid = maybe false (between minBound maxBound) mChosenNum
   in
     div_
       [ shortDescription isActiveParticipant "chocolate pastry apple pie lemon drops apple pie halvah FIXME"
-      -- FIXME: we need to use @tailwindcss/forms to reset forms inputs and then restyle
-      --        https://www.youtube.com/watch?v=pONeWAzDsQg&ab_channel=TailwindLabs
-      , select
-          [ classNames [ "w-full", "py-4", "px-4", "shadow", "rounded-3xl", "mt-2" ]
-          , enabled isActiveParticipant
-          -- FIXME: I need to rethink how to make this select. The option items do not have
-          --        an onChange event, at most an onClick, which is probably not what I want
-          --        and I need to get the chosen value.
-          -- , onChange
-          --     $ \ev -> do
-          --         let
-          --           ww = spy "Event" ev
-          --         trg <- target ev
-          --         let
-          --           xx = spy "target" trg
-          --         -- value :: HTMLSelectElement -> Effect String
-          --         Just $ ChangeChoice choiceId (fromInt 1)
+      , div
+          [ classNames [ "flex", "w-full", "shadow", "rounded-lg", "mt-2", "overflow-hidden", "focus-within:ring-1", "ring-black" ]
           ]
-          (options <#> \n -> option_ [ text $ show n ])
+          [ input
+              [ classNames [ "border-0", "py-4", "pl-4", "pr-1", "flex-grow", "focus:ring-0" ]
+              , type_ InputNumber
+              , maybe'
+                  (\_ -> placeholder $ "Choose between " <> show minBound <> " and " <> show maxBound)
+                  (value <<< show)
+                  mChosenNum
+              , onValueInput_ $ ChangeChoice choiceId <<< fromString
+              ]
+          , button
+              [ classNames
+                  ( [ "px-5", "font-bold" ]
+                      <> if isValid then
+                          [ "bg-gradient-to-b", "from-blue", "to-lightblue", "text-white" ]
+                        else
+                          [ "bg-gray", "text-black", "opacity-50", "cursor-default" ]
+                  )
+              , onClick_ $ AskConfirmation namedAction
+              , enabled isValid
+              ]
+              [ text "..." ]
+          ]
       ]
 
-renderAction isActiveParticipant (MakeNotify _) = div [] [ text "awaiting observation?" ]
+renderAction _ isActiveParticipant (MakeNotify _) = div [] [ text "FIXME: awaiting observation?" ]
 
-renderAction isActiveParticipant (Evaluate _) = div [] [ text "FIXME: what should we put here? Evaluate" ]
+renderAction _ isActiveParticipant (Evaluate _) = div [] [ text "FIXME: what should we put here? Evaluate" ]
 
-renderAction isActiveParticipant CloseContract =
+renderAction _ isActiveParticipant CloseContract =
   div_
     [ shortDescription isActiveParticipant "chocolate pastry apple pie lemon drops apple pie halvah FIXME"
     , button
@@ -264,16 +351,28 @@ renderAction isActiveParticipant CloseContract =
               else
                 [ "bg-gray", "text-black", "opacity-50", "cursor-default" ]
         , enabled isActiveParticipant
-        -- FIXME
-        -- , onClick_ $ NEEDACTION
+        , onClick_ $ AskConfirmation CloseContract
         ]
         [ text "Close contract" ]
     ]
 
-currency :: forall p a. Token -> BigInteger -> HTML p a
-currency (Token "" "") value = text ("₳" <> show value)
+currencyFormatter :: Formatter
+currencyFormatter =
+  Formatter
+    { sign: false
+    , before: 0
+    , comma: true
+    , after: 0
+    , abbreviations: false
+    }
 
-currency (Token symbol _) value = text (symbol <> show value)
+formatBigInteger :: BigInteger -> String
+formatBigInteger = format currencyFormatter <<< toNumber
+
+currency :: forall p a. Token -> BigInteger -> HTML p a
+currency (Token "" "") value = text ("₳ " <> formatBigInteger value)
+
+currency (Token symbol _) value = text (symbol <> " " <> formatBigInteger value)
 
 renderBalances :: forall p action. State -> HTML p action
 renderBalances state =
@@ -284,8 +383,8 @@ renderBalances state =
     -- FIXME: What should we show if a participant doesn't have balance yet?
     -- FIXME: We fake the accounts for development until we fix the semantics
     accounts' =
-      [ (Role "alice" /\ Token "" "") /\ (fromInt 500)
-      , (Role "bob" /\ Token "" "") /\ (fromInt 0)
+      [ (Role "alice" /\ Token "" "") /\ (fromInt 2500)
+      , (Role "bob" /\ Token "" "") /\ (fromInt 10)
       ]
   in
     div [ classNames [ "text-xs" ] ]

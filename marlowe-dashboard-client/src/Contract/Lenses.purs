@@ -2,7 +2,6 @@ module Contract.Lenses
   ( _tab
   , _executionState
   , _contractId
-  , _side
   , _confirmation
   , _step
   , _metadata
@@ -10,7 +9,7 @@ module Contract.Lenses
   , _mActiveUserParty
   ) where
 
-import Contract.Types (Side, State, Tab)
+import Contract.Types (State, Tab)
 import Data.Lens (Lens')
 import Data.Lens.Record (prop)
 import Data.Map (Map)
@@ -29,9 +28,6 @@ _executionState = prop (SProxy :: SProxy "executionState")
 
 _contractId :: Lens' State (Maybe String)
 _contractId = prop (SProxy :: SProxy "contractId")
-
-_side :: Lens' State Side
-_side = prop (SProxy :: SProxy "side")
 
 _confirmation :: Lens' State (Maybe Semantic.Input)
 _confirmation = prop (SProxy :: SProxy "confirmation")

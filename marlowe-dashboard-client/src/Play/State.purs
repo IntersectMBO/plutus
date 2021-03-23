@@ -5,7 +5,7 @@ module Play.State
 
 import Prelude
 import Contract.State (defaultState, handleAction, mkInitialState) as Contract
-import Contract.Types (Action, State) as Contract
+import Contract.Types (Action(..), State) as Contract
 import ContractHome.Lenses (_contracts, _selectedContract)
 import ContractHome.State (defaultState, handleAction) as ContractHome
 import ContractHome.Types (Action(..), State) as ContractHome
@@ -155,7 +155,14 @@ handleAction (ContractHomeAction a@(ContractHome.OpenContract _)) = do
 -- other contract home actions
 handleAction (ContractHomeAction contractAction) = void $ toContractHome $ ContractHome.handleAction contractAction
 
--- All contract actions are handled by the subcomponent for the moment
+-- contract actions that need to be handled here
+-- FIXME: instead of toggle card I need to implement a card stack and add it to the stack
+handleAction (ContractAction (Contract.AskConfirmation action)) = handleAction $ ToggleCard $ ContractActionConfirmationCard action
+
+-- FIXME: instead of SetCard I need to implement a card stack and pop the stack
+handleAction (ContractAction Contract.CancelConfirmation) = handleAction $ SetCard Nothing
+
+-- other contract  actions
 handleAction (ContractAction contractAction) = void $ toContract $ Contract.handleAction contractAction
 
 -- all other actions are handled in `MainFrame.State`

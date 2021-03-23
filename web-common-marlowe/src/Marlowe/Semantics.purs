@@ -593,6 +593,21 @@ instance hasArgsBound :: Args Bound where
   hasArgs a = genericHasArgs a
   hasNestedArgs a = genericHasNestedArgs a
 
+getEncompassBound :: forall f. Foldable f => Functor f => f Bound -> Bound
+getEncompassBound bounds =
+  -- NOTE: We can't use the Min/Max semigroup with foldMap and we need to make a fromInt top/bottom
+  --       because BigInteger doesn't have a Bounded instance. This should be fine in reality
+  --       but it could lead to a bug if the lower bound is bigger than the biggest Int or if
+  --       the highest bound is lower than the smallest Int.
+  -- NOTE': We fold the datastructure twice instead of doing it in a single pass for simplicity
+  --        in reality we shouldn't have many bounds, so it should be fine.
+  let
+    minBound = foldl min (fromInt top) $ map (\(Bound lower _) -> lower) bounds
+
+    maxBound = foldl max (fromInt bottom) $ map (\(Bound _ higher) -> higher) bounds
+  in
+    Bound minBound maxBound
+
 -- Possible actions that can be taken inside a `When` contract
 data Action
   = {-

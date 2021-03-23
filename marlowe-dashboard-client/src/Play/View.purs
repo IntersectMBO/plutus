@@ -1,7 +1,7 @@
 module Play.View (renderPlayState) where
 
 import Prelude hiding (div)
-import Contract.View (contractDetailsCard)
+import Contract.View (actionConfirmationCard, contractDetailsCard)
 import ContractHome.Lenses (_selectedContract)
 import ContractHome.View (contractsScreen)
 import Css (applyWhen, classNames, hideWhen)
@@ -130,30 +130,46 @@ renderCards wallets newWalletNickname newWalletContractId remoteDataPubKey templ
       Just ContractCard -> Css.largeCard false
       Just _ -> Css.card false
       Nothing -> Css.card true
+
+    hasCloseButton = case mCard of
+      Just (ContractActionConfirmationCard _) -> false
+      Just ContractSetupConfirmationCard -> false
+      _ -> true
+
+    closeButton =
+      if hasCloseButton then
+        [ a
+            [ classNames [ "absolute", "top-4", "right-4" ]
+            , onClick_ $ SetCard Nothing
+            ]
+            [ icon_ Close ]
+        ]
+      else
+        []
   in
     div
       [ classNames $ Css.overlay $ isNothing mCard ]
       [ div
           [ classNames cardClasses ]
-          [ a
-              [ classNames [ "absolute", "top-4", "right-4" ]
-              , onClick_ $ SetCard Nothing
-              ]
-              [ icon_ Close ]
-          , div_
-              $ (flip foldMap mCard) \cardType -> case cardType of
-                  CreateWalletCard mTokenName -> [ newWalletCard wallets newWalletNickname newWalletContractId remoteDataPubKey mTokenName ]
-                  ViewWalletCard walletDetails -> [ walletDetailsCard walletDetails ]
-                  PutdownWalletCard -> [ putdownWalletCard currentWalletDetails ]
-                  TemplateLibraryCard -> [ TemplateAction <$> templateLibraryCard templates ]
-                  ContractSetupConfirmationCard -> [ TemplateAction <$> contractSetupConfirmationCard ]
-                  -- FIXME: We need to pattern match on the Maybe because the selectedContractState
-                  --        could be Nothing. We could add the state as part of the view, but is not ideal
-                  --        Will have to rethink how to deal with this once the overall state is more mature.
-                  ContractCard -> case mSelectedContractState of
-                    Just contractState -> [ ContractAction <$> contractDetailsCard contractState ]
-                    Nothing -> []
-          ]
+          $ closeButton
+          <> [ div_
+                $ (flip foldMap mCard) \cardType -> case cardType of
+                    -- TODO: Should this be renamed to CreateContactCard?
+                    CreateWalletCard mTokenName -> [ newWalletCard wallets newWalletNickname newWalletContractId remoteDataPubKey mTokenName ]
+                    ViewWalletCard walletDetails -> [ walletDetailsCard walletDetails ]
+                    PutdownWalletCard -> [ putdownWalletCard currentWalletDetails ]
+                    TemplateLibraryCard -> [ TemplateAction <$> templateLibraryCard templates ]
+                    ContractSetupConfirmationCard -> [ TemplateAction <$> contractSetupConfirmationCard ]
+                    -- FIXME: We need to pattern match on the Maybe because the selectedContractState
+                    --        could be Nothing. We could add the state as part of the view, but is not ideal
+                    --        Will have to rethink how to deal with this once the overall state is more mature.
+                    ContractCard -> case mSelectedContractState of
+                      Just contractState -> [ ContractAction <$> contractDetailsCard contractState ]
+                      Nothing -> []
+                    ContractActionConfirmationCard action -> case mSelectedContractState of
+                      Just contractState -> [ ContractAction <$> actionConfirmationCard contractState action ]
+                      Nothing -> []
+            ]
       ]
 
 renderScreen :: forall p. WalletLibrary -> Screen -> State -> HTML p Action
