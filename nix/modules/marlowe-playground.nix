@@ -47,7 +47,6 @@ in
         TimeoutStopSec = 5;
         Restart = "always";
         path = [ pkgs.z3 killallz3 ];
-        ExecStart = "${cfg.playground-server-package}/bin/marlowe-playground-server webserver -p ${builtins.toString cfg.port}";
 
         # sane defaults for security
         DynamicUser = true;
@@ -58,6 +57,17 @@ in
         SystemCallArchitectures = "native";
 
       };
+
+      script = ''
+        if [ -f /var/lib/playgrounds/marlowe.env ]; then
+          echo "Loading environment config from '/var/lib/playgrounds/marlowe.env'"
+        else
+          echo "No environment config. Using defaults"
+        fi
+
+        ${cfg.playground-server-package}/bin/marlowe-playground-server webserver -p ${builtins.toString cfg.port}
+      '';
+
     };
   };
 
