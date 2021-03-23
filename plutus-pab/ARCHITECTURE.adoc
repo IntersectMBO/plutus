@@ -1,6 +1,6 @@
 === Plutus Application Backend (PAB)
 
-The PAB executes the off-chain component of Plutus applications. It manages application requests to wallet backend and node, stores the application state and and offers an HTTP API for managing application instances.
+The PAB executes the off-chain component of Plutus applications. It manages application requests to wallet backend and node, stores the application state and offers an HTTP API for managing application instances.
 
 ==== PAB Configurations
 
@@ -18,7 +18,7 @@ Additional configurations can be created in Haskell using the `plutus-pab` libra
 
 ==== The PAB HTTP API
 
-The PAB is defined in the Haskell module `Plutus.PAB.Webserver.API`. Below is a list of the routes that are available. Note that the exact form of the JSON arguments depends on the particular configuration of the PAB that is running.
+The HTTP interface is defined in the Haskell module `Plutus.PAB.Webserver.API`. Below is a list of the routes that are available. Note that the exact form of the JSON arguments depends on the particular configuration of the PAB that is running.
 
 In the examples below we assume the PAB has been started in the simulator configuration, with the `plutus-pab simulator` command,
 
@@ -85,7 +85,7 @@ Call an endpoint on an active contract instance. Expects a JSON object with the 
 Endpoint "Create native token" SimpleMPS
 ----
 
-This means that there is an endpoint `"Create native token"` that expects a `SimpleMPS` argument.
+This means that there is an endpoint `"Create native token"` that expects a `SimpleMPS` argument. If the endpoint is not active, this call results in an error. The list of endpoints that are currently active can be obtained from the `status` route or via the websockets protocol.
 
 ===== Websockets
 
