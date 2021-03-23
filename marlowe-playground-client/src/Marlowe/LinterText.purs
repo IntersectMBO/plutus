@@ -26,8 +26,9 @@ import Data.String.Regex.Flags (noFlags)
 import Data.Tuple (Tuple(..))
 import Effect.Exception.Unsafe (unsafeThrow)
 import Help (holeText)
+import Marlowe.Extended.Metadata (MetadataHintInfo)
 import Marlowe.Holes (Contract, Holes(..), Location(..), MarloweHole(..), MarloweType, Term, TermGenerator, constructMarloweType, getMarloweConstructors, readMarloweType)
-import Marlowe.Linter (Warning(..), WarningDetail(..), _holes, _warnings, lint)
+import Marlowe.Linter (Warning(..), WarningDetail(..), _holes, _metadataHints, _warnings, lint)
 import Marlowe.Parser (ContractParseError(..), parseContract)
 import Monaco (CodeAction, CompletionItem, IMarkerData, IRange, Uri, completionItemKind, markerSeverity)
 import Monaco as Monaco
@@ -52,7 +53,7 @@ getWarningRange (Warning { location }) = locationToRange location
 markers :: List ContractPath -> Either ContractParseError (Term Contract) -> Tuple (Array IMarkerData) AdditionalContext
 markers unreachablePaths parsedContract = do
   case (lint unreachablePaths <$> parsedContract) of
-    Left EmptyInput -> (Tuple [] { warnings: mempty, contract: Nothing })
+    Left EmptyInput -> (Tuple [] { warnings: mempty, contract: Nothing, metadataHints: Nothing })
     Left e@(ContractParseError { message, row, column, token }) ->
       let
         whiteSpaceChar c = Set.member c $ Set.fromFoldable $ map codePointFromChar [ '\n', '\r', ' ', '\t' ]
@@ -71,7 +72,7 @@ markers unreachablePaths parsedContract = do
             }
           ]
       in
-        (Tuple markerData { warnings: mempty, contract: Nothing })
+        (Tuple markerData { warnings: mempty, contract: Nothing, metadataHints: Nothing })
     Right state ->
       let
         holesMarkers = state ^. (_holes <<< to holesToMarkers)
@@ -79,7 +80,7 @@ markers unreachablePaths parsedContract = do
         warningsMarkers = state ^. (_warnings <<< to Set.toUnfoldable <<< to (map warningToMarker))
 
         -- we store the current warnings and the parsed contract in the halogen state so that they can be reused
-        additionalContext = { warnings: state ^. _warnings, contract: hush parsedContract }
+        additionalContext = { warnings: state ^. _warnings, contract: hush parsedContract, metadataHints: Just $ state ^. _metadataHints }
       in
         (Tuple (holesMarkers <> warningsMarkers) additionalContext)
 
@@ -212,6 +213,7 @@ provideCodeActions uri markers' additionalContext =
 type AdditionalContext
   = { warnings :: Set Warning
     , contract :: Maybe (Term Contract)
+    , metadataHints :: Maybe MetadataHintInfo
     }
 
 marloweHoleToSuggestionText :: Boolean -> MarloweHole -> String -> String
