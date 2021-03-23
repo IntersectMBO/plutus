@@ -18,7 +18,7 @@ import Icons (Icon(..), icon)
 import NavTabs (mainTabBar, viewContainer)
 import Network.StreamData as Stream
 import Plutus.PAB.Events (ChainEvent)
-import Plutus.PAB.Types (ContractExe)
+import Plutus.PAB.Effects.Contract.ContractExe (ContractExe)
 import Plutus.PAB.Webserver.Types (ChainReport)
 import Prelude (bind, ($), (<$>), (<<<), (<>))
 import Types (ContractSignatures, ContractStates, HAction(..), State(..), View(..), WebSocketStatus(..), WebStreamData, _csrDefinition, _utxoIndex)

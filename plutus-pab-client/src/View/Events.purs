@@ -18,7 +18,7 @@ import Ledger.Index (UtxoIndex)
 import Plutus.V1.Ledger.Tx (TxOut, TxOutRef)
 import Playground.Lenses (_utxoIndexEntries)
 import Plutus.PAB.Events (ChainEvent)
-import Plutus.PAB.Types (ContractExe)
+import Plutus.PAB.Effects.Contract.ContractExe (ContractExe)
 import Types (HAction(..))
 import View.Pretty (class Pretty, pretty)
 

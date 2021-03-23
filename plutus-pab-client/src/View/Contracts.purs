@@ -20,7 +20,7 @@ import Network.StreamData as Stream
 import Playground.Lenses (_endpointDescription, _getEndpointDescription, _schema)
 import Playground.Types (_FunctionSchema)
 import Plutus.PAB.Events.Contract (ContractInstanceState)
-import Plutus.PAB.Types (ContractExe)
+import Plutus.PAB.Effects.Contract.ContractExe (ContractExe)
 import Schema.Types (FormEvent)
 import Schema.View (actionArgumentForm)
 import Types (ContractStates, EndpointForm, HAction(..), WebStreamData, _contractInstanceIdString, _contractPath, _csContract, _csContractDefinition, _csCurrentState, _hooks)

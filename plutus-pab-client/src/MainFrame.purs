@@ -46,7 +46,7 @@ import Network.StreamData as Stream
 import Playground.Lenses (_endpointDescription, _schema)
 import Playground.Types (FunctionSchema(..), _FunctionSchema)
 import Plutus.PAB.Events.Contract (ContractInstanceState(..))
-import Plutus.PAB.Types (ContractExe)
+import Plutus.PAB.Effects.Contract.ContractExe (ContractExe)
 import Plutus.PAB.Webserver (SPParams_(..))
 import Plutus.PAB.Webserver.Types (ContractSignatureResponse(..), StreamToClient(..))
 import Prim.TypeError (class Warn, Text)
