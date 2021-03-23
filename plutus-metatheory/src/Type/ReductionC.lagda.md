@@ -667,7 +667,12 @@ postulate
                   Value⋆ L' →
                   Value⋆ N' →
                   μ M M' ≡ closeEvalCtx E' (L' · N') →
-                  ∃ (λ p → subst (EvalCtx *) p E' ≡ E)))))))
+                  ∃ λ (p : I' ≡ I) →
+                  ∃ λ q →
+                  subst (EvalCtx *) q E' ≡ E
+                  × L ≡ subst (∅ ⊢⋆_) (cong₂ _⇒_ p q) L'
+                  × N ≡ subst (∅ ⊢⋆_) p N'))))))
+                  
                   
 
 lemma51! : (M : ∅ ⊢⋆ K)
@@ -690,36 +695,41 @@ lemma51! : (M : ∅ ⊢⋆ K)
       Value⋆ L' →
       Value⋆ N' →
       M ≡ closeEvalCtx E' (L' · N') →
-      ∃ λ (p : J' ≡ J) → subst (EvalCtx K) p E' ≡ E
+      ∃ λ (p : I' ≡ I) →
+      ∃ λ (q : J' ≡ J) →
+      subst (EvalCtx K) q E' ≡ E
+      × L ≡ subst (∅ ⊢⋆_) (cong₂ _⇒_ p q) L'
+      × N ≡ subst (∅ ⊢⋆_) p N'
 lemma51! (Π M) = inj₁ (V-Π M)
 lemma51! (M ⇒ M') with lemma51! M
 ... | inj₂ (¬VM , J , E , I , L , N , VL , VN , refl , X) =
-    inj₂ ((λ { (VM V-⇒ VM') → ¬VM VM}) , J , E l⇒ M' , I , L , N , VL , VN , refl , λ { J' (VM ⇒r E') I' L' N' VL' VN' refl → ⊥-elim (¬VM VM) ; J' (E' l⇒ x) I' L' N' VL' VN' p → let (XX , YY) = X J' E' I' L' N' VL' VN' (proj⇒l p) in XX , trans (subst-l⇒ E' x (proj₁ (X J' E' I' L' N' VL' VN' (proj⇒l p)))) (cong₂ _l⇒_ YY (sym (proj⇒r p))) })
+    inj₂ ((λ { (VM V-⇒ VM') → ¬VM VM}) , J , E l⇒ M' , I , L , N , VL , VN , refl , λ { J' (VM ⇒r E') I' L' N' VL' VN' refl → ⊥-elim (¬VM VM) ; J' (E' l⇒ x) I' L' N' VL' VN' p → let (ZZ , XX , YY , YY' , YY'' ) = X J' E' I' L' N' VL' VN' (proj⇒l p) in ZZ , XX , trans (subst-l⇒ E' x XX) (cong₂ _l⇒_ YY (sym (proj⇒r p)))  , YY' , YY'' })
 ... | inj₁ VM with lemma51! M'
 ... | inj₂ (¬VM' , J , E , I , L , N , VL , VN , refl , X) =
-  inj₂ ((λ { (VM V-⇒ VM') → ¬VM' VM'}) , J , VM ⇒r E , I , L , N , VL , VN , refl , λ { J' (V ⇒r E') I' L' N' VL' VN' p → let (XX , YY) = X J' E' I' L' N' VL' VN' (proj⇒r p) in XX , trans (subst-⇒r V E' _) (cong₃ (λ A → _⇒r_ {A = A}) (sym (proj⇒l p)) (val-unique _ _) YY) ; J' (E' l⇒ .(closeEvalCtx E (L · N))) I' L' N' VL' VN' refl → ⊥-elim (lemV· (lem0 (L' · N') E' VM))})
+  inj₂ ((λ { (VM V-⇒ VM') → ¬VM' VM'}) , J , VM ⇒r E , I , L , N , VL , VN , refl , λ { J' (V ⇒r E') I' L' N' VL' VN' p → let (ZZ , XX , YY , YY' , YY'') = X J' E' I' L' N' VL' VN' (proj⇒r p) in ZZ , XX , trans (subst-⇒r V E' _) (cong₃ (λ A → _⇒r_ {A = A}) (sym (proj⇒l p)) (val-unique _ _) YY) , YY' , YY'' ; J' (E' l⇒ .(closeEvalCtx E (L · N))) I' L' N' VL' VN' refl → ⊥-elim (lemV· (lem0 (L' · N') E' VM))})
 ... | inj₁ VM' = inj₁ (VM V-⇒ VM')
 lemma51! (ƛ M) = inj₁ (V-ƛ M)
 lemma51! (M · M') with lemma51! M
 ... | inj₂ (¬VM , J , E , I , L , N , VL , VN , refl , X) =
-    inj₂ ((λ()) , J , E l· M' , I , L , N , VL , VN , refl , λ{ J' [] I' L' N' VL' VN' p → ⊥-elim (¬VM (subst-Val (proj₁ (proj·l p)) (proj₂ (proj·l p)) VL'))  ; J' (x ·r E') I' L' N' VL' VN' p → ⊥-elim (¬VM (subst-Val (proj₁ (proj·l p)) (proj₂ (proj·l p)) x)) ; J' (E' l· x) I' L' N' VL' VN' p → let (XX , YY) = X J' (subst (λ K → EvalCtx K J') (sym (proj₁ (proj·l p))) E') I' L' N' VL' VN' (trans (proj·l' p) (subst-closeEvalCtx' E' (L' · N') (sym (proj₁ (proj·l p)))) ) in XX , trans (trans (cong (subst (EvalCtx _) (proj₁ (X J' (subst (λ K₃ → EvalCtx K₃ J') (sym (proj₁ (proj·l p))) E') I' L' N' VL' VN' (trans (proj·l' p) (subst-closeEvalCtx' E' (L' · N') (sym (proj₁ (proj·l p)))))))) (subst-l·'' E' x M' (proj₁ (proj·r p)) (sym (proj₁ (proj·l p))) (proj₂ (proj·r p)))) (subst-l·  (subst (λ K₂ → EvalCtx K₂ J') (sym (proj₁ (proj·l p))) E') M' (proj₁
+    inj₂ ((λ()) , J , E l· M' , I , L , N , VL , VN , refl , λ{ J' [] I' L' N' VL' VN' p → ⊥-elim (¬VM (subst-Val (proj₁ (proj·l p)) (proj₂ (proj·l p)) VL'))  ; J' (x ·r E') I' L' N' VL' VN' p → ⊥-elim (¬VM (subst-Val (proj₁ (proj·l p)) (proj₂ (proj·l p)) x)) ; J' (E' l· x) I' L' N' VL' VN' p → let (ZZ , XX , YY , YY' , YY'') = X J' (subst (λ K → EvalCtx K J') (sym (proj₁ (proj·l p))) E') I' L' N' VL' VN' (trans (proj·l' p) (subst-closeEvalCtx' E' (L' · N') (sym (proj₁ (proj·l p)))) ) in ZZ , XX , trans (trans ( cong (subst (EvalCtx _) (proj₁ (proj₂ (X J' (subst (λ K₃ → EvalCtx K₃ J') (sym (proj₁ (proj·l p))) E') I' L' N' VL' VN' (trans (proj·l' p) (subst-closeEvalCtx' E' (L' · N') (sym (proj₁ (proj·l p))))))))) (subst-l·'' E' x M' (proj₁ (proj·r p)) (sym (proj₁ (proj·l p))) (proj₂ (proj·r p)))) (subst-l·  (subst (λ K₂ → EvalCtx K₂ J') (sym (proj₁ (proj·l p))) E') M' ( proj₁ (proj₂
  (X J' (subst (λ K₃ → EvalCtx K₃ J') (sym (proj₁ (proj·l p))) E') I'
   L' N' VL' VN'
   (trans (proj·l' p)
-   (subst-closeEvalCtx' E' (L' · N') (sym (proj₁ (proj·l p)))))))) ) (cong (_l· M') YY) })
+   (subst-closeEvalCtx' E' (L' · N') (sym (proj₁ (proj·l p))))))))) ) (cong (_l· M') YY) , YY' , YY'' })
 
 ... | inj₁ VM with lemma51! M'
 ... | inj₁ VM' =
-  inj₂ ((λ()) , _ , [] , _ , M , M' , VM , VM' , refl , λ{ J [] I L N VL VN p → refl , refl ; J (x ·r E) I L N VL VN p → ⊥-elim (lemV· (lem0 (L · N) E (subst-Val (proj₁ (proj·r p)) (proj₂ (proj·r p)) VM'))) ; J (E l· x) I L N VL VN p → ⊥-elim (lemV· (lem0 (L · N) E (subst-Val (proj₁ (proj·l (sym p))) (proj₂ (proj·l (sym p))) VM)))})
+  inj₂ ((λ()) , _ , [] , _ , M , M' , VM , VM' , refl , λ{ J [] I L N VL VN refl → refl , refl , refl , refl , refl ; J (x ·r E) I L N VL VN p → ⊥-elim (lemV· (lem0 (L · N) E (subst-Val (proj₁ (proj·r p)) (proj₂ (proj·r p)) VM'))) ; J (E l· x) I L N VL VN p → ⊥-elim (lemV· (lem0 (L · N) E (subst-Val (proj₁ (proj·l (sym p))) (proj₂ (proj·l (sym p))) VM)))})
 ... | inj₂ (¬VM' , J , E , I , L , N , VL , VN , refl , X) =
-  inj₂ ((λ()) , J , VM ·r E , I , L , N , VL , VN , refl , λ { J' [] I' L' N' VL' VN' p' → ⊥-elim (lemV· (lem0 (L · N) E (subst-Val (proj₁ (proj·r (sym p'))) (proj₂ (proj·r (sym p'))) VN')))  ; J' (x ·r E') I' L' N' VL' VN' p' → let (XX , YY) = X J' (subst (λ K → EvalCtx K J') (proj₁ (proj·r p')) E') I' L' N' VL' VN' (trans (sym (proj₂ (proj·r p'))) (subst-closeEvalCtx' E' (L' · N') (proj₁ (proj·r p')))) in XX , trans (trans (cong (subst (EvalCtx _) (proj₁
+  inj₂ ((λ()) , J , VM ·r E , I , L , N , VL , VN , refl , λ { J' [] I' L' N' VL' VN' p' → ⊥-elim (lemV· (lem0 (L · N) E (subst-Val (proj₁ (proj·r (sym p'))) (proj₂ (proj·r (sym p'))) VN')))  ; J' (x ·r E') I' L' N' VL' VN' p' → let (ZZ , XX , YY , YY' , YY'') = X J' (subst (λ K → EvalCtx K J') (proj₁ (proj·r p')) E') I' L' N' VL' VN' (trans (sym (proj₂ (proj·r p'))) (subst-closeEvalCtx' E' (L' · N') (proj₁ (proj·r p')))) in ZZ , XX , trans (trans (cong (subst (EvalCtx _) (proj₁ (proj₂
  (X J' (subst (λ K₃ → EvalCtx K₃ J') (proj₁ (proj·r p')) E') I' L'
   N' VL' VN'
   (trans (sym (proj₂ (proj·r p')))
-   (subst-closeEvalCtx' E' (L' · N') (proj₁ (proj·r p'))))))) (·r-cong (proj₁ (proj·r p')) x VM E' (proj·l'' p'))) (subst-r· (subst (λ K₂ → EvalCtx K₂ J') (proj₁ (proj·r p')) E') VM XX)) (cong (VM ·r_) YY) ; J' (E' l· x) I' L' N' VL' VN' p' → ⊥-elim (lemV· (lem0 (L' · N') E' (subst-Val (proj₁ (proj·l (sym p'))) (proj₂ (proj·l (sym p'))) VM)))})
+   (subst-closeEvalCtx' E' (L' · N') (proj₁ (proj·r p')))))))) (·r-cong (proj₁ (proj·r p')) x VM E' (proj·l'' p'))) (subst-r· (subst (λ K₂ → EvalCtx K₂ J') (proj₁ (proj·r p')) E') VM XX)) (cong (VM ·r_) YY) , YY' , YY'' ; J' (E' l· x) I' L' N' VL' VN' p' → ⊥-elim (lemV· (lem0 (L' · N') E' (subst-Val (proj₁ (proj·l (sym p'))) (proj₂ (proj·l (sym p'))) VM)))})
 lemma51! (μ M M') = mu-case M M'
 lemma51! (con x) = inj₁ (V-con x)
 
+-- this is a more convenient version of lemma51! where you can plug in two things and show they are the same
 lemma51-good : (M : ∅ ⊢⋆ K)
              → (E : EvalCtx K J)
              → (L : ∅ ⊢⋆ I ⇒ J)
@@ -739,7 +749,10 @@ lemma51-good : (M : ∅ ⊢⋆ K)
              → E ≡ subst (EvalCtx K) q E'
              × L ≡ subst (∅ ⊢⋆_) (cong₂ _⇒_ p q) L'
              × N ≡ subst (∅ ⊢⋆_) p N'
-lemma51-good M E L N p VL VN E' L' N' VN' VL' = {!!}
+lemma51-good M E L N p VL VN E' L' N' p' VL' VN' with lemma51! M
+... | inj₁ VM  = ⊥-elim (lemE· E (subst Value⋆ p VM))  
+... | inj₂ (¬VM , J'' , E'' , I'' , L'' , N'' , VL'' , VN'' , p'' , X) with X _ E _  L  N  VL  VN p | X _ E' _ L' N' VL' VN' p'
+... | refl , refl , refl , refl , refl | refl , refl , refl , refl , refl = refl , refl , refl , refl , refl
 
 {- 
 
@@ -839,6 +852,7 @@ dissect' (μl E B) with dissect' E
 
 -- this gives part of the case analysis but we need further analysis
 -- of when M is a value
+
 lemmaE' : ∀ (M : ∅ ⊢⋆ J)(E : EvalCtx K J) B
   → closeEvalCtx E M —→E B
   → ∃ λ J' → ∃ λ (E' : EvalCtx K J') → ∃ λ (L : ∅ ⊢⋆ J') → ∃ λ N → (L —→⋆ N)
@@ -850,7 +864,7 @@ lemmaE' M E B p with lemma51! (closeEvalCtx E M)
 ... | inj₂ (¬VA , J' , E' , I , _ , N , V-ƛ L , VN , q , X) with lemma51! M
 ... | inj₁ VM = J' , E' , ƛ L · N , (L [ N ]) , β-ƛ VN , q , sym (det p (contextRule E' (β-ƛ VN) q refl)) , inj₂ VM
 ... | inj₂ (¬VM , J'' , E'' , I'' , L' , N' , VL' , VN' , q' , X') with X J'' (compEvalCtx E E'') I'' L' N' VL' VN' (trans (cong (closeEvalCtx E) q') (sym (close-comp E E'' (L' · N'))))
-... | refl , Y = J' , E' , ƛ L · N , (L [ N ]) , β-ƛ VN , q , sym (det p (contextRule E' (β-ƛ VN) q refl)) , inj₁ (E'' , uniqueness⋆ _ _ E (trans (trans q (cong (λ E → closeEvalCtx E (ƛ L · N)) (sym Y))) (close-comp E E'' (ƛ L · N))) ) where
+... | refl , refl , Y , Y' , Y'' = J' , E' , ƛ L · N , (L [ N ]) , β-ƛ VN , q , sym (det p (contextRule E' (β-ƛ VN) q refl)) , inj₁ (E'' , uniqueness⋆ _ _ E (trans (trans q (cong (λ E → closeEvalCtx E (ƛ L · N)) (sym Y))) (close-comp E E'' (ƛ L · N))))
 
 decVal : (M : ∅ ⊢⋆ K) → Value⋆ M ⊎ ¬ (Value⋆ M)
 decVal (Π M) = inj₁ (V-Π M)
@@ -949,3 +963,4 @@ lemmaX M E E' L N VM VL VN p | inj₂ (I , E'' , (-· B)) | blah eq | inj₂ (I'
 ... | refl , refl , r , r' , r'' = inj₂ (inj₂ (inj₁ (_ , _ , refl , E'' , E''' , r)))
 lemmaX M E E' L N VM VL VN p | inj₂ (I , E'' , (x ·-)) | blah eq rewrite (dissect-lemma _ _ _ eq) with lemma51-good (closeEvalCtx (extendEvalCtx E'' (x ·-)) M) E' L N p VL VN E'' _ M (closeEF E'' (x ·-) M) x VM
 lemmaX M E E' L N VM VL VN p | inj₂ (I , E'' , (x ·-)) | blah eq | (refl , refl , refl , refl , refl) rewrite val-unique VL x = inj₁ (refl , uniquenessE _ (λ V → lemE· E' (subst Value⋆ p V)) _ _ _ refl refl)
+
