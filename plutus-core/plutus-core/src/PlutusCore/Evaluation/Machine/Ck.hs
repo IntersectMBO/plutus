@@ -366,7 +366,7 @@ applyEvaluate stack val@(VBuiltin bn arity0 arity tyargs args) arg = do
 applyEvaluate _ val _ =
     throwingWithCause _MachineError NonFunctionalApplicationMachineError $ Just $ ckValueToTerm val
 
--- | Apply a (static or dynamic) built-in function to some arguments
+-- | Apply a built-in function to some arguments
 applyBuiltin
     :: Ix fun
     => Context uni fun

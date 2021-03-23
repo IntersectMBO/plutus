@@ -131,7 +131,7 @@ test_budget
     $ concat
         [ folder defBuiltinsRuntime examples
         , folder defBuiltinsRuntime bunchOfFibs
-        , folder (toBuiltinsRuntime mempty ()) bunchOfIdNats
+        , folder (toBuiltinsRuntime ()) bunchOfIdNats
         , folder defBuiltinsRuntime bunchOfIfThenElseNats
         ]
   where

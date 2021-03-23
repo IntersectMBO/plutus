@@ -177,7 +177,7 @@ evaluateScriptRestricting verbose costParams budget p args = swap $ runWriter @L
     model <- liftEither $ mkCostModel costParams
 
     let (res, _, logs) = UPLC.runCek
-          (PLC.toBuiltinsRuntime () model)
+          (PLC.toBuiltinsRuntime model)
           (UPLC.restricting $ PLC.ExRestrictingBudget budget)
           (verbose == Verbose)
          appliedTerm
@@ -197,7 +197,7 @@ evaluateScriptCounting verbose costParams p args = swap $ runWriter @LogOutput $
     model <- liftEither $ mkCostModel costParams
 
     let (res, UPLC.CountingSt final, logs) = UPLC.runCek
-          (PLC.toBuiltinsRuntime () model)
+          (PLC.toBuiltinsRuntime model)
           UPLC.counting
           (verbose == Verbose)
           appliedTerm

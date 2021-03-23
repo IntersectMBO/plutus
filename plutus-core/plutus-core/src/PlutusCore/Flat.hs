@@ -59,13 +59,13 @@ This requires specialised encode/decode functions for each constructor
 that encodes a different number of possibilities. Here is a list of the
 tags and their used/available encoding possibilities.
 
-| Data type       | Function          | Used | Available |
-|-----------------|-------------------|------|-----------|
-| Static builtins | encodeBuiltin     | 22   | 32        |
-| Kinds           | encodeKind        | 2    | 2         |
-| Types           | encodeType        | 7    | 8         |
-| BuiltinNames    | encodeBuiltinName | 2    | 2         |
-| Terms           | encodeTerm        | 10   | 16        |
+| Data type        | Function          | Used | Available |
+|------------------|-------------------|------|-----------|
+| default builtins | encodeBuiltin     | 22   | 32        |
+| Kinds            | encodeKind        | 2    | 2         |
+| Types            | encodeType        | 7    | 8         |
+| BuiltinNames     | encodeBuiltinName | 2    | 2         |
+| Terms            | encodeTerm        | 10   | 16        |
 
 For format stability we are manually assigning the tag values to the
 constructors (and we do not use a generic algorithm that may change this order).
