@@ -34,6 +34,7 @@ import           Data.Function                    ((&))
 import qualified Data.Map.Strict                  as Map
 import           Data.Proxy                       (Proxy (Proxy))
 import qualified Ledger.Crypto                    as Crypto
+import           Ledger.Tx                        (TxOut (txOutValue), TxOutTx (txOutTxOut))
 import           Network.HTTP.Client              (defaultManagerSettings, newManager)
 import qualified Network.Wai.Handler.Warp         as Warp
 import           Plutus.PAB.Arbitrary             ()
@@ -47,6 +48,7 @@ import qualified Wallet.Emulator.Wallet           as Wallet
 
 app :: Trace IO WalletMsg -> Client.ClientHandler -> ClientEnv -> MVar Wallets -> Application
 app trace clientHandler chainIndexEnv mVarState =
+    let totalFunds w = fmap (foldMap (txOutValue . txOutTxOut)) (multiWallet w ownOutputs) in
     serve (Proxy @API) $
     hoistServer
         (Proxy @API)
@@ -57,6 +59,7 @@ app trace clientHandler chainIndexEnv mVarState =
             (\w -> multiWallet w . uncurry updatePaymentWithChange) :<|>
             (\w -> multiWallet w walletSlot) :<|>
             (\w -> multiWallet w ownOutputs) :<|>
+            totalFunds :<|>
             (\w tx -> multiWallet w (walletAddSignature tx))
 
 main :: Trace IO WalletMsg -> WalletConfig -> FilePath -> ChainIndexUrl -> Availability -> IO ()

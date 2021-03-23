@@ -39,7 +39,7 @@ import           Data.Text                               (Text)
 import qualified Data.UUID                               as UUID
 import           Ledger                                  (PubKey, Slot, Value)
 import           Ledger.AddressMap                       (UtxoMap)
-import           Ledger.Tx                               (Tx)
+import           Ledger.Tx                               (Tx, TxOut (txOutValue), TxOutTx (txOutTxOut))
 import           Plutus.PAB.Core                         (PABAction)
 import qualified Plutus.PAB.Core                         as Core
 import qualified Plutus.PAB.Effects.Contract             as Contract
@@ -167,6 +167,7 @@ walletProxyClientEnv ::
     :<|> (Wallet -> (Value, Payment) -> PABAction t env Payment) -- ^ Update payment with change
     :<|> (Wallet -> PABAction t env Slot) -- ^ Wallet slot
     :<|> (Wallet -> PABAction t env UtxoMap)
+    :<|> (Wallet -> PABAction t env Value)
     :<|> (Wallet -> Tx -> PABAction t env Tx))
 walletProxyClientEnv clientEnv =
     let createWallet = runWalletClientM clientEnv Wallet.Client.createWallet
@@ -190,6 +191,7 @@ walletProxy ::
     :<|> (Wallet -> (Value, Payment) -> PABAction t env Payment) -- ^ Update payment with change
     :<|> (Wallet -> PABAction t env Slot) -- ^ Wallet slot
     :<|> (Wallet -> PABAction t env UtxoMap)
+    :<|> (Wallet -> PABAction t env Value)
     :<|> (Wallet -> Tx -> PABAction t env Tx))
 walletProxy createNewWallet =
     ( createNewWallet
@@ -198,5 +200,6 @@ walletProxy createNewWallet =
     :<|> (\w (value, payment) -> Core.handleAgentThread w $ Wallet.Effects.updatePaymentWithChange value payment)
     :<|> (\w -> Core.handleAgentThread w Wallet.Effects.walletSlot)
     :<|> (\w -> Core.handleAgentThread w Wallet.Effects.ownOutputs)
+    :<|> (\w -> foldMap (txOutValue . txOutTxOut) <$> Core.handleAgentThread w Wallet.Effects.ownOutputs)
     :<|> (\w tx -> Core.handleAgentThread w $ Wallet.Effects.walletAddSignature tx)
     )

@@ -30,14 +30,16 @@ ownPublicKey :: Wallet -> ClientM PubKey
 updatePaymentWithChange :: Wallet -> (Value, Payment) -> ClientM Payment
 walletSlot :: Wallet -> ClientM Slot
 ownOutputs :: Wallet -> ClientM UtxoMap
+totalFunds :: Wallet -> ClientM Value
 sign :: Wallet -> Tx -> ClientM Tx
-(createWallet, submitTxn, ownPublicKey, updatePaymentWithChange, walletSlot, ownOutputs, sign) =
+(createWallet, submitTxn, ownPublicKey, updatePaymentWithChange, walletSlot, ownOutputs, totalFunds, sign) =
   ( createWallet_
   , \wid tx -> void (submitTxn_ wid tx)
   , ownPublicKey_
   , updatePaymentWithChange_
   , walletSlot_
   , ownOutputs_
+  , totalFunds_
   , sign_)
   where
     ( createWallet_
@@ -46,6 +48,7 @@ sign :: Wallet -> Tx -> ClientM Tx
       :<|> updatePaymentWithChange_
       :<|> walletSlot_
       :<|> ownOutputs_
+      :<|> totalFunds_
       :<|> sign_)) = client (Proxy @API)
 
 handleWalletClient ::

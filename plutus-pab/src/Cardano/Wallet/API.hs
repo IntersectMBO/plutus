@@ -21,4 +21,5 @@ type API
       :<|> Capture "walletId" Wallet :> "update-payment-with-change" :> ReqBody '[JSON] (Value, Payment) :> Post '[JSON] Payment
       :<|> Capture "walletId" Wallet :> "wallet-slot" :> Get '[JSON] Slot
       :<|> Capture "walletId" Wallet :> "own-outputs" :> Get '[JSON] UtxoMap
+      :<|> Capture "walletId" Wallet :> "total-funds" :> Get '[JSON] Value
       :<|> Capture "walletId" Wallet :> "sign" :> ReqBody '[JSON] Tx :> Post '[JSON] Tx
