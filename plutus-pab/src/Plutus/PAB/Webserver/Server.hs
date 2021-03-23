@@ -76,7 +76,7 @@ app fp walletClient pabRunner = do
             Servant.hoistServer
                 (Proxy @(CombinedAPI t))
                 (asHandler pabRunner)
-                (handlerOld :<|> WS.combinedWebsocket :<|> handlerNew)
+                (handlerOld :<|> WS.wsHandler :<|> handlerNew)
 
     case fp of
         Nothing -> do

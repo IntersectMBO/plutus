@@ -40,7 +40,6 @@ import qualified Data.UUID                               as UUID
 import           Ledger                                  (PubKey, Slot, Value)
 import           Ledger.AddressMap                       (UtxoMap)
 import           Ledger.Tx                               (Tx)
-import           Network.WebSockets.Connection           (PendingConnection)
 import           Plutus.PAB.Core                         (PABAction)
 import qualified Plutus.PAB.Core                         as Core
 import qualified Plutus.PAB.Effects.Contract             as Contract
@@ -48,7 +47,6 @@ import           Plutus.PAB.Events.Contract              (ContractPABRequest, _U
 import           Plutus.PAB.Events.ContractInstanceState (PartiallyDecodedResponse (..))
 import           Plutus.PAB.Types
 import           Plutus.PAB.Webserver.Types
-import qualified Plutus.PAB.Webserver.WebSocket          as WS
 import           Servant                                 (NoContent (NoContent), (:<|>) ((:<|>)))
 import           Servant.Client                          (ClientEnv, ClientM, runClientM)
 import qualified Wallet.Effects                          as Wallet.Effects
@@ -114,13 +112,12 @@ handlerNew ::
        Contract.PABContract t =>
        (ContractActivationArgs (Contract.ContractDef t) -> PABAction t env ContractInstanceId)
             :<|> (ContractInstanceId -> PABAction t env (ContractInstanceClientState)
-                                        :<|> (String -> JSON.Value -> PABAction t env ())
-                                        :<|> (PendingConnection -> PABAction t env ()))
+                                        :<|> (String -> JSON.Value -> PABAction t env ()))
             :<|> PABAction t env [ContractInstanceClientState]
             :<|> PABAction t env [ContractSignatureResponse (Contract.ContractDef t)]
 handlerNew =
         (activateContract
-            :<|> (\x -> contractInstanceState x :<|> callEndpoint x :<|> WS.contractInstanceUpdates x)
+            :<|> (\x -> contractInstanceState x :<|> callEndpoint x)
             :<|> allInstanceStates
             :<|> availableContracts)
 

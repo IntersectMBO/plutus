@@ -7,13 +7,15 @@
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeApplications    #-}
+{-# LANGUAGE TypeOperators       #-}
 {-
 
 Handlers for the websockets exposed by the PAB.
 
 -}
 module Plutus.PAB.Webserver.WebSocket
-    ( combinedWebsocket
+    ( wsHandler
+    , combinedWebsocket
     , contractInstanceUpdates
     -- * Reports
     , getContractReport
@@ -52,6 +54,7 @@ import           Plutus.PAB.Webserver.API               ()
 import           Plutus.PAB.Webserver.Types             (CombinedWSStreamToClient (..), CombinedWSStreamToServer (..),
                                                          ContractReport (..), ContractSignatureResponse (..),
                                                          InstanceStatusToClient (..))
+import           Servant                                ((:<|>) ((:<|>)))
 import           Wallet.Emulator.Wallet                 (Wallet)
 import qualified Wallet.Emulator.Wallet                 as Wallet
 import           Wallet.Types                           (ContractInstanceId (..))
@@ -207,6 +210,14 @@ streamToWebsocket connection stream = do
                 Nothing -> pure ()
                 Just n  -> go n
     go stream
+
+-- | Handler for WSAPI
+wsHandler ::
+    forall t env.
+    (ContractInstanceId -> PendingConnection -> PABAction t env ())
+    :<|> (PendingConnection -> PABAction t env ())
+wsHandler =
+    contractInstanceUpdates :<|> combinedWebsocket
 
 sendContractInstanceUpdatesToClient :: forall t env. ContractInstanceId -> Connection -> PABAction t env ()
 sendContractInstanceUpdatesToClient instanceId connection = do

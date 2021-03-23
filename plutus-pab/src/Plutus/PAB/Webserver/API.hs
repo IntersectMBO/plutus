@@ -26,7 +26,11 @@ type API t
                                      :<|> Capture "contract-instance-id" Text :> ("schema" :> Get '[ JSON] (ContractSignatureResponse t)
                                                                                   :<|> "endpoint" :> Capture "endpoint-name" String :> ReqBody '[ JSON] JSON.Value :> Post '[JSON] (Maybe NotificationError))))
 
-type WSAPI = "ws" :> WebSocketPending
+type WSAPI =
+    "ws" :>
+        (Capture "contract-instance-id" ContractInstanceId :> WebSocketPending -- ^ Websocket for a specific contract instance
+        :<|> WebSocketPending -- ^ Combined websocket (subscription protocol)
+        )
 
 -- | PAB client API for contracts of type @t@. Examples of @t@ are
 --   * Contract executables that reside in the user's file system
@@ -38,7 +42,6 @@ type NewAPI t
                     (Capture "contract-instance-id" ContractInstanceId :>
                         ( "status" :> Get '[JSON] (ContractInstanceClientState) -- ^ Current status of contract instance
                         :<|> "endpoint" :> Capture "endpoint-name" String :> ReqBody '[JSON] JSON.Value :> Post '[JSON] () -- ^ Call an endpoint. Make
-                        :<|> "ws" :> WebSocketPending -- status updates, incl. open endpoints, for contract instance
                         )
                     )
             :<|> "instances" :> Get '[ JSON] [ContractInstanceClientState] -- list of all active contract instances

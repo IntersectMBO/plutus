@@ -54,6 +54,7 @@ import           Plutus.PAB.Webserver.Types                 (ChainReport, Combin
                                                              ContractInstanceClientState, ContractReport,
                                                              ContractSignatureResponse, FullReport,
                                                              InstanceStatusToClient)
+import           Servant                                    ((:<|>))
 import           Servant.PureScript                         (HasBridge, Settings, _generateSubscriberAPI, apiModuleName,
                                                              defaultBridge, defaultSettings, languageBridge,
                                                              writeAPIModuleWithSettings)
@@ -181,7 +182,7 @@ generate outputDir = do
         mySettings
         outputDir
         myBridgeProxy
-        (Proxy @(API.API ContractExe))
+        (Proxy @(API.API ContractExe :<|> API.NewAPI ContractExe))
     writePSTypesWith
         (genForeign (ForeignOptions {unwrapSingleConstructors = True}))
         outputDir

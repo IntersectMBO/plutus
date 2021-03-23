@@ -228,6 +228,7 @@ executable plutus-pab
         purescript-bridge -any,
         row-types -any,
         servant-purescript -any,
+        servant-server -any,
         text -any,
         unliftio-core -any,
         uuid -any,
