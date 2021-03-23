@@ -17,7 +17,6 @@ import Halogen.HTML.Properties (class_, classes)
 import Icons (Icon(..), icon)
 import NavTabs (mainTabBar, viewContainer)
 import Network.StreamData as Stream
-import Plutus.PAB.Events (ChainEvent)
 import Plutus.PAB.Effects.Contract.ContractExe (ContractExe)
 import Plutus.PAB.Webserver.Types (ChainReport)
 import Prelude (bind, ($), (<$>), (<<<), (<>))

@@ -30,7 +30,6 @@ import Network.RemoteData (RemoteData)
 import Network.StreamData (StreamData)
 import Network.StreamData as Stream
 import Playground.Types (FunctionSchema)
-import Plutus.PAB.Events (ChainEvent)
 import Plutus.PAB.Events.Contract (ContractInstanceState, ContractPABRequest, PartiallyDecodedResponse, _ContractInstanceState, _UserEndpointRequest)
 import Plutus.PAB.Effects.Contract.ContractExe (ContractExe)
 import Plutus.PAB.Webserver.Types (ChainReport, ContractReport, ContractSignatureResponse, StreamToClient, StreamToServer, _ChainReport, _ContractReport, _ContractSignatureResponse)
