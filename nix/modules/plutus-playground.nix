@@ -41,7 +41,6 @@ in
         TimeoutStartSec = 5;
         TimeoutStopSec = 5;
         Restart = "always";
-        ExecStart = "${cfg.playground-server-package}/bin/plutus-playground-server webserver -p ${builtins.toString cfg.port}";
 
         # sane defaults for security
         DynamicUser = true;
@@ -50,8 +49,17 @@ in
         ProtectKernelModules = true;
         PrivateDevices = true;
         SystemCallArchitectures = "native";
-
       };
+
+      script = ''
+        if [ -f /var/lib/playgrounds/plutus.env ]; then
+          echo "Loading environment config from '/var/lib/playgrounds/plutus.env'"
+        else
+          echo "No environment config. Using defaults"
+        fi
+
+        ${cfg.playground-server-package}/bin/plutus-playground-server webserver -p ${builtins.toString cfg.port};
+      '';
     };
   };
 
