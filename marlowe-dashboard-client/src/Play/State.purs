@@ -1,9 +1,11 @@
 module Play.State
   ( mkInitialState
+  , handleQuery
   , handleAction
   ) where
 
 import Prelude
+import Bridge (slotToMarlowe)
 import Contract.State (defaultState, handleAction, mkInitialState) as Contract
 import Contract.Types (Action(..), State) as Contract
 import ContractHome.Lenses (_contracts)
@@ -33,8 +35,9 @@ import Marlowe.HasParties (getParties)
 import Marlowe.Semantics (Party(..))
 import Marlowe.Semantics as Semantic
 import Marlowe.Slot (shelleyInitialSlot)
-import Play.Lenses (_contractsState, _menuOpen, _selectedContract, _templateState)
+import Play.Lenses (_contractsState, _currentSlot, _menuOpen, _selectedContract, _templateState)
 import Play.Types (Action(..), Card(..), Screen(..), State)
+import Plutus.PAB.Webserver.Types (CombinedWSStreamToClient(..))
 import Template.Lenses (_extendedContract, _metaData, _roleWallets, _template, _templateContent)
 import Template.State (defaultState, handleAction, mkInitialState) as Template
 import Template.Types (Action(..)) as Template
@@ -65,6 +68,15 @@ mkInitialState walletDetails timezoneOffset =
   , templateState: Template.defaultState
   , contractsState: ContractHome.defaultState
   }
+
+handleQuery ::
+  forall m.
+  CombinedWSStreamToClient -> HalogenM MainFrame.State MainFrame.Action ChildSlots Msg m Unit
+handleQuery (InstanceUpdate contractInstanceId instanceStatusToClient) = pure unit
+
+handleQuery (SlotChange slot) = assign (_playState <<< _currentSlot) $ slotToMarlowe slot
+
+handleQuery (WalletFundsChange wallet value) = pure unit
 
 -- Some actions are handled in `MainFrame.State` because they involve
 -- modifications of that state. See Note [State].

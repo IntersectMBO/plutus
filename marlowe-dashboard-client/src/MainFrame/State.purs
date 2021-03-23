@@ -24,7 +24,7 @@ import Marlowe.Semantics (PubKey)
 import Network.RemoteData (RemoteData(..))
 import Pickup.State (handleAction, initialState) as Pickup
 import Pickup.Types (Action(..), Card(..)) as Pickup
-import Play.State (handleAction, mkInitialState) as Play
+import Play.State (handleAction, handleQuery, mkInitialState) as Play
 import Play.Types (Action(..)) as Play
 import Plutus.PAB.Webserver.Types (CombinedWSStreamToClient(..))
 import Servant.PureScript.Ajax (AjaxError)
@@ -70,11 +70,7 @@ handleQuery (ReceiveWebSocketMessage msg next) = do
     WS.WebSocketOpen -> assign _webSocketStatus WebSocketOpen
     (WS.WebSocketClosed reason) -> assign _webSocketStatus (WebSocketClosed (Just reason))
     (WS.ReceiveMessage (Left errors)) -> pure unit -- failed to decode message, do nothing for now
-    -- TODO: This is where the main logic of dealing with messages goes
-    (WS.ReceiveMessage (Right stc)) -> case stc of
-      (InstanceUpdate contractInstanceId instanceStatusToClient) -> pure unit
-      (SlotChange slot) -> pure unit
-      (WalletFundsChange wallet value) -> pure unit
+    (WS.ReceiveMessage (Right streamToClient)) -> Play.handleQuery streamToClient
   pure $ Just next
 
 -- Note [State]: Some actions belong logically in one part of the state, but
