@@ -4,7 +4,8 @@ module Contract.View
   ) where
 
 import Prelude hiding (div)
-import Contract.Lenses (_executionState, _mActiveUserParty, _metadata, _participants, _step, _tab)
+import Contract.Lenses (_executionState, _mActiveUserParty, _metadata, _participants, _tab)
+import Contract.State (currentStep)
 import Contract.Types (Action(..), State, Tab(..))
 import Css (applyWhen, classNames)
 import Css as Css
@@ -48,9 +49,7 @@ contractDetailsCard state =
 actionConfirmationCard :: forall p. State -> NamedAction -> HTML p Action
 actionConfirmationCard state namedAction =
   let
-    -- As programmers we use 0-indexed arrays and steps, but we number steps
-    -- starting from 1
-    stepNumber = state ^. _step + 1
+    stepNumber = currentStep state
 
     title = case namedAction of
       MakeDeposit _ _ _ _ -> "Deposit confirmation"
@@ -143,9 +142,7 @@ actionConfirmationCard state namedAction =
 renderCurrentStep :: forall p. State -> HTML p Action
 renderCurrentStep state =
   let
-    -- As programmers we use 0-indexed arrays and steps, but we number steps
-    -- starting from 1
-    stepNumber = state ^. _step + 1
+    stepNumber = currentStep state
 
     currentTab = state ^. _tab
 

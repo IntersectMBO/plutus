@@ -3,6 +3,7 @@ module Contract.State
   , handleAction
   , mkInitialState
   , defaultState
+  , currentStep
   ) where
 
 import Prelude
@@ -12,8 +13,9 @@ import Control.Monad.Except (runExceptT)
 import Control.Monad.Maybe.Trans (runMaybeT)
 import Control.Monad.Reader (class MonadAsk)
 import Control.Monad.Reader.Extra (mapEnvReaderT)
+import Data.Array (length)
 import Data.Foldable (for_)
-import Data.Lens (assign, modifying, use)
+import Data.Lens (assign, modifying, to, use, view)
 import Data.Map (Map)
 import Data.Maybe (Maybe(..))
 import Data.RawJson (RawJson(..))
@@ -24,7 +26,7 @@ import Foreign.Generic (encode)
 import Foreign.JSON (unsafeStringify)
 import Halogen (HalogenM)
 import MainFrame.Types (ChildSlots, Msg)
-import Marlowe.Execution (NamedAction(..), _namedActions, _state, initExecution, merge, mkTx, nextState)
+import Marlowe.Execution (NamedAction(..), ExecutionStep, _namedActions, _state, _steps, initExecution, merge, mkTx, nextState)
 import Marlowe.Extended (ContractType(..))
 import Marlowe.Extended.Metadata (MetaData)
 import Marlowe.Semantics (Contract(..), Slot, _minSlot)
@@ -49,6 +51,11 @@ emptyMetadata =
 defaultState :: State
 defaultState = mkInitialState zero Close emptyMetadata mempty Nothing
 
+-- As programmers we use 0-indexed arrays and steps, but we number steps
+-- starting from 1
+currentStep :: State -> Int
+currentStep = add 1 <<< length <<< view (_executionState <<< _steps)
+
 mkInitialState ::
   Slot ->
   Contract ->
@@ -61,7 +68,7 @@ mkInitialState slot contract metadata participants mActiveUserParty =
   , executionState: initExecution slot contract
   , confirmation: Nothing
   , contractId: Nothing
-  , step: 0
+  , selectedStep: 0
   , metadata
   , participants
   , mActiveUserParty

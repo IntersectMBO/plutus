@@ -49,6 +49,9 @@ _state = prop (SProxy :: SProxy "state")
 _contract :: Lens' ExecutionState Contract
 _contract = prop (SProxy :: SProxy "contract")
 
+_steps :: Lens' ExecutionState (Array ExecutionStep)
+_steps = prop (SProxy :: SProxy "steps")
+
 _namedActions :: Lens' ExecutionState (Array NamedAction)
 _namedActions = prop (SProxy :: SProxy "namedActions")
 

@@ -15,7 +15,11 @@ type State
     , executionState :: ExecutionState
     , contractId :: Maybe String -- FIXME: what is a contract instance identified by
     , confirmation :: Maybe Input
-    , step :: Int
+    -- Which step of the execution state is selected. This index is 0 based and should be
+    -- between [0, executionState.steps.length] (both sides inclusive). This is because the
+    -- `steps` array represent the past steps and the executionState.state represents the
+    -- current state and visually we can select any one of them.
+    , selectedStep :: Int
     , metadata :: MetaData
     , participants :: Map Semantic.Party (Maybe Nickname)
     -- This field represents the logged-user party in the contract.

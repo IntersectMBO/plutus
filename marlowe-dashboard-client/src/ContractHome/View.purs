@@ -1,7 +1,8 @@
 module ContractHome.View where
 
 import Prelude hiding (div)
-import Contract.Lenses (_metadata, _step)
+import Contract.Lenses (_metadata)
+import Contract.State (currentStep)
 import Contract.Types (State) as Contract
 import ContractHome.Lenses (_contracts, _status)
 import ContractHome.Types (Action(..), ContractStatus(..), State)
@@ -76,9 +77,7 @@ contractCard contractState =
 
     contractAcronym = contractTypeInitials metadata.contractType
 
-    -- As programmers we use 0-indexed arrays and steps, but we number steps
-    -- starting from 1
-    stepNumber = contractState ^. _step + 1
+    stepNumber = currentStep contractState
 
     -- FIXME: hardcoded time slot
     timeoutStr = "8hr 10m left"
