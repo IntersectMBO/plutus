@@ -18,11 +18,13 @@ import           Control.Concurrent               (MVar, forkIO, modifyMVar_, ne
 import           Control.Concurrent.Availability  (Availability, available)
 import           Control.Lens                     (over, set)
 import           Control.Monad                    (void)
+import           Control.Monad.Freer.Delay        (delayThread, handleDelayEffect)
 import           Control.Monad.Freer.Extras.Log   (logInfo)
 import           Control.Monad.IO.Class           (liftIO)
 import           Data.Function                    ((&))
 import qualified Data.Map.Strict                  as Map
 import           Data.Proxy                       (Proxy (Proxy))
+import           Data.Time.Units                  (Second)
 import           Ledger                           (Block, Slot (..))
 import qualified Ledger.Ada                       as Ada
 import qualified Network.Wai.Handler.Warp         as Warp
@@ -68,6 +70,7 @@ main trace MockServerConfig { mscBaseUrl
             }
     serverHandler <- liftIO $ Server.runServerNode mscSocketPath (_chainState appState)
     serverState   <- liftIO $ newMVar appState
+    handleDelayEffect $ delayThread (2 :: Second)
     clientHandler <- liftIO $ Client.runClientNode mscSocketPath (updateChainState serverState)
 
     let ctx = Ctx serverHandler clientHandler serverState trace
