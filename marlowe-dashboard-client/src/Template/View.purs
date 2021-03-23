@@ -351,7 +351,7 @@ contractSetupConfirmationCard =
         -- FIXME: remove placeholder with actual value
         , p
             [ classNames [ "mb-4", "text-purple", "font-semibold", "text-2xl" ] ]
-            [ text "$123.456" ]
+            [ text "₳ 123.456" ]
         , div
             [ classNames [ "flex" ] ]
             [ button

@@ -7,67 +7,70 @@ module Contract.State
   ) where
 
 import Prelude
-import Contract.Lenses (_confirmation, _contractId, _executionState, _tab)
+import Contract.Lenses (_contractId, _executionState, _tab)
 import Contract.Types (Action(..), Query(..), State, Tab(..))
-import Control.Monad.Except (runExceptT)
 import Control.Monad.Maybe.Trans (runMaybeT)
 import Control.Monad.Reader (class MonadAsk)
-import Control.Monad.Reader.Extra (mapEnvReaderT)
 import Data.Array (length)
-import Data.Foldable (for_)
-import Data.Lens (assign, modifying, to, use, view)
+import Data.Lens (assign, modifying, use, view)
 import Data.Map (Map)
 import Data.Maybe (Maybe(..))
 import Data.RawJson (RawJson(..))
 import Data.Unfoldable as Unfoldable
 import Effect.Aff.Class (class MonadAff)
+import Effect.Exception.Unsafe (unsafeThrow)
 import Env (Env)
 import Foreign.Generic (encode)
 import Foreign.JSON (unsafeStringify)
 import Halogen (HalogenM)
 import MainFrame.Types (ChildSlots, Msg)
-import Marlowe.Execution (NamedAction(..), ExecutionStep, _namedActions, _state, _steps, initExecution, merge, mkTx, nextState)
-import Marlowe.Extended (ContractType(..))
-import Marlowe.Extended.Metadata (MetaData)
-import Marlowe.Semantics (Contract(..), Slot, _minSlot)
+import Marlowe.Execution (NamedAction(..), _namedActions, _state, _steps, initExecution, merge, mkTx, nextState)
+import Marlowe.Extended.Metadata (MetaData, emptyContractMetadata)
+import Marlowe.Semantics (Contract(..), Input(..), Slot, _minSlot)
 import Marlowe.Semantics as Semantic
-import Plutus.PAB.Webserver (postApiContractByContractinstanceidEndpointByEndpointname)
 import WalletData.Types (Nickname)
 
--- I don't like having to provide emptyMetadata and default state
--- for this component, but it is needed by the mapMaybeSubmodule in
--- PlayState.
-emptyMetadata :: MetaData
-emptyMetadata =
-  { contractType: Escrow
-  , contractName: mempty
-  , contractDescription: mempty
-  , roleDescriptions: mempty
-  , slotParameterDescriptions: mempty
-  , valueParameterDescriptions: mempty
-  , choiceDescriptions: mempty
-  }
-
+-- I don't like having to provide a default state for this component, but it is needed by the
+-- mapMaybeSubmodule in PlayState.
 defaultState :: State
-defaultState = mkInitialState zero Close emptyMetadata mempty Nothing
+defaultState = mkInitialState "" zero Close emptyContractMetadata mempty Nothing
 
 -- As programmers we use 0-indexed arrays and steps, but we number steps
 -- starting from 1
 currentStep :: State -> Int
 currentStep = add 1 <<< length <<< view (_executionState <<< _steps)
 
+toInput :: NamedAction -> Maybe Input
+toInput (MakeDeposit accountId party token value) = Just $ IDeposit accountId party token value
+
+toInput (MakeChoice choiceId _ (Just chosenNum)) = Just $ IChoice choiceId chosenNum
+
+-- NOTE: this is possible in the types but should never happen in runtime. And I prefer to explicitly throw
+--       an error if it happens than silently omit it by returning Nothing (which in case of Input, it has
+--       the semantics of an empty transaction).
+--       The reason we use Maybe in the chosenNum is that we use the same NamedAction data type
+--       for triggering the action and to display to the user what choice did he/she made. And we need
+--       to represent that initialy no choice is made, and eventually you can type an option and delete it.
+--       Another way to do this would be to duplicate the NamedAction data type with just that difference, which
+--       seems like an overkill.
+toInput (MakeChoice _ _ Nothing) = unsafeThrow "A choice action has been triggered"
+
+toInput (MakeNotify _) = Just $ INotify
+
+toInput _ = Nothing
+
 mkInitialState ::
+  String ->
   Slot ->
   Contract ->
   MetaData ->
   Map Semantic.Party (Maybe Nickname) ->
   Maybe Semantic.Party ->
   State
-mkInitialState slot contract metadata participants mActiveUserParty =
+mkInitialState contractId slot contract metadata participants mActiveUserParty =
   { tab: Tasks
   , executionState: initExecution slot contract
-  , confirmation: Nothing
-  , contractId: Nothing
+  , contractId
   , selectedStep: 0
   , metadata
   , participants
@@ -88,24 +91,25 @@ handleAction ::
   MonadAff m =>
   MonadAsk Env m =>
   Action -> HalogenM State Action ChildSlots Msg m Unit
-handleAction (ConfirmInput input) = do
+handleAction (ConfirmAction action) = do
   currentExeState <- use _executionState
-  mContractId <- use _contractId
-  for_ mContractId \contractId -> do
-    let
-      txInput = mkTx currentExeState (Unfoldable.fromMaybe input)
+  contractId <- use _contractId
+  let
+    input = toInput action
 
-      json = RawJson <<< unsafeStringify <<< encode $ input
-    -- TODO: currently we just ignore errors but we probably want to do something better in the future
-    runMaybeT do
-      void $ mapEnvReaderT _.ajaxSettings $ runExceptT $ postApiContractByContractinstanceidEndpointByEndpointname json contractId "apply-inputs"
-      let
-        executionState = nextState currentExeState txInput
-      assign _executionState executionState
+    txInput = mkTx currentExeState (Unfoldable.fromMaybe input)
+
+    json = RawJson <<< unsafeStringify <<< encode $ input
+  -- TODO: currently we just ignore errors but we probably want to do something better in the future
+  void
+    $ runMaybeT do
+        -- FIXME: send data to BE
+        -- void $ mapEnvReaderT _.ajaxSettings $ runExceptT $ postApiContractByContractinstanceidEndpointByEndpointname json contractId "apply-inputs"
+        let
+          executionState = nextState currentExeState txInput
+        assign _executionState executionState
 
 -- raise (SendWebSocketMessage (ServerMsg true)) -- FIXME: send txInput to the server to apply to the on-chain contract
-handleAction (ChooseInput input) = assign _confirmation input
-
 handleAction (ChangeChoice choiceId chosenNum) = modifying (_executionState <<< _namedActions) (map changeChoice)
   where
   changeChoice (MakeChoice choiceId' bounds _)

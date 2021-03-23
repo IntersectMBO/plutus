@@ -7,7 +7,7 @@ import Prelude
 import Contract.Lenses (_executionState)
 import Contract.State (mkInitialState) as Contract
 import Contract.Types (State) as Contract
-import ContractHome.Lenses (_selectedContract, _status)
+import ContractHome.Lenses (_selectedContractIndex, _status)
 import ContractHome.Types (ContractStatus(..), State, Action(..))
 import Data.Array (catMaybes)
 import Data.BigInteger (fromInt)
@@ -52,7 +52,7 @@ filledContract1 =
 
     mContract = toCore $ fillTemplate templateContent Contract1.extendedContract
   in
-    mContract <#> \contract -> Contract.mkInitialState zero contract Contract1.metaData participants (Just $ Role "Arbiter")
+    mContract <#> \contract -> Contract.mkInitialState "dummy contract 1" zero contract Contract1.metaData participants (Just $ Role "Arbiter")
 
 filledContract2 :: Maybe Contract.State
 filledContract2 = do
@@ -82,7 +82,7 @@ filledContract2 = do
     transactions =
       [ TransactionInput
           { interval:
-              (SlotInterval (Slot $ fromInt 40000) (Slot $ fromInt 40060))
+              (SlotInterval (Slot $ fromInt 0) (Slot $ fromInt 0))
           , inputs:
               List.singleton
                 $ IDeposit (Role "alice") (Role "alice") (Token "" "") (fromInt 1500)
@@ -92,7 +92,7 @@ filledContract2 = do
     nextState' :: Contract.State -> TransactionInput -> Contract.State
     nextState' state txInput = over _executionState (flip nextState $ txInput) state
   contract <- toCore $ fillTemplate templateContent Contract3.extendedContract
-  initialState <- pure $ Contract.mkInitialState zero contract Contract3.metaData participants (Just $ Role "alice")
+  initialState <- pure $ Contract.mkInitialState "dummy contract 2" zero contract Contract3.metaData participants (Just $ Role "alice")
   pure $ foldl nextState' initialState transactions
 
 defaultState :: State
@@ -100,7 +100,7 @@ defaultState =
   { status: Running
   , contracts: catMaybes [ filledContract1, filledContract2 ]
   -- , contracts: mempty
-  , selectedContract: Nothing
+  , selectedContractIndex: Nothing
   }
 
 handleAction ::
@@ -110,4 +110,4 @@ handleAction ToggleTemplateLibraryCard = pure unit -- handled in Play
 
 handleAction (SelectView view) = assign _status view
 
-handleAction (OpenContract contract) = assign _selectedContract $ Just contract
+handleAction (OpenContract ix) = assign _selectedContractIndex $ Just ix

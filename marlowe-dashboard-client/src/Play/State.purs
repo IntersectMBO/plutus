@@ -6,7 +6,7 @@ module Play.State
 import Prelude
 import Contract.State (defaultState, handleAction, mkInitialState) as Contract
 import Contract.Types (Action(..), State) as Contract
-import ContractHome.Lenses (_contracts, _selectedContract)
+import ContractHome.Lenses (_contracts)
 import ContractHome.State (defaultState, handleAction) as ContractHome
 import ContractHome.Types (Action(..), State) as ContractHome
 import Control.Monad.Reader (class MonadAsk)
@@ -19,8 +19,8 @@ import Data.Lens.Prism.Maybe (_Just)
 import Data.Map (Map)
 import Data.Map as Map
 import Data.Maybe (Maybe(..))
-import Data.Time.Duration (Minutes)
 import Data.Set.Extra (setToMap)
+import Data.Time.Duration (Minutes)
 import Effect.Aff.Class (class MonadAff)
 import Env (Env)
 import Halogen (HalogenM, modify_)
@@ -33,7 +33,7 @@ import Marlowe.HasParties (getParties)
 import Marlowe.Semantics (Party(..))
 import Marlowe.Semantics as Semantic
 import Marlowe.Slot (shelleyInitialSlot)
-import Play.Lenses (_contractsState, _menuOpen, _templateState)
+import Play.Lenses (_contractsState, _menuOpen, _selectedContract, _templateState)
 import Play.Types (Action(..), Card(..), Screen(..), State)
 import Template.Lenses (_extendedContract, _metaData, _roleWallets, _template, _templateContent)
 import Template.State (defaultState, handleAction, mkInitialState) as Template
@@ -52,7 +52,7 @@ toContract ::
   Functor m =>
   HalogenM Contract.State Contract.Action slots msg m Unit ->
   HalogenM MainFrame.State MainFrame.Action slots msg m Unit
-toContract = mapMaybeSubmodule (_playState <<< _contractsState <<< _selectedContract <<< _Just) (MainFrame.PlayAction <<< ContractAction) $ Contract.defaultState
+toContract = mapMaybeSubmodule (_playState <<< _selectedContract) (MainFrame.PlayAction <<< ContractAction) $ Contract.defaultState
 
 mkInitialState :: WalletDetails -> Minutes -> State
 mkInitialState walletDetails timezoneOffset =
@@ -136,9 +136,10 @@ handleAction (TemplateAction Template.StartContract) = do
         -- TODO: get walletIDs from nicknames in roleWallets
         -- TODO: pass these walletIDs along with the contract to the PAB to start the contract
         let
-          contractState = Contract.mkInitialState zero contract metadata participants mActiveUserParty
+          -- FIXME: the contract id should be the result of calling the PAB
+          contractState = Contract.mkInitialState "FIXME need a contract id" zero contract metadata participants mActiveUserParty
         modifying (_playState <<< _contractsState <<< _contracts) (Array.cons contractState)
-        toContractHome $ ContractHome.handleAction $ ContractHome.OpenContract contractState
+        toContractHome $ ContractHome.handleAction $ ContractHome.OpenContract 0
         handleAction $ SetScreen $ ContractsScreen
         handleAction $ ToggleCard ContractCard
 
@@ -158,6 +159,11 @@ handleAction (ContractHomeAction contractAction) = void $ toContractHome $ Contr
 -- contract actions that need to be handled here
 -- FIXME: instead of toggle card I need to implement a card stack and add it to the stack
 handleAction (ContractAction (Contract.AskConfirmation action)) = handleAction $ ToggleCard $ ContractActionConfirmationCard action
+
+-- FIXME: Once we have card stack this action should not be necesary
+handleAction (ContractAction (Contract.ConfirmAction action)) = do
+  void $ toContract $ Contract.handleAction $ Contract.ConfirmAction action
+  handleAction $ ToggleCard $ ContractCard
 
 -- FIXME: instead of SetCard I need to implement a card stack and pop the stack
 handleAction (ContractAction Contract.CancelConfirmation) = handleAction $ SetCard Nothing

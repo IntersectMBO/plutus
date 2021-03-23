@@ -14,20 +14,20 @@ derive instance eqContractStatus :: Eq ContractStatus
 type State
   = { status :: ContractStatus
     -- FIXME: We are currently using an Array for holding all the contracts and a
-    --        Maybe Contract for seeing which one is selected. Eventually, this would probably
-    --        be a Map ContractId Contract.State and a Maybe ContractId. We need to see how
+    --        Maybe Int for seeing which one is selected. Eventually, this would probably
+    --        be a `Map ContractId Contract.State` and a `Maybe ContractId`. We need to see how
     --        we identify contracts between the FE and BE and also if the performance hit of having
     --        to split the map between running and completed is worth not having state duplication
     --        (Two arrays and a Map).
-    --        Also, the selectedContract might be better to add it in PlayState, rather than here
+    --        Also, we should check if this data belongs here or in PlayState
     , contracts :: Array (Contract.State)
-    , selectedContract :: Maybe (Contract.State)
+    , selectedContractIndex :: Maybe Int
     }
 
 data Action
   = ToggleTemplateLibraryCard
   | SelectView ContractStatus
-  | OpenContract (Contract.State)
+  | OpenContract Int
 
 instance actionIsEvent :: IsEvent Action where
   toEvent ToggleTemplateLibraryCard = Just $ defaultEvent "ToggleTemplateLibraryCard"
