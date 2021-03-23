@@ -884,26 +884,30 @@ lemmaX : ∀ (M : ∅ ⊢⋆ J)(E : EvalCtx K J)(E' : EvalCtx K J')
      → ∃ λ (E'' : EvalCtx K *)
      → ∃ λ (E''' : EvalCtx I' J')
      → E' ≡ compEvalCtx (extendEvalCtx E'' (μ (substVal p VM) -)) E''')
-  ⊎ ⊥
-  -- what are the other options?
-  -- M could be deeper in the left subtrees of stuff
-  -- M could be somewhere else entirely, in the done part 
+    -- otherwise we're barking up the wrong tree...
+  ⊎ ∃ λ I → ∃ (λ (f : Frame I _) → Value⋆ (closeFrame f M)) -- the enclosing frame is a value
+    -- plus some other stuff which might come from a seperate lemma...
+    -- ∃ λ E'' E''' E'''' → E ≡ E'' [f' E''' B] && E' ≡ E'' [f' V E''''] -- there's a common prefix with a switch somewhere
+    
 lemmaX M E E' L N VM VL VN p with dissect' E | inspect dissect' E
 ... | inj₁ (refl , refl) | r =
   ⊥-elim (subst (λ M → ¬ (Value⋆ M)) (sym p) (lemE· E') VM)
--- these 2 cases behave quite differently to application
-... | inj₂ (.* , E'' , (V ⇒-)) | blah eq = {!!}
-... | inj₂ (.* , E'' , μ x -) | blah eq = {!!}
+-- these 2 cases behave quite differently to application, but similar to when there is a value their right positions
+... | inj₂ (.* , E'' , (V ⇒-)) | blah eq = inj₂ (inj₂ (inj₂ (inj₂ (inj₂ (_ , (V ⇒-) , (V V-⇒ VM))))))
+... | inj₂ (.* , E'' , μ V -) | blah eq = inj₂ (inj₂ (inj₂ (inj₂ (inj₂ (_ , (μ V -) , (V-μ V VM))))))
 
-lemmaX M E E' L N VM VL VN p | inj₂ (.* , E'' , (μ- B)) | blah eq with lemma51 B
-... | inj₁ VB = {!!}
-... | inj₂ (I' , E''' , I'' , L' , N' , VL' , VN' , q)  rewrite dissect-lemma _ _ _ eq with lemma51-good (closeEvalCtx (extendEvalCtx E'' (μ- B)) M) E' L N p VL VN (compEvalCtx (extendEvalCtx E'' (μ VM -)) E''') L' N' VL' VN'
-... | refl , refl , r , r' , r'' = inj₂ (inj₂ (inj₂ (inj₂ (inj₁ (_ , refl , E'' , E''' , r)))))
 lemmaX M E E' L N VM VL VN p | inj₂ (.* , E'' , (-⇒ B)) | blah eq with lemma51 B -- if B is not val, L · N must inside
-... | inj₁ VB = {!!}
+... | inj₁ VB = inj₂ (inj₂ (inj₂ (inj₂ (inj₂ (_ , (-⇒ B) , (VM V-⇒ VB))))))
+-- this means the whole frame is a value as for the V =>- case... so, we're barking up the wrong tree
+-- what can we say, well in all 4 cases Value⋆ (f M)...
+-- L . N cannot be inside it, there must be a shared prefix, after which they diverge
+-- VM => B must be in the done part/on the left, but it branch on various different frames I think...
 ... | inj₂ (I' , E''' , I'' , L' , N' , VL' , VN' , q)  rewrite dissect-lemma _ _ _ eq with lemma51-good (closeEvalCtx (extendEvalCtx E'' (-⇒ B)) M) E' L N p VL VN (compEvalCtx (extendEvalCtx E'' (VM ⇒-)) E''') L' N' VL' VN'
 ... | refl , refl , r , r' , r'' = inj₂ (inj₂ (inj₂ (inj₁ (refl , E'' , E''' , r))))
-
+lemmaX M E E' L N VM VL VN p | inj₂ (.* , E'' , (μ- B)) | blah eq with lemma51 B
+... | inj₁ VB = inj₂ (inj₂ (inj₂ (inj₂ (inj₂ (_ , (μ- B) , (V-μ VM VB))))))
+... | inj₂ (I' , E''' , I'' , L' , N' , VL' , VN' , q)  rewrite dissect-lemma _ _ _ eq with lemma51-good (closeEvalCtx (extendEvalCtx E'' (μ- B)) M) E' L N p VL VN (compEvalCtx (extendEvalCtx E'' (μ VM -)) E''') L' N' VL' VN'
+... | refl , refl , r , r' , r'' = inj₂ (inj₂ (inj₂ (inj₂ (inj₁ (_ , refl , E'' , E''' , r)))))
 lemmaX M E E' L N VM VL VN p | inj₂ (I , E'' , (-· B)) | blah eq with lemma51 B
 lemmaX M E E' L N VM VL VN p | inj₂ (I , E'' , (-· B)) | blah eq | inj₁ VB rewrite (dissect-lemma _ _ _ eq) with lemma51-good (closeEvalCtx (extendEvalCtx E'' (-· B)) M) E' L N p VL VN E'' M B VM VB
 ... | (refl , refl , refl , refl , refl) = inj₂ (inj₁ (refl , refl))
