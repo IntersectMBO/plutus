@@ -34,14 +34,13 @@ import           Servant                         (Application, Handler (Handler)
                                                   hoistServer, serve, serveDirectoryFileServer, (:<|>) ((:<|>)))
 import           Servant.Client                  (BaseUrl (baseUrlPort), ClientEnv)
 
-import qualified Cardano.Wallet.API              as Wallet
 import           Control.Monad.Freer.Extras.Log  (logInfo)
 import           Plutus.PAB.Core                 (PABAction, PABRunner (..))
 import qualified Plutus.PAB.Core                 as Core
 import qualified Plutus.PAB.Effects.Contract     as Contract
 import qualified Plutus.PAB.Monitoring.PABLogMsg as LM
 import           Plutus.PAB.Types                (PABError, WebserverConfig (..), baseUrl)
-import           Plutus.PAB.Webserver.API        (API, NewAPI, WSAPI)
+import           Plutus.PAB.Webserver.API        (API, NewAPI, WSAPI, WalletProxy)
 import           Plutus.PAB.Webserver.Handler    (handlerNew, handlerOld, walletProxy, walletProxyClientEnv)
 import qualified Plutus.PAB.Webserver.WebSocket  as WS
 import qualified Servant
@@ -56,8 +55,6 @@ type CombinedAPI t =
       API (Contract.ContractDef t)
       :<|> WSAPI
       :<|> NewAPI (Contract.ContractDef t)
-
-type WalletProxy = "wallet" Servant.:> Wallet.API
 
 app ::
     forall t env.

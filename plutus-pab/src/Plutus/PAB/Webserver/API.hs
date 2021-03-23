@@ -7,10 +7,12 @@
 module Plutus.PAB.Webserver.API
     ( API
     , WSAPI
+    , WalletProxy
     -- * New API that will eventually replace 'API'
     , NewAPI
     ) where
 
+import qualified Cardano.Wallet.API         as Wallet
 import qualified Data.Aeson                 as JSON
 import           Data.Text                  (Text)
 import           Plutus.PAB.Webserver.Types (ContractActivationArgs, ContractInstanceClientState,
@@ -18,6 +20,8 @@ import           Plutus.PAB.Webserver.Types (ContractActivationArgs, ContractIns
 import           Servant.API                (Capture, Get, JSON, Post, ReqBody, (:<|>), (:>))
 import           Servant.API.WebSocket      (WebSocketPending)
 import           Wallet.Types               (ContractInstanceId, NotificationError)
+
+type WalletProxy = "wallet" :> Wallet.API
 
 type API t
      = "api" :> ("healthcheck" :> Get '[ JSON] ()

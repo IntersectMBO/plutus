@@ -182,7 +182,7 @@ generate outputDir = do
         mySettings
         outputDir
         myBridgeProxy
-        (Proxy @(API.API ContractExe :<|> API.NewAPI ContractExe))
+        (Proxy @(API.API ContractExe :<|> API.NewAPI ContractExe :<|> API.WalletProxy))
     writePSTypesWith
         (genForeign (ForeignOptions {unwrapSingleConstructors = True}))
         outputDir
