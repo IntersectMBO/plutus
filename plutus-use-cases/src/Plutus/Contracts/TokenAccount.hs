@@ -3,6 +3,7 @@
 {-# LANGUAGE DeriveAnyClass     #-}
 {-# LANGUAGE DeriveGeneric      #-}
 {-# LANGUAGE DerivingStrategies #-}
+{-# LANGUAGE DerivingVia        #-}
 {-# LANGUAGE FlexibleContexts   #-}
 {-# LANGUAGE NamedFieldPuns     #-}
 {-# LANGUAGE OverloadedStrings  #-}
@@ -38,37 +39,35 @@ module Plutus.Contracts.TokenAccount(
   ) where
 
 import           Control.Lens
-import           Control.Monad               (void)
+import           Control.Monad                    (void)
 import           Control.Monad.Error.Lens
-import           Data.Aeson                  (FromJSON, ToJSON)
-import qualified Data.Map                    as Map
+import           Data.Aeson                       (FromJSON, ToJSON)
+import qualified Data.Map                         as Map
 import           Data.Text.Prettyprint.Doc
-import           GHC.Generics                (Generic)
+import           Data.Text.Prettyprint.Doc.Extras (PrettyShow (..))
+import           GHC.Generics                     (Generic)
 
 import           Plutus.Contract
 import           Plutus.Contract.Constraints
-import qualified PlutusTx                    as PlutusTx
+import qualified PlutusTx                         as PlutusTx
 
-import           Ledger                      (Address, PubKeyHash, Tx, TxOutTx (..), ValidatorHash)
-import qualified Ledger                      as Ledger
-import qualified Ledger.Constraints          as Constraints
-import qualified Ledger.Contexts             as V
+import           Ledger                           (Address, PubKeyHash, Tx, TxOutTx (..), ValidatorHash)
+import qualified Ledger                           as Ledger
+import qualified Ledger.Constraints               as Constraints
+import qualified Ledger.Contexts                  as V
 import qualified Ledger.Scripts
-import           Ledger.Typed.Scripts        (ScriptType (..))
-import qualified Ledger.Typed.Scripts        as Scripts
-import           Ledger.Value                (CurrencySymbol, TokenName, Value)
-import qualified Ledger.Value                as Value
-import qualified Plutus.Contract.Typed.Tx    as TypedTx
+import           Ledger.Typed.Scripts             (ScriptType (..))
+import qualified Ledger.Typed.Scripts             as Scripts
+import           Ledger.Value                     (TokenName, Value)
+import qualified Ledger.Value                     as Value
+import qualified Plutus.Contract.Typed.Tx         as TypedTx
 
-import qualified Plutus.Contracts.Currency   as Currency
+import qualified Plutus.Contracts.Currency        as Currency
 
-newtype Account = Account { accountOwner :: (CurrencySymbol, TokenName) }
+newtype Account = Account { accountOwner :: Value.Currency }
     deriving stock    (Eq, Show, Generic)
     deriving anyclass (ToJSON, FromJSON)
-
-
-instance Pretty Account where
-    pretty (Account (s, t)) = pretty s <+> pretty t
+    deriving Pretty via (PrettyShow Account)
 
 data TokenAccount
 
@@ -126,7 +125,7 @@ tokenAccountContract = mapError (review _TokenAccountError) (redeem_ `select` pa
 
 {-# INLINEABLE accountToken #-}
 accountToken :: Account -> Value
-accountToken (Account (symbol, name)) = Value.singleton symbol name 1
+accountToken (Account currency) = Value.currencyValue currency 1
 
 {-# INLINEABLE validate #-}
 validate :: Account -> () -> () -> V.ScriptContext -> Bool
@@ -243,7 +242,7 @@ newAccount
 newAccount tokenName pk = mapError (review _TokenAccountError) $ do
     cur <- Currency.forgeContract pk [(tokenName, 1)]
     let sym = Currency.currencySymbol cur
-    pure $ Account (sym, tokenName)
+    pure $ Account $ Value.currency sym tokenName
 
 PlutusTx.makeLift ''Account
 PlutusTx.unstableMakeIsData ''Account

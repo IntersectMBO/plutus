@@ -93,7 +93,7 @@ import           Ledger.Typed.Scripts            (scriptHash)
 import qualified Ledger.Typed.Scripts            as Scripts
 import           Ledger.Typed.Scripts.Validators (forwardingMPS)
 import           Ledger.Typed.Tx                 (TypedScriptTxOut (..))
-import           Ledger.Value                    (CurrencySymbol, TokenName, Value)
+import           Ledger.Value                    (Currency, TokenName, Value)
 import qualified Ledger.Value                    as Value
 import           Plutus.Contract
 import           Plutus.Contract.StateMachine    (SMContractError, State (..), StateMachine, StateMachineClient (..),
@@ -197,7 +197,7 @@ data Stablecoin =
         , scMinReserveRatio         :: Ratio Integer -- ^ The minimum ratio of reserves to liabilities
         , scMaxReserveRatio         :: Ratio Integer -- ^ The maximum ratio of reserves to liabilities
         , scReservecoinDefaultPrice :: BC Integer -- ^ The price of a single reservecoin if no reservecoins have been issued
-        , scBaseCurrency            :: (CurrencySymbol, TokenName) -- ^ The base currency. Value of this currency will be locked by the stablecoin state machine instance
+        , scBaseCurrency            :: Currency -- ^ The base currency. Value of this currency will be locked by the stablecoin state machine instance
         , scStablecoinTokenName     :: TokenName -- ^ 'TokenName' of the stablecoin
         , scReservecoinTokenName    :: TokenName -- ^ 'TokenName' of the reservecoin
         }
@@ -272,8 +272,8 @@ data Input =
 -- | The 'Value' containing the bank's reserve in base currency. This is
 --   the 'Value' locked by the state machine output with that state.
 bankReservesValue :: Stablecoin -> BankState -> Value
-bankReservesValue Stablecoin{scBaseCurrency=(s, n)} BankState{bsReserves = BC i} =
-    Value.singleton s n i
+bankReservesValue Stablecoin{scBaseCurrency} BankState{bsReserves = BC i} =
+    Value.currencyValue scBaseCurrency i
 
 {-# INLINEABLE transition #-}
 transition :: Stablecoin -> State BankState -> Input -> Maybe (TxConstraints Void Void, State BankState)
