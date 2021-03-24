@@ -888,11 +888,16 @@ lemmaX : ∀ (M : ∅ ⊢⋆ J)(E : EvalCtx K J)(E' : EvalCtx K J')
      → ∃ λ (E'' : EvalCtx K I')
      → ∃ λ (E''' : EvalCtx I'' J')
      → E' ≡ compEvalCtx (extendEvalCtx E'' (substVal p VM ·-)) E'''
-     × E ≡ extendEvalCtx E'' (subst (Frame _) (sym p) (-· closeEvalCtx E''' (L · N))))
+     × E ≡ extendEvalCtx E'' (subst (Frame _)
+                                    (sym p)
+                                    (-· closeEvalCtx E''' (L · N))))
   ⊎ (∃ λ (p : J ≡ *) -- L · N is inside the right branch of ⇒
      → ∃ λ (E'' : EvalCtx K *)
      → ∃ λ (E''' : EvalCtx * J')
-     → E' ≡ compEvalCtx (extendEvalCtx E'' (substVal p VM ⇒-)) E''')
+     → E' ≡ compEvalCtx (extendEvalCtx E'' (substVal p VM ⇒-)) E'''
+     × E ≡ extendEvalCtx E'' (subst (Frame _)
+                                    (sym p)
+                                    (-⇒ closeEvalCtx E''' (L · N))))
   ⊎ (∃ λ I' → ∃ λ (p : J ≡ (I' ⇒ *) ⇒ I' ⇒ *) -- L · N is inside the right branch of μ
      → ∃ λ (E'' : EvalCtx K *)
      → ∃ λ (E''' : EvalCtx I' J')
@@ -915,7 +920,7 @@ lemmaX M E E' L N VM VL VN p | inj₂ (.* , E'' , (-⇒ B)) | blah eq with lemma
              (trans (closeEF E'' (-⇒ closeEvalCtx E''' (L' · N')) M)
                     (trans (sym (close-comp E'' (VM ⇒r E''') (L' · N')))
                            (cong (λ E → closeEvalCtx E (L' · N')) (sym (compEF E'' (VM ⇒-) E''')))))
-... | refl , refl , r , r' , r'' = inj₂ (inj₂ (inj₂ (inj₁ (refl , E'' , E''' , r))))
+... | refl , refl , r , refl , refl = inj₂ (inj₂ (inj₂ (inj₁ (refl , E'' , E''' , r , cong (λ B → extendEvalCtx E'' (-⇒ B)) q))))
 lemmaX M E E' L N VM VL VN p | inj₂ (.* , E'' , (μ- B)) | blah eq with lemma51 B
 ... | inj₁ VB = inj₂ (inj₂ (inj₂ (inj₂ (inj₂ (_ , (μ- B) , (V-μ VM VB))))))
 ... | inj₂ (I' , E''' , I'' , L' , N' , VL' , VN' , q)  rewrite dissect-lemma _ _ _ eq with lemma51-good (closeEvalCtx (extendEvalCtx E'' (μ- B)) M) E' L N p VL VN (compEvalCtx (extendEvalCtx E'' (μ VM -)) E''') L' N' p' VL' VN'
