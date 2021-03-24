@@ -7,6 +7,7 @@ module Marlowe.Linter
   , _holes
   , hasHoles
   , _warnings
+  , _metadataHints
   , _location
   ) where
 
@@ -33,7 +34,8 @@ import Data.Set as Set
 import Data.Symbol (SProxy(..))
 import Data.Tuple.Nested (type (/\), (/\))
 import Marlowe.Extended as EM
-import Marlowe.Holes (Action(..), Bound(..), Case(..), Contract(..), Holes, Location(..), Observation(..), Term(..), TermWrapper(..), Value(..), compareLocation, fromTerm, getHoles, getLocation, insertHole)
+import Marlowe.Extended.Metadata (MetadataHintInfo, _choiceNames, _roles, _slotParameters, _valueParameters)
+import Marlowe.Holes (Action(..), Bound(..), Case(..), ChoiceId(..), Contract(..), Holes, Location(..), Observation(..), Party(..), Payee(..), Term(..), TermWrapper(..), Value(..), compareLocation, fromTerm, getHoles, getLocation, insertHole)
 import Marlowe.Holes as Holes
 import Marlowe.Semantics (Rational(..), Slot(..), emptyState, evalValue, makeEnvironment)
 import Marlowe.Semantics as S
@@ -147,6 +149,7 @@ newtype State
   = State
   { holes :: Holes
   , warnings :: Set Warning
+  , metadataHints :: MetadataHintInfo
   }
 
 derive instance newtypeState :: Newtype State _
@@ -161,8 +164,25 @@ _holes = _Newtype <<< prop (SProxy :: SProxy "holes")
 _warnings :: Lens' State (Set Warning)
 _warnings = _Newtype <<< prop (SProxy :: SProxy "warnings")
 
+_metadataHints :: Lens' State MetadataHintInfo
+_metadataHints = _Newtype <<< prop (SProxy :: SProxy "metadataHints")
+
 hasHoles :: State -> Boolean
 hasHoles = not Holes.isEmpty <<< view _holes
+
+addRoleFromPartyTerm :: Term Party -> CMS.State State Unit
+addRoleFromPartyTerm (Term (Role role) _) = modifying (_metadataHints <<< _roles) $ Set.insert role
+
+addRoleFromPartyTerm _ = pure unit
+
+addSlotParameter :: String -> CMS.State State Unit
+addSlotParameter slotParam = modifying (_metadataHints <<< _slotParameters) $ Set.insert slotParam
+
+addValueParameter :: String -> CMS.State State Unit
+addValueParameter valueParam = modifying (_metadataHints <<< _valueParameters) $ Set.insert valueParam
+
+addChoiceName :: String -> CMS.State State Unit
+addChoiceName choiceName = modifying (_metadataHints <<< _choiceNames) $ Set.insert choiceName
 
 newtype LintEnv
   = LintEnv
@@ -327,6 +347,11 @@ lintContract :: LintEnv -> Term Contract -> CMS.State State Unit
 lintContract env (Term Close _) = pure unit
 
 lintContract env t@(Term (Pay acc payee token payment cont) pos) = do
+  addRoleFromPartyTerm acc
+  case payee of
+    Term (Account party) _ -> addRoleFromPartyTerm party
+    Term (Party party) _ -> addRoleFromPartyTerm party
+    _ -> pure unit
   modifying _holes (getHoles acc <> getHoles payee <> getHoles token) -- First we calculate the value and warn for non positive values
   sa <- lintValue env payment
   payedValue <- case sa of
@@ -415,6 +440,9 @@ lintContract env (Term (When cases (Term (Holes.Slot timeout) pos) cont) _) = do
   pure unit
 
 lintContract env (Term (When cases t cont) _) = do
+  case t of
+    Term (Holes.SlotParam slotParamName) _ -> addSlotParameter slotParamName
+    _ -> pure unit
   modifying _holes (insertHole t)
   traverseWithIndex_ (lintCase env) cases
   newEnv <- stepPrefixMapEnv_ env WhenTimeoutPath
@@ -476,7 +504,9 @@ lintObservation env t@(Term (NotObs a) pos) = do
       markSimplification constToObs SimplifiableObservation a sa
       pure (ValueSimp pos false t)
 
-lintObservation env t@(Term (ChoseSomething choiceId) pos) = do
+lintObservation env t@(Term (ChoseSomething choiceId@(ChoiceId choiceName party)) pos) = do
+  addChoiceName choiceName
+  addRoleFromPartyTerm party
   modifying _holes (getHoles choiceId)
   pure (ValueSimp pos false t)
 
@@ -540,6 +570,7 @@ lintObservation env hole@(Hole _ _ pos) = do
 
 lintValue :: LintEnv -> Term Value -> CMS.State State (TemporarySimplification BigInteger Value)
 lintValue env t@(Term (AvailableMoney acc token) pos) = do
+  addRoleFromPartyTerm acc
   let
     gatherHoles = getHoles acc <> getHoles token
   modifying _holes gatherHoles
@@ -547,7 +578,9 @@ lintValue env t@(Term (AvailableMoney acc token) pos) = do
 
 lintValue env (Term (Constant v) pos) = pure (ConstantSimp pos false v)
 
-lintValue env t@(Term (ConstantParam str) pos) = pure (ValueSimp pos false t)
+lintValue env t@(Term (ConstantParam str) pos) = do
+  addValueParameter str
+  pure (ValueSimp pos false t)
 
 lintValue env t@(Term (NegValue a) pos) = do
   sa <- lintValue env a
@@ -628,7 +661,9 @@ lintValue env t@(Term (Scale (TermWrapper r@(Rational a b) pos2) c) pos) = do
             markSimplification constToVal SimplifiableValue c sc
           pure (ValueSimp pos isSimp (Term (Scale (TermWrapper (Rational na nb) pos2) c) pos))
 
-lintValue env t@(Term (ChoiceValue choiceId) pos) = do
+lintValue env t@(Term (ChoiceValue choiceId@(ChoiceId choiceName party)) pos) = do
+  addChoiceName choiceName
+  addRoleFromPartyTerm party
   when
     ( case fromTerm choiceId of
         Just semChoiceId -> not $ Set.member semChoiceId (view _choicesMade env)
@@ -712,6 +747,8 @@ lintAction env t@(Term (Deposit acc party token value) pos) = do
     accTerm = maybe NoEffect (maybe (const NoEffect) UnknownDeposit (fromTerm acc)) (fromTerm token)
 
     isReachable = view _isReachable env
+  addRoleFromPartyTerm acc
+  addRoleFromPartyTerm party
   modifying _holes (getHoles acc <> getHoles party <> getHoles token)
   sa <- lintValue env value
   (\effect -> effect /\ isReachable)
@@ -731,11 +768,13 @@ lintAction env t@(Term (Deposit acc party token value) pos) = do
 
   makeDepositConstant other _ = other
 
-lintAction env t@(Term (Choice choiceId bounds) pos) = do
+lintAction env t@(Term (Choice choiceId@(ChoiceId choiceName party) bounds) pos) = do
   let
     choTerm = maybe NoEffect ChoiceMade (fromTerm choiceId)
 
     isReachable = view _isReachable env
+  addChoiceName choiceName
+  addRoleFromPartyTerm party
   modifying _holes (getHoles choiceId <> getHoles bounds)
   allInvalid <- foldM lintBounds true bounds
   when (allInvalid && isReachable) $ addWarning UnreachableCaseEmptyChoice t pos
