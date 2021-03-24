@@ -920,7 +920,8 @@ lemmaX : ∀ (M : ∅ ⊢⋆ J)(E : EvalCtx K J)(E' : EvalCtx K J')
   ⊎ (∃ λ I' → ∃ λ I'' → ∃ λ (p : J ≡ I'' ⇒ I') -- L · N is inside the right branch of ·
      → ∃ λ (E'' : EvalCtx K I')
      → ∃ λ (E''' : EvalCtx I'' J')
-     → E' ≡ compEvalCtx (extendEvalCtx E'' (substVal p VM ·-)) E''')
+     → E' ≡ compEvalCtx (extendEvalCtx E'' (substVal p VM ·-)) E'''
+     × E ≡ extendEvalCtx E'' (subst (Frame _) (sym p) (-· closeEvalCtx E''' (L · N))))
   ⊎ (∃ λ (p : J ≡ *) -- L · N is inside the right branch of ⇒
      → ∃ λ (E'' : EvalCtx K *)
      → ∃ λ (E''' : EvalCtx * J')
@@ -968,7 +969,7 @@ lemmaX M E E' L N VM VL VN p | inj₂ (I , E'' , (-· B)) | blah eq | inj₂ (I'
              (trans (closeEF E'' (-· closeEvalCtx E''' (L' · N')) M)
                     (trans (sym (close-comp E'' (VM ·r E''') (L' · N')))
                            (cong (λ E → closeEvalCtx E (L' · N')) (sym (compEF E'' (VM ·-) E''')))))
-... | refl , refl , r , r' , r'' = inj₂ (inj₂ (inj₁ (_ , _ , refl , E'' , E''' , r)))
+... | refl , refl , r , r' , r'' = inj₂ (inj₂ (inj₁ (_ , _ , refl , E'' , E''' , r , trans (cong (λ B → extendEvalCtx E'' (-· B)) q) (cong₂ (λ L N → extendEvalCtx E'' (-· closeEvalCtx E''' (L · N))) (sym r') (sym r'')) )))
 lemmaX M E E' L N VM VL VN p | inj₂ (I , E'' , (x ·-)) | blah eq rewrite (dissect-lemma _ _ _ eq) with lemma51-good (closeEvalCtx (extendEvalCtx E'' (x ·-)) M) E' L N p VL VN E'' _ M (closeEF E'' (x ·-) M) x VM
 lemmaX M E E' L N VM VL VN p | inj₂ (I , E'' , (x ·-)) | blah eq | (refl , refl , refl , refl , refl) rewrite val-unique VL x = inj₁ (refl , uniquenessE _ (λ V → lemE· E' (subst Value⋆ p V)) _ _ _ refl refl)
 
