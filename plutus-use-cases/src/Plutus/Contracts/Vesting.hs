@@ -150,11 +150,11 @@ vestingScript :: VestingParams -> Validator
 vestingScript = Scripts.validatorScript . scriptInstance
 
 scriptInstance :: VestingParams -> Scripts.ScriptInstance Vesting
-scriptInstance vesting = Scripts.validator @Vesting
-    ($$(PlutusTx.compile [|| validate ||]) `PlutusTx.applyCode` PlutusTx.liftCode vesting)
+scriptInstance = Scripts.validatorParam @Vesting
+    $$(PlutusTx.compile [|| validate ||])
     $$(PlutusTx.compile [|| wrap ||])
     where
-        wrap = Scripts.wrapValidator @() @()
+        wrap = Scripts.wrapValidator
 
 contractAddress :: VestingParams -> Ledger.Address
 contractAddress = Scripts.scriptAddress . scriptInstance
