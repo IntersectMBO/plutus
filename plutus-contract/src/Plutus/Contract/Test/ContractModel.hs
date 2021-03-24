@@ -35,8 +35,8 @@ module Plutus.Contract.Test.ContractModel
     , ModelState
     , contractState
     , currentSlot
-    , balances
-    , balance
+    , balanceChanges
+    , balanceChange
     , forged
     , lockedValue
     , GetModelState(..)
@@ -110,8 +110,7 @@ module Plutus.Contract.Test.ContractModel
 
 import           Control.Lens
 import           Control.Monad.Cont
-import           Control.Monad.Freer                        as Eff
-import           Control.Monad.Freer.State
+import           Control.Monad.State                        (MonadState, State)
 import qualified Control.Monad.State                        as State
 import qualified Data.Aeson                                 as JSON
 import           Data.Foldable
@@ -203,23 +202,21 @@ type HandleFun state = forall w schema err. (Typeable w, Typeable schema, Typeab
 --   * the wallet balances (`balances`)
 --   * the amount that has been forged (`forged`)
 data ModelState state = ModelState
-        { _currentSlot   :: Slot
-        , _lastSlot      :: Slot
-        , _balances      :: Map Wallet Value
-        , _forged        :: Value
-        , _contractState :: state
+        { _currentSlot    :: Slot
+        , _lastSlot       :: Slot
+        , _balanceChanges :: Map Wallet Value
+        , _forged         :: Value
+        , _contractState  :: state
         }
+  deriving (Show)
 
 dummyModelState :: state -> ModelState state
 dummyModelState s = ModelState 0 0 Map.empty mempty s
 
-instance Show state => Show (ModelState state) where
-    show = show . _contractState   -- for now
-
 -- | The `Spec` monad is a state monad over the `ModelState`. It is used exclusively by the
 --   `nextState` function to model the effects of an action on the blockchain.
-newtype Spec state a = Spec (Eff '[State (ModelState state)] a)
-    deriving (Functor, Applicative, Monad)
+newtype Spec state a = Spec (State (ModelState state) a)
+    deriving (Functor, Applicative, Monad, MonadState (ModelState state))
 
 -- $contractModel
 --
@@ -324,18 +321,15 @@ class ( Typeable state
     restricted :: Action state -> Bool
     restricted _ = False
 
--- | Model state lens
-makeLensesFor [("_contractState", "contractStateL")] 'ModelState
-makeLensesFor [("_currentSlot",   "currentSlotL")]   'ModelState
-makeLensesFor [("_lastSlot",      "lastSlotL")]      'ModelState
-makeLensesFor [("_balances",      "balancesL")]      'ModelState
-makeLensesFor [("_forged",        "forgedL")]        'ModelState
-
--- | Get the contract-specific part of the model state.
+-- | Lens for the contract-specific part of the model state.
 --
 --   `Spec` monad update functions: `$=` and `$~`.
-contractState :: Getter (ModelState state) state
-contractState = contractStateL
+makeLensesFor [("_contractState",  "contractState")]   'ModelState
+
+makeLensesFor [("_currentSlot",    "currentSlotL")]    'ModelState
+makeLensesFor [("_lastSlot",       "lastSlotL")]       'ModelState
+makeLensesFor [("_balanceChanges", "balanceChangesL")] 'ModelState
+makeLensesFor [("_forged",         "forgedL")]         'ModelState
 
 -- | Get the current slot.
 --
@@ -343,21 +337,21 @@ contractState = contractStateL
 currentSlot :: Getter (ModelState state) Slot
 currentSlot = currentSlotL
 
--- | Get the current wallet balances. These are delta balances, so they start out at zero and can be
---   negative. The absolute balances used by the emulator can be set in the `CheckOptions` argument
---   to `propRunActionsWithOptions`.
+-- | Get the current wallet balance changes. These are delta balances, so they start out at zero and
+--   can be negative. The absolute balances used by the emulator can be set in the `CheckOptions`
+--   argument to `propRunActionsWithOptions`.
 --
 --   `Spec` monad update functions: `withdraw`, `deposit`, `transfer`.
-balances :: Getter (ModelState state) (Map Wallet Value)
-balances = balancesL
+balanceChanges :: Getter (ModelState state) (Map Wallet Value)
+balanceChanges = balanceChangesL
 
--- | Get the current balance for a wallet. This is the delta balance, so it starts out at zero and
+-- | Get the current balance change for a wallet. This is the delta balance, so it starts out at zero and
 --   can be negative. The absolute balance used by the emulator can be set in the `CheckOptions`
 --   argument to `propRunActionsWithOptions`.
 --
 --   `Spec` monad update functions: `withdraw`, `deposit`, `transfer`.
-balance :: Wallet -> Getter (ModelState state) Value
-balance w = balancesL . at w . non mempty
+balanceChange :: Wallet -> Getter (ModelState state) Value
+balanceChange w = balanceChangesL . at w . non mempty
 
 -- | Get the amount of tokens forged so far. This is used to compute `lockedValue`.
 --
@@ -368,7 +362,7 @@ forged = forgedL
 -- | How much value is currently locked by contracts. This computed by subtracting the wallet
 --   `balances` from the `forged` value.
 lockedValue :: ModelState s -> Value
-lockedValue s = s ^. forged <> inv (fold $ s ^. balances)
+lockedValue s = s ^. forged <> inv (fold $ s ^. balanceChanges)
 
 -- | Monads with read access to the model state: the `Spec` monad used in `nextState`, and the `DL`
 --   monad used to construct test scenarios.
@@ -398,7 +392,7 @@ viewModelState l = askModelState (^. l)
 
 -- | Get a component of the contract state using a lens.
 viewContractState :: GetModelState m => Getting a (StateType m) a -> m a
-viewContractState l = viewModelState (contractStateL . l)
+viewContractState l = viewModelState (contractState . l)
 
 -- $specMonad
 --
@@ -416,10 +410,10 @@ viewContractState l = viewModelState (contractStateL . l)
 -- that enough funds are available before performing a transfer.
 
 runSpec :: Spec state () -> ModelState state -> ModelState state
-runSpec (Spec spec) s = Eff.run $ execState s spec
+runSpec (Spec spec) s = State.execState spec s
 
 modState :: forall state a. Setter' (ModelState state) a -> (a -> a) -> Spec state ()
-modState l f = Spec $ modify @(ModelState state) $ over l f
+modState l f = Spec $ State.modify $ over l f
 
 -- | Wait the given number of slots. Updates the `currentSlot` of the model state.
 wait :: Integer -> Spec state ()
@@ -438,10 +432,10 @@ forge v = modState forgedL (<> v)
 burn :: Value -> Spec state ()
 burn = forge . inv
 
--- | Add tokens to the `balance` of a wallet. The added tokens are subtracted from the `lockedValue`
---   of tokens held by contracts.
+-- | Add tokens to the `balanceChange` of a wallet. The added tokens are subtracted from the
+--   `lockedValue` of tokens held by contracts.
 deposit :: Wallet -> Value -> Spec state ()
-deposit w val = modState (balancesL . at w) (Just . maybe val (<> val))
+deposit w val = modState (balanceChangesL . at w) (Just . maybe val (<> val))
 
 -- | Withdraw tokens from a wallet. The withdrawn tokens are added to the `lockedValue` of tokens
 --   held by contracts.
@@ -457,7 +451,7 @@ transfer fromW toW val = withdraw fromW val >> deposit toW val
 
 -- | Modify the contract state.
 modifyContractState :: (state -> state) -> Spec state ()
-modifyContractState f = modState contractStateL f
+modifyContractState f = modState contractState f
 
 -- | Set a specific field of the contract state.
 ($=) :: Setter' state a -> a -> Spec state ()
@@ -465,11 +459,11 @@ l $= x = l $~ const x
 
 -- | Modify a specific field of the contract state.
 ($~) :: Setter' state a -> (a -> a) -> Spec state ()
-l $~ f = modState (contractStateL . l) f
+l $~ f = modState (contractState . l) f
 
 instance GetModelState (Spec state) where
     type StateType (Spec state) = state
-    getModelState = Spec get
+    getModelState = State.get
 
 handle :: (ContractModel s) => Handles s -> HandleFun s
 handle handles key =
@@ -512,11 +506,11 @@ instance ContractModel state => StateModel (ModelState state) where
 
     shrinkAction s (ContractAction a) = [ Some @() (ContractAction a') | a' <- shrinkAction s a ]
 
-    initialState = ModelState { _currentSlot   = 0
-                              , _lastSlot      = 125        -- Set by propRunActions
-                              , _balances      = Map.empty
-                              , _forged        = mempty
-                              , _contractState = initialState }
+    initialState = ModelState { _currentSlot    = 0
+                              , _lastSlot       = 125        -- Set by propRunActions
+                              , _balanceChanges = Map.empty
+                              , _forged         = mempty
+                              , _contractState  = initialState }
 
     nextState s (ContractAction cmd) _v = runSpec (nextState cmd) s
 
@@ -933,7 +927,7 @@ activateWallets (ContractInstanceSpec key wallet contract : spec) = do
     return $ IMCons key h m
 
 -- | Run a `Actions` in the emulator and check that the model and the emulator agree on the final
---   wallet balances. Equivalent to
+--   wallet balance changes. Equivalent to
 --
 -- @
 -- propRunActions_ hs script = `propRunActions` hs (`const` `$` `pure` `True`) script
@@ -947,7 +941,7 @@ propRunActions_ handleSpecs script =
     propRunActions handleSpecs (\ _ -> pure True) script
 
 -- | Run a `Actions` in the emulator and check that the model and the emulator agree on the final
---   wallet balances, and that the given `TracePredicate` holds at the end. Equivalent to:
+--   wallet balance changes, and that the given `TracePredicate` holds at the end. Equivalent to:
 --
 -- @
 -- propRunActions = `propRunActionsWithOptions` `defaultCheckOptions`
@@ -961,7 +955,7 @@ propRunActions ::
 propRunActions = propRunActionsWithOptions defaultCheckOptions
 
 -- | Run a `Actions` in the emulator and check that the model and the emulator agree on the final
---   wallet balances, that no off-chain contract instance crashed, and that the given
+--   wallet balance changes, that no off-chain contract instance crashed, and that the given
 --   `TracePredicate` holds at the end. The predicate has access to the final model state.
 --
 --   The `ContractInstanceSpec` argument lists the contract instances that should be created for the wallets
@@ -1008,7 +1002,7 @@ propRunActionsWithOptions opts handleSpecs predicate script' =
         script         = toStateModelScript script'
 
 checkBalances :: ModelState state -> TracePredicate
-checkBalances s = Map.foldrWithKey (\ w val p -> walletFundsChange w val .&&. p) (pure True) (s ^. balances)
+checkBalances s = Map.foldrWithKey (\ w val p -> walletFundsChange w val .&&. p) (pure True) (s ^. balanceChanges)
 
 checkNoCrashes :: [ContractInstanceSpec state] -> TracePredicate
 checkNoCrashes = foldr (\ (ContractInstanceSpec _ w c) -> (assertOutcome c (walletInstanceTag w) notError "Contract instance stopped with error" .&&.))
