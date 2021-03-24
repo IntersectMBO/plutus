@@ -68,6 +68,8 @@ import           Ledger.Tx                            as Tx
 import qualified Ledger.Typed.Scripts                 as Scripts
 import           Ledger.Typed.Tx                      (TypedScriptTxOut (..))
 import qualified Ledger.Typed.Tx                      as Typed
+import           Ledger.Value                         (Currency)
+import qualified Ledger.Value                         as Value
 import           Plutus.Contract
 import           Plutus.Contract.StateMachine.OnChain (State (..), StateMachine (..), StateMachineInstance (..))
 import qualified Plutus.Contract.StateMachine.OnChain as SM
@@ -150,15 +152,30 @@ defaultChooser xs  =
     let msg = "Found " <> show (length xs) <> " outputs, expected 1"
     in Left (ChooserError (Text.pack msg))
 
+-- | A state chooser function that searches for an output with the thread token
+threadTokenChooser ::
+    forall state input
+    . Currency
+    -> [OnChainState state input]
+    -> Either SMContractError (OnChainState state input)
+threadTokenChooser cur states =
+    let flt (TypedScriptTxOut{tyTxOutTxOut=TxOut{txOutValue}},_) = Value.currencyValue cur 1 `Value.leq` txOutValue in
+    case filter flt states of
+        [x] -> Right x
+        _ ->
+            let msg = unwords ["Found ", show (length states), "outputs with thread token ", show cur, "expected 1"]
+            in Left (ChooserError (Text.pack msg))
+
 -- | A state machine client with the 'defaultChooser' function
 mkStateMachineClient ::
     forall state input
     . SM.StateMachineInstance state input
     -> StateMachineClient state input
 mkStateMachineClient inst =
+    let scChooser = maybe defaultChooser threadTokenChooser $ SM.smThreadToken $ SM.stateMachine inst in
     StateMachineClient
         { scInstance = inst
-        , scChooser  = defaultChooser
+        , scChooser
         }
 
 {-| Get the current on-chain state of the state machine instance.
