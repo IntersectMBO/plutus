@@ -188,6 +188,8 @@ options = hsubparser
 
 evaluateWithCek :: UPLC.Term Name DefaultUni DefaultFun () -> EvaluationResult (UPLC.Term Name DefaultUni DefaultFun ())
 evaluateWithCek = unsafeEvaluateCekNoEmit defBuiltinsRuntime
+-- Careful! This uses the enormousBudget and that may not be enormous enough for
+-- some of the programs here.
 
 toDeBruijn :: UPLC.Program Name DefaultUni DefaultFun a -> IO (UPLC.Program UPLC.DeBruijn DefaultUni DefaultFun a)
 toDeBruijn prog = do
@@ -234,10 +236,7 @@ footerInfo = text "Every command takes the name of a program and a (possbily emp
 main :: IO ()
 main = do
   execParser (info (helper <*> options) (fullDesc <> progDesc description <> footerDoc (Just footerInfo))) >>= \case
-    RunPLC pa ->  print . PLC.prettyPlcClassicDebug <$>
-                  unsafeEvaluateCekNoEmit defBuiltinsRuntime $ getUnDBrTerm pa
-           -- Careful! This ^ uses the enormousBudget and that may not be
-           -- enormous enough for some of the programs here.
+    RunPLC pa ->  print . PLC.prettyPlcClassicDebug <$> evaluateWithCek . getUnDBrTerm $ pa
     RunHaskell pa ->
         case pa of
           Clausify formula        -> print $ Clausify.runClausify formula
