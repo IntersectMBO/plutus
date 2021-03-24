@@ -85,7 +85,7 @@ mkCurrency (TxOutRef h i) amts =
         , curAmounts              = AssocMap.fromList amts
         }
 
-validate :: OneShotCurrency -> V.PolicyCtx -> Bool
+validate :: OneShotCurrency -> V.ScriptContext -> Bool
 validate c@(OneShotCurrency (refHash, refIdx) _) ctx@V.ScriptContext{V.scriptContextTxInfo=txinfo} =
     let
         -- see note [Obtaining the currency symbol]
@@ -191,7 +191,7 @@ type CurrencySchema =
 
 -- | Use 'forgeContract' to create the currency specified by a 'SimpleMPS'
 forgeCurrency
-    :: Contract (Maybe (Last Currency)) CurrencySchema CurrencyError OneShotCurrency
+    :: Contract (Maybe (Last OneShotCurrency)) CurrencySchema CurrencyError OneShotCurrency
 forgeCurrency = do
     SimpleMPS{tokenName, amount} <- endpoint @"Create native token"
     ownPK <- pubKeyHash <$> ownPubKey

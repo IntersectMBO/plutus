@@ -38,7 +38,8 @@ import           Ledger                           (Address, Value)
 import           Ledger.Contexts                  (ScriptContext (..), TxInInfo (..), findOwnInput)
 import           Ledger.Tx                        (TxOut (..))
 import           Ledger.Typed.Scripts
-import           Ledger.Value                     (isZero)
+import           Ledger.Value                     (Currency, isZero)
+import qualified Ledger.Value                     as Value
 import qualified Prelude                          as Haskell
 
 data State s = State { stateData :: s, stateValue :: Value }
@@ -50,29 +51,34 @@ data State s = State { stateData :: s, stateValue :: Value }
 -- of the transition in the context of the current transaction.
 data StateMachine s i = StateMachine {
       -- | The transition function of the state machine. 'Nothing' indicates an invalid transition from the current state.
-      smTransition :: State s -> i -> Maybe (TxConstraints Void Void, State s),
+      smTransition  :: State s -> i -> Maybe (TxConstraints Void Void, State s),
 
       -- | Check whether a state is the final state
-      smFinal      :: s -> Bool,
+      smFinal       :: s -> Bool,
 
       -- | The condition checking function. Can be used to perform
       --   checks on the pending transaction that aren't covered by the
       --   constraints. 'smCheck' is always run in addition to checking the
       --   constraints, so the default implementation always returns true.
-      smCheck      :: s -> i -> ScriptContext -> Bool
+      smCheck       :: s -> i -> ScriptContext -> Bool,
+
+      -- | The 'Currency' of the thread token that identifies the contract instance.
+      smThreadToken :: Maybe Currency
     }
 
 -- | A state machine that does not perform any additional checks on the
 --   'ScriptContext' (beyond enforcing the constraints)
 mkStateMachine
-    :: (State s -> i -> Maybe (TxConstraints Void Void, State s))
+    :: Maybe Currency
+    -> (State s -> i -> Maybe (TxConstraints Void Void, State s))
     -> (s -> Bool)
     -> StateMachine s i
-mkStateMachine transition final =
+mkStateMachine smThreadToken smTransition smFinal =
     StateMachine
-        { smTransition = transition
-        , smFinal      = final
-        , smCheck      = \_ _ _ -> True
+        { smTransition
+        , smFinal
+        , smCheck = \_ _ _ -> True
+        , smThreadToken
         }
 
 instance ScriptType (StateMachine s i) where
@@ -92,7 +98,7 @@ machineAddress = scriptAddress . validatorInstance
 {-# INLINABLE mkValidator #-}
 -- | Turn a state machine into a validator script.
 mkValidator :: forall s i. (PlutusTx.IsData s) => StateMachine s i -> ValidatorType (StateMachine s i)
-mkValidator (StateMachine step isFinal check) currentState input ptx =
+mkValidator (StateMachine step isFinal check threadToken) currentState input ptx =
     let vl = maybe (error ()) (txOutValue . txInInfoResolved) (findOwnInput ptx)
         checkOk = traceIfFalse "State transition invalid - checks failed" (check currentState input ptx)
         oldState = State{stateData=currentState, stateValue=vl}
@@ -102,10 +108,15 @@ mkValidator (StateMachine step isFinal check) currentState input ptx =
                     traceIfFalse "Non-zero value allocated in final state" (isZero newValue)
                     && traceIfFalse "State transition invalid - constraints not satisfied by ScriptContext" (checkScriptContext newConstraints ptx)
                 | otherwise ->
-                    let txc =
+                    let tkVal = maybe mempty (\c -> Value.currencyValue c 1) threadToken
+                        txc =
                             newConstraints
                                 { txOwnOutputs=
-                                    [ OutputConstraint{ocDatum=newData, ocValue= newValue} ]
+                                    [ OutputConstraint
+                                        { ocDatum = newData
+                                        , ocValue = newValue <> tkVal
+                                        }
+                                    ]
                                 }
                     in traceIfFalse "State transition invalid - constraints not satisfied by ScriptContext" (checkScriptContext @_ @s txc ptx)
             Nothing -> trace "State transition invalid - input is not a valid transition at the current state" False

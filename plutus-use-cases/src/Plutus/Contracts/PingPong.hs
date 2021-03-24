@@ -90,7 +90,7 @@ transition State{stateData=oldData,stateValue} input = case (oldData, input) of
 
 {-# INLINABLE machine #-}
 machine :: SM.StateMachine PingPongState Input
-machine = SM.mkStateMachine transition isFinal where
+machine = SM.mkStateMachine Nothing transition isFinal where
     isFinal Stopped = True
     isFinal _       = False
 

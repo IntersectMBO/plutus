@@ -470,7 +470,7 @@ isFinal MarloweData{marloweContract=c} = c P.== Close
 
 {-# INLINABLE mkValidator #-}
 mkValidator :: MarloweParams -> Scripts.ValidatorType MarloweStateMachine
-mkValidator p = SM.mkValidator $ SM.mkStateMachine (mkMarloweStateMachineTransition p) isFinal
+mkValidator p = SM.mkValidator $ SM.mkStateMachine Nothing (mkMarloweStateMachineTransition p) isFinal
 
 
 mkMarloweValidatorCode
@@ -493,7 +493,7 @@ scriptInstance params = Scripts.validator @MarloweStateMachine
 mkMachineInstance :: MarloweParams -> SM.StateMachineInstance MarloweData MarloweInput
 mkMachineInstance params =
     SM.StateMachineInstance
-    (SM.mkStateMachine (mkMarloweStateMachineTransition params) isFinal)
+    (SM.mkStateMachine Nothing (mkMarloweStateMachineTransition params) isFinal)
     (scriptInstance params)
 
 

@@ -170,7 +170,7 @@ type GameStateMachine = SM.StateMachine GameState GameInput
 
 {-# INLINABLE machine #-}
 machine :: GameStateMachine
-machine = SM.mkStateMachine transition isFinal where
+machine = SM.mkStateMachine Nothing transition isFinal where
     isFinal _ = False
 
 {-# INLINABLE mkValidator #-}

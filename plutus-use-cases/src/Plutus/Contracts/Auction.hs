@@ -121,7 +121,7 @@ auctionTransition AuctionParams{apOwner, apAsset, apEndTime} State{stateData=old
 
 {-# INLINABLE auctionStateMachine #-}
 auctionStateMachine :: AuctionParams -> StateMachine AuctionState AuctionInput
-auctionStateMachine auctionParams = SM.mkStateMachine (auctionTransition auctionParams) isFinal where
+auctionStateMachine auctionParams = SM.mkStateMachine Nothing (auctionTransition auctionParams) isFinal where
     isFinal Finished{} = True
     isFinal _          = False
 
