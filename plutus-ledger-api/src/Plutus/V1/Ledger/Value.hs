@@ -161,7 +161,7 @@ instance FromJSON TokenName where
         where
             fromJSONText t = case Text.take 3 t of
                 "\NUL0x"       -> either fail (Haskell.pure . TokenName) . JSON.tryDecode . Text.drop 3 $ t
-                "\NUL\NUL\NUL" -> Haskell.pure . fromText . Text.drop 3 $ t
+                "\NUL\NUL\NUL" -> Haskell.pure . fromText . Text.drop 2 $ t
                 _              -> Haskell.pure . fromText $ t
 
 makeLift ''TokenName
