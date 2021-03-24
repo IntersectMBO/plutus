@@ -11,7 +11,7 @@ import Data.Map (Map)
 import Data.Map as Map
 import Data.Maybe (Maybe(..))
 import Data.Symbol (SProxy(..))
-import Marlowe.Semantics (AccountId, Action(..), Bound, Case(..), ChoiceId(..), ChosenNum, Contract(..), Input, Observation, Party, Payment, Slot(..), SlotInterval(..), State, Timeout, Token, TransactionInput(..), TransactionOutput(..), ValueId, _boundValues, _minSlot, computeTransaction, emptyState, evalValue, makeEnvironment)
+import Marlowe.Semantics (AccountId, Action(..), Bound(..), Case(..), ChoiceId(..), ChosenNum, Contract(..), Input, Observation, Party(..), Payment, Slot(..), SlotInterval(..), State, Timeout, Token(..), TransactionInput(..), TransactionOutput(..), ValueId, _boundValues, _minSlot, computeTransaction, emptyState, evalValue, makeEnvironment)
 
 -- Represents a historical step in a contract's life and is what you see on a Step card that is in the past,
 -- that is the State as it was before it was executed and the TransactionInput that was applied.
@@ -19,6 +19,10 @@ import Marlowe.Semantics (AccountId, Action(..), Bound, Case(..), ChoiceId(..), 
 -- we need to store if the step timed out. This is all (possibly premature) optimization to avoid storing the
 -- contract many times as it could be quite large
 type ExecutionStep
+  -- FIXME: If the transaction was a timeout, we don't actually have txInput and the state should be the
+  -- one before or the one after.
+  -- If timeout I'll need from the contract the timeout slot
+  -- For the balances is still not clear if we should use the balance before, the balance after or dont display.
   = { txInput :: TransactionInput
     , state :: State
     , timedOut :: Boolean
@@ -63,9 +67,9 @@ initExecution currentSlot contract =
 
     -- FIXME: We fake the namedActions for development until we fix the semantics
     -- namedActions =
-    --   [ MakeDeposit (Role "into account") (Role "bob") (Token "" "") $ fromInt 200
-    --   , MakeDeposit (Role "into account") (Role "alice") (Token "" "") $ fromInt 1500
-    --   , MakeChoice (ChoiceId "choice id" (Role "alice"))
+    --   [ MakeDeposit (Role "alice") (Role "bob") (Token "" "") $ fromInt 200
+    --   , MakeDeposit (Role "bob") (Role "alice") (Token "" "") $ fromInt 1500
+    --   , MakeChoice (ChoiceId "choice" (Role "alice"))
     --       [ Bound (fromInt 0) (fromInt 3)
     --       , Bound (fromInt 2) (fromInt 4)
     --       , Bound (fromInt 6) (fromInt 8)
@@ -85,9 +89,14 @@ hasTimeout _ = Nothing
 mkTx :: ExecutionState -> List Input -> TransactionInput
 mkTx { state } inputs =
   let
+    -- FIXME: mkTx should use the current slot taken from the current time
     currentSlot = view _minSlot state
 
-    interval = SlotInterval currentSlot (currentSlot + Slot (fromInt 100)) -- FIXME: should this be minSlot minSlot? We need to think about ambiguous slot error
+    -- interval = SlotInterval currentSlot (currentSlot + Slot (fromInt 100)) -- FIXME: should this be minSlot minSlot? We need to think about ambiguous slot error
+    -- FIXME: I Should call Semantic.timeouts and make an interval of [currentSlot, minTime - 1]
+    -- Should also check that minTime - 1 is bigger than (currentSlot + 100)
+    -- This should be the same function that makeEnvironment uses in extractAction
+    interval = SlotInterval (Slot $ fromInt 0) (Slot $ fromInt 0)
   in
     TransactionInput { interval, inputs }
 
@@ -122,7 +131,7 @@ nextState { steps, state, contract } txInput =
       Just t -> t < currentSlot
       _ -> false
   in
-    { steps: [ { txInput, state, timedOut } ] <> steps
+    { steps: steps <> [ { txInput, state, timedOut } ]
     , state: txOutState
     , contract: txOutContract
     , namedActions
@@ -147,6 +156,7 @@ data NamedAction
   -- A special case of Evaluate where the only way the Contract can progress is to apply an empty
   -- transaction which results in the contract being closed
   -- Creates empty tx
+  -- FIXME: probably add {payments:: Array } and add them to the close description
   | CloseContract
 
 derive instance eqNamedAction :: Eq NamedAction
@@ -198,6 +208,7 @@ extractNamedActions currentSlot state (When cases timeout cont)
       let
         minSlot = view (_minSlot <<< _Newtype) state
 
+        -- FIXME: This should be the same interval that mkTx has
         env = makeEnvironment minSlot minSlot
 
         amount = evalValue env state v

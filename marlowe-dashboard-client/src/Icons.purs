@@ -25,6 +25,8 @@ data Icon
   | ArrowRight
   | Close
   | Contacts
+  | Done
+  | DoneWithCircle
   | Help
   | Home
   | Menu
@@ -46,6 +48,10 @@ content ArrowRight = "east"
 content Close = "close"
 
 content Contacts = "people"
+
+content Done = "done"
+
+content DoneWithCircle = "task_alt"
 
 content Help = "help"
 
@@ -77,6 +83,10 @@ iconClass ArrowRight = "arrow-right"
 iconClass Close = "close"
 
 iconClass Contacts = "contacts"
+
+iconClass Done = "done"
+
+iconClass DoneWithCircle = "task-alt"
 
 iconClass Help = "help"
 

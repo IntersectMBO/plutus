@@ -4,6 +4,7 @@ module Contract.State
   , mkInitialState
   , defaultState
   , currentStep
+  , isContractClosed
   ) where
 
 import Prelude
@@ -12,7 +13,7 @@ import Contract.Types (Action(..), Query(..), State, Tab(..))
 import Control.Monad.Maybe.Trans (runMaybeT)
 import Control.Monad.Reader (class MonadAsk)
 import Data.Array (length)
-import Data.Lens (assign, modifying, use, view)
+import Data.Lens (assign, modifying, use, view, (^.))
 import Data.Map (Map)
 import Data.Maybe (Maybe(..))
 import Data.RawJson (RawJson(..))
@@ -24,7 +25,7 @@ import Foreign.Generic (encode)
 import Foreign.JSON (unsafeStringify)
 import Halogen (HalogenM)
 import MainFrame.Types (ChildSlots, Msg)
-import Marlowe.Execution (NamedAction(..), _namedActions, _state, _steps, initExecution, merge, mkTx, nextState)
+import Marlowe.Execution (NamedAction(..), _contract, _namedActions, _state, _steps, initExecution, merge, mkTx, nextState)
 import Marlowe.Extended.Metadata (MetaData, emptyContractMetadata)
 import Marlowe.Semantics (Contract(..), Input(..), Slot, _minSlot)
 import Marlowe.Semantics as Semantic
@@ -45,7 +46,8 @@ toInput (MakeDeposit accountId party token value) = Just $ IDeposit accountId pa
 
 toInput (MakeChoice choiceId _ (Just chosenNum)) = Just $ IChoice choiceId chosenNum
 
--- NOTE: this is possible in the types but should never happen in runtime. And I prefer to explicitly throw
+-- WARNING:
+--       This is possible in the types but should never happen in runtime. And I prefer to explicitly throw
 --       an error if it happens than silently omit it by returning Nothing (which in case of Input, it has
 --       the semantics of an empty transaction).
 --       The reason we use Maybe in the chosenNum is that we use the same NamedAction data type
@@ -58,6 +60,9 @@ toInput (MakeChoice _ _ Nothing) = unsafeThrow "A choice action has been trigger
 toInput (MakeNotify _) = Just $ INotify
 
 toInput _ = Nothing
+
+isContractClosed :: State -> Boolean
+isContractClosed state = state ^. (_executionState <<< _contract) == Close
 
 mkInitialState ::
   String ->

@@ -10,6 +10,7 @@ module.exports = {
       black: "#283346",
       lightgray: "#eeeeee",
       gray: "#dfdfdf",
+      green: "#00a551",
       darkgray: "#b7b7b7",
       overlay: "rgba(10,10,10,0.4)",
       white: "#ffffff",
@@ -27,6 +28,7 @@ module.exports = {
       xl: "24px",
       "2xl": "34px",
       "3xl": "46px",
+      "big-icon": "140px",
     },
     borderRadius: {
       sm: "5px",
@@ -73,6 +75,7 @@ module.exports = {
       },
       minWidth: {
         button: "120px",
+        "contract-card": "300px",
       },
     },
   },
