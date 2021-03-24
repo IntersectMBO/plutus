@@ -218,7 +218,7 @@ noLockedFunds = do
     val    <- viewContractState gameValue
     when (val > 0) $ do
         monitor $ label "Unlocking funds"
-        action $ GiveToken w
+        -- action $ GiveToken w
         action $ Guess w secret "" val
     assertModel "Locked funds should be zero" $ isZero . lockedValue
 

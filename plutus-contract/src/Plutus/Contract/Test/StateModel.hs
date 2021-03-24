@@ -18,8 +18,8 @@ module Plutus.Contract.Test.StateModel(
   , LookUp, Var(..) -- we export the constructors so that users can construct test cases
   , Actions(..)
   , stateAfter
-  , runScript
-  , runScriptInState
+  , runActions
+  , runActionsInState
 ) where
 
 import           Data.Typeable
@@ -150,18 +150,18 @@ withStates = loop initialState
       ((var := act),s):loop (nextState s act var) as
 
 stateAfter :: StateModel state => Actions state -> state
-stateAfter (Actions script) = loop initialState script
+stateAfter (Actions actions) = loop initialState actions
   where
     loop s []                  = s
     loop s ((var := act) : as) = loop (nextState s act var) as
 
-runScript :: StateModel state =>
+runActions :: StateModel state =>
                 Actions state -> PropertyM (ActionMonad state) (state,Env)
-runScript = runScriptInState initialState
+runActions = runActionsInState initialState
 
-runScriptInState :: StateModel state =>
+runActionsInState :: StateModel state =>
                     state -> Actions state -> PropertyM (ActionMonad state) (state,Env)
-runScriptInState state (Actions script) = loop state [] script
+runActionsInState state (Actions actions) = loop state [] actions
   where
     loop _s env [] = return (_s,reverse env)
     loop s env ((Var n := act):as) = do
