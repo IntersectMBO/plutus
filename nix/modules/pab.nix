@@ -150,6 +150,14 @@ in
       '';
     };
 
+    contracts = mkOption {
+      type = types.listOf (types.path);
+      default = [ ];
+      description = ''
+        List of paths to contracts that should be installed.
+      '';
+    };
+
   };
 
   config = mkIf cfg.enable {
@@ -184,6 +192,10 @@ in
         PrivateDevices = true;
         SystemCallArchitectures = "native";
       };
+      postStart = ''
+        mkdir -p /var/lib/pab
+        ${lib.concatMapStringsSep "\n" (p: "${cfg.pab-package}/bin/plutus-pab --config=${pabYaml} contracts install --path ${p}") cfg.contracts}
+      '';
     };
   };
 
