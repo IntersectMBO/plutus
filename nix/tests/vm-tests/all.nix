@@ -1,13 +1,28 @@
-{ makeTest, plutus-pab, plutus-playground, marlowe-playground, marlowe-dashboard, web-ghc }:
+{ makeTest, lib, plutus-pab, plutus-playground, marlowe-playground, marlowe-dashboard, web-ghc }:
+let
+  plutusApiRequest = builtins.toFile "plutus-request.json" (builtins.readFile ./contract-api-request.json);
+  marloweApiRequest = builtins.toFile "marlowe-request.json" (builtins.readFile ./runghc-api-request.json);
+in
 makeTest {
   skipLint = true;
   name = "all";
   nodes = {
 
+    # ---------------------------------------------------------------------------------------------------------------
+    # pab : 192.168.1.1 - running plutus pab
+    # --------------------------------------------------------------------------------------------------------------
+
     pab = { pkgs, ... }: {
       imports = [ ../../modules/pab.nix ];
       environment.systemPackages = with pkgs; [ curl ];
-      #networking.firewall.allowedTCPPorts = [ 8080 9090 22 ];
+
+      networking = {
+        firewall.allowedTCPPorts = [ 8080 8081 8082 8083 8084 8085 ];
+        dhcpcd.enable = false;
+        interfaces.eth1.ipv6.addresses = lib.mkOverride 0 [{ address = "fd00::1"; prefixLength = 64; }];
+        interfaces.eth1.ipv4.addresses = lib.mkOverride 0 [{ address = "192.168.1.1"; prefixLength = 24; }];
+      };
+
       services.pab = {
         enable = true;
         pab-package = plutus-pab.pab-exes.plutus-pab;
@@ -23,6 +38,10 @@ makeTest {
       };
     };
 
+    # ---------------------------------------------------------------------------------------------------------------
+    # playgrounds : 192.168.1.2 - running plutus/marlowe playgrounds and nginx
+    # --------------------------------------------------------------------------------------------------------------
+
     playgrounds = { pkgs, ... }: {
       imports = [
         ../../modules/plutus-playground.nix
@@ -30,10 +49,15 @@ makeTest {
       ];
 
       networking = {
+        firewall.allowedTCPPorts = [ 8080 9090 ];
         extraHosts = ''
           127.0.0.1 plutus-playground
           127.0.0.1 marlowe-playground
+          192.168.1.3 webghc
         '';
+        dhcpcd.enable = false;
+        interfaces.eth1.ipv6.addresses = lib.mkOverride 0 [{ address = "fd00::2"; prefixLength = 64; }];
+        interfaces.eth1.ipv4.addresses = lib.mkOverride 0 [{ address = "192.168.1.2"; prefixLength = 24; }];
       };
 
       services = {
@@ -47,6 +71,7 @@ makeTest {
           enable = true;
           port = 4000;
           playground-server-package = plutus-playground.server;
+          webghcURL = "http://webghc";
         };
 
         nginx = {
@@ -65,13 +90,22 @@ makeTest {
               locations = {
                 "/" = {
                   root = "${plutus-playground.client}";
+                  extraConfig = ''
+                    error_page 404 = @fallback;
+                  '';
                 };
                 "^~ /tutorial/" = {
                   alias = "${plutus-playground.tutorial}/";
+                  extraConfig = ''
+                    error_page 404 = @fallback;
+                  '';
                 };
                 "@fallback" = {
                   proxyPass = "http://plutus-playground";
                   proxyWebsockets = true;
+                  extraConfig = ''
+                    error_page 404 = @fallback;
+                  '';
                 };
               };
             };
@@ -80,9 +114,18 @@ makeTest {
               locations = {
                 "/" = {
                   root = "${marlowe-playground.client}";
+                  extraConfig = ''
+                    error_page 404 = @fallback;
+                  '';
                 };
                 "^~ /tutorial/" = {
                   alias = "${marlowe-playground.tutorial}/";
+                  extraConfig = ''
+                    error_page 404 = @fallback;
+                  '';
+                };
+                "/runghc" = {
+                  proxyPass = "http://webghc";
                 };
                 "@fallback" = {
                   proxyPass = "http://marlowe-playground";
@@ -91,14 +134,27 @@ makeTest {
               };
             };
           };
-
         };
       };
 
       environment.systemPackages = with pkgs; [ curl ];
     };
 
+    # ---------------------------------------------------------------------------------------------------------------
+    # webghc : 192.168.1.3 - running webghc with plutus/marlowe deps
+    # --------------------------------------------------------------------------------------------------------------
+
     webghc = { pkgs, ... }: {
+
+      virtualisation.memorySize = "8096";
+
+      networking = {
+        firewall.allowedTCPPorts = [ 80 ];
+        dhcpcd.enable = false;
+        interfaces.eth1.ipv6.addresses = lib.mkOverride 0 [{ address = "fd00::3"; prefixLength = 64; }];
+        interfaces.eth1.ipv4.addresses = lib.mkOverride 0 [{ address = "192.168.1.3"; prefixLength = 24; }];
+      };
+
       imports = [
         ../../modules/web-ghc.nix
       ];
@@ -113,16 +169,31 @@ makeTest {
   };
   testScript = ''
     playgrounds.start()
+    webghc.start()
+    pab.start()
+
+    #
+    # assert connectivity
+    #
+    playgrounds.wait_for_unit("network-online.target")
+    pab.wait_for_unit("network-online.target")
+    webghc.wait_for_unit("network-online.target")
+    playgrounds.succeed("ping -c1 192.168.1.1")
+    playgrounds.succeed("ping -c1 192.168.1.2")
+    playgrounds.succeed("ping -c1 192.168.1.3")
+    pab.succeed("ping -c1 192.168.1.1")
+    pab.succeed("ping -c1 192.168.1.2")
+    pab.succeed("ping -c1 192.168.1.3")
+    webghc.succeed("ping -c1 192.168.1.1")
+    webghc.succeed("ping -c1 192.168.1.2")
+    webghc.succeed("ping -c1 192.168.1.3")
+
+
+    #
+    # playground asserts
+    #
     playgrounds.wait_for_unit("marlowe-playground.service")
     playgrounds.wait_for_unit("plutus-playground.service")
-
-    webghc.start()
-    webghc.wait_for_unit("web-ghc.service")
-    webghc.wait_for_open_port(80)
-
-    pab.start()
-    pab.wait_for_unit("pab.service")
-
     playgrounds.wait_for_unit("nginx.service")
     playgrounds.wait_for_open_port(8080)
     playgrounds.wait_for_open_port(9090)
@@ -130,6 +201,23 @@ makeTest {
     playgrounds.succeed("curl --silent http://plutus-playground:8080/tutorial/ | grep 'The Plutus Platform'")
     playgrounds.succeed("curl --silent http://marlowe-playground:9090/ | grep 'marlowe-playground'")
     playgrounds.succeed("curl --silent http://marlowe-playground:9090/tutorial/ | grep 'Marlowe Tutorial'")
-  '';
 
+    #
+    # webghc asserts
+    #
+    webghc.wait_for_unit("web-ghc.service")
+    webghc.wait_for_open_port(80)
+
+    #
+    # pab asserts
+    #
+    pab.wait_for_unit("pab.service")
+
+    #
+    # plutus-playground / webghc : using api/contract
+    # marlowe-playground / webghc : using /runghc
+    #
+    playgrounds.succeed("curl --silent -H 'Content-Type: application/json' --request POST --data @${plutusApiRequest} http://plutus-playground:8080/api/contract | grep Right")
+    playgrounds.succeed("curl --silent -H 'Content-Type: application/json' --request POST --data @${marloweApiRequest} http://marlowe-playground:9090/runghc | grep Right")
+  '';
 }
