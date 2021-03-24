@@ -772,14 +772,27 @@ lemma51!! = {!!}
  
 -}
 -- this one is specialised to having types of the same kind
-postulate
-  uniquenessE : (A : ∅ ⊢⋆ K)
+
+lemmaE-51 : (A B : ∅ ⊢⋆ K) → A —→⋆ B → ∃ λ J
+  → ∃ λ (L : ∅ ⊢⋆ J ⇒ K)
+  → ∃ λ N
+  → Value⋆ L × Value⋆ N × A ≡ L · N
+lemmaE-51 (ƛ L · N) .(sub (sub-cons ` N) L) (β-ƛ VN) =
+  _ , ƛ L , N , V-ƛ L , VN , refl
+  
+uniquenessE : (A : ∅ ⊢⋆ K)
            → ¬ (Value⋆ A)
-           → (B : ∅ ⊢⋆ J)
+           → (B B' : ∅ ⊢⋆ J)
+           → B —→⋆ B'
            → (E : EvalCtx K J)(E' : EvalCtx K J)
            → A ≡ closeEvalCtx E B
            → A ≡ closeEvalCtx E' B
            → E ≡ E'
+uniquenessE A ¬VA B B' p E E' q q'
+  with lemmaE-51 B B' p
+... | J , L , N , VL , VN , refl
+  with lemma51-good _ _ _ _ q VL VN _ _ _ q' VL VN
+... | refl , refl , X , _ = X
 
 -- the above lemma51! isn't directly useful as it wants a (L · N) not a B...
 
@@ -865,14 +878,6 @@ lemmaE' M E B p with lemma51! (closeEvalCtx E M)
 ... | inj₁ VM = J' , E' , ƛ L · N , (L [ N ]) , β-ƛ VN , q , sym (det p (contextRule E' (β-ƛ VN) q refl)) , inj₂ VM
 ... | inj₂ (¬VM , J'' , E'' , I'' , L' , N' , VL' , VN' , q' , X') with X J'' (compEvalCtx E E'') I'' L' N' VL' VN' (trans (cong (closeEvalCtx E) q') (sym (close-comp E E'' (L' · N'))))
 ... | refl , refl , Y , Y' , Y'' = J' , E' , ƛ L · N , (L [ N ]) , β-ƛ VN , q , sym (det p (contextRule E' (β-ƛ VN) q refl)) , inj₁ (E'' , uniqueness⋆ _ _ E (trans (trans q (cong (λ E → closeEvalCtx E (ƛ L · N)) (sym Y))) (close-comp E E'' (ƛ L · N))))
-
-lemmaE-51 : (A B : ∅ ⊢⋆ K) → A —→⋆ B → ∃ λ J
-  → ∃ λ (L : ∅ ⊢⋆ J ⇒ K)
-  → ∃ λ N
-  → Value⋆ L × Value⋆ N × A ≡ L · N
-lemmaE-51 (ƛ L · N) .(sub (sub-cons ` N) L) (β-ƛ VN) =
-  _ , ƛ L , N , V-ƛ L , VN , refl
-  
 
 decVal : (M : ∅ ⊢⋆ K) → Value⋆ M ⊎ ¬ (Value⋆ M)
 decVal (Π M) = inj₁ (V-Π M)
@@ -971,5 +976,5 @@ lemmaX M E E' L N VM VL VN p | inj₂ (I , E'' , (-· B)) | blah eq | inj₂ (I'
                            (cong (λ E → closeEvalCtx E (L' · N')) (sym (compEF E'' (VM ·-) E''')))))
 ... | refl , refl , r , r' , r'' = inj₂ (inj₂ (inj₁ (_ , _ , refl , E'' , E''' , r , trans (cong (λ B → extendEvalCtx E'' (-· B)) q) (cong₂ (λ L N → extendEvalCtx E'' (-· closeEvalCtx E''' (L · N))) (sym r') (sym r'')) )))
 lemmaX M E E' L N VM VL VN p | inj₂ (I , E'' , (x ·-)) | blah eq rewrite (dissect-lemma _ _ _ eq) with lemma51-good (closeEvalCtx (extendEvalCtx E'' (x ·-)) M) E' L N p VL VN E'' _ M (closeEF E'' (x ·-) M) x VM
-lemmaX M E E' L N VM VL VN p | inj₂ (I , E'' , (x ·-)) | blah eq | (refl , refl , refl , refl , refl) rewrite val-unique VL x = inj₁ (refl , uniquenessE _ (λ V → lemE· E' (subst Value⋆ p V)) _ _ _ refl refl)
+lemmaX M E E' L N VM VL VN p | inj₂ (I , E'' , (x ·-)) | blah eq | (refl , refl , refl , refl , refl) rewrite val-unique VL x = inj₁ (refl , refl)
 

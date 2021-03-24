@@ -218,6 +218,7 @@ lem62 A B E (μl E' C) refl = step*
   refl
   (lem62 A _ (extendEvalCtx E (μ- C)) E' refl)
 
+-- this is like a weakening of the environment
 lem-→⋆ : (A B : ∅ ⊢⋆ J)(E : EvalCtx K J) → A —→⋆ B → (E ▻ A) -→s (E ▻ B)
 lem-→⋆ (ƛ A · B) ._ E (β-ƛ V) = step* refl (step* refl (step* (helper·l-lem E B (V-ƛ A) ) (step** (lemV B V (extendEvalCtx E (V-ƛ A ·-))) (step* (helper·r-lem E B V) base))))
 
@@ -243,24 +244,29 @@ thm1 : (A : ∅ ⊢⋆ J)(A' : ∅ ⊢⋆ K)(E : EvalCtx K J)
 thm1 M A E p .A V refl—↠E = unwind M A E p V
 thm1 M A E refl B V (trans—↠E {B = B'} q q') with lemmaE' M E B' q
 -- this is the first case
-... | J' , E' , L , N , r , r' , r'' , inj₁ (E'' , r''') = step**
-  ((step** (lem62 L M E E'' r''')
+... | J' , E' , L , N , r , r' , r'' , inj₁ (E'' , refl) =
+  step**
+   ((step** (lem62 L M E E'' refl)
           (subst-step* (cong (λ E → J' , E ▻ L)
-                       (sym (uniquenessE
+                       ((sym (uniquenessE
                          (closeEvalCtx E M)
                          (λ V → notboth (closeEvalCtx E M) (V , _ , q))
                          L
+                         N
+                         r
                          E'
                          (compEvalCtx' E E'')
                          r'
                          (trans
                            refl
-                           (trans (cong (closeEvalCtx E) r''')
+                           (trans (cong (closeEvalCtx E) refl)
                                   (trans (sym (close-comp E E'' L))
                                          (cong (λ E → closeEvalCtx E L)
-                                               (compEvalCtx-eq E E''))))))))
+                                               (compEvalCtx-eq E E'')))))))))
                        (lem-→⋆ _ _ E' r))))
-  (thm1 N B' E' (sym r'') B V q')
+   (thm1 N B' E' (sym r'') B V q')
+{-                        -}
+
 ... | J' , E' , L , N , r , r' , r'' , inj₂ VM with lemmaE-51 L N r
 ... | I , _ , N' , V-ƛ L' , VN' , refl with lemmaX M E E' _ N' VM (V-ƛ L') VN' r'
 ... | inj₁ (refl , refl) = step**
