@@ -23,6 +23,7 @@ module Plutus.Contract.StateMachine.OnChain(
     , mkStateMachine
     , machineAddress
     , mkValidator
+    , threadTokenValue
     ) where
 
 import           Data.Aeson                       (FromJSON, ToJSON)
@@ -66,6 +67,11 @@ data StateMachine s i = StateMachine {
       smThreadToken :: Maybe Currency
     }
 
+{-# INLINABLE threadTokenValue #-}
+-- | The 'Value' containing exactly the thread token, if one has been specified.
+threadTokenValue :: StateMachine s i -> Value
+threadTokenValue StateMachine{smThreadToken} = maybe mempty (\c -> Value.currencyValue c 1) smThreadToken
+
 -- | A state machine that does not perform any additional checks on the
 --   'ScriptContext' (beyond enforcing the constraints)
 mkStateMachine
@@ -98,7 +104,7 @@ machineAddress = scriptAddress . validatorInstance
 {-# INLINABLE mkValidator #-}
 -- | Turn a state machine into a validator script.
 mkValidator :: forall s i. (PlutusTx.IsData s) => StateMachine s i -> ValidatorType (StateMachine s i)
-mkValidator (StateMachine step isFinal check threadToken) currentState input ptx =
+mkValidator sm@(StateMachine step isFinal check _) currentState input ptx =
     let vl = maybe (error ()) (txOutValue . txInInfoResolved) (findOwnInput ptx)
         checkOk = traceIfFalse "State transition invalid - checks failed" (check currentState input ptx)
         oldState = State{stateData=currentState, stateValue=vl}
@@ -108,13 +114,12 @@ mkValidator (StateMachine step isFinal check threadToken) currentState input ptx
                     traceIfFalse "Non-zero value allocated in final state" (isZero newValue)
                     && traceIfFalse "State transition invalid - constraints not satisfied by ScriptContext" (checkScriptContext newConstraints ptx)
                 | otherwise ->
-                    let tkVal = maybe mempty (\c -> Value.currencyValue c 1) threadToken
-                        txc =
+                    let txc =
                             newConstraints
                                 { txOwnOutputs=
                                     [ OutputConstraint
                                         { ocDatum = newData
-                                        , ocValue = newValue <> tkVal
+                                        , ocValue = newValue <> threadTokenValue sm
                                         }
                                     ]
                                 }

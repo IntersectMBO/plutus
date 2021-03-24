@@ -162,8 +162,8 @@ threadTokenChooser cur states =
     let flt (TypedScriptTxOut{tyTxOutTxOut=TxOut{txOutValue}},_) = Value.currencyValue cur 1 `Value.leq` txOutValue in
     case filter flt states of
         [x] -> Right x
-        _ ->
-            let msg = unwords ["Found ", show (length states), "outputs with thread token ", show cur, "expected 1"]
+        xs ->
+            let msg = unwords ["Found ", show (length xs), "outputs with thread token ", show cur, "expected 1"]
             in Left (ChooserError (Text.pack msg))
 
 -- | A state machine client with the 'defaultChooser' function
@@ -337,8 +337,8 @@ runInitialise ::
     -- ^ The value locked by the contract at the beginning
     -> Contract w schema e state
 runInitialise StateMachineClient{scInstance} initialState initialValue = mapError (review _SMContractError) $ do
-    let StateMachineInstance{validatorInstance} = scInstance
-        tx = mustPayToTheScript initialState initialValue
+    let StateMachineInstance{validatorInstance, stateMachine} = scInstance
+        tx = mustPayToTheScript initialState (initialValue <> SM.threadTokenValue stateMachine)
     let lookups = Constraints.scriptInstanceLookups validatorInstance
     utx <- either (throwing _ConstraintResolutionError) pure (Constraints.mkTx lookups tx)
     submitTxConfirmed utx
@@ -366,7 +366,8 @@ mkStep ::
     -> input
     -> Contract w schema e (Either (InvalidTransition state input) (StateMachineTransition state input))
 mkStep client@StateMachineClient{scInstance} input = do
-    let StateMachineInstance{stateMachine=StateMachine{smTransition}, validatorInstance} = scInstance
+    let StateMachineInstance{stateMachine, validatorInstance} = scInstance
+        StateMachine{smTransition} = stateMachine
     maybeState <- getOnChainState client
     case maybeState of
         Nothing -> pure $ Left $ InvalidTransition Nothing input
@@ -383,7 +384,7 @@ mkStep client@StateMachineClient{scInstance} input = do
                         outputConstraints =
                             if smFinal (SM.stateMachine scInstance) (stateData newState)
                                 then []
-                                else [OutputConstraint{ocDatum = stateData newState, ocValue = stateValue newState }]
+                                else [OutputConstraint{ocDatum = stateData newState, ocValue = stateValue newState <> SM.threadTokenValue stateMachine }]
                     in pure
                         $ Right
                         $ StateMachineTransition

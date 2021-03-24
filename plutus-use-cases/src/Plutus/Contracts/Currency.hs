@@ -26,6 +26,8 @@ module Plutus.Contracts.Currency(
     -- * Simple monetary policy currency
     , SimpleMPS(..)
     , forgeCurrency
+    -- * Creating thread tokens
+    , createThreadToken
     ) where
 
 import           Control.Lens
@@ -44,7 +46,7 @@ import           Ledger.Scripts
 import qualified PlutusTx                as PlutusTx
 
 import qualified Ledger.Typed.Scripts    as Scripts
-import           Ledger.Value            (TokenName, Value)
+import           Ledger.Value            (Currency, TokenName, Value)
 import qualified Ledger.Value            as Value
 
 import           Data.Aeson              (FromJSON, ToJSON)
@@ -198,3 +200,17 @@ forgeCurrency = do
     cur <- forgeContract ownPK [(tokenName, amount)]
     tell (Just (Last cur))
     pure cur
+
+-- | Create a thread token for a state machine
+createThreadToken ::
+    forall s w.
+    ( HasOwnPubKey s
+    , HasTxConfirmation s
+    , HasWriteTx s
+    )
+    => Contract w s CurrencyError Currency
+createThreadToken = do
+    ownPK <- pubKeyHash <$> ownPubKey
+    let tokenName :: TokenName = "thread token"
+    s <- forgeContract ownPK [(tokenName, 1)]
+    pure $ Value.currency (currencySymbol s) tokenName
