@@ -224,15 +224,67 @@ lem-→⋆ (ƛ A · B) ._ E (β-ƛ V) = step* refl (step* refl (step* (helper·l
 
 open import Data.Empty
 
+-- I think this would be structurally recurisve on the depth of the
+-- EvalCtx. dissect (which rips out the inner frame) reduces this by
+-- one every time. The termination checker cannot see that the call to
+-- dissect returns an E' that is smaller than E.
+
+{-# TERMINATING #-}
+unwindV : (A : ∅ ⊢⋆ J)(VA : Value⋆ A)(A' : ∅ ⊢⋆ K)(E : EvalCtx K J)
+  → A' ≡ closeEvalCtx E A → (V : Value⋆ A') → (E ◅ VA) -→s ([] ◅ V)
+unwindV A VA A' E p V with dissect' E | inspect dissect' E
+unwindV A VA A' E refl V | inj₁ (refl , refl) | I[ eq ]
+  rewrite val-unique VA V
+  = base 
+unwindV A VA A' E p V | inj₂ (I , E'  , (-· B)) | I[ eq ]
+  rewrite dissect-lemma E E' (-· B) eq
+  = ⊥-elim (lemV· (lem0 _ E' (subst Value⋆ (trans p (closeEF E' (-· B) A)) V)))
+... | inj₂ (I , E'  , (W ·-)) | I[ eq ]
+  rewrite dissect-lemma E E' (W ·-) eq
+  = ⊥-elim (lemV· (lem0 _ E' (subst Value⋆ (trans p (closeEF E' (W ·-) A)) V)))
+... | inj₂ (.* , E' , (-⇒ B)) | I[ eq ]
+  rewrite dissect-lemma E E' (-⇒ B) eq with decVal B
+... | inj₁ VB  = step*
+  (cong (helper VA) (lemma E' (-⇒ B)))
+  (step**
+    (lemV B VB (extendEvalCtx E' (VA ⇒-)))
+    (step*
+      (cong (helper VB) (lemma E' (VA ⇒-)))
+      (unwindV _ (VA V-⇒ VB) A' E' (trans p (closeEF E' (-⇒ B) A)) V)))
+... | inj₂ ¬VB = ⊥-elim (¬VB VB)
+  where X : A' ≡ closeEvalCtx (extendEvalCtx E' (VA ⇒-)) B
+        X = trans (trans p (closeEF E' (-⇒ B) A)) (sym (closeEF E' (VA ⇒-) B))
+        VB : Value⋆ B
+        VB = lem0 B (extendEvalCtx E' (VA ⇒-)) (subst Value⋆ X V)
+unwindV A VA A' E p V | inj₂ (.* , E' , (W ⇒-)) | I[ eq ]
+  rewrite dissect-lemma E E' (W ⇒-) eq = step*
+  (cong (helper VA) (lemma E' (W ⇒-)))
+  (unwindV _ (W V-⇒ VA) A' E' (trans p (closeEF E' (W ⇒-) A)) V)
+unwindV A VA A' E p V | inj₂ (.* , E' , (μ- B)) | I[ eq ]
+  rewrite dissect-lemma E E' (μ- B) eq with decVal B
+... | inj₁ VB  = step*
+  (cong (helper VA) (lemma E' (μ- B)))
+  (step**
+    (lemV B VB _)
+    (step* (cong (helper VB) (lemma E' (μ VA -)))
+    (unwindV _ (V-μ VA VB) A' E' (trans p (closeEF E' (μ- B) A)) V)))
+... | inj₂ ¬VB = ⊥-elim (¬VB VB)
+  where X : A' ≡ closeEvalCtx (extendEvalCtx E' (μ VA -)) B
+        X = trans (trans p (closeEF E' (μ- B) A)) (sym (closeEF E' (μ VA -) B))
+        VB : Value⋆ B
+        VB = lem0 B (extendEvalCtx E' (μ VA -)) (subst Value⋆ X V)
+
+unwindV A VA A' E p V | inj₂ (.* , E' , μ W -) | I[ eq ]
+  rewrite dissect-lemma E E' (μ W -) eq
+  = step* (cong (helper VA) (lemma E' (μ W -)))
+          (unwindV _ (V-μ W VA) A' E' (trans p (closeEF E' (μ W -) A)) V)
+
+
+
 unwind : (A : ∅ ⊢⋆ J)(A' : ∅ ⊢⋆ K)(E : EvalCtx K J) → A' ≡ closeEvalCtx E A → (V : Value⋆ A') → (E ▻ A) -→s ([] ◅ V)
-unwind A A' E p VA' with dissect' E | inspect dissect' E
-unwind A A' E refl VA' | inj₁ (refl , refl) | I[ eq ] = lemV A VA' []
-unwind A A' E p VA' | inj₂ (I  , E' , (-· B)) | I[ eq ] rewrite dissect-lemma E E' (-· B) eq = ⊥-elim (lemV· (lem0 _ E' (subst Value⋆ (trans p (closeEF E' (-· B) A)) VA')))
-unwind A A' E p VA' | inj₂ (I  , E' , (V ·-)) | I[ eq ] rewrite dissect-lemma E E' (V ·-) eq = ⊥-elim (lemV· (lem0 _ E' (subst Value⋆ (trans p (closeEF E' (V ·-) A)) VA')))
-unwind A A' E p VA' | inj₂ (.* , E' , (-⇒ B)) | I[ eq ] = {!!}
-unwind A A' E p VA' | inj₂ (.* , E' , (V ⇒-)) | I[ eq ] = {!!}
-unwind A A' E p VA' | inj₂ (.* , E' , (μ- B)) | I[ eq ] = {!!}
-unwind A A' E p VA' | inj₂ (.* , E' , μ V -)  | I[ eq ] = {!!}
+unwind A A' E p VA' = step** (lemV A VA E) (unwindV A VA A' E p VA')
+  where VA = lem0 A E (subst Value⋆ p VA')
+
 
 β-lem : A ≡ ƛ A' · B' → A —→⋆ B → B ≡ A' [ B' ]
 β-lem refl (β-ƛ x) = refl

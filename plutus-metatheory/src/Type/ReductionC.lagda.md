@@ -754,24 +754,6 @@ lemma51-good M E L N p VL VN E' L' N' p' VL' VN' with lemma51! M
 ... | inj₂ (¬VM , J'' , E'' , I'' , L'' , N'' , VL'' , VN'' , p'' , X) with X _ E _  L  N  VL  VN p | X _ E' _ L' N' VL' VN' p'
 ... | refl , refl , refl , refl , refl | refl , refl , refl , refl , refl = refl , refl , refl , refl , refl
 
-{- 
-
-possibly lemma51! might be more useful if it wasn't so picky about
-the shape of the unique thing in the context...
-
-
-
-lemma51!! : (M : ∅ ⊢⋆ K) → Value⋆ M ⊎ ¬ (Value⋆ M) × ∃ λ J → ∃ λ (E : EvalCtx K J) → ∃ λ I → ∃ λ (L : ∅ ⊢⋆ I ⇒ J) → ∃ λ (N : ∅ ⊢⋆ I) → Value⋆ L × Value⋆ N × M ≡ closeEvalCtx E (L · N)
-    -- uniqueness condition
-    × ∀ J'
-      (E' : EvalCtx K J')
-      (O : ∅ ⊢⋆ J') →
-      M ≡ closeEvalCtx E' O →
-      ∃ λ (p : J' ≡ J) → subst (EvalCtx K) p E' ≡ E
-lemma51!! = {!!}
- 
--}
--- this one is specialised to having types of the same kind
 
 lemmaE-51 : (A B : ∅ ⊢⋆ K) → A —→⋆ B → ∃ λ J
   → ∃ λ (L : ∅ ⊢⋆ J ⇒ K)
@@ -793,8 +775,6 @@ uniquenessE A ¬VA B B' p E E' q q'
 ... | J , L , N , VL , VN , refl
   with lemma51-good _ _ _ _ q VL VN _ _ _ q' VL VN
 ... | refl , refl , X , _ = X
-
--- the above lemma51! isn't directly useful as it wants a (L · N) not a B...
 
 -- this one is simpler, just injectivity...
 uniqueness⋆ : (B B' : ∅ ⊢⋆ J)
@@ -827,20 +807,6 @@ v-refl A B V (trans—↠E p q) = ⊥-elim (notboth A (V , _ , p))
 ```
 
 ```
--- this is the first step of the case analysis from the paper proof
-
--- there's not particular reason why this doesn't take an arbitrary
--- term instead of E [ M ]
-lemmaE : ∀ (M : ∅ ⊢⋆ J)(E : EvalCtx K J) B
-  → closeEvalCtx E M —→E B
-  → ∃ λ J' → ∃ λ E' → ∃ λ (L : ∅ ⊢⋆ J') → ∃ λ N → (L —→⋆ N)
-  × closeEvalCtx E  M ≡ closeEvalCtx E' L
-  × closeEvalCtx E' N ≡ B  
-lemmaE M E B p with lemma51 (closeEvalCtx E M)
-... | inj₁ V = ⊥-elim (notboth (closeEvalCtx E M) (V , _ , p))
-... | inj₂ (J' , E' , I , _ , N , V-ƛ L , VN , q)  =
-  J' , E' , ƛ L · N , (L [ N ]) , β-ƛ VN , q , sym (det p (contextRule E' (β-ƛ VN) q refl))
-
 dissect' : (E : EvalCtx K J) → (Σ (K ≡ J) λ p → subst (λ K → EvalCtx K J) p E ≡ []) ⊎ Σ Kind λ I → EvalCtx K I × Frame I J
 dissect' [] = inj₁ (refl , refl)
 dissect' (V ·r E) with dissect' E 
@@ -861,10 +827,6 @@ dissect' (μr V E) with dissect' E
 dissect' (μl E B) with dissect' E
 ... | inj₁ (refl , refl) = inj₂ (-, [] , μ- B)
 ... | inj₂ (_ , E' , f) = inj₂ (-, μl E' B , f)
-
-
--- this gives part of the case analysis but we need further analysis
--- of when M is a value
 
 lemmaE' : ∀ (M : ∅ ⊢⋆ J)(E : EvalCtx K J) B
   → closeEvalCtx E M —→E B
