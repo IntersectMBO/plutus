@@ -17,6 +17,7 @@ in
         If enabled the marlowe-playground server will be started.
       '';
     };
+
     port = mkOption {
       type = types.port;
       default = 4001;
@@ -24,6 +25,23 @@ in
         Port the marlowe-playground server should bind to.
       '';
     };
+
+    frontendURL = mkOption {
+      type = types.str;
+      default = "http://localhost:4000";
+      description = ''
+        URL where the plutus playground is served.
+      '';
+    };
+
+    githubCallbackPath = mkOption {
+      type = types.str;
+      default = "/#/gh-oauth-cb";
+      description = ''
+        The github callback path
+      '';
+    };
+
     playground-server-package = mkOption {
       type = types.package;
       description = ''
@@ -62,6 +80,9 @@ in
         else
           echo "No environment config. Using defaults"
         fi
+
+        export FRONTEND_URL=${cfg.frontendURL}
+        export GITHUB_CALLBACK_PATH=${cfg.githubCallbackPath}
 
         ${cfg.playground-server-package}/bin/marlowe-playground-server webserver -p ${builtins.toString cfg.port}
       '';

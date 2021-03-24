@@ -17,6 +17,8 @@ makeTest {
       services.marlowe-playground = {
         enable = true;
         port = 4001;
+        frontendURL = "http://localhost:4000";
+        githubCallbackPath = "/#/gh-oauth-cb";
         playground-server-package = marlowe-playground.server;
       };
     };
