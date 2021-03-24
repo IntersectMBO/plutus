@@ -149,7 +149,9 @@ and we serialize it base16 encoded, with 0x in front so it will look as a hex st
 
 instance ToJSON TokenName where
     toJSON = JSON.object . Haskell.pure . (,) "unTokenName" . JSON.toJSON .
-        fromTokenName (\bs -> Text.cons '\0' (asBase16 bs)) id
+        fromTokenName
+            (\bs -> Text.cons '\NUL' (asBase16 bs))
+            (\t -> case Text.take 1 t of "\NUL" -> Text.concat ["\NUL\NUL", t]; _ -> t)
 
 instance FromJSON TokenName where
     parseJSON =
@@ -157,9 +159,10 @@ instance FromJSON TokenName where
         raw <- object .: "unTokenName"
         fromJSONText raw
         where
-            fromJSONText t = case Text.take 1 t of
-                "\0" -> either fail (Haskell.pure . TokenName) . JSON.tryDecode . Text.drop 3 $ t
-                _    -> Haskell.pure . fromText $ t
+            fromJSONText t = case Text.take 3 t of
+                "\NUL0x"       -> either fail (Haskell.pure . TokenName) . JSON.tryDecode . Text.drop 3 $ t
+                "\NUL\NUL\NUL" -> Haskell.pure . fromText . Text.drop 3 $ t
+                _              -> Haskell.pure . fromText $ t
 
 makeLift ''TokenName
 
