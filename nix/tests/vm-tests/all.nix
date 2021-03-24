@@ -1,4 +1,4 @@
-{ makeTest, lib, plutus-pab, plutus-playground, marlowe-playground, marlowe-dashboard, web-ghc }:
+{ makeTest, lib, plutus-pab, plutus-playground, marlowe-playground, marlowe-dashboard, marlowe-app, web-ghc }:
 let
   plutusApiRequest = builtins.toFile "plutus-request.json" (builtins.readFile ./contract-api-request.json);
   marloweApiRequest = builtins.toFile "marlowe-request.json" (builtins.readFile ./runghc-api-request.json);
@@ -26,6 +26,7 @@ makeTest {
       services.pab = {
         enable = true;
         pab-package = plutus-pab.pab-exes.plutus-pab;
+        contracts = [ "${marlowe-app}/bin/marlowe-app" ];
         staticContent = marlowe-dashboard.client;
         dbFile = "/var/lib/pab/pab-core.db";
         defaultWallet = 1;
