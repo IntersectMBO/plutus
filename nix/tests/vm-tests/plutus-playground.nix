@@ -17,6 +17,9 @@ makeTest {
       services.plutus-playground = {
         enable = true;
         port = 4000;
+        webghcURL = "http://localhost:4000";
+        frontendURL = "http://localhost:4000";
+        githubCallbackPath = "/#/gh-oauth-cb";
         playground-server-package = plutus-playground.server;
       };
     };

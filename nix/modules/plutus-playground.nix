@@ -12,6 +12,31 @@ in
         If enabled the plutus-playground server will be started.
       '';
     };
+
+    webghcURL = mkOption {
+      type = types.str;
+      default = "http://localhost:4000";
+      description = ''
+        The webghc endpoint serving /runghc for compilation requests.
+      '';
+    };
+
+    frontendURL = mkOption {
+      type = types.str;
+      default = "http://localhost:4000";
+      description = ''
+        URL where the plutus playground is served.
+      '';
+    };
+
+    githubCallbackPath = mkOption {
+      type = types.str;
+      default = "/#/gh-oauth-cb";
+      description = ''
+        The github callback path
+      '';
+    };
+
     port = mkOption {
       type = types.port;
       default = 4000;
@@ -55,6 +80,10 @@ in
         else
           echo "No environment config. Using defaults"
         fi
+
+        export WEBGHC_URL=${cfg.webghcURL}
+        export FRONTEND_URL=${cfg.frontendURL}
+        export GITHUB_CALLBACK_PATH=${cfg.githubCallbackPath}
 
         ${cfg.playground-server-package}/bin/plutus-playground-server webserver -p ${builtins.toString cfg.port};
       '';
