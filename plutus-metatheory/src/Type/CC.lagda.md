@@ -218,32 +218,6 @@ lem62 A B E (μl E' C) refl = step*
   refl
   (lem62 A _ (extendEvalCtx E (μ- C)) E' refl)
 
-lem1 : (M : ∅ ⊢⋆ J)(B B' : ∅ ⊢⋆ K)(E : EvalCtx K J)
-  → B ≡ closeEvalCtx E M
-  → B —→E B'
-  → Σ Kind λ J'
-  → Σ (∅ ⊢⋆ J') λ N
-  → Σ (EvalCtx K J') λ E'
-  → B' ≡ closeEvalCtx E' N
-  × (E ▻ M) -→s (E' ▻ N)
-  × Σ (∅ ⊢⋆ J') λ L
-  → (B ≡ closeEvalCtx E' L)
-  × (L —→E N)
-lem1 M B B' p = {!!}
-
--- this is a really a view or case analysis principle
--- "there are only 4 possibilities"
-lem2 : (M : ∅ ⊢⋆ J)(B : ∅ ⊢⋆ K)(E : EvalCtx K J)
-  → (N : ∅ ⊢⋆ J')(B' : ∅ ⊢⋆ K)(E' : EvalCtx K J')
-  → B ≡ closeEvalCtx E M
-  → B' ≡ closeEvalCtx E' N
-  → B —→E B'
-  → Σ (∅ ⊢⋆ J') λ L → (B ≡ closeEvalCtx E' L)
-  × (L —→⋆ N) × 
-  ((Σ (EvalCtx J J') λ E'' → M ≡ closeEvalCtx E'' L)
-  ⊎ Value⋆ M × Σ (Frame J' J) λ F → E ≡ extendEvalCtx E' F)
-lem2 M B E N B' E' p q r = {!!}
-
 lem-→⋆ : (A B : ∅ ⊢⋆ J)(E : EvalCtx K J) → A —→⋆ B → (E ▻ A) -→s (E ▻ B)
 lem-→⋆ (ƛ A · B) ._ E (β-ƛ V) = step* refl (step* refl (step* (helper·l-lem E B (V-ƛ A) ) (step** (lemV B V (extendEvalCtx E (V-ƛ A ·-))) (step* (helper·r-lem E B V) base))))
 
@@ -254,8 +228,62 @@ unwind = {!!}
 β-lem refl (β-ƛ x) = refl
 
 -- thm2 follows from this stronger theorem
+open import Data.Empty
+
 thm1 : (A : ∅ ⊢⋆ J)(A' : ∅ ⊢⋆ K)(E : EvalCtx K J)
   → A' ≡ closeEvalCtx E A → (B : ∅ ⊢⋆ K)(V : Value⋆ B) → A' —↠E B -> (E ▻ A) -→s ([] ◅ V)
+thm1 M A E p .A V refl—↠E = unwind M A E p V
+thm1 M A E refl B V (trans—↠E {B = B'} q q') with lemmaE' M E B' q
+-- this is the first case
+... | J' , E' , L , N , r , r' , r'' , inj₁ (E'' , r''') = step**
+  ((step** (lem62 L M E E'' r''')
+          (subst-step* (cong (λ E → J' , E ▻ L)
+                       (sym (uniquenessE
+                         (closeEvalCtx E M)
+                         (λ V → notboth (closeEvalCtx E M) (V , _ , q))
+                         L
+                         E'
+                         (compEvalCtx' E E'')
+                         r'
+                         (trans
+                           refl
+                           (trans (cong (closeEvalCtx E) r''')
+                                  (trans (sym (close-comp E E'' L))
+                                         (cong (λ E → closeEvalCtx E L)
+                                               (compEvalCtx-eq E E''))))))))
+                       (lem-→⋆ _ _ E' r))))
+  (thm1 N B' E' (sym r'') B V q')
+... | J' , E' , L , N , r , r' , r'' , inj₂ VM with lemmaE-51 L N r
+... | I , _ , N' , V-ƛ L' , VN' , refl with lemmaX M E E' _ N' VM (V-ƛ L') VN' r'
+... | inj₁ (refl , refl) = step**
+  (step** (lemV M VM E) (step* (cong (helper VM) (lemma E' (V-ƛ L' ·-)))
+          (subst-step* (cong (λ A → J' , E' ▻ A)
+                             (sym (β-lem (uniqueness⋆ (ƛ L' · N')
+                                                      (ƛ L' · M)
+                                                      E'
+                                                      (trans (sym r')
+                                                             (closeEF E' _ M)))
+                                         r)))
+                       base)))
+  (thm1 N B' E' (sym r'') B V q')
+thm1 M A E refl B V (trans—↠E {B = B'} q q') | J' , E' , L , N , r , r' , r'' , inj₂ VM | I , _ , N' , V-ƛ L' , VN' , refl | inj₂ (inj₁ (refl , refl)) with uniqueness⋆ _ _ E' (trans (sym (closeEF E' (-· N') M)) r')
+... | refl = step**
+  (step*
+    refl
+    (step*
+      (cong (helper (V-ƛ L')) (lemma E' (-· N')))
+      (step**
+        (lemV N' VN' (extendEvalCtx E' (V-ƛ L' ·-)))
+        (step*
+          (cong (helper VN') (lemma E' (V-ƛ L' ·-)))
+          (subst-step* (cong (λ A → J' , E' ▻ A) (sym (β-lem refl r))) base)))))
+  (thm1 N B' E' (sym r'') B V q')
+thm1 M A E refl B V (trans—↠E {B = B'} q q') | J' , E' , L , N , r , r' , r'' , inj₂ VM | I , _ , N' , V-ƛ L' , VN' , refl | inj₂ (inj₂ (inj₁ x)) = {!!}
+thm1 M A E refl B V (trans—↠E {B = B'} q q') | J' , E' , L , N , r , r' , r'' , inj₂ VM | I , _ , N' , V-ƛ L' , VN' , refl | inj₂ (inj₂ (inj₂ (inj₁ x))) = {!!}
+thm1 M A E refl B V (trans—↠E {B = B'} q q') | J' , E' , L , N , r , r' , r'' , inj₂ VM | I , _ , N' , V-ƛ L' , VN' , refl | inj₂ (inj₂ (inj₂ (inj₂ (inj₁ x)))) = {!!}
+thm1 M A E refl B V (trans—↠E {B = B'} q q') | J' , E' , L , N , r , r' , r'' , inj₂ VM | I , _ , N' , V-ƛ L' , VN' , refl | inj₂ (inj₂ (inj₂ (inj₂ (inj₂ y)))) = {!y!}
+
+{-
 thm1 A A' E p .A' V refl—↠E = unwind A A' E p V
 thm1 A A' E p B V (trans—↠E {B = B'} q r) with lemma51 B'
 ... | inj₁ V' with v-refl B' B V' r
@@ -266,6 +294,7 @@ thm1 A A' E p B' V (trans—↠E {B = B'} (contextRule E₁ (β-ƛ x) x₁ x₂)
 -- otherside of getting a unique decomposition...
 
 -- in that case, B' is already a value, so we could plug in the [] for the recursive call... 
+
 
 
 thm1 A A' E p B V (trans—↠E {B = B'} q r)
@@ -289,7 +318,7 @@ thm1 A A' E p B V (trans—↠E {B = B'} q r)
                                                (compEvalCtx-eq E E''))))))))
                        (lem-→⋆ _ _ E' XX)))
   (thm1 (L · N) B' E' X B V r)
-... | L' , p' , XX , inj₂ (VA , (-· x) , snd) = {!!}
+... | L' , p' , XX , inj₂ (VA , (-· x) , snd) = {!!} -- is this the application case I need?
 ... | L' , p' , XX , inj₂ (VA , (V-ƛ N₁ ·-) , refl) = step**
   (step** (lemV A VA _)
           (step* (cong (helper VA) (lemma E' (V-ƛ N₁ ·-)))
@@ -301,16 +330,18 @@ thm1 A A' E p B V (trans—↠E {B = B'} q r)
   YY = trans p (closeEF E' (V-ƛ N₁ ·-) A)
   ZZ : L' ≡ ƛ N₁ · A
   ZZ = uniqueness⋆ L' (ƛ N₁ · A) E' (trans (sym p') YY)
+-- here are the other cases for 
 ... | L' , p' , XX , inj₂ (VA , (-⇒ x) , snd) = {!!}
 ... | L' , p' , XX , inj₂ (VA , (x ⇒-) , snd) = {!!}
 ... | L' , p' , XX , inj₂ (VA , (μ- B₁) , snd) = {!!}
 ... | L' , p' , XX , inj₂ (VA , μ x - , snd) = {!!}
-
+-}
 -- step** (lemV A VA E)
 --  = step** {!lem2 A A' E (L · N) B' E' p X q!} (thm1 (L · N) B' E' X B V r)
 -- we have E [ A ] -> E [ L . N ]
 -- then r is reflexivity but we still have one step which goes to a value
 -- this is the result we want
+
 thm2 : (A B : ∅ ⊢⋆ K)(V : Value⋆ B) → A —↠E B -> ([] ▻ A) -→s ([] ◅ V)
 thm2 A B V p = thm1 A A [] refl B V p
 ```

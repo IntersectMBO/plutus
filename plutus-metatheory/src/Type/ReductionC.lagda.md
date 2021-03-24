@@ -866,6 +866,14 @@ lemmaE' M E B p with lemma51! (closeEvalCtx E M)
 ... | inj₂ (¬VM , J'' , E'' , I'' , L' , N' , VL' , VN' , q' , X') with X J'' (compEvalCtx E E'') I'' L' N' VL' VN' (trans (cong (closeEvalCtx E) q') (sym (close-comp E E'' (L' · N'))))
 ... | refl , refl , Y , Y' , Y'' = J' , E' , ƛ L · N , (L [ N ]) , β-ƛ VN , q , sym (det p (contextRule E' (β-ƛ VN) q refl)) , inj₁ (E'' , uniqueness⋆ _ _ E (trans (trans q (cong (λ E → closeEvalCtx E (ƛ L · N)) (sym Y))) (close-comp E E'' (ƛ L · N))))
 
+lemmaE-51 : (A B : ∅ ⊢⋆ K) → A —→⋆ B → ∃ λ J
+  → ∃ λ (L : ∅ ⊢⋆ J ⇒ K)
+  → ∃ λ N
+  → Value⋆ L × Value⋆ N × A ≡ L · N
+lemmaE-51 (ƛ L · N) .(sub (sub-cons ` N) L) (β-ƛ VN) =
+  _ , ƛ L , N , V-ƛ L , VN , refl
+  
+
 decVal : (M : ∅ ⊢⋆ K) → Value⋆ M ⊎ ¬ (Value⋆ M)
 decVal (Π M) = inj₁ (V-Π M)
 decVal (M ⇒ N) with decVal M
