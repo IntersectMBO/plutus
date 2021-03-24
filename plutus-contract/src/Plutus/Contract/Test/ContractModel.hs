@@ -139,10 +139,15 @@ import           Test.QuickCheck                            hiding ((.&&.))
 import           Test.QuickCheck.Monadic                    as QC (PropertyM, monadic)
 import qualified Test.QuickCheck.Monadic                    as QC
 
+-- | Key-value map where keys and values have three indices that can vary between different elements
+--   of the map. Used to store `ContractHandle`s, which are indexed over observable state, schema,
+--   and error type.
 data IMap (key :: i -> j -> k -> *) (val :: i -> j -> k -> *) where
     IMNil  :: IMap key val
     IMCons :: (Typeable i, Typeable j, Typeable k) => key i j k -> val i j k -> IMap key val -> IMap key val
 
+-- | Look up a value in an indexed map. First checks that the indices agree, using `cast`. Once the
+--   type checker is convinced that the indices match we can check the key for equality.
 imLookup :: (Typeable i, Typeable j, Typeable k, Typeable key, Typeable val, Eq (key i j k)) => key i j k -> IMap key val -> Maybe (val i j k)
 imLookup _ IMNil = Nothing
 imLookup k (IMCons key val m) =
