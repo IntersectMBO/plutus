@@ -65,8 +65,8 @@ data GameModel = GameModel
 makeLenses 'GameModel
 -- END GameModel
 
-deriving instance Eq (ContractInstanceKey GameModel schema err)
-deriving instance Show (ContractInstanceKey GameModel schema err)
+deriving instance Eq (ContractInstanceKey GameModel w schema err)
+deriving instance Show (ContractInstanceKey GameModel w schema err)
 
 -- START instance ContractModel and Action type
 instance ContractModel GameModel where
@@ -78,8 +78,8 @@ instance ContractModel GameModel where
 -- END instance ContractModel and Action type
 
 -- START ContractInstanceKey
-    data ContractInstanceKey GameModel schema err where
-        WalletKey :: Wallet -> ContractInstanceKey GameModel G.GameStateMachineSchema G.GameError
+    data ContractInstanceKey GameModel w schema err where
+        WalletKey :: Wallet -> ContractInstanceKey GameModel () G.GameStateMachineSchema G.GameError
 -- END ContractInstanceKey
 
 -- START initialState

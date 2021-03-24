@@ -61,6 +61,7 @@ executable doc-doctests
       plutus-use-cases -any,
       prettyprinter -any,
       containers -any,
+      freer-extras -any,
       lens -any,
       QuickCheck -any,
       random -any,
