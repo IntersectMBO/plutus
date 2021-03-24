@@ -25,6 +25,7 @@ import           PlutusPrelude
 import           UntypedPlutusCore.Evaluation.Machine.Cek.Internal
 
 import           PlutusCore.Evaluation.Machine.ExBudget
+import           PlutusCore.Evaluation.Machine.ExMemory            (ExCPU (..), ExMemory (..))
 import           PlutusCore.Evaluation.Machine.Exception
 
 import           Control.Lens                                      (ifoldMap)
@@ -115,7 +116,8 @@ restricting = ExBudgetMode (CekBudgetSpender spend) . RestrictingSt where
 -- | When we want to just evaluate the program we use the 'Restricting' mode with an enormous
 -- budget, so that evaluation costs of on-chain budgeting are reflected accurately in benchmarks.
 enormousBudget :: ExRestrictingBudget
-enormousBudget = ExRestrictingBudget $ ExBudget (10^(10::Int)) (10^(10::Int))
+enormousBudget = ExRestrictingBudget $ ExBudget (ExCPU maxInt) (ExMemory maxInt)
+                 where maxInt = fromIntegral (maxBound::Int)
 
 -- | 'restricting' instantiated at 'enormousBudget'.
 restrictingEnormous :: ExBudgetMode RestrictingSt uni fun
