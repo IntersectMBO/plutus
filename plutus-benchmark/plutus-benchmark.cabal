@@ -105,7 +105,7 @@ benchmark nofib
     , plutus-tx-plugin -any
     , plutus-core -any
     , containers -any
-    , criterion -any
+    , criterion >= 1.5.9.0
     , filepath -any
     , mtl -any
 
@@ -142,7 +142,7 @@ benchmark validation
     , plutus-core -any
     , bytestring -any
     , containers -any
-    , criterion -any
+    , criterion >= 1.5.9.0
     , filepath -any
     , text -any
     , transformers -any
@@ -183,7 +183,7 @@ benchmark flat
     , boxes -any
     , bytestring -any
     , containers -any
-    , criterion -any
+    , criterion >= 1.5.9.0
     , deepseq -any
     , flat -any
     , lens -any
