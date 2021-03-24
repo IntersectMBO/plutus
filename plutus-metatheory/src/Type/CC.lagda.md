@@ -399,7 +399,36 @@ thm1 M .(closeEvalCtx E M) E refl B V (trans—↠E {B = B'} q q') | J' , E' , .
                            (trans (sym (compEF E'' (VM ⇒-) E''')) (sym p))
                                   (sym (β-lem refl r)))
                     (thm1 N B' E' (sym r'') B V q'))))))))))
-thm1 M A E refl B V (trans—↠E {B = B'} q q') | J' , E' , L , N , r , r' , r'' , inj₂ VM | I , _ , N' , V-ƛ L' , VN' , refl | inj₂ (inj₂ (inj₂ (inj₂ (inj₁ x)))) = {!!}
+thm1 M .(closeEvalCtx E M) E refl B V (trans—↠E {B = B'} q q') | J' , E' , .(ƛ _ · N') , N , r , r' , r'' , inj₂ VM | I , ƛ _ , N' , V-ƛ L' , VN' , refl | inj₂ (inj₂ (inj₂ (inj₂ (inj₁ (I' , refl , E'' , E''' , p , refl))))) = step**
+  (step**
+    (lemV M VM _)
+    (step*
+      (cong (stepV VM) (lemma E'' (μ- closeEvalCtx E''' (ƛ L' · N'))))
+      (step**
+        (lem62 (ƛ L' · N') _ (extendEvalCtx E'' (μ VM -)) E''' refl)
+        (step*
+          refl
+          (step*
+            refl
+            (step*
+              (cong
+                (stepV (V-ƛ L'))
+                (lemma (compEvalCtx' (extendEvalCtx E'' (μ VM -)) E''')
+                       (-· N')))
+              (step**
+                (lemV N' VN' _)
+                (step*
+                  (cong
+                    (stepV VN')
+                    (lemma (compEvalCtx' (extendEvalCtx E'' (μ VM -)) E''')
+                           (V-ƛ L' ·-)))
+                  (subst-step*
+                    (cong₂ (λ E A → J' , (E ▻ A))
+                           (trans
+                             (sym (compEvalCtx-eq _ E''')) (sym p))
+                             (sym (β-lem refl r)))
+                    base)))))))))
+  (thm1 N B' E' (sym r'') B V q')
 thm1 M A E refl B V (trans—↠E {B = B'} q q') | J' , E' , L , N , r , r' , r'' , inj₂ VM | I , _ , N' , V-ƛ L' , VN' , refl | inj₂ (inj₂ (inj₂ (inj₂ (inj₂ y)))) = {!y!}
 
 thm2 : (A B : ∅ ⊢⋆ K)(V : Value⋆ B) → A —↠E B -> ([] ▻ A) -→s ([] ◅ V)

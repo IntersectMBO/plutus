@@ -901,7 +901,10 @@ lemmaX : ∀ (M : ∅ ⊢⋆ J)(E : EvalCtx K J)(E' : EvalCtx K J')
   ⊎ (∃ λ I' → ∃ λ (p : J ≡ (I' ⇒ *) ⇒ I' ⇒ *) -- L · N is inside the right branch of μ
      → ∃ λ (E'' : EvalCtx K *)
      → ∃ λ (E''' : EvalCtx I' J')
-     → E' ≡ compEvalCtx (extendEvalCtx E'' (μ (substVal p VM) -)) E''')
+     → E' ≡ compEvalCtx (extendEvalCtx E'' (μ (substVal p VM) -)) E'''
+     × E ≡ extendEvalCtx E'' (subst (Frame _)
+                                    (sym p)
+                                    (μ- closeEvalCtx E''' (L · N))))
     -- otherwise we're barking up the wrong tree...
   ⊎ ∃ λ I → ∃ (λ (f : Frame I _) → Value⋆ (closeFrame f M)) -- the enclosing frame is a value
     -- plus some other stuff which might come from a seperate lemma...
@@ -930,7 +933,7 @@ lemmaX M E E' L N VM VL VN p | inj₂ (.* , E'' , (μ- B)) | blah eq with lemma5
              (trans (closeEF E'' (μ- closeEvalCtx E''' (L' · N')) M)
                     (trans (sym (close-comp E'' (μr VM E''') (L' · N')))
                            (cong (λ E → closeEvalCtx E (L' · N')) (sym (compEF E'' (μ VM -) E''')))))
-... | refl , refl , r , r' , r'' = inj₂ (inj₂ (inj₂ (inj₂ (inj₁ (_ , refl , E'' , E''' , r)))))
+... | refl , refl , r , refl , refl = inj₂ (inj₂ (inj₂ (inj₂ (inj₁ (_ , refl , E'' , E''' , r , cong (λ B → extendEvalCtx E'' (μ- B)) q)))))
 lemmaX M E E' L N VM VL VN p | inj₂ (I , E'' , (-· B)) | blah eq with lemma51 B
 lemmaX M E E' L N VM VL VN p | inj₂ (I , E'' , (-· B)) | blah eq | inj₁ VB rewrite (dissect-lemma _ _ _ eq) with lemma51-good (closeEvalCtx (extendEvalCtx E'' (-· B)) M) E' L N p VL VN E'' M B (closeEF E'' (-· B) M) VM VB
 ... | (refl , refl , refl , refl , refl) = inj₂ (inj₁ (refl , refl))
