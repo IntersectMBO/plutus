@@ -42,11 +42,11 @@ instance Scripts.ScriptType PubKeyContract where
     type instance DatumType PubKeyContract = ()
 
 scriptInstance :: PubKeyHash -> Scripts.ScriptInstance PubKeyContract
-scriptInstance pk =
-    Scripts.validator @PubKeyContract
-        ($$(PlutusTx.compile [|| mkValidator ||]) `PlutusTx.applyCode` PlutusTx.liftCode pk)
-        $$(PlutusTx.compile [|| wrap ||]) where
-        wrap = Scripts.wrapValidator @() @()
+scriptInstance = Scripts.validatorParam @PubKeyContract
+    $$(PlutusTx.compile [|| mkValidator ||])
+    $$(PlutusTx.compile [|| wrap ||])
+    where
+        wrap = Scripts.wrapValidator
 
 data PubKeyError =
     ScriptOutputMissing PubKeyHash

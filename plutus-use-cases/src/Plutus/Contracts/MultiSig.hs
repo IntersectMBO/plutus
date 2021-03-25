@@ -68,11 +68,11 @@ instance Scripts.ScriptType MultiSig where
     type instance DatumType MultiSig = ()
 
 scriptInstance :: MultiSig -> Scripts.ScriptInstance MultiSig
-scriptInstance ms =
-    let wrap = Scripts.wrapValidator @() @() in
-    Scripts.validator @MultiSig
-        ($$(PlutusTx.compile [|| validate ||]) `PlutusTx.applyCode` PlutusTx.liftCode ms)
-        $$(PlutusTx.compile [|| wrap ||])
+scriptInstance = Scripts.validatorParam @MultiSig
+    $$(PlutusTx.compile [|| validate ||])
+    $$(PlutusTx.compile [|| wrap ||])
+    where
+        wrap = Scripts.wrapValidator
 
 
 -- | Lock some funds in a 'MultiSig' contract.

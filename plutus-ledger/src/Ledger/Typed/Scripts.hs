@@ -13,6 +13,7 @@ module Ledger.Typed.Scripts(
     , ScriptInstance
     , MonetaryPolicy
     , validator
+    , validatorParam
     , scriptHash
     , scriptAddress
     , validatorScript
@@ -27,6 +28,7 @@ module Ledger.Typed.Scripts(
     , Any
     ) where
 
+import           PlutusCore.Universe             (DefaultUni)
 import           PlutusTx
 
 import qualified Plutus.V1.Ledger.Address        as Addr
@@ -67,6 +69,19 @@ validator vc wrapper =
         , instanceMPS     = mps
         , instanceMPSHash = Scripts.monetaryPolicyHash mps
         }
+
+-- | The 'ScriptInstance' of a paramaterized validator script and its wrapper.
+validatorParam
+    :: forall a param. Lift DefaultUni param
+    => CompiledCode (param -> ValidatorType a)
+    -- ^ Validator script (compiled)
+    -> CompiledCode (ValidatorType a -> WrappedValidatorType)
+    -- ^ A wrapper for the compiled validator
+    -> param
+    -- ^ The extra paramater for the validator script
+    -> ScriptInstance a
+validatorParam vc wrapper param =
+    validator (vc `PlutusTx.applyCode` PlutusTx.liftCode param) wrapper
 
 -- | The script's 'ValidatorHash'
 scriptHash :: ScriptInstance a -> ValidatorHash
