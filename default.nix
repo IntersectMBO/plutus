@@ -87,6 +87,7 @@ rec {
     inherit pkgs iohkNix;
     inherit (plutus) fixStylishHaskell fixPurty;
     inherit (pkgs) terraform;
+    inherit plutus-playground marlowe-playground marlowe-dashboard web-ghc plutus-pab marlowe-app;
     src = ./.;
   };
 

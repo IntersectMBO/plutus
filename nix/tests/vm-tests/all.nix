@@ -158,7 +158,7 @@ makeTest {
 
     webghc = { pkgs, ... }: {
 
-      virtualisation.memorySize = "8096";
+      virtualisation.memorySize = "1024";
 
       networking = {
         firewall.allowedTCPPorts = [ 80 ];

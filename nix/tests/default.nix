@@ -1,4 +1,16 @@
-{ pkgs, iohkNix, fixStylishHaskell, fixPurty, src, terraform }:
+{ pkgs
+, iohkNix
+, fixStylishHaskell
+, fixPurty
+, src
+, terraform
+, plutus-playground
+, marlowe-playground
+, marlowe-dashboard
+, web-ghc
+, plutus-pab
+, marlowe-app
+}:
 let
   inherit (pkgs) lib;
   cleanSrc = lib.cleanSourceWith {
@@ -31,4 +43,6 @@ pkgs.recurseIntoAttrs {
     src = cleanSrc;
     inherit (pkgs) terraform;
   };
+
+  vmTests = pkgs.callPackage ./vm.nix { inherit plutus-playground marlowe-playground marlowe-dashboard web-ghc plutus-pab marlowe-app; };
 }
