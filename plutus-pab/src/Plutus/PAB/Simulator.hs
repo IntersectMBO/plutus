@@ -327,7 +327,7 @@ logString = logInfo @(PABMultiAgentMsg t) . UserLog . Text.pack
 logPretty :: forall a t effs. (Pretty a, Member (LogMsg (PABMultiAgentMsg t)) effs) => a -> Eff effs ()
 logPretty = logInfo @(PABMultiAgentMsg t) . UserLog . render
 
--- | Wait 0.2 seconds, then add a new block.
+-- | Wait 1 second, then add a new block.
 makeBlock ::
     forall t effs.
     ( LastMember IO effs

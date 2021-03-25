@@ -116,7 +116,8 @@ handleMultiWallet = do
             let pkh = pubKeyHash pubKey
             let walletId = byteString2Integer (getPubKeyHash pkh)
             let wallet = Wallet walletId
-            let wallets' = Map.insert wallet privateKey wallets
+                newState = Wallet.emptyWalletStateFromPrivateKey privateKey
+            let wallets' = Map.insert wallet newState wallets
             put wallets'
             -- For some reason this doesn't work with (Wallet 1)/privateKey1,
             -- works just fine with (Wallet 2)/privateKey2

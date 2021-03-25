@@ -67,7 +67,7 @@ app trace clientHandler chainIndexEnv mVarState =
 main :: Trace IO WalletMsg -> WalletConfig -> FilePath -> ChainIndexUrl -> Availability -> IO ()
 main trace WalletConfig { baseUrl, wallet } serverSocket (ChainIndexUrl chainUrl) availability = LM.runLogEffects trace $ do
     chainIndexEnv <- buildEnv chainUrl defaultManagerSettings
-    let knownWallets = Map.fromList $ zip (fmap Wallet.Wallet [1..10]) Crypto.knownPrivateKeys
+    let knownWallets = Map.fromList $ (\w -> (w, emptyWalletState w)) . Wallet.Wallet <$> [1..10]
     mVarState <- liftIO $ newMVar knownWallets
     clientHandler <- liftIO $ Client.runClientNode serverSocket (\_ _ -> pure ())
     runClient chainIndexEnv
