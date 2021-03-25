@@ -41,7 +41,7 @@ data SplitData =
     deriving stock (Show, Generic)
 
 -- For a 'real' application use 'makeIsDataIndexed' to ensure the output is stable over time
-PlutusTx.unstableMakeIsData ''SplitData
+PlutusTx.makeIsData ''SplitData
 PlutusTx.makeLift ''SplitData
 
 -- BLOCK2
@@ -83,10 +83,10 @@ type SplitSchema =
 
 -- BLOCK5
 
-lock :: Contract () SplitSchema T.Text LockArgs
+lock :: Contract SplitSchema T.Text LockArgs
 lock = endpoint @"lock"
 
-unlock :: Contract () SplitSchema T.Text LockArgs
+unlock :: Contract SplitSchema T.Text LockArgs
 unlock = endpoint @"unlock"
 
 -- BLOCK6
@@ -104,7 +104,7 @@ mkSplitData LockArgs{recipient1Wallet, recipient2Wallet, totalAda} =
 
 -- BLOCK7
 
-lockFunds :: SplitData -> Contract () SplitSchema T.Text ()
+lockFunds :: SplitData -> Contract SplitSchema T.Text ()
 lockFunds s@SplitData{amount} = do
     logInfo $ "Locking " <> show amount
     let tx = Constraints.mustPayToTheScript s (Ada.toValue amount)
@@ -112,7 +112,7 @@ lockFunds s@SplitData{amount} = do
 
 -- BLOCK8
 
-unlockFunds :: SplitData -> Contract () SplitSchema T.Text ()
+unlockFunds :: SplitData -> Contract SplitSchema T.Text ()
 unlockFunds SplitData{recipient1, recipient2, amount} = do
     let contractAddress = (Ledger.scriptAddress (Scripts.validatorScript splitInstance))
     utxos <- utxoAt contractAddress
@@ -125,7 +125,7 @@ unlockFunds SplitData{recipient1, recipient2, amount} = do
 
 -- BLOCK9
 
-endpoints :: Contract () SplitSchema T.Text ()
+endpoints :: Contract SplitSchema T.Text ()
 -- BLOCK10
 
 endpoints = (lock >>= lockFunds . mkSplitData) `select` (unlock >>= unlockFunds . mkSplitData)
