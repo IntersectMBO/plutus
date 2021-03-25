@@ -1,6 +1,9 @@
 { config, lib, pkgs, ... }:
 let
   inherit (lib) types mkOption mkIf;
+  pabExec = pkgs.writeShellScriptBin "pab-exec" ''
+    ${cfg.pab-package}/bin/plutus-pab --config=${pabYaml} "$*"
+  '';
   cfg = config.services.pab;
 
   pabConfig = {
@@ -161,6 +164,8 @@ in
   };
 
   config = mkIf cfg.enable {
+
+    environment.systemPackages = [ pabExec ];
 
     systemd.services.pab-init = {
       wantedBy = [ "multi-user.target" ];
