@@ -185,7 +185,7 @@ instance ContractModel AuctionModel where
                 phase $= Bidding
                 withdraw w1 theToken
                 wait 3
-            WaitUntil slot -> waitUntil slot
+            WaitUntil slot' -> waitUntil slot'
             Bid w bid -> do
                 current <- viewContractState currentBid
                 leader  <- viewContractState winner
@@ -206,7 +206,7 @@ instance ContractModel AuctionModel where
 
     perform _ _ Init = delay 3
     perform _ _ (WaitUntil slot) = void $ Trace.waitUntilSlot slot
-    perform handle s (Bid w bid) = do
+    perform handle _ (Bid w bid) = do
         Trace.callEndpoint @"bid" (handle $ BuyerH w) (Ada.lovelaceOf bid)
         delay 1
 

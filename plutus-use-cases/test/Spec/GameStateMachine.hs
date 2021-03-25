@@ -19,18 +19,10 @@ module Spec.GameStateMachine
   , prop_NoLockedFunds
   ) where
 
-import           Control.Applicative
 import           Control.Lens
 import           Control.Monad
-import           Control.Monad.Freer.Error
 import           Control.Monad.Freer.Extras.Log     (LogLevel (..))
-import           Control.Monad.Freer.Writer
-import           Data.List
-import           Data.Map                           (Map)
-import qualified Data.Map                           as Map
 import           Data.Maybe
-import           Data.Text.Prettyprint.Doc
-import           Data.Void
 import           Test.QuickCheck                    as QC hiding ((.&&.))
 import           Test.Tasty                         hiding (after)
 import qualified Test.Tasty.HUnit                   as HUnit
@@ -42,14 +34,9 @@ import qualified Ledger.Typed.Scripts               as Scripts
 import           Ledger.Value                       (Value, isZero)
 import           Plutus.Contract.Test               hiding (not)
 import           Plutus.Contract.Test.ContractModel
-import           Plutus.Contract.Test.StateModel    (stateAfter)
-import qualified Plutus.Contract.Test.StateModel    as StateModel
 import           Plutus.Contracts.GameStateMachine  as G
 import           Plutus.Trace.Emulator              as Trace
 import qualified PlutusTx                           as PlutusTx
-import           PlutusTx.Lattice
-import           Wallet.Emulator                    (Wallet)
-import           Wallet.Emulator.Folds              (postMapM)
 
 -- * QuickCheck model
 
@@ -96,7 +83,7 @@ instance ContractModel GameModel where
             delay 1
         GiveToken w' -> do
             let w = fromJust (s ^. contractState . hasToken)
-            payToWallet w w' gameTokenVal
+            _ <- payToWallet w w' gameTokenVal
             delay 1
 
     -- 'nextState' descibes how each command affects the state of the model
@@ -138,7 +125,7 @@ instance ContractModel GameModel where
     precondition s cmd = case cmd of
             Lock _ _ v    -> v > 0 && tok == Nothing
             Guess w _ _ v -> v <= val && tok == Just w
-            GiveToken w   -> tok /= Nothing
+            GiveToken _   -> tok /= Nothing
         where
             tok = s ^. contractState . hasToken
             val = s ^. contractState . gameValue
