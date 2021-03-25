@@ -42,6 +42,7 @@ import           Data.Function                    ((&))
 import qualified Data.Map                         as Map
 import           Data.Text.Encoding               (encodeUtf8)
 import qualified Ledger.Ada                       as Ada
+import           Ledger.Address                   (pubKeyAddress)
 import           Ledger.Crypto                    (PrivateKey (..), getPubKeyHash, privateKey2, pubKeyHash, toPublicKey)
 import           Ledger.Tx                        (Tx)
 import           Plutus.PAB.Arbitrary             ()
@@ -54,6 +55,7 @@ import           Wallet.API                       (PubKey,
                                                    WalletAPIError (InsufficientFunds, OtherError, PrivateKeyNotFound))
 import qualified Wallet.API                       as WAPI
 import           Wallet.Effects                   (ChainIndexEffect, NodeClientEffect)
+import qualified Wallet.Effects                   as WalletEffects
 import           Wallet.Emulator.NodeClient       (emptyNodeClientState)
 import           Wallet.Emulator.Wallet           (Wallet (..), WalletState (..), defaultSigningProcess)
 import qualified Wallet.Emulator.Wallet           as Wallet
@@ -123,6 +125,7 @@ handleMultiWallet = do
             -- ¯\_(ツ)_/¯
             let walletState = WalletState privateKey2 emptyNodeClientState mempty (defaultSigningProcess (Wallet 2))
             _ <- evalState walletState $ interpret Wallet.handleWallet (raiseEnd $ distributeNewWalletFunds pubKey)
+            WalletEffects.startWatching (pubKeyAddress pubKey)
             return wallet
 
 

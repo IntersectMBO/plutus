@@ -33,9 +33,6 @@ import           Data.Coerce                      (coerce)
 import           Data.Function                    ((&))
 import qualified Data.Map.Strict                  as Map
 import           Data.Proxy                       (Proxy (Proxy))
-import           Ledger.Blockchain                (Block)
-import qualified Ledger.Crypto                    as Crypto
-import           Ledger.Slot                      (Slot)
 import           Ledger.Tx                        (TxOut (txOutValue), TxOutTx (txOutTxOut))
 import           Network.HTTP.Client              (defaultManagerSettings, newManager)
 import qualified Network.Wai.Handler.Warp         as Warp
