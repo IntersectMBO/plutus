@@ -1,10 +1,6 @@
 -- A simple local name service for threads... behaves like the Erlang
 -- process registry.
 
--- If you are doing the associated QuickCheck exercises, DO NOT READ
--- THIS CODE!!! The exercise is one in black box testing.
-
-
 module Spec.DynamicLogic.Registry where
 
 import           Control.Concurrent

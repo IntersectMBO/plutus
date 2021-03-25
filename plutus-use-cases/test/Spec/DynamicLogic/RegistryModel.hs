@@ -57,11 +57,11 @@ instance StateModel RegState where
     [Some (Unregister name)] ++
     [Some (Register name' tid) | name' <- shrinkName name] ++
     [Some (Register name tid') | tid'  <- shrinkTid s tid]
-  shrinkAction s (Unregister name) =
+  shrinkAction _ (Unregister name) =
     [Some (WhereIs name)] ++ [Some (Unregister name') | name' <- shrinkName name]
-  shrinkAction s (WhereIs name) =
+  shrinkAction _ (WhereIs name) =
     [Some (WhereIs name') | name' <- shrinkName name]
-  shrinkAction s Spawn = []
+  shrinkAction _ Spawn = []
   shrinkAction s (KillThread tid) =
     [Some (KillThread tid') | tid' <- shrinkTid s tid]
   shrinkAction s (Successful act) =
@@ -84,10 +84,10 @@ instance StateModel RegState where
   nextState s (Successful act) step = nextState s act step
   nextState s _  _ = s
 
-  precondition s (Register name step) = step `elem` tids s -- && positive s (Register name step)
-  precondition s (KillThread tid)     = tid `elem` tids s
-  precondition s (Successful act)     = precondition s act
-  precondition _ _                    = True
+  precondition s (Register _name step) = step `elem` tids s -- && positive s (Register name step)
+  precondition s (KillThread tid)      = tid `elem` tids s
+  precondition s (Successful act)      = precondition s act
+  precondition _ _                     = True
 
   postcondition  s (WhereIs name)      env mtid =
     (env <$> lookup name (regs s)) == mtid
@@ -96,14 +96,14 @@ instance StateModel RegState where
     positive s (Register name step) == (res == Right ())
   postcondition _s (Unregister _name)   _         _   = True
   postcondition _s (KillThread _) _ _ = True
-  postcondition s (Successful (Register _ _)) _ res = res==Right ()
+  postcondition _s (Successful (Register _ _)) _ res = res==Right ()
   postcondition s (Successful act) env res = postcondition s act env res
 
   monitoring (_s, s') act _ res =
     counterexample ("\nState: "++show s'++"\n") .
     tabulate "Registry size" [show $ length (regs s')] .
     case act of
-      Register _ t -> tabu "Register" [case res of Left _  -> "fails "++why _s act
+      Register _ _ -> tabu "Register" [case res of Left _  -> "fails "++why _s act
                                                    Right() -> "succeeds"]
       Unregister _ -> tabu "Unregister" [case res of Left _ -> "fails"; Right() -> "succeeds"]
       WhereIs _    -> tabu "WhereIs" [case res of Nothing -> "fails"; Just _ -> "succeeds"]
@@ -146,23 +146,29 @@ why _ _ = "(impossible)"
 arbitraryName :: Gen String
 arbitraryName = elements allNames
 
+probablyRegistered :: RegState -> Gen String
 probablyRegistered s = oneof $ map (return . fst) (regs s) ++ [arbitraryName]
+
+probablyUnregistered :: RegState -> Gen String
 probablyUnregistered s = elements $ allNames ++ (allNames \\ map fst (regs s))
 
+shrinkName :: String -> [String]
 shrinkName name = [n | n <- allNames, n < name]
 
 allNames :: [String]
 allNames = ["a", "b", "c", "d", "e"]
 
+shrinkTid :: RegState -> Var ThreadId -> [Var ThreadId]
 shrinkTid s tid = [ tid' | tid' <- tids s, tid' < tid ]
 
+tabu :: String -> [String] -> Property -> Property
 tabu tab xs = tabulate tab xs . foldr (.) id [classify True (tab++": "++x) | x <- xs]
 
 prop_Registry :: Actions RegState -> Property
 prop_Registry s = monadicIO $ do
   _ <- run cleanUp
   monitor $ counterexample "\nExecution\n"
-  _ <- runScript s
+  _ <- runActions s
   assert True
 
 cleanUp :: IO [Either ErrorCall ()]
@@ -170,68 +176,40 @@ cleanUp = sequence
   [try (unregister name) :: IO (Either ErrorCall ())
    | name <- allNames++["x"]]
 
-{-
--- It's always possible to spawn a process.
-
-canSpawn s = after Spawn (const passed)
-
-canAlwaysRegister s = after Spawn car
-  where car s = after (Register name tid) (const passed)
-          .|||. weight 20 (afterAny car)
-          where name = "a"
-                tid = head (tids s)
-
-anyScript s = passed .|||. afterAny anyScript
-
-always p s = p s .|||. afterAny (always p)
-
-propFollows :: DLProp RegState -> Actions RegState -> Property
-propFollows dl (Actions s) =
-  collect (head (dropWhile (<length s) $ iterate (*2) 1)) $
-  (if null s then property else collect (showStepAction (last s))) $
-  follows initialState (dl initialState) (Actions s)
-
-propWellFormed d = forAll (scriptFor d) $ propFollows d
-
-propAccepts :: DLProp RegState -> Actions RegState -> Bool
-propAccepts p (Actions s) =
-  accepts initialState (p initialState) (Actions s)
-
-propAccepted d = forAll (scriptFor d) $ propAccepts d
-
-propCanGenerate :: DLProp RegState -> Property
-propCanGenerate d = forAll (scriptFor d) $ \(Actions x) -> collect (length x) $ x==x
-
-showStepAction (var := act) = show act
--}
-
+propTest :: DynLogic RegState -> Property
 propTest d = forAllScripts d prop_Registry
 
 -- Generate normal test cases
 
-normalTests s = passTest ||| afterAny normalTests
+normalTests :: DynPred s
+normalTests _ = passTest ||| afterAny normalTests
 
-loopingTests s = afterAny loopingTests
+loopingTests :: DynPred s
+loopingTests _ = afterAny loopingTests
 
 canSpawn :: RegState -> DynLogic RegState
-canSpawn s = after Spawn done
+canSpawn _ = after Spawn done
 
+canRegisterA :: DynPred RegState
 canRegisterA s
   | null (tids s) = after Spawn canRegisterA
   | otherwise     = after (Successful $ Register "a" (head (tids s))) done
 
 -- test that the registry never contains more than k processes
 
+regLimit :: Int -> DynPred RegState
 regLimit k s | length (regs s) > k = ignore   -- fail? yes, gets stuck at this point
              | otherwise           = passTest ||| afterAny (regLimit k)
 
 -- test that we can register a pid that is not dead, if we unregister the name first.
 
+canRegisterUndead :: RegState -> DynLogic RegState
 canRegisterUndead s
-  | null alive = ignore
-  | otherwise  = after (Successful (Register "x" (head alive))) done
-  where alive = tids s \\ dead s
+  | null aliveTs = ignore
+  | otherwise    = after (Successful (Register "x" (head aliveTs))) done
+  where aliveTs = tids s \\ dead s
 
+canRegister :: DynPred RegState
 canRegister s
   | length (regs s) == 5 = ignore  -- all names are in use
   | null (tids s) = after Spawn canRegister
@@ -240,19 +218,23 @@ canRegister s
                       after (Successful $ Register name tid)
                       done
 
+canRegisterName :: String -> RegState -> DynLogic RegState
 canRegisterName name s = forAllQ (elementsQ availableTids) $ \tid ->
                            after (Successful $ Register name tid) done
   where availableTids = tids s \\ map snd (regs s)
 
+canReregister :: RegState -> DynLogic RegState
 canReregister s
   | null (regs s) = ignore
   | otherwise     = forAllQ (elementsQ $ map fst (regs s)) $ \name ->
                       after (Unregister name) (canRegisterName name)
 
+canRegisterName' :: String -> RegState -> DynLogic RegState
 canRegisterName' name s = forAllQ (elementsQ availableTids) $ \tid ->
                             after (Successful $ Register name tid) done
   where availableTids = (tids s \\ map snd (regs s)) \\ dead s
 
+canReregister' :: DynPred RegState
 canReregister' s
   | null (regs s) = toStop $
                       if null availableTids then after Spawn canReregister'
