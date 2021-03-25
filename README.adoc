@@ -45,10 +45,9 @@ If you use Nix, these tools are provided for you via `shell.nix`, and you do *no
 * If you want to build our Haskell packages with https://haskellstack.org/[`stack`], then install it.
 * If you want to build our Agda code, then install https://github.com/agda/agda[Agda] and the https://github.com/agda/agda-stdlib[standard library].
 
-=== How to get started using the libraries
+=== How to get started using the platform
 
-There is an example project in the `example` folder, see its link:./example/README.md[README]
-for more details.
+The https://github.com/input-output-hk/plutus-starter[`plutus-starter`] repository contains a starter setup.
 
 === How to build the Haskell packages and other artifacts
 

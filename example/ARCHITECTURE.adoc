@@ -1,5 +1,0 @@
-=== `example`
-
-This contains an example project that is designed to help people get started if
-they want to use our libraries locally, rather than in the Playground. This can
-otherwise be quite challenging, since our projects aren't on Hackage yet!
