@@ -7,10 +7,10 @@ module Marlowe.Market.Contract3
 import Prelude
 import Data.Map (fromFoldable)
 import Data.Tuple.Nested ((/\))
-import Marlowe.Extended (Action(..), Case(..), Contract(..), ContractType(..), Observation(..), Payee(..), Timeout(..), Value(..))
+import Marlowe.Extended (Action(..), Case(..), Contract(..), ContractType(..), Payee(..), Timeout(..), Value(..))
 import Marlowe.Extended.Metadata (MetaData)
 import Marlowe.Extended.Template (ContractTemplate)
-import Marlowe.Semantics (Bound(..), ChoiceId(..), Party(..), Token(..))
+import Marlowe.Semantics (Party(..), Token(..))
 
 contractTemplate :: ContractTemplate
 contractTemplate = { metaData, extendedContract }
@@ -19,25 +19,23 @@ metaData :: MetaData
 metaData =
   { contractType: ZeroCouponBond
   , contractName: "Zero Coupon Bond"
-  , contractDescription: "A zero-coupon bond is a debt security that does not pay interest but instead trades at a deep discount, rendering a profit at maturity, when the bond is redeemed for its full face value."
+  , contractDescription: "A simple loan. The investor pays the issuer the discounted price at the start, and is repaid the full (notional) price at the end."
   , roleDescriptions:
       fromFoldable
-        [ "alice" /\ "about the alice role"
-        , "bob" /\ "about the bob role"
+        [ "Investor" /\ "The party that buys the bond at a discounted price, i.e. makes the loan."
+        , "Issuer" /\ "The party that issues the bond, i.e. receives the loan."
         ]
   , slotParameterDescriptions:
       fromFoldable
-        [ "aliceTimeout" /\ "about the aliceTimeout"
-        , "arbitrageTimeout" /\ "about the arbitrageTimeout"
-        , "bobTimeout" /\ "about the bobTimeout"
-        , "depositSlot" /\ "about the depositSlot"
+        [ "Initial exchange deadline" /\ "The \"Investor\" must deposit the discounted price of the bond before this deadline or the offer will expire."
+        , "Maturity exchange deadline" /\ "The \"Issuer\" must deposit the full price of the bond before this deadline or it will default."
         ]
   , valueParameterDescriptions:
       fromFoldable
-        [ "amount" /\ "about the amount" ]
-  , choiceDescriptions:
-      fromFoldable
-        [ "choice" /\ "about the choice" ]
+        [ "Discounted price" /\ "The price in Lovelace of the Zero Coupon Bond at the start date."
+        , "Notional" /\ "The full price in Lovelace of the Zero Coupon Bond."
+        ]
+  , choiceDescriptions: mempty
   }
 
 extendedContract :: Contract
@@ -45,157 +43,36 @@ extendedContract =
   When
     [ Case
         ( Deposit
-            (Role "alice")
-            (Role "alice")
+            (Role "Investor")
+            (Role "Investor")
             (Token "" "")
-            (ConstantParam "amount")
+            (ConstantParam "Discounted price")
         )
-        ( When
-            [ Case
-                ( Choice
-                    ( ChoiceId
-                        "choice"
-                        (Role "alice")
-                    )
-                    [ Bound zero one ]
-                )
-                ( When
-                    [ Case
-                        ( Choice
-                            ( ChoiceId
-                                "choice"
-                                (Role "bob")
-                            )
-                            [ Bound zero one ]
-                        )
-                        ( If
-                            ( ValueEQ
-                                ( ChoiceValue
-                                    ( ChoiceId
-                                        "choice"
-                                        (Role "alice")
-                                    )
-                                )
-                                ( ChoiceValue
-                                    ( ChoiceId
-                                        "choice"
-                                        (Role "bob")
-                                    )
-                                )
-                            )
-                            ( If
-                                ( ValueEQ
-                                    ( ChoiceValue
-                                        ( ChoiceId
-                                            "choice"
-                                            (Role "alice")
-                                        )
-                                    )
-                                    (Constant zero)
-                                )
-                                ( Pay
-                                    (Role "alice")
-                                    (Party (Role "bob"))
-                                    (Token "" "")
-                                    (ConstantParam "amount")
-                                    Close
-                                )
-                                Close
-                            )
-                            ( When
-                                [ Case
-                                    ( Choice
-                                        ( ChoiceId
-                                            "choice"
-                                            (Role "carol")
-                                        )
-                                        [ Bound one one ]
-                                    )
-                                    Close
-                                , Case
-                                    ( Choice
-                                        ( ChoiceId
-                                            "choice"
-                                            (Role "carol")
-                                        )
-                                        [ Bound one one ]
-                                    )
-                                    ( Pay
-                                        (Role "alice")
-                                        (Party (Role "bob"))
-                                        (Token "" "")
-                                        (ConstantParam "amount")
-                                        Close
-                                    )
-                                ]
-                                (SlotParam "arbitrageTimeout")
-                                Close
-                            )
-                        )
-                    ]
-                    (SlotParam "bobTimeout")
-                    ( When
-                        [ Case
-                            ( Choice
-                                ( ChoiceId
-                                    "choice"
-                                    (Role "carol")
-                                )
-                                [ Bound one one ]
-                            )
-                            Close
-                        , Case
-                            ( Choice
-                                ( ChoiceId
-                                    "choice"
-                                    (Role "carol")
-                                )
-                                [ Bound one one ]
-                            )
-                            ( Pay
-                                (Role "alice")
-                                (Party (Role "bob"))
-                                (Token "" "")
-                                (ConstantParam "amount")
-                                Close
-                            )
-                        ]
-                        (SlotParam "arbitrageTimeout")
-                        Close
-                    )
-                )
-            ]
-            (SlotParam "aliceTimeout")
+        ( Pay
+            (Role "Investor")
+            (Party (Role "Issuer"))
+            (Token "" "")
+            (ConstantParam "Discounted price")
             ( When
                 [ Case
-                    ( Choice
-                        ( ChoiceId
-                            "choice"
-                            (Role "carol")
-                        )
-                        [ Bound one one ]
-                    )
-                    Close
-                , Case
-                    ( Choice
-                        ( ChoiceId
-                            "choice"
-                            (Role "carol")
-                        )
-                        [ Bound zero zero ]
+                    ( Deposit
+                        (Role "Issuer")
+                        (Role "Issuer")
+                        (Token "" "")
+                        (ConstantParam "Notional")
                     )
                     ( Pay
-                        (Role "alice")
-                        (Party (Role "bob"))
+                        (Role "Issuer")
+                        (Party (Role "Investor"))
                         (Token "" "")
-                        (ConstantParam "amount")
+                        (ConstantParam "Notional")
                         Close
                     )
                 ]
-                (SlotParam "arbitrageTimeout")
+                (SlotParam "Maturity exchange deadline")
                 Close
             )
         )
     ]
-    (SlotParam "depositSlot")
+    (SlotParam "Initial exchange deadline")
     Close

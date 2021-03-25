@@ -7,7 +7,7 @@ module Marlowe.Market.Contract1
 import Prelude
 import Data.Map (fromFoldable)
 import Data.Tuple.Nested ((/\))
-import Marlowe.Extended (Action(..), Case(..), Contract(..), ContractType(..), Observation(..), Payee(..), Timeout(..), Value(..))
+import Marlowe.Extended (Action(..), Case(..), Contract(..), ContractType(..), Payee(..), Timeout(..), Value(..))
 import Marlowe.Extended.Metadata (MetaData)
 import Marlowe.Extended.Template (ContractTemplate)
 import Marlowe.Semantics (Bound(..), ChoiceId(..), Party(..), Token(..))
@@ -18,27 +18,32 @@ contractTemplate = { metaData, extendedContract }
 metaData :: MetaData
 metaData =
   { contractType: Escrow
-  , contractName: "Escrow"
-  , contractDescription: "Escrow is a financial arrangement where a third party holds and regulates payment of the funds required for two parties involved in a given transaction."
+  , contractName: "Simple escrow"
+  , contractDescription: "Regulates a money exchange between a \"Buyer\" and a \"Seller\". If there is a disagreement, an \"Arbiter\" will decide whether the money is refunded or paid to the \"Seller\"."
   , roleDescriptions:
       fromFoldable
-        [ "alice" /\ "about the alice role"
-        , "bob" /\ "about the bob role"
-        , "carol" /\ "about the carol role"
+        [ "Arbiter" /\ "The party that will choose who gets the money in the event of a disagreement between the \"Buyer\" and the \"Seller\" about the outcome."
+        , "Buyer" /\ "The party that wants to buy the item. Payment is made to the seller if they acknowledge receiving the item. "
+        , "Seller" /\ "The party that wants to sell the item. They receive the payment if the exchange is uneventful."
         ]
   , slotParameterDescriptions:
       fromFoldable
-        [ "aliceTimeout" /\ "about the aliceTimeout"
-        , "arbitrageTimeout" /\ "about the arbitrageTimeout"
-        , "bobTimeout" /\ "about the bobTimeout"
-        , "depositSlot" /\ "about the depositSlot"
+        [ "Buyer's deposit timeout" /\ "Deadline by which the \"Buyer\" must deposit the selling  \"Price\" in the contract."
+        , "Buyer's dispute timeout" /\ "Deadline by which, if the \"Buyer\" has not opened a dispute, the \"Seller\" will be paid."
+        , "Seller's response timeout" /\ "Deadline by which, if the \"Seller\" has not responded to the dispute, the \"Buyer\" will be refunded."
+        , "Timeout for arbitrage" /\ "Deadline by which, if the \"Arbiter\" has not resolved the dispute, the \"Buyer\" will be refunded."
         ]
   , valueParameterDescriptions:
       fromFoldable
-        [ "amount" /\ "about the amount" ]
+        [ "Price" /\ "Amount of Lovelace to be paid by the \"Buyer\" for the item." ]
   , choiceDescriptions:
       fromFoldable
-        [ "choice" /\ "about the choice" ]
+        [ "Confirm problem" /\ "Acknowledge there was a problem and a refund must be granted."
+        , "Dismiss claim" /\ "The \"Arbiter\" does not see any problem with the exchange and the \"Seller\" must be paid."
+        , "Dispute problem" /\ "The \"Seller\" disagrees with the \"Buyer\" about the claim that something went wrong."
+        , "Everything is alright" /\ "The transaction was uneventful, \"Buyer\" agrees to pay the \"Seller\"."
+        , "Report problem" /\ "The \"Buyer\" claims not having received the product that was paid for as agreed and would like a refund."
+        ]
   }
 
 extendedContract :: Contract
@@ -46,101 +51,40 @@ extendedContract =
   When
     [ Case
         ( Deposit
-            (Role "alice")
-            (Role "alice")
+            (Role "Seller")
+            (Role "Buyer")
             (Token "" "")
-            (ConstantParam "amount")
+            (ConstantParam "Price")
         )
         ( When
             [ Case
                 ( Choice
                     ( ChoiceId
-                        "choice"
-                        (Role "alice")
+                        "Everything is alright"
+                        (Role "Buyer")
                     )
-                    [ Bound zero one ]
+                    [ Bound zero zero ]
                 )
-                ( When
-                    [ Case
-                        ( Choice
-                            ( ChoiceId
-                                "choice"
-                                (Role "bob")
-                            )
-                            [ Bound zero one ]
-                        )
-                        ( If
-                            ( ValueEQ
-                                ( ChoiceValue
-                                    ( ChoiceId
-                                        "choice"
-                                        (Role "alice")
-                                    )
-                                )
-                                ( ChoiceValue
-                                    ( ChoiceId
-                                        "choice"
-                                        (Role "bob")
-                                    )
-                                )
-                            )
-                            ( If
-                                ( ValueEQ
-                                    ( ChoiceValue
-                                        ( ChoiceId
-                                            "choice"
-                                            (Role "alice")
-                                        )
-                                    )
-                                    (Constant zero)
-                                )
-                                ( Pay
-                                    (Role "alice")
-                                    (Party (Role "bob"))
-                                    (Token "" "")
-                                    (ConstantParam "amount")
-                                    Close
-                                )
-                                Close
-                            )
-                            ( When
-                                [ Case
-                                    ( Choice
-                                        ( ChoiceId
-                                            "choice"
-                                            (Role "carol")
-                                        )
-                                        [ Bound one one ]
-                                    )
-                                    Close
-                                , Case
-                                    ( Choice
-                                        ( ChoiceId
-                                            "choice"
-                                            (Role "carol")
-                                        )
-                                        [ Bound one one ]
-                                    )
-                                    ( Pay
-                                        (Role "alice")
-                                        (Party (Role "bob"))
-                                        (Token "" "")
-                                        (ConstantParam "amount")
-                                        Close
-                                    )
-                                ]
-                                (SlotParam "arbitrageTimeout")
-                                Close
-                            )
-                        )
-                    ]
-                    (SlotParam "bobTimeout")
+                Close
+            , Case
+                ( Choice
+                    ( ChoiceId
+                        "Report problem"
+                        (Role "Buyer")
+                    )
+                    [ Bound one one ]
+                )
+                ( Pay
+                    (Role "Seller")
+                    (Account (Role "Buyer"))
+                    (Token "" "")
+                    (ConstantParam "Price")
                     ( When
                         [ Case
                             ( Choice
                                 ( ChoiceId
-                                    "choice"
-                                    (Role "carol")
+                                    "Confirm problem"
+                                    (Role "Seller")
                                 )
                                 [ Bound one one ]
                             )
@@ -148,55 +92,49 @@ extendedContract =
                         , Case
                             ( Choice
                                 ( ChoiceId
-                                    "choice"
-                                    (Role "carol")
+                                    "Dispute problem"
+                                    (Role "Seller")
                                 )
-                                [ Bound one one ]
+                                [ Bound zero zero ]
                             )
-                            ( Pay
-                                (Role "alice")
-                                (Party (Role "bob"))
-                                (Token "" "")
-                                (ConstantParam "amount")
+                            ( When
+                                [ Case
+                                    ( Choice
+                                        ( ChoiceId
+                                            "Dismiss claim"
+                                            (Role "Arbiter")
+                                        )
+                                        [ Bound zero zero ]
+                                    )
+                                    ( Pay
+                                        (Role "Buyer")
+                                        (Party (Role "Seller"))
+                                        (Token "" "")
+                                        (ConstantParam "Price")
+                                        Close
+                                    )
+                                , Case
+                                    ( Choice
+                                        ( ChoiceId
+                                            "Confirm problem"
+                                            (Role "Arbiter")
+                                        )
+                                        [ Bound one one ]
+                                    )
+                                    Close
+                                ]
+                                (SlotParam "Timeout for arbitrage")
                                 Close
                             )
                         ]
-                        (SlotParam "arbitrageTimeout")
+                        (SlotParam "Seller's response timeout")
                         Close
                     )
                 )
             ]
-            (SlotParam "aliceTimeout")
-            ( When
-                [ Case
-                    ( Choice
-                        ( ChoiceId
-                            "choice"
-                            (Role "carol")
-                        )
-                        [ Bound one one ]
-                    )
-                    Close
-                , Case
-                    ( Choice
-                        ( ChoiceId
-                            "choice"
-                            (Role "carol")
-                        )
-                        [ Bound zero zero ]
-                    )
-                    ( Pay
-                        (Role "alice")
-                        (Party (Role "bob"))
-                        (Token "" "")
-                        (ConstantParam "amount")
-                        Close
-                    )
-                ]
-                (SlotParam "arbitrageTimeout")
-                Close
-            )
+            (SlotParam "Buyer's dispute timeout")
+            Close
         )
     ]
-    (SlotParam "depositSlot")
+    (SlotParam "Buyer's deposit timeout")
     Close
