@@ -4,6 +4,7 @@
 {-# LANGUAGE DerivingVia          #-}
 {-# LANGUAGE FlexibleContexts     #-}
 {-# LANGUAGE LambdaCase           #-}
+{-# LANGUAGE NamedFieldPuns       #-}
 {-# LANGUAGE OverloadedStrings    #-}
 {-# LANGUAGE StrictData           #-}
 {-# LANGUAGE UndecidableInstances #-}
@@ -13,6 +14,7 @@ module Plutus.PAB.Webserver.Types where
 import           Data.Aeson                              (FromJSON, ToJSON)
 import qualified Data.Aeson                              as JSON
 import           Data.Map                                (Map)
+import           Data.Text.Prettyprint.Doc               (Pretty, pretty, (<+>))
 import           GHC.Generics                            (Generic)
 import           Ledger                                  (Tx, TxId)
 import           Ledger.Index                            (UtxoIndex)
@@ -71,6 +73,10 @@ data ContractActivationArgs t =
         }
     deriving stock (Eq, Show, Generic)
     deriving anyclass (ToJSON, FromJSON)
+
+instance Pretty t => Pretty (ContractActivationArgs t) where
+    pretty ContractActivationArgs{caID, caWallet} =
+        pretty caID <+> "on" <+> pretty caWallet
 
 -- | Current state of a contract instance
 --   (to be sent to external clients)

@@ -42,6 +42,7 @@ import           Ledger                                  (Tx)
 import           Plutus.PAB.Events                       (PABEvent (InstallContract, SubmitTx, UpdateContractInstanceState))
 import           Plutus.PAB.Events.Contract              (ContractInstanceId, ContractPABRequest)
 import           Plutus.PAB.Events.ContractInstanceState (PartiallyDecodedResponse, hasActiveRequests)
+import           Plutus.PAB.Webserver.Types              (ContractActivationArgs (..))
 
 -- | The empty projection. Particularly useful for commands that have no 'state'.
 nullProjection :: Projection () event
@@ -91,9 +92,9 @@ contractState =
         }
 
 -- | The definition of the contract.
-contractDefinition :: forall t key position. Projection (Map ContractInstanceId t) (StreamEvent key position (PABEvent t))
+contractDefinition :: forall t key position. Projection (Map ContractInstanceId (ContractActivationArgs t)) (StreamEvent key position (PABEvent t))
 contractDefinition =
-    let projectionEventHandler :: Map ContractInstanceId t -> StreamEvent key position (PABEvent t) -> Map ContractInstanceId t
+    let projectionEventHandler :: Map ContractInstanceId (ContractActivationArgs t) -> StreamEvent key position (PABEvent t) -> Map ContractInstanceId (ContractActivationArgs t)
         projectionEventHandler oldMap = \case
             (StreamEvent _ _ (UpdateContractInstanceState d i _)) ->
                 Map.union (Map.singleton i d) oldMap
@@ -112,10 +113,10 @@ activeContractsProjection ::
     => Projection (Map t (Set ContractInstanceId)) (StreamEvent key position (PABEvent t))
 activeContractsProjection =
     let projectionEventHandler m = \case
-            (StreamEvent _ _ (UpdateContractInstanceState key i state)) ->
+            (StreamEvent _ _ (UpdateContractInstanceState ContractActivationArgs{caID} i state)) ->
                 if hasActiveRequests state
-                    then Map.insertWith (<>) key (Set.singleton i) m
-                    else Map.delete key m
+                    then Map.insertWith (<>) caID (Set.singleton i) m
+                    else Map.delete caID m
             _ -> m
      in Projection {projectionSeed = Map.empty, projectionEventHandler}
 

@@ -27,11 +27,11 @@ module Plutus.PAB.Webserver.Handler
 
 import qualified Cardano.Wallet.Client                   as Wallet.Client
 import           Control.Lens                            (preview)
-import           Control.Monad                           (void)
 import           Control.Monad.Freer                     (sendM)
 import           Control.Monad.Freer.Error               (throwError)
 import           Control.Monad.IO.Class                  (MonadIO (..))
 import qualified Data.Aeson                              as JSON
+import           Data.Foldable                           (traverse_)
 import qualified Data.Map                                as Map
 import           Data.Maybe                              (mapMaybe)
 import           Data.Proxy                              (Proxy (..))
@@ -97,8 +97,8 @@ getFullReport = do
 
 contractSchema :: forall t env. Contract.PABContract t => ContractInstanceId -> PABAction t env (ContractSignatureResponse (Contract.ContractDef t))
 contractSchema contractId = Contract.getDefinition @t contractId >>= \case
-    Just definition -> ContractSignatureResponse definition <$> Contract.exportSchema @t definition
-    Nothing         -> throwError (ContractInstanceNotFound contractId)
+    Just ContractActivationArgs{caID} -> ContractSignatureResponse caID <$> Contract.exportSchema @t caID
+    Nothing                           -> throwError (ContractInstanceNotFound contractId)
 
 parseContractId :: Text -> PABAction t env ContractInstanceId
 parseContractId t =
@@ -113,11 +113,13 @@ handlerNew ::
        (ContractActivationArgs (Contract.ContractDef t) -> PABAction t env ContractInstanceId)
             :<|> (ContractInstanceId -> PABAction t env (ContractInstanceClientState)
                                         :<|> (String -> JSON.Value -> PABAction t env ()))
+            :<|> (Wallet -> PABAction t env [ContractInstanceClientState])
             :<|> PABAction t env [ContractInstanceClientState]
             :<|> PABAction t env [ContractSignatureResponse (Contract.ContractDef t)]
 handlerNew =
         (activateContract
             :<|> (\x -> contractInstanceState x :<|> callEndpoint x)
+            :<|> instancesForWallets
             :<|> allInstanceStates
             :<|> availableContracts)
 
@@ -143,7 +145,13 @@ contractInstanceState :: forall t env. Contract.PABContract t => ContractInstanc
 contractInstanceState i = fromInternalState i . Contract.serialisableState (Proxy @t) <$> Contract.getState @t i
 
 callEndpoint :: forall t env. ContractInstanceId -> String -> JSON.Value -> PABAction t env ()
-callEndpoint a b = void . Core.callEndpointOnInstance a b
+callEndpoint a b v = Core.callEndpointOnInstance a b v >>= traverse_ (throwError @PABError . EndpointCallError)
+
+instancesForWallets :: forall t env. Contract.PABContract t => Wallet -> PABAction t env [ContractInstanceClientState]
+instancesForWallets wallet = do
+    mp <- Map.filter ((==) wallet . caWallet) <$> Contract.getActiveContracts @t
+    let get i = fromInternalState i . Contract.serialisableState (Proxy @t) <$> Contract.getState @t i
+    traverse get $ fst <$> Map.toList mp
 
 allInstanceStates :: forall t env. Contract.PABContract t => PABAction t env [ContractInstanceClientState]
 allInstanceStates = do

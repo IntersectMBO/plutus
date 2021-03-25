@@ -30,6 +30,7 @@ import           Plutus.PAB.Db.Eventful.Query            (nullProjection)
 import           Plutus.PAB.Events                       (PABEvent (InstallContract, SubmitTx, UpdateContractInstanceState))
 import           Plutus.PAB.Events.Contract              (ContractPABRequest)
 import           Plutus.PAB.Events.ContractInstanceState (PartiallyDecodedResponse)
+import           Plutus.PAB.Webserver.Types              (ContractActivationArgs)
 import           Wallet.Types                            (ContractInstanceId)
 
 -- | An aggregate that just sends a list of events with no state
@@ -50,5 +51,5 @@ installCommand = sendEvents (return . InstallContract)
 saveBalancedTxResult :: forall t. Aggregate () (PABEvent t) Ledger.Tx
 saveBalancedTxResult = sendEvents (return . SubmitTx)
 
-updateContractInstanceState :: forall t. Aggregate () (PABEvent t) (t, ContractInstanceId, (PartiallyDecodedResponse ContractPABRequest))
+updateContractInstanceState :: forall t. Aggregate () (PABEvent t) (ContractActivationArgs t, ContractInstanceId, (PartiallyDecodedResponse ContractPABRequest))
 updateContractInstanceState = sendEvents (\(x, y, z) -> return $ UpdateContractInstanceState x y z)

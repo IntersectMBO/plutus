@@ -102,6 +102,7 @@ import           Plutus.PAB.Effects.Contract.ContractTest       (TestContracts (
 import           Plutus.PAB.Effects.TimeEffect                  (TimeEffect)
 import           Plutus.PAB.Monitoring.PABLogMsg                (ContractEffectMsg, PABMultiAgentMsg (..))
 import           Plutus.PAB.Types                               (PABError (ContractInstanceNotFound, WalletError))
+import           Plutus.PAB.Webserver.Types                     (ContractActivationArgs (..))
 import           Plutus.V1.Ledger.Slot                          (Slot)
 import qualified Wallet.API                                     as WAPI
 import           Wallet.Effects                                 (ChainIndexEffect (..), NodeClientEffect (..),
@@ -121,7 +122,7 @@ import           Wallet.Types                                   (ContractInstanc
 -- | The current state of a contract instance
 data SimulatorContractInstanceState t =
     SimulatorContractInstanceState
-        { _contractDef   :: Contract.ContractDef t
+        { _contractDef   :: ContractActivationArgs (Contract.ContractDef t)
         , _contractState :: Contract.State t
         }
 

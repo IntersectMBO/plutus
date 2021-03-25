@@ -27,12 +27,11 @@ import qualified Data.UUID.Extras          as UUID
 import           GHC.Generics              (Generic)
 import           Ledger                    (Block, Blockchain, Tx, TxId, txId)
 import           Ledger.Index              as UtxoIndex
-import           Plutus.Contract.Trace     (EndpointError (..))
 import           Plutus.Contract.Types     (ContractError)
 import           Plutus.PAB.Instances      ()
 import           Servant.Client            (BaseUrl, ClientError)
 import           Wallet.API                (WalletAPIError)
-import           Wallet.Types              (ContractInstanceId)
+import           Wallet.Types              (ContractInstanceId, NotificationError)
 
 data PABError
     = FileNotFound FilePath
@@ -48,7 +47,7 @@ data PABError
     | ContractCommandError Int Text -- ?
     | InvalidUUIDError  Text
     | OtherError Text -- ?
-    | EndpointCallError ContractInstanceId EndpointError
+    | EndpointCallError NotificationError
     deriving stock (Show, Eq, Generic)
     deriving anyclass (ToJSON, FromJSON)
 
@@ -67,7 +66,7 @@ instance Pretty PABError where
         ContractCommandError i t   -> "Contract command error:" <+> pretty i <+> pretty t
         InvalidUUIDError t         -> "Invalid UUID:" <+> pretty t
         OtherError t               -> "Other error:" <+> pretty t
-        EndpointCallError i e      -> "Endpoint call failed:" <+> pretty i <+> pretty e
+        EndpointCallError n        -> "Endpoint call failed:" <+> pretty n
 
 data DbConfig =
     DbConfig

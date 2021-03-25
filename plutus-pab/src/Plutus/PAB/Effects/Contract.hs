@@ -43,6 +43,7 @@ import           Playground.Types                        (FunctionSchema)
 import           Plutus.Contract.Resumable               (Request, Response)
 import           Plutus.PAB.Events.Contract              (ContractPABRequest, ContractResponse)
 import           Plutus.PAB.Events.ContractInstanceState (PartiallyDecodedResponse (hooks))
+import           Plutus.PAB.Webserver.Types              (ContractActivationArgs)
 import           Schema                                  (FormSchema)
 import           Wallet.Types                            (ContractInstanceId)
 
@@ -115,16 +116,16 @@ updateContract def state request =
 
 -- | Storing and retrieving the state of a contract instance
 data ContractStore t r where
-    PutState :: ContractDef t -> ContractInstanceId -> State t -> ContractStore t ()
+    PutState :: ContractActivationArgs (ContractDef t) -> ContractInstanceId -> State t -> ContractStore t ()
     GetState :: ContractInstanceId -> ContractStore t (State t)
-    ActiveContracts :: ContractStore t (Map ContractInstanceId (ContractDef t))
+    ActiveContracts :: ContractStore t (Map ContractInstanceId (ContractActivationArgs (ContractDef t)))
 
 -- | Store the state of the contract instance
 putState ::
     forall t effs.
     ( Member (ContractStore t) effs
     )
-    => ContractDef t
+    => ContractActivationArgs (ContractDef t)
     -> ContractInstanceId
     -> State t
     -> Eff effs ()
@@ -148,9 +149,9 @@ getActiveContracts ::
     forall t effs.
     ( Member (ContractStore t) effs
     )
-    => Eff effs (Map ContractInstanceId (ContractDef t))
+    => Eff effs (Map ContractInstanceId (ContractActivationArgs (ContractDef t)))
 getActiveContracts =
-    let command :: ContractStore t (Map ContractInstanceId (ContractDef t)) = ActiveContracts
+    let command :: ContractStore t (Map ContractInstanceId (ContractActivationArgs (ContractDef t))) = ActiveContracts
     in send command
 
 -- | Get the definition of a running contract
@@ -158,7 +159,7 @@ getDefinition ::
     forall t effs.
     ( Member (ContractStore t) effs)
     => ContractInstanceId
-    -> Eff effs (Maybe (ContractDef t))
+    -> Eff effs (Maybe (ContractActivationArgs (ContractDef t)))
 getDefinition i = Map.lookup i <$> (getActiveContracts @t)
 
 -- | Storing and retrieving definitions of contracts.

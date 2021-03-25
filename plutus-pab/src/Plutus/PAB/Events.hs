@@ -24,12 +24,13 @@ import           GHC.Generics                            (Generic)
 import           Ledger.Tx                               (Tx, txId)
 import           Plutus.PAB.Events.Contract              (ContractPABRequest)
 import           Plutus.PAB.Events.ContractInstanceState (PartiallyDecodedResponse)
+import           Plutus.PAB.Webserver.Types              (ContractActivationArgs)
 import           Wallet.Types                            (ContractInstanceId)
 
 -- | A structure which ties together all possible event types into one parent.
 data PABEvent t =
     InstallContract !t -- ^ Install a contract
-    | UpdateContractInstanceState !t !ContractInstanceId !(PartiallyDecodedResponse ContractPABRequest) -- ^ Update the state of a contract instance
+    | UpdateContractInstanceState !(ContractActivationArgs t) !ContractInstanceId !(PartiallyDecodedResponse ContractPABRequest) -- ^ Update the state of a contract instance
     | SubmitTx !Tx -- ^ Send a transaction to the node
     deriving stock (Eq, Show, Generic)
     deriving anyclass (ToJSON, FromJSON)

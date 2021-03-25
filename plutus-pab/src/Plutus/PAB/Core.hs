@@ -118,6 +118,7 @@ import           Plutus.PAB.Events.Contract              (ContractPABRequest)
 import           Plutus.PAB.Events.ContractInstanceState (PartiallyDecodedResponse)
 import           Plutus.PAB.Monitoring.PABLogMsg         (PABMultiAgentMsg (..))
 import           Plutus.PAB.Types                        (PABError)
+import           Plutus.PAB.Webserver.Types              (ContractActivationArgs (..))
 import           Wallet.API                              (PubKey, Slot)
 import qualified Wallet.API                              as WAPI
 import           Wallet.Effects                          (ChainIndexEffect, ContractRuntimeEffect, NodeClientEffect,
@@ -127,6 +128,7 @@ import           Wallet.Emulator.MultiAgent              (EmulatorEvent' (..), E
 import           Wallet.Emulator.Wallet                  (Wallet, WalletEvent (..))
 import           Wallet.Types                            (ContractInstanceId, EndpointDescription (..),
                                                           NotificationError)
+
 -- | Effects that are available in 'PABAction's.
 type PABEffects t env =
     '[ ContractStore t
@@ -195,8 +197,10 @@ activateContract w def = do
 
     let handler :: forall a. Eff (ContractInstanceEffects t env '[IO]) a -> IO a
         handler x = fmap (either (error . show) id) (runPABAction $ handleAgentThread w x)
+        args :: ContractActivationArgs (ContractDef t)
+        args = ContractActivationArgs{caWallet = w, caID = def}
     handleAgentThread w
-        $ ContractInstance.activateContractSTM @t @IO @(ContractInstanceEffects t env '[IO]) handler def
+        $ ContractInstance.activateContractSTM @t @IO @(ContractInstanceEffects t env '[IO]) handler args
 
 -- | Call a named endpoint on a contract instance
 callEndpointOnInstance ::

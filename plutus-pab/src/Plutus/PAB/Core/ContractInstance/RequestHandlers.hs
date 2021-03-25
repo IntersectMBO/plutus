@@ -44,6 +44,7 @@ import qualified Plutus.PAB.Events.Contract              as Events.Contract
 import           Plutus.PAB.Events.ContractInstanceState (PartiallyDecodedResponse)
 import           Wallet.Effects                          (ChainIndexEffect, ContractRuntimeEffect, WalletEffect)
 import           Wallet.Emulator.LogMessages             (TxBalanceMsg)
+import           Wallet.Emulator.Types                   (Wallet)
 import           Wallet.Types                            (NotificationError)
 
 processOwnPubkeyRequests ::
@@ -142,7 +143,7 @@ data ContractInstanceMsg t =
     | LookingUpContract (Contract.ContractDef t)
     | InitialisingContract (Contract.ContractDef t) ContractInstanceId
     | InitialContractResponse (PartiallyDecodedResponse ContractPABRequest)
-    | ActivatedContractInstance (Contract.ContractDef t) ContractInstanceId
+    | ActivatedContractInstance (Contract.ContractDef t) Wallet ContractInstanceId
     | RunRequestHandler ContractInstanceId Int -- number of requests
     | RunRequestHandlerDidNotHandleAnyEvents
     | StoringSignedTx Tx
@@ -192,7 +193,7 @@ instance (ToJSON (Contract.ContractDef t)) => ToObject (ContractInstanceMsg t) w
                 case v of
                     MaximalVerbosity -> Left (Tagged @"response" rsp)
                     _                -> Right ()
-        ActivatedContractInstance _ instanceID ->
+        ActivatedContractInstance _ _ instanceID ->
             mkObjectStr "activated contract instance" instanceID
         RunRequestHandler instanceID n ->
             mkObjectStr "running request handler" (instanceID, Tagged @"num_requests" n)
@@ -242,7 +243,7 @@ instance Pretty (Contract.ContractDef t) => Pretty (ContractInstanceMsg t) where
         LookingUpContract c -> "Looking up contract" <+> pretty c
         InitialisingContract c instanceID -> "Initialising contract" <+> pretty c <+> "with ID" <+> pretty instanceID
         InitialContractResponse rsp -> "Initial contract response:" <+> pretty rsp
-        ActivatedContractInstance _ instanceID -> "Activated instance" <+> pretty instanceID
+        ActivatedContractInstance _ wallet instanceID -> "Activated instance" <+> pretty instanceID <+> "on" <+> pretty wallet
         RunRequestHandler instanceID numRequests -> "Running request handler for" <+> pretty instanceID <+> "with" <+> pretty numRequests <+> "requests."
         RunRequestHandlerDidNotHandleAnyEvents -> "runRequestHandler: did not handle any requests"
         StoringSignedTx tx -> "Storing signed tx" <+> pretty (txId tx)
