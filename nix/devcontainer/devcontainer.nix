@@ -29,6 +29,8 @@
 , which
 }:
 let
+  # I think we should be able to use buildLayeredImage, but for some reason it
+  # produces a nonfunctional image
   image = dockerTools.buildImage {
     inherit name tag;
 
