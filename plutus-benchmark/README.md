@@ -67,7 +67,7 @@ stack or cabal): for example
 ```
 
 If using `cabal bench` you'll have to do something similar, but `cabal run` will write the output into
-the current directory.
+the current directory (unless you use `cabal run <benchmark> -- --output ...`).
 
 The `templates` directory contains some template files for use by Criterion.
 
