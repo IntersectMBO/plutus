@@ -17,8 +17,8 @@ contractTemplate = { metaData, extendedContract }
 
 metaData :: MetaData
 metaData =
-  { contractType: EscrowWithCollatoral
-  , contractName: "Escrow with Collatoral"
+  { contractType: EscrowWithCollateral
+  , contractName: "Escrow with Collateral"
   , contractDescription: "Variation of Escrow contract that relies on a mutual collateral insteead of trusted third-party."
   , roleDescriptions:
       fromFoldable

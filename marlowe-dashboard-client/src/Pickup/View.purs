@@ -6,9 +6,10 @@ import Css as Css
 import Data.Foldable (foldMap)
 import Data.Lens (view)
 import Data.Maybe (Maybe(..), isJust, isNothing)
-import Halogen.HTML (HTML, a, button, div, div_, footer, h1, header, hr, input, label, main, p, text)
+import Halogen.HTML (HTML, a, button, div, div_, footer, header, hr, img, input, label, main, p, text)
 import Halogen.HTML.Events.Extra (onClick_, onValueInput_)
-import Halogen.HTML.Properties (InputType(..), disabled, for, href, id_, list, placeholder, readOnly, type_, value)
+import Halogen.HTML.Properties (InputType(..), disabled, for, href, id_, list, placeholder, readOnly, src, type_, value)
+import Logo (marloweRunLogo)
 import MainFrame.Lenses (_card)
 import Marlowe.Semantics (PubKey)
 import Material.Icons (Icon(..), icon_)
@@ -186,7 +187,7 @@ renderPickupScreen wallets =
         [ link "marlowe.io" "" ]
     , pickupWalletScreen wallets
     , footer
-        [ classNames [ "flex" ] ]
+        [ classNames [ "flex", "justify-between" ] ]
         [ link "Docs" ""
         , link "Marketplace" ""
         ]
@@ -196,9 +197,10 @@ pickupWalletScreen :: forall p. WalletLibrary -> HTML p Action
 pickupWalletScreen wallets =
   main
     [ classNames [ "p-4", "max-w-sm", "mx-auto", "text-center" ] ]
-    [ h1
-        [ classNames [ "text-3xl", "font-bold", "mb-4" ] ]
-        [ text "Marlowe" ]
+    [ img
+        [ classNames [ "w-4/5", "mx-auto", "mb-6" ]
+        , src marloweRunLogo
+        ]
     , p
         [ classNames [ "mb-4" ] ]
         [ text "To use Marlowe Run, generate a new demo wallet." ]
@@ -216,7 +218,7 @@ pickupWalletScreen wallets =
         , classNames $ Css.inputCard false
         , id_ "existingWallet"
         , list "walletNicknames"
-        , placeholder "Chose or input key/nickname"
+        , placeholder "Choose or input key/nickname"
         , onValueInput_ LookupWallet
         ]
     , nicknamesDataList wallets
