@@ -2,7 +2,7 @@
 let
   inherit (lib) types mkOption mkIf;
   pabExec = pkgs.writeShellScriptBin "pab-exec" ''
-    ${cfg.pab-package}/bin/plutus-pab --config=${pabYaml} "$*"
+    ${cfg.pab-package}/bin/plutus-pab --config=${pabYaml} $*
   '';
   cfg = config.services.pab;
 

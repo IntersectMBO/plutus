@@ -17,6 +17,7 @@ makeTest {
         chainIndexPort = 8083;
         signingProcessPort = 8084;
         metadataPort = 8085;
+        contracts = [ "/tmp/file-that-does-not-exist" ];
       };
     };
   testScript = ''
@@ -28,6 +29,7 @@ makeTest {
     machine.wait_for_open_port(8081)
     machine.wait_for_open_port(8082)
     machine.succeed("curl -s localhost:8080 | grep marlowe-dashboard")
+    machine.succeed("pab-exec contracts installed | grep '/tmp/file-that-does-not-exist'")
   '';
 
 }
