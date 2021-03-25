@@ -42,7 +42,7 @@ hideWhen condition = applyWhen condition [ "hidden" ]
 
 --- color gradients
 bgBlueGradient :: Array String
-bgBlueGradient = [ "bg-gradient-to-r", "from-blue", "to-lightblue", "text-white" ]
+bgBlueGradient = [ "bg-gradient-to-r", "from-purple", "to-lightpurple", "text-white" ]
 
 -- buttons
 button :: Array String

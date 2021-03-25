@@ -10,9 +10,10 @@ import Data.Foldable (foldMap)
 import Data.Lens (view)
 import Data.Maybe (Maybe(..), isNothing)
 import Data.String (take)
-import Halogen.HTML (HTML, a, div, div_, footer, h1, header, main, nav, span, text)
+import Halogen.HTML (HTML, a, div, div_, footer, header, img, main, nav, span, text)
 import Halogen.HTML.Events.Extra (onClick_)
-import Halogen.HTML.Properties (href)
+import Halogen.HTML.Properties (href, src)
+import Logo (marloweRunNavLogo, marloweRunNavLogoDark)
 import MainFrame.Lenses (_card, _screen)
 import Marlowe.Extended.Template (ContractTemplate)
 import Marlowe.Semantics (PubKey)
@@ -46,9 +47,10 @@ renderHeader :: forall p. PubKey -> Boolean -> HTML p Action
 renderHeader walletNickname menuOpen =
   header
     [ classNames $ [ "relative", "flex", "justify-between", "items-center", "leading-none", "border-b", "border-gray", "py-3", "md:py-1", "px-4", "md:px-5pc" ] <> applyWhen menuOpen [ "border-0", "bg-black", "text-white" ] ]
-    [ h1
-        [ classNames [ "text-xl", "font-bold" ] ]
-        [ text "Marlowe" ]
+    [ img
+        [ classNames [ "w-16" ]
+        , src if menuOpen then marloweRunNavLogoDark else marloweRunNavLogo
+        ]
     , nav
         [ classNames [ "flex", "items-center" ] ]
         [ navigation (SetScreen ContractsScreen) Home "Home"

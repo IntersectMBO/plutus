@@ -106,7 +106,7 @@ actionConfirmationCard state namedAction =
               [ classNames [ "mt-4", "text-sm", "font-semibold" ] ]
               [ text "Confirm payment of:" ]
           , div
-              [ classNames [ "mb-4", "text-blue", "font-semibold", "text-2xl" ] ]
+              [ classNames [ "mb-4", "text-purple", "font-semibold", "text-2xl" ] ]
               [ totalToPay ]
           , div [ classNames [ "flex", "justify-center" ] ]
               [ button
@@ -271,8 +271,8 @@ renderPartyTasks state party actions =
     div [ classNames [ "mt-3" ] ]
       ( [ div [ classNames [ "text-xs", "flex", "mb-2" ] ]
             -- TODO: In zeplin all participants have a different color. We need to decide how are we going to assing
-            --       colors to users. For now they all have blue
-            [ div [ classNames [ "bg-gradient-to-r", "from-blue", "to-lightblue", "text-white", "rounded-full", "w-5", "h-5", "text-center", "mr-1" ] ] [ text $ String.take 1 participantName ]
+            --       colors to users. For now they all have purple
+            [ div [ classNames [ "bg-gradient-to-r", "from-purple", "to-lightpurple", "text-white", "rounded-full", "w-5", "h-5", "text-center", "mr-1" ] ] [ text $ String.take 1 participantName ]
             , div [ classNames [ "font-semibold" ] ] [ text participantName ]
             ]
         ]
@@ -287,7 +287,7 @@ renderAction _ isActiveParticipant namedAction@(MakeDeposit intoAccountOf by tok
         -- FIXME: adapt to use button classes from Css module
         [ classNames $ [ "flex", "justify-between", "px-6", "font-bold", "w-full", "py-4", "mt-2", "rounded-lg", "shadow" ]
             <> if isActiveParticipant then
-                [ "bg-gradient-to-r", "from-blue", "to-lightblue", "text-white" ]
+                [ "bg-gradient-to-r", "from-purple", "to-lightpurple", "text-white" ]
               else
                 [ "bg-gray", "text-black", "opacity-50", "cursor-default" ]
         , enabled isActiveParticipant
@@ -325,7 +325,7 @@ renderAction state isActiveParticipant namedAction@(MakeChoice choiceId bounds m
               [ classNames
                   ( [ "px-5", "font-bold" ]
                       <> if isValid then
-                          [ "bg-gradient-to-b", "from-blue", "to-lightblue", "text-white" ]
+                          [ "bg-gradient-to-b", "from-purple", "to-lightpurple", "text-white" ]
                         else
                           [ "bg-gray", "text-black", "opacity-50", "cursor-default" ]
                   )
@@ -347,7 +347,7 @@ renderAction _ isActiveParticipant CloseContract =
         -- FIXME: adapt to use button classes from Css module
         [ classNames $ [ "font-bold", "w-full", "py-4", "mt-2", "rounded-lg", "shadow" ]
             <> if isActiveParticipant then
-                [ "bg-gradient-to-r", "from-blue", "to-lightblue", "text-white" ]
+                [ "bg-gradient-to-r", "from-purple", "to-lightpurple", "text-white" ]
               else
                 [ "bg-gray", "text-black", "opacity-50", "cursor-default" ]
         , enabled isActiveParticipant
