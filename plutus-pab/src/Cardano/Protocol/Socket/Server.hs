@@ -383,7 +383,7 @@ application internalState@InternalState {isState} =
         chainSync =
              ResponderProtocolOnly $
              MuxPeer
-               (contramap show stdoutTracer)
+               nullTracer
                codecChainSync
                (ChainSync.chainSyncServerPeer
                    (runReader (hoistChainSync chainSyncServer)
@@ -393,7 +393,7 @@ application internalState@InternalState {isState} =
         txSubmission =
             ResponderProtocolOnly $
             MuxPeer
-              (contramap show stdoutTracer)
+              nullTracer
               codecTxSubmission
               (TxSubmission.localTxSubmissionServerPeer (pure $ txSubmissionServer isState))
 
