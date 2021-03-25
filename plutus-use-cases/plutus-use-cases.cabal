@@ -137,6 +137,7 @@ test-suite plutus-use-cases-test
         tasty-hunit -any,
         tasty-hedgehog >=0.2.0.0,
         tasty-golden -any,
+        tasty-quickcheck -any,
         text -any,
         lens -any,
         mtl -any,

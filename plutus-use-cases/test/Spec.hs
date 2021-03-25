@@ -10,6 +10,7 @@ import qualified Spec.Future
 import qualified Spec.Game
 import qualified Spec.GameStateMachine
 -- import qualified Spec.MultiSig
+import qualified Spec.DynamicLogic.RegistryModel
 import qualified Spec.MultiSigStateMachine
 import qualified Spec.PingPong
 import qualified Spec.Prism
@@ -20,7 +21,7 @@ import qualified Spec.Stablecoin
 import qualified Spec.TokenAccount
 import qualified Spec.Vesting
 import           Test.Tasty
-import           Test.Tasty.Hedgehog       (HedgehogTestLimit (..))
+import           Test.Tasty.Hedgehog             (HedgehogTestLimit (..))
 
 main :: IO ()
 main = defaultMain tests
@@ -52,5 +53,6 @@ tests = localOption limit $ testGroup "use cases" [
     Spec.RPC.tests,
     Spec.Prism.tests,
     Spec.Stablecoin.tests,
-    Spec.Auction.tests
+    Spec.Auction.tests,
+    Spec.DynamicLogic.RegistryModel.tests
     ]

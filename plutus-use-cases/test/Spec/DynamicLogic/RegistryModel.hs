@@ -12,6 +12,8 @@ import           Control.Exception                 (ErrorCall, try)
 import           Data.List
 import           Test.QuickCheck
 import           Test.QuickCheck.Monadic
+import           Test.Tasty                        hiding (after)
+import           Test.Tasty.QuickCheck             (testProperty)
 
 import           Plutus.Contract.Test.DynamicLogic
 import           Plutus.Contract.Test.StateModel
@@ -242,4 +244,8 @@ canReregister' s
   | otherwise     = forAllQ (elementsQ $ map fst (regs s)) $ \name ->
                       after (Unregister name) (canRegisterName' name)
   where availableTids = (tids s \\ map snd (regs s)) \\ dead s
+
+tests :: TestTree
+tests = testGroup "registry model example"
+          [ testProperty "prop_Registry" prop_Registry ]
 

@@ -26,6 +26,7 @@ import           Data.Maybe
 import           Test.QuickCheck                    as QC hiding ((.&&.))
 import           Test.Tasty                         hiding (after)
 import qualified Test.Tasty.HUnit                   as HUnit
+import           Test.Tasty.QuickCheck              (testProperty)
 
 import qualified Spec.Lib                           as Lib
 
@@ -205,7 +206,7 @@ noLockedFunds = do
     val    <- viewContractState gameValue
     when (val > 0) $ do
         monitor $ label "Unlocking funds"
-        -- action $ GiveToken w
+        action $ GiveToken w
         action $ Guess w secret "" val
     assertModel "Locked funds should be zero" $ isZero . lockedValue
 
@@ -241,6 +242,9 @@ tests =
 
     , HUnit.testCase "script size is reasonable"
         (Lib.reasonable (Scripts.validatorScript G.scriptInstance) 49000)
+
+    , testProperty "can always get the funds out" $
+        withMaxSuccess 10 prop_NoLockedFunds
 
     ]
 

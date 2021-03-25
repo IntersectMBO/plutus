@@ -28,27 +28,7 @@ import           PlutusTx.Monoid                    (inv)
 
 import           Test.QuickCheck                    hiding ((.&&.))
 import           Test.Tasty
-
-tests :: TestTree
-tests =
-    testGroup "auction"
-        [ checkPredicateOptions options "run an auction"
-            (assertDone seller (Trace.walletInstanceTag w1) (const True) "seller should be done"
-            .&&. assertDone buyer (Trace.walletInstanceTag w2) (const True) "buyer should be done"
-            .&&. assertAccumState buyer (Trace.walletInstanceTag w2) ((==) (Just $ Last trace1FinalState)) "final state should be OK"
-            .&&. walletFundsChange w1 (Ada.toValue trace1WinningBid <> inv theToken)
-            .&&. walletFundsChange w2 (inv (Ada.toValue trace1WinningBid) <> theToken))
-            auctionTrace1
-        , checkPredicateOptions options "run an auction with multiple bids"
-            (assertDone seller (Trace.walletInstanceTag w1) (const True) "seller should be done"
-            .&&. assertDone buyer (Trace.walletInstanceTag w2) (const True) "buyer should be done"
-            .&&. assertDone buyer (Trace.walletInstanceTag w3) (const True) "3rd party should be done"
-            .&&. assertAccumState buyer (Trace.walletInstanceTag w2) ((==) (Just $ Last trace2FinalState)) "final state should be OK"
-            .&&. walletFundsChange w1 (Ada.toValue trace2WinningBid <> inv theToken)
-            .&&. walletFundsChange w2 (inv (Ada.toValue trace2WinningBid) <> theToken)
-            .&&. walletFundsChange w3 mempty)
-            auctionTrace2
-        ]
+import           Test.Tasty.QuickCheck              (testProperty)
 
 params :: AuctionParams
 params =
@@ -240,4 +220,28 @@ finishAuction = do
 
 prop_FinishAuction :: Property
 prop_FinishAuction = forAllDL finishAuction prop_Auction
+
+tests :: TestTree
+tests =
+    testGroup "auction"
+        [ checkPredicateOptions options "run an auction"
+            (assertDone seller (Trace.walletInstanceTag w1) (const True) "seller should be done"
+            .&&. assertDone buyer (Trace.walletInstanceTag w2) (const True) "buyer should be done"
+            .&&. assertAccumState buyer (Trace.walletInstanceTag w2) ((==) (Just $ Last trace1FinalState)) "final state should be OK"
+            .&&. walletFundsChange w1 (Ada.toValue trace1WinningBid <> inv theToken)
+            .&&. walletFundsChange w2 (inv (Ada.toValue trace1WinningBid) <> theToken))
+            auctionTrace1
+        , checkPredicateOptions options "run an auction with multiple bids"
+            (assertDone seller (Trace.walletInstanceTag w1) (const True) "seller should be done"
+            .&&. assertDone buyer (Trace.walletInstanceTag w2) (const True) "buyer should be done"
+            .&&. assertDone buyer (Trace.walletInstanceTag w3) (const True) "3rd party should be done"
+            .&&. assertAccumState buyer (Trace.walletInstanceTag w2) ((==) (Just $ Last trace2FinalState)) "final state should be OK"
+            .&&. walletFundsChange w1 (Ada.toValue trace2WinningBid <> inv theToken)
+            .&&. walletFundsChange w2 (inv (Ada.toValue trace2WinningBid) <> theToken)
+            .&&. walletFundsChange w3 mempty)
+            auctionTrace2
+        -- FIXME: Fails because you cannot bid in certain slots when the off-chain code is busy.
+        -- , testProperty "QuickCheck property" $
+        --     withMaxSuccess 10 prop_FinishAuction
+        ]
 

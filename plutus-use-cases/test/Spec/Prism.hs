@@ -15,26 +15,19 @@
 {-# LANGUAGE UndecidableInstances       #-}
 module Spec.Prism (tests, prismTrace, prop_Prism) where
 
-import           Control.Arrow                            (first, second)
 import           Control.Lens
 import           Control.Monad
-import           Control.Monad.Freer.Error
-import           Control.Monad.Freer.State
-import           Data.Foldable                            (traverse_)
 import           Data.Map                                 (Map)
 import qualified Data.Map                                 as Map
-import           Data.Maybe
 import qualified Ledger.Ada                               as Ada
 import           Ledger.Crypto                            (pubKeyHash)
 import           Ledger.Value                             (TokenName)
-import           Plutus.Contract                          (Contract, HasEndpoint)
 import           Plutus.Contract.Test                     hiding (not)
 import           Plutus.Contract.Test.ContractModel       as ContractModel
-import           PlutusTx.Lattice
 
 import           Test.QuickCheck                          as QC hiding ((.&&.))
-import           Test.QuickCheck.Monadic
 import           Test.Tasty
+import           Test.Tasty.QuickCheck                    (testProperty)
 
 import           Plutus.Contracts.Prism                   hiding (credentialManager, mirror)
 import qualified Plutus.Contracts.Prism.Credential        as Credential
@@ -44,7 +37,6 @@ import           Plutus.Contracts.Prism.STO               (STOData (..))
 import qualified Plutus.Contracts.Prism.STO               as STO
 import qualified Plutus.Contracts.Prism.Unlock            as C
 import qualified Plutus.Trace.Emulator                    as Trace
-import           PlutusTx.Monoid                          (inv)
 
 user, credentialManager, mirror, issuer :: Wallet
 user = Wallet 1
@@ -85,16 +77,6 @@ stoData =
         , stoCredentialToken = Credential.token credential
         }
 
-tests :: TestTree
-tests = testGroup "PRISM"
-    [ checkPredicate "withdraw"
-        (assertDone contract (Trace.walletInstanceTag user) (const True) ""
-        .&&. walletFundsChange issuer (Ada.lovelaceValueOf numTokens)
-        .&&. walletFundsChange user (Ada.lovelaceValueOf (negate numTokens) <> STO.coins stoData numTokens)
-        )
-        prismTrace
-    ]
-
 -- | 'mirror' issues a KYC token to 'user', who then uses it in an STO transaction
 prismTrace :: Trace.EmulatorTrace ()
 prismTrace = do
@@ -132,15 +114,14 @@ data PrismModel = PrismModel
 
 makeLenses 'PrismModel
 
-_fromJust :: Lens' (Maybe a) a
-_fromJust f (Just x) = Just <$> f x
-_fromJust f Nothing  = error "_fromJust: Nothing"
+walletStatus :: Wallet -> Lens' PrismModel (IssueState, STOState)
+walletStatus w = walletState . at w . non (NoIssue, STOReady)
 
 isIssued :: Wallet -> Lens' PrismModel IssueState
-isIssued w = walletState . at w . _fromJust . _1
+isIssued w = walletStatus w . _1
 
 stoState :: Wallet -> Lens' PrismModel STOState
-stoState w = walletState . at w . _fromJust . _2
+stoState w = walletStatus w . _2
 
 doRevoke :: IssueState -> IssueState
 doRevoke NoIssue = NoIssue
@@ -170,7 +151,7 @@ instance ContractModel PrismModel where
                                   genUser Call, genUser Present]
         where genUser f = f <$> QC.elements users
 
-    initialState = PrismModel { _walletState = Map.fromList [(w, (NoIssue, STOReady)) | w <- users] }
+    initialState = PrismModel { _walletState = Map.empty }
 
     precondition s (Issue w) = (s ^. contractState . isIssued w) /= Issued  -- Multiple Issue (without Revoke) breaks the contract
     precondition _ _         = True
@@ -181,17 +162,17 @@ instance ContractModel PrismModel where
             Delay     -> wait 1
             Revoke w  -> isIssued w $~ doRevoke
             Issue w   -> isIssued w $= Issued
-            Call w    -> stoState w $~ \ case STOReady -> STOPending; sto -> sto
+            Call w    -> stoState w $~ \ case STOReady -> STOPending; st -> st
             Present w -> do
-                iss <- (== Issued)     <$> viewContractState (isIssued w)
-                sto <- (== STOPending) <$> viewContractState (stoState w)
+                iss  <- (== Issued)     <$> viewContractState (isIssued w)
+                pend <- (== STOPending) <$> viewContractState (stoState w)
                 stoState w $= STOReady
-                when (iss && sto) $ do
+                when (iss && pend) $ do
                     transfer w issuer (Ada.lovelaceValueOf numTokens)
                     deposit w $ STO.coins stoData numTokens
                 return ()
 
-    perform handle s cmd = case cmd of
+    perform handle _ cmd = case cmd of
         Delay     -> wrap $ delay 1
         Issue w   -> wrap $ Trace.callEndpoint @"issue"              (handle MirrorH) CredentialOwnerReference{coTokenName=kyc, coOwner=w}
         Revoke w  -> wrap $ Trace.callEndpoint @"revoke"             (handle MirrorH) CredentialOwnerReference{coTokenName=kyc, coOwner=w}
@@ -220,4 +201,16 @@ prop_Prism = propRunActions @PrismModel spec finalPredicate
         spec = [ ContractInstanceSpec (UserH w) w                 C.subscribeSTO | w <- users ] ++
                [ ContractInstanceSpec MirrorH   mirror            C.mirror
                , ContractInstanceSpec ManagerH  credentialManager C.credentialManager ]
+
+tests :: TestTree
+tests = testGroup "PRISM"
+    [ checkPredicate "withdraw"
+        (assertNotDone contract (Trace.walletInstanceTag user) "User stopped"
+        .&&. walletFundsChange issuer (Ada.lovelaceValueOf numTokens)
+        .&&. walletFundsChange user (Ada.lovelaceValueOf (negate numTokens) <> STO.coins stoData numTokens)
+        )
+        prismTrace
+    , testProperty "QuickCheck property" $
+        withMaxSuccess 15 prop_Prism
+    ]
 
