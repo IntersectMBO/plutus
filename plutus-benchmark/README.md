@@ -69,7 +69,9 @@ stack or cabal): for example
 If using `cabal bench` you'll have to do something similar, but `cabal run` will write the output into
 the current directory (unless you use `cabal run <benchmark> -- --output ...`).
 
-The `templates` directory contains some template files for use by Criterion.
+The `templates` directory contains a template file for use by Criterion: this extends
+the HTML report to include the total number of times each benchmark was run and the
+total amount of time spent running each benchmark.
 
 ### Tests
 
