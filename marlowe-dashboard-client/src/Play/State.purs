@@ -52,7 +52,7 @@ toContract ::
   Functor m =>
   HalogenM Contract.State Contract.Action slots msg m Unit ->
   HalogenM MainFrame.State MainFrame.Action slots msg m Unit
-toContract = mapMaybeSubmodule (_playState <<< _selectedContract) (MainFrame.PlayAction <<< ContractAction) $ Contract.defaultState
+toContract = mapMaybeSubmodule (_playState <<< _selectedContract) (MainFrame.PlayAction <<< ContractAction) Contract.defaultState
 
 mkInitialState :: WalletDetails -> Minutes -> State
 mkInitialState walletDetails timezoneOffset =

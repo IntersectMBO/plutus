@@ -45,14 +45,14 @@ filledContract1 =
 
     participants =
       Map.fromFoldable
-        [ (Role "Arbiter") /\ Just "Alice user"
-        , (Role "Buyer") /\ Just "Bob user"
+        [ (Role "Arbiter") /\ Just "Alice"
+        , (Role "Buyer") /\ Just "Bob"
         , (Role "Seller") /\ Nothing
         ]
 
     mContract = toCore $ fillTemplate templateContent Contract1.extendedContract
   in
-    mContract <#> \contract -> Contract.mkInitialState "dummy contract 1" zero contract Contract1.metaData participants (Just $ Role "Arbiter")
+    mContract <#> \contract -> Contract.mkInitialState "dummy contract 1" zero contract Contract1.metaData participants (Just $ Role "Buyer")
 
 filledContract2 :: Maybe Contract.State
 filledContract2 = do
@@ -61,22 +61,20 @@ filledContract2 = do
       TemplateContent
         { slotContent:
             Map.fromFoldable
-              [ "aliceTimeout" /\ fromInt 10
-              , "arbitrageTimeout" /\ fromInt 12
-              , "bobTimeout" /\ fromInt 15
-              , "depositSlot" /\ fromInt 17
+              [ "Initial exchange deadline" /\ fromInt 10
+              , "Maturity exchange deadline" /\ fromInt 12
               ]
         , valueContent:
             Map.fromFoldable
-              [ "amount" /\ fromInt 1500
+              [ "Discounted price" /\ fromInt 1000
+              , "Notional" /\ fromInt 1500
               ]
         }
 
     participants =
       Map.fromFoldable
-        [ (Role "alice") /\ Just "Alice user"
-        , (Role "bob") /\ Just "Bob user"
-        , (Role "carol") /\ Nothing
+        [ (Role "Investor") /\ Just "Alice"
+        , (Role "Issuer") /\ Just "Bob"
         ]
 
     transactions =
@@ -85,7 +83,7 @@ filledContract2 = do
               (SlotInterval (Slot $ fromInt 0) (Slot $ fromInt 0))
           , inputs:
               List.singleton
-                $ IDeposit (Role "alice") (Role "alice") (Token "" "") (fromInt 1500)
+                $ IDeposit (Role "Investor") (Role "Investor") (Token "" "") (fromInt 1000)
           }
       ]
 
