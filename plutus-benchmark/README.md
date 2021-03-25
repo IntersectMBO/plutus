@@ -26,8 +26,11 @@ This directory contains two sets of benchmarks:
      to the `plutus-benchmark` directory.  Stack uses the benchmark directory for its
      working directory; there doesn't seem to be any way to get it to use any other directory.
 
-   * By default, the benchmarks are run for a minimum of **60 seconds each** in order to get a
-     statistically reasonable number of executions.  You can change this with Criterion's `-L` option.
+   * By default, the `nofib` benchmarks are run for a minimum of **60 seconds
+     each** in order to get a statistically reasonable number of executions.
+     You can change this with Criterion's `-L` option.  With the 60 second limit
+     the entire suite takes perhaps 20-40 minutes to run (although this will
+     depend on the hardware).
 
 * `validation`:  a number of Plutus Core scripts extracted from the `plutus-use-cases` tests which represent realistic on-chain
    transaction validations.
@@ -45,6 +48,12 @@ This directory contains two sets of benchmarks:
        * `cabal bench plutus-benchmark:validation`
        * `cabal bench plutus-benchmark:validation --benchmark-options "crowdfunding/2 -L10"`
      or the `cabal run` equivalents (see the `nofib` section).
+
+   * During benchmarking each validation script is run repeatedly up to a limit
+     of 5 seconds (Criterion's default; a single execution takes approximately
+     5-15 ms) to get statistically reasonable total number of executions.  It
+     takes about 5 minutes to run the entire suite (again, this will depend on
+     the hardware).
 
 See also  [nofib/README.md](./nofib/README.md)  and [validation/README.md](./validation/README.md).
 
