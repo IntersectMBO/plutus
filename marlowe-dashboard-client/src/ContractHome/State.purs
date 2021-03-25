@@ -28,27 +28,27 @@ filledContract1 =
       TemplateContent
         { slotContent:
             Map.fromFoldable
-              [ "aliceTimeout" /\ fromInt 10
-              , "arbitrageTimeout" /\ fromInt 12
-              , "bobTimeout" /\ fromInt 15
-              , "depositSlot" /\ fromInt 17
+              [ "Buyer's deposit timeout" /\ fromInt 10
+              , "Buyer's dispute timeout" /\ fromInt 12
+              , "Seller's response timeout" /\ fromInt 15
+              , "Timeout for arbitrage" /\ fromInt 17
               ]
         , valueContent:
             Map.fromFoldable
-              [ "amount" /\ fromInt 1500
+              [ "Price" /\ fromInt 1500
               ]
         }
 
     participants =
       Map.fromFoldable
-        [ (Role "alice") /\ Just "Alice user"
-        , (Role "bob") /\ Just "Bob user"
-        , (Role "carol") /\ Nothing
+        [ (Role "Arbiter") /\ Just "Alice user"
+        , (Role "Buyer") /\ Just "Bob user"
+        , (Role "Seller") /\ Nothing
         ]
 
     mContract = toCore $ fillTemplate templateContent Contract1.extendedContract
   in
-    mContract <#> \contract -> Contract.mkInitialState zero contract Contract1.metaData participants (Just $ Role "alice")
+    mContract <#> \contract -> Contract.mkInitialState zero contract Contract1.metaData participants (Just $ Role "Arbiter")
 
 {-
 filledContract2 :: Maybe Contract.State

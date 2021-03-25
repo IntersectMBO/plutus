@@ -5,12 +5,13 @@ module Marlowe.Market.Contract4
   ) where
 
 import Prelude
+import Data.BigInteger (fromInt) as BigInteger
 import Data.Map (fromFoldable)
 import Data.Tuple.Nested ((/\))
-import Marlowe.Extended (Action(..), Case(..), Contract(..), ContractType(..), Observation(..), Payee(..), Timeout(..), Value(..))
+import Marlowe.Extended (Action(..), Case(..), Contract(..), ContractType(..), Payee(..), Timeout(..), Value(..))
 import Marlowe.Extended.Metadata (MetaData)
 import Marlowe.Extended.Template (ContractTemplate)
-import Marlowe.Semantics (Bound(..), ChoiceId(..), Party(..), Token(..))
+import Marlowe.Semantics (Party(..), Token(..))
 
 contractTemplate :: ContractTemplate
 contractTemplate = { metaData, extendedContract }
@@ -19,25 +20,20 @@ metaData :: MetaData
 metaData =
   { contractType: CouponBondGuaranteed
   , contractName: "Coupon Bond Guaranteed"
-  , contractDescription: "A guaranteed bond is a debt security that offers a secondary guarantee that interest and principal payments will be made by a third party, should the issuer default. It can be backed by a bond insurance company, a fund or group entity, a government authority, or the corporate parents of subsidiaries or joint ventures that are issuing bonds."
+  , contractDescription: "Debt agreement between an \"Investor\" and an \"Issuer\". \"Investor\" will advance the \"Principal\" amount at the beginning of the contract, and the \"Issuer\" will pay back \"Interest instalment\" every 30 slots and the \"Principal\" amount by the end of 3 instalments. The debt is backed by a collateral provided by the \"Guarantor\" which will be refunded as long as the \"Issuer\" pays back on time."
   , roleDescriptions:
       fromFoldable
-        [ "alice" /\ "about the alice role"
-        , "bob" /\ "about the bob role"
+        [ "Guarantor" /\ "Provides a collateral in case the \"Issuer\" defaults."
+        , "Investor" /\ "Provides the money that the \"Issuer\" borrows."
+        , "Issuer" /\ "Borrows the money provided by the \"Investor\" and returns it together with three \"Interest instalment\"s."
         ]
-  , slotParameterDescriptions:
-      fromFoldable
-        [ "aliceTimeout" /\ "about the aliceTimeout"
-        , "arbitrageTimeout" /\ "about the arbitrageTimeout"
-        , "bobTimeout" /\ "about the bobTimeout"
-        , "depositSlot" /\ "about the depositSlot"
-        ]
+  , slotParameterDescriptions: mempty
   , valueParameterDescriptions:
       fromFoldable
-        [ "amount" /\ "about the amount" ]
-  , choiceDescriptions:
-      fromFoldable
-        [ "choice" /\ "about the choice" ]
+        [ "Interest instalment" /\ "Amount of Lovelace that will be paid by the \"Issuer\" every 30 slots for 3 iterations."
+        , "Principal" /\ "Amount of Lovelace that will be borrowed by the \"Issuer\"."
+        ]
+  , choiceDescriptions: mempty
   }
 
 extendedContract :: Contract
@@ -45,157 +41,129 @@ extendedContract =
   When
     [ Case
         ( Deposit
-            (Role "alice")
-            (Role "alice")
+            (Role "Investor")
+            (Role "Guarantor")
             (Token "" "")
-            (ConstantParam "amount")
+            ( AddValue
+                ( MulValue
+                    (Constant $ BigInteger.fromInt 3)
+                    (ConstantParam "Interest instalment")
+                )
+                (ConstantParam "Principal")
+            )
         )
         ( When
             [ Case
-                ( Choice
-                    ( ChoiceId
-                        "choice"
-                        (Role "alice")
-                    )
-                    [ Bound zero one ]
+                ( Deposit
+                    (Role "Issuer")
+                    (Role "Investor")
+                    (Token "" "")
+                    (ConstantParam "Principal")
                 )
-                ( When
-                    [ Case
-                        ( Choice
-                            ( ChoiceId
-                                "choice"
-                                (Role "bob")
-                            )
-                            [ Bound zero one ]
-                        )
-                        ( If
-                            ( ValueEQ
-                                ( ChoiceValue
-                                    ( ChoiceId
-                                        "choice"
-                                        (Role "alice")
-                                    )
-                                )
-                                ( ChoiceValue
-                                    ( ChoiceId
-                                        "choice"
-                                        (Role "bob")
-                                    )
-                                )
-                            )
-                            ( If
-                                ( ValueEQ
-                                    ( ChoiceValue
-                                        ( ChoiceId
-                                            "choice"
-                                            (Role "alice")
-                                        )
-                                    )
-                                    (Constant zero)
-                                )
-                                ( Pay
-                                    (Role "alice")
-                                    (Party (Role "bob"))
-                                    (Token "" "")
-                                    (ConstantParam "amount")
-                                    Close
-                                )
-                                Close
-                            )
-                            ( When
-                                [ Case
-                                    ( Choice
-                                        ( ChoiceId
-                                            "choice"
-                                            (Role "carol")
-                                        )
-                                        [ Bound one one ]
-                                    )
-                                    Close
-                                , Case
-                                    ( Choice
-                                        ( ChoiceId
-                                            "choice"
-                                            (Role "carol")
-                                        )
-                                        [ Bound one one ]
-                                    )
-                                    ( Pay
-                                        (Role "alice")
-                                        (Party (Role "bob"))
-                                        (Token "" "")
-                                        (ConstantParam "amount")
-                                        Close
-                                    )
-                                ]
-                                (SlotParam "arbitrageTimeout")
-                                Close
-                            )
-                        )
-                    ]
-                    (SlotParam "bobTimeout")
+                ( Pay
+                    (Role "Issuer")
+                    (Party (Role "Issuer"))
+                    (Token "" "")
+                    (ConstantParam "Principal")
                     ( When
                         [ Case
-                            ( Choice
-                                ( ChoiceId
-                                    "choice"
-                                    (Role "carol")
-                                )
-                                [ Bound one one ]
-                            )
-                            Close
-                        , Case
-                            ( Choice
-                                ( ChoiceId
-                                    "choice"
-                                    (Role "carol")
-                                )
-                                [ Bound one one ]
+                            ( Deposit
+                                (Role "Investor")
+                                (Role "Issuer")
+                                (Token "" "")
+                                (ConstantParam "Interest instalment")
                             )
                             ( Pay
-                                (Role "alice")
-                                (Party (Role "bob"))
+                                (Role "Investor")
+                                (Party (Role "Investor"))
                                 (Token "" "")
-                                (ConstantParam "amount")
-                                Close
+                                (ConstantParam "Interest instalment")
+                                ( Pay
+                                    (Role "Investor")
+                                    (Party (Role "Guarantor"))
+                                    (Token "" "")
+                                    (ConstantParam "Interest instalment")
+                                    ( When
+                                        [ Case
+                                            ( Deposit
+                                                (Role "Investor")
+                                                (Role "Issuer")
+                                                (Token "" "")
+                                                (ConstantParam "Interest instalment")
+                                            )
+                                            ( Pay
+                                                (Role "Investor")
+                                                (Party (Role "Investor"))
+                                                (Token "" "")
+                                                (ConstantParam "Interest instalment")
+                                                ( Pay
+                                                    (Role "Investor")
+                                                    (Party (Role "Guarantor"))
+                                                    (Token "" "")
+                                                    (ConstantParam "Interest instalment")
+                                                    ( When
+                                                        [ Case
+                                                            ( Deposit
+                                                                (Role "Investor")
+                                                                (Role "Issuer")
+                                                                (Token "" "")
+                                                                ( AddValue
+                                                                    (ConstantParam "Interest instalment")
+                                                                    (ConstantParam "Principal")
+                                                                )
+                                                            )
+                                                            ( Pay
+                                                                (Role "Investor")
+                                                                (Party (Role "Investor"))
+                                                                (Token "" "")
+                                                                ( AddValue
+                                                                    (ConstantParam "Interest instalment")
+                                                                    (ConstantParam "Principal")
+                                                                )
+                                                                ( Pay
+                                                                    (Role "Investor")
+                                                                    (Party (Role "Guarantor"))
+                                                                    (Token "" "")
+                                                                    ( AddValue
+                                                                        (ConstantParam "Interest instalment")
+                                                                        (ConstantParam "Principal")
+                                                                    )
+                                                                    Close
+                                                                )
+                                                            )
+                                                        ]
+                                                        (Slot $ BigInteger.fromInt 150)
+                                                        Close
+                                                    )
+                                                )
+                                            )
+                                        ]
+                                        (Slot $ BigInteger.fromInt 120)
+                                        Close
+                                    )
+                                )
                             )
                         ]
-                        (SlotParam "arbitrageTimeout")
+                        (Slot (BigInteger.fromInt 90))
                         Close
                     )
                 )
             ]
-            (SlotParam "aliceTimeout")
-            ( When
-                [ Case
-                    ( Choice
-                        ( ChoiceId
-                            "choice"
-                            (Role "carol")
-                        )
-                        [ Bound one one ]
+            (Slot $ BigInteger.fromInt 60)
+            ( Pay
+                (Role "Investor")
+                (Party (Role "Guarantor"))
+                (Token "" "")
+                ( AddValue
+                    ( MulValue
+                        (Constant $ BigInteger.fromInt 3)
+                        (ConstantParam "Interest instalment")
                     )
-                    Close
-                , Case
-                    ( Choice
-                        ( ChoiceId
-                            "choice"
-                            (Role "carol")
-                        )
-                        [ Bound zero zero ]
-                    )
-                    ( Pay
-                        (Role "alice")
-                        (Party (Role "bob"))
-                        (Token "" "")
-                        (ConstantParam "amount")
-                        Close
-                    )
-                ]
-                (SlotParam "arbitrageTimeout")
+                    (ConstantParam "Principal")
+                )
                 Close
             )
         )
     ]
-    (SlotParam "depositSlot")
+    (Slot $ BigInteger.fromInt 30)
     Close
