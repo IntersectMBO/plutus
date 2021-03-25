@@ -21,6 +21,7 @@ import qualified Cardano.Protocol.Socket.Client   as Client
 import           Cardano.Wallet.Types             (MultiWalletEffect (..), WalletEffects, WalletMsg (..), Wallets)
 import           Control.Concurrent               (MVar)
 import           Control.Concurrent.MVar          (putMVar, takeMVar)
+import           Control.Lens                     (at, (.~))
 import           Control.Monad.Error              (MonadError)
 import qualified Control.Monad.Except             as MonadError
 import           Control.Monad.Freer
@@ -88,7 +89,8 @@ newKeyPair = do
     pure (pubKey, privateKey)
 
 -- | Handle multiple wallets using existing @Wallet.handleWallet@ handler
-handleMultiWallet :: forall m effs. ( Member NodeClientEffect effs
+handleMultiWallet :: forall m effs.
+    ( Member NodeClientEffect effs
     , Member ChainIndexEffect effs
     , Member (State Wallets) effs
     , Member (Error WAPI.WalletAPIError) effs
@@ -99,11 +101,11 @@ handleMultiWallet = do
         MultiWallet wallet action -> do
             wallets <- get @Wallets
             case Map.lookup wallet wallets of
-                Just privateKey -> do
-                    let walletState = WalletState privateKey emptyNodeClientState mempty (defaultSigningProcess wallet)
-                    evalState walletState $ action
-                        & raiseEnd
-                        & interpret Wallet.handleWallet
+                Just walletState -> do
+                    -- let walletState = WalletState privateKey emptyNodeClientState mempty (defaultSigningProcess wallet)
+                    (x, newState) <- runState walletState $ action & raiseEnd & interpret Wallet.handleWallet
+                    put @Wallets (wallets & at wallet .~ Just newState)
+                    pure x
                 Nothing -> throwError $ WAPI.OtherError "Wallet not found"
         CreateWallet -> do
             wallets <- get @Wallets
