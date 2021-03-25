@@ -54,6 +54,8 @@ makeTest {
         extraHosts = ''
           127.0.0.1 plutus-playground
           127.0.0.1 marlowe-playground
+          127.0.0.1 marlowe-dashboard
+          192.168.1.1 pab
           192.168.1.3 webghc
         '';
         dhcpcd.enable = false;
@@ -84,8 +86,17 @@ makeTest {
           upstreams = {
             plutus-playground.servers."127.0.0.1:4000" = { };
             marlowe-playground.servers."127.0.0.1:4001" = { };
+            marlowe-dashboard.servers."192.168.1.1:8080" = { };
           };
           virtualHosts = {
+            "marlowe-dashboard" = {
+              listen = [{ addr = "0.0.0.0"; port = 7070; }];
+              locations = {
+                "/" = {
+                  proxyPass = "http://192.168.1.1:8080";
+                };
+              };
+            };
             "plutus-playground" = {
               listen = [{ addr = "0.0.0.0"; port = 8080; }];
               locations = {
@@ -191,11 +202,12 @@ makeTest {
 
 
     #
-    # playground asserts
+    # playground / frontend asserts
     #
     playgrounds.wait_for_unit("marlowe-playground.service")
     playgrounds.wait_for_unit("plutus-playground.service")
     playgrounds.wait_for_unit("nginx.service")
+    playgrounds.wait_for_open_port(7070)
     playgrounds.wait_for_open_port(8080)
     playgrounds.wait_for_open_port(9090)
     playgrounds.succeed("curl --silent http://plutus-playground:8080/ | grep  'plutus'")
@@ -220,5 +232,10 @@ makeTest {
     #
     playgrounds.succeed("curl --silent -H 'Content-Type: application/json' --request POST --data @${plutusApiRequest} http://plutus-playground:8080/api/contract | grep Right")
     playgrounds.succeed("curl --silent -H 'Content-Type: application/json' --request POST --data @${marloweApiRequest} http://marlowe-playground:9090/runghc | grep Right")
+
+    #
+    # marlowe-dashboard asserts
+    #
+    playgrounds.succeed("curl --silent http://marlowe-dashboard:7070/ | grep 'marlowe-dashboard'")
   '';
 }
