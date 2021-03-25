@@ -2,12 +2,11 @@ module Play.View (renderPlayState) where
 
 import Prelude hiding (div)
 import Contract.View (actionConfirmationCard, contractDetailsCard)
-import ContractHome.Lenses (_selectedContract)
 import ContractHome.View (contractsScreen)
 import Css (applyWhen, classNames, hideWhen)
 import Css as Css
 import Data.Foldable (foldMap)
-import Data.Lens (view)
+import Data.Lens (preview, view)
 import Data.Maybe (Maybe(..), isNothing)
 import Data.String (take)
 import Halogen.HTML (HTML, a, div, div_, footer, header, img, main, nav, span, text)
@@ -19,7 +18,7 @@ import Marlowe.Extended.Template (ContractTemplate)
 import Marlowe.Semantics (PubKey)
 import Material.Icons (Icon(..), icon_)
 import Network.RemoteData (RemoteData)
-import Play.Lenses (_contractsState, _currentSlot, _menuOpen, _templateState, _walletDetails)
+import Play.Lenses (_contractsState, _currentSlot, _menuOpen, _selectedContract, _templateState, _walletDetails)
 import Play.Types (Action(..), Card(..), Screen(..), State)
 import Prim.TypeError (class Warn, Text)
 import Servant.PureScript.Ajax (AjaxError)
@@ -125,7 +124,7 @@ renderCards wallets newWalletNickname newWalletContractId remoteDataPubKey templ
 
     mCard = view _card playState
 
-    mSelectedContractState = view (_contractsState <<< _selectedContract) playState
+    mSelectedContractState = preview _selectedContract playState
 
     cardClasses = case mCard of
       Just TemplateLibraryCard -> Css.largeCard false

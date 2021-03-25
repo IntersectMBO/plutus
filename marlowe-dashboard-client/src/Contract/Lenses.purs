@@ -2,8 +2,7 @@ module Contract.Lenses
   ( _tab
   , _executionState
   , _contractId
-  , _confirmation
-  , _step
+  , _selectedStep
   , _metadata
   , _participants
   , _mActiveUserParty
@@ -26,14 +25,11 @@ _tab = prop (SProxy :: SProxy "tab")
 _executionState :: Lens' State ExecutionState
 _executionState = prop (SProxy :: SProxy "executionState")
 
-_contractId :: Lens' State (Maybe String)
+_contractId :: Lens' State String
 _contractId = prop (SProxy :: SProxy "contractId")
 
-_confirmation :: Lens' State (Maybe Semantic.Input)
-_confirmation = prop (SProxy :: SProxy "confirmation")
-
-_step :: Lens' State Int
-_step = prop (SProxy :: SProxy "step")
+_selectedStep :: Lens' State Int
+_selectedStep = prop (SProxy :: SProxy "selectedStep")
 
 _metadata :: Lens' State MetaData
 _metadata = prop (SProxy :: SProxy "metadata")

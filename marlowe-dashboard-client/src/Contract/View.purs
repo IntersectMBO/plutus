@@ -4,7 +4,8 @@ module Contract.View
   ) where
 
 import Prelude hiding (div)
-import Contract.Lenses (_executionState, _mActiveUserParty, _metadata, _participants, _step, _tab)
+import Contract.Lenses (_executionState, _mActiveUserParty, _metadata, _participants, _tab)
+import Contract.State (currentStep)
 import Contract.Types (Action(..), State, Tab(..))
 import Css (applyWhen, classNames)
 import Css as Css
@@ -48,9 +49,7 @@ contractDetailsCard state =
 actionConfirmationCard :: forall p. State -> NamedAction -> HTML p Action
 actionConfirmationCard state namedAction =
   let
-    -- As programmers we use 0-indexed arrays and steps, but we number steps
-    -- starting from 1
-    stepNumber = state ^. _step + 1
+    stepNumber = currentStep state
 
     title = case namedAction of
       MakeDeposit _ _ _ _ -> "Deposit confirmation"
@@ -91,7 +90,7 @@ actionConfirmationCard state namedAction =
       [ div [ classNames [ "flex", "font-semibold", "justify-between", "bg-lightgray", "p-5" ] ]
           [ span_ [ text "Demo wallet balance:" ]
           -- FIXME: remove placeholder with actual value
-          , span_ [ text "$223,456.78" ]
+          , span_ [ text "₳ 223,456.78" ]
           ]
       , div [ classNames [ "px-5", "pb-6", "pt-3", "md:pb-8" ] ]
           [ h2
@@ -116,8 +115,7 @@ actionConfirmationCard state namedAction =
                   [ text "Cancel" ]
               , button
                   [ classNames $ Css.primaryButton <> [ "flex-1" ]
-                  -- FIXME: Create an action that comunicates with the backend
-                  -- , onClick_ $ AskWalletConfirmation namedAction
+                  , onClick_ $ ConfirmAction namedAction
                   ]
                   [ text cta ]
               ]
@@ -143,9 +141,7 @@ actionConfirmationCard state namedAction =
 renderCurrentStep :: forall p. State -> HTML p Action
 renderCurrentStep state =
   let
-    -- As programmers we use 0-indexed arrays and steps, but we number steps
-    -- starting from 1
-    stepNumber = state ^. _step + 1
+    stepNumber = currentStep state
 
     currentTab = state ^. _tab
 
@@ -370,6 +366,8 @@ formatBigInteger :: BigInteger -> String
 formatBigInteger = format currencyFormatter <<< toNumber
 
 currency :: forall p a. Token -> BigInteger -> HTML p a
+-- FIXME: value should be interpreted as lovelaces instead of ADA and we should
+--        display just the necesary amounts of digits
 currency (Token "" "") value = text ("₳ " <> formatBigInteger value)
 
 currency (Token symbol _) value = text (symbol <> " " <> formatBigInteger value)
