@@ -6,6 +6,7 @@ module Play.State
 
 import Prelude
 import Bridge (slotToMarlowe)
+import Capability (class MonadContract, class MonadWallet)
 import Contract.State (defaultState, handleAction, mkInitialState) as Contract
 import Contract.Types (Action(..), State) as Contract
 import ContractHome.Lenses (_contracts)
@@ -41,7 +42,7 @@ import Plutus.PAB.Webserver.Types (CombinedWSStreamToClient(..))
 import Template.Lenses (_extendedContract, _metaData, _roleWallets, _template, _templateContent)
 import Template.State (defaultState, handleAction, mkInitialState) as Template
 import Template.Types (Action(..)) as Template
-import WalletData.Types (WalletDetails, Nickname)
+import WalletData.Types (WalletDetails, WalletNickname)
 
 toContractHome ::
   forall m msg slots.
@@ -63,7 +64,7 @@ mkInitialState walletDetails timezoneOffset =
   , menuOpen: false
   , screen: ContractsScreen
   , card: Nothing
-  , currentSlot: shelleyInitialSlot -- TODO: this needs to be updated continuously through the websocket
+  , currentSlot: shelleyInitialSlot
   , timezoneOffset
   , templateState: Template.defaultState
   , contractsState: ContractHome.defaultState
@@ -84,6 +85,8 @@ handleAction ::
   forall m.
   MonadAff m =>
   MonadAsk Env m =>
+  MonadContract m =>
+  MonadWallet m =>
   Action -> HalogenM MainFrame.State MainFrame.Action ChildSlots Msg m Unit
 handleAction ToggleMenu = modifying (_playState <<< _menuOpen) not
 
@@ -130,7 +133,7 @@ handleAction (TemplateAction Template.StartContract) = do
 
       metadata = templateState ^. (_template <<< _metaData)
 
-      participants :: Map Semantic.Party (Maybe Nickname)
+      participants :: Map Semantic.Party (Maybe WalletNickname)
       participants =
         mapWithIndex
           ( \party _ -> case party of

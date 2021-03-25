@@ -20,23 +20,22 @@ import Network.RemoteData (RemoteData)
 import Play.Lenses (_contractsState, _currentSlot, _menuOpen, _selectedContract, _templateState, _walletDetails)
 import Play.Types (Action(..), Card(..), Screen(..), State)
 import Prim.TypeError (class Warn, Text)
-import Servant.PureScript.Ajax (AjaxError)
 import Template.View (contractSetupConfirmationCard, contractSetupScreen, templateLibraryCard)
-import WalletData.Lenses (_nickname)
-import WalletData.Types (Nickname, WalletLibrary)
+import WalletData.Lenses (_walletNickname)
+import WalletData.Types (NewWalletDetails, WalletLibrary)
 import WalletData.View (newWalletCard, walletDetailsCard, putdownWalletCard, walletLibraryScreen)
 
-renderPlayState :: forall p. WalletLibrary -> Nickname -> String -> RemoteData AjaxError PubKey -> Array ContractTemplate -> State -> HTML p Action
-renderPlayState wallets newWalletNickname newWalletContractId remoteDataPubKey templates playState =
+renderPlayState :: forall p. WalletLibrary -> NewWalletDetails -> Array ContractTemplate -> State -> HTML p Action
+renderPlayState wallets newWalletDetails templates playState =
   let
-    walletNickname = view (_walletDetails <<< _nickname) playState
+    walletNickname = view (_walletDetails <<< _walletNickname) playState
 
     menuOpen = view _menuOpen playState
   in
     div
       [ classNames [ "grid", "h-full", "grid-rows-main" ] ]
       [ renderHeader walletNickname menuOpen
-      , renderMain wallets newWalletNickname newWalletContractId remoteDataPubKey templates playState
+      , renderMain wallets newWalletDetails templates playState
       , renderFooter
       ]
 
@@ -90,8 +89,8 @@ renderHeader walletNickname menuOpen =
       ]
 
 ------------------------------------------------------------
-renderMain :: forall p. WalletLibrary -> Nickname -> String -> RemoteData AjaxError PubKey -> Array ContractTemplate -> State -> HTML p Action
-renderMain wallets newWalletNickname newWalletContractId remoteDataPubKey templates playState =
+renderMain :: forall p. WalletLibrary -> NewWalletDetails -> Array ContractTemplate -> State -> HTML p Action
+renderMain wallets newWalletDetails templates playState =
   let
     menuOpen = view _menuOpen playState
 
@@ -100,7 +99,7 @@ renderMain wallets newWalletNickname newWalletContractId remoteDataPubKey templa
     main
       [ classNames [ "relative", "px-4", "md:px-5pc" ] ]
       [ renderMobileMenu menuOpen
-      , renderCards wallets newWalletNickname newWalletContractId remoteDataPubKey templates playState
+      , renderCards wallets newWalletDetails templates playState
       , renderScreen wallets screen playState
       ]
 
@@ -116,8 +115,8 @@ renderMobileMenu menuOpen =
         iohkLinks
     ]
 
-renderCards :: forall p. WalletLibrary -> Nickname -> String -> RemoteData AjaxError PubKey -> Array ContractTemplate -> State -> HTML p Action
-renderCards wallets newWalletNickname newWalletContractId remoteDataPubKey templates playState =
+renderCards :: forall p. WalletLibrary -> NewWalletDetails -> Array ContractTemplate -> State -> HTML p Action
+renderCards wallets newWalletDetails templates playState =
   let
     currentWalletDetails = view _walletDetails playState
 

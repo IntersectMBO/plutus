@@ -29,7 +29,8 @@ import Marlowe.Execution (NamedAction(..), _contract, _namedActions, _state, _st
 import Marlowe.Extended.Metadata (MetaData, emptyContractMetadata)
 import Marlowe.Semantics (Contract(..), Input(..), Slot, _minSlot)
 import Marlowe.Semantics as Semantic
-import WalletData.Types (Nickname)
+import Plutus.PAB.Webserver (postApiContractByContractinstanceidEndpointByEndpointname)
+import WalletData.Types (WalletNickname)
 
 -- I don't like having to provide a default state for this component, but it is needed by the
 -- mapMaybeSubmodule in PlayState.
@@ -67,7 +68,7 @@ mkInitialState ::
   Slot ->
   Contract ->
   MetaData ->
-  Map Semantic.Party (Maybe Nickname) ->
+  Map Semantic.Party (Maybe WalletNickname) ->
   Maybe Semantic.Party ->
   State
 mkInitialState contractId slot contract metadata participants mActiveUserParty =

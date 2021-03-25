@@ -8,7 +8,7 @@ import Marlowe.Execution (ExecutionState, NamedAction)
 import Marlowe.Extended.Metadata (MetaData)
 import Marlowe.Semantics (ChoiceId, ChosenNum, Slot, TransactionInput)
 import Marlowe.Semantics as Semantic
-import WalletData.Types (Nickname)
+import WalletData.Types (WalletNickname)
 
 type State
   = { tab :: Tab
@@ -20,7 +20,7 @@ type State
     -- current state and visually we can select any one of them.
     , selectedStep :: Int
     , metadata :: MetaData
-    , participants :: Map Semantic.Party (Maybe Nickname)
+    , participants :: Map Semantic.Party (Maybe WalletNickname)
     -- This field represents the logged-user party in the contract.
     -- If it's Nothing, then the logged-user is an observant of the contract. That could happen
     -- if the person who creates the contract does not put him/herself as a participant of the contract
