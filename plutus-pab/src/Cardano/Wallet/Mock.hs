@@ -102,7 +102,6 @@ handleMultiWallet = do
             wallets <- get @Wallets
             case Map.lookup wallet wallets of
                 Just walletState -> do
-                    -- let walletState = WalletState privateKey emptyNodeClientState mempty (defaultSigningProcess wallet)
                     (x, newState) <- runState walletState $ action & raiseEnd & interpret Wallet.handleWallet
                     put @Wallets (wallets & at wallet .~ Just newState)
                     pure x
