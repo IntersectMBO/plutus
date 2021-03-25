@@ -471,6 +471,15 @@ handle handles key =
         Just h  -> h
         Nothing -> error $ "handle: No handle for " ++ show key
 
+-- | The `EmulatorTrace` monad does not let you get the result of a computation out, but the way
+--   "Test.QuickCheck.Monadic" is set up requires you to provide a function @m Property -> Property@.
+--   This means that we can't use `EmulatorTrace` as the action monad in the `StateModel`. Instead
+--   we use a state monad that builds up an `EmulatorTrace` computation to be executed at the end
+--   (by `finalChecks`). We also need access to the contract handles, so what we are building is a
+--   function from the handles to an emulator trace computation returning potentially updated
+--   handles.
+type ContractMonad state = State.State (EmulatorAction state)
+
 newtype EmulatorAction state = EmulatorAction { runEmulatorAction :: Handles state -> EmulatorTrace (Handles state) }
 
 instance Semigroup (EmulatorAction state) where
@@ -480,13 +489,11 @@ instance Monoid (EmulatorAction state) where
     mempty  = EmulatorAction pure
     mappend = (<>)
 
-type ContractMonad state = State.State (EmulatorAction state)
-
 runEmulator :: (Handles state -> EmulatorTrace ()) -> ContractMonad state ()
 runEmulator a = State.modify (<> EmulatorAction (\ h -> h <$ a h))
 
-getHandles :: EmulatorTrace (Handles state) -> ContractMonad state ()
-getHandles a = State.modify (<> EmulatorAction (\ _ -> a))
+setHandles :: EmulatorTrace (Handles state) -> ContractMonad state ()
+setHandles a = State.modify (<> EmulatorAction (\ _ -> a))
 
 instance ContractModel state => Show (StateModel.Action (ModelState state) a) where
     showsPrec p (ContractAction a) = showsPrec p a
@@ -992,7 +999,7 @@ propRunActionsWithOptions ::
     -> Property
 propRunActionsWithOptions opts handleSpecs predicate actions' =
     monadic (flip State.evalState mempty) $ finalChecks opts finalPredicate $ do
-        QC.run $ getHandles $ activateWallets handleSpecs
+        QC.run $ setHandles $ activateWallets handleSpecs
         let initState = StateModel.initialState { _lastSlot = opts ^. maxSlot }
         void $ runActionsInState initState actions
     where

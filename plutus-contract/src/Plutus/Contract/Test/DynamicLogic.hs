@@ -28,17 +28,26 @@ import           Plutus.Contract.Test.DynamicLogic.CanGenerate
 import           Plutus.Contract.Test.DynamicLogic.Quantify
 import           Plutus.Contract.Test.StateModel
 
-
-data DynLogic s = EmptySpec
-                | Stop
-                | AfterAny (DynPred s)
-                | Alt Bool (DynLogic s) (DynLogic s)  -- True for angelic
+-- | Dynamic logic formulae.
+data DynLogic s = EmptySpec             -- ^ False
+                | Stop                  -- ^ True
+                | AfterAny (DynPred s)  -- ^ After any action the predicate should hold
+                | Alt ChoiceType (DynLogic s) (DynLogic s)
+                  -- ^ Choice (angelic or demonic)
                 | Stopping (DynLogic s)
+                  -- ^ Prefer this branch if trying to stop.
                 | After (Any (Action s)) (DynPred s)
+                  -- ^ After a specific action the predicate should hold
                 | Weight Double (DynLogic s)
+                  -- ^ Adjust the probability of picking a branch
                 | forall a. (Eq a, Show a, Typeable a) =>
                     ForAll (Quantification a) (a -> DynLogic s)
+                  -- ^ Generating a random value
                 | Monitor (Property -> Property) (DynLogic s)
+                  -- ^ Apply a QuickCheck property modifier (like `tabulate` or `collect`)
+
+data ChoiceType = Angelic | Demonic
+  deriving (Eq, Show)
 
 type DynPred s = s -> DynLogic s
 
@@ -66,9 +75,9 @@ ignore       = EmptySpec
 passTest     = Stop
 afterAny     = AfterAny
 after act    = After (Some act)
-(|||)        = Alt True  -- In formulae, we use only angelic
-                         -- choice. But it becomes demonic after one
-                         -- step (that is, the choice has been made).
+(|||)        = Alt Angelic -- In formulae, we use only angelic
+                           -- choice. But it becomes demonic after one
+                           -- step (that is, the choice has been made).
 forAllQ q f
     | isEmptyQ q' = ignore
     | otherwise   = ForAll q' f
@@ -362,7 +371,7 @@ stepDL _ _ _ = []
 stepDLtoDL :: DynLogicModel s => DynLogic s -> s -> TestStep s -> DynLogic s
 stepDLtoDL d s step = case stepDL d s step of
                         [] -> EmptySpec
-                        ds -> foldr1 (Alt False) ds
+                        ds -> foldr1 (Alt Demonic) ds
 
 propPruningGeneratedScriptIsNoop :: DynLogicModel s => DynLogic s -> Property
 propPruningGeneratedScriptIsNoop d =
@@ -417,12 +426,12 @@ stuck (AfterAny _) s = not $ canGenerate 0.01 (arbitraryAction s)
                                        Some act -> precondition s act
                                                 && not (restricted act)
                                        Error _ -> False)
-stuck (Alt True d d') s  = stuck d s && stuck d' s
-stuck (Alt False d d') s = stuck d s || stuck d' s
-stuck (Stopping d) s     = stuck d s
-stuck (Weight w d) s     = w < never || stuck d s
-stuck (ForAll _ _) _     = False
-stuck (Monitor _ d)s     = stuck d s
+stuck (Alt Angelic d d') s = stuck d s && stuck d' s
+stuck (Alt Demonic d d') s = stuck d s || stuck d' s
+stuck (Stopping d) s       = stuck d s
+stuck (Weight w d) s       = w < never || stuck d s
+stuck (ForAll _ _) _       = False
+stuck (Monitor _ d)s       = stuck d s
 
 validDLTest :: DynLogic s -> DynLogicTest s -> Bool
 validDLTest _ (DLScript _) = True

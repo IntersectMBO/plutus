@@ -32,7 +32,10 @@ import           Plutus.Contract.Test.StateModel
 
 import           Test.QuickCheck
 
-newtype DL s a = DL { unDL :: s -> (a -> DL.DynPred s) -> DL.DynLogic s }
+-- | The `DL` monad provides a nicer interface to dynamic logic formulae than the plain API.
+--   It's a continuation monad producing a `DL.DynLogic` formula, with a state component threaded
+--   through.
+newtype DL s a = DL { unDL :: s -> (a -> s -> DL.DynLogic s) -> DL.DynLogic s }
     deriving (Functor)
 
 instance Applicative (DL s) where
@@ -62,7 +65,6 @@ stopping = DL $ \ s k -> DL.toStop (k () s)
 weight :: Double -> DL s ()
 weight w = DL $ \ s k -> DL.weight w (k () s)
 
--- TODO: better name!
 getModelStateDL :: DL s s
 getModelStateDL = DL $ \ s k -> k s s
 
