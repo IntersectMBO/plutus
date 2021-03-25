@@ -19,7 +19,7 @@ This directory contains two sets of benchmarks:
 
    * With cabal, you can also say
        * `cabal run plutus-benchmark:nofib`
-       * `cabal run plutus-benchmark:nofib --benchmark-options "clausify/formula2 -L300"`
+       * `cabal run plutus-benchmark:nofib -- clausify/formula2 -L300`
 
      The difference is that `cabal run` runs the benchmarks with the working directory
      set to the shell's current working directory, but `cabal bench` sets the working directory
@@ -44,7 +44,7 @@ This directory contains two sets of benchmarks:
    * The corresponding cabal commands are
        * `cabal bench plutus-benchmark:validation`
        * `cabal bench plutus-benchmark:validation --benchmark-options "crowdfunding/2 -L10"`
-     or the `cabal run` equivalents.
+     or the `cabal run` equivalents (see the `nofib` section).
 
 See also  [nofib/README.md](./nofib/README.md)  and [validation/README.md](./validation/README.md).
 

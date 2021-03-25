@@ -40,7 +40,8 @@ runTermBench name term = env
 
 -- Copying the bytestring here, because otherwise it'll be exactly the same, and the equality will short-circuit.
 benchSameTwoByteStrings :: DefaultFun -> Benchmark
-benchSameTwoByteStrings name = createTwoTermBuiltinBench name (byteStringsToBench seedA) ((\(bs, e) -> (BS.copy bs, e)) <$> byteStringsToBench seedA)
+benchSameTwoByteStrings name = createTwoTermBuiltinBench name (byteStringsToBench seedA)
+                               ((\(bs, e) -> (BS.copy bs, e)) <$> byteStringsToBench seedA)
 
 benchTwoByteStrings :: DefaultFun -> Benchmark
 benchTwoByteStrings name = createTwoTermBuiltinBench name (byteStringsToBench seedA) (byteStringsToBench seedB)
