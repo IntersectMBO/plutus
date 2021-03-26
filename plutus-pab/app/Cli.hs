@@ -94,6 +94,7 @@ import           Plutus.PAB.Types                         (Config (..), chainInd
                                                            nodeServerConfig, requestProcessingConfig,
                                                            walletServerConfig)
 import qualified Plutus.PAB.Webserver.Server              as PABServer
+import           Plutus.PAB.Webserver.Types               (ContractActivationArgs (..))
 import           Wallet.Emulator.Wallet                   (Wallet (..))
 
 -- | Interpret a 'Command' in 'Eff' using the provided tracer and configurations
@@ -205,7 +206,7 @@ runCliCommand t _ Config{dbConfig} _ ReportActiveContracts = do
         $ do
             logInfo @(LM.AppMsg ContractExe) LM.ActiveContractsMsg
             instancesById <- Contract.getActiveContracts @ContractExe
-            let idsByDefinition = Map.fromListWith (<>) $ fmap (\(inst, def) -> (def, Set.singleton inst)) $ Map.toList instancesById
+            let idsByDefinition = Map.fromListWith (<>) $ fmap (\(inst, ContractActivationArgs{caID}) -> (caID, Set.singleton inst)) $ Map.toList instancesById
             traverse_ (\(e, s) -> logInfo @(LM.AppMsg ContractExe) $ LM.ContractInstances e (Set.toList s)) $ Map.toAscList idsByDefinition
 
 -- Get history of a specific contract
