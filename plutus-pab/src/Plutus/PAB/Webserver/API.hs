@@ -19,7 +19,6 @@ import           Plutus.PAB.Webserver.Types (ContractActivationArgs, ContractIns
                                              ContractSignatureResponse, FullReport)
 import           Servant.API                (Capture, Get, JSON, Post, ReqBody, (:<|>), (:>))
 import           Servant.API.WebSocket      (WebSocketPending)
-import           Wallet.Emulator.Types      (Wallet)
 import           Wallet.Types               (ContractInstanceId, NotificationError)
 
 type WalletProxy = "wallet" :> Wallet.API
@@ -44,12 +43,12 @@ type NewAPI t
     = "api" :> "new" :> "contract" :>
         ("activate" :> ReqBody '[ JSON] (ContractActivationArgs t) :> Post '[JSON] ContractInstanceId -- start a new instance
             :<|> "instance" :>
-                    (Capture "contract-instance-id" ContractInstanceId :>
+                    (Capture "contract-instance-id" Text :>
                         ( "status" :> Get '[JSON] (ContractInstanceClientState) -- ^ Current status of contract instance
                         :<|> "endpoint" :> Capture "endpoint-name" String :> ReqBody '[JSON] JSON.Value :> Post '[JSON] () -- ^ Call an endpoint. Make
                         )
                     )
-            :<|> "instances" :> "wallet" :> Capture "wallet-id" Wallet :> Get '[JSON] [ContractInstanceClientState]
+            :<|> "instances" :> "wallet" :> Capture "wallet-id" Integer :> Get '[JSON] [ContractInstanceClientState]
             :<|> "instances" :> Get '[ JSON] [ContractInstanceClientState] -- list of all active contract instances
             :<|> "definitions" :> Get '[JSON] [ContractSignatureResponse t] -- list of available contracts
         )

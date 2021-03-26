@@ -27,6 +27,7 @@ module Plutus.PAB.Webserver.Handler
 
 import qualified Cardano.Wallet.Client                   as Wallet.Client
 import           Control.Lens                            (preview)
+import           Control.Monad                           ((>=>))
 import           Control.Monad.Freer                     (sendM)
 import           Control.Monad.Freer.Error               (throwError)
 import           Control.Monad.IO.Class                  (MonadIO (..))
@@ -72,9 +73,7 @@ handlerOld =
         )
     where
         byContractInstanceId :: Text -> (PABAction t env (ContractSignatureResponse (Contract.ContractDef t)) :<|> (String -> JSON.Value -> PABAction t env (Maybe NotificationError)))
-        byContractInstanceId rawInstanceId =
-            (parseContractId rawInstanceId >>= contractSchema) :<|> undefined
-
+        byContractInstanceId rawInstanceId = contractSchema rawInstanceId :<|> undefined -- FIXME undefined
 
 healthcheck :: forall t env. PABAction t env ()
 healthcheck = pure ()
@@ -95,10 +94,12 @@ getFullReport = do
     contractReport <- getContractReport @t
     pure FullReport {contractReport, chainReport = emptyChainReport}
 
-contractSchema :: forall t env. Contract.PABContract t => ContractInstanceId -> PABAction t env (ContractSignatureResponse (Contract.ContractDef t))
-contractSchema contractId = Contract.getDefinition @t contractId >>= \case
-    Just ContractActivationArgs{caID} -> ContractSignatureResponse caID <$> Contract.exportSchema @t caID
-    Nothing                           -> throwError (ContractInstanceNotFound contractId)
+contractSchema :: forall t env. Contract.PABContract t => Text -> PABAction t env (ContractSignatureResponse (Contract.ContractDef t))
+contractSchema = parseContractId @t @env >=> \contractId -> do
+    def <- Contract.getDefinition @t contractId
+    case def of
+        Just ContractActivationArgs{caID} -> ContractSignatureResponse caID <$> Contract.exportSchema @t caID
+        Nothing                           -> throwError (ContractInstanceNotFound contractId)
 
 parseContractId :: Text -> PABAction t env ContractInstanceId
 parseContractId t =
@@ -111,14 +112,15 @@ handlerNew ::
        forall t env.
        Contract.PABContract t =>
        (ContractActivationArgs (Contract.ContractDef t) -> PABAction t env ContractInstanceId)
-            :<|> (ContractInstanceId -> PABAction t env (ContractInstanceClientState)
+            :<|> (Text -> PABAction t env (ContractInstanceClientState)
                                         :<|> (String -> JSON.Value -> PABAction t env ()))
-            :<|> (Wallet -> PABAction t env [ContractInstanceClientState])
+            :<|> (Integer -> PABAction t env [ContractInstanceClientState])
             :<|> PABAction t env [ContractInstanceClientState]
             :<|> PABAction t env [ContractSignatureResponse (Contract.ContractDef t)]
 handlerNew =
         (activateContract
-            :<|> (\x -> contractInstanceState x :<|> callEndpoint x)
+            -- :<|> (\x -> ((parseContractId @t @env x >>= contractInstanceState @t @env) :<|> (parseContractId @t @env x >>= callEndpoint @t @env)))
+            :<|> (\x -> (parseContractId x >>= contractInstanceState) :<|> (\y z -> parseContractId x >>= \x' -> callEndpoint x' y z))
             :<|> instancesForWallets
             :<|> allInstanceStates
             :<|> availableContracts)
@@ -147,9 +149,9 @@ contractInstanceState i = fromInternalState i . Contract.serialisableState (Prox
 callEndpoint :: forall t env. ContractInstanceId -> String -> JSON.Value -> PABAction t env ()
 callEndpoint a b v = Core.callEndpointOnInstance a b v >>= traverse_ (throwError @PABError . EndpointCallError)
 
-instancesForWallets :: forall t env. Contract.PABContract t => Wallet -> PABAction t env [ContractInstanceClientState]
+instancesForWallets :: forall t env. Contract.PABContract t => Integer -> PABAction t env [ContractInstanceClientState]
 instancesForWallets wallet = do
-    mp <- Map.filter ((==) wallet . caWallet) <$> Contract.getActiveContracts @t
+    mp <- Map.filter ((==) (Wallet wallet) . caWallet) <$> Contract.getActiveContracts @t
     let get i = fromInternalState i . Contract.serialisableState (Proxy @t) <$> Contract.getState @t i
     traverse get $ fst <$> Map.toList mp
 
@@ -170,13 +172,13 @@ walletProxyClientEnv ::
     forall t env.
     ClientEnv ->
     (PABAction t env Wallet -- ^ Create new wallet
-    :<|> (Wallet -> Tx -> PABAction t env NoContent) -- ^ Submit txn
-    :<|> (Wallet -> PABAction t env PubKey)
-    :<|> (Wallet -> (Value, Payment) -> PABAction t env Payment) -- ^ Update payment with change
-    :<|> (Wallet -> PABAction t env Slot) -- ^ Wallet slot
-    :<|> (Wallet -> PABAction t env UtxoMap)
-    :<|> (Wallet -> PABAction t env Value)
-    :<|> (Wallet -> Tx -> PABAction t env Tx))
+    :<|> (Integer -> Tx -> PABAction t env NoContent) -- ^ Submit txn
+    :<|> (Integer -> PABAction t env PubKey)
+    :<|> (Integer -> (Value, Payment) -> PABAction t env Payment) -- ^ Update payment with change
+    :<|> (Integer -> PABAction t env Slot) -- ^ Wallet slot
+    :<|> (Integer -> PABAction t env UtxoMap)
+    :<|> (Integer -> PABAction t env Value)
+    :<|> (Integer -> Tx -> PABAction t env Tx))
 walletProxyClientEnv clientEnv =
     let createWallet = runWalletClientM clientEnv Wallet.Client.createWallet
     in walletProxy createWallet
@@ -194,20 +196,20 @@ walletProxy ::
     forall t env.
     PABAction t env Wallet -> -- ^ default action for creating a new wallet
     (PABAction t env Wallet -- ^ Create new wallet
-    :<|> (Wallet -> Tx -> PABAction t env NoContent) -- ^ Submit txn
-    :<|> (Wallet -> PABAction t env PubKey)
-    :<|> (Wallet -> (Value, Payment) -> PABAction t env Payment) -- ^ Update payment with change
-    :<|> (Wallet -> PABAction t env Slot) -- ^ Wallet slot
-    :<|> (Wallet -> PABAction t env UtxoMap)
-    :<|> (Wallet -> PABAction t env Value)
-    :<|> (Wallet -> Tx -> PABAction t env Tx))
+    :<|> (Integer -> Tx -> PABAction t env NoContent) -- ^ Submit txn
+    :<|> (Integer -> PABAction t env PubKey)
+    :<|> (Integer -> (Value, Payment) -> PABAction t env Payment) -- ^ Update payment with change
+    :<|> (Integer -> PABAction t env Slot) -- ^ Wallet slot
+    :<|> (Integer -> PABAction t env UtxoMap)
+    :<|> (Integer -> PABAction t env Value)
+    :<|> (Integer -> Tx -> PABAction t env Tx))
 walletProxy createNewWallet =
     ( createNewWallet
-    :<|> (\w tx -> fmap (const NoContent) (Core.handleAgentThread w $ Wallet.Effects.submitTxn tx))
-    :<|> (\w -> Core.handleAgentThread w Wallet.Effects.ownPubKey)
-    :<|> (\w (value, payment) -> Core.handleAgentThread w $ Wallet.Effects.updatePaymentWithChange value payment)
-    :<|> (\w -> Core.handleAgentThread w Wallet.Effects.walletSlot)
-    :<|> (\w -> Core.handleAgentThread w Wallet.Effects.ownOutputs)
-    :<|> (\w -> foldMap (txOutValue . txOutTxOut) <$> Core.handleAgentThread w Wallet.Effects.ownOutputs)
-    :<|> (\w tx -> Core.handleAgentThread w $ Wallet.Effects.walletAddSignature tx)
+    :<|> (\w tx -> fmap (const NoContent) (Core.handleAgentThread (Wallet w) $ Wallet.Effects.submitTxn tx))
+    :<|> (\w -> Core.handleAgentThread (Wallet w) Wallet.Effects.ownPubKey)
+    :<|> (\w (value, payment) -> Core.handleAgentThread (Wallet w) $ Wallet.Effects.updatePaymentWithChange value payment)
+    :<|> (\w -> Core.handleAgentThread (Wallet w) Wallet.Effects.walletSlot)
+    :<|> (\w -> Core.handleAgentThread (Wallet w) Wallet.Effects.ownOutputs)
+    :<|> (\w -> foldMap (txOutValue . txOutTxOut) <$> Core.handleAgentThread (Wallet w) Wallet.Effects.ownOutputs)
+    :<|> (\w tx -> Core.handleAgentThread (Wallet w) $ Wallet.Effects.walletAddSignature tx)
     )

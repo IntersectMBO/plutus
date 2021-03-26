@@ -42,24 +42,24 @@ import           Servant                          (Application, NoContent (..), 
 import           Servant.Client                   (BaseUrl (baseUrlPort), ClientEnv, ClientError, mkClientEnv)
 import           Wallet.Effects                   (ownOutputs, ownPubKey, startWatching, submitTxn,
                                                    updatePaymentWithChange, walletAddSignature, walletSlot)
-import           Wallet.Emulator.Wallet           (emptyWalletState)
+import           Wallet.Emulator.Wallet           (Wallet (..), emptyWalletState)
 import qualified Wallet.Emulator.Wallet           as Wallet
 
 app :: Trace IO WalletMsg -> Client.ClientHandler -> ClientEnv -> MVar Wallets -> Application
 app trace clientHandler chainIndexEnv mVarState =
-    let totalFunds w = fmap (foldMap (txOutValue . txOutTxOut)) (multiWallet w ownOutputs) in
+    let totalFunds w = fmap (foldMap (txOutValue . txOutTxOut)) (multiWallet (Wallet w) ownOutputs) in
     serve (Proxy @API) $
     hoistServer
         (Proxy @API)
         (processWalletEffects trace clientHandler chainIndexEnv mVarState) $
             createWallet :<|>
-            (\w tx -> multiWallet w (submitTxn tx) >>= const (pure NoContent)) :<|>
-            (\w -> multiWallet w ownPubKey) :<|>
-            (\w -> multiWallet w . uncurry updatePaymentWithChange) :<|>
-            (\w -> multiWallet w walletSlot) :<|>
-            (\w -> multiWallet w ownOutputs) :<|>
+            (\w tx -> multiWallet (Wallet w) (submitTxn tx) >>= const (pure NoContent)) :<|>
+            (\w -> multiWallet (Wallet w) ownPubKey) :<|>
+            (\w -> multiWallet (Wallet w) . uncurry updatePaymentWithChange) :<|>
+            (\w -> multiWallet (Wallet w) walletSlot) :<|>
+            (\w -> multiWallet (Wallet w) ownOutputs) :<|>
             totalFunds :<|>
-            (\w tx -> multiWallet w (walletAddSignature tx))
+            (\w tx -> multiWallet (Wallet w) (walletAddSignature tx))
 
 main :: Trace IO WalletMsg -> WalletConfig -> FilePath -> ChainIndexUrl -> Availability -> IO ()
 main trace WalletConfig { baseUrl, wallet } serverSocket (ChainIndexUrl chainUrl) availability = LM.runLogEffects trace $ do

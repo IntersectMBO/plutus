@@ -22,7 +22,7 @@ import           Ledger.Tx                  (Tx)
 import           Servant                    ((:<|>) (..))
 import           Servant.Client             (ClientEnv, ClientError, ClientM, client, runClientM)
 import           Wallet.Effects             (Payment (..), WalletEffect (..))
-import           Wallet.Emulator.Wallet     (Wallet)
+import           Wallet.Emulator.Wallet     (Wallet (..))
 
 createWallet :: ClientM Wallet
 submitTxn :: Wallet -> Tx -> ClientM ()
@@ -34,13 +34,13 @@ totalFunds :: Wallet -> ClientM Value
 sign :: Wallet -> Tx -> ClientM Tx
 (createWallet, submitTxn, ownPublicKey, updatePaymentWithChange, walletSlot, ownOutputs, totalFunds, sign) =
   ( createWallet_
-  , \wid tx -> void (submitTxn_ wid tx)
-  , ownPublicKey_
-  , updatePaymentWithChange_
-  , walletSlot_
-  , ownOutputs_
-  , totalFunds_
-  , sign_)
+  , \(Wallet wid) tx -> void (submitTxn_ wid tx)
+  , ownPublicKey_ . getWallet
+  , \(Wallet w) -> updatePaymentWithChange_ w
+  , walletSlot_ . getWallet
+  , ownOutputs_ . getWallet
+  , totalFunds_ . getWallet
+  , \(Wallet w) -> sign_ w)
   where
     ( createWallet_
       :<|> (submitTxn_
