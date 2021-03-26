@@ -25,13 +25,13 @@ escrow =
   , roleDescriptions:
       ( fromFoldable
           [ "Arbiter" /\ "The party that will choose who gets the money in the event of a disagreement between the \"Buyer\" and the \"Seller\" about the outcome."
-          , "Buyer" /\ "The party that wants to buy the item. Payment is made to the seller if they acknowledge receiving the item. "
+          , "Buyer" /\ "The party that wants to buy the item. Payment is made to the \"Seller\" if they acknowledge receiving the item."
           , "Seller" /\ "The party that wants to sell the item. They receive the payment if the exchange is uneventful."
           ]
       )
   , slotParameterDescriptions:
       ( fromFoldable
-          [ "Buyer's deposit timeout" /\ "Deadline by which the \"Buyer\" must deposit the selling  \"Price\" in the contract."
+          [ "Buyer's deposit timeout" /\ "Deadline by which the \"Buyer\" must deposit the selling \"Price\" in the contract."
           , "Buyer's dispute timeout" /\ "Deadline by which, if the \"Buyer\" has not opened a dispute, the \"Seller\" will be paid."
           , "Seller's response timeout" /\ "Deadline by which, if the \"Seller\" has not responded to the dispute, the \"Buyer\" will be refunded."
           , "Timeout for arbitrage" /\ "Deadline by which, if the \"Arbiter\" has not resolved the dispute, the \"Buyer\" will be refunded."
