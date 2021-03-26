@@ -20,16 +20,16 @@
 | BBuiltin causes ({ cpu: 2
 | mem: 0
 })
-| BBuiltinApp LessThanEqInteger causes ({ cpu: 0
+| BBuiltinApp LessThanEqInteger causes ({ cpu: 3074
 | mem: 1
 })
 | BBuiltinApp IfThenElse causes ({ cpu: 1
 | mem: 1
 })
 | BAST causes ({ cpu: 0
-| mem: 40
+| mem: 44
 })})
-| budget: ({ cpu: 62
-| mem: 42
+| budget: ({ cpu: 3136
+| mem: 46
 })
 }) )
