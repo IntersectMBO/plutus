@@ -92,10 +92,6 @@ rec {
 
   docs = import ./nix/docs.nix { inherit pkgs plutus; };
 
-  deployment = pkgs.callPackage ./deployment {
-    inherit plutus marlowe-playground plutus-playground;
-  };
-
   # This builds a vscode devcontainer that can be used with the plutus-starter project (or probably the plutus project itself).
   devcontainer = import ./nix/devcontainer/plutus-devcontainer.nix { inherit pkgs plutus; };
 }
