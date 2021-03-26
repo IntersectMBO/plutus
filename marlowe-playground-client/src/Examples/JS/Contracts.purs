@@ -4,447 +4,451 @@ example :: String
 example =
   """
     return Close;
+
 """
 
 escrow :: String
 escrow =
   """
-    /* Parties */
-    const alice : Party = Role("alice");
-    const bob : Party = Role("bob");
-    const carol : Party = Role("carol");
+    /* We can set explicitRefunds true to run Close refund analysis
+       but we get a shorter contract if we set it to false */
+    const explicitRefunds: Boolean = false;
 
-    /* Value under escrow */
-    const price : SomeNumber = 450n;
+    const buyer: Party = Role("Buyer");
+    const seller: Party = Role("Seller");
+    const arbiter: Party = Role("Arbiter");
 
-    /* helper function to build Actions */
+    const price: Value = ConstantParam("Price");
 
-    const choiceName : string = "choice";
+    const depositTimeout: Timeout = SlotParam("Buyer's deposit timeout");
+    const disputeTimeout: Timeout = SlotParam("Buyer's dispute timeout");
+    const answerTimeout: Timeout = SlotParam("Seller's response timeout");
+    const arbitrageTimeout: Timeout = SlotParam("Timeout for arbitrage");
 
-    const choiceIdBy = function (party : Party) : ChoiceId {
-                        return ChoiceId(choiceName, party);
-                    }
-
-    const choiceBy = function(party : Party, bounds : [Bound]) : Action {
-                        return Choice(choiceIdBy(party), bounds);
-                    };
+    function choice(choiceName: string, chooser: Party, choiceValue: SomeNumber, continuation: Contract): Case {
+        return Case(Choice(ChoiceId(choiceName, chooser),
+            [Bound(choiceValue, choiceValue)]),
+            continuation);
+    }
 
 
-    const choiceValueBy = function(party : Party) : Value {
-                            return ChoiceValue(choiceIdBy(party));
-                        };
+    function deposit(timeout: Timeout, timeoutContinuation: Contract, continuation: Contract): Contract {
+        return When([Case(Deposit(seller, buyer, ada, price), continuation)],
+            timeout,
+            timeoutContinuation);
+    }
 
-    /* Names for choices */
+    function choices(timeout: Timeout, chooser: Party, timeoutContinuation: Contract, list: { value: SomeNumber, name: string, continuation: Contract }[]): Contract {
+        var caseList: Case[] = new Array(list.length);
+        list.forEach((element, index) =>
+            caseList[index] = choice(element.name, chooser, element.value, element.continuation)
+        );
+        return When(caseList, timeout, timeoutContinuation);
+    }
 
-    const pay : [Bound]    = [Bound(0n, 0n)];
-    const refund : [Bound] = [Bound(1n, 1n)];
-    const both : [Bound]   = [Bound(0n, 1n)];
+    function sellerToBuyer(continuation: Contract): Contract {
+        return Pay(seller, Account(buyer), ada, price, continuation);
+    }
 
-    /* Name choices according to person making choice and choice made */
+    function paySeller(continuation: Contract): Contract {
+        return Pay(buyer, Party(seller), ada, price, continuation);
+    }
 
-    const alicePay : Action    = choiceBy(alice, pay);
-    const aliceRefund : Action = choiceBy(alice, refund);
-    const aliceChoice : Action = choiceBy(alice, both);
+    const refundBuyer: Contract = explicitRefunds ? Pay(buyer, Party(buyer), ada, price, Close) : Close;
 
-    const bobPay : Action    = choiceBy(bob, pay);
-    const bobRefund : Action = choiceBy(bob, refund);
-    const bobChoice : Action = choiceBy(bob, both);
+    const refundSeller: Contract = explicitRefunds ? Pay(seller, Party(seller), ada, price, Close) : Close;
 
-    const carolPay : Action    = choiceBy(carol, pay);
-    const carolRefund : Action = choiceBy(carol, refund);
-    const carolChoice : Action = choiceBy(carol, both);
-
-    /* the values chosen in choices */
-
-    const aliceChosen : Value = choiceValueBy(alice);
-    const bobChosen : Value = choiceValueBy(bob);
-
-    /* The contract to follow when Alice and Bob disagree, or if
-    Carol has to intervene after a single choice from Alice or Bob. */
-
-    const arbitrate : Contract = When([Case(carolRefund, Close),
-                                    Case(carolPay, Pay(alice, Party(bob), ada, price, Close))],
-                                    100n, Close);
-
-    /* The contract to follow when Alice and Bob have made the same choice. */
-
-    const agreement : Contract = If(ValueEQ(aliceChosen, 0n),
-                                    Pay(alice, Party(bob), ada, price, Close),
-                                    Close);
-
-    /* Inner part of contract */
-
-    const inner : Contract = When([Case(aliceChoice,
-                            When([Case(bobChoice,
-                                        If(ValueEQ(aliceChosen, bobChosen),
-                                            agreement,
-                                            arbitrate))],
-                                    60n, arbitrate))],
-                            40n, Close);
-
-    /* What does the vanilla contract look like?
-    - if Alice and Bob choose
-        - and agree: do it
-        - and disagree: Carol decides
-    - Carol also decides if timeout after one choice has been made;
-    - refund if no choices are made. */
-
-    const contract : Contract = When([Case(Deposit(alice, alice, ada, price), inner)],
-                                    10n,
-                                    Close)
+    const contract: Contract =
+        deposit(depositTimeout, Close,
+            choices(disputeTimeout, buyer, refundSeller,
+                [{ value: 0n, name: "Everything is alright", continuation: refundSeller },
+                {
+                    value: 1n, name: "Report problem",
+                    continuation:
+                        sellerToBuyer(
+                            choices(answerTimeout, seller, refundBuyer,
+                                [{ value: 1n, name: "Confirm problem", continuation: refundBuyer },
+                                {
+                                    value: 0n, name: "Dispute problem", continuation:
+                                        choices(arbitrageTimeout, arbiter, refundBuyer,
+                                            [{ value: 0n, name: "Dismiss claim", continuation: paySeller(Close) },
+                                            { value: 1n, name: "Confirm problem", continuation: refundBuyer }
+                                            ])
+                                }]))
+                }]));
 
     return contract;
+
 """
 
 escrowWithCollateral :: String
 escrowWithCollateral =
   """
-    /* Parties */
-    const alice : Party = Role("alice");
-    const bob : Party = Role("bob");
-    const blackhole : Party = Role("blackhole");
+    /* We can set explicitRefunds true to run Close refund analysis
+       but we get a shorter contract if we set it to false */
+    const explicitRefunds: Boolean = false;
 
-    /* Value under escrow */
-    const price : SomeNumber = 450n;
-    const aliceCollateral : SomeNumber = 4500n;
-    const bobCollateral : SomeNumber = 4500n;
+    const buyer: Party = Role("Buyer");
+    const seller: Party = Role("Seller");
+    const burnAddress: Party = PK("0000000000000000000000000000000000000000000000000000000000000000");
 
-    /* helper function to build Actions */
+    const price: Value = ConstantParam("Price");
+    const collateral: Value = ConstantParam("Collateral amount");
 
-    const choiceName : string = "choice";
+    const sellerCollateralTimeout: Timeout = SlotParam("Collateral deposit by seller timeout");
+    const buyerCollateralTimeout: Timeout = SlotParam("Deposit of collateral by buyer timeout");
+    const depositTimeout: Timeout = SlotParam("Deposit of price by buyer timeout");
+    const disputeTimeout: Timeout = SlotParam("Dispute by buyer timeout");
+    const answerTimeout: Timeout = SlotParam("Seller's response timeout");
 
-    const choiceIdBy = function (party : Party) : ChoiceId {
-                        return ChoiceId(choiceName, party);
-                    }
+    function depositCollateral(party: Party, timeout: Timeout, timeoutContinuation: Contract, continuation: Contract): Contract {
+        return When([Case(Deposit(party, party, ada, collateral), continuation)],
+            timeout,
+            timeoutContinuation);
+    }
 
-    const choiceBy = function(party : Party, bounds : [Bound]) : Action {
-                        return Choice(choiceIdBy(party), bounds);
-                    };
+    function burnCollaterals(continuation: Contract): Contract {
+        return Pay(seller, Party(burnAddress), ada, collateral,
+            Pay(buyer, Party(burnAddress), ada, collateral,
+                continuation));
+    }
 
+    function deposit(timeout: Timeout, timeoutContinuation: Contract, continuation: Contract): Contract {
+        return When([Case(Deposit(seller, buyer, ada, price), continuation)],
+            timeout,
+            timeoutContinuation);
+    }
 
-    const choiceValueBy = function(party : Party) : Value {
-                            return ChoiceValue(choiceIdBy(party));
-                        };
+    function choice(choiceName: string, chooser: Party, choiceValue: SomeNumber, continuation: Contract): Case {
+        return Case(Choice(ChoiceId(choiceName, chooser),
+            [Bound(choiceValue, choiceValue)]),
+            continuation);
+    }
 
-    /* Names for choices */
+    function choices(timeout: Timeout, chooser: Party, timeoutContinuation: Contract, list: { value: SomeNumber, name: string, continuation: Contract }[]): Contract {
+        var caseList: Case[] = new Array(list.length);
+        list.forEach((element, index) =>
+            caseList[index] = choice(element.name, chooser, element.value, element.continuation)
+        );
+        return When(caseList, timeout, timeoutContinuation);
+    }
 
-    const both : [Bound]   = [Bound(0n, 1n)];
+    function sellerToBuyer(continuation: Contract): Contract {
+        return Pay(seller, Account(buyer), ada, price, continuation);
+    }
 
-    /* Name choices according to person making choice and choice made */
+    function refundSellerCollateral(continuation: Contract): Contract {
+        if (explicitRefunds) {
+            return Pay(seller, Party(seller), ada, collateral, continuation);
+        } else {
+            return continuation;
+        }
+    }
 
+    function refundBuyerCollateral(continuation: Contract): Contract {
+        if (explicitRefunds) {
+            return Pay(buyer, Party(buyer), ada, collateral, continuation);
+        } else {
+            return continuation;
+        }
+    }
 
-    const aliceChoice : Action = choiceBy(alice, both);
+    function refundCollaterals(continuation: Contract): Contract {
+        return refundSellerCollateral(refundBuyerCollateral(continuation));
+    }
 
-    const bobChoice : Action = choiceBy(bob, both);
+    const refundBuyer: Contract = explicitRefunds ? Pay(buyer, Party(buyer), ada, price, Close) : Close;
 
-    /* the values chosen in choices */
+    const refundSeller: Contract = explicitRefunds ? Pay(seller, Party(seller), ada, price, Close) : Close;
 
-    const aliceChosen : Value = choiceValueBy(alice);
-    const bobChosen : Value = choiceValueBy(bob);
+    const contract: Contract =
+        depositCollateral(seller, sellerCollateralTimeout, Close,
+            depositCollateral(buyer, buyerCollateralTimeout, refundSellerCollateral(Close),
+                deposit(depositTimeout, refundCollaterals(Close),
+                    choices(disputeTimeout, buyer, refundCollaterals(refundSeller),
+                        [{ value: 0n, name: "Everything is alright", continuation: refundCollaterals(refundSeller) },
+                        {
+                            value: 1n, name: "Report problem",
+                            continuation:
+                                sellerToBuyer(
+                                    choices(answerTimeout, seller, refundCollaterals(refundBuyer),
+                                        [{ value: 1n, name: "Confirm problem", continuation: refundCollaterals(refundBuyer) },
+                                        { value: 0n, name: "Dispute problem", continuation: burnCollaterals(refundBuyer) }]))
+                        }]))));
 
-    /* The contract to follow when Alice and Bob disagree, or if
-    Carol has to intervene after a single choice from Alice or Bob. */
+    return contract;
 
-    const destroyCollaterals : Contract = Pay(alice, Party(blackhole), ada, aliceCollateral, Pay(bob, Party(blackhole), ada, bobCollateral, Close));
-
-    /* The contract to follow when Alice and Bob have made the same choice. */
-
-    const agreement : Contract = If(ValueEQ(aliceChosen, 0n),
-                                    Pay(alice, Party(bob), ada, price, Close),
-                                    Close);
-
-    /* Inner part of contract */
-
-    const inner : Contract = When([Case(aliceChoice,
-                            When([Case(bobChoice,
-                                        If(ValueEQ(aliceChosen, bobChosen),
-                                            agreement,
-                                            destroyCollaterals))],
-                                    60n, destroyCollaterals))],
-                            40n, destroyCollaterals);
-
-    /* What does the vanilla contract look like?
-    - if Alice and Bob choose
-        - and agree: do it
-        - and disagree: Carol decides
-    - Carol also decides if timeout after one choice has been made;
-    - refund if no choices are made. */  
-
-    const contract : Contract =  When([Case(Deposit(alice, alice, ada, price), inner)],
-                                    10n,
-                                    Close)
-
-    const collateral2 : Contract = When([Case(Deposit(bob, bob, ada, bobCollateral), contract)],
-                                    20n,
-                                    Close)
-    
-
-    const collateral1 : Contract = When([Case(Deposit(alice, alice, ada, aliceCollateral), collateral2)],
-                                    30n,
-                                    Close)
-
-
-
-    return collateral1;
 """
 
 zeroCouponBond :: String
 zeroCouponBond =
   """
-    const investor : Party = Role("investor");
-    const issuer : Party = Role("issuer");
+    const discountedPrice: Value = ConstantParam("Discounted price");
+    const notional: Value = ConstantParam("Notional");
 
-    const contract : Contract = When([Case(
-                                        Deposit(investor, investor, ada, 850n),
-                                        Pay(investor, Party(issuer), ada, 850n,
-                                            When([ Case(Deposit(investor, issuer, ada, 1000n),
-                                                        Pay(investor, Party(investor), ada, 1000n, Close))
-                                                ],
-                                                20n,
-                                                Close)
-                                        ))],
-                                    10n,
-                                    Close);
+    const investor: Party = Role("Investor");
+    const issuer: Party = Role("Issuer");
+
+    const initialExchange: Timeout = SlotParam("Initial exchange deadline");
+    const maturityExchangeTimeout: Timeout = SlotParam("Maturity exchange deadline");
+
+    function transfer(timeout: Timeout, from: Party, to: Party, amount: Value, continuation: Contract): Contract {
+        return When([Case(Deposit(from, from, ada, amount),
+            Pay(from, Party(to), ada, amount, continuation))],
+            timeout,
+            Close);
+    }
+
+    const contract: Contract =
+        transfer(initialExchange, investor, issuer, discountedPrice,
+            transfer(maturityExchangeTimeout, issuer, investor, notional,
+                Close))
 
     return contract;
+
 """
 
 couponBondGuaranteed :: String
 couponBondGuaranteed =
   """
-    const issuer : Party = Role("issuer");
-    const guarantor : Party = Role("guarantor");
-    const investor : Party = Role("investor");
+    /* We can set explicitRefunds true to run Close refund analysis
+       but we get a shorter contract if we set it to false */
+    const explicitRefunds: Boolean = false;
 
-    const contract : Contract = When([
-                                    Case(Deposit(investor, guarantor, ada, 1030n),
-                                        When([
-                                            Case(Deposit(investor, investor, ada, 1000n),
-                                                Pay(investor, Party(issuer), ada, 1000n,
-                                                    When([
-                                                        Case(Deposit(investor, issuer, ada, 10n),
-                                                            Pay(investor, Party(investor), ada, 10n,
-                                                                Pay(investor, Party(guarantor), ada, 10n,
-                                                                    When([
-                                                                        Case(Deposit(investor, issuer, ada, 10n),
-                                                                            Pay(investor, Party(investor), ada, 10n,
-                                                                                Pay(investor, Party(guarantor), ada, 10n,
-                                                                                    When([
-                                                                                        Case(Deposit(investor, issuer, ada, 1010n),
-                                                                                                Pay(investor, Party(investor), ada, 1010n,
-                                                                                                    Pay(investor, Party(guarantor), ada, 1010n, Close)
-                                                                                                )
-                                                                                            )
-                                                                                            ], 25n, Close)
-                                                                                    )
-                                                                                )
-                                                                            )
-                                                                        ], 20n, Close)
-                                                                    )
-                                                                )
-                                                            )
-                                                        ], 15n, Close)
-                                                    )
-                                                )
-                                            ], 10n, Close)
-                                        )
-                                    ], 5n, Close)
+    const guarantor: Party = Role("Guarantor");
+    const investor: Party = Role("Investor");
+    const issuer: Party = Role("Issuer");
+
+    const principal: Value = ConstantParam("Principal");
+    const instalment: Value = ConstantParam("Interest instalment");
+
+    function guaranteedAmount(instalments: SomeNumber): Value {
+        return AddValue(MulValue(Constant(instalments), instalment), principal);
+    }
+
+    const lastInstalment: Value = AddValue(instalment, principal);
+
+    function deposit(amount: Value, by: Party, toAccount: Party,
+        timeout: ETimeout, timeoutContinuation: Contract,
+        continuation: Contract): Contract {
+        return When([Case(Deposit(toAccount, by, ada, amount), continuation)],
+            timeout,
+            timeoutContinuation);
+    }
+
+    function refundGuarantor(amount: Value, continuation: Contract): Contract {
+        return Pay(investor, Party(guarantor), ada, amount, continuation)
+    }
+
+    function transfer(amount: Value, from: Party, to: Party,
+        timeout: ETimeout, timeoutContinuation: Contract,
+        continuation: Contract): Contract {
+        return deposit(amount, from, to, timeout, timeoutContinuation,
+            Pay(to, Party(to), ada, amount,
+                continuation))
+    }
+
+    function giveCollateralToInvestor(amount: Value): Contract {
+        if (explicitRefunds) {
+            return Pay(investor, Party(investor), ada, amount,
+                Close);
+        } else {
+            return Close;
+        }
+    }
+
+    const contract: Contract =
+        deposit(guaranteedAmount(3n), guarantor, investor,
+            30n, Close,
+            transfer(principal, investor, issuer,
+                60n, refundGuarantor(guaranteedAmount(3n), Close),
+                transfer(instalment, issuer, investor,
+                    90n, giveCollateralToInvestor(guaranteedAmount(3n)),
+                    refundGuarantor(instalment,
+                        transfer(instalment, issuer, investor,
+                            120n, giveCollateralToInvestor(guaranteedAmount(2n)),
+                            refundGuarantor(instalment,
+                                transfer(lastInstalment, issuer, investor,
+                                    150n, giveCollateralToInvestor(guaranteedAmount(1n)),
+                                    refundGuarantor(lastInstalment,
+                                        Close))))))));
+
     return contract;
+
 """
 
 swap :: String
 swap =
   """
-    const lovelacePerAda : SomeNumber = 1000000n;
-    const amountOfAda : SomeNumber = 1000n;
-    const amountOfLovelace : SomeNumber = lovelacePerAda * amountOfAda;
-    const amountOfDollars : SomeNumber = 100n;
+    /* We can set explicitRefunds true to run Close refund analysis
+       but we get a shorter contract if we set it to false */
+    const explicitRefunds: Boolean = false;
 
-    const dollars : Token = Token("85bb65", "dollar")
+    const lovelacePerAda: Value = Constant(1000000n);
+    const amountOfAda: Value = ConstantParam("Amount of Ada");
+    const amountOfLovelace: Value = MulValue(lovelacePerAda, amountOfAda);
+    const amountOfDollars: Value = ConstantParam("Amount of dollars");
+
+    const adaDepositTimeout: Timeout = SlotParam("Timeout for Ada deposit");
+    const dollarDepositTimeout: Timeout = SlotParam("Timeout for dollar deposit");
+
+    const dollars: Token = Token("85bb65", "dollar")
 
     type SwapParty = {
-    party: Party;
-    currency: Token;
-    amount: SomeNumber;
+        party: Party;
+        currency: Token;
+        amount: Value;
     };
 
-    const alice : SwapParty = {
-    party: Role("alice"),
-    currency: ada,
-    amount: amountOfLovelace
+    const adaProvider: SwapParty = {
+        party: Role("Ada provider"),
+        currency: ada,
+        amount: amountOfLovelace
     }
 
-    const bob : SwapParty = {
-    party: Role("bob"),
-    currency: dollars,
-    amount: amountOfDollars
+    const dollarProvider: SwapParty = {
+        party: Role("Dollar provider"),
+        currency: dollars,
+        amount: amountOfDollars
     }
 
-    const makeDeposit = function(src : SwapParty, timeout : SomeNumber,
-                                continuation : Contract) : Contract
-    {
-    return When([Case(Deposit(src.party, src.party, src.currency, src.amount),
-                        continuation)],
-                timeout,
-                Close);
+    function makeDeposit(src: SwapParty, timeout: Timeout,
+        timeoutContinuation: Contract, continuation: Contract): Contract {
+        return When([Case(Deposit(src.party, src.party, src.currency, src.amount),
+            continuation)],
+            timeout,
+            timeoutContinuation);
     }
 
-    const makePayment = function(src : SwapParty, dest : SwapParty,
-                                continuation : Contract) : Contract
-    {
-    return Pay(src.party, Party(dest.party), src.currency, src.amount,
-                continuation);
+    function refundSwapParty(party: SwapParty): Contract {
+        if (explicitRefunds) {
+            return Pay(party.party, Party(party.party), party.currency, party.amount, Close);
+        } else {
+            return Close;
+        }
     }
 
-    const contract : Contract = makeDeposit(alice, 10n,
-                                makeDeposit(bob, 20n,
-                                    makePayment(alice, bob,
-                                        makePayment(bob, alice,
-                                            Close))))
+    const makePayment = function (src: SwapParty, dest: SwapParty,
+        continuation: Contract): Contract {
+        return Pay(src.party, Party(dest.party), src.currency, src.amount,
+            continuation);
+    }
+
+    const contract: Contract = makeDeposit(adaProvider, adaDepositTimeout, Close,
+        makeDeposit(dollarProvider, dollarDepositTimeout, refundSwapParty(adaProvider),
+            makePayment(adaProvider, dollarProvider,
+                makePayment(dollarProvider, adaProvider,
+                    Close))))
 
     return contract;
+
 """
 
-contractForDifference :: String
-contractForDifference =
+contractForDifferences :: String
+contractForDifferences =
   """
-    const party : Party = Role("party")
+    /* We can set explicitRefunds true to run Close refund analysis
+       but we get a shorter contract if we set it to false */
+    const explicitRefunds: Boolean = false;
 
-    const counterParty = Role("counterparty")
+    const party: Party = Role("Party");
+    const counterparty: Party = Role("Counterparty");
+    const oracle: Party = Role("Oracle");
 
-    const oracle: Party = Role("oracle")
+    const depositAmount: bigint = 100000000n;
+    const deposit: Value = Constant(depositAmount);
+    const doubleDeposit: Value = Constant(depositAmount * 2n);
 
-    function waitForEvent (action : Action, timeout : SomeNumber,  alternative : Contract): (_: Contract) => Contract {
-        return cont => When([Case(action, cont)], timeout, alternative)
-    } 
+    const priceBeginning: ChoiceId = ChoiceId("Price at beginning", oracle);
+    const priceEnd: ChoiceId = ChoiceId("Price at end", oracle);
 
-    function before(time: SomeNumber): SomeNumber {
-        return time
-    }    
-    function orElse(contract: Contract): Contract {
-        return contract
+    const decreaseInPrice: ValueId = "Decrease in price";
+    const increaseInPrice: ValueId = "Increase in price";
+
+    function initialDeposit(by: Party, timeout: ETimeout, timeoutContinuation: Contract,
+        continuation: Contract): Contract {
+        return When([Case(Deposit(by, by, ada, deposit), continuation)],
+            timeout,
+            timeoutContinuation);
     }
 
-    function receiveValue(val: string): Action {
-        return Choice(ChoiceId(val, oracle), [Bound(0, 100)])
+    function oracleInput(choiceId: ChoiceId, timeout: ETimeout, timeoutContinuation: Contract,
+        continuation: Contract): Contract {
+        return When([Case(Choice(choiceId, [Bound(0, 1000000000)]), continuation)],
+            timeout, timeoutContinuation);
     }
 
-    function readValue(val : string): Value {
-        return ChoiceValue(ChoiceId(val, oracle))
+    function wait(timeout: ETimeout, continuation: Contract): Contract {
+        return When([], timeout, continuation);
     }
 
-    function waitFor(delay: SomeNumber): (_: Contract) => Contract {
-        return cont => When([], delay, cont)
+    function gtLtEq(value1: Value, value2: Value, gtContinuation: Contract,
+        ltContinuation: Contract, eqContinuation: Contract): Contract {
+        return If(ValueGT(value1, value2), gtContinuation
+            , If(ValueLT(value1, value2), ltContinuation,
+                eqContinuation))
     }
 
-    function checkIf(obs: Observation, c1: Contract, c2: Contract): Contract {
-        return If(obs, c1, c2)
+    function recordDifference(name: ValueId, choiceId1: ChoiceId, choiceId2: ChoiceId,
+        continuation: Contract): Contract {
+        return Let(name, SubValue(ChoiceValue(choiceId1), ChoiceValue(choiceId2)),
+            continuation);
     }
 
-    function thenDo(c: Contract): Contract {
-        return c
+    function transferUpToDeposit(from: Party, to: Party, amount: Value, continuation: Contract): Contract {
+        return Pay(from, Account(to), ada, Cond(ValueLT(amount, deposit), amount, deposit), continuation);
     }
 
-    function elseDo(c: Contract): Contract {
-        return c
-    }
-
-
-    function letValue(name: string, v: Value): (_: Contract) => Contract {
-        return cont => Let (ValueId(name), v, cont)
-    }
-
-    function useValue(name: string): Value {
-        return UseValue(name)
-    }
-
-    function value(v: SomeNumber): Value {
-        return Constant(v)
-    }
-
-    function fromParty(a: AccountId): AccountId {
-        return a
-    }
-
-    function toParty(p: Party): Payee {
-        return Party(p)
-    } 
-
-    function withToken(tkn: Token): Token {
-        return tkn
-    }
-
-    const end: Contract = Close
-
-    function amountOf(amount: Value): Value {
-        return amount
-    }
-
-    function minus(v1: Value, v2: Value): Value {
-        return SubValue(v1, v2)
-    }
-
-    function sendPayment(fromParty: Party, toCounterParty: Payee, tkn: Token, payoff: Value): (_: Contract) => Contract {
-        return cont => Pay(fromParty, toCounterParty, tkn, payoff, cont)
-    }
-
-    function Do(actions: Array<(_: Contract) => Contract>, last: Contract): Contract {
-        const foldRight = <A, B>(xs: Array<A>, zero: B) => (f: (b: B, a: A) => B): B => {
-            const len = xs.length;
-            if (len === 0) return zero;
-            else {
-                const last = xs[len - 1];
-                const inits = xs.slice(0, len - 1);
-                return foldRight(inits, f(zero, last))(f);
-            }
+    function refund(who: Party, amount: Value, continuation: Contract): Contract {
+        if (explicitRefunds) {
+            return Pay(who, Party(who), ada, amount,
+                continuation);
+        } else {
+            return continuation;
         }
-        return foldRight(actions, last)((b, a) => a(b))
     }
 
-    return (() => {
-        const partyCollateralToken = Token("", "")
-        const partyCollateralAmount = value(1000n)
-        const counterPartyCollateralToken = Token("", "")
-        const counterPartyCollateralAmount = value(1000n)
-        const endDate = 1000n
-        const partyCollateralDeposit = Deposit(party, party, partyCollateralToken, partyCollateralAmount)
+    const refundBoth: Contract = refund(party, deposit, refund(counterparty, deposit, Close));
 
-        const counterPartyCollateralDeposit = Deposit(counterParty, counterParty, counterPartyCollateralToken, counterPartyCollateralAmount)
+    function refundIfGtZero(who: Party, amount: Value, continuation: Contract): Contract {
+        if (explicitRefunds) {
+            return If(ValueGT(amount, Constant(0n)), refund(who, amount, continuation), continuation);
+        } else {
+            return continuation;
+        }
+    }
 
+    function refundUpToDoubleOfDeposit(who: Party, amount: Value, continuation: Contract): Contract {
+        if (explicitRefunds) {
+            return refund(who, Cond(ValueGT(amount, doubleDeposit), doubleDeposit, amount),
+                continuation);
+        } else {
+            return continuation;
+        }
+    }
 
-        const minValue = (val1: Value, val2: Value) => Cond(ValueGE(val1, val2), val2, val1)
+    function refundAfterDifference(payer: Party, payee: Party, difference: Value): Contract {
+        return refundIfGtZero(payer, SubValue(deposit, difference),
+            refundUpToDoubleOfDeposit(payee, AddValue(deposit, difference),
+                Close));
+    }
 
-        return Do([
-            waitForEvent(partyCollateralDeposit, before(100n), orElse(end)),
-            waitForEvent(counterPartyCollateralDeposit, before(100n), orElse(end)),
-            waitForEvent(receiveValue("price1"), before(100n), orElse(end)),
-            waitFor(endDate),
-            waitForEvent(receiveValue("price2"), before(endDate + 100n), orElse(end)),
-            letValue("delta", minus(readValue("price1"), readValue("price2")))
-        ],  checkIf(ValueEQ(useValue("delta"), value(0)), 
-                thenDo(end),
-                elseDo(
-                    checkIf(ValueLT(useValue("delta"), value(0)),
-                        thenDo(
-                            Do([
-                                letValue("absdelta", minus(value(0), useValue("delta"))),
-                                (() => {
-                                    const payoff = minValue(useValue("absdelta"), partyCollateralAmount)
-                                    return sendPayment(fromParty(party), toParty(counterParty), withToken(partyCollateralToken), amountOf(payoff))
-                                })()
-                            ], end)
-                        ),
-                        elseDo(
-                            Do([
-                                (() => {
-                                    const payoff = minValue(useValue("delta"), partyCollateralAmount)
-                                    return sendPayment(fromParty(party), toParty(counterParty), withToken(partyCollateralToken), amountOf(payoff))
-                                })()
-                            ], end)
-                        )
-                    )
-                )
-            )
-        )
-    })();
+    const contract: Contract =
+        initialDeposit(party, 30n, Close,
+            initialDeposit(counterparty, 60n, refund(party, deposit, Close),
+                oracleInput(priceBeginning, 90n, refundBoth,
+                    wait(150n,
+                        oracleInput(priceEnd, 180n, refundBoth,
+                            gtLtEq(ChoiceValue(priceBeginning), ChoiceValue(priceEnd),
+                                recordDifference(decreaseInPrice, priceBeginning, priceEnd,
+                                    transferUpToDeposit(counterparty, party, UseValue(decreaseInPrice),
+                                        refundAfterDifference(counterparty, party, UseValue(decreaseInPrice)))),
+                                recordDifference(increaseInPrice, priceEnd, priceBeginning,
+                                    transferUpToDeposit(party, counterparty, UseValue(increaseInPrice),
+                                        refundAfterDifference(party, counterparty, UseValue(increaseInPrice)))),
+                                refundBoth
+                            ))))));
+
+    return contract;
+
 """

@@ -14,9 +14,9 @@ module StaticData
 import Data.Map (Map)
 import Data.Map as Map
 import Data.Tuple.Nested ((/\))
-import Examples.Haskell.Contracts (contractForDifference, couponBondGuaranteed, escrow, escrowWithCollateral, example, swap, zeroCouponBond) as HE
-import Examples.JS.Contracts (contractForDifference, couponBondGuaranteed, escrow, escrowWithCollateral, example, swap, zeroCouponBond) as JSE
-import Examples.Marlowe.Contracts (contractForDifference, couponBondGuaranteed, escrow, escrowWithCollateral, example, swap, zeroCouponBond) as ME
+import Examples.Haskell.Contracts (contractForDifferences, couponBondGuaranteed, escrow, escrowWithCollateral, example, swap, zeroCouponBond) as HE
+import Examples.JS.Contracts (contractForDifferences, couponBondGuaranteed, escrow, escrowWithCollateral, example, swap, zeroCouponBond) as JSE
+import Examples.Marlowe.Contracts (contractForDifferences, couponBondGuaranteed, escrow, escrowWithCollateral, example, swap, zeroCouponBond) as ME
 import LocalStorage as LocalStorage
 
 type Label
@@ -35,7 +35,7 @@ demoFiles =
     , "ZeroCouponBond" /\ HE.zeroCouponBond
     , "CouponBondGuaranteed" /\ HE.couponBondGuaranteed
     , "Swap" /\ HE.swap
-    , "CFD" /\ HE.contractForDifference
+    , "CFD" /\ HE.contractForDifferences
     ]
 
 demoFilesJS ::
@@ -48,7 +48,7 @@ demoFilesJS =
     , "ZeroCouponBond" /\ JSE.zeroCouponBond
     , "CouponBondGuaranteed" /\ JSE.couponBondGuaranteed
     , "Swap" /\ JSE.swap
-    , "CFD" /\ JSE.contractForDifference
+    , "CFD" /\ JSE.contractForDifferences
     ]
 
 marloweContracts ::
@@ -61,7 +61,7 @@ marloweContracts =
     , "ZeroCouponBond" /\ ME.zeroCouponBond
     , "CouponBondGuaranteed" /\ ME.couponBondGuaranteed
     , "Swap" /\ ME.swap
-    , "CFD" /\ ME.contractForDifference
+    , "CFD" /\ ME.contractForDifferences
     ]
 
 marloweContract ::
