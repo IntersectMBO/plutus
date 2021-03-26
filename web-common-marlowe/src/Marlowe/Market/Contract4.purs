@@ -67,14 +67,14 @@ extendedContract =
         (refundGuarantor (guaranteedAmount (fromInt 3)) Close)
     $ transfer instalment issuer investor
         (Slot $ fromInt 90)
-        (Close)
+        Close
     $ refundGuarantor instalment
     $ transfer instalment issuer investor
         (Slot $ fromInt 120)
-        (Close)
+        Close
     $ refundGuarantor instalment
     $ transfer lastInstalment issuer investor
         (Slot $ fromInt 150)
-        (Close)
+        Close
     $ refundGuarantor lastInstalment
         Close
