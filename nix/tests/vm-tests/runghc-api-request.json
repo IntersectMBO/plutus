@@ -1,0 +1,4 @@
+{
+  "implicitPrelude": true,
+  "code": "{-# LANGUAGE OverloadedStrings #-}\nmodule Example where\n\nimport           Language.Marlowe.Extended\n\nmain :: IO ()\nmain = print . pretty $ contract\ncontract :: Contract\n\ncontract = Close\n"
+}
