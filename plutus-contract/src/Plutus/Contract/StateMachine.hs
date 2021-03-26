@@ -68,7 +68,7 @@ import           Ledger.Tx                            as Tx
 import qualified Ledger.Typed.Scripts                 as Scripts
 import           Ledger.Typed.Tx                      (TypedScriptTxOut (..))
 import qualified Ledger.Typed.Tx                      as Typed
-import           Ledger.Value                         (Currency)
+import           Ledger.Value                         (AssetClass)
 import qualified Ledger.Value                         as Value
 import           Plutus.Contract
 import           Plutus.Contract.StateMachine.OnChain (State (..), StateMachine (..), StateMachineInstance (..))
@@ -155,11 +155,11 @@ defaultChooser xs  =
 -- | A state chooser function that searches for an output with the thread token
 threadTokenChooser ::
     forall state input
-    . Currency
+    . AssetClass
     -> [OnChainState state input]
     -> Either SMContractError (OnChainState state input)
 threadTokenChooser cur states =
-    let flt (TypedScriptTxOut{tyTxOutTxOut=TxOut{txOutValue}},_) = Value.currencyValue cur 1 `Value.leq` txOutValue in
+    let flt (TypedScriptTxOut{tyTxOutTxOut=TxOut{txOutValue}},_) = Value.assetClassValue cur 1 `Value.leq` txOutValue in
     case filter flt states of
         [x] -> Right x
         xs ->

@@ -27,10 +27,10 @@ module Plutus.V1.Ledger.Value(
     , TokenName(..)
     , tokenName
     , toString
-    -- * Currencies
-    , Currency(..)
-    , currency
-    , currencyValue
+    -- * Asset classes
+    , AssetClass(..)
+    , assetClass
+    , assetClassValue
     -- ** Value
     , Value(..)
     , singleton
@@ -178,18 +178,18 @@ makeLift ''TokenName
 tokenName :: ByteString -> TokenName
 tokenName = TokenName
 
--- | A currency, identified by currency symbol and token name.
-newtype Currency = Currency { unCurrency :: (CurrencySymbol, TokenName) }
+-- | An asset class, identified by currency symbol and token name.
+newtype AssetClass = AssetClass { unAssetClass :: (CurrencySymbol, TokenName) }
     deriving stock (Generic)
     deriving newtype (Haskell.Eq, Haskell.Ord, Eq, Ord, PlutusTx.IsData, Serialise, Show)
     deriving anyclass (Hashable, NFData, ToJSON, FromJSON)
     deriving Pretty via (PrettyShow (CurrencySymbol, TokenName))
 
-{-# INLINABLE currency #-}
-currency :: CurrencySymbol -> TokenName -> Currency
-currency s t = Currency (s, t)
+{-# INLINABLE assetClass #-}
+assetClass :: CurrencySymbol -> TokenName -> AssetClass
+assetClass s t = AssetClass (s, t)
 
-makeLift ''Currency
+makeLift ''AssetClass
 
 -- | A cryptocurrency value. This is a map from 'CurrencySymbol's to a
 -- quantity of that currency.
@@ -322,10 +322,10 @@ symbols (Value mp) = Map.keys mp
 singleton :: CurrencySymbol -> TokenName -> Integer -> Value
 singleton c tn i = Value (Map.singleton c (Map.singleton tn i))
 
-{-# INLINABLE currencyValue #-}
--- | A 'Value' containing the given amount of the currency.
-currencyValue :: Currency -> Integer -> Value
-currencyValue (Currency (c, t)) i = singleton c t i
+{-# INLINABLE assetClassValue #-}
+-- | A 'Value' containing the given amount of the asset class.
+assetClassValue :: AssetClass -> Integer -> Value
+assetClassValue (AssetClass (c, t)) i = singleton c t i
 
 {-# INLINABLE unionVal #-}
 -- | Combine two 'Value' maps

@@ -76,7 +76,7 @@ tokens Credential{credAuthority, credName} n =
 tokenAccount :: Credential -> Account
 tokenAccount Credential{credAuthority, credName} =
     let sym = Value.mpsSymbol (monetaryPolicyHash $ policy credAuthority)
-    in Account $ Value.currency sym credName
+    in Account $ Value.assetClass sym credName
 
 PlutusTx.makeLift ''CredentialAuthority
 PlutusTx.unstableMakeIsData ''CredentialAuthority

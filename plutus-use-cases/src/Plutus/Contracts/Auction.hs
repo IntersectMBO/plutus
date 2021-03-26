@@ -36,7 +36,7 @@ import           Ledger.Constraints.TxConstraints (TxConstraints)
 import qualified Ledger.Interval                  as Interval
 import qualified Ledger.Typed.Scripts             as Scripts
 import           Ledger.Typed.Tx                  (TypedScriptTxOut (..))
-import           Ledger.Value                     (Currency)
+import           Ledger.Value                     (AssetClass)
 import           Plutus.Contract
 import           Plutus.Contract.StateMachine     (State (..), StateMachine (..), StateMachineClient,
                                                    StateMachineInstance (..), Void, WaitingResult (..))
@@ -81,7 +81,7 @@ data AuctionState
 data AuctionOutput =
     AuctionOutput
         { auctionState       :: Last AuctionState
-        , auctionThreadToken :: Last Currency
+        , auctionThreadToken :: Last AssetClass
         }
         deriving stock (Generic, Haskell.Show, Haskell.Eq)
         deriving anyclass (ToJSON, FromJSON)
@@ -92,7 +92,7 @@ deriving via (GenericSemigroupMonoid AuctionOutput) instance (Haskell.Monoid Auc
 auctionStateOut :: AuctionState -> AuctionOutput
 auctionStateOut s = Haskell.mempty { auctionState = Last (Just s) }
 
-threadTokenOut :: Currency -> AuctionOutput
+threadTokenOut :: AssetClass -> AuctionOutput
 threadTokenOut t = Haskell.mempty { auctionThreadToken = Last (Just t) }
 
 -- | Initial 'AuctionState'. In the beginning the highest bid is 0 and the
@@ -144,7 +144,7 @@ auctionTransition AuctionParams{apOwner, apAsset, apEndTime} State{stateData=old
 
 
 {-# INLINABLE auctionStateMachine #-}
-auctionStateMachine :: Currency -> AuctionParams -> StateMachine AuctionState AuctionInput
+auctionStateMachine :: AssetClass -> AuctionParams -> StateMachine AuctionState AuctionInput
 auctionStateMachine threadToken auctionParams = SM.mkStateMachine (Just threadToken) (auctionTransition auctionParams) isFinal where
     isFinal Finished{} = True
     isFinal _          = False
@@ -152,7 +152,7 @@ auctionStateMachine threadToken auctionParams = SM.mkStateMachine (Just threadTo
 
 -- | The script instance of the auction state machine. It contains the state
 --   machine compiled to a Plutus core validator script.
-scriptInstance :: Currency -> AuctionParams -> Scripts.ScriptInstance (StateMachine AuctionState AuctionInput)
+scriptInstance :: AssetClass -> AuctionParams -> Scripts.ScriptInstance (StateMachine AuctionState AuctionInput)
 scriptInstance currency auctionParams =
     let val = $$(PlutusTx.compile [|| validatorParam ||])
             `PlutusTx.applyCode`
@@ -171,7 +171,7 @@ scriptInstance currency auctionParams =
 --   off-chain use.
 machineClient
     :: Scripts.ScriptInstance (StateMachine AuctionState AuctionInput)
-    -> Currency -- ^ Thread token of the instance
+    -> AssetClass -- ^ Thread token of the instance
     -> AuctionParams
     -> StateMachineClient AuctionState AuctionInput
 machineClient inst threadToken auctionParams =
@@ -305,7 +305,7 @@ handleEvent client lastHighestBid change =
             continue s
         NoChange s -> continue s
 
-auctionBuyer :: Currency -> AuctionParams -> Contract AuctionOutput BuyerSchema AuctionError ()
+auctionBuyer :: AssetClass -> AuctionParams -> Contract AuctionOutput BuyerSchema AuctionError ()
 auctionBuyer currency params = do
     let inst         = scriptInstance currency params
         client       = machineClient inst currency params

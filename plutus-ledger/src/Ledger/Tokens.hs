@@ -8,7 +8,7 @@ module Ledger.Tokens(
   ) where
 
 import           Plutus.V1.Ledger.Contexts
-import           Plutus.V1.Ledger.Value    (Currency, Value, leq)
+import           Plutus.V1.Ledger.Value    (AssetClass, Value, leq)
 import qualified Plutus.V1.Ledger.Value    as Value
 
 -- $tokens
@@ -19,19 +19,19 @@ import qualified Plutus.V1.Ledger.Value    as Value
 
 {-# INLINABLE token #-}
 -- | A value that contains exactly the token.
-token :: Currency -> Value
-token cur = Value.currencyValue cur 1
+token :: AssetClass -> Value
+token cur = Value.assetClassValue cur 1
 
 {-# INLINABLE outputsWith #-}
 -- | The outputs of the 'ValidatorCtx' that carry a non-zero amount of the
 --   currency.
-outputsWith :: TxInfo -> Currency -> [TxOut]
+outputsWith :: TxInfo -> AssetClass -> [TxOut]
 outputsWith TxInfo{txInfoOutputs} currency =
     filter (\output -> token currency  `leq` txOutValue output) txInfoOutputs
 
 {-# INLINABLE paidTo #-}
 -- | The total 'Value' paid by the pending transaction to outputs
 --   whose value also includes a non-zero amount of the currency.
-paidTo :: TxInfo -> Currency -> Value
+paidTo :: TxInfo -> AssetClass -> Value
 paidTo ptx currency =
     foldMap txOutValue (outputsWith ptx currency)

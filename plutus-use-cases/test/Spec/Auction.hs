@@ -10,25 +10,25 @@ module Spec.Auction(tests, auctionTrace1, auctionTrace2,
                     prop_Auction, prop_FinishAuction) where
 
 import           Control.Lens
-import qualified Control.Monad.Freer       as Freer
-import qualified Control.Monad.Freer.Error as Freer
 import           Control.Monad                      (void, when)
+import qualified Control.Monad.Freer                as Freer
+import qualified Control.Monad.Freer.Error          as Freer
 import           Control.Monad.Freer.Extras.Log     (LogLevel (..))
-import           Data.Monoid                     (Last (..))
+import           Data.Monoid                        (Last (..))
 
 import           Ledger                             (Ada, Slot (..), Value, pubKeyHash)
 import qualified Ledger.Ada                         as Ada
 import           Plutus.Contract                    hiding (currentSlot, when)
 import           Plutus.Contract.Test               hiding (not)
-import qualified Streaming.Prelude         as S
-import qualified Wallet.Emulator.Folds     as Folds
-import qualified Wallet.Emulator.Stream    as Stream
+import qualified Streaming.Prelude                  as S
+import qualified Wallet.Emulator.Folds              as Folds
+import qualified Wallet.Emulator.Stream             as Stream
 
+import           Ledger.Value                       (AssetClass)
 import qualified Ledger.Value                       as Value
-import           Ledger.Value                     (Currency)
 import           Plutus.Contract.Test.ContractModel
-import qualified Plutus.Contracts.Currency        as Currency
 import           Plutus.Contracts.Auction           hiding (Bid)
+import qualified Plutus.Contracts.Currency          as Currency
 import qualified Plutus.Trace.Emulator              as Trace
 import           PlutusTx.Monoid                    (inv)
 
@@ -61,7 +61,7 @@ options =
 seller :: Contract AuctionOutput SellerSchema AuctionError ()
 seller = auctionSeller (apAsset params) (apEndTime params)
 
-buyer :: Currency -> Contract AuctionOutput BuyerSchema AuctionError ()
+buyer :: AssetClass -> Contract AuctionOutput BuyerSchema AuctionError ()
 buyer cur = auctionBuyer cur params
 
 w1, w2, w3 :: Wallet
@@ -76,7 +76,7 @@ auctionTrace1 :: Trace.EmulatorTrace ()
 auctionTrace1 = do
     sellerHdl <- Trace.activateContractWallet w1 seller
     _ <- Trace.waitNSlots 3
-    currency <- extractCurrency sellerHdl
+    currency <- extractAssetClass sellerHdl
     hdl2 <- Trace.activateContractWallet w2 (buyer currency)
     _ <- Trace.waitNSlots 1
     Trace.callEndpoint @"bid" hdl2 trace1WinningBid
@@ -85,8 +85,8 @@ auctionTrace1 = do
 trace2WinningBid :: Ada
 trace2WinningBid = 70
 
-extractCurrency :: Trace.ContractHandle AuctionOutput SellerSchema AuctionError -> Trace.EmulatorTrace Currency
-extractCurrency handle = do
+extractAssetClass :: Trace.ContractHandle AuctionOutput SellerSchema AuctionError -> Trace.EmulatorTrace AssetClass
+extractAssetClass handle = do
     t <- auctionThreadToken <$> Trace.observableState handle
     case t of
         Last (Just currency) -> pure currency
@@ -96,7 +96,7 @@ auctionTrace2 :: Trace.EmulatorTrace ()
 auctionTrace2 = do
     sellerHdl <- Trace.activateContractWallet w1 seller
     _ <- Trace.waitNSlots 3
-    currency <- extractCurrency sellerHdl
+    currency <- extractAssetClass sellerHdl
     hdl2 <- Trace.activateContractWallet w2 (buyer currency)
     hdl3 <- Trace.activateContractWallet w3 (buyer currency)
     _ <- Trace.waitNSlots 1
@@ -127,7 +127,7 @@ trace2FinalState =
         , auctionThreadToken = Last $ Just threadToken
         }
 
-threadToken :: Currency
+threadToken :: AssetClass
 threadToken =
     let con = Currency.createThreadToken @BlockchainActions @()
         fld = Folds.instanceOutcome con (Trace.walletInstanceTag w1)
@@ -263,7 +263,7 @@ tests =
             (assertDone seller (Trace.walletInstanceTag w1) (const True) "seller should be done"
             .&&. assertDone (buyer threadToken) (Trace.walletInstanceTag w2) (const True) "buyer should be done"
             .&&. assertAccumState (buyer threadToken) (Trace.walletInstanceTag w2) ((==) trace1FinalState ) "final state should be OK"
-            .&&. walletFundsChange w1 (Ada.toValue trace1WinningBid <> inv theToken <> Value.currencyValue threadToken 1)
+            .&&. walletFundsChange w1 (Ada.toValue trace1WinningBid <> inv theToken <> Value.assetClassValue threadToken 1)
             .&&. walletFundsChange w2 (inv (Ada.toValue trace1WinningBid) <> theToken))
             auctionTrace1
         , checkPredicateOptions options "run an auction with multiple bids"
@@ -271,7 +271,7 @@ tests =
             .&&. assertDone (buyer threadToken) (Trace.walletInstanceTag w2) (const True) "buyer should be done"
             .&&. assertDone (buyer threadToken) (Trace.walletInstanceTag w3) (const True) "3rd party should be done"
             .&&. assertAccumState (buyer threadToken) (Trace.walletInstanceTag w2) ((==) trace2FinalState) "final state should be OK"
-            .&&. walletFundsChange w1 (Ada.toValue trace2WinningBid <> inv theToken <> Value.currencyValue threadToken 1)
+            .&&. walletFundsChange w1 (Ada.toValue trace2WinningBid <> inv theToken <> Value.assetClassValue threadToken 1)
             .&&. walletFundsChange w2 (inv (Ada.toValue trace2WinningBid) <> theToken)
             .&&. walletFundsChange w3 mempty)
             auctionTrace2

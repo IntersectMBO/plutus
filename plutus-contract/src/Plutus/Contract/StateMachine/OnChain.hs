@@ -39,7 +39,7 @@ import           Ledger                           (Address, Value)
 import           Ledger.Contexts                  (ScriptContext (..), TxInInfo (..), findOwnInput)
 import           Ledger.Tx                        (TxOut (..))
 import           Ledger.Typed.Scripts
-import           Ledger.Value                     (Currency, isZero)
+import           Ledger.Value                     (AssetClass, isZero)
 import qualified Ledger.Value                     as Value
 import qualified Prelude                          as Haskell
 
@@ -63,19 +63,20 @@ data StateMachine s i = StateMachine {
       --   constraints, so the default implementation always returns true.
       smCheck       :: s -> i -> ScriptContext -> Bool,
 
-      -- | The 'Currency' of the thread token that identifies the contract instance.
-      smThreadToken :: Maybe Currency
+      -- | The 'AssetClass' of the thread token that identifies the contract
+      --   instance.
+      smThreadToken :: Maybe AssetClass
     }
 
 {-# INLINABLE threadTokenValue #-}
 -- | The 'Value' containing exactly the thread token, if one has been specified.
 threadTokenValue :: StateMachine s i -> Value
-threadTokenValue StateMachine{smThreadToken} = maybe mempty (\c -> Value.currencyValue c 1) smThreadToken
+threadTokenValue StateMachine{smThreadToken} = maybe mempty (\c -> Value.assetClassValue c 1) smThreadToken
 
 -- | A state machine that does not perform any additional checks on the
 --   'ScriptContext' (beyond enforcing the constraints)
 mkStateMachine
-    :: Maybe Currency
+    :: Maybe AssetClass
     -> (State s -> i -> Maybe (TxConstraints Void Void, State s))
     -> (s -> Bool)
     -> StateMachine s i

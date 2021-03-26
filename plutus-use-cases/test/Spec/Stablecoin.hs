@@ -53,7 +53,7 @@ coin = Stablecoin
     , scMinReserveRatio = zero
     , scMaxReserveRatio = 4 % 1
     , scReservecoinDefaultPrice = BC 1
-    , scBaseCurrency = Value.currency adaSymbol adaToken
+    , scBaseCurrency = Value.assetClass adaSymbol adaToken
     , scStablecoinTokenName = "stablecoin"
     , scReservecoinTokenName = "reservecoin"
     }

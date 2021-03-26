@@ -46,7 +46,7 @@ import           Ledger.Scripts
 import qualified PlutusTx                as PlutusTx
 
 import qualified Ledger.Typed.Scripts    as Scripts
-import           Ledger.Value            (Currency, TokenName, Value)
+import           Ledger.Value            (AssetClass, TokenName, Value)
 import qualified Ledger.Value            as Value
 
 import           Data.Aeson              (FromJSON, ToJSON)
@@ -208,9 +208,9 @@ createThreadToken ::
     , HasTxConfirmation s
     , HasWriteTx s
     )
-    => Contract w s CurrencyError Currency
+    => Contract w s CurrencyError AssetClass
 createThreadToken = do
     ownPK <- pubKeyHash <$> ownPubKey
     let tokenName :: TokenName = "thread token"
     s <- forgeContract ownPK [(tokenName, 1)]
-    pure $ Value.currency (currencySymbol s) tokenName
+    pure $ Value.assetClass (currencySymbol s) tokenName

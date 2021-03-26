@@ -104,9 +104,11 @@ import qualified Plutus.Trace.Effects.RunContract        as RunContract
 import           Plutus.Trace.Effects.Waiting            (Waiting, handleWaiting)
 import qualified Plutus.Trace.Effects.Waiting            as Waiting
 import           Plutus.Trace.Emulator.System            (launchSystemThreads)
-import           Plutus.Trace.Emulator.Types             (ContractConstraints, ContractHandle (..), ContractInstanceTag,
-                                                          Emulator, EmulatorMessage (..), EmulatorRuntimeError (..), ContractInstanceLog (..), ContractInstanceMsg(..),
-                                                          EmulatorThreads, UserThreadMsg (..))
+import           Plutus.Trace.Emulator.Types             (ContractConstraints, ContractHandle (..),
+                                                          ContractInstanceLog (..), ContractInstanceMsg (..),
+                                                          ContractInstanceTag, Emulator, EmulatorMessage (..),
+                                                          EmulatorRuntimeError (..), EmulatorThreads,
+                                                          UserThreadMsg (..))
 import           Streaming                               (Stream)
 import           Streaming.Prelude                       (Of (..))
 

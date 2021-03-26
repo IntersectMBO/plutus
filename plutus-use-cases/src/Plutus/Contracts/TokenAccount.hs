@@ -64,7 +64,7 @@ import qualified Plutus.Contract.Typed.Tx         as TypedTx
 
 import qualified Plutus.Contracts.Currency        as Currency
 
-newtype Account = Account { accountOwner :: Value.Currency }
+newtype Account = Account { accountOwner :: Value.AssetClass }
     deriving stock    (Eq, Show, Generic)
     deriving anyclass (ToJSON, FromJSON)
     deriving Pretty via (PrettyShow Account)
@@ -125,7 +125,7 @@ tokenAccountContract = mapError (review _TokenAccountError) (redeem_ `select` pa
 
 {-# INLINEABLE accountToken #-}
 accountToken :: Account -> Value
-accountToken (Account currency) = Value.currencyValue currency 1
+accountToken (Account currency) = Value.assetClassValue currency 1
 
 {-# INLINEABLE validate #-}
 validate :: Account -> () -> () -> V.ScriptContext -> Bool
@@ -242,7 +242,7 @@ newAccount
 newAccount tokenName pk = mapError (review _TokenAccountError) $ do
     cur <- Currency.forgeContract pk [(tokenName, 1)]
     let sym = Currency.currencySymbol cur
-    pure $ Account $ Value.currency sym tokenName
+    pure $ Account $ Value.assetClass sym tokenName
 
 PlutusTx.makeLift ''Account
 PlutusTx.unstableMakeIsData ''Account
