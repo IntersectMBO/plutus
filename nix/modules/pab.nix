@@ -199,6 +199,10 @@ in
       };
       postStart = ''
         mkdir -p /var/lib/pab
+
+        #
+        # After pab has started we can install all contracts that have been configured via `plutus-pab contracts install <contract path>`
+        #
         ${lib.concatMapStringsSep "\n" (p: "${cfg.pab-package}/bin/plutus-pab --config=${pabYaml} contracts install --path ${p}") cfg.contracts}
       '';
     };
