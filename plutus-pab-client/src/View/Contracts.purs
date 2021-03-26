@@ -82,15 +82,15 @@ contractStatusesPane contractStates =
         ]
     ]
   where
-  contractsWithRequests :: Array (WebStreamData (ContractInstanceState ContractExe /\ Array EndpointForm))
+  contractsWithRequests :: Array (WebStreamData (PartiallyDecodedResponse ContractPABRequest /\ Array EndpointForm))
   contractsWithRequests = Array.filter hasActiveRequests $ Array.fromFoldable $ Map.values contractStates
 
-  hasActiveRequests :: WebStreamData (ContractInstanceState ContractExe /\ Array EndpointForm) -> Boolean
+  hasActiveRequests :: WebStreamData (PartiallyDecodedResponse ContractPABRequest /\ Array EndpointForm) -> Boolean
   hasActiveRequests contractInstance = not $ null $ view (Stream._Success <<< _1 <<< _csCurrentState <<< _hooks) contractInstance
 
 contractStatusPane ::
   forall p.
-  WebStreamData (ContractInstanceState ContractExe /\ Array EndpointForm) ->
+  WebStreamData (PartiallyDecodedResponse ContractPABRequest /\ Array EndpointForm) ->
   HTML p HAction
 contractStatusPane contractState =
   div [ class_ $ ClassName "contract-status" ]
@@ -113,7 +113,7 @@ contractStatusPane contractState =
         )
         contractState
 
-contractRequestView :: forall p. ContractInstanceState ContractExe -> HTML p HAction
+contractRequestView :: forall p. PartiallyDecodedResponse ContractPABRequest -> HTML p HAction
 contractRequestView contractInstance =
   table [ classes [ Bootstrap.table, tableBordered ] ]
     [ thead_

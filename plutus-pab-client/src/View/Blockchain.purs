@@ -6,6 +6,7 @@ import Chain.Types as Chain
 import Chain.View (chainView)
 import Data.Array as Array
 import Data.Map as Map
+import Data.Maybe (Maybe(Nothing))
 import Data.Newtype (wrap)
 import Halogen.HTML (HTML, h2_, text)
 import Plutus.V1.Ledger.Crypto (PubKeyHash(..))
@@ -14,7 +15,7 @@ import Prelude (bind)
 import Types (propertyName)
 
 annotatedBlockchainPane :: forall p. Chain.State -> ChainReport -> HTML p Chain.Action
-annotatedBlockchainPane chainState (ChainReport { relatedMetadata, annotatedBlockchain }) =
+annotatedBlockchainPane chainState (ChainReport { annotatedBlockchain }) =
   card_
     [ cardHeader_
         [ h2_ [ text "Blockchain" ]
@@ -24,6 +25,4 @@ annotatedBlockchainPane chainState (ChainReport { relatedMetadata, annotatedBloc
         ]
     ]
   where
-  namingFn (PubKeyHash { getPubKeyHash: hash }) = do
-    properties <- Map.lookup (Subject hash) relatedMetadata
-    Array.findMap propertyName properties
+  namingFn (PubKeyHash { getPubKeyHash: hash }) = Nothing

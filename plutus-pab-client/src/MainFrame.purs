@@ -216,11 +216,11 @@ handleAction (InvokeContractEndpoint contractInstanceId endpointForm) = do
 updateFormsForContractInstance ::
   forall m.
   MonadState State m =>
-  ContractInstanceState ContractExe -> m Unit
+  PartiallyDecodedResponse ContractPABRequest -> m Unit
 updateFormsForContractInstance newContractInstance = do
   let
     csContractId = view _csContract newContractInstance
-  oldContractInstance :: Maybe (ContractInstanceState ContractExe) <-
+  oldContractInstance :: Maybe (PartiallyDecodedResponse ContractPABRequest) <-
     peruse
       ( _contractStates
           <<< ix csContractId
@@ -237,7 +237,7 @@ updateFormsForContractInstance newContractInstance = do
 
 createNewEndpointForms ::
   ContractSignatures ->
-  ContractInstanceState ContractExe ->
+  PartiallyDecodedResponse ContractPABRequest ->
   Maybe (Array EndpointForm)
 createNewEndpointForms contractSignatures instanceState = createEndpointForms instanceState <$> matchingSignature
   where

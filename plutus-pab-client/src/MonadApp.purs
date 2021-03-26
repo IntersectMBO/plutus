@@ -9,6 +9,7 @@ import Control.Monad.Reader.Class (class MonadAsk)
 import Control.Monad.State.Class (class MonadState)
 import Control.Monad.Trans.Class (class MonadTrans)
 import Data.Lens (view)
+import Data.Maybe (Maybe)
 import Data.Newtype (class Newtype, unwrap)
 import Data.RawJson (RawJson)
 import Effect.Aff.Class (class MonadAff)
@@ -17,21 +18,22 @@ import Effect.Console as Console
 import Halogen (HalogenM, liftEffect, raise)
 import Network.RemoteData as RemoteData
 import Playground.Lenses (_getEndpointDescription)
-import Plutus.PAB.Events.Contract (ContractInstanceState)
+import Plutus.PAB.Events.ContractInstanceState (PartiallyDecodedResponse)
 import Plutus.PAB.Effects.Contract.ContractExe (ContractExe)
 import Plutus.PAB.Webserver (SPParams_, getApiContractByContractinstanceidSchema, getApiFullreport, postApiContractActivate, postApiContractByContractinstanceidEndpointByEndpointname)
-import Plutus.PAB.Webserver.Types (ContractSignatureResponse, FullReport, StreamToServer)
+import Plutus.PAB.Webserver.Types (ContractSignatureResponse, FullReport, CombinedWSStreamToServer)
+import Plutus.PAB.Events.Contract (ContractPABRequest)
 import Servant.PureScript.Ajax (AjaxError)
 import Servant.PureScript.Settings (SPSettings_)
-import Wallet.Types (EndpointDescription, ContractInstanceId)
+import Wallet.Types (EndpointDescription, ContractInstanceId, NotificationError)
 
 class
   Monad m <= MonadApp m where
   getFullReport :: m (WebData (FullReport ContractExe))
   getContractSignature :: ContractInstanceId -> m (WebData (ContractSignatureResponse ContractExe))
-  invokeEndpoint :: RawJson -> ContractInstanceId -> EndpointDescription -> m (WebData (ContractInstanceState ContractExe))
+  invokeEndpoint :: RawJson -> ContractInstanceId -> EndpointDescription -> m (WebData (Maybe NotificationError))
   activateContract :: ContractExe -> m Unit
-  sendWebSocketMessage :: StreamToServer -> m Unit
+  sendWebSocketMessage :: CombinedWSStreamToServer -> m Unit
   log :: String -> m Unit
 
 newtype HalogenApp m a

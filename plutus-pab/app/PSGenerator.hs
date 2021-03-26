@@ -44,6 +44,7 @@ import           Plutus.Contract.State                      (ContractRequest, St
 import           Plutus.Contracts.Currency                  (SimpleMPS (..))
 import           Plutus.PAB.Effects.Contract.ContractExe    (ContractExe)
 import           Plutus.PAB.Effects.Contract.ContractTest   (TestContracts (Currency, Game))
+import           Plutus.PAB.Events                          (PABEvent)
 import           Plutus.PAB.Events.Contract                 (ContractPABRequest, ContractResponse)
 import           Plutus.PAB.Events.ContractInstanceState    (PartiallyDecodedResponse)
 import qualified Plutus.PAB.Simulator                       as Simulator
@@ -140,7 +141,8 @@ myTypes =
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @(AnnotatedSignature A))
 
     -- * Web API types
-    , (genericShow <*> mkSumType) (Proxy @(ContractActivationArgs A))
+    , (equal <*> (genericShow <*> mkSumType)) (Proxy @(PABEvent A))
+    , (equal <*> (genericShow <*> mkSumType)) (Proxy @(ContractActivationArgs A))
     , (genericShow <*> mkSumType) (Proxy @ContractInstanceClientState)
     , (genericShow <*> mkSumType) (Proxy @InstanceStatusToClient)
     , (genericShow <*> mkSumType) (Proxy @CombinedWSStreamToClient)

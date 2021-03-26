@@ -14,7 +14,7 @@ import Plutus.Contract.Resumable (Response(..))
 import Ledger.Constraints.OffChain (UnbalancedTx(..))
 import Plutus.V1.Ledger.Tx (Tx(..))
 import Playground.Lenses (_aeDescription, _endpointValue, _getEndpointDescription, _txConfirmed, _txId)
-import Plutus.PAB.Events.Contract (ContractEvent(..), ContractInstanceState(..), ContractResponse(..), ContractPABRequest(..))
+import Plutus.PAB.Events.Contract (ContractResponse(..), ContractPABRequest(..))
 import Plutus.PAB.Effects.Contract.ContractExe (ContractExe(..))
 import Wallet.Types (EndpointDescription)
 import Types (_contractActiveEndpoints, _contractInstanceIdString)
@@ -22,11 +22,22 @@ import Types (_contractActiveEndpoints, _contractInstanceIdString)
 class Pretty a where
   pretty :: forall p i. a -> HTML p i
 
-instance prettyChainEvent :: Pretty t => Pretty (ChainEvent t) where
-  pretty (ContractEvent subevent) = withHeading "Contract" subevent
-  pretty (UserEvent subevent) = withHeading "User" subevent
-  pretty (WalletEvent subevent) = withHeading "Wallet" subevent
-  pretty (NodeEvent subevent) = withHeading "Node" subevent
+instance prettyPABEvent :: Pretty t => Pretty (PABEvent t) where
+  pretty e = withHeading "PAB" $ case e of
+    InstallContract contract -> span_ [ text $ "Install contract:", nbsp, pretty contract ]
+    UpdateContractInstanceState (ContractActivationArgs { caID }) instanceId (PartiallyDecodedResponse { hooks }) ->
+      span_
+        [ text "Update instance "
+        , text instanceId
+        , text " of contract "
+        , pretty caID
+        , div_
+            [ nbsp
+            , text "with new active endpoint(s): "
+            , text $ show $ toArrayOf (_contractActiveEndpoints <<< _getEndpointDescription) hooks
+            ]
+        ]
+      SubmitTx tx -> span_ [ text "SubmittedTx:", nbsp, pretty tx]
 
 withHeading :: forall i p a. Pretty a => String -> a -> HTML p i
 withHeading prefix content =
