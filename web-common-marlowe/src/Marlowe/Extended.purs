@@ -32,7 +32,12 @@ data ContractType
   | ContractForDifferences
   | Other
 
+derive instance genericContractType :: Generic ContractType _
+
 derive instance eqContractType :: Eq ContractType
+
+instance showContractType :: Show ContractType where
+  show v = genericShow v
 
 contractTypeArray :: Array ContractType
 contractTypeArray = [ Escrow, EscrowWithCollateral, ZeroCouponBond, CouponBondGuaranteed, Swap, ContractForDifferences, Other ]
