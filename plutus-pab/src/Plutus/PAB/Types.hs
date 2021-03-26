@@ -31,6 +31,7 @@ import           Plutus.Contract.Types     (ContractError)
 import           Plutus.PAB.Instances      ()
 import           Servant.Client            (BaseUrl, ClientError)
 import           Wallet.API                (WalletAPIError)
+import           Wallet.Emulator.Wallet    (Wallet)
 import           Wallet.Types              (ContractInstanceId, NotificationError)
 
 data PABError
@@ -48,6 +49,7 @@ data PABError
     | InvalidUUIDError  Text
     | OtherError Text -- ?
     | EndpointCallError NotificationError
+    | WalletNotFound Wallet
     deriving stock (Show, Eq, Generic)
     deriving anyclass (ToJSON, FromJSON)
 
@@ -67,6 +69,7 @@ instance Pretty PABError where
         InvalidUUIDError t         -> "Invalid UUID:" <+> pretty t
         OtherError t               -> "Other error:" <+> pretty t
         EndpointCallError n        -> "Endpoint call failed:" <+> pretty n
+        WalletNotFound w           -> "Wallet not found:" <+> pretty w
 
 data DbConfig =
     DbConfig

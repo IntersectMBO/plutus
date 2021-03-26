@@ -101,7 +101,7 @@ import           Plutus.PAB.Effects.Contract.Builtin            (Builtin)
 import           Plutus.PAB.Effects.Contract.ContractTest       (TestContracts (..), handleContractTest)
 import           Plutus.PAB.Effects.TimeEffect                  (TimeEffect)
 import           Plutus.PAB.Monitoring.PABLogMsg                (ContractEffectMsg, PABMultiAgentMsg (..))
-import           Plutus.PAB.Types                               (PABError (ContractInstanceNotFound, WalletError))
+import           Plutus.PAB.Types                               (PABError (ContractInstanceNotFound, WalletError, WalletNotFound))
 import           Plutus.PAB.Webserver.Types                     (ContractActivationArgs (..))
 import           Plutus.V1.Ledger.Slot                          (Slot)
 import qualified Wallet.API                                     as WAPI
@@ -280,6 +280,7 @@ handleContractEffectMsg = interpret (mapLog @_ @(PABMultiAgentMsg t) ContractMsg
 runWalletState ::
     forall t effs.
     ( LastMember IO effs
+    , Member (Error PABError) effs
     , Member (Reader (SimulatorState t)) effs
     )
     => Wallet
@@ -288,14 +289,12 @@ runWalletState ::
 runWalletState wallet = \case
     Get -> do
         SimulatorState{_agentStates} <- ask @(SimulatorState t)
-        liftIO $ STM.atomically $ do
+        result <- liftIO $ STM.atomically $ do
             mp <- STM.readTVar _agentStates
-            case Map.lookup wallet mp of
-                Nothing -> do
-                    let newState = initialAgentState wallet
-                    STM.writeTVar _agentStates (Map.insert wallet newState mp)
-                    pure (_walletState newState)
-                Just s -> pure (_walletState s)
+            pure $ Map.lookup wallet mp
+        case result of
+            Nothing -> throwError $ WalletNotFound wallet
+            Just s  -> pure (_walletState s)
     Put s -> do
         SimulatorState{_agentStates} <- ask @(SimulatorState t)
         liftIO $ STM.atomically $ do
