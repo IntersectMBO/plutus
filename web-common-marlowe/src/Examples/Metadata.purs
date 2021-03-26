@@ -139,13 +139,13 @@ swap =
   , slotParameterDescriptions:
       ( fromFoldable
           [ "Timeout for Ada deposit" /\ "Deadline by which Ada must be deposited."
-          , "Timeout for dollar deposit" /\ "Deadline by which dollars tokens must be deposited (must be after the deadline for Ada deposit)."
+          , "Timeout for dollar deposit" /\ "Deadline by which dollar tokens must be deposited (must be after the deadline for Ada deposit)."
           ]
       )
   , valueParameterDescriptions:
       ( fromFoldable
           [ "Amount of Ada" /\ "Amount of Ada to be exchanged for dollars."
-          , "Amount of dollars" /\ "Amount of dollars tokens to be exchanged for Ada."
+          , "Amount of dollars" /\ "Amount of dollar tokens to be exchanged for Ada."
           ]
       )
   }
