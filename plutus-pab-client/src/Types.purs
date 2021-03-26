@@ -168,13 +168,10 @@ _csrDefinition = _ContractSignatureResponse <<< prop (SProxy :: SProxy "csrDefin
 
 -- _csContract :: forall t. Lens' (ContractInstanceState t) ContractInstanceId
 -- _csContract = _Newtype <<< prop (SProxy :: SProxy "csContract")
-
 -- _csCurrentState :: forall t. Lens' (ContractInstanceState t) (PartiallyDecodedResponse ContractPABRequest)
 -- _csCurrentState = _Newtype <<< prop (SProxy :: SProxy "csCurrentState")
-
 -- _csContractDefinition :: forall t. Lens' (ContractInstanceState t) t
 -- _csContractDefinition = _ContractInstanceState <<< prop (SProxy :: SProxy "csContractDefinition")
-
 _hooks :: forall t. Lens' (PartiallyDecodedResponse t) (Array (Request t))
 _hooks = _Newtype <<< prop (SProxy :: SProxy "hooks")
 

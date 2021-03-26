@@ -19,11 +19,12 @@ import Plutus.Contract.Resumable (IterationID(..), Request(..), RequestID(..))
 import Network.StreamData as Stream
 import Playground.Lenses (_endpointDescription, _getEndpointDescription, _schema)
 import Playground.Types (_FunctionSchema)
-import Plutus.PAB.Events.Contract (ContractInstanceState)
 import Plutus.PAB.Effects.Contract.ContractExe (ContractExe)
+import Plutus.PAB.Events.Contract (ContractPABRequest)
+import Plutus.PAB.Events.ContractInstanceState (PartiallyDecodedResponse)
 import Schema.Types (FormEvent)
 import Schema.View (actionArgumentForm)
-import Types (ContractStates, EndpointForm, HAction(..), WebStreamData, _contractInstanceIdString, _contractPath, _csContract, _csContractDefinition, _csCurrentState, _hooks)
+import Types (ContractStates, EndpointForm, HAction(..), WebStreamData, _contractInstanceIdString, _contractPath, _hooks)
 import Validation (_argument)
 import View.Pretty (pretty)
 import View.Utils (webStreamDataPane)
@@ -86,7 +87,7 @@ contractStatusesPane contractStates =
   contractsWithRequests = Array.filter hasActiveRequests $ Array.fromFoldable $ Map.values contractStates
 
   hasActiveRequests :: WebStreamData (PartiallyDecodedResponse ContractPABRequest /\ Array EndpointForm) -> Boolean
-  hasActiveRequests contractInstance = not $ null $ view (Stream._Success <<< _1 <<< _csCurrentState <<< _hooks) contractInstance
+  hasActiveRequests contractInstance = not $ null $ view (Stream._Success <<< _1 <<< _hooks) contractInstance
 
 contractStatusPane ::
   forall p.
