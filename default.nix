@@ -21,7 +21,7 @@
 , enableHaskellProfiling ? false
 }:
 let
-  inherit (packages) pkgs plutus;
+  inherit (packages) pkgs plutus sources;
   inherit (pkgs) lib haskell-nix;
   inherit (plutus) haskell iohkNix git-rev set-git-rev agdaPackages;
   inherit (plutus) easyPS sphinxcontrib-haddock;
@@ -96,5 +96,6 @@ rec {
     inherit plutus marlowe-playground plutus-playground;
   };
 
-  deployment-shell = pkgs.callPackage ./deployment/shell.nix { };
+  # This builds a vscode devcontainer that can be used with the plutus-starter project (or probably the plutus project itself).
+  devcontainer = import ./nix/devcontainer/plutus-devcontainer.nix { inherit pkgs plutus; };
 }

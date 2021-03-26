@@ -1,0 +1,4 @@
+account sufficient pam_unix.so
+auth sufficient pam_rootok.so
+password requisite pam_unix.so nullok sha512
+session required pam_unix.so
