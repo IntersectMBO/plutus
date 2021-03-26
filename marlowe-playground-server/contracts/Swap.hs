@@ -13,9 +13,9 @@ explicitRefunds = False
 
 lovelacePerAda, amountOfAda, amountOfLovelace, amountOfDollars :: Value
 lovelacePerAda = Constant 1000000
-amountOfAda = ConstantParam "Amount of Ada";
+amountOfAda = ConstantParam "Amount of Ada"
 amountOfLovelace = MulValue lovelacePerAda amountOfAda
-amountOfDollars = ConstantParam "Amount of dollars";
+amountOfDollars = ConstantParam "Amount of dollars"
 
 adaDepositTimeout, dollarDepositTimeout :: Timeout
 adaDepositTimeout = SlotParam "Timeout for Ada deposit"

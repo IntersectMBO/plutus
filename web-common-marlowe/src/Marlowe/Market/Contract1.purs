@@ -5,136 +5,93 @@ module Marlowe.Market.Contract1
   ) where
 
 import Prelude
-import Data.Map (fromFoldable)
-import Data.Tuple.Nested ((/\))
-import Marlowe.Extended (Action(..), Case(..), Contract(..), ContractType(..), Payee(..), Timeout(..), Value(..))
+import Data.BigInteger (BigInteger)
+import Data.Tuple.Nested (type (/\), (/\))
+import Examples.Metadata as Metadata
+import Marlowe.Extended (Action(..), Case(..), Contract(..), Payee(..), Timeout(..), Value(..))
 import Marlowe.Extended.Metadata (MetaData)
 import Marlowe.Extended.Template (ContractTemplate)
-import Marlowe.Semantics (Bound(..), ChoiceId(..), Party(..), Token(..))
+import Marlowe.Semantics (Bound(..), ChoiceId(..), Party(..), Token(..), ChoiceName)
 
 contractTemplate :: ContractTemplate
 contractTemplate = { metaData, extendedContract }
 
 metaData :: MetaData
-metaData =
-  { contractType: Escrow
-  , contractName: "Simple escrow"
-  , contractDescription: "Regulates a money exchange between a \"Buyer\" and a \"Seller\". If there is a disagreement, an \"Arbiter\" will decide whether the money is refunded or paid to the \"Seller\"."
-  , roleDescriptions:
-      fromFoldable
-        [ "Arbiter" /\ "The party that will choose who gets the money in the event of a disagreement between the \"Buyer\" and the \"Seller\" about the outcome."
-        , "Buyer" /\ "The party that wants to buy the item. Payment is made to the seller if they acknowledge receiving the item. "
-        , "Seller" /\ "The party that wants to sell the item. They receive the payment if the exchange is uneventful."
-        ]
-  , slotParameterDescriptions:
-      fromFoldable
-        [ "Buyer's deposit timeout" /\ "Deadline by which the \"Buyer\" must deposit the selling  \"Price\" in the contract."
-        , "Buyer's dispute timeout" /\ "Deadline by which, if the \"Buyer\" has not opened a dispute, the \"Seller\" will be paid."
-        , "Seller's response timeout" /\ "Deadline by which, if the \"Seller\" has not responded to the dispute, the \"Buyer\" will be refunded."
-        , "Timeout for arbitrage" /\ "Deadline by which, if the \"Arbiter\" has not resolved the dispute, the \"Buyer\" will be refunded."
-        ]
-  , valueParameterDescriptions:
-      fromFoldable
-        [ "Price" /\ "Amount of Lovelace to be paid by the \"Buyer\" for the item." ]
-  , choiceDescriptions:
-      fromFoldable
-        [ "Confirm problem" /\ "Acknowledge there was a problem and a refund must be granted."
-        , "Dismiss claim" /\ "The \"Arbiter\" does not see any problem with the exchange and the \"Seller\" must be paid."
-        , "Dispute problem" /\ "The \"Seller\" disagrees with the \"Buyer\" about the claim that something went wrong."
-        , "Everything is alright" /\ "The transaction was uneventful, \"Buyer\" agrees to pay the \"Seller\"."
-        , "Report problem" /\ "The \"Buyer\" claims not having received the product that was paid for as agreed and would like a refund."
-        ]
-  }
+metaData = Metadata.escrow
+
+ada :: Token
+ada = Token "" ""
+
+buyer :: Party
+buyer = Role "Buyer"
+
+seller :: Party
+seller = Role "Seller"
+
+arbiter :: Party
+arbiter = Role "Arbiter"
+
+price :: Value
+price = ConstantParam "Price"
+
+depositTimeout :: Timeout
+depositTimeout = SlotParam "Buyer's deposit timeout"
+
+disputeTimeout :: Timeout
+disputeTimeout = SlotParam "Buyer's dispute timeout"
+
+answerTimeout :: Timeout
+answerTimeout = SlotParam "Seller's response timeout"
+
+arbitrageTimeout :: Timeout
+arbitrageTimeout = SlotParam "Timeout for arbitrage"
+
+choice :: ChoiceName -> Party -> BigInteger -> Contract -> Case
+choice choiceName chooser choiceValue continuation =
+  Case
+    ( Choice (ChoiceId choiceName chooser)
+        [ Bound choiceValue choiceValue ]
+    )
+    continuation
+
+deposit :: Timeout -> Contract -> Contract -> Contract
+deposit timeout timeoutContinuation continuation =
+  When [ Case (Deposit seller buyer ada price) continuation ]
+    timeout
+    timeoutContinuation
+
+choices :: Timeout -> Party -> Contract -> Array (BigInteger /\ ChoiceName /\ Contract) -> Contract
+choices timeout chooser timeoutContinuation list =
+  When
+    ( do
+        (choiceValue /\ choiceName /\ continuation) <- list
+        pure $ choice choiceName chooser choiceValue continuation
+    )
+    timeout
+    timeoutContinuation
+
+sellerToBuyer :: Contract -> Contract
+sellerToBuyer = Pay seller (Account buyer) ada price
+
+paySeller :: Contract -> Contract
+paySeller = Pay buyer (Party seller) ada price
 
 extendedContract :: Contract
 extendedContract =
-  When
-    [ Case
-        ( Deposit
-            (Role "Seller")
-            (Role "Buyer")
-            (Token "" "")
-            (ConstantParam "Price")
-        )
-        ( When
-            [ Case
-                ( Choice
-                    ( ChoiceId
-                        "Everything is alright"
-                        (Role "Buyer")
-                    )
-                    [ Bound zero zero ]
-                )
-                Close
-            , Case
-                ( Choice
-                    ( ChoiceId
-                        "Report problem"
-                        (Role "Buyer")
-                    )
-                    [ Bound one one ]
-                )
-                ( Pay
-                    (Role "Seller")
-                    (Account (Role "Buyer"))
-                    (Token "" "")
-                    (ConstantParam "Price")
-                    ( When
-                        [ Case
-                            ( Choice
-                                ( ChoiceId
-                                    "Confirm problem"
-                                    (Role "Seller")
-                                )
-                                [ Bound one one ]
-                            )
-                            Close
-                        , Case
-                            ( Choice
-                                ( ChoiceId
-                                    "Dispute problem"
-                                    (Role "Seller")
-                                )
-                                [ Bound zero zero ]
-                            )
-                            ( When
-                                [ Case
-                                    ( Choice
-                                        ( ChoiceId
-                                            "Dismiss claim"
-                                            (Role "Arbiter")
-                                        )
-                                        [ Bound zero zero ]
-                                    )
-                                    ( Pay
-                                        (Role "Buyer")
-                                        (Party (Role "Seller"))
-                                        (Token "" "")
-                                        (ConstantParam "Price")
-                                        Close
-                                    )
-                                , Case
-                                    ( Choice
-                                        ( ChoiceId
-                                            "Confirm problem"
-                                            (Role "Arbiter")
-                                        )
-                                        [ Bound one one ]
-                                    )
-                                    Close
-                                ]
-                                (SlotParam "Timeout for arbitrage")
-                                Close
-                            )
+  deposit depositTimeout Close
+    $ choices disputeTimeout buyer Close
+        [ (zero /\ "Everything is alright" /\ Close)
+        , ( one /\ "Report problem"
+              /\ ( sellerToBuyer
+                    $ choices answerTimeout seller Close
+                        [ (one /\ "Confirm problem" /\ Close)
+                        , ( zero /\ "Dispute problem"
+                              /\ choices arbitrageTimeout arbiter Close
+                                  [ (zero /\ "Dismiss claim" /\ paySeller Close)
+                                  , (one /\ "Confirm problem" /\ Close)
+                                  ]
+                          )
                         ]
-                        (SlotParam "Seller's response timeout")
-                        Close
-                    )
                 )
-            ]
-            (SlotParam "Buyer's dispute timeout")
-            Close
-        )
-    ]
-    (SlotParam "Buyer's deposit timeout")
-    Close
+          )
+        ]

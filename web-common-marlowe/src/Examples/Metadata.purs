@@ -10,8 +10,8 @@ example = emptyContractMetadata
 
 escrow :: MetaData
 escrow =
-  { contractName: "Simple escrow"
-  , contractType: Escrow
+  { contractType: Escrow
+  , contractName: "Simple escrow"
   , contractDescription: "Regulates a money exchange between a \"Buyer\" and a \"Seller\". If there is a disagreement, an \"Arbiter\" will decide whether the money is refunded or paid to the \"Seller\"."
   , choiceDescriptions:
       ( fromFoldable
@@ -42,8 +42,8 @@ escrow =
 
 escrowWithCollateral :: MetaData
 escrowWithCollateral =
-  { contractName: "Escrow with collateral"
-  , contractType: Escrow
+  { contractType: Escrow
+  , contractName: "Escrow with collateral"
   , contractDescription: "Regulates a money exchange between a \"Buyer\" and a \"Seller\" using a collateral from both parties to incentivize collaboration. If there is a disagreement the collateral is burned."
   , choiceDescriptions:
       ( fromFoldable
@@ -78,8 +78,8 @@ escrowWithCollateral =
 
 zeroCouponBond :: MetaData
 zeroCouponBond =
-  { contractName: "Zero Coupon Bond"
-  , contractType: ZeroCouponBond
+  { contractType: ZeroCouponBond
+  , contractName: "Zero Coupon Bond"
   , contractDescription: "A simple loan. The investor pays the issuer the discounted price at the start, and is repaid the full (notional) price at the end."
   , choiceDescriptions: empty
   , roleDescriptions:
@@ -104,8 +104,8 @@ zeroCouponBond =
 
 couponBondGuaranteed :: MetaData
 couponBondGuaranteed =
-  { contractName: "Coupon Bond Guaranteed"
-  , contractType: CouponBondGuaranteed
+  { contractType: CouponBondGuaranteed
+  , contractName: "Coupon Bond Guaranteed"
   , contractDescription: "Debt agreement between an \"Investor\" and an \"Issuer\". \"Investor\" will advance the \"Principal\" amount at the beginning of the contract, and the \"Issuer\" will pay back \"Interest instalment\" every 30 slots and the \"Principal\" amount by the end of 3 instalments. The debt is backed by a collateral provided by the \"Guarantor\" which will be refunded as long as the \"Issuer\" pays back on time."
   , choiceDescriptions: empty
   , roleDescriptions:
@@ -126,8 +126,8 @@ couponBondGuaranteed =
 
 swap :: MetaData
 swap =
-  { contractName: "Swap of Ada and dollar tokens"
-  , contractType: Swap
+  { contractType: Swap
+  , contractName: "Swap of Ada and dollar tokens"
   , contractDescription: "Takes Ada from one party and dollar tokens from another party, and it swaps them atomically."
   , choiceDescriptions: empty
   , roleDescriptions:
@@ -152,8 +152,8 @@ swap =
 
 contractForDifferences :: MetaData
 contractForDifferences =
-  { contractName: "Contract for Differences"
-  , contractType: ContractForDifferences
+  { contractType: ContractForDifferences
+  , contractName: "Contract for Differences"
   , contractDescription: "\"Party\" and \"Counterparty\" deposit 100 Ada and after 60 slots is redistributed depending on the change in a given trade price reported by \"Oracle\". If the price increases, the difference goes to \"Counterparty\"; if it decreases, the difference goes to \"Party\", up to a maximum of 100 Ada."
   , choiceDescriptions:
       ( fromFoldable
