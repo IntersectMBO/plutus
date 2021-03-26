@@ -10,6 +10,7 @@
 , web-ghc
 , plutus-pab
 , marlowe-app
+, vmCompileTests ? false
 }:
 let
   inherit (pkgs) lib;
@@ -44,5 +45,5 @@ pkgs.recurseIntoAttrs {
     inherit (pkgs) terraform;
   };
 
-  vmTests = pkgs.callPackage ./vm.nix { inherit plutus-playground marlowe-playground marlowe-dashboard web-ghc plutus-pab marlowe-app; };
+  vmTests = pkgs.callPackage ./vm.nix { inherit vmCompileTests plutus-playground marlowe-playground marlowe-dashboard web-ghc plutus-pab marlowe-app; };
 }

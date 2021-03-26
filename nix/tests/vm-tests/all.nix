@@ -1,4 +1,13 @@
-{ makeTest, lib, plutus-pab, plutus-playground, marlowe-playground, marlowe-dashboard, marlowe-app, web-ghc }:
+{ makeTest
+, lib
+, plutus-pab
+, plutus-playground
+, marlowe-playground
+, marlowe-dashboard
+, marlowe-app
+, web-ghc
+, vmCompileTests # when enabled the test tries to compile plutus/marlowe code on webghc
+}:
 let
   plutusApiRequest = builtins.toFile "plutus-request.json" (builtins.readFile ./contract-api-request.json);
   marloweApiRequest = builtins.toFile "marlowe-request.json" (builtins.readFile ./runghc-api-request.json);
@@ -100,14 +109,18 @@ makeTest {
             "plutus-playground" = {
               listen = [{ addr = "0.0.0.0"; port = 8080; }];
               locations = {
-                "/" = {
-                  root = "${plutus-playground.client}";
+                "/api" = {
+                  proxyPass = "http://plutus-playground";
+                  proxyWebsockets = true;
+                };
+                "^~ /tutorial/" = {
+                  alias = "${plutus-playground.tutorial}/";
                   extraConfig = ''
                     error_page 404 = @fallback;
                   '';
                 };
-                "^~ /tutorial/" = {
-                  alias = "${plutus-playground.tutorial}/";
+                "/" = {
+                  root = "${plutus-playground.client}";
                   extraConfig = ''
                     error_page 404 = @fallback;
                   '';
@@ -227,15 +240,17 @@ makeTest {
     pab.wait_for_unit("pab.service")
 
     #
-    # plutus-playground / webghc : using api/contract
-    # marlowe-playground / webghc : using /runghc
-    #
-    playgrounds.succeed("curl --silent -H 'Content-Type: application/json' --request POST --data @${plutusApiRequest} http://plutus-playground:8080/api/contract | grep Right")
-    playgrounds.succeed("curl --silent -H 'Content-Type: application/json' --request POST --data @${marloweApiRequest} http://marlowe-playground:9090/runghc | grep Right")
-
-    #
     # marlowe-dashboard asserts
     #
     playgrounds.succeed("curl --silent http://marlowe-dashboard:7070/ | grep 'marlowe-dashboard'")
+  '' + lib.optionalString (vmCompileTests) ''
+    #
+    # plutus-playground / webghc : using api/contract
+    # marlowe-playground / webghc : using /runghc
+    #
+    playgrounds.succeed("curl --silent http://webghc/health")
+    playgrounds.succeed("curl --silent -H 'Content-Type: application/json' --request POST --data @${plutusApiRequest} http://plutus-playground:8080/api/contract | grep Right ")
+    playgrounds.succeed("curl --silent http://webghc/health")
+    playgrounds.succeed("curl --silent -H 'Content-Type: application/json' --request POST --data @${marloweApiRequest} http://marlowe-playground:9090/runghc | grep Right")
   '';
 }
