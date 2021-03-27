@@ -38,6 +38,9 @@ runTermBench name term = env
         )
     $ \_ -> bench name $ nf (unsafeEvaluateCek defBuiltinsRuntime) term
 
+
+---------------- Constructing PLC terms for benchmarking ----------------
+
 -- Create a term applying a builtin to one argument
 mkApp1 :: (DefaultUni `Includes` a) => DefaultFun -> a -> PlainTerm
 mkApp1 name x =
@@ -57,16 +60,21 @@ mkApp3
 mkApp3 name x y z =
     erase $ mkIterApp () (builtin () name) [mkConstant () x,  mkConstant () y, mkConstant () z]
 
+
+---------------- Creating benchmarks ----------------
+
+{- | The use of bgroups in the functions below will cause Criterion to give the
+   benchmarks names like "AddInteger/ExMemory 11/ExMemory 5": these are saved in
+   the CSV file and the 'benchData' function in 'models.R' subsequently extracts
+   the names and memory figures for use as entries in the data frame used to
+   generate the cost models.  Hence changing the nesting of the bgroups would
+   cause trouble elsewhere.
+ -}
+
+
 {- | Given a builtin function f of type a * b -> _ together with lists xs::[a] and
    ys::[b] (along with their memory sizes), create a collection of benchmarks
    which run f on all pairs in {(x,y}: x in xs, y in ys}. -}
-{- | The use of bgroups will cause Criterion to give the benchmarks names like
-   "AddInteger/ExMemory 11/ExMemory 5": these are saved in the CSV file and the
-   'benchData' function in 'models.R' subsequently extracts the names and memory
-   figures for use as entries in the data frame used to generate the cost
-   models.  Hence changing the nesting of the bgroups would cause trouble
-   elsewhere.
--}
 createTwoTermBuiltinBench
     :: (DefaultUni `Includes` a, DefaultUni `Includes` b)
     => DefaultFun
@@ -148,6 +156,7 @@ benchSameTwoIntegers gen builtinName = createTwoTermBuiltinBenchElementwise buil
 
 
 ---------------- Bytestring builtins ----------------
+
 integerPower :: Integer -> Integer -> Integer
 integerPower = (^) -- Just to avoid some type ascriptions later
 
@@ -186,14 +195,13 @@ benchSameTwoByteStrings name = createTwoTermBuiltinBenchElementwise name (byteSt
                                ((\(bs, e) -> (BS.copy bs, e)) <$> byteStringsToBench seedA)
 
 powersOfTwo :: [Integer]
-powersOfTwo = integerPower 2 <$> [1..16] -- <> ((\(a :: Integer) -> 10^a) <$> [3..8])
+powersOfTwo = integerPower 2 <$> [1..16]
 
 -- Make some really big numbers for benchmarking
 threeToThePower :: Integer -> (Integer, ExMemory)
 threeToThePower e =
-    let
-        x = integerPower 3 e
-    in (x, memoryUsage x)
+    let x = integerPower 3 e
+    in  (x, memoryUsage x)
 
 benchBytestringOperations :: DefaultFun -> Benchmark -- TODO the numbers are a bit too big here
 benchBytestringOperations name = createTwoTermBuiltinBench name numbers (byteStringsToBench seedA)
@@ -219,6 +227,7 @@ benchVerifySignature =
     where
         name = VerifySignature
         bs = (makeSizedBytestring seedA . fromInteger) <$> byteStringSizes
+
 
 ---------------- Miscellaneous ----------------
 

@@ -18,7 +18,7 @@
             "type": "constant_cost"
         },
         "cpu": {
-            "arguments": 4,
+            "arguments": 3.93081785255777,
             "type": "constant_cost"
         }
     },
@@ -28,7 +28,7 @@
             "type": "constant_cost"
         },
         "cpu": {
-            "arguments": 3,
+            "arguments": 2.94863981916999,
             "type": "constant_cost"
         }
     },
@@ -149,7 +149,7 @@
             "type": "constant_cost"
         },
         "cpu": {
-            "arguments": 3,
+            "arguments": 2.96496890781943,
             "type": "constant_cost"
         }
     },

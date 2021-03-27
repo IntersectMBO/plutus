@@ -127,12 +127,6 @@ instance FromNamedRecord LinearModelRaw where
 
 instance FromRecord LinearModelRaw
 
--- If we have data where the costs are nearly constant we can get a model with
--- a negative slope, which can be problematic.  We use the `pos` function to
--- adjust negative numbers up to zero.
--- TODO: issue a warning if we do find a negative number?
-ensureNonNegative :: Double -> Double
-ensureNonNegative = max 0
 
 findInRaw :: String -> Vector LinearModelRaw -> Either String LinearModelRaw
 findInRaw s v = maybeToEither ("Couldn't find the term " <> s <> " in " <> show v) $
@@ -147,7 +141,7 @@ unsafeReadModelFromR formula rmodel = do
         model     <- Data.Csv.decode HasHeader $ BSL.fromStrict $ T.encodeUtf8 $ (fromSomeSEXP j :: Text)
         intercept <- linearModelRawEstimate <$> findInRaw "(Intercept)" model
         slope     <- linearModelRawEstimate <$> findInRaw formula model
-        pure $ (ensureNonNegative intercept, ensureNonNegative slope)
+        pure $ (intercept, slope)
   case m of
     Left err -> throwM (TypeError err)
     Right x  -> pure x
@@ -162,7 +156,7 @@ unsafeReadModelFromR2 formula1 formula2 rmodel = do
         intercept <- linearModelRawEstimate <$> findInRaw "(Intercept)" model
         slope1    <- linearModelRawEstimate <$> findInRaw formula1 model
         slope2    <- linearModelRawEstimate <$> findInRaw formula2 model
-        pure $ (ensureNonNegative intercept, ensureNonNegative slope1, ensureNonNegative slope2)
+        pure $ (intercept, slope1, slope2)
   case m of
     Left err -> throwM (TypeError err)
     Right x  -> pure x
@@ -188,8 +182,8 @@ readModelMultipliedSizes model = (pure . uncurry ModelMultipliedSizes) =<< unsaf
 readModelSplitConst :: MonadR m => (SomeSEXP (Region m)) -> m ModelSplitConst
 readModelSplitConst model = (pure . uncurry ModelSplitConst) =<< unsafeReadModelFromR "ifelse(x_mem > y_mem, I(x_mem * y_mem), 0)" model
 
-readModelConstantCost :: MonadR m => (SomeSEXP (Region m)) -> m Integer
-readModelConstantCost model = (\(i, _i) -> pure $ ceiling i) =<< unsafeReadModelFromR "(Intercept)" model
+readModelConstantCost :: MonadR m => (SomeSEXP (Region m)) -> m Double
+readModelConstantCost model = (\(i, _i) -> pure  i) =<< unsafeReadModelFromR "(Intercept)" model
 
 readModelLinear :: MonadR m => (SomeSEXP (Region m)) -> m ModelLinearSize
 readModelLinear model = (\(intercept, slope) -> pure $ ModelLinearSize intercept slope ModelOrientationX) =<< unsafeReadModelFromR "x_mem" model
@@ -288,26 +282,31 @@ takeByteString :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArg
 takeByteString cpuModelR = do
   cpuModel <- readModelConstantCost cpuModelR
   -- The buffer gets reused.
-  let memModel = ModelTwoArgumentsConstantCost 2
+  let memModel = ModelTwoArgumentsConstantCost 2.0
   pure $ CostingFun (ModelTwoArgumentsConstantCost cpuModel) memModel
 
 dropByteString :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
 dropByteString cpuModelR = do
   cpuModel <- readModelConstantCost cpuModelR
   -- The buffer gets reused.
-  let memModel = ModelTwoArgumentsConstantCost 2
+  let memModel = ModelTwoArgumentsConstantCost 2.0
   pure $ CostingFun (ModelTwoArgumentsConstantCost cpuModel) memModel
+
+memoryUsageAsDouble :: ExMemoryUsage a => a -> Double
+memoryUsageAsDouble x =
+    let m = coerce $ memoryUsage x :: Integer
+    in fromIntegral m
 
 sHA2 :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelOneArgument)
 sHA2 cpuModelR = do
   cpuModel <- readModelLinear cpuModelR
-  let memModel = ModelOneArgumentConstantCost (coerce $ memoryUsage $ PlutusHash.sha2 "")
+  let memModel = ModelOneArgumentConstantCost (memoryUsageAsDouble $ PlutusHash.sha2 "")
   pure $ CostingFun (ModelOneArgumentLinearCost cpuModel) memModel
 
 sHA3 :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelOneArgument)
 sHA3 cpuModelR = do
   cpuModel <- readModelLinear cpuModelR
-  let memModel = ModelOneArgumentConstantCost (coerce $ memoryUsage $ PlutusHash.sha3 "")
+  let memModel = ModelOneArgumentConstantCost (memoryUsageAsDouble $ PlutusHash.sha3 "")
   pure $ CostingFun (ModelOneArgumentLinearCost cpuModel) memModel
 
 verifySignature :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelThreeArguments)
