@@ -143,10 +143,19 @@ benchTwoIntegers gen builtinName =
       (numbers,_) = makeDefaultIntegerArgs gen
       inputs  = fmap (\e -> (e, memoryUsage e)) numbers
 
+
+{- Some larger inputs for cases where we're using the same number for both
+   arguments.  (A) If we're not examining all NxN pairs then we can eaxmine
+   larger arguments without taking too much time. (B) for things like EqInteger
+   the results are very uniform with the smaller numbers, leading to occasional
+   models with negative slopes.  Using larger numbers may help to avoid this. -}
+makeBiggerIntegerArgs :: StdGen -> ([Integer], StdGen)
+makeBiggerIntegerArgs gen = makeSizedIntegers [1, 3..101] gen
+
 benchSameTwoIntegers :: StdGen -> DefaultFun -> Benchmark
 benchSameTwoIntegers gen builtinName = createTwoTermBuiltinBenchElementwise builtinName inputs inputs'
     where
-      (numbers,_) = makeDefaultIntegerArgs gen
+      (numbers,_) = makeBiggerIntegerArgs gen
       inputs  = fmap (\e -> (e, memoryUsage e)) numbers
       inputs' = fmap (\e -> (e, memoryUsage e)) $ clone numbers
           where clone = (fmap (\n -> (n-1) `div` 3) . fmap (\n -> 3*n+1))
@@ -266,14 +275,14 @@ main = do
   if csvExists then renameFile csvFile backupFile else pure ()
 
   defaultMainWith (defaultConfig { C.csvFile = Just csvFile })
-                      $ (benchTwoIntegers gen <$> [ AddInteger
-                                                  , SubtractInteger
-                                                  , MultiplyInteger
-                                                  , DivideInteger
-                                                  , ModInteger
-                                                  , QuotientInteger
-                                                  , RemainderInteger
-                                                  ])
+                      $  (benchTwoIntegers gen <$> [ AddInteger
+                                                   , SubtractInteger
+                                                   , MultiplyInteger
+                                                   , DivideInteger
+                                                   , ModInteger
+                                                   , QuotientInteger
+                                                   , RemainderInteger
+                                                   ])
                       <> (benchSameTwoIntegers gen <$> [ EqInteger
                                                        , LessThanInteger
                                                        , GreaterThanInteger
