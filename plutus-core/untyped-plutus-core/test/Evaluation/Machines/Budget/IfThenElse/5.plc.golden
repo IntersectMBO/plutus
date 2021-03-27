@@ -20,13 +20,13 @@
 | BBuiltin causes ({ cpu: 5
 | mem: 0
 })
-| BBuiltinApp IfThenElse causes ({ cpu: 5
-| mem: 5
+| BBuiltinApp IfThenElse causes ({ cpu: 50000
+| mem: 50000
 })
 | BAST causes ({ cpu: 0
 | mem: 1297
 })})
-| budget: ({ cpu: 511
-| mem: 1302
+| budget: ({ cpu: 50506
+| mem: 51297
 })
 }) )
