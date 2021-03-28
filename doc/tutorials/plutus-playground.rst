@@ -84,7 +84,7 @@ The initial transaction is preselected when you open the blockchain view.
 There are two sections with detailed information about the selected transaction.
 The first section shows the inputs and outputs of the selected transaction, and some other details.
 The second section has a table with the balances of each address *after* the selected transaction.
-You can see that wallet 1 and wallet 2 each have ten lovelace.
+You can see that wallet 1 and wallet 2 each have one hundred lovelace.
 
 Final Balances
 """"""""""""""
