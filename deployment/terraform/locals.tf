@@ -15,7 +15,7 @@ locals {
   webghc_exporter_port    = 9091
   plutus_playground_port  = 8080
   marlowe_playground_port = 9080
-  pab_port                = 9080
+  pab_port                = 8080
 
   # SSH Keys
   ssh_keys = {
