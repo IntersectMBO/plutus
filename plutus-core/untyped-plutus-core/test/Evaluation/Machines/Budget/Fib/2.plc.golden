@@ -20,13 +20,13 @@
 | BBuiltin causes ({ cpu: 9
 | mem: 0
 })
-| BBuiltinApp AddInteger causes ({ cpu: 30541
+| BBuiltinApp AddInteger causes ({ cpu: 21185
 | mem: 20000
 })
-| BBuiltinApp SubtractInteger causes ({ cpu: 63252
+| BBuiltinApp SubtractInteger causes ({ cpu: 43314
 | mem: 900000
 })
-| BBuiltinApp LessThanEqInteger causes ({ cpu: 86773
+| BBuiltinApp LessThanEqInteger causes ({ cpu: 63067
 | mem: 30000
 })
 | BBuiltinApp IfThenElse causes ({ cpu: 30000
@@ -35,7 +35,7 @@
 | BAST causes ({ cpu: 0
 | mem: 44
 })})
-| budget: ({ cpu: 210723
+| budget: ({ cpu: 157723
 | mem: 980044
 })
 }) )
