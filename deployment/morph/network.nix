@@ -6,6 +6,64 @@ let
   tfinfo = builtins.fromJSON (builtins.readFile ./machines.json);
 in
 {
+  "${tfinfo.marloweDashA.dns}" = {
+    imports = [
+      ./profiles/std.nix
+      ../../nix/modules/pab.nix
+    ];
+
+    networking = {
+      hostName = "marloweDashA";
+      firewall.allowedTCPPorts = [ 22 80 8080 ];
+    };
+
+    services.pab = {
+      enable = true;
+      pab-package = plutus.plutus-pab.pab-exes.plutus-pab;
+      contracts = [ "${plutus.marlowe-app}/bin/marlowe-app" ];
+      staticContent = plutus.marlowe-dashboard.client;
+      dbFile = "/var/lib/pab/pab-core.db";
+      defaultWallet = 1;
+      webserverPort = 8080;
+      walletPort = 8081;
+      nodePort = 8082;
+      chainIndexPort = 8083;
+      signingProcessPort = 8084;
+      metadataPort = 8085;
+    };
+
+    users.extraUsers.root.openssh.authorizedKeys.keys = tfinfo.rootSshKeys;
+  };
+
+  "${tfinfo.marloweDashB.dns}" = {
+    imports = [
+      ./profiles/std.nix
+      ../../nix/modules/pab.nix
+    ];
+
+    networking = {
+      hostName = "marloweDashB";
+      firewall.allowedTCPPorts = [ 22 80 8080 ];
+    };
+
+    services.pab = {
+      enable = true;
+      pab-package = plutus.plutus-pab.pab-exes.plutus-pab;
+      contracts = [ "${plutus.marlowe-app}/bin/marlowe-app" ];
+      staticContent = plutus.marlowe-dashboard.client;
+      dbFile = "/var/lib/pab/pab-core.db";
+      defaultWallet = 1;
+      webserverPort = 8080;
+      walletPort = 8081;
+      nodePort = 8082;
+      chainIndexPort = 8083;
+      signingProcessPort = 8084;
+      metadataPort = 8085;
+    };
+
+    users.extraUsers.root.openssh.authorizedKeys.keys = tfinfo.rootSshKeys;
+  };
+
   "${tfinfo.playgroundsB.dns}" = {
 
     imports = [
