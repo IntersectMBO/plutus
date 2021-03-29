@@ -54,13 +54,12 @@ in
                 error_page 404 = @fallback;
               '';
             };
-            #"^~ /tutorial/" = {
-            #alias = "${plutus.plutus-playground.tutorial}/";
-            #extraConfig = ''
-            #error_page 404 = @fallback;
-            #'';
-            #};
-
+            "^~ /tutorial/" = {
+              alias = "${plutus.plutus-playground.tutorial}/";
+              extraConfig = ''
+                error_page 404 = @fallback;
+              '';
+            };
             "@fallback" = {
               proxyPass = "http://plutus-playground";
               proxyWebsockets = true;
@@ -85,12 +84,12 @@ in
                 error_page 404 = @fallback;
               '';
             };
-            #"^~ /tutorial/" = {
-            #alias = "${plutus.marlowe-playground.tutorial}/";
-            #extraConfig = ''
-            #error_page 404 = @fallback;
-            #'';
-            #};
+            "^~ /tutorial/" = {
+              alias = "${plutus.marlowe-playground.tutorial}/";
+              extraConfig = ''
+                error_page 404 = @fallback;
+              '';
+            };
             "@fallback" = {
               proxyPass = "http://marlowe-playground";
               proxyWebsockets = true;
@@ -164,12 +163,12 @@ in
             "/health" = {
               proxyPass = "http://plutus-playground";
             };
-            #"^~ /tutorial/" = {
-            #alias = "${plutus.plutus-playground.tutorial}/";
-            #extraConfig = ''
-            #error_page 404 = @fallback;
-            #'';
-            #};
+            "^~ /tutorial/" = {
+              alias = "${plutus.plutus-playground.tutorial}/";
+              extraConfig = ''
+                error_page 404 = @fallback;
+              '';
+            };
             "/" = {
               root = "${plutus.plutus-playground.client}";
               extraConfig = ''
@@ -200,12 +199,12 @@ in
                 error_page 404 = @fallback;
               '';
             };
-            #"^~ /tutorial/" = {
-            #alias = "${plutus.marlowe-playground.tutorial}/";
-            #extraConfig = ''
-            #error_page 404 = @fallback;
-            #'';
-            #};
+            "^~ /tutorial/" = {
+              alias = "${plutus.marlowe-playground.tutorial}/";
+              extraConfig = ''
+                error_page 404 = @fallback;
+              '';
+            };
             "@fallback" = {
               proxyPass = "http://marlowe-playground";
               proxyWebsockets = true;
