@@ -18,6 +18,7 @@ import Halogen.HTML (ClassName(..), HTML, b_, br_, button, div, h2, h3, li_, ol,
 import Halogen.HTML.Events (onClick)
 import Halogen.HTML.Properties (class_, classes, enabled)
 import Marlowe.Extended (IntegerTemplateType(..))
+import Marlowe.Extended.Metadata (MetaData)
 import Marlowe.Semantics (ChoiceId(..), Input(..), Payee(..), Slot(..), SlotInterval(..), TransactionInput(..), TransactionWarning(..))
 import Marlowe.Symbolic.Types.Response as R
 import Network.RemoteData (RemoteData(..))
@@ -47,8 +48,8 @@ clearButton isEnabled name action =
     ]
     [ text name ]
 
-analysisResultPane :: forall action p state. (IntegerTemplateType -> String -> BigInteger -> action) -> { analysisState :: AnalysisState | state } -> HTML p action
-analysisResultPane actionGen state =
+analysisResultPane :: forall action p state. MetaData -> (IntegerTemplateType -> String -> BigInteger -> action) -> { analysisState :: AnalysisState | state } -> HTML p action
+analysisResultPane metadata actionGen state =
   let
     templateContent = state ^. (_analysisState <<< _templateContent)
 
@@ -61,8 +62,8 @@ analysisResultPane actionGen state =
         explanation
           [ text ""
           , ul [ class_ (ClassName "templates") ]
-              ( integerTemplateParameters actionGen SlotContent "Timeout template parameters" "Slot for" (unwrap templateContent).slotContent
-                  <> integerTemplateParameters actionGen ValueContent "Value template parameters" "Constant for" (unwrap templateContent).valueContent
+              ( integerTemplateParameters metadata.slotParameterDescriptions actionGen SlotContent "Timeout template parameters" "Slot for" (unwrap templateContent).slotContent
+                  <> integerTemplateParameters metadata.valueParameterDescriptions actionGen ValueContent "Value template parameters" "Constant for" (unwrap templateContent).valueContent
               )
           ]
       WarningAnalysis staticSubResult -> case staticSubResult of

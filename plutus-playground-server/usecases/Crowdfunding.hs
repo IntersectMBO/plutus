@@ -107,11 +107,11 @@ instance Scripts.ScriptType Crowdfunding where
     type instance DatumType Crowdfunding = PubKeyHash
 
 scriptInstance :: Campaign -> Scripts.ScriptInstance Crowdfunding
-scriptInstance cmp = Scripts.validator @Crowdfunding
-    ($$(PlutusTx.compile [|| mkValidator ||]) `PlutusTx.applyCode` PlutusTx.liftCode cmp)
+scriptInstance = Scripts.validatorParam @Crowdfunding
+    $$(PlutusTx.compile [|| mkValidator ||])
     $$(PlutusTx.compile [|| wrap ||])
     where
-        wrap = Scripts.wrapValidator @PubKeyHash @CampaignAction
+        wrap = Scripts.wrapValidator
 
 {-# INLINABLE validRefund #-}
 validRefund :: Campaign -> PubKeyHash -> TxInfo -> Bool

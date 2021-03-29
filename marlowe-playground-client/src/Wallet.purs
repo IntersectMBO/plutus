@@ -40,6 +40,7 @@ import Halogen.HTML.Properties (value) as HTML
 import Help (HelpContext(..), toHTML)
 import Marlowe.Extended (toCore)
 import Marlowe.Extended as EM
+import Marlowe.Extended.Metadata (emptyContractMetadata)
 import Marlowe.Holes (fromTerm, gatherContractData)
 import Marlowe.Parser (parseContract)
 import Marlowe.Semantics (AccountId, Assets(..), Bound(..), ChoiceId(..), Contract(..), Input(..), Party, Payment(..), PubKey, Token(..), TransactionWarning(..), ValueId(..), _accounts, _boundValues, _choices, inBounds, timeouts)
@@ -712,13 +713,13 @@ renderCurrentState state =
     , div [ class_ (ClassName "RTable-2-cells") ] [ text "TransactionNonPositiveDeposit" ]
     , div [ class_ (ClassName "RTable-4-cells") ]
         [ text $ "Party "
-        , renderPrettyParty party
+        , renderPrettyParty emptyContractMetadata party
         , text $ " is asked to deposit "
             <> showPrettyMoney amount
             <> " units of "
         , renderPrettyToken tok
         , text " into account of "
-        , renderPrettyParty owner
+        , renderPrettyParty emptyContractMetadata owner
         , text "."
         ]
     ]
@@ -735,7 +736,7 @@ renderCurrentState state =
               <> show owner
               <> " to "
           ]
-            <> renderPrettyPayee payee
+            <> renderPrettyPayee emptyContractMetadata payee
             <> [ text "." ]
         )
     ]
@@ -749,10 +750,10 @@ renderCurrentState state =
               <> " units of "
           , renderPrettyToken tok
           , text " from account of "
-          , renderPrettyParty owner
+          , renderPrettyParty emptyContractMetadata owner
           , text $ " to "
           ]
-            <> renderPrettyPayee payee
+            <> renderPrettyPayee emptyContractMetadata payee
             <> [ text $ "."
                   <> " but there is only "
                   <> showPrettyMoney amount
@@ -961,9 +962,9 @@ renderDeposit accountOwner party tok money =
   , spanText " units of "
   , b_ [ renderPrettyToken tok ]
   , spanText " into account of "
-  , b_ [ renderPrettyParty accountOwner ]
+  , b_ [ renderPrettyParty emptyContractMetadata accountOwner ]
   , spanText " as "
-  , b_ [ renderPrettyParty party ]
+  , b_ [ renderPrettyParty emptyContractMetadata party ]
   ]
 
 transactionComposer ::

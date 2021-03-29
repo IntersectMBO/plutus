@@ -5,197 +5,93 @@ module Marlowe.Market.Contract6
   ) where
 
 import Prelude
-import Data.Map (fromFoldable)
-import Data.Tuple.Nested ((/\))
-import Marlowe.Extended (Action(..), Case(..), Contract(..), ContractType(..), Observation(..), Payee(..), Timeout(..), Value(..))
+import Data.BigInteger (BigInteger, fromInt)
+import Examples.Metadata as Metadata
+import Marlowe.Extended (Action(..), Case(..), Contract(..), Observation(..), Payee(..), Timeout(..), Value(..))
 import Marlowe.Extended.Metadata (MetaData)
 import Marlowe.Extended.Template (ContractTemplate)
-import Marlowe.Semantics (Bound(..), ChoiceId(..), Party(..), Token(..))
+import Marlowe.Semantics (Bound(..), ChoiceId(..), Party(..), Token(..), ValueId(..))
 
 contractTemplate :: ContractTemplate
 contractTemplate = { metaData, extendedContract }
 
 metaData :: MetaData
-metaData =
-  { contractType: ContractForDifferences
-  , contractName: "Contract for Differences"
-  , contractDescription: "A contract for differences (CFD) is an arrangement made in financial derivatives trading where the differences in the settlement between the open and closing trade prices are cash-settled."
-  , roleDescriptions:
-      fromFoldable
-        [ "alice" /\ "about the alice role"
-        , "bob" /\ "about the bob role"
-        ]
-  , slotParameterDescriptions:
-      fromFoldable
-        [ "aliceTimeout" /\ "about the aliceTimeout"
-        , "arbitrageTimeout" /\ "about the arbitrageTimeout"
-        , "bobTimeout" /\ "about the bobTimeout"
-        , "depositSlot" /\ "about the depositSlot"
-        ]
-  , valueParameterDescriptions:
-      fromFoldable
-        [ "amount" /\ "about the amount" ]
-  , choiceDescriptions:
-      fromFoldable
-        [ "choice" /\ "about the choice" ]
-  }
+metaData = Metadata.contractForDifferences
+
+ada :: Token
+ada = Token "" ""
+
+party :: Party
+party = Role "Party"
+
+counterparty :: Party
+counterparty = Role "Counterparty"
+
+oracle :: Party
+oracle = Role "Oracle"
+
+depositAmount :: BigInteger
+depositAmount = fromInt 100000000
+
+deposit :: Value
+deposit = Constant depositAmount
+
+doubleDeposit :: Value
+doubleDeposit = Constant (depositAmount * fromInt 2)
+
+priceBeginning :: ChoiceId
+priceBeginning = ChoiceId "Price at beginning" oracle
+
+priceEnd :: ChoiceId
+priceEnd = ChoiceId "Price at end" oracle
+
+decreaseInPrice :: ValueId
+decreaseInPrice = ValueId "Decrease in price"
+
+increaseInPrice :: ValueId
+increaseInPrice = ValueId "Increase in price"
+
+initialDeposit :: Party -> Timeout -> Contract -> Contract -> Contract
+initialDeposit by timeout timeoutContinuation continuation =
+  When [ Case (Deposit by by ada deposit) continuation ]
+    timeout
+    timeoutContinuation
+
+oracleInput :: ChoiceId -> Timeout -> Contract -> Contract -> Contract
+oracleInput choiceId timeout timeoutContinuation continuation =
+  When [ Case (Choice choiceId [ Bound zero (fromInt 1000000000) ]) continuation ]
+    timeout
+    timeoutContinuation
+
+wait :: Timeout -> Contract -> Contract
+wait = When []
+
+gtLtEq :: Value -> Value -> Contract -> Contract -> Contract -> Contract
+gtLtEq value1 value2 gtContinuation ltContinuation eqContinuation =
+  If (ValueGT value1 value2) gtContinuation
+    $ If (ValueLT value1 value2) ltContinuation
+        eqContinuation
+
+recordDifference :: ValueId -> ChoiceId -> ChoiceId -> Contract -> Contract
+recordDifference name choiceId1 choiceId2 = Let name (SubValue (ChoiceValue choiceId1) (ChoiceValue choiceId2))
+
+transferUpToDeposit :: Party -> Party -> Value -> Contract -> Contract
+transferUpToDeposit from to amount = Pay from (Account to) ada (Cond (ValueLT amount deposit) amount deposit)
 
 extendedContract :: Contract
 extendedContract =
-  When
-    [ Case
-        ( Deposit
-            (Role "alice")
-            (Role "alice")
-            (Token "" "")
-            (ConstantParam "amount")
-        )
-        ( When
-            [ Case
-                ( Choice
-                    ( ChoiceId
-                        "choice"
-                        (Role "alice")
-                    )
-                    [ Bound zero one ]
-                )
-                ( When
-                    [ Case
-                        ( Choice
-                            ( ChoiceId
-                                "choice"
-                                (Role "bob")
-                            )
-                            [ Bound zero one ]
-                        )
-                        ( If
-                            ( ValueEQ
-                                ( ChoiceValue
-                                    ( ChoiceId
-                                        "choice"
-                                        (Role "alice")
-                                    )
-                                )
-                                ( ChoiceValue
-                                    ( ChoiceId
-                                        "choice"
-                                        (Role "bob")
-                                    )
-                                )
-                            )
-                            ( If
-                                ( ValueEQ
-                                    ( ChoiceValue
-                                        ( ChoiceId
-                                            "choice"
-                                            (Role "alice")
-                                        )
-                                    )
-                                    (Constant zero)
-                                )
-                                ( Pay
-                                    (Role "alice")
-                                    (Party (Role "bob"))
-                                    (Token "" "")
-                                    (ConstantParam "amount")
-                                    Close
-                                )
-                                Close
-                            )
-                            ( When
-                                [ Case
-                                    ( Choice
-                                        ( ChoiceId
-                                            "choice"
-                                            (Role "carol")
-                                        )
-                                        [ Bound one one ]
-                                    )
-                                    Close
-                                , Case
-                                    ( Choice
-                                        ( ChoiceId
-                                            "choice"
-                                            (Role "carol")
-                                        )
-                                        [ Bound one one ]
-                                    )
-                                    ( Pay
-                                        (Role "alice")
-                                        (Party (Role "bob"))
-                                        (Token "" "")
-                                        (ConstantParam "amount")
-                                        Close
-                                    )
-                                ]
-                                (SlotParam "arbitrageTimeout")
-                                Close
-                            )
-                        )
-                    ]
-                    (SlotParam "bobTimeout")
-                    ( When
-                        [ Case
-                            ( Choice
-                                ( ChoiceId
-                                    "choice"
-                                    (Role "carol")
-                                )
-                                [ Bound one one ]
-                            )
-                            Close
-                        , Case
-                            ( Choice
-                                ( ChoiceId
-                                    "choice"
-                                    (Role "carol")
-                                )
-                                [ Bound one one ]
-                            )
-                            ( Pay
-                                (Role "alice")
-                                (Party (Role "bob"))
-                                (Token "" "")
-                                (ConstantParam "amount")
-                                Close
-                            )
-                        ]
-                        (SlotParam "arbitrageTimeout")
-                        Close
-                    )
-                )
-            ]
-            (SlotParam "aliceTimeout")
-            ( When
-                [ Case
-                    ( Choice
-                        ( ChoiceId
-                            "choice"
-                            (Role "carol")
-                        )
-                        [ Bound one one ]
-                    )
-                    Close
-                , Case
-                    ( Choice
-                        ( ChoiceId
-                            "choice"
-                            (Role "carol")
-                        )
-                        [ Bound zero zero ]
-                    )
-                    ( Pay
-                        (Role "alice")
-                        (Party (Role "bob"))
-                        (Token "" "")
-                        (ConstantParam "amount")
-                        Close
-                    )
-                ]
-                (SlotParam "arbitrageTimeout")
+  initialDeposit party (Slot $ fromInt 30) Close
+    $ initialDeposit counterparty (Slot $ fromInt 60) Close
+    $ oracleInput priceBeginning (Slot $ fromInt 90) Close
+    $ wait (Slot $ fromInt 150)
+    $ oracleInput priceEnd (Slot $ fromInt 180) Close
+    $ gtLtEq (ChoiceValue priceBeginning) (ChoiceValue priceEnd)
+        ( recordDifference decreaseInPrice priceBeginning priceEnd
+            $ transferUpToDeposit counterparty party (UseValue decreaseInPrice)
                 Close
-            )
         )
-    ]
-    (SlotParam "depositSlot")
-    Close
+        ( recordDifference increaseInPrice priceEnd priceBeginning
+            $ transferUpToDeposit party counterparty (UseValue increaseInPrice)
+                Close
+        )
+        Close

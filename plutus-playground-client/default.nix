@@ -2,46 +2,53 @@
 let
   playground-exe = set-git-rev haskell.packages.plutus-playground-server.components.exes.plutus-playground-server;
 
-  server-invoker =
+  build-playground-exe = "$(nix-build --quiet --no-build-output ../default.nix -A plutus.haskell.packages.plutus-playground-server.components.exes.plutus-playground-server)";
+
+  build-ghc-with-plutus = "$(nix-build --quiet --no-build-output -E '(import ./.. {}).plutus.haskell.project.ghcWithPackages(ps: [ ps.plutus-core ps.plutus-tx ps.plutus-contract ps.plutus-ledger ps.playground-common ])')";
+
+  # Output containing the purescript bridge code
+  # We need to add ghc with dependecies because `psgenerator` needs to invoke ghc to
+  # create test data.
+  generated-purescript =
     let
-      # the playground uses ghc at runtime so it needs one packaged up with the dependencies it needs in one place
-      runtimeGhc = haskell.project.ghcWithPackages (ps: [
-        ps.plutus-core
-        ps.plutus-tx
-        ps.plutus-contract
-        ps.plutus-ledger
-        ps.playground-common
-      ]);
+      ghcWithPlutus = haskell.project.ghcWithPackages (ps: [ ps.plutus-core ps.plutus-tx ps.plutus-contract ps.plutus-ledger ps.playground-common ]);
     in
-    pkgs.runCommand "plutus-server-invoker" { buildInputs = [ pkgs.makeWrapper ]; } ''
-      # We need to provide the ghc interpreter with the location of the ghc lib dir and the package db
-      mkdir -p $out/bin
-      ln -s ${playground-exe}/bin/plutus-playground-server $out/bin/plutus-playground
-      wrapProgram $out/bin/plutus-playground \
-        --set GHC_LIB_DIR "${runtimeGhc}/lib/ghc-${runtimeGhc.version}" \
-        --set GHC_BIN_DIR "${runtimeGhc}/bin" \
-        --set GHC_PACKAGE_PATH "${runtimeGhc}/lib/ghc-${runtimeGhc.version}/package.conf.d" \
-        --set GHC_RTS "-M2G"
+    pkgs.runCommand "plutus-playground-purescript" { } ''
+      PATH=${ghcWithPlutus}/bin:$PATH
+      mkdir $out
+      ${playground-exe}/bin/plutus-playground-server psgenerator $out
     '';
 
-  generated-purescript = pkgs.runCommand "plutus-playground-purescript" { } ''
-    mkdir $out
-    ${server-invoker}/bin/plutus-playground psgenerator $out
-  '';
-
-
-  # For dev usage
+  # generate-purescript: script to create purescript bridge code
+  #
+  # * Note-1: We need to add ghc to the path because the purescript generator
+  # actually invokes ghc to generate test data so we need ghc with the necessary deps
+  #
+  # * Note-2: This command is supposed to be available in the nix-shell but want
+  # to avoid plutus-core in the shell closure so we do $(nix-build ..) instead
   generate-purescript = pkgs.writeShellScriptBin "plutus-playground-generate-purs" ''
+    GHC_WITH_PKGS=${build-ghc-with-plutus}
+    export PATH=$GHC_WITH_PKGS/bin:$PATH
+
     rm -rf ./generated
-    $(nix-build --quiet --no-build-output ../default.nix -A plutus-playground.server-invoker)/bin/plutus-playground psgenerator generated
+    ${build-playground-exe}/bin/plutus-playground-server psgenerator generated
   '';
 
-  # For dev usage
+  # start-backend: script to start the plutus-playground-server
+  #
+  # Note-1: We need to add ghc to the path because the server provides /runghc
+  # which needs ghc and dependencies.
+  # Note-2: We want to avoid to pull the huge closure in so we use $(nix-build) instead
   start-backend = pkgs.writeShellScriptBin "plutus-playground-server" ''
+    echo "plutus-playground-server: for development use only"
+    GHC_WITH_PKGS=${build-ghc-with-plutus}
+    export PATH=$GHC_WITH_PKGS/bin:$PATH
+
     export FRONTEND_URL=https://localhost:8009
     export WEBGHC_URL=http://localhost:8080
     export GITHUB_CALLBACK_PATH=https://localhost:8009/api/oauth/github/callback
-    $(nix-build --quiet --no-build-output ../default.nix -A plutus-playground.server-invoker)/bin/plutus-playground webserver
+
+    ${build-playground-exe}/bin/plutus-playground-server webserver
   '';
 
   cleanSrc = gitignore-nix.gitignoreSource ./.;
@@ -73,5 +80,6 @@ let
   };
 in
 {
-  inherit client server-invoker generated-purescript generate-purescript start-backend;
+  inherit client generate-purescript start-backend;
+  server = playground-exe;
 }

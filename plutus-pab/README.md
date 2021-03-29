@@ -33,7 +33,7 @@ to be started in order to access the web frontend. The required steps are descri
 First we build the startup scripts:
 
 ```
-$ nix-build ../default.nix plutus-pab.demo-scripts
+$ nix-build ../default.nix -A plutus-pab.demo-scripts
 ```
 
 Next we start all required servers and install several contracts:
@@ -57,8 +57,8 @@ $ npm start
 
 The client is now running at https://localhost:8009 -- See [pab-demo-scripts.nix](https://github.com/input-output-hk/plutus/blob/pab-readme/plutus-pab-client/pab-demo-scripts.nix) for details on the service invcation and contract installation.
 
-**Note**: By default the frontend will forward requests to `localhost:8080` - the first PAB instance. Connecting to the second
-instance currently requires changing the proxy config in [webpack.config.js](https://github.com/input-output-hk/plutus/blob/master/plutus-pab-client/webpack.config.js#L33-L41). The second instance runs on port 8086 so the linked section in the config file would have to be
+**Note**: By default the frontend will forward requests to `localhost:9080` - the first PAB instance. Connecting to the second
+instance currently requires changing the proxy config in [webpack.config.js](https://github.com/input-output-hk/plutus/blob/master/plutus-pab-client/webpack.config.js#L33-L41). The second instance runs on port 9086 so the linked section in the config file would have to be
 updated accordingly.
 
 ## PAB Components

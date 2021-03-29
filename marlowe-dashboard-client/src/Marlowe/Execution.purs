@@ -3,14 +3,13 @@ module Marlowe.Execution where
 import Prelude
 import Data.Array (fromFoldable)
 import Data.BigInteger (BigInteger, fromInt)
-import Data.Lens (Lens', has, only, to, view)
+import Data.Lens (Lens', view)
 import Data.Lens.Iso.Newtype (_Newtype)
 import Data.Lens.Record (prop)
 import Data.List (List)
 import Data.Map (Map)
 import Data.Map as Map
 import Data.Maybe (Maybe(..))
-import Data.Ord (greaterThanOrEq)
 import Data.Symbol (SProxy(..))
 import Marlowe.Semantics (AccountId, Action(..), Bound, Case(..), ChoiceId(..), ChosenNum, Contract(..), Input, Observation, Party, Payment, Slot(..), SlotInterval(..), State, Timeout, Token, TransactionInput(..), TransactionOutput(..), ValueId, _boundValues, _minSlot, computeTransaction, emptyState, evalValue, makeEnvironment)
 
@@ -49,6 +48,9 @@ _state = prop (SProxy :: SProxy "state")
 _contract :: Lens' ExecutionState Contract
 _contract = prop (SProxy :: SProxy "contract")
 
+_steps :: Lens' ExecutionState (Array ExecutionStep)
+_steps = prop (SProxy :: SProxy "steps")
+
 _namedActions :: Lens' ExecutionState (Array NamedAction)
 _namedActions = prop (SProxy :: SProxy "namedActions")
 
@@ -59,7 +61,19 @@ initExecution currentSlot contract =
 
     state = emptyState currentSlot
 
-    namedActions = extractNamedActions state contract
+    -- FIXME: We fake the namedActions for development until we fix the semantics
+    -- namedActions =
+    --   [ MakeDeposit (Role "into account") (Role "bob") (Token "" "") $ fromInt 200
+    --   , MakeDeposit (Role "into account") (Role "alice") (Token "" "") $ fromInt 1500
+    --   , MakeChoice (ChoiceId "choice id" (Role "alice"))
+    --       [ Bound (fromInt 0) (fromInt 3)
+    --       , Bound (fromInt 2) (fromInt 4)
+    --       , Bound (fromInt 6) (fromInt 8)
+    --       ]
+    --       Nothing
+    --   , CloseContract
+    --   ]
+    namedActions = extractNamedActions currentSlot state contract
   in
     { steps, state, contract, namedActions }
 
@@ -83,12 +97,26 @@ nextState { steps, state, contract } txInput =
   let
     currentSlot = view _minSlot state
 
+    TransactionInput { interval: SlotInterval minSlot maxSlot } = txInput
+
     { txOutState, txOutContract } = case computeTransaction txInput state contract of
       (TransactionOutput { txOutState, txOutContract }) -> { txOutState, txOutContract }
       -- We should not have contracts which cause errors in the dashboard so we will just ignore error cases for now
       (Error _) -> { txOutState: state, txOutContract: contract }
 
-    namedActions = extractNamedActions txOutState txOutContract
+    -- FIXME: Check with Pablo and/or alex:
+    --        To extract the possible actions a user can take I need to know if a Case has timeout. In the previous
+    --        version we were using the minSlot of the Semantic state, but after discussing with Alex we needed to
+    --        use "the current slot" instead.
+    --        This means that extractNamedActions now receives a slot to calculate the timeout. Inside `initExecution`
+    --        it makes total sense as we use the current slot of the system. But `nextState` can be used to re-create
+    --        a contract history from the TransactionInput. I had three possible values I could use:
+    --          * Add a Slot paramenter to nextState and make the caller to decide what's the "current slot"
+    --          * Use the minSlot of the TransactionInput slot interval
+    --          * Use the maxSlot of the TransactionInput slot interval
+    --        For now I'm using the maxSlot of the TransactionInput, asuming that if it didn't timeout by that time,
+    --        then it didn't timeout at all. But I need to confirm this decision and see what consequences it may bring.
+    namedActions = extractNamedActions maxSlot txOutState txOutContract
 
     timedOut = case hasTimeout contract of
       Just t -> t < currentSlot
@@ -107,8 +135,7 @@ data NamedAction
   = MakeDeposit AccountId Party Token BigInteger
   -- Equivalent to Semantics.Action(Choice) but has ChosenNum since it is a stateful element that stores the users choice
   -- Creates IChoice
-  -- FIXME: Why does this option have a ChosenNum? Shouldn't that be in the transaction?
-  | MakeChoice ChoiceId (Array Bound) ChosenNum
+  | MakeChoice ChoiceId (Array Bound) (Maybe ChosenNum)
   -- Equivalent to Semantics.Action(Notify) (can be applied by any user)
   -- Creates INotify
   | MakeNotify Observation
@@ -122,6 +149,8 @@ data NamedAction
   -- Creates empty tx
   | CloseContract
 
+derive instance eqNamedAction :: Eq NamedAction
+
 getActionParticipant :: NamedAction -> Maybe Party
 getActionParticipant (MakeDeposit _ party _ _) = Just party
 
@@ -129,14 +158,13 @@ getActionParticipant (MakeChoice (ChoiceId _ party) _ _) = Just party
 
 getActionParticipant _ = Nothing
 
-extractNamedActions :: State -> Contract -> Array NamedAction
-extractNamedActions _ Close = mempty
+extractNamedActions :: Slot -> State -> Contract -> Array NamedAction
+extractNamedActions _ _ Close = mempty
 
--- FIXME We need to provide the current slot instead of minSlot
 -- a When can only progress if it has timed out or has Cases
-extractNamedActions state (When cases timeout cont)
+extractNamedActions currentSlot state (When cases timeout cont)
   -- in the case of a timeout we need to provide an Evaluate action to all users to "manually" progress the contract
-  | has (_minSlot <<< to (greaterThanOrEq timeout) <<< only true) state =
+  | currentSlot > timeout =
     let
       minSlot = view _minSlot state
 
@@ -154,6 +182,14 @@ extractNamedActions state (When cases timeout cont)
             { payments: fromFoldable txOutPayments, bindings: bindings }
         _ -> mempty
     in
+      -- FIXME: Currently we don't have a way to display Evaluate so this can be dangerous.
+      --        We talked with Alex that when a contract timeouts there doesn't need to be
+      --        an explicity Evaluate, the next action will take care of that for us. If the
+      --        continuation of a contract is a Close, then we need to extract the `CloseContract`
+      --        so someone can pay to close the contract. If the continuation is a When, then we
+      --        need to extract the actions as below. In any case, I think that instead of using
+      --        `computeTransaction` and returning an Evaluate we should "advance" in the continuation
+      --        and recursively call extractNamedActions.
       [ Evaluate outputs ]
   -- if there are no cases then there is no action that any user can take to progress the contract
   | otherwise = cases <#> \(Case action _) -> toNamedAction action
@@ -168,11 +204,11 @@ extractNamedActions state (When cases timeout cont)
       in
         MakeDeposit a p t amount
 
-    toNamedAction (Choice cid bounds) = MakeChoice cid bounds zero
+    toNamedAction (Choice cid bounds) = MakeChoice cid bounds Nothing
 
     toNamedAction (Notify obs) = MakeNotify obs
 
 -- In reality other situations should never occur as contracts always reduce to When or Close
 -- however someone could in theory publish a contract that starts with another Contract constructor
 -- and we would want to enable moving forward with Evaluate
-extractNamedActions _ _ = [ Evaluate mempty ]
+extractNamedActions _ _ _ = [ Evaluate mempty ]

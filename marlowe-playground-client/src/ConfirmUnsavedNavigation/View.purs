@@ -2,12 +2,11 @@ module ConfirmUnsavedNavigation.View where
 
 import Prelude hiding (div)
 import Halogen.HTML (ClassName(..), ComponentHTML, button, div, div_, p_, text)
-import Bootstrap (btnSecondary, btn)
 import ConfirmUnsavedNavigation.Types as CN
 import Data.Lens ((^.))
 import Data.Maybe (Maybe(..))
 import Effect.Aff.Class (class MonadAff)
-import Halogen.Classes (modalContent, spaceRight, uppercase)
+import Halogen.Classes (btn, btnSecondary, modalContent, spaceRight, uppercase)
 import Halogen.HTML.Events (onClick)
 import Halogen.HTML.Properties (classes)
 import MainFrame.Types (Action(..), ChildSlots, State, _projectName)

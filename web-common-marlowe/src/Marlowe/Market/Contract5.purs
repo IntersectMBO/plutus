@@ -5,197 +5,79 @@ module Marlowe.Market.Contract5
   ) where
 
 import Prelude
-import Data.Map (fromFoldable)
-import Data.Tuple.Nested ((/\))
-import Marlowe.Extended (Action(..), Case(..), Contract(..), ContractType(..), Observation(..), Payee(..), Timeout(..), Value(..))
+import Data.BigInteger (fromInt)
+import Examples.Metadata as Metadata
+import Marlowe.Extended (Action(..), Case(..), Contract(..), Payee(..), Timeout(..), Value(..))
 import Marlowe.Extended.Metadata (MetaData)
 import Marlowe.Extended.Template (ContractTemplate)
-import Marlowe.Semantics (Bound(..), ChoiceId(..), Party(..), Token(..))
+import Marlowe.Semantics (Party(..), Token(..))
 
 contractTemplate :: ContractTemplate
 contractTemplate = { metaData, extendedContract }
 
 metaData :: MetaData
-metaData =
-  { contractType: Swap
-  , contractName: "Swap"
-  , contractDescription: "A swap is a derivative contract through which two parties exchange the cash flows or liabilities from two different financial instruments. Most swaps involve cash flows based on a notional principal amount such as a loan or bond, although the instrument can be almost anything. Usually, the principal does not change hands. Each cash flow comprises one leg of the swap. One cash flow is generally fixed, while the other is variable and based on a benchmark interest rate, floating currency exchange rate or index price."
-  , roleDescriptions:
-      fromFoldable
-        [ "alice" /\ "about the alice role"
-        , "bob" /\ "about the bob role"
-        ]
-  , slotParameterDescriptions:
-      fromFoldable
-        [ "aliceTimeout" /\ "about the aliceTimeout"
-        , "arbitrageTimeout" /\ "about the arbitrageTimeout"
-        , "bobTimeout" /\ "about the bobTimeout"
-        , "depositSlot" /\ "about the depositSlot"
-        ]
-  , valueParameterDescriptions:
-      fromFoldable
-        [ "amount" /\ "about the amount" ]
-  , choiceDescriptions:
-      fromFoldable
-        [ "choice" /\ "about the choice" ]
+metaData = Metadata.swap
+
+ada :: Token
+ada = Token "" ""
+
+lovelacePerAda :: Value
+lovelacePerAda = Constant (fromInt 1000000)
+
+amountOfAda :: Value
+amountOfAda = ConstantParam "Amount of Ada"
+
+amountOfLovelace :: Value
+amountOfLovelace = MulValue lovelacePerAda amountOfAda
+
+amountOfDollars :: Value
+amountOfDollars = ConstantParam "Amount of dollars"
+
+adaDepositTimeout :: Timeout
+adaDepositTimeout = SlotParam "Timeout for Ada deposit"
+
+dollarDepositTimeout :: Timeout
+dollarDepositTimeout = SlotParam "Timeout for dollar deposit"
+
+dollars :: Token
+dollars = Token "85bb65" "dollar"
+
+type SwapParty
+  = { party :: Party
+    , currency :: Token
+    , amount :: Value
+    }
+
+adaProvider :: SwapParty
+adaProvider =
+  { party: Role "Ada provider"
+  , currency: ada
+  , amount: amountOfLovelace
   }
+
+dollarProvider :: SwapParty
+dollarProvider =
+  { party: Role "Dollar provider"
+  , currency: dollars
+  , amount: amountOfDollars
+  }
+
+makeDeposit :: SwapParty -> Timeout -> Contract -> Contract -> Contract
+makeDeposit src timeout timeoutContinuation continuation =
+  When
+    [ Case (Deposit src.party src.party src.currency src.amount)
+        continuation
+    ]
+    timeout
+    timeoutContinuation
+
+makePayment :: SwapParty -> SwapParty -> Contract -> Contract
+makePayment src dest continuation = Pay src.party (Party $ dest.party) src.currency src.amount continuation
 
 extendedContract :: Contract
 extendedContract =
-  When
-    [ Case
-        ( Deposit
-            (Role "alice")
-            (Role "alice")
-            (Token "" "")
-            (ConstantParam "amount")
-        )
-        ( When
-            [ Case
-                ( Choice
-                    ( ChoiceId
-                        "choice"
-                        (Role "alice")
-                    )
-                    [ Bound zero one ]
-                )
-                ( When
-                    [ Case
-                        ( Choice
-                            ( ChoiceId
-                                "choice"
-                                (Role "bob")
-                            )
-                            [ Bound zero one ]
-                        )
-                        ( If
-                            ( ValueEQ
-                                ( ChoiceValue
-                                    ( ChoiceId
-                                        "choice"
-                                        (Role "alice")
-                                    )
-                                )
-                                ( ChoiceValue
-                                    ( ChoiceId
-                                        "choice"
-                                        (Role "bob")
-                                    )
-                                )
-                            )
-                            ( If
-                                ( ValueEQ
-                                    ( ChoiceValue
-                                        ( ChoiceId
-                                            "choice"
-                                            (Role "alice")
-                                        )
-                                    )
-                                    (Constant zero)
-                                )
-                                ( Pay
-                                    (Role "alice")
-                                    (Party (Role "bob"))
-                                    (Token "" "")
-                                    (ConstantParam "amount")
-                                    Close
-                                )
-                                Close
-                            )
-                            ( When
-                                [ Case
-                                    ( Choice
-                                        ( ChoiceId
-                                            "choice"
-                                            (Role "carol")
-                                        )
-                                        [ Bound one one ]
-                                    )
-                                    Close
-                                , Case
-                                    ( Choice
-                                        ( ChoiceId
-                                            "choice"
-                                            (Role "carol")
-                                        )
-                                        [ Bound one one ]
-                                    )
-                                    ( Pay
-                                        (Role "alice")
-                                        (Party (Role "bob"))
-                                        (Token "" "")
-                                        (ConstantParam "amount")
-                                        Close
-                                    )
-                                ]
-                                (SlotParam "arbitrageTimeout")
-                                Close
-                            )
-                        )
-                    ]
-                    (SlotParam "bobTimeout")
-                    ( When
-                        [ Case
-                            ( Choice
-                                ( ChoiceId
-                                    "choice"
-                                    (Role "carol")
-                                )
-                                [ Bound one one ]
-                            )
-                            Close
-                        , Case
-                            ( Choice
-                                ( ChoiceId
-                                    "choice"
-                                    (Role "carol")
-                                )
-                                [ Bound one one ]
-                            )
-                            ( Pay
-                                (Role "alice")
-                                (Party (Role "bob"))
-                                (Token "" "")
-                                (ConstantParam "amount")
-                                Close
-                            )
-                        ]
-                        (SlotParam "arbitrageTimeout")
-                        Close
-                    )
-                )
-            ]
-            (SlotParam "aliceTimeout")
-            ( When
-                [ Case
-                    ( Choice
-                        ( ChoiceId
-                            "choice"
-                            (Role "carol")
-                        )
-                        [ Bound one one ]
-                    )
-                    Close
-                , Case
-                    ( Choice
-                        ( ChoiceId
-                            "choice"
-                            (Role "carol")
-                        )
-                        [ Bound zero zero ]
-                    )
-                    ( Pay
-                        (Role "alice")
-                        (Party (Role "bob"))
-                        (Token "" "")
-                        (ConstantParam "amount")
-                        Close
-                    )
-                ]
-                (SlotParam "arbitrageTimeout")
-                Close
-            )
-        )
-    ]
-    (SlotParam "depositSlot")
-    Close
+  makeDeposit adaProvider adaDepositTimeout Close
+    $ makeDeposit dollarProvider dollarDepositTimeout Close
+    $ makePayment adaProvider dollarProvider
+    $ makePayment dollarProvider adaProvider
+        Close

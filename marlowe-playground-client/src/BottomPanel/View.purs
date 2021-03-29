@@ -1,11 +1,10 @@
 module BottomPanel.View (render) where
 
 import Prelude hiding (div)
-import Bootstrap (hidden)
 import BottomPanel.Types (Action(..), State, _panelView, _showBottomPanel)
 import Data.Lens (to, (^.))
 import Data.Maybe (Maybe(..))
-import Halogen.Classes (accentBorderTop, borderSeparator, boxShadowInverted, closeDrawerArrowIcon, collapsed, flex, flexCol, flexShrink0, fontBold, fullHeight, justifyBetween, minH0, minimizeIcon, paddingX, scroll, smallPaddingRight, smallPaddingTop, smallPaddingY, spaceX, textInactive, textSecondary)
+import Halogen.Classes (accentBorderTop, borderSeparator, boxShadowInverted, closeDrawerArrowIcon, collapsed, flex, flexCol, flexShrink0, fontBold, fullHeight, hidden, justifyBetween, minH0, minimizeIcon, paddingX, scroll, smallPaddingRight, smallPaddingTop, smallPaddingY, spaceX, textInactive, textSecondary)
 import Halogen.HTML (ClassName, HTML, a, div, img, text)
 import Halogen.HTML.Events (onClick)
 import Halogen.HTML.Properties (alt, classes, src)

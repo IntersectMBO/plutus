@@ -17,7 +17,7 @@ let
     prometheus = 9090;
     nodeExporter = 9100;
     webGhcExporter = 9091;
-    pab-webserver = 8080;
+    pab-webserver = 9080;
     plutus-playground-webserver = 8080;
     marlowe-playground-webserver = 9080;
   };

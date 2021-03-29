@@ -5,197 +5,50 @@ module Marlowe.Market.Contract3
   ) where
 
 import Prelude
-import Data.Map (fromFoldable)
-import Data.Tuple.Nested ((/\))
-import Marlowe.Extended (Action(..), Case(..), Contract(..), ContractType(..), Observation(..), Payee(..), Timeout(..), Value(..))
+import Examples.Metadata as Metadata
+import Marlowe.Extended (Action(..), Case(..), Contract(..), Payee(..), Timeout(..), Value(..))
 import Marlowe.Extended.Metadata (MetaData)
 import Marlowe.Extended.Template (ContractTemplate)
-import Marlowe.Semantics (Bound(..), ChoiceId(..), Party(..), Token(..))
+import Marlowe.Semantics (Party(..), Token(..))
 
 contractTemplate :: ContractTemplate
 contractTemplate = { metaData, extendedContract }
 
 metaData :: MetaData
-metaData =
-  { contractType: ZeroCouponBond
-  , contractName: "Zero Coupon Bond"
-  , contractDescription: "A zero-coupon bond is a debt security that does not pay interest but instead trades at a deep discount, rendering a profit at maturity, when the bond is redeemed for its full face value."
-  , roleDescriptions:
-      fromFoldable
-        [ "alice" /\ "about the alice role"
-        , "bob" /\ "about the bob role"
-        ]
-  , slotParameterDescriptions:
-      fromFoldable
-        [ "aliceTimeout" /\ "about the aliceTimeout"
-        , "arbitrageTimeout" /\ "about the arbitrageTimeout"
-        , "bobTimeout" /\ "about the bobTimeout"
-        , "depositSlot" /\ "about the depositSlot"
-        ]
-  , valueParameterDescriptions:
-      fromFoldable
-        [ "amount" /\ "about the amount" ]
-  , choiceDescriptions:
-      fromFoldable
-        [ "choice" /\ "about the choice" ]
-  }
+metaData = Metadata.zeroCouponBond
+
+ada :: Token
+ada = Token "" ""
+
+discountedPrice :: Value
+discountedPrice = ConstantParam "Discounted price"
+
+notional :: Value
+notional = ConstantParam "Notional"
+
+investor :: Party
+investor = Role "Investor"
+
+issuer :: Party
+issuer = Role "Issuer"
+
+initialExchange :: Timeout
+initialExchange = SlotParam "Initial exchange deadline"
+
+maturityExchangeTimeout :: Timeout
+maturityExchangeTimeout = SlotParam "Maturity exchange deadline"
+
+transfer :: Timeout -> Party -> Party -> Value -> Contract -> Contract
+transfer timeout from to amount continuation =
+  When
+    [ Case (Deposit from from ada amount)
+        (Pay from (Party to) ada amount continuation)
+    ]
+    timeout
+    Close
 
 extendedContract :: Contract
 extendedContract =
-  When
-    [ Case
-        ( Deposit
-            (Role "alice")
-            (Role "alice")
-            (Token "" "")
-            (ConstantParam "amount")
-        )
-        ( When
-            [ Case
-                ( Choice
-                    ( ChoiceId
-                        "choice"
-                        (Role "alice")
-                    )
-                    [ Bound zero one ]
-                )
-                ( When
-                    [ Case
-                        ( Choice
-                            ( ChoiceId
-                                "choice"
-                                (Role "bob")
-                            )
-                            [ Bound zero one ]
-                        )
-                        ( If
-                            ( ValueEQ
-                                ( ChoiceValue
-                                    ( ChoiceId
-                                        "choice"
-                                        (Role "alice")
-                                    )
-                                )
-                                ( ChoiceValue
-                                    ( ChoiceId
-                                        "choice"
-                                        (Role "bob")
-                                    )
-                                )
-                            )
-                            ( If
-                                ( ValueEQ
-                                    ( ChoiceValue
-                                        ( ChoiceId
-                                            "choice"
-                                            (Role "alice")
-                                        )
-                                    )
-                                    (Constant zero)
-                                )
-                                ( Pay
-                                    (Role "alice")
-                                    (Party (Role "bob"))
-                                    (Token "" "")
-                                    (ConstantParam "amount")
-                                    Close
-                                )
-                                Close
-                            )
-                            ( When
-                                [ Case
-                                    ( Choice
-                                        ( ChoiceId
-                                            "choice"
-                                            (Role "carol")
-                                        )
-                                        [ Bound one one ]
-                                    )
-                                    Close
-                                , Case
-                                    ( Choice
-                                        ( ChoiceId
-                                            "choice"
-                                            (Role "carol")
-                                        )
-                                        [ Bound one one ]
-                                    )
-                                    ( Pay
-                                        (Role "alice")
-                                        (Party (Role "bob"))
-                                        (Token "" "")
-                                        (ConstantParam "amount")
-                                        Close
-                                    )
-                                ]
-                                (SlotParam "arbitrageTimeout")
-                                Close
-                            )
-                        )
-                    ]
-                    (SlotParam "bobTimeout")
-                    ( When
-                        [ Case
-                            ( Choice
-                                ( ChoiceId
-                                    "choice"
-                                    (Role "carol")
-                                )
-                                [ Bound one one ]
-                            )
-                            Close
-                        , Case
-                            ( Choice
-                                ( ChoiceId
-                                    "choice"
-                                    (Role "carol")
-                                )
-                                [ Bound one one ]
-                            )
-                            ( Pay
-                                (Role "alice")
-                                (Party (Role "bob"))
-                                (Token "" "")
-                                (ConstantParam "amount")
-                                Close
-                            )
-                        ]
-                        (SlotParam "arbitrageTimeout")
-                        Close
-                    )
-                )
-            ]
-            (SlotParam "aliceTimeout")
-            ( When
-                [ Case
-                    ( Choice
-                        ( ChoiceId
-                            "choice"
-                            (Role "carol")
-                        )
-                        [ Bound one one ]
-                    )
-                    Close
-                , Case
-                    ( Choice
-                        ( ChoiceId
-                            "choice"
-                            (Role "carol")
-                        )
-                        [ Bound zero zero ]
-                    )
-                    ( Pay
-                        (Role "alice")
-                        (Party (Role "bob"))
-                        (Token "" "")
-                        (ConstantParam "amount")
-                        Close
-                    )
-                ]
-                (SlotParam "arbitrageTimeout")
-                Close
-            )
-        )
-    ]
-    (SlotParam "depositSlot")
-    Close
+  transfer initialExchange investor issuer discountedPrice
+    $ transfer maturityExchangeTimeout issuer investor notional
+        Close

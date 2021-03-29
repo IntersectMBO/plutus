@@ -49,6 +49,12 @@ let
   #
   # So we stitch one together here. It doesn't *seem* to need the library interface files,
   # but it seems like they should be there so I added them too.
+  #
+  # Furthermore, the agda builder uses a `ghcWithPackages` that has to have ieee754 available.
+  # We'd like it to use the same GHC as we have, if nothing else just to avoid depending on
+  # another GHC from nixpkgs! Sadly, this one is harder to override, and we just hack
+  # it into pkgs.haskellPackages in a fragile way. Annoyingly, this also means we have to ensure
+  # we have a few extra packages that it uses in our Haskell package set.
   agdaPackages =
     let
       frankenAgda = (pkgs.symlinkJoin {
@@ -59,8 +65,9 @@ let
           haskellNixAgda.components.library
         ];
       }) // { version = haskellNixAgda.identifier.version; };
+      frankenPkgs = pkgs // { haskellPackages = pkgs.haskellPackages // { ghcWithPackages = haskell.project.ghcWithPackages; }; };
     in
-    pkgs.agdaPackages.override { Agda = frankenAgda; };
+    pkgs.agdaPackages.override { Agda = frankenAgda; pkgs = frankenPkgs; };
 
   agdaWithStdlib = agdaPackages.agda.withPackages [ agdaPackages.standard-library ];
 

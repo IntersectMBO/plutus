@@ -205,11 +205,10 @@ validate EscrowParams{escrowDeadline, escrowTargets} contributor action Validato
 
 scriptInstance :: EscrowParams Datum -> Scripts.ScriptInstance Escrow
 scriptInstance escrow = go (Haskell.fmap Ledger.datumHash escrow) where
-    go escrow' =
-        Scripts.validator @Escrow
-            ($$(PlutusTx.compile [|| validate ||]) `PlutusTx.applyCode` PlutusTx.liftCode escrow')
-            $$(PlutusTx.compile [|| wrap ||])
-    wrap = Scripts.wrapValidator @PubKeyHash @Action
+    go = Scripts.validatorParam @Escrow
+        $$(PlutusTx.compile [|| validate ||])
+        $$(PlutusTx.compile [|| wrap ||])
+    wrap = Scripts.wrapValidator
 
 escrowContract
     :: EscrowParams Datum

@@ -104,8 +104,6 @@ include::plutus-pab/ARCHITECTURE.adoc[]
 
 include::marlowe/ARCHITECTURE.adoc[]
 
-include::example/ARCHITECTURE.adoc[]
-
 include::notes/ARCHITECTURE.adoc[]
 
 == Specification and design

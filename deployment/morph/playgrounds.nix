@@ -6,18 +6,20 @@
         ''
           machine_role{role="playgrounds"} 1
         '';
-      plutusPlayground = "${plutus-playground.server-invoker}/bin/plutus-playground";
-      marlowePlayground = "${marlowe-playground.server-invoker}/bin/marlowe-playground";
+      plutusPlayground = "${plutus-playground.server}/bin/plutus-playground-server";
+      marlowePlayground = "${marlowe-playground.server}/bin/marlowe-playground-server";
       playgroundServiceConfig = {
         TimeoutStartSec = "0";
         Restart = "always";
         DynamicUser = true;
         StateDirectory = [ "pab" ];
+
         ProtectKernelTunables = true;
         ProtectControlGroups = true;
         ProtectKernelModules = true;
         PrivateDevices = true;
         SystemCallArchitectures = "native";
+
         ConfigurationDirectory = "playground";
       };
       killallz3 = pkgs.writeScriptBin "killallz3" ''

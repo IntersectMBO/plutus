@@ -5,7 +5,7 @@
 {-# LANGUAGE TypeApplications      #-}
 
 module Evaluation.ApplyBuiltinName
-    ( test_applyStaticBuiltin
+    ( test_applyDefaultBuiltin
     ) where
 
 import           UntypedPlutusCore
@@ -58,16 +58,15 @@ instance SpendBudget AppM DefaultFun () (Term Name DefaultUni DefaultFun ()) whe
 test_applyBuiltinFunction :: DefaultFun -> TestTree
 test_applyBuiltinFunction fun =
     testProperty (show fun) . property $ case toBuiltinMeaning fun of
-        BuiltinMeaning sch toF toExF -> do
-            let f = toF ()
-                exF = toExF defaultCostModel
+        BuiltinMeaning sch f toExF -> do
+            let exF = toExF defaultCostModel
             withGenArgsRes sch f $ \args res ->
                 -- The calls to 'unAppM' are just to drive type inference.
                 unAppM (applyTypeSchemed fun sch f exF args) === unAppM (makeKnown res)
 
-test_applyStaticBuiltin :: TestTree
-test_applyStaticBuiltin =
-    testGroup "applyStaticBuiltin"
+test_applyDefaultBuiltin :: TestTree
+test_applyDefaultBuiltin =
+    testGroup "applyDefaultBuiltin"
         [ test_applyBuiltinFunction AddInteger
         , test_applyBuiltinFunction SubtractInteger
         , test_applyBuiltinFunction MultiplyInteger

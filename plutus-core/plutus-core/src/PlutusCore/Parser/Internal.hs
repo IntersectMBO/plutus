@@ -28,7 +28,7 @@ type Parse = ExceptT (ParseError AlexPosn) Alex
 parseError :: Token AlexPosn -> Parse b
 parseError = throwError . Unexpected
 
---- Static built-in functions ---
+--- Parsing built-in functions ---
 
 parseBuiltinFunction :: (Bounded fun, Enum fun, Pretty fun) => T.Text -> Maybe fun
 parseBuiltinFunction name = find (\fun -> display fun == name) enumeration

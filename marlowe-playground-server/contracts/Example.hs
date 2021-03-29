@@ -11,5 +11,4 @@ main = print . pretty $ contract
 -}
 
 contract :: Contract
-
 contract = Close

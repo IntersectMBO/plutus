@@ -3,6 +3,7 @@ module StaticData
   , jsBufferLocalStorageKey
   , demoFiles
   , demoFilesJS
+  , demoFilesMetadata
   , marloweBufferLocalStorageKey
   , simulatorBufferLocalStorageKey
   , marloweContract
@@ -14,10 +15,12 @@ module StaticData
 import Data.Map (Map)
 import Data.Map as Map
 import Data.Tuple.Nested ((/\))
-import Examples.Haskell.Contracts (contractForDifference, couponBondGuaranteed, escrow, escrowWithCollateral, example, swap, zeroCouponBond) as HE
-import Examples.JS.Contracts (contractForDifference, couponBondGuaranteed, escrow, escrowWithCollateral, example, swap, zeroCouponBond) as JSE
-import Examples.Marlowe.Contracts (contractForDifference, couponBondGuaranteed, escrow, escrowWithCollateral, example, swap, zeroCouponBond) as ME
+import Examples.Haskell.Contracts (contractForDifferences, couponBondGuaranteed, escrow, escrowWithCollateral, example, swap, zeroCouponBond) as HE
+import Examples.JS.Contracts (contractForDifferences, couponBondGuaranteed, escrow, escrowWithCollateral, example, swap, zeroCouponBond) as JSE
+import Examples.Marlowe.Contracts (contractForDifferences, couponBondGuaranteed, escrow, escrowWithCollateral, example, swap, zeroCouponBond) as ME
+import Examples.Metadata (contractForDifferences, couponBondGuaranteed, escrow, escrowWithCollateral, example, swap, zeroCouponBond) as M
 import LocalStorage as LocalStorage
+import Marlowe.Extended.Metadata (MetaData)
 
 type Label
   = String
@@ -35,7 +38,7 @@ demoFiles =
     , "ZeroCouponBond" /\ HE.zeroCouponBond
     , "CouponBondGuaranteed" /\ HE.couponBondGuaranteed
     , "Swap" /\ HE.swap
-    , "CFD" /\ HE.contractForDifference
+    , "CFD" /\ HE.contractForDifferences
     ]
 
 demoFilesJS ::
@@ -48,7 +51,7 @@ demoFilesJS =
     , "ZeroCouponBond" /\ JSE.zeroCouponBond
     , "CouponBondGuaranteed" /\ JSE.couponBondGuaranteed
     , "Swap" /\ JSE.swap
-    , "CFD" /\ JSE.contractForDifference
+    , "CFD" /\ JSE.contractForDifferences
     ]
 
 marloweContracts ::
@@ -61,7 +64,20 @@ marloweContracts =
     , "ZeroCouponBond" /\ ME.zeroCouponBond
     , "CouponBondGuaranteed" /\ ME.couponBondGuaranteed
     , "Swap" /\ ME.swap
-    , "CFD" /\ ME.contractForDifference
+    , "CFD" /\ ME.contractForDifferences
+    ]
+
+demoFilesMetadata ::
+  Map Label MetaData
+demoFilesMetadata =
+  Map.fromFoldable
+    [ "Example" /\ M.example
+    , "Escrow" /\ M.escrow
+    , "EscrowWithCollateral" /\ M.escrowWithCollateral
+    , "ZeroCouponBond" /\ M.zeroCouponBond
+    , "CouponBondGuaranteed" /\ M.couponBondGuaranteed
+    , "Swap" /\ M.swap
+    , "CFD" /\ M.contractForDifferences
     ]
 
 marloweContract ::

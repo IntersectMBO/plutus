@@ -25,22 +25,27 @@ import Text.Pretty (class Args, class Pretty, genericHasArgs, genericHasNestedAr
 
 data ContractType
   = Escrow
-  | EscrowWithCollatoral
+  | EscrowWithCollateral
   | ZeroCouponBond
   | CouponBondGuaranteed
   | Swap
   | ContractForDifferences
   | Other
 
+derive instance genericContractType :: Generic ContractType _
+
 derive instance eqContractType :: Eq ContractType
 
+instance showContractType :: Show ContractType where
+  show v = genericShow v
+
 contractTypeArray :: Array ContractType
-contractTypeArray = [ Escrow, EscrowWithCollatoral, ZeroCouponBond, CouponBondGuaranteed, Swap, ContractForDifferences, Other ]
+contractTypeArray = [ Escrow, EscrowWithCollateral, ZeroCouponBond, CouponBondGuaranteed, Swap, ContractForDifferences, Other ]
 
 contractTypeInitials :: ContractType -> String
 contractTypeInitials Escrow = "ES"
 
-contractTypeInitials EscrowWithCollatoral = "EC"
+contractTypeInitials EscrowWithCollateral = "EC"
 
 contractTypeInitials ZeroCouponBond = "ZC"
 
@@ -55,7 +60,7 @@ contractTypeInitials Other = "O"
 contractTypeName :: ContractType -> String
 contractTypeName Escrow = "Escrow"
 
-contractTypeName EscrowWithCollatoral = "Escrow with Collatoral"
+contractTypeName EscrowWithCollateral = "Escrow with Collateral"
 
 contractTypeName ZeroCouponBond = "Zero Coupon Bond"
 
@@ -70,7 +75,7 @@ contractTypeName Other = "Other"
 initialsToContractType :: String -> ContractType
 initialsToContractType "ES" = Escrow
 
-initialsToContractType "EC" = EscrowWithCollatoral
+initialsToContractType "EC" = EscrowWithCollateral
 
 initialsToContractType "ZC" = ZeroCouponBond
 

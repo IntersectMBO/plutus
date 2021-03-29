@@ -17,18 +17,19 @@
 {-# LANGUAGE UndecidableInstances  #-}
 
 module UntypedPlutusCore.Evaluation.Machine.Cek.Internal
+    -- See Note [Compilation peculiarities].
     ( EvaluationResult(..)
     , CekValue(..)
     , CekUserError(..)
     , CekEvaluationException
     , CekBudgetSpender(..)
     , CekM
+    , ExBudgetMode(..)
     , ErrorWithCause(..)
     , EvaluationError(..)
     , ExBudgetCategory(..)
     , extractEvaluationResult
-    , runCekM
-    , computeCek
+    , runCek
     )
 where
 
@@ -60,9 +61,45 @@ import           Data.Hashable                           (Hashable)
 import           Data.STRef
 import           Data.Text.Prettyprint.Doc
 
+{- Note [Compilation peculiarities]
+READ THIS BEFORE TOUCHING ANYTHING IN THIS FILE
+
+Exporting the 'computeCek' function from this module causes the CEK machine to become slower by
+up to 25%. I repeat: just adding 'computeCek' to the export list makes the evaluator substantially
+slower. The reason for this is that with 'computeCek' exported the generated GHC Core is much worse:
+it contains more lambdas, allocates more stuff etc. While perhaps surprising, this is not an
+unusual behavior of the compiler as https://wiki.haskell.org/Performance/GHC explains:
+
+> Indeed, generally speaking GHC will inline across modules just as much as it does within modules,
+> with a single large exception. If GHC sees that a function 'f' is called just once, it inlines it
+> regardless of how big 'f' is. But once 'f' is exported, GHC can never see that it's called exactly
+> once, even if that later turns out to be the case. This inline-once optimisation is pretty
+> important in practice.
+>
+> So: if you care about performance, do not export functions that are not used outside the module
+> (i.e. use an explicit export list, and keep it as small as possible).
+
+Now clearly 'computeCek' cannot be inlined in 'runCek' whether it's exported or not, since
+'computeCek' is recursive. However:
+
+1. GHC is _usually_ smart enough to perform the worker/wrapper transformation and inline the wrapper
+   (however experiments have shown that sticking the internals of the CEK machine, budgeting modes
+   and the API into the same file prevents GHC from performing the worker/wrapper transformation for
+   some reason likely related to "we've been compiling this for too long, let's leave it at that"
+2. GHC seems to be able to massage the definition of 'computeCek' into something more performant
+   making use of knowing exactly how 'computeCek' is used, essentially tailoring the definition of
+   'computeCek' for a particular invocation in 'runCek'
+
+Hence we don't export 'computeCek' and instead define 'runCek' in this file and export it, even
+though the rest of the user-facing API (which 'runCek' is a part of) is defined downstream.
+
+In general, it's advised to run benchmarks (and look at Core output if the results are suspicious)
+on any changes in this file.
+-}
+
 {- Note [Scoping]
-   The CEK machine does not rely on the global uniqueness condition, so the renamer pass is not a
-   prerequisite. The CEK machine correctly handles name shadowing.
+The CEK machine does not rely on the global uniqueness condition, so the renamer pass is not a
+prerequisite. The CEK machine correctly handles name shadowing.
 -}
 
 data ExBudgetCategory fun
@@ -184,6 +221,12 @@ type CekEvaluationException uni fun = CekEvaluationExceptionCarrying (Term Name 
 -- | The monad the CEK machine runs in.
 type CekM cost uni fun s = CekCarryingM cost (Term Name uni fun ()) uni fun s
 
+-- | A budgeting mode to execute an evaluator in.
+data ExBudgetMode cost uni fun = ExBudgetMode
+    { _exBudgetModeSpender :: CekBudgetSpender cost uni fun  -- ^ A spending function.
+    , _exBudgetModeInitSt  :: cost                           -- ^ An initial state.
+    }
+
 instance AsEvaluationFailure CekUserError where
     _EvaluationFailure = _EvaluationFailureVia CekEvaluationFailure
 
@@ -230,9 +273,7 @@ mkBuiltinApplication ex bn arity0 forces0 args0 =
 -- see Note [Scoping].
 -- | Instantiate all the free variables of a term by looking them up in an environment.
 -- Mutually recursive with dischargeCekVal.
-dischargeCekValEnv
-    :: (Closed uni, uni `Everywhere` ExMemoryUsage)
-    => CekValEnv uni fun -> TermWithMem uni fun -> TermWithMem uni fun
+dischargeCekValEnv :: CekValEnv uni fun -> TermWithMem uni fun -> TermWithMem uni fun
 dischargeCekValEnv valEnv =
     -- We recursively discharge the environments of Cek values, but we will gradually end up doing
     -- this to terms which have no free variables remaining, at which point we won't call this
@@ -243,9 +284,7 @@ dischargeCekValEnv valEnv =
 
 -- Convert a CekValue into a term by replacing all bound variables with the terms
 -- they're bound to (which themselves have to be obtain by recursively discharging values).
-dischargeCekValue
-    :: (Closed uni, uni `Everywhere` ExMemoryUsage)
-    => CekValue uni fun -> TermWithMem uni fun
+dischargeCekValue :: CekValue uni fun -> TermWithMem uni fun
 dischargeCekValue = \case
     VCon     ex val                     -> Constant ex val
     VDelay   ex body env                -> Delay ex (dischargeCekValEnv env body)
@@ -301,14 +340,13 @@ type Context uni fun = [Frame uni fun]
 runCekM
     :: forall a cost uni fun.
        BuiltinsRuntime fun (CekValue uni fun)
-    -> CekBudgetSpender cost uni fun
-    -> cost
+    -> ExBudgetMode cost uni fun
     -> Bool
     -> (forall s. CekM cost uni fun s a)
     -> (Either (CekEvaluationException uni fun) a, cost, [String])
-runCekM runtime spender st emitting a = runST $ do
+runCekM runtime (ExBudgetMode spender costInit) emitting a = runST $ do
     mayLogsRef <- if emitting then Just <$> newSTRef DList.empty else pure Nothing
-    (errOrRes, st') <- runStateT (runExceptT . runReaderT a $ CekEnv runtime mayLogsRef spender) st
+    (errOrRes, st') <- runStateT (runExceptT . runReaderT a $ CekEnv runtime mayLogsRef spender) costInit
     logs <- case mayLogsRef of
         Nothing      -> pure []
         Just logsRef -> DList.toList <$> readSTRef logsRef
@@ -342,10 +380,9 @@ astNodeCost = ExBudget 1 0
 -- 3. returns 'EvaluationFailure' ('Error')
 -- 4. looks up a variable in the environment and calls 'returnCek' ('Var')
 
+-- See Note [Compilation peculiarities].
 computeCek
-    :: ( GShow uni, GEq uni, Closed uni, uni `Everywhere` ExMemoryUsage
-       , Hashable fun, Ix fun
-       )
+    :: Ix fun
     => Context uni fun -> CekValEnv uni fun -> TermWithMem uni fun -> CekM cost uni fun s (Term Name uni fun ())
 -- s ; ρ ▻ {L A}  ↦ s , {_ A} ; ρ ▻ L
 computeCek ctx env (Var _ varName) = do
@@ -384,9 +421,7 @@ computeCek _ _ (Error _) = do
 -- | Call 'dischargeCekValue' over the received 'CekVal' and feed the resulting 'Term' to
 -- 'throwingWithCause' as the cause of the failure.
 throwingDischarged
-    :: ( MonadError (ErrorWithCause e (Term Name uni fun ())) m
-       , Closed uni, uni `Everywhere` ExMemoryUsage
-       )
+    :: (MonadError (ErrorWithCause e (Term Name uni fun ())) m)
     => AReview e t -> t -> CekValue uni fun -> m x
 throwingDischarged l t = throwingWithCause l t . Just . void . dischargeCekValue
 
@@ -405,9 +440,7 @@ from the context and uses it to decide how to proceed with the current value v.
       returnCek.  If v is anything else, fail.
 -}
 returnCek
-    :: ( GShow uni, GEq uni, Closed uni, uni `Everywhere` ExMemoryUsage
-       , Hashable fun, Ix fun
-       )
+    :: Ix fun
     => Context uni fun -> CekValue uni fun -> CekM cost uni fun s (Term Name uni fun ())
 --- Instantiate all the free variable of the resulting term in case there are any.
 -- . ◅ V           ↦  [] V
@@ -442,9 +475,7 @@ instead of lists.
 -- or extend the value with @force@ and call returnCek;
 -- if v is anything else, fail.
 forceEvaluate
-    :: ( GShow uni, GEq uni, Closed uni, uni `Everywhere` ExMemoryUsage
-       , Hashable fun, Ix fun
-       )
+    :: Ix fun
     => Context uni fun -> CekValue uni fun -> CekM cost uni fun s (Term Name uni fun ())
 forceEvaluate ctx (VDelay _ body env) = computeCek ctx env body
 forceEvaluate ctx val@(VBuiltin ex bn arity0 arity forces args) =
@@ -471,9 +502,7 @@ forceEvaluate _ val =
 -- it's the final argument then apply the builtin to its arguments, return the result, or extend
 -- the value with the new argument and call 'returnCek'. If v is anything else, fail.
 applyEvaluate
-    :: ( GShow uni, GEq uni, Closed uni, uni `Everywhere` ExMemoryUsage
-       , Hashable fun, Ix fun
-       )
+    :: Ix fun
     => Context uni fun
     -> CekValue uni fun   -- lhs of application
     -> CekValue uni fun   -- rhs of application
@@ -495,9 +524,7 @@ applyEvaluate _ val _ = throwingDischarged _MachineError NonFunctionalApplicatio
 
 -- | Apply a builtin to a list of CekValue arguments
 applyBuiltin
-    :: ( GShow uni, GEq uni, Closed uni, uni `Everywhere` ExMemoryUsage
-       , Hashable fun, Ix fun
-       )
+    :: Ix fun
     => Context uni fun
     -> fun
     -> [CekValue uni fun]
@@ -509,3 +536,21 @@ applyBuiltin ctx bn args = do
   BuiltinRuntime sch _ f exF <- asksM $ lookupBuiltin bn . cekEnvRuntime
   result <- dischargeError $ applyTypeSchemed bn sch f exF args
   returnCek ctx result
+
+-- See Note [Compilation peculiarities].
+-- | Evaluate a term using the CEK machine and keep track of costing, logging is optional.
+runCek
+    :: ( Closed uni, uni `Everywhere` ExMemoryUsage
+       , Ix fun, ExMemoryUsage fun
+       )
+    => BuiltinsRuntime fun (CekValue uni fun)
+    -> ExBudgetMode cost uni fun
+    -> Bool
+    -> Term Name uni fun ()
+    -> (Either (CekEvaluationException uni fun) (Term Name uni fun ()), cost, [String])
+runCek runtime mode emitting term =
+    runCekM runtime mode emitting $ do
+        spendBudget BAST (ExBudget 0 (termAnn memTerm))
+        computeCek [] mempty memTerm
+  where
+    memTerm = withMemory term

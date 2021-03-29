@@ -150,7 +150,7 @@ tokens :-
     <kwd> delay          { mkKeyword KwDelay       `andBegin` 0 }
     <kwd> builtin        { mkKeyword KwBuiltin     `andBegin` builtin }
     -- ^ Switch the lexer into a mode where it's looking for a builtin id.
-    -- These are converted into Builtin names (possibly dynamic) in the parser.
+    -- These are converted into Builtin names in the parser.
     -- Outside this mode, all ids are parsed as Names.
     <kwd> con            { mkKeyword KwCon         `andBegin` conargs }
     -- ^ (con tyname) or (con tyname const)
