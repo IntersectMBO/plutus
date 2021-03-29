@@ -5,151 +5,105 @@ module Marlowe.Market.Contract2
   ) where
 
 import Prelude
-import Data.Map (fromFoldable)
-import Data.Tuple.Nested ((/\))
-import Marlowe.Extended (Action(..), Case(..), Contract(..), ContractType(..), Payee(..), Timeout(..), Value(..))
+import Data.BigInteger (BigInteger)
+import Data.Tuple.Nested (type (/\), (/\))
+import Examples.Metadata as Metadata
+import Marlowe.Extended (Action(..), Case(..), Contract(..), Payee(..), Timeout(..), Value(..))
 import Marlowe.Extended.Metadata (MetaData)
 import Marlowe.Extended.Template (ContractTemplate)
-import Marlowe.Semantics (Bound(..), ChoiceId(..), Party(..), Token(..))
+import Marlowe.Semantics (Bound(..), ChoiceId(..), Party(..), Token(..), ChoiceName)
 
 contractTemplate :: ContractTemplate
 contractTemplate = { metaData, extendedContract }
 
 metaData :: MetaData
-metaData =
-  { contractType: EscrowWithCollateral
-  , contractName: "Escrow with collateral"
-  , contractDescription: "Regulates a money exchange between a \"Buyer\" and a \"Seller\" using a collateral from both parties to incentivize collaboration. If there is a disagreement the collateral is burned."
-  , roleDescriptions:
-      fromFoldable
-        [ "Buyer" /\ "The party that pays for the item on sale."
-        , "Seller" /\ "The party that sells the item and gets the money if the exchange is successful."
-        ]
-  , slotParameterDescriptions:
-      fromFoldable
-        [ "Collateral deposit by seller timeout" /\ "The deadline by which the \"Seller\" must deposit the \"Collateral amount\" in the contract."
-        , "Deposit of collateral by buyer timeout" /\ "The deadline by which the \"Buyer\" must deposit the \"Collateral amount\" in the contract."
-        , "Deposit of price by buyer timeout" /\ "The deadline by which the \"Buyer\" must deposit the \"Price\" in the contract."
-        , "Dispute by buyer timeout" /\ "The deadline by which, if the \"Buyer\" has not opened a dispute, the \"Seller\" will be paid."
-        , "Seller's response timeout" /\ "The deadline by which, if the \"Seller\" has not responded to the dispute, the \"Buyer\" will be refunded."
-        ]
-  , valueParameterDescriptions:
-      fromFoldable
-        [ "Collateral amount" /\ "The amount of Lovelace to be deposited by both parties at the start of the contract to serve as an incentive for collaboration."
-        , "Price" /\ "The amount of Lovelace to be paid by the \"Buyer\" as part of the exchange."
-        ]
-  , choiceDescriptions:
-      fromFoldable
-        [ "Confirm problem" /\ "Acknowledge that there was a problem and a refund must be granted."
-        , "Dispute problem" /\ "The \"Seller\" disagrees with the \"Buyer\" about the claim that something went wrong and the collateral will be burnt."
-        , "Everything is alright" /\ "The exchange was successful and the \"Buyer\" agrees to pay the \"Seller\"."
-        , "Report problem" /\ "The \"Buyer\" claims not having received the product that was paid for as agreed and would like a refund."
-        ]
-  }
+metaData = Metadata.escrowWithCollateral
+
+ada :: Token
+ada = Token "" ""
+
+buyer :: Party
+buyer = Role "Buyer"
+
+seller :: Party
+seller = Role "Seller"
+
+burnAddress :: Party
+burnAddress = PK "0000000000000000000000000000000000000000000000000000000000000000"
+
+price :: Value
+price = ConstantParam "Price"
+
+collateral :: Value
+collateral = ConstantParam "Collateral amount"
+
+sellerCollateralTimeout :: Timeout
+sellerCollateralTimeout = SlotParam "Collateral deposit by seller timeout"
+
+buyerCollateralTimeout :: Timeout
+buyerCollateralTimeout = SlotParam "Deposit of collateral by buyer timeout"
+
+depositTimeout :: Timeout
+depositTimeout = SlotParam "Deposit of price by buyer timeout"
+
+disputeTimeout :: Timeout
+disputeTimeout = SlotParam "Dispute by buyer timeout"
+
+answerTimeout :: Timeout
+answerTimeout = SlotParam "Seller's response timeout"
+
+depositCollateral :: Party -> Timeout -> Contract -> Contract -> Contract
+depositCollateral party timeout timeoutContinuation continuation =
+  When [ Case (Deposit party party ada collateral) continuation ]
+    timeout
+    timeoutContinuation
+
+burnCollaterals :: Contract -> Contract
+burnCollaterals continuation =
+  Pay seller (Party burnAddress) ada collateral
+    $ Pay buyer (Party burnAddress) ada collateral
+    $ continuation
+
+deposit :: Timeout -> Contract -> Contract -> Contract
+deposit timeout timeoutContinuation continuation =
+  When [ Case (Deposit seller buyer ada price) continuation ]
+    timeout
+    timeoutContinuation
+
+choice :: ChoiceName -> Party -> BigInteger -> Contract -> Case
+choice choiceName chooser choiceValue continuation =
+  Case
+    ( Choice (ChoiceId choiceName chooser)
+        [ Bound choiceValue choiceValue ]
+    )
+    continuation
+
+choices :: Timeout -> Party -> Contract -> Array (BigInteger /\ ChoiceName /\ Contract) -> Contract
+choices timeout chooser timeoutContinuation list =
+  When
+    ( do
+        (choiceValue /\ choiceName /\ continuation) <- list
+        pure $ choice choiceName chooser choiceValue continuation
+    )
+    timeout
+    timeoutContinuation
+
+sellerToBuyer :: Contract -> Contract
+sellerToBuyer = Pay seller (Account buyer) ada price
 
 extendedContract :: Contract
 extendedContract =
-  When
-    [ Case
-        ( Deposit
-            (Role "Seller")
-            (Role "Seller")
-            (Token "" "")
-            (ConstantParam "Collateral amount")
-        )
-        ( When
-            [ Case
-                ( Deposit
-                    (Role "Buyer")
-                    (Role "Buyer")
-                    (Token "" "")
-                    (ConstantParam "Collateral amount")
+  depositCollateral seller sellerCollateralTimeout Close
+    $ depositCollateral buyer buyerCollateralTimeout Close
+    $ deposit depositTimeout Close
+    $ choices disputeTimeout buyer Close
+        [ (zero /\ "Everything is alright" /\ Close)
+        , ( one /\ "Report problem"
+              /\ ( sellerToBuyer
+                    $ choices answerTimeout seller Close
+                        [ (one /\ "Confirm problem" /\ Close)
+                        , (zero /\ "Dispute problem" /\ burnCollaterals Close)
+                        ]
                 )
-                ( When
-                    [ Case
-                        ( Deposit
-                            (Role "Seller")
-                            (Role "Buyer")
-                            (Token "" "")
-                            (ConstantParam "Price")
-                        )
-                        ( When
-                            [ Case
-                                ( Choice
-                                    ( ChoiceId
-                                        "Everything is alright"
-                                        (Role "Buyer")
-                                    )
-                                    [ Bound zero zero ]
-                                )
-                                Close
-                            , Case
-                                ( Choice
-                                    ( ChoiceId
-                                        "Report problem"
-                                        (Role "Buyer")
-                                    )
-                                    [ Bound one one ]
-                                )
-                                ( Pay
-                                    (Role "Seller")
-                                    (Account (Role "Buyer"))
-                                    (Token "" "")
-                                    (ConstantParam "Price")
-                                    ( When
-                                        [ Case
-                                            ( Choice
-                                                ( ChoiceId
-                                                    "Confirm problem"
-                                                    (Role "Seller")
-                                                )
-                                                [ Bound one one ]
-                                            )
-                                            Close
-                                        , Case
-                                            ( Choice
-                                                ( ChoiceId
-                                                    "Dispute problem"
-                                                    (Role "Seller")
-                                                )
-                                                [ Bound zero zero ]
-                                            )
-                                            ( Pay
-                                                (Role "Seller")
-                                                (Party (PK "0000000000000000000000000000000000000000000000000000000000000000"))
-                                                (Token "" "")
-                                                (ConstantParam "Collateral amount")
-                                                ( Pay
-                                                    (Role "Buyer")
-                                                    (Party (PK "0000000000000000000000000000000000000000000000000000000000000000"))
-                                                    (Token "" "")
-                                                    (ConstantParam "Collateral amount")
-                                                    Close
-                                                )
-                                            )
-                                        ]
-                                        (SlotParam "Seller's response timeout")
-                                        Close
-                                    )
-                                )
-                            ]
-                            (SlotParam "Dispute by buyer timeout")
-                            Close
-                        )
-                    ]
-                    (SlotParam "Deposit of price by buyer timeout")
-                    Close
-                )
-            ]
-            (SlotParam "Deposit of collateral by buyer timeout")
-            ( Pay
-                (Role "Seller")
-                (Party (Role "Seller"))
-                (Token "" "")
-                (ConstantParam "Collateral amount")
-                Close
-            )
-        )
-    ]
-    (SlotParam "Collateral deposit by seller timeout")
-    Close
+          )
+        ]
