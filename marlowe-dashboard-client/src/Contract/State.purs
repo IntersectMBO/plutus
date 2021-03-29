@@ -8,12 +8,12 @@ module Contract.State
   ) where
 
 import Prelude
-import Contract.Lenses (_contractId, _executionState, _tab)
+import Contract.Lenses (_contractId, _executionState, _selectedStep, _tab)
 import Contract.Types (Action(..), Query(..), State, Tab(..))
 import Control.Monad.Maybe.Trans (runMaybeT)
 import Control.Monad.Reader (class MonadAsk)
 import Data.Array (length)
-import Data.Lens (assign, modifying, use, view, (^.))
+import Data.Lens (assign, modifying, set, use, view, (^.))
 import Data.Map (Map)
 import Data.Maybe (Maybe(..))
 import Data.RawJson (RawJson(..))
@@ -23,7 +23,7 @@ import Effect.Exception.Unsafe (unsafeThrow)
 import Env (Env)
 import Foreign.Generic (encode)
 import Foreign.JSON (unsafeStringify)
-import Halogen (HalogenM)
+import Halogen (HalogenM, modify_)
 import MainFrame.Types (ChildSlots, Msg)
 import Marlowe.Execution (NamedAction(..), _contract, _namedActions, _state, _steps, initExecution, merge, mkTx, nextState)
 import Marlowe.Extended.Metadata (MetaData, emptyContractMetadata)
@@ -36,10 +36,8 @@ import WalletData.Types (Nickname)
 defaultState :: State
 defaultState = mkInitialState "" zero Close emptyContractMetadata mempty Nothing
 
--- As programmers we use 0-indexed arrays and steps, but we number steps
--- starting from 1
 currentStep :: State -> Int
-currentStep = add 1 <<< length <<< view (_executionState <<< _steps)
+currentStep = length <<< view (_executionState <<< _steps)
 
 toInput :: NamedAction -> Maybe Input
 toInput (MakeDeposit accountId party token value) = Just $ IDeposit accountId party token value
@@ -112,7 +110,10 @@ handleAction (ConfirmAction action) = do
         -- void $ mapEnvReaderT _.ajaxSettings $ runExceptT $ postApiContractByContractinstanceidEndpointByEndpointname json contractId "apply-inputs"
         let
           executionState = nextState currentExeState txInput
-        assign _executionState executionState
+        modify_
+          ( set _executionState executionState
+              <<< set _selectedStep (length executionState.steps)
+          )
 
 -- raise (SendWebSocketMessage (ServerMsg true)) -- FIXME: send txInput to the server to apply to the on-chain contract
 handleAction (ChangeChoice choiceId chosenNum) = modifying (_executionState <<< _namedActions) (map changeChoice)
@@ -127,3 +128,5 @@ handleAction (SelectTab tab) = assign _tab tab
 handleAction (AskConfirmation action) = pure unit -- Managed by Play.State
 
 handleAction CancelConfirmation = pure unit -- Managed by Play.State
+
+handleAction (GoToStep stepNumber) = assign _selectedStep stepNumber

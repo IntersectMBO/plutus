@@ -4,7 +4,7 @@ module Contract.View
   ) where
 
 import Prelude hiding (div)
-import Contract.Lenses (_executionState, _mActiveUserParty, _metadata, _participants, _tab)
+import Contract.Lenses (_executionState, _mActiveUserParty, _metadata, _participants, _selectedStep, _tab)
 import Contract.State (currentStep, isContractClosed)
 import Contract.Types (Action(..), State, Tab(..))
 import Css (applyWhen, classNames)
@@ -43,13 +43,54 @@ contractDetailsCard state =
 
     currentStepCard = [ renderCurrentStep state ]
   in
-    div [ classNames [ "flex", "flex-col", "items-center", "my-5" ] ]
+    div [ classNames [ "flex", "flex-col", "items-center", "pt-5", "h-full" ] ]
       [ h1 [ classNames [ "text-xl", "font-semibold" ] ] [ text metadata.contractName ]
-      -- FIXME: in zeplin the contractType is defined with color #283346, we need to define
-      --        the color palette with russ.
       , h2 [ classNames [ "mb-2", "text-xs", "uppercase" ] ] [ text $ contractTypeName metadata.contractType ]
-      , div [ classNames [ "flex", "w-full", "overflow-x-scroll", "mr-5" ] ] (pastStepsCards <> currentStepCard)
+      -- NOTE: The card is allowed to grow in an h-full container and the navigation buttons are absolute positioned
+      --       because the cards x-scrolling can't coexist with a visible y-overflow. To avoid clipping the cards shadow
+      --       we need the cards container to grow (hence the flex-grow), but we don't want the cards to grow (hence the
+      --       items-start, as it streches by default)
+      , div [ classNames [ "flex-grow", "flex", "items-start", "max-w-full", "overflow-x-scroll", "px-5", "max-w-full" ] ] (pastStepsCards <> currentStepCard)
+      , cardNavigationButtons state
       ]
+
+cardNavigationButtons :: forall p. State -> HTML p Action
+cardNavigationButtons state =
+  let
+    lastStep = currentStep state
+
+    contractIsClosed = isContractClosed state
+
+    leftButton selectedStep
+      | selectedStep > 0 =
+        Just
+          $ a
+              [ classNames [ "text-purple" ]
+              , onClick_ $ GoToStep $ selectedStep - 1
+              ]
+              [ icon ArrowLeft [ "text-2xl" ] ]
+      | otherwise = Nothing
+
+    rightButton selectedStep
+      | selectedStep == lastStep && contractIsClosed = Nothing
+      | selectedStep == lastStep =
+        Just
+          $ div
+              [ classNames [ "px-6", "py-4", "rounded-lg", "bg-white", "font-semibold", "ml-auto" ] ]
+              [ text "Waiting..." ]
+      | otherwise =
+        Just
+          $ button
+              [ classNames $ Css.primaryButton <> [ "ml-auto" ] <> Css.withIcon ArrowRight
+              , onClick_ $ GoToStep $ selectedStep + 1
+              ]
+              [ text "Next" ]
+  in
+    div [ classNames [ "absolute", "bottom-6", "flex", "items-center", "w-full", "px-6", "md:px-5pc" ] ]
+      $ Array.catMaybes
+          [ leftButton (state ^. _selectedStep)
+          , rightButton (state ^. _selectedStep)
+          ]
 
 actionConfirmationCard :: forall p. State -> NamedAction -> HTML p Action
 actionConfirmationCard state namedAction =
@@ -100,7 +141,7 @@ actionConfirmationCard state namedAction =
       , div [ classNames [ "px-5", "pb-6", "pt-3", "md:pb-8" ] ]
           [ h2
               [ classNames [ "text-xl", "font-semibold" ] ]
-              [ text $ "Step " <> show stepNumber ]
+              [ text $ "Step " <> show (stepNumber + 1) ]
           , h3
               [ classNames [ "text-xs", "font-semibold" ] ]
               [ text title ]
@@ -143,8 +184,8 @@ actionConfirmationCard state namedAction =
           ]
       ]
 
-renderContractCard :: forall p. State -> Array (HTML p Action) -> HTML p Action
-renderContractCard state cardBody =
+renderContractCard :: forall p. Int -> State -> Array (HTML p Action) -> HTML p Action
+renderContractCard stepNumber state cardBody =
   let
     currentTab = state ^. _tab
 
@@ -156,8 +197,17 @@ renderContractCard state cardBody =
         <> case isActive of
             true -> [ "active" ]
             false -> []
+
+    contractCardCss =
+      -- FIXME: For now in mobile only the selected step is visible
+      -- FIXME: For some reason when scaling down an item the space occupied in the parent stays the same
+      --        so it appears to have bigger margins.
+      -- , "-mr-8", "-ml-1"
+      [ "rounded", "shadow-lg", "overflow-hidden", "flex-shrink-0", "w-contract-card", "h-contract-card" ]
+        <> applyWhen (state ^. _selectedStep /= stepNumber) [ "transform", "origin-left", "-mr-10", "scale-77", "hidden", "md:block" ]
   in
-    div [ classNames [ "rounded", "shadow-current-step", "overflow-hidden", "flex-grow", "ml-5", "max-w-contract-card", "min-w-contract-card" ] ]
+    --
+    div [ classNames contractCardCss ]
       [ div [ classNames [ "flex", "overflow-hidden" ] ]
           [ a
               [ classNames (tabSelector $ currentTab == Tasks)
@@ -170,7 +220,7 @@ renderContractCard state cardBody =
               ]
               [ span_ $ [ text "Balances" ] ]
           ]
-      , div [ classNames [ "max-h-contract-card", "bg-white" ] ] cardBody
+      , div [ classNames [ "bg-white", "h-full" ] ] cardBody
       ]
 
 statusIndicator :: forall p a. Maybe Icon -> String -> Array String -> HTML p a
@@ -190,7 +240,7 @@ renderPastStep state stepNumber executionState =
 
     { timedOut } = executionState
   in
-    renderContractCard state
+    renderContractCard stepNumber state
       [ div [ classNames [ "py-2.5", "px-4", "flex", "items-center", "border-b", "border-lightgray" ] ]
           [ span
               [ classNames [ "text-xl", "font-semibold", "flex-grow" ] ]
@@ -202,10 +252,10 @@ renderPastStep state stepNumber executionState =
             else
               statusIndicator (Just Done) "Completed" [ "bg-green", "text-white" ]
           ]
-      , div [ classNames [ "h-contract-card", "overflow-y-scroll", "px-4" ] ]
+      , div [ classNames [ "overflow-y-scroll", "px-4" ] ]
           [ case currentTab /\ timedOut of
               Tasks /\ false -> renderPastActions state executionState
-              Tasks /\ true -> renderTimeout (stepNumber + 1)
+              Tasks /\ true -> renderTimeout stepNumber
               Balances /\ _ -> renderBalances state
           ]
       ]
@@ -289,12 +339,12 @@ renderPartyPastActions state { inputs, interval, party } =
 renderTimeout :: forall p a. Int -> HTML p a
 renderTimeout stepNumber =
   div [ classNames [ "flex", "flex-col", "items-center", "h-full" ] ]
-    -- NOTE: we use pt-28 instead of making the parent justify-center because in the design it's not actually
+    -- NOTE: we use pt-16 instead of making the parent justify-center because in the design it's not actually
     --       centered and it has more space above than below.
-    [ icon Timer [ "pb-2", "pt-28", "text-red", "text-big-icon" ]
+    [ icon Timer [ "pb-2", "pt-16", "text-red", "text-big-icon" ]
     -- FIXME: Need to pass a Slot and convert it to the appropiate format
     , span [ classNames [ "font-semibold", "text-center", "text-sm" ] ]
-        [ text $ "Step " <> show stepNumber <> " timed out on 03/10/2021 at 17:30" ]
+        [ text $ "Step " <> show (stepNumber + 1) <> " timed out on 03/10/2021 at 17:30" ]
     ]
 
 renderCurrentStep :: forall p. State -> HTML p Action
@@ -306,11 +356,11 @@ renderCurrentStep state =
 
     contractIsClosed = isContractClosed state
   in
-    renderContractCard state
+    renderContractCard stepNumber state
       [ div [ classNames [ "py-2.5", "px-4", "flex", "items-center", "border-b", "border-lightgray" ] ]
           [ span
               [ classNames [ "text-xl", "font-semibold", "flex-grow" ] ]
-              [ text $ "Step " <> show stepNumber ]
+              [ text $ "Step " <> show (stepNumber + 1) ]
           , if contractIsClosed then
               -- FIXME: Check with russ. The original status indicator for contract closed
               --        did not have an icon, but all other status indicator has. Check if
@@ -319,7 +369,7 @@ renderCurrentStep state =
             else
               statusIndicator (Just Timer) "1hr 2mins left" [ "bg-lightgray" ]
           ]
-      , div [ classNames [ "h-contract-card", "overflow-y-scroll", "px-4" ] ]
+      , div [ classNames [ "overflow-y-scroll", "px-4" ] ]
           [ case currentTab /\ contractIsClosed of
               Tasks /\ false -> renderTasks state
               Tasks /\ true -> renderContractClose
@@ -330,9 +380,9 @@ renderCurrentStep state =
 renderContractClose :: forall p a. HTML p a
 renderContractClose =
   div [ classNames [ "flex", "flex-col", "items-center", "h-full" ] ]
-    -- NOTE: we use pt-28 instead of making the parent justify-center because in the design it's not actually
+    -- NOTE: we use pt-16 instead of making the parent justify-center because in the design it's not actually
     --       centered and it has more space above than below.
-    [ icon DoneWithCircle [ "pb-2", "pt-28", "text-green", "text-big-icon" ]
+    [ icon DoneWithCircle [ "pb-2", "pt-16", "text-green", "text-big-icon" ]
     -- FIXME: Need to pass a Slot and convert it to the appropiate format
     , div
         [ classNames [ "text-center", "text-sm" ] ]
@@ -495,35 +545,55 @@ renderAction state party namedAction@(MakeChoice choiceId bounds mChosenNum) =
       Just description -> shortDescription isActiveParticipant description
 
     isValid = maybe false (between minBound maxBound) mChosenNum
+
+    multipleInput = \_ ->
+      div
+        [ classNames [ "flex", "w-full", "shadow", "rounded-lg", "mt-2", "overflow-hidden", "focus-within:ring-1", "ring-black" ]
+        ]
+        [ input
+            [ classNames [ "border-0", "py-4", "pl-4", "pr-1", "flex-grow", "focus:ring-0" ]
+            , type_ InputNumber
+            , enabled $ isActiveParticipant || debugMode
+            , maybe'
+                (\_ -> placeholder $ "Choose between " <> show minBound <> " and " <> show maxBound)
+                (value <<< show)
+                mChosenNum
+            , onValueInput_ $ ChangeChoice choiceId <<< fromString
+            ]
+        , button
+            [ classNames
+                ( [ "px-5", "font-bold" ]
+                    <> if isValid then
+                        [ "bg-gradient-to-b", "from-purple", "to-lightpurple", "text-white" ]
+                      else
+                        [ "bg-gray", "text-black", "opacity-50", "cursor-default" ]
+                )
+            , onClick_ $ AskConfirmation namedAction
+            , enabled $ isValid && isActiveParticipant
+            ]
+            [ text "..." ]
+        ]
+
+    singleInput = \_ ->
+      button
+        -- FIXME: adapt to use button classes from Css module
+        [ classNames $ [ "px-6", "font-bold", "w-full", "py-4", "mt-2", "rounded-lg", "shadow" ]
+            <> if isActiveParticipant || debugMode then
+                [ "bg-gradient-to-r", "from-purple", "to-lightpurple", "text-white" ]
+              else
+                [ "bg-gray", "text-black", "opacity-50", "cursor-default" ]
+        , enabled $ isActiveParticipant || debugMode
+        , onClick_ $ AskConfirmation $ MakeChoice choiceId bounds $ Just minBound
+        ]
+        [ span_ [ text choiceIdKey ]
+        ]
   in
     div_
       [ choiceDescription
-      , div
-          [ classNames [ "flex", "w-full", "shadow", "rounded-lg", "mt-2", "overflow-hidden", "focus-within:ring-1", "ring-black" ]
-          ]
-          [ input
-              [ classNames [ "border-0", "py-4", "pl-4", "pr-1", "flex-grow", "focus:ring-0" ]
-              , type_ InputNumber
-              , enabled $ isActiveParticipant || debugMode
-              , maybe'
-                  (\_ -> placeholder $ "Choose between " <> show minBound <> " and " <> show maxBound)
-                  (value <<< show)
-                  mChosenNum
-              , onValueInput_ $ ChangeChoice choiceId <<< fromString
-              ]
-          , button
-              [ classNames
-                  ( [ "px-5", "font-bold" ]
-                      <> if isValid then
-                          [ "bg-gradient-to-b", "from-purple", "to-lightpurple", "text-white" ]
-                        else
-                          [ "bg-gray", "text-black", "opacity-50", "cursor-default" ]
-                  )
-              , onClick_ $ AskConfirmation namedAction
-              , enabled $ isValid && isActiveParticipant
-              ]
-              [ text "..." ]
-          ]
+      , if minBound == maxBound then
+          singleInput unit
+        else
+          multipleInput unit
       ]
 
 renderAction _ _ (MakeNotify _) = div [] [ text "FIXME: awaiting observation?" ]

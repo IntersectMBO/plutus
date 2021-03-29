@@ -23,6 +23,7 @@ data Icon
   = Add
   | AddCircle
   | ArrowRight
+  | ArrowLeft
   | Close
   | Contacts
   | Done
@@ -44,6 +45,8 @@ content Add = "add"
 content AddCircle = "add_circle_outline"
 
 content ArrowRight = "east"
+
+content ArrowLeft = "west"
 
 content Close = "close"
 
@@ -79,6 +82,8 @@ iconClass Add = "add"
 iconClass AddCircle = "add-circle"
 
 iconClass ArrowRight = "arrow-right"
+
+iconClass ArrowLeft = "arrow-left"
 
 iconClass Close = "close"
 

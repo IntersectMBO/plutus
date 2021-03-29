@@ -28,7 +28,10 @@ module.exports = {
       xl: "24px",
       "2xl": "34px",
       "3xl": "46px",
-      "big-icon": "140px",
+      "big-icon": "100px",
+    },
+    scale: {
+      77: ".77",
     },
     borderRadius: {
       sm: "5px",
@@ -43,6 +46,7 @@ module.exports = {
         "0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05)",
       lg: "0 20px 25px -5px rgba(0,0,0,0.2), 0 10px 10px -5px rgba(0,0,0,0.04)",
       xl: "0 25px 50px -12px rgba(0,0,0,0.25)",
+      deep: "0 2.5px 5px 0 rgba(0, 0, 0, 0.22)",
     },
     extend: {
       gridTemplateRows: {
@@ -56,26 +60,22 @@ module.exports = {
         sm: "375px",
         md: "640px",
         lg: "768px",
-      },
-      borderWidth: {
-        half: "0.5px",
-      },
-      boxShadow: {
-        deep: "0 2.5px 5px 0 rgba(0, 0, 0, 0.22)",
-        "current-step": "0 25px 50px -12px rgb(0 0 0 / 25%)",
+        "contract-card": "264px",
       },
       height: {
-        "contract-card": "500px",
+        "contract-card": "467px",
+      },
+
+      borderWidth: {
+        half: "0.5px",
       },
       maxWidth: {
         sm: "375px",
         md: "640px",
         lg: "768px",
-        "contract-card": "360px",
       },
       minWidth: {
         button: "120px",
-        "contract-card": "300px",
       },
     },
   },
@@ -198,8 +198,9 @@ module.exports = {
     gridRowStart: false,
     gridRowEnd: false,
     transform: true,
-    transformOrigin: false,
-    scale: false,
+    // FIXME: See if we still use this after the contract run redesign
+    transformOrigin: true,
+    scale: true,
     rotate: false,
     translate: true,
     skew: false,
