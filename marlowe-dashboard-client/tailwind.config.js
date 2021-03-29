@@ -198,7 +198,6 @@ module.exports = {
     gridRowStart: false,
     gridRowEnd: false,
     transform: true,
-    // FIXME: See if we still use this after the contract run redesign
     transformOrigin: true,
     scale: true,
     rotate: false,

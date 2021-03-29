@@ -7,7 +7,7 @@ import Prelude hiding (div)
 import Contract.Lenses (_executionState, _mActiveUserParty, _metadata, _participants, _selectedStep, _tab)
 import Contract.State (currentStep, isContractClosed)
 import Contract.Types (Action(..), State, Tab(..))
-import Css (applyWhen, classNames)
+import Css (applyWhen, classNames, toggleWhen)
 import Css as Css
 import Data.Array (foldr, intercalate)
 import Data.Array as Array
@@ -34,6 +34,11 @@ import Marlowe.Extended (contractTypeName)
 import Marlowe.Semantics (Bound(..), ChoiceId(..), Input(..), Party(..), SlotInterval, Token(..), TransactionInput(..), _accounts, getEncompassBound)
 import Material.Icons (Icon(..), icon)
 
+-- NOTE: Currently, the horizontal scrolling for this element does not match the exact desing. In the designs, the active card is always centered and you
+-- can change which card is active via scrolling or the navigation buttons. To implement this we would probably need to add snap scrolling to the center of the
+-- big container and create a smaller absolute positioned element of the size of a card (positioned in the middle), and with JS check that if a card enters
+-- that "viewport", then we make that the selected element.
+-- Current implementation just hides non active elements in mobile and makes a simple x-scrolling for larger devices.
 contractDetailsCard :: forall p. State -> HTML p Action
 contractDetailsCard state =
   let
@@ -42,15 +47,23 @@ contractDetailsCard state =
     pastStepsCards = mapWithIndex (renderPastStep state) (state ^. (_executionState <<< _steps))
 
     currentStepCard = [ renderCurrentStep state ]
+
+    -- NOTE: Because the cards container is a flex element with a max width property, when there are more cards than can fit the view, the browser will try shrink them
+    --       and remove any extra right margin/padding (not sure why this is only done to the right side). To avoid our cards getting shrinked, we add the flex-shrink-0
+    --       property, and we add an empty `div` that occupies space (aka also cant be shrinked) for the right side only. Because this rule only applies for the right
+    --       side, we do the left side margin just by doing "pl-5" on the cards container.
+    --       Also, the negative left margin of 5 (-ml-5) that we add to this empty div, is to compensate for the positive right margin that the active card has. This way
+    --       the space is the same for an active or inactive card.
+    paddingRightElement = [ div [ classNames [ "w-5", "flex-shrink-0", "-ml-5" ] ] [] ]
   in
     div [ classNames [ "flex", "flex-col", "items-center", "pt-5", "h-full" ] ]
       [ h1 [ classNames [ "text-xl", "font-semibold" ] ] [ text metadata.contractName ]
-      , h2 [ classNames [ "mb-2", "text-xs", "uppercase" ] ] [ text $ contractTypeName metadata.contractType ]
+      , h2 [ classNames [ "mb-5", "text-xs", "uppercase" ] ] [ text $ contractTypeName metadata.contractType ]
       -- NOTE: The card is allowed to grow in an h-full container and the navigation buttons are absolute positioned
       --       because the cards x-scrolling can't coexist with a visible y-overflow. To avoid clipping the cards shadow
-      --       we need the cards container to grow (hence the flex-grow), but we don't want the cards to grow (hence the
-      --       items-start, as it streches by default)
-      , div [ classNames [ "flex-grow", "flex", "items-start", "max-w-full", "overflow-x-scroll", "px-5", "max-w-full" ] ] (pastStepsCards <> currentStepCard)
+      --       we need the cards container to grow (hence the flex-grow).
+      , div [ classNames [ "flex-grow", "max-w-full" ] ]
+          [ div [ classNames [ "flex", "overflow-x-scroll", "h-full", "pl-5" ] ] (pastStepsCards <> currentStepCard <> paddingRightElement) ]
       , cardNavigationButtons state
       ]
 
@@ -189,9 +202,6 @@ renderContractCard stepNumber state cardBody =
   let
     currentTab = state ^. _tab
 
-    -- FIXME: in zepplin the font size is 6px (I think the scale is wrong), but proportionally is half of
-    --        of the size of the Contract Title. I've set it a little bit bigger as it looked weird. Check with
-    --        russ.
     tabSelector isActive =
       [ "flex-grow", "text-center", "py-2", "trapesodial-card-selector", "text-sm", "font-semibold" ]
         <> case isActive of
@@ -199,14 +209,20 @@ renderContractCard stepNumber state cardBody =
             false -> []
 
     contractCardCss =
-      -- FIXME: For now in mobile only the selected step is visible
-      -- FIXME: For some reason when scaling down an item the space occupied in the parent stays the same
-      --        so it appears to have bigger margins.
-      -- , "-mr-8", "-ml-1"
-      [ "rounded", "shadow-lg", "overflow-hidden", "flex-shrink-0", "w-contract-card", "h-contract-card" ]
-        <> applyWhen (state ^. _selectedStep /= stepNumber) [ "transform", "origin-left", "-mr-10", "scale-77", "hidden", "md:block" ]
+      -- NOTE: The cards that are not selected gets scaled down to 77 percent of the original size. But when you scale down
+      --       an element with CSS transform property, the parent still occupies the same layout dimensions as before,
+      --       so the perceived margins are bigger than we'd want to. To solve this we add negative right margin of 10
+      --       to the "not selected" cards, a positive margin of 5 to the selected one and we set the origin to the transformation
+      --       to be the left side (instead of being the middle).
+      -- Base classes
+      [ "rounded", "overflow-hidden", "flex-shrink-0", "w-contract-card", "h-contract-card" ]
+        <> toggleWhen (state ^. _selectedStep /= stepNumber)
+            -- Not selected card modifiers
+            -- FIXME: For now in mobile only the selected step is visible
+            [ "shadow", "hidden", "md:block", "transform", "origin-left", "scale-77", "-mr-10" ]
+            -- Selected card modifiers
+            [ "shadow-lg", "mr-5" ]
   in
-    --
     div [ classNames contractCardCss ]
       [ div [ classNames [ "flex", "overflow-hidden" ] ]
           [ a
@@ -362,9 +378,6 @@ renderCurrentStep state =
               [ classNames [ "text-xl", "font-semibold", "flex-grow" ] ]
               [ text $ "Step " <> show (stepNumber + 1) ]
           , if contractIsClosed then
-              -- FIXME: Check with russ. The original status indicator for contract closed
-              --        did not have an icon, but all other status indicator has. Check if
-              --        this is fine or if we should use a Maybe icon.
               statusIndicator Nothing "Contract closed" [ "bg-lightgray" ]
             else
               statusIndicator (Just Timer) "1hr 2mins left" [ "bg-lightgray" ]
