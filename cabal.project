@@ -51,6 +51,12 @@ constraints:
   -- aws-lambda-haskell-runtime-wai doesn't compile with newer versions
   aws-lambda-haskell-runtime <= 3.0.3
 
+-- Drops an instance breaking our code. Should be released to Hackage eventually.
+source-repository-package
+  type: git
+  location: https://github.com/Quid2/flat.git
+  tag: 95e5d7488451e43062ca84d5376b3adcc465f1cd
+
 -- Needs some patches, but upstream seems to be fairly dead (no activity in > 1 year)
 source-repository-package
   type: git

@@ -1,17 +1,19 @@
-{-# LANGUAGE ConstraintKinds       #-}
-{-# LANGUAGE DataKinds             #-}
-{-# LANGUAGE DefaultSignatures     #-}
-{-# LANGUAGE FlexibleInstances     #-}
-{-# LANGUAGE GADTs                 #-}
-{-# LANGUAGE KindSignatures        #-}
-{-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE PolyKinds             #-}
-{-# LANGUAGE RankNTypes            #-}
-{-# LANGUAGE TemplateHaskell       #-}
-{-# LANGUAGE TypeApplications      #-}
-{-# LANGUAGE TypeFamilies          #-}
-{-# LANGUAGE TypeOperators         #-}
-{-# LANGUAGE UndecidableInstances  #-}
+{-# LANGUAGE ConstraintKinds          #-}
+{-# LANGUAGE DataKinds                #-}
+{-# LANGUAGE DefaultSignatures        #-}
+{-# LANGUAGE FlexibleInstances        #-}
+{-# LANGUAGE GADTs                    #-}
+{-# LANGUAGE KindSignatures           #-}
+{-# LANGUAGE MultiParamTypeClasses    #-}
+{-# LANGUAGE PolyKinds                #-}
+{-# LANGUAGE QuantifiedConstraints    #-}
+{-# LANGUAGE RankNTypes               #-}
+{-# LANGUAGE StandaloneKindSignatures #-}
+{-# LANGUAGE TemplateHaskell          #-}
+{-# LANGUAGE TypeApplications         #-}
+{-# LANGUAGE TypeFamilies             #-}
+{-# LANGUAGE TypeOperators            #-}
+{-# LANGUAGE UndecidableInstances     #-}
 
 module PlutusCore.Universe.Core
     ( Some (..)
@@ -21,6 +23,9 @@ module PlutusCore.Universe.Core
     , Includes (..)
     , IncludesAll
     , Closed (..)
+    , decodeUni
+    , peelTag
+    , Accepts
     , EverywhereAll
     , type (<:)
     , knownUniOf
@@ -34,11 +39,12 @@ module PlutusCore.Universe.Core
 
 import           Control.DeepSeq
 import           Control.Monad
+import           Control.Monad.Trans.State.Strict
 import           Data.GADT.Compare
 import           Data.GADT.Compare.TH
 import           Data.GADT.Show
 import           Data.Hashable
-import qualified Data.Kind                as GHC (Type)
+import qualified Data.Kind                        as GHC (Type)
 import           Data.Proxy
 import           GHC.Exts
 import           Language.Haskell.TH.Lift
@@ -118,13 +124,41 @@ class Closed uni where
     -- The opposite of 'decodeUni'.
     encodeUni :: uni a -> [Int]
 
-    -- | Decode a type from a sequence of 'Int' tags.
-    -- The opposite of 'encodeUni' (modulo invalid input).
-    decodeUni :: [Int] -> Maybe (Some (TypeIn uni))
+    decodeUniM :: StateT [Int] Maybe (Some (TypeIn uni))
 
     -- | Bring a @constr a@ instance in scope, provided @a@ is a type from the universe and
     -- @constr@ holds for any type from the universe.
     bring :: uni `Everywhere` constr => proxy constr -> uni a -> (constr a => r) -> r
+
+-- | Decode a type from a sequence of 'Int' tags.
+-- The opposite of 'encodeUni' (modulo invalid input).
+decodeUni :: Closed uni => [Int] -> Maybe (Some (TypeIn uni))
+decodeUni is =
+    case runStateT decodeUniM is of
+        Just (res, []) -> Just res
+        _              -> Nothing
+
+-- >>> runStateT peelTag [1,2,3]
+-- Just (1,[2,3])
+-- >>> runStateT peelTag []
+-- Nothing
+peelTag :: StateT [Int] Maybe Int
+peelTag = do
+    i:is <- get
+    i <$ put is
+
+class    (forall a. constr a => constr (f a)) => constr `Accepts1` f
+instance (forall a. constr a => constr (f a)) => constr `Accepts1` f
+
+class    (forall a b. (constr a, constr b) => constr (f a b)) => constr `Accepts2` f
+instance (forall a b. (constr a, constr b) => constr (f a b)) => constr `Accepts2` f
+
+type Accepts :: (* -> Constraint) -> k -> Constraint
+type family constr `Accepts` a
+
+type instance constr `Accepts` a = constr a
+type instance constr `Accepts` f = constr `Accepts1` f
+type instance constr `Accepts` f = constr `Accepts2` f
 
 -- We can't use @All (Everywhere uni) constrs@, because 'Everywhere' is an associated type family
 -- and can't be partially applied, so we have to inline the definition here.

@@ -38,7 +38,7 @@ import           PlutusCore.Core
 import           PlutusCore.Evaluation.Machine.ExMemory
 import           PlutusCore.Evaluation.Result
 import           PlutusCore.Name
-import           PlutusCore.Pretty                              (PrettyConst (..))
+import           PlutusCore.Pretty                              (PrettyConst, prettyConst)
 import           PlutusCore.Quote
 import           PlutusCore.Universe
 

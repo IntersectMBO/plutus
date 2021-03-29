@@ -1,17 +1,22 @@
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 
-{-# LANGUAGE DefaultSignatures    #-}
-{-# LANGUAGE FlexibleInstances    #-}
-{-# LANGUAGE OverloadedStrings    #-}
-{-# LANGUAGE TypeApplications     #-}
-{-# LANGUAGE TypeOperators        #-}
-{-# LANGUAGE UndecidableInstances #-}
+{-# LANGUAGE ConstraintKinds       #-}
+{-# LANGUAGE DataKinds             #-}
+{-# LANGUAGE DefaultSignatures     #-}
+{-# LANGUAGE FlexibleInstances     #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE OverloadedStrings     #-}
+{-# LANGUAGE TypeApplications      #-}
+{-# LANGUAGE TypeFamilies          #-}
+{-# LANGUAGE TypeOperators         #-}
+{-# LANGUAGE UndecidableInstances  #-}
 
 module PlutusCore.Pretty.PrettyConst where
 
 import           PlutusCore.Universe
 
 import qualified Data.ByteString                    as BS
+import           Data.Coerce
 import           Data.Foldable                      (fold)
 import           Data.Proxy
 import qualified Data.Text                          as T
@@ -19,6 +24,8 @@ import           Data.Text.Prettyprint.Doc
 import           Data.Text.Prettyprint.Doc.Internal (Doc (Text))
 import           Data.Word                          (Word8)
 import           Numeric                            (showHex)
+import           Text.PrettyBy
+import           Text.PrettyBy.Internal             (DefaultPrettyBy (..))
 
 {- Note [Prettyprinting built-in constants] When we're printing PLC
    code, the prettyprinter has to render built-in constants.
@@ -41,10 +48,56 @@ import           Numeric                            (showHex)
    type appearing in a universe of built-in types.
 -}
 
-class PrettyConst a where
-    prettyConst :: a -> Doc ann
-    default prettyConst :: Show a => a -> Doc ann
-    prettyConst = pretty . show
+data ConstConfig = ConstConfig
+type instance HasPrettyDefaults ConstConfig = 'False
+
+type PrettyConst = PrettyBy ConstConfig
+
+-- These two can be generalized to any @config@, but that breaks some use cases of 'PrettyAny'
+-- then. Perhaps we should split the functionality and have two separate @newtype@ wrappers
+-- in @prettyprinter-configurable@ instead of a single 'PrettyAny'.
+-- For that we'll also need to ensure that it's alright when @HasPrettyDefaults config ~ 'True@.
+instance DefaultPrettyBy ConstConfig (PrettyAny a) => NonDefaultPrettyBy ConstConfig (PrettyAny a)
+instance DefaultPrettyBy ConstConfig (PrettyAny a) => PrettyBy ConstConfig (PrettyAny a) where
+    prettyBy     = defaultPrettyBy
+    prettyListBy = defaultPrettyListBy
+
+instance Show a => DefaultPrettyBy ConstConfig (PrettyAny a) where
+    defaultPrettyBy     _ = pretty . show . unPrettyAny
+    defaultPrettyListBy _ = pretty . show @[a] . coerce
+
+prettyConst :: PrettyConst a => a -> Doc ann
+prettyConst = prettyBy ConstConfig
+
+displayConst :: forall str a. (PrettyConst a, Render str) => a -> str
+displayConst = render . prettyConst
+
+-- This instance for String quotes control characters (which is what we want)
+-- but also Unicode characters (\8704 and so on).  That may not be ideal.
+-- Note that the spine of a tuple is pretty-printed via 'Pretty' rathen than 'Show'
+-- (there is a space after each @,@). So currently only pretty-printing of lists is Making pretty-printing of polymorphic data types
+-- BLAH BLAH BLAH fix me lists also have spaces after commas
+-- 'Show'-based
+--
+-- >>> putStrLn $ displayConst ("abc\nx\tyz∀" :: String, [((), False), ((), True)])
+-- ("abc\nx\tyz\8704", [((), False), ((), True)])
+-- >>> putStrLn $ show         ("abc\nx\tyz∀" :: String, [((), False), ((), True)])
+-- ("abc\nx\tyz\8704",[((),False),((),True)])
+-- >>> putStrLn $ displayConst ["abc" :: String, "\nx\tyz", "∀"]
+-- ["abc", "\nx\tyz", "\8704"]
+-- >>> import Text.Read
+-- >>> readMaybe "[((), False), ((), True)]" :: Maybe [((), Bool)]
+-- Just [((),False),((),True)]
+deriving via PrettyAny Char    instance NonDefaultPrettyBy ConstConfig Char
+deriving via PrettyAny ()      instance NonDefaultPrettyBy ConstConfig ()
+deriving via PrettyAny Bool    instance NonDefaultPrettyBy ConstConfig Bool
+deriving via PrettyAny Integer instance NonDefaultPrettyBy ConstConfig Integer
+
+instance PrettyConst a => NonDefaultPrettyBy ConstConfig [a]
+instance (PrettyConst a, PrettyConst b) => NonDefaultPrettyBy ConstConfig (a, b)
+
+instance PrettyBy ConstConfig BS.ByteString where
+    prettyBy _ b = "#" <> fold (asBytes <$> BS.unpack b)
 
 -- Special instance for bytestrings
 asBytes :: Word8 -> Doc ann
@@ -53,18 +106,6 @@ asBytes x = Text 2 $ T.pack $ addLeadingZero $ showHex x mempty
           addLeadingZero
               | x < 16    = ('0' :)
               | otherwise = id
-
-instance PrettyConst BS.ByteString where
-    prettyConst b = "#" <> fold (asBytes <$> BS.unpack b)
-
--- The basic built-in types use `show` via the default instance
-instance PrettyConst ()
-instance PrettyConst Bool
-instance PrettyConst Char
-instance PrettyConst Integer
-instance PrettyConst String
--- ^ This instance for String quotes control characters (which is what we want)
--- but also Unicode characters (\8704 and so on).  That may not be ideal.
 
 instance GShow uni => Pretty (TypeIn uni a) where
     pretty (TypeIn uni) = pretty $ gshow uni

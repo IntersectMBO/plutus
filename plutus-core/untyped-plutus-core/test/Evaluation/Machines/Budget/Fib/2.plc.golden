@@ -24,7 +24,7 @@
 | mem: 1
 })
 | BBuiltinApp SubtractInteger causes ({ cpu: 0
-| mem: 82
+| mem: 208
 })
 | BBuiltinApp LessThanEqInteger causes ({ cpu: 0
 | mem: 3
@@ -33,9 +33,9 @@
 | mem: 3
 })
 | BAST causes ({ cpu: 0
-| mem: 40
+| mem: 103
 })})
 | budget: ({ cpu: 160
-| mem: 129
+| mem: 318
 })
 }) )

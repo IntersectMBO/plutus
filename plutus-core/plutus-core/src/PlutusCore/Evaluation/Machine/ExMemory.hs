@@ -32,7 +32,6 @@ import qualified Data.ByteString          as BS
 import qualified Data.Kind                as GHC
 import           Data.Proxy
 import qualified Data.Text                as T
-import           Foreign.Storable
 import           GHC.Generics
 import           GHC.Integer
 import           GHC.Integer.Logarithms
@@ -149,8 +148,7 @@ instance ExMemoryUsage Char where
 instance ExMemoryUsage Bool where
   memoryUsage _ = 1
 
-instance ExMemoryUsage String where
-  memoryUsage string = ExMemory $ (toInteger $ sum $ fmap sizeOf string) `div` 8
+deriving via GenericExMemoryUsage [a] instance ExMemoryUsage a => ExMemoryUsage [a]
 
 withMemory :: ExMemoryUsage (f a) => Functor f => f a -> f ExMemory
 withMemory x = fmap (const (memoryUsage x)) x

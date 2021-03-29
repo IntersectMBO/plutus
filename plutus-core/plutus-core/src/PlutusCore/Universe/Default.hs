@@ -1,15 +1,19 @@
+{-# LANGUAGE PolyKinds               #-}
+{-# LANGUAGE RankNTypes              #-}
+{-# LANGUAGE UndecidableSuperClasses #-}
 -- | The universe used by default and its instances.
 
-{-# OPTIONS_GHC -fno-warn-orphans        #-}  -- The @Pretty ByteString@ instance.
-{-# OPTIONS_GHC -fno-warn-unused-matches #-}  -- Appears in generated instances.
-
-{-# LANGUAGE FlexibleInstances     #-}
-{-# LANGUAGE GADTs                 #-}
-{-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE OverloadedStrings     #-}
-{-# LANGUAGE TemplateHaskell       #-}
-{-# LANGUAGE TypeFamilies          #-}
-{-# LANGUAGE TypeOperators         #-}
+{-# LANGUAGE ConstraintKinds         #-}
+{-# LANGUAGE FlexibleInstances       #-}
+{-# LANGUAGE GADTs                   #-}
+{-# LANGUAGE LambdaCase              #-}
+{-# LANGUAGE MultiParamTypeClasses   #-}
+{-# LANGUAGE OverloadedStrings       #-}
+{-# LANGUAGE QuantifiedConstraints   #-}
+{-# LANGUAGE TemplateHaskell         #-}
+{-# LANGUAGE TypeFamilies            #-}
+{-# LANGUAGE TypeOperators           #-}
+{-# LANGUAGE UndecidableInstances    #-}
 
 module PlutusCore.Universe.Default
     ( DefaultUni (..)
@@ -18,7 +22,10 @@ module PlutusCore.Universe.Default
 import           PlutusCore.Parsable
 import           PlutusCore.Universe.Core
 
+import           Control.Applicative
 import qualified Data.ByteString          as BS
+import           Data.Foldable
+import qualified Data.Text                as Text
 
 {- Note [PLC types and universes]
 We encode built-in types in PLC as tags for Haskell types (the latter are also called meta-types),
@@ -65,38 +72,62 @@ and have meta-constructors as builtin names. We still have to handle types someh
 data DefaultUni a where
     DefaultUniInteger    :: DefaultUni Integer
     DefaultUniByteString :: DefaultUni BS.ByteString
-    DefaultUniString     :: DefaultUni String
     DefaultUniChar       :: DefaultUni Char
     DefaultUniUnit       :: DefaultUni ()
     DefaultUniBool       :: DefaultUni Bool
+    DefaultUniList       :: !(DefaultUni a) -> DefaultUni [a]
+    DefaultUniTuple      :: !(DefaultUni a) -> !(DefaultUni b) -> DefaultUni (a, b)
 
 deriveGEq ''DefaultUni
 deriving instance Lift (DefaultUni a)
 
 instance GShow DefaultUni where gshowsPrec = showsPrec
 instance Show (DefaultUni a) where
-    show DefaultUniInteger    = "integer"
-    show DefaultUniByteString = "bytestring"
-    show DefaultUniString     = "string"
-    show DefaultUniChar       = "char"
-    show DefaultUniUnit       = "unit"
-    show DefaultUniBool       = "bool"
+    show DefaultUniInteger     = "integer"
+    show DefaultUniByteString  = "bytestring"
+    show DefaultUniChar        = "char"
+    show DefaultUniUnit        = "unit"
+    show DefaultUniBool        = "bool"
+    show (DefaultUniList a)    = case a of
+        DefaultUniChar -> "string"
+        _              -> "[" ++ show a ++ "]"
+    show (DefaultUniTuple a b) = concat ["(", show a, ",", show b, ")"]
 
 instance Parsable (Some DefaultUni) where
     parse "bool"       = Just $ Some DefaultUniBool
     parse "bytestring" = Just $ Some DefaultUniByteString
     parse "char"       = Just $ Some DefaultUniChar
     parse "integer"    = Just $ Some DefaultUniInteger
-    parse "string"     = Just $ Some DefaultUniString
     parse "unit"       = Just $ Some DefaultUniUnit
-    parse _            = Nothing
+    parse "string"     = Just . Some $ DefaultUniList DefaultUniChar
+    parse text         = asum
+        [ do
+            aT <- Text.stripPrefix "[" text >>= Text.stripSuffix "]"
+            Some a <- parse aT
+            Just . Some $ DefaultUniList a
+        , do
+            abT <- Text.stripPrefix "(" text >>= Text.stripSuffix ")"
+            -- Note that we don't allow whitespace after @,@ (but we could).
+            -- Anyway, looking for a single comma is just plain wrong, as we may have a nested
+            -- tuple (and it can be left- or right- or both-nested), so we're running into
+            -- the same parsing problem as with constants.
+            case Text.splitOn "," abT of
+                [aT, bT] -> do
+                    Some a <- parse aT
+                    Some b <- parse bT
+                    Just . Some $ DefaultUniTuple a b
+                _ -> Nothing
+        ]
 
-instance DefaultUni `Includes` Integer         where knownUni = DefaultUniInteger
-instance DefaultUni `Includes` BS.ByteString   where knownUni = DefaultUniByteString
-instance a ~ Char => DefaultUni `Includes` [a] where knownUni = DefaultUniString
-instance DefaultUni `Includes` Char            where knownUni = DefaultUniChar
-instance DefaultUni `Includes` ()              where knownUni = DefaultUniUnit
-instance DefaultUni `Includes` Bool            where knownUni = DefaultUniBool
+instance DefaultUni `Includes` Integer       where knownUni = DefaultUniInteger
+instance DefaultUni `Includes` BS.ByteString where knownUni = DefaultUniByteString
+instance DefaultUni `Includes` Char          where knownUni = DefaultUniChar
+instance DefaultUni `Includes` ()            where knownUni = DefaultUniUnit
+instance DefaultUni `Includes` Bool          where knownUni = DefaultUniBool
+instance DefaultUni `Includes` a => DefaultUni `Includes` [a] where
+    knownUni = DefaultUniList knownUni
+instance (DefaultUni `Includes` a, DefaultUni `Includes` b) => DefaultUni `Includes` (a, b) where
+    knownUni = DefaultUniTuple knownUni knownUni
 
 {- Note [Stable encoding of tags]
 'encodeUni' and 'decodeUni' are used for serialisation and deserialisation of types from the
@@ -108,34 +139,44 @@ See Note [Stable encoding of PLC]
 
 instance Closed DefaultUni where
     type DefaultUni `Everywhere` constr =
-        ( constr Integer
-        , constr BS.ByteString
-        , constr String
-        , constr Char
-        , constr ()
-        , constr Bool
+        ( constr `Accepts` Integer
+        , constr `Accepts` BS.ByteString
+        , constr `Accepts` Char
+        , constr `Accepts` ()
+        , constr `Accepts` Bool
+        , constr `Accepts` []
+        , constr `Accepts` (,)
         )
 
     -- See Note [Stable encoding of tags].
-    encodeUni DefaultUniInteger    = [0]
-    encodeUni DefaultUniByteString = [1]
-    encodeUni DefaultUniString     = [2]
-    encodeUni DefaultUniChar       = [3]
-    encodeUni DefaultUniUnit       = [4]
-    encodeUni DefaultUniBool       = [5]
+    encodeUni DefaultUniInteger     = [0]
+    encodeUni DefaultUniByteString  = [1]
+    encodeUni DefaultUniChar        = [2]
+    encodeUni DefaultUniUnit        = [3]
+    encodeUni DefaultUniBool        = [4]
+    encodeUni (DefaultUniList a)    = 5 : encodeUni a
+    encodeUni (DefaultUniTuple a b) = 6 : encodeUni a ++ encodeUni b
 
     -- See Note [Stable encoding of tags].
-    decodeUni [0] = Just . Some $ TypeIn DefaultUniInteger
-    decodeUni [1] = Just . Some $ TypeIn DefaultUniByteString
-    decodeUni [2] = Just . Some $ TypeIn DefaultUniString
-    decodeUni [3] = Just . Some $ TypeIn DefaultUniChar
-    decodeUni [4] = Just . Some $ TypeIn DefaultUniUnit
-    decodeUni [5] = Just . Some $ TypeIn DefaultUniBool
-    decodeUni _   = Nothing
+    decodeUniM = peelTag >>= \case
+        0 -> pure . Some $ TypeIn DefaultUniInteger
+        1 -> pure . Some $ TypeIn DefaultUniByteString
+        2 -> pure . Some $ TypeIn DefaultUniChar
+        3 -> pure . Some $ TypeIn DefaultUniUnit
+        4 -> pure . Some $ TypeIn DefaultUniBool
+        5 -> do
+            Some (TypeIn a) <- decodeUniM
+            pure . Some . TypeIn $ DefaultUniList a
+        6 -> do
+            Some (TypeIn a) <- decodeUniM
+            Some (TypeIn b) <- decodeUniM
+            pure . Some . TypeIn $ DefaultUniTuple a b
+        _ -> empty
 
-    bring _ DefaultUniInteger    = id
-    bring _ DefaultUniByteString = id
-    bring _ DefaultUniString     = id
-    bring _ DefaultUniChar       = id
-    bring _ DefaultUniUnit       = id
-    bring _ DefaultUniBool       = id
+    bring _ DefaultUniInteger     r = r
+    bring _ DefaultUniByteString  r = r
+    bring _ DefaultUniChar        r = r
+    bring _ DefaultUniUnit        r = r
+    bring _ DefaultUniBool        r = r
+    bring p (DefaultUniList a)    r = bring p a r
+    bring p (DefaultUniTuple a b) r = bring p a $ bring p b r

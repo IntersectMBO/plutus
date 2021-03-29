@@ -1,6 +1,8 @@
 {-# LANGUAGE DefaultSignatures #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TupleSections     #-}
+{-# LANGUAGE TypeApplications  #-}
 
 {- | A typeclass which provides a `parseConstant` method to convert Text strings
 into objects of the appropriate type. This allows one to define parsers for
@@ -20,26 +22,78 @@ import           Data.Bits       (shiftL, (.|.))
 import           Data.ByteString (ByteString)
 import qualified Data.ByteString as BS (pack)
 import           Data.Char       (ord)
+import           Data.Maybe
 import qualified Data.Text       as T
-import           Text.Read       (readMaybe)
+import           Text.Read
+
+parseDefault :: Read a => T.Text -> Maybe a
+parseDefault = readMaybe . T.unpack
+
+{-
+https://github.com/input-output-hk/plutus/pull/2458
+
+effectfully:
+I think what we should do is make Parsable megaparsec-based. Then constant parsers consume as many symbols as they like and we won't need to try to predict in the main parser what is a constant and what is formatting.
+
+kwxm:
+If you look in Lexer.x there's extensive commentary about how it parses constants. We could steal the relevant regular expressions from there or reuse the entire lexer. I'm not convinced that letting types do their own lexical analysis is a good idea: doing these things correctly can be quite tricky and if you got it wrong it might mess up the main parser in some subtle way that doesn't show up until you encounter an unexpected situation. The way that it's done at the moment provides reasonably general syntax for constants and I'm fairly confident it's correct. I guess I feel that this is low-level stuff that should be done once and then shut away in a box where it won't cause any trouble.
+
+michaelpj:
+I think the parsers are generally not super urgent. I also think it's okay to have them not be totally robust: they're not in the "production" line, we don't really have to worry about users doing arbitrary/malicious things with them. It would be nice if they were really solid, but we can live with a few holes.
+-}
 
 -- | A class for things that are parsable. Those include tags for built-in types and constants of
 -- such types.
 class Parsable a where
+    -- | Return Nothing if the string is invalid, otherwise the corresponding value of type a.
     parse :: T.Text -> Maybe a
-    -- ^ Return Nothing if the string is invalid, otherwise the corresponding value of type a.
-    default parse :: Read a => T.Text -> Maybe a
-    parse = readMaybe . T.unpack
-    -- ^ The default implementation is in terms of 'Read'.
 
-instance Parsable Bool
-instance Parsable Char
-instance Parsable Integer
-instance Parsable String
-instance Parsable ()
+    parseList :: T.Text -> Maybe [a]
+    parseList = error "No default implementation for 'parseList'"
 
-instance Parsable ByteString
-  where parse = parseByteStringConstant
+newtype AsParsable a = AsParsable a
+instance Parsable a => Read (AsParsable a) where
+    readsPrec _ = maybeToList . fmap ((, "") . AsParsable) . parse . T.pack
+    readList = maybeToList . fmap ((, "") . fmap AsParsable) . parseList . T.pack
+
+-- newtype DeriveParseList a = DeriveParseList a
+-- instance Parsable a => Read (DeriveParseList a) where
+--     readsPrec = coerce $ readsPrec @(AsParsable a)
+
+--     parseList = coerce $ parseDefault @[DeriveParseList a]
+
+newtype AsReadMono a = AsReadMono a
+instance Read a => Parsable (AsReadMono a) where
+    parse = coerce $ parseDefault @a
+    parseList = coerce $ parseDefault @[a]
+
+newtype AsReadPoly a = AsReadPoly a
+instance Read a => Parsable (AsReadPoly a) where
+    parse = coerce $ parseDefault @a
+
+instance Parsable a => Parsable [a] where
+    parse = parseList
+
+-- >>> :set -XOverloadedStrings
+-- >>> parse "[False, True]" :: Maybe [Bool]
+-- Just [False,True]
+-- >>> parse "\"abc\"" :: Maybe String
+-- Just "abc"
+-- >>> parse "[\"abc\"]" :: Maybe [String]
+-- *** Exception: No default implementation for 'parseList'
+-- CallStack (from HasCallStack):
+--   error, called at /tmp/dante19742wSk.hs:53:17 in main:PlutusCore.Parsable
+deriving via AsReadMono Bool    instance Parsable Bool
+deriving via AsReadMono Char    instance Parsable Char
+deriving via AsReadMono Integer instance Parsable Integer
+deriving via AsReadMono ()      instance Parsable ()
+
+deriving via AsReadPoly (AsParsable a, AsParsable b)
+    instance (Parsable a, Parsable b) => Parsable (a, b)
+
+instance Parsable ByteString where
+    parse = parseByteStringConstant
+
 
 
 --- Parsing bytestrings ---

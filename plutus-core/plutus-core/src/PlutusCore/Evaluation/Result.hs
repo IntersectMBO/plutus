@@ -83,10 +83,6 @@ instance Alternative EvaluationResult where
     EvaluationSuccess x <|> _ = EvaluationSuccess x
     EvaluationFailure   <|> a = a
 
-instance PrettyConst a => PrettyConst (EvaluationResult a) where
-    prettyConst (EvaluationSuccess x) = prettyConst x
-    prettyConst EvaluationFailure     = "Failure"
-
 instance PrettyBy config a => PrettyBy config (EvaluationResult a) where
     prettyBy config (EvaluationSuccess x) = prettyBy config x
     prettyBy _      EvaluationFailure     = "Failure"
