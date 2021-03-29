@@ -218,6 +218,7 @@ lem62 A B E (μl E' C) refl = step*
   refl
   (lem62 A _ (extendEvalCtx E (μ- C)) E' refl)
 
+
 -- this is like a weakening of the environment
 lem-→⋆ : (A B : ∅ ⊢⋆ J)(E : EvalCtx K J) → A —→⋆ B → (E ▻ A) -→s (E ▻ B)
 lem-→⋆ (ƛ A · B) ._ E (β-ƛ V) = step* refl (step* refl (step* (stepV·l-lem E B (V-ƛ A) ) (step** (lemV B V (extendEvalCtx E (V-ƛ A ·-))) (step* (stepV·r-lem E B V) base))))
@@ -279,12 +280,15 @@ unwindV A VA A' E p V | inj₂ (.* , E' , μ W -) | I[ eq ]
   = step* (cong (stepV VA) (lemma E' (μ W -)))
           (unwindV _ (V-μ W VA) A' E' (trans p (closeEF E' (μ W -) A)) V)
 
-
-
 unwind : (A : ∅ ⊢⋆ J)(A' : ∅ ⊢⋆ K)(E : EvalCtx K J) → A' ≡ closeEvalCtx E A → (V : Value⋆ A') → (E ▻ A) -→s ([] ◅ V)
 unwind A A' E p VA' = step** (lemV A VA E) (unwindV A VA A' E p VA')
   where VA = lem0 A E (subst Value⋆ p VA')
 
+postulate
+  unwindE : (A : ∅ ⊢⋆ I)(B : ∅ ⊢⋆ J)(E : EvalCtx K J)(E' : EvalCtx J I)
+      → B ≡ closeEvalCtx E' A
+      → Value⋆ B
+      → (compEvalCtx' E E' ▻ A) -→s (E ▻ B) 
 
 β-lem : A ≡ ƛ A' · B' → A —→⋆ B → B ≡ A' [ B' ]
 β-lem refl (β-ƛ x) = refl
@@ -295,7 +299,6 @@ thm1 : (A : ∅ ⊢⋆ J)(A' : ∅ ⊢⋆ K)(E : EvalCtx K J)
   → A' ≡ closeEvalCtx E A → (B : ∅ ⊢⋆ K)(V : Value⋆ B) → A' —↠E B -> (E ▻ A) -→s ([] ◅ V)
 thm1 M A E p .A V refl—↠E = unwind M A E p V
 thm1 M A E refl B V (trans—↠E {B = B'} q q') with lemmaE' M E B' q
--- this is the first case
 ... | J' , E' , L , N , r , r' , r'' , inj₁ (E'' , refl) =
   step**
    ((step** (lem62 L M E E'' refl)
@@ -429,7 +432,13 @@ thm1 M .(closeEvalCtx E M) E refl B V (trans—↠E {B = B'} q q') | J' , E' , .
                              (sym (β-lem refl r)))
                     base)))))))))
   (thm1 N B' E' (sym r'') B V q')
-thm1 M A E refl B V (trans—↠E {B = B'} q q') | J' , E' , L , N , r , r' , r'' , inj₂ VM | I , _ , N' , V-ƛ L' , VN' , refl | inj₂ (inj₂ (inj₂ (inj₂ (inj₂ y)))) = {!y!}
+thm1 M A E refl B V (trans—↠E {B = B'} q q') | J' , E' , L , N , r , r' , r'' , inj₂ VM | I , _ , N' , V-ƛ L' , VN' , refl | inj₂ (inj₂ (inj₂ (inj₂ (inj₂ (I' , F , VF))))) = step**
+-- the frame being a value should rule
+-- out the above applications directly matching and also the ones
+-- where there is still some computation to in the immediate frame
+-- so, L · N is higher up in E
+  (step** (subst-step*  {!!} (unwindE M (closeFrame F M) {!!} (evalFrame F []) {!!} VF)) {!!} )
+  (thm1 N B' E' (sym r'') B V q')
 
 thm2 : (A B : ∅ ⊢⋆ K)(V : Value⋆ B) → A —↠E B -> ([] ▻ A) -→s ([] ◅ V)
 thm2 A B V p = thm1 A A [] refl B V p
