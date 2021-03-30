@@ -77,6 +77,7 @@ in
       script = ''
         if [ -f /var/lib/playgrounds/marlowe.env ]; then
           echo "Loading environment config from '/var/lib/playgrounds/marlowe.env'"
+          source /var/lib/playgrounds/marlowe.env
         else
           echo "No environment config. Using defaults"
         fi

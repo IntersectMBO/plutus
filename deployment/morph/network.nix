@@ -80,7 +80,7 @@ in
     services.marlowe-playground = {
       enable = true;
       port = 4001;
-      frontendURL = "${tfinfo.environment}.${tfinfo.marloweTld}";
+      frontendURL = "https://${tfinfo.environment}.${tfinfo.marloweTld}";
       playground-server-package = plutus.marlowe-playground.server;
     };
 
@@ -88,7 +88,7 @@ in
       enable = true;
       port = 4000;
       webghcURL = "http://${tfinfo.webghcB.dns}";
-      frontendURL = "${tfinfo.environment}.${tfinfo.plutusTld}";
+      frontendURL = "https://${tfinfo.environment}.${tfinfo.plutusTld}";
       playground-server-package = plutus.plutus-playground.server;
     };
 
@@ -159,17 +159,34 @@ in
 
     users.extraUsers.root.openssh.authorizedKeys.keys = tfinfo.rootSshKeys;
 
-    deployment.healthChecks = {
-      cmd = [
-        {
-          cmd = [ "systemctl" "status" "plutus-playground.service" ];
-          description = "Check if plutus-playground systemd service is running";
-        }
-        {
-          cmd = [ "systemctl" "status" "marlowe-playground.service" ];
-          description = "Check if marlowe-playground systemd service is running";
-        }
-      ];
+    deployment = {
+      secrets = {
+        "plutus-secrets" = {
+          source = "./secrets.plutus.${tfinfo.environment}.env";
+          destination = "/var/lib/playgrounds/plutus.env";
+          action = [ "systemctl" "restart" "plutus-playground" ];
+          permissions = "0444";
+        };
+        "marlowe-secrets" = {
+          source = "./secrets.marlowe.${tfinfo.environment}.env";
+          destination = "/var/lib/playgrounds/marlowe.env";
+          action = [ "systemctl" "restart" "marlowe-playground" ];
+          permissions = "0444";
+        };
+
+      };
+      healthChecks = {
+        cmd = [
+          {
+            cmd = [ "systemctl" "status" "plutus-playground.service" ];
+            description = "Check if plutus-playground systemd service is running";
+          }
+          {
+            cmd = [ "systemctl" "status" "marlowe-playground.service" ];
+            description = "Check if marlowe-playground systemd service is running";
+          }
+        ];
+      };
     };
 
   };
@@ -189,7 +206,7 @@ in
     services.marlowe-playground = {
       enable = true;
       port = 4001;
-      frontendURL = "${tfinfo.environment}.${tfinfo.marloweTld}";
+      frontendURL = "https://${tfinfo.environment}.${tfinfo.marloweTld}";
       playground-server-package = plutus.marlowe-playground.server;
     };
 
@@ -197,7 +214,7 @@ in
       enable = true;
       port = 4000;
       webghcURL = "http://${tfinfo.webghcA.dns}";
-      frontendURL = "${tfinfo.environment}.${tfinfo.plutusTld}";
+      frontendURL = "https://${tfinfo.environment}.${tfinfo.plutusTld}";
       playground-server-package = plutus.plutus-playground.server;
     };
 
@@ -274,18 +291,36 @@ in
 
     users.extraUsers.root.openssh.authorizedKeys.keys = tfinfo.rootSshKeys;
 
-    deployment.healthChecks = {
-      cmd = [
-        {
-          cmd = [ "systemctl" "status" "plutus-playground.service" ];
-          description = "Check if plutus-playground systemd service is running";
-        }
-        {
-          cmd = [ "systemctl" "status" "marlowe-playground.service" ];
-          description = "Check if marlowe-playground systemd service is running";
-        }
-      ];
+    deployment = {
+      secrets = {
+        "plutus-secrets" = {
+          source = "./secrets.plutus.${tfinfo.environment}.env";
+          destination = "/var/lib/playgrounds/plutus.env";
+          action = [ "systemctl" "restart" "plutus-playground" ];
+          permissions = "0444";
+        };
+        "marlowe-secrets" = {
+          source = "./secrets.marlowe.${tfinfo.environment}.env";
+          destination = "/var/lib/playgrounds/marlowe.env";
+          action = [ "systemctl" "restart" "marlowe-playground" ];
+          permissions = "0444";
+        };
+
+      };
+      healthChecks = {
+        cmd = [
+          {
+            cmd = [ "systemctl" "status" "plutus-playground.service" ];
+            description = "Check if plutus-playground systemd service is running";
+          }
+          {
+            cmd = [ "systemctl" "status" "marlowe-playground.service" ];
+            description = "Check if marlowe-playground systemd service is running";
+          }
+        ];
+      };
     };
+
 
   };
 

@@ -153,22 +153,17 @@ let
         echo "[deploy-nix]: Writing plutus secrets ..."
         plutus_tld=$(cat ./machines.json | ${jq}/bin/jq -r '.plutusTld')
         cat > ./morph/secrets.plutus.$DEPLOYMENT_ENV.env <<EOL
-        JWT_SIGNATURE="$(pass $DEPLOYMENT_ENV/plutus/jwtSignature)"
-        FRONTEND_URL="https://$DEPLOYMENT_ENV.$plutus_tld"
-        GITHUB_CALLBACK_PATH="/#/gh-oauth-cb"
-        GITHUB_CLIENT_ID="$(pass $DEPLOYMENT_ENV/plutus/githubClientId)"
-        GITHUB_CLIENT_SECRET="$(pass $DEPLOYMENT_ENV/plutus/githubClientSecret)"
-        WEBGHC_URL="https://$DEPLOYMENT_ENV.$plutus_tld"
+        export JWT_SIGNATURE="$(pass $DEPLOYMENT_ENV/plutus/jwtSignature)"
+        export GITHUB_CLIENT_ID="$(pass $DEPLOYMENT_ENV/plutus/githubClientId)"
+        export GITHUB_CLIENT_SECRET="$(pass $DEPLOYMENT_ENV/plutus/githubClientSecret)"
         EOL
 
         echo "[deploy-nix]: Writing marlowe secrets ..."
         marlowe_tld=$(cat ./machines.json | ${jq}/bin/jq -r '.marloweTld')
         cat > ./morph/secrets.marlowe.$DEPLOYMENT_ENV.env <<EOL
         JWT_SIGNATURE="$(pass $DEPLOYMENT_ENV/marlowe/jwtSignature)"
-        FRONTEND_URL="https://$DEPLOYMENT_ENV.$marlowe_tld"
-        GITHUB_CALLBACK_PATH="/#/gh-oauth-cb"
-        GITHUB_CLIENT_ID="$(pass $DEPLOYMENT_ENV/marlowe/githubClientId)"
-        GITHUB_CLIENT_SECRET="$(pass $DEPLOYMENT_ENV/marlowe/githubClientSecret)"
+        export GITHUB_CLIENT_ID="$(pass $DEPLOYMENT_ENV/marlowe/githubClientId)"
+        export GITHUB_CLIENT_SECRET="$(pass $DEPLOYMENT_ENV/marlowe/githubClientSecret)"
         EOL
 
         # in order for morph to be able to access any of the machines
