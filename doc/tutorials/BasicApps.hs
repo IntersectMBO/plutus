@@ -125,7 +125,7 @@ unlockFunds SplitData{recipient1, recipient2, amount} = do
 
 -- BLOCK9
 
-endpoints :: Contract () SplitSchema T.Text ()
+endpoints :: Contract SplitSchema T.Text ()
 -- BLOCK10
 
 endpoints = (lock >>= lockFunds . mkSplitData) `select` (unlock >>= unlockFunds . mkSplitData)
