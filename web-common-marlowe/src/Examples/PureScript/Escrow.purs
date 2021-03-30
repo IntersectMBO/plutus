@@ -1,4 +1,4 @@
-module Marlowe.Market.Escrow
+module Examples.PureScript.Escrow
   ( contractTemplate
   , metaData
   , extendedContract

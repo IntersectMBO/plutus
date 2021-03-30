@@ -16,12 +16,12 @@ import Examples.Marlowe.Contracts as Contracts
 import Marlowe.Extended (TemplateContent(..), fillTemplate, toCore)
 import Marlowe.Extended as EM
 import Marlowe.Holes (fromTerm)
-import Marlowe.Market.Escrow as Escrow
-import Marlowe.Market.EscrowWithCollateral as EscrowWithCollateral
-import Marlowe.Market.ZeroCouponBond as ZeroCouponBond
-import Marlowe.Market.CouponBondGuaranteed as CouponBondGuaranteed
-import Marlowe.Market.Swap as Swap
-import Marlowe.Market.ContractForDifferences as ContractForDifferences
+import Examples.PureScript.Escrow as Escrow
+import Examples.PureScript.EscrowWithCollateral as EscrowWithCollateral
+import Examples.PureScript.ZeroCouponBond as ZeroCouponBond
+import Examples.PureScript.CouponBondGuaranteed as CouponBondGuaranteed
+import Examples.PureScript.Swap as Swap
+import Examples.PureScript.ContractForDifferences as ContractForDifferences
 import Marlowe.Parser (parseContract)
 import Marlowe.Semantics (ChoiceId(..), Contract(..), Input(..), Party(..), Token(..))
 import SimulationPage.Types (_SimulationRunning, _currentContract, _executionState, _marloweState, _pendingInputs, _transactionError, emptyExecutionStateWithSlot, mkState)

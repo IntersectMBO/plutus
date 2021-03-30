@@ -20,8 +20,8 @@ import Data.Tuple.Nested ((/\))
 import Halogen (HalogenM)
 import Marlowe.Execution (nextState)
 import Marlowe.Extended (TemplateContent(..), fillTemplate, toCore)
-import Marlowe.Market.Escrow as Escrow
-import Marlowe.Market.ZeroCouponBond as ZeroCouponBond
+import Examples.PureScript.Escrow as Escrow
+import Examples.PureScript.ZeroCouponBond as ZeroCouponBond
 import Marlowe.Semantics (Input(..), Party(..), Slot(..), SlotInterval(..), Token(..), TransactionInput(..))
 
 -- FIXME: debug purposes only, delete later

@@ -1,4 +1,4 @@
-module Marlowe.Market.EscrowWithCollateral
+module Examples.PureScript.EscrowWithCollateral
   ( contractTemplate
   , metaData
   , extendedContract
