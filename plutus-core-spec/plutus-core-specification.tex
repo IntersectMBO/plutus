@@ -1,6 +1,6 @@
 % Plutus Core Specification
-\title{Formal Specification of\\the Plutus Core Language (version 2.0)}
-\date{27th May 2020}
+\title{Formal Specification of\\the Plutus Core Language (version 2.1)}
+\date{30th March 2021}
 
 \renewcommand{\thefootnote}{\fnsymbol{footnote}}
 
@@ -469,7 +469,7 @@ equality: fixpoint types are
 \textit{isorecursive}~\citep[20.2]{Pierce:TAPL} with explicit maps
 
 $$
-\texttt{iwrap} : \texttt{A (fix A) B} \rightarrow \texttt{ifix A B}
+\texttt{iwrap} : \texttt{A (ifix A) B} \rightarrow \texttt{ifix A B}
 $$
 
 \noindent and
