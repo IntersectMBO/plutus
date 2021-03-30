@@ -34,11 +34,13 @@
       "library" = {
         depends = [
           (hsPkgs."plutus-ledger" or (errorHandler.buildDepError "plutus-ledger"))
+          (hsPkgs."plutus-ledger-api" or (errorHandler.buildDepError "plutus-ledger-api"))
           (hsPkgs."plutus-tx" or (errorHandler.buildDepError "plutus-tx"))
           (hsPkgs."freer-extras" or (errorHandler.buildDepError "freer-extras"))
           (hsPkgs."aeson" or (errorHandler.buildDepError "aeson"))
           (hsPkgs."base" or (errorHandler.buildDepError "base"))
           (hsPkgs."containers" or (errorHandler.buildDepError "containers"))
+          (hsPkgs."data-default" or (errorHandler.buildDepError "data-default"))
           (hsPkgs."deepseq" or (errorHandler.buildDepError "deepseq"))
           (hsPkgs."lens" or (errorHandler.buildDepError "lens"))
           (hsPkgs."text" or (errorHandler.buildDepError "text"))

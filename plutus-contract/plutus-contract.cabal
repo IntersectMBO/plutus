@@ -98,12 +98,14 @@ library
     hs-source-dirs: src
     build-depends:
         plutus-ledger -any,
+        plutus-ledger-api -any,
         plutus-tx -any,
         freer-extras -any,
     build-depends:
         aeson >= 1.5.2,
         base >=4.7 && <5,
         containers -any,
+        data-default -any,
         deepseq -any,
         lens -any,
         text -any,

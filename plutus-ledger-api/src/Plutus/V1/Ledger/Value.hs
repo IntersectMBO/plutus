@@ -42,12 +42,14 @@ module Plutus.V1.Ledger.Value(
     , isZero
     , split
     , unionWith
+    , flattenValue
     ) where
 
 import qualified Prelude                          as Haskell
 
 import           Codec.Serialise.Class            (Serialise)
 import           Control.DeepSeq                  (NFData)
+import           Control.Monad                    (guard)
 import           Data.Aeson                       (FromJSON, FromJSONKey, ToJSON, ToJSONKey, (.:))
 import qualified Data.Aeson                       as JSON
 import qualified Data.Aeson.Extras                as JSON
@@ -307,6 +309,15 @@ unionWith f ls rs =
             That b    -> f 0 b
             These a b -> f a b
     in Value (fmap (fmap unThese) combined)
+
+{-# INLINABLE flattenValue #-}
+-- | Convert a value to a simple list, keeping only the non-zero amounts.
+flattenValue :: Value -> [(CurrencySymbol, TokenName, Integer)]
+flattenValue v = do
+    (cs, m) <- Map.toList $ getValue v
+    (tn, a) <- Map.toList m
+    guard $ a /= 0
+    return (cs, tn, a)
 
 -- Num operations
 
