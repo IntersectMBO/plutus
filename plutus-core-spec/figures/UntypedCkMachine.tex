@@ -30,7 +30,7 @@
 %\hspace{-1cm}
     \begin{minipage}{\linewidth}
 \begin{alignat*}{2}
-  s & \compute \con{cn}                          &~\mapsto~& s \return \con{cn}\\
+  s & \compute \con{tn}{cn}                      &~\mapsto~& s \return \con{tn}{cn}\\
   s & \compute \lamU{x}{M}                       &~\mapsto~& s \return \lamU{x}{M}\\
   s & \compute \delay{M}                         &~\mapsto~& s \return \delay{M}\\
   s & \compute \force{M}                         &~\mapsto~& s,\inForceFrame{} \compute M \\
