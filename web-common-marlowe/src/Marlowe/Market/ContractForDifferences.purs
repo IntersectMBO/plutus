@@ -1,4 +1,4 @@
-module Marlowe.Market.Contract6
+module Marlowe.Market.ContractForDifferences
   ( contractTemplate
   , metaData
   , extendedContract

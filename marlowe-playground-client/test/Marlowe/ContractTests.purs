@@ -16,12 +16,12 @@ import Examples.Marlowe.Contracts as Contracts
 import Marlowe.Extended (TemplateContent(..), fillTemplate, toCore)
 import Marlowe.Extended as EM
 import Marlowe.Holes (fromTerm)
-import Marlowe.Market.Contract1 as Contract1
-import Marlowe.Market.Contract2 as Contract2
-import Marlowe.Market.Contract3 as Contract3
-import Marlowe.Market.Contract4 as Contract4
-import Marlowe.Market.Contract5 as Contract5
-import Marlowe.Market.Contract6 as Contract6
+import Marlowe.Market.Escrow as Escrow
+import Marlowe.Market.EscrowWithCollateral as EscrowWithCollateral
+import Marlowe.Market.ZeroCouponBond as ZeroCouponBond
+import Marlowe.Market.CouponBondGuaranteed as CouponBondGuaranteed
+import Marlowe.Market.Swap as Swap
+import Marlowe.Market.ContractForDifferences as ContractForDifferences
 import Marlowe.Parser (parseContract)
 import Marlowe.Semantics (ChoiceId(..), Contract(..), Input(..), Party(..), Token(..))
 import SimulationPage.Types (_SimulationRunning, _currentContract, _executionState, _marloweState, _pendingInputs, _transactionError, emptyExecutionStateWithSlot, mkState)
@@ -38,12 +38,12 @@ all :: TestSuite
 all =
   suite "Contract Tests" do
     test "Purescript and Haskell examples match" do
-      equal (Just Contract1.extendedContract) (contractToExtended Contracts.escrow)
-      equal (Just Contract2.extendedContract) (contractToExtended Contracts.escrowWithCollateral)
-      equal (Just Contract3.extendedContract) (contractToExtended Contracts.zeroCouponBond)
-      equal (Just Contract4.extendedContract) (contractToExtended Contracts.couponBondGuaranteed)
-      equal (Just Contract5.extendedContract) (contractToExtended Contracts.swap)
-      equal (Just Contract6.extendedContract) (contractToExtended Contracts.contractForDifferences)
+      equal (Just Escrow.extendedContract) (contractToExtended Contracts.escrow)
+      equal (Just EscrowWithCollateral.extendedContract) (contractToExtended Contracts.escrowWithCollateral)
+      equal (Just ZeroCouponBond.extendedContract) (contractToExtended Contracts.zeroCouponBond)
+      equal (Just CouponBondGuaranteed.extendedContract) (contractToExtended Contracts.couponBondGuaranteed)
+      equal (Just Swap.extendedContract) (contractToExtended Contracts.swap)
+      equal (Just ContractForDifferences.extendedContract) (contractToExtended Contracts.contractForDifferences)
       pure unit
     test "Escrow" do
       -- A simple test that runs the Escrow contract to completion

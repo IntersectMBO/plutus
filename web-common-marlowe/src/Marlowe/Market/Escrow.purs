@@ -1,4 +1,4 @@
-module Marlowe.Market.Contract1
+module Marlowe.Market.Escrow
   ( contractTemplate
   , metaData
   , extendedContract

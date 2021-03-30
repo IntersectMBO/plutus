@@ -1,4 +1,4 @@
-module Marlowe.Market.Contract5
+module Marlowe.Market.Swap
   ( contractTemplate
   , metaData
   , extendedContract
