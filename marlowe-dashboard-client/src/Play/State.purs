@@ -163,10 +163,10 @@ handleAction (ContractAction (Contract.AskConfirmation action)) = handleAction $
 -- FIXME: Once we have card stack this action should not be necesary
 handleAction (ContractAction (Contract.ConfirmAction action)) = do
   void $ toContract $ Contract.handleAction $ Contract.ConfirmAction action
-  handleAction $ ToggleCard $ ContractCard
+  handleAction $ ToggleCard ContractCard
 
--- FIXME: instead of SetCard I need to implement a card stack and pop the stack
-handleAction (ContractAction Contract.CancelConfirmation) = handleAction $ SetCard Nothing
+-- FIXME: instead of ToggleCard I need to implement a card stack and pop the stack
+handleAction (ContractAction Contract.CancelConfirmation) = handleAction $ ToggleCard ContractCard
 
 -- other contract  actions
 handleAction (ContractAction contractAction) = void $ toContract $ Contract.handleAction contractAction

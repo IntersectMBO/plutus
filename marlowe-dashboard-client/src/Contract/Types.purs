@@ -44,6 +44,7 @@ data Action
   | SelectTab Tab
   | AskConfirmation NamedAction
   | CancelConfirmation
+  | GoToStep Int
 
 instance actionIsEvent :: IsEvent Action where
   toEvent (ConfirmAction _) = Just $ defaultEvent "ConfirmAction"
@@ -51,3 +52,4 @@ instance actionIsEvent :: IsEvent Action where
   toEvent (SelectTab _) = Just $ defaultEvent "SelectTab"
   toEvent (AskConfirmation _) = Just $ defaultEvent "AskConfirmation"
   toEvent CancelConfirmation = Just $ defaultEvent "CancelConfirmation"
+  toEvent (GoToStep _) = Just $ defaultEvent "GoToStep"

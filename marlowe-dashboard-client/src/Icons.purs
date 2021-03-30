@@ -23,8 +23,11 @@ data Icon
   = Add
   | AddCircle
   | ArrowRight
+  | ArrowLeft
   | Close
   | Contacts
+  | Done
+  | DoneWithCircle
   | Help
   | Home
   | Menu
@@ -43,9 +46,15 @@ content AddCircle = "add_circle_outline"
 
 content ArrowRight = "east"
 
+content ArrowLeft = "west"
+
 content Close = "close"
 
 content Contacts = "people"
+
+content Done = "done"
+
+content DoneWithCircle = "task_alt"
 
 content Help = "help"
 
@@ -74,9 +83,15 @@ iconClass AddCircle = "add-circle"
 
 iconClass ArrowRight = "arrow-right"
 
+iconClass ArrowLeft = "arrow-left"
+
 iconClass Close = "close"
 
 iconClass Contacts = "contacts"
+
+iconClass Done = "done"
+
+iconClass DoneWithCircle = "task-alt"
 
 iconClass Help = "help"
 
