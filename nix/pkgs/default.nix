@@ -47,8 +47,7 @@ let
   # - The 'agda-mode' executable
   # - A 'version' attribute
   #
-  # So we stitch one together here. It doesn't *seem* to need the library interface files,
-  # but it seems like they should be there so I added them too.
+  # So we stitch one together here.
   #
   # Furthermore, the agda builder uses a `ghcWithPackages` that has to have ieee754 available.
   # We'd like it to use the same GHC as we have, if nothing else just to avoid depending on
@@ -62,7 +61,6 @@ let
         paths = [
           haskellNixAgda.components.exes.agda
           haskellNixAgda.components.exes.agda-mode
-          haskellNixAgda.components.library
         ];
       }) // { version = haskellNixAgda.identifier.version; };
       frankenPkgs = pkgs // { haskellPackages = pkgs.haskellPackages // { ghcWithPackages = haskell.project.ghcWithPackages; }; };
