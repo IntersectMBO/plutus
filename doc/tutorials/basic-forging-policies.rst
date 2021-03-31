@@ -5,7 +5,7 @@ Writing basic forging policies
 ==============================
 
 :term:`Forging policy scripts<forging policy script>` are the programs that can be used to control the forging of new assets on the chain.
-Forging policy scripts are much like :term:`validator scripts<validator script>`, and they are written similarly, so check out the `validator script tutorial <basic_validators_tutorial>`_ before reading this one .
+Forging policy scripts are much like :term:`validator scripts<validator script>`, and they are written similarly, so check out the :ref:`basic validators tutorial<basic_validators_tutorial>` before reading this one .
 
 Forging policy arguments
 ------------------------
