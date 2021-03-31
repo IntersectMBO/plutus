@@ -26,7 +26,6 @@ import Data.String as String
 import Data.String.Extra (capitalize)
 import Data.Tuple (Tuple(..), fst, uncurry)
 import Data.Tuple.Nested ((/\))
-import Duration (humanizeDuration)
 import Halogen.HTML (HTML, a, button, div, div_, h1, h2, h3, input, p, span, span_, sup_, text)
 import Halogen.HTML.Events.Extra (onClick_, onValueInput_)
 import Halogen.HTML.Properties (InputType(..), enabled, href, placeholder, target, type_, value)
@@ -35,6 +34,7 @@ import Marlowe.Extended (contractTypeName)
 import Marlowe.Semantics (Bound(..), ChoiceId(..), Input(..), Party(..), Slot, SlotInterval, Token(..), TransactionInput(..), _accounts, getEncompassBound)
 import Marlowe.Slot (secondsDiff)
 import Material.Icons (Icon(..), icon)
+import TimeHelpers (humanizeInterval, humanizeDuration)
 
 -- NOTE: Currently, the horizontal scrolling for this element does not match the exact desing. In the designs, the active card is always centered and you
 -- can change which card is active via scrolling or the navigation buttons. To implement this we would probably need to add snap scrolling to the center of the
@@ -330,8 +330,7 @@ renderPartyPastActions state { inputs, interval, party } =
         PK publicKey -> "Account " <> publicKey
         Role roleName -> capitalize roleName
 
-    -- FIXME: Take this from interval
-    intervalDescrition = "on 10/03/2021 between 17:30 and 17:35"
+    intervalDescription = humanizeInterval interval
 
     renderPastAction = case _ of
       IDeposit intoAccountOf by token value ->
@@ -346,8 +345,8 @@ renderPartyPastActions state { inputs, interval, party } =
                 PK publicKey -> publicKey <> " public key"
                 Role roleName -> roleName <> "'s"
         in
-          div [] [ text $ fromDescription <> " made a deposit of " <> currency token value <> " into " <> toDescription <> " account " <> intervalDescrition ]
-      IChoice (ChoiceId choiceIdKey _) chosenNum -> div [] [ text $ fromDescription <> " chose " <> show chosenNum <> " for " <> show choiceIdKey <> " " <> intervalDescrition ]
+          div [] [ text $ fromDescription <> " made a deposit of " <> currency token value <> " into " <> toDescription <> " account " <> intervalDescription ]
+      IChoice (ChoiceId choiceIdKey _) chosenNum -> div [] [ text $ fromDescription <> " chose " <> show chosenNum <> " for " <> show choiceIdKey <> " " <> intervalDescription ]
       _ -> div_ []
   in
     div [ classNames [ "mt-4" ] ]
@@ -405,7 +404,6 @@ renderContractClose =
     -- NOTE: we use pt-16 instead of making the parent justify-center because in the design it's not actually
     --       centered and it has more space above than below.
     [ icon DoneWithCircle [ "pb-2", "pt-16", "text-green", "text-big-icon" ]
-    -- FIXME: Need to pass a Slot and convert it to the appropiate format
     , div
         [ classNames [ "text-center", "text-sm" ] ]
         [ div [ classNames [ "font-semibold" ] ]

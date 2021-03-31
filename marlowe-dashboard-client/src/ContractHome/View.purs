@@ -11,7 +11,7 @@ import Css as Css
 import Data.FunctorWithIndex (mapWithIndex)
 import Data.Lens ((^.))
 import Data.Maybe (maybe)
-import Duration (humanizeDuration)
+import TimeHelpers (humanizeDuration)
 import Halogen.HTML (HTML, a, div, h2, p_, span, text)
 import Halogen.HTML.Events.Extra (onClick_)
 import Marlowe.Extended (contractTypeName, contractTypeInitials)

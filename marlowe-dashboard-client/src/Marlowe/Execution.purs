@@ -4,14 +4,13 @@ import Prelude
 import Data.Array (fromFoldable)
 import Data.BigInteger (BigInteger, fromInt)
 import Data.Lens (Lens', view)
-import Data.Lens.Iso.Newtype (_Newtype)
 import Data.Lens.Record (prop)
 import Data.List (List)
 import Data.Map (Map)
 import Data.Map as Map
 import Data.Maybe (Maybe(..))
 import Data.Symbol (SProxy(..))
-import Marlowe.Semantics (AccountId, Action(..), Bound(..), Case(..), ChoiceId(..), ChosenNum, Contract(..), Input, Observation, Party(..), Payment, Slot(..), SlotInterval(..), State, Timeout, Token(..), TransactionInput(..), TransactionOutput(..), ValueId, _boundValues, _minSlot, computeTransaction, emptyState, evalValue, makeEnvironment)
+import Marlowe.Semantics (AccountId, Action(..), Bound, Case(..), ChoiceId(..), ChosenNum, Contract(..), Input, Observation, Party, Payment, Slot(..), SlotInterval(..), State, Timeout, Timeouts(..), Token, TransactionInput(..), TransactionOutput(..), ValueId, _boundValues, _minSlot, computeTransaction, emptyState, evalValue, makeEnvironment, timeouts)
 
 -- Represents a historical step in a contract's life and is what you see on a Step card that is in the past,
 -- that is the State as it was before it was executed and the TransactionInput that was applied.
@@ -86,17 +85,23 @@ hasTimeout (When _ t _) = Just t
 
 hasTimeout _ = Nothing
 
-mkTx :: ExecutionState -> List Input -> TransactionInput
-mkTx { state } inputs =
-  let
-    -- FIXME: mkTx should use the current slot taken from the current time
-    currentSlot = view _minSlot state
+nextTimeout :: Contract -> Maybe Slot
+nextTimeout = timeouts >>> \(Timeouts { minTime }) -> minTime
 
-    -- interval = SlotInterval currentSlot (currentSlot + Slot (fromInt 100)) -- FIXME: should this be minSlot minSlot? We need to think about ambiguous slot error
-    -- FIXME: I Should call Semantic.timeouts and make an interval of [currentSlot, minTime - 1]
-    -- Should also check that minTime - 1 is bigger than (currentSlot + 100)
-    -- This should be the same function that makeEnvironment uses in extractAction
-    interval = SlotInterval (Slot $ fromInt 0) (Slot $ fromInt 0)
+mkInterval :: Slot -> Contract -> SlotInterval
+mkInterval currentSlot contract = case nextTimeout contract of
+  Nothing -> SlotInterval currentSlot (currentSlot + (Slot $ fromInt 10))
+  Just minTime
+    -- FIXME: I think this will fail in the PAB... we may need to return a Maybe SlotInterval and
+    -- show an error. But also, if you delay confirming the action it could also cause the same type
+    -- of failure, so maybe there is no need. Check after initial PAB integration.
+    | minTime < currentSlot -> SlotInterval currentSlot currentSlot
+    | otherwise -> SlotInterval currentSlot (minTime - (Slot $ fromInt 1))
+
+mkTx :: Slot -> Contract -> List Input -> TransactionInput
+mkTx currentSlot contract inputs =
+  let
+    interval = mkInterval currentSlot contract
   in
     TransactionInput { interval, inputs }
 
@@ -172,7 +177,7 @@ extractNamedActions :: Slot -> State -> Contract -> Array NamedAction
 extractNamedActions _ _ Close = mempty
 
 -- a When can only progress if it has timed out or has Cases
-extractNamedActions currentSlot state (When cases timeout cont)
+extractNamedActions currentSlot state contract@(When cases timeout cont)
   -- in the case of a timeout we need to provide an Evaluate action to all users to "manually" progress the contract
   | currentSlot > timeout =
     let
@@ -206,10 +211,9 @@ extractNamedActions currentSlot state (When cases timeout cont)
     where
     toNamedAction (Deposit a p t v) =
       let
-        minSlot = view (_minSlot <<< _Newtype) state
+        SlotInterval (Slot minSlot) (Slot maxSlot) = mkInterval currentSlot contract
 
-        -- FIXME: This should be the same interval that mkTx has
-        env = makeEnvironment minSlot minSlot
+        env = makeEnvironment minSlot maxSlot
 
         amount = evalValue env state v
       in

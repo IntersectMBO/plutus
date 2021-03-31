@@ -88,7 +88,7 @@ filledContract2 (Slot currentSlot) = do
     transactions =
       [ TransactionInput
           { interval:
-              (SlotInterval (Slot $ fromInt 0) (Slot $ fromInt 0))
+              (SlotInterval (Slot currentSlot) (Slot currentSlot))
           , inputs:
               List.singleton
                 $ IDeposit (Role "Investor") (Role "Investor") (Token "" "") (fromInt 1000)

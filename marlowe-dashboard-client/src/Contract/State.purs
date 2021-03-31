@@ -24,14 +24,15 @@ import Effect.Exception.Unsafe (unsafeThrow)
 import Env (Env)
 import Foreign.Generic (encode)
 import Foreign.JSON (unsafeStringify)
-import Halogen (HalogenM, modify_)
+import Halogen (HalogenM, liftEffect, modify_)
 import MainFrame.Types (ChildSlots, Msg)
-import Marlowe.Execution (NamedAction(..), _contract, _namedActions, _state, _steps, initExecution, merge, mkTx, nextState)
+import Marlowe.Execution (NamedAction(..), _contract, _namedActions, _state, _steps, initExecution, merge, mkTx, nextState, nextTimeout)
 import Marlowe.Extended (TemplateContent, fillTemplate, resolveRelativeTimes, toCore)
 import Marlowe.Extended as Extended
 import Marlowe.Extended.Metadata (MetaData, emptyContractMetadata)
-import Marlowe.Semantics (Contract(..), Input(..), Slot, Timeouts(..), _minSlot, timeouts)
+import Marlowe.Semantics (Contract(..), Input(..), Slot, _minSlot)
 import Marlowe.Semantics as Semantic
+import Marlowe.Slot (currentSlot)
 import WalletData.Types (Nickname)
 
 -- I don't like having to provide a default state for this component, but it is needed by the
@@ -83,9 +84,6 @@ instantiateExtendedContract contractId currentSlot extendedContract templateCont
     mContract
       <#> mkInitialState contractId currentSlot metadata participants mActiveUserParty
 
-nextTimeout :: Contract -> Maybe Slot
-nextTimeout = timeouts >>> \(Timeouts { minTime }) -> minTime
-
 mkInitialState ::
   String ->
   Slot ->
@@ -122,10 +120,11 @@ handleAction ::
 handleAction (ConfirmAction action) = do
   currentExeState <- use _executionState
   contractId <- use _contractId
+  slot <- liftEffect currentSlot
   let
     input = toInput action
 
-    txInput = mkTx currentExeState (Unfoldable.fromMaybe input)
+    txInput = mkTx slot (currentExeState ^. _contract) (Unfoldable.fromMaybe input)
 
     json = RawJson <<< unsafeStringify <<< encode $ input
   -- TODO: currently we just ignore errors but we probably want to do something better in the future
