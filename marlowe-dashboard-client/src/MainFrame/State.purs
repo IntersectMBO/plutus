@@ -1,29 +1,38 @@
 module MainFrame.State (mkMainFrame) where
 
 import Prelude
+import ContractHome.State (loadExistingContracts)
 import Control.Monad.Except (runExcept)
 import Control.Monad.Reader (class MonadAsk)
+import Control.Monad.Rec.Class (forever)
 import Data.Either (Either(..))
 import Data.Foldable (for_)
 import Data.Lens (assign, over, set, use)
 import Data.Map (empty, filter, findMin, insert, lookup, member)
 import Data.Maybe (Maybe(..))
+import Data.Time.Duration (Milliseconds(..))
+import Effect.Aff (error)
+import Effect.Aff as Aff
 import Effect.Aff.Class (class MonadAff)
 import Effect.Now (getTimezoneOffset)
 import Effect.Random (random)
 import Env (Env)
 import Foreign.Generic (decodeJSON, encodeJSON)
-import Halogen (Component, HalogenM, liftEffect, mkComponent, mkEval, modify_)
+import Halogen (Component, HalogenM, liftEffect, mkComponent, mkEval, modify_, subscribe)
 import Halogen.HTML (HTML)
+import Halogen.Query.EventSource (EventSource)
+import Halogen.Query.EventSource as EventSource
 import LocalStorage (getItem, removeItem, setItem)
 import MainFrame.Lenses (_card, _newWalletContractId, _newWalletNickname, _remoteDataPubKey, _pickupState, _subState, _playState, _wallets, _webSocketStatus)
 import MainFrame.Types (Action(..), ChildSlots, Msg, Query(..), State, WebSocketStatus(..))
 import MainFrame.View (render)
 import Marlowe.Market (contractTemplates)
 import Marlowe.Semantics (PubKey)
+import Marlowe.Slot (currentSlot)
 import Network.RemoteData (RemoteData(..))
 import Pickup.State (handleAction, initialState) as Pickup
 import Pickup.Types (Action(..), Card(..)) as Pickup
+import Play.Lenses (_allContracts)
 import Play.State (handleAction, mkInitialState) as Play
 import Play.Types (Action(..)) as Play
 import Plutus.PAB.Webserver.Types (StreamToClient(..))
@@ -80,6 +89,22 @@ handleQuery (ReceiveWebSocketMessage msg next) = do
       (ErrorResponse error) -> pure unit
   pure $ Just next
 
+-- FIXME: We need to discuss if we should remove this after we connect to the PAB. In case we do,
+--        if there is a disconnection we might lose some seconds and timeouts will freeze.
+currentSlotSubscription ::
+  forall m.
+  MonadAff m =>
+  EventSource m Action
+currentSlotSubscription =
+  EventSource.affEventSource \emitter -> do
+    fiber <-
+      Aff.forkAff
+        $ forever do
+            Aff.delay $ Milliseconds 1000.0
+            slot <- liftEffect $ currentSlot
+            EventSource.emit emitter (PlayAction $ Play.SetCurrentSlot slot)
+    pure $ EventSource.Finalizer $ Aff.killFiber (error "removing aff") fiber
+
 -- Note [State]: Some actions belong logically in one part of the state, but
 -- from the user's point of view in another. For example, the action of picking
 -- up a wallet belongs logically in the MainFrame state (because it modifies
@@ -103,6 +128,7 @@ handleAction Init = do
   for_ mWalletDetailsJson \json ->
     for_ (runExcept $ decodeJSON json) \walletDetails ->
       handleAction $ PickupAction $ Pickup.PickupWallet walletDetails
+  void $ subscribe currentSlotSubscription
 
 handleAction (SetNewWalletNickname nickname) = assign _newWalletNickname nickname
 
@@ -149,8 +175,13 @@ handleAction (PickupAction (Pickup.PickupWallet walletDetails)) = do
   -- we need the local timezoneOffset in play state in order to convert datetimeLocal
   -- values to UTC (and vice versa), so we can manage date-to-slot conversions
   timezoneOffset <- liftEffect getTimezoneOffset
+  -- FIXME: Remove this, only for debugging. Replace with actually loading existing contracts
+  --        from the PAB.
+  contracts <- liftEffect $ loadExistingContracts
+  currentSlot' <- liftEffect currentSlot
   modify_
-    $ set _subState (Right $ Play.mkInitialState walletDetails timezoneOffset)
+    $ set (_playState <<< _allContracts) contracts
+    <<< set _subState (Right $ Play.mkInitialState walletDetails currentSlot' timezoneOffset)
     <<< set (_pickupState <<< _card) Nothing
   -- TODO: fetch current balance of the wallet from PAB
   -- TODO: open up websocket to this wallet's companion contract from PAB

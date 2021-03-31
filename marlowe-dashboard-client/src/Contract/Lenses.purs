@@ -6,6 +6,7 @@ module Contract.Lenses
   , _metadata
   , _participants
   , _mActiveUserParty
+  , _mNextTimeout
   ) where
 
 import Contract.Types (State, Tab)
@@ -39,3 +40,6 @@ _participants = prop (SProxy :: SProxy "participants")
 
 _mActiveUserParty :: Lens' State (Maybe Semantic.Party)
 _mActiveUserParty = prop (SProxy :: SProxy "mActiveUserParty")
+
+_mNextTimeout :: Lens' State (Maybe Semantic.Slot)
+_mNextTimeout = prop (SProxy :: SProxy "mNextTimeout")

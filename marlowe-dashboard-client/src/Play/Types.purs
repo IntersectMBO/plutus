@@ -57,6 +57,7 @@ data Action
   | TemplateAction Template.Action
   | ContractAction Contract.Action
   | ContractHomeAction ContractHome.Action
+  | SetCurrentSlot Slot
 
 -- | Here we decide which top-level queries to track as GA events, and
 -- how to classify them.
@@ -72,3 +73,4 @@ instance actionIsEvent :: IsEvent Action where
   toEvent (TemplateAction templateAction) = toEvent templateAction
   toEvent (ContractAction contractAction) = toEvent contractAction
   toEvent (ContractHomeAction contractAction) = toEvent contractAction
+  toEvent (SetCurrentSlot _) = Nothing

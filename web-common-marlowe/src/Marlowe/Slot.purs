@@ -1,7 +1,14 @@
 -- This module helps you work with slots and DateTimes. We only care about the current slot algorithm
 -- that was introduced when Shelley was launched in mid 2020. Since the launch, each slot number
 -- corresponds to a second.
-module Marlowe.Slot (shelleyInitialSlot, slotToDateTime, dateTimeToSlot, dateTimeStringToSlot, currentSlot) where
+module Marlowe.Slot
+  ( shelleyInitialSlot
+  , slotToDateTime
+  , dateTimeToSlot
+  , dateTimeStringToSlot
+  , currentSlot
+  , secondsDiff
+  ) where
 
 import Prelude
 import Data.BigInteger (fromInt)
@@ -35,21 +42,23 @@ shelleyLaunchDate =
   in
     unsafePartial $ fromJust $ toDateTime <$> instant epoch
 
+secondsDiff :: Slot -> Slot -> Seconds
+secondsDiff a b = Seconds $ BigInteger.toNumber $ unwrap $ a - b
+
 slotToDateTime :: Slot -> Maybe DateTime
 slotToDateTime slot =
   let
-    secondsDiff :: Seconds
-    secondsDiff = Seconds $ BigInteger.toNumber $ unwrap $ slot - shelleyInitialSlot
+    secondsDiff' = secondsDiff slot shelleyInitialSlot
   in
-    adjust secondsDiff shelleyLaunchDate
+    adjust secondsDiff' shelleyLaunchDate
 
 dateTimeToSlot :: DateTime -> Slot
 dateTimeToSlot datetime =
   let
-    secondsDiff :: Seconds
-    secondsDiff = diff datetime shelleyLaunchDate
+    secondsDiff' :: Seconds
+    secondsDiff' = diff datetime shelleyLaunchDate
   in
-    shelleyInitialSlot + (Slot $ BigInteger.fromInt $ round $ unwrap secondsDiff)
+    shelleyInitialSlot + (Slot $ BigInteger.fromInt $ round $ unwrap secondsDiff')
 
 dateTimeStringToSlot :: String -> Maybe Slot
 dateTimeStringToSlot dateTimeString =

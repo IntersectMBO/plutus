@@ -125,6 +125,8 @@ renderCards wallets newWalletNickname newWalletContractId remoteDataPubKey templ
 
     mSelectedContractState = preview _selectedContract playState
 
+    currentSlot = view _currentSlot playState
+
     cardClasses = case mCard of
       Just TemplateLibraryCard -> Css.largeCard false
       Just ContractCard -> Css.largeCard false
@@ -163,7 +165,7 @@ renderCards wallets newWalletNickname newWalletContractId remoteDataPubKey templ
               --        could be Nothing. We could add the state as part of the view, but is not ideal
               --        Will have to rethink how to deal with this once the overall state is more mature.
               Just ContractCard -> case mSelectedContractState of
-                Just contractState -> [ ContractAction <$> contractDetailsCard contractState ]
+                Just contractState -> [ ContractAction <$> contractDetailsCard currentSlot contractState ]
                 Nothing -> []
               Just (ContractActionConfirmationCard action) -> case mSelectedContractState of
                 Just contractState -> [ ContractAction <$> actionConfirmationCard contractState action ]
@@ -182,7 +184,7 @@ renderScreen wallets screen playState =
   in
     div
       [ classNames [ "absolute", "top-0", "bottom-0", "left-0", "right-0", "overflow-auto", "z-0" ] ] case screen of
-      ContractsScreen -> [ ContractHomeAction <$> contractsScreen contractsState ]
+      ContractsScreen -> [ ContractHomeAction <$> contractsScreen currentSlot contractsState ]
       WalletLibraryScreen -> [ walletLibraryScreen wallets ]
       TemplateScreen -> [ TemplateAction <$> contractSetupScreen wallets currentSlot templateState ]
 

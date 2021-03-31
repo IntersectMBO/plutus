@@ -2,13 +2,14 @@ module Contract.State
   ( handleQuery
   , handleAction
   , mkInitialState
+  , instantiateExtendedContract
   , defaultState
   , currentStep
   , isContractClosed
   ) where
 
 import Prelude
-import Contract.Lenses (_contractId, _executionState, _selectedStep, _tab)
+import Contract.Lenses (_contractId, _executionState, _mNextTimeout, _selectedStep, _tab)
 import Contract.Types (Action(..), Query(..), State, Tab(..))
 import Control.Monad.Maybe.Trans (runMaybeT)
 import Control.Monad.Reader (class MonadAsk)
@@ -26,15 +27,17 @@ import Foreign.JSON (unsafeStringify)
 import Halogen (HalogenM, modify_)
 import MainFrame.Types (ChildSlots, Msg)
 import Marlowe.Execution (NamedAction(..), _contract, _namedActions, _state, _steps, initExecution, merge, mkTx, nextState)
+import Marlowe.Extended (TemplateContent, fillTemplate, resolveRelativeTimes, toCore)
+import Marlowe.Extended as Extended
 import Marlowe.Extended.Metadata (MetaData, emptyContractMetadata)
-import Marlowe.Semantics (Contract(..), Input(..), Slot, _minSlot)
+import Marlowe.Semantics (Contract(..), Input(..), Slot, Timeouts(..), _minSlot, timeouts)
 import Marlowe.Semantics as Semantic
 import WalletData.Types (Nickname)
 
 -- I don't like having to provide a default state for this component, but it is needed by the
 -- mapMaybeSubmodule in PlayState.
 defaultState :: State
-defaultState = mkInitialState "" zero Close emptyContractMetadata mempty Nothing
+defaultState = mkInitialState "" zero emptyContractMetadata mempty Nothing Close
 
 currentStep :: State -> Int
 currentStep = length <<< view (_executionState <<< _steps)
@@ -62,15 +65,36 @@ toInput _ = Nothing
 isContractClosed :: State -> Boolean
 isContractClosed state = state ^. (_executionState <<< _contract) == Close
 
-mkInitialState ::
+instantiateExtendedContract ::
   String ->
   Slot ->
-  Contract ->
+  Extended.Contract ->
+  TemplateContent ->
   MetaData ->
   Map Semantic.Party (Maybe Nickname) ->
   Maybe Semantic.Party ->
+  Maybe State
+instantiateExtendedContract contractId currentSlot extendedContract templateContent metadata participants mActiveUserParty =
+  let
+    relativeContract = resolveRelativeTimes currentSlot extendedContract
+
+    mContract = toCore $ fillTemplate templateContent relativeContract
+  in
+    mContract
+      <#> mkInitialState contractId currentSlot metadata participants mActiveUserParty
+
+nextTimeout :: Contract -> Maybe Slot
+nextTimeout = timeouts >>> \(Timeouts { minTime }) -> minTime
+
+mkInitialState ::
+  String ->
+  Slot ->
+  MetaData ->
+  Map Semantic.Party (Maybe Nickname) ->
+  Maybe Semantic.Party ->
+  Contract ->
   State
-mkInitialState contractId slot contract metadata participants mActiveUserParty =
+mkInitialState contractId slot metadata participants mActiveUserParty contract =
   { tab: Tasks
   , executionState: initExecution slot contract
   , contractId
@@ -78,6 +102,7 @@ mkInitialState contractId slot contract metadata participants mActiveUserParty =
   , metadata
   , participants
   , mActiveUserParty
+  , mNextTimeout: nextTimeout contract
   }
 
 handleQuery :: forall a m. Query a -> HalogenM State Action ChildSlots Msg m (Maybe a)
@@ -110,9 +135,12 @@ handleAction (ConfirmAction action) = do
         -- void $ mapEnvReaderT _.ajaxSettings $ runExceptT $ postApiContractByContractinstanceidEndpointByEndpointname json contractId "apply-inputs"
         let
           executionState = nextState currentExeState txInput
+
+          mNextTimeout = nextTimeout (executionState ^. _contract)
         modify_
           ( set _executionState executionState
               <<< set _selectedStep (length executionState.steps)
+              <<< set _mNextTimeout mNextTimeout
           )
 
 -- raise (SendWebSocketMessage (ServerMsg true)) -- FIXME: send txInput to the server to apply to the on-chain contract

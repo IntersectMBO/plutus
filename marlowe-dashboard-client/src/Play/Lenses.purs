@@ -1,5 +1,6 @@
 module Play.Lenses
-  ( _walletDetails
+  ( _allContracts
+  , _walletDetails
   , _menuOpen
   , _currentSlot
   , _templateState

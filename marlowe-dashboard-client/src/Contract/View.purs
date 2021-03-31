@@ -4,7 +4,7 @@ module Contract.View
   ) where
 
 import Prelude hiding (div)
-import Contract.Lenses (_executionState, _mActiveUserParty, _metadata, _participants, _selectedStep, _tab)
+import Contract.Lenses (_executionState, _mActiveUserParty, _mNextTimeout, _metadata, _participants, _selectedStep, _tab)
 import Contract.State (currentStep, isContractClosed)
 import Contract.Types (Action(..), State, Tab(..))
 import Css (applyWhen, classNames, toggleWhen)
@@ -26,12 +26,14 @@ import Data.String as String
 import Data.String.Extra (capitalize)
 import Data.Tuple (Tuple(..), fst, uncurry)
 import Data.Tuple.Nested ((/\))
+import Duration (humanizeDuration)
 import Halogen.HTML (HTML, a, button, div, div_, h1, h2, h3, input, p, span, span_, sup_, text)
 import Halogen.HTML.Events.Extra (onClick_, onValueInput_)
 import Halogen.HTML.Properties (InputType(..), enabled, href, placeholder, target, type_, value)
 import Marlowe.Execution (ExecutionStep, NamedAction(..), _contract, _namedActions, _state, _steps, getActionParticipant)
 import Marlowe.Extended (contractTypeName)
-import Marlowe.Semantics (Bound(..), ChoiceId(..), Input(..), Party(..), SlotInterval, Token(..), TransactionInput(..), _accounts, getEncompassBound)
+import Marlowe.Semantics (Bound(..), ChoiceId(..), Input(..), Party(..), Slot, SlotInterval, Token(..), TransactionInput(..), _accounts, getEncompassBound)
+import Marlowe.Slot (secondsDiff)
 import Material.Icons (Icon(..), icon)
 
 -- NOTE: Currently, the horizontal scrolling for this element does not match the exact desing. In the designs, the active card is always centered and you
@@ -39,14 +41,14 @@ import Material.Icons (Icon(..), icon)
 -- big container and create a smaller absolute positioned element of the size of a card (positioned in the middle), and with JS check that if a card enters
 -- that "viewport", then we make that the selected element.
 -- Current implementation just hides non active elements in mobile and makes a simple x-scrolling for larger devices.
-contractDetailsCard :: forall p. State -> HTML p Action
-contractDetailsCard state =
+contractDetailsCard :: forall p. Slot -> State -> HTML p Action
+contractDetailsCard currentSlot state =
   let
     metadata = state ^. _metadata
 
     pastStepsCards = mapWithIndex (renderPastStep state) (state ^. (_executionState <<< _steps))
 
-    currentStepCard = [ renderCurrentStep state ]
+    currentStepCard = [ renderCurrentStep currentSlot state ]
 
     -- NOTE: Because the cards container is a flex element with a max width property, when there are more cards than can fit the view, the browser will try shrink them
     --       and remove any extra right margin/padding (not sure why this is only done to the right side). To avoid our cards getting shrinked, we add the flex-shrink-0
@@ -363,14 +365,21 @@ renderTimeout stepNumber =
         [ text $ "Step " <> show (stepNumber + 1) <> " timed out on 03/10/2021 at 17:30" ]
     ]
 
-renderCurrentStep :: forall p. State -> HTML p Action
-renderCurrentStep state =
+renderCurrentStep :: forall p. Slot -> State -> HTML p Action
+renderCurrentStep currentSlot state =
   let
     stepNumber = currentStep state
 
     currentTab = state ^. _tab
 
     contractIsClosed = isContractClosed state
+
+    mNextTimeout = state ^. _mNextTimeout
+
+    timeoutStr =
+      maybe "timed out"
+        (\nextTimeout -> humanizeDuration $ secondsDiff nextTimeout currentSlot)
+        mNextTimeout
   in
     renderContractCard stepNumber state
       [ div [ classNames [ "py-2.5", "px-4", "flex", "items-center", "border-b", "border-lightgray" ] ]
@@ -380,7 +389,7 @@ renderCurrentStep state =
           , if contractIsClosed then
               statusIndicator Nothing "Contract closed" [ "bg-lightgray" ]
             else
-              statusIndicator (Just Timer) "1hr 2mins left" [ "bg-lightgray" ]
+              statusIndicator (Just Timer) timeoutStr [ "bg-lightgray" ]
           ]
       , div [ classNames [ "overflow-y-scroll", "px-4" ] ]
           [ case currentTab /\ contractIsClosed of

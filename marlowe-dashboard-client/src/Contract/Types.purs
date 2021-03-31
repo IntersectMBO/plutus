@@ -26,6 +26,7 @@ type State
     -- if the person who creates the contract does not put him/herself as a participant of the contract
     -- or if a Role participant sells the role token to another participant
     , mActiveUserParty :: Maybe Semantic.Party
+    , mNextTimeout :: Maybe Slot
     }
 
 data Tab
