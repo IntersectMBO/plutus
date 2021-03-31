@@ -230,30 +230,26 @@ transition params State{ stateData =s, stateValue=currentValue} i = case (s, i) 
                     )
     _ -> Nothing
 
-{-# INLINABLE mkValidator #-}
-mkValidator :: Params -> Scripts.ValidatorType MultiSigSym
-mkValidator p = SM.mkValidator $ SM.mkStateMachine (transition p) (const False)
-
-validatorCode :: Params -> PlutusTx.CompiledCode (Scripts.ValidatorType MultiSigSym)
-validatorCode params = $$(PlutusTx.compile [|| mkValidator ||]) `PlutusTx.applyCode` PlutusTx.liftCode params
-
 type MultiSigSym = StateMachine MSState Input
 
+{-# INLINABLE machine #-}
+machine :: Params -> MultiSigSym
+machine params = SM.mkStateMachine (transition params) isFinal where
+    isFinal _ = False
+
+{-# INLINABLE mkValidator #-}
+mkValidator :: Params -> Scripts.ValidatorType MultiSigSym
+mkValidator params = SM.mkValidator $ machine params
+
 scriptInstance :: Params -> Scripts.ScriptInstance MultiSigSym
-scriptInstance params = Scripts.validator @MultiSigSym
-    (validatorCode params)
+scriptInstance = Scripts.validatorParam @MultiSigSym
+    $$(PlutusTx.compile [|| mkValidator ||])
     $$(PlutusTx.compile [|| wrap ||])
     where
-        wrap = Scripts.wrapValidator @MSState @Input
-
-machineInstance :: Params -> SM.StateMachineInstance MSState Input
-machineInstance params =
-    SM.StateMachineInstance
-    (SM.mkStateMachine (transition params) (const False))
-    (scriptInstance params)
+        wrap = Scripts.wrapValidator
 
 client :: Params -> SM.StateMachineClient MSState Input
-client p = SM.mkStateMachineClient (machineInstance p)
+client params = SM.mkStateMachineClient $ SM.StateMachineInstance (machine params) (scriptInstance params)
 
 contract ::
     ( AsContractError e

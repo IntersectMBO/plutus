@@ -52,10 +52,25 @@ instance Functor (Map k) where
     {-# INLINABLE fmap #-}
     fmap f (Map mp) =
         let
-            go []           = []
-            go ((c, i):xs') = (c, f i) : go xs'
+            go []          = []
+            go ((c, i):xs) = (c, f i) : go xs
         in Map (go mp)
 
+instance Foldable (Map k) where
+    {-# INLINABLE foldMap #-}
+    foldMap f (Map mp) =
+        let
+            go []          = mempty
+            go ((_, i):xs) = f i <> go xs
+        in go mp
+
+instance Traversable (Map k) where
+    {-# INLINABLE traverse #-}
+    traverse f (Map mp) =
+        let
+            go []          = pure []
+            go ((c, i):xs) = (\i' xs' -> (c, i') : xs') <$> f i <*> go xs
+        in Map <$> go mp
 
 -- This is the "better" instance for Maps that various people
 -- have suggested, which merges conflicting entries with

@@ -30,11 +30,12 @@ library
         Plutus.Contracts.TokenAccount
         Plutus.Contracts.Crowdfunding
         Plutus.Contracts.Currency
+        Plutus.Contracts.ErrorHandling
         Plutus.Contracts.Escrow
         Plutus.Contracts.Future
         Plutus.Contracts.Game
         Plutus.Contracts.GameStateMachine
-        Plutus.Contracts.ErrorHandling
+        Plutus.Contracts.Governance
         Plutus.Contracts.MultiSig
         Plutus.Contracts.MultiSigStateMachine
         Plutus.Contracts.PingPong
@@ -100,6 +101,7 @@ test-suite plutus-use-cases-test
         Spec.Future
         Spec.Game
         Spec.GameStateMachine
+        Spec.Governance
         Spec.Lib
         Spec.MultiSig
         Spec.MultiSigStateMachine

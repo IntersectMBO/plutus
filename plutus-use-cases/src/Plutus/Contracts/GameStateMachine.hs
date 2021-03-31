@@ -165,33 +165,29 @@ transition State{stateData=oldData, stateValue=oldValue} input = case (oldData, 
              )
     _ -> Nothing
 
+type GameStateMachine = SM.StateMachine GameState GameInput
+
 {-# INLINABLE machine #-}
-machine :: SM.StateMachine GameState GameInput
+machine :: GameStateMachine
 machine = SM.mkStateMachine transition isFinal where
     isFinal _ = False
 
 {-# INLINABLE mkValidator #-}
-mkValidator :: Scripts.ValidatorType (SM.StateMachine GameState GameInput)
+mkValidator :: Scripts.ValidatorType GameStateMachine
 mkValidator = SM.mkValidator machine
 
-scriptInstance :: Scripts.ScriptInstance (SM.StateMachine GameState GameInput)
-scriptInstance = Scripts.validator @(SM.StateMachine GameState GameInput)
+scriptInstance :: Scripts.ScriptInstance GameStateMachine
+scriptInstance = Scripts.validator @GameStateMachine
     $$(PlutusTx.compile [|| mkValidator ||])
     $$(PlutusTx.compile [|| wrap ||])
     where
-        wrap = Scripts.wrapValidator @GameState @GameInput
+        wrap = Scripts.wrapValidator
 
 monetaryPolicy :: Scripts.MonetaryPolicy
 monetaryPolicy = Scripts.monetaryPolicy scriptInstance
 
--- | The 'SM.StateMachineInstance' of the game state machine contract. It uses
---   the functions in 'PlutusTx.StateMachine' to generate a validator
---   script based on the functions 'step' and 'check' we defined above.
-machineInstance :: SM.StateMachineInstance GameState GameInput
-machineInstance = SM.StateMachineInstance machine scriptInstance
-
 client :: SM.StateMachineClient GameState GameInput
-client = SM.mkStateMachineClient machineInstance
+client = SM.mkStateMachineClient $ SM.StateMachineInstance machine scriptInstance
 
 -- | The @"guess"@ endpoint.
 guess :: Contract () GameStateMachineSchema GameError ()
