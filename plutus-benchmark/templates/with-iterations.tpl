@@ -11,11 +11,10 @@
        /* This is Criterion's `criterion.js` file modified to extend the HTML
           report with the total number of iterations and total time spent
           executing each benchmark.  The original `default.tpl` file includes
-          `criterion.js` using microstache via {{{js-criterion}}}.  That loads
-          files from a fixed location in the Criterion library using
+          `criterion.js` using microstache via \{\{\{js-criterion\}\}\}.  That
+          loads files from a fixed location in the Criterion library using
           `data-files`, so we can't use that to load a modified version.
-          Instead we have to include the entire script bodily.
-       */
+          Instead we have to include the entire script bodily.  */
 
        'use strict';
 
