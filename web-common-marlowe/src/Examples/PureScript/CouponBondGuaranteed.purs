@@ -1,4 +1,4 @@
-module Marlowe.Market.Contract4
+module Examples.PureScript.CouponBondGuaranteed
   ( contractTemplate
   , metaData
   , extendedContract
