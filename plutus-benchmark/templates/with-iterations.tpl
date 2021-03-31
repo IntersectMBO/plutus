@@ -225,7 +225,7 @@
                : order === 'lex'          ? lexicalSort
                : order === 'colex'        ? reverseLexicalSort
                : order === 'duration'     ? durationSort
-               : order === 'rev-duration' ? durationSortreverseDurationSort
+               : order === 'rev-duration' ? reverseDurationSort
                : reportSort;
            var sortedReports = reports.filter(function(report) {
                return !state.hidden[report.groupNumber];
