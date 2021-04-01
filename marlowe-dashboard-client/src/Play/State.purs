@@ -5,8 +5,9 @@ module Play.State
   ) where
 
 import Prelude
-import Bridge (slotToMarlowe)
-import Capability (class MonadContract, class MonadWallet)
+import Bridge (toFront)
+import Capability.Contract (class MonadContract)
+import Capability.Wallet (class MonadWallet)
 import Contract.State (defaultState, handleAction, mkInitialState) as Contract
 import Contract.Types (Action(..), State) as Contract
 import ContractHome.Lenses (_contracts)
@@ -75,7 +76,7 @@ handleQuery ::
   CombinedWSStreamToClient -> HalogenM MainFrame.State MainFrame.Action ChildSlots Msg m Unit
 handleQuery (InstanceUpdate contractInstanceId instanceStatusToClient) = pure unit
 
-handleQuery (SlotChange slot) = assign (_playState <<< _currentSlot) $ slotToMarlowe slot
+handleQuery (SlotChange slot) = assign (_playState <<< _currentSlot) $ toFront slot
 
 handleQuery (WalletFundsChange wallet value) = pure unit
 

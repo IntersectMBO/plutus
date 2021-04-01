@@ -31,43 +31,34 @@ import Wallet.Types (ContractInstanceId)
 class
   MonadContract m <= MonadMarlowe m where
   dummy :: m Unit
-  --marloweCreateWalletCompanionContract :: Wallet -> m (WebData Unit)
-  --marloweCreateContract :: Wallet -> Map TokenName PubKeyHash -> Contract -> m (WebData ContractInstanceId)
-  --marloweApplyInputs :: ?MarloweParams -> Array Input -> m (WebData Unit)
-  --marloweWait :: ?MarloweParams -> m (WebData Unit)
-  --marloweAuto :: ?MarloweParams -> Party -> Slot -> m (WebData Unit)
-  --marloweRedeem :: ?MarloweParams -> TokenName -> PubKeyHash -> m (WebData Unit)
 
+--marloweCreateWalletCompanionContract :: Wallet -> m (WebData Unit)
+--marloweCreateContract :: Wallet -> Map TokenName PubKeyHash -> Contract -> m (WebData ContractInstanceId)
+--marloweApplyInputs :: ?MarloweParams -> Array Input -> m (WebData Unit)
+--marloweWait :: ?MarloweParams -> m (WebData Unit)
+--marloweAuto :: ?MarloweParams -> Party -> Slot -> m (WebData Unit)
+--marloweRedeem :: ?MarloweParams -> TokenName -> PubKeyHash -> m (WebData Unit)
 instance monadMarloweAppM :: MonadMarlowe AppM where
   dummy = AppM $ pure unit
-  --marloweCreateWalletCompanionContract wallet = activateContract $ ContractActivationArgs { caID: WalletCompanion, caWallet: wallet }
 
-  --marloweCreateContract wallet roles contract = do
-  --  webContractInstanceId <- activateContract $ ContractActivationArgs { caID: MarloweApp, caWallet: wallet }
-  --  case webContractInstanceId of
-  --    Success contractInstanceId ->
-  --      invokeEndpoint ?(encodeJSON wallet roles) contractInstanceId "create"
-  --      pure webContractInstanceId
-  --    _ -> pure $ Failure ""
-
-  --marloweApplyInputs params inputs = invokeEndpoint ?(encodeJSON params inputs) ?contractInstanceId "apply-inputs"
-
-  --marloweWait params = invokeEndpoint ?(encodeJSON params) ?contractInstanceId "wait"
-
-  --marloweAuto params party slot = invokeEndpoint ?(encodeJSON params party slot) ?contractInstanceId "auto"
-
-  --marloweRedeem params tokenName pubKeyHash = invokeEndpoint ?(encodeJSON params tokenName pubKeyHash) ?contractInstanceId "wait"
-
+--marloweCreateWalletCompanionContract wallet = activateContract $ ContractActivationArgs { caID: WalletCompanion, caWallet: wallet }
+--marloweCreateContract wallet roles contract = do
+--  webContractInstanceId <- activateContract $ ContractActivationArgs { caID: MarloweApp, caWallet: wallet }
+--  case webContractInstanceId of
+--    Success contractInstanceId ->
+--      invokeEndpoint ?(encodeJSON wallet roles) contractInstanceId "create"
+--      pure webContractInstanceId
+--    _ -> pure $ Failure ""
+--marloweApplyInputs params inputs = invokeEndpoint ?(encodeJSON params inputs) ?contractInstanceId "apply-inputs"
+--marloweWait params = invokeEndpoint ?(encodeJSON params) ?contractInstanceId "wait"
+--marloweAuto params party slot = invokeEndpoint ?(encodeJSON params party slot) ?contractInstanceId "auto"
+--marloweRedeem params tokenName pubKeyHash = invokeEndpoint ?(encodeJSON params tokenName pubKeyHash) ?contractInstanceId "wait"
 instance monadMarloweHalogenM :: MonadMarlowe m => MonadMarlowe (HalogenM state action slots msg m) where
   dummy = lift dummy
-  --marloweCreateWalletCompanionContract = lift <<< marloweCreateWalletCompanionContract
 
-  --marloweCreateContract wallet roles contract = lift $ marloweCreateContract wallet roles contract
-
-  --marloweApplyInputs params inputs = lift $ marloweApplyInputs params inputs
-
-  --marloweWait = lift <<< marloweWait
-
-  --marloweAuto params party slot = lift $ marloweAuto params party slot
-
-  --marloweRedeem params tokenName pubKeyHash = lift $ marloweRedeem params tokenName pubKeyHash
+--marloweCreateWalletCompanionContract = lift <<< marloweCreateWalletCompanionContract
+--marloweCreateContract wallet roles contract = lift $ marloweCreateContract wallet roles contract
+--marloweApplyInputs params inputs = lift $ marloweApplyInputs params inputs
+--marloweWait = lift <<< marloweWait
+--marloweAuto params party slot = lift $ marloweAuto params party slot
+--marloweRedeem params tokenName pubKeyHash = lift $ marloweRedeem params tokenName pubKeyHash

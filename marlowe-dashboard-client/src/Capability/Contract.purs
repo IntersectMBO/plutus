@@ -31,16 +31,21 @@ class
   getContractDefinitions :: m (WebData (Array (ContractSignatureResponse ContractExe)))
 
 instance monadContractAppM :: MonadContract AppM where
-  activateContract contractActivationArgs = runAjax
-    $ postApiNewContractActivate contractActivationArgs
-  getContractInstance contractInstanceId = runAjax
-    $ getApiNewContractInstanceByContractinstanceidStatus contractInstanceId
-  invokeEndpoint rawJson contractInstanceId endpointDescriptionString = runAjax
-    $ postApiNewContractInstanceByContractinstanceidEndpointByEndpointname rawJson contractInstanceId endpointDescriptionString
-  getContractInstances = runAjax
-    $ getApiNewContractInstances
-  getContractDefinitions = runAjax
-    $ getApiNewContractDefinitions
+  activateContract contractActivationArgs =
+    runAjax
+      $ postApiNewContractActivate contractActivationArgs
+  getContractInstance contractInstanceId =
+    runAjax
+      $ getApiNewContractInstanceByContractinstanceidStatus contractInstanceId
+  invokeEndpoint rawJson contractInstanceId endpointDescriptionString =
+    runAjax
+      $ postApiNewContractInstanceByContractinstanceidEndpointByEndpointname rawJson contractInstanceId endpointDescriptionString
+  getContractInstances =
+    runAjax
+      $ getApiNewContractInstances
+  getContractDefinitions =
+    runAjax
+      $ getApiNewContractDefinitions
 
 instance monadContractHalogenM :: MonadContract m => MonadContract (HalogenM state action slots msg m) where
   activateContract = lift <<< activateContract

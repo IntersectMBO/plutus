@@ -1,7 +1,9 @@
 module MainFrame.State (mkMainFrame) where
 
 import Prelude
-import Capability (class MonadContract, class MonadWallet, createWallet)
+import Bridge (contractInstanceIdFromString)
+import Capability.Contract (class MonadContract)
+import Capability.Wallet (class MonadWallet, createWallet, getWalletPubKey, getWalletTotalFunds)
 import Control.Monad.Except (runExcept)
 import Control.Monad.Reader (class MonadAsk)
 import Data.BigInteger (fromInt)
@@ -10,6 +12,7 @@ import Data.Foldable (for_)
 import Data.Lens (assign, over, set, use, view)
 import Data.Map (empty, filter, findMin, insert, lookup, member)
 import Data.Maybe (Maybe(..))
+import Data.UUID (emptyUUID)
 import Effect.Aff.Class (class MonadAff)
 import Effect.Now (getTimezoneOffset)
 import Env (Env)
@@ -30,7 +33,7 @@ import StaticData (walletDetailsLocalStorageKey, walletLibraryLocalStorageKey)
 import Template.State (handleAction) as Template
 import Template.Types (Action(..)) as Template
 import Wallet.Emulator.Wallet (Wallet(..))
-import WalletData.Lenses (_contractInstanceId, _contractInstanceIdAsString, _contractInstanceIdString, _remoteDataWallet, _walletNicknameString)
+import WalletData.Lenses (_contractInstanceId, _contractInstanceIdAsString, _contractInstanceIdString, _remoteDataPubKey, _remoteDataWallet, _remoteDataValue, _walletNicknameString)
 import WalletData.Types (WalletDetails, NewWalletDetails)
 import WebSocket.Support as WS
 
@@ -145,16 +148,19 @@ handleAction (PickupAction (Pickup.PickupWallet walletDetails)) = do
 
 handleAction (PickupAction Pickup.GenerateNewWallet) = do
   remoteDataWallet <- createWallet
+  assign (_newWalletDetails <<< _remoteDataWallet) remoteDataWallet
   case remoteDataWallet of
     Success wallet -> do
-      assign (_newWalletDetails <<< _remoteDataWallet) remoteDataWallet
+      remoteDataPubKey <- getWalletPubKey wallet
+      remoteDataValue <- getWalletTotalFunds wallet
+      assign (_newWalletDetails <<< _remoteDataPubKey) remoteDataPubKey
+      assign (_newWalletDetails <<< _remoteDataValue) remoteDataValue
       -- TODO: create a wallet companion contract and get its instanceId
       let
-        contractInstanceIdString = "xyz"
+        contractInstanceIdString = "9a72e336-2766-423e-a9c7-10c3b6c5ebb2"
       assign (_newWalletDetails <<< _contractInstanceIdString) contractInstanceIdString
       assign (_pickupState <<< _card) (Just Pickup.PickupNewWalletCard)
-    _ -> -- TODO: show errors to the user
-      pure unit
+    _ ->  -- TODO: show errors to the user pure unit
 
 handleAction (PickupAction (Pickup.LookupWallet string)) = do
   wallets <- use _wallets
@@ -195,6 +201,7 @@ emptyNewWalletDetails =
   , contractInstanceIdString: mempty
   , remoteDataWallet: NotAsked
   , remoteDataPubKey: NotAsked
+  , remoteDataValue: NotAsked
   }
 
 mkNewWallet :: NewWalletDetails -> Maybe WalletDetails
@@ -202,11 +209,16 @@ mkNewWallet newWalletDetails =
   let
     walletNickname = view _walletNicknameString newWalletDetails
 
-    contractInstanceId = view _contractInstanceIdString newWalletDetails
+    contractInstanceIdString = view _contractInstanceIdString newWalletDetails
+
+    mContractInstanceId = contractInstanceIdFromString contractInstanceIdString
 
     remoteDataWallet = view _remoteDataWallet newWalletDetails
+
+    remoteDataPubKey = view _remoteDataPubKey newWalletDetails
+
+    remoteDataValue = view _remoteDataValue newWalletDetails
   in
-    case remoteDataWallet of
-      -- TODO: contractInstanceIdString to contractInstanceId
-      --Success wallet -> Just { walletNickname, contractInstanceId, wallet, pubKey: "", balance: Nothing }
-      _ -> Nothing
+    case mContractInstanceId, remoteDataWallet, remoteDataPubKey, remoteDataValue of
+      Just contractInstanceId, Success wallet, Success pubKey, Success value -> Just { walletNickname, contractInstanceId, wallet, pubKey, value }
+      _, _, _, _ -> Nothing

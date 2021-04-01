@@ -14,7 +14,7 @@ import MainFrame.Lenses (_card)
 import Material.Icons (Icon(..), icon_)
 import Pickup.Types (Action(..), Card(..), State)
 import Prim.TypeError (class Warn, Text)
-import WalletData.Lenses (_contractInstanceId, _contractInstanceIdString, _remoteDataWallet, _walletNickname, _walletNicknameString)
+import WalletData.Lenses (_contractInstanceId, _contractInstanceIdString, _remoteDataPubKey, _remoteDataValue, _remoteDataWallet, _walletNickname, _walletNicknameString)
 import WalletData.Types (NewWalletDetails, WalletDetails, WalletLibrary)
 import WalletData.Validation (contractInstanceIdError, walletNicknameError)
 import WalletData.View (nicknamesDataList)
@@ -66,9 +66,13 @@ pickupNewWalletCard wallets newWalletDetails =
 
     remoteDataWallet = view _remoteDataWallet newWalletDetails
 
+    remoteDataPubKey = view _remoteDataPubKey newWalletDetails
+
+    remoteDataValue = view _remoteDataValue newWalletDetails
+
     mWalletNicknameError = walletNicknameError walletNicknameString wallets
 
-    mContractInstanceIdError = contractInstanceIdError contractInstanceIdString remoteDataWallet wallets
+    mContractInstanceIdError = contractInstanceIdError contractInstanceIdString remoteDataWallet remoteDataPubKey remoteDataValue wallets
   in
     div [ classNames [ "p-5", "pb-6", "md:pb-8" ] ]
       [ p
@@ -107,6 +111,9 @@ pickupNewWalletCard wallets newWalletDetails =
               , value contractInstanceIdString
               , readOnly true
               ]
+          , div
+              [ classNames Css.inputError ]
+              [ text $ foldMap show mContractInstanceIdError ]
           ]
       , div
           [ classNames [ "flex" ] ]

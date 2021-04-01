@@ -151,23 +151,24 @@ renderCards wallets newWalletDetails templates playState =
       [ div
           [ classNames cardClasses ]
           $ closeButton
-          <> case mCard of
-              -- TODO: Should this be renamed to CreateContactCard?
-              Just (CreateWalletCard mTokenName) -> [ newWalletCard wallets newWalletNickname newWalletContractId remoteDataPubKey mTokenName ]
-              Just (ViewWalletCard walletDetails) -> [ walletDetailsCard walletDetails ]
-              Just PutdownWalletCard -> [ putdownWalletCard currentWalletDetails ]
-              Just TemplateLibraryCard -> [ TemplateAction <$> templateLibraryCard templates ]
-              Just ContractSetupConfirmationCard -> [ TemplateAction <$> contractSetupConfirmationCard ]
-              -- FIXME: We need to pattern match on the Maybe because the selectedContractState
-              --        could be Nothing. We could add the state as part of the view, but is not ideal
-              --        Will have to rethink how to deal with this once the overall state is more mature.
-              Just ContractCard -> case mSelectedContractState of
-                Just contractState -> [ ContractAction <$> contractDetailsCard contractState ]
-                Nothing -> []
-              Just (ContractActionConfirmationCard action) -> case mSelectedContractState of
-                Just contractState -> [ ContractAction <$> actionConfirmationCard contractState action ]
-                Nothing -> []
-              Nothing -> []
+          <> [ div_
+                $ (flip foldMap mCard) \cardType -> case cardType of
+                    -- TODO: Should this be renamed to CreateContactCard?
+                    CreateWalletCard mTokenName -> [ newWalletCard wallets newWalletDetails mTokenName ]
+                    ViewWalletCard walletDetails -> [ walletDetailsCard walletDetails ]
+                    PutdownWalletCard -> [ putdownWalletCard currentWalletDetails ]
+                    TemplateLibraryCard -> [ TemplateAction <$> templateLibraryCard templates ]
+                    ContractSetupConfirmationCard -> [ TemplateAction <$> contractSetupConfirmationCard ]
+                    -- FIXME: We need to pattern match on the Maybe because the selectedContractState
+                    --        could be Nothing. We could add the state as part of the view, but is not ideal
+                    --        Will have to rethink how to deal with this once the overall state is more mature.
+                    ContractCard -> case mSelectedContractState of
+                      Just contractState -> [ ContractAction <$> contractDetailsCard contractState ]
+                      Nothing -> []
+                    ContractActionConfirmationCard action -> case mSelectedContractState of
+                      Just contractState -> [ ContractAction <$> actionConfirmationCard contractState action ]
+                      Nothing -> []
+            ]
       ]
 
 renderScreen :: forall p. WalletLibrary -> Screen -> State -> HTML p Action

@@ -13,7 +13,8 @@ import Plutus.PAB.Webserver (SPParams_)
 import Servant.PureScript.Ajax (AjaxError)
 import Servant.PureScript.Settings (SPSettings_)
 
-type WebData = RemoteData AjaxError
+type WebData
+  = RemoteData AjaxError
 
 runAjax :: forall a m. MonadAsk Env m => ExceptT AjaxError (ReaderT (SPSettings_ SPParams_) m) a -> m (WebData a)
 runAjax action = mapEnvReaderT _.ajaxSettings $ fromEither <$> runExceptT action

@@ -15,12 +15,12 @@ import Data.Map (isEmpty, toUnfoldable)
 import Data.Maybe (Maybe(..), isJust)
 import Data.String (null)
 import Data.Tuple (Tuple(..))
-import Halogen.HTML (HTML, button, datalist, div, div_, h2, h3, input, label, li, option, p, p_, text, ul_)
+import Halogen.HTML (HTML, button, datalist, div, h2, h3, input, label, li, option, p, p_, text, ul_)
 import Halogen.HTML.Events.Extra (onClick_, onValueInput_)
 import Halogen.HTML.Properties (InputType(..), disabled, id_, placeholder, readOnly, type_, value)
 import Material.Icons (Icon(..))
 import Play.Types (Action(..), Card(..))
-import WalletData.Lenses (_contractInstanceId, _contractInstanceIdString, _remoteDataWallet, _walletNickname, _walletNicknameString)
+import WalletData.Lenses (_contractInstanceId, _contractInstanceIdString, _remoteDataPubKey, _remoteDataValue, _remoteDataWallet, _walletNickname, _walletNicknameString)
 import WalletData.Types (NewWalletDetails, WalletDetails, WalletLibrary)
 import WalletData.Validation (contractInstanceIdError, walletNicknameError)
 
@@ -33,9 +33,13 @@ newWalletCard library newWalletDetails mTokenName =
 
     remoteDataWallet = view _remoteDataWallet newWalletDetails
 
+    remoteDataPubKey = view _remoteDataPubKey newWalletDetails
+
+    remoteDataValue = view _remoteDataValue newWalletDetails
+
     mWalletNicknameError = walletNicknameError walletNicknameString library
 
-    mContractInstanceIdError = contractInstanceIdError contractInstanceIdString remoteDataWallet library
+    mContractInstanceIdError = contractInstanceIdError contractInstanceIdString remoteDataWallet remoteDataPubKey remoteDataValue library
   in
     div
       [ classNames [ "flex", "flex-col", "p-5", "pb-6", "md:pb-8" ] ]
