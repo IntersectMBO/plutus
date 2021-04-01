@@ -94,6 +94,7 @@ test-suite marlowe-test
         aeson -any,
         base >=4.9 && <5,
         containers -any,
+        data-default  -any,
         hint -any,
         lens -any,
         memory -any,
