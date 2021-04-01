@@ -20,7 +20,6 @@ module Plutus.V1.Ledger.Api (
     , ExBudget (..)
     , ExCPU (..)
     , ExMemory (..)
-    , CostModelParameters
     -- ** Verbose mode and log output
     , VerboseMode (..)
     , LogOutput
@@ -63,12 +62,10 @@ module Plutus.V1.Ledger.Api (
 
 import           Control.Monad.Except
 import           Control.Monad.Writer
-import           Data.Aeson                                (Result (..), fromJSON, toJSON)
 import           Data.Bifunctor
 import           Data.ByteString.Short
 import           Data.Either
-import           Data.Map
-import qualified Data.Text                                 as Text
+import qualified Data.Text                                as Text
 import           Data.Text.Prettyprint.Doc
 import           Data.Tuple
 import qualified Flat
@@ -77,22 +74,20 @@ import           Plutus.V1.Ledger.Bytes
 import           Plutus.V1.Ledger.Contexts
 import           Plutus.V1.Ledger.Crypto
 import           Plutus.V1.Ledger.Interval
-import           Plutus.V1.Ledger.Scripts                  hiding (Script)
-import qualified Plutus.V1.Ledger.Scripts                  as Scripts
+import           Plutus.V1.Ledger.Scripts                 hiding (Script)
+import qualified Plutus.V1.Ledger.Scripts                 as Scripts
 import           Plutus.V1.Ledger.Slot
-import qualified PlutusCore                                as PLC
-import qualified PlutusCore.Constant                       as PLC
-import qualified PlutusCore.DeBruijn                       as PLC
-import           PlutusCore.Evaluation.Machine.ExBudget    (ExBudget (..))
-import qualified PlutusCore.Evaluation.Machine.ExBudget    as PLC
-import           PlutusCore.Evaluation.Machine.ExBudgeting (CostModel)
-import           PlutusCore.Evaluation.Machine.ExMemory    (ExCPU (..), ExMemory (..))
-import qualified PlutusCore.MkPlc                          as PLC
+import qualified PlutusCore                               as PLC
+import qualified PlutusCore.DeBruijn                      as PLC
+import           PlutusCore.Evaluation.Machine.ExBudget   (ExBudget (..))
+import qualified PlutusCore.Evaluation.Machine.ExBudget   as PLC
+import           PlutusCore.Evaluation.Machine.ExMemory   (ExCPU (..), ExMemory (..))
+import qualified PlutusCore.MkPlc                         as PLC
 import           PlutusCore.Pretty
-import           PlutusTx                                  (Data (..), IsData (..))
-import qualified PlutusTx.Lift                             as PlutusTx
-import qualified UntypedPlutusCore                         as UPLC
-import qualified UntypedPlutusCore.Evaluation.Machine.Cek  as UPLC
+import           PlutusTx                                 (Data (..), IsData (..))
+import qualified PlutusTx.Lift                            as PlutusTx
+import qualified UntypedPlutusCore                        as UPLC
+import qualified UntypedPlutusCore.Evaluation.Machine.Cek as UPLC
 
 plutusScriptEnvelopeType :: Text.Text
 plutusScriptEnvelopeType = "PlutusV1Script"
@@ -118,21 +113,10 @@ anything, we're just going to create new versions.
 validateScript :: Script -> Bool
 validateScript = isRight . Flat.unflat @Scripts.Script . fromShort
 
--- | Convenience constructor for a 'CostModel' from a map giving the parameters.
-mkCostModel :: Map String Integer -> Either EvaluationError CostModel
--- TODO: this is a bit of a hack, replace it with something more principled
-mkCostModel m = case fromJSON $ toJSON m of
-    Success a -> pure a
-    Error e   -> throwError $ CostModelParameterMismatch e
-
 data VerboseMode = Verbose | Quiet
     deriving (Eq)
 
 type LogOutput = [Text.Text]
-
--- | The cost model parameters are modelled coarsely as a set of named, integer parameters. Conversion to the
--- "real" model type can fail if those don't line up with the parameters that we expect.
-type CostModelParameters = Map String Integer
 
 -- | Scripts to the ledger are serialised bytestrings.
 type Script = ShortByteString
@@ -167,20 +151,17 @@ mkTermToEvaluate bs args = do
 -- | Evaluates a script, with a budget that restricts how many resources it can use.
 evaluateScriptRestricting
     :: VerboseMode -- ^ Whether to produce log output
-    -> CostModelParameters -- ^ The cost model to use
     -> ExBudget -- ^ The resource budget which must not be exceeded during evaluation
     -> Script -- ^ The script to evaluate
     -> [Data] -- ^ The arguments to the script
     -> (LogOutput, Either EvaluationError ())
-evaluateScriptRestricting verbose costParams budget p args = swap $ runWriter @LogOutput $ runExceptT $ do
+evaluateScriptRestricting verbose budget p args = swap $ runWriter @LogOutput $ runExceptT $ do
     appliedTerm <- mkTermToEvaluate p args
-    model <- liftEither $ mkCostModel costParams
-
     let (res, _, logs) = UPLC.runCek
-          (PLC.toBuiltinsRuntime model)
-          (UPLC.restricting $ PLC.ExRestrictingBudget budget)
-          (verbose == Verbose)
-         appliedTerm
+                            PLC.defBuiltinsRuntime
+                            (UPLC.restricting $ PLC.ExRestrictingBudget budget)
+                            (verbose == Verbose)
+                            appliedTerm
 
     tell $ Prelude.map Text.pack logs
     liftEither $ first CekError $ void res
@@ -188,19 +169,16 @@ evaluateScriptRestricting verbose costParams budget p args = swap $ runWriter @L
 -- | Evaluates a script, returning the budget that the script would need to evaluate successfully.
 evaluateScriptCounting
     :: VerboseMode -- ^ Whether to produce log output
-    -> CostModelParameters -- ^ The cost model to use
     -> Script -- ^ The script to evaluate
     -> [Data] -- ^ The arguments to the script
     -> (LogOutput, Either EvaluationError ExBudget)
-evaluateScriptCounting verbose costParams p args = swap $ runWriter @LogOutput $ runExceptT $ do
+evaluateScriptCounting verbose p args = swap $ runWriter @LogOutput $ runExceptT $ do
     appliedTerm <- mkTermToEvaluate p args
-    model <- liftEither $ mkCostModel costParams
-
     let (res, UPLC.CountingSt final, logs) = UPLC.runCek
-          (PLC.toBuiltinsRuntime model)
-          UPLC.counting
-          (verbose == Verbose)
-          appliedTerm
+                                                PLC.defBuiltinsRuntime
+                                                UPLC.counting
+                                                (verbose == Verbose)
+                                                appliedTerm
 
     tell $ Prelude.map Text.pack logs
     liftEither $ first CekError $ void res
