@@ -77,6 +77,8 @@ import           Data.Default                            (Default (..))
 import           Data.List                               (foldl')
 import qualified Data.Map                                as Map
 import           Data.Maybe                              (fromMaybe)
+import           Data.Text.Prettyprint.Doc               (defaultLayoutOptions, layoutPretty, pretty)
+import           Data.Text.Prettyprint.Doc.Render.String (renderString)
 import           Plutus.Trace.Scheduler                  (EmSystemCall, ThreadId, exit, runThreads)
 import           System.IO                               (Handle, hPutStrLn, stdout)
 import           Wallet.Emulator.Chain                   (ChainControlEffect, ChainEffect, ChainState (..))
@@ -218,7 +220,7 @@ defaultShowEvent = \case
   SchedulerEvent _                                                     -> Nothing
   ChainIndexEvent _ _                                                  -> Nothing
   WalletEvent _ _                                                      -> Nothing
-  ev                                                                   -> Just $ show ev
+  ev                                                                   -> Just . renderString . layoutPretty defaultLayoutOptions . pretty $ ev
 
 -- | Run an emulator trace to completion, returning a tuple of the final state
 -- of the emulator, the events, and any error, if any.
