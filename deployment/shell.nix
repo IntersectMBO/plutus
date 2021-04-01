@@ -114,7 +114,7 @@ let
         ${terraform}/bin/terraform destroy ./terraform
       '';
 
-      # deploy-nix: wrapper around executing `morph deploy` 
+      # deploy-nix: wrapper around executing `morph deploy`
       # - Checks if `machines.json` is present - aborts if not
       # - Checks if terraform is up to date - aborts if not
       # - Writes ssh configuration and copies secrets to the morph config directory
@@ -176,8 +176,15 @@ let
         mkdir -p ~/.ssh/config.d
         cp plutus_playground.$DEPLOYMENT_ENV.conf ~/.ssh/config.d/
 
+        #
+        # Note: there appears to be some timing issue with how morph executes
+        # the health-checks. In order to circumvent this we split these steps in two
+        # 1. deployment without health-checks
+        # 2. health-checks only
+        #
         echo "[deploy-nix]: Starting deployment ..."
-        ${morph}/bin/morph deploy --upload-secrets ./morph/network.nix switch
+        ${morph}/bin/morph deploy --skip-health-checks --upload-secrets ./morph/network.nix switch
+        ${morph}/bin/morph check-health ./morph/network.nix
       '';
 
       # deploy: combine terraform provisioning and morph deployment
