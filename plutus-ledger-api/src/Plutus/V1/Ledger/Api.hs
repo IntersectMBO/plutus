@@ -166,10 +166,10 @@ evaluateScriptRestricting verbose model budget p args = swap $ runWriter @LogOut
     appliedTerm <- mkTermToEvaluate p args
     let (res, _, logs) =
             UPLC.runCek
-               (toBuiltinsRuntime model)
-               (UPLC.restricting $ PLC.ExRestrictingBudget budget)
-               (verbose == Verbose)
-               appliedTerm
+                (toBuiltinsRuntime model)
+                (UPLC.restricting $ PLC.ExRestrictingBudget budget)
+                (verbose == Verbose)
+                appliedTerm
 
     tell $ Prelude.map Text.pack logs
     liftEither $ first CekError $ void res
@@ -186,10 +186,10 @@ evaluateScriptCounting verbose model p args = swap $ runWriter @LogOutput $ runE
     appliedTerm <- mkTermToEvaluate p args
     let (res, UPLC.CountingSt final, logs) =
             UPLC.runCek
-               (toBuiltinsRuntime model)
-               UPLC.counting
-               (verbose == Verbose)
-               appliedTerm
+                (toBuiltinsRuntime model)
+                UPLC.counting
+                (verbose == Verbose)
+                appliedTerm
 
     tell $ Prelude.map Text.pack logs
     liftEither $ first CekError $ void res
