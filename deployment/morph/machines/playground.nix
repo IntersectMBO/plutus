@@ -23,81 +23,104 @@ in
   services.plutus-playground = {
     enable = true;
     port = 4000;
-    webghcURL = "http://${tfinfo.webghcB.dns}";
+    webghcURL = "http://${tfinfo.environment}.${tfinfo.plutusTld}";
     frontendURL = "https://${tfinfo.environment}.${tfinfo.plutusTld}";
     playground-server-package = pkgs.plutus-playground.server;
   };
 
-  services.nginx = {
-    enable = true;
-    recommendedGzipSettings = true;
-    recommendedProxySettings = true;
-    recommendedOptimisation = true;
+  services.nginx =
+    let
+      staticFileCacheControl = ''
+        # static files should not be too costly to serve so we can allow more generous rates
+        limit_req zone=staticlimit burst=1000;
+        add_header 'Cache-Control' 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0';
+        expires off;
+      '';
+    in
+    {
+      enable = true;
+      recommendedGzipSettings = true;
+      recommendedProxySettings = true;
+      recommendedOptimisation = true;
 
-    upstreams = {
-      plutus-playground.servers."127.0.0.1:4000" = { };
-      marlowe-playground.servers."127.0.0.1:4001" = { };
-    };
-    virtualHosts = {
-      "plutus-playground" = {
-        listen = [{ addr = "0.0.0.0"; port = 8080; }];
-        locations = {
-          "/version" = {
-            proxyPass = "http://plutus-playground";
+      appendHttpConfig = ''
+        limit_req_zone $binary_remote_addr zone=plutuslimit:10m rate=2r/s;
+        limit_req_zone $binary_remote_addr zone=staticlimit:500m rate=100r/s;
+        server_names_hash_bucket_size 128;
+        log_format compression '$remote_addr - $remote_user [$time_local] '
+        '"$request" $status $body_bytes_sent '
+        '"$http_referer" "$http_user_agent" "$gzip_ratio"';
+      '';
+
+      upstreams = {
+        plutus-playground.servers."127.0.0.1:4000" = { };
+        marlowe-playground.servers."127.0.0.1:4001" = { };
+      };
+      virtualHosts = {
+        "plutus-playground" = {
+          listen = [{ addr = "0.0.0.0"; port = 8080; }];
+          locations = {
+            "/version" = {
+              proxyPass = "http://plutus-playground";
+            };
+            "/health" = {
+              proxyPass = "http://plutus-playground";
+            };
+            "/" = {
+              root = "${pkgs.plutus-playground.client}";
+              extraConfig = ''
+                ${staticFileCacheControl}
+                error_page 404 = @fallback;
+              '';
+            };
+            "^~ /tutorial/" = {
+              alias = "${pkgs.plutus-playground.tutorial}/";
+              extraConfig = ''
+                error_page 404 = @fallback;
+              '';
+            };
+            "@fallback" = {
+              proxyPass = "http://plutus-playground";
+              proxyWebsockets = true;
+              extraConfig = ''
+                limit_req zone=plutuslimit burst=10;
+              '';
+            };
           };
-          "/health" = {
-            proxyPass = "http://plutus-playground";
-          };
-          "/" = {
-            root = "${pkgs.plutus-playground.client}";
-            extraConfig = ''
-              error_page 404 = @fallback;
-            '';
-          };
-          #"^~ /tutorial/" = {
-          #alias = "${plutus.plutus-playground.tutorial}/";
-          #extraConfig = ''
-          #error_page 404 = @fallback;
-          #'';
-          #};
-          "@fallback" = {
-            proxyPass = "http://plutus-playground";
-            proxyWebsockets = true;
-            extraConfig = ''
-              error_page 404 = @fallback;
-            '';
+        };
+        "marlowe-playground" = {
+          listen = [{ addr = "0.0.0.0"; port = 9080; }];
+          locations = {
+            "/version" = {
+              proxyPass = "http://marlowe-playground";
+            };
+            "/health" = {
+              proxyPass = "http://marlowe-playground";
+            };
+            "/" = {
+              root = "${pkgs.marlowe-playground.client}";
+              extraConfig = ''
+                ${staticFileCacheControl}
+                error_page 404 = @fallback;
+              '';
+            };
+            "^~ /tutorial/" = {
+              alias = "${pkgs.marlowe-playground.tutorial}/";
+              extraConfig = ''
+                error_page 404 = @fallback;
+              '';
+            };
+            "@fallback" = {
+              proxyPass = "http://marlowe-playground";
+              proxyWebsockets = true;
+              extraConfig = ''
+                limit_req zone=plutuslimit burst=10;
+              '';
+            };
           };
         };
       };
-      "marlowe-playground" = {
-        listen = [{ addr = "0.0.0.0"; port = 9080; }];
-        locations = {
-          "/version" = {
-            proxyPass = "http://marlowe-playground";
-          };
-          "/health" = {
-            proxyPass = "http://marlowe-playground";
-          };
-          "/" = {
-            root = "${pkgs.marlowe-playground.client}";
-            extraConfig = ''
-              error_page 404 = @fallback;
-            '';
-          };
-          #"^~ /tutorial/" = {
-          #alias = "${plutus.marlowe-playground.tutorial}/";
-          #extraConfig = ''
-          #error_page 404 = @fallback;
-          #'';
-          #};
-          "@fallback" = {
-            proxyPass = "http://marlowe-playground";
-            proxyWebsockets = true;
-          };
-        };
-      };
     };
-  };
 
   deployment = {
     secrets = {

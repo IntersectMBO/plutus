@@ -5,7 +5,7 @@
   ];
 
   networking = {
-    firewall.allowedTCPPorts = [ 22 80 8080 ];
+    firewall.allowedTCPPorts = [ 22 80 9080 ];
   };
 
   services.pab = {
@@ -15,7 +15,7 @@
     staticContent = pkgs.marlowe-dashboard.client;
     dbFile = "/var/lib/pab/pab-core.db";
     defaultWallet = 1;
-    webserverPort = 8080;
+    webserverPort = 9080;
     walletPort = 8081;
     nodePort = 8082;
     chainIndexPort = 8083;
