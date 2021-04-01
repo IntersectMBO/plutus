@@ -160,7 +160,8 @@ handleAction (PickupAction Pickup.GenerateNewWallet) = do
         contractInstanceIdString = "9a72e336-2766-423e-a9c7-10c3b6c5ebb2"
       assign (_newWalletDetails <<< _contractInstanceIdString) contractInstanceIdString
       assign (_pickupState <<< _card) (Just Pickup.PickupNewWalletCard)
-    _ ->  -- TODO: show errors to the user pure unit
+    -- TODO: show errors to the user
+    _ -> pure unit
 
 handleAction (PickupAction (Pickup.LookupWallet string)) = do
   wallets <- use _wallets
