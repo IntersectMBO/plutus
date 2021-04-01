@@ -177,7 +177,7 @@ let
         cp plutus_playground.$DEPLOYMENT_ENV.conf ~/.ssh/config.d/
 
         echo "[deploy-nix]: Starting deployment ..."
-        ${morph}/bin/morph deploy --upload-secrets ./morph/default.nix switch
+        ${morph}/bin/morph deploy --upload-secrets ./morph/network.nix switch
       '';
 
       # deploy: combine terraform provisioning and morph deployment

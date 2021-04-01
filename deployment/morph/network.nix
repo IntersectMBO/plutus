@@ -15,7 +15,7 @@ let
   # - adds plutus specific packages through an overlay
   mkMachine = { config, name }: {
     imports = [
-      ./profiles/std.nix
+      ./machines/std.nix
       config
       ({ lib, config, ... }:
         {
