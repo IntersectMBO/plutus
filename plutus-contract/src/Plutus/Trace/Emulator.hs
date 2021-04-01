@@ -5,7 +5,6 @@
 {-# LANGUAGE LambdaCase          #-}
 {-# LANGUAGE NamedFieldPuns      #-}
 {-# LANGUAGE OverloadedStrings   #-}
-{-# LANGUAGE RankNTypes          #-}
 {-# LANGUAGE TemplateHaskell     #-}
 {-# LANGUAGE TypeApplications    #-}
 {-# LANGUAGE TypeFamilies        #-}
@@ -52,10 +51,11 @@ module Plutus.Trace.Emulator(
     -- * Running traces
     , EmulatorConfig(..)
     , initialChainState
-    , defaultEmulatorConfig
     , runEmulatorStream
     , TraceConfig(..)
     , runEmulatorTrace
+    , PrintEffect(..)
+    , runEmulatorTraceEff
     , runEmulatorTraceIO
     , runEmulatorTraceIO'
     -- * Interpreter
@@ -84,9 +84,8 @@ import qualified Wallet.Emulator.Chain                   as ChainState
 import           Wallet.Emulator.MultiAgent              (EmulatorEvent, EmulatorEvent' (..), EmulatorState (..),
                                                           MultiAgentControlEffect, MultiAgentEffect, _eteEmulatorTime,
                                                           _eteEvent, schedulerEvent)
-import           Wallet.Emulator.Stream                  (EmulatorConfig (..), EmulatorErr (..), defaultEmulatorConfig,
-                                                          foldEmulatorStreamM, initialChainState, initialDist,
-                                                          runTraceStream)
+import           Wallet.Emulator.Stream                  (EmulatorConfig (..), EmulatorErr (..), foldEmulatorStreamM,
+                                                          initialChainState, initialDist, runTraceStream)
 import           Wallet.Emulator.Wallet                  (Wallet, _ownPrivateKey, getWallet)
 import qualified Wallet.Emulator.Wallet                  as Wallet
 
@@ -117,6 +116,12 @@ import           Plutus.V1.Ledger.Slot                   (getSlot)
 import           Plutus.V1.Ledger.Tx                     (TxOut (..))
 import           Plutus.V1.Ledger.Value                  (Value (..), flattenValue)
 
+-- | A very simple effect for interpreting the output printing done by the
+-- trace printing functions:
+--
+-- * 'runEmulatorTraceEff'
+-- * 'runEmulatorTraceIO'
+-- * 'runEmulatorTraceIO''
 data PrintEffect r where
   PrintLn :: String -> PrintEffect ()
 makeEffect ''PrintEffect
@@ -228,30 +233,17 @@ runEmulatorTrace cfg trace =
     $ foldEmulatorStreamM (generalize list)
     $ runEmulatorStream cfg trace
 
--- | Runs the trace with 'runEmulatorTrace', with default configuration that
--- prints a selection of events to stdout.
---
--- Example:
---
--- >>> runEmulatorTraceIO (void $ Trace.waitNSlots 1)
-runEmulatorTraceIO
-    :: EmulatorTrace ()
-    -> IO ()
-runEmulatorTraceIO = runEmulatorTraceIO' def defaultEmulatorConfig
 
---- | Runs the trace with a given configuration for the trace and the config.
---
--- Example of running a trace and saving the output to a file:
---
--- >>> withFile "/tmp/trace-log.txt" WriteMode $ \h -> runEmulatorTraceIO' (def { outputHandle = h }) defaultEmulatorConfig (void $ Trace.waitNSlots 1)
-runEmulatorTraceIO'
-    :: TraceConfig
+-- | Run the emulator trace returning an effect that can be evaluated by
+-- interpreting the 'PrintEffect's.
+runEmulatorTraceEff :: forall effs. Member PrintEffect effs
+    => TraceConfig
     -> EmulatorConfig
     -> EmulatorTrace ()
-    -> IO ()
-runEmulatorTraceIO' tcfg cfg trace =
+    -> Eff effs ()
+runEmulatorTraceEff tcfg cfg trace =
   let (xs, me, e) = runEmulatorTrace cfg trace
-   in runPrintEffect (outputHandle tcfg) $ do
+   in do
       case me of
         Nothing  -> return ()
         Just err -> printLn $ "ERROR: " <> show err
@@ -266,6 +258,30 @@ runEmulatorTraceIO' tcfg cfg trace =
       printLn $ "Final balances"
       printBalances (balances e)
 
+-- | Runs the trace with 'runEmulatorTrace', with default configuration that
+-- prints a selection of events to stdout.
+--
+-- Example:
+--
+-- >>> runEmulatorTraceIO (void $ Trace.waitNSlots 1)
+runEmulatorTraceIO
+    :: EmulatorTrace ()
+    -> IO ()
+runEmulatorTraceIO = runEmulatorTraceIO' def def
+
+--- | Runs the trace with a given configuration for the trace and the config.
+--
+-- Example of running a trace and saving the output to a file:
+--
+-- >>> withFile "/tmp/trace-log.txt" WriteMode $ \h -> runEmulatorTraceIO' (def { outputHandle = h }) def (void $ Trace.waitNSlots 1)
+runEmulatorTraceIO'
+    :: TraceConfig
+    -> EmulatorConfig
+    -> EmulatorTrace ()
+    -> IO ()
+runEmulatorTraceIO' tcfg cfg trace
+  = runPrintEffect (outputHandle tcfg) $ runEmulatorTraceEff tcfg cfg trace
+
 runPrintEffect :: Handle
          -> Eff '[PrintEffect, IO] r
          -> IO r
@@ -274,6 +290,7 @@ runPrintEffect hdl = runM . interpretM f
     f :: PrintEffect r -> IO r
     f = \case
       PrintLn s -> hPutStrLn hdl s
+
 
 pad :: Int -> Integer -> String
 pad n = (\x -> replicate (n - length x) '0' ++ x) . show
