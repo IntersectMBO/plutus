@@ -6,12 +6,12 @@ module Contract.State
   , defaultState
   , currentStep
   , isContractClosed
+  , applyTx
   ) where
 
 import Prelude
-import Contract.Lenses (_contractId, _executionState, _mNextTimeout, _selectedStep, _tab)
+import Contract.Lenses (_contractId, _executionState, _mNextTimeout, _namedActions, _selectedStep, _tab)
 import Contract.Types (Action(..), Query(..), State, Tab(..))
-import Control.Monad.Maybe.Trans (runMaybeT)
 import Control.Monad.Reader (class MonadAsk)
 import Data.Array (length)
 import Data.Lens (assign, modifying, set, use, view, (^.))
@@ -20,17 +20,18 @@ import Data.Maybe (Maybe(..))
 import Data.RawJson (RawJson(..))
 import Data.Unfoldable as Unfoldable
 import Effect.Aff.Class (class MonadAff)
+import Effect.Class (class MonadEffect)
 import Effect.Exception.Unsafe (unsafeThrow)
 import Env (Env)
 import Foreign.Generic (encode)
 import Foreign.JSON (unsafeStringify)
 import Halogen (HalogenM, liftEffect, modify_)
 import MainFrame.Types (ChildSlots, Msg)
-import Marlowe.Execution (NamedAction(..), _contract, _namedActions, _state, _steps, initExecution, merge, mkTx, nextState, nextTimeout)
+import Marlowe.Execution (NamedAction(..), _contract, _state, _steps, extractNamedActions, initExecution, mkTx, nextState, nextTimeout)
 import Marlowe.Extended (TemplateContent, fillTemplate, resolveRelativeTimes, toCore)
 import Marlowe.Extended as Extended
 import Marlowe.Extended.Metadata (MetaData, emptyContractMetadata)
-import Marlowe.Semantics (Contract(..), Input(..), Slot, _minSlot)
+import Marlowe.Semantics (Contract(..), Input(..), Slot, TransactionInput, _minSlot)
 import Marlowe.Semantics as Semantic
 import Marlowe.Slot (currentSlot)
 import WalletData.Types (Nickname)
@@ -93,57 +94,69 @@ mkInitialState ::
   Contract ->
   State
 mkInitialState contractId slot metadata participants mActiveUserParty contract =
-  { tab: Tasks
-  , executionState: initExecution slot contract
-  , contractId
-  , selectedStep: 0
-  , metadata
-  , participants
-  , mActiveUserParty
-  , mNextTimeout: nextTimeout contract
-  }
+  let
+    executionState = initExecution slot contract
+  in
+    { tab: Tasks
+    , executionState
+    , contractId
+    , selectedStep: 0
+    , metadata
+    , participants
+    , mActiveUserParty
+    , mNextTimeout: nextTimeout contract
+    , namedActions: extractNamedActions slot executionState.state contract
+    }
 
-handleQuery :: forall a m. Query a -> HalogenM State Action ChildSlots Msg m (Maybe a)
+handleQuery :: forall a m. MonadEffect m => Query a -> HalogenM State Action ChildSlots Msg m (Maybe a)
 handleQuery (ChangeSlot slot next) = do
   assign (_executionState <<< _state <<< _minSlot) slot
   pure $ Just next
 
 handleQuery (ApplyTx tx next) = do
-  modifying _executionState \currentExeState -> merge (nextState currentExeState tx) currentExeState
+  slot <- liftEffect $ currentSlot
+  modify_ $ applyTx slot tx
   pure $ Just next
+
+applyTx :: Slot -> TransactionInput -> State -> State
+applyTx currentSlot txInput state =
+  let
+    executionState = nextState (state ^. _executionState) txInput
+
+    mNextTimeout = nextTimeout (executionState ^. _contract)
+
+    namedActions = extractNamedActions currentSlot executionState.state executionState.contract
+
+    updateState =
+      set _executionState executionState
+        <<< set _selectedStep (length (executionState ^. _steps))
+        <<< set _mNextTimeout mNextTimeout
+        <<< set _namedActions namedActions
+  in
+    updateState state
 
 handleAction ::
   forall m.
   MonadAff m =>
   MonadAsk Env m =>
   Action -> HalogenM State Action ChildSlots Msg m Unit
-handleAction (ConfirmAction action) = do
+handleAction (ConfirmAction namedAction) = do
   currentExeState <- use _executionState
   contractId <- use _contractId
   slot <- liftEffect currentSlot
   let
-    input = toInput action
+    input = toInput namedAction
 
     txInput = mkTx slot (currentExeState ^. _contract) (Unfoldable.fromMaybe input)
 
     json = RawJson <<< unsafeStringify <<< encode $ input
   -- TODO: currently we just ignore errors but we probably want to do something better in the future
-  void
-    $ runMaybeT do
-        -- FIXME: send data to BE
-        -- void $ mapEnvReaderT _.ajaxSettings $ runExceptT $ postApiContractByContractinstanceidEndpointByEndpointname json contractId "apply-inputs"
-        let
-          executionState = nextState currentExeState txInput
-
-          mNextTimeout = nextTimeout (executionState ^. _contract)
-        modify_
-          ( set _executionState executionState
-              <<< set _selectedStep (length executionState.steps)
-              <<< set _mNextTimeout mNextTimeout
-          )
+  -- FIXME: send data to BE
+  -- void $ mapEnvReaderT _.ajaxSettings $ runExceptT $ postApiContractByContractinstanceidEndpointByEndpointname json contractId "apply-inputs"
+  modify_ $ applyTx slot txInput
 
 -- raise (SendWebSocketMessage (ServerMsg true)) -- FIXME: send txInput to the server to apply to the on-chain contract
-handleAction (ChangeChoice choiceId chosenNum) = modifying (_executionState <<< _namedActions) (map changeChoice)
+handleAction (ChangeChoice choiceId chosenNum) = modifying _namedActions (map changeChoice)
   where
   changeChoice (MakeChoice choiceId' bounds _)
     | choiceId == choiceId' = MakeChoice choiceId bounds chosenNum

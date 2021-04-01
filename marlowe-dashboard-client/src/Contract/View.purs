@@ -4,7 +4,7 @@ module Contract.View
   ) where
 
 import Prelude hiding (div)
-import Contract.Lenses (_executionState, _mActiveUserParty, _mNextTimeout, _metadata, _participants, _selectedStep, _tab)
+import Contract.Lenses (_executionState, _mActiveUserParty, _mNextTimeout, _metadata, _namedActions, _participants, _selectedStep, _tab)
 import Contract.State (currentStep, isContractClosed)
 import Contract.Types (Action(..), State, Tab(..))
 import Css (applyWhen, classNames, toggleWhen)
@@ -29,7 +29,7 @@ import Data.Tuple.Nested ((/\))
 import Halogen.HTML (HTML, a, button, div, div_, h1, h2, h3, input, p, span, span_, sup_, text)
 import Halogen.HTML.Events.Extra (onClick_, onValueInput_)
 import Halogen.HTML.Properties (InputType(..), enabled, href, placeholder, target, type_, value)
-import Marlowe.Execution (ExecutionStep(..), NamedAction(..), _contract, _namedActions, _state, _steps, getActionParticipant)
+import Marlowe.Execution (ExecutionStep(..), NamedAction(..), _contract, _state, _steps, getActionParticipant)
 import Marlowe.Extended (contractTypeName)
 import Marlowe.Semantics (Bound(..), ChoiceId(..), Input(..), Party(..), Slot, SlotInterval, Token(..), TransactionInput(..), _accounts, getEncompassBound)
 import Marlowe.Slot (secondsDiff, slotToDateTime)
@@ -461,7 +461,7 @@ renderTasks state =
   let
     executionState = state ^. _executionState
 
-    actions = executionState ^. _namedActions
+    actions = state ^. _namedActions
 
     expandedActions =
       expandAndGroupByRole

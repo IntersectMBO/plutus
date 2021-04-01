@@ -25,8 +25,12 @@ type State
     -- If it's Nothing, then the logged-user is an observant of the contract. That could happen
     -- if the person who creates the contract does not put him/herself as a participant of the contract
     -- or if a Role participant sells the role token to another participant
+    -- FIXME: The active party can use multiple roles, change this to (Array Party)
     , mActiveUserParty :: Maybe Semantic.Party
     , mNextTimeout :: Maybe Slot
+    -- These are the possible actions a user can make in the current step. We store this mainly because
+    -- extractNamedActions could potentially be unperformant to compute.
+    , namedActions :: Array NamedAction
     }
 
 data Tab

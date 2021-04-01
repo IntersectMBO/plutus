@@ -7,6 +7,7 @@ module Contract.Lenses
   , _participants
   , _mActiveUserParty
   , _mNextTimeout
+  , _namedActions
   ) where
 
 import Contract.Types (State, Tab)
@@ -15,7 +16,7 @@ import Data.Lens.Record (prop)
 import Data.Map (Map)
 import Data.Maybe (Maybe)
 import Data.Symbol (SProxy(..))
-import Marlowe.Execution (ExecutionState)
+import Marlowe.Execution (ExecutionState, NamedAction)
 import Marlowe.Extended.Metadata (MetaData)
 import Marlowe.Semantics as Semantic
 import WalletData.Types (Nickname)
@@ -43,3 +44,6 @@ _mActiveUserParty = prop (SProxy :: SProxy "mActiveUserParty")
 
 _mNextTimeout :: Lens' State (Maybe Semantic.Slot)
 _mNextTimeout = prop (SProxy :: SProxy "mNextTimeout")
+
+_namedActions :: Lens' State (Array NamedAction)
+_namedActions = prop (SProxy :: SProxy "namedActions")

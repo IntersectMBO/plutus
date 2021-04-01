@@ -29,19 +29,7 @@ type ExecutionState
   = { steps :: Array ExecutionStep
     , state :: State
     , contract :: Contract
-    , namedActions :: Array NamedAction
     }
-
--- | Merge ExecutionStates preferring the left over the right
--- | steps are appended left to right and everything else is
--- | replaced with the left side values
-merge :: ExecutionState -> ExecutionState -> ExecutionState
-merge a b =
-  { steps: a.steps <> b.steps
-  , state: a.state
-  , contract: a.contract
-  , namedActions: a.namedActions
-  }
 
 _state :: Lens' ExecutionState State
 _state = prop (SProxy :: SProxy "state")
@@ -52,19 +40,14 @@ _contract = prop (SProxy :: SProxy "contract")
 _steps :: Lens' ExecutionState (Array ExecutionStep)
 _steps = prop (SProxy :: SProxy "steps")
 
-_namedActions :: Lens' ExecutionState (Array NamedAction)
-_namedActions = prop (SProxy :: SProxy "namedActions")
-
 initExecution :: Slot -> Contract -> ExecutionState
 initExecution currentSlot contract =
   let
     steps = mempty
 
     state = emptyState currentSlot
-
-    namedActions = extractNamedActions currentSlot state contract
   in
-    { steps, state, contract, namedActions }
+    { steps, state, contract }
 
 -- FIXME: probably remove, nextTimeout does the same using Semantic code.
 hasTimeout :: Contract -> Maybe Timeout
@@ -96,37 +79,16 @@ mkTx currentSlot contract inputs =
 nextState :: ExecutionState -> TransactionInput -> ExecutionState
 nextState { steps, state, contract } txInput =
   let
-    currentSlot = view _minSlot state
-
     TransactionInput { interval: SlotInterval minSlot maxSlot } = txInput
 
     { txOutState, txOutContract } = case computeTransaction txInput state contract of
       (TransactionOutput { txOutState, txOutContract }) -> { txOutState, txOutContract }
       -- We should not have contracts which cause errors in the dashboard so we will just ignore error cases for now
       (Error _) -> { txOutState: state, txOutContract: contract }
-
-    -- FIXME: Check with Pablo and/or alex:
-    --        To extract the possible actions a user can take I need to know if a Case has timeout. In the previous
-    --        version we were using the minSlot of the Semantic state, but after discussing with Alex we needed to
-    --        use "the current slot" instead.
-    --        This means that extractNamedActions now receives a slot to calculate the timeout. Inside `initExecution`
-    --        it makes total sense as we use the current slot of the system. But `nextState` can be used to re-create
-    --        a contract history from the TransactionInput. I had three possible values I could use:
-    --          * Add a Slot paramenter to nextState and make the caller to decide what's the "current slot"
-    --          * Use the minSlot of the TransactionInput slot interval
-    --          * Use the maxSlot of the TransactionInput slot interval
-    --        For now I'm using the maxSlot of the TransactionInput, asuming that if it didn't timeout by that time,
-    --        then it didn't timeout at all. But I need to confirm this decision and see what consequences it may bring.
-    namedActions = extractNamedActions maxSlot txOutState txOutContract
-
-    timedOut = case hasTimeout contract of
-      Just t -> t < currentSlot
-      _ -> false
   in
     { steps: steps <> [ TransactionStep { txInput, state } ]
     , state: txOutState
     , contract: txOutContract
-    , namedActions
     }
 
 -- Represents the possible buttons that can be displayed on a contract stage card

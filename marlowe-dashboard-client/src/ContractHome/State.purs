@@ -6,7 +6,7 @@ module ContractHome.State
   ) where
 
 import Prelude
-import Contract.Lenses (_executionState)
+import Contract.State (applyTx)
 import Contract.State (mkInitialState) as Contract
 import Contract.Types (State) as Contract
 import ContractHome.Lenses (_selectedContractIndex, _status)
@@ -14,14 +14,13 @@ import ContractHome.Types (ContractStatus(..), State, Action(..))
 import Data.Array (catMaybes)
 import Data.BigInteger (fromInt)
 import Data.Foldable (foldl)
-import Data.Lens (assign, over)
+import Data.Lens (assign)
 import Data.List as List
 import Data.Map as Map
 import Data.Maybe (Maybe(..))
 import Data.Tuple.Nested ((/\))
 import Effect (Effect)
 import Halogen (HalogenM)
-import Marlowe.Execution (nextState)
 import Marlowe.Extended (TemplateContent(..), fillTemplate, resolveRelativeTimes, toCore)
 import Examples.PureScript.Escrow as Escrow
 import Examples.PureScript.EscrowWithCollateral as EscrowWithCollateral
@@ -96,7 +95,7 @@ filledContract2 (Slot currentSlot) = do
       ]
 
     nextState' :: Contract.State -> TransactionInput -> Contract.State
-    nextState' state txInput = over _executionState (flip nextState $ txInput) state
+    nextState' state txInput = applyTx (Slot currentSlot) txInput state
   contract <- toCore $ fillTemplate templateContent EscrowWithCollateral.extendedContract
   initialState <- pure $ Contract.mkInitialState "dummy contract 2" zero EscrowWithCollateral.metaData participants (Just $ Role "Alice") contract
   pure $ foldl nextState' initialState transactions
