@@ -65,7 +65,7 @@ import           Control.Monad.Writer
 import           Data.Bifunctor
 import           Data.ByteString.Short
 import           Data.Either
-import qualified Data.Text                                as Text
+import qualified Data.Text                                 as Text
 import           Data.Text.Prettyprint.Doc
 import           Data.Tuple
 import qualified Flat
@@ -74,20 +74,22 @@ import           Plutus.V1.Ledger.Bytes
 import           Plutus.V1.Ledger.Contexts
 import           Plutus.V1.Ledger.Crypto
 import           Plutus.V1.Ledger.Interval
-import           Plutus.V1.Ledger.Scripts                 hiding (Script)
-import qualified Plutus.V1.Ledger.Scripts                 as Scripts
+import           Plutus.V1.Ledger.Scripts                  hiding (Script)
+import qualified Plutus.V1.Ledger.Scripts                  as Scripts
 import           Plutus.V1.Ledger.Slot
-import qualified PlutusCore                               as PLC
-import qualified PlutusCore.DeBruijn                      as PLC
-import           PlutusCore.Evaluation.Machine.ExBudget   (ExBudget (..))
-import qualified PlutusCore.Evaluation.Machine.ExBudget   as PLC
-import           PlutusCore.Evaluation.Machine.ExMemory   (ExCPU (..), ExMemory (..))
-import qualified PlutusCore.MkPlc                         as PLC
+import qualified PlutusCore                                as PLC
+import           PlutusCore.Constant                       (toBuiltinsRuntime)
+import qualified PlutusCore.DeBruijn                       as PLC
+import           PlutusCore.Evaluation.Machine.ExBudget    (ExBudget (..))
+import qualified PlutusCore.Evaluation.Machine.ExBudget    as PLC
+import           PlutusCore.Evaluation.Machine.ExBudgeting (CostModel)
+import           PlutusCore.Evaluation.Machine.ExMemory    (ExCPU (..), ExMemory (..))
+import qualified PlutusCore.MkPlc                          as PLC
 import           PlutusCore.Pretty
-import           PlutusTx                                 (Data (..), IsData (..))
-import qualified PlutusTx.Lift                            as PlutusTx
-import qualified UntypedPlutusCore                        as UPLC
-import qualified UntypedPlutusCore.Evaluation.Machine.Cek as UPLC
+import           PlutusTx                                  (Data (..), IsData (..))
+import qualified PlutusTx.Lift                             as PlutusTx
+import qualified UntypedPlutusCore                         as UPLC
+import qualified UntypedPlutusCore.Evaluation.Machine.Cek  as UPLC
 
 plutusScriptEnvelopeType :: Text.Text
 plutusScriptEnvelopeType = "PlutusV1Script"
@@ -148,37 +150,46 @@ mkTermToEvaluate bs args = do
         applied = PLC.mkIterApp () namedTerm termArgs
     liftEither $ first DeBruijnError $ PLC.runQuoteT $ UPLC.unDeBruijnTerm applied
 
--- | Evaluates a script, with a budget that restricts how many resources it can use.
+-- | Evaluates a script, with a cost model and a budget that restricts how many
+-- resources it can use according to the cost model.  There's a default cost
+-- model called 'defaultCostModel' in 'PlutusCore.Evaluation.Machine.ExBudgetingDefaults'
+-- and a budget called 'enormousBudget' in 'UntypedPlutusCore.Evaluation.Machine.Cek.ExBudgetMode'
+-- which should be large enough to evaluate any sensible program.
 evaluateScriptRestricting
     :: VerboseMode -- ^ Whether to produce log output
-    -> ExBudget -- ^ The resource budget which must not be exceeded during evaluation
-    -> Script -- ^ The script to evaluate
-    -> [Data] -- ^ The arguments to the script
+    -> CostModel   -- ^ The cost model to use
+    -> ExBudget    -- ^ The resource budget which must not be exceeded during evaluation
+    -> Script      -- ^ The script to evaluate
+    -> [Data]      -- ^ The arguments to the script
     -> (LogOutput, Either EvaluationError ())
-evaluateScriptRestricting verbose budget p args = swap $ runWriter @LogOutput $ runExceptT $ do
+evaluateScriptRestricting verbose model budget p args = swap $ runWriter @LogOutput $ runExceptT $ do
     appliedTerm <- mkTermToEvaluate p args
-    let (res, _, logs) = UPLC.runCek
-                            PLC.defBuiltinsRuntime
-                            (UPLC.restricting $ PLC.ExRestrictingBudget budget)
-                            (verbose == Verbose)
-                            appliedTerm
+    let (res, _, logs) =
+            UPLC.runCek
+               (toBuiltinsRuntime model)
+               (UPLC.restricting $ PLC.ExRestrictingBudget budget)
+               (verbose == Verbose)
+               appliedTerm
 
     tell $ Prelude.map Text.pack logs
     liftEither $ first CekError $ void res
 
--- | Evaluates a script, returning the budget that the script would need to evaluate successfully.
+-- | Evaluates a script, returning the minimum budget that the script would need
+-- to evaluate successfully.
 evaluateScriptCounting
     :: VerboseMode -- ^ Whether to produce log output
-    -> Script -- ^ The script to evaluate
-    -> [Data] -- ^ The arguments to the script
+    -> CostModel   -- ^ The cost model to use
+    -> Script      -- ^ The script to evaluate
+    -> [Data]      -- ^ The arguments to the script
     -> (LogOutput, Either EvaluationError ExBudget)
-evaluateScriptCounting verbose p args = swap $ runWriter @LogOutput $ runExceptT $ do
+evaluateScriptCounting verbose model p args = swap $ runWriter @LogOutput $ runExceptT $ do
     appliedTerm <- mkTermToEvaluate p args
-    let (res, UPLC.CountingSt final, logs) = UPLC.runCek
-                                                PLC.defBuiltinsRuntime
-                                                UPLC.counting
-                                                (verbose == Verbose)
-                                                appliedTerm
+    let (res, UPLC.CountingSt final, logs) =
+            UPLC.runCek
+               (toBuiltinsRuntime model)
+               UPLC.counting
+               (verbose == Verbose)
+               appliedTerm
 
     tell $ Prelude.map Text.pack logs
     liftEither $ first CekError $ void res
