@@ -45,7 +45,6 @@ dissect (μl E B) with dissect E
 ... | inj₁ refl = inj₂ (-, [] , μ- B)
 ... | inj₂ (_ , E' , f) = inj₂ (-, μl E' B , f)
 
-
 lemma : (E : EvalCtx K J)(F : Frame J I)
       → dissect (extendEvalCtx E F) ≡ inj₂ (-, E , F)
 lemma [] (-· x) = refl
@@ -285,6 +284,7 @@ unwind A A' E p VA' = step** (lemV A VA E) (unwindV A VA A' E p VA')
   where VA = lem0 A E (subst Value⋆ p VA')
 
 -- this is a counterpart to lem62 and a stronger version of unwind
+-- I expect the proof would be similar to that of unwind
 postulate
   unwindE : (A : ∅ ⊢⋆ I)(B : ∅ ⊢⋆ J)(E : EvalCtx K J)(E' : EvalCtx J I)
       → B ≡ closeEvalCtx E' A
@@ -305,10 +305,6 @@ postulate
   → extendEvalCtx E'' F ≡ E
   → Value⋆ (closeFrame F M)
   → (E ▻ M) -→s (E' ▻ (L · N))
-
-
-
-
 
 -- thm2 follows from this stronger theorem
 
@@ -389,7 +385,6 @@ thm1 M .(closeEvalCtx E M) E refl B V (trans—↠E {B = B'} q q') | J' , E' , .
                     (cong₂ (λ E A → J' , (E ▻ A)) (trans (sym (compEvalCtx-eq _ E''')) (sym p)) (sym (β-lem refl r)))
                     base)))))))))
   (thm1 N B' E' (sym r'') B V q')
-
 thm1 M .(closeEvalCtx E M) E refl B V (trans—↠E {B = B'} q q') | J' , E' , .(ƛ _ · N') , N , r , r' , r'' , inj₂ VM | I , ƛ L' , N' , V-ƛ L' , VN' , refl | inj₂ (inj₂ (inj₂ (inj₁ (refl , E'' , E''' , p , refl)))) = step**
   (lemV M VM E)
   (step*

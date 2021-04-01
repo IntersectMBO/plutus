@@ -12,7 +12,7 @@ module Type.CK where
 ```
 open import Type
 open import Type.RenamingSubstitution
-open import Type.ReductionF hiding (step)
+open import Type.ReductionC hiding (step)
 
 open import Data.Product
 ```
@@ -114,9 +114,6 @@ step (□ V)                          = -, □ V
 reflexive transitive closure of step:
 
 ```
-variable
- I' : Kind
-
 open import Relation.Binary.PropositionalEquality
 
 data _-→s_ : State K J → State K I → Set where
@@ -143,3 +140,23 @@ change-dir s .(ƛ N) (V-ƛ N) = step* refl base
 change-dir s .(con tcn) (V-con tcn) = step* refl base
 change-dir s .(μ _ _) (V-μ V V₁) = step* refl (step** (change-dir _ _ V) (step* refl (step** (change-dir _ _ V₁) (step* refl base))))
 ```
+
+Converting from evaluation contexts to stacks of frames:
+
+```
+open import Data.Sum
+open import Type.ReductionC
+open import Type.CC
+
+
+{-# TERMINATING #-}
+EvalCtx2Stack : ∀ {I J} → EvalCtx I J → Stack I J
+EvalCtx2Stack E with dissect' E
+... | inj₁ (refl , refl) = ε
+... | inj₂ (I , E' , F)  = EvalCtx2Stack E' , F
+
+Stack2EvalCtx : ∀ {I J} → Stack I J → EvalCtx I J
+Stack2EvalCtx ε       = []
+Stack2EvalCtx (s , F) = extendEvalCtx (Stack2EvalCtx s) F
+```
+
