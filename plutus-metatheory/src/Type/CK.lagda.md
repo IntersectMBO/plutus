@@ -116,29 +116,35 @@ reflexive transitive closure of step:
 ```
 open import Relation.Binary.PropositionalEquality
 
-data _-→s_ : State K J → State K I → Set where
+data _-→ck_ : State K J → State K I → Set where
   base  : {s : State K J}
-        → s -→s s
+        → s -→ck s
   step* : {s : State K J}{s' : State K I}{s'' : State K I'}
         → step s ≡ (I , s')
-        → s' -→s s''
-        → s -→s s''
+        → s' -→ck s''
+        → s -→ck s''
 
 step** : {s : State K J}{s' : State K I}{s'' : State K I'}
-        → s -→s s'
-        → s' -→s s''
-        → s -→s s''
+        → s -→ck s'
+        → s' -→ck s''
+        → s -→ck s''
 step** base q = q
 step** (step* x p) q = step* x (step** p q)
 ```
 
 ```
-change-dir : (s : Stack I J)(A : ∅ ⊢⋆ J) (V : Value⋆ A) → (s ▻ A) -→s (s ◅ V)
+change-dir : (s : Stack I J)(A : ∅ ⊢⋆ J) (V : Value⋆ A) → (s ▻ A) -→ck (s ◅ V)
 change-dir s .(Π N) (V-Π N) = step* refl base
 change-dir s .(_ ⇒ _) (V V-⇒ V₁) = step* refl (step** (change-dir _ _ V) (step* refl (step** (change-dir _ _ V₁) (step* refl base))))
 change-dir s .(ƛ N) (V-ƛ N) = step* refl base
 change-dir s .(con tcn) (V-con tcn) = step* refl base
 change-dir s .(μ _ _) (V-μ V V₁) = step* refl (step** (change-dir _ _ V) (step* refl (step** (change-dir _ _ V₁) (step* refl base))))
+
+subst-step* : {s : State K J}{s' : State K J'}{s'' : State K I}
+        → _≡_ {A = Σ Kind (State K)} (J , s) (J' , s')
+        → s' -→ck s''
+        → s -→ck s''
+subst-step* refl q = q
 ```
 
 Converting from evaluation contexts to stacks of frames:
@@ -146,17 +152,46 @@ Converting from evaluation contexts to stacks of frames:
 ```
 open import Data.Sum
 open import Type.ReductionC
-open import Type.CC
+import Type.CC as CC
 
 
 {-# TERMINATING #-}
+helper : (K ≡ J ⊎ Σ Kind λ I → EvalCtx K I × Frame I J) → Stack K J
+
 EvalCtx2Stack : ∀ {I J} → EvalCtx I J → Stack I J
-EvalCtx2Stack E with dissect' E
-... | inj₁ (refl , refl) = ε
-... | inj₂ (I , E' , F)  = EvalCtx2Stack E' , F
+EvalCtx2Stack E = helper (CC.dissect E)
+
+helper (inj₁ refl) = ε
+helper (inj₂ (I , E , F)) = EvalCtx2Stack E , F
+
+lemmaH : (E : EvalCtx K J)(F : Frame J I)
+  → (helper (CC.dissect E) , F) ≡ helper (CC.dissect (extendEvalCtx E F))
+lemmaH E F = {!!}
 
 Stack2EvalCtx : ∀ {I J} → Stack I J → EvalCtx I J
 Stack2EvalCtx ε       = []
 Stack2EvalCtx (s , F) = extendEvalCtx (Stack2EvalCtx s) F
+
+state2state : ∀ {I J} → CC.State I J → State I J
+state2state (x CC.▻ x₁) = EvalCtx2Stack x ▻ x₁
+state2state (x CC.◅ x₁) = EvalCtx2Stack x ◅ x₁
+state2state (CC.□ x) = □ x
+
+thm64 : (s : CC.State K J)(s' : CC.State K J')
+  → s CC.-→s s' → state2state s -→ck state2state s'
+thm64 s .s CC.base = base
+thm64 (x CC.▻ Π x₁) s' (CC.step* refl p) = step* refl (thm64 _ s' p)
+thm64 (x CC.▻ (x₁ ⇒ x₂)) s' (CC.step* refl p) =
+  step* refl (subst-step* (cong (λ s → * , s ▻ x₁) (lemmaH x (-⇒ x₂))) (thm64 _ s' p))
+thm64 (x CC.▻ ƛ x₁) s' (CC.step* refl p) = step* refl (thm64 _ s' p)
+thm64 (x CC.▻ (x₁ · x₂)) s' (CC.step* refl p) =
+  step* refl (subst-step* (cong (λ s → _ , s ▻ x₁) (lemmaH x (-· x₂))) (thm64 _ s' p))
+thm64 (x CC.▻ μ x₁ x₂) s' (CC.step* refl p) =
+  step* refl (subst-step* (cong (λ s → _ , s ▻ x₁) (lemmaH x (μ- x₂))) (thm64 _ s' p))
+thm64 (x CC.▻ con x₁) s' (CC.step* refl p) =
+  step* refl (thm64 _ s' p)
+thm64 (x CC.◅ x₁) s' (CC.step* refl p) = {!!}
+thm64 (CC.□ x) s' (CC.step* refl p) = step* refl (thm64 _ s' p)
+
 ```
 
