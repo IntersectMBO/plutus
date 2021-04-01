@@ -2,8 +2,9 @@ module ContractHome.Types where
 
 import Prelude
 import Analytics (class IsEvent, defaultEvent)
-import Data.Maybe (Maybe(..))
 import Contract.Types (State) as Contract
+import Data.Maybe (Maybe(..))
+import Marlowe.Semantics (Slot(..))
 
 data ContractStatus
   = Running
@@ -28,8 +29,10 @@ data Action
   = ToggleTemplateLibraryCard
   | SelectView ContractStatus
   | OpenContract Int
+  | AdvanceTimeoutedContracts Slot
 
 instance actionIsEvent :: IsEvent Action where
   toEvent ToggleTemplateLibraryCard = Just $ defaultEvent "ToggleTemplateLibraryCard"
   toEvent (SelectView _) = Just $ defaultEvent "SelectView"
   toEvent (OpenContract _) = Just $ defaultEvent "OpenContract"
+  toEvent (AdvanceTimeoutedContracts _) = Nothing

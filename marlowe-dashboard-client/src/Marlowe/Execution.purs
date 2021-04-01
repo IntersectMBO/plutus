@@ -10,7 +10,8 @@ import Data.Map (Map)
 import Data.Map as Map
 import Data.Maybe (Maybe(..))
 import Data.Symbol (SProxy(..))
-import Marlowe.Semantics (AccountId, Action(..), Bound, Case(..), ChoiceId(..), ChosenNum, Contract(..), Input, Observation, Party, Payment, Slot(..), SlotInterval(..), State, Timeout, Timeouts(..), Token, TransactionInput(..), TransactionOutput(..), ValueId, _boundValues, _minSlot, computeTransaction, emptyState, evalValue, makeEnvironment, timeouts)
+import Debug.Trace (spy)
+import Marlowe.Semantics (AccountId, Action(..), Bound, Case(..), ChoiceId(..), ChosenNum, Contract(..), Input, Observation, Party, Payment, ReduceResult(..), Slot(..), SlotInterval(..), State, Timeout, Timeouts(..), Token, TransactionInput(..), TransactionOutput(..), ValueId, _boundValues, _minSlot, computeTransaction, emptyState, evalValue, makeEnvironment, reduceContractUntilQuiescent, timeouts)
 
 -- Represents a historical step in a contract's life.
 data ExecutionStep
@@ -29,6 +30,7 @@ type ExecutionState
   = { steps :: Array ExecutionStep
     , state :: State
     , contract :: Contract
+    , isClosed :: Boolean
     }
 
 _state :: Lens' ExecutionState State
@@ -40,20 +42,19 @@ _contract = prop (SProxy :: SProxy "contract")
 _steps :: Lens' ExecutionState (Array ExecutionStep)
 _steps = prop (SProxy :: SProxy "steps")
 
+_isClosed :: Lens' ExecutionState Boolean
+_isClosed = prop (SProxy :: SProxy "isClosed")
+
 initExecution :: Slot -> Contract -> ExecutionState
 initExecution currentSlot contract =
   let
     steps = mempty
 
     state = emptyState currentSlot
+
+    isClosed = contract == Close
   in
-    { steps, state, contract }
-
--- FIXME: probably remove, nextTimeout does the same using Semantic code.
-hasTimeout :: Contract -> Maybe Timeout
-hasTimeout (When _ t _) = Just t
-
-hasTimeout _ = Nothing
+    { steps, state, contract, isClosed }
 
 nextTimeout :: Contract -> Maybe Slot
 nextTimeout = timeouts >>> \(Timeouts { minTime }) -> minTime
@@ -89,6 +90,26 @@ nextState { steps, state, contract } txInput =
     { steps: steps <> [ TransactionStep { txInput, state } ]
     , state: txOutState
     , contract: txOutContract
+    , isClosed: txOutContract == Close
+    }
+
+timeoutState :: Slot -> ExecutionState -> ExecutionState
+timeoutState timeoutSlot { state, contract, steps } =
+  let
+    Slot slot = timeoutSlot
+
+    env = makeEnvironment slot slot
+
+    { txOutState, txOutContract } = case reduceContractUntilQuiescent env state contract of
+      -- FIXME: Check this, we might be omiting useful information
+      ContractQuiescent warnings payments txOutState txOutContract -> { txOutState, txOutContract }
+      RRAmbiguousSlotIntervalError -> { txOutState: state, txOutContract: contract }
+  -- We should not have contracts which cause errors in the dashboard so we will just ignore error cases for now
+  in
+    { steps: steps <> [ TimeoutStep { timeoutSlot, state } ]
+    , state: txOutState
+    , contract: txOutContract
+    , isClosed: false
     }
 
 -- Represents the possible buttons that can be displayed on a contract stage card
@@ -122,12 +143,15 @@ getActionParticipant (MakeChoice (ChoiceId _ party) _ _) = Just party
 
 getActionParticipant _ = Nothing
 
-extractNamedActions :: Slot -> State -> Contract -> Array NamedAction
-extractNamedActions _ _ Close = mempty
+extractNamedActions :: Slot -> ExecutionState -> Array NamedAction
+extractNamedActions _ { contract: Close, isClosed: true } = mempty
+
+extractNamedActions _ { contract: Close, isClosed: false } = [ CloseContract ]
 
 -- a When can only progress if it has timed out or has Cases
-extractNamedActions currentSlot state contract@(When cases timeout cont)
+extractNamedActions currentSlot { state, contract: contract@(When cases timeout cont) }
   -- in the case of a timeout we need to provide an Evaluate action to all users to "manually" progress the contract
+  -- FIXME: This should not happen for the initial version
   | currentSlot > timeout =
     let
       minSlot = view _minSlot state
@@ -175,4 +199,4 @@ extractNamedActions currentSlot state contract@(When cases timeout cont)
 -- In reality other situations should never occur as contracts always reduce to When or Close
 -- however someone could in theory publish a contract that starts with another Contract constructor
 -- and we would want to enable moving forward with Evaluate
-extractNamedActions _ _ _ = [ Evaluate mempty ]
+extractNamedActions _ _ = [ Evaluate mempty ]

@@ -6,21 +6,21 @@ module ContractHome.State
   ) where
 
 import Prelude
-import Contract.State (applyTx)
+import Contract.State (applyTimeout, applyTx)
 import Contract.State (mkInitialState) as Contract
 import Contract.Types (State) as Contract
-import ContractHome.Lenses (_selectedContractIndex, _status)
+import ContractHome.Lenses (_contracts, _selectedContractIndex, _status)
 import ContractHome.Types (ContractStatus(..), State, Action(..))
 import Data.Array (catMaybes)
 import Data.BigInteger (fromInt)
 import Data.Foldable (foldl)
-import Data.Lens (assign)
+import Data.Lens (assign, filtered, over, traversed)
 import Data.List as List
 import Data.Map as Map
 import Data.Maybe (Maybe(..))
 import Data.Tuple.Nested ((/\))
 import Effect (Effect)
-import Halogen (HalogenM)
+import Halogen (HalogenM, modify_)
 import Marlowe.Extended (TemplateContent(..), fillTemplate, resolveRelativeTimes, toCore)
 import Examples.PureScript.Escrow as Escrow
 import Examples.PureScript.EscrowWithCollateral as EscrowWithCollateral
@@ -145,3 +145,9 @@ handleAction ToggleTemplateLibraryCard = pure unit -- handled in Play
 handleAction (SelectView view) = assign _status view
 
 handleAction (OpenContract ix) = assign _selectedContractIndex $ Just ix
+
+handleAction (AdvanceTimeoutedContracts currentSlot) =
+  modify_
+    $ over
+        (_contracts <<< traversed <<< filtered (\contract -> contract.mNextTimeout == Just currentSlot))
+        (applyTimeout currentSlot)

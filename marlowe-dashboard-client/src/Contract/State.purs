@@ -7,6 +7,7 @@ module Contract.State
   , currentStep
   , isContractClosed
   , applyTx
+  , applyTimeout
   ) where
 
 import Prelude
@@ -27,7 +28,7 @@ import Foreign.Generic (encode)
 import Foreign.JSON (unsafeStringify)
 import Halogen (HalogenM, liftEffect, modify_)
 import MainFrame.Types (ChildSlots, Msg)
-import Marlowe.Execution (NamedAction(..), _contract, _state, _steps, extractNamedActions, initExecution, mkTx, nextState, nextTimeout)
+import Marlowe.Execution (NamedAction(..), _contract, _isClosed, _state, _steps, extractNamedActions, initExecution, mkTx, nextState, nextTimeout, timeoutState)
 import Marlowe.Extended (TemplateContent, fillTemplate, resolveRelativeTimes, toCore)
 import Marlowe.Extended as Extended
 import Marlowe.Extended.Metadata (MetaData, emptyContractMetadata)
@@ -65,7 +66,7 @@ toInput (MakeNotify _) = Just $ INotify
 toInput _ = Nothing
 
 isContractClosed :: State -> Boolean
-isContractClosed state = state ^. (_executionState <<< _contract) == Close
+isContractClosed state = state ^. (_executionState <<< _isClosed)
 
 instantiateExtendedContract ::
   String ->
@@ -105,7 +106,7 @@ mkInitialState contractId slot metadata participants mActiveUserParty contract =
     , participants
     , mActiveUserParty
     , mNextTimeout: nextTimeout contract
-    , namedActions: extractNamedActions slot executionState.state contract
+    , namedActions: extractNamedActions slot executionState
     }
 
 handleQuery :: forall a m. MonadEffect m => Query a -> HalogenM State Action ChildSlots Msg m (Maybe a)
@@ -125,7 +126,24 @@ applyTx currentSlot txInput state =
 
     mNextTimeout = nextTimeout (executionState ^. _contract)
 
-    namedActions = extractNamedActions currentSlot executionState.state executionState.contract
+    namedActions = extractNamedActions currentSlot executionState
+
+    updateState =
+      set _executionState executionState
+        <<< set _selectedStep (length (executionState ^. _steps))
+        <<< set _mNextTimeout mNextTimeout
+        <<< set _namedActions namedActions
+  in
+    updateState state
+
+applyTimeout :: Slot -> State -> State
+applyTimeout currentSlot state =
+  let
+    executionState = timeoutState currentSlot (state ^. _executionState)
+
+    mNextTimeout = nextTimeout (executionState ^. _contract)
+
+    namedActions = extractNamedActions currentSlot executionState
 
     updateState =
       set _executionState executionState
