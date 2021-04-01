@@ -22,6 +22,7 @@ import           Control.Monad.Freer.Extras.Log             (LogLevel, LogMessag
 import qualified Data.Aeson.Encode.Pretty                   as JSON
 import qualified Data.ByteString.Lazy                       as BSL
 import           Data.Proxy                                 (Proxy (Proxy))
+import qualified Data.Text                                  as Text
 import           Language.PureScript.Bridge                 (BridgePart, Language (Haskell), SumType,
                                                              TypeInfo (TypeInfo), buildBridge, equal, genericShow,
                                                              haskType, mkSumType, order, typeModule, typeName,
@@ -45,7 +46,8 @@ import           Plutus.Contracts.Currency                  (SimpleMPS (..))
 import           Plutus.PAB.Effects.Contract.ContractExe    (ContractExe)
 import           Plutus.PAB.Effects.Contract.ContractTest   (TestContracts (Currency, Game))
 import           Plutus.PAB.Events                          (PABEvent)
-import           Plutus.PAB.Events.Contract                 (ContractPABRequest, ContractResponse)
+import           Plutus.PAB.Events.Contract                 (ContractInstanceId (..), ContractPABRequest,
+                                                             ContractResponse)
 import           Plutus.PAB.Events.ContractInstanceState    (PartiallyDecodedResponse)
 import qualified Plutus.PAB.Simulator                       as Simulator
 import qualified Plutus.PAB.Webserver.API                   as API
@@ -168,7 +170,7 @@ writeTestData outputDir = do
             void $ Simulator.callEndpointOnInstance currencyInstance1 "Create native token" SimpleMPS {tokenName = "TestCurrency", amount = 10000000000}
             void $ Simulator.waitUntilFinished currencyInstance1
             report :: FullReport TestContracts <- Webserver.getFullReport
-            schema :: ContractSignatureResponse TestContracts <- Webserver.contractSchema currencyInstance1
+            schema :: ContractSignatureResponse TestContracts <- Webserver.contractSchema (Text.pack $ show $ unContractInstanceId currencyInstance1)
             pure (report, schema)
     BSL.writeFile
         (outputDir </> "full_report_response.json")
