@@ -29,12 +29,12 @@ import Data.Tuple.Nested ((/\))
 import Halogen.HTML (HTML, a, button, div, div_, h1, h2, h3, input, p, span, span_, sup_, text)
 import Halogen.HTML.Events.Extra (onClick_, onValueInput_)
 import Halogen.HTML.Properties (InputType(..), enabled, href, placeholder, target, type_, value)
-import Marlowe.Execution (ExecutionStep, NamedAction(..), _contract, _namedActions, _state, _steps, getActionParticipant)
+import Marlowe.Execution (ExecutionStep(..), NamedAction(..), _contract, _namedActions, _state, _steps, getActionParticipant)
 import Marlowe.Extended (contractTypeName)
 import Marlowe.Semantics (Bound(..), ChoiceId(..), Input(..), Party(..), Slot, SlotInterval, Token(..), TransactionInput(..), _accounts, getEncompassBound)
-import Marlowe.Slot (secondsDiff)
+import Marlowe.Slot (secondsDiff, slotToDateTime)
 import Material.Icons (Icon(..), icon)
-import TimeHelpers (humanizeInterval, humanizeDuration)
+import TimeHelpers (formatDate, formatTime, humanizeDuration, humanizeInterval)
 
 -- NOTE: Currently, the horizontal scrolling for this element does not match the exact desing. In the designs, the active card is always centered and you
 -- can change which card is active via scrolling or the navigation buttons. To implement this we would probably need to add snap scrolling to the center of the
@@ -256,25 +256,29 @@ renderPastStep state stepNumber executionState =
     -- FIXME: We need to make the tab independent.
     currentTab = state ^. _tab
 
-    { timedOut } = executionState
+    renderBody Tasks (TransactionStep { txInput }) = renderPastActions state txInput
+
+    renderBody Tasks (TimeoutStep { timeoutSlot }) = renderTimeout stepNumber timeoutSlot
+
+    -- FIXME: The state of renderBalances is incorrect, once we implement that function correctly
+    --        this code should be the following:
+    -- renderBody Balances (TransactionStep { state }) = renderBalances state
+    -- renderBody Balances (TimeoutStep { state }) = renderBalances state
+    renderBody Balances _ = renderBalances state
   in
     renderContractCard stepNumber state
       [ div [ classNames [ "py-2.5", "px-4", "flex", "items-center", "border-b", "border-lightgray" ] ]
           [ span
               [ classNames [ "text-xl", "font-semibold", "flex-grow" ] ]
               [ text $ "Step " <> show (stepNumber + 1) ]
-          , if timedOut then
+          , case executionState of
               -- FIXME: The red used here corresponds to #de4c51, which is being used by border-red invalid inputs
               --        but the zeplin had #e04b4c for this indicator. Check if it's fine or create a new red type
-              statusIndicator (Just Timer) "Timed out" [ "bg-red", "text-white" ]
-            else
-              statusIndicator (Just Done) "Completed" [ "bg-green", "text-white" ]
+              TimeoutStep _ -> statusIndicator (Just Timer) "Timed out" [ "bg-red", "text-white" ]
+              TransactionStep _ -> statusIndicator (Just Done) "Completed" [ "bg-green", "text-white" ]
           ]
       , div [ classNames [ "overflow-y-scroll", "px-4" ] ]
-          [ case currentTab /\ timedOut of
-              Tasks /\ false -> renderPastActions state executionState
-              Tasks /\ true -> renderTimeout stepNumber
-              Balances /\ _ -> renderBalances state
+          [ renderBody currentTab executionState
           ]
       ]
 
@@ -304,10 +308,10 @@ groupTransactionInputByParticipant (TransactionInput { inputs, interval }) =
       (NEA.head nea # \{ party } -> { inputs: [], party, interval })
       nea
 
-renderPastActions :: forall p a. State -> ExecutionStep -> HTML p a
-renderPastActions state executionState =
+renderPastActions :: forall p a. State -> TransactionInput -> HTML p a
+renderPastActions state txInput =
   let
-    actionsByParticipant = groupTransactionInputByParticipant executionState.txInput
+    actionsByParticipant = groupTransactionInputByParticipant txInput
   in
     div_
       $ if Array.length actionsByParticipant == 0 then
@@ -353,16 +357,22 @@ renderPartyPastActions state { inputs, interval, party } =
       ( [ renderParty state party ] <> map renderPastAction inputs
       )
 
-renderTimeout :: forall p a. Int -> HTML p a
-renderTimeout stepNumber =
-  div [ classNames [ "flex", "flex-col", "items-center", "h-full" ] ]
-    -- NOTE: we use pt-16 instead of making the parent justify-center because in the design it's not actually
-    --       centered and it has more space above than below.
-    [ icon Timer [ "pb-2", "pt-16", "text-red", "text-big-icon" ]
-    -- FIXME: Need to pass a Slot and convert it to the appropiate format
-    , span [ classNames [ "font-semibold", "text-center", "text-sm" ] ]
-        [ text $ "Step " <> show (stepNumber + 1) <> " timed out on 03/10/2021 at 17:30" ]
-    ]
+renderTimeout :: forall p a. Int -> Slot -> HTML p a
+renderTimeout stepNumber timeoutSlot =
+  let
+    timedOutDate =
+      maybe
+        "invalid date"
+        (\dt -> formatDate dt <> " at " <> formatTime dt)
+        (slotToDateTime timeoutSlot)
+  in
+    div [ classNames [ "flex", "flex-col", "items-center", "h-full" ] ]
+      -- NOTE: we use pt-16 instead of making the parent justify-center because in the design it's not actually
+      --       centered and it has more space above than below.
+      [ icon Timer [ "pb-2", "pt-16", "text-red", "text-big-icon" ]
+      , span [ classNames [ "font-semibold", "text-center", "text-sm" ] ]
+          [ text $ "Step " <> show (stepNumber + 1) <> " timed out on " <> timedOutDate ]
+      ]
 
 renderCurrentStep :: forall p. Slot -> State -> HTML p Action
 renderCurrentStep currentSlot state =

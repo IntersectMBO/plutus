@@ -12,19 +12,17 @@ import Data.Maybe (Maybe(..))
 import Data.Symbol (SProxy(..))
 import Marlowe.Semantics (AccountId, Action(..), Bound, Case(..), ChoiceId(..), ChosenNum, Contract(..), Input, Observation, Party, Payment, Slot(..), SlotInterval(..), State, Timeout, Timeouts(..), Token, TransactionInput(..), TransactionOutput(..), ValueId, _boundValues, _minSlot, computeTransaction, emptyState, evalValue, makeEnvironment, timeouts)
 
--- Represents a historical step in a contract's life and is what you see on a Step card that is in the past,
--- that is the State as it was before it was executed and the TransactionInput that was applied.
--- We don't bother storing the Contract because it is not needed for displaying a hostorical card but this means
--- we need to store if the step timed out. This is all (possibly premature) optimization to avoid storing the
--- contract many times as it could be quite large
-type ExecutionStep
-  -- FIXME: If the transaction was a timeout, we don't actually have txInput and the state should be the
-  -- one before or the one after.
-  -- If timeout I'll need from the contract the timeout slot
-  -- For the balances is still not clear if we should use the balance before, the balance after or dont display.
-  = { txInput :: TransactionInput
+-- Represents a historical step in a contract's life.
+data ExecutionStep
+  = TransactionStep
+    { txInput :: TransactionInput
+    -- This is the state before the txInput was executed
     , state :: State
-    , timedOut :: Boolean
+    }
+  | TimeoutStep
+    { timeoutSlot :: Slot
+    -- This is the state the step had at the begining (before it timed-out)
+    , state :: State
     }
 
 type ExecutionState
@@ -64,22 +62,11 @@ initExecution currentSlot contract =
 
     state = emptyState currentSlot
 
-    -- FIXME: We fake the namedActions for development until we fix the semantics
-    -- namedActions =
-    --   [ MakeDeposit (Role "alice") (Role "bob") (Token "" "") $ fromInt 200
-    --   , MakeDeposit (Role "bob") (Role "alice") (Token "" "") $ fromInt 1500
-    --   , MakeChoice (ChoiceId "choice" (Role "alice"))
-    --       [ Bound (fromInt 0) (fromInt 3)
-    --       , Bound (fromInt 2) (fromInt 4)
-    --       , Bound (fromInt 6) (fromInt 8)
-    --       ]
-    --       Nothing
-    --   , CloseContract
-    --   ]
     namedActions = extractNamedActions currentSlot state contract
   in
     { steps, state, contract, namedActions }
 
+-- FIXME: probably remove, nextTimeout does the same using Semantic code.
 hasTimeout :: Contract -> Maybe Timeout
 hasTimeout (When _ t _) = Just t
 
@@ -136,7 +123,7 @@ nextState { steps, state, contract } txInput =
       Just t -> t < currentSlot
       _ -> false
   in
-    { steps: steps <> [ { txInput, state, timedOut } ]
+    { steps: steps <> [ TransactionStep { txInput, state } ]
     , state: txOutState
     , contract: txOutContract
     , namedActions

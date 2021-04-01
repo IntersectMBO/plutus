@@ -15,8 +15,8 @@ import Marlowe.Slot (slotToDateTime)
 humanizeDuration :: Seconds -> String
 humanizeDuration (Seconds seconds)
   | seconds <= 0.0 = "timed out"
-  | seconds < 60.0 = show (floor seconds) <> "sec left"
-  | seconds < (60.0 * 60.0) =
+  | seconds <= 60.0 = show (floor seconds) <> "sec left"
+  | seconds <= (60.0 * 60.0) =
     let
       min = floor (seconds / 60.0)
 
