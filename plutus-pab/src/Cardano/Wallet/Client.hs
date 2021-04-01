@@ -49,7 +49,7 @@ sign :: Wallet -> Tx -> ClientM Tx
       :<|> walletSlot_
       :<|> ownOutputs_
       :<|> totalFunds_
-      :<|> sign_)) = client (Proxy @API)
+      :<|> sign_)) = client (Proxy @(API Integer))
 
 handleWalletClient ::
   forall m effs.

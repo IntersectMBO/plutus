@@ -21,7 +21,7 @@ import           Servant.API                (Capture, Get, JSON, Post, ReqBody, 
 import           Servant.API.WebSocket      (WebSocketPending)
 import           Wallet.Types               (ContractInstanceId, NotificationError)
 
-type WalletProxy = "wallet" :> Wallet.API
+type WalletProxy walletId = "wallet" :> (Wallet.API walletId)
 
 type API t
      = "api" :> ("healthcheck" :> Get '[ JSON] ()

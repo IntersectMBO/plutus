@@ -78,10 +78,10 @@ app fp walletClient pabRunner = do
     case fp of
         Nothing -> do
             let wp = either walletProxyClientEnv walletProxy walletClient
-                rest = Proxy @(CombinedAPI t :<|> WalletProxy)
+                rest = Proxy @(CombinedAPI t :<|> (WalletProxy Integer))
                 wpServer =
                     Servant.hoistServer
-                        (Proxy @WalletProxy)
+                        (Proxy @(WalletProxy Integer))
                         (asHandler pabRunner)
                         wp
             Servant.serve rest (apiServer :<|> wpServer)
@@ -89,12 +89,12 @@ app fp walletClient pabRunner = do
             let wp = either walletProxyClientEnv walletProxy walletClient
                 wpServer =
                     Servant.hoistServer
-                        (Proxy @WalletProxy)
+                        (Proxy @(WalletProxy Integer))
                         (asHandler pabRunner)
                         wp
                 fileServer :: ServerT Raw Handler
                 fileServer = serveDirectoryFileServer filePath
-                rest = Proxy @(CombinedAPI t :<|> WalletProxy :<|> Raw)
+                rest = Proxy @(CombinedAPI t :<|> (WalletProxy Integer) :<|> Raw)
             Servant.serve rest (apiServer :<|> wpServer :<|> fileServer)
 
 -- | Start the server using the config. Returns an action that shuts it down

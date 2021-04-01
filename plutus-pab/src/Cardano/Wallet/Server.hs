@@ -48,9 +48,9 @@ import qualified Wallet.Emulator.Wallet           as Wallet
 app :: Trace IO WalletMsg -> Client.ClientHandler -> ClientEnv -> MVar Wallets -> Application
 app trace clientHandler chainIndexEnv mVarState =
     let totalFunds w = fmap (foldMap (txOutValue . txOutTxOut)) (multiWallet (Wallet w) ownOutputs) in
-    serve (Proxy @API) $
+    serve (Proxy @(API Integer)) $
     hoistServer
-        (Proxy @API)
+        (Proxy @(API Integer))
         (processWalletEffects trace clientHandler chainIndexEnv mVarState) $
             createWallet :<|>
             (\w tx -> multiWallet (Wallet w) (submitTxn tx) >>= const (pure NoContent)) :<|>
