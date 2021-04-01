@@ -156,17 +156,18 @@ import Type.CC as CC
 
 
 {-# TERMINATING #-}
-helper : (K ≡ J ⊎ Σ Kind λ I → EvalCtx K I × Frame I J) → Stack K J
+helper : ∀{E} → ((Σ (K ≡ J) λ p → subst (λ K → EvalCtx K J) p E ≡ []) ⊎ (Σ Kind λ I → EvalCtx K I × Frame I J)) → Stack K J
 
 EvalCtx2Stack : ∀ {I J} → EvalCtx I J → Stack I J
-EvalCtx2Stack E = helper (CC.dissect E)
+EvalCtx2Stack E = helper (dissect' E)
 
-helper (inj₁ refl) = ε
+helper (inj₁ (refl , refl)) = ε
 helper (inj₂ (I , E , F)) = EvalCtx2Stack E , F
 
 lemmaH : (E : EvalCtx K J)(F : Frame J I)
-  → (helper (CC.dissect E) , F) ≡ helper (CC.dissect (extendEvalCtx E F))
-lemmaH E F = {!!}
+  → (helper (dissect' E) , F) ≡ helper (dissect' (extendEvalCtx E F))
+lemmaH E F rewrite CC.lemma' E F = refl
+
 
 Stack2EvalCtx : ∀ {I J} → Stack I J → EvalCtx I J
 Stack2EvalCtx ε       = []
@@ -190,7 +191,16 @@ thm64 (x CC.▻ μ x₁ x₂) s' (CC.step* refl p) =
   step* refl (subst-step* (cong (λ s → _ , s ▻ x₁) (lemmaH x (μ- x₂))) (thm64 _ s' p))
 thm64 (x CC.▻ con x₁) s' (CC.step* refl p) =
   step* refl (thm64 _ s' p)
-thm64 (x CC.◅ x₁) s' (CC.step* refl p) = {!!}
+thm64 (x CC.◅ x₁) s' (CC.step* refl p) with dissect' x | inspect dissect' x
+... | inj₁ (refl , refl) | [ eq ] = step* refl (thm64 _ s' p)
+... | inj₂ (I , E , (-· x₂)) | [ eq ] rewrite dissect-lemma x E (-· x₂) eq | CC.lemma E (-· x₂) = step* refl (subst-step* (cong (λ E  → _ , E ▻ x₂) (lemmaH E (x₁ ·-))) (thm64 _ s' p))
+... | inj₂ (I , E , (V-ƛ x₂ ·-)) | [ eq ] rewrite dissect-lemma x E (V-ƛ x₂ ·-) eq | CC.lemma E (V-ƛ x₂ ·-) = step* refl (thm64 _ s' p)
+... | inj₂ (.* , E , (-⇒ x₂)) | [ eq ] rewrite dissect-lemma x E (-⇒ x₂) eq | CC.lemma E (-⇒ x₂)
+  = step* refl (subst-step* (cong (λ E → _ , E ▻ x₂) (lemmaH E (x₁ ⇒-))) (thm64 _ s' p))
+... | inj₂ (.* , E , (x₂ ⇒-)) | [ eq ] rewrite dissect-lemma x E (x₂ ⇒-) eq | CC.lemma E (x₂ ⇒-) = step* refl (thm64 _ s' p)
+... | inj₂ (.* , E , (μ- B)) | [ eq ] rewrite dissect-lemma x E (μ- B) eq | CC.lemma E (μ- B)
+  = step* refl (subst-step* (cong (λ E → _ , E ▻ B) (lemmaH E (μ x₁ -))) (thm64 _ s' p))
+... | inj₂ (.* , E , μ x₂ -) | [ eq ]  rewrite dissect-lemma x E (μ x₂ -) eq | CC.lemma E (μ x₂ -) = step* refl (thm64 _ s' p)
 thm64 (CC.□ x) s' (CC.step* refl p) = step* refl (thm64 _ s' p)
 
 ```

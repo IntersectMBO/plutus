@@ -59,6 +59,22 @@ lemma (x ⇒r E) F rewrite lemma E F = refl
 lemma (E l⇒ x) F rewrite lemma E F = refl
 lemma (μr x E) F rewrite lemma E F = refl
 lemma (μl E B) F rewrite lemma E F = refl
+
+lemma' : (E : EvalCtx K J)(F : Frame J I)
+      → dissect' (extendEvalCtx E F) ≡ inj₂ (-, E , F)
+lemma' [] (-· x) = refl
+lemma' [] (x ·-) = refl
+lemma' [] (-⇒ x) = refl
+lemma' [] (x ⇒-) = refl
+lemma' [] (μ- B) = refl
+lemma' [] μ x - = refl
+lemma' (x ·r E) F rewrite lemma' E F = refl
+lemma' (E l· x) F rewrite lemma' E F = refl
+lemma' (x ⇒r E) F rewrite lemma' E F = refl
+lemma' (E l⇒ x) F rewrite lemma' E F = refl
+lemma' (μr x E) F rewrite lemma' E F = refl
+lemma' (μl E B) F rewrite lemma' E F = refl
+
 -- this reaches down inside the evaluation context and changes the
 -- scope of the hole
 ```
