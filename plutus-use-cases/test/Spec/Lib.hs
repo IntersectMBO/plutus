@@ -36,7 +36,7 @@ goldenPir :: FilePath -> CompiledCode a -> TestTree
 goldenPir path code = goldenVsString "PIR" path (pure $ fromString $ show $ pretty $ fromJust $ getPir code)
 
 staticFee :: Integer
-staticFee = 0
+staticFee = Ada.getLovelace . Ada.fromValue . Ledger.minFee $ mempty
 
 -- | Deduct transaction fees from wallet funds, and make
 --   the fee amount explicit in the test specification

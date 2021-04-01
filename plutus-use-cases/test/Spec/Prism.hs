@@ -10,6 +10,7 @@ import           Ledger.Crypto                     (pubKeyHash)
 import           Ledger.Value                      (TokenName)
 import           Plutus.Contract.Test
 
+import           Spec.Lib                          (timesFeeAdjust)
 import           Test.Tasty
 
 import           Plutus.Contracts.Prism            hiding (credentialManager, mirror)
@@ -62,7 +63,7 @@ tests = testGroup "PRISM"
     [ checkPredicate "withdraw"
         (assertDone contract (Trace.walletInstanceTag user) (const True) ""
         .&&. walletFundsChange issuer (Ada.lovelaceValueOf numTokens)
-        .&&. walletFundsChange user (Ada.lovelaceValueOf (negate numTokens) <> STO.coins stoData numTokens)
+        .&&. walletFundsChange user ((1 `timesFeeAdjust` negate numTokens) <> STO.coins stoData numTokens)
         )
         prismTrace
     ]

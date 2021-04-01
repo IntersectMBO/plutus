@@ -25,7 +25,7 @@ import qualified Wallet.Emulator                   as EM
 
 tests :: TestTree
 tests =
-    testGroup "state machine tests"
+    testGroup "game state machine tests"
     [ checkPredicate "run a successful game trace"
         (walletFundsChange w2 (Ada.lovelaceValueOf 3 <> gameTokenVal)
         .&&. valueAtAddress (Scripts.scriptAddress G.scriptInstance) (Ada.lovelaceValueOf 5 ==)

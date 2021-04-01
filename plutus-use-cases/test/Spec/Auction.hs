@@ -18,7 +18,9 @@ import           Plutus.Contracts.Auction
 import qualified Plutus.Trace.Emulator        as Trace
 import           PlutusTx.Monoid              (inv)
 
+import           Spec.Lib                     (timesFeeAdjustV)
 import           Test.Tasty
+
 
 tests :: TestTree
 tests =
@@ -27,17 +29,17 @@ tests =
             (assertDone seller (Trace.walletInstanceTag w1) (const True) "seller should be done"
             .&&. assertDone buyer (Trace.walletInstanceTag w2) (const True) "buyer should be done"
             .&&. assertAccumState buyer (Trace.walletInstanceTag w2) ((==) (Just $ Last trace1FinalState)) "final state should be OK"
-            .&&. walletFundsChange w1 (Ada.toValue trace1WinningBid <> inv theToken)
-            .&&. walletFundsChange w2 (inv (Ada.toValue trace1WinningBid) <> theToken))
+            .&&. walletFundsChange w1 (2 `timesFeeAdjustV` (Ada.toValue trace1WinningBid <> inv theToken))
+            .&&. walletFundsChange w2 (1 `timesFeeAdjustV` (inv (Ada.toValue trace1WinningBid) <> theToken)))
             auctionTrace1
         , checkPredicateOptions options "run an auction with multiple bids"
             (assertDone seller (Trace.walletInstanceTag w1) (const True) "seller should be done"
             .&&. assertDone buyer (Trace.walletInstanceTag w2) (const True) "buyer should be done"
             .&&. assertDone buyer (Trace.walletInstanceTag w3) (const True) "3rd party should be done"
             .&&. assertAccumState buyer (Trace.walletInstanceTag w2) ((==) (Just $ Last trace2FinalState)) "final state should be OK"
-            .&&. walletFundsChange w1 (Ada.toValue trace2WinningBid <> inv theToken)
-            .&&. walletFundsChange w2 (inv (Ada.toValue trace2WinningBid) <> theToken)
-            .&&. walletFundsChange w3 mempty)
+            .&&. walletFundsChange w1 (2 `timesFeeAdjustV` (Ada.toValue trace2WinningBid <> inv theToken))
+            .&&. walletFundsChange w2 (2 `timesFeeAdjustV` (inv (Ada.toValue trace2WinningBid) <> theToken))
+            .&&. walletFundsChange w3 (1 `timesFeeAdjustV` mempty))
             auctionTrace2
         ]
 

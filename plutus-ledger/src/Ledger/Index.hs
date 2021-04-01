@@ -313,7 +313,7 @@ checkFeeIsAda t =
 
 -- | Minimum transaction fee.
 minFee :: Tx -> V.Value
-minFee = const mempty
+minFee = const (Ada.lovelaceValueOf 10)
 
 -- | Check that transaction fee is bigger than the minimum fee.
 --   Skip the check on the first transaction (no inputs).

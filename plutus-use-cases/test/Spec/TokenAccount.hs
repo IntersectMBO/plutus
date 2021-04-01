@@ -4,6 +4,7 @@
 {-# LANGUAGE TypeApplications  #-}
 module Spec.TokenAccount(tests, assertAccountBalance, tokenAccountTrace) where
 
+import           Spec.Lib                      (timesFeeAdjust, timesFeeAdjustV)
 import           Test.Tasty
 
 import           Control.Monad                 (void)
@@ -28,7 +29,7 @@ tests = testGroup "token account"
     [ checkPredicate "Create a token account"
         (assertNoFailedTransactions
         .&&. assertNotDone contract (Trace.walletInstanceTag w1) "contract should not have any errors"
-        .&&. walletFundsChange w1 theToken)
+        .&&. walletFundsChange w1 (2 `timesFeeAdjustV` theToken))
         $ do
             hdl <- Trace.activateContractWallet w1 contract
             Trace.callEndpoint @"new-account" hdl (tokenName, Ledger.pubKeyHash $ walletPubKey w1)
@@ -37,7 +38,7 @@ tests = testGroup "token account"
     , checkPredicate "Pay into the account"
         (assertNoFailedTransactions
         .&&. assertNotDone contract (Trace.walletInstanceTag w1) "contract should not have any errors"
-        .&&. walletFundsChange w1 (Ada.lovelaceValueOf (-10) <> theToken))
+        .&&. walletFundsChange w1 ((3 `timesFeeAdjust` (-10)) <> theToken))
         $ do
             hdl <- Trace.activateContractWallet w1 contract
             Trace.callEndpoint @"new-account" hdl (tokenName, Ledger.pubKeyHash $ walletPubKey w1)
@@ -48,8 +49,8 @@ tests = testGroup "token account"
     , checkPredicate "Transfer & redeem all funds"
         (assertNoFailedTransactions
         .&&. assertNotDone contract (Trace.walletInstanceTag w1) "contract should not have any errors"
-        .&&. walletFundsChange w1 (Ada.lovelaceValueOf (-10))
-        .&&. walletFundsChange w2 (theToken <> Ada.lovelaceValueOf 10)
+        .&&. walletFundsChange w1 (2 `timesFeeAdjust` (-10))
+        .&&. walletFundsChange w2 ((1 `timesFeeAdjust` 10) <> theToken)
         )
         tokenAccountTrace
 

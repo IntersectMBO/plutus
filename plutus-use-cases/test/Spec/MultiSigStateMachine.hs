@@ -14,7 +14,8 @@ import           Data.Foldable                         (traverse_)
 import           Test.Tasty                            (TestTree, testGroup)
 import qualified Test.Tasty.HUnit                      as HUnit
 
-import           Spec.Lib                              as Lib
+import           Spec.Lib                              (timesFeeAdjust)
+import qualified Spec.Lib                              as Lib
 
 import qualified Ledger
 import qualified Ledger.Ada                            as Ada
@@ -32,26 +33,26 @@ tests =
     testGroup "multi sig state machine tests"
     [ checkPredicate "lock, propose, sign 3x, pay - SUCCESS"
         (assertNoFailedTransactions
-        .&&. walletFundsChange w1 (Ada.lovelaceValueOf (-10))
-        .&&. walletFundsChange w2 (Ada.lovelaceValueOf 5))
+        .&&. walletFundsChange w1 (3 `timesFeeAdjust` (-10))
+        .&&. walletFundsChange w2 (2 `timesFeeAdjust` 5))
         (lockProposeSignPay 3 1)
 
     , checkPredicate "lock, propose, sign 2x, pay - FAILURE"
         (assertNotDone (MS.contract  @MS.MultiSigError params) (Trace.walletInstanceTag w1) "contract should proceed after invalid transition"
-        .&&. walletFundsChange w1 (Ada.lovelaceValueOf (-10))
-        .&&. walletFundsChange w2 (Ada.lovelaceValueOf 0))
+        .&&. walletFundsChange w1 (2 `timesFeeAdjust` (-10))
+        .&&. walletFundsChange w2 (2 `timesFeeAdjust` 0))
         (lockProposeSignPay 2 1)
 
     , checkPredicate "lock, propose, sign 3x, pay x2 - SUCCESS"
         (assertNoFailedTransactions
-        .&&. walletFundsChange w1 (Ada.lovelaceValueOf (-10))
-        .&&. walletFundsChange w2 (Ada.lovelaceValueOf 10))
+        .&&. walletFundsChange w1 (5 `timesFeeAdjust` (-10))
+        .&&. walletFundsChange w2 (4 `timesFeeAdjust` 10))
         (lockProposeSignPay 3 2)
 
     , checkPredicate "lock, propose, sign 3x, pay x3 - FAILURE"
         (assertNotDone (MS.contract  @MS.MultiSigError params) (Trace.walletInstanceTag w2) "contract should proceed after invalid transition"
-        .&&. walletFundsChange w1 (Ada.lovelaceValueOf (-10))
-        .&&. walletFundsChange w2 (Ada.lovelaceValueOf 10))
+        .&&. walletFundsChange w1 (5 `timesFeeAdjust` (-10))
+        .&&. walletFundsChange w2 (4 `timesFeeAdjust` 10))
         (lockProposeSignPay 3 3)
 
     , Lib.goldenPir "test/Spec/multisigStateMachine.pir" $$(PlutusTx.compile [|| MS.mkValidator ||])
