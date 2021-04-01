@@ -284,6 +284,7 @@ unwind : (A : ∅ ⊢⋆ J)(A' : ∅ ⊢⋆ K)(E : EvalCtx K J) → A' ≡ close
 unwind A A' E p VA' = step** (lemV A VA E) (unwindV A VA A' E p VA')
   where VA = lem0 A E (subst Value⋆ p VA')
 
+-- this is a counterpart to lem62 and a stronger version of unwind
 postulate
   unwindE : (A : ∅ ⊢⋆ I)(B : ∅ ⊢⋆ J)(E : EvalCtx K J)(E' : EvalCtx J I)
       → B ≡ closeEvalCtx E' A
@@ -292,6 +293,22 @@ postulate
 
 β-lem : A ≡ ƛ A' · B' → A —→⋆ B → B ≡ A' [ B' ]
 β-lem refl (β-ƛ x) = refl
+
+-- this case doesn't arise in STLC it only arises in types due to the composite values of => and mu.
+-- it is currently not proven, it is just postulated (assumed)
+postulate
+ missing-case : ∀ (M : ∅ ⊢⋆ J)(E : EvalCtx K J)(E' : EvalCtx K J')
+  (L : ∅ ⊢⋆ I ⇒ J') N
+  → (VM : Value⋆ M) → (VL : Value⋆ L) → Value⋆ N
+  → closeEvalCtx E M ≡ closeEvalCtx E' (L · N)
+  → ∀{J''}(E'' : EvalCtx K J'') F
+  → extendEvalCtx E'' F ≡ E
+  → Value⋆ (closeFrame F M)
+  → (E ▻ M) -→s (E' ▻ (L · N))
+
+
+
+
 
 -- thm2 follows from this stronger theorem
 
@@ -320,8 +337,6 @@ thm1 M A E refl B V (trans—↠E {B = B'} q q') with lemmaE' M E B' q
                                                (compEvalCtx-eq E E'')))))))))
                        (lem-→⋆ _ _ E' r))))
    (thm1 N B' E' (sym r'') B V q')
-{-                        -}
-
 ... | J' , E' , L , N , r , r' , r'' , inj₂ VM with lemmaE-51 L N r
 ... | I , _ , N' , V-ƛ L' , VN' , refl with lemmaX M E E' _ N' VM (V-ƛ L') VN' r'
 ... | inj₁ (refl , refl) = step**
@@ -374,7 +389,7 @@ thm1 M .(closeEvalCtx E M) E refl B V (trans—↠E {B = B'} q q') | J' , E' , .
                     (cong₂ (λ E A → J' , (E ▻ A)) (trans (sym (compEvalCtx-eq _ E''')) (sym p)) (sym (β-lem refl r)))
                     base)))))))))
   (thm1 N B' E' (sym r'') B V q')
- 
+
 thm1 M .(closeEvalCtx E M) E refl B V (trans—↠E {B = B'} q q') | J' , E' , .(ƛ _ · N') , N , r , r' , r'' , inj₂ VM | I , ƛ L' , N' , V-ƛ L' , VN' , refl | inj₂ (inj₂ (inj₂ (inj₁ (refl , E'' , E''' , p , refl)))) = step**
   (lemV M VM E)
   (step*
@@ -432,14 +447,22 @@ thm1 M .(closeEvalCtx E M) E refl B V (trans—↠E {B = B'} q q') | J' , E' , .
                              (sym (β-lem refl r)))
                     base)))))))))
   (thm1 N B' E' (sym r'') B V q')
-thm1 M A E refl B V (trans—↠E {B = B'} q q') | J' , E' , L , N , r , r' , r'' , inj₂ VM | I , _ , N' , V-ƛ L' , VN' , refl | inj₂ (inj₂ (inj₂ (inj₂ (inj₂ (I' , F , VF))))) = step**
--- the frame being a value should rule
--- out the above applications directly matching and also the ones
--- where there is still some computation to in the immediate frame
--- so, L · N is higher up in E
-  (step** (subst-step*  {!!} (unwindE M (closeFrame F M) {!!} (evalFrame F []) {!!} VF)) {!!} )
+thm1 M A E refl B V (trans—↠E {B = B'} q q') | J' , E' , L , N , r , r' , r'' , inj₂ VM | I , _ , N' , V-ƛ L' , VN' , refl | inj₂ (inj₂ (inj₂ (inj₂ (inj₂ (I' , F , E'' , p' , VF))))) = step**
+  (step**
+    (missing-case M E E' (ƛ L') N' VM (V-ƛ L') VN' r' E'' F (sym p') VF)
+    (step*
+      refl
+      (step*
+        refl
+        (step*
+          (cong (stepV (V-ƛ L')) (lemma E' (-· N')))
+          (step**
+            (lemV N' VN' _)
+            (step*
+              (cong (stepV VN') (lemma E' (V-ƛ L' ·-)))
+              (subst-step* (cong (λ N → J' , E' ▻ N) (sym (β-lem refl r))) base)))))))
   (thm1 N B' E' (sym r'') B V q')
-
+  
 thm2 : (A B : ∅ ⊢⋆ K)(V : Value⋆ B) → A —↠E B -> ([] ▻ A) -→s ([] ◅ V)
 thm2 A B V p = thm1 A A [] refl B V p
 ```
