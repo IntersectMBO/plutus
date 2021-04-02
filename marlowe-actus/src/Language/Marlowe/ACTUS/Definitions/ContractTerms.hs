@@ -117,7 +117,7 @@ data ScheduleConfig = ScheduleConfig
   }   deriving stock (Show, Generic)
   deriving anyclass (FromJSON, ToJSON)
 
-data ContractType = PAM | LAM   deriving stock (Show, Eq, Generic) deriving anyclass (FromJSON, ToJSON)
+data ContractType = PAM | LAM | NAM  deriving stock (Show, Eq, Generic) deriving anyclass (FromJSON, ToJSON)
 
 
 data Assertions = Assertions

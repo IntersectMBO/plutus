@@ -44,6 +44,7 @@ rootBlockName = "root_contract"
 data ActusContractType
   = PaymentAtMaturity
   | LinearAmortizer
+  | NegativeAmortizer
 
 derive instance actusContractType :: Generic ActusContractType _
 
@@ -315,6 +316,55 @@ toDefinition (ActusContractType LinearAmortizer) =
         }
         defaultBlockDefinition
 
+toDefinition (ActusContractType NegativeAmortizer) =
+  BlockDefinition
+    $ merge
+        { type: show NegativeAmortizer
+        , message0:
+            "Negative Amortizer %1"
+              <> "start date * %2"
+              <> "maturity date %3"
+              <> "notional * %4"
+              <> "premium/discount %5"
+              <> "interest rate * %6"
+              <> "purchase date %7"
+              <> "purchase price %8"
+              <> "initial exchange date %9"
+              <> "termination date %10"
+              <> "termination price %11"
+              <> "periodic payment amount %12"
+              <> "rate reset cycle %13"
+              <> "interest payment cycle %14"
+              <> "principal redemption cycle * %15"
+              <> "observation constraints %16"
+              <> "payoff analysis constraints %17"
+              <> "collateral amount %18"
+        , args0:
+            [ DummyCentre
+            , Value { name: "start_date", check: "date", align: Right }
+            , Value { name: "maturity_date", check: "date", align: Right }
+            , Value { name: "notional", check: "decimal", align: Right }
+            , Value { name: "premium_discount", check: "decimal", align: Right }
+            , Value { name: "interest_rate", check: "decimal", align: Right }
+            , Value { name: "purchase_date", check: "date", align: Right }
+            , Value { name: "purchase_price", check: "decimal", align: Right }
+            , Value { name: "initial_exchange_date", check: "date", align: Right }
+            , Value { name: "termination_date", check: "date", align: Right }
+            , Value { name: "termination_price", check: "decimal", align: Right }
+            , Value { name: "periodic_payment_amount", check: "decimal", align: Right }
+            , Value { name: "rate_reset_cycle", check: "cycle", align: Right }
+            , Value { name: "interest_rate_cycle", check: "cycle", align: Right }
+            , Value { name: "principal_redemption_cycle", check: "cycle", align: Right }
+            , Value { name: "interest_rate_ctr", check: "assertionCtx", align: Right }
+            , Value { name: "payoff_ctr", check: "assertion", align: Right }
+            , Value { name: "collateal", check: "integer", align: Right }
+            ]
+        , colour: blockColour (ActusContractType NegativeAmortizer)
+        , previousStatement: Just (show BaseContractType)
+        , inputsInline: Just false
+        }
+        defaultBlockDefinition
+
 toDefinition (ActusValueType ActusDate) =
   BlockDefinition
     $ merge
@@ -578,6 +628,7 @@ parseActusContractType :: Block -> ContractType
 parseActusContractType b = case getType b of
   "PaymentAtMaturity" -> PAM
   "LinearAmortizer" -> LAM
+  "NegativeAmortizer" -> NAM
   _ -> PAM
 
 parseActusJsonCode :: String -> Either String ContractTerms
@@ -616,6 +667,31 @@ instance hasBlockDefinitionActusContract :: HasBlockDefinition ActusContractType
             , collateral: parseFieldActusValueJson g block "collateral"
             }
     LAM ->
+      Either.Right
+        $ ActusContract
+            { contractType: Just $ parseActusContractType block
+            , startDate: parseFieldActusValueJson g block "start_date"
+            , initialExchangeDate: parseFieldActusValueJson g block "initial_exchange_date"
+            , maturityDate: parseFieldActusValueJson g block "maturity_date"
+            , terminationDate: parseFieldActusValueJson g block "termination_date"
+            , terminationPrice: parseFieldActusValueJson g block "termination_price"
+            , periodicPaymentAmount: parseFieldActusValueJson g block "periodic_payment_amount"
+            , purchaseDate: parseFieldActusValueJson g block "purchase_date"
+            , purchasePrice: parseFieldActusValueJson g block "purchase_price"
+            , dayCountConvention: parseFieldActusValueJson g block "day_count_convention"
+            , endOfMonthConvention: parseFieldActusValueJson g block "end_of_month_convention"
+            , rateReset: parseFieldActusValueJson g block "rate_reset_cycle"
+            , notional: parseFieldActusValueJson g block "notional"
+            , premiumDiscount: parseFieldActusValueJson g block "premium_discount"
+            , interestRate: parseFieldActusValueJson g block "interest_rate"
+            , interestRateCycle: parseFieldActusValueJson g block "interest_rate_cycle"
+            , principalRedemptionCycle: parseFieldActusValueJson g block "principal_redemption_cycle"
+            , interestCalculationBaseCycle: parseFieldActusValueJson g block "interest_calculation_base_cycle"
+            , assertionCtx: parseFieldActusValueJson g block "interest_rate_ctr"
+            , assertion: parseFieldActusValueJson g block "payoff_ctr"
+            , collateral: parseFieldActusValueJson g block "collateral"
+            }
+    NAM ->
       Either.Right
         $ ActusContract
             { contractType: Just $ parseActusContractType block

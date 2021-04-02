@@ -88,5 +88,29 @@ _INIT_LAM t0 tminus tpr_minus tfp_minus tfp_plus _MD _IED _IPNR _CNTRL _NT _IPAC
                 | t0 < _IED                    = 0.0
                 | (fromJust _IPCB) == IPCB_NT              = r _CNTRL * _NT
                 | otherwise                     = r _CNTRL * (fromJust _IPCBA)
-    -- All is same as PAM except PRNXT, IPCB, and MD
+    -- All is same as PAM except PRNXT, IPCB, and TMD
+    in pam_init { prnxt = prnxt, ipcb = ipcb, tmd = tmd }
+
+_INIT_NAM t0 tminus tpr_minus tfp_minus tfp_plus _MD _IED _IPNR _CNTRL _NT _IPAC _DCC _FER _FEAC _FEB _SCEF _SCIXSD _PRF _PRCL _PRANX _PRNXT _IPCB _IPCBA =
+    let
+        -- TMD
+        maybeTMinus
+                    | isJust _PRANX && ((fromJust _PRANX) >= t0) = _PRANX
+                    | (_IED `plusCycle` fromJust _PRCL) >= t0 = Just $ _IED `plusCycle` fromJust _PRCL
+                    | otherwise                           = Just tpr_minus
+        tmd
+                | isJust _MD = fromJust _MD
+                | otherwise = fromJust maybeTMinus `plusCycle` (fromJust _PRCL) { n = ceiling(_NT / ((fromJust _PRNXT) - _NT  * (y _DCC tminus (tminus `plusCycle` (fromJust _PRCL)) (fromJust _MD)) * (fromJust _IPNR)))}
+
+        pam_init = _INIT_PAM t0 tminus tfp_minus tfp_plus tmd _IED _IPNR _CNTRL _NT _IPAC _DCC _FER _FEAC _FEB _SCEF _SCIXSD _PRF
+
+        -- PRNXT
+        prnxt = r _CNTRL * (fromJust _PRNXT)
+
+        -- IPCB
+        ipcb
+                | t0 < _IED                    = 0.0
+                | (fromJust _IPCB) == IPCB_NT              = r _CNTRL * _NT
+                | otherwise                     = r _CNTRL * (fromJust _IPCBA)
+    -- All is same as PAM except PRNXT and TMD, IPCB same as LAM
     in pam_init { prnxt = prnxt, ipcb = ipcb, tmd = tmd }

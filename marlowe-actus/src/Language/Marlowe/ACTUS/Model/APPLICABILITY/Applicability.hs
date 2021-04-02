@@ -29,5 +29,8 @@ validateTerms t =
             _NN_I_1 [isJust $ ct_TD t, isJust $ ct_PTD t] t ["termination date", "price at termination"] <*
             _NN ct_PRCL t "principal redemption cycle" <*
             _NN_I_2 [isJust $ ct_PRNXT t, isJust $ ct_MD t] t ["periodic payment amount", "maturity date"]
+        Just NAM ->
+            -- TODO
+            Success t
         Nothing ->
             Failure [Required $ "Contract term 'contract type' is required."]
