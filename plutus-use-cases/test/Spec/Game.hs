@@ -15,7 +15,6 @@ import           Plutus.Trace.Emulator (ContractInstanceTag)
 import qualified Plutus.Trace.Emulator as Trace
 import qualified PlutusTx              as PlutusTx
 import qualified PlutusTx.Prelude      as PlutusTx
-import           Spec.Lib              (timesFeeAdjust)
 import qualified Spec.Lib              as Lib
 import           Test.Tasty
 import qualified Test.Tasty.HUnit      as HUnit

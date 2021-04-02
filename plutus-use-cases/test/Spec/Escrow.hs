@@ -9,7 +9,6 @@ import qualified Ledger.Ada              as Ada
 import qualified Ledger.Typed.Scripts    as Scripts
 import           Plutus.Contract
 import           Plutus.Contract.Test
-import           Spec.Lib                (timesFeeAdjust)
 import qualified Spec.Lib                as Lib
 
 

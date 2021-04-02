@@ -13,7 +13,6 @@ import           Control.Monad            (void)
 import           Test.Tasty
 import qualified Test.Tasty.HUnit         as HUnit
 
-import           Spec.Lib                 (timesFeeAdjust, timesFeeAdjustV)
 import qualified Spec.Lib                 as Lib
 
 import qualified Ledger

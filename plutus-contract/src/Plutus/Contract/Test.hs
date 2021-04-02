@@ -43,6 +43,8 @@ module Plutus.Contract.Test(
     , anyTx
     , assertEvents
     , walletFundsChange
+    , timesFeeAdjust
+    , timesFeeAdjustV
     , waitingForSlot
     , walletWatchingAddress
     , valueAtAddress
@@ -86,6 +88,8 @@ import qualified Hedgehog
 import qualified Test.Tasty.HUnit                       as HUnit
 import           Test.Tasty.Providers                   (TestTree)
 
+import qualified Ledger                                 as Ledger
+import qualified Ledger.Ada                             as Ada
 import           Ledger.Constraints.OffChain            (UnbalancedTx)
 import           Ledger.Tx                              (Tx)
 import           Plutus.Contract.Effects.AwaitSlot      (SlotSymbol)
@@ -582,3 +586,17 @@ assertAccumState contract inst p nm =
                 ]
         pure result
 
+staticFee :: Value
+staticFee = Ledger.minFee mempty
+
+-- | Deduct transaction fees from wallet funds, and make
+--   the fee amount explicit in the test specification
+timesFeeAdjust :: Integer -> Integer -> Value
+timesFeeAdjust multiplier change =
+    timesFeeAdjustV multiplier (Ada.lovelaceValueOf change)
+
+-- | Deduct transaction fees from wallet funds, and make
+--   the fee amount explicit in the test specification
+timesFeeAdjustV :: Integer -> Value -> Value
+timesFeeAdjustV multiplier change =
+    change P.- P.scale multiplier staticFee

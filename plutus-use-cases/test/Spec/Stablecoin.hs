@@ -26,7 +26,6 @@ import           PlutusTx.Numeric            (negate, one, zero)
 import           PlutusTx.Ratio              as Ratio
 
 import           Prelude                     hiding (negate)
-import           Spec.Lib                    (timesFeeAdjust, timesFeeAdjustV)
 import           Test.Tasty
 
 import           Plutus.Contracts.Stablecoin (BC (..), ConversionRate, Input (..), RC (..), SC (..), SCAction (..),

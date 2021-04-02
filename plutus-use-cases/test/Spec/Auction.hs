@@ -18,7 +18,6 @@ import           Plutus.Contracts.Auction
 import qualified Plutus.Trace.Emulator        as Trace
 import           PlutusTx.Monoid              (inv)
 
-import           Spec.Lib                     (timesFeeAdjustV)
 import           Test.Tasty
 
 

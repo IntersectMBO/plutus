@@ -10,7 +10,6 @@ import           Ledger.Crypto                     (pubKeyHash)
 import           Ledger.Value                      (TokenName)
 import           Plutus.Contract.Test
 
-import           Spec.Lib                          (timesFeeAdjust)
 import           Test.Tasty
 
 import           Plutus.Contracts.Prism            hiding (credentialManager, mirror)

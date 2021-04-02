@@ -14,7 +14,6 @@ import           Data.Foldable                         (traverse_)
 import           Test.Tasty                            (TestTree, testGroup)
 import qualified Test.Tasty.HUnit                      as HUnit
 
-import           Spec.Lib                              (timesFeeAdjust)
 import qualified Spec.Lib                              as Lib
 
 import qualified Ledger

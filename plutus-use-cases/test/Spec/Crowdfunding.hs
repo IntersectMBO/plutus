@@ -17,7 +17,6 @@ import qualified Data.ByteString.Lazy                  as BSL
 import qualified Data.Text.Encoding                    as T
 import           Data.Text.Prettyprint.Doc             (Pretty (..), defaultLayoutOptions, layoutPretty, vsep)
 import           Data.Text.Prettyprint.Doc.Render.Text (renderStrict)
-import           Spec.Lib                              (timesFeeAdjust)
 import qualified Spec.Lib                              as Lib
 import           Test.Tasty
 import           Test.Tasty.Golden                     (goldenVsString)

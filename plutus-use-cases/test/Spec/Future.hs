@@ -15,7 +15,6 @@ import           Control.Monad           (void)
 import           Test.Tasty
 import qualified Test.Tasty.HUnit        as HUnit
 
-import           Spec.Lib                (timesFeeAdjustV)
 import qualified Spec.Lib                as Lib
 import           Spec.TokenAccount       (assertAccountBalance)
 

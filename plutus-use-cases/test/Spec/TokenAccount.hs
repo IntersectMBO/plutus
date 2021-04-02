@@ -4,7 +4,6 @@
 {-# LANGUAGE TypeApplications  #-}
 module Spec.TokenAccount(tests, assertAccountBalance, tokenAccountTrace) where
 
-import           Spec.Lib                      (timesFeeAdjust, timesFeeAdjustV)
 import           Test.Tasty
 
 import           Control.Monad                 (void)

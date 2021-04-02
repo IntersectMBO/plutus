@@ -16,7 +16,6 @@ import qualified Plutus.Trace.Emulator   as Trace
 
 import           Plutus.Contracts.PubKey (PubKeyError, pubKeyContract)
 
-import           Spec.Lib                (timesFeeAdjust)
 import           Test.Tasty
 
 w1 :: Wallet
