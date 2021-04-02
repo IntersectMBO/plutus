@@ -79,12 +79,11 @@ payToPublicKey ::
     )
     => SlotRange -> Value -> PubKey -> Eff effs Tx
 payToPublicKey range v pk = do
-    p@Payment{paymentInputs, paymentChangeOutput} <- createPaymentWithChange v
+    p <- createPaymentWithChange v
     let other = pubKeyTxOut v pk
-    let tx = createTx range paymentInputs (other : maybeToList paymentChangeOutput) []
-    Payment{paymentInputs, paymentChangeOutput} <- updatePaymentWithChange (v <> txFee tx) p
-    let other' = pubKeyTxOut (v <> txFee tx) pk
-    let tx' = createTx range paymentInputs (other' : maybeToList paymentChangeOutput) []
+    let tx = createTx range (paymentInputs p) (other : maybeToList (paymentChangeOutput p)) []
+    p' <- updatePaymentWithChange (txFee tx) p
+    let tx' = createTx range (paymentInputs p') (other : maybeToList (paymentChangeOutput p')) []
     signTxAndSubmit tx'
 
 -- | Transfer some funds to an address locked by a public key.

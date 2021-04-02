@@ -27,22 +27,22 @@ tests :: TestTree
 tests =
     testGroup "game state machine tests"
     [ checkPredicate "run a successful game trace"
-        (walletFundsChange w2 (Ada.lovelaceValueOf 3 <> gameTokenVal)
+        (walletFundsChange w2 (1 `timesFeeAdjust` 3 <> gameTokenVal)
         .&&. valueAtAddress (Scripts.scriptAddress G.scriptInstance) (Ada.lovelaceValueOf 5 ==)
-        .&&. walletFundsChange w1 (Ada.lovelaceValueOf (-8)))
+        .&&. walletFundsChange w1 (3 `timesFeeAdjust` (-8)))
         successTrace
 
     , checkPredicate "run a 2nd successful game trace"
-        (walletFundsChange w2 (Ada.lovelaceValueOf 3)
+        (walletFundsChange w2 (2 `timesFeeAdjust` 3)
         .&&. valueAtAddress (Scripts.scriptAddress G.scriptInstance) (Ada.lovelaceValueOf 1 ==)
-        .&&. walletFundsChange w1 (Ada.lovelaceValueOf (-8))
-        .&&. walletFundsChange w3 (Ada.lovelaceValueOf 4 <> gameTokenVal))
+        .&&. walletFundsChange w1 (3 `timesFeeAdjust` (-8))
+        .&&. walletFundsChange w3 (1 `timesFeeAdjust` 4 <> gameTokenVal))
         successTrace2
 
     , checkPredicate "run a failed trace"
         (walletFundsChange w2 gameTokenVal
         .&&. valueAtAddress (Scripts.scriptAddress G.scriptInstance) (Ada.lovelaceValueOf 8 ==)
-        .&&. walletFundsChange w1 (Ada.lovelaceValueOf (-8)))
+        .&&. walletFundsChange w1 (3 `timesFeeAdjust` (-8)))
         failTrace
 
     , Lib.goldenPir "test/Spec/gameStateMachine.pir" $$(PlutusTx.compile [|| mkValidator ||])

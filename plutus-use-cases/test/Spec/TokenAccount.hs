@@ -48,7 +48,7 @@ tests = testGroup "token account"
     , checkPredicate "Transfer & redeem all funds"
         (assertNoFailedTransactions
         .&&. assertNotDone contract (Trace.walletInstanceTag w1) "contract should not have any errors"
-        .&&. walletFundsChange w1 (2 `timesFeeAdjust` (-10))
+        .&&. walletFundsChange w1 (4 `timesFeeAdjust` (-10))
         .&&. walletFundsChange w2 ((1 `timesFeeAdjust` 10) <> theToken)
         )
         tokenAccountTrace
