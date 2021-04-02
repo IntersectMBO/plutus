@@ -114,7 +114,7 @@ txnValidFrom =
         range = W.singleton 5
 
     in checkPredicateGen Gen.generatorModel
-        (walletFundsChange wallet1 (P.negate five)
+        (walletFundsChange wallet1 (1 `timesFeeAdjustV` P.negate five)
         .&&. walletFundsChange wallet2 five
         )
         $ do
@@ -242,20 +242,20 @@ walletWatchinOwnAddress =
 
 payToPubKeyScript :: Property
 payToPubKeyScript =
-    let hasInitialBalance w = valueAtAddress (Wallet.walletAddress w) (== initialBalance)
+    let hasInitialBalance n w = valueAtAddress (Wallet.walletAddress w) (== (n `timesFeeAdjustV` initialBalance))
     in checkPredicateGen Gen.generatorModel
-        (hasInitialBalance wallet1
-            .&&. hasInitialBalance wallet2
-            .&&. hasInitialBalance wallet3)
+        (hasInitialBalance 1 wallet1
+            .&&. hasInitialBalance 1 wallet2
+            .&&. hasInitialBalance 1 wallet3)
         pubKeyTransactions
 
 payToPubKeyScript2 :: Property
 payToPubKeyScript2 =
-    let hasInitialBalance w = valueAtAddress (Wallet.walletAddress w) (== initialBalance)
+    let hasInitialBalance n w = valueAtAddress (Wallet.walletAddress w) (== (n `timesFeeAdjustV` initialBalance))
     in checkPredicateGen Gen.generatorModel
-        (hasInitialBalance wallet1
-            .&&. hasInitialBalance wallet2
-            .&&. hasInitialBalance wallet3)
+        (hasInitialBalance 2 wallet1
+            .&&. hasInitialBalance 1 wallet2
+            .&&. hasInitialBalance 1 wallet3)
         pubKeyTransactions2
 
 pubKeyTransactions :: EmulatorTrace ()
@@ -272,15 +272,15 @@ pubKeyTransactions = do
 pubKeyTransactions2 :: EmulatorTrace ()
 pubKeyTransactions2 = do
     let [w1, w2, w3] = [wallet1, wallet2, wallet3]
-        payment1 = initialBalance P.- Ada.lovelaceValueOf 1
-        payment2 = initialBalance P.+ Ada.lovelaceValueOf 1
+        payment1 = initialBalance P.- Ada.lovelaceValueOf 100
+        payment2 = initialBalance P.+ Ada.lovelaceValueOf 100
     Trace.liftWallet wallet1 $ payToPublicKey_ W.always payment1 pubKey2
     _ <- Trace.nextSlot
     Trace.liftWallet wallet2 $ payToPublicKey_ W.always payment2 pubKey3
     _ <- Trace.nextSlot
     Trace.liftWallet wallet3 $ payToPublicKey_ W.always payment2 pubKey1
     _ <- Trace.nextSlot
-    Trace.liftWallet wallet1 $ payToPublicKey_ W.always (Ada.lovelaceValueOf 2) pubKey2
+    Trace.liftWallet wallet1 $ payToPublicKey_ W.always (Ada.lovelaceValueOf 200) pubKey2
     void $ Trace.nextSlot
 
 genChainTxn :: Hedgehog.MonadGen m => m (Mockchain, Tx)
