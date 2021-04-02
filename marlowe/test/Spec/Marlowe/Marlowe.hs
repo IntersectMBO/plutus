@@ -95,8 +95,8 @@ zeroCouponBondTest = checkPredicateOptions (defaultCheckOptions & maxSlot .~ 250
     -- T..&&. emulatorLog (const False) ""
     T..&&. assertNotDone marlowePlutusContract (Trace.walletInstanceTag alice) "contract should close"
     T..&&. assertNotDone marlowePlutusContract (Trace.walletInstanceTag bob) "contract should close"
-    T..&&. walletFundsChange alice (lovelaceValueOf (150))
-    T..&&. walletFundsChange bob (lovelaceValueOf (-150))
+    T..&&. walletFundsChange alice (2 `timesFeeAdjust` (150))
+    T..&&. walletFundsChange bob (1 `timesFeeAdjust` (-150))
     ) $ do
     -- Init a contract
     let alicePk = PK $ (pubKeyHash $ walletPubKey alice)
@@ -134,8 +134,8 @@ trustFundTest = checkPredicateOptions (defaultCheckOptions & maxSlot .~ 200) "Tr
     -- T..&&. emulatorLog (const False) ""
     T..&&. assertNotDone marlowePlutusContract (Trace.walletInstanceTag alice) "contract should not have any errors"
     T..&&. assertNotDone marlowePlutusContract (Trace.walletInstanceTag bob) "contract should not have any errors"
-    T..&&. walletFundsChange alice (lovelaceValueOf (-256) <> Val.singleton (rolesCurrency params) "alice" 1)
-    T..&&. walletFundsChange bob (lovelaceValueOf 256 <> Val.singleton (rolesCurrency params) "bob" 1)
+    T..&&. walletFundsChange alice (4 `timesFeeAdjust` (-256) <> Val.singleton (rolesCurrency params) "alice" 1)
+    T..&&. walletFundsChange bob (2 `timesFeeAdjust` 256 <> Val.singleton (rolesCurrency params) "bob" 1)
     ) $ do
 
     -- Init a contract
