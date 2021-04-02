@@ -61,7 +61,7 @@ main trace MockServerConfig { mscBaseUrl
                             , mscKeptBlocks
                             , mscSlotConfig
                             , mscInitialTxWallets
-                            , mscSocketPath} availability = LM.runLogEffects trace $ do
+                            , mscSocketPath } availability = LM.runLogEffects trace $ do
 
     -- make initial distribution of 1 billion Ada to all configured wallets
     let dist = Map.fromList $ zip mscInitialTxWallets (repeat (Ada.adaValueOf 1000_000_000))

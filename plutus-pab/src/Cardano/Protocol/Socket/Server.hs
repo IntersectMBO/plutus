@@ -96,7 +96,7 @@ instance Show ServerCommand where
 {- | The response from the server. Can be used for the information
      passed back, or for synchronisation.
 -}
-data ServerResponse =
+newtype ServerResponse =
     -- A block was added. We are using this for synchronization.
     BlockAdded Block
     | SlotChanged Slot

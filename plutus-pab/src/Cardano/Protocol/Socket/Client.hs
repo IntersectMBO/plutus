@@ -68,7 +68,7 @@ runClientNode socketPath slotConfig onNewBlock = do
     pure handle
     where
       loop :: TimeUnit a => a -> ClientHandler -> IOManager -> IO ()
-      loop timeout ch@ClientHandler{chSocketPath, chInputQueue, chHandler} iocp = do
+      loop timeout ch@ClientHandler{chSocketPath, chInputQueue, chCurrentSlot, chHandler} iocp = do
         catchAll
           (connectToNode
             (localSnocket iocp socketPath)
@@ -76,7 +76,7 @@ runClientNode socketPath slotConfig onNewBlock = do
             (cborTermVersionDataCodec unversionedProtocolDataCodec)
             nullNetworkConnectTracers
             acceptableVersion
-            (unversionedProtocol (app chHandler chInputQueue))
+            (unversionedProtocol (app chCurrentSlot chHandler chInputQueue))
             Nothing
             (localAddressFromPath chSocketPath))
           {- If we receive any error or disconnect, try to reconnect.
