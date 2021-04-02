@@ -79,8 +79,8 @@ generatorModel =
 newtype FeeEstimator = FeeEstimator { estimateFee :: Integer -> Integer -> Ada }
 
 -- | Estimate a constant fee for all transactions.
-constantFee :: Ada -> FeeEstimator
-constantFee = FeeEstimator . const . const
+constantFee :: FeeEstimator
+constantFee = FeeEstimator . const . const . Ada.fromValue $ minFee mempty
 
 -- | Blockchain for testing the emulator implementation and traces.
 --
@@ -132,11 +132,11 @@ genInitialTransaction GeneratorModel{..} =
 
 -- | Generate a valid transaction, using the unspent outputs provided.
 --   Fails if the there are no unspent outputs, or if the total value
---   of the unspent outputs is smaller than the minimum fee (1).
+--   of the unspent outputs is smaller than the minimum fee.
 genValidTransaction :: MonadGen m
     => Mockchain
     -> m Tx
-genValidTransaction = genValidTransaction' generatorModel (constantFee 1)
+genValidTransaction = genValidTransaction' generatorModel constantFee
 
 -- | Generate a valid transaction, using the unspent outputs provided.
 --   Fails if the there are no unspent outputs, or if the total value
@@ -160,7 +160,7 @@ genValidTransactionSpending :: MonadGen m
     => Set.Set TxIn
     -> Ada
     -> m Tx
-genValidTransactionSpending = genValidTransactionSpending' generatorModel (constantFee 1)
+genValidTransactionSpending = genValidTransactionSpending' generatorModel constantFee
 
 genValidTransactionSpending' :: MonadGen m
     => GeneratorModel
