@@ -88,14 +88,14 @@ data ServerCommand =
 {- | The response from the server. Can be used for the information
      passed back, or for synchronisation.
 -}
-data ServerResponse =
+newtype ServerResponse =
     -- A block was added. We are using this for synchronization.
     BlockAdded Block
     deriving Show
 
 processBlock :: MonadIO m => ServerHandler -> m Block
 processBlock ServerHandler {shCommandChannel} = do
-    liftIO $ atomically $ writeTQueue (ccCommand shCommandChannel) $ ProcessBlock
+    liftIO $ atomically $ writeTQueue (ccCommand shCommandChannel) ProcessBlock
     -- Wait for the server to finish processing blocks.
     liftIO $ atomically $ readTQueue (ccResponse shCommandChannel) >>= \case
         BlockAdded block -> pure block
@@ -107,6 +107,21 @@ addTx ServerHandler { shCommandChannel } tx = do
 trimTo :: MonadIO m => ServerHandler -> Int -> m ()
 trimTo ServerHandler {shCommandChannel} size =
     liftIO $ atomically $ writeTQueue (ccCommand shCommandChannel) $ TrimTo size
+
+pruneChain :: MonadIO m => Integer -> TChan Block -> m ThreadId
+pruneChain k original = do
+  localChannel <- liftIO $ atomically $ cloneTChan original
+  liftIO . forkIO $ go k localChannel
+  where
+  go :: MonadIO m => Integer -> TChan Block -> m ()
+  go k' localChannel = do
+    -- Wait for data on the channel
+    block <- liftIO $ atomically $ readTChan localChannel
+    liftIO $ putStrLn $ "Read new block with size: " <> show (length block) <> "."
+    -- void $ Dbg.trace "[xxx] pruneChain" $ liftIO $ atomically $ readTChan localChannel
+    if k' == 0
+       then liftIO $ atomically (readTChan original) >> go 0 localChannel
+       else go (k' - 1) localChannel
 
 handleCommand ::
     MonadIO m
@@ -137,13 +152,15 @@ handleCommand CommandChannel {ccCommand, ccResponse}
 runServerNode ::
     MonadIO m
  => FilePath
+ -> Integer
  -> ChainState
  -> m ServerHandler
-runServerNode shSocketPath initialState = liftIO $ do
+runServerNode shSocketPath k initialState = liftIO $ do
     serverState      <- initialiseInternalState initialState
     shCommandChannel <- CommandChannel <$> newTQueueIO <*> newTQueueIO
     void $ forkIO . void    $ protocolLoop  shSocketPath     serverState
     void $ forkIO . forever $ handleCommand shCommandChannel serverState
+    void                    $ pruneChain k (isBlocks serverState)
     pure $ ServerHandler { shSocketPath, shCommandChannel }
 
 -- * Internal state

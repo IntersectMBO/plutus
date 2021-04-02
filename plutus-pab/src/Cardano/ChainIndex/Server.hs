@@ -1,3 +1,4 @@
+{-# LANGUAGE BangPatterns      #-}
 {-# LANGUAGE DataKinds         #-}
 {-# LANGUAGE FlexibleContexts  #-}
 {-# LANGUAGE MonoLocalBinds    #-}
@@ -54,7 +55,7 @@ main trace ChainIndexConfig{ciBaseUrl} socketPath availability = runLogEffects t
     mVarState <- liftIO $ newMVar initialAppState
 
     logInfo StartingNodeClientThread
-    _ <- liftIO $ runClientNode socketPath $ updateChainState mVarState
+    _ <- liftIO $ runClientNode socketPath (updateChainState mVarState)
 
     logInfo $ StartingChainIndex servicePort
     liftIO $ Warp.runSettings warpSettings $ app trace mVarState
@@ -64,4 +65,4 @@ main trace ChainIndexConfig{ciBaseUrl} socketPath availability = runLogEffects t
             warpSettings = Warp.defaultSettings & Warp.setPort servicePort & Warp.setBeforeMainLoop isAvailable
             updateChainState :: MVar AppState -> Block -> Slot -> IO ()
             updateChainState mv block slot =
-                processIndexEffects trace mv $ syncState block slot
+              processIndexEffects trace mv $ syncState block slot
