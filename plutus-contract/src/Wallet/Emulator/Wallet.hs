@@ -75,7 +75,7 @@ walletPubKey = toPublicKey . walletPrivKey
 -- | Get a wallet's private key by looking it up in the list of
 --   private keys in 'Ledger.Crypto.knownPrivateKeys'
 walletPrivKey :: Wallet -> PrivateKey
-walletPrivKey (Wallet i) = cycle Crypto.knownPrivateKeys !! fromIntegral i
+walletPrivKey (Wallet i) = cycle Crypto.knownPrivateKeys !! fromIntegral (i - 1)
 
 -- | Get a wallet's address.
 walletAddress :: Wallet -> Address
