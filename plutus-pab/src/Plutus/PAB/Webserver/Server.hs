@@ -54,7 +54,7 @@ asHandler PABRunner{runPABAction} = Servant.Handler . ExceptT . fmap (first mapE
 type CombinedAPI t =
       API (Contract.ContractDef t)
       :<|> WSAPI
-      :<|> NewAPI (Contract.ContractDef t)
+      :<|> NewAPI (Contract.ContractDef t) Integer
 
 app ::
     forall t env.

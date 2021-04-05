@@ -39,7 +39,7 @@ type WSAPI =
 -- | PAB client API for contracts of type @t@. Examples of @t@ are
 --   * Contract executables that reside in the user's file system
 --   * "Builtin" contracts that run in the same process as the PAB (ie. the PAB is compiled & distributed with these contracts)
-type NewAPI t
+type NewAPI t walletId -- see note [WalletID type in wallet API]
     = "api" :> "new" :> "contract" :>
         ("activate" :> ReqBody '[ JSON] (ContractActivationArgs t) :> Post '[JSON] ContractInstanceId -- start a new instance
             :<|> "instance" :>
@@ -48,7 +48,7 @@ type NewAPI t
                         :<|> "endpoint" :> Capture "endpoint-name" String :> ReqBody '[JSON] JSON.Value :> Post '[JSON] () -- ^ Call an endpoint. Make
                         )
                     )
-            :<|> "instances" :> "wallet" :> Capture "wallet-id" Integer :> Get '[JSON] [ContractInstanceClientState]
+            :<|> "instances" :> "wallet" :> Capture "wallet-id" walletId :> Get '[JSON] [ContractInstanceClientState]
             :<|> "instances" :> Get '[ JSON] [ContractInstanceClientState] -- list of all active contract instances
             :<|> "definitions" :> Get '[JSON] [ContractSignatureResponse t] -- list of available contracts
         )
