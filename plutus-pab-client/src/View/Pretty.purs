@@ -3,7 +3,7 @@ module View.Pretty where
 import Prelude
 import Bootstrap (alertDanger_, nbsp)
 import Data.Array (length)
-import Data.Lens (toArrayOf, view)
+import Data.Lens (view)
 import Data.Lens.Iso.Newtype (_Newtype)
 import Data.Map as Map
 import Data.Newtype (unwrap)
@@ -20,7 +20,7 @@ import Plutus.PAB.Effects.Contract.ContractExe (ContractExe(..))
 import Plutus.PAB.Events.ContractInstanceState (PartiallyDecodedResponse(..))
 import Plutus.PAB.Webserver.Types (ContractActivationArgs(..))
 import Wallet.Types (EndpointDescription)
-import Types (_contractActiveEndpoints, _contractInstanceIdString)
+import Types (_contractInstanceIdString)
 
 class Pretty a where
   pretty :: forall p i. a -> HTML p i

@@ -1,6 +1,6 @@
 module View (render) where
 
-import Bootstrap (col12_, col5_, col7_, container_, row_)
+import Bootstrap (col12_, col5_, container_, row_)
 import Cardano.Metadata.Types (Property)
 import Cardano.Metadata.Types as Metadata
 import Chain.Types as Chain
@@ -16,15 +16,17 @@ import Halogen.HTML (ClassName(..), ComponentHTML, HTML, div, div_, h1, text)
 import Halogen.HTML.Properties (class_, classes)
 import Icons (Icon(..), icon)
 import NavTabs (mainTabBar, viewContainer)
+--import Network.RemoteData as RemoteData
 import Network.StreamData as Stream
-import Plutus.PAB.Effects.Contract.ContractExe (ContractExe)
+--import Plutus.PAB.Effects.Contract.ContractExe (ContractExe)
 import Plutus.PAB.Webserver.Types (ChainReport)
 import Prelude (bind, ($), (<$>), (<<<), (<>))
 import Types (ContractSignatures, ContractStates, HAction(..), State(..), View(..), WebSocketStatus(..), WebStreamData, _csrDefinition, _utxoIndex)
 import View.Blockchain (annotatedBlockchainPane)
 import View.Contracts (contractStatusesPane, installedContractsPane)
-import View.Events (eventsPane, utxoIndexPane)
-import View.Utils (streamErrorPane, webDataPane2, webStreamDataPane)
+import View.Events (utxoIndexPane)
+--import View.Events (eventsPane, utxoIndexPane)
+import View.Utils (streamErrorPane, webDataPane, webStreamDataPane)
 
 render ::
   forall m slots.
@@ -42,10 +44,8 @@ render (State { currentView, chainState, contractSignatures, chainReport, events
                 Stream.Failure error -> [ streamErrorPane error ]
                 _ -> []
         , div_
-            $ webDataPane2
-                (mainPane currentView contractStates chainState contractSignatures)
-                chainReport
-                events
+            $ webDataPane (mainPane currentView contractStates chainState contractSignatures) chainReport
+        -- $ webDataPane2 (mainPane currentView contractStates chainState contractSignatures) chainReport events
         ]
     ]
 
@@ -115,13 +115,13 @@ mainPane ::
   Chain.State ->
   WebStreamData ContractSignatures ->
   ChainReport ->
-  Array (ChainEvent ContractExe) ->
+  --Array (ChainEvent ContractExe) ->
   HTML p HAction
-mainPane currentView contractStates chainState contractSignatures chainReport events =
+mainPane currentView contractStates chainState contractSignatures chainReport {-events-} =
   row_
     [ activeContractPane currentView contractSignatures contractStates
     , blockchainPane currentView chainState chainReport
-    , eventLogPane currentView events chainReport
+    --, eventLogPane currentView events chainReport
     ]
 
 activeContractPane ::
@@ -163,11 +163,16 @@ blockchainPane currentView chainState chainReport =
         ]
     ]
 
-eventLogPane :: forall p. View -> Array (ChainEvent ContractExe) -> ChainReport -> HTML p HAction
-eventLogPane currentView events chainReport =
+eventLogPane ::
+  forall p.
+  View ->
+  --Array (ChainEvent ContractExe) ->
+  ChainReport ->
+  HTML p HAction
+eventLogPane currentView {-events-} chainReport =
   viewContainer currentView EventLog
     [ row_
-        [ col7_ [ eventsPane events ]
-        , col5_ [ utxoIndexPane (view _utxoIndex chainReport) ]
+        --[ col7_ [ eventsPane events ]
+        [ col5_ [ utxoIndexPane (view _utxoIndex chainReport) ]
         ]
     ]

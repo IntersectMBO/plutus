@@ -18,11 +18,9 @@ import Effect.Console as Console
 import Halogen (HalogenM, liftEffect, raise)
 import Network.RemoteData as RemoteData
 import Playground.Lenses (_getEndpointDescription)
-import Plutus.PAB.Events.ContractInstanceState (PartiallyDecodedResponse)
 import Plutus.PAB.Effects.Contract.ContractExe (ContractExe)
 import Plutus.PAB.Webserver (SPParams_, getApiContractByContractinstanceidSchema, getApiFullreport, postApiContractActivate, postApiContractByContractinstanceidEndpointByEndpointname)
 import Plutus.PAB.Webserver.Types (ContractSignatureResponse, FullReport, CombinedWSStreamToServer)
-import Plutus.PAB.Events.Contract (ContractPABRequest)
 import Servant.PureScript.Ajax (AjaxError)
 import Servant.PureScript.Settings (SPSettings_)
 import Wallet.Types (EndpointDescription, ContractInstanceId, NotificationError)

@@ -21,7 +21,6 @@ import Data.Newtype (class Newtype)
 import Data.NonEmpty ((:|))
 import Data.Symbol (SProxy(..))
 import Data.Tuple.Nested (type (/\))
-import Data.Tuple (Tuple)
 import Data.UUID as UUID
 import Foreign (MultipleErrors)
 import Plutus.Contract.Resumable (Request)
