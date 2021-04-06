@@ -1,7 +1,6 @@
 module MainFrame.State (mkMainFrame) where
 
 import Prelude
-import Bridge (contractInstanceIdFromString)
 import Capability.Contract (class MonadContract)
 import Capability.Wallet (class MonadWallet, createWallet, getWalletPubKey, getWalletTotalFunds)
 import Control.Monad.Except (runExcept)
@@ -12,7 +11,9 @@ import Data.Foldable (for_)
 import Data.Lens (assign, over, set, use, view)
 import Data.Map (empty, filter, findMin, insert, lookup, member)
 import Data.Maybe (Maybe(..))
-import Data.UUID (emptyUUID)
+import Data.Newtype (unwrap)
+import Data.UUID (parseUUID)
+import Data.UUID (toString) as UUID
 import Effect.Aff.Class (class MonadAff)
 import Effect.Now (getTimezoneOffset)
 import Env (Env)
@@ -32,9 +33,8 @@ import Play.Types (Action(..)) as Play
 import StaticData (walletDetailsLocalStorageKey, walletLibraryLocalStorageKey)
 import Template.State (handleAction) as Template
 import Template.Types (Action(..)) as Template
-import Wallet.Emulator.Wallet (Wallet(..))
-import WalletData.Lenses (_contractInstanceId, _contractInstanceIdAsString, _contractInstanceIdString, _remoteDataPubKey, _remoteDataWallet, _remoteDataValue, _walletNicknameString)
-import WalletData.Types (WalletDetails, NewWalletDetails)
+import WalletData.Lenses (_contractInstanceId, _contractInstanceIdString, _remoteDataPubKey, _remoteDataWallet, _remoteDataAssets, _walletNicknameString)
+import WalletData.Types (ContractInstanceId(..), Wallet(..), WalletDetails, NewWalletDetails)
 import WebSocket.Support as WS
 
 mkMainFrame ::
@@ -107,7 +107,7 @@ handleAction (SetNewWalletNicknameString walletNicknameString) = assign (_newWal
 handleAction (SetNewWalletContractIdString contractInstanceIdString) = do
   assign (_newWalletDetails <<< _contractInstanceIdString) contractInstanceIdString
   --TODO: use the contract ID to lookup the wallet's ID from PAB
-  assign (_newWalletDetails <<< _remoteDataWallet) $ Success (Wallet { getWallet: fromInt 1 })
+  assign (_newWalletDetails <<< _remoteDataWallet) $ Success (Wallet $ fromInt 1)
 
 handleAction AddNewWallet = do
   oldWallets <- use _wallets
@@ -152,9 +152,9 @@ handleAction (PickupAction Pickup.GenerateNewWallet) = do
   case remoteDataWallet of
     Success wallet -> do
       remoteDataPubKey <- getWalletPubKey wallet
-      remoteDataValue <- getWalletTotalFunds wallet
+      remoteDataAssets <- getWalletTotalFunds wallet
       assign (_newWalletDetails <<< _remoteDataPubKey) remoteDataPubKey
-      assign (_newWalletDetails <<< _remoteDataValue) remoteDataValue
+      assign (_newWalletDetails <<< _remoteDataAssets) remoteDataAssets
       -- TODO: create a wallet companion contract and get its instanceId
       let
         contractInstanceIdString = "9a72e336-2766-423e-a9c7-10c3b6c5ebb2"
@@ -169,7 +169,7 @@ handleAction (PickupAction (Pickup.LookupWallet string)) = do
   case lookup string wallets of
     Just walletDetails -> assign (_pickupState <<< _card) $ Just $ Pickup.PickupWalletCard walletDetails
     -- failing that, check for a matching ID in the wallet library
-    Nothing -> case findMin $ filter (\walletDetails -> view (_contractInstanceId <<< _contractInstanceIdAsString) walletDetails == string) wallets of
+    Nothing -> case findMin $ filter (\walletDetails -> UUID.toString (unwrap (view _contractInstanceId walletDetails)) == string) wallets of
       Just { key, value } -> assign (_pickupState <<< _card) $ Just $ Pickup.PickupWalletCard value
       -- TODO: and failing that, lookup the wallet contractId from PAB
       Nothing -> pure unit
@@ -202,7 +202,7 @@ emptyNewWalletDetails =
   , contractInstanceIdString: mempty
   , remoteDataWallet: NotAsked
   , remoteDataPubKey: NotAsked
-  , remoteDataValue: NotAsked
+  , remoteDataAssets: NotAsked
   }
 
 mkNewWallet :: NewWalletDetails -> Maybe WalletDetails
@@ -212,14 +212,14 @@ mkNewWallet newWalletDetails =
 
     contractInstanceIdString = view _contractInstanceIdString newWalletDetails
 
-    mContractInstanceId = contractInstanceIdFromString contractInstanceIdString
+    mContractInstanceId = map ContractInstanceId $ parseUUID contractInstanceIdString
 
     remoteDataWallet = view _remoteDataWallet newWalletDetails
 
     remoteDataPubKey = view _remoteDataPubKey newWalletDetails
 
-    remoteDataValue = view _remoteDataValue newWalletDetails
+    remoteDataAssets = view _remoteDataAssets newWalletDetails
   in
-    case mContractInstanceId, remoteDataWallet, remoteDataPubKey, remoteDataValue of
-      Just contractInstanceId, Success wallet, Success pubKey, Success value -> Just { walletNickname, contractInstanceId, wallet, pubKey, value }
+    case mContractInstanceId, remoteDataWallet, remoteDataPubKey, remoteDataAssets of
+      Just contractInstanceId, Success wallet, Success pubKey, Success assets -> Just { walletNickname, contractInstanceId, wallet, pubKey, assets }
       _, _, _, _ -> Nothing

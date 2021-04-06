@@ -9,14 +9,18 @@ module Capability.Contract
 
 import Prelude
 import AppM (AppM)
-import Capability.Ajax (WebData, runAjax)
+import Bridge (toFront)
+import Capability.Ajax (runAjax)
 import Control.Monad.Except (lift)
+import Data.Newtype (unwrap)
 import Data.RawJson (RawJson)
+import Data.UUID (toString) as UUID
 import Halogen (HalogenM)
+import MainFrame.Types (WebData)
 import Plutus.PAB.Effects.Contract.ContractExe (ContractExe)
 import Plutus.PAB.Webserver (postApiNewContractActivate, getApiNewContractInstanceByContractinstanceidStatus, postApiNewContractInstanceByContractinstanceidEndpointByEndpointname, getApiNewContractInstances, getApiNewContractDefinitions)
 import Plutus.PAB.Webserver.Types (ContractActivationArgs, ContractInstanceClientState, ContractSignatureResponse)
-import Wallet.Types (ContractInstanceId)
+import WalletData.Types (ContractInstanceId)
 
 -- The PAB PSGenerator (using Servant.PureScript) automatically generates a PureScript module with
 -- functions for calling all PAB API endpoints. This `MonadContract` class wraps these up in a
@@ -33,13 +37,14 @@ class
 instance monadContractAppM :: MonadContract AppM where
   activateContract contractActivationArgs =
     runAjax
+      $ map toFront
       $ postApiNewContractActivate contractActivationArgs
   getContractInstance contractInstanceId =
     runAjax
-      $ getApiNewContractInstanceByContractinstanceidStatus contractInstanceId
+      $ getApiNewContractInstanceByContractinstanceidStatus (UUID.toString $ unwrap contractInstanceId)
   invokeEndpoint rawJson contractInstanceId endpointDescriptionString =
     runAjax
-      $ postApiNewContractInstanceByContractinstanceidEndpointByEndpointname rawJson contractInstanceId endpointDescriptionString
+      $ postApiNewContractInstanceByContractinstanceidEndpointByEndpointname rawJson (UUID.toString $ unwrap contractInstanceId) endpointDescriptionString
   getContractInstances =
     runAjax
       $ getApiNewContractInstances

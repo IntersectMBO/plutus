@@ -13,7 +13,7 @@ import WalletData.Types (WalletNickname)
 type State
   = { tab :: Tab
     , executionState :: ExecutionState
-    , contractId :: String -- FIXME: what is a contract instance identified by
+    , contractId :: String -- TODO: replace with ContractInstanceId
     -- Which step of the execution state is selected. This index is 0 based and should be
     -- between [0, executionState.steps.length] (both sides inclusive). This is because the
     -- `steps` array represent the past steps and the executionState.state represents the

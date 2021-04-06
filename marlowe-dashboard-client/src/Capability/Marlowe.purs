@@ -11,12 +11,13 @@ module Capability.Marlowe
 
 import Prelude
 import AppM (AppM(..))
-import Capability.Ajax (WebData, runAjax)
+import Capability.Ajax (runAjax)
 import Capability.Contract (class MonadContract)
 import Control.Monad.Except (lift)
 import Data.Map (Map)
 import Data.RawJson (RawJson)
 import Halogen (HalogenM)
+import MainFrame.Types (WebData)
 import Marlowe.Semantics (Contract, Input, Party, Slot)
 import Network.RemoteData (RemoteData(..))
 import Plutus.PAB.Effects.Contract.ContractExe (ContractExe)

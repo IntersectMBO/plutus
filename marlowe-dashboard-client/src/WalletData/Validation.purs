@@ -8,18 +8,14 @@ module WalletData.Validation
 import Prelude
 import Data.Array (any)
 import Data.Char.Unicode (isAlphaNum)
-import Data.Json.JsonUUID (JsonUUID(..))
 import Data.Map (isEmpty, filter, member)
 import Data.Maybe (Maybe(..))
 import Data.String.CodeUnits (toCharArray)
 import Data.UUID (parseUUID)
+import MainFrame.Types (WebData)
+import Marlowe.Semantics (Assets, PubKey)
 import Network.RemoteData (RemoteData(..))
-import Plutus.V1.Ledger.Crypto (PubKey)
-import Plutus.V1.Ledger.Value (Value)
-import Servant.PureScript.Ajax (AjaxError)
-import Wallet.Emulator.Wallet (Wallet)
-import Wallet.Types (ContractInstanceId(..))
-import WalletData.Types (WalletNickname, WalletLibrary)
+import WalletData.Types (ContractInstanceId(..), Wallet, WalletNickname, WalletLibrary)
 
 data WalletNicknameError
   = EmptyWalletNickname
@@ -61,19 +57,19 @@ walletNicknameError walletNickname walletLibrary =
     else
       Nothing
 
-contractInstanceIdError :: String -> RemoteData AjaxError Wallet -> RemoteData AjaxError PubKey -> RemoteData AjaxError Value -> WalletLibrary -> Maybe ContractInstanceIdError
+contractInstanceIdError :: String -> WebData Wallet -> WebData PubKey -> WebData Assets -> WalletLibrary -> Maybe ContractInstanceIdError
 contractInstanceIdError "" _ _ _ _ = Just EmptyContractInstanceId
 
-contractInstanceIdError contractInstanceIdString remoteDataWallet remoteDataPubKey remoteDataValue walletLibrary = case parseContractInstanceId contractInstanceIdString of
+contractInstanceIdError contractInstanceIdString remoteDataWallet remoteDataPubKey remoteDataAssets walletLibrary = case parseContractInstanceId contractInstanceIdString of
   Nothing -> Just InvalidContractInstanceId
   Just contractInstanceId
     | not $ isEmpty $ filter (\walletDetails -> walletDetails.contractInstanceId == contractInstanceId) walletLibrary -> Just DuplicateContractInstanceId
-  _ -> case remoteDataWallet, remoteDataPubKey, remoteDataValue of
+  _ -> case remoteDataWallet, remoteDataPubKey, remoteDataAssets of
     Success _, Success _, Success _ -> Nothing
     Failure _, _, _ -> Just NonexistentContractInstanceId
     _, _, _ -> Just UnconfirmedContractInstanceId
 
 parseContractInstanceId :: String -> Maybe ContractInstanceId
 parseContractInstanceId contractInstanceIdString = case parseUUID contractInstanceIdString of
-  Just uuid -> Just $ ContractInstanceId { unContractInstanceId: JsonUUID uuid }
+  Just uuid -> Just $ ContractInstanceId uuid
   Nothing -> Nothing

@@ -1,10 +1,11 @@
 module MainFrame.Types
   ( State
+  , WebSocketStatus(..)
+  , WebData
   , ChildSlots
   , Query(..)
   , Msg(..)
   , Action(..)
-  , WebSocketStatus(..)
   ) where
 
 import Prelude
@@ -13,9 +14,11 @@ import Data.Either (Either)
 import Data.Generic.Rep (class Generic)
 import Data.Maybe (Maybe(..))
 import Marlowe.Extended.Template (ContractTemplate)
+import Network.RemoteData (RemoteData)
 import Pickup.Types (Action, State) as Pickup
 import Play.Types (Action, State) as Play
 import Plutus.PAB.Webserver.Types (CombinedWSStreamToClient, CombinedWSStreamToServer)
+import Servant.PureScript.Ajax (AjaxError)
 import WalletData.Types (WalletLibrary, NewWalletDetails)
 import Web.Socket.Event.CloseEvent (CloseEvent, reason) as WS
 import WebSocket.Support (FromSocket) as WS
@@ -42,6 +45,9 @@ instance showWebSocketStatus :: Show WebSocketStatus where
   show WebSocketOpen = "WebSocketOpen"
   show (WebSocketClosed Nothing) = "WebSocketClosed"
   show (WebSocketClosed (Just closeEvent)) = "WebSocketClosed " <> WS.reason closeEvent
+
+type WebData
+  = RemoteData AjaxError
 
 ------------------------------------------------------------
 type ChildSlots
