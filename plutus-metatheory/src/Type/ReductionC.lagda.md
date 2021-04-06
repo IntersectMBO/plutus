@@ -793,10 +793,10 @@ uniqueness⋆ B B' (μr V E) p with projμr p
 uniqueness⋆ B B' (μl E C) p  with projμl p
 ... | refl , q = uniqueness⋆ B B' E q
 
-
-
-postulate
-  det : (p : A —→E B)(q : A —→E B') → B ≡ B'
+det : (p : A —→E B)(q : A —→E B') → B ≡ B'
+det (contextRule E (β-ƛ x) x₁ x₂) (contextRule E₁ (β-ƛ x₃) x₄ x₅)
+  with lemma51-good _ E _ _ x₁ (V-ƛ _) x E₁ _ _ x₄ (V-ƛ _) x₃
+... | refl , refl , refl , refl , refl = trans x₂ (sym x₅)
 ```
 
 ```
@@ -946,7 +946,6 @@ lemmaX M E E' L N VM VL VN p | inj₂ (I , E'' , (-· B)) | blah eq | inj₂ (I'
 ... | refl , refl , r , r' , r'' = inj₂ (inj₂ (inj₁ (_ , _ , refl , E'' , E''' , r , trans (cong (λ B → extendEvalCtx E'' (-· B)) q) (cong₂ (λ L N → extendEvalCtx E'' (-· closeEvalCtx E''' (L · N))) (sym r') (sym r'')) )))
 lemmaX M E E' L N VM VL VN p | inj₂ (I , E'' , (x ·-)) | blah eq rewrite (dissect-lemma _ _ _ eq) with lemma51-good (closeEvalCtx (extendEvalCtx E'' (x ·-)) M) E' L N p VL VN E'' _ M (closeEF E'' (x ·-) M) x VM
 lemmaX M E E' L N VM VL VN p | inj₂ (I , E'' , (x ·-)) | blah eq | (refl , refl , refl , refl , refl) rewrite val-unique VL x = inj₁ (refl , refl)
-
 
 postulate
  lemmaY : ∀ (M : ∅ ⊢⋆ J)(E : EvalCtx K J)(E' : EvalCtx K J')
