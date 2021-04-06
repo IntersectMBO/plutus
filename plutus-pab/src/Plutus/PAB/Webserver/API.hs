@@ -32,8 +32,8 @@ type API t
 
 type WSAPI =
     "ws" :>
-        (Capture "contract-instance-id" ContractInstanceId :> WebSocketPending -- ^ Websocket for a specific contract instance
-        :<|> WebSocketPending -- ^ Combined websocket (subscription protocol)
+        (Capture "contract-instance-id" ContractInstanceId :> WebSocketPending -- Websocket for a specific contract instance
+        :<|> WebSocketPending -- Combined websocket (subscription protocol)
         )
 
 -- | PAB client API for contracts of type @t@. Examples of @t@ are
@@ -44,8 +44,8 @@ type NewAPI t walletId -- see note [WalletID type in wallet API]
         ("activate" :> ReqBody '[ JSON] (ContractActivationArgs t) :> Post '[JSON] ContractInstanceId -- start a new instance
             :<|> "instance" :>
                     (Capture "contract-instance-id" Text :>
-                        ( "status" :> Get '[JSON] (ContractInstanceClientState) -- ^ Current status of contract instance
-                        :<|> "endpoint" :> Capture "endpoint-name" String :> ReqBody '[JSON] JSON.Value :> Post '[JSON] () -- ^ Call an endpoint. Make
+                        ( "status" :> Get '[JSON] (ContractInstanceClientState) -- Current status of contract instance
+                        :<|> "endpoint" :> Capture "endpoint-name" String :> ReqBody '[JSON] JSON.Value :> Post '[JSON] () -- Call an endpoint. Make
                         )
                     )
             :<|> "instances" :> "wallet" :> Capture "wallet-id" walletId :> Get '[JSON] [ContractInstanceClientState]
