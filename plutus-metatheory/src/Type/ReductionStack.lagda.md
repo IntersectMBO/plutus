@@ -140,35 +140,38 @@ Reduction is intrinsically kind preserving. This doesn't require proof.
 
 ```
 infix 2 _—→⋆_
-infix 2 _—↠⋆_
+infix 2 _—→s_
+infix 2 _—↠s_
 
 data _—→⋆_ : ∀{J} → (∅ ⊢⋆ J) → (∅ ⊢⋆ J) → Set where
+  β-ƛ : Value⋆ B
+        -------------------
+      → ƛ A · B —→⋆ A [ B ]
+
+
+data _—→s_ : ∀{J} → (∅ ⊢⋆ J) → (∅ ⊢⋆ J) → Set where
   frameRule : ∀{K K'} → (f : Stack K K')
     → ∀{A A' : ∅ ⊢⋆ K'} → A —→⋆ A'
     → {B B' : ∅ ⊢⋆ K}
     → B ≡ closeStack f A
     → B' ≡ closeStack f A'
       --------------------
-    → B —→⋆ B'
+    → B —→s B'
     -- ^ explicit equality proofs make pattern matching easier and this uglier
-
-  β-ƛ : Value⋆ B
-        -------------------
-      → ƛ A · B —→⋆ A [ B ]
 ```
 
 ## Reflexive transitie closure of reduction
 
 ```
-data _—↠⋆_ : (∅ ⊢⋆ J) → (∅ ⊢⋆ J) → Set where
+data _—↠s_ : (∅ ⊢⋆ J) → (∅ ⊢⋆ J) → Set where
 
-  refl—↠⋆ : --------
-             A —↠⋆ A
+  refl—↠s : --------
+             A —↠s A
 
-  trans—↠⋆ : A —→⋆ B
-           → B —↠⋆ C
+  trans—↠s : A —→s B
+           → B —↠s C
              -------
-           → A —↠⋆ C
+           → A —↠s C
 ```
 
 ## Progress
@@ -177,7 +180,7 @@ An enumeration of possible outcomes of progress: a step or we hit a value.
 
 ```
 data Progress⋆ (A : ∅ ⊢⋆ K) : Set where
-  step : A —→⋆ B
+  step : A —→s B
          -----------
        → Progress⋆ A
   done : Value⋆ A
@@ -186,30 +189,51 @@ data Progress⋆ (A : ∅ ⊢⋆ K) : Set where
 ```
 
 The progress proof. For any type in the empty context we can make
-progres. Note that ther is no case for variables as there are no
+progress. Note that there is no case for variables as there are no
 variables in the empty context.
 
 ```
+open import Data.Sum
+
+variable K' : Kind
+
+extendStack : Frame K' K → Stack K J → Stack K' J
+extendStack f ε        = ε , f
+extendStack f (s , f') = extendStack f s , f'
+
+extendStack-lemma : (f : Frame K' K)(s : Stack K J)(A : ∅ ⊢⋆ J)
+  → closeFrame f (closeStack s A) ≡ closeStack (extendStack f s) A
+extendStack-lemma f ε        A = refl
+extendStack-lemma f (s , f') A = extendStack-lemma f s (closeFrame f' A)
+
+lemma51 : (M : ∅ ⊢⋆ K)
+  → Value⋆ M
+  ⊎ Σ Kind λ J →
+    Σ (Stack K J) λ E →
+    Σ Kind λ I → 
+    Σ (∅ ⊢⋆ I ⇒ J)  λ L →
+    Σ (∅ ⊢⋆ I)      λ N →
+      Value⋆ L
+    × Value⋆ N
+    × M ≡ closeStack E (L · N)
+lemma51 (Π M)   = inj₁ (V-Π M)
+lemma51 (M ⇒ M') with lemma51 M
+... | inj₂ (J , s , I , L , N , VL , VN , refl) =
+  inj₂ (J , extendStack (-⇒ M') s , I , L , N , VL , VN , extendStack-lemma (-⇒ M') s (L · N))
+... | inj₁ VM with lemma51 M'
+... | inj₂ (J , s , I , L , N , VL , VN , refl) =
+  inj₂ (J , extendStack (VM ⇒-) s , I , L , N , VL , VN , extendStack-lemma (VM ⇒-) s (L · N))
+... | inj₁ VM' = inj₁ (VM V-⇒ VM')
+lemma51 (ƛ M)   = inj₁ (V-ƛ M)
+lemma51 (M · N) = {!!}
+lemma51 (μ M N) = {!!}
+lemma51 (con c) = {!!}
+
 progress⋆ : (A : ∅ ⊢⋆ K) → Progress⋆ A
-progress⋆ (` ())
-progress⋆ (μ A B) with progress⋆ A
-... | step p  = step (frameRule (ε , μ- B) p refl refl)
-... | done VA with progress⋆ B
-... | step p  = step (frameRule (ε , μ VA -) p refl refl)
-... | done VB = done (V-μ VA VB)
-progress⋆ (Π A) = done (V-Π A)
-progress⋆ (A ⇒ B) with progress⋆ A
-... | step p = step (frameRule (ε , -⇒ B) p refl refl)
-... | done VA with progress⋆ B
-... | step q  = step (frameRule (ε , VA ⇒-) q refl refl)
-... | done VB = done (VA V-⇒ VB)
-progress⋆ (ƛ A) = done (V-ƛ A)
-progress⋆ (A · B) with progress⋆ A
-... | step p = step (frameRule (ε , -· B) p refl refl)
-... | done VA with progress⋆ B
-... | step p = step (frameRule (ε , VA ·-) p refl refl)
-progress⋆ (.(ƛ _) · B) | done (V-ƛ A) | done VB = step (β-ƛ VB)
-progress⋆ (con tcn) = done (V-con tcn)
+progress⋆ A with lemma51 A
+... | inj₁ VA = done VA
+... | inj₂ (J , s , I , _ , N , V-ƛ L , VN , p) =
+  step (frameRule s (β-ƛ VN) p refl)
 ```
 
 ## Determinism of Reduction:
@@ -247,7 +271,7 @@ lem2 ε       A ¬V V = ¬V V
 lem2 (s , f) A ¬V W = lem2 s (closeFrame f A) (lem1 f A ¬V) W
 
 
---notboth : (A : ∅ ⊢⋆ K) → ¬ (Value⋆ A × (Σ (∅ ⊢⋆ K) (A —→⋆_)))
+--notboth : (A : ∅ ⊢⋆ K) → ¬ (Value⋆ A × (Σ (∅ ⊢⋆ K) (A —→s_)))
 ```
 
 Reduction is deterministic. There is only one possible reduction step

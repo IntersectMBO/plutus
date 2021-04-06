@@ -513,6 +513,8 @@ inv·r : ∀ (A : ∅ ⊢⋆ K ⇒ J) A' (B : ∅ ⊢⋆ K)(B' : ∅ ⊢⋆ K')
   → A · B ≡ A' · B' → Σ (K' ≡ K) λ p → B ≡ subst (∅ ⊢⋆_) p B'
 inv·r A .A B .B refl = refl , refl
 
+
+-- this is progress in another form
 open import Data.Sum
 lemma51 : (M : ∅ ⊢⋆ K)
   → Value⋆ M
