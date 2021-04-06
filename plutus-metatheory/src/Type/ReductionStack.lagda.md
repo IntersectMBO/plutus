@@ -3,6 +3,10 @@ title: Type Reduction
 layout: page
 ---
 
+This is an experiment in using a stack of frames to present reduction.
+It close to the CK machine in style. It doesn't seperate the beta-rule
+out into a seperate relation. It probably should.
+
 ```
 module Type.ReductionStack where
 ```
