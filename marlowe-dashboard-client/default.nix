@@ -1,4 +1,4 @@
-{ pkgs, gitignore-nix, webCommon, webCommonMarlowe, buildPursPackage, buildNodeModules, filterNpm, plutus-pab }:
+{ pkgs, gitignore-nix, webCommon, webCommonMarlowe, buildPursPackage, buildNodeModules, filterNpm, plutus-pab, marlowe-app }:
 let
   cleanSrc = gitignore-nix.gitignoreSource ./.;
 
@@ -8,6 +8,10 @@ let
     packageLockJson = ./package-lock.json;
     githubSourceHashMap = { };
   };
+
+  contractsJSON = pkgs.writeTextDir "contracts.json" (builtins.toJSON {
+    marlowe = "${marlowe-app}/bin/marlowe-app";
+  });
 
   client = buildPursPackage {
     inherit pkgs nodeModules;
@@ -20,6 +24,7 @@ let
       web-common = webCommon;
       web-common-marlowe = webCommonMarlowe;
       generated = plutus-pab.generated-purescript;
+      contracts = contractsJSON;
     };
     packages = pkgs.callPackage ./packages.nix { };
     spagoPackages = pkgs.callPackage ./spago-packages.nix { };
@@ -27,5 +32,5 @@ let
 in
 {
   inherit (plutus-pab) server-invoker generated-purescript generate-purescript start-backend;
-  inherit client;
+  inherit client contractsJSON;
 }
