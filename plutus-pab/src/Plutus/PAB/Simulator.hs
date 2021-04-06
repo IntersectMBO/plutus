@@ -76,6 +76,7 @@ import           Control.Monad.Freer.State                      (State (..), run
 import           Control.Monad.Freer.Writer                     (Writer (..), runWriter)
 import           Control.Monad.IO.Class                         (MonadIO (..))
 import qualified Data.Aeson                                     as JSON
+import           Data.Default                                   (Default (..))
 import           Data.Foldable                                  (traverse_)
 import           Data.Map                                       (Map)
 import qualified Data.Map                                       as Map
@@ -154,7 +155,7 @@ makeLensesFor [("_logMessages", "logMessages"), ("_instances", "instances")] ''S
 
 initialState :: forall t. IO (SimulatorState t)
 initialState = do
-    let Emulator.EmulatorState{Emulator._chainState} = Emulator.initialState Emulator.defaultEmulatorConfig
+    let Emulator.EmulatorState{Emulator._chainState} = Emulator.initialState def
         initialWallets = Map.fromList $ fmap (\w -> (w, AgentState $ Wallet.emptyWalletState w)) $ Wallet <$> [1..10]
     STM.atomically $
         SimulatorState
