@@ -6,7 +6,7 @@
     \centering
     \[\begin{array}{lrclr}
     \textrm{Term}       & L,M,N  & ::= & x                      & \textrm{variable}\\
-                        &        &     & \con{cn}               & \textrm{constant}\\
+                        &        &     & \con{tn}{cn}               & \textrm{constant}\\
                         &        &     & \lamU{x}{M}            & \textrm{$\lambda$ abstraction}\\
                         &        &     & \delay{M}              & \textrm{delay execution of a term}\\
                         &        &     & \appU{M}{N}            & \textrm{function application}\\
@@ -25,7 +25,7 @@
 \begin{minipage}{\linewidth}
     \centering
     \[\begin{array}{lrcl}
-        \textrm{Value}  & U, V   & ::= & \con{cn}    \\
+        \textrm{Value}  & U, V   & ::= & \con{tn}{cn}    \\
                         &        &     & \lamU{x}{M} \\
                         &        &     & \delay{M}   
     \end{array}\]

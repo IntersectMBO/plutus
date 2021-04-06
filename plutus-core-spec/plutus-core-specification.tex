@@ -1,6 +1,6 @@
 % Plutus Core Specification
 \title{Formal Specification of\\the Plutus Core Language (version 2.1)}
-\date{30th March 2021}
+\date{5th April 2021}
 
 \renewcommand{\thefootnote}{\fnsymbol{footnote}}
 
@@ -332,10 +332,10 @@ book~\citep{Plutus-book}.
 
 The grammar of Plutus Core is given in
 Figures~\ref{fig:lexical-grammar} and
-\ref{fig:grammar}. This grammar describes the abstract
-syntax trees of Plutus Core in a convenient notation which can also be
-used as concrete syntax for purposes such as experimentation and
-debugging.
+\ref{fig:grammar} (but see the update in Section~\ref{sec:syntax-update}).
+This grammar describes the abstract syntax trees of Plutus Core in a convenient
+notation which can also be used as concrete syntax for purposes such as
+experimentation and debugging.
 
 Lexemes are described in standard regular expression notation.  The
 following lexemes are reserved as keywords for use in concrete syntax:
@@ -504,6 +504,33 @@ free variables) forming the body of the program.  The version number
 is used by the Plutus Core evaluator and other tools to check that
 they are dealing with code conforming to the correct version of the
 Plutus Core language.
+
+\red{\subsection{Revised syntax}}
+\label{sec:syntax-update}
+\noindent In the current (April 2021) implementation of Plutus Core the syntax of built-in
+functions has changed somewhat.  In the syntax above and the semantics and
+typing rules below, built-in functions are always required to be \textit{fully
+applied}: when a built-in function is applied (or instantiated, in the
+polymorphic case), all of its arguments have to be present.  \textbf{This
+restriction has now been relaxed.}  We now have a term
+\\
+$$
+   \texttt{(builtin \textit{bn})}
+$$
+\noindent
+which can be applied to arguments one by
+one. Thus \texttt{(builtinAddInteger)}, \texttt{[(builtinAddInteger) (con
+integer 5)]}, and \texttt{[(builtinAddInteger) (con integer 5) (con integer 6)]}
+are all valid terms.  The first two of these are values which cannot immediately
+be reduced, but the third will evaluate to \texttt{(con integer 11)}.  In the
+polymorphic case type instantiations and applications to term arguments can be
+interleaved.
+
+The new syntax is used in the examples in Section~\ref{sec:examples}, but
+elsewhere in the document we use the earlier form.  We are currently in the
+process of producing a revised version of this document which will give full
+semantics and typing rules for the updated syntax; in the interim the reader
+should keep in mind that things have changed slightly.
 
 \section{Type correctness}
 
