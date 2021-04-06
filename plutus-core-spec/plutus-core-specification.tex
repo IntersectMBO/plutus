@@ -1,6 +1,6 @@
 % Plutus Core Specification
-\title{Formal Specification of\\the Plutus Core Language (version 2.0)}
-\date{27th May 2020}
+\title{Formal Specification of\\the Plutus Core Language (version 2.1)}
+\date{6th April 2021}
 
 \renewcommand{\thefootnote}{\fnsymbol{footnote}}
 
@@ -83,7 +83,7 @@
 
 \newcommand{\sig}[3]{[#1](#2)#3}
 \newcommand{\constsig}[1]{#1}
-\newcommand{\con}[1]{\construct{\keyword{con} ~ #1}}
+\newcommand{\con}[2]{\construct{\keyword{con} ~ #1 ~ #2}}
 \newcommand{\abs}[3]{\construct{\keyword{abs} ~ #1 ~ #2 ~ #3}}
 \newcommand{\inst}[2]{\texttt{\{}#1 ~ #2\texttt{\}}}
 \newcommand{\lam}[3]{\construct{\keyword{lam} ~ #1 ~ #2 ~ #3}}
@@ -112,8 +112,11 @@
 \newcommand{\fixT}{\ifixT}
 %% ^ Temporary fix to avoid substituting all occurences of new keyword
 \newcommand{\allT}[3]{\construct{\keyword{all} ~ #1 ~ #2 ~ #3}}
-\newcommand{\conIntegerType}[1]{\keyword{integer}}
-\newcommand{\conBytestringType}[1]{\keyword{bytestring}}
+\newcommand{\conUnitType}{\keyword{unit}}
+\newcommand{\conBooleanType}{\keyword{bool}}
+\newcommand{\conIntegerType}{\keyword{integer}}
+\newcommand{\conBytestringType}{\keyword{bytestring}}
+\newcommand{\conStringType}{\keyword{string}}
 \newcommand{\conT}[1]{\construct{\keyword{con} ~ #1}}
 \newcommand{\lamT}[3]{\construct{\keyword{lam} ~ #1 ~ #2 ~ #3}}
 \newcommand{\appT}[2]{\texttt{[} #1 ~ #2 \texttt{]}}
@@ -204,14 +207,16 @@
 \newcommand\integer{\ensuremath{\mathit{integer}}}
 \newcommand\bytestring{\ensuremath{\mathit{bytestring}}}
 \newcommand\str{\ensuremath{\mathit{str}}}
-\newcommand\true{\ensuremath{\mathit{true}}}
-\newcommand\false{\ensuremath{\mathit{false}}}
 \newcommand\case{\ensuremath{\mathit{case}}}
 \newcommand\signed{\ensuremath{\mathit{signed}}}
 \newcommand\txhash{\ensuremath{\mathit{txhash}}}
 \newcommand\pubkey{\ensuremath{\mathit{pubkey}}}
 \newcommand\blocknum{\ensuremath{\mathit{blocknum}}}
 %% \newcommand\uniqmem[1]{#1^{\blacktriangledown}}  %% Unique member of size type
+
+\newcommand\true{\ensuremath{\mathtt{True}}}
+\newcommand\false{\ensuremath{\mathtt{False}}}
+
 
 %%% Spacing in tables
 
@@ -257,15 +262,14 @@ difficult, the language is relatively straightforward to formalise
 with a proof assistant.  Indeed, the specification in the present
 document has been formalised in the Agda proof assistant~\citep{Agda}.
 
-We have tried to keep the Plutus Core language small. There is no
-explicit support for algebraic datatypes, but they are representable
-using, for example, the Scott encoding (\citep{Scott-encoding}: see
-also \citep{Koopman:2014} and ~\citep{Geuvers-2014} for example; note that
-the Scott encoding coincides with the Church encoding for
-non-recursive types). Similarly, there are no explicit constructs for
-recursion or branching, but the type system is sufficiently expressive
-to allow us to use standard combinators (for example the $Z$
-combinator and Church/Scott encoded booleans) for such purposes.
+We have tried to keep the Plutus Core language small. There is no explicit
+support for algebraic datatypes, but they are representable using, for example,
+the Scott encoding (\citep{Scott-encoding}: see also \citep{Koopman:2014} and
+~\citep{Geuvers-2014} for example; note that the Scott encoding coincides with
+the Church encoding for non-recursive types). Similarly, there is no explicit
+constructs for recursion, but the type system is sufficiently expressive to
+allow us to use standard combinators (for example the $Z$ combinator) for such
+purposes.
 
 \paragraph{Implementation.} A compiler and evaluator for Plutus Core can be found
 in~\citep{Plutus-exe-repo}.
@@ -328,16 +332,16 @@ book~\citep{Plutus-book}.
 
 The grammar of Plutus Core is given in
 Figures~\ref{fig:lexical-grammar} and
-\ref{fig:grammar}. This grammar describes the abstract
-syntax trees of Plutus Core in a convenient notation which can also be
-used as concrete syntax for purposes such as experimentation and
-debugging.
+\ref{fig:grammar} (but see the update in Section~\ref{sec:syntax-update}).
+This grammar describes the abstract syntax trees of Plutus Core in a convenient
+notation which can also be used as concrete syntax for purposes such as
+experimentation and debugging.
 
 Lexemes are described in standard regular expression notation.  The
 following lexemes are reserved as keywords for use in concrete syntax:
-\texttt{abs}, \texttt{all}, \texttt{builtin}, \texttt{bytestring},
+\texttt{abs}, \texttt{all}, \texttt{builtin}, 
 \texttt{con}, \texttt{error}, \texttt{fun}, \texttt{ifix},
-\texttt{integer}, \texttt{iwrap}, \texttt{lam}, \texttt{program},
+\texttt{iwrap}, \texttt{lam}, \texttt{program},
 \texttt{type}, \texttt{unwrap}.  The only other lexemes
 are round brackets $\texttt{(}\ldots\texttt{)}$, square brackets
 $\texttt{[}\ldots\texttt{]}$, and braces
@@ -370,8 +374,9 @@ may use the multi-argument forms.
 \subsection{Notes on the grammar}
 \paragraph{Terms.}
 \begin{itemize}
-\item $\con{cn}$ represents a constant belonging to some built-in
-  type: for example \texttt{(con 28)} is an integer with the value 28.
+\item $\con{tn}{cn}$ represents a constant belonging to some built-in
+  type, with \textit{cn} being of the correct lexical form for the type \textit{tn}:
+  for example \texttt{(con integer 28)} is an integer with the value 28.
   See Section~\ref{sec:builtins} for more on this.
 \item $\abs{\alpha}{K}{M}$ represents a polymorphic value abstracted
   over a type; this would often be denoted by $\Lambda\alpha{::}K.M$.
@@ -407,7 +412,7 @@ terms which cannot undergo any further reduction.
 \item $\fixT{A}{B}$ represents a recursive type: see the note in Section~\ref{sec:ifix-note} below for more information.
 \item $\lamT{\alpha}{K}{A}$ is abstraction of types over types, $\lambda \alpha{::}K.A$.
 \item $\appT{A}{B}$ is function application at the type level.
-\item $\conT{tcn}$ represents a built-in type: for example, $\conT{\textrm{integer}}$
+\item $\conT{tn}$ represents a built-in type: for example, $\conT{\textrm{integer}}$
 is the type of integers.  See Section~\ref{sec:builtins} for more information.
 \end{itemize}
 
@@ -469,7 +474,7 @@ equality: fixpoint types are
 \textit{isorecursive}~\citep[20.2]{Pierce:TAPL} with explicit maps
 
 $$
-\texttt{iwrap} : \texttt{A (fix A) B} \rightarrow \texttt{ifix A B}
+\texttt{iwrap} : \texttt{A (ifix A) B} \rightarrow \texttt{ifix A B}
 $$
 
 \noindent and
@@ -499,6 +504,33 @@ free variables) forming the body of the program.  The version number
 is used by the Plutus Core evaluator and other tools to check that
 they are dealing with code conforming to the correct version of the
 Plutus Core language.
+
+\red{\subsection{Note: revised syntax}}
+\label{sec:syntax-update}
+\noindent In the current (April 2021) implementation of Plutus Core the syntax of built-in
+functions has changed somewhat.  In the syntax above and the semantics and
+typing rules below, built-in functions are always required to be \textit{fully
+applied}: when a built-in function is applied (or instantiated, in the
+polymorphic case), all of its arguments have to be present.  \textbf{This
+restriction has now been relaxed.}  We now have a term
+\\
+$$
+   \texttt{(builtin \textit{bn})}
+$$
+\noindent
+which can be applied to arguments one by
+one. Thus \texttt{(builtinAddInteger)}, \texttt{[(builtinAddInteger) (con
+integer 5)]}, and \texttt{[(builtinAddInteger) (con integer 5) (con integer 6)]}
+are all valid terms.  The first two of these are values which cannot immediately
+be reduced (but could, for example, be passed as arguments to other functions);
+the third will evaluate to \texttt{(con integer 11)}.  In the polymorphic
+case type instantiations and applications to term arguments can be interleaved.
+
+The new syntax is used in the examples in Section~\ref{sec:examples}, but
+elsewhere in the document we use the earlier form.  We are in the process of
+producing a revised version of this document which will give full typing rules
+and semantics for the updated syntax, but in the interim the reader should keep
+in mind that things have changed slightly.
 
 \section{Type correctness}
 
@@ -657,9 +689,9 @@ integers and bytestrings.
     \end{prooftree}
 
     \begin{prooftree}
-        \AxiomC{$tcn$ is a type constant in in Figure \ref{fig:type-constants}}
+        \AxiomC{$tn$ is a type constant in in Figure \ref{fig:type-constants}}
         \RightLabel{\textsf{tycon}}
-        \UnaryInfC{\(\hypJ{\Gamma}{\istypeJ{\conT{tcn}}{\typeK{}}}\)}
+        \UnaryInfC{\(\hypJ{\Gamma}{\istypeJ{\conT{tn}}{\typeK{}}}\)}
     \end{prooftree}
 
     \captionof{figure}{Kind Synthesis}
@@ -691,9 +723,9 @@ Higher-kinding introduces computation in types so we need the rule
     \end{prooftree}
 
     \begin{prooftree}
-        \AxiomC{$cn$ has constant signature $\constsig{tcn}$ in Figure \ref{fig:constants}}
+        \AxiomC{$cn$ is a valid constant of type $\constsig{tn}$}
         \RightLabel{\textsf{con}}
-        \UnaryInfC{\(\hypJ{\Gamma}{\istermJ{cn}{\conT{tcn}}}\)}
+        \UnaryInfC{\(\hypJ{\Gamma}{\istermJ{\con{tn}{cn}}{\conT{tn}}}\)}
     \end{prooftree}
 
     \begin{prooftree}
@@ -901,27 +933,27 @@ functions which will be useful for blockchain applications.  The set
 of built-ins is fixed, although in future we may provide a framework
 to allow customisation for specialised blockchains.
 
-As mentioned earlier, there are two basic types: \texttt{integer} and
-\texttt{bytestring}.  These types are given in
-Figure~\ref{fig:type-constants}: for example \texttt{(con
-  integer)} is the type of signed integers.
-We provide standard arithmetic and comparison operations for integers
-and a number of list-like functions for bytestrings. The details are
-given in Figure~\ref{fig:builtins}, using a number of
-abbreviations given in Figure~\ref{fig:type-abbreviations}.
+There are four basic types: \conUnitType, \conBooleanType, \conIntegerType,
+and \conBytestringType\footnote{The implementation also supports a type
+\conStringType{} of Unicode strings, but this is only used for debugging and we won't
+discuss it any further here.}.  These types are given in
+Figure~\ref{fig:type-constants}: for example \texttt{(con \conIntegerType)} is
+the type of signed integers.  We provide standard arithmetic and comparison
+operations for integers and a number of list-like functions for bytestrings. The
+details are given in Figure~\ref{fig:builtins}, using a number of abbreviations
+given in Figure~\ref{fig:type-abbreviations}.
 
 
 Note the following:
 \begin{itemize}
-\item The built-in functions in Figure~\ref{fig:builtins}
-are all monomorphic, and hence the type arguments are all empty: [].
-It is possible that we may add some polymorphic built-in functions
-at some time in the future.
 \item Some of the entries in Figure~\ref{fig:builtins}
   contain \textit{success conditions}.  If a success condition is
-  violated then the function immediately returns $\errorU$
+  violated then the function immediately returns $\errorU$.
 
 \item Every built-in function returns either a value or the term \texttt{(error)}.
+
+\item The \texttt{ifThenElse} operation is polymorphic and must be instantiated
+    with the type of its branches before being applied: see the example below.
 
 \item We provide two versions of the division and remainder operations
   for integers.  These differ in their treatment of negative
@@ -964,15 +996,6 @@ at some time in the future.
 %   -41 -5 |  8  -1  |   8  -1  |  9   4
 %
 
-  \item We use fixed Scott encodings for certain types and values,
-    specifically for the \textit{unit} and \textit{boolean} types: see
-    Figure~\ref{fig:type-abbreviations} (\textit{one} is the unique
-    non-\verb|error| inhabitant of the \textit{unit} type).  Compilers
-    targeting Plutus Core must be aware of these encodings and use
-    them appropriately.  Note that these encodings are not purely
-    abstract, but have semantic content. For example we use boolean
-    values directly to implement branching: see the examples in
-    Section~\ref{sec:examples}.
 \end{itemize}
 \subfile{figures/Builtins}
 
@@ -988,7 +1011,7 @@ The following program subtracts 11 from 55, returning 44.
 
 \begin{verbatim}
   (program 1.0.0
-    [(builtin subtractInteger) (con 55) (con 11)]
+    [(builtin subtractInteger) (con integer 55) (con integer 11)]
   )
 \end{verbatim}
 
@@ -997,24 +1020,18 @@ The following program subtracts 11 from 55, returning 44.
 integer.
 \begin{verbatim}
   (lam n (con integer)
-    [
-      { [(builtin lessThanInteger) n (con 0)] (con integer) }
-        [(builtin subtractInteger) (con 0) n]
-        n
-    ]
+     [
+       [
+        { (builtin ifThenElse) (con integer) } 
+           [(builtin lessThanInteger) n (con integer 0)]
+       ]
+       [(builtin subtractInteger) (con integer 0) n]
+       n
+     ]
   )
 \end{verbatim}
 
-\noindent We have used the built-in \verb|lessThanInteger|
-function, which returns a boolean value encoded as shown in
-Figure~\ref{fig:type-abbreviations}, of type
-$\forall \alpha::\ast. \alpha \rightarrow \alpha \rightarrow \alpha$.
-Boolean values are functions taking two arguments: \textit{true}
-returns the first, and \textit{false} returns the second.  We have to
-instantiate the type variable $\alpha$ to \textit{integer} before we
-can apply these.
-
-Note that both branches above will always be evaluated because Plutus
+\noindent Note that both branches above will always be evaluated because Plutus
 Core has strict evaluation.  Thus even if $n$ is positive the code above will
 still calculate $0-n$ and then discard it.  To avoid this we can delay
 the evaluation of the branches by making them into functions taking
@@ -1024,15 +1041,13 @@ know the outcome of the test:
 \begin{verbatim}
   (lam n (con integer)
     [
-      [
-        {
-          [(builtin lessThanInteger) n (con 0)]
-             (fun (all a (type) (fun a a)) (con integer))
-        }
-        (lam u (all a (type) (fun a a)) [(builtin subtractInteger) (con 0) n])
-        (lam u (all a (type) (fun a a)) n)
+     [
+      { (builtin ifThenElse) (fun (con unit) (con integer)) } 
+        [(builtin lessThanInteger) n (con integer 0)]
+         (lam u (con unit) [(builtin subtractInteger) (con integer 0) n])
+         (lam u (con unit) n)
       ]
-      (abs a (type) (lam x a x))
+      (con unit ())
     ]
   )
 \end{verbatim}
