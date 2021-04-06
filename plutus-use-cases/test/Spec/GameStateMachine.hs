@@ -28,8 +28,6 @@ import           Test.Tasty                         hiding (after)
 import qualified Test.Tasty.HUnit                   as HUnit
 import           Test.Tasty.QuickCheck              (testProperty)
 
-import qualified Spec.Lib                           as Lib
-
 import qualified Ledger.Ada                         as Ada
 import qualified Ledger.Typed.Scripts               as Scripts
 import           Ledger.Value                       (Value, isZero)
@@ -238,10 +236,10 @@ tests =
         .&&. walletFundsChange w1 (Ada.lovelaceValueOf (-8)))
         failTrace
 
-    , Lib.goldenPir "test/Spec/gameStateMachine.pir" $$(PlutusTx.compile [|| mkValidator ||])
+    , goldenPir "test/Spec/gameStateMachine.pir" $$(PlutusTx.compile [|| mkValidator ||])
 
     , HUnit.testCase "script size is reasonable"
-        (Lib.reasonable (Scripts.validatorScript G.scriptInstance) 49000)
+        (reasonable (Scripts.validatorScript G.scriptInstance) 49000)
 
     , testProperty "can always get the funds out" $
         withMaxSuccess 10 prop_NoLockedFunds

@@ -7,7 +7,6 @@ import qualified Spec.Currency
 import qualified Spec.ErrorHandling
 import qualified Spec.Escrow
 import qualified Spec.Future
-import qualified Spec.Game
 import qualified Spec.GameStateMachine
 -- import qualified Spec.MultiSig
 import qualified Spec.MultiSigStateMachine
@@ -38,7 +37,6 @@ tests = localOption limit $ testGroup "use cases" [
     Spec.Vesting.tests,
     Spec.ErrorHandling.tests,
     Spec.Future.tests,
-    Spec.Game.tests,
     -- disable temporarily, because we need to adopt the signing API
     -- Spec.MultiSig.tests,
     Spec.MultiSigStateMachine.tests,

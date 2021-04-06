@@ -9,7 +9,6 @@ import qualified Ledger.Ada              as Ada
 import qualified Ledger.Typed.Scripts    as Scripts
 import           Plutus.Contract
 import           Plutus.Contract.Test
-import qualified Spec.Lib                as Lib
 
 import           Plutus.Contracts.Escrow
 import qualified Plutus.Trace.Emulator   as Trace
@@ -69,7 +68,7 @@ tests = testGroup "escrow"
           .&&. assertDone con (Trace.walletInstanceTag w1) (const True) "refund should succeed")
         refundTrace
 
-    , HUnit.testCase "script size is reasonable" (Lib.reasonable (Scripts.validatorScript $ scriptInstance escrowParams) 32000)
+    , HUnit.testCase "script size is reasonable" (reasonable (Scripts.validatorScript $ scriptInstance escrowParams) 32000)
     ]
 
 w1, w2, w3 :: Wallet

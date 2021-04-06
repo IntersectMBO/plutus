@@ -147,6 +147,7 @@ library
         build-depends:
             tasty -any,
             tasty-hunit -any,
+            tasty-golden -any,
 
 test-suite contract-doctests
     type: exitcode-stdio-1.0
