@@ -149,5 +149,5 @@ handleAction (OpenContract ix) = assign _selectedContractIndex $ Just ix
 handleAction (AdvanceTimeoutedContracts currentSlot) =
   modify_
     $ over
-        (_contracts <<< traversed <<< filtered (\contract -> contract.mNextTimeout == Just currentSlot))
+        (_contracts <<< traversed <<< filtered (\contract -> contract.executionState.mNextTimeout == Just currentSlot))
         (applyTimeout currentSlot)

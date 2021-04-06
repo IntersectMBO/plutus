@@ -1,7 +1,7 @@
 module ContractHome.View where
 
 import Prelude hiding (div)
-import Contract.Lenses (_mNextTimeout, _metadata)
+import Contract.Lenses (_executionState, _metadata)
 import Contract.State (currentStep)
 import Contract.Types (State) as Contract
 import ContractHome.Lenses (_contracts, _status)
@@ -11,13 +11,14 @@ import Css as Css
 import Data.FunctorWithIndex (mapWithIndex)
 import Data.Lens ((^.))
 import Data.Maybe (maybe)
-import TimeHelpers (humanizeDuration)
 import Halogen.HTML (HTML, a, div, h2, p_, span, text)
 import Halogen.HTML.Events.Extra (onClick_)
+import Marlowe.Execution (_mNextTimeout)
 import Marlowe.Extended (contractTypeName, contractTypeInitials)
 import Marlowe.Semantics (Slot)
 import Marlowe.Slot (secondsDiff)
 import Material.Icons (Icon(..), icon_)
+import TimeHelpers (humanizeDuration)
 
 contractsScreen :: forall p. Slot -> State -> HTML p Action
 contractsScreen currentSlot state =
@@ -83,7 +84,7 @@ contractCard currentSlot index contractState =
 
     stepNumber = currentStep contractState + 1
 
-    mNextTimeout = contractState ^. _mNextTimeout
+    mNextTimeout = contractState ^. (_executionState <<< _mNextTimeout)
 
     timeoutStr =
       maybe "timed out"

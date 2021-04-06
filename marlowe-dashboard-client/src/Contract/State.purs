@@ -11,11 +11,11 @@ module Contract.State
   ) where
 
 import Prelude
-import Contract.Lenses (_contractId, _executionState, _mNextTimeout, _namedActions, _selectedStep, _tab)
-import Contract.Types (Action(..), Query(..), State, Tab(..))
+import Contract.Lenses (_contractId, _executionState, _namedActions, _previousSteps, _selectedStep, _tab)
+import Contract.Types (Action(..), PreviousStep, PreviousStepState(..), Query(..), State, Tab(..))
 import Control.Monad.Reader (class MonadAsk)
 import Data.Array (length)
-import Data.Lens (assign, modifying, set, use, view, (^.))
+import Data.Lens (assign, modifying, over, to, toArrayOf, traversed, use, view, (^.))
 import Data.Map (Map)
 import Data.Maybe (Maybe(..))
 import Data.RawJson (RawJson(..))
@@ -28,11 +28,11 @@ import Foreign.Generic (encode)
 import Foreign.JSON (unsafeStringify)
 import Halogen (HalogenM, liftEffect, modify_)
 import MainFrame.Types (ChildSlots, Msg)
-import Marlowe.Execution (NamedAction(..), _contract, _isClosed, _state, _steps, extractNamedActions, initExecution, mkTx, nextState, nextTimeout, timeoutState)
+import Marlowe.Execution (NamedAction(..), _currentContract, _pendingTimeouts, _previousTransactions, extractNamedActions, initExecution, isClosed, mkTx, nextState, timeoutState)
 import Marlowe.Extended (TemplateContent, fillTemplate, resolveRelativeTimes, toCore)
 import Marlowe.Extended as Extended
 import Marlowe.Extended.Metadata (MetaData, emptyContractMetadata)
-import Marlowe.Semantics (Contract(..), Input(..), Slot, TransactionInput, _minSlot)
+import Marlowe.Semantics (Contract(..), Input(..), Slot, SlotInterval(..), TransactionInput(..))
 import Marlowe.Semantics as Semantic
 import Marlowe.Slot (currentSlot)
 import WalletData.Types (Nickname)
@@ -43,7 +43,7 @@ defaultState :: State
 defaultState = mkInitialState "" zero emptyContractMetadata mempty Nothing Close
 
 currentStep :: State -> Int
-currentStep = length <<< view (_executionState <<< _steps)
+currentStep = length <<< view _previousSteps
 
 toInput :: NamedAction -> Maybe Input
 toInput (MakeDeposit accountId party token value) = Just $ IDeposit accountId party token value
@@ -66,7 +66,7 @@ toInput (MakeNotify _) = Just $ INotify
 toInput _ = Nothing
 
 isContractClosed :: State -> Boolean
-isContractClosed state = state ^. (_executionState <<< _isClosed)
+isContractClosed state = isClosed $ state ^. _executionState
 
 instantiateExtendedContract ::
   String ->
@@ -100,58 +100,91 @@ mkInitialState contractId slot metadata participants mActiveUserParty contract =
   in
     { tab: Tasks
     , executionState
+    , previousSteps: mempty
     , contractId
     , selectedStep: 0
     , metadata
     , participants
     , mActiveUserParty
-    , mNextTimeout: nextTimeout contract
     , namedActions: extractNamedActions slot executionState
     }
 
 handleQuery :: forall a m. MonadEffect m => Query a -> HalogenM State Action ChildSlots Msg m (Maybe a)
-handleQuery (ChangeSlot slot next) = do
-  assign (_executionState <<< _state <<< _minSlot) slot
-  pure $ Just next
-
 handleQuery (ApplyTx tx next) = do
   slot <- liftEffect $ currentSlot
   modify_ $ applyTx slot tx
   pure $ Just next
 
+transactionsToStep :: TransactionInput -> PreviousStep
+transactionsToStep txInput =
+  let
+    TransactionInput { interval: SlotInterval minSlot maxSlot, inputs } = txInput
+
+    -- FIXME: We need to ask for all participants and all tokens and check the current
+    --        balance to complete this
+    balances = mempty
+
+    state =
+      -- For the moment the only way to get an empty transaction is if there was a timeout,
+      -- but later on there could be other reasons to move a contract forward, and we should
+      -- compare with the contract to see the reason.
+      if inputs == mempty then
+        TimeoutStep minSlot
+      else
+        TransactionStep txInput
+  in
+    { balances
+    , state
+    }
+
+timeoutToStep :: Slot -> PreviousStep
+timeoutToStep slot =
+  let
+    -- FIXME: We need to ask for all participants and all tokens and check the current
+    --        balance to complete this
+    balances = mempty
+  in
+    { balances
+    , state: TimeoutStep slot
+    }
+
+regenerateStepCards :: Slot -> State -> State
+regenerateStepCards currentSlot state =
+  let
+    confirmedSteps :: Array PreviousStep
+    confirmedSteps = toArrayOf (_executionState <<< _previousTransactions <<< to transactionsToStep) state
+
+    pendingTimeoutSteps :: Array PreviousStep
+    pendingTimeoutSteps = toArrayOf (_executionState <<< _pendingTimeouts <<< traversed <<< to timeoutToStep) state
+
+    previousSteps = confirmedSteps <> pendingTimeoutSteps
+
+    namedActions = extractNamedActions currentSlot (state ^. _executionState)
+  in
+    state { previousSteps = previousSteps, namedActions = namedActions }
+
+selectLastStep :: State -> State
+selectLastStep state@{ previousSteps } = state { selectedStep = length previousSteps }
+
 applyTx :: Slot -> TransactionInput -> State -> State
 applyTx currentSlot txInput state =
   let
-    executionState = nextState (state ^. _executionState) txInput
-
-    mNextTimeout = nextTimeout (executionState ^. _contract)
-
-    namedActions = extractNamedActions currentSlot executionState
-
-    updateState =
-      set _executionState executionState
-        <<< set _selectedStep (length (executionState ^. _steps))
-        <<< set _mNextTimeout mNextTimeout
-        <<< set _namedActions namedActions
+    updateExecutionState = over _executionState (\s -> nextState s txInput)
   in
-    updateState state
+    state
+      # updateExecutionState
+      # regenerateStepCards currentSlot
+      # selectLastStep
 
 applyTimeout :: Slot -> State -> State
 applyTimeout currentSlot state =
   let
-    executionState = timeoutState currentSlot (state ^. _executionState)
-
-    mNextTimeout = nextTimeout (executionState ^. _contract)
-
-    namedActions = extractNamedActions currentSlot executionState
-
-    updateState =
-      set _executionState executionState
-        <<< set _selectedStep (length (executionState ^. _steps))
-        <<< set _mNextTimeout mNextTimeout
-        <<< set _namedActions namedActions
+    updateExecutionState = over _executionState (timeoutState currentSlot)
   in
-    updateState state
+    state
+      # updateExecutionState
+      # regenerateStepCards currentSlot
+      # selectLastStep
 
 handleAction ::
   forall m.
@@ -165,7 +198,7 @@ handleAction (ConfirmAction namedAction) = do
   let
     input = toInput namedAction
 
-    txInput = mkTx slot (currentExeState ^. _contract) (Unfoldable.fromMaybe input)
+    txInput = mkTx slot (currentExeState ^. _currentContract) (Unfoldable.fromMaybe input)
 
     json = RawJson <<< unsafeStringify <<< encode $ input
   -- TODO: currently we just ignore errors but we probably want to do something better in the future

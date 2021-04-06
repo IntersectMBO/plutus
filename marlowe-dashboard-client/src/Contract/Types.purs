@@ -6,18 +6,28 @@ import Data.Map (Map)
 import Data.Maybe (Maybe(..))
 import Marlowe.Execution (ExecutionState, NamedAction)
 import Marlowe.Extended.Metadata (MetaData)
-import Marlowe.Semantics (ChoiceId, ChosenNum, Slot, TransactionInput)
+import Marlowe.Semantics (ChoiceId, ChosenNum, Slot, TransactionInput, Accounts)
 import Marlowe.Semantics as Semantic
 import WalletData.Types (Nickname)
+
+-- Represents a historical step in a contract's life.
+type PreviousStep
+  = { balances :: Accounts
+    , state :: PreviousStepState
+    }
+
+data PreviousStepState
+  = TransactionStep TransactionInput
+  | TimeoutStep Slot
 
 type State
   = { tab :: Tab
     , executionState :: ExecutionState
+    , previousSteps :: Array PreviousStep
     , contractId :: String -- FIXME: what is a contract instance identified by
-    -- Which step of the execution state is selected. This index is 0 based and should be
-    -- between [0, executionState.steps.length] (both sides inclusive). This is because the
-    -- `steps` array represent the past steps and the executionState.state represents the
-    -- current state and visually we can select any one of them.
+    -- Which step is selected. This index is 0 based and should be between [0, previousSteps.length]
+    -- (both sides inclusive). This is because the array represent the past steps and the
+    -- executionState has the current state and visually we can select any one of them.
     , selectedStep :: Int
     , metadata :: MetaData
     , participants :: Map Semantic.Party (Maybe Nickname)
@@ -27,7 +37,6 @@ type State
     -- or if a Role participant sells the role token to another participant
     -- FIXME: The active party can use multiple roles, change this to (Array Party)
     , mActiveUserParty :: Maybe Semantic.Party
-    , mNextTimeout :: Maybe Slot
     -- These are the possible actions a user can make in the current step. We store this mainly because
     -- extractNamedActions could potentially be unperformant to compute.
     , namedActions :: Array NamedAction
@@ -40,8 +49,7 @@ data Tab
 derive instance eqTab :: Eq Tab
 
 data Query a
-  = ChangeSlot Slot a
-  | ApplyTx TransactionInput a
+  = ApplyTx TransactionInput a
 
 data Action
   = ConfirmAction NamedAction

@@ -1,60 +1,85 @@
 module Marlowe.Execution where
 
 import Prelude
-import Data.Array (fromFoldable)
+import Data.Array as Array
 import Data.BigInteger (BigInteger, fromInt)
-import Data.Lens (Lens', view)
+import Data.Lens (Lens', Traversal', _Just, traversed, view)
 import Data.Lens.Record (prop)
 import Data.List (List)
 import Data.Map (Map)
 import Data.Map as Map
-import Data.Maybe (Maybe(..))
+import Data.Maybe (Maybe(..), fromMaybe')
 import Data.Symbol (SProxy(..))
-import Debug.Trace (spy)
-import Marlowe.Semantics (AccountId, Action(..), Bound, Case(..), ChoiceId(..), ChosenNum, Contract(..), Input, Observation, Party, Payment, ReduceResult(..), Slot(..), SlotInterval(..), State, Timeout, Timeouts(..), Token, TransactionInput(..), TransactionOutput(..), ValueId, _boundValues, _minSlot, computeTransaction, emptyState, evalValue, makeEnvironment, reduceContractUntilQuiescent, timeouts)
+import Marlowe.Semantics (AccountId, Action(..), Bound, Case(..), ChoiceId(..), ChosenNum, Contract(..), Input, Observation, Party, Payment, ReduceResult(..), Slot(..), SlotInterval(..), State, Timeouts(..), Token, TransactionInput(..), TransactionOutput(..), ValueId, _boundValues, _minSlot, computeTransaction, emptyState, evalValue, makeEnvironment, reduceContractUntilQuiescent, timeouts)
 
--- Represents a historical step in a contract's life.
-data ExecutionStep
-  = TransactionStep
-    { txInput :: TransactionInput
-    -- This is the state before the txInput was executed
+-- This represents a previous step in the execution. The state property corresponds to the state before the
+-- txInput was applied and it's saved as an early optimization to calculate the balances at each step.
+type PreviousState
+  = { txInput :: TransactionInput
     , state :: State
     }
-  | TimeoutStep
-    { timeoutSlot :: Slot
-    -- This is the state the step had at the begining (before it timed-out)
+
+-- This represents the timeouts that hasn't been applied to the contract. When a step of a contract has timeout
+-- nothing happens until the next InputTransaction. This could be an IDeposit or IChoose for the continuation
+-- contract, or an empty transaction to advance or even close the contract. We store a separate contract and state
+-- than the "current" contract/state because this is the predicted state that we would be in if we applied an
+-- empty transaction, and this allow us to extract the NamedActions that needs to be applied next.
+-- Also, we store the timeouts as an Array because it is possible that multiple continuations have timeouted
+-- before we advance the contract.
+type PendingTimeouts
+  = { timeouts :: Array Slot
+    , contract :: Contract
     , state :: State
     }
 
 type ExecutionState
-  = { steps :: Array ExecutionStep
-    , state :: State
-    , contract :: Contract
-    , isClosed :: Boolean
+  = { previous :: Array PreviousState
+    , current ::
+        { state :: State
+        , contract :: Contract
+        }
+    , mPendingTimeouts :: Maybe PendingTimeouts
+    , mNextTimeout :: Maybe Slot
     }
 
-_state :: Lens' ExecutionState State
-_state = prop (SProxy :: SProxy "state")
+_previousState :: Lens' ExecutionState (Array PreviousState)
+_previousState = prop (SProxy :: SProxy "previous")
 
-_contract :: Lens' ExecutionState Contract
-_contract = prop (SProxy :: SProxy "contract")
+_previousTransactions :: Traversal' ExecutionState TransactionInput
+_previousTransactions = prop (SProxy :: SProxy "previous") <<< traversed <<< prop (SProxy :: SProxy "txInput")
 
-_steps :: Lens' ExecutionState (Array ExecutionStep)
-_steps = prop (SProxy :: SProxy "steps")
+_currentState :: Lens' ExecutionState State
+_currentState = prop (SProxy :: SProxy "current") <<< prop (SProxy :: SProxy "state")
 
-_isClosed :: Lens' ExecutionState Boolean
-_isClosed = prop (SProxy :: SProxy "isClosed")
+_currentContract :: Lens' ExecutionState Contract
+_currentContract = prop (SProxy :: SProxy "current") <<< prop (SProxy :: SProxy "contract")
+
+_mNextTimeout :: Lens' ExecutionState (Maybe Slot)
+_mNextTimeout = prop (SProxy :: SProxy "mNextTimeout")
+
+_pendingTimeouts :: Traversal' ExecutionState (Array Slot)
+_pendingTimeouts = prop (SProxy :: SProxy "mPendingTimeouts") <<< _Just <<< prop (SProxy :: SProxy "timeouts")
+
+isClosed :: ExecutionState -> Boolean
+isClosed { current: { contract: Close } } = true
+
+isClosed _ = false
 
 initExecution :: Slot -> Contract -> ExecutionState
 initExecution currentSlot contract =
   let
-    steps = mempty
+    previous = mempty
 
     state = emptyState currentSlot
-
-    isClosed = contract == Close
   in
-    { steps, state, contract, isClosed }
+    { previous
+    , current:
+        { state
+        , contract
+        }
+    , mPendingTimeouts: Nothing
+    , mNextTimeout: nextTimeout contract
+    }
 
 nextTimeout :: Contract -> Maybe Slot
 nextTimeout = timeouts >>> \(Timeouts { minTime }) -> minTime
@@ -76,40 +101,81 @@ mkTx currentSlot contract inputs =
   in
     TransactionInput { interval, inputs }
 
--- Evaluate a Contract based on a State and a TransactionInput and return the new ExecutionState, having added a new ExecutinStep
+-- FIXME: Change the order of the arguments to::  TransactionInput -> ExecutionState  -> ExecutionState
 nextState :: ExecutionState -> TransactionInput -> ExecutionState
-nextState { steps, state, contract } txInput =
+nextState { previous, current } txInput =
   let
+    { state, contract } = current
+
     TransactionInput { interval: SlotInterval minSlot maxSlot } = txInput
 
     { txOutState, txOutContract } = case computeTransaction txInput state contract of
       (TransactionOutput { txOutState, txOutContract }) -> { txOutState, txOutContract }
       -- We should not have contracts which cause errors in the dashboard so we will just ignore error cases for now
+      -- FIXME: Change nextState to return an Either
+      -- TODO: SCP-2088 We need to discuss how to display the warnings that computeTransaction may give
       (Error _) -> { txOutState: state, txOutContract: contract }
   in
-    { steps: steps <> [ TransactionStep { txInput, state } ]
-    , state: txOutState
-    , contract: txOutContract
-    , isClosed: txOutContract == Close
+    { previous: Array.snoc previous { txInput, state }
+    , current:
+        { state: txOutState
+        , contract: txOutContract
+        }
+    , mPendingTimeouts: Nothing
+    , mNextTimeout: nextTimeout txOutContract
     }
 
 timeoutState :: Slot -> ExecutionState -> ExecutionState
-timeoutState timeoutSlot { state, contract, steps } =
+timeoutState currentSlot { current, previous, mPendingTimeouts, mNextTimeout } =
   let
-    Slot slot = timeoutSlot
+    Slot slot = currentSlot
 
     env = makeEnvironment slot slot
 
-    { txOutState, txOutContract } = case reduceContractUntilQuiescent env state contract of
-      -- FIXME: Check this, we might be omiting useful information
-      ContractQuiescent warnings payments txOutState txOutContract -> { txOutState, txOutContract }
-      RRAmbiguousSlotIntervalError -> { txOutState: state, txOutContract: contract }
-  -- We should not have contracts which cause errors in the dashboard so we will just ignore error cases for now
+    advanceAllTimeouts ::
+      Maybe Slot ->
+      Array Slot ->
+      State ->
+      Contract ->
+      { mNextTimeout :: Maybe Slot, mPendingTimeouts :: Maybe PendingTimeouts }
+    advanceAllTimeouts mNextTimeout' newTimeouts state' contract'
+      | mNextTimeout' >= Just currentSlot =
+        let
+          { txOutState, txOutContract } = case reduceContractUntilQuiescent env state' contract' of
+            -- TODO: SCP-2088 We need to discuss how to display the warnings that computeTransaction may give
+            ContractQuiescent warnings payments txOutState txOutContract -> { txOutState, txOutContract }
+            -- FIXME: Change timeoutState to return an Either
+            RRAmbiguousSlotIntervalError -> { txOutState: state', txOutContract: contract' }
+
+          newNextTimeout = nextTimeout txOutContract
+        in
+          advanceAllTimeouts newNextTimeout (Array.snoc newTimeouts currentSlot) txOutState txOutContract
+      | otherwise =
+        { mNextTimeout: mNextTimeout'
+        , mPendingTimeouts:
+            if newTimeouts == mempty then
+              Nothing
+            else
+              Just
+                { timeouts: newTimeouts
+                , state: state'
+                , contract: contract'
+                }
+        }
+
+    { state, contract, timeouts } =
+      fromMaybe'
+        ( \_ ->
+            { contract: current.contract, state: current.state, timeouts: [] }
+        )
+        mPendingTimeouts
+
+    advancedTimeouts = advanceAllTimeouts mNextTimeout timeouts state contract
   in
-    { steps: steps <> [ TimeoutStep { timeoutSlot, state } ]
-    , state: txOutState
-    , contract: txOutContract
-    , isClosed: false
+    { previous
+    , current
+    , mPendingTimeouts: advancedTimeouts.mPendingTimeouts
+    , mNextTimeout: advancedTimeouts.mNextTimeout
     }
 
 -- Represents the possible buttons that can be displayed on a contract stage card
@@ -131,7 +197,6 @@ data NamedAction
   -- A special case of Evaluate where the only way the Contract can progress is to apply an empty
   -- transaction which results in the contract being closed
   -- Creates empty tx
-  -- FIXME: probably add {payments:: Array } and add them to the close description
   | CloseContract
 
 derive instance eqNamedAction :: Eq NamedAction
@@ -143,15 +208,12 @@ getActionParticipant (MakeChoice (ChoiceId _ party) _ _) = Just party
 
 getActionParticipant _ = Nothing
 
-extractNamedActions :: Slot -> ExecutionState -> Array NamedAction
-extractNamedActions _ { contract: Close, isClosed: true } = mempty
-
-extractNamedActions _ { contract: Close, isClosed: false } = [ CloseContract ]
-
 -- a When can only progress if it has timed out or has Cases
-extractNamedActions currentSlot { state, contract: contract@(When cases timeout cont) }
+extractActionsFromContract :: Slot -> State -> Contract -> Array NamedAction
+extractActionsFromContract _ _ Close = mempty
+
+extractActionsFromContract currentSlot state contract@(When cases timeout cont)
   -- in the case of a timeout we need to provide an Evaluate action to all users to "manually" progress the contract
-  -- FIXME: This should not happen for the initial version
   | currentSlot > timeout =
     let
       minSlot = view _minSlot state
@@ -167,17 +229,12 @@ extractNamedActions currentSlot { state, contract: contract@(When cases timeout 
 
             bindings = Map.difference newBindings oldBindings
           in
-            { payments: fromFoldable txOutPayments, bindings: bindings }
+            { payments: Array.fromFoldable txOutPayments, bindings: bindings }
         _ -> mempty
     in
       -- FIXME: Currently we don't have a way to display Evaluate so this can be dangerous.
-      --        We talked with Alex that when a contract timeouts there doesn't need to be
-      --        an explicity Evaluate, the next action will take care of that for us. If the
-      --        continuation of a contract is a Close, then we need to extract the `CloseContract`
-      --        so someone can pay to close the contract. If the continuation is a When, then we
-      --        need to extract the actions as below. In any case, I think that instead of using
-      --        `computeTransaction` and returning an Evaluate we should "advance" in the continuation
-      --        and recursively call extractNamedActions.
+      --        This should not happen for the demo as we are storing pending timeouts with
+      --        the latest contract that hasn't timeouted.
       [ Evaluate outputs ]
   -- if there are no cases then there is no action that any user can take to progress the contract
   | otherwise = cases <#> \(Case action _) -> toNamedAction action
@@ -199,4 +256,11 @@ extractNamedActions currentSlot { state, contract: contract@(When cases timeout 
 -- In reality other situations should never occur as contracts always reduce to When or Close
 -- however someone could in theory publish a contract that starts with another Contract constructor
 -- and we would want to enable moving forward with Evaluate
-extractNamedActions _ _ = [ Evaluate mempty ]
+extractActionsFromContract _ _ _ = [ Evaluate mempty ]
+
+extractNamedActions :: Slot -> ExecutionState -> Array NamedAction
+extractNamedActions _ { mPendingTimeouts: Just { contract: Close } } = [ CloseContract ]
+
+extractNamedActions currentSlot { mPendingTimeouts: Just { contract, state } } = extractActionsFromContract currentSlot state contract
+
+extractNamedActions currentSlot { current: { state, contract } } = extractActionsFromContract currentSlot state contract

@@ -1,16 +1,16 @@
 module Contract.Lenses
   ( _tab
   , _executionState
+  , _previousSteps
   , _contractId
   , _selectedStep
   , _metadata
   , _participants
   , _mActiveUserParty
-  , _mNextTimeout
   , _namedActions
   ) where
 
-import Contract.Types (State, Tab)
+import Contract.Types (State, Tab, PreviousStep)
 import Data.Lens (Lens')
 import Data.Lens.Record (prop)
 import Data.Map (Map)
@@ -27,6 +27,9 @@ _tab = prop (SProxy :: SProxy "tab")
 _executionState :: Lens' State ExecutionState
 _executionState = prop (SProxy :: SProxy "executionState")
 
+_previousSteps :: Lens' State (Array PreviousStep)
+_previousSteps = prop (SProxy :: SProxy "previousSteps")
+
 _contractId :: Lens' State String
 _contractId = prop (SProxy :: SProxy "contractId")
 
@@ -41,9 +44,6 @@ _participants = prop (SProxy :: SProxy "participants")
 
 _mActiveUserParty :: Lens' State (Maybe Semantic.Party)
 _mActiveUserParty = prop (SProxy :: SProxy "mActiveUserParty")
-
-_mNextTimeout :: Lens' State (Maybe Semantic.Slot)
-_mNextTimeout = prop (SProxy :: SProxy "mNextTimeout")
 
 _namedActions :: Lens' State (Array NamedAction)
 _namedActions = prop (SProxy :: SProxy "namedActions")

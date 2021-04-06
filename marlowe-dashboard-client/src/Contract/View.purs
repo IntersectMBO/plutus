@@ -4,9 +4,9 @@ module Contract.View
   ) where
 
 import Prelude hiding (div)
-import Contract.Lenses (_executionState, _mActiveUserParty, _mNextTimeout, _metadata, _namedActions, _participants, _selectedStep, _tab)
+import Contract.Lenses (_executionState, _mActiveUserParty, _metadata, _namedActions, _participants, _previousSteps, _selectedStep, _tab)
 import Contract.State (currentStep, isContractClosed)
-import Contract.Types (Action(..), State, Tab(..))
+import Contract.Types (Action(..), PreviousStep, PreviousStepState(..), State, Tab(..))
 import Css (applyWhen, classNames, toggleWhen)
 import Css as Css
 import Data.Array (foldr, intercalate)
@@ -29,9 +29,9 @@ import Data.Tuple.Nested ((/\))
 import Halogen.HTML (HTML, a, button, div, div_, h1, h2, h3, input, p, span, span_, sup_, text)
 import Halogen.HTML.Events.Extra (onClick_, onValueInput_)
 import Halogen.HTML.Properties (InputType(..), enabled, href, placeholder, target, type_, value)
-import Marlowe.Execution (ExecutionStep(..), NamedAction(..), _contract, _state, _steps, getActionParticipant)
+import Marlowe.Execution (NamedAction(..), _mNextTimeout, getActionParticipant)
 import Marlowe.Extended (contractTypeName)
-import Marlowe.Semantics (Bound(..), ChoiceId(..), Input(..), Party(..), Slot, SlotInterval, Token(..), TransactionInput(..), _accounts, getEncompassBound)
+import Marlowe.Semantics (Bound(..), ChoiceId(..), Input(..), Party(..), Slot, SlotInterval, Token(..), TransactionInput(..), getEncompassBound)
 import Marlowe.Slot (secondsDiff, slotToDateTime)
 import Material.Icons (Icon(..), icon)
 import TimeHelpers (formatDate, formatTime, humanizeDuration, humanizeInterval)
@@ -46,7 +46,7 @@ contractDetailsCard currentSlot state =
   let
     metadata = state ^. _metadata
 
-    pastStepsCards = mapWithIndex (renderPastStep state) (state ^. (_executionState <<< _steps))
+    pastStepsCards = mapWithIndex (renderPastStep state) (state ^. _previousSteps)
 
     currentStepCard = [ renderCurrentStep currentSlot state ]
 
@@ -250,20 +250,19 @@ statusIndicator mIcon status extraClasses =
         , Just $ span [ classNames [ "text-xs", "flex-grow", "text-center", "font-semibold" ] ] [ text status ]
         ]
 
-renderPastStep :: forall p. State -> Int -> ExecutionStep -> HTML p Action
-renderPastStep state stepNumber executionState =
+renderPastStep :: forall p. State -> Int -> PreviousStep -> HTML p Action
+renderPastStep state stepNumber step =
   let
     -- FIXME: We need to make the tab independent.
     currentTab = state ^. _tab
 
-    renderBody Tasks (TransactionStep { txInput }) = renderPastActions state txInput
+    renderBody Tasks { state: TransactionStep txInput } = renderPastActions state txInput
 
-    renderBody Tasks (TimeoutStep { timeoutSlot }) = renderTimeout stepNumber timeoutSlot
+    renderBody Tasks { state: TimeoutStep timeoutSlot } = renderTimeout stepNumber timeoutSlot
 
     -- FIXME: The state of renderBalances is incorrect, once we implement that function correctly
     --        this code should be the following:
-    -- renderBody Balances (TransactionStep { state }) = renderBalances state
-    -- renderBody Balances (TimeoutStep { state }) = renderBalances state
+    -- renderBody Balances { balances } = renderBalances balances
     renderBody Balances _ = renderBalances state
   in
     renderContractCard stepNumber state
@@ -271,14 +270,14 @@ renderPastStep state stepNumber executionState =
           [ span
               [ classNames [ "text-xl", "font-semibold", "flex-grow" ] ]
               [ text $ "Step " <> show (stepNumber + 1) ]
-          , case executionState of
+          , case step.state of
               -- FIXME: The red used here corresponds to #de4c51, which is being used by border-red invalid inputs
               --        but the zeplin had #e04b4c for this indicator. Check if it's fine or create a new red type
               TimeoutStep _ -> statusIndicator (Just Timer) "Timed out" [ "bg-red", "text-white" ]
               TransactionStep _ -> statusIndicator (Just Done) "Completed" [ "bg-green", "text-white" ]
           ]
       , div [ classNames [ "overflow-y-scroll", "px-4" ] ]
-          [ renderBody currentTab executionState
+          [ renderBody currentTab step
           ]
       ]
 
@@ -383,7 +382,7 @@ renderCurrentStep currentSlot state =
 
     contractIsClosed = isContractClosed state
 
-    mNextTimeout = state ^. _mNextTimeout
+    mNextTimeout = state ^. (_executionState <<< _mNextTimeout)
 
     timeoutStr =
       maybe "timed out"
@@ -468,8 +467,6 @@ renderTasks state =
         (state ^. _mActiveUserParty)
         (Map.keys $ state ^. _participants)
         actions
-
-    contract = executionState ^. _contract
   in
     div [ classNames [ "pb-4" ] ] $ expandedActions <#> uncurry (renderPartyTasks state)
 
@@ -675,9 +672,8 @@ currency (Token _ name) value = formatBigInteger value <> " " <> name
 renderBalances :: forall p a. State -> HTML p a
 renderBalances state =
   let
-    accounts :: Array (Tuple (Tuple Party Token) BigInteger)
-    accounts = Map.toUnfoldable $ state ^. (_executionState <<< _state <<< _accounts)
-
+    -- accounts :: Array (Tuple (Tuple Party Token) BigInteger)
+    -- accounts = Map.toUnfoldable $ state ^. (_executionState <<< _state <<< _accounts)
     -- FIXME: What should we show if a participant doesn't have balance yet?
     -- FIXME: We fake the accounts for development until we fix the semantics
     accounts' =
