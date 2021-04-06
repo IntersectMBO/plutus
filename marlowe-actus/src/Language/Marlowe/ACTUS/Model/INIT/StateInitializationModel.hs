@@ -30,7 +30,7 @@ scef_Ixx _      = False
 
 _INIT_PAM t0 tminus tfp_minus tfp_plus _MD _IED _IPNR _CNTRL _NT _IPAC _DCC _FER _FEAC _FEB _SCEF _SCIXSD _PRF =
     let
-        tmd                                     = _MD
+        tmd                                     = fromJust _MD
         nt
                 | _IED > t0                     = 0.0
                 | otherwise                     = r _CNTRL * _NT
@@ -72,7 +72,7 @@ _INIT_LAM t0 tminus tpr_minus tfp_minus tfp_plus _MD _IED _IPNR _CNTRL _NT _IPAC
                 | isJust _MD = fromJust _MD
                 | otherwise = fromJust maybeTMinus `plusCycle` (fromJust _PRCL) { n = ((ceiling (_NT / (fromJust _PRNXT))) * (n (fromJust _PRCL))) }
 
-        pam_init = _INIT_PAM t0 tminus tfp_minus tfp_plus tmd _IED _IPNR _CNTRL _NT _IPAC _DCC _FER _FEAC _FEB _SCEF _SCIXSD _PRF
+        pam_init = _INIT_PAM t0 tminus tfp_minus tfp_plus (Just tmd) _IED _IPNR _CNTRL _NT _IPAC _DCC _FER _FEAC _FEB _SCEF _SCIXSD _PRF
 
         -- PRNXT
         s
@@ -81,7 +81,7 @@ _INIT_LAM t0 tminus tpr_minus tfp_minus tfp_plus _MD _IED _IPNR _CNTRL _NT _IPAC
                 | otherwise = tpr_minus
         prnxt
                 | isJust _PRNXT                 = fromJust _PRNXT
-                | otherwise                     = _NT * (1.0 / (fromIntegral $ ((ceiling (y _DCC s tmd tmd / y _DCC s (s `plusCycle` (fromJust _PRCL)) tmd)) :: Integer)))
+                | otherwise                     = _NT * (1.0 / (fromIntegral $ ((ceiling (y _DCC s tmd (Just tmd) / y _DCC s (s `plusCycle` (fromJust _PRCL)) (Just tmd))) :: Integer)))
 
         -- IPCB
         ipcb
@@ -100,9 +100,9 @@ _INIT_NAM t0 tminus tpr_minus tfp_minus tfp_plus _MD _IED _IPNR _CNTRL _NT _IPAC
                     | otherwise                           = Just tpr_minus
         tmd
                 | isJust _MD = fromJust _MD
-                | otherwise = fromJust maybeTMinus `plusCycle` (fromJust _PRCL) { n = ceiling(_NT / ((fromJust _PRNXT) - _NT  * (y _DCC tminus (tminus `plusCycle` (fromJust _PRCL)) (fromJust _MD)) * (fromJust _IPNR)))}
+                | otherwise = fromJust maybeTMinus `plusCycle` (fromJust _PRCL) { n = ceiling(_NT / ((fromJust _PRNXT) - _NT  * (y _DCC tminus (tminus `plusCycle` (fromJust _PRCL)) _MD) * (fromJust _IPNR)))}
 
-        pam_init = _INIT_PAM t0 tminus tfp_minus tfp_plus tmd _IED _IPNR _CNTRL _NT _IPAC _DCC _FER _FEAC _FEB _SCEF _SCIXSD _PRF
+        pam_init = _INIT_PAM t0 tminus tfp_minus tfp_plus (Just tmd) _IED _IPNR _CNTRL _NT _IPAC _DCC _FER _FEAC _FEB _SCEF _SCIXSD _PRF
 
         -- PRNXT
         prnxt = r _CNTRL * (fromJust _PRNXT)

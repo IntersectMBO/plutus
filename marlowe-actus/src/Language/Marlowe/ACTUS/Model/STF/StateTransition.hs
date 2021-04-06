@@ -28,10 +28,10 @@ stateTransition ev RiskFactors{..} terms@ContractTerms{..} st@ContractStatePoly{
         fpSchedule         = schedule FP terms
         tfp_minus          = fromMaybe t $ calculationDay <$> ((\sc -> sup sc t) =<< fpSchedule)
         tfp_plus           = fromMaybe t $ calculationDay <$> ((\sc -> inf sc t) =<< fpSchedule)
-        y_sd_t             = _y ct_DCC sd t (fromJust ct_MD)
-        y_tfpminus_t       = _y ct_DCC tfp_minus t (fromJust ct_MD)
-        y_tfpminus_tfpplus = _y ct_DCC tfp_minus tfp_plus (fromJust ct_MD)
-        y_ipanx_t          = _y ct_DCC (fromJust ct_IPANX) t (fromJust ct_MD)
+        y_sd_t             = _y ct_DCC sd t ct_MD
+        y_tfpminus_t       = _y ct_DCC tfp_minus t ct_MD
+        y_tfpminus_tfpplus = _y ct_DCC tfp_minus tfp_plus ct_MD
+        y_ipanx_t          = _y ct_DCC (fromJust ct_IPANX) t ct_MD
     in case fromJust contractType of
         PAM ->
             case ev of

@@ -51,10 +51,10 @@ stateTransitionFs ev terms@ContractTerms{..} t prevDate curDate continue =
         fpSchedule         = schedule FP terms
         tfp_minus          = fromMaybe curDate $ calculationDay <$> ((\sc -> sup sc curDate) =<< fpSchedule)
         tfp_plus           = fromMaybe curDate $ calculationDay <$> ((\sc -> inf sc curDate) =<< fpSchedule)
-        y_tfpminus_t       = constnt $ _y ct_DCC tfp_minus curDate (fromJust ct_MD)
-        y_tfpminus_tfpplus = constnt $ _y ct_DCC tfp_minus tfp_plus (fromJust ct_MD)
-        y_ipanx_t          = constnt $ _y ct_DCC (fromJust ct_IPANX) curDate (fromJust ct_MD)
-        y_sd_t             = constnt $ _y ct_DCC prevDate curDate (fromJust ct_MD)
+        y_tfpminus_t       = constnt $ _y ct_DCC tfp_minus curDate ct_MD
+        y_tfpminus_tfpplus = constnt $ _y ct_DCC tfp_minus tfp_plus ct_MD
+        y_ipanx_t          = constnt $ _y ct_DCC (fromJust ct_IPANX) curDate ct_MD
+        y_sd_t             = constnt $ _y ct_DCC prevDate curDate ct_MD
 
         addComment cont    = case ev of
             IED -> letval "IED" t (constnt 0) cont

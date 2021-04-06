@@ -37,7 +37,7 @@ payoffFs ev ContractTerms{..} t t_minus prevDate curDate =
         __ipcb            = useval "ipcb" t_minus
         __prnxt           = useval "prnxt" t_minus
 
-        y_sd_t            = constnt $ _y ct_DCC prevDate curDate (fromJust ct_MD)
+        y_sd_t            = constnt $ _y ct_DCC prevDate curDate ct_MD
 
         pof = case fromJust contractType of
             PAM -> case ev of

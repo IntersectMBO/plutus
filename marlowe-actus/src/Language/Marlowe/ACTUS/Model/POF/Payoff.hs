@@ -15,7 +15,7 @@ import           Language.Marlowe.ACTUS.Ops                        (YearFraction
 payoff :: EventType -> RiskFactors -> ContractTerms -> ContractState -> Day -> Double
 payoff ev RiskFactors{..} ContractTerms{..} ContractStatePoly {..} t =
     let
-        y_sd_t = _y ct_DCC sd t (fromJust ct_MD)
+        y_sd_t = _y ct_DCC sd t ct_MD
     in case fromJust contractType of
         PAM ->
             case ev of
