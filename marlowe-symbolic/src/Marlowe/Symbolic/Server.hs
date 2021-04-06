@@ -46,10 +46,8 @@ makeResponse (Right res) =
 handlers :: Server API
 handlers Request {..} =
   liftIO $ do
-    _ <- system "killallz3"
     evRes <- warningsTraceCustom onlyAssertions contract (Just state)
     let resp = makeResponse (first show evRes)
-    _ <- system "killallz3"
     putStrLn $ BSU.toString $ JSON.encode resp
     pure resp
 
@@ -61,3 +59,4 @@ initializeContext = pure ()
 
 initializeApplication :: IO Application
 initializeApplication = pure app
+
