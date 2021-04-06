@@ -584,10 +584,10 @@ handleContractStore ::
     => ContractStore t
     ~> Eff effs
 handleContractStore = \case
-    Contract.PutState def instanceId state -> do
+    Contract.PutState definition instanceId state -> do
         instancesTVar <- view instances <$> (Core.askUserEnv @t @(SimulatorState t))
         liftIO $ STM.atomically $ do
-            let instState = SimulatorContractInstanceState{_contractDef = def, _contractState = state}
+            let instState = SimulatorContractInstanceState{_contractDef = definition, _contractState = state}
             STM.modifyTVar instancesTVar (set (at instanceId) (Just instState))
     Contract.GetState instanceId -> do
         instancesTVar <- view instances <$> (Core.askUserEnv @t @(SimulatorState t))
