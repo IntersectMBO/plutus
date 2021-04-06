@@ -194,12 +194,12 @@ runWalletClientM clientEnv action = do
 -- | Proxy for the wallet API
 walletProxy ::
     forall t env.
-    PABAction t env Wallet -> -- ^ default action for creating a new wallet
-    (PABAction t env Wallet -- ^ Create new wallet
-    :<|> (Integer -> Tx -> PABAction t env NoContent) -- ^ Submit txn
+    PABAction t env Wallet -> -- default action for creating a new wallet
+    (PABAction t env Wallet -- Create new wallet
+    :<|> (Integer -> Tx -> PABAction t env NoContent) -- Submit txn
     :<|> (Integer -> PABAction t env PubKey)
-    :<|> (Integer -> (Value, Payment) -> PABAction t env Payment) -- ^ Update payment with change
-    :<|> (Integer -> PABAction t env Slot) -- ^ Wallet slot
+    :<|> (Integer -> (Value, Payment) -> PABAction t env Payment) -- Update payment with change
+    :<|> (Integer -> PABAction t env Slot) -- Wallet slot
     :<|> (Integer -> PABAction t env UtxoMap)
     :<|> (Integer -> PABAction t env Value)
     :<|> (Integer -> Tx -> PABAction t env Tx))
