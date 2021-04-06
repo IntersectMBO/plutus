@@ -107,7 +107,7 @@ in
 
     webserverPort = mkOption {
       type = types.port;
-      default = 8080;
+      default = 9080;
       description = ''
         Port of the pab 'webserver' component.
       '';
