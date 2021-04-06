@@ -522,9 +522,9 @@ which can be applied to arguments one by
 one. Thus \texttt{(builtinAddInteger)}, \texttt{[(builtinAddInteger) (con
 integer 5)]}, and \texttt{[(builtinAddInteger) (con integer 5) (con integer 6)]}
 are all valid terms.  The first two of these are values which cannot immediately
-be reduced, but the third will evaluate to \texttt{(con integer 11)}.  In the
-polymorphic case type instantiations and applications to term arguments can be
-interleaved.
+be reduced (but could, for example, be passed as arguments to other functions);
+the third will evaluate to \texttt{(con integer 11)}.  In the polymorphic
+case type instantiations and applications to term arguments can be interleaved.
 
 The new syntax is used in the examples in Section~\ref{sec:examples}, but
 elsewhere in the document we use the earlier form.  We are currently in the
