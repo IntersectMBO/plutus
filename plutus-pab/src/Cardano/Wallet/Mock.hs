@@ -30,6 +30,8 @@ import           Control.Monad.Freer.Extras
 import           Control.Monad.Freer.Reader       (runReader)
 import           Control.Monad.Freer.State        (State, evalState, get, put, runState)
 import           Control.Monad.IO.Class           (MonadIO, liftIO)
+import qualified Crypto.ECC.Ed25519Donna          as ED25519
+import           Crypto.Error                     (CryptoFailable (..))
 import           Crypto.PubKey.Ed25519            (secretKeySize)
 import           Crypto.Random                    (getRandomBytes)
 import           Data.Bits                        (shiftL, shiftR)
@@ -85,10 +87,14 @@ distributeNewWalletFunds = WAPI.payToPublicKey WAPI.defaultSlotRange (Ada.adaVal
 newKeyPair :: forall m effs. (LastMember m effs, MonadIO m) => Eff effs (PubKey, PrivateKey)
 newKeyPair = do
     Seed seed <- generateSeed
-    let bytes = BS.pack . unpack $ seed
-    let privateKey = PrivateKey (KB.fromBytes bytes)
-    let pubKey = toPublicKey privateKey
-    pure (pubKey, privateKey)
+    let secretKeyBytes = BS.pack . unpack $ seed
+    let e = ED25519.secretKey secretKeyBytes
+    case e of
+        CryptoFailed _ -> newKeyPair
+        CryptoPassed _ -> do
+            let privateKey = PrivateKey (KB.fromBytes secretKeyBytes)
+            let pubKey = toPublicKey privateKey
+            pure (pubKey, privateKey)
 
 -- | Handle multiple wallets using existing @Wallet.handleWallet@ handler
 handleMultiWallet :: forall m effs.
@@ -110,10 +116,7 @@ handleMultiWallet = do
                 Nothing -> throwError $ WAPI.OtherError "Wallet not found"
         CreateWallet -> do
             wallets <- get @Wallets
-            Seed seed <- generateSeed
-            let bytes = BS.pack . unpack $ seed
-            let privateKey = PrivateKey (KB.fromBytes bytes)
-            let pubKey = toPublicKey privateKey
+            (pubKey, privateKey) <- newKeyPair
             let pkh = pubKeyHash pubKey
             let walletId = byteString2Integer (getPubKeyHash pkh)
             let wallet = Wallet walletId
