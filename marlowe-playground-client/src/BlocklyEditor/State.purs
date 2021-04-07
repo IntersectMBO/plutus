@@ -3,7 +3,7 @@ module BlocklyEditor.State where
 
 import Prelude
 import BlocklyComponent.Types as Blockly
-import BlocklyEditor.Types (Action(..), BottomPanelView, State, _bottomPanelState, _errorMessage, _hasHoles, _marloweCode, _warnings)
+import BlocklyEditor.Types (Action(..), BottomPanelView, State, _bottomPanelState, _errorMessage, _hasHoles, _marloweCode, _metadataHintInfo, _warnings)
 import BottomPanel.State (handleAction) as BottomPanel
 import BottomPanel.Types (Action(..), State) as BottomPanel
 import CloseAnalysis (analyseClose)
@@ -86,6 +86,8 @@ handleAction (SetIntegerTemplateParam templateType key value) =
     (_analysisState <<< _templateContent <<< Extended.typeToLens templateType)
     (Map.insert key value)
 
+handleAction (MetadataAction _) = pure unit
+
 handleAction AnalyseContract = runAnalysis $ analyseContract
 
 handleAction AnalyseReachabilityContract = runAnalysis $ analyseReachability
@@ -133,6 +135,7 @@ processBlocklyCode = do
             <<< set _marloweCode (Just $ prettyContract)
             <<< set _hasHoles (Linter.hasHoles $ lintingState)
             <<< set _warnings (Array.fromFoldable $ view Linter._warnings lintingState)
+            <<< set _metadataHintInfo (view Linter._metadataHints lintingState)
             <<< over (_analysisState <<< _templateContent) maybeUpdateTemplateContent
         )
   where
