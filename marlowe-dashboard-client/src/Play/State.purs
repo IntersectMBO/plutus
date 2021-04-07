@@ -4,7 +4,8 @@ module Play.State
   ) where
 
 import Prelude
-import Contract.State (defaultState, handleAction, mkInitialState) as Contract
+import Contract.State (defaultState, handleAction) as Contract
+import Contract.State (instantiateExtendedContract)
 import Contract.Types (Action(..), State) as Contract
 import ContractHome.Lenses (_contracts)
 import ContractHome.State (defaultState, handleAction) as ContractHome
@@ -28,12 +29,10 @@ import Halogen.Extra (mapMaybeSubmodule)
 import MainFrame.Lenses (_card, _playState, _screen)
 import MainFrame.Types (Action(..), State) as MainFrame
 import MainFrame.Types (ChildSlots, Msg)
-import Marlowe.Extended (fillTemplate, toCore)
 import Marlowe.HasParties (getParties)
-import Marlowe.Semantics (Party(..))
+import Marlowe.Semantics (Party(..), Slot)
 import Marlowe.Semantics as Semantic
-import Marlowe.Slot (shelleyInitialSlot)
-import Play.Lenses (_contractsState, _menuOpen, _selectedContract, _templateState)
+import Play.Lenses (_contractsState, _currentSlot, _menuOpen, _selectedContract, _templateState)
 import Play.Types (Action(..), Card(..), Screen(..), State)
 import Template.Lenses (_extendedContract, _metaData, _roleWallets, _template, _templateContent)
 import Template.State (defaultState, handleAction, mkInitialState) as Template
@@ -54,13 +53,13 @@ toContract ::
   HalogenM MainFrame.State MainFrame.Action slots msg m Unit
 toContract = mapMaybeSubmodule (_playState <<< _selectedContract) (MainFrame.PlayAction <<< ContractAction) Contract.defaultState
 
-mkInitialState :: WalletDetails -> Minutes -> State
-mkInitialState walletDetails timezoneOffset =
+mkInitialState :: WalletDetails -> Slot -> Minutes -> State
+mkInitialState walletDetails currentSlot timezoneOffset =
   { walletDetails: walletDetails
   , menuOpen: false
   , screen: ContractsScreen
   , card: Nothing
-  , currentSlot: shelleyInitialSlot -- TODO: this needs to be updated continuously through the websocket
+  , currentSlot
   , timezoneOffset
   , templateState: Template.defaultState
   , contractsState: ContractHome.defaultState
@@ -92,6 +91,11 @@ handleAction (ToggleCard card) = do
       | currentCard == card -> handleAction $ SetCard Nothing
     _ -> handleAction $ SetCard $ Just card
 
+handleAction (SetCurrentSlot currentSlot) = do
+  toContractHome $ ContractHome.handleAction $ ContractHome.AdvanceTimeoutedContracts currentSlot
+  modify_
+    $ set (_playState <<< _currentSlot) currentSlot
+
 -- template actions that need to be handled here
 handleAction (TemplateAction (Template.SetTemplate template)) = do
   mCurrentTemplate <- peruse (_playState <<< _templateState <<< _template)
@@ -109,14 +113,18 @@ handleAction (TemplateAction Template.ToggleSetupConfirmationCard) = handleActio
 --        contract is created by another participant, we won't be dealing with Extended contracts but actually
 --        Semantic contracts and specially we won't have the roleWallets.
 handleAction (TemplateAction Template.StartContract) = do
-  mTemplateState <- peruse (_playState <<< _templateState)
-  for_ mTemplateState \templateState ->
+  mPlayState <- peruse _playState
+  for_ mPlayState \playState -> do
     let
+      templateState = playState ^. _templateState
+
       extendedContract = templateState ^. (_template <<< _extendedContract)
 
       templateContent = templateState ^. _templateContent
 
       metadata = templateState ^. (_template <<< _metaData)
+
+      currentSlot = playState ^. _currentSlot
 
       participants :: Map Semantic.Party (Maybe Nickname)
       participants =
@@ -130,18 +138,16 @@ handleAction (TemplateAction Template.StartContract) = do
       -- FIXME: Need to see how do I tie the current user to a role in the contract
       mActiveUserParty = Nothing
 
-      mContract = toCore $ fillTemplate templateContent extendedContract
-    in
-      for_ mContract \contract -> do
-        -- TODO: get walletIDs from nicknames in roleWallets
-        -- TODO: pass these walletIDs along with the contract to the PAB to start the contract
-        let
-          -- FIXME: the contract id should be the result of calling the PAB
-          contractState = Contract.mkInitialState "FIXME need a contract id" zero contract metadata participants mActiveUserParty
-        modifying (_playState <<< _contractsState <<< _contracts) (Array.cons contractState)
-        toContractHome $ ContractHome.handleAction $ ContractHome.OpenContract 0
-        handleAction $ SetScreen $ ContractsScreen
-        handleAction $ ToggleCard ContractCard
+      -- FIXME: the contract id should be the result of calling the PAB
+      contractId = "FIXME need a contract id"
+
+      -- TODO: get walletIDs from nicknames in roleWallets
+      -- TODO: pass these walletIDs along with the contract to the PAB to start the contract
+      mContractState = instantiateExtendedContract contractId currentSlot extendedContract templateContent metadata participants mActiveUserParty
+    for_ mContractState \contractState -> do
+      modifying (_playState <<< _contractsState <<< _contracts) (Array.cons contractState)
+      handleAction $ SetScreen $ ContractsScreen
+      toContractHome $ ContractHome.handleAction $ ContractHome.OpenContract 0
 
 -- other template actions
 handleAction (TemplateAction templateAction) = Template.handleAction templateAction

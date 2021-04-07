@@ -1,7 +1,7 @@
 module ContractHome.View where
 
 import Prelude hiding (div)
-import Contract.Lenses (_metadata)
+import Contract.Lenses (_executionState, _metadata)
 import Contract.State (currentStep)
 import Contract.Types (State) as Contract
 import ContractHome.Lenses (_contracts, _status)
@@ -10,13 +10,18 @@ import Css (classNames)
 import Css as Css
 import Data.FunctorWithIndex (mapWithIndex)
 import Data.Lens ((^.))
+import Data.Maybe (maybe)
 import Halogen.HTML (HTML, a, div, h2, p_, span, text)
 import Halogen.HTML.Events.Extra (onClick_)
+import Marlowe.Execution (_mNextTimeout)
 import Marlowe.Extended (contractTypeName, contractTypeInitials)
+import Marlowe.Semantics (Slot)
+import Marlowe.Slot (secondsDiff)
 import Material.Icons (Icon(..), icon_)
+import TimeHelpers (humanizeDuration)
 
-contractsScreen :: forall p. State -> HTML p Action
-contractsScreen state =
+contractsScreen :: forall p. Slot -> State -> HTML p Action
+contractsScreen currentSlot state =
   let
     buttonClasses = [ "w-40", "text-center" ]
 
@@ -44,7 +49,7 @@ contractsScreen state =
           [ classNames [ "font-semibold", "text-lg", "mb-4" ] ]
           [ text "Home" ]
       , viewSelector
-      , renderContractList state
+      , renderContractList currentSlot state
       , a
           [ classNames $ Css.primaryButton <> Css.withIcon Add <> Css.fixedBottomRight
           , onClick_ $ ToggleTemplateLibraryCard
@@ -52,22 +57,22 @@ contractsScreen state =
           [ text "Create" ]
       ]
 
-renderContractList :: forall p. State -> HTML p Action
-renderContractList { status: Running, contracts: [] } = p_ [ text "You have no running contracts. Tap create to begin" ]
+renderContractList :: forall p. Slot -> State -> HTML p Action
+renderContractList _ { status: Running, contracts: [] } = p_ [ text "You have no running contracts. Tap create to begin" ]
 
-renderContractList { status: Completed, contracts: [] } = p_ [ text "You have no completed contracts." ]
+renderContractList _ { status: Completed, contracts: [] } = p_ [ text "You have no completed contracts." ]
 
 -- FIXME: Separate between running and completed contracts
-renderContractList state =
+renderContractList currentSlot state =
   let
     contracts = state ^. _contracts
   in
     div
       [ classNames [ "space-y-4" ] ]
-      $ mapWithIndex contractCard contracts
+      $ mapWithIndex (contractCard currentSlot) contracts
 
-contractCard :: forall p. Int -> Contract.State -> HTML p Action
-contractCard index contractState =
+contractCard :: forall p. Slot -> Int -> Contract.State -> HTML p Action
+contractCard currentSlot index contractState =
   let
     metadata = contractState ^. _metadata
 
@@ -77,10 +82,14 @@ contractCard index contractState =
 
     contractAcronym = contractTypeInitials metadata.contractType
 
-    stepNumber = currentStep contractState
+    stepNumber = currentStep contractState + 1
 
-    -- FIXME: hardcoded time slot
-    timeoutStr = "8hr 10m left"
+    mNextTimeout = contractState ^. (_executionState <<< _mNextTimeout)
+
+    timeoutStr =
+      maybe "timed out"
+        (\nextTimeout -> humanizeDuration $ secondsDiff nextTimeout currentSlot)
+        mNextTimeout
   in
     div
       -- NOTE: The overflow hidden helps fix a visual bug in which the background color eats away the border-radius
