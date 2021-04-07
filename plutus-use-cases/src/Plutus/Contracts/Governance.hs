@@ -14,11 +14,11 @@
 {-# OPTIONS_GHC -fno-strictness #-}
 {-# OPTIONS_GHC -fno-specialise #-}
 {-# OPTIONS_GHC -fno-spec-constr #-}
-{-# OPTIONS -fplugin-opt PlutusTx.Plugin:debug-context #-}
 module Plutus.Contracts.Governance (
       contract
     , scriptInstance
     , client
+    , mkTokenName
     , mkValidator
     , votingValue
     , Proposal(..)
@@ -33,8 +33,11 @@ import           Control.Lens                 (makeClassyPrisms, review)
 import           Control.Monad
 import           Data.Aeson                   (FromJSON, ToJSON)
 import           Data.Semigroup               (Sum (..))
+import           Data.String                  (fromString)
+-- import qualified Data.Text                    as T
+-- import qualified Data.Text.Encoding           as E
 import           GHC.Generics                 (Generic)
-import           Ledger                       (MonetaryPolicyHash, PubKeyHash, Slot (..), TokenName, pubKeyHash)
+import           Ledger                       (MonetaryPolicyHash, PubKeyHash, Slot (..), TokenName)
 import           Ledger.Constraints           (TxConstraints)
 import qualified Ledger.Constraints           as Constraints
 import qualified Ledger.Typed.Scripts         as Scripts
@@ -47,16 +50,18 @@ import qualified PlutusTx.AssocMap            as AssocMap
 import           PlutusTx.Prelude
 import qualified Prelude
 
+
 data Proposal = Proposal
     { votingDeadline :: Slot -- TODO: not used yet
     , newLaw         :: ByteString
+    , tokenName      :: TokenName
     }
     deriving stock (Show, Generic)
     deriving anyclass (ToJSON, FromJSON)
 
 data Voting = Voting
     { proposal :: Proposal
-    , votes    :: AssocMap.Map PubKeyHash Bool
+    , votes    :: AssocMap.Map TokenName Bool
     }
     deriving stock (Show, Generic)
     deriving anyclass (ToJSON, FromJSON)
@@ -70,9 +75,9 @@ data GovState = GovState
     deriving anyclass (ToJSON, FromJSON)
 
 data GovInput
-    = ForgeTokens
+    = ForgeTokens [TokenName]
     | ProposeChange Proposal
-    | AddVote PubKeyHash Bool
+    | AddVote TokenName Bool
     | FinishVoting
     | CancelVoting
     deriving stock (Show, Generic)
@@ -82,14 +87,14 @@ type Schema =
     BlockchainActions
         .\/ Endpoint "new-law" ByteString
         .\/ Endpoint "propose-change" Proposal
-        .\/ Endpoint "add-vote" Bool
+        .\/ Endpoint "add-vote" (TokenName, Bool)
         .\/ Endpoint "finish-voting" ()
         .\/ Endpoint "cancel-voting" ()
 
 data Params = Params
     { initialHolders :: [PubKeyHash]
     , requiredVotes  :: Integer
-    , tokenName      :: TokenName
+    , baseTokenName  :: TokenName
     }
 
 
@@ -129,10 +134,13 @@ scriptInstance = Scripts.validatorParam @GovernanceMachine
 client :: Params -> SM.StateMachineClient GovState GovInput
 client params = SM.mkStateMachineClient $ SM.StateMachineInstance (machine params) (scriptInstance params)
 
+mkTokenName :: TokenName -> Integer -> TokenName
+mkTokenName base ix = fromString (Value.toString base ++ show ix)
+
 {-# INLINABLE votingValue #-}
 votingValue :: MonetaryPolicyHash -> TokenName -> Value.Value
 votingValue mph tokenName =
-    Value.singleton (Value.mpsSymbol mph) tokenName  1
+    Value.singleton (Value.mpsSymbol mph) tokenName 1
 
 {-# INLINABLE ownsVotingToken #-}
 ownsVotingToken :: MonetaryPolicyHash -> TokenName -> TxConstraints Void Void
@@ -142,16 +150,18 @@ ownsVotingToken mph tokenName = mempty -- TODO
 transition :: Params -> State GovState -> GovInput -> Maybe (TxConstraints Void Void, State GovState)
 transition Params{..} State{ stateData = s, stateValue = currentValue} i = case (s, i) of
 
-    (GovState{mph}, ForgeTokens) ->
-        let (total, constraints) = foldMap (\pk -> let v = votingValue mph tokenName in (v, Constraints.mustPayToPubKey pk v)) initialHolders
+    (GovState{mph}, ForgeTokens tokenNames) ->
+        let (total, constraints) = foldMap
+                (\(pk, nm) -> let v = votingValue mph nm in (v, Constraints.mustPayToPubKey pk v))
+                (zip initialHolders tokenNames)
         in Just (constraints <> Constraints.mustForgeValue total, State s currentValue)
 
     (GovState law mph Nothing, ProposeChange proposal) ->
-        Just (ownsVotingToken mph tokenName, State (GovState law mph (Just (Voting proposal AssocMap.empty))) currentValue)
+        Just (ownsVotingToken mph (tokenName proposal), State (GovState law mph (Just (Voting proposal AssocMap.empty))) currentValue)
 
-    (GovState law mph (Just (Voting p oldMap)), AddVote pk vote) ->
-        let newMap = AssocMap.insert pk vote oldMap
-            constraints = ownsVotingToken mph tokenName <> Constraints.mustBeSignedBy pk
+    (GovState law mph (Just (Voting p oldMap)), AddVote tokenName vote) ->
+        let newMap = AssocMap.insert tokenName vote oldMap
+            constraints = ownsVotingToken mph tokenName
         in Just (constraints, State (GovState law mph (Just (Voting p newMap))) currentValue)
 
     (GovState oldLaw mph (Just (Voting Proposal{newLaw} votes)), FinishVoting) ->
@@ -179,14 +189,14 @@ contract params = forever $ mapError (review _GovError) endpoints where
     finish  = endpoint @"finish-voting" >> SM.runStep theClient FinishVoting
     cancel  = endpoint @"cancel-voting" >> SM.runStep theClient CancelVoting
     addVote = do
-        vote <- endpoint @"add-vote"
-        pk <- pubKeyHash <$> ownPubKey
-        SM.runStep theClient (AddVote pk vote)
+        (tokenName, vote) <- endpoint @"add-vote"
+        SM.runStep theClient (AddVote tokenName vote)
     initLaw = do
         bsLaw <- endpoint @"new-law"
         let mph = Scripts.monetaryPolicyHash (scriptInstance params)
         void $ SM.runInitialise theClient (GovState bsLaw mph Nothing) mempty
-        SM.runStep theClient ForgeTokens
+        let tokens = zipWith (const (mkTokenName (baseTokenName params))) (initialHolders params) [1..]
+        SM.runStep theClient $ ForgeTokens tokens
 
 PlutusTx.makeLift ''Params
 PlutusTx.unstableMakeIsData ''Proposal

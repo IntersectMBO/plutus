@@ -5,10 +5,10 @@
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TemplateHaskell     #-}
+{-# LANGUAGE TupleSections       #-}
 {-# LANGUAGE TypeApplications    #-}
 {-# OPTIONS_GHC -fno-strictness  #-}
 {-# OPTIONS_GHC -fno-ignore-interface-pragmas #-}
-{-# OPTIONS -fplugin-opt PlutusTx.Plugin:debug-context #-}
 module Spec.Governance(tests, doVoting) where
 
 import           Test.Tasty                  (TestTree, testGroup)
@@ -52,9 +52,12 @@ tests =
 numberOfHolders :: Integer
 numberOfHolders = 10
 
+baseName :: Ledger.TokenName
+baseName = "TestLawToken"
+
 -- | A governance contract that requires 6 votes out of 10
 params :: Gov.Params
-params = Gov.Params holders 6 "TestLaw" where
+params = Gov.Params holders 6 baseName where
     holders = Ledger.pubKeyHash . EM.walletPubKey . EM.Wallet <$> [1..numberOfHolders]
 
 lawv1, lawv2 :: ByteString
@@ -63,17 +66,17 @@ lawv2 = "Law v2"
 
 doVoting :: Int -> Int -> Integer -> EmulatorTrace ()
 doVoting ayes nays rounds = do
-    let activate w = Trace.activateContractWallet (EM.Wallet w) (Gov.contract @Gov.GovError params)
-    handles <- traverse activate [1..numberOfHolders]
-    let handle1 = handles !! 0
-    let handle2 = handles !! 1
+    let activate w = (Gov.mkTokenName baseName w,) <$> Trace.activateContractWallet (EM.Wallet w) (Gov.contract @Gov.GovError params)
+    namesAndHandles <- traverse activate [1..numberOfHolders]
+    let (_, handle1) = namesAndHandles !! 0
+    let (token2, handle2) = namesAndHandles !! 1
     _ <- Trace.callEndpoint @"new-law" handle1 lawv1
     _ <- Trace.waitNSlots 10
     let votingRound = do
-            Trace.callEndpoint @"propose-change" handle2 Gov.Proposal{ Gov.newLaw = lawv2, Gov.votingDeadline = 20 }
+            Trace.callEndpoint @"propose-change" handle2 Gov.Proposal{ Gov.newLaw = lawv2, Gov.votingDeadline = 20, Gov.tokenName = token2 }
             _ <- Trace.waitNSlots 1
-            traverse_ (\hdl -> Trace.callEndpoint @"add-vote" hdl True  >> Trace.waitNSlots 1) (take ayes handles)
-            traverse_ (\hdl -> Trace.callEndpoint @"add-vote" hdl False >> Trace.waitNSlots 1) (take nays $ drop ayes handles)
+            traverse_ (\(nm, hdl) -> Trace.callEndpoint @"add-vote" hdl (nm, True)  >> Trace.waitNSlots 1) (take ayes namesAndHandles)
+            traverse_ (\(nm, hdl) -> Trace.callEndpoint @"add-vote" hdl (nm, False) >> Trace.waitNSlots 1) (take nays $ drop ayes namesAndHandles)
 
             Trace.callEndpoint @"finish-voting" handle1 ()
             Trace.waitNSlots 1
