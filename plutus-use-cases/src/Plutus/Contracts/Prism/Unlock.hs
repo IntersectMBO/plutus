@@ -25,6 +25,7 @@ module Plutus.Contracts.Prism.Unlock(
     , UnlockError(..)
     ) where
 
+import           Control.Monad                            (forever)
 import           Data.Aeson                               (FromJSON, ToJSON)
 import           GHC.Generics                             (Generic)
 import           Ledger                                   (pubKeyHash, txId)
@@ -72,7 +73,7 @@ subscribeSTO :: forall w s.
     , HasEndpoint "credential manager" ContractInstanceId s
     )
     => Contract w s UnlockError ()
-subscribeSTO = do
+subscribeSTO = forever $ handleError (const $ return ()) $ do
     STOSubscriber{wCredential, wSTOIssuer, wSTOTokenName, wSTOAmount} <-
         mapError WithdrawEndpointError
         $ endpoint @"sto"

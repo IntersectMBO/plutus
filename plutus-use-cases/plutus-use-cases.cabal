@@ -96,6 +96,8 @@ test-suite plutus-use-cases-test
         Spec.Auction
         Spec.Crowdfunding
         Spec.Currency
+        Spec.DynamicLogic.Registry
+        Spec.DynamicLogic.RegistryModel
         Spec.ErrorHandling
         Spec.Escrow
         Spec.Future
@@ -137,10 +139,12 @@ test-suite plutus-use-cases-test
         tasty-hunit -any,
         tasty-hedgehog >=0.2.0.0,
         tasty-golden -any,
+        tasty-quickcheck -any,
         text -any,
         lens -any,
         mtl -any,
         row-types -any,
+        QuickCheck -any,
         freer-simple -any,
         foldl -any,
         streaming -any
@@ -191,10 +195,12 @@ executable plutus-use-cases-scripts
         freer-extras -any,
         hedgehog -any,
         prettyprinter -any,
+        QuickCheck -any,
         tasty -any,
         tasty-hunit -any,
         tasty-hedgehog >=0.2.0.0,
         tasty-golden -any,
+        tasty-quickcheck -any,
         text -any,
         lens -any,
         mtl -any,

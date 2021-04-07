@@ -58,9 +58,12 @@ instance Show SigningProcess where
 
 -- | A wallet in the emulator model.
 newtype Wallet = Wallet { getWallet :: Integer }
-    deriving (Show, Eq, Ord, Generic)
+    deriving (Eq, Ord, Generic)
     deriving newtype (ToHttpApiData, FromHttpApiData, Hashable)
     deriving anyclass (Newtype, ToJSON, FromJSON, ToJSONKey)
+
+instance Show Wallet where
+    showsPrec p (Wallet i) = showParen (p > 9) $ showString "Wallet " . shows i
 
 instance Pretty Wallet where
     pretty (Wallet i) = "W" <> pretty i
