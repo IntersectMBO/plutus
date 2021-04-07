@@ -11,7 +11,6 @@ import           Plutus.Contract
 import           Plutus.Contract.Test
 import qualified Spec.Lib                as Lib
 
-
 import           Plutus.Contracts.Escrow
 import qualified Plutus.Trace.Emulator   as Trace
 

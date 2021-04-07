@@ -68,6 +68,9 @@ alice = Wallet 1
 bob = Wallet 2
 carol = Wallet 3
 
+-- Leave some lovelace for fees
+almostAll :: Ledger.Value
+almostAll = defaultLovelaceAmount <> P.inv (lovelaceValueOf 50)
 
 autoexecZCBTest :: TestTree
 autoexecZCBTest = checkPredicate "ZCB Auto Execute Contract"
@@ -75,8 +78,8 @@ autoexecZCBTest = checkPredicate "ZCB Auto Execute Contract"
     -- /\ emulatorLog (const False) ""
     T..&&. assertNotDone (marlowePlutusContract) (Trace.walletInstanceTag alice) "contract should not have any errors"
     T..&&. assertNotDone (marlowePlutusContract) (Trace.walletInstanceTag bob) "contract should not have any errors"
-    T..&&. walletFundsChange alice (lovelaceValueOf (120))
-    T..&&. walletFundsChange bob (lovelaceValueOf (-160))
+    T..&&. walletFundsChange alice (3 `T.timesFeeAdjust` 150)
+    T..&&. walletFundsChange bob (1 `T.timesFeeAdjust` (-150))
     ) $ do
 
     bobHdl <- Trace.activateContractWallet bob marlowePlutusContract
@@ -90,15 +93,14 @@ autoexecZCBTest = checkPredicate "ZCB Auto Execute Contract"
     Trace.waitNSlots 1
 
     -- Move all Alice's money to Carol, so she can't make a payment
-    -- Leave some lovelace for fees
-    Trace.payToWallet alice carol (defaultLovelaceAmount <> P.inv (lovelaceValueOf 50))
+    Trace.payToWallet alice carol almostAll
     Trace.waitNSlots 1
 
     Trace.callEndpoint @"auto" aliceHdl (params, alicePk, contractLifespan)
     Trace.waitNSlots 1
 
     -- Return money to Alice
-    Trace.payToWallet carol alice (defaultLovelaceAmount <> P.inv (lovelaceValueOf 50))
+    Trace.payToWallet carol alice almostAll
     Trace.waitNSlots 1
 
     -- Now Alice should be able to retry and pay to Bob
@@ -112,8 +114,8 @@ autoexecZCBTestAliceWalksAway = checkPredicate
     -- /\ emulatorLog (const False) ""
     T..&&. assertNotDone (marlowePlutusContract) (Trace.walletInstanceTag alice) "contract should not have any errors"
     T..&&. assertNotDone (marlowePlutusContract) (Trace.walletInstanceTag bob) "contract should not have any errors"
-    T..&&. walletFundsChange alice (P.inv (defaultLovelaceAmount <> P.inv (lovelaceValueOf 30)))
-    T..&&. walletFundsChange carol (defaultLovelaceAmount <> P.inv (lovelaceValueOf 50))
+    T..&&. walletFundsChange alice (2 `T.timesFeeAdjustV` P.inv almostAll)
+    T..&&. walletFundsChange carol (almostAll)
     ) $ do
     bobHdl <- Trace.activateContractWallet bob marlowePlutusContract
     aliceHdl <- Trace.activateContractWallet alice marlowePlutusContract
@@ -126,7 +128,7 @@ autoexecZCBTestAliceWalksAway = checkPredicate
     Trace.waitNSlots 1
 
     -- Move all Alice's money to Carol, so she can't make a payment
-    Trace.payToWallet alice carol (defaultLovelaceAmount <> P.inv (lovelaceValueOf 50))
+    Trace.payToWallet alice carol almostAll
     Trace.waitNSlots 1
 
     Trace.callEndpoint @"auto" aliceHdl (params, alicePk, contractLifespan)
@@ -143,8 +145,8 @@ autoexecZCBTestBobWalksAway = checkPredicate
     -- /\ emulatorLog (const False) ""
     T..&&. assertNotDone (marlowePlutusContract) (Trace.walletInstanceTag alice) "contract should not have any errors"
     T..&&. assertNotDone (marlowePlutusContract) (Trace.walletInstanceTag bob) "contract should not have any errors"
-    T..&&. walletFundsChange alice (lovelaceValueOf (-870))
-    T..&&. walletFundsChange carol (defaultLovelaceAmount <> P.inv (lovelaceValueOf 50))
+    T..&&. walletFundsChange alice (2 `T.timesFeeAdjust` (-850))
+    T..&&. walletFundsChange carol (almostAll)
     ) $ do
     bobHdl <- Trace.activateContractWallet bob marlowePlutusContract
     aliceHdl <- Trace.activateContractWallet alice marlowePlutusContract
@@ -156,7 +158,7 @@ autoexecZCBTestBobWalksAway = checkPredicate
     Trace.callEndpoint @"create" aliceHdl (AssocMap.empty, zeroCouponBond)
     Trace.waitNSlots 1
 
-    Trace.payToWallet bob carol (defaultLovelaceAmount <> P.inv (lovelaceValueOf 50))
+    Trace.payToWallet bob carol almostAll
     Trace.waitNSlots 1
 
     Trace.callEndpoint @"auto" aliceHdl (params, alicePk, contractLifespan)
@@ -200,6 +202,3 @@ contractLifespan = contractLifespanUpperBound zeroCouponBond
 
 defaultLovelaceAmount :: Ledger.Value
 defaultLovelaceAmount = defaultDist Map.! alice
-
-staticFee :: Ledger.Value
-staticFee = Ledger.minFee mempty
