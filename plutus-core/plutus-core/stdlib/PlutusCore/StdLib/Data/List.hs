@@ -221,7 +221,10 @@ reverse = runQuote $ do
 -- >                 (nil {integer})
 -- >                 (cons {integer} n' (rec (succInteger n'))))
 -- >         n
-enumFromTo :: (TermLike term TyName Name uni DefaultFun, uni `IncludesAll` '[Integer, (), Bool]) => term ()
+enumFromTo
+    :: ( TermLike term TyName Name uni DefaultFun
+       , uni `Includes` Integer, uni `Includes` (), uni `Includes` Bool
+       ) => term ()
 enumFromTo = runQuote $ do
     let list = _recursiveType listData
     n   <- freshName "n"

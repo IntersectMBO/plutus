@@ -359,7 +359,9 @@ scottHead = runQuote $ do
 -- >                     x + scottHead {integer} {p} (coe ys))
 -- >             (\(coe : scottVec Integer n -> scottVec integer zero) -> 0)
 -- >             (/\(xs' :: scottVec Integer n) -> xs')
-scottSumHeadsOr0 :: uni `IncludesAll` '[Integer, ()] => Term TyName Name uni DefaultFun ()
+scottSumHeadsOr0
+    :: (uni `Includes` Integer, uni `Includes` ())
+    => Term TyName Name uni DefaultFun ()
 scottSumHeadsOr0 = runQuote $ do
     n <- freshTyName "n"
     p <- freshTyName "p"

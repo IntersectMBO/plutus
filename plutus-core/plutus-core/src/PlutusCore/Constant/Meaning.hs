@@ -198,11 +198,14 @@ type family ToBinds (x :: a) :: [Some TyNameRep]
 
 type instance ToBinds Integer       = '[]
 type instance ToBinds BS.ByteString = '[]
-type instance ToBinds String        = '[]
 type instance ToBinds Char          = '[]
 type instance ToBinds ()            = '[]
 type instance ToBinds Bool          = '[]
 type instance ToBinds Int           = '[]
+type instance ToBinds []            = '[]
+type instance ToBinds (,)           = '[]
+type instance ToBinds [a]           = '[]
+type instance ToBinds (a, b)        = '[]
 
 type instance ToBinds (EvaluationResult a) = ToBinds a
 type instance ToBinds (Emitter a)          = ToBinds a

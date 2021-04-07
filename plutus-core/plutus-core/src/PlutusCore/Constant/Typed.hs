@@ -284,6 +284,10 @@ type HasConstant term = (AsConstant term, FromConstant term)
 -- and connects @term@ and its @uni@.
 type HasConstantIn uni term = (UniOf term ~ uni, HasConstant term)
 
+-- unliftConstant :: term -> m a
+-- withUnliftedConstant :: term -> (a -> m r) -> m r
+-- withUnliftedConstant :: term -> (forall a. f a -> m r) -> m r
+
 -- | Extract the 'Constant' from a 'Term'
 -- (or throw an error if the term is not a 'Constant' or the constant is not of the expected type).
 unliftConstant
@@ -330,11 +334,11 @@ class KnownTypeAst uni (a :: k) where
 
 -- | A constraint for \"@a@ is a 'KnownType' by means of being included in @uni@\".
 type KnownBuiltinType term a =
-    (HasConstant term, GShow (UniOf term), GEq (UniOf term), UniOf term `Includes` a)
+    (HasConstant term, GShow (UniOf term), GEq (UniOf term), UniOf term `Contains` a)
 
 -- See Note [KnownType's defaults].
 -- | A default implementation of 'toTypeAst' for built-in types.
-toBuiltinTypeAst :: uni `Includes` a => proxy a -> Type TyName uni ()
+toBuiltinTypeAst :: uni `Contains` a => proxy a -> Type TyName uni ()
 toBuiltinTypeAst (_ :: proxy a) = mkTyBuiltin @a ()
 
 -- See Note [KnownType's defaults]
@@ -430,21 +434,47 @@ instance uni `Includes` Integer       => KnownTypeAst uni Integer       where
     toTypeAst = toBuiltinTypeAst
 instance uni `Includes` BS.ByteString => KnownTypeAst uni BS.ByteString where
     toTypeAst = toBuiltinTypeAst
-instance uni `Includes` String        => KnownTypeAst uni String        where
-    toTypeAst = toBuiltinTypeAst
 instance uni `Includes` Char          => KnownTypeAst uni Char          where
     toTypeAst = toBuiltinTypeAst
 instance uni `Includes` ()            => KnownTypeAst uni ()            where
     toTypeAst = toBuiltinTypeAst
 instance uni `Includes` Bool          => KnownTypeAst uni Bool          where
     toTypeAst = toBuiltinTypeAst
+instance uni `Includes` [a]           => KnownTypeAst uni [a]           where
+    toTypeAst = toBuiltinTypeAst
+instance uni `Includes` (a, b)        => KnownTypeAst uni (a, b)        where
+    toTypeAst = toBuiltinTypeAst
 
 instance KnownBuiltinType term Integer       => KnownType term Integer
 instance KnownBuiltinType term BS.ByteString => KnownType term BS.ByteString
-instance KnownBuiltinType term String        => KnownType term String
 instance KnownBuiltinType term Char          => KnownType term Char
 instance KnownBuiltinType term ()            => KnownType term ()
 instance KnownBuiltinType term Bool          => KnownType term Bool
+instance KnownBuiltinType term [a]           => KnownType term [a]
+instance KnownBuiltinType term (a, b)        => KnownType term (a, b)
+
+-- data ValueOf1 uni f a = ValueOf1 (uni (f a)) (f a)
+
+-- instance KnownTypeAst uni (Some (ValueOf1 uni [])) where
+--     toTypeAst = undefined
+
+--     fromConstant :: Some (ValueOf (UniOf term)) -> term
+
+-- instance (HasConstantIn uni term, uni `Includes` []) => KnownType term (Some (ValueOf1 uni [])) where
+--     makeKnown (Some (ValueOf1 uni xs)) = pure . fromConstant . Some $ ValueOf uni xs
+--     readKnown term = case asConstant term of
+--         Just (Some (ValueOf uniAct x)) -> _ uniAct x
+-- --             let uniExp = knownUni @(UniOf term) @a
+-- --             case uniAct `geq` uniExp of
+-- --                 Just Refl -> pure x
+-- --                 Nothing   -> do
+-- --                     let err = fromString $ concat
+-- --                             [ "Type mismatch: "
+-- --                             , "expected: " ++ gshow uniExp
+-- --                             , "; actual: " ++ gshow uniAct
+-- --                             ]
+-- --                     throwingWithCause _UnliftingError err $ Just term
+--         Nothing                        -> throwingWithCause _UnliftingError "Not a constant" $ Just term
 
 {- Note [Int as Integer]
 We represent 'Int' as 'Integer' in PLC and check that an 'Integer' fits into 'Int' when

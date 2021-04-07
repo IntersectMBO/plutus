@@ -16,8 +16,8 @@ module PlutusCore
     , TypeIn (..)
     , ValueOf (..)
     , someValue
-    , Includes (..)
-    , IncludesAll
+    , Contains (..)
+    , Includes
     , Closed (..)
     , EverywhereAll
     , knownUniOf
@@ -28,6 +28,7 @@ module PlutusCore
     , (:~:) (..)
     , Lift
     , type (<:)
+    , Hole
     , DefaultUni (..)
     , DefaultFun (..)
     -- * AST

@@ -1,9 +1,7 @@
 {-# LANGUAGE ConstraintKinds          #-}
 {-# LANGUAGE DataKinds                #-}
-{-# LANGUAGE DefaultSignatures        #-}
 {-# LANGUAGE FlexibleInstances        #-}
 {-# LANGUAGE GADTs                    #-}
-{-# LANGUAGE KindSignatures           #-}
 {-# LANGUAGE MultiParamTypeClasses    #-}
 {-# LANGUAGE PolyKinds                #-}
 {-# LANGUAGE QuantifiedConstraints    #-}
@@ -14,18 +12,19 @@
 {-# LANGUAGE TypeFamilies             #-}
 {-# LANGUAGE TypeOperators            #-}
 {-# LANGUAGE UndecidableInstances     #-}
+{-# LANGUAGE UndecidableSuperClasses  #-}
 
 module PlutusCore.Universe.Core
     ( Some (..)
     , TypeIn (..)
     , ValueOf (..)
     , someValue
-    , Includes (..)
-    , IncludesAll
+    , Contains (..)
+    , Includes
     , Closed (..)
     , decodeUni
     , peelTag
-    , Accepts
+    , Permits
     , EverywhereAll
     , type (<:)
     , knownUniOf
@@ -92,10 +91,12 @@ newtype TypeIn uni a = TypeIn (uni a)
 data ValueOf uni a = ValueOf (uni a) a
 
 -- | A constraint for \"@a@ is in @uni@\".
-class uni `Includes` a where
+type Contains :: (* -> *) -> * -> Constraint
+class uni `Contains` a where
     knownUni :: uni a
 
-type uni `IncludesAll` as = All (Includes uni) as
+type Includes :: (* -> *) -> k -> Constraint
+type Includes uni = Permits (Contains uni)
 
 -- | Same as 'knownUni', but receives a @proxy@.
 knownUniOf :: uni `Includes` a => proxy a -> uni a
@@ -147,18 +148,20 @@ peelTag = do
     i:is <- get
     i <$ put is
 
-class    (forall a. constr a => constr (f a)) => constr `Accepts1` f
-instance (forall a. constr a => constr (f a)) => constr `Accepts1` f
+type Permits1 :: (* -> Constraint) -> (* -> *) -> Constraint
+class    (forall a. constr a => constr (f a)) => constr `Permits1` f
+instance (forall a. constr a => constr (f a)) => constr `Permits1` f
 
-class    (forall a b. (constr a, constr b) => constr (f a b)) => constr `Accepts2` f
-instance (forall a b. (constr a, constr b) => constr (f a b)) => constr `Accepts2` f
+type Permits2 :: (* -> Constraint) -> (* -> * -> *) -> Constraint
+class    (forall a b. (constr a, constr b) => constr (f a b)) => constr `Permits2` f
+instance (forall a b. (constr a, constr b) => constr (f a b)) => constr `Permits2` f
 
-type Accepts :: (* -> Constraint) -> k -> Constraint
-type family constr `Accepts` a
+type Permits :: (* -> Constraint) -> k -> Constraint
+type family Permits constr
 
-type instance constr `Accepts` a = constr a
-type instance constr `Accepts` f = constr `Accepts1` f
-type instance constr `Accepts` f = constr `Accepts2` f
+type instance Permits constr = constr
+type instance Permits constr = Permits1 constr
+type instance Permits constr = Permits2 constr
 
 -- We can't use @All (Everywhere uni) constrs@, because 'Everywhere' is an associated type family
 -- and can't be partially applied, so we have to inline the definition here.

@@ -1,3 +1,4 @@
+{-# LANGUAGE InstanceSigs          #-}
 {-# OPTIONS_GHC -fno-warn-orphans               #-}
 {-# OPTIONS_GHC -fno-warn-redundant-constraints #-}
 
@@ -6,6 +7,7 @@
 {-# LANGUAGE DeriveAnyClass        #-}
 {-# LANGUAGE DerivingVia           #-}
 {-# LANGUAGE FlexibleInstances     #-}
+{-# LANGUAGE LambdaCase            #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings     #-}
 {-# LANGUAGE TypeApplications      #-}
@@ -21,10 +23,12 @@ import           PlutusCore.Evaluation.Machine.ExBudget
 import           PlutusCore.Evaluation.Machine.ExBudgetingDefaults
 import           PlutusCore.Evaluation.Machine.ExMemory
 import           PlutusCore.Evaluation.Machine.Exception
+import           PlutusCore.MkPlc                                  (mkTyBuiltin)
 import           PlutusCore.Pretty
 
 import qualified PlutusCore.StdLib.Data.List                       as Plc
 
+import           Data.Char
 import           Data.Either
 import           Data.Hashable                                     (Hashable)
 import qualified Data.Kind                                         as GHC (Type)
@@ -96,6 +100,12 @@ data ExtensionFun
     | IdList
     | IdRank2
     | Absurd
+    | CharToInteger
+    | ReplicateAtChar
+    | NullAtInteger
+    | HeadAtInteger
+    | TailAtInteger
+--     | Swap
     deriving (Show, Eq, Ord, Enum, Bounded, Ix, Generic, Hashable)
     deriving (ExMemoryUsage) via (GenericExMemoryUsage ExtensionFun)
 
@@ -115,10 +125,10 @@ defBuiltinsRuntimeExt
     => BuiltinsRuntime (Either DefaultFun ExtensionFun) term
 defBuiltinsRuntimeExt = toBuiltinsRuntime (defaultCostModel, ())
 
-data ListRep (a :: GHC.Type)
-instance KnownTypeAst uni a => KnownTypeAst uni (ListRep a) where
+data PlcListRep (a :: GHC.Type)
+instance KnownTypeAst uni a => KnownTypeAst uni (PlcListRep a) where
     toTypeAst _ = TyApp () Plc.listTy . toTypeAst $ Proxy @a
-type instance ToBinds (ListRep a) = ToBinds a
+type instance ToBinds (PlcListRep a) = ToBinds a
 
 instance KnownTypeAst uni Void where
     toTypeAst _ = runQuote $ do
@@ -146,8 +156,9 @@ type instance ToBinds Void = '[]
 --    around, then it won't ever increase memory consumption. And any other node will be taken into
 --    account automatically as well: just think that having @\x -> f x x@ as a PLC term is supposed
 --    to be handled correctly by design
-instance (GShow uni, GEq uni, uni `Includes` Integer) => ToBuiltinMeaning uni ExtensionFun where
+instance uni ~ DefaultUni => ToBuiltinMeaning uni ExtensionFun where
     type CostingPart uni ExtensionFun = ()
+    toBuiltinMeaning :: forall term. HasConstantIn uni term => ExtensionFun -> BuiltinMeaning term ()
     toBuiltinMeaning Factorial =
         makeBuiltinMeaning
             (\(n :: Integer) -> product [1..n])
@@ -169,7 +180,7 @@ instance (GShow uni, GEq uni, uni `Includes` Integer) => ToBuiltinMeaning uni Ex
     toBuiltinMeaning IdList =
         makeBuiltinMeaning
             (Prelude.id
-                :: a ~ Opaque term (ListRep (TyVarRep ('TyNameRep "a" 0)))
+                :: a ~ Opaque term (PlcListRep (TyVarRep ('TyNameRep "a" 0)))
                 => a -> a)
             (\_ _ -> ExBudget 1 0)
     toBuiltinMeaning IdRank2 =
@@ -187,3 +198,112 @@ instance (GShow uni, GEq uni, uni `Includes` Integer) => ToBuiltinMeaning uni Ex
                 :: a ~ Opaque term (TyVarRep ('TyNameRep "a" 0))
                 => Void -> a)
             (\_ _ -> ExBudget 1 0)
+    toBuiltinMeaning CharToInteger =
+        makeBuiltinMeaning
+            (toInteger . ord)
+            mempty  -- Whatever.
+    toBuiltinMeaning ReplicateAtChar =
+        makeBuiltinMeaning
+            (replicate :: Int -> Char -> [Char])
+            mempty  -- Whatever.
+    toBuiltinMeaning NullAtInteger =
+        (makeBuiltinMeaning
+            -- (_ :: Opaque term [TyVarRep ('TyNameRep "a" 0)] -> Bool)
+            f
+            -- (null :: [Integer] -> Bool)
+            mempty)
+      where
+        f :: Opaque term (TyAppRep [] (TyVarRep ('TyNameRep "a" 0))) -> Bool
+        f (Opaque term) = case asConstant term of
+            Just (Some (ValueOf uni xs)) -> case uni of
+                DefaultUniList _ -> null xs
+                _                -> error "nope"
+    --             let uniExp = knownUni @(UniOf term) @a
+    --             case uniAct `geq` uniExp of
+    --                 Just Refl -> pure x
+    --                 Nothing   -> do
+    --                     let err = fromString $ concat
+    --                             [ "Type mismatch: "
+    --                             , "expected: " ++ gshow uniExp
+    --                             , "; actual: " ++ gshow uniAct
+    --                             ]
+    --                     throwingWithCause _UnliftingError err $ Just term
+            Nothing                        -> error "nope" -- throwingWithCause _UnliftingError "Not a constant" $ Just term
+
+
+    toBuiltinMeaning HeadAtInteger =
+        makeBuiltinMeaning
+            (\case [] -> EvaluationFailure; x:_ -> pure (x :: Integer))
+            mempty  -- Whatever.
+    toBuiltinMeaning TailAtInteger =
+        makeBuiltinMeaning
+            (\case [] -> EvaluationFailure; _:xs -> pure (xs :: [Integer]))
+            mempty  -- Whatever.
+    -- toBuiltinMeaning Swap =
+    --     BuiltinMeaning _ _ _ where
+    --         -- sch =
+    --         --     TypeSchemeAll (Proxy @'("a", 0, *)) $ \a ->
+    --         --     TypeSchemeAll (Proxy @'("b", 0, *)) $ \b ->
+
+-- f : all a. [_] a -> bool
+
+instance (uni `Includes` [], uni `Includes` Hole) => KnownTypeAst uni [] where
+    toTypeAst _ = mkTyBuiltin @[Hole] ()
+
+instance uni `Contains` TyVarRep name where
+    knownUni = undefined
+
+-- null :: Opaque term [Meta] -> Bool
+-- null : [meta] -> bool
+
+-- null :: Opaque term [TyVarRep ('TyNameRep "a" 0)] -> Bool
+
+-- instance uni `Includes` [a]           => KnownTypeAst uni (Mono [a]) where
+--     toTypeAst = toBuiltinTypeAst
+
+-- instance KnownTypeAst           => KnownTypeAst uni (Poly [a]) where
+--     toTypeAst = toBuiltinTypeAst
+
+-- instance KnownBuiltinType term [a]           => KnownType term (Mono [a])
+
+
+
+-- data TypeScheme term (args :: [GHC.Type]) res where
+--     TypeSchemeResult
+--         :: KnownType term res
+--         => Proxy res -> TypeScheme term '[] res
+--     TypeSchemeArrow
+--         :: KnownType term arg
+--         => Proxy arg -> TypeScheme term args res -> TypeScheme term (arg ': args) res
+--     TypeSchemeAll
+
+
+-- swap : all a b. (a, b) -> (b, a)
+
+-- instance DefaultUni `Includes` Opaque term' rep
+
+-- Some (Compose (ValueOf uni) [])
+
+
+-- null :: Some (ValueOf1 uni []) -> Bool
+
+-- null : all a. [a] -> bool
+
+-- instance Convert [Integer] [Whatever]
+
+-- makeKnown :: a -> m term
+-- readKnown :: term -> m a
+
+
+-- null :: uni `Includes` a => [a] -> Bool
+-- null :: [Any] -> Bool
+
+-- replicate : integer -> meta -> [meta]
+-- replicate : metaAll a. integer -> a -> [a]
+-- replicate : all a. integer -> a -> [a]
+-- null : all a. [a] -> bool
+
+-- null {integer} [1,2,3]
+
+-- tuples with general terms in them are not representable, hence @swap@ over a tuple with general
+-- terms in it is essentially @absurd@

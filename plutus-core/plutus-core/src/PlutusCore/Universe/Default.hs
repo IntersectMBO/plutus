@@ -1,22 +1,20 @@
-{-# LANGUAGE PolyKinds               #-}
-{-# LANGUAGE RankNTypes              #-}
-{-# LANGUAGE UndecidableSuperClasses #-}
 -- | The universe used by default and its instances.
 
-{-# LANGUAGE ConstraintKinds         #-}
-{-# LANGUAGE FlexibleInstances       #-}
-{-# LANGUAGE GADTs                   #-}
-{-# LANGUAGE LambdaCase              #-}
-{-# LANGUAGE MultiParamTypeClasses   #-}
-{-# LANGUAGE OverloadedStrings       #-}
-{-# LANGUAGE QuantifiedConstraints   #-}
-{-# LANGUAGE TemplateHaskell         #-}
-{-# LANGUAGE TypeFamilies            #-}
-{-# LANGUAGE TypeOperators           #-}
-{-# LANGUAGE UndecidableInstances    #-}
+{-# LANGUAGE EmptyCase             #-}
+{-# LANGUAGE FlexibleInstances     #-}
+{-# LANGUAGE GADTs                 #-}
+{-# LANGUAGE LambdaCase            #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE OverloadedStrings     #-}
+{-# LANGUAGE TemplateHaskell       #-}
+{-# LANGUAGE TypeFamilies          #-}
+{-# LANGUAGE TypeOperators         #-}
+{-# LANGUAGE UndecidableInstances  #-}
 
 module PlutusCore.Universe.Default
-    ( DefaultUni (..)
+    ( Hole
+    , unpoke
+    , DefaultUni (..)
     ) where
 
 import           PlutusCore.Parsable
@@ -68,6 +66,11 @@ We already allow built-in names with polymorphic types. There might be a way to 
 and have meta-constructors as builtin names. We still have to handle types somehow, though.
 -}
 
+data Hole
+
+unpoke :: Hole -> a
+unpoke = \case{}
+
 -- | The universe used by default.
 data DefaultUni a where
     DefaultUniInteger    :: DefaultUni Integer
@@ -77,6 +80,7 @@ data DefaultUni a where
     DefaultUniBool       :: DefaultUni Bool
     DefaultUniList       :: !(DefaultUni a) -> DefaultUni [a]
     DefaultUniTuple      :: !(DefaultUni a) -> !(DefaultUni b) -> DefaultUni (a, b)
+    DefaultUniHole       :: DefaultUni Hole
 
 deriveGEq ''DefaultUni
 deriving instance Lift (DefaultUni a)
@@ -92,6 +96,7 @@ instance Show (DefaultUni a) where
         DefaultUniChar -> "string"
         _              -> "[" ++ show a ++ "]"
     show (DefaultUniTuple a b) = concat ["(", show a, ",", show b, ")"]
+    show DefaultUniHole        = "_"
 
 instance Parsable (Some DefaultUni) where
     parse "bool"       = Just $ Some DefaultUniBool
@@ -119,15 +124,16 @@ instance Parsable (Some DefaultUni) where
                 _ -> Nothing
         ]
 
-instance DefaultUni `Includes` Integer       where knownUni = DefaultUniInteger
-instance DefaultUni `Includes` BS.ByteString where knownUni = DefaultUniByteString
-instance DefaultUni `Includes` Char          where knownUni = DefaultUniChar
-instance DefaultUni `Includes` ()            where knownUni = DefaultUniUnit
-instance DefaultUni `Includes` Bool          where knownUni = DefaultUniBool
-instance DefaultUni `Includes` a => DefaultUni `Includes` [a] where
+instance DefaultUni `Contains` Integer       where knownUni = DefaultUniInteger
+instance DefaultUni `Contains` BS.ByteString where knownUni = DefaultUniByteString
+instance DefaultUni `Contains` Char          where knownUni = DefaultUniChar
+instance DefaultUni `Contains` ()            where knownUni = DefaultUniUnit
+instance DefaultUni `Contains` Bool          where knownUni = DefaultUniBool
+instance DefaultUni `Contains` a => DefaultUni `Contains` [a] where
     knownUni = DefaultUniList knownUni
-instance (DefaultUni `Includes` a, DefaultUni `Includes` b) => DefaultUni `Includes` (a, b) where
+instance (DefaultUni `Contains` a, DefaultUni `Contains` b) => DefaultUni `Contains` (a, b) where
     knownUni = DefaultUniTuple knownUni knownUni
+instance DefaultUni `Contains` Hole where knownUni = DefaultUniHole
 
 {- Note [Stable encoding of tags]
 'encodeUni' and 'decodeUni' are used for serialisation and deserialisation of types from the
@@ -139,13 +145,13 @@ See Note [Stable encoding of PLC]
 
 instance Closed DefaultUni where
     type DefaultUni `Everywhere` constr =
-        ( constr `Accepts` Integer
-        , constr `Accepts` BS.ByteString
-        , constr `Accepts` Char
-        , constr `Accepts` ()
-        , constr `Accepts` Bool
-        , constr `Accepts` []
-        , constr `Accepts` (,)
+        ( constr `Permits` Integer
+        , constr `Permits` BS.ByteString
+        , constr `Permits` Char
+        , constr `Permits` ()
+        , constr `Permits` Bool
+        , constr `Permits` []
+        , constr `Permits` (,)
         )
 
     -- See Note [Stable encoding of tags].
@@ -156,6 +162,7 @@ instance Closed DefaultUni where
     encodeUni DefaultUniBool        = [4]
     encodeUni (DefaultUniList a)    = 5 : encodeUni a
     encodeUni (DefaultUniTuple a b) = 6 : encodeUni a ++ encodeUni b
+    encodeUni DefaultUniHole        = [7]
 
     -- See Note [Stable encoding of tags].
     decodeUniM = peelTag >>= \case
@@ -180,3 +187,4 @@ instance Closed DefaultUni where
     bring _ DefaultUniBool        r = r
     bring p (DefaultUniList a)    r = bring p a r
     bring p (DefaultUniTuple a b) r = bring p a $ bring p b r
+    bring _ DefaultUniHole        _ = error "Should not be called"
