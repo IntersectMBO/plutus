@@ -18,7 +18,6 @@ module Plutus.Trace.Playground(
     -- * Running traces
     , EmulatorConfig(..)
     , initialChainState
-    , defaultEmulatorConfig
     , runPlaygroundStream
     -- * Interpreter
     , interpretPlaygroundTrace
@@ -58,8 +57,8 @@ import           Streaming.Prelude                          (Of)
 import           Wallet.Emulator.Chain                      (ChainControlEffect, ChainEffect)
 import           Wallet.Emulator.MultiAgent                 (EmulatorEvent, EmulatorEvent' (..), EmulatorState,
                                                              MultiAgentControlEffect, MultiAgentEffect, schedulerEvent)
-import           Wallet.Emulator.Stream                     (EmulatorConfig (..), EmulatorErr (..),
-                                                             defaultEmulatorConfig, initialChainState, runTraceStream)
+import           Wallet.Emulator.Stream                     (EmulatorConfig (..), EmulatorErr (..), initialChainState,
+                                                             runTraceStream)
 import           Wallet.Emulator.Wallet                     (Wallet (..))
 import           Wallet.Types                               (ContractInstanceId)
 

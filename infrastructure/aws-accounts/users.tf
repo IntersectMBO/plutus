@@ -12,12 +12,6 @@ module "radek_tkaczyk" {
   policy_arn = "arn:aws:iam::aws:policy/AdministratorAccess"
 }
 
-module "kris_jenkins" {
-  source     = "../modules/existing-user"
-  username   = "kris.jenkins"
-  policy_arn = "arn:aws:iam::aws:policy/AdministratorAccess"
-}
-
 module "alexander_nemish" {
   source     = "../modules/existing-user"
   username   = "alexander.nemish"

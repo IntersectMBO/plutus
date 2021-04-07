@@ -50,6 +50,7 @@ import           Control.Monad.Error.Lens         (throwing)
 import qualified Control.Monad.Freer              as Freer
 import qualified Control.Monad.Freer.Error        as Freer
 import           Data.Aeson                       (FromJSON, ToJSON)
+import           Data.Default                     (Default (..))
 import           GHC.Generics                     (Generic)
 import           Ledger                           (Address, Datum (..), PubKey, Slot (..), Validator, ValidatorHash,
                                                    pubKeyHash)
@@ -633,7 +634,7 @@ testAccounts =
         $ Freer.runError @Folds.EmulatorFoldErr
         $ Stream.foldEmulatorStreamM fld
         $ Stream.takeUntilSlot 10
-        $ Trace.runEmulatorStream Trace.defaultEmulatorConfig setupTokensTrace
+        $ Trace.runEmulatorStream def setupTokensTrace
 
 setupTokensTrace :: Trace.EmulatorTrace ()
 setupTokensTrace = do

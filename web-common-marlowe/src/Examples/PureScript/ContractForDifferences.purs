@@ -1,4 +1,4 @@
-module Marlowe.Market.Contract6
+module Examples.PureScript.ContractForDifferences
   ( contractTemplate
   , metaData
   , extendedContract

@@ -77,6 +77,7 @@ in
       script = ''
         if [ -f /var/lib/playgrounds/plutus.env ]; then
           echo "Loading environment config from '/var/lib/playgrounds/plutus.env'"
+          source /var/lib/playgrounds/plutus.env
         else
           echo "No environment config. Using defaults"
         fi

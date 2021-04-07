@@ -16,7 +16,6 @@ module Wallet.Emulator.Stream(
     , InitialChainState
     , initialChainState
     , initialDist
-    , defaultEmulatorConfig
     , runTraceStream
     -- * Stream manipulation
     , takeUntilSlot
@@ -37,6 +36,7 @@ import           Control.Monad.Freer.Extras.Log         (LogLevel, LogMessage (.
 import           Control.Monad.Freer.Extras.Stream      (runStream)
 import           Control.Monad.Freer.State              (State, gets, runState)
 import           Data.Bifunctor                         (first)
+import           Data.Default                           (Default (..))
 import           Data.Map                               (Map)
 import qualified Data.Map                               as Map
 import           Data.Maybe                             (fromMaybe)
@@ -147,11 +147,10 @@ initialDist = either id walletFunds where
             getFunds wllt = fromMaybe mempty $ Map.lookup (walletAddress wllt) values
         in Map.fromSet getFunds (Set.fromList $ Wallet <$> [1..10])
 
-defaultEmulatorConfig :: EmulatorConfig
-defaultEmulatorConfig =
-    EmulatorConfig
-        { _initialChainState = Left defaultDist
-        }
+instance Default EmulatorConfig where
+  def = EmulatorConfig
+          { _initialChainState = Left defaultDist
+          }
 
 initialState :: EmulatorConfig -> EM.EmulatorState
 initialState EmulatorConfig{_initialChainState} =

@@ -3,6 +3,7 @@ module Main(main) where
 import qualified Control.Foldl                 as L
 import           Control.Monad.Freer           (run)
 import qualified Data.ByteString.Lazy          as BSL
+import           Data.Default                  (Default (..))
 import           Data.Foldable                 (traverse_)
 import           Flat                          (flat)
 import           Ledger.Index                  (ScriptValidationEvent (sveScript))
@@ -14,7 +15,7 @@ import           System.Directory              (createDirectoryIfMissing)
 import           System.Environment            (getArgs)
 import           System.FilePath               ((</>))
 import qualified Wallet.Emulator.Folds         as Folds
-import           Wallet.Emulator.Stream        (defaultEmulatorConfig, foldEmulatorStreamM)
+import           Wallet.Emulator.Stream        (foldEmulatorStreamM)
 
 import qualified Plutus.Contracts.Crowdfunding as Crowdfunding
 import qualified Plutus.Contracts.Game         as Game
@@ -86,7 +87,7 @@ writeScriptsTo fp prefix trace = do
             S.fst'
             $ run
             $ foldEmulatorStreamM (L.generalize Folds.scriptEvents)
-            $ Trace.runEmulatorStream defaultEmulatorConfig trace
+            $ Trace.runEmulatorStream def trace
         writeScript idx script = do
             let filename = fp </> prefix <> "-" <> show idx <> ".flat"
             putStrLn $ "Writing script: " <> filename

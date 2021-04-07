@@ -1,4 +1,4 @@
-module Marlowe.Market.Contract3
+module Examples.PureScript.ZeroCouponBond
   ( contractTemplate
   , metaData
   , extendedContract

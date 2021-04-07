@@ -1,4 +1,4 @@
-module Marlowe.Market.Contract5
+module Examples.PureScript.Swap
   ( contractTemplate
   , metaData
   , extendedContract

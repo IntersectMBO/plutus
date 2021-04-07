@@ -1,0 +1,25 @@
+Slot 00001: TxnValidate 4febabe136e65d5fb4683b378570e6f43f92056e489281ad2e6302a9fa127874
+Slot 00001: SlotAdd Slot 1
+Slot 00002: SlotAdd Slot 2
+Slot 00003: SlotAdd Slot 3
+Final balances
+Wallet 1: 
+    {, ""}: 100000000
+Wallet 2: 
+    {, ""}: 100000000
+Wallet 3: 
+    {, ""}: 100000000
+Wallet 4: 
+    {, ""}: 100000000
+Wallet 5: 
+    {, ""}: 100000000
+Wallet 6: 
+    {, ""}: 100000000
+Wallet 7: 
+    {, ""}: 100000000
+Wallet 8: 
+    {, ""}: 100000000
+Wallet 9: 
+    {, ""}: 100000000
+Wallet 10: 
+    {, ""}: 100000000
