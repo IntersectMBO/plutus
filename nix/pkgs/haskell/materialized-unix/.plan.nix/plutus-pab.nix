@@ -157,7 +157,6 @@
           "Plutus/PAB/Db/Eventful/Command"
           "Plutus/PAB/Db/Eventful/ContractDefinitionStore"
           "Plutus/PAB/Db/Eventful/ContractStore"
-          "Plutus/PAB/Db/Eventful/Projections"
           "Plutus/PAB/Db/Eventful/Query"
           "Plutus/PAB/Effects/Contract"
           "Plutus/PAB/Effects/Contract/ContractTest"
