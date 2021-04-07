@@ -21,7 +21,7 @@
 , enableHaskellProfiling ? false
 }:
 let
-  inherit (packages) pkgs plutus;
+  inherit (packages) pkgs plutus sources;
   inherit (pkgs) lib haskell-nix;
   inherit (plutus) haskell iohkNix git-rev set-git-rev agdaPackages;
   inherit (plutus) easyPS sphinxcontrib-haddock;
@@ -51,7 +51,7 @@ rec {
     inherit (pkgs.callPackage ./plutus-playground-client {
       inherit (plutus.lib) buildPursPackage buildNodeModules filterNpm gitignore-nix;
       inherit set-git-rev haskell webCommon webCommonPlutus webCommonPlayground;
-    }) client server-invoker generated-purescript generate-purescript start-backend;
+    }) client server generate-purescript start-backend;
   };
 
   marlowe-playground = pkgs.recurseIntoAttrs rec {
@@ -60,7 +60,7 @@ rec {
     inherit (pkgs.callPackage ./marlowe-playground-client {
       inherit (plutus.lib) buildPursPackage buildNodeModules filterNpm gitignore-nix;
       inherit set-git-rev haskell webCommon webCommonMarlowe webCommonPlayground;
-    }) client server-invoker generated-purescript generate-purescript start-backend;
+    }) client server generate-purescript start-backend;
   };
 
   marlowe-dashboard = pkgs.recurseIntoAttrs rec {
@@ -87,6 +87,7 @@ rec {
     inherit pkgs iohkNix;
     inherit (plutus) fixStylishHaskell fixPurty;
     inherit (pkgs) terraform;
+    inherit plutus-playground marlowe-playground marlowe-dashboard web-ghc plutus-pab marlowe-app;
     src = ./.;
   };
 
@@ -96,5 +97,6 @@ rec {
     inherit plutus marlowe-playground plutus-playground;
   };
 
-  deployment-shell = pkgs.callPackage ./deployment/shell.nix { };
+  # This builds a vscode devcontainer that can be used with the plutus-starter project (or probably the plutus project itself).
+  devcontainer = import ./nix/devcontainer/plutus-devcontainer.nix { inherit pkgs plutus; };
 }

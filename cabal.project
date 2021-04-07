@@ -37,7 +37,7 @@ benchmarks: true
 package eventful-sql-common
   ghc-options: -XDerivingStrategies -XStandaloneDeriving -XUndecidableInstances -XDataKinds -XFlexibleInstances
 
-allow-newer: 
+allow-newer:
            -- Has a commit to allow newer aeson, not on Hackage yet
            monoidal-containers:aeson
            -- Pins to an old version of Template Haskell, unclear if/when it will be updated
@@ -50,6 +50,10 @@ allow-newer:
 constraints:
   -- aws-lambda-haskell-runtime-wai doesn't compile with newer versions
   aws-lambda-haskell-runtime <= 3.0.3
+
+-- See the note on nix/pkgs/default.nix:agdaPackages for why this is here.
+-- (NOTE this will change to ieee754 in newer versions of nixpkgs).
+extra-packages: ieee, filemanip
 
 -- Needs some patches, but upstream seems to be fairly dead (no activity in > 1 year)
 source-repository-package
@@ -89,7 +93,7 @@ source-repository-package
   location: https://github.com/input-output-hk/cardano-prelude
   tag: ee4e7b547a991876e6b05ba542f4e62909f4a571
   subdir:
-    cardano-prelude 
+    cardano-prelude
     cardano-prelude-test
 
 source-repository-package

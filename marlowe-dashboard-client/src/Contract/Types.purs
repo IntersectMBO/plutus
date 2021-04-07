@@ -4,19 +4,21 @@ import Prelude
 import Analytics (class IsEvent, defaultEvent)
 import Data.Map (Map)
 import Data.Maybe (Maybe(..))
-import Marlowe.Execution (ExecutionState)
+import Marlowe.Execution (ExecutionState, NamedAction)
 import Marlowe.Extended.Metadata (MetaData)
-import Marlowe.Semantics (ChoiceId, ChosenNum, Input, Slot, TransactionInput)
+import Marlowe.Semantics (ChoiceId, ChosenNum, Slot, TransactionInput)
 import Marlowe.Semantics as Semantic
 import WalletData.Types (Nickname)
 
 type State
   = { tab :: Tab
     , executionState :: ExecutionState
-    , contractId :: Maybe String -- FIXME: what is a contract instance identified by
-    , side :: Side
-    , confirmation :: Maybe Input
-    , step :: Int
+    , contractId :: String -- FIXME: what is a contract instance identified by
+    -- Which step of the execution state is selected. This index is 0 based and should be
+    -- between [0, executionState.steps.length] (both sides inclusive). This is because the
+    -- `steps` array represent the past steps and the executionState.state represents the
+    -- current state and visually we can select any one of them.
+    , selectedStep :: Int
     , metadata :: MetaData
     , participants :: Map Semantic.Party (Maybe Nickname)
     -- This field represents the logged-user party in the contract.
@@ -32,28 +34,22 @@ data Tab
 
 derive instance eqTab :: Eq Tab
 
-data Side
-  = Overview
-  | Confirmation
-
 data Query a
   = ChangeSlot Slot a
   | ApplyTx TransactionInput a
 
 data Action
-  = ConfirmInput (Maybe Input)
-  | ChangeChoice ChoiceId ChosenNum
-  | ChooseInput (Maybe Input)
+  = ConfirmAction NamedAction
+  | ChangeChoice ChoiceId (Maybe ChosenNum)
   | SelectTab Tab
-  | FlipCard Side
-  | ClosePanel
-  | ChangeStep Int
+  | AskConfirmation NamedAction
+  | CancelConfirmation
+  | GoToStep Int
 
 instance actionIsEvent :: IsEvent Action where
-  toEvent (ConfirmInput _) = Just $ defaultEvent "ConfirmInput"
+  toEvent (ConfirmAction _) = Just $ defaultEvent "ConfirmAction"
   toEvent (ChangeChoice _ _) = Just $ defaultEvent "ChangeChoice"
-  toEvent (ChooseInput _) = Just $ defaultEvent "ChooseInput"
   toEvent (SelectTab _) = Just $ defaultEvent "SelectTab"
-  toEvent (FlipCard _) = Just $ defaultEvent "FlipCard"
-  toEvent ClosePanel = Just $ defaultEvent "ClosePanel"
-  toEvent (ChangeStep _) = Just $ defaultEvent "ChangeStep"
+  toEvent (AskConfirmation _) = Just $ defaultEvent "AskConfirmation"
+  toEvent CancelConfirmation = Just $ defaultEvent "CancelConfirmation"
+  toEvent (GoToStep _) = Just $ defaultEvent "GoToStep"

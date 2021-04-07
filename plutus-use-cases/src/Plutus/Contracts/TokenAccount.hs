@@ -103,7 +103,7 @@ instance AsContractError TokenAccountError where
 instance Currency.AsCurrencyError TokenAccountError where
     _CurrencyError = _TACurrencyError
 
--- | 'transfer', 'redeem', 'pay' and 'newAccount' with endpoints.
+-- | 'redeem', 'pay' and 'newAccount' with endpoints.
 tokenAccountContract
     :: forall w s e.
        ( HasTokenAccountSchema s
@@ -133,15 +133,11 @@ validate :: Account -> () -> () -> V.ValidatorCtx -> Bool
 validate account _ _ ptx = V.valueSpent (V.valCtxTxInfo ptx) `Value.geq` accountToken account
 
 scriptInstance :: Account -> Scripts.ScriptInstance TokenAccount
-scriptInstance account =
-    let wrap = Scripts.wrapValidator @() @()
-        val = $$(PlutusTx.compile [|| validate ||])
-                `PlutusTx.applyCode`
-                    PlutusTx.liftCode account
-
-    in Scripts.validator @TokenAccount
-        val
-        $$(PlutusTx.compile [|| wrap ||])
+scriptInstance = Scripts.validatorParam @TokenAccount
+    $$(PlutusTx.compile [|| validate ||])
+    $$(PlutusTx.compile [|| wrap ||])
+    where
+        wrap = Scripts.wrapValidator
 
 address :: Account -> Address
 address = Scripts.scriptAddress . scriptInstance

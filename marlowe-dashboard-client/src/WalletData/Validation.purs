@@ -6,8 +6,11 @@ module WalletData.Validation
   ) where
 
 import Prelude
+import Data.Array (any)
+import Data.Char.Unicode (isAlphaNum)
 import Data.Map (isEmpty, filter, member)
 import Data.Maybe (Maybe(..))
+import Data.String.CodeUnits (toCharArray)
 import Marlowe.Semantics (PubKey)
 import Network.RemoteData (RemoteData(..))
 import Servant.PureScript.Ajax (AjaxError)
@@ -16,12 +19,14 @@ import WalletData.Types (Nickname, WalletLibrary)
 data NicknameError
   = EmptyNickname
   | DuplicateNickname
+  | BadNickname
 
 derive instance eqNicknameError :: Eq NicknameError
 
 instance showNicknameError :: Show NicknameError where
   show EmptyNickname = "Nickname cannot be blank"
   show DuplicateNickname = "Nickname is already in use in your contacts"
+  show BadNickname = "Nicknames can only contain letters and numbers"
 
 data ContractIdError
   = EmptyContractId
@@ -44,7 +49,10 @@ nicknameError nickname library =
   if member nickname library then
     Just DuplicateNickname
   else
-    Nothing
+    if any (\char -> not $ isAlphaNum char) $ toCharArray nickname then
+      Just BadNickname
+    else
+      Nothing
 
 contractIdError :: String -> RemoteData AjaxError PubKey -> WalletLibrary -> Maybe ContractIdError
 contractIdError "" _ _ = Just EmptyContractId

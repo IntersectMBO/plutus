@@ -23,6 +23,7 @@ import HaskellEditor.Types (Action(..), BottomPanelView(..), State, _bottomPanel
 import Language.Haskell.Interpreter (CompilationError(..), InterpreterError(..), InterpreterResult(..))
 import Language.Haskell.Monaco as HM
 import MainFrame.Types (ChildSlots, _haskellEditorSlot)
+import Marlowe.Extended.Metadata (MetaData)
 import Network.RemoteData (RemoteData(..), _Success)
 import StaticAnalysis.BottomPanel (analysisResultPane, analyzeButton, clearButton)
 import StaticAnalysis.Types (_analysisExecutionState, _analysisState, isCloseAnalysisLoading, isNoneAsked, isReachabilityLoading, isStaticLoading)
@@ -30,9 +31,10 @@ import StaticAnalysis.Types (_analysisExecutionState, _analysisState, isCloseAna
 render ::
   forall m.
   MonadAff m =>
+  MetaData ->
   State ->
   ComponentHTML Action ChildSlots m
-render state =
+render metadata state =
   div [ classes [ flex, flexCol, fullHeight ] ]
     [ section [ classes [ paddingX, minH0, flexGrow, overflowHidden ] ]
         [ haskellEditor state ]
@@ -51,7 +53,7 @@ render state =
     , { title: "Errors", view: ErrorsView, classes: [] }
     ]
 
-  wrapBottomPanelContents panelView = BottomPanel.PanelAction <$> panelContents state panelView
+  wrapBottomPanelContents panelView = BottomPanel.PanelAction <$> panelContents state metadata panelView
 
 otherActions :: forall p. State -> HTML p Action
 otherActions state =
@@ -132,8 +134,8 @@ sendToSimulationButton state =
     Success (Right (InterpreterResult _)) -> true
     _ -> false
 
-panelContents :: forall p. State -> BottomPanelView -> HTML p Action
-panelContents state GeneratedOutputView =
+panelContents :: forall p. State -> MetaData -> BottomPanelView -> HTML p Action
+panelContents state _ GeneratedOutputView =
   section_ case view _compilationResult state of
     Success (Right (InterpreterResult result)) ->
       [ div [ classes [ bgWhite, spaceBottom, ClassName "code" ] ]
@@ -143,9 +145,9 @@ panelContents state GeneratedOutputView =
       numberedText = (code_ <<< Array.singleton <<< text) <$> split (Pattern "\n") result.result
     _ -> [ text "There is no generated code" ]
 
-panelContents state StaticAnalysisView =
+panelContents state metadata StaticAnalysisView =
   section_
-    ( [ analysisResultPane SetIntegerTemplateParam state
+    ( [ analysisResultPane metadata SetIntegerTemplateParam state
       , analyzeButton loadingWarningAnalysis analysisEnabled "Analyse for warnings" AnalyseContract
       , analyzeButton loadingReachability analysisEnabled "Analyse reachability" AnalyseReachabilityContract
       , analyzeButton loadingCloseAnalysis analysisEnabled "Analyse for refunds on Close" AnalyseContractForCloseRefund
@@ -170,7 +172,7 @@ panelContents state StaticAnalysisView =
 
   isCompiled = has (_compilationResult <<< _Success <<< _Right) state
 
-panelContents state ErrorsView =
+panelContents state _ ErrorsView =
   section_ case view _compilationResult state of
     Success (Left (TimeoutError error)) -> [ text error ]
     Success (Left (CompilationErrors errors)) -> map compilationErrorPane errors

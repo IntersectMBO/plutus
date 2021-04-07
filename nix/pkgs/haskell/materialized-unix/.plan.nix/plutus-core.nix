@@ -174,6 +174,7 @@
           "UntypedPlutusCore/Rename/Internal"
           "UntypedPlutusCore/Size"
           "UntypedPlutusCore/Subst"
+          "UntypedPlutusCore/Transform/Simplify"
           "Data/Aeson/THReader"
           "Data/Functor/Foldable/Monadic"
           "PlutusCore"
@@ -379,6 +380,7 @@
             "Evaluation/ApplyBuiltinName"
             "Evaluation/Golden"
             "Evaluation/Machines"
+            "Transform/Simplify"
             ];
           hsSourceDirs = [ "untyped-plutus-core/test" ];
           mainPath = [ "Spec.hs" ];
@@ -394,6 +396,7 @@
             (hsPkgs."directory" or (errorHandler.buildDepError "directory"))
             (hsPkgs."filepath" or (errorHandler.buildDepError "filepath"))
             (hsPkgs."hedgehog" or (errorHandler.buildDepError "hedgehog"))
+            (hsPkgs."random" or (errorHandler.buildDepError "random"))
             ];
           buildable = true;
           hsSourceDirs = [ "cost-model/budgeting-bench" ];

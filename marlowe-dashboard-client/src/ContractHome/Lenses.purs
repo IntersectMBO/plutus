@@ -1,7 +1,7 @@
 module ContractHome.Lenses
   ( _status
   , _contracts
-  , _selectedContract
+  , _selectedContractIndex
   ) where
 
 import Contract.Types (State) as Contract
@@ -17,5 +17,5 @@ _status = prop (SProxy :: SProxy "status")
 _contracts :: Lens' State (Array Contract.State)
 _contracts = prop (SProxy :: SProxy "contracts")
 
-_selectedContract :: Lens' State (Maybe Contract.State)
-_selectedContract = prop (SProxy :: SProxy "selectedContract")
+_selectedContractIndex :: Lens' State (Maybe Int)
+_selectedContractIndex = prop (SProxy :: SProxy "selectedContractIndex")

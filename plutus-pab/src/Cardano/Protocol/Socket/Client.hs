@@ -104,7 +104,7 @@ runClientNode socketPath onNewBlock = do
       chainSync mSlot onNewBlock' =
           InitiatorProtocolOnly $
           MuxPeer
-            (contramap show stdoutTracer)
+            nullTracer
             codecChainSync
             (ChainSync.chainSyncClientPeer
                (chainSyncClient mSlot onNewBlock'))
@@ -114,7 +114,7 @@ runClientNode socketPath onNewBlock = do
       txSubmission inputQueue =
           InitiatorProtocolOnly $
           MuxPeer
-            (contramap show stdoutTracer)
+            nullTracer
             codecTxSubmission
             (TxSubmission.localTxSubmissionClientPeer
                (txSubmissionClient inputQueue))

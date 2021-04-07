@@ -7,9 +7,9 @@
 {-# LANGUAGE StrictData            #-}
 
 module UntypedPlutusCore.Evaluation.Machine.Cek.ExBudgetMode
-    ( CekExTally (..)
-    , ExBudgetMode (..)
+    ( ExBudgetMode (..)
     , CountingSt (..)
+    , CekExTally (..)
     , TallyingSt (..)
     , RestrictingSt (..)
     , Hashable
@@ -25,6 +25,7 @@ import           PlutusPrelude
 import           UntypedPlutusCore.Evaluation.Machine.Cek.Internal
 
 import           PlutusCore.Evaluation.Machine.ExBudget
+import           PlutusCore.Evaluation.Machine.ExMemory            (ExCPU (..), ExMemory (..))
 import           PlutusCore.Evaluation.Machine.Exception
 
 import           Control.Lens                                      (ifoldMap)
@@ -37,12 +38,6 @@ import qualified Data.Map.Strict                                   as Map
 import           Data.Semigroup.Generic
 import           Data.Text.Prettyprint.Doc
 import           Text.PrettyBy                                     (IgnorePrettyConfig (..))
-
--- | A budgeting mode to execute an evaluator in.
-data ExBudgetMode cost uni fun = ExBudgetMode
-    { _exBudgetModeSpender :: CekBudgetSpender cost uni fun  -- ^ A spending function.
-    , _exBudgetModeInitSt  :: cost                           -- ^ An initial state.
-    }
 
 -- | Construct an 'ExBudgetMode' out of a function returning a value of the budgeting state type.
 -- The value then gets added to the current state via @(<>)@.
@@ -121,7 +116,8 @@ restricting = ExBudgetMode (CekBudgetSpender spend) . RestrictingSt where
 -- | When we want to just evaluate the program we use the 'Restricting' mode with an enormous
 -- budget, so that evaluation costs of on-chain budgeting are reflected accurately in benchmarks.
 enormousBudget :: ExRestrictingBudget
-enormousBudget = ExRestrictingBudget $ ExBudget (10^(10::Int)) (10^(10::Int))
+enormousBudget = ExRestrictingBudget $ ExBudget (ExCPU maxInt) (ExMemory maxInt)
+                 where maxInt = fromIntegral (maxBound::Int)
 
 -- | 'restricting' instantiated at 'enormousBudget'.
 restrictingEnormous :: ExBudgetMode RestrictingSt uni fun

@@ -103,11 +103,11 @@ insertBuiltin fun =
         BuiltinMeaning sch meta _ ->
            case typeSchemeResult sch of
                AsKnownType ->
-                   insertDenotation $ Denotation fun (Builtin ()) (meta ()) sch
+                   insertDenotation $ Denotation fun (Builtin ()) meta sch
 
 -- Builtins that may fail are commented out, because we cannot handle them right now.
 -- Look for "UNDEFINED BEHAVIOR" in "PlutusCore.Generators.Internal.Dependent".
--- | A 'DenotationContext' that consists of 'TypedStaticBuiltin's.
+-- | A 'DenotationContext' that consists of 'DefaultFun's.
 typedBuiltins
     :: DenotationContext (Term TyName Name DefaultUni DefaultFun ())
 typedBuiltins

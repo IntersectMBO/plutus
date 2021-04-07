@@ -73,7 +73,7 @@ settings setup =
   , tokensProvider: Just tokensProvider
   , hoverProvider: Just hoverProvider
   , completionItemProvider: Just completionItemProvider
-  , codeActionProvider: Just $ codeActionProvider { warnings: mempty, contract: Nothing }
+  , codeActionProvider: Just $ codeActionProvider { warnings: mempty, contract: Nothing, metadataHints: mempty }
   , documentFormattingEditProvider: Just documentFormattingEditProvider
   , refLabel
   , owner: "marloweEditor"

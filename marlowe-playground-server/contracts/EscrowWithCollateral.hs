@@ -6,103 +6,98 @@ import           Language.Marlowe.Extended
 main :: IO ()
 main = print . pretty $ contract
 
+-- We can set explicitRefunds True to run Close refund analysis
+-- but we get a shorter contract if we set it to False
+explicitRefunds :: Bool
+explicitRefunds = False
 
-{- What does the vanilla contract look like?
-  - if Alice and Bob choose
-      - and agree: do it
-      - and disagree: Carol decides
-  - Carol also decides if timeout after one choice has been made;
-  - refund if no choices are made.
--}
+seller, buyer, burnAddress :: Party
+buyer = Role "Buyer"
+seller = Role "Seller"
+burnAddress = PK "0000000000000000000000000000000000000000000000000000000000000000"
 
--- step1: bob's collateral
+price, collateral :: Value
+price = ConstantParam "Price"
+collateral = ConstantParam "Collateral amount"
+
+sellerCollateralTimeout, buyerCollateralTimeout, depositTimeout, disputeTimeout, answerTimeout :: Timeout
+sellerCollateralTimeout = SlotParam "Collateral deposit by seller timeout"
+buyerCollateralTimeout = SlotParam "Deposit of collateral by buyer timeout"
+depositTimeout = SlotParam "Deposit of price by buyer timeout"
+disputeTimeout = SlotParam "Dispute by buyer timeout"
+answerTimeout = SlotParam "Seller's response timeout"
+
+depositCollateral :: Party -> Timeout -> Contract -> Contract -> Contract
+depositCollateral party timeout timeoutContinuation continuation =
+    When [Case (Deposit party party ada collateral) continuation]
+         timeout
+         timeoutContinuation
+
+burnCollaterals :: Contract -> Contract
+burnCollaterals =
+    Pay seller (Party burnAddress) ada collateral
+    . Pay buyer (Party burnAddress) ada collateral
+
+deposit :: Timeout -> Contract -> Contract -> Contract
+deposit timeout timeoutContinuation continuation =
+    When [Case (Deposit seller buyer ada price) continuation]
+         timeout
+         timeoutContinuation
+
+choice :: ChoiceName -> Party -> Integer -> Contract -> Case
+choice choiceName chooser choiceValue = Case (Choice (ChoiceId choiceName chooser)
+                                                     [Bound choiceValue choiceValue])
+
+choices :: Timeout -> Party -> Contract -> [(Integer, ChoiceName, Contract)] -> Contract
+choices timeout chooser timeoutContinuation list =
+    When [choice choiceName chooser choiceValue continuation
+          | (choiceValue, choiceName, continuation) <- list]
+         timeout
+         timeoutContinuation
+
+sellerToBuyer :: Contract -> Contract
+sellerToBuyer = Pay seller (Account buyer) ada price
+
+refundSellerCollateral :: Contract -> Contract
+refundSellerCollateral
+  | explicitRefunds = Pay seller (Party seller) ada collateral
+  | otherwise = id
+
+refundBuyerCollateral :: Contract -> Contract
+refundBuyerCollateral
+  | explicitRefunds = Pay buyer (Party buyer) ada collateral
+  | otherwise = id
+
+refundCollaterals :: Contract -> Contract
+refundCollaterals = refundSellerCollateral . refundBuyerCollateral
+
+refundBuyer :: Contract
+refundBuyer
+ | explicitRefunds = Pay buyer (Party buyer) ada price Close
+ | otherwise = Close
+
+refundSeller :: Contract
+refundSeller
+ | explicitRefunds = Pay seller (Party seller) ada price Close
+ | otherwise = Close
+
 contract :: Contract
-contract = When [Case (Deposit "bob" "bob" ada bobCollateral) contract2]
-                10
-                Close
--- step2: alice's collateral
-contract2 :: Contract
-contract2 = When [Case (Deposit "alice" "alice" ada aliceCollateral) contract3]
-                20
-                Close
-
--- step3: alice's payment
-contract3 :: Contract
-contract3 = When [Case (Deposit "alice" "alice" ada price) inner]
-                30
-                Close
-
-inner :: Contract
-inner =
-  When [ Case aliceChoice
-              (When [ Case bobChoice
-                          (If (aliceChosen `ValueEQ` bobChosen)
-                             agreement
-                             destroyCollateral) ]
-                    60
-                    destroyCollateral)
-        ]
-        40
-        destroyCollateral
-
--- The contract to follow when Alice and Bob have made the same choice.
-agreement :: Contract
-agreement =
-  If
-    (aliceChosen `ValueEQ` Constant 0)
-    (Pay "alice" (Party "bob") ada price Close)
-    Close
-
--- The contract to follow when Alice and Bob disagree
-destroyCollateral :: Contract
-destroyCollateral =
-    Pay "alice" (Party "blackhole") ada aliceCollateral (Pay "bob" (Party "blackhole") ada bobCollateral Close)
-
--- Names for choices
-pay,refund,both :: [Bound]
-
-pay    = [Bound 0 0]
-refund = [Bound 1 1]
-both   = [Bound 0 1]
-
-choiceName :: ChoiceName
-choiceName = "choice"
-
-choice :: Party -> [Bound] -> Action
-choice party = Choice (ChoiceId choiceName party)
-
--- Name choices according to person making choice and choice made
-
-alicePay, aliceRefund, aliceChoice, bobPay, bobRefund, bobChoice, carolPay, carolRefund, carolChoice :: Action
-
-alicePay    = choice "alice" pay
-aliceRefund = choice "alice" refund
-aliceChoice = choice "alice" both
-
-bobPay    = choice "bob" pay
-bobRefund = choice "bob" refund
-bobChoice = choice "bob" both
-
-carolPay    = choice "carol" pay
-carolRefund = choice "carol" refund
-carolChoice = choice "carol" both
-
--- the values chosen in choices
-aliceChosen, bobChosen :: Value
-
-aliceChosen = ChoiceValue (ChoiceId choiceName "alice")
-bobChosen   = ChoiceValue (ChoiceId choiceName "bob")
-
-defValue :: Value
-defValue = Constant 42
-
--- Value under escrow
-price :: Value
-price = Constant 450
-
-aliceCollateral :: Value
-aliceCollateral = Constant 4500
-
-bobCollateral :: Value
-bobCollateral = Constant 4500
-
+contract = depositCollateral seller sellerCollateralTimeout Close $
+           depositCollateral buyer buyerCollateralTimeout (refundSellerCollateral Close) $
+           deposit depositTimeout (refundCollaterals Close) $
+           choices disputeTimeout buyer (refundCollaterals refundSeller)
+              [ (0, "Everything is alright"
+                , refundCollaterals refundSeller
+                )
+              , (1, "Report problem"
+                , sellerToBuyer $
+                  choices answerTimeout seller (refundCollaterals refundBuyer)
+                     [ (1, "Confirm problem"
+                       , refundCollaterals refundBuyer
+                       )
+                     , (0, "Dispute problem"
+                       , burnCollaterals refundBuyer
+                       )
+                     ]
+                )
+              ]

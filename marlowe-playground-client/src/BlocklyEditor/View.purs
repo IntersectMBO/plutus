@@ -19,13 +19,15 @@ import Halogen.HTML.Events (onClick)
 import Halogen.HTML.Properties (classes, enabled, id_)
 import MainFrame.Types (ChildSlots, _blocklySlot)
 import Marlowe.Blockly as MB
+import Marlowe.Extended.Metadata (MetaData)
 
 render ::
   forall m.
   MonadAff m =>
+  MetaData ->
   State ->
   ComponentHTML Action ChildSlots m
-render state =
+render metadata state =
   div [ classes [ flex, flexCol, fullHeight ] ]
     [ section
         [ classes [ paddingX, minH0, overflowHidden, fullHeight ]
@@ -51,7 +53,7 @@ render state =
 
   warningsTitle = withCount "Warnings" $ state ^. _warnings
 
-  wrapBottomPanelContents panelView = BottomPanel.PanelAction <$> panelContents state panelView
+  wrapBottomPanelContents panelView = BottomPanel.PanelAction <$> panelContents state metadata panelView
 
 workspaceBlocks :: forall a b. HTML a b
 workspaceBlocks =

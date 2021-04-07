@@ -21,6 +21,8 @@
         "barbies".revision = (((hackage."barbies")."2.0.2.0").revisions).default;
         "row-types".revision = (((hackage."row-types")."0.4.0.0").revisions).default;
         "io-streams-haproxy".revision = (((hackage."io-streams-haproxy")."1.0.1.0").revisions).default;
+        "ieee".revision = (((hackage."ieee")."0.7").revisions).default;
+        "ieee".flags.big_endian = false;
         "wai-websockets".revision = (((hackage."wai-websockets")."3.0.1.2").revisions).default;
         "wai-websockets".flags.example = true;
         "cookie".revision = (((hackage."cookie")."0.4.5").revisions).default;
@@ -449,6 +451,7 @@
         "prometheus".revision = (((hackage."prometheus")."2.2.2").revisions).default;
         "rate-limit".revision = (((hackage."rate-limit")."1.4.2").revisions).default;
         "type-equality".revision = (((hackage."type-equality")."1").revisions).default;
+        "filemanip".revision = (((hackage."filemanip")."0.3.6.3").revisions).default;
         "indexed-traversable".revision = (((hackage."indexed-traversable")."0.1.1").revisions).default;
         "optics-extra".revision = (((hackage."optics-extra")."0.3").revisions).default;
         "freer-simple".revision = (((hackage."freer-simple")."1.2.1.1").revisions).default;

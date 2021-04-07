@@ -11,6 +11,7 @@ import Contract.Types (Action) as Contract
 import ContractHome.Types (Action, State) as ContractHome
 import Data.Maybe (Maybe(..))
 import Data.Time.Duration (Minutes)
+import Marlowe.Execution (NamedAction)
 import Marlowe.Semantics (Slot)
 import Template.Types (Action, State) as Template
 import WalletData.Types (Nickname, WalletDetails)
@@ -40,6 +41,7 @@ data Card
   | TemplateLibraryCard
   | ContractSetupConfirmationCard
   | ContractCard
+  | ContractActionConfirmationCard NamedAction
 
 derive instance eqCard :: Eq Card
 
@@ -53,7 +55,6 @@ data Action
   | SetCard (Maybe Card)
   | ToggleCard Card
   | TemplateAction Template.Action
-  -- FIXME: see if we should remove ContractAction
   | ContractAction Contract.Action
   | ContractHomeAction ContractHome.Action
 

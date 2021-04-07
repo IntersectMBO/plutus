@@ -14,6 +14,7 @@ import           Control.Monad.Freer                   (run)
 import           Control.Monad.Freer.Extras.Log        (LogLevel (..))
 import           Data.ByteString.Lazy                  (ByteString)
 import qualified Data.ByteString.Lazy                  as BSL
+import           Data.Default                          (Default (..))
 import qualified Data.Text.Encoding                    as T
 import           Data.Text.Prettyprint.Doc             (Pretty (..), defaultLayoutOptions, layoutPretty, vsep)
 import           Data.Text.Prettyprint.Doc.Render.Text (renderStrict)
@@ -132,7 +133,7 @@ renderWalletLog trace =
             run
             $ foldEmulatorStreamM (L.generalize $ Folds.instanceLog (Trace.walletInstanceTag w1))
             $ filterLogLevel Info
-            $ Trace.runEmulatorStream Trace.defaultEmulatorConfig trace
+            $ Trace.runEmulatorStream def trace
     in BSL.fromStrict $ T.encodeUtf8 $ renderStrict $ layoutPretty defaultLayoutOptions $ vsep $ fmap pretty $ S.fst' result
 
 renderEmulatorLog :: EmulatorTrace () -> ByteString
@@ -141,5 +142,5 @@ renderEmulatorLog trace =
             run
             $ foldEmulatorStreamM (L.generalize Folds.emulatorLog)
             $ filterLogLevel Info
-            $ Trace.runEmulatorStream Trace.defaultEmulatorConfig trace
+            $ Trace.runEmulatorStream def trace
     in BSL.fromStrict $ T.encodeUtf8 $ renderStrict $ layoutPretty defaultLayoutOptions $ vsep $ fmap pretty $ S.fst' result

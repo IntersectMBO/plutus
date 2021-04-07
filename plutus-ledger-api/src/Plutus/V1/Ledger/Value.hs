@@ -42,12 +42,14 @@ module Plutus.V1.Ledger.Value(
     , isZero
     , split
     , unionWith
+    , flattenValue
     ) where
 
 import qualified Prelude                          as Haskell
 
 import           Codec.Serialise.Class            (Serialise)
 import           Control.DeepSeq                  (NFData)
+import           Control.Monad                    (guard)
 import           Data.Aeson                       (FromJSON, FromJSONKey, ToJSON, ToJSONKey, (.:))
 import qualified Data.Aeson                       as JSON
 import qualified Data.Aeson.Extras                as JSON
@@ -151,7 +153,9 @@ and we serialize it base16 encoded, with 0x in front so it will look as a hex st
 
 instance ToJSON TokenName where
     toJSON = JSON.object . Haskell.pure . (,) "unTokenName" . JSON.toJSON .
-        fromTokenName (\bs -> Text.cons '\0' (asBase16 bs)) id
+        fromTokenName
+            (\bs -> Text.cons '\NUL' (asBase16 bs))
+            (\t -> case Text.take 1 t of "\NUL" -> Text.concat ["\NUL\NUL", t]; _ -> t)
 
 instance FromJSON TokenName where
     parseJSON =
@@ -159,9 +163,10 @@ instance FromJSON TokenName where
         raw <- object .: "unTokenName"
         fromJSONText raw
         where
-            fromJSONText t = case Text.take 1 t of
-                "\0" -> either fail (Haskell.pure . TokenName) . JSON.tryDecode . Text.drop 3 $ t
-                _    -> Haskell.pure . fromText $ t
+            fromJSONText t = case Text.take 3 t of
+                "\NUL0x"       -> either fail (Haskell.pure . TokenName) . JSON.tryDecode . Text.drop 3 $ t
+                "\NUL\NUL\NUL" -> Haskell.pure . fromText . Text.drop 2 $ t
+                _              -> Haskell.pure . fromText $ t
 
 makeLift ''TokenName
 
@@ -322,6 +327,15 @@ unionWith f ls rs =
             That b    -> f 0 b
             These a b -> f a b
     in Value (fmap (fmap unThese) combined)
+
+{-# INLINABLE flattenValue #-}
+-- | Convert a value to a simple list, keeping only the non-zero amounts.
+flattenValue :: Value -> [(CurrencySymbol, TokenName, Integer)]
+flattenValue v = do
+    (cs, m) <- Map.toList $ getValue v
+    (tn, a) <- Map.toList m
+    guard $ a /= 0
+    return (cs, tn, a)
 
 -- Num operations
 

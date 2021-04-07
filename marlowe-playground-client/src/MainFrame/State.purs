@@ -528,7 +528,7 @@ handleAction (DemosAction action@(Demos.LoadDemo lang (Demos.Demo key))) = do
     ( set _showModal Nothing
         <<< set _workflow (Just lang)
         <<< set _hasUnsavedChanges false
-        <<< set _contractMetadata emptyContractMetadata -- ToDo: Load metadata for example (SCP-1912)
+        <<< set _contractMetadata (fromMaybe emptyContractMetadata $ Map.lookup key StaticData.demoFilesMetadata)
     )
   selectView $ selectLanguageView lang
 
