@@ -19,22 +19,20 @@ locals {
 
   # SSH Keys
   ssh_keys = {
-    kris               = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDJKNcFtDKX585wipRkoQvMxLofmoyquVRw0HoWf7zKTokc1e6G/4EpBu/klEqoIsQDCsZtkpWQU90GFc1cAnA2mvJcbJIz8efedrk6onnai/MLZjRzTAMIbjXoASK3sUXUH00W7UdKImox0nPRmmuZUk0g9lLPrt4rpWndrTOqc7H81GtxntZiQVvtjpMObBrKGaBlyt7b6P4M/x63Z55LYpUPcZ0V3ww7BD5xnop977vRvHB7fGv87jWsWlh7gXnC1p1Ykid9l7uVu0gWqZKWeNIqLIo5gCDeJLkH4crX+QLBJebs8GYrLIDqIo7PFfAXPMX7PPbGYbBgLjgH5SlN kris@MacBook-Pro"
     live-infra-staging = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIJI+ej2JpsbxyCtScmGZWseA+TeHica1a1hGtTgrX/mi cardano@ip-172-31-26-83.eu-central-1.compute.internal"
     pablo              = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQCeNj/ZQL+nynseTe42O4G5rs4WqyJKEOMcuiVBki2XT/UuoLz40Lw4b54HtwFTaUQQa3zmSJN5u/5KC8TW8nIKF/7fYChqypX3KKBSqBJe0Gul9ncTqHmzpzrwERlh5GkYSH+nr5t8cUK1pBilscKbCxh5x6irOnUmosoKJDv68WKq8WLsjpRslV5/1VztBanFFOZdD3tfIph1Yn7j1DQP4NcT1cQGoBhO0b0vwHtz6vTY4SpHnYuwB1K4dQ3k+gYJUspn03byi/8KVvcerLKfXYFKR5uvRkHihlIwjlxL2FoXIkGhtlkFVFOx76CvEv8LU5AT1ueJ34C/qP6PSD//pezXkk3e4UGeQMLOUu507FjfjHjD4luxIInzBb1KLAjzxb+2B4JTHy2uUu1dpHXarqSyR3DAPcLqUjZajZ+6mQh7zNRgkwXyZqg9p2TOdfiH9dvrqPowocGJgfjsYnd9rfdQVc10h1zk4pP4pP/YhgMVzYYc/ytCqUP41zSsrtJI592PUS9/quDGfrUcuG4t06DJgevky5AGX2og+sR4e83UpgId/DdV/m1OIvuoS4iMrzN2XmZ7IaFxH03nWQPrndDJ3j9ZHiaZ9IyW0XwthJFXcaslL5w3c0+1y8blxhC0vHT4NUsf5vcY3pFrBsMbTt1yNIGcitnLhXC1k99JbQ=="
     hernan             = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQDR3qtsMDFjfMFBn+Xgic3cFLv5+wnKPTFV8ps3tlLnmJLPSVbhhXRYsn0ZDZtSbfSFyGWIEDLIBDp61DjkrO/qObv0hu9BOT54YSEUel89fTWHX2dEqUd0zEU9YvwHTVfIeuNOg3T7pcwtFSDCND/CE1o1rpYWWXshF10qrBVUuWJJxpJJF6LVVHD6xn6Yf6qR5PJ1WKJyR/+LL18FZuS4j0V0PJP1Kv1hHmlWM5v8N6IX+HQY/SdoB0e9xrOMbwFRTBxjpt2qeRVB7nskHnXEEBCm16aXi41XqdV+II1rkdY9oFPzjdNBTz7QHrf+1TIGiBIlhdC8tkbBtUPDZB/ywRtthM3o46dddxaVJnp1lqeVCDVckej4IYnRJTWYaFoG13peaIh+SXLGfLrdlWnjfzHx/4VmDfhpgi5Jmmfoel8S1n3cn4woEmbCK2aKWP1p8FCpY4QFICT5aJY3nkk0ciglbC58Q4sm3Pm3Hr3Stfe0RxZhQwosLAWX6kqr+EU= hrajchert@MacBook-Pro-de-Hernan.local"
     tobias             = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDEJLsCDY+XVTYMKBnVJtJmq7uDvXNZRuaaqMG1KRWSeFpeH8Uz2jWOuGgT5NCUQhafpQqwdhIIhWLLPVuBPJkoggqOc0VUh23jL71j1t285f7uRKytmN7BvoOV8o16Jiqgk1w4ugNFhgiu7hZNOIOoM7CgP855A4buzDxGM4QNTjAE2s5rmyyLsNzyL3863yccw0t3YDcvHF7hFkkJ5bGEc/aQOFo7bRFrgIGi6+EOSG7Pcx5Wh34C8mGQd8WwUQ9uQN722PINSVgxEE3WwuNqu8MjA06mwCmU4BKNB0FYm177oRkbNUWOQn4y+SFs6ajK+z6c1yNHDzwWoK80Vb5N gilligan@monoid"
+    quanterall         = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQDDF5kTWsBncwnTsJcLeFu9b6ZRfJmaf25HFFgQYlgM4cg4VwyxvftEkDxwESmQI38ESc7AGwewQpjI0fk/HB3yRid+UjNJxokipCIhZq/PF+0L3driNEMAoENCeXC/gzb922dMWtJ126DEPEc3vdIStD/ac9gcRxb+d/Zz1rACGEiOlx4XZeSBRxxEpHAQxfX7E3o2BoLpd35BvqM1HTpCXBLhuBcpshaKBQ602q3xP4gP7vuBJ1CzEGSo5fKWJHPQD6p0hk6sY7z1RFENviHn48LA1CMCizQF2npwpLh3pYTAxmiR1YMVgAi7Kn3I3zR4Gt27l1DbXjqRUmAMP1r/h+61RJU0af6X9WcfUniCpIpAZKxZhMPcKpKLk6kKSytvT5GNgCUXvzyZnQJgtqGrBMAZtYQdr7jkMOsiKSLXyk4uzldSi+uzbc1yRZKJNT//58RhauskZYAuzfzPMtJ5Wu6C79weJymnU+o06rs8XGCowarb/ZGgfFIsX8eH4CNMQ5mnWfp9/oNyBECGcl1ZEJJqA60ScvrzIitCNcxLJ6JcT/fvsESjUfwn4oIb+JcR8dBCI20ucV8TPzODi0D4vaDkxO7XdUVRTKosOE6z78m6gT0SpfxMR2gPSrfTG5hOxCYA9SoR9bNzIcr4pAoMu3pSENVMILgI4/b008CRZw== quanterall@deployer"
   }
 
   # Anyone who wants ssh access to a machine needs ssh access to the bastion hosts (i.e. both root and monitoring users should be in here)
   bastion_ssh_keys_ks = {
     alpha      = ["pablo"]
-    patrick    = ["kris"]
-    kris       = ["kris"]
     pablo      = ["pablo"]
-    prod       = ["live-infra-staging", "kris", "tobias"]
-    playground = ["live-infra-staging", "kris", "tobias"]
-    testing    = ["pablo", "kris", "tobias"]
+    prod       = ["live-infra-staging", "tobias"]
+    playground = ["live-infra-staging", "tobias"]
+    testing    = ["pablo", "tobias", "quanterall"]
     hernan     = ["hernan"]
     tobias     = ["tobias"]
   }
@@ -43,12 +41,10 @@ locals {
   # There is a special user with limited permissions that can log on to machines to view logs etc
   monitoring_ssh_keys_ks = {
     alpha      = ["pablo"]
-    patrick    = ["kris"]
-    kris       = ["kris"]
     pablo      = ["pablo"]
     prod       = ["live-infra-staging"]
-    playground = ["live-infra-staging", "kris"]
-    testing    = ["pablo", "kris"]
+    playground = ["live-infra-staging"]
+    testing    = ["pablo", "quanterall"]
     hernan     = ["hernan"]
     tobias     = ["tobias"]
   }
@@ -57,12 +53,10 @@ locals {
   # root users are able to deploy to the machines using morph
   root_ssh_keys_ks = {
     alpha      = ["pablo"]
-    patrick    = ["kris"]
-    kris       = ["kris"]
     pablo      = ["pablo"]
-    prod       = ["live-infra-staging", "kris"]
-    playground = ["live-infra-staging", "kris"]
-    testing    = ["pablo", "kris"]
+    prod       = ["live-infra-staging"]
+    playground = ["live-infra-staging"]
+    testing    = ["pablo", "quanterall"]
     hernan     = ["hernan"]
     tobias     = ["tobias"]
   }

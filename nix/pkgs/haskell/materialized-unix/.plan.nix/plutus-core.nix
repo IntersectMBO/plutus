@@ -174,6 +174,7 @@
           "UntypedPlutusCore/Rename/Internal"
           "UntypedPlutusCore/Size"
           "UntypedPlutusCore/Subst"
+          "UntypedPlutusCore/Transform/Simplify"
           "Data/Aeson/THReader"
           "Data/Functor/Foldable/Monadic"
           "PlutusCore"
@@ -379,6 +380,7 @@
             "Evaluation/ApplyBuiltinName"
             "Evaluation/Golden"
             "Evaluation/Machines"
+            "Transform/Simplify"
             ];
           hsSourceDirs = [ "untyped-plutus-core/test" ];
           mainPath = [ "Spec.hs" ];

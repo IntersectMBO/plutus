@@ -1,7 +1,7 @@
 let
   sources = import ../../../nix/sources.nix;
   sshKeys = import ./ssh-keys.nix;
-  rootSshKeys = with sshKeys; [ kris pablo hernan ];
+  rootSshKeys = with sshKeys; [ pablo hernan ];
   stdOverlays = [ ];
   nixpkgsLocation = sources.nixpkgs.url;
   defaultMachine = (import ./default-machine.nix) { inherit rootSshKeys stdOverlays nixpkgsLocation; };

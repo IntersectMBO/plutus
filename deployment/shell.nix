@@ -114,7 +114,7 @@ let
         ${terraform}/bin/terraform destroy ./terraform
       '';
 
-      # deploy-nix: wrapper around executing `morph deploy` 
+      # deploy-nix: wrapper around executing `morph deploy`
       # - Checks if `machines.json` is present - aborts if not
       # - Checks if terraform is up to date - aborts if not
       # - Writes ssh configuration and copies secrets to the morph config directory
@@ -153,22 +153,17 @@ let
         echo "[deploy-nix]: Writing plutus secrets ..."
         plutus_tld=$(cat ./machines.json | ${jq}/bin/jq -r '.plutusTld')
         cat > ./morph/secrets.plutus.$DEPLOYMENT_ENV.env <<EOL
-        JWT_SIGNATURE="$(pass $DEPLOYMENT_ENV/plutus/jwtSignature)"
-        FRONTEND_URL="https://$DEPLOYMENT_ENV.$plutus_tld"
-        GITHUB_CALLBACK_PATH="/#/gh-oauth-cb"
-        GITHUB_CLIENT_ID="$(pass $DEPLOYMENT_ENV/plutus/githubClientId)"
-        GITHUB_CLIENT_SECRET="$(pass $DEPLOYMENT_ENV/plutus/githubClientSecret)"
-        WEBGHC_URL="https://$DEPLOYMENT_ENV.$plutus_tld"
+        export JWT_SIGNATURE="$(pass $DEPLOYMENT_ENV/plutus/jwtSignature)"
+        export GITHUB_CLIENT_ID="$(pass $DEPLOYMENT_ENV/plutus/githubClientId)"
+        export GITHUB_CLIENT_SECRET="$(pass $DEPLOYMENT_ENV/plutus/githubClientSecret)"
         EOL
 
         echo "[deploy-nix]: Writing marlowe secrets ..."
         marlowe_tld=$(cat ./machines.json | ${jq}/bin/jq -r '.marloweTld')
         cat > ./morph/secrets.marlowe.$DEPLOYMENT_ENV.env <<EOL
         JWT_SIGNATURE="$(pass $DEPLOYMENT_ENV/marlowe/jwtSignature)"
-        FRONTEND_URL="https://$DEPLOYMENT_ENV.$marlowe_tld"
-        GITHUB_CALLBACK_PATH="/#/gh-oauth-cb"
-        GITHUB_CLIENT_ID="$(pass $DEPLOYMENT_ENV/marlowe/githubClientId)"
-        GITHUB_CLIENT_SECRET="$(pass $DEPLOYMENT_ENV/marlowe/githubClientSecret)"
+        export GITHUB_CLIENT_ID="$(pass $DEPLOYMENT_ENV/marlowe/githubClientId)"
+        export GITHUB_CLIENT_SECRET="$(pass $DEPLOYMENT_ENV/marlowe/githubClientSecret)"
         EOL
 
         # in order for morph to be able to access any of the machines
@@ -181,8 +176,15 @@ let
         mkdir -p ~/.ssh/config.d
         cp plutus_playground.$DEPLOYMENT_ENV.conf ~/.ssh/config.d/
 
+        #
+        # Note: there appears to be some timing issue with how morph executes
+        # the health-checks. In order to circumvent this we split these steps in two
+        # 1. deployment without health-checks
+        # 2. health-checks only
+        #
         echo "[deploy-nix]: Starting deployment ..."
-        ${morph}/bin/morph deploy --upload-secrets ./morph/default.nix switch
+        ${morph}/bin/morph deploy --skip-health-checks --upload-secrets ./morph/network.nix switch
+        ${morph}/bin/morph check-health ./morph/network.nix
       '';
 
       # deploy: combine terraform provisioning and morph deployment

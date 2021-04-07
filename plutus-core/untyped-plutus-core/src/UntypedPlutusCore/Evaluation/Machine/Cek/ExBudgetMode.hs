@@ -14,6 +14,7 @@ module UntypedPlutusCore.Evaluation.Machine.Cek.ExBudgetMode
     , RestrictingSt (..)
     , Hashable
     , counting
+    , enormousBudget
     , tallying
     , restricting
     , restrictingEnormous
