@@ -78,7 +78,7 @@ runChainEffects trace clientHandler stateVar eff = do
             & mergeState
             & toWriter
             & runReaders oldAppState
-            & LM.handleLogMsgTrace trace
+            & interpret (LM.handleLogMsgTrace trace)
             & runM
     liftIO $ putMVar stateVar newState
     pure (events, a)

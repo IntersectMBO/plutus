@@ -21,7 +21,7 @@ import MainFrame.State (mkMainFrame)
 import MainFrame.Types (Action(..), Msg(..), Query(..))
 import MainFrame.Types as MainFrame
 import Plutus.PAB.Webserver (SPParams_(SPParams_))
-import Plutus.PAB.Webserver.Types (StreamToClient, StreamToServer)
+import Plutus.PAB.Webserver.Types (CombinedWSStreamToClient, CombinedWSStreamToServer)
 import Servant.PureScript.Settings (SPSettingsDecodeJson_(..), SPSettingsEncodeJson_(..), SPSettings_(..), defaultSettings)
 import WebSocket.Support (WebSocketManager, mkWebSocketManager)
 import WebSocket.Support as WS
@@ -48,7 +48,7 @@ main = do
     body <- awaitBody
     driver <- runUI mainFrame Init body
     void $ forkAff $ runProcess watchLocalStorageProcess
-    wsManager :: WebSocketManager StreamToClient StreamToServer <- mkWebSocketManager
+    wsManager :: WebSocketManager CombinedWSStreamToClient CombinedWSStreamToServer <- mkWebSocketManager
     void
       $ forkAff
       $ WS.runWebSocketManager (WS.URI "/ws") (\msg -> void $ driver.query $ ReceiveWebSocketMessage msg unit) wsManager

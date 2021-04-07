@@ -112,6 +112,7 @@
           (hsPkgs."iohk-monitoring" or (errorHandler.buildDepError "iohk-monitoring"))
           (hsPkgs."lobemo-backend-ekg" or (errorHandler.buildDepError "lobemo-backend-ekg"))
           (hsPkgs."exceptions" or (errorHandler.buildDepError "exceptions"))
+          (hsPkgs."data-default" or (errorHandler.buildDepError "data-default"))
           ];
         buildable = true;
         modules = [
@@ -142,26 +143,31 @@
           "Cardano/Wallet/Server"
           "Cardano/Wallet/Types"
           "Control/Monad/Freer/Delay"
-          "Control/Monad/Freer/WebSocket"
           "Control/Concurrent/Availability"
           "Data/Time/Units/Extra"
           "Plutus/PAB/App"
-          "Plutus/PAB/MockApp"
           "Plutus/PAB/Arbitrary"
-          "Plutus/PAB/Command"
           "Plutus/PAB/ContractCLI"
           "Plutus/PAB/Core"
           "Plutus/PAB/Core/ContractInstance"
+          "Plutus/PAB/Core/ContractInstance/BlockchainEnv"
+          "Plutus/PAB/Core/ContractInstance/RequestHandlers"
           "Plutus/PAB/Core/ContractInstance/STM"
-          "Plutus/PAB/Core/Projections"
+          "Plutus/PAB/Db/Eventful"
+          "Plutus/PAB/Db/Eventful/Command"
+          "Plutus/PAB/Db/Eventful/ContractDefinitionStore"
+          "Plutus/PAB/Db/Eventful/ContractStore"
+          "Plutus/PAB/Db/Eventful/Query"
           "Plutus/PAB/Effects/Contract"
-          "Plutus/PAB/Effects/ContractTest"
+          "Plutus/PAB/Effects/Contract/ContractTest"
+          "Plutus/PAB/Effects/Contract/Builtin"
+          "Plutus/PAB/Effects/Contract/ContractExe"
           "Plutus/PAB/Effects/ContractRuntime"
           "Plutus/PAB/Effects/ContractTest/AtomicSwap"
           "Plutus/PAB/Effects/ContractTest/PayToWallet"
           "Plutus/PAB/Effects/EventLog"
-          "Plutus/PAB/Effects/MultiAgent"
           "Plutus/PAB/Effects/UUID"
+          "Plutus/PAB/Effects/TimeEffect"
           "Plutus/PAB/Instances"
           "Plutus/PAB/Monitoring/MonadLoggerBridge"
           "Plutus/PAB/Monitoring/Monitoring"
@@ -175,11 +181,9 @@
           "Plutus/PAB/Webserver/WebSocket"
           "Plutus/PAB/Events"
           "Plutus/PAB/Events/Contract"
-          "Plutus/PAB/Events/Node"
-          "Plutus/PAB/Events/User"
-          "Plutus/PAB/Events/Wallet"
+          "Plutus/PAB/Events/ContractInstanceState"
           "Plutus/PAB/ParseStringifiedJSON"
-          "Plutus/PAB/Query"
+          "Plutus/PAB/Simulator"
           "Plutus/PAB/Types"
           ];
         hsSourceDirs = [ "src" ];
@@ -208,6 +212,7 @@
             (hsPkgs."purescript-bridge" or (errorHandler.buildDepError "purescript-bridge"))
             (hsPkgs."row-types" or (errorHandler.buildDepError "row-types"))
             (hsPkgs."servant-purescript" or (errorHandler.buildDepError "servant-purescript"))
+            (hsPkgs."servant-server" or (errorHandler.buildDepError "servant-server"))
             (hsPkgs."text" or (errorHandler.buildDepError "text"))
             (hsPkgs."unliftio-core" or (errorHandler.buildDepError "unliftio-core"))
             (hsPkgs."uuid" or (errorHandler.buildDepError "uuid"))

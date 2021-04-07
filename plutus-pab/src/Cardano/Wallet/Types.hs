@@ -47,17 +47,16 @@ import           Data.Map.Strict                    (Map)
 import           Data.Text                          (Text)
 import           Data.Text.Prettyprint.Doc          (Pretty (..), (<+>))
 import           GHC.Generics                       (Generic)
-import           Ledger                             (PrivateKey)
 import           Plutus.PAB.Arbitrary               ()
 import           Servant                            (ServerError (..))
 import           Servant.Client                     (BaseUrl, ClientError)
 import           Servant.Client.Internal.HttpClient (ClientEnv)
 import           Wallet.Effects                     (ChainIndexEffect, NodeClientEffect, WalletEffect)
 import           Wallet.Emulator.Error              (WalletAPIError)
-import           Wallet.Emulator.Wallet             (Wallet)
+import           Wallet.Emulator.Wallet             (Wallet, WalletState)
 
 
-type Wallets = Map Wallet PrivateKey
+type Wallets = Map Wallet WalletState
 
 data MultiWalletEffect r where
     CreateWallet :: MultiWalletEffect Wallet

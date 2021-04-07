@@ -8,20 +8,21 @@
 
 module Cardano.Wallet.Client where
 
-import           Cardano.Wallet.API        (API)
-import           Control.Monad             (void)
+import           Cardano.Wallet.API         (API)
+import           Control.Monad              (void)
 import           Control.Monad.Freer
-import           Control.Monad.Freer.Error (Error, throwError)
-import           Control.Monad.IO.Class    (MonadIO (..))
-import           Data.Proxy                (Proxy (Proxy))
-import           Ledger                    (PubKey, Value)
-import           Ledger.AddressMap         (UtxoMap)
-import           Ledger.Slot               (Slot)
-import           Ledger.Tx                 (Tx)
-import           Servant                   ((:<|>) (..))
-import           Servant.Client            (ClientEnv, ClientError, ClientM, client, runClientM)
-import           Wallet.Effects            (Payment (..), WalletEffect (..))
-import           Wallet.Emulator.Wallet    (Wallet)
+import           Control.Monad.Freer.Error  (Error, throwError)
+import           Control.Monad.Freer.Reader (Reader, ask)
+import           Control.Monad.IO.Class     (MonadIO (..))
+import           Data.Proxy                 (Proxy (Proxy))
+import           Ledger                     (PubKey, Value)
+import           Ledger.AddressMap          (UtxoMap)
+import           Ledger.Slot                (Slot)
+import           Ledger.Tx                  (Tx)
+import           Servant                    ((:<|>) (..))
+import           Servant.Client             (ClientEnv, ClientError, ClientM, client, runClientM)
+import           Wallet.Effects             (Payment (..), WalletEffect (..))
+import           Wallet.Emulator.Wallet     (Wallet (..))
 
 createWallet :: ClientM Wallet
 submitTxn :: Wallet -> Tx -> ClientM ()
@@ -29,15 +30,17 @@ ownPublicKey :: Wallet -> ClientM PubKey
 updatePaymentWithChange :: Wallet -> (Value, Payment) -> ClientM Payment
 walletSlot :: Wallet -> ClientM Slot
 ownOutputs :: Wallet -> ClientM UtxoMap
+totalFunds :: Wallet -> ClientM Value
 sign :: Wallet -> Tx -> ClientM Tx
-(createWallet, submitTxn, ownPublicKey, updatePaymentWithChange, walletSlot, ownOutputs, sign) =
+(createWallet, submitTxn, ownPublicKey, updatePaymentWithChange, walletSlot, ownOutputs, totalFunds, sign) =
   ( createWallet_
-  , \wid tx -> void (submitTxn_ wid tx)
-  , ownPublicKey_
-  , updatePaymentWithChange_
-  , walletSlot_
-  , ownOutputs_
-  , sign_)
+  , \(Wallet wid) tx -> void (submitTxn_ wid tx)
+  , ownPublicKey_ . getWallet
+  , \(Wallet w) -> updatePaymentWithChange_ w
+  , walletSlot_ . getWallet
+  , ownOutputs_ . getWallet
+  , totalFunds_ . getWallet
+  , \(Wallet w) -> sign_ w)
   where
     ( createWallet_
       :<|> (submitTxn_
@@ -45,23 +48,25 @@ sign :: Wallet -> Tx -> ClientM Tx
       :<|> updatePaymentWithChange_
       :<|> walletSlot_
       :<|> ownOutputs_
-      :<|> sign_)) = client (Proxy @API)
+      :<|> totalFunds_
+      :<|> sign_)) = client (Proxy @(API Integer))
 
 handleWalletClient ::
   forall m effs.
   ( LastMember m effs
   , MonadIO m
   , Member (Error ClientError) effs
+  , Member (Reader ClientEnv) effs
   )
-  => ClientEnv
-  -> Wallet
+  => Wallet
   -> WalletEffect
   ~> Eff effs
-handleWalletClient clientEnv wallet =
+handleWalletClient wallet event = do
+    clientEnv <- ask @ClientEnv
     let
         runClient :: forall a. ClientM a -> Eff effs a
         runClient a = (sendM $ liftIO $ runClientM a clientEnv) >>= either throwError pure
-    in \case
+    case event of
         SubmitTxn t                    -> runClient (submitTxn wallet t)
         OwnPubKey                      -> runClient (ownPublicKey wallet)
         UpdatePaymentWithChange vl pmt -> runClient $ updatePaymentWithChange wallet (vl, pmt)

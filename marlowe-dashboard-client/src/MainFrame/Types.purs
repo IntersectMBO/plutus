@@ -17,7 +17,7 @@ import Marlowe.Semantics (PubKey)
 import Network.RemoteData (RemoteData)
 import Pickup.Types (Action, State) as Pickup
 import Play.Types (Action, State) as Play
-import Plutus.PAB.Webserver.Types (StreamToClient, StreamToServer)
+import Plutus.PAB.Webserver.Types (CombinedWSStreamToClient, CombinedWSStreamToServer)
 import Servant.PureScript.Ajax (AjaxError)
 import WalletData.Types (Nickname, WalletLibrary)
 import Web.Socket.Event.CloseEvent (CloseEvent, reason) as WS
@@ -55,10 +55,10 @@ type ChildSlots
 
 ------------------------------------------------------------
 data Query a
-  = ReceiveWebSocketMessage (WS.FromSocket StreamToClient) a
+  = ReceiveWebSocketMessage (WS.FromSocket CombinedWSStreamToClient) a
 
 data Msg
-  = SendWebSocketMessage StreamToServer
+  = SendWebSocketMessage CombinedWSStreamToServer
 
 ------------------------------------------------------------
 data Action

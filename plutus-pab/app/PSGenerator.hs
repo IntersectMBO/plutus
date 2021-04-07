@@ -22,6 +22,7 @@ import           Control.Monad.Freer.Extras.Log             (LogLevel, LogMessag
 import qualified Data.Aeson.Encode.Pretty                   as JSON
 import qualified Data.ByteString.Lazy                       as BSL
 import           Data.Proxy                                 (Proxy (Proxy))
+import qualified Data.Text                                  as Text
 import           Language.PureScript.Bridge                 (BridgePart, Language (Haskell), SumType,
                                                              TypeInfo (TypeInfo), buildBridge, equal, genericShow,
                                                              haskType, mkSumType, order, typeModule, typeName,
@@ -42,28 +43,27 @@ import           Plutus.Contract.Effects.WriteTx            (WriteTxResponse)
 import           Plutus.Contract.Resumable                  (Responses)
 import           Plutus.Contract.State                      (ContractRequest, State)
 import           Plutus.Contracts.Currency                  (SimpleMPS (..))
-import           Plutus.PAB.Core                            (activateContract, callContractEndpoint, installContract)
-import           Plutus.PAB.Effects.ContractTest            (TestContracts (Currency, Game))
-import           Plutus.PAB.Effects.MultiAgent              (agentAction)
-import           Plutus.PAB.Events                          (ChainEvent, ContractPABRequest, csContract)
-import           Plutus.PAB.Events.Contract                 (ContractEvent, ContractInstanceState, ContractResponse,
-                                                             PartiallyDecodedResponse)
-import           Plutus.PAB.Events.Node                     (NodeEvent)
-import           Plutus.PAB.Events.User                     (UserEvent)
-import           Plutus.PAB.Events.Wallet                   (WalletEvent)
-import           Plutus.PAB.MockApp                         (defaultWallet)
-import qualified Plutus.PAB.MockApp                         as MockApp
-import           Plutus.PAB.Types                           (ContractExe)
+import           Plutus.PAB.Effects.Contract.ContractExe    (ContractExe)
+import           Plutus.PAB.Effects.Contract.ContractTest   (TestContracts (Currency, Game))
+import           Plutus.PAB.Events                          (PABEvent)
+import           Plutus.PAB.Events.Contract                 (ContractInstanceId (..), ContractPABRequest,
+                                                             ContractResponse)
+import           Plutus.PAB.Events.ContractInstanceState    (PartiallyDecodedResponse)
+import qualified Plutus.PAB.Simulator                       as Simulator
 import qualified Plutus.PAB.Webserver.API                   as API
 import qualified Plutus.PAB.Webserver.Handler               as Webserver
-import           Plutus.PAB.Webserver.Types                 (ChainReport, ContractReport, ContractSignatureResponse,
-                                                             FullReport, StreamToClient, StreamToServer)
+import           Plutus.PAB.Webserver.Types                 (ChainReport, CombinedWSStreamToClient,
+                                                             CombinedWSStreamToServer, ContractActivationArgs,
+                                                             ContractInstanceClientState, ContractReport,
+                                                             ContractSignatureResponse, FullReport,
+                                                             InstanceStatusToClient)
+import           Servant                                    ((:<|>))
 import           Servant.PureScript                         (HasBridge, Settings, _generateSubscriberAPI, apiModuleName,
                                                              defaultBridge, defaultSettings, languageBridge,
                                                              writeAPIModuleWithSettings)
 import           System.FilePath                            ((</>))
 import           Wallet.Effects                             (AddressChangeRequest (..), AddressChangeResponse (..))
-import qualified Wallet.Emulator.Chain                      as Chain
+import           Wallet.Emulator.Wallet                     (Wallet (..))
 
 myBridge :: BridgePart
 myBridge =
@@ -106,21 +106,13 @@ myTypes =
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @(FullReport A))
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @ChainReport)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @(ContractReport A))
-    , (equal <*> (genericShow <*> mkSumType)) (Proxy @(ChainEvent A))
-    , (equal <*> (genericShow <*> mkSumType)) (Proxy @StreamToServer)
-    , (equal <*> (genericShow <*> mkSumType)) (Proxy @StreamToClient)
-    , (equal <*> (genericShow <*> mkSumType)) (Proxy @(ContractInstanceState A))
     , (equal <*> (genericShow <*> mkSumType))
           (Proxy @(ContractSignatureResponse A))
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @(PartiallyDecodedResponse A))
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @(ContractRequest A))
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @ContractPABRequest)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @ContractResponse)
-    , (equal <*> (genericShow <*> mkSumType)) (Proxy @(ContractEvent A))
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @UnbalancedTx)
-    , (equal <*> (genericShow <*> mkSumType)) (Proxy @NodeEvent)
-    , (equal <*> (genericShow <*> mkSumType)) (Proxy @(UserEvent A))
-    , (equal <*> (genericShow <*> mkSumType)) (Proxy @WalletEvent)
 
     -- Contract request / response types
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @ActiveEndpoint)
@@ -149,6 +141,14 @@ myTypes =
     , (order <*> (genericShow <*> mkSumType)) (Proxy @PropertyKey)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @HashFunction)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @(AnnotatedSignature A))
+
+    -- * Web API types
+    , (equal <*> (genericShow <*> mkSumType)) (Proxy @(PABEvent A))
+    , (equal <*> (genericShow <*> mkSumType)) (Proxy @(ContractActivationArgs A))
+    , (genericShow <*> mkSumType) (Proxy @ContractInstanceClientState)
+    , (genericShow <*> mkSumType) (Proxy @InstanceStatusToClient)
+    , (genericShow <*> mkSumType) (Proxy @CombinedWSStreamToClient)
+    , (genericShow <*> mkSumType) (Proxy @CombinedWSStreamToServer)
     ]
 
 mySettings :: Settings
@@ -156,33 +156,23 @@ mySettings =
     (defaultSettings & set apiModuleName "Plutus.PAB.Webserver")
         {_generateSubscriberAPI = False}
 
+defaultWallet :: Wallet
+defaultWallet = Wallet 1
+
 ------------------------------------------------------------
 writeTestData :: FilePath -> IO ()
 writeTestData outputDir = do
     (fullReport, currencySchema) <-
-        MockApp.runScenario $ do
-            result <-
-                agentAction defaultWallet $ do
-                    installContract @TestContracts Currency
-                    installContract @TestContracts Game
-                    --
-                    currencyInstance1 <- activateContract Currency
-                    void $ activateContract Currency
-                    void $ activateContract Game
-                    --
-                    void $
-                        callContractEndpoint
-                            @TestContracts
-                            (csContract currencyInstance1)
-                            "Create native token"
-                            SimpleMPS {tokenName = "TestCurrency", amount = 10000000000}
-                    --
-                    report :: FullReport TestContracts <- Webserver.getFullReport
-                    schema :: ContractSignatureResponse TestContracts <-
-                        Webserver.contractSchema (csContract currencyInstance1)
-                    pure (report, schema)
-            void Chain.processBlock
-            pure result
+        fmap (either (error . show) id) $ Simulator.runSimulation $ do
+            currencyInstance1 <- Simulator.activateContract defaultWallet Currency
+            void $ Simulator.activateContract defaultWallet Currency
+            void $ Simulator.activateContract defaultWallet Game
+            void $ Simulator.waitForEndpoint currencyInstance1 "Create native token"
+            void $ Simulator.callEndpointOnInstance currencyInstance1 "Create native token" SimpleMPS {tokenName = "TestCurrency", amount = 10000000000}
+            void $ Simulator.waitUntilFinished currencyInstance1
+            report :: FullReport TestContracts <- Webserver.getFullReport
+            schema :: ContractSignatureResponse TestContracts <- Webserver.contractSchema (Text.pack $ show $ unContractInstanceId currencyInstance1)
+            pure (report, schema)
     BSL.writeFile
         (outputDir </> "full_report_response.json")
         (JSON.encodePretty fullReport)
@@ -197,7 +187,7 @@ generate outputDir = do
         mySettings
         outputDir
         myBridgeProxy
-        (Proxy @(API.API ContractExe))
+        (Proxy @(API.API ContractExe :<|> API.NewAPI ContractExe Text.Text :<|> (API.WalletProxy Text.Text)))
     writePSTypesWith
         (genForeign (ForeignOptions {unwrapSingleConstructors = True}))
         outputDir

@@ -35,7 +35,7 @@ import Pickup.Types (Action(..), Card(..)) as Pickup
 import Play.Lenses (_allContracts)
 import Play.State (handleAction, mkInitialState) as Play
 import Play.Types (Action(..)) as Play
-import Plutus.PAB.Webserver.Types (StreamToClient(..))
+import Plutus.PAB.Webserver.Types (CombinedWSStreamToClient(..))
 import Servant.PureScript.Ajax (AjaxError)
 import StaticData (walletDetailsLocalStorageKey, walletLibraryLocalStorageKey)
 import Template.State (handleAction) as Template
@@ -81,12 +81,9 @@ handleQuery (ReceiveWebSocketMessage msg next) = do
     (WS.ReceiveMessage (Left errors)) -> pure unit -- failed to decode message, do nothing for now
     -- TODO: This is where the main logic of dealing with messages goes
     (WS.ReceiveMessage (Right stc)) -> case stc of
-      (NewChainReport report) -> pure unit
-      (NewContractReport report) -> pure unit
-      (NewChainEvents events) -> pure unit
-      (FetchedProperties subjectProperties) -> pure unit
-      (FetchedProperty subject properties) -> pure unit
-      (ErrorResponse error) -> pure unit
+      (InstanceUpdate contractInstanceId instanceStatusToClient) -> pure unit
+      (SlotChange slot) -> pure unit
+      (WalletFundsChange wallet value) -> pure unit
   pure $ Just next
 
 -- FIXME: We need to discuss if we should remove this after we connect to the PAB. In case we do,
