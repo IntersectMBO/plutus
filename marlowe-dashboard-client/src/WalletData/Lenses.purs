@@ -16,7 +16,8 @@ import Data.Lens.Record (prop)
 import Data.Symbol (SProxy(..))
 import MainFrame.Types (WebData)
 import Marlowe.Semantics (Assets, PubKey)
-import WalletData.Types (ContractInstanceId, NewWalletDetails, Wallet, WalletDetails, WalletNickname)
+import Marlowe.Types (ContractInstanceId)
+import WalletData.Types (NewWalletDetails, Wallet, WalletDetails, WalletNickname)
 
 _walletNicknameString :: Lens' NewWalletDetails String
 _walletNicknameString = prop (SProxy :: SProxy "walletNicknameString")

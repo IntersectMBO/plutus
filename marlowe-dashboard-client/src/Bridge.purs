@@ -14,7 +14,9 @@ import Data.Map (Map, fromFoldable, toUnfoldable) as Front
 import Data.Tuple (Tuple)
 import Data.Tuple.Nested ((/\))
 import Marlowe.Semantics (Assets(..), Slot(..)) as Front
+import Marlowe.Types (ContractInstanceId(..), ContractInstanceClientState(..)) as Front
 import Network.RemoteData (RemoteData)
+import Plutus.PAB.Webserver.Types (ContractInstanceClientState(..)) as Back
 import Plutus.V1.Ledger.Crypto (PubKey(..)) as Back
 import Plutus.V1.Ledger.Slot (Slot(..)) as Back
 import Plutus.V1.Ledger.Value (CurrencySymbol(..), TokenName(..), Value(..)) as Back
@@ -23,7 +25,7 @@ import Servant.PureScript.Ajax (AjaxError)
 import Wallet.Emulator.Wallet (Wallet(..)) as Back
 import Wallet.Types (ContractInstanceId(..)) as Back
 import Wallet.Types (Payment)
-import WalletData.Types (ContractInstanceId(..), Wallet(..)) as Front
+import WalletData.Types (Wallet(..)) as Front
 
 -- | Servant.PureScript generates PureScript types from the Haskell codebase with JSON encode and decode instances
 --   that in principle enable easy communication between the (frontend) PureScript and (backend) Haskell code.
@@ -59,6 +61,10 @@ instance tupleBridge :: (Bridge a c, Bridge b d) => Bridge (Tuple a b) (Tuple c 
 instance jsonTupleBridge :: (Bridge a c, Bridge b d) => Bridge (JsonTuple a b) (JsonTuple c d) where
   toFront (JsonTuple tuple) = JsonTuple $ toFront tuple
   toBack (JsonTuple tuple) = JsonTuple $ toBack tuple
+
+instance arrayBridge :: Bridge a b => Bridge (Array a) (Array b) where
+  toFront = map toFront
+  toBack = map toBack
 
 instance mapBridge :: (Ord a, Ord c, Bridge a c, Bridge b d) => Bridge (Back.Map a b) (Front.Map c d) where
   toFront map = Front.fromFoldable $ toFront <$> Back.toTuples map

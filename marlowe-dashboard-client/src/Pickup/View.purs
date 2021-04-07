@@ -6,12 +6,15 @@ import Css as Css
 import Data.Foldable (foldMap)
 import Data.Lens (view)
 import Data.Maybe (Maybe(..), isJust, isNothing)
+import Data.Newtype (unwrap)
+import Data.UUID (toString) as UUID
 import Halogen.HTML (HTML, a, button, div, div_, footer, header, hr, img, input, label, main, p, text)
 import Halogen.HTML.Events.Extra (onClick_, onValueInput_)
 import Halogen.HTML.Properties (InputType(..), disabled, for, href, id_, list, placeholder, readOnly, src, type_, value)
 import Logo (marloweRunLogo)
 import MainFrame.Lenses (_card)
 import Material.Icons (Icon(..), icon_)
+import Network.RemoteData (RemoteData(..))
 import Pickup.Types (Action(..), Card(..), State)
 import Prim.TypeError (class Warn, Text)
 import WalletData.Lenses (_contractInstanceId, _contractInstanceIdString, _remoteDataPubKey, _remoteDataAssets, _remoteDataWallet, _walletNickname, _walletNicknameString)
@@ -116,6 +119,20 @@ pickupNewWalletCard wallets newWalletDetails =
               [ text $ foldMap show mContractInstanceIdError ]
           ]
       , div
+          []
+          [ text
+              $ case remoteDataWallet of
+                  Success wallet -> show $ unwrap wallet
+                  _ -> "whoops"
+          ]
+      , div
+          []
+          [ text
+              $ case remoteDataPubKey of
+                  Success pubKey -> pubKey
+                  _ -> "whoops"
+          ]
+      , div
           [ classNames [ "flex" ] ]
           [ button
               [ classNames $ Css.secondaryButton <> [ "flex-1", "mr-4" ]
@@ -136,7 +153,7 @@ pickupWalletCard walletDetails =
   let
     nickname = view _walletNickname walletDetails
 
-    contractId = view _contractInstanceId walletDetails
+    contractInstanceId = view _contractInstanceId walletDetails
   in
     div [ classNames [ "p-5", "pb-6", "md:pb-8" ] ]
       [ p
@@ -168,7 +185,7 @@ pickupWalletCard walletDetails =
               [ type_ InputText
               , classNames $ Css.input false
               , id_ "walletId"
-              , value "" -- TODO convert $ view _contractInstanceId walletDetails to string
+              , value $ UUID.toString $ unwrap contractInstanceId
               , readOnly true
               ]
           ]

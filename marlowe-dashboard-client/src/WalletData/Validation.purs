@@ -14,8 +14,9 @@ import Data.String.CodeUnits (toCharArray)
 import Data.UUID (parseUUID)
 import MainFrame.Types (WebData)
 import Marlowe.Semantics (Assets, PubKey)
+import Marlowe.Types (ContractInstanceId(..))
 import Network.RemoteData (RemoteData(..))
-import WalletData.Types (ContractInstanceId(..), Wallet, WalletNickname, WalletLibrary)
+import WalletData.Types (Wallet, WalletNickname, WalletLibrary)
 
 data WalletNicknameError
   = EmptyWalletNickname

@@ -3,7 +3,8 @@ module Capability.Contract
   , activateContract
   , getContractInstance
   , invokeEndpoint
-  , getContractInstances
+  , getWalletContractInstances
+  , getAllContractInstances
   , getContractDefinitions
   ) where
 
@@ -17,10 +18,11 @@ import Data.RawJson (RawJson)
 import Data.UUID (toString) as UUID
 import Halogen (HalogenM)
 import MainFrame.Types (WebData)
+import Marlowe.Types (ContractInstanceId)
 import Plutus.PAB.Effects.Contract.ContractExe (ContractExe)
-import Plutus.PAB.Webserver (postApiNewContractActivate, getApiNewContractInstanceByContractinstanceidStatus, postApiNewContractInstanceByContractinstanceidEndpointByEndpointname, getApiNewContractInstances, getApiNewContractDefinitions)
+import Plutus.PAB.Webserver (getApiNewContractDefinitions, getApiNewContractInstanceByContractinstanceidStatus, getApiNewContractInstances, getApiNewContractInstancesWalletByWalletid, postApiNewContractActivate, postApiNewContractInstanceByContractinstanceidEndpointByEndpointname)
 import Plutus.PAB.Webserver.Types (ContractActivationArgs, ContractInstanceClientState, ContractSignatureResponse)
-import WalletData.Types (ContractInstanceId)
+import WalletData.Types (Wallet)
 
 -- The PAB PSGenerator (using Servant.PureScript) automatically generates a PureScript module with
 -- functions for calling all PAB API endpoints. This `MonadContract` class wraps these up in a
@@ -31,7 +33,8 @@ class
   activateContract :: ContractActivationArgs ContractExe -> m (WebData ContractInstanceId)
   getContractInstance :: ContractInstanceId -> m (WebData ContractInstanceClientState)
   invokeEndpoint :: RawJson -> ContractInstanceId -> String -> m (WebData Unit)
-  getContractInstances :: m (WebData (Array ContractInstanceClientState))
+  getWalletContractInstances :: Wallet -> m (WebData (Array ContractInstanceClientState))
+  getAllContractInstances :: m (WebData (Array ContractInstanceClientState))
   getContractDefinitions :: m (WebData (Array (ContractSignatureResponse ContractExe)))
 
 instance monadContractAppM :: MonadContract AppM where
@@ -45,7 +48,10 @@ instance monadContractAppM :: MonadContract AppM where
   invokeEndpoint rawJson contractInstanceId endpointDescriptionString =
     runAjax
       $ postApiNewContractInstanceByContractinstanceidEndpointByEndpointname rawJson (UUID.toString $ unwrap contractInstanceId) endpointDescriptionString
-  getContractInstances =
+  getWalletContractInstances wallet =
+    runAjax
+      $ getApiNewContractInstancesWalletByWalletid (show $ unwrap wallet)
+  getAllContractInstances =
     runAjax
       $ getApiNewContractInstances
   getContractDefinitions =
@@ -56,5 +62,6 @@ instance monadContractHalogenM :: MonadContract m => MonadContract (HalogenM sta
   activateContract = lift <<< activateContract
   getContractInstance = lift <<< getContractInstance
   invokeEndpoint payload contractInstanceId endpointDescription = lift $ invokeEndpoint payload contractInstanceId endpointDescription
-  getContractInstances = lift getContractInstances
+  getWalletContractInstances = lift <<< getWalletContractInstances
+  getAllContractInstances = lift getAllContractInstances
   getContractDefinitions = lift getContractDefinitions

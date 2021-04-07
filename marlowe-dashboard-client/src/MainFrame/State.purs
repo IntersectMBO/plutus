@@ -1,14 +1,16 @@
 module MainFrame.State (mkMainFrame) where
 
 import Prelude
-import Capability.Contract (class MonadContract)
+import Capability.Contract (class MonadContract, getContractInstance)
 import Capability.Wallet (class MonadWallet, createWallet, getWalletPubKey, getWalletTotalFunds)
+import Capability.Websocket (class MonadWebsocket, subscribeToWallet, unsubscribeFromWallet)
 import Control.Monad.Except (runExcept)
 import Control.Monad.Reader (class MonadAsk)
 import Data.BigInteger (fromInt)
 import Data.Either (Either(..))
 import Data.Foldable (for_)
 import Data.Lens (assign, over, set, use, view)
+import Data.Lens.Extra (peruse)
 import Data.Map (empty, filter, findMin, insert, lookup, member)
 import Data.Maybe (Maybe(..))
 import Data.Newtype (unwrap)
@@ -25,16 +27,18 @@ import MainFrame.Lenses (_card, _newWalletDetails, _pickupState, _subState, _pla
 import MainFrame.Types (Action(..), ChildSlots, Msg, Query(..), State, WebSocketStatus(..))
 import MainFrame.View (render)
 import Marlowe.Market (contractTemplates)
+import Marlowe.Types (ContractInstanceId(..), contractInstanceIdFromString)
 import Network.RemoteData (RemoteData(..))
 import Pickup.State (handleAction, initialState) as Pickup
 import Pickup.Types (Action(..), Card(..)) as Pickup
+import Play.Lenses (_walletDetails)
 import Play.State (handleAction, handleQuery, mkInitialState) as Play
 import Play.Types (Action(..)) as Play
 import StaticData (walletDetailsLocalStorageKey, walletLibraryLocalStorageKey)
 import Template.State (handleAction) as Template
 import Template.Types (Action(..)) as Template
-import WalletData.Lenses (_contractInstanceId, _contractInstanceIdString, _remoteDataPubKey, _remoteDataWallet, _remoteDataAssets, _walletNicknameString)
-import WalletData.Types (ContractInstanceId(..), Wallet(..), WalletDetails, NewWalletDetails)
+import WalletData.Lenses (_assets, _contractInstanceId, _contractInstanceIdString, _remoteDataPubKey, _remoteDataWallet, _remoteDataAssets, _wallet, _walletNicknameString)
+import WalletData.Types (Wallet(..), WalletDetails, NewWalletDetails)
 import WebSocket.Support as WS
 
 mkMainFrame ::
@@ -43,6 +47,7 @@ mkMainFrame ::
   MonadAsk Env m =>
   MonadContract m =>
   MonadWallet m =>
+  MonadWebsocket m =>
   Component HTML Query Action Msg m
 mkMainFrame =
   mkComponent
@@ -91,6 +96,7 @@ handleAction ::
   MonadAsk Env m =>
   MonadContract m =>
   MonadWallet m =>
+  MonadWebsocket m =>
   Action -> HalogenM State Action ChildSlots Msg m Unit
 handleAction Init = do
   mWalletLibraryJson <- liftEffect $ getItem walletLibraryLocalStorageKey
@@ -106,8 +112,20 @@ handleAction (SetNewWalletNicknameString walletNicknameString) = assign (_newWal
 
 handleAction (SetNewWalletContractIdString contractInstanceIdString) = do
   assign (_newWalletDetails <<< _contractInstanceIdString) contractInstanceIdString
-  --TODO: use the contract ID to lookup the wallet's ID from PAB
-  assign (_newWalletDetails <<< _remoteDataWallet) $ Success (Wallet $ fromInt 1)
+  for_ (contractInstanceIdFromString contractInstanceIdString)
+    $ \contractInstanceId -> do
+        remoteDataWalletCompanionContract <- getContractInstance contractInstanceId
+        case remoteDataWalletCompanionContract of
+          Success contractInstanceClientState -> do
+            --TODO: use the contract ID to lookup the wallet's ID from PAB
+            assign (_newWalletDetails <<< _remoteDataWallet) $ Success (Wallet $ fromInt 1)
+            assign (_newWalletDetails <<< _remoteDataPubKey) $ Success "abcde"
+            assign (_newWalletDetails <<< _remoteDataAssets) $ Success mempty
+          Failure ajaxError -> do
+            assign (_newWalletDetails <<< _remoteDataWallet) $ Failure ajaxError
+            assign (_newWalletDetails <<< _remoteDataPubKey) $ Failure ajaxError
+            assign (_newWalletDetails <<< _remoteDataAssets) $ Failure ajaxError
+          _ -> pure unit
 
 handleAction AddNewWallet = do
   oldWallets <- use _wallets
@@ -136,15 +154,22 @@ handleAction (PickupAction Pickup.PickupNewWallet) = do
         handleAction $ PickupAction $ Pickup.PickupWallet walletDetails
 
 handleAction (PickupAction (Pickup.PickupWallet walletDetails)) = do
-  -- we need the local timezoneOffset in play state in order to convert datetimeLocal
+  let
+    wallet = view _wallet walletDetails
+  -- we need the local timezoneOffset in Play.State in order to convert datetimeLocal
   -- values to UTC (and vice versa), so we can manage date-to-slot conversions
   timezoneOffset <- liftEffect getTimezoneOffset
-  modify_
-    $ set _subState (Right $ Play.mkInitialState walletDetails timezoneOffset)
-    <<< set (_pickupState <<< _card) Nothing
-  -- TODO: fetch current balance of the wallet from PAB
-  -- TODO: open up websocket to this wallet's companion contract from PAB
-  liftEffect $ setItem walletDetailsLocalStorageKey $ encodeJSON walletDetails
+  remoteDataAssets <- getWalletTotalFunds wallet
+  case remoteDataAssets of
+    Success assets -> do
+      let
+        updatedWalletDetails = set _assets assets walletDetails
+      modify_
+        $ set _subState (Right $ Play.mkInitialState updatedWalletDetails timezoneOffset)
+        <<< set (_pickupState <<< _card) Nothing
+      subscribeToWallet wallet
+      liftEffect $ setItem walletDetailsLocalStorageKey $ encodeJSON updatedWalletDetails
+    _ -> pure unit
 
 handleAction (PickupAction Pickup.GenerateNewWallet) = do
   remoteDataWallet <- createWallet
@@ -179,8 +204,11 @@ handleAction (PickupAction pickupAction) = Pickup.handleAction pickupAction
 
 -- play actions that need to be handled here
 handleAction (PlayAction Play.PutdownWallet) = do
-  assign _subState $ Left Pickup.initialState
-  liftEffect $ removeItem walletDetailsLocalStorageKey
+  mWallet <- peruse (_playState <<< _walletDetails <<< _wallet)
+  for_ mWallet \wallet -> do
+    assign _subState $ Left Pickup.initialState
+    liftEffect $ removeItem walletDetailsLocalStorageKey
+    unsubscribeFromWallet wallet
 
 handleAction (PlayAction (Play.SetNewWalletNickname nickname)) = handleAction $ SetNewWalletNicknameString nickname
 

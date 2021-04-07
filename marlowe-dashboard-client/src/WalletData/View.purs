@@ -11,16 +11,18 @@ import Css (applyWhen, classNames, hideWhen)
 import Css as Css
 import Data.Foldable (foldMap)
 import Data.Lens (view)
-import Data.Map (isEmpty, toUnfoldable)
-import Data.Maybe (Maybe(..), isJust)
+import Data.Map (isEmpty, lookup, toUnfoldable)
+import Data.Maybe (Maybe(..), fromMaybe, isJust)
+import Data.Newtype (unwrap)
 import Data.String (null)
 import Data.Tuple (Tuple(..))
-import Halogen.HTML (HTML, button, datalist, div, h2, h3, input, label, li, option, p, p_, text, ul_)
+import Data.UUID (toString) as UUID
+import Halogen.HTML (HTML, button, datalist, div, h2, h3, h4, input, label, li, option, p, p_, text, ul_)
 import Halogen.HTML.Events.Extra (onClick_, onValueInput_)
 import Halogen.HTML.Properties (InputType(..), disabled, id_, placeholder, readOnly, type_, value)
 import Material.Icons (Icon(..))
 import Play.Types (Action(..), Card(..))
-import WalletData.Lenses (_contractInstanceId, _contractInstanceIdString, _remoteDataPubKey, _remoteDataAssets, _remoteDataWallet, _walletNickname, _walletNicknameString)
+import WalletData.Lenses (_assets, _contractInstanceId, _contractInstanceIdString, _remoteDataPubKey, _remoteDataAssets, _remoteDataWallet, _walletNickname, _walletNicknameString)
 import WalletData.Types (NewWalletDetails, WalletDetails, WalletLibrary)
 import WalletData.Validation (contractInstanceIdError, walletNicknameError)
 
@@ -113,7 +115,7 @@ walletDetailsCard walletDetails =
           , input
               [ type_ InputText
               , classNames $ Css.input false <> [ "mb-4" ]
-              , value "" -- TODO: convert contractInstanceId to string
+              , value $ UUID.toString $ unwrap contractInstanceId
               , readOnly true
               ]
           ]
@@ -125,6 +127,10 @@ putdownWalletCard walletDetails =
     walletNickname = view _walletNickname walletDetails
 
     contractInstanceId = view _contractInstanceId walletDetails
+
+    assets = view _assets walletDetails
+
+    ada = fromMaybe zero $ lookup "" =<< lookup "" (unwrap assets)
   in
     div [ classNames [ "p-5", "pb-6", "md:pb-8" ] ]
       [ h3
@@ -138,9 +144,18 @@ putdownWalletCard walletDetails =
           , input
               [ type_ InputText
               , classNames $ Css.input false <> [ "mb-4" ]
-              , value "" -- TODO: convert contractInstanceId to string
+              , value $ UUID.toString $ unwrap contractInstanceId
               , readOnly true
               ]
+          ]
+      , div
+          [ classNames [ "mb-4" ] ]
+          [ h4
+              [ classNames [ "font-semibold" ] ]
+              [ text "Balance:" ]
+          , p
+              [ classNames [ "text-2xl", "text-purple", "font-semibold" ] ]
+              [ text $ "₳ " <> show ada ]
           ]
       , div
           [ classNames [ "flex" ] ]

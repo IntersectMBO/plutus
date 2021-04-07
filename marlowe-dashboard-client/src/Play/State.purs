@@ -37,12 +37,13 @@ import Marlowe.HasParties (getParties)
 import Marlowe.Semantics (Party(..))
 import Marlowe.Semantics as Semantic
 import Marlowe.Slot (shelleyInitialSlot)
-import Play.Lenses (_contractsState, _currentSlot, _menuOpen, _selectedContract, _templateState)
+import Play.Lenses (_contractsState, _currentSlot, _menuOpen, _selectedContract, _templateState, _walletDetails)
 import Play.Types (Action(..), Card(..), Screen(..), State)
 import Plutus.PAB.Webserver.Types (CombinedWSStreamToClient(..))
 import Template.Lenses (_extendedContract, _metaData, _roleWallets, _template, _templateContent)
 import Template.State (defaultState, handleAction, mkInitialState) as Template
 import Template.Types (Action(..)) as Template
+import WalletData.Lenses (_assets, _wallet)
 import WalletData.Types (WalletDetails, WalletNickname)
 
 toContractHome ::
@@ -78,7 +79,11 @@ handleQuery (InstanceUpdate contractInstanceId instanceStatusToClient) = pure un
 
 handleQuery (SlotChange slot) = assign (_playState <<< _currentSlot) $ toFront slot
 
-handleQuery (WalletFundsChange wallet value) = pure unit
+handleQuery (WalletFundsChange wallet value) = do
+  mCurrentWallet <- peruse (_playState <<< _walletDetails <<< _wallet)
+  for_ mCurrentWallet \currentWallet ->
+    when (currentWallet == toFront wallet)
+      $ assign (_playState <<< _walletDetails <<< _assets) (toFront value)
 
 -- Some actions are handled in `MainFrame.State` because they involve
 -- modifications of that state. See Note [State].
