@@ -167,6 +167,7 @@ writeTestData outputDir = do
             currencyInstance1 <- Simulator.activateContract defaultWallet Currency
             void $ Simulator.activateContract defaultWallet Currency
             void $ Simulator.activateContract defaultWallet Game
+            void $ Simulator.waitForEndpoint currencyInstance1 "Create native token"
             void $ Simulator.callEndpointOnInstance currencyInstance1 "Create native token" SimpleMPS {tokenName = "TestCurrency", amount = 10000000000}
             void $ Simulator.waitUntilFinished currencyInstance1
             report :: FullReport TestContracts <- Webserver.getFullReport

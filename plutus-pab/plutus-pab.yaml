@@ -25,7 +25,7 @@ nodeServerConfig:
     - getWallet: 3
 
 chainIndexConfig:
-  ciBaseUrl: http://localhost:8083
+  ciBaseUrl: http://localhost:9083
   ciWatchedAddresses: []
 
 requestProcessingConfig:
