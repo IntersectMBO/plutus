@@ -1,8 +1,8 @@
-module BottomPanel.View (render, metadataList) where
+module BottomPanel.View (render, metadataView) where
 
 import Prelude hiding (div)
-import BottomPanel.Types (Action(..), State, _panelView, _showBottomPanel)
-import Data.Array (concatMap)
+import BottomPanel.Types (Action(..), MetadataAction(..), State, _panelView, _showBottomPanel)
+import Data.Array (concat, concatMap)
 import Data.Lens (to, (^.))
 import Data.List (List)
 import Data.Map (Map)
@@ -11,9 +11,11 @@ import Data.Maybe (Maybe(..))
 import Data.Set (Set, toUnfoldable)
 import Data.Tuple.Nested (type (/\), (/\))
 import Halogen.Classes (accentBorderTop, borderSeparator, boxShadowInverted, closeDrawerArrowIcon, collapsed, flex, flexCol, flexShrink0, fontBold, fullHeight, hidden, justifyBetween, minH0, minimizeIcon, minusBtn, paddingX, plusBtn, scroll, smallBtn, smallPaddingRight, smallPaddingTop, smallPaddingY, spaceX, textInactive, textSecondary)
-import Halogen.HTML (ClassName(..), HTML, a, button, div, em_, h6_, img, input, text)
+import Halogen.HTML (ClassName(..), HTML, a, button, div, em_, h6_, img, input, option, select, text)
 import Halogen.HTML.Events (onClick, onValueChange)
-import Halogen.HTML.Properties (InputType(..), alt, class_, classes, placeholder, src, type_, value)
+import Halogen.HTML.Properties (InputType(..), alt, class_, classes, placeholder, selected, src, type_, value)
+import Marlowe.Extended (contractTypeArray, contractTypeInitials, contractTypeName, initialsToContractType)
+import Marlowe.Extended.Metadata (MetadataHintInfo, MetaData, _choiceDescriptions, _choiceNames, _roleDescriptions, _roles, _slotParameterDescriptions, _slotParameters, _valueParameterDescriptions, _valueParameters)
 
 type PanelTitle panel
   = { view :: panel
@@ -137,3 +139,57 @@ metadataList metadataAction metadataMap hintSet setAction deleteAction typeNameT
     Map.unionWith mergeMaps
       (map (\x -> Just (x /\ false)) metadataMap)
       (Map.fromFoldable (map (\x -> x /\ Nothing) ((toUnfoldable hintSet) :: List String)))
+
+metadataView :: forall a p. MetadataHintInfo -> MetaData -> (MetadataAction -> a) -> HTML p a
+metadataView metadataHints metadata metadataAction =
+  div [ classes [ ClassName "metadata-form" ] ]
+    ( concat
+        [ [ div [ class_ $ ClassName "metadata-mainprop-label" ]
+              [ text "Contract type: " ]
+          , div [ class_ $ ClassName "metadata-mainprop-edit" ]
+              [ select
+                  [ class_ $ ClassName "metadata-input"
+                  , onValueChange $ Just <<< metadataAction <<< SetContractType <<< initialsToContractType
+                  ] do
+                  ct <- contractTypeArray
+                  pure
+                    $ option
+                        [ value $ contractTypeInitials ct
+                        , selected (ct == metadata.contractType)
+                        ]
+                        [ text $ contractTypeName ct
+                        ]
+              ]
+          ]
+        , [ div [ class_ $ ClassName "metadata-mainprop-label" ]
+              [ text "Contract name: " ]
+          , div [ class_ $ ClassName "metadata-mainprop-edit" ]
+              [ input
+                  [ type_ InputText
+                  , placeholder "Contract name"
+                  , class_ $ ClassName "metadata-input"
+                  , value metadata.contractName
+                  , onValueChange $ Just <<< metadataAction <<< SetContractName
+                  ]
+              ]
+          ]
+        , [ div [ class_ $ ClassName "metadata-mainprop-label" ]
+              [ text "Contract description: " ]
+          , div [ class_ $ ClassName "metadata-mainprop-edit" ]
+              [ input
+                  [ type_ InputText
+                  , placeholder "Contract description"
+                  , class_ $ ClassName "metadata-input"
+                  , value metadata.contractDescription
+                  , onValueChange $ Just <<< metadataAction <<< SetContractDescription
+                  ]
+              ]
+          ]
+        , generateMetadataList _roleDescriptions _roles SetRoleDescription DeleteRoleDescription "Role" "role"
+        , generateMetadataList _choiceDescriptions _choiceNames SetChoiceDescription DeleteChoiceDescription "Choice" "choice"
+        , generateMetadataList _slotParameterDescriptions _slotParameters SetSlotParameterDescription DeleteSlotParameterDescription "Slot parameter" "slot parameter"
+        , generateMetadataList _valueParameterDescriptions _valueParameters SetValueParameterDescription DeleteValueParameterDescription "Value parameter" "value parameter"
+        ]
+    )
+  where
+  generateMetadataList mapLens setLens = metadataList metadataAction (metadata ^. mapLens) (metadataHints ^. setLens)

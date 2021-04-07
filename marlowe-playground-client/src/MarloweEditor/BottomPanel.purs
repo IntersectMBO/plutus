@@ -3,8 +3,8 @@ module MarloweEditor.BottomPanel
   ) where
 
 import Prelude hiding (div)
-import BottomPanel.View (metadataList)
-import Data.Array (concat, drop, head)
+import BottomPanel.View (metadataView)
+import Data.Array (drop, head)
 import Data.Array as Array
 import Data.Lens (to, (^.))
 import Data.Maybe (Maybe(..))
@@ -12,69 +12,17 @@ import Data.String (take)
 import Data.String.Extra (unlines)
 import Data.Tuple.Nested ((/\))
 import Halogen.Classes (flex, flexCol, fontBold, fullWidth, grid, gridColsDescriptionLocation, justifySelfEnd, minW0, overflowXScroll, paddingRight, underline)
-import Halogen.HTML (ClassName(..), HTML, a, div, div_, input, option, pre_, section, section_, select, span_, text)
-import Halogen.HTML.Events (onClick, onValueChange)
-import Halogen.HTML.Properties (InputType(..), class_, classes, placeholder, selected, type_, value)
-import Marlowe.Extended (contractTypeArray, contractTypeName, contractTypeInitials, initialsToContractType)
-import Marlowe.Extended.Metadata (MetaData, _choiceDescriptions, _choiceNames, _roleDescriptions, _roles, _slotParameterDescriptions, _slotParameters, _valueParameterDescriptions, _valueParameters)
-import MarloweEditor.Types (Action(..), BottomPanelView(..), MetadataAction(..), State, _editorErrors, _editorWarnings, _hasHoles, _metadataHintInfo, _showErrorDetail, contractHasErrors)
+import Halogen.HTML (HTML, a, div, div_, pre_, section, section_, span_, text)
+import Halogen.HTML.Events (onClick)
+import Halogen.HTML.Properties (class_, classes)
+import Marlowe.Extended.Metadata (MetaData)
+import MarloweEditor.Types (Action(..), BottomPanelView(..), State, _editorErrors, _editorWarnings, _hasHoles, _metadataHintInfo, _showErrorDetail, contractHasErrors)
 import StaticAnalysis.BottomPanel (analysisResultPane, analyzeButton, clearButton)
 import StaticAnalysis.Types (_analysisExecutionState, _analysisState, isCloseAnalysisLoading, isNoneAsked, isReachabilityLoading, isStaticLoading)
 import Text.Parsing.StringParser.Basic (lines)
 
 panelContents :: forall p. State -> MetaData -> BottomPanelView -> HTML p Action
-panelContents state metadata MetadataView =
-  div [ classes [ ClassName "metadata-form" ] ]
-    ( concat
-        [ [ div [ class_ $ ClassName "metadata-mainprop-label" ]
-              [ text "Contract type: " ]
-          , div [ class_ $ ClassName "metadata-mainprop-edit" ]
-              [ select
-                  [ class_ $ ClassName "metadata-input"
-                  , onValueChange $ Just <<< MetadataAction <<< SetContractType <<< initialsToContractType
-                  ] do
-                  ct <- contractTypeArray
-                  pure
-                    $ option
-                        [ value $ contractTypeInitials ct
-                        , selected (ct == metadata.contractType)
-                        ]
-                        [ text $ contractTypeName ct
-                        ]
-              ]
-          ]
-        , [ div [ class_ $ ClassName "metadata-mainprop-label" ]
-              [ text "Contract name: " ]
-          , div [ class_ $ ClassName "metadata-mainprop-edit" ]
-              [ input
-                  [ type_ InputText
-                  , placeholder "Contract name"
-                  , class_ $ ClassName "metadata-input"
-                  , value metadata.contractName
-                  , onValueChange $ Just <<< MetadataAction <<< SetContractName
-                  ]
-              ]
-          ]
-        , [ div [ class_ $ ClassName "metadata-mainprop-label" ]
-              [ text "Contract description: " ]
-          , div [ class_ $ ClassName "metadata-mainprop-edit" ]
-              [ input
-                  [ type_ InputText
-                  , placeholder "Contract description"
-                  , class_ $ ClassName "metadata-input"
-                  , value metadata.contractDescription
-                  , onValueChange $ Just <<< MetadataAction <<< SetContractDescription
-                  ]
-              ]
-          ]
-        , generateMetadataList _roleDescriptions _roles SetRoleDescription DeleteRoleDescription "Role" "role"
-        , generateMetadataList _choiceDescriptions _choiceNames SetChoiceDescription DeleteChoiceDescription "Choice" "choice"
-        , generateMetadataList _slotParameterDescriptions _slotParameters SetSlotParameterDescription DeleteSlotParameterDescription "Slot parameter" "slot parameter"
-        , generateMetadataList _valueParameterDescriptions _valueParameters SetValueParameterDescription DeleteValueParameterDescription "Value parameter" "value parameter"
-        ]
-    )
-  where
-  generateMetadataList mapLens setLens = metadataList MetadataAction (metadata ^. mapLens) (state ^. (_metadataHintInfo <<< setLens))
+panelContents state metadata MetadataView = metadataView (state ^. _metadataHintInfo) metadata MetadataAction
 
 panelContents state metadata StaticAnalysisView =
   section [ classes [ flex, flexCol ] ]

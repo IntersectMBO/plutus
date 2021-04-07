@@ -6,6 +6,7 @@ import BlocklyComponent.Types as Blockly
 import BlocklyEditor.State as BlocklyEditor
 import BlocklyEditor.Types (_marloweCode)
 import BlocklyEditor.Types as BE
+import BottomPanel.Types (MetadataAction(..))
 import BottomPanel.Types as BP
 import ConfirmUnsavedNavigation.Types (Action(..)) as ConfirmUnsavedNavigation
 import Control.Monad.Except (ExceptT(..), lift, runExcept, runExceptT)
@@ -56,7 +57,6 @@ import Marlowe.ActusBlockly as AMB
 import Marlowe.Extended.Metadata (_choiceDescriptions, _contractDescription, _contractName, _contractType, _roleDescriptions, _slotParameterDescriptions, _valueParameterDescriptions, emptyContractMetadata)
 import Marlowe.Gists (mkNewGist, playgroundFiles, PlaygroundFiles)
 import MarloweEditor.State as MarloweEditor
-import MarloweEditor.Types (MetadataAction(..))
 import MarloweEditor.Types as ME
 import Network.RemoteData (RemoteData(..), _Success)
 import Network.RemoteData as RemoteData
@@ -286,7 +286,7 @@ carryMetadataAction ::
   forall m.
   MonadAff m =>
   MonadAsk Env m =>
-  ME.MetadataAction ->
+  MetadataAction ->
   HalogenM State Action ChildSlots Void m Unit
 carryMetadataAction action = do
   modifying (_contractMetadata) case action of
