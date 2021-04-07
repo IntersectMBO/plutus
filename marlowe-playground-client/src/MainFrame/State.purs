@@ -399,7 +399,8 @@ handleAction (BlocklyEditorAction action) = do
         selectView MarloweEditor
         assign _workflow (Just Marlowe)
         toMarloweEditor $ MarloweEditor.handleAction $ ME.InitMarloweProject code
-    (BE.HandleBlocklyMessage Blockly.CodeChange) -> setUnsavedChangesForLanguage Blockly true
+    BE.HandleBlocklyMessage Blockly.CodeChange -> setUnsavedChangesForLanguage Blockly true
+    BE.BottomPanelAction (BP.PanelAction (BE.MetadataAction metadataAction)) -> carryMetadataAction metadataAction
     _ -> pure unit
 
 handleAction (SimulationAction action) = do

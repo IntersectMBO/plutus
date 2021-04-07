@@ -3,7 +3,8 @@ module BlocklyEditor.BottomPanel
   ) where
 
 import Prelude hiding (div)
-import BlocklyEditor.Types (Action(..), BottomPanelView(..), State, _hasHoles, _warnings)
+import BlocklyEditor.Types (Action(..), BottomPanelView(..), State, _hasHoles, _metadataHintInfo, _warnings)
+import BottomPanel.View (metadataView)
 import Data.Array as Array
 import Data.Lens (to, (^.))
 import Data.Maybe (Maybe(..))
@@ -16,6 +17,8 @@ import StaticAnalysis.BottomPanel (analysisResultPane, analyzeButton, clearButto
 import StaticAnalysis.Types (_analysisExecutionState, _analysisState, isCloseAnalysisLoading, isNoneAsked, isReachabilityLoading, isStaticLoading)
 
 panelContents :: forall p. State -> MetaData -> BottomPanelView -> HTML p Action
+panelContents state metadata MetadataView = metadataView (state ^. _metadataHintInfo) metadata MetadataAction
+
 panelContents state metadata StaticAnalysisView =
   section [ classes [ flex, flexCol ] ]
     if (state ^. _hasHoles) then

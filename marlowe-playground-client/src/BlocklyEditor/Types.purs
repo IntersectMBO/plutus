@@ -4,6 +4,7 @@ import Prelude
 import Analytics (class IsEvent, Event)
 import Analytics as A
 import BlocklyComponent.Types as Blockly
+import BottomPanel.Types (MetadataAction, showConstructor)
 import BottomPanel.Types as BottomPanel
 import Data.BigInteger (BigInteger)
 import Data.Generic.Rep (class Generic)
@@ -12,8 +13,9 @@ import Data.Lens (Lens')
 import Data.Lens.Record (prop)
 import Data.Maybe (Maybe(..))
 import Data.Symbol (SProxy(..))
-import Marlowe.Linter (Warning)
 import Marlowe.Extended (IntegerTemplateType)
+import Marlowe.Extended.Metadata (MetadataHintInfo)
+import Marlowe.Linter (Warning)
 import StaticAnalysis.Types (AnalysisState, initAnalysisState)
 
 data Action
@@ -27,6 +29,7 @@ data Action
   | AnalyseContract
   | AnalyseReachabilityContract
   | AnalyseContractForCloseRefund
+  | MetadataAction MetadataAction
   | SetIntegerTemplateParam IntegerTemplateType String BigInteger
   | ClearAnalysisResults
   | SelectWarning Warning
@@ -45,6 +48,7 @@ instance blocklyActionIsEvent :: IsEvent Action where
   toEvent AnalyseContract = Just $ defaultEvent "AnalyseContract"
   toEvent AnalyseReachabilityContract = Just $ defaultEvent "AnalyseReachabilityContract"
   toEvent AnalyseContractForCloseRefund = Just $ defaultEvent "AnalyseContractForCloseRefund"
+  toEvent (MetadataAction action) = Just $ (defaultEvent "MetadataAction") { label = Just $ showConstructor action }
   toEvent (SetIntegerTemplateParam _ _ _) = Just $ defaultEvent "SetIntegerTemplateParam"
   toEvent ClearAnalysisResults = Just $ defaultEvent "ClearAnalysisResults"
   toEvent (SelectWarning _) = Just $ defaultEvent "SelectWarning"
@@ -52,6 +56,7 @@ instance blocklyActionIsEvent :: IsEvent Action where
 data BottomPanelView
   = StaticAnalysisView
   | BlocklyWarningsView
+  | MetadataView
 
 derive instance eqBottomPanelView :: Eq BottomPanelView
 
@@ -65,6 +70,7 @@ type State
     , marloweCode :: Maybe String
     , hasHoles :: Boolean
     , bottomPanelState :: BottomPanel.State BottomPanelView
+    , metadataHintInfo :: MetadataHintInfo
     , analysisState :: AnalysisState
     , warnings :: Array Warning
     }
@@ -81,6 +87,12 @@ _hasHoles = prop (SProxy :: SProxy "hasHoles")
 _bottomPanelState :: Lens' State (BottomPanel.State BottomPanelView)
 _bottomPanelState = prop (SProxy :: SProxy "bottomPanelState")
 
+_metadataHintInfo :: Lens' State MetadataHintInfo
+_metadataHintInfo = prop (SProxy :: SProxy "metadataHintInfo")
+
+_analysisState :: Lens' State AnalysisState
+_analysisState = prop (SProxy :: SProxy "analysisState")
+
 _warnings :: Lens' State (Array Warning)
 _warnings = prop (SProxy :: SProxy "warnings")
 
@@ -89,7 +101,8 @@ initialState =
   { errorMessage: Nothing
   , marloweCode: Nothing
   , hasHoles: false
-  , bottomPanelState: BottomPanel.initialState StaticAnalysisView
+  , bottomPanelState: BottomPanel.initialState MetadataView
+  , metadataHintInfo: mempty
   , analysisState: initAnalysisState
   , warnings: mempty
   }
