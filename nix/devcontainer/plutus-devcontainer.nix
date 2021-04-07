@@ -16,6 +16,7 @@ in
 pkgs.callPackage (import ./devcontainer.nix) {
   name = "plutus-devcontainer";
   tag = "latest";
+  nonRootUser = "plutus";
   extraContents = [
     shell.ghc
     plutus.haskell-language-server
@@ -33,9 +34,5 @@ pkgs.callPackage (import ./devcontainer.nix) {
     # We just clobbered this, put it back
     echo 'export PATH=$PATH:/usr/bin:/bin' >> etc/profile.d/env.sh
     echo 'export NIX_BUILD_TOP=$(mktemp -d)' >> etc/profile.d/env.sh
-
-    # Load all the stuff in an interactive session too
-    chmod +w root
-    echo 'source /etc/profile.d/env.sh' >> root/.bashrc
   '';
 }
