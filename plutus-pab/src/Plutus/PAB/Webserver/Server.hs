@@ -16,7 +16,7 @@ module Plutus.PAB.Webserver.Server
     , startServerDebug
     ) where
 
-import           Control.Concurrent              (forkIO)
+import           Control.Concurrent              (MVar, forkFinally, forkIO, newEmptyMVar, putMVar)
 import           Control.Concurrent.Availability (Availability, available, newToken)
 import qualified Control.Concurrent.STM          as STM
 import           Control.Monad                   (void)
@@ -98,7 +98,8 @@ app fp walletClient pabRunner = do
             Servant.serve rest (apiServer :<|> wpServer :<|> fileServer)
 
 -- | Start the server using the config. Returns an action that shuts it down
---   again.
+--   again, and an MVar that is filled when the webserver
+--   thread exits.
 startServer ::
     forall t env.
     ( FromJSON (Contract.ContractDef t)
@@ -109,12 +110,13 @@ startServer ::
     => WebserverConfig -- ^ Optional file path for static assets
     -> Either ClientEnv (PABAction t env Wallet)
     -> Availability
-    -> PABAction t env (PABAction t env ())
+    -> PABAction t env (MVar (), PABAction t env ())
 startServer WebserverConfig{baseUrl, staticDir} walletClient availability =
     startServer' (baseUrlPort baseUrl) walletClient (Just staticDir) availability
 
 -- | Start the server. Returns an action that shuts it down
---   again.
+--   again, and an MVar that is filled when the webserver
+--   thread exits.
 startServer' ::
     forall t env.
     ( FromJSON (Contract.ContractDef t)
@@ -126,10 +128,11 @@ startServer' ::
     -> Either ClientEnv (PABAction t env Wallet) -- ^ How to generate a new wallet, either by proxying the request to the wallet API, or by running the PAB action
     -> Maybe FilePath -- ^ Optional file path for static assets
     -> Availability
-    -> PABAction t env (PABAction t env ())
+    -> PABAction t env (MVar (), PABAction t env ())
 startServer' port walletClient fp availability = do
     simRunner <- Core.pabRunner
     shutdownVar <- liftIO $ STM.atomically $ STM.newEmptyTMVar @()
+    mvar <- liftIO newEmptyMVar
 
     let shutdownHandler :: IO () -> IO ()
         shutdownHandler doShutdown = void $ forkIO $ do
@@ -142,8 +145,12 @@ startServer' port walletClient fp availability = do
             & Warp.setInstallShutdownHandler shutdownHandler
             & Warp.setBeforeMainLoop (available availability)
     logInfo @(LM.PABMultiAgentMsg t) (LM.StartingPABBackendServer port)
-    _ <- liftIO $ forkIO $ Warp.runSettings warpSettings $ app fp walletClient simRunner
-    pure (liftIO $ STM.atomically $ STM.putTMVar shutdownVar ())
+    void $ liftIO $
+        forkFinally
+            (Warp.runSettings warpSettings $ app fp walletClient simRunner)
+            (\_ -> putMVar mvar ())
+
+    pure (mvar, liftIO $ STM.atomically $ STM.putTMVar shutdownVar ())
 
 -- | Start the server using default configuration for debugging.
 startServerDebug ::
@@ -155,4 +162,4 @@ startServerDebug ::
     => Simulation t (Simulation t ())
 startServerDebug = do
     tk <- newToken
-    startServer' 8080 (Right Simulator.addWallet) Nothing tk
+    snd <$> startServer' 8080 (Right Simulator.addWallet) Nothing tk

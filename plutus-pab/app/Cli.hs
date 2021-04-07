@@ -63,6 +63,7 @@ import qualified Cardano.Metadata.Server                  as Metadata
 import qualified Cardano.Node.Server                      as NodeServer
 import qualified Cardano.Wallet.Server                    as WalletServer
 import           Cardano.Wallet.Types
+import           Control.Concurrent                       (takeMVar)
 import           Control.Concurrent.Async                 (Async, async, waitAny)
 import           Control.Concurrent.Availability          (Availability, starting)
 import           Control.Monad                            (void)
@@ -140,9 +141,8 @@ runCliCommand trace _ config@Config{pabWebserverConfig} serviceAvailability PABW
         $ App.runApp (toPABMsg trace) config
         $ do
             App.AppEnv{App.walletClientEnv} <- Core.askUserEnv @ContractExe @App.AppEnv
-            shutdown <- PABServer.startServer pabWebserverConfig (Left walletClientEnv) serviceAvailability
-            _ <- liftIO getLine
-            shutdown
+            (mvar, _) <- PABServer.startServer pabWebserverConfig (Left walletClientEnv) serviceAvailability
+            liftIO $ takeMVar mvar
 
 -- Fork a list of commands
 runCliCommand trace logConfig config serviceAvailability (ForkCommands commands) =
