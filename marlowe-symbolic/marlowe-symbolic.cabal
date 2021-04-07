@@ -17,7 +17,9 @@ library
     default-language: Haskell2010
     build-depends:      aeson -any,
                         base >=4.9,
+                        clock,
                         deriving-aeson -any,
+                        formatting,
                         http-client,
                         http-client-tls,
                         marlowe,
