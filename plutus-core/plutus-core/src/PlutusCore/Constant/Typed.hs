@@ -2,20 +2,19 @@
 -- See the @plutus/plutus-core/docs/Constant application.md@
 -- article for how this emerged.
 
-{-# LANGUAGE ConstraintKinds          #-}
-{-# LANGUAGE DataKinds                #-}
-{-# LANGUAGE DefaultSignatures        #-}
-{-# LANGUAGE FlexibleInstances        #-}
-{-# LANGUAGE GADTs                    #-}
-{-# LANGUAGE MultiParamTypeClasses    #-}
-{-# LANGUAGE OverloadedStrings        #-}
-{-# LANGUAGE PolyKinds                #-}
-{-# LANGUAGE RankNTypes               #-}
-{-# LANGUAGE StandaloneKindSignatures #-}
-{-# LANGUAGE TypeApplications         #-}
-{-# LANGUAGE TypeFamilies             #-}
-{-# LANGUAGE TypeOperators            #-}
-{-# LANGUAGE UndecidableInstances     #-}
+{-# LANGUAGE ConstraintKinds       #-}
+{-# LANGUAGE DataKinds             #-}
+{-# LANGUAGE DefaultSignatures     #-}
+{-# LANGUAGE FlexibleInstances     #-}
+{-# LANGUAGE GADTs                 #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE OverloadedStrings     #-}
+{-# LANGUAGE PolyKinds             #-}
+{-# LANGUAGE RankNTypes            #-}
+{-# LANGUAGE TypeApplications      #-}
+{-# LANGUAGE TypeFamilies          #-}
+{-# LANGUAGE TypeOperators         #-}
+{-# LANGUAGE UndecidableInstances  #-}
 
 module PlutusCore.Constant.Typed
     ( KnownKind (..)
@@ -51,7 +50,7 @@ import           PlutusCore.Universe
 
 import           Control.Monad.Except
 import qualified Data.ByteString                         as BS
-import qualified Data.Kind                               as GHC (Constraint, Type)
+import qualified Data.Kind                               as GHC (Type)
 import           Data.Proxy
 import           Data.String
 import qualified Data.Text                               as Text
@@ -297,7 +296,7 @@ unliftConstant
     => term -> m a
 unliftConstant term = case asConstant term of
     Just (Some (ValueOf uniAct x)) -> do
-        let uniExp = knownUni @_ @(UniOf term) @a
+        let uniExp = knownUni @(UniOf term) @a
         case uniAct `geq` uniExp of
             Just Refl -> pure x
             Nothing   -> do
@@ -329,12 +328,9 @@ results in
 see https://gitlab.haskell.org/ghc/ghc/-/issues/15710
 -}
 
-type KnownTypeAst :: forall k. (k -> Constraint) -> k -> Constraint
-class KnownTypeAst uni a where
+class KnownTypeAst uni (a :: k) where
     -- | The type representing @a@ used on the PLC side.
     toTypeAst :: proxy a -> Type TyName uni ()
-    default toTypeAst :: uni `Contains` a => proxy a -> Type TyName uni ()
-    toTypeAst (_ :: proxy a) = mkTyBuiltin @a ()
 
 -- | A constraint for \"@a@ is a 'KnownType' by means of being included in @uni@\".
 type KnownBuiltinType term a =
