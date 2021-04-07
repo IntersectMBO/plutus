@@ -207,6 +207,7 @@ type instance ToBinds (,)           = '[]
 type instance ToBinds [a]           = '[]
 type instance ToBinds (a, b)        = '[]
 
+type instance ToBinds (KnownTypeMonad _ a) = ToBinds a
 type instance ToBinds (EvaluationResult a) = ToBinds a
 type instance ToBinds (Emitter a)          = ToBinds a
 type instance ToBinds (Opaque _ rep)       = ToBinds rep

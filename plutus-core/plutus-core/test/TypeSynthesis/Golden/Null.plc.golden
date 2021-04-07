@@ -1,0 +1,1 @@
+(all a (type) (fun [(con [_]) a] (con bool)))

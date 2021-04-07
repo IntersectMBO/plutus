@@ -9,6 +9,7 @@
 
 module PlutusCore.Evaluation.Result
     ( AsEvaluationFailure (..)
+    , evaluationFailure
     , _EvaluationFailureVia
     , EvaluationResult (..)
     , isEvaluationSuccess
@@ -36,6 +37,9 @@ import           Control.Monad.Except
 -- | A class for viewing errors as evaluation failures (in the sense of Plutus).
 class AsEvaluationFailure err where
     _EvaluationFailure :: Prism' err ()
+
+evaluationFailure :: AsEvaluationFailure err => err
+evaluationFailure = _EvaluationFailure # ()
 
 -- | Construct a 'Prism' focusing on the @*EvaluationFailure@ part of @err@ by taking
 -- that @*EvaluationFailure@ and

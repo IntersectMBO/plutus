@@ -1,19 +1,22 @@
-{-# LANGUAGE InstanceSigs          #-}
+{-# LANGUAGE ExistentialQuantification #-}
+{-# LANGUAGE InstanceSigs              #-}
+{-# LANGUAGE PolyKinds                 #-}
+{-# LANGUAGE RankNTypes                #-}
 {-# OPTIONS_GHC -fno-warn-orphans               #-}
 {-# OPTIONS_GHC -fno-warn-redundant-constraints #-}
 
-{-# LANGUAGE AllowAmbiguousTypes   #-}
-{-# LANGUAGE DataKinds             #-}
-{-# LANGUAGE DeriveAnyClass        #-}
-{-# LANGUAGE DerivingVia           #-}
-{-# LANGUAGE FlexibleInstances     #-}
-{-# LANGUAGE LambdaCase            #-}
-{-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE OverloadedStrings     #-}
-{-# LANGUAGE TypeApplications      #-}
-{-# LANGUAGE TypeFamilies          #-}
-{-# LANGUAGE TypeOperators         #-}
-{-# LANGUAGE UndecidableInstances  #-}
+{-# LANGUAGE AllowAmbiguousTypes       #-}
+{-# LANGUAGE DataKinds                 #-}
+{-# LANGUAGE DeriveAnyClass            #-}
+{-# LANGUAGE DerivingVia               #-}
+{-# LANGUAGE FlexibleInstances         #-}
+{-# LANGUAGE LambdaCase                #-}
+{-# LANGUAGE MultiParamTypeClasses     #-}
+{-# LANGUAGE OverloadedStrings         #-}
+{-# LANGUAGE TypeApplications          #-}
+{-# LANGUAGE TypeFamilies              #-}
+{-# LANGUAGE TypeOperators             #-}
+{-# LANGUAGE UndecidableInstances      #-}
 
 module PlutusCore.Examples.Builtins where
 
@@ -23,16 +26,20 @@ import           PlutusCore.Evaluation.Machine.ExBudget
 import           PlutusCore.Evaluation.Machine.ExBudgetingDefaults
 import           PlutusCore.Evaluation.Machine.ExMemory
 import           PlutusCore.Evaluation.Machine.Exception
+import           PlutusCore.Evaluation.Result
 import           PlutusCore.MkPlc                                  (mkTyBuiltin)
 import           PlutusCore.Pretty
+import           PlutusCore.Universe
 
 import qualified PlutusCore.StdLib.Data.List                       as Plc
 
+import           Control.Monad.Error
 import           Data.Char
 import           Data.Either
 import           Data.Hashable                                     (Hashable)
 import qualified Data.Kind                                         as GHC (Type)
 import           Data.Proxy
+import           Data.String
 import           Data.Text.Prettyprint.Doc
 import           Data.Void
 import           GHC.Generics
@@ -102,9 +109,9 @@ data ExtensionFun
     | Absurd
     | CharToInteger
     | ReplicateAtChar
-    | NullAtInteger
-    | HeadAtInteger
-    | TailAtInteger
+    | Null
+    | Head
+    | Tail
 --     | Swap
     deriving (Show, Eq, Ord, Enum, Bounded, Ix, Generic, Hashable)
     deriving (ExMemoryUsage) via (GenericExMemoryUsage ExtensionFun)
@@ -206,36 +213,32 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni ExtensionFun where
         makeBuiltinMeaning
             (replicate :: Int -> Char -> [Char])
             mempty  -- Whatever.
-    toBuiltinMeaning NullAtInteger =
-        (makeBuiltinMeaning
-            -- (_ :: Opaque term [TyVarRep ('TyNameRep "a" 0)] -> Bool)
-            f
-            -- (null :: [Integer] -> Bool)
-            mempty)
-      where
-        f :: Opaque term (TyAppRep [] (TyVarRep ('TyNameRep "a" 0))) -> Bool
-        f (Opaque term) = case asConstant term of
-            Just (Some (ValueOf uni xs)) -> case uni of
-                DefaultUniList _ -> null xs
-                _                -> error "nope"
-    --             let uniExp = knownUni @(UniOf term) @a
-    --             case uniAct `geq` uniExp of
-    --                 Just Refl -> pure x
-    --                 Nothing   -> do
-    --                     let err = fromString $ concat
-    --                             [ "Type mismatch: "
-    --                             , "expected: " ++ gshow uniExp
-    --                             , "; actual: " ++ gshow uniAct
-    --                             ]
-    --                     throwingWithCause _UnliftingError err $ Just term
-            Nothing                        -> error "nope" -- throwingWithCause _UnliftingError "Not a constant" $ Just term
-
-
-    toBuiltinMeaning HeadAtInteger =
+    toBuiltinMeaning Null =
         makeBuiltinMeaning
-            (\case [] -> EvaluationFailure; x:_ -> pure (x :: Integer))
-            mempty  -- Whatever.
-    toBuiltinMeaning TailAtInteger =
+            _
+            mempty where
+        -- nullPlc :: Opaque term (TyAppRep [] (TyVarRep ('TyNameRep "a" 0))) -> KnownTypeMonad term Bool
+        -- nullPlc (Opaque term) = case asConstant term of
+        --     Just (Some (ValueOf uni xs)) -> case uni of
+        --         DefaultUniList _ -> pure $ null xs
+        --         _ -> do
+        --             let err = fromString $ "Expected a list, but got " ++ gshow uni
+        --             KnownTypeMonad $ throwingWithCause _UnliftingError err $ Just term
+        --     Nothing -> KnownTypeMonad $ throwingWithCause _UnliftingError "Not a constant" $ Just term
+    toBuiltinMeaning Head = makeBuiltinMeaning headPlc mempty where
+        headPlc
+            :: a ~ TyVarRep ('TyNameRep "a" 0)
+            => Opaque term (TyAppRep [] a) -> KnownTypeMonad term (Opaque term a)
+        headPlc (Opaque term) = case asConstant term of
+            Just (Some (ValueOf uni xs)) -> case uni of
+                DefaultUniList a -> case xs of
+                    x:_ -> pure . Opaque . fromConstant . Some $ ValueOf a x
+                    []  -> KnownTypeMonad $ throwError evaluationFailure
+                _ -> do
+                    let err = fromString $ "Expected a list, but got " ++ gshow uni
+                    KnownTypeMonad $ throwingWithCause _UnliftingError err $ Just term
+            Nothing -> KnownTypeMonad $ throwingWithCause _UnliftingError "Not a constant" $ Just term
+    toBuiltinMeaning Tail =
         makeBuiltinMeaning
             (\case [] -> EvaluationFailure; _:xs -> pure (xs :: [Integer]))
             mempty  -- Whatever.
@@ -245,13 +248,32 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni ExtensionFun where
     --         --     TypeSchemeAll (Proxy @'("a", 0, *)) $ \a ->
     --         --     TypeSchemeAll (Proxy @'("b", 0, *)) $ \b ->
 
+data ValueOf1 uni f a = ValueOf1 (uni a) (f a)
+
+-- instance HasConstantIn DefaultUni => KnownType term
+
+
+data Foo (uni :: forall k. k -> *) = Foo
+
+-- uni :: forall k. k -> *
+-- uni :: newtyp
+
+unliftConstantList
+    :: forall a m term err.
+       (MonadError (ErrorWithCause err term) m, AsUnliftingError err, HasConstantIn DefaultUni term)
+    => term -> m (Some (ValueOf1 DefaultUni []))
+unliftConstantList term = case asConstant term of
+    Just (Some (ValueOf uni xs)) -> case uni of
+        DefaultUniList el -> pure . Some $ ValueOf1 el xs
+        _                 -> do
+            let err = fromString $ "Expected a list, but got " ++ gshow uni
+            throwingWithCause _UnliftingError err $ Just term
+    Nothing -> throwingWithCause _UnliftingError "Not a constant" $ Just term
+
 -- f : all a. [_] a -> bool
 
 instance (uni `Includes` [], uni `Includes` Hole) => KnownTypeAst uni [] where
     toTypeAst _ = mkTyBuiltin @[Hole] ()
-
-instance uni `Contains` TyVarRep name where
-    knownUni = undefined
 
 -- null :: Opaque term [Meta] -> Bool
 -- null : [meta] -> bool

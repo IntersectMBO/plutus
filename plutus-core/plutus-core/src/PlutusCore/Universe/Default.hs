@@ -61,6 +61,12 @@ There might be another solution: instead of requiring universes to be of kind @*
 universes of any @k -> *@, then we'll need to establish a connection between Haskell @k@ and
 a PLC 'Kind'.
 
+data SomeK (uni :: forall k. k -> *) = forall k (a :: k). SomeK (uni a)
+
+data AKind = forall k. AKind k
+
+data SomeAK (uni :: AKind -> *) = forall ak. SomeAK (uni ak)
+
 Finally, it is not necessarily the case that we need to allow embedding PLC terms into meta-constants.
 We already allow built-in names with polymorphic types. There might be a way to utilize this feature
 and have meta-constructors as builtin names. We still have to handle types somehow, though.
@@ -73,6 +79,7 @@ unpoke = \case{}
 
 -- | The universe used by default.
 data DefaultUni a where
+    DefaultUniHole       :: DefaultUni Hole
     DefaultUniInteger    :: DefaultUni Integer
     DefaultUniByteString :: DefaultUni BS.ByteString
     DefaultUniChar       :: DefaultUni Char
@@ -80,7 +87,6 @@ data DefaultUni a where
     DefaultUniBool       :: DefaultUni Bool
     DefaultUniList       :: !(DefaultUni a) -> DefaultUni [a]
     DefaultUniTuple      :: !(DefaultUni a) -> !(DefaultUni b) -> DefaultUni (a, b)
-    DefaultUniHole       :: DefaultUni Hole
 
 deriveGEq ''DefaultUni
 deriving instance Lift (DefaultUni a)
