@@ -17,6 +17,7 @@ module Plutus.PAB.Db.Eventful(
 
 import           Cardano.BM.Trace                               (Trace)
 import           Control.Monad.Freer                            (Eff, interpret, runM, subsume)
+import           Control.Monad.Freer.Delay                      (DelayEffect, handleDelayEffect)
 import           Control.Monad.Freer.Error                      (runError)
 import qualified Control.Monad.Freer.Extras.Modify              as Modify
 import           Control.Monad.Freer.Reader                     (runReader)
@@ -35,7 +36,7 @@ runEventfulStoreAction ::
     forall a.
     Connection
     -> Trace IO MonadLoggerMsg
-    -> Eff '[ContractDefinitionStore ContractExe, ContractStore ContractExe, IO] a
+    -> Eff '[ContractDefinitionStore ContractExe, ContractStore ContractExe, DelayEffect, IO] a
     -> IO (Either PABError a)
 runEventfulStoreAction connection trace =
     runM
@@ -43,6 +44,7 @@ runEventfulStoreAction connection trace =
     . runReader connection
     . interpret (handleEventLogSql @_ @(PABEvent ContractExe) trace)
     . subsume @IO
+    . handleDelayEffect
     . interpret handleContractStore
     . interpret handleContractDefinitionStore
     . Modify.raiseEnd

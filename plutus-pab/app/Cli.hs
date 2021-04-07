@@ -3,6 +3,7 @@
 {-# LANGUAGE DerivingVia           #-}
 {-# LANGUAGE FlexibleContexts      #-}
 {-# LANGUAGE FlexibleInstances     #-}
+{-# LANGUAGE MonoLocalBinds        #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE NamedFieldPuns        #-}
 {-# LANGUAGE OverloadedStrings     #-}
@@ -67,7 +68,8 @@ import           Control.Concurrent                       (takeMVar)
 import           Control.Concurrent.Async                 (Async, async, waitAny)
 import           Control.Concurrent.Availability          (Availability, starting)
 import           Control.Monad                            (void)
-import           Control.Monad.Freer                      (interpret)
+import           Control.Monad.Freer                      (Eff, Member, interpret)
+import           Control.Monad.Freer.Delay                (DelayEffect, delayThread)
 import           Control.Monad.Freer.Extras.Log           (logInfo)
 import           Control.Monad.IO.Class                   (liftIO)
 import           Data.Foldable                            (traverse_)
@@ -76,6 +78,7 @@ import           Data.Proxy                               (Proxy (..))
 import qualified Data.Set                                 as Set
 import           Data.Text.Prettyprint.Doc                (Pretty (..), defaultLayoutOptions, layoutPretty, pretty)
 import           Data.Text.Prettyprint.Doc.Render.Text    (renderStrict)
+import           Data.Time.Units                          (Second)
 import qualified Plutus.PAB.Effects.Contract              as Contract
 
 import           Cardano.Node.Types                       (MockServerConfig (..))
@@ -184,6 +187,7 @@ runCliCommand t _ Config{dbConfig} _ (ContractState contractInstanceId) = do
             s <- Contract.getState @ContractExe contractInstanceId
             let outputState = Contract.serialisableState (Proxy @ContractExe) s
             logInfo @(LM.AppMsg ContractExe) $ LM.PABMsg $ LM.SCoreMsg $ LM.FoundContract $ Just outputState
+            drainLog
 
 -- Get all installed contracts
 runCliCommand t _ Config{dbConfig} _ ReportInstalledContracts = do
@@ -194,6 +198,7 @@ runCliCommand t _ Config{dbConfig} _ ReportInstalledContracts = do
         $ do
             installedContracts <- Contract.getDefinitions @ContractExe
             traverse_ (logInfo @(LM.AppMsg ContractExe) . LM.InstalledContract . render . pretty) installedContracts
+            drainLog
                 where
                     render = renderStrict . layoutPretty defaultLayoutOptions
 
@@ -208,6 +213,7 @@ runCliCommand t _ Config{dbConfig} _ ReportActiveContracts = do
             instancesById <- Contract.getActiveContracts @ContractExe
             let idsByDefinition = Map.fromListWith (<>) $ fmap (\(inst, ContractActivationArgs{caID}) -> (caID, Set.singleton inst)) $ Map.toList instancesById
             traverse_ (\(e, s) -> logInfo @(LM.AppMsg ContractExe) $ LM.ContractInstances e (Set.toList s)) $ Map.toAscList idsByDefinition
+            drainLog
 
 -- Get history of a specific contract
 runCliCommand t _ Config{dbConfig} _ (ReportContractHistory contractInstanceId) = do
@@ -220,6 +226,7 @@ runCliCommand t _ Config{dbConfig} _ (ReportContractHistory contractInstanceId) 
             s <- Contract.getState @ContractExe contractInstanceId
             let PartiallyDecodedResponse{newState=State{record}} = Contract.serialisableState (Proxy @ContractExe) s
             traverse_ logStep (responses record)
+            drainLog
                 where
                     logStep response = logInfo @(LM.AppMsg ContractExe) $ LM.ContractHistoryItem contractInstanceId response
 
@@ -260,3 +267,8 @@ toMetaDataLog = LM.convertLog $ LM.PABMsg . LM.SMetaDataLogMsg
 
 toMockNodeServerLog :: Trace m (LM.AppMsg ContractExe) -> Trace m LM.MockServerLogMsg
 toMockNodeServerLog = LM.convertLog $ LM.PABMsg . LM.SMockserverLogMsg
+
+-- | Wait for some time to allow all log messages to be printed to
+--   the terminal.
+drainLog :: Member DelayEffect effs => Eff effs ()
+drainLog = delayThread (1 :: Second)
