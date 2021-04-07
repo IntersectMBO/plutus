@@ -29,9 +29,9 @@ import Data.Tuple.Nested ((/\))
 import Halogen.HTML (HTML, a, button, div, div_, h1, h2, h3, input, p, span, span_, sup_, text)
 import Halogen.HTML.Events.Extra (onClick_, onValueInput_)
 import Halogen.HTML.Properties (InputType(..), enabled, href, placeholder, target, type_, value)
-import Marlowe.Execution (NamedAction(..), _mNextTimeout, getActionParticipant)
+import Marlowe.Execution (NamedAction(..), _currentState, _mNextTimeout, expandBalances, getActionParticipant)
 import Marlowe.Extended (contractTypeName)
-import Marlowe.Semantics (Bound(..), ChoiceId(..), Input(..), Party(..), Slot, SlotInterval, Token(..), TransactionInput(..), getEncompassBound)
+import Marlowe.Semantics (Bound(..), ChoiceId(..), Input(..), Party(..), Slot, SlotInterval, Token(..), TransactionInput(..), Accounts, getEncompassBound)
 import Marlowe.Slot (secondsDiff, slotToDateTime)
 import Material.Icons (Icon(..), icon)
 import TimeHelpers (formatDate, formatTime, humanizeDuration, humanizeInterval)
@@ -260,10 +260,7 @@ renderPastStep state stepNumber step =
 
     renderBody Tasks { state: TimeoutStep timeoutSlot } = renderTimeout stepNumber timeoutSlot
 
-    -- FIXME: The state of renderBalances is incorrect, once we implement that function correctly
-    --        this code should be the following:
-    -- renderBody Balances { balances } = renderBalances balances
-    renderBody Balances _ = renderBalances state
+    renderBody Balances { balances } = renderBalances state balances
   in
     renderContractCard stepNumber state
       [ div [ classNames [ "py-2.5", "px-4", "flex", "items-center", "border-b", "border-lightgray" ] ]
@@ -384,6 +381,12 @@ renderCurrentStep currentSlot state =
 
     mNextTimeout = state ^. (_executionState <<< _mNextTimeout)
 
+    participants = state ^. _participants
+
+    currentState = state ^. (_executionState <<< _currentState)
+
+    balances = expandBalances (Set.toUnfoldable $ Map.keys participants) [ Token "" "" ] currentState
+
     timeoutStr =
       maybe "timed out"
         (\nextTimeout -> humanizeDuration $ secondsDiff nextTimeout currentSlot)
@@ -403,7 +406,7 @@ renderCurrentStep currentSlot state =
           [ case currentTab /\ contractIsClosed of
               Tasks /\ false -> renderTasks state
               Tasks /\ true -> renderContractClose
-              Balances /\ _ -> renderBalances state
+              Balances /\ _ -> renderBalances state balances
           ]
       ]
 
@@ -669,17 +672,13 @@ currency (Token "" "dollar") value = "$ " <> formatBigInteger value
 
 currency (Token _ name) value = formatBigInteger value <> " " <> name
 
-renderBalances :: forall p a. State -> HTML p a
-renderBalances state =
+renderBalances :: forall p a. State -> Accounts -> HTML p a
+renderBalances state accounts =
   let
-    -- accounts :: Array (Tuple (Tuple Party Token) BigInteger)
-    -- accounts = Map.toUnfoldable $ state ^. (_executionState <<< _state <<< _accounts)
-    -- FIXME: What should we show if a participant doesn't have balance yet?
-    -- FIXME: We fake the accounts for development until we fix the semantics
-    accounts' =
-      [ (Role "alice" /\ Token "" "") /\ (fromInt 2500)
-      , (Role "bob" /\ Token "" "") /\ (fromInt 10)
-      ]
+    -- TODO: Right now we only have one type of Token (ada), but when we support multiple tokens we may want to group by
+    --       participant and show the different tokens for each participant.
+    accounts' :: Array (Tuple (Tuple Party Token) BigInteger)
+    accounts' = Map.toUnfoldable accounts
   in
     div [ classNames [ "text-xs" ] ]
       ( append

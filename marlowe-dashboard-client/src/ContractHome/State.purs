@@ -90,14 +90,14 @@ filledContract2 (Slot currentSlot) = do
               (SlotInterval (Slot currentSlot) (Slot currentSlot))
           , inputs:
               List.singleton
-                $ IDeposit (Role "Investor") (Role "Investor") (Token "" "") (fromInt 1000)
+                $ IDeposit (Role "Seller") (Role "Seller") (Token "" "") (fromInt 1000)
           }
       ]
 
     nextState' :: Contract.State -> TransactionInput -> Contract.State
     nextState' state txInput = applyTx (Slot currentSlot) txInput state
   contract <- toCore $ fillTemplate templateContent EscrowWithCollateral.extendedContract
-  initialState <- pure $ Contract.mkInitialState "dummy contract 2" zero EscrowWithCollateral.metaData participants (Just $ Role "Alice") contract
+  initialState <- pure $ Contract.mkInitialState "dummy contract 2" zero EscrowWithCollateral.metaData participants (Just $ Role "Buyer") contract
   pure $ foldl nextState' initialState transactions
 
 filledContract3 :: Slot -> Maybe Contract.State
