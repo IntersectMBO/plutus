@@ -69,6 +69,7 @@
           (hsPkgs."uuid" or (errorHandler.buildDepError "uuid"))
           (hsPkgs."aeson-pretty" or (errorHandler.buildDepError "aeson-pretty"))
           (hsPkgs."QuickCheck" or (errorHandler.buildDepError "QuickCheck"))
+          (hsPkgs."quickcheck-dynamic" or (errorHandler.buildDepError "quickcheck-dynamic"))
           (hsPkgs."random" or (errorHandler.buildDepError "random"))
           (hsPkgs."unordered-containers" or (errorHandler.buildDepError "unordered-containers"))
           (hsPkgs."foldl" or (errorHandler.buildDepError "foldl"))
@@ -147,11 +148,6 @@
           ] ++ (pkgs.lib).optionals (!(compiler.isGhcjs && true || system.isGhcjs)) [
           "Plutus/Contract/Test"
           "Plutus/Contract/Test/ContractModel"
-          "Plutus/Contract/Test/DynamicLogic"
-          "Plutus/Contract/Test/DynamicLogic/CanGenerate"
-          "Plutus/Contract/Test/DynamicLogic/Monad"
-          "Plutus/Contract/Test/DynamicLogic/Quantify"
-          "Plutus/Contract/Test/StateModel"
           ];
         hsSourceDirs = [ "src" ];
         };

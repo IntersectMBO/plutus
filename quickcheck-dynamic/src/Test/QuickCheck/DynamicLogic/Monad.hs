@@ -1,5 +1,5 @@
 {-# LANGUAGE FlexibleContexts #-}
-module Plutus.Contract.Test.DynamicLogic.Monad
+module Test.QuickCheck.DynamicLogic.Monad
     ( DL
     , action
     , anyAction
@@ -19,16 +19,16 @@ module Plutus.Contract.Test.DynamicLogic.Monad
     , DL.DynLogicModel(..)
     , DL.DynLogicTest(..)
     , DL.TestStep(..)
-    , module Plutus.Contract.Test.DynamicLogic.Quantify
+    , module Test.QuickCheck.DynamicLogic.Quantify
     ) where
 
 import           Control.Applicative
 import           Control.Monad
 import           Data.Typeable
 
-import qualified Plutus.Contract.Test.DynamicLogic          as DL
-import           Plutus.Contract.Test.DynamicLogic.Quantify
-import           Plutus.Contract.Test.StateModel
+import qualified Test.QuickCheck.DynamicLogic          as DL
+import           Test.QuickCheck.DynamicLogic.Quantify
+import           Test.QuickCheck.StateModel
 
 import           Test.QuickCheck
 

@@ -1,4 +1,4 @@
-module Plutus.Contract.Test.DynamicLogic.CanGenerate (canGenerate) where
+module Test.QuickCheck.DynamicLogic.CanGenerate (canGenerate) where
 
 import           System.IO.Unsafe
 import           Test.QuickCheck

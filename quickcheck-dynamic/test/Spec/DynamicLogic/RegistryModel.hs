@@ -8,16 +8,16 @@
 module Spec.DynamicLogic.RegistryModel where
 
 import           Control.Concurrent
-import           Control.Exception                 (ErrorCall, try)
+import           Control.Exception            (ErrorCall, try)
 import           Data.List
 import           Test.QuickCheck
 import           Test.QuickCheck.Monadic
-import           Test.Tasty                        hiding (after)
-import           Test.Tasty.QuickCheck             (testProperty)
+import           Test.Tasty                   hiding (after)
+import           Test.Tasty.QuickCheck        (testProperty)
 
-import           Plutus.Contract.Test.DynamicLogic
-import           Plutus.Contract.Test.StateModel
 import           Spec.DynamicLogic.Registry
+import           Test.QuickCheck.DynamicLogic
+import           Test.QuickCheck.StateModel
 
 
 data RegState = RegState{

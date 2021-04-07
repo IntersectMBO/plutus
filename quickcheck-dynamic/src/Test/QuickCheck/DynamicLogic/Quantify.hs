@@ -8,7 +8,7 @@
    an t, shrink a t, and recognise a generated t.
 -}
 
-module Plutus.Contract.Test.DynamicLogic.Quantify
+module Test.QuickCheck.DynamicLogic.Quantify
     ( Quantification(isaQ)
     , isEmptyQ, generateQ, shrinkQ
     , arbitraryQ, exactlyQ, elementsQ, oneofQ, frequencyQ, mapQ, whereQ, chooseQ
@@ -24,7 +24,7 @@ import           Control.Monad
 import           System.Random
 import           Test.QuickCheck
 
-import           Plutus.Contract.Test.DynamicLogic.CanGenerate
+import           Test.QuickCheck.DynamicLogic.CanGenerate
 
 -- | A `Quantification` over a type @a@ is a generator that can be used with
 --   `Plutus.Contract.Test.ContractModel.forAllQ` to generate random values in

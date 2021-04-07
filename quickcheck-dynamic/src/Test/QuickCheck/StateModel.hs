@@ -11,7 +11,7 @@
 {-# LANGUAGE TypeFamilies          #-}
 {-# LANGUAGE UndecidableInstances  #-}
 
-module Plutus.Contract.Test.StateModel(
+module Test.QuickCheck.StateModel(
     StateModel(..)
   , Any(..)
   , Step(..)

@@ -181,8 +181,6 @@
             "Spec/Auction"
             "Spec/Crowdfunding"
             "Spec/Currency"
-            "Spec/DynamicLogic/Registry"
-            "Spec/DynamicLogic/RegistryModel"
             "Spec/ErrorHandling"
             "Spec/Escrow"
             "Spec/Future"
