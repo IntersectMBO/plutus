@@ -7,8 +7,6 @@ import Data.Lens (Lens')
 import Data.Lens.Record (prop)
 import Data.Maybe (Maybe(..))
 import Data.Symbol (SProxy(..))
-import Marlowe.Extended (ContractType)
-import Marlowe.Semantics as S
 
 -- This component is an UI element that allows you to have different panels with titles at the bottom of the page. Because the children of this component is set by the page, the Action type
 -- is parameterized in two types:
@@ -46,32 +44,3 @@ _showBottomPanel = prop (SProxy :: SProxy "showBottomPanel")
 
 _panelView :: forall panel. Lens' (State panel) panel
 _panelView = prop (SProxy :: SProxy "panelView")
-
-class ShowConstructor a where
-  showConstructor :: a -> String
-
-data MetadataAction
-  = SetContractName String
-  | SetContractType ContractType
-  | SetContractDescription String
-  | SetRoleDescription S.TokenName String
-  | DeleteRoleDescription S.TokenName
-  | SetSlotParameterDescription String String
-  | DeleteSlotParameterDescription String
-  | SetValueParameterDescription String String
-  | DeleteValueParameterDescription String
-  | SetChoiceDescription String String
-  | DeleteChoiceDescription String
-
-instance metadataActionShowConstructor :: ShowConstructor MetadataAction where
-  showConstructor (SetContractName _) = "SetContractName"
-  showConstructor (SetContractType _) = "SetContractType"
-  showConstructor (SetContractDescription _) = "SetContractDescription"
-  showConstructor (SetRoleDescription _ _) = "SetRoleDescription"
-  showConstructor (DeleteRoleDescription _) = "DeleteRoleDescription"
-  showConstructor (SetSlotParameterDescription _ _) = "SetSlotParameterDescription"
-  showConstructor (DeleteSlotParameterDescription _) = "DeleteSlotParameterDescription"
-  showConstructor (SetValueParameterDescription _ _) = "SetValueParameterDescription"
-  showConstructor (DeleteValueParameterDescription _) = "DeleteValueParameterDescription"
-  showConstructor (SetChoiceDescription _ _) = "SetChoiceDescription"
-  showConstructor (DeleteChoiceDescription _) = "DeleteChoiceDescription"

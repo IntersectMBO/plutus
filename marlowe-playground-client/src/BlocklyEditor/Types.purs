@@ -4,7 +4,6 @@ import Prelude
 import Analytics (class IsEvent, Event)
 import Analytics as A
 import BlocklyComponent.Types as Blockly
-import BottomPanel.Types (MetadataAction, showConstructor)
 import BottomPanel.Types as BottomPanel
 import Data.BigInteger (BigInteger)
 import Data.Generic.Rep (class Generic)
@@ -16,6 +15,7 @@ import Data.Symbol (SProxy(..))
 import Marlowe.Extended (IntegerTemplateType)
 import Marlowe.Extended.Metadata (MetadataHintInfo)
 import Marlowe.Linter (Warning)
+import MetadataTab.Types (MetadataAction, showConstructor)
 import StaticAnalysis.Types (AnalysisState, initAnalysisState)
 
 data Action

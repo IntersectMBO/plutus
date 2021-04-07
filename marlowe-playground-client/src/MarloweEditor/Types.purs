@@ -3,7 +3,6 @@ module MarloweEditor.Types where
 import Prelude
 import Analytics (class IsEvent, Event)
 import Analytics as A
-import BottomPanel.Types (MetadataAction, showConstructor)
 import BottomPanel.Types as BottomPanel
 import Data.Array as Array
 import Data.BigInteger (BigInteger)
@@ -17,6 +16,7 @@ import Halogen.Monaco (KeyBindings(..))
 import Halogen.Monaco as Monaco
 import Marlowe.Extended (IntegerTemplateType)
 import Marlowe.Extended.Metadata (MetadataHintInfo)
+import MetadataTab.Types (MetadataAction, showConstructor)
 import Monaco (IMarkerData)
 import StaticAnalysis.Types (AnalysisState, initAnalysisState)
 import Text.Parsing.StringParser (Pos)

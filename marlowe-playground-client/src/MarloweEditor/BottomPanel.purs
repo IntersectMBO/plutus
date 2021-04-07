@@ -3,7 +3,6 @@ module MarloweEditor.BottomPanel
   ) where
 
 import Prelude hiding (div)
-import BottomPanel.View (metadataView)
 import Data.Array (drop, head)
 import Data.Array as Array
 import Data.Lens (to, (^.))
@@ -17,6 +16,7 @@ import Halogen.HTML.Events (onClick)
 import Halogen.HTML.Properties (class_, classes)
 import Marlowe.Extended.Metadata (MetaData)
 import MarloweEditor.Types (Action(..), BottomPanelView(..), State, _editorErrors, _editorWarnings, _hasHoles, _metadataHintInfo, _showErrorDetail, contractHasErrors)
+import MetadataTab.View (metadataView)
 import StaticAnalysis.BottomPanel (analysisResultPane, analyzeButton, clearButton)
 import StaticAnalysis.Types (_analysisExecutionState, _analysisState, isCloseAnalysisLoading, isNoneAsked, isReachabilityLoading, isStaticLoading)
 import Text.Parsing.StringParser.Basic (lines)
