@@ -146,7 +146,7 @@ handleAction (SelectView view) = assign _status view
 
 handleAction (OpenContract ix) = assign _selectedContractIndex $ Just ix
 
-handleAction (AdvanceTimeoutedContracts currentSlot) =
+handleAction (AdvanceTimedOutContracts currentSlot) =
   modify_
     $ over
         (_contracts <<< traversed <<< filtered (\contract -> contract.executionState.mNextTimeout == Just currentSlot))

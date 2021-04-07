@@ -12,7 +12,7 @@ import Css as Css
 import Data.Array (foldr, intercalate)
 import Data.Array as Array
 import Data.Array.NonEmpty (NonEmptyArray)
-import Data.Array.NonEmpty as NEA
+import Data.Array.NonEmpty as NonEmptyArray
 import Data.BigInteger (BigInteger, fromInt, fromString, toNumber)
 import Data.Foldable (foldMap)
 import Data.Formatter.Number (Formatter(..), format)
@@ -298,11 +298,11 @@ groupTransactionInputByParticipant (TransactionInput { inputs, interval }) =
   mergeInputsFromSameParty ::
     NonEmptyArray { inputs :: Array Input, party :: Party } ->
     InputsByParty
-  mergeInputsFromSameParty nea =
+  mergeInputsFromSameParty elements =
     foldr
       (\elem accu -> accu { inputs = elem.inputs <> accu.inputs })
-      (NEA.head nea # \{ party } -> { inputs: [], party, interval })
-      nea
+      (NonEmptyArray.head elements # \{ party } -> { inputs: [], party, interval })
+      elements
 
 renderPastActions :: forall p a. State -> TransactionInput -> HTML p a
 renderPastActions state txInput =
@@ -455,8 +455,8 @@ expandAndGroupByRole mActiveUserParty allParticipants actions =
   sameParty a b = fst a == fst b
 
   extractGroupedParty :: NonEmptyArray (Tuple Party NamedAction) -> Tuple Party (Array NamedAction)
-  extractGroupedParty group = case NEA.unzip group of
-    tokens /\ actions' -> NEA.head tokens /\ NEA.toArray actions'
+  extractGroupedParty group = case NonEmptyArray.unzip group of
+    tokens /\ actions' -> NonEmptyArray.head tokens /\ NonEmptyArray.toArray actions'
 
 renderTasks :: forall p. State -> HTML p Action
 renderTasks state =
