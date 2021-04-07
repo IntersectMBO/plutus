@@ -174,7 +174,7 @@ So, if you call the ``lock`` endpoint in one of the simulated wallets, it will c
 You also need a couple of declarations that generate glue code for the Playground.
 
 .. code-block:: haskell
-      
+
    mkSchemaDefinitions ''SplitSchema
 
    $(mkKnownCurrencies [])

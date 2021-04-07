@@ -501,9 +501,11 @@ walletFundsChange w dlt =
         let initialValue = fold (dist ^. at w)
             result = initialValue P.+ dlt == finalValue
         unless result $ do
-            tell @(Doc Void) $ vsep
-                [ "Expected funds of" <+> pretty w <+> "to change by" <+> viaShow dlt
-                , "but they changed by", viaShow (finalValue P.- initialValue)]
+            tell @(Doc Void) $ vsep $
+                [ "Expected funds of" <+> pretty w <+> "to change by", " " <+> viaShow dlt ] ++
+                if initialValue == finalValue
+                then ["but they did not change"]
+                else ["but they changed by", " " <+> viaShow (finalValue P.- initialValue)]
         pure result
 
 -- | An assertion about the blockchain

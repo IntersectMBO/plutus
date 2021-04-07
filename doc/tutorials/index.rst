@@ -10,4 +10,5 @@ Tutorials
    plutus-tx
    basic-validators
    basic-forging-policies
+   contract-testing
    troubleshooting

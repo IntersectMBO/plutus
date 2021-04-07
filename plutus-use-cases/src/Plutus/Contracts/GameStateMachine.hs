@@ -29,7 +29,7 @@ module Plutus.Contracts.GameStateMachine(
     , monetaryPolicy
     , LockArgs(..)
     , GuessArgs(..)
-    , GameStateMachineSchema
+    , GameStateMachineSchema, GameError
     , token
     ) where
 
