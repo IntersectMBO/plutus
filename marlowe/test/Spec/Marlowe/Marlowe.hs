@@ -16,6 +16,7 @@ import           Control.Lens                          ((&), (.~))
 import           Control.Monad                         (void)
 import           Control.Monad.Freer                   (run)
 import           Control.Monad.Freer.Error             (runError)
+import           Data.Default                          (Default (..))
 import qualified Data.Map.Strict                       as Map
 import           Data.Maybe                            (isJust)
 import qualified Data.Text                             as T
@@ -190,7 +191,7 @@ trustFundTest = checkPredicateOptions (defaultCheckOptions & maxSlot .~ 200) "Tr
                     $ run
                     $ runError @Folds.EmulatorFoldErr
                     $ foldEmulatorStreamM fld
-                    $ Trace.runEmulatorStream Trace.defaultEmulatorConfig
+                    $ Trace.runEmulatorStream def
                     $ do
                         void $ Trace.activateContractWallet alice (void con)
                         Trace.waitNSlots 10

@@ -71,6 +71,7 @@ import           Control.Monad.Freer.Error              (Error, runError)
 import           Control.Monad.Freer.Extras.Log         (LogLevel (..), LogMessage (..))
 import           Control.Monad.Freer.Reader
 import           Control.Monad.Freer.Writer             (Writer (..), tell)
+import           Data.Default                           (Default (..))
 import           Data.Foldable                          (fold, toList, traverse_)
 import           Data.Maybe                             (mapMaybe)
 import           Data.Proxy                             (Proxy (..))
@@ -113,7 +114,6 @@ import           Wallet.Emulator                        (EmulatorEvent, Emulator
 
 import           Plutus.Contract.Schema                 (Event (..), Handlers (..), Input, Output)
 import           Plutus.Contract.Trace                  as X
-import           Plutus.Trace                           (defaultEmulatorConfig)
 import           Plutus.Trace.Emulator                  (EmulatorConfig (..), EmulatorTrace, runEmulatorStream)
 import           Plutus.Trace.Emulator.Types            (ContractConstraints, ContractInstanceLog, ContractInstanceTag,
                                                          UserThreadMsg)
@@ -150,7 +150,7 @@ defaultCheckOptions =
     CheckOptions
         { _minLogLevel = Info
         , _maxSlot = 125
-        , _emulatorConfig = defaultEmulatorConfig
+        , _emulatorConfig = def
         }
 
 type TestEffects = '[Reader InitialDistribution, Error EmulatorFoldErr, Writer (Doc Void)]

@@ -9,6 +9,7 @@ import           Test.Tasty
 import           Control.Monad                 (void)
 import           Control.Monad.Freer           (run)
 import           Control.Monad.Freer.Error     (runError)
+import           Data.Default                  (Default (..))
 import qualified Ledger
 import qualified Ledger.Ada                    as Ada
 import           Ledger.Value                  (TokenName, Value)
@@ -78,7 +79,7 @@ account =
         $ runError @Folds.EmulatorFoldErr
         $ foldEmulatorStreamM fld
         $ takeUntilSlot 10
-        $ Trace.runEmulatorStream Trace.defaultEmulatorConfig trace
+        $ Trace.runEmulatorStream def trace
 
 theToken :: Value
 theToken = Accounts.accountToken account
