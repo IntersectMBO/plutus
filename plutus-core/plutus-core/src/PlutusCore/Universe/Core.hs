@@ -77,7 +77,8 @@ We say that a type is in a universe whenever there is a tag for that type in the
 For example, 'Int' is in 'U', because there exists a tag for 'Int' in 'U' -- 'UInt'.
 -}
 
-type family All (constr :: k -> Constraint) (as :: [k]) :: Constraint where
+type All :: forall a. (a -> Constraint) -> [a] -> Constraint
+type family All constr xs :: Constraint where
     All constr '[]       = ()
     All constr (x ': xs) = (constr x, All constr xs)
 
@@ -91,11 +92,11 @@ newtype TypeIn uni a = TypeIn (uni a)
 data ValueOf uni a = ValueOf (uni a) a
 
 -- | A constraint for \"@a@ is in @uni@\".
-type Contains :: (* -> *) -> * -> Constraint
+type Contains :: forall k. (k -> *) -> k -> Constraint
 class uni `Contains` a where
     knownUni :: uni a
 
-type Includes :: (* -> *) -> k -> Constraint
+type Includes :: forall k. (* -> *) -> k -> Constraint
 type Includes uni = Permits (Contains uni)
 
 -- | Same as 'knownUni', but receives a @proxy@.
@@ -156,7 +157,7 @@ type Permits2 :: (* -> Constraint) -> (* -> * -> *) -> Constraint
 class    (forall a b. (constr a, constr b) => constr (f a b)) => constr `Permits2` f
 instance (forall a b. (constr a, constr b) => constr (f a b)) => constr `Permits2` f
 
-type Permits :: (* -> Constraint) -> k -> Constraint
+type Permits :: forall k. (* -> Constraint) -> k -> Constraint
 type family Permits constr
 
 type instance Permits constr = constr
