@@ -147,7 +147,7 @@ data ContractTerms = ContractTerms {
   contractId         :: String
   , contractType     :: Maybe ContractType
   , ct_IED           :: Day -- Initial Exchange Date
-  , ct_SD            :: Day -- start date
+  , ct_SD            :: Day -- status date
   , ct_MD            :: Maybe Day -- maturity date
   , ct_TD            :: Maybe Day -- termination date
   , ct_PRNXT         :: Maybe Double -- periodic payment amount
