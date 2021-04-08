@@ -65,10 +65,10 @@ rec {
 
   marlowe-dashboard = pkgs.recurseIntoAttrs rec {
     inherit (pkgs.callPackage ./marlowe-dashboard-client {
-      inherit plutus-pab;
+      inherit plutus-pab marlowe-app;
       inherit (plutus.lib) buildPursPackage buildNodeModules filterNpm gitignore-nix;
       inherit webCommon webCommonMarlowe;
-    }) client server-invoker generated-purescript generate-purescript;
+    }) client server-invoker generated-purescript generate-purescript contractsJSON;
   };
 
   marlowe-marketplace = pkgs.recurseIntoAttrs rec {
