@@ -295,6 +295,41 @@ postulate
   → Value⋆ (closeFrame F M)
   → (E ▻ M) -→s (E' ▻ (L · N))
 
+variable K'' : Kind
+open import Relation.Nullary
+
+-- towards the missing case
+
+{-# TERMINATING #-}
+case : ∀ (M : ∅ ⊢⋆ J)(E : EvalCtx K J)
+  → (VM : Value⋆ M)
+  → ¬ (Value⋆ (closeEvalCtx E M))
+  → ∃ λ K' → ∃ λ K''
+  → ∃ λ (E' : EvalCtx K K')
+  → ∃ λ (F : Frame K' K'')
+  → ∃ λ (E'' : EvalCtx K'' J)
+  → compEvalCtx E' (evalFrame F E'') ≡ E
+  × Value⋆ (closeEvalCtx E'' M)
+  × ¬ (Value⋆ (closeFrame F (closeEvalCtx E'' M)))
+case M E VM ¬VEM with dissect' E | inspect dissect' E
+case M E VM ¬VEM | inj₁ (refl , refl) | I[ eq ] = ⊥-elim (¬VEM VM)
+case M E VM ¬VEM | inj₂ (I ,  E' , (-· B))  | I[ eq ]  rewrite dissect-lemma E E' (-· B) eq =
+   _ , _ , E' , (-· B) , [] , trans (compEF' E' [] (-· B)) (cong (λ E → extendEvalCtx E (-· B)) (comp-idr E')) , VM , λ()
+case M E VM ¬VEM | inj₂ (I ,  E' , (V ·-))  | I[ eq ] rewrite dissect-lemma E E' (V ·-) eq =
+  _ , _ , E' , (V ·-) , [] , trans (compEF' E' [] (V ·-)) (cong (λ E → extendEvalCtx E (V ·-)) (comp-idr E')) , VM , λ()
+case M E VM ¬VEM | inj₂ (.* , E' , (-⇒ B))  | I[ eq ] rewrite dissect-lemma E E' (-⇒ B) eq with decVal B
+... | inj₂ ¬VB = _ , _ , E' , (-⇒ B) , [] , trans (compEF' E' [] (-⇒ B)) (cong (λ E → extendEvalCtx E (-⇒ B)) (comp-idr E')) , VM , λ { (VA V-⇒ VB) → ¬VB VB}
+... | inj₁ VB  with case (M ⇒ B) E' (VM V-⇒ VB) (subst (λ V → ¬ Value⋆ V) (closeEF E' (-⇒ B) M) ¬VEM)
+... | K' , K'' , E'' , F , E''' , refl , VE'''M , ¬VFE'''M = K' , K'' , E'' , F , extendEvalCtx E''' (-⇒ B) , trans (cong (compEvalCtx E'') (evalEF F E''' (-⇒ B))) (compEF' E'' (evalFrame F E''') (-⇒ B)) , subst Value⋆ (sym (closeEF E''' (-⇒ B) M)) VE'''M , subst (λ V → ¬ (Value⋆ V)) (cong (closeFrame F) (sym (closeEF E''' (-⇒ B) M))) ¬VFE'''M
+case M E VM ¬VEM | inj₂ (.* , E' , (V ⇒-))  | I[ eq ]  rewrite dissect-lemma E E' (V ⇒-) eq with case (_ ⇒ M) E' (V V-⇒ VM) (subst (λ V → ¬ (Value⋆ V)) (closeEF E' (V ⇒-) M) ¬VEM)
+... | K' , K'' , E'' , F , E''' , refl , VE'''M , ¬VFE'''M = K' , K'' , E'' , F , extendEvalCtx E''' (V ⇒-) , trans (cong (compEvalCtx E'') (evalEF F E''' (V ⇒-))) (compEF' E'' (evalFrame F E''') (V ⇒-)) , subst Value⋆ (sym (closeEF E''' (V ⇒-) M)) VE'''M , subst (λ V → ¬ (Value⋆ V)) (cong (closeFrame F) (sym (closeEF E''' (V ⇒-) M))) ¬VFE'''M
+case M E VM ¬VEM | inj₂ (.* , E' , (μ- B))  | I[ eq ] rewrite dissect-lemma E E' (μ- B) eq with decVal B
+... | inj₂ ¬VB = _ , _ , E' , (μ- B) , [] , trans (compEF' E' [] (μ- B)) (cong (λ E → extendEvalCtx E (μ- B)) (comp-idr E')) , VM , λ { (V-μ VA VB) → ¬VB VB}
+... | inj₁ VB with case (μ M B) E' (V-μ VM VB) (subst (λ V → ¬ Value⋆ V) (closeEF E' (μ- B) M) ¬VEM)
+... | K' , K'' , E'' , F , E''' , refl , VE'''M , ¬VFE'''M = K' , K'' , E'' , F , extendEvalCtx E''' (μ- B) , trans (cong (compEvalCtx E'') (evalEF F E''' (μ- B))) (compEF' E'' (evalFrame F E''') (μ- B)) , subst Value⋆ (sym (closeEF E''' (μ- B) M)) VE'''M , subst (λ V → ¬ (Value⋆ V)) (cong (closeFrame F) (sym (closeEF E''' (μ- B) M))) ¬VFE'''M
+case M E VM ¬VEM | inj₂ (.* , E' , (μ V -)) | I[ eq ] rewrite dissect-lemma E E' (μ V -) eq with case (μ _ M) E' (V-μ V VM) (subst (λ V → ¬ (Value⋆ V)) (closeEF E' (μ V -) M) ¬VEM)
+... | K' , K'' , E'' , F , E''' , refl , VE'''M , ¬VFE'''M = K' , K'' , E'' , F , extendEvalCtx E''' (μ V -) , trans (cong (compEvalCtx E'') (evalEF F E''' (μ V -))) (compEF' E'' (evalFrame F E''') (μ V -)) , subst Value⋆ (sym (closeEF E''' (μ V -) M)) VE'''M , subst (λ V → ¬ (Value⋆ V)) (cong (closeFrame F) (sym (closeEF E''' (μ V -) M))) ¬VFE'''M
+
 -- thm2 follows from this stronger theorem
 
 thm1 : (A : ∅ ⊢⋆ J)(A' : ∅ ⊢⋆ K)(E : EvalCtx K J)
@@ -441,7 +476,7 @@ thm1 M A E refl B V (trans—↠E {B = B'} q q') | J' , E' , L , N , r , r' , r'
         (step*
           (cong (stepV (V-ƛ L')) (lemma E' (-· N')))
           (step**
-            (lemV N' VN' _)
+            (lemV N' VN' (extendEvalCtx E' (V-ƛ L' ·-)))
             (step*
               (cong (stepV VN') (lemma E' (V-ƛ L' ·-)))
               (subst-step* (cong (λ N → J' , E' ▻ N) (sym (β-lem refl r))) base)))))))

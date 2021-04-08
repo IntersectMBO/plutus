@@ -28,7 +28,7 @@ open import Relation.Nullary
 open import Data.Product
 open import Data.Empty
 
-open import Relation.Binary.PropositionalEquality using (_≡_; refl; cong;subst;sym)
+open import Relation.Binary.PropositionalEquality using (_≡_; refl; cong;subst;sym;trans)
 ```
 
 ## Values
@@ -118,11 +118,9 @@ data Stack (K : Kind) : Kind → Set where
   ε   : Stack K K
   _,_ : Stack K J → Frame J I → Stack K I
 
-
 data BackStack (K : Kind) : Kind → Set where
   ε   : BackStack K K
   _,_ : Frame K J → BackStack J I → BackStack K I
-
 ```
 
 Analogously to frames we can close a stack by plugging in a type of
@@ -148,13 +146,12 @@ data _—→⋆_ : ∀{J} → (∅ ⊢⋆ J) → (∅ ⊢⋆ J) → Set where
         -------------------
       → ƛ A · B —→⋆ A [ B ]
 
-
 data _—→s_ : ∀{J} → (∅ ⊢⋆ J) → (∅ ⊢⋆ J) → Set where
-  frameRule : ∀{K K'} → (f : Stack K K')
+  stackRule : ∀{K K'} → (s : Stack K K')
     → ∀{A A' : ∅ ⊢⋆ K'} → A —→⋆ A'
     → {B B' : ∅ ⊢⋆ K}
-    → B ≡ closeStack f A
-    → B' ≡ closeStack f A'
+    → B ≡ closeStack s A
+    → B' ≡ closeStack s A'
       --------------------
     → B —→s B'
     -- ^ explicit equality proofs make pattern matching easier and this uglier
@@ -206,34 +203,63 @@ extendStack-lemma : (f : Frame K' K)(s : Stack K J)(A : ∅ ⊢⋆ J)
 extendStack-lemma f ε        A = refl
 extendStack-lemma f (s , f') A = extendStack-lemma f s (closeFrame f' A)
 
-lemma51 : (M : ∅ ⊢⋆ K)
+
+data Factorisation (M : ∅ ⊢⋆ K) : Set where
+  fact : (s : Stack K J)
+       → (L : ∅ ⊢⋆ I ⇒ J)
+       → (N : ∅ ⊢⋆ I)
+       → Value⋆ L
+       → Value⋆ N
+       → M ≡ closeStack s (L · N)
+       → Factorisation M
+
+
+factor : (M : ∅ ⊢⋆ K)
   → Value⋆ M
-  ⊎ Σ Kind λ J →
-    Σ (Stack K J) λ E →
-    Σ Kind λ I → 
-    Σ (∅ ⊢⋆ I ⇒ J)  λ L →
-    Σ (∅ ⊢⋆ I)      λ N →
-      Value⋆ L
-    × Value⋆ N
-    × M ≡ closeStack E (L · N)
-lemma51 (Π M)   = inj₁ (V-Π M)
-lemma51 (M ⇒ M') with lemma51 M
-... | inj₂ (J , s , I , L , N , VL , VN , refl) =
-  inj₂ (J , extendStack (-⇒ M') s , I , L , N , VL , VN , extendStack-lemma (-⇒ M') s (L · N))
-... | inj₁ VM with lemma51 M'
-... | inj₂ (J , s , I , L , N , VL , VN , refl) =
-  inj₂ (J , extendStack (VM ⇒-) s , I , L , N , VL , VN , extendStack-lemma (VM ⇒-) s (L · N))
+  ⊎ Factorisation M
+factor (Π M)    = inj₁ (V-Π M)
+factor (M ⇒ M') with factor M
+... | inj₂ (fact s L N VL VN refl) =
+  inj₂ (fact (extendStack (-⇒ M') s) L N VL VN (extendStack-lemma (-⇒ M') s (L · N)))
+... | inj₁ VM with factor M'
 ... | inj₁ VM' = inj₁ (VM V-⇒ VM')
-lemma51 (ƛ M)   = inj₁ (V-ƛ M)
-lemma51 (M · N) = {!!}
-lemma51 (μ M N) = {!!}
-lemma51 (con c) = {!!}
+... | inj₂ (fact s L N VL VN refl) =
+  inj₂ (fact (extendStack (VM ⇒-) s) L N VL VN (extendStack-lemma (VM ⇒-) s (L · N)))
+factor (ƛ M)    = inj₁ (V-ƛ M)
+factor (M · M') with factor M
+... | inj₂ (fact s L N VL VN refl) =
+  inj₂ (fact (extendStack (-· M') s) L N VL VN (extendStack-lemma (-· M') s (L · N)))
+... | inj₁ VM with factor M'
+... | inj₁ VM' = inj₂ (fact ε M M' VM VM' refl)
+... | inj₂ (fact s L N VL VN refl) =
+  inj₂ (fact (extendStack (VM ·-) s) L N VL VN (extendStack-lemma (VM ·-) s (L · N)))
+factor (μ M M') with factor M
+... | inj₂ (fact s L N VL VN refl) =
+  inj₂ (fact (extendStack (μ- M') s) L N VL VN (extendStack-lemma (μ- M') s (L · N)))
+... | inj₁ VM with factor M'
+... | inj₁ VM' = inj₁ (V-μ VM VM')
+... | inj₂ (fact s L N VL VN refl) =
+  inj₂ (fact (extendStack (μ VM -) s) L N VL VN (extendStack-lemma (μ VM -) s (L · N)))
+factor (con c) = inj₁ (V-con c)
+
+closeStack-inj : ∀ (s s' : Stack K J) A → closeStack s A ≡ closeStack s' A → s ≡ s'
+closeStack-inj s s' A p = {!!}
+
+factor-unique : (M : ∅ ⊢⋆ K) → Value⋆ M ⊎ ∃ λ (f : Factorisation M) → ∀ (f' : Factorisation M) → f ≡ f' 
+factor-unique (Π M)    = inj₁ (V-Π M)
+factor-unique (M ⇒ M') with factor-unique M
+... | inj₁ VM = {!!}
+... | inj₂ (fact s L N VL VN refl , U) = inj₂ ((fact (extendStack (-⇒ M') s) L N VL VN (extendStack-lemma (-⇒ M') s (L · N))) , λ {(fact s' L' N' VL' VN' p') → {!extendStack-lemma (-⇒ M') s (L · N)!}})
+factor-unique (ƛ M)    = {!!}
+factor-unique (M · M') = {!!}
+factor-unique (μ M M') = {!!}
+factor-unique (con c)  = {!!}
 
 progress⋆ : (A : ∅ ⊢⋆ K) → Progress⋆ A
-progress⋆ A with lemma51 A
+progress⋆ A with factor A
 ... | inj₁ VA = done VA
-... | inj₂ (J , s , I , _ , N , V-ƛ L , VN , p) =
-  step (frameRule s (β-ƛ VN) p refl)
+... | inj₂ (fact s _ N (V-ƛ L) VN p) =
+  step (stackRule s (β-ƛ VN) p refl)
 ```
 
 ## Determinism of Reduction:
@@ -248,7 +274,7 @@ lem0 A B ()
 
 -- you can't plug a application into a frame and get a value
 lem1 : (f : Frame K J)(A : ∅ ⊢⋆ J) → (Value⋆ A → ⊥)
-     → Value⋆ (closeFrame f A) → ⊥
+  → Value⋆ (closeFrame f A) → ⊥
 lem1 (-⇒ x) A ¬V (V V-⇒ W) = ¬V V
 lem1 (x ⇒-) A ¬V (W V-⇒ V) = ¬V V
 lem1 (μ- B) A ¬V (V-μ V W) = ¬V V
@@ -266,7 +292,7 @@ lem2' ε       A V = V
 lem2' (s , f) A V = lem1' f A (lem2' s (closeFrame f A) V)
 
 lem2 : (s : Stack K J)(A : ∅ ⊢⋆ J) → (Value⋆ A → ⊥)
-     → Value⋆ (closeStack s A) → ⊥
+  → Value⋆ (closeStack s A) → ⊥
 lem2 ε       A ¬V V = ¬V V
 lem2 (s , f) A ¬V W = lem2 s (closeFrame f A) (lem1 f A ¬V) W
 
