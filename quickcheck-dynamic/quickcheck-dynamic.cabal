@@ -12,6 +12,7 @@ bug-reports: https://github.com/iohk/plutus/issues
 description:
     Please see the README on GitHub at <https://github.com/input-output-hk/plutus#readme>
 build-type: Simple
+extra-doc-files: README.md
 
 source-repository head
     type: git
