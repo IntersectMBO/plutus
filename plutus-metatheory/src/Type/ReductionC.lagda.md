@@ -241,6 +241,16 @@ compEF (E l⇒ B) F E' = cong (_l⇒ B) (compEF E F E')
 compEF (μr V E) F E' = cong (μr V) (compEF E F E')
 compEF (μl E B) F E' = cong (λ E → μl E B) (compEF E F E')
 
+compEF' : ∀{I'}(E : EvalCtx K J)(E' : EvalCtx J I)(F : Frame I I')
+  → compEvalCtx E (extendEvalCtx E' F) ≡ extendEvalCtx (compEvalCtx E E') F
+compEF' []       E' F = refl
+compEF' (V ·r E) E' F = cong (V ·r_) (compEF' E E' F)
+compEF' (E l· B) E' F = cong (_l· B) (compEF' E E' F)
+compEF' (V ⇒r E) E' F = cong (V ⇒r_) (compEF' E E' F)
+compEF' (E l⇒ B) E' F = cong (_l⇒ B) (compEF' E E' F)
+compEF' (μr V E) E' F = cong (μr V) (compEF' E E' F)
+compEF' (μl E B) E' F = cong (λ E → μl E B) (compEF' E E' F)
+
 -- composition can also be defined by induction on E'
 compEvalCtx' : EvalCtx K J → EvalCtx J I → EvalCtx K I
 compEvalCtx' E []        = E
