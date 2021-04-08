@@ -166,16 +166,6 @@ let
         export GITHUB_CLIENT_SECRET="$(pass $DEPLOYMENT_ENV/marlowe/githubClientSecret)"
         EOL
 
-        # in order for morph to be able to access any of the machines
-        # at all we need to install an ssh configuration file.
-        # --------------------------------------------------------------
-        # NOTE: THIS WILL MODIFY FILES IN YOUR `~/.ssh/config` DIRECTORY
-        # --------------------------------------------------------------
-
-        echo "[deploy-nix]: Installing ssh configuration ..."
-        mkdir -p ~/.ssh/config.d
-        cp plutus_playground.$DEPLOYMENT_ENV.conf ~/.ssh/config.d/
-
         #
         # Note: there appears to be some timing issue with how morph executes
         # the health-checks. In order to circumvent this we split these steps in two
@@ -183,6 +173,8 @@ let
         # 2. health-checks only
         #
         echo "[deploy-nix]: Starting deployment ..."
+        export SSH_SKIP_HOST_KEY_CHECK=1
+        export SSH_CONFIG_FILE=./plutus_playground.$DEPLOYMENT_ENV.conf
         ${morph}/bin/morph deploy --skip-health-checks --upload-secrets ./morph/network.nix switch
         ${morph}/bin/morph check-health ./morph/network.nix
       '';

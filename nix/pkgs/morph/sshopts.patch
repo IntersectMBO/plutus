@@ -1,0 +1,27 @@
+diff --git a/nix/nix.go b/nix/nix.go
+index 6a9cfd5..39b0a34 100644
+--- a/nix/nix.go
++++ b/nix/nix.go
+@@ -350,6 +350,7 @@ func Push(ctx *ssh.SSHContext, host Host, paths ...string) (err error) {
+ 
+ 	var userArg = ""
+ 	var keyArg = ""
++	var sshOpts = []string{}
+ 	var env = os.Environ()
+ 	if host.TargetUser != "" {
+ 		userArg = host.TargetUser + "@"
+@@ -360,7 +361,13 @@ func Push(ctx *ssh.SSHContext, host Host, paths ...string) (err error) {
+ 		keyArg = "?ssh-key=" + ctx.IdentityFile
+ 	}
+ 	if ctx.SkipHostKeyCheck {
+-		env = append(env, fmt.Sprintf("NIX_SSHOPTS=%s", "-o StrictHostkeyChecking=No -o UserKnownHostsFile=/dev/null"))
++		sshOpts = append(sshOpts, fmt.Sprintf("%s", "-o StrictHostkeyChecking=No -o UserKnownHostsFile=/dev/null"))
++	}
++	if ctx.ConfigFile != "" {
++		sshOpts = append(sshOpts, fmt.Sprintf("-F %s", ctx.ConfigFile))
++	}
++	if len(sshOpts) > 0 {
++		env = append(env, fmt.Sprintf("NIX_SSHOPTS=%s", strings.Join(sshOpts, " ")))
+ 	}
+ 
+ 	options := mkOptions(host)
