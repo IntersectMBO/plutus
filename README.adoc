@@ -65,6 +65,8 @@ what other attributes you can build.
 Run `cabal build plutus-core` from the root to build the
 Plutus Core library.
 
+NOTE: you must have R installed for this to work. https://cran.r-project.org/[R Installation]
+
 See the link:./cabal.project[cabal project file] to see the other
 projects that you can build with `cabal`.
 
