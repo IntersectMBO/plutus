@@ -35,7 +35,7 @@ Install https://nixos.org/nix/[Nix] (recommended). following the instructions on
 ====
 Even if you already have Nix installed, make sure to set up the xref:iohk-binary-cache[IOHK binary cache].
 ====
-See <<nix>> for further advice on using Nix.
+See <<nix-advice>> for further advice on using Nix.
 
 ==== Non-Nix
 
@@ -124,7 +124,7 @@ See link:CONTRIBUTING{outfilesuffix}[CONTRIBUTING], which describes our processe
 detail including development environments;
 and link:ARCHITECTURE{outfilesuffix}[ARCHITECTURE], which describes the structure of the repository.
 
-[[nix]]
+[[nix-advice]]
 == Nix
 
 [[iohk-binary-cache]]
