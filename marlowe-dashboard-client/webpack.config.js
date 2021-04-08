@@ -32,6 +32,9 @@ module.exports = {
             "/api": {
                 target: 'http://localhost:9080'
             },
+            "/wallet": {
+                target: 'http://localhost:9080'
+            },
             "/ws": {
                 target: 'ws://localhost:9080',
                 ws: true,

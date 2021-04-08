@@ -19,7 +19,7 @@ import Data.Symbol (SProxy(..))
 import Marlowe.Execution (ExecutionState, NamedAction)
 import Marlowe.Extended.Metadata (MetaData)
 import Marlowe.Semantics as Semantic
-import WalletData.Types (Nickname)
+import WalletData.Types (WalletNickname)
 
 _tab :: Lens' State Tab
 _tab = prop (SProxy :: SProxy "tab")
@@ -39,7 +39,7 @@ _selectedStep = prop (SProxy :: SProxy "selectedStep")
 _metadata :: Lens' State MetaData
 _metadata = prop (SProxy :: SProxy "metadata")
 
-_participants :: Lens' State (Map Semantic.Party (Maybe Nickname))
+_participants :: Lens' State (Map Semantic.Party (Maybe WalletNickname))
 _participants = prop (SProxy :: SProxy "participants")
 
 _mActiveUserParty :: Lens' State (Maybe Semantic.Party)

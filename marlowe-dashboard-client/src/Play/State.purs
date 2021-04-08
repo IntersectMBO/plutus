@@ -1,9 +1,13 @@
 module Play.State
   ( mkInitialState
+  , handleQuery
   , handleAction
   ) where
 
 import Prelude
+import Bridge (toFront)
+import Capability.Contract (class MonadContract)
+import Capability.Wallet (class MonadWallet)
 import Contract.State (defaultState, handleAction) as Contract
 import Contract.State (instantiateExtendedContract)
 import Contract.Types (Action(..), State) as Contract
@@ -32,12 +36,14 @@ import MainFrame.Types (ChildSlots, Msg)
 import Marlowe.HasParties (getParties)
 import Marlowe.Semantics (Party(..), Slot)
 import Marlowe.Semantics as Semantic
-import Play.Lenses (_contractsState, _currentSlot, _menuOpen, _selectedContract, _templateState)
+import Play.Lenses (_contractsState, _currentSlot, _menuOpen, _selectedContract, _templateState, _walletDetails)
 import Play.Types (Action(..), Card(..), Screen(..), State)
+import Plutus.PAB.Webserver.Types (CombinedWSStreamToClient(..))
 import Template.Lenses (_extendedContract, _metaData, _roleWallets, _template, _templateContent)
 import Template.State (defaultState, handleAction, mkInitialState) as Template
 import Template.Types (Action(..)) as Template
-import WalletData.Types (WalletDetails, Nickname)
+import WalletData.Lenses (_assets, _wallet)
+import WalletData.Types (WalletDetails, WalletNickname)
 
 toContractHome ::
   forall m msg slots.
@@ -65,12 +71,27 @@ mkInitialState walletDetails currentSlot timezoneOffset =
   , contractsState: ContractHome.defaultState
   }
 
+handleQuery ::
+  forall m.
+  CombinedWSStreamToClient -> HalogenM MainFrame.State MainFrame.Action ChildSlots Msg m Unit
+handleQuery (InstanceUpdate contractInstanceId instanceStatusToClient) = pure unit
+
+handleQuery (SlotChange slot) = assign (_playState <<< _currentSlot) $ toFront slot
+
+handleQuery (WalletFundsChange wallet value) = do
+  mCurrentWallet <- peruse (_playState <<< _walletDetails <<< _wallet)
+  for_ mCurrentWallet \currentWallet ->
+    when (currentWallet == toFront wallet)
+      $ assign (_playState <<< _walletDetails <<< _assets) (toFront value)
+
 -- Some actions are handled in `MainFrame.State` because they involve
 -- modifications of that state. See Note [State].
 handleAction ::
   forall m.
   MonadAff m =>
   MonadAsk Env m =>
+  MonadContract m =>
+  MonadWallet m =>
   Action -> HalogenM MainFrame.State MainFrame.Action ChildSlots Msg m Unit
 handleAction ToggleMenu = modifying (_playState <<< _menuOpen) not
 
@@ -126,7 +147,7 @@ handleAction (TemplateAction Template.StartContract) = do
 
       currentSlot = playState ^. _currentSlot
 
-      participants :: Map Semantic.Party (Maybe Nickname)
+      participants :: Map Semantic.Party (Maybe WalletNickname)
       participants =
         mapWithIndex
           ( \party _ -> case party of

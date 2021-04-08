@@ -18,7 +18,7 @@ module.exports = {
       lightpurple: "#8701fc",
       grayblue: "#f5f9fc",
       purple: "#4c41e5",
-      red: "#de4c51",
+      red: "#e04b4c",
     },
     fontSize: {
       xs: "12px",

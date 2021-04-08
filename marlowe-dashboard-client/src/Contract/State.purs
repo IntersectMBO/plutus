@@ -37,7 +37,7 @@ import Marlowe.Extended.Metadata (MetaData, emptyContractMetadata)
 import Marlowe.Semantics (Contract(..), Input(..), Slot, SlotInterval(..), Token(..), TransactionInput(..))
 import Marlowe.Semantics as Semantic
 import Marlowe.Slot (currentSlot)
-import WalletData.Types (Nickname)
+import WalletData.Types (WalletNickname)
 
 -- I don't like having to provide a default state for this component, but it is needed by the
 -- mapMaybeSubmodule in PlayState.
@@ -76,7 +76,7 @@ instantiateExtendedContract ::
   Extended.Contract ->
   TemplateContent ->
   MetaData ->
-  Map Semantic.Party (Maybe Nickname) ->
+  Map Semantic.Party (Maybe WalletNickname) ->
   Maybe Semantic.Party ->
   Maybe State
 instantiateExtendedContract contractId currentSlot extendedContract templateContent metadata participants mActiveUserParty =
@@ -92,7 +92,7 @@ mkInitialState ::
   String ->
   Slot ->
   MetaData ->
-  Map Semantic.Party (Maybe Nickname) ->
+  Map Semantic.Party (Maybe WalletNickname) ->
   Maybe Semantic.Party ->
   Contract ->
   State
