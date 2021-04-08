@@ -33,6 +33,7 @@ module Plutus.Trace.Effects.RunContract(
     , startContractThread
     ) where
 
+import           Control.Lens                            (preview)
 import           Control.Monad                           (void)
 import           Control.Monad.Freer                     (Eff, Member, interpret, send, type (~>))
 import           Control.Monad.Freer.Coroutine           (Yield (..))
@@ -49,24 +50,25 @@ import           Data.Proxy                              (Proxy (..))
 import qualified Data.Row.Internal                       as V
 import           Data.String                             (IsString (..))
 import qualified GHC.TypeLits
-import           Plutus.Contract                         (Contract, HasBlockchainActions, HasEndpoint)
-import           Plutus.Contract.Effects.ExposeEndpoint  (ActiveEndpoint)
-import qualified Plutus.Contract.Effects.ExposeEndpoint  as Endpoint
+import           Plutus.Contract                         (Contract, HasEndpoint)
+import           Plutus.Contract.Effects                 (ActiveEndpoint, PABResp (ExposeEndpointResp),
+                                                          _ExposeEndpointReq)
 import           Plutus.Contract.Resumable               (Request (rqRequest), Requests (..))
-import           Plutus.Contract.Schema                  (Input, Output, handlerArgument)
+import           Plutus.Contract.Schema                  (Input, Output)
 import           Plutus.Contract.Types                   (ResumableResult (..))
 import           Plutus.Trace.Effects.ContractInstanceId (ContractInstanceIdEff, nextId)
 import           Plutus.Trace.Emulator.ContractInstance  (contractThread, getThread)
 import           Plutus.Trace.Emulator.Types             (ContractHandle (..), ContractInstanceState (..),
                                                           ContractInstanceTag,
                                                           EmulatorMessage (ContractInstanceStateRequest, ContractInstanceStateResponse, EndpointCall),
-                                                          EmulatorRuntimeError (JSONDecodingError), EmulatorThreads,
-                                                          UserThreadMsg (UserThreadErr))
+                                                          EmulatorRuntimeError (EmulatorJSONDecodingError),
+                                                          EmulatorThreads, UserThreadMsg (UserThreadErr))
 import           Plutus.Trace.Scheduler                  (AgentSystemCall, EmSystemCall, MessageCall (Message),
                                                           Priority (..), Tag, ThreadId, fork, mkSysCall, sleep)
 import           Wallet.Emulator.MultiAgent              (EmulatorEvent' (..), MultiAgentEffect,
                                                           handleMultiAgentEffects)
 import           Wallet.Emulator.Wallet                  (Wallet (..))
+import           Wallet.Types                            (EndpointDescription (..), EndpointValue (..))
 
 type ContractConstraints s =
     ( V.Forall (Output s) V.Unconstrained1
@@ -87,8 +89,8 @@ walletInstanceTag (Wallet i) = fromString $ "Contract instance for wallet " <> s
 
 -- | Run a Plutus contract (client side)
 data RunContract r where
-    ActivateContract :: (ContractConstraints s, HasBlockchainActions s, Show e, JSON.FromJSON e, JSON.ToJSON e, JSON.ToJSON w, Monoid w, JSON.FromJSON w) => Wallet -> Contract w s e a -> ContractInstanceTag -> RunContract (ContractHandle w s e)
-    CallEndpointP :: forall l ep w s e. (ContractConstraints s, HasEndpoint l ep s) => Proxy l -> ContractHandle w s e -> ep -> RunContract ()
+    ActivateContract :: (ContractConstraints s, Show e, JSON.FromJSON e, JSON.ToJSON e, JSON.ToJSON w, Monoid w, JSON.FromJSON w) => Wallet -> Contract w s e a -> ContractInstanceTag -> RunContract (ContractHandle w s e)
+    CallEndpointP :: forall l ep w s e. (ContractConstraints s, HasEndpoint l ep s, JSON.ToJSON ep) => Proxy l -> ContractHandle w s e -> ep -> RunContract ()
     GetContractState :: forall w s e. (ContractConstraints s, JSON.FromJSON e, JSON.FromJSON w, JSON.ToJSON w) => ContractHandle w s e -> RunContract (ContractInstanceState w s e ())
 
 makeEffect ''RunContract
@@ -96,11 +98,11 @@ makeEffect ''RunContract
 -- | Call an endpoint on a contract instance.
 callEndpoint ::
     forall l ep w s e effs.
-    (ContractConstraints s, HasEndpoint l ep s, Member RunContract effs) => ContractHandle w s e -> ep -> Eff effs ()
+    (JSON.ToJSON ep, ContractConstraints s, HasEndpoint l ep s, Member RunContract effs) => ContractHandle w s e -> ep -> Eff effs ()
 callEndpoint hdl v = callEndpointP (Proxy @l) hdl v
 
 -- | Like 'activateContract', but using 'walletInstanceTag' for the tag.
-activateContractWallet :: forall w s e effs. (HasBlockchainActions s, ContractConstraints s, Show e, JSON.ToJSON e, JSON.FromJSON e, JSON.ToJSON w, JSON.FromJSON w, Member RunContract effs, Monoid w) => Wallet -> Contract w s e () -> Eff effs (ContractHandle w s e)
+activateContractWallet :: forall w s e effs. (ContractConstraints s, Show e, JSON.ToJSON e, JSON.FromJSON e, JSON.ToJSON w, JSON.FromJSON w, Member RunContract effs, Monoid w) => Wallet -> Contract w s e () -> Eff effs (ContractHandle w s e)
 activateContractWallet w contract = activateContract w contract (walletInstanceTag w)
 
 -- | Handle the 'RunContract' effect by running each contract instance in an
@@ -132,7 +134,6 @@ handleGetContractState ::
     , Member (Yield (EmSystemCall effs2 EmulatorMessage) (Maybe EmulatorMessage)) effs
     , Member (Reader ThreadId) effs
     , Member (Error EmulatorRuntimeError) effs
-    , ContractConstraints s
     , JSON.FromJSON e
     , JSON.FromJSON w
     , Member (LogMsg UserThreadMsg) effs
@@ -148,7 +149,7 @@ handleGetContractState ContractHandle{chInstanceId} = do
             Just (ContractInstanceStateResponse r) -> do
                 case JSON.fromJSON @(ContractInstanceState w s e ()) r of
                     JSON.Error e' -> do
-                        let msg = JSONDecodingError e'
+                        let msg = EmulatorJSONDecodingError e' r
                         logError $ UserThreadErr msg
                         throwError msg
                     JSON.Success event' -> pure event'
@@ -163,7 +164,6 @@ handleActivate :: forall w s e effs effs2.
     , Member (Error EmulatorRuntimeError) effs2
     , Member (LogMsg EmulatorEvent') effs2
     , Member (Yield (EmSystemCall effs2 EmulatorMessage) (Maybe EmulatorMessage)) effs
-    , HasBlockchainActions s
     , Show e
     , JSON.ToJSON e
     , JSON.ToJSON w
@@ -191,7 +191,6 @@ startContractThread ::
     , Member MultiAgentEffect effs2
     , Member (Error EmulatorRuntimeError) effs2
     , Member (LogMsg EmulatorEvent') effs2
-    , HasBlockchainActions s
     , ContractConstraints s
     , Show e
     , JSON.ToJSON e
@@ -227,8 +226,8 @@ mapYield f g = \case
     Yield a cont -> send @(Yield a' b') $ Yield (f a) (lmap g cont)
 
 handleCallEndpoint :: forall w s l e ep effs effs2.
-    ( ContractConstraints s
-    , HasEndpoint l ep s
+    ( HasEndpoint l ep s
+    , JSON.ToJSON ep
     , Member (State EmulatorThreads) effs2
     , Member (Error EmulatorRuntimeError) effs2
     , Member (Yield (EmSystemCall effs2 EmulatorMessage) (Maybe EmulatorMessage)) effs
@@ -238,8 +237,8 @@ handleCallEndpoint :: forall w s l e ep effs effs2.
     -> ep
     -> Eff effs ()
 handleCallEndpoint p ContractHandle{chInstanceId} ep = do
-    let epJson = JSON.toJSON $ Endpoint.event @l @ep @s ep
-        description = Endpoint.EndpointDescription $ GHC.TypeLits.symbolVal p
+    let epJson = JSON.toJSON $ ExposeEndpointResp description $ EndpointValue $ JSON.toJSON ep
+        description = EndpointDescription $ GHC.TypeLits.symbolVal p
         thr = do
             threadId <- getThread chInstanceId
             ownId <- ask @ThreadId
@@ -258,11 +257,9 @@ activeEndpoints :: forall w s e effs.
     -> Eff effs [ActiveEndpoint]
 activeEndpoints hdl = do
     ContractInstanceState{instContractState=ResumableResult{_requests=Requests rq}} <- getContractState hdl
-    let parse :: JSON.Value -> Maybe ActiveEndpoint
-        parse v = case JSON.fromJSON v of
-            JSON.Success a -> Just a
-            _              -> Nothing
-    pure $ mapMaybe (parse . handlerArgument . rqRequest) rq
+    pure
+        $ mapMaybe (preview _ExposeEndpointReq . rqRequest)
+        $ rq
 
 -- | Get the observable state @w@ of a contract instance.
 observableState :: forall w s e effs.

@@ -94,6 +94,7 @@
           "Plutus/Contract/Effects/UtxoAt"
           "Plutus/Contract/Effects/WatchAddress"
           "Plutus/Contract/Effects/WriteTx"
+          "Plutus/Contract/Effects"
           "Plutus/Contract/Request"
           "Plutus/Contract/Checkpoint"
           "Plutus/Contract/Constraints"

@@ -39,7 +39,7 @@ import           Data.Map                                   (Map)
 import qualified Data.Map                                   as Map
 import           Data.Maybe                                 (fromMaybe)
 
-import           Plutus.Contract                            (Contract (..), HasBlockchainActions)
+import           Plutus.Contract                            (Contract (..))
 import           Plutus.Trace.Effects.ContractInstanceId    (ContractInstanceIdEff, handleDeterministicIds)
 import           Plutus.Trace.Effects.EmulatedWalletAPI     (EmulatedWalletAPI, handleEmulatedWalletAPI)
 import qualified Plutus.Trace.Effects.EmulatedWalletAPI     as EmulatedWalletAPI
@@ -93,8 +93,7 @@ type PlaygroundTrace a =
 
 handlePlaygroundTrace ::
     forall w s e effs a.
-    ( HasBlockchainActions s
-    , ContractConstraints s
+    ( ContractConstraints s
     , Show e
     , JSON.ToJSON e
     , JSON.ToJSON w
@@ -119,8 +118,7 @@ handlePlaygroundTrace contract action = do
 
 -- | Run a 'Trace Playground', streaming the log messages as they arrive
 runPlaygroundStream :: forall w s e effs a.
-    ( HasBlockchainActions s
-    , ContractConstraints s
+    ( ContractConstraints s
     , Show e
     , JSON.ToJSON e
     , JSON.ToJSON w
@@ -140,7 +138,6 @@ interpretPlaygroundTrace :: forall w s e effs a.
     , Member (Error EmulatorRuntimeError) effs
     , Member ChainControlEffect effs
     , Member (LogMsg EmulatorEvent') effs
-    , HasBlockchainActions s
     , ContractConstraints s
     , Show e
     , JSON.ToJSON e

@@ -173,7 +173,7 @@ toEvent ::
     , Forall (Input schema) FromJSON
     )
     => C.ContractPABResponse
-    -> Eff effs (Event schema)
+    -> Eff effs (Either () (Event schema))
 toEvent = fromJSON . JSON.toJSON . C.ContractHandlersResponse
 
 fromJSON :: (Member (Error PABError) effs, FromJSON a) => Value -> Eff effs a

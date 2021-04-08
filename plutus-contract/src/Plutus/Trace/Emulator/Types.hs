@@ -60,20 +60,22 @@ import           Control.Monad.Freer.Reader     (Reader)
 import           Data.Aeson                     (FromJSON, ToJSON)
 import qualified Data.Aeson                     as JSON
 import           Data.Map                       (Map)
+import           Data.Row                       (Row)
 import qualified Data.Row.Internal              as V
 import           Data.Sequence                  (Seq)
 import           Data.String                    (IsString (..))
 import           Data.Text                      (Text)
 import qualified Data.Text                      as T
-import           Data.Text.Prettyprint.Doc      (Pretty (..), braces, colon, fillSep, hang, parens, viaShow, vsep,
-                                                 (<+>))
+import           Data.Text.Prettyprint.Doc      (Pretty (..), braces, colon, fillSep, hang, parens, squotes, viaShow,
+                                                 vsep, (<+>))
 import           GHC.Generics                   (Generic)
 import           Ledger.Blockchain              (Block)
 import           Ledger.Slot                    (Slot (..))
 import           Plutus.Contract                (Contract (..))
+import           Plutus.Contract.Effects        (PABReq, PABResp)
 import           Plutus.Contract.Resumable      (Request (..), Requests (..), Response (..))
 import qualified Plutus.Contract.Resumable      as State
-import           Plutus.Contract.Schema         (Event, Handlers, Input, Output)
+import           Plutus.Contract.Schema         (Input, Output)
 import           Plutus.Contract.Types          (ResumableResult (..), SuspendedContract (..))
 import qualified Plutus.Contract.Types          as Contract.Types
 import           Plutus.Trace.Scheduler         (AgentSystemCall, ThreadId)
@@ -88,6 +90,7 @@ type ContractConstraints s =
     ( V.Forall (Output s) V.Unconstrained1
     , V.Forall (Input s) V.Unconstrained1
     , V.AllUniqueLabels (Input s)
+    , V.AllUniqueLabels (Output s)
     , V.Forall (Input s) JSON.FromJSON
     , V.Forall (Input s) JSON.ToJSON
     , V.Forall (Output s) JSON.FromJSON
@@ -152,17 +155,17 @@ data ContractHandle w s e =
 data EmulatorRuntimeError =
     ThreadIdNotFound ContractInstanceId
     | InstanceIdNotFound Wallet
-    | JSONDecodingError String
+    | EmulatorJSONDecodingError String JSON.Value
     | GenericError String
     deriving stock (Eq, Ord, Show, Generic)
     deriving anyclass (ToJSON, FromJSON)
 
 instance Pretty EmulatorRuntimeError where
     pretty = \case
-        ThreadIdNotFound i   -> "Thread ID not found:" <+> pretty i
-        InstanceIdNotFound w -> "Instance ID not found:" <+> pretty w
-        JSONDecodingError e  -> "JSON decoding error:" <+> pretty e
-        GenericError e       -> pretty e
+        ThreadIdNotFound i            -> "Thread ID not found:" <+> pretty i
+        InstanceIdNotFound w          -> "Instance ID not found:" <+> pretty w
+        EmulatorJSONDecodingError e v -> "emulator JSON decoding error:" <+> pretty e <+> parens (viaShow v)
+        GenericError e                -> pretty e
 
 -- | A user-defined tag for a contract instance. Used to find the instance's
 --   log messages in the emulator log.
@@ -193,7 +196,7 @@ data ContractInstanceMsg =
     Started
     | StoppedNoError
     | StoppedWithError String
-    | ReceiveEndpointCall JSON.Value
+    | ReceiveEndpointCall EndpointDescription JSON.Value
     | ReceiveEndpointCallSuccess
     | ReceiveEndpointCallFailure NotificationError
     | NoRequestsHandled
@@ -214,7 +217,7 @@ instance Pretty ContractInstanceMsg where
         Started -> "Contract instance started"
         StoppedNoError -> "Contract instance stopped (no errors)"
         StoppedWithError e -> "Contract instance stopped with error:" <+> pretty e
-        ReceiveEndpointCall v -> "Receive endpoint call:" <+> viaShow v
+        ReceiveEndpointCall d v -> "Receive endpoint call on" <+> squotes (pretty d) <+> "for" <+> viaShow v
         ReceiveEndpointCallSuccess -> "Endpoint call succeeded"
         ReceiveEndpointCallFailure f -> "Endpoint call failed:" <+> pretty f
         NoRequestsHandled -> "No requests handled"
@@ -247,17 +250,17 @@ instance Pretty ContractInstanceLog where
 -- | State of the contract instance, internal to the contract instance thread.
 --   It contains both the serialisable state of the contract instance and the
 --   non-serialisable continuations in 'SuspendedContract'.
-data ContractInstanceStateInternal w s e a =
+data ContractInstanceStateInternal w (s :: Row *) e a =
     ContractInstanceStateInternal
-        { cisiSuspState       :: SuspendedContract w e (Event s) (Handlers s) a
-        , cisiEvents          :: Seq (Response (Event s))
-        , cisiHandlersHistory :: Seq [State.Request (Handlers s)]
+        { cisiSuspState       :: SuspendedContract w e PABResp PABReq a
+        , cisiEvents          :: Seq (Response PABResp)
+        , cisiHandlersHistory :: Seq [State.Request PABReq]
         }
 
 -- | Extract the serialisable 'ContractInstanceState' from the
 --   'ContractInstanceStateInternal'. We need to do this when
 --   we want to send the instance state to another thread.
-toInstanceState :: ContractInstanceStateInternal w s e a -> ContractInstanceState w s e a
+toInstanceState :: ContractInstanceStateInternal w (s :: Row *) e a -> ContractInstanceState w s e a
 toInstanceState ContractInstanceStateInternal{cisiSuspState=SuspendedContract{_resumableResult}, cisiEvents, cisiHandlersHistory} =
     ContractInstanceState
         { instContractState = _resumableResult
@@ -267,18 +270,22 @@ toInstanceState ContractInstanceStateInternal{cisiSuspState=SuspendedContract{_r
 
 -- | The state of a running contract instance with schema @s@ and error type @e@
 --   Serialisable to JSON.
-data ContractInstanceState w s e a =
+data ContractInstanceState w (s :: Row *) e a =
     ContractInstanceState
-        { instContractState   :: ResumableResult w e (Event s) (Handlers s) a
-        , instEvents          :: Seq (Response (Event s)) -- ^ Events received by the contract instance. (Used for debugging purposes)
-        , instHandlersHistory :: Seq [State.Request (Handlers s)] -- ^ Requests issued by the contract instance (Used for debugging purposes)
+        { instContractState   :: ResumableResult w e PABResp PABReq a
+        , instEvents          :: Seq (Response PABResp) -- ^ Events received by the contract instance. (Used for debugging purposes)
+        , instHandlersHistory :: Seq [State.Request PABReq] -- ^ Requests issued by the contract instance (Used for debugging purposes)
         }
         deriving stock Generic
 
-deriving anyclass instance  (V.Forall (Input s) JSON.ToJSON, V.Forall (Output s) JSON.ToJSON, JSON.ToJSON e, JSON.ToJSON a, JSON.ToJSON w) => JSON.ToJSON (ContractInstanceState w s e a)
-deriving anyclass instance  (V.Forall (Input s) JSON.FromJSON, V.Forall (Output s) JSON.FromJSON, JSON.FromJSON e, JSON.FromJSON a, V.AllUniqueLabels (Input s), V.AllUniqueLabels (Output s), JSON.FromJSON w) => JSON.FromJSON (ContractInstanceState w s e a)
+deriving anyclass instance  (JSON.ToJSON e, JSON.ToJSON a, JSON.ToJSON w) => JSON.ToJSON (ContractInstanceState w s e a)
+deriving anyclass instance  (JSON.FromJSON e, JSON.FromJSON a, JSON.FromJSON w) => JSON.FromJSON (ContractInstanceState w s e a)
 
-emptyInstanceState :: (Monoid w) => Contract w s e a -> ContractInstanceStateInternal w s e a
+emptyInstanceState ::
+    forall w (s :: Row *) e a.
+    Monoid w
+    => Contract w s e a
+    -> ContractInstanceStateInternal w s e a
 emptyInstanceState (Contract c) =
     ContractInstanceStateInternal
         { cisiSuspState = Contract.Types.suspend mempty c
@@ -288,7 +295,7 @@ emptyInstanceState (Contract c) =
 
 addEventInstanceState :: forall w s e a.
     Monoid w
-    => Response (Event s)
+    => Response PABResp
     -> ContractInstanceStateInternal w s e a
     -> Maybe (ContractInstanceStateInternal w s e a)
 addEventInstanceState event ContractInstanceStateInternal{cisiSuspState, cisiEvents, cisiHandlersHistory} =
