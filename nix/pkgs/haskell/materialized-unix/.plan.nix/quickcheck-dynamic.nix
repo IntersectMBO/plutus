@@ -14,8 +14,8 @@
       identifier = { name = "quickcheck-dynamic"; version = "0.1.0.0"; };
       license = "Apache-2.0";
       copyright = "";
-      maintainer = "jann.mueller@iohk.io";
-      author = "Jann Müller";
+      maintainer = "ulf.norell@quviq.com";
+      author = "Ulf Norell";
       homepage = "https://github.com/iohk/plutus#readme";
       url = "";
       synopsis = "";
@@ -28,7 +28,7 @@
       dataFiles = [];
       extraSrcFiles = [];
       extraTmpFiles = [];
-      extraDocFiles = [];
+      extraDocFiles = [ "README.md" ];
       };
     components = {
       "library" = {
