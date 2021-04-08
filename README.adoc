@@ -15,6 +15,16 @@ You are free to copy, modify, and distribute the Plutus Platform with
 under the terms of the Apache 2.0 license. See the link:./LICENSE[LICENSE]
 and link:./NOTICE[NOTICE] files for details.
 
+[[cache-warning]]
+[IMPORTANT]
+====
+DO NOT IGNORE THIS
+
+If you want to use Nix with this project, make sure to set up the xref:iohk-binary-cache[IOHK binary cache].
+If you do not do this, you will end up building GHC, which takes several hours.
+If you find yourself building GHC, STOP and fix the cache.
+====
+
 == How to use the project
 
 This section contains brief information about how to use this project. For development
@@ -31,10 +41,9 @@ so we recommend installing it regardless.
 
 Install https://nixos.org/nix/[Nix] (recommended). following the instructions on the https://nixos.org/nix/[Nix website].
 
-[IMPORTANT]
-====
-Even if you already have Nix installed, make sure to set up the xref:iohk-binary-cache[IOHK binary cache].
-====
+Make sure you have read and understood the xref:cache-warning[cache warning].
+DO NOT IGNORE THIS.
+
 See <<nix-advice>> for further advice on using Nix.
 
 ==== Non-Nix
