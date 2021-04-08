@@ -7,8 +7,8 @@
 {-# OPTIONS_GHC -Wno-name-shadowing #-}
 {-# OPTIONS_GHC -Wno-unused-matches #-}
 
-module Plutus.Contract.Test.DynamicLogic
-    ( module Plutus.Contract.Test.DynamicLogic.Quantify
+module Test.QuickCheck.DynamicLogic
+    ( module Test.QuickCheck.DynamicLogic.Quantify
     , DynLogic, DynPred
     , DynLogicModel(..), DynLogicTest(..), TestStep(..)
     , ignore, passTest, afterAny, after, (|||), forAllQ, weight, toStop
@@ -24,9 +24,9 @@ import           Control.Applicative
 
 import           Test.QuickCheck
 
-import           Plutus.Contract.Test.DynamicLogic.CanGenerate
-import           Plutus.Contract.Test.DynamicLogic.Quantify
-import           Plutus.Contract.Test.StateModel
+import           Test.QuickCheck.DynamicLogic.CanGenerate
+import           Test.QuickCheck.DynamicLogic.Quantify
+import           Test.QuickCheck.StateModel
 
 -- | Dynamic logic formulae.
 data DynLogic s = EmptySpec             -- ^ False

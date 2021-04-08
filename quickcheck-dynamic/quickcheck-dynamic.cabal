@@ -1,0 +1,67 @@
+cabal-version: 2.2
+name: quickcheck-dynamic
+version: 0.1.0.0
+license: Apache-2.0
+license-files:
+  LICENSE
+  NOTICE
+maintainer: ulf.norell@quviq.com
+author: Ulf Norell
+homepage: https://github.com/iohk/plutus#readme
+bug-reports: https://github.com/iohk/plutus/issues
+description:
+    Please see the README on GitHub at <https://github.com/input-output-hk/plutus#readme>
+build-type: Simple
+extra-doc-files: README.md
+
+source-repository head
+    type: git
+    location: https://github.com/iohk/plutus
+
+common lang
+    default-language: Haskell2010
+    default-extensions: ExplicitForAll ScopedTypeVariables
+                        DeriveGeneric StandaloneDeriving DeriveLift
+                        GeneralizedNewtypeDeriving DeriveFunctor DeriveFoldable
+                        DeriveTraversable
+    ghc-options: -Wall -Wnoncanonical-monad-instances
+                 -Wincomplete-uni-patterns -Wincomplete-record-updates
+                 -Wredundant-constraints -Widentities
+
+library
+    import: lang
+    hs-source-dirs: src
+    exposed-modules:
+        Test.QuickCheck.DynamicLogic
+        Test.QuickCheck.DynamicLogic.CanGenerate
+        Test.QuickCheck.DynamicLogic.Monad
+        Test.QuickCheck.DynamicLogic.Quantify
+        Test.QuickCheck.StateModel
+    build-depends:
+        QuickCheck -any,
+        base >=4.7 && <5,
+        containers -any,
+        random -any,
+
+test-suite quickcheck-dynamic-test
+    type: exitcode-stdio-1.0
+    main-is: Spec.hs
+    hs-source-dirs: test
+    other-modules:
+        Spec.DynamicLogic.Registry
+        Spec.DynamicLogic.RegistryModel
+    default-language: Haskell2010
+    ghc-options: -Wall -Wnoncanonical-monad-instances
+                 -Wincomplete-uni-patterns -Wincomplete-record-updates
+                 -Wredundant-constraints -Widentities -rtsopts
+                 -- See Plutus Tx readme
+                 -fobject-code -fno-ignore-interface-pragmas -fno-omit-interface-pragmas
+    build-depends:
+        QuickCheck -any,
+        base >=4.7 && <5,
+        containers -any,
+        random -any,
+        quickcheck-dynamic -any,
+        tasty -any,
+        tasty-hunit -any,
+        tasty-quickcheck -any,
