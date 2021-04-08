@@ -17,8 +17,10 @@ import Control.Monad.Reader (class MonadAsk)
 import Data.Array (length)
 import Data.Lens (assign, modifying, over, to, toArrayOf, traversed, use, view, (^.))
 import Data.Map (Map)
+import Data.Map as Map
 import Data.Maybe (Maybe(..))
 import Data.RawJson (RawJson(..))
+import Data.Set as Set
 import Data.Unfoldable as Unfoldable
 import Effect.Aff.Class (class MonadAff)
 import Effect.Class (class MonadEffect)
@@ -28,11 +30,11 @@ import Foreign.Generic (encode)
 import Foreign.JSON (unsafeStringify)
 import Halogen (HalogenM, liftEffect, modify_)
 import MainFrame.Types (ChildSlots, Msg)
-import Marlowe.Execution (NamedAction(..), _currentContract, _pendingTimeouts, _previousTransactions, extractNamedActions, initExecution, isClosed, mkTx, nextState, timeoutState)
+import Marlowe.Execution (NamedAction(..), PreviousState, _currentContract, _currentState, _pendingTimeouts, _previousState, expandBalances, extractNamedActions, initExecution, isClosed, mkTx, nextState, timeoutState)
 import Marlowe.Extended (TemplateContent, fillTemplate, resolveRelativeTimes, toCore)
 import Marlowe.Extended as Extended
 import Marlowe.Extended.Metadata (MetaData, emptyContractMetadata)
-import Marlowe.Semantics (Contract(..), Input(..), Slot, SlotInterval(..), TransactionInput(..))
+import Marlowe.Semantics (Contract(..), Input(..), Slot, SlotInterval(..), Token(..), TransactionInput(..))
 import Marlowe.Semantics as Semantic
 import Marlowe.Slot (currentSlot)
 import WalletData.Types (Nickname)
@@ -115,16 +117,16 @@ handleQuery (ApplyTx tx next) = do
   modify_ $ applyTx slot tx
   pure $ Just next
 
-transactionsToStep :: TransactionInput -> PreviousStep
-transactionsToStep txInput =
+transactionsToStep :: State -> PreviousState -> PreviousStep
+transactionsToStep { participants } { txInput, state } =
   let
     TransactionInput { interval: SlotInterval minSlot maxSlot, inputs } = txInput
 
-    -- FIXME: We need to ask for all participants and all tokens and check the current
-    --        balance to complete this
-    balances = mempty
+    -- TODO: When we add support for multiple tokens we should extract the possible tokens from the
+    --       contract, store it in ContractState and pass them here.
+    balances = expandBalances (Set.toUnfoldable $ Map.keys participants) [ Token "" "" ] state
 
-    state =
+    stepState =
       -- For the moment the only way to get an empty transaction is if there was a timeout,
       -- but later on there could be other reasons to move a contract forward, and we should
       -- compare with the contract to see the reason.
@@ -134,15 +136,15 @@ transactionsToStep txInput =
         TransactionStep txInput
   in
     { balances
-    , state
+    , state: stepState
     }
 
-timeoutToStep :: Slot -> PreviousStep
-timeoutToStep slot =
+timeoutToStep :: State -> Slot -> PreviousStep
+timeoutToStep { participants, executionState } slot =
   let
-    -- FIXME: We need to ask for all participants and all tokens and check the current
-    --        balance to complete this
-    balances = mempty
+    currentContractState = executionState ^. _currentState
+
+    balances = expandBalances (Set.toUnfoldable $ Map.keys participants) [ Token "" "" ] currentContractState
   in
     { balances
     , state: TimeoutStep slot
@@ -152,10 +154,10 @@ regenerateStepCards :: Slot -> State -> State
 regenerateStepCards currentSlot state =
   let
     confirmedSteps :: Array PreviousStep
-    confirmedSteps = toArrayOf (_executionState <<< _previousTransactions <<< to transactionsToStep) state
+    confirmedSteps = toArrayOf (_executionState <<< _previousState <<< traversed <<< to (transactionsToStep state)) state
 
     pendingTimeoutSteps :: Array PreviousStep
-    pendingTimeoutSteps = toArrayOf (_executionState <<< _pendingTimeouts <<< traversed <<< to timeoutToStep) state
+    pendingTimeoutSteps = toArrayOf (_executionState <<< _pendingTimeouts <<< traversed <<< to (timeoutToStep state)) state
 
     previousSteps = confirmedSteps <> pendingTimeoutSteps
 

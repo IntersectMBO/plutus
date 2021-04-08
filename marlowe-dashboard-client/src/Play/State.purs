@@ -92,7 +92,7 @@ handleAction (ToggleCard card) = do
     _ -> handleAction $ SetCard $ Just card
 
 handleAction (SetCurrentSlot currentSlot) = do
-  toContractHome $ ContractHome.handleAction $ ContractHome.AdvanceTimeoutedContracts currentSlot
+  toContractHome $ ContractHome.handleAction $ ContractHome.AdvanceTimedOutContracts currentSlot
   modify_
     $ set (_playState <<< _currentSlot) currentSlot
 
