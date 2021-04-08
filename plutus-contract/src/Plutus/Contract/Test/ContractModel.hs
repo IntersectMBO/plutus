@@ -54,6 +54,7 @@ module Plutus.Contract.Test.ContractModel
     , forge
     , burn
     , deposit
+    , deposit'
     , withdraw
     , transfer
     , modifyContractState
@@ -432,22 +433,26 @@ forge v = modState forgedL (<> v)
 burn :: Value -> Spec state ()
 burn = forge . inv
 
+-- Internal deposit function that does not subtract fees.
+deposit' :: Wallet -> Value -> Spec state ()
+deposit' w val = modState (balanceChangesL . at w) (Just . maybe val (<> val))
+
 -- | Add tokens to the `balanceChange` of a wallet. The added tokens are subtracted from the
 --   `lockedValue` of tokens held by contracts.
 deposit :: Wallet -> Value -> Spec state ()
-deposit w val = modState (balanceChangesL . at w) (Just . maybe val (<> val))
+deposit w val = deposit' w (val <> inv staticFee)
 
 -- | Withdraw tokens from a wallet. The withdrawn tokens are added to the `lockedValue` of tokens
 --   held by contracts.
 withdraw :: Wallet -> Value -> Spec state ()
-withdraw w val = deposit w (inv val)
+withdraw w val = deposit' w (inv val <> inv staticFee)
 
 -- | Transfer tokens between wallets, updating their `balances`.
 transfer :: Wallet  -- ^ Transfer from this wallet
          -> Wallet  -- ^ to this wallet
          -> Value   -- ^ this many tokens
          -> Spec state ()
-transfer fromW toW val = withdraw fromW val >> deposit toW val
+transfer fromW toW val = withdraw fromW val >> deposit' toW val
 
 -- | Modify the contract state.
 modifyContractState :: (state -> state) -> Spec state ()

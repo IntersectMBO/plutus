@@ -169,7 +169,7 @@ instance ContractModel PrismModel where
                 stoState w $= STOReady
                 when (iss && pend) $ do
                     transfer w issuer (Ada.lovelaceValueOf numTokens)
-                    deposit w $ STO.coins stoData numTokens
+                    deposit' w $ STO.coins stoData numTokens
                 return ()
 
     perform handle _ cmd = case cmd of
@@ -205,7 +205,7 @@ prop_Prism = propRunActions @PrismModel spec finalPredicate
 tests :: TestTree
 tests = testGroup "PRISM"
     [ checkPredicate "withdraw"
-        (assertDone contract (Trace.walletInstanceTag user) (const True) ""
+        (assertNotDone contract (Trace.walletInstanceTag user) "User stopped"
         .&&. walletFundsChange issuer (Ada.lovelaceValueOf numTokens)
         .&&. walletFundsChange user ((1 `timesFeeAdjust` negate numTokens) <> STO.coins stoData numTokens)
         )

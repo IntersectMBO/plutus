@@ -43,6 +43,7 @@ module Plutus.Contract.Test(
     , anyTx
     , assertEvents
     , walletFundsChange
+    , staticFee
     , timesFeeAdjust
     , timesFeeAdjustV
     , waitingForSlot

@@ -32,19 +32,21 @@ import qualified Spec.Lib                           as Lib
 
 import qualified Ledger.Ada                         as Ada
 import qualified Ledger.Typed.Scripts               as Scripts
-import           Ledger.Value                       (Value, isZero)
+import           Ledger.Value                       (Value)
 import           Plutus.Contract.Test               hiding (not)
 import           Plutus.Contract.Test.ContractModel
 import           Plutus.Contracts.GameStateMachine  as G
 import           Plutus.Trace.Emulator              as Trace
 import qualified PlutusTx                           as PlutusTx
+import           PlutusTx.Prelude                   (inv)
 
 -- * QuickCheck model
 
 data GameModel = GameModel
     { _gameValue     :: Integer
     , _hasToken      :: Maybe Wallet
-    , _currentSecret :: String }
+    , _currentSecret :: String
+    , _txCount       :: Integer }
     deriving (Show)
 
 makeLenses 'GameModel
@@ -67,6 +69,7 @@ instance ContractModel GameModel where
         { _gameValue     = 0
         , _hasToken      = Nothing
         , _currentSecret = ""
+        , _txCount       = 0
         }
 
     -- 'perform' gets a state, which includes the GameModel state, but also contract handles for the
@@ -90,6 +93,7 @@ instance ContractModel GameModel where
     -- 'nextState' descibes how each command affects the state of the model
 
     nextState (Lock w secret val) = do
+        txCount       $~ (+ 2)
         hasToken      $= Just w
         currentSecret $= secret
         gameValue     $= val
@@ -101,12 +105,14 @@ instance ContractModel GameModel where
     nextState (Guess w old new val) = do
         correct <- (old ==) <$> viewContractState currentSecret
         when correct $ do
+            txCount       $~ (+ 1)
             currentSecret $= new
             gameValue     $~ subtract val
             deposit w $ Ada.lovelaceValueOf val
         wait 1
 
     nextState (GiveToken w) = do
+        txCount $~ (+ 1)
         w0 <- fromJust <$> viewContractState hasToken
         transfer w0 w gameTokenVal
         hasToken $= Just w
@@ -208,7 +214,8 @@ noLockedFunds = do
         monitor $ label "Unlocking funds"
         action $ GiveToken w
         action $ Guess w secret "" val
-    assertModel "Locked funds should be zero" $ isZero . lockedValue
+    count <- viewContractState txCount
+    assertModel "Locked funds should be zero" $ (== inv (count `timesFeeAdjust` 0)) . lockedValue
 
 -- | Check that we can always get the money out of the guessing game (by guessing correctly).
 prop_NoLockedFunds :: Property
