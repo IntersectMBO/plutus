@@ -49,7 +49,7 @@ webserverCommandParser =
           auto
           ( short 'p' <> long "port" <> help "Webserver port number"
               <> showDefault
-              <> value 8080
+              <> value 8888
           )
       pure Webserver {..}
 
