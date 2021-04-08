@@ -108,6 +108,8 @@ trimTo :: MonadIO m => ServerHandler -> Int -> m ()
 trimTo ServerHandler {shCommandChannel} size =
     liftIO $ atomically $ writeTQueue (ccCommand shCommandChannel) $ TrimTo size
 
+{- Create a thread that keeps the number of blocks in the channel to the maximum
+   limit of K -}
 pruneChain :: MonadIO m => Integer -> TChan Block -> m ThreadId
 pruneChain k original = do
   localChannel <- liftIO $ atomically $ cloneTChan original
@@ -116,10 +118,11 @@ pruneChain k original = do
   go :: MonadIO m => Integer -> TChan Block -> m ()
   go k' localChannel = do
     -- Wait for data on the channel
-    block <- liftIO $ atomically $ readTChan localChannel
-    liftIO $ putStrLn $ "Read new block with size: " <> show (length block) <> "."
-    -- void $ Dbg.trace "[xxx] pruneChain" $ liftIO $ atomically $ readTChan localChannel
+    _ <- liftIO $ atomically $ readTChan localChannel
     if k' == 0
+       {- When the counter reaches zero, there are K blocks in the
+          original channel and we start to remove the oldest stored
+          block by reading it. -}
        then liftIO $ atomically (readTChan original) >> go 0 localChannel
        else go (k' - 1) localChannel
 

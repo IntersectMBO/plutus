@@ -1,4 +1,3 @@
-{-# LANGUAGE BangPatterns      #-}
 {-# LANGUAGE DataKinds         #-}
 {-# LANGUAGE FlexibleContexts  #-}
 {-# LANGUAGE MonoLocalBinds    #-}
@@ -55,7 +54,7 @@ main trace ChainIndexConfig{ciBaseUrl} socketPath availability = runLogEffects t
     mVarState <- liftIO $ newMVar initialAppState
 
     logInfo StartingNodeClientThread
-    _ <- liftIO $ runClientNode socketPath (updateChainState mVarState)
+    _ <- liftIO $ runClientNode socketPath $ updateChainState mVarState
 
     logInfo $ StartingChainIndex servicePort
     liftIO $ Warp.runSettings warpSettings $ app trace mVarState
