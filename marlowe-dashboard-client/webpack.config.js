@@ -111,6 +111,7 @@ module.exports = {
             'node_modules'
         ],
         alias: {
+            contracts: path.resolve(__dirname, './contracts'),
             grammar: path.resolve(__dirname, './grammar.ne'),
             static: path.resolve(__dirname, './static'),
             src: path.resolve(__dirname, './src')

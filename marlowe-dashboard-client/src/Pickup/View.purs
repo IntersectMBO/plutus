@@ -14,7 +14,6 @@ import Halogen.HTML.Properties (InputType(..), disabled, for, href, id_, list, p
 import Logo (marloweRunLogo)
 import MainFrame.Lenses (_card)
 import Material.Icons (Icon(..), icon_)
-import Network.RemoteData (RemoteData(..))
 import Pickup.Types (Action(..), Card(..), State)
 import Prim.TypeError (class Warn, Text)
 import WalletData.Lenses (_contractInstanceId, _contractInstanceIdString, _remoteDataPubKey, _remoteDataAssets, _remoteDataWallet, _walletNickname, _walletNicknameString)
