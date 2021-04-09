@@ -22,12 +22,6 @@ Available commands:
         * destroy-infra:    destroy the infrastructure completely
         * deploy-nix:       deploy nix configuration to infrastructure
         * deploy:           provision infrastructure and deploy nix configuration
-
-Key handling
-
-        * import-gpg-keys:  import all relevant gpg keys
-        * init-keys-tobias:   allow configured keys access to this environment
-
 Notes:
 
 - Being logged in to aws via 'aws-mfa-login' is a prerequisite to all infrastructure commands
