@@ -156,6 +156,12 @@ To set up the cache:
 substituters        = https://hydra.iohk.io https://iohk.cachix.org https://cache.nixos.org/
 trusted-public-keys = hydra.iohk.io:f/Ea+s+dFdN+3Y/G+FDgSq+a5NEWhJGzdjvKNGv0/EQ= iohk.cachix.org-1:DpRUyj7h7V830dp/i6Nti+NEO2/nhblbov/8MW7Rqoo= cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY=
 ----
++
+[NOTE]
+====
+If you don't have an `/etc/nix/nix.conf` or don't want to edit it, you may add the `nix.conf` lines to `~/.config/nix/nix.conf` instead.
+You must be a https://nixos.org/nix/manual/#ssec-multi-user[trusted user] to do this.
+====
 . On NixOS, set the following NixOS options:
 +
 ----
@@ -165,8 +171,6 @@ nix = {
 };
 ----
 
-NOTE: If you are a https://nixos.org/nix/manual/#ssec-multi-user[trusted user] you may add the
-`nix.conf` lines to `~/.config/nix/nix.conf` instead.
 
 === Nix on macOS
 
