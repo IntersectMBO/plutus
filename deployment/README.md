@@ -38,6 +38,18 @@ $ nix-shell -A alpha --command deploy
 The deploy command will run execute `terraform` and `morph` in sequence. All other available commands can be
 executed in the same way.
 
+## Specifying Revisions
+
+The deployment shell accepts a revision argument which is used to provide a `/version` endpoint to help
+identify what has been deployed to a specific environment. By default revision is set to `dev` but it can be
+specified as follows:
+
+```
+$ nix-shell -A alpha --argstr rev  $(git rev-parse HEAD) --command deploy
+```
+
+The above command will trigger a deployment and specify the current HEAD revision as `rev` argument
+
 ### AWS Login
 
 In order to use the shell you need to be logged in with AWS. This will be verified at the start of the shell.

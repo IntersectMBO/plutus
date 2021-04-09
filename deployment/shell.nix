@@ -1,6 +1,8 @@
-{ pkgs ? (import ./.. { }).pkgs }:
+{ pkgs ? (import ./.. { }).pkgs
+, rev ? "dev"
+}:
 let
-  inherit (pkgs) writeShellScriptBin lib mkShell stdenv;
+  inherit (pkgs) writeShellScriptBin lib mkShell stdenv writeText;
   inherit (pkgs) awscli terraform morph jq;
 
   # All environments and the region they are in
@@ -10,8 +12,9 @@ let
   # The shell expects to be executed from within the `deployment` directory and will
   # not work when invoked from elsewhere.
   mkDeploymentShell =
-    { env        # environment to work on
-    , region     # region to deploy to
+    { env         # environment to work on
+    , region      # region to deploy to
+    , rev ? "dev" # git revision being deployed
     }:
     let
       # setupEnvSecrets : Set environment variables with secrets from pass
@@ -69,6 +72,7 @@ let
       deployNix = writeShellScriptBin "deploy-nix" ''
         set -eou pipefail
 
+
         # In order to ensure a consistent state we verify that terraform
         # reports it has nothing to do before we even attempt to deploy
         # any nix configuration.
@@ -87,8 +91,9 @@ let
           echo "[deploy-nix]: machines.json is not present. Aborting."
           exit 1
         fi
+
         echo "[deploy-nix]: copying machines.json .."
-        cp ./machines.json ./morph
+        cat ./machines.json | jq --arg rev ${rev} '. + {rev: $rev}' > ./morph/machines.json
 
         if [ -z "$DEPLOYMENT_ENV" ]; then
           echo "[deploy-nix]: Error, 'DEPLOYMENT_ENV' is not set! Aborting."
@@ -168,6 +173,6 @@ in
 builtins.mapAttrs
   (env: cfg: mkDeploymentShell {
     region = cfg.region;
-    inherit env;
+    inherit env rev;
   })
   envs
