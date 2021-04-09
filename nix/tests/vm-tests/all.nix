@@ -115,7 +115,7 @@ makeTest {
                   proxyWebsockets = true;
                 };
                 "^~ /tutorial/" = {
-                  alias = "${plutus-playground.tutorial}/";
+                  alias = "${plutus-playground.tutorial}/plutus/tutorials";
                   extraConfig = ''
                     error_page 404 = @fallback;
                   '';
@@ -145,7 +145,7 @@ makeTest {
                   '';
                 };
                 "^~ /tutorial/" = {
-                  alias = "${marlowe-playground.tutorial}/";
+                  alias = "${marlowe-playground.tutorial}/marlowe/tutorials";
                   extraConfig = ''
                     error_page 404 = @fallback;
                   '';

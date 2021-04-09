@@ -9,12 +9,19 @@
 let
   inherit (packages) pkgs plutus plutus-playground marlowe-playground plutus-pab marlowe-dashboard deployment docs;
   inherit (pkgs) stdenv lib utillinux python3 nixpkgs-fmt;
-  inherit (plutus) haskell agdaPackages stylish-haskell sphinxcontrib-haddock nix-pre-commit-hooks;
+  inherit (plutus) haskell agdaPackages stylish-haskell sphinxcontrib-haddock sphinx-markdown-tables sphinxemoji nix-pre-commit-hooks;
   inherit (plutus) agdaWithStdlib;
   inherit (plutus) purty purty-pre-commit purs spargo;
 
   # For Sphinx, and ad-hoc usage
-  sphinxTools = python3.withPackages (ps: [ sphinxcontrib-haddock.sphinxcontrib-domaintools ps.sphinx ps.sphinx_rtd_theme ]);
+  sphinxTools = python3.withPackages (ps: [
+    sphinxcontrib-haddock.sphinxcontrib-domaintools
+    sphinx-markdown-tables
+    sphinxemoji
+    ps.sphinx
+    ps.sphinx_rtd_theme
+    ps.recommonmark
+  ]);
 
   # Configure project pre-commit hooks
   pre-commit-check = nix-pre-commit-hooks.run {

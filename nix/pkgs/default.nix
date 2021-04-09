@@ -74,6 +74,7 @@ let
   #
   fixPurty = pkgs.callPackage ./fix-purty { inherit purty; };
   fixStylishHaskell = pkgs.callPackage ./fix-stylish-haskell { inherit stylish-haskell; };
+  fixPngOptimization = pkgs.callPackage ./fix-png-optimization { };
   updateMaterialized = pkgs.writeShellScriptBin "updateMaterialized" ''
     # This runs the 'updateMaterialize' script in all platform combinations we care about.
     # See the comment in ./haskell/haskell.nix
@@ -191,7 +192,7 @@ in
   inherit nix-pre-commit-hooks;
   inherit haskell agdaPackages cabal-install stylish-haskell hlint haskell-language-server hie-bios;
   inherit purty purty-pre-commit purs spago spago2nix;
-  inherit fixPurty fixStylishHaskell updateMaterialized updateMetadataSamples updateClientDeps;
+  inherit fixPurty fixStylishHaskell fixPngOptimization updateMaterialized updateMetadataSamples updateClientDeps;
   inherit iohkNix set-git-rev web-ghc;
   inherit easyPS plutus-haddock-combined;
   inherit agdaWithStdlib aws-mfa-login;

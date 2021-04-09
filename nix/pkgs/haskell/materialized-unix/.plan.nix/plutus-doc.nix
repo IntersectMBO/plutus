@@ -65,7 +65,7 @@
             "GameModel"
             "HelloWorldApp"
             ];
-          hsSourceDirs = [ "tutorials" ];
+          hsSourceDirs = [ "plutus/tutorials" ];
           mainPath = ([
             "Main.hs"
             ] ++ (pkgs.lib).optional (flags.defer-plugin-errors) "") ++ (pkgs.lib).optional (!(compiler.isGhcjs && true || system.isGhcjs)) "";

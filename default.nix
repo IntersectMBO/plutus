@@ -55,7 +55,7 @@ rec {
   };
 
   marlowe-playground = pkgs.recurseIntoAttrs rec {
-    tutorial = docs.marlowe-tutorial;
+    tutorial = docs.site;
 
     inherit (pkgs.callPackage ./marlowe-playground-client {
       inherit (plutus.lib) buildPursPackage buildNodeModules filterNpm gitignore-nix;
