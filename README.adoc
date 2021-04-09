@@ -150,7 +150,7 @@ not have this set up properly.
 
 To set up the cache:
 
-. On non-NixOS, edit `/etc/nix/nix.conf` and add the following lines:
+. On non-NixOS, edit `/etc/nix/nix.conf` or create `/home/{your_user}/.config/nix.conf` and add the following lines:
 +
 ----
 substituters        = https://hydra.iohk.io https://iohk.cachix.org https://cache.nixos.org/
