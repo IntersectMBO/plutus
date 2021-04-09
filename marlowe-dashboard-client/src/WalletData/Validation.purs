@@ -13,10 +13,9 @@ import Data.Maybe (Maybe(..))
 import Data.String.CodeUnits (toCharArray)
 import Data.UUID (parseUUID)
 import MainFrame.Types (WebData)
-import Marlowe.Semantics (Assets, PubKey)
 import Network.RemoteData (RemoteData(..))
 import Types (ContractInstanceId(..))
-import WalletData.Types (Wallet, WalletNickname, WalletLibrary)
+import WalletData.Types (WalletInfo, WalletNickname, WalletLibrary)
 
 data WalletNicknameError
   = EmptyWalletNickname
@@ -58,17 +57,17 @@ walletNicknameError walletNickname walletLibrary =
     else
       Nothing
 
-contractInstanceIdError :: String -> WebData Wallet -> WebData PubKey -> WebData Assets -> WalletLibrary -> Maybe ContractInstanceIdError
-contractInstanceIdError "" _ _ _ _ = Just EmptyContractInstanceId
+contractInstanceIdError :: String -> WebData WalletInfo -> WalletLibrary -> Maybe ContractInstanceIdError
+contractInstanceIdError "" _ _ = Just EmptyContractInstanceId
 
-contractInstanceIdError contractInstanceIdString remoteDataWallet remoteDataPubKey remoteDataAssets walletLibrary = case parseContractInstanceId contractInstanceIdString of
+contractInstanceIdError contractInstanceIdString remoteDataWalletInfo walletLibrary = case parseContractInstanceId contractInstanceIdString of
   Nothing -> Just InvalidContractInstanceId
   Just contractInstanceId
     | not $ isEmpty $ filter (\walletDetails -> walletDetails.contractInstanceId == contractInstanceId) walletLibrary -> Just DuplicateContractInstanceId
-  _ -> case remoteDataWallet, remoteDataPubKey, remoteDataAssets of
-    Success _, Success _, Success _ -> Nothing
-    Failure _, _, _ -> Just NonexistentContractInstanceId
-    _, _, _ -> Just UnconfirmedContractInstanceId
+  _ -> case remoteDataWalletInfo of
+    Success _ -> Nothing
+    Failure _ -> Just NonexistentContractInstanceId
+    _ -> Just UnconfirmedContractInstanceId
 
 parseContractInstanceId :: String -> Maybe ContractInstanceId
 parseContractInstanceId contractInstanceIdString = case parseUUID contractInstanceIdString of

@@ -2,7 +2,7 @@ module Capability.Wallet
   ( class ManageWallet
   , createWallet
   , submitWalletTransaction
-  , getWalletPubKey
+  , getWalletInfo
   , updateWalletPaymentWithChange
   , getWalletSlot
   , getWalletTransactions
@@ -34,7 +34,7 @@ class
   Monad m <= MonadWallet m where
   createWallet :: m (WebData WalletInfo)
   submitWalletTransaction :: Tx -> Wallet -> m (WebData Unit)
-  getWalletPubKey :: Wallet -> m (WebData WalletInfo)
+  getWalletInfo :: Wallet -> m (WebData WalletInfo)
   updateWalletPaymentWithChange :: JsonTuple Assets Payment -> Wallet -> m (WebData Payment)
   getWalletSlot :: Wallet -> m (WebData Slot)
   getWalletTransactions :: Wallet -> m (WebData (Map TxOutRef TxOutTx))
@@ -49,7 +49,7 @@ instance monadWalletAppM :: ManageWallet AppM where
   submitWalletTransaction tx wallet =
     runAjax
       $ postWalletByWalletIdSubmittxn tx (show $ unwrap wallet)
-  getWalletPubKey wallet =
+  getWalletInfo wallet =
     runAjax
       $ map toFront
       $ getWalletByWalletIdOwnpublickey (show $ unwrap wallet)
@@ -74,7 +74,7 @@ instance monadWalletAppM :: ManageWallet AppM where
 instance monadWalletHalogenM :: ManageWallet m => ManageWallet (HalogenM state action slots msg m) where
   createWallet = lift createWallet
   submitWalletTransaction tx wallet = lift $ submitWalletTransaction tx wallet
-  getWalletPubKey = lift <<< getWalletPubKey
+  getWalletInfo = lift <<< getWalletInfo
   updateWalletPaymentWithChange valuePayment wallet = lift $ updateWalletPaymentWithChange valuePayment wallet
   getWalletSlot = lift <<< getWalletSlot
   getWalletTransactions = lift <<< getWalletTransactions

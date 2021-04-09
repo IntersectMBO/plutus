@@ -28,8 +28,7 @@ type WalletNickname
 type NewWalletDetails
   = { walletNicknameString :: String
     , contractInstanceIdString :: String
-    , remoteDataWallet :: WebData Wallet
-    , remoteDataPubKey :: WebData PubKey
+    , remoteDataWalletInfo :: WebData WalletInfo
     , remoteDataAssets :: WebData Assets
     }
 
@@ -42,6 +41,7 @@ type WalletDetails
     , contractInstanceId :: ContractInstanceId -- this is the ID of the wallet's companion contract instance
     , wallet :: Wallet
     , pubKey :: PubKey
+    , pubKeyHash :: PubKeyHash
     , assets :: Assets
     }
 

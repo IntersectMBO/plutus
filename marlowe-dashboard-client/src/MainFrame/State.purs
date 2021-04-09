@@ -1,14 +1,15 @@
 module MainFrame.State (mkMainFrame) where
 
 import Prelude
+import Bridge (toFront)
 import Capability.Contract (class ManageContract, getContractInstance)
-import Capability.Wallet (class ManageWallet, createWallet, getWalletPubKey, getWalletTotalFunds)
+import Capability.Marlowe (class ManageMarlowe, marloweCreateWalletCompanionContract)
+import Capability.Wallet (class ManageWallet, createWallet, getWalletInfo, getWalletTotalFunds)
 import Capability.Websocket (class MonadWebsocket, subscribeToWallet, unsubscribeFromWallet)
 import ContractHome.State (loadExistingContracts)
 import Control.Monad.Except (runExcept)
 import Control.Monad.Reader (class MonadAsk)
 import Control.Monad.Rec.Class (forever)
-import Data.BigInteger (fromInt)
 import Data.Either (Either(..))
 import Data.Foldable (for_)
 import Data.Lens (assign, over, set, use, view)
@@ -41,12 +42,13 @@ import Pickup.Types (Action(..), Card(..)) as Pickup
 import Play.Lenses (_allContracts, _walletDetails)
 import Play.State (handleAction, handleQuery, mkInitialState) as Play
 import Play.Types (Action(..)) as Play
+import Plutus.PAB.Webserver.Types (ContractInstanceClientState(..))
 import StaticData (walletDetailsLocalStorageKey, walletLibraryLocalStorageKey)
 import Template.State (handleAction) as Template
 import Template.Types (Action(..)) as Template
 import Types (ContractInstanceId(..), contractInstanceIdFromString)
-import WalletData.Lenses (_assets, _contractInstanceId, _contractInstanceIdString, _remoteDataPubKey, _remoteDataWallet, _remoteDataAssets, _wallet, _walletNicknameString)
-import WalletData.Types (NewWalletDetails, Wallet(..), WalletDetails, WalletInfo)
+import WalletData.Lenses (_assets, _contractInstanceId, _contractInstanceIdString, _remoteDataWalletInfo, _remoteDataAssets, _wallet, _walletNicknameString)
+import WalletData.Types (NewWalletDetails, WalletDetails, WalletInfo(..))
 import WebSocket.Support as WS
 
 mkMainFrame ::
@@ -55,6 +57,7 @@ mkMainFrame ::
   MonadAsk Env m =>
   ManageContract m =>
   ManageWallet m =>
+  ManageMarlowe m =>
   MonadWebsocket m =>
   Component HTML Query Action Msg m
 mkMainFrame =
@@ -120,6 +123,7 @@ handleAction ::
   MonadAsk Env m =>
   ManageContract m =>
   ManageWallet m =>
+  ManageMarlowe m =>
   MonadWebsocket m =>
   Action -> HalogenM State Action ChildSlots Msg m Unit
 handleAction Init = do
@@ -141,14 +145,15 @@ handleAction (SetNewWalletContractIdString contractInstanceIdString) = do
     $ \contractInstanceId -> do
         remoteDataWalletCompanionContract <- getContractInstance contractInstanceId
         case remoteDataWalletCompanionContract of
-          Success contractInstanceClientState -> do
-            --TODO: use the contract ID to lookup the wallet's ID from PAB
-            assign (_newWalletDetails <<< _remoteDataWallet) $ Success (Wallet $ fromInt 1)
-            assign (_newWalletDetails <<< _remoteDataPubKey) $ Success "abcde"
-            assign (_newWalletDetails <<< _remoteDataAssets) $ Success mempty
+          Success (ContractInstanceClientState { cicWallet }) -> do
+            let
+              wallet = toFront cicWallet
+            remoteDataWalletInfo <- getWalletInfo wallet
+            remoteDataAssets <- getWalletTotalFunds wallet
+            assign (_newWalletDetails <<< _remoteDataWalletInfo) remoteDataWalletInfo
+            assign (_newWalletDetails <<< _remoteDataAssets) remoteDataAssets
           Failure ajaxError -> do
-            assign (_newWalletDetails <<< _remoteDataWallet) $ Failure ajaxError
-            assign (_newWalletDetails <<< _remoteDataPubKey) $ Failure ajaxError
+            assign (_newWalletDetails <<< _remoteDataWalletInfo) $ Failure ajaxError
             assign (_newWalletDetails <<< _remoteDataAssets) $ Failure ajaxError
           _ -> pure unit
 
@@ -201,20 +206,22 @@ handleAction (PickupAction (Pickup.PickupWallet walletDetails)) = do
       liftEffect $ setItem walletDetailsLocalStorageKey $ encodeJSON updatedWalletDetails
     _ -> pure unit
 
-handleAction (PickupAction Pickup.GenerateNewWallet) = pure unit {-do
-  remoteDataWallet <- createWallet
-  assign (_newWalletDetails <<< _remoteDataWallet) remoteDataWallet
-  case remoteDataWallet of
-    Success wallet -> do
-      remoteDataPubKey <- getWalletPubKey wallet
+handleAction (PickupAction Pickup.GenerateNewWallet) = do
+  remoteDataWalletInfo <- createWallet
+  assign (_newWalletDetails <<< _remoteDataWalletInfo) remoteDataWalletInfo
+  case remoteDataWalletInfo of
+    Success (WalletInfo { wallet }) -> do
       remoteDataAssets <- getWalletTotalFunds wallet
-      assign (_newWalletDetails <<< _remoteDataPubKey) remoteDataPubKey
       assign (_newWalletDetails <<< _remoteDataAssets) remoteDataAssets
-      -- TODO: create a wallet companion contract and get its instanceId
-      let
-        contractInstanceIdString = "9a72e336-2766-423e-a9c7-10c3b6c5ebb2"
-      assign (_newWalletDetails <<< _contractInstanceIdString) contractInstanceIdString
-      assign (_pickupState <<< _card) (Just Pickup.PickupNewWalletCard)
+      remoteDataContractInstanceId <- marloweCreateWalletCompanionContract wallet
+      case remoteDataContractInstanceId of
+        Success contractInstanceId -> do
+          let
+            contractInstanceIdString = UUID.toString $ unwrap contractInstanceId
+          assign (_newWalletDetails <<< _contractInstanceIdString) contractInstanceIdString
+          assign (_pickupState <<< _card) (Just Pickup.PickupNewWalletCard)
+        -- TODO: show errors to the user
+        _ -> pure unit
     -- TODO: show errors to the user
     _ -> pure unit -}
 
@@ -258,8 +265,7 @@ emptyNewWalletDetails :: NewWalletDetails
 emptyNewWalletDetails =
   { walletNicknameString: mempty
   , contractInstanceIdString: mempty
-  , remoteDataWallet: NotAsked
-  , remoteDataPubKey: NotAsked
+  , remoteDataWalletInfo: NotAsked
   , remoteDataAssets: NotAsked
   }
 
@@ -272,12 +278,10 @@ mkNewWallet newWalletDetails =
 
     mContractInstanceId = map ContractInstanceId $ parseUUID contractInstanceIdString
 
-    remoteDataWallet = view _remoteDataWallet newWalletDetails
-
-    remoteDataPubKey = view _remoteDataPubKey newWalletDetails
+    remoteDataWalletInfo = view _remoteDataWalletInfo newWalletDetails
 
     remoteDataAssets = view _remoteDataAssets newWalletDetails
   in
-    case mContractInstanceId, remoteDataWallet, remoteDataPubKey, remoteDataAssets of
-      Just contractInstanceId, Success wallet, Success pubKey, Success assets -> Just { walletNickname, contractInstanceId, wallet, pubKey, assets }
-      _, _, _, _ -> Nothing
+    case mContractInstanceId, remoteDataWalletInfo, remoteDataAssets of
+      Just contractInstanceId, Success (WalletInfo { wallet, pubKey, pubKeyHash }), Success assets -> Just { walletNickname, contractInstanceId, wallet, pubKey, pubKeyHash, assets }
+      _, _, _ -> Nothing

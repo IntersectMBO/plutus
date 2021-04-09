@@ -16,7 +16,7 @@ import MainFrame.Lenses (_card)
 import Material.Icons (Icon(..), icon_)
 import Pickup.Types (Action(..), Card(..), State)
 import Prim.TypeError (class Warn, Text)
-import WalletData.Lenses (_contractInstanceId, _contractInstanceIdString, _remoteDataPubKey, _remoteDataAssets, _remoteDataWallet, _walletNickname, _walletNicknameString)
+import WalletData.Lenses (_contractInstanceId, _contractInstanceIdString, _remoteDataWalletInfo, _walletNickname, _walletNicknameString)
 import WalletData.Types (NewWalletDetails, WalletDetails, WalletLibrary)
 import WalletData.Validation (contractInstanceIdError, walletNicknameError)
 import WalletData.View (nicknamesDataList)
@@ -66,15 +66,11 @@ pickupNewWalletCard wallets newWalletDetails =
 
     contractInstanceIdString = view _contractInstanceIdString newWalletDetails
 
-    remoteDataWallet = view _remoteDataWallet newWalletDetails
-
-    remoteDataPubKey = view _remoteDataPubKey newWalletDetails
-
-    remoteDataAssets = view _remoteDataAssets newWalletDetails
+    remoteDataWalletInfo = view _remoteDataWalletInfo newWalletDetails
 
     mWalletNicknameError = walletNicknameError walletNicknameString wallets
 
-    mContractInstanceIdError = contractInstanceIdError contractInstanceIdString remoteDataWallet remoteDataPubKey remoteDataAssets wallets
+    mContractInstanceIdError = contractInstanceIdError contractInstanceIdString remoteDataWalletInfo wallets
   in
     div [ classNames [ "p-5", "pb-6", "md:pb-8" ] ]
       [ p

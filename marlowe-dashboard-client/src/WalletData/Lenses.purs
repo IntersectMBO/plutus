@@ -1,13 +1,13 @@
 module WalletData.Lenses
   ( _walletNicknameString
   , _contractInstanceIdString
-  , _remoteDataWallet
-  , _remoteDataPubKey
+  , _remoteDataWalletInfo
   , _remoteDataAssets
   , _walletNickname
   , _contractInstanceId
   , _wallet
   , _pubKey
+  , _pubKeyHash
   , _assets
   ) where
 
@@ -17,7 +17,7 @@ import Data.Symbol (SProxy(..))
 import MainFrame.Types (WebData)
 import Marlowe.Semantics (Assets, PubKey)
 import Types (ContractInstanceId)
-import WalletData.Types (NewWalletDetails, Wallet, WalletDetails, WalletNickname)
+import WalletData.Types (NewWalletDetails, PubKeyHash, Wallet, WalletDetails, WalletInfo, WalletNickname)
 
 _walletNicknameString :: Lens' NewWalletDetails String
 _walletNicknameString = prop (SProxy :: SProxy "walletNicknameString")
@@ -25,11 +25,8 @@ _walletNicknameString = prop (SProxy :: SProxy "walletNicknameString")
 _contractInstanceIdString :: Lens' NewWalletDetails String
 _contractInstanceIdString = prop (SProxy :: SProxy "contractInstanceIdString")
 
-_remoteDataWallet :: Lens' NewWalletDetails (WebData Wallet)
-_remoteDataWallet = prop (SProxy :: SProxy "remoteDataWallet")
-
-_remoteDataPubKey :: Lens' NewWalletDetails (WebData PubKey)
-_remoteDataPubKey = prop (SProxy :: SProxy "remoteDataPubKey")
+_remoteDataWalletInfo :: Lens' NewWalletDetails (WebData WalletInfo)
+_remoteDataWalletInfo = prop (SProxy :: SProxy "remoteDataWalletInfo")
 
 _remoteDataAssets :: Lens' NewWalletDetails (WebData Assets)
 _remoteDataAssets = prop (SProxy :: SProxy "remoteDataAssets")
@@ -46,6 +43,9 @@ _wallet = prop (SProxy :: SProxy "wallet")
 
 _pubKey :: Lens' WalletDetails PubKey
 _pubKey = prop (SProxy :: SProxy "pubKey")
+
+_pubKeyHash :: Lens' WalletDetails PubKeyHash
+_pubKeyHash = prop (SProxy :: SProxy "pubKeyHash")
 
 _assets :: Lens' WalletDetails Assets
 _assets = prop (SProxy :: SProxy "assets")
