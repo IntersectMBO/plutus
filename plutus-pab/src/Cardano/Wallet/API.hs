@@ -3,7 +3,6 @@
 
 module Cardano.Wallet.API
     ( API
-    ,
     ) where
 
 import           Cardano.Wallet.Types (WalletInfo)
