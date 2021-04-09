@@ -82,7 +82,8 @@ rec {
 
   tests = import ./nix/tests/default.nix {
     inherit pkgs iohkNix docs;
-    inherit (plutus) fixStylishHaskell fixPurty;
+    inherit (plutus.lib) gitignore-nix;
+    inherit (plutus) fixStylishHaskell fixPurty fixPngOptimization;
     inherit (pkgs) terraform;
     inherit plutus-playground marlowe-playground marlowe-dashboard web-ghc plutus-pab marlowe-app marlowe-companion-app;
     src = ./.;
