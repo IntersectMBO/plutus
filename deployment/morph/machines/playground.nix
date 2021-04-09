@@ -73,8 +73,8 @@ in
                 error_page 404 = @fallback;
               '';
             };
-            "^~ /tutorial/" = {
-              alias = "${pkgs.plutus-playground.tutorial}/plutus/tutorials";
+            "^~ /doc/" = {
+              alias = "${pkgs.docs.site}/";
               extraConfig = ''
                 error_page 404 = @fallback;
               '';
@@ -104,8 +104,8 @@ in
                 error_page 404 = @fallback;
               '';
             };
-            "^~ /tutorial/" = {
-              alias = "${pkgs.marlowe-playground.tutorial}/marlowe/tutorials";
+            "^~ /doc/" = {
+              alias = "${pkgs.docs.site}/";
               extraConfig = ''
                 error_page 404 = @fallback;
               '';

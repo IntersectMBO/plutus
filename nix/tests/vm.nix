@@ -6,6 +6,7 @@
 , plutus-pab
 , marlowe-app
 , marlowe-companion-app
+, docs
 , vmCompileTests
 }:
 let
@@ -17,7 +18,7 @@ let
     marlowe-playground-server = pkgs.callPackage ./vm-tests/marlowe-playground.nix { inherit makeTest marlowe-playground; };
     web-ghc = pkgs.callPackage ./vm-tests/web-ghc.nix { inherit makeTest web-ghc; };
     pab = pkgs.callPackage ./vm-tests/pab.nix { inherit makeTest plutus-pab marlowe-dashboard; };
-    all = pkgs.callPackage ./vm-tests/all.nix { inherit makeTest plutus-playground marlowe-playground marlowe-dashboard web-ghc marlowe-app marlowe-companion-app plutus-pab vmCompileTests; };
+    all = pkgs.callPackage ./vm-tests/all.nix { inherit makeTest plutus-playground marlowe-playground marlowe-dashboard web-ghc marlowe-app marlowe-companion-app plutus-pab docs vmCompileTests; };
   };
 in
 if isDarwin then { } else tests
