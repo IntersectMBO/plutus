@@ -14,17 +14,25 @@ The Marlowe Dashboard requires a running instance of the PAB to work. First you 
 $ plutus-pab-migrate
 ```
 
-Then start all the PAB servers:
+Next, setup the Marlowe contracts:
+
+```bash
+$ run run setup-contracts
+```
+
+This installs the necessary Marlowe contracts on the PAB, and creates a `contracts/contracts.json` file with links to their nix store paths. This is needed by the frontend application to start instances of these contracts.
+
+Finally, start all the PAB servers:
 
 ```bash
 $ plutus-pab-all-servers
 ```
 
-The `plutus-pab-migrate` and `plutus-pab-all-servers` scripts are provided by the global [shell.nix](../shell.nix). (If the commands are not available make sure you are in a nix-shell session or that lorri is ready.) For additional information on invoking the PAB please refer to its [README.md](https://github.com/input-output-hk/plutus/blob/master/plutus-pab/README.md).
+The `plutus-pab-migrate` and `plutus-pab-all-servers` scripts are provided by the global [shell.nix](../shell.nix). The npm `setup-contracts` script also relies on local scripts provided by [default.nix](default.nix). If these commands are not available, make sure you are in a nix-shell session or that lorri is ready. For additional information on invoking the PAB please refer to its [README.md](../plutus-pab/README.md).
 
 ### Starting the frontend server
 
-With the backend server running you can get started using the `npm start` script:
+With the contracts installed and the PAB server running, you can get started using the `npm start` script:
 
 ```bash
 $ npm run start
@@ -33,11 +41,11 @@ $ npm run start
 The `start` script will:
 
 - Install npm dependencies
-- Generate purescript bridge code
-- Compile the purescript code
-- Start the webkpack server
+- Generate PureScript bridge code
+- Compile the PureScript code
+- Start the Webpack server
 
-Once the `start` script completes you can access the frontend via [http://localhost:8009](http://localhost:8009)
+Once the `start` script completes you can access the frontend via [http://localhost:8009](http://localhost:8009).
 
 ## Development Workflow
 
@@ -45,11 +53,13 @@ The following outlines some essentials for actually working on the marlowe dashb
 
 ### NPM Scripts
 
-Apart from the `start` script introduced above there are a couple of scripts for the most frequent tasks during development. In order to run a webpack server in development mode with automatic reloading use **webpack:server**:
+Apart from the `start` script introduced above there are a few scripts for the most frequent tasks during development. For example, in order to run a webpack server in development mode with automatic reloading use **webpack:server**:
 
 ```
-$ npm webpack:server
+$ npm run webpack:server
 ```
+
+This is the final step of the `start` script described above, and is all you need to get up and running subsequently if you have already installed the npm modules and generated the PureScript bridge code.
 
 Please refer to [package.json](./package.json) for the full set of provided scripts.
 

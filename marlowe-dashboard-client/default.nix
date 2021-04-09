@@ -29,8 +29,12 @@ let
     packages = pkgs.callPackage ./packages.nix { };
     spagoPackages = pkgs.callPackage ./spago-packages.nix { };
   };
+
+  install-marlowe-contracts = pkgs.writeShellScriptBin "install-marlowe-contracts" ''
+    ${plutus-pab.server-invoker}/bin/plutus-pab contracts install --path ${marlowe-app}/bin/marlowe-app
+  '';
 in
 {
   inherit (plutus-pab) server-invoker generated-purescript generate-purescript start-backend;
-  inherit client contractsJSON;
+  inherit client contractsJSON install-marlowe-contracts;
 }
