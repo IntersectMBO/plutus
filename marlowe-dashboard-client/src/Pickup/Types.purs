@@ -7,7 +7,7 @@ module Pickup.Types
 import Prelude
 import Analytics (class IsEvent, defaultEvent)
 import Data.Maybe (Maybe(..))
-import WalletData.Types (Nickname, WalletDetails)
+import WalletData.Types (WalletNickname, WalletDetails)
 
 type State
   = { card :: Maybe Card
@@ -23,7 +23,7 @@ data Action
   = SetCard (Maybe Card)
   | GenerateNewWallet
   | LookupWallet String
-  | SetNewWalletNickname Nickname
+  | SetNewWalletNickname WalletNickname
   | SetNewWalletContractId String
   | PickupNewWallet
   | PickupWallet WalletDetails

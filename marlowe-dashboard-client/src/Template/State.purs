@@ -4,11 +4,7 @@ module Template.State
   , handleAction
   ) where
 
--- Note: There is no independent template state as such (just a property of
--- the main state). This module simply includes some template-related helper
--- functions for use in MainFrame.Sate, separated out to keep modules
--- relatively small and easier to read.
--- Maybe we could do the same for Contract.State...?
+-- TODO: Make this into a proper submodule.
 import Prelude
 import Control.Monad.Reader (class MonadAsk)
 import Data.Foldable (for_)

@@ -1,10 +1,11 @@
 module MainFrame.Types
   ( State
+  , WebSocketStatus(..)
+  , WebData
   , ChildSlots
   , Query(..)
   , Msg(..)
   , Action(..)
-  , WebSocketStatus(..)
   ) where
 
 import Prelude
@@ -13,13 +14,12 @@ import Data.Either (Either)
 import Data.Generic.Rep (class Generic)
 import Data.Maybe (Maybe(..))
 import Marlowe.Extended.Template (ContractTemplate)
-import Marlowe.Semantics (PubKey)
 import Network.RemoteData (RemoteData)
 import Pickup.Types (Action, State) as Pickup
 import Play.Types (Action, State) as Play
 import Plutus.PAB.Webserver.Types (CombinedWSStreamToClient, CombinedWSStreamToServer)
 import Servant.PureScript.Ajax (AjaxError)
-import WalletData.Types (Nickname, WalletLibrary)
+import WalletData.Types (WalletLibrary, NewWalletDetails)
 import Web.Socket.Event.CloseEvent (CloseEvent, reason) as WS
 import WebSocket.Support (FromSocket) as WS
 
@@ -29,9 +29,7 @@ import WebSocket.Support (FromSocket) as WS
 -- for when you have picked up a wallet, and can do all of the things.
 type State
   = { wallets :: WalletLibrary
-    , newWalletNickname :: Nickname
-    , newWalletContractId :: String
-    , remoteDataPubKey :: RemoteData AjaxError PubKey
+    , newWalletDetails :: NewWalletDetails
     , templates :: Array ContractTemplate
     , webSocketStatus :: WebSocketStatus
     , subState :: Either Pickup.State Play.State
@@ -48,6 +46,9 @@ instance showWebSocketStatus :: Show WebSocketStatus where
   show (WebSocketClosed Nothing) = "WebSocketClosed"
   show (WebSocketClosed (Just closeEvent)) = "WebSocketClosed " <> WS.reason closeEvent
 
+type WebData
+  = RemoteData AjaxError
+
 ------------------------------------------------------------
 type ChildSlots
   = (
@@ -63,8 +64,8 @@ data Msg
 ------------------------------------------------------------
 data Action
   = Init
-  | SetNewWalletNickname Nickname
-  | SetNewWalletContractId String
+  | SetNewWalletNicknameString String
+  | SetNewWalletContractIdString String
   | AddNewWallet
   | PickupAction Pickup.Action
   | PlayAction Play.Action
@@ -73,8 +74,8 @@ data Action
 -- how to classify them.
 instance actionIsEvent :: IsEvent Action where
   toEvent Init = Just $ defaultEvent "Init"
-  toEvent (SetNewWalletNickname _) = Nothing
-  toEvent (SetNewWalletContractId _) = Nothing
+  toEvent (SetNewWalletNicknameString _) = Nothing
+  toEvent (SetNewWalletContractIdString _) = Nothing
   toEvent AddNewWallet = Just $ defaultEvent "AddNewWallet"
   toEvent (PickupAction pickupAction) = toEvent pickupAction
   toEvent (PlayAction playAction) = toEvent playAction
