@@ -3,10 +3,7 @@ let
   inherit (pkgs) writeShellScriptBin lib mkShell stdenv;
   inherit (pkgs) awscli terraform morph jq;
 
-  # The set of all gpg keys that can be used by pass
-  # To add a new user, put their key in ./deployment/keys and add the key filename and id here.
-  # You can cheat the id by putting an empty value and then running `$(nix-build -A deployment.importKeys)`
-  # and then finding the key id with `gpg --list-keys` and updating this set.
+  # All environments and the region they are in
   envs = import ./envs.nix;
 
   # mkDeploymentShell : Provide a deployment shell for a specific environment
@@ -158,11 +155,6 @@ let
         echo -e "\t* destroy-infra:    destroy the infrastructure completely"
         echo -e "\t* deploy-nix:       deploy nix configuration to infrastructure"
         echo -e "\t* deploy:           provision infrastructure and deploy nix configuration"
-        echo ""
-        echo "Key handling"
-        echo ""
-        echo -e "\t* import-gpg-keys:  import all relevant gpg keys"
-        echo -e "\t* init-keys-${env}:   allow configured keys access to this environment"
         echo -e ""
         echo "Notes:"
         echo ""
