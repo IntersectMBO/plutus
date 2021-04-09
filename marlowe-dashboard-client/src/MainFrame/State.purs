@@ -46,7 +46,7 @@ import Template.State (handleAction) as Template
 import Template.Types (Action(..)) as Template
 import Types (ContractInstanceId(..), contractInstanceIdFromString)
 import WalletData.Lenses (_assets, _contractInstanceId, _contractInstanceIdString, _remoteDataPubKey, _remoteDataWallet, _remoteDataAssets, _wallet, _walletNicknameString)
-import WalletData.Types (Wallet(..), WalletDetails, NewWalletDetails)
+import WalletData.Types (NewWalletDetails, Wallet(..), WalletDetails, WalletInfo)
 import WebSocket.Support as WS
 
 mkMainFrame ::
@@ -201,7 +201,7 @@ handleAction (PickupAction (Pickup.PickupWallet walletDetails)) = do
       liftEffect $ setItem walletDetailsLocalStorageKey $ encodeJSON updatedWalletDetails
     _ -> pure unit
 
-handleAction (PickupAction Pickup.GenerateNewWallet) = do
+handleAction (PickupAction Pickup.GenerateNewWallet) = pure unit {-do
   remoteDataWallet <- createWallet
   assign (_newWalletDetails <<< _remoteDataWallet) remoteDataWallet
   case remoteDataWallet of
@@ -216,7 +216,7 @@ handleAction (PickupAction Pickup.GenerateNewWallet) = do
       assign (_newWalletDetails <<< _contractInstanceIdString) contractInstanceIdString
       assign (_pickupState <<< _card) (Just Pickup.PickupNewWalletCard)
     -- TODO: show errors to the user
-    _ -> pure unit
+    _ -> pure unit -}
 
 handleAction (PickupAction (Pickup.LookupWallet string)) = do
   wallets <- use _wallets

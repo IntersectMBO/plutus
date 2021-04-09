@@ -20,11 +20,11 @@ import Data.Map (Map)
 import Data.Newtype (unwrap)
 import Halogen (HalogenM)
 import MainFrame.Types (WebData)
-import Marlowe.Semantics (Assets, PubKey, Slot)
+import Marlowe.Semantics (Assets, Slot)
 import Plutus.PAB.Webserver (getWalletByWalletIdOwnoutputs, getWalletByWalletIdOwnpublickey, getWalletByWalletIdTotalfunds, getWalletByWalletIdWalletslot, postWalletByWalletIdSign, postWalletByWalletIdSubmittxn, postWalletByWalletIdUpdatepaymentwithchange, postWalletCreate)
 import Plutus.V1.Ledger.Tx (Tx, TxOutRef, TxOutTx)
 import Wallet.Types (Payment)
-import WalletData.Types (Wallet)
+import WalletData.Types (Wallet, WalletInfo)
 
 -- The PAB PSGenerator (using Servant.PureScript) automatically generates a PureScript module with
 -- functions for calling all Wallet API endpoints. This `MonadWallet` class wraps these up in a
@@ -32,9 +32,9 @@ import WalletData.Types (Wallet)
 -- with some nicer names and type signatures, mapping the result to WebData.
 class
   Monad m <= MonadWallet m where
-  createWallet :: m (WebData Wallet)
+  createWallet :: m (WebData WalletInfo)
   submitWalletTransaction :: Tx -> Wallet -> m (WebData Unit)
-  getWalletPubKey :: Wallet -> m (WebData PubKey)
+  getWalletPubKey :: Wallet -> m (WebData WalletInfo)
   updateWalletPaymentWithChange :: JsonTuple Assets Payment -> Wallet -> m (WebData Payment)
   getWalletSlot :: Wallet -> m (WebData Slot)
   getWalletTransactions :: Wallet -> m (WebData (Map TxOutRef TxOutTx))

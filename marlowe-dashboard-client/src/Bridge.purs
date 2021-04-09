@@ -6,6 +6,7 @@ module Bridge
   ) where
 
 import Prelude
+import Cardano.Wallet.Types (WalletInfo(..)) as Back
 import Data.BigInteger (BigInteger)
 import Data.Json.JsonTuple (JsonTuple(..))
 import Data.Json.JsonUUID (JsonUUID(..))
@@ -15,7 +16,7 @@ import Data.Tuple (Tuple)
 import Data.Tuple.Nested ((/\))
 import Marlowe.Semantics (Assets(..), Slot(..)) as Front
 import Network.RemoteData (RemoteData)
-import Plutus.V1.Ledger.Crypto (PubKey(..)) as Back
+import Plutus.V1.Ledger.Crypto (PubKey(..), PubKeyHash(..)) as Back
 import Plutus.V1.Ledger.Slot (Slot(..)) as Back
 import Plutus.V1.Ledger.Value (CurrencySymbol(..), TokenName(..), Value(..)) as Back
 import PlutusTx.AssocMap (Map, fromTuples, toTuples) as Back
@@ -24,7 +25,7 @@ import Types (ContractInstanceId(..)) as Front
 import Wallet.Emulator.Wallet (Wallet(..)) as Back
 import Wallet.Types (ContractInstanceId(..)) as Back
 import Wallet.Types (Payment)
-import WalletData.Types (Wallet(..)) as Front
+import WalletData.Types (PubKeyHash(..), Wallet(..), WalletInfo(..)) as Front
 
 -- | Servant.PureScript generates PureScript types from the Haskell codebase with JSON encode and decode instances
 --   that in principle enable easy communication between the (frontend) PureScript and (backend) Haskell code.
@@ -97,9 +98,17 @@ instance currencySymbolBridge :: Bridge Back.CurrencySymbol String where
   toFront (Back.CurrencySymbol { unCurrencySymbol }) = unCurrencySymbol
   toBack unCurrencySymbol = Back.CurrencySymbol { unCurrencySymbol }
 
+instance walletInfoBridge :: Bridge Back.WalletInfo Front.WalletInfo where
+  toFront (Back.WalletInfo { wiWallet, wiPubKey, wiPubKeyHash }) = Front.WalletInfo { wallet: toFront wiWallet, pubKey: toFront wiPubKey, pubKeyHash: toFront wiPubKeyHash }
+  toBack (Front.WalletInfo { wallet, pubKey, pubKeyHash }) = Back.WalletInfo { wiWallet: toBack wallet, wiPubKey: toBack pubKey, wiPubKeyHash: toBack pubKeyHash }
+
 instance walletBridge :: Bridge Back.Wallet Front.Wallet where
   toFront (Back.Wallet { getWallet }) = Front.Wallet getWallet
   toBack (Front.Wallet getWallet) = Back.Wallet { getWallet }
+
+instance pubKeyHashBridge :: Bridge Back.PubKeyHash Front.PubKeyHash where
+  toFront (Back.PubKeyHash { getPubKeyHash }) = Front.PubKeyHash getPubKeyHash
+  toBack (Front.PubKeyHash getPubKeyHash) = Back.PubKeyHash { getPubKeyHash }
 
 instance contractInstanceIdBridge :: Bridge Back.ContractInstanceId Front.ContractInstanceId where
   toFront (Back.ContractInstanceId { unContractInstanceId: JsonUUID uuid }) = Front.ContractInstanceId uuid
