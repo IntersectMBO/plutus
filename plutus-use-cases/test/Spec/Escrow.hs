@@ -22,7 +22,7 @@ tests = testGroup "escrow"
     [ let con = void $ payEp @() @EscrowSchema @EscrowError escrowParams in
       checkPredicate "can pay"
         ( assertDone con (Trace.walletInstanceTag w1) (const True) "escrow pay not done"
-        .&&. walletFundsChange w1 (1 `timesFeeAdjust` (-10))
+        .&&. walletFundsChange w1 (Ada.lovelaceValueOf (-10))
         )
         $ do
           hdl <- Trace.activateContractWallet w1 con
@@ -32,9 +32,9 @@ tests = testGroup "escrow"
     , let con = void $ selectEither (payEp @() @EscrowSchema @EscrowError escrowParams) (redeemEp escrowParams) in
       checkPredicate "can redeem"
         ( assertDone con (Trace.walletInstanceTag w3) (const True) "escrow redeem not done"
-          .&&. walletFundsChange w1 (1 `timesFeeAdjust` (-10))
-          .&&. walletFundsChange w2  (1 `timesFeeAdjust` 10)
-          .&&. walletFundsChange w3 (1 `timesFeeAdjust` 0)
+          .&&. walletFundsChange w1 (Ada.lovelaceValueOf (-10))
+          .&&. walletFundsChange w2 (Ada.lovelaceValueOf 10)
+          .&&. walletFundsChange w3 (Ada.lovelaceValueOf 0)
         )
         redeemTrace
 
@@ -53,19 +53,19 @@ tests = testGroup "escrow"
 
           -- Wallet 1 pays 20 and receives 10 from the escrow contract and another 10
           -- in excess inputs
-          ( walletFundsChange w1 (2 `timesFeeAdjust` 0)
+          ( walletFundsChange w1 (Ada.lovelaceValueOf 0)
 
           -- Wallet 2 pays 10 and receives 20, as per the contract.
-            .&&. walletFundsChange w2 (1 `timesFeeAdjust` 10)
+            .&&. walletFundsChange w2 (Ada.lovelaceValueOf 10)
 
           -- Wallet 3 pays 10 and doesn't receive anything.
-            .&&. walletFundsChange w3 (1 `timesFeeAdjust` (-10))
+            .&&. walletFundsChange w3 (Ada.lovelaceValueOf (-10))
           )
           redeem2Trace
 
     , let con = void $ payEp @()  @EscrowSchema @EscrowError escrowParams >> refundEp escrowParams in
       checkPredicate "can refund"
-        ( walletFundsChange w1 (2 `timesFeeAdjust` 0)
+        ( walletFundsChange w1 (Ada.lovelaceValueOf 0)
           .&&. assertDone con (Trace.walletInstanceTag w1) (const True) "refund should succeed")
         refundTrace
 

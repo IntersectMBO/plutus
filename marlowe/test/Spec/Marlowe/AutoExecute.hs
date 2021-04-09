@@ -78,8 +78,8 @@ autoexecZCBTest = checkPredicate "ZCB Auto Execute Contract"
     -- /\ emulatorLog (const False) ""
     T..&&. assertNotDone (marlowePlutusContract) (Trace.walletInstanceTag alice) "contract should not have any errors"
     T..&&. assertNotDone (marlowePlutusContract) (Trace.walletInstanceTag bob) "contract should not have any errors"
-    T..&&. walletFundsChange alice (3 `T.timesFeeAdjust` 150)
-    T..&&. walletFundsChange bob (1 `T.timesFeeAdjust` (-150))
+    T..&&. walletFundsChange alice (lovelaceValueOf 150)
+    T..&&. walletFundsChange bob (lovelaceValueOf (-150))
     ) $ do
 
     bobHdl <- Trace.activateContractWallet bob marlowePlutusContract
@@ -114,7 +114,7 @@ autoexecZCBTestAliceWalksAway = checkPredicate
     -- /\ emulatorLog (const False) ""
     T..&&. assertNotDone (marlowePlutusContract) (Trace.walletInstanceTag alice) "contract should not have any errors"
     T..&&. assertNotDone (marlowePlutusContract) (Trace.walletInstanceTag bob) "contract should not have any errors"
-    T..&&. walletFundsChange alice (2 `T.timesFeeAdjustV` P.inv almostAll)
+    T..&&. walletFundsChange alice (P.inv almostAll)
     T..&&. walletFundsChange carol (almostAll)
     ) $ do
     bobHdl <- Trace.activateContractWallet bob marlowePlutusContract
@@ -145,7 +145,7 @@ autoexecZCBTestBobWalksAway = checkPredicate
     -- /\ emulatorLog (const False) ""
     T..&&. assertNotDone (marlowePlutusContract) (Trace.walletInstanceTag alice) "contract should not have any errors"
     T..&&. assertNotDone (marlowePlutusContract) (Trace.walletInstanceTag bob) "contract should not have any errors"
-    T..&&. walletFundsChange alice (2 `T.timesFeeAdjust` (-850))
+    T..&&. walletFundsChange alice (lovelaceValueOf (-850))
     T..&&. walletFundsChange carol (almostAll)
     ) $ do
     bobHdl <- Trace.activateContractWallet bob marlowePlutusContract

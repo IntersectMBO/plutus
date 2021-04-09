@@ -42,8 +42,8 @@ tests =
         $ void F.setupTokensTrace
 
     , checkPredicate "can initialise and obtain tokens"
-        (walletFundsChange w1 (4 `timesFeeAdjustV` (scale (-1) (F.initialMargin theFuture) <> F.tokenFor Short F.testAccounts))
-        .&&. walletFundsChange w2 (1 `timesFeeAdjustV` (scale (-1) (F.initialMargin theFuture) <> F.tokenFor Long F.testAccounts)))
+        (walletFundsChange w1 (scale (-1) (F.initialMargin theFuture) <> F.tokenFor Short F.testAccounts)
+        .&&. walletFundsChange w2 (scale (-1) (F.initialMargin theFuture) <> F.tokenFor Long F.testAccounts))
         (void (initContract >> joinFuture))
 
     , checkPredicate "can increase margin"

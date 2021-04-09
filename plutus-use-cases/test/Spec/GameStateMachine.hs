@@ -32,13 +32,12 @@ import qualified Spec.Lib                           as Lib
 
 import qualified Ledger.Ada                         as Ada
 import qualified Ledger.Typed.Scripts               as Scripts
-import           Ledger.Value                       (Value)
+import           Ledger.Value                       (Value, isZero)
 import           Plutus.Contract.Test               hiding (not)
 import           Plutus.Contract.Test.ContractModel
 import           Plutus.Contracts.GameStateMachine  as G
 import           Plutus.Trace.Emulator              as Trace
 import qualified PlutusTx                           as PlutusTx
-import           PlutusTx.Prelude                   (inv)
 
 -- * QuickCheck model
 
@@ -214,8 +213,7 @@ noLockedFunds = do
         monitor $ label "Unlocking funds"
         action $ GiveToken w
         action $ Guess w secret "" val
-    count <- viewContractState txCount
-    assertModel "Locked funds should be zero" $ (== inv (count `timesFeeAdjust` 0)) . lockedValue
+    assertModel "Locked funds should be zero" $ isZero . lockedValue
 
 -- | Check that we can always get the money out of the guessing game (by guessing correctly).
 prop_NoLockedFunds :: Property
@@ -227,22 +225,22 @@ tests :: TestTree
 tests =
     testGroup "game state machine tests"
     [ checkPredicate "run a successful game trace"
-        (walletFundsChange w2 (1 `timesFeeAdjust` 3 <> gameTokenVal)
+        (walletFundsChange w2 (Ada.lovelaceValueOf 3 <> gameTokenVal)
         .&&. valueAtAddress (Scripts.scriptAddress G.scriptInstance) (Ada.lovelaceValueOf 5 ==)
-        .&&. walletFundsChange w1 (3 `timesFeeAdjust` (-8)))
+        .&&. walletFundsChange w1 (Ada.lovelaceValueOf (-8)))
         successTrace
 
     , checkPredicate "run a 2nd successful game trace"
-        (walletFundsChange w2 (2 `timesFeeAdjust` 3)
+        (walletFundsChange w2 (Ada.lovelaceValueOf 3)
         .&&. valueAtAddress (Scripts.scriptAddress G.scriptInstance) (Ada.lovelaceValueOf 1 ==)
-        .&&. walletFundsChange w1 (3 `timesFeeAdjust` (-8))
-        .&&. walletFundsChange w3 (1 `timesFeeAdjust` 4 <> gameTokenVal))
+        .&&. walletFundsChange w1 (Ada.lovelaceValueOf (-8))
+        .&&. walletFundsChange w3 (Ada.lovelaceValueOf 4 <> gameTokenVal))
         successTrace2
 
     , checkPredicate "run a failed trace"
         (walletFundsChange w2 gameTokenVal
         .&&. valueAtAddress (Scripts.scriptAddress G.scriptInstance) (Ada.lovelaceValueOf 8 ==)
-        .&&. walletFundsChange w1 (3 `timesFeeAdjust` (-8)))
+        .&&. walletFundsChange w1 (Ada.lovelaceValueOf (-8)))
         failTrace
 
     , Lib.goldenPir "test/Spec/gameStateMachine.pir" $$(PlutusTx.compile [|| mkValidator ||])

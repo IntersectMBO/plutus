@@ -34,6 +34,7 @@ module Wallet.Emulator.Folds (
     -- * Folds for individual wallets (emulated agents)
     , walletWatchingAddress
     , walletFunds
+    , walletFees
     -- * Folds that are used in the Playground
     , annotatedBlockchain
     , blockchain
@@ -63,7 +64,7 @@ import           Ledger.AddressMap                      (UtxoMap)
 import qualified Ledger.AddressMap                      as AM
 import           Ledger.Constraints.OffChain            (UnbalancedTx)
 import           Ledger.Index                           (ScriptValidationEvent, ValidationError)
-import           Ledger.Tx                              (Address, Tx, TxOut (..), TxOutTx (..))
+import           Ledger.Tx                              (Address, Tx (txFee), TxOut (..), TxOutTx (..))
 import           Ledger.Value                           (Value)
 import           Plutus.Contract                        (Contract)
 import           Plutus.Contract.Effects.WriteTx        (HasWriteTx, pendingTransaction)
@@ -79,9 +80,10 @@ import           Plutus.Trace.Emulator.Types            (ContractConstraints, Co
                                                          toInstanceState)
 import           Wallet.Emulator.Chain                  (ChainEvent (..), _TxnValidate, _TxnValidationFail)
 import           Wallet.Emulator.ChainIndex             (_AddressStartWatching)
+import           Wallet.Emulator.LogMessages            (_AddedFees)
 import           Wallet.Emulator.MultiAgent             (EmulatorEvent, EmulatorTimeEvent, chainEvent, chainIndexEvent,
-                                                         eteEvent, instanceEvent, userThreadEvent)
-import           Wallet.Emulator.Wallet                 (Wallet, walletAddress)
+                                                         eteEvent, instanceEvent, userThreadEvent, walletEvent)
+import           Wallet.Emulator.Wallet                 (Wallet, _TxBalanceLog, walletAddress)
 import qualified Wallet.Rollup                          as Rollup
 import           Wallet.Rollup.Types                    (AnnotatedTx)
 
@@ -233,6 +235,13 @@ valueAtAddress = fmap (foldMap (txOutValue . txOutTxOut)) . utxoAtAddress
 -- | The funds belonging to a wallet
 walletFunds :: Wallet -> EmulatorEventFold Value
 walletFunds = valueAtAddress . walletAddress
+
+-- | The fees paid by a wallet
+walletFees :: Wallet -> EmulatorEventFold Value
+walletFees = fmap (foldMap txFee) . walletTxWithAddedFees
+
+walletTxWithAddedFees :: Wallet -> EmulatorEventFold [Tx]
+walletTxWithAddedFees w = preMapMaybe (preview (eteEvent . walletEvent w . _TxBalanceLog . _AddedFees)) L.list
 
 -- | Whether the wallet is watching an address
 walletWatchingAddress :: Wallet -> Address -> EmulatorEventFold Bool

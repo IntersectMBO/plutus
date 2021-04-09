@@ -2,8 +2,6 @@
 module Spec.Lib
     ( reasonable
     , goldenPir
-    , timesFeeAdjust
-    , timesFeeAdjustV
     ) where
 
 import           Control.Monad.IO.Class    (MonadIO (liftIO))
@@ -17,7 +15,6 @@ import           Data.Text.Prettyprint.Doc
 
 import           Ledger                    (Validator)
 import qualified Ledger
-import           Plutus.Contract.Test      (timesFeeAdjust, timesFeeAdjustV)
 import           PlutusTx
 
 -- | Assert that the size of a 'Validator' is below

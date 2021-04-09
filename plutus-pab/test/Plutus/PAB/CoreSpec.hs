@@ -26,7 +26,6 @@ import qualified Data.Text                        as Text
 import           Data.Text.Extras                 (tshow)
 import           Ledger                           (pubKeyAddress)
 import           Ledger.Ada                       (lovelaceValueOf)
-import           Plutus.Contract.Test             (timesFeeAdjust)
 import           Plutus.Contracts.Currency        (SimpleMPS (..))
 import qualified Plutus.Contracts.Game            as Contracts.Game
 import           Plutus.PAB.Command               ()
@@ -170,7 +169,7 @@ guessingGameTest =
               balance1 <- valueAt address
               assertEqual
                   "Locking the game should reduce our balance."
-                  (1 `timesFeeAdjust` (openingBalance - lockAmount))
+                  (lovelaceValueOf (openingBalance - lockAmount))
                   balance1
 
               game1State <- agentAction defaultWallet (activateContract Game)
@@ -198,7 +197,7 @@ guessingGameTest =
               balance2 <- valueAt address
               assertEqual
                 "The wallet should now have its money back."
-                (2 `timesFeeAdjust` openingBalance)
+                (lovelaceValueOf openingBalance)
                 balance2
               blocks <- use blockchainNewestFirst
               assertBool

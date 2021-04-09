@@ -7,7 +7,7 @@ module Spec.Game
     ) where
 
 import           Control.Monad         (void)
-import           Ledger.Ada            (adaValueOf)
+import           Ledger.Ada            (adaValueOf, lovelaceValueOf)
 import           Plutus.Contract       (Contract, ContractError)
 import           Plutus.Contract.Test
 import           Plutus.Contracts.Game
@@ -48,13 +48,13 @@ tests = testGroup "game"
         lockTrace
 
     , checkPredicate "guess right (unlock funds)"
-        (walletFundsChange w2 (1 `timesFeeAdjust` 10)
-            .&&. walletFundsChange w1 (1 `timesFeeAdjust` (-10)))
+        (walletFundsChange w2 (lovelaceValueOf 10)
+            .&&. walletFundsChange w1 (lovelaceValueOf (-10)))
         guessTrace
 
     , checkPredicate "guess wrong"
         (walletFundsChange w2 PlutusTx.zero
-            .&&. walletFundsChange w1 (1 `timesFeeAdjust` (-10)))
+            .&&. walletFundsChange w1 (lovelaceValueOf (-10)))
         guessWrongTrace
     , Lib.goldenPir "test/Spec/game.pir" $$(PlutusTx.compile [|| validateGuess ||])
     , HUnit.testCase "script size is reasonable" (Lib.reasonable gameValidator 20000)

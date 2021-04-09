@@ -3,16 +3,19 @@
 {-# LANGUAGE DerivingStrategies #-}
 {-# LANGUAGE LambdaCase         #-}
 {-# LANGUAGE OverloadedStrings  #-}
+{-# LANGUAGE TemplateHaskell    #-}
 -- | The log messages produced by the emulator.
 module Wallet.Emulator.LogMessages(
   RequestHandlerLogMsg(..)
   , TxBalanceMsg(..)
+  , _AddedFees
   ) where
 
+import           Control.Lens                (makePrisms)
 import           Data.Aeson                  (FromJSON, ToJSON)
 import           Data.Text.Prettyprint.Doc   (Pretty (..), hang, viaShow, vsep, (<+>))
 import           GHC.Generics                (Generic)
-import           Ledger                      (Address)
+import           Ledger                      (Address, Tx (txFee))
 import           Ledger.Constraints.OffChain (UnbalancedTx)
 import           Ledger.Slot                 (Slot)
 import           Ledger.Value                (Value)
@@ -42,6 +45,7 @@ instance Pretty RequestHandlerLogMsg where
 
 data TxBalanceMsg =
     BalancingUnbalancedTx UnbalancedTx
+    | AddedFees Tx
     | NoOutputsAdded
     | AddingPublicKeyOutputFor Value
     | NoInputsAdded
@@ -52,7 +56,10 @@ data TxBalanceMsg =
 instance Pretty TxBalanceMsg where
     pretty = \case
         BalancingUnbalancedTx utx   -> hang 2 $ vsep ["Balancing an unbalanced transaction:", pretty utx]
+        AddedFees tx                -> "Added fees:" <+> pretty (txFee tx)
         NoOutputsAdded              -> "No outputs added"
         AddingPublicKeyOutputFor vl -> "Adding public key output for" <+> pretty vl
         NoInputsAdded               -> "No inputs added"
         AddingInputsFor vl          -> "Adding inputs for" <+> pretty vl
+
+makePrisms ''TxBalanceMsg

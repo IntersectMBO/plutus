@@ -129,7 +129,7 @@ tests =
         , let smallTx = Constraints.mustPayToPubKey (Crypto.pubKeyHash $ walletPubKey (Wallet 2)) (Ada.lovelaceValueOf 10)
               theContract :: Contract () Schema ContractError () = submitTx smallTx >>= awaitTxConfirmed . Ledger.txId >> submitTx smallTx >>= awaitTxConfirmed . Ledger.txId
           in run 3 "handle several blockchain events"
-                (walletFundsChange w1 (2 `timesFeeAdjust` (-20))
+                (walletFundsChange w1 (Ada.lovelaceValueOf (-20))
                     .&&. assertNoFailedTransactions
                     .&&. assertDone theContract tag (const True) "all blockchain events should be processed")
                 (void $ activateContract w1 theContract tag >> Trace.waitUntilSlot 3)
@@ -158,8 +158,8 @@ tests =
                 (void $ activateContract w1 theContract tag)
 
         , run 2 "pay to wallet"
-            (walletFundsChange w1 (1 `timesFeeAdjust` (-200))
-                .&&. walletFundsChange w2 (0 `timesFeeAdjust` 200)
+            (walletFundsChange w1 (Ada.lovelaceValueOf (-200))
+                .&&. walletFundsChange w2 (Ada.lovelaceValueOf 200)
                 .&&. assertNoFailedTransactions)
             (void $ Trace.payToWallet w1 w2 (Ada.lovelaceValueOf 200))
 

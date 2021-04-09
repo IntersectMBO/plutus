@@ -54,12 +54,12 @@ tests = testGroup "crowdfunding"
         $ void (Trace.activateContractWallet w1 theContract)
 
     , checkPredicateOptions (defaultCheckOptions & maxSlot .~ 20) "make contribution"
-        (walletFundsChange w1 (1 `timesFeeAdjust` (-10)))
+        (walletFundsChange w1 (Ada.lovelaceValueOf (-10)))
         $ let contribution = Ada.lovelaceValueOf 10
           in makeContribution w1 contribution >> void Trace.nextSlot
 
     , checkPredicate "make contributions and collect"
-        (walletFundsChange w1 (1 `timesFeeAdjust` 21))
+        (walletFundsChange w1 (Ada.lovelaceValueOf 21))
         $ successfulCampaign
 
     , checkPredicate "cannot collect money too late"
@@ -92,8 +92,8 @@ tests = testGroup "crowdfunding"
             void $ Trace.waitUntilSlot 35
 
     , checkPredicate "can claim a refund"
-        (walletFundsChange w2 (2 `timesFeeAdjust` 0)
-        .&&. walletFundsChange w3 (2 `timesFeeAdjust` 0))
+        (walletFundsChange w2 mempty
+        .&&. walletFundsChange w3 mempty)
         $ do
             startCampaign
             makeContribution w2 (Ada.lovelaceValueOf 5)

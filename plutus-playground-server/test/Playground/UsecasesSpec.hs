@@ -46,7 +46,6 @@ import           Playground.Types                       (CompilationResult (Comp
                                                          walletKeys, wallets)
 import           Playground.Usecases                    (crowdFunding, errorHandling, game, vesting)
 import           Plutus.Contract.Effects.ExposeEndpoint (EndpointDescription (EndpointDescription))
-import           Plutus.Contract.Test                   (timesFeeAdjust, timesFeeAdjustV)
 import           Schema                                 (FormSchema (FormSchemaUnit, FormSchemaValue))
 import           System.Environment                     (lookupEnv)
 import           Test.Tasty                             (TestTree, testGroup)
@@ -132,19 +131,19 @@ vestingTest =
           evaluate vestFundsEval >>=
           hasFundsDistribution
               [ mkSimulatorWallet w1 $ lovelaceValueOf 100
-              , mkSimulatorWallet w2 $ 1 `timesFeeAdjust` 92
+              , mkSimulatorWallet w2 $ lovelaceValueOf 92
               ]
         , testCase "should run vest and a partial retrieve of funds" $
           evaluate vestAndPartialRetrieveEval >>=
           hasFundsDistribution
-              [ mkSimulatorWallet w1 $ 1 `timesFeeAdjust` 105
-              , mkSimulatorWallet w2 $ 1 `timesFeeAdjust` 92
+              [ mkSimulatorWallet w1 $ lovelaceValueOf 105
+              , mkSimulatorWallet w2 $ lovelaceValueOf 92
               ]
         , testCase "should run vest and a full retrieve of funds" $
           evaluate vestAndFullRetrieveEval >>=
           hasFundsDistribution
-              [ mkSimulatorWallet w1 $ 1 `timesFeeAdjust` 108
-              , mkSimulatorWallet w2 $ 1 `timesFeeAdjust` 92
+              [ mkSimulatorWallet w1 $ lovelaceValueOf 108
+              , mkSimulatorWallet w2 $ lovelaceValueOf 92
               ]
         ]
   where
@@ -179,13 +178,13 @@ gameTest =
           evaluate (mkEvaluation [lock w2 "abcde" twoAda, AddBlocks 1, guess w1 "ade", AddBlocks 1]) >>=
           hasFundsDistribution
               [ mkSimulatorWallet w1 tenAda
-              , mkSimulatorWallet w2 (1 `timesFeeAdjustV` adaValueOf 8)
+              , mkSimulatorWallet w2 (adaValueOf 8)
               ]
         , testCase "should unlock the funds" $
           evaluate (mkEvaluation [lock w2 "abcde" twoAda, AddBlocks 1, guess w1 "abcde", AddBlocks 1]) >>=
           hasFundsDistribution
-              [ mkSimulatorWallet w1 (1 `timesFeeAdjustV` adaValueOf 12)
-              , mkSimulatorWallet w2 (1 `timesFeeAdjustV` adaValueOf 8)
+              [ mkSimulatorWallet w1 (adaValueOf 12)
+              , mkSimulatorWallet w2 (adaValueOf 8)
               ]
         , testCase "Sequential fund transfer - PayToWallet" $
           evaluate (payAll w3 w4 w5) >>=
@@ -255,16 +254,16 @@ crowdfundingTest =
         , testCase "should run successful campaign" $
           evaluate successfulCampaign >>=
           hasFundsDistribution
-              [ mkSimulatorWallet w1 $ 1 `timesFeeAdjust` 60
-              , mkSimulatorWallet w2 $ 1 `timesFeeAdjust` 19
-              , mkSimulatorWallet w3 $ 1 `timesFeeAdjust` 20
-              , mkSimulatorWallet w4 $ 1 `timesFeeAdjust` 21
+              [ mkSimulatorWallet w1 $ lovelaceValueOf 60
+              , mkSimulatorWallet w2 $ lovelaceValueOf 19
+              , mkSimulatorWallet w3 $ lovelaceValueOf 20
+              , mkSimulatorWallet w4 $ lovelaceValueOf 21
               ]
         , testCase "should run failed campaign and return the funds" $
           evaluate failedCampaign >>=
           hasFundsDistribution
               [ mkSimulatorWallet w1 $ lovelaceValueOf 20
-              , mkSimulatorWallet w2 $ 2 `timesFeeAdjust` 20
+              , mkSimulatorWallet w2 $ lovelaceValueOf 20
               , mkSimulatorWallet w3 $ lovelaceValueOf 20
               ]
         ]

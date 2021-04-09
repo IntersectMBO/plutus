@@ -74,14 +74,14 @@ tests = testGroup "Stablecoin"
     [ checkPredicate "mint reservecoins"
         (valueAtAddress stablecoinAddress (== (initialDeposit <> initialFee))
         .&&. assertNoFailedTransactions
-        .&&. walletFundsChange user (2 `timesFeeAdjustV` (Stablecoin.reserveCoins coin 100 <> negate (initialDeposit <> initialFee)))
+        .&&. walletFundsChange user (Stablecoin.reserveCoins coin 100 <> negate (initialDeposit <> initialFee))
         )
         $ initialise >>= mintReserveCoins (RC 100) one
 
     , checkPredicate "mint reservecoins and stablecoins"
         (valueAtAddress stablecoinAddress (== (initialDeposit <> initialFee <> Ada.lovelaceValueOf 50))
         .&&. assertNoFailedTransactions
-        .&&. walletFundsChange user (Stablecoin.stableCoins coin 50 <> Stablecoin.reserveCoins coin 100 <> negate (initialDeposit <> initialFee) <> (3 `timesFeeAdjust` (-50)))
+        .&&. walletFundsChange user (Stablecoin.stableCoins coin 50 <> Stablecoin.reserveCoins coin 100 <> negate (initialDeposit <> initialFee <> Ada.lovelaceValueOf 50))
         )
         $ do
             hdl <- initialise
@@ -92,7 +92,7 @@ tests = testGroup "Stablecoin"
     , checkPredicate "mint reservecoins, stablecoins and redeem stablecoin at a different price"
         (valueAtAddress stablecoinAddress (== (initialDeposit <> initialFee <> Ada.lovelaceValueOf 30))
         .&&. assertNoFailedTransactions
-        .&&. walletFundsChange user (Stablecoin.stableCoins coin 40 <> Stablecoin.reserveCoins coin 100 <> negate (initialDeposit <> initialFee) <> (4 `timesFeeAdjust` (-30)))
+        .&&. walletFundsChange user (Stablecoin.stableCoins coin 40 <> Stablecoin.reserveCoins coin 100 <> negate (initialDeposit <> initialFee <> Ada.lovelaceValueOf 30))
         )
         stablecoinTrace
 

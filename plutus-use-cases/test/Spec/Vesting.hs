@@ -35,16 +35,16 @@ tests =
     let con = vestingContract vesting in
     testGroup "vesting"
     [ checkPredicate "secure some funds with the vesting script"
-        (walletFundsChange w2 (1 `timesFeeAdjustV` (Numeric.negate $ totalAmount vesting)))
+        (walletFundsChange w2 (Numeric.negate $ totalAmount vesting))
         $ do
             hdl <- Trace.activateContractWallet w2 con
             Trace.callEndpoint @"vest funds" hdl ()
             void $ Trace.waitNSlots 1
 
     , checkPredicate "retrieve some funds"
-        (walletFundsChange w2 (1 `timesFeeAdjustV` (Numeric.negate $ totalAmount vesting))
+        (walletFundsChange w2 (Numeric.negate $ totalAmount vesting)
         .&&. assertNoFailedTransactions
-        .&&. walletFundsChange w1 (1 `timesFeeAdjust` 10))
+        .&&. walletFundsChange w1 (Ada.lovelaceValueOf 10))
         retrieveFundsTrace
 
     , checkPredicate "cannot retrieve more than allowed"
@@ -59,7 +59,7 @@ tests =
             void $ Trace.waitNSlots 1
 
     , checkPredicate "can retrieve everything at the end"
-        (walletFundsChange w1 (1 `timesFeeAdjustV` totalAmount vesting)
+        (walletFundsChange w1 (totalAmount vesting)
         .&&. assertNoFailedTransactions
         .&&. assertDone con (Trace.walletInstanceTag w1) (const True) "should be done")
         $ do

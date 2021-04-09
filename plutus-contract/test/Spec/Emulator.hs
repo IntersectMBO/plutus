@@ -153,7 +153,7 @@ txnValidFrom =
         range = W.singleton 5
 
     in checkPredicateGen Gen.generatorModel
-        (walletFundsChange wallet1 (1 `timesFeeAdjustV` P.negate five)
+        (walletFundsChange wallet1 (P.negate five)
         .&&. walletFundsChange wallet2 five
         )
         $ do
@@ -281,20 +281,20 @@ walletWatchinOwnAddress =
 
 payToPubKeyScript :: Property
 payToPubKeyScript =
-    let hasInitialBalance n w = valueAtAddress (Wallet.walletAddress w) (== (n `timesFeeAdjustV` initialBalance))
+    let hasInitialBalance w = valueAtAddress (Wallet.walletAddress w) (== initialBalance)
     in checkPredicateGen Gen.generatorModel
-        (hasInitialBalance 1 wallet1
-            .&&. hasInitialBalance 1 wallet2
-            .&&. hasInitialBalance 1 wallet3)
+        (hasInitialBalance wallet1
+            .&&. hasInitialBalance wallet2
+            .&&. hasInitialBalance wallet3)
         pubKeyTransactions
 
 payToPubKeyScript2 :: Property
 payToPubKeyScript2 =
-    let hasInitialBalance n w = valueAtAddress (Wallet.walletAddress w) (== (n `timesFeeAdjustV` initialBalance))
+    let hasInitialBalance w = valueAtAddress (Wallet.walletAddress w) (== initialBalance)
     in checkPredicateGen Gen.generatorModel
-        (hasInitialBalance 2 wallet1
-            .&&. hasInitialBalance 1 wallet2
-            .&&. hasInitialBalance 1 wallet3)
+        (hasInitialBalance wallet1
+            .&&. hasInitialBalance wallet2
+            .&&. hasInitialBalance wallet3)
         pubKeyTransactions2
 
 pubKeyTransactions :: EmulatorTrace ()

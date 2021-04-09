@@ -16,38 +16,39 @@
 module Wallet.Emulator.Wallet where
 
 import           Control.Lens
-import           Control.Monad               (foldM)
+import           Control.Monad                  (foldM)
 import           Control.Monad.Freer
 import           Control.Monad.Freer.Error
+import           Control.Monad.Freer.Extras.Log (LogMsg, logInfo)
 import           Control.Monad.Freer.State
-import           Control.Monad.Freer.TH      (makeEffect)
-import           Control.Newtype.Generics    (Newtype)
-import           Data.Aeson                  (FromJSON, ToJSON, ToJSONKey)
+import           Control.Monad.Freer.TH         (makeEffect)
+import           Control.Newtype.Generics       (Newtype)
+import           Data.Aeson                     (FromJSON, ToJSON, ToJSONKey)
 import           Data.Bifunctor
 import           Data.Foldable
-import           Data.Hashable               (Hashable)
-import qualified Data.Map                    as Map
+import           Data.Hashable                  (Hashable)
+import qualified Data.Map                       as Map
 import           Data.Maybe
-import qualified Data.Set                    as Set
-import qualified Data.Text                   as T
+import qualified Data.Set                       as Set
+import qualified Data.Text                      as T
 import           Data.Text.Prettyprint.Doc
-import           GHC.Generics                (Generic)
+import           GHC.Generics                   (Generic)
 import           Ledger
-import qualified Ledger.Ada                  as Ada
-import qualified Ledger.AddressMap           as AM
-import qualified Ledger.Crypto               as Crypto
-import qualified Ledger.Value                as Value
-import           Plutus.Contract.Checkpoint  (CheckpointLogMsg)
-import qualified PlutusTx.Prelude            as PlutusTx
-import           Prelude                     as P
-import           Servant.API                 (FromHttpApiData (..), ToHttpApiData (..))
-import qualified Wallet.API                  as WAPI
-import           Wallet.Effects              (ChainIndexEffect, NodeClientEffect, WalletEffect (..))
-import qualified Wallet.Effects              as W
-import           Wallet.Emulator.ChainIndex  (ChainIndexState)
-import           Wallet.Emulator.LogMessages (RequestHandlerLogMsg, TxBalanceMsg)
-import           Wallet.Emulator.NodeClient  (NodeClientState, emptyNodeClientState)
-import           Wallet.Types                (Payment (..))
+import qualified Ledger.Ada                     as Ada
+import qualified Ledger.AddressMap              as AM
+import qualified Ledger.Crypto                  as Crypto
+import qualified Ledger.Value                   as Value
+import           Plutus.Contract.Checkpoint     (CheckpointLogMsg)
+import qualified PlutusTx.Prelude               as PlutusTx
+import           Prelude                        as P
+import           Servant.API                    (FromHttpApiData (..), ToHttpApiData (..))
+import qualified Wallet.API                     as WAPI
+import           Wallet.Effects                 (ChainIndexEffect, NodeClientEffect, WalletEffect (..))
+import qualified Wallet.Effects                 as W
+import           Wallet.Emulator.ChainIndex     (ChainIndexState)
+import           Wallet.Emulator.LogMessages    (RequestHandlerLogMsg, TxBalanceMsg (AddedFees))
+import           Wallet.Emulator.NodeClient     (NodeClientState, emptyNodeClientState)
+import           Wallet.Types                   (Payment (..))
 
 newtype SigningProcess = SigningProcess {
     unSigningProcess :: forall effs. (Member (Error WAPI.WalletAPIError) effs) => [PubKeyHash] -> Tx -> Eff effs Tx
@@ -175,6 +176,7 @@ handleWallet ::
     , Member ChainIndexEffect effs
     , Member (State WalletState) effs
     , Member (Error WAPI.WalletAPIError) effs
+    , Member (LogMsg TxBalanceMsg) effs
     )
     => Eff (WalletEffect ': effs) ~> Eff effs
 handleWallet = interpret $ \case
@@ -195,6 +197,7 @@ handleWallet = interpret $ \case
         addr <- gets ownAddress
         view (at addr . non mempty) <$> W.watchedAddresses
     WalletAddSignature tx -> do
+        logInfo $ AddedFees tx
         privKey <- gets _ownPrivateKey
         pure (addSignature privKey tx)
 

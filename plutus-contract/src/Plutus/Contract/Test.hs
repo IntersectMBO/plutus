@@ -43,9 +43,6 @@ module Plutus.Contract.Test(
     , anyTx
     , assertEvents
     , walletFundsChange
-    , staticFee
-    , timesFeeAdjust
-    , timesFeeAdjustV
     , waitingForSlot
     , walletWatchingAddress
     , valueAtAddress
@@ -90,7 +87,6 @@ import qualified Hedgehog
 import qualified Test.Tasty.HUnit                       as HUnit
 import           Test.Tasty.Providers                   (TestTree)
 
-import qualified Ledger                                 as Ledger
 import qualified Ledger.Ada                             as Ada
 import           Ledger.Constraints.OffChain            (UnbalancedTx)
 import           Ledger.Tx                              (Tx)
@@ -497,16 +493,20 @@ assertOutcome contract inst p nm =
 
 walletFundsChange :: Wallet -> Value -> TracePredicate
 walletFundsChange w dlt =
-    flip postMapM (L.generalize $ Folds.walletFunds w) $ \finalValue -> do
+    flip postMapM (L.generalize $ (,) <$> Folds.walletFunds w <*> Folds.walletFees w) $ \(finalValue, fees) -> do
         dist <- ask @InitialDistribution
         let initialValue = fold (dist ^. at w)
-            result = initialValue P.+ dlt == finalValue
+            result = initialValue P.+ dlt == finalValue P.+ fees
         unless result $ do
             tell @(Doc Void) $ vsep $
-                [ "Expected funds of" <+> pretty w <+> "to change by", " " <+> viaShow dlt ] ++
-                if initialValue == finalValue
+                [ "Expected funds of" <+> pretty w <+> "to change by"
+                , viaShow (initialValue P.+ dlt)
+                , viaShow (finalValue P.+ fees)
+                , " " <+> viaShow dlt
+                , "  (excluding" <+> viaShow (Ada.getLovelace (Ada.fromValue fees)) <+> "lovelace in fees)" ] ++
+                if initialValue == finalValue P.+ fees
                 then ["but they did not change"]
-                else ["but they changed by", " " <+> viaShow (finalValue P.- initialValue)]
+                else ["but they changed by", " " <+> viaShow (finalValue P.+ fees P.- initialValue)]
         pure result
 
 -- | An assertion about the blockchain
@@ -588,18 +588,3 @@ assertAccumState contract inst p nm =
                 , "Failed" <+> squotes (fromString nm)
                 ]
         pure result
-
-staticFee :: Value
-staticFee = Ledger.minFee mempty
-
--- | Deduct transaction fees from wallet funds, and make
---   the fee amount explicit in the test specification
-timesFeeAdjust :: Integer -> Integer -> Value
-timesFeeAdjust multiplier change =
-    timesFeeAdjustV multiplier (Ada.lovelaceValueOf change)
-
--- | Deduct transaction fees from wallet funds, and make
---   the fee amount explicit in the test specification
-timesFeeAdjustV :: Integer -> Value -> Value
-timesFeeAdjustV multiplier change =
-    change P.- P.scale multiplier staticFee
