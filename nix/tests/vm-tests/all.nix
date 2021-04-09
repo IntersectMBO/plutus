@@ -5,6 +5,7 @@
 , marlowe-playground
 , marlowe-dashboard
 , marlowe-app
+, marlowe-companion-app
 , web-ghc
 , vmCompileTests # when enabled the test tries to compile plutus/marlowe code on webghc
 }:
@@ -35,7 +36,7 @@ makeTest {
       services.pab = {
         enable = true;
         pab-package = plutus-pab.pab-exes.plutus-pab;
-        contracts = [ "${marlowe-app}/bin/marlowe-app" ];
+        contracts = [ "${marlowe-app}/bin/marlowe-app" "${marlowe-companion-app}/bin/marlowe-companion-app" ];
         staticContent = marlowe-dashboard.client;
         dbFile = "/var/lib/pab/pab-core.db";
         defaultWallet = 1;
