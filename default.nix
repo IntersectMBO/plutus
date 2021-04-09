@@ -37,7 +37,7 @@ rec {
     plutus-atomic-swap
     plutus-pay-to-wallet;
 
-  inherit (haskell.packages.marlowe.components.exes) marlowe-app;
+  inherit (haskell.packages.marlowe.components.exes) marlowe-app marlowe-companion-app;
 
   webCommon = pkgs.callPackage ./web-common { inherit (plutus.lib) gitignore-nix; };
   webCommonPlutus = pkgs.callPackage ./web-common-plutus { inherit (plutus.lib) gitignore-nix; };
@@ -87,7 +87,7 @@ rec {
     inherit pkgs iohkNix;
     inherit (plutus) fixStylishHaskell fixPurty;
     inherit (pkgs) terraform;
-    inherit plutus-playground marlowe-playground marlowe-dashboard web-ghc plutus-pab marlowe-app;
+    inherit plutus-playground marlowe-playground marlowe-dashboard web-ghc plutus-pab marlowe-app marlowe-companion-app;
     src = ./.;
   };
 
