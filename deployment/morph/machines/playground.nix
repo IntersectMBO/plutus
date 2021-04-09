@@ -36,6 +36,10 @@ in
         add_header 'Cache-Control' 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0';
         expires off;
       '';
+      versionConfig = ''
+        default_type application/json;
+        return 200 '{"rev": "${tfinfo.rev}"}';
+      '';
     in
     {
       enable = true;
@@ -61,7 +65,7 @@ in
           listen = [{ addr = "0.0.0.0"; port = 8080; }];
           locations = {
             "/version" = {
-              proxyPass = "http://plutus-playground";
+              extraConfig = versionConfig;
             };
             "/health" = {
               proxyPass = "http://plutus-playground";
@@ -92,7 +96,7 @@ in
           listen = [{ addr = "0.0.0.0"; port = 9080; }];
           locations = {
             "/version" = {
-              proxyPass = "http://marlowe-playground";
+              extraConfig = versionConfig;
             };
             "/health" = {
               proxyPass = "http://marlowe-playground";
