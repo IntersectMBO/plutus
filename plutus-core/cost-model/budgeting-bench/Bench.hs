@@ -129,9 +129,9 @@ incInteger n = n+1
 decInteger :: Integer -> Integer
 incInteger n = n-1
 
-{-# NOINLINE cloneInteger #-}
-cloneInteger :: Integer -> Integer
-cloneInteger = decInteger . incInteger
+{-# NOINLINE copyInteger #-}
+copyInteger :: Integer -> Integer
+copyInteger = decInteger . incInteger
 
 -- Generate a random n-word (ie, 64n-bit) integer
 {- In principle a random 5-word integer (for example) might only occupy 4 or
@@ -179,7 +179,7 @@ benchSameTwoIntegers gen builtinName = createTwoTermBuiltinBenchElementwise buil
     where
       (numbers,_) = makeBiggerIntegerArgs gen
       inputs  = fmap (\e -> (e, memoryUsage e)) numbers
-      inputs' = fmap (\e -> (e, memoryUsage e)) $ map cloneInteger $ numbers
+      inputs' = fmap (\e -> (e, memoryUsage e)) $ map copyInteger $ numbers
 
 ---------------- Bytestring builtins ----------------
 
