@@ -14,8 +14,7 @@ walletServerConfig:
 nodeServerConfig:
   mscBaseUrl: http://localhost:9082
   mscSocketPath: ./node-server.sock
-  mscSlotLength: 5
-  mscRandomTxInterval: 20
+  mscSlotLength: 1
   mscBlockReaper:
     brcInterval: 600
     brcBlocksToKeep: 100
@@ -38,8 +37,3 @@ signingProcessConfig:
 
 metadataServerConfig:
   mdBaseUrl: http://localhost:9085
-
-# Optional EKG Server Config
-# ----
-# monitoringConfig:
-#   monitoringPort: 9090

@@ -6,8 +6,8 @@ module Play.State
 
 import Prelude
 import Bridge (toFront)
-import Capability.Contract (class MonadContract)
-import Capability.Wallet (class MonadWallet)
+import Capability.Contract (class ManageContract)
+import Capability.Wallet (class ManageWallet)
 import Contract.State (defaultState, handleAction) as Contract
 import Contract.State (instantiateExtendedContract)
 import Contract.Types (Action(..), State) as Contract
@@ -89,8 +89,8 @@ handleAction ::
   forall m.
   MonadAff m =>
   MonadAsk Env m =>
-  MonadContract m =>
-  MonadWallet m =>
+  ManageContract m =>
+  ManageWallet m =>
   Action -> HalogenM MainFrame.State MainFrame.Action ChildSlots Msg m Unit
 handleAction ToggleMenu = modifying (_playState <<< _menuOpen) not
 

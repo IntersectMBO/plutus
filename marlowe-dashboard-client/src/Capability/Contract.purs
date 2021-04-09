@@ -1,5 +1,5 @@
 module Capability.Contract
-  ( class MonadContract
+  ( class ManageContract
   , activateContract
   , getContractInstance
   , invokeEndpoint
@@ -25,11 +25,11 @@ import Types (ContractInstanceId)
 import WalletData.Types (Wallet)
 
 -- The PAB PSGenerator (using Servant.PureScript) automatically generates a PureScript module with
--- functions for calling all PAB API endpoints. This `MonadContract` class wraps these up in a
+-- functions for calling all PAB API endpoints. This `ManageContract` class wraps these up in a
 -- 'capability' monad (https://thomashoneyman.com/guides/real-world-halogen/push-effects-to-the-edges/)
 -- with some nicer names, and mapping the result to RemoteData.
 class
-  Monad m <= MonadContract m where
+  Monad m <= ManageContract m where
   activateContract :: ContractActivationArgs ContractExe -> m (WebData ContractInstanceId)
   getContractInstance :: ContractInstanceId -> m (WebData ContractInstanceClientState)
   invokeEndpoint :: RawJson -> ContractInstanceId -> String -> m (WebData Unit)
@@ -37,7 +37,7 @@ class
   getAllContractInstances :: m (WebData (Array ContractInstanceClientState))
   getContractDefinitions :: m (WebData (Array (ContractSignatureResponse ContractExe)))
 
-instance monadContractAppM :: MonadContract AppM where
+instance monadContractAppM :: ManageContract AppM where
   activateContract contractActivationArgs =
     runAjax
       $ map toFront
@@ -58,7 +58,7 @@ instance monadContractAppM :: MonadContract AppM where
     runAjax
       $ getApiNewContractDefinitions
 
-instance monadContractHalogenM :: MonadContract m => MonadContract (HalogenM state action slots msg m) where
+instance monadContractHalogenM :: ManageContract m => ManageContract (HalogenM state action slots msg m) where
   activateContract = lift <<< activateContract
   getContractInstance = lift <<< getContractInstance
   invokeEndpoint payload contractInstanceId endpointDescription = lift $ invokeEndpoint payload contractInstanceId endpointDescription

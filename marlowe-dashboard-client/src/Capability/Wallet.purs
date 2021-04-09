@@ -1,5 +1,5 @@
 module Capability.Wallet
-  ( class MonadWallet
+  ( class ManageWallet
   , createWallet
   , submitWalletTransaction
   , getWalletPubKey
@@ -27,7 +27,7 @@ import Wallet.Types (Payment)
 import WalletData.Types (Wallet, WalletInfo)
 
 -- The PAB PSGenerator (using Servant.PureScript) automatically generates a PureScript module with
--- functions for calling all Wallet API endpoints. This `MonadWallet` class wraps these up in a
+-- functions for calling all Wallet API endpoints. This `ManageWallet` class wraps these up in a
 -- 'capability' monad (https://thomashoneyman.com/guides/real-world-halogen/push-effects-to-the-edges/)
 -- with some nicer names and type signatures, mapping the result to WebData.
 class
@@ -41,7 +41,7 @@ class
   getWalletTotalFunds :: Wallet -> m (WebData Assets)
   signTransaction :: Tx -> Wallet -> m (WebData Tx)
 
-instance monadWalletAppM :: MonadWallet AppM where
+instance monadWalletAppM :: ManageWallet AppM where
   createWallet =
     runAjax
       $ map toFront
@@ -71,7 +71,7 @@ instance monadWalletAppM :: MonadWallet AppM where
     runAjax
       $ postWalletByWalletIdSign tx (show $ unwrap wallet)
 
-instance monadWalletHalogenM :: MonadWallet m => MonadWallet (HalogenM state action slots msg m) where
+instance monadWalletHalogenM :: ManageWallet m => ManageWallet (HalogenM state action slots msg m) where
   createWallet = lift createWallet
   submitWalletTransaction tx wallet = lift $ submitWalletTransaction tx wallet
   getWalletPubKey = lift <<< getWalletPubKey

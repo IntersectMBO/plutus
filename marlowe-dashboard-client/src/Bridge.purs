@@ -20,7 +20,6 @@ import Plutus.V1.Ledger.Crypto (PubKey(..), PubKeyHash(..)) as Back
 import Plutus.V1.Ledger.Slot (Slot(..)) as Back
 import Plutus.V1.Ledger.Value (CurrencySymbol(..), TokenName(..), Value(..)) as Back
 import PlutusTx.AssocMap (Map, fromTuples, toTuples) as Back
-import Servant.PureScript.Ajax (AjaxError)
 import Types (ContractInstanceId(..)) as Front
 import Wallet.Emulator.Wallet (Wallet(..)) as Back
 import Wallet.Types (ContractInstanceId(..)) as Back
@@ -50,7 +49,7 @@ class Bridge a b where
   toFront :: a -> b
   toBack :: b -> a
 
-instance webDataBridge :: (Bridge a b) => Bridge (RemoteData AjaxError a) (RemoteData AjaxError b) where
+instance webDataBridge :: (Bridge a b) => Bridge (RemoteData e a) (RemoteData e b) where
   toFront = map toFront
   toBack = map toBack
 
@@ -78,22 +77,28 @@ instance bigIntegerBridge :: Bridge BigInteger BigInteger where
   toFront = identity
   toBack = identity
 
--- FIXME: Marlowe.Semantics.PubKey is currently just an alias for String
+-- TODO: Marlowe.Semantics.PubKey is currently just an alias for String
 instance pubKeyBridge :: Bridge Back.PubKey String where
   toFront (Back.PubKey { getPubKey }) = getPubKey
   toBack getPubKey = Back.PubKey { getPubKey }
 
--- FIXME: the Haskell type is called 'Value' but the PureScript type is called 'Assets'
+-- Note: there is no frontend `PubKeyHash` type, but some Marlowe contract
+-- endpoints expect this type instead of a `PubKey`
+instance pubKeyHashBridge :: Bridge Back.PubKeyHash String where
+  toFront (Back.PubKeyHash { getPubKeyHash }) = getPubKeyHash
+  toBack getPubKeyHash = Back.PubKeyHash { getPubKeyHash }
+
+-- TODO: the Haskell type is called 'Value' but the PureScript type is called 'Assets'
 instance valueBridge :: Bridge Back.Value Front.Assets where
   toFront (Back.Value { getValue }) = Front.Assets $ toFront getValue
   toBack (Front.Assets getValue) = Back.Value { getValue: toBack getValue }
 
--- FIXME: Marlowe.Semantics.TokenName is currently just an alias for String
+-- TODO: Marlowe.Semantics.TokenName is currently just an alias for String
 instance tokenNameBridge :: Bridge Back.TokenName String where
   toFront (Back.TokenName { unTokenName }) = unTokenName
   toBack unTokenName = Back.TokenName { unTokenName }
 
--- FIXME: Marlowe.Semantics.CurrencySymbol is currently just an alias for String
+-- TODO: Marlowe.Semantics.CurrencySymbol is currently just an alias for String
 instance currencySymbolBridge :: Bridge Back.CurrencySymbol String where
   toFront (Back.CurrencySymbol { unCurrencySymbol }) = unCurrencySymbol
   toBack unCurrencySymbol = Back.CurrencySymbol { unCurrencySymbol }

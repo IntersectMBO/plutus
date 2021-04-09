@@ -1,8 +1,8 @@
 module MainFrame.State (mkMainFrame) where
 
 import Prelude
-import Capability.Contract (class MonadContract, getContractInstance)
-import Capability.Wallet (class MonadWallet, createWallet, getWalletPubKey, getWalletTotalFunds)
+import Capability.Contract (class ManageContract, getContractInstance)
+import Capability.Wallet (class ManageWallet, createWallet, getWalletPubKey, getWalletTotalFunds)
 import Capability.Websocket (class MonadWebsocket, subscribeToWallet, unsubscribeFromWallet)
 import ContractHome.State (loadExistingContracts)
 import Control.Monad.Except (runExcept)
@@ -53,8 +53,8 @@ mkMainFrame ::
   forall m.
   MonadAff m =>
   MonadAsk Env m =>
-  MonadContract m =>
-  MonadWallet m =>
+  ManageContract m =>
+  ManageWallet m =>
   MonadWebsocket m =>
   Component HTML Query Action Msg m
 mkMainFrame =
@@ -118,8 +118,8 @@ handleAction ::
   forall m.
   MonadAff m =>
   MonadAsk Env m =>
-  MonadContract m =>
-  MonadWallet m =>
+  ManageContract m =>
+  ManageWallet m =>
   MonadWebsocket m =>
   Action -> HalogenM State Action ChildSlots Msg m Unit
 handleAction Init = do
