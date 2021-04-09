@@ -28,7 +28,7 @@ locals {
 
   # Anyone who wants ssh access to a machine needs ssh access to the bastion hosts (i.e. both root and monitoring users should be in here)
   bastion_ssh_keys_ks = {
-    alpha      = ["pablo"]
+    alpha      = ["pablo", "tobias"]
     pablo      = ["pablo"]
     prod       = ["live-infra-staging", "tobias"]
     playground = ["live-infra-staging", "tobias"]
@@ -52,7 +52,7 @@ locals {
 
   # root users are able to deploy to the machines using morph
   root_ssh_keys_ks = {
-    alpha      = ["pablo"]
+    alpha      = ["pablo", "tobias"]
     pablo      = ["pablo"]
     prod       = ["live-infra-staging"]
     playground = ["live-infra-staging"]
