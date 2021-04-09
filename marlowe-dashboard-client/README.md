@@ -17,7 +17,7 @@ $ plutus-pab-migrate
 Next, setup the Marlowe contracts:
 
 ```bash
-$ run run setup-contracts
+$ npm run setup-contracts
 ```
 
 This installs the necessary Marlowe contracts on the PAB, and creates a `contracts/contracts.json` file with links to their nix store paths. This is needed by the frontend application to start instances of these contracts.
