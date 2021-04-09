@@ -82,12 +82,6 @@ instance pubKeyBridge :: Bridge Back.PubKey String where
   toFront (Back.PubKey { getPubKey }) = getPubKey
   toBack getPubKey = Back.PubKey { getPubKey }
 
--- Note: there is no frontend `PubKeyHash` type, but some Marlowe contract
--- endpoints expect this type instead of a `PubKey`
-instance pubKeyHashBridge :: Bridge Back.PubKeyHash String where
-  toFront (Back.PubKeyHash { getPubKeyHash }) = getPubKeyHash
-  toBack getPubKeyHash = Back.PubKeyHash { getPubKeyHash }
-
 -- TODO: the Haskell type is called 'Value' but the PureScript type is called 'Assets'
 instance valueBridge :: Bridge Back.Value Front.Assets where
   toFront (Back.Value { getValue }) = Front.Assets $ toFront getValue

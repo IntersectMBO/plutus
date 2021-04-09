@@ -3,7 +3,7 @@ module MainFrame.State (mkMainFrame) where
 import Prelude
 import Bridge (toFront)
 import Capability.Contract (class ManageContract, getContractInstance)
-import Capability.Marlowe (class ManageMarlowe, marloweCreateWalletCompanionContract)
+import Capability.Marlowe (class ManageMarloweContract, marloweCreateWalletCompanionContract)
 import Capability.Wallet (class ManageWallet, createWallet, getWalletInfo, getWalletTotalFunds)
 import Capability.Websocket (class MonadWebsocket, subscribeToWallet, unsubscribeFromWallet)
 import ContractHome.State (loadExistingContracts)
@@ -57,7 +57,7 @@ mkMainFrame ::
   MonadAsk Env m =>
   ManageContract m =>
   ManageWallet m =>
-  ManageMarlowe m =>
+  ManageMarloweContract m =>
   MonadWebsocket m =>
   Component HTML Query Action Msg m
 mkMainFrame =
@@ -123,7 +123,7 @@ handleAction ::
   MonadAsk Env m =>
   ManageContract m =>
   ManageWallet m =>
-  ManageMarlowe m =>
+  ManageMarloweContract m =>
   MonadWebsocket m =>
   Action -> HalogenM State Action ChildSlots Msg m Unit
 handleAction Init = do
@@ -223,7 +223,7 @@ handleAction (PickupAction Pickup.GenerateNewWallet) = do
         -- TODO: show errors to the user
         _ -> pure unit
     -- TODO: show errors to the user
-    _ -> pure unit -}
+    _ -> pure unit
 
 handleAction (PickupAction (Pickup.LookupWallet string)) = do
   wallets <- use _wallets

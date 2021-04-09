@@ -31,7 +31,7 @@ import WalletData.Types (Wallet, WalletInfo)
 -- 'capability' monad (https://thomashoneyman.com/guides/real-world-halogen/push-effects-to-the-edges/)
 -- with some nicer names and type signatures, mapping the result to WebData.
 class
-  Monad m <= MonadWallet m where
+  Monad m <= ManageWallet m where
   createWallet :: m (WebData WalletInfo)
   submitWalletTransaction :: Tx -> Wallet -> m (WebData Unit)
   getWalletInfo :: Wallet -> m (WebData WalletInfo)
