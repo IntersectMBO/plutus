@@ -3,7 +3,9 @@ module WalletData.Types
   , WalletNickname
   , NewWalletDetails
   , WalletDetails
+  , WalletInfo(..)
   , Wallet(..)
+  , PubKeyHash(..)
   ) where
 
 import Prelude
@@ -41,6 +43,25 @@ type WalletDetails
     , assets :: Assets
     }
 
+newtype WalletInfo
+  = WalletInfo
+  { wallet :: Wallet
+  , pubKey :: PubKey
+  , pubKeyHash :: PubKeyHash
+  }
+
+derive instance newtypeWalletInfo :: Newtype WalletInfo _
+
+derive instance eqWalletInfo :: Eq WalletInfo
+
+derive instance genericWalletInfo :: Generic WalletInfo _
+
+instance encodeWalletInfo :: Encode WalletInfo where
+  encode value = genericEncode defaultOptions value
+
+instance decodeWalletInfo :: Decode WalletInfo where
+  decode value = genericDecode defaultOptions value
+
 newtype Wallet
   = Wallet BigInteger
 
@@ -54,4 +75,19 @@ instance encodeWallet :: Encode Wallet where
   encode value = genericEncode defaultOptions value
 
 instance decodeWallet :: Decode Wallet where
+  decode value = genericDecode defaultOptions value
+
+newtype PubKeyHash
+  = PubKeyHash String
+
+derive instance newtypePubKeyHash :: Newtype PubKeyHash _
+
+derive instance eqPubKeyHash :: Eq PubKeyHash
+
+derive instance genericPubKeyHash :: Generic PubKeyHash _
+
+instance encodePubKeyHash :: Encode PubKeyHash where
+  encode value = genericEncode defaultOptions value
+
+instance decodePubKeyHash :: Decode PubKeyHash where
   decode value = genericDecode defaultOptions value
