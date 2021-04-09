@@ -40,7 +40,8 @@ import           GHC.Generics                            (Generic)
 import           Plutus.Contract.Resumable               (Response)
 import           Plutus.Contract.State                   (ContractRequest (..))
 import           Plutus.PAB.Effects.Contract             (ContractEffect (..), PABContract (..))
-import           Plutus.PAB.Events.Contract              (ContractPABRequest)
+import           Plutus.PAB.Events.Contract              (ContractHandlerRequest (..), ContractHandlersResponse (..),
+                                                          ContractPABRequest)
 import qualified Plutus.PAB.Events.Contract              as Events.Contract
 import           Plutus.PAB.Events.ContractInstanceState (PartiallyDecodedResponse)
 import qualified Plutus.PAB.Events.ContractInstanceState as ContractInstanceState
@@ -81,13 +82,13 @@ handleContractEffectContractExe =
     \case
         InitialState (ContractExe contractPath) -> do
             logDebug $ InitContractMsg contractPath
-            liftProcess $ readProcessWithExitCode contractPath ["init"] ""
+            fmap (fmap unContractHandlerRequest) <$> liftProcess $ readProcessWithExitCode contractPath ["init"] ""
         UpdateContract (ContractExe contractPath) (oldState :: PartiallyDecodedResponse ContractPABRequest) (input :: Response Events.Contract.ContractResponse) -> do
             let req :: ContractRequest Value
-                req = ContractRequest{oldState = ContractInstanceState.newState oldState, event = toJSON <$> input}
+                req = ContractRequest{oldState = ContractInstanceState.newState oldState, event = toJSON . ContractHandlersResponse <$> input}
                 pl = BSL8.unpack (JSON.encodePretty req)
             logDebug $ UpdateContractMsg contractPath req
-            liftProcess $ readProcessWithExitCode contractPath ["update"] pl
+            fmap (fmap unContractHandlerRequest) <$> liftProcess $ readProcessWithExitCode contractPath ["update"] pl
         ExportSchema (ContractExe contractPath) -> do
             logDebug $ ExportSignatureMsg contractPath
             liftProcess $
