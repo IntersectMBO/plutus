@@ -20,8 +20,8 @@ import           Cardano.ChainIndex.Types         (ChainIndexUrl (..))
 import qualified Cardano.Protocol.Socket.Client   as Client
 import           Cardano.Wallet.API               (API)
 import           Cardano.Wallet.Mock
-import           Cardano.Wallet.Types             (Port (..), WalletConfig (..), WalletMsg (..), WalletUrl (..),
-                                                   Wallets, createWallet, multiWallet)
+import           Cardano.Wallet.Types             (Port (..), WalletConfig (..), WalletInfo (..), WalletMsg (..),
+                                                   WalletUrl (..), Wallets, createWallet, multiWallet)
 import           Control.Concurrent.Availability  (Availability, available)
 import           Control.Concurrent.MVar          (MVar, newMVar)
 import           Control.Monad.Freer              (reinterpret2, runM)
@@ -33,6 +33,7 @@ import           Data.Coerce                      (coerce)
 import           Data.Function                    ((&))
 import qualified Data.Map.Strict                  as Map
 import           Data.Proxy                       (Proxy (Proxy))
+import           Ledger.Crypto                    (pubKeyHash)
 import           Ledger.Tx                        (TxOut (txOutValue), TxOutTx (txOutTxOut))
 import           Network.HTTP.Client              (defaultManagerSettings, newManager)
 import qualified Network.Wai.Handler.Warp         as Warp
@@ -54,7 +55,7 @@ app trace clientHandler chainIndexEnv mVarState =
         (processWalletEffects trace clientHandler chainIndexEnv mVarState) $
             createWallet :<|>
             (\w tx -> multiWallet (Wallet w) (submitTxn tx) >>= const (pure NoContent)) :<|>
-            (\w -> multiWallet (Wallet w) ownPubKey) :<|>
+            (\w -> (\pk -> WalletInfo{wiWallet = Wallet w, wiPubKey = pk, wiPubKeyHash = pubKeyHash pk}) <$> multiWallet (Wallet w) ownPubKey) :<|>
             (\w -> multiWallet (Wallet w) . uncurry updatePaymentWithChange) :<|>
             (\w -> multiWallet (Wallet w) walletSlot) :<|>
             (\w -> multiWallet (Wallet w) ownOutputs) :<|>

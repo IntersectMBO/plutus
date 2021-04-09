@@ -88,6 +88,7 @@ import qualified Data.Text.IO                                   as Text
 import           Data.Text.Prettyprint.Doc                      (Pretty (pretty), defaultLayoutOptions, layoutPretty)
 import qualified Data.Text.Prettyprint.Doc.Render.Text          as Render
 import           Data.Time.Units                                (Millisecond)
+import           Ledger.Crypto                                  (PubKey, toPublicKey)
 import qualified Ledger.Index                                   as UtxoIndex
 import           Ledger.Tx                                      (Address, Tx, TxOut (..))
 import           Ledger.Value                                   (Value)
@@ -659,7 +660,7 @@ handleAgentThread ::
 handleAgentThread = Core.handleAgentThread
 
 -- | Create a new wallet with a random key and add it to the list of simulated wallets
-addWallet :: forall t. Simulation t Wallet
+addWallet :: forall t. Simulation t (Wallet, PubKey)
 addWallet = do
     SimulatorState{_agentStates} <- Core.askUserEnv @t @(SimulatorState t)
     (_, privateKey) <- MockWallet.newKeyPair
@@ -669,4 +670,4 @@ addWallet = do
             newWallet = Wallet newWalletId
             newWallets = currentWallets & at newWallet .~ Just (AgentState $ Wallet.emptyWalletStateFromPrivateKey privateKey)
         STM.writeTVar _agentStates newWallets
-        pure newWallet
+        pure (newWallet, toPublicKey privateKey)

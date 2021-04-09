@@ -26,6 +26,7 @@ module Plutus.PAB.Webserver.Handler
     ) where
 
 import qualified Cardano.Wallet.Client                   as Wallet.Client
+import           Cardano.Wallet.Types                    (WalletInfo (..))
 import           Control.Lens                            (preview)
 import           Control.Monad                           ((>=>))
 import           Control.Monad.Freer                     (sendM)
@@ -38,7 +39,7 @@ import           Data.Maybe                              (mapMaybe)
 import           Data.Proxy                              (Proxy (..))
 import           Data.Text                               (Text)
 import qualified Data.UUID                               as UUID
-import           Ledger                                  (PubKey, Slot, Value)
+import           Ledger                                  (Slot, Value, pubKeyHash)
 import           Ledger.AddressMap                       (UtxoMap)
 import           Ledger.Tx                               (Tx, TxOut (txOutValue), TxOutTx (txOutTxOut))
 import           Plutus.PAB.Core                         (PABAction)
@@ -173,9 +174,9 @@ availableContracts = do
 walletProxyClientEnv ::
     forall t env.
     ClientEnv ->
-    (PABAction t env Wallet -- Create new wallet
+    (PABAction t env WalletInfo -- Create new wallet
     :<|> (Integer -> Tx -> PABAction t env NoContent) -- Submit txn
-    :<|> (Integer -> PABAction t env PubKey)
+    :<|> (Integer -> PABAction t env WalletInfo)
     :<|> (Integer -> (Value, Payment) -> PABAction t env Payment) -- Update payment with change
     :<|> (Integer -> PABAction t env Slot) -- Wallet slot
     :<|> (Integer -> PABAction t env UtxoMap)
@@ -196,10 +197,10 @@ runWalletClientM clientEnv action = do
 -- | Proxy for the wallet API
 walletProxy ::
     forall t env.
-    PABAction t env Wallet -> -- default action for creating a new wallet
-    (PABAction t env Wallet -- Create new wallet
+    PABAction t env WalletInfo -> -- default action for creating a new wallet
+    (PABAction t env WalletInfo -- Create new wallet
     :<|> (Integer -> Tx -> PABAction t env NoContent) -- Submit txn
-    :<|> (Integer -> PABAction t env PubKey)
+    :<|> (Integer -> PABAction t env WalletInfo)
     :<|> (Integer -> (Value, Payment) -> PABAction t env Payment) -- Update payment with change
     :<|> (Integer -> PABAction t env Slot) -- Wallet slot
     :<|> (Integer -> PABAction t env UtxoMap)
@@ -208,7 +209,7 @@ walletProxy ::
 walletProxy createNewWallet =
     ( createNewWallet
     :<|> (\w tx -> fmap (const NoContent) (Core.handleAgentThread (Wallet w) $ Wallet.Effects.submitTxn tx))
-    :<|> (\w -> Core.handleAgentThread (Wallet w) Wallet.Effects.ownPubKey)
+    :<|> (\w -> (\pk -> WalletInfo{wiWallet=Wallet w, wiPubKey = pk, wiPubKeyHash = pubKeyHash pk }) <$> Core.handleAgentThread (Wallet w) Wallet.Effects.ownPubKey)
     :<|> (\w (value, payment) -> Core.handleAgentThread (Wallet w) $ Wallet.Effects.updatePaymentWithChange value payment)
     :<|> (\w -> Core.handleAgentThread (Wallet w) Wallet.Effects.walletSlot)
     :<|> (\w -> Core.handleAgentThread (Wallet w) Wallet.Effects.ownOutputs)

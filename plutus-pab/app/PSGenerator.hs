@@ -15,6 +15,7 @@ module PSGenerator
 
 import           Cardano.Metadata.Types                     (AnnotatedSignature, HashFunction, Property, PropertyKey,
                                                              Subject, SubjectProperties)
+import           Cardano.Wallet.Types                       (WalletInfo)
 import           Control.Applicative                        ((<|>))
 import           Control.Lens                               (set, view, (&))
 import           Control.Monad                              (void)
@@ -149,6 +150,7 @@ myTypes =
     , (genericShow <*> mkSumType) (Proxy @InstanceStatusToClient)
     , (genericShow <*> mkSumType) (Proxy @CombinedWSStreamToClient)
     , (genericShow <*> mkSumType) (Proxy @CombinedWSStreamToServer)
+    , (genericShow <*> mkSumType) (Proxy @WalletInfo)
     ]
 
 mySettings :: Settings
