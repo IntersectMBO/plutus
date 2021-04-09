@@ -15,7 +15,6 @@ import ContractHome.Lenses (_contracts)
 import ContractHome.State (defaultState, handleAction) as ContractHome
 import ContractHome.Types (Action(..), State) as ContractHome
 import Control.Monad.Reader (class MonadAsk)
-import Data.Array as Array
 import Data.Foldable (for_)
 import Data.FunctorWithIndex (mapWithIndex)
 import Data.Lens (assign, modifying, set, (^.))
@@ -166,9 +165,9 @@ handleAction (TemplateAction Template.StartContract) = do
       -- TODO: pass these walletIDs along with the contract to the PAB to start the contract
       mContractState = instantiateExtendedContract contractId currentSlot extendedContract templateContent metadata participants mActiveUserParty
     for_ mContractState \contractState -> do
-      modifying (_playState <<< _contractsState <<< _contracts) (Array.cons contractState)
+      modifying (_playState <<< _contractsState <<< _contracts) (Map.insert contractId contractState)
       handleAction $ SetScreen $ ContractsScreen
-      toContractHome $ ContractHome.handleAction $ ContractHome.OpenContract 0
+      toContractHome $ ContractHome.handleAction $ ContractHome.OpenContract contractId
 
 -- other template actions
 handleAction (TemplateAction templateAction) = Template.handleAction templateAction

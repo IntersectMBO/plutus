@@ -1,30 +1,35 @@
 module ContractHome.State
   ( defaultState
   , handleAction
+  , partitionContracts
   -- FIXME: Remove this, only for developing
   , loadExistingContracts
   ) where
 
 import Prelude
-import Contract.State (applyTimeout, applyTx)
+import Contract.State (applyTimeout, applyTx, isContractClosed)
 import Contract.State (mkInitialState) as Contract
+import Contract.Types (ContractId)
 import Contract.Types (State) as Contract
 import ContractHome.Lenses (_contracts, _selectedContractIndex, _status)
-import ContractHome.Types (ContractStatus(..), State, Action(..))
+import ContractHome.Types (Action(..), ContractStatus(..), State, PartitionedContracts)
 import Data.Array (catMaybes)
+import Data.Array as Array
 import Data.BigInteger (fromInt)
 import Data.Foldable (foldl)
 import Data.Lens (assign, filtered, over, traversed)
 import Data.List as List
+import Data.Map (Map)
 import Data.Map as Map
 import Data.Maybe (Maybe(..))
+import Data.Tuple (snd)
 import Data.Tuple.Nested ((/\))
 import Effect (Effect)
-import Halogen (HalogenM, modify_)
-import Marlowe.Extended (TemplateContent(..), fillTemplate, resolveRelativeTimes, toCore)
 import Examples.PureScript.Escrow as Escrow
 import Examples.PureScript.EscrowWithCollateral as EscrowWithCollateral
 import Examples.PureScript.ZeroCouponBond as ZeroCouponBond
+import Halogen (HalogenM, modify_)
+import Marlowe.Extended (TemplateContent(..), fillTemplate, resolveRelativeTimes, toCore)
 import Marlowe.Semantics (Input(..), Party(..), Slot(..), SlotInterval(..), Token(..), TransactionInput(..))
 import Marlowe.Slot (currentSlot)
 
@@ -125,10 +130,20 @@ filledContract3 (Slot currentSlot) = do
   contract <- toCore $ fillTemplate templateContent $ resolveRelativeTimes (Slot currentSlot) ZeroCouponBond.extendedContract
   pure $ Contract.mkInitialState "dummy contract 3" zero ZeroCouponBond.metaData participants (Just $ Role "Guarantor") contract
 
-loadExistingContracts :: Effect (Array Contract.State)
+loadExistingContracts :: Effect (Map ContractId Contract.State)
 loadExistingContracts = do
   slot <- currentSlot
-  pure $ catMaybes [ filledContract1 slot, filledContract2 slot, filledContract3 slot ]
+  pure
+    $ catMaybes [ filledContract1 slot, filledContract2 slot, filledContract3 slot ]
+    # map (\contract -> contract.contractId /\ contract)
+    # Map.fromFoldable
+
+partitionContracts :: Map ContractId Contract.State -> PartitionedContracts
+partitionContracts contracts =
+  Map.toUnfoldableUnordered contracts
+    # map snd
+    # Array.partition isContractClosed
+    # \{ no, yes } -> { completed: yes, running: no }
 
 defaultState :: State
 defaultState =

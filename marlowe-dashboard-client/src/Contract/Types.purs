@@ -20,11 +20,15 @@ data PreviousStepState
   = TransactionStep TransactionInput
   | TimeoutStep Slot
 
+-- FIXME: Is contract id just a string? Should we wrap-it in a newtype?
+type ContractId
+  = String
+
 type State
   = { tab :: Tab
     , executionState :: ExecutionState
     , previousSteps :: Array PreviousStep
-    , contractId :: String -- FIXME: what is a contract instance identified by
+    , contractId :: ContractId
     -- Which step is selected. This index is 0 based and should be between [0, previousSteps.length]
     -- (both sides inclusive). This is because the array represent the past steps and the
     -- executionState has the current state and visually we can select any one of them.
