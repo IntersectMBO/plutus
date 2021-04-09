@@ -20,7 +20,6 @@ library
         Control.Monad.Trace
         Control.Monad.Web
         Gist
-        Git
         Language.Haskell.Interpreter
         PSGenerator.Common
         Playground.API
@@ -33,8 +32,6 @@ library
         Servant.Extra
         Servant.Prometheus
         System.IO.Extras
-    other-modules:
-        Git.TH
     hs-source-dirs: src
     default-language: Haskell2010
     ghc-options: -Wall -Wcompat

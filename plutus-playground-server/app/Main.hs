@@ -10,10 +10,9 @@ module Main
 import           Control.Monad.IO.Class (MonadIO, liftIO)
 import           Control.Monad.Logger   (logInfoN, runStderrLoggingT)
 import qualified Data.Text              as Text
-import           Git                    (gitRev)
 import           Options.Applicative    (CommandFields, Mod, Parser, argument, auto, command, customExecParser,
-                                         disambiguate, fullDesc, help, helper, idm, info, infoOption, long, metavar,
-                                         option, optional, prefs, progDesc, short, showDefault, showHelpOnEmpty,
+                                         disambiguate, fullDesc, help, helper, idm, info, long, metavar, option,
+                                         optional, prefs, progDesc, short, showDefault, showHelpOnEmpty,
                                          showHelpOnError, str, subparser, value)
 import qualified PSGenerator
 import qualified Webserver
@@ -22,12 +21,6 @@ data Command
     = Webserver { _port      :: !Int }
     | PSGenerator { _outputDir :: !FilePath }
     deriving (Show, Eq)
-
-versionOption :: Parser (a -> a)
-versionOption =
-    infoOption
-        (Text.unpack gitRev)
-        (short 'v' <> long "version" <> help "Show the version")
 
 commandLineParser :: Parser (Maybe FilePath, Command)
 commandLineParser = (,) <$> configFileParser <*> commandParser
@@ -73,7 +66,7 @@ main = do
     options <-
         customExecParser
             (prefs $ disambiguate <> showHelpOnEmpty <> showHelpOnError)
-            (info (helper <*> versionOption <*> commandLineParser) idm)
+            (info (helper <*> commandLineParser) idm)
     runStderrLoggingT $ do
         logInfoN $ "Running: " <> Text.pack (show options)
         uncurry runCommand options
