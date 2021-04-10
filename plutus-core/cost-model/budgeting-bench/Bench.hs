@@ -127,7 +127,7 @@ incInteger n = n+1
 
 {-# NOINLINE decInteger #-}
 decInteger :: Integer -> Integer
-incInteger n = n-1
+decInteger n = n-1
 
 {-# NOINLINE copyInteger #-}
 copyInteger :: Integer -> Integer
