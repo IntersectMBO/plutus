@@ -2,20 +2,21 @@
 -- See the @plutus/plutus-core/docs/Constant application.md@
 -- article for how this emerged.
 
-{-# LANGUAGE ConstraintKinds       #-}
-{-# LANGUAGE DataKinds             #-}
-{-# LANGUAGE DefaultSignatures     #-}
-{-# LANGUAGE FlexibleInstances     #-}
-{-# LANGUAGE GADTs                 #-}
-{-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE OverloadedStrings     #-}
-{-# LANGUAGE PolyKinds             #-}
-{-# LANGUAGE RankNTypes            #-}
-{-# LANGUAGE TemplateHaskell       #-}
-{-# LANGUAGE TypeApplications      #-}
-{-# LANGUAGE TypeFamilies          #-}
-{-# LANGUAGE TypeOperators         #-}
-{-# LANGUAGE UndecidableInstances  #-}
+{-# LANGUAGE ConstraintKinds          #-}
+{-# LANGUAGE DataKinds                #-}
+{-# LANGUAGE DefaultSignatures        #-}
+{-# LANGUAGE FlexibleInstances        #-}
+{-# LANGUAGE GADTs                    #-}
+{-# LANGUAGE MultiParamTypeClasses    #-}
+{-# LANGUAGE OverloadedStrings        #-}
+{-# LANGUAGE PolyKinds                #-}
+{-# LANGUAGE RankNTypes               #-}
+{-# LANGUAGE StandaloneKindSignatures #-}
+{-# LANGUAGE TemplateHaskell          #-}
+{-# LANGUAGE TypeApplications         #-}
+{-# LANGUAGE TypeFamilies             #-}
+{-# LANGUAGE TypeOperators            #-}
+{-# LANGUAGE UndecidableInstances     #-}
 
 module PlutusCore.Constant.Typed
     ( KnownKind (..)
@@ -36,6 +37,8 @@ module PlutusCore.Constant.Typed
     , KnownType (..)
     , makeKnownNoEmit
     , KnownTypeMonad (..)
+    , SomeValueN (..)
+    , At (..)
     ) where
 
 import           PlutusPrelude
@@ -54,8 +57,10 @@ import           Control.Lens.Prism
 import           Control.Lens.TH
 import           Control.Monad.Except
 import qualified Data.ByteString                         as BS
+import           Data.Functor.Const
 import qualified Data.Kind                               as GHC (Type)
 import           Data.Proxy
+import           Data.SOP.Constraint
 import           Data.String
 import qualified Data.Text                               as Text
 import           GHC.TypeLits
@@ -288,10 +293,6 @@ type HasConstant term = (AsConstant term, FromConstant term)
 -- and connects @term@ and its @uni@.
 type HasConstantIn uni term = (UniOf term ~ uni, HasConstant term)
 
--- unliftConstant :: term -> m a
--- withUnliftedConstant :: term -> (a -> m r) -> m r
--- withUnliftedConstant :: term -> (forall a. f a -> m r) -> m r
-
 -- | Extract the 'Constant' from a 'Term'
 -- (or throw an error if the term is not a 'Constant' or the constant is not of the expected type).
 unliftConstant
@@ -337,8 +338,10 @@ class KnownTypeAst uni (a :: k) where
     toTypeAst :: proxy a -> Type TyName uni ()
 
 -- | A constraint for \"@a@ is a 'KnownType' by means of being included in @uni@\".
-type KnownBuiltinType term a =
-    (HasConstant term, GShow (UniOf term), GEq (UniOf term), UniOf term `Contains` a)
+type KnownBuiltinTypeIn uni term a = (HasConstantIn uni term, GShow uni, GEq uni, uni `Contains` a)
+
+-- | A constraint for \"@a@ is a 'KnownType' by means of being included in @UniOf term@\".
+type KnownBuiltinType term a = KnownBuiltinTypeIn (UniOf term) term a
 
 -- See Note [KnownType's defaults].
 -- | A default implementation of 'toTypeAst' for built-in types.
@@ -449,6 +452,216 @@ instance KnownType term a => KnownType term (Emitter a) where
     makeKnown = unEmitter >=> makeKnown
     -- TODO: we really should tear 'KnownType' apart into two separate type classes.
     readKnown = throwingWithCause _UnliftingError "Can't unlift an 'Emitter'" . Just
+
+type SomeValueN :: forall k. (GHC.Type -> GHC.Type) -> k -> [GHC.Type] -> GHC.Type
+data SomeValueN uni (a :: k) reps where
+    SomeValueRes :: uni a -> a -> SomeValueN uni a '[]
+    SomeValueArg :: uni a -> SomeValueN uni (f a) reps -> SomeValueN uni f (rep ': reps)
+
+-- type SomeValueN :: forall k. (GHC.Type -> GHC.Type) -> k -> GHC.Type
+-- data SomeValueN uni (a :: k) where
+--     SomeValueRes :: uni a -> a -> SomeValueN uni a
+--     SomeValueArg :: uni a -> SomeValueN uni (f a) -> SomeValueN uni f
+
+type At :: GHC.Type -> [GHC.Type] -> GHC.Type
+newtype a `At` reps = At
+    { unAt :: a
+    }
+
+-- foldlVec :: forall p a m.
+--             (forall n. a -> p n -> p (S n)) ->
+--             p Z ->
+--             Vec a m -> p m
+
+cparaP_SList
+    :: forall k c (xs :: [k]) proxy r. All c xs
+    => proxy c
+    -> r '[]
+    -> (forall y ys. (c y, All c ys) => Proxy (All c (y ': ys)) -> r ys -> r (y ': ys))
+    -> r xs
+cparaP_SList p z f = cpara_SList p z $ f Proxy
+
+cfoldr_SList
+    :: forall c xs r proxy. All c xs
+    => proxy (All c xs)
+    -> (forall y ys. (c y, All c ys) => Proxy (All c (y ': ys)) -> r -> r)
+    -> r
+    -> r
+cfoldr_SList _ f z = getConst $ cparaP_SList @_ @c @xs Proxy (coerce z) (coerce . f)
+
+cfoldl_SList
+    :: forall c xs r proxy. All c xs
+    => proxy (All c xs)
+    -> (forall y ys. (c y, All c ys) => Proxy (All c (y ': ys)) -> r -> r)
+    -> r
+    -> r
+cfoldl_SList _ f z = undefined
+
+-- instance (uni `Contains` TypeApp f, uni ~ uni') => KnownTypeAst uni (SomeValueN uni' f) where
+--     toTypeAst _ = mkTyBuiltin @(TypeApp f) ()
+
+-- instance (KnownTypeAst uni a, All (KnownTypeAst uni) reps) => KnownTypeAst uni (a `At` reps) where
+--     toTypeAst _ =
+--         mkIterTyApp () (toTypeAst $ Proxy @a) $
+--             cfoldr_SList
+--                 (Proxy @(All (KnownTypeAst uni) reps))
+--                 (\(_ :: Proxy (All (KnownTypeAst uni) (rep ': _reps'))) rs ->
+--                     toTypeAst (Proxy @rep) : rs)
+--                 []
+
+instance (uni `Contains` TypeApp f, uni ~ uni', All (KnownTypeAst uni) reps) =>
+            KnownTypeAst uni (SomeValueN uni' f reps) where
+    toTypeAst _ =
+        mkIterTyApp () (mkTyBuiltin @(TypeApp f) ()) $
+            cfoldr_SList
+                (Proxy @(All (KnownTypeAst uni) reps))
+                (\(_ :: Proxy (All (KnownTypeAst uni) (rep ': _reps'))) rs ->
+                    toTypeAst (Proxy @rep) : rs)
+                []
+
+-- newtype ReadSomeValueN r m f = ReadSomeValueN
+--     { unReadSomeValueN
+--         :: forall k (a :: k). r a -> uni (TypeApp a) -> m (r f)
+--     }
+
+-- '[]
+-- '[1]
+-- '[1,2]
+-- ...
+
+
+
+-- cparaP_SList
+--     :: forall k c (xs :: [k]) proxy r. All c xs
+--     => proxy c
+--     -> r '[]
+--     -> (forall y ys. (c y, All c ys) => Proxy (All c (y ': ys)) -> r ys -> r (y ': ys))
+--     -> r xs
+-- cparaP_SList p z f = cpara_SList p z $ f Proxy
+
+-- reps ~ repsL ++ repsR
+
+-- celimL_SList
+--     :: forall k c (xs :: [k]) proxy r. All c xs
+--     => proxy c
+--     -> r '[]
+--     -> (forall y ys. (c y, All c ys) => Proxy (All c (y ': ys)) -> r ys -> r (y ': ys))
+--     -> r xs
+-- celimL_SList p z f = undefined
+
+-- foldlViaFoldr
+--   : ∀ {a b} {A : Set a} (B : ℕ → Set b) {m} →
+--     (∀ {n} → B n → A → B (suc n)) →
+--     B zero →
+--     Vec A m → B m
+-- foldlViaFoldr {A = A} b {m} f z xs =
+--   foldr
+--     (λ n -> ∀ B -> (∀ {n} -> B n -> A -> B (suc n)) -> B 0 -> B n)
+--     (λ x r B f' z' -> r (B ∘′ suc) f' $ f' z' x)
+--     (λ _ _ -> id)
+--     xs
+--     b
+--     f
+--     z
+
+cifoldM_SList
+    :: forall k c (xs :: [k]) proxy r m. All c xs
+    => proxy c
+    -> r '[]
+    -> (forall y ys. (c y, All c ys) => Proxy (All c (y ': ys)) -> r ys -> m (r (y ': ys)))
+    -> m (r xs)
+cifoldM_SList p z f = undefined
+
+instance
+        ( KnownTypeAst uni (SomeValueN uni f reps)
+        , KnownBuiltinTypeIn uni term (TypeApp f)
+        , All (KnownTypeAst uni) reps
+        , HasUniApply uni
+        ) => KnownType term (SomeValueN uni f reps) where
+    makeKnown = go where
+        go :: Monad m => SomeValueN uni f' reps' -> m term
+        go (SomeValueRes uniA x) = pure . fromConstant . Some $ ValueOf uniA x
+        go (SomeValueArg _ svn)  = go svn
+
+    readKnown term = case asConstant term of
+        Nothing -> throwingWithCause _UnliftingError "Not a constant" $ Just term
+        Just (Some (ValueOf uni xs)) -> do
+            let uniF = knownUni @_ @(TypeApp f)
+                err = fromString $ concat
+                    [ "Type mismatch: "
+                    , "expected an application of: " ++ gshow uniF
+                    , "; but got the following type: " ++ gshow uni
+                    ]
+                wrongType :: (MonadError (ErrorWithCause err term) m, AsUnliftingError err) => m a
+                wrongType = throwingWithCause _UnliftingError err $ Just term
+            ReadSomeValueN res uniHead <-
+                matchUniRunTypeApp
+                    uni
+                    wrongType
+                    (\uniTypeApp ->
+                        cifoldM_SList @_ @(KnownTypeAst uni) @reps
+                            Proxy
+                            (ReadSomeValueN (SomeValueRes uni xs) uniTypeApp)
+                            (\_ (ReadSomeValueN acc uniApp) ->
+                                matchUniApply
+                                    uniApp
+                                    wrongType
+                                    (\uniApp' uniA ->
+                                        pure $ ReadSomeValueN (SomeValueArg uniA acc) uniApp')))
+            case uniHead `geq` uniF of
+                Nothing   -> wrongType
+                Just Refl -> pure res
+
+
+--                             (ReadSomeValueN $ \res uniHead ->
+--                     in undefined) -- unReadSomeValueN go $ SomeValueRes uni xs)
+
+
+
+                -- (let go = cfoldr_SList
+                --             (Proxy @(All (KnownTypeAst uni) reps))
+                --             _
+                --             (_ (SomeValueRes uni xs))
+                --     in unReadSomeValueN go)
+                --     --         (\_ (ReadSomeValueN r) -> ReadSomeValueN $ \res uniApp ->
+                --     --             matchUniApply
+                --     --                 uniApp
+                --     --                 wrongType
+                --     --                 (\uniApp' uniA -> _ res)) -- r (SomeValueArg uniA res) uniApp'))
+                --     --         (ReadSomeValueN $ \res uniHead ->
+                --     --             case uniHead `geq` uniF of
+                --     --                 Nothing   -> wrongType
+                --     --                 Just Refl -> _ res)
+                --     -- in unReadSomeValueN go $ SomeValueRes uni xs)
+
+-- foldlVec :: forall p a m.
+--             (forall n. a -> p n -> p (S n)) ->
+--             p Z ->
+--             Vec a m -> p m
+
+-- foldr : ∀ {a b} {A : Set a} (B : ℕ → Set b) {m} →
+--         (∀ {n} → A → B n → B (suc n)) →
+--         B zero →
+--         Vec A m → B m
+
+-- foldl : ∀ {a b} {A : Set a} (B : ℕ → Set b) {m} →
+--         (∀ {n} → B n → A → B (suc n)) →
+--         B zero →
+--         Vec A m → B m
+
+-- newtype ReadSomeValueN reps0 m uni f reps = ReadSomeValueN
+--     { unReadSomeValueN
+--         :: forall k (a :: k). uni (TypeApp a) -> m (SomeValueN uni f reps)
+--     }
+
+-- newtype ReadSomeValueN m uni f = ReadSomeValueN
+--     { unReadSomeValueN
+--         :: forall k (a :: k). SomeValueN uni a -> uni (TypeApp a) -> m (SomeValueN uni f)
+--     }
+
+
+data ReadSomeValueN m uni f reps = forall k (a :: k). ReadSomeValueN (SomeValueN uni a reps) (uni (TypeApp a))
+
 
 toTyNameAst
     :: forall text uniq. (KnownSymbol text, KnownNat uniq)

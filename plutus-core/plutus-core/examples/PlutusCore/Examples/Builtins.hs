@@ -213,10 +213,15 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni ExtensionFun where
         makeBuiltinMeaning
             (replicate :: Int -> Char -> [Char])
             mempty  -- Whatever.
-    toBuiltinMeaning Null =
-        makeBuiltinMeaning
-            _
-            mempty where
+    toBuiltinMeaning Null = makeBuiltinMeaning nullPlc mempty where
+        nullPlc
+            :: a ~ TyVarRep ('TyNameRep "a" 0)
+            => SomeValueN DefaultUni [] '[a] -> Bool
+        nullPlc (SomeValueArg uniA (SomeValueRes _ xs)) = null xs
+
+--         makeBuiltinMeaning
+--             _
+--             mempty where
         -- nullPlc :: Opaque term (TyAppRep [] (TyVarRep ('TyNameRep "a" 0))) -> KnownTypeMonad term Bool
         -- nullPlc (Opaque term) = case asConstant term of
         --     Just (Some (ValueOf uni xs)) -> case uni of
@@ -228,30 +233,56 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni ExtensionFun where
     toBuiltinMeaning Head = makeBuiltinMeaning headPlc mempty where
         headPlc
             :: a ~ TyVarRep ('TyNameRep "a" 0)
-            => Opaque term (TyAppRep [] a) -> KnownTypeMonad term (Opaque term a)
-        headPlc (Opaque term) = case asConstant term of
-            Just (Some (ValueOf uni xs)) -> case uni of
-                DefaultUniList a -> case xs of
-                    x:_ -> pure . Opaque . fromConstant . Some $ ValueOf a x
-                    []  -> KnownTypeMonad $ throwError evaluationFailure
-                _ -> do
-                    let err = fromString $ "Expected a list, but got " ++ gshow uni
-                    KnownTypeMonad $ throwingWithCause _UnliftingError err $ Just term
-            Nothing -> KnownTypeMonad $ throwingWithCause _UnliftingError "Not a constant" $ Just term
-    toBuiltinMeaning Tail =
-        makeBuiltinMeaning
-            (\case [] -> EvaluationFailure; _:xs -> pure (xs :: [Integer]))
-            mempty  -- Whatever.
+            => SomeValueN DefaultUni [] '[a] -> EvaluationResult (Opaque term a)
+        headPlc (SomeValueArg uniA (SomeValueRes _ xs)) = case xs of
+            x : _ -> pure . Opaque . fromConstant . Some $ ValueOf uniA x
+            _     -> throwError evaluationFailure
+        -- (Opaque term) = case asConstant term of
+        --     Just (Some (ValueOf uni xs)) -> case uni of
+        --         DefaultUniList a -> case xs of
+        --             x:_ -> pure . Opaque . fromConstant . Some $ ValueOf a x
+        --             []  -> KnownTypeMonad $ throwError evaluationFailure
+        --         _ -> do
+        --             let err = fromString $ "Expected a list, but got " ++ gshow uni
+        --             KnownTypeMonad $ throwingWithCause _UnliftingError err $ Just term
+        --     Nothing -> KnownTypeMonad $ throwingWithCause _UnliftingError "Not a constant" $ Just term
+    toBuiltinMeaning Tail = makeBuiltinMeaning tailPlc mempty where
+        tailPlc
+            :: a ~ TyVarRep ('TyNameRep "a" 0)
+            => SomeValueN DefaultUni [] '[a] -> EvaluationResult (SomeValueN DefaultUni [] '[a])
+        tailPlc (SomeValueArg uniA (SomeValueRes uniListA xs)) = case xs of
+            _ : xs' -> pure . SomeValueArg uniA $ SomeValueRes uniListA xs'
+
+            -- xs -- pure . Opaque . fromConstant . Some $ ValueOf uniA x
+            _       -> throwError evaluationFailure
+
+
+        -- tailPlc
+        --     :: a ~ TyVarRep ('TyNameRep "a" 0)
+        --     => SomeValueN DefaultUni [] '[a] -> EvaluationResult (Opaque term [a])
+        -- tailPlc (SomeValueArg uniA (SomeValueRes _ xs)) = case xs of
+        --     _ : xs -> _ xs -- pure . Opaque . fromConstant . Some $ ValueOf uniA x
+        --     _      -> throwError evaluationFailure
+
+--         makeBuiltinMeaning
+--             (\case [] -> EvaluationFailure; _:xs -> pure (xs :: [Integer]))
+--             mempty  -- Whatever.
     -- toBuiltinMeaning Swap =
     --     BuiltinMeaning _ _ _ where
     --         -- sch =
     --         --     TypeSchemeAll (Proxy @'("a", 0, *)) $ \a ->
     --         --     TypeSchemeAll (Proxy @'("b", 0, *)) $ \b ->
 
+
+data SomeValueOf1 uni f = forall a. SomeValueOf1 (uni a) (f a)
+data SomeValueOf2 uni f = forall a b. SomeValueOf2 (uni a) (uni b) (f a b)
+
 data ValueOf1 uni f a = ValueOf1 (uni a) (f a)
+-- -- data ValueOf2 uni f a b = ValueOf2 (uni a) (uni b) (f a b)
+-- type ValueOf2 uni f a b = ValueOf2 (uni a) (ValueOf1 uni (f a) b)
+
 
 -- instance HasConstantIn DefaultUni => KnownType term
-
 
 data Foo (uni :: forall k. k -> *) = Foo
 
@@ -264,7 +295,7 @@ unliftConstantList
     => term -> m (Some (ValueOf1 DefaultUni []))
 unliftConstantList term = case asConstant term of
     Just (Some (ValueOf uni xs)) -> case uni of
-        DefaultUniList el -> pure . Some $ ValueOf1 el xs
+        DefaultUniRunTypeApp (DefaultUniList `DefaultUniApply` el) -> pure . Some $ ValueOf1 el xs
         _                 -> do
             let err = fromString $ "Expected a list, but got " ++ gshow uni
             throwingWithCause _UnliftingError err $ Just term
@@ -272,8 +303,8 @@ unliftConstantList term = case asConstant term of
 
 -- f : all a. [_] a -> bool
 
-instance (uni `Includes` [], uni `Includes` Hole) => KnownTypeAst uni [] where
-    toTypeAst _ = mkTyBuiltin @[Hole] ()
+-- instance (uni `Includes` [], uni `Includes` Hole) => KnownTypeAst uni [] where
+--     toTypeAst _ = mkTyBuiltin @[Hole] ()
 
 -- null :: Opaque term [Meta] -> Bool
 -- null : [meta] -> bool

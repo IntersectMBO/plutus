@@ -266,6 +266,7 @@ library
         semigroups -any,
         serialise -any,
         size-based -any,
+        sop-core -any,
         tasty -any,
         tasty-golden -any,
         tasty-hunit -any,

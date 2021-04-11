@@ -1,20 +1,22 @@
 -- | The universe used by default and its instances.
 
+{-# LANGUAGE ConstraintKinds       #-}
 {-# LANGUAGE EmptyCase             #-}
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE GADTs                 #-}
+{-# LANGUAGE InstanceSigs          #-}
 {-# LANGUAGE LambdaCase            #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings     #-}
+{-# LANGUAGE PolyKinds             #-}
+{-# LANGUAGE RankNTypes            #-}
 {-# LANGUAGE TemplateHaskell       #-}
 {-# LANGUAGE TypeFamilies          #-}
 {-# LANGUAGE TypeOperators         #-}
 {-# LANGUAGE UndecidableInstances  #-}
 
 module PlutusCore.Universe.Default
-    ( Hole
-    , unpoke
-    , DefaultUni (..)
+    ( DefaultUni (..)
     ) where
 
 import           PlutusCore.Parsable
@@ -23,6 +25,7 @@ import           PlutusCore.Universe.Core
 import           Control.Applicative
 import qualified Data.ByteString          as BS
 import           Data.Foldable
+import           Data.Function
 import qualified Data.Text                as Text
 
 {- Note [PLC types and universes]
@@ -72,37 +75,40 @@ We already allow built-in names with polymorphic types. There might be a way to 
 and have meta-constructors as builtin names. We still have to handle types somehow, though.
 -}
 
-data Hole
-
-unpoke :: Hole -> a
-unpoke = \case{}
-
 -- | The universe used by default.
 data DefaultUni a where
-    DefaultUniHole       :: DefaultUni Hole
     DefaultUniInteger    :: DefaultUni Integer
     DefaultUniByteString :: DefaultUni BS.ByteString
     DefaultUniChar       :: DefaultUni Char
     DefaultUniUnit       :: DefaultUni ()
     DefaultUniBool       :: DefaultUni Bool
-    DefaultUniList       :: !(DefaultUni a) -> DefaultUni [a]
-    DefaultUniTuple      :: !(DefaultUni a) -> !(DefaultUni b) -> DefaultUni (a, b)
+    DefaultUniList       :: DefaultUni (TypeApp [])
+    DefaultUniTuple      :: DefaultUni (TypeApp (,))
+    DefaultUniApply      :: !(DefaultUni (TypeApp f)) -> !(DefaultUni a) -> DefaultUni (TypeApp (f a))
+    DefaultUniRunTypeApp :: !(DefaultUni (TypeApp a)) -> DefaultUni a
 
 deriveGEq ''DefaultUni
 deriving instance Lift (DefaultUni a)
 
+instance HasUniApply DefaultUni where
+    matchUniRunTypeApp (DefaultUniRunTypeApp a) _ h = h a
+    matchUniRunTypeApp _                        z _ = z
+
+    matchUniApply (DefaultUniApply f a) _ h = h f a
+    matchUniApply _                     z _ = z
+
 instance GShow DefaultUni where gshowsPrec = showsPrec
 instance Show (DefaultUni a) where
-    show DefaultUniInteger     = "integer"
-    show DefaultUniByteString  = "bytestring"
-    show DefaultUniChar        = "char"
-    show DefaultUniUnit        = "unit"
-    show DefaultUniBool        = "bool"
-    show (DefaultUniList a)    = case a of
-        DefaultUniChar -> "string"
-        _              -> "[" ++ show a ++ "]"
-    show (DefaultUniTuple a b) = concat ["(", show a, ",", show b, ")"]
-    show DefaultUniHole        = "_"
+    show DefaultUniInteger    = "integer"
+    show DefaultUniByteString = "bytestring"
+    show DefaultUniChar       = "char"
+    show DefaultUniUnit       = "unit"
+    show DefaultUniBool       = "bool"
+    -- show (DefaultUniList a)    = case a of
+    --     DefaultUniChar -> "string"
+    --     _              -> "[" ++ show a ++ "]"
+    -- show (DefaultUniTuple a b) = concat ["(", show a, ",", show b, ")"]
+    -- show DefaultUniHole        = "_"
 
 instance Parsable (Some DefaultUni) where
     parse "bool"       = Just $ Some DefaultUniBool
@@ -110,36 +116,39 @@ instance Parsable (Some DefaultUni) where
     parse "char"       = Just $ Some DefaultUniChar
     parse "integer"    = Just $ Some DefaultUniInteger
     parse "unit"       = Just $ Some DefaultUniUnit
-    parse "string"     = Just . Some $ DefaultUniList DefaultUniChar
-    parse text         = asum
-        [ do
-            aT <- Text.stripPrefix "[" text >>= Text.stripSuffix "]"
-            Some a <- parse aT
-            Just . Some $ DefaultUniList a
-        , do
-            abT <- Text.stripPrefix "(" text >>= Text.stripSuffix ")"
-            -- Note that we don't allow whitespace after @,@ (but we could).
-            -- Anyway, looking for a single comma is just plain wrong, as we may have a nested
-            -- tuple (and it can be left- or right- or both-nested), so we're running into
-            -- the same parsing problem as with constants.
-            case Text.splitOn "," abT of
-                [aT, bT] -> do
-                    Some a <- parse aT
-                    Some b <- parse bT
-                    Just . Some $ DefaultUniTuple a b
-                _ -> Nothing
-        ]
+    -- parse "string"     = Just . Some $ DefaultUniList DefaultUniChar
+    -- parse text         = asum
+    --     [ do
+    --         aT <- Text.stripPrefix "[" text >>= Text.stripSuffix "]"
+    --         Some a <- parse aT
+    --         Just . Some $ DefaultUniList a
+    --     , do
+    --         abT <- Text.stripPrefix "(" text >>= Text.stripSuffix ")"
+    --         -- Note that we don't allow whitespace after @,@ (but we could).
+    --         -- Anyway, looking for a single comma is just plain wrong, as we may have a nested
+    --         -- tuple (and it can be left- or right- or both-nested), so we're running into
+    --         -- the same parsing problem as with constants.
+    --         case Text.splitOn "," abT of
+    --             [aT, bT] -> do
+    --                 Some a <- parse aT
+    --                 Some b <- parse bT
+    --                 Just . Some $ DefaultUniTuple a b
+    --             _ -> Nothing
+    --     ]
 
 instance DefaultUni `Contains` Integer       where knownUni = DefaultUniInteger
 instance DefaultUni `Contains` BS.ByteString where knownUni = DefaultUniByteString
 instance DefaultUni `Contains` Char          where knownUni = DefaultUniChar
 instance DefaultUni `Contains` ()            where knownUni = DefaultUniUnit
 instance DefaultUni `Contains` Bool          where knownUni = DefaultUniBool
+
+instance DefaultUni `Contains` TypeApp []  where knownUni = DefaultUniList
+instance DefaultUni `Contains` TypeApp (,) where knownUni = DefaultUniTuple
+
 instance DefaultUni `Contains` a => DefaultUni `Contains` [a] where
-    knownUni = DefaultUniList knownUni
+    knownUni = DefaultUniRunTypeApp $ DefaultUniApply DefaultUniList knownUni
 instance (DefaultUni `Contains` a, DefaultUni `Contains` b) => DefaultUni `Contains` (a, b) where
-    knownUni = DefaultUniTuple knownUni knownUni
-instance DefaultUni `Contains` Hole where knownUni = DefaultUniHole
+    knownUni = DefaultUniRunTypeApp $ DefaultUniTuple `DefaultUniApply` knownUni `DefaultUniApply` knownUni
 
 {- Note [Stable encoding of tags]
 'encodeUni' and 'decodeUni' are used for serialisation and deserialisation of types from the
@@ -161,14 +170,14 @@ instance Closed DefaultUni where
         )
 
     -- See Note [Stable encoding of tags].
-    encodeUni DefaultUniInteger     = [0]
-    encodeUni DefaultUniByteString  = [1]
-    encodeUni DefaultUniChar        = [2]
-    encodeUni DefaultUniUnit        = [3]
-    encodeUni DefaultUniBool        = [4]
-    encodeUni (DefaultUniList a)    = 5 : encodeUni a
-    encodeUni (DefaultUniTuple a b) = 6 : encodeUni a ++ encodeUni b
-    encodeUni DefaultUniHole        = [7]
+    encodeUni DefaultUniInteger    = [0]
+    encodeUni DefaultUniByteString = [1]
+    encodeUni DefaultUniChar       = [2]
+    encodeUni DefaultUniUnit       = [3]
+    encodeUni DefaultUniBool       = [4]
+    -- encodeUni (DefaultUniList a)    = 5 : encodeUni a
+    -- encodeUni (DefaultUniTuple a b) = 6 : encodeUni a ++ encodeUni b
+    -- encodeUni DefaultUniHole        = [7]
 
     -- See Note [Stable encoding of tags].
     decodeUniM = peelTag >>= \case
@@ -177,20 +186,26 @@ instance Closed DefaultUni where
         2 -> pure . Some $ TypeIn DefaultUniChar
         3 -> pure . Some $ TypeIn DefaultUniUnit
         4 -> pure . Some $ TypeIn DefaultUniBool
-        5 -> do
-            Some (TypeIn a) <- decodeUniM
-            pure . Some . TypeIn $ DefaultUniList a
-        6 -> do
-            Some (TypeIn a) <- decodeUniM
-            Some (TypeIn b) <- decodeUniM
-            pure . Some . TypeIn $ DefaultUniTuple a b
-        _ -> empty
+        -- 5 -> do
+        --     Some (TypeIn a) <- decodeUniM
+        --     pure . Some . TypeIn $ DefaultUniList a
+        -- 6 -> do
+        --     Some (TypeIn a) <- decodeUniM
+        --     Some (TypeIn b) <- decodeUniM
+        --     pure . Some . TypeIn $ DefaultUniTuple a b
+        -- _ -> empty
 
-    bring _ DefaultUniInteger     r = r
-    bring _ DefaultUniByteString  r = r
-    bring _ DefaultUniChar        r = r
-    bring _ DefaultUniUnit        r = r
-    bring _ DefaultUniBool        r = r
-    bring p (DefaultUniList a)    r = bring p a r
-    bring p (DefaultUniTuple a b) r = bring p a $ bring p b r
-    bring _ DefaultUniHole        _ = error "Should not be called"
+    bring
+        :: forall constr a r proxy. DefaultUni `Everywhere` constr
+        => proxy constr -> DefaultUni a -> (constr a => r) -> r
+    bring _ DefaultUniInteger             r = r
+    bring _ DefaultUniByteString          r = r
+    bring _ DefaultUniChar                r = r
+    bring _ DefaultUniUnit                r = r
+    bring _ DefaultUniBool                r = r
+    bring _ DefaultUniList                _ = error "Should not be called"
+    bring _ DefaultUniTuple               _ = error "Should not be called"
+    -- TODO: enable -fno-warn-incomplete patterns
+    bring p (DefaultUniRunTypeApp uniApp) r = case uniApp of
+        DefaultUniList  `DefaultUniApply` a                     -> bring p a r
+        DefaultUniTuple `DefaultUniApply` a `DefaultUniApply` b -> bring p a $ bring p b r

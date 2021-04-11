@@ -12,13 +12,14 @@
 {-# LANGUAGE TypeFamilies             #-}
 {-# LANGUAGE TypeOperators            #-}
 {-# LANGUAGE UndecidableInstances     #-}
-{-# LANGUAGE UndecidableSuperClasses  #-}
 
 module PlutusCore.Universe.Core
     ( Some (..)
     , TypeIn (..)
     , ValueOf (..)
     , someValue
+    , TypeApp
+    , HasUniApply (..)
     , Contains (..)
     , Includes
     , Closed (..)
@@ -77,10 +78,6 @@ We say that a type is in a universe whenever there is a tag for that type in the
 For example, 'Int' is in 'U', because there exists a tag for 'Int' in 'U' -- 'UInt'.
 -}
 
-type family All (constr :: k -> Constraint) (as :: [k]) :: Constraint where
-    All constr '[]       = ()
-    All constr (x ': xs) = (constr x, All constr xs)
-
 -- | Existential quantification as a data type.
 data Some f = forall a. Some (f a)
 
@@ -91,11 +88,11 @@ newtype TypeIn uni a = TypeIn (uni a)
 data ValueOf uni a = ValueOf (uni a) a
 
 -- | A constraint for \"@a@ is in @uni@\".
-type Contains :: (* -> *) -> * -> Constraint
+type Contains :: (GHC.Type -> GHC.Type) -> GHC.Type -> Constraint
 class uni `Contains` a where
     knownUni :: uni a
 
-type Includes :: (* -> *) -> k -> Constraint
+type Includes :: (GHC.Type -> GHC.Type) -> k -> Constraint
 type Includes uni = Permits (Contains uni)
 
 -- | Same as 'knownUni', but receives a @proxy@.
@@ -105,6 +102,20 @@ knownUniOf _ = knownUni
 -- | Wrap a value into @SomeValueOf uni@, provided its type is in the universe.
 someValue :: forall a uni. uni `Includes` a => a -> Some (ValueOf uni)
 someValue = Some . ValueOf knownUni
+
+data TypeApp (a :: k)
+
+class HasUniApply uni where
+    matchUniRunTypeApp
+        :: uni a
+        -> r
+        -> (uni (TypeApp a) -> r)
+        -> r
+    matchUniApply
+        :: uni (TypeApp (fa :: k))
+        -> r
+        -> (forall f a. fa ~ f a => uni (TypeApp (f :: GHC.Type -> k)) -> uni a -> r)
+        -> r
 
 -- | A universe is 'Closed', if it's known how to constrain every type from the universe.
 -- The universe doesn't have to be finite and providing support for infinite universes is the
@@ -148,15 +159,15 @@ peelTag = do
     i:is <- get
     i <$ put is
 
-type Permits1 :: (* -> Constraint) -> (* -> *) -> Constraint
+type Permits1 :: (GHC.Type -> Constraint) -> (GHC.Type -> GHC.Type) -> Constraint
 class    (forall a. constr a => constr (f a)) => constr `Permits1` f
 instance (forall a. constr a => constr (f a)) => constr `Permits1` f
 
-type Permits2 :: (* -> Constraint) -> (* -> * -> *) -> Constraint
+type Permits2 :: (GHC.Type -> Constraint) -> (GHC.Type -> GHC.Type -> GHC.Type) -> Constraint
 class    (forall a b. (constr a, constr b) => constr (f a b)) => constr `Permits2` f
 instance (forall a b. (constr a, constr b) => constr (f a b)) => constr `Permits2` f
 
-type Permits :: (* -> Constraint) -> k -> Constraint
+type Permits :: (GHC.Type -> Constraint) -> k -> Constraint
 type family Permits constr
 
 type instance Permits constr = constr

@@ -28,7 +28,6 @@ module PlutusCore
     , (:~:) (..)
     , Lift
     , type (<:)
-    , Hole
     , DefaultUni (..)
     , DefaultFun (..)
     -- * AST
