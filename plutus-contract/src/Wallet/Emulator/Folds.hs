@@ -81,10 +81,10 @@ import           Plutus.Trace.Emulator.Types            (ContractConstraints, Co
                                                          toInstanceState)
 import           Wallet.Emulator.Chain                  (ChainEvent (..), _TxnValidate, _TxnValidationFail)
 import           Wallet.Emulator.ChainIndex             (_AddressStartWatching)
-import           Wallet.Emulator.LogMessages            (_AddedFees)
 import           Wallet.Emulator.MultiAgent             (EmulatorEvent, EmulatorTimeEvent, chainEvent, chainIndexEvent,
-                                                         eteEvent, instanceEvent, userThreadEvent, walletEvent)
-import           Wallet.Emulator.Wallet                 (Wallet, _TxBalanceLog, walletAddress)
+                                                         eteEvent, instanceEvent, userThreadEvent, walletClientEvent)
+import           Wallet.Emulator.NodeClient             (_TxSubmit)
+import           Wallet.Emulator.Wallet                 (Wallet, walletAddress)
 import qualified Wallet.Rollup                          as Rollup
 import           Wallet.Rollup.Types                    (AnnotatedTx)
 
@@ -242,7 +242,7 @@ walletFees :: Wallet -> EmulatorEventFold Value
 walletFees w = succeededFees <$> walletSubmittedFees <*> validatedTransactions
     where
         succeededFees submitted = foldMap (\(i, _, _) -> fold (Map.lookup i submitted))
-        walletSubmittedFees = L.handles (eteEvent . walletEvent w . _TxBalanceLog . _AddedFees) . L.premap (\tx -> (txId tx, txFee tx)) $ L.map
+        walletSubmittedFees = L.handles (eteEvent . walletClientEvent w . _TxSubmit) . L.premap (\tx -> (txId tx, txFee tx)) $ L.map
 
 -- | Whether the wallet is watching an address
 walletWatchingAddress :: Wallet -> Address -> EmulatorEventFold Bool

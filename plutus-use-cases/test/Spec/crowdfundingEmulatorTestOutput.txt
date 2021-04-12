@@ -32,7 +32,6 @@ Slot 1: W2: Balancing an unbalanced transaction:
                   data:
                     "\218\192s\224\DC2;\222\165\157\217\179\189\169\207`7\246:\202\130b}z\188\213\196\172)\221t\NUL>"}
               Requires signatures:
-Slot 1: W2: Added fees: Value (Map [(,Map [("",10)])])
 Slot 1: W2: TxSubmit: 0798046e6d2d9b574c4748702b5c2c6eac45ea02996a38420d8ddc7ab44615e4
 Slot 1: 00000000-0000-4000-8000-000000000003 {Contract instance for wallet 4}:
           Contract instance started
@@ -55,7 +54,6 @@ Slot 1: W3: Balancing an unbalanced transaction:
                   data:
                     "\237\209\195sr\247R\201z\236\b\130E/\172\172\ETB\164\253\175F\230\FS\ETX?J\246x\164\a\155\205"}
               Requires signatures:
-Slot 1: W3: Added fees: Value (Map [(,Map [("",10)])])
 Slot 1: W3: TxSubmit: 9e9a65221da3f3b8646397740f65bcaa364c8d5403e24a664f2e9a2e3fae414c
 Slot 1: W4: Balancing an unbalanced transaction:
               Tx:
@@ -72,7 +70,6 @@ Slot 1: W4: Balancing an unbalanced transaction:
                   data:
                     "u\210d\223\143Krhd8x<\133$g=*Z\233\172\SIw\STX!7\165\145\154\&7d]W"}
               Requires signatures:
-Slot 1: W4: Added fees: Value (Map [(,Map [("",10)])])
 Slot 1: W4: TxSubmit: 4ccdbd5ccd49dadff2e1675afab1aaea4abd9ffa0b477f374fa9fabf880fc124
 Slot 2: TxnValidate 4ccdbd5ccd49dadff2e1675afab1aaea4abd9ffa0b477f374fa9fabf880fc124
 Slot 2: TxnValidate 9e9a65221da3f3b8646397740f65bcaa364c8d5403e24a664f2e9a2e3fae414c
@@ -97,7 +94,6 @@ Slot 20: W1: Balancing an unbalanced transaction:
                    validity range: Interval {ivFrom = LowerBound (Finite (Slot {getSlot = 20})) True, ivTo = UpperBound (Finite (Slot {getSlot = 30})) True}
                    data:}
                Requires signatures:
-Slot 20: W1: Added fees: Value (Map [(,Map [("",10)])])
 Slot 20: W1: TxSubmit: 02e84addc0950109f7bd90702ccdb9d889538757a740d2782feeac4bf9c7e6e1
 Slot 20: 00000000-0000-4000-8000-000000000000 {Contract instance for wallet 1}:
            Contract instance stopped (no errors)
