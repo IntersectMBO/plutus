@@ -1,7 +1,4 @@
-{ pkgs, config, lib, ... }:
-let
-  tfinfo = builtins.fromJSON (builtins.readFile ./../machines.json);
-in
+{ pkgs, config, lib, tfinfo, ... }:
 {
 
   imports = [

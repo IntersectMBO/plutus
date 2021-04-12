@@ -1,4 +1,4 @@
-{ pkgs, plutus, rootSshKeys, extraImports ? [ ] }:
+{ pkgs, plutus, tfinfo, extraImports ? [ ] }:
 # mkMachine :: { config : Path, name : String } -> NixOS machine
 # Takes a machine specific configuration and a hostname to set and
 # applies generic settings:
@@ -7,12 +7,19 @@
 # - adds plutus specific packages through an overlay
 { config, name }: {
   imports = extraImports ++ [
+
     (pkgs.path + "/nixos/modules/virtualisation/amazon-image.nix")
+
     config
+
+    ({ config, ... }: {
+      config._module.args.tfinfo = tfinfo;
+    })
+
     ({ lib, config, ... }:
       {
         networking.hostName = name;
-        users.extraUsers.root.openssh.authorizedKeys.keys = rootSshKeys;
+        users.extraUsers.root.openssh.authorizedKeys.keys = tfinfo.rootSshKeys;
         nixpkgs = {
           inherit pkgs;
           overlays = [

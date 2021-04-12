@@ -1,4 +1,4 @@
-{ config, lib, pkgs, ... }:
+{ config, lib, pkgs, tfinfo, ... }:
 {
 
   ec2.hvm = true;

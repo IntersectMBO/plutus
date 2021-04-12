@@ -3,8 +3,7 @@ let
   pkgs = plutus.pkgs;
   tfinfo = builtins.fromJSON (builtins.readFile ./machines.json);
   mkMachine = pkgs.callPackage ./mk-machine.nix {
-    inherit plutus;
-    inherit (tfinfo) rootSshKeys;
+    inherit plutus tfinfo;
   };
 in
 import ./machines.nix {
