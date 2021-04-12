@@ -13,6 +13,8 @@ import Contract.Types (ContractId)
 import Contract.Types (State) as Contract
 import ContractHome.Lenses (_contracts, _selectedContractIndex, _status)
 import ContractHome.Types (Action(..), ContractStatus(..), State, PartitionedContracts)
+import Control.Bind (bindFlipped)
+import Cursor (mapWithIndex)
 import Data.Array (catMaybes)
 import Data.Array as Array
 import Data.BigInteger (fromInt)
@@ -135,6 +137,12 @@ loadExistingContracts = do
   slot <- currentSlot
   pure
     $ catMaybes [ filledContract1 slot, filledContract2 slot, filledContract3 slot ]
+    -- FIXME: only to have multiple contracts, remove.
+    
+    -- # (bindFlipped $ Array.replicate 10)
+    
+    -- # Array.mapWithIndex (\ix contract -> (show ix) /\ contract)
+    
     # map (\contract -> contract.contractId /\ contract)
     # Map.fromFoldable
 
