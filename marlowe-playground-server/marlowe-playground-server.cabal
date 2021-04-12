@@ -17,10 +17,20 @@ source-repository head
 
 library
     exposed-modules:
-        Server
+        -- src
         API
-        Marlowe.Contracts
         Marlowe.Config
+        Marlowe.Contracts
+        Marlowe.Mermaid
+        Server
+        -- contracts
+        ContractForDifferences
+        CouponBondGuaranteed
+        Escrow
+        EscrowWithCollateral
+        Example
+        Swap
+        ZeroCouponBond
     -- Include 'contracts' so haskell.nix knows to include the files that we embed with TH
     hs-source-dirs:
         src
@@ -37,6 +47,7 @@ library
         exceptions -any,
         file-embed -any,
         filepath -any,
+        hashable -any,
         http-client -any,
         http-client-tls -any,
         http-conduit -any,
