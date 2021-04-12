@@ -45,7 +45,6 @@ rec {
   webCommonPlayground = pkgs.callPackage ./web-common-playground { inherit (plutus.lib) gitignore-nix; };
 
   plutus-playground = pkgs.recurseIntoAttrs rec {
-    tutorial = docs.site;
     haddock = plutus.plutus-haddock-combined;
 
     inherit (pkgs.callPackage ./plutus-playground-client {
@@ -55,8 +54,6 @@ rec {
   };
 
   marlowe-playground = pkgs.recurseIntoAttrs rec {
-    tutorial = docs.marlowe-tutorial;
-
     inherit (pkgs.callPackage ./marlowe-playground-client {
       inherit (plutus.lib) buildPursPackage buildNodeModules filterNpm gitignore-nix;
       inherit set-git-rev haskell webCommon webCommonMarlowe webCommonPlayground;
@@ -84,7 +81,7 @@ rec {
   });
 
   tests = import ./nix/tests/default.nix {
-    inherit pkgs iohkNix;
+    inherit pkgs iohkNix docs;
     inherit (plutus) fixStylishHaskell fixPurty;
     inherit (pkgs) terraform;
     inherit plutus-playground marlowe-playground marlowe-dashboard web-ghc plutus-pab marlowe-app marlowe-companion-app;

@@ -1,5 +1,6 @@
 { makeTest
 , lib
+, docs
 , plutus-pab
 , plutus-playground
 , marlowe-playground
@@ -114,8 +115,8 @@ makeTest {
                   proxyPass = "http://plutus-playground";
                   proxyWebsockets = true;
                 };
-                "^~ /tutorial/" = {
-                  alias = "${plutus-playground.tutorial}/";
+                "^~ /doc/" = {
+                  alias = "${docs.site}/";
                   extraConfig = ''
                     error_page 404 = @fallback;
                   '';
@@ -144,8 +145,8 @@ makeTest {
                     error_page 404 = @fallback;
                   '';
                 };
-                "^~ /tutorial/" = {
-                  alias = "${marlowe-playground.tutorial}/";
+                "^~ /doc/" = {
+                  alias = "${docs.site}/";
                   extraConfig = ''
                     error_page 404 = @fallback;
                   '';
@@ -225,9 +226,11 @@ makeTest {
     playgrounds.wait_for_open_port(8080)
     playgrounds.wait_for_open_port(9090)
     playgrounds.succeed("curl --silent http://plutus-playground:8080/ | grep  'plutus'")
-    playgrounds.succeed("curl --silent http://plutus-playground:8080/tutorial/ | grep 'The Plutus Platform'")
+    playgrounds.succeed("curl --silent http://plutus-playground:8080/doc/ | grep 'The Plutus Platform'")
+    playgrounds.succeed("curl --silent http://plutus-playground:8080/doc/plutus/tutorials/ | grep 'Plutus tutorials'")
     playgrounds.succeed("curl --silent http://marlowe-playground:9090/ | grep 'marlowe-playground'")
-    playgrounds.succeed("curl --silent http://marlowe-playground:9090/tutorial/ | grep 'Marlowe Tutorial'")
+    playgrounds.succeed("curl --silent http://marlowe-playground:9090/doc/ | grep 'The Plutus Platform'")
+    playgrounds.succeed("curl --silent http://marlowe-playground:9090/doc/marlowe/tutorials/ | grep 'Marlowe tutorials'")
 
     #
     # webghc asserts
