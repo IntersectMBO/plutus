@@ -14,12 +14,13 @@ import           Data.Bifunctor                          (first)
 import qualified Data.ByteString.Char8                   as BS
 import qualified Data.ByteString.Lazy                    as BSL
 import           Data.Proxy                              (Proxy (Proxy))
+import qualified Data.Text                               as T
 import           GHC.TypeLits                            (symbolVal)
 import           Plutus.Contract                         (BlockchainActions)
 import           Plutus.Contract.Effects.ExposeEndpoint  (ActiveEndpoint (..),
                                                           EndpointDescription (EndpointDescription))
 import qualified Plutus.Contract.Schema                  as Schema
-import           Plutus.Contracts.Game                   (GameSchema, game)
+import           Plutus.Contracts.GameStateMachine       (GameStateMachineSchema, contract)
 import           Plutus.PAB.Arbitrary                    ()
 import           Plutus.PAB.ContractCLI                  (Command (Initialise), runCliCommand)
 import           Plutus.PAB.Events.Contract              (ContractHandlerRequest, ContractHandlersResponse,
@@ -36,9 +37,9 @@ jsonTests =
     testGroup
         "ToJSON/FromJSON"
         [ testCase "Decode handlers" $
-          let handlers :: Schema.Handlers GameSchema
+          let handlers :: Schema.Handlers GameStateMachineSchema
               handlers =
-                  Schema.initialise @GameSchema @"guess" @_ $
+                  Schema.initialise @GameStateMachineSchema @"guess" @_ $
                   ActiveEndpoint
                       { aeDescription = EndpointDescription (symbolVal (Proxy @"guess"))
                       , aeMetadata    = Nothing
@@ -51,7 +52,7 @@ jsonTests =
                   runExceptT $ do
                       initialisationResponse <-
                           ExceptT $
-                            first BS.unpack <$> runCliCommand (Proxy @BlockchainActions) game Initialise
+                            first BS.unpack <$> runCliCommand (Proxy @BlockchainActions) (first (T.pack . show) contract) Initialise
                       result <-
                           except $ JSON.eitherDecode $ BSL.fromStrict initialisationResponse
                       pure

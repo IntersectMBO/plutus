@@ -252,7 +252,8 @@ executable plutus-game
     build-depends:
         base >=4.9 && <5,
         plutus-pab,
-        plutus-use-cases -any
+        plutus-use-cases -any,
+        text -any
 
 executable plutus-currency
     main-is: Main.hs

@@ -18,8 +18,6 @@ import           Data.Default                          (Default (..))
 import qualified Data.Text.Encoding                    as T
 import           Data.Text.Prettyprint.Doc             (Pretty (..), defaultLayoutOptions, layoutPretty, vsep)
 import           Data.Text.Prettyprint.Doc.Render.Text (renderStrict)
-import           Spec.Lib                              (timesFeeAdjust)
-import qualified Spec.Lib                              as Lib
 import           Test.Tasty
 import           Test.Tasty.Golden                     (goldenVsString)
 import qualified Test.Tasty.HUnit                      as HUnit
@@ -101,14 +99,14 @@ tests = testGroup "crowdfunding"
             void $ makeContribution w3 (Ada.lovelaceValueOf 5)
             void $ Trace.waitUntilSlot 31
 
-    , Lib.goldenPir "test/Spec/crowdfunding.pir" $$(PlutusTx.compile [|| mkValidator ||])
+    , goldenPir "test/Spec/crowdfunding.pir" $$(PlutusTx.compile [|| mkValidator ||])
     ,   let
             deadline = 10
             target = Ada.lovelaceValueOf 1000
             collectionDeadline = 15
             owner = w1
             cmp = mkCampaign deadline target collectionDeadline owner
-        in HUnit.testCase "script size is reasonable" (Lib.reasonable (contributionScript cmp) 30000)
+        in HUnit.testCase "script size is reasonable" (reasonable (contributionScript cmp) 30000)
 
     , goldenVsString
         "renders the log of a single contract instance sensibly"

@@ -45,7 +45,7 @@ import           Plutus.Contract.Resumable                  (Responses)
 import           Plutus.Contract.State                      (ContractRequest, State)
 import           Plutus.Contracts.Currency                  (SimpleMPS (..))
 import           Plutus.PAB.Effects.Contract.ContractExe    (ContractExe)
-import           Plutus.PAB.Effects.Contract.ContractTest   (TestContracts (Currency, Game))
+import           Plutus.PAB.Effects.Contract.ContractTest   (TestContracts (Currency, GameStateMachine))
 import           Plutus.PAB.Events                          (PABEvent)
 import           Plutus.PAB.Events.Contract                 (ContractInstanceId (..), ContractPABRequest,
                                                              ContractResponse)
@@ -168,7 +168,7 @@ writeTestData outputDir = do
         fmap (either (error . show) id) $ Simulator.runSimulation $ do
             currencyInstance1 <- Simulator.activateContract defaultWallet Currency
             void $ Simulator.activateContract defaultWallet Currency
-            void $ Simulator.activateContract defaultWallet Game
+            void $ Simulator.activateContract defaultWallet GameStateMachine
             void $ Simulator.waitForEndpoint currencyInstance1 "Create native token"
             void $ Simulator.callEndpointOnInstance currencyInstance1 "Create native token" SimpleMPS {tokenName = "TestCurrency", amount = 10000000000}
             void $ Simulator.waitUntilFinished currencyInstance1

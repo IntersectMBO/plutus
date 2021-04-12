@@ -43,6 +43,7 @@ import qualified Ledger.Typed.Scripts         as Scripts
 import qualified Ledger.Value                 as V
 import qualified PlutusTx                     as PlutusTx
 import           PlutusTx.Prelude             hiding (Applicative (..), check)
+import           Schema                       (ToArgument, ToSchema)
 
 import qualified Data.ByteString.Char8        as C
 
@@ -73,7 +74,7 @@ data LockArgs =
         , lockArgsValue  :: Value
         -- ^ Value that is locked by the contract initially
         } deriving stock (Show, Generic)
-          deriving anyclass (ToJSON, FromJSON)
+          deriving anyclass (ToJSON, FromJSON, ToSchema, ToArgument)
 
 -- | Arguments for the @"guess"@ endpoint
 data GuessArgs =
@@ -85,7 +86,7 @@ data GuessArgs =
         , guessArgsValueTakenOut :: Value
         -- ^ How much to extract from the contract
         } deriving stock (Show, Generic)
-          deriving anyclass (ToJSON, FromJSON)
+          deriving anyclass (ToJSON, FromJSON, ToSchema, ToArgument)
 
 -- | The schema of the contract. It consists of the usual
 --   'BlockchainActions' plus the two endpoints @"lock"@
