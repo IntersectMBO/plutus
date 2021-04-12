@@ -54,7 +54,8 @@ import           Control.Monad                          ((>=>))
 import           Control.Monad.Freer
 import           Control.Monad.Freer.Error
 import qualified Data.Aeson                             as JSON
-import           Data.Foldable                          (toList)
+import           Data.Foldable                          (fold, toList)
+import qualified Data.Map                               as Map
 import           Data.Maybe                             (fromMaybe, mapMaybe)
 import           Data.Text                              (Text)
 import           Data.Text.Prettyprint.Doc              (Pretty (..), defaultLayoutOptions, layoutPretty, vsep)
@@ -64,7 +65,7 @@ import           Ledger.AddressMap                      (UtxoMap)
 import qualified Ledger.AddressMap                      as AM
 import           Ledger.Constraints.OffChain            (UnbalancedTx)
 import           Ledger.Index                           (ScriptValidationEvent, ValidationError)
-import           Ledger.Tx                              (Address, Tx (txFee), TxOut (..), TxOutTx (..))
+import           Ledger.Tx                              (Address, Tx (txFee), TxOut (..), TxOutTx (..), txId)
 import           Ledger.Value                           (Value)
 import           Plutus.Contract                        (Contract)
 import           Plutus.Contract.Effects.WriteTx        (HasWriteTx, pendingTransaction)
@@ -238,10 +239,10 @@ walletFunds = valueAtAddress . walletAddress
 
 -- | The fees paid by a wallet
 walletFees :: Wallet -> EmulatorEventFold Value
-walletFees = fmap (foldMap txFee) . walletTxWithAddedFees
-
-walletTxWithAddedFees :: Wallet -> EmulatorEventFold [Tx]
-walletTxWithAddedFees w = preMapMaybe (preview (eteEvent . walletEvent w . _TxBalanceLog . _AddedFees)) L.list
+walletFees w = succeededFees <$> walletSubmittedFees <*> validatedTransactions
+    where
+        succeededFees submitted = foldMap (\(i, _, _) -> fold (Map.lookup i submitted))
+        walletSubmittedFees = L.handles (eteEvent . walletEvent w . _TxBalanceLog . _AddedFees) . L.premap (\tx -> (txId tx, txFee tx)) $ L.map
 
 -- | Whether the wallet is watching an address
 walletWatchingAddress :: Wallet -> Address -> EmulatorEventFold Bool

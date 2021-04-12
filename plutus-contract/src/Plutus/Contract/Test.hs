@@ -491,6 +491,7 @@ assertOutcome contract inst p nm =
                 ]
         pure result
 
+-- | Check that the funds in the wallet have changed by the given amount, exluding fees.
 walletFundsChange :: Wallet -> Value -> TracePredicate
 walletFundsChange w dlt =
     flip postMapM (L.generalize $ (,) <$> Folds.walletFunds w <*> Folds.walletFees w) $ \(finalValue, fees) -> do
@@ -500,8 +501,6 @@ walletFundsChange w dlt =
         unless result $ do
             tell @(Doc Void) $ vsep $
                 [ "Expected funds of" <+> pretty w <+> "to change by"
-                , viaShow (initialValue P.+ dlt)
-                , viaShow (finalValue P.+ fees)
                 , " " <+> viaShow dlt
                 , "  (excluding" <+> viaShow (Ada.getLovelace (Ada.fromValue fees)) <+> "lovelace in fees)" ] ++
                 if initialValue == finalValue P.+ fees

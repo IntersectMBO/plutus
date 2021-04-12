@@ -270,7 +270,7 @@ txnFlowsTest =
 notifyWallet :: Property
 notifyWallet =
     checkPredicateGen Gen.generatorModel
-    (valueAtAddress (Wallet.walletAddress wallet1) (== initialBalance))
+    (walletFundsChange wallet1 mempty)
     (pure ())
 
 walletWatchinOwnAddress :: Property
@@ -281,7 +281,7 @@ walletWatchinOwnAddress =
 
 payToPubKeyScript :: Property
 payToPubKeyScript =
-    let hasInitialBalance w = valueAtAddress (Wallet.walletAddress w) (== initialBalance)
+    let hasInitialBalance w = walletFundsChange w mempty
     in checkPredicateGen Gen.generatorModel
         (hasInitialBalance wallet1
             .&&. hasInitialBalance wallet2
@@ -290,7 +290,7 @@ payToPubKeyScript =
 
 payToPubKeyScript2 :: Property
 payToPubKeyScript2 =
-    let hasInitialBalance w = valueAtAddress (Wallet.walletAddress w) (== initialBalance)
+    let hasInitialBalance w = walletFundsChange w mempty
     in checkPredicateGen Gen.generatorModel
         (hasInitialBalance wallet1
             .&&. hasInitialBalance wallet2

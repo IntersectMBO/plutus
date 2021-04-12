@@ -1,22 +1,22 @@
 Slot 00001: TxnValidate 4febabe136e65d5fb4683b378570e6f43f92056e489281ad2e6302a9fa127874
 Slot 00001: SlotAdd Slot 1
-Slot 00001: W1: TxSubmit: ad812d3671b51e884e1e62a66e0c7720a1cfd42dde7960d7add1ba19ab16a66f
-Slot 00002: TxnValidate ad812d3671b51e884e1e62a66e0c7720a1cfd42dde7960d7add1ba19ab16a66f
+Slot 00001: W1: TxSubmit: 98eb350e2ddc6c6a6042180429947383774b030b0075365369b39680de0e9c1d
+Slot 00002: TxnValidate 98eb350e2ddc6c6a6042180429947383774b030b0075365369b39680de0e9c1d
 Slot 00002: SlotAdd Slot 2
-Slot 00002: W2: TxSubmit: 3f101c5008dfd86e0dead7ffe8f16b980387dae453241806465614e9a48af2c4
-Slot 00003: TxnValidate 3f101c5008dfd86e0dead7ffe8f16b980387dae453241806465614e9a48af2c4
+Slot 00002: W2: TxSubmit: 6d1f9b391af4072c3e8f0ff3dfa36d394c9babdab64c1ab80d504ecf51425adf
+Slot 00003: TxnValidate 6d1f9b391af4072c3e8f0ff3dfa36d394c9babdab64c1ab80d504ecf51425adf
 Slot 00003: SlotAdd Slot 3
-Slot 00003: W3: TxSubmit: ad7cf8b7398d057b0a77a02503518e1889e0126f26cdbb7beb5943f40747efa1
-Slot 00004: TxnValidate ad7cf8b7398d057b0a77a02503518e1889e0126f26cdbb7beb5943f40747efa1
+Slot 00003: W3: TxSubmit: 359e0a5baa1824ba4919213be3bacb0cbc6a4387d3a208bb4b33d89581b3607e
+Slot 00004: TxnValidate 359e0a5baa1824ba4919213be3bacb0cbc6a4387d3a208bb4b33d89581b3607e
 Slot 00004: SlotAdd Slot 4
 Slot 00005: SlotAdd Slot 5
 Final balances
 Wallet 1: 
-    {, ""}: 100000000
+    {, ""}: 99999990
 Wallet 2: 
-    {, ""}: 100000000
+    {, ""}: 99999990
 Wallet 3: 
-    {, ""}: 100000000
+    {, ""}: 99999990
 Wallet 4: 
     {, ""}: 100000000
 Wallet 5: 
