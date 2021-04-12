@@ -91,6 +91,17 @@ rec {
 
   docs = import ./nix/docs.nix { inherit pkgs plutus; };
 
+  # Note: nix-build is not eager enough in evaluating `nix-build -A deployment` so 
+  # you need to specify a specific host. On hydra `pkgs.recurseIntoAttrs` solves
+  # this problem
+  deployment = pkgs.recurseIntoAttrs (pkgs.callPackage ./deployment/morph {
+    plutus = {
+      plutus-docs = docs;
+      inherit plutus-pab marlowe-app marlowe-companion-app
+        marlowe-dashboard marlowe-playground plutus-playground web-ghc;
+    };
+  });
+
   # This builds a vscode devcontainer that can be used with the plutus-starter project (or probably the plutus project itself).
   devcontainer = import ./nix/devcontainer/plutus-devcontainer.nix { inherit pkgs plutus; };
 }
