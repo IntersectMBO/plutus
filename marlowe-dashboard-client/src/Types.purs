@@ -1,26 +1,32 @@
 module Types
   ( WebData
+  , DecodedWebData
   , ContractInstanceId(..)
-  , contractInstanceIdFromString
   , MarloweParams
   , ValidatorHash
+  , MarloweData
   ) where
 
 -- this module is for miscellaneous types that don't belong anywhere else
 -- (or would lead to cyclic dependencies if put somewhere they might more naturall belong)
 import Prelude
+import Data.Either (Either)
 import Data.Generic.Rep (class Generic)
-import Data.Maybe (Maybe(..))
+import Data.List.NonEmpty (NonEmptyList)
 import Data.Newtype (class Newtype)
-import Data.UUID (UUID, parseUUID)
+import Data.UUID (UUID)
+import Foreign (ForeignError)
 import Foreign.Class (class Encode, class Decode)
 import Foreign.Generic (defaultOptions, genericDecode, genericEncode)
-import Marlowe.Semantics (CurrencySymbol)
+import Marlowe.Semantics (Contract, CurrencySymbol, State)
 import Network.RemoteData (RemoteData)
 import Servant.PureScript.Ajax (AjaxError)
 
 type WebData
   = RemoteData AjaxError
+
+type DecodedWebData
+  = RemoteData (Either AjaxError (NonEmptyList ForeignError))
 
 newtype ContractInstanceId
   = ContractInstanceId UUID
@@ -37,12 +43,7 @@ instance encodeContractInstanceId :: Encode ContractInstanceId where
 instance decodeContractInstanceId :: Decode ContractInstanceId where
   decode value = genericDecode defaultOptions value
 
-contractInstanceIdFromString :: String -> Maybe ContractInstanceId
-contractInstanceIdFromString contractInstanceIdString = case parseUUID contractInstanceIdString of
-  Just uuid -> Just $ ContractInstanceId uuid
-  _ -> Nothing
-
--- TODO: check serialization of this type works with the backend
+-- FIXME: check serialization of this type works with the backend
 newtype MarloweParams
   = MarloweParams
   { rolePayoutValidatorHash :: ValidatorHash
@@ -61,6 +62,25 @@ instance encodeMarloweParams :: Encode MarloweParams where
 instance decodeMarloweParams :: Decode MarloweParams where
   decode value = genericDecode defaultOptions value
 
--- TODO: check serialization of this type works with the backend
+-- FIXME: check serialization of this type works with the backend
 type ValidatorHash
   = String
+
+-- note: the wallet companion contract state has type `Map MarloweParams MarloweData`
+newtype MarloweData
+  = MarloweData
+  { marloweContract :: Contract
+  , marloweState :: State
+  }
+
+derive instance newtypeMarloweData :: Newtype MarloweData _
+
+derive instance eqMarloweData :: Eq MarloweData
+
+derive instance genericMarloweData :: Generic MarloweData _
+
+instance encodeMarloweData :: Encode MarloweData where
+  encode value = genericEncode defaultOptions value
+
+instance decodeMarloweData :: Decode MarloweData where
+  decode value = genericDecode defaultOptions value

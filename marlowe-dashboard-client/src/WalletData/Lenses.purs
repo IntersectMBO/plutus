@@ -14,9 +14,8 @@ module WalletData.Lenses
 import Data.Lens (Lens')
 import Data.Lens.Record (prop)
 import Data.Symbol (SProxy(..))
-import MainFrame.Types (WebData)
 import Marlowe.Semantics (Assets, PubKey)
-import Types (ContractInstanceId)
+import Types (ContractInstanceId, WebData)
 import WalletData.Types (NewWalletDetails, PubKeyHash, Wallet, WalletDetails, WalletInfo, WalletNickname)
 
 _walletNicknameString :: Lens' NewWalletDetails String

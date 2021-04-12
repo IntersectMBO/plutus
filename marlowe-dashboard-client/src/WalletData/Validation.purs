@@ -3,6 +3,7 @@ module WalletData.Validation
   , ContractInstanceIdError(..)
   , walletNicknameError
   , contractInstanceIdError
+  , parseContractInstanceId
   ) where
 
 import Prelude
@@ -12,9 +13,8 @@ import Data.Map (isEmpty, filter, member)
 import Data.Maybe (Maybe(..))
 import Data.String.CodeUnits (toCharArray)
 import Data.UUID (parseUUID)
-import MainFrame.Types (WebData)
 import Network.RemoteData (RemoteData(..))
-import Types (ContractInstanceId(..))
+import Types (ContractInstanceId(..), WebData)
 import WalletData.Types (WalletInfo, WalletNickname, WalletLibrary)
 
 data WalletNicknameError

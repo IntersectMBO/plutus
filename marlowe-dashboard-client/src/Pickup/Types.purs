@@ -1,6 +1,7 @@
 module Pickup.Types
   ( State
   , Card(..)
+  , PickupNewWalletContext(..)
   , Action(..)
   ) where
 
@@ -11,18 +12,25 @@ import WalletData.Types (WalletNickname, WalletDetails)
 
 type State
   = { card :: Maybe Card
+    , pickupWalletString :: String
     }
 
 data Card
-  = PickupNewWalletCard
+  = PickupNewWalletCard PickupNewWalletContext
   | PickupWalletCard WalletDetails
 
 derive instance eqCard :: Eq Card
 
+data PickupNewWalletContext
+  = WalletGenerated
+  | WalletFound
+
+derive instance eqPickupNewWalletContext :: Eq PickupNewWalletContext
+
 data Action
   = SetCard (Maybe Card)
   | GenerateNewWallet
-  | LookupWallet String
+  | SetPickupWalletString String
   | SetNewWalletNickname WalletNickname
   | SetNewWalletContractId String
   | PickupNewWallet
@@ -33,7 +41,7 @@ data Action
 instance actionIsEvent :: IsEvent Action where
   toEvent (SetCard _) = Just $ defaultEvent "SetPickupCard"
   toEvent GenerateNewWallet = Just $ defaultEvent "GenerateNewWallet"
-  toEvent (LookupWallet _) = Nothing
+  toEvent (SetPickupWalletString _) = Nothing
   toEvent (SetNewWalletNickname _) = Nothing
   toEvent (SetNewWalletContractId _) = Nothing
   toEvent PickupNewWallet = Just $ defaultEvent "PickupWallet"
