@@ -1,7 +1,9 @@
 { pkgs
 , iohkNix
+, gitignore-nix
 , fixStylishHaskell
 , fixPurty
+, fixPngOptimization
 , src
 , terraform
 , plutus-playground
@@ -16,13 +18,7 @@
 }:
 let
   inherit (pkgs) lib;
-  cleanSrc = lib.cleanSourceWith {
-    filter = lib.cleanSourceFilter;
-    inherit src;
-    # Otherwise this depends on the name in the parent directory, which reduces caching, and is
-    # particularly bad on Hercules, see https://github.com/hercules-ci/support/issues/40
-    name = "plutus";
-  };
+  cleanSrc = gitignore-nix.gitignoreSource src;
 in
 pkgs.recurseIntoAttrs {
   shellcheck = pkgs.callPackage iohkNix.tests.shellcheck { src = cleanSrc; };
@@ -40,6 +36,11 @@ pkgs.recurseIntoAttrs {
   nixpkgsFmt = pkgs.callPackage ./nixpkgs-fmt.nix {
     src = cleanSrc;
     inherit (pkgs) nixpkgs-fmt;
+  };
+
+  pngOptimization = pkgs.callPackage ./png-optimization.nix {
+    src = cleanSrc;
+    inherit fixPngOptimization;
   };
 
   terraform = pkgs.callPackage ./terraform.nix {
