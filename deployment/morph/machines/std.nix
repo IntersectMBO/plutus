@@ -1,8 +1,6 @@
 { config, lib, pkgs, ... }:
 {
 
-  imports = [ <nixpkgs/nixos/modules/virtualisation/amazon-image.nix> ];
-
   ec2.hvm = true;
 
   nixpkgs.localSystem.system = "x86_64-linux";

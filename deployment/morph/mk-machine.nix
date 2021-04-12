@@ -7,6 +7,7 @@
 # - adds plutus specific packages through an overlay
 { config, name }: {
   imports = extraImports ++ [
+    (pkgs.path + "/nixos/modules/virtualisation/amazon-image.nix")
     config
     ({ lib, config, ... }:
       {
