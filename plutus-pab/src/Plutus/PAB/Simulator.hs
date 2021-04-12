@@ -223,7 +223,7 @@ mkSimulatorHandlers definitions handleContractEffect =
 -- | 'EffectHandlers' for running the PAB as a simulator (no connectivity to
 --   out-of-process services such as wallet backend, node, etc.)
 simulatorHandlers :: EffectHandlers (Builtin TestContracts) (SimulatorState (Builtin TestContracts))
-simulatorHandlers = mkSimulatorHandlers @(Builtin TestContracts) [Game, Currency, AtomicSwap] handler where
+simulatorHandlers = mkSimulatorHandlers @(Builtin TestContracts) [GameStateMachine, Currency, AtomicSwap] handler where
     handler :: SimulatorContractHandler (Builtin TestContracts)
     handler = interpret handleContractTest
 
