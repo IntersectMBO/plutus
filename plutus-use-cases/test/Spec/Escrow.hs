@@ -34,7 +34,7 @@ tests = testGroup "escrow"
         ( assertDone con (Trace.walletInstanceTag w3) (const True) "escrow redeem not done"
           .&&. walletFundsChange w1 (Ada.lovelaceValueOf (-10))
           .&&. walletFundsChange w2 (Ada.lovelaceValueOf 10)
-          .&&. walletFundsChange w3 (Ada.lovelaceValueOf 0)
+          .&&. walletFundsChange w3 mempty
         )
         redeemTrace
 
@@ -65,7 +65,7 @@ tests = testGroup "escrow"
 
     , let con = void $ payEp @()  @EscrowSchema @EscrowError escrowParams >> refundEp escrowParams in
       checkPredicate "can refund"
-        ( walletFundsChange w1 (Ada.lovelaceValueOf 0)
+        ( walletFundsChange w1 mempty
           .&&. assertDone con (Trace.walletInstanceTag w1) (const True) "refund should succeed")
         refundTrace
 

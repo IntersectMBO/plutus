@@ -243,10 +243,6 @@ hasFundsDistribution requiredDistribution (Right InterpreterResult {result = Eva
         Text.putStrLn $
             either id id $ showBlockchain walletKeys $ fmap (fmap tx) resultRollup
         traverse_ print $ reverse emulatorLog
-        Text.putStrLn "#### fees"
-        print feesDistribution
-        Text.putStrLn "#### funds"
-        print fundsDistribution
     assertEqual "" requiredDistribution noFeesDistribution
 
 errorHandlingTest :: TestTree
@@ -260,17 +256,17 @@ crowdfundingTest =
         , testCase "should run successful campaign" $
           evaluate successfulCampaign >>=
           hasFundsDistribution
-              [ mkSimulatorWallet w1 $ lovelaceValueOf 60
-              , mkSimulatorWallet w2 $ lovelaceValueOf 19
-              , mkSimulatorWallet w3 $ lovelaceValueOf 20
-              , mkSimulatorWallet w4 $ lovelaceValueOf 21
+              [ mkSimulatorWallet w1 $ lovelaceValueOf 600
+              , mkSimulatorWallet w2 $ lovelaceValueOf 190
+              , mkSimulatorWallet w3 $ lovelaceValueOf 200
+              , mkSimulatorWallet w4 $ lovelaceValueOf 210
               ]
         , testCase "should run failed campaign and return the funds" $
           evaluate failedCampaign >>=
           hasFundsDistribution
-              [ mkSimulatorWallet w1 $ lovelaceValueOf 50
-              , mkSimulatorWallet w2 $ lovelaceValueOf 50
-              , mkSimulatorWallet w3 $ lovelaceValueOf 50
+              [ mkSimulatorWallet w1 $ lovelaceValueOf 300
+              , mkSimulatorWallet w2 $ lovelaceValueOf 300
+              , mkSimulatorWallet w3 $ lovelaceValueOf 300
               ]
         ]
   where
@@ -278,17 +274,17 @@ crowdfundingTest =
     successfulCampaign =
         Evaluation
             { wallets =
-                  [ mkSimulatorWallet w1 $ lovelaceValueOf 30
-                  , mkSimulatorWallet w2 $ lovelaceValueOf 30
-                  , mkSimulatorWallet w3 $ lovelaceValueOf 30
-                  , mkSimulatorWallet w4 $ lovelaceValueOf 30
+                  [ mkSimulatorWallet w1 $ lovelaceValueOf 300
+                  , mkSimulatorWallet w2 $ lovelaceValueOf 300
+                  , mkSimulatorWallet w3 $ lovelaceValueOf 300
+                  , mkSimulatorWallet w4 $ lovelaceValueOf 300
                   ]
             , program =
                   toJSONString
                       [ scheduleCollection w1
-                      , contribute w2 $ lovelaceValueOf 11
-                      , contribute w3 $ lovelaceValueOf 10
-                      , contribute w4 $ lovelaceValueOf 9
+                      , contribute w2 $ lovelaceValueOf 110
+                      , contribute w3 $ lovelaceValueOf 100
+                      , contribute w4 $ lovelaceValueOf 90
                       , AddBlocks 1
                       , AddBlocksUntil 40
                       , AddBlocks 1
@@ -298,14 +294,14 @@ crowdfundingTest =
     failedCampaign =
         Evaluation
             { wallets =
-                  [ mkSimulatorWallet w1 $ lovelaceValueOf 50
-                  , mkSimulatorWallet w2 $ lovelaceValueOf 50
-                  , mkSimulatorWallet w3 $ lovelaceValueOf 50
+                  [ mkSimulatorWallet w1 $ lovelaceValueOf 300
+                  , mkSimulatorWallet w2 $ lovelaceValueOf 300
+                  , mkSimulatorWallet w3 $ lovelaceValueOf 300
                   ]
             , program =
                   toJSONString
                       [ scheduleCollection w1
-                      , contribute w2 $ lovelaceValueOf 10
+                      , contribute w2 $ lovelaceValueOf 100
                       , AddBlocks 1
                       , AddBlocksUntil 40
                       , AddBlocksUntil 60

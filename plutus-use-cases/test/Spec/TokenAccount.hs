@@ -50,7 +50,7 @@ tests = testGroup "token account"
         (assertNoFailedTransactions
         .&&. assertNotDone contract (Trace.walletInstanceTag w1) "contract should not have any errors"
         .&&. walletFundsChange w1 (Ada.lovelaceValueOf (-10))
-        .&&. walletFundsChange w2 (Ada.lovelaceValueOf 10 <> theToken)
+        .&&. walletFundsChange w2 (theToken <> Ada.lovelaceValueOf 10)
         )
         tokenAccountTrace
 
