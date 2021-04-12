@@ -23,7 +23,7 @@
 let
   inherit (packages) pkgs plutus sources;
   inherit (pkgs) lib haskell-nix;
-  inherit (plutus) haskell iohkNix git-rev set-git-rev agdaPackages;
+  inherit (plutus) haskell iohkNix agdaPackages;
   inherit (plutus) easyPS sphinxcontrib-haddock;
 in
 rec {
@@ -49,14 +49,14 @@ rec {
 
     inherit (pkgs.callPackage ./plutus-playground-client {
       inherit (plutus.lib) buildPursPackage buildNodeModules filterNpm gitignore-nix;
-      inherit set-git-rev haskell webCommon webCommonPlutus webCommonPlayground;
+      inherit haskell webCommon webCommonPlutus webCommonPlayground;
     }) client server generate-purescript start-backend;
   };
 
   marlowe-playground = pkgs.recurseIntoAttrs rec {
     inherit (pkgs.callPackage ./marlowe-playground-client {
       inherit (plutus.lib) buildPursPackage buildNodeModules filterNpm gitignore-nix;
-      inherit set-git-rev haskell webCommon webCommonMarlowe webCommonPlayground;
+      inherit haskell webCommon webCommonMarlowe webCommonPlayground;
     }) client server generate-purescript start-backend;
   };
 
@@ -77,7 +77,7 @@ rec {
 
   plutus-pab = pkgs.recurseIntoAttrs (pkgs.callPackage ./plutus-pab-client {
     inherit (plutus.lib) buildPursPackage buildNodeModules gitignore-nix filterNpm;
-    inherit set-git-rev haskell webCommon webCommonPlutus;
+    inherit haskell webCommon webCommonPlutus;
   });
 
   tests = import ./nix/tests/default.nix {

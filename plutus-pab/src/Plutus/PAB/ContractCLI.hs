@@ -39,10 +39,9 @@ import           Data.Proxy               (Proxy (..))
 import           Data.Row                 (AllUniqueLabels, Forall, type (.\\))
 import           Data.Text                (Text)
 import qualified Data.Text                as Text
-import           Git                      (gitRev)
 import           Options.Applicative      (CommandFields, Mod, Parser, command, customExecParser, disambiguate,
-                                           fullDesc, help, helper, idm, info, infoOption, long, prefs, progDesc, short,
-                                           showHelpOnEmpty, showHelpOnError, subparser)
+                                           fullDesc, helper, idm, info, prefs, progDesc, showHelpOnEmpty,
+                                           showHelpOnError, subparser)
 import           Playground.Schema        (EndpointToSchema, endpointsToSchemas)
 import           Plutus.Contract          (BlockchainActions, Contract)
 import           Plutus.Contract.Schema   (Input, Output)
@@ -55,12 +54,6 @@ data Command
     | Update
     | ExportSignature
     deriving (Show, Eq)
-
-versionOption :: Parser (a -> a)
-versionOption =
-    infoOption
-        (Text.unpack gitRev)
-        (short 'v' <> long "version" <> help "Show the version")
 
 commandLineParser :: Parser Command
 commandLineParser = subparser $ mconcat [initialiseParser, updateParser, exportSignatureParser]
@@ -156,7 +149,7 @@ commandLineApp' p schema = do
     cmd <-
         customExecParser
             (prefs $ disambiguate <> showHelpOnEmpty <> showHelpOnError)
-            (info (helper <*> versionOption <*> commandLineParser) idm)
+            (info (helper <*> commandLineParser) idm)
     result <- runCliCommand p schema cmd
     case result of
         Left err -> do
