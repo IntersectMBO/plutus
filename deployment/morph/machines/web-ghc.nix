@@ -2,6 +2,7 @@
 {
 
   imports = [
+    ./std.nix
     ../../../nix/modules/web-ghc.nix
   ];
 

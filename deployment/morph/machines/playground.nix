@@ -5,6 +5,7 @@ in
 {
 
   imports = [
+    ./std.nix
     ../../../nix/modules/plutus-playground.nix
     ../../../nix/modules/marlowe-playground.nix
   ];

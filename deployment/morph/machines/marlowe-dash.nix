@@ -1,6 +1,7 @@
 { pkgs, config, lib, ... }:
 {
   imports = [
+    ./std.nix
     ../../../nix/modules/pab.nix
   ];
 
