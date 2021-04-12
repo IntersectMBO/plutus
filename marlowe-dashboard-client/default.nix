@@ -36,7 +36,7 @@ let
     ${plutus-pab.server-invoker}/bin/plutus-pab contracts install --path ${marlowe-companion-app}/bin/marlowe-companion-app
   '';
 in
-  {
-    inherit (plutus-pab) server-invoker generated-purescript generate-purescript start-backend;
-    inherit client contractsJSON;
-  }
+{
+  inherit (plutus-pab) server-invoker generated-purescript generate-purescript start-backend;
+  inherit client contractsJSON install-marlowe-contracts;
+}
