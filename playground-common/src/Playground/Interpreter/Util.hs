@@ -77,6 +77,9 @@ playgroundDecode expected input =
 funds :: [Wallet] -> EmulatorEventFoldM effs (Map Wallet Value)
 funds = L.generalize . sequenceA . Map.fromList . fmap (\w -> (w, Folds.walletFunds w))
 
+fees :: [Wallet] -> EmulatorEventFoldM effs (Map Wallet Value)
+fees = L.generalize . sequenceA . Map.fromList . fmap (\w -> (w, Folds.walletFees w))
+
 renderInstanceTrace :: [ContractInstanceTag] -> EmulatorEventFoldM effs Text
 renderInstanceTrace =
     L.generalize
@@ -101,6 +104,7 @@ evaluationResultFold wallets =
             <*> L.generalize (filter isInteresting <$> Folds.emulatorLog)
             <*> renderInstanceTrace (walletInstanceTag <$> wallets)
             <*> fmap (fmap (uncurry SimulatorWallet) . Map.toList) (funds wallets)
+            <*> fmap (fmap (uncurry SimulatorWallet) . Map.toList) (fees wallets)
             <*> pure (fmap pkh wallets)
 
 -- | Evaluate a JSON payload from the Playground frontend against a given contract schema.

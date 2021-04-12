@@ -41,7 +41,7 @@ import           Playground.Types                       (CompilationResult (Comp
                                                          PlaygroundError (InterpreterError),
                                                          SimulatorWallet (SimulatorWallet), adaCurrency, argument,
                                                          argumentValues, caller, emulatorLog, endpointDescription,
-                                                         fundsDistribution, program, resultRollup,
+                                                         feesDistribution, fundsDistribution, program, resultRollup,
                                                          simulatorWalletBalance, simulatorWalletWallet, sourceCode,
                                                          walletKeys, wallets)
 import           Playground.Usecases                    (crowdFunding, errorHandling, game, vesting)
@@ -237,11 +237,17 @@ hasFundsDistribution ::
     -> Assertion
 hasFundsDistribution _ (Left err) = assertFailure $ show err
 hasFundsDistribution requiredDistribution (Right InterpreterResult {result = EvaluationResult {..}}) = do
-    unless (requiredDistribution == fundsDistribution) $ do
+    let addFees fund fee = fund { simulatorWalletBalance = simulatorWalletBalance fund <> simulatorWalletBalance fee }
+    let noFeesDistribution = zipWith addFees fundsDistribution feesDistribution
+    unless (requiredDistribution == noFeesDistribution) $ do
         Text.putStrLn $
             either id id $ showBlockchain walletKeys $ fmap (fmap tx) resultRollup
         traverse_ print $ reverse emulatorLog
-    assertEqual "" requiredDistribution fundsDistribution
+        Text.putStrLn "#### fees"
+        print feesDistribution
+        Text.putStrLn "#### funds"
+        print fundsDistribution
+    assertEqual "" requiredDistribution noFeesDistribution
 
 errorHandlingTest :: TestTree
 errorHandlingTest = testGroup "errorHandling" [compilationChecks errorHandling]
@@ -262,13 +268,12 @@ crowdfundingTest =
         , testCase "should run failed campaign and return the funds" $
           evaluate failedCampaign >>=
           hasFundsDistribution
-              [ mkSimulatorWallet w1 $ lovelaceValueOf 20
-              , mkSimulatorWallet w2 $ lovelaceValueOf 20
-              , mkSimulatorWallet w3 $ lovelaceValueOf 20
+              [ mkSimulatorWallet w1 $ lovelaceValueOf 50
+              , mkSimulatorWallet w2 $ lovelaceValueOf 50
+              , mkSimulatorWallet w3 $ lovelaceValueOf 50
               ]
         ]
   where
-    twentyLovelace = lovelaceValueOf 20
     sourceCode = crowdFunding
     successfulCampaign =
         Evaluation
@@ -293,9 +298,9 @@ crowdfundingTest =
     failedCampaign =
         Evaluation
             { wallets =
-                  [ mkSimulatorWallet w1 twentyLovelace
-                  , mkSimulatorWallet w2 twentyLovelace
-                  , mkSimulatorWallet w3 twentyLovelace
+                  [ mkSimulatorWallet w1 $ lovelaceValueOf 50
+                  , mkSimulatorWallet w2 $ lovelaceValueOf 50
+                  , mkSimulatorWallet w3 $ lovelaceValueOf 50
                   ]
             , program =
                   toJSONString

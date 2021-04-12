@@ -44,8 +44,7 @@ import qualified PlutusTx                           as PlutusTx
 data GameModel = GameModel
     { _gameValue     :: Integer
     , _hasToken      :: Maybe Wallet
-    , _currentSecret :: String
-    , _txCount       :: Integer }
+    , _currentSecret :: String }
     deriving (Show)
 
 makeLenses 'GameModel
@@ -68,7 +67,6 @@ instance ContractModel GameModel where
         { _gameValue     = 0
         , _hasToken      = Nothing
         , _currentSecret = ""
-        , _txCount       = 0
         }
 
     -- 'perform' gets a state, which includes the GameModel state, but also contract handles for the
@@ -92,7 +90,6 @@ instance ContractModel GameModel where
     -- 'nextState' descibes how each command affects the state of the model
 
     nextState (Lock w secret val) = do
-        txCount       $~ (+ 2)
         hasToken      $= Just w
         currentSecret $= secret
         gameValue     $= val
@@ -104,14 +101,12 @@ instance ContractModel GameModel where
     nextState (Guess w old new val) = do
         correct <- (old ==) <$> viewContractState currentSecret
         when correct $ do
-            txCount       $~ (+ 1)
             currentSecret $= new
             gameValue     $~ subtract val
             deposit w $ Ada.lovelaceValueOf val
         wait 1
 
     nextState (GiveToken w) = do
-        txCount $~ (+ 1)
         w0 <- fromJust <$> viewContractState hasToken
         transfer w0 w gameTokenVal
         hasToken $= Just w
