@@ -355,7 +355,7 @@ contractForDifferences =
     const counterparty: Party = Role("Counterparty");
     const oracle: Party = Role("Oracle");
 
-    const depositAmount: bigint = 100000000n;
+    const depositAmount: bigint = 100_000_000n;
     const deposit: Value = Constant(depositAmount);
     const doubleDeposit: Value = Constant(depositAmount * 2n);
 
@@ -374,7 +374,7 @@ contractForDifferences =
 
     function oracleInput(choiceId: ChoiceId, timeout: ETimeout, timeoutContinuation: Contract,
         continuation: Contract): Contract {
-        return When([Case(Choice(choiceId, [Bound(0, 1000000000)]), continuation)],
+        return When([Case(Choice(choiceId, [Bound(0n, 1_000_000_000n)]), continuation)],
             timeout, timeoutContinuation);
     }
 
