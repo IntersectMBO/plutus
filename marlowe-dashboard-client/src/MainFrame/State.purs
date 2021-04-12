@@ -227,8 +227,8 @@ handleAction (PickupAction (Pickup.PickupWallet walletDetails)) = do
       -- subscribe to the wallet to get updates about balance changes
       subscribeToWallet wallet
       liftEffect $ setItem walletDetailsLocalStorageKey $ encodeJSON updatedWalletDetails
-    _ -> -- TODO: show errors to the user
-      pure unit
+    -- TODO: show errors to the user
+    _ -> pure unit
 
 handleAction (PickupAction Pickup.GenerateNewWallet) = do
   remoteDataWalletInfo <- createWallet
