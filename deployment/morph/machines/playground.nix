@@ -78,7 +78,7 @@ in
               '';
             };
             "^~ /doc/" = {
-              alias = "${pkgs.docs.site}/";
+              alias = "${pkgs.plutus-docs.site}/";
               extraConfig = ''
                 error_page 404 = @fallback;
               '';
@@ -109,7 +109,7 @@ in
               '';
             };
             "^~ /doc/" = {
-              alias = "${pkgs.docs.site}/";
+              alias = "${pkgs.plutus-docs.site}/";
               extraConfig = ''
                 error_page 404 = @fallback;
               '';
