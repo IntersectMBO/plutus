@@ -44,6 +44,13 @@ let
         excludes = [ ".*nix/pkgs/haskell/materialized.*/.*" ".*nix/sources.nix$" ".*/spago-packages.nix$" ".*/packages.nix$" ];
       };
       shellcheck.enable = true;
+      png-optimization = {
+        enable = true;
+        name = "png-optimization";
+        description = "Ensure that PNG files are optimized";
+        entry = "${pkgs.optipng}/bin/optipng";
+        files = "\\.png$";
+      };
     };
   };
 
