@@ -76,10 +76,14 @@ We model Oracles as choices that made by a participant with a specific
 Oracle role, "kraken".
 
 If a role in a contract is ``"kraken"``, and that role makes a choice
-such as ``"adausdt"`` then, in the Playground simulation, this choice
+such as ``"dir-adausd"`` then, in the Playground simulation, this choice
 will be *pre-filled*, based on data from Cryptowat.ch, with the current
-value of the ADA/USD conversion rate. You can find all supported
+value of the *direct* ADA/USD conversion rate. You can find all supported
 currency pairs here https://api.cryptowat.ch/markets/kraken
+
+It is also possible to obtain the *inverse* rates of currency pairs listed
+by adding the prefix ``inv-`` instead. For example, ``"inv-adausd"`` would
+return the value of the USD/ADA conversion rate.
 
 Note, that we support only whole numbers as choice inputs. How then do
 we use current ADA/USD price, which is $0.098924? We simply multiply the
@@ -92,7 +96,7 @@ Get the price:
 
 ::
 
-   When [Choice (ChoiceId "adausdt" (Role "kraken") [Bound 1000000 10000000] ...
+   When [Choice (ChoiceId "dir-adausdt" (Role "kraken") [Bound 1000000 10000000] ...
 
 Calculate USDT amount
 
@@ -101,7 +105,7 @@ Calculate USDT amount
    Let (ValueId "amount of USDT in microcents")
      (MulValue
        (Constant 12)
-       (ChoiceValue (ChoiceId "adausdt" (Role "kraken"))))
+       (ChoiceValue (ChoiceId "dir-adausdt" (Role "kraken"))))
 
 Scale the result down by 10\ :sup:`6` to get amount in USDT cents.
 
