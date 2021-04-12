@@ -82,6 +82,7 @@
           "Marlowe/Mermaid"
           "Server"
           "ContractForDifferences"
+          "ContractForDifferencesWithOracle"
           "CouponBondGuaranteed"
           "Escrow"
           "EscrowWithCollateral"
@@ -143,6 +144,7 @@
             "Swap"
             "Option"
             "ContractForDifferences"
+            "ContractForDifferencesWithOracle"
             ];
           hsSourceDirs = [ "app" "contracts" ];
           mainPath = [ "Main.hs" ];

@@ -452,3 +452,121 @@ contractForDifferences =
     return contract;
 
 """
+
+contractForDifferencesWithOracle :: String
+contractForDifferencesWithOracle =
+  """
+
+    /* We can set explicitRefunds true to run Close refund analysis
+       but we get a shorter contract if we set it to false */
+    const explicitRefunds: Boolean = false;
+
+    const party: Party = Role("Party");
+    const counterparty: Party = Role("Counterparty");
+    const oracle: Party = Role("kraken");
+
+    const depositAmount: bigint = 100_000_000n;
+    const deposit: Value = Constant(depositAmount);
+    const doubleDeposit: Value = Constant(depositAmount * 2n);
+
+    const priceBeginning: Value = Constant(100_000_000n);
+    const priceEnd: ValueId = ValueId("Price at end");
+
+    const exchangeBeginning: ChoiceId = ChoiceId("dir-adausd", oracle);
+    const exchangeEnd: ChoiceId = ChoiceId("inv-adausd", oracle);
+
+    const decreaseInPrice: ValueId = "Decrease in price";
+    const increaseInPrice: ValueId = "Increase in price";
+
+    function initialDeposit(by: Party, timeout: ETimeout, timeoutContinuation: Contract,
+        continuation: Contract): Contract {
+        return When([Case(Deposit(by, by, ada, deposit), continuation)],
+            timeout,
+            timeoutContinuation);
+    }
+
+    function oracleInput(choiceId: ChoiceId, timeout: ETimeout, timeoutContinuation: Contract,
+        continuation: Contract): Contract {
+        return When([Case(Choice(choiceId, [Bound(0n, 100_000_000_000n)]), continuation)],
+            timeout, timeoutContinuation);
+    }
+
+    function wait(timeout: ETimeout, continuation: Contract): Contract {
+        return When([], timeout, continuation);
+    }
+
+    function gtLtEq(value1: Value, value2: Value, gtContinuation: Contract,
+        ltContinuation: Contract, eqContinuation: Contract): Contract {
+        return If(ValueGT(value1, value2), gtContinuation
+            , If(ValueLT(value1, value2), ltContinuation,
+                eqContinuation))
+    }
+
+    function recordDelta(name: ValueId, choiceId1: ChoiceId, choiceId2: ChoiceId,
+        continuation: Contract): Contract {
+        return Let(name, Scale(1n, 100_000_000n, MulValue(ChoiceValue(choiceId1), ChoiceValue(choiceId2))),
+            continuation);
+    }
+
+    function recordDifference(name: ValueId, val1: Value, val2: Value,
+        continuation: Contract): Contract {
+        return Let(name, SubValue(val1, val2), continuation);
+    }
+
+    function transferUpToDeposit(from: Party, to: Party, amount: Value, continuation: Contract): Contract {
+        return Pay(from, Account(to), ada, Cond(ValueLT(amount, deposit), amount, deposit), continuation);
+    }
+
+    function refund(who: Party, amount: Value, continuation: Contract): Contract {
+        if (explicitRefunds) {
+            return Pay(who, Party(who), ada, amount,
+                continuation);
+        } else {
+            return continuation;
+        }
+    }
+
+    const refundBoth: Contract = refund(party, deposit, refund(counterparty, deposit, Close));
+
+    function refundIfGtZero(who: Party, amount: Value, continuation: Contract): Contract {
+        if (explicitRefunds) {
+            return If(ValueGT(amount, Constant(0n)), refund(who, amount, continuation), continuation);
+        } else {
+            return continuation;
+        }
+    }
+
+    function refundUpToDoubleOfDeposit(who: Party, amount: Value, continuation: Contract): Contract {
+        if (explicitRefunds) {
+            return refund(who, Cond(ValueGT(amount, doubleDeposit), doubleDeposit, amount),
+                continuation);
+        } else {
+            return continuation;
+        }
+    }
+
+    function refundAfterDifference(payer: Party, payee: Party, difference: Value): Contract {
+        return refundIfGtZero(payer, SubValue(deposit, difference),
+            refundUpToDoubleOfDeposit(payee, AddValue(deposit, difference),
+                Close));
+    }
+
+    const contract: Contract =
+        initialDeposit(party, 30n, Close,
+            initialDeposit(counterparty, 60n, refund(party, deposit, Close),
+                oracleInput(exchangeBeginning, 90n, refundBoth,
+                    wait(150n,
+                        oracleInput(exchangeEnd, 180n, refundBoth,
+                            recordDelta(priceEnd, exchangeBeginning, exchangeEnd,
+                                gtLtEq(priceBeginning, UseValue(priceEnd),
+                                    recordDifference(decreaseInPrice, priceBeginning, UseValue(priceEnd),
+                                        transferUpToDeposit(counterparty, party, UseValue(decreaseInPrice),
+                                            refundAfterDifference(counterparty, party, UseValue(decreaseInPrice)))),
+                                    recordDifference(increaseInPrice, UseValue(priceEnd), priceBeginning,
+                                        transferUpToDeposit(party, counterparty, UseValue(increaseInPrice),
+                                            refundAfterDifference(party, counterparty, UseValue(increaseInPrice)))),
+                                    refundBoth
+                                )))))));
+
+    return contract;
+"""
