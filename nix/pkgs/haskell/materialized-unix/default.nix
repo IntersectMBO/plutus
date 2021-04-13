@@ -710,6 +710,7 @@
         byron-spec-chain = ./.plan.nix/byron-spec-chain.nix;
         cardano-crypto-praos = ./.plan.nix/cardano-crypto-praos.nix;
         plutus-ledger = ./.plan.nix/plutus-ledger.nix;
+        quickcheck-dynamic = ./.plan.nix/quickcheck-dynamic.nix;
         contra-tracer = ./.plan.nix/contra-tracer.nix;
         shelley-spec-non-integral = ./.plan.nix/shelley-spec-non-integral.nix;
         lobemo-backend-ekg = ./.plan.nix/lobemo-backend-ekg.nix;
@@ -804,6 +805,7 @@
           "plutus-ledger" = {
             flags = { "defer-plugin-errors" = lib.mkOverride 900 false; };
             };
+          "quickcheck-dynamic" = { flags = {}; };
           "contra-tracer" = { flags = {}; };
           "shelley-spec-non-integral" = {
             flags = { "development" = lib.mkOverride 900 false; };

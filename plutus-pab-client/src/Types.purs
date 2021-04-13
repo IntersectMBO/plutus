@@ -11,6 +11,7 @@ import Data.Bifunctor (lmap)
 import Data.Generic.Rep (class Generic)
 import Data.Generic.Rep.Show (genericShow)
 import Data.Json.JsonUUID (JsonUUID, _JsonUUID)
+import Data.Json.JsonTuple (JsonTuple)
 import Data.Lens (Getter', Traversal', Lens', to, traversed)
 import Data.Lens.Iso.Newtype (_Newtype)
 import Data.Lens.Record (prop)
@@ -30,10 +31,11 @@ import Network.RemoteData (RemoteData)
 import Network.StreamData (StreamData)
 import Network.StreamData as Stream
 import Playground.Types (FunctionSchema)
-import Plutus.PAB.Events (ChainEvent)
-import Plutus.PAB.Events.Contract (ContractInstanceState, ContractPABRequest, PartiallyDecodedResponse, _ContractInstanceState, _UserEndpointRequest)
-import Plutus.PAB.Types (ContractExe)
-import Plutus.PAB.Webserver.Types (ChainReport, ContractReport, ContractSignatureResponse, StreamToClient, StreamToServer, _ChainReport, _ContractReport, _ContractSignatureResponse)
+import Plutus.PAB.Events (PABEvent)
+import Plutus.PAB.Events.Contract (ContractPABRequest, _UserEndpointRequest)
+import Plutus.PAB.Effects.Contract.ContractExe (ContractExe)
+import Plutus.PAB.Events.ContractInstanceState (PartiallyDecodedResponse)
+import Plutus.PAB.Webserver.Types (ChainReport, ContractReport, ContractSignatureResponse, _ChainReport, _ContractReport, _ContractSignatureResponse, CombinedWSStreamToClient, CombinedWSStreamToServer)
 import Schema (FormSchema)
 import Schema.Types (FormArgument, FormEvent)
 import Servant.PureScript.Ajax (AjaxError)
@@ -44,10 +46,10 @@ import Web.Socket.Event.CloseEvent (CloseEvent, reason) as WS
 import WebSocket.Support (FromSocket) as WS
 
 data Query a
-  = ReceiveWebSocketMessage (WS.FromSocket StreamToClient) a
+  = ReceiveWebSocketMessage (WS.FromSocket CombinedWSStreamToClient) a
 
 data Output
-  = SendWebSocketMessage StreamToServer
+  = SendWebSocketMessage CombinedWSStreamToServer
 
 data StreamError
   = DecodingError MultipleErrors
@@ -74,7 +76,7 @@ data HAction
   | InvokeContractEndpoint ContractInstanceId EndpointForm
 
 type ContractStates
-  = Map ContractInstanceId (WebStreamData (ContractInstanceState ContractExe /\ Array EndpointForm))
+  = Map ContractInstanceId (WebStreamData (PartiallyDecodedResponse ContractPABRequest /\ Array EndpointForm))
 
 type ContractSignatures
   = Array (ContractSignatureResponse ContractExe)
@@ -95,10 +97,10 @@ newtype State
   { currentView :: View
   , contractSignatures :: WebStreamData ContractSignatures
   , chainReport :: WebData ChainReport
-  , events :: WebData (Array (ChainEvent ContractExe))
+  , events :: WebData (Array (PABEvent ContractExe))
   , chainState :: Chain.State
   , contractStates :: ContractStates
-  , webSocketMessage :: WebStreamData StreamToClient
+  , webSocketMessage :: WebStreamData CombinedWSStreamToClient
   , webSocketStatus :: WebSocketStatus
   , metadata :: Map Metadata.Subject (Map PropertyKey Property)
   }
@@ -157,21 +159,18 @@ _utxoIndex = _ChainReport <<< prop (SProxy :: SProxy "utxoIndex")
 _crAvailableContracts :: forall t. Lens' (ContractReport t) (Array (ContractSignatureResponse t))
 _crAvailableContracts = _ContractReport <<< prop (SProxy :: SProxy "crAvailableContracts")
 
-_crActiveContractStates :: forall t. Lens' (ContractReport t) (Array (ContractInstanceState t))
+_crActiveContractStates :: forall t. Lens' (ContractReport t) (Array (JsonTuple ContractInstanceId (PartiallyDecodedResponse ContractPABRequest)))
 _crActiveContractStates = _ContractReport <<< prop (SProxy :: SProxy "crActiveContractStates")
 
 _csrDefinition :: forall t. Lens' (ContractSignatureResponse t) t
 _csrDefinition = _ContractSignatureResponse <<< prop (SProxy :: SProxy "csrDefinition")
 
-_csContract :: forall t. Lens' (ContractInstanceState t) ContractInstanceId
-_csContract = _Newtype <<< prop (SProxy :: SProxy "csContract")
-
-_csCurrentState :: forall t. Lens' (ContractInstanceState t) (PartiallyDecodedResponse ContractPABRequest)
-_csCurrentState = _Newtype <<< prop (SProxy :: SProxy "csCurrentState")
-
-_csContractDefinition :: forall t. Lens' (ContractInstanceState t) t
-_csContractDefinition = _ContractInstanceState <<< prop (SProxy :: SProxy "csContractDefinition")
-
+-- _csContract :: forall t. Lens' (ContractInstanceState t) ContractInstanceId
+-- _csContract = _Newtype <<< prop (SProxy :: SProxy "csContract")
+-- _csCurrentState :: forall t. Lens' (ContractInstanceState t) (PartiallyDecodedResponse ContractPABRequest)
+-- _csCurrentState = _Newtype <<< prop (SProxy :: SProxy "csCurrentState")
+-- _csContractDefinition :: forall t. Lens' (ContractInstanceState t) t
+-- _csContractDefinition = _ContractInstanceState <<< prop (SProxy :: SProxy "csContractDefinition")
 _hooks :: forall t. Lens' (PartiallyDecodedResponse t) (Array (Request t))
 _hooks = _Newtype <<< prop (SProxy :: SProxy "hooks")
 

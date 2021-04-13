@@ -27,10 +27,12 @@ let
               (self: super: {
                 plutus-pab = plutus.plutus-pab;
                 marlowe-app = plutus.marlowe-app;
+                marlowe-companion-app = plutus.marlowe-companion-app;
                 marlowe-dashboard = plutus.marlowe-dashboard;
                 marlowe-playground = plutus.marlowe-playground;
                 plutus-playground = plutus.plutus-playground;
                 web-ghc = plutus.web-ghc;
+                plutus-docs = plutus.docs;
               })
             ];
           };

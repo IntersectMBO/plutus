@@ -13,11 +13,11 @@ module Type.CC where
 open import Type
 open import Type.RenamingSubstitution
 open import Type.ReductionC hiding (step)
+```
 
+```
 open import Data.Product
-```
-
-```
+open import Data.Empty
 open import Relation.Binary.PropositionalEquality renaming ([_] to I[_])
 open import Data.Sum
 
@@ -45,7 +45,6 @@ dissect (μl E B) with dissect E
 ... | inj₁ refl = inj₂ (-, [] , μ- B)
 ... | inj₂ (_ , E' , f) = inj₂ (-, μl E' B , f)
 
-
 lemma : (E : EvalCtx K J)(F : Frame J I)
       → dissect (extendEvalCtx E F) ≡ inj₂ (-, E , F)
 lemma [] (-· x) = refl
@@ -60,6 +59,22 @@ lemma (x ⇒r E) F rewrite lemma E F = refl
 lemma (E l⇒ x) F rewrite lemma E F = refl
 lemma (μr x E) F rewrite lemma E F = refl
 lemma (μl E B) F rewrite lemma E F = refl
+
+lemma' : (E : EvalCtx K J)(F : Frame J I)
+      → dissect' (extendEvalCtx E F) ≡ inj₂ (-, E , F)
+lemma' [] (-· x) = refl
+lemma' [] (x ·-) = refl
+lemma' [] (-⇒ x) = refl
+lemma' [] (x ⇒-) = refl
+lemma' [] (μ- B) = refl
+lemma' [] μ x - = refl
+lemma' (x ·r E) F rewrite lemma' E F = refl
+lemma' (E l· x) F rewrite lemma' E F = refl
+lemma' (x ⇒r E) F rewrite lemma' E F = refl
+lemma' (E l⇒ x) F rewrite lemma' E F = refl
+lemma' (μr x E) F rewrite lemma' E F = refl
+lemma' (μl E B) F rewrite lemma' E F = refl
+
 -- this reaches down inside the evaluation context and changes the
 -- scope of the hole
 ```
@@ -131,7 +146,6 @@ subst-step* : {s : State K J}{s' : State K J'}{s'' : State K I}
         → s' -→s s''
         → s -→s s''
 subst-step* refl q = q
-
 
 stepV·r-lem : ∀(E : EvalCtx K J) B {A : ∅ ,⋆ K' ⊢⋆ J}(V : Value⋆ B) → 
   stepV V (dissect (extendEvalCtx E (V-ƛ A ·-))) ≡ (J , E ▻ (A [ B ]))
@@ -223,75 +237,63 @@ lem62 A B E (μl E' C) refl = step*
 lem-→⋆ : (A B : ∅ ⊢⋆ J)(E : EvalCtx K J) → A —→⋆ B → (E ▻ A) -→s (E ▻ B)
 lem-→⋆ (ƛ A · B) ._ E (β-ƛ V) = step* refl (step* refl (step* (stepV·l-lem E B (V-ƛ A) ) (step** (lemV B V (extendEvalCtx E (V-ƛ A ·-))) (step* (stepV·r-lem E B V) base))))
 
-open import Data.Empty
-
 -- I think this would be structurally recurisve on the depth of the
 -- EvalCtx. dissect (which rips out the inner frame) reduces this by
 -- one every time. The termination checker cannot see that the call to
 -- dissect returns an E' that is smaller than E.
 
 {-# TERMINATING #-}
-unwindV : (A : ∅ ⊢⋆ J)(VA : Value⋆ A)(A' : ∅ ⊢⋆ K)(E : EvalCtx K J)
-  → A' ≡ closeEvalCtx E A → (V : Value⋆ A') → (E ◅ VA) -→s ([] ◅ V)
-unwindV A VA A' E p V with dissect' E | inspect dissect' E
-unwindV A VA A' E refl V | inj₁ (refl , refl) | I[ eq ]
-  rewrite val-unique VA V
-  = base 
-unwindV A VA A' E p V | inj₂ (I , E'  , (-· B)) | I[ eq ]
-  rewrite dissect-lemma E E' (-· B) eq
-  = ⊥-elim (lemV· (lem0 _ E' (subst Value⋆ (trans p (closeEF E' (-· B) A)) V)))
-... | inj₂ (I , E'  , (W ·-)) | I[ eq ]
-  rewrite dissect-lemma E E' (W ·-) eq
-  = ⊥-elim (lemV· (lem0 _ E' (subst Value⋆ (trans p (closeEF E' (W ·-) A)) V)))
-... | inj₂ (.* , E' , (-⇒ B)) | I[ eq ]
-  rewrite dissect-lemma E E' (-⇒ B) eq with decVal B
-... | inj₁ VB  = step*
-  (cong (stepV VA) (lemma E' (-⇒ B)))
-  (step**
-    (lemV B VB (extendEvalCtx E' (VA ⇒-)))
-    (step*
-      (cong (stepV VB) (lemma E' (VA ⇒-)))
-      (unwindV _ (VA V-⇒ VB) A' E' (trans p (closeEF E' (-⇒ B) A)) V)))
-... | inj₂ ¬VB = ⊥-elim (¬VB VB)
-  where X : A' ≡ closeEvalCtx (extendEvalCtx E' (VA ⇒-)) B
-        X = trans (trans p (closeEF E' (-⇒ B) A)) (sym (closeEF E' (VA ⇒-) B))
-        VB : Value⋆ B
-        VB = lem0 B (extendEvalCtx E' (VA ⇒-)) (subst Value⋆ X V)
-unwindV A VA A' E p V | inj₂ (.* , E' , (W ⇒-)) | I[ eq ]
-  rewrite dissect-lemma E E' (W ⇒-) eq = step*
-  (cong (stepV VA) (lemma E' (W ⇒-)))
-  (unwindV _ (W V-⇒ VA) A' E' (trans p (closeEF E' (W ⇒-) A)) V)
-unwindV A VA A' E p V | inj₂ (.* , E' , (μ- B)) | I[ eq ]
-  rewrite dissect-lemma E E' (μ- B) eq with decVal B
-... | inj₁ VB  = step*
-  (cong (stepV VA) (lemma E' (μ- B)))
-  (step**
-    (lemV B VB _)
-    (step* (cong (stepV VB) (lemma E' (μ VA -)))
-    (unwindV _ (V-μ VA VB) A' E' (trans p (closeEF E' (μ- B) A)) V)))
-... | inj₂ ¬VB = ⊥-elim (¬VB VB)
-  where X : A' ≡ closeEvalCtx (extendEvalCtx E' (μ VA -)) B
-        X = trans (trans p (closeEF E' (μ- B) A)) (sym (closeEF E' (μ VA -) B))
-        VB : Value⋆ B
-        VB = lem0 B (extendEvalCtx E' (μ VA -)) (subst Value⋆ X V)
+unwindVE : (A : ∅ ⊢⋆ I)(B : ∅ ⊢⋆ J)(E : EvalCtx K J)(E' : EvalCtx J I)
+      → B ≡ closeEvalCtx E' A
+      → (VA : Value⋆ A)
+      → (VB : Value⋆ B)
+      → (compEvalCtx E E' ◅ VA) -→s (E ◅ VB) 
+unwindVE A B E E' p VA VB with dissect' E' | inspect dissect' E'
+unwindVE A B E E' refl VA VB | inj₁ (refl , refl) | I[ eq ] rewrite compEvalCtx-eq E [] rewrite val-unique VA VB = base
+... | inj₂ (I , E'' , (-· C)) | I[ eq ] rewrite dissect-lemma E' E'' (-· C) eq =
+  ⊥-elim (lemV· (lem0 _ E'' (subst Value⋆ (trans p (closeEF E'' (-· C) A)) VB)))
+... | inj₂ (I , E'' , (V ·-)) | I[ eq ] rewrite dissect-lemma E' E'' (V ·-) eq =
+  ⊥-elim (lemV· (lem0 _ E'' (subst Value⋆ (trans p (closeEF E'' (V ·-) A)) VB)))
+unwindVE A B E E' refl VA VB | inj₂ (.* , E'' , (-⇒ C)) | I[ eq ] rewrite dissect-lemma E' E'' (-⇒ C) eq with decVal C
+... | inj₁ VC  = step*
+  (cong (stepV VA) (trans (cong dissect (compEF' E E'' (-⇒ C))) (lemma (compEvalCtx E E'') (-⇒ C))))
+  (step** (lemV C VC (extendEvalCtx (compEvalCtx E E'') (VA ⇒-)))
+          (step* (cong (stepV VC) (lemma (compEvalCtx E E'') (VA ⇒-))) (unwindVE _ _ E E'' (closeEF E'' (-⇒ C) A) (VA V-⇒ VC) VB)))
+... | inj₂ ¬VC = ⊥-elim (¬VC (lem0 C (extendEvalCtx E'' (VA ⇒-)) (subst Value⋆ (trans (closeEF E'' (-⇒ C) A) (sym (closeEF E'' (VA ⇒-) C))) VB)))
+unwindVE A B E E' refl VA VB | inj₂ (.* , E'' , (V ⇒-)) | I[ eq ] rewrite dissect-lemma E' E'' (V ⇒-) eq = step* (cong (stepV VA) (trans (cong dissect (compEF' E E'' (V ⇒-))) (lemma (compEvalCtx E E'') (V ⇒-)))) (unwindVE _ _ E E'' (closeEF E'' (V ⇒-) A) (V V-⇒ VA) VB)
+unwindVE A B E E' refl VA VB | inj₂ (.* , E'' , (μ- C)) | I[ eq ] rewrite dissect-lemma E' E'' (μ- C) eq with decVal C
+... | inj₁ VC  = step* (cong (stepV VA) (trans (cong dissect (compEF' E E'' (μ- C))) (lemma (compEvalCtx E E'') (μ- C)))) (step** (lemV C VC (extendEvalCtx (compEvalCtx E E'') (μ VA -))) (step* (cong (stepV VC) (lemma (compEvalCtx E E'') (μ VA -))) (unwindVE _ _ E E'' (closeEF E'' (μ- C) A) (V-μ VA VC) VB)))
+... | inj₂ ¬VC = ⊥-elim (¬VC (lem0 C (extendEvalCtx E'' (μ VA -)) (subst Value⋆ (trans (closeEF E'' (μ- C) A) (sym (closeEF E'' (μ VA -) C))) VB)))
+unwindVE A B E E' refl VA VB | inj₂ (.* , E'' , μ V -) | I[ eq ] rewrite dissect-lemma E' E'' (μ V -) eq = step* (cong (stepV VA) (trans (cong dissect (compEF' E E'' (μ V -))) (lemma (compEvalCtx E E'') (μ V -)))) (unwindVE _ _ E E'' (closeEF E'' (μ V -) A) (V-μ V VA) VB)
 
-unwindV A VA A' E p V | inj₂ (.* , E' , μ W -) | I[ eq ]
-  rewrite dissect-lemma E E' (μ W -) eq
-  = step* (cong (stepV VA) (lemma E' (μ W -)))
-          (unwindV _ (V-μ W VA) A' E' (trans p (closeEF E' (μ W -) A)) V)
+unwindE : (A : ∅ ⊢⋆ I)(B : ∅ ⊢⋆ J)(E : EvalCtx K J)(E' : EvalCtx J I)
+      → B ≡ closeEvalCtx E' A
+      → (VB : Value⋆ B)
+      → (compEvalCtx' E E' ▻ A) -→s (E ◅ VB) 
+unwindE A B E E' refl VB = step**
+  (subst-step* (cong (λ E → _ , (E ▻ A)) (sym (compEvalCtx-eq E E')))
+               (lemV A (lem0 A E' VB) (compEvalCtx E E')))
+               (unwindVE A B E E' refl (lem0 A E' VB) VB)
 
 unwind : (A : ∅ ⊢⋆ J)(A' : ∅ ⊢⋆ K)(E : EvalCtx K J) → A' ≡ closeEvalCtx E A → (V : Value⋆ A') → (E ▻ A) -→s ([] ◅ V)
-unwind A A' E p VA' = step** (lemV A VA E) (unwindV A VA A' E p VA')
-  where VA = lem0 A E (subst Value⋆ p VA')
-
-postulate
-  unwindE : (A : ∅ ⊢⋆ I)(B : ∅ ⊢⋆ J)(E : EvalCtx K J)(E' : EvalCtx J I)
-      → B ≡ closeEvalCtx E' A
-      → Value⋆ B
-      → (compEvalCtx' E E' ▻ A) -→s (E ▻ B) 
+unwind A A' E p VA' = subst-step*
+  (cong (λ E → _ , E ▻ A) (compEvalCtx-eq [] E))
+  (unwindE A A' [] E p VA')
 
 β-lem : A ≡ ƛ A' · B' → A —→⋆ B → B ≡ A' [ B' ]
 β-lem refl (β-ƛ x) = refl
+
+-- this case doesn't arise in STLC it only arises in types due to the composite values of => and mu.
+-- it is currently not proven, it is just postulated (assumed)
+postulate
+ missing-case : ∀ (M : ∅ ⊢⋆ J)(E : EvalCtx K J)(E' : EvalCtx K J')
+  (L : ∅ ⊢⋆ I ⇒ J') N
+  → (VM : Value⋆ M) → (VL : Value⋆ L) → Value⋆ N
+  → closeEvalCtx E M ≡ closeEvalCtx E' (L · N)
+  → ∀{J''}(E'' : EvalCtx K J'') F
+  → extendEvalCtx E'' F ≡ E
+  → Value⋆ (closeFrame F M)
+  → (E ▻ M) -→s (E' ▻ (L · N))
 
 -- thm2 follows from this stronger theorem
 
@@ -320,8 +322,6 @@ thm1 M A E refl B V (trans—↠E {B = B'} q q') with lemmaE' M E B' q
                                                (compEvalCtx-eq E E'')))))))))
                        (lem-→⋆ _ _ E' r))))
    (thm1 N B' E' (sym r'') B V q')
-{-                        -}
-
 ... | J' , E' , L , N , r , r' , r'' , inj₂ VM with lemmaE-51 L N r
 ... | I , _ , N' , V-ƛ L' , VN' , refl with lemmaX M E E' _ N' VM (V-ƛ L') VN' r'
 ... | inj₁ (refl , refl) = step**
@@ -374,7 +374,6 @@ thm1 M .(closeEvalCtx E M) E refl B V (trans—↠E {B = B'} q q') | J' , E' , .
                     (cong₂ (λ E A → J' , (E ▻ A)) (trans (sym (compEvalCtx-eq _ E''')) (sym p)) (sym (β-lem refl r)))
                     base)))))))))
   (thm1 N B' E' (sym r'') B V q')
- 
 thm1 M .(closeEvalCtx E M) E refl B V (trans—↠E {B = B'} q q') | J' , E' , .(ƛ _ · N') , N , r , r' , r'' , inj₂ VM | I , ƛ L' , N' , V-ƛ L' , VN' , refl | inj₂ (inj₂ (inj₂ (inj₁ (refl , E'' , E''' , p , refl)))) = step**
   (lemV M VM E)
   (step*
@@ -432,14 +431,22 @@ thm1 M .(closeEvalCtx E M) E refl B V (trans—↠E {B = B'} q q') | J' , E' , .
                              (sym (β-lem refl r)))
                     base)))))))))
   (thm1 N B' E' (sym r'') B V q')
-thm1 M A E refl B V (trans—↠E {B = B'} q q') | J' , E' , L , N , r , r' , r'' , inj₂ VM | I , _ , N' , V-ƛ L' , VN' , refl | inj₂ (inj₂ (inj₂ (inj₂ (inj₂ (I' , F , VF))))) = step**
--- the frame being a value should rule
--- out the above applications directly matching and also the ones
--- where there is still some computation to in the immediate frame
--- so, L · N is higher up in E
-  (step** (subst-step*  {!!} (unwindE M (closeFrame F M) {!!} (evalFrame F []) {!!} VF)) {!!} )
+thm1 M A E refl B V (trans—↠E {B = B'} q q') | J' , E' , L , N , r , r' , r'' , inj₂ VM | I , _ , N' , V-ƛ L' , VN' , refl | inj₂ (inj₂ (inj₂ (inj₂ (inj₂ (I' , F , E'' , p' , VF))))) = step**
+  (step**
+    (missing-case M E E' (ƛ L') N' VM (V-ƛ L') VN' r' E'' F (sym p') VF)
+    (step*
+      refl
+      (step*
+        refl
+        (step*
+          (cong (stepV (V-ƛ L')) (lemma E' (-· N')))
+          (step**
+            (lemV N' VN' (extendEvalCtx E' (V-ƛ L' ·-)))
+            (step*
+              (cong (stepV VN') (lemma E' (V-ƛ L' ·-)))
+              (subst-step* (cong (λ N → J' , E' ▻ N) (sym (β-lem refl r))) base)))))))
   (thm1 N B' E' (sym r'') B V q')
-
+  
 thm2 : (A B : ∅ ⊢⋆ K)(V : Value⋆ B) → A —↠E B -> ([] ▻ A) -→s ([] ◅ V)
 thm2 A B V p = thm1 A A [] refl B V p
 ```

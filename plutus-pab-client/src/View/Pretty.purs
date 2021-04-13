@@ -3,7 +3,7 @@ module View.Pretty where
 import Prelude
 import Bootstrap (alertDanger_, nbsp)
 import Data.Array (length)
-import Data.Lens (toArrayOf, view)
+import Data.Lens (view)
 import Data.Lens.Iso.Newtype (_Newtype)
 import Data.Map as Map
 import Data.Newtype (unwrap)
@@ -14,25 +14,37 @@ import Plutus.Contract.Resumable (Response(..))
 import Ledger.Constraints.OffChain (UnbalancedTx(..))
 import Plutus.V1.Ledger.Tx (Tx(..))
 import Playground.Lenses (_aeDescription, _endpointValue, _getEndpointDescription, _txConfirmed, _txId)
-import Plutus.PAB.Events (ChainEvent(..))
-import Plutus.PAB.Events.Contract (ContractEvent(..), ContractInstanceState(..), ContractResponse(..), ContractPABRequest(..))
-import Plutus.PAB.Events.Node (NodeEvent(..))
-import Plutus.PAB.Events.User (UserEvent(..))
-import Plutus.PAB.Events.Wallet (WalletEvent(..))
-import Plutus.PAB.Types (ContractExe(..))
+import Plutus.PAB.Events.Contract (ContractResponse(..), ContractPABRequest(..))
+import Plutus.PAB.Events (PABEvent(..))
+import Plutus.PAB.Effects.Contract.ContractExe (ContractExe(..))
+import Plutus.PAB.Events.ContractInstanceState (PartiallyDecodedResponse(..))
+import Plutus.PAB.Webserver.Types (ContractActivationArgs(..))
 import Wallet.Types (EndpointDescription)
-import Types (_contractActiveEndpoints, _contractInstanceIdString)
+import Types (_contractInstanceIdString)
 
 class Pretty a where
   pretty :: forall p i. a -> HTML p i
 
-instance prettyChainEvent :: Pretty t => Pretty (ChainEvent t) where
-  pretty (ContractEvent subevent) = withHeading "Contract" subevent
-  pretty (UserEvent subevent) = withHeading "User" subevent
-  pretty (WalletEvent subevent) = withHeading "Wallet" subevent
-  pretty (NodeEvent subevent) = withHeading "Node" subevent
+instance prettyPABEvent :: Pretty t => Pretty (PABEvent t) where
+  pretty e =
+    withHeading "PAB"
+      $ case e of
+          InstallContract contract -> span_ [ text $ "Install contract:", nbsp, pretty contract ]
+          UpdateContractInstanceState (ContractActivationArgs { caID }) instanceId (PartiallyDecodedResponse { hooks }) ->
+            span_
+              [ text "Update instance "
+              , text (view _contractInstanceIdString instanceId)
+              , text " of contract "
+              , pretty caID
+              , div_
+                  [ nbsp
+                  , text "with new active endpoint(s): "
+                  , text $ show hooks
+                  ]
+              ]
+          SubmitTx tx -> span_ [ text "SubmittedTx:", nbsp, pretty tx ]
 
-withHeading :: forall i p a. Pretty a => String -> a -> HTML p i
+withHeading :: forall i p. String -> HTML p i -> HTML p i
 withHeading prefix content =
   span_
     [ b_
@@ -40,53 +52,11 @@ withHeading prefix content =
         , text ":"
         , nbsp
         ]
-    , pretty content
+    , content
     ]
-
-instance prettyUserEvent :: Pretty t => Pretty (UserEvent t) where
-  pretty (InstallContract contract) = span_ [ text $ "Install:", nbsp, pretty contract ]
 
 instance prettyContractExe :: Pretty ContractExe where
   pretty ((ContractExe { contractPath })) = text contractPath
-
-instance prettyContractInstanceState :: Pretty t => Pretty (ContractInstanceState t) where
-  pretty ( ContractInstanceState
-      { csContract
-    , csCurrentIteration
-    , csCurrentState
-    , csContractDefinition
-    }
-  ) =
-    span_
-      [ text "Update instance "
-      , text $ view _contractInstanceIdString csContract
-      , text " of contract "
-      , pretty csContractDefinition
-      , text " to iteration "
-      , text $ show $ unwrap csCurrentIteration
-      , div_
-          [ nbsp
-          , text "with new active endpoint(s): "
-          , text $ show $ toArrayOf (_contractActiveEndpoints <<< _getEndpointDescription) csCurrentState
-          ]
-      ]
-
-instance prettyNodeEvent :: Pretty NodeEvent where
-  pretty event@(SubmittedTx tx) =
-    span_
-      [ text "SubmittedTx:"
-      , nbsp
-      , pretty tx
-      ]
-
-instance prettyContractEvent :: Pretty t => Pretty (ContractEvent t) where
-  pretty event@(ContractInboxMessage instanceId response) =
-    span_
-      [ text "Inbox message for instance "
-      , text $ view _contractInstanceIdString instanceId
-      , pretty response
-      ]
-  pretty event@(ContractInstanceStateUpdateEvent instanceState) = pretty instanceState
 
 instance prettyResponse :: Pretty a => Pretty (Response a) where
   pretty (Response { rspRqID, rspItID, rspResponse }) =
@@ -248,14 +218,6 @@ instance prettyTx :: Pretty Tx where
       , text ", "
       , withBasicPlural (Map.size txSignatures) "signature"
       , text "."
-      ]
-
-instance prettyWalletEvent :: Pretty WalletEvent where
-  pretty (BalancedTx tx) =
-    span_
-      [ text "BalancedTx:"
-      , nbsp
-      , pretty tx
       ]
 
 instance prettyActiveEndpoint :: Pretty ActiveEndpoint where

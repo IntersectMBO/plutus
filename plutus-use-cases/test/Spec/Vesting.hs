@@ -13,8 +13,6 @@ import           Control.Monad            (void)
 import           Test.Tasty
 import qualified Test.Tasty.HUnit         as HUnit
 
-import qualified Spec.Lib                 as Lib
-
 import qualified Ledger
 import qualified Ledger.Ada               as Ada
 import           Plutus.Contracts.Vesting
@@ -70,8 +68,8 @@ tests =
             Trace.callEndpoint @"retrieve funds" hdl1 (totalAmount vesting)
             void $ Trace.waitNSlots 2
 
-    , Lib.goldenPir "test/Spec/vesting.pir" $$(PlutusTx.compile [|| validate ||])
-    , HUnit.testCase "script size is reasonable" (Lib.reasonable (vestingScript vesting) 33000)
+    , goldenPir "test/Spec/vesting.pir" $$(PlutusTx.compile [|| validate ||])
+    , HUnit.testCase "script size is reasonable" (reasonable (vestingScript vesting) 33000)
     ]
 
 -- | The scenario used in the property tests. It sets up a vesting scheme for a

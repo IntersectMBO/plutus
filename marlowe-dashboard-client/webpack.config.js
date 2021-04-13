@@ -32,6 +32,9 @@ module.exports = {
             "/api": {
                 target: 'http://localhost:9080'
             },
+            "/wallet": {
+                target: 'http://localhost:9080'
+            },
             "/ws": {
                 target: 'ws://localhost:9080',
                 ws: true,
@@ -108,6 +111,7 @@ module.exports = {
             'node_modules'
         ],
         alias: {
+            contracts: path.resolve(__dirname, './contracts'),
             grammar: path.resolve(__dirname, './grammar.ne'),
             static: path.resolve(__dirname, './static'),
             src: path.resolve(__dirname, './src')

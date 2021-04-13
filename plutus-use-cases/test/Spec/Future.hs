@@ -15,7 +15,6 @@ import           Control.Monad           (void)
 import           Test.Tasty
 import qualified Test.Tasty.HUnit        as HUnit
 
-import qualified Spec.Lib                as Lib
 import           Spec.TokenAccount       (assertAccountBalance)
 
 import qualified Ledger
@@ -61,9 +60,9 @@ tests =
         .&&. assertAccountBalance (ftoLong F.testAccounts) (== (Ada.lovelaceValueOf 2310)))
         payOutTrace
 
-    , Lib.goldenPir "test/Spec/future.pir" $$(PlutusTx.compile [|| F.futureStateMachine ||])
+    , goldenPir "test/Spec/future.pir" $$(PlutusTx.compile [|| F.futureStateMachine ||])
 
-    , HUnit.testCase "script size is reasonable" (Lib.reasonable (F.validator theFuture F.testAccounts) 63000)
+    , HUnit.testCase "script size is reasonable" (reasonable (F.validator theFuture F.testAccounts) 63000)
 
     ]
 

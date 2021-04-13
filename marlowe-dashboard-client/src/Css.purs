@@ -80,7 +80,7 @@ hasNestedLabel :: Array String
 hasNestedLabel = [ "-mt-4" ]
 
 nestedLabel :: Array String
-nestedLabel = [ "relative", "left-2", "top-2.5", "px-1", "bg-white", "text-xs" ]
+nestedLabel = [ "relative", "left-2", "top-2.5", "px-1", "bg-white", "text-xs", "font-semibold" ]
 
 --- cards
 overlay :: Boolean -> Array String

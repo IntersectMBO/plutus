@@ -849,3 +849,23 @@ instance contractHasChoices :: HasChoices Contract where
   getChoiceNames (When cases _ cont) = getChoiceNames cases <> getChoiceNames cont
   getChoiceNames (Let _ val cont) = getChoiceNames val <> getChoiceNames cont
   getChoiceNames (Assert obs cont) = getChoiceNames obs <> getChoiceNames cont
+
+-- In the extended marlowe we are treating Slot's as relative times to an initial slot and the
+-- SlotParam as absolute times. This function will recurse on a contract making the relative slots
+-- absolute
+resolveRelativeTimes :: S.Slot -> Contract -> Contract
+resolveRelativeTimes (S.Slot baseSlot) contract = relativeContract contract
+  where
+  relativeContract = case _ of
+    Close -> Close
+    Pay a p t v contract' -> Pay a p t v (relativeContract contract')
+    If obs contract1 contract2 -> If obs (relativeContract contract1) (relativeContract contract2)
+    When cases timeout contract' -> When (relativeCase <$> cases) (relativeTimeout timeout) (relativeContract contract')
+    Let vid v contract' -> Let vid v (relativeContract contract')
+    Assert obs contract' -> Assert obs (relativeContract contract')
+
+  relativeTimeout = case _ of
+    Slot t -> Slot $ t + baseSlot
+    slotParam -> slotParam
+
+  relativeCase (Case action contract') = Case action (relativeContract contract')

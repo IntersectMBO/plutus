@@ -17,3 +17,12 @@ data Result = Valid
 instance FromJSON Result
 instance ToJSON Result
 
+data Response = Response { result     :: Result
+                         , durationMs :: Integer
+                         }
+  deriving (Generic)
+
+instance FromJSON Response
+instance ToJSON Response
+
+

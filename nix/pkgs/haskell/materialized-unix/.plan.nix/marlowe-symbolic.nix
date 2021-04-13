@@ -35,7 +35,9 @@
         depends = [
           (hsPkgs."aeson" or (errorHandler.buildDepError "aeson"))
           (hsPkgs."base" or (errorHandler.buildDepError "base"))
+          (hsPkgs."clock" or (errorHandler.buildDepError "clock"))
           (hsPkgs."deriving-aeson" or (errorHandler.buildDepError "deriving-aeson"))
+          (hsPkgs."formatting" or (errorHandler.buildDepError "formatting"))
           (hsPkgs."http-client" or (errorHandler.buildDepError "http-client"))
           (hsPkgs."http-client-tls" or (errorHandler.buildDepError "http-client-tls"))
           (hsPkgs."marlowe" or (errorHandler.buildDepError "marlowe"))

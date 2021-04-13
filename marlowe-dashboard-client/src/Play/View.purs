@@ -16,27 +16,25 @@ import MainFrame.Lenses (_card, _screen)
 import Marlowe.Extended.Template (ContractTemplate)
 import Marlowe.Semantics (PubKey)
 import Material.Icons (Icon(..), icon_)
-import Network.RemoteData (RemoteData)
 import Play.Lenses (_contractsState, _currentSlot, _menuOpen, _selectedContract, _templateState, _walletDetails)
 import Play.Types (Action(..), Card(..), Screen(..), State)
 import Prim.TypeError (class Warn, Text)
-import Servant.PureScript.Ajax (AjaxError)
 import Template.View (contractSetupConfirmationCard, contractSetupScreen, templateLibraryCard)
-import WalletData.Lenses (_nickname)
-import WalletData.Types (Nickname, WalletLibrary)
+import WalletData.Lenses (_walletNickname)
+import WalletData.Types (NewWalletDetails, WalletLibrary)
 import WalletData.View (newWalletCard, walletDetailsCard, putdownWalletCard, walletLibraryScreen)
 
-renderPlayState :: forall p. WalletLibrary -> Nickname -> String -> RemoteData AjaxError PubKey -> Array ContractTemplate -> State -> HTML p Action
-renderPlayState wallets newWalletNickname newWalletContractId remoteDataPubKey templates playState =
+renderPlayState :: forall p. WalletLibrary -> NewWalletDetails -> Array ContractTemplate -> State -> HTML p Action
+renderPlayState wallets newWalletDetails templates playState =
   let
-    walletNickname = view (_walletDetails <<< _nickname) playState
+    walletNickname = view (_walletDetails <<< _walletNickname) playState
 
     menuOpen = view _menuOpen playState
   in
     div
       [ classNames [ "grid", "h-full", "grid-rows-main" ] ]
       [ renderHeader walletNickname menuOpen
-      , renderMain wallets newWalletNickname newWalletContractId remoteDataPubKey templates playState
+      , renderMain wallets newWalletDetails templates playState
       , renderFooter
       ]
 
@@ -90,8 +88,8 @@ renderHeader walletNickname menuOpen =
       ]
 
 ------------------------------------------------------------
-renderMain :: forall p. WalletLibrary -> Nickname -> String -> RemoteData AjaxError PubKey -> Array ContractTemplate -> State -> HTML p Action
-renderMain wallets newWalletNickname newWalletContractId remoteDataPubKey templates playState =
+renderMain :: forall p. WalletLibrary -> NewWalletDetails -> Array ContractTemplate -> State -> HTML p Action
+renderMain wallets newWalletDetails templates playState =
   let
     menuOpen = view _menuOpen playState
 
@@ -100,7 +98,7 @@ renderMain wallets newWalletNickname newWalletContractId remoteDataPubKey templa
     main
       [ classNames [ "relative", "px-4", "md:px-5pc" ] ]
       [ renderMobileMenu menuOpen
-      , renderCards wallets newWalletNickname newWalletContractId remoteDataPubKey templates playState
+      , renderCards wallets newWalletDetails templates playState
       , renderScreen wallets screen playState
       ]
 
@@ -116,14 +114,16 @@ renderMobileMenu menuOpen =
         iohkLinks
     ]
 
-renderCards :: forall p. WalletLibrary -> Nickname -> String -> RemoteData AjaxError PubKey -> Array ContractTemplate -> State -> HTML p Action
-renderCards wallets newWalletNickname newWalletContractId remoteDataPubKey templates playState =
+renderCards :: forall p. WalletLibrary -> NewWalletDetails -> Array ContractTemplate -> State -> HTML p Action
+renderCards wallets newWalletDetails templates playState =
   let
     currentWalletDetails = view _walletDetails playState
 
     mCard = view _card playState
 
     mSelectedContractState = preview _selectedContract playState
+
+    currentSlot = view _currentSlot playState
 
     cardClasses = case mCard of
       Just TemplateLibraryCard -> Css.largeCard false
@@ -154,7 +154,7 @@ renderCards wallets newWalletNickname newWalletContractId remoteDataPubKey templ
           $ closeButton
           <> case mCard of
               -- TODO: Should this be renamed to CreateContactCard?
-              Just (CreateWalletCard mTokenName) -> [ newWalletCard wallets newWalletNickname newWalletContractId remoteDataPubKey mTokenName ]
+              Just (CreateWalletCard mTokenName) -> [ newWalletCard wallets newWalletDetails mTokenName ]
               Just (ViewWalletCard walletDetails) -> [ walletDetailsCard walletDetails ]
               Just PutdownWalletCard -> [ putdownWalletCard currentWalletDetails ]
               Just TemplateLibraryCard -> [ TemplateAction <$> templateLibraryCard templates ]
@@ -163,7 +163,7 @@ renderCards wallets newWalletNickname newWalletContractId remoteDataPubKey templ
               --        could be Nothing. We could add the state as part of the view, but is not ideal
               --        Will have to rethink how to deal with this once the overall state is more mature.
               Just ContractCard -> case mSelectedContractState of
-                Just contractState -> [ ContractAction <$> contractDetailsCard contractState ]
+                Just contractState -> [ ContractAction <$> contractDetailsCard currentSlot contractState ]
                 Nothing -> []
               Just (ContractActionConfirmationCard action) -> case mSelectedContractState of
                 Just contractState -> [ ContractAction <$> actionConfirmationCard contractState action ]
@@ -181,8 +181,10 @@ renderScreen wallets screen playState =
     contractsState = view _contractsState playState
   in
     div
+      -- TODO: Revisit the overflow-auto... I think the scrolling should be set at the screen level and not here.
+      --       this should have overflow-hidden to avoid the main div to occupy more space than available.
       [ classNames [ "absolute", "top-0", "bottom-0", "left-0", "right-0", "overflow-auto", "z-0" ] ] case screen of
-      ContractsScreen -> [ ContractHomeAction <$> contractsScreen contractsState ]
+      ContractsScreen -> [ ContractHomeAction <$> contractsScreen currentSlot contractsState ]
       WalletLibraryScreen -> [ walletLibraryScreen wallets ]
       TemplateScreen -> [ TemplateAction <$> contractSetupScreen wallets currentSlot templateState ]
 

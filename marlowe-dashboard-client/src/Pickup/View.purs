@@ -6,24 +6,24 @@ import Css as Css
 import Data.Foldable (foldMap)
 import Data.Lens (view)
 import Data.Maybe (Maybe(..), isJust, isNothing)
+import Data.Newtype (unwrap)
+import Data.UUID (toString) as UUID
 import Halogen.HTML (HTML, a, button, div, div_, footer, header, hr, img, input, label, main, p, text)
 import Halogen.HTML.Events.Extra (onClick_, onValueInput_)
 import Halogen.HTML.Properties (InputType(..), disabled, for, href, id_, list, placeholder, readOnly, src, type_, value)
 import Logo (marloweRunLogo)
 import MainFrame.Lenses (_card)
-import Marlowe.Semantics (PubKey)
 import Material.Icons (Icon(..), icon_)
-import Network.RemoteData (RemoteData)
-import Pickup.Types (Action(..), Card(..), State)
+import Pickup.Lenses (_pickupWalletString)
+import Pickup.Types (Action(..), Card(..), PickupNewWalletContext(..), State)
 import Prim.TypeError (class Warn, Text)
-import Servant.PureScript.Ajax (AjaxError)
-import WalletData.Lenses (_contractId, _nickname)
-import WalletData.Types (Nickname, WalletDetails, WalletLibrary)
-import WalletData.Validation (contractIdError, nicknameError)
+import WalletData.Lenses (_contractInstanceId, _contractInstanceIdString, _remoteDataWalletInfo, _walletNickname, _walletNicknameString)
+import WalletData.Types (NewWalletDetails, WalletDetails, WalletLibrary)
+import WalletData.Validation (contractInstanceIdError, walletNicknameError)
 import WalletData.View (nicknamesDataList)
 
-renderPickupState :: forall p. WalletLibrary -> Nickname -> String -> RemoteData AjaxError PubKey -> State -> HTML p Action
-renderPickupState wallets newWalletNickname newWalletContractId remoteDataPubKey pickupState =
+renderPickupState :: forall p. WalletLibrary -> NewWalletDetails -> State -> HTML p Action
+renderPickupState wallets newWalletDetails pickupState =
   let
     card = view _card pickupState
   in
@@ -31,14 +31,14 @@ renderPickupState wallets newWalletNickname newWalletContractId remoteDataPubKey
       [ classNames [ "grid", "h-full" ] ]
       [ main
           [ classNames [ "relative" ] ]
-          [ renderPickupCard wallets newWalletNickname newWalletContractId remoteDataPubKey card
-          , renderPickupScreen wallets
+          [ renderPickupCard wallets newWalletDetails card
+          , renderPickupScreen wallets pickupState
           ]
       ]
 
 ------------------------------------------------------------
-renderPickupCard :: forall p. WalletLibrary -> Nickname -> String -> RemoteData AjaxError PubKey -> Maybe Card -> HTML p Action
-renderPickupCard wallets newWalletNickname newWalletContractId remoteDataPubKey card =
+renderPickupCard :: forall p. WalletLibrary -> NewWalletDetails -> Maybe Card -> HTML p Action
+renderPickupCard wallets newWalletDetails card =
   -- TODO: currently there is only one card rendered at any time, with different content
   -- depending on the card selected in the state; we should change it so that all the
   -- cards are rendered, with at most one visible at any time (likewise in Play.State).
@@ -55,22 +55,32 @@ renderPickupCard wallets newWalletNickname newWalletContractId remoteDataPubKey 
             [ icon_ Close ]
         , div_
             $ (flip foldMap card) \cardType -> case cardType of
-                PickupNewWalletCard -> [ pickupNewWalletCard wallets newWalletNickname newWalletContractId remoteDataPubKey ]
+                PickupNewWalletCard pickupNewWalletContext -> [ pickupNewWalletCard wallets newWalletDetails pickupNewWalletContext ]
                 PickupWalletCard walletDetails -> [ pickupWalletCard walletDetails ]
         ]
     ]
 
-pickupNewWalletCard :: forall p. WalletLibrary -> Nickname -> String -> RemoteData AjaxError PubKey -> HTML p Action
-pickupNewWalletCard wallets newWalletNickname newWalletContractId remoteDataPubKey =
+pickupNewWalletCard :: forall p. WalletLibrary -> NewWalletDetails -> PickupNewWalletContext -> HTML p Action
+pickupNewWalletCard wallets newWalletDetails pickupNewWalletContext =
   let
-    mNicknameError = nicknameError newWalletNickname wallets
+    walletNicknameString = view _walletNicknameString newWalletDetails
 
-    mContractIdError = contractIdError newWalletContractId remoteDataPubKey wallets
+    contractInstanceIdString = view _contractInstanceIdString newWalletDetails
+
+    remoteDataWalletInfo = view _remoteDataWalletInfo newWalletDetails
+
+    mWalletNicknameError = walletNicknameError walletNicknameString wallets
+
+    mContractInstanceIdError = contractInstanceIdError contractInstanceIdString remoteDataWalletInfo wallets
   in
     div [ classNames [ "p-5", "pb-6", "md:pb-8" ] ]
       [ p
           [ classNames [ "font-bold", "mb-4" ] ]
-          [ text "Demo wallet generated" ]
+          [ text $ "Demo wallet "
+              <> case pickupNewWalletContext of
+                  WalletGenerated -> "generated"
+                  WalletFound -> "found"
+          ]
       , div
           [ classNames $ Css.hasNestedLabel <> [ "mb-4" ] ]
           $ [ label
@@ -80,15 +90,15 @@ pickupNewWalletCard wallets newWalletNickname newWalletContractId remoteDataPubK
                 [ text "Nickname" ]
             , input
                 $ [ type_ InputText
-                  , classNames $ (Css.input $ isJust mNicknameError) <> [ "text-lg" ]
+                  , classNames $ (Css.input $ isJust mWalletNicknameError) <> [ "text-lg" ]
                   , id_ "newWalletNickname"
                   , placeholder "Nickname"
-                  , value newWalletNickname
+                  , value walletNicknameString
                   , onValueInput_ SetNewWalletNickname
                   ]
             , div
                 [ classNames Css.inputError ]
-                [ text $ foldMap show mNicknameError ]
+                [ text $ foldMap show mWalletNicknameError ]
             ]
       , div
           [ classNames $ Css.hasNestedLabel <> [ "mb-4" ] ]
@@ -101,9 +111,12 @@ pickupNewWalletCard wallets newWalletNickname newWalletContractId remoteDataPubK
               [ type_ InputText
               , classNames $ (Css.input false) <> [ "text-lg" ]
               , id_ "newWalletKey"
-              , value newWalletContractId
+              , value contractInstanceIdString
               , readOnly true
               ]
+          , div
+              [ classNames Css.inputError ]
+              [ text $ foldMap show mContractInstanceIdError ]
           ]
       , div
           [ classNames [ "flex" ] ]
@@ -114,7 +127,7 @@ pickupNewWalletCard wallets newWalletNickname newWalletContractId remoteDataPubK
               [ text "Cancel" ]
           , button
               [ classNames $ Css.primaryButton <> [ "flex-1" ]
-              , disabled $ isJust mNicknameError || isJust mContractIdError
+              , disabled $ isJust mWalletNicknameError || isJust mContractInstanceIdError
               , onClick_ PickupNewWallet
               ]
               [ text "Pickup" ]
@@ -124,9 +137,9 @@ pickupNewWalletCard wallets newWalletNickname newWalletContractId remoteDataPubK
 pickupWalletCard :: forall p. WalletDetails -> HTML p Action
 pickupWalletCard walletDetails =
   let
-    nickname = view _nickname walletDetails
+    nickname = view _walletNickname walletDetails
 
-    contractId = view _contractId walletDetails
+    contractInstanceId = view _contractInstanceId walletDetails
   in
     div [ classNames [ "p-5", "pb-6", "md:pb-8" ] ]
       [ p
@@ -158,7 +171,7 @@ pickupWalletCard walletDetails =
               [ type_ InputText
               , classNames $ Css.input false
               , id_ "walletId"
-              , value $ view _contractId walletDetails
+              , value $ UUID.toString $ unwrap contractInstanceId
               , readOnly true
               ]
           ]
@@ -178,14 +191,14 @@ pickupWalletCard walletDetails =
       ]
 
 ------------------------------------------------------------
-renderPickupScreen :: forall p. Warn (Text "We need to add the Marlowe links.") => WalletLibrary -> HTML p Action
-renderPickupScreen wallets =
+renderPickupScreen :: forall p. Warn (Text "We need to add the Marlowe links.") => WalletLibrary -> State -> HTML p Action
+renderPickupScreen wallets pickupState =
   div
     [ classNames [ "absolute", "top-0", "bottom-0", "left-0", "right-0", "overflow-auto", "z-0", "flex", "flex-col", "justify-between" ] ]
     [ header
         [ classNames [ "flex" ] ]
         [ link "marlowe.io" "" ]
-    , pickupWalletScreen wallets
+    , pickupWalletScreen wallets pickupState
     , footer
         [ classNames [ "flex", "justify-between" ] ]
         [ link "Docs" ""
@@ -193,36 +206,40 @@ renderPickupScreen wallets =
         ]
     ]
 
-pickupWalletScreen :: forall p. WalletLibrary -> HTML p Action
-pickupWalletScreen wallets =
-  main
-    [ classNames [ "p-4", "max-w-sm", "mx-auto", "text-center" ] ]
-    [ img
-        [ classNames [ "w-4/5", "mx-auto", "mb-6" ]
-        , src marloweRunLogo
-        ]
-    , p
-        [ classNames [ "mb-4" ] ]
-        [ text "To use Marlowe Run, generate a new demo wallet." ]
-    , button
-        [ classNames $ Css.primaryButton <> [ "w-full", "text-center", "mb-4" ]
-        , onClick_ GenerateNewWallet
-        ]
-        [ text "Generate demo wallet" ]
-    , hr [ classNames [ "mb-4", "max-w-xs", "mx-auto" ] ]
-    , p
-        [ classNames [ "mb-4" ] ]
-        [ text "Or use an existing one by selecting from the list or typing a public key or nickname." ]
-    , input
-        [ type_ InputText
-        , classNames $ Css.inputCard false
-        , id_ "existingWallet"
-        , list "walletNicknames"
-        , placeholder "Choose or input key/nickname"
-        , onValueInput_ LookupWallet
-        ]
-    , nicknamesDataList wallets
-    ]
+pickupWalletScreen :: forall p. WalletLibrary -> State -> HTML p Action
+pickupWalletScreen wallets pickupState =
+  let
+    pickupWalletString = view _pickupWalletString pickupState
+  in
+    main
+      [ classNames [ "p-4", "max-w-sm", "mx-auto", "text-center" ] ]
+      [ img
+          [ classNames [ "w-4/5", "mx-auto", "mb-6" ]
+          , src marloweRunLogo
+          ]
+      , p
+          [ classNames [ "mb-4" ] ]
+          [ text "To use Marlowe Run, generate a new demo wallet." ]
+      , button
+          [ classNames $ Css.primaryButton <> [ "w-full", "text-center", "mb-4" ]
+          , onClick_ GenerateNewWallet
+          ]
+          [ text "Generate demo wallet" ]
+      , hr [ classNames [ "mb-4", "max-w-xs", "mx-auto" ] ]
+      , p
+          [ classNames [ "mb-4" ] ]
+          [ text "Or use an existing one by selecting from the list or typing a public key or nickname." ]
+      , input
+          [ type_ InputText
+          , classNames $ Css.inputCard false
+          , id_ "existingWallet"
+          , list "walletNicknames"
+          , placeholder "Choose or input key/nickname"
+          , value pickupWalletString
+          , onValueInput_ SetPickupWalletString
+          ]
+      , nicknamesDataList wallets
+      ]
 
 link :: forall p a. String -> String -> HTML p a
 link label url =

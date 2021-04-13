@@ -16,7 +16,6 @@ import           Plutus.Trace.Emulator     (EmulatorTrace)
 import qualified Plutus.Trace.Emulator     as Trace
 import qualified PlutusTx                  as PlutusTx
 import           Prelude                   hiding (not)
-import qualified Spec.Lib                  as Lib
 import           Test.Tasty
 import           Wallet.Emulator.Wallet    (signWallets)
 
@@ -30,7 +29,7 @@ tests = testGroup "multisig"
         assertNoFailedTransactions
         succeedingTrace
 
-    , Lib.goldenPir "test/Spec/multisig.pir" $$(PlutusTx.compile [|| MS.validate ||])
+    , goldenPir "test/Spec/multisig.pir" $$(PlutusTx.compile [|| MS.validate ||])
     ]
 
 -- | Lock some funds, then attempt to unlock them with a transaction

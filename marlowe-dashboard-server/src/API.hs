@@ -13,7 +13,7 @@ import           Servant.API           (Capture, Get, Header, JSON, NoContent, P
                                         (:>))
 import           Servant.API.WebSocket (WebSocketPending)
 
-type API = HTTPAPI :<|> WebSocketAPI :<|> Raw
+type API = WebSocketAPI :<|> Raw
 
 type HTTPAPI = "version" :> Get '[PlainText, JSON] Text
 

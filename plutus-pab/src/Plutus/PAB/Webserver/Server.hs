@@ -4,6 +4,7 @@
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE MonoLocalBinds        #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE NamedFieldPuns        #-}
 {-# LANGUAGE OverloadedStrings     #-}
 {-# LANGUAGE PartialTypeSignatures #-}
 {-# LANGUAGE TypeApplications      #-}
@@ -11,81 +12,158 @@
 {-# OPTIONS_GHC -fno-warn-partial-type-signatures #-}
 
 module Plutus.PAB.Webserver.Server
-    ( main
+    ( startServer
+    , startServerDebug
     ) where
 
-import qualified Cardano.BM.Configuration.Model   as CM
-import           Cardano.BM.Trace                 (Trace)
-import           Control.Concurrent.Availability  (Availability, available)
-import           Control.Monad.Except             (ExceptT (ExceptT))
-import           Control.Monad.Freer              (Eff, interpret)
-import           Control.Monad.IO.Class           (liftIO)
-import           Data.Bifunctor                   (first)
-import qualified Data.ByteString.Lazy.Char8       as LBS
-import           Data.Function                    ((&))
-import           Data.Proxy                       (Proxy (Proxy))
-import qualified Data.Text.Encoding               as Text
-import qualified Network.Wai.Handler.Warp         as Warp
-import           Servant                          (Application, Handler (Handler), Raw, ServerT, err400, err500,
-                                                   errBody, hoistServer, serve, serveDirectoryFileServer,
-                                                   (:<|>) ((:<|>)))
-import           Servant.Client                   (BaseUrl (baseUrlPort))
+import           Control.Concurrent              (MVar, forkFinally, forkIO, newEmptyMVar, putMVar)
+import           Control.Concurrent.Availability (Availability, available, newToken)
+import qualified Control.Concurrent.STM          as STM
+import           Control.Monad                   (void)
+import           Control.Monad.Except            (ExceptT (ExceptT))
+import           Control.Monad.IO.Class          (liftIO)
+import           Data.Aeson                      (FromJSON, ToJSON)
+import           Data.Bifunctor                  (first)
+import qualified Data.ByteString.Lazy.Char8      as LBS
+import           Data.Function                   ((&))
+import           Data.Proxy                      (Proxy (Proxy))
+import           Ledger.Crypto                   (pubKeyHash)
+import qualified Network.Wai.Handler.Warp        as Warp
+import           Plutus.PAB.Simulator            (Simulation)
+import qualified Plutus.PAB.Simulator            as Simulator
+import           Servant                         (Application, Handler (Handler), Raw, ServerT, err500, errBody,
+                                                  hoistServer, serve, serveDirectoryFileServer, (:<|>) ((:<|>)))
+import           Servant.Client                  (BaseUrl (baseUrlPort), ClientEnv)
 
+import           Cardano.Wallet.Types            (WalletInfo (..))
+import           Control.Monad.Freer.Extras.Log  (logInfo)
+import           Plutus.PAB.Core                 (PABAction, PABRunner (..))
+import qualified Plutus.PAB.Core                 as Core
+import qualified Plutus.PAB.Effects.Contract     as Contract
+import qualified Plutus.PAB.Monitoring.PABLogMsg as LM
+import           Plutus.PAB.Types                (PABError, WebserverConfig (..), baseUrl)
+import           Plutus.PAB.Webserver.API        (API, NewAPI, WSAPI, WalletProxy)
+import           Plutus.PAB.Webserver.Handler    (handlerNew, handlerOld, walletProxy, walletProxyClientEnv)
+import qualified Plutus.PAB.Webserver.WebSocket  as WS
+import qualified Servant
 
-import           Control.Monad.Freer.Extras.Log   (LogMsg, logInfo, mapLog)
-import           Plutus.PAB.App                   (App, AppBackend, runApp)
-import           Plutus.PAB.Arbitrary             ()
-import           Plutus.PAB.Core.ContractInstance (ContractInstanceMsg)
-import qualified Plutus.PAB.Monitoring.PABLogMsg  as LM
-import           Plutus.PAB.ParseStringifiedJSON  (UnStringifyJSONLog)
-import           Plutus.PAB.Types                 (Config, ContractExe, PABError (InvalidUUIDError), baseUrl,
-                                                   pabWebserverConfig, staticDir)
-import           Plutus.PAB.Webserver.API         (API, WSAPI)
-import           Plutus.PAB.Webserver.Handler     (handler)
-import           Plutus.PAB.Webserver.Types       (WebSocketLogMsg)
-import           Plutus.PAB.Webserver.WebSocket   (handleWS)
+asHandler :: forall t env a. PABRunner t env -> PABAction t env a -> Handler a
+asHandler PABRunner{runPABAction} = Servant.Handler . ExceptT . fmap (first mapError) . runPABAction where
+    mapError :: PABError -> Servant.ServerError
+    mapError e = Servant.err500 { Servant.errBody = LBS.pack $ show e }
 
-asHandler :: Trace IO LM.PABLogMsg
-          -> CM.Configuration
-          -> Config
-          -> Eff (LogMsg LM.ContractExeLogMsg
-                 ': LogMsg (ContractInstanceMsg ContractExe)
-                 ': LogMsg WebSocketLogMsg
-                 ': LogMsg UnStringifyJSONLog
-                 ': AppBackend _) a
-          -> Handler a
-asHandler trace logConfig config =
-    Handler . ExceptT . fmap (first decodeErr)
-      . runApp trace logConfig config
-      . interpret (mapLog LM.SUnstringifyJSON)
-      . interpret (mapLog LM.SWebsocketMsg)
-      . interpret (mapLog LM.SContractInstanceMsg)
-      . interpret (mapLog LM.SContractExeLogMsg)
-  where
-    decodeErr (InvalidUUIDError t) =
-        err400
-            {errBody = "Invalid UUID: " <> LBS.fromStrict (Text.encodeUtf8 t)}
-    decodeErr err = err500 {errBody = LBS.pack $ show err}
+type CombinedAPI t =
+      API (Contract.ContractDef t)
+      :<|> WSAPI
+      :<|> NewAPI (Contract.ContractDef t) Integer
 
-app :: Trace IO LM.PABLogMsg -> CM.Configuration -> Config -> Application
-app trace logConfig config = serve rest (apiServer :<|> fileServer)
-  where
-    rest = Proxy @((API ContractExe :<|> WSAPI) :<|> Raw)
-    apiServer :: ServerT (API ContractExe :<|> WSAPI) Handler
-    apiServer =
-      hoistServer
-        (Proxy @(API ContractExe :<|> WSAPI))
-        (asHandler trace logConfig config)
-        (handler :<|> handleWS trace logConfig)
-    fileServer :: ServerT Raw Handler
-    fileServer = serveDirectoryFileServer (staticDir . pabWebserverConfig $ config)
+app ::
+    forall t env.
+    ( FromJSON (Contract.ContractDef t)
+    , ToJSON (Contract.ContractDef t)
+    , Contract.PABContract t
+    , Servant.MimeUnrender Servant.JSON (Contract.ContractDef t)
+    ) =>
+    Maybe FilePath
+    -> Either ClientEnv (PABAction t env WalletInfo) -- ^ wallet client (if wallet proxy is enabled)
+    -> PABRunner t env
+    -> Application
+app fp walletClient pabRunner = do
+    let apiServer :: ServerT (CombinedAPI t) Handler
+        apiServer =
+            Servant.hoistServer
+                (Proxy @(CombinedAPI t))
+                (asHandler pabRunner)
+                (handlerOld :<|> WS.wsHandler :<|> handlerNew)
 
-main :: Trace IO LM.PABLogMsg -> CM.Configuration -> Config -> Availability -> App ()
-main trace logConfig config availability = interpret (mapLog LM.SContractExeLogMsg) $ do
-    let port = baseUrlPort $ baseUrl $ pabWebserverConfig config
-    let warpSettings :: Warp.Settings
+    case fp of
+        Nothing -> do
+            let wp = either walletProxyClientEnv walletProxy walletClient
+                rest = Proxy @(CombinedAPI t :<|> (WalletProxy Integer))
+                wpServer =
+                    Servant.hoistServer
+                        (Proxy @(WalletProxy Integer))
+                        (asHandler pabRunner)
+                        wp
+            Servant.serve rest (apiServer :<|> wpServer)
+        Just filePath -> do
+            let wp = either walletProxyClientEnv walletProxy walletClient
+                wpServer =
+                    Servant.hoistServer
+                        (Proxy @(WalletProxy Integer))
+                        (asHandler pabRunner)
+                        wp
+                fileServer :: ServerT Raw Handler
+                fileServer = serveDirectoryFileServer filePath
+                rest = Proxy @(CombinedAPI t :<|> (WalletProxy Integer) :<|> Raw)
+            Servant.serve rest (apiServer :<|> wpServer :<|> fileServer)
+
+-- | Start the server using the config. Returns an action that shuts it down
+--   again, and an MVar that is filled when the webserver
+--   thread exits.
+startServer ::
+    forall t env.
+    ( FromJSON (Contract.ContractDef t)
+    , ToJSON (Contract.ContractDef t)
+    , Contract.PABContract t
+    , Servant.MimeUnrender Servant.JSON (Contract.ContractDef t)
+    )
+    => WebserverConfig -- ^ Optional file path for static assets
+    -> Either ClientEnv (PABAction t env WalletInfo)
+    -> Availability
+    -> PABAction t env (MVar (), PABAction t env ())
+startServer WebserverConfig{baseUrl, staticDir} walletClient availability =
+    startServer' (baseUrlPort baseUrl) walletClient (Just staticDir) availability
+
+-- | Start the server. Returns an action that shuts it down
+--   again, and an MVar that is filled when the webserver
+--   thread exits.
+startServer' ::
+    forall t env.
+    ( FromJSON (Contract.ContractDef t)
+    , ToJSON (Contract.ContractDef t)
+    , Contract.PABContract t
+    , Servant.MimeUnrender Servant.JSON (Contract.ContractDef t)
+    )
+    => Int -- ^ Port
+    -> Either ClientEnv (PABAction t env WalletInfo) -- ^ How to generate a new wallet, either by proxying the request to the wallet API, or by running the PAB action
+    -> Maybe FilePath -- ^ Optional file path for static assets
+    -> Availability
+    -> PABAction t env (MVar (), PABAction t env ())
+startServer' port walletClient fp availability = do
+    simRunner <- Core.pabRunner
+    shutdownVar <- liftIO $ STM.atomically $ STM.newEmptyTMVar @()
+    mvar <- liftIO newEmptyMVar
+
+    let shutdownHandler :: IO () -> IO ()
+        shutdownHandler doShutdown = void $ forkIO $ do
+            STM.atomically $ STM.takeTMVar shutdownVar
+            putStrLn "webserver: shutting down"
+            doShutdown
+        warpSettings :: Warp.Settings
         warpSettings = Warp.defaultSettings
             & Warp.setPort port
+            & Warp.setInstallShutdownHandler shutdownHandler
             & Warp.setBeforeMainLoop (available availability)
-    logInfo $ LM.StartingPABBackendServer port
-    liftIO $ Warp.runSettings warpSettings $ app trace logConfig config
+    logInfo @(LM.PABMultiAgentMsg t) (LM.StartingPABBackendServer port)
+    void $ liftIO $
+        forkFinally
+            (Warp.runSettings warpSettings $ app fp walletClient simRunner)
+            (\_ -> putMVar mvar ())
+
+    pure (mvar, liftIO $ STM.atomically $ STM.putTMVar shutdownVar ())
+
+-- | Start the server using default configuration for debugging.
+startServerDebug ::
+    ( FromJSON (Contract.ContractDef t)
+    , ToJSON (Contract.ContractDef t)
+    , Contract.PABContract t
+    , Servant.MimeUnrender Servant.JSON (Contract.ContractDef t)
+    )
+    => Simulation t (Simulation t ())
+startServerDebug = do
+    tk <- newToken
+    let mkWalletInfo = do
+            (wllt, pk) <- Simulator.addWallet
+            pure $ WalletInfo{wiWallet = wllt, wiPubKey = pk, wiPubKeyHash = pubKeyHash pk}
+    snd <$> startServer' 8080 (Right mkWalletInfo) Nothing tk

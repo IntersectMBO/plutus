@@ -11,43 +11,28 @@
 
 module Plutus.PAB.Types where
 
-import           Cardano.BM.Data.Tracer.Extras (StructuredLog (..))
-import qualified Cardano.ChainIndex.Types      as ChainIndex
-import qualified Cardano.Metadata.Types        as Metadata
-import           Cardano.Node.Types            (MockServerConfig (..))
-import qualified Cardano.Wallet.Types          as Wallet
-import           Control.Lens.TH               (makePrisms)
-import           Data.Aeson                    (FromJSON, ToJSON (..))
-import qualified Data.HashMap.Strict           as HM
-import           Data.Map.Strict               (Map)
-import qualified Data.Map.Strict               as Map
-import           Data.Text                     (Text)
-import           Data.Text.Prettyprint.Doc     (Pretty, pretty, viaShow, (<+>))
-import           Data.Time.Units               (Second)
-import           Data.UUID                     (UUID)
-import qualified Data.UUID.Extras              as UUID
-import           GHC.Generics                  (Generic)
-import           Ledger                        (Block, Blockchain, Tx, TxId, txId)
-import           Ledger.Index                  as UtxoIndex
-import           Plutus.Contract.Trace         (EndpointError (..))
-import           Plutus.Contract.Types         (ContractError)
-import           Plutus.PAB.Events             (ContractInstanceId)
-import           Plutus.PAB.Instances          ()
-import           Servant.Client                (BaseUrl, ClientError)
-import           Wallet.API                    (WalletAPIError)
-
-newtype ContractExe =
-    ContractExe
-        { contractPath :: FilePath
-        }
-    deriving (Show, Eq, Ord, Generic)
-    deriving anyclass (ToJSON, FromJSON)
-
-instance StructuredLog ContractExe where
-    toStructuredLog e = HM.singleton "contract" (toJSON e)
-
-instance Pretty ContractExe where
-    pretty ContractExe {contractPath} = "Path:" <+> pretty contractPath
+import qualified Cardano.ChainIndex.Types  as ChainIndex
+import qualified Cardano.Metadata.Types    as Metadata
+import           Cardano.Node.Types        (MockServerConfig (..))
+import qualified Cardano.Wallet.Types      as Wallet
+import           Control.Lens.TH           (makePrisms)
+import           Data.Aeson                (FromJSON, ToJSON (..))
+import           Data.Map.Strict           (Map)
+import qualified Data.Map.Strict           as Map
+import           Data.Text                 (Text)
+import           Data.Text.Prettyprint.Doc (Pretty, pretty, viaShow, (<+>))
+import           Data.Time.Units           (Second)
+import           Data.UUID                 (UUID)
+import qualified Data.UUID.Extras          as UUID
+import           GHC.Generics              (Generic)
+import           Ledger                    (Block, Blockchain, Tx, TxId, txId)
+import           Ledger.Index              as UtxoIndex
+import           Plutus.Contract.Types     (ContractError)
+import           Plutus.PAB.Instances      ()
+import           Servant.Client            (BaseUrl, ClientError)
+import           Wallet.API                (WalletAPIError)
+import           Wallet.Emulator.Wallet    (Wallet)
+import           Wallet.Types              (ContractInstanceId, NotificationError)
 
 data PABError
     = FileNotFound FilePath
@@ -60,10 +45,11 @@ data PABError
     | MetadataError Metadata.MetadataError
     | ChainIndexError ClientError
     | WalletError WalletAPIError
-    | ContractCommandError Int Text
+    | ContractCommandError Int Text -- ?
     | InvalidUUIDError  Text
-    | OtherError Text
-    | EndpointCallError ContractInstanceId EndpointError
+    | OtherError Text -- ?
+    | EndpointCallError NotificationError
+    | WalletNotFound Wallet
     deriving stock (Show, Eq, Generic)
     deriving anyclass (ToJSON, FromJSON)
 
@@ -82,7 +68,8 @@ instance Pretty PABError where
         ContractCommandError i t   -> "Contract command error:" <+> pretty i <+> pretty t
         InvalidUUIDError t         -> "Invalid UUID:" <+> pretty t
         OtherError t               -> "Other error:" <+> pretty t
-        EndpointCallError i e      -> "Endpoint call failed:" <+> pretty i <+> pretty e
+        EndpointCallError n        -> "Endpoint call failed:" <+> pretty n
+        WalletNotFound w           -> "Wallet not found:" <+> pretty w
 
 data DbConfig =
     DbConfig
@@ -122,20 +109,14 @@ data WebserverConfig =
     deriving anyclass (FromJSON, ToJSON)
 
 data Source
-    = ContractEventSource
-    | WalletEventSource
-    | UserEventSource
-    | NodeEventSource
+    = PABEventSource
     deriving (Show, Eq)
 
 toUUID :: Source -> UUID
 toUUID source =
     UUID.sequenceIdToMockUUID $
     case source of
-        ContractEventSource -> 1
-        WalletEventSource   -> 2
-        UserEventSource     -> 3
-        NodeEventSource     -> 4
+        PABEventSource -> 1
 
 data ChainOverview =
     ChainOverview

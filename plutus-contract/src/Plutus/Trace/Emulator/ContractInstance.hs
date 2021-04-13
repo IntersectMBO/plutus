@@ -27,6 +27,9 @@ module Plutus.Trace.Emulator.ContractInstance(
     , ContractInstanceState(..)
     , emptyInstanceState
     , addEventInstanceState
+    -- * Internals
+    , getHooks
+    , addResponse
     ) where
 
 import           Control.Lens

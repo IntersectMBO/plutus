@@ -10,10 +10,10 @@
 
 module Command (Command (..)) where
 
-import qualified Data.Aeson                             as JSON
-import           Data.UUID                              (UUID)
-import           GHC.Generics                           (Generic)
-import           Plutus.Contract.Effects.ExposeEndpoint (EndpointDescription (..))
+import qualified Data.Aeson                              as JSON
+import           GHC.Generics                            (Generic)
+import           Plutus.PAB.Effects.Contract.ContractExe (ContractExe)
+import           Wallet.Types                            (ContractInstanceId)
 
 -- | Commands that can be interpreted with 'runCliCommand'
 data Command
@@ -23,16 +23,11 @@ data Command
     | ChainIndex -- ^ Run the chain index service
     | Metadata -- ^ Run the mock meta-data service
     | ForkCommands [Command] -- ^ Fork  a list of commands
-    | InstallContract FilePath -- ^ Install a contract
-    | ActivateContract FilePath -- ^ Activate a contract
-    | ContractState UUID -- ^ Display the contract identified by 'UUID'
-    | UpdateContract UUID EndpointDescription JSON.Value -- ^ Update the contract details of the contract identified by 'UUID'
-    | ReportContractHistory UUID -- ^ Get the history of the contract identified by 'UUID'
+    | InstallContract ContractExe -- ^ Install a contract
+    | ContractState ContractInstanceId -- ^ Display the contract identified by 'ContractInstanceId'
+    | ReportContractHistory ContractInstanceId -- ^ Get the history of the contract identified by 'UUID'
     | ReportInstalledContracts -- ^ Get installed contracts
     | ReportActiveContracts -- ^ Get active contracts
-    | ProcessContractInbox UUID -- ^ Run the contract-inbox service
-    | ProcessAllContractOutboxes -- ^ DEPRECATED
-    | ReportTxHistory -- ^ List transaction history
     | PABWebserver -- ^ Run the PAB webserver
     | PSGenerator -- ^ Generate purescript bridge code
           { _outputDir :: !FilePath -- ^ Path to write generated code to
@@ -40,5 +35,6 @@ data Command
     | WriteDefaultConfig -- ^ Write default logging configuration
           { _outputFile :: !FilePath -- ^ Path to write configuration to
           }
+    | StartSimulatorWebServer -- ^ Start a simulator with some predefined contracts, no interaction with external services
     deriving stock (Show, Eq, Generic)
     deriving anyclass JSON.ToJSON

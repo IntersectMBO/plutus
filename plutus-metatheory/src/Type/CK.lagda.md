@@ -12,7 +12,7 @@ module Type.CK where
 ```
 open import Type
 open import Type.RenamingSubstitution
-open import Type.ReductionF hiding (step)
+open import Type.ReductionC hiding (step)
 
 open import Data.Product
 ```
@@ -114,32 +114,94 @@ step (□ V)                          = -, □ V
 reflexive transitive closure of step:
 
 ```
-variable
- I' : Kind
-
 open import Relation.Binary.PropositionalEquality
 
-data _-→s_ : State K J → State K I → Set where
+data _-→ck_ : State K J → State K I → Set where
   base  : {s : State K J}
-        → s -→s s
+        → s -→ck s
   step* : {s : State K J}{s' : State K I}{s'' : State K I'}
         → step s ≡ (I , s')
-        → s' -→s s''
-        → s -→s s''
+        → s' -→ck s''
+        → s -→ck s''
 
 step** : {s : State K J}{s' : State K I}{s'' : State K I'}
-        → s -→s s'
-        → s' -→s s''
-        → s -→s s''
+        → s -→ck s'
+        → s' -→ck s''
+        → s -→ck s''
 step** base q = q
 step** (step* x p) q = step* x (step** p q)
 ```
 
 ```
-change-dir : (s : Stack I J)(A : ∅ ⊢⋆ J) (V : Value⋆ A) → (s ▻ A) -→s (s ◅ V)
+change-dir : (s : Stack I J)(A : ∅ ⊢⋆ J) (V : Value⋆ A) → (s ▻ A) -→ck (s ◅ V)
 change-dir s .(Π N) (V-Π N) = step* refl base
 change-dir s .(_ ⇒ _) (V V-⇒ V₁) = step* refl (step** (change-dir _ _ V) (step* refl (step** (change-dir _ _ V₁) (step* refl base))))
 change-dir s .(ƛ N) (V-ƛ N) = step* refl base
 change-dir s .(con tcn) (V-con tcn) = step* refl base
 change-dir s .(μ _ _) (V-μ V V₁) = step* refl (step** (change-dir _ _ V) (step* refl (step** (change-dir _ _ V₁) (step* refl base))))
+
+subst-step* : {s : State K J}{s' : State K J'}{s'' : State K I}
+        → _≡_ {A = Σ Kind (State K)} (J , s) (J' , s')
+        → s' -→ck s''
+        → s -→ck s''
+subst-step* refl q = q
 ```
+
+Converting from evaluation contexts to stacks of frames:
+
+```
+open import Data.Sum
+open import Type.ReductionC
+import Type.CC as CC
+
+
+{-# TERMINATING #-}
+helper : ∀{E} → ((Σ (K ≡ J) λ p → subst (λ K → EvalCtx K J) p E ≡ []) ⊎ (Σ Kind λ I → EvalCtx K I × Frame I J)) → Stack K J
+
+EvalCtx2Stack : ∀ {I J} → EvalCtx I J → Stack I J
+EvalCtx2Stack E = helper (dissect' E)
+
+helper (inj₁ (refl , refl)) = ε
+helper (inj₂ (I , E , F)) = EvalCtx2Stack E , F
+
+lemmaH : (E : EvalCtx K J)(F : Frame J I)
+  → (helper (dissect' E) , F) ≡ helper (dissect' (extendEvalCtx E F))
+lemmaH E F rewrite CC.lemma' E F = refl
+
+
+Stack2EvalCtx : ∀ {I J} → Stack I J → EvalCtx I J
+Stack2EvalCtx ε       = []
+Stack2EvalCtx (s , F) = extendEvalCtx (Stack2EvalCtx s) F
+
+state2state : ∀ {I J} → CC.State I J → State I J
+state2state (x CC.▻ x₁) = EvalCtx2Stack x ▻ x₁
+state2state (x CC.◅ x₁) = EvalCtx2Stack x ◅ x₁
+state2state (CC.□ x) = □ x
+
+thm64 : (s : CC.State K J)(s' : CC.State K J')
+  → s CC.-→s s' → state2state s -→ck state2state s'
+thm64 s .s CC.base = base
+thm64 (x CC.▻ Π x₁) s' (CC.step* refl p) = step* refl (thm64 _ s' p)
+thm64 (x CC.▻ (x₁ ⇒ x₂)) s' (CC.step* refl p) =
+  step* refl (subst-step* (cong (λ s → * , s ▻ x₁) (lemmaH x (-⇒ x₂))) (thm64 _ s' p))
+thm64 (x CC.▻ ƛ x₁) s' (CC.step* refl p) = step* refl (thm64 _ s' p)
+thm64 (x CC.▻ (x₁ · x₂)) s' (CC.step* refl p) =
+  step* refl (subst-step* (cong (λ s → _ , s ▻ x₁) (lemmaH x (-· x₂))) (thm64 _ s' p))
+thm64 (x CC.▻ μ x₁ x₂) s' (CC.step* refl p) =
+  step* refl (subst-step* (cong (λ s → _ , s ▻ x₁) (lemmaH x (μ- x₂))) (thm64 _ s' p))
+thm64 (x CC.▻ con x₁) s' (CC.step* refl p) =
+  step* refl (thm64 _ s' p)
+thm64 (x CC.◅ x₁) s' (CC.step* refl p) with dissect' x | inspect dissect' x
+... | inj₁ (refl , refl) | [ eq ] = step* refl (thm64 _ s' p)
+... | inj₂ (I , E , (-· x₂)) | [ eq ] rewrite dissect-lemma x E (-· x₂) eq | CC.lemma E (-· x₂) = step* refl (subst-step* (cong (λ E  → _ , E ▻ x₂) (lemmaH E (x₁ ·-))) (thm64 _ s' p))
+... | inj₂ (I , E , (V-ƛ x₂ ·-)) | [ eq ] rewrite dissect-lemma x E (V-ƛ x₂ ·-) eq | CC.lemma E (V-ƛ x₂ ·-) = step* refl (thm64 _ s' p)
+... | inj₂ (.* , E , (-⇒ x₂)) | [ eq ] rewrite dissect-lemma x E (-⇒ x₂) eq | CC.lemma E (-⇒ x₂)
+  = step* refl (subst-step* (cong (λ E → _ , E ▻ x₂) (lemmaH E (x₁ ⇒-))) (thm64 _ s' p))
+... | inj₂ (.* , E , (x₂ ⇒-)) | [ eq ] rewrite dissect-lemma x E (x₂ ⇒-) eq | CC.lemma E (x₂ ⇒-) = step* refl (thm64 _ s' p)
+... | inj₂ (.* , E , (μ- B)) | [ eq ] rewrite dissect-lemma x E (μ- B) eq | CC.lemma E (μ- B)
+  = step* refl (subst-step* (cong (λ E → _ , E ▻ B) (lemmaH E (μ x₁ -))) (thm64 _ s' p))
+... | inj₂ (.* , E , μ x₂ -) | [ eq ]  rewrite dissect-lemma x E (μ x₂ -) eq | CC.lemma E (μ x₂ -) = step* refl (thm64 _ s' p)
+thm64 (CC.□ x) s' (CC.step* refl p) = step* refl (thm64 _ s' p)
+
+```
+

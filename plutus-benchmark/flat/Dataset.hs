@@ -6,24 +6,24 @@ module Dataset ( contractsWithNames
                ) where
 
 import           Control.Monad.Trans.Except
-import           Data.Bifunctor                (second)
-import           Data.Either                   (fromRight)
-import           Data.Text                     (Text)
+import           Data.Bifunctor                    (second)
+import           Data.Either                       (fromRight)
+import           Data.Text                         (Text)
 
-import qualified Language.Marlowe              as Marlowe
-import qualified Ledger                        as Ledger
-import qualified Ledger.Ada                    as Ada
+import qualified Language.Marlowe                  as Marlowe
+import qualified Ledger                            as Ledger
+import qualified Ledger.Ada                        as Ada
 import           Ledger.Crypto
-import qualified Ledger.Scripts                as Plutus
-import qualified Ledger.Typed.Scripts          as Plutus
+import qualified Ledger.Scripts                    as Plutus
+import qualified Ledger.Typed.Scripts              as Plutus
 import           Ledger.Value
 import           Plutus.Contract.Trace
-import qualified Plutus.Contracts.Crowdfunding as Crowdfunding
-import qualified Plutus.Contracts.Escrow       as Escrow
-import qualified Plutus.Contracts.Future       as Future
-import qualified Plutus.Contracts.Game         as Game
-import qualified Plutus.Contracts.Vesting      as Vesting
-import           PlutusCore                    (DefaultFun (..), runQuoteT)
+import qualified Plutus.Contracts.Crowdfunding     as Crowdfunding
+import qualified Plutus.Contracts.Escrow           as Escrow
+import qualified Plutus.Contracts.Future           as Future
+import qualified Plutus.Contracts.GameStateMachine as GameStateMachine
+import qualified Plutus.Contracts.Vesting          as Vesting
+import           PlutusCore                        (DefaultFun (..), runQuoteT)
 import           PlutusCore.Universe
 import           UntypedPlutusCore
 
@@ -97,7 +97,7 @@ runQuote tm = do
 
 contractsWithNames :: [ (Text, Term Name DefaultUni DefaultFun ()) ]
 contractsWithNames = map (second (runQuote . nameDeBruijn . getTerm . Plutus.unScript . Plutus.unValidatorScript))
-  [ ("game-names", Game.gameValidator)
+  [ ("game-names", Plutus.validatorScript GameStateMachine.scriptInstance)
   , ("crowdfunding-names", Crowdfunding.contributionScript Crowdfunding.theCampaign)
   , ("marlowe-names", Plutus.validatorScript $ Marlowe.scriptInstance Marlowe.defaultMarloweParams)
   , ("vesting-names", Vesting.vestingScript vesting)
@@ -107,7 +107,7 @@ contractsWithNames = map (second (runQuote . nameDeBruijn . getTerm . Plutus.unS
 contractsWithIndices ::
   [ (Text, Term DeBruijn DefaultUni DefaultFun ()) ]
 contractsWithIndices = map (second (getTerm . Plutus.unScript . Plutus.unValidatorScript))
-  [ ("game-indices", Game.gameValidator)
+  [ ("game-indices", Plutus.validatorScript GameStateMachine.scriptInstance)
   , ("crowdfunding-indices", Crowdfunding.contributionScript Crowdfunding.theCampaign)
   , ("marlowe-indices", Plutus.validatorScript $ Marlowe.scriptInstance Marlowe.defaultMarloweParams)
   , ("vesting-indices", Vesting.vestingScript vesting)

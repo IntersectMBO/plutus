@@ -14,7 +14,7 @@ import Data.Time.Duration (Minutes)
 import Marlowe.Execution (NamedAction)
 import Marlowe.Semantics (Slot)
 import Template.Types (Action, State) as Template
-import WalletData.Types (Nickname, WalletDetails)
+import WalletData.Types (WalletDetails, WalletNickname)
 
 type State
   = { walletDetails :: WalletDetails
@@ -47,7 +47,7 @@ derive instance eqCard :: Eq Card
 
 data Action
   = PutdownWallet
-  | SetNewWalletNickname Nickname
+  | SetNewWalletNickname WalletNickname
   | SetNewWalletContractId String
   | AddNewWallet (Maybe String)
   | ToggleMenu
@@ -57,6 +57,7 @@ data Action
   | TemplateAction Template.Action
   | ContractAction Contract.Action
   | ContractHomeAction ContractHome.Action
+  | SetCurrentSlot Slot
 
 -- | Here we decide which top-level queries to track as GA events, and
 -- how to classify them.
@@ -72,3 +73,4 @@ instance actionIsEvent :: IsEvent Action where
   toEvent (TemplateAction templateAction) = toEvent templateAction
   toEvent (ContractAction contractAction) = toEvent contractAction
   toEvent (ContractHomeAction contractAction) = toEvent contractAction
+  toEvent (SetCurrentSlot _) = Nothing

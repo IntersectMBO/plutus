@@ -3,6 +3,11 @@ title: Type Reduction, contextual style
 layout: page
 ---
 
+This is an experiment with using an inductive way of presenting
+closing an evaluation context. It is not currently
+needed. Additionally it doesn't seperate out beta-rule into a seperate
+relation.
+
 ```
 module Type.ReductionCI where
 ```

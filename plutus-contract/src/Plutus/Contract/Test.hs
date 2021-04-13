@@ -14,6 +14,7 @@
 {-# LANGUAGE TypeApplications     #-}
 {-# LANGUAGE TypeSynonymInstances #-}
 {-# LANGUAGE UndecidableInstances #-}
+{-# LANGUAGE ViewPatterns         #-}
 -- | Testing contracts with HUnit and Tasty
 module Plutus.Contract.Test(
       module X
@@ -46,6 +47,7 @@ module Plutus.Contract.Test(
     , waitingForSlot
     , walletWatchingAddress
     , valueAtAddress
+    , reasonable
     -- * Checking predicates
     , checkPredicate
     , checkPredicateOptions
@@ -57,6 +59,10 @@ module Plutus.Contract.Test(
     , minLogLevel
     , maxSlot
     , emulatorConfig
+    -- * Etc
+    , goldenPir
+    , timesFeeAdjust
+    , timesFeeAdjustV
     ) where
 
 import           Control.Applicative                    (liftA2)
@@ -69,9 +75,10 @@ import           Control.Monad.Freer.Error              (Error, runError)
 import           Control.Monad.Freer.Extras.Log         (LogLevel (..), LogMessage (..))
 import           Control.Monad.Freer.Reader
 import           Control.Monad.Freer.Writer             (Writer (..), tell)
+import           Control.Monad.IO.Class                 (MonadIO (liftIO))
 import           Data.Default                           (Default (..))
 import           Data.Foldable                          (fold, toList, traverse_)
-import           Data.Maybe                             (mapMaybe)
+import           Data.Maybe                             (fromJust, mapMaybe)
 import           Data.Proxy                             (Proxy (..))
 import           Data.Row                               (Forall, HasType)
 import           Data.String                            (IsString (..))
@@ -84,6 +91,7 @@ import           GHC.TypeLits                           (KnownSymbol, Symbol, sy
 
 import           Hedgehog                               (Property, forAll, property)
 import qualified Hedgehog
+import           Test.Tasty.Golden                      (goldenVsString)
 import qualified Test.Tasty.HUnit                       as HUnit
 import           Test.Tasty.Providers                   (TestTree)
 
@@ -99,8 +107,11 @@ import           Plutus.Contract.Effects.WriteTx        (HasWriteTx)
 import           Plutus.Contract.Resumable              (Request (..), Response (..))
 import qualified Plutus.Contract.Resumable              as State
 import           Plutus.Contract.Types                  (Contract (..))
+import           PlutusTx                               (CompiledCode, getPir)
 import qualified PlutusTx.Prelude                       as P
 
+import           Ledger                                 (Validator)
+import qualified Ledger
 import           Ledger.Address                         (Address)
 import           Ledger.Generators                      (GeneratorModel, Mockchain (..))
 import qualified Ledger.Generators                      as Gen
@@ -587,3 +598,17 @@ assertAccumState contract inst p nm =
                 , "Failed" <+> squotes (fromString nm)
                 ]
         pure result
+
+-- | Assert that the size of a 'Validator' is below
+--   the maximum.
+reasonable :: Validator -> Integer -> HUnit.Assertion
+reasonable (Ledger.unValidatorScript -> s) maxSize = do
+    let sz = Ledger.scriptSize s
+        msg = "Script too big! Max. size: " <> show maxSize <> ". Actual size: " <> show sz
+    -- so the actual size is visible in the log
+    liftIO $ putStrLn ("Script size: " ++ show sz)
+    HUnit.assertBool msg (sz <= maxSize)
+
+-- | Compare a golden PIR file to the provided 'CompiledCode'.
+goldenPir :: FilePath -> CompiledCode a -> TestTree
+goldenPir path code = goldenVsString "PIR" path (pure $ fromString $ show $ pretty $ fromJust $ getPir code)
