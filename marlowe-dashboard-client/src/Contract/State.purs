@@ -3,7 +3,7 @@ module Contract.State
   , handleAction
   , mkInitialState
   , instantiateExtendedContract
-  , defaultState
+  , dummyState
   , currentStep
   , isContractClosed
   , applyTx
@@ -39,10 +39,9 @@ import Marlowe.Semantics as Semantic
 import Marlowe.Slot (currentSlot)
 import WalletData.Types (WalletNickname)
 
--- I don't like having to provide a default state for this component, but it is needed by the
--- mapMaybeSubmodule in PlayState.
-defaultState :: State
-defaultState = mkInitialState "" zero emptyContractMetadata mempty Nothing Close
+-- see note [dummyState]
+dummyState :: State
+dummyState = mkInitialState "" zero emptyContractMetadata mempty Nothing Close
 
 currentStep :: State -> Int
 currentStep = length <<< view _previousSteps

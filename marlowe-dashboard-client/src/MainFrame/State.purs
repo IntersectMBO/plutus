@@ -27,6 +27,7 @@ import Effect.Now (getTimezoneOffset)
 import Env (Env)
 import Foreign.Generic (decodeJSON, encodeJSON)
 import Halogen (Component, HalogenM, liftEffect, mkComponent, mkEval, modify_, subscribe)
+import Halogen.Extra (mapMaybeSubmodule)
 import Halogen.HTML (HTML)
 import Halogen.Query.EventSource (EventSource)
 import Halogen.Query.EventSource as EventSource
@@ -38,16 +39,16 @@ import Marlowe.Market (contractTemplates)
 import Marlowe.Slot (currentSlot)
 import Network.RemoteData (RemoteData(..))
 import Pickup.Lenses (_pickupWalletString)
-import Pickup.State (handleAction, initialState) as Pickup
-import Pickup.Types (Action(..)) as Pickup
+import Pickup.State (handleAction, dummyState, initialState) as Pickup
+import Pickup.Types (Action(..), State) as Pickup
 import Pickup.Types (Card(..), PickupNewWalletContext(..))
-import Play.Lenses (_allContracts, _walletDetails)
-import Play.State (handleAction, handleQuery, mkInitialState) as Play
-import Play.Types (Action(..)) as Play
-import Plutus.PAB.Webserver.Types (ContractInstanceClientState(..))
+import Play.Lenses (_allContracts, _currentSlot, _templateState, _walletDetails)
+import Play.State (dummyState, handleAction, mkInitialState) as Play
+import Play.Types (Action(..), State) as Play
+import Plutus.PAB.Webserver.Types (CombinedWSStreamToClient(..), ContractInstanceClientState(..))
 import StaticData (walletDetailsLocalStorageKey, walletLibraryLocalStorageKey)
-import Template.State (handleAction) as Template
-import Template.Types (Action(..)) as Template
+import Template.State (dummyState, handleAction) as Template
+import Template.Types (Action(..), State) as Template
 import Types (ContractInstanceId(..))
 import WalletData.Lenses (_assets, _contractInstanceId, _contractInstanceIdString, _remoteDataWalletInfo, _remoteDataAssets, _wallet, _walletNicknameString)
 import WalletData.Types (NewWalletDetails, WalletDetails, WalletInfo(..))
@@ -92,7 +93,14 @@ handleQuery (ReceiveWebSocketMessage msg next) = do
     WS.WebSocketOpen -> assign _webSocketStatus WebSocketOpen
     (WS.WebSocketClosed reason) -> assign _webSocketStatus (WebSocketClosed (Just reason)) -- TODO: show warning to the user
     (WS.ReceiveMessage (Left errors)) -> pure unit -- TODO: show error to the user
-    (WS.ReceiveMessage (Right streamToClient)) -> Play.handleQuery streamToClient
+    (WS.ReceiveMessage (Right streamToClient)) -> case streamToClient of
+      InstanceUpdate contractInstanceId instanceStatusToClient -> pure unit
+      SlotChange slot -> assign (_playState <<< _currentSlot) $ toFront slot
+      WalletFundsChange wallet value -> do
+        mCurrentWallet <- peruse (_playState <<< _walletDetails <<< _wallet)
+        for_ mCurrentWallet \currentWallet ->
+          when (currentWallet == toFront wallet)
+            $ assign (_playState <<< _walletDetails <<< _assets) (toFront value)
   pure $ Just next
 
 -- FIXME: We need to discuss if we should remove this after we connect to the PAB. In case we do,
@@ -274,7 +282,7 @@ handleAction (PickupAction (Pickup.SetPickupWalletString string)) = do
         Nothing -> pure unit
 
 -- other pickup actions
-handleAction (PickupAction pickupAction) = Pickup.handleAction pickupAction
+handleAction (PickupAction pickupAction) = toPickup $ Pickup.handleAction pickupAction
 
 -- play actions that need to be handled here
 handleAction (PlayAction Play.PutdownWallet) = do
@@ -292,10 +300,36 @@ handleAction (PlayAction (Play.AddNewWallet mTokenName)) = do
   walletNickname <- use (_newWalletDetails <<< _walletNicknameString)
   handleAction AddNewWallet
   for_ mTokenName \tokenName ->
-    Template.handleAction $ Template.SetRoleWallet tokenName walletNickname
+    toTemplate $ Template.handleAction $ Template.SetRoleWallet tokenName walletNickname
 
 -- other play actions
-handleAction (PlayAction playAction) = Play.handleAction playAction
+handleAction (PlayAction playAction) = toPlay $ Play.handleAction playAction
+
+------------------------------------------------------------
+-- Note [dummyState]: In order to map a submodule whose state might not exist, we need
+-- to provide a dummyState for that submodule. Halogen would use this dummyState to play
+-- with if we ever tried to call one of these handlers when the submodule state does not
+-- exist. In practice this should never happen.
+toPickup ::
+  forall m msg slots.
+  Functor m =>
+  HalogenM Pickup.State Pickup.Action slots msg m Unit ->
+  HalogenM State Action slots msg m Unit
+toPickup = mapMaybeSubmodule _pickupState PickupAction Pickup.dummyState
+
+toPlay ::
+  forall m msg slots.
+  Functor m =>
+  HalogenM Play.State Play.Action slots msg m Unit ->
+  HalogenM State Action slots msg m Unit
+toPlay = mapMaybeSubmodule _playState PlayAction Play.dummyState
+
+toTemplate ::
+  forall m msg slots.
+  Functor m =>
+  HalogenM Template.State Template.Action slots msg m Unit ->
+  HalogenM State Action slots msg m Unit
+toTemplate = mapMaybeSubmodule (_playState <<< _templateState) (PlayAction <<< Play.TemplateAction) Template.dummyState
 
 ------------------------------------------------------------
 emptyNewWalletDetails :: NewWalletDetails

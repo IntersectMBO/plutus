@@ -1,5 +1,5 @@
 module ContractHome.State
-  ( defaultState
+  ( dummyState
   , handleAction
   , partitionContracts
   -- FIXME: Remove this, only for developing
@@ -153,8 +153,9 @@ partitionContracts contracts =
     # Array.partition isContractClosed
     # \{ no, yes } -> { completed: yes, running: no }
 
-defaultState :: State
-defaultState =
+-- see note [dummyState]
+dummyState :: State
+dummyState =
   { status: Running
   , contracts: mempty
   , selectedContractIndex: Nothing
