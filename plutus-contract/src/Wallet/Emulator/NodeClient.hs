@@ -34,7 +34,7 @@ data NodeClientEvent =
     deriving anyclass (FromJSON, ToJSON)
 
 instance Pretty NodeClientEvent where
-    pretty (TxSubmit txId _) = "TxSubmit:" <+> pretty txId
+    pretty (TxSubmit tx _) = "TxSubmit:" <+> pretty tx
 
 makePrisms ''NodeClientEvent
 
