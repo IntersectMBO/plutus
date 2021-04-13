@@ -1,7 +1,8 @@
 module Capability.Marlowe
-  ( class MonadMarlowe
+  ( class ManageMarloweContract
   , marloweCreateWalletCompanionContract
-  --, marloweCreateContract
+  , marloweGetWalletCompanionContractObservableState
+  , marloweCreateContract
   , marloweApplyInputs
   , marloweWait
   , marloweAuto
@@ -11,43 +12,56 @@ module Capability.Marlowe
 import Prelude
 import AppM (AppM)
 import Bridge (toBack)
-import Capability.Contract (class MonadContract, activateContract, invokeEndpoint)
+import Capability.Contract (class ManageContract, activateContract, getContractInstanceObservableState, invokeEndpoint)
 import Capability.ContractExe (marloweContractExe, walletCompanionContractExe)
-import Control.Monad.Except (lift)
+import Control.Monad.Except (lift, runExcept)
+import Data.Either (Either(..))
 import Data.Map (Map)
+import Data.Newtype (unwrap)
 import Data.RawJson (RawJson(..))
+import Data.Tuple (Tuple)
 import Data.Tuple.Nested ((/\))
-import Foreign.Generic (encode)
+import Foreign.Generic (decodeJSON, encode)
 import Foreign.JSON (unsafeStringify)
 import Halogen (HalogenM)
-import MainFrame.Types (WebData)
-import Marlowe.Semantics (Contract, Input, Party, Slot)
+import Marlowe.Semantics (Contract, Input, Party, PubKey, Slot, TokenName)
+import Network.RemoteData (RemoteData(..))
 import Plutus.PAB.Webserver.Types (ContractActivationArgs(..))
-import Plutus.V1.Ledger.Crypto (PubKeyHash)
-import Plutus.V1.Ledger.Value (TokenName)
-import Types (ContractInstanceId, MarloweParams)
+import Types (DecodedWebData, ContractInstanceId, MarloweParams, MarloweData, WebData)
 import WalletData.Types (Wallet)
 
--- The `MonadMarlowe` class provides a window on the `MonadContract` class with function
+-- The `ManageMarloweContract` class provides a window on the `ManageContract` class with function
 -- calls specific to the Marlowe Plutus contract.
 class
-  MonadContract m <= MonadMarlowe m where
+  ManageContract m <= ManageMarloweContract m where
   marloweCreateWalletCompanionContract :: Wallet -> m (WebData ContractInstanceId)
-  --marloweCreateContract :: Wallet -> Map TokenName PubKeyHash -> Contract -> m (WebData ContractInstanceId)
+  marloweGetWalletCompanionContractObservableState :: ContractInstanceId -> m (DecodedWebData (Array (Tuple MarloweParams MarloweData)))
+  marloweCreateContract :: Wallet -> Map TokenName PubKey -> Contract -> m (WebData ContractInstanceId)
   marloweApplyInputs :: ContractInstanceId -> MarloweParams -> Array Input -> m (WebData Unit)
   marloweWait :: ContractInstanceId -> MarloweParams -> m (WebData Unit)
   marloweAuto :: ContractInstanceId -> MarloweParams -> Party -> Slot -> m (WebData Unit)
-  marloweRedeem :: ContractInstanceId -> MarloweParams -> TokenName -> PubKeyHash -> m (WebData Unit)
+  marloweRedeem :: ContractInstanceId -> MarloweParams -> TokenName -> PubKey -> m (WebData Unit)
 
-instance monadMarloweAppM :: MonadMarlowe AppM where
-  marloweCreateWalletCompanionContract wallet = activateContract $ ContractActivationArgs { caID: marloweContractExe, caWallet: toBack wallet }
-  --marloweCreateContract wallet roles contract = do
-  --  webContractInstanceId <- activateContract $ ContractActivationArgs { caID: marloweContractExe, caWallet: toBack wallet }
-  --  case webContractInstanceId of
-  --    Success contractInstanceId ->
-  --      invokeEndpoint ?(encodeJSON wallet roles) contractInstanceId "create"
-  --      pure webContractInstanceId
-  --    _ -> pure $ Failure ""
+instance monadMarloweAppM :: ManageMarloweContract AppM where
+  marloweCreateWalletCompanionContract wallet = activateContract $ ContractActivationArgs { caID: walletCompanionContractExe, caWallet: toBack wallet }
+  marloweGetWalletCompanionContractObservableState contractInstanceId = do
+    remoteDataObservableState <- getContractInstanceObservableState contractInstanceId
+    case remoteDataObservableState of
+      Success rawJson -> case runExcept $ decodeJSON $ unwrap rawJson of
+        Left decodingError -> pure $ Failure $ Right decodingError
+        Right observableState -> pure $ Success observableState
+      Failure ajaxError -> pure $ Failure $ Left ajaxError
+      NotAsked -> pure NotAsked
+      Loading -> pure Loading
+  marloweCreateContract wallet roles contract = do
+    webContractInstanceId <- activateContract $ ContractActivationArgs { caID: marloweContractExe, caWallet: toBack wallet }
+    case webContractInstanceId of
+      Success contractInstanceId -> do
+        let
+          rawJson = RawJson <<< unsafeStringify <<< encode $ (roles /\ contract)
+        _ <- invokeEndpoint rawJson contractInstanceId "create"
+        pure webContractInstanceId
+      _ -> pure webContractInstanceId
   marloweApplyInputs contractInstanceId params inputs =
     let
       rawJson = RawJson <<< unsafeStringify <<< encode $ (params /\ inputs)
@@ -63,15 +77,16 @@ instance monadMarloweAppM :: MonadMarlowe AppM where
       rawJson = RawJson <<< unsafeStringify <<< encode $ (params /\ party /\ slot)
     in
       invokeEndpoint rawJson contractInstanceId "auto"
-  marloweRedeem contractInstanceId params tokenName pubKeyHash =
+  marloweRedeem contractInstanceId params tokenName pubKey =
     let
-      rawJson = RawJson <<< unsafeStringify <<< encode $ (params /\ tokenName /\ pubKeyHash)
+      rawJson = RawJson <<< unsafeStringify <<< encode $ (params /\ tokenName /\ pubKey)
     in
       invokeEndpoint rawJson contractInstanceId "redeem"
 
-instance monadMarloweHalogenM :: MonadMarlowe m => MonadMarlowe (HalogenM state action slots msg m) where
+instance monadMarloweHalogenM :: ManageMarloweContract m => ManageMarloweContract (HalogenM state action slots msg m) where
   marloweCreateWalletCompanionContract = lift <<< marloweCreateWalletCompanionContract
-  --marloweCreateContract wallet roles contract = lift $ marloweCreateContract wallet roles contract
+  marloweGetWalletCompanionContractObservableState = lift <<< marloweGetWalletCompanionContractObservableState
+  marloweCreateContract wallet roles contract = lift $ marloweCreateContract wallet roles contract
   marloweApplyInputs contractInstanceId params inputs = lift $ marloweApplyInputs contractInstanceId params inputs
   marloweWait contractInstanceId params = lift $ marloweWait contractInstanceId params
   marloweAuto contractInstanceId params party slot = lift $ marloweAuto contractInstanceId params party slot

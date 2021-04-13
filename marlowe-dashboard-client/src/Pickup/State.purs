@@ -16,7 +16,10 @@ import MainFrame.Types (Action, State) as MainFrame
 import Pickup.Types (Action(..), State)
 
 initialState :: State
-initialState = { card: Nothing }
+initialState =
+  { card: Nothing
+  , pickupWalletString: mempty
+  }
 
 -- Some actions are handled in `MainFrame.State` because they involve
 -- modifications of that state. See Note [State].

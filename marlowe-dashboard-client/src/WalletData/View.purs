@@ -22,7 +22,7 @@ import Halogen.HTML.Events.Extra (onClick_, onValueInput_)
 import Halogen.HTML.Properties (InputType(..), disabled, id_, placeholder, readOnly, type_, value)
 import Material.Icons (Icon(..))
 import Play.Types (Action(..), Card(..))
-import WalletData.Lenses (_assets, _contractInstanceId, _contractInstanceIdString, _remoteDataPubKey, _remoteDataAssets, _remoteDataWallet, _walletNickname, _walletNicknameString)
+import WalletData.Lenses (_assets, _contractInstanceId, _contractInstanceIdString, _remoteDataWalletInfo, _walletNickname, _walletNicknameString)
 import WalletData.Types (NewWalletDetails, WalletDetails, WalletLibrary)
 import WalletData.Validation (contractInstanceIdError, walletNicknameError)
 
@@ -33,15 +33,11 @@ newWalletCard library newWalletDetails mTokenName =
 
     contractInstanceIdString = view _contractInstanceIdString newWalletDetails
 
-    remoteDataWallet = view _remoteDataWallet newWalletDetails
-
-    remoteDataPubKey = view _remoteDataPubKey newWalletDetails
-
-    remoteDataAssets = view _remoteDataAssets newWalletDetails
+    remoteDataWalletInfo = view _remoteDataWalletInfo newWalletDetails
 
     mWalletNicknameError = walletNicknameError walletNicknameString library
 
-    mContractInstanceIdError = contractInstanceIdError contractInstanceIdString remoteDataWallet remoteDataPubKey remoteDataAssets library
+    mContractInstanceIdError = contractInstanceIdError contractInstanceIdString remoteDataWalletInfo library
   in
     div
       [ classNames [ "flex", "flex-col", "p-5", "pb-6", "md:pb-8" ] ]
