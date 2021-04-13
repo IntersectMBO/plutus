@@ -164,7 +164,7 @@ dummyState =
 handleAction ::
   forall m slots msg.
   Action -> HalogenM State Action slots msg m Unit
-handleAction ToggleTemplateLibraryCard = pure unit -- handled in Play
+handleAction OpenTemplateLibraryCard = pure unit -- handled in Play.State
 
 handleAction (SelectView view) = assign _status view
 

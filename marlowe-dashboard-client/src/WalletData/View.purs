@@ -185,7 +185,7 @@ walletLibraryScreen library =
           <$> toUnfoldable library
     , button
         [ classNames $ Css.primaryButton <> Css.withIcon Add <> Css.fixedBottomRight
-        , onClick_ $ ToggleCard $ CreateWalletCard Nothing
+        , onClick_ $ OpenCard $ CreateWalletCard Nothing
         ]
         [ text "New contact" ]
     ]
@@ -196,7 +196,7 @@ walletLibraryScreen library =
     in
       li
         [ classNames [ "mt-4", "hover:cursor-pointer", "hover:text-green" ]
-        , onClick_ $ ToggleCard $ ViewWalletCard walletDetails
+        , onClick_ $ OpenCard $ ViewWalletCard walletDetails
         ]
         [ text nickname ]
 

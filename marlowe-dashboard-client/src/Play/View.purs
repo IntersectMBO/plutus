@@ -53,7 +53,7 @@ renderHeader walletNickname menuOpen =
         , navigation (SetScreen WalletLibraryScreen) Contacts "Contacts"
         , a
             [ classNames [ "ml-6", "font-bold", "text-sm" ]
-            , onClick_ $ ToggleCard PutdownWalletCard
+            , onClick_ $ OpenCard PutdownWalletCard
             ]
             [ span
                 [ classNames [ "md:hidden" ] ]

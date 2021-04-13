@@ -62,7 +62,7 @@ contractsScreen currentSlot state =
           ]
       , a
           [ classNames $ Css.primaryButton <> Css.withIcon Add <> Css.fixedBottomRight
-          , onClick_ $ ToggleTemplateLibraryCard
+          , onClick_ $ OpenTemplateLibraryCard
           ]
           [ text "Create" ]
       ]

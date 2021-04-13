@@ -88,13 +88,6 @@ handleAction (SetScreen screen) =
 
 handleAction (OpenCard card) = modifying _cards $ flip snoc card
 
-handleAction (ToggleCard card) = do
-  cards <- use _cards
-  case lastOf traversed cards of
-    Just currentCard
-      | currentCard == card -> handleAction CloseCard
-    _ -> handleAction $ OpenCard card
-
 handleAction CloseCard = do
   cards <- use _cards
   for_ (init cards) \remainingCards ->
@@ -111,11 +104,17 @@ handleAction (TemplateAction (Template.SetTemplate template)) = do
   when (mCurrentTemplate /= Just template) $ assign _templateState $ Template.mkInitialState template
   handleAction $ SetScreen TemplateScreen
 
-handleAction (TemplateAction Template.ToggleTemplateLibraryCard) = handleAction $ ToggleCard TemplateLibraryCard
+handleAction (TemplateAction Template.OpenTemplateLibraryCard) = handleAction $ OpenCard TemplateLibraryCard
 
-handleAction (TemplateAction (Template.ToggleCreateWalletCard tokenName)) = handleAction $ ToggleCard $ CreateWalletCard $ Just tokenName
+handleAction (TemplateAction (Template.OpenCreateWalletCard tokenName)) = handleAction $ OpenCard $ CreateWalletCard $ Just tokenName
 
-handleAction (TemplateAction Template.ToggleSetupConfirmationCard) = handleAction $ ToggleCard ContractSetupConfirmationCard
+handleAction (TemplateAction Template.OpenSetupConfirmationCard) = handleAction $ OpenCard ContractSetupConfirmationCard
+
+handleAction (TemplateAction Template.CloseSetupConfirmationCard) = do
+  cards <- use _cards
+  case lastOf traversed cards of
+    Just ContractSetupConfirmationCard -> handleAction CloseCard
+    _ -> pure unit
 
 -- NOTE:  This handler makes works with the assumption than the contract was created from the template functionality
 --        but that will only be the case for the person setting up the contract. Once we connect the backend, and a
@@ -158,11 +157,11 @@ handleAction (TemplateAction Template.StartContract) = do
 handleAction (TemplateAction templateAction) = toTemplate $ Template.handleAction templateAction
 
 -- contract home actions that need to be handled here
-handleAction (ContractHomeAction (ContractHome.ToggleTemplateLibraryCard)) = handleAction $ ToggleCard TemplateLibraryCard
+handleAction (ContractHomeAction (ContractHome.OpenTemplateLibraryCard)) = handleAction $ OpenCard TemplateLibraryCard
 
 handleAction (ContractHomeAction a@(ContractHome.OpenContract _)) = do
   toContractHome $ ContractHome.handleAction a
-  handleAction $ ToggleCard ContractCard
+  handleAction $ OpenCard ContractCard
 
 -- other contract home actions
 handleAction (ContractHomeAction contractAction) = void $ toContractHome $ ContractHome.handleAction contractAction
