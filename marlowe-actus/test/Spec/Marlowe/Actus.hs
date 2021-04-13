@@ -4,13 +4,11 @@ module Spec.Marlowe.Actus
 where
 
 import           Data.Aeson                                       (decode, encode)
-import           Data.ByteString.Lazy.Char8                       (unpack)
 import           Data.Time
 import           Data.Validation                                  (Validation (..))
 import           Language.Marlowe.ACTUS.Analysis
 import           Language.Marlowe.ACTUS.Definitions.ContractTerms
 import           Language.Marlowe.ACTUS.Generator
-import           Language.Marlowe.Pretty
 import           Language.Marlowe.Semantics
 import           Test.Tasty
 import           Test.Tasty.HUnit
@@ -131,13 +129,11 @@ pamStatic = case genStaticContract contractTerms of
 pamFs :: IO ()
 pamFs = do
     let jsonTermsStr = encode contractTerms
-    writeFile "ContractTerms.json" $ unpack jsonTermsStr
     let jsonTerms' = decode jsonTermsStr :: Maybe ContractTerms
     assertBool "JSON terms there and back" $ not $ null jsonTerms'
     case genFsContract contractTerms of
       Failure _ -> assertFailure "Terms validation should not fail"
-      Success contract -> do
-        writeFile "PamFs.marlowe" $ show $ pretty contract
+      Success contract ->
         assertBool "Cashflows should not be Close" $ contract /= Close
 
 namProjected :: IO ()
@@ -156,11 +152,9 @@ namStatic = case genStaticContract namContractTerms of
 namFs :: IO ()
 namFs = do
     let jsonTermsStr = encode namContractTerms
-    writeFile "ContractTerms.json" $ unpack jsonTermsStr
     let jsonTerms' = decode jsonTermsStr :: Maybe ContractTerms
     assertBool "JSON terms there and back" $ not $ null jsonTerms'
     case genFsContract namContractTerms of
       Failure _ -> assertFailure "Terms validation should not fail"
-      Success contract -> do
-        writeFile "NamFs.marlowe" $ show $ pretty contract
+      Success contract ->
         assertBool "Cashflows should not be Close" $ contract /= Close
