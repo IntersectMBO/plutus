@@ -266,8 +266,10 @@ handleServicesSimulator wallet =
         . interpret (Core.handleBlockchainEnvReader @t @(SimulatorState t))
         . interpret (Core.handleUserEnvReader @t @(SimulatorState t))
         . reinterpretN @'[Reader (SimulatorState t), Reader BlockchainEnv, LogMsg _] (handleChainEffect @t)
-        . reinterpret (handleNodeClient @t wallet)
-        . reinterpret (Core.handleUserEnvReader @t @(SimulatorState t))
+
+        . interpret (Core.handleUserEnvReader @t @(SimulatorState t))
+        . reinterpret2 (handleNodeClient @t wallet)
+
         . makeTimedChainIndexEvent wallet
         . interpret (Core.handleUserEnvReader @t @(SimulatorState t))
         . reinterpretN @'[Reader (SimulatorState t), LogMsg _] (handleChainIndexEffect @t)
