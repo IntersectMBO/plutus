@@ -58,7 +58,7 @@ data GenOptions = GenOptions
 
 defaultGenOptions :: GenOptions
 defaultGenOptions = GenOptions
-  { genDepth = 13
+  { genDepth = 11
   , genMode  = OF
   }
 

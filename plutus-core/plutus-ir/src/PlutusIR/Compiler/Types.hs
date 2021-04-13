@@ -111,6 +111,7 @@ type Compiling m e uni fun a =
     , MonadError e m
     , MonadQuote m
     , Ord a
+    , PLC.ToKind uni
     , PLC.GShow uni, PLC.GEq uni
     , PLC.ToBuiltinMeaning uni fun
     )

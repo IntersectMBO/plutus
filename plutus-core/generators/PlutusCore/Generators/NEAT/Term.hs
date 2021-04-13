@@ -9,8 +9,10 @@ This file contains
 {-# OPTIONS_GHC -fno-warn-orphans      #-}
 {-# LANGUAGE ExistentialQuantification #-}
 {-# LANGUAGE FlexibleInstances         #-}
+{-# LANGUAGE GADTs                     #-}
 {-# LANGUAGE LambdaCase                #-}
 {-# LANGUAGE MultiParamTypeClasses     #-}
+{-# LANGUAGE PatternSynonyms           #-}
 {-# LANGUAGE RecordWildCards           #-}
 {-# LANGUAGE ScopedTypeVariables       #-}
 {-# LANGUAGE TemplateHaskell           #-}
@@ -141,7 +143,7 @@ type ClosedTermG = TermG Z Z
 convertTypeBuiltin :: TypeBuiltinG -> Some (TypeIn DefaultUni)
 convertTypeBuiltin TyByteStringG = Some (TypeIn DefaultUniByteString)
 convertTypeBuiltin TyIntegerG    = Some (TypeIn DefaultUniInteger)
-convertTypeBuiltin TyStringG     = Some (TypeIn $ DefaultUniList DefaultUniChar)
+convertTypeBuiltin TyStringG     = Some (TypeIn DefaultUniString)
 convertTypeBuiltin TyBoolG       = Some (TypeIn DefaultUniBool)
 convertTypeBuiltin TyUnitG       = Some (TypeIn DefaultUniUnit)
 convertTypeBuiltin TyCharG       = Some (TypeIn DefaultUniChar)
@@ -209,7 +211,7 @@ convertClosedType tynames = convertType (emptyTyNameState tynames)
 convertTermConstant :: TermConstantG -> Some (ValueOf DefaultUni)
 convertTermConstant (TmByteStringG b) = Some $ ValueOf DefaultUniByteString b
 convertTermConstant (TmIntegerG i)    = Some $ ValueOf DefaultUniInteger i
-convertTermConstant (TmStringG s)     = Some $ ValueOf (DefaultUniList DefaultUniChar) s
+convertTermConstant (TmStringG s)     = Some $ ValueOf DefaultUniString s
 convertTermConstant (TmBoolG b)       = Some $ ValueOf DefaultUniBool b
 convertTermConstant (TmUnitG u)       = Some $ ValueOf DefaultUniUnit u
 convertTermConstant (TmCharG c)       = Some $ ValueOf DefaultUniChar c

@@ -9,8 +9,8 @@ module PlutusCore.StdLib.Data.Integer
     , succInteger
     ) where
 
-import           PlutusCore.Builtins
 import           PlutusCore.Core
+import           PlutusCore.Default.Builtins
 import           PlutusCore.MkPlc
 import           PlutusCore.Name
 import           PlutusCore.Quote

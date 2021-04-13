@@ -22,8 +22,8 @@ module PlutusCore.StdLib.Data.List
 
 import           Prelude                         hiding (enumFromTo, map, product, reverse, sum)
 
-import           PlutusCore.Builtins
 import           PlutusCore.Core
+import           PlutusCore.Default.Builtins
 import           PlutusCore.MkPlc
 import           PlutusCore.Name
 import           PlutusCore.Quote

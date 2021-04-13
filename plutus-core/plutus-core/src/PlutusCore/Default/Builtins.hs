@@ -11,11 +11,13 @@
 {-# LANGUAGE TypeOperators         #-}
 {-# LANGUAGE UndecidableInstances  #-}
 
-module PlutusCore.Builtins where
+module PlutusCore.Default.Builtins where
 
 import           PlutusCore.Constant.Dynamic.Emit
 import           PlutusCore.Constant.Meaning
 import           PlutusCore.Constant.Typed
+import           PlutusCore.Core
+import           PlutusCore.Default.Universe
 import           PlutusCore.Evaluation.Machine.ExBudgeting
 import           PlutusCore.Evaluation.Machine.ExBudgetingDefaults
 import           PlutusCore.Evaluation.Machine.ExMemory
@@ -35,17 +37,6 @@ import           Data.Word                                         (Word8)
 import           Flat
 import           Flat.Decoder
 import           Flat.Encoder                                      as Flat
-
--- TODO: I think we should have the following structure:
---
--- PlutusCore.Default.Universe
--- PlutusCore.Default.Builtins
---
--- and
---
--- PlutusCore.Default
---
--- reexporting stuff from these two.
 
 -- For @n >= 24@, CBOR needs two bytes instead of one to encode @n@, so we want the commonest
 -- builtins at the front.
@@ -120,7 +111,7 @@ nonZeroArg f x y = EvaluationSuccess $ f x y
 defBuiltinsRuntime :: HasConstantIn DefaultUni term => BuiltinsRuntime DefaultFun term
 defBuiltinsRuntime = toBuiltinsRuntime defaultCostModel
 
-instance (GShow uni, GEq uni, DefaultUni <: uni) => ToBuiltinMeaning uni DefaultFun where
+instance (ToKind uni, GShow uni, GEq uni, DefaultUni <: uni) => ToBuiltinMeaning uni DefaultFun where
     type CostingPart uni DefaultFun = CostModel
     toBuiltinMeaning AddInteger =
         makeBuiltinMeaning

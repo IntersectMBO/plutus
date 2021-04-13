@@ -23,9 +23,9 @@ import           PlutusPrelude
 import           PlutusCore.Generators.Internal.TypedBuiltinGen
 import           PlutusCore.Generators.Internal.Utils
 
-import           PlutusCore.Builtins
 import           PlutusCore.Constant
 import           PlutusCore.Core
+import           PlutusCore.Default
 import           PlutusCore.Error
 import           PlutusCore.Evaluation.Machine.Ck
 import           PlutusCore.Evaluation.Machine.ExMemory
@@ -35,7 +35,6 @@ import           PlutusCore.Normalize
 import           PlutusCore.Pretty
 import           PlutusCore.Quote
 import           PlutusCore.TypeCheck
-import           PlutusCore.Universe
 
 import           Control.Lens.TH
 import           Control.Monad.Except

@@ -17,9 +17,9 @@ module PlutusCore.Generators.Internal.Denotation
 
 import           PlutusCore.Generators.Internal.Dependent
 
-import           PlutusCore.Builtins
 import           PlutusCore.Constant
 import           PlutusCore.Core
+import           PlutusCore.Default
 import           PlutusCore.Name
 import           PlutusCore.Universe
 

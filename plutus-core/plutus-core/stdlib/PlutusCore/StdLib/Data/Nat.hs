@@ -16,8 +16,8 @@ module PlutusCore.StdLib.Data.Nat
 
 import           Prelude                         hiding (succ)
 
-import           PlutusCore.Builtins
 import           PlutusCore.Core
+import           PlutusCore.Default.Builtins
 import           PlutusCore.MkPlc
 import           PlutusCore.Name
 import           PlutusCore.Quote

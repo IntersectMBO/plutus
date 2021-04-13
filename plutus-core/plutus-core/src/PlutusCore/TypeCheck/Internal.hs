@@ -207,14 +207,14 @@ substNormalizeTypeM ty name body = Norm.runNormalizeTypeM $ Norm.substNormalizeT
 
 -- | Infer the kind of a type.
 inferKindM
-    :: AsTypeError err term uni fun ann
+    :: (AsTypeError err term uni fun ann, ToKind uni)
     => Type TyName uni ann -> TypeCheckM uni fun cfg err (Kind ())
 
 -- b :: k
 -- ------------------------
 -- [infer| G !- con b :: k]
-inferKindM (TyBuiltin _ _)         =
-    pure $ Type ()
+inferKindM (TyBuiltin _ (Some (TypeIn uni))) =
+    pure $ toKind uni
 
 -- [infer| G !- v :: k]
 -- ------------------------
@@ -265,7 +265,7 @@ inferKindM (TyIFix ann pat arg)    = do
 
 -- | Check a 'Type' against a 'Kind'.
 checkKindM
-    :: AsTypeError err term uni fun ann
+    :: (AsTypeError err term uni fun ann, ToKind uni)
     => ann -> Type TyName uni ann -> Kind () -> TypeCheckM uni fun cfg err ()
 
 -- [infer| G !- ty : tyK]    tyK ~ k
@@ -277,7 +277,7 @@ checkKindM ann ty k = do
 
 -- | Check that the kind of a pattern functor is @(k -> *) -> k -> *@.
 checkKindOfPatternFunctorM
-    :: AsTypeError err term uni fun ann
+    :: (AsTypeError err term uni fun ann, ToKind uni)
     => ann
     -> Type TyName uni ann  -- ^ A pattern functor.
     -> Kind ()              -- ^ @k@.
@@ -317,7 +317,7 @@ unfoldIFixOf pat arg k = do
 -- See the [Global uniqueness] and [Type rules] notes.
 -- | Synthesize the type of a term, returning a normalized type.
 inferTypeM
-    :: ( AsTypeError err (Term TyName Name uni fun ()) uni fun ann
+    :: ( AsTypeError err (Term TyName Name uni fun ()) uni fun ann, ToKind uni
        , HasTypeCheckConfig cfg uni fun, GShow uni, GEq uni, Ix fun
        )
     => Term TyName Name uni fun ann -> TypeCheckM uni fun cfg err (Normalized (Type TyName uni ()))
@@ -414,7 +414,7 @@ inferTypeM (Error ann ty) = do
 -- See the [Global uniqueness] and [Type rules] notes.
 -- | Check a 'Term' against a 'NormalizedType'.
 checkTypeM
-    :: ( AsTypeError err (Term TyName Name uni fun ()) uni fun ann
+    :: ( AsTypeError err (Term TyName Name uni fun ()) uni fun ann, ToKind uni
        , HasTypeCheckConfig cfg uni fun, GShow uni, GEq uni, Ix fun
        )
     => ann

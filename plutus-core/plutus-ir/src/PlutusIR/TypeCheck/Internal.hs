@@ -24,7 +24,7 @@ import           Control.Monad.Except
 import           Control.Monad.Reader
 import           Data.Foldable
 import           Data.Ix
-import           PlutusCore                    (typeAnn)
+import           PlutusCore                    (ToKind (..), typeAnn)
 import           PlutusCore.Error              as PLC
 import           PlutusCore.Quote
 import           PlutusCore.Rename             as PLC
@@ -100,7 +100,7 @@ type PirTCEnv uni fun e a = TypeCheckM uni fun (PirTCConfig uni fun) e a
 -- See the [Global uniqueness] and [Type rules] notes.
 -- | Check a 'Term' against a 'NormalizedType'.
 checkTypeM
-    :: (GShow uni, GEq uni, Ix fun, AsTypeErrorExt e uni ann, AsTypeError e (Term TyName Name uni fun ()) uni fun ann)
+    :: (GShow uni, GEq uni, Ix fun, AsTypeErrorExt e uni ann, AsTypeError e (Term TyName Name uni fun ()) uni fun ann, ToKind uni)
     => ann -> Term TyName Name uni fun ann -> Normalized (Type TyName uni ()) -> PirTCEnv uni fun e ()
 -- [infer| G !- term : vTermTy]    vTermTy ~ vTy
 -- ---------------------------------------------
@@ -112,7 +112,7 @@ checkTypeM ann term vTy = do
 -- See the [Global uniqueness] and [Type rules] notes.
 -- | Synthesize the type of a term, returning a normalized type.
 inferTypeM
-    :: forall uni fun ann e. (GShow uni, GEq uni, Ix fun, AsTypeError e (Term TyName Name uni fun ()) uni fun ann, AsTypeErrorExt e uni ann)
+    :: forall uni fun ann e. (GShow uni, GEq uni, Ix fun, AsTypeError e (Term TyName Name uni fun ()) uni fun ann, ToKind uni, AsTypeErrorExt e uni ann)
     => Term TyName Name uni fun ann -> PirTCEnv uni fun e (Normalized (Type TyName uni ()))
 -- c : vTy
 -- -------------------------
@@ -266,7 +266,7 @@ inferTypeM (Let ann r@Rec bs inTerm) = do
 checkKindFromBinding(G,b)
 -}
 checkKindFromBinding :: forall e uni fun ann.
-                   AsTypeError e (Term TyName Name uni fun ()) uni fun ann
+                   (AsTypeError e (Term TyName Name uni fun ()) uni fun ann, ToKind uni)
                  => Binding TyName Name uni fun ann
                  -> PirTCEnv uni fun e ()
 checkKindFromBinding = \case
@@ -296,7 +296,7 @@ checkKindFromBinding = \case
 ---------------------------------------------------
 checkTypeFromBinding(G,b)
 -}
-checkTypeFromBinding :: forall e uni fun a. (GShow uni, GEq uni, Ix fun, AsTypeError e (Term TyName Name uni fun ()) uni fun a, AsTypeErrorExt e uni a)
+checkTypeFromBinding :: forall e uni fun a. (GShow uni, GEq uni, Ix fun, AsTypeError e (Term TyName Name uni fun ()) uni fun a, ToKind uni, AsTypeErrorExt e uni a)
                  => Recursivity -> Binding TyName Name uni fun a -> PirTCEnv uni fun e ()
 checkTypeFromBinding recurs = \case
     TypeBind{} -> pure () -- no types to check
@@ -327,7 +327,7 @@ checkTypeFromBinding recurs = \case
 
 -- | Check that the in-Term's inferred type of a Let has kind *.
 -- Skip this check at the top-level, to allow top-level types to escape; see Note [PIR vs Paper Escaping Types Difference].
-checkStarInferred :: AsTypeError e term uni fun ann
+checkStarInferred :: (AsTypeError e term uni fun ann, ToKind uni)
                   => ann -> Normalized (Type TyName uni b) -> PirTCEnv uni fun e ()
 checkStarInferred ann t = do
     allowEscape <- view $ tceTypeCheckConfig . pirConfigAllowEscape

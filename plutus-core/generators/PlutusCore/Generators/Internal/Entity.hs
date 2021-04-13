@@ -32,15 +32,14 @@ import           PlutusCore.Generators.Internal.TypeEvalCheck
 import           PlutusCore.Generators.Internal.TypedBuiltinGen
 import           PlutusCore.Generators.Internal.Utils
 
-import           PlutusCore.Builtins
 import           PlutusCore.Constant
 import           PlutusCore.Core
+import           PlutusCore.Default
 import           PlutusCore.Evaluation.Machine.ExMemory
 import           PlutusCore.Evaluation.Result
 import           PlutusCore.Name
 import           PlutusCore.Pretty                              (PrettyConst, prettyConst)
 import           PlutusCore.Quote
-import           PlutusCore.Universe
 
 import qualified Control.Monad.Morph                            as Morph
 import           Control.Monad.Reader

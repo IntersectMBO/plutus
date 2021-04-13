@@ -10,13 +10,12 @@ module Evaluation.ApplyBuiltinName
 
 import           UntypedPlutusCore
 
-import           PlutusCore.Builtins
 import           PlutusCore.Constant
+import           PlutusCore.Default
 import           PlutusCore.Evaluation.Machine.ExBudget
 import           PlutusCore.Evaluation.Machine.ExBudgetingDefaults
 import           PlutusCore.Evaluation.Machine.Exception
 import           PlutusCore.Generators
-import           PlutusCore.Universe
 
 import           Control.Monad.Except
 import           Data.Proxy

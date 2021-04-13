@@ -19,13 +19,13 @@ import PlutusPrelude
 
 import PlutusCore.Parser.Internal
 
-import PlutusCore.Builtins
 import PlutusCore.Constant.Typed
 import PlutusCore.Core
 import PlutusCore.Core.Type
+import PlutusCore.Default
 import PlutusCore.Error
-import PlutusCore.Lexer.Type
 import PlutusCore.Lexer
+import PlutusCore.Lexer.Type
 import PlutusCore.Mark
 import PlutusCore.MkPlc           (mkTyBuiltin, mkConstant)
 import PlutusCore.Name

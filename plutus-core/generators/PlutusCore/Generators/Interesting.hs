@@ -21,14 +21,13 @@ module PlutusCore.Generators.Interesting
     , fromInterestingTermGens
     ) where
 
-import           PlutusCore.Builtins
 import           PlutusCore.Constant
 import           PlutusCore.Core
+import           PlutusCore.Default
 import           PlutusCore.Evaluation.Result
 import           PlutusCore.MkPlc
 import           PlutusCore.Name
 import           PlutusCore.Quote
-import           PlutusCore.Universe
 
 import           PlutusCore.StdLib.Data.Bool
 import           PlutusCore.StdLib.Data.Function as Function

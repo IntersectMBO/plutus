@@ -109,9 +109,9 @@ data ExtensionFun
     | Absurd
     | CharToInteger
     | ReplicateAtChar
-    | Null
-    | Head
-    | Tail
+--     | Null
+--     | Head
+--     | Tail
 --     | Swap
     deriving (Show, Eq, Ord, Enum, Bounded, Ix, Generic, Hashable)
     deriving (ExMemoryUsage) via (GenericExMemoryUsage ExtensionFun)
@@ -213,11 +213,11 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni ExtensionFun where
         makeBuiltinMeaning
             (replicate :: Int -> Char -> [Char])
             mempty  -- Whatever.
-    toBuiltinMeaning Null = makeBuiltinMeaning nullPlc mempty where
-        nullPlc
-            :: a ~ TyVarRep ('TyNameRep "a" 0)
-            => SomeValueN DefaultUni [] '[a] -> Bool
-        nullPlc (SomeValueArg uniA (SomeValueRes _ xs)) = null xs
+    -- toBuiltinMeaning Null = makeBuiltinMeaning nullPlc mempty where
+    --     nullPlc
+    --         :: a ~ TyVarRep ('TyNameRep "a" 0)
+    --         => SomeValueN DefaultUni [] '[a] -> Bool
+    --     nullPlc (SomeValueArg uniA (SomeValueRes _ xs)) = null xs
 
 --         makeBuiltinMeaning
 --             _
@@ -230,13 +230,14 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni ExtensionFun where
         --             let err = fromString $ "Expected a list, but got " ++ gshow uni
         --             KnownTypeMonad $ throwingWithCause _UnliftingError err $ Just term
         --     Nothing -> KnownTypeMonad $ throwingWithCause _UnliftingError "Not a constant" $ Just term
-    toBuiltinMeaning Head = makeBuiltinMeaning headPlc mempty where
-        headPlc
-            :: a ~ TyVarRep ('TyNameRep "a" 0)
-            => SomeValueN DefaultUni [] '[a] -> EvaluationResult (Opaque term a)
-        headPlc (SomeValueArg uniA (SomeValueRes _ xs)) = case xs of
-            x : _ -> pure . Opaque . fromConstant . Some $ ValueOf uniA x
-            _     -> throwError evaluationFailure
+    -- toBuiltinMeaning Head = makeBuiltinMeaning headPlc mempty where
+    --     headPlc
+    --         :: a ~ TyVarRep ('TyNameRep "a" 0)
+    --         => SomeValueN DefaultUni [] '[a] -> EvaluationResult (Opaque term a)
+    --     headPlc (SomeValueArg uniA (SomeValueRes _ xs)) = case xs of
+    --         x : _ -> pure . Opaque . fromConstant . Some $ ValueOf uniA x
+    --         _     -> throwError evaluationFailure
+
         -- (Opaque term) = case asConstant term of
         --     Just (Some (ValueOf uni xs)) -> case uni of
         --         DefaultUniList a -> case xs of
@@ -246,15 +247,15 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni ExtensionFun where
         --             let err = fromString $ "Expected a list, but got " ++ gshow uni
         --             KnownTypeMonad $ throwingWithCause _UnliftingError err $ Just term
         --     Nothing -> KnownTypeMonad $ throwingWithCause _UnliftingError "Not a constant" $ Just term
-    toBuiltinMeaning Tail = makeBuiltinMeaning tailPlc mempty where
-        tailPlc
-            :: a ~ TyVarRep ('TyNameRep "a" 0)
-            => SomeValueN DefaultUni [] '[a] -> EvaluationResult (SomeValueN DefaultUni [] '[a])
-        tailPlc (SomeValueArg uniA (SomeValueRes uniListA xs)) = case xs of
-            _ : xs' -> pure . SomeValueArg uniA $ SomeValueRes uniListA xs'
+    -- toBuiltinMeaning Tail = makeBuiltinMeaning tailPlc mempty where
+    --     tailPlc
+    --         :: a ~ TyVarRep ('TyNameRep "a" 0)
+    --         => SomeValueN DefaultUni [] '[a] -> EvaluationResult (SomeValueN DefaultUni [] '[a])
+    --     tailPlc (SomeValueArg uniA (SomeValueRes uniListA xs)) = case xs of
+    --         _ : xs' -> pure . SomeValueArg uniA $ SomeValueRes uniListA xs'
 
             -- xs -- pure . Opaque . fromConstant . Some $ ValueOf uniA x
-            _       -> throwError evaluationFailure
+            -- _       -> throwError evaluationFailure
 
 
         -- tailPlc
@@ -284,22 +285,22 @@ data ValueOf1 uni f a = ValueOf1 (uni a) (f a)
 
 -- instance HasConstantIn DefaultUni => KnownType term
 
-data Foo (uni :: forall k. k -> *) = Foo
+-- data Foo (uni :: forall k. k -> *) = Foo
 
 -- uni :: forall k. k -> *
 -- uni :: newtyp
 
-unliftConstantList
-    :: forall a m term err.
-       (MonadError (ErrorWithCause err term) m, AsUnliftingError err, HasConstantIn DefaultUni term)
-    => term -> m (Some (ValueOf1 DefaultUni []))
-unliftConstantList term = case asConstant term of
-    Just (Some (ValueOf uni xs)) -> case uni of
-        DefaultUniRunTypeApp (DefaultUniList `DefaultUniApply` el) -> pure . Some $ ValueOf1 el xs
-        _                 -> do
-            let err = fromString $ "Expected a list, but got " ++ gshow uni
-            throwingWithCause _UnliftingError err $ Just term
-    Nothing -> throwingWithCause _UnliftingError "Not a constant" $ Just term
+-- unliftConstantList
+--     :: forall a m term err.
+--        (MonadError (ErrorWithCause err term) m, AsUnliftingError err, HasConstantIn DefaultUni term)
+--     => term -> m (Some (ValueOf1 DefaultUni []))
+-- unliftConstantList term = case asConstant term of
+--     Just (Some (ValueOf uni xs)) -> case uni of
+--         DefaultUniRunTypeApp (DefaultUniList `DefaultUniApply` el) -> pure . Some $ ValueOf1 el xs
+--         _                 -> do
+--             let err = fromString $ "Expected a list, but got " ++ gshow uni
+--             throwingWithCause _UnliftingError err $ Just term
+--     Nothing -> throwingWithCause _UnliftingError "Not a constant" $ Just term
 
 -- f : all a. [_] a -> bool
 

@@ -19,8 +19,7 @@
 {-# LANGUAGE UndecidableInstances     #-}
 
 module PlutusCore.Constant.Typed
-    ( KnownKind (..)
-    , TypeScheme (..)
+    ( TypeScheme (..)
     , FoldArgs
     , FoldArgsEx
     , unliftConstant
@@ -57,6 +56,7 @@ import           Control.Lens.Prism
 import           Control.Lens.TH
 import           Control.Monad.Except
 import qualified Data.ByteString                         as BS
+import           Data.Functor.Compose
 import           Data.Functor.Const
 import qualified Data.Kind                               as GHC (Type)
 import           Data.Proxy
@@ -66,16 +66,6 @@ import qualified Data.Text                               as Text
 import           GHC.TypeLits
 
 infixr 9 `TypeSchemeArrow`
-
--- | A class for converting Haskell kinds to PLC kinds.
-class KnownKind kind where
-    knownKind :: proxy kind -> Kind ()
-
-instance KnownKind GHC.Type where
-    knownKind _ = Type ()
-
-instance (KnownKind dom, KnownKind cod) => KnownKind (dom -> cod) where
-    knownKind _ = KindArrow () (knownKind $ Proxy @dom) (knownKind $ Proxy @cod)
 
 -- | Type schemes of primitive operations.
 -- @as@ is a list of types of arguments, @r@ is the resulting type.
@@ -402,7 +392,7 @@ instance (MonadError err m, AsEvaluationFailure err) =>
             unNoCauseT . h $ ErrorWithCause (NoUnliftingError err) Nothing
 
 makeKnownNoEmit
-    :: forall a term err m. (KnownType term a, MonadError err m, AsEvaluationFailure err)
+    :: forall term a err m. (KnownType term a, MonadError err m, AsEvaluationFailure err)
     => a -> m term
 makeKnownNoEmit = unNoCauseT @_ @term . unNoEmitterT . makeKnown
 
@@ -531,6 +521,19 @@ instance (uni `Contains` TypeApp f, uni ~ uni', All (KnownTypeAst uni) reps) =>
 
 
 
+cparaM_SList
+    :: forall k c (xs :: [k]) proxy r m. (All c xs, Monad m)
+    => proxy c
+    -> r '[]
+    -> (forall y ys. (c y, All c ys) => r ys -> m (r (y ': ys)))
+    -> m (r xs)
+cparaM_SList p z f =
+    getCompose $ cpara_SList
+        p
+        (Compose $ pure z)
+        (\(Compose r) -> Compose $ r >>= f)
+
+
 -- cparaP_SList
 --     :: forall k c (xs :: [k]) proxy r. All c xs
 --     => proxy c
@@ -564,13 +567,50 @@ instance (uni `Contains` TypeApp f, uni ~ uni', All (KnownTypeAst uni) reps) =>
 --     f
 --     z
 
-cifoldM_SList
-    :: forall k c (xs :: [k]) proxy r m. All c xs
-    => proxy c
-    -> r '[]
-    -> (forall y ys. (c y, All c ys) => Proxy (All c (y ': ys)) -> r ys -> m (r (y ': ys)))
-    -> m (r xs)
-cifoldM_SList p z f = undefined
+newtype IFoldMMotive c m (xs :: [k]) = IFoldMMotive
+    { unIFoldMMotive
+        :: forall r.
+           r '[]
+        -> (forall y ys. (c y, All c ys) => Proxy y -> r ys -> m (r (y ': ys)))
+        -> m (r xs)
+    }
+
+-- cparaP_SList
+--     :: forall k c (xs :: [k]) proxy r. All c xs
+--     => proxy c
+--     -> r '[]
+--     -> (forall y ys. (c y, All c ys) => Proxy (All c (y ': ys)) -> r ys -> r (y ': ys))
+--     -> r xs
+-- cparaP_SList p z f = cpara_SList p z $ f Proxy
+
+type family Ins y xs where
+    Ins y '[]       = '[y]
+    Ins y (x ': xs) = x ': y ': xs
+
+newtype StepR r y ys = StepR
+    { unStepR :: r (y ': ys)
+    }
+
+-- cifoldM_SList
+--     :: forall k c (xs :: [k]) proxy r m. (All c xs, Monad m)
+--     => proxy c
+--     -> r '[]
+--     -> (forall y ys. (c y, All c ys) => r ys -> m (r (y ': ys)))
+--     -> m (r xs)
+-- cifoldM_SList p = undefined where -- unIFoldMMotive $ cpara_SList p zM fM where
+--     zM :: IFoldMMotive c m '[]
+--     zM = IFoldMMotive $ \z _ -> pure z
+
+--     fM :: forall y ys. c y => IFoldMMotive c m ys -> IFoldMMotive c m (y ': ys)
+--     fM (IFoldMMotive h) = IFoldMMotive $ \z f -> do
+--         z' <- f Proxy z
+--         unStepR <$> h (StepR z') (\p -> fmap _ . f p . unStepR) -- (\sr -> fmap StepR $ f $ unStepR sr)
+
+--  f :: (forall y ys. (c y, All c ys) => r ys -> m (r (y ': ys)))
+
+-- z' :: r [y]
+-- f' :: (forall y ys. (c y, All c ys) => r (z ': ys) -> m (r (y ': z ': ys)))
+
 
 instance
         ( KnownTypeAst uni (SomeValueN uni f reps)
@@ -598,11 +638,11 @@ instance
                 matchUniRunTypeApp
                     uni
                     wrongType
-                    (\uniTypeApp ->
-                        cifoldM_SList @_ @(KnownTypeAst uni) @reps
+                    (\uniApp0 ->
+                        cparaM_SList @_ @(KnownTypeAst uni) @reps
                             Proxy
-                            (ReadSomeValueN (SomeValueRes uni xs) uniTypeApp)
-                            (\_ (ReadSomeValueN acc uniApp) ->
+                            (ReadSomeValueN (SomeValueRes uni xs) uniApp0)
+                            (\(ReadSomeValueN acc uniApp) ->
                                 matchUniApply
                                     uniApp
                                     wrongType
@@ -611,6 +651,25 @@ instance
             case uniHead `geq` uniF of
                 Nothing   -> wrongType
                 Just Refl -> pure res
+
+
+            -- ReadSomeValueN res uniHead <-
+            --     matchUniRunTypeApp
+            --         uni
+            --         wrongType
+            --         (\uniTypeApp ->
+            --             cifoldM_SList @_ @(KnownTypeAst uni) @reps
+            --                 Proxy
+            --                 (ReadSomeValueN (SomeValueRes uni xs) uniTypeApp)
+            --                 (\(ReadSomeValueN acc uniApp) ->
+            --                     matchUniApply
+            --                         uniApp
+            --                         wrongType
+            --                         (\uniApp' uniA ->
+            --                             pure $ ReadSomeValueN (SomeValueArg uniA acc) uniApp')))
+            -- case uniHead `geq` uniF of
+            --     Nothing   -> wrongType
+            --     Just Refl -> pure res
 
 
 --                             (ReadSomeValueN $ \res uniHead ->
@@ -660,8 +719,8 @@ instance
 --     }
 
 
-data ReadSomeValueN m uni f reps = forall k (a :: k). ReadSomeValueN (SomeValueN uni a reps) (uni (TypeApp a))
-
+data ReadSomeValueN m uni f reps =
+    forall k (a :: k). ReadSomeValueN (SomeValueN uni a reps) (uni (TypeApp a))
 
 toTyNameAst
     :: forall text uniq. (KnownSymbol text, KnownNat uniq)

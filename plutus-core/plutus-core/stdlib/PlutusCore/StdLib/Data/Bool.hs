@@ -12,8 +12,8 @@ module PlutusCore.StdLib.Data.Bool
     , ifThenElse
     ) where
 
-import           PlutusCore.Builtins
 import           PlutusCore.Core
+import           PlutusCore.Default.Builtins
 import           PlutusCore.MkPlc
 import           PlutusCore.Name
 import           PlutusCore.Quote
