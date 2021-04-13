@@ -100,9 +100,6 @@ renderMain wallets newWalletDetails templates playState =
       [ renderMobileMenu menuOpen
       , renderCards wallets newWalletDetails templates playState
       , renderScreen wallets screen playState
-      , div
-          []
-          [ text $ show (view _currentSlot playState) ]
       ]
 
 renderMobileMenu :: forall p. Boolean -> HTML p Action
