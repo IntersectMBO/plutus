@@ -18,6 +18,7 @@ module UntypedPlutusCore.Evaluation.Machine.Cek
     , TallyingSt (..)
     , RestrictingSt (..)
     , Hashable
+    , PrettyUni
     , counting
     , tallying
     , restricting
@@ -63,8 +64,8 @@ allow one to specify an 'ExBudgetMode'. I.e. such functions are only for fully e
 
 -- | Evaluate a term using the CEK machine with logging disabled and keep track of costing.
 runCekNoEmit
-    :: ( Closed uni, uni `Everywhere` ExMemoryUsage
-       , Ix fun, ExMemoryUsage fun
+    :: ( uni `Everywhere` ExMemoryUsage
+       , Ix fun, ExMemoryUsage fun, PrettyUni uni fun
        )
     => BuiltinsRuntime fun (CekValue uni fun)
     -> ExBudgetMode cost uni fun
@@ -90,8 +91,8 @@ unsafeRunCekNoEmit runtime mode =
 
 -- | Evaluate a term using the CEK machine with logging enabled.
 evaluateCek
-    :: ( Closed uni, uni `Everywhere` ExMemoryUsage
-       , Ix fun, ExMemoryUsage fun
+    :: ( uni `Everywhere` ExMemoryUsage
+       , Ix fun, ExMemoryUsage fun, PrettyUni uni fun
        )
     => BuiltinsRuntime fun (CekValue uni fun)
     -> Term Name uni fun ()
@@ -102,8 +103,8 @@ evaluateCek runtime term =
 
 -- | Evaluate a term using the CEK machine with logging disabled.
 evaluateCekNoEmit
-    :: ( Closed uni, uni `Everywhere` ExMemoryUsage
-       , Ix fun, ExMemoryUsage fun
+    :: ( uni `Everywhere` ExMemoryUsage
+       , Ix fun, ExMemoryUsage fun, PrettyUni uni fun
        )
     => BuiltinsRuntime fun (CekValue uni fun)
     -> Term Name uni fun ()
@@ -134,9 +135,9 @@ unsafeEvaluateCekNoEmit runtime = unsafeExtractEvaluationResult . evaluateCekNoE
 
 -- | Unlift a value using the CEK machine.
 readKnownCek
-    :: ( Closed uni, uni `Everywhere` ExMemoryUsage
+    :: ( uni `Everywhere` ExMemoryUsage
        , KnownType (Term Name uni fun ()) a
-       , Ix fun, ExMemoryUsage fun
+       , Ix fun, ExMemoryUsage fun, PrettyUni uni fun
        )
     => BuiltinsRuntime fun (CekValue uni fun)
     -> Term Name uni fun ()

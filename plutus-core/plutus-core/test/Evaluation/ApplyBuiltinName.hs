@@ -38,7 +38,7 @@ newtype AppM a = AppM
     } deriving newtype (Functor, Applicative, Monad, MonadError AppErr)
       deriving (MonadEmitter) via (NoEmitterT AppM)
 
-instance SpendBudget AppM DefaultFun () (Term TyName Name DefaultUni DefaultFun ()) where
+instance SpendBudget AppM DefaultFun () where
     spendBudget _ _ = pure ()
 
 test_applyBuiltinFunction :: DefaultFun -> TestTree

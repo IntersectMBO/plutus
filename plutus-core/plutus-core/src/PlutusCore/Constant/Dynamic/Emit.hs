@@ -46,3 +46,6 @@ newtype NoEmitterT m a = NoEmitterT
 
 instance Monad m => MonadEmitter (NoEmitterT m) where
     emit _ = pure ()
+
+instance (Monad m, MonadEmitter m) => MonadEmitter (ExceptT e m) where
+    emit = lift . emit

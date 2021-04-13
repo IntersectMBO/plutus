@@ -2,6 +2,7 @@
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings     #-}
+{-# LANGUAGE TypeApplications      #-}
 {-# LANGUAGE UndecidableInstances  #-}
 
 {-# LANGUAGE StrictData            #-}
@@ -103,7 +104,7 @@ instance Pretty RestrictingSt where
     pretty (RestrictingSt budget) = parens $ "final budget:" <+> pretty budget <> line
 
 -- | For execution, to avoid overruns.
-restricting :: ExRestrictingBudget -> ExBudgetMode RestrictingSt uni fun
+restricting :: forall uni fun . (PrettyUni uni fun) => ExRestrictingBudget -> ExBudgetMode RestrictingSt uni fun
 restricting (ExRestrictingBudget (ExBudget cpuInit memInit)) = ExBudgetMode $ do
     -- Using two separate 'STRef's instead of a single one for efficiency reasons.
     -- Gave us a ~1% speedup the time this idea was implemented.
@@ -119,9 +120,8 @@ restricting (ExRestrictingBudget (ExBudget cpuInit memInit)) = ExBudgetMode $ do
             liftCekST . writeSTRef cpuRef $! cpuLeft'
             liftCekST . writeSTRef memRef $! memLeft'
             when (cpuLeft' < 0 || memLeft' < 0) $
-                throwingWithCause _EvaluationError
-                    (UserEvaluationError . CekOutOfExError $
-                        ExRestrictingBudget $ ExBudget cpuLeft' memLeft')
+                throwingWithCauseExc @(CekEvaluationException uni fun) _EvaluationError
+                    (UserEvaluationError $ CekOutOfExError $ ExRestrictingBudget $ ExBudget cpuLeft' memLeft')
                     Nothing
     pure . ExBudgetInfo (CekBudgetSpender spend) $ do
         finalExBudget <- ExBudget <$> readSTRef cpuRef <*> readSTRef memRef
@@ -134,5 +134,5 @@ enormousBudget = ExRestrictingBudget $ ExBudget (ExCPU maxInt) (ExMemory maxInt)
                  where maxInt = fromIntegral (maxBound::Int)
 
 -- | 'restricting' instantiated at 'enormousBudget'.
-restrictingEnormous :: ExBudgetMode RestrictingSt uni fun
+restrictingEnormous :: (PrettyUni uni fun) => ExBudgetMode RestrictingSt uni fun
 restrictingEnormous = restricting enormousBudget

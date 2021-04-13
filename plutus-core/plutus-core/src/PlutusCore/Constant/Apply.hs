@@ -21,7 +21,7 @@ applyTypeSchemed
     :: forall err m args fun exBudgetCat term res.
        ( MonadEmitter m, MonadError (ErrorWithCause err term) m
        , AsUnliftingError err, AsEvaluationFailure err, AsConstAppError err fun term
-       , SpendBudget m fun exBudgetCat term
+       , SpendBudget m fun exBudgetCat, ToExMemory term
        )
     => fun
     -> TypeScheme term args res
