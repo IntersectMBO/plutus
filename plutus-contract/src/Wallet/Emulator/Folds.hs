@@ -65,7 +65,7 @@ import           Ledger.AddressMap                      (UtxoMap)
 import qualified Ledger.AddressMap                      as AM
 import           Ledger.Constraints.OffChain            (UnbalancedTx)
 import           Ledger.Index                           (ScriptValidationEvent, ValidationError)
-import           Ledger.Tx                              (Address, Tx (txFee), TxOut (..), TxOutTx (..), txId)
+import           Ledger.Tx                              (Address, Tx, TxOut (..), TxOutTx (..))
 import           Ledger.Value                           (Value)
 import           Plutus.Contract                        (Contract)
 import           Plutus.Contract.Effects.WriteTx        (HasWriteTx, pendingTransaction)
