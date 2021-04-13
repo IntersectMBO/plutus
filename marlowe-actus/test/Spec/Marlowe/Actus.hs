@@ -123,10 +123,7 @@ pamProjected = do
 
 pamStatic :: IO ()
 pamStatic = case genStaticContract contractTerms of
-  Failure f ->
-    do
-      print f
-      assertFailure "Terms validation should not fail"
+  Failure _ -> assertFailure "Terms validation should not fail"
   Success contract ->
     do
       assertBool "Cashflows should not be Close" $ contract /= Close
