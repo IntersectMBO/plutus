@@ -666,15 +666,19 @@ valueAt address = do
     liftIO $ STM.atomically stm
 
 -- | The fees paid by the wallet.
-walletFees :: Wallet -> Simulation t Value
-walletFees w = succeededFees <$> walletSubmittedFees <*> blockchain
+walletFees :: forall t. Wallet -> Simulation t Value
+walletFees wallet = succeededFees <$> walletSubmittedFees <*> blockchain
     where
         succeededFees :: Map TxId Value -> [[Tx]] -> Value
         succeededFees submitted = foldMap . foldMap $ fold . (submitted Map.!?) . txId
-        walletSubmittedFees = walletSubmittedFees
-        -- walletSubmittedFees = gets . (Map.fromList .) . toListOf $
-        --     emulatorEventLog . traverse . logMessageContent . _MockAppMultiAgent .
-        --     PAB.MultiAgent._EmulatorMsg . eteEvent . walletClientEvent w . _TxSubmit
+        walletSubmittedFees = do
+            SimulatorState{_agentStates} <- Core.askUserEnv @t @(SimulatorState t)
+            result <- liftIO $ STM.atomically $ do
+                mp <- STM.readTVar _agentStates
+                pure $ Map.lookup wallet mp
+            case result of
+                Nothing -> throwError $ WalletNotFound wallet
+                Just s  -> pure (_submittedFees s)
 
 -- | The entire chain (newest transactions first)
 blockchain :: forall t. Simulation t [[Tx]]
