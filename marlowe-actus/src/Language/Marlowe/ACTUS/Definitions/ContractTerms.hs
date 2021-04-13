@@ -177,7 +177,7 @@ data ContractTerms = ContractTerms {
   -- Rate Reset
   , ct_RRCL          :: Maybe Cycle
   , ct_RRANX         :: Maybe Day
-  , ct_RRNXT         :: Maybe Double -- next reset date
+  , ct_RRNXT         :: Maybe Double -- next reset rate
   , ct_RRSP          :: Double
   , ct_RRMLT         :: Double
   , ct_RRPF          :: Double
