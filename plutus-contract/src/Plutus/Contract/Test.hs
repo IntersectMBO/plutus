@@ -61,8 +61,6 @@ module Plutus.Contract.Test(
     , emulatorConfig
     -- * Etc
     , goldenPir
-    , timesFeeAdjust
-    , timesFeeAdjustV
     ) where
 
 import           Control.Applicative                    (liftA2)

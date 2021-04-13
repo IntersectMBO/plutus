@@ -3,7 +3,6 @@
 {-# LANGUAGE DerivingStrategies #-}
 {-# LANGUAGE LambdaCase         #-}
 {-# LANGUAGE OverloadedStrings  #-}
-{-# LANGUAGE TemplateHaskell    #-}
 -- | The log messages produced by the emulator.
 module Wallet.Emulator.LogMessages(
   RequestHandlerLogMsg(..)
