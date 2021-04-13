@@ -30,6 +30,7 @@ module Plutus.PAB.Effects.MultiAgent(
     -- * Misc.
     , _InstanceMsg
     , _LogMessageText
+    , _EmulatorMsg
     ) where
 
 import           Cardano.Metadata.Server            (handleMetadata)

@@ -25,7 +25,7 @@ import           Data.Text                        (Text)
 import qualified Data.Text                        as Text
 import           Data.Text.Extras                 (tshow)
 import           Ledger                           (pubKeyAddress)
-import           Ledger.Ada                       (lovelaceValueOf)
+import           Ledger.Ada                       (fromValue, lovelaceOf, lovelaceValueOf)
 import           Plutus.Contracts.Currency        (SimpleMPS (..))
 import qualified Plutus.Contracts.Game            as Contracts.Game
 import           Plutus.PAB.Command               ()
@@ -37,7 +37,8 @@ import           Plutus.PAB.Effects.EventLog      (EventLogEffect)
 import           Plutus.PAB.Effects.MultiAgent    (PABClientEffects, agentAction)
 import           Plutus.PAB.Events                (ChainEvent, ContractInstanceId, ContractInstanceState (..), hooks)
 import           Plutus.PAB.MockApp               (TestState, TxCounts (..), blockchainNewestFirst, defaultWallet,
-                                                   processAllMsgBoxes, runScenario, txCounts, txValidated, valueAt)
+                                                   processAllMsgBoxes, runScenario, txCounts, txValidated, valueAt,
+                                                   walletFees)
 import qualified Plutus.PAB.Query                 as Query
 import           Plutus.PAB.Types                 (PABError (..), chainOverviewBlockchain, mkChainOverview)
 import           Test.QuickCheck.Instances.UUID   ()
@@ -139,13 +140,15 @@ guessingGameTest =
           runScenario $ do
               let openingBalance = 100000000
                   lockAmount = 15
-              address <- pubKeyAddress <$> agentAction defaultWallet ownPubKey
-              balance0 <- valueAt address
+                  walletFundsChange msg delta = do
+                        address <- pubKeyAddress <$> agentAction defaultWallet ownPubKey
+                        balance <- valueAt address
+                        fees <- walletFees defaultWallet
+                        assertEqual msg
+                            (lovelaceValueOf (openingBalance + delta))
+                            (balance <> fees)
               initialTxCounts <- txCounts
-              assertEqual
-                    "Check our opening balance."
-                    (lovelaceValueOf openingBalance)
-                    balance0
+              walletFundsChange "Check our opening balance." 0
               agentAction defaultWallet (installContract Game)
               -- need to add contract address to wallet's watched addresses
               contractState <- agentAction defaultWallet (activateContract Game)
@@ -166,12 +169,7 @@ guessingGameTest =
               assertTxCounts
                   "Locking the game should produce one transaction"
                   (initialTxCounts & txValidated +~ 1)
-              balance1 <- valueAt address
-              assertEqual
-                  "Locking the game should reduce our balance."
-                  (lovelaceValueOf (openingBalance - lockAmount))
-                  balance1
-
+              walletFundsChange "Locking the game should reduce our balance." (negate lockAmount)
               game1State <- agentAction defaultWallet (activateContract Game)
               processAllMsgBoxes
               agentAction defaultWallet $ guess
@@ -194,11 +192,7 @@ guessingGameTest =
               assertTxCounts
                 "A correct guess creates a third transaction."
                 (initialTxCounts & txValidated +~ 3)
-              balance2 <- valueAt address
-              assertEqual
-                "The wallet should now have its money back."
-                (lovelaceValueOf openingBalance)
-                balance2
+              walletFundsChange "The wallet should now have its money back." 0
               blocks <- use blockchainNewestFirst
               assertBool
                   "We have some confirmed blocks in this test."

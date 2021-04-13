@@ -25,6 +25,7 @@ module Plutus.PAB.MockApp
     , TestState
     -- * Queries of the emulated state
     , valueAt
+    , walletFees
     , TxCounts(..)
     , txCounts
     , txValidated
@@ -39,12 +40,12 @@ import           Control.Lens                          hiding (use)
 import           Control.Monad                         (void)
 import           Control.Monad.Freer                   (Eff, Member, interpret, reinterpret, runM, type (~>))
 import           Control.Monad.Freer.Error             (Error, handleError, runError, throwError)
-import           Control.Monad.Freer.Extras.Log        (LogMessage, LogMsg, handleLogWriter)
+import           Control.Monad.Freer.Extras.Log        (LogMessage, LogMsg, handleLogWriter, logMessageContent)
 import           Control.Monad.Freer.Extras.State      (use)
-import           Control.Monad.Freer.State             (State, runState)
+import           Control.Monad.Freer.State             (State, gets, runState)
 import           Control.Monad.Freer.Writer            (Writer)
 import           Control.Monad.IO.Class                (MonadIO (..))
-import           Data.Foldable                         (toList, traverse_)
+import           Data.Foldable                         (fold, toList, traverse_)
 import           Data.Map                              (Map)
 import qualified Data.Map                              as Map
 import           Data.OpenUnion                        ((:++:))
@@ -74,8 +75,9 @@ import           Wallet.Emulator.Chain                 (ChainControlEffect (..),
                                                         handleChain, handleControlChain, processBlock)
 import qualified Wallet.Emulator.Chain
 import           Wallet.Emulator.ChainIndex            (ChainIndexEvent, chainIndexNotify)
-import           Wallet.Emulator.MultiAgent            (EmulatorEvent, _singleton, chainEvent, emulatorTimeEvent)
-import           Wallet.Emulator.NodeClient            (ChainClientNotification (..))
+import           Wallet.Emulator.MultiAgent            (EmulatorEvent, _singleton, chainEvent, emulatorTimeEvent,
+                                                        eteEvent, walletClientEvent)
+import           Wallet.Emulator.NodeClient            (ChainClientNotification (..), _TxSubmit)
 import           Wallet.Emulator.Wallet                (Wallet (..))
 
 data TestState =
@@ -326,12 +328,20 @@ blockchainNewestFirst = nodeState . NodeServer.chainState . Wallet.Emulator.Chai
 --   to process all agent's message boxes)
 valueAt :: Member (State TestState) effs => Address -> Eff effs Ledger.Value
 valueAt address =
-    use (nodeState
-        . NodeServer.chainState
-        . Wallet.Emulator.Chain.chainNewestFirst
+    use ( blockchainNewestFirst
         . to (AM.values . AM.fromChain)
         . at address
         . non mempty
         )
+
+walletFees :: Member (State TestState) effs => Wallet -> Eff effs Ledger.Value
+walletFees w = succeededFees <$> walletSubmittedFees <*> validatedTransactions
+    where
+        succeededFees :: Map Ledger.TxId Ledger.Value -> [Ledger.Tx] -> Ledger.Value
+        succeededFees submitted = foldMap (fold . (submitted Map.!?) . Ledger.txId)
+        walletSubmittedFees = gets . (Map.fromList .) . toListOf $
+            emulatorEventLog . traverse . logMessageContent . _MockAppMultiAgent .
+            PAB.MultiAgent._EmulatorMsg . eteEvent . walletClientEvent w . _TxSubmit
+        validatedTransactions = gets . toListOf $ blockchainNewestFirst . folded . folded
 
 makeLenses ''TxCounts

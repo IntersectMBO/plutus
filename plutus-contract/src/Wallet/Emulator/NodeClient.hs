@@ -28,13 +28,13 @@ import           Wallet.Effects                 (NodeClientEffect (..))
 import           Wallet.Emulator.Chain
 
 data NodeClientEvent =
-    TxSubmit Tx
+    TxSubmit TxId Value
     -- ^ A transaction has been added to the pool of pending transactions.
     deriving stock (Eq, Show, Generic)
     deriving anyclass (FromJSON, ToJSON)
 
 instance Pretty NodeClientEvent where
-    pretty (TxSubmit tx) = "TxSubmit:" <+> pretty (txId tx)
+    pretty (TxSubmit txId _) = "TxSubmit:" <+> pretty txId
 
 makePrisms ''NodeClientEvent
 
@@ -70,5 +70,5 @@ handleNodeClient
     :: (Members NodeClientEffs effs)
     => Eff (NodeClientEffect ': effs) ~> Eff effs
 handleNodeClient = interpret $ \case
-    PublishTx tx  -> queueTx tx >> logInfo (TxSubmit tx)
+    PublishTx tx  -> queueTx tx >> logInfo (TxSubmit (txId tx) (txFee tx))
     GetClientSlot -> gets _clientSlot

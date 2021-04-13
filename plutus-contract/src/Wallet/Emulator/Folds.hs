@@ -242,7 +242,7 @@ walletFees :: Wallet -> EmulatorEventFold Value
 walletFees w = succeededFees <$> walletSubmittedFees <*> validatedTransactions
     where
         succeededFees submitted = foldMap (\(i, _, _) -> fold (Map.lookup i submitted))
-        walletSubmittedFees = L.handles (eteEvent . walletClientEvent w . _TxSubmit) . L.premap (\tx -> (txId tx, txFee tx)) $ L.map
+        walletSubmittedFees = L.handles (eteEvent . walletClientEvent w . _TxSubmit) L.map
 
 -- | Whether the wallet is watching an address
 walletWatchingAddress :: Wallet -> Address -> EmulatorEventFold Bool
