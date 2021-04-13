@@ -67,6 +67,7 @@ without doing it as an Effect in a mainframe action
     @extend .font-semibold;
     margin: 0;
   }
+  z-index: 2;
 }
 
 .modal-close {
