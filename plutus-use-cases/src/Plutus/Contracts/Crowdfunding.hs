@@ -19,7 +19,7 @@
 {-# LANGUAGE TypeOperators       #-}
 {-# LANGUAGE ViewPatterns        #-}
 {-# OPTIONS_GHC -fno-ignore-interface-pragmas #-}
-{-# OPTIONS -fplugin-opt PlutusTx.Plugin:debug-context #-}
+{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:debug-context #-}
 
 module Plutus.Contracts.Crowdfunding (
     -- * Campaign parameters

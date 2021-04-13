@@ -6,7 +6,7 @@
 {-# LANGUAGE PartialTypeSignatures #-}
 {-# LANGUAGE TypeApplications      #-}
 {-# LANGUAGE TypeFamilies          #-}
-{-# OPTIONS -Wno-orphans           #-}
+{-# OPTIONS_GHC -Wno-orphans           #-}
 module Cardano.Protocol.Socket.Type where
 
 import           Codec.Serialise.Class                              (Serialise)
