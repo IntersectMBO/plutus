@@ -14,11 +14,13 @@ import ContractHome.Lenses (_contracts)
 import ContractHome.State (dummyState, handleAction) as ContractHome
 import ContractHome.Types (Action(..), State) as ContractHome
 import Control.Monad.Reader (class MonadAsk)
+import Data.Array (init, snoc)
 import Data.Foldable (for_)
 import Data.FunctorWithIndex (mapWithIndex)
 import Data.Lens (assign, modifying, set, use, (^.))
 import Data.Lens.Extra (peruse)
-import Data.Lens.Prism.Maybe (_Just)
+import Data.Lens.Fold (lastOf)
+import Data.Lens.Traversal (traversed)
 import Data.Map (Map)
 import Data.Map as Map
 import Data.Maybe (Maybe(..))
@@ -29,12 +31,12 @@ import Effect.Aff.Class (class MonadAff)
 import Env (Env)
 import Halogen (HalogenM, modify_)
 import Halogen.Extra (mapMaybeSubmodule, mapSubmodule)
-import MainFrame.Lenses (_card, _screen)
+import MainFrame.Lenses (_screen)
 import MainFrame.Types (ChildSlots, Msg)
 import Marlowe.HasParties (getParties)
 import Marlowe.Semantics (Party(..), Slot)
 import Marlowe.Semantics as Semantic
-import Play.Lenses (_contractsState, _currentSlot, _menuOpen, _selectedContract, _templateState)
+import Play.Lenses (_cards, _contractsState, _currentSlot, _menuOpen, _selectedContract, _templateState)
 import Play.Types (Action(..), Card(..), Screen(..), State)
 import Template.Lenses (_extendedContract, _metaData, _roleWallets, _template, _templateContent)
 import Template.State (dummyState, handleAction, mkInitialState) as Template
@@ -60,7 +62,7 @@ mkInitialState walletDetails currentSlot timezoneOffset =
   { walletDetails: walletDetails
   , menuOpen: false
   , screen: ContractsScreen
-  , card: Nothing
+  , cards: mempty
   , currentSlot
   , timezoneOffset
   , templateState: Template.dummyState
@@ -81,17 +83,22 @@ handleAction ToggleMenu = modifying _menuOpen not
 handleAction (SetScreen screen) =
   modify_
     $ set _menuOpen false
-    <<< set _card Nothing
+    <<< set _cards mempty
     <<< set _screen screen
 
-handleAction (SetCard card) = assign _card card
+handleAction (OpenCard card) = modifying _cards $ flip snoc card
 
 handleAction (ToggleCard card) = do
-  mCurrentCard <- peruse (_card <<< _Just)
-  case mCurrentCard of
+  cards <- use _cards
+  case lastOf traversed cards of
     Just currentCard
-      | currentCard == card -> handleAction $ SetCard Nothing
-    _ -> handleAction $ SetCard $ Just card
+      | currentCard == card -> handleAction CloseCard
+    _ -> handleAction $ OpenCard card
+
+handleAction CloseCard = do
+  cards <- use _cards
+  for_ (init cards) \remainingCards ->
+    assign _cards remainingCards
 
 handleAction (SetCurrentSlot currentSlot) = do
   toContractHome $ ContractHome.handleAction $ ContractHome.AdvanceTimedOutContracts currentSlot
