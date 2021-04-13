@@ -168,16 +168,13 @@ handleAction (ContractHomeAction a@(ContractHome.OpenContract _)) = do
 handleAction (ContractHomeAction contractAction) = void $ toContractHome $ ContractHome.handleAction contractAction
 
 -- contract actions that need to be handled here
--- FIXME: instead of toggle card I need to implement a card stack and add it to the stack
-handleAction (ContractAction (Contract.AskConfirmation action)) = handleAction $ ToggleCard $ ContractActionConfirmationCard action
+handleAction (ContractAction (Contract.AskConfirmation action)) = handleAction $ OpenCard $ ContractActionConfirmationCard action
 
--- FIXME: Once we have card stack this action should not be necesary
 handleAction (ContractAction (Contract.ConfirmAction action)) = do
   void $ toContract $ Contract.handleAction $ Contract.ConfirmAction action
-  handleAction $ ToggleCard ContractCard
+  handleAction CloseCard
 
--- FIXME: instead of ToggleCard I need to implement a card stack and pop the stack
-handleAction (ContractAction Contract.CancelConfirmation) = handleAction $ ToggleCard ContractCard
+handleAction (ContractAction Contract.CancelConfirmation) = handleAction CloseCard
 
 -- other contract  actions
 handleAction (ContractAction contractAction) = void $ toContract $ Contract.handleAction contractAction

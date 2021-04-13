@@ -94,11 +94,13 @@ renderMain wallets newWalletDetails templates playState =
     menuOpen = view _menuOpen playState
 
     screen = view _screen playState
+
+    cards = view _cards playState
   in
     main
       [ classNames [ "relative", "px-4", "md:px-5pc" ] ]
       [ renderMobileMenu menuOpen
-      , renderCards wallets newWalletDetails templates playState
+      , div_ $ renderCard wallets newWalletDetails templates playState <$> cards
       , renderScreen wallets screen playState
       ]
 
@@ -114,29 +116,27 @@ renderMobileMenu menuOpen =
         iohkLinks
     ]
 
-renderCards :: forall p. WalletLibrary -> NewWalletDetails -> Array ContractTemplate -> State -> HTML p Action
-renderCards wallets newWalletDetails templates playState =
+renderCard :: forall p. WalletLibrary -> NewWalletDetails -> Array ContractTemplate -> State -> Card -> HTML p Action
+renderCard wallets newWalletDetails templates playState card =
   let
     currentWalletDetails = view _walletDetails playState
-
-    cards = view _cards playState
 
     mSelectedContractState = preview _selectedContract playState
 
     currentSlot = view _currentSlot playState
 
-    cardClasses card = case card of
+    cardClasses = case card of
       TemplateLibraryCard -> Css.largeCard false
       ContractCard -> Css.largeCard false
       _ -> Css.card false
 
-    hasCloseButton card = case card of
+    hasCloseButton = case card of
       (ContractActionConfirmationCard _) -> false
       ContractSetupConfirmationCard -> false
       _ -> true
 
-    closeButton card =
-      if hasCloseButton card then
+    closeButton =
+      if hasCloseButton then
         [ a
             [ classNames [ "absolute", "top-4", "right-4" ]
             , onClick_ CloseCard
@@ -145,32 +145,29 @@ renderCards wallets newWalletDetails templates playState =
         ]
       else
         []
-
-    renderCard card =
-      div
-        [ classNames $ Css.overlay false ]
-        [ div
-            [ classNames $ cardClasses card ]
-            $ closeButton card
-            <> case card of
-                -- TODO: Should this be renamed to CreateContactCard?
-                (CreateWalletCard mTokenName) -> [ newWalletCard wallets newWalletDetails mTokenName ]
-                (ViewWalletCard walletDetails) -> [ walletDetailsCard walletDetails ]
-                PutdownWalletCard -> [ putdownWalletCard currentWalletDetails ]
-                TemplateLibraryCard -> [ TemplateAction <$> templateLibraryCard templates ]
-                ContractSetupConfirmationCard -> [ TemplateAction <$> contractSetupConfirmationCard ]
-                -- FIXME: We need to pattern match on the Maybe because the selectedContractState
-                --        could be Nothing. We could add the state as part of the view, but is not ideal
-                --        Will have to rethink how to deal with this once the overall state is more mature.
-                ContractCard -> case mSelectedContractState of
-                  Just contractState -> [ ContractAction <$> contractDetailsCard currentSlot contractState ]
-                  Nothing -> []
-                (ContractActionConfirmationCard action) -> case mSelectedContractState of
-                  Just contractState -> [ ContractAction <$> actionConfirmationCard contractState action ]
-                  Nothing -> []
-        ]
   in
-    div_ (renderCard <$> cards)
+    div
+      [ classNames $ Css.overlay false ]
+      [ div
+          [ classNames cardClasses ]
+          $ closeButton
+          <> case card of
+              -- TODO: Should this be renamed to CreateContactCard?
+              CreateWalletCard mTokenName -> [ newWalletCard wallets newWalletDetails mTokenName ]
+              ViewWalletCard walletDetails -> [ walletDetailsCard walletDetails ]
+              PutdownWalletCard -> [ putdownWalletCard currentWalletDetails ]
+              TemplateLibraryCard -> [ TemplateAction <$> templateLibraryCard templates ]
+              ContractSetupConfirmationCard -> [ TemplateAction <$> contractSetupConfirmationCard ]
+              -- FIXME: We need to pattern match on the Maybe because the selectedContractState
+              --        could be Nothing. We could add the state as part of the view, but is not ideal
+              --        Will have to rethink how to deal with this once the overall state is more mature.
+              ContractCard -> case mSelectedContractState of
+                Just contractState -> [ ContractAction <$> contractDetailsCard currentSlot contractState ]
+                Nothing -> []
+              ContractActionConfirmationCard action -> case mSelectedContractState of
+                Just contractState -> [ ContractAction <$> actionConfirmationCard contractState action ]
+                Nothing -> []
+      ]
 
 renderScreen :: forall p. WalletLibrary -> Screen -> State -> HTML p Action
 renderScreen wallets screen playState =
