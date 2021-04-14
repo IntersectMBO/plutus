@@ -53,7 +53,6 @@ data Action
   | ToggleMenu
   | SetScreen Screen
   | OpenCard Card
-  | ToggleCard Card
   | CloseCard
   | TemplateAction Template.Action
   | ContractAction Contract.Action
@@ -70,7 +69,6 @@ instance actionIsEvent :: IsEvent Action where
   toEvent ToggleMenu = Just $ defaultEvent "ToggleMenu"
   toEvent (SetScreen _) = Just $ defaultEvent "SetScreen"
   toEvent (OpenCard _) = Nothing
-  toEvent (ToggleCard _) = Nothing
   toEvent CloseCard = Nothing
   toEvent (TemplateAction templateAction) = toEvent templateAction
   toEvent (ContractAction contractAction) = toEvent contractAction

@@ -86,7 +86,7 @@ module.exports = {
   variants: {
     extend: {
       // note 'disabled' goes last so that it takes priority
-      backgroundColor: ["last",, "hover", "disabled"],
+      backgroundColor: ["last", "hover", "disabled"],
       backgroundImage: ["hover", "disabled"],
       boxShadow: ["hover", "disabled"],
       cursor: ["hover", "disabled"],
