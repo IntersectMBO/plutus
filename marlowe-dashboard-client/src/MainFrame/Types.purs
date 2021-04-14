@@ -16,6 +16,8 @@ import Marlowe.Extended.Template (ContractTemplate)
 import Pickup.Types (Action, State) as Pickup
 import Play.Types (Action, State) as Play
 import Plutus.PAB.Webserver.Types (CombinedWSStreamToClient, CombinedWSStreamToServer)
+import Toast.Types (Action, State) as Toast
+import Toast.Types (Toast)
 import WalletData.Types (WalletLibrary, NewWalletDetails)
 import Web.Socket.Event.CloseEvent (CloseEvent, reason) as WS
 import WebSocket.Support (FromSocket) as WS
@@ -30,6 +32,7 @@ type State
     , templates :: Array ContractTemplate
     , webSocketStatus :: WebSocketStatus
     , subState :: Either Pickup.State Play.State
+    , toast :: Toast.State
     }
 
 data WebSocketStatus
@@ -51,9 +54,11 @@ type ChildSlots
 ------------------------------------------------------------
 data Query a
   = ReceiveWebSocketMessage (WS.FromSocket CombinedWSStreamToClient) a
+  | AddToastQuery Toast a
 
 data Msg
   = SendWebSocketMessage CombinedWSStreamToServer
+  | AddToastMsg Toast
 
 ------------------------------------------------------------
 data Action
@@ -63,6 +68,7 @@ data Action
   | AddNewWallet
   | PickupAction Pickup.Action
   | PlayAction Play.Action
+  | ToastAction Toast.Action
 
 -- | Here we decide which top-level queries to track as GA events, and
 -- how to classify them.
@@ -73,3 +79,4 @@ instance actionIsEvent :: IsEvent Action where
   toEvent AddNewWallet = Just $ defaultEvent "AddNewWallet"
   toEvent (PickupAction pickupAction) = toEvent pickupAction
   toEvent (PlayAction playAction) = toEvent playAction
+  toEvent (ToastAction toastAction) = toEvent toastAction

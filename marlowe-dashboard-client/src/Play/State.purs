@@ -6,6 +6,7 @@ module Play.State
 
 import Prelude
 import Capability.Contract (class ManageContract)
+import Capability.Toast (class Toast)
 import Capability.Wallet (class ManageWallet)
 import Contract.State (dummyState, handleAction) as Contract
 import Contract.State (instantiateExtendedContract)
@@ -77,6 +78,7 @@ handleAction ::
   MonadAsk Env m =>
   ManageContract m =>
   ManageWallet m =>
+  Toast m =>
   Action -> HalogenM State Action ChildSlots Msg m Unit
 handleAction ToggleMenu = modifying _menuOpen not
 

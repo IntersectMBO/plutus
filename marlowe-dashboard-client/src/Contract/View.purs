@@ -415,7 +415,7 @@ renderContractClose =
   div [ classNames [ "flex", "flex-col", "items-center", "h-full" ] ]
     -- NOTE: we use pt-16 instead of making the parent justify-center because in the design it's not actually
     --       centered and it has more space above than below.
-    [ icon DoneWithCircle [ "pb-2", "pt-16", "text-green", "text-big-icon" ]
+    [ icon TaskAlt [ "pb-2", "pt-16", "text-green", "text-big-icon" ]
     , div
         [ classNames [ "text-center", "text-sm" ] ]
         [ div [ classNames [ "font-semibold" ] ]

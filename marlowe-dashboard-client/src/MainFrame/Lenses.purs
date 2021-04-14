@@ -4,6 +4,7 @@ module MainFrame.Lenses
   , _templates
   , _subState
   , _webSocketStatus
+  , _toast
   , _pickupState
   , _playState
   , _screen
@@ -20,6 +21,7 @@ import MainFrame.Types (State, WebSocketStatus)
 import Marlowe.Extended.Template (ContractTemplate)
 import Pickup.Types (State) as Pickup
 import Play.Types (State) as Play
+import Toast.Types (State) as Toast
 import WalletData.Types (WalletLibrary, NewWalletDetails)
 
 _wallets :: Lens' State WalletLibrary
@@ -36,6 +38,9 @@ _subState = prop (SProxy :: SProxy "subState")
 
 _webSocketStatus :: Lens' State WebSocketStatus
 _webSocketStatus = prop (SProxy :: SProxy "webSocketStatus")
+
+_toast :: Lens' State Toast.State
+_toast = prop (SProxy :: SProxy "toast")
 
 ------------------------------------------------------------
 _pickupState :: Traversal' State Pickup.State

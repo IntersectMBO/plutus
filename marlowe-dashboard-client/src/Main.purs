@@ -66,6 +66,10 @@ main = do
           (SendWebSocketMessage msg) -> do
             WS.managerWriteOutbound wsManager $ WS.SendMessage msg
             pure Nothing
+          -- FIXME: Add comment
+          (AddToastMsg toast) -> do
+            void $ driver.query $ AddToastQuery toast unit
+            pure Nothing
 
 watchLocalStorageProcess :: Process Aff Unit
 watchLocalStorageProcess = connect LocalStorage.listen watchLocalStorage

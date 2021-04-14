@@ -1,9 +1,10 @@
-module MainFrame.State (mkMainFrame) where
+module MainFrame.State (mkMainFrame, handleAction) where
 
 import Prelude
 import Bridge (toFront)
 import Capability.Contract (class ManageContract, getContractInstanceClientState, getWalletContractInstances)
 import Capability.Marlowe (class ManageMarloweContract, marloweCreateWalletCompanionContract, marloweGetWalletCompanionContractObservableState)
+import Capability.Toast (class Toast)
 import Capability.Wallet (class ManageWallet, createWallet, getWalletInfo, getWalletTotalFunds)
 import Capability.Websocket (class MonadWebsocket, subscribeToWallet, unsubscribeFromWallet)
 import ContractHome.State (loadExistingContracts)
@@ -27,12 +28,12 @@ import Effect.Now (getTimezoneOffset)
 import Env (Env)
 import Foreign.Generic (decodeJSON, encodeJSON)
 import Halogen (Component, HalogenM, liftEffect, mkComponent, mkEval, modify_, subscribe)
-import Halogen.Extra (mapMaybeSubmodule)
+import Halogen.Extra (mapMaybeSubmodule, mapSubmodule)
 import Halogen.HTML (HTML)
 import Halogen.Query.EventSource (EventSource)
 import Halogen.Query.EventSource as EventSource
 import LocalStorage (getItem, removeItem, setItem)
-import MainFrame.Lenses (_card, _newWalletDetails, _pickupState, _subState, _playState, _wallets, _webSocketStatus)
+import MainFrame.Lenses (_card, _newWalletDetails, _pickupState, _playState, _subState, _toast, _wallets, _webSocketStatus)
 import MainFrame.Types (Action(..), ChildSlots, Msg, Query(..), State, WebSocketStatus(..))
 import MainFrame.View (render)
 import Marlowe.Market (contractTemplates)
@@ -49,6 +50,8 @@ import Plutus.PAB.Webserver.Types (CombinedWSStreamToClient(..), ContractInstanc
 import StaticData (walletDetailsLocalStorageKey, walletLibraryLocalStorageKey)
 import Template.State (dummyState, handleAction) as Template
 import Template.Types (Action(..), State) as Template
+import Toast.State (defaultState, handleAction) as Toast
+import Toast.Types (Action(..), State) as Toast
 import Types (ContractInstanceId(..))
 import WalletData.Lenses (_assets, _contractInstanceId, _contractInstanceIdString, _remoteDataWalletInfo, _remoteDataAssets, _wallet, _walletNicknameString)
 import WalletData.Types (NewWalletDetails, WalletDetails, WalletInfo(..))
@@ -63,6 +66,7 @@ mkMainFrame ::
   ManageWallet m =>
   ManageMarloweContract m =>
   MonadWebsocket m =>
+  Toast m =>
   Component HTML Query Action Msg m
 mkMainFrame =
   mkComponent
@@ -85,9 +89,19 @@ initialState =
   , templates: contractTemplates
   , webSocketStatus: WebSocketClosed Nothing
   , subState: Left Pickup.initialState
+  , toast: Toast.defaultState
   }
 
-handleQuery :: forall a m. Query a -> HalogenM State Action ChildSlots Msg m (Maybe a)
+handleQuery ::
+  forall a m.
+  MonadAff m =>
+  MonadAsk Env m =>
+  ManageContract m =>
+  ManageWallet m =>
+  ManageMarloweContract m =>
+  MonadWebsocket m =>
+  Toast m =>
+  Query a -> HalogenM State Action ChildSlots Msg m (Maybe a)
 handleQuery (ReceiveWebSocketMessage msg next) = do
   case msg of
     WS.WebSocketOpen -> assign _webSocketStatus WebSocketOpen
@@ -102,6 +116,9 @@ handleQuery (ReceiveWebSocketMessage msg next) = do
           when (currentWallet == toFront wallet)
             $ assign (_playState <<< _walletDetails <<< _assets) (toFront value)
   pure $ Just next
+
+handleQuery (AddToastQuery toast next) = do
+  handleAction $ ToastAction $ Toast.AddToast toast
 
 -- FIXME: We need to discuss if we should remove this after we connect to the PAB. In case we do,
 --        if there is a disconnection we might lose some seconds and timeouts will freeze.
@@ -136,7 +153,9 @@ handleAction ::
   ManageWallet m =>
   ManageMarloweContract m =>
   MonadWebsocket m =>
-  Action -> HalogenM State Action ChildSlots Msg m Unit
+  Toast m =>
+  Action ->
+  HalogenM State Action ChildSlots Msg m Unit
 -- mainframe actions
 handleAction Init = do
   -- maybe load wallet library from localStorage
@@ -305,6 +324,8 @@ handleAction (PlayAction (Play.AddNewWallet mTokenName)) = do
 -- other play actions
 handleAction (PlayAction playAction) = toPlay $ Play.handleAction playAction
 
+handleAction (ToastAction toastAction) = toToast $ Toast.handleAction toastAction
+
 ------------------------------------------------------------
 -- Note [dummyState]: In order to map a submodule whose state might not exist, we need
 -- to provide a dummyState for that submodule. Halogen would use this dummyState to play
@@ -330,6 +351,15 @@ toTemplate ::
   HalogenM Template.State Template.Action slots msg m Unit ->
   HalogenM State Action slots msg m Unit
 toTemplate = mapMaybeSubmodule (_playState <<< _templateState) (PlayAction <<< Play.TemplateAction) Template.dummyState
+
+
+
+toToast ::
+  forall m msg slots.
+  Functor m =>
+  HalogenM Toast.State Toast.Action slots msg m Unit ->
+  HalogenM State Action slots msg m Unit
+toToast = mapSubmodule _toast ToastAction
 
 ------------------------------------------------------------
 emptyNewWalletDetails :: NewWalletDetails

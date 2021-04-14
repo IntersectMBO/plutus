@@ -13,8 +13,6 @@ import Contract.Types (ContractId)
 import Contract.Types (State) as Contract
 import ContractHome.Lenses (_contracts, _selectedContractIndex, _status)
 import ContractHome.Types (Action(..), ContractStatus(..), State, PartitionedContracts)
-import Control.Bind (bindFlipped)
-import Cursor (mapWithIndex)
 import Data.Array (catMaybes)
 import Data.Array as Array
 import Data.BigInteger (fromInt)
@@ -31,6 +29,7 @@ import Examples.PureScript.Escrow as Escrow
 import Examples.PureScript.EscrowWithCollateral as EscrowWithCollateral
 import Examples.PureScript.ZeroCouponBond as ZeroCouponBond
 import Halogen (HalogenM, modify_)
+import MainFrame.Types (Msg)
 import Marlowe.Extended (TemplateContent(..), fillTemplate, resolveRelativeTimes, toCore)
 import Marlowe.Semantics (Input(..), Party(..), Slot(..), SlotInterval(..), Token(..), TransactionInput(..))
 import Marlowe.Slot (currentSlot)
