@@ -3,6 +3,7 @@
 {-# LANGUAGE LambdaCase                #-}
 {-# LANGUAGE MultiParamTypeClasses     #-}
 {-# LANGUAGE OverloadedStrings         #-}
+{-# LANGUAGE RankNTypes                #-}
 {-# LANGUAGE TypeApplications          #-}
 
 module Main (main) where
@@ -26,6 +27,7 @@ import qualified UntypedPlutusCore.Evaluation.Machine.Cek as Cek
 import           Codec.Serialise
 import           Control.DeepSeq                          (NFData, rnf)
 import           Control.Monad
+import           Control.Monad.ST
 import           Control.Monad.Trans.Except               (runExcept, runExceptT)
 import           Data.Bifunctor                           (second)
 import qualified Data.ByteString.Lazy                     as BSL
@@ -97,7 +99,7 @@ data ExampleMode = ExampleSingle ExampleName | ExampleAvailable
 data EvalMode    = CK | CEK deriving (Show, Read)
 data BudgetMode  = Silent
                  | forall cost. (Eq cost, NFData cost, PrintBudgetState cost) =>
-                     Verbose (Cek.ExBudgetMode cost PLC.DefaultUni PLC.DefaultFun)
+                     Verbose (forall s. ST s (Cek.ExBudgetMode cost PLC.DefaultUni PLC.DefaultFun s))
 data AstNameType = Named | DeBruijn  -- Do we use Names or de Bruijn indices when (de)serialising ASTs?
 type Files       = [FilePath]
 
@@ -225,7 +227,7 @@ restrictingbudgetEnormous = flag' (Verbose Cek.restrictingEnormous)
                             <> help "Run the machine in restricting mode with an enormous budget" )
 
 restrictingbudget :: Parser BudgetMode
-restrictingbudget = Verbose . Cek.restricting . ExRestrictingBudget
+restrictingbudget = (\budget -> Verbose $ Cek.restricting $ ExRestrictingBudget budget)
                     <$> option exbudgetReader
                             (  long "restricting"
                             <> short 'R'
