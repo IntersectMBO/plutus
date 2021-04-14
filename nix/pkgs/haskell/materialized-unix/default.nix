@@ -187,7 +187,7 @@
         "eventful-sqlite".revision = (((hackage."eventful-sqlite")."0.2.0").revisions).default;
         "generic-arbitrary".revision = (((hackage."generic-arbitrary")."0.1.0").revisions).default;
         "nicify-lib".revision = (((hackage."nicify-lib")."1.0.1").revisions).default;
-        "persistent-template".revision = (((hackage."persistent-template")."2.12.0.0").revisions).default;
+        "persistent-template".revision = (((hackage."persistent-template")."2.9.1.0").revisions).default;
         "asn1-encoding".revision = (((hackage."asn1-encoding")."0.9.6").revisions).default;
         "binary-orphans".revision = (((hackage."binary-orphans")."1.0.1").revisions).default;
         "vector-th-unbox".revision = (((hackage."vector-th-unbox")."0.2.1.9").revisions).default;
@@ -462,7 +462,8 @@
         "deriving-compat".flags.base-4-9 = true;
         "deriving-compat".flags.template-haskell-2-11 = true;
         "deriving-compat".flags.new-functor-classes = true;
-        "persistent".revision = (((hackage."persistent")."2.12.1.0").revisions).default;
+        "persistent".revision = (((hackage."persistent")."2.11.0.4").revisions).default;
+        "persistent".flags.nooverlap = false;
         "text".revision = (((hackage."text")."1.2.3.2").revisions).default;
         "Cabal".revision = (((hackage."Cabal")."3.2.0.0").revisions).default;
         "assoc".revision = (((hackage."assoc")."1.0.2").revisions).default;
@@ -604,7 +605,7 @@
         "data-ordlist".revision = (((hackage."data-ordlist")."0.4.7.0").revisions).default;
         "wai-app-static".revision = (((hackage."wai-app-static")."3.1.7.2").revisions).default;
         "wai-app-static".flags.print = false;
-        "persistent-sqlite".revision = (((hackage."persistent-sqlite")."2.12.0.0").revisions).default;
+        "persistent-sqlite".revision = (((hackage."persistent-sqlite")."2.11.1.0").revisions).default;
         "persistent-sqlite".flags.systemlib = false;
         "persistent-sqlite".flags.have-usleep = true;
         "persistent-sqlite".flags.use-pkgconfig = false;
