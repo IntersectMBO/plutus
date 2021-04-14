@@ -97,6 +97,7 @@ let
     updateMaterialized
     updateClientDeps
     updateMetadataSamples
+    docs.build-and-serve-docs
   ]);
 
 in
