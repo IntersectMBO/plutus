@@ -4,9 +4,10 @@ import Prelude
 import Analytics (class IsEvent, Event)
 import Analytics as A
 import Data.Maybe (Maybe(..))
+import Halogen (SubscriptionId)
 import Material.Icons (Icon(..))
 
-type Toast
+type ToastMessage
   = { shortDescription :: String
     , longDescription :: Maybe String
     , icon :: Icon
@@ -17,7 +18,7 @@ type Toast
     }
 
 data Action
-  = AddToast Toast
+  = AddToast ToastMessage
   | ExpandToast
   | CloseToast
   | ToastTimeout
@@ -33,13 +34,17 @@ instance actionIsEvent :: IsEvent Action where
 
 -- TODO: For now the state and actions can only represent a single toast. If you open a new toast
 --       it will replace the current one. We could later on extend this to have multiple messages
--- FIXME: Add subscription id and put all three under a Maybe
-type State
-  = { mToast :: Maybe Toast
+type ToastState
+  = { message :: ToastMessage
     , expanded :: Boolean
+    , timeoutSubscription :: SubscriptionId
     }
 
-successToast :: String -> Toast
+type State
+  = { mToast :: Maybe ToastState
+    }
+
+successToast :: String -> ToastMessage
 successToast shortDescription =
   { shortDescription
   , longDescription: Nothing
@@ -50,7 +55,7 @@ successToast shortDescription =
   , timeout: 3500.0
   }
 
-errorToast :: String -> Maybe String -> Toast
+errorToast :: String -> Maybe String -> ToastMessage
 errorToast shortDescription longDescription =
   { shortDescription
   , longDescription

@@ -4,28 +4,29 @@ module Toast.State
   ) where
 
 import Prelude
-import Data.Lens (assign, set, use)
-import Data.Maybe (Maybe(..))
+import Data.Foldable (for_)
+import Data.Lens (assign, preview)
+import Data.Lens.Extra (peruse)
+import Data.Maybe (Maybe(..), fromMaybe)
 import Data.Time.Duration (Milliseconds(..))
 import Effect.Aff (error)
 import Effect.Aff as Aff
 import Effect.Aff.Class (class MonadAff)
-import Halogen (HalogenM, modify_, subscribe)
+import Halogen (HalogenM, get, subscribe, unsubscribe)
 import Halogen.Query.EventSource (EventSource)
 import Halogen.Query.EventSource as EventSource
-import Toast.Lenses (_expanded, _mToast)
-import Toast.Types (Action(..), State, Toast)
+import Toast.Lenses (_expanded, _mToast, _timeoutSubscription)
+import Toast.Types (Action(..), State, ToastMessage)
 
 defaultState :: State
 defaultState =
   { mToast: Nothing
-  , expanded: false
   }
 
 toastTimeoutSubscription ::
   forall m.
   MonadAff m =>
-  Toast ->
+  ToastMessage ->
   EventSource m Action
 toastTimeoutSubscription toast =
   EventSource.affEventSource \emitter -> do
@@ -41,18 +42,21 @@ handleAction ::
   Action ->
   HalogenM State Action slots msg m Unit
 handleAction (AddToast toast) = do
-  void $ subscribe $ toastTimeoutSubscription toast
-  modify_
-    $ set _expanded false
-    <<< set _mToast (Just toast)
+  timeoutSubscription <- subscribe $ toastTimeoutSubscription toast
+  assign _mToast (Just { message: toast, expanded: false, timeoutSubscription })
 
-handleAction ExpandToast = assign _expanded true
+handleAction ExpandToast = do
+  mSubscriptionId <- peruse _timeoutSubscription
+  assign _expanded true
+  for_ mSubscriptionId unsubscribe
 
-handleAction CloseToast =
-  modify_
-    $ set _expanded false
-    <<< set _mToast Nothing
+handleAction CloseToast = assign _mToast Nothing
 
 handleAction ToastTimeout = do
-  expanded <- use _expanded
+  state <- get
+  let
+    expanded = fromMaybe false $ preview _expanded state
+
+    mSubscriptionId = preview _timeoutSubscription state
+  for_ mSubscriptionId unsubscribe
   when (not expanded) $ handleAction CloseToast

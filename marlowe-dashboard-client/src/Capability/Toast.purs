@@ -4,12 +4,12 @@ import Prelude
 import AppM (AppM)
 import Halogen (HalogenM, raise)
 import MainFrame.Types (Msg(..))
-import Toast.Types (Toast)
+import Toast.Types (ToastMessage)
 
 -- FIXME: Add comments
 class
   Monad m <= Toast m where
-  addToast :: Toast -> m Unit
+  addToast :: ToastMessage -> m Unit
 
 instance monadWebsocketAppM :: Toast AppM where
   addToast toast = pure unit

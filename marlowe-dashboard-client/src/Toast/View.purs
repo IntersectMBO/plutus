@@ -3,19 +3,19 @@ module Toast.View (renderToast) where
 import Prelude hiding (div)
 import Css (classNames)
 import Css as Css
-import Data.Lens ((^.))
+import Data.Lens (preview)
 import Data.Maybe (Maybe(..), fromMaybe)
 import Halogen.HTML (HTML, a, div, div_, span, span_, text)
 import Halogen.HTML.Events.Extra (onClick_)
 import Material.Icons (Icon(..), icon_, icon)
-import Toast.Lenses (_expanded, _mToast)
-import Toast.Types (Action(..), State, Toast)
+import Toast.Lenses (_expanded, _toastMessage)
+import Toast.Types (Action(..), State, ToastMessage)
 
 renderToast ::
   forall p.
   State ->
   HTML p Action
-renderToast state = doRender (state ^. _mToast) (state ^. _expanded)
+renderToast state = doRender (preview _toastMessage state) (fromMaybe false $ preview _expanded state)
   where
   doRender Nothing _ = div_ []
 
@@ -25,7 +25,7 @@ renderToast state = doRender (state ^. _mToast) (state ^. _expanded)
 
 renderExpanded ::
   forall p.
-  Toast ->
+  ToastMessage ->
   HTML p Action
 renderExpanded toast =
   div
@@ -49,7 +49,7 @@ renderExpanded toast =
 
 renderCollapsed ::
   forall p.
-  Toast ->
+  ToastMessage ->
   HTML p Action
 renderCollapsed toast =
   let
