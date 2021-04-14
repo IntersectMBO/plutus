@@ -66,7 +66,7 @@ renderCollapsed toast =
     div
       [ classNames [ "fixed", "bottom-6", "md:bottom-10", "left-0", "right-0", "flex", "justify-center", "z-50" ] ]
       [ div
-          [ classNames [ "px-4", "py-2", "rounded", "shadow-lg", "min-w-90p", "max-w-90p", "sm:min-w-sm", "flex", "justify-between", toast.bgColor, toast.textColor ] ]
+          [ classNames [ "px-4", "py-2", "rounded", "shadow-lg", "min-w-90p", "max-w-90p", "sm:min-w-sm", "flex", "justify-between", "animate-from-below", toast.bgColor, toast.textColor ] ]
           [ div [ classNames [ "flex", "overflow-hidden" ] ]
               [ icon toast.icon [ "mr-2", toast.iconColor ]
               , span [ classNames [ "font-semibold", "overflow-ellipsis", "whitespace-nowrap", "overflow-hidden" ] ] [ text toast.shortDescription ]

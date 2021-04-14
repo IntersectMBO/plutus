@@ -65,3 +65,6 @@ errorToast shortDescription longDescription =
   , bgColor: "bg-red"
   , timeout: 5000.0
   }
+
+connectivityErrorToast :: String -> ToastMessage
+connectivityErrorToast shortDescription = errorToast shortDescription (Just "There was a problem connecting with the server, please contact support if this problem persists.")

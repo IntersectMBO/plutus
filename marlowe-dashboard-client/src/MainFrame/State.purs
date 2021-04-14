@@ -52,7 +52,7 @@ import Template.State (dummyState, handleAction) as Template
 import Template.Types (Action(..), State) as Template
 import Toast.State (defaultState, handleAction) as Toast
 import Toast.Types (Action, State) as Toast
-import Toast.Types (errorToast)
+import Toast.Types (connectivityErrorToast)
 import Types (ContractInstanceId(..))
 import WalletData.Lenses (_assets, _contractInstanceId, _contractInstanceIdString, _remoteDataWalletInfo, _remoteDataAssets, _wallet, _walletNicknameString)
 import WalletData.Types (NewWalletDetails, WalletDetails, WalletInfo(..))
@@ -231,7 +231,7 @@ handleAction (PickupAction (Pickup.PickupWallet walletDetails)) = do
   let
     wallet = view _wallet walletDetails
 
-    networkErrorToast = \_ -> addToast $ errorToast "Couldn't pickup wallet" (Just "There was a problem connecting with the server, please contact support if this problem persists.")
+    networkErrorToast = \_ -> addToast $ connectivityErrorToast "Couldn't pickup wallet"
   -- we need the local timezoneOffset in Play.State in order to convert datetimeLocal
   -- values to UTC (and vice versa), so we can manage date-to-slot conversions
   timezoneOffset <- liftEffect getTimezoneOffset
@@ -266,7 +266,7 @@ handleAction (PickupAction Pickup.GenerateNewWallet) = do
   remoteDataWalletInfo <- createWallet
   assign (_newWalletDetails <<< _remoteDataWalletInfo) remoteDataWalletInfo
   let
-    networkErrorToast = \_ -> addToast $ errorToast "Couldn't generate wallet" (Just "There was a problem connecting with the server, please contact support if this problem persists.")
+    networkErrorToast = \_ -> addToast $ connectivityErrorToast "Couldn't generate wallet"
   case remoteDataWalletInfo of
     Success (WalletInfo { wallet }) -> do
       remoteDataAssets <- getWalletTotalFunds wallet
@@ -358,8 +358,6 @@ toTemplate ::
   HalogenM Template.State Template.Action slots msg m Unit ->
   HalogenM State Action slots msg m Unit
 toTemplate = mapMaybeSubmodule (_playState <<< _templateState) (PlayAction <<< Play.TemplateAction) Template.dummyState
-
-
 
 toToast ::
   forall m msg slots.

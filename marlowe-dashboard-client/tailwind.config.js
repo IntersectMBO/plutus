@@ -50,6 +50,15 @@ module.exports = {
       deep: "0 2.5px 5px 0 rgba(0, 0, 0, 0.22)",
     },
     extend: {
+      animation: {
+        "from-below": "from-below 250ms ease-out 1",
+      },
+      keyframes: {
+        "from-below": {
+          "0%": { transform: "translateY(20px)", opacity: 0 },
+          "100%": { transform: "translateY(0px)", opacity: 1 },
+        },
+      },
       gridTemplateRows: {
         main: "auto minmax(0, 1fr) auto",
         "contract-setup": "auto auto minmax(0, 1fr)",
@@ -215,6 +224,6 @@ module.exports = {
     transitionTimingFunction: false,
     transitionDuration: true,
     transitionDelay: false,
-    animation: false,
+    animation: true,
   },
 };
