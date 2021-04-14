@@ -22,6 +22,7 @@ packages: doc
           plutus-tx-plugin
           plutus-use-cases
           prettyprinter-configurable
+          quickcheck-dynamic
           web-ghc
 
 -- We never, ever, want this.

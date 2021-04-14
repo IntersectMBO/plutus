@@ -18,7 +18,7 @@ module.exports = {
       lightpurple: "#8701fc",
       grayblue: "#f5f9fc",
       purple: "#4c41e5",
-      red: "#de4c51",
+      red: "#e04b4c",
     },
     fontSize: {
       xs: "12px",
@@ -53,6 +53,10 @@ module.exports = {
         main: "auto minmax(0, 1fr) auto",
         "contract-setup": "auto auto minmax(0, 1fr)",
       },
+      gridTemplateColumns: {
+        "2-contract-home-card": "repeat(2, minmax(240px, 1fr))",
+        "auto-fill-contract-home-card": "repeat(auto-fill, minmax(240px, 1fr))",
+      },
       spacing: {
         "5pc": "5%",
       },
@@ -82,7 +86,7 @@ module.exports = {
   variants: {
     extend: {
       // note 'disabled' goes last so that it takes priority
-      backgroundColor: ["hover", "disabled"],
+      backgroundColor: ["last", "hover", "disabled"],
       backgroundImage: ["hover", "disabled"],
       boxShadow: ["hover", "disabled"],
       cursor: ["hover", "disabled"],

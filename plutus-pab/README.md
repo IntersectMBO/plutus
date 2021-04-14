@@ -28,7 +28,8 @@ $ nix-build ../default.nix -A plutus.haskell.packages.plutus-pab
 ## Running
 
 In order to use PAB several of its components need to be started. Furthermore the pab-client has
-to be started in order to access the web frontend. The required steps are described below.
+to be started in order to access the web frontend. The required steps are described below, assuming
+nix has been installed.
 
 First we build the startup scripts:
 
@@ -36,21 +37,22 @@ First we build the startup scripts:
 $ nix-build ../default.nix -A plutus-pab.demo-scripts
 ```
 
-Next we start all required servers and install several contracts:
+Next we start all required servers and install several contracts, in one terminal:
 
 ```
 $ ./result/bin/pab-start-all-servers
 ```
 
-Now we start an additional PAB connecting to the same node:
+Now we start an additional PAB connecting to the same node, in another terminal:
 
 ```
 $ ./result/bin/pab-start-second-pab
 ```
 
-Finally we can start the pab web frontend:
+Finally we can start the pab web frontend using tool provided by nix environment, in a third terminal:
 
 ```
+$ nix-shell
 $ cd ../plutus-pab-client
 $ npm start
 ```
@@ -331,5 +333,3 @@ A service that regularly lokks at the contract instances requests and handles th
 #### Source
 
 - [Plutus.PAB.Core.processAllContractOutboxes](https://github.com/input-output-hk/plutus/blob/master/plutus-pab/src/Plutus/PAB/Core/ContractInstance.hs#L585)
-
-

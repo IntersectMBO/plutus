@@ -54,6 +54,7 @@ import           Data.Aeson                       (FromJSON, FromJSONKey, ToJSON
 import qualified Data.Aeson                       as JSON
 import qualified Data.Aeson.Extras                as JSON
 import           Data.Hashable                    (Hashable)
+import qualified Data.List                        (sortBy)
 import           Data.String                      (IsString (fromString))
 import           Data.Text                        (Text)
 import qualified Data.Text                        as Text
@@ -61,6 +62,7 @@ import qualified Data.Text.Encoding               as E
 import           Data.Text.Prettyprint.Doc
 import           Data.Text.Prettyprint.Doc.Extras
 import           GHC.Generics                     (Generic)
+import           GHC.Show                         (showList__)
 import           Plutus.V1.Ledger.Bytes           (LedgerBytes (LedgerBytes))
 import           Plutus.V1.Ledger.Orphans         ()
 import           Plutus.V1.Ledger.Scripts
@@ -188,10 +190,26 @@ tokenName = TokenName
 --
 -- See note [Currencies] for more details.
 newtype Value = Value { getValue :: Map.Map CurrencySymbol (Map.Map TokenName Integer) }
-    deriving stock (Show, Generic)
+    deriving stock (Generic)
     deriving anyclass (ToJSON, FromJSON, Hashable, NFData)
     deriving newtype (Serialise, PlutusTx.IsData)
     deriving Pretty via (PrettyShow Value)
+
+instance Show Value where
+    showsPrec d v =
+        showParen (d Haskell.== 11) $
+            showString "Value " . (showParen True (showsMap (showPair (showsMap shows)) rep))
+        where Value rep = normalizeValue v
+              showsMap sh m = showString "Map " . showList__ sh (Map.toList m)
+              showPair s (x,y) = showParen True $ shows x . showString "," . s y
+
+normalizeValue :: Value -> Value
+normalizeValue = Value . Map.fromList . sort . filterRange (/=Map.empty)
+               . mapRange normalizeTokenMap . Map.toList . getValue
+  where normalizeTokenMap = Map.fromList . sort . filterRange (/=0) . Map.toList
+        filterRange p kvs = [(k,v) | (k,v) <- kvs, p v]
+        mapRange f xys = [(x,f y) | (x,y) <- xys]
+        sort xs = Data.List.sortBy compare xs
 
 -- Orphan instances for 'Map' to make this work
 instance (ToJSON v, ToJSON k) => ToJSON (Map.Map k v) where

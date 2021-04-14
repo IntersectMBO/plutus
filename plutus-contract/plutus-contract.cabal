@@ -133,6 +133,9 @@ library
         fingertree -any,
         uuid -any,
         aeson-pretty -any,
+        QuickCheck -any,
+        quickcheck-dynamic -any,
+        random -any,
         unordered-containers -any,
         foldl -any,
         streaming -any
@@ -140,9 +143,11 @@ library
     if !(impl(ghcjs) || os(ghcjs))
         exposed-modules:
             Plutus.Contract.Test
+            Plutus.Contract.Test.ContractModel
         build-depends:
             tasty -any,
             tasty-hunit -any,
+            tasty-golden -any,
 
 test-suite contract-doctests
     type: exitcode-stdio-1.0

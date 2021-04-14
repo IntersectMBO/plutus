@@ -9,25 +9,28 @@ module StaticAnalysis.StaticTools
   ) where
 
 import Prelude hiding (div)
+import Analytics (class IsEvent, analyticsTracking)
 import Control.Monad.Except (ExceptT, runExceptT)
 import Control.Monad.Reader (class MonadAsk, asks, runReaderT)
 import Data.Bifunctor (lmap)
+import Data.BigInteger (BigInteger, toNumber)
 import Data.Lens (assign, use)
 import Data.List (List(..), foldl, fromFoldable, length, snoc, toUnfoldable)
 import Data.List.Types (NonEmptyList(..))
 import Data.Maybe (Maybe(..))
 import Data.NonEmpty ((:|))
+import Data.Traversable (traverse)
 import Data.Tuple.Nested (type (/\), (/\))
 import Effect.Aff.Class (class MonadAff)
 import Env (Env)
-import Halogen (HalogenM)
+import Halogen (HalogenM, liftEffect)
 import Marlowe as Server
 import Marlowe.Extended (fillTemplate, toCore)
 import Marlowe.Extended as EM
 import Marlowe.Semantics (Case(..), Contract(..), Observation(..), emptyState)
 import Marlowe.Semantics as S
 import Marlowe.Symbolic.Types.Request as MSReq
-import Marlowe.Symbolic.Types.Response (Result(..))
+import Marlowe.Symbolic.Types.Response (Response(..), Result(..))
 import Network.RemoteData (RemoteData(..))
 import Network.RemoteData as RemoteData
 import Servant.PureScript.Ajax (AjaxError(..))
@@ -61,7 +64,7 @@ analyseContract extendedContract = do
   where
   emptySemanticState = emptyState zero
 
-  checkContractForWarnings settings state contract = runAjax $ (flip runReaderT) settings (Server.postMarloweanalysis (MSReq.Request { onlyAssertions: false, contract, state }))
+  checkContractForWarnings settings state contract = traverse logAndStripDuration =<< (runAjax $ (flip runReaderT) settings (Server.postMarloweanalysis (MSReq.Request { onlyAssertions: false, contract, state })))
 
 splitArray :: forall a. List a -> List (List a /\ a /\ List a)
 splitArray x = splitArrayAux Nil x
@@ -188,6 +191,26 @@ getNextSubproblem f (Cons (zipper /\ contract) rest) Nil =
 
 getNextSubproblem f acc newChildren = getNextSubproblem f (acc <> newChildren) Nil
 
+data StaticAnalysisEvent
+  = StaticAnalysisTimingEvent BigInteger
+
+instance isEventStaticAnalysisEvent :: IsEvent StaticAnalysisEvent where
+  toEvent (StaticAnalysisTimingEvent durationMs) =
+    Just
+      ( { action: "timing_complete"
+        , category: Just "Static Analysis"
+        , label: Just "Duration of analysis"
+        , value: Just $ toNumber durationMs
+        }
+      )
+
+logAndStripDuration ::
+  forall m state action slots.
+  MonadAff m => Response -> HalogenM state action slots Void m Result
+logAndStripDuration (Response { result, durationMs }) = do
+  liftEffect $ analyticsTracking (StaticAnalysisTimingEvent durationMs)
+  pure result
+
 checkContractForFailedAssertions ::
   forall m state action slots.
   MonadAff m =>
@@ -197,7 +220,7 @@ checkContractForFailedAssertions ::
   HalogenM state action slots Void m (WebData Result)
 checkContractForFailedAssertions contract state = do
   settings <- asks _.ajaxSettings
-  runAjax $ (flip runReaderT) settings (Server.postMarloweanalysis (MSReq.Request { onlyAssertions: true, contract: contract, state: state }))
+  traverse logAndStripDuration =<< (runAjax $ (flip runReaderT) settings (Server.postMarloweanalysis (MSReq.Request { onlyAssertions: true, contract: contract, state: state })))
 
 startMultiStageAnalysis ::
   forall m state action slots.

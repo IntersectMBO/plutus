@@ -58,9 +58,12 @@ instance Show SigningProcess where
 
 -- | A wallet in the emulator model.
 newtype Wallet = Wallet { getWallet :: Integer }
-    deriving (Show, Eq, Ord, Generic)
+    deriving (Eq, Ord, Generic)
     deriving newtype (ToHttpApiData, FromHttpApiData, Hashable)
     deriving anyclass (Newtype, ToJSON, FromJSON, ToJSONKey)
+
+instance Show Wallet where
+    showsPrec p (Wallet i) = showParen (p > 9) $ showString "Wallet " . shows i
 
 instance Pretty Wallet where
     pretty (Wallet i) = "W" <> pretty i
@@ -72,7 +75,7 @@ walletPubKey = toPublicKey . walletPrivKey
 -- | Get a wallet's private key by looking it up in the list of
 --   private keys in 'Ledger.Crypto.knownPrivateKeys'
 walletPrivKey :: Wallet -> PrivateKey
-walletPrivKey (Wallet i) = cycle Crypto.knownPrivateKeys !! fromIntegral i
+walletPrivKey (Wallet i) = cycle Crypto.knownPrivateKeys !! fromIntegral (i - 1)
 
 -- | Get a wallet's address.
 walletAddress :: Wallet -> Address
@@ -119,6 +122,12 @@ emptyWalletState :: Wallet -> WalletState
 emptyWalletState w = WalletState pk emptyNodeClientState mempty sp  where
     pk = walletPrivKey w
     sp = defaultSigningProcess w
+
+-- | An empty wallet using the given private key.
+-- for that wallet as the sole watched address.
+emptyWalletStateFromPrivateKey :: PrivateKey -> WalletState
+emptyWalletStateFromPrivateKey pk = WalletState pk emptyNodeClientState mempty sp where
+    sp = signWithPrivateKey pk
 
 data PaymentArgs =
     PaymentArgs
@@ -173,8 +182,8 @@ handleWallet ::
     , Member (State WalletState) effs
     , Member (Error WAPI.WalletAPIError) effs
     )
-    => Eff (WalletEffect ': effs) ~> Eff effs
-handleWallet = interpret $ \case
+    => WalletEffect ~> Eff effs
+handleWallet = \case
     SubmitTxn tx -> W.publishTx tx
     OwnPubKey -> toPublicKey <$> gets _ownPrivateKey
     UpdatePaymentWithChange vl pmt -> do
@@ -243,6 +252,10 @@ takeUntil p (x:xs)
 defaultSigningProcess :: Wallet -> SigningProcess
 defaultSigningProcess = signWallet
 
+signWithPrivateKey :: PrivateKey -> SigningProcess
+signWithPrivateKey pk = SigningProcess $
+    \pks tx -> foldM (signTxWithPrivateKey pk) tx pks
+
 -- | Sign the transaction by calling 'WAPI.signTxnWithKey' (throwing a
 --   'PrivateKeyNotFound' error if called with a key other than the
 --   wallet's private key)
@@ -257,6 +270,15 @@ signTxnWithKey wllt tx pubK = do
     let ownPubK = walletPubKey wllt
     if pubKeyHash ownPubK == pubK
     then pure (signWithWallet wllt tx)
+    else throwError (WAPI.PrivateKeyNotFound pubK)
+
+-- | Sign the transaction with the private key, if the hash is that of the
+--   private key.
+signTxWithPrivateKey :: (Member (Error WAPI.WalletAPIError) r) => PrivateKey -> Tx -> PubKeyHash -> Eff r Tx
+signTxWithPrivateKey pk tx pubK = do
+    let ownPubKey = toPublicKey pk
+    if pubKeyHash ownPubKey == pubK
+    then pure (addSignature pk tx)
     else throwError (WAPI.PrivateKeyNotFound pubK)
 
 -- | Sign the transaction with the private keys of the given wallets,

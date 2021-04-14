@@ -149,6 +149,7 @@ myTypes =
     , mkSumType (Proxy @InterpreterError)
     , mkSumType (Proxy @Warning)
     , mkSumType (Proxy @(InterpreterResult A))
+    , (genericShow <*> mkSumType) (Proxy @MSRes.Response)
     , (genericShow <*> mkSumType) (Proxy @MSRes.Result)
     , mkSumType (Proxy @MSReq.Request)
     , mkSumType (Proxy @CT.ContractTerms)

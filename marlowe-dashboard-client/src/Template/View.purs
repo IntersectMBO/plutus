@@ -77,7 +77,7 @@ navigationBar contractName =
     [ a
         -- "-ml-1" makes the icon line up properly
         [ classNames [ "flex", "items-center", "font-semibold", "-ml-1" ]
-        , onClick_ ToggleTemplateLibraryCard
+        , onClick_ OpenTemplateLibraryCard
         ]
         [ icon_ Previous
         , span_
@@ -181,7 +181,7 @@ roleInputs wallets extendedContract metaData roleWallets =
                 ]
             , button
                 [ classNames [ "absolute", "top-4", "right-4" ]
-                , onClick_ $ ToggleCreateWalletCard tokenName
+                , onClick_ $ OpenCreateWalletCard tokenName
                 ]
                 [ icon_ AddCircle ]
             ]
@@ -280,7 +280,7 @@ reviewAndPay accessible metaData =
         [ classNames [ "flex", "justify-end", "mb-4" ] ]
         [ button
             [ classNames Css.primaryButton
-            , onClick_ $ ToggleSetupConfirmationCard
+            , onClick_ $ OpenSetupConfirmationCard
             ]
             [ text "Pay" ]
         ]
@@ -356,7 +356,7 @@ contractSetupConfirmationCard =
             [ classNames [ "flex" ] ]
             [ button
                 [ classNames $ Css.secondaryButton <> [ "flex-1", "mr-2" ]
-                , onClick_ ToggleSetupConfirmationCard
+                , onClick_ CloseSetupConfirmationCard
                 ]
                 [ text "Cancel" ]
             , button

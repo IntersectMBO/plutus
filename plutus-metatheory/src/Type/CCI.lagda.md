@@ -21,8 +21,6 @@ open import Data.Product
 open import Relation.Binary.PropositionalEquality hiding ([_])
 open import Data.Sum
 
-
-
 -- expose the bottom inner layer of the evalctx
 dissect : (E : EvalCtx K J) → K ≡ J ⊎ Σ Kind λ I → EvalCtx K I × Frame I J
 dissect [] = inj₁ refl
@@ -206,6 +204,7 @@ lem62 A .(μ A₁ B₁) E (μl E' B₁) (~μl .A A₁ .B₁ .E' x) = step*
   refl
   (lem62 A _ (extendEvalCtx E (μ- B₁)) E' x)
 
+{-
 lem1 : (M : ∅ ⊢⋆ J)(B B' : ∅ ⊢⋆ K)(E : EvalCtx K J)
   → B ~ E ⟦ M ⟧ → B —→⋆ B'
   → Σ Kind λ J' → Σ (∅ ⊢⋆ J') λ N → Σ (EvalCtx K J') λ E'
@@ -229,4 +228,5 @@ thm1 A A' E p B V (trans—↠⋆ {B = B'} q r) with lemma51 B'
 -- this is the result we want
 thm2 : (A B : ∅ ⊢⋆ K)(V : Value⋆ B) → A —↠⋆ B -> ([] ▻ A) -→s ([] ◅ V)
 thm2 A B V p = thm1 A A [] refl B V p
+-}
 ```

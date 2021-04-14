@@ -43,7 +43,7 @@ import           Wallet.Rollup.Types                       (AnnotatedTx, Benefic
                                                             TxKey)
 import           Wallet.Types                              (AssertionError, ContractError, ContractInstanceId,
                                                             EndpointDescription, MatchingError, Notification,
-                                                            NotificationError)
+                                                            NotificationError, Payment)
 
 psJson :: PSType
 psJson = TypeInfo "web-common" "Data.RawJson" "RawJson" []
@@ -263,6 +263,7 @@ ledgerTypes =
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @ConnectionError)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @Notification)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @NotificationError)
+    , (equal <*> (genericShow <*> mkSumType)) (Proxy @Payment)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @MatchingError)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @AssertionError)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @CheckpointError)

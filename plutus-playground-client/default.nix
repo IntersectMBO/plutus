@@ -1,6 +1,6 @@
-{ pkgs, gitignore-nix, set-git-rev, haskell, webCommon, webCommonPlutus, webCommonPlayground, buildPursPackage, buildNodeModules, filterNpm }:
+{ pkgs, gitignore-nix, haskell, webCommon, webCommonPlutus, webCommonPlayground, buildPursPackage, buildNodeModules, filterNpm }:
 let
-  playground-exe = set-git-rev haskell.packages.plutus-playground-server.components.exes.plutus-playground-server;
+  playground-exe = haskell.packages.plutus-playground-server.components.exes.plutus-playground-server;
 
   build-playground-exe = "$(nix-build --quiet --no-build-output ../default.nix -A plutus.haskell.packages.plutus-playground-server.components.exes.plutus-playground-server)";
 

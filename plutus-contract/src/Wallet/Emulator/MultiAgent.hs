@@ -355,7 +355,7 @@ handleMultiAgent = interpret $ \case
             p7 = notificationEvent
         act
             & raiseEnd
-            & Wallet.handleWallet
+            & interpret Wallet.handleWallet
             & subsume
             & NC.handleNodeClient
             & ChainIndex.handleChainIndex

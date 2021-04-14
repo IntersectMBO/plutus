@@ -43,7 +43,7 @@ render state =
                   ]
               , projectTitle
               , div [ classes [ group, ClassName "marlowe-links-group" ] ]
-                  [ a [ href "./tutorial/index.html", target "_blank", classes [ ClassName "external-links" ] ] [ text "Tutorial" ]
+                  [ a [ href "./doc/marlowe/tutorials/index.html", target "_blank", classes [ ClassName "external-links" ] ] [ text "Tutorials" ]
                   , a [ onClick $ const $ Just $ ChangeView ActusBlocklyEditor, classes [ ClassName "external-links" ] ] [ text "Actus Labs" ]
                   ]
               ]

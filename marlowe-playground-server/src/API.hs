@@ -16,6 +16,5 @@ import           Servant.API                                      (Capture, Get,
 
 type API
      = "oracle" :> Capture "exchange" String :> Capture "pair" String :> Get '[JSON] Value
-       :<|> "version" :> Get '[ PlainText, JSON] Text
        :<|> "actus" :> ("generate" :> ReqBody '[ JSON] CT.ContractTerms :> Post '[ JSON] String
                         :<|> "generate-static" :> ReqBody '[ JSON] CT.ContractTerms :> Post '[ JSON] String)

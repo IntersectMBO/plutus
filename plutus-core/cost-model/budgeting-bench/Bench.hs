@@ -111,6 +111,28 @@ createTwoTermBuiltinBenchElementwise name xs ys =
 
 ---------------- Integer builtins ----------------
 
+{- | In some cases (for example, equality testing) the worst-case behaviour of a
+builtin will be when it has two identical arguments However, there's a danger
+that if the arguments are physically identical (ie, they are (pointers to) the
+same object in the heap) the underlying implementation may notice that and
+return immediately.  The code below attempts to avoid this by producing a
+complerely new copy of an integer.  Experiments with 'realyUnsafePtrEquality#`
+indicate that it does what's required (in fact, `cloneInteger n = (n+1)-1` with
+NOINLINE suffices, but that's perhaps a bit too fragile).
+-}
+
+{-# NOINLINE incInteger #-}
+incInteger :: Integer -> Integer
+incInteger n = n+1
+
+{-# NOINLINE decInteger #-}
+decInteger :: Integer -> Integer
+decInteger n = n-1
+
+{-# NOINLINE copyInteger #-}
+copyInteger :: Integer -> Integer
+copyInteger = decInteger . incInteger
+
 -- Generate a random n-word (ie, 64n-bit) integer
 {- In principle a random 5-word integer (for example) might only occupy 4 or
    fewer words, but we're generating uniformly distributed values so the
@@ -157,12 +179,7 @@ benchSameTwoIntegers gen builtinName = createTwoTermBuiltinBenchElementwise buil
     where
       (numbers,_) = makeBiggerIntegerArgs gen
       inputs  = fmap (\e -> (e, memoryUsage e)) numbers
-      inputs' = fmap (\e -> (e, memoryUsage e)) $ clone numbers
-          where clone = (fmap (\n -> (n-1) `div` 3) . fmap (\n -> 3*n+1))
-    -- Let's try to make sure that the numbers aren't physically identical;
-    -- hopefully this is sufficiently complicated that GHC won't be able to
-    -- spot that it's the identity function.
-
+      inputs' = fmap (\e -> (e, memoryUsage e)) $ map copyInteger $ numbers
 
 ---------------- Bytestring builtins ----------------
 
