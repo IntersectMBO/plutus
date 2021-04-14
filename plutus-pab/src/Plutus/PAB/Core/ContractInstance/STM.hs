@@ -36,6 +36,7 @@ module Plutus.PAB.Core.ContractInstance.STM(
     , watchedAddresses
     , watchedTransactions
     , callEndpointOnInstance
+    , callEndpointOnInstanceTimeout
     , obervableContractState
     , instanceState
     , instanceIDs
@@ -249,9 +250,32 @@ openEndpoints = STM.readTVar . issEndpoints
 callEndpoint :: OpenEndpoint -> EndpointValue Value -> STM ()
 callEndpoint OpenEndpoint{oepResponse} = STM.putTMVar oepResponse
 
--- | Call an endpoint on a contract instance.
+-- | Call an endpoint on a contract instance. Fail immediately if the endpoint is not active.
 callEndpointOnInstance :: InstancesState -> EndpointDescription -> Value -> ContractInstanceId -> STM (Maybe NotificationError)
-callEndpointOnInstance (InstancesState m) endpointDescription value instanceID = do
+callEndpointOnInstance s endpointDescription value instanceID =
+    let err = pure $ Just $ EndpointNotAvailable instanceID endpointDescription
+    in callEndpointOnInstance' err s endpointDescription value instanceID
+
+-- | Call an endpoint on a contract instance. If the endpoint is not active, wait until the
+--   TMVar is filled, then fail. (if the endpoint becomes active in the meantime it will be
+--   called)
+callEndpointOnInstanceTimeout :: STM.TMVar () -> InstancesState -> EndpointDescription -> Value -> ContractInstanceId -> STM (Maybe NotificationError)
+callEndpointOnInstanceTimeout tmv s endpointDescription value instanceID =
+    let err = do
+            _ <- STM.takeTMVar tmv
+            pure $ Just $ EndpointNotAvailable instanceID endpointDescription
+    in callEndpointOnInstance' err s endpointDescription value instanceID
+
+-- | Call an endpoint on a contract instance. The caller can define what to do if the endpoint
+--   is not available.
+callEndpointOnInstance' ::
+    STM (Maybe NotificationError) -- ^ What to do when the endpoint is not available
+    -> InstancesState
+    -> EndpointDescription
+    -> Value
+    -> ContractInstanceId
+    -> STM (Maybe NotificationError)
+callEndpointOnInstance' notAvailable (InstancesState m) endpointDescription value instanceID = do
     instances <- STM.readTVar m
     case Map.lookup instanceID instances of
         Nothing -> pure $ Just $ InstanceDoesNotExist instanceID
@@ -259,7 +283,7 @@ callEndpointOnInstance (InstancesState m) endpointDescription value instanceID =
             mp <- openEndpoints is
             let match OpenEndpoint{oepName=ActiveEndpoint{aeDescription=d}} = endpointDescription == d
             case filter match $ fmap snd $ Map.toList mp of
-                []   -> pure $ Just $ EndpointNotAvailable instanceID endpointDescription
+                []   -> notAvailable
                 [ep] -> callEndpoint ep (EndpointValue value) >> pure Nothing
                 _    -> pure $ Just $ MoreThanOneEndpointAvailable instanceID endpointDescription
 

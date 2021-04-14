@@ -184,6 +184,7 @@
           "Plutus/PAB/Events/ContractInstanceState"
           "Plutus/PAB/ParseStringifiedJSON"
           "Plutus/PAB/Simulator"
+          "Plutus/PAB/Timeout"
           "Plutus/PAB/Types"
           ];
         hsSourceDirs = [ "src" ];

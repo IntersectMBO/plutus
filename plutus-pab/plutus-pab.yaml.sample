@@ -39,6 +39,11 @@ signingProcessConfig:
 metadataServerConfig:
   mdBaseUrl: http://localhost:9085
 
+# Optional timeout (in seconds) for calls to endpoints that are not currently
+# available. If this is not set, calls to unavailable endpoints fail 
+# immediately. 
+endpointTimeout: 5
+
 # Optional EKG Server Config
 # ----
 # monitoringConfig:

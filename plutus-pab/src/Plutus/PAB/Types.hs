@@ -90,6 +90,7 @@ data Config =
         , pabWebserverConfig      :: WebserverConfig
         , chainIndexConfig        :: ChainIndex.ChainIndexConfig
         , requestProcessingConfig :: RequestProcessingConfig
+        , endpointTimeout         :: Maybe Second
         }
     deriving (Show, Eq, Generic, FromJSON)
 
