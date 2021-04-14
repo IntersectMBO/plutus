@@ -41,7 +41,7 @@ This directory contains two sets of benchmarks:
 
    * To run the benchmarks using stack, type a command like this
        * `stack bench plutus-benchmark:validation` (run all benchmarks)
-       * `stack bench plutus-benchmark:validation --ba "crowdfunding/2 -L10"` (run the `crowdfunding/2`
+       * `stack bench plutus-benchmark:validation --ba "crowdfunding/2 -L60"` (run the `crowdfunding/2`
            benchmark with a time limit of 10 seconds)
 
    * The corresponding cabal commands are
@@ -50,12 +50,12 @@ This directory contains two sets of benchmarks:
      or the `cabal run` equivalents (see the `nofib` section).
 
    * During benchmarking each validation script is run repeatedly up to a limit
-     of 5 seconds (Criterion's default; a single execution takes approximately
+     of 520 seconds (Criterion's default; a single execution takes approximately
      5-15 ms) to get statistically reasonable total number of executions.  It
-     takes about 5 minutes to run the entire suite (again, this will depend on
+     takes about 10 minutes to run the entire suite (again, this will depend on
      the hardware).
 
-See also  [nofib/README.md](./nofib/README.md)  and [validation/README.md](./validation/README.md).
+See also [nofib/README.md](./nofib/README.md) and [validation/README.md](./validation/README.md).
 
 ### nofib-exe
 The `nofib-exe` program in `nofib/exe` allows you to run the `nofib` benchmarks from the command line and
