@@ -91,9 +91,6 @@ rec {
 
   docs = import ./nix/docs.nix { inherit pkgs plutus; };
 
-  # Note: nix-build is not eager enough in evaluating `nix-build -A deployment` so 
-  # you need to specify a specific host. On hydra `pkgs.recurseIntoAttrs` solves
-  # this problem
   deployment = pkgs.recurseIntoAttrs (pkgs.callPackage ./deployment/morph {
     plutus = {
       plutus-docs = docs;

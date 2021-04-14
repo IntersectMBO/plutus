@@ -30,8 +30,9 @@ let
   # in a `pkgs.nixos` call to build the machine outside of morph.
   mkMachine = pkgs.callPackage ./mk-machine.nix { inherit plutus tfinfo; extraImports = [ fakeDeploymentOption ]; };
   buildMachine = { config, name }: (pkgs.nixos (mkMachine { inherit config name; })).toplevel;
+  linuxOnly = x: if pkgs.stdenv.isDarwin then { } else x;
 in
-import ./machines.nix {
+linuxOnly (import ./machines.nix {
   inherit pkgs tfinfo;
   mkMachine = buildMachine;
-}
+})
