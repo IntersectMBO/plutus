@@ -21,6 +21,7 @@
 , gzip
 , iana-etc
 , iproute
+, jq
 , less
 , lib
 , nix
@@ -73,6 +74,10 @@ let
       findutils
       # yes, it breaks without `which`!
       which
+
+      # nice-to-have tools
+      curl
+      jq
     ] ++ extraContents;
 
     extraCommands = ''
