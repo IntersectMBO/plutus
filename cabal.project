@@ -51,6 +51,8 @@ allow-newer:
 constraints:
   -- aws-lambda-haskell-runtime-wai doesn't compile with newer versions
   aws-lambda-haskell-runtime <= 3.0.3
+  -- big breaking change here, inline-r doens't have an upper bound
+  , singletons < 3.0
 
 -- See the note on nix/pkgs/default.nix:agdaPackages for why this is here.
 -- (NOTE this will change to ieee754 in newer versions of nixpkgs).

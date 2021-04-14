@@ -76,6 +76,7 @@
         "srcloc".revision = (((hackage."srcloc")."0.5.1.2").revisions).default;
         "x509-validation".revision = (((hackage."x509-validation")."1.6.11").revisions).default;
         "aeson-casing".revision = (((hackage."aeson-casing")."0.2.0.0").revisions).default;
+        "fail".revision = (((hackage."fail")."4.9.0.0").revisions).default;
         "MonadRandom".revision = (((hackage."MonadRandom")."0.5.3").revisions).default;
         "mersenne-random-pure64".revision = (((hackage."mersenne-random-pure64")."0.2.2.0").revisions).default;
         "mersenne-random-pure64".flags.small_base = false;
@@ -268,6 +269,7 @@
         "servant-subscriber".revision = (((hackage."servant-subscriber")."0.7.0.0").revisions).default;
         "servant-subscriber".flags.websockets_0_11 = true;
         "tree-diff".revision = (((hackage."tree-diff")."0.2").revisions).default;
+        "ordered-containers".revision = (((hackage."ordered-containers")."0.2.2").revisions).default;
         "uniplate".revision = (((hackage."uniplate")."1.6.13").revisions).default;
         "parsec".revision = (((hackage."parsec")."3.1.14.0").revisions).default;
         "th-reify-many".revision = (((hackage."th-reify-many")."0.1.9").revisions).default;
@@ -306,7 +308,7 @@
         "ListLike".revision = (((hackage."ListLike")."4.7.4").revisions).default;
         "blaze-builder".revision = (((hackage."blaze-builder")."0.4.2.1").revisions).default;
         "base-compat".revision = (((hackage."base-compat")."0.11.2").revisions).default;
-        "singletons".revision = (((hackage."singletons")."3.0").revisions).default;
+        "singletons".revision = (((hackage."singletons")."2.7").revisions).default;
         "terminal-size".revision = (((hackage."terminal-size")."0.3.2.1").revisions).default;
         "silently".revision = (((hackage."silently")."1.2.5.1").revisions).default;
         "math-functions".revision = (((hackage."math-functions")."0.3.4.2").revisions).default;
@@ -427,6 +429,7 @@
         "ieee754".revision = (((hackage."ieee754")."0.8.0").revisions).default;
         "zlib-bindings".revision = (((hackage."zlib-bindings")."0.1.1.5").revisions).default;
         "charset".revision = (((hackage."charset")."0.3.8").revisions).default;
+        "th-desugar".revision = (((hackage."th-desugar")."1.11").revisions).default;
         "http-client-tls".revision = (((hackage."http-client-tls")."0.3.5.3").revisions).default;
         "contravariant".revision = (((hackage."contravariant")."1.5.3").revisions).default;
         "contravariant".flags.semigroups = true;
