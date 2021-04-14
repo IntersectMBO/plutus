@@ -404,7 +404,7 @@ runSimulation :: Simulation (Builtin TestContracts) a -> IO (Either PABError a)
 runSimulation = runSimulationWith @(Builtin TestContracts) simulatorHandlers
 
 runSimulationWith :: SimulatorEffectHandlers t -> Simulation t a -> IO (Either PABError a)
-runSimulationWith handlers = Core.runPAB handlers
+runSimulationWith handlers = Core.runPAB def handlers
 
 -- | Handle a 'LogMsg' effect in terms of a "larger" 'State' effect from which we have a setter.
 logIntoTQueue ::
