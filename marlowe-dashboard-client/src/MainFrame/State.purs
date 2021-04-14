@@ -51,7 +51,7 @@ import StaticData (walletDetailsLocalStorageKey, walletLibraryLocalStorageKey)
 import Template.State (dummyState, handleAction) as Template
 import Template.Types (Action(..), State) as Template
 import Toast.State (defaultState, handleAction) as Toast
-import Toast.Types (Action(..), State) as Toast
+import Toast.Types (Action, State) as Toast
 import Types (ContractInstanceId(..))
 import WalletData.Lenses (_assets, _contractInstanceId, _contractInstanceIdString, _remoteDataWalletInfo, _remoteDataAssets, _wallet, _walletNicknameString)
 import WalletData.Types (NewWalletDetails, WalletDetails, WalletInfo(..))
@@ -117,8 +117,9 @@ handleQuery (ReceiveWebSocketMessage msg next) = do
             $ assign (_playState <<< _walletDetails <<< _assets) (toFront value)
   pure $ Just next
 
-handleQuery (AddToastQuery toast next) = do
-  handleAction $ ToastAction $ Toast.AddToast toast
+handleQuery (MainFrameActionQuery action next) = do
+  handleAction action
+  pure $ Just next
 
 -- FIXME: We need to discuss if we should remove this after we connect to the PAB. In case we do,
 --        if there is a disconnection we might lose some seconds and timeouts will freeze.
@@ -219,6 +220,7 @@ handleAction (PickupAction (Pickup.SetNewWalletContractId contractId)) = handleA
 handleAction (PickupAction Pickup.PickupNewWallet) = do
   newWalletDetails <- use _newWalletDetails
   -- try and make a new wallet from the newWalletDetails (succeeds if all RemoteData properties are Success)
+  -- TODO: add error toast when this fails
   for_ (mkNewWallet newWalletDetails)
     $ \walletDetails -> do
         handleAction AddNewWallet

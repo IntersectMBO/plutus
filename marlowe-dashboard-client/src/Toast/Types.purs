@@ -52,7 +52,7 @@ successToast shortDescription =
   , iconColor: "text-lightgreen"
   , textColor: "text-white"
   , bgColor: "bg-black"
-  , timeout: 3500.0
+  , timeout: 2500.0
   }
 
 errorToast :: String -> Maybe String -> ToastMessage
@@ -63,5 +63,5 @@ errorToast shortDescription longDescription =
   , iconColor: "text-white"
   , textColor: "text-white"
   , bgColor: "bg-red"
-  , timeout: 10000.0
+  , timeout: 5000.0
   }

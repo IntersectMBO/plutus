@@ -17,7 +17,6 @@ import Pickup.Types (Action, State) as Pickup
 import Play.Types (Action, State) as Play
 import Plutus.PAB.Webserver.Types (CombinedWSStreamToClient, CombinedWSStreamToServer)
 import Toast.Types (Action, State) as Toast
-import Toast.Types (ToastMessage)
 import WalletData.Types (WalletLibrary, NewWalletDetails)
 import Web.Socket.Event.CloseEvent (CloseEvent, reason) as WS
 import WebSocket.Support (FromSocket) as WS
@@ -54,11 +53,11 @@ type ChildSlots
 ------------------------------------------------------------
 data Query a
   = ReceiveWebSocketMessage (WS.FromSocket CombinedWSStreamToClient) a
-  | AddToastQuery ToastMessage a
+  | MainFrameActionQuery Action a
 
 data Msg
   = SendWebSocketMessage CombinedWSStreamToServer
-  | AddToastMsg ToastMessage
+  | MainFrameActionMsg Action
 
 ------------------------------------------------------------
 data Action
