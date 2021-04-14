@@ -4,7 +4,7 @@ import Prelude
 import Bridge (toFront)
 import Capability.Contract (class ManageContract, getContractInstanceClientState, getWalletContractInstances)
 import Capability.Marlowe (class ManageMarloweContract, marloweCreateWalletCompanionContract, marloweGetWalletCompanionContractObservableState)
-import Capability.Toast (class Toast)
+import Capability.Toast (class Toast, addToast)
 import Capability.Wallet (class ManageWallet, createWallet, getWalletInfo, getWalletTotalFunds)
 import Capability.Websocket (class MonadWebsocket, subscribeToWallet, unsubscribeFromWallet)
 import ContractHome.State (loadExistingContracts)
@@ -52,6 +52,7 @@ import Template.State (dummyState, handleAction) as Template
 import Template.Types (Action(..), State) as Template
 import Toast.State (defaultState, handleAction) as Toast
 import Toast.Types (Action, State) as Toast
+import Toast.Types (errorToast)
 import Types (ContractInstanceId(..))
 import WalletData.Lenses (_assets, _contractInstanceId, _contractInstanceIdString, _remoteDataWalletInfo, _remoteDataAssets, _wallet, _walletNicknameString)
 import WalletData.Types (NewWalletDetails, WalletDetails, WalletInfo(..))
@@ -229,6 +230,8 @@ handleAction (PickupAction Pickup.PickupNewWallet) = do
 handleAction (PickupAction (Pickup.PickupWallet walletDetails)) = do
   let
     wallet = view _wallet walletDetails
+
+    networkErrorToast = \_ -> addToast $ errorToast "Couldn't pickup wallet" (Just "There was a problem connecting with the server, please contact support if this problem persists.")
   -- we need the local timezoneOffset in Play.State in order to convert datetimeLocal
   -- values to UTC (and vice versa), so we can manage date-to-slot conversions
   timezoneOffset <- liftEffect getTimezoneOffset
@@ -256,12 +259,14 @@ handleAction (PickupAction (Pickup.PickupWallet walletDetails)) = do
       -- subscribe to the wallet to get updates about balance changes
       subscribeToWallet wallet
       liftEffect $ setItem walletDetailsLocalStorageKey $ encodeJSON updatedWalletDetails
-    -- TODO: show errors to the user
+    Failure err -> networkErrorToast err
     _ -> pure unit
 
 handleAction (PickupAction Pickup.GenerateNewWallet) = do
   remoteDataWalletInfo <- createWallet
   assign (_newWalletDetails <<< _remoteDataWalletInfo) remoteDataWalletInfo
+  let
+    networkErrorToast = \_ -> addToast $ errorToast "Couldn't generate wallet" (Just "There was a problem connecting with the server, please contact support if this problem persists.")
   case remoteDataWalletInfo of
     Success (WalletInfo { wallet }) -> do
       remoteDataAssets <- getWalletTotalFunds wallet
@@ -274,9 +279,9 @@ handleAction (PickupAction Pickup.GenerateNewWallet) = do
           modify_
             $ set (_newWalletDetails <<< _contractInstanceIdString) contractInstanceIdString
             <<< set (_pickupState <<< _card) (Just (PickupNewWalletCard WalletGenerated))
-        -- TODO: show errors to the user
+        Failure err -> networkErrorToast err
         _ -> pure unit
-    -- TODO: show errors to the user
+    Failure err -> networkErrorToast err
     _ -> pure unit
 
 handleAction (PickupAction (Pickup.SetPickupWalletString string)) = do
