@@ -37,7 +37,7 @@ import           Ledger                                              (Block, Slo
 data ClientHandler = ClientHandler
     { chInputQueue  :: TQueue Tx
     , chSocketPath  :: FilePath
-    , chCurrentSlot :: MVar Slot
+    , chCurrentSlot :: IO Slot
     , chHandler     :: (Block -> Slot -> IO ())
     }
 
@@ -49,23 +49,18 @@ queueTx ::
 queueTx ClientHandler { chInputQueue } tx =
     atomically (writeTQueue chInputQueue tx)
 
-getCurrentSlot ::
-     ClientHandler
-  -> IO Slot
-getCurrentSlot ClientHandler { chCurrentSlot } =
-    readMVar chCurrentSlot
+getCurrentSlot :: ClientHandler -> IO Slot
+getCurrentSlot = chCurrentSlot
 
 runClientNode :: FilePath
+              -> SlotConfig
               -> (Block -> Slot -> IO ())
               -> IO ClientHandler
-runClientNode socketPath onNewBlock = do
+runClientNode socketPath slotConfig onNewBlock = do
     inputQueue  <- newTQueueIO
-    -- Right now we synchronise the whole blockchain so we can initialise the first
-    -- slot to be 0. This will change when we start looking for intersection points.
-    mSlot    <- newMVar (Slot 0)
     let handle = ClientHandler { chInputQueue = inputQueue
                                , chSocketPath = socketPath
-                               , chCurrentSlot = mSlot
+                               , chCurrentSlot = currentSlot slotConfig
                                , chHandler = onNewBlock
                                }
 
@@ -73,7 +68,7 @@ runClientNode socketPath onNewBlock = do
     pure handle
     where
       loop :: TimeUnit a => a -> ClientHandler -> IOManager -> IO ()
-      loop timeout ch@ClientHandler{chSocketPath, chInputQueue, chCurrentSlot, chHandler} iocp = do
+      loop timeout ch@ClientHandler{chSocketPath, chInputQueue, chHandler} iocp = do
         catchAll
           (connectToNode
             (localSnocket iocp socketPath)
@@ -81,7 +76,7 @@ runClientNode socketPath onNewBlock = do
             (cborTermVersionDataCodec unversionedProtocolDataCodec)
             nullNetworkConnectTracers
             acceptableVersion
-            (unversionedProtocol (app chCurrentSlot chHandler chInputQueue))
+            (unversionedProtocol (app chHandler chInputQueue))
             Nothing
             (localAddressFromPath chSocketPath))
           {- If we receive any error or disconnect, try to reconnect.
@@ -92,24 +87,22 @@ runClientNode socketPath onNewBlock = do
 
       {- Application that communicates using 2 multiplexed protocols
          (ChainSync and TxSubmission). -}
-      app :: MVar Slot
-          -> (Block -> Slot -> IO ())
+      app :: (Block -> Slot -> IO ())
           -> TQueue Tx
           -> OuroborosApplication 'InitiatorMode addr
                                   LBS.ByteString IO () Void
-      app mSlot onNewBlock' inputQueue =
-        nodeApplication (chainSync mSlot onNewBlock') (txSubmission inputQueue)
+      app onNewBlock' inputQueue =
+        nodeApplication (chainSync onNewBlock') (txSubmission inputQueue)
 
-      chainSync :: MVar Slot
-                -> (Block -> Slot -> IO ())
+      chainSync :: (Block -> Slot -> IO ())
                 -> RunMiniProtocol 'InitiatorMode LBS.ByteString IO () Void
-      chainSync mSlot onNewBlock' =
+      chainSync onNewBlock' =
           InitiatorProtocolOnly $
           MuxPeer
             nullTracer
             codecChainSync
             (ChainSync.chainSyncClientPeer
-               (chainSyncClient mSlot onNewBlock'))
+               (chainSyncClient slotConfig onNewBlock'))
 
       txSubmission :: TQueue Tx
                    -> RunMiniProtocol 'InitiatorMode LBS.ByteString IO () Void
@@ -122,10 +115,10 @@ runClientNode socketPath onNewBlock = do
                (txSubmissionClient inputQueue))
 
 -- | The client updates the application state when the protocol state changes.
-chainSyncClient :: MVar Slot
+chainSyncClient :: SlotConfig
                 -> (Block -> Slot -> IO ())
                 -> ChainSync.ChainSyncClient Block (Point Block) Tip IO ()
-chainSyncClient mSlot onNewBlock =
+chainSyncClient slotConfig onNewBlock =
     ChainSync.ChainSyncClient $ pure requestNext
     where
       requestNext :: ChainSync.ClientStIdle Block (Point Block) Tip IO ()
@@ -140,9 +133,8 @@ chainSyncClient mSlot onNewBlock =
         {
           ChainSync.recvMsgRollForward  = \block _ ->
             ChainSync.ChainSyncClient $ do
-              currentSlot <- takeMVar mSlot
-              onNewBlock block (currentSlot + 1)
-              putMVar mSlot (currentSlot + 1)
+              slot <- currentSlot slotConfig
+              onNewBlock block slot
               return requestNext
         , ChainSync.recvMsgRollBackward = error "Not supported."
         }

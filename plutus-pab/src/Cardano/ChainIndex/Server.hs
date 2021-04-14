@@ -24,6 +24,7 @@ import qualified Wallet.Effects                  as WalletEffects
 
 import           Cardano.ChainIndex.ChainIndex   (confirmedBlocks, healthcheck, processIndexEffects, startWatching,
                                                   syncState, watchedAddresses)
+import           Cardano.Node.Types              (SlotConfig)
 import           Control.Monad.IO.Class          (MonadIO (..))
 import           Data.Function                   ((&))
 import           Data.Proxy                      (Proxy (Proxy))
@@ -49,12 +50,12 @@ app trace stateVar =
         (liftIO . processIndexEffects trace stateVar)
         (healthcheck :<|> startWatching :<|> watchedAddresses :<|> confirmedBlocks :<|> WalletEffects.transactionConfirmed :<|> WalletEffects.nextTx)
 
-main :: ChainIndexTrace -> ChainIndexConfig -> FilePath -> Availability -> IO ()
-main trace ChainIndexConfig{ciBaseUrl} socketPath availability = runLogEffects trace $ do
+main :: ChainIndexTrace -> ChainIndexConfig -> FilePath -> SlotConfig -> Availability -> IO ()
+main trace ChainIndexConfig{ciBaseUrl} socketPath slotConfig availability = runLogEffects trace $ do
     mVarState <- liftIO $ newMVar initialAppState
 
     logInfo StartingNodeClientThread
-    _ <- liftIO $ runClientNode socketPath $ updateChainState mVarState
+    _ <- liftIO $ runClientNode socketPath slotConfig $ updateChainState mVarState
 
     logInfo $ StartingChainIndex servicePort
     liftIO $ Warp.runSettings warpSettings $ app trace mVarState

@@ -121,6 +121,7 @@ runCliCommand trace _ Config {..} serviceAvailability MockWallet =
         (toWalletLog trace)
         walletServerConfig
         (mscSocketPath nodeServerConfig)
+        (mscSlotConfig nodeServerConfig)
         (ChainIndex.ciBaseUrl chainIndexConfig)
         serviceAvailability
 
@@ -168,6 +169,7 @@ runCliCommand t _ Config {nodeServerConfig, chainIndexConfig} serviceAvailabilit
         (toChainIndexLog t)
         chainIndexConfig
         (mscSocketPath nodeServerConfig)
+        (mscSlotConfig nodeServerConfig)
         serviceAvailability
 
 -- Install a contract

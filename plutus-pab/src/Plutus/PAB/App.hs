@@ -83,9 +83,9 @@ appEffectHandlers config trace =
     EffectHandlers
         { initialiseEnvironment = do
             env <- liftIO $ mkEnv trace config
-            let Config{nodeServerConfig=MockServerConfig{mscSocketPath}} = config
+            let Config{nodeServerConfig=MockServerConfig{mscSocketPath, mscSlotConfig}} = config
             instancesState <- liftIO $ STM.atomically $ Instances.emptyInstancesState
-            blockchainEnv <- liftIO $ BlockchainEnv.startNodeClient mscSocketPath instancesState
+            blockchainEnv <- liftIO $ BlockchainEnv.startNodeClient mscSocketPath mscSlotConfig instancesState
             pure (instancesState, blockchainEnv, env)
 
         , handleLogMessages =
@@ -149,15 +149,15 @@ type App a = PABAction ContractExe AppEnv a
 
 mkEnv :: Trace IO PABLogMsg -> Config -> IO AppEnv
 mkEnv appTrace appConfig@Config { dbConfig
-             , nodeServerConfig
+             , nodeServerConfig =  MockServerConfig{mscBaseUrl, mscSocketPath, mscSlotConfig}
              , walletServerConfig
              , chainIndexConfig
              } = do
     walletClientEnv <- clientEnv (Wallet.baseUrl walletServerConfig)
-    nodeClientEnv <- clientEnv (mscBaseUrl nodeServerConfig)
+    nodeClientEnv <- clientEnv mscBaseUrl
     chainIndexEnv <- clientEnv (ChainIndex.ciBaseUrl chainIndexConfig)
     dbConnection <-  dbConnect appTrace dbConfig
-    clientHandler <- liftIO $ Client.runClientNode (mscSocketPath nodeServerConfig) (\_ _ -> pure ())
+    clientHandler <- liftIO $ Client.runClientNode mscSocketPath mscSlotConfig (\_ _ -> pure ())
     pure AppEnv {..}
   where
     clientEnv baseUrl = mkClientEnv <$> liftIO mkManager <*> pure (coerce baseUrl)

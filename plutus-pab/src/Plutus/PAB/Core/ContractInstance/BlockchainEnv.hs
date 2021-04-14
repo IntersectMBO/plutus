@@ -20,6 +20,7 @@ import           Plutus.PAB.Core.ContractInstance.STM (BlockchainEnv (..), Insta
                                                        emptyBlockchainEnv)
 import qualified Plutus.PAB.Core.ContractInstance.STM as S
 
+import           Cardano.Node.Types                   (SlotConfig)
 import           Control.Concurrent                   (forkIO)
 import           Control.Concurrent.STM               (STM)
 import qualified Control.Concurrent.STM               as STM
@@ -36,11 +37,12 @@ import qualified Wallet.Emulator.ChainIndex.Index     as Index
 --   env.
 startNodeClient ::
   FilePath -- ^ Socket to connect to node
+  -> SlotConfig -- ^ Slot config used by the node
   -> InstancesState
   -> IO BlockchainEnv
-startNodeClient socket instancesState =  do
+startNodeClient socket slotConfig instancesState =  do
     env <- STM.atomically emptyBlockchainEnv
-    _ <- Client.runClientNode socket (\block -> STM.atomically . processBlock env block)
+    _ <- Client.runClientNode socket slotConfig (\block -> STM.atomically . processBlock env block)
     _ <- forkIO (clientEnvLoop env instancesState)
     pure env
 

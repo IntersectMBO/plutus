@@ -80,7 +80,7 @@ import           Data.Text.Prettyprint.Doc               (defaultLayoutOptions, 
 import           Data.Text.Prettyprint.Doc.Render.String (renderString)
 import           Plutus.Trace.Scheduler                  (EmSystemCall, ThreadId, exit, runThreads)
 import           System.IO                               (Handle, hPutStrLn, stdout)
-import           Wallet.Emulator.Chain                   (ChainControlEffect, ChainEffect)
+import           Wallet.Emulator.Chain                   (ChainControlEffect)
 import qualified Wallet.Emulator.Chain                   as ChainState
 import           Wallet.Emulator.MultiAgent              (EmulatorEvent, EmulatorEvent' (..), EmulatorState (..),
                                                           MultiAgentControlEffect, MultiAgentEffect, _eteEmulatorTime,
@@ -165,7 +165,6 @@ interpretEmulatorTrace :: forall effs a.
     ( Member MultiAgentEffect effs
     , Member MultiAgentControlEffect effs
     , Member (Error EmulatorRuntimeError) effs
-    , Member ChainEffect effs
     , Member ChainControlEffect effs
     , Member (LogMsg EmulatorEvent') effs
     , Member (State EmulatorState) effs

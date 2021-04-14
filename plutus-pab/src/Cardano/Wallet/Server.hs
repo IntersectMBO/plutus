@@ -17,6 +17,7 @@ module Cardano.Wallet.Server
 import           Cardano.BM.Data.Trace            (Trace)
 import qualified Cardano.ChainIndex.Client        as ChainIndexClient
 import           Cardano.ChainIndex.Types         (ChainIndexUrl (..))
+import           Cardano.Node.Types               (SlotConfig)
 import qualified Cardano.Protocol.Socket.Client   as Client
 import           Cardano.Wallet.API               (API)
 import           Cardano.Wallet.Mock
@@ -62,12 +63,12 @@ app trace clientHandler chainIndexEnv mVarState =
             totalFunds :<|>
             (\w tx -> multiWallet (Wallet w) (walletAddSignature tx))
 
-main :: Trace IO WalletMsg -> WalletConfig -> FilePath -> ChainIndexUrl -> Availability -> IO ()
-main trace WalletConfig { baseUrl, wallet } serverSocket (ChainIndexUrl chainUrl) availability = LM.runLogEffects trace $ do
+main :: Trace IO WalletMsg -> WalletConfig -> FilePath -> SlotConfig -> ChainIndexUrl -> Availability -> IO ()
+main trace WalletConfig { baseUrl, wallet } serverSocket slotConfig (ChainIndexUrl chainUrl) availability = LM.runLogEffects trace $ do
     chainIndexEnv <- buildEnv chainUrl defaultManagerSettings
     let knownWallets = Map.fromList $ (\w -> (w, emptyWalletState w)) . Wallet.Wallet <$> [1..10]
     mVarState <- liftIO $ newMVar knownWallets
-    clientHandler <- liftIO $ Client.runClientNode serverSocket (\_ _ -> pure ())
+    clientHandler <- liftIO $ Client.runClientNode serverSocket slotConfig (\_ _ -> pure ())
     runClient chainIndexEnv
     logInfo $ StartingWallet (Port servicePort)
     liftIO $ Warp.runSettings warpSettings $ app trace clientHandler chainIndexEnv mVarState
