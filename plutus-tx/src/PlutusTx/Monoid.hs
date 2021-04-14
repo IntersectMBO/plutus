@@ -54,15 +54,15 @@ instance (Monoid a, Monoid b) => Monoid (a, b) where
     mempty = (mempty, mempty)
 
 instance Monoid a => Monoid (Dual a) where
-    {-# INLINABLE mempty #-}
+    {-# NOINLINE mempty #-}
     mempty = Dual mempty
 
 instance Monoid (Endo a) where
-    {-# INLINABLE mempty #-}
+    {-# NOINLINE mempty #-}
     mempty = Endo id
 
 instance Monoid (First a) where
-    {-# INLINABLE mempty #-}
+    {-# NOINLINE mempty #-}
     mempty = First Nothing
 
 class Monoid a => Group a where

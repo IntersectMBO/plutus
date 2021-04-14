@@ -21,30 +21,30 @@ class (Functor t, Foldable t) => Traversable t where
 
 
 instance Traversable [] where
-    {-# INLINABLE traverse #-}
+    {-# NOINLINE traverse #-}
     traverse _ []     = pure []
     traverse f (x:xs) = liftA2 (:) (f x) (traverse f xs)
 
 instance Traversable Maybe where
-    {-# INLINABLE traverse #-}
+    {-# NOINLINE traverse #-}
     traverse _ Nothing  = pure Nothing
     traverse f (Just a) = Just <$> f a
 
 instance Traversable (Either c) where
-    {-# INLINABLE traverse #-}
+    {-# NOINLINE traverse #-}
     traverse _ (Left a)  = pure (Left a)
     traverse f (Right a) = Right <$> f a
 
 instance Traversable ((,) c) where
-    {-# INLINABLE traverse #-}
+    {-# NOINLINE traverse #-}
     traverse f (c, a) = (c,) <$> f a
 
 instance Traversable Identity where
-    {-# INLINABLE traverse #-}
+    {-# NOINLINE traverse #-}
     traverse f (Identity a) = Identity <$> f a
 
 instance Traversable (Const c) where
-    {-# INLINABLE traverse #-}
+    {-# NOINLINE traverse #-}
     traverse _ (Const c) = pure (Const c)
 
 -- | Plutus Tx version of 'Data.Traversable.sequenceA'.

@@ -49,14 +49,14 @@ instance Semigroup () where
     _ <> _ = ()
 
 instance Semigroup a => Semigroup (Dual a) where
-    {-# INLINABLE (<>) #-}
+    {-# NOINLINE (<>) #-}
     Dual a1 <> Dual a2 = Dual (a2 <> a1)
 
 instance Semigroup (Endo a) where
-    {-# INLINABLE (<>) #-}
+    {-# NOINLINE (<>) #-}
     Endo f1 <> Endo f2 = Endo (f1 . f2)
 
 instance Semigroup (First a) where
-    {-# INLINABLE (<>) #-}
+    {-# NOINLINE (<>) #-}
     First Nothing <> b = b
     a             <> _ = a

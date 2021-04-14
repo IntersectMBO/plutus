@@ -92,19 +92,19 @@ instance MultiplicativeMonoid Integer where
     one = 1
 
 instance AdditiveSemigroup Bool where
-    {-# INLINABLE (+) #-}
+    {-# NOINLINE (+) #-}
     (+) = (||)
 
 instance AdditiveMonoid Bool where
-    {-# INLINABLE zero #-}
+    {-# NOINLINE zero #-}
     zero = False
 
 instance MultiplicativeSemigroup Bool where
-    {-# INLINABLE (*) #-}
+    {-# NOINLINE (*) #-}
     (*) = (&&)
 
 instance MultiplicativeMonoid Bool where
-    {-# INLINABLE one #-}
+    {-# NOINLINE one #-}
     one = True
 
 -- | A module, with a type of scalars which can be used to scale the values.
@@ -112,17 +112,17 @@ class (Ring s, AdditiveGroup v) => Module s v | v -> s where
     scale :: s -> v -> v
 
 instance AdditiveSemigroup a => Semigroup (Sum a) where
-    {-# INLINABLE (<>) #-}
+    {-# NOINLINE (<>) #-}
     Sum a1 <> Sum a2 = Sum (a1 + a2)
 
 instance AdditiveMonoid a => Monoid (Sum a) where
-    {-# INLINABLE mempty #-}
+    {-# NOINLINE mempty #-}
     mempty = Sum zero
 
 instance MultiplicativeSemigroup a => Semigroup (Product a) where
-    {-# INLINABLE (<>) #-}
+    {-# NOINLINE (<>) #-}
     Product a1 <> Product a2 = Product (a1 * a2)
 
 instance MultiplicativeMonoid a => Monoid (Product a) where
-    {-# INLINABLE mempty #-}
+    {-# NOINLINE mempty #-}
     mempty = Product one

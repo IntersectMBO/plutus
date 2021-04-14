@@ -51,44 +51,44 @@ class Foldable t where
     -- to make this a one-method class which has a simpler representation
 
 instance Foldable [] where
-    {-# INLINABLE foldMap #-}
+    {-# NOINLINE foldMap #-}
     foldMap _ []     = mempty
     foldMap f (x:xs) = f x <> foldMap f xs
 
 instance Foldable Maybe where
-    {-# INLINABLE foldMap #-}
+    {-# NOINLINE foldMap #-}
     foldMap _ Nothing  = mempty
     foldMap f (Just a) = f a
 
 instance Foldable (Either c) where
-    {-# INLINABLE foldMap #-}
+    {-# NOINLINE foldMap #-}
     foldMap _ (Left _)  = mempty
     foldMap f (Right a) = f a
 
 instance Foldable ((,) c) where
-    {-# INLINABLE foldMap #-}
+    {-# NOINLINE foldMap #-}
     foldMap f (_, a) = f a
 
 instance Foldable Identity where
-    {-# INLINABLE foldMap #-}
+    {-# NOINLINE foldMap #-}
     foldMap f (Identity a) = f a
 
 instance Foldable (Const c) where
-    {-# INLINABLE foldMap #-}
+    {-# NOINLINE foldMap #-}
     foldMap _ _ = mempty
 
 -- | Plutus Tx version of 'Data.Foldable.fold'.
-{-# INLINABLE fold #-}
+{-# NOINLINE fold #-}
 fold :: (Foldable t, Monoid m) => t m -> m
 fold = foldMap id
 
 -- | Plutus Tx version of 'Data.Foldable.foldr'.
-{-# INLINABLE foldr #-}
+{-# NOINLINE foldr #-}
 foldr :: Foldable t => (a -> b -> b) -> b -> t a -> b
 foldr f z t = appEndo (foldMap (Endo #. f) t) z
 
 -- | Plutus Tx version of 'Data.Foldable.foldl'.
-{-# INLINABLE foldl #-}
+{-# NOINLINE foldl #-}
 foldl :: Foldable t => (b -> a -> b) -> b -> t a -> b
 foldl f z t = appEndo (getDual (foldMap (Dual . Endo . flip f) t)) z
 
@@ -98,17 +98,17 @@ toList :: Foldable t => t a -> [a]
 toList t = build (\ c n -> foldr c n t)
 
 -- | Plutus Tx version of 'Data.Foldable.null'.
-{-# INLINABLE null #-}
+{-# NOINLINE null #-}
 null :: Foldable t => t a -> Bool
 null = foldr (\_ _ -> False) True
 
 -- | Plutus Tx version of 'Data.Foldable.length'.
-{-# INLINABLE length #-}
+{-# NOINLINE length #-}
 length :: Foldable t => t a -> Integer
 length = foldl (\c _ -> c + 1) 0
 
 -- | Plutus Tx version of 'Data.Foldable.elem'.
-{-# INLINABLE elem #-}
+{-# NOINLINE elem #-}
 elem :: (Foldable t, Eq a) => a -> t a -> Bool
 elem = any . (==)
 
@@ -118,7 +118,7 @@ sum :: (Foldable t, AdditiveMonoid a) => t a -> a
 sum = getSum #. foldMap Sum
 
 -- | Plutus Tx version of 'Data.Foldable.product'.
-{-# INLINABLE product #-}
+{-# NOINLINE product #-}
 product :: (Foldable t, MultiplicativeMonoid a) => t a -> a
 product = getProduct #. foldMap Product
 
@@ -169,32 +169,32 @@ concatMap f xs = build (\c n -> foldr (\x b -> foldr c b (f x)) n xs)
 {-# INLINE concatMap #-}
 
 -- | Plutus Tx version of 'Data.Foldable.and'.
-{-# INLINABLE and #-}
+{-# NOINLINE and #-}
 and :: Foldable t => t Bool -> Bool
 and = product
 
 -- | Plutus Tx version of 'Data.Foldable.or'.
-{-# INLINABLE or #-}
+{-# NOINLINE or #-}
 or :: Foldable t => t Bool -> Bool
 or = sum
 
 -- | Plutus Tx version of 'Data.Foldable.any'.
-{-# INLINABLE any #-}
+{-# NOINLINE any #-}
 any :: Foldable t => (a -> Bool) -> t a -> Bool
 any p = getSum #. foldMap (Sum #. p)
 
 -- | Plutus Tx version of 'Data.Foldable.all'.
-{-# INLINABLE all #-}
+{-# NOINLINE all #-}
 all :: Foldable t => (a -> Bool) -> t a -> Bool
 all p = getProduct #. foldMap (Product #. p)
 
 -- | Plutus Tx version of 'Data.Foldable.notElem'.
-{-# INLINABLE notElem #-}
+{-# NOINLINE notElem #-}
 notElem :: (Foldable t, Eq a) => a -> t a -> Bool
 notElem x = not . elem x
 
 -- | Plutus Tx version of 'Data.Foldable.find'.
-{-# INLINABLE find #-}
+{-# NOINLINE find #-}
 find :: Foldable t => (a -> Bool) -> t a -> Maybe a
 find p = getFirst . foldMap (\ x -> First (if p x then Just x else Nothing))
 
