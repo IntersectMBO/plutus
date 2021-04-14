@@ -34,6 +34,7 @@ toastTimeoutSubscription toast =
       Aff.forkAff do
         Aff.delay $ Milliseconds toast.timeout
         EventSource.emit emitter ToastTimeout
+        EventSource.close emitter
     pure $ EventSource.Finalizer $ Aff.killFiber (error "removing aff") fiber
 
 handleAction ::
@@ -56,7 +57,4 @@ handleAction ToastTimeout = do
   state <- get
   let
     expanded = fromMaybe false $ preview _expanded state
-
-    mSubscriptionId = preview _timeoutSubscription state
-  for_ mSubscriptionId unsubscribe
   when (not expanded) $ handleAction CloseToast
