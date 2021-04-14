@@ -46,7 +46,7 @@ This directory contains two sets of benchmarks:
 
    * The corresponding cabal commands are
        * `cabal bench plutus-benchmark:validation`
-       * `cabal bench plutus-benchmark:validation --benchmark-options "crowdfunding/2 -L10"`
+       * `cabal bench plutus-benchmark:validation --benchmark-options "crowdfunding/2 -L60"`
      or the `cabal run` equivalents (see the `nofib` section).
 
    * During benchmarking each validation script is run repeatedly up to a limit
@@ -71,7 +71,7 @@ are interpreted relative to `plutus-benchmark` when running the benchmarks via
 stack or cabal): for example
 
 ```
-  stack bench plutus-benchmark:validation --ba "crowdfunding -L10 --output $PWD/crowdfunding-report.html"
+  stack bench plutus-benchmark:validation --ba "crowdfunding -L60 --output $PWD/crowdfunding-report.html"
 ```
 
 If using `cabal bench` you'll have to do something similar, but `cabal run` will write the output into
