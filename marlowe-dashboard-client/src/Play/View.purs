@@ -6,17 +6,17 @@ import ContractHome.View (contractsScreen)
 import Css (applyWhen, classNames, hideWhen)
 import Css as Css
 import Data.Lens (preview, view)
-import Data.Maybe (Maybe(..), isNothing)
+import Data.Maybe (Maybe(..))
 import Data.String (take)
-import Halogen.HTML (HTML, a, div, footer, header, img, main, nav, span, text)
+import Halogen.HTML (HTML, a, div, div_, footer, header, img, main, nav, span, text)
 import Halogen.HTML.Events.Extra (onClick_)
 import Halogen.HTML.Properties (href, src)
 import Logo (marloweRunNavLogo, marloweRunNavLogoDark)
-import MainFrame.Lenses (_card, _screen)
+import MainFrame.Lenses (_screen)
 import Marlowe.Extended.Template (ContractTemplate)
 import Marlowe.Semantics (PubKey)
 import Material.Icons (Icon(..), icon_)
-import Play.Lenses (_contractsState, _currentSlot, _menuOpen, _selectedContract, _templateState, _walletDetails)
+import Play.Lenses (_cards, _contractsState, _currentSlot, _menuOpen, _selectedContract, _templateState, _walletDetails)
 import Play.Types (Action(..), Card(..), Screen(..), State)
 import Prim.TypeError (class Warn, Text)
 import Template.View (contractSetupConfirmationCard, contractSetupScreen, templateLibraryCard)
@@ -53,7 +53,7 @@ renderHeader walletNickname menuOpen =
         , navigation (SetScreen WalletLibraryScreen) Contacts "Contacts"
         , a
             [ classNames [ "ml-6", "font-bold", "text-sm" ]
-            , onClick_ $ ToggleCard PutdownWalletCard
+            , onClick_ $ OpenCard PutdownWalletCard
             ]
             [ span
                 [ classNames [ "md:hidden" ] ]
@@ -94,11 +94,13 @@ renderMain wallets newWalletDetails templates playState =
     menuOpen = view _menuOpen playState
 
     screen = view _screen playState
+
+    cards = view _cards playState
   in
     main
       [ classNames [ "relative", "px-4", "md:px-5pc" ] ]
       [ renderMobileMenu menuOpen
-      , renderCards wallets newWalletDetails templates playState
+      , div_ $ renderCard wallets newWalletDetails templates playState <$> cards
       , renderScreen wallets screen playState
       ]
 
@@ -114,33 +116,30 @@ renderMobileMenu menuOpen =
         iohkLinks
     ]
 
-renderCards :: forall p. WalletLibrary -> NewWalletDetails -> Array ContractTemplate -> State -> HTML p Action
-renderCards wallets newWalletDetails templates playState =
+renderCard :: forall p. WalletLibrary -> NewWalletDetails -> Array ContractTemplate -> State -> Card -> HTML p Action
+renderCard wallets newWalletDetails templates playState card =
   let
     currentWalletDetails = view _walletDetails playState
-
-    mCard = view _card playState
 
     mSelectedContractState = preview _selectedContract playState
 
     currentSlot = view _currentSlot playState
 
-    cardClasses = case mCard of
-      Just TemplateLibraryCard -> Css.largeCard false
-      Just ContractCard -> Css.largeCard false
-      Just _ -> Css.card false
-      Nothing -> Css.card true
+    cardClasses = case card of
+      TemplateLibraryCard -> Css.largeCard false
+      ContractCard -> Css.largeCard false
+      _ -> Css.card false
 
-    hasCloseButton = case mCard of
-      Just (ContractActionConfirmationCard _) -> false
-      Just ContractSetupConfirmationCard -> false
+    hasCloseButton = case card of
+      (ContractActionConfirmationCard _) -> false
+      ContractSetupConfirmationCard -> false
       _ -> true
 
     closeButton =
       if hasCloseButton then
         [ a
             [ classNames [ "absolute", "top-4", "right-4" ]
-            , onClick_ $ SetCard Nothing
+            , onClick_ CloseCard
             ]
             [ icon_ Close ]
         ]
@@ -148,27 +147,26 @@ renderCards wallets newWalletDetails templates playState =
         []
   in
     div
-      [ classNames $ Css.overlay $ isNothing mCard ]
+      [ classNames $ Css.overlay false ]
       [ div
           [ classNames cardClasses ]
           $ closeButton
-          <> case mCard of
+          <> case card of
               -- TODO: Should this be renamed to CreateContactCard?
-              Just (CreateWalletCard mTokenName) -> [ newWalletCard wallets newWalletDetails mTokenName ]
-              Just (ViewWalletCard walletDetails) -> [ walletDetailsCard walletDetails ]
-              Just PutdownWalletCard -> [ putdownWalletCard currentWalletDetails ]
-              Just TemplateLibraryCard -> [ TemplateAction <$> templateLibraryCard templates ]
-              Just ContractSetupConfirmationCard -> [ TemplateAction <$> contractSetupConfirmationCard ]
+              CreateWalletCard mTokenName -> [ newWalletCard wallets newWalletDetails mTokenName ]
+              ViewWalletCard walletDetails -> [ walletDetailsCard walletDetails ]
+              PutdownWalletCard -> [ putdownWalletCard currentWalletDetails ]
+              TemplateLibraryCard -> [ TemplateAction <$> templateLibraryCard templates ]
+              ContractSetupConfirmationCard -> [ TemplateAction <$> contractSetupConfirmationCard ]
               -- FIXME: We need to pattern match on the Maybe because the selectedContractState
               --        could be Nothing. We could add the state as part of the view, but is not ideal
               --        Will have to rethink how to deal with this once the overall state is more mature.
-              Just ContractCard -> case mSelectedContractState of
+              ContractCard -> case mSelectedContractState of
                 Just contractState -> [ ContractAction <$> contractDetailsCard currentSlot contractState ]
                 Nothing -> []
-              Just (ContractActionConfirmationCard action) -> case mSelectedContractState of
+              ContractActionConfirmationCard action -> case mSelectedContractState of
                 Just contractState -> [ ContractAction <$> actionConfirmationCard contractState action ]
                 Nothing -> []
-              Nothing -> []
       ]
 
 renderScreen :: forall p. WalletLibrary -> Screen -> State -> HTML p Action

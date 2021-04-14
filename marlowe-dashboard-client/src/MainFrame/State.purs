@@ -188,7 +188,7 @@ handleAction AddNewWallet = do
           modify_
             $ over _wallets (insert newWalletNickname walletDetails)
             <<< set _newWalletDetails emptyNewWalletDetails
-            <<< set (_playState <<< _card) Nothing
+          handleAction $ PlayAction Play.CloseCard
           newWallets <- use _wallets
           liftEffect $ setItem walletLibraryLocalStorageKey $ encodeJSON newWallets
 

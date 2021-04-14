@@ -1,10 +1,11 @@
 module Play.Lenses
-  ( _allContracts
-  , _walletDetails
+  ( _walletDetails
   , _menuOpen
+  , _cards
   , _currentSlot
   , _templateState
   , _contractsState
+  , _allContracts
   , _selectedContract
   ) where
 
@@ -18,7 +19,7 @@ import Data.Lens.Record (prop)
 import Data.Map (Map)
 import Data.Symbol (SProxy(..))
 import Marlowe.Semantics (Slot)
-import Play.Types (State)
+import Play.Types (Card, State)
 import Template.Types (State) as Template
 import WalletData.Types (WalletDetails)
 
@@ -27,6 +28,9 @@ _walletDetails = prop (SProxy :: SProxy "walletDetails")
 
 _menuOpen :: Lens' State Boolean
 _menuOpen = prop (SProxy :: SProxy "menuOpen")
+
+_cards :: Lens' State (Array Card)
+_cards = prop (SProxy :: SProxy "cards")
 
 _currentSlot :: Lens' State Slot
 _currentSlot = prop (SProxy :: SProxy "currentSlot")
