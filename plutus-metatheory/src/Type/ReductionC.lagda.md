@@ -260,6 +260,16 @@ evalEF (V ⇒-)  E F' = refl
 evalEF (μ- B)  E F' = refl
 evalEF (μ V -) E F' = refl
 
+evalEF' : (F : Frame K J)(E : EvalCtx J I)(A : ∅ ⊢⋆ I)
+  → closeFrame F (closeEvalCtx E A) ≡ closeEvalCtx (evalFrame F E) A
+evalEF' (-· B)  E A = refl
+evalEF' (B ·-)  E A = refl
+evalEF' (-⇒ B)  E A = refl
+evalEF' (V ⇒-)  E A = refl
+evalEF' (μ- B)  E A = refl
+evalEF' (μ V -) E A = refl
+
+
 -- composition can also be defined by induction on E'
 compEvalCtx' : EvalCtx K J → EvalCtx J I → EvalCtx K I
 compEvalCtx' E []        = E
