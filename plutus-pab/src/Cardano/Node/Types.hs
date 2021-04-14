@@ -88,6 +88,8 @@ data MockServerConfig =
         -- ^ The wallets that receive money from the initial transaction.
         , mscSocketPath       :: FilePath
         -- ^ Path to the socket used to communicate with the server.
+        , mscKeptBlocks       :: Integer
+        -- ^ The number of blocks to keep for replaying to a newly connected clients
         }
     deriving (Show, Eq, Generic, FromJSON)
 

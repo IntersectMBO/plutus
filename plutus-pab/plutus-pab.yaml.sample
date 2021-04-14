@@ -15,6 +15,7 @@ nodeServerConfig:
   mscBaseUrl: http://localhost:9082
   mscSocketPath: ./node-server.sock
   mscSlotLength: 5
+  mscKeptBlocks: 100
   mscRandomTxInterval: 20
   mscBlockReaper:
     brcInterval: 600
