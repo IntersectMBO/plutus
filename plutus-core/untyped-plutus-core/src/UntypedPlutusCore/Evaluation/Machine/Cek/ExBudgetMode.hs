@@ -6,6 +6,8 @@
 
 {-# LANGUAGE StrictData            #-}
 
+{-# OPTIONS_GHC -ddump-simpl -ddump-to-file -dsuppress-uniques -dsuppress-coercions -dsuppress-type-applications -dsuppress-unfoldings -dsuppress-idinfo -dumpdir /tmp/dumps #-}
+
 module UntypedPlutusCore.Evaluation.Machine.Cek.ExBudgetMode
     ( ExBudgetMode (..)
     , CountingSt (..)
@@ -49,8 +51,8 @@ monoidalBudgeting
     -> ST s (ExBudgetMode cost uni fun s)
 monoidalBudgeting toCost = do
     costRef <- newSTRef mempty
-    let spender key budgetToSpend = liftST $ modifySTRef' costRef (<> toCost key budgetToSpend)
-    pure . ExBudgetMode (CekBudgetSpender spender) $ readSTRef costRef
+    let spend key budgetToSpend = liftST $ modifySTRef' costRef (<> toCost key budgetToSpend)
+    pure . ExBudgetMode (CekBudgetSpender spend) $ readSTRef costRef
 
 -- | For calculating the cost of execution by counting up using the 'Monoid' instance of 'ExBudget'.
 newtype CountingSt = CountingSt ExBudget
@@ -97,9 +99,6 @@ tallying =
     monoidalBudgeting $ \key budgetToSpend ->
         TallyingSt (CekExTally $ singleton key budgetToSpend) budgetToSpend
 
--- data ExBudget = ExBudget { _exBudgetCPU :: ExCPU, _exBudgetMemory :: ExMemory }
--- newtype ExRestrictingBudget = ExRestrictingBudget ExBudget deriving (Show, Eq)
-
 newtype RestrictingSt = RestrictingSt ExRestrictingBudget
     deriving stock (Eq, Show)
     deriving newtype (NFData)
@@ -110,19 +109,26 @@ instance Pretty RestrictingSt where
 
 -- | For execution, to avoid overruns.
 restricting :: ExRestrictingBudget -> ST s (ExBudgetMode RestrictingSt uni fun s)
-restricting budget = do
-    budgetRef <- newSTRef $ RestrictingSt budget
-    let spend _ budgetToSpend = do
-            RestrictingSt budgetLeft <- liftST $ readSTRef budgetRef
-            let budgetLeft' = budgetLeft `minusExBudget` budgetToSpend
+restricting (ExRestrictingBudget (ExBudget cpuInit memInit)) = do
+    cpuRef <- newSTRef cpuInit
+    memRef <- newSTRef memInit
+    let spend _ (ExBudget cpuToSpend memToSpend) = do
+            cpuLeft <- liftST $ readSTRef cpuRef
+            memLeft <- liftST $ readSTRef memRef
+            let cpuLeft' = cpuLeft `minusExCPU` cpuToSpend
+            let memLeft' = memLeft `minusExMemory` memToSpend
             -- Note that even if we throw an out-of-budget error, we still need to record
             -- what the final state was.
-            liftST . writeSTRef budgetRef $! RestrictingSt budgetLeft'
-            when (isNegativeBudget budgetLeft') $
+            liftST . writeSTRef cpuRef $! cpuLeft'
+            liftST . writeSTRef memRef $! memLeft'
+            when (cpuLeft' < 0 || memLeft' < 0) $
                 throwingWithCause _EvaluationError
-                    (UserEvaluationError $ CekOutOfExError budgetLeft')
+                    (UserEvaluationError . CekOutOfExError $
+                        ExRestrictingBudget $ ExBudget cpuLeft' memLeft')
                     Nothing
-    pure . ExBudgetMode (CekBudgetSpender spend) $ readSTRef budgetRef
+    pure . ExBudgetMode (CekBudgetSpender spend) $ do
+        finalExBudget <- ExBudget <$> readSTRef cpuRef <*> readSTRef memRef
+        pure . RestrictingSt $ ExRestrictingBudget finalExBudget
 
 -- | When we want to just evaluate the program we use the 'Restricting' mode with an enormous
 -- budget, so that evaluation costs of on-chain budgeting are reflected accurately in benchmarks.
