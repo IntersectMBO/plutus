@@ -29,6 +29,7 @@ let
       mscSocketPath = "/tmp/node-server.sock";
       mscSlotLength = 5;
       mscRandomTxInterval = 20000000;
+      mscKeptBlocks = 100000;
       mscBlockReaper = {
         brcInterval = 6000000;
         brcBlocksToKeep = 100000;

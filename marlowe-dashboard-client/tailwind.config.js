@@ -11,6 +11,7 @@ module.exports = {
       lightgray: "#eeeeee",
       gray: "#dfdfdf",
       green: "#00a551",
+      lightgreen: "#00e872",
       darkgray: "#b7b7b7",
       overlay: "rgba(10,10,10,0.4)",
       white: "#ffffff",
@@ -49,6 +50,15 @@ module.exports = {
       deep: "0 2.5px 5px 0 rgba(0, 0, 0, 0.22)",
     },
     extend: {
+      animation: {
+        "from-below": "from-below 250ms ease-out 1",
+      },
+      keyframes: {
+        "from-below": {
+          "0%": { transform: "translateY(20px)", opacity: 0 },
+          "100%": { transform: "translateY(0px)", opacity: 1 },
+        },
+      },
       gridTemplateRows: {
         main: "auto minmax(0, 1fr) auto",
         "contract-setup": "auto auto minmax(0, 1fr)",
@@ -77,16 +87,19 @@ module.exports = {
         sm: "375px",
         md: "640px",
         lg: "768px",
+        "90p": "90%",
       },
       minWidth: {
         button: "120px",
+        "90p": "90%",
+        sm: "375px",
       },
     },
   },
   variants: {
     extend: {
       // note 'disabled' goes last so that it takes priority
-      backgroundColor: ["hover", "disabled"],
+      backgroundColor: ["last", "hover", "disabled"],
       backgroundImage: ["hover", "disabled"],
       boxShadow: ["hover", "disabled"],
       cursor: ["hover", "disabled"],
@@ -175,10 +188,10 @@ module.exports = {
     tableLayout: false,
     textAlign: true,
     textOpacity: false,
-    textOverflow: false,
+    textOverflow: true,
     fontStyle: false,
     textTransform: true,
-    textDecoration: false,
+    textDecoration: true,
     fontSmoothing: false,
     fontVariantNumeric: false,
     letterSpacing: false,
@@ -211,6 +224,6 @@ module.exports = {
     transitionTimingFunction: false,
     transitionDuration: true,
     transitionDelay: false,
-    animation: false,
+    animation: true,
   },
 };

@@ -22,9 +22,10 @@ type State
 
 data Action
   = SetTemplate ContractTemplate
-  | ToggleTemplateLibraryCard
-  | ToggleCreateWalletCard String
-  | ToggleSetupConfirmationCard
+  | OpenTemplateLibraryCard
+  | OpenCreateWalletCard String
+  | OpenSetupConfirmationCard
+  | CloseSetupConfirmationCard
   | SetContractNickname String
   | SetRoleWallet String String
   | SetSlotContent String String -- slot input comes from the HTML as a dateTimeString
@@ -35,9 +36,10 @@ data Action
 -- how to classify them.
 instance actionIsEvent :: IsEvent Action where
   toEvent (SetTemplate _) = Just $ defaultEvent "SetTemplate"
-  toEvent ToggleTemplateLibraryCard = Nothing
-  toEvent (ToggleCreateWalletCard tokenName) = Nothing
-  toEvent ToggleSetupConfirmationCard = Nothing
+  toEvent OpenTemplateLibraryCard = Nothing
+  toEvent (OpenCreateWalletCard tokenName) = Nothing
+  toEvent OpenSetupConfirmationCard = Nothing
+  toEvent CloseSetupConfirmationCard = Nothing
   toEvent (SetContractNickname _) = Just $ defaultEvent "SetContractNickname"
   toEvent (SetRoleWallet _ _) = Just $ defaultEvent "SetRoleWallet"
   toEvent (SetSlotContent _ _) = Just $ defaultEvent "SetSlotContent"

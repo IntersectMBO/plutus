@@ -31,13 +31,13 @@ type PartitionedContracts
   = { completed :: Array Contract.State, running :: Array Contract.State }
 
 data Action
-  = ToggleTemplateLibraryCard
+  = OpenTemplateLibraryCard
   | SelectView ContractStatus
   | OpenContract ContractId
   | AdvanceTimedOutContracts Slot
 
 instance actionIsEvent :: IsEvent Action where
-  toEvent ToggleTemplateLibraryCard = Just $ defaultEvent "ToggleTemplateLibraryCard"
+  toEvent OpenTemplateLibraryCard = Just $ defaultEvent "OpenTemplateLibraryCard"
   toEvent (SelectView _) = Just $ defaultEvent "SelectView"
   toEvent (OpenContract _) = Just $ defaultEvent "OpenContract"
   toEvent (AdvanceTimedOutContracts _) = Nothing

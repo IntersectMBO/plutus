@@ -80,7 +80,7 @@ newWalletCard library newWalletDetails mTokenName =
           [ classNames [ "flex" ] ]
           [ button
               [ classNames $ Css.secondaryButton <> [ "flex-1", "mr-4" ]
-              , onClick_ $ SetCard Nothing
+              , onClick_ CloseCard
               ]
               [ text "Cancel" ]
           , button
@@ -124,6 +124,7 @@ putdownWalletCard walletDetails =
 
     contractInstanceId = view _contractInstanceId walletDetails
 
+    -- TODO: use an At lens for getting ada from assets
     assets = view _assets walletDetails
 
     ada = fromMaybe zero $ lookup "" =<< lookup "" (unwrap assets)
@@ -151,13 +152,14 @@ putdownWalletCard walletDetails =
               [ text "Balance:" ]
           , p
               [ classNames [ "text-2xl", "text-purple", "font-semibold" ] ]
+              -- FIXME: format ada prettily (separate out formatting functions from Contract.View)
               [ text $ "₳ " <> show ada ]
           ]
       , div
           [ classNames [ "flex" ] ]
           [ button
               [ classNames $ Css.secondaryButton <> [ "flex-1", "mr-4" ]
-              , onClick_ $ SetCard Nothing
+              , onClick_ CloseCard
               ]
               [ text "Cancel" ]
           , button
@@ -183,7 +185,7 @@ walletLibraryScreen library =
           <$> toUnfoldable library
     , button
         [ classNames $ Css.primaryButton <> Css.withIcon Add <> Css.fixedBottomRight
-        , onClick_ $ ToggleCard $ CreateWalletCard Nothing
+        , onClick_ $ OpenCard $ CreateWalletCard Nothing
         ]
         [ text "New contact" ]
     ]
@@ -194,7 +196,7 @@ walletLibraryScreen library =
     in
       li
         [ classNames [ "mt-4", "hover:cursor-pointer", "hover:text-green" ]
-        , onClick_ $ ToggleCard $ ViewWalletCard walletDetails
+        , onClick_ $ OpenCard $ ViewWalletCard walletDetails
         ]
         [ text nickname ]
 

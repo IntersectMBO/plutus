@@ -1,5 +1,5 @@
 module ContractHome.State
-  ( defaultState
+  ( dummyState
   , handleAction
   , partitionContracts
   -- FIXME: Remove this, only for developing
@@ -13,8 +13,6 @@ import Contract.Types (ContractId)
 import Contract.Types (State) as Contract
 import ContractHome.Lenses (_contracts, _selectedContractIndex, _status)
 import ContractHome.Types (Action(..), ContractStatus(..), State, PartitionedContracts)
-import Control.Bind (bindFlipped)
-import Cursor (mapWithIndex)
 import Data.Array (catMaybes)
 import Data.Array as Array
 import Data.BigInteger (fromInt)
@@ -31,6 +29,7 @@ import Examples.PureScript.Escrow as Escrow
 import Examples.PureScript.EscrowWithCollateral as EscrowWithCollateral
 import Examples.PureScript.ZeroCouponBond as ZeroCouponBond
 import Halogen (HalogenM, modify_)
+import MainFrame.Types (Msg)
 import Marlowe.Extended (TemplateContent(..), fillTemplate, resolveRelativeTimes, toCore)
 import Marlowe.Semantics (Input(..), Party(..), Slot(..), SlotInterval(..), Token(..), TransactionInput(..))
 import Marlowe.Slot (currentSlot)
@@ -153,8 +152,9 @@ partitionContracts contracts =
     # Array.partition isContractClosed
     # \{ no, yes } -> { completed: yes, running: no }
 
-defaultState :: State
-defaultState =
+-- see note [dummyState]
+dummyState :: State
+dummyState =
   { status: Running
   , contracts: mempty
   , selectedContractIndex: Nothing
@@ -163,7 +163,7 @@ defaultState =
 handleAction ::
   forall m slots msg.
   Action -> HalogenM State Action slots msg m Unit
-handleAction ToggleTemplateLibraryCard = pure unit -- handled in Play
+handleAction OpenTemplateLibraryCard = pure unit -- handled in Play.State
 
 handleAction (SelectView view) = assign _status view
 

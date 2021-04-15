@@ -1,87 +1,74 @@
 module Play.State
-  ( mkInitialState
-  , handleQuery
+  ( dummyState
+  , mkInitialState
   , handleAction
   ) where
 
 import Prelude
-import Bridge (toFront)
 import Capability.Contract (class ManageContract)
+import Capability.Toast (class Toast)
 import Capability.Wallet (class ManageWallet)
-import Contract.State (defaultState, handleAction) as Contract
+import Contract.State (dummyState, handleAction) as Contract
 import Contract.State (instantiateExtendedContract)
 import Contract.Types (Action(..), State) as Contract
 import ContractHome.Lenses (_contracts)
-import ContractHome.State (defaultState, handleAction) as ContractHome
+import ContractHome.State (dummyState, handleAction) as ContractHome
 import ContractHome.Types (Action(..), State) as ContractHome
 import Control.Monad.Reader (class MonadAsk)
+import Data.Array (init, snoc)
 import Data.Foldable (for_)
 import Data.FunctorWithIndex (mapWithIndex)
-import Data.Lens (assign, modifying, set, (^.))
+import Data.Lens (assign, modifying, set, use, (^.))
 import Data.Lens.Extra (peruse)
-import Data.Lens.Prism.Maybe (_Just)
+import Data.Lens.Fold (lastOf)
+import Data.Lens.Traversal (traversed)
 import Data.Map (Map)
 import Data.Map as Map
 import Data.Maybe (Maybe(..))
 import Data.Set.Extra (setToMap)
-import Data.Time.Duration (Minutes)
+import Data.Time.Duration (Minutes(..))
+import Data.UUID (emptyUUID)
 import Effect.Aff.Class (class MonadAff)
 import Env (Env)
 import Halogen (HalogenM, modify_)
-import Halogen.Extra (mapMaybeSubmodule)
-import MainFrame.Lenses (_card, _playState, _screen)
-import MainFrame.Types (Action(..), State) as MainFrame
+import Halogen.Extra (mapMaybeSubmodule, mapSubmodule)
+import MainFrame.Lenses (_screen)
 import MainFrame.Types (ChildSlots, Msg)
 import Marlowe.HasParties (getParties)
 import Marlowe.Semantics (Party(..), Slot)
 import Marlowe.Semantics as Semantic
-import Play.Lenses (_contractsState, _currentSlot, _menuOpen, _selectedContract, _templateState, _walletDetails)
+import Play.Lenses (_cards, _contractsState, _currentSlot, _menuOpen, _selectedContract, _templateState)
 import Play.Types (Action(..), Card(..), Screen(..), State)
-import Plutus.PAB.Webserver.Types (CombinedWSStreamToClient(..))
 import Template.Lenses (_extendedContract, _metaData, _roleWallets, _template, _templateContent)
-import Template.State (defaultState, handleAction, mkInitialState) as Template
-import Template.Types (Action(..)) as Template
-import WalletData.Lenses (_assets, _wallet)
-import WalletData.Types (WalletDetails, WalletNickname)
+import Template.State (dummyState, handleAction, mkInitialState) as Template
+import Template.Types (Action(..), State) as Template
+import Types (ContractInstanceId(..))
+import WalletData.Types (PubKeyHash(..), Wallet(..), WalletDetails, WalletNickname)
 
-toContractHome ::
-  forall m msg slots.
-  Functor m =>
-  HalogenM ContractHome.State ContractHome.Action slots msg m Unit ->
-  HalogenM MainFrame.State MainFrame.Action slots msg m Unit
-toContractHome = mapMaybeSubmodule (_playState <<< _contractsState) (MainFrame.PlayAction <<< ContractHomeAction) ContractHome.defaultState
-
-toContract ::
-  forall m msg slots.
-  Functor m =>
-  HalogenM Contract.State Contract.Action slots msg m Unit ->
-  HalogenM MainFrame.State MainFrame.Action slots msg m Unit
-toContract = mapMaybeSubmodule (_playState <<< _selectedContract) (MainFrame.PlayAction <<< ContractAction) Contract.defaultState
+-- see note [dummyState]
+dummyState :: State
+dummyState = mkInitialState defaultWalletDetails zero $ Minutes zero
+  where
+  defaultWalletDetails =
+    { walletNickname: mempty
+    , contractInstanceId: ContractInstanceId emptyUUID
+    , wallet: Wallet zero
+    , pubKey: ""
+    , pubKeyHash: PubKeyHash ""
+    , assets: mempty
+    }
 
 mkInitialState :: WalletDetails -> Slot -> Minutes -> State
 mkInitialState walletDetails currentSlot timezoneOffset =
   { walletDetails: walletDetails
   , menuOpen: false
   , screen: ContractsScreen
-  , card: Nothing
+  , cards: mempty
   , currentSlot
   , timezoneOffset
-  , templateState: Template.defaultState
-  , contractsState: ContractHome.defaultState
+  , templateState: Template.dummyState
+  , contractsState: ContractHome.dummyState
   }
-
-handleQuery ::
-  forall m.
-  CombinedWSStreamToClient -> HalogenM MainFrame.State MainFrame.Action ChildSlots Msg m Unit
-handleQuery (InstanceUpdate contractInstanceId instanceStatusToClient) = pure unit
-
-handleQuery (SlotChange slot) = assign (_playState <<< _currentSlot) $ toFront slot
-
-handleQuery (WalletFundsChange wallet value) = do
-  mCurrentWallet <- peruse (_playState <<< _walletDetails <<< _wallet)
-  for_ mCurrentWallet \currentWallet ->
-    when (currentWallet == toFront wallet)
-      $ assign (_playState <<< _walletDetails <<< _assets) (toFront value)
 
 -- Some actions are handled in `MainFrame.State` because they involve
 -- modifications of that state. See Note [State].
@@ -91,111 +78,130 @@ handleAction ::
   MonadAsk Env m =>
   ManageContract m =>
   ManageWallet m =>
-  Action -> HalogenM MainFrame.State MainFrame.Action ChildSlots Msg m Unit
-handleAction ToggleMenu = modifying (_playState <<< _menuOpen) not
+  Toast m =>
+  Action -> HalogenM State Action ChildSlots Msg m Unit
+handleAction ToggleMenu = modifying _menuOpen not
 
 handleAction (SetScreen screen) =
   modify_
-    $ set (_playState <<< _menuOpen) false
-    <<< set (_playState <<< _card) Nothing
-    <<< set (_playState <<< _screen) screen
+    $ set _menuOpen false
+    <<< set _cards mempty
+    <<< set _screen screen
 
-handleAction (SetCard card) = do
-  previousCard <- peruse (_playState <<< _card)
-  assign (_playState <<< _card) card
+handleAction (OpenCard card) = modifying _cards $ flip snoc card
 
-handleAction (ToggleCard card) = do
-  mCurrentCard <- peruse (_playState <<< _card <<< _Just)
-  case mCurrentCard of
-    Just currentCard
-      | currentCard == card -> handleAction $ SetCard Nothing
-    _ -> handleAction $ SetCard $ Just card
+handleAction CloseCard = do
+  cards <- use _cards
+  for_ (init cards) \remainingCards ->
+    assign _cards remainingCards
 
 handleAction (SetCurrentSlot currentSlot) = do
   toContractHome $ ContractHome.handleAction $ ContractHome.AdvanceTimedOutContracts currentSlot
   modify_
-    $ set (_playState <<< _currentSlot) currentSlot
+    $ set _currentSlot currentSlot
 
 -- template actions that need to be handled here
 handleAction (TemplateAction (Template.SetTemplate template)) = do
-  mCurrentTemplate <- peruse (_playState <<< _templateState <<< _template)
-  when (mCurrentTemplate /= Just template) $ assign (_playState <<< _templateState) $ Template.mkInitialState template
+  mCurrentTemplate <- peruse (_templateState <<< _template)
+  when (mCurrentTemplate /= Just template) $ assign _templateState $ Template.mkInitialState template
   handleAction $ SetScreen TemplateScreen
 
-handleAction (TemplateAction Template.ToggleTemplateLibraryCard) = handleAction $ ToggleCard TemplateLibraryCard
+handleAction (TemplateAction Template.OpenTemplateLibraryCard) = handleAction $ OpenCard TemplateLibraryCard
 
-handleAction (TemplateAction (Template.ToggleCreateWalletCard tokenName)) = handleAction $ ToggleCard $ CreateWalletCard $ Just tokenName
+handleAction (TemplateAction (Template.OpenCreateWalletCard tokenName)) = handleAction $ OpenCard $ CreateWalletCard $ Just tokenName
 
-handleAction (TemplateAction Template.ToggleSetupConfirmationCard) = handleAction $ ToggleCard ContractSetupConfirmationCard
+handleAction (TemplateAction Template.OpenSetupConfirmationCard) = handleAction $ OpenCard ContractSetupConfirmationCard
+
+handleAction (TemplateAction Template.CloseSetupConfirmationCard) = do
+  cards <- use _cards
+  case lastOf traversed cards of
+    Just ContractSetupConfirmationCard -> handleAction CloseCard
+    _ -> pure unit
 
 -- NOTE:  This handler makes works with the assumption than the contract was created from the template functionality
 --        but that will only be the case for the person setting up the contract. Once we connect the backend, and a
 --        contract is created by another participant, we won't be dealing with Extended contracts but actually
 --        Semantic contracts and specially we won't have the roleWallets.
 handleAction (TemplateAction Template.StartContract) = do
-  mPlayState <- peruse _playState
-  for_ mPlayState \playState -> do
-    let
-      templateState = playState ^. _templateState
+  templateState <- use _templateState
+  currentSlot <- use _currentSlot
+  let
+    extendedContract = templateState ^. (_template <<< _extendedContract)
 
-      extendedContract = templateState ^. (_template <<< _extendedContract)
+    templateContent = templateState ^. _templateContent
 
-      templateContent = templateState ^. _templateContent
+    metadata = templateState ^. (_template <<< _metaData)
 
-      metadata = templateState ^. (_template <<< _metaData)
+    participants :: Map Semantic.Party (Maybe WalletNickname)
+    participants =
+      mapWithIndex
+        ( \party _ -> case party of
+            PK _ -> Nothing
+            Role roleName -> Map.lookup roleName (templateState ^. _roleWallets)
+        )
+        (setToMap $ getParties extendedContract)
 
-      currentSlot = playState ^. _currentSlot
+    -- FIXME: Need to see how do I tie the current user to a role in the contract
+    mActiveUserParty = Nothing
 
-      participants :: Map Semantic.Party (Maybe WalletNickname)
-      participants =
-        mapWithIndex
-          ( \party _ -> case party of
-              PK _ -> Nothing
-              Role roleName -> Map.lookup roleName (templateState ^. _roleWallets)
-          )
-          (setToMap $ getParties extendedContract)
+    -- FIXME: the contract id should be the result of calling the PAB
+    contractId = "FIXME need a contract id"
 
-      -- FIXME: Need to see how do I tie the current user to a role in the contract
-      mActiveUserParty = Nothing
-
-      -- FIXME: the contract id should be the result of calling the PAB
-      contractId = "FIXME need a contract id"
-
-      -- TODO: get walletIDs from nicknames in roleWallets
-      -- TODO: pass these walletIDs along with the contract to the PAB to start the contract
-      mContractState = instantiateExtendedContract contractId currentSlot extendedContract templateContent metadata participants mActiveUserParty
-    for_ mContractState \contractState -> do
-      modifying (_playState <<< _contractsState <<< _contracts) (Map.insert contractId contractState)
-      handleAction $ SetScreen $ ContractsScreen
-      toContractHome $ ContractHome.handleAction $ ContractHome.OpenContract contractId
+    -- TODO: get walletIDs from nicknames in roleWallets
+    -- TODO: pass these walletIDs along with the contract to the PAB to start the contract
+    mContractState = instantiateExtendedContract contractId currentSlot extendedContract templateContent metadata participants mActiveUserParty
+  for_ mContractState \contractState -> do
+    modifying (_contractsState <<< _contracts) (Map.insert contractId contractState)
+    handleAction $ SetScreen $ ContractsScreen
+    toContractHome $ ContractHome.handleAction $ ContractHome.OpenContract contractId
 
 -- other template actions
-handleAction (TemplateAction templateAction) = Template.handleAction templateAction
+handleAction (TemplateAction templateAction) = toTemplate $ Template.handleAction templateAction
 
 -- contract home actions that need to be handled here
-handleAction (ContractHomeAction (ContractHome.ToggleTemplateLibraryCard)) = handleAction $ ToggleCard TemplateLibraryCard
+handleAction (ContractHomeAction (ContractHome.OpenTemplateLibraryCard)) = handleAction $ OpenCard TemplateLibraryCard
 
 handleAction (ContractHomeAction a@(ContractHome.OpenContract _)) = do
   toContractHome $ ContractHome.handleAction a
-  handleAction $ ToggleCard ContractCard
+  handleAction $ OpenCard ContractCard
 
 -- other contract home actions
 handleAction (ContractHomeAction contractAction) = void $ toContractHome $ ContractHome.handleAction contractAction
 
 -- contract actions that need to be handled here
--- FIXME: instead of toggle card I need to implement a card stack and add it to the stack
-handleAction (ContractAction (Contract.AskConfirmation action)) = handleAction $ ToggleCard $ ContractActionConfirmationCard action
+handleAction (ContractAction (Contract.AskConfirmation action)) = handleAction $ OpenCard $ ContractActionConfirmationCard action
 
--- FIXME: Once we have card stack this action should not be necesary
 handleAction (ContractAction (Contract.ConfirmAction action)) = do
   void $ toContract $ Contract.handleAction $ Contract.ConfirmAction action
-  handleAction $ ToggleCard ContractCard
+  handleAction CloseCard
 
--- FIXME: instead of ToggleCard I need to implement a card stack and pop the stack
-handleAction (ContractAction Contract.CancelConfirmation) = handleAction $ ToggleCard ContractCard
+handleAction (ContractAction Contract.CancelConfirmation) = handleAction CloseCard
 
 -- other contract  actions
 handleAction (ContractAction contractAction) = void $ toContract $ Contract.handleAction contractAction
 
 -- all other actions are handled in `MainFrame.State`
 handleAction _ = pure unit
+
+------------------------------------------------------------
+toTemplate ::
+  forall m msg slots.
+  Functor m =>
+  HalogenM Template.State Template.Action slots msg m Unit ->
+  HalogenM State Action slots msg m Unit
+toTemplate = mapSubmodule _templateState TemplateAction
+
+toContractHome ::
+  forall m msg slots.
+  Functor m =>
+  HalogenM ContractHome.State ContractHome.Action slots msg m Unit ->
+  HalogenM State Action slots msg m Unit
+toContractHome = mapSubmodule _contractsState ContractHomeAction
+
+-- see note [dummyState]
+toContract ::
+  forall m msg slots.
+  Functor m =>
+  HalogenM Contract.State Contract.Action slots msg m Unit ->
+  HalogenM State Action slots msg m Unit
+toContract = mapMaybeSubmodule _selectedContract ContractAction Contract.dummyState

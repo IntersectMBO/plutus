@@ -65,5 +65,5 @@ benchKnights depth sz = benchCek $ Knights.mkKnightsTerm depth sz
 main :: IO ()
 main = do
   let runners = (benchClausify, benchKnights, benchPrime, benchQueens)
-  config <- Common.getConfig 60.0  -- Run each benchmark for at least one minute
+  config <- Common.getConfig 60.0  -- Run each benchmark for at least one minute.  Change this with -L or --timeout.
   defaultMainWith config $ Common.mkBenchMarks runners
