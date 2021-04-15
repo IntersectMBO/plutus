@@ -20,9 +20,11 @@ import           Language.PureScript.Bridge.PSTypes        (psArray, psInt, psNu
 import           Language.PureScript.Bridge.TypeParameters (A)
 import           Ledger                                    (Address, Datum, DatumHash, MonetaryPolicy, PubKey,
                                                             PubKeyHash, Redeemer, Signature, Tx, TxId, TxIn, TxInType,
-                                                            TxOut, TxOutRef, TxOutTx, TxOutType, UtxoIndex, Validator)
+                                                            TxOut, TxOutRef, TxOutTx, UtxoIndex, Validator)
 import           Ledger.Ada                                (Ada)
 import           Ledger.Constraints.OffChain               (MkTxError)
+import           Ledger.Credential                         (Credential, StakingCredential)
+import           Ledger.DCert                              (DCert)
 import           Ledger.Index                              (ScriptType, ScriptValidationEvent, ValidationError)
 import           Ledger.Interval                           (Extended, Interval, LowerBound, UpperBound)
 import           Ledger.Scripts                            (ScriptError)
@@ -257,7 +259,9 @@ ledgerTypes =
     , (order <*> (genericShow <*> mkSumType)) (Proxy @DatumHash)
     , (order <*> (genericShow <*> mkSumType)) (Proxy @PubKey)
     , (order <*> (genericShow <*> mkSumType)) (Proxy @PubKeyHash)
-    , (order <*> (genericShow <*> mkSumType)) (Proxy @TxOutType)
+    , (order <*> (genericShow <*> mkSumType)) (Proxy @Credential)
+    , (order <*> (genericShow <*> mkSumType)) (Proxy @StakingCredential)
+    , (order <*> (genericShow <*> mkSumType)) (Proxy @DCert)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @MkTxError)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @ContractError)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @ConnectionError)

@@ -24,7 +24,7 @@ token :: CurrencySymbol -> TokenName -> Value
 token symbol name = Value.singleton symbol name 1
 
 {-# INLINABLE outputsWith #-}
--- | The outputs of the 'ValidatorCtx' that carry a non-zero amount of the currency
+-- | The outputs of the 'ScriptContext' that carry a non-zero amount of the currency
 --   defined by the 'CurrencySymbol' and the 'TokenName'.
 outputsWith :: TxInfo -> CurrencySymbol -> TokenName -> [TxOut]
 outputsWith TxInfo{txInfoOutputs} symbol name =

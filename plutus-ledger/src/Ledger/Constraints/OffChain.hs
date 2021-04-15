@@ -64,12 +64,12 @@ import           Ledger.Typed.Scripts             (ScriptInstance, ScriptType (.
 import qualified Ledger.Typed.Scripts             as Scripts
 import           Ledger.Typed.Tx                  (ConnectionError)
 import qualified Ledger.Typed.Tx                  as Typed
-import           Plutus.V1.Ledger.Address         (Address (..))
+import           Plutus.V1.Ledger.Address         (Address (..), pubKeyHashAddress)
 import qualified Plutus.V1.Ledger.Address         as Address
 import           Plutus.V1.Ledger.Crypto          (PubKeyHash)
 import           Plutus.V1.Ledger.Scripts         (Datum (..), DatumHash, MonetaryPolicy, MonetaryPolicyHash, Validator,
                                                    datumHash, monetaryPolicyHash)
-import           Plutus.V1.Ledger.Tx              (Tx, TxOutRef, TxOutTx (..))
+import           Plutus.V1.Ledger.Tx              (Tx, TxOut (..), TxOutRef, TxOutTx (..))
 import qualified Plutus.V1.Ledger.Tx              as Tx
 import           Plutus.V1.Ledger.Value           (Value)
 import qualified Plutus.V1.Ledger.Value           as Value
@@ -318,7 +318,7 @@ addMissingValueSpent = do
             -- transaction.
             -- Step 4 of the process described in [Balance of value spent]
             pk <- asks slOwnPubkey >>= maybe (throwError OwnPubKeyMissing) pure
-            unbalancedTx . tx . Tx.outputs %= (Tx.TxOut (PubKeyAddress pk) missing Tx.PayToPubKey :)
+            unbalancedTx . tx . Tx.outputs %= (Tx.TxOut{txOutAddress=pubKeyHashAddress pk,txOutValue=missing,txOutDatumHash=Nothing} :)
 
 -- | Add a typed input, checking the type of the output it spends. Return the value
 --   of the spent output.
@@ -443,16 +443,16 @@ processConstraint = \case
     MustProduceAtLeast vl -> valueSpentOutputs <>= required vl
     MustSpendPubKeyOutput txo -> do
         TxOutTx{txOutTxOut} <- lookupTxOutRef txo
-        case Tx.txOutAddress txOutTxOut of
-            PubKeyAddress pk -> do
+        case Address.toPubKeyHash (Tx.txOutAddress txOutTxOut) of
+            Just pk -> do
                 unbalancedTx . tx . Tx.inputs %= Set.insert (Tx.pubKeyTxIn txo)
                 valueSpentInputs <>= provided (Tx.txOutValue txOutTxOut)
                 unbalancedTx . requiredSignatories %= Set.insert pk
             _                 -> throwError (TxOutRefWrongType txo)
     MustSpendScriptOutput txo red -> do
         txOutTx <- lookupTxOutRef txo
-        case Tx.txOutType (txOutTxOut txOutTx) of
-            Tx.PayToScript dvh -> do
+        case Tx.txOutDatumHash (txOutTxOut txOutTx) of
+            Just dvh -> do
                 let addr = view Tx.outAddress (Tx.txOutTxOut txOutTx)
                 validator <- lookupValidator addr
 
@@ -481,7 +481,7 @@ processConstraint = \case
         unbalancedTx . tx . Tx.forgeScripts %= Set.insert monetaryPolicyScript
         unbalancedTx . tx . Tx.forge <>= value i
     MustPayToPubKey pk vl -> do
-        unbalancedTx . tx . Tx.outputs %= (Tx.TxOut (PubKeyAddress pk) vl Tx.PayToPubKey :)
+        unbalancedTx . tx . Tx.outputs %= (Tx.TxOut{txOutAddress=pubKeyHashAddress pk,txOutValue=vl,txOutDatumHash=Nothing} :)
         valueSpentOutputs <>= provided vl
     MustPayToOtherScript vlh dv vl -> do
         let addr = Address.scriptHashAddress vlh

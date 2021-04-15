@@ -97,3 +97,4 @@ forwardToValidator h ScriptContext{scriptContextTxInfo=TxInfo{txInfoInputs}, scr
     let checkHash TxOut{txOutAddress=Address{addressCredential=ScriptCredential vh}} = vh == h
         checkHash _                                                                  = False
     in any (checkHash . Validation.txInInfoResolved) txInfoInputs
+forwardToValidator _ _ = False

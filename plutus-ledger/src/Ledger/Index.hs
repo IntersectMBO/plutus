@@ -36,7 +36,7 @@ import           Prelude                          hiding (lookup)
 
 import           Codec.Serialise                  (Serialise)
 import           Control.DeepSeq                  (NFData)
-import           Control.Lens                     (itraverse, view, (^.))
+import           Control.Lens                     (view, (^.))
 import           Control.Monad
 import           Control.Monad.Except             (ExceptT, MonadError (..), runExcept, runExceptT)
 import           Control.Monad.Reader             (MonadReader (..), ReaderT (..), ask)
@@ -181,7 +181,7 @@ checkValidInputs tx = do
     let tid = txId tx
         sigs = tx ^. signatures
     outs <- lkpOutputs tx
-    matches <- itraverse (\ix (txin, txout) -> matchInputOutput tid sigs ix txin txout) outs
+    matches <- traverse (\(txin, txout) -> matchInputOutput tid sigs txin txout) outs
     vld     <- mkTxInfo tx
     traverse_ (checkMatch vld) matches
 
@@ -251,14 +251,12 @@ matchInputOutput :: ValidationMonad m
     -- ^ Hash of the transaction that is being verified
     -> Map.Map PubKey Signature
     -- ^ Signatures provided with the transaction
-    -> Int
-    -- ^ Index of the input
     -> TxIn
     -- ^ Input that allegedly spends the output
     -> TxOut
     -- ^ The unspent transaction output we are trying to unlock
     -> m InOutMatch
-matchInputOutput txid mp ix txin txo = case (txInType txin, txOutDatumHash txo, txOutAddress txo) of
+matchInputOutput txid mp txin txo = case (txInType txin, txOutDatumHash txo, txOutAddress txo) of
     (ConsumeScriptAddress v r d, Just dh, Address{addressCredential=ScriptCredential vh}) -> do
         unless (datumHash d == dh) $ throwError $ InvalidDatumHash d dh
         unless (validatorHash v == vh) $ throwError $ InvalidScriptHash v vh
@@ -348,7 +346,7 @@ mkTxInfo tx = do
 
 -- | Create the data about a transaction input which will be passed to a validator script.
 mkIn :: ValidationMonad m => TxIn -> m Validation.TxInInfo
-mkIn TxIn{txInRef, txInType} = do
+mkIn TxIn{txInRef} = do
     txOut <- lkpTxOut txInRef
     pure $ Validation.TxInInfo{Validation.txInInfoOutRef = txInRef, Validation.txInInfoResolved=txOut}
 

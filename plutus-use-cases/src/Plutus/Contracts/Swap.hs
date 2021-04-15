@@ -19,7 +19,7 @@ import           Ledger               (PubKey, PubKeyHash, Slot, Validator)
 import qualified Ledger               as Ledger
 import           Ledger.Ada           (Ada)
 import qualified Ledger.Ada           as Ada
-import           Ledger.Contexts      (TxInInfo (..), TxInfo (..), TxOut (..), ValidatorCtx (..))
+import           Ledger.Contexts      (ScriptContext (..), TxInInfo (..), TxInfo (..), TxOut (..))
 import qualified Ledger.Contexts      as Validation
 import           Ledger.Oracle        (Observation (..), SignedMessage)
 import qualified Ledger.Oracle        as Oracle
@@ -65,8 +65,8 @@ PlutusTx.makeLift ''SwapOwners
 
 type SwapOracleMessage = SignedMessage (Observation Rational)
 
-mkValidator :: Swap -> SwapOwners -> SwapOracleMessage -> ValidatorCtx -> Bool
-mkValidator Swap{..} SwapOwners{..} redeemer p@ValidatorCtx{valCtxTxInfo=txInfo} =
+mkValidator :: Swap -> SwapOwners -> SwapOracleMessage -> ScriptContext -> Bool
+mkValidator Swap{..} SwapOwners{..} redeemer p@ScriptContext{scriptContextTxInfo=txInfo} =
     let
         extractVerifyAt :: SignedMessage (Observation Rational) -> PubKey -> Slot -> Rational
         extractVerifyAt sm pk slt =
@@ -133,12 +133,12 @@ mkValidator Swap{..} SwapOwners{..} redeemer p@ValidatorCtx{valCtxTxInfo=txInfo}
         -- True if the transaction input is the margin payment of the
         -- fixed leg
         iP1 :: TxInInfo -> Bool
-        iP1 TxInInfo{txInInfoValue=v} = Validation.txSignedBy txInfo swapOwnersFixedLeg && adaValueIn v == margin
+        iP1 TxInInfo{txInInfoResolved=TxOut{txOutValue}} = Validation.txSignedBy txInfo swapOwnersFixedLeg && adaValueIn txOutValue == margin
 
         -- True if the transaction input is the margin payment of the
         -- floating leg
         iP2 :: TxInInfo -> Bool
-        iP2 TxInInfo{txInInfoValue=v} = Validation.txSignedBy txInfo swapOwnersFloating && adaValueIn v == margin
+        iP2 TxInInfo{txInInfoResolved=TxOut{txOutValue}} = Validation.txSignedBy txInfo swapOwnersFloating && adaValueIn txOutValue == margin
 
         inConditions = (iP1 t1 && iP2 t2) || (iP1 t2 && iP2 t1)
 

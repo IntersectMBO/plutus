@@ -35,8 +35,8 @@ import           GHC.Generics                 (Generic)
 import           Language.Marlowe.Semantics   hiding (Contract)
 import qualified Language.Marlowe.Semantics   as Marlowe
 import           Language.Marlowe.Util        (extractContractRoles)
-import           Ledger                       (Address (..), CurrencySymbol, Datum (..), PubKeyHash, Slot (..),
-                                               TokenName, TxOut (..), TxOutTx (..), TxOutType (..), ValidatorCtx (..),
+import           Ledger                       (Address (..), CurrencySymbol, Datum (..), PubKeyHash, ScriptContext (..),
+                                               Slot (..), TokenName, TxOut (..), TxOutTx (..), TxOutType (..),
                                                ValidatorHash, mkValidatorScript, pubKeyHash, txOutDatum, txOutValue,
                                                txOutputs, validatorHash, valueSpent)
 import           Ledger.Ada                   (adaSymbol, adaValueOf)
@@ -347,9 +347,9 @@ rolePayoutScript symbol = mkValidatorScript ($$(PlutusTx.compile [|| wrapped ||]
 
 
 {-# INLINABLE rolePayoutValidator #-}
-rolePayoutValidator :: CurrencySymbol -> TokenName -> () -> ValidatorCtx -> Bool
+rolePayoutValidator :: CurrencySymbol -> TokenName -> () -> ScriptContext -> Bool
 rolePayoutValidator currency role _ ctx =
-    Val.valueOf (valueSpent (valCtxTxInfo ctx)) currency role P.> 0
+    Val.valueOf (valueSpent (scriptContextTxInfo ctx)) currency role P.> 0
 
 
 mkRolePayoutValidatorHash :: CurrencySymbol -> ValidatorHash
