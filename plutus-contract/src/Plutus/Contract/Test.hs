@@ -47,6 +47,7 @@ module Plutus.Contract.Test(
     , waitingForSlot
     , walletWatchingAddress
     , valueAtAddress
+    , dataAtAddress
     , reasonable
     -- * Checking predicates
     , checkPredicate
@@ -107,7 +108,7 @@ import           Plutus.Contract.Effects.WriteTx        (HasWriteTx)
 import           Plutus.Contract.Resumable              (Request (..), Response (..))
 import qualified Plutus.Contract.Resumable              as State
 import           Plutus.Contract.Types                  (Contract (..))
-import           PlutusTx                               (CompiledCode, getPir)
+import           PlutusTx                               (CompiledCode, IsData (..), getPir)
 import qualified PlutusTx.Prelude                       as P
 
 import           Ledger                                 (Validator)
@@ -363,6 +364,16 @@ valueAtAddress address check =
         let result = check vl
         unless result $ do
             tell @(Doc Void) ("Funds at address" <+> pretty address <+> "were" <> pretty vl)
+        pure result
+
+dataAtAddress :: IsData a => Address -> (a -> Bool) -> TracePredicate
+dataAtAddress address check =
+    flip postMapM (L.generalize $ Folds.utxoAtAddress address) $ \utxo -> do
+        let isSingletonWith p xs = length xs == 1 && all p xs
+        let result = isSingletonWith (isSingletonWith (maybe False check . fromData . Ledger.getDatum) . Ledger.txData . Ledger.txOutTxTx) utxo
+        unless result $ do
+            tell @(Doc Void) ("Data at address" <+> pretty address <+> "was"
+                <+> foldMap (foldMap pretty . Ledger.txData . Ledger.txOutTxTx) utxo)
         pure result
 
 waitingForSlot
