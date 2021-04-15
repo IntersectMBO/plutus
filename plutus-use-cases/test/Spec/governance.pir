@@ -7545,31 +7545,10 @@
                                                                                                                           Voting
                                                                                                                           proposal
                                                                                                                         ]
-                                                                                                                        [
-                                                                                                                          [
-                                                                                                                            {
-                                                                                                                              Cons
-                                                                                                                              [[Tuple2 (con bytestring)] Bool]
-                                                                                                                            }
-                                                                                                                            [
-                                                                                                                              [
-                                                                                                                                {
-                                                                                                                                  {
-                                                                                                                                    Tuple2
-                                                                                                                                    (con bytestring)
-                                                                                                                                  }
-                                                                                                                                  Bool
-                                                                                                                                }
-                                                                                                                                ds
-                                                                                                                              ]
-                                                                                                                              True
-                                                                                                                            ]
-                                                                                                                          ]
-                                                                                                                          {
-                                                                                                                            Nil
-                                                                                                                            [[Tuple2 (con bytestring)] Bool]
-                                                                                                                          }
-                                                                                                                        ]
+                                                                                                                        {
+                                                                                                                          Nil
+                                                                                                                          [[Tuple2 (con bytestring)] Bool]
+                                                                                                                        }
                                                                                                                       ]
                                                                                                                     ]
                                                                                                                   ]
@@ -8349,31 +8328,10 @@
                                                                                                                     Voting
                                                                                                                     proposal
                                                                                                                   ]
-                                                                                                                  [
-                                                                                                                    [
-                                                                                                                      {
-                                                                                                                        Cons
-                                                                                                                        [[Tuple2 (con bytestring)] Bool]
-                                                                                                                      }
-                                                                                                                      [
-                                                                                                                        [
-                                                                                                                          {
-                                                                                                                            {
-                                                                                                                              Tuple2
-                                                                                                                              (con bytestring)
-                                                                                                                            }
-                                                                                                                            Bool
-                                                                                                                          }
-                                                                                                                          ds
-                                                                                                                        ]
-                                                                                                                        True
-                                                                                                                      ]
-                                                                                                                    ]
-                                                                                                                    {
-                                                                                                                      Nil
-                                                                                                                      [[Tuple2 (con bytestring)] Bool]
-                                                                                                                    }
-                                                                                                                  ]
+                                                                                                                  {
+                                                                                                                    Nil
+                                                                                                                    [[Tuple2 (con bytestring)] Bool]
+                                                                                                                  }
                                                                                                                 ]
                                                                                                               ]
                                                                                                             ]
@@ -9479,31 +9437,10 @@
                                                                                                                   Voting
                                                                                                                   proposal
                                                                                                                 ]
-                                                                                                                [
-                                                                                                                  [
-                                                                                                                    {
-                                                                                                                      Cons
-                                                                                                                      [[Tuple2 (con bytestring)] Bool]
-                                                                                                                    }
-                                                                                                                    [
-                                                                                                                      [
-                                                                                                                        {
-                                                                                                                          {
-                                                                                                                            Tuple2
-                                                                                                                            (con bytestring)
-                                                                                                                          }
-                                                                                                                          Bool
-                                                                                                                        }
-                                                                                                                        ds
-                                                                                                                      ]
-                                                                                                                      True
-                                                                                                                    ]
-                                                                                                                  ]
-                                                                                                                  {
-                                                                                                                    Nil
-                                                                                                                    [[Tuple2 (con bytestring)] Bool]
-                                                                                                                  }
-                                                                                                                ]
+                                                                                                                {
+                                                                                                                  Nil
+                                                                                                                  [[Tuple2 (con bytestring)] Bool]
+                                                                                                                }
                                                                                                               ]
                                                                                                             ]
                                                                                                           ]

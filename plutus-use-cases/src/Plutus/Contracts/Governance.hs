@@ -17,6 +17,7 @@
 {-# OPTIONS_GHC -fno-spec-constr #-}
 module Plutus.Contracts.Governance (
       contract
+    , proposalContract
     , scriptInstance
     , client
     , mkTokenName
@@ -156,8 +157,7 @@ transition Params{..} State{ stateData = s, stateValue} i = case (s, i) of
 
     (GovState law mph Nothing, ProposeChange proposal@(Proposal{tokenName})) ->
         let constraints = ownsVotingToken mph tokenName
-            selfVote = AssocMap.singleton tokenName True
-        in Just (constraints, State (GovState law mph (Just (Voting proposal selfVote))) stateValue)
+        in Just (constraints, State (GovState law mph (Just (Voting proposal AssocMap.empty))) stateValue)
 
     (GovState law mph (Just (Voting p oldMap)), AddVote tokenName vote) ->
         let newMap = AssocMap.insert tokenName vote oldMap
@@ -178,17 +178,7 @@ contract ::
     -> Contract () Schema e ()
 contract params = forever $ mapError (review _GovError) endpoints where
     theClient = client params
-    endpoints = initLaw `select` propose `select` addVote
-
-    propose = do
-        proposal <- endpoint @"propose-change"
-        void $ SM.runStep theClient (ProposeChange proposal)
-
-        logInfo @Text "Voting started. Waiting for the voting deadline to count the votes."
-        void $ awaitSlot (votingDeadline proposal)
-
-        logInfo @Text "Voting finished. Counting the votes."
-        SM.runStep theClient FinishVoting
+    endpoints = initLaw `select` addVote
 
     addVote = do
         (tokenName, vote) <- endpoint @"add-vote"
@@ -200,6 +190,22 @@ contract params = forever $ mapError (review _GovError) endpoints where
         void $ SM.runInitialise theClient (GovState bsLaw mph Nothing) mempty
         let tokens = zipWith (const (mkTokenName (baseTokenName params))) (initialHolders params) [1..]
         SM.runStep theClient $ ForgeTokens tokens
+
+proposalContract ::
+    AsGovError e
+    => Params
+    -> Contract () Schema e ()
+proposalContract params = forever $ mapError (review _GovError) propose where
+    theClient = client params
+    propose = do
+        proposal <- endpoint @"propose-change"
+        void $ SM.runStep theClient (ProposeChange proposal)
+
+        logInfo @Text "Voting started. Waiting for the voting deadline to count the votes."
+        void $ awaitSlot (votingDeadline proposal)
+
+        logInfo @Text "Voting finished. Counting the votes."
+        SM.runStep theClient FinishVoting
 
 PlutusTx.makeLift ''Params
 PlutusTx.unstableMakeIsData ''Proposal
