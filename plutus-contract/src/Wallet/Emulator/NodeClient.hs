@@ -29,7 +29,7 @@ import           Wallet.Emulator.Chain
 
 data NodeClientEvent =
     TxSubmit TxId Value
-    -- ^ A transaction has been added to the pool of pending transactions.
+    -- ^ A transaction has been added to the pool of pending transactions. The value is the fee of the transaction.
     deriving stock (Eq, Show, Generic)
     deriving anyclass (FromJSON, ToJSON)
 
