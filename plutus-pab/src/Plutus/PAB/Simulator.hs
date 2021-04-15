@@ -51,6 +51,8 @@ module Plutus.PAB.Simulator(
     , valueAt
     , valueAtSTM
     , blockchain
+    , currentBalances
+    , logBalances
     -- ** Transaction counts
     , TxCounts(..)
     , txCounts
@@ -64,7 +66,7 @@ import           Control.Concurrent.STM                         (STM, TQueue, TV
 import qualified Control.Concurrent.STM                         as STM
 import           Control.Lens                                   (_Just, at, makeLenses, makeLensesFor, preview, set,
                                                                  view, (&), (.~), (^.))
-import           Control.Monad                                  (forever, void, when)
+import           Control.Monad                                  (forM_, forever, void, when)
 import           Control.Monad.Freer                            (Eff, LastMember, Member, interpret, reinterpret,
                                                                  reinterpret2, reinterpretN, run, send, type (~>))
 import           Control.Monad.Freer.Delay                      (DelayEffect, delayThread, handleDelayEffect)
@@ -88,10 +90,11 @@ import qualified Data.Text.IO                                   as Text
 import           Data.Text.Prettyprint.Doc                      (Pretty (pretty), defaultLayoutOptions, layoutPretty)
 import qualified Data.Text.Prettyprint.Doc.Render.Text          as Render
 import           Data.Time.Units                                (Millisecond)
+import           Ledger.Address                                 (Address (..))
 import           Ledger.Crypto                                  (PubKey, toPublicKey)
 import qualified Ledger.Index                                   as UtxoIndex
-import           Ledger.Tx                                      (Address, Tx, TxOut (..))
-import           Ledger.Value                                   (Value)
+import           Ledger.Tx                                      (Tx, TxOut (..))
+import           Ledger.Value                                   (Value, flattenValue)
 import           Plutus.PAB.Core                                (EffectHandlers (..))
 import qualified Plutus.PAB.Core                                as Core
 import qualified Plutus.PAB.Core.ContractInstance.BlockchainEnv as BlockchainEnv
@@ -111,7 +114,7 @@ import           Wallet.Effects                                 (ChainIndexEffec
                                                                  WalletEffect)
 import qualified Wallet.Effects                                 as WalletEffects
 import qualified Wallet.Emulator                                as Emulator
-import           Wallet.Emulator.Chain                          (ChainControlEffect, ChainState)
+import           Wallet.Emulator.Chain                          (ChainControlEffect, ChainState (..))
 import qualified Wallet.Emulator.Chain                          as Chain
 import qualified Wallet.Emulator.ChainIndex                     as ChainIndex
 import           Wallet.Emulator.MultiAgent                     (EmulatorEvent' (..), _singleton)
@@ -325,7 +328,7 @@ callEndpointOnInstance = Core.callEndpointOnInstance
 logString :: forall t effs. Member (LogMsg (PABMultiAgentMsg t)) effs => String -> Eff effs ()
 logString = logInfo @(PABMultiAgentMsg t) . UserLog . Text.pack
 
--- | Pretty-prin a value to the console
+-- | Pretty-print a value to the console
 logPretty :: forall a t effs. (Pretty a, Member (LogMsg (PABMultiAgentMsg t)) effs) => a -> Eff effs ()
 logPretty = logInfo @(PABMultiAgentMsg t) . UserLog . render
 
@@ -671,3 +674,22 @@ addWallet = do
             newWallets = currentWallets & at newWallet .~ Just (AgentState $ Wallet.emptyWalletStateFromPrivateKey privateKey)
         STM.writeTVar _agentStates newWallets
         pure (newWallet, toPublicKey privateKey)
+
+-- | Retrieve the balances of all the entities in the simulator.
+currentBalances :: forall t. Simulation t (Map.Map Wallet.Entity Value)
+currentBalances = do
+  SimulatorState{_chainState, _agentStates} <- Core.askUserEnv @t @(SimulatorState t)
+  liftIO $ STM.atomically $ do
+    currentWallets <- STM.readTVar _agentStates
+    chainState <- STM.readTVar _chainState
+    return $ Wallet.balances chainState (_walletState <$> currentWallets)
+
+-- | Write the 'balances' out to the log.
+logBalances :: forall t effs. Member (LogMsg (PABMultiAgentMsg t)) effs
+            => Map.Map Wallet.Entity Value
+            -> Eff effs ()
+logBalances bs = do
+    forM_ (Map.toList bs) $ \(e, v) -> do
+        logString @t $ show e <> ": "
+        forM_ (flattenValue v) $ \(cs, tn, a) ->
+            logString @t $ "    {" <> show cs <> ", " <> show tn <> "}: " <> show a
