@@ -64,4 +64,4 @@ main trace ChainIndexConfig{ciBaseUrl} socketPath availability = runLogEffects t
             warpSettings = Warp.defaultSettings & Warp.setPort servicePort & Warp.setBeforeMainLoop isAvailable
             updateChainState :: MVar AppState -> Block -> Slot -> IO ()
             updateChainState mv block slot =
-                processIndexEffects trace mv $ syncState block slot
+              processIndexEffects trace mv $ syncState block slot

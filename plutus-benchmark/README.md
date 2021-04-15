@@ -41,21 +41,20 @@ This directory contains two sets of benchmarks:
 
    * To run the benchmarks using stack, type a command like this
        * `stack bench plutus-benchmark:validation` (run all benchmarks)
-       * `stack bench plutus-benchmark:validation --ba "crowdfunding/2 -L10"` (run the `crowdfunding/2`
-           benchmark with a time limit of 10 seconds)
+       * `stack bench plutus-benchmark:validation --ba "crowdfunding/2 -L60"` (run the `crowdfunding/2`
+           benchmark with a time limit of 60 seconds)
 
    * The corresponding cabal commands are
        * `cabal bench plutus-benchmark:validation`
-       * `cabal bench plutus-benchmark:validation --benchmark-options "crowdfunding/2 -L10"`
+       * `cabal bench plutus-benchmark:validation --benchmark-options "crowdfunding/2 -L60"`
      or the `cabal run` equivalents (see the `nofib` section).
 
    * During benchmarking each validation script is run repeatedly up to a limit
-     of 5 seconds (Criterion's default; a single execution takes approximately
-     5-15 ms) to get statistically reasonable total number of executions.  It
-     takes about 5 minutes to run the entire suite (again, this will depend on
-     the hardware).
+     of 20 seconds (a single execution takes approximately 5-15 ms) to get
+     statistically reasonable total number of executions.  It takes about 10
+     minutes to run the entire suite (again, this will depend on the hardware).
 
-See also  [nofib/README.md](./nofib/README.md)  and [validation/README.md](./validation/README.md).
+See also [nofib/README.md](./nofib/README.md) and [validation/README.md](./validation/README.md).
 
 ### nofib-exe
 The `nofib-exe` program in `nofib/exe` allows you to run the `nofib` benchmarks from the command line and
@@ -72,7 +71,7 @@ are interpreted relative to `plutus-benchmark` when running the benchmarks via
 stack or cabal): for example
 
 ```
-  stack bench plutus-benchmark:validation --ba "crowdfunding -L10 --output $PWD/crowdfunding-report.html"
+  stack bench plutus-benchmark:validation --ba "crowdfunding -L60 --output $PWD/crowdfunding-report.html"
 ```
 
 If using `cabal bench` you'll have to do something similar, but `cabal run` will write the output into

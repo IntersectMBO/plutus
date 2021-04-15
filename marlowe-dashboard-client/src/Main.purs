@@ -66,6 +66,11 @@ main = do
           (SendWebSocketMessage msg) -> do
             WS.managerWriteOutbound wsManager $ WS.SendMessage msg
             pure Nothing
+          -- This handler allow us to call an action in the MainFrame from a child component
+          -- (more info in the MainFrameLoop capability)
+          (MainFrameActionMsg action) -> do
+            void $ driver.query $ MainFrameActionQuery action unit
+            pure Nothing
 
 watchLocalStorageProcess :: Process Aff Unit
 watchLocalStorageProcess = connect LocalStorage.listen watchLocalStorage

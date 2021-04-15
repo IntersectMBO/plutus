@@ -45,7 +45,6 @@ import           Wallet.Emulator.Chain          (ChainState)
 -- Generate a random, valid transaction that moves some ada
 -- around between the emulator wallets.
 
-
 runGenRandomTx ::
        ( Member (State ChainState) effs
        , Member (LogMsg MockServerLogMsg) effs

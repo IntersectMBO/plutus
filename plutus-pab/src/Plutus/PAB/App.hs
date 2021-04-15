@@ -60,9 +60,10 @@ import           Plutus.PAB.Events                              (PABEvent)
 import           Plutus.PAB.Monitoring.MonadLoggerBridge        (TraceLoggerT (..))
 import           Plutus.PAB.Monitoring.Monitoring               (convertLog, handleLogMsgTrace)
 import           Plutus.PAB.Monitoring.PABLogMsg                (PABLogMsg (..))
+import           Plutus.PAB.Timeout                             (Timeout (..))
 import           Plutus.PAB.Types                               (Config (Config), DbConfig (..), PABError (..),
-                                                                 chainIndexConfig, dbConfig, nodeServerConfig,
-                                                                 walletServerConfig)
+                                                                 chainIndexConfig, dbConfig, endpointTimeout,
+                                                                 nodeServerConfig, walletServerConfig)
 import           Servant.Client                                 (ClientEnv, mkClientEnv)
 
 ------------------------------------------------------------
@@ -142,7 +143,7 @@ runApp ::
     -> Config -- ^ Client configuration
     -> App a -- ^ Action
     -> IO (Either PABError a)
-runApp trace config = Core.runPAB (appEffectHandlers config trace)
+runApp trace config@Config{endpointTimeout} = Core.runPAB (Timeout endpointTimeout) (appEffectHandlers config trace)
 
 type App a = PABAction ContractExe AppEnv a
 
