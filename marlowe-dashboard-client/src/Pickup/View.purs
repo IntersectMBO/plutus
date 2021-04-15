@@ -31,7 +31,12 @@ renderPickupState wallets newWalletDetails pickupState =
       [ classNames [ "grid", "h-full" ] ]
       [ main
           [ classNames [ "relative" ] ]
-          [ renderPickupCard wallets newWalletDetails card
+          -- In the Play view, there are potentially many cards all inside a containing div,
+          -- and the last one has a semi-transparent overlay (using class "last:bg-overlay").
+          -- Here in the Pickup view there is at most one card, but we need to put it inside
+          -- a containing div as well, so that it's the last child, and has the bg-overlay
+          -- applied.
+          [ div_ [ renderPickupCard wallets newWalletDetails card ]
           , renderPickupScreen wallets pickupState
           ]
       ]

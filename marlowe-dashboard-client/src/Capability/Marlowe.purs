@@ -14,6 +14,7 @@ import AppM (AppM)
 import Bridge (toBack)
 import Capability.Contract (class ManageContract, activateContract, getContractInstanceObservableState, invokeEndpoint)
 import Capability.ContractExe (marloweContractExe, walletCompanionContractExe)
+import Contract.Types (MarloweParams, MarloweData)
 import Control.Monad.Except (lift, runExcept)
 import Data.Either (Either(..))
 import Data.Map (Map)
@@ -24,11 +25,11 @@ import Data.Tuple.Nested ((/\))
 import Foreign.Generic (decodeJSON, encode)
 import Foreign.JSON (unsafeStringify)
 import Halogen (HalogenM)
-import Marlowe.Semantics (Contract, Input, Party, PubKey, Slot, TokenName)
+import Marlowe.Semantics (Contract, Input, Party, Slot, TokenName)
 import Network.RemoteData (RemoteData(..))
 import Plutus.PAB.Webserver.Types (ContractActivationArgs(..))
-import Types (DecodedWebData, ContractInstanceId, MarloweParams, MarloweData, WebData)
-import WalletData.Types (Wallet)
+import Types (DecodedWebData, ContractInstanceId, WebData)
+import WalletData.Types (PubKeyHash, Wallet)
 
 -- The `ManageMarloweContract` class provides a window on the `ManageContract` class with function
 -- calls specific to the Marlowe Plutus contract.
@@ -36,11 +37,11 @@ class
   ManageContract m <= ManageMarloweContract m where
   marloweCreateWalletCompanionContract :: Wallet -> m (WebData ContractInstanceId)
   marloweGetWalletCompanionContractObservableState :: ContractInstanceId -> m (DecodedWebData (Array (Tuple MarloweParams MarloweData)))
-  marloweCreateContract :: Wallet -> Map TokenName PubKey -> Contract -> m (WebData ContractInstanceId)
+  marloweCreateContract :: Wallet -> Map TokenName PubKeyHash -> Contract -> m (WebData ContractInstanceId)
   marloweApplyInputs :: ContractInstanceId -> MarloweParams -> Array Input -> m (WebData Unit)
   marloweWait :: ContractInstanceId -> MarloweParams -> m (WebData Unit)
   marloweAuto :: ContractInstanceId -> MarloweParams -> Party -> Slot -> m (WebData Unit)
-  marloweRedeem :: ContractInstanceId -> MarloweParams -> TokenName -> PubKey -> m (WebData Unit)
+  marloweRedeem :: ContractInstanceId -> MarloweParams -> TokenName -> PubKeyHash -> m (WebData Unit)
 
 instance monadMarloweAppM :: ManageMarloweContract AppM where
   marloweCreateWalletCompanionContract wallet = activateContract $ ContractActivationArgs { caID: walletCompanionContractExe, caWallet: toBack wallet }

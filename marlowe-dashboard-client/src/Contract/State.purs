@@ -12,7 +12,7 @@ module Contract.State
 
 import Prelude
 import Capability.Toast (class Toast, addToast)
-import Contract.Lenses (_contractId, _executionState, _namedActions, _previousSteps, _selectedStep, _tab)
+import Contract.Lenses (_contractInstanceId, _executionState, _namedActions, _previousSteps, _selectedStep, _tab)
 import Contract.Types (Action(..), PreviousStep, PreviousStepState(..), Query(..), State, Tab(..))
 import Control.Monad.Reader (class MonadAsk)
 import Data.Array (length)
@@ -22,6 +22,7 @@ import Data.Map as Map
 import Data.Maybe (Maybe(..))
 import Data.RawJson (RawJson(..))
 import Data.Set as Set
+import Data.UUID (emptyUUID)
 import Data.Unfoldable as Unfoldable
 import Effect.Aff.Class (class MonadAff)
 import Effect.Class (class MonadEffect)
@@ -39,11 +40,14 @@ import Marlowe.Semantics (Contract(..), Input(..), Slot, SlotInterval(..), Token
 import Marlowe.Semantics as Semantic
 import Marlowe.Slot (currentSlot)
 import Toast.Types (successToast)
+import Types (ContractInstanceId(..))
 import WalletData.Types (WalletNickname)
 
 -- see note [dummyState]
 dummyState :: State
-dummyState = mkInitialState "" zero emptyContractMetadata mempty Nothing Close
+dummyState = mkInitialState emptyContractInstanceId zero emptyContractMetadata mempty Nothing Close
+  where
+  emptyContractInstanceId = ContractInstanceId emptyUUID
 
 currentStep :: State -> Int
 currentStep = length <<< view _previousSteps
@@ -72,7 +76,7 @@ isContractClosed :: State -> Boolean
 isContractClosed state = isClosed $ state ^. _executionState
 
 instantiateExtendedContract ::
-  String ->
+  ContractInstanceId ->
   Slot ->
   Extended.Contract ->
   TemplateContent ->
@@ -80,31 +84,31 @@ instantiateExtendedContract ::
   Map Semantic.Party (Maybe WalletNickname) ->
   Maybe Semantic.Party ->
   Maybe State
-instantiateExtendedContract contractId currentSlot extendedContract templateContent metadata participants mActiveUserParty =
+instantiateExtendedContract contractInstanceId currentSlot extendedContract templateContent metadata participants mActiveUserParty =
   let
     relativeContract = resolveRelativeTimes currentSlot extendedContract
 
     mContract = toCore $ fillTemplate templateContent relativeContract
   in
     mContract
-      <#> mkInitialState contractId currentSlot metadata participants mActiveUserParty
+      <#> mkInitialState contractInstanceId currentSlot metadata participants mActiveUserParty
 
 mkInitialState ::
-  String ->
+  ContractInstanceId ->
   Slot ->
   MetaData ->
   Map Semantic.Party (Maybe WalletNickname) ->
   Maybe Semantic.Party ->
   Contract ->
   State
-mkInitialState contractId slot metadata participants mActiveUserParty contract =
+mkInitialState contractInstanceId slot metadata participants mActiveUserParty contract =
   let
     executionState = initExecution slot contract
   in
     { tab: Tasks
     , executionState
     , previousSteps: mempty
-    , contractId
+    , contractInstanceId
     , selectedStep: 0
     , metadata
     , participants
@@ -197,7 +201,7 @@ handleAction ::
   Action -> HalogenM State Action ChildSlots Msg m Unit
 handleAction (ConfirmAction namedAction) = do
   currentExeState <- use _executionState
-  contractId <- use _contractId
+  contractId <- use _contractInstanceId
   slot <- liftEffect currentSlot
   let
     input = toInput namedAction

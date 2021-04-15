@@ -10,7 +10,6 @@ module Play.Lenses
   ) where
 
 import Prelude
-import Contract.Types (ContractId)
 import Contract.Types (State) as Contract
 import ContractHome.Lenses (_contracts, _selectedContract) as ContractHome
 import ContractHome.Types (State) as ContractHome
@@ -22,6 +21,7 @@ import Marlowe.Semantics (Slot)
 import Play.Types (Card, State)
 import Template.Types (State) as Template
 import WalletData.Types (WalletDetails)
+import Types (ContractInstanceId)
 
 _walletDetails :: Lens' State WalletDetails
 _walletDetails = prop (SProxy :: SProxy "walletDetails")
@@ -41,7 +41,7 @@ _templateState = prop (SProxy :: SProxy "templateState")
 _contractsState :: Lens' State ContractHome.State
 _contractsState = prop (SProxy :: SProxy "contractsState")
 
-_allContracts :: Lens' State (Map ContractId Contract.State)
+_allContracts :: Lens' State (Map ContractInstanceId Contract.State)
 _allContracts = _contractsState <<< ContractHome._contracts
 
 -- This traversal focus on a specific contract indexed by another property of the state

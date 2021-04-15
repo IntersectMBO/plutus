@@ -58,6 +58,16 @@ handleAction ::
   MonadAff m =>
   MonadAsk Env m =>
   Action -> HalogenM State Action ChildSlots Msg m Unit
+handleAction (SetTemplate contractTemplate) = pure unit -- handled in Play.State (see note [State])
+
+handleAction OpenTemplateLibraryCard = pure unit -- handled in Play.State (see note [State])
+
+handleAction (OpenCreateWalletCard tokenName) = pure unit -- handled in Play.State (see note [State])
+
+handleAction OpenSetupConfirmationCard = pure unit -- handled in Play.State (see note [State])
+
+handleAction CloseSetupConfirmationCard = pure unit -- handled in Play.State (see note [State])
+
 handleAction (SetContractNickname nickname) = assign _contractNickname nickname
 
 handleAction (SetRoleWallet roleName walletNickname) = modifying _roleWallets $ insert roleName walletNickname
@@ -71,5 +81,4 @@ handleAction (SetSlotContent key dateTimeString) = do
 
 handleAction (SetValueContent key mValue) = modifying (_templateContent <<< _valueContent) $ insert key $ fromMaybe zero mValue
 
--- all other actions are handled in `Play.State`
-handleAction _ = pure unit
+handleAction StartContract = pure unit -- handled in Play.State (see note [State])
