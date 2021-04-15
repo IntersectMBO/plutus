@@ -605,8 +605,14 @@ proj·l'' refl = refl
 projμl : {A : ∅ ⊢⋆ _}{A' : ∅ ⊢⋆ _}{B : ∅ ⊢⋆ K}{B' : ∅ ⊢⋆ K'} → (μ A B) ≡ (μ A' B') → ∃ λ (p : _ ≡ _) → subst (∅ ⊢⋆_) p A ≡ A'
 projμl refl = refl , refl
 
-projμr : {A : ∅ ⊢⋆ _}{A' : ∅ ⊢⋆ _}{B : ∅ ⊢⋆ K}{B' : ∅ ⊢⋆ K'} → (μ A B) ≡ (μ A' B') → ∃ λ (p : _ ≡ _) → subst (∅ ⊢⋆_) p B ≡ B'
-projμr refl = refl , refl
+cong-μl : ∀{K K'}(E : EvalCtx _ J)(E' : EvalCtx _ J)
+  → (B : ∅ ⊢⋆ K)(B' : ∅ ⊢⋆ K')
+  → (p : K' ≡ K)
+  → B ≡ subst (∅ ⊢⋆_) p B'
+  → (q : ((K' ⇒ *) ⇒ K' ⇒ *) ≡ ((K ⇒ *) ⇒ K ⇒ *))
+  → E ≡ subst (λ I → EvalCtx I J) q E'
+  → μl E B ≡ μl E' B'
+cong-μl E E' B B' refl p' refl q' = cong₂ μl q' p' 
 
 val-unique : ∀{A : ∅ ⊢⋆ K}(V V' : Value⋆ A) → V ≡ V'
 val-unique (V-Π N) (V-Π .N) = refl
@@ -616,6 +622,19 @@ val-unique (V-con tcn) (V-con .tcn) = refl
 val-unique (V-μ V W) (V-μ V' W') =
   cong₂ V-μ (val-unique V V') (val-unique W W') 
 val-unique (V-ƛ N) (V-ƛ .N) = refl
+
+cong-μr : ∀{K K'}(E : EvalCtx _ J)(E' : EvalCtx _ J)
+  → (A : ∅ ⊢⋆ (K ⇒ *) ⇒ _)(A' : ∅ ⊢⋆ (K' ⇒ *) ⇒ _)
+  → (VA : Value⋆ A)(VA' : Value⋆ A')
+  → (p : (K' ⇒ *) ⇒ K' ⇒ * ≡ (K ⇒ *) ⇒ K ⇒ *)
+  → A ≡ subst (∅ ⊢⋆_) p A'
+  → (q : K' ≡ K)
+  → E ≡ subst (λ I → EvalCtx I J) q E'
+  → μr VA E ≡ μr VA' E'
+cong-μr E E' A A' VA VA' refl refl refl q' = cong₂ μr (val-unique VA VA') q'
+
+projμr : {A : ∅ ⊢⋆ _}{A' : ∅ ⊢⋆ _}{B : ∅ ⊢⋆ K}{B' : ∅ ⊢⋆ K'} → (μ A B) ≡ (μ A' B') → ∃ λ (p : _ ≡ _) → subst (∅ ⊢⋆_) p B ≡ B'
+projμr refl = refl , refl
 
 ·r-cong : ∀{J J' K}(p : J ≡ J') → {A : ∅ ⊢⋆ J ⇒ K}{A' : ∅ ⊢⋆ J' ⇒ K}
   (V : Value⋆ A)(V' : Value⋆ A')(E : EvalCtx J I) → 
@@ -629,6 +648,13 @@ subst-l⇒ E B refl = refl
 
 subst-⇒r : ∀{A}(V : Value⋆ A) E (p : J ≡ J') →  subst (EvalCtx *) p (V ⇒r E) ≡ V ⇒r subst (EvalCtx *) p E
 subst-⇒r V E refl = refl
+
+subst-μl : ∀ E B (p : J ≡ J') →  subst (EvalCtx _) p (μl E B) ≡ μl (subst (EvalCtx ((K ⇒ *) ⇒ _)) p E) B
+subst-μl E B refl = refl
+
+subst-μr : ∀ E M (VM : Value⋆ M) (p : J ≡ J') →  subst (EvalCtx _) p (μr VM E) ≡ μr VM (subst (EvalCtx K) p E)
+subst-μr E M VM refl = refl
+
 
 subst-closeEvalCtx : (E : EvalCtx K J)(M : ∅ ⊢⋆ J')(p : J' ≡ J)(q : J ≡ J') →
  closeEvalCtx E (subst (_ ⊢⋆_) p M)
@@ -674,33 +700,37 @@ subst-Val : ∀ {A : ∅ ⊢⋆ K}{A' : ∅ ⊢⋆ K'}
   → (p : K ≡ K') → subst (∅ ⊢⋆_) p A ≡ A' → Value⋆ A' → Value⋆ A
 subst-Val refl refl V = V
 
--- postulate mu case for now, should be similar to arrow and application
-postulate
- mu-case : ∀ M (M' : ∅ ⊢⋆ K) → Value⋆ (μ M M') ⊎
-  ¬ Value⋆ (μ M M') ×
-  ∃
-    (λ (J : Kind) →
-     ∃
-     (λ (E : EvalCtx * J) →
-        ∃
-        (λ (I : Kind) →
-           ∃
-           (λ (L : ∅ ⊢⋆ I ⇒ J) →
-              ∃
-              (λ N →
-                 Value⋆ L ×
-                 Value⋆ N ×
-                 μ M M' ≡ closeEvalCtx E (L · N) ×
-                 ((J' : Kind) (E' : EvalCtx * J') (I' : Kind) (L' : ∅ ⊢⋆ I' ⇒ J')
-                  (N' : ∅ ⊢⋆ I') →
-                  Value⋆ L' →
-                  Value⋆ N' →
-                  μ M M' ≡ closeEvalCtx E' (L' · N') →
-                  ∃ λ (p : I' ≡ I) →
-                  ∃ λ q →
-                  subst (EvalCtx *) q E' ≡ E
-                  × L ≡ subst (∅ ⊢⋆_) (cong₂ _⇒_ p q) L'
-                  × N ≡ subst (∅ ⊢⋆_) p N'))))))
+μX : ∀ {K K' : Kind} E L N
+   → (XX : K' ≡ K)
+   → 
+   ((J'' : Kind) (E'' : EvalCtx K' J'')
+      (I'' : Kind) (L'' : ∅ ⊢⋆ I'' ⇒ J'') (N'' : ∅ ⊢⋆ I'') →
+      Value⋆ L'' →
+      Value⋆ N'' →
+      closeEvalCtx E (L · N) ≡ closeEvalCtx E'' (L'' · N'') →
+      Σ (I'' ≡ I)
+      (λ p →
+         Σ (J'' ≡ J)
+         (λ q →
+            Σ (subst (EvalCtx K') q E'' ≡ E)
+            (λ x →
+               Σ (L ≡ subst (_⊢⋆_ ∅) (cong₂ _⇒_ p q) L'')
+               (λ x₁ → N ≡ subst (_⊢⋆_ ∅) p N'')))))
+      → 
+      ((J'' : Kind) (E'' : EvalCtx K J'')
+      (I'' : Kind) (L'' : ∅ ⊢⋆ I'' ⇒ J'') (N'' : ∅ ⊢⋆ I'') →
+      Value⋆ L'' →
+      Value⋆ N'' →
+       subst (∅ ⊢⋆_) XX (closeEvalCtx E (L · N))  ≡ closeEvalCtx E'' (L'' · N'') →
+      Σ (I'' ≡ I)
+      (λ p →
+         Σ (J'' ≡ J)
+         (λ q →
+            Σ (subst (EvalCtx K) q E'' ≡ subst (λ X → EvalCtx X J) XX E )
+            (λ x →
+               Σ (L ≡ subst (_⊢⋆_ ∅) (cong₂ _⇒_ p q) L'')
+               (λ x₁ → N ≡ subst (_⊢⋆_ ∅) p N'')))))
+μX E L N refl X = X
 
 lemma51! : (M : ∅ ⊢⋆ K)
   → Value⋆ M
@@ -753,7 +783,11 @@ lemma51! (M · M') with lemma51! M
   N' VL' VN'
   (trans (sym (proj₂ (proj·r p')))
    (subst-closeEvalCtx' E' (L' · N') (proj₁ (proj·r p')))))))) (·r-cong (proj₁ (proj·r p')) x VM E' (proj·l'' p'))) (subst-r· (subst (λ K₂ → EvalCtx K₂ J') (proj₁ (proj·r p')) E') VM XX)) (cong (VM ·r_) YY) , YY' , YY'' ; J' (E' l· x) I' L' N' VL' VN' p' → ⊥-elim (lemV· (lem0 (L' · N') E' (subst-Val (proj₁ (proj·l (sym p'))) (proj₂ (proj·l (sym p'))) VM)))})
-lemma51! (μ M M') = mu-case M M'
+lemma51! (μ M M') with lemma51! M
+... | inj₂ (¬VM , J , E , I , L , N , VL , VN , refl , X) = inj₂ ((λ {(V-μ VM VM') → ¬VM VM}) , (J , μl E M' , I , L , N , VL , VN , refl , (λ { J' (μr VA E') I' L' N' VL' VN' refl → ⊥-elim (lemV· (lem0 (L · N) E VA)) ; J' (μl E' B) I' L' N' VL' VN' p' → let (ZZ , XX , YY , YY' , YY'') = μX E L N (proj₁ (projμl p')) X J' E' I' L' N' VL' VN' (proj₂ (projμl p')) in ZZ , XX , trans (subst-μl E' B _) (cong-μl _ _ _ _ (proj₁ (projμr p')) (sym (proj₂ (projμr p'))) (proj₁ (projμl p')) YY)  , YY' , YY''})))
+... | inj₁ VM with lemma51! M'
+... | inj₂ (¬VM' , J , E , I , L , N , VL , VN , refl , X) = inj₂ ((λ {(V-μ VM VM') → ⊥-elim (¬VM' VM')}) , J , (μr VM E) , I , L , N , VL , VN , refl , λ { J' (μr x E') I' L' N' VL' VN' p' → let (ZZ , XX , YY , YY' , YY'') = μX E L N (proj₁ (projμr p')) X J' E' I' L' N' VL' VN' (proj₂ (projμr p')) in ZZ , XX , trans (subst-μr E' _ x _) (cong-μr _ _ _ _ x VM (proj₁ (projμl p')) (sym (proj₂ (projμl p'))) (proj₁ (projμr p')) YY) , YY' , YY'' ; J' (μl E' .(closeEvalCtx E (L · N))) I' L' N' r r' refl → ⊥-elim (lemV· (lem0 (L' · N') E' VM))})
+... | inj₁ VM' = inj₁ (V-μ VM VM')
 lemma51! (con x) = inj₁ (V-con x)
 
 -- this is a more convenient version of lemma51! where you can plug in
@@ -1056,23 +1090,3 @@ case2 M E VM E' L N VL VN p | inj₂ (.* , E'' , (μ- B)) | I[ eq ] | inj₂ (I 
 case2 M E VM E' L N VL VN p | inj₂ (.* , E'' , μ V -) | I[ eq ] rewrite dissect-lemma E E'' (μ V -) eq with case2 (μ (discharge V) M) E'' (V-μ V VM) E' L N VL VN (trans (sym (closeEF E'' (μ V -) M)) p)
 ... | I , I' , E''' , F , E'''' , q , V' , ¬V , E''''' , q' =
   I , I' , E''' , F , extendEvalCtx E'''' (μ V -) , trans (trans (cong (compEvalCtx E''') (evalEF F E'''' (μ V -))) (compEF' E''' (evalFrame F E'''') (μ V -))) (cong (λ E → extendEvalCtx E (μ V -)) q) , subst Value⋆ (sym (closeEF E'''' (μ V -) M)) V' , subst (λ V → ¬ (Value⋆ V)) (cong (closeFrame F) (sym (closeEF E'''' (μ V -) M))) ¬V , E''''' , trans q' (sym (closeEF E'' (μ V -) M))
-
-postulate
- lemmaY : ∀ (M : ∅ ⊢⋆ J)(E : EvalCtx K J)(E' : EvalCtx K J')
-    (L : ∅ ⊢⋆ I ⇒ J') N
-  → (VM : Value⋆ M) → (VL : Value⋆ L) → Value⋆ N
-  → closeEvalCtx E M ≡ closeEvalCtx E' (L · N)
-  → ∃ λ J'
-  → ∃ λ (E'''' : EvalCtx J' J)
-  → ∃ λ (VEM : Value⋆ (closeEvalCtx E'''' M))
-  → (∃ λ (p : J' ≡ *)
-  → ∃ λ E''
-  → ∃ λ E'''
-  → E ≡ compEvalCtx E'' (subst (λ I → EvalCtx I _) p E'''' l⇒ closeEvalCtx E''' (L · N))
-  × E' ≡ compEvalCtx E'' (substVal p VEM ⇒r E'''))
-  ⊎ (∃ λ (I : Kind)
-  → ∃ λ (p : J' ≡ (I ⇒ *) ⇒ I ⇒ *)
-  → ∃ λ E''
-  → ∃ λ E'''
-  → E ≡ compEvalCtx E'' (μl (subst (λ I → EvalCtx I _) p E'''') (closeEvalCtx E''' (L · N)))
-  × E' ≡ compEvalCtx E'' (μr (substVal p VEM) E'''))
