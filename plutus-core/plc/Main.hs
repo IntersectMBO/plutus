@@ -27,7 +27,6 @@ import qualified UntypedPlutusCore.Evaluation.Machine.Cek as Cek
 import           Codec.Serialise
 import           Control.DeepSeq                          (NFData, rnf)
 import           Control.Monad
-import           Control.Monad.ST
 import           Control.Monad.Trans.Except               (runExcept, runExceptT)
 import           Data.Bifunctor                           (second)
 import qualified Data.ByteString.Lazy                     as BSL
@@ -99,7 +98,7 @@ data ExampleMode = ExampleSingle ExampleName | ExampleAvailable
 data EvalMode    = CK | CEK deriving (Show, Read)
 data BudgetMode  = Silent
                  | forall cost. (Eq cost, NFData cost, PrintBudgetState cost) =>
-                     Verbose (forall s. ST s (Cek.ExBudgetMode cost PLC.DefaultUni PLC.DefaultFun s))
+                     Verbose (Cek.ExBudgetMode cost PLC.DefaultUni PLC.DefaultFun)
 data AstNameType = Named | DeBruijn  -- Do we use Names or de Bruijn indices when (de)serialising ASTs?
 type Files       = [FilePath]
 

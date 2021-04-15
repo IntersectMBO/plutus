@@ -49,7 +49,6 @@ import           PlutusCore.Name
 import           PlutusCore.Pretty
 import           PlutusCore.Universe
 
-import           Control.Monad.ST
 import           Data.Ix
 
 {- Note [CEK runners naming convention]
@@ -69,7 +68,7 @@ runCekNoEmit
        , Ix fun, ExMemoryUsage fun
        )
     => BuiltinsRuntime fun (CekValue uni fun)
-    -> (forall s. ST s (ExBudgetMode cost uni fun s))
+    -> ExBudgetMode cost uni fun
     -> Term Name uni fun ()
     -> (Either (CekEvaluationException uni fun) (Term Name uni fun ()), cost)
 runCekNoEmit runtime mode term =
@@ -84,7 +83,7 @@ unsafeRunCekNoEmit
        , Ix fun, Pretty fun, Typeable fun, ExMemoryUsage fun
        )
     => BuiltinsRuntime fun (CekValue uni fun)
-    -> (forall s. ST s (ExBudgetMode cost uni fun s))
+    -> ExBudgetMode cost uni fun
     -> Term Name uni fun ()
     -> (EvaluationResult (Term Name uni fun ()), cost)
 unsafeRunCekNoEmit runtime mode =

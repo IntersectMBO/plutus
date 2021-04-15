@@ -16,8 +16,6 @@
 {-# LANGUAGE TypeOperators         #-}
 {-# LANGUAGE UndecidableInstances  #-}
 
-{-# OPTIONS_GHC -ddump-simpl -ddump-to-file -dsuppress-uniques -dsuppress-coercions -dsuppress-type-applications -dsuppress-unfoldings -dsuppress-idinfo -dumpdir /tmp/dumps #-}
-
 module UntypedPlutusCore.Evaluation.Machine.Cek.Internal
     -- See Note [Compilation peculiarities].
     ( EvaluationResult(..)
@@ -25,9 +23,10 @@ module UntypedPlutusCore.Evaluation.Machine.Cek.Internal
     , CekUserError(..)
     , CekEvaluationException
     , CekBudgetSpender(..)
-    , CekM
+    , ExBudgetInfo(..)
     , ExBudgetMode(..)
-    , liftST
+    , CekM
+    , liftCekST
     , ErrorWithCause(..)
     , EvaluationError(..)
     , ExBudgetCategory(..)
@@ -65,6 +64,8 @@ import           Data.Text.Prettyprint.Doc
 
 {- Note [Compilation peculiarities]
 READ THIS BEFORE TOUCHING ANYTHING IN THIS FILE
+
+Don't use @StrictData@, it makes the machine slower by several percent.
 
 Exporting the 'computeCek' function from this module causes the CEK machine to become slower by
 up to 25%. I repeat: just adding 'computeCek' to the export list makes the evaluator substantially
@@ -166,13 +167,30 @@ newtype CekBudgetSpender cost uni fun s = CekBudgetSpender
         => ExBudgetCategory fun -> ExBudget -> CekCarryingM cost term uni fun s ()
     }
 
+-- General enough to be able to handle a spender having one, two or any number of 'STRef's
+-- under the hood.
+-- | Runtime budgeting info.
+data ExBudgetInfo cost uni fun s = ExBudgetInfo
+    { _exBudgetModeSpender  :: !(CekBudgetSpender cost uni fun s)  -- ^ A spending function.
+    , _exBudgetModeGetFinal :: !(ST s cost)                        -- ^ For accessing the final state.
+    }
+
+-- We make a separate data type here just to save the caller of the CEK machine from those pesky
+-- 'ST'-related details.
+-- | A budgeting mode to execute the CEK machine in.
+newtype ExBudgetMode cost uni fun = ExBudgetMode
+    { unExBudgetMode :: forall s. ST s (ExBudgetInfo cost uni fun s)
+    }
+
 -- | The environment the CEK machine runs in.
 data CekEnv cost uni fun s = CekEnv
-    { cekEnvRuntime      :: BuiltinsRuntime fun (CekValue uni fun)
+    { cekEnvRuntime      :: !(BuiltinsRuntime fun (CekValue uni fun))
     -- 'Nothing' means no logging. 'DList' is due to the fact that we need efficient append
     -- as we store logs as "latest go last".
-    , cekEnvMayEmitRef   :: Maybe (STRef s (DList String))
-    , cekEnvExBudgetMode :: ExBudgetMode cost uni fun s
+    , cekEnvMayEmitRef   :: !(Maybe (STRef s (DList String)))
+    -- This pragma together with the strictness annotation gave us a 4.5-6% speedup at the time they
+    -- were introduced.
+    , cekEnvExBudgetInfo :: {-# UNPACK #-} !(ExBudgetInfo cost uni fun s)
     }
 
 data CekUserError
@@ -222,12 +240,6 @@ type CekEvaluationException uni fun = CekEvaluationExceptionCarrying (Term Name 
 -- | The monad the CEK machine runs in.
 type CekM cost uni fun s = CekCarryingM cost (Term Name uni fun ()) uni fun s
 
--- | A budgeting mode to execute an evaluator in.
-data ExBudgetMode cost uni fun s = ExBudgetMode
-    { _exBudgetModeSpender  :: CekBudgetSpender cost uni fun s  -- ^ A spending function.
-    , _exBudgetModeGetFinal :: ST s cost                        -- ^ For accessing the final state.
-    }
-
 instance AsEvaluationFailure CekUserError where
     _EvaluationFailure = _EvaluationFailureVia CekEvaluationFailure
 
@@ -237,8 +249,9 @@ instance Pretty CekUserError where
     pretty CekEvaluationFailure = "The provided Plutus code called 'error'."
 
 -- Should we use @https://hackage.haskell.org/package/monad-st@?
-liftST :: ST s a -> CekCarryingM cost term uni fun s a
-liftST = lift . lift
+-- | Lift an 'ST' computation into 'CekCarryingM'.
+liftCekST :: ST s a -> CekCarryingM cost term uni fun s a
+liftCekST = lift . lift
 
 {- | Given a possibly partially applied/instantiated builtin, reconstruct the
    original application from the type and term arguments we've got so far, using
@@ -324,14 +337,14 @@ instance MonadEmitter (CekCarryingM cost term uni fun s) where
         mayLogsRef <- asks cekEnvMayEmitRef
         case mayLogsRef of
             Nothing      -> pure ()
-            Just logsRef -> liftST $ modifySTRef logsRef (`DList.snoc` str)
+            Just logsRef -> liftCekST $ modifySTRef logsRef (`DList.snoc` str)
 
 -- We only need the @Eq fun@ constraint here and not anywhere else, because in other places we have
 -- @Ix fun@ which implies @Ord fun@ which implies @Eq fun@.
 instance ToExMemory term =>
             SpendBudget (CekCarryingM cost term uni fun s) fun (ExBudgetCategory fun) term where
     spendBudget key budgetToSpend = do
-        ExBudgetMode (CekBudgetSpender spend) _ <- asks cekEnvExBudgetMode
+        ExBudgetInfo (CekBudgetSpender spend) _ <- asks cekEnvExBudgetInfo
         spend key budgetToSpend
 
 data Frame uni fun
@@ -345,12 +358,12 @@ type Context uni fun = [Frame uni fun]
 runCekM
     :: forall a cost uni fun.
        BuiltinsRuntime fun (CekValue uni fun)
-    -> (forall s. ST s (ExBudgetMode cost uni fun s))
+    -> ExBudgetMode cost uni fun
     -> Bool
     -> (forall s. CekM cost uni fun s a)
     -> (Either (CekEvaluationException uni fun) a, cost, [String])
-runCekM runtime getExBudgetMode emitting a = runST $ do
-    exBudgetMode <- getExBudgetMode
+runCekM runtime (ExBudgetMode getExBudgetInfo) emitting a = runST $ do
+    exBudgetMode <- getExBudgetInfo
     mayLogsRef <- if emitting then Just <$> newSTRef DList.empty else pure Nothing
     errOrRes <- runExceptT . runReaderT a $ CekEnv runtime mayLogsRef exBudgetMode
     st' <- _exBudgetModeGetFinal exBudgetMode
@@ -551,12 +564,12 @@ runCek
        , Ix fun, ExMemoryUsage fun
        )
     => BuiltinsRuntime fun (CekValue uni fun)
-    -> (forall s. ST s (ExBudgetMode cost uni fun s))
+    -> ExBudgetMode cost uni fun
     -> Bool
     -> Term Name uni fun ()
     -> (Either (CekEvaluationException uni fun) (Term Name uni fun ()), cost, [String])
-runCek runtime getExBudgetMode emitting term =
-    runCekM runtime getExBudgetMode emitting $ do
+runCek runtime getExBudgetInfo emitting term =
+    runCekM runtime getExBudgetInfo emitting $ do
         spendBudget BAST (ExBudget 0 (termAnn memTerm))
         computeCek [] mempty memTerm
   where

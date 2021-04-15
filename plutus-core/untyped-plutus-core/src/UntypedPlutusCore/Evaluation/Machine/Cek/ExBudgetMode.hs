@@ -6,8 +6,6 @@
 
 {-# LANGUAGE StrictData            #-}
 
-{-# OPTIONS_GHC -ddump-simpl -ddump-to-file -dsuppress-uniques -dsuppress-coercions -dsuppress-type-applications -dsuppress-unfoldings -dsuppress-idinfo -dumpdir /tmp/dumps #-}
-
 module UntypedPlutusCore.Evaluation.Machine.Cek.ExBudgetMode
     ( ExBudgetMode (..)
     , CountingSt (..)
@@ -33,7 +31,6 @@ import           PlutusCore.Evaluation.Machine.Exception
 
 import           Control.Lens                                      (ifoldMap)
 import           Control.Monad.Except
-import           Control.Monad.ST
 import           Data.HashMap.Monoidal                             as HashMap
 import           Data.Hashable                                     (Hashable)
 import           Data.List                                         (intersperse)
@@ -46,13 +43,11 @@ import           Text.PrettyBy                                     (IgnorePretty
 -- | Construct an 'ExBudgetMode' out of a function returning a value of the budgeting state type.
 -- The value then gets added to the current state via @(<>)@.
 monoidalBudgeting
-    :: Monoid cost
-    => (ExBudgetCategory fun -> ExBudget -> cost)
-    -> ST s (ExBudgetMode cost uni fun s)
-monoidalBudgeting toCost = do
+    :: Monoid cost => (ExBudgetCategory fun -> ExBudget -> cost) -> ExBudgetMode cost uni fun
+monoidalBudgeting toCost = ExBudgetMode $ do
     costRef <- newSTRef mempty
-    let spend key budgetToSpend = liftST $ modifySTRef' costRef (<> toCost key budgetToSpend)
-    pure . ExBudgetMode (CekBudgetSpender spend) $ readSTRef costRef
+    let spend key budgetToSpend = liftCekST $ modifySTRef' costRef (<> toCost key budgetToSpend)
+    pure . ExBudgetInfo (CekBudgetSpender spend) $ readSTRef costRef
 
 -- | For calculating the cost of execution by counting up using the 'Monoid' instance of 'ExBudget'.
 newtype CountingSt = CountingSt ExBudget
@@ -63,7 +58,7 @@ instance Pretty CountingSt where
     pretty (CountingSt budget) = parens $ "required budget:" <+> pretty budget <> line
 
 -- | For calculating the cost of execution.
-counting :: ST s (ExBudgetMode CountingSt uni fun s)
+counting :: ExBudgetMode CountingSt uni fun
 counting = monoidalBudgeting $ const CountingSt
 
 -- | For a detailed report on what costs how much + the same overall budget that 'Counting' gives.
@@ -94,7 +89,7 @@ instance (Show fun, Ord fun) => Pretty (TallyingSt fun) where
         ]
 
 -- | For a detailed report on what costs how much + the same overall budget that 'Counting' gives.
-tallying :: (Eq fun, Hashable fun) => ST s (ExBudgetMode (TallyingSt fun) uni fun s)
+tallying :: (Eq fun, Hashable fun) => ExBudgetMode (TallyingSt fun) uni fun
 tallying =
     monoidalBudgeting $ \key budgetToSpend ->
         TallyingSt (CekExTally $ singleton key budgetToSpend) budgetToSpend
@@ -108,25 +103,27 @@ instance Pretty RestrictingSt where
     pretty (RestrictingSt budget) = parens $ "final budget:" <+> pretty budget <> line
 
 -- | For execution, to avoid overruns.
-restricting :: ExRestrictingBudget -> ST s (ExBudgetMode RestrictingSt uni fun s)
-restricting (ExRestrictingBudget (ExBudget cpuInit memInit)) = do
+restricting :: ExRestrictingBudget -> ExBudgetMode RestrictingSt uni fun
+restricting (ExRestrictingBudget (ExBudget cpuInit memInit)) = ExBudgetMode $ do
+    -- Using two separate 'STRef's instead of a single one for efficiency reasons.
+    -- Gave us a ~1% speedup the time this idea was implemented.
     cpuRef <- newSTRef cpuInit
     memRef <- newSTRef memInit
     let spend _ (ExBudget cpuToSpend memToSpend) = do
-            cpuLeft <- liftST $ readSTRef cpuRef
-            memLeft <- liftST $ readSTRef memRef
+            cpuLeft <- liftCekST $ readSTRef cpuRef
+            memLeft <- liftCekST $ readSTRef memRef
             let cpuLeft' = cpuLeft `minusExCPU` cpuToSpend
             let memLeft' = memLeft `minusExMemory` memToSpend
             -- Note that even if we throw an out-of-budget error, we still need to record
             -- what the final state was.
-            liftST . writeSTRef cpuRef $! cpuLeft'
-            liftST . writeSTRef memRef $! memLeft'
+            liftCekST . writeSTRef cpuRef $! cpuLeft'
+            liftCekST . writeSTRef memRef $! memLeft'
             when (cpuLeft' < 0 || memLeft' < 0) $
                 throwingWithCause _EvaluationError
                     (UserEvaluationError . CekOutOfExError $
                         ExRestrictingBudget $ ExBudget cpuLeft' memLeft')
                     Nothing
-    pure . ExBudgetMode (CekBudgetSpender spend) $ do
+    pure . ExBudgetInfo (CekBudgetSpender spend) $ do
         finalExBudget <- ExBudget <$> readSTRef cpuRef <*> readSTRef memRef
         pure . RestrictingSt $ ExRestrictingBudget finalExBudget
 
@@ -137,5 +134,5 @@ enormousBudget = ExRestrictingBudget $ ExBudget (ExCPU maxInt) (ExMemory maxInt)
                  where maxInt = fromIntegral (maxBound::Int)
 
 -- | 'restricting' instantiated at 'enormousBudget'.
-restrictingEnormous :: ST s (ExBudgetMode RestrictingSt uni fun s)
+restrictingEnormous :: ExBudgetMode RestrictingSt uni fun
 restrictingEnormous = restricting enormousBudget
