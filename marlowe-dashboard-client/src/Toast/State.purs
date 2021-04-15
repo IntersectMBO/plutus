@@ -5,14 +5,15 @@ module Toast.State
 
 import Prelude
 import Data.Foldable (for_)
-import Data.Lens (assign, preview)
+import Data.Lens (assign)
 import Data.Lens.Extra (peruse)
-import Data.Maybe (Maybe(..), fromMaybe)
+import Data.Maybe (Maybe(..))
 import Data.Time.Duration (Milliseconds(..))
 import Effect.Aff (error)
 import Effect.Aff as Aff
 import Effect.Aff.Class (class MonadAff)
-import Halogen (HalogenM, get, subscribe, unsubscribe)
+import Halogen (HalogenM, RefLabel(..), getHTMLElementRef, subscribe, unsubscribe)
+import Halogen.Animation (animateAndWaitUntilFinish)
 import Halogen.Query.EventSource (EventSource)
 import Halogen.Query.EventSource as EventSource
 import Toast.Lenses (_expanded, _mToast, _timeoutSubscription)
@@ -54,7 +55,5 @@ handleAction ExpandToast = do
 handleAction CloseToast = assign _mToast Nothing
 
 handleAction ToastTimeout = do
-  state <- get
-  let
-    expanded = fromMaybe false $ preview _expanded state
-  when (not expanded) $ handleAction CloseToast
+  mElement <- getHTMLElementRef (RefLabel "collapsed-toast")
+  for_ mElement $ subscribe <<< animateAndWaitUntilFinish "to-bottom" CloseToast

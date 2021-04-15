@@ -52,11 +52,16 @@ module.exports = {
     extend: {
       animation: {
         "from-below": "from-below 250ms ease-out 1",
+        "to-bottom": "to-bottom 250ms ease-out 1",
       },
       keyframes: {
         "from-below": {
           "0%": { transform: "translateY(20px)", opacity: 0 },
           "100%": { transform: "translateY(0px)", opacity: 1 },
+        },
+        "to-bottom": {
+          "0%": { transform: "translateY(0px)", opacity: 1 },
+          "100%": { transform: "translateY(20px)", opacity: 0 },
         },
       },
       gridTemplateRows: {
