@@ -620,6 +620,7 @@ toDefinition blockType@(ContractType WhenContractType) =
         , colour: blockColour blockType
         , previousStatement: Just (show BaseContractType)
         , inputsInline: Just false
+        , extensions: [ "timeout_validator" ]
         }
         defaultBlockDefinition
 
@@ -1612,16 +1613,16 @@ instance toBlocklyContract :: ToBlockly Contract where
     block <- newBlock workspace (show WhenContractType)
     connectToPrevious block input
     inputToBlockly newBlock workspace block "case" cases
+    setField block "timeout_type"
+      ( case timeout of
+          Term (SlotParam _) _ -> "slot_param"
+          _ -> "slot"
+      )
     setField block "timeout"
       ( case timeout of
           Term (Slot slotNum) _ -> show slotNum
           Term (SlotParam paramName) _ -> paramName
           _ -> "0"
-      )
-    setField block "timeout_type"
-      ( case timeout of
-          Term (SlotParam _) _ -> "slot_param"
-          _ -> "slot"
       )
     inputToBlockly newBlock workspace block "contract" contract
   toBlockly newBlock workspace input (Let (TermWrapper (ValueId valueId) _) value contract) = do

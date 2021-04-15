@@ -6,7 +6,7 @@ var JSONbig = require("json-bigint");
 exports.createBlocklyInstance_ = function () {
   return require("blockly");
 };
-exports.debugBlockly_ = function debugBlockly_ (name, state) {
+exports.debugBlockly_ = function debugBlockly_(name, state) {
   if (typeof window.blockly === 'undefined') {
     window.blockly = {};
   }
@@ -17,6 +17,41 @@ exports.getElementById_ = function (id) {
 };
 
 exports.createWorkspace_ = function (blockly, workspaceDiv, config) {
+  /* Register extensions */
+  /* Silently clean if already registered */
+  try { blockly.Extensions.register('timeout_validator', function () { }); } catch(err) { }
+  blockly.Extensions.unregister('timeout_validator');
+
+  /* Timeout extension (advanced validation for the timeout field) */
+  blockly.Extensions.register('timeout_validator',
+    function () {
+      var thisBlock = this;
+
+      /* Validator for timeout */
+      var timeoutValidator = function (input) {
+        if (thisBlock.getFieldValue('timeout_type') != 'slot' || (new RegExp('^-?[0-9](,?[0-9])*$', 'g')).test(input)) {
+          return input;
+        } else {
+          return null;
+        }
+      };
+      
+      thisBlock.getField('timeout').setValidator(timeoutValidator);
+
+      /* This sets the timeout to zero when switching to slot in the dropdown */
+      this.setOnChange(function (event) {
+        if (event.blockId == thisBlock.id &&
+          event.name == 'timeout_type' &&
+          event.element == 'field' &&
+          event.oldValue != event.newValue) {
+          if (timeoutValidator(thisBlock.getFieldValue('timeout')) === null) {
+              thisBlock.setFieldValue('0', 'timeout');
+          }
+        }
+      });
+    });
+
+  /* Inject workspace */
   var workspace = blockly.inject(workspaceDiv, config);
   blockly.svgResize(workspace);
   return workspace;
@@ -123,4 +158,5 @@ exports.getBlockType_ = function (block) {
 exports.updateToolbox_ = function (toolboxJson, workspace) {
   workspace.updateToolbox(toolboxJson);
 }
+
 
