@@ -28,6 +28,9 @@ import Halogen (HalogenM)
 import Marlowe.Semantics (Contract, Input, Party, Slot, TokenName)
 import Network.RemoteData (RemoteData(..))
 import Plutus.PAB.Webserver.Types (ContractActivationArgs(..))
+import Plutus.V1.Ledger.Crypto (PubKeyHash) as Back
+import Plutus.V1.Ledger.Value (TokenName) as Back
+import PlutusTx.AssocMap (Map) as Back
 import Types (DecodedWebData, ContractInstanceId, WebData)
 import WalletData.Types (PubKeyHash, Wallet)
 
@@ -59,7 +62,10 @@ instance monadMarloweAppM :: ManageMarloweContract AppM where
     case webContractInstanceId of
       Success contractInstanceId -> do
         let
-          rawJson = RawJson <<< unsafeStringify <<< encode $ (roles /\ contract)
+          bRoles :: Back.Map Back.TokenName Back.PubKeyHash
+          bRoles = toBack roles
+
+          rawJson = RawJson <<< unsafeStringify <<< encode $ (bRoles /\ contract)
         _ <- invokeEndpoint rawJson contractInstanceId "create"
         pure webContractInstanceId
       _ -> pure webContractInstanceId

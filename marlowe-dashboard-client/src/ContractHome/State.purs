@@ -4,7 +4,7 @@ module ContractHome.State
   , handleAction
   , partitionContracts
   -- FIXME: Remove this, only for developing
-  , loadExistingContracts
+  , dummyContracts
   ) where
 
 import Prelude
@@ -25,15 +25,13 @@ import Data.Maybe (Maybe(..), fromMaybe)
 import Data.Tuple (snd)
 import Data.Tuple.Nested ((/\))
 import Data.UUID (emptyUUID)
-import Effect (Effect)
 import Examples.PureScript.Escrow as Escrow
 import Examples.PureScript.EscrowWithCollateral as EscrowWithCollateral
 import Examples.PureScript.ZeroCouponBond as ZeroCouponBond
 import Halogen (HalogenM, modify_)
-import MainFrame.Types (Msg)
+import MainFrame.Types (ChildSlots, Msg)
 import Marlowe.Extended (TemplateContent(..), fillTemplate, resolveRelativeTimes, toCore)
 import Marlowe.Semantics (Input(..), Party(..), Slot(..), SlotInterval(..), Token(..), TransactionInput(..))
-import Marlowe.Slot (currentSlot)
 import Types (ContractInstanceId(..))
 import WalletData.Validation (parseContractInstanceId)
 
@@ -49,8 +47,8 @@ mkInitialState contracts =
   }
 
 handleAction ::
-  forall m slots msg.
-  Action -> HalogenM State Action slots msg m Unit
+  forall m.
+  Action -> HalogenM State Action ChildSlots Msg m Unit
 handleAction OpenTemplateLibraryCard = pure unit -- handled in Play.State
 
 handleAction (SelectView view) = assign _status view
@@ -73,11 +71,9 @@ partitionContracts contracts =
     # \{ no, yes } -> { completed: yes, running: no }
 
 -- FIXME: Remove this, only for developing
-loadExistingContracts :: Effect (Map ContractInstanceId Contract.State)
-loadExistingContracts = do
-  slot <- currentSlot
-  pure
-    $ catMaybes [ filledContract1 slot, filledContract2 slot, filledContract3 slot ]
+dummyContracts :: Slot -> (Map ContractInstanceId Contract.State)
+dummyContracts slot =
+  catMaybes [ filledContract1 slot, filledContract2 slot, filledContract3 slot ]
     -- FIXME: only to have multiple contracts, remove.
     
     -- # (bindFlipped $ Array.replicate 10)

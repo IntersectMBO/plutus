@@ -9,22 +9,18 @@ import Capability.Contract (class ManageContract)
 import Capability.Toast (class Toast)
 import Capability.Wallet (class ManageWallet)
 import Contract.State (dummyState, handleAction) as Contract
-import Contract.State (instantiateExtendedContract)
 import Contract.Types (Action(..), State) as Contract
-import ContractHome.Lenses (_contracts)
 import ContractHome.State (handleAction, mkInitialState) as ContractHome
 import ContractHome.Types (Action(..), State) as ContractHome
 import Control.Monad.Reader (class MonadAsk)
 import Data.Array (init, snoc)
 import Data.Foldable (for_)
-import Data.FunctorWithIndex (mapWithIndex)
-import Data.Lens (assign, modifying, set, use, view, (^.))
+import Data.Lens (assign, modifying, set, use)
 import Data.Lens.Extra (peruse)
 import Data.Lens.Fold (lastOf)
 import Data.Lens.Traversal (traversed)
-import Data.Map (Map, lookup, mapMaybe)
-import Data.Maybe (Maybe(..), fromMaybe)
-import Data.Set.Extra (setToMap)
+import Data.Map (Map)
+import Data.Maybe (Maybe(..))
 import Data.Time.Duration (Minutes(..))
 import Data.UUID (emptyUUID)
 import Effect.Aff.Class (class MonadAff)
@@ -33,19 +29,13 @@ import Halogen (HalogenM, modify_)
 import Halogen.Extra (mapMaybeSubmodule, mapSubmodule)
 import MainFrame.Lenses (_screen)
 import MainFrame.Types (ChildSlots, Msg)
-import Marlowe.Extended (fillTemplate, resolveRelativeTimes, toCore)
-import Marlowe.HasParties (getParties)
-import Marlowe.Semantics (Party(..), Slot)
-import Marlowe.Semantics as Semantic
-import Play.Lenses (_cards, _contractsState, _currentSlot, _menuOpen, _selectedContract, _templateState, _walletDetails)
+import Play.Lenses (_cards, _contractsState, _currentSlot, _menuOpen, _selectedContract, _templateState)
 import Play.Types (Action(..), Card(..), Screen(..), State)
-import Template.Lenses (_extendedContract, _metaData, _roleWallets, _template, _templateContent)
+import Template.Lenses (_template)
 import Template.State (dummyState, handleAction, mkInitialState) as Template
 import Template.Types (Action(..), State) as Template
 import Types (ContractInstanceId(..))
-import WalletData.Lenses (_wallet)
-import WalletData.Types (PubKeyHash(..), Wallet(..), WalletDetails, WalletNickname)
-import WalletData.Validation (parseContractInstanceId)
+import WalletData.Types (PubKeyHash(..), Wallet(..), WalletDetails)
 
 -- see note [dummyState]
 dummyState :: State

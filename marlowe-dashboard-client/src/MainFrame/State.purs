@@ -7,6 +7,7 @@ import Capability.Marlowe (class ManageMarloweContract, marloweCreateContract, m
 import Capability.Toast (class Toast, addToast)
 import Capability.Wallet (class ManageWallet, createWallet, getWalletInfo, getWalletTotalFunds)
 import Capability.Websocket (class MonadWebsocket, subscribeToContract, subscribeToWallet, unsubscribeFromWallet)
+import ContractHome.State (dummyContracts)
 import Control.Monad.Except (runExcept)
 import Control.Monad.Reader (class MonadAsk)
 import Control.Monad.Rec.Class (forever)
@@ -45,7 +46,7 @@ import Pickup.Types (Action(..), State) as Pickup
 import Pickup.Types (Card(..), PickupNewWalletContext(..))
 import Play.Lenses (_allContracts, _currentSlot, _templateState, _walletDetails)
 import Play.State (dummyState, handleAction, mkInitialState) as Play
-import Play.Types (Action(..), State) as Play
+import Play.Types (Action(..), Screen(..), State) as Play
 import Plutus.PAB.Webserver.Types (CombinedWSStreamToClient(..), ContractInstanceClientState(..), InstanceStatusToClient(..))
 import StaticData (walletDetailsLocalStorageKey, walletLibraryLocalStorageKey)
 import Template.Lenses (_extendedContract, _roleWallets, _template, _templateContent)
@@ -279,9 +280,10 @@ handleAction (PickupAction pickupAction) = case pickupAction of
         -- subscribe to the wallet to get updates about balance changes
         subscribeToWallet wallet
         -- FIXME: make sure all contracts are started and get latest contract state
-        let
-          contracts = mempty
         -- FIXME: subscribe to each contract to get updates about their state
+        slot <- liftEffect currentSlot
+        let
+          contracts = dummyContracts slot
         modify_
           $ set _subState (Right $ Play.mkInitialState updatedWalletDetails contracts timezoneOffset)
           <<< set (_pickupState <<< _card) Nothing
@@ -289,8 +291,6 @@ handleAction (PickupAction pickupAction) = case pickupAction of
         liftEffect $ setItem walletDetailsLocalStorageKey $ encodeJSON updatedWalletDetails
       -- TODO: show more specific errors for the different cases
       Failure err, _, _ -> networkErrorToast err
-      _, Failure err, _ -> networkErrorToast err
-      _, _, Failure err -> networkErrorToast err
       _, _, _ -> pure unit
   Pickup.GenerateNewWallet -> do
     remoteDataWalletInfo <- createWallet
@@ -389,7 +389,10 @@ handleAction (PlayAction playAction) = case playAction of
         case remoteDataContractInstanceId of
           Success contractInstanceId -> do
             subscribeToContract contractInstanceId
-            -- FIXME: pass the contract state to Contract.State
+            contractInstanceClientState <- getContractInstanceClientState contractInstanceId
+            -- FIXME: map the clientState to the information we need, and update ContractHome.State
+            handleAction $ PlayAction $ Play.SetScreen Play.ContractsScreen
+            -- FIXME: show a toast notification and open the card for this contract
             pure unit
           Failure ajaxError -> pure unit -- FIXME: show errors to the user
           _ -> pure unit

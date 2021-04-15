@@ -79,6 +79,7 @@ instance encodeWallet :: Encode Wallet where
 instance decodeWallet :: Decode Wallet where
   decode value = genericDecode defaultOptions value
 
+-- TODO: move this into Marlowe.Semantics
 newtype PubKeyHash
   = PubKeyHash String
 

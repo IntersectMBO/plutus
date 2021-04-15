@@ -26,22 +26,28 @@ import Wallet.Types (ContractInstanceId(..)) as Back
 import Wallet.Types (Payment)
 import WalletData.Types (PubKeyHash(..), Wallet(..), WalletInfo(..)) as Front
 
--- | Servant.PureScript generates PureScript types from the Haskell codebase with JSON encode and decode instances
---   that in principle enable easy communication between the (frontend) PureScript and (backend) Haskell code.
---   **However**:
---     - The Haskell code uses the newtype record shorthand a lot (e.g. newtype Slot = { getSlot: Integer }),
---       which PureScript takes literally. Using these types directly in the PureScript code thus leads to a
---       lot of tedious boilerplate.
---     - The PureScript Marlowe.Semantics modules uses aliases in a handful of places where the Haskell code uses
---       newtypes. I don't know why this is (it was before my time), and we should look into bringing things into
---       closer alignment. But in the meantime, this module plasters over the cracks.
---     - The Haskell code uses a custom `PlutusTx.AssocMap` where the PureScript code uses the standard `Data.Map`.
---       This is because the Plutus core cannot compile the standard Haskell `Data.Map`.
---
--- TODO: Bring the PureScript Marlowe.Semantics types into closer alignment with their Haskell equivalents.
---
--- TODO: Some form of "bridge" module like this will probably always be wanted, even with the types in closer
--- alignment. But it should be as general as possible and moved into a web-common directory.
+{-
+Note [JSON communication]: To ensure the client and the PAB server understand each other, they have
+to be able to serialize/deserialize data in the same way. This is achieved in two ways:
+
+1. Using PureScript types that are automatically generated from the Haskell code by Servant.PureScript.
+2. Creating our own custom JSON encode/decode instances and making sure that they match.
+
+In general, method 1 is preferable (no risk of human error), but method 2 is used for the
+Marlowe.Contract. This is because we want custom encode/decode instances for Marlowe contracts anyway
+(making the JSON more readable makes the JavaScript implementation of Marlowe nicer, since this works
+by writing the contract as JSON directly.
+
+There are two issues with method 1. First, the Haskell code uses a custom `PlutusTx.AssocMap` instead
+of the standard `Data.Map`, a complication that is unnecessary on the PureScript side. Second, the
+Haskell code uses the newtype record shorthand a lot (e.g. newtype Slot = { getSlot: Integer }), which
+PureScript takes literally. Using these types directly in the PureScript code thus leads to a lot of
+tedious boilerplate.
+
+This module takes care of these issues by providing an isomorphism between relevant backend types and
+their PureScript-friendly counterparts. Note, however, that the mappings should *not* be used for
+Marlowe contracts, since for these we have the custom JSON encode/decode instances.
+-}
 _bridge :: forall a b. Bridge a b => Iso' a b
 _bridge = iso toFront toBack
 
