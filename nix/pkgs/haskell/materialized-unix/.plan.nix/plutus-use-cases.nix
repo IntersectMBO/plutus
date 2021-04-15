@@ -184,6 +184,7 @@
             "Spec/Escrow"
             "Spec/Future"
             "Spec/GameStateMachine"
+            "Spec/Governance"
             "Spec/MultiSig"
             "Spec/MultiSigStateMachine"
             "Spec/PingPong"
