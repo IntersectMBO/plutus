@@ -51,8 +51,9 @@ import           GHC.Generics                     (Generic)
 import           Ledger.Blockchain
 import qualified Plutus.V1.Ledger.Ada             as Ada
 import           Plutus.V1.Ledger.Address
-import           Plutus.V1.Ledger.Contexts        (PolicyCtx (..), TxInfo (..), ValidatorCtx (..))
+import           Plutus.V1.Ledger.Contexts        (ScriptContext (..), ScriptPurpose (..), TxInfo (..))
 import qualified Plutus.V1.Ledger.Contexts        as Validation
+import           Plutus.V1.Ledger.Credential      (Credential (..))
 import           Plutus.V1.Ledger.Crypto
 import qualified Plutus.V1.Ledger.Interval        as Interval
 import           Plutus.V1.Ledger.Scripts
@@ -220,8 +221,11 @@ checkForgingScripts :: forall m . ValidationMonad m => Tx -> m ()
 checkForgingScripts tx = do
     txinfo <- mkTxInfo tx
     let mpss = Set.toList (txForgeScripts tx)
-        mkVd :: Integer -> PolicyCtx
-        mkVd i = PolicyCtx { policyCtxPolicy = monetaryPolicyHash $ mpss !! fromIntegral i, policyCtxTxInfo = txinfo }
+        mkVd :: Integer -> ScriptContext
+        mkVd i =
+            let cs :: V.CurrencySymbol
+                cs = V.mpsSymbol $ monetaryPolicyHash $ mpss !! fromIntegral i
+            in ScriptContext { scriptContextPurpose = Minting cs, scriptContextTxInfo = txinfo }
     forM_ (mpss `zip` (mkVd <$> [0..])) $ \(vl, ptx') ->
         let vd = Context $ toData ptx'
         in case runExcept $ runMonetaryPolicyScript vd vl of
@@ -233,7 +237,7 @@ checkForgingScripts tx = do
 -- | A matching pair of transaction input and transaction output, ensuring that they are of matching types also.
 data InOutMatch =
     ScriptMatch
-        Integer
+        TxOutRef
         Validator
         Redeemer
         Datum
@@ -254,13 +258,13 @@ matchInputOutput :: ValidationMonad m
     -> TxOut
     -- ^ The unspent transaction output we are trying to unlock
     -> m InOutMatch
-matchInputOutput txid mp ix txin txo = case (txInType txin, txOutType txo, txOutAddress txo) of
-    (ConsumeScriptAddress v r d, PayToScript dh, ScriptAddress vh) -> do
+matchInputOutput txid mp ix txin txo = case (txInType txin, txOutDatumHash txo, txOutAddress txo) of
+    (ConsumeScriptAddress v r d, Just dh, Address{addressCredential=ScriptCredential vh}) -> do
         unless (datumHash d == dh) $ throwError $ InvalidDatumHash d dh
         unless (validatorHash v == vh) $ throwError $ InvalidScriptHash v vh
 
-        pure $ ScriptMatch (fromIntegral ix) v r d
-    (ConsumePublicKeyAddress, PayToPubKey, PubKeyAddress pkh) ->
+        pure $ ScriptMatch (txInRef txin) v r d
+    (ConsumePublicKeyAddress, Nothing, Address{addressCredential=PubKeyCredential pkh}) ->
         let sigMatches = flip fmap (Map.toList mp) $ \(pk,sig) ->
                 if pubKeyHash pk == pkh
                 then Just (PubKeyMatch txid pk sig)
@@ -277,9 +281,9 @@ matchInputOutput txid mp ix txin txo = case (txInType txin, txOutType txo, txOut
 --   locks it.
 checkMatch :: ValidationMonad m => TxInfo -> InOutMatch -> m ()
 checkMatch txinfo = \case
-    ScriptMatch ix vl r d -> do
+    ScriptMatch txOutRef vl r d -> do
         let
-            ptx' = ValidatorCtx { valCtxTxInfo = txinfo, valCtxInput = ix }
+            ptx' = ScriptContext { scriptContextTxInfo = txinfo, scriptContextPurpose = Spending txOutRef }
             vd = Context (toData ptx')
         case runExcept $ runScript vd vl d r of
             Left e  -> do
@@ -329,11 +333,13 @@ mkTxInfo tx = do
     txins <- traverse mkIn $ Set.toList $ view inputs tx
     let ptx = TxInfo
             { txInfoInputs = txins
+            , txInfoInputsFees = [] -- TODO: Fee inputs in emulator transactions
             , txInfoOutputs = txOutputs tx
             , txInfoForge = txForge tx
             , txInfoFee = txFee tx
+            , txInfoDCert = [] -- DCerts not supported in emulator
+            , txInfoWdrl = [] -- Withdrawals not supported in emulator
             , txInfoValidRange = txValidRange tx
-            , txInfoForgeScripts = monetaryPolicyHash <$> Set.toList (tx ^. forgeScripts)
             , txInfoSignatories = fmap pubKeyHash $ Map.keys (tx ^. signatures)
             , txInfoData = Map.toList (tx ^. datumWitnesses)
             , txInfoId = txId tx
@@ -343,12 +349,8 @@ mkTxInfo tx = do
 -- | Create the data about a transaction input which will be passed to a validator script.
 mkIn :: ValidationMonad m => TxIn -> m Validation.TxInInfo
 mkIn TxIn{txInRef, txInType} = do
-    vl <- lkpValue txInRef
-    pure $ case txInType of
-        ConsumeScriptAddress v r d ->
-            let witness = (Scripts.validatorHash v, Scripts.redeemerHash r, Scripts.datumHash d)
-            in Validation.TxInInfo txInRef (Just witness) vl
-        ConsumePublicKeyAddress -> Validation.TxInInfo txInRef Nothing vl
+    txOut <- lkpTxOut txInRef
+    pure $ Validation.TxInInfo{Validation.txInInfoOutRef = txInRef, Validation.txInInfoResolved=txOut}
 
 data ScriptType = ValidatorScript | MonetaryPolicyScript
     deriving stock (Eq, Show, Generic)

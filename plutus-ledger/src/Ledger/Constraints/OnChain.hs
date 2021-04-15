@@ -16,7 +16,7 @@ import           PlutusTx.Prelude
 
 import           Ledger.Constraints.TxConstraints
 import qualified Plutus.V1.Ledger.Address         as Address
-import           Plutus.V1.Ledger.Contexts        (TxInInfo (..), TxInfo (..), ValidatorCtx (..))
+import           Plutus.V1.Ledger.Contexts        (ScriptContext (..), TxInInfo (..), TxInfo (..))
 import qualified Plutus.V1.Ledger.Contexts        as V
 import           Plutus.V1.Ledger.Interval        (contains)
 import           Plutus.V1.Ledger.Scripts         (Datum (..))
@@ -25,8 +25,8 @@ import           Plutus.V1.Ledger.Value           (leq)
 import qualified Plutus.V1.Ledger.Value           as Value
 
 {-# INLINABLE checkOwnInputConstraint #-}
-checkOwnInputConstraint :: ValidatorCtx -> InputConstraint a -> Bool
-checkOwnInputConstraint ValidatorCtx{valCtxTxInfo} InputConstraint{icTxOutRef} =
+checkOwnInputConstraint :: ScriptContext -> InputConstraint a -> Bool
+checkOwnInputConstraint ScriptContext{valCtxTxInfo} InputConstraint{icTxOutRef} =
     let checkInput TxInInfo{txInInfoOutRef} =
             txInInfoOutRef == icTxOutRef -- TODO: We should also check the redeemer but we can't right now because it's hashed
     in traceIfFalse "Input constraint"
@@ -35,10 +35,10 @@ checkOwnInputConstraint ValidatorCtx{valCtxTxInfo} InputConstraint{icTxOutRef} =
 {-# INLINABLE checkOwnOutputConstraint #-}
 checkOwnOutputConstraint
     :: IsData o
-    => ValidatorCtx
+    => ScriptContext
     -> OutputConstraint o
     -> Bool
-checkOwnOutputConstraint ctx@ValidatorCtx{valCtxTxInfo} OutputConstraint{ocDatum, ocValue} =
+checkOwnOutputConstraint ctx@ScriptContext{valCtxTxInfo} OutputConstraint{ocDatum, ocValue} =
     let hsh = V.findDatumHash (Datum $ toData ocDatum) valCtxTxInfo
         checkOutput TxOut{txOutValue, txOutType=V.PayToScript svh} =
             txOutValue == ocValue && hsh == Just svh
@@ -47,8 +47,8 @@ checkOwnOutputConstraint ctx@ValidatorCtx{valCtxTxInfo} OutputConstraint{ocDatum
     $ any checkOutput (V.getContinuingOutputs ctx)
 
 {-# INLINABLE checkTxConstraint #-}
-checkTxConstraint :: ValidatorCtx -> TxConstraint -> Bool
-checkTxConstraint ValidatorCtx{valCtxTxInfo} = \case
+checkTxConstraint :: ScriptContext -> TxConstraint -> Bool
+checkTxConstraint ScriptContext{valCtxTxInfo} = \case
     MustIncludeDatum dv ->
         traceIfFalse "Missing datum"
         $ dv `elem` fmap snd (txInfoData valCtxTxInfo)
@@ -93,11 +93,11 @@ checkTxConstraint ValidatorCtx{valCtxTxInfo} = \case
         traceIfFalse "MustHashDatum"
         $ V.findDatum dvh valCtxTxInfo == Just dv
 
-{-# INLINABLE checkValidatorCtx #-}
--- | Does the 'ValidatorCtx' satisfy the constraints?
-checkValidatorCtx :: forall i o. IsData o => TxConstraints i o -> ValidatorCtx -> Bool
-checkValidatorCtx TxConstraints{txConstraints, txOwnInputs, txOwnOutputs} ptx =
-    traceIfFalse "checkValidatorCtx failed"
+{-# INLINABLE checkScriptContext #-}
+-- | Does the 'ScriptContext' satisfy the constraints?
+checkScriptContext :: forall i o. IsData o => TxConstraints i o -> ScriptContext -> Bool
+checkScriptContext TxConstraints{txConstraints, txOwnInputs, txOwnOutputs} ptx =
+    traceIfFalse "checkScriptContext failed"
     $ all (checkTxConstraint ptx) txConstraints
     && all (checkOwnInputConstraint ptx) txOwnInputs
     && all (checkOwnOutputConstraint ptx) txOwnOutputs
