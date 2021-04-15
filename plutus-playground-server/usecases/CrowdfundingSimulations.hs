@@ -19,7 +19,7 @@ simulations = [basicCrowdfunding]
     wallet3 = Wallet {getWallet = 3}
     wallet4 = Wallet {getWallet = 4}
     simulationWallets =
-        simulatorWallet registeredKnownCurrencies 30 <$>
+        simulatorWallet registeredKnownCurrencies 300 <$>
         [wallet1, wallet2, wallet3, wallet4]
     basicCrowdfunding =
         Simulation
@@ -28,9 +28,9 @@ simulations = [basicCrowdfunding]
             , simulationWallets
             , simulationActions =
                   [ scheduleCollection wallet1
-                  , contribute wallet2 11
-                  , contribute wallet3 10
-                  , contribute wallet4 9
+                  , contribute wallet2 110
+                  , contribute wallet3 100
+                  , contribute wallet4 90
                   , AddBlocksUntil 41
                   ]
             }

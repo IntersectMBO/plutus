@@ -32,7 +32,7 @@ tests = testGroup "escrow"
       checkPredicate "can redeem"
         ( assertDone con (Trace.walletInstanceTag w3) (const True) "escrow redeem not done"
           .&&. walletFundsChange w1 (Ada.lovelaceValueOf (-10))
-          .&&. walletFundsChange w2  (Ada.lovelaceValueOf 10)
+          .&&. walletFundsChange w2 (Ada.lovelaceValueOf 10)
           .&&. walletFundsChange w3 mempty
         )
         redeemTrace

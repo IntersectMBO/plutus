@@ -270,7 +270,7 @@ txnFlowsTest =
 notifyWallet :: Property
 notifyWallet =
     checkPredicateGen Gen.generatorModel
-    (valueAtAddress (Wallet.walletAddress wallet1) (== initialBalance))
+    (walletFundsChange wallet1 mempty)
     (pure ())
 
 walletWatchinOwnAddress :: Property
@@ -281,7 +281,7 @@ walletWatchinOwnAddress =
 
 payToPubKeyScript :: Property
 payToPubKeyScript =
-    let hasInitialBalance w = valueAtAddress (Wallet.walletAddress w) (== initialBalance)
+    let hasInitialBalance w = walletFundsChange w mempty
     in checkPredicateGen Gen.generatorModel
         (hasInitialBalance wallet1
             .&&. hasInitialBalance wallet2
@@ -290,7 +290,7 @@ payToPubKeyScript =
 
 payToPubKeyScript2 :: Property
 payToPubKeyScript2 =
-    let hasInitialBalance w = valueAtAddress (Wallet.walletAddress w) (== initialBalance)
+    let hasInitialBalance w = walletFundsChange w mempty
     in checkPredicateGen Gen.generatorModel
         (hasInitialBalance wallet1
             .&&. hasInitialBalance wallet2
@@ -311,15 +311,15 @@ pubKeyTransactions = do
 pubKeyTransactions2 :: EmulatorTrace ()
 pubKeyTransactions2 = do
     let [w1, w2, w3] = [wallet1, wallet2, wallet3]
-        payment1 = initialBalance P.- Ada.lovelaceValueOf 1
-        payment2 = initialBalance P.+ Ada.lovelaceValueOf 1
+        payment1 = initialBalance P.- Ada.lovelaceValueOf 100
+        payment2 = initialBalance P.+ Ada.lovelaceValueOf 100
     Trace.liftWallet wallet1 $ payToPublicKey_ W.always payment1 pubKey2
     _ <- Trace.nextSlot
     Trace.liftWallet wallet2 $ payToPublicKey_ W.always payment2 pubKey3
     _ <- Trace.nextSlot
     Trace.liftWallet wallet3 $ payToPublicKey_ W.always payment2 pubKey1
     _ <- Trace.nextSlot
-    Trace.liftWallet wallet1 $ payToPublicKey_ W.always (Ada.lovelaceValueOf 2) pubKey2
+    Trace.liftWallet wallet1 $ payToPublicKey_ W.always (Ada.lovelaceValueOf 200) pubKey2
     void $ Trace.nextSlot
 
 genChainTxn :: Hedgehog.MonadGen m => m (Mockchain, Tx)

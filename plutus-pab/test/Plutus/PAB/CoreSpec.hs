@@ -138,13 +138,15 @@ guessingGameTest =
           runScenario $ do
               let openingBalance = 100000000
                   lockAmount = 15
-              address <- pubKeyAddress <$> Simulator.handleAgentThread defaultWallet ownPubKey
-              balance0 <- Simulator.valueAt address
+                  walletFundsChange msg delta = do
+                        address <- pubKeyAddress <$> Simulator.handleAgentThread defaultWallet ownPubKey
+                        balance <- Simulator.valueAt address
+                        fees <- Simulator.walletFees defaultWallet
+                        assertEqual msg
+                            (openingBalance + delta)
+                            (valueOf (balance <> fees) adaSymbol adaToken)
               initialTxCounts <- Simulator.txCounts
-              assertEqual
-                    "Check our opening balance."
-                    (lovelaceValueOf openingBalance)
-                    balance0
+              walletFundsChange "Check our opening balance." 0
               -- need to add contract address to wallet's watched addresses
               instanceId <- Simulator.activateContract defaultWallet GameStateMachine
 
@@ -162,11 +164,7 @@ guessingGameTest =
               assertTxCounts
                   "Locking the game state machine should produce two transactions"
                   (initialTxCounts & Simulator.txValidated +~ 2)
-              balance1 <- Simulator.valueAt address
-              assertEqual
-                  "Locking the game should reduce our balance."
-                  (openingBalance - lockAmount)
-                  (valueOf balance1 adaSymbol adaToken)
+              walletFundsChange "Locking the game should reduce our balance." (negate lockAmount)
               game1Id <- Simulator.activateContract defaultWallet GameStateMachine
 
               guess
@@ -196,11 +194,7 @@ guessingGameTest =
               assertTxCounts
                 "A correct guess creates a third transaction."
                 (initialTxCounts & Simulator.txValidated +~ 3)
-              balance2 <- Simulator.valueAt address
-              assertEqual
-                "The wallet should now have its money back."
-                openingBalance
-                (valueOf balance2 adaSymbol adaToken)
+              walletFundsChange "The wallet should now have its money back." 0
               blocks <- Simulator.blockchain
               assertBool
                   "We have some confirmed blocks in this test."

@@ -58,6 +58,7 @@ import           PlutusTx.Lattice
 import qualified PlutusTx.Numeric                 as N
 
 import           Ledger.Constraints.TxConstraints hiding (requiredSignatories)
+import           Ledger.Index                     (minFee)
 import           Ledger.Orphans                   ()
 import           Ledger.Typed.Scripts             (ScriptInstance, ScriptType (..))
 import qualified Ledger.Typed.Scripts             as Scripts
@@ -163,6 +164,9 @@ makeLensesFor [("unBalancedTxTx", "tx"), ("unBalancedTxRequiredSignatories", "re
 emptyUnbalancedTx :: UnbalancedTx
 emptyUnbalancedTx = UnbalancedTx mempty mempty
 
+addFee :: UnbalancedTx -> UnbalancedTx
+addFee (UnbalancedTx utx rs) = UnbalancedTx utx{ Tx.txFee = minFee utx } rs
+
 instance Pretty UnbalancedTx where
     pretty UnbalancedTx{unBalancedTxTx, unBalancedTxRequiredSignatories} =
         vsep
@@ -261,7 +265,7 @@ mkSomeTx
 mkSomeTx xs =
     let process = \case
             SomeLookupsAndConstraints lookups constraints -> processLookupsAndConstraints lookups constraints
-    in fmap cpsUnbalancedTx
+    in fmap (addFee . cpsUnbalancedTx)
         $ runExcept
         $ execStateT (traverse process xs) initialState
 
