@@ -633,6 +633,15 @@ cong-μr : ∀{K K'}(E : EvalCtx _ J)(E' : EvalCtx _ J)
   → μr VA E ≡ μr VA' E'
 cong-μr E E' A A' VA VA' refl refl refl q' = cong₂ μr (val-unique VA VA') q'
 
+cong-⇒r : (E : EvalCtx _ J)(E' : EvalCtx _ J)
+  → (A A' : ∅ ⊢⋆ *)
+  → (VA : Value⋆ A)(VA' : Value⋆ A')
+  → A ≡ A'
+  → E ≡ E'
+  → VA ⇒r E ≡ VA' ⇒r E'
+cong-⇒r E E' A A' VA VA' refl p = cong₂ _⇒r_ (val-unique VA VA') p
+
+
 projμr : {A : ∅ ⊢⋆ _}{A' : ∅ ⊢⋆ _}{B : ∅ ⊢⋆ K}{B' : ∅ ⊢⋆ K'} → (μ A B) ≡ (μ A' B') → ∃ λ (p : _ ≡ _) → subst (∅ ⊢⋆_) p B ≡ B'
 projμr refl = refl , refl
 
@@ -762,8 +771,7 @@ lemma51! (M ⇒ M') with lemma51! M
 ... | inj₂ (¬VM , J , E , I , L , N , VL , VN , refl , X) =
     inj₂ ((λ { (VM V-⇒ VM') → ¬VM VM}) , J , E l⇒ M' , I , L , N , VL , VN , refl , λ { J' (VM ⇒r E') I' L' N' VL' VN' refl → ⊥-elim (¬VM VM) ; J' (E' l⇒ x) I' L' N' VL' VN' p → let (ZZ , XX , YY , YY' , YY'' ) = X J' E' I' L' N' VL' VN' (proj⇒l p) in ZZ , XX , trans (subst-l⇒ E' x XX) (cong₂ _l⇒_ YY (sym (proj⇒r p)))  , YY' , YY'' })
 ... | inj₁ VM with lemma51! M'
-... | inj₂ (¬VM' , J , E , I , L , N , VL , VN , refl , X) =
-  inj₂ ((λ { (VM V-⇒ VM') → ¬VM' VM'}) , J , VM ⇒r E , I , L , N , VL , VN , refl , λ { J' (V ⇒r E') I' L' N' VL' VN' p → let (ZZ , XX , YY , YY' , YY'') = X J' E' I' L' N' VL' VN' (proj⇒r p) in ZZ , XX , trans (subst-⇒r V E' _) (cong₃ (λ A → _⇒r_ {A = A}) (sym (proj⇒l p)) (val-unique _ _) YY) , YY' , YY'' ; J' (E' l⇒ .(closeEvalCtx E (L · N))) I' L' N' VL' VN' refl → ⊥-elim (lemV· (lem0 (L' · N') E' VM))})
+... | inj₂ (¬VM' , J , E , I , L , N , VL , VN , refl , X) =   inj₂ ((λ { (VM V-⇒ VM') → ¬VM' VM'}) , J , VM ⇒r E , I , L , N , VL , VN , refl , λ { J' (V ⇒r E') I' L' N' VL' VN' p → let (ZZ , XX , YY , YY' , YY'') = X J' E' I' L' N' VL' VN' (proj⇒r p) in ZZ , XX , trans (subst-⇒r V E' _) (cong-⇒r _ _ _ _ V VM (sym (proj⇒l p)) YY) , YY' , YY''  ; J' (E' l⇒ .(closeEvalCtx E (L · N))) I' L' N' VL' VN' refl → ⊥-elim (lemV· (lem0 (L' · N') E' VM))})
 ... | inj₁ VM' = inj₁ (VM V-⇒ VM')
 lemma51! (ƛ M) = inj₁ (V-ƛ M)
 lemma51! (M · M') with lemma51! M
