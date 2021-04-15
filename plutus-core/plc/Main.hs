@@ -3,7 +3,6 @@
 {-# LANGUAGE LambdaCase                #-}
 {-# LANGUAGE MultiParamTypeClasses     #-}
 {-# LANGUAGE OverloadedStrings         #-}
-{-# LANGUAGE RankNTypes                #-}
 {-# LANGUAGE TypeApplications          #-}
 
 module Main (main) where
@@ -226,7 +225,7 @@ restrictingbudgetEnormous = flag' (Verbose Cek.restrictingEnormous)
                             <> help "Run the machine in restricting mode with an enormous budget" )
 
 restrictingbudget :: Parser BudgetMode
-restrictingbudget = (\budget -> Verbose $ Cek.restricting $ ExRestrictingBudget budget)
+restrictingbudget = Verbose . Cek.restricting . ExRestrictingBudget
                     <$> option exbudgetReader
                             (  long "restricting"
                             <> short 'R'

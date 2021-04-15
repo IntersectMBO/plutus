@@ -568,8 +568,8 @@ runCek
     -> Bool
     -> Term Name uni fun ()
     -> (Either (CekEvaluationException uni fun) (Term Name uni fun ()), cost, [String])
-runCek runtime getExBudgetInfo emitting term =
-    runCekM runtime getExBudgetInfo emitting $ do
+runCek runtime mode emitting term =
+    runCekM runtime mode emitting $ do
         spendBudget BAST (ExBudget 0 (termAnn memTerm))
         computeCek [] mempty memTerm
   where

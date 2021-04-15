@@ -1,7 +1,6 @@
 -- | The API to the CEK machine.
 
 {-# LANGUAGE DataKinds     #-}
-{-# LANGUAGE RankNTypes    #-}
 {-# LANGUAGE TypeOperators #-}
 
 module UntypedPlutusCore.Evaluation.Machine.Cek
