@@ -84,8 +84,8 @@ mkCurrency (TxOutRef h i) amts =
         , curAmounts              = AssocMap.fromList amts
         }
 
-validate :: Currency -> V.PolicyCtx -> Bool
-validate c@(Currency (refHash, refIdx) _) ctx@V.PolicyCtx{V.policyCtxTxInfo=txinfo} =
+validate :: Currency -> V.ScriptContext -> Bool
+validate c@(Currency (refHash, refIdx) _) ctx@V.ScriptContext{V.scriptContextTxInfo=txinfo} =
     let
         -- see note [Obtaining the currency symbol]
         ownSymbol = V.ownCurrencySymbol ctx

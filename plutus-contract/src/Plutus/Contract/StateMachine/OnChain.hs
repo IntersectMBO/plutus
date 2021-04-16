@@ -35,7 +35,8 @@ import qualified PlutusTx                         as PlutusTx
 import           PlutusTx.Prelude                 hiding (check)
 
 import           Ledger                           (Address, Value)
-import           Ledger.Contexts                  (TxInInfo (..), ValidatorCtx (..), findOwnInput)
+import           Ledger.Contexts                  (ScriptContext (..), TxInInfo (..), findOwnInput)
+import           Ledger.Tx                        (TxOut (..))
 import           Ledger.Typed.Scripts
 import           Ledger.Value                     (isZero)
 import qualified Prelude                          as Haskell
@@ -58,11 +59,11 @@ data StateMachine s i = StateMachine {
       --   checks on the pending transaction that aren't covered by the
       --   constraints. 'smCheck' is always run in addition to checking the
       --   constraints, so the default implementation always returns true.
-      smCheck      :: s -> i -> ValidatorCtx -> Bool
+      smCheck      :: s -> i -> ScriptContext -> Bool
     }
 
 -- | A state machine that does not perform any additional checks on the
---   'ValidatorCtx' (beyond enforcing the constraints)
+--   'ScriptContext' (beyond enforcing the constraints)
 mkStateMachine
     :: (State s -> i -> Maybe (TxConstraints Void Void, State s))
     -> (s -> Bool)
@@ -92,20 +93,20 @@ machineAddress = scriptAddress . validatorInstance
 -- | Turn a state machine into a validator script.
 mkValidator :: forall s i. (PlutusTx.IsData s) => StateMachine s i -> ValidatorType (StateMachine s i)
 mkValidator (StateMachine step isFinal check) currentState input ptx =
-    let vl = txInInfoValue (findOwnInput ptx)
+    let vl = maybe (error ()) (txOutValue . txInInfoResolved) (findOwnInput ptx)
         checkOk = traceIfFalse "State transition invalid - checks failed" (check currentState input ptx)
         oldState = State{stateData=currentState, stateValue=vl}
         stateAndOutputsOk = case step oldState input of
             Just (newConstraints, State{stateData=newData, stateValue=newValue})
                 | isFinal newData ->
                     traceIfFalse "Non-zero value allocated in final state" (isZero newValue)
-                    && traceIfFalse "State transition invalid - constraints not satisfied by ValidatorCtx" (checkValidatorCtx newConstraints ptx)
+                    && traceIfFalse "State transition invalid - constraints not satisfied by ScriptContext" (checkScriptContext newConstraints ptx)
                 | otherwise ->
                     let txc =
                             newConstraints
                                 { txOwnOutputs=
                                     [ OutputConstraint{ocDatum=newData, ocValue= newValue} ]
                                 }
-                    in traceIfFalse "State transition invalid - constraints not satisfied by ValidatorCtx" (checkValidatorCtx @_ @s txc ptx)
+                    in traceIfFalse "State transition invalid - constraints not satisfied by ScriptContext" (checkScriptContext @_ @s txc ptx)
             Nothing -> trace "State transition invalid - input is not a valid transition at the current state" False
     in checkOk && stateAndOutputsOk

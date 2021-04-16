@@ -65,6 +65,8 @@ library
         Plutus.V1.Ledger.Ada as Ledger.Ada,
         Plutus.V1.Ledger.Bytes as Ledger.Bytes,
         Plutus.V1.Ledger.Contexts as Ledger.Contexts,
+        Plutus.V1.Ledger.Credential as Ledger.Credential,
+        Plutus.V1.Ledger.DCert as Ledger.DCert,
         Plutus.V1.Ledger.Crypto as Ledger.Crypto,
         Plutus.V1.Ledger.Interval as Ledger.Interval,
         Plutus.V1.Ledger.Scripts as Ledger.Scripts,

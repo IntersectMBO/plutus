@@ -36,7 +36,6 @@ module Plutus.V1.Ledger.Tx(
     TxStripped(..),
     strip,
     -- * Transaction outputs
-    TxOutType(..),
     TxOut(..),
     TxOutTx(..),
     TxOutRef(..),
@@ -44,7 +43,6 @@ module Plutus.V1.Ledger.Tx(
     isPayToScriptOut,
     outAddress,
     outValue,
-    outType,
     txOutPubKey,
     txOutDatum,
     pubKeyTxOut,
@@ -321,28 +319,11 @@ pubKeyTxIn r = TxIn r ConsumePublicKeyAddress
 scriptTxIn :: TxOutRef -> Validator -> Redeemer -> Datum -> TxIn
 scriptTxIn ref v r d = TxIn ref $ ConsumeScriptAddress v r d
 
--- | The type of a transaction output.
-data TxOutType =
-    PayToScript !DatumHash -- ^ A pay-to-script output with the given datum hash.
-    | PayToPubKey -- ^ A pay-to-pubkey output.
-    deriving stock (Show, Eq, Ord, Generic)
-    deriving anyclass (Serialise, ToJSON, FromJSON, ToJSONKey, NFData)
-
-instance PlutusTx.Eq TxOutType where
-    PayToScript l == PayToScript r = l PlutusTx.== r
-    PayToPubKey == PayToPubKey     = True
-    _ == _                         = False
-
-instance Pretty TxOutType where
-    pretty = \case
-        PayToScript ds -> "PayToScript:" <+> pretty ds
-        PayToPubKey    -> "PayToPubKey"
-
--- | A transaction output, consisting of a target address, a value, and an output type.
+-- | A transaction output, consisting of a target address, a value, and optionally a datum hash.
 data TxOut = TxOut {
-    txOutAddress :: !Address,
-    txOutValue   :: !Value,
-    txOutType    :: !TxOutType
+    txOutAddress   :: Address,
+    txOutValue     :: Value,
+    txOutDatumHash :: (Maybe DatumHash)
     }
     deriving stock (Show, Eq, Generic)
     deriving anyclass (Serialise, ToJSON, FromJSON, NFData)
@@ -355,19 +336,15 @@ instance PlutusTx.Eq TxOut where
     l == r =
         txOutAddress l PlutusTx.== txOutAddress r
         PlutusTx.&& txOutValue l PlutusTx.== txOutValue r
-        PlutusTx.&& txOutType l PlutusTx.== txOutType r
+        PlutusTx.&& txOutDatumHash l PlutusTx.== txOutDatumHash r
 
 -- | The datum attached to a 'TxOutOf', if there is one.
 txOutDatum :: TxOut -> Maybe DatumHash
-txOutDatum TxOut{txOutType = t} = case  t of
-    PayToScript s -> Just s
-    PayToPubKey   -> Nothing
+txOutDatum TxOut{txOutDatumHash} = txOutDatumHash
 
 -- | The public key attached to a 'TxOut', if there is one.
 txOutPubKey :: TxOut -> Maybe PubKeyHash
-txOutPubKey TxOut{txOutAddress = a} = case a of
-    PubKeyAddress pkh -> Just pkh
-    _                 -> Nothing
+txOutPubKey TxOut{txOutAddress} = toPubKeyHash txOutAddress
 
 -- | The address of a transaction output.
 outAddress :: Lens' TxOut Address
@@ -379,12 +356,6 @@ outAddress = lens txOutAddress s where
 outValue :: Lens' TxOut Value
 outValue = lens txOutValue s where
     s tx v = tx { txOutValue = v }
-
--- | The output type of a transaction output.
--- | TODO: Compute address again
-outType :: Lens' TxOut TxOutType
-outType = lens txOutType s where
-    s tx d = tx { txOutType = d }
 
 -- | Whether the output is a pay-to-pubkey output.
 isPubKeyOut :: TxOut -> Bool
@@ -406,8 +377,7 @@ txOutTxDatum (TxOutTx tx out) = txOutDatum out >>= lookupDatum tx
 -- | Create a transaction output locked by a validator script hash
 --   with the given data script attached.
 scriptTxOut' :: Value -> Address -> Datum -> TxOut
-scriptTxOut' v a ds = TxOut a v tp where
-    tp = PayToScript (datumHash ds)
+scriptTxOut' v a ds = TxOut a v (Just (datumHash ds)) where
 
 -- | Create a transaction output locked by a validator script and with the given data script attached.
 scriptTxOut :: Value -> Validator -> Datum -> TxOut
@@ -415,11 +385,11 @@ scriptTxOut v vs = scriptTxOut' v (scriptAddress vs)
 
 -- | Create a transaction output locked by a public key.
 pubKeyTxOut :: Value -> PubKey -> TxOut
-pubKeyTxOut v pk = TxOut (pubKeyAddress pk) v PayToPubKey
+pubKeyTxOut v pk = TxOut (pubKeyAddress pk) v Nothing
 
 -- | Create a transaction output locked by a public key.
 pubKeyHashTxOut :: Value -> PubKeyHash -> TxOut
-pubKeyHashTxOut v pkh = TxOut (PubKeyAddress pkh) v PayToPubKey
+pubKeyHashTxOut v pkh = TxOut (pubKeyHashAddress pkh) v Nothing
 
 -- | The unspent outputs of a transaction.
 unspentOutputsTx :: Tx -> Map TxOutRef TxOut
@@ -446,9 +416,6 @@ addSignature privK tx = tx & signatures . at pubK ?~ sig where
 
 PlutusTx.makeIsDataIndexed ''TxOut [('TxOut,0)]
 PlutusTx.makeLift ''TxOut
-
-PlutusTx.makeIsDataIndexed ''TxOutType [('PayToScript, 0), ('PayToPubKey , 1)]
-PlutusTx.makeLift ''TxOutType
 
 PlutusTx.makeIsDataIndexed ''TxOutRef [('TxOutRef,0)]
 PlutusTx.makeLift ''TxOutRef

@@ -28,3 +28,7 @@ option = $(makeRelativeToProject "contracts/Option.hs" >>= embedFile)
 
 contractForDifferences :: ByteString
 contractForDifferences = $(makeRelativeToProject "contracts/ContractForDifferences.hs" >>= embedFile)
+
+contractForDifferencesWithOracle :: ByteString
+contractForDifferencesWithOracle = $(makeRelativeToProject "contracts/ContractForDifferencesWithOracle.hs" >>= embedFile)
+

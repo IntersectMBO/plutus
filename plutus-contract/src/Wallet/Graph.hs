@@ -1,5 +1,6 @@
 {-# LANGUAGE DeriveAnyClass    #-}
 {-# LANGUAGE DeriveGeneric     #-}
+{-# LANGUAGE NamedFieldPuns    #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RecordWildCards   #-}
 {-# OPTIONS_GHC -fno-warn-incomplete-uni-patterns #-}
@@ -27,6 +28,7 @@ import           GHC.Generics      (Generic)
 import qualified Ledger.Ada        as Ada
 import           Ledger.Address
 import           Ledger.Blockchain
+import           Ledger.Credential (Credential (..))
 import           Ledger.Crypto
 import           Ledger.Tx
 import           Ledger.TxId
@@ -43,13 +45,12 @@ data UtxOwner
 
 -- | Given a set of known public keys, compute the owner of a given transaction output.
 owner :: Set.Set PubKey -> TxOut -> UtxOwner
-owner keys TxOut {..} =
+owner keys TxOut {txOutAddress=Address{addressCredential}} =
   let hashMap = foldMap (\pk -> Map.singleton (pubKeyHash pk) pk) keys
-  in case (txOutType, txOutAddress) of
-    (PayToScript _, ScriptAddress _) -> ScriptOwner
-    (PayToPubKey, PubKeyAddress pkh)
-      | Just pk <- Map.lookup pkh hashMap -> PubKeyOwner pk
-    _ -> OtherOwner
+  in case addressCredential of
+    ScriptCredential{}                                       -> ScriptOwner
+    PubKeyCredential pkh | Just pk <- Map.lookup pkh hashMap -> PubKeyOwner pk
+    _                                                        -> OtherOwner
 
 -- | A wrapper around the first 8 digits of a 'TxId'.
 newtype TxRef =

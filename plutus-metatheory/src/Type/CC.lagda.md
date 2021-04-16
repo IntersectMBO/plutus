@@ -283,170 +283,48 @@ unwind A A' E p VA' = subst-step*
 β-lem : A ≡ ƛ A' · B' → A —→⋆ B → B ≡ A' [ B' ]
 β-lem refl (β-ƛ x) = refl
 
--- this case doesn't arise in STLC it only arises in types due to the composite values of => and mu.
--- it is currently not proven, it is just postulated (assumed)
-postulate
- missing-case : ∀ (M : ∅ ⊢⋆ J)(E : EvalCtx K J)(E' : EvalCtx K J')
-  (L : ∅ ⊢⋆ I ⇒ J') N
-  → (VM : Value⋆ M) → (VL : Value⋆ L) → Value⋆ N
-  → closeEvalCtx E M ≡ closeEvalCtx E' (L · N)
-  → ∀{J''}(E'' : EvalCtx K J'') F
-  → extendEvalCtx E'' F ≡ E
-  → Value⋆ (closeFrame F M)
-  → (E ▻ M) -→s (E' ▻ (L · N))
-
 -- thm2 follows from this stronger theorem
+open import Data.Empty
+open import Relation.Nullary
+
+lemmaF : ∀ (M : ∅ ⊢⋆ J)(F : Frame K J)(E : EvalCtx K' K)
+      → ∀ (E' : EvalCtx K J')(L : ∅ ⊢⋆ I ⇒ J') N (V : Value⋆ M)
+      → (VL : Value⋆ L) → (VN : Value⋆ N)
+      → ¬ (Value⋆ (closeFrame F M))
+      → closeEvalCtx (extendEvalCtx E F) M
+        ≡ closeEvalCtx (compEvalCtx E E') (L · N)
+      → (extendEvalCtx E F ◅ V) -→s (extendEvalCtx (compEvalCtx E E') (VL ·-) ◅  VN)
+lemmaF M (-· B) E E' L N VM VL VN ¬VFM p with lemma51 B
+lemmaF M (-· B) E E' L N VM VL VN ¬VFM p | inj₂ (I , E'' , I' , L' , N' , VL' , VN' , refl) with lemma51-good _ (compEvalCtx E E') L N refl VL VN (compEvalCtx E (VM ·r E'')) L' N' (trans (sym p) (trans (closeEF E (-· closeEvalCtx E'' (L' · N')) M) (sym (close-comp E (VM ·r E'') (L' · N'))))) VL' VN'
+... | refl , refl , X , refl , refl rewrite val-unique VL VL' = step* (cong (stepV VM) (lemma E (-· closeEvalCtx E'' (L' · N')))) (step** (lem62 (L' · N') _ (extendEvalCtx E (VM ·-)) E'' refl) (step* refl (step** (lemV L' VL' _) (step* (cong (stepV VL') (lemma (compEvalCtx' (extendEvalCtx E (VM ·-)) E'') (-· N'))) (subst-step* (cong (λ E → _ , (E ▻ N')) (cong (λ E → extendEvalCtx E (VL' ·-)) (trans (trans (sym (compEvalCtx-eq (extendEvalCtx E (VM ·-)) E'')) (compEF E (VM ·-) E'')) (sym X)))) (lemV N' VN _))))))
+lemmaF M (-· B) E E' L N VM VL VN ¬VFM p | inj₁ VB with lemma51-good _ (compEvalCtx E E') L N refl VL VN E M B (trans (sym p) (closeEF E (-· B) M)) VM VB
+... | refl , refl , X , refl , refl rewrite val-unique VL VM = step* (cong (stepV VM) (lemma E (-· B)))
+  (subst-step* (cong (λ E → _ , (E ▻ B)) (cong₂ extendEvalCtx (sym X) refl)) (lemV B VN _))
+lemmaF M (VA ·-) E E' L N VM VL VN ¬VFM p with lemma51-good _ (compEvalCtx E E') L N refl VL VN E (discharge VA) M (trans (sym p) (closeEF E (VA ·-) M)) VA VM
+... | refl , refl , X , refl , refl rewrite val-unique VM VN | val-unique VA VL = subst-step* (cong (λ E → _ , extendEvalCtx E (VL ·-) ◅ VN) (sym X)) base
+lemmaF M (-⇒ B) E E' L N VM VL VN ¬VFM p with lemma51 B
+... | inj₁ VB = ⊥-elim (¬VFM (VM V-⇒ VB))
+... | inj₂ (I , E'' , I' , L' , N' , VL' , VN' , refl) with lemma51-good _ (compEvalCtx E E') L N refl VL VN (compEvalCtx E (VM ⇒r E'')) L' N' (trans (sym p) (trans (closeEF E (-⇒ closeEvalCtx E'' (L' · N')) M) (sym (close-comp E (VM ⇒r E'') (L' · N'))))) VL' VN'
+... | refl , refl , X , refl , refl rewrite val-unique VL VL' = step* (cong (stepV VM) (lemma E (-⇒ B))) (step** (lem62 (L' · N') _ (extendEvalCtx E (VM ⇒-)) E'' refl) (subst-step* (cong (λ E → _ , E ▻ (L' · N')) (trans (trans (sym (compEvalCtx-eq (extendEvalCtx E (VM ⇒-)) E'')) (compEF E (VM ⇒-) E'')) (sym X))) (step* refl (step** (lemV L' VL' (extendEvalCtx (compEvalCtx E E') (-· N'))) (step* (cong (stepV VL') (lemma (compEvalCtx E E') (-· N'))) (lemV N' VN _))))))
+lemmaF M (VA ⇒-) E E' L N VM VL VN ¬VFM p = ⊥-elim (¬VFM (VA V-⇒ VM))
+lemmaF M (μ- B) E E' L N VM VL VN ¬VFM p with lemma51 B
+... | inj₁ VB = ⊥-elim (¬VFM (V-μ VM VB))
+... | inj₂ (I , E'' , I' , L' , N' , VL' , VN' , refl)  with lemma51-good _ (compEvalCtx E E') L N refl VL VN (compEvalCtx E (μr VM E'')) L' N' (trans (sym p) (trans (closeEF E (μ- closeEvalCtx E'' (L' · N')) M) (sym (close-comp E (μr VM E'') (L' · N'))))) VL' VN'
+... | refl , refl , X , refl , refl rewrite val-unique VL VL' = step* (cong (stepV VM) (lemma E (μ- B))) (step** (lem62 (L' · N') _ (extendEvalCtx E (μ VM -)) E'' refl) (subst-step* (cong (λ E → _ , E ▻ (L' · N')) (trans (trans (sym (compEvalCtx-eq (extendEvalCtx E (μ VM -)) E'')) (compEF E (μ VM -) E'')) (sym X))) (step* refl (step** (lemV L' VL' (extendEvalCtx (compEvalCtx E E') (-· N'))) (step* (cong (stepV VL') (lemma (compEvalCtx E E') (-· N'))) (lemV N' VN _))))))
+lemmaF M μ VA - E E' L N VM VL VN ¬VFM p = ⊥-elim (¬VFM (V-μ VA VM))
 
 thm1 : (A : ∅ ⊢⋆ J)(A' : ∅ ⊢⋆ K)(E : EvalCtx K J)
-  → A' ≡ closeEvalCtx E A → (B : ∅ ⊢⋆ K)(V : Value⋆ B) → A' —↠E B -> (E ▻ A) -→s ([] ◅ V)
-thm1 M A E p .A V refl—↠E = unwind M A E p V
-thm1 M A E refl B V (trans—↠E {B = B'} q q') with lemmaE' M E B' q
-... | J' , E' , L , N , r , r' , r'' , inj₁ (E'' , refl) =
-  step**
-   ((step** (lem62 L M E E'' refl)
-          (subst-step* (cong (λ E → J' , E ▻ L)
-                       ((sym (uniquenessE
-                         (closeEvalCtx E M)
-                         (λ V → notboth (closeEvalCtx E M) (V , _ , q))
-                         L
-                         N
-                         r
-                         E'
-                         (compEvalCtx' E E'')
-                         r'
-                         (trans
-                           refl
-                           (trans (cong (closeEvalCtx E) refl)
-                                  (trans (sym (close-comp E E'' L))
-                                         (cong (λ E → closeEvalCtx E L)
-                                               (compEvalCtx-eq E E'')))))))))
-                       (lem-→⋆ _ _ E' r))))
-   (thm1 N B' E' (sym r'') B V q')
-... | J' , E' , L , N , r , r' , r'' , inj₂ VM with lemmaE-51 L N r
-... | I , _ , N' , V-ƛ L' , VN' , refl with lemmaX M E E' _ N' VM (V-ƛ L') VN' r'
-... | inj₁ (refl , refl) = step**
-  (step** (lemV M VM E) (step* (cong (stepV VM) (lemma E' (V-ƛ L' ·-)))
-          (subst-step* (cong (λ A → J' , E' ▻ A)
-                             (sym (β-lem (uniqueness⋆ (ƛ L' · N')
-                                                      (ƛ L' · M)
-                                                      E'
-                                                      (trans (sym r')
-                                                             (closeEF E' _ M)))
-                                         r)))
-                       base)))
-  (thm1 N B' E' (sym r'') B V q')
-thm1 M A E refl B V (trans—↠E {B = B'} q q') | J' , E' , L , N , r , r' , r'' , inj₂ VM | I , _ , N' , V-ƛ L' , VN' , refl | inj₂ (inj₁ (refl , refl)) with uniqueness⋆ _ _ E' (trans (sym (closeEF E' (-· N') M)) r')
-... | refl = step**
-  (step*
-    refl
-    (step*
-      (cong (stepV (V-ƛ L')) (lemma E' (-· N')))
-      (step**
-        (lemV N' VN' (extendEvalCtx E' (V-ƛ L' ·-)))
-        (step*
-          (cong (stepV VN') (lemma E' (V-ƛ L' ·-)))
-          (subst-step* (cong (λ A → J' , E' ▻ A) (sym (β-lem refl r))) base)))))
-  (thm1 N B' E' (sym r'') B V q')
-thm1 M .(closeEvalCtx E M) E refl B V (trans—↠E {B = B'} q q') | J' , E' , .(ƛ _ · N') , N , r , r' , r'' , inj₂ VM | I , ƛ L' , N' , V-ƛ L' , VN' , refl | inj₂ (inj₂ (inj₁ (I' , I'' , refl , E'' , E''' , p , refl))) = step**
-  (step**
-    (lemV M VM _)
-    (step*
-      (cong (stepV VM) (lemma E'' _))
-      (step**
-        (lem62 (ƛ L' · N') _ (extendEvalCtx E'' (VM ·-)) E''' refl)
-        (step*
-          refl
-          (step*
-            refl
-            (step*
-              (cong
-                (stepV (V-ƛ L'))
-                (lemma (compEvalCtx' (extendEvalCtx E'' (VM ·-)) E''') (-· N')))
-              (step**
-                (lemV N' VN' _)
-                (step*
-                  (cong
-                    (stepV VN')
-                    (lemma
-                      (compEvalCtx' (extendEvalCtx E'' (VM ·-)) E''')
-                      (V-ƛ L' ·-)))
-                  (subst-step*
-                    (cong₂ (λ E A → J' , (E ▻ A)) (trans (sym (compEvalCtx-eq _ E''')) (sym p)) (sym (β-lem refl r)))
-                    base)))))))))
-  (thm1 N B' E' (sym r'') B V q')
-thm1 M .(closeEvalCtx E M) E refl B V (trans—↠E {B = B'} q q') | J' , E' , .(ƛ _ · N') , N , r , r' , r'' , inj₂ VM | I , ƛ L' , N' , V-ƛ L' , VN' , refl | inj₂ (inj₂ (inj₂ (inj₁ (refl , E'' , E''' , p , refl)))) = step**
-  (lemV M VM E)
-  (step*
-    (cong (stepV VM) (lemma E'' _))
-    (step**
-      (lem62 (ƛ L' · N') _ (extendEvalCtx E'' (VM ⇒-)) E''' refl)
-      (subst-step*
-        (cong (λ E → _ , (E ▻ _))
-              (trans (sym (compEvalCtx-eq _ E''')) (compEF E'' (VM ⇒-) E''')))
-        (step*
-          refl
-          (step*
-            refl
-            (step*
-              (cong (stepV (V-ƛ L'))
-                    (lemma (compEvalCtx E'' (VM ⇒r E''')) (-· N')))
-              (step**
-                (lemV N' VN' _)
-                (step*
-                  (cong
-                    (stepV VN')
-                    (lemma (compEvalCtx E'' (VM ⇒r E''')) (V-ƛ L' ·-)))
-                  (subst-step*
-                    (cong₂ (λ E A → J' , E ▻ A)
-                           (trans (sym (compEF E'' (VM ⇒-) E''')) (sym p))
-                                  (sym (β-lem refl r)))
-                    (thm1 N B' E' (sym r'') B V q'))))))))))
-thm1 M .(closeEvalCtx E M) E refl B V (trans—↠E {B = B'} q q') | J' , E' , .(ƛ _ · N') , N , r , r' , r'' , inj₂ VM | I , ƛ _ , N' , V-ƛ L' , VN' , refl | inj₂ (inj₂ (inj₂ (inj₂ (inj₁ (I' , refl , E'' , E''' , p , refl))))) = step**
-  (step**
-    (lemV M VM _)
-    (step*
-      (cong (stepV VM) (lemma E'' (μ- closeEvalCtx E''' (ƛ L' · N'))))
-      (step**
-        (lem62 (ƛ L' · N') _ (extendEvalCtx E'' (μ VM -)) E''' refl)
-        (step*
-          refl
-          (step*
-            refl
-            (step*
-              (cong
-                (stepV (V-ƛ L'))
-                (lemma (compEvalCtx' (extendEvalCtx E'' (μ VM -)) E''')
-                       (-· N')))
-              (step**
-                (lemV N' VN' _)
-                (step*
-                  (cong
-                    (stepV VN')
-                    (lemma (compEvalCtx' (extendEvalCtx E'' (μ VM -)) E''')
-                           (V-ƛ L' ·-)))
-                  (subst-step*
-                    (cong₂ (λ E A → J' , (E ▻ A))
-                           (trans
-                             (sym (compEvalCtx-eq _ E''')) (sym p))
-                             (sym (β-lem refl r)))
-                    base)))))))))
-  (thm1 N B' E' (sym r'') B V q')
-thm1 M A E refl B V (trans—↠E {B = B'} q q') | J' , E' , L , N , r , r' , r'' , inj₂ VM | I , _ , N' , V-ƛ L' , VN' , refl | inj₂ (inj₂ (inj₂ (inj₂ (inj₂ (I' , F , E'' , p' , VF))))) = step**
-  (step**
-    (missing-case M E E' (ƛ L') N' VM (V-ƛ L') VN' r' E'' F (sym p') VF)
-    (step*
-      refl
-      (step*
-        refl
-        (step*
-          (cong (stepV (V-ƛ L')) (lemma E' (-· N')))
-          (step**
-            (lemV N' VN' (extendEvalCtx E' (V-ƛ L' ·-)))
-            (step*
-              (cong (stepV VN') (lemma E' (V-ƛ L' ·-)))
-              (subst-step* (cong (λ N → J' , E' ▻ N) (sym (β-lem refl r))) base)))))))
-  (thm1 N B' E' (sym r'') B V q')
-  
+  → A' ≡ closeEvalCtx E A → (B : ∅ ⊢⋆ K)(V : Value⋆ B)
+  → A' —↠E B -> (E ▻ A) -→s ([] ◅ V)
+thm1 A A' E p .A' V refl—↠E = unwind A A' E p V
+  -- it's already a value, so there's only some unwinding to do
+thm1 A A' E refl C V (trans—↠E {B = B} q q') with lemmaE' A E B q
+... | J , E' , L , N , p , p' , p'' , inj₁ (E'' , p''') = step** (lem62 L A E E'' p''') (step** (subst-step* (cong (λ E → _ , E ▻ L) (uniquenessE _ (λ V → notboth (closeEvalCtx (compEvalCtx' E E'') L) (V , _ , contextRule (compEvalCtx' E E'') p refl refl)) L N p (compEvalCtx' E E'') E' refl (trans (trans (trans (cong (λ E → closeEvalCtx E L) (sym (compEvalCtx-eq E E''))) (close-comp E E'' L)) (cong (closeEvalCtx E) (sym p'''))) p'))) (lem-→⋆ L N E' p)) (thm1 N B E' (sym p'') C V q'))
+... | J , E' , (ƛ L · N) , .(sub (sub-cons ` N) L) , β-ƛ VN , p' , p'' , inj₂ VA with case2 A E VA E' (ƛ L) N (V-ƛ L) VN p'
+... | I , I' , E'' , F , E''' , refl , VE'''A , ¬VFE'''A , E'''' , r' = step**
+  (step** (subst-step* (cong (λ E → _ , E ▻ A) (trans (sym (compEF E'' F E''')) (compEvalCtx-eq (extendEvalCtx E'' F) E'''))) (unwindE A _ (extendEvalCtx E'' F) E''' refl VE'''A)) (step** (lemmaF (closeEvalCtx E''' A) F E'' E'''' (ƛ L) N VE'''A (V-ƛ L) VN ¬VFE'''A (trans (trans (closeEF E'' F (closeEvalCtx E''' A)) (trans (cong (closeEvalCtx E'') (evalEF' F E''' A)) (sym  (close-comp E'' (evalFrame F E''') A)))) (trans (sym r') (sym (close-comp E'' E'''' (ƛ L · N)))) )) (step* (cong (stepV VN) (lemma (compEvalCtx E'' E'''') (V-ƛ L ·-))) (subst-step* (cong (λ E → _ , E ▻ (L [ N ])) (uniquenessE _ (lemE· (compEvalCtx E'' E'''')) (ƛ L · N) (L [ N ]) (β-ƛ VN) (compEvalCtx E'' E'''') E' refl (trans (trans (close-comp E'' E'''' (ƛ L · N)) r') p'))) base))))
+  (thm1 (L [ N ]) B E' (sym p'') C V q')
+
 thm2 : (A B : ∅ ⊢⋆ K)(V : Value⋆ B) → A —↠E B -> ([] ▻ A) -→s ([] ◅ V)
 thm2 A B V p = thm1 A A [] refl B V p
 ```

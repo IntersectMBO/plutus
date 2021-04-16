@@ -18,6 +18,7 @@ module UntypedPlutusCore.Evaluation.Machine.Cek
     , TallyingSt (..)
     , RestrictingSt (..)
     , Hashable
+    , PrettyUni
     , counting
     , tallying
     , restricting
@@ -42,8 +43,8 @@ import           UntypedPlutusCore.Evaluation.Machine.Cek.ExBudgetMode
 import           UntypedPlutusCore.Evaluation.Machine.Cek.Internal
 
 import           PlutusCore.Constant
-import           PlutusCore.Evaluation.Machine.ExMemory
 import           PlutusCore.Evaluation.Machine.Exception
+import           PlutusCore.Evaluation.Machine.ExMemory
 import           PlutusCore.Name
 import           PlutusCore.Pretty
 import           PlutusCore.Universe
@@ -63,7 +64,7 @@ allow one to specify an 'ExBudgetMode'. I.e. such functions are only for fully e
 
 -- | Evaluate a term using the CEK machine with logging disabled and keep track of costing.
 runCekNoEmit
-    :: ( Closed uni, uni `Everywhere` ExMemoryUsage, Ix fun)
+    :: ( uni `Everywhere` ExMemoryUsage, Ix fun, PrettyUni uni fun)
     => BuiltinsRuntime fun (CekValue uni fun)
     -> ExBudgetMode cost uni fun
     -> Term Name uni fun ()
@@ -88,7 +89,7 @@ unsafeRunCekNoEmit runtime mode =
 
 -- | Evaluate a term using the CEK machine with logging enabled.
 evaluateCek
-    :: ( Closed uni, uni `Everywhere` ExMemoryUsage, Ix fun)
+    :: ( uni `Everywhere` ExMemoryUsage, Ix fun, PrettyUni uni fun)
     => BuiltinsRuntime fun (CekValue uni fun)
     -> Term Name uni fun ()
     -> (Either (CekEvaluationException uni fun) (Term Name uni fun ()), [String])
@@ -98,7 +99,7 @@ evaluateCek runtime term =
 
 -- | Evaluate a term using the CEK machine with logging disabled.
 evaluateCekNoEmit
-    :: ( Closed uni, uni `Everywhere` ExMemoryUsage, Ix fun)
+    :: ( uni `Everywhere` ExMemoryUsage, Ix fun, PrettyUni uni fun)
     => BuiltinsRuntime fun (CekValue uni fun)
     -> Term Name uni fun ()
     -> Either (CekEvaluationException uni fun) (Term Name uni fun ())
@@ -128,9 +129,9 @@ unsafeEvaluateCekNoEmit runtime = unsafeExtractEvaluationResult . evaluateCekNoE
 
 -- | Unlift a value using the CEK machine.
 readKnownCek
-    :: ( Closed uni, uni `Everywhere` ExMemoryUsage
+    :: ( uni `Everywhere` ExMemoryUsage
        , KnownType (Term Name uni fun ()) a
-       , Ix fun
+       , Ix fun, PrettyUni uni fun
        )
     => BuiltinsRuntime fun (CekValue uni fun)
     -> Term Name uni fun ()

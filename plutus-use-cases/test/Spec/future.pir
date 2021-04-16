@@ -64,10 +64,36 @@
         )
         (datatypebind
           (datatype
-            (tyvardecl Tuple3 (fun (type) (fun (type) (fun (type) (type)))))
-            (tyvardecl a (type)) (tyvardecl b (type)) (tyvardecl c (type))
-            Tuple3_match
-            (vardecl Tuple3 (fun a (fun b (fun c [[[Tuple3 a] b] c]))))
+            (tyvardecl StakingCredential (type))
+
+            StakingCredential_match
+            (vardecl StakingHash (fun (con bytestring) StakingCredential))
+            (vardecl
+              StakingPtr
+              (fun (con integer) (fun (con integer) (fun (con integer) StakingCredential)))
+            )
+          )
+        )
+        (datatypebind
+          (datatype
+            (tyvardecl DCert (type))
+
+            DCert_match
+            (vardecl DCertDelegDeRegKey (fun StakingCredential DCert))
+            (vardecl
+              DCertDelegDelegate
+              (fun StakingCredential (fun (con bytestring) DCert))
+            )
+            (vardecl DCertDelegRegKey (fun StakingCredential DCert))
+            (vardecl DCertGenesis DCert)
+            (vardecl DCertMir DCert)
+            (vardecl
+              DCertPoolRegister
+              (fun (con bytestring) (fun (con bytestring) DCert))
+            )
+            (vardecl
+              DCertPoolRetire (fun (con bytestring) (fun (con integer) DCert))
+            )
           )
         )
         (datatypebind
@@ -82,6 +108,26 @@
         )
         (datatypebind
           (datatype
+            (tyvardecl ScriptPurpose (type))
+
+            ScriptPurpose_match
+            (vardecl Certifying (fun DCert ScriptPurpose))
+            (vardecl Minting (fun (con bytestring) ScriptPurpose))
+            (vardecl Rewarding (fun StakingCredential ScriptPurpose))
+            (vardecl Spending (fun TxOutRef ScriptPurpose))
+          )
+        )
+        (datatypebind
+          (datatype
+            (tyvardecl Credential (type))
+
+            Credential_match
+            (vardecl PubKeyCredential (fun (con bytestring) Credential))
+            (vardecl ScriptCredential (fun (con bytestring) Credential))
+          )
+        )
+        (datatypebind
+          (datatype
             (tyvardecl Maybe (fun (type) (type)))
             (tyvardecl a (type))
             Maybe_match
@@ -90,31 +136,12 @@
         )
         (datatypebind
           (datatype
-            (tyvardecl TxInInfo (type))
-
-            TxInInfo_match
-            (vardecl
-              TxInInfo
-              (fun TxOutRef (fun [Maybe [[[Tuple3 (con bytestring)] (con bytestring)] (con bytestring)]] (fun [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]] TxInInfo)))
-            )
-          )
-        )
-        (datatypebind
-          (datatype
             (tyvardecl Address (type))
 
             Address_match
-            (vardecl PubKeyAddress (fun (con bytestring) Address))
-            (vardecl ScriptAddress (fun (con bytestring) Address))
-          )
-        )
-        (datatypebind
-          (datatype
-            (tyvardecl TxOutType (type))
-
-            TxOutType_match
-            (vardecl PayToPubKey TxOutType)
-            (vardecl PayToScript (fun (con bytestring) TxOutType))
+            (vardecl
+              Address (fun Credential (fun [Maybe StakingCredential] Address))
+            )
           )
         )
         (datatypebind
@@ -124,8 +151,16 @@
             TxOut_match
             (vardecl
               TxOut
-              (fun Address (fun [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]] (fun TxOutType TxOut)))
+              (fun Address (fun [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]] (fun [Maybe (con bytestring)] TxOut)))
             )
+          )
+        )
+        (datatypebind
+          (datatype
+            (tyvardecl TxInInfo (type))
+
+            TxInInfo_match
+            (vardecl TxInInfo (fun TxOutRef (fun TxOut TxInInfo)))
           )
         )
         (datatypebind
@@ -187,17 +222,17 @@
                 TxInfo_match
                 (vardecl
                   TxInfo
-                  (fun [List TxInInfo] (fun [List TxOut] (fun [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]] (fun [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]] (fun [Interval (con integer)] (fun [List (con bytestring)] (fun [List (con bytestring)] (fun [List [[Tuple2 (con bytestring)] Data]] (fun (con bytestring) TxInfo)))))))))
+                  (fun [List TxInInfo] (fun [List TxInInfo] (fun [List TxOut] (fun [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]] (fun [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]] (fun [List DCert] (fun [List [[Tuple2 StakingCredential] (con integer)]] (fun [Interval (con integer)] (fun [List (con bytestring)] (fun [List [[Tuple2 (con bytestring)] Data]] (fun (con bytestring) TxInfo)))))))))))
                 )
               )
             )
             (datatypebind
               (datatype
-                (tyvardecl ValidatorCtx (type))
+                (tyvardecl ScriptContext (type))
 
-                ValidatorCtx_match
+                ScriptContext_match
                 (vardecl
-                  ValidatorCtx (fun TxInfo (fun (con integer) ValidatorCtx))
+                  ScriptContext (fun TxInfo (fun ScriptPurpose ScriptContext))
                 )
               )
             )
@@ -291,7 +326,7 @@
                 StateMachine_match
                 (vardecl
                   StateMachine
-                  (fun (fun [State s] (fun i [Maybe [[Tuple2 [[TxConstraints Void] Void]] [State s]]])) (fun (fun s Bool) (fun (fun s (fun i (fun ValidatorCtx Bool))) [[StateMachine s] i])))
+                  (fun (fun [State s] (fun i [Maybe [[Tuple2 [[TxConstraints Void] Void]] [State s]]])) (fun (fun s Bool) (fun (fun s (fun i (fun ScriptContext Bool))) [[StateMachine s] i])))
                 )
               )
             )
@@ -299,12 +334,12 @@
               (strict)
               (vardecl
                 mkStateMachine
-                (all s (type) (all i (type) (fun s (fun i (fun ValidatorCtx Bool)))))
+                (all s (type) (all i (type) (fun s (fun i (fun ScriptContext Bool)))))
               )
               (abs
                 s
                 (type)
-                (abs i (type) (lam ds s (lam ds i (lam ds ValidatorCtx True))))
+                (abs i (type) (lam ds s (lam ds i (lam ds ScriptContext True))))
               )
             )
             (datatypebind

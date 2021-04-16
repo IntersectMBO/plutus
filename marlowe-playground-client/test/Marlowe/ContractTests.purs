@@ -22,6 +22,7 @@ import Examples.PureScript.ZeroCouponBond as ZeroCouponBond
 import Examples.PureScript.CouponBondGuaranteed as CouponBondGuaranteed
 import Examples.PureScript.Swap as Swap
 import Examples.PureScript.ContractForDifferences as ContractForDifferences
+import Examples.PureScript.ContractForDifferencesWithOracle as ContractForDifferencesWithOracle
 import Marlowe.Parser (parseContract)
 import Marlowe.Semantics (ChoiceId(..), Contract(..), Input(..), Party(..), Token(..))
 import SimulationPage.Types (_SimulationRunning, _currentContract, _executionState, _marloweState, _pendingInputs, _transactionError, emptyExecutionStateWithSlot, mkState)
@@ -44,6 +45,7 @@ all =
       equal (Just CouponBondGuaranteed.extendedContract) (contractToExtended Contracts.couponBondGuaranteed)
       equal (Just Swap.extendedContract) (contractToExtended Contracts.swap)
       equal (Just ContractForDifferences.extendedContract) (contractToExtended Contracts.contractForDifferences)
+      equal (Just ContractForDifferencesWithOracle.extendedContract) (contractToExtended Contracts.contractForDifferencesWithOracle)
       pure unit
     test "Escrow" do
       -- A simple test that runs the Escrow contract to completion
