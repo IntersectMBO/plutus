@@ -93,6 +93,7 @@
       else "0mgxp1ja7rjh3qnf5ph4a4phncsd3yh04cxmdsg8baczx7jndfaf";
     modules = [{
       packages.ghcide.patches = [ ../../patches/ghcide_partial_iface.patch ];
+      packages.haskell-language-server.patches = [ ../../patches/haskell-language-server-dynamic.patch ];
     }];
   };
   in { inherit (project.hsPkgs) haskell-language-server hie-bios implicit-hie; }
