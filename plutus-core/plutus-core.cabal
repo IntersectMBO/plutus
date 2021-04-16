@@ -220,6 +220,7 @@ library
         UntypedPlutusCore.Subst
         UntypedPlutusCore.Transform.Simplify
 
+        Data.Aeson.Flatten
         Data.Aeson.THReader
         Data.Functor.Foldable.Monadic
     build-depends:
@@ -264,6 +265,7 @@ library
         prettyprinter >=1.1.0.1,
         prettyprinter-configurable -any,
         recursion-schemes -any,
+        scientific -any,
         semigroupoids -any,
         semigroups -any,
         serialise -any,
@@ -277,6 +279,7 @@ library
         th-lift-instances -any,
         th-utilities -any,
         transformers -any,
+        unordered-containers -any,
         witherable -any
 
 test-suite plutus-core-test

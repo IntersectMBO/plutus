@@ -81,5 +81,18 @@
           ];
         hsSourceDirs = [ "src" ];
         };
+      tests = {
+        "plutus-ledger-api-test" = {
+          depends = [
+            (hsPkgs."base" or (errorHandler.buildDepError "base"))
+            (hsPkgs."plutus-ledger-api" or (errorHandler.buildDepError "plutus-ledger-api"))
+            (hsPkgs."tasty" or (errorHandler.buildDepError "tasty"))
+            (hsPkgs."tasty-hunit" or (errorHandler.buildDepError "tasty-hunit"))
+            ];
+          buildable = true;
+          hsSourceDirs = [ "test" ];
+          mainPath = [ "Spec.hs" ];
+          };
+        };
       };
     } // rec { src = (pkgs.lib).mkDefault ../plutus-ledger-api; }
