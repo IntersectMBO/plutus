@@ -62,8 +62,6 @@ module Plutus.Contract.Test(
     , emulatorConfig
     -- * Etc
     , goldenPir
-    , timesFeeAdjust
-    , timesFeeAdjustV
     ) where
 
 import           Control.Applicative                    (liftA2)
@@ -513,18 +511,21 @@ assertOutcome contract inst p nm =
                 ]
         pure result
 
+-- | Check that the funds in the wallet have changed by the given amount, exluding fees.
 walletFundsChange :: Wallet -> Value -> TracePredicate
 walletFundsChange w dlt =
-    flip postMapM (L.generalize $ Folds.walletFunds w) $ \finalValue -> do
+    flip postMapM (L.generalize $ (,) <$> Folds.walletFunds w <*> Folds.walletFees w) $ \(finalValue, fees) -> do
         dist <- ask @InitialDistribution
         let initialValue = fold (dist ^. at w)
-            result = initialValue P.+ dlt == finalValue
+            result = initialValue P.+ dlt == finalValue P.+ fees
         unless result $ do
             tell @(Doc Void) $ vsep $
-                [ "Expected funds of" <+> pretty w <+> "to change by", " " <+> viaShow dlt ] ++
-                if initialValue == finalValue
+                [ "Expected funds of" <+> pretty w <+> "to change by"
+                , " " <+> viaShow dlt
+                , "  (excluding" <+> viaShow (Ada.getLovelace (Ada.fromValue fees)) <+> "lovelace in fees)" ] ++
+                if initialValue == finalValue P.+ fees
                 then ["but they did not change"]
-                else ["but they changed by", " " <+> viaShow (finalValue P.- initialValue)]
+                else ["but they changed by", " " <+> viaShow (finalValue P.+ fees P.- initialValue)]
         pure result
 
 -- | An assertion about the blockchain
@@ -620,18 +621,3 @@ reasonable (Ledger.unValidatorScript -> s) maxSize = do
 -- | Compare a golden PIR file to the provided 'CompiledCode'.
 goldenPir :: FilePath -> CompiledCode a -> TestTree
 goldenPir path code = goldenVsString "PIR" path (pure $ fromString $ show $ pretty $ fromJust $ getPir code)
-
-staticFee :: Integer
-staticFee = 0
-
--- | Deduct transaction fees from wallet funds, and make
---   the fee amount explicit in the test specification
-timesFeeAdjust :: Integer -> Integer -> Value
-timesFeeAdjust multiplier change =
-    timesFeeAdjustV multiplier (Ada.lovelaceValueOf change)
-
--- | Deduct transaction fees from wallet funds, and make
---   the fee amount explicit in the test specification
-timesFeeAdjustV :: Integer -> Value -> Value
-timesFeeAdjustV multiplier change =
-    change P.- Ada.lovelaceValueOf (staticFee * multiplier)

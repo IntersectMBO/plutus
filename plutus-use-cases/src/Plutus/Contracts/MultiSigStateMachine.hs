@@ -37,7 +37,7 @@ import           GHC.Generics                 (Generic)
 import           Ledger                       (PubKeyHash, Slot, pubKeyHash)
 import           Ledger.Constraints           (TxConstraints)
 import qualified Ledger.Constraints           as Constraints
-import           Ledger.Contexts              (TxInfo (..), ValidatorCtx (..))
+import           Ledger.Contexts              (ScriptContext (..), TxInfo (..))
 import qualified Ledger.Contexts              as Validation
 import qualified Ledger.Interval              as Interval
 import qualified Ledger.Typed.Scripts         as Scripts
@@ -179,8 +179,8 @@ proposalAccepted (Params signatories numReq) pks =
 -- | @valuePreserved v p@ is true if the pending transaction @p@ pays the amount
 --   @v@ to this script's address. It does not assert the number of such outputs:
 --   this is handled in the generic state machine validator.
-valuePreserved :: Value -> ValidatorCtx -> Bool
-valuePreserved vl ctx = vl == Validation.valueLockedBy (valCtxTxInfo ctx) (Validation.ownHash ctx)
+valuePreserved :: Value -> ScriptContext -> Bool
+valuePreserved vl ctx = vl == Validation.valueLockedBy (scriptContextTxInfo ctx) (Validation.ownHash ctx)
 
 {-# INLINABLE valuePaid #-}
 -- | @valuePaid pm ptx@ is true if the pending transaction @ptx@ pays

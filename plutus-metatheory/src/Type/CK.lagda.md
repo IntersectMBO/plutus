@@ -173,13 +173,19 @@ Stack2EvalCtx : ∀ {I J} → Stack I J → EvalCtx I J
 Stack2EvalCtx ε       = []
 Stack2EvalCtx (s , F) = extendEvalCtx (Stack2EvalCtx s) F
 
-state2state : ∀ {I J} → CC.State I J → State I J
-state2state (x CC.▻ x₁) = EvalCtx2Stack x ▻ x₁
-state2state (x CC.◅ x₁) = EvalCtx2Stack x ◅ x₁
-state2state (CC.□ x) = □ x
+cc2ck : ∀ {I J} → CC.State I J → State I J
+cc2ck (x CC.▻ x₁) = EvalCtx2Stack x ▻ x₁
+cc2ck (x CC.◅ x₁) = EvalCtx2Stack x ◅ x₁
+cc2ck (CC.□ x) = □ x
+
+ck2cc : ∀ {I J} → State I J → CC.State I J
+ck2cc (x ▻ x₁) = Stack2EvalCtx x CC.▻ x₁
+ck2cc (x ◅ x₁) = Stack2EvalCtx x CC.◅ x₁
+ck2cc (□ x) = CC.□ x
+
 
 thm64 : (s : CC.State K J)(s' : CC.State K J')
-  → s CC.-→s s' → state2state s -→ck state2state s'
+  → s CC.-→s s' → cc2ck s -→ck cc2ck s'
 thm64 s .s CC.base = base
 thm64 (x CC.▻ Π x₁) s' (CC.step* refl p) = step* refl (thm64 _ s' p)
 thm64 (x CC.▻ (x₁ ⇒ x₂)) s' (CC.step* refl p) =
@@ -203,5 +209,35 @@ thm64 (x CC.◅ x₁) s' (CC.step* refl p) with dissect' x | inspect dissect' x
 ... | inj₂ (.* , E , μ x₂ -) | [ eq ]  rewrite dissect-lemma x E (μ x₂ -) eq | CC.lemma E (μ x₂ -) = step* refl (thm64 _ s' p)
 thm64 (CC.□ x) s' (CC.step* refl p) = step* refl (thm64 _ s' p)
 
+thm64b : (s : State K J)(s' : State K J')
+  → s -→ck s' → ck2cc s CC.-→s ck2cc s'
+thm64b s .s base = CC.base
+thm64b (s ▻ Π A) s' (step* refl q) = CC.step* refl (thm64b _ _ q)
+thm64b (s ▻ (A ⇒ B)) s' (step* refl q) = CC.step* refl (thm64b _ _ q)
+thm64b (s ▻ ƛ A) s' (step* refl q) = CC.step* refl (thm64b _ _ q)
+thm64b (s ▻ (A · B)) s' (step* refl q) = CC.step* refl (thm64b _ _ q)
+thm64b (s ▻ μ A B) s' (step* refl q) = CC.step* refl (thm64b _ _ q)
+thm64b (s ▻ con c) s' (step* refl q) = CC.step* refl (thm64b _ _ q)
+thm64b (ε ◅ V) s' (step* refl q) = CC.step* refl (thm64b _ _ q)
+thm64b ((s , (-· B)) ◅ V) s' (step* refl q) =
+  CC.step* (cong (CC.stepV V) (CC.lemma (Stack2EvalCtx s) (-· B)))
+           (thm64b _ _ q)
+thm64b ((s , (V-ƛ A ·-)) ◅ V) s' (step* refl q) = CC.step*
+  (cong (CC.stepV V) (CC.lemma (Stack2EvalCtx s) (_ ·-)))
+  (thm64b _ _ q)
+thm64b ((s , (-⇒ B)) ◅ V) s' (step* refl q) = CC.step*
+  (cong (CC.stepV V) (CC.lemma (Stack2EvalCtx s) _))
+  (thm64b _ _ q)
+thm64b ((s , (VA ⇒-)) ◅ V) s' (step* refl q) = CC.step*
+  (cong (CC.stepV V) (CC.lemma (Stack2EvalCtx s) _))
+  (thm64b _ _ q)
+
+thm64b ((s , (μ- B)) ◅ V) s' (step* refl q) = CC.step*
+  (cong (CC.stepV V) (CC.lemma (Stack2EvalCtx s) _))
+  (thm64b _ _ q)
+thm64b ((s , μ VA -) ◅ V) s' (step* refl q) = CC.step*
+  (cong (CC.stepV V) (CC.lemma (Stack2EvalCtx s) _))
+  (thm64b _ _ q)
+thm64b (□ V)   s' (step* refl q) = CC.step* refl (thm64b _ _ q)
 ```
 

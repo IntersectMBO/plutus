@@ -6,7 +6,8 @@ type Party = { "pk_hash" : string }
 type SomeNumber = number | string | bigint;
 
 function coerceNumber(n : SomeNumber) : bignumber.BigNumber {
-    if (typeof(n) == 'string') {
+    var isNumeric = /^-?(?:\d+(?:\.\d*)?|\.\d+)(?:e[+-]?\d+)?$/i;
+    if ((typeof(n) == 'string') && (isNumeric.test(String(n)))) {
         return new bignumber.BigNumber(n);
     } else if (typeof(n) == 'bigint') {
         return new bignumber.BigNumber(n.toString());

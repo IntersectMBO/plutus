@@ -213,4 +213,3 @@ tests = testGroup "PRISM"
     , testProperty "QuickCheck property" $
         withMaxSuccess 15 prop_Prism
     ]
-

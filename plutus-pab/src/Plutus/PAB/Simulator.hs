@@ -50,6 +50,7 @@ module Plutus.PAB.Simulator(
     , waitUntilFinished
     , valueAt
     , valueAtSTM
+    , walletFees
     , blockchain
     , currentBalances
     , logBalances
@@ -79,7 +80,7 @@ import           Control.Monad.Freer.Writer                     (Writer (..), ru
 import           Control.Monad.IO.Class                         (MonadIO (..))
 import qualified Data.Aeson                                     as JSON
 import           Data.Default                                   (Default (..))
-import           Data.Foldable                                  (traverse_)
+import           Data.Foldable                                  (fold, traverse_)
 import           Data.Map                                       (Map)
 import qualified Data.Map                                       as Map
 import           Data.Semigroup                                 (Max (..))
@@ -90,10 +91,9 @@ import qualified Data.Text.IO                                   as Text
 import           Data.Text.Prettyprint.Doc                      (Pretty (pretty), defaultLayoutOptions, layoutPretty)
 import qualified Data.Text.Prettyprint.Doc.Render.Text          as Render
 import           Data.Time.Units                                (Millisecond)
-import           Ledger.Address                                 (Address (..))
+import           Ledger                                         (Address (..), Tx, TxId, TxOut (..), txFee, txId)
 import           Ledger.Crypto                                  (PubKey, toPublicKey)
 import qualified Ledger.Index                                   as UtxoIndex
-import           Ledger.Tx                                      (Tx, TxOut (..))
 import           Ledger.Value                                   (Value, flattenValue)
 import           Plutus.PAB.Core                                (EffectHandlers (..))
 import qualified Plutus.PAB.Core                                as Core
@@ -135,7 +135,8 @@ makeLensesFor [("_contractState", "contractState")] ''SimulatorContractInstanceS
 
 data AgentState t =
     AgentState
-        { _walletState :: Wallet.WalletState
+        { _walletState   :: Wallet.WalletState
+        , _submittedFees :: Map TxId Value
         }
 
 makeLenses ''AgentState
@@ -143,7 +144,8 @@ makeLenses ''AgentState
 initialAgentState :: forall t. Wallet -> AgentState t
 initialAgentState wallet =
     AgentState
-        { _walletState = Wallet.emptyWalletState wallet
+        { _walletState   = Wallet.emptyWalletState wallet
+        , _submittedFees = mempty
         }
 
 data SimulatorState t =
@@ -160,7 +162,7 @@ makeLensesFor [("_logMessages", "logMessages"), ("_instances", "instances")] ''S
 initialState :: forall t. IO (SimulatorState t)
 initialState = do
     let Emulator.EmulatorState{Emulator._chainState} = Emulator.initialState def
-        initialWallets = Map.fromList $ fmap (\w -> (w, AgentState $ Wallet.emptyWalletState w)) $ Wallet <$> [1..10]
+        initialWallets = Map.fromList $ fmap (\w -> (w, initialAgentState w)) $ Wallet <$> [1..10]
     STM.atomically $
         SimulatorState
             <$> STM.newTQueue
@@ -266,7 +268,10 @@ handleServicesSimulator wallet =
         . interpret (Core.handleBlockchainEnvReader @t @(SimulatorState t))
         . interpret (Core.handleUserEnvReader @t @(SimulatorState t))
         . reinterpretN @'[Reader (SimulatorState t), Reader BlockchainEnv, LogMsg _] (handleChainEffect @t)
-        . reinterpret handleNodeClient
+
+        . interpret (Core.handleUserEnvReader @t @(SimulatorState t))
+        . reinterpret2 (handleNodeClient @t wallet)
+
         . makeTimedChainIndexEvent wallet
         . interpret (Core.handleUserEnvReader @t @(SimulatorState t))
         . reinterpretN @'[Reader (SimulatorState t), LogMsg _] (handleChainIndexEffect @t)
@@ -506,13 +511,27 @@ runChainIndexEffects action = do
 
 -- | Handle the 'NodeClientEffect' using the 'SimulatorState'.
 handleNodeClient ::
-    forall effs.
-    ( Member Chain.ChainEffect effs
+    forall t effs.
+    ( LastMember IO effs
+    , Member Chain.ChainEffect effs
+    , Member (Reader (SimulatorState t)) effs
     )
-    => NodeClientEffect
+    => Wallet
+    -> NodeClientEffect
     ~> Eff effs
-handleNodeClient = \case
-    PublishTx tx  -> Chain.queueTx tx
+handleNodeClient wallet = \case
+    PublishTx tx  -> do
+        Chain.queueTx tx
+        SimulatorState{_agentStates} <- ask @(SimulatorState t)
+        liftIO $ STM.atomically $ do
+            mp <- STM.readTVar _agentStates
+            case Map.lookup wallet mp of
+                Nothing -> do
+                    let newState = initialAgentState wallet & submittedFees . at (txId tx) .~ Just (txFee tx)
+                    STM.writeTVar _agentStates (Map.insert wallet newState mp)
+                Just s' -> do
+                    let newState = s' & submittedFees . at (txId tx) .~ Just (txFee tx)
+                    STM.writeTVar _agentStates (Map.insert wallet newState mp)
     GetClientSlot -> Chain.getCurrentSlot
 
 -- | Handle the 'Chain.ChainEffect' using the 'SimulatorState'.
@@ -648,6 +667,21 @@ valueAt address = do
     stm <- valueAtSTM address
     liftIO $ STM.atomically stm
 
+-- | The fees paid by the wallet.
+walletFees :: forall t. Wallet -> Simulation t Value
+walletFees wallet = succeededFees <$> walletSubmittedFees <*> blockchain
+    where
+        succeededFees :: Map TxId Value -> [[Tx]] -> Value
+        succeededFees submitted = foldMap . foldMap $ fold . (submitted Map.!?) . txId
+        walletSubmittedFees = do
+            SimulatorState{_agentStates} <- Core.askUserEnv @t @(SimulatorState t)
+            result <- liftIO $ STM.atomically $ do
+                mp <- STM.readTVar _agentStates
+                pure $ Map.lookup wallet mp
+            case result of
+                Nothing -> throwError $ WalletNotFound wallet
+                Just s  -> pure (_submittedFees s)
+
 -- | The entire chain (newest transactions first)
 blockchain :: forall t. Simulation t [[Tx]]
 blockchain = do
@@ -671,7 +705,7 @@ addWallet = do
         currentWallets <- STM.readTVar _agentStates
         let newWalletId = maybe 0 (succ . getMax) $ foldMap (Just . Max . getWallet) $ Map.keysSet currentWallets
             newWallet = Wallet newWalletId
-            newWallets = currentWallets & at newWallet .~ Just (AgentState $ Wallet.emptyWalletStateFromPrivateKey privateKey)
+            newWallets = currentWallets & at newWallet .~ Just (AgentState (Wallet.emptyWalletStateFromPrivateKey privateKey) mempty)
         STM.writeTVar _agentStates newWallets
         pure (newWallet, toPublicKey privateKey)
 

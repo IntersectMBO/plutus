@@ -39,7 +39,7 @@ import           PlutusTx.Prelude
 import           Ledger.Constraints        (TxConstraints)
 import qualified Ledger.Constraints        as Constraints
 import           Plutus.V1.Ledger.Bytes
-import           Plutus.V1.Ledger.Contexts (ValidatorCtx)
+import           Plutus.V1.Ledger.Contexts (ScriptContext)
 import           Plutus.V1.Ledger.Crypto   (PrivateKey, PubKey (..), Signature (..))
 import qualified Plutus.V1.Ledger.Crypto   as Crypto
 import           Plutus.V1.Ledger.Scripts  (Datum (..), DatumHash (..))
@@ -153,22 +153,22 @@ verifySignedMessageConstraints pk s@SignedMessage{osmSignature, osmMessageHash} 
 -- | Check the signature on a 'SignedMessage' and extract the contents of the
 --   message, using the pending transaction in lieu of a hash function. See
 --   'verifySignedMessageConstraints' for a version that does not require a
---   'ValidatorCtx' value.
+--   'ScriptContext' value.
 verifySignedMessageOnChain ::
     ( IsData a)
-    => ValidatorCtx
+    => ScriptContext
     -> PubKey
     -> SignedMessage a
     -> Either SignedMessageCheckError a
 verifySignedMessageOnChain ptx pk s@SignedMessage{osmSignature, osmMessageHash} = do
     checkSignature osmMessageHash pk osmSignature
     (a, constraints) <- checkHashConstraints s
-    unless (Constraints.checkValidatorCtx @() @() constraints ptx)
+    unless (Constraints.checkScriptContext @() @() constraints ptx)
         (Left $ DatumMissing osmMessageHash)
     pure a
 
 -- | The off-chain version of 'checkHashConstraints', using the hash function
---   directly instead of obtaining the hash from a 'ValidatorCtx' value
+--   directly instead of obtaining the hash from a 'ScriptContext' value
 checkHashOffChain ::
     ( IsData a )
     => SignedMessage a

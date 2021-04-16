@@ -1,0 +1,31 @@
+diff --git a/haskell-language-server.cabal b/haskell-language-server.cabal
+index b39fbdff..5439dfff 100644
+--- a/haskell-language-server.cabal
++++ b/haskell-language-server.cabal
+@@ -79,7 +79,7 @@ library
+     , unordered-containers
+     , aeson-pretty
+
+-  ghc-options:      -Wall -Wredundant-constraints -Wno-name-shadowing -Wno-unticked-promoted-constructors
++  ghc-options:      -Wall -Wredundant-constraints -Wno-name-shadowing -Wno-unticked-promoted-constructors -dynamic
+
+   if flag(pedantic)
+     ghc-options: -Werror
+@@ -296,7 +296,7 @@ executable haskell-language-server
+   other-modules:    Plugins
+
+   ghc-options:
+-    -threaded -Wall -Wno-name-shadowing -Wredundant-constraints
++    -threaded -Wall -Wno-name-shadowing -Wredundant-constraints  -dynamic
+     -- allow user RTS overrides
+     -rtsopts
+     -- disable idle GC
+@@ -349,7 +349,7 @@ executable haskell-language-server-wrapper
+   other-modules:    Paths_haskell_language_server
+   autogen-modules:  Paths_haskell_language_server
+   ghc-options:
+-    -threaded -Wall -Wno-name-shadowing -Wredundant-constraints
++    -threaded -Wall -Wno-name-shadowing -Wredundant-constraints -dynamic
+     -- allow user RTS overrides
+     -rtsopts
+     -- disable idle GC

@@ -79,9 +79,12 @@ payToPublicKey ::
     )
     => SlotRange -> Value -> PubKey -> Eff effs Tx
 payToPublicKey range v pk = do
-    Payment{paymentInputs, paymentChangeOutput} <- createPaymentWithChange v
+    p <- createPaymentWithChange v
     let other = pubKeyTxOut v pk
-    createTxAndSubmit range paymentInputs (other : maybeToList paymentChangeOutput) []
+    let tx = createTx range (paymentInputs p) (other : maybeToList (paymentChangeOutput p)) []
+    p' <- updatePaymentWithChange (txFee tx) p
+    let tx' = createTx range (paymentInputs p') (other : maybeToList (paymentChangeOutput p')) []
+    signTxAndSubmit tx'
 
 -- | Transfer some funds to an address locked by a public key.
 payToPublicKey_ ::
@@ -93,21 +96,20 @@ payToPublicKey_ r v = void . payToPublicKey r v
 -- | Create a transaction, sign it with the wallet's private key, and submit it.
 --   TODO: This is here to make the calculation of fees easier for old-style contracts
 --         and should be removed when all contracts have been ported to the new API.
-createTxAndSubmit ::
-    ( Member WalletEffect effs )
-    => SlotRange
+createTx ::
+       SlotRange
     -> Set.Set TxIn
     -> [TxOut]
     -> [Datum]
-    -> Eff effs Tx
-createTxAndSubmit range ins outs datas = do
+    -> Tx
+createTx range ins outs datas = do
     let tx = mempty
             { txInputs = ins
             , txOutputs = outs
             , txValidRange = range
             , txData = Map.fromList $ fmap (\ds -> (datumHash ds, ds)) datas
             }
-    signTxAndSubmit $ tx { txFee = minFee tx }
+    tx { txFee = minFee tx }
 
 -- | Add the wallet's signature to the transaction and submit it. Returns
 --   the transaction with the wallet's signature.
