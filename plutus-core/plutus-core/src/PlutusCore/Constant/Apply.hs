@@ -18,18 +18,20 @@ import           Data.Proxy
 -- | Apply a function with a known 'TypeScheme' to a list of 'Constant's (unwrapped from 'Value's).
 -- Checks that the constants are of expected types.
 applyTypeSchemed
-    :: forall err m args fun exBudgetCat term res.
-       ( MonadEmitter m, MonadError (ErrorWithCause err term) m
+    :: forall exc err m args fun term res .
+       ( exc ~ ErrorWithCause err term, MonadEmitter m, MonadError exc m
        , AsUnliftingError err, AsEvaluationFailure err, AsConstAppError err fun term
-       , SpendBudget m fun exBudgetCat, ToExMemory term
+       , ToExMemory term
        )
-    => fun
+    =>
+    (fun -> ExBudget -> m ())
+    -> fun
     -> TypeScheme term args res
     -> FoldArgs args res
     -> FoldArgsEx args
     -> [term]
     -> m term
-applyTypeSchemed name = go where
+applyTypeSchemed spend name = go where
     go
         :: forall args'.
            TypeScheme term args' res
@@ -61,6 +63,6 @@ applyTypeSchemed name = go where
             -- Apply the function to the coerced argument and proceed recursively.
             case schB of
                 (TypeSchemeResult _) -> do
-                    spendBudget (exBudgetBuiltin name) exF'
+                    spend name exF'
                     go schB (f x) exF' args'
                 _ -> go schB (f x) exF' args'
