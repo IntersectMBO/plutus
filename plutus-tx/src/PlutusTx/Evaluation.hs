@@ -11,7 +11,6 @@ module PlutusTx.Evaluation
     , EvaluationError(..)
     , CekExTally
     , CekEvaluationException
-
     )
 where
 
