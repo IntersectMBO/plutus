@@ -123,10 +123,12 @@ _txKeyTxOutRefIdx = _TxKey <<< prop (SProxy :: SProxy "_txKeyTxOutRefIdx")
 
 toBeneficialOwner :: TxOut -> BeneficialOwner
 toBeneficialOwner (TxOut { txOutAddress }) =
-  let Address{addressCredential} = txOutAddress in
-  case addressCredential of
-    PubKeyCredential pkh -> OwnedByPubKey pkh
-    ScriptCredential vh -> OwnedByScript vh
+  let
+    Address { addressCredential } = txOutAddress
+  in
+    case addressCredential of
+      PubKeyCredential pkh -> OwnedByPubKey pkh
+      ScriptCredential vh -> OwnedByScript vh
 
 _findTx :: forall m. Monoid m => TxId -> Fold' m AnnotatedBlockchain AnnotatedTx
 _findTx focussedTxId = (_AnnotatedBlocks <<< filtered isAnnotationOf)
