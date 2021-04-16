@@ -13,12 +13,10 @@
 
 module PlutusCore.Evaluation.Machine.ExMemory
 ( Plain
-, WithMemory
 , ExMemory(..)
 , ExCPU(..)
 , GenericExMemoryUsage(..)
 , ExMemoryUsage(..)
-, withMemory
 ) where
 
 import           PlutusCore.Core
@@ -50,9 +48,6 @@ abstractly specifiable. It's an implementation detail.
 -}
 
 type Plain f (uni :: GHC.Type -> GHC.Type) (fun :: GHC.Type) = f TyName Name uni fun ()
--- | Caches Memory usage for builtin costing
--- | NOT the amount of memory it cost to calculate this value.
-type WithMemory f (uni :: GHC.Type -> GHC.Type) (fun :: GHC.Type) = f TyName Name uni fun ExMemory
 
 -- | Counts size in machine words (64bit for the near future)
 newtype ExMemory = ExMemory Integer
@@ -151,6 +146,3 @@ instance ExMemoryUsage Bool where
 
 instance ExMemoryUsage String where
   memoryUsage string = ExMemory $ (toInteger $ sum $ fmap sizeOf string) `div` 8
-
-withMemory :: ExMemoryUsage (f a) => Functor f => f a -> f ExMemory
-withMemory x = fmap (const (memoryUsage x)) x
