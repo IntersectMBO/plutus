@@ -15,6 +15,7 @@ import           Test.Tasty                  (TestTree, testGroup)
 import qualified Test.Tasty.HUnit            as HUnit
 
 import           Control.Lens                (view)
+import           Control.Monad               (void)
 import           Data.Foldable               (traverse_)
 
 import qualified Ledger
@@ -58,8 +59,11 @@ baseName = "TestLawToken"
 
 -- | A governance contract that requires 6 votes out of 10
 params :: Gov.Params
-params = Gov.Params holders 6 baseName where
-    holders = Ledger.pubKeyHash . EM.walletPubKey . EM.Wallet <$> [1..numberOfHolders]
+params = Gov.Params
+    { Gov.initialHolders = Ledger.pubKeyHash . EM.walletPubKey . EM.Wallet <$> [1..numberOfHolders]
+    , Gov.requiredVotes = 6
+    , Gov.baseTokenName = baseName
+    }
 
 lawv1, lawv2, lawv3 :: ByteString
 lawv1 = "Law v1"
