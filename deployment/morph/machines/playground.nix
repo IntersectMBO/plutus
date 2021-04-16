@@ -1,10 +1,8 @@
-{ pkgs, config, lib, ... }:
-let
-  tfinfo = builtins.fromJSON (builtins.readFile ./../machines.json);
-in
+{ pkgs, config, lib, tfinfo, ... }:
 {
 
   imports = [
+    ./std.nix
     ../../../nix/modules/plutus-playground.nix
     ../../../nix/modules/marlowe-playground.nix
   ];
