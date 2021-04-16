@@ -24,9 +24,9 @@
 | mem: 20000
 })
 | BAST causes ({ cpu: 0
-| mem: 205
+| mem: 1
 })})
 | budget: ({ cpu: 20476
-| mem: 20205
+| mem: 20001
 })
 }) )

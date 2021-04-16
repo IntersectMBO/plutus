@@ -73,7 +73,7 @@ test_memory =
         <> examples
 
 testBudget
-    :: (Ix fun, Show fun, Hashable fun, ExMemoryUsage fun, PrettyUni DefaultUni fun)
+    :: (Ix fun, Show fun, Hashable fun, PrettyUni DefaultUni fun)
     => BuiltinsRuntime fun (CekValue DefaultUni fun)
     -> TestName
     -> Term Name DefaultUni fun ()

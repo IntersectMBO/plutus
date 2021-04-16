@@ -619,9 +619,7 @@ enterComputeCek = computeCek where
 -- See Note [Compilation peculiarities].
 -- | Evaluate a term using the CEK machine and keep track of costing, logging is optional.
 runCek
-    :: ( uni `Everywhere` ExMemoryUsage
-       , Ix fun, ExMemoryUsage fun, PrettyUni uni fun
-       )
+    :: ( uni `Everywhere` ExMemoryUsage, Ix fun, PrettyUni uni fun)
     => BuiltinsRuntime fun (CekValue uni fun)
     -> ExBudgetMode cost uni fun
     -> Bool
@@ -633,3 +631,20 @@ runCek runtime mode emitting term =
         enterComputeCek [] mempty memTerm
   where
     memTerm = withMemory term
+    {- This is a temporary workaround for a bug where every AST node was being
+       annotated with the size of the entire AST, leading to the costing
+       functions for builtins being supplied with incorrect sizes and producing
+       inflated results.  In the longer term this should be reworked: we only
+       need memory sizes for constants, and it should be possible to obtain them
+       more directly.
+     -}
+    withMemory =
+        \case
+         Constant () v      -> Constant (memoryUsage v) v
+         Builtin  () b      -> Builtin  1 b
+         Var      () name   -> Var      1 name
+         LamAbs   () name t -> LamAbs   1 name (withMemory t)
+         Apply    () t1 t2  -> Apply    1 (withMemory t1) (withMemory t2)
+         Delay    () t      -> Delay    1 (withMemory t)
+         Force    () t      -> Force    1 (withMemory t)
+         Error    ()        -> Error    1
