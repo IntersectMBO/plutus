@@ -6449,32 +6449,6 @@
                                     )
                                   )
                                 )
-                                (termbind
-                                  (strict)
-                                  (vardecl
-                                    WAddress
-                                    (fun Credential (fun [Maybe StakingCredential] Address))
-                                  )
-                                  (lam
-                                    dt
-                                    Credential
-                                    (lam
-                                      dt
-                                      [Maybe StakingCredential]
-                                      [ [ Address dt ] dt ]
-                                    )
-                                  )
-                                )
-                                (termbind
-                                  (strict)
-                                  (vardecl
-                                    WScriptCredential
-                                    (fun (con bytestring) Credential)
-                                  )
-                                  (lam
-                                    dt (con bytestring) [ ScriptCredential dt ]
-                                  )
-                                )
                                 (datatypebind
                                   (datatype
                                     (tyvardecl Ordering (type))
@@ -10914,15 +10888,23 @@
                                                                     (nonstrict)
                                                                     (vardecl
                                                                       addr
+                                                                      Credential
+                                                                    )
+                                                                    [
+                                                                      ScriptCredential
+                                                                      vlh
+                                                                    ]
+                                                                  )
+                                                                  (termbind
+                                                                    (nonstrict)
+                                                                    (vardecl
+                                                                      addr
                                                                       Address
                                                                     )
                                                                     [
                                                                       [
-                                                                        WAddress
-                                                                        [
-                                                                          WScriptCredential
-                                                                          vlh
-                                                                        ]
+                                                                        Address
+                                                                        addr
                                                                       ]
                                                                       {
                                                                         Nothing
