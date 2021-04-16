@@ -35,11 +35,11 @@ import           GHC.Generics                 (Generic)
 import           Language.Marlowe.Semantics   hiding (Contract)
 import qualified Language.Marlowe.Semantics   as Marlowe
 import           Language.Marlowe.Util        (extractContractRoles)
-import           Ledger                       (Address (..), CurrencySymbol, Datum (..), PubKeyHash, ScriptContext (..),
-                                               Slot (..), TokenName, TxOut (..), TxOutTx (..), TxOutType (..),
-                                               ValidatorHash, mkValidatorScript, pubKeyHash, txOutDatum, txOutValue,
-                                               txOutputs, validatorHash, valueSpent)
+import           Ledger                       (CurrencySymbol, Datum (..), PubKeyHash, ScriptContext (..), Slot (..),
+                                               TokenName, TxOut (..), TxOutTx (..), ValidatorHash, mkValidatorScript,
+                                               pubKeyHash, txOutDatum, txOutValue, txOutputs, validatorHash, valueSpent)
 import           Ledger.Ada                   (adaSymbol, adaValueOf)
+import           Ledger.Address               (pubKeyHashAddress, scriptHashAddress)
 import           Ledger.Constraints
 import qualified Ledger.Constraints           as Constraints
 import qualified Ledger.Interval              as Interval
@@ -135,7 +135,7 @@ marlowePlutusContract = do
     redeem = mapError (review _MarloweError) $ do
         (MarloweParams{rolesCurrency}, role, pkh) <-
             endpoint @"redeem"
-        let address = ScriptAddress (mkRolePayoutValidatorHash rolesCurrency)
+        let address = scriptHashAddress (mkRolePayoutValidatorHash rolesCurrency)
         utxos <- utxoAt address
         let spendPayoutConstraints tx ref TxOutTx{txOutTxOut} = let
                 expectedDatumHash = datumHash (Datum $ PlutusTx.toData role)
@@ -525,7 +525,7 @@ marloweCompanionContract = contracts
   where
     contracts = do
         pkh <- pubKeyHash <$> ownPubKey
-        let ownAddress = PubKeyAddress pkh
+        let ownAddress = pubKeyHashAddress pkh
         utxo <- utxoAt ownAddress
         let txOuts = fmap (txOutTxOut . snd) $ Map.toList utxo
         forM_ txOuts notifyOnNewContractRoles
@@ -549,7 +549,7 @@ notifyOnNewContractRoles txout = do
 
 
 filterRoles :: TxOut -> [CurrencySymbol]
-filterRoles TxOut { txOutValue, txOutType = PayToPubKey } =
+filterRoles TxOut { txOutValue, txOutDatumHash = Nothing } =
     let curSymbols = filter (/= adaSymbol) $ AssocMap.keys $ Val.getValue txOutValue
     in  curSymbols
 filterRoles _ = []
