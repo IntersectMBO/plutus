@@ -2,7 +2,9 @@ module ContractHome.Types where
 
 import Prelude
 import Analytics (class IsEvent, defaultEvent)
+import Contract.Types (ContractId)
 import Contract.Types (State) as Contract
+import Data.Map (Map)
 import Data.Maybe (Maybe(..))
 import Marlowe.Semantics (Slot)
 
@@ -21,18 +23,21 @@ type State
     --        to split the map between running and completed is worth not having state duplication
     --        (Two arrays and a Map).
     --        Also, we should check if this data belongs here or in PlayState
-    , contracts :: Array (Contract.State)
-    , selectedContractIndex :: Maybe Int
+    , contracts :: Map ContractId Contract.State
+    , selectedContractIndex :: Maybe ContractId
     }
 
+type PartitionedContracts
+  = { completed :: Array Contract.State, running :: Array Contract.State }
+
 data Action
-  = ToggleTemplateLibraryCard
+  = OpenTemplateLibraryCard
   | SelectView ContractStatus
-  | OpenContract Int
+  | OpenContract ContractId
   | AdvanceTimedOutContracts Slot
 
 instance actionIsEvent :: IsEvent Action where
-  toEvent ToggleTemplateLibraryCard = Just $ defaultEvent "ToggleTemplateLibraryCard"
+  toEvent OpenTemplateLibraryCard = Just $ defaultEvent "OpenTemplateLibraryCard"
   toEvent (SelectView _) = Just $ defaultEvent "SelectView"
   toEvent (OpenContract _) = Just $ defaultEvent "OpenContract"
   toEvent (AdvanceTimedOutContracts _) = Nothing

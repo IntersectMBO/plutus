@@ -26,6 +26,7 @@ module Plutus.PAB.Webserver.Handler
     ) where
 
 import qualified Cardano.Wallet.Client                   as Wallet.Client
+import           Cardano.Wallet.Types                    (WalletInfo (..))
 import           Control.Lens                            (preview)
 import           Control.Monad                           ((>=>))
 import           Control.Monad.Freer                     (sendM)
@@ -38,7 +39,7 @@ import           Data.Maybe                              (mapMaybe)
 import           Data.Proxy                              (Proxy (..))
 import           Data.Text                               (Text)
 import qualified Data.UUID                               as UUID
-import           Ledger                                  (PubKey, Slot, Value)
+import           Ledger                                  (Slot, Value, pubKeyHash)
 import           Ledger.AddressMap                       (UtxoMap)
 import           Ledger.Tx                               (Tx, TxOut (txOutValue), TxOutTx (txOutTxOut))
 import           Plutus.PAB.Core                         (PABAction)
@@ -119,7 +120,6 @@ handlerNew ::
             :<|> PABAction t env [ContractSignatureResponse (Contract.ContractDef t)]
 handlerNew =
         (activateContract
-            -- :<|> (\x -> ((parseContractId @t @env x >>= contractInstanceState @t @env) :<|> (parseContractId @t @env x >>= callEndpoint @t @env)))
             :<|> (\x -> (parseContractId x >>= contractInstanceState) :<|> (\y z -> parseContractId x >>= \x' -> callEndpoint x' y z))
             :<|> instancesForWallets
             :<|> allInstanceStates
@@ -127,14 +127,16 @@ handlerNew =
 
 fromInternalState ::
     ContractInstanceId
+    -> Wallet
     -> PartiallyDecodedResponse ContractPABRequest
     -> ContractInstanceClientState
-fromInternalState i resp =
+fromInternalState i wallet resp =
     ContractInstanceClientState
         { cicContract = i
         , cicCurrentState =
             let hks' = mapMaybe (traverse (preview _UserEndpointRequest)) (hooks resp)
             in resp { hooks = hks' }
+        , cicWallet = wallet
         }
 
 -- HANDLERS
@@ -144,22 +146,23 @@ activateContract ContractActivationArgs{caID, caWallet} = do
     Core.activateContract caWallet caID
 
 contractInstanceState :: forall t env. Contract.PABContract t => ContractInstanceId -> PABAction t env ContractInstanceClientState
-contractInstanceState i = fromInternalState i . Contract.serialisableState (Proxy @t) <$> Contract.getState @t i
+contractInstanceState i = do
+    definition <- Contract.getDefinition @t i
+    case definition of
+        Nothing -> throwError @PABError (ContractInstanceNotFound i)
+        Just ContractActivationArgs{caWallet} -> fromInternalState i caWallet . Contract.serialisableState (Proxy @t) <$> Contract.getState @t i
 
 callEndpoint :: forall t env. ContractInstanceId -> String -> JSON.Value -> PABAction t env ()
 callEndpoint a b v = Core.callEndpointOnInstance a b v >>= traverse_ (throwError @PABError . EndpointCallError)
 
 instancesForWallets :: forall t env. Contract.PABContract t => Integer -> PABAction t env [ContractInstanceClientState]
-instancesForWallets wallet = do
-    mp <- Map.filter ((==) (Wallet wallet) . caWallet) <$> Contract.getActiveContracts @t
-    let get i = fromInternalState i . Contract.serialisableState (Proxy @t) <$> Contract.getState @t i
-    traverse get $ fst <$> Map.toList mp
+instancesForWallets wallet = filter ((==) (Wallet wallet) . cicWallet) <$> allInstanceStates
 
 allInstanceStates :: forall t env. Contract.PABContract t => PABAction t env [ContractInstanceClientState]
 allInstanceStates = do
     mp <- Contract.getActiveContracts @t
-    let get i = fromInternalState i . Contract.serialisableState (Proxy @t) <$> Contract.getState @t i
-    traverse get $ fst <$> Map.toList mp
+    let get (i, ContractActivationArgs{caWallet}) = fromInternalState i caWallet . Contract.serialisableState (Proxy @t) <$> Contract.getState @t i
+    traverse get $ Map.toList mp
 
 availableContracts :: forall t env. Contract.PABContract t => PABAction t env [ContractSignatureResponse (Contract.ContractDef t)]
 availableContracts = do
@@ -171,9 +174,9 @@ availableContracts = do
 walletProxyClientEnv ::
     forall t env.
     ClientEnv ->
-    (PABAction t env Wallet -- Create new wallet
+    (PABAction t env WalletInfo -- Create new wallet
     :<|> (Integer -> Tx -> PABAction t env NoContent) -- Submit txn
-    :<|> (Integer -> PABAction t env PubKey)
+    :<|> (Integer -> PABAction t env WalletInfo)
     :<|> (Integer -> (Value, Payment) -> PABAction t env Payment) -- Update payment with change
     :<|> (Integer -> PABAction t env Slot) -- Wallet slot
     :<|> (Integer -> PABAction t env UtxoMap)
@@ -194,10 +197,10 @@ runWalletClientM clientEnv action = do
 -- | Proxy for the wallet API
 walletProxy ::
     forall t env.
-    PABAction t env Wallet -> -- default action for creating a new wallet
-    (PABAction t env Wallet -- Create new wallet
+    PABAction t env WalletInfo -> -- default action for creating a new wallet
+    (PABAction t env WalletInfo -- Create new wallet
     :<|> (Integer -> Tx -> PABAction t env NoContent) -- Submit txn
-    :<|> (Integer -> PABAction t env PubKey)
+    :<|> (Integer -> PABAction t env WalletInfo)
     :<|> (Integer -> (Value, Payment) -> PABAction t env Payment) -- Update payment with change
     :<|> (Integer -> PABAction t env Slot) -- Wallet slot
     :<|> (Integer -> PABAction t env UtxoMap)
@@ -206,7 +209,7 @@ walletProxy ::
 walletProxy createNewWallet =
     ( createNewWallet
     :<|> (\w tx -> fmap (const NoContent) (Core.handleAgentThread (Wallet w) $ Wallet.Effects.submitTxn tx))
-    :<|> (\w -> Core.handleAgentThread (Wallet w) Wallet.Effects.ownPubKey)
+    :<|> (\w -> (\pk -> WalletInfo{wiWallet=Wallet w, wiPubKey = pk, wiPubKeyHash = pubKeyHash pk }) <$> Core.handleAgentThread (Wallet w) Wallet.Effects.ownPubKey)
     :<|> (\w (value, payment) -> Core.handleAgentThread (Wallet w) $ Wallet.Effects.updatePaymentWithChange value payment)
     :<|> (\w -> Core.handleAgentThread (Wallet w) Wallet.Effects.walletSlot)
     :<|> (\w -> Core.handleAgentThread (Wallet w) Wallet.Effects.ownOutputs)

@@ -31,10 +31,10 @@
         "homepage": "",
         "owner": "input-output-hk",
         "repo": "hackage.nix",
-        "rev": "b3c99d7f13df89a9a918c835ecb7114098912962",
-        "sha256": "1i5vg92s6g9zh0i35dm4a6hax7mdsqxbw8w2x63j0y6w57msv70g",
+        "rev": "c63c196d3f72ed29840b0ac7605eeb4408c1bc6c",
+        "sha256": "0qnmqnvsvk94b7lrm788pdcwswjhzk6cfaawq4cnanalmg2976pw",
         "type": "tarball",
-        "url": "https://github.com/input-output-hk/hackage.nix/archive/b3c99d7f13df89a9a918c835ecb7114098912962.tar.gz",
+        "url": "https://github.com/input-output-hk/hackage.nix/archive/c63c196d3f72ed29840b0ac7605eeb4408c1bc6c.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     },
     "haskell.nix": {
@@ -121,10 +121,10 @@
         "homepage": "",
         "owner": "cachix",
         "repo": "pre-commit-hooks.nix",
-        "rev": "c7e3896e35ceea480a7484ec1709be7bdda8849d",
-        "sha256": "0xl9f6ydgk8gnn22f392p3zna0cishwj8id1vpy0p0s06wsbhfs5",
+        "rev": "2d169bb1b23f3b71a894a66ea81f45c788943248",
+        "sha256": "1iyvi56rzszwizq0ymf1x262yhjwzk8k77qahb65fcync99jha2a",
         "type": "tarball",
-        "url": "https://github.com/cachix/pre-commit-hooks.nix/archive/c7e3896e35ceea480a7484ec1709be7bdda8849d.tar.gz",
+        "url": "https://github.com/cachix/pre-commit-hooks.nix/archive/2d169bb1b23f3b71a894a66ea81f45c788943248.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     },
     "spago2nix": {

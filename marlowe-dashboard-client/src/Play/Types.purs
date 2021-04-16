@@ -14,13 +14,13 @@ import Data.Time.Duration (Minutes)
 import Marlowe.Execution (NamedAction)
 import Marlowe.Semantics (Slot)
 import Template.Types (Action, State) as Template
-import WalletData.Types (Nickname, WalletDetails)
+import WalletData.Types (WalletDetails, WalletNickname)
 
 type State
   = { walletDetails :: WalletDetails
     , menuOpen :: Boolean
     , screen :: Screen
-    , card :: Maybe Card
+    , cards :: Array Card
     , currentSlot :: Slot
     , timezoneOffset :: Minutes
     , templateState :: Template.State
@@ -47,13 +47,13 @@ derive instance eqCard :: Eq Card
 
 data Action
   = PutdownWallet
-  | SetNewWalletNickname Nickname
+  | SetNewWalletNickname WalletNickname
   | SetNewWalletContractId String
   | AddNewWallet (Maybe String)
   | ToggleMenu
   | SetScreen Screen
-  | SetCard (Maybe Card)
-  | ToggleCard Card
+  | OpenCard Card
+  | CloseCard
   | TemplateAction Template.Action
   | ContractAction Contract.Action
   | ContractHomeAction ContractHome.Action
@@ -68,8 +68,8 @@ instance actionIsEvent :: IsEvent Action where
   toEvent (AddNewWallet _) = Just $ defaultEvent "AddNewWallet"
   toEvent ToggleMenu = Just $ defaultEvent "ToggleMenu"
   toEvent (SetScreen _) = Just $ defaultEvent "SetScreen"
-  toEvent (SetCard _) = Just $ defaultEvent "SetCard"
-  toEvent (ToggleCard _) = Just $ defaultEvent "ToggleCard"
+  toEvent (OpenCard _) = Nothing
+  toEvent CloseCard = Nothing
   toEvent (TemplateAction templateAction) = toEvent templateAction
   toEvent (ContractAction contractAction) = toEvent contractAction
   toEvent (ContractHomeAction contractAction) = toEvent contractAction

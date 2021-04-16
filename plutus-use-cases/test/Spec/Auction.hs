@@ -245,4 +245,3 @@ tests =
             withMaxSuccess 1 $ classify True "FIXME" True
             -- withMaxSuccess 10 prop_FinishAuction
         ]
-

@@ -1,6 +1,7 @@
-{ pkgs, config, lib, ... }:
+{ pkgs, config, lib, tfinfo, ... }:
 {
   imports = [
+    ./std.nix
     ../../../nix/modules/pab.nix
   ];
 
@@ -11,7 +12,7 @@
   services.pab = {
     enable = true;
     pab-package = pkgs.plutus-pab.pab-exes.plutus-pab;
-    contracts = [ "${pkgs.marlowe-app}/bin/marlowe-app" ];
+    contracts = [ "${pkgs.marlowe-app}/bin/marlowe-app" "${pkgs.marlowe-companion-app}/bin/marlowe-companion-app" ];
     staticContent = pkgs.marlowe-dashboard.client;
     dbFile = "/var/lib/pab/pab-core.db";
     defaultWallet = 1;

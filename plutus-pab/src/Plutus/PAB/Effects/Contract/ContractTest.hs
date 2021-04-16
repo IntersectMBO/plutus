@@ -32,10 +32,10 @@ import           GHC.Generics                                (Generic)
 
 import           Data.Text.Extras                            (tshow)
 import           Playground.Types                            (FunctionSchema)
-import           Plutus.Contract                             (BlockchainActions, ContractError)
+import           Plutus.Contract                             (BlockchainActions)
 import           Plutus.Contract.Effects.RPC                 (RPCClient)
 import qualified Plutus.Contracts.Currency                   as Contracts.Currency
-import qualified Plutus.Contracts.Game                       as Contracts.Game
+import qualified Plutus.Contracts.GameStateMachine           as Contracts.GameStateMachine
 import qualified Plutus.Contracts.RPC                        as Contracts.RPC
 import           Plutus.PAB.Effects.Contract                 (ContractEffect (..))
 import           Plutus.PAB.Effects.Contract.Builtin         (Builtin, SomeBuiltin (..))
@@ -45,7 +45,7 @@ import qualified Plutus.PAB.Effects.ContractTest.PayToWallet as Contracts.PayToW
 import           Plutus.PAB.Types                            (PABError (..))
 import           Schema                                      (FormSchema)
 
-data TestContracts = Game | Currency | AtomicSwap | PayToWallet | RPCClient | RPCServer
+data TestContracts = GameStateMachine | Currency | AtomicSwap | PayToWallet | RPCClient | RPCServer
     deriving (Eq, Ord, Show, Generic)
     deriving anyclass (FromJSON, ToJSON)
 
@@ -62,28 +62,28 @@ handleContractTest = Builtin.handleBuiltin getSchema getContract
 
 getSchema :: TestContracts -> [FunctionSchema FormSchema]
 getSchema = \case
-    Game        -> Builtin.endpointsToSchemas @(Contracts.Game.GameSchema .\\ BlockchainActions)
-    Currency    -> Builtin.endpointsToSchemas @(Contracts.Currency.CurrencySchema .\\ BlockchainActions)
-    AtomicSwap  -> Builtin.endpointsToSchemas @(Contracts.AtomicSwap.AtomicSwapSchema .\\ BlockchainActions)
-    PayToWallet -> Builtin.endpointsToSchemas @(Contracts.PayToWallet.PayToWalletSchema .\\ BlockchainActions)
-    RPCClient   -> adderSchema
-    RPCServer   -> adderSchema
+    GameStateMachine -> Builtin.endpointsToSchemas @(Contracts.GameStateMachine.GameStateMachineSchema .\\ BlockchainActions)
+    Currency         -> Builtin.endpointsToSchemas @(Contracts.Currency.CurrencySchema .\\ BlockchainActions)
+    AtomicSwap       -> Builtin.endpointsToSchemas @(Contracts.AtomicSwap.AtomicSwapSchema .\\ BlockchainActions)
+    PayToWallet      -> Builtin.endpointsToSchemas @(Contracts.PayToWallet.PayToWalletSchema .\\ BlockchainActions)
+    RPCClient        -> adderSchema
+    RPCServer        -> adderSchema
     where
         adderSchema = Builtin.endpointsToSchemas @(Contracts.RPC.AdderSchema .\\ (BlockchainActions .\/ RPCClient Contracts.RPC.Adder))
 
 getContract :: TestContracts -> SomeBuiltin
 getContract = \case
-    Game        -> SomeBuiltin game
-    Currency    -> SomeBuiltin currency
-    AtomicSwap  -> SomeBuiltin swp
-    PayToWallet -> SomeBuiltin payToWallet
-    RPCClient   -> SomeBuiltin rpcClient
-    RPCServer   -> SomeBuiltin rpcServer
+    GameStateMachine -> SomeBuiltin game
+    Currency         -> SomeBuiltin currency
+    AtomicSwap       -> SomeBuiltin swp
+    PayToWallet      -> SomeBuiltin payToWallet
+    RPCClient        -> SomeBuiltin rpcClient
+    RPCServer        -> SomeBuiltin rpcServer
     where
-        game = Contracts.Game.game @ContractError
+        game = Contracts.GameStateMachine.contract
         currency = Contracts.Currency.forgeCurrency
         swp = first tshow Contracts.AtomicSwap.atomicSwap
-        payToWallet =Contracts.PayToWallet.payToWallet
+        payToWallet = Contracts.PayToWallet.payToWallet
         rpcClient =  Contracts.RPC.callAdder
         rpcServer = Contracts.RPC.respondAdder
 

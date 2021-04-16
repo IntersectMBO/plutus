@@ -32,7 +32,6 @@ library
         Plutus.Contracts.Currency
         Plutus.Contracts.Escrow
         Plutus.Contracts.Future
-        Plutus.Contracts.Game
         Plutus.Contracts.GameStateMachine
         Plutus.Contracts.ErrorHandling
         Plutus.Contracts.MultiSig
@@ -96,14 +95,10 @@ test-suite plutus-use-cases-test
         Spec.Auction
         Spec.Crowdfunding
         Spec.Currency
-        Spec.DynamicLogic.Registry
-        Spec.DynamicLogic.RegistryModel
         Spec.ErrorHandling
         Spec.Escrow
         Spec.Future
-        Spec.Game
         Spec.GameStateMachine
-        Spec.Lib
         Spec.MultiSig
         Spec.MultiSigStateMachine
         Spec.PingPong
@@ -167,9 +162,7 @@ executable plutus-use-cases-scripts
         Spec.ErrorHandling
         Spec.Escrow
         Spec.Future
-        Spec.Game
         Spec.GameStateMachine
-        Spec.Lib
         Spec.MultiSig
         Spec.MultiSigStateMachine
         Spec.PingPong

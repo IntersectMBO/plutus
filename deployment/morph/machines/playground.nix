@@ -1,10 +1,8 @@
-{ pkgs, config, lib, ... }:
-let
-  tfinfo = builtins.fromJSON (builtins.readFile ./../machines.json);
-in
+{ pkgs, config, lib, tfinfo, ... }:
 {
 
   imports = [
+    ./std.nix
     ../../../nix/modules/plutus-playground.nix
     ../../../nix/modules/marlowe-playground.nix
   ];
@@ -36,6 +34,10 @@ in
         add_header 'Cache-Control' 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0';
         expires off;
       '';
+      versionConfig = ''
+        default_type application/json;
+        return 200 '{"rev": "${tfinfo.rev}"}';
+      '';
     in
     {
       enable = true;
@@ -61,7 +63,7 @@ in
           listen = [{ addr = "0.0.0.0"; port = 8080; }];
           locations = {
             "/version" = {
-              proxyPass = "http://plutus-playground";
+              extraConfig = versionConfig;
             };
             "/health" = {
               proxyPass = "http://plutus-playground";
@@ -73,8 +75,8 @@ in
                 error_page 404 = @fallback;
               '';
             };
-            "^~ /tutorial/" = {
-              alias = "${pkgs.plutus-playground.tutorial}/";
+            "^~ /doc/" = {
+              alias = "${pkgs.plutus-docs.site}/";
               extraConfig = ''
                 error_page 404 = @fallback;
               '';
@@ -92,7 +94,7 @@ in
           listen = [{ addr = "0.0.0.0"; port = 9080; }];
           locations = {
             "/version" = {
-              proxyPass = "http://marlowe-playground";
+              extraConfig = versionConfig;
             };
             "/health" = {
               proxyPass = "http://marlowe-playground";
@@ -104,8 +106,8 @@ in
                 error_page 404 = @fallback;
               '';
             };
-            "^~ /tutorial/" = {
-              alias = "${pkgs.marlowe-playground.tutorial}/";
+            "^~ /doc/" = {
+              alias = "${pkgs.plutus-docs.site}/";
               extraConfig = ''
                 error_page 404 = @fallback;
               '';

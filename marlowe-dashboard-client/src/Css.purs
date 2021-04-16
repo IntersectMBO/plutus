@@ -80,11 +80,11 @@ hasNestedLabel :: Array String
 hasNestedLabel = [ "-mt-4" ]
 
 nestedLabel :: Array String
-nestedLabel = [ "relative", "left-2", "top-2.5", "px-1", "bg-white", "text-xs" ]
+nestedLabel = [ "relative", "left-2", "top-2.5", "px-1", "bg-white", "text-xs", "font-semibold" ]
 
 --- cards
 overlay :: Boolean -> Array String
-overlay invisible = [ "overflow-hidden", "absolute", "top-0", "bottom-0", "left-0", "right-0", "z-20", "flex", "justify-center", "content-end", "md:content-center", "bg-overlay", "transition-opacity", "duration-400" ] <> toggleWhen invisible [ "opacity-0", "pointer-events-none" ] [ "opacity-1" ]
+overlay invisible = [ "overflow-hidden", "absolute", "top-0", "bottom-0", "left-0", "right-0", "z-20", "flex", "justify-center", "content-end", "md:content-center", "last:bg-overlay", "transition-opacity", "duration-400" ] <> toggleWhen invisible [ "opacity-0", "pointer-events-none" ] [ "opacity-1" ]
 
 card :: Boolean -> Array String
 card invisible = [ "overflow-hidden", "bg-white", "flex-grow", "max-w-sm", "mx-2", "shadow", "rounded-t", "md:rounded-b", "transform", "transition-transform", "duration-400", "self-end", "md:self-center" ] <> applyWhen invisible [ "translate-y-20" ]

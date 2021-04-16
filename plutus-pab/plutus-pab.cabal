@@ -107,6 +107,7 @@ library
         Plutus.PAB.Events.ContractInstanceState
         Plutus.PAB.ParseStringifiedJSON
         Plutus.PAB.Simulator
+        Plutus.PAB.Timeout
         Plutus.PAB.Types
     other-modules:
         Servant.Extra
@@ -193,7 +194,8 @@ library
         iohk-monitoring -any,
         lobemo-backend-ekg -any,
         exceptions -any,
-        data-default -any
+        data-default -any,
+        time-units -any
 
 executable plutus-pab
     main-is: Main.hs
@@ -252,7 +254,8 @@ executable plutus-game
     build-depends:
         base >=4.9 && <5,
         plutus-pab,
-        plutus-use-cases -any
+        plutus-use-cases -any,
+        text -any
 
 executable plutus-currency
     main-is: Main.hs

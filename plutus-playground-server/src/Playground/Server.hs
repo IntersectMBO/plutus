@@ -24,7 +24,6 @@ import           Data.Proxy                   (Proxy (Proxy))
 import           Data.Text                    (Text)
 import qualified Data.Text                    as Text
 import           Data.Time.Units              (Second)
-import           Git                          (gitRev)
 import           Language.Haskell.Interpreter (InterpreterError (CompilationErrors), InterpreterResult, SourceCode)
 import qualified Language.Haskell.Interpreter as Interpreter
 import           Network.HTTP.Client.Conduit  (defaultManagerSettings)
@@ -34,7 +33,7 @@ import qualified Playground.Interpreter       as PI
 import           Playground.Types             (CompilationResult, Evaluation, EvaluationResult, PlaygroundError)
 import           Playground.Usecases          (vesting)
 import           Servant                      (Application, err400, errBody, hoistServer, serve)
-import           Servant.API                  (Get, JSON, PlainText, Post, ReqBody, (:<|>) ((:<|>)), (:>))
+import           Servant.API                  (Get, JSON, Post, ReqBody, (:<|>) ((:<|>)), (:>))
 import           Servant.Client               (ClientEnv, mkClientEnv, parseBaseUrl)
 import           Servant.Server               (Handler (Handler), Server, ServerError)
 import           System.Environment           (lookupEnv)
@@ -42,14 +41,10 @@ import qualified Web.JWT                      as JWT
 
 type API
      = "contract" :> ReqBody '[ JSON] SourceCode :> Post '[ JSON] (Either Interpreter.InterpreterError (InterpreterResult CompilationResult))
-       :<|> "version" :> Get '[PlainText, JSON] Text
        :<|> "evaluate" :> ReqBody '[ JSON] Evaluation :> Post '[ JSON] (Either PlaygroundError EvaluationResult)
        :<|> "health" :> Get '[ JSON] ()
 
 type Web = "api" :> (API :<|> Auth.API)
-
-version :: Applicative m => m Text
-version = pure gitRev
 
 maxInterpretationTime :: Second
 maxInterpretationTime = 80
@@ -94,7 +89,7 @@ mkHandlers :: MonadIO m => AppConfig -> m (Server Web)
 mkHandlers AppConfig {..} = do
     liftIO $ putStrLn "Interpreter ready"
     githubEndpoints <- liftIO Auth.mkGithubEndpoints
-    pure $ (compileSourceCode clientEnv :<|> version :<|> evaluateSimulation clientEnv :<|> checkHealth clientEnv) :<|> liftedAuthServer githubEndpoints authConfig
+    pure $ (compileSourceCode clientEnv :<|> evaluateSimulation clientEnv :<|> checkHealth clientEnv) :<|> liftedAuthServer githubEndpoints authConfig
 
 app :: Server Web -> Application
 app handlers =

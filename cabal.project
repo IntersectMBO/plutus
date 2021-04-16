@@ -1,5 +1,5 @@
 -- Bump this if you need newer packages
-index-state: 2021-02-24T00:00:00Z
+index-state: 2021-04-13T00:00:00Z
 
 packages: doc
           freer-extras
@@ -22,6 +22,7 @@ packages: doc
           plutus-tx-plugin
           plutus-use-cases
           prettyprinter-configurable
+          quickcheck-dynamic
           web-ghc
 
 -- We never, ever, want this.
@@ -50,6 +51,10 @@ allow-newer:
 constraints:
   -- aws-lambda-haskell-runtime-wai doesn't compile with newer versions
   aws-lambda-haskell-runtime <= 3.0.3
+  -- big breaking change here, inline-r doens't have an upper bound
+  , singletons < 3.0
+  -- breaks eventful even more than it already was
+  , persistent-template < 2.12
 
 -- See the note on nix/pkgs/default.nix:agdaPackages for why this is here.
 -- (NOTE this will change to ieee754 in newer versions of nixpkgs).

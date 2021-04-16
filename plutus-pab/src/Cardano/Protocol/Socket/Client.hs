@@ -14,6 +14,7 @@ import           Data.Void                                           (Void)
 
 import           Control.Concurrent
 import           Control.Concurrent.STM
+import           Control.Monad.Catch                                 (catchAll)
 import           Control.Tracer
 
 import           Ouroboros.Network.Block                             (Point (..))
@@ -54,9 +55,6 @@ getCurrentSlot ::
 getCurrentSlot ClientHandler { chCurrentSlot } =
     readMVar chCurrentSlot
 
-{-| Forks and starts a new client node, returning the newly allocated thread id.
-    The client will retry connecting if the the protocol connection drops, or
-    cannot be established. -}
 runClientNode :: FilePath
               -> (Block -> Slot -> IO ())
               -> IO ClientHandler
@@ -76,17 +74,21 @@ runClientNode socketPath onNewBlock = do
     where
       loop :: TimeUnit a => a -> ClientHandler -> IOManager -> IO ()
       loop timeout ch@ClientHandler{chSocketPath, chInputQueue, chCurrentSlot, chHandler} iocp = do
-        connectToNode
-          (localSnocket iocp socketPath)
-          unversionedHandshakeCodec
-          (cborTermVersionDataCodec unversionedProtocolDataCodec)
-          nullNetworkConnectTracers
-          acceptableVersion
-          (unversionedProtocol (app chCurrentSlot chHandler chInputQueue))
-          Nothing
-          (localAddressFromPath chSocketPath)
-        threadDelay (fromIntegral $ toMicroseconds timeout)
-        loop timeout ch iocp
+        catchAll
+          (connectToNode
+            (localSnocket iocp socketPath)
+            unversionedHandshakeCodec
+            (cborTermVersionDataCodec unversionedProtocolDataCodec)
+            nullNetworkConnectTracers
+            acceptableVersion
+            (unversionedProtocol (app chCurrentSlot chHandler chInputQueue))
+            Nothing
+            (localAddressFromPath chSocketPath))
+          {- If we receive any error or disconnect, try to reconnect.
+             This happens a lot on startup, until the server starts. -}
+          (\_ -> do
+               threadDelay (fromIntegral $ toMicroseconds timeout)
+               loop timeout ch iocp)
 
       {- Application that communicates using 2 multiplexed protocols
          (ChainSync and TxSubmission). -}

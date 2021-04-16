@@ -18,7 +18,8 @@ import           Cardano.BM.Data.Trace            (Trace)
 import qualified Cardano.ChainIndex.Client        as ChainIndexClient
 import qualified Cardano.Node.Client              as NodeClient
 import qualified Cardano.Protocol.Socket.Client   as Client
-import           Cardano.Wallet.Types             (MultiWalletEffect (..), WalletEffects, WalletMsg (..), Wallets)
+import           Cardano.Wallet.Types             (MultiWalletEffect (..), WalletEffects, WalletInfo (..),
+                                                   WalletMsg (..), Wallets)
 import           Control.Concurrent               (MVar)
 import           Control.Concurrent.MVar          (putMVar, takeMVar)
 import           Control.Lens                     (at, (.~))
@@ -129,7 +130,7 @@ handleMultiWallet = do
             let walletState = WalletState privateKey2 emptyNodeClientState mempty (defaultSigningProcess (Wallet 2))
             _ <- evalState walletState $ interpret Wallet.handleWallet (raiseEnd $ distributeNewWalletFunds pubKey)
             WalletEffects.startWatching (pubKeyAddress pubKey)
-            return wallet
+            return $ WalletInfo{wiWallet = wallet, wiPubKey = pubKey, wiPubKeyHash = pubKeyHash pubKey}
 
 
 -- | Process wallet effects. Retain state and yield HTTP400 on error

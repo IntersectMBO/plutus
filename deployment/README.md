@@ -22,12 +22,6 @@ Available commands:
         * destroy-infra:    destroy the infrastructure completely
         * deploy-nix:       deploy nix configuration to infrastructure
         * deploy:           provision infrastructure and deploy nix configuration
-
-Key handling
-
-        * import-gpg-keys:  import all relevant gpg keys
-        * init-keys-tobias:   allow configured keys access to this environment
-
 Notes:
 
 - Being logged in to aws via 'aws-mfa-login' is a prerequisite to all infrastructure commands
@@ -43,6 +37,18 @@ $ nix-shell -A alpha --command deploy
 
 The deploy command will run execute `terraform` and `morph` in sequence. All other available commands can be
 executed in the same way.
+
+## Specifying Revisions
+
+The deployment shell accepts a revision argument which is used to provide a `/version` endpoint to help
+identify what has been deployed to a specific environment. By default revision is set to `dev` but it can be
+specified as follows:
+
+```
+$ nix-shell -A alpha --argstr rev  $(git rev-parse HEAD) --command deploy
+```
+
+The above command will trigger a deployment and specify the current HEAD revision as `rev` argument
 
 ### AWS Login
 

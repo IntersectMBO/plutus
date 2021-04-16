@@ -34,6 +34,7 @@ module Wallet.Emulator.Folds (
     -- * Folds for individual wallets (emulated agents)
     , walletWatchingAddress
     , walletFunds
+    , walletFees
     -- * Folds that are used in the Playground
     , annotatedBlockchain
     , blockchain
@@ -53,7 +54,8 @@ import           Control.Monad                          ((>=>))
 import           Control.Monad.Freer
 import           Control.Monad.Freer.Error
 import qualified Data.Aeson                             as JSON
-import           Data.Foldable                          (toList)
+import           Data.Foldable                          (fold, toList)
+import qualified Data.Map                               as Map
 import           Data.Maybe                             (fromMaybe, mapMaybe)
 import           Data.Text                              (Text)
 import           Data.Text.Prettyprint.Doc              (Pretty (..), defaultLayoutOptions, layoutPretty, vsep)
@@ -80,7 +82,8 @@ import           Plutus.Trace.Emulator.Types            (ContractConstraints, Co
 import           Wallet.Emulator.Chain                  (ChainEvent (..), _TxnValidate, _TxnValidationFail)
 import           Wallet.Emulator.ChainIndex             (_AddressStartWatching)
 import           Wallet.Emulator.MultiAgent             (EmulatorEvent, EmulatorTimeEvent, chainEvent, chainIndexEvent,
-                                                         eteEvent, instanceEvent, userThreadEvent)
+                                                         eteEvent, instanceEvent, userThreadEvent, walletClientEvent)
+import           Wallet.Emulator.NodeClient             (_TxSubmit)
 import           Wallet.Emulator.Wallet                 (Wallet, walletAddress)
 import qualified Wallet.Rollup                          as Rollup
 import           Wallet.Rollup.Types                    (AnnotatedTx)
@@ -233,6 +236,13 @@ valueAtAddress = fmap (foldMap (txOutValue . txOutTxOut)) . utxoAtAddress
 -- | The funds belonging to a wallet
 walletFunds :: Wallet -> EmulatorEventFold Value
 walletFunds = valueAtAddress . walletAddress
+
+-- | The fees paid by a wallet
+walletFees :: Wallet -> EmulatorEventFold Value
+walletFees w = succeededFees <$> walletSubmittedFees <*> validatedTransactions
+    where
+        succeededFees submitted = foldMap (\(i, _, _) -> fold (Map.lookup i submitted))
+        walletSubmittedFees = L.handles (eteEvent . walletClientEvent w . _TxSubmit) L.map
 
 -- | Whether the wallet is watching an address
 walletWatchingAddress :: Wallet -> Address -> EmulatorEventFold Bool

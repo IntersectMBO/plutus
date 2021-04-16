@@ -32,9 +32,10 @@ import           Data.Text                                (Text)
 import qualified Data.Text                                as Text
 import           Data.Text.Extras                         (tshow)
 import           Ledger                                   (pubKeyAddress)
-import           Ledger.Ada                               (lovelaceValueOf)
+import           Ledger.Ada                               (adaSymbol, adaToken, lovelaceValueOf)
+import           Ledger.Value                             (valueOf)
 import           Plutus.Contracts.Currency                (Currency, SimpleMPS (..))
-import qualified Plutus.Contracts.Game                    as Contracts.Game
+import qualified Plutus.Contracts.GameStateMachine        as Contracts.GameStateMachine
 import           Plutus.PAB.Core
 import           Plutus.PAB.Core.ContractInstance         (ContractInstanceMsg)
 import           Plutus.PAB.Db.Eventful.Command           ()
@@ -80,7 +81,7 @@ installContractTests =
                 assertEqual "" 0 $ Set.size active
         , testCase "We can activate a contract" $
           runScenario $ do
-              void $ Simulator.activateContract defaultWallet Game
+              void $ Simulator.activateContract defaultWallet GameStateMachine
               --
               active <- Simulator.activeContracts
               assertEqual "" 1 $ Set.size active
@@ -137,15 +138,17 @@ guessingGameTest =
           runScenario $ do
               let openingBalance = 100000000
                   lockAmount = 15
-              address <- pubKeyAddress <$> Simulator.handleAgentThread defaultWallet ownPubKey
-              balance0 <- Simulator.valueAt address
+                  walletFundsChange msg delta = do
+                        address <- pubKeyAddress <$> Simulator.handleAgentThread defaultWallet ownPubKey
+                        balance <- Simulator.valueAt address
+                        fees <- Simulator.walletFees defaultWallet
+                        assertEqual msg
+                            (openingBalance + delta)
+                            (valueOf (balance <> fees) adaSymbol adaToken)
               initialTxCounts <- Simulator.txCounts
-              assertEqual
-                    "Check our opening balance."
-                    (lovelaceValueOf openingBalance)
-                    balance0
+              walletFundsChange "Check our opening balance." 0
               -- need to add contract address to wallet's watched addresses
-              instanceId <- Simulator.activateContract defaultWallet Game
+              instanceId <- Simulator.activateContract defaultWallet GameStateMachine
 
               assertTxCounts
                   "Activating the game does not generate transactions."
@@ -153,47 +156,45 @@ guessingGameTest =
               _ <- Simulator.waitNSlots 2
               lock
                   instanceId
-                  Contracts.Game.LockParams
-                      { Contracts.Game.amount = lovelaceValueOf lockAmount
-                      , Contracts.Game.secretWord = "password"
+                  Contracts.GameStateMachine.LockArgs
+                      { Contracts.GameStateMachine.lockArgsValue = lovelaceValueOf lockAmount
+                      , Contracts.GameStateMachine.lockArgsSecret = "password"
                       }
               _ <- Simulator.waitNSlots 2
               assertTxCounts
-                  "Locking the game should produce one transaction"
-                  (initialTxCounts & Simulator.txValidated +~ 1)
-              balance1 <- Simulator.valueAt address
-              assertEqual
-                  "Locking the game should reduce our balance."
-                  (lovelaceValueOf (openingBalance - lockAmount))
-                  balance1
-              game1Id <- Simulator.activateContract defaultWallet Game
+                  "Locking the game state machine should produce two transactions"
+                  (initialTxCounts & Simulator.txValidated +~ 2)
+              walletFundsChange "Locking the game should reduce our balance." (negate lockAmount)
+              game1Id <- Simulator.activateContract defaultWallet GameStateMachine
 
               guess
                   game1Id
-                  Contracts.Game.GuessParams
-                      {Contracts.Game.guessWord = "wrong"}
+                  Contracts.GameStateMachine.GuessArgs
+                      { Contracts.GameStateMachine.guessArgsNewSecret = "wrong"
+                      , Contracts.GameStateMachine.guessArgsOldSecret = "wrong"
+                      , Contracts.GameStateMachine.guessArgsValueTakenOut = lovelaceValueOf lockAmount
+                      }
 
               _ <- Simulator.waitNSlots 2
               assertTxCounts
                 "A wrong guess does not produce a valid transaction on the chain."
-                (initialTxCounts & Simulator.txValidated +~ 1)
-              game2Id <- Simulator.activateContract defaultWallet Game
+                (initialTxCounts & Simulator.txValidated +~ 2)
+              game2Id <- Simulator.activateContract defaultWallet GameStateMachine
 
               _ <- Simulator.waitNSlots 2
               guess
                   game2Id
-                  Contracts.Game.GuessParams
-                      {Contracts.Game.guessWord = "password"}
+                  Contracts.GameStateMachine.GuessArgs
+                      { Contracts.GameStateMachine.guessArgsNewSecret = "password"
+                      , Contracts.GameStateMachine.guessArgsOldSecret = "password"
+                      , Contracts.GameStateMachine.guessArgsValueTakenOut = lovelaceValueOf lockAmount
+                      }
 
               _ <- Simulator.waitNSlots 2
               assertTxCounts
-                "A correct guess creates a second transaction."
-                (initialTxCounts & Simulator.txValidated +~ 2)
-              balance2 <- Simulator.valueAt address
-              assertEqual
-                "The wallet should now have its money back."
-                (lovelaceValueOf openingBalance)
-                balance2
+                "A correct guess creates a third transaction."
+                (initialTxCounts & Simulator.txValidated +~ 3)
+              walletFundsChange "The wallet should now have its money back." 0
               blocks <- Simulator.blockchain
               assertBool
                   "We have some confirmed blocks in this test."
@@ -236,7 +237,7 @@ assertDone wallet i = do
 
 lock ::
     ContractInstanceId
-    -> Contracts.Game.LockParams
+    -> Contracts.GameStateMachine.LockArgs
     -> Simulation (Builtin TestContracts) ()
 lock uuid params = do
     let ep = "lock"
@@ -245,7 +246,7 @@ lock uuid params = do
 
 guess ::
     ContractInstanceId
-    -> Contracts.Game.GuessParams
+    -> Contracts.GameStateMachine.GuessArgs
     -> Simulation (Builtin TestContracts) ()
 guess uuid params = do
     let ep = "guess"

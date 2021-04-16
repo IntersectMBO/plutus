@@ -134,6 +134,7 @@ library
         uuid -any,
         aeson-pretty -any,
         QuickCheck -any,
+        quickcheck-dynamic -any,
         random -any,
         unordered-containers -any,
         foldl -any,
@@ -143,14 +144,10 @@ library
         exposed-modules:
             Plutus.Contract.Test
             Plutus.Contract.Test.ContractModel
-            Plutus.Contract.Test.DynamicLogic
-            Plutus.Contract.Test.DynamicLogic.CanGenerate
-            Plutus.Contract.Test.DynamicLogic.Monad
-            Plutus.Contract.Test.DynamicLogic.Quantify
-            Plutus.Contract.Test.StateModel
         build-depends:
             tasty -any,
             tasty-hunit -any,
+            tasty-golden -any,
 
 test-suite contract-doctests
     type: exitcode-stdio-1.0

@@ -18,7 +18,6 @@ import qualified Wallet.Emulator.Folds         as Folds
 import           Wallet.Emulator.Stream        (foldEmulatorStreamM)
 
 import qualified Plutus.Contracts.Crowdfunding as Crowdfunding
-import qualified Plutus.Contracts.Game         as Game
 import           Spec.Auction                  as Auction
 import qualified Spec.Currency                 as Currency
 import qualified Spec.Escrow                   as Escrow
@@ -55,8 +54,6 @@ writeScripts fp = do
         , ("future-increase-margin", Future.increaseMarginTrace)
         , ("future-settle-early", Future.settleEarlyTrace)
         , ("future-pay-out", Future.payOutTrace)
-        , ("game-guess", Game.guessTrace)
-        , ("game-guessWrong", Game.guessWrongTrace)
         , ("game-sm-success", GameStateMachine.successTrace)
         , ("game-sm-success_2", GameStateMachine.successTrace2)
         , ("multisig-success", MultiSig.succeedingTrace)

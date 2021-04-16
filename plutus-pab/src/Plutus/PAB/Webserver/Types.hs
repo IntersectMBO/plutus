@@ -84,6 +84,7 @@ data ContractInstanceClientState =
     ContractInstanceClientState
         { cicContract     :: ContractInstanceId
         , cicCurrentState :: PartiallyDecodedResponse ActiveEndpoint
+        , cicWallet       :: Wallet
         }
         deriving stock (Eq, Show, Generic)
         deriving anyclass (ToJSON, FromJSON)

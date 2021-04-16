@@ -1,5 +1,6 @@
 module Pickup.State
-  ( initialState
+  ( dummyState
+  , initialState
   , handleAction
   ) where
 
@@ -10,13 +11,19 @@ import Data.Maybe (Maybe(..))
 import Effect.Aff.Class (class MonadAff)
 import Env (Env)
 import Halogen (HalogenM)
-import MainFrame.Lenses (_card, _pickupState)
+import MainFrame.Lenses (_card)
 import MainFrame.Types (ChildSlots, Msg)
-import MainFrame.Types (Action, State) as MainFrame
 import Pickup.Types (Action(..), State)
 
+-- see note [dummyState]
+dummyState :: State
+dummyState = initialState
+
 initialState :: State
-initialState = { card: Nothing }
+initialState =
+  { card: Nothing
+  , pickupWalletString: mempty
+  }
 
 -- Some actions are handled in `MainFrame.State` because they involve
 -- modifications of that state. See Note [State].
@@ -24,8 +31,8 @@ handleAction ::
   forall m.
   MonadAff m =>
   MonadAsk Env m =>
-  Action -> HalogenM MainFrame.State MainFrame.Action ChildSlots Msg m Unit
-handleAction (SetCard card) = assign (_pickupState <<< _card) card
+  Action -> HalogenM State Action ChildSlots Msg m Unit
+handleAction (SetCard card) = assign _card card
 
 -- all other actions are handled in `MainFrame.State`
 handleAction _ = pure unit

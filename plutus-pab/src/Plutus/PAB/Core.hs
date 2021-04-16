@@ -117,6 +117,8 @@ import           Plutus.PAB.Effects.UUID                 (UUIDEffect, handleUUID
 import           Plutus.PAB.Events.Contract              (ContractPABRequest)
 import           Plutus.PAB.Events.ContractInstanceState (PartiallyDecodedResponse)
 import           Plutus.PAB.Monitoring.PABLogMsg         (PABMultiAgentMsg (..))
+import           Plutus.PAB.Timeout                      (Timeout)
+import qualified Plutus.PAB.Timeout                      as Timeout
 import           Plutus.PAB.Types                        (PABError)
 import           Plutus.PAB.Webserver.Types              (ContractActivationArgs (..))
 import           Wallet.API                              (PubKey, Slot)
@@ -165,10 +167,13 @@ pabRunner = do
 -- | Shared data that is needed by all PAB threads.
 data PABEnvironment t env =
     PABEnvironment
-        { instancesState :: InstancesState
-        , blockchainEnv  :: BlockchainEnv
-        , appEnv         :: env
-        , effectHandlers :: EffectHandlers t env
+        { instancesState  :: InstancesState
+        -- | How long to wait for an endpoint to become active before throwing the
+        --   'EndpointNotAvailable' error.
+        , endpointTimeout :: Timeout
+        , blockchainEnv   :: BlockchainEnv
+        , appEnv          :: env
+        , effectHandlers  :: EffectHandlers t env
         }
 
 -- | Top-level entry point. Run a 'PABAction', using the 'EffectHandlers' to
@@ -176,13 +181,14 @@ data PABEnvironment t env =
 --   with external services.
 runPAB ::
     forall t env a.
-    EffectHandlers t env
+    Timeout
+    -> EffectHandlers t env
     -> PABAction t env a
     -> IO (Either PABError a)
-runPAB effectHandlers action = runM $ runError $ do
+runPAB endpointTimeout effectHandlers action = runM $ runError $ do
     let EffectHandlers{initialiseEnvironment, onStartup, onShutdown, handleLogMessages, handleContractStoreEffect, handleContractEffect, handleContractDefinitionStoreEffect} = effectHandlers
     (instancesState, blockchainEnv, appEnv) <- initialiseEnvironment
-    let env = PABEnvironment{instancesState, blockchainEnv, appEnv, effectHandlers}
+    let env = PABEnvironment{instancesState, blockchainEnv, appEnv, effectHandlers, endpointTimeout}
 
     runReader env $ interpret (handleTimeEffect @t @env) $ handleLogMessages $ handleContractDefinitionStoreEffect $ handleContractEffect $ handleContractStoreEffect $ do
         onStartup
@@ -213,7 +219,10 @@ callEndpointOnInstance ::
     -> PABAction t env (Maybe NotificationError)
 callEndpointOnInstance instanceID ep value = do
     state <- asks @(PABEnvironment t env) instancesState
-    liftIO $ STM.atomically $ Instances.callEndpointOnInstance state (EndpointDescription ep) (JSON.toJSON value) instanceID
+    timeoutVar <- asks @(PABEnvironment t env) endpointTimeout >>= liftIO . Timeout.startTimeout
+    liftIO
+        $ STM.atomically
+        $ Instances.callEndpointOnInstanceTimeout timeoutVar state (EndpointDescription ep) (JSON.toJSON value) instanceID
 
 -- | Make a payment to a public key
 payToPublicKey :: Wallet -> PubKey -> Value -> PABAction t env Tx

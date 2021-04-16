@@ -1,8 +1,9 @@
 module WalletData.Validation
-  ( NicknameError(..)
-  , ContractIdError(..)
-  , nicknameError
-  , contractIdError
+  ( WalletNicknameError(..)
+  , ContractInstanceIdError(..)
+  , walletNicknameError
+  , contractInstanceIdError
+  , parseContractInstanceId
   ) where
 
 import Prelude
@@ -11,56 +12,64 @@ import Data.Char.Unicode (isAlphaNum)
 import Data.Map (isEmpty, filter, member)
 import Data.Maybe (Maybe(..))
 import Data.String.CodeUnits (toCharArray)
-import Marlowe.Semantics (PubKey)
+import Data.UUID (parseUUID)
 import Network.RemoteData (RemoteData(..))
-import Servant.PureScript.Ajax (AjaxError)
-import WalletData.Types (Nickname, WalletLibrary)
+import Types (ContractInstanceId(..), WebData)
+import WalletData.Types (WalletInfo, WalletNickname, WalletLibrary)
 
-data NicknameError
-  = EmptyNickname
-  | DuplicateNickname
-  | BadNickname
+data WalletNicknameError
+  = EmptyWalletNickname
+  | DuplicateWalletNickname
+  | BadWalletNickname
 
-derive instance eqNicknameError :: Eq NicknameError
+derive instance eqWalletNicknameError :: Eq WalletNicknameError
 
-instance showNicknameError :: Show NicknameError where
-  show EmptyNickname = "Nickname cannot be blank"
-  show DuplicateNickname = "Nickname is already in use in your contacts"
-  show BadNickname = "Nicknames can only contain letters and numbers"
+instance showWalletNicknameError :: Show WalletNicknameError where
+  show EmptyWalletNickname = "Nickname cannot be blank"
+  show DuplicateWalletNickname = "Nickname is already in use in your contacts"
+  show BadWalletNickname = "Nicknames can only contain letters and numbers"
 
-data ContractIdError
-  = EmptyContractId
-  | DuplicateContractId
-  | UnconfirmedContractId
-  | NonexistentContractId
+data ContractInstanceIdError
+  = EmptyContractInstanceId
+  | DuplicateContractInstanceId
+  | InvalidContractInstanceId
+  | UnconfirmedContractInstanceId
+  | NonexistentContractInstanceId
 
-derive instance eqKeyError :: Eq ContractIdError
+derive instance eqContractInstanceIdError :: Eq ContractInstanceIdError
 
-instance showContracyIdError :: Show ContractIdError where
-  show EmptyContractId = "Wallet ID cannot be blank"
-  show DuplicateContractId = "Wallet ID is already in your contacts"
-  show UnconfirmedContractId = "Looking up wallet ID..."
-  show NonexistentContractId = "Wallet ID not found"
+instance showContractInstanceIdError :: Show ContractInstanceIdError where
+  show EmptyContractInstanceId = "Wallet ID cannot be blank"
+  show DuplicateContractInstanceId = "Wallet ID is already in your contacts"
+  show InvalidContractInstanceId = "Wallet ID is not valid"
+  show UnconfirmedContractInstanceId = "Looking up wallet ID..."
+  show NonexistentContractInstanceId = "Wallet ID not found"
 
-nicknameError :: Nickname -> WalletLibrary -> Maybe NicknameError
-nicknameError "" _ = Just EmptyNickname
+walletNicknameError :: WalletNickname -> WalletLibrary -> Maybe WalletNicknameError
+walletNicknameError "" _ = Just EmptyWalletNickname
 
-nicknameError nickname library =
-  if member nickname library then
-    Just DuplicateNickname
+walletNicknameError walletNickname walletLibrary =
+  if member walletNickname walletLibrary then
+    Just DuplicateWalletNickname
   else
-    if any (\char -> not $ isAlphaNum char) $ toCharArray nickname then
-      Just BadNickname
+    if any (\char -> not $ isAlphaNum char) $ toCharArray walletNickname then
+      Just BadWalletNickname
     else
       Nothing
 
-contractIdError :: String -> RemoteData AjaxError PubKey -> WalletLibrary -> Maybe ContractIdError
-contractIdError "" _ _ = Just EmptyContractId
+contractInstanceIdError :: String -> WebData WalletInfo -> WalletLibrary -> Maybe ContractInstanceIdError
+contractInstanceIdError "" _ _ = Just EmptyContractInstanceId
 
-contractIdError contractId pubKey library =
-  if not $ isEmpty $ filter (\walletDetails -> walletDetails.contractId == contractId) library then
-    Just DuplicateContractId
-  else case pubKey of
+contractInstanceIdError contractInstanceIdString remoteDataWalletInfo walletLibrary = case parseContractInstanceId contractInstanceIdString of
+  Nothing -> Just InvalidContractInstanceId
+  Just contractInstanceId
+    | not $ isEmpty $ filter (\walletDetails -> walletDetails.contractInstanceId == contractInstanceId) walletLibrary -> Just DuplicateContractInstanceId
+  _ -> case remoteDataWalletInfo of
     Success _ -> Nothing
-    Failure _ -> Just NonexistentContractId
-    _ -> Just UnconfirmedContractId
+    Failure _ -> Just NonexistentContractInstanceId
+    _ -> Just UnconfirmedContractInstanceId
+
+parseContractInstanceId :: String -> Maybe ContractInstanceId
+parseContractInstanceId contractInstanceIdString = case parseUUID contractInstanceIdString of
+  Just uuid -> Just $ ContractInstanceId uuid
+  Nothing -> Nothing

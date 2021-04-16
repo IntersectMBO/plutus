@@ -28,7 +28,6 @@ import           Data.Text                                        (Text)
 import qualified Data.Text                                        as Text
 import qualified Data.Validation                                  as Validation
 import           GHC.Generics                                     (Generic)
-import           Git                                              (gitRev)
 import           Language.Marlowe.ACTUS.Definitions.ContractTerms (ContractTerms)
 import           Language.Marlowe.ACTUS.Generator                 (genFsContract, genStaticContract)
 import           Language.Marlowe.Pretty                          (pretty)
@@ -75,11 +74,8 @@ mkHandlers AppConfig {..} = do
   githubEndpoints <- liftIO Auth.mkGithubEndpoints
   pure (mhandlers :<|> liftedAuthServer githubEndpoints authConfig)
 
-version :: Applicative m => m Text
-version = pure gitRev
-
 mhandlers :: Server API
-mhandlers = oracle :<|> version :<|> genActusContract :<|> genActusContractStatic
+mhandlers = oracle :<|> genActusContract :<|> genActusContractStatic
 
 app :: Server Web -> Application
 app handlers =

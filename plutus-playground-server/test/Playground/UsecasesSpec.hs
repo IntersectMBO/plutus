@@ -41,7 +41,7 @@ import           Playground.Types                       (CompilationResult (Comp
                                                          PlaygroundError (InterpreterError),
                                                          SimulatorWallet (SimulatorWallet), adaCurrency, argument,
                                                          argumentValues, caller, emulatorLog, endpointDescription,
-                                                         fundsDistribution, program, resultRollup,
+                                                         feesDistribution, fundsDistribution, program, resultRollup,
                                                          simulatorWalletBalance, simulatorWalletWallet, sourceCode,
                                                          walletKeys, wallets)
 import           Playground.Usecases                    (crowdFunding, errorHandling, game, vesting)
@@ -118,42 +118,42 @@ vestingTest =
         , testCase "should run simple evaluation" $
           evaluate (mkEvaluation []) >>=
           hasFundsDistribution
-              [ mkSimulatorWallet w1 tenLovelace
-              , mkSimulatorWallet w2 tenLovelace
+              [ mkSimulatorWallet w1 hundredLovelace
+              , mkSimulatorWallet w2 hundredLovelace
               ]
         , testCase "should run simple wait evaluation" $
           evaluate (mkEvaluation [AddBlocks 10]) >>=
           hasFundsDistribution
-              [ mkSimulatorWallet w1 tenLovelace
-              , mkSimulatorWallet w2 tenLovelace
+              [ mkSimulatorWallet w1 hundredLovelace
+              , mkSimulatorWallet w2 hundredLovelace
               ]
         , testCase "should run vest funds evaluation" $
           evaluate vestFundsEval >>=
           hasFundsDistribution
-              [ mkSimulatorWallet w1 $ lovelaceValueOf 10
-              , mkSimulatorWallet w2 $ lovelaceValueOf 2
+              [ mkSimulatorWallet w1 $ lovelaceValueOf 100
+              , mkSimulatorWallet w2 $ lovelaceValueOf 92
               ]
         , testCase "should run vest and a partial retrieve of funds" $
           evaluate vestAndPartialRetrieveEval >>=
           hasFundsDistribution
-              [ mkSimulatorWallet w1 $ lovelaceValueOf 15
-              , mkSimulatorWallet w2 $ lovelaceValueOf 2
+              [ mkSimulatorWallet w1 $ lovelaceValueOf 105
+              , mkSimulatorWallet w2 $ lovelaceValueOf 92
               ]
         , testCase "should run vest and a full retrieve of funds" $
           evaluate vestAndFullRetrieveEval >>=
           hasFundsDistribution
-              [ mkSimulatorWallet w1 $ lovelaceValueOf 18
-              , mkSimulatorWallet w2 $ lovelaceValueOf 2
+              [ mkSimulatorWallet w1 $ lovelaceValueOf 108
+              , mkSimulatorWallet w2 $ lovelaceValueOf 92
               ]
         ]
   where
-    tenLovelace = lovelaceValueOf 10
+    hundredLovelace = lovelaceValueOf 100
     mkEvaluation :: [Expression] -> Evaluation
     mkEvaluation expressions =
         Evaluation
             { wallets =
-                  [ mkSimulatorWallet w1 tenLovelace
-                  , mkSimulatorWallet w2 tenLovelace
+                  [ mkSimulatorWallet w1 hundredLovelace
+                  , mkSimulatorWallet w2 hundredLovelace
                   ]
             , sourceCode = vesting
             , program = toJSONString expressions
@@ -177,7 +177,9 @@ gameTest =
         , testCase "should keep the funds" $
           evaluate (mkEvaluation [lock w2 "abcde" twoAda, AddBlocks 1, guess w1 "ade", AddBlocks 1]) >>=
           hasFundsDistribution
-              [mkSimulatorWallet w1 tenAda, mkSimulatorWallet w2 (adaValueOf 8)]
+              [ mkSimulatorWallet w1 tenAda
+              , mkSimulatorWallet w2 (adaValueOf 8)
+              ]
         , testCase "should unlock the funds" $
           evaluate (mkEvaluation [lock w2 "abcde" twoAda, AddBlocks 1, guess w1 "abcde", AddBlocks 1]) >>=
           hasFundsDistribution
@@ -235,11 +237,13 @@ hasFundsDistribution ::
     -> Assertion
 hasFundsDistribution _ (Left err) = assertFailure $ show err
 hasFundsDistribution requiredDistribution (Right InterpreterResult {result = EvaluationResult {..}}) = do
-    unless (requiredDistribution == fundsDistribution) $ do
+    let addFees fund fee = fund { simulatorWalletBalance = simulatorWalletBalance fund <> simulatorWalletBalance fee }
+    let noFeesDistribution = zipWith addFees fundsDistribution feesDistribution
+    unless (requiredDistribution == noFeesDistribution) $ do
         Text.putStrLn $
             either id id $ showBlockchain walletKeys $ fmap (fmap tx) resultRollup
         traverse_ print $ reverse emulatorLog
-    assertEqual "" requiredDistribution fundsDistribution
+    assertEqual "" requiredDistribution noFeesDistribution
 
 errorHandlingTest :: TestTree
 errorHandlingTest = testGroup "errorHandling" [compilationChecks errorHandling]
@@ -252,36 +256,35 @@ crowdfundingTest =
         , testCase "should run successful campaign" $
           evaluate successfulCampaign >>=
           hasFundsDistribution
-              [ mkSimulatorWallet w1 $ lovelaceValueOf 60
-              , mkSimulatorWallet w2 $ lovelaceValueOf 19
-              , mkSimulatorWallet w3 $ lovelaceValueOf 20
-              , mkSimulatorWallet w4 $ lovelaceValueOf 21
+              [ mkSimulatorWallet w1 $ lovelaceValueOf 600
+              , mkSimulatorWallet w2 $ lovelaceValueOf 190
+              , mkSimulatorWallet w3 $ lovelaceValueOf 200
+              , mkSimulatorWallet w4 $ lovelaceValueOf 210
               ]
         , testCase "should run failed campaign and return the funds" $
           evaluate failedCampaign >>=
           hasFundsDistribution
-              [ mkSimulatorWallet w1 $ lovelaceValueOf 20
-              , mkSimulatorWallet w2 $ lovelaceValueOf 20
-              , mkSimulatorWallet w3 $ lovelaceValueOf 20
+              [ mkSimulatorWallet w1 $ lovelaceValueOf 300
+              , mkSimulatorWallet w2 $ lovelaceValueOf 300
+              , mkSimulatorWallet w3 $ lovelaceValueOf 300
               ]
         ]
   where
-    twentyLovelace = lovelaceValueOf 20
     sourceCode = crowdFunding
     successfulCampaign =
         Evaluation
             { wallets =
-                  [ mkSimulatorWallet w1 $ lovelaceValueOf 30
-                  , mkSimulatorWallet w2 $ lovelaceValueOf 30
-                  , mkSimulatorWallet w3 $ lovelaceValueOf 30
-                  , mkSimulatorWallet w4 $ lovelaceValueOf 30
+                  [ mkSimulatorWallet w1 $ lovelaceValueOf 300
+                  , mkSimulatorWallet w2 $ lovelaceValueOf 300
+                  , mkSimulatorWallet w3 $ lovelaceValueOf 300
+                  , mkSimulatorWallet w4 $ lovelaceValueOf 300
                   ]
             , program =
                   toJSONString
                       [ scheduleCollection w1
-                      , contribute w2 $ lovelaceValueOf 11
-                      , contribute w3 $ lovelaceValueOf 10
-                      , contribute w4 $ lovelaceValueOf 9
+                      , contribute w2 $ lovelaceValueOf 110
+                      , contribute w3 $ lovelaceValueOf 100
+                      , contribute w4 $ lovelaceValueOf 90
                       , AddBlocks 1
                       , AddBlocksUntil 40
                       , AddBlocks 1
@@ -291,14 +294,14 @@ crowdfundingTest =
     failedCampaign =
         Evaluation
             { wallets =
-                  [ mkSimulatorWallet w1 twentyLovelace
-                  , mkSimulatorWallet w2 twentyLovelace
-                  , mkSimulatorWallet w3 twentyLovelace
+                  [ mkSimulatorWallet w1 $ lovelaceValueOf 300
+                  , mkSimulatorWallet w2 $ lovelaceValueOf 300
+                  , mkSimulatorWallet w3 $ lovelaceValueOf 300
                   ]
             , program =
                   toJSONString
                       [ scheduleCollection w1
-                      , contribute w2 $ lovelaceValueOf 10
+                      , contribute w2 $ lovelaceValueOf 100
                       , AddBlocks 1
                       , AddBlocksUntil 40
                       , AddBlocksUntil 60

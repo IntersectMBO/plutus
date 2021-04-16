@@ -27,7 +27,7 @@ module Starter where
 --   * redeem
 
 import           Control.Monad        (void)
-import           Ledger               (Address, ValidatorCtx, scriptAddress)
+import           Ledger               (Address, ScriptContext, scriptAddress)
 import qualified Ledger.Constraints   as Constraints
 import qualified Ledger.Typed.Scripts as Scripts
 import           Ledger.Value         (Value)
@@ -46,7 +46,7 @@ PlutusTx.makeLift ''MyRedeemer
 
 -- | This method is the spending validator (which gets lifted to
 --   its on-chain representation).
-validateSpend :: MyDatum -> MyRedeemer -> ValidatorCtx -> Bool
+validateSpend :: MyDatum -> MyRedeemer -> ScriptContext -> Bool
 validateSpend _myDataValue _myRedeemerValue _ = error () -- Please provide an implementation.
 
 -- | The address of the contract (the hash of its validator script).

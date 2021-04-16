@@ -12,7 +12,7 @@
 {-# LANGUAGE TypeFamilies         #-}
 {-# LANGUAGE TypeOperators        #-}
 {-# LANGUAGE UndecidableInstances #-}
-{-# OPTIONS -fplugin-opt PlutusTx.Plugin:debug-context #-}
+{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:debug-context #-}
 -- | A general-purpose escrow contract in Plutus
 module Plutus.Contracts.Escrow(
     -- $escrow
@@ -51,7 +51,7 @@ import           Ledger                   (Datum (..), DatumHash, PubKeyHash, Sl
 import qualified Ledger
 import           Ledger.Constraints       (TxConstraints)
 import qualified Ledger.Constraints       as Constraints
-import           Ledger.Contexts          (TxInfo (..), ValidatorCtx (..))
+import           Ledger.Contexts          (ScriptContext (..), TxInfo (..))
 import           Ledger.Interval          (after, before, from)
 import qualified Ledger.Interval          as Interval
 import qualified Ledger.Tx                as Tx
@@ -193,15 +193,15 @@ meetsTarget ptx = \case
             _ -> False
 
 {-# INLINABLE validate #-}
-validate :: EscrowParams DatumHash -> PubKeyHash -> Action -> ValidatorCtx -> Bool
-validate EscrowParams{escrowDeadline, escrowTargets} contributor action ValidatorCtx{valCtxTxInfo} =
+validate :: EscrowParams DatumHash -> PubKeyHash -> Action -> ScriptContext -> Bool
+validate EscrowParams{escrowDeadline, escrowTargets} contributor action ScriptContext{scriptContextTxInfo} =
     case action of
         Redeem ->
-            traceIfFalse "escrowDeadline-after" (escrowDeadline `after` txInfoValidRange valCtxTxInfo)
-            && traceIfFalse "meetsTarget" (all (meetsTarget valCtxTxInfo) escrowTargets)
+            traceIfFalse "escrowDeadline-after" (escrowDeadline `after` txInfoValidRange scriptContextTxInfo)
+            && traceIfFalse "meetsTarget" (all (meetsTarget scriptContextTxInfo) escrowTargets)
         Refund ->
-            traceIfFalse "escrowDeadline-before" (escrowDeadline `before` txInfoValidRange valCtxTxInfo)
-            && traceIfFalse "txSignedBy" (valCtxTxInfo `txSignedBy` contributor)
+            traceIfFalse "escrowDeadline-before" (escrowDeadline `before` txInfoValidRange scriptContextTxInfo)
+            && traceIfFalse "txSignedBy" (scriptContextTxInfo `txSignedBy` contributor)
 
 scriptInstance :: EscrowParams Datum -> Scripts.ScriptInstance Escrow
 scriptInstance escrow = go (Haskell.fmap Ledger.datumHash escrow) where

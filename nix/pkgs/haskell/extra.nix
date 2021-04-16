@@ -18,7 +18,7 @@
   Agda = haskell-nix.hackage-package {
     name = "Agda";
     version = "2.6.1.1";
-    plan-sha256 = "1mj425brxp4zvbpj04ixzmpdrb7i6mcg54y8q4396s1mzy74k1xw";
+    plan-sha256 = "04b1q8wbh3v92nazfsjzr4qwp9rsv8c2zi51r44djfnp1k1hl3pk";
     # Should use the index-state from the target cabal.project, but that disables plan-sha256. Fixed
     # in recent haskell.nix, delete the index-state passing when we update.
     inherit compiler-nix-name index-state checkMaterialization;
@@ -56,21 +56,21 @@
     version = "3.4.0.0";
     inherit compiler-nix-name index-state checkMaterialization;
     # Invalidate and update if you change the version or index-state
-    plan-sha256 = "12qb9j99zkav8df91s9wsigqcj6h8wzlq95ci5qgj263rkm112a9";
+    plan-sha256 = "1cr9d1wfsd9a8i45c59h4gfddh48m1s6b4aiqz1c9j7fk0v9j3ax";
   };
   stylish-haskell = haskell-nix.hackage-package {
     name = "stylish-haskell";
     version = "0.12.2.0";
     inherit compiler-nix-name index-state checkMaterialization;
     # Invalidate and update if you change the version or index-state
-    plan-sha256 = "12falax0q7hqsgjvirpn8nnf97pl7a17kfwf9jp0j3k1plwlv8fy";
+    plan-sha256 = "0x5kfash33jgjh8vj1q5dqj2p8m5gxhgfj8k7n0wnj2l5djbhwci";
   };
   hlint = haskell-nix.hackage-package {
     name = "hlint";
     version = "3.2.1";
     inherit compiler-nix-name index-state checkMaterialization;
     # Invalidate and update if you change the version or index-state
-    plan-sha256 = "15dx7l2ilp4w0jvczvpn5c8gjyh8cx3qgaq92d2r2570ml49im2z";
+    plan-sha256 = "0ld6bl9rcan7cp99zdyjggrhyqb43qcn35csb4kc2hksy4yg7c5f";
     modules = [{ reinstallableLibGhc = false; }];
   };
 }
@@ -81,21 +81,20 @@
     src = fetchFromGitHub {
       owner = "haskell";
       repo = "haskell-language-server";
-      rev = "0.9.0";
-      sha256 = "18g0d7zac9xwywmp57dcrjnvms70f2mawviswskix78cv0iv4sk5";
+      rev = "1.1.0";
+      sha256 = "0kviq3kinm3i0qm4r26rdnlkwbs1s3r1rqiqdry517rgkgnjpcp5";
     };
     inherit compiler-nix-name index-state checkMaterialization;
-    sha256map = {
-      "https://github.com/alanz/ghc-exactprint.git"."6748e24da18a6cea985d20cc3e1e7920cb743795" = "18r41290xnlizgdwkvz16s7v8k2znc7h215sb1snw6ga8lbv60rb";
-    };
     # Invalidate and update if you change the version
     plan-sha256 =
       # See https://github.com/input-output-hk/nix-tools/issues/97
       if stdenv.isLinux
-      then "09cbs77xcxmfsv1vxdbaj31r3d1mnwci7061vcrn5fkncsx827xq"
-      else "1ypvxgvwzgh1jm4cfk6y0c6iqnrinkcha76rmnchim2y9zz070pj";
+      then "09k840g7gg97dwjlif7hlpbx7sapmzdvixwj9hbcvkxiv57sizp3"
+      else "0mgxp1ja7rjh3qnf5ph4a4phncsd3yh04cxmdsg8baczx7jndfaf";
     modules = [{
       packages.ghcide.patches = [ ../../patches/ghcide_partial_iface.patch ];
+      # Workaround for https://github.com/haskell/haskell-language-server/issues/1160
+      packages.haskell-language-server.patches = lib.mkIf stdenv.isDarwin [ ../../patches/haskell-language-server-dynamic.patch ];
     }];
   };
   in { inherit (project.hsPkgs) haskell-language-server hie-bios implicit-hie; }

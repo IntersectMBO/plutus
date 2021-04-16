@@ -171,3 +171,25 @@ contractForDifferences =
   , slotParameterDescriptions: empty
   , valueParameterDescriptions: empty
   }
+
+contractForDifferencesWithOracle :: MetaData
+contractForDifferencesWithOracle =
+  { contractType: ContractForDifferences
+  , contractName: "Contract for Differences with Oracle"
+  , contractDescription: "\"Party\" and \"Counterparty\" deposit 100 Ada and after 60 slots these assets are redistributed depending on the change in price of 100 Ada worth of dollars between the start and the end of the contract. If the price increases, the difference goes to \"Counterparty\"; if it decreases, the difference goes to \"Party\", up to a maximum of 100 Ada."
+  , choiceDescriptions:
+      ( fromFoldable
+          [ "dir-adausd" /\ "Exchange rate ADA/USD at the beginning of the contract."
+          , "inv-adausd" /\ "Exchange rate USD/ADA at the end of the contract."
+          ]
+      )
+  , roleDescriptions:
+      ( fromFoldable
+          [ "Counterparty" /\ "Party that gets the difference in trade price if it increases."
+          , "Party" /\ "Party that gets the difference in trade price if it decreases."
+          , "kraken" /\ "Oracle party that provides the exchange rate for ADA/USD."
+          ]
+      )
+  , slotParameterDescriptions: empty
+  , valueParameterDescriptions: empty
+  }

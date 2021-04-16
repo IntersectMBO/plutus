@@ -34,6 +34,8 @@ requestProcessingConfig:
 metadataServerConfig:
   mdBaseUrl: http://localhost:9085
 
+endpointTimeout: 5
+
 # Optional EKG Server Config
 # ----
 # monitoringConfig:

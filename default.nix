@@ -23,7 +23,7 @@
 let
   inherit (packages) pkgs plutus sources;
   inherit (pkgs) lib haskell-nix;
-  inherit (plutus) haskell iohkNix git-rev set-git-rev agdaPackages;
+  inherit (plutus) haskell iohkNix agdaPackages;
   inherit (plutus) easyPS sphinxcontrib-haddock;
 in
 rec {
@@ -37,7 +37,7 @@ rec {
     plutus-atomic-swap
     plutus-pay-to-wallet;
 
-  inherit (haskell.packages.marlowe.components.exes) marlowe-app;
+  inherit (haskell.packages.marlowe.components.exes) marlowe-app marlowe-companion-app;
 
   webCommon = pkgs.callPackage ./web-common { inherit (plutus.lib) gitignore-nix; };
   webCommonPlutus = pkgs.callPackage ./web-common-plutus { inherit (plutus.lib) gitignore-nix; };
@@ -45,30 +45,27 @@ rec {
   webCommonPlayground = pkgs.callPackage ./web-common-playground { inherit (plutus.lib) gitignore-nix; };
 
   plutus-playground = pkgs.recurseIntoAttrs rec {
-    tutorial = docs.site;
     haddock = plutus.plutus-haddock-combined;
 
     inherit (pkgs.callPackage ./plutus-playground-client {
       inherit (plutus.lib) buildPursPackage buildNodeModules filterNpm gitignore-nix;
-      inherit set-git-rev haskell webCommon webCommonPlutus webCommonPlayground;
+      inherit haskell webCommon webCommonPlutus webCommonPlayground;
     }) client server generate-purescript start-backend;
   };
 
   marlowe-playground = pkgs.recurseIntoAttrs rec {
-    tutorial = docs.marlowe-tutorial;
-
     inherit (pkgs.callPackage ./marlowe-playground-client {
       inherit (plutus.lib) buildPursPackage buildNodeModules filterNpm gitignore-nix;
-      inherit set-git-rev haskell webCommon webCommonMarlowe webCommonPlayground;
+      inherit haskell webCommon webCommonMarlowe webCommonPlayground;
     }) client server generate-purescript start-backend;
   };
 
   marlowe-dashboard = pkgs.recurseIntoAttrs rec {
     inherit (pkgs.callPackage ./marlowe-dashboard-client {
-      inherit plutus-pab marlowe-app;
+      inherit plutus-pab marlowe-app marlowe-companion-app;
       inherit (plutus.lib) buildPursPackage buildNodeModules filterNpm gitignore-nix;
       inherit webCommon webCommonMarlowe;
-    }) client server-invoker generated-purescript generate-purescript contractsJSON;
+    }) client server-invoker generated-purescript generate-purescript contractsJSON install-marlowe-contracts;
   };
 
   marlowe-marketplace = pkgs.recurseIntoAttrs rec {
@@ -80,22 +77,27 @@ rec {
 
   plutus-pab = pkgs.recurseIntoAttrs (pkgs.callPackage ./plutus-pab-client {
     inherit (plutus.lib) buildPursPackage buildNodeModules gitignore-nix filterNpm;
-    inherit set-git-rev haskell webCommon webCommonPlutus;
+    inherit haskell webCommon webCommonPlutus;
   });
 
   tests = import ./nix/tests/default.nix {
-    inherit pkgs iohkNix;
-    inherit (plutus) fixStylishHaskell fixPurty;
+    inherit pkgs iohkNix docs;
+    inherit (plutus.lib) gitignore-nix;
+    inherit (plutus) fixStylishHaskell fixPurty fixPngOptimization;
     inherit (pkgs) terraform;
-    inherit plutus-playground marlowe-playground marlowe-dashboard web-ghc plutus-pab marlowe-app;
+    inherit plutus-playground marlowe-playground marlowe-dashboard web-ghc plutus-pab marlowe-app marlowe-companion-app;
     src = ./.;
   };
 
   docs = import ./nix/docs.nix { inherit pkgs plutus; };
 
-  deployment = pkgs.callPackage ./deployment {
-    inherit plutus marlowe-playground plutus-playground;
-  };
+  deployment = pkgs.recurseIntoAttrs (pkgs.callPackage ./deployment/morph {
+    plutus = {
+      plutus-docs = docs;
+      inherit plutus-pab marlowe-app marlowe-companion-app
+        marlowe-dashboard marlowe-playground plutus-playground web-ghc;
+    };
+  });
 
   # This builds a vscode devcontainer that can be used with the plutus-starter project (or probably the plutus project itself).
   devcontainer = import ./nix/devcontainer/plutus-devcontainer.nix { inherit pkgs plutus; };

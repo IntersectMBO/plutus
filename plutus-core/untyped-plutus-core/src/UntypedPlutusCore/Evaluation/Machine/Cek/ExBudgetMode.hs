@@ -2,6 +2,7 @@
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings     #-}
+{-# LANGUAGE TypeApplications      #-}
 {-# LANGUAGE UndecidableInstances  #-}
 
 {-# LANGUAGE StrictData            #-}
@@ -31,11 +32,11 @@ import           PlutusCore.Evaluation.Machine.Exception
 
 import           Control.Lens                                      (ifoldMap)
 import           Control.Monad.Except
-import           Control.Monad.State.Strict
 import           Data.HashMap.Monoidal                             as HashMap
 import           Data.Hashable                                     (Hashable)
 import           Data.List                                         (intersperse)
 import qualified Data.Map.Strict                                   as Map
+import           Data.STRef
 import           Data.Semigroup.Generic
 import           Data.Text.Prettyprint.Doc
 import           Text.PrettyBy                                     (IgnorePrettyConfig (..))
@@ -44,8 +45,10 @@ import           Text.PrettyBy                                     (IgnorePretty
 -- The value then gets added to the current state via @(<>)@.
 monoidalBudgeting
     :: Monoid cost => (ExBudgetCategory fun -> ExBudget -> cost) -> ExBudgetMode cost uni fun
-monoidalBudgeting toSt = ExBudgetMode spender mempty where
-    spender = CekBudgetSpender $ \key budgetToSpend -> modify' (<> toSt key budgetToSpend)
+monoidalBudgeting toCost = ExBudgetMode $ do
+    costRef <- newSTRef mempty
+    let spend key budgetToSpend = liftCekST $ modifySTRef' costRef (<> toCost key budgetToSpend)
+    pure . ExBudgetInfo (CekBudgetSpender spend) $ readSTRef costRef
 
 -- | For calculating the cost of execution by counting up using the 'Monoid' instance of 'ExBudget'.
 newtype CountingSt = CountingSt ExBudget
@@ -101,18 +104,28 @@ instance Pretty RestrictingSt where
     pretty (RestrictingSt budget) = parens $ "final budget:" <+> pretty budget <> line
 
 -- | For execution, to avoid overruns.
-restricting :: ExRestrictingBudget -> ExBudgetMode RestrictingSt uni fun
-restricting = ExBudgetMode (CekBudgetSpender spend) . RestrictingSt where
-    spend _ budgetToSpend = do
-        RestrictingSt budgetLeft <- get
-        let budgetLeft' = budgetLeft `minusExBudget` budgetToSpend
-        -- Note that even if we throw an out-of-budget error, we still need to record
-        -- what the final state was.
-        put $! RestrictingSt budgetLeft'
-        when (isNegativeBudget budgetLeft') $
-            throwingWithCause _EvaluationError
-                (UserEvaluationError $ CekOutOfExError budgetLeft')
-                Nothing
+restricting :: forall uni fun . (PrettyUni uni fun) => ExRestrictingBudget -> ExBudgetMode RestrictingSt uni fun
+restricting (ExRestrictingBudget (ExBudget cpuInit memInit)) = ExBudgetMode $ do
+    -- Using two separate 'STRef's instead of a single one for efficiency reasons.
+    -- Gave us a ~1% speedup the time this idea was implemented.
+    cpuRef <- newSTRef cpuInit
+    memRef <- newSTRef memInit
+    let spend _ (ExBudget cpuToSpend memToSpend) = do
+            cpuLeft <- liftCekST $ readSTRef cpuRef
+            memLeft <- liftCekST $ readSTRef memRef
+            let cpuLeft' = cpuLeft `minusExCPU` cpuToSpend
+            let memLeft' = memLeft `minusExMemory` memToSpend
+            -- Note that even if we throw an out-of-budget error, we still need to record
+            -- what the final state was.
+            liftCekST . writeSTRef cpuRef $! cpuLeft'
+            liftCekST . writeSTRef memRef $! memLeft'
+            when (cpuLeft' < 0 || memLeft' < 0) $
+                throwingWithCauseExc @(CekEvaluationException uni fun) _EvaluationError
+                    (UserEvaluationError $ CekOutOfExError $ ExRestrictingBudget $ ExBudget cpuLeft' memLeft')
+                    Nothing
+    pure . ExBudgetInfo (CekBudgetSpender spend) $ do
+        finalExBudget <- ExBudget <$> readSTRef cpuRef <*> readSTRef memRef
+        pure . RestrictingSt $ ExRestrictingBudget finalExBudget
 
 -- | When we want to just evaluate the program we use the 'Restricting' mode with an enormous
 -- budget, so that evaluation costs of on-chain budgeting are reflected accurately in benchmarks.
@@ -121,5 +134,5 @@ enormousBudget = ExRestrictingBudget $ ExBudget (ExCPU maxInt) (ExMemory maxInt)
                  where maxInt = fromIntegral (maxBound::Int)
 
 -- | 'restricting' instantiated at 'enormousBudget'.
-restrictingEnormous :: ExBudgetMode RestrictingSt uni fun
+restrictingEnormous :: (PrettyUni uni fun) => ExBudgetMode RestrictingSt uni fun
 restrictingEnormous = restricting enormousBudget

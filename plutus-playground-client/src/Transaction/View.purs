@@ -103,7 +103,7 @@ emulatorEventPane (ChainIndexEvent _ (HandlingAddressChangeRequest rq _)) =
   div_
     [ text $ "Handling address change request: " <> show rq ]
 
-emulatorEventPane (ClientEvent _ (TxSubmit (TxId txId))) =
+emulatorEventPane (ClientEvent _ (TxSubmit (TxId txId) _)) =
   div_
     [ text $ "Submitting transaction: " <> txId.getTxId ]
 

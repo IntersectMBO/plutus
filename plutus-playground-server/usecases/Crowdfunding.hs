@@ -24,7 +24,7 @@ module Crowdfunding where
 
 import           Control.Applicative         (Applicative (pure))
 import           Control.Monad               (void)
-import           Ledger                      (PubKeyHash, TxInfo (..), Validator, ValidatorCtx (..), pubKeyHash, txId,
+import           Ledger                      (PubKeyHash, ScriptContext (..), TxInfo (..), Validator, pubKeyHash, txId,
                                               valueSpent)
 import qualified Ledger                      as Ledger
 import qualified Ledger.Ada                  as Ada
@@ -136,12 +136,12 @@ validCollection campaign txinfo =
 -- provided by the Plutus client, using 'PlutusTx.applyCode'.
 -- As a result, the 'Campaign' definition is part of the script address,
 -- and different campaigns have different addresses.
-mkValidator :: Campaign -> PubKeyHash -> CampaignAction -> ValidatorCtx -> Bool
+mkValidator :: Campaign -> PubKeyHash -> CampaignAction -> ScriptContext -> Bool
 mkValidator c con act p = case act of
     -- the "refund" branch
-    Refund  -> validRefund c con (valCtxTxInfo p)
+    Refund  -> validRefund c con (scriptContextTxInfo p)
     -- the "collection" branch
-    Collect -> validCollection c (valCtxTxInfo p)
+    Collect -> validCollection c (scriptContextTxInfo p)
 
 -- | The validator script that determines whether the campaign owner can
 --   retrieve the funds or the contributors can claim a refund.
@@ -157,11 +157,11 @@ campaignAddress = Scripts.validatorHash . contributionScript
 crowdfunding :: AsContractError e => Campaign -> Contract () CrowdfundingSchema e ()
 crowdfunding c = contribute c `select` scheduleCollection c
 
--- | A sample campaign with a target of 20 Ada by slot 20
+-- | A sample campaign with a target of 200 Ada by slot 20
 theCampaign :: Campaign
 theCampaign = Campaign
     { campaignDeadline = 40
-    , campaignTarget   = Ada.lovelaceValueOf 20
+    , campaignTarget   = Ada.lovelaceValueOf 200
     , campaignCollectionDeadline = 60
     , campaignOwner = pubKeyHash $ Emulator.walletPubKey (Emulator.Wallet 1)
     }

@@ -13,14 +13,12 @@ module CommandParser (parseOptions, AppOpts(..)) where
 import           Command
 
 import           Cardano.BM.Data.Severity                (Severity (..))
-import qualified Data.Text                               as Text
 
-import           Git                                     (gitRev)
 import           Options.Applicative                     (CommandFields, Mod, Parser, argument, auto, command,
                                                           customExecParser, disambiguate, flag, fullDesc, help, helper,
-                                                          idm, info, infoOption, long, metavar, option, prefs, progDesc,
-                                                          short, showHelpOnEmpty, showHelpOnError, str, strOption,
-                                                          subparser, value)
+                                                          idm, info, long, metavar, option, prefs, progDesc, short,
+                                                          showHelpOnEmpty, showHelpOnError, str, strOption, subparser,
+                                                          value)
 import           Plutus.PAB.Effects.Contract.ContractExe (ContractExe (..))
 import           Wallet.Types                            (ContractInstanceId (..))
 
@@ -34,13 +32,7 @@ data AppOpts = AppOpts { minLogLevel   :: Maybe Severity
 parseOptions :: IO AppOpts
 parseOptions = customExecParser
             (prefs $ disambiguate <> showHelpOnEmpty <> showHelpOnError)
-            (info (helper <*> versionOption <*> commandLineParser) idm)
-
-versionOption :: Parser (a -> a)
-versionOption =
-    infoOption
-        (Text.unpack gitRev)
-        (long "version" <> help "Show the version")
+            (info (helper <*> commandLineParser) idm)
 
 logLevelFlag :: Parser (Maybe Severity)
 logLevelFlag =

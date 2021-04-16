@@ -74,6 +74,7 @@ let
   #
   fixPurty = pkgs.callPackage ./fix-purty { inherit purty; };
   fixStylishHaskell = pkgs.callPackage ./fix-stylish-haskell { inherit stylish-haskell; };
+  fixPngOptimization = pkgs.callPackage ./fix-png-optimization { };
   updateMaterialized = pkgs.writeShellScriptBin "updateMaterialized" ''
     # This runs the 'updateMaterialize' script in all platform combinations we care about.
     # See the comment in ./haskell/haskell.nix
@@ -92,13 +93,6 @@ let
   #
   sphinx-markdown-tables = pkgs.python3Packages.callPackage ./sphinx-markdown-tables { };
   sphinxemoji = pkgs.python3Packages.callPackage ./sphinxemoji { };
-
-  # `set-git-rev` is a function that can be called on a haskellPackages
-  # package to inject the git revision post-compile
-  set-git-rev = pkgs.callPackage ./set-git-rev {
-    inherit (haskell.project) ghcWithPackages;
-    inherit git-rev;
-  };
 
   # By default pre-commit-hooks.nix uses its own pinned version of nixpkgs. In order to
   # to get it to use our version we have to (somewhat awkwardly) use `nix/default.nix`
@@ -153,7 +147,7 @@ let
   sphinxcontrib-haddock = pkgs.callPackage (sources.sphinxcontrib-haddock) { pythonPackages = pkgs.python3Packages; };
 
   # ghc web service
-  web-ghc = pkgs.callPackage ./web-ghc { inherit set-git-rev haskell; };
+  web-ghc = pkgs.callPackage ./web-ghc { inherit haskell; };
 
   # combined haddock documentation for all public plutus libraries
   plutus-haddock-combined =
@@ -191,8 +185,8 @@ in
   inherit nix-pre-commit-hooks;
   inherit haskell agdaPackages cabal-install stylish-haskell hlint haskell-language-server hie-bios;
   inherit purty purty-pre-commit purs spago spago2nix;
-  inherit fixPurty fixStylishHaskell updateMaterialized updateMetadataSamples updateClientDeps;
-  inherit iohkNix set-git-rev web-ghc;
+  inherit fixPurty fixStylishHaskell fixPngOptimization updateMaterialized updateMetadataSamples updateClientDeps;
+  inherit iohkNix web-ghc;
   inherit easyPS plutus-haddock-combined;
   inherit agdaWithStdlib aws-mfa-login;
   inherit lib;

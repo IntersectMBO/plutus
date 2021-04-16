@@ -8,7 +8,7 @@ import Marlowe.Execution (ExecutionState, NamedAction)
 import Marlowe.Extended.Metadata (MetaData)
 import Marlowe.Semantics (ChoiceId, ChosenNum, Slot, TransactionInput, Accounts)
 import Marlowe.Semantics as Semantic
-import WalletData.Types (Nickname)
+import WalletData.Types (WalletNickname)
 
 -- Represents a historical step in a contract's life.
 type PreviousStep
@@ -20,17 +20,21 @@ data PreviousStepState
   = TransactionStep TransactionInput
   | TimeoutStep Slot
 
+-- FIXME: Is contract id just a string? Should we wrap-it in a newtype?
+type ContractId
+  = String
+
 type State
   = { tab :: Tab
     , executionState :: ExecutionState
     , previousSteps :: Array PreviousStep
-    , contractId :: String -- FIXME: what is a contract instance identified by
+    , contractId :: ContractId
     -- Which step is selected. This index is 0 based and should be between [0, previousSteps.length]
     -- (both sides inclusive). This is because the array represent the past steps and the
     -- executionState has the current state and visually we can select any one of them.
     , selectedStep :: Int
     , metadata :: MetaData
-    , participants :: Map Semantic.Party (Maybe Nickname)
+    , participants :: Map Semantic.Party (Maybe WalletNickname)
     -- This field represents the logged-user party in the contract.
     -- If it's Nothing, then the logged-user is an observant of the contract. That could happen
     -- if the person who creates the contract does not put him/herself as a participant of the contract

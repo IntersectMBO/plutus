@@ -3,7 +3,7 @@ module Contract.State
   , handleAction
   , mkInitialState
   , instantiateExtendedContract
-  , defaultState
+  , dummyState
   , currentStep
   , isContractClosed
   , applyTx
@@ -11,6 +11,7 @@ module Contract.State
   ) where
 
 import Prelude
+import Capability.Toast (class Toast, addToast)
 import Contract.Lenses (_contractId, _executionState, _namedActions, _previousSteps, _selectedStep, _tab)
 import Contract.Types (Action(..), PreviousStep, PreviousStepState(..), Query(..), State, Tab(..))
 import Control.Monad.Reader (class MonadAsk)
@@ -37,12 +38,12 @@ import Marlowe.Extended.Metadata (MetaData, emptyContractMetadata)
 import Marlowe.Semantics (Contract(..), Input(..), Slot, SlotInterval(..), Token(..), TransactionInput(..))
 import Marlowe.Semantics as Semantic
 import Marlowe.Slot (currentSlot)
-import WalletData.Types (Nickname)
+import Toast.Types (successToast)
+import WalletData.Types (WalletNickname)
 
--- I don't like having to provide a default state for this component, but it is needed by the
--- mapMaybeSubmodule in PlayState.
-defaultState :: State
-defaultState = mkInitialState "" zero emptyContractMetadata mempty Nothing Close
+-- see note [dummyState]
+dummyState :: State
+dummyState = mkInitialState "" zero emptyContractMetadata mempty Nothing Close
 
 currentStep :: State -> Int
 currentStep = length <<< view _previousSteps
@@ -76,7 +77,7 @@ instantiateExtendedContract ::
   Extended.Contract ->
   TemplateContent ->
   MetaData ->
-  Map Semantic.Party (Maybe Nickname) ->
+  Map Semantic.Party (Maybe WalletNickname) ->
   Maybe Semantic.Party ->
   Maybe State
 instantiateExtendedContract contractId currentSlot extendedContract templateContent metadata participants mActiveUserParty =
@@ -92,7 +93,7 @@ mkInitialState ::
   String ->
   Slot ->
   MetaData ->
-  Map Semantic.Party (Maybe Nickname) ->
+  Map Semantic.Party (Maybe WalletNickname) ->
   Maybe Semantic.Party ->
   Contract ->
   State
@@ -192,6 +193,7 @@ handleAction ::
   forall m.
   MonadAff m =>
   MonadAsk Env m =>
+  Toast m =>
   Action -> HalogenM State Action ChildSlots Msg m Unit
 handleAction (ConfirmAction namedAction) = do
   currentExeState <- use _executionState
@@ -207,6 +209,7 @@ handleAction (ConfirmAction namedAction) = do
   -- FIXME: send data to BE
   -- void $ mapEnvReaderT _.ajaxSettings $ runExceptT $ postApiContractByContractinstanceidEndpointByEndpointname json contractId "apply-inputs"
   modify_ $ applyTx slot txInput
+  addToast $ successToast "Payment received, step completed"
 
 -- raise (SendWebSocketMessage (ServerMsg true)) -- FIXME: send txInput to the server to apply to the on-chain contract
 handleAction (ChangeChoice choiceId chosenNum) = modifying _namedActions (map changeChoice)

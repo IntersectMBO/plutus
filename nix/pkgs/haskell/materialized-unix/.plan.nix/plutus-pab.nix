@@ -184,6 +184,7 @@
           "Plutus/PAB/Events/ContractInstanceState"
           "Plutus/PAB/ParseStringifiedJSON"
           "Plutus/PAB/Simulator"
+          "Plutus/PAB/Timeout"
           "Plutus/PAB/Types"
           ];
         hsSourceDirs = [ "src" ];
@@ -234,6 +235,7 @@
             (hsPkgs."base" or (errorHandler.buildDepError "base"))
             (hsPkgs."plutus-pab" or (errorHandler.buildDepError "plutus-pab"))
             (hsPkgs."plutus-use-cases" or (errorHandler.buildDepError "plutus-use-cases"))
+            (hsPkgs."text" or (errorHandler.buildDepError "text"))
             ];
           buildable = true;
           hsSourceDirs = [ "game-contract" ];

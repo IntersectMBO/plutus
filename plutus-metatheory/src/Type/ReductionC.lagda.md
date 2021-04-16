@@ -28,7 +28,7 @@ open import Data.Product hiding (∃!)
 open import Data.Empty
 
 open import Relation.Binary.PropositionalEquality
-  using (_≡_;refl;cong;cong₂;subst;trans;sym;inspect) renaming ([_] to blah)
+  using (_≡_;refl;cong;cong₂;subst;trans;sym;inspect) renaming ([_] to I[_])
 ```
 
 ## Values
@@ -240,6 +240,35 @@ compEF (V ⇒r E) F E' = cong (V ⇒r_) (compEF E F E')
 compEF (E l⇒ B) F E' = cong (_l⇒ B) (compEF E F E')
 compEF (μr V E) F E' = cong (μr V) (compEF E F E')
 compEF (μl E B) F E' = cong (λ E → μl E B) (compEF E F E')
+
+compEF' : ∀{I'}(E : EvalCtx K J)(E' : EvalCtx J I)(F : Frame I I')
+  → compEvalCtx E (extendEvalCtx E' F) ≡ extendEvalCtx (compEvalCtx E E') F
+compEF' []       E' F = refl
+compEF' (V ·r E) E' F = cong (V ·r_) (compEF' E E' F)
+compEF' (E l· B) E' F = cong (_l· B) (compEF' E E' F)
+compEF' (V ⇒r E) E' F = cong (V ⇒r_) (compEF' E E' F)
+compEF' (E l⇒ B) E' F = cong (_l⇒ B) (compEF' E E' F)
+compEF' (μr V E) E' F = cong (μr V) (compEF' E E' F)
+compEF' (μl E B) E' F = cong (λ E → μl E B) (compEF' E E' F)
+
+evalEF :  ∀{I'}(F : Frame K J)(E : EvalCtx J I)(F' : Frame I I')
+  → evalFrame F (extendEvalCtx E F') ≡ extendEvalCtx (evalFrame F E) F'
+evalEF (-· B)  E F' = refl
+evalEF (B ·-)  E F' = refl
+evalEF (-⇒ B)  E F' = refl
+evalEF (V ⇒-)  E F' = refl
+evalEF (μ- B)  E F' = refl
+evalEF (μ V -) E F' = refl
+
+evalEF' : (F : Frame K J)(E : EvalCtx J I)(A : ∅ ⊢⋆ I)
+  → closeFrame F (closeEvalCtx E A) ≡ closeEvalCtx (evalFrame F E) A
+evalEF' (-· B)  E A = refl
+evalEF' (B ·-)  E A = refl
+evalEF' (-⇒ B)  E A = refl
+evalEF' (V ⇒-)  E A = refl
+evalEF' (μ- B)  E A = refl
+evalEF' (μ V -) E A = refl
+
 
 -- composition can also be defined by induction on E'
 compEvalCtx' : EvalCtx K J → EvalCtx J I → EvalCtx K I
@@ -513,6 +542,8 @@ inv·r : ∀ (A : ∅ ⊢⋆ K ⇒ J) A' (B : ∅ ⊢⋆ K)(B' : ∅ ⊢⋆ K')
   → A · B ≡ A' · B' → Σ (K' ≡ K) λ p → B ≡ subst (∅ ⊢⋆_) p B'
 inv·r A .A B .B refl = refl , refl
 
+
+-- this is progress in another form
 open import Data.Sum
 lemma51 : (M : ∅ ⊢⋆ K)
   → Value⋆ M
@@ -574,9 +605,14 @@ proj·l'' refl = refl
 projμl : {A : ∅ ⊢⋆ _}{A' : ∅ ⊢⋆ _}{B : ∅ ⊢⋆ K}{B' : ∅ ⊢⋆ K'} → (μ A B) ≡ (μ A' B') → ∃ λ (p : _ ≡ _) → subst (∅ ⊢⋆_) p A ≡ A'
 projμl refl = refl , refl
 
-projμr : {A : ∅ ⊢⋆ _}{A' : ∅ ⊢⋆ _}{B : ∅ ⊢⋆ K}{B' : ∅ ⊢⋆ K'} → (μ A B) ≡ (μ A' B') → ∃ λ (p : _ ≡ _) → subst (∅ ⊢⋆_) p B ≡ B'
-projμr refl = refl , refl
-
+cong-μl : ∀{K K'}(E : EvalCtx _ J)(E' : EvalCtx _ J)
+  → (B : ∅ ⊢⋆ K)(B' : ∅ ⊢⋆ K')
+  → (p : K' ≡ K)
+  → B ≡ subst (∅ ⊢⋆_) p B'
+  → (q : ((K' ⇒ *) ⇒ K' ⇒ *) ≡ ((K ⇒ *) ⇒ K ⇒ *))
+  → E ≡ subst (λ I → EvalCtx I J) q E'
+  → μl E B ≡ μl E' B'
+cong-μl E E' B B' refl p' refl q' = cong₂ μl q' p' 
 
 val-unique : ∀{A : ∅ ⊢⋆ K}(V V' : Value⋆ A) → V ≡ V'
 val-unique (V-Π N) (V-Π .N) = refl
@@ -587,6 +623,27 @@ val-unique (V-μ V W) (V-μ V' W') =
   cong₂ V-μ (val-unique V V') (val-unique W W') 
 val-unique (V-ƛ N) (V-ƛ .N) = refl
 
+cong-μr : ∀{K K'}(E : EvalCtx _ J)(E' : EvalCtx _ J)
+  → (A : ∅ ⊢⋆ (K ⇒ *) ⇒ _)(A' : ∅ ⊢⋆ (K' ⇒ *) ⇒ _)
+  → (VA : Value⋆ A)(VA' : Value⋆ A')
+  → (p : (K' ⇒ *) ⇒ K' ⇒ * ≡ (K ⇒ *) ⇒ K ⇒ *)
+  → A ≡ subst (∅ ⊢⋆_) p A'
+  → (q : K' ≡ K)
+  → E ≡ subst (λ I → EvalCtx I J) q E'
+  → μr VA E ≡ μr VA' E'
+cong-μr E E' A A' VA VA' refl refl refl q' = cong₂ μr (val-unique VA VA') q'
+
+cong-⇒r : (E : EvalCtx _ J)(E' : EvalCtx _ J)
+  → (A A' : ∅ ⊢⋆ *)
+  → (VA : Value⋆ A)(VA' : Value⋆ A')
+  → A ≡ A'
+  → E ≡ E'
+  → VA ⇒r E ≡ VA' ⇒r E'
+cong-⇒r E E' A A' VA VA' refl p = cong₂ _⇒r_ (val-unique VA VA') p
+
+
+projμr : {A : ∅ ⊢⋆ _}{A' : ∅ ⊢⋆ _}{B : ∅ ⊢⋆ K}{B' : ∅ ⊢⋆ K'} → (μ A B) ≡ (μ A' B') → ∃ λ (p : _ ≡ _) → subst (∅ ⊢⋆_) p B ≡ B'
+projμr refl = refl , refl
 
 ·r-cong : ∀{J J' K}(p : J ≡ J') → {A : ∅ ⊢⋆ J ⇒ K}{A' : ∅ ⊢⋆ J' ⇒ K}
   (V : Value⋆ A)(V' : Value⋆ A')(E : EvalCtx J I) → 
@@ -600,6 +657,13 @@ subst-l⇒ E B refl = refl
 
 subst-⇒r : ∀{A}(V : Value⋆ A) E (p : J ≡ J') →  subst (EvalCtx *) p (V ⇒r E) ≡ V ⇒r subst (EvalCtx *) p E
 subst-⇒r V E refl = refl
+
+subst-μl : ∀ E B (p : J ≡ J') →  subst (EvalCtx _) p (μl E B) ≡ μl (subst (EvalCtx ((K ⇒ *) ⇒ _)) p E) B
+subst-μl E B refl = refl
+
+subst-μr : ∀ E M (VM : Value⋆ M) (p : J ≡ J') →  subst (EvalCtx _) p (μr VM E) ≡ μr VM (subst (EvalCtx K) p E)
+subst-μr E M VM refl = refl
+
 
 subst-closeEvalCtx : (E : EvalCtx K J)(M : ∅ ⊢⋆ J')(p : J' ≡ J)(q : J ≡ J') →
  closeEvalCtx E (subst (_ ⊢⋆_) p M)
@@ -645,35 +709,37 @@ subst-Val : ∀ {A : ∅ ⊢⋆ K}{A' : ∅ ⊢⋆ K'}
   → (p : K ≡ K') → subst (∅ ⊢⋆_) p A ≡ A' → Value⋆ A' → Value⋆ A
 subst-Val refl refl V = V
 
--- postulate mu case for now, should be similar to arrow and application
-postulate
- mu-case : ∀ M (M' : ∅ ⊢⋆ K) → Value⋆ (μ M M') ⊎
-  ¬ Value⋆ (μ M M') ×
-  ∃
-    (λ (J : Kind) →
-     ∃
-     (λ (E : EvalCtx * J) →
-        ∃
-        (λ (I : Kind) →
-           ∃
-           (λ (L : ∅ ⊢⋆ I ⇒ J) →
-              ∃
-              (λ N →
-                 Value⋆ L ×
-                 Value⋆ N ×
-                 μ M M' ≡ closeEvalCtx E (L · N) ×
-                 ((J' : Kind) (E' : EvalCtx * J') (I' : Kind) (L' : ∅ ⊢⋆ I' ⇒ J')
-                  (N' : ∅ ⊢⋆ I') →
-                  Value⋆ L' →
-                  Value⋆ N' →
-                  μ M M' ≡ closeEvalCtx E' (L' · N') →
-                  ∃ λ (p : I' ≡ I) →
-                  ∃ λ q →
-                  subst (EvalCtx *) q E' ≡ E
-                  × L ≡ subst (∅ ⊢⋆_) (cong₂ _⇒_ p q) L'
-                  × N ≡ subst (∅ ⊢⋆_) p N'))))))
-                  
-                  
+μX : ∀ {K K' : Kind} E L N
+   → (XX : K' ≡ K)
+   → 
+   ((J'' : Kind) (E'' : EvalCtx K' J'')
+      (I'' : Kind) (L'' : ∅ ⊢⋆ I'' ⇒ J'') (N'' : ∅ ⊢⋆ I'') →
+      Value⋆ L'' →
+      Value⋆ N'' →
+      closeEvalCtx E (L · N) ≡ closeEvalCtx E'' (L'' · N'') →
+      Σ (I'' ≡ I)
+      (λ p →
+         Σ (J'' ≡ J)
+         (λ q →
+            Σ (subst (EvalCtx K') q E'' ≡ E)
+            (λ x →
+               Σ (L ≡ subst (_⊢⋆_ ∅) (cong₂ _⇒_ p q) L'')
+               (λ x₁ → N ≡ subst (_⊢⋆_ ∅) p N'')))))
+      → 
+      ((J'' : Kind) (E'' : EvalCtx K J'')
+      (I'' : Kind) (L'' : ∅ ⊢⋆ I'' ⇒ J'') (N'' : ∅ ⊢⋆ I'') →
+      Value⋆ L'' →
+      Value⋆ N'' →
+       subst (∅ ⊢⋆_) XX (closeEvalCtx E (L · N))  ≡ closeEvalCtx E'' (L'' · N'') →
+      Σ (I'' ≡ I)
+      (λ p →
+         Σ (J'' ≡ J)
+         (λ q →
+            Σ (subst (EvalCtx K) q E'' ≡ subst (λ X → EvalCtx X J) XX E )
+            (λ x →
+               Σ (L ≡ subst (_⊢⋆_ ∅) (cong₂ _⇒_ p q) L'')
+               (λ x₁ → N ≡ subst (_⊢⋆_ ∅) p N'')))))
+μX E L N refl X = X
 
 lemma51! : (M : ∅ ⊢⋆ K)
   → Value⋆ M
@@ -705,8 +771,7 @@ lemma51! (M ⇒ M') with lemma51! M
 ... | inj₂ (¬VM , J , E , I , L , N , VL , VN , refl , X) =
     inj₂ ((λ { (VM V-⇒ VM') → ¬VM VM}) , J , E l⇒ M' , I , L , N , VL , VN , refl , λ { J' (VM ⇒r E') I' L' N' VL' VN' refl → ⊥-elim (¬VM VM) ; J' (E' l⇒ x) I' L' N' VL' VN' p → let (ZZ , XX , YY , YY' , YY'' ) = X J' E' I' L' N' VL' VN' (proj⇒l p) in ZZ , XX , trans (subst-l⇒ E' x XX) (cong₂ _l⇒_ YY (sym (proj⇒r p)))  , YY' , YY'' })
 ... | inj₁ VM with lemma51! M'
-... | inj₂ (¬VM' , J , E , I , L , N , VL , VN , refl , X) =
-  inj₂ ((λ { (VM V-⇒ VM') → ¬VM' VM'}) , J , VM ⇒r E , I , L , N , VL , VN , refl , λ { J' (V ⇒r E') I' L' N' VL' VN' p → let (ZZ , XX , YY , YY' , YY'') = X J' E' I' L' N' VL' VN' (proj⇒r p) in ZZ , XX , trans (subst-⇒r V E' _) (cong₃ (λ A → _⇒r_ {A = A}) (sym (proj⇒l p)) (val-unique _ _) YY) , YY' , YY'' ; J' (E' l⇒ .(closeEvalCtx E (L · N))) I' L' N' VL' VN' refl → ⊥-elim (lemV· (lem0 (L' · N') E' VM))})
+... | inj₂ (¬VM' , J , E , I , L , N , VL , VN , refl , X) =   inj₂ ((λ { (VM V-⇒ VM') → ¬VM' VM'}) , J , VM ⇒r E , I , L , N , VL , VN , refl , λ { J' (V ⇒r E') I' L' N' VL' VN' p → let (ZZ , XX , YY , YY' , YY'') = X J' E' I' L' N' VL' VN' (proj⇒r p) in ZZ , XX , trans (subst-⇒r V E' _) (cong-⇒r _ _ _ _ V VM (sym (proj⇒l p)) YY) , YY' , YY''  ; J' (E' l⇒ .(closeEvalCtx E (L · N))) I' L' N' VL' VN' refl → ⊥-elim (lemV· (lem0 (L' · N') E' VM))})
 ... | inj₁ VM' = inj₁ (VM V-⇒ VM')
 lemma51! (ƛ M) = inj₁ (V-ƛ M)
 lemma51! (M · M') with lemma51! M
@@ -726,10 +791,15 @@ lemma51! (M · M') with lemma51! M
   N' VL' VN'
   (trans (sym (proj₂ (proj·r p')))
    (subst-closeEvalCtx' E' (L' · N') (proj₁ (proj·r p')))))))) (·r-cong (proj₁ (proj·r p')) x VM E' (proj·l'' p'))) (subst-r· (subst (λ K₂ → EvalCtx K₂ J') (proj₁ (proj·r p')) E') VM XX)) (cong (VM ·r_) YY) , YY' , YY'' ; J' (E' l· x) I' L' N' VL' VN' p' → ⊥-elim (lemV· (lem0 (L' · N') E' (subst-Val (proj₁ (proj·l (sym p'))) (proj₂ (proj·l (sym p'))) VM)))})
-lemma51! (μ M M') = mu-case M M'
+lemma51! (μ M M') with lemma51! M
+... | inj₂ (¬VM , J , E , I , L , N , VL , VN , refl , X) = inj₂ ((λ {(V-μ VM VM') → ¬VM VM}) , (J , μl E M' , I , L , N , VL , VN , refl , (λ { J' (μr VA E') I' L' N' VL' VN' refl → ⊥-elim (lemV· (lem0 (L · N) E VA)) ; J' (μl E' B) I' L' N' VL' VN' p' → let (ZZ , XX , YY , YY' , YY'') = μX E L N (proj₁ (projμl p')) X J' E' I' L' N' VL' VN' (proj₂ (projμl p')) in ZZ , XX , trans (subst-μl E' B _) (cong-μl _ _ _ _ (proj₁ (projμr p')) (sym (proj₂ (projμr p'))) (proj₁ (projμl p')) YY)  , YY' , YY''})))
+... | inj₁ VM with lemma51! M'
+... | inj₂ (¬VM' , J , E , I , L , N , VL , VN , refl , X) = inj₂ ((λ {(V-μ VM VM') → ⊥-elim (¬VM' VM')}) , J , (μr VM E) , I , L , N , VL , VN , refl , λ { J' (μr x E') I' L' N' VL' VN' p' → let (ZZ , XX , YY , YY' , YY'') = μX E L N (proj₁ (projμr p')) X J' E' I' L' N' VL' VN' (proj₂ (projμr p')) in ZZ , XX , trans (subst-μr E' _ x _) (cong-μr _ _ _ _ x VM (proj₁ (projμl p')) (sym (proj₂ (projμl p'))) (proj₁ (projμr p')) YY) , YY' , YY'' ; J' (μl E' .(closeEvalCtx E (L · N))) I' L' N' r r' refl → ⊥-elim (lemV· (lem0 (L' · N') E' VM))})
+... | inj₁ VM' = inj₁ (V-μ VM VM')
 lemma51! (con x) = inj₁ (V-con x)
 
--- this is a more convenient version of lemma51! where you can plug in two things and show they are the same
+-- this is a more convenient version of lemma51! where you can plug in
+-- two things and show they are the same
 lemma51-good : (M : ∅ ⊢⋆ K)
              → (E : EvalCtx K J)
              → (L : ∅ ⊢⋆ I ⇒ J)
@@ -793,10 +863,10 @@ uniqueness⋆ B B' (μr V E) p with projμr p
 uniqueness⋆ B B' (μl E C) p  with projμl p
 ... | refl , q = uniqueness⋆ B B' E q
 
-
-
-postulate
-  det : (p : A —→E B)(q : A —→E B') → B ≡ B'
+det : (p : A —→E B)(q : A —→E B') → B ≡ B'
+det (contextRule E (β-ƛ x) x₁ x₂) (contextRule E₁ (β-ƛ x₃) x₄ x₅)
+  with lemma51-good _ E _ _ x₁ (V-ƛ _) x E₁ _ _ x₄ (V-ƛ _) x₃
+... | refl , refl , refl , refl , refl = trans x₂ (sym x₅)
 ```
 
 ```
@@ -860,22 +930,22 @@ decVal (con c) = inj₁ (V-con c)
 dissect-lemma : ∀ (E : EvalCtx K J)(E' : EvalCtx K J') F → dissect' E ≡ inj₂ (_ , E' , F) -> E ≡ extendEvalCtx E' F
 dissect-lemma (x ·r E) E' F p with dissect' E | inspect dissect' E
 dissect-lemma (x ·r .[]) .[] .(x ·-) refl | inj₁ (refl , refl) | _ = refl
-dissect-lemma (x ·r E) .(x ·r E'') .F' refl | inj₂ (I , E'' , F') | blah eq = cong (_ ·r_) (dissect-lemma E E'' F' eq)
+dissect-lemma (x ·r E) .(x ·r E'') .F' refl | inj₂ (I , E'' , F') | I[_] eq = cong (_ ·r_) (dissect-lemma E E'' F' eq)
 dissect-lemma (E l· x) E' F p with dissect' E | inspect dissect' E
 dissect-lemma (.[] l· x) .[] .(-· x) refl | inj₁ (refl , refl) | _ = refl
-dissect-lemma (E l· x) .(E'' l· x) .F' refl | inj₂ (I , E'' , F') | blah eq = cong (_l· _) (dissect-lemma E E'' F' eq)
+dissect-lemma (E l· x) .(E'' l· x) .F' refl | inj₂ (I , E'' , F') | I[_] eq = cong (_l· _) (dissect-lemma E E'' F' eq)
 dissect-lemma (x ⇒r E) E' F p with dissect' E | inspect dissect' E
 dissect-lemma (x ⇒r .[]) .[] .(x ⇒-) refl | inj₁ (refl , refl) | _ = refl
-dissect-lemma (x ⇒r E) .(x ⇒r E'') .F' refl | inj₂ (I , E'' , F') | blah eq = cong (_ ⇒r_) (dissect-lemma E E'' F' eq)
+dissect-lemma (x ⇒r E) .(x ⇒r E'') .F' refl | inj₂ (I , E'' , F') | I[_] eq = cong (_ ⇒r_) (dissect-lemma E E'' F' eq)
 dissect-lemma (E l⇒ x) E' F p with dissect' E | inspect dissect' E
 dissect-lemma (.[] l⇒ x) .[] .(-⇒ x) refl | inj₁ (refl , refl) | _ = refl
-dissect-lemma (E l⇒ x) .(E'' l⇒ x) .F' refl | inj₂ (I , E'' , F') | blah eq = cong (_l⇒ _) (dissect-lemma E E'' F' eq)
+dissect-lemma (E l⇒ x) .(E'' l⇒ x) .F' refl | inj₂ (I , E'' , F') | I[_] eq = cong (_l⇒ _) (dissect-lemma E E'' F' eq)
 dissect-lemma (μr x E) E' F p with dissect' E | inspect dissect' E
 dissect-lemma (μr x .[]) .[] .(μ x -) refl | inj₁ (refl , refl) | r = refl
-dissect-lemma (μr x E) .(μr x E'') .F' refl | inj₂ (I , E'' , F') | blah eq = cong (μr _) (dissect-lemma E E'' F' eq)
+dissect-lemma (μr x E) .(μr x E'') .F' refl | inj₂ (I , E'' , F') | I[_] eq = cong (μr _) (dissect-lemma E E'' F' eq)
 dissect-lemma (μl E B) E' F p with dissect' E | inspect dissect' E
 dissect-lemma (μl .[] B) .[] .(μ- B) refl | inj₁ (refl , refl) | r = refl
-dissect-lemma (μl E B) .(μl E'' B) .F' refl | inj₂ (I , E'' , F') | blah eq = cong (λ E → μl E B) (dissect-lemma E E'' F' eq)
+dissect-lemma (μl E B) .(μl E'' B) .F' refl | inj₂ (I , E'' , F') | I[_] eq = cong (λ E → μl E B) (dissect-lemma E E'' F' eq)
 
 lemmaX : ∀ (M : ∅ ⊢⋆ J)(E : EvalCtx K J)(E' : EvalCtx K J')
     (L : ∅ ⊢⋆ I ⇒ J') N
@@ -906,16 +976,15 @@ lemmaX : ∀ (M : ∅ ⊢⋆ J)(E : EvalCtx K J)(E' : EvalCtx K J')
                                     (sym p)
                                     (μ- closeEvalCtx E''' (L · N))))
     -- otherwise we're barking up the wrong tree...
-  ⊎ ∃ λ I → ∃ (λ (f : Frame I _) → Value⋆ (closeFrame f M)) -- the enclosing frame is a value
-    -- plus some other stuff which might come from a seperate lemma...
-    -- ∃ λ E'' E''' E'''' → E ≡ E'' [f' E''' B] && E' ≡ E'' [f' V E''''] -- there's a common prefix with a switch somewhere
+  ⊎ ∃ λ I → ∃ (λ (f : Frame I _) → ∃ λ (E''' : EvalCtx K I) → E ≡ extendEvalCtx E''' f × Value⋆ (closeFrame f M))
+
 lemmaX M E E' L N VM VL VN p with dissect' E | inspect dissect' E
 ... | inj₁ (refl , refl) | r =
   ⊥-elim (subst (λ M → ¬ (Value⋆ M)) (sym p) (lemE· E') VM)
-... | inj₂ (.* , E'' , (V ⇒-)) | blah eq = inj₂ (inj₂ (inj₂ (inj₂ (inj₂ (_ , (V ⇒-) , (V V-⇒ VM))))))
-... | inj₂ (.* , E'' , μ V -) | blah eq = inj₂ (inj₂ (inj₂ (inj₂ (inj₂ (_ , (μ V -) , (V-μ V VM))))))
-lemmaX M E E' L N VM VL VN p | inj₂ (.* , E'' , (-⇒ B)) | blah eq with lemma51 B
-... | inj₁ VB = inj₂ (inj₂ (inj₂ (inj₂ (inj₂ (_ , (-⇒ B) , (VM V-⇒ VB))))))
+... | inj₂ (.* , E'' , (V ⇒-)) | I[_] eq = inj₂ (inj₂ (inj₂ (inj₂ (inj₂ (_ , (V ⇒-) , E'' , dissect-lemma _ _ _ eq , (V V-⇒ VM))))))
+... | inj₂ (.* , E'' , μ V -) | I[_] eq = inj₂ (inj₂ (inj₂ (inj₂ (inj₂ (_ , (μ V -) , E'' , dissect-lemma _ _ _ eq , V-μ V VM)))))
+lemmaX M E E' L N VM VL VN p | inj₂ (.* , E'' , (-⇒ B)) | I[_] eq with lemma51 B
+... | inj₁ VB = inj₂ (inj₂ (inj₂ (inj₂ (inj₂ (_ , (-⇒ B) , E'' , dissect-lemma _ _ _ eq , (VM V-⇒ VB))))))
 ... | inj₂ (I' , E''' , I'' , L' , N' , VL' , VN' , q)  rewrite dissect-lemma _ _ _ eq with lemma51-good (closeEvalCtx (extendEvalCtx E'' (-⇒ B)) M) E' L N p VL VN (compEvalCtx (extendEvalCtx E'' (VM ⇒-)) E''') L' N' p' VL' VN'
   where
   p' : closeEvalCtx (extendEvalCtx E'' (-⇒ B)) M ≡ closeEvalCtx (compEvalCtx (extendEvalCtx E'' (VM ⇒-)) E''') (L' · N')
@@ -924,8 +993,8 @@ lemmaX M E E' L N VM VL VN p | inj₂ (.* , E'' , (-⇒ B)) | blah eq with lemma
                     (trans (sym (close-comp E'' (VM ⇒r E''') (L' · N')))
                            (cong (λ E → closeEvalCtx E (L' · N')) (sym (compEF E'' (VM ⇒-) E''')))))
 ... | refl , refl , r , refl , refl = inj₂ (inj₂ (inj₂ (inj₁ (refl , E'' , E''' , r , cong (λ B → extendEvalCtx E'' (-⇒ B)) q))))
-lemmaX M E E' L N VM VL VN p | inj₂ (.* , E'' , (μ- B)) | blah eq with lemma51 B
-... | inj₁ VB = inj₂ (inj₂ (inj₂ (inj₂ (inj₂ (_ , (μ- B) , (V-μ VM VB))))))
+lemmaX M E E' L N VM VL VN p | inj₂ (.* , E'' , (μ- B)) | I[_] eq with lemma51 B
+... | inj₁ VB = inj₂ (inj₂ (inj₂ (inj₂ (inj₂ (_ , (μ- B) , E'' , dissect-lemma _ _ _ eq , V-μ VM VB)))))
 ... | inj₂ (I' , E''' , I'' , L' , N' , VL' , VN' , q)  rewrite dissect-lemma _ _ _ eq with lemma51-good (closeEvalCtx (extendEvalCtx E'' (μ- B)) M) E' L N p VL VN (compEvalCtx (extendEvalCtx E'' (μ VM -)) E''') L' N' p' VL' VN'
   where
   p' : closeEvalCtx (extendEvalCtx E'' (μ- B)) M ≡ closeEvalCtx (compEvalCtx (extendEvalCtx E'' (μ VM -)) E''') (L' · N')
@@ -934,10 +1003,10 @@ lemmaX M E E' L N VM VL VN p | inj₂ (.* , E'' , (μ- B)) | blah eq with lemma5
                     (trans (sym (close-comp E'' (μr VM E''') (L' · N')))
                            (cong (λ E → closeEvalCtx E (L' · N')) (sym (compEF E'' (μ VM -) E''')))))
 ... | refl , refl , r , refl , refl = inj₂ (inj₂ (inj₂ (inj₂ (inj₁ (_ , refl , E'' , E''' , r , cong (λ B → extendEvalCtx E'' (μ- B)) q)))))
-lemmaX M E E' L N VM VL VN p | inj₂ (I , E'' , (-· B)) | blah eq with lemma51 B
-lemmaX M E E' L N VM VL VN p | inj₂ (I , E'' , (-· B)) | blah eq | inj₁ VB rewrite (dissect-lemma _ _ _ eq) with lemma51-good (closeEvalCtx (extendEvalCtx E'' (-· B)) M) E' L N p VL VN E'' M B (closeEF E'' (-· B) M) VM VB
+lemmaX M E E' L N VM VL VN p | inj₂ (I , E'' , (-· B)) | I[_] eq with lemma51 B
+lemmaX M E E' L N VM VL VN p | inj₂ (I , E'' , (-· B)) | I[_] eq | inj₁ VB rewrite (dissect-lemma _ _ _ eq) with lemma51-good (closeEvalCtx (extendEvalCtx E'' (-· B)) M) E' L N p VL VN E'' M B (closeEF E'' (-· B) M) VM VB
 ... | (refl , refl , refl , refl , refl) = inj₂ (inj₁ (refl , refl))
-lemmaX M E E' L N VM VL VN p | inj₂ (I , E'' , (-· B)) | blah eq | inj₂ (I' , E''' , I'' , L' , N' , VL' , VN' , q) rewrite dissect-lemma _ _ _ eq with lemma51-good (closeEvalCtx (extendEvalCtx E'' (-· B)) M) E' L N p VL VN (compEvalCtx (extendEvalCtx E'' (VM ·-)) E''') L' N' p' VL' VN'
+lemmaX M E E' L N VM VL VN p | inj₂ (I , E'' , (-· B)) | I[_] eq | inj₂ (I' , E''' , I'' , L' , N' , VL' , VN' , q) rewrite dissect-lemma _ _ _ eq with lemma51-good (closeEvalCtx (extendEvalCtx E'' (-· B)) M) E' L N p VL VN (compEvalCtx (extendEvalCtx E'' (VM ·-)) E''') L' N' p' VL' VN'
   where
   p' : closeEvalCtx (extendEvalCtx E'' (-· B)) M ≡ closeEvalCtx (compEvalCtx (extendEvalCtx E'' (VM ·-)) E''') (L' · N')
   p' = trans (cong (λ B → closeEvalCtx (extendEvalCtx E'' (-· B)) M) q)
@@ -945,6 +1014,54 @@ lemmaX M E E' L N VM VL VN p | inj₂ (I , E'' , (-· B)) | blah eq | inj₂ (I'
                     (trans (sym (close-comp E'' (VM ·r E''') (L' · N')))
                            (cong (λ E → closeEvalCtx E (L' · N')) (sym (compEF E'' (VM ·-) E''')))))
 ... | refl , refl , r , r' , r'' = inj₂ (inj₂ (inj₁ (_ , _ , refl , E'' , E''' , r , trans (cong (λ B → extendEvalCtx E'' (-· B)) q) (cong₂ (λ L N → extendEvalCtx E'' (-· closeEvalCtx E''' (L · N))) (sym r') (sym r'')) )))
-lemmaX M E E' L N VM VL VN p | inj₂ (I , E'' , (x ·-)) | blah eq rewrite (dissect-lemma _ _ _ eq) with lemma51-good (closeEvalCtx (extendEvalCtx E'' (x ·-)) M) E' L N p VL VN E'' _ M (closeEF E'' (x ·-) M) x VM
-lemmaX M E E' L N VM VL VN p | inj₂ (I , E'' , (x ·-)) | blah eq | (refl , refl , refl , refl , refl) rewrite val-unique VL x = inj₁ (refl , refl)
+lemmaX M E E' L N VM VL VN p | inj₂ (I , E'' , (x ·-)) | I[_] eq rewrite (dissect-lemma _ _ _ eq) with lemma51-good (closeEvalCtx (extendEvalCtx E'' (x ·-)) M) E' L N p VL VN E'' _ M (closeEF E'' (x ·-) M) x VM
+lemmaX M E E' L N VM VL VN p | inj₂ (I , E'' , (x ·-)) | I[_] eq | (refl , refl , refl , refl , refl) rewrite val-unique VL x = inj₁ (refl , refl)
 
+variable J'' : Kind
+
+{-# TERMINATING #-}
+case2 : ∀ (M : ∅ ⊢⋆ J)(E : EvalCtx K J)
+  → (VM : Value⋆ M)
+  → (E' : EvalCtx K J')
+  → ∀ (L : ∅ ⊢⋆ I ⇒ J') N
+  → (VL : Value⋆ L) → Value⋆ N
+  → closeEvalCtx E M ≡ closeEvalCtx E' (L · N)
+  → ∃ λ K' → ∃ λ K''
+  → ∃ λ (E'' : EvalCtx K K')
+  → ∃ λ (F : Frame K' K'')
+  → ∃ λ (E''' : EvalCtx K'' J)
+  → compEvalCtx E'' (evalFrame F E''') ≡ E
+  × Value⋆ (closeEvalCtx E''' M)
+  × ¬ (Value⋆ (closeFrame F (closeEvalCtx E''' M)))
+  × ∃ λ (E'''' : EvalCtx _ _)
+  → closeEvalCtx E'' (closeEvalCtx E'''' (L · N)) ≡ closeEvalCtx E M
+case2 M E VM E' L N VL VN p with dissect' E | inspect dissect' E
+case2 M E VM E' L N VL VN p | inj₁ (refl , refl) | I[ eq ] = ⊥-elim (lemV· (lem0 (L · N) E' (subst Value⋆ p VM)))
+case2 M E VM E' L N VL VN p | inj₂ (I , E'' , (-· B)) | I[ eq ] rewrite dissect-lemma E E'' (-· B) eq with decVal B -- no need for decVal
+case2 M E VM E' L N VL VN p | inj₂ (I , E'' , (-· B)) | I[ eq ] | inj₂ ¬VB with lemma51 B
+... | inj₁ VB = ⊥-elim (¬VB VB)
+... | inj₂ (I' , E''' , I'' , L' , N' , VL' , VN' , refl) with lemma51-good _ E' L N refl VL VN (compEvalCtx E'' (evalFrame (VM ·-) E''')) L' N' (sym XX) VL' VN'
+  where XX : closeEvalCtx (compEvalCtx E'' (evalFrame (VM ·-) E''')) (L' · N') ≡ closeEvalCtx E' (L · N)
+        XX = trans (trans (trans (trans (sym (cong (λ E → closeEvalCtx E (L' · N')) (compEF E'' (VM ·-) E'''))) (close-comp (extendEvalCtx E'' (VM ·-)) E''' (L' · N'))) (closeEF E'' (VM ·-) (closeEvalCtx E''' (L' · N')))) (sym (closeEF E'' (-· closeEvalCtx E''' (L' · N')) M))) p
+... | refl , refl , refl , refl , refl = _ , _ , E'' , (-· B) , [] , trans (sym (compEF E'' (-· closeEvalCtx E''' (L' · N')) [])) (comp-idr _) , VM , lemV· , evalFrame (VM ·-) E''' , sym (closeEF E'' (-· closeEvalCtx E''' (L' · N')) M)
+case2 M E VM E' L N VL VN p | inj₂ (I , E'' , (-· B)) | I[ eq ] | inj₁ VB with lemma51-good _ E' L N refl VL VN E'' M B (trans (sym p) (closeEF E'' (-· B) M)) VM VB
+... | refl , refl , refl , refl , refl = _ , _ , E'' , (-· B) , [] , trans (sym (compEF E'' (-· B) [])) (comp-idr _) , VM , lemV· , [] , sym (closeEF E'' (-· B) M)
+case2 M E VM E' L N VL VN p | inj₂ (I , E'' , (V ·-)) | I[ eq ] rewrite dissect-lemma E E'' (V ·-) eq with lemma51-good _ E' L N refl VL VN E'' _ M (trans (sym p) (closeEF E'' (V ·-) M)) V VM
+... | refl , refl , refl , refl , refl = _ , _ , E'' , (V ·-) , [] , trans (sym (compEF E'' (V ·-) [])) (comp-idr _) , VM , lemV· , [] , sym (closeEF E'' (V ·-) M)
+case2 M E VM E' L N VL VN p | inj₂ (.* , E'' , (-⇒ B)) | I[ eq ] rewrite dissect-lemma E E'' (-⇒ B) eq with lemma51 B
+case2 M E VM E' L N VL VN p | inj₂ (.* , E'' , (-⇒ B)) | I[ eq ] | inj₁ VB with case2 (M ⇒ B) E'' (VM V-⇒ VB) E' L N VL VN (trans (sym (closeEF E'' (-⇒ B) M)) p)
+... | I , I' , E''' , F , E'''' , refl , V' , ¬V , E''''' , q' = _ , _ , E''' , F , extendEvalCtx E'''' (-⇒ B) , trans (cong (compEvalCtx E''') (evalEF F E'''' (-⇒ B))) (compEF' E''' _ (-⇒ B)) , subst Value⋆ (sym (closeEF E'''' (-⇒ B) M)) V' , subst (λ V → ¬ (Value⋆ V)) (cong (closeFrame F) (sym (closeEF E'''' (-⇒ B) M))) ¬V  , E''''' , trans q' (sym (closeEF _ (-⇒ B) M))
+case2 M E VM E' L N VL VN p | inj₂ (.* , E'' , (-⇒ B)) | I[ eq ] | inj₂ (I , E''' , I' , L' , N' , VL' , VN' , refl) with lemma51-good _ E' L N refl VL VN (compEvalCtx E'' (evalFrame (VM ⇒-) E''')) L' N' (trans (sym p) (trans (closeEF E'' (-⇒ closeEvalCtx E''' (L' · N')) M) (sym (close-comp E'' (VM ⇒r E''') (L' · N'))))) VL' VN'
+... | refl , refl , refl , refl , refl = _ , _ , E'' , (-⇒ B) , [] , trans (compEF' E'' [] (-⇒ closeEvalCtx E''' (L' · N'))) (cong (λ E → extendEvalCtx E _) (comp-idr E'')) , VM , (λ {(_ V-⇒ V·) → lemV· (lem0 (L' · N') E''' V·)}) , (VM ⇒r E''') , sym (closeEF E'' (-⇒ closeEvalCtx E''' (L' · N')) M)
+case2 M E VM E' L N VL VN p | inj₂ (.* , E'' , (V ⇒-)) | I[ eq ] rewrite dissect-lemma E E'' (V ⇒-) eq with case2 (discharge V ⇒ M) E'' (V V-⇒ VM) E' L N VL VN (trans (sym (closeEF E'' (V ⇒-) M)) p)
+... | I , I' , E''' , F , E'''' , q , V' , ¬V , E''''' , q' =
+  I , I' , E''' , F , extendEvalCtx E'''' (V ⇒-) , trans (trans (cong (compEvalCtx E''') (evalEF F E'''' (V ⇒-))) (compEF' E''' (evalFrame F E'''') (V ⇒-))) (cong (λ E → extendEvalCtx E (V ⇒-)) q) , subst Value⋆ (sym (closeEF E'''' (V ⇒-) M)) V' , subst (λ V → ¬ (Value⋆ V)) (cong (closeFrame F) (sym (closeEF E'''' (V ⇒-) M))) ¬V , E''''' , trans q' (sym (closeEF E'' (V ⇒-) M))
+case2 M E VM E' L N VL VN p | inj₂ (.* , E'' , (μ- B)) | I[ eq ] rewrite dissect-lemma E E'' (μ- B) eq with lemma51 B
+case2 M E VM E' L N VL VN p | inj₂ (.* , E'' , (μ- B)) | I[ eq ] | inj₁ VB with case2 (μ M B) E'' (V-μ VM VB) E' L N VL VN (trans (sym (closeEF E'' (μ- B) M)) p)
+... | I , I' , E''' , F , E'''' , q , V' , ¬V , E''''' , q' =
+  I , I' , E''' , F , extendEvalCtx E'''' (μ- B) , trans (trans (cong (compEvalCtx E''') (evalEF F E'''' (μ- B))) (compEF' E''' (evalFrame F E'''') (μ- B))) (cong (λ E → extendEvalCtx E (μ- B)) q) , subst Value⋆ (sym (closeEF E'''' (μ- B) M)) V' , subst (λ V → ¬ (Value⋆ V)) (cong (closeFrame F) (sym (closeEF E'''' (μ- B) M))) ¬V , E''''' , trans q' (sym (closeEF E'' (μ- B) M))
+case2 M E VM E' L N VL VN p | inj₂ (.* , E'' , (μ- B)) | I[ eq ] | inj₂ (I , E''' , I' , L' , N' , VL' , VN' , refl) with lemma51-good _ E' L N refl VL VN _ L' N' (trans (sym p) (trans (closeEF E'' (μ- B) M) (trans (sym (closeEF E'' (μ VM -) (closeEvalCtx E''' (L' · N')))) (sym (close-comp (extendEvalCtx E'' (μ VM -)) E''' (L' · N')))))) VL' VN'
+... | refl , refl , refl , refl , refl = _ , _ , E'' , (μ- (closeEvalCtx E''' (L' · N'))) , [] , trans (sym (compEF E'' (μ- closeEvalCtx E''' (L' · N')) [])) (comp-idr _) , VM , (λ{(V-μ VM V·) → lemV· (lem0 _ E''' V·)}) , evalFrame (μ VM -) E'''  , sym (closeEF E'' (μ- closeEvalCtx E''' (L' · N')) M)
+case2 M E VM E' L N VL VN p | inj₂ (.* , E'' , μ V -) | I[ eq ] rewrite dissect-lemma E E'' (μ V -) eq with case2 (μ (discharge V) M) E'' (V-μ V VM) E' L N VL VN (trans (sym (closeEF E'' (μ V -) M)) p)
+... | I , I' , E''' , F , E'''' , q , V' , ¬V , E''''' , q' =
+  I , I' , E''' , F , extendEvalCtx E'''' (μ V -) , trans (trans (cong (compEvalCtx E''') (evalEF F E'''' (μ V -))) (compEF' E''' (evalFrame F E'''') (μ V -))) (cong (λ E → extendEvalCtx E (μ V -)) q) , subst Value⋆ (sym (closeEF E'''' (μ V -) M)) V' , subst (λ V → ¬ (Value⋆ V)) (cong (closeFrame F) (sym (closeEF E'''' (μ V -) M))) ¬V , E''''' , trans q' (sym (closeEF E'' (μ V -) M))
