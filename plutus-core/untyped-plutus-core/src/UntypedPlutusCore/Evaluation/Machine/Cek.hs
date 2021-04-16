@@ -43,8 +43,8 @@ import           UntypedPlutusCore.Evaluation.Machine.Cek.ExBudgetMode
 import           UntypedPlutusCore.Evaluation.Machine.Cek.Internal
 
 import           PlutusCore.Constant
-import           PlutusCore.Evaluation.Machine.Exception
 import           PlutusCore.Evaluation.Machine.ExMemory
+import           PlutusCore.Evaluation.Machine.Exception
 import           PlutusCore.Name
 import           PlutusCore.Pretty
 import           PlutusCore.Universe
