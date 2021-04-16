@@ -35,12 +35,15 @@ import           Plutus.V1.Ledger.Orphans    ()
 import           Plutus.V1.Ledger.Scripts
 
 -- | Address with two kinds of credentials, normal and staking
-data Address = Address{ addressCredential :: !Credential, addressStakingCredential :: !(Maybe StakingCredential)}
+data Address = Address{ addressCredential :: Credential, addressStakingCredential :: (Maybe StakingCredential)}
     deriving stock (Eq, Ord, Show, Generic)
     deriving anyclass (ToJSON, FromJSON, ToJSONKey, FromJSONKey, Serialise, Hashable, NFData)
 
 instance Pretty Address where
-    pretty (Address cred stakingCred) = pretty cred <+> pretty stakingCred
+    pretty (Address cred stakingCred) =
+        let staking = maybe "no staking credential" pretty stakingCred in
+        "addressed to" <+> pretty cred <+> parens staking
+
 
 instance PlutusTx.Eq Address where
     Address cred stakingCred == Address cred' stakingCred' =

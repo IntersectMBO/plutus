@@ -321,9 +321,9 @@ scriptTxIn ref v r d = TxIn ref $ ConsumeScriptAddress v r d
 
 -- | A transaction output, consisting of a target address, a value, and optionally a datum hash.
 data TxOut = TxOut {
-    txOutAddress   :: !Address,
-    txOutValue     :: !Value,
-    txOutDatumHash :: !(Maybe DatumHash)
+    txOutAddress   :: Address,
+    txOutValue     :: Value,
+    txOutDatumHash :: (Maybe DatumHash)
     }
     deriving stock (Show, Eq, Generic)
     deriving anyclass (Serialise, ToJSON, FromJSON, NFData)

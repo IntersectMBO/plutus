@@ -51,9 +51,10 @@ instance PlutusTx.Eq StakingCredential where
         PlutusTx.&& c PlutusTx.== c'
     _ == _ = False
 
+-- | Credential required to unlock a transaction output
 data Credential
-  = PubKeyCredential !PubKeyHash
-  | ScriptCredential !ValidatorHash
+  = PubKeyCredential PubKeyHash -- ^ The transaction that spends this output must be signed by the private key
+  | ScriptCredential ValidatorHash -- ^ The transaction that spends this output must include the validator script and be accepted by the validator.
     deriving stock (Eq, Ord, Show, Generic)
     deriving anyclass (ToJSON, FromJSON, Serialise, Hashable, NFData)
 
