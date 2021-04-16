@@ -86,6 +86,7 @@ import qualified Prelude                          as Haskell
 
 -- $future
 -- A futures contract in Plutus. This example illustrates a number of concepts.
+--
 --   1. Maintaining a margin (a kind of deposit) during the duration of the contract to protect against breach of contract (see note [Futures in Plutus])
 --   2. Using oracle values to obtain current pricing information (see note [Oracles] in Plutus.Contracts)
 --   3. Writing contracts as state machines

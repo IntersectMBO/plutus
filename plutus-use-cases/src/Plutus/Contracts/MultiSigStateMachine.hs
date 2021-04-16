@@ -18,8 +18,8 @@
 {-# OPTIONS_GHC -fno-strictness #-}
 {-# OPTIONS_GHC -fno-specialise #-}
 -- | A multisig contract written as a state machine.
---   $multisig
 module Plutus.Contracts.MultiSigStateMachine(
+    -- $multisig
       Params(..)
     , Payment(..)
     , State
@@ -51,7 +51,7 @@ import qualified Plutus.Contract.StateMachine as SM
 import qualified PlutusTx                     as PlutusTx
 import           PlutusTx.Prelude             hiding (Applicative (..))
 
---   $multisig
+-- $multisig
 --   The n-out-of-m multisig contract works like a joint account of
 --   m people, requiring the consent of n people for any payments.
 --   In the smart contract the signatories are represented by public keys,
