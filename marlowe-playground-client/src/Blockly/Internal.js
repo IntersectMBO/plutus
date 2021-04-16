@@ -29,10 +29,15 @@ exports.createWorkspace_ = function (blockly, workspaceDiv, config) {
 
       /* Validator for timeout */
       var timeoutValidator = function (input) {
-        if (thisBlock.getFieldValue('timeout_type') != 'slot' || (new RegExp('^-?[0-9](,?[0-9])*$', 'g')).test(input)) {
-          return input;
+        if (thisBlock.getFieldValue('timeout_type') == 'slot') {
+          var cleanedInput = input.replace(new RegExp('[,]+', 'g'), '').trim();
+          if ((new RegExp('^(-[0-9])?[0-9]*$', 'g')).test(cleanedInput)) {
+            return BigInt(cleanedInput).toString();
+          } else {
+            return null;
+          }
         } else {
-          return null;
+          return input;
         }
       };
       
