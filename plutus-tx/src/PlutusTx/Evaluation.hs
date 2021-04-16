@@ -15,7 +15,6 @@ module PlutusTx.Evaluation
 where
 
 import           PlutusCore.Builtins
-import           PlutusCore.Evaluation.Machine.ExMemory
 import           PlutusCore.Name
 import           PlutusCore.Universe
 
