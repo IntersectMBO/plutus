@@ -1,8 +1,8 @@
 -- | Generators of various PLC things: 'Builtin's, 'IterApp's, 'Term's, etc.
 
-{-# LANGUAGE DataKinds             #-}
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE GADTs                 #-}
+{-# LANGUAGE KindSignatures        #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings     #-}
 {-# LANGUAGE RankNTypes            #-}
@@ -35,7 +35,6 @@ import           PlutusCore.Generators.Internal.Utils
 import           PlutusCore.Builtins
 import           PlutusCore.Constant
 import           PlutusCore.Core
-import           PlutusCore.Evaluation.Machine.ExMemory
 import           PlutusCore.Evaluation.Result
 import           PlutusCore.Name
 import           PlutusCore.Pretty                              (PrettyConst (..))
@@ -51,6 +50,8 @@ import           Data.Proxy
 import           Data.Text.Prettyprint.Doc
 import           Hedgehog                                       hiding (Size, Var)
 import qualified Hedgehog.Gen                                   as Gen
+
+type Plain f (uni :: * -> *) (fun :: *) = f TyName Name uni fun ()
 
 -- | Generators of built-ins supplied to computations that run in the 'PlcGenT' monad.
 newtype BuiltinGensT uni fun m = BuiltinGensT

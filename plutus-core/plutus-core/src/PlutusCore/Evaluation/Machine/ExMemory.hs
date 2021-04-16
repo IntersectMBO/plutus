@@ -1,19 +1,14 @@
-{-# LANGUAGE ConstraintKinds       #-}
-{-# LANGUAGE DataKinds             #-}
 {-# LANGUAGE DerivingVia           #-}
 {-# LANGUAGE FlexibleInstances     #-}
-{-# LANGUAGE KindSignatures        #-}
 {-# LANGUAGE MagicHash             #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings     #-}
-{-# LANGUAGE RankNTypes            #-}
 {-# LANGUAGE TypeApplications      #-}
 {-# LANGUAGE TypeOperators         #-}
 {-# LANGUAGE UndecidableInstances  #-}
 
 module PlutusCore.Evaluation.Machine.ExMemory
-( Plain
-, ExMemory(..)
+( ExMemory(..)
 , ExCPU(..)
 , GenericExMemoryUsage(..)
 , ExMemoryUsage(..)
@@ -27,7 +22,6 @@ import           PlutusPrelude
 
 import           Control.Monad.RWS.Strict
 import qualified Data.ByteString          as BS
-import qualified Data.Kind                as GHC
 import           Data.Proxy
 import qualified Data.Text                as T
 import           Foreign.Storable
@@ -46,8 +40,6 @@ Memory usage of the annotation is not counted, because this should be
 abstractly specifiable. It's an implementation detail.
 
 -}
-
-type Plain f (uni :: GHC.Type -> GHC.Type) (fun :: GHC.Type) = f TyName Name uni fun ()
 
 -- | Counts size in machine words (64bit for the near future)
 newtype ExMemory = ExMemory Integer
