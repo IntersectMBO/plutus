@@ -8,6 +8,11 @@ module Plutus.V1.Ledger.Api (
     Script
     -- * Validating scripts
     , validateScript
+    -- * Cost model
+    , validateAndCreateCostModel
+    , defaultCostModelParams
+    , CostModel
+    , CostModelParams
     -- * Running scripts
     , evaluateScriptRestricting
     , evaluateScriptCounting
@@ -68,7 +73,7 @@ import           Control.Monad.Writer
 import           Data.Bifunctor
 import           Data.ByteString.Short
 import           Data.Either
-import qualified Data.Text                                 as Text
+import qualified Data.Text                                         as Text
 import           Data.Text.Prettyprint.Doc
 import           Data.Tuple
 import qualified Flat
@@ -79,22 +84,23 @@ import           Plutus.V1.Ledger.Credential
 import           Plutus.V1.Ledger.Crypto
 import           Plutus.V1.Ledger.DCert
 import           Plutus.V1.Ledger.Interval
-import           Plutus.V1.Ledger.Scripts                  hiding (Script)
-import qualified Plutus.V1.Ledger.Scripts                  as Scripts
+import           Plutus.V1.Ledger.Scripts                          hiding (Script)
+import qualified Plutus.V1.Ledger.Scripts                          as Scripts
 import           Plutus.V1.Ledger.Slot
-import qualified PlutusCore                                as PLC
-import           PlutusCore.Constant                       (toBuiltinsRuntime)
-import qualified PlutusCore.DeBruijn                       as PLC
-import           PlutusCore.Evaluation.Machine.ExBudget    (ExBudget (..))
-import qualified PlutusCore.Evaluation.Machine.ExBudget    as PLC
-import           PlutusCore.Evaluation.Machine.ExBudgeting (CostModel)
-import           PlutusCore.Evaluation.Machine.ExMemory    (ExCPU (..), ExMemory (..))
-import qualified PlutusCore.MkPlc                          as PLC
+import qualified PlutusCore                                        as PLC
+import           PlutusCore.Constant                               (toBuiltinsRuntime)
+import qualified PlutusCore.DeBruijn                               as PLC
+import           PlutusCore.Evaluation.Machine.ExBudget            (ExBudget (..))
+import qualified PlutusCore.Evaluation.Machine.ExBudget            as PLC
+import           PlutusCore.Evaluation.Machine.ExBudgeting         (CostModel, CostModelParams, applyModelParams)
+import           PlutusCore.Evaluation.Machine.ExBudgetingDefaults (defaultCostModel, defaultCostModelParams)
+import           PlutusCore.Evaluation.Machine.ExMemory            (ExCPU (..), ExMemory (..))
+import qualified PlutusCore.MkPlc                                  as PLC
 import           PlutusCore.Pretty
-import           PlutusTx                                  (Data (..), IsData (..))
-import qualified PlutusTx.Lift                             as PlutusTx
-import qualified UntypedPlutusCore                         as UPLC
-import qualified UntypedPlutusCore.Evaluation.Machine.Cek  as UPLC
+import           PlutusTx                                          (Data (..), IsData (..))
+import qualified PlutusTx.Lift                                     as PlutusTx
+import qualified UntypedPlutusCore                                 as UPLC
+import qualified UntypedPlutusCore.Evaluation.Machine.Cek          as UPLC
 
 plutusScriptEnvelopeType :: Text.Text
 plutusScriptEnvelopeType = "PlutusV1Script"
@@ -119,6 +125,9 @@ anything, we're just going to create new versions.
 -- implies that it is (almost certainly) an encoded script and cannot be interpreted as some other kind of encoded data.
 validateScript :: Script -> Bool
 validateScript = isRight . Flat.unflat @Scripts.Script . fromShort
+
+validateAndCreateCostModel :: CostModelParams -> Maybe CostModel
+validateAndCreateCostModel = applyModelParams defaultCostModel
 
 data VerboseMode = Verbose | Quiet
     deriving (Eq)

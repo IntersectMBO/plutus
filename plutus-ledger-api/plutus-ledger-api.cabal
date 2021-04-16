@@ -77,3 +77,14 @@ library
         newtype-generics -any,
         tagged -any,
         lens -any
+
+test-suite plutus-ledger-api-test
+    import: lang
+    type: exitcode-stdio-1.0
+    main-is: Spec.hs
+    hs-source-dirs: test
+    build-depends:
+        base >=4.9 && <5,
+        plutus-ledger-api -any,
+        tasty -any,
+        tasty-hunit -any
