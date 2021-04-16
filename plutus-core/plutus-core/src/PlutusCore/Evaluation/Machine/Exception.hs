@@ -146,15 +146,17 @@ mapCauseInMachineException f = bimap (fmap (fmap f)) f
 
 -- | "Prismatically" throw an error and its (optional) cause.
 throwingWithCause
-    :: forall ex e t term m x
-    . (ex ~ ErrorWithCause e term, MonadError ex m)
+    -- Binds exc so it can be used as a convenient parameter with TypeApplications
+    :: forall exc e t term m x
+    . (exc ~ ErrorWithCause e term, MonadError exc m)
     => AReview e t -> t -> Maybe term -> m x
 throwingWithCause l t cause = reviews l (\e -> throwError $ ErrorWithCause e cause) t
 
 -- | "Prismatically" throw an exception and its (optional) cause.
 throwingWithCauseExc
-    :: forall ex e t term m x
-    . (ex ~ ErrorWithCause e term, MonadThrow m, Exception ex)
+    -- Binds exc so it can be used as a convenient parameter with TypeApplications
+    :: forall exc e t term m x
+    . (exc ~ ErrorWithCause e term, MonadThrow m, Exception exc)
     => AReview e t -> t -> Maybe term -> m x
 throwingWithCauseExc l t cause = reviews l (\e -> throwM $ ErrorWithCause e cause) t
 

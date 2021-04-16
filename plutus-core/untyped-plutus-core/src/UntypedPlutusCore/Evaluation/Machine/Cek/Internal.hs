@@ -17,7 +17,6 @@
 {-# LANGUAGE TypeFamilies          #-}
 {-# LANGUAGE TypeOperators         #-}
 {-# LANGUAGE UndecidableInstances  #-}
---{-# OPTIONS_GHC -ddump-simpl -ddump-to-file -dsuppress-uniques -dsuppress-coercions -dsuppress-type-applications -dsuppress-unfoldings -dsuppress-idinfo -dumpdir /tmp/dumps #-}
 
 module UntypedPlutusCore.Evaluation.Machine.Cek.Internal
     -- See Note [Compilation peculiarities].
@@ -449,7 +448,6 @@ lookupVarName varName varEnv = do
 astNodeCost :: ExBudget
 astNodeCost = ExBudget 1 0
 
-{-# NOINLINE enterComputeCek #-}
 -- See Note [Compilation peculiarities].
 -- | The entering point to the CEK machine's engine.
 enterComputeCek
