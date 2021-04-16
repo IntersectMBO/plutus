@@ -245,6 +245,7 @@ library
         deriving-aeson >= 0.2.3,
         deriving-compat -any,
         dlist -any,
+        exceptions -any,
         filepath -any,
         flat -any,
         ghc-prim -any,
