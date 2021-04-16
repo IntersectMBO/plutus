@@ -22,12 +22,12 @@ key :: PubKeyHash
 key = error ()
 
 -- BLOCK1
-oneAtATimePolicy :: PolicyCtx -> Bool
+oneAtATimePolicy :: ScriptContext -> Bool
 oneAtATimePolicy ctx =
     -- 'ownCurrencySymbol' lets us get our own hash (= currency symbol)
     -- from the context
     let ownSymbol = ownCurrencySymbol ctx
-        txinfo = policyCtxTxInfo ctx
+        txinfo = scriptContextTxInfo ctx
         forged = txInfoForge txinfo
     -- Here we're looking at some specific token name, which we
     -- will assume we've got from elsewhere for now.
@@ -39,6 +39,6 @@ oneAtATimePolicy ctx =
 oneAtATimeCompiled :: CompiledCode (Data -> ())
 oneAtATimeCompiled = $$(compile [|| wrapMonetaryPolicy oneAtATimePolicy ||])
 -- BLOCK2
-singleSignerPolicy :: PolicyCtx -> Bool
-singleSignerPolicy ctx = txSignedBy (policyCtxTxInfo ctx) key
+singleSignerPolicy :: ScriptContext -> Bool
+singleSignerPolicy ctx = txSignedBy (scriptContextTxInfo ctx) key
 -- BLOCK3
