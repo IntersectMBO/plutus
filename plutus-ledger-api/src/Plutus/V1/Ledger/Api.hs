@@ -24,21 +24,24 @@ module Plutus.V1.Ledger.Api (
     , VerboseMode (..)
     , LogOutput
     -- * Context types
-    , ValidatorCtx (..)
-    , PolicyCtx (..)
+    , ScriptContext(..)
+    , ScriptPurpose(..)
     -- ** Supporting types used in the context types
     -- *** Bytes
     , LedgerBytes (..)
     , fromBytes
+    -- *** Certificates
+    , DCert(..)
+    -- *** Credentials
+    , StakingCredential(..)
+    , Credential(..)
     -- *** Types for representing transactions
     , Address (..)
     , PubKeyHash (..)
     , TxInfo (..)
     , TxOut(..)
     , TxOutRef(..)
-    , TxOutType(..)
     , TxInInfo(..)
-    , TxOutInfo
     , Slot (..)
     , SlotRange
     -- *** Intervals
@@ -72,7 +75,9 @@ import qualified Flat
 import           Plutus.V1.Ledger.Address
 import           Plutus.V1.Ledger.Bytes
 import           Plutus.V1.Ledger.Contexts
+import           Plutus.V1.Ledger.Credential
 import           Plutus.V1.Ledger.Crypto
+import           Plutus.V1.Ledger.DCert
 import           Plutus.V1.Ledger.Interval
 import           Plutus.V1.Ledger.Scripts                  hiding (Script)
 import qualified Plutus.V1.Ledger.Scripts                  as Scripts

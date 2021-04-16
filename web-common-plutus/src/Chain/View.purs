@@ -361,7 +361,7 @@ outputView namingFn txId annotatedBlockchain outputIndex txOut =
   consumedInTx = findConsumptionPoint outputIndex txId annotatedBlockchain
 
 txOutOfView :: forall p. NamingFn -> Boolean -> TxOut -> Maybe (HTML p Action) -> HTML p Action
-txOutOfView namingFn showArrow txOut@(TxOut { txOutAddress, txOutType, txOutValue }) mFooter =
+txOutOfView namingFn showArrow txOut@(TxOut { txOutAddress, txOutValue }) mFooter =
   div
     [ classes [ card, entryClass, beneficialOwnerClass beneficialOwner ] ]
     [ div [ classes [ cardHeader, textTruncate ] ]

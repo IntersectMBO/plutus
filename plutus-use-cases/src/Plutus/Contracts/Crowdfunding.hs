@@ -19,6 +19,9 @@
 {-# LANGUAGE TypeOperators       #-}
 {-# LANGUAGE ViewPatterns        #-}
 {-# OPTIONS_GHC -fno-ignore-interface-pragmas #-}
+{-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
+{-# OPTIONS_GHC -fno-specialise #-}
+{-# OPTIONS_GHC -fno-strictness #-}
 {-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:debug-context #-}
 
 module Plutus.Contracts.Crowdfunding (
@@ -170,12 +173,12 @@ validCollection campaign txinfo =
 -- and different campaigns have different addresses. The Campaign{..} syntax
 -- means that all fields of the 'Campaign' value are in scope
 -- (for example 'campaignDeadline' in l. 70).
-mkValidator :: Campaign -> PubKeyHash -> CampaignAction -> ValidatorCtx -> Bool
-mkValidator c con act p = case act of
+mkValidator :: Campaign -> PubKeyHash -> CampaignAction -> ScriptContext -> Bool
+mkValidator c con act ScriptContext{scriptContextTxInfo} = case act of
     -- the "refund" branch
-    Refund  -> validRefund c con (valCtxTxInfo p)
+    Refund  -> validRefund c con scriptContextTxInfo
     -- the "collection" branch
-    Collect -> validCollection c (valCtxTxInfo p)
+    Collect -> validCollection c scriptContextTxInfo
 
 -- | The validator script that determines whether the campaign owner can
 --   retrieve the funds or the contributors can claim a refund.

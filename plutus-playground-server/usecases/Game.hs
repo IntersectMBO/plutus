@@ -26,7 +26,7 @@ module Game where
 -- If it isn't, the funds stay locked.
 import           Control.Monad         (void)
 import qualified Data.ByteString.Char8 as C
-import           Ledger                (Address, Validator, ValidatorCtx, Value, scriptAddress)
+import           Ledger                (Address, ScriptContext, Validator, Value, scriptAddress)
 import qualified Ledger.Constraints    as Constraints
 import qualified Ledger.Typed.Scripts  as Scripts
 import           Playground.Contract
@@ -71,8 +71,8 @@ hashString = HashedString . sha2_256 . C.pack
 clearString :: String -> ClearString
 clearString = ClearString . C.pack
 
--- | The validation function (Datum -> Redeemer -> ValidatorCtx -> Bool)
-validateGuess :: HashedString -> ClearString -> ValidatorCtx -> Bool
+-- | The validation function (Datum -> Redeemer -> ScriptContext -> Bool)
+validateGuess :: HashedString -> ClearString -> ScriptContext -> Bool
 validateGuess (HashedString actual) (ClearString guess') _ = actual == sha2_256 guess'
 
 -- | The validator script of the game.

@@ -129,8 +129,8 @@ accountToken :: Account -> Value
 accountToken (Account (symbol, name)) = Value.singleton symbol name 1
 
 {-# INLINEABLE validate #-}
-validate :: Account -> () -> () -> V.ValidatorCtx -> Bool
-validate account _ _ ptx = V.valueSpent (V.valCtxTxInfo ptx) `Value.geq` accountToken account
+validate :: Account -> () -> () -> V.ScriptContext -> Bool
+validate account _ _ ptx = V.valueSpent (V.scriptContextTxInfo ptx) `Value.geq` accountToken account
 
 scriptInstance :: Account -> Scripts.ScriptInstance TokenAccount
 scriptInstance = Scripts.validatorParam @TokenAccount

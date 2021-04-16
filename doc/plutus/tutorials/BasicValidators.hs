@@ -65,7 +65,7 @@ validatePayment _ _ ctx = check $ case fromData ctx of
     Just valCtx ->
         -- The 'TxInfo' in the validation context is the representation of the
         -- transaction being validated
-        let txinfo = valCtxTxInfo valCtx
+        let txinfo = scriptContextTxInfo valCtx
         -- 'pubKeyOutputsAt' collects the 'Value' at all outputs which pay to
         -- the given public key hash
             values = pubKeyOutputsAt myKeyHash txinfo
@@ -77,6 +77,6 @@ validatePayment _ _ ctx = check $ case fromData ctx of
 validateDate' :: Data -> Data -> Data -> ()
 validateDate' = wrapValidator validateDateTyped
     where
-        validateDateTyped :: EndDate -> Date -> ValidatorCtx -> Bool
+        validateDateTyped :: EndDate -> Date -> ScriptContext -> Bool
         validateDateTyped endDate date _ = beforeEnd date endDate
 -- BLOCK6

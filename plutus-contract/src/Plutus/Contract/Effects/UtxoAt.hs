@@ -17,7 +17,7 @@ import qualified Data.Map                          as Map
 import           Data.Row
 import           Data.Text.Prettyprint.Doc
 import           GHC.Generics                      (Generic)
-import           Ledger                            (Address, Slot, TxOut (..), TxOutTx (..))
+import           Ledger                            (Address, Slot, TxOutTx (..))
 import           Ledger.AddressMap                 (UtxoMap)
 
 import           Plutus.Contract.Effects.AwaitSlot (HasAwaitSlot, awaitSlot)
@@ -43,8 +43,8 @@ data UtxoAtAddress =
 instance Pretty UtxoAtAddress where
   pretty UtxoAtAddress{address, utxo} =
     let
-      prettyTxOutPair (txoutref, TxOutTx _ TxOut{txOutValue, txOutType}) =
-        pretty txoutref <> colon <+> pretty txOutType <+> viaShow txOutValue
+      prettyTxOutPair (txoutref, TxOutTx{txOutTxOut}) =
+        pretty txoutref <> colon <+> pretty txOutTxOut
       utxos = vsep $ fmap prettyTxOutPair (Map.toList utxo)
     in vsep ["Utxo at" <+> pretty address <+> "=", indent 2 utxos]
 

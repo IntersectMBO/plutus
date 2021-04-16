@@ -35,6 +35,7 @@ import           GHC.Generics                (Generic)
 import           Ledger
 import qualified Ledger.Ada                  as Ada
 import qualified Ledger.AddressMap           as AM
+import           Ledger.Credential           (Credential (..))
 import qualified Ledger.Crypto               as Crypto
 import qualified Ledger.Value                as Value
 import           Plutus.Contract.Checkpoint  (CheckpointLogMsg)
@@ -327,10 +328,11 @@ balances :: ChainState -> WalletSet -> Map.Map Entity Value
 balances state wallets = foldl' f Map.empty . getIndex . _index $ state
   where
     toEntity :: Address -> Entity
-    toEntity (PubKeyAddress h) = case Map.lookup h ws of
-        Nothing -> PubKeyHashEntity h
-        Just w  -> WalletEntity w
-    toEntity (ScriptAddress h) = ScriptEntity h
+    toEntity a = case addressCredential a of
+                    PubKeyCredential h -> case Map.lookup h ws of
+                        Nothing -> PubKeyHashEntity h
+                        Just w  -> WalletEntity w
+                    ScriptCredential h -> ScriptEntity h
 
     ws :: Map.Map PubKeyHash Wallet
     ws = walletPubKeyHashes wallets

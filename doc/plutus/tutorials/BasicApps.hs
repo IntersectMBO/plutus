@@ -46,11 +46,11 @@ PlutusTx.makeLift ''SplitData
 
 -- BLOCK2
 
-validateSplit :: SplitData -> () -> ValidatorCtx -> Bool
-validateSplit SplitData{recipient1, recipient2, amount} _ ValidatorCtx{valCtxTxInfo} =
+validateSplit :: SplitData -> () -> ScriptContext -> Bool
+validateSplit SplitData{recipient1, recipient2, amount} _ ScriptContext{scriptContextTxInfo} =
     let half = Ada.divide amount 2 in
-    Ada.fromValue (valuePaidTo valCtxTxInfo recipient1) >= half &&
-    Ada.fromValue (valuePaidTo valCtxTxInfo recipient2) >= (amount - half)
+    Ada.fromValue (valuePaidTo scriptContextTxInfo recipient1) >= half &&
+    Ada.fromValue (valuePaidTo scriptContextTxInfo recipient2) >= (amount - half)
 
 -- BLOCK3
 
