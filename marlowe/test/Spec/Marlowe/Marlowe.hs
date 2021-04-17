@@ -94,8 +94,8 @@ zeroCouponBondTest :: TestTree
 zeroCouponBondTest = checkPredicateOptions (defaultCheckOptions & maxSlot .~ 250) "Zero Coupon Bond Contract"
     (assertNoFailedTransactions
     -- T..&&. emulatorLog (const False) ""
-    T..&&. assertNotDone marlowePlutusContract (Trace.walletInstanceTag alice) "contract should close"
-    T..&&. assertNotDone marlowePlutusContract (Trace.walletInstanceTag bob) "contract should close"
+    T..&&. assertDone marlowePlutusContract (Trace.walletInstanceTag alice) (const True) "contract should close"
+    T..&&. assertDone marlowePlutusContract (Trace.walletInstanceTag bob) (const True) "contract should close"
     T..&&. walletFundsChange alice (lovelaceValueOf (150))
     T..&&. walletFundsChange bob (lovelaceValueOf (-150))
     ) $ do
@@ -118,14 +118,14 @@ zeroCouponBondTest = checkPredicateOptions (defaultCheckOptions & maxSlot .~ 250
     Trace.callEndpoint @"create" aliceHdl (AssocMap.empty, zeroCouponBond)
     Trace.waitNSlots 2
 
-    Trace.callEndpoint @"wait" bobHdl (params)
-
-    Trace.callEndpoint @"apply-inputs" aliceHdl (params, [IDeposit alicePk alicePk ada 850])
+    Trace.callEndpoint @"apply-inputs" aliceHdl (params, Nothing, [IDeposit alicePk alicePk ada 850])
     Trace.waitNSlots 2
 
-    Trace.callEndpoint @"wait" aliceHdl (params)
+    Trace.callEndpoint @"apply-inputs" bobHdl (params, Nothing, [IDeposit alicePk bobPk ada 1000])
+    void $ Trace.waitNSlots 2
 
-    Trace.callEndpoint @"apply-inputs" bobHdl (params, [IDeposit alicePk bobPk ada 1000])
+    Trace.callEndpoint @"close" aliceHdl ()
+    Trace.callEndpoint @"close" bobHdl ()
     void $ Trace.waitNSlots 2
 
 
@@ -155,17 +155,13 @@ trustFundTest = checkPredicateOptions (defaultCheckOptions & maxSlot .~ 200) "Tr
         [] -> pure ()
         (pms, _) : _ -> do
 
-            Trace.callEndpoint @"wait" bobHdl pms
-
-            Trace.callEndpoint @"apply-inputs" aliceHdl (pms,
+            Trace.callEndpoint @"apply-inputs" aliceHdl (pms, Nothing,
                 [ IChoice chId 256
                 , IDeposit "alice" "alice" ada 256
                 ])
             Trace.waitNSlots 17
 
-            Trace.callEndpoint @"wait" aliceHdl (pms)
-
-            Trace.callEndpoint @"apply-inputs" bobHdl (pms, [INotify])
+            Trace.callEndpoint @"apply-inputs" bobHdl (pms, Nothing, [INotify])
 
             Trace.waitNSlots 2
             Trace.callEndpoint @"redeem" bobHdl (pms, "bob", bobPkh)

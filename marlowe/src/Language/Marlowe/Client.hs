@@ -62,10 +62,11 @@ type MarloweInput = (MarloweSlotRange, [Input])
 type MarloweSchema =
     BlockchainActions
         .\/ Endpoint "create" (AssocMap.Map Val.TokenName PubKeyHash, Marlowe.Contract)
-        .\/ Endpoint "apply-inputs" (MarloweParams, [Input])
+        .\/ Endpoint "apply-inputs" (MarloweParams, Maybe SlotInterval, [Input])
         .\/ Endpoint "wait" MarloweParams
         .\/ Endpoint "auto" (MarloweParams, Party, Slot)
         .\/ Endpoint "redeem" (MarloweParams, TokenName, PubKeyHash)
+        .\/ Endpoint "close" ()
 
 
 type MarloweCompanionSchema = BlockchainActions
@@ -105,9 +106,11 @@ data PartyAction
 
 type RoleOwners = AssocMap.Map Val.TokenName PubKeyHash
 
-marlowePlutusContract :: Contract () MarloweSchema MarloweError ()
+type MarloweContractState = ()
+
+marlowePlutusContract :: Contract MarloweContractState MarloweSchema MarloweError ()
 marlowePlutusContract = do
-    create `select` apply `select` wait `select` auto `select` redeem
+    create `select` apply `select` wait `select` auto `select` redeem `select` close
   where
     create = do
         (owners, contract) <- endpoint @"create"
@@ -129,8 +132,8 @@ marlowePlutusContract = do
         _ <- SM.waitForUpdate (mkMarloweClient params)
         marlowePlutusContract
     apply = do
-        (params, inputs) <- endpoint @"apply-inputs"
-        _ <- applyInputs params inputs
+        (params, slotInterval, inputs) <- endpoint @"apply-inputs"
+        _ <- applyInputs params slotInterval inputs
         marlowePlutusContract
     redeem = mapError (review _MarloweError) $ do
         (MarloweParams{rolesCurrency}, role, pkh) <-
@@ -163,7 +166,7 @@ marlowePlutusContract = do
     auto = do
         (params, party, untilSlot) <- endpoint @"auto"
         let theClient = mkMarloweClient params
-        let continueWith :: MarloweData -> Contract () MarloweSchema MarloweError ()
+        let continueWith :: MarloweData -> Contract MarloweContractState MarloweSchema MarloweError ()
             continueWith md@MarloweData{marloweContract} =
                 if canAutoExecuteContractForParty party marloweContract
                 then autoExecuteContract theClient party md
@@ -184,12 +187,13 @@ marlowePlutusContract = do
             Just ((st, _), _) -> do
                 let marloweData = tyTxOutData st
                 continueWith marloweData
+    close = endpoint @"close"
 
 
     autoExecuteContract :: StateMachineClient MarloweData MarloweInput
                       -> Party
                       -> MarloweData
-                      -> Contract () MarloweSchema MarloweError ()
+                      -> Contract MarloweContractState MarloweSchema MarloweError ()
     autoExecuteContract theClient party marloweData = do
         slot <- currentSlot
         let slotRange = (slot, slot + defaultTxValidationRange)
@@ -243,7 +247,7 @@ setupMarloweParams
        , HasTxConfirmation s
        , AsMarloweError e
        )
-    => RoleOwners -> Marlowe.Contract -> Contract () s e (MarloweParams, TxConstraints i o)
+    => RoleOwners -> Marlowe.Contract -> Contract MarloweContractState s e (MarloweParams, TxConstraints i o)
 setupMarloweParams owners contract = mapError (review _MarloweError) $ do
     creator <- pubKeyHash <$> ownPubKey
     let roles = extractContractRoles contract
@@ -325,13 +329,17 @@ canAutoExecuteContractForParty party = check
     checkCase _                                     = False
 
 
-applyInputs :: (AsContractError e, AsSMContractError e, AsMarloweError e)
+applyInputs :: AsMarloweError e
     => MarloweParams
+    -> Maybe SlotInterval
     -> [Input]
-    -> Contract () MarloweSchema e MarloweData
-applyInputs params inputs = do
-    slot <- currentSlot
-    let slotRange = (slot, slot + defaultTxValidationRange)
+    -> Contract MarloweContractState MarloweSchema e MarloweData
+applyInputs params slotInterval inputs = mapError (review _MarloweError) $ do
+    slotRange <- case slotInterval of
+            Just si -> pure si
+            Nothing -> do
+                slot <- currentSlot
+                pure (slot, slot + defaultTxValidationRange)
     let theClient = mkMarloweClient params
     dat <- SM.runStep theClient (slotRange, inputs)
     case dat of
