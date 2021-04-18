@@ -39,7 +39,7 @@ import           Language.Marlowe.Analysis.FSSemantics
 import           Language.Marlowe.Client
 import           Language.Marlowe.Semantics
 import           Language.Marlowe.Util
-import           Ledger                                hiding (Value)
+import           Ledger                                (Slot (..), pubKeyHash, validatorHash)
 import           Ledger.Ada                            (lovelaceValueOf)
 import           Ledger.Constraints.TxConstraints      (TxConstraints)
 import           Ledger.Typed.Scripts                  (scriptHash, validatorScript)
@@ -137,6 +137,9 @@ trustFundTest = checkPredicateOptions (defaultCheckOptions & maxSlot .~ 200) "Tr
     T..&&. assertNotDone marlowePlutusContract (Trace.walletInstanceTag bob) "contract should not have any errors"
     T..&&. walletFundsChange alice (lovelaceValueOf (-256) <> Val.singleton (rolesCurrency params) "alice" 1)
     T..&&. walletFundsChange bob (lovelaceValueOf 256 <> Val.singleton (rolesCurrency params) "bob" 1)
+    T..&&. assertAccumState marloweFollowContract "bob follow"
+        (\state@(History mp MarloweData{marloweContract} history) ->
+            mp == params && marloweContract == contract) "follower contract state"
     ) $ do
 
     -- Init a contract
@@ -145,6 +148,7 @@ trustFundTest = checkPredicateOptions (defaultCheckOptions & maxSlot .~ 200) "Tr
     bobHdl <- Trace.activateContractWallet bob marlowePlutusContract
     aliceHdl <- Trace.activateContractWallet alice marlowePlutusContract
     bobCompanionHdl <- Trace.activateContract bob marloweCompanionContract "bob companion"
+    bobFollowHdl <- Trace.activateContract bob marloweFollowContract "bob follow"
 
     Trace.callEndpoint @"create" aliceHdl
         (AssocMap.fromList [("alice", alicePkh), ("bob", bobPkh)],
@@ -160,6 +164,10 @@ trustFundTest = checkPredicateOptions (defaultCheckOptions & maxSlot .~ 200) "Tr
                 , IDeposit "alice" "alice" ada 256
                 ])
             Trace.waitNSlots 17
+
+            -- get contract's history and start following our contract
+            Trace.callEndpoint @"follow" bobFollowHdl pms
+            Trace.waitNSlots 2
 
             Trace.callEndpoint @"apply-inputs" bobHdl (pms, Nothing, [INotify])
 
