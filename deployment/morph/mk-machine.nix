@@ -31,7 +31,7 @@
               marlowe-playground = plutus.marlowe-playground;
               plutus-playground = plutus.plutus-playground;
               web-ghc = plutus.web-ghc;
-              plutus-docs = plutus.plutus-docs;
+              plutus-docs = plutus.docs;
             })
           ];
         };
