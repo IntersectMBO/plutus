@@ -102,18 +102,16 @@ Hence we don't export 'computeCek' and instead define 'runCek' in this file and 
 though the rest of the user-facing API (which 'runCek' is a part of) is defined downstream.
 
 Another problem is handling mutual recursion in the 'computeCek'/'returnCek'/'forceEvaluate'/etc
-family. If we keep it on the top level, GHC won't be able to pull the @Ix fun@ constraint out of
+family. If we keep these functions at the top level, GHC won't be able to pull the constraints out of
 the family (confirmed by inspecting Core: GHC thinks that since the superclass constraints
 populating the dictionary representing the @Ix fun@ constraint are redundant, they can be replaced
 with calls to 'error' in a recursive call, but that changes the dictionary and so it can no longer
 be pulled out of recursion). But that entails passing a redundant argument around, which slows down
-the machine a tiny little bit. Hence we perform the worker-wrapper transformation manually.
-However that allows GHC to inline almost all of the machine into a single definition (with a bunch
-of recursive join points in it), which _seems_ to make the machine slower for some reason. Hence
-we add a NOINLINE pragma to the entering point of the machine to prevent GHC from inlining
-everything, which gives us Core that is basically identical to the one we had before manually
-worker-wrapper transforming the machine, except the dictionary representing the @Ix fun@ constraint
-is not threaded through the machine.
+the machine a tiny little bit.
+
+Hence we define a number of the functions as local functions making use of a shared context from their
+parent function. This also allows GHC to inline almost all of the machine into a single definition (with a bunch
+of recursive join points in it).
 
 In general, it's advised to run benchmarks (and look at Core output if the results are suspicious)
 on any changes in this file.
