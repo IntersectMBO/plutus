@@ -71,13 +71,13 @@ handleAction ::
   ManageWallet m =>
   Toast m =>
   Action -> HalogenM State Action ChildSlots Msg m Unit
-handleAction PutdownWallet = pure unit -- handled in MainFrame.State (see note [State])
+handleAction PutdownWallet = pure unit -- handled in MainFrame.State (see note [State] in MainFrame.State)
 
-handleAction (SetNewWalletNickname walletNickname) = pure unit -- handled in MainFrame.State (see note [State])
+handleAction (SetNewWalletNickname walletNickname) = pure unit -- handled in MainFrame.State (see note [State] in MainFrame.State)
 
-handleAction (SetNewWalletContractId contractId) = pure unit -- handled in MainFrame.State (see note [State])
+handleAction (SetNewWalletContractId contractId) = pure unit -- handled in MainFrame.State (see note [State] in MainFrame.State)
 
-handleAction (AddNewWallet mTokenName) = pure unit -- handled in MainFrame.State (see note [State])
+handleAction (AddNewWallet mTokenName) = pure unit -- handled in MainFrame.State (see note [State] in MainFrame.State)
 
 handleAction ToggleMenu = modifying _menuOpen not
 
