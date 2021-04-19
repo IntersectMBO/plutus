@@ -93,9 +93,8 @@ rec {
 
   deployment = pkgs.recurseIntoAttrs (pkgs.callPackage ./deployment/morph {
     plutus = {
-      plutus-docs = docs;
       inherit plutus-pab marlowe-app marlowe-companion-app
-        marlowe-dashboard marlowe-playground plutus-playground web-ghc;
+        marlowe-dashboard marlowe-playground plutus-playground web-ghc docs;
     };
   });
 
