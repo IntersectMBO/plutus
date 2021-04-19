@@ -26,20 +26,15 @@ import           PlutusCore.Evaluation.Machine.ExBudget
 import           PlutusCore.Evaluation.Machine.ExBudgetingDefaults
 import           PlutusCore.Evaluation.Machine.ExMemory
 import           PlutusCore.Evaluation.Machine.Exception
-import           PlutusCore.Evaluation.Result
-import           PlutusCore.MkPlc                                  (mkTyBuiltin)
 import           PlutusCore.Pretty
-import           PlutusCore.Universe
 
 import qualified PlutusCore.StdLib.Data.List                       as Plc
 
-import           Control.Monad.Error
 import           Data.Char
 import           Data.Either
 import           Data.Hashable                                     (Hashable)
 import qualified Data.Kind                                         as GHC (Type)
 import           Data.Proxy
-import           Data.String
 import           Data.Text.Prettyprint.Doc
 import           Data.Void
 import           GHC.Generics
@@ -109,10 +104,13 @@ data ExtensionFun
     | Absurd
     | CharToInteger
     | ReplicateAtChar
---     | Null
---     | Head
---     | Tail
---     | Swap
+    | Null
+    | Head
+    | Tail
+    | Fst
+    | Snd
+    | Swap  -- Just for checking that permuting type arguments of a polymorphic built-in type
+            -- works as expected.
     deriving (Show, Eq, Ord, Enum, Bounded, Ix, Generic, Hashable)
     deriving (ExMemoryUsage) via (GenericExMemoryUsage ExtensionFun)
 
@@ -213,151 +211,45 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni ExtensionFun where
         makeBuiltinMeaning
             (replicate :: Int -> Char -> [Char])
             mempty  -- Whatever.
-    -- toBuiltinMeaning Null = makeBuiltinMeaning nullPlc mempty where
-    --     nullPlc
-    --         :: a ~ TyVarRep ('TyNameRep "a" 0)
-    --         => SomeValueN DefaultUni [] '[a] -> Bool
-    --     nullPlc (SomeValueArg uniA (SomeValueRes _ xs)) = null xs
-
---         makeBuiltinMeaning
---             _
---             mempty where
-        -- nullPlc :: Opaque term (TyAppRep [] (TyVarRep ('TyNameRep "a" 0))) -> KnownTypeMonad term Bool
-        -- nullPlc (Opaque term) = case asConstant term of
-        --     Just (Some (ValueOf uni xs)) -> case uni of
-        --         DefaultUniList _ -> pure $ null xs
-        --         _ -> do
-        --             let err = fromString $ "Expected a list, but got " ++ gshow uni
-        --             KnownTypeMonad $ throwingWithCause _UnliftingError err $ Just term
-        --     Nothing -> KnownTypeMonad $ throwingWithCause _UnliftingError "Not a constant" $ Just term
-    -- toBuiltinMeaning Head = makeBuiltinMeaning headPlc mempty where
-    --     headPlc
-    --         :: a ~ TyVarRep ('TyNameRep "a" 0)
-    --         => SomeValueN DefaultUni [] '[a] -> EvaluationResult (Opaque term a)
-    --     headPlc (SomeValueArg uniA (SomeValueRes _ xs)) = case xs of
-    --         x : _ -> pure . Opaque . fromConstant . Some $ ValueOf uniA x
-    --         _     -> throwError evaluationFailure
-
-        -- (Opaque term) = case asConstant term of
-        --     Just (Some (ValueOf uni xs)) -> case uni of
-        --         DefaultUniList a -> case xs of
-        --             x:_ -> pure . Opaque . fromConstant . Some $ ValueOf a x
-        --             []  -> KnownTypeMonad $ throwError evaluationFailure
-        --         _ -> do
-        --             let err = fromString $ "Expected a list, but got " ++ gshow uni
-        --             KnownTypeMonad $ throwingWithCause _UnliftingError err $ Just term
-        --     Nothing -> KnownTypeMonad $ throwingWithCause _UnliftingError "Not a constant" $ Just term
-    -- toBuiltinMeaning Tail = makeBuiltinMeaning tailPlc mempty where
-    --     tailPlc
-    --         :: a ~ TyVarRep ('TyNameRep "a" 0)
-    --         => SomeValueN DefaultUni [] '[a] -> EvaluationResult (SomeValueN DefaultUni [] '[a])
-    --     tailPlc (SomeValueArg uniA (SomeValueRes uniListA xs)) = case xs of
-    --         _ : xs' -> pure . SomeValueArg uniA $ SomeValueRes uniListA xs'
-
-            -- xs -- pure . Opaque . fromConstant . Some $ ValueOf uniA x
-            -- _       -> throwError evaluationFailure
-
-
-        -- tailPlc
-        --     :: a ~ TyVarRep ('TyNameRep "a" 0)
-        --     => SomeValueN DefaultUni [] '[a] -> EvaluationResult (Opaque term [a])
-        -- tailPlc (SomeValueArg uniA (SomeValueRes _ xs)) = case xs of
-        --     _ : xs -> _ xs -- pure . Opaque . fromConstant . Some $ ValueOf uniA x
-        --     _      -> throwError evaluationFailure
-
---         makeBuiltinMeaning
---             (\case [] -> EvaluationFailure; _:xs -> pure (xs :: [Integer]))
---             mempty  -- Whatever.
-    -- toBuiltinMeaning Swap =
-    --     BuiltinMeaning _ _ _ where
-    --         -- sch =
-    --         --     TypeSchemeAll (Proxy @'("a", 0, *)) $ \a ->
-    --         --     TypeSchemeAll (Proxy @'("b", 0, *)) $ \b ->
-
-
-data SomeValueOf1 uni f = forall a. SomeValueOf1 (uni a) (f a)
-data SomeValueOf2 uni f = forall a b. SomeValueOf2 (uni a) (uni b) (f a b)
-
-data ValueOf1 uni f a = ValueOf1 (uni a) (f a)
--- -- data ValueOf2 uni f a b = ValueOf2 (uni a) (uni b) (f a b)
--- type ValueOf2 uni f a b = ValueOf2 (uni a) (ValueOf1 uni (f a) b)
-
-
--- instance HasConstantIn DefaultUni => KnownType term
-
--- data Foo (uni :: forall k. k -> *) = Foo
-
--- uni :: forall k. k -> *
--- uni :: newtyp
-
--- unliftConstantList
---     :: forall a m term err.
---        (MonadError (ErrorWithCause err term) m, AsUnliftingError err, HasConstantIn DefaultUni term)
---     => term -> m (Some (ValueOf1 DefaultUni []))
--- unliftConstantList term = case asConstant term of
---     Just (Some (ValueOf uni xs)) -> case uni of
---         DefaultUniRunTypeApp (DefaultUniList `DefaultUniApply` el) -> pure . Some $ ValueOf1 el xs
---         _                 -> do
---             let err = fromString $ "Expected a list, but got " ++ gshow uni
---             throwingWithCause _UnliftingError err $ Just term
---     Nothing -> throwingWithCause _UnliftingError "Not a constant" $ Just term
-
--- f : all a. [_] a -> bool
-
--- instance (uni `Includes` [], uni `Includes` Hole) => KnownTypeAst uni [] where
---     toTypeAst _ = mkTyBuiltin @[Hole] ()
-
--- null :: Opaque term [Meta] -> Bool
--- null : [meta] -> bool
-
--- null :: Opaque term [TyVarRep ('TyNameRep "a" 0)] -> Bool
-
--- instance uni `Includes` [a]           => KnownTypeAst uni (Mono [a]) where
---     toTypeAst = toBuiltinTypeAst
-
--- instance KnownTypeAst           => KnownTypeAst uni (Poly [a]) where
---     toTypeAst = toBuiltinTypeAst
-
--- instance KnownBuiltinType term [a]           => KnownType term (Mono [a])
-
-
-
--- data TypeScheme term (args :: [GHC.Type]) res where
---     TypeSchemeResult
---         :: KnownType term res
---         => Proxy res -> TypeScheme term '[] res
---     TypeSchemeArrow
---         :: KnownType term arg
---         => Proxy arg -> TypeScheme term args res -> TypeScheme term (arg ': args) res
---     TypeSchemeAll
-
-
--- swap : all a b. (a, b) -> (b, a)
-
--- instance DefaultUni `Includes` Opaque term' rep
-
--- Some (Compose (ValueOf uni) [])
-
-
--- null :: Some (ValueOf1 uni []) -> Bool
-
--- null : all a. [a] -> bool
-
--- instance Convert [Integer] [Whatever]
-
--- makeKnown :: a -> m term
--- readKnown :: term -> m a
-
-
--- null :: uni `Includes` a => [a] -> Bool
--- null :: [Any] -> Bool
-
--- replicate : integer -> meta -> [meta]
--- replicate : metaAll a. integer -> a -> [a]
--- replicate : all a. integer -> a -> [a]
--- null : all a. [a] -> bool
-
--- null {integer} [1,2,3]
+    toBuiltinMeaning Null = makeBuiltinMeaning nullPlc mempty where
+        nullPlc
+            :: a ~ TyVarRep ('TyNameRep "a" 0)
+            => SomeValueN DefaultUni [] '[a] -> Bool
+        nullPlc (SomeValueArg _ (SomeValueRes _ xs)) = null xs
+    toBuiltinMeaning Head = makeBuiltinMeaning headPlc mempty where
+        headPlc
+            :: a ~ TyVarRep ('TyNameRep "a" 0)
+            => SomeValueN DefaultUni [] '[a] -> EvaluationResult (Opaque term a)
+        headPlc (SomeValueArg uniA (SomeValueRes _ xs)) = case xs of
+            x : _ -> EvaluationSuccess . Opaque . fromConstant . Some $ ValueOf uniA x
+            _     -> EvaluationFailure
+    toBuiltinMeaning Tail = makeBuiltinMeaning tailPlc mempty where
+        tailPlc
+            :: a ~ TyVarRep ('TyNameRep "a" 0)
+            => SomeValueN DefaultUni [] '[a] -> EvaluationResult (SomeValueN DefaultUni [] '[a])
+        tailPlc (SomeValueArg uniA (SomeValueRes uniListA xs)) = case xs of
+            _ : xs' -> EvaluationSuccess . SomeValueArg uniA $ SomeValueRes uniListA xs'
+            _       -> EvaluationFailure
+    toBuiltinMeaning Fst = makeBuiltinMeaning fstPlc mempty where
+        fstPlc
+            :: (a ~ TyVarRep ('TyNameRep "a" 0), b ~ TyVarRep ('TyNameRep "b" 1))
+            => SomeValueN DefaultUni (,) '[a, b] -> Opaque term a
+        fstPlc (SomeValueArg uniA (SomeValueArg _ (SomeValueRes _ (x, _)))) =
+            Opaque . fromConstant . Some $ ValueOf uniA x
+    toBuiltinMeaning Snd = makeBuiltinMeaning sndPlc mempty where
+        sndPlc
+            :: (a ~ TyVarRep ('TyNameRep "a" 0), b ~ TyVarRep ('TyNameRep "b" 1))
+            => SomeValueN DefaultUni (,) '[a, b] -> Opaque term b
+        sndPlc (SomeValueArg _ (SomeValueArg uniB (SomeValueRes _ (_, y)))) =
+            Opaque . fromConstant . Some $ ValueOf uniB y
+    toBuiltinMeaning Swap = makeBuiltinMeaning swapPlc mempty where
+        swapPlc
+            :: (a ~ TyVarRep ('TyNameRep "a" 0), b ~ TyVarRep ('TyNameRep "b" 1))
+            => SomeValueN DefaultUni (,) '[a, b] -> SomeValueN DefaultUni (,) '[b, a]
+        swapPlc (SomeValueArg uniA (SomeValueArg uniB (SomeValueRes _ (x, y)))) =
+            SomeValueArg uniB (SomeValueArg uniA (SomeValueRes uniBA (y, x)))
+          where
+            uniBA = DefaultUniTuple uniB uniA
 
 -- tuples with general terms in them are not representable, hence @swap@ over a tuple with general
 -- terms in it is essentially @absurd@

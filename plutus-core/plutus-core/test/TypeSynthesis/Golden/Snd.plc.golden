@@ -1,0 +1,1 @@
+(all a (type) (all b (type) (fun [[(con (,)) a] b] b)))

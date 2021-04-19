@@ -1,1 +1,1 @@
-(fun (con [integer]) (con [integer]))
+(all a (type) (fun [(con []) a] [(con []) a]))
