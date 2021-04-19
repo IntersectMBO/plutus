@@ -16,9 +16,11 @@ import Halogen.Monaco (KeyBindings(..))
 import Halogen.Monaco as Monaco
 import Language.Haskell.Interpreter (InterpreterError, InterpreterResult, _InterpreterResult)
 import Marlowe.Extended (IntegerTemplateType)
+import Marlowe.Extended.Metadata (MetadataHintInfo)
 import Marlowe.Parser (parseContract)
+import MetadataTab.Types (MetadataAction, showConstructor)
 import Network.RemoteData (RemoteData(..), _Loading, _Success)
-import StaticAnalysis.Types (AnalysisExecutionState(..), AnalysisState, initAnalysisState)
+import StaticAnalysis.Types (AnalysisState, initAnalysisState)
 import Text.Pretty (pretty)
 import Types (WebData)
 
@@ -29,12 +31,13 @@ data Action
   | HandleEditorMessage Monaco.Message
   | BottomPanelAction (BottomPanel.Action BottomPanelView Action)
   | SendResultToSimulator
-  | InitHaskellProject String
+  | InitHaskellProject MetadataHintInfo String
   | SetIntegerTemplateParam IntegerTemplateType String BigInteger
   | AnalyseContract
   | AnalyseReachabilityContract
   | AnalyseContractForCloseRefund
   | ClearAnalysisResults
+  | MetadataAction MetadataAction
 
 defaultEvent :: String -> Event
 defaultEvent s = A.defaultEvent $ "Haskell." <> s
@@ -46,17 +49,19 @@ instance actionIsEvent :: IsEvent Action where
   toEvent (HandleEditorMessage _) = Just $ defaultEvent "HandleEditorMessage"
   toEvent (BottomPanelAction action) = A.toEvent action
   toEvent SendResultToSimulator = Just $ defaultEvent "SendResultToSimulator"
-  toEvent (InitHaskellProject _) = Just $ defaultEvent "InitHaskellProject"
+  toEvent (InitHaskellProject _ _) = Just $ defaultEvent "InitHaskellProject"
   toEvent (SetIntegerTemplateParam _ _ _) = Just $ defaultEvent "SetIntegerTemplateParam"
   toEvent AnalyseContract = Just $ defaultEvent "AnalyseContract"
   toEvent AnalyseReachabilityContract = Just $ defaultEvent "AnalyseReachabilityContract"
   toEvent AnalyseContractForCloseRefund = Just $ defaultEvent "AnalyseContractForCloseRefund"
   toEvent ClearAnalysisResults = Just $ defaultEvent "ClearAnalysisResults"
+  toEvent (MetadataAction action) = Just $ (defaultEvent "MetadataAction") { label = Just $ showConstructor action }
 
 type State
   = { keybindings :: KeyBindings
     , compilationResult :: WebData (Either InterpreterError (InterpreterResult String))
     , bottomPanelState :: BottomPanel.State BottomPanelView
+    , metadataHintInfo :: MetadataHintInfo
     , analysisState :: AnalysisState
     }
 
@@ -65,6 +70,12 @@ _haskellEditorKeybindings = prop (SProxy :: SProxy "keybindings")
 
 _compilationResult :: Lens' State (WebData (Either InterpreterError (InterpreterResult String)))
 _compilationResult = prop (SProxy :: SProxy "compilationResult")
+
+_metadataHintInfo :: Lens' State MetadataHintInfo
+_metadataHintInfo = prop (SProxy :: SProxy "metadataHintInfo")
+
+_analysisState :: Lens' State AnalysisState
+_analysisState = prop (SProxy :: SProxy "analysisState")
 
 --- Language.Haskell.Interpreter is missing this ---
 _result :: forall s a. Lens' { result :: a | s } a
@@ -88,6 +99,7 @@ initialState =
   { keybindings: DefaultBindings
   , compilationResult: NotAsked
   , bottomPanelState: BottomPanel.initialState GeneratedOutputView
+  , metadataHintInfo: mempty
   , analysisState: initAnalysisState
   }
 
@@ -98,6 +110,7 @@ data BottomPanelView
   = StaticAnalysisView
   | ErrorsView
   | GeneratedOutputView
+  | MetadataView
 
 derive instance eqBottomPanelView :: Eq BottomPanelView
 

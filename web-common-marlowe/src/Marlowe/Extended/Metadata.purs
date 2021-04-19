@@ -3,7 +3,7 @@ module Marlowe.Extended.Metadata where
 import Prelude
 import Data.Lens (Lens')
 import Data.Lens.Record (prop)
-import Data.Map (Map)
+import Data.Map (Map, keys)
 import Data.Maybe (Maybe(..))
 import Data.Set (Set)
 import Data.Set as Set
@@ -89,3 +89,15 @@ getMetadataHintInfo contract =
     , valueParameters: placeholders.valuePlaceholderIds
     , choiceNames: getChoiceNames contract
     }
+
+getHintsFromMetadata :: MetaData -> MetadataHintInfo
+getHintsFromMetadata { roleDescriptions
+, slotParameterDescriptions
+, valueParameterDescriptions
+, choiceDescriptions
+} =
+  { roles: keys roleDescriptions
+  , slotParameters: keys slotParameterDescriptions
+  , valueParameters: keys valueParameterDescriptions
+  , choiceNames: keys choiceDescriptions
+  }
