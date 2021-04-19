@@ -6,6 +6,7 @@ import Analytics as A
 import Data.Maybe (Maybe(..))
 import Halogen (SubscriptionId)
 import Material.Icons (Icon(..))
+import Servant.PureScript.Ajax (AjaxError, errorToString)
 
 type ToastMessage
   = { shortDescription :: String
@@ -65,6 +66,9 @@ errorToast shortDescription longDescription =
   , bgColor: "bg-red"
   , timeout: 5000.0
   }
+
+ajaxErrorToast :: String -> AjaxError -> ToastMessage
+ajaxErrorToast shortDescription ajaxError = errorToast shortDescription $ Just $ errorToString ajaxError
 
 connectivityErrorToast :: String -> ToastMessage
 connectivityErrorToast shortDescription = errorToast shortDescription (Just "There was a problem connecting with the server, please contact support if this problem persists.")

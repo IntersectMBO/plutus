@@ -1,15 +1,15 @@
 module ContractHome.State
   ( dummyState
+  , mkInitialState
   , handleAction
   , partitionContracts
   -- FIXME: Remove this, only for developing
-  , loadExistingContracts
+  , dummyContracts
   ) where
 
 import Prelude
 import Contract.State (applyTimeout, applyTx, isContractClosed)
 import Contract.State (mkInitialState) as Contract
-import Contract.Types (ContractId)
 import Contract.Types (State) as Contract
 import ContractHome.Lenses (_contracts, _selectedContractIndex, _status)
 import ContractHome.Types (Action(..), ContractStatus(..), State, PartitionedContracts)
@@ -21,20 +21,67 @@ import Data.Lens (assign, filtered, over, traversed)
 import Data.List as List
 import Data.Map (Map)
 import Data.Map as Map
-import Data.Maybe (Maybe(..))
+import Data.Maybe (Maybe(..), fromMaybe)
 import Data.Tuple (snd)
 import Data.Tuple.Nested ((/\))
-import Effect (Effect)
+import Data.UUID (emptyUUID)
 import Examples.PureScript.Escrow as Escrow
 import Examples.PureScript.EscrowWithCollateral as EscrowWithCollateral
 import Examples.PureScript.ZeroCouponBond as ZeroCouponBond
 import Halogen (HalogenM, modify_)
-import MainFrame.Types (Msg)
+import MainFrame.Types (ChildSlots, Msg)
 import Marlowe.Extended (TemplateContent(..), fillTemplate, resolveRelativeTimes, toCore)
 import Marlowe.Semantics (Input(..), Party(..), Slot(..), SlotInterval(..), Token(..), TransactionInput(..))
-import Marlowe.Slot (currentSlot)
+import Types (ContractInstanceId(..))
+import WalletData.Validation (parseContractInstanceId)
 
--- FIXME: debug purposes only, delete later
+-- see note [dummyState] in MainFrame.State
+dummyState :: State
+dummyState = mkInitialState mempty
+
+mkInitialState :: Map ContractInstanceId Contract.State -> State
+mkInitialState contracts =
+  { status: Running
+  , contracts
+  , selectedContractIndex: Nothing
+  }
+
+handleAction ::
+  forall m.
+  Action -> HalogenM State Action ChildSlots Msg m Unit
+handleAction OpenTemplateLibraryCard = pure unit -- handled in Play.State
+
+handleAction (SelectView view) = assign _status view
+
+handleAction (OpenContract ix) = assign _selectedContractIndex $ Just ix
+
+-- FIXME: probably get rid of this action and take care of this in MainFrame.handleQuery
+handleAction (AdvanceTimedOutContracts currentSlot) =
+  modify_
+    $ over
+        (_contracts <<< traversed <<< filtered (\contract -> contract.executionState.mNextTimeout == Just currentSlot))
+        (applyTimeout currentSlot)
+
+partitionContracts :: Map ContractInstanceId Contract.State -> PartitionedContracts
+partitionContracts contracts =
+  Map.toUnfoldableUnordered contracts
+    # map snd
+    # Array.partition isContractClosed
+    # \{ no, yes } -> { completed: yes, running: no }
+
+-- FIXME: Remove this, only for developing
+dummyContracts :: Slot -> (Map ContractInstanceId Contract.State)
+dummyContracts slot =
+  catMaybes [ filledContract1 slot, filledContract2 slot, filledContract3 slot ]
+    -- FIXME: only to have multiple contracts, remove.
+    
+    -- # (bindFlipped $ Array.replicate 10)
+    
+    -- # Array.mapWithIndex (\ix contract -> (show ix) /\ contract)
+    
+    # map (\contract -> contract.contractInstanceId /\ contract)
+    # Map.fromFoldable
+
 filledContract1 :: Slot -> Maybe Contract.State
 filledContract1 (Slot currentSlot) =
   let
@@ -61,8 +108,10 @@ filledContract1 (Slot currentSlot) =
         ]
 
     mContract = toCore $ fillTemplate templateContent Escrow.extendedContract
+
+    contractInstanceId = fromMaybe (ContractInstanceId emptyUUID) $ parseContractInstanceId "09e83958-824d-4a9d-9fd3-2f57a4f211a1"
   in
-    mContract <#> \contract -> Contract.mkInitialState "dummy contract 1" zero Escrow.metaData participants (Just $ Role "Buyer") contract
+    mContract <#> \contract -> Contract.mkInitialState contractInstanceId zero Escrow.metaData participants (Just $ Role "Buyer") contract
 
 filledContract2 :: Slot -> Maybe Contract.State
 filledContract2 (Slot currentSlot) = do
@@ -100,10 +149,12 @@ filledContract2 (Slot currentSlot) = do
           }
       ]
 
+    contractInstanceId = fromMaybe (ContractInstanceId emptyUUID) $ parseContractInstanceId "59f292a0-3cd8-431c-8384-ea67583c1489"
+
     nextState' :: Contract.State -> TransactionInput -> Contract.State
     nextState' state txInput = applyTx (Slot currentSlot) txInput state
   contract <- toCore $ fillTemplate templateContent EscrowWithCollateral.extendedContract
-  initialState <- pure $ Contract.mkInitialState "dummy contract 2" zero EscrowWithCollateral.metaData participants (Just $ Role "Buyer") contract
+  initialState <- pure $ Contract.mkInitialState contractInstanceId zero EscrowWithCollateral.metaData participants (Just $ Role "Buyer") contract
   pure $ foldl nextState' initialState transactions
 
 filledContract3 :: Slot -> Maybe Contract.State
@@ -128,49 +179,7 @@ filledContract3 (Slot currentSlot) = do
         [ (Role "Guarantor") /\ Just "Alice"
         , (Role "Investor") /\ Just "Bob"
         ]
+
+    contractInstanceId = fromMaybe (ContractInstanceId emptyUUID) $ parseContractInstanceId "8242d217-6f7c-4a70-9b18-233a82d089aa"
   contract <- toCore $ fillTemplate templateContent $ resolveRelativeTimes (Slot currentSlot) ZeroCouponBond.extendedContract
-  pure $ Contract.mkInitialState "dummy contract 3" zero ZeroCouponBond.metaData participants (Just $ Role "Guarantor") contract
-
-loadExistingContracts :: Effect (Map ContractId Contract.State)
-loadExistingContracts = do
-  slot <- currentSlot
-  pure
-    $ catMaybes [ filledContract1 slot, filledContract2 slot, filledContract3 slot ]
-    -- FIXME: only to have multiple contracts, remove.
-    
-    -- # (bindFlipped $ Array.replicate 10)
-    
-    -- # Array.mapWithIndex (\ix contract -> (show ix) /\ contract)
-    
-    # map (\contract -> contract.contractId /\ contract)
-    # Map.fromFoldable
-
-partitionContracts :: Map ContractId Contract.State -> PartitionedContracts
-partitionContracts contracts =
-  Map.toUnfoldableUnordered contracts
-    # map snd
-    # Array.partition isContractClosed
-    # \{ no, yes } -> { completed: yes, running: no }
-
--- see note [dummyState]
-dummyState :: State
-dummyState =
-  { status: Running
-  , contracts: mempty
-  , selectedContractIndex: Nothing
-  }
-
-handleAction ::
-  forall m slots msg.
-  Action -> HalogenM State Action slots msg m Unit
-handleAction OpenTemplateLibraryCard = pure unit -- handled in Play.State
-
-handleAction (SelectView view) = assign _status view
-
-handleAction (OpenContract ix) = assign _selectedContractIndex $ Just ix
-
-handleAction (AdvanceTimedOutContracts currentSlot) =
-  modify_
-    $ over
-        (_contracts <<< traversed <<< filtered (\contract -> contract.executionState.mNextTimeout == Just currentSlot))
-        (applyTimeout currentSlot)
+  pure $ Contract.mkInitialState contractInstanceId zero ZeroCouponBond.metaData participants (Just $ Role "Guarantor") contract

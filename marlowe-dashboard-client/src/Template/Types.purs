@@ -10,12 +10,13 @@ import Data.Map (Map)
 import Data.Maybe (Maybe(..))
 import Marlowe.Extended (TemplateContent)
 import Marlowe.Extended.Template (ContractTemplate)
+import Marlowe.Semantics (TokenName)
+import WalletData.Types (WalletNickname)
 
 type State
   = { template :: ContractTemplate
     , contractNickname :: String
-    -- FIXME: We should add type aliases to these Strings
-    , roleWallets :: Map String String
+    , roleWallets :: Map TokenName WalletNickname
     , templateContent :: TemplateContent
     , slotContentStrings :: Map String String
     }
@@ -23,11 +24,11 @@ type State
 data Action
   = SetTemplate ContractTemplate
   | OpenTemplateLibraryCard
-  | OpenCreateWalletCard String
+  | OpenCreateWalletCard TokenName
   | OpenSetupConfirmationCard
   | CloseSetupConfirmationCard
   | SetContractNickname String
-  | SetRoleWallet String String
+  | SetRoleWallet TokenName WalletNickname
   | SetSlotContent String String -- slot input comes from the HTML as a dateTimeString
   | SetValueContent String (Maybe BigInteger)
   | StartContract
