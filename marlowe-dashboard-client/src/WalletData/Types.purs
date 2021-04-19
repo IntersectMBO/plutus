@@ -45,6 +45,8 @@ type WalletDetails
     , assets :: Assets
     }
 
+-- this is the data that the wallet API returns when creating a wallet and when subsequently requesting
+-- its "own-public-key"
 newtype WalletInfo
   = WalletInfo
   { wallet :: Wallet

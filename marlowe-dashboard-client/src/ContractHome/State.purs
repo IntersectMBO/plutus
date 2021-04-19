@@ -35,7 +35,7 @@ import Marlowe.Semantics (Input(..), Party(..), Slot(..), SlotInterval(..), Toke
 import Types (ContractInstanceId(..))
 import WalletData.Validation (parseContractInstanceId)
 
--- see note [dummyState]
+-- see note [dummyState] in MainFrame.State
 dummyState :: State
 dummyState = mkInitialState mempty
 
@@ -62,7 +62,6 @@ handleAction (AdvanceTimedOutContracts currentSlot) =
         (_contracts <<< traversed <<< filtered (\contract -> contract.executionState.mNextTimeout == Just currentSlot))
         (applyTimeout currentSlot)
 
--- TODO: I think I'd put this in ContractHome.View ... :thinking_face:
 partitionContracts :: Map ContractInstanceId Contract.State -> PartitionedContracts
 partitionContracts contracts =
   Map.toUnfoldableUnordered contracts

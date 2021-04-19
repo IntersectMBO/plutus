@@ -29,6 +29,7 @@ import Halogen (HalogenM, modify_)
 import Halogen.Extra (mapMaybeSubmodule, mapSubmodule)
 import MainFrame.Lenses (_screen)
 import MainFrame.Types (ChildSlots, Msg)
+import Marlowe.Semantics (Slot(..))
 import Play.Lenses (_cards, _contractsState, _currentSlot, _menuOpen, _selectedContract, _templateState)
 import Play.Types (Action(..), Card(..), Screen(..), State)
 import Template.Lenses (_template)
@@ -37,9 +38,9 @@ import Template.Types (Action(..), State) as Template
 import Types (ContractInstanceId(..))
 import WalletData.Types (PubKeyHash(..), Wallet(..), WalletDetails)
 
--- see note [dummyState]
+-- see note [dummyState] in MainFrame.State
 dummyState :: State
-dummyState = mkInitialState defaultWalletDetails mempty $ Minutes zero
+dummyState = mkInitialState defaultWalletDetails mempty (Slot zero) (Minutes zero)
   where
   defaultWalletDetails =
     { walletNickname: mempty
@@ -50,13 +51,13 @@ dummyState = mkInitialState defaultWalletDetails mempty $ Minutes zero
     , assets: mempty
     }
 
-mkInitialState :: WalletDetails -> Map ContractInstanceId Contract.State -> Minutes -> State
-mkInitialState walletDetails contracts timezoneOffset =
+mkInitialState :: WalletDetails -> Map ContractInstanceId Contract.State -> Slot -> Minutes -> State
+mkInitialState walletDetails contracts currentSlot timezoneOffset =
   { walletDetails: walletDetails
   , menuOpen: false
   , screen: ContractsScreen
   , cards: mempty
-  , currentSlot: zero -- this will be updated every second through the websocket
+  , currentSlot
   , timezoneOffset
   , templateState: Template.dummyState
   , contractsState: ContractHome.mkInitialState contracts
@@ -145,7 +146,7 @@ toContractHome ::
   HalogenM State Action slots msg m Unit
 toContractHome = mapSubmodule _contractsState ContractHomeAction
 
--- see note [dummyState]
+-- see note [dummyState] in MainFrame.State
 toContract ::
   forall m msg slots.
   Functor m =>

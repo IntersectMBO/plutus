@@ -26,7 +26,7 @@ import Marlowe.Slot (dateTimeStringToSlot)
 import Template.Lenses (_contractNickname, _roleWallets, _slotContentStrings, _templateContent)
 import Template.Types (Action(..), State)
 
--- see note [dummyState]
+-- see note [dummyState] in MainFrame.State
 dummyState :: State
 dummyState = mkInitialState contractTemplate
 
@@ -52,21 +52,21 @@ mkRoleWallets contract = Map.fromFoldable $ Set.mapMaybe getRoleEntry (getPartie
   getRoleEntry (Role tokenName) = Just (Tuple tokenName "")
 
 -- Some actions are handled in `Play.State` because they involve
--- modifications of that state. See Note [State].
+-- modifications of that state. See Note [State] in MainFrame.State.
 handleAction ::
   forall m.
   MonadAff m =>
   MonadAsk Env m =>
   Action -> HalogenM State Action ChildSlots Msg m Unit
-handleAction (SetTemplate contractTemplate) = pure unit -- handled in Play.State (see note [State])
+handleAction (SetTemplate contractTemplate) = pure unit -- handled in Play.State (see note [State] in MainFrame.State)
 
-handleAction OpenTemplateLibraryCard = pure unit -- handled in Play.State (see note [State])
+handleAction OpenTemplateLibraryCard = pure unit -- handled in Play.State (see note [State] in MainFrame.State)
 
-handleAction (OpenCreateWalletCard tokenName) = pure unit -- handled in Play.State (see note [State])
+handleAction (OpenCreateWalletCard tokenName) = pure unit -- handled in Play.State (see note [State] in MainFrame.State)
 
-handleAction OpenSetupConfirmationCard = pure unit -- handled in Play.State (see note [State])
+handleAction OpenSetupConfirmationCard = pure unit -- handled in Play.State (see note [State] in MainFrame.State)
 
-handleAction CloseSetupConfirmationCard = pure unit -- handled in Play.State (see note [State])
+handleAction CloseSetupConfirmationCard = pure unit -- handled in Play.State (see note [State] in MainFrame.State)
 
 handleAction (SetContractNickname nickname) = assign _contractNickname nickname
 
@@ -81,4 +81,4 @@ handleAction (SetSlotContent key dateTimeString) = do
 
 handleAction (SetValueContent key mValue) = modifying (_templateContent <<< _valueContent) $ insert key $ fromMaybe zero mValue
 
-handleAction StartContract = pure unit -- handled in Play.State (see note [State])
+handleAction StartContract = pure unit -- handled in Play.State (see note [State] in MainFrame.State)

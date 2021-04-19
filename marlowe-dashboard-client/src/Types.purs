@@ -1,5 +1,7 @@
 module Types
-  ( WebData
+  ( AjaxResponse
+  , DecodedAjaxResponse
+  , WebData
   , DecodedWebData
   , ContractInstanceId(..)
   ) where
@@ -15,6 +17,12 @@ import Foreign.Class (class Encode, class Decode)
 import Foreign.Generic (defaultOptions, genericDecode, genericEncode)
 import Network.RemoteData (RemoteData)
 import Servant.PureScript.Ajax (AjaxError)
+
+type AjaxResponse
+  = Either AjaxError
+
+type DecodedAjaxResponse
+  = Either (Either AjaxError (NonEmptyList ForeignError))
 
 type WebData
   = RemoteData AjaxError

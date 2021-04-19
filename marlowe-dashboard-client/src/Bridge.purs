@@ -7,7 +7,9 @@ module Bridge
 
 import Prelude
 import Cardano.Wallet.Types (WalletInfo(..)) as Back
+import Data.Bifunctor (bimap)
 import Data.BigInteger (BigInteger)
+import Data.Either (Either)
 import Data.Json.JsonTuple (JsonTuple(..))
 import Data.Json.JsonUUID (JsonUUID(..))
 import Data.Lens (Iso', iso)
@@ -20,6 +22,7 @@ import Plutus.V1.Ledger.Crypto (PubKey(..), PubKeyHash(..)) as Back
 import Plutus.V1.Ledger.Slot (Slot(..)) as Back
 import Plutus.V1.Ledger.Value (CurrencySymbol(..), TokenName(..), Value(..)) as Back
 import PlutusTx.AssocMap (Map, fromTuples, toTuples) as Back
+import Servant.PureScript.Ajax (AjaxError)
 import Types (ContractInstanceId(..)) as Front
 import Wallet.Emulator.Wallet (Wallet(..)) as Back
 import Wallet.Types (ContractInstanceId(..)) as Back
@@ -59,6 +62,10 @@ instance webDataBridge :: (Bridge a b) => Bridge (RemoteData e a) (RemoteData e 
   toFront = map toFront
   toBack = map toBack
 
+instance ajaxErrorBridge :: Bridge AjaxError AjaxError where
+  toFront = identity
+  toBack = identity
+
 instance tupleBridge :: (Bridge a c, Bridge b d) => Bridge (Tuple a b) (Tuple c d) where
   toFront (a /\ b) = toFront a /\ toFront b
   toBack (c /\ d) = toBack c /\ toBack d
@@ -70,6 +77,10 @@ instance jsonTupleBridge :: (Bridge a c, Bridge b d) => Bridge (JsonTuple a b) (
 instance arrayBridge :: Bridge a b => Bridge (Array a) (Array b) where
   toFront = map toFront
   toBack = map toBack
+
+instance eitherBridge :: (Bridge a c, Bridge b d) => Bridge (Either a b) (Either c d) where
+  toFront = bimap toFront toFront
+  toBack = bimap toBack toBack
 
 instance mapBridge :: (Ord a, Ord c, Bridge a c, Bridge b d) => Bridge (Back.Map a b) (Front.Map c d) where
   toFront map = Front.fromFoldable $ toFront <$> Back.toTuples map

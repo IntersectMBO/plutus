@@ -43,7 +43,7 @@ import Toast.Types (successToast)
 import Types (ContractInstanceId(..))
 import WalletData.Types (WalletNickname)
 
--- see note [dummyState]
+-- see note [dummyState] in MainFrame.State
 dummyState :: State
 dummyState = mkInitialState emptyContractInstanceId zero emptyContractMetadata mempty Nothing Close
   where
