@@ -3,9 +3,8 @@ module Marlowe.Blockly where
 import Prelude
 import Blockly.Dom as BDom
 import Blockly.Generator (Connection, Input, NewBlockFunction, clearWorkspace, connect, connectToOutput, connectToPrevious, fieldName, fieldRow, getInputWithName, inputList, inputName, inputType, nextConnection, previousConnection, setFieldText)
-import Blockly.Internal (AlignDirection(..), Arg(..), BlockDefinition(..), defaultBlockDefinition, getBlockById, initializeWorkspace, render, typedArguments)
-import Blockly.Toolbox (Category(..), Toolbox(..), category, defaultCategoryFields, leaf, rename, separator)
-import Blockly.Toolbox as Toolbox
+import Blockly.Internal (AlignDirection(..), Arg(..), BlockDefinition(..), Pair(..), defaultBlockDefinition, getBlockById, initializeWorkspace, render, typedArguments)
+import Blockly.Toolbox (Category, Toolbox(..), category, leaf, rename, separator)
 import Blockly.Types (Block, BlocklyState, Workspace)
 import Control.Monad.Error.Class (catchError)
 import Control.Monad.Error.Extra (toMonadThrow)
@@ -608,10 +607,11 @@ toDefinition blockType@(ContractType WhenContractType) =
   BlockDefinition
     $ merge
         { type: show WhenContractType
-        , message0: "When %1 %2 after slot %3 %4 continue as %5 %6"
+        , message0: "When %1 %2 after %3 %4 %5 continue as %6 %7"
         , args0:
             [ DummyCentre
             , Statement { name: "case", check: "ActionType", align: Left }
+            , Dropdown { name: "timeout_type", options: [ Pair "slot number" "slot", Pair "slot parameter" "slot_param" ] }
             , Input { name: "timeout", text: "0", spellcheck: false }
             , DummyLeft
             , DummyLeft
@@ -620,6 +620,7 @@ toDefinition blockType@(ContractType WhenContractType) =
         , colour: blockColour blockType
         , previousStatement: Just (show BaseContractType)
         , inputsInline: Just false
+        , extensions: [ "timeout_validator" ]
         }
         defaultBlockDefinition
 
@@ -1239,14 +1240,18 @@ instance blockToTermContract :: BlockToTerm Contract where
     contract2 <- singleStatementToTerm "contract2" b
     pure $ Term (If observation contract1 contract2) (BlockId id)
   blockToTerm b@({ type: "WhenContractType", id, children }) = do
-    timeoutField <- fieldAsString "timeout" b
+    timeoutType <- fieldAsString "timeout_type" b
     cases <- statementsToTerms "case" b
     let
       location = (BlockId id)
-
-      timeout = case BigInteger.fromString timeoutField of
-        Just slotNumber -> Term (Slot slotNumber) location
-        Nothing -> Term (SlotParam timeoutField) location
+    timeout <- case timeoutType of
+      "slot" -> do
+        slot <- fieldAsBigInteger "timeout" b
+        pure $ Term (Slot slot) location
+      "slot_param" -> do
+        slotParam <- fieldAsString "timeout" b
+        pure $ Term (SlotParam slotParam) location
+      _ -> throwError $ ErrorInChild b "timeout_type" (InvalidChildType "Timeout")
     contract <- singleStatementToTerm "contract" b
     pure $ Term (When cases timeout contract) location
   blockToTerm b@({ type: "LetContractType", id }) = do
@@ -1608,6 +1613,11 @@ instance toBlocklyContract :: ToBlockly Contract where
     block <- newBlock workspace (show WhenContractType)
     connectToPrevious block input
     inputToBlockly newBlock workspace block "case" cases
+    setField block "timeout_type"
+      ( case timeout of
+          Term (SlotParam _) _ -> "slot_param"
+          _ -> "slot"
+      )
     setField block "timeout"
       ( case timeout of
           Term (Slot slotNum) _ -> show slotNum
