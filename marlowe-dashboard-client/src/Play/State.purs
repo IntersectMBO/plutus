@@ -121,6 +121,7 @@ handleAction (ContractHomeAction contractHomeAction) = case contractHomeAction o
   a@(ContractHome.OpenContract _) -> do
     toContractHome $ ContractHome.handleAction a
     handleAction $ OpenCard ContractCard
+    toContract $ Contract.handleAction Contract.CarouselOpened
   _ -> toContractHome $ ContractHome.handleAction contractHomeAction
 
 handleAction (ContractAction contractAction) = case contractAction of

@@ -13,24 +13,34 @@ module Contract.State
 import Prelude
 import Capability.Toast (class Toast, addToast)
 import Contract.Lenses (_contractInstanceId, _executionState, _namedActions, _previousSteps, _selectedStep, _tab)
-import Contract.Types (Action(..), PreviousStep, PreviousStepState(..), Query(..), State, Tab(..))
-import Control.Monad.Reader (class MonadAsk)
-import Data.Array (length)
+import Contract.Types (Action(..), PreviousStep, PreviousStepState(..), Query(..), State, Tab(..), scrollContainerRef)
+import Control.Monad.Maybe.Trans (MaybeT(..), runMaybeT)
+import Control.Monad.Reader (class MonadAsk, asks)
+import Data.Array as Array
+import Data.Foldable (for_)
+import Data.FoldableWithIndex (foldlWithIndex)
 import Data.Lens (assign, modifying, over, to, toArrayOf, traversed, use, view, (^.))
 import Data.Map (Map)
 import Data.Map as Map
 import Data.Maybe (Maybe(..))
+import Data.Ord (abs)
 import Data.RawJson (RawJson(..))
 import Data.Set as Set
+import Data.Time.Duration (Milliseconds(..))
+import Data.Traversable (traverse)
 import Data.UUID (emptyUUID)
 import Data.Unfoldable as Unfoldable
-import Effect.Aff.Class (class MonadAff)
+import Effect.Aff (delay)
+import Effect.Aff.AVar as AVar
+import Effect.Aff.Class (class MonadAff, liftAff)
 import Effect.Class (class MonadEffect)
 import Effect.Exception.Unsafe (unsafeThrow)
 import Env (Env)
 import Foreign.Generic (encode)
 import Foreign.JSON (unsafeStringify)
-import Halogen (HalogenM, liftEffect, modify_)
+import Halogen (HalogenM, SubscriptionId, getHTMLElementRef, gets, liftEffect, modify_, subscribe, subscribe', unsubscribe)
+import Halogen.Query.EventSource (EventSource)
+import Halogen.Query.EventSource as EventSource
 import MainFrame.Types (ChildSlots, Msg)
 import Marlowe.Execution (NamedAction(..), PreviousState, _currentContract, _currentState, _pendingTimeouts, _previousState, expandBalances, extractNamedActions, initExecution, isClosed, mkTx, nextState, timeoutState)
 import Marlowe.Extended (TemplateContent, fillTemplate, resolveRelativeTimes, toCore)
@@ -42,6 +52,13 @@ import Marlowe.Slot (currentSlot)
 import Toast.Types (successToast)
 import Types (ContractInstanceId(..))
 import WalletData.Types (WalletNickname)
+import Web.DOM.Element (getElementsByClassName)
+import Web.DOM.HTMLCollection as HTMLCollection
+import Web.DOM.IntersectionObserver (disconnect, intersectionObserver, observe)
+import Web.Dom.ElementExtra (Alignment(..), ScrollBehavior(..), debouncedOnScroll, scrollIntoView, throttledOnScroll)
+import Web.HTML (HTMLElement)
+import Web.HTML.HTMLElement (getBoundingClientRect, offsetLeft)
+import Web.HTML.HTMLElement as HTMLElement
 
 -- see note [dummyState] in MainFrame.State
 dummyState :: State
@@ -50,7 +67,7 @@ dummyState = mkInitialState emptyContractInstanceId zero emptyContractMetadata m
   emptyContractInstanceId = ContractInstanceId emptyUUID
 
 currentStep :: State -> Int
-currentStep = length <<< view _previousSteps
+currentStep = Array.length <<< view _previousSteps
 
 toInput :: NamedAction -> Maybe Input
 toInput (MakeDeposit accountId party token value) = Just $ IDeposit accountId party token value
@@ -171,7 +188,7 @@ regenerateStepCards currentSlot state =
     state { previousSteps = previousSteps, namedActions = namedActions }
 
 selectLastStep :: State -> State
-selectLastStep state@{ previousSteps } = state { selectedStep = length previousSteps }
+selectLastStep state@{ previousSteps } = state { selectedStep = Array.length previousSteps }
 
 applyTx :: Slot -> TransactionInput -> State -> State
 applyTx currentSlot txInput state =
@@ -213,6 +230,8 @@ handleAction (ConfirmAction namedAction) = do
   -- FIXME: send data to BE
   -- void $ mapEnvReaderT _.ajaxSettings $ runExceptT $ postApiContractByContractinstanceidEndpointByEndpointname json contractId "apply-inputs"
   modify_ $ applyTx slot txInput
+  stepNumber <- gets currentStep
+  handleAction $ MoveToStep stepNumber
   addToast $ successToast "Payment received, step completed"
 
 -- raise (SendWebSocketMessage (ServerMsg true)) -- FIXME: send txInput to the server to apply to the on-chain contract
@@ -229,4 +248,150 @@ handleAction (AskConfirmation action) = pure unit -- Managed by Play.State
 
 handleAction CancelConfirmation = pure unit -- Managed by Play.State
 
-handleAction (GoToStep stepNumber) = assign _selectedStep stepNumber
+handleAction (SelectStep stepNumber) = assign _selectedStep stepNumber
+
+handleAction (MoveToStep stepNumber) = do
+  executeOutsideScrollSubscription do
+    scrollStepToCenter Smooth stepNumber
+    -- FIXME: try to add a waitUntilNoScrollEvent here
+    assign _selectedStep stepNumber
+
+handleAction CarouselOpened = do
+  -- When the carousel is opened we want to assure that the selected step is
+  -- in the center without any animation
+  selectedStep <- use _selectedStep
+  scrollStepToCenter Auto selectedStep
+  mElement <- getHTMLElementRef scrollContainerRef
+  for_ mElement \elm -> subscribe' $ carouselCloseEventSource elm
+  subscribeToSelectCenteredStep
+
+handleAction CarouselClosed = unsubscribeFromSelectCenteredStep
+
+executeOutsideScrollSubscription ::
+  forall m.
+  MonadAsk Env m =>
+  MonadAff m =>
+  HalogenM State Action ChildSlots Msg m Unit ->
+  HalogenM State Action ChildSlots Msg m Unit
+executeOutsideScrollSubscription effectfulAction = do
+  unsubscribeFromSelectCenteredStep
+  effectfulAction
+  -- FIXME: comment why the delay and maybe add a waitUntilNoScrollEvent
+  liftAff $ delay $ Milliseconds 200.0
+  subscribeToSelectCenteredStep
+
+unsubscribeFromSelectCenteredStep ::
+  forall m.
+  MonadAff m =>
+  MonadAsk Env m =>
+  HalogenM State Action ChildSlots Msg m Unit
+unsubscribeFromSelectCenteredStep = do
+  mutex <- asks _.contractStepCarouselSubscription
+  mSubscription <- liftAff $ AVar.tryTake mutex
+  for_ mSubscription unsubscribe
+
+subscribeToSelectCenteredStep ::
+  forall m.
+  MonadAff m =>
+  MonadAsk Env m =>
+  HalogenM State Action ChildSlots Msg m Unit
+subscribeToSelectCenteredStep = do
+  mElement <- getHTMLElementRef scrollContainerRef
+  for_ mElement \elm -> do
+    subscription <- subscribe $ selectCenteredStepEventSource elm
+    -- FIXME: add note for mutex
+    mutex <- asks _.contractStepCarouselSubscription
+    mutexUpdated <- liftAff $ AVar.tryPut subscription mutex
+    when (not mutexUpdated) $ unsubscribe subscription
+
+scrollStepToCenter ::
+  forall m state action slots msg.
+  MonadEffect m =>
+  ScrollBehavior ->
+  Int ->
+  HalogenM state action slots msg m Unit
+scrollStepToCenter behavior stepNumber =
+  void
+    $ runMaybeT do
+        parentElement <- MaybeT $ getHTMLElementRef scrollContainerRef
+        let
+          getStepElemets = HTMLCollection.toArray =<< getElementsByClassName "w-contract-card" (HTMLElement.toElement parentElement)
+        stepElement <- MaybeT $ flip Array.index stepNumber <$> liftEffect getStepElemets
+        MaybeT $ map pure $ liftEffect $ scrollIntoView { block: Center, inline: Center, behavior } stepElement
+
+-- Because this is a subcomponent, we don't have a `Finalize` event that we can use, so we add a self contained
+-- subscription (a.k.a. it closes itself) that detects when the modal is no longer visible (not intersecting with the
+-- viewport)
+carouselCloseEventSource ::
+  forall m.
+  MonadAff m =>
+  HTMLElement ->
+  SubscriptionId ->
+  EventSource m Action
+carouselCloseEventSource parentElement _ =
+  EventSource.effectEventSource \emitter -> do
+    observer <-
+      intersectionObserver {} \entries _ ->
+        for_ (Array.head entries) \entry ->
+          when (not entry.isIntersecting) do
+            EventSource.emit emitter CarouselClosed
+            EventSource.close emitter
+    observe (HTMLElement.toElement parentElement) observer
+    pure $ EventSource.Finalizer $ disconnect observer
+
+-- This EventSource is responsible for selecting the step closest to the center of the scroll container
+-- when scrolling
+selectCenteredStepEventSource ::
+  forall m.
+  MonadAff m =>
+  HTMLElement ->
+  EventSource m Action
+selectCenteredStepEventSource scrollContainer =
+  EventSource.effectEventSource \emitter -> do
+    -- Calculate where the left coordinate of the center step should be
+    -- (relative to the visible part of the scroll container)
+    parentWidth <- _.width <$> getBoundingClientRect scrollContainer
+    let
+      stepCardWidth = 264.0
+
+      intendedLeft = parentWidth / 2.0 - stepCardWidth / 2.0
+    -- Calculate the left coordinate of all cards relative to the scroll container (which needs to have a
+    -- display: relative property)
+    stepElements <- HTMLCollection.toArray =<< getElementsByClassName "w-contract-card" (HTMLElement.toElement scrollContainer)
+    stepLeftOffsets <- traverse offsetLeft $ Array.mapMaybe HTMLElement.fromElement stepElements
+    let
+      calculateClosestStep scrollPos =
+        _.index
+          $ foldlWithIndex
+              ( \index accu stepLeftOffset ->
+                  let
+                    diff = abs $ stepLeftOffset - (scrollPos.left + intendedLeft)
+                  in
+                    if diff < accu.diff then { diff, index } else accu
+              )
+              { index: 0, diff: top }
+              stepLeftOffsets
+    -- We use two different scroll listeners:
+    -- * The first one is responsible for actually selecting the step closest to the center. It is throttled,
+    --   which means that it will be called at most once in every `window of time`. We do this because the
+    --   scroll event dispatch several events per scroll action and the callback is handled in the main thread
+    --   so if we do a heavy computation, the browser can lag.
+    unsubscribeSelectEventListener <-
+      throttledOnScroll
+        50.0
+        (HTMLElement.toElement scrollContainer)
+        (calculateClosestStep >>> \index -> EventSource.emit emitter $ SelectStep index)
+    -- * The second one is responsible for snapping the card to the center position. Initially this was
+    --   handled by CSS using the `scroll-snap-type` and `scroll-snap-align` properties. But I found a bug
+    --   in chrome when those properties were used at the same time of a `smooth` scrollTo, so I ended up
+    --   doing manual snapping. The event is debounced, which means that it will be called just once after
+    --   X time with no scroll events.
+    unsubscribeSnapEventListener <-
+      debouncedOnScroll
+        50.0
+        (HTMLElement.toElement scrollContainer)
+        (calculateClosestStep >>> \index -> EventSource.emit emitter $ MoveToStep index)
+    pure $ EventSource.Finalizer
+      $ do
+          unsubscribeSelectEventListener
+          unsubscribeSnapEventListener

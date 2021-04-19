@@ -8,19 +8,21 @@ module Contract.Types
   , Tab(..)
   , Query(..)
   , Action(..)
+  , scrollContainerRef
   ) where
 
 import Prelude
 import Analytics (class IsEvent, defaultEvent)
 import Data.Map (Map)
 import Data.Maybe (Maybe(..))
+import Halogen (RefLabel(..))
 import Marlowe.Execution (ExecutionState, NamedAction)
 import Marlowe.Extended.Metadata (MetaData)
 import Marlowe.Semantics (ChoiceId, ChosenNum, Contract, Party, Slot, TransactionInput, Accounts)
 import Marlowe.Semantics (State) as Semantic
 import Plutus.V1.Ledger.Value (CurrencySymbol)
-import WalletData.Types (WalletNickname)
 import Types (ContractInstanceId)
+import WalletData.Types (WalletNickname)
 
 type State
   = { tab :: Tab
@@ -91,7 +93,10 @@ data Action
   | SelectTab Tab
   | AskConfirmation NamedAction
   | CancelConfirmation
-  | GoToStep Int
+  | SelectStep Int
+  | MoveToStep Int
+  | CarouselOpened
+  | CarouselClosed
 
 instance actionIsEvent :: IsEvent Action where
   toEvent (ConfirmAction _) = Just $ defaultEvent "ConfirmAction"
@@ -99,4 +104,10 @@ instance actionIsEvent :: IsEvent Action where
   toEvent (SelectTab _) = Just $ defaultEvent "SelectTab"
   toEvent (AskConfirmation _) = Just $ defaultEvent "AskConfirmation"
   toEvent CancelConfirmation = Just $ defaultEvent "CancelConfirmation"
-  toEvent (GoToStep _) = Just $ defaultEvent "GoToStep"
+  toEvent (SelectStep _) = Just $ defaultEvent "SelectStep"
+  toEvent (MoveToStep _) = Just $ defaultEvent "MoveToStep"
+  toEvent CarouselOpened = Just $ defaultEvent "CarouselOpened"
+  toEvent CarouselClosed = Just $ defaultEvent "CarouselClosed"
+
+scrollContainerRef :: RefLabel
+scrollContainerRef = RefLabel "scroll-container"
