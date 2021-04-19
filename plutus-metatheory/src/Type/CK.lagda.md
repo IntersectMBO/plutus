@@ -101,7 +101,7 @@ step (s ▻ ƛ A)                      = -, s ◅ V-ƛ A
 step (s ▻ (A · B))                  = -, (s , -· B) ▻ A
 step (s ▻ μ A B)                    = -, (s , μ- B) ▻ A
 step (s ▻ con c)                    = -, s ◅ V-con c
-step (ε ◅ V)                        = -, □ V
+step (ε ◅ V)                        = -, (ε ◅ V)
 step ((s , (-· B)) ◅ V)             = -, (s , V ·-) ▻ B
 step ((s , (V-ƛ A ·-)) ◅ B)       = -, s ▻ (A [ discharge B ])
 step ((s , (-⇒ B)) ◅ V)             = -, (s , V ⇒-) ▻ B
@@ -199,14 +199,14 @@ thm64 (x CC.▻ con x₁) s' (CC.step* refl p) =
   step* refl (thm64 _ s' p)
 thm64 (x CC.◅ x₁) s' (CC.step* refl p) with dissect' x | inspect dissect' x
 ... | inj₁ (refl , refl) | [ eq ] = step* refl (thm64 _ s' p)
-... | inj₂ (I , E , (-· x₂)) | [ eq ] rewrite dissect-lemma x E (-· x₂) eq | CC.lemma E (-· x₂) = step* refl (subst-step* (cong (λ E  → _ , E ▻ x₂) (lemmaH E (x₁ ·-))) (thm64 _ s' p))
-... | inj₂ (I , E , (V-ƛ x₂ ·-)) | [ eq ] rewrite dissect-lemma x E (V-ƛ x₂ ·-) eq | CC.lemma E (V-ƛ x₂ ·-) = step* refl (thm64 _ s' p)
-... | inj₂ (.* , E , (-⇒ x₂)) | [ eq ] rewrite dissect-lemma x E (-⇒ x₂) eq | CC.lemma E (-⇒ x₂)
+... | inj₂ (I , E , (-· x₂)) | [ eq ] rewrite dissect'-lemma x E (-· x₂) eq | CC.lemma E (-· x₂) = step* refl (subst-step* (cong (λ E  → _ , E ▻ x₂) (lemmaH E (x₁ ·-))) (thm64 _ s' p))
+... | inj₂ (I , E , (V-ƛ x₂ ·-)) | [ eq ] rewrite dissect'-lemma x E (V-ƛ x₂ ·-) eq | CC.lemma E (V-ƛ x₂ ·-) = step* refl (thm64 _ s' p)
+... | inj₂ (.* , E , (-⇒ x₂)) | [ eq ] rewrite dissect'-lemma x E (-⇒ x₂) eq | CC.lemma E (-⇒ x₂)
   = step* refl (subst-step* (cong (λ E → _ , E ▻ x₂) (lemmaH E (x₁ ⇒-))) (thm64 _ s' p))
-... | inj₂ (.* , E , (x₂ ⇒-)) | [ eq ] rewrite dissect-lemma x E (x₂ ⇒-) eq | CC.lemma E (x₂ ⇒-) = step* refl (thm64 _ s' p)
-... | inj₂ (.* , E , (μ- B)) | [ eq ] rewrite dissect-lemma x E (μ- B) eq | CC.lemma E (μ- B)
+... | inj₂ (.* , E , (x₂ ⇒-)) | [ eq ] rewrite dissect'-lemma x E (x₂ ⇒-) eq | CC.lemma E (x₂ ⇒-) = step* refl (thm64 _ s' p)
+... | inj₂ (.* , E , (μ- B)) | [ eq ] rewrite dissect'-lemma x E (μ- B) eq | CC.lemma E (μ- B)
   = step* refl (subst-step* (cong (λ E → _ , E ▻ B) (lemmaH E (μ x₁ -))) (thm64 _ s' p))
-... | inj₂ (.* , E , μ x₂ -) | [ eq ]  rewrite dissect-lemma x E (μ x₂ -) eq | CC.lemma E (μ x₂ -) = step* refl (thm64 _ s' p)
+... | inj₂ (.* , E , μ x₂ -) | [ eq ]  rewrite dissect'-lemma x E (μ x₂ -) eq | CC.lemma E (μ x₂ -) = step* refl (thm64 _ s' p)
 thm64 (CC.□ x) s' (CC.step* refl p) = step* refl (thm64 _ s' p)
 
 thm64b : (s : State K J)(s' : State K J')
