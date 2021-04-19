@@ -9,6 +9,7 @@
 
 module PlutusCore.Evaluation.Result
     ( AsEvaluationFailure (..)
+    , evaluationFailure
     , _EvaluationFailureVia
     , EvaluationResult (..)
     , isEvaluationSuccess
@@ -52,6 +53,9 @@ data EvaluationResult a
     = EvaluationSuccess a
     | EvaluationFailure
     deriving (Show, Eq, Generic, Functor, Foldable, Traversable, NFData)
+
+evaluationFailure :: AsEvaluationFailure err => err
+evaluationFailure = _EvaluationFailure # ()
 
 -- This and the next one are two instances that allow us to write the following:
 --

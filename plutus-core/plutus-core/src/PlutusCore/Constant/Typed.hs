@@ -11,6 +11,7 @@
 {-# LANGUAGE OverloadedStrings     #-}
 {-# LANGUAGE PolyKinds             #-}
 {-# LANGUAGE RankNTypes            #-}
+{-# LANGUAGE TemplateHaskell       #-}
 {-# LANGUAGE TypeApplications      #-}
 {-# LANGUAGE TypeFamilies          #-}
 {-# LANGUAGE TypeOperators         #-}
@@ -48,6 +49,7 @@ import           PlutusCore.MkPlc
 import           PlutusCore.Name
 import           PlutusCore.Universe
 
+import           Control.Lens
 import           Control.Monad.Except
 import qualified Data.ByteString                         as BS
 import qualified Data.Kind                               as GHC (Type)
@@ -343,7 +345,8 @@ class KnownTypeAst (UniOf term) a => KnownType term a where
     -- | Convert a Haskell value to the corresponding PLC term.
     -- The inverse of 'readKnown'.
     makeKnown
-        :: ( MonadEmitter m, MonadError err m, AsEvaluationFailure err
+        :: ( MonadError (ErrorWithCause err term) m, AsUnliftingError err, AsEvaluationFailure err
+           , MonadEmitter m
            )
         => a -> m term
     default makeKnown
@@ -369,8 +372,53 @@ class KnownTypeAst (UniOf term) a => KnownType term a where
         => term -> m a
     readKnown = unliftConstant
 
-makeKnownNoEmit :: (KnownType term a, MonadError err m, AsEvaluationFailure err) => a -> m term
-makeKnownNoEmit = unNoEmitterT . makeKnown
+newtype NoCauseT term m a = NoCauseT
+    { unNoCauseT :: m a
+    } deriving newtype (Functor, Applicative, Monad)
+
+newtype NoUnliftingError err = NoUnliftingError err
+makePrisms ''NoUnliftingError
+
+instance AsEvaluationFailure err => AsUnliftingError (NoUnliftingError err) where
+    _UnliftingError = prism (\_ -> NoUnliftingError evaluationFailure) Left
+
+instance AsEvaluationFailure err => AsEvaluationFailure (NoUnliftingError err) where
+    _EvaluationFailure = _NoUnliftingError . _EvaluationFailure
+
+instance (MonadError err m, AsEvaluationFailure err) =>
+            MonadError (ErrorWithCause (NoUnliftingError err) term) (NoCauseT term m) where
+    throwError _ = NoCauseT $ throwError evaluationFailure
+    NoCauseT a `catchError` h =
+        NoCauseT $ a `catchError` \err ->
+            unNoCauseT . h $ ErrorWithCause (NoUnliftingError err) Nothing
+
+makeKnownNoEmit
+    :: forall term a err m. (KnownType term a, MonadError err m, AsEvaluationFailure err)
+    => a -> m term
+makeKnownNoEmit = unNoCauseT @_ @term . unNoEmitterT . makeKnown
+
+newtype KnownTypeMonad term a = KnownTypeMonad
+    { unKnownTypeMonad
+          :: forall err m.
+              ( MonadError (ErrorWithCause err term) m, AsUnliftingError err
+              , MonadEmitter m, AsEvaluationFailure err
+              )
+          => m a
+    } deriving (Functor)
+
+instance Applicative (KnownTypeMonad term) where
+    pure x = KnownTypeMonad $ pure x
+    KnownTypeMonad f <*> KnownTypeMonad a = KnownTypeMonad $ f <*> a
+
+instance Monad (KnownTypeMonad term) where
+    KnownTypeMonad a >>= f = KnownTypeMonad $ a >>= unKnownTypeMonad . f
+
+instance KnownTypeAst uni a => KnownTypeAst uni (KnownTypeMonad m a) where
+    toTypeAst _ = toTypeAst $ Proxy @a
+
+instance (KnownType term a, term ~ term') => KnownType term (KnownTypeMonad term' a) where
+    makeKnown = unKnownTypeMonad >=> makeKnown
+    readKnown = throwingWithCause _UnliftingError "Not supported" . Just
 
 instance KnownTypeAst uni a => KnownTypeAst uni (EvaluationResult a) where
     toTypeAst _ = toTypeAst $ Proxy @a
