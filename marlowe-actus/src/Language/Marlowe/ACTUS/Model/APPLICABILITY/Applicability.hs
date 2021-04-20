@@ -17,14 +17,14 @@ validateTerms t =
             _X (bdc . scfg) t "business day convention" <*
             _X (eomc . scfg) t "end of month convention" <*
             -- TODO: to be used when contract term optionality is fixed
-            -- _NN_I_2 [isJust $ ct_FEANX t, isJust $ ct_FECL t] t ["cycle anchor date of fee", "cycle of fee"] <*
+            -- _X_I_2 [isJust $ ct_FEANX t, isJust $ ct_FECL t] t ["cycle anchor date of fee", "cycle of fee"] <*
             _X ct_FEAC t "fee accrued" <*
             _NN ct_IPNR t "nominal interest rate" <*
             _X ct_IPAC t "accrued interest" <*
             _X ct_IPCED t "capitalization end date" <*
             _X ct_PDIED t "premium discount at IED" <*
             -- TODO: to be used when contract term optionality is fixed
-            -- _NN_I_2 [isJust $ ct_SCANX t, isJust $ ct_SCCL t] t ["cycle anchor date of scaling index", "cycle of scaling index"] <*
+            -- _X_I_2 [isJust $ ct_SCANX t, isJust $ ct_SCCL t] t ["cycle anchor date of scaling index", "cycle of scaling index"] <*
             _X_I_1 [isJust $ ct_RRCL t, isJust $ ct_RRANX t] ct_RRNXT t ["cycle anchor date of rate reset", "cycle of rate reset"] "next reset rate" <*
             _NN ct_NT t "notional principal" <*
             _NN_I_1 [isJust $ ct_PRD t, isJust $ ct_PPRD t] t ["purchase date", "price at purchase date"] <*

@@ -1,7 +1,5 @@
 module Language.Marlowe.ACTUS.Model.Utility.YearFraction where
 
-import           Data.Maybe
-
 import           Data.Time                                        (Day, diffDays, fromGregorian, gregorianMonthLength,
                                                                    isLeapYear, toGregorian)
 import           Language.Marlowe.ACTUS.Definitions.ContractTerms (DCC (DCC_A_360, DCC_A_365, DCC_A_AISDA, DCC_E30_360, DCC_E30_360ISDA))
@@ -41,9 +39,8 @@ yearFraction DCC_A_365 startDay endDay _
   | otherwise
   = 0.0
 
-yearFraction DCC_E30_360ISDA startDay endDay maturityDate
-  | isNothing maturityDate
-  = error $ "DCC_E30_360ISDA requires maturity date"
+yearFraction DCC_E30_360ISDA _ _ Nothing = error "DCC_E30_360ISDA requires maturity date"
+yearFraction DCC_E30_360ISDA startDay endDay (Just maturityDate)
   | startDay <= endDay
   = let
       (d1Year, d1Month, d1Day) = toGregorian startDay
@@ -52,7 +49,7 @@ yearFraction DCC_E30_360ISDA startDay endDay maturityDate
         if isLastDayOfMonth d1Year d1Month d1Day then 30 else d1Day
       d2ChangedDay =
         if isLastDayOfMonth d2Year d2Month d2Day
-             && not (endDay == (fromJust maturityDate) && d2Month == 2)
+             && not (endDay == maturityDate && d2Month == 2)
           then 30
           else d2Day
     in

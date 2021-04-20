@@ -37,6 +37,7 @@ _X_I_2 _uncondCt _condCts  t@ContractTerms{..} uncondName condNames =
                     Failure [Required $ "At least one of the conditional terms in group " ++ show condNames ++ " must be defined when " ++ uncondName ++ " is defined for contract type '" ++ show (fromJust contractType) ++ "'"]
         Nothing -> Success t
 
+-- at least one of the CAs with c=4 in this group has to be defined provided that CA IPCB of the group takes the value NTL
 _X_I_4 _condCts  t@ContractTerms{..} condNames =
     case ct_IPCB of
         Just IPCB_NTL ->
@@ -69,12 +70,7 @@ _NN_I_1 _cts t@ContractTerms{..} termNames =
                     Success t
         True -> Success t
 
--- NN(I, 2, _) (At least one must be defined)
-_NN_I_2 _cts t@ContractTerms{..} termNames =
-    case any id _cts of
-        False -> Failure [Required $ "At least one contract term in group " ++ show termNames ++ " should be defined for contract type '" ++ show (fromJust contractType) ++ "'"]
-        True -> Success t
-
+-- not nullable if CA IPCB of the group takes the value NTIED
 _NN_I_3 _ct t@ContractTerms{..} termName =
     case ct_IPCB of
         Just IPCB_NTIED ->
