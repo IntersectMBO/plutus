@@ -28,7 +28,7 @@ module Plutus.Contract.Trace
     -- * Running 'ContractTrace' actions
     -- * Constructing 'ContractTrace' actions
     , handleUtxoQueries
-    , handleNextTxAtQueries
+    , handleAddressChangedAtQueries
     -- * Handle blockchain events repeatedly
     , handleBlockchainQueries
     , handleSlotNotifications
@@ -147,7 +147,7 @@ handleBlockchainQueries =
     <> handleUtxoQueries
     <> handleTxConfirmedQueries
     <> handleOwnPubKeyQueries
-    <> handleNextTxAtQueries
+    <> handleAddressChangedAtQueries
     <> handleOwnInstanceIdQueries
     <> handleContractNotifications
     <> handleSlotNotifications
@@ -194,7 +194,7 @@ handleTxConfirmedQueries =
     >>> RequestHandler.handleTxConfirmedQueries
     >>^ AwaitTxConfirmed.event . unTxConfirmed
 
-handleNextTxAtQueries ::
+handleAddressChangedAtQueries ::
     ( HasWatchAddress s
     , Member (LogObserve (LogMessage Text)) effs
     , Member (LogMsg RequestHandlerLogMsg) effs
@@ -202,9 +202,9 @@ handleNextTxAtQueries ::
     , Member ChainIndexEffect effs
     )
     => RequestHandler effs (Handlers s) (Event s)
-handleNextTxAtQueries =
+handleAddressChangedAtQueries =
     maybeToHandler WatchAddress.watchAddressRequest
-    >>> RequestHandler.handleNextTxAtQueries
+    >>> RequestHandler.handleAddressChangedAtQueries
     >>^ WatchAddress.event
 
 handleOwnPubKeyQueries ::

@@ -14,7 +14,7 @@ module Plutus.PAB.Core.ContractInstance.RequestHandlers(
     , processOwnPubkeyRequests
     , processUtxoAtRequests
     , processWriteTxRequests
-    , processNextTxAtRequests
+    , processAddressChangedAtRequests
     , processTxConfirmedRequests
     , processInstanceRequests
     , processNotificationEffects
@@ -83,7 +83,7 @@ processWriteTxRequests =
     >>> RequestHandler.handlePendingTransactions
     >>^ WriteTxResponse . either WriteTxFailed WriteTxSuccess
 
-processNextTxAtRequests ::
+processAddressChangedAtRequests ::
     forall effs.
     ( Member (LogObserve (LogMessage Text.Text)) effs
     , Member WalletEffect effs
@@ -91,10 +91,10 @@ processNextTxAtRequests ::
     , Member (LogMsg RequestHandlerLogMsg) effs
     )
     => RequestHandler effs ContractPABRequest ContractResponse
-processNextTxAtRequests =
-    maybeToHandler (extract Events.Contract._NextTxAtRequest)
-    >>> RequestHandler.handleNextTxAtQueries
-    >>^ NextTxAtResponse
+processAddressChangedAtRequests =
+    maybeToHandler (extract Events.Contract._AddressChangedAtRequest)
+    >>> RequestHandler.handleAddressChangedAtQueries
+    >>^ AddressChangedAtResponse
 
 processTxConfirmedRequests ::
     forall effs.

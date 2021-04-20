@@ -560,7 +560,7 @@ handleChainIndexEffect = runChainIndexEffects @t . \case
     WatchedAddresses          -> WalletEffects.watchedAddresses
     ConfirmedBlocks           -> WalletEffects.confirmedBlocks
     TransactionConfirmed txid -> WalletEffects.transactionConfirmed txid
-    NextTx r                  -> WalletEffects.nextTx r
+    AddressChanged r          -> WalletEffects.addressChanged r
 
 handleChainIndexControlEffect ::
     forall t effs.

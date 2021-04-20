@@ -101,15 +101,17 @@ insert am item (ChainIndex ci) =
         alt = Just . insertAI item . fromMaybe mempty
     in ChainIndex (foldl' (\ci' addr -> Map.alter alt addr ci') ci keys)
 
--- | All transactions that modify the address, from a given slot onwards
+-- | All transactions that modify the address in the given slot range
 transactionsAt :: ChainIndex -> SlotRange -> Address -> [ChainIndexItem]
-transactionsAt (ChainIndex mp) sl addr = let
+transactionsAt (ChainIndex mp) slotRange addr = let
     allItems = Map.findWithDefault mempty addr mp
-    result = case sl of
+    result = case slotRange of
         Interval (LowerBound (Finite s1) in1) (UpperBound (Finite s2) in2) ->
-            let low = if in1 then s1 else pred s1
-                high = if in2 then pred s2 else s2
-            in fst $ split low $ snd $ split high allItems
+            -- split includes the slot in fst, excludes in snd
+            -- split 3 == ([1,2,3], [4,5])
+            let low = if in1 then pred s1 else s1
+                high = if in2 then s2 else pred s2
+            in fst $ split high $ snd $ split low allItems
         Interval (LowerBound NegInf _) (UpperBound (Finite s2) in2) ->
             let high = if in2 then s2 else pred s2
             in  fst $ split high allItems

@@ -47,7 +47,7 @@ app trace stateVar =
     hoistServer
         (Proxy @API)
         (liftIO . processIndexEffects trace stateVar)
-        (healthcheck :<|> startWatching :<|> watchedAddresses :<|> confirmedBlocks :<|> WalletEffects.transactionConfirmed :<|> WalletEffects.nextTx)
+        (healthcheck :<|> startWatching :<|> watchedAddresses :<|> confirmedBlocks :<|> WalletEffects.transactionConfirmed :<|> WalletEffects.addressChanged)
 
 main :: ChainIndexTrace -> ChainIndexConfig -> FilePath -> Availability -> IO ()
 main trace ChainIndexConfig{ciBaseUrl} socketPath availability = runLogEffects trace $ do
