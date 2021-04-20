@@ -176,6 +176,7 @@ initialState = do
 type SimulatorContractHandler t =
     forall effs.
         ( Member (Error PABError) effs
+        , Member (LogMsg (PABMultiAgentMsg t)) effs
         )
         => Eff (Contract.ContractEffect t ': effs)
         ~> Eff effs

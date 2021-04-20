@@ -90,7 +90,7 @@ activateContractSTM ::
 activateContractSTM runAppBackend a@ContractActivationArgs{caID, caWallet} = do
     activeContractInstanceId <- ContractInstanceId <$> uuidNextRandom
     logDebug @(ContractInstanceMsg t) $ InitialisingContract caID activeContractInstanceId
-    initialState <- Contract.initialState @t caID
+    initialState <- Contract.initialState @t activeContractInstanceId caID
     Contract.putState @t a activeContractInstanceId initialState
     s <- startSTMInstanceThread @t @m runAppBackend a activeContractInstanceId
     ask >>= void . liftIO . STM.atomically . InstanceState.insertInstance activeContractInstanceId s
@@ -222,7 +222,7 @@ stmInstanceLoop def instanceId = do
         _ -> do
             response <- respondToRequestsSTM @t instanceId currentState
             event <- liftIO $ STM.atomically response
-            (newState :: Contract.State t) <- Contract.updateContract @t (caID def) currentState event
+            (newState :: Contract.State t) <- Contract.updateContract @t instanceId (caID def) currentState event
             Contract.putState @t def instanceId newState
             stmInstanceLoop @t def instanceId
 

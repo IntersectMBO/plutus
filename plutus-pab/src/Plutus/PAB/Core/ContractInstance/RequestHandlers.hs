@@ -28,8 +28,10 @@ import           Control.Monad.Freer.Extras.Log          (LogMessage, LogMsg, Lo
 import           Control.Monad.Freer.Reader              (Reader)
 import           Data.Aeson                              (FromJSON, ToJSON)
 import qualified Data.Aeson                              as JSON
+import qualified Data.Aeson.Encode.Pretty                as JSON
+import qualified Data.ByteString.Lazy.Char8              as BSL8
 import qualified Data.Text                               as Text
-import           Data.Text.Prettyprint.Doc               (Pretty, parens, pretty, viaShow, (<+>))
+import           Data.Text.Prettyprint.Doc               (Pretty, colon, parens, pretty, viaShow, (<+>))
 import           GHC.Generics                            (Generic)
 import           Ledger.Tx                               (Tx, txId)
 import           Plutus.Contract.Effects.WriteTx         (WriteTxResponse (..))
@@ -139,6 +141,7 @@ data ContractInstanceMsg t =
     | InboxMessageMatchesIteration
     | InvokingContractUpdate
     | ObtainedNewState
+    | ContractLog ContractInstanceId JSON.Value
     | UpdatedContract ContractInstanceId IterationID
     | LookingUpContract (Contract.ContractDef t)
     | InitialisingContract (Contract.ContractDef t) ContractInstanceId
@@ -226,6 +229,8 @@ instance (ToJSON (Contract.ContractDef t)) => ToObject (ContractInstanceMsg t) w
                     _                -> Right ()
         NotificationFailed _ ->
             mkObjectStr "notification failed" ()
+        ContractLog i lg ->
+            mkObjectStr "contract log" (i, Tagged @"message" lg)
 
 instance Pretty (Contract.ContractDef t) => Pretty (ContractInstanceMsg t) where
     pretty = \case
@@ -254,3 +259,4 @@ instance Pretty (Contract.ContractDef t) => Pretty (ContractInstanceMsg t) where
         HandlingRequests i rqs -> "Handling" <+> pretty (length rqs) <+> "requests for" <+> pretty i
         BalancingTx msg -> pretty msg
         NotificationFailed e -> "Notification failed:" <+> pretty e
+        ContractLog i m -> pretty i <> colon <+> pretty (BSL8.unpack $ JSON.encodePretty m)

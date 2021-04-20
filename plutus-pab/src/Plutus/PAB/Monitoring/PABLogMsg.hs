@@ -24,8 +24,9 @@ module Plutus.PAB.Monitoring.PABLogMsg(
 
 import           Data.Aeson                              (FromJSON, ToJSON)
 import qualified Data.Aeson                              as JSON
+import           Data.String                             (IsString (..))
 import           Data.Text                               (Text)
-import           Data.Text.Prettyprint.Doc               (Pretty (..), colon, (<+>))
+import           Data.Text.Prettyprint.Doc               (Pretty (..), colon, hang, viaShow, vsep, (<+>))
 import           GHC.Generics                            (Generic)
 
 import           Cardano.BM.Data.Tracer                  (ToObject (..), TracingVerbosity (..))
@@ -34,19 +35,21 @@ import           Cardano.ChainIndex.Types                (ChainIndexServerMsg)
 import           Cardano.Metadata.Types                  (MetadataLogMessage)
 import           Cardano.Node.Types                      (MockServerLogMsg)
 import           Cardano.Wallet.Types                    (WalletMsg)
+import qualified Data.Aeson.Encode.Pretty                as JSON
 import           Data.Aeson.Text                         (encodeToLazyText)
+import qualified Data.ByteString.Lazy.Char8              as BSL8
 import qualified Data.Text                               as T
 import           Plutus.Contract.Resumable               (Response)
 import           Plutus.Contract.State                   (ContractRequest)
 import           Plutus.PAB.Core.ContractInstance        (ContractInstanceMsg (..))
 import           Plutus.PAB.Effects.Contract             (PABContract (..))
-import           Plutus.PAB.Effects.Contract.ContractExe (ContractExe, ContractExeLogMsg (..))
 import           Plutus.PAB.Effects.ContractRuntime      (ContractRuntimeMsg)
 import           Plutus.PAB.Events.Contract              (ContractInstanceId, ContractPABRequest)
 import           Plutus.PAB.Events.ContractInstanceState (PartiallyDecodedResponse)
 import           Plutus.PAB.Instances                    ()
 import           Plutus.PAB.Monitoring.MonadLoggerBridge (MonadLoggerMsg (..))
 import           Plutus.PAB.ParseStringifiedJSON         (UnStringifyJSONLog (..))
+import           Plutus.PAB.Types                        (PABError)
 import           Wallet.Emulator.MultiAgent              (EmulatorEvent)
 import           Wallet.Emulator.Wallet                  (WalletEvent (..))
 
@@ -54,7 +57,7 @@ data AppMsg t =
     InstalledContractsMsg
     | ActiveContractsMsg
     | ContractHistoryMsg
-    | PABMsg PABLogMsg
+    | PABMsg (PABLogMsg t)
     | InstalledContract Text
     | ContractInstances (ContractDef t) [ContractInstanceId]
     | ContractHistoryItem ContractInstanceId (Response JSON.Value)
@@ -64,7 +67,7 @@ deriving stock instance (Show (ContractDef t)) => Show (AppMsg t)
 deriving anyclass instance (ToJSON (ContractDef t)) => ToJSON (AppMsg t)
 deriving anyclass instance (FromJSON (ContractDef t)) => FromJSON (AppMsg t)
 
-instance Pretty (ContractDef t) => Pretty (AppMsg t) where
+instance (Pretty t, Pretty (ContractDef t)) => Pretty (AppMsg t) where
     pretty = \case
         InstalledContractsMsg            -> "Installed contracts"
         ActiveContractsMsg               -> "Active contracts"
@@ -74,10 +77,10 @@ instance Pretty (ContractDef t) => Pretty (AppMsg t) where
         ContractInstances t s            -> pretty t <+> pretty s
         ContractHistoryItem instanceId s -> pretty instanceId <> colon <+> pretty (fmap encodeToLazyText s)
 
-data PABLogMsg =
+data PABLogMsg t =
     SContractExeLogMsg ContractExeLogMsg
-    | SContractInstanceMsg (ContractInstanceMsg ContractExe)
-    | SCoreMsg (CoreMsg ContractExe)
+    | SContractInstanceMsg (ContractInstanceMsg t)
+    | SCoreMsg (CoreMsg t)
     | SUnstringifyJSON UnStringifyJSONLog
     | SWalletEvent Wallet.Emulator.Wallet.WalletEvent
     | SLoggerBridge MonadLoggerMsg
@@ -86,11 +89,14 @@ data PABLogMsg =
     | SWalletMsg WalletMsg
     | SMetaDataLogMsg MetadataLogMessage
     | SMockserverLogMsg MockServerLogMsg
-    | SMultiAgent (PABMultiAgentMsg ContractExe)
-    deriving stock (Show, Generic)
-    deriving anyclass (ToJSON, FromJSON)
+    | SMultiAgent (PABMultiAgentMsg t)
+    deriving stock (Generic)
 
-instance Pretty PABLogMsg where
+deriving stock instance (Show (ContractDef t)) => Show (PABLogMsg t)
+deriving anyclass instance (ToJSON (ContractDef t)) => ToJSON (PABLogMsg t)
+deriving anyclass instance (FromJSON (ContractDef t)) => FromJSON (PABLogMsg t)
+
+instance Pretty (ContractDef t) => Pretty (PABLogMsg t) where
     pretty = \case
         SContractExeLogMsg m   -> pretty m
         SContractInstanceMsg m -> pretty m
@@ -120,7 +126,7 @@ In the definitions below, every object produced by 'toObject' has a field
 
 -}
 
-instance StructuredLog (ContractDef t) => ToObject (AppMsg t) where
+instance (ToJSON (ContractDef t), StructuredLog (ContractDef t)) => ToObject (AppMsg t) where
     toObject v = \case
         InstalledContractsMsg ->
             mkObjectStr "Listing installed contracts" ()
@@ -141,7 +147,7 @@ instance StructuredLog (ContractDef t) => ToObject (AppMsg t) where
                     MaximalVerbosity -> Left (i, state)
                     _                -> Right i
 
-instance ToObject PABLogMsg where
+instance (StructuredLog (ContractDef t), ToJSON (ContractDef t)) => ToObject (PABLogMsg t) where
     toObject v = \case
         SContractExeLogMsg m   -> toObject v m
         SContractInstanceMsg m -> toObject v m
@@ -183,9 +189,9 @@ instance (StructuredLog (ContractDef t), ToJSON (ContractDef t)) => ToObject (PA
         StartingPABBackendServer i -> mkObjectStr "starting backend server" (Tagged @"port" i)
         StartingMetadataServer i   -> mkObjectStr "starting backend server" (Tagged @"port" i)
 
-deriving stock instance (Show t, Show (ContractDef t)) => Show (PABMultiAgentMsg t)
-deriving anyclass instance (ToJSON t, ToJSON (ContractDef t)) => ToJSON (PABMultiAgentMsg t)
-deriving anyclass instance (FromJSON t, FromJSON (ContractDef t)) => FromJSON (PABMultiAgentMsg t)
+deriving stock instance (Show (ContractDef t)) => Show (PABMultiAgentMsg t)
+deriving anyclass instance (ToJSON (ContractDef t)) => ToJSON (PABMultiAgentMsg t)
+deriving anyclass instance (FromJSON (ContractDef t)) => FromJSON (PABMultiAgentMsg t)
 
 instance Pretty (ContractDef t) => Pretty (PABMultiAgentMsg t) where
     pretty = \case
@@ -209,9 +215,9 @@ data CoreMsg t =
     | FoundContract (Maybe (PartiallyDecodedResponse ContractPABRequest))
     deriving stock Generic
 
-deriving stock instance (Show t, Show (ContractDef t)) => Show (CoreMsg t)
-deriving anyclass instance (ToJSON t, ToJSON (ContractDef t)) => ToJSON (CoreMsg t)
-deriving anyclass instance (FromJSON t, FromJSON (ContractDef t)) => FromJSON (CoreMsg t)
+deriving stock instance (Show (ContractDef t)) => Show (CoreMsg t)
+deriving anyclass instance (ToJSON (ContractDef t)) => ToJSON (CoreMsg t)
+deriving anyclass instance (FromJSON (ContractDef t)) => FromJSON (CoreMsg t)
 
 instance Pretty (ContractDef t) => Pretty (CoreMsg t) where
     pretty = \case
@@ -244,3 +250,68 @@ instance Pretty ContractEffectMsg where
     pretty = \case
         SendContractRequest vl      -> "Request:" <+> pretty vl
         ReceiveContractResponse rsp -> "Response:" <+> pretty rsp
+
+data ContractExeLogMsg =
+    InvokeContractMsg
+    | InitContractMsg FilePath
+    | UpdateContractMsg FilePath (ContractRequest JSON.Value)
+    | ExportSignatureMsg FilePath
+    | ProcessExitFailure String
+    | ContractResponse String
+    | Migrating
+    | InvokingEndpoint String JSON.Value
+    | EndpointInvocationResponse [Text]
+    | ContractExePABError PABError
+    deriving stock (Show, Generic)
+    deriving anyclass (ToJSON, FromJSON)
+
+instance Pretty ContractExeLogMsg where
+    pretty = \case
+        InvokeContractMsg -> "InvokeContract"
+        InitContractMsg fp -> fromString fp <+> "init"
+        UpdateContractMsg fp vl ->
+            let pl = BSL8.unpack (JSON.encodePretty vl) in
+            fromString fp
+            <+> "update"
+            <+> fromString pl
+        ExportSignatureMsg fp -> fromString fp <+> "export-signature"
+        ProcessExitFailure err -> "ExitFailure" <+> pretty err
+        ContractResponse str -> pretty str
+        Migrating -> "Migrating"
+        InvokingEndpoint s v ->
+            "Invoking:" <+> pretty s <+> "/" <+> viaShow v
+        EndpointInvocationResponse v ->
+            hang 2 $ vsep ("Invocation response:" : fmap pretty v)
+        ContractExePABError e ->
+            "PAB error:" <+> pretty e
+
+instance ToObject ContractExeLogMsg where
+    toObject v = \case
+        InvokeContractMsg -> mkObjectStr "invoking contract" ()
+        InitContractMsg fp ->
+            mkObjectStr "Initialising contract" (Tagged @"file_path" fp)
+        UpdateContractMsg fp rq ->
+            let f =  Tagged @"file_path" fp in
+            mkObjectStr "updating contract" $ case v of
+                MaximalVerbosity -> Left (f, rq)
+                _                -> Right f
+        ExportSignatureMsg fp ->
+            mkObjectStr "exporting signature" (Tagged @"file_path" fp)
+        ProcessExitFailure f ->
+            mkObjectStr "process exit failure" (Tagged @"error" f)
+        ContractResponse r ->
+            mkObjectStr "received contract response" $
+                case v of
+                    MaximalVerbosity -> Left (Tagged @"response" r)
+                    _                -> Right ()
+        Migrating -> mkObjectStr "migrating database" ()
+        InvokingEndpoint ep vl ->
+            mkObjectStr "Invoking endpoint" $
+                case v of
+                    MinimalVerbosity -> Left (Tagged @"endpoint" ep)
+                    _                -> Right (Tagged @"endpoint" ep, Tagged @"argument" vl)
+        EndpointInvocationResponse lns ->
+            mkObjectStr "endpoint invocation response"  (Tagged @"reponse" lns)
+        ContractExePABError err ->
+            mkObjectStr "contract executable error" (Tagged @"error" err)
+

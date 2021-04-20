@@ -24,6 +24,7 @@ module Plutus.PAB.Effects.Contract.ContractTest(
 
 import           Control.Monad.Freer
 import           Control.Monad.Freer.Error                   (Error)
+import           Control.Monad.Freer.Extras.Log              (LogMsg)
 import           Data.Aeson                                  (FromJSON, ToJSON)
 import           Data.Bifunctor                              (Bifunctor (..))
 import           Data.Row
@@ -42,6 +43,7 @@ import           Plutus.PAB.Effects.Contract.Builtin         (Builtin, SomeBuilt
 import qualified Plutus.PAB.Effects.Contract.Builtin         as Builtin
 import qualified Plutus.PAB.Effects.ContractTest.AtomicSwap  as Contracts.AtomicSwap
 import qualified Plutus.PAB.Effects.ContractTest.PayToWallet as Contracts.PayToWallet
+import           Plutus.PAB.Monitoring.PABLogMsg             (PABMultiAgentMsg)
 import           Plutus.PAB.Types                            (PABError (..))
 import           Schema                                      (FormSchema)
 
@@ -55,6 +57,7 @@ instance Pretty TestContracts where
 -- | A mock/test handler for 'ContractEffect'. Uses 'Plutus.PAB.Effects.Contract.Builtin'.
 handleContractTest ::
     ( Member (Error PABError) effs
+    , Member (LogMsg (PABMultiAgentMsg (Builtin TestContracts))) effs
     )
     => ContractEffect (Builtin TestContracts)
     ~> Eff effs
