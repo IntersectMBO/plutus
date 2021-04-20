@@ -43,7 +43,6 @@ import           Ledger                           hiding (singleton)
 import           Ledger.Constraints               as Constraints
 import           Ledger.Constraints.OnChain       as Constraints
 import           Ledger.Constraints.TxConstraints as Constraints
-import qualified Ledger.Scripts                   as Scripts
 import qualified Ledger.Typed.Scripts             as Scripts
 import           Ledger.Value                     as Value
 import           Playground.Contract
@@ -228,6 +227,15 @@ instance Scripts.ScriptType Uniswapping where
     type instance RedeemerType Uniswapping = UniswapAction
     type instance DatumType Uniswapping = UniswapDatum
 
+
+{-# INLINABLE findOwnInput' #-}
+findOwnInput' :: ScriptContext -> TxInInfo
+findOwnInput' ctx = fromMaybe (error ()) (findOwnInput ctx)
+
+{-# INLINABLE valueWithin #-}
+valueWithin :: TxInInfo -> Value
+valueWithin = txOutValue . txInInfoResolved
+
 {-# INLINABLE checkSwap #-}
 checkSwap :: Integer -> Integer -> Integer -> Integer -> Bool
 checkSwap oldA oldB newA newB =
@@ -248,7 +256,7 @@ checkSwap oldA oldB newA newB =
 --     >= feeDen ^ 2 * oldA * oldB
 
 {-# INLINABLE validateSwap #-}
-validateSwap :: LiquidityPool -> Coin -> ValidatorCtx -> Bool
+validateSwap :: LiquidityPool -> Coin -> ScriptContext -> Bool
 validateSwap LiquidityPool{..} c ctx =
     checkSwap oldA oldB newA newB                                                                &&
     traceIfFalse "expected pool state token to be present in input" (coinValueOf inVal c == 1)   &&
@@ -256,21 +264,18 @@ validateSwap LiquidityPool{..} c ctx =
     traceIfFalse "did not expect Uniswap forging" noUniswapForging
   where
     info :: TxInfo
-    info = valCtxTxInfo ctx
+    info = scriptContextTxInfo ctx
 
     ownInput :: TxInInfo
-    ownInput = findOwnInput ctx
+    ownInput = findOwnInput' ctx
 
-    ownOutput :: TxOutInfo
+    ownOutput :: TxOut
     ownOutput = case [ o
                      | o <- getContinuingOutputs ctx
-                     , txOutType o == PayToScript ownInDatumHash
+                     , txOutDatumHash o == Just (snd $ ownHashes ctx)
                      ] of
         [o] -> o
         _   -> traceError "expected exactly one output to the same liquidity pool"
-
-    ownInDatumHash :: DatumHash
-    ownInDatumHash = let (_, _, h) = ownHashes ctx in h
 
     oldA, oldB, newA, newB :: Integer
     oldA = amountA inVal
@@ -283,8 +288,8 @@ validateSwap LiquidityPool{..} c ctx =
     amountB v = coinValueOf v lpCoinB
 
     inVal, outVal :: Value
-    inVal   = txInInfoValue ownInput
-    outVal  = txOutValue ownOutput
+    inVal  = valueWithin ownInput
+    outVal = txOutValue ownOutput
 
     noUniswapForging :: Bool
     noUniswapForging =
@@ -299,21 +304,21 @@ validateCreate :: Uniswap
                -> Coin
                -> [LiquidityPool]
                -> LiquidityPool
-               -> ValidatorCtx
+               -> ScriptContext
                -> Bool
 validateCreate Uniswap{..} c lps lp@LiquidityPool{..} ctx =
-    traceIfFalse "Uniswap coin not present" (coinValueOf (txInInfoValue $ findOwnInput ctx) usCoin == 1) &&
-    (lpCoinA /= lpCoinB)                                                                                 &&
-    all (/= lp) lps                                                                                      &&
-    Constraints.checkOwnOutputConstraint ctx (OutputConstraint (Factory $ lp : lps) $ coin usCoin 1)     &&
-    (coinValueOf forged c == 1)                                                                          &&
-    (coinValueOf forged liquidityCoin' == liquidity)                                                      &&
-    (outA > 0)                                                                                           &&
-    (outB > 0)                                                                                           &&
+    traceIfFalse "Uniswap coin not present" (coinValueOf (valueWithin $ findOwnInput' ctx) usCoin == 1) &&
+    (lpCoinA /= lpCoinB)                                                                                &&
+    all (/= lp) lps                                                                                     &&
+    Constraints.checkOwnOutputConstraint ctx (OutputConstraint (Factory $ lp : lps) $ coin usCoin 1)    &&
+    (coinValueOf forged c == 1)                                                                         &&
+    (coinValueOf forged liquidityCoin' == liquidity)                                                    &&
+    (outA > 0)                                                                                          &&
+    (outB > 0)                                                                                          &&
     Constraints.checkOwnOutputConstraint ctx (OutputConstraint (Pool lp liquidity) $
         coin lpCoinA outA <> coin lpCoinB outB <> coin c 1)
   where
-    poolOutput :: TxOutInfo
+    poolOutput :: TxOut
     poolOutput = case [o | o <- getContinuingOutputs ctx, coinValueOf (txOutValue o) c == 1] of
         [o] -> o
         _   -> traceError "expected exactly one pool output"
@@ -324,45 +329,45 @@ validateCreate Uniswap{..} c lps lp@LiquidityPool{..} ctx =
     liquidity = calculateInitialLiquidity outA outB
 
     forged :: Value
-    forged = txInfoForge $ valCtxTxInfo ctx
+    forged = txInfoForge $ scriptContextTxInfo ctx
 
     liquidityCoin' :: Coin
     liquidityCoin' = let Coin cs _ = c in Coin cs $ lpTicker lp
 
 {-# INLINABLE validateCloseFactory #-}
-validateCloseFactory :: Uniswap -> Coin -> [LiquidityPool] -> ValidatorCtx -> Bool
+validateCloseFactory :: Uniswap -> Coin -> [LiquidityPool] -> ScriptContext -> Bool
 validateCloseFactory us c lps ctx =
-    traceIfFalse "Uniswap coin not present" (coinValueOf (txInInfoValue $ findOwnInput ctx) usC == 1)             &&
+    traceIfFalse "Uniswap coin not present" (coinValueOf (valueWithin $ findOwnInput' ctx) usC == 1)              &&
     traceIfFalse "wrong forge value"        (txInfoForge info == negate (coin c 1 <>  coin lC (snd lpLiquidity))) &&
     traceIfFalse "factory output wrong"
         (Constraints.checkOwnOutputConstraint ctx $ OutputConstraint (Factory $ filter (/= fst lpLiquidity) lps) $ coin usC 1)
   where
     info :: TxInfo
-    info = valCtxTxInfo ctx
+    info = scriptContextTxInfo ctx
 
     poolInput :: TxInInfo
     poolInput = case [ i
                      | i <- txInfoInputs info
-                     , coinValueOf (txInInfoValue i) c == 1
+                     , coinValueOf (valueWithin i) c == 1
                      ] of
         [i] -> i
         _   -> traceError "expected exactly one pool input"
 
     lpLiquidity :: (LiquidityPool, Integer)
-    lpLiquidity = case txInInfoWitness poolInput of
-        Nothing        -> traceError "pool input witness missing"
-        Just (_, _, h) -> findPoolDatum info h
+    lpLiquidity = case txOutDatumHash . txInInfoResolved $ poolInput of
+        Nothing -> traceError "pool input witness missing"
+        Just h  -> findPoolDatum info h
 
     lC, usC :: Coin
     lC  = Coin (cCurrency c) (lpTicker $ fst lpLiquidity)
     usC = usCoin us
 
 {-# INLINABLE validateClosePool #-}
-validateClosePool :: Uniswap -> ValidatorCtx -> Bool
+validateClosePool :: Uniswap -> ScriptContext -> Bool
 validateClosePool us ctx = hasFactoryInput
   where
     info :: TxInfo
-    info = valCtxTxInfo ctx
+    info = scriptContextTxInfo ctx
 
     hasFactoryInput :: Bool
     hasFactoryInput =
@@ -370,7 +375,7 @@ validateClosePool us ctx = hasFactoryInput
         coinValueOf (valueSpent info) (usCoin us) == 1
 
 {-# INLINABLE validateRemove #-}
-validateRemove :: Coin -> LiquidityPool -> Integer -> ValidatorCtx -> Bool
+validateRemove :: Coin -> LiquidityPool -> Integer -> ScriptContext -> Bool
 validateRemove c lp liquidity ctx =
     traceIfFalse "zero removal"                        (diff > 0)                                  &&
     traceIfFalse "removal of too much liquidity"       (diff < liquidity)                          &&
@@ -381,10 +386,10 @@ validateRemove c lp liquidity ctx =
     traceIfFalse "non-positive liquidity"              (outA > 0 && outB > 0)
   where
     info :: TxInfo
-    info = valCtxTxInfo ctx
+    info = scriptContextTxInfo ctx
 
     ownInput :: TxInInfo
-    ownInput = findOwnInput ctx
+    ownInput = findOwnInput' ctx
 
     output :: TxOut
     output = case getContinuingOutputs ctx of
@@ -392,13 +397,13 @@ validateRemove c lp liquidity ctx =
         _   -> traceError "expected exactly one Uniswap output"
 
     inVal, outVal :: Value
-    inVal  = txInInfoValue ownInput
+    inVal  = valueWithin ownInput
     outVal = txOutValue output
 
     lpLiquidity :: (LiquidityPool, Integer)
-    lpLiquidity = case txOutType output of
-        PayToPubKey   -> traceError "pool output witness missing"
-        PayToScript h -> findPoolDatum info h
+    lpLiquidity = case txOutDatumHash output of
+        Nothing -> traceError "pool output witness missing"
+        Just h  -> findPoolDatum info h
 
     lC :: Coin
     lC = Coin (cCurrency c) (lpTicker lp)
@@ -410,7 +415,7 @@ validateRemove c lp liquidity ctx =
     (outA, outB) = calculateRemoval inA inB liquidity diff
 
 {-# INLINABLE validateAdd #-}
-validateAdd :: Coin -> LiquidityPool -> Integer -> ValidatorCtx -> Bool
+validateAdd :: Coin -> LiquidityPool -> Integer -> ScriptContext -> Bool
 validateAdd c lp liquidity ctx =
     traceIfFalse "pool stake token missing from input"          (coinValueOf inVal c == 1)                                           &&
     traceIfFalse "output pool for same liquidity pair expected" (lp == fst outDatum)                                                 &&
@@ -420,10 +425,10 @@ validateAdd c lp liquidity ctx =
     traceIfFalse "wrong amount of liquidity tokens forged"      (txInfoForge info == coin lC delL)
   where
     info :: TxInfo
-    info = valCtxTxInfo ctx
+    info = scriptContextTxInfo ctx
 
     ownInput :: TxInInfo
-    ownInput = findOwnInput ctx
+    ownInput = findOwnInput' ctx
 
     ownOutput :: TxOut
     ownOutput = case [ o
@@ -439,7 +444,7 @@ validateAdd c lp liquidity ctx =
         Just h  -> findPoolDatum info h
 
     inVal, outVal :: Value
-    inVal  = txInInfoValue ownInput
+    inVal  = valueWithin ownInput
     outVal = txOutValue ownOutput
 
     oldA, oldB, delA, delB, delL :: Integer
@@ -464,7 +469,6 @@ findPoolDatum info h = case findDatum h info of
 
 {-# INLINABLE lpTicker #-}
 lpTicker :: LiquidityPool -> TokenName
---lpTicker = TokenName . hashLiquidityPool
 lpTicker LiquidityPool{..} = TokenName $
     unCurrencySymbol (cCurrency c) `concatenate`
     unCurrencySymbol (cCurrency d) `concatenate`
@@ -479,7 +483,7 @@ mkUniswapValidator :: Uniswap
                    -> Coin
                    -> UniswapDatum
                    -> UniswapAction
-                   -> ValidatorCtx
+                   -> ScriptContext
                    -> Bool
 mkUniswapValidator us c (Factory lps) (Create lp) ctx = validateCreate us c lps lp ctx
 mkUniswapValidator _  c (Pool lp _)   Swap        ctx = validateSwap lp c ctx
@@ -489,10 +493,10 @@ mkUniswapValidator _  c (Pool lp a)   Remove      ctx = validateRemove c lp a ct
 mkUniswapValidator _  c (Pool lp a)   Add         ctx = validateAdd c lp a ctx
 mkUniswapValidator _  _ _             _           _   = False
 
-validateLiquidityForging :: Uniswap -> TokenName -> PolicyCtx -> Bool
+validateLiquidityForging :: Uniswap -> TokenName -> ScriptContext -> Bool
 validateLiquidityForging us tn ctx = case [ i
-                                          | i <- txInfoInputs $ policyCtxTxInfo ctx
-                                          , let v = txInInfoValue i
+                                          | i <- txInfoInputs $ scriptContextTxInfo ctx
+                                          , let v = valueWithin i
                                           , (coinValueOf v usC == 1) ||
                                             (coinValueOf v lpC == 1)
                                           ] of
@@ -519,11 +523,8 @@ uniswapInstance us = Scripts.validator @Uniswapping
 uniswapScript :: Uniswap -> Validator
 uniswapScript = Scripts.validatorScript . uniswapInstance
 
-uniswapHash :: Uniswap -> Ledger.ValidatorHash
-uniswapHash = Scripts.validatorHash . uniswapScript
-
 uniswapAddress :: Uniswap -> Ledger.Address
-uniswapAddress = ScriptAddress . uniswapHash
+uniswapAddress = Ledger.scriptAddress . uniswapScript
 
 uniswap :: CurrencySymbol -> Uniswap
 uniswap cs = Uniswap $ Coin cs uniswapTokenName
@@ -795,7 +796,7 @@ swap us SwapParams{..} = do
 -- This merely inspects the blockchain and does not issue any transactions.
 pools :: forall w s. HasBlockchainActions s => Uniswap -> Contract w s Text [((Coin, Integer), (Coin, Integer))]
 pools us = do
-    utxos <- utxoAt $ ScriptAddress $ uniswapHash us
+    utxos <- utxoAt (uniswapAddress us)
     go $ snd <$> Map.toList utxos
   where
     go :: [TxOutTx] -> Contract w s Text [((Coin, Integer), (Coin, Integer))]
@@ -825,13 +826,13 @@ pools us = do
 funds :: HasBlockchainActions s => Contract w s Text Value
 funds = do
     pkh <- pubKeyHash <$> ownPubKey
-    os  <- map snd . Map.toList <$> utxoAt (PubKeyAddress pkh)
+    os  <- map snd . Map.toList <$> utxoAt (pubKeyHashAddress pkh)
     return $ mconcat [txOutValue $ txOutTxOut o | o <- os]
 
 getUniswapDatum :: TxOutTx -> Contract w s Text UniswapDatum
-getUniswapDatum o = case txOutType $ txOutTxOut o of
-        PayToPubKey   -> throwError "unexpected out type"
-        PayToScript h -> case Map.lookup h $ txData $ txOutTxTx o of
+getUniswapDatum o = case txOutDatumHash $ txOutTxOut o of
+        Nothing -> throwError "datumHash not found"
+        Just h -> case Map.lookup h $ txData $ txOutTxTx o of
             Nothing -> throwError "datum not found"
             Just (Datum e) -> case PlutusTx.fromData e of
                 Nothing -> throwError "datum has wrong type"
