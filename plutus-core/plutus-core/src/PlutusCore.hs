@@ -15,7 +15,10 @@ module PlutusCore
     , Some (..)
     , TypeIn (..)
     , ValueOf (..)
+    , someValueOf
     , someValue
+    , TypeApp
+    , HasUniApply (..)
     , Contains (..)
     , Includes
     , Closed (..)

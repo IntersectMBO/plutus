@@ -27,8 +27,6 @@ import           Test.Tasty
 import           Test.Tasty.HUnit
 import           Test.Tasty.Hedgehog
 
-import           PlutusCore.Evaluation.Machine.Ck
-
 -- | Check that 'Factorial' from the above computes to the same thing as
 -- a factorial defined in PLC itself.
 test_Factorial :: TestTree
@@ -155,12 +153,12 @@ test_Swap =
     testCase "Swap" $ do
         let res = mkConstant @(Bool, Integer) @DefaultUni () (False, 1)
             integerPlc = mkTyBuiltin @Integer ()
-            boolPlc    = mkTyBuiltin @Integer ()
+            boolPlc    = mkTyBuiltin @Bool    ()
             -- swap {integer} {bool} (1, False)
             term
                 = Apply () (mkIterInst () (Builtin () $ Right Swap) [integerPlc, boolPlc])
                 $ mkConstant @(Integer, Bool) () (1, False)
-        unsafeEvaluateCkNoEmit defBuiltinsRuntimeExt term @?= EvaluationSuccess res
+        typecheckEvaluateCkNoEmit defBuiltinsRuntimeExt term @?= Right (EvaluationSuccess res)
 
 test_definition :: TestTree
 test_definition =

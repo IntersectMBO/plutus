@@ -112,6 +112,7 @@ type Compiling m e uni fun a =
     , MonadQuote m
     , Ord a
     , PLC.ToKind uni
+    , PLC.HasUniApply uni
     , PLC.GShow uni, PLC.GEq uni
     , PLC.ToBuiltinMeaning uni fun
     )

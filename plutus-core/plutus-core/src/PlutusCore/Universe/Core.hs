@@ -111,18 +111,12 @@ someValue = someValueOf knownUni
 data TypeApp (a :: k)
 
 class HasUniApply uni where
-    -- runTypeApp :: uni (TypeApp a) -> uni a
     matchUniRunTypeApp
         :: uni a
         -> r
         -> (uni (TypeApp a) -> r)
         -> r
     matchUniApply
-        -- :: uni (TypeApp (fa :: k))
-        -- -- -> (k ~ GHC.Type => r)
-        -- -> r
-        -- -> (forall f a. fa ~ f a => uni (TypeApp (f :: GHC.Type -> k)) -> uni a -> r)
-        -- -> r
         :: uni tfa
         -> r
         -> (forall k f a. tfa ~ TypeApp (f a :: k) => uni (TypeApp f) -> uni a -> r)

@@ -13,7 +13,7 @@ module PlutusCore.Normalize.Internal
     ) where
 
 import           PlutusCore.Core
-import           PlutusCore.MkPlc
+import           PlutusCore.MkPlc     (mkTyBuiltinOf)
 import           PlutusCore.Name
 import           PlutusCore.Quote
 import           PlutusCore.Rename
@@ -123,21 +123,19 @@ safe to do so, because picked values cannot contain uninstantiated variables as 
 are added to environments and normalization instantiates all variables presented in an environment.
 -}
 
-normalizeTyBuiltin
-    :: forall uni tyname. HasUniApply uni
-    => Some (TypeIn uni) -> Type tyname uni ()
-normalizeTyBuiltin (Some (TypeIn uni0)) = matchUniRunTypeApp uni0 _ go where
-    go :: forall k (a :: k). uni (TypeApp a) -> Type tyname uni ()
+normalizeUni :: forall a uni tyname. HasUniApply uni => uni a -> Type tyname uni ()
+normalizeUni uni0 = matchUniRunTypeApp uni0 (go uni0) go where
+    go :: uni b -> Type tyname uni ()
     go uni =
         matchUniApply
             uni
-            (_ $ (mkTyBuiltinOf uni)) -- (mkTyBuiltinOf uni)
-            (\uniF uniA -> TyApp () (go uniF) (mkTyBuiltinOf () uniA))
+            (mkTyBuiltinOf () uni)
+            (\uniF uniA -> TyApp () (go uniF) $ normalizeUni uniA)
 
 -- See Note [Normalization].
 -- | Normalize a 'Type' in the 'NormalizeTypeM' monad.
 normalizeTypeM
-    :: (HasUnique tyname TypeUnique, MonadQuote m)
+    :: (HasUnique tyname TypeUnique, MonadQuote m, HasUniApply uni)
     => Type tyname uni ann -> NormalizeTypeT m tyname uni ann (Normalized (Type tyname uni ann))
 normalizeTypeM (TyForall ann name kind body) =
     TyForall ann name kind <<$>> normalizeTypeM body
@@ -159,9 +157,8 @@ normalizeTypeM var@(TyVar _ name)            = do
         -- A variable is always normalized.
         Nothing -> pure $ Normalized var
         Just ty -> liftDupable ty
-normalizeTypeM builtin@TyBuiltin{}           =
-    -- A built-in type is always normalized.
-    pure $ Normalized builtin
+normalizeTypeM (TyBuiltin ann (Some (TypeIn uni))) =
+    pure . Normalized $ ann <$ normalizeUni uni
 
 {- Note [Normalizing substitution]
 @substituteNormalize[M]@ is only ever used as normalizing substitution that receives two already
@@ -173,7 +170,7 @@ normalized types. However we do not enforce this in the type signature, because
 -- See Note [Normalizing substitution].
 -- | Substitute a type for a variable in a type and normalize in the 'NormalizeTypeM' monad.
 substNormalizeTypeM
-    :: (HasUnique tyname TypeUnique, MonadQuote m)
+    :: (HasUnique tyname TypeUnique, MonadQuote m, HasUniApply uni)
     => Normalized (Type tyname uni ann)                                    -- ^ @ty@
     -> tyname                                                              -- ^ @name@
     -> Type tyname uni ann                                                 -- ^ @body@
@@ -182,7 +179,7 @@ substNormalizeTypeM ty name = withExtendedTypeVarEnv name ty . normalizeTypeM
 
 -- | Normalize every 'Type' in a 'Term'.
 normalizeTypesInM
-    :: (HasUnique tyname TypeUnique, MonadQuote m)
+    :: (HasUnique tyname TypeUnique, MonadQuote m, HasUniApply uni)
     => Term tyname name uni fun ann -> NormalizeTypeT m tyname uni ann (Term tyname name uni fun ann)
 normalizeTypesInM = transformMOf termSubterms normalizeChildTypes where
     normalizeChildTypes = termSubtypes (fmap unNormalized . normalizeTypeM)

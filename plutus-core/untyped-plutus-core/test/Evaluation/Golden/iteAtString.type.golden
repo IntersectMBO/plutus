@@ -1,1 +1,1 @@
-(Right (fun (con bool) (fun (con string) (fun (con string) (con string)))))
+(Right (fun (con bool) (fun [(con []) (con char)] (fun [(con []) (con char)] [(con []) (con char)]))))

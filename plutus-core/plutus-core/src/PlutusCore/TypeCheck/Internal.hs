@@ -189,13 +189,15 @@ dummyType = TyVar () dummyTyName
 
 -- | Normalize a 'Type'.
 normalizeTypeM
-    :: Type TyName uni ann
+    :: HasUniApply uni
+    => Type TyName uni ann
     -> TypeCheckM uni fun cfg err (Normalized (Type TyName uni ann))
 normalizeTypeM ty = Norm.runNormalizeTypeM $ Norm.normalizeTypeM ty
 
 -- | Substitute a type for a variable in a type and normalize the result.
 substNormalizeTypeM
-    :: Normalized (Type TyName uni ())  -- ^ @ty@
+    :: HasUniApply uni
+    => Normalized (Type TyName uni ())  -- ^ @ty@
     -> TyName                           -- ^ @name@
     -> Type TyName uni ()               -- ^ @body@
     -> TypeCheckM uni fun cfg err (Normalized (Type TyName uni ()))
@@ -291,7 +293,8 @@ checkKindOfPatternFunctorM ann pat k =
 
 -- | @unfoldIFixOf pat arg k = NORM (vPat (\(a :: k) -> ifix vPat a) arg)@
 unfoldIFixOf
-    :: Normalized (Type TyName uni ())  -- ^ @vPat@
+    :: HasUniApply uni
+    => Normalized (Type TyName uni ())  -- ^ @vPat@
     -> Normalized (Type TyName uni ())  -- ^ @vArg@
     -> Kind ()                          -- ^ @k@
     -> TypeCheckM uni fun cfg err (Normalized (Type TyName uni ()))
@@ -317,7 +320,7 @@ unfoldIFixOf pat arg k = do
 -- See the [Global uniqueness] and [Type rules] notes.
 -- | Synthesize the type of a term, returning a normalized type.
 inferTypeM
-    :: ( AsTypeError err (Term TyName Name uni fun ()) uni fun ann, ToKind uni
+    :: ( AsTypeError err (Term TyName Name uni fun ()) uni fun ann, ToKind uni, HasUniApply uni
        , HasTypeCheckConfig cfg uni fun, GShow uni, GEq uni, Ix fun
        )
     => Term TyName Name uni fun ann -> TypeCheckM uni fun cfg err (Normalized (Type TyName uni ()))
@@ -327,7 +330,7 @@ inferTypeM
 -- [infer| G !- con c : vTy]
 inferTypeM (Constant _ (Some (ValueOf uni _))) =
     -- See Note [PLC types and universes].
-    pure . Normalized . TyBuiltin () $ Some (TypeIn uni)
+    normalizeTypeM $ mkTyBuiltinOf () uni
 
 -- [infer| G !- bi : vTy]
 -- ------------------------------
@@ -414,7 +417,7 @@ inferTypeM (Error ann ty) = do
 -- See the [Global uniqueness] and [Type rules] notes.
 -- | Check a 'Term' against a 'NormalizedType'.
 checkTypeM
-    :: ( AsTypeError err (Term TyName Name uni fun ()) uni fun ann, ToKind uni
+    :: ( AsTypeError err (Term TyName Name uni fun ()) uni fun ann, ToKind uni, HasUniApply uni
        , HasTypeCheckConfig cfg uni fun, GShow uni, GEq uni, Ix fun
        )
     => ann

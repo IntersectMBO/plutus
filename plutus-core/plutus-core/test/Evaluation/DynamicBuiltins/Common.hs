@@ -21,7 +21,9 @@ import           Control.Monad.Except
 
 -- | Type check and evaluate a term that can contain dynamic built-ins.
 typecheckAnd
-    :: (MonadError (Error uni fun ()) m, ToKind uni, ToBuiltinMeaning uni fun, GShow uni, GEq uni)
+    :: ( MonadError (Error uni fun ()) m, ToKind uni, HasUniApply uni, ToBuiltinMeaning uni fun
+       , GShow uni, GEq uni
+       )
     => (BuiltinsRuntime fun (CkValue uni fun) -> Term TyName Name uni fun () -> a)
     -> BuiltinsRuntime fun (CkValue uni fun) -> Term TyName Name uni fun () -> m a
 typecheckAnd action runtime term = runQuoteT $ do
@@ -33,7 +35,7 @@ typecheckAnd action runtime term = runQuoteT $ do
 
 -- | Type check and evaluate a term that can contain dynamic builtins, logging enabled.
 typecheckEvaluateCk
-    :: ( MonadError (Error uni fun ()) m, ToKind uni, ToBuiltinMeaning uni fun
+    :: ( MonadError (Error uni fun ()) m, ToKind uni, HasUniApply uni, ToBuiltinMeaning uni fun
        , GShow uni, GEq uni, Closed uni, uni `Everywhere` PrettyConst
        , Typeable uni, Typeable fun, Pretty fun
        )
@@ -44,7 +46,7 @@ typecheckEvaluateCk = typecheckAnd unsafeEvaluateCk
 
 -- | Type check and evaluate a term that can contain dynamic builtins, logging disabled.
 typecheckEvaluateCkNoEmit
-    :: ( MonadError (Error uni fun ()) m, ToKind uni, ToBuiltinMeaning uni fun
+    :: ( MonadError (Error uni fun ()) m, ToKind uni, HasUniApply uni, ToBuiltinMeaning uni fun
        , GShow uni, GEq uni, Closed uni, uni `Everywhere` PrettyConst
        , Typeable uni, Typeable fun, Pretty fun
        )
@@ -55,7 +57,7 @@ typecheckEvaluateCkNoEmit = typecheckAnd unsafeEvaluateCkNoEmit
 
 -- | Type check and convert a Plutus Core term to a Haskell value.
 typecheckReadKnownCk
-    :: ( MonadError (Error uni fun ()) m, ToKind uni, ToBuiltinMeaning uni fun
+    :: ( MonadError (Error uni fun ()) m, ToKind uni, HasUniApply uni, ToBuiltinMeaning uni fun
        , KnownType (Term TyName Name uni fun ()) a, GShow uni, GEq uni
        )
     => BuiltinsRuntime fun (CkValue uni fun)
