@@ -68,6 +68,8 @@ import           Ledger.Tx                            as Tx
 import qualified Ledger.Typed.Scripts                 as Scripts
 import           Ledger.Typed.Tx                      (TypedScriptTxOut (..))
 import qualified Ledger.Typed.Tx                      as Typed
+import           Ledger.Value                         (AssetClass)
+import qualified Ledger.Value                         as Value
 import           Plutus.Contract
 import           Plutus.Contract.StateMachine.OnChain (State (..), StateMachine (..), StateMachineInstance (..))
 import qualified Plutus.Contract.StateMachine.OnChain as SM
@@ -150,15 +152,30 @@ defaultChooser xs  =
     let msg = "Found " <> show (length xs) <> " outputs, expected 1"
     in Left (ChooserError (Text.pack msg))
 
+-- | A state chooser function that searches for an output with the thread token
+threadTokenChooser ::
+    forall state input
+    . AssetClass
+    -> [OnChainState state input]
+    -> Either SMContractError (OnChainState state input)
+threadTokenChooser cur states =
+    let flt (TypedScriptTxOut{tyTxOutTxOut=TxOut{txOutValue}},_) = Value.assetClassValue cur 1 `Value.leq` txOutValue in
+    case filter flt states of
+        [x] -> Right x
+        xs ->
+            let msg = unwords ["Found ", show (length xs), "outputs with thread token ", show cur, "expected 1"]
+            in Left (ChooserError (Text.pack msg))
+
 -- | A state machine client with the 'defaultChooser' function
 mkStateMachineClient ::
     forall state input
     . SM.StateMachineInstance state input
     -> StateMachineClient state input
 mkStateMachineClient inst =
+    let scChooser = maybe defaultChooser threadTokenChooser $ SM.smThreadToken $ SM.stateMachine inst in
     StateMachineClient
         { scInstance = inst
-        , scChooser  = defaultChooser
+        , scChooser
         }
 
 {-| Get the current on-chain state of the state machine instance.
@@ -320,8 +337,8 @@ runInitialise ::
     -- ^ The value locked by the contract at the beginning
     -> Contract w schema e state
 runInitialise StateMachineClient{scInstance} initialState initialValue = mapError (review _SMContractError) $ do
-    let StateMachineInstance{validatorInstance} = scInstance
-        tx = mustPayToTheScript initialState initialValue
+    let StateMachineInstance{validatorInstance, stateMachine} = scInstance
+        tx = mustPayToTheScript initialState (initialValue <> SM.threadTokenValue stateMachine)
     let lookups = Constraints.scriptInstanceLookups validatorInstance
     utx <- either (throwing _ConstraintResolutionError) pure (Constraints.mkTx lookups tx)
     submitTxConfirmed utx
@@ -349,7 +366,8 @@ mkStep ::
     -> input
     -> Contract w schema e (Either (InvalidTransition state input) (StateMachineTransition state input))
 mkStep client@StateMachineClient{scInstance} input = do
-    let StateMachineInstance{stateMachine=StateMachine{smTransition}, validatorInstance} = scInstance
+    let StateMachineInstance{stateMachine, validatorInstance} = scInstance
+        StateMachine{smTransition} = stateMachine
     maybeState <- getOnChainState client
     case maybeState of
         Nothing -> pure $ Left $ InvalidTransition Nothing input
@@ -366,7 +384,7 @@ mkStep client@StateMachineClient{scInstance} input = do
                         outputConstraints =
                             if smFinal (SM.stateMachine scInstance) (stateData newState)
                                 then []
-                                else [OutputConstraint{ocDatum = stateData newState, ocValue = stateValue newState }]
+                                else [OutputConstraint{ocDatum = stateData newState, ocValue = stateValue newState <> SM.threadTokenValue stateMachine }]
                     in pure
                         $ Right
                         $ StateMachineTransition

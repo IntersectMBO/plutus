@@ -27,6 +27,7 @@ module Plutus.Trace.Emulator(
     , RunContract.walletInstanceTag
     , RunContract.callEndpoint
     , RunContract.getContractState
+    , RunContract.observableState
     , RunContract.activeEndpoints
     , EmulatedWalletAPI.liftWallet
     , EmulatedWalletAPI.payToWallet
@@ -48,6 +49,9 @@ module Plutus.Trace.Emulator(
     , Wallet.nodeClient
     , Wallet.chainIndex
     , Wallet.signingProcess
+    -- * Throwing errors
+    , throwError
+    , EmulatorRuntimeError(..)
     -- * Running traces
     , EmulatorConfig(..)
     , initialChainState
@@ -67,7 +71,7 @@ import           Control.Lens                            hiding ((:>))
 import           Control.Monad                           (forM_, void)
 import           Control.Monad.Freer
 import           Control.Monad.Freer.Coroutine           (Yield)
-import           Control.Monad.Freer.Error               (Error)
+import           Control.Monad.Freer.Error               (Error, throwError)
 import           Control.Monad.Freer.Extras.Log          (LogMessage (..), LogMsg (..), mapLog)
 import           Control.Monad.Freer.Extras.Modify       (raiseEnd)
 import           Control.Monad.Freer.Reader              (Reader, runReader)
@@ -99,12 +103,12 @@ import           Plutus.Trace.Effects.RunContract        (RunContract, handleRun
 import qualified Plutus.Trace.Effects.RunContract        as RunContract
 import           Plutus.Trace.Effects.Waiting            (Waiting, handleWaiting)
 import qualified Plutus.Trace.Effects.Waiting            as Waiting
-import           Plutus.Trace.Emulator.ContractInstance  (EmulatorRuntimeError)
 import           Plutus.Trace.Emulator.System            (launchSystemThreads)
 import           Plutus.Trace.Emulator.Types             (ContractConstraints, ContractHandle (..),
                                                           ContractInstanceLog (..), ContractInstanceMsg (..),
                                                           ContractInstanceTag, Emulator, EmulatorMessage (..),
-                                                          EmulatorThreads, UserThreadMsg (..))
+                                                          EmulatorRuntimeError (..), EmulatorThreads,
+                                                          UserThreadMsg (..))
 import           Streaming                               (Stream)
 import           Streaming.Prelude                       (Of (..))
 
@@ -129,6 +133,7 @@ type EmulatorTrace a =
             , EmulatorControl
             , EmulatedWalletAPI
             , LogMsg String
+            , Error EmulatorRuntimeError
             ] a
 
 handleEmulatorTrace ::
@@ -144,7 +149,8 @@ handleEmulatorTrace ::
     => EmulatorTrace a
     -> Eff (Reader ThreadId ': Yield (EmSystemCall effs EmulatorMessage) (Maybe EmulatorMessage) ': effs) ()
 handleEmulatorTrace action = do
-    _ <- interpret (mapLog (UserThreadEvent . UserLog))
+    _ <- subsume @(Error EmulatorRuntimeError)
+            . interpret (mapLog (UserThreadEvent . UserLog))
             . interpret handleEmulatedWalletAPI
             . interpret (handleEmulatorControl @_ @effs)
             . interpret (handleWaiting @_ @effs)

@@ -34,7 +34,7 @@ import           Data.Text.Extras                         (tshow)
 import           Ledger                                   (pubKeyAddress)
 import           Ledger.Ada                               (adaSymbol, adaToken, lovelaceValueOf)
 import           Ledger.Value                             (valueOf)
-import           Plutus.Contracts.Currency                (Currency, SimpleMPS (..))
+import           Plutus.Contracts.Currency                (OneShotCurrency, SimpleMPS (..))
 import qualified Plutus.Contracts.GameStateMachine        as Contracts.GameStateMachine
 import           Plutus.PAB.Core
 import           Plutus.PAB.Core.ContractInstance         (ContractInstanceMsg)
@@ -99,7 +99,7 @@ executionTests =
 currencyTest :: TestTree
 currencyTest =
     let mps = SimpleMPS{tokenName="my token", amount = 10000}
-        getCurrency :: JSON.Value -> Maybe Currency
+        getCurrency :: JSON.Value -> Maybe OneShotCurrency
         getCurrency vl = do
             case JSON.parseEither JSON.parseJSON vl of
                 Right (Just (Last cur)) -> Just cur

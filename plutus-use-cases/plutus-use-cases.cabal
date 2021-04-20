@@ -80,7 +80,8 @@ library
         prettyprinter -any,
         hashable -any,
         freer-simple -any,
-        streaming -any
+        streaming -any,
+        semigroups -any
 
     if !(impl(ghcjs) || os(ghcjs))
         build-depends: plutus-tx-plugin -any
