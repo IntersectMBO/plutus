@@ -43,6 +43,7 @@ import qualified Data.Map                                 as Map
 import           Data.Monoid                              (Alt (..), Ap (..))
 import           Data.Text                                (Text)
 import qualified Ledger.AddressMap                        as AM
+import           Ledger.Interval
 
 import           Plutus.Contract.Resumable                (Request (..), Response (..))
 
@@ -183,7 +184,9 @@ handleNextTxAtQueries ::
 handleNextTxAtQueries = RequestHandler $ \req ->
     surroundDebug @Text "handleNextTxAtQueries" $ do
         current <- Wallet.Effects.walletSlot
-        let target = acreqSlot req
+        let target = case acreqSlotRange req of
+                Interval _ (UpperBound (Finite s) in2) -> if in2 then succ s else s
+                Interval _ _                           -> pred current
         logDebug $ HandleNextTxAt current target
         -- If we ask the chain index for transactions that were confirmed in
         -- the current slot, we always get an empty list, because the chain

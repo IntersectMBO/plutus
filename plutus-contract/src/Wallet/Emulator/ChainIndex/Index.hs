@@ -18,11 +18,11 @@ import qualified Data.Map.Strict   as Map
 import           Data.Maybe        (fromMaybe)
 import           Data.Semigroup    (Max (..))
 import           GHC.Generics      (Generic)
-
 import           Ledger.Address    (Address)
 import           Ledger.AddressMap (AddressMap)
 import qualified Ledger.AddressMap as AM
-import           Ledger.Slot       (Slot)
+import           Ledger.Interval   (Extended (..), Interval (..), LowerBound (..), UpperBound (..))
+import           Ledger.Slot       (Slot (..), SlotRange)
 import           Ledger.Tx         (Tx)
 import           Ledger.TxId       (TxId)
 
@@ -102,12 +102,21 @@ insert am item (ChainIndex ci) =
     in ChainIndex (foldl' (\ci' addr -> Map.alter alt addr ci') ci keys)
 
 -- | All transactions that modify the address, from a given slot onwards
-transactionsAt :: ChainIndex -> Slot -> Address -> [ChainIndexItem]
-transactionsAt (ChainIndex mp) sl addr =
-    toList
-    $ unAddressIndex
-    $ fst
-    $ split sl
-    $ snd
-    $ split (pred sl)
-    $ Map.findWithDefault mempty addr mp
+transactionsAt :: ChainIndex -> SlotRange -> Address -> [ChainIndexItem]
+transactionsAt (ChainIndex mp) sl addr = let
+    allItems = Map.findWithDefault mempty addr mp
+    result = case sl of
+        Interval (LowerBound (Finite s1) in1) (UpperBound (Finite s2) in2) ->
+            let low = if in1 then s1 else pred s1
+                high = if in2 then pred s2 else s2
+            in fst $ split low $ snd $ split high allItems
+        Interval (LowerBound NegInf _) (UpperBound (Finite s2) in2) ->
+            let high = if in2 then s2 else pred s2
+            in  fst $ split high allItems
+        Interval (LowerBound (Finite s1) in1) (UpperBound PosInf _) ->
+            let low = if in1 then pred s1 else s1
+            in  snd $ split low allItems
+        Interval (LowerBound NegInf _) (UpperBound PosInf _) -> allItems
+        Interval _ _ -> allItems
+
+    in toList $ unAddressIndex result
