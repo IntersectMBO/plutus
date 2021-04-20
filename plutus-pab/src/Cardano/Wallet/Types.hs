@@ -32,6 +32,8 @@ module Cardano.Wallet.Types (
     , ChainClient (..)
     , WalletUrl (..)
     , ChainIndexUrl
+    -- * Wallet info
+    , WalletInfo(..)
     ) where
 
 import           Cardano.BM.Data.Tracer             (ToObject (..))
@@ -47,20 +49,30 @@ import           Data.Map.Strict                    (Map)
 import           Data.Text                          (Text)
 import           Data.Text.Prettyprint.Doc          (Pretty (..), (<+>))
 import           GHC.Generics                       (Generic)
-import           Ledger                             (PrivateKey)
+import           Ledger                             (PubKey, PubKeyHash)
 import           Plutus.PAB.Arbitrary               ()
 import           Servant                            (ServerError (..))
 import           Servant.Client                     (BaseUrl, ClientError)
 import           Servant.Client.Internal.HttpClient (ClientEnv)
 import           Wallet.Effects                     (ChainIndexEffect, NodeClientEffect, WalletEffect)
 import           Wallet.Emulator.Error              (WalletAPIError)
-import           Wallet.Emulator.Wallet             (Wallet)
+import           Wallet.Emulator.Wallet             (Wallet, WalletState)
 
 
-type Wallets = Map Wallet PrivateKey
+-- | Information about an emulated wallet.
+data WalletInfo =
+    WalletInfo
+        { wiWallet     :: Wallet
+        , wiPubKey     :: PubKey
+        , wiPubKeyHash :: PubKeyHash
+        }
+    deriving stock (Show, Generic)
+    deriving anyclass (ToJSON, FromJSON)
+
+type Wallets = Map Wallet WalletState
 
 data MultiWalletEffect r where
-    CreateWallet :: MultiWalletEffect Wallet
+    CreateWallet :: MultiWalletEffect WalletInfo
     MultiWallet :: Wallet -> Eff '[WalletEffect] a -> MultiWalletEffect a
 makeEffect ''MultiWalletEffect
 

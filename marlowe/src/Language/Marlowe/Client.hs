@@ -4,6 +4,7 @@
 {-# LANGUAGE DeriveAnyClass        #-}
 {-# LANGUAGE DeriveGeneric         #-}
 {-# LANGUAGE DerivingStrategies    #-}
+{-# LANGUAGE DerivingVia           #-}
 {-# LANGUAGE FlexibleContexts      #-}
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE LambdaCase            #-}
@@ -23,8 +24,10 @@
 
 module Language.Marlowe.Client where
 import           Control.Lens
+import           Control.Monad                (forM_)
 import           Control.Monad.Error.Lens     (catching, throwing)
-import           Data.Aeson                   (FromJSON, ToJSON)
+import           Data.Aeson                   (FromJSON, ToJSON, parseJSON, toJSON)
+import           Data.Map.Strict              (Map)
 import qualified Data.Map.Strict              as Map
 import qualified Data.Set                     as Set
 import qualified Data.Text                    as T
@@ -32,11 +35,11 @@ import           GHC.Generics                 (Generic)
 import           Language.Marlowe.Semantics   hiding (Contract)
 import qualified Language.Marlowe.Semantics   as Marlowe
 import           Language.Marlowe.Util        (extractContractRoles)
-import           Ledger                       (Address (..), CurrencySymbol, Datum (..), PubKeyHash, Slot (..),
-                                               TokenName, TxOutTx (..), ValidatorCtx (..), ValidatorHash,
-                                               mkValidatorScript, pubKeyHash, txOutDatum, txOutValue, validatorHash,
-                                               valueSpent)
+import           Ledger                       (CurrencySymbol, Datum (..), PubKeyHash, ScriptContext (..), Slot (..),
+                                               TokenName, TxOut (..), TxOutTx (..), ValidatorHash, mkValidatorScript,
+                                               pubKeyHash, txOutDatum, txOutValue, txOutputs, validatorHash, valueSpent)
 import           Ledger.Ada                   (adaSymbol, adaValueOf)
+import           Ledger.Address               (pubKeyHashAddress, scriptHashAddress)
 import           Ledger.Constraints
 import qualified Ledger.Constraints           as Constraints
 import qualified Ledger.Interval              as Interval
@@ -63,6 +66,10 @@ type MarloweSchema =
         .\/ Endpoint "wait" MarloweParams
         .\/ Endpoint "auto" (MarloweParams, Party, Slot)
         .\/ Endpoint "redeem" (MarloweParams, TokenName, PubKeyHash)
+
+
+type MarloweCompanionSchema = BlockchainActions
+
 
 data MarloweError =
     StateMachineError SM.SMContractError
@@ -128,7 +135,7 @@ marlowePlutusContract = do
     redeem = mapError (review _MarloweError) $ do
         (MarloweParams{rolesCurrency}, role, pkh) <-
             endpoint @"redeem"
-        let address = ScriptAddress (mkRolePayoutValidatorHash rolesCurrency)
+        let address = scriptHashAddress (mkRolePayoutValidatorHash rolesCurrency)
         utxos <- utxoAt address
         let spendPayoutConstraints tx ref TxOutTx{txOutTxOut} = let
                 expectedDatumHash = datumHash (Datum $ PlutusTx.toData role)
@@ -340,9 +347,9 @@ rolePayoutScript symbol = mkValidatorScript ($$(PlutusTx.compile [|| wrapped ||]
 
 
 {-# INLINABLE rolePayoutValidator #-}
-rolePayoutValidator :: CurrencySymbol -> TokenName -> () -> ValidatorCtx -> Bool
+rolePayoutValidator :: CurrencySymbol -> TokenName -> () -> ScriptContext -> Bool
 rolePayoutValidator currency role _ ctx =
-    Val.valueOf (valueSpent (valCtxTxInfo ctx)) currency role P.> 0
+    Val.valueOf (valueSpent (scriptContextTxInfo ctx)) currency role P.> 0
 
 
 mkRolePayoutValidatorHash :: CurrencySymbol -> ValidatorHash
@@ -463,7 +470,7 @@ isFinal MarloweData{marloweContract=c} = c P.== Close
 
 {-# INLINABLE mkValidator #-}
 mkValidator :: MarloweParams -> Scripts.ValidatorType MarloweStateMachine
-mkValidator p = SM.mkValidator $ SM.mkStateMachine (mkMarloweStateMachineTransition p) isFinal
+mkValidator p = SM.mkValidator $ SM.mkStateMachine Nothing (mkMarloweStateMachineTransition p) isFinal
 
 
 mkMarloweValidatorCode
@@ -486,7 +493,7 @@ scriptInstance params = Scripts.validator @MarloweStateMachine
 mkMachineInstance :: MarloweParams -> SM.StateMachineInstance MarloweData MarloweInput
 mkMachineInstance params =
     SM.StateMachineInstance
-    (SM.mkStateMachine (mkMarloweStateMachineTransition params) isFinal)
+    (SM.mkStateMachine Nothing (mkMarloweStateMachineTransition params) isFinal)
     (scriptInstance params)
 
 
@@ -496,3 +503,70 @@ mkMarloweClient params = SM.mkStateMachineClient (mkMachineInstance params)
 
 defaultTxValidationRange :: Slot
 defaultTxValidationRange = 10
+
+
+newtype CompanionState = CompanionState (Map MarloweParams MarloweData)
+  deriving (Semigroup,Monoid) via (Map MarloweParams MarloweData)
+
+instance ToJSON CompanionState where
+    toJSON (CompanionState m) = toJSON $ Map.toList m
+
+instance FromJSON CompanionState where
+    parseJSON v = CompanionState . Map.fromList <$> parseJSON v
+
+{-|
+    Contract that monitors a user wallet for receiving a Marlowe role token.
+    When it sees that a Marlowe contract exists on chain with a role currency
+    of a token the user owns it updates its @CompanionState@
+    with contract's @MarloweParams@ and @MarloweData@
+-}
+marloweCompanionContract :: Contract CompanionState MarloweCompanionSchema MarloweError ()
+marloweCompanionContract = contracts
+  where
+    contracts = do
+        pkh <- pubKeyHash <$> ownPubKey
+        let ownAddress = pubKeyHashAddress pkh
+        utxo <- utxoAt ownAddress
+        let txOuts = fmap (txOutTxOut . snd) $ Map.toList utxo
+        forM_ txOuts notifyOnNewContractRoles
+        cont ownAddress
+    cont ownAddress = do
+        txns <- nextTransactionsAt ownAddress
+        let txOuts = txns >>= txOutputs
+        forM_ txOuts notifyOnNewContractRoles
+        cont ownAddress
+
+
+notifyOnNewContractRoles :: TxOut
+    -> Contract CompanionState MarloweCompanionSchema MarloweError ()
+notifyOnNewContractRoles txout = do
+    let curSymbols = filterRoles txout
+    forM_ curSymbols $ \cs -> do
+        contract <- findMarloweContractsOnChainByRoleCurrency cs
+        case contract of
+            Just (params, md) -> tell $ CompanionState (Map.singleton params md)
+            Nothing           -> pure ()
+
+
+filterRoles :: TxOut -> [CurrencySymbol]
+filterRoles TxOut { txOutValue, txOutDatumHash = Nothing } =
+    let curSymbols = filter (/= adaSymbol) $ AssocMap.keys $ Val.getValue txOutValue
+    in  curSymbols
+filterRoles _ = []
+
+
+findMarloweContractsOnChainByRoleCurrency
+    :: CurrencySymbol
+    -> Contract CompanionState
+                MarloweCompanionSchema
+                MarloweError
+                (Maybe (MarloweParams, MarloweData))
+findMarloweContractsOnChainByRoleCurrency curSym = do
+    let params = marloweParams curSym
+    let client = mkMarloweClient params
+    maybeState <- SM.getOnChainState client
+    case maybeState of
+        Just ((st, _), _) -> do
+            let marloweData = tyTxOutData st
+            pure $ Just (params, marloweData)
+        Nothing -> pure Nothing

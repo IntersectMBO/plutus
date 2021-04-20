@@ -1,11 +1,13 @@
-The Plutus Platform
-===================
+The Plutus Platform and Marlowe
+===============================
 
 The Plutus Platform is the smart contract platform of the Cardano blockchain.
 Plutus contracts consist of pieces that run on the blockchain (*on-chain* code) and pieces that run on a user’s machine (*off-chain* or *client* code).
 
 Both on-chain and off-chain code is written in Haskell, and Plutus smart contracts are Haskell programs.
 Off-chain code is compiled by GHC, the Haskell compiler, and on-chain code is compiled by the Plutus compiler.
+
+Marlowe is the flagship product built on top of the Plutus Platform, consisting of a domain-specific language for writing financial smart contracts.
 
 Smart contracts
 ---------------
@@ -31,10 +33,16 @@ You can also use a normal Haskell development environment on your computer to wr
    :caption: Explore Plutus
    :maxdepth: 2
 
-   tutorials/index
+   plutus/tutorials/index
 
 .. toctree::
-   :caption: Plutus Reference
+   :caption: Explore Marlowe
+   :maxdepth: 2
+
+   marlowe/tutorials/index
+
+.. toctree::
+   :caption: Reference
    :maxdepth: 2
 
    reference/index
@@ -42,11 +50,10 @@ You can also use a normal Haskell development environment on your computer to wr
 References
 ----------
 
-1. Haskell_ is the programming language for Plutus contracts. 
+1. Haskell_ is the programming language for Plutus contracts.
 2. We also generate the developer documentation from our source code using Haddock_. You can also find this documentation in the Playground.
 3. If you want to talk to us directly, you can use the Cardano Forum_.
 
 .. _Haskell: http://haskell.org/
 .. _Haddock: https://www.haskell.org/haddock/index.html
 .. _Forum: http://forum.cardano.org/
-

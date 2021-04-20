@@ -10,23 +10,25 @@ import Data.Map (Map)
 import Data.Maybe (Maybe(..))
 import Marlowe.Extended (TemplateContent)
 import Marlowe.Extended.Template (ContractTemplate)
+import Marlowe.Semantics (TokenName)
+import WalletData.Types (WalletNickname)
 
 type State
   = { template :: ContractTemplate
     , contractNickname :: String
-    -- FIXME: We should add type aliases to these Strings
-    , roleWallets :: Map String String
+    , roleWallets :: Map TokenName WalletNickname
     , templateContent :: TemplateContent
     , slotContentStrings :: Map String String
     }
 
 data Action
   = SetTemplate ContractTemplate
-  | ToggleTemplateLibraryCard
-  | ToggleCreateWalletCard String
-  | ToggleSetupConfirmationCard
+  | OpenTemplateLibraryCard
+  | OpenCreateWalletCard TokenName
+  | OpenSetupConfirmationCard
+  | CloseSetupConfirmationCard
   | SetContractNickname String
-  | SetRoleWallet String String
+  | SetRoleWallet TokenName WalletNickname
   | SetSlotContent String String -- slot input comes from the HTML as a dateTimeString
   | SetValueContent String (Maybe BigInteger)
   | StartContract
@@ -35,9 +37,10 @@ data Action
 -- how to classify them.
 instance actionIsEvent :: IsEvent Action where
   toEvent (SetTemplate _) = Just $ defaultEvent "SetTemplate"
-  toEvent ToggleTemplateLibraryCard = Nothing
-  toEvent (ToggleCreateWalletCard tokenName) = Nothing
-  toEvent ToggleSetupConfirmationCard = Nothing
+  toEvent OpenTemplateLibraryCard = Nothing
+  toEvent (OpenCreateWalletCard tokenName) = Nothing
+  toEvent OpenSetupConfirmationCard = Nothing
+  toEvent CloseSetupConfirmationCard = Nothing
   toEvent (SetContractNickname _) = Just $ defaultEvent "SetContractNickname"
   toEvent (SetRoleWallet _ _) = Just $ defaultEvent "SetRoleWallet"
   toEvent (SetSlotContent _ _) = Just $ defaultEvent "SetSlotContent"

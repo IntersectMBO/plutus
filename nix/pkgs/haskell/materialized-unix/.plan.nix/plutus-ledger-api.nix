@@ -67,7 +67,9 @@
           "Plutus/V1/Ledger/Api"
           "Plutus/V1/Ledger/Bytes"
           "Plutus/V1/Ledger/Contexts"
+          "Plutus/V1/Ledger/Credential"
           "Plutus/V1/Ledger/Crypto"
+          "Plutus/V1/Ledger/DCert"
           "Plutus/V1/Ledger/Examples"
           "Plutus/V1/Ledger/Interval"
           "Plutus/V1/Ledger/Orphans"
@@ -78,6 +80,19 @@
           "Plutus/V1/Ledger/Value"
           ];
         hsSourceDirs = [ "src" ];
+        };
+      tests = {
+        "plutus-ledger-api-test" = {
+          depends = [
+            (hsPkgs."base" or (errorHandler.buildDepError "base"))
+            (hsPkgs."plutus-ledger-api" or (errorHandler.buildDepError "plutus-ledger-api"))
+            (hsPkgs."tasty" or (errorHandler.buildDepError "tasty"))
+            (hsPkgs."tasty-hunit" or (errorHandler.buildDepError "tasty-hunit"))
+            ];
+          buildable = true;
+          hsSourceDirs = [ "test" ];
+          mainPath = [ "Spec.hs" ];
+          };
         };
       };
     } // rec { src = (pkgs.lib).mkDefault ../plutus-ledger-api; }

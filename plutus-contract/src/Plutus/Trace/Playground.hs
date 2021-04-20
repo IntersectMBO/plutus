@@ -18,7 +18,6 @@ module Plutus.Trace.Playground(
     -- * Running traces
     , EmulatorConfig(..)
     , initialChainState
-    , defaultEmulatorConfig
     , runPlaygroundStream
     -- * Interpreter
     , interpretPlaygroundTrace
@@ -55,11 +54,11 @@ import           Plutus.Trace.Emulator.Types                (ContractConstraints
 import           Plutus.Trace.Scheduler                     (EmSystemCall, ThreadId, exit, runThreads)
 import           Streaming                                  (Stream)
 import           Streaming.Prelude                          (Of)
-import           Wallet.Emulator.Chain                      (ChainControlEffect, ChainEffect)
+import           Wallet.Emulator.Chain                      (ChainControlEffect)
 import           Wallet.Emulator.MultiAgent                 (EmulatorEvent, EmulatorEvent' (..), EmulatorState,
                                                              MultiAgentControlEffect, MultiAgentEffect, schedulerEvent)
-import           Wallet.Emulator.Stream                     (EmulatorConfig (..), EmulatorErr (..),
-                                                             defaultEmulatorConfig, initialChainState, runTraceStream)
+import           Wallet.Emulator.Stream                     (EmulatorConfig (..), EmulatorErr (..), initialChainState,
+                                                             runTraceStream)
 import           Wallet.Emulator.Wallet                     (Wallet (..))
 import           Wallet.Types                               (ContractInstanceId)
 
@@ -139,7 +138,6 @@ interpretPlaygroundTrace :: forall w s e effs a.
     ( Member MultiAgentEffect effs
     , Member MultiAgentControlEffect effs
     , Member (Error EmulatorRuntimeError) effs
-    , Member ChainEffect effs
     , Member ChainControlEffect effs
     , Member (LogMsg EmulatorEvent') effs
     , HasBlockchainActions s

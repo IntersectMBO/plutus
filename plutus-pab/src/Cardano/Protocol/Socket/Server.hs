@@ -79,11 +79,19 @@ data ServerCommand =
     -- This command will add a new block by processing
     -- transactions in the memory pool.
     ProcessBlock
+    -- Set the slot number
+  | ModifySlot (Slot -> Slot)
     -- Append a transaction to the transaction pool.
   | AddTx Tx
     -- Trim the blockchain to the size given by the argument
   | TrimTo Int
-    deriving Show
+
+instance Show ServerCommand where
+    show = \case
+        ProcessBlock -> "ProcessBlock"
+        ModifySlot _ -> "ModifySlot"
+        AddTx t      -> "AddTx " <> show t
+        TrimTo i     -> "TrimTo " <> show i
 
 {- | The response from the server. Can be used for the information
      passed back, or for synchronisation.
@@ -91,14 +99,24 @@ data ServerCommand =
 data ServerResponse =
     -- A block was added. We are using this for synchronization.
     BlockAdded Block
+    | SlotChanged Slot
     deriving Show
 
 processBlock :: MonadIO m => ServerHandler -> m Block
 processBlock ServerHandler {shCommandChannel} = do
-    liftIO $ atomically $ writeTQueue (ccCommand shCommandChannel) $ ProcessBlock
+    liftIO $ atomically $ writeTQueue (ccCommand shCommandChannel) ProcessBlock
     -- Wait for the server to finish processing blocks.
     liftIO $ atomically $ readTQueue (ccResponse shCommandChannel) >>= \case
         BlockAdded block -> pure block
+        _                -> retry
+
+modifySlot :: MonadIO m => (Slot -> Slot) -> ServerHandler -> m Slot
+modifySlot f ServerHandler{shCommandChannel} = do
+    liftIO $ atomically $ writeTQueue (ccCommand shCommandChannel) $ ModifySlot f
+    -- Wait for the server to finish changing the slot.
+    liftIO $ atomically $ readTQueue (ccResponse shCommandChannel) >>= \case
+        SlotChanged slot -> pure slot
+        _                -> retry
 
 addTx :: MonadIO m => ServerHandler -> Tx -> m ()
 addTx ServerHandler { shCommandChannel } tx = do
@@ -107,6 +125,24 @@ addTx ServerHandler { shCommandChannel } tx = do
 trimTo :: MonadIO m => ServerHandler -> Int -> m ()
 trimTo ServerHandler {shCommandChannel} size =
     liftIO $ atomically $ writeTQueue (ccCommand shCommandChannel) $ TrimTo size
+
+{- Create a thread that keeps the number of blocks in the channel to the maximum
+   limit of K -}
+pruneChain :: MonadIO m => Integer -> TChan Block -> m ThreadId
+pruneChain k original = do
+  localChannel <- liftIO $ atomically $ cloneTChan original
+  liftIO . forkIO $ go k localChannel
+  where
+  go :: MonadIO m => Integer -> TChan Block -> m ()
+  go k' localChannel = do
+    -- Wait for data on the channel
+    _ <- liftIO $ atomically $ readTChan localChannel
+    if k' == 0
+       {- When the counter reaches zero, there are K blocks in the
+          original channel and we start to remove the oldest stored
+          block by reading it. -}
+       then liftIO $ atomically (readTChan original) >> go 0 localChannel
+       else go (k' - 1) localChannel
 
 handleCommand ::
     MonadIO m
@@ -118,6 +154,16 @@ handleCommand CommandChannel {ccCommand, ccResponse}
     liftIO (atomically $ readTQueue ccCommand) >>= \case
         AddTx tx     ->
             liftIO $ modifyMVar_ isState (pure . over Chain.txPool (tx :))
+        ModifySlot f -> liftIO $ do
+            state <- liftIO $ takeMVar isState
+            let (s, nextState') = Chain.modifySlot f
+                  & interpret Chain.handleControlChain
+                  & Log.handleLogIgnore @Chain.ChainEvent
+                  & runState state
+                  & run
+            putMVar isState nextState'
+            atomically $ do
+                writeTQueue ccResponse (SlotChanged s)
         ProcessBlock -> liftIO $ do
             state <- liftIO $ takeMVar isState
             let (block, nextState') = Chain.processBlock
@@ -137,13 +183,15 @@ handleCommand CommandChannel {ccCommand, ccResponse}
 runServerNode ::
     MonadIO m
  => FilePath
+ -> Integer
  -> ChainState
  -> m ServerHandler
-runServerNode shSocketPath initialState = liftIO $ do
+runServerNode shSocketPath k initialState = liftIO $ do
     serverState      <- initialiseInternalState initialState
     shCommandChannel <- CommandChannel <$> newTQueueIO <*> newTQueueIO
     void $ forkIO . void    $ protocolLoop  shSocketPath     serverState
     void $ forkIO . forever $ handleCommand shCommandChannel serverState
+    void                    $ pruneChain k (isBlocks serverState)
     pure $ ServerHandler { shSocketPath, shCommandChannel }
 
 -- * Internal state
@@ -383,7 +431,7 @@ application internalState@InternalState {isState} =
         chainSync =
              ResponderProtocolOnly $
              MuxPeer
-               (contramap show stdoutTracer)
+               nullTracer
                codecChainSync
                (ChainSync.chainSyncServerPeer
                    (runReader (hoistChainSync chainSyncServer)
@@ -393,7 +441,7 @@ application internalState@InternalState {isState} =
         txSubmission =
             ResponderProtocolOnly $
             MuxPeer
-              (contramap show stdoutTracer)
+              nullTracer
               codecTxSubmission
               (TxSubmission.localTxSubmissionServerPeer (pure $ txSubmissionServer isState))
 

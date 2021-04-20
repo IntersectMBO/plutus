@@ -59,6 +59,7 @@
           (hsPkgs."deriving-aeson" or (errorHandler.buildDepError "deriving-aeson"))
           (hsPkgs."deriving-compat" or (errorHandler.buildDepError "deriving-compat"))
           (hsPkgs."dlist" or (errorHandler.buildDepError "dlist"))
+          (hsPkgs."exceptions" or (errorHandler.buildDepError "exceptions"))
           (hsPkgs."filepath" or (errorHandler.buildDepError "filepath"))
           (hsPkgs."flat" or (errorHandler.buildDepError "flat"))
           (hsPkgs."ghc-prim" or (errorHandler.buildDepError "ghc-prim"))
@@ -77,6 +78,7 @@
           (hsPkgs."prettyprinter" or (errorHandler.buildDepError "prettyprinter"))
           (hsPkgs."prettyprinter-configurable" or (errorHandler.buildDepError "prettyprinter-configurable"))
           (hsPkgs."recursion-schemes" or (errorHandler.buildDepError "recursion-schemes"))
+          (hsPkgs."scientific" or (errorHandler.buildDepError "scientific"))
           (hsPkgs."semigroupoids" or (errorHandler.buildDepError "semigroupoids"))
           (hsPkgs."semigroups" or (errorHandler.buildDepError "semigroups"))
           (hsPkgs."serialise" or (errorHandler.buildDepError "serialise"))
@@ -90,6 +92,7 @@
           (hsPkgs."th-lift-instances" or (errorHandler.buildDepError "th-lift-instances"))
           (hsPkgs."th-utilities" or (errorHandler.buildDepError "th-utilities"))
           (hsPkgs."transformers" or (errorHandler.buildDepError "transformers"))
+          (hsPkgs."unordered-containers" or (errorHandler.buildDepError "unordered-containers"))
           (hsPkgs."witherable" or (errorHandler.buildDepError "witherable"))
           ];
         build-tools = [
@@ -174,6 +177,8 @@
           "UntypedPlutusCore/Rename/Internal"
           "UntypedPlutusCore/Size"
           "UntypedPlutusCore/Subst"
+          "UntypedPlutusCore/Transform/Simplify"
+          "Data/Aeson/Flatten"
           "Data/Aeson/THReader"
           "Data/Functor/Foldable/Monadic"
           "PlutusCore"
@@ -379,6 +384,7 @@
             "Evaluation/ApplyBuiltinName"
             "Evaluation/Golden"
             "Evaluation/Machines"
+            "Transform/Simplify"
             ];
           hsSourceDirs = [ "untyped-plutus-core/test" ];
           mainPath = [ "Spec.hs" ];
@@ -394,6 +400,7 @@
             (hsPkgs."directory" or (errorHandler.buildDepError "directory"))
             (hsPkgs."filepath" or (errorHandler.buildDepError "filepath"))
             (hsPkgs."hedgehog" or (errorHandler.buildDepError "hedgehog"))
+            (hsPkgs."random" or (errorHandler.buildDepError "random"))
             ];
           buildable = true;
           hsSourceDirs = [ "cost-model/budgeting-bench" ];

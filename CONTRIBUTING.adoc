@@ -25,6 +25,14 @@ Please do make use of this, since problems due to mismatched versions of tools a
 
 NOTE: You may want to consider using https://github.com/target/lorri[lorri] as a convenient alternative to running `nix-shell` directly.
 
+=== How to use helper scripts to fix some common issues
+
+The shell comes with some tools for fixing various simple problems that the CI will complain about. Specifically:
+- `fix-stylish-haskell` will re-format all the Haskell sources correctly.
+- `fix-purty` will re-format all the Purescript sources correctly.
+- `fix-png-optimization` will optimize all PNGs in the repository.
+- `updateMaterialized` will update the materialized Nix files (see xref:update-generated[later]).
+
 === How to build the code during development
 
 The `nix-shell` environment has the correct GHC with all the external Haskell dependencies of the project.

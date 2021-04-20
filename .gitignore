@@ -108,3 +108,4 @@ hie.yaml
 node-server.sock
 .pre-commit-config.yaml
 secrets/*/.gpg-id
+ghcid.txt

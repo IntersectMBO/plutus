@@ -142,6 +142,7 @@ data EvaluationResult =
         , emulatorLog       :: [EmulatorEvent] -- ^ The emulator log, newest events first
         , emulatorTrace     :: Text
         , fundsDistribution :: [SimulatorWallet]
+        , feesDistribution  :: [SimulatorWallet]
         , walletKeys        :: [(PubKeyHash, Wallet)]
         }
     deriving (Show, Generic, ToJSON, FromJSON)

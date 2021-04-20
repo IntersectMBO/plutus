@@ -30,11 +30,11 @@ library
         Plutus.Contracts.TokenAccount
         Plutus.Contracts.Crowdfunding
         Plutus.Contracts.Currency
+        Plutus.Contracts.ErrorHandling
         Plutus.Contracts.Escrow
         Plutus.Contracts.Future
-        Plutus.Contracts.Game
         Plutus.Contracts.GameStateMachine
-        Plutus.Contracts.ErrorHandling
+        Plutus.Contracts.Governance
         Plutus.Contracts.MultiSig
         Plutus.Contracts.MultiSigStateMachine
         Plutus.Contracts.PingPong
@@ -66,6 +66,7 @@ library
         aeson -any,
         bytestring -any,
         containers -any,
+        data-default -any,
         freer-extras -any,
         mtl -any,
         plutus-core -any,
@@ -79,7 +80,8 @@ library
         prettyprinter -any,
         hashable -any,
         freer-simple -any,
-        streaming -any
+        streaming -any,
+        semigroups -any
 
     if !(impl(ghcjs) || os(ghcjs))
         build-depends: plutus-tx-plugin -any
@@ -98,9 +100,8 @@ test-suite plutus-use-cases-test
         Spec.ErrorHandling
         Spec.Escrow
         Spec.Future
-        Spec.Game
         Spec.GameStateMachine
-        Spec.Lib
+        Spec.Governance
         Spec.MultiSig
         Spec.MultiSigStateMachine
         Spec.PingPong
@@ -128,6 +129,7 @@ test-suite plutus-use-cases-test
         aeson -any,
         bytestring -any,
         containers -any,
+        data-default -any,
         freer-extras -any,
         hedgehog -any,
         prettyprinter -any,
@@ -135,10 +137,12 @@ test-suite plutus-use-cases-test
         tasty-hunit -any,
         tasty-hedgehog >=0.2.0.0,
         tasty-golden -any,
+        tasty-quickcheck -any,
         text -any,
         lens -any,
         mtl -any,
         row-types -any,
+        QuickCheck -any,
         freer-simple -any,
         foldl -any,
         streaming -any
@@ -161,9 +165,8 @@ executable plutus-use-cases-scripts
         Spec.ErrorHandling
         Spec.Escrow
         Spec.Future
-        Spec.Game
         Spec.GameStateMachine
-        Spec.Lib
+        Spec.Governance
         Spec.MultiSig
         Spec.MultiSigStateMachine
         Spec.PingPong
@@ -184,14 +187,17 @@ executable plutus-use-cases-scripts
         aeson -any,
         bytestring -any,
         containers -any,
+        data-default -any,
         flat -any,
         freer-extras -any,
         hedgehog -any,
         prettyprinter -any,
+        QuickCheck -any,
         tasty -any,
         tasty-hunit -any,
         tasty-hedgehog >=0.2.0.0,
         tasty-golden -any,
+        tasty-quickcheck -any,
         text -any,
         lens -any,
         mtl -any,

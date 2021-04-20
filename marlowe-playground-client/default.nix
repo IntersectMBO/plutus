@@ -1,40 +1,35 @@
-{ pkgs, gitignore-nix, set-git-rev, haskell, webCommon, webCommonMarlowe, webCommonPlayground, buildPursPackage, buildNodeModules, filterNpm }:
+{ pkgs, gitignore-nix, haskell, webCommon, webCommonMarlowe, webCommonPlayground, buildPursPackage, buildNodeModules, filterNpm }:
 let
-  playground-exe = set-git-rev haskell.packages.marlowe-playground-server.components.exes.marlowe-playground-server;
+  playground-exe = haskell.packages.marlowe-playground-server.components.exes.marlowe-playground-server;
 
-  server-invoker =
-    let
-      # the playground uses ghc at runtime so it needs one packaged up with the dependencies it needs in one place
-      runtimeGhc = haskell.project.ghcWithPackages (ps: [
-        ps.marlowe
-      ]);
-    in
-    pkgs.runCommand "marlowe-server-invoker" { buildInputs = [ pkgs.makeWrapper ]; } ''
-      # We need to provide the ghc interpreter with the location of the ghc lib dir and the package db
-      mkdir -p $out/bin
-      ln -s ${playground-exe}/bin/marlowe-playground-server $out/bin/marlowe-playground
-      wrapProgram $out/bin/marlowe-playground \
-        --set GHC_LIB_DIR "${runtimeGhc}/lib/ghc-${runtimeGhc.version}" \
-        --set GHC_BIN_DIR "${runtimeGhc}/bin" \
-        --set GHC_PACKAGE_PATH "${runtimeGhc}/lib/ghc-${runtimeGhc.version}/package.conf.d" \
-        --set GHC_RTS "-M2G"
-    '';
+  build-playground-exe = "$(nix-build --quiet --no-build-output ../default.nix -A plutus.haskell.packages.marlowe-playground-server.components.exes.marlowe-playground-server)";
 
+  build-ghc-with-marlowe = "$(nix-build --quiet --no-build-output -E '(import ./.. {}).plutus.haskell.project.ghcWithPackages(ps: [ ps.marlowe ])')";
+
+  # Output containing the purescript bridge code
   generated-purescript = pkgs.runCommand "marlowe-playground-purescript" { } ''
     mkdir $out
     ${playground-exe}/bin/marlowe-playground-server psgenerator $out
   '';
 
-  # For dev usage
+  # generate-purescript: script to create purescript bridge code
   generate-purescript = pkgs.writeShellScriptBin "marlowe-playground-generate-purs" ''
     rm -rf ./generated
-    $(nix-build ../default.nix --quiet --no-build-output -A marlowe-playground.server-invoker)/bin/marlowe-playground psgenerator generated
+    ${build-playground-exe}/bin/marlowe-playground-server psgenerator generated
   '';
 
-  # For dev usage
+  # start-backend: script to start the plutus-playground-server
+  #
+  # Note-1: We need to add ghc to the path because the server provides /runghc
+  # which needs ghc and dependencies.
+  # Note-2: We want to avoid to pull the huge closure in so we use $(nix-build) instead
   start-backend = pkgs.writeShellScriptBin "marlowe-playground-server" ''
+    echo "marlowe-playground-server: for development use only"
+    GHC_WITH_PKGS=${build-ghc-with-marlowe}
+    export PATH=$GHC_WITH_PKGS/bin:$PATH
     export FRONTEND_URL=https://localhost:8009
-    $(nix-build ../default.nix --quiet --no-build-output -A marlowe-playground.server-invoker)/bin/marlowe-playground webserver
+
+    ${build-playground-exe}/bin/marlowe-playground-server webserver
   '';
 
   cleanSrc = gitignore-nix.gitignoreSource ./.;
@@ -66,5 +61,6 @@ let
   };
 in
 {
-  inherit client server-invoker generated-purescript generate-purescript start-backend;
+  inherit client generate-purescript start-backend;
+  server = playground-exe;
 }

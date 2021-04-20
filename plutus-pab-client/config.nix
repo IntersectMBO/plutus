@@ -3,12 +3,12 @@
 { name
 , db-file ? "/tmp/pab-core.db"
 , client
-, webserver-port ? "8080"
-, walletserver-port ? "8081"
-, nodeserver-port ? "8082"
-, chain-index-port ? "8083"
-, signing-process-port ? "8084"
-, metadata-server-port ? "8085"
+, webserver-port ? "9080"
+, walletserver-port ? "9081"
+, nodeserver-port ? "9082"
+, chain-index-port ? "9083"
+, signing-process-port ? "9084"
+, metadata-server-port ? "9085"
 , wallet ? "1"
 }: pkgs.writeText "pab.yaml" ''
   dbConfig:
@@ -29,6 +29,10 @@
     mscSocketPath: /tmp/node-server.sock
     mscSlotLength: 5
     mscRandomTxInterval: 20000000
+    mscSlotConfig:
+      scZeroSlotTime: "2020-07-29T21:44:51Z" #Wednesday, July 29, 2020 21:44:51 - shelley launch time
+      scSlotLength: 1
+    mscKeptBlocks: 100000
     mscBlockReaper:
       brcInterval: 6000000
       brcBlocksToKeep: 100000

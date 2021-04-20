@@ -17,16 +17,19 @@ module Plutus.Contracts.Prism.Mirror(
     , mirror
     ) where
 
+import           Control.Lens
 import           Control.Monad                       (forever, void)
 import           Data.Aeson                          (FromJSON, ToJSON)
 import           GHC.Generics                        (Generic)
 import           Ledger                              (txId)
+import qualified Ledger.Ada                          as Ada
 import qualified Ledger.Constraints                  as Constraints
 import           Ledger.Crypto                       (PubKeyHash, pubKeyHash)
 import qualified Ledger.Typed.Scripts                as Scripts
 import           Ledger.Value                        (TokenName)
 import           Plutus.Contract
-import           Plutus.Contract.StateMachine        (SMContractError, runInitialise, runStep)
+import           Plutus.Contract.StateMachine        (AsSMContractError (..), SMContractError,
+                                                      StateMachineTransition (..), mkStep, runInitialise)
 import           Plutus.Contracts.Prism.Credential   (Credential (..), CredentialAuthority (..))
 import qualified Plutus.Contracts.Prism.Credential   as Credential
 import           Plutus.Contracts.Prism.StateMachine as StateMachine
@@ -68,11 +71,14 @@ createTokens ::
     -> Contract w s MirrorError ()
 createTokens authority = do
     CredentialOwnerReference{coTokenName, coOwner} <- mapError IssueEndpointError $ endpoint @"issue"
-    let lookups = Constraints.monetaryPolicy (Credential.policy authority)
+    let pk      = Credential.unCredentialAuthority authority
+        lookups = Constraints.monetaryPolicy (Credential.policy authority)
+                  <> Constraints.ownPubKeyHash pk
         theToken = Credential.token Credential{credAuthority=authority,credName=coTokenName}
         constraints =
             Constraints.mustForgeValue theToken
-            <> Constraints.mustBeSignedBy (Credential.unCredentialAuthority authority)
+            <> Constraints.mustBeSignedBy pk
+            <> Constraints.mustPayToPubKey pk (Ada.lovelaceValueOf 1)   -- Add self-spend to force an input
     _ <- mapError CreateTokenTxError $ do
             tx <- submitTxConstraintsWith @Scripts.Any lookups constraints
             awaitTxConfirmed (txId tx)
@@ -88,7 +94,14 @@ revokeToken ::
 revokeToken authority = do
     CredentialOwnerReference{coTokenName, coOwner} <- mapError RevokeEndpointError $ endpoint @"revoke"
     let stateMachine = StateMachine.mkMachineClient authority (pubKeyHash $ walletPubKey coOwner) coTokenName
-    void $ mapError StateMachineError $ runStep stateMachine RevokeCredential
+        lookups = Constraints.monetaryPolicy (Credential.policy authority) <>
+                  Constraints.ownPubKeyHash  (Credential.unCredentialAuthority authority)
+    t <- mapError StateMachineError $ mkStep stateMachine RevokeCredential
+    case t of
+        Left{} -> return () -- Ignore invalid transitions
+        Right StateMachineTransition{smtConstraints=constraints, smtLookups=lookups'} -> do
+            tx <- submitTxConstraintsWith (lookups <> lookups') constraints
+            awaitTxConfirmed (txId tx)
 
 ---
 -- Errors and Logging
@@ -103,3 +116,12 @@ data MirrorError =
     | StateMachineError SMContractError
     deriving stock (Eq, Show, Generic)
     deriving anyclass (ToJSON, FromJSON)
+
+makeClassyPrisms ''MirrorError
+
+instance AsSMContractError MirrorError where
+    _SMContractError = _StateMachineError
+
+instance AsContractError MirrorError where
+    _ContractError =  _SMContractError . _ContractError
+

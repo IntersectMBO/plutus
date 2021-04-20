@@ -17,12 +17,15 @@ import           Data.Void
 import           PlutusTx
 import           PlutusTx.Prelude
 
-import           Plutus.V1.Ledger.Contexts (PolicyCtx (..), TxInfo (..))
-import qualified Plutus.V1.Ledger.Contexts as Validation
+import           Plutus.V1.Ledger.Address    (Address (..))
+import           Plutus.V1.Ledger.Contexts   (ScriptContext (..), ScriptPurpose (..), TxInfo (..))
+import qualified Plutus.V1.Ledger.Contexts   as Validation
+import           Plutus.V1.Ledger.Credential (Credential (..))
 import           Plutus.V1.Ledger.Scripts
+import           Plutus.V1.Ledger.Tx         (TxOut (..))
 
 -- | The type of validators for the given connection type.
-type ValidatorType (a :: Type) = DatumType a -> RedeemerType a -> Validation.ValidatorCtx -> Bool
+type ValidatorType (a :: Type) = DatumType a -> RedeemerType a -> Validation.ScriptContext -> Bool
 
 type WrappedValidatorType = Data -> Data -> Data -> ()
 type WrappedMonetaryPolicyType = Data -> ()
@@ -67,14 +70,14 @@ otherwise. Then, as before, we just check for error in the overall evaluation.
 wrapValidator
     :: forall d r
     . (IsData d, IsData r)
-    => (d -> r -> Validation.ValidatorCtx -> Bool)
+    => (d -> r -> Validation.ScriptContext -> Bool)
     -> WrappedValidatorType
 wrapValidator f (fromData -> Just d) (fromData -> Just r) (fromData -> Just p) = check $ f d r p
 wrapValidator _ _ _ _                                                          = check False
 
 {-# INLINABLE wrapMonetaryPolicy #-}
 wrapMonetaryPolicy
-    :: (Validation.PolicyCtx -> Bool)
+    :: (Validation.ScriptContext -> Bool)
     -> WrappedMonetaryPolicyType
 wrapMonetaryPolicy f (fromData -> Just p) = check $ f p
 wrapMonetaryPolicy _ _                    = check False
@@ -89,8 +92,9 @@ forwardingMPS vshsh =
        `PlutusTx.applyCode` PlutusTx.liftCode vshsh
 
 {-# INLINABLE forwardToValidator #-}
-forwardToValidator :: ValidatorHash -> PolicyCtx -> Bool
-forwardToValidator h PolicyCtx{policyCtxTxInfo=TxInfo{txInfoInputs}} =
-    let checkHash (Just (vh, _, _)) = vh == h
-        checkHash _                 = False
-    in any (checkHash . Validation.txInInfoWitness) txInfoInputs
+forwardToValidator :: ValidatorHash -> ScriptContext -> Bool
+forwardToValidator h ScriptContext{scriptContextTxInfo=TxInfo{txInfoInputs}, scriptContextPurpose=Minting _} =
+    let checkHash TxOut{txOutAddress=Address{addressCredential=ScriptCredential vh}} = vh == h
+        checkHash _                                                                  = False
+    in any (checkHash . Validation.txInInfoResolved) txInfoInputs
+forwardToValidator _ _ = False

@@ -1,4 +1,4 @@
--- GHC doesn't like the definition of 'toDynamicBuiltinMeaning'.
+-- GHC doesn't like the definition of 'makeBuiltinMeaning'.
 {-# OPTIONS_GHC -fno-warn-redundant-constraints #-}
 
 {-# LANGUAGE ConstraintKinds           #-}
@@ -28,6 +28,7 @@ import           PlutusCore.Name
 import           PlutusCore.Universe
 
 import           Control.Lens                            (ix, (^?))
+import           Control.Monad.Catch
 import           Control.Monad.Except
 import           Data.Array
 import qualified Data.ByteString                         as BS
@@ -37,7 +38,7 @@ import           Data.Type.Bool
 import           Data.Type.Equality
 import           GHC.TypeLits
 
--- | The meaning of a dynamic built-in function consists of its type represented as a 'TypeScheme',
+-- | The meaning of a built-in function consists of its type represented as a 'TypeScheme',
 -- its Haskell denotation and a costing function (both in uninstantiated form).
 --
 -- The 'TypeScheme' of a built-in function is used for
@@ -46,27 +47,15 @@ import           GHC.TypeLits
 -- 2. checking equality of the expected type of an argument of a builtin and the actual one
 --    during evaluation, so that we can avoid unsafe-coercing
 --
--- There exist two kinds of built-in functions:
---
--- 1. those whose denotation is known statically. E.g. the denotation of 'AddInteger' is @(+)@
--- 2. those whose denotation is computed at runtimefor. E.g. 'Trace' maps to a function whose
---    denotation is constructed in the 'IO' monad
---
--- Those functions that get their denotation at runtime make use of the @dyn@ parameter that
--- gets instantiated with a record containing interpretations for each of the "dynamic" built-in
--- functions. I.e. for each such function we simply extract its denotation from said record.
--- For "static" built-in function we ignore the @dyn@ record and construct the denotation
--- directly.
---
 -- A costing function for a built-in function is computed from a cost model for all built-in
 -- functions from a certain set, hence the @cost@ parameter.
-data BuiltinMeaning term dyn cost =
+data BuiltinMeaning term cost =
     forall args res. BuiltinMeaning
         (TypeScheme term args res)
-        (dyn -> FoldArgs args res)
+        (FoldArgs args res)
         (cost -> FoldArgsEx args)
 -- I tried making it @(forall term. HasConstantIn uni term => TypeScheme term args res)@ instead of
--- @TypeScheme term args res@, but 'toDynamicBuiltinMeaning' has to talk about
+-- @TypeScheme term args res@, but 'makeBuiltinMeaning' has to talk about
 -- @KnownPolytype binds term args res a@ (note the @term@), because instances of 'KnownMonotype'
 -- are constrained with @KnownType term arg@ and @KnownType term res@, and so the earliest we can
 -- generalize from @term@ to @UniOf term@ is in 'toBuiltinMeaning'.
@@ -93,39 +82,33 @@ newtype BuiltinsRuntime fun term = BuiltinsRuntime
     { unBuiltinRuntime :: Array fun (BuiltinRuntime term)
     }
 
--- | Instantiate a 'BuiltinMeaning' given denotations of dynamic built-in functions and
--- a cost model.
-toBuiltinRuntime :: dyn -> cost -> BuiltinMeaning term dyn cost -> BuiltinRuntime term
-toBuiltinRuntime dyn cost (BuiltinMeaning sch f exF) =
-    BuiltinRuntime sch (getArity sch) (f dyn) (exF cost)
+-- | Instantiate a 'BuiltinMeaning' given denotations of built-in functions and a cost model.
+toBuiltinRuntime :: cost -> BuiltinMeaning term cost -> BuiltinRuntime term
+toBuiltinRuntime cost (BuiltinMeaning sch f exF) =
+    BuiltinRuntime sch (getArity sch) f (exF cost)
 
 -- | A type class for \"each function from a set of built-in functions has a 'BuiltinMeaning'\".
 class (Bounded fun, Enum fun, Ix fun) => ToBuiltinMeaning uni fun where
-    -- | The @dyn@ part of 'BuiltinMeaning'.
-    type DynamicPart uni fun
-
     -- | The @cost@ part of 'BuiltinMeaning'.
     type CostingPart uni fun
 
     -- | Get the 'BuiltinMeaning' of a built-in function.
     toBuiltinMeaning
         :: HasConstantIn uni term
-        => fun -> BuiltinMeaning term (DynamicPart uni fun) (CostingPart uni fun)
+        => fun -> BuiltinMeaning term (CostingPart uni fun)
 
 -- | Get the type of a built-in function.
 typeOfBuiltinFunction :: ToBuiltinMeaning uni fun => fun -> Type TyName uni ()
 typeOfBuiltinFunction fun = case toBuiltinMeaning @_ @_ @(Term TyName Name _ _ ()) fun of
     BuiltinMeaning sch _ _ -> typeSchemeToType sch
 
--- | Calculate runtime info for all built-in functions given denotations of dynamic builtins
+-- | Calculate runtime info for all built-in functions given denotations of builtins
 -- and a cost model.
 toBuiltinsRuntime
-    :: ( dyn ~ DynamicPart uni fun, cost ~ CostingPart uni fun
-       , HasConstantIn uni term, ToBuiltinMeaning uni fun
-       )
-    => dyn -> cost -> BuiltinsRuntime fun term
-toBuiltinsRuntime dyn cost =
-    BuiltinsRuntime . tabulateArray $ toBuiltinRuntime dyn cost . toBuiltinMeaning
+    :: (cost ~ CostingPart uni fun, HasConstantIn uni term, ToBuiltinMeaning uni fun)
+    => cost -> BuiltinsRuntime fun term
+toBuiltinsRuntime cost =
+    BuiltinsRuntime . tabulateArray $ toBuiltinRuntime cost . toBuiltinMeaning
 
 -- | Look up the runtime info of a built-in function during evaluation.
 lookupBuiltin
@@ -134,6 +117,15 @@ lookupBuiltin
 -- @Data.Array@ doesn't seem to have a safe version of @(!)@, hence we use a prism.
 lookupBuiltin fun (BuiltinsRuntime env) = case env ^? ix fun of
     Nothing  -> throwingWithCause _MachineError (UnknownBuiltin fun) Nothing
+    Just bri -> pure bri
+
+-- | Look up the runtime info of a built-in function during evaluation.
+lookupBuiltinExc
+    :: forall ex err fun term m proxy val . (MonadThrow m, ex ~ ErrorWithCause err term, AsMachineError err fun term, Ix fun, Exception ex)
+    => proxy ex -> fun -> BuiltinsRuntime fun val -> m (BuiltinRuntime val)
+-- @Data.Array@ doesn't seem to have a safe version of @(!)@, hence we use a prism.
+lookupBuiltinExc _ fun (BuiltinsRuntime env) = case env ^? ix fun of
+    Nothing  -> throwingWithCauseExc @ex _MachineError (UnknownBuiltin fun) Nothing
     Just bri -> pure bri
 
 {- Note [Automatic derivation of type schemes]
@@ -319,30 +311,15 @@ instance {-# OVERLAPPING #-}
     ) => EnumerateFromTo i k term (a -> b)
 
 -- See Note [Automatic derivation of type schemes]
--- | Construct the meaning for a dynamic built-in function by automatically deriving its
--- 'TypeScheme', given
---
--- 1. a function that extracts the denotation of the builtin from the record with denotations
---    of dynamic builtins
--- 2. an uninstantiated costing function
-toDynamicBuiltinMeaning
-    :: forall a term dyn cost binds args res j.
-       ( args ~ GetArgs a, a ~ FoldArgs args res, binds ~ ToBinds (TypeScheme term args res)
-       , KnownPolytype binds term args res a, EnumerateFromTo 0 j term a
-       )
-    => (dyn -> a) -> (cost -> FoldArgsEx args) -> BuiltinMeaning term dyn cost
-toDynamicBuiltinMeaning = BuiltinMeaning (knownPolytype (Proxy @binds) :: TypeScheme term args res)
-
--- See Note [Automatic derivation of type schemes]
--- | Construct the meaning for a static built-in function by automatically deriving its
+-- | Construct the meaning for a built-in function by automatically deriving its
 -- 'TypeScheme', given
 --
 -- 1. the denotation of the builtin
 -- 2. an uninstantiated costing function
-toStaticBuiltinMeaning
-    :: forall a term dyn cost binds args res j.
+makeBuiltinMeaning
+    :: forall a term cost binds args res j.
        ( args ~ GetArgs a, a ~ FoldArgs args res, binds ~ ToBinds (TypeScheme term args res)
        , KnownPolytype binds term args res a, EnumerateFromTo 0 j term a
        )
-    => a -> (cost -> FoldArgsEx args) -> BuiltinMeaning term dyn cost
-toStaticBuiltinMeaning = toDynamicBuiltinMeaning . const
+    => a -> (cost -> FoldArgsEx args) -> BuiltinMeaning term cost
+makeBuiltinMeaning = BuiltinMeaning (knownPolytype (Proxy @binds) :: TypeScheme term args res)

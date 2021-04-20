@@ -23,17 +23,13 @@ import           Data.String                 as S
 import           Data.Text                   (Text)
 import qualified Data.Text                   as Text
 import           GHC.Generics                (Generic)
-import           Git                         (gitRev)
 import           Network.Wai.Middleware.Cors (cors, corsRequestHeaders, simpleCorsResourcePolicy)
 import           Servant                     (Application, Handler (Handler), Server, ServerError, hoistServer, serve,
                                               serveDirectoryFileServer, (:<|>) ((:<|>)), (:>))
 import qualified WebSocket                   as WS
 
-version :: Applicative m => m Text
-version = pure gitRev
-
 handlers :: FilePath -> Server API
-handlers staticPath = version :<|> WS.handle :<|> serveDirectoryFileServer staticPath
+handlers staticPath = WS.handle :<|> serveDirectoryFileServer staticPath
 
 app :: FilePath -> Application
 app staticPath =

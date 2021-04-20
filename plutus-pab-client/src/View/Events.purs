@@ -17,8 +17,8 @@ import Halogen.HTML (HTML, div_, h2_, text)
 import Ledger.Index (UtxoIndex)
 import Plutus.V1.Ledger.Tx (TxOut, TxOutRef)
 import Playground.Lenses (_utxoIndexEntries)
-import Plutus.PAB.Events (ChainEvent)
-import Plutus.PAB.Types (ContractExe)
+import Plutus.PAB.Events (PABEvent)
+import Plutus.PAB.Effects.Contract.ContractExe (ContractExe)
 import Types (HAction(..))
 import View.Pretty (class Pretty, pretty)
 
@@ -34,7 +34,7 @@ utxoIndexPane utxoIndex =
 utxoEntryPane :: forall p. (TxOutRef /\ TxOut) -> HTML p HAction
 utxoEntryPane (txOutRef /\ txOut) = ChainAction <$> Chain.txOutOfView (const Nothing) false txOut Nothing
 
-eventsPane :: forall p i. Array (ChainEvent ContractExe) -> HTML p i
+eventsPane :: forall p i. Array (PABEvent ContractExe) -> HTML p i
 eventsPane events =
   card_
     [ cardHeader_
@@ -46,7 +46,7 @@ eventsPane events =
     , cardBody_ [ div_ (countedEventPane <$> countConsecutive events) ]
     ]
 
-countedEventPane :: forall t p i. Pretty t => Int /\ ChainEvent t -> HTML p i
+countedEventPane :: forall t p i. Pretty t => Int /\ PABEvent t -> HTML p i
 countedEventPane (count /\ event) =
   div_
     [ preWrap_

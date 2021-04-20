@@ -58,9 +58,9 @@ contract :: AsContractError e => Contract () MultiSigSchema e ()
 contract = (lock `select` unlock) >> contract
 
 {-# INLINABLE validate #-}
-validate :: MultiSig -> () -> () -> ValidatorCtx -> Bool
+validate :: MultiSig -> () -> () -> ScriptContext -> Bool
 validate MultiSig{signatories, minNumSignatures} _ _ p =
-    let present = length (filter (V.txSignedBy (valCtxTxInfo p)) signatories)
+    let present = length (filter (V.txSignedBy (scriptContextTxInfo p)) signatories)
     in traceIfFalse "not enough signatures" (present >= minNumSignatures)
 
 instance Scripts.ScriptType MultiSig where
@@ -68,11 +68,11 @@ instance Scripts.ScriptType MultiSig where
     type instance DatumType MultiSig = ()
 
 scriptInstance :: MultiSig -> Scripts.ScriptInstance MultiSig
-scriptInstance ms =
-    let wrap = Scripts.wrapValidator @() @() in
-    Scripts.validator @MultiSig
-        ($$(PlutusTx.compile [|| validate ||]) `PlutusTx.applyCode` PlutusTx.liftCode ms)
-        $$(PlutusTx.compile [|| wrap ||])
+scriptInstance = Scripts.validatorParam @MultiSig
+    $$(PlutusTx.compile [|| validate ||])
+    $$(PlutusTx.compile [|| wrap ||])
+    where
+        wrap = Scripts.wrapValidator
 
 
 -- | Lock some funds in a 'MultiSig' contract.

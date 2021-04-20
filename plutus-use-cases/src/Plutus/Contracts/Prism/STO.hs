@@ -31,7 +31,7 @@ module Plutus.Contracts.Prism.STO(
 import           Data.Aeson           (FromJSON, ToJSON)
 import           GHC.Generics         (Generic)
 import           Ledger.Ada           (Ada (..), fromValue)
-import           Ledger.Contexts      (PolicyCtx (..))
+import           Ledger.Contexts      (ScriptContext (..), ScriptPurpose (..))
 import qualified Ledger.Contexts      as Validation
 import           Ledger.Crypto        (PubKeyHash)
 import           Ledger.Scripts       (MonetaryPolicy, mkMonetaryPolicyScript, monetaryPolicyHash)
@@ -53,15 +53,16 @@ data STOData =
     deriving anyclass (ToJSON, FromJSON)
 
 {-# INLINABLE validateSTO #-}
-validateSTO :: STOData -> PolicyCtx -> Bool
-validateSTO STOData{stoIssuer,stoCredentialToken,stoTokenName} PolicyCtx{policyCtxTxInfo=txInfo,policyCtxPolicy=ownHash} =
+validateSTO :: STOData -> ScriptContext -> Bool
+validateSTO STOData{stoIssuer,stoCredentialToken,stoTokenName} ScriptContext{scriptContextTxInfo=txInfo,scriptContextPurpose=Minting ownHash} =
     let tokenOK = stoCredentialToken `Value.leq` Validation.valueSpent txInfo
         Lovelace paidToIssuer = fromValue (Validation.valuePaidTo txInfo stoIssuer)
         forgeOK =
             -- Note that this doesn't prevent any tokens with a name other than
             -- 'stoTokenName' from being forged
-            Value.valueOf (Validation.txInfoForge txInfo) (Value.mpsSymbol ownHash) stoTokenName == paidToIssuer
+            Value.valueOf (Validation.txInfoForge txInfo) ownHash stoTokenName == paidToIssuer
     in tokenOK && forgeOK
+validateSTO _ _ = error ()
 
 policy :: STOData -> MonetaryPolicy
 policy stoData = mkMonetaryPolicyScript $

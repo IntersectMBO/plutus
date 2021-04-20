@@ -40,7 +40,7 @@
     \begin{minipage}{\linewidth}
 \begin{alignat*}{2}
   \blue{s; \rho} & \bcompute \blue{x} &~\bmapsto~ &\blue{s;\rho^{\prime} \return V \enspace (\rho[x] = (V,\rho^{\prime}))}\\
-  s;\rho & \compute \con{cn}                          &~\mapsto~& s;\rho \return \con{cn}\\
+  s;\rho & \compute \con{tn}{cn}                      &~\mapsto~& s;\rho \return \con{tn}{cn}\\
   s;\rho & \compute \lamU{x}{M}                       &~\mapsto~& s;\rho \return \lamU{x}{M}\\
   s;\rho & \compute \delay{M}                         &~\mapsto~& s;\rho \return \delay{M}\\
   s;\rho & \compute \force{M}                         &~\mapsto~& s,\inForceFrame{};\rho \compute M \\

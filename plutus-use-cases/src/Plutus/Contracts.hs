@@ -9,12 +9,12 @@ and the `plc` marker respectively).
 
 The validator scripts currently have a type
 
-Redeemer -> DataValue -> ValidatorCtx -> a -> ()
+Redeemer -> DataValue -> ScriptContext -> a -> ()
 
 Where `a` is a parameter specific to the contract (supplied by the user before
 the contract begins). The actual signature of a validator script looks like
 
-Redeemer -> DataValue -> ValidatorCtx -> ()
+Redeemer -> DataValue -> ScriptContext -> ()
 
 So, in the future, the Plutus coordinating code has to translate the `a` value
 to PLC and apply it to the function. This could be done with a type class

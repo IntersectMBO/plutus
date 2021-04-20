@@ -70,7 +70,7 @@ test_stringRoundtrip =
 test_collectStrings :: TestTree
 test_collectStrings = testProperty "collectStrings" . property $ do
     strs <- forAll . Gen.list (Range.linear 0 10) $ Gen.string (Range.linear 0 20) Gen.unicode
-    let runtime = toBuiltinsRuntime () defaultCostModel
+    let runtime = toBuiltinsRuntime defaultCostModel
         step arg rest = mkIterApp () sequ
             [ Apply () (Builtin () Trace) $ mkConstant @String @DefaultUni () arg
             , rest

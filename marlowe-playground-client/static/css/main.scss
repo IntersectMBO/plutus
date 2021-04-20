@@ -135,6 +135,20 @@ a:hover {
     flex-wrap: wrap;
 }
 
+.flex-nowrap {
+    flex-wrap: nowrap;
+}
+
+.flex-noshrink {
+    flex-shrink: 0;
+}
+
+.break-word-span {
+  word-wrap: break-word;
+  min-width: 0;
+  line-height: normal;
+}
+
 .monaco-editor-container {
     height: 100%;
 }

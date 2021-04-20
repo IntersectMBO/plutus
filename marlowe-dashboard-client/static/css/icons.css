@@ -2,10 +2,11 @@
 
 .material-icons-round {
   font-weight: inherit; /* override the default of normal that ships with google's css */
+  user-select: none; /* disable icons from being selected with the mouse */
 }
 
 .with-icon::after {
-  font-family: 'Material Icons Round';
+  font-family: "Material Icons Round";
   font-size: 24px;
   line-height: 1;
   white-space: nowrap;
@@ -14,61 +15,61 @@
 }
 
 .with-icon-add::after {
-  content: 'add';
+  content: "add";
 }
 
 .with-icon-add-circle::after {
-  content: 'add_circle_outline';
+  content: "add_circle_outline";
 }
 
 .with-icon-arrow-right::after {
-  content: 'east';
+  content: "east";
 }
 
 .with-icon-close::after {
-  content: 'close';
+  content: "close";
 }
 
 .with-icon-contacts::after {
-  content: 'people';
+  content: "people";
 }
 
 .with-icon-help::after {
-  content: 'help';
+  content: "help";
 }
 
 .with-icon-home::after {
-  content: 'home';
+  content: "home";
 }
 
 .with-icon-menu::after {
-  content: 'short_text';
+  content: "short_text";
 }
 
 .with-icon-next::after {
-  content: 'chevron_right';
+  content: "chevron_right";
 }
 
 .with-icon-pay::after {
-  content: 'credit_score';
+  content: "credit_score";
 }
 
 .with-icon-previous::after {
-  content: 'chevron_left';
+  content: "chevron_left";
 }
 
 .with-icon-roles::after {
-  content: 'person_pin_circle';
+  content: "person_pin_circle";
 }
 
 .with-icon-terms::after {
-  content: 'alarm_add';
+  content: "alarm_add";
 }
 
 .with-icon-timer::after {
-  content: 'timer';
+  content: "timer";
 }
 
 .with-icon-wallet::after {
-  content: 'account_balance_wallet';
+  content: "account_balance_wallet";
 }

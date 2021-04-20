@@ -1,5 +1,5 @@
 -- Bump this if you need newer packages
-index-state: 2021-02-24T00:00:00Z
+index-state: 2021-04-13T00:00:00Z
 
 packages: doc
           freer-extras
@@ -22,6 +22,7 @@ packages: doc
           plutus-tx-plugin
           plutus-use-cases
           prettyprinter-configurable
+          quickcheck-dynamic
           web-ghc
 
 -- We never, ever, want this.
@@ -37,7 +38,7 @@ benchmarks: true
 package eventful-sql-common
   ghc-options: -XDerivingStrategies -XStandaloneDeriving -XUndecidableInstances -XDataKinds -XFlexibleInstances
 
-allow-newer: 
+allow-newer:
            -- Has a commit to allow newer aeson, not on Hackage yet
            monoidal-containers:aeson
            -- Pins to an old version of Template Haskell, unclear if/when it will be updated
@@ -50,6 +51,14 @@ allow-newer:
 constraints:
   -- aws-lambda-haskell-runtime-wai doesn't compile with newer versions
   aws-lambda-haskell-runtime <= 3.0.3
+  -- big breaking change here, inline-r doens't have an upper bound
+  , singletons < 3.0
+  -- breaks eventful even more than it already was
+  , persistent-template < 2.12
+
+-- See the note on nix/pkgs/default.nix:agdaPackages for why this is here.
+-- (NOTE this will change to ieee754 in newer versions of nixpkgs).
+extra-packages: ieee, filemanip
 
 -- Needs some patches, but upstream seems to be fairly dead (no activity in > 1 year)
 source-repository-package
@@ -89,7 +98,7 @@ source-repository-package
   location: https://github.com/input-output-hk/cardano-prelude
   tag: ee4e7b547a991876e6b05ba542f4e62909f4a571
   subdir:
-    cardano-prelude 
+    cardano-prelude
     cardano-prelude-test
 
 source-repository-package

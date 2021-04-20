@@ -14,12 +14,13 @@ import Halogen.Classes (first, rTable, rTable4cols, rTableCell, rTableEmptyRow)
 import Halogen.Classes as Classes
 import Halogen.HTML (HTML, div, text)
 import Halogen.HTML.Properties (class_, classes)
+import Marlowe.Extended.Metadata (MetaData)
 import Marlowe.Semantics (ChoiceId(..), Party, Token, ValueId(..), _accounts, _boundValues, _choices)
 import Pretty (renderPrettyParty, renderPrettyToken, showPrettyMoney)
 import SimulationPage.Types (Action, BottomPanelView(..), State, _SimulationNotStarted, _SimulationRunning, _executionState, _initialSlot, _marloweState, _slot, _state)
 
-panelContents :: forall p. State -> BottomPanelView -> HTML p Action
-panelContents state CurrentStateView =
+panelContents :: forall p. MetaData -> State -> BottomPanelView -> HTML p Action
+panelContents metadata state CurrentStateView =
   div [ classes [ rTable, rTable4cols ] ]
     ( tableRow
         { title: "Accounts"
@@ -51,7 +52,7 @@ panelContents state CurrentStateView =
     let
       (accounts :: Array (Tuple (Tuple Party Token) BigInteger)) = state ^. (_marloweState <<< _Head <<< _executionState <<< _SimulationRunning <<< _state <<< _accounts <<< to Map.toUnfoldable)
 
-      asTuple (Tuple (Tuple accountOwner tok) value) = renderPrettyParty accountOwner /\ renderPrettyToken tok /\ text (showPrettyMoney value)
+      asTuple (Tuple (Tuple accountOwner tok) value) = renderPrettyParty metadata accountOwner /\ renderPrettyToken tok /\ text (showPrettyMoney value)
     in
       map asTuple accounts
 
@@ -59,7 +60,7 @@ panelContents state CurrentStateView =
     let
       (choices :: Array (Tuple ChoiceId BigInteger)) = state ^. (_marloweState <<< _Head <<< _executionState <<< _SimulationRunning <<< _state <<< _choices <<< to Map.toUnfoldable)
 
-      asTuple (Tuple (ChoiceId choiceName choiceOwner) value) = text (show choiceName) /\ renderPrettyParty choiceOwner /\ text (showPrettyMoney value)
+      asTuple (Tuple (ChoiceId choiceName choiceOwner) value) = text (show choiceName) /\ renderPrettyParty metadata choiceOwner /\ text (showPrettyMoney value)
     in
       map asTuple choices
 

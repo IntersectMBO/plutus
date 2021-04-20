@@ -43,5 +43,5 @@ let
 
 in
 {
-  inherit pkgs plutus;
+  inherit pkgs plutus sources;
 }

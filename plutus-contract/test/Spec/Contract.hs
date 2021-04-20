@@ -158,10 +158,10 @@ tests =
                 (void $ activateContract w1 theContract tag)
 
         , run 2 "pay to wallet"
-            (walletFundsChange w1 (Ada.lovelaceValueOf (-20))
-                .&&. walletFundsChange w2 (Ada.lovelaceValueOf 20)
+            (walletFundsChange w1 (Ada.lovelaceValueOf (-200))
+                .&&. walletFundsChange w2 (Ada.lovelaceValueOf 200)
                 .&&. assertNoFailedTransactions)
-            (void $ Trace.payToWallet w1 w2 (Ada.lovelaceValueOf 20))
+            (void $ Trace.payToWallet w1 w2 (Ada.lovelaceValueOf 200))
 
         , let theContract :: Contract () Schema ContractError PubKey = ownPubKey
           in run 1 "own public key"

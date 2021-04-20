@@ -9,7 +9,7 @@ import Effect.Unsafe (unsafePerformEffect)
 import Halogen.Aff (awaitBody, runHalogenAff)
 import Halogen.VDom.Driver (runUI)
 import MainFrame (initialMainFrame)
-import Plutus.PAB.Webserver.Types (StreamToClient, StreamToServer)
+import Plutus.PAB.Webserver.Types (CombinedWSStreamToClient, CombinedWSStreamToServer)
 import Types (HAction(..), Query(..), Output(..))
 import WebSocket.Support (WebSocketManager, mkWebSocketManager)
 import WebSocket.Support as WS
@@ -20,7 +20,7 @@ main = do
     body <- awaitBody
     driver <- runUI initialMainFrame Init body
     --
-    wsManager :: WebSocketManager StreamToClient StreamToServer <-
+    wsManager :: WebSocketManager CombinedWSStreamToClient CombinedWSStreamToServer <-
       mkWebSocketManager
     void
       $ forkAff

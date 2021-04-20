@@ -1,6 +1,6 @@
-{ pkgs, gitignore-nix, set-git-rev, haskell, webCommon, webCommonPlutus, buildPursPackage, buildNodeModules, filterNpm }:
+{ pkgs, gitignore-nix, haskell, webCommon, webCommonPlutus, buildPursPackage, buildNodeModules, filterNpm }:
 let
-  server-invoker = set-git-rev haskell.packages.plutus-pab.components.exes.plutus-pab;
+  server-invoker = haskell.packages.plutus-pab.components.exes.plutus-pab;
 
   generated-purescript = pkgs.runCommand "plutus-pab-purescript" { } ''
     mkdir $out

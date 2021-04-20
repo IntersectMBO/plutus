@@ -1,23 +1,38 @@
+{ pkgs, plutus }:
 let
-  plutus = import ../../. { };
-  configurations = import ./configurations.nix;
-  machines = (plutus.pkgs.lib.importJSON ./machines.json);
-  promTargets = [
-    { ip = machines.marloweDashA.ip; label = machines.marloweDashA.dns; port = configurations.ports.nodeExporter; }
-    { ip = machines.marloweDashB.ip; label = machines.marloweDashB.dns; port = configurations.ports.nodeExporter; }
-    { ip = machines.webghcA.ip; label = machines.webghcA.dns; port = configurations.ports.nodeExporter; }
-    { ip = machines.webghcB.ip; label = machines.webghcB.dns; port = configurations.ports.nodeExporter; }
-    { ip = machines.playgroundsA.ip; label = machines.playgroundsA.dns; port = configurations.ports.nodeExporter; }
-    { ip = machines.playgroundsB.ip; label = machines.playgroundsB.dns; port = configurations.ports.nodeExporter; }
-  ];
+  # Dummy definition of what is usually read from
+  # the terraform local resource `machines.json`.
+  # The attributes in below are read in `machines.nix`
+  tfinfo = {
+    rootSshKeys = [ ];
+    rev = "dev";
+    marloweDashA.dns = "marlowe-dash-a";
+    marloweDashB.dns = "marlowe-dash-b";
+    playgroundsA.dns = "playgrounds-a";
+    playgroundsB.dns = "playgrounds-b";
+    webghcA.dns = "webghc-a";
+    webghcB.dns = "webghc-b";
+    environment = "alpha";
+    plutusTld = "plutus.iohkdev.io";
+    marloweTld = "marlowe.iohkdev.io";
+  };
+
+  # Fake `deployment` option definition so `pkgs.nixos` does not
+  # fail building the machines when it encounters the `deployment`.
+  fakeDeploymentOption = { lib, config, ... }: {
+    options.deployment = lib.mkOption {
+      type = lib.types.attrs;
+      description = "fake";
+    };
+  };
+
+  # Get a `buildMachine` function that wraps a `mkMachine` call with the fake deployment option
+  # in a `pkgs.nixos` call to build the machine outside of morph.
+  mkMachine = pkgs.callPackage ./mk-machine.nix { inherit plutus tfinfo; extraImports = [ fakeDeploymentOption ]; };
+  buildMachine = { config, name }: (pkgs.nixos (mkMachine { inherit config name; })).toplevel;
+  linuxOnly = x: if pkgs.stdenv.isDarwin then { } else x;
 in
-# A and B refer to the 2 AWS availability zones
-{
-  "${machines.marloweDashA.dns}" = configurations.pab "marlowe-dash-a";
-  "${machines.marloweDashB.dns}" = configurations.pab "marlowe-dash-b";
-  "${machines.webghcA.dns}" = configurations.webGhc "web-ghc-a";
-  "${machines.webghcB.dns}" = configurations.webGhc "web-ghc-b";
-  "${machines.playgroundsA.dns}" = configurations.playgrounds "playgrounds-a";
-  "${machines.playgroundsB.dns}" = configurations.playgrounds "playgrounds-b";
-  "${machines.prometheus.dns}" = configurations.prometheus { hostName = "prometheus"; environment = machines.environment; inherit promTargets; };
-}
+linuxOnly (import ./machines.nix {
+  inherit pkgs tfinfo;
+  mkMachine = buildMachine;
+})

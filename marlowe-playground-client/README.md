@@ -4,7 +4,7 @@
 
 Make sure you have a local backend server running first:
 ```bash
-$(nix-build -A marlowe-playground.server-invoker)/bin/marlowe-playground webserver
+$(nix-build -A marlowe-playground.server)/bin/marlowe-playground-server webserver
 ```
 
 Check the [backend documentation](../marlowe-playground-server/README.md) for more information on how to setup the Github OAuth application.
@@ -13,7 +13,7 @@ Now we will build and run the front end:
 ```bash
 cd marlowe-playground-client
 # Generate the purescript bridge files
-$(nix-build ../default.nix -A marlowe-playground.generate-purescript)
+$(nix-build ../default.nix -A marlowe-playground.generate-purescript)/bin/marlowe-playground-generate-purs
 # Download javascript dependencies
 npm install
 # Install purescript depdendencies

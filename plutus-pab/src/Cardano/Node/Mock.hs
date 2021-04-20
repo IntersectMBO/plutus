@@ -78,7 +78,7 @@ runChainEffects trace clientHandler stateVar eff = do
             & mergeState
             & toWriter
             & runReaders oldAppState
-            & LM.handleLogMsgTrace trace
+            & interpret (LM.handleLogMsgTrace trace)
             & runM
     liftIO $ putMVar stateVar newState
     pure (events, a)
@@ -128,13 +128,15 @@ transactionGenerator trace interval clientHandler stateVar =
 -- | Calls 'addBlock' at the start of every slot, causing pending transactions
 --   to be validated and added to the chain.
 slotCoordinator ::
-    Second
- -> Server.ServerHandler
- -> IO a
-slotCoordinator slotLength serverHandler =
+    SlotConfig
+    -> Server.ServerHandler
+    -> IO a
+slotCoordinator sc@SlotConfig{scSlotLength} serverHandler = do
     forever $ do
         void $ Server.processBlock serverHandler
-        liftIO $ threadDelay $ fromIntegral $ toMicroseconds slotLength
+        newSlot <- currentSlot sc
+        void $ Server.modifySlot (const newSlot) serverHandler
+        liftIO $ threadDelay $ fromIntegral $ toMicroseconds scSlotLength
 
 -- | Discards old blocks according to the 'BlockReaperConfig'. (avoids memory
 --   leak)

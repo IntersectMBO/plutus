@@ -80,7 +80,7 @@ transition UserCredential{ucAddress, ucCredential, ucToken} State{stateData=stat
 credentialStateMachine ::
   UserCredential
   -> StateMachine IDState IDAction
-credentialStateMachine cd = StateMachine.mkStateMachine (transition cd) isFinal where
+credentialStateMachine cd = StateMachine.mkStateMachine Nothing (transition cd) isFinal where
   isFinal Revoked = True
   isFinal _       = False
 

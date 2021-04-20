@@ -16,7 +16,8 @@ module PSGenerator
 
 import qualified API
 import qualified Auth
-import qualified ContractForDifference
+import qualified ContractForDifferences
+import qualified ContractForDifferencesWithOracle
 import           Control.Applicative                              ((<|>))
 import           Control.Lens                                     (set, (&))
 import           Control.Monad.Reader                             (MonadReader)
@@ -48,8 +49,10 @@ import           Language.PureScript.Bridge.CodeGenSwitches       (ForeignOption
                                                                    genForeign)
 import           Language.PureScript.Bridge.PSTypes               (psNumber, psString)
 import           Language.PureScript.Bridge.TypeParameters        (A)
-import           Marlowe.Contracts                                (contractForDifference, couponBondGuaranteed, escrow,
-                                                                   escrowWithCollateral, example, swap, zeroCouponBond)
+import           Marlowe.Contracts                                (contractForDifferences,
+                                                                   contractForDifferencesWithOracle,
+                                                                   couponBondGuaranteed, escrow, escrowWithCollateral,
+                                                                   example, swap, zeroCouponBond)
 import qualified Marlowe.Symbolic.Server                          as MS
 import qualified Marlowe.Symbolic.Types.Request                   as MSReq
 import qualified Marlowe.Symbolic.Types.Response                  as MSRes
@@ -149,6 +152,7 @@ myTypes =
     , mkSumType (Proxy @InterpreterError)
     , mkSumType (Proxy @Warning)
     , mkSumType (Proxy @(InterpreterResult A))
+    , (genericShow <*> mkSumType) (Proxy @MSRes.Response)
     , (genericShow <*> mkSumType) (Proxy @MSRes.Result)
     , mkSumType (Proxy @MSReq.Request)
     , mkSumType (Proxy @CT.ContractTerms)
@@ -194,7 +198,8 @@ writeUsecases outputDir = do
          <> multilineString "zeroCouponBond" zeroCouponBond
          <> multilineString "couponBondGuaranteed" couponBondGuaranteed
          <> multilineString "swap" swap
-         <> multilineString "contractForDifference" contractForDifference
+         <> multilineString "contractForDifferences" contractForDifferences
+         <> multilineString "contractForDifferencesWithOracle" contractForDifferencesWithOracle
         haskellUsecasesModule = psModule "Examples.Haskell.Contracts" haskellUsecases
     createDirectoryIfMissing True (outputDir </> "Examples" </> "Haskell")
     BS.writeFile (outputDir </> "Examples" </> "Haskell" </> "Contracts.purs") haskellUsecasesModule
@@ -206,7 +211,8 @@ writeUsecases outputDir = do
          <> multilineString "zeroCouponBond" (contractToString ZeroCouponBond.contract)
          <> multilineString "couponBondGuaranteed" (contractToString CouponBondGuaranteed.contract)
          <> multilineString "swap" (contractToString Swap.contract)
-         <> multilineString "contractForDifference" (contractToString ContractForDifference.contract)
+         <> multilineString "contractForDifferences" (contractToString ContractForDifferences.contract)
+         <> multilineString "contractForDifferencesWithOracle" (contractToString ContractForDifferencesWithOracle.contract)
         marloweUsecasesModule = psModule "Examples.Marlowe.Contracts" marloweUsecases
     createDirectoryIfMissing True (outputDir </> "Examples" </> "Marlowe")
     BS.writeFile (outputDir </> "Examples" </> "Marlowe" </> "Contracts.purs") marloweUsecasesModule

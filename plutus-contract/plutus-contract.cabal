@@ -98,12 +98,14 @@ library
     hs-source-dirs: src
     build-depends:
         plutus-ledger -any,
+        plutus-ledger-api -any,
         plutus-tx -any,
         freer-extras -any,
     build-depends:
         aeson >= 1.5.2,
         base >=4.7 && <5,
         containers -any,
+        data-default -any,
         deepseq -any,
         lens -any,
         text -any,
@@ -131,6 +133,9 @@ library
         fingertree -any,
         uuid -any,
         aeson-pretty -any,
+        QuickCheck -any,
+        quickcheck-dynamic -any,
+        random -any,
         unordered-containers -any,
         foldl -any,
         streaming -any
@@ -138,9 +143,11 @@ library
     if !(impl(ghcjs) || os(ghcjs))
         exposed-modules:
             Plutus.Contract.Test
+            Plutus.Contract.Test.ContractModel
         build-depends:
             tasty -any,
             tasty-hunit -any,
+            tasty-golden -any,
 
 test-suite contract-doctests
     type: exitcode-stdio-1.0
@@ -181,9 +188,11 @@ test-suite plutus-contract-test
         base >=4.9 && <5,
         bytestring -any,
         containers -any,
+        data-default -any,
         freer-extras -any,
         hedgehog -any,
         tasty -any,
+        tasty-golden -any,
         tasty-hunit -any,
         tasty-hedgehog -any,
         text -any,

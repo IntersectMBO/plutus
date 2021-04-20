@@ -3,7 +3,7 @@ module BlocklyEditor.BottomPanel
   ) where
 
 import Prelude hiding (div)
-import BlocklyEditor.Types (Action(..), BottomPanelView(..), State, _hasHoles, _warnings)
+import BlocklyEditor.Types (Action(..), BottomPanelView(..), State, _hasHoles, _metadataHintInfo, _warnings)
 import Data.Array as Array
 import Data.Lens (to, (^.))
 import Data.Maybe (Maybe(..))
@@ -11,17 +11,21 @@ import Halogen.Classes (flex, flexCol, fontBold, fullWidth, grid, gridColsDescri
 import Halogen.HTML (HTML, a, div, div_, pre_, section, section_, span_, text)
 import Halogen.HTML.Events (onClick)
 import Halogen.HTML.Properties (class_, classes)
+import Marlowe.Extended.Metadata (MetaData)
+import MetadataTab.View (metadataView)
 import StaticAnalysis.BottomPanel (analysisResultPane, analyzeButton, clearButton)
 import StaticAnalysis.Types (_analysisExecutionState, _analysisState, isCloseAnalysisLoading, isNoneAsked, isReachabilityLoading, isStaticLoading)
 
-panelContents :: forall p. State -> BottomPanelView -> HTML p Action
-panelContents state StaticAnalysisView =
+panelContents :: forall p. State -> MetaData -> BottomPanelView -> HTML p Action
+panelContents state metadata MetadataView = metadataView (state ^. _metadataHintInfo) metadata MetadataAction
+
+panelContents state metadata StaticAnalysisView =
   section [ classes [ flex, flexCol ] ]
     if (state ^. _hasHoles) then
       [ div_ [ text "The contract needs to be complete (no holes) before doing static analysis." ]
       ]
     else
-      [ analysisResultPane SetIntegerTemplateParam state
+      [ analysisResultPane metadata SetIntegerTemplateParam state
       , div [ classes [ paddingRight ] ]
           [ analyzeButton loadingWarningAnalysis analysisEnabled "Analyse for warnings" AnalyseContract
           , analyzeButton loadingReachability analysisEnabled "Analyse reachability" AnalyseReachabilityContract
@@ -44,7 +48,7 @@ panelContents state StaticAnalysisView =
 
   analysisEnabled = nothingLoading
 
-panelContents state BlocklyWarningsView =
+panelContents state _ BlocklyWarningsView =
   section_
     if Array.null warnings then
       [ pre_ [ text "No warnings" ] ]

@@ -31,9 +31,9 @@ import Halogen as H
 import Halogen.Extra (mapSubmodule)
 import Halogen.Monaco (Message(..), Query(..)) as Monaco
 import MainFrame.Types (ChildSlots, _marloweEditorPageSlot)
-import Marlowe.Extended.Metadata (MetadataHintInfo, getMetadataHintInfo)
 import Marlowe.Extended (TemplateContent)
 import Marlowe.Extended as Extended
+import Marlowe.Extended.Metadata (MetadataHintInfo)
 import Marlowe.Holes as Holes
 import Marlowe.LinterText as Linter
 import Marlowe.Monaco (updateAdditionalContext)
@@ -162,6 +162,7 @@ processMarloweCode ::
   HalogenM State Action ChildSlots Void m Unit
 processMarloweCode text = do
   analysisExecutionState <- use (_analysisState <<< _analysisExecutionState)
+  oldMetadataInfo <- use _metadataHintInfo
   let
     eParsedContract = parseContract text
 
@@ -193,7 +194,7 @@ processMarloweCode text = do
     mContract = Holes.fromTerm =<< hush eParsedContract
 
     metadataInfo :: MetadataHintInfo
-    metadataInfo = maybe mempty getMetadataHintInfo mContract -- ToDo: Implement function that supports holes instead (SCP-2012)
+    metadataInfo = fromMaybe oldMetadataInfo additionalContext.metadataHints
 
     hasHoles =
       not $ Array.null

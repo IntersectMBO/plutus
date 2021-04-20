@@ -1,0 +1,306 @@
+{
+    "lt_byte_string": {
+        "memory": {
+            "type": "constant_cost",
+            "arguments": 1
+        },
+        "cpu": {
+            "type": "min_size",
+            "arguments": {
+                "intercept": 2.07414622772793,
+                "slope": 2.46159434917543e-4
+            }
+        }
+    },
+    "mod_integer": {
+        "memory": {
+            "type": "subtracted_sizes",
+            "arguments": {
+                "minimum": 1,
+                "intercept": 0,
+                "slope": 1
+            }
+        },
+        "cpu": {
+            "type": "split_const_multi",
+            "arguments": {
+                "model_split_const_slope": 5.12624141673763e-4,
+                "model_split_const_intercept": 2.19257116593296
+            }
+        }
+    },
+    "greater_than_integer": {
+        "memory": {
+            "type": "constant_cost",
+            "arguments": 1
+        },
+        "cpu": {
+            "type": "min_size",
+            "arguments": {
+                "intercept": 2.10575839518836,
+                "slope": 4.3328524294544e-4
+            }
+        }
+    },
+    "if_then_else": {
+        "memory": {
+            "type": "constant_cost",
+            "arguments": 1
+        },
+        "cpu": {
+            "type": "constant_cost",
+            "arguments": 1
+        }
+    },
+    "less_than_eq_integer": {
+        "memory": {
+            "type": "constant_cost",
+            "arguments": 1
+        },
+        "cpu": {
+            "type": "min_size",
+            "arguments": {
+                "intercept": 2.09702447231695,
+                "slope": 3.37112224357207e-4
+            }
+        }
+    },
+    "concatenate": {
+        "memory": {
+            "type": "added_sizes",
+            "arguments": {
+                "intercept": 0,
+                "slope": 1
+            }
+        },
+        "cpu": {
+            "type": "added_sizes",
+            "arguments": {
+                "intercept": 2.67153236270495,
+                "slope": 4.99167767731152e-4
+            }
+        }
+    },
+    "verify_signature": {
+        "memory": {
+            "type": "constant_cost",
+            "arguments": 1
+        },
+        "cpu": {
+            "type": "constant_cost",
+            "arguments": 2.71491123389651
+        }
+    },
+    "greater_than_eq_integer": {
+        "memory": {
+            "type": "constant_cost",
+            "arguments": 1
+        },
+        "cpu": {
+            "type": "min_size",
+            "arguments": {
+                "intercept": 2.09702447231695,
+                "slope": 3.37112224357207e-4
+            }
+        }
+    },
+    "take_byte_string": {
+        "memory": {
+            "type": "constant_cost",
+            "arguments": 2
+        },
+        "cpu": {
+            "type": "constant_cost",
+            "arguments": 2.0365567048005
+        }
+    },
+    "quotient_integer": {
+        "memory": {
+            "type": "linear_size",
+            "arguments": {
+                "orientation": "y",
+                "intercept": 0,
+                "slope": 1
+            }
+        },
+        "cpu": {
+            "type": "split_const_multi",
+            "arguments": {
+                "model_split_const_slope": 5.12624141673763e-4,
+                "model_split_const_intercept": 2.19257116593296
+            }
+        }
+    },
+    "subtract_integer": {
+        "memory": {
+            "type": "max_size",
+            "arguments": {
+                "intercept": 1,
+                "slope": 1
+            }
+        },
+        "cpu": {
+            "type": "max_size",
+            "arguments": {
+                "intercept": 2.11084612123977,
+                "slope": 1.24644768853141e-3
+            }
+        }
+    },
+    "less_than_integer": {
+        "memory": {
+            "type": "constant_cost",
+            "arguments": 1
+        },
+        "cpu": {
+            "type": "min_size",
+            "arguments": {
+                "intercept": 2.10575839518836,
+                "slope": 4.3328524294544e-4
+            }
+        }
+    },
+    "gt_byte_string": {
+        "memory": {
+            "type": "constant_cost",
+            "arguments": 1
+        },
+        "cpu": {
+            "type": "min_size",
+            "arguments": {
+                "intercept": 2.07414622772793,
+                "slope": 2.46159434917543e-4
+            }
+        }
+    },
+    "sha3": {
+        "memory": {
+            "type": "constant_cost",
+            "arguments": 4
+        },
+        "cpu": {
+            "type": "linear_cost",
+            "arguments": {
+                "orientation": "x",
+                "intercept": 1.18696087943687,
+                "slope": 8.19185039380989e-2
+            }
+        }
+    },
+    "drop_byte_string": {
+        "memory": {
+            "type": "constant_cost",
+            "arguments": 2
+        },
+        "cpu": {
+            "type": "constant_cost",
+            "arguments": 2.0324988684539
+        }
+    },
+    "remainder_integer": {
+        "memory": {
+            "type": "linear_size",
+            "arguments": {
+                "orientation": "y",
+                "intercept": 0,
+                "slope": 1
+            }
+        },
+        "cpu": {
+            "type": "split_const_multi",
+            "arguments": {
+                "model_split_const_slope": 5.12624141673763e-4,
+                "model_split_const_intercept": 2.19257116593296
+            }
+        }
+    },
+    "eq_byte_string": {
+        "memory": {
+            "type": "constant_cost",
+            "arguments": 1
+        },
+        "cpu": {
+            "type": "min_size",
+            "arguments": {
+                "intercept": 2.09360627536428,
+                "slope": 2.4746426691108e-4
+            }
+        }
+    },
+    "add_integer": {
+        "memory": {
+            "type": "max_size",
+            "arguments": {
+                "intercept": 1,
+                "slope": 1
+            }
+        },
+        "cpu": {
+            "type": "max_size",
+            "arguments": {
+                "intercept": 2.11737234677083,
+                "slope": 1.10910717654584e-3
+            }
+        }
+    },
+    "sha2": {
+        "memory": {
+            "type": "constant_cost",
+            "arguments": 4
+        },
+        "cpu": {
+            "type": "linear_cost",
+            "arguments": {
+                "orientation": "x",
+                "intercept": 3.86834707882854,
+                "slope": 2.96456821195969e-2
+            }
+        }
+    },
+    "multiply_integer": {
+        "memory": {
+            "type": "added_sizes",
+            "arguments": {
+                "intercept": 0,
+                "slope": 1
+            }
+        },
+        "cpu": {
+            "type": "added_sizes",
+            "arguments": {
+                "intercept": 1.9243156681313,
+                "slope": 1.17628612553361e-2
+            }
+        }
+    },
+    "eq_integer": {
+        "memory": {
+            "type": "constant_cost",
+            "arguments": 1
+        },
+        "cpu": {
+            "type": "min_size",
+            "arguments": {
+                "intercept": 2.0882396439855,
+                "slope": 5.7329908877854e-4
+            }
+        }
+    },
+    "divide_integer": {
+        "memory": {
+            "type": "subtracted_sizes",
+            "arguments": {
+                "minimum": 1,
+                "intercept": 0,
+                "slope": 1
+            }
+        },
+        "cpu": {
+            "type": "split_const_multi",
+            "arguments": {
+                "model_split_const_slope": 5.12624141673763e-4,
+                "model_split_const_intercept": 2.19257116593296
+            }
+        }
+    }
+}

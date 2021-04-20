@@ -13,6 +13,7 @@ module Plutus.Contract.Trace.RequestHandler(
     RequestHandler(..)
     , RequestHandlerLogMsg(..)
     , tryHandler
+    , tryHandler'
     , wrapHandler
     , extract
     , maybeToHandler
@@ -27,11 +28,11 @@ module Plutus.Contract.Trace.RequestHandler(
     , handleContractNotifications
     ) where
 
-import           Control.Applicative                      (Alternative (empty))
+import           Control.Applicative                      (Alternative (empty, (<|>)))
 import           Control.Arrow                            (Arrow, Kleisli (..))
 import           Control.Category                         (Category)
 import           Control.Lens
-import           Control.Monad                            (foldM, guard)
+import           Control.Monad                            (foldM, guard, join)
 import           Control.Monad.Freer
 import qualified Control.Monad.Freer.Error                as Eff
 import           Control.Monad.Freer.NonDet               (NonDet)
@@ -75,8 +76,17 @@ tryHandler ::
     . RequestHandler effs req resp
     -> [req]
     -> Eff effs (Maybe resp)
-tryHandler (RequestHandler h) requests =
-    foldM (\e i -> maybe (NonDet.makeChoiceA @Maybe $ h i) (pure . Just) e) Nothing requests
+tryHandler handler = tryHandler' (Just <$> handler)
+
+-- Try the handler on the requests, using the 'Alternative' instance of @f@
+tryHandler' ::
+    forall f effs req resp
+    . (Alternative f, Monad f)
+    => RequestHandler effs req (f resp)
+    -> [req]
+    -> Eff effs (f resp)
+tryHandler' (RequestHandler h) requests =
+    foldM (\e i -> fmap (e <|>) $ fmap join $ NonDet.makeChoiceA @f $ h i) empty requests
 
 extract :: Alternative f => Prism' a b -> a -> f b
 extract p = maybe empty pure . preview p

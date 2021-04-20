@@ -155,7 +155,7 @@ instance MonadEmitter (CkCarryingM term uni fun s) where
             Nothing      -> pure ()
             Just logsRef -> lift . lift $ modifySTRef logsRef (`DList.snoc` str)
 
-instance ToExMemory term => SpendBudget (CkCarryingM term uni fun s) fun () term where
+instance SpendBudget (CkCarryingM term uni fun s) fun () where
     spendBudget _key _budget = pure ()
 
 type instance UniOf (CkValue uni fun) = uni
@@ -366,7 +366,7 @@ applyEvaluate stack val@(VBuiltin bn arity0 arity tyargs args) arg = do
 applyEvaluate _ val _ =
     throwingWithCause _MachineError NonFunctionalApplicationMachineError $ Just $ ckValueToTerm val
 
--- | Apply a (static or dynamic) built-in function to some arguments
+-- | Apply a built-in function to some arguments
 applyBuiltin
     :: Ix fun
     => Context uni fun

@@ -148,6 +148,10 @@ let
           inline-r.package.ghcOptions = "-XStandaloneKindSignatures";
 
           eventful-sql-common.package.ghcOptions = "-XDerivingStrategies -XStandaloneDeriving -XUndecidableInstances -XDataKinds -XFlexibleInstances -XMultiParamTypeClasses";
+
+          # Honestly not sure why we need this, it has a mysterious unused dependency on "m"
+          # This will go away when we upgrade nixpkgs and things use ieee754 anyway.
+          ieee.components.library.libs = lib.mkForce [ ];
         };
       }
     ] ++ lib.optional enableHaskellProfiling {

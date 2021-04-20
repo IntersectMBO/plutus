@@ -35,6 +35,7 @@ import           GHC.Generics                (Generic)
 import           Ledger
 import qualified Ledger.Ada                  as Ada
 import qualified Ledger.AddressMap           as AM
+import           Ledger.Credential           (Credential (..))
 import qualified Ledger.Crypto               as Crypto
 import qualified Ledger.Value                as Value
 import           Plutus.Contract.Checkpoint  (CheckpointLogMsg)
@@ -44,6 +45,7 @@ import           Servant.API                 (FromHttpApiData (..), ToHttpApiDat
 import qualified Wallet.API                  as WAPI
 import           Wallet.Effects              (ChainIndexEffect, NodeClientEffect, WalletEffect (..))
 import qualified Wallet.Effects              as W
+import           Wallet.Emulator.Chain       (ChainState (..))
 import           Wallet.Emulator.ChainIndex  (ChainIndexState)
 import           Wallet.Emulator.LogMessages (RequestHandlerLogMsg, TxBalanceMsg)
 import           Wallet.Emulator.NodeClient  (NodeClientState, emptyNodeClientState)
@@ -58,9 +60,12 @@ instance Show SigningProcess where
 
 -- | A wallet in the emulator model.
 newtype Wallet = Wallet { getWallet :: Integer }
-    deriving (Show, Eq, Ord, Generic)
+    deriving (Eq, Ord, Generic)
     deriving newtype (ToHttpApiData, FromHttpApiData, Hashable)
     deriving anyclass (Newtype, ToJSON, FromJSON, ToJSONKey)
+
+instance Show Wallet where
+    showsPrec p (Wallet i) = showParen (p > 9) $ showString "Wallet " . shows i
 
 instance Pretty Wallet where
     pretty (Wallet i) = "W" <> pretty i
@@ -72,7 +77,7 @@ walletPubKey = toPublicKey . walletPrivKey
 -- | Get a wallet's private key by looking it up in the list of
 --   private keys in 'Ledger.Crypto.knownPrivateKeys'
 walletPrivKey :: Wallet -> PrivateKey
-walletPrivKey (Wallet i) = cycle Crypto.knownPrivateKeys !! fromIntegral i
+walletPrivKey (Wallet i) = cycle Crypto.knownPrivateKeys !! fromIntegral (i - 1)
 
 -- | Get a wallet's address.
 walletAddress :: Wallet -> Address
@@ -119,6 +124,12 @@ emptyWalletState :: Wallet -> WalletState
 emptyWalletState w = WalletState pk emptyNodeClientState mempty sp  where
     pk = walletPrivKey w
     sp = defaultSigningProcess w
+
+-- | An empty wallet using the given private key.
+-- for that wallet as the sole watched address.
+emptyWalletStateFromPrivateKey :: PrivateKey -> WalletState
+emptyWalletStateFromPrivateKey pk = WalletState pk emptyNodeClientState mempty sp where
+    sp = signWithPrivateKey pk
 
 data PaymentArgs =
     PaymentArgs
@@ -173,8 +184,8 @@ handleWallet ::
     , Member (State WalletState) effs
     , Member (Error WAPI.WalletAPIError) effs
     )
-    => Eff (WalletEffect ': effs) ~> Eff effs
-handleWallet = interpret $ \case
+    => WalletEffect ~> Eff effs
+handleWallet = \case
     SubmitTxn tx -> W.publishTx tx
     OwnPubKey -> toPublicKey <$> gets _ownPrivateKey
     UpdatePaymentWithChange vl pmt -> do
@@ -243,6 +254,10 @@ takeUntil p (x:xs)
 defaultSigningProcess :: Wallet -> SigningProcess
 defaultSigningProcess = signWallet
 
+signWithPrivateKey :: PrivateKey -> SigningProcess
+signWithPrivateKey pk = SigningProcess $
+    \pks tx -> foldM (signTxWithPrivateKey pk) tx pks
+
 -- | Sign the transaction by calling 'WAPI.signTxnWithKey' (throwing a
 --   'PrivateKeyNotFound' error if called with a key other than the
 --   wallet's private key)
@@ -257,6 +272,15 @@ signTxnWithKey wllt tx pubK = do
     let ownPubK = walletPubKey wllt
     if pubKeyHash ownPubK == pubK
     then pure (signWithWallet wllt tx)
+    else throwError (WAPI.PrivateKeyNotFound pubK)
+
+-- | Sign the transaction with the private key, if the hash is that of the
+--   private key.
+signTxWithPrivateKey :: (Member (Error WAPI.WalletAPIError) r) => PrivateKey -> Tx -> PubKeyHash -> Eff r Tx
+signTxWithPrivateKey pk tx pubK = do
+    let ownPubKey = toPublicKey pk
+    if pubKeyHash ownPubKey == pubK
+    then pure (addSignature pk tx)
     else throwError (WAPI.PrivateKeyNotFound pubK)
 
 -- | Sign the transaction with the private keys of the given wallets,
@@ -275,3 +299,42 @@ type SigningProcessEffs = '[State SigningProcess, Error WAPI.WalletAPIError]
 handleSigningProcessControl :: (Members SigningProcessEffs effs) => Eff (SigningProcessControlEffect ': effs) ~> Eff effs
 handleSigningProcessControl = interpret $ \case
     SetSigningProcess proc -> put proc
+
+-- | An Entity is a thing that can hold 'Value'. Used in the 'balances'
+-- function to compute who holds for a given chain state and set of wallets.
+data Entity
+  = WalletEntity Wallet
+  | PubKeyHashEntity PubKeyHash
+  | ScriptEntity ValidatorHash
+  deriving (Eq, Ord)
+
+instance Show Entity where
+  show (WalletEntity w)     = "Wallet " <> show (getWallet w)
+  show (ScriptEntity h)     = "Script " <> show h
+  show (PubKeyHashEntity h) = "PubKeyHash " <> show h
+
+type WalletSet = Map.Map Wallet WalletState
+
+-- | Pick out all the public keys from the set of wallets and map them back to
+-- their corresponding wallets.
+walletPubKeyHashes :: WalletSet -> Map.Map PubKeyHash Wallet
+walletPubKeyHashes = foldl' f Map.empty . Map.toList
+  where
+    f m (w, ws) = Map.insert (pubKeyHash $ toPublicKey $ _ownPrivateKey $ ws) w m
+
+-- | For a set of wallets, convert them into a map of value: entity,
+-- where entity is one of 'Entity'.
+balances :: ChainState -> WalletSet -> Map.Map Entity Value
+balances state wallets = foldl' f Map.empty . getIndex . _index $ state
+  where
+    toEntity :: Address -> Entity
+    toEntity a = case addressCredential a of
+                    PubKeyCredential h -> case Map.lookup h ws of
+                        Nothing -> PubKeyHashEntity h
+                        Just w  -> WalletEntity w
+                    ScriptCredential h -> ScriptEntity h
+
+    ws :: Map.Map PubKeyHash Wallet
+    ws = walletPubKeyHashes wallets
+
+    f m o = Map.insertWith (<>) (toEntity $ txOutAddress o) (txOutValue o) m

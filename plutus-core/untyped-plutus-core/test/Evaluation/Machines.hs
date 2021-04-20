@@ -73,7 +73,7 @@ test_memory =
         <> examples
 
 testBudget
-    :: (Ix fun, Show fun, Pretty fun, Hashable fun, ExMemoryUsage fun)
+    :: (Ix fun, Show fun, Hashable fun, PrettyUni DefaultUni fun)
     => BuiltinsRuntime fun (CekValue DefaultUni fun)
     -> TestName
     -> Term Name DefaultUni fun ()
@@ -131,7 +131,7 @@ test_budget
     $ concat
         [ folder defBuiltinsRuntime examples
         , folder defBuiltinsRuntime bunchOfFibs
-        , folder (toBuiltinsRuntime mempty ()) bunchOfIdNats
+        , folder (toBuiltinsRuntime ()) bunchOfIdNats
         , folder defBuiltinsRuntime bunchOfIfThenElseNats
         ]
   where

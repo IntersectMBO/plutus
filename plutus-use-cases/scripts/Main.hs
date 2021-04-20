@@ -3,6 +3,7 @@ module Main(main) where
 import qualified Control.Foldl                 as L
 import           Control.Monad.Freer           (run)
 import qualified Data.ByteString.Lazy          as BSL
+import           Data.Default                  (Default (..))
 import           Data.Foldable                 (traverse_)
 import           Flat                          (flat)
 import           Ledger.Index                  (ScriptValidationEvent (sveScript))
@@ -14,10 +15,9 @@ import           System.Directory              (createDirectoryIfMissing)
 import           System.Environment            (getArgs)
 import           System.FilePath               ((</>))
 import qualified Wallet.Emulator.Folds         as Folds
-import           Wallet.Emulator.Stream        (defaultEmulatorConfig, foldEmulatorStreamM)
+import           Wallet.Emulator.Stream        (foldEmulatorStreamM)
 
 import qualified Plutus.Contracts.Crowdfunding as Crowdfunding
-import qualified Plutus.Contracts.Game         as Game
 import           Spec.Auction                  as Auction
 import qualified Spec.Currency                 as Currency
 import qualified Spec.Escrow                   as Escrow
@@ -54,8 +54,6 @@ writeScripts fp = do
         , ("future-increase-margin", Future.increaseMarginTrace)
         , ("future-settle-early", Future.settleEarlyTrace)
         , ("future-pay-out", Future.payOutTrace)
-        , ("game-guess", Game.guessTrace)
-        , ("game-guessWrong", Game.guessWrongTrace)
         , ("game-sm-success", GameStateMachine.successTrace)
         , ("game-sm-success_2", GameStateMachine.successTrace2)
         , ("multisig-success", MultiSig.succeedingTrace)
@@ -86,7 +84,7 @@ writeScriptsTo fp prefix trace = do
             S.fst'
             $ run
             $ foldEmulatorStreamM (L.generalize Folds.scriptEvents)
-            $ Trace.runEmulatorStream defaultEmulatorConfig trace
+            $ Trace.runEmulatorStream def trace
         writeScript idx script = do
             let filename = fp </> prefix <> "-" <> show idx <> ".flat"
             putStrLn $ "Writing script: " <> filename

@@ -14,6 +14,7 @@
 {-# LANGUAGE TypeApplications     #-}
 {-# LANGUAGE TypeSynonymInstances #-}
 {-# LANGUAGE UndecidableInstances #-}
+{-# LANGUAGE ViewPatterns         #-}
 -- | Testing contracts with HUnit and Tasty
 module Plutus.Contract.Test(
       module X
@@ -46,6 +47,8 @@ module Plutus.Contract.Test(
     , waitingForSlot
     , walletWatchingAddress
     , valueAtAddress
+    , dataAtAddress
+    , reasonable
     -- * Checking predicates
     , checkPredicate
     , checkPredicateOptions
@@ -57,6 +60,8 @@ module Plutus.Contract.Test(
     , minLogLevel
     , maxSlot
     , emulatorConfig
+    -- * Etc
+    , goldenPir
     ) where
 
 import           Control.Applicative                    (liftA2)
@@ -69,8 +74,10 @@ import           Control.Monad.Freer.Error              (Error, runError)
 import           Control.Monad.Freer.Extras.Log         (LogLevel (..), LogMessage (..))
 import           Control.Monad.Freer.Reader
 import           Control.Monad.Freer.Writer             (Writer (..), tell)
+import           Control.Monad.IO.Class                 (MonadIO (liftIO))
+import           Data.Default                           (Default (..))
 import           Data.Foldable                          (fold, toList, traverse_)
-import           Data.Maybe                             (mapMaybe)
+import           Data.Maybe                             (fromJust, mapMaybe)
 import           Data.Proxy                             (Proxy (..))
 import           Data.Row                               (Forall, HasType)
 import           Data.String                            (IsString (..))
@@ -83,9 +90,11 @@ import           GHC.TypeLits                           (KnownSymbol, Symbol, sy
 
 import           Hedgehog                               (Property, forAll, property)
 import qualified Hedgehog
+import           Test.Tasty.Golden                      (goldenVsString)
 import qualified Test.Tasty.HUnit                       as HUnit
 import           Test.Tasty.Providers                   (TestTree)
 
+import qualified Ledger.Ada                             as Ada
 import           Ledger.Constraints.OffChain            (UnbalancedTx)
 import           Ledger.Tx                              (Tx)
 import           Plutus.Contract.Effects.AwaitSlot      (SlotSymbol)
@@ -97,8 +106,11 @@ import           Plutus.Contract.Effects.WriteTx        (HasWriteTx)
 import           Plutus.Contract.Resumable              (Request (..), Response (..))
 import qualified Plutus.Contract.Resumable              as State
 import           Plutus.Contract.Types                  (Contract (..))
+import           PlutusTx                               (CompiledCode, IsData (..), getPir)
 import qualified PlutusTx.Prelude                       as P
 
+import           Ledger                                 (Validator)
+import qualified Ledger
 import           Ledger.Address                         (Address)
 import           Ledger.Generators                      (GeneratorModel, Mockchain (..))
 import qualified Ledger.Generators                      as Gen
@@ -109,7 +121,6 @@ import           Wallet.Emulator                        (EmulatorEvent, Emulator
 
 import           Plutus.Contract.Schema                 (Event (..), Handlers (..), Input, Output)
 import           Plutus.Contract.Trace                  as X
-import           Plutus.Trace                           (defaultEmulatorConfig)
 import           Plutus.Trace.Emulator                  (EmulatorConfig (..), EmulatorTrace, runEmulatorStream)
 import           Plutus.Trace.Emulator.Types            (ContractConstraints, ContractInstanceLog, ContractInstanceTag,
                                                          UserThreadMsg)
@@ -146,7 +157,7 @@ defaultCheckOptions =
     CheckOptions
         { _minLogLevel = Info
         , _maxSlot = 125
-        , _emulatorConfig = defaultEmulatorConfig
+        , _emulatorConfig = def
         }
 
 type TestEffects = '[Reader InitialDistribution, Error EmulatorFoldErr, Writer (Doc Void)]
@@ -353,6 +364,16 @@ valueAtAddress address check =
             tell @(Doc Void) ("Funds at address" <+> pretty address <+> "were" <> pretty vl)
         pure result
 
+dataAtAddress :: IsData a => Address -> (a -> Bool) -> TracePredicate
+dataAtAddress address check =
+    flip postMapM (L.generalize $ Folds.utxoAtAddress address) $ \utxo -> do
+        let isSingletonWith p xs = length xs == 1 && all p xs
+        let result = isSingletonWith (isSingletonWith (maybe False check . fromData . Ledger.getDatum) . Ledger.txData . Ledger.txOutTxTx) utxo
+        unless result $ do
+            tell @(Doc Void) ("Data at address" <+> pretty address <+> "was"
+                <+> foldMap (foldMap pretty . Ledger.txData . Ledger.txOutTxTx) utxo)
+        pure result
+
 waitingForSlot
     :: forall w s e a.
        ( HasType SlotSymbol AwaitSlot.WaitingForSlot (Output s)
@@ -490,16 +511,21 @@ assertOutcome contract inst p nm =
                 ]
         pure result
 
+-- | Check that the funds in the wallet have changed by the given amount, exluding fees.
 walletFundsChange :: Wallet -> Value -> TracePredicate
 walletFundsChange w dlt =
-    flip postMapM (L.generalize $ Folds.walletFunds w) $ \finalValue -> do
+    flip postMapM (L.generalize $ (,) <$> Folds.walletFunds w <*> Folds.walletFees w) $ \(finalValue, fees) -> do
         dist <- ask @InitialDistribution
         let initialValue = fold (dist ^. at w)
-            result = initialValue P.+ dlt == finalValue
+            result = initialValue P.+ dlt == finalValue P.+ fees
         unless result $ do
-            tell @(Doc Void) $ vsep
-                [ "Expected funds of" <+> pretty w <+> "to change by" <+> viaShow dlt
-                , "but they changed by", viaShow (finalValue P.- initialValue)]
+            tell @(Doc Void) $ vsep $
+                [ "Expected funds of" <+> pretty w <+> "to change by"
+                , " " <+> viaShow dlt
+                , "  (excluding" <+> viaShow (Ada.getLovelace (Ada.fromValue fees)) <+> "lovelace in fees)" ] ++
+                if initialValue == finalValue P.+ fees
+                then ["but they did not change"]
+                else ["but they changed by", " " <+> viaShow (finalValue P.+ fees P.- initialValue)]
         pure result
 
 -- | An assertion about the blockchain
@@ -582,3 +608,16 @@ assertAccumState contract inst p nm =
                 ]
         pure result
 
+-- | Assert that the size of a 'Validator' is below
+--   the maximum.
+reasonable :: Validator -> Integer -> HUnit.Assertion
+reasonable (Ledger.unValidatorScript -> s) maxSize = do
+    let sz = Ledger.scriptSize s
+        msg = "Script too big! Max. size: " <> show maxSize <> ". Actual size: " <> show sz
+    -- so the actual size is visible in the log
+    liftIO $ putStrLn ("Script size: " ++ show sz)
+    HUnit.assertBool msg (sz <= maxSize)
+
+-- | Compare a golden PIR file to the provided 'CompiledCode'.
+goldenPir :: FilePath -> CompiledCode a -> TestTree
+goldenPir path code = goldenVsString "PIR" path (pure $ fromString $ show $ pretty $ fromJust $ getPir code)

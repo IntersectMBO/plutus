@@ -3,6 +3,11 @@ title: Type Reduction, contextual style
 layout: page
 ---
 
+This is an experiment with using an inductive way of presenting
+closing an evaluation context. It is not currently
+needed. Additionally it doesn't seperate out beta-rule into a seperate
+relation.
+
 ```
 module Type.ReductionCI where
 ```
@@ -416,6 +421,8 @@ Reduction is intrinsically kind preserving. This doesn't require proof.
 ```
 infix 2 _—→⋆_
 infix 2 _—↠⋆_
+
+
 
 data _—→⋆_ : ∀{J} → (∅ ⊢⋆ J) → (∅ ⊢⋆ J) → Set where
   contextRule : ∀{K K'} → (E : EvalCtx K K')

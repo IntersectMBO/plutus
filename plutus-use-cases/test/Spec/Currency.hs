@@ -7,7 +7,7 @@ import qualified Ledger
 import           Plutus.Contract
 import           Plutus.Contract.Test
 
-import           Plutus.Contracts.Currency (Currency)
+import           Plutus.Contracts.Currency (OneShotCurrency)
 import qualified Plutus.Contracts.Currency as Cur
 import qualified Plutus.Trace.Emulator     as Trace
 
@@ -38,7 +38,7 @@ tests = testGroup "currency"
 w1 :: Wallet
 w1 = Wallet 1
 
-theContract :: Contract () BlockchainActions Cur.CurrencyError Currency
+theContract :: Contract () BlockchainActions Cur.CurrencyError OneShotCurrency
 theContract =
     let amounts = [("my currency", 1000), ("my token", 1)] in
     Cur.forgeContract (Ledger.pubKeyHash $ walletPubKey w1) amounts

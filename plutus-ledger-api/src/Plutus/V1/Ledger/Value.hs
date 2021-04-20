@@ -27,6 +27,10 @@ module Plutus.V1.Ledger.Value(
     , TokenName(..)
     , tokenName
     , toString
+    -- * Asset classes
+    , AssetClass(..)
+    , assetClass
+    , assetClassValue
     -- ** Value
     , Value(..)
     , singleton
@@ -42,16 +46,19 @@ module Plutus.V1.Ledger.Value(
     , isZero
     , split
     , unionWith
+    , flattenValue
     ) where
 
 import qualified Prelude                          as Haskell
 
 import           Codec.Serialise.Class            (Serialise)
 import           Control.DeepSeq                  (NFData)
+import           Control.Monad                    (guard)
 import           Data.Aeson                       (FromJSON, FromJSONKey, ToJSON, ToJSONKey, (.:))
 import qualified Data.Aeson                       as JSON
 import qualified Data.Aeson.Extras                as JSON
 import           Data.Hashable                    (Hashable)
+import qualified Data.List                        (sortBy)
 import           Data.String                      (IsString (fromString))
 import           Data.Text                        (Text)
 import qualified Data.Text                        as Text
@@ -59,6 +66,7 @@ import qualified Data.Text.Encoding               as E
 import           Data.Text.Prettyprint.Doc
 import           Data.Text.Prettyprint.Doc.Extras
 import           GHC.Generics                     (Generic)
+import           GHC.Show                         (showList__)
 import           Plutus.V1.Ledger.Bytes           (LedgerBytes (LedgerBytes))
 import           Plutus.V1.Ledger.Orphans         ()
 import           Plutus.V1.Ledger.Scripts
@@ -149,7 +157,9 @@ and we serialize it base16 encoded, with 0x in front so it will look as a hex st
 
 instance ToJSON TokenName where
     toJSON = JSON.object . Haskell.pure . (,) "unTokenName" . JSON.toJSON .
-        fromTokenName (\bs -> Text.cons '\0' (asBase16 bs)) id
+        fromTokenName
+            (\bs -> Text.cons '\NUL' (asBase16 bs))
+            (\t -> case Text.take 1 t of "\NUL" -> Text.concat ["\NUL\NUL", t]; _ -> t)
 
 instance FromJSON TokenName where
     parseJSON =
@@ -157,15 +167,29 @@ instance FromJSON TokenName where
         raw <- object .: "unTokenName"
         fromJSONText raw
         where
-            fromJSONText t = case Text.take 1 t of
-                "\0" -> either fail (Haskell.pure . TokenName) . JSON.tryDecode . Text.drop 3 $ t
-                _    -> Haskell.pure . fromText $ t
+            fromJSONText t = case Text.take 3 t of
+                "\NUL0x"       -> either fail (Haskell.pure . TokenName) . JSON.tryDecode . Text.drop 3 $ t
+                "\NUL\NUL\NUL" -> Haskell.pure . fromText . Text.drop 2 $ t
+                _              -> Haskell.pure . fromText $ t
 
 makeLift ''TokenName
 
 {-# INLINABLE tokenName #-}
 tokenName :: ByteString -> TokenName
 tokenName = TokenName
+
+-- | An asset class, identified by currency symbol and token name.
+newtype AssetClass = AssetClass { unAssetClass :: (CurrencySymbol, TokenName) }
+    deriving stock (Generic)
+    deriving newtype (Haskell.Eq, Haskell.Ord, Eq, Ord, PlutusTx.IsData, Serialise, Show)
+    deriving anyclass (Hashable, NFData, ToJSON, FromJSON)
+    deriving Pretty via (PrettyShow (CurrencySymbol, TokenName))
+
+{-# INLINABLE assetClass #-}
+assetClass :: CurrencySymbol -> TokenName -> AssetClass
+assetClass s t = AssetClass (s, t)
+
+makeLift ''AssetClass
 
 -- | A cryptocurrency value. This is a map from 'CurrencySymbol's to a
 -- quantity of that currency.
@@ -183,10 +207,26 @@ tokenName = TokenName
 --
 -- See note [Currencies] for more details.
 newtype Value = Value { getValue :: Map.Map CurrencySymbol (Map.Map TokenName Integer) }
-    deriving stock (Show, Generic)
+    deriving stock (Generic)
     deriving anyclass (ToJSON, FromJSON, Hashable, NFData)
     deriving newtype (Serialise, PlutusTx.IsData)
     deriving Pretty via (PrettyShow Value)
+
+instance Show Value where
+    showsPrec d v =
+        showParen (d Haskell.== 11) $
+            showString "Value " . (showParen True (showsMap (showPair (showsMap shows)) rep))
+        where Value rep = normalizeValue v
+              showsMap sh m = showString "Map " . showList__ sh (Map.toList m)
+              showPair s (x,y) = showParen True $ shows x . showString "," . s y
+
+normalizeValue :: Value -> Value
+normalizeValue = Value . Map.fromList . sort . filterRange (/=Map.empty)
+               . mapRange normalizeTokenMap . Map.toList . getValue
+  where normalizeTokenMap = Map.fromList . sort . filterRange (/=0) . Map.toList
+        filterRange p kvs = [(k,v) | (k,v) <- kvs, p v]
+        mapRange f xys = [(x,f y) | (x,y) <- xys]
+        sort xs = Data.List.sortBy compare xs
 
 -- Orphan instances for 'Map' to make this work
 instance (ToJSON v, ToJSON k) => ToJSON (Map.Map k v) where
@@ -282,6 +322,11 @@ symbols (Value mp) = Map.keys mp
 singleton :: CurrencySymbol -> TokenName -> Integer -> Value
 singleton c tn i = Value (Map.singleton c (Map.singleton tn i))
 
+{-# INLINABLE assetClassValue #-}
+-- | A 'Value' containing the given amount of the asset class.
+assetClassValue :: AssetClass -> Integer -> Value
+assetClassValue (AssetClass (c, t)) i = singleton c t i
+
 {-# INLINABLE unionVal #-}
 -- | Combine two 'Value' maps
 unionVal :: Value -> Value -> Map.Map CurrencySymbol (Map.Map TokenName (These Integer Integer))
@@ -304,6 +349,15 @@ unionWith f ls rs =
             That b    -> f 0 b
             These a b -> f a b
     in Value (fmap (fmap unThese) combined)
+
+{-# INLINABLE flattenValue #-}
+-- | Convert a value to a simple list, keeping only the non-zero amounts.
+flattenValue :: Value -> [(CurrencySymbol, TokenName, Integer)]
+flattenValue v = do
+    (cs, m) <- Map.toList $ getValue v
+    (tn, a) <- Map.toList m
+    guard $ a /= 0
+    return (cs, tn, a)
 
 -- Num operations
 

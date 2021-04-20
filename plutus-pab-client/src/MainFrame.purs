@@ -6,61 +6,69 @@ module MainFrame
   ) where
 
 import Prelude hiding (div)
-import Animation (class MonadAnimate, animate)
-import Cardano.Metadata.Types (Property, PropertyKey, Subject, SubjectProperties(..))
-import Chain.State (handleAction) as Chain
-import Chain.Types (Action(FocusTx), AnnotatedBlockchain(..), _chainFocusAppearing)
+import Animation (class MonadAnimate)
+import Cardano.Metadata.Types (Property, PropertyKey, Subject)
+--import Chain.State (handleAction) as Chain
+--import Chain.Types (Action(FocusTx), AnnotatedBlockchain(..), _chainFocusAppearing)
 import Chain.Types (initialState) as Chain
 import Clipboard (class MonadClipboard)
-import Clipboard as Clipboard
+--import Clipboard as Clipboard
 import Control.Monad.Reader (runReaderT)
 import Control.Monad.State (class MonadState)
-import Control.Monad.State.Extra (zoomStateT)
-import Data.Array (filter, find)
+--import Control.Monad.State.Extra (zoomStateT)
+--import Data.Array (filter, find)
 import Data.Either (Either(..))
-import Data.Foldable (foldr)
-import Data.Lens (_1, _2, assign, modifying, to, use, view)
-import Data.Lens.At (at)
-import Data.Lens.Extra (peruse, toSetOf)
-import Data.Lens.Index (ix)
+--import Data.Foldable (foldr)
+import Data.Lens (assign)
+--import Data.Lens (_1, _2, assign, modifying, to, use, view)
+--import Data.Lens.At (at)
+--import Data.Lens.Extra (peruse, toSetOf)
+--import Data.Lens.Index (ix)
 import Data.Map (Map)
 import Data.Map as Map
 import Data.Maybe (Maybe(..))
-import Data.RawJson (RawJson(..))
-import Data.Set (Set)
-import Data.Set as Set
-import Data.Traversable (for_, sequence, traverse_)
-import Data.Tuple (Tuple(..))
+--import Data.RawJson (RawJson(..))
+--import Data.Set (Set)
+--import Data.Set as Set
+--import Data.Traversable (for_, sequence, traverse_)
+--import Data.Tuple (Tuple(..))
 import Effect.Aff.Class (class MonadAff)
-import Foreign.Generic (encodeJSON)
+--import Foreign.Generic (encodeJSON)
 import Halogen (Component, hoist)
 import Halogen as H
 import Halogen.HTML (HTML)
+import Ledger.Extra (adaToValue)
+import MonadApp (class MonadApp, runHalogenApp)
+--import MonadApp (class MonadApp, activateContract, getFullReport, invokeEndpoint, log, runHalogenApp)
+import Network.RemoteData (RemoteData(..))
+--import Network.RemoteData as RemoteData
+import Network.StreamData as Stream
+--import Playground.Lenses (_endpointDescription, _schema)
+--import Playground.Types (FunctionSchema(..), _FunctionSchema)
+--import Plutus.PAB.Effects.Contract.ContractExe (ContractExe)
+--import Plutus.PAB.Events.Contract (ContractPABRequest)
+--import Plutus.PAB.Events.ContractInstanceState (PartiallyDecodedResponse)
+import Plutus.PAB.Webserver (SPParams_(..))
+import Plutus.PAB.Webserver.Types (CombinedWSStreamToClient)
+--import Plutus.PAB.Webserver.Types (ContractSignatureResponse(..), CombinedWSStreamToClient(..))
 import Plutus.V1.Ledger.Ada (Ada(..))
 import Plutus.V1.Ledger.Value (Value)
-import Ledger.Extra (adaToValue)
-import MonadApp (class MonadApp, activateContract, getFullReport, invokeEndpoint, log, runHalogenApp)
-import Network.RemoteData (RemoteData(..), _Success)
-import Network.RemoteData as RemoteData
-import Network.StreamData as Stream
-import Playground.Lenses (_endpointDescription, _schema)
-import Playground.Types (FunctionSchema(..), _FunctionSchema)
-import Plutus.PAB.Events.Contract (ContractInstanceState(..))
-import Plutus.PAB.Types (ContractExe)
-import Plutus.PAB.Webserver (SPParams_(..))
-import Plutus.PAB.Webserver.Types (ContractSignatureResponse(..), StreamToClient(..))
-import Prim.TypeError (class Warn, Text)
-import Schema (FormSchema)
-import Schema.Types (formArgumentToJson, toArgument)
-import Schema.Types as Schema
+--import Prim.TypeError (class Warn, Text)
+--import Schema (FormSchema)
+--import Schema.Types (formArgumentToJson, toArgument)
+--import Schema.Types as Schema
 import Servant.PureScript.Settings (SPSettings_, defaultSettings)
-import Types (ContractSignatures, EndpointForm, HAction(..), Output, Query(..), State(..), StreamError(..), View(..), WebSocketStatus(..), WebStreamData, _annotatedBlockchain, _chainReport, _chainState, _contractActiveEndpoints, _contractReport, _contractSignatures, _contractStates, _crActiveContractStates, _crAvailableContracts, _csContract, _csCurrentState, _currentView, _events, _metadata, _webSocketMessage, _webSocketStatus, fromWebData, toPropertyKey)
-import Validation (_argument)
+import Types (HAction(..), Output, Query(..), State(..), StreamError(..), View(..), WebSocketStatus(..), _webSocketMessage, _webSocketStatus, toPropertyKey)
+--import Types (ContractSignatures, EndpointForm, HAction(..), Output, Query(..), State(..), StreamError(..), View(..), WebSocketStatus(..), WebStreamData, _annotatedBlockchain, _chainReport, _chainState, _contractActiveEndpoints, _contractReport, _contractSignatures, _contractStates, _crActiveContractStates, _crAvailableContracts, _currentView, _events, _metadata, _webSocketMessage, _webSocketStatus, fromWebData, toPropertyKey)
+--import Validation (_argument)
 import View as View
-import Wallet.Types (EndpointDescription)
+--import Wallet.Types (EndpointDescription)
 import WebSocket.Support (FromSocket)
 import WebSocket.Support as WS
 
+-- | The PAB has been completely rewritten, and the PAB client will soon follow. The immediate
+--   priority is the new Marlowe dashboard, however, so in the meantime large chunks of the PAB
+--   client are commented out just so that it compiles.
 initialValue :: Value
 initialValue = adaToValue $ Lovelace { getLovelace: zero }
 
@@ -115,25 +123,26 @@ handleMessageFromSocket ::
   forall m.
   MonadState State m =>
   MonadApp m =>
-  FromSocket StreamToClient -> m Unit
+  FromSocket CombinedWSStreamToClient -> m Unit
 handleMessageFromSocket WS.WebSocketOpen = do
   assign _webSocketStatus WebSocketOpen
 
-handleMessageFromSocket (WS.ReceiveMessage (Right msg)) = case msg of
-  NewChainReport report -> assign _chainReport (Success report)
-  NewContractReport report -> do
-    assign _contractSignatures (Stream.Success (view _crAvailableContracts report))
-    traverse_ updateFormsForContractInstance
-      (view _crActiveContractStates report)
-  NewChainEvents events -> assign _events (Success events)
-  ErrorResponse err -> assign _webSocketMessage $ Stream.Failure $ ServerError err
-  FetchedProperty subject property -> do
-    log $ "Websocket fetch property: " <> show msg
-    modifying _metadata (upsertProperty subject property)
-  FetchedProperties (SubjectProperties subject properties) -> do
-    log $ "Websocket fetch properties: " <> show msg
-    modifying _metadata (\m -> foldr (upsertProperty subject) m properties)
+handleMessageFromSocket (WS.ReceiveMessage (Right msg)) = pure unit
 
+--case msg of
+--NewChainReport report -> assign _chainReport (Success report)
+--NewContractReport report -> do
+--  assign _contractSignatures (Stream.Success (view _crAvailableContracts report))
+--  traverse_ updateFormsForContractInstance
+--    (view _crActiveContractStates report)
+--NewChainEvents events -> assign _events (Success events)
+--ErrorResponse err -> assign _webSocketMessage $ Stream.Failure $ ServerError err
+--FetchedProperty subject property -> do
+--  log $ "Websocket fetch property: " <> show msg
+--  modifying _metadata (upsertProperty subject property)
+--FetchedProperties (SubjectProperties subject properties) -> do
+--  log $ "Websocket fetch properties: " <> show msg
+--  modifying _metadata (\m -> foldr (upsertProperty subject) m properties)
 handleMessageFromSocket (WS.ReceiveMessage (Left err)) = assign _webSocketMessage $ Stream.Failure $ DecodingError err
 
 handleMessageFromSocket (WS.WebSocketClosed closeEvent) = do
@@ -151,7 +160,9 @@ handleAction ::
   MonadClipboard m =>
   MonadState State m =>
   HAction -> m Unit
-handleAction Init = handleAction LoadFullReport
+handleAction _ = pure unit
+
+{-handleAction Init = handleAction LoadFullReport
 
 handleAction (ChangeView view) = do
   assign _currentView view
@@ -216,11 +227,11 @@ handleAction (InvokeContractEndpoint contractInstanceId endpointForm) = do
 updateFormsForContractInstance ::
   forall m.
   MonadState State m =>
-  ContractInstanceState ContractExe -> m Unit
+  PartiallyDecodedResponse ContractPABRequest -> m Unit
 updateFormsForContractInstance newContractInstance = do
   let
     csContractId = view _csContract newContractInstance
-  oldContractInstance :: Maybe (ContractInstanceState ContractExe) <-
+  oldContractInstance :: Maybe (PartiallyDecodedResponse ContractPABRequest) <-
     peruse
       ( _contractStates
           <<< ix csContractId
@@ -237,7 +248,7 @@ updateFormsForContractInstance newContractInstance = do
 
 createNewEndpointForms ::
   ContractSignatures ->
-  ContractInstanceState ContractExe ->
+  PartiallyDecodedResponse ContractPABRequest ->
   Maybe (Array EndpointForm)
 createNewEndpointForms contractSignatures instanceState = createEndpointForms instanceState <$> matchingSignature
   where
@@ -280,3 +291,4 @@ getMatchingSignature ::
 getMatchingSignature (ContractInstanceState { csContractDefinition }) = find isMatch
   where
   isMatch (ContractSignatureResponse { csrDefinition }) = csrDefinition == csContractDefinition
+-}

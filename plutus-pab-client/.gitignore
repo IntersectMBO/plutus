@@ -12,3 +12,4 @@ yarn.lock
 .psc-package2nix/
 .spago/
 .spago2nix/
+plutus-pab.yaml
