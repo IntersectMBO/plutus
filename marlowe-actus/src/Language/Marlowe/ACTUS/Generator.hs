@@ -164,7 +164,7 @@ genStaticContract terms =
                         (collateralAmount t)
                         (dayToSlotNumber $ ct_SD t)
                         cont
-            in Success . withCollateral $ foldl (flip gen) Close cfs
+            in Success . withCollateral $ foldr gen Close cfs
 
 
 genFsContract :: ContractTerms -> Validation [TermValidationError] Contract
