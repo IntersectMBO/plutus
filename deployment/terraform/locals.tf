@@ -59,7 +59,7 @@ locals {
     playground = []
     testing    = ["pablo", "tobias", "bozhidar", "dimitar"]
     hernan     = ["hernan"]
-    tobias     = ["tobias"]
+    tobias     = ["tobias", "ci-deployer"]
   }
   root_ssh_keys = [for k in local.root_ssh_keys_ks[var.env] : local.ssh_keys[k]]
 
