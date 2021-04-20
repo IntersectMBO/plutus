@@ -47,8 +47,9 @@ import           Plutus.Contract.Effects.ExposeEndpoint           (ActiveEndpoin
 import           Plutus.Contract.Resumable                        (Request (..), Response (..))
 import           Plutus.Contract.Trace.RequestHandler             (RequestHandler (..), RequestHandlerLogMsg, extract,
                                                                    maybeToHandler, tryHandler', wrapHandler)
-import           Plutus.PAB.Core.ContractInstance.RequestHandlers (ContractInstanceMsg (..), processInstanceRequests,
-                                                                   processNextTxAtRequests, processNotificationEffects,
+import           Plutus.PAB.Core.ContractInstance.RequestHandlers (ContractInstanceMsg (..),
+                                                                   processAddressChangedAtRequests,
+                                                                   processInstanceRequests, processNotificationEffects,
                                                                    processOwnPubkeyRequests, processTxConfirmedRequests,
                                                                    processUtxoAtRequests, processWriteTxRequests)
 
@@ -150,7 +151,7 @@ stmRequestHandler = fmap sequence (wrapHandler (fmap pure nonBlockingRequests) <
         <> processUtxoAtRequests @effs
         <> processWriteTxRequests @effs
         <> processTxConfirmedRequests @effs
-        <> processNextTxAtRequests @effs
+        <> processAddressChangedAtRequests @effs
         <> processInstanceRequests @effs
         <> processNotificationEffects @effs
 
@@ -244,7 +245,7 @@ updateState PartiallyDecodedResponse{observableState, hooks} = do
             case rqRequest r of
                 AwaitTxConfirmedRequest txid -> InstanceState.addTransaction txid state
                 UtxoAtRequest addr -> InstanceState.addAddress addr state
-                NextTxAtRequest AddressChangeRequest{acreqAddress} -> InstanceState.addAddress acreqAddress state
+                AddressChangedAtRequest AddressChangeRequest{acreqAddress} -> InstanceState.addAddress acreqAddress state
                 UserEndpointRequest endpoint -> InstanceState.addEndpoint (r { rqRequest = endpoint}) state
                 _ -> pure ()
         InstanceState.setObservableState observableState state

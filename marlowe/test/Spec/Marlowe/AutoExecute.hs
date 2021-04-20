@@ -104,7 +104,7 @@ autoexecZCBTest = checkPredicate "ZCB Auto Execute Contract"
     Trace.waitNSlots 1
 
     -- Now Alice should be able to retry and pay to Bob
-    void $ Trace.waitNSlots 1
+    void $ Trace.waitNSlots 2
 
 
 autoexecZCBTestAliceWalksAway :: TestTree

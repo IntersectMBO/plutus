@@ -148,7 +148,7 @@ instance Arbitrary ContractPABRequest where
             , AwaitTxConfirmedRequest <$> arbitrary
             , UserEndpointRequest <$> arbitrary
             , UtxoAtRequest <$> arbitrary
-            , NextTxAtRequest <$> arbitrary
+            , AddressChangedAtRequest <$> arbitrary
             , pure $ OwnPubkeyRequest WaitingForPubKey
             -- TODO This would need an Arbitrary Tx instance: WriteTxRequest <$> arbitrary
             ]
@@ -179,7 +179,7 @@ instance Arbitrary WaitingForSlot where
 -- bad =
 --     [ WriteTxRequest <$> arbitrary
 --     , UtxoAtRequest <$> arbitrary
---     , NextTxAtRequest <$> arbitrary
+--     , AddressChangedAtRequest <$> arbitrary
 --     ]
 
 -- | Generate responses for mock requests. This function returns a
