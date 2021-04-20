@@ -113,6 +113,7 @@
           (hsPkgs."lobemo-backend-ekg" or (errorHandler.buildDepError "lobemo-backend-ekg"))
           (hsPkgs."exceptions" or (errorHandler.buildDepError "exceptions"))
           (hsPkgs."data-default" or (errorHandler.buildDepError "data-default"))
+          (hsPkgs."time" or (errorHandler.buildDepError "time"))
           ];
         buildable = true;
         modules = [
@@ -347,6 +348,7 @@
             (hsPkgs."text" or (errorHandler.buildDepError "text"))
             (hsPkgs."time-units" or (errorHandler.buildDepError "time-units"))
             (hsPkgs."yaml" or (errorHandler.buildDepError "yaml"))
+            (hsPkgs."data-default" or (errorHandler.buildDepError "data-default"))
             ];
           buildable = true;
           hsSourceDirs = [ "tx-inject" ];

@@ -64,5 +64,4 @@ handleNodeClientClient e = do
     case e of
         PublishTx tx  ->
             liftIO $ Client.queueTx clientHandler tx
-        GetClientSlot ->
-            liftIO $ Client.getCurrentSlot clientHandler
+        GetClientSlot -> liftIO $ Client.getCurrentSlot clientHandler

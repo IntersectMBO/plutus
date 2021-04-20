@@ -195,7 +195,8 @@ library
         lobemo-backend-ekg -any,
         exceptions -any,
         data-default -any,
-        time-units -any
+        time-units -any,
+        time -any
 
 executable plutus-pab
     main-is: Main.hs
@@ -408,4 +409,5 @@ executable tx-inject
         stm -any,
         text -any,
         time-units -any,
-        yaml -any
+        yaml -any,
+        data-default -any

@@ -22,7 +22,7 @@ import           Control.Monad.Freer.Coroutine
 import           Data.Foldable                 (traverse_)
 import           Data.Maybe                    (maybeToList)
 import           Wallet.Effects                (startWatching)
-import           Wallet.Emulator.Chain         (ChainControlEffect, ChainEffect, getCurrentSlot, processBlock)
+import           Wallet.Emulator.Chain         (ChainControlEffect, modifySlot, processBlock)
 import           Wallet.Emulator.MultiAgent    (MultiAgentControlEffect, MultiAgentEffect, walletAction,
                                                 walletControlAction)
 
@@ -70,7 +70,6 @@ launchSystemThreads :: forall effs.
     ( Member ChainControlEffect effs
     , Member MultiAgentEffect effs
     , Member MultiAgentControlEffect effs
-    , Member ChainEffect effs
     )
     => [Wallet]
     -> Eff (Yield (EmSystemCall effs EmulatorMessage) (Maybe EmulatorMessage) ': effs) ()
@@ -92,14 +91,13 @@ blockMakerTag = "block maker"
 -- | The block maker thread. See note [Simulator Time]
 blockMaker :: forall effs effs2.
     ( Member ChainControlEffect effs2
-    , Member ChainEffect effs2
     , Member (Yield (EmSystemCall effs EmulatorMessage) (Maybe EmulatorMessage)) effs2
     )
     => Eff effs2 ()
 blockMaker = go where
     go = do
         newBlock <- processBlock
-        newSlot <- getCurrentSlot
+        newSlot <- modifySlot succ
         _ <- mkSysCall @effs Sleeping $ Left $ Broadcast $ NewSlot [newBlock] newSlot
         _ <- sleep @effs @EmulatorMessage @effs2 Sleeping
         go

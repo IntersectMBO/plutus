@@ -19,6 +19,7 @@ import           Control.Lens                   hiding (ix)
 import           Control.Monad                  (forever)
 import           Control.Monad.IO.Class         (liftIO)
 import           Control.RateLimit              (rateLimitExecution)
+import           Data.Default                   (Default (..))
 import qualified Data.Map                       as Map
 import           Data.Text                      (Text)
 import qualified Data.Text                      as T
@@ -185,7 +186,7 @@ initializeInterruptHandler stats = do
 initializeClient :: Config -> IO ClientHandler
 initializeClient cfg = do
     let serverSocket = mscSocketPath $ nodeServerConfig cfg
-    runClientNode serverSocket (\_ _ -> pure ())
+    runClientNode serverSocket def (\_ _ -> pure ())
 
 main :: IO ()
 main = do
