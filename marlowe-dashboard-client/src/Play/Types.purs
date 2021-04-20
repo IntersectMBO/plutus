@@ -22,6 +22,7 @@ type State
     , screen :: Screen
     , cards :: Array Card
     , currentSlot :: Slot
+    , slotsInSync :: Boolean
     , timezoneOffset :: Minutes
     , templateState :: Template.State
     , contractsState :: ContractHome.State
@@ -55,6 +56,7 @@ data Action
   | OpenCard Card
   | CloseCard
   | SetCurrentSlot Slot
+  | CheckCurrentSlot Slot
   | TemplateAction Template.Action
   | ContractAction Contract.Action
   | ContractHomeAction ContractHome.Action
@@ -71,6 +73,7 @@ instance actionIsEvent :: IsEvent Action where
   toEvent (OpenCard _) = Nothing
   toEvent CloseCard = Nothing
   toEvent (SetCurrentSlot _) = Nothing
+  toEvent (CheckCurrentSlot _) = Nothing
   toEvent (TemplateAction templateAction) = toEvent templateAction
   toEvent (ContractAction contractAction) = toEvent contractAction
   toEvent (ContractHomeAction contractAction) = toEvent contractAction

@@ -57,7 +57,7 @@ contractsScreen currentSlot state =
       -- NOTE: This extra div is necesary to make the scroll only to work for the contract area.
       --       The parent flex with h-full and this element flex-grow makes the div to occupy the remaining
       --       vertical space.
-      , div [ classNames [ "overflow-y-scroll", "flex-grow", "px-4", "md:px-5pc" ] ]
+      , div [ classNames [ "overflow-y-auto", "flex-grow", "px-4", "md:px-5pc" ] ]
           [ renderContracts currentSlot state contracts
           ]
       , a

@@ -3,6 +3,7 @@ module Play.Lenses
   , _menuOpen
   , _cards
   , _currentSlot
+  , _slotsInSync
   , _templateState
   , _contractsState
   , _allContracts
@@ -34,6 +35,9 @@ _cards = prop (SProxy :: SProxy "cards")
 
 _currentSlot :: Lens' State Slot
 _currentSlot = prop (SProxy :: SProxy "currentSlot")
+
+_slotsInSync :: Lens' State Boolean
+_slotsInSync = prop (SProxy :: SProxy "slotsInSync")
 
 _templateState :: Lens' State Template.State
 _templateState = prop (SProxy :: SProxy "templateState")

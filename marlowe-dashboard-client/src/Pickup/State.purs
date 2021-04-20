@@ -23,6 +23,7 @@ initialState :: State
 initialState =
   { card: Nothing
   , pickupWalletString: mempty
+  , pickingUp: false
   }
 
 -- Some actions are handled in `MainFrame.State` because they involve

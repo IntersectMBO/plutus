@@ -14,6 +14,7 @@ import ContractHome.State (handleAction, mkInitialState) as ContractHome
 import ContractHome.Types (Action(..), State) as ContractHome
 import Control.Monad.Reader (class MonadAsk)
 import Data.Array (init, snoc)
+import Data.BigInteger (fromInt)
 import Data.Foldable (for_)
 import Data.Lens (assign, modifying, set, use)
 import Data.Lens.Extra (peruse)
@@ -21,6 +22,7 @@ import Data.Lens.Fold (lastOf)
 import Data.Lens.Traversal (traversed)
 import Data.Map (Map)
 import Data.Maybe (Maybe(..))
+import Data.Ord (abs)
 import Data.Time.Duration (Minutes(..))
 import Data.UUID (emptyUUID)
 import Effect.Aff.Class (class MonadAff)
@@ -30,7 +32,7 @@ import Halogen.Extra (mapMaybeSubmodule, mapSubmodule)
 import MainFrame.Lenses (_screen)
 import MainFrame.Types (ChildSlots, Msg)
 import Marlowe.Semantics (Slot(..))
-import Play.Lenses (_cards, _contractsState, _currentSlot, _menuOpen, _selectedContract, _templateState)
+import Play.Lenses (_cards, _contractsState, _currentSlot, _menuOpen, _selectedContract, _slotsInSync, _templateState)
 import Play.Types (Action(..), Card(..), Screen(..), State)
 import Template.Lenses (_template)
 import Template.State (dummyState, handleAction, mkInitialState) as Template
@@ -51,6 +53,9 @@ dummyState = mkInitialState defaultWalletDetails mempty (Slot zero) (Minutes zer
     , assets: mempty
     }
 
+-- We initialise the play state using the locally determined currentSlot, but subsequently
+-- it will be updated through the websocket to the PAB's currentSlot. The two should always
+-- be in sync (if they go out of sync, a toast warning is displayed).
 mkInitialState :: WalletDetails -> Map ContractInstanceId Contract.State -> Slot -> Minutes -> State
 mkInitialState walletDetails contracts currentSlot timezoneOffset =
   { walletDetails: walletDetails
@@ -58,6 +63,7 @@ mkInitialState walletDetails contracts currentSlot timezoneOffset =
   , screen: ContractsScreen
   , cards: mempty
   , currentSlot
+  , slotsInSync: true
   , timezoneOffset
   , templateState: Template.dummyState
   , contractsState: ContractHome.mkInitialState contracts
@@ -94,12 +100,15 @@ handleAction CloseCard = do
   for_ (init cards) \remainingCards ->
     assign _cards remainingCards
 
--- FIXME: probably get rid of this and tell ContractHome via MainFrame.handleQuery (getting the
---        currentSlot from the PAB)
-handleAction (SetCurrentSlot currentSlot) = do
-  toContractHome $ ContractHome.handleAction $ ContractHome.AdvanceTimedOutContracts currentSlot
-  modify_
-    $ set _currentSlot currentSlot
+handleAction (SetCurrentSlot slot) = do
+  toContractHome $ ContractHome.handleAction $ ContractHome.AdvanceTimedOutContracts slot
+  assign _currentSlot slot
+
+handleAction (CheckCurrentSlot slot) = do
+  currentSlot <- use _currentSlot
+  let
+    maxToleratedDifference = Slot $ fromInt 2
+  assign _slotsInSync (abs (slot - currentSlot) <= maxToleratedDifference)
 
 handleAction (TemplateAction templateAction) = case templateAction of
   Template.SetTemplate template -> do

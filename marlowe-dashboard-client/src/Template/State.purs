@@ -81,4 +81,4 @@ handleAction (SetSlotContent key dateTimeString) = do
 
 handleAction (SetValueContent key mValue) = modifying (_templateContent <<< _valueContent) $ insert key $ fromMaybe zero mValue
 
-handleAction StartContract = pure unit -- handled in Play.State (see note [State] in MainFrame.State)
+handleAction StartContract = pure unit -- handled in MainFrame.State (see note [State] in MainFrame.State)

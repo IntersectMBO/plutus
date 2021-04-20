@@ -40,7 +40,7 @@ import Marlowe.Extended (fillTemplate, resolveRelativeTimes, toCore)
 import Marlowe.Market (contractTemplates)
 import Marlowe.Slot (currentSlot)
 import Network.RemoteData (RemoteData(..), fromEither)
-import Pickup.Lenses (_pickupWalletString)
+import Pickup.Lenses (_pickingUp, _pickupWalletString)
 import Pickup.State (handleAction, dummyState, initialState) as Pickup
 import Pickup.Types (Action(..), State) as Pickup
 import Pickup.Types (Card(..), PickupNewWalletContext(..))
@@ -56,7 +56,7 @@ import Toast.State (defaultState, handleAction) as Toast
 import Toast.Types (Action, State) as Toast
 import Toast.Types (ajaxErrorToast, connectivityErrorToast, successToast)
 import Types (ContractInstanceId(..))
-import WalletData.Lenses (_assets, _contractInstanceId, _contractInstanceIdString, _pubKeyHash, _remoteDataWalletInfo, _remoteDataAssets, _wallet, _walletNicknameString)
+import WalletData.Lenses (_assets, _contractInstanceId, _contractInstanceIdString, _pubKeyHash, _remoteDataWalletInfo, _remoteDataAssets, _wallet, _walletNickname, _walletNicknameString)
 import WalletData.Types (NewWalletDetails, WalletDetails, WalletInfo(..))
 import WalletData.Validation (parseContractInstanceId)
 import WebSocket.Support as WS
@@ -112,7 +112,7 @@ handleQuery (ReceiveWebSocketMessage msg next) = do
     (WS.ReceiveMessage (Left errors)) -> pure unit -- TODO: show error to the user
     (WS.ReceiveMessage (Right streamToClient)) -> case streamToClient of
       -- update the current slot
-      SlotChange slot -> assign (_playState <<< _currentSlot) $ toFront slot
+      SlotChange slot -> handleAction $ PlayAction $ Play.SetCurrentSlot $ toFront slot
       -- update the wallet funds (if the change is to the current wallet)
       -- note: we should only ever be notified of changes to the current wallet,
       -- since we subscribe to this update when we pick it up, and unsubscribe
@@ -155,20 +155,23 @@ handleQuery (MainFrameActionQuery action next) = do
   handleAction action
   pure $ Just next
 
--- FIXME: We need to discuss if we should remove this after we connect to the PAB. In case we do,
---        if there is a disconnection we might lose some seconds and timeouts will freeze.
-currentSlotSubscription ::
+-- The current slot is controlled by the PAB (which should update it every second through
+-- the websocket). This subsription checks whether the slot number coming from the PAB
+-- agrees with what (given then current time) we expect the slot number to be. If these go
+-- out of sync, we show a warning to the user. (If they go out of sync, the instantiation
+-- of timeouts in a contract will be incorrect.)
+checkCurrentSlotSubscription ::
   forall m.
   MonadAff m =>
   EventSource m Action
-currentSlotSubscription =
+checkCurrentSlotSubscription =
   EventSource.affEventSource \emitter -> do
     fiber <-
       Aff.forkAff
         $ forever do
             Aff.delay $ Milliseconds 1000.0
             slot <- liftEffect $ currentSlot
-            EventSource.emit emitter (PlayAction $ Play.SetCurrentSlot slot)
+            EventSource.emit emitter (PlayAction $ Play.CheckCurrentSlot slot)
     pure $ EventSource.Finalizer $ Aff.killFiber (error "removing aff") fiber
 
 -- Note [State]: Some actions belong logically in one part of the state, but
@@ -201,10 +204,14 @@ handleAction Init = do
   -- maybe load picked up wallet from localStorage and pick it up again
   mWalletDetailsJson <- liftEffect $ getItem walletDetailsLocalStorageKey
   for_ mWalletDetailsJson \json ->
-    for_ (runExcept $ decodeJSON json) \walletDetails ->
+    for_ (runExcept $ decodeJSON json) \walletDetails -> do
+      -- It takes a moment to pick up a wallet (a few trips to the PAB are required), so before
+      -- we trigger the PickupWallet action, we trigger the SetPickupWalletString action. This brings
+      -- up the pickup wallet card for this wallet to display to the user in the meantime.
+      handleAction $ PickupAction $ Pickup.SetPickupWalletString $ view _walletNickname walletDetails
       handleAction $ PickupAction $ Pickup.PickupWallet walletDetails
   -- subscribe to local currentSlot counter
-  void $ subscribe currentSlotSubscription
+  void $ subscribe checkCurrentSlotSubscription
 
 handleAction (SetNewWalletNicknameString walletNicknameString) = assign (_newWalletDetails <<< _walletNicknameString) walletNicknameString
 
@@ -261,8 +268,9 @@ handleAction (PickupAction pickupAction) = case pickupAction of
           handleAction AddNewWallet
           handleAction $ PickupAction $ Pickup.PickupWallet walletDetails
   Pickup.PickupWallet walletDetails -> do
-    -- TODO: set some state flag to "picking up..." so that we can notify the user in the view
-    -- that something is happening (because all these requests may take a while)
+    -- Picking up a wallet takes a while (several trips to the PAB are required). So first of all we set
+    -- the pickingUp flag to true, so that we can inform the user that this is all ongoing...
+    assign (_pickupState <<< _pickingUp) true
     let
       wallet = view _wallet walletDetails
 
@@ -302,6 +310,7 @@ handleAction (PickupAction pickupAction) = case pickupAction of
       Left ajaxError, _, _ -> networkErrorToast ajaxError
       _, Left ajaxError, _ -> jsonErrorToast ajaxError
       _, _, Left ajaxError -> networkErrorToast ajaxError
+    assign (_pickupState <<< _pickingUp) false
   Pickup.GenerateNewWallet -> do
     modify_
       $ set (_newWalletDetails <<< _remoteDataWalletInfo) Loading
@@ -406,7 +415,7 @@ handleAction (PlayAction playAction) = case playAction of
             handleAction $ PlayAction $ Play.SetScreen Play.ContractsScreen
             -- FIXME: open the card for this contract
             addToast $ successToast "Contract started."
-          -- TODO: make this error message nicer
+          -- TODO: make this error message more informative
           Left ajaxError -> addToast $ ajaxErrorToast "Failed to initialise contract." ajaxError
   -- other PlayActions are handled in Play.State
   _ -> toPlay $ Play.handleAction playAction
