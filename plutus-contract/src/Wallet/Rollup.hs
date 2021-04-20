@@ -48,7 +48,7 @@ annotateTransaction sequenceId tx@Tx {txOutputs} = do
                   in case Map.lookup key cPreviousOutputs of
                          Just txOut -> pure $ DereferencedInput txIn txOut
                          Nothing    -> pure $ InputNotFound key)
-            (Set.toList $ view Tx.inputs tx)
+            (Set.toList $ view Tx.inputs tx <> view Tx.inputsFees tx)
     let txId = Tx.txId tx
         newOutputs =
             ifoldr

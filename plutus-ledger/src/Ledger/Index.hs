@@ -187,7 +187,7 @@ checkValidInputs tx = do
 
 -- | Match each input of the transaction with the output that it spends.
 lkpOutputs :: ValidationMonad m => Tx -> m [(TxIn, TxOut)]
-lkpOutputs = traverse (\t -> traverse (lkpTxOut . txInRef) (t, t)) . Set.toList . view inputs
+lkpOutputs tx = traverse (\t -> traverse (lkpTxOut . txInRef) (t, t)) . Set.toList $ view inputs tx <> view inputsFees tx
 
 {- note [Forging of Ada]
 
@@ -293,7 +293,7 @@ checkMatch txinfo = \case
 -- | Check if the value produced by a transaction equals the value consumed by it.
 checkValuePreserved :: ValidationMonad m => Tx -> m ()
 checkValuePreserved t = do
-    inVal <- (P.+) (txForge t) <$> fmap fold (traverse (lkpValue . txInRef) (Set.toList $ view inputs t))
+    inVal <- (P.+) (txForge t) <$> fmap fold (traverse (lkpValue . txInRef) (Set.toList $ view inputs t <> view inputsFees t))
     let outVal = txFee t P.+ foldMap txOutValue (txOutputs t)
     if outVal == inVal
     then pure ()
@@ -329,9 +329,10 @@ checkTransactionFee tx =
 mkTxInfo :: ValidationMonad m => Tx -> m TxInfo
 mkTxInfo tx = do
     txins <- traverse mkIn $ Set.toList $ view inputs tx
+    txinsFees <- traverse mkIn $ Set.toList $ view inputsFees tx
     let ptx = TxInfo
             { txInfoInputs = txins
-            , txInfoInputsFees = [] -- TODO: Fee inputs in emulator transactions
+            , txInfoInputsFees = txinsFees
             , txInfoOutputs = txOutputs tx
             , txInfoForge = txForge tx
             , txInfoFee = txFee tx

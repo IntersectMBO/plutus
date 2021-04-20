@@ -177,11 +177,11 @@ inputs ::
     -- ^ A map of 'TxOutRef's to their 'Address'es
     -> Tx
     -> Map Address (Set.Set TxOutRef)
-inputs addrs = Map.fromListWith Set.union
+inputs addrs tx = Map.fromListWith Set.union
     . fmap (fmap Set.singleton . swap)
     . mapMaybe ((\a -> sequence (a, Map.lookup a addrs)) . txInRef)
     . Set.toList
-    . view Tx.inputs
+    $ view Tx.inputs tx <> view Tx.inputsFees tx
 
 -- | Restrict an 'AddressMap' to a set of addresses.
 restrict :: AddressMap -> Set.Set Address -> AddressMap

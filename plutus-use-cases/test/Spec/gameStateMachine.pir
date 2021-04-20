@@ -8849,7 +8849,25 @@
                                                                           TxInInfo
                                                                         }
                                                                       ]
-                                                                      ds
+                                                                      [
+                                                                        [
+                                                                          [
+                                                                            {
+                                                                              {
+                                                                                foldr
+                                                                                TxInInfo
+                                                                              }
+                                                                              [List TxInInfo]
+                                                                            }
+                                                                            {
+                                                                              Cons
+                                                                              TxInInfo
+                                                                            }
+                                                                          ]
+                                                                          ds
+                                                                        ]
+                                                                        ds
+                                                                      ]
                                                                     ]
                                                                   ]
                                                                   (fun Unit [Maybe TxInInfo])
@@ -9590,26 +9608,6 @@
                               )
                             )
                             (termbind
-                              (nonstrict)
-                              (vardecl
-                                fMonoidValue
-                                [Monoid [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]]
-                              )
-                              [
-                                [
-                                  {
-                                    CConsMonoid
-                                    [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]
-                                  }
-                                  fMonoidValue_c
-                                ]
-                                {
-                                  Nil
-                                  [[Tuple2 (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]
-                                }
-                              ]
-                            )
-                            (termbind
                               (strict)
                               (vardecl
                                 txOutValue
@@ -9634,6 +9632,26 @@
                                   )
                                 ]
                               )
+                            )
+                            (termbind
+                              (nonstrict)
+                              (vardecl
+                                fMonoidValue
+                                [Monoid [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]]
+                              )
+                              [
+                                [
+                                  {
+                                    CConsMonoid
+                                    [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]
+                                  }
+                                  fMonoidValue_c
+                                ]
+                                {
+                                  Nil
+                                  [[Tuple2 (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]
+                                }
+                              ]
                             )
                             (termbind
                               (strict)
@@ -9697,6 +9715,142 @@
                                                             txOutValue
                                                           ]
                                                           ds
+                                                        ]
+                                                      )
+                                                    )
+                                                  )
+                                                )
+                                              )
+                                            )
+                                          )
+                                        )
+                                      )
+                                    )
+                                  )
+                                ]
+                              )
+                            )
+                            (termbind
+                              (strict)
+                              (vardecl
+                                valueSpent
+                                (fun TxInfo [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]])
+                              )
+                              (lam
+                                ds
+                                TxInfo
+                                [
+                                  {
+                                    [ TxInfo_match ds ]
+                                    [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]
+                                  }
+                                  (lam
+                                    ds
+                                    [List TxInInfo]
+                                    (lam
+                                      ds
+                                      [List TxInInfo]
+                                      (lam
+                                        ds
+                                        [List TxOut]
+                                        (lam
+                                          ds
+                                          [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]
+                                          (lam
+                                            ds
+                                            [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]
+                                            (lam
+                                              ds
+                                              [List DCert]
+                                              (lam
+                                                ds
+                                                [List [[Tuple2 StakingCredential] (con integer)]]
+                                                (lam
+                                                  ds
+                                                  [Interval (con integer)]
+                                                  (lam
+                                                    ds
+                                                    [List (con bytestring)]
+                                                    (lam
+                                                      ds
+                                                      [List [[Tuple2 (con bytestring)] Data]]
+                                                      (lam
+                                                        ds
+                                                        (con bytestring)
+                                                        [
+                                                          [
+                                                            [
+                                                              {
+                                                                {
+                                                                  fFoldableNil_cfoldMap
+                                                                  [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]
+                                                                }
+                                                                TxInInfo
+                                                              }
+                                                              fMonoidValue
+                                                            ]
+                                                            (lam
+                                                              x
+                                                              TxInInfo
+                                                              [
+                                                                {
+                                                                  [
+                                                                    TxInInfo_match
+                                                                    x
+                                                                  ]
+                                                                  [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]
+                                                                }
+                                                                (lam
+                                                                  ds
+                                                                  TxOutRef
+                                                                  (lam
+                                                                    ds
+                                                                    TxOut
+                                                                    [
+                                                                      {
+                                                                        [
+                                                                          TxOut_match
+                                                                          ds
+                                                                        ]
+                                                                        [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]
+                                                                      }
+                                                                      (lam
+                                                                        ds
+                                                                        Address
+                                                                        (lam
+                                                                          ds
+                                                                          [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]
+                                                                          (lam
+                                                                            ds
+                                                                            [Maybe (con bytestring)]
+                                                                            ds
+                                                                          )
+                                                                        )
+                                                                      )
+                                                                    ]
+                                                                  )
+                                                                )
+                                                              ]
+                                                            )
+                                                          ]
+                                                          [
+                                                            [
+                                                              [
+                                                                {
+                                                                  {
+                                                                    foldr
+                                                                    TxInInfo
+                                                                  }
+                                                                  [List TxInInfo]
+                                                                }
+                                                                {
+                                                                  Cons TxInInfo
+                                                                }
+                                                              ]
+                                                              ds
+                                                            ]
+                                                            ds
+                                                          ]
                                                         ]
                                                       )
                                                     )
@@ -10659,117 +10813,7 @@
                                                                 ]
                                                                 vl
                                                               ]
-                                                              [
-                                                                {
-                                                                  [
-                                                                    TxInfo_match
-                                                                    ds
-                                                                  ]
-                                                                  [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]
-                                                                }
-                                                                (lam
-                                                                  ds
-                                                                  [List TxInInfo]
-                                                                  (lam
-                                                                    ds
-                                                                    [List TxInInfo]
-                                                                    (lam
-                                                                      ds
-                                                                      [List TxOut]
-                                                                      (lam
-                                                                        ds
-                                                                        [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]
-                                                                        (lam
-                                                                          ds
-                                                                          [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]
-                                                                          (lam
-                                                                            ds
-                                                                            [List DCert]
-                                                                            (lam
-                                                                              ds
-                                                                              [List [[Tuple2 StakingCredential] (con integer)]]
-                                                                              (lam
-                                                                                ds
-                                                                                [Interval (con integer)]
-                                                                                (lam
-                                                                                  ds
-                                                                                  [List (con bytestring)]
-                                                                                  (lam
-                                                                                    ds
-                                                                                    [List [[Tuple2 (con bytestring)] Data]]
-                                                                                    (lam
-                                                                                      ds
-                                                                                      (con bytestring)
-                                                                                      [
-                                                                                        [
-                                                                                          [
-                                                                                            {
-                                                                                              {
-                                                                                                fFoldableNil_cfoldMap
-                                                                                                [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]
-                                                                                              }
-                                                                                              TxInInfo
-                                                                                            }
-                                                                                            fMonoidValue
-                                                                                          ]
-                                                                                          (lam
-                                                                                            x
-                                                                                            TxInInfo
-                                                                                            [
-                                                                                              {
-                                                                                                [
-                                                                                                  TxInInfo_match
-                                                                                                  x
-                                                                                                ]
-                                                                                                [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]
-                                                                                              }
-                                                                                              (lam
-                                                                                                ds
-                                                                                                TxOutRef
-                                                                                                (lam
-                                                                                                  ds
-                                                                                                  TxOut
-                                                                                                  [
-                                                                                                    {
-                                                                                                      [
-                                                                                                        TxOut_match
-                                                                                                        ds
-                                                                                                      ]
-                                                                                                      [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]
-                                                                                                    }
-                                                                                                    (lam
-                                                                                                      ds
-                                                                                                      Address
-                                                                                                      (lam
-                                                                                                        ds
-                                                                                                        [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]
-                                                                                                        (lam
-                                                                                                          ds
-                                                                                                          [Maybe (con bytestring)]
-                                                                                                          ds
-                                                                                                        )
-                                                                                                      )
-                                                                                                    )
-                                                                                                  ]
-                                                                                                )
-                                                                                              )
-                                                                                            ]
-                                                                                          )
-                                                                                        ]
-                                                                                        ds
-                                                                                      ]
-                                                                                    )
-                                                                                  )
-                                                                                )
-                                                                              )
-                                                                            )
-                                                                          )
-                                                                        )
-                                                                      )
-                                                                    )
-                                                                  )
-                                                                )
-                                                              ]
+                                                              [ valueSpent ds ]
                                                             ]
                                                           ]
                                                           (fun Unit Bool)

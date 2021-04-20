@@ -17,6 +17,7 @@ module Plutus.V1.Ledger.Tx(
     -- * Transactions
     Tx(..),
     inputs,
+    inputsFees,
     outputs,
     txOutRefs,
     unspentOutputsTx,
@@ -117,7 +118,9 @@ especially because we only need one direction (to binary).
 -- | A transaction, including witnesses for its inputs.
 data Tx = Tx {
     txInputs       :: Set.Set TxIn,
-    -- ^ The inputs to this transaction.
+    -- ^ The inputs to this transaction NOT used to pay fees.
+    txInputsFees   :: Set.Set TxIn,
+    -- ^ The inputs to this transaction designated to pay fees.
     txOutputs      :: [TxOut],
     -- ^ The outputs of this transaction, ordered so they can be referenced by index.
     txForge        :: !Value,
@@ -136,9 +139,10 @@ data Tx = Tx {
       deriving anyclass (ToJSON, FromJSON, Serialise, NFData)
 
 instance Pretty Tx where
-    pretty t@Tx{txInputs, txOutputs, txForge, txFee, txValidRange, txSignatures, txForgeScripts, txData} =
+    pretty t@Tx{txInputs, txInputsFees, txOutputs, txForge, txFee, txValidRange, txSignatures, txForgeScripts, txData} =
         let lines' =
                 [ hang 2 (vsep ("inputs:" : fmap pretty (Set.toList txInputs)))
+                , hang 2 (vsep ("inputs for fees:" : fmap pretty (Set.toList txInputsFees)))
                 , hang 2 (vsep ("outputs:" : fmap pretty txOutputs))
                 , "forge:" <+> pretty txForge
                 , "fee:" <+> pretty txFee
@@ -153,6 +157,7 @@ instance Pretty Tx where
 instance Semigroup Tx where
     tx1 <> tx2 = Tx {
         txInputs = txInputs tx1 <> txInputs tx2,
+        txInputsFees = txInputsFees tx1 <> txInputsFees tx2,
         txOutputs = txOutputs tx1 <> txOutputs tx2,
         txForge = txForge tx1 <> txForge tx2,
         txFee = txFee tx1 <> txFee tx2,
@@ -163,17 +168,23 @@ instance Semigroup Tx where
         }
 
 instance Monoid Tx where
-    mempty = Tx mempty mempty mempty mempty top mempty mempty mempty
+    mempty = Tx mempty mempty mempty mempty mempty top mempty mempty mempty
 
 instance BA.ByteArrayAccess Tx where
     length        = BA.length . Write.toStrictByteString . encode
     withByteArray = BA.withByteArray . Write.toStrictByteString . encode
 
--- | The inputs of a transaction.
+-- | The inputs of a transaction not used for fees.
 inputs :: Lens' Tx (Set.Set TxIn)
 inputs = lens g s where
     g = txInputs
     s tx i = tx { txInputs = i }
+
+-- | The inputs of a transaction designated for fees.
+inputsFees :: Lens' Tx (Set.Set TxIn)
+inputsFees = lens g s where
+    g = txInputsFees
+    s tx i = tx { txInputsFees = i }
 
 -- | The outputs of a transaction.
 outputs :: Lens' Tx [TxOut]
@@ -234,7 +245,7 @@ data TxStripped = TxStripped {
 
 strip :: Tx -> TxStripped
 strip Tx{..} = TxStripped i txOutputs txForge txFee where
-    i = Set.map txInRef txInputs
+    i = Set.map txInRef (txInputs <> txInputsFees)
 
 -- | Compute the id of a transaction.
 txId :: Tx -> TxId
@@ -323,7 +334,7 @@ scriptTxIn ref v r d = TxIn ref $ ConsumeScriptAddress v r d
 data TxOut = TxOut {
     txOutAddress   :: Address,
     txOutValue     :: Value,
-    txOutDatumHash :: (Maybe DatumHash)
+    txOutDatumHash :: Maybe DatumHash
     }
     deriving stock (Show, Eq, Generic)
     deriving anyclass (Serialise, ToJSON, FromJSON, NFData)
@@ -377,7 +388,7 @@ txOutTxDatum (TxOutTx tx out) = txOutDatum out >>= lookupDatum tx
 -- | Create a transaction output locked by a validator script hash
 --   with the given data script attached.
 scriptTxOut' :: Value -> Address -> Datum -> TxOut
-scriptTxOut' v a ds = TxOut a v (Just (datumHash ds)) where
+scriptTxOut' v a ds = TxOut a v (Just (datumHash ds))
 
 -- | Create a transaction output locked by a validator script and with the given data script attached.
 scriptTxOut :: Value -> Validator -> Datum -> TxOut
@@ -398,7 +409,7 @@ unspentOutputsTx t = Map.fromList $ fmap f $ zip [0..] $ txOutputs t where
 
 -- | The transaction output references consumed by a transaction.
 spentOutputs :: Tx -> Set.Set TxOutRef
-spentOutputs = Set.map txInRef . txInputs
+spentOutputs tx = Set.map txInRef (txInputs tx <> txInputsFees tx)
 
 -- | Update a map of unspent transaction outputs and signatures based on the inputs
 --   and outputs of a transaction.

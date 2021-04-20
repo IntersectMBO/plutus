@@ -99,8 +99,8 @@ data ScriptPurpose
 
 -- | A pending transaction. This is the view as seen by validator scripts, so some details are stripped out.
 data TxInfo = TxInfo
-    { txInfoInputs      :: [TxInInfo] -- ^ Transaction inputs
-    , txInfoInputsFees  :: [TxInInfo]     -- ^ Transaction inputs designated to pay fees
+    { txInfoInputs      :: [TxInInfo] -- ^ Transaction inputs NOT used to pay fees
+    , txInfoInputsFees  :: [TxInInfo] -- ^ Transaction inputs designated to pay fees
     , txInfoOutputs     :: [TxOut] -- ^ Transaction outputs
     , txInfoFee         :: Value -- ^ The fee paid by this transaction.
     , txInfoForge       :: Value -- ^ The 'Value' forged by this transaction.
@@ -139,9 +139,9 @@ findDatumHash ds TxInfo{txInfoData} = fst <$> find f txInfoData
 
 {-# INLINABLE findTxInByTxOutRef #-}
 findTxInByTxOutRef :: TxOutRef -> TxInfo -> Maybe TxInInfo
-findTxInByTxOutRef outRef TxInfo{txInfoInputs} =
+findTxInByTxOutRef outRef TxInfo{txInfoInputs,txInfoInputsFees} =
     listToMaybe
-    $ filter (\TxInInfo{txInInfoOutRef} -> txInInfoOutRef == outRef) txInfoInputs
+    $ filter (\TxInInfo{txInInfoOutRef} -> txInInfoOutRef == outRef) (txInfoInputs <> txInfoInputsFees)
 
 {-# INLINABLE findContinuingOutputs #-}
 -- | Finds all the outputs that pay to the same script address that we are currently spending from, if any.
@@ -259,7 +259,7 @@ signsTransaction (Signature sig) (PubKey (LedgerBytes pk)) (TxInfo{txInfoId=TxId
 {-# INLINABLE valueSpent #-}
 -- | Get the total value of inputs spent by this transaction.
 valueSpent :: TxInfo -> Value
-valueSpent = foldMap (txOutValue . txInInfoResolved) . txInfoInputs
+valueSpent TxInfo{txInfoInputs, txInfoInputsFees} = foldMap (txOutValue . txInInfoResolved) (txInfoInputs <> txInfoInputsFees)
 
 {-# INLINABLE valueProduced #-}
 -- | Get the total value of outputs produced by this transaction.
@@ -277,13 +277,13 @@ ownCurrencySymbol _                                              = Builtins.erro
 --   (identified by the hash of a transaction and an index into that
 --   transactions' outputs)
 spendsOutput :: TxInfo -> TxId -> Integer -> Bool
-spendsOutput p h i =
+spendsOutput TxInfo{txInfoInputs, txInfoInputsFees} h i =
     let spendsOutRef inp =
             let outRef = txInInfoOutRef inp
             in h == txOutRefId outRef
                 && i == txOutRefIdx outRef
 
-    in any spendsOutRef (txInfoInputs p)
+    in any spendsOutRef txInfoInputs || any spendsOutRef txInfoInputsFees
 
 makeLift ''TxInInfo
 makeIsDataIndexed ''TxInInfo [('TxInInfo,0)]

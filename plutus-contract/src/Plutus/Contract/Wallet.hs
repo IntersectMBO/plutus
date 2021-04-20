@@ -168,7 +168,7 @@ addInputs mp pk vl tx = do
 
         addTxIns  =
             let ins = Set.fromList (Tx.pubKeyTxIn . fst <$> spend)
-            in over Tx.inputs (Set.union ins)
+            in over Tx.inputsFees (Set.union ins)
 
         addTxOuts = if Value.isZero change
                     then id
