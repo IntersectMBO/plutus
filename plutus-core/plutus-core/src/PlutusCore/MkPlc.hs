@@ -12,7 +12,9 @@
 module PlutusCore.MkPlc
     ( TermLike (..)
     , UniOf
+    , mkTyBuiltinOf
     , mkTyBuiltin
+    , mkConstantOf
     , mkConstant
     , VarDecl (..)
     , TyVarDecl (..)
@@ -69,13 +71,23 @@ class TermLike term tyname name uni fun | term -> tyname name uni fun where
     termLet = mkImmediateLamAbs
     typeLet = mkImmediateTyAbs
 
--- | Embed a type from a universe into a PLC type.
+-- | Embed a type (given its explicit type tag) into a PLC type.
+mkTyBuiltinOf :: forall a uni tyname ann. ann -> uni a -> Type tyname uni ann
+mkTyBuiltinOf ann = TyBuiltin ann . Some . TypeIn
+
+-- | Embed a type (provided its type is in the universe) into a PLC type.
 mkTyBuiltin
     :: forall a uni tyname ann. uni `Includes` a
     => ann -> Type tyname uni ann
-mkTyBuiltin ann = TyBuiltin ann . Some . TypeIn $ knownUni @uni @a
+mkTyBuiltin ann = mkTyBuiltinOf ann $ knownUni @uni @a
 
--- | Embed a Haskell value into a PLC term.
+-- | Embed a Haskell value (given its explicit type tag) into a PLC term.
+mkConstantOf
+    :: forall a uni fun term tyname name ann. TermLike term tyname name uni fun
+    => ann -> uni a -> a -> term ann
+mkConstantOf ann uni = constant ann . someValueOf uni
+
+-- | Embed a Haskell value (provided its type is in the universe) into a PLC term.
 mkConstant
     :: forall a uni fun term tyname name ann. (TermLike term tyname name uni fun, uni `Includes` a)
     => ann -> a -> term ann

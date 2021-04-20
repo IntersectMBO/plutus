@@ -141,12 +141,12 @@ instance Show (DefaultUni a) where
     show (DefaultUniRunTypeApp uniA) = show uniA
     show DefaultUniListProto         = "[]"
     show DefaultUniTupleProto        = "(,)"
-    show (DefaultUniApply uniF uniA) = case uniF of
-        DefaultUniListProto -> case uniA of
+    show (DefaultUniApply uniF uniB) = case uniF of
+        DefaultUniListProto -> case uniB of
             DefaultUniChar -> "string"
-            _              -> "[" ++ show uniA ++ "]"
-        DefaultUniTupleProto -> concat ["(", show uniA, ",)"]
-        DefaultUniApply DefaultUniTupleProto uniB -> concat ["(", show uniA, ",", show uniB, ")"]
+            _              -> "[" ++ show uniB ++ "]"
+        DefaultUniTupleProto -> concat ["(", show uniB, ",)"]
+        DefaultUniApply DefaultUniTupleProto uniA -> concat ["(", show uniA, ",", show uniB, ")"]
 
 instance Parsable (Some DefaultUni) where
     parse "bool"       = Just $ Some DefaultUniBool

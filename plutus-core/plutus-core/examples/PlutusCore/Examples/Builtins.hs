@@ -218,7 +218,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni ExtensionFun where
             :: a ~ TyVarRep ('TyNameRep "a" 0)
             => SomeValueN DefaultUni [] '[a] -> EvaluationResult (Opaque term a)
         headPlc (SomeValueArg uniA (SomeValueRes _ xs)) = case xs of
-            x : _ -> EvaluationSuccess . Opaque . fromConstant . Some $ ValueOf uniA x
+            x : _ -> EvaluationSuccess . Opaque . fromConstant $ someValueOf uniA x
             _     -> EvaluationFailure
     toBuiltinMeaning Tail = makeBuiltinMeaning tailPlc mempty where
         tailPlc

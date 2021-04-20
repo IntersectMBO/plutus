@@ -17,6 +17,7 @@ module PlutusCore.Universe.Core
     ( Some (..)
     , TypeIn (..)
     , ValueOf (..)
+    , someValueOf
     , someValue
     , TypeApp
     , HasUniApply (..)
@@ -99,22 +100,32 @@ type Includes uni = Permits (Contains uni)
 knownUniOf :: uni `Includes` a => proxy a -> uni a
 knownUniOf _ = knownUni
 
--- | Wrap a value into @SomeValueOf uni@, provided its type is in the universe.
+-- | Wrap a value into @Some (ValueOf uni)@, given its explicit type tag.
+someValueOf :: forall a uni. uni a -> a -> Some (ValueOf uni)
+someValueOf uni = Some . ValueOf uni
+
+-- | Wrap a value into @Some (ValueOf uni)@, provided its type is in the universe.
 someValue :: forall a uni. uni `Includes` a => a -> Some (ValueOf uni)
-someValue = Some . ValueOf knownUni
+someValue = someValueOf knownUni
 
 data TypeApp (a :: k)
 
 class HasUniApply uni where
+    -- runTypeApp :: uni (TypeApp a) -> uni a
     matchUniRunTypeApp
         :: uni a
         -> r
         -> (uni (TypeApp a) -> r)
         -> r
     matchUniApply
-        :: uni (TypeApp (fa :: k))
+        -- :: uni (TypeApp (fa :: k))
+        -- -- -> (k ~ GHC.Type => r)
+        -- -> r
+        -- -> (forall f a. fa ~ f a => uni (TypeApp (f :: GHC.Type -> k)) -> uni a -> r)
+        -- -> r
+        :: uni tfa
         -> r
-        -> (forall f a. fa ~ f a => uni (TypeApp (f :: GHC.Type -> k)) -> uni a -> r)
+        -> (forall k f a. tfa ~ TypeApp (f a :: k) => uni (TypeApp f) -> uni a -> r)
         -> r
 
 -- | A universe is 'Closed', if it's known how to constrain every type from the universe.

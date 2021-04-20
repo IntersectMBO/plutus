@@ -1,5 +1,6 @@
 -- | The internals of the normalizer.
 
+{-# LANGUAGE PolyKinds       #-}
 {-# LANGUAGE TemplateHaskell #-}
 
 module PlutusCore.Normalize.Internal
@@ -12,9 +13,11 @@ module PlutusCore.Normalize.Internal
     ) where
 
 import           PlutusCore.Core
+import           PlutusCore.MkPlc
 import           PlutusCore.Name
 import           PlutusCore.Quote
 import           PlutusCore.Rename
+import           PlutusCore.Universe
 import           PlutusPrelude
 
 import           Control.Lens
@@ -119,6 +122,17 @@ this value and rename all bound variables in it to preserve the global uniquenes
 safe to do so, because picked values cannot contain uninstantiated variables as only normalized types
 are added to environments and normalization instantiates all variables presented in an environment.
 -}
+
+normalizeTyBuiltin
+    :: forall uni tyname. HasUniApply uni
+    => Some (TypeIn uni) -> Type tyname uni ()
+normalizeTyBuiltin (Some (TypeIn uni0)) = matchUniRunTypeApp uni0 _ go where
+    go :: forall k (a :: k). uni (TypeApp a) -> Type tyname uni ()
+    go uni =
+        matchUniApply
+            uni
+            (_ $ (mkTyBuiltinOf uni)) -- (mkTyBuiltinOf uni)
+            (\uniF uniA -> TyApp () (go uniF) (mkTyBuiltinOf () uniA))
 
 -- See Note [Normalization].
 -- | Normalize a 'Type' in the 'NormalizeTypeM' monad.
