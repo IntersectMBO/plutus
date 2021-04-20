@@ -182,7 +182,7 @@ renderScreen webSocketStatus wallets screen playState =
     div
       -- TODO: Revisit the overflow-auto... I think the scrolling should be set at the screen level and not here.
       --       this should have overflow-hidden to avoid the main div to occupy more space than available.
-      [ classNames [ "absolute", "top-0", "bottom-0", "left-0", "right-0", "overflow-auto", "z-0" ] ] case screen of
+      [ classNames [ "absolute", "inset-0", "overflow-auto", "z-0" ] ] case screen of
       ContractsScreen -> [ ContractHomeAction <$> contractsScreen currentSlot contractsState ]
       WalletLibraryScreen -> [ walletLibraryScreen wallets ]
       TemplateScreen -> [ TemplateAction <$> contractSetupScreen wallets currentSlot templateState ]
