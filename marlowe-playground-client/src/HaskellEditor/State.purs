@@ -15,14 +15,14 @@ import Control.Monad.Reader (class MonadAsk, asks, runReaderT)
 import Data.Array (catMaybes)
 import Data.Either (Either(..), hush)
 import Data.Foldable (for_)
-import Data.Lens (assign, modifying, use)
+import Data.Lens (assign, modifying, over, set, use)
 import Data.Map as Map
 import Data.Maybe (Maybe(..), fromMaybe, maybe)
 import Data.String as String
 import Effect.Aff.Class (class MonadAff)
 import Env (Env)
 import Examples.Haskell.Contracts (example) as HE
-import Halogen (HalogenM, liftEffect, query)
+import Halogen (HalogenM, liftEffect, modify_, query)
 import Halogen.Extra (mapSubmodule)
 import Halogen.Monaco (Message(..), Query(..)) as Monaco
 import HaskellEditor.Types (Action(..), BottomPanelView(..), State, _bottomPanelState, _compilationResult, _haskellEditorKeybindings, _metadataHintInfo)
@@ -92,9 +92,10 @@ handleAction Compile = do
             metadataHints :: MetadataHintInfo
             metadataHints = maybe mempty getMetadataHintInfo mContract
           in
-            for_ mContract \contract -> do
-              modifying (_analysisState <<< _templateContent) $ updateTemplateContent $ getPlaceholderIds contract
-              assign _metadataHintInfo metadataHints
+            for_ mContract \contract ->
+              modify_
+                $ over (_analysisState <<< _templateContent) (updateTemplateContent $ getPlaceholderIds contract)
+                <<< set _metadataHintInfo metadataHints
         _ -> pure unit
       let
         markers = case result of
