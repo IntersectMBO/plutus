@@ -12,7 +12,6 @@
 {-# LANGUAGE PolyKinds                #-}
 {-# LANGUAGE RankNTypes               #-}
 {-# LANGUAGE StandaloneKindSignatures #-}
-{-# LANGUAGE TemplateHaskell          #-}
 {-# LANGUAGE TypeApplications         #-}
 {-# LANGUAGE TypeFamilies             #-}
 {-# LANGUAGE TypeOperators            #-}
@@ -50,8 +49,6 @@ import           PlutusCore.MkPlc
 import           PlutusCore.Name
 import           PlutusCore.Universe
 
-import           Control.Lens.Prism
-import           Control.Lens.TH
 import           Control.Monad.Except
 import qualified Data.ByteString                         as BS
 import           Data.Functor.Compose
@@ -368,26 +365,6 @@ class KnownTypeAst (UniOf term) a => KnownType term a where
         => term -> m a
     readKnown = unliftConstant
 
-newtype NoCauseT term m a = NoCauseT
-    { unNoCauseT :: m a
-    } deriving newtype (Functor, Applicative, Monad)
-
-newtype NoUnliftingError err = NoUnliftingError err
-makePrisms ''NoUnliftingError
-
-instance AsEvaluationFailure err => AsUnliftingError (NoUnliftingError err) where
-    _UnliftingError = prism (\_ -> NoUnliftingError evaluationFailure) Left
-
-instance AsEvaluationFailure err => AsEvaluationFailure (NoUnliftingError err) where
-    _EvaluationFailure = _NoUnliftingError . _EvaluationFailure
-
-instance (MonadError err m, AsEvaluationFailure err) =>
-            MonadError (ErrorWithCause (NoUnliftingError err) term) (NoCauseT term m) where
-    throwError _ = NoCauseT $ throwError evaluationFailure
-    NoCauseT a `catchError` h =
-        NoCauseT $ a `catchError` \err ->
-            unNoCauseT . h $ ErrorWithCause (NoUnliftingError err) Nothing
-
 makeKnownNoEmit :: (KnownType term a, MonadError err m, AsEvaluationFailure err) => a -> m term
 makeKnownNoEmit = unNoEmitterT . makeKnown
 
@@ -414,34 +391,6 @@ instance KnownType term a => KnownType term (Emitter a) where
     makeKnown = unEmitter >=> makeKnown
     -- TODO: we really should tear 'KnownType' apart into two separate type classes.
     readKnown = throwingWithCause _UnliftingError "Can't unlift an 'Emitter'" . Just
-
-cparaM_SList
-    :: forall k c (xs :: [k]) proxy r m. (All c xs, Monad m)
-    => proxy c
-    -> r '[]
-    -> (forall y ys. (c y, All c ys) => r ys -> m (r (y ': ys)))
-    -> m (r xs)
-cparaM_SList p z f =
-    getCompose $ cpara_SList
-        p
-        (Compose $ pure z)
-        (\(Compose r) -> Compose $ r >>= f)
-
-cparaP_SList
-    :: forall k c (xs :: [k]) proxy r. All c xs
-    => proxy c
-    -> r '[]
-    -> (forall y ys. (c y, All c ys) => Proxy (All c (y ': ys)) -> r ys -> r (y ': ys))
-    -> r xs
-cparaP_SList p z f = cpara_SList p z $ f Proxy
-
-cfoldr_SList
-    :: forall c xs r proxy. All c xs
-    => proxy (All c xs)
-    -> (forall y ys. (c y, All c ys) => Proxy (All c (y ': ys)) -> r -> r)
-    -> r
-    -> r
-cfoldr_SList _ f z = getConst $ cparaP_SList @_ @c @xs Proxy (coerce z) (coerce . f)
 
 type SomeValueN :: forall k. (GHC.Type -> GHC.Type) -> k -> [GHC.Type] -> GHC.Type
 data SomeValueN uni (a :: k) reps where
@@ -573,3 +522,33 @@ instance KnownBuiltinType term Integer => KnownType term Int where
         unless (fromIntegral (minBound :: Int) <= i && i <= fromIntegral (maxBound :: Int)) $
             throwingWithCause _EvaluationFailure () $ Just term
         pure $ fromIntegral i
+
+-- Utils
+
+cparaM_SList
+    :: forall k c (xs :: [k]) proxy r m. (All c xs, Monad m)
+    => proxy c
+    -> r '[]
+    -> (forall y ys. (c y, All c ys) => r ys -> m (r (y ': ys)))
+    -> m (r xs)
+cparaM_SList p z f =
+    getCompose $ cpara_SList
+        p
+        (Compose $ pure z)
+        (\(Compose r) -> Compose $ r >>= f)
+
+cparaP_SList
+    :: forall k c (xs :: [k]) proxy r. All c xs
+    => proxy c
+    -> r '[]
+    -> (forall y ys. (c y, All c ys) => Proxy (All c (y ': ys)) -> r ys -> r (y ': ys))
+    -> r xs
+cparaP_SList p z f = cpara_SList p z $ f Proxy
+
+cfoldr_SList
+    :: forall c xs r proxy. All c xs
+    => proxy (All c xs)
+    -> (forall y ys. (c y, All c ys) => Proxy (All c (y ': ys)) -> r -> r)
+    -> r
+    -> r
+cfoldr_SList _ f z = getConst $ cparaP_SList @_ @c @xs Proxy (coerce z) (coerce . f)

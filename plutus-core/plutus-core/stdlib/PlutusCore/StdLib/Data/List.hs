@@ -224,7 +224,8 @@ reverse = runQuote $ do
 enumFromTo
     :: ( TermLike term TyName Name uni DefaultFun
        , uni `Includes` Integer, uni `Includes` (), uni `Includes` Bool
-       ) => term ()
+       )
+    => term ()
 enumFromTo = runQuote $ do
     let list = _recursiveType listData
     n   <- freshName "n"

@@ -39,7 +39,8 @@ false = mkConstant () False
 ifThenElse
     :: ( TermLike term TyName Name uni DefaultFun
        , uni `Includes` Bool, uni `Includes` ()
-       ) => term ()
+       )
+    => term ()
 ifThenElse = runQuote $ do
     a <- freshTyName "a"
     b <- freshName "b"
