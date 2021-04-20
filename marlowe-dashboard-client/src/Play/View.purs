@@ -8,16 +8,16 @@ import Css as Css
 import Data.Lens (preview, view)
 import Data.Maybe (Maybe(..))
 import Data.String (take)
-import Halogen.HTML (HTML, a, div, div_, footer, header, img, main, nav, span, text)
+import Halogen.HTML (HTML, a, div, div_, footer, header, img, main, nav, span, span_, text)
 import Halogen.HTML.Events.Extra (onClick_)
 import Halogen.HTML.Properties (href, src)
 import Logo (marloweRunNavLogo, marloweRunNavLogoDark)
 import MainFrame.Lenses (_screen)
-import MainFrame.Types (WebSocketStatus(..))
+import MainFrame.Types (WebSocketStatus)
 import Marlowe.Extended.Template (ContractTemplate)
 import Marlowe.Semantics (PubKey)
-import Material.Icons (Icon(..), icon_)
-import Play.Lenses (_cards, _contractsState, _currentSlot, _menuOpen, _selectedContract, _slotsInSync, _templateState, _walletDetails)
+import Material.Icons (Icon(..), icon, icon_)
+import Play.Lenses (_cards, _contractsState, _currentSlot, _menuOpen, _selectedContract, _templateState, _walletDetails)
 import Play.Types (Action(..), Card(..), Screen(..), State)
 import Prim.TypeError (class Warn, Text)
 import Template.View (contractSetupConfirmationCard, contractSetupScreen, templateLibraryCard)
@@ -175,8 +175,6 @@ renderScreen webSocketStatus wallets screen playState =
   let
     currentSlot = view _currentSlot playState
 
-    slotsInSync = view _slotsInSync playState
-
     templateState = view _templateState playState
 
     contractsState = view _contractsState playState
@@ -184,28 +182,10 @@ renderScreen webSocketStatus wallets screen playState =
     div
       -- TODO: Revisit the overflow-auto... I think the scrolling should be set at the screen level and not here.
       --       this should have overflow-hidden to avoid the main div to occupy more space than available.
-      [ classNames [ "absolute", "top-0", "bottom-0", "left-0", "right-0", "overflow-auto", "z-0" ] ]
-      $ [ renderGlobalErrors webSocketStatus slotsInSync ]
-      <> case screen of
-          ContractsScreen -> [ ContractHomeAction <$> contractsScreen currentSlot contractsState ]
-          WalletLibraryScreen -> [ walletLibraryScreen wallets ]
-          TemplateScreen -> [ TemplateAction <$> contractSetupScreen wallets currentSlot templateState ]
-
--- FIXME: ask Russ to design this div
-renderGlobalErrors :: forall p. WebSocketStatus -> Boolean -> HTML p Action
-renderGlobalErrors webSocketStatus slotsInSync =
-  let
-    classes = classNames [ "absolute", "top-4", "left-4", "right-4", "md:left-5pc", "md:right-5pc", "bg-red", "text-white", "px-5", "py-4", "rounded", "shadow-lg" ]
-  in
-    case webSocketStatus of
-      WebSocketClosed _ ->
-        div [ classes ]
-          [ text "We have lost the connection the server running this application. Try reloading the page, and contact support if the problem persists." ]
-      WebSocketOpen
-        | not slotsInSync ->
-          div [ classes ]
-            [ text "The slot number from the server is out of sync with the slot number from your machine. This could be a connectivity issue, in which case reloading the page might help. Or it could be that your system clock is not registering the correct time. Please contact support if you are sure your system clock is correct and the problem persists." ]
-      _ -> div_ [] -- everything is ok
+      [ classNames [ "absolute", "top-0", "bottom-0", "left-0", "right-0", "overflow-auto", "z-0" ] ] case screen of
+      ContractsScreen -> [ ContractHomeAction <$> contractsScreen currentSlot contractsState ]
+      WalletLibraryScreen -> [ walletLibraryScreen wallets ]
+      TemplateScreen -> [ TemplateAction <$> contractSetupScreen wallets currentSlot templateState ]
 
 ------------------------------------------------------------
 renderFooter :: forall p. HTML p Action

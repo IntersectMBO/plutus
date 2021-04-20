@@ -10,7 +10,6 @@ import Capability.Websocket (class MonadWebsocket, subscribeToContract, subscrib
 import ContractHome.State (dummyContracts)
 import Control.Monad.Except (runExcept)
 import Control.Monad.Reader (class MonadAsk)
-import Control.Monad.Rec.Class (forever)
 import Data.Either (Either(..))
 import Data.Foldable (for_)
 import Data.Lens (assign, over, set, use, view, (^.))
@@ -18,20 +17,15 @@ import Data.Lens.Extra (peruse)
 import Data.Map (empty, filter, findMin, insert, lookup, mapMaybe, member)
 import Data.Maybe (Maybe(..))
 import Data.Newtype (unwrap)
-import Data.Time.Duration (Milliseconds(..))
 import Data.UUID (parseUUID)
 import Data.UUID (toString) as UUID
-import Effect.Aff (error)
-import Effect.Aff as Aff
 import Effect.Aff.Class (class MonadAff)
 import Effect.Now (getTimezoneOffset)
 import Env (Env)
 import Foreign.Generic (decodeJSON, encodeJSON)
-import Halogen (Component, HalogenM, liftEffect, mkComponent, mkEval, modify_, subscribe)
+import Halogen (Component, HalogenM, liftEffect, mkComponent, mkEval, modify_)
 import Halogen.Extra (mapMaybeSubmodule, mapSubmodule)
 import Halogen.HTML (HTML)
-import Halogen.Query.EventSource (EventSource)
-import Halogen.Query.EventSource as EventSource
 import LocalStorage (getItem, removeItem, setItem)
 import MainFrame.Lenses (_card, _newWalletDetails, _pickupState, _playState, _subState, _toast, _wallets, _webSocketStatus)
 import MainFrame.Types (Action(..), ChildSlots, Msg, Query(..), State, WebSocketStatus(..))
@@ -108,7 +102,12 @@ handleQuery ::
 handleQuery (ReceiveWebSocketMessage msg next) = do
   case msg of
     WS.WebSocketOpen -> assign _webSocketStatus WebSocketOpen
-    (WS.WebSocketClosed reason) -> assign _webSocketStatus (WebSocketClosed (Just reason)) -- TODO: show warning to the user
+    (WS.WebSocketClosed closeEvent) -> do
+      -- TODO: When we change our websocket subscriptions, the websocket is closed and then reopened.
+      -- We don't want to warn the user in this case, but we do want to warn them if the websocket
+      -- closes for some unexpected reason. But currently I don't know how to distinguish these cases.
+      -- addToast $ connectivityErrorToast "Connection to the server has been lost"
+      assign _webSocketStatus (WebSocketClosed (Just closeEvent))
     (WS.ReceiveMessage (Left errors)) -> pure unit -- TODO: show error to the user
     (WS.ReceiveMessage (Right streamToClient)) -> case streamToClient of
       -- update the current slot
@@ -155,25 +154,6 @@ handleQuery (MainFrameActionQuery action next) = do
   handleAction action
   pure $ Just next
 
--- The current slot is controlled by the PAB (which should update it every second through
--- the websocket). This subsription checks whether the slot number coming from the PAB
--- agrees with what (given then current time) we expect the slot number to be. If these go
--- out of sync, we show a warning to the user. (If they go out of sync, the instantiation
--- of timeouts in a contract will be incorrect.)
-checkCurrentSlotSubscription ::
-  forall m.
-  MonadAff m =>
-  EventSource m Action
-checkCurrentSlotSubscription =
-  EventSource.affEventSource \emitter -> do
-    fiber <-
-      Aff.forkAff
-        $ forever do
-            Aff.delay $ Milliseconds 1000.0
-            slot <- liftEffect $ currentSlot
-            EventSource.emit emitter (PlayAction $ Play.CheckCurrentSlot slot)
-    pure $ EventSource.Finalizer $ Aff.killFiber (error "removing aff") fiber
-
 -- Note [State]: Some actions belong logically in one part of the state, but
 -- from the user's point of view in another. For example, the action of picking
 -- up a wallet belongs logically in the MainFrame state (because it modifies
@@ -210,8 +190,6 @@ handleAction Init = do
       -- up the pickup wallet card for this wallet to display to the user in the meantime.
       handleAction $ PickupAction $ Pickup.SetPickupWalletString $ view _walletNickname walletDetails
       handleAction $ PickupAction $ Pickup.PickupWallet walletDetails
-  -- subscribe to local currentSlot counter
-  void $ subscribe checkCurrentSlotSubscription
 
 handleAction (SetNewWalletNicknameString walletNicknameString) = assign (_newWalletDetails <<< _walletNicknameString) walletNicknameString
 
@@ -290,6 +268,8 @@ handleAction (PickupAction pickupAction) = case pickupAction of
     let
       contractInstanceId = view _contractInstanceId walletDetails
     arCompanionContractState <- marloweGetWalletCompanionContractObservableState contractInstanceId
+    -- FIXME: this call takes a long time - at the very least, we should pick up the wallet and
+    -- register contracts as loading while this call goes on in the background
     arContractInstanceIds <- getWalletContractInstances wallet
     case arAssets, arCompanionContractState, arContractInstanceIds of
       Right assets, Right companionContractState, Right contractInstanceIds -> do
@@ -381,6 +361,7 @@ handleAction (PlayAction playAction) = case playAction of
   Play.TemplateAction Template.StartContract -> do
     mPlayState <- peruse _playState
     for_ mPlayState \playState -> do
+      -- TODO: check the current slot is what it should be and warn the user if it isn't
       -- flesh out a contract from the templateState
       let
         currentSlot = playState ^. _currentSlot
