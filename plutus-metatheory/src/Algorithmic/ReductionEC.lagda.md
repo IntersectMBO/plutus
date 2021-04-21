@@ -465,6 +465,12 @@ lemma51 (con c) = inj₁ (V-con c)
 lemma51 (ibuiltin b) = inj₁ (ival b)
 lemma51 (error _) = inj₂ (_ ,, ([] ,, (error _ ,, (inj₂ E-error) ,, refl)))
 
+progress' : {A : ∅ ⊢Nf⋆ *} → (M : ∅ ⊢ A) → Progress M
+progress' M with lemma51 M
+... | inj₁ V = done V
+... | inj₂ (B ,, E ,, L ,, inj₁ (M' ,, p) ,, refl) = step (ruleEC E p)
+... | inj₂ (B ,, E ,, L ,, inj₂ E-error ,, refl) = step (ruleErr E)
+
 {-
 progress-·V :  {A B : ∅ ⊢Nf⋆ *}
   → {t : ∅ ⊢ A ⇒ B} → Value t
