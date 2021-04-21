@@ -31,12 +31,12 @@ import WalletData.Types (Wallet)
 class
   Monad m <= ManageContract m where
   activateContract :: ContractActivationArgs ContractExe -> m (AjaxResponse ContractInstanceId)
-  getContractInstanceClientState :: ContractInstanceId -> m (AjaxResponse ContractInstanceClientState)
+  getContractInstanceClientState :: ContractInstanceId -> m (AjaxResponse (ContractInstanceClientState ContractExe))
   getContractInstanceCurrentState :: ContractInstanceId -> m (AjaxResponse (PartiallyDecodedResponse ActiveEndpoint))
   getContractInstanceObservableState :: ContractInstanceId -> m (AjaxResponse RawJson)
   invokeEndpoint :: forall d. Encode d => ContractInstanceId -> String -> d -> m (AjaxResponse Unit)
-  getWalletContractInstances :: Wallet -> m (AjaxResponse (Array ContractInstanceClientState))
-  getAllContractInstances :: m (AjaxResponse (Array ContractInstanceClientState))
+  getWalletContractInstances :: Wallet -> m (AjaxResponse (Array (ContractInstanceClientState ContractExe)))
+  getAllContractInstances :: m (AjaxResponse (Array (ContractInstanceClientState ContractExe)))
   getContractDefinitions :: m (AjaxResponse (Array (ContractSignatureResponse ContractExe)))
 
 instance monadContractAppM :: ManageContract AppM where
@@ -46,7 +46,7 @@ instance monadContractAppM :: ManageContract AppM where
     clientState <- getContractInstanceClientState contractInstanceId
     pure $ map (view _cicCurrentState) clientState
     where
-    _cicCurrentState :: Lens' ContractInstanceClientState (PartiallyDecodedResponse ActiveEndpoint)
+    _cicCurrentState :: Lens' (ContractInstanceClientState ContractExe) (PartiallyDecodedResponse ActiveEndpoint)
     _cicCurrentState = _ContractInstanceClientState <<< prop (SProxy :: SProxy "cicCurrentState")
   getContractInstanceObservableState contractInstanceId = do
     currentState <- getContractInstanceCurrentState contractInstanceId
