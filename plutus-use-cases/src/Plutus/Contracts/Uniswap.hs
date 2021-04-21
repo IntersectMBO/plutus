@@ -29,8 +29,10 @@ module Plutus.Contracts.Uniswap
     , RemoveParams (..)
     , AddParams (..)
     , UniswapUserSchema, UserContractState (..)
+    , UniswapOwnerSchema
     , start, create, add, remove, close, swap, pools
     , ownerEndpoint, userEndpoints
+    , rsqrt, isqrt
     ) where
 
 import           Control.Monad                    hiding (fmap)
@@ -54,10 +56,6 @@ import           Prelude                          (Semigroup (..))
 import qualified Prelude
 import           Text.Printf                      (printf)
 
-feeNum, feeDen :: Integer
-feeNum = 3
-feeDen = 1000
-
 uniswapTokenName, poolStateTokenName :: TokenName
 uniswapTokenName = "Uniswap"
 poolStateTokenName = "Pool State"
@@ -68,6 +66,7 @@ data Coin = Coin
     { cCurrency :: CurrencySymbol
     , cToken    :: TokenName
     } deriving (Show, Generic, ToJSON, FromJSON, ToSchema)
+
 
 PlutusTx.unstableMakeIsData ''Coin
 PlutusTx.makeLift ''Coin
@@ -109,10 +108,6 @@ coinValueOf :: Value   -- ^ The 'Value' to inspect.
             -> Coin    -- ^ The 'Coin' to look for.
             -> Integer -- ^ The number of units of the given 'Coin' contained in the given 'Value'.
 coinValueOf v Coin{..} = valueOf v cCurrency cToken
-
-{-# INLINABLE hashCoin #-}
-hashCoin :: Coin -> ByteString
-hashCoin Coin{..} = sha2_256 $ concatenate (unCurrencySymbol cCurrency) (unTokenName cToken)
 
 data Sqrt =
       Imaginary
@@ -187,14 +182,6 @@ instance Eq LiquidityPool where
     x == y = (lpCoinA x == lpCoinA y && lpCoinB x == lpCoinB y) ||
              (lpCoinA x == lpCoinB y && lpCoinB x == lpCoinA y)
 
-{-# INLINABLE hashLiquidityPool #-}
-hashLiquidityPool :: LiquidityPool -> ByteString
-hashLiquidityPool LiquidityPool{..} = sha2_256 $ concatenate (hashCoin c) (hashCoin d)
-  where
-    (c, d)
-        | lpCoinA `coinLT` lpCoinB = (lpCoinA, lpCoinB)
-        | otherwise                = (lpCoinB, lpCoinA)
-
 newtype Uniswap = Uniswap
     { usCoin :: Coin
     } deriving stock    (Show, Generic)
@@ -250,10 +237,12 @@ checkSwap oldA oldB newA newB =
     inA, inB :: Integer
     inA = max 0 $ newA - oldA
     inB = max 0 $ newB - oldB
-
--- (newA - fee * inA) * (newB - fee * inB) >= oldA * oldB
--- (newA * feeDen - inA + feeNum) * (newB * feeDen - inB * feeNum)
---     >= feeDen ^ 2 * oldA * oldB
+    -- The uniswap fee is 0.3%; here it is multiplied by 1000, so that the
+    -- on-chain code deals only in integers.
+    -- See: <https://uniswap.org/whitepaper.pdf> Eq (11) (Page 7.)
+    feeNum, feeDen :: Integer
+    feeNum = 3
+    feeDen = 1000
 
 {-# INLINABLE validateSwap #-}
 validateSwap :: LiquidityPool -> Coin -> ScriptContext -> Bool
@@ -914,6 +903,10 @@ ownerEndpoint = do
     tell $ Last $ Just $ case e of
         Left err -> Left err
         Right us -> Right us
+
+type UniswapOwnerSchema =
+    BlockchainActions
+        .\/ Endpoint "start" ()
 
 -- | Schema for the endpoints for users of Uniswap.
 type UniswapUserSchema =
