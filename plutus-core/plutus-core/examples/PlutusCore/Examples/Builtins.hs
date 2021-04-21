@@ -32,6 +32,7 @@ import           Data.Hashable                                     (Hashable)
 import qualified Data.Kind                                         as GHC (Type)
 import           Data.Proxy
 import           Data.Text.Prettyprint.Doc
+import           Data.Tuple
 import           Data.Void
 import           GHC.Generics
 import           GHC.Ix
@@ -103,8 +104,8 @@ data ExtensionFun
     | Tail
     | Fst
     | Snd
-    | Swap  -- Just for checking that permuting type arguments of a polymorphic built-in type
-            -- works as expected.
+    | Swap  -- For checking that permuting type arguments of a polymorphic built-in works correctly.
+    | SwapEls
     deriving (Show, Eq, Ord, Enum, Bounded, Ix, Generic, Hashable)
     deriving (ExMemoryUsage) via (GenericExMemoryUsage ExtensionFun)
 
@@ -221,9 +222,20 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni ExtensionFun where
     toBuiltinMeaning Swap = makeBuiltinMeaning swapPlc mempty where
         swapPlc :: SomeValueN uni (,) '[a, b] -> SomeValueN uni (,) '[b, a]
         swapPlc (SomeValueArg uniA (SomeValueArg uniB (SomeValueRes _ (x, y)))) =
-            SomeValueArg uniB (SomeValueArg uniA (SomeValueRes uniBA (y, x)))
-          where
-            uniBA = DefaultUniTuple uniB uniA
+            SomeValueArg uniB (SomeValueArg uniA (SomeValueRes (DefaultUniTuple uniB uniA) (y, x)))
+    toBuiltinMeaning SwapEls = makeBuiltinMeaning swapElsPlc mempty where
+        -- swapElsPlc : [([a], Bool)] -> [(Bool, [a])]
+        swapElsPlc
+            :: a ~ Opaque term (TyVarRep ('TyNameRep "a" 0))
+            => SomeValueN uni [] '[SomeValueN uni (,) '[SomeValueN uni [] '[a], Bool]]
+            -> SomeValueN uni [] '[SomeValueN uni (,) '[Bool, SomeValueN uni [] '[a]]]
+        swapElsPlc (SomeValueArg uniEl (SomeValueRes _ xs)) = case uniEl of
+            DefaultUniTuple (DefaultUniList uniA) DefaultUniBool ->
+                let uniEl' = DefaultUniTuple DefaultUniBool (DefaultUniList uniA)
+                in SomeValueArg uniEl' . SomeValueRes (DefaultUniList uniEl') $ map swap xs
+            -- It would be nice to make GHC realize we've covered all options,
+            -- but that seems infeasible.
+            _ -> error "impossible"
 
 -- tuples with general terms in them are not representable, hence @swap@ over a tuple with general
 -- terms in it is essentially @absurd@
