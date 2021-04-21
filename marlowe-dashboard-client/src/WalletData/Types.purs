@@ -15,8 +15,9 @@ import Data.Map (Map)
 import Data.Newtype (class Newtype)
 import Foreign.Class (class Encode, class Decode)
 import Foreign.Generic (defaultOptions, genericDecode, genericEncode)
+import Marlowe.PAB (ContractInstanceId)
 import Marlowe.Semantics (Assets, PubKey)
-import Types (ContractInstanceId, WebData)
+import Types (WebData)
 
 type WalletLibrary
   = Map WalletNickname WalletDetails

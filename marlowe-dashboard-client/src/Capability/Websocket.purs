@@ -12,9 +12,9 @@ import Bridge (toBack)
 import Data.Either (Either(..))
 import Halogen (HalogenM, raise)
 import MainFrame.Types (Msg(..))
+import Marlowe.PAB (ContractInstanceId)
 import Plutus.PAB.Webserver.Types (CombinedWSStreamToServer(..))
 import WalletData.Types (Wallet)
-import Types (ContractInstanceId)
 
 class
   Monad m <= MonadWebsocket m where

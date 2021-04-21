@@ -17,11 +17,11 @@ import Data.Lens (Lens', Traversal')
 import Data.Lens.Record (prop)
 import Data.Map (Map)
 import Data.Symbol (SProxy(..))
+import Marlowe.PAB (ContractInstanceId)
 import Marlowe.Semantics (Slot)
 import Play.Types (Card, State)
 import Template.Types (State) as Template
 import WalletData.Types (WalletDetails)
-import Types (ContractInstanceId)
 
 _walletDetails :: Lens' State WalletDetails
 _walletDetails = prop (SProxy :: SProxy "walletDetails")

@@ -4,6 +4,7 @@ module Capability.Contract
   , getContractInstanceClientState
   , getContractInstanceCurrentState
   , getContractInstanceObservableState
+  , getContractInstanceHooks
   , invokeEndpoint
   , getWalletContractInstances
   , getAllContractInstances
@@ -11,21 +12,22 @@ module Capability.Contract
   ) where
 
 import Prelude
+import API.Lenses (_cicCurrentState, _hooks, _observableState)
 import AppM (AppM)
 import Bridge (toBack, toFront)
 import API.Contract as API
 import Control.Monad.Except (lift, runExceptT)
-import Data.Lens (Lens', view)
-import Data.Lens.Record (prop)
+import Data.Lens (view)
 import Data.RawJson (RawJson)
-import Data.Symbol (SProxy(..))
 import Foreign.Generic (class Encode)
 import Halogen (HalogenM)
+import Marlowe.PAB (ContractInstanceId)
 import Plutus.Contract.Effects.ExposeEndpoint (ActiveEndpoint)
+import Plutus.Contract.Resumable (Request)
 import Plutus.PAB.Effects.Contract.ContractExe (ContractExe)
-import Plutus.PAB.Events.ContractInstanceState (PartiallyDecodedResponse, _PartiallyDecodedResponse)
-import Plutus.PAB.Webserver.Types (ContractActivationArgs, ContractInstanceClientState, ContractSignatureResponse, _ContractInstanceClientState)
-import Types (AjaxResponse, ContractInstanceId)
+import Plutus.PAB.Events.ContractInstanceState (PartiallyDecodedResponse)
+import Plutus.PAB.Webserver.Types (ContractActivationArgs, ContractInstanceClientState, ContractSignatureResponse)
+import Types (AjaxResponse)
 import WalletData.Types (Wallet)
 
 class
@@ -34,6 +36,7 @@ class
   getContractInstanceClientState :: ContractInstanceId -> m (AjaxResponse (ContractInstanceClientState ContractExe))
   getContractInstanceCurrentState :: ContractInstanceId -> m (AjaxResponse (PartiallyDecodedResponse ActiveEndpoint))
   getContractInstanceObservableState :: ContractInstanceId -> m (AjaxResponse RawJson)
+  getContractInstanceHooks :: ContractInstanceId -> m (AjaxResponse (Array (Request ActiveEndpoint)))
   invokeEndpoint :: forall d. Encode d => ContractInstanceId -> String -> d -> m (AjaxResponse Unit)
   getWalletContractInstances :: Wallet -> m (AjaxResponse (Array (ContractInstanceClientState ContractExe)))
   getAllContractInstances :: m (AjaxResponse (Array (ContractInstanceClientState ContractExe)))
@@ -45,15 +48,12 @@ instance monadContractAppM :: ManageContract AppM where
   getContractInstanceCurrentState contractInstanceId = do
     clientState <- getContractInstanceClientState contractInstanceId
     pure $ map (view _cicCurrentState) clientState
-    where
-    _cicCurrentState :: Lens' (ContractInstanceClientState ContractExe) (PartiallyDecodedResponse ActiveEndpoint)
-    _cicCurrentState = _ContractInstanceClientState <<< prop (SProxy :: SProxy "cicCurrentState")
   getContractInstanceObservableState contractInstanceId = do
     currentState <- getContractInstanceCurrentState contractInstanceId
     pure $ map (view _observableState) currentState
-    where
-    _observableState :: Lens' (PartiallyDecodedResponse ActiveEndpoint) RawJson
-    _observableState = _PartiallyDecodedResponse <<< prop (SProxy :: SProxy "observableState")
+  getContractInstanceHooks contractInstanceId = do
+    currentState <- getContractInstanceCurrentState contractInstanceId
+    pure $ map (view _hooks) currentState
   invokeEndpoint contractInstanceId endpoint payload = runExceptT $ API.invokeEndpoint (toBack contractInstanceId) endpoint payload
   getWalletContractInstances wallet = runExceptT $ API.getWalletContractInstances $ toBack wallet
   getAllContractInstances = runExceptT API.getAllContractInstances
@@ -64,6 +64,7 @@ instance monadContractHalogenM :: ManageContract m => ManageContract (HalogenM s
   getContractInstanceClientState = lift <<< getContractInstanceClientState
   getContractInstanceCurrentState = lift <<< getContractInstanceCurrentState
   getContractInstanceObservableState = lift <<< getContractInstanceObservableState
+  getContractInstanceHooks = lift <<< getContractInstanceHooks
   invokeEndpoint contractInstanceId endpointDescription payload = lift $ invokeEndpoint contractInstanceId endpointDescription payload
   getWalletContractInstances = lift <<< getWalletContractInstances
   getAllContractInstances = lift getAllContractInstances

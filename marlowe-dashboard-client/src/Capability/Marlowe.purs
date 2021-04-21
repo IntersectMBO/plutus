@@ -13,8 +13,7 @@ import Prelude
 import AppM (AppM)
 import Bridge (toBack)
 import Capability.Contract (class ManageContract, activateContract, getContractInstanceObservableState, invokeEndpoint)
-import Capability.ContractExe (marloweContractExe, walletCompanionContractExe)
-import Contract.Types (MarloweParams, MarloweData)
+import Capability.ContractExe (ContractType(..), contractExe)
 import Control.Monad.Except (lift, runExcept)
 import Data.Either (Either(..))
 import Data.Map (Map)
@@ -23,12 +22,13 @@ import Data.Tuple (Tuple)
 import Data.Tuple.Nested ((/\))
 import Foreign.Generic (decodeJSON)
 import Halogen (HalogenM)
+import Marlowe.PAB (ContractInstanceId, MarloweParams, MarloweData)
 import Marlowe.Semantics (Contract, Input, Party, Slot, TokenName)
 import Plutus.PAB.Webserver.Types (ContractActivationArgs(..))
 import Plutus.V1.Ledger.Crypto (PubKeyHash) as Back
 import Plutus.V1.Ledger.Value (TokenName) as Back
 import PlutusTx.AssocMap (Map) as Back
-import Types (AjaxResponse, DecodedAjaxResponse, ContractInstanceId)
+import Types (AjaxResponse, DecodedAjaxResponse)
 import WalletData.Types (PubKeyHash, Wallet)
 
 -- The `ManageMarloweContract` class provides a window on the `ManageContract` class with function
@@ -44,7 +44,7 @@ class
   marloweRedeem :: ContractInstanceId -> MarloweParams -> TokenName -> PubKeyHash -> m (AjaxResponse Unit)
 
 instance monadMarloweAppM :: ManageMarloweContract AppM where
-  marloweCreateWalletCompanionContract wallet = activateContract $ ContractActivationArgs { caID: walletCompanionContractExe, caWallet: toBack wallet }
+  marloweCreateWalletCompanionContract wallet = activateContract $ ContractActivationArgs { caID: contractExe WalletCompanionContract, caWallet: toBack wallet }
   marloweGetWalletCompanionContractObservableState contractInstanceId = do
     ajaxObservableState <- getContractInstanceObservableState contractInstanceId
     case ajaxObservableState of
@@ -53,7 +53,7 @@ instance monadMarloweAppM :: ManageMarloweContract AppM where
         Left decodingError -> pure $ Left $ Right decodingError
         Right observableState -> pure $ Right observableState
   marloweCreateContract wallet roles contract = do
-    webContractInstanceId <- activateContract $ ContractActivationArgs { caID: marloweContractExe, caWallet: toBack wallet }
+    webContractInstanceId <- activateContract $ ContractActivationArgs { caID: contractExe ControlContract, caWallet: toBack wallet }
     case webContractInstanceId of
       Left _ -> pure webContractInstanceId
       Right contractInstanceId -> do

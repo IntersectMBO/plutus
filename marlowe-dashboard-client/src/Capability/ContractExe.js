@@ -2,6 +2,8 @@
 
 const contracts = require('/contracts/contracts.json');
 
-exports.marloweContractPath_ = contracts.marlowe;
-
 exports.walletCompanionContractPath_ = contracts.walletCompanion;
+
+exports.controlContractPath_ = contracts.marlowe;
+
+exports.followContractPath_ = "FIXME";

@@ -13,8 +13,9 @@ import Data.Map (isEmpty, filter, member)
 import Data.Maybe (Maybe(..))
 import Data.String.CodeUnits (toCharArray)
 import Data.UUID (parseUUID)
+import Marlowe.PAB (ContractInstanceId(..))
 import Network.RemoteData (RemoteData(..))
-import Types (ContractInstanceId(..), WebData)
+import Types (WebData)
 import WalletData.Types (WalletInfo, WalletNickname, WalletLibrary)
 
 data WalletNicknameError

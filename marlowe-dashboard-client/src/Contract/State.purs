@@ -44,11 +44,11 @@ import Marlowe.Execution (NamedAction(..), PreviousState, _currentContract, _cur
 import Marlowe.Extended (TemplateContent, fillTemplate, resolveRelativeTimes, toCore)
 import Marlowe.Extended as Extended
 import Marlowe.Extended.Metadata (MetaData, emptyContractMetadata)
+import Marlowe.PAB (ContractInstanceId(..))
 import Marlowe.Semantics (Contract(..), Input(..), Slot, SlotInterval(..), Token(..), TransactionInput(..))
 import Marlowe.Semantics as Semantic
 import Marlowe.Slot (currentSlot)
 import Toast.Types (successToast)
-import Types (ContractInstanceId(..))
 import WalletData.Types (WalletNickname)
 import Web.DOM.Element (getElementsByClassName)
 import Web.DOM.HTMLCollection as HTMLCollection

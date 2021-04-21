@@ -32,13 +32,13 @@ import Halogen (HalogenM, modify_)
 import Halogen.Extra (mapMaybeSubmodule, mapSubmodule)
 import MainFrame.Lenses (_screen)
 import MainFrame.Types (ChildSlots, Msg)
+import Marlowe.PAB (ContractInstanceId(..))
 import Marlowe.Semantics (Slot(..))
 import Play.Lenses (_cards, _contractsState, _currentSlot, _menuOpen, _selectedContract, _templateState)
 import Play.Types (Action(..), Card(..), Screen(..), State)
 import Template.Lenses (_template)
 import Template.State (dummyState, handleAction, mkInitialState) as Template
 import Template.Types (Action(..), State) as Template
-import Types (ContractInstanceId(..))
 import WalletData.Types (PubKeyHash(..), Wallet(..), WalletDetails)
 
 -- see note [dummyState] in MainFrame.State

@@ -18,8 +18,8 @@ import Data.Maybe (Maybe)
 import Data.Symbol (SProxy(..))
 import Marlowe.Execution (ExecutionState, NamedAction)
 import Marlowe.Extended.Metadata (MetaData)
+import Marlowe.PAB (ContractInstanceId)
 import Marlowe.Semantics as Semantic
-import Types (ContractInstanceId)
 import WalletData.Types (WalletNickname)
 
 _tab :: Lens' State Tab

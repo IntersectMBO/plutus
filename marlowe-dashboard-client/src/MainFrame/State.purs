@@ -32,6 +32,7 @@ import MainFrame.Types (Action(..), ChildSlots, Msg, Query(..), State, WebSocket
 import MainFrame.View (render)
 import Marlowe.Extended (fillTemplate, resolveRelativeTimes, toCore)
 import Marlowe.Market (contractTemplates)
+import Marlowe.PAB (ContractInstanceId(..))
 import Marlowe.Slot (currentSlot)
 import Network.RemoteData (RemoteData(..), fromEither)
 import Pickup.Lenses (_pickingUp, _pickupWalletString)
@@ -49,7 +50,6 @@ import Template.Types (Action(..), State) as Template
 import Toast.State (defaultState, handleAction) as Toast
 import Toast.Types (Action, State) as Toast
 import Toast.Types (ajaxErrorToast, connectivityErrorToast, successToast)
-import Types (ContractInstanceId(..))
 import WalletData.Lenses (_assets, _contractInstanceId, _contractInstanceIdString, _pubKeyHash, _remoteDataWalletInfo, _remoteDataAssets, _wallet, _walletNickname, _walletNicknameString)
 import WalletData.Types (NewWalletDetails, WalletDetails, WalletInfo(..))
 import WalletData.Validation (parseContractInstanceId)

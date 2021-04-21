@@ -31,8 +31,8 @@ import Examples.PureScript.ZeroCouponBond as ZeroCouponBond
 import Halogen (HalogenM)
 import MainFrame.Types (ChildSlots, Msg)
 import Marlowe.Extended (TemplateContent(..), fillTemplate, resolveRelativeTimes, toCore)
+import Marlowe.PAB (ContractInstanceId(..))
 import Marlowe.Semantics (ChoiceId(..), Input(..), Party(..), Slot(..), SlotInterval(..), Token(..), TransactionInput(..))
-import Types (ContractInstanceId(..))
 import WalletData.Validation (parseContractInstanceId)
 
 -- see note [dummyState] in MainFrame.State
