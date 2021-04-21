@@ -69,7 +69,7 @@ tests =
             void $ Trace.waitNSlots 2
 
     , goldenPir "test/Spec/vesting.pir" $$(PlutusTx.compile [|| validate ||])
-    , HUnit.testCase "script size is reasonable" (reasonable (vestingScript vesting) 33000)
+    , HUnit.testCaseSteps "script size is reasonable" $ \step -> reasonable' step (vestingScript vesting) 33000
     ]
 
 -- | The scenario used in the property tests. It sets up a vesting scheme for a

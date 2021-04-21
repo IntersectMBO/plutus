@@ -106,7 +106,7 @@ tests = testGroup "crowdfunding"
             collectionDeadline = 15
             owner = w1
             cmp = mkCampaign deadline target collectionDeadline owner
-        in HUnit.testCase "script size is reasonable" (reasonable (contributionScript cmp) 30000)
+        in HUnit.testCaseSteps "script size is reasonable" $ \step -> reasonable' step (contributionScript cmp) 30000
 
     , goldenVsString
         "renders the log of a single contract instance sensibly"
