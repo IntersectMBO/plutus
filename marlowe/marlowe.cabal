@@ -137,6 +137,16 @@ executable marlowe-companion-app
     plutus-contract -any,
     marlowe
 
+executable marlowe-follow-app
+  import: lang
+  main-is: Main.hs
+  hs-source-dirs: follow
+  build-depends:
+    base >= 4.9 && < 5,
+    plutus-pab -any,
+    plutus-contract -any,
+    marlowe
+
 -- | The PAB Specialised to the marlowe contract(s)
 executable marlowe-pab
   import: lang

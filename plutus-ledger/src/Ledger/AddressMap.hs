@@ -24,6 +24,7 @@ module Ledger.AddressMap(
     restrict,
     addressesTouched,
     outRefMap,
+    outputsMapFromTxForAddress,
     fromChain
     ) where
 
@@ -124,6 +125,12 @@ traverseWithKey ::
   -> AddressMap
   -> f AddressMap
 traverseWithKey f (AddressMap m) = AddressMap <$> Map.traverseWithKey f m
+
+outputsMapFromTxForAddress :: Address -> Tx -> Map TxOutRef TxOutTx
+outputsMapFromTxForAddress addr tx =
+    fmap (\txout -> TxOutTx{txOutTxTx=tx, txOutTxOut = txout})
+    $ Map.filter ((==) addr . txOutAddress)
+    $ unspentOutputsTx tx
 
 -- | Create an 'AddressMap' with the unspent outputs of a single transaction.
 fromTxOutputs :: Tx -> AddressMap
