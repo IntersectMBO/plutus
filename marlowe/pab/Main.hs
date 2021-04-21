@@ -13,6 +13,7 @@ module Main(main) where
 import           Control.Monad                       (void)
 import           Control.Monad.Freer                 (Eff, Member, interpret, type (~>))
 import           Control.Monad.Freer.Error           (Error)
+import           Control.Monad.Freer.Extras.Log      (LogMsg)
 import           Control.Monad.IO.Class              (MonadIO (..))
 import           Data.Aeson                          (FromJSON, ToJSON)
 import           Data.Text.Prettyprint.Doc           (Pretty (..), viaShow)
@@ -21,6 +22,7 @@ import qualified Language.Marlowe.Client             as Marlowe
 import           Plutus.PAB.Effects.Contract         (ContractEffect (..))
 import           Plutus.PAB.Effects.Contract.Builtin (Builtin, SomeBuiltin (..))
 import qualified Plutus.PAB.Effects.Contract.Builtin as Builtin
+import           Plutus.PAB.Monitoring.PABLogMsg     (PABMultiAgentMsg)
 import           Plutus.PAB.Simulator                (SimulatorEffectHandlers)
 import qualified Plutus.PAB.Simulator                as Simulator
 import           Plutus.PAB.Types                    (PABError (..))
@@ -51,6 +53,7 @@ instance Pretty Marlowe where
     pretty = viaShow
 handleMarloweContract ::
     ( Member (Error PABError) effs
+    , Member (LogMsg (PABMultiAgentMsg (Builtin Marlowe))) effs
     )
     => ContractEffect (Builtin Marlowe)
     ~> Eff effs
