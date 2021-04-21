@@ -46,6 +46,7 @@ module Plutus.PAB.Simulator(
     , waitForState
     , activeEndpoints
     , waitForEndpoint
+    , waitForTxConfirmed
     , currentSlot
     , waitUntilSlot
     , waitNSlots
@@ -99,6 +100,7 @@ import           Ledger                                         (Address (..), T
 import           Ledger.Crypto                                  (PubKey, toPublicKey)
 import qualified Ledger.Index                                   as UtxoIndex
 import           Ledger.Value                                   (Value, flattenValue)
+import           Plutus.Contract.Effects.AwaitTxConfirmed       (TxConfirmed)
 import           Plutus.PAB.Core                                (EffectHandlers (..))
 import qualified Plutus.PAB.Core                                as Core
 import qualified Plutus.PAB.Core.ContractInstance.BlockchainEnv as BlockchainEnv
@@ -396,6 +398,10 @@ finalResult = Core.finalResult
 --   the error (if any)
 waitUntilFinished :: forall t. ContractInstanceId -> Simulation t (Maybe JSON.Value)
 waitUntilFinished = Core.waitUntilFinished
+
+-- | Wait until the transaction has been confirmed on the blockchain.
+waitForTxConfirmed :: forall t. TxId -> Simulation t TxConfirmed
+waitForTxConfirmed = Core.waitForTxConfirmed
 
 -- | Wait until the endpoint becomes active.
 waitForEndpoint :: forall t. ContractInstanceId -> String -> Simulation t ()
