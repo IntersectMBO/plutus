@@ -30,7 +30,7 @@ getContractInstanceClientState ::
   forall m.
   MonadError AjaxError m =>
   MonadAff m =>
-  ContractInstanceId -> m ContractInstanceClientState
+  ContractInstanceId -> m (ContractInstanceClientState ContractExe)
 getContractInstanceClientState contractInstanceId = doGetRequest $ "/api/new/contract/instance/" <> toUrlPiece contractInstanceId <> "/status"
 
 invokeEndpoint ::
@@ -45,14 +45,14 @@ getWalletContractInstances ::
   forall m.
   MonadError AjaxError m =>
   MonadAff m =>
-  Wallet -> m (Array ContractInstanceClientState)
+  Wallet -> m (Array (ContractInstanceClientState ContractExe))
 getWalletContractInstances wallet = doGetRequest $ "/api/new/contract/instances/wallet/" <> toUrlPiece wallet
 
 getAllContractInstances ::
   forall m.
   MonadError AjaxError m =>
   MonadAff m =>
-  m (Array ContractInstanceClientState)
+  m (Array (ContractInstanceClientState ContractExe))
 getAllContractInstances = doGetRequest "/api/new/contract/instances"
 
 getContractDefinitions ::
