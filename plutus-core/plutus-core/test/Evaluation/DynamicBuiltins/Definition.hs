@@ -10,10 +10,11 @@ module Evaluation.DynamicBuiltins.Definition
 import           PlutusCore
 import           PlutusCore.Constant
 import           PlutusCore.Generators.Interesting
-import           PlutusCore.MkPlc                  hiding (error)
+import           PlutusCore.MkPlc                  hiding (error, unwrap)
 
 import           PlutusCore.Examples.Builtins
 import           PlutusCore.StdLib.Data.Bool
+import           PlutusCore.StdLib.Data.Function   (fix)
 import qualified PlutusCore.StdLib.Data.Function   as Plc
 import qualified PlutusCore.StdLib.Data.List       as Plc
 
@@ -148,17 +149,106 @@ test_IdRank2 =
                 $ integer
         typecheckEvaluateCkNoEmit defBuiltinsRuntimeExt term @?= Right (EvaluationSuccess res)
 
-test_Swap :: TestTree
-test_Swap =
-    testCase "Swap" $ do
-        let res = mkConstant @(Bool, Integer) @DefaultUni () (False, 1)
+-- | Pattern matching on built-in lists. @caseBuiltinList {a} xs@ on built-in lists is
+-- equivalent to @unwrap xs@ on lists defined in PLC itself (hence why we bind @r@ after @xs@).
+--
+-- > /\(a :: *) -> \(xs : [a]) -> /\(r :: *) -> (z : r) (f : a -> [a] -> r) ->
+-- >     ifThenElse
+-- >         {r}
+-- >         (Null {a} xs)
+-- >         (\(u : ()) -> z)
+-- >         (\(u : ()) -> f (Head {a} xs) (Tail {a} xs))
+caseBuiltinList :: Term TyName Name DefaultUni (Either DefaultFun ExtensionFun) ()
+caseBuiltinList = runQuote $ do
+    a <- freshTyName "a"
+    r <- freshTyName "r"
+    xs <- freshName "x"
+    z <- freshName "z"
+    f <- freshName "f"
+    u <- freshName "u"
+    let listA = TyApp () (mkTyBuiltin @(TypeApp []) ()) $ TyVar () a
+        unit = mkTyBuiltin @() ()
+        funAtXs fun = apply () (tyInst () (builtin () $ Right fun) $ TyVar () a) $ var () xs
+    return
+        . tyAbs () a (Type ())
+        . lamAbs () xs listA
+        . tyAbs () r (Type ())
+        . lamAbs () z (TyVar () r)
+        . lamAbs () f (TyFun () (TyVar () a) . TyFun () listA $ TyVar () r)
+        $ mkIterApp () (tyInst () (mapFun Left ifThenElse) $ TyVar () r)
+            [ funAtXs Null
+            , lamAbs () u unit $ var () z
+            , lamAbs () u unit $ mkIterApp () (var () f) [funAtXs Head, funAtXs Tail]
+            ]
+
+-- |  @foldr@ over built-in lists.
+--
+-- > /\(a :: *) (r :: *) -> \(f : a -> r -> r) (z : r) ->
+-- >     fix {[a]} {r} \(rec : [a] -> r) (xs : [a]) ->
+-- >         caseBuiltinList {a} xs {r} z \(x : a) (xs' : [a]) -> f x (rec xs')
+foldrBuiltinList :: Term TyName Name DefaultUni (Either DefaultFun ExtensionFun) ()
+foldrBuiltinList = runQuote $ do
+    a   <- freshTyName "a"
+    r   <- freshTyName "r"
+    f   <- freshName "f"
+    z   <- freshName "z"
+    rec <- freshName "rec"
+    xs  <- freshName "xs"
+    x   <- freshName "x"
+    xs' <- freshName "xs'"
+    let listA = TyApp () (mkTyBuiltin @(TypeApp []) ()) $ TyVar () a
+        unwrap ann = apply ann . tyInst () caseBuiltinList $ TyVar () a
+    -- Copypasted verbatim from @foldrList@ from the PLC stdlib.
+    return
+        . tyAbs () a (Type ())
+        . tyAbs () r (Type ())
+        . lamAbs () f (TyFun () (TyVar () a) . TyFun () (TyVar () r) $ TyVar () r)
+        . lamAbs () z (TyVar () r)
+        . apply () (mkIterInst () fix [listA, TyVar () r])
+        . lamAbs () rec (TyFun () listA $ TyVar () r)
+        . lamAbs () xs listA
+        . apply () (apply () (tyInst () (unwrap () (var () xs)) $ TyVar () r) $ var () z)
+        . lamAbs () x (TyVar () a)
+        . lamAbs () xs' listA
+        $ mkIterApp () (var () f)
+          [ var () x
+          , apply () (var () rec) $ var () xs'
+          ]
+
+-- | Test that @Null@, @Head@ and @Tail@ are enough to get pattern matching on built-in lists.
+test_List :: TestTree
+test_List =
+    testCase "List" $ do
+        let xs  = [1..10]
+            res = mkConstant @Integer @DefaultUni () $ foldr (-) 0 xs
+            integer = mkTyBuiltin @Integer ()
+            term
+                = mkIterApp () (mkIterInst () foldrBuiltinList [integer, integer])
+                    [ Builtin () $ Left SubtractInteger
+                    , mkConstant @Integer () 0
+                    , mkConstant @[Integer] () xs
+                    ]
+        typecheckEvaluateCkNoEmit defBuiltinsRuntimeExt term @?= Right (EvaluationSuccess res)
+
+test_Tuple :: TestTree
+test_Tuple =
+    testCase "Tuple" $ do
+        let arg = mkConstant @(Integer, Bool) @DefaultUni () (1, False)
             integerPlc = mkTyBuiltin @Integer ()
             boolPlc    = mkTyBuiltin @Bool    ()
-            -- swap {integer} {bool} (1, False)
-            term
-                = Apply () (mkIterInst () (Builtin () $ Right Swap) [integerPlc, boolPlc])
-                $ mkConstant @(Integer, Bool) () (1, False)
-        typecheckEvaluateCkNoEmit defBuiltinsRuntimeExt term @?= Right (EvaluationSuccess res)
+            inst fun = mkIterInst () (Builtin () $ Right fun) [integerPlc, boolPlc]
+            swapped = Apply () (inst Swap) arg
+            fsted   = Apply () (inst Fst) arg
+            snded   = Apply () (inst Snd) arg
+        -- Swap {integer} {bool} (1, False) ~> (False, 1)
+        typecheckEvaluateCkNoEmit defBuiltinsRuntimeExt swapped @?=
+            Right (EvaluationSuccess $ mkConstant @(Bool, Integer) () (False, 1))
+        -- Fst {integer} {bool} (1, False) ~> 1
+        typecheckEvaluateCkNoEmit defBuiltinsRuntimeExt fsted @?=
+            Right (EvaluationSuccess $ mkConstant @Integer () 1)
+        -- Snd {integer} {bool} (1, False) ~> False
+        typecheckEvaluateCkNoEmit defBuiltinsRuntimeExt snded @?=
+            Right (EvaluationSuccess $ mkConstant @Bool () False)
 
 test_definition :: TestTree
 test_definition =
@@ -169,5 +259,6 @@ test_definition =
         , test_IdFInteger
         , test_IdList
         , test_IdRank2
-        , test_Swap
+        , test_List
+        , test_Tuple
         ]
