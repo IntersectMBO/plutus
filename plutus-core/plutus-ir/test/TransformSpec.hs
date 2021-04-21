@@ -1,7 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TypeApplications  #-}
 {-# OPTIONS_GHC -Wno-orphans #-}
-module TransformSpec where
+module TransformSpec (transform) where
 
 import           Common
 import           TestLib
@@ -28,6 +28,7 @@ transform = testNested "transform" [
     , letFloat
     , inline
     , beta
+    , deadCode
     ]
 
 thunkRecursions :: TestNested
