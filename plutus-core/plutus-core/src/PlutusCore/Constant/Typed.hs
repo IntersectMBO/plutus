@@ -392,6 +392,7 @@ instance KnownType term a => KnownType term (Emitter a) where
     -- TODO: we really should tear 'KnownType' apart into two separate type classes.
     readKnown = throwingWithCause _UnliftingError "Can't unlift an 'Emitter'" . Just
 
+-- We don't bother computing @k@ from @reps@.
 type SomeValueN :: forall k. (GHC.Type -> GHC.Type) -> k -> [GHC.Type] -> GHC.Type
 data SomeValueN uni (a :: k) reps where
     SomeValueRes :: uni b -> b -> SomeValueN uni b '[]

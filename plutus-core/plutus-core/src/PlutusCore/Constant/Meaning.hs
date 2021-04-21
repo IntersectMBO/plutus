@@ -304,8 +304,17 @@ class EnumerateFromTo i j term a | i term a -> j
 instance {-# OVERLAPPABLE #-} i ~ j => EnumerateFromTo i j term a
 instance {-# OVERLAPPING #-}
     ( TrySpecializeAsVar i j term a
-    , EnumerateFromTo j k term b
-    ) => EnumerateFromTo i k term (a -> b)
+    , TryHandleSomeValueN j k term a
+    , EnumerateFromTo k l term b
+    ) => EnumerateFromTo i l term (a -> b)
+
+type TryHandleSomeValueN :: Nat -> Nat -> GHC.Type -> GHC.Type -> GHC.Constraint
+class TryHandleSomeValueN i j term a | i term a -> j
+instance {-# OVERLAPPABLE #-} i ~ j => TryHandleSomeValueN i j term a
+instance {-# OVERLAPPING #-}
+    ( TrySpecializeAsVar i j term rep
+    , TryHandleSomeValueN j k term (SomeValueN uni f reps)
+    ) => TryHandleSomeValueN i k term (SomeValueN uni f (rep ': reps))
 
 -- See Note [Automatic derivation of type schemes]
 -- | Construct the meaning for a built-in function by automatically deriving its

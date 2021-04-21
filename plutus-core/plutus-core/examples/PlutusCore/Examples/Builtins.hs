@@ -27,7 +27,6 @@ import           PlutusCore.Pretty
 
 import qualified PlutusCore.StdLib.Data.List                       as Plc
 
-import           Data.Char
 import           Data.Either
 import           Data.Hashable                                     (Hashable)
 import qualified Data.Kind                                         as GHC (Type)
@@ -99,8 +98,6 @@ data ExtensionFun
     | IdList
     | IdRank2
     | Absurd
-    | CharToInteger
-    | ReplicateAtChar
     | Null
     | Head
     | Tail
@@ -200,49 +197,29 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni ExtensionFun where
                 :: a ~ Opaque term (TyVarRep ('TyNameRep "a" 0))
                 => Void -> a)
             (\_ _ -> ExBudget 1 0)
-    toBuiltinMeaning CharToInteger =
-        makeBuiltinMeaning
-            (toInteger . ord)
-            mempty  -- Whatever.
-    toBuiltinMeaning ReplicateAtChar =
-        makeBuiltinMeaning
-            (replicate :: Int -> Char -> [Char])
-            mempty  -- Whatever.
     toBuiltinMeaning Null = makeBuiltinMeaning nullPlc mempty where
-        nullPlc
-            :: a ~ TyVarRep ('TyNameRep "a" 0)
-            => SomeValueN DefaultUni [] '[a] -> Bool
+        nullPlc :: SomeValueN uni [] '[a] -> Bool
         nullPlc (SomeValueArg _ (SomeValueRes _ xs)) = null xs
     toBuiltinMeaning Head = makeBuiltinMeaning headPlc mempty where
-        headPlc
-            :: a ~ TyVarRep ('TyNameRep "a" 0)
-            => SomeValueN DefaultUni [] '[a] -> EvaluationResult (Opaque term a)
+        headPlc :: SomeValueN uni [] '[a] -> EvaluationResult (Opaque term a)
         headPlc (SomeValueArg uniA (SomeValueRes _ xs)) = case xs of
             x : _ -> EvaluationSuccess . Opaque . fromConstant $ someValueOf uniA x
             _     -> EvaluationFailure
     toBuiltinMeaning Tail = makeBuiltinMeaning tailPlc mempty where
-        tailPlc
-            :: a ~ TyVarRep ('TyNameRep "a" 0)
-            => SomeValueN DefaultUni [] '[a] -> EvaluationResult (SomeValueN DefaultUni [] '[a])
+        tailPlc :: SomeValueN uni [] '[a] -> EvaluationResult (SomeValueN uni [] '[a])
         tailPlc (SomeValueArg uniA (SomeValueRes uniListA xs)) = case xs of
             _ : xs' -> EvaluationSuccess . SomeValueArg uniA $ SomeValueRes uniListA xs'
             _       -> EvaluationFailure
     toBuiltinMeaning Fst = makeBuiltinMeaning fstPlc mempty where
-        fstPlc
-            :: (a ~ TyVarRep ('TyNameRep "a" 0), b ~ TyVarRep ('TyNameRep "b" 1))
-            => SomeValueN DefaultUni (,) '[a, b] -> Opaque term a
+        fstPlc :: SomeValueN uni (,) '[a, b] -> Opaque term a
         fstPlc (SomeValueArg uniA (SomeValueArg _ (SomeValueRes _ (x, _)))) =
             Opaque . fromConstant . Some $ ValueOf uniA x
     toBuiltinMeaning Snd = makeBuiltinMeaning sndPlc mempty where
-        sndPlc
-            :: (a ~ TyVarRep ('TyNameRep "a" 0), b ~ TyVarRep ('TyNameRep "b" 1))
-            => SomeValueN DefaultUni (,) '[a, b] -> Opaque term b
+        sndPlc :: SomeValueN uni (,) '[a, b] -> Opaque term b
         sndPlc (SomeValueArg _ (SomeValueArg uniB (SomeValueRes _ (_, y)))) =
             Opaque . fromConstant . Some $ ValueOf uniB y
     toBuiltinMeaning Swap = makeBuiltinMeaning swapPlc mempty where
-        swapPlc
-            :: (a ~ TyVarRep ('TyNameRep "a" 0), b ~ TyVarRep ('TyNameRep "b" 1))
-            => SomeValueN DefaultUni (,) '[a, b] -> SomeValueN DefaultUni (,) '[b, a]
+        swapPlc :: SomeValueN uni (,) '[a, b] -> SomeValueN uni (,) '[b, a]
         swapPlc (SomeValueArg uniA (SomeValueArg uniB (SomeValueRes _ (x, y)))) =
             SomeValueArg uniB (SomeValueArg uniA (SomeValueRes uniBA (y, x)))
           where
