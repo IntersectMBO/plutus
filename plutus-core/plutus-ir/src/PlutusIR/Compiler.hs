@@ -51,7 +51,10 @@ simplify = DeadCode.removeDeadBindings . Inline.inline . Beta.beta
 
 -- | Perform some simplification of a 'Term'.
 simplifyTerm :: Compiling m e uni fun a => Term TyName Name uni fun b -> m (Term TyName Name uni fun b)
-simplifyTerm = runIfOpts $ pure . simplify
+simplifyTerm = PLC.rename >=> (runIfOpts $ pure . simplify)
+-- Note: There was a bug in renamer handling non-rec terms, so we need to rename
+-- again.
+-- https://jira.iohk.io/browse/SCP-2156
 
 -- | Perform floating/merging of lets in a 'Term' to their nearest lambda/Lambda/letStrictNonValue.
 -- Note: It assumes globally unique names
@@ -92,9 +95,6 @@ compileReadableToPlc =
     >=> Let.compileLets Let.RecTerms
     -- We introduce some non-recursive let bindings while eliminating recursive let-bindings, so we
     -- can eliminate any of them which are unused here.
-    >=> PLC.rename
-    -- There was a bug in renamer handling non-rec terms, so we need to rename
-    -- again.
     >=> simplifyTerm
     >=> Let.compileLets Let.Types
     >=> Let.compileLets Let.NonRecTerms
