@@ -98,7 +98,7 @@ initialState :: State
 initialState =
   { keybindings: DefaultBindings
   , compilationResult: NotAsked
-  , bottomPanelState: BottomPanel.initialState GeneratedOutputView
+  , bottomPanelState: BottomPanel.initialState MetadataView
   , metadataHintInfo: mempty
   , analysisState: initAnalysisState
   }

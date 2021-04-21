@@ -17,6 +17,8 @@ import Halogen.Monaco as Monaco
 import Language.Javascript.Interpreter (_result)
 import Language.Javascript.Interpreter as JS
 import Marlowe.Extended (Contract, IntegerTemplateType)
+import Marlowe.Extended.Metadata (MetadataHintInfo)
+import MetadataTab.Types (MetadataAction, showConstructor)
 import StaticAnalysis.Types (AnalysisState, initAnalysisState)
 import Text.Pretty (pretty)
 
@@ -45,12 +47,13 @@ data Action
   | HandleEditorMessage Monaco.Message
   | BottomPanelAction (BottomPanel.Action BottomPanelView Action)
   | SendResultToSimulator
-  | InitJavascriptProject String
+  | InitJavascriptProject MetadataHintInfo String
   | SetIntegerTemplateParam IntegerTemplateType String BigInteger
   | AnalyseContract
   | AnalyseReachabilityContract
   | AnalyseContractForCloseRefund
   | ClearAnalysisResults
+  | MetadataAction MetadataAction
 
 defaultEvent :: String -> Event
 defaultEvent s = A.defaultEvent $ "Javascript." <> s
@@ -61,12 +64,13 @@ instance actionIsEvent :: IsEvent Action where
   toEvent (HandleEditorMessage _) = Just $ defaultEvent "HandleEditorMessage"
   toEvent (BottomPanelAction action) = A.toEvent action
   toEvent SendResultToSimulator = Just $ defaultEvent "SendResultToSimulator"
-  toEvent (InitJavascriptProject _) = Just $ defaultEvent "InitJavascriptProject"
+  toEvent (InitJavascriptProject _ _) = Just $ defaultEvent "InitJavascriptProject"
   toEvent (SetIntegerTemplateParam _ _ _) = Just $ defaultEvent "SetIntegerTemplateParam"
   toEvent AnalyseContract = Just $ defaultEvent "AnalyseContract"
   toEvent AnalyseReachabilityContract = Just $ defaultEvent "AnalyseReachabilityContract"
   toEvent AnalyseContractForCloseRefund = Just $ defaultEvent "AnalyseContractForCloseRefund"
   toEvent ClearAnalysisResults = Just $ defaultEvent "ClearAnalysisResults"
+  toEvent (MetadataAction action) = Just $ (defaultEvent "MetadataAction") { label = Just $ showConstructor action }
 
 type DecorationIds
   = { topDecorationId :: String
@@ -84,6 +88,7 @@ type State
     , bottomPanelState :: BottomPanel.State BottomPanelView
     , compilationResult :: CompilationState
     , decorationIds :: Maybe DecorationIds
+    , metadataHintInfo :: MetadataHintInfo
     , analysisState :: AnalysisState
     }
 
@@ -99,6 +104,12 @@ _decorationIds = prop (SProxy :: SProxy "decorationIds")
 _bottomPanelState :: Lens' State (BottomPanel.State BottomPanelView)
 _bottomPanelState = prop (SProxy :: SProxy "bottomPanelState")
 
+_metadataHintInfo :: Lens' State MetadataHintInfo
+_metadataHintInfo = prop (SProxy :: SProxy "metadataHintInfo")
+
+_analysisState :: Lens' State AnalysisState
+_analysisState = prop (SProxy :: SProxy "analysisState")
+
 isCompiling :: State -> Boolean
 isCompiling state = case state ^. _compilationResult of
   Compiling -> true
@@ -107,9 +118,10 @@ isCompiling state = case state ^. _compilationResult of
 initialState :: State
 initialState =
   { keybindings: DefaultBindings
-  , bottomPanelState: BottomPanel.initialState GeneratedOutputView
+  , bottomPanelState: BottomPanel.initialState MetadataView
   , compilationResult: NotCompiled
   , decorationIds: Nothing
+  , metadataHintInfo: mempty
   , analysisState: initAnalysisState
   }
 
@@ -117,6 +129,7 @@ data BottomPanelView
   = StaticAnalysisView
   | ErrorsView
   | GeneratedOutputView
+  | MetadataView
 
 derive instance eqBottomPanelView :: Eq BottomPanelView
 
