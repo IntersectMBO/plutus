@@ -388,7 +388,7 @@ progress (M · M') | done (V-I⇒ b p q r σ base x .M) | done W = step (ruleEC 
 progress (M · M') | done (V-I⇒ b p q r σ (skip⋆ p₁) x .M) | done W =
   done (V-IΠ b p q r σ p₁ (x ,, deval W ,, W) (M · deval W))
 progress (M · M') | done (V-I⇒ b p q r σ (skip p₁) x .M) | done W = 
-  done ( V-I⇒ b p q r σ p₁ (x ,, deval W ,, W) (M · deval W))
+  done (V-I⇒ b p q r σ p₁ (x ,, deval W ,, W) (M · deval W))
 progress (Λ M)        = done (V-Λ M)
 progress (M ·⋆ A) with progress M
 ... | step (ruleEC E p) = step (ruleEC (E ·⋆ A) p)
@@ -414,6 +414,56 @@ progress (unwrap M) with progress M
 progress (con c)      = done (V-con c)
 progress (ibuiltin b) = done (ival b)
 progress (error A)    = error E-error
+
+_↓ : ∀{A} → ∅ ⊢ A → Set
+M ↓ = ∃ λ M' → M —→⋆ M'
+
+-- progress in disguise
+
+lemma51 : ∀{A}(M : ∅ ⊢ A)
+        → Value M
+        ⊎ ∃ λ B
+        → ∃ λ (E : EC A B)
+        → ∃ λ (L : ∅ ⊢ B)
+        → (L ↓ ⊎ Error L)
+        × M ≡ E [ L ]ᴱ 
+lemma51 (ƛ M) = inj₁ (V-ƛ M)
+lemma51 (M · M') with lemma51 M
+... | inj₂ (B ,, E ,, L ,, p ,, q) =
+  inj₂ (B ,, E l· M' ,, L ,, p ,, cong (_· M') q)
+... | inj₁ VM with lemma51 M'
+lemma51 (.(ƛ M) · M') | inj₁ (V-ƛ M) | inj₁ VM' =
+  inj₂ (_ ,, ([] ,, (ƛ M · M' ,, ((inj₁ (M [ M' ] ,, β-ƛ VM')) ,, refl))))
+lemma51 (M · M') | inj₁ (V-I⇒ b p q r σ base x .M) | inj₁ VM' =
+  inj₂ (_ ,, [] ,, M · M' ,, inj₁ (_ ,, (β-sbuiltin b σ p q _ r M (deval VM') x VM')) ,, refl)
+lemma51 (M · M') | inj₁ (V-I⇒ b p q r σ (skip⋆ p₁) x .M) | inj₁ VM' =
+  inj₁ (V-IΠ b p q r σ p₁ (x ,, M' ,, VM') (M · M'))
+lemma51 (M · M') | inj₁ (V-I⇒ b p q r σ (skip p₁) x .M) | inj₁ VM' =
+  inj₁ (V-I⇒ b p q r σ p₁ (x ,, M' ,, VM') (M · M'))
+... | inj₂ (B ,, E ,, L ,, p ,, q) =
+  inj₂ (B ,, VM ·r E ,, L ,, p ,, cong (M ·_) q)
+lemma51 (Λ M) = inj₁ (V-Λ M)
+lemma51 (M ·⋆ A) with lemma51 M
+... | inj₂ (B ,, E ,, L ,, p ,, p') = inj₂ (B ,, E ·⋆ A ,, L ,, p ,, cong (_·⋆ A) p')
+... | inj₁ (V-Λ M') =
+  inj₂ (_ ,, [] ,, M ·⋆ A ,, inj₁ (M' [ A ]⋆ ,, β-Λ) ,, refl)
+... | inj₁ (V-IΠ b p q r σ base x .M) =
+  inj₂ (_ ,, [] ,, M ·⋆ A ,, inj₁ (_ ,, β-sbuiltin⋆ b σ p q _ r M x) ,, refl)
+... | inj₁ (V-IΠ b {C = C} p q r σ (skip⋆ p₁) x .M) =
+  inj₁ (convValue (Πlem p₁ A C σ) (V-IΠ b {C = C} p q r (subNf-cons σ A) p₁ (x ,, A) (conv⊢ refl (Πlem p₁ A C σ) (M ·⋆ A))))
+... | inj₁ (V-IΠ b {C = C} p q r σ (skip p₁) x .M) =
+  inj₁ (convValue (⇒lem p₁ σ C) (V-I⇒ b p q r (subNf-cons σ A) p₁ (x ,, A) (conv⊢ refl (⇒lem p₁ σ C) (M ·⋆ A))))
+lemma51 (wrap A B M) with lemma51 M
+... | inj₁ V = inj₁ (V-wrap V)
+... | inj₂ (C ,, E ,, L ,, p ,, p') =
+  inj₂ (C ,, wrap E ,, L ,, p ,, cong (wrap A B) p')
+lemma51 (unwrap M) with lemma51 M
+... | inj₁ (V-wrap V) = inj₂ (_ ,, [] ,, unwrap M ,, inj₁ (deval V ,, β-wrap V) ,, refl)
+... | inj₂ (B ,, E ,, L ,, p ,, p') =
+  inj₂ (B ,, unwrap E ,, L ,, p ,, cong unwrap p')
+lemma51 (con c) = inj₁ (V-con c)
+lemma51 (ibuiltin b) = inj₁ (ival b)
+lemma51 (error _) = inj₂ (_ ,, ([] ,, (error _ ,, (inj₂ E-error) ,, refl)))
 
 {-
 progress-·V :  {A B : ∅ ⊢Nf⋆ *}
