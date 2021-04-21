@@ -17,6 +17,9 @@ nodeServerConfig:
   mscSlotLength: 1
   mscKeptBlocks: 100
   # mscRandomTxInterval: 20 -- this creates random transactions on the blockchain
+  mscSlotConfig:
+    scZeroSlotTime: "2020-06-07T21:44:51Z" # see note [Datetime to slot] in Marlowe.Slot
+    scSlotLength: 1
   mscBlockReaper:
     brcInterval: 600
     brcBlocksToKeep: 100

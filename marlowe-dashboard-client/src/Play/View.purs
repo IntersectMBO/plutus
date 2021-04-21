@@ -8,14 +8,15 @@ import Css as Css
 import Data.Lens (preview, view)
 import Data.Maybe (Maybe(..))
 import Data.String (take)
-import Halogen.HTML (HTML, a, div, div_, footer, header, img, main, nav, span, text)
+import Halogen.HTML (HTML, a, div, div_, footer, header, img, main, nav, span, span_, text)
 import Halogen.HTML.Events.Extra (onClick_)
 import Halogen.HTML.Properties (href, src)
 import Logo (marloweRunNavLogo, marloweRunNavLogoDark)
 import MainFrame.Lenses (_screen)
+import MainFrame.Types (WebSocketStatus)
 import Marlowe.Extended.Template (ContractTemplate)
 import Marlowe.Semantics (PubKey)
-import Material.Icons (Icon(..), icon_)
+import Material.Icons (Icon(..), icon, icon_)
 import Play.Lenses (_cards, _contractsState, _currentSlot, _menuOpen, _selectedContract, _templateState, _walletDetails)
 import Play.Types (Action(..), Card(..), Screen(..), State)
 import Prim.TypeError (class Warn, Text)
@@ -24,8 +25,8 @@ import WalletData.Lenses (_walletNickname)
 import WalletData.Types (NewWalletDetails, WalletLibrary)
 import WalletData.View (newWalletCard, walletDetailsCard, putdownWalletCard, walletLibraryScreen)
 
-renderPlayState :: forall p. WalletLibrary -> NewWalletDetails -> Array ContractTemplate -> State -> HTML p Action
-renderPlayState wallets newWalletDetails templates playState =
+renderPlayState :: forall p. WebSocketStatus -> WalletLibrary -> NewWalletDetails -> Array ContractTemplate -> State -> HTML p Action
+renderPlayState webSocketStatus wallets newWalletDetails templates playState =
   let
     walletNickname = view (_walletDetails <<< _walletNickname) playState
 
@@ -34,7 +35,7 @@ renderPlayState wallets newWalletDetails templates playState =
     div
       [ classNames [ "grid", "h-full", "grid-rows-main" ] ]
       [ renderHeader walletNickname menuOpen
-      , renderMain wallets newWalletDetails templates playState
+      , renderMain webSocketStatus wallets newWalletDetails templates playState
       , renderFooter
       ]
 
@@ -88,8 +89,8 @@ renderHeader walletNickname menuOpen =
       ]
 
 ------------------------------------------------------------
-renderMain :: forall p. WalletLibrary -> NewWalletDetails -> Array ContractTemplate -> State -> HTML p Action
-renderMain wallets newWalletDetails templates playState =
+renderMain :: forall p. WebSocketStatus -> WalletLibrary -> NewWalletDetails -> Array ContractTemplate -> State -> HTML p Action
+renderMain webSocketStatus wallets newWalletDetails templates playState =
   let
     menuOpen = view _menuOpen playState
 
@@ -101,7 +102,7 @@ renderMain wallets newWalletDetails templates playState =
       [ classNames [ "relative", "px-4", "md:px-5pc" ] ]
       [ renderMobileMenu menuOpen
       , div_ $ renderCard wallets newWalletDetails templates playState <$> cards
-      , renderScreen wallets screen playState
+      , renderScreen webSocketStatus wallets screen playState
       ]
 
 renderMobileMenu :: forall p. Boolean -> HTML p Action
@@ -169,8 +170,8 @@ renderCard wallets newWalletDetails templates playState card =
                 Nothing -> []
       ]
 
-renderScreen :: forall p. WalletLibrary -> Screen -> State -> HTML p Action
-renderScreen wallets screen playState =
+renderScreen :: forall p. WebSocketStatus -> WalletLibrary -> Screen -> State -> HTML p Action
+renderScreen webSocketStatus wallets screen playState =
   let
     currentSlot = view _currentSlot playState
 
@@ -181,7 +182,7 @@ renderScreen wallets screen playState =
     div
       -- TODO: Revisit the overflow-auto... I think the scrolling should be set at the screen level and not here.
       --       this should have overflow-hidden to avoid the main div to occupy more space than available.
-      [ classNames [ "absolute", "top-0", "bottom-0", "left-0", "right-0", "overflow-auto", "z-0" ] ] case screen of
+      [ classNames [ "absolute", "inset-0", "overflow-auto", "z-0" ] ] case screen of
       ContractsScreen -> [ ContractHomeAction <$> contractsScreen currentSlot contractsState ]
       WalletLibraryScreen -> [ walletLibraryScreen wallets ]
       TemplateScreen -> [ TemplateAction <$> contractSetupScreen wallets currentSlot templateState ]

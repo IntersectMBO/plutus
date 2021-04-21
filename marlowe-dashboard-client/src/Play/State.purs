@@ -51,6 +51,9 @@ dummyState = mkInitialState defaultWalletDetails mempty (Slot zero) (Minutes zer
     , assets: mempty
     }
 
+-- We initialise the play state using the locally determined currentSlot, but subsequently
+-- it will be updated through the websocket to the PAB's currentSlot. The two should always
+-- be in sync (if they go out of sync, a toast warning is displayed).
 mkInitialState :: WalletDetails -> Map ContractInstanceId Contract.State -> Slot -> Minutes -> State
 mkInitialState walletDetails contracts currentSlot timezoneOffset =
   { walletDetails: walletDetails
@@ -94,12 +97,9 @@ handleAction CloseCard = do
   for_ (init cards) \remainingCards ->
     assign _cards remainingCards
 
--- FIXME: probably get rid of this and tell ContractHome via MainFrame.handleQuery (getting the
---        currentSlot from the PAB)
-handleAction (SetCurrentSlot currentSlot) = do
-  toContractHome $ ContractHome.handleAction $ ContractHome.AdvanceTimedOutContracts currentSlot
-  modify_
-    $ set _currentSlot currentSlot
+handleAction (SetCurrentSlot slot) = do
+  toContractHome $ ContractHome.handleAction $ ContractHome.AdvanceTimedOutContracts slot
+  assign _currentSlot slot
 
 handleAction (TemplateAction templateAction) = case templateAction of
   Template.SetTemplate template -> do

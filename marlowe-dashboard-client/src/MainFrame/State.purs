@@ -10,7 +10,6 @@ import Capability.Websocket (class MonadWebsocket, subscribeToContract, subscrib
 import ContractHome.State (dummyContracts)
 import Control.Monad.Except (runExcept)
 import Control.Monad.Reader (class MonadAsk)
-import Control.Monad.Rec.Class (forever)
 import Data.Either (Either(..))
 import Data.Foldable (for_)
 import Data.Lens (assign, over, set, use, view, (^.))
@@ -18,20 +17,15 @@ import Data.Lens.Extra (peruse)
 import Data.Map (empty, filter, findMin, insert, lookup, mapMaybe, member)
 import Data.Maybe (Maybe(..))
 import Data.Newtype (unwrap)
-import Data.Time.Duration (Milliseconds(..))
 import Data.UUID (parseUUID)
 import Data.UUID (toString) as UUID
-import Effect.Aff (error)
-import Effect.Aff as Aff
 import Effect.Aff.Class (class MonadAff)
 import Effect.Now (getTimezoneOffset)
 import Env (Env)
 import Foreign.Generic (decodeJSON, encodeJSON)
-import Halogen (Component, HalogenM, liftEffect, mkComponent, mkEval, modify_, subscribe)
+import Halogen (Component, HalogenM, liftEffect, mkComponent, mkEval, modify_)
 import Halogen.Extra (mapMaybeSubmodule, mapSubmodule)
 import Halogen.HTML (HTML)
-import Halogen.Query.EventSource (EventSource)
-import Halogen.Query.EventSource as EventSource
 import LocalStorage (getItem, removeItem, setItem)
 import MainFrame.Lenses (_card, _newWalletDetails, _pickupState, _playState, _subState, _toast, _wallets, _webSocketStatus)
 import MainFrame.Types (Action(..), ChildSlots, Msg, Query(..), State, WebSocketStatus(..))
@@ -40,7 +34,7 @@ import Marlowe.Extended (fillTemplate, resolveRelativeTimes, toCore)
 import Marlowe.Market (contractTemplates)
 import Marlowe.Slot (currentSlot)
 import Network.RemoteData (RemoteData(..), fromEither)
-import Pickup.Lenses (_pickupWalletString)
+import Pickup.Lenses (_pickingUp, _pickupWalletString)
 import Pickup.State (handleAction, dummyState, initialState) as Pickup
 import Pickup.Types (Action(..), State) as Pickup
 import Pickup.Types (Card(..), PickupNewWalletContext(..))
@@ -56,7 +50,7 @@ import Toast.State (defaultState, handleAction) as Toast
 import Toast.Types (Action, State) as Toast
 import Toast.Types (ajaxErrorToast, connectivityErrorToast, successToast)
 import Types (ContractInstanceId(..))
-import WalletData.Lenses (_assets, _contractInstanceId, _contractInstanceIdString, _pubKeyHash, _remoteDataWalletInfo, _remoteDataAssets, _wallet, _walletNicknameString)
+import WalletData.Lenses (_assets, _contractInstanceId, _contractInstanceIdString, _pubKeyHash, _remoteDataWalletInfo, _remoteDataAssets, _wallet, _walletNickname, _walletNicknameString)
 import WalletData.Types (NewWalletDetails, WalletDetails, WalletInfo(..))
 import WalletData.Validation (parseContractInstanceId)
 import WebSocket.Support as WS
@@ -108,11 +102,16 @@ handleQuery ::
 handleQuery (ReceiveWebSocketMessage msg next) = do
   case msg of
     WS.WebSocketOpen -> assign _webSocketStatus WebSocketOpen
-    (WS.WebSocketClosed reason) -> assign _webSocketStatus (WebSocketClosed (Just reason)) -- TODO: show warning to the user
+    (WS.WebSocketClosed closeEvent) -> do
+      -- TODO: When we change our websocket subscriptions, the websocket is closed and then reopened.
+      -- We don't want to warn the user in this case, but we do want to warn them if the websocket
+      -- closes for some unexpected reason. But currently I don't know how to distinguish these cases.
+      -- addToast $ connectivityErrorToast "Connection to the server has been lost"
+      assign _webSocketStatus (WebSocketClosed (Just closeEvent))
     (WS.ReceiveMessage (Left errors)) -> pure unit -- TODO: show error to the user
     (WS.ReceiveMessage (Right streamToClient)) -> case streamToClient of
       -- update the current slot
-      SlotChange slot -> assign (_playState <<< _currentSlot) $ toFront slot
+      SlotChange slot -> handleAction $ PlayAction $ Play.SetCurrentSlot $ toFront slot
       -- update the wallet funds (if the change is to the current wallet)
       -- note: we should only ever be notified of changes to the current wallet,
       -- since we subscribe to this update when we pick it up, and unsubscribe
@@ -155,22 +154,6 @@ handleQuery (MainFrameActionQuery action next) = do
   handleAction action
   pure $ Just next
 
--- FIXME: We need to discuss if we should remove this after we connect to the PAB. In case we do,
---        if there is a disconnection we might lose some seconds and timeouts will freeze.
-currentSlotSubscription ::
-  forall m.
-  MonadAff m =>
-  EventSource m Action
-currentSlotSubscription =
-  EventSource.affEventSource \emitter -> do
-    fiber <-
-      Aff.forkAff
-        $ forever do
-            Aff.delay $ Milliseconds 1000.0
-            slot <- liftEffect $ currentSlot
-            EventSource.emit emitter (PlayAction $ Play.SetCurrentSlot slot)
-    pure $ EventSource.Finalizer $ Aff.killFiber (error "removing aff") fiber
-
 -- Note [State]: Some actions belong logically in one part of the state, but
 -- from the user's point of view in another. For example, the action of picking
 -- up a wallet belongs logically in the MainFrame state (because it modifies
@@ -201,10 +184,12 @@ handleAction Init = do
   -- maybe load picked up wallet from localStorage and pick it up again
   mWalletDetailsJson <- liftEffect $ getItem walletDetailsLocalStorageKey
   for_ mWalletDetailsJson \json ->
-    for_ (runExcept $ decodeJSON json) \walletDetails ->
+    for_ (runExcept $ decodeJSON json) \walletDetails -> do
+      -- It takes a moment to pick up a wallet (a few trips to the PAB are required), so before
+      -- we trigger the PickupWallet action, we trigger the SetPickupWalletString action. This brings
+      -- up the pickup wallet card for this wallet to display to the user in the meantime.
+      handleAction $ PickupAction $ Pickup.SetPickupWalletString $ view _walletNickname walletDetails
       handleAction $ PickupAction $ Pickup.PickupWallet walletDetails
-  -- subscribe to local currentSlot counter
-  void $ subscribe currentSlotSubscription
 
 handleAction (SetNewWalletNicknameString walletNicknameString) = assign (_newWalletDetails <<< _walletNicknameString) walletNicknameString
 
@@ -261,8 +246,9 @@ handleAction (PickupAction pickupAction) = case pickupAction of
           handleAction AddNewWallet
           handleAction $ PickupAction $ Pickup.PickupWallet walletDetails
   Pickup.PickupWallet walletDetails -> do
-    -- TODO: set some state flag to "picking up..." so that we can notify the user in the view
-    -- that something is happening (because all these requests may take a while)
+    -- Picking up a wallet takes a while (several trips to the PAB are required). So first of all we set
+    -- the pickingUp flag to true, so that we can inform the user that this is all ongoing...
+    assign (_pickupState <<< _pickingUp) true
     let
       wallet = view _wallet walletDetails
 
@@ -282,6 +268,8 @@ handleAction (PickupAction pickupAction) = case pickupAction of
     let
       contractInstanceId = view _contractInstanceId walletDetails
     arCompanionContractState <- marloweGetWalletCompanionContractObservableState contractInstanceId
+    -- FIXME: this call takes a long time - at the very least, we should pick up the wallet and
+    -- register contracts as loading while this call goes on in the background
     arContractInstanceIds <- getWalletContractInstances wallet
     case arAssets, arCompanionContractState, arContractInstanceIds of
       Right assets, Right companionContractState, Right contractInstanceIds -> do
@@ -302,6 +290,7 @@ handleAction (PickupAction pickupAction) = case pickupAction of
       Left ajaxError, _, _ -> networkErrorToast ajaxError
       _, Left ajaxError, _ -> jsonErrorToast ajaxError
       _, _, Left ajaxError -> networkErrorToast ajaxError
+    assign (_pickupState <<< _pickingUp) false
   Pickup.GenerateNewWallet -> do
     modify_
       $ set (_newWalletDetails <<< _remoteDataWalletInfo) Loading
@@ -372,6 +361,7 @@ handleAction (PlayAction playAction) = case playAction of
   Play.TemplateAction Template.StartContract -> do
     mPlayState <- peruse _playState
     for_ mPlayState \playState -> do
+      -- TODO: check the current slot is what it should be and warn the user if it isn't
       -- flesh out a contract from the templateState
       let
         currentSlot = playState ^. _currentSlot
@@ -406,7 +396,7 @@ handleAction (PlayAction playAction) = case playAction of
             handleAction $ PlayAction $ Play.SetScreen Play.ContractsScreen
             -- FIXME: open the card for this contract
             addToast $ successToast "Contract started."
-          -- TODO: make this error message nicer
+          -- TODO: make this error message more informative
           Left ajaxError -> addToast $ ajaxErrorToast "Failed to initialise contract." ajaxError
   -- other PlayActions are handled in Play.State
   _ -> toPlay $ Play.handleAction playAction

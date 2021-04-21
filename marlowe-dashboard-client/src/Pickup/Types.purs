@@ -13,6 +13,7 @@ import WalletData.Types (WalletNickname, WalletDetails)
 type State
   = { card :: Maybe Card
     , pickupWalletString :: String
+    , pickingUp :: Boolean -- true when we are in the process of picking up a wallet
     }
 
 data Card

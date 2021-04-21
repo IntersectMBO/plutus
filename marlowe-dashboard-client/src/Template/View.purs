@@ -101,6 +101,10 @@ contractNicknameDisplay contractName contractNickname =
                 , type_ InputText
                 , placeholder "Contract name *"
                 , value contractNickname
+                -- TODO: We can allow users to provide custom contract nicknames when we are connecting to the
+                -- metadata server. For now, however, we have no way of sharing this information, so we just
+                -- make it readonly (it is set to equal the contract name initially).
+                , readOnly true
                 , onValueInput_ SetContractNickname
                 ]
             ]
