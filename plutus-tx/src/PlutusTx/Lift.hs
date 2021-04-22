@@ -57,7 +57,7 @@ safeLift
        , PIR.AsTypeErrorExt e uni (Provenance ())
        , PLC.AsFreeVariableError e
        , AsError e uni fun (Provenance ()), MonadError e m, MonadQuote m
-       , PLC.ToBuiltinMeaning uni fun
+       , PLC.ToKind uni, PLC.HasUniApply uni, PLC.ToBuiltinMeaning uni fun
        )
     => a -> m (UPLC.Term UPLC.NamedDeBruijn uni fun ())
 safeLift x = do
@@ -75,7 +75,7 @@ safeLiftProgram
        , PIR.AsTypeErrorExt e uni (Provenance ())
        , PLC.AsFreeVariableError e
        , AsError e uni fun (Provenance ()), MonadError e m, MonadQuote m
-       , PLC.ToBuiltinMeaning uni fun
+       , PLC.ToKind uni, PLC.HasUniApply uni, PLC.ToBuiltinMeaning uni fun
        )
     => a -> m (UPLC.Program UPLC.NamedDeBruijn uni fun ())
 safeLiftProgram x = UPLC.Program () (PLC.defaultVersion ()) <$> safeLift x
@@ -86,7 +86,7 @@ safeLiftCode
        , PIR.AsTypeErrorExt e uni (Provenance ())
        , PLC.AsFreeVariableError e
        , AsError e uni fun (Provenance ()), MonadError e m, MonadQuote m
-       , PLC.ToBuiltinMeaning uni fun
+       , PLC.ToKind uni, PLC.HasUniApply uni, PLC.ToBuiltinMeaning uni fun
        )
     => a -> m (CompiledCodeIn uni fun a)
 safeLiftCode x = DeserializedCode <$> safeLiftProgram x <*> pure Nothing
@@ -102,13 +102,13 @@ unsafely ma = runQuote $ do
 
 -- | Get a Plutus Core term corresponding to the given value, throwing any errors that occur as exceptions and ignoring fresh names.
 lift
-    :: (Lift.Lift uni a, Throwable uni fun, PLC.ToBuiltinMeaning uni fun)
+    :: (Lift.Lift uni a, Throwable uni fun, PLC.ToKind uni, PLC.HasUniApply uni, PLC.ToBuiltinMeaning uni fun)
     => a -> UPLC.Term UPLC.NamedDeBruijn uni fun ()
 lift a = unsafely $ safeLift a
 
 -- | Get a Plutus Core program corresponding to the given value, throwing any errors that occur as exceptions and ignoring fresh names.
 liftProgram
-    :: (Lift.Lift uni a, Throwable uni fun, PLC.ToBuiltinMeaning uni fun)
+    :: (Lift.Lift uni a, Throwable uni fun, PLC.ToKind uni, PLC.HasUniApply uni, PLC.ToBuiltinMeaning uni fun)
     => a -> UPLC.Program UPLC.NamedDeBruijn uni fun ()
 liftProgram x = UPLC.Program () (PLC.defaultVersion ()) $ lift x
 
@@ -120,7 +120,7 @@ liftProgramDef = liftProgram
 
 -- | Get a Plutus Core program corresponding to the given value as a 'CompiledCodeIn', throwing any errors that occur as exceptions and ignoring fresh names.
 liftCode
-    :: (Lift.Lift uni a, Throwable uni fun, PLC.ToBuiltinMeaning uni fun)
+    :: (Lift.Lift uni a, Throwable uni fun, PLC.ToKind uni, PLC.HasUniApply uni, PLC.ToBuiltinMeaning uni fun)
     => a -> CompiledCodeIn uni fun a
 liftCode x = unsafely $ safeLiftCode x
 
@@ -145,7 +145,7 @@ typeCheckAgainst
        , PIR.AsError e uni fun (Provenance ())
        , MonadError e m, MonadQuote m
        , PLC.GShow uni, PLC.GEq uni
-       , PLC.ToBuiltinMeaning uni fun
+       , PLC.ToKind uni, PLC.HasUniApply uni, PLC.ToBuiltinMeaning uni fun
        )
     => Proxy a
     -> PLC.Term PLC.TyName PLC.Name uni fun ()
@@ -178,7 +178,7 @@ typeCode
        , PIR.AsError e uni fun (Provenance ())
        , MonadError e m, MonadQuote m
        , PLC.GShow uni, PLC.GEq uni
-       , PLC.ToBuiltinMeaning uni fun
+       , PLC.ToKind uni, PLC.HasUniApply uni, PLC.ToBuiltinMeaning uni fun
        )
     => Proxy a
     -> PLC.Program PLC.TyName PLC.Name uni fun ()

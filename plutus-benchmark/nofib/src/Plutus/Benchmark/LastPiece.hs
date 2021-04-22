@@ -14,13 +14,12 @@
 
 module Plutus.Benchmark.LastPiece where
 
-import           Data.Char           (isSpace)
-import           PlutusCore.Builtins
-import qualified PlutusCore.Pretty   as PLC
-import           PlutusCore.Universe
-import           PlutusTx            as PlutusTx
-import           PlutusTx.Builtins   as Tx
-import           PlutusTx.Prelude    as PLC hiding (Semigroup (..), check, foldMap, showList)
+import           Data.Char          (isSpace)
+import           PlutusCore.Default
+import qualified PlutusCore.Pretty  as PLC
+import           PlutusTx           as PlutusTx
+import           PlutusTx.Builtins  as Tx
+import           PlutusTx.Prelude   as PLC hiding (Semigroup (..), check, foldMap, showList)
 import           UntypedPlutusCore
 
 -------------------------------------

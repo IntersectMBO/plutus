@@ -14,9 +14,8 @@ module PlutusTx.Evaluation
     )
 where
 
-import           PlutusCore.Builtins
+import           PlutusCore.Default
 import           PlutusCore.Name
-import           PlutusCore.Universe
 
 import           UntypedPlutusCore
 import           UntypedPlutusCore.Evaluation.Machine.Cek hiding (evaluateCek, unsafeEvaluateCek)

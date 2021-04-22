@@ -8,9 +8,8 @@ import           Plutus.Benchmark.Knights.ChessSetList
 import           Plutus.Benchmark.Knights.KnightHeuristic
 import           Plutus.Benchmark.Knights.Queue
 
-import           PlutusCore.Builtins
+import           PlutusCore.Default
 import qualified PlutusCore.Pretty                        as PLC
-import           PlutusCore.Universe
 import qualified PlutusTx                                 as Tx
 import           PlutusTx.Prelude                         as Tx
 import           UntypedPlutusCore

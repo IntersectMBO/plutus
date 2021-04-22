@@ -23,10 +23,9 @@ import qualified Plutus.Benchmark.Prime                   as Prime
 import qualified Plutus.Benchmark.Queens                  as Queens
 import           PlutusCore                               (Name (..))
 import qualified PlutusCore                               as PLC
-import           PlutusCore.Builtins
 import           PlutusCore.CBOR                          ()
+import           PlutusCore.Default
 import qualified PlutusCore.Pretty                        as PLC
-import           PlutusCore.Universe
 import           PlutusTx.Prelude                         as TxPrelude hiding (fmap, mappend, (<$), (<$>), (<*>), (<>))
 import qualified UntypedPlutusCore                        as UPLC
 import           UntypedPlutusCore.Evaluation.Machine.Cek
