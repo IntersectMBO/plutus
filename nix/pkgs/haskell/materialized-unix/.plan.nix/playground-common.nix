@@ -24,7 +24,7 @@
       isLocal = true;
       detailLevel = "FullDetails";
       licenseFiles = [ "LICENSE" "NOTICE" ];
-      dataDir = "";
+      dataDir = ".";
       dataFiles = [ "test/oAuthToken1.json" ];
       extraSrcFiles = [];
       extraTmpFiles = [];

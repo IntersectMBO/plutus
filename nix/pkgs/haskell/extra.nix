@@ -18,9 +18,7 @@
   Agda = haskell-nix.hackage-package {
     name = "Agda";
     version = "2.6.1.1";
-    plan-sha256 = "04b1q8wbh3v92nazfsjzr4qwp9rsv8c2zi51r44djfnp1k1hl3pk";
-    # Should use the index-state from the target cabal.project, but that disables plan-sha256. Fixed
-    # in recent haskell.nix, delete the index-state passing when we update.
+    plan-sha256 = "0w6cra4ynqprbv83qbc8bsnnzly9sv3ry99jfskls4cr47l3gjks";
     inherit compiler-nix-name index-state checkMaterialization;
     modules = [{
       # Agda is a huge pain. They have a special custom setup that compiles the interface files for
@@ -56,21 +54,21 @@
     version = "3.4.0.0";
     inherit compiler-nix-name index-state checkMaterialization;
     # Invalidate and update if you change the version or index-state
-    plan-sha256 = "1cr9d1wfsd9a8i45c59h4gfddh48m1s6b4aiqz1c9j7fk0v9j3ax";
+    plan-sha256 = "0z0ir8kcs9b8f0d72rx5xkq7w1m9s76i3h84lbk0bdh3l4kqld8r";
   };
   stylish-haskell = haskell-nix.hackage-package {
     name = "stylish-haskell";
     version = "0.12.2.0";
     inherit compiler-nix-name index-state checkMaterialization;
     # Invalidate and update if you change the version or index-state
-    plan-sha256 = "0x5kfash33jgjh8vj1q5dqj2p8m5gxhgfj8k7n0wnj2l5djbhwci";
+    plan-sha256 = "1pgmscvz7jx5lx22pqbx6vw43mjd1a7sjj81i988bqw5ab4iq264";
   };
   hlint = haskell-nix.hackage-package {
     name = "hlint";
     version = "3.2.1";
     inherit compiler-nix-name index-state checkMaterialization;
     # Invalidate and update if you change the version or index-state
-    plan-sha256 = "0ld6bl9rcan7cp99zdyjggrhyqb43qcn35csb4kc2hksy4yg7c5f";
+    plan-sha256 = "138zligphj3ndvjzb2hhb40jjji83m3brnqs2maysblplwcsm4gr";
     modules = [{ reinstallableLibGhc = false; }];
   };
 }
@@ -89,8 +87,8 @@
     plan-sha256 =
       # See https://github.com/input-output-hk/nix-tools/issues/97
       if stdenv.isLinux
-      then "09k840g7gg97dwjlif7hlpbx7sapmzdvixwj9hbcvkxiv57sizp3"
-      else "0mgxp1ja7rjh3qnf5ph4a4phncsd3yh04cxmdsg8baczx7jndfaf";
+      then "0q6m14y4fbk75z5mm92ylyzbfjla885fyibq4cxcd6gsn445ai51"
+      else "0w6bwrysl0ni87k6qjsssv64h1hcg5czv6ml5czsl6rw8id0i9cj";
     modules = [{
       packages.ghcide.patches = [ ../../patches/ghcide_partial_iface.patch ];
       # Workaround for https://github.com/haskell/haskell-language-server/issues/1160
