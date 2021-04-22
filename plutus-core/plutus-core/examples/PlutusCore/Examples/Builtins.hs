@@ -105,7 +105,8 @@ data ExtensionFun
     | Fst
     | Snd
     | Swap  -- For checking that permuting type arguments of a polymorphic built-in works correctly.
-    | SwapEls
+    | SwapEls  -- For checking that nesting polymorphic built-in types and instantiating them with
+               -- a mix of monomorphic types and type variables works correctly.
     deriving (Show, Eq, Ord, Enum, Bounded, Ix, Generic, Hashable)
     deriving (ExMemoryUsage) via (GenericExMemoryUsage ExtensionFun)
 
@@ -159,30 +160,36 @@ type instance ToBinds Void = '[]
 instance uni ~ DefaultUni => ToBuiltinMeaning uni ExtensionFun where
     type CostingPart uni ExtensionFun = ()
     toBuiltinMeaning :: forall term. HasConstantIn uni term => ExtensionFun -> BuiltinMeaning term ()
+
     toBuiltinMeaning Factorial =
         makeBuiltinMeaning
             (\(n :: Integer) -> product [1..n])
             mempty  -- Whatever.
+
     toBuiltinMeaning Const =
         makeBuiltinMeaning
             const
             (\_ _ _ -> ExBudget 1 0)
+
     toBuiltinMeaning Id =
         makeBuiltinMeaning
             Prelude.id
             (\_ _ -> ExBudget 1 0)
+
     toBuiltinMeaning IdFInteger =
         makeBuiltinMeaning
             (Prelude.id
                 :: a ~ Opaque term (TyAppRep (TyVarRep ('TyNameRep "f" 0)) Integer)
                 => a -> a)
             (\_ _ -> ExBudget 1 0)
+
     toBuiltinMeaning IdList =
         makeBuiltinMeaning
             (Prelude.id
                 :: a ~ Opaque term (PlcListRep (TyVarRep ('TyNameRep "a" 0)))
                 => a -> a)
             (\_ _ -> ExBudget 1 0)
+
     toBuiltinMeaning IdRank2 =
         makeBuiltinMeaning
             (Prelude.id
@@ -192,47 +199,55 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni ExtensionFun where
                    )
                 => afa -> afa)
             (\_ _ -> ExBudget 1 0)
+
     toBuiltinMeaning Absurd =
         makeBuiltinMeaning
             (absurd
                 :: a ~ Opaque term (TyVarRep ('TyNameRep "a" 0))
                 => Void -> a)
             (\_ _ -> ExBudget 1 0)
+
     toBuiltinMeaning Null = makeBuiltinMeaning nullPlc mempty where
         nullPlc :: SomeValueN uni [] '[a] -> Bool
         nullPlc (SomeValueArg _ (SomeValueRes _ xs)) = null xs
+
     toBuiltinMeaning Head = makeBuiltinMeaning headPlc mempty where
         headPlc :: SomeValueN uni [] '[a] -> EvaluationResult (Opaque term a)
         headPlc (SomeValueArg uniA (SomeValueRes _ xs)) = case xs of
             x : _ -> EvaluationSuccess . Opaque . fromConstant $ someValueOf uniA x
             _     -> EvaluationFailure
+
     toBuiltinMeaning Tail = makeBuiltinMeaning tailPlc mempty where
         tailPlc :: SomeValueN uni [] '[a] -> EvaluationResult (SomeValueN uni [] '[a])
         tailPlc (SomeValueArg uniA (SomeValueRes uniListA xs)) = case xs of
             _ : xs' -> EvaluationSuccess . SomeValueArg uniA $ SomeValueRes uniListA xs'
             _       -> EvaluationFailure
+
     toBuiltinMeaning Fst = makeBuiltinMeaning fstPlc mempty where
         fstPlc :: SomeValueN uni (,) '[a, b] -> Opaque term a
         fstPlc (SomeValueArg uniA (SomeValueArg _ (SomeValueRes _ (x, _)))) =
             Opaque . fromConstant . Some $ ValueOf uniA x
+
     toBuiltinMeaning Snd = makeBuiltinMeaning sndPlc mempty where
         sndPlc :: SomeValueN uni (,) '[a, b] -> Opaque term b
         sndPlc (SomeValueArg _ (SomeValueArg uniB (SomeValueRes _ (_, y)))) =
             Opaque . fromConstant . Some $ ValueOf uniB y
+
     toBuiltinMeaning Swap = makeBuiltinMeaning swapPlc mempty where
         swapPlc :: SomeValueN uni (,) '[a, b] -> SomeValueN uni (,) '[b, a]
         swapPlc (SomeValueArg uniA (SomeValueArg uniB (SomeValueRes _ (x, y)))) =
             SomeValueArg uniB (SomeValueArg uniA (SomeValueRes (DefaultUniTuple uniB uniA) (y, x)))
+
     toBuiltinMeaning SwapEls = makeBuiltinMeaning swapElsPlc mempty where
-        -- swapElsPlc : [([a], Bool)] -> [(Bool, [a])]
+        -- The type reads as @[(a, Bool)] -> [(Bool, a)]@.
         swapElsPlc
             :: a ~ Opaque term (TyVarRep ('TyNameRep "a" 0))
-            => SomeValueN uni [] '[SomeValueN uni (,) '[SomeValueN uni [] '[a], Bool]]
-            -> SomeValueN uni [] '[SomeValueN uni (,) '[Bool, SomeValueN uni [] '[a]]]
+            => SomeValueN uni [] '[SomeValueN uni (,) '[a, Bool]]
+            -> SomeValueN uni [] '[SomeValueN uni (,) '[Bool, a]]
         swapElsPlc (SomeValueArg uniEl (SomeValueRes _ xs)) = case uniEl of
-            DefaultUniTuple (DefaultUniList uniA) DefaultUniBool ->
-                let uniEl' = DefaultUniTuple DefaultUniBool (DefaultUniList uniA)
-                in SomeValueArg uniEl' . SomeValueRes (DefaultUniList uniEl') $ map swap xs
+            DefaultUniTuple uniA DefaultUniBool ->
+                let uniElS = DefaultUniTuple DefaultUniBool uniA
+                in SomeValueArg uniElS . SomeValueRes (DefaultUniList uniElS) $ map swap xs
             -- It would be nice to make GHC realize we've covered all options,
             -- but that seems infeasible.
             _ -> error "impossible"

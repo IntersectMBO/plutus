@@ -249,12 +249,11 @@ test_Tuple =
 test_SwapEls :: TestTree
 test_SwapEls =
     testCase "SwapEls" $ do
-        let xs  = zip (map (\i -> [1..i]) [1..10]) $ cycle [False, True]
+        let xs = zip [1..10] $ cycle [False, True]
             res = mkConstant @Integer @DefaultUni () $
-                    foldr (\p r -> r + foldr (-) (if snd p then 0 else 1) (fst p)) 0 xs
-            listInteger = mkTyBuiltin @[Integer]           ()
-            el          = mkTyBuiltin @([Integer], Bool)   ()
-            instProj proj = mkIterInst () (builtin () $ Right proj) [listInteger, bool]
+                    foldr (\p r -> r + (if snd p then -1 else 1) * fst p) 0 xs
+            el = mkTyBuiltin @(Integer, Bool) ()
+            instProj proj = mkIterInst () (builtin () $ Right proj) [integer, bool]
             fun = runQuote $ do
                     p <- freshName "p"
                     r <- freshName "r"
@@ -263,11 +262,10 @@ test_SwapEls =
                         . LamAbs () r integer
                         $ mkIterApp () (builtin () $ Left AddInteger)
                             [ Var () r
-                            , mkIterApp () (mkIterInst () foldrBuiltinList [integer, integer])
-                                [ builtin () $ Left SubtractInteger
-                                , mkIterApp () (tyInst () (builtin () $ Left IfThenElse) integer)
+                            , mkIterApp () (builtin () $ Left MultiplyInteger)
+                                [ mkIterApp () (tyInst () (builtin () $ Left IfThenElse) integer)
                                     [ apply () (instProj Snd) $ Var () p
-                                    , mkConstant @Integer () 0
+                                    , mkConstant @Integer () (-1)
                                     , mkConstant @Integer () 1
                                     ]
                                 , apply () (instProj Fst) $ Var () p
@@ -277,7 +275,7 @@ test_SwapEls =
                 = mkIterApp () (mkIterInst () foldrBuiltinList [el, integer])
                     [ fun
                     , mkConstant @Integer () 0
-                    , mkConstant @[([Integer], Bool)] () xs
+                    , mkConstant () xs
                     ]
         typecheckEvaluateCkNoEmit defBuiltinsRuntimeExt term @?= Right (EvaluationSuccess res)
 

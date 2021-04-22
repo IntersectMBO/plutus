@@ -207,8 +207,10 @@ type instance ToBinds Bool          = '[]
 type instance ToBinds Int           = '[]
 type instance ToBinds []            = '[]
 type instance ToBinds (,)           = '[]
-type instance ToBinds [a]           = '[]
-type instance ToBinds (a, b)        = '[]
+type instance ToBinds [a]           = '[]  -- One can't directly put a PLC type variable into lists
+type instance ToBinds (a, b)        = '[]  -- or tuples ('SomeValueN' has to be used for that),
+                                           -- hence we say that polymorphic built-in types can't
+                                           -- directly contain any PLC type variables in them.
 
 type instance ToBinds (EvaluationResult a)    = ToBinds a
 type instance ToBinds (Emitter a)             = ToBinds a
@@ -286,6 +288,19 @@ instance
     , j ~ If (a === var) (i + 1) i
     ) => TrySpecializeAsVar i j term a
 
+-- | For looking into arguments of polymorphic built-in types and specializing them as types
+-- representing Plutus type variables there.
+type HandleSomeValueN :: Nat -> Nat -> GHC.Type -> GHC.Type -> GHC.Constraint
+class HandleSomeValueN i j term a | i term a -> j
+instance {-# OVERLAPPABLE #-} i ~ j => HandleSomeValueN i j term a
+-- Take an argument of a built-in type and try to specialize it as a type representing a Plutus
+-- type variable. Note that we don't explicitly handle the no-more-arguments case as it's handled
+-- by the OVERLAPPABLE instance right above.
+instance {-# OVERLAPPING #-}
+    ( TrySpecializeAsVar i j term rep
+    , HandleSomeValueN j k term (SomeValueN uni f reps)
+    ) => HandleSomeValueN i k term (SomeValueN uni f (rep ': reps))
+
 -- See https://github.com/effectfully/sketches/tree/master/poly-type-of-saga/part2-enumerate-type-vars
 -- for a detailed elaboration on how this works.
 -- | Specialize each Haskell type variable in @a@ as a type representing a Plutus Core type variable
@@ -304,17 +319,9 @@ class EnumerateFromTo i j term a | i term a -> j
 instance {-# OVERLAPPABLE #-} i ~ j => EnumerateFromTo i j term a
 instance {-# OVERLAPPING #-}
     ( TrySpecializeAsVar i j term a
-    , TryHandleSomeValueN j k term a
+    , HandleSomeValueN j k term a
     , EnumerateFromTo k l term b
     ) => EnumerateFromTo i l term (a -> b)
-
-type TryHandleSomeValueN :: Nat -> Nat -> GHC.Type -> GHC.Type -> GHC.Constraint
-class TryHandleSomeValueN i j term a | i term a -> j
-instance {-# OVERLAPPABLE #-} i ~ j => TryHandleSomeValueN i j term a
-instance {-# OVERLAPPING #-}
-    ( TrySpecializeAsVar i j term rep
-    , TryHandleSomeValueN j k term (SomeValueN uni f reps)
-    ) => TryHandleSomeValueN i k term (SomeValueN uni f (rep ': reps))
 
 -- See Note [Automatic derivation of type schemes]
 -- | Construct the meaning for a built-in function by automatically deriving its
