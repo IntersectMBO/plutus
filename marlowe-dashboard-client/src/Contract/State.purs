@@ -14,7 +14,6 @@ import Prelude
 import Capability.Toast (class Toast, addToast)
 import Contract.Lenses (_contractInstanceId, _executionState, _namedActions, _previousSteps, _selectedStep, _tab)
 import Contract.Types (Action(..), PreviousStep, PreviousStepState(..), Query(..), State, Tab(..), scrollContainerRef)
-import Control.Monad.Maybe.Trans (MaybeT(..), runMaybeT)
 import Control.Monad.Reader (class MonadAsk, asks)
 import Data.Array as Array
 import Data.Foldable (for_)
@@ -26,11 +25,10 @@ import Data.Maybe (Maybe(..))
 import Data.Ord (abs)
 import Data.RawJson (RawJson(..))
 import Data.Set as Set
-import Data.Time.Duration (Milliseconds(..))
 import Data.Traversable (traverse)
 import Data.UUID (emptyUUID)
 import Data.Unfoldable as Unfoldable
-import Effect.Aff (delay)
+import Effect (Effect)
 import Effect.Aff.AVar as AVar
 import Effect.Aff.Class (class MonadAff, liftAff)
 import Effect.Class (class MonadEffect)
@@ -251,35 +249,29 @@ handleAction CancelConfirmation = pure unit -- Managed by Play.State
 handleAction (SelectStep stepNumber) = assign _selectedStep stepNumber
 
 handleAction (MoveToStep stepNumber) = do
-  executeOutsideScrollSubscription do
-    scrollStepToCenter Smooth stepNumber
-    -- FIXME: try to add a waitUntilNoScrollEvent here
-    assign _selectedStep stepNumber
+  -- The MoveToStep action is called when a new step is added (either via an apply transaction or
+  -- a timeout). We unsubscribe and resubscribe to update the tracked elements.
+  unsubscribeFromSelectCenteredStep
+  subscribeToSelectCenteredStep
+  mElement <- getHTMLElementRef scrollContainerRef
+  for_ mElement $ liftEffect <<< scrollStepToCenter Smooth stepNumber
 
 handleAction CarouselOpened = do
-  -- When the carousel is opened we want to assure that the selected step is
-  -- in the center without any animation
   selectedStep <- use _selectedStep
-  scrollStepToCenter Auto selectedStep
   mElement <- getHTMLElementRef scrollContainerRef
-  for_ mElement \elm -> subscribe' $ carouselCloseEventSource elm
-  subscribeToSelectCenteredStep
+  for_ mElement \elm -> do
+    -- When the carousel is opened we want to assure that the selected step is
+    -- in the center without any animation
+    liftEffect $ scrollStepToCenter Auto selectedStep elm
+    subscribe' $ carouselCloseEventSource elm
+    subscribeToSelectCenteredStep
 
 handleAction CarouselClosed = unsubscribeFromSelectCenteredStep
 
-executeOutsideScrollSubscription ::
-  forall m.
-  MonadAsk Env m =>
-  MonadAff m =>
-  HalogenM State Action ChildSlots Msg m Unit ->
-  HalogenM State Action ChildSlots Msg m Unit
-executeOutsideScrollSubscription effectfulAction = do
-  unsubscribeFromSelectCenteredStep
-  effectfulAction
-  -- FIXME: comment why the delay and maybe add a waitUntilNoScrollEvent
-  liftAff $ delay $ Milliseconds 200.0
-  subscribeToSelectCenteredStep
-
+-- NOTE: In the first version of the selectCenteredStep feature the subscriptionId was stored in the
+--       Contract.State as a Maybe SubscriptionId. But when calling subscribe/unsubscribe multiple
+--       times in a small period of time there was a concurrency issue and multiple subscriptions
+--       were active at the same time, which caused scroll issues.
 unsubscribeFromSelectCenteredStep ::
   forall m.
   MonadAff m =>
@@ -299,25 +291,23 @@ subscribeToSelectCenteredStep = do
   mElement <- getHTMLElementRef scrollContainerRef
   for_ mElement \elm -> do
     subscription <- subscribe $ selectCenteredStepEventSource elm
-    -- FIXME: add note for mutex
+    -- We try to update the subscription without blocking, and if we cant (because another
+    -- subscription is already present, then we clean this one, so only one subscription can
+    -- be active at a time)
     mutex <- asks _.contractStepCarouselSubscription
     mutexUpdated <- liftAff $ AVar.tryPut subscription mutex
     when (not mutexUpdated) $ unsubscribe subscription
 
 scrollStepToCenter ::
-  forall m state action slots msg.
-  MonadEffect m =>
   ScrollBehavior ->
   Int ->
-  HalogenM state action slots msg m Unit
-scrollStepToCenter behavior stepNumber =
-  void
-    $ runMaybeT do
-        parentElement <- MaybeT $ getHTMLElementRef scrollContainerRef
-        let
-          getStepElemets = HTMLCollection.toArray =<< getElementsByClassName "w-contract-card" (HTMLElement.toElement parentElement)
-        stepElement <- MaybeT $ flip Array.index stepNumber <$> liftEffect getStepElemets
-        MaybeT $ map pure $ liftEffect $ scrollIntoView { block: Center, inline: Center, behavior } stepElement
+  HTMLElement ->
+  Effect Unit
+scrollStepToCenter behavior stepNumber parentElement = do
+  let
+    getStepElemets = HTMLCollection.toArray =<< getElementsByClassName "w-contract-card" (HTMLElement.toElement parentElement)
+  mStepElement <- flip Array.index stepNumber <$> getStepElemets
+  for_ mStepElement $ scrollIntoView { block: Center, inline: Center, behavior }
 
 -- Because this is a subcomponent, we don't have a `Finalize` event that we can use, so we add a self contained
 -- subscription (a.k.a. it closes itself) that detects when the modal is no longer visible (not intersecting with the
@@ -388,9 +378,13 @@ selectCenteredStepEventSource scrollContainer =
     --   X time with no scroll events.
     unsubscribeSnapEventListener <-
       debouncedOnScroll
-        50.0
-        (HTMLElement.toElement scrollContainer)
-        (calculateClosestStep >>> \index -> EventSource.emit emitter $ MoveToStep index)
+        150.0
+        (HTMLElement.toElement scrollContainer) \scrollPos -> do
+        let
+          index = calculateClosestStep scrollPos
+        scrollStepToCenter Smooth index scrollContainer
+        EventSource.emit emitter $ SelectStep index
+    -- (calculateClosestStep >>> \index -> scrollStepToCenter Smooth index scrollContainer)
     pure $ EventSource.Finalizer
       $ do
           unsubscribeSelectEventListener
