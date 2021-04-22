@@ -434,15 +434,19 @@ instance
                 wrongType :: (MonadError (ErrorWithCause err term) m, AsUnliftingError err) => m a
                 wrongType = throwingWithCause _UnliftingError err $ Just term
             ReadSomeValueN res uniHead <-
+                matchUniRunTypeApp
+                    uni
+                    wrongType
+                    (\uniApp0 ->
                         cparaM_SList @_ @(KnownTypeAst uni) @reps
                             Proxy
-                            (ReadSomeValueN (SomeValueRes uni xs) $ _ uni)
+                            (ReadSomeValueN (SomeValueRes uni xs) uniApp0)
                             (\(ReadSomeValueN acc uniApp) ->
                                 matchUniApply
                                     uniApp
                                     wrongType
                                     (\uniApp' uniA ->
-                                        pure $ ReadSomeValueN (SomeValueArg uniA acc) uniApp'))
+                                        pure $ ReadSomeValueN (SomeValueArg uniA acc) uniApp')))
             case uniHead `geq` uniF of
                 Nothing   -> wrongType
                 Just Refl -> pure res
