@@ -207,7 +207,7 @@ instance Closed DefaultUni where
         , constr `Permits` (,)
         )
 
-    -- TODO: FIXME.
+    -- TODO: THIS IS AWFULLY WRONG
 
     -- See Note [Stable encoding of tags].
     encodeUni DefaultUniInteger     = [0]

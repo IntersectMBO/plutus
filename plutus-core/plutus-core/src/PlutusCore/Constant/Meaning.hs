@@ -212,10 +212,10 @@ type instance ToBinds (a, b)        = '[]  -- or tuples ('SomeValueN' has to be 
                                            -- hence we say that polymorphic built-in types can't
                                            -- directly contain any PLC type variables in them.
 
-type instance ToBinds (EvaluationResult a)    = ToBinds a
-type instance ToBinds (Emitter a)             = ToBinds a
-type instance ToBinds (Opaque _ rep)          = ToBinds rep
-type instance ToBinds (SomeValueN uni a reps) = Merge (ToBinds a) (ToBinds reps)
+type instance ToBinds (EvaluationResult a)  = ToBinds a
+type instance ToBinds (Emitter a)           = ToBinds a
+type instance ToBinds (Opaque _ rep)        = ToBinds rep
+type instance ToBinds (SomeValueN _ _ reps) = ToBinds reps
 
 type instance ToBinds (TyVarRep var) = '[ 'Some var ]
 type instance ToBinds (TyAppRep fun arg) = Merge (ToBinds fun) (ToBinds arg)

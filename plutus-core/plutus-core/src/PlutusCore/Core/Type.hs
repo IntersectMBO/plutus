@@ -119,9 +119,11 @@ instance (KnownKind dom, KnownKind cod) => KnownKind (dom -> cod) where
 class ToKind (uni :: GHC.Type -> GHC.Type) where
     toKind :: uni a -> Kind ()
 
+-- | Get the PLC kind of a type constructor @f@.
 typeAppToKind :: forall uni k (f :: k). KnownKind k => uni (TypeApp f) -> Kind ()
 typeAppToKind _ = knownKind $ Proxy @k
 
+-- | The PLC kind of a fully monomorphized type. I.e. @Type ()@.
 nonTypeAppKind :: Kind ()
 nonTypeAppKind = Type ()
 
