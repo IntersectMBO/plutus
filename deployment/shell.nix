@@ -77,6 +77,14 @@ let
         # reports it has nothing to do before we even attempt to deploy
         # any nix configuration.
 
+        # The local files (ssh configuration and dns/ip information on ec2
+        # instances) is part of the state so we have to create these before
+        # we check if the state is up to date
+        echo "[deploy-nix]: Creating terraform bridge files"
+        rm -rf ./plutus_playground.$DEPLOYMENT_ENV.conf
+        rm -rf ./machines.json
+        ${terraform}/bin/terraform apply -auto-approve -target=local_file.ssh_config -target=local_file.machines ./terraform/
+
         echo "[deploy-nix]: Checking if terraform state is up to date"
         if ! ${terraform}/bin/terraform plan --detailed-exitcode -compact-warnings ./terraform >/dev/null ; then
           echo "[deploy-nix]: terraform state is not up to date - Aborting"
