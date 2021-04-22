@@ -110,7 +110,7 @@ someValue = someValueOf knownUni
 
 data TypeApp (a :: k)
 
-class HasUniApply uni where
+class HasUniApply (uni :: GHC.Type -> GHC.Type) where
     matchUniRunTypeApp
         :: uni a
         -> r
