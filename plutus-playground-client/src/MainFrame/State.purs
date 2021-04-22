@@ -394,7 +394,7 @@ _details :: forall a. Traversal' (WebData (Either InterpreterError (InterpreterR
 _details = _Success <<< _Right <<< _InterpreterResult <<< _result
 
 handleGistAction :: forall m. MonadApp m => MonadState State m => GistAction -> m Unit
-handleGistAction PublishGist = do
+handleGistAction PublishOrUpdateGist = do
   void
     $ runMaybeT do
         mContents <- lift $ editorGetContents
