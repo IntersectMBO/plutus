@@ -68,13 +68,19 @@ makeLenses ''ChainState
 
 data ChainControlEffect r where
     ProcessBlock :: ChainControlEffect Block
+    ModifySlot :: (Slot -> Slot) -> ChainControlEffect Slot
 
 data ChainEffect r where
     QueueTx :: Tx -> ChainEffect ()
     GetCurrentSlot :: ChainEffect Slot
 
+-- | Make a new block
 processBlock :: Member ChainControlEffect effs => Eff effs Block
 processBlock = send ProcessBlock
+
+-- | Adjust the current slot number, returning the new slot.
+modifySlot :: Member ChainControlEffect effs => (Slot -> Slot) -> Eff effs Slot
+modifySlot = send . ModifySlot
 
 queueTx :: Member ChainEffect effs => Tx -> Eff effs ()
 queueTx tx = send (QueueTx tx)
@@ -101,6 +107,7 @@ handleControlChain = \case
         traverse_ logEvent events
 
         pure block
+    ModifySlot f -> modify @ChainState (over currentSlot f) >> gets (view currentSlot)
 
 logEvent :: Member (LogMsg ChainEvent) effs => ChainEvent -> Eff effs ()
 logEvent e = case e of
@@ -180,7 +187,6 @@ addBlock blk st =
      -- The block update may contain txs that are not in this client's
      -- `txPool` which will get ignored
      & txPool %~ (\\ blk)
-     & currentSlot +~ 1 -- This assumes that there is exactly one block per slot. In the real chain there may be more than one block per slot.
 
 addTxToPool :: Tx -> TxPool -> TxPool
 addTxToPool = (:)

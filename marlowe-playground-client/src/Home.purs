@@ -36,7 +36,7 @@ render state =
         [ h2_ [ text "Ready to go?" ]
         , button [ onClick ((const <<< Just <<< OpenModal) NewProject) ] [ text "Start a new project" ]
         , div [ classes [ ClassName "links" ] ]
-            [ a [ href "./tutorial/index.html", target "_blank" ] [ text """Read our "Getting Started" guide""" ]
+            [ a [ href "./doc/marlowe/tutorials/index.html", target "_blank" ] [ text """Read our "Getting Started" guide""" ]
             , vl
             , a [ onClick ((const <<< Just <<< OpenModal) OpenDemo) ] [ text "Browse the example files" ]
             ]

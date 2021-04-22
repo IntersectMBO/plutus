@@ -24,7 +24,7 @@
       isLocal = true;
       detailLevel = "FullDetails";
       licenseFiles = [ "LICENSE" ];
-      dataDir = "";
+      dataDir = ".";
       dataFiles = [];
       extraSrcFiles = [ "README.md" "cbits/*.h" "cbits/ed25519/*.h" ];
       extraTmpFiles = [];

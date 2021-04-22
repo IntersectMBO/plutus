@@ -3,6 +3,7 @@
 {-# LANGUAGE FunctionalDependencies #-}
 {-# LANGUAGE OverloadedStrings      #-}
 {-# LANGUAGE TypeApplications       #-}
+{-# LANGUAGE UndecidableInstances   #-}
 
 {-# LANGUAGE StrictData             #-}
 
@@ -91,6 +92,7 @@ import           PlutusPrelude                          hiding (toList)
 import           PlutusCore.Core
 import           PlutusCore.Name
 
+import           Control.Monad.Except
 import           Data.Semigroup.Generic
 import           Data.Text.Prettyprint.Doc
 import           PlutusCore.Evaluation.Machine.ExMemory
@@ -118,14 +120,17 @@ instance ExBudgetBuiltin fun () where
     exBudgetBuiltin _ = ()
 
 -- This works nicely because @m@ contains @term@.
-class (ExBudgetBuiltin fun exBudgetCat, ToExMemory term) =>
-            SpendBudget m fun exBudgetCat term | m -> fun exBudgetCat term where
+class (ExBudgetBuiltin fun exBudgetCat) =>
+            SpendBudget m fun exBudgetCat | m -> fun exBudgetCat where
     -- | Spend the budget, which may mean different things depending on the monad:
     --
     -- 1. do nothing for an evaluator that does not care about costing
     -- 2. count upwards to get the cost of a computation
     -- 3. subtract from the current budget and fail if the budget goes below zero
     spendBudget :: exBudgetCat -> ExBudget -> m ()
+
+instance (Monad m, SpendBudget m fun exBudgetCat) => SpendBudget (ExceptT e m) fun exBudgetCat where
+    spendBudget c b  = lift $ spendBudget c b
 
 data ExBudget = ExBudget { _exBudgetCPU :: ExCPU, _exBudgetMemory :: ExMemory }
     deriving stock (Eq, Show, Generic)

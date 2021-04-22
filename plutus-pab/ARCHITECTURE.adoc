@@ -1,3 +1,102 @@
-=== Plutus Smart Contract Backend (SCB)
+=== Plutus Application Backend (PAB)
 
-* `Plutus.SCB.Events` Events that the SCB passes around.
+The PAB executes the off-chain component of Plutus applications. It manages application requests to wallet backend and node, stores the application state and offers an HTTP API for managing application instances.
+
+==== PAB Configurations
+
+The mode of communication between the PAB and Plutus applications can be customised. The standard way for the PAB to talk to a Plutus app is by using the application's CLI. This requires the compiled Plutus app to be stored on the local filesystem and installed in the PAB.
+
+It is also possible to configure the PAB to include one or several predefined Plutus apps. In this case, the apps are bundled with the PAB and don't need to be distributed & installed separately. This is useful for Plutus app developers who want to distribute the PAB as part of a bigger application, instead of relying on it being installed on the user's machine.
+
+The standard PAB (the `plutus-pab` executable defined in `plutus-pab.cabal`) comes with two configurations: A simulator configuration and a CLI contracts configuration.
+
+The simulator configuration does not require any external services to be running and it has a number of sample contracts built-in. It can be started with the `plutus-pab simulator` command.
+
+The CLI contracts configuration has no contracts preinstalled. It can be started with the `plutus-pab webserver` command. Additional contracts can be installed with the `plutus-pab install --path ${contract-cli}` command, where `${contract-cli}` is the location of an executable Plutus contract in the file system.
+
+Additional configurations can be created in Haskell using the `plutus-pab` library.
+
+==== The PAB HTTP API
+
+The HTTP interface is defined in the Haskell module `Plutus.PAB.Webserver.API`. Below is a list of the routes that are available. Note that the exact form of the JSON arguments depends on the particular configuration of the PAB that is running.
+
+In the examples below we assume the PAB has been started in the simulator configuration, with the `plutus-pab simulator` command,
+
+===== Active contract instances
+
+[source]
+----
+ GET /api/new/contract/instances
+----
+
+Gives a list of active instances of contracts.
+
+===== Available definitions
+
+[source]
+----
+ GET /api/new/contract/definitions
+----
+
+Gives a list of contract definitions.
+
+===== Starting a new instance of a contract
+
+[source]
+----
+POST /api/new/contract/activate
+----
+
+Starts a new instance of the contract. Expects a `ContractActivationArgs` object. Example:
+
+[source,json]
+----
+{ "caID": "Currency"
+, "caWallet": { "getWallet": 1 }
+}
+----  
+
+The `caID` field describes the contract that is to be started. In our case (simulator PAB configuration) the string `"Currency"` is enough to identify the currency contract.
+
+The `caWallet` field describes the wallet that this instance should connect to. In the simulator PAB configuration there are ten wallets with IDs 1-10 that can be used for test purposes.
+
+This call returns the UUID of the newly started contract instance.
+
+===== Instance status
+
+[source]
+----
+ GET /api/new/contract/instance/:contract-instance-id/status
+----
+
+Get the status of the instance, identified by UUID.
+
+===== Endpoints
+
+[source]
+----
+ POST /api/new/contract/instance/:contract-instance-id/endpoint/:endpoint-name
+----
+
+Call an endpoint on an active contract instance. Expects a JSON object with the value of the endpoint call. The name of the endpoint and the type of its value are determined by the contract schema. For example, the `Currency` contract that comes with the simulator PAB configuration has the following line in its schema:
+
+[source,haskell]
+----
+Endpoint "Create native token" SimpleMPS
+----
+
+This means that there is an endpoint `"Create native token"` that expects a `SimpleMPS` argument. If the endpoint is not active, this call results in an error. The list of endpoints that are currently active can be obtained from the `status` route or via the websockets protocol.
+
+===== Websockets
+
+The PAB also offers two websocket interfaces that push updates from contract instances. These are available under the following routes:
+
+[source]
+----
+GET /ws/:contract-instance-id
+GET /ws
+----
+
+The first route opens a websocket with updates for the given contract instance. It is unidirectional and does not expect any messages from the client. The updates are JSON objects of the type `InstanceStatusToClient`.
+
+The second route opens a websocket with a protocol with subscriptions for contract instances and wallets. Messages from the server are of the type `CombinedWSStreamToClient` (in `Plutus.PAB.Webserver.Types`). When the websocket is first opened, it only streams updates for changing slot numbers. To subscribe to, and unsubscribe from, additional feeds, the client can send objects of the type `CombinedWSStreamToServer` to the server.

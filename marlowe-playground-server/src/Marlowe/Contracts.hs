@@ -26,5 +26,9 @@ swap = $(makeRelativeToProject "contracts/Swap.hs" >>= embedFile)
 option :: ByteString
 option = $(makeRelativeToProject "contracts/Option.hs" >>= embedFile)
 
-contractForDifference :: ByteString
-contractForDifference = $(makeRelativeToProject "contracts/ContractForDifference.hs" >>= embedFile)
+contractForDifferences :: ByteString
+contractForDifferences = $(makeRelativeToProject "contracts/ContractForDifferences.hs" >>= embedFile)
+
+contractForDifferencesWithOracle :: ByteString
+contractForDifferencesWithOracle = $(makeRelativeToProject "contracts/ContractForDifferencesWithOracle.hs" >>= embedFile)
+

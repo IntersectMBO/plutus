@@ -16,11 +16,11 @@ import Control.Monad.State (modify_)
 import Data.Bifunctor (lmap)
 import Data.Either (Either(..), either, hush, note)
 import Data.Foldable (fold, for_)
-import Data.Lens (assign, has, modifying, over, preview, set, use, view, (^.))
+import Data.Lens (assign, has, preview, set, use, view, (^.))
 import Data.Lens.Extra (peruse)
 import Data.Lens.Index (ix)
 import Data.Map as Map
-import Data.Maybe (Maybe(..), fromMaybe)
+import Data.Maybe (Maybe(..), fromMaybe, maybe)
 import Data.Newtype (unwrap)
 import Demos.Types (Action(..), Demo(..)) as Demos
 import Effect.Aff.Class (class MonadAff, liftAff)
@@ -42,9 +42,9 @@ import Halogen.Monaco as Monaco
 import Halogen.Query (HalogenM)
 import Halogen.Query.EventSource (eventListenerEventSource)
 import HaskellEditor.State as HaskellEditor
-import HaskellEditor.Types (Action(..), State, _ContractString, initialState) as HE
+import HaskellEditor.Types (Action(..), State, _ContractString, _metadataHintInfo, initialState) as HE
 import JavascriptEditor.State as JavascriptEditor
-import JavascriptEditor.Types (Action(..), State, _ContractString, initialState) as JS
+import JavascriptEditor.Types (Action(..), State, _ContractString, _metadataHintInfo, initialState) as JS
 import JavascriptEditor.Types (CompilationState(..))
 import Language.Haskell.Monaco as HM
 import LoginPopup (openLoginPopup, informParentAndClose)
@@ -53,11 +53,11 @@ import MainFrame.View (render)
 import Marlowe (getApiGistsByGistId)
 import Marlowe as Server
 import Marlowe.ActusBlockly as AMB
-import Marlowe.Extended.Metadata (_choiceDescriptions, _contractDescription, _contractName, _contractType, _roleDescriptions, _slotParameterDescriptions, _valueParameterDescriptions, emptyContractMetadata)
+import Marlowe.Extended.Metadata (emptyContractMetadata, getHintsFromMetadata)
 import Marlowe.Gists (mkNewGist, playgroundFiles, PlaygroundFiles)
 import MarloweEditor.State as MarloweEditor
-import MarloweEditor.Types (MetadataAction(..))
 import MarloweEditor.Types as ME
+import MetadataTab.State (carryMetadataAction)
 import Network.RemoteData (RemoteData(..), _Success)
 import Network.RemoteData as RemoteData
 import NewProject.Types (Action(..), State, emptyState) as NewProject
@@ -282,27 +282,6 @@ handleActionWithoutNavigationGuard =
         ( handleAction
         )
 
-carryMetadataAction ::
-  forall m.
-  MonadAff m =>
-  MonadAsk Env m =>
-  ME.MetadataAction ->
-  HalogenM State Action ChildSlots Void m Unit
-carryMetadataAction action = do
-  modifying (_contractMetadata) case action of
-    SetContractName name -> set _contractName name
-    SetContractType typeName -> set _contractType typeName
-    SetContractDescription description -> set _contractDescription description
-    SetRoleDescription tokenName description -> over _roleDescriptions $ Map.insert tokenName description
-    DeleteRoleDescription tokenName -> over _roleDescriptions $ Map.delete tokenName
-    SetSlotParameterDescription slotParam description -> over _slotParameterDescriptions $ Map.insert slotParam description
-    DeleteSlotParameterDescription slotParam -> over _slotParameterDescriptions $ Map.delete slotParam
-    SetValueParameterDescription valueParam description -> over _valueParameterDescriptions $ Map.insert valueParam description
-    DeleteValueParameterDescription valueParam -> over _valueParameterDescriptions $ Map.delete valueParam
-    SetChoiceDescription choiceName description -> over _choiceDescriptions $ Map.insert choiceName description
-    DeleteChoiceDescription choiceName -> over _choiceDescriptions $ Map.delete choiceName
-  assign (_hasUnsavedChanges) true
-
 -- This handleAction can be called recursively, but because we use HOF to extend the functionality
 -- of the component, whenever we need to recurse we most likely be calling one of the extended functions
 -- defined above (handleActionWithoutNavigationGuard or fullHandleAction)
@@ -330,7 +309,11 @@ handleAction Init = do
     $ runMaybeT do
         sessionJSON <- MaybeT $ liftEffect $ SessionStorage.getItem StaticData.sessionStorageKey
         session <- hoistMaybe $ hush $ runExcept $ decodeJSON sessionJSON
-        H.modify_ (sessionToState session)
+        let
+          metadataHints = (getHintsFromMetadata (unwrap session).contractMetadata)
+        H.modify_ $ sessionToState session
+          <<< set (_haskellState <<< HE._metadataHintInfo) metadataHints
+          <<< set (_javascriptState <<< JS._metadataHintInfo) (getHintsFromMetadata (unwrap session).contractMetadata)
 
 handleAction (HandleKey sid ev)
   | KE.key ev == "Escape" = assign _showModal Nothing
@@ -350,8 +333,9 @@ handleAction (HaskellAction action) = do
       let
         contract = fold mContract
       sendToSimulation contract
-    (HE.HandleEditorMessage (Monaco.TextChanged _)) -> setUnsavedChangesForLanguage Haskell true
-    (HE.InitHaskellProject _) -> setUnsavedChangesForLanguage Haskell false
+    HE.HandleEditorMessage (Monaco.TextChanged _) -> setUnsavedChangesForLanguage Haskell true
+    HE.InitHaskellProject _ _ -> setUnsavedChangesForLanguage Haskell false
+    HE.BottomPanelAction (BP.PanelAction (HE.MetadataAction metadataAction)) -> carryMetadataAction metadataAction
     _ -> pure unit
 
 handleAction (JavascriptAction action) = do
@@ -362,8 +346,9 @@ handleAction (JavascriptAction action) = do
       let
         contract = fold mContract
       sendToSimulation contract
-    (JS.HandleEditorMessage (Monaco.TextChanged _)) -> setUnsavedChangesForLanguage Javascript true
-    (JS.InitJavascriptProject _) -> setUnsavedChangesForLanguage Javascript false
+    JS.HandleEditorMessage (Monaco.TextChanged _) -> setUnsavedChangesForLanguage Javascript true
+    JS.InitJavascriptProject _ _ -> setUnsavedChangesForLanguage Javascript false
+    JS.BottomPanelAction (BP.PanelAction (JS.MetadataAction metadataAction)) -> carryMetadataAction metadataAction
     _ -> pure unit
 
 handleAction (MarloweEditorAction action) = do
@@ -399,7 +384,8 @@ handleAction (BlocklyEditorAction action) = do
         selectView MarloweEditor
         assign _workflow (Just Marlowe)
         toMarloweEditor $ MarloweEditor.handleAction $ ME.InitMarloweProject code
-    (BE.HandleBlocklyMessage Blockly.CodeChange) -> setUnsavedChangesForLanguage Blockly true
+    BE.HandleBlocklyMessage Blockly.CodeChange -> setUnsavedChangesForLanguage Blockly true
+    BE.BottomPanelAction (BP.PanelAction (BE.MetadataAction metadataAction)) -> carryMetadataAction metadataAction
     _ -> pure unit
 
 handleAction (SimulationAction action) = do
@@ -481,18 +467,18 @@ handleAction (NewProjectAction (NewProject.CreateProject lang)) = do
     )
   liftEffect $ SessionStorage.setItem gistIdLocalStorageKey mempty
   -- We reset all editors and then initialize the selected language.
-  toHaskellEditor $ HaskellEditor.handleAction $ HE.InitHaskellProject mempty
-  toJavascriptEditor $ JavascriptEditor.handleAction $ JS.InitJavascriptProject mempty
+  toHaskellEditor $ HaskellEditor.handleAction $ HE.InitHaskellProject mempty mempty
+  toJavascriptEditor $ JavascriptEditor.handleAction $ JS.InitJavascriptProject mempty mempty
   toMarloweEditor $ MarloweEditor.handleAction $ ME.InitMarloweProject mempty
   toBlocklyEditor $ BlocklyEditor.handleAction $ BE.InitBlocklyProject mempty
   -- TODO: implement ActusBlockly.SetCode
   case lang of
     Haskell ->
       for_ (Map.lookup "Example" StaticData.demoFiles) \contents -> do
-        toHaskellEditor $ HaskellEditor.handleAction $ HE.InitHaskellProject contents
+        toHaskellEditor $ HaskellEditor.handleAction $ HE.InitHaskellProject mempty contents
     Javascript ->
       for_ (Map.lookup "Example" StaticData.demoFilesJS) \contents -> do
-        toJavascriptEditor $ JavascriptEditor.handleAction $ JS.InitJavascriptProject contents
+        toJavascriptEditor $ JavascriptEditor.handleAction $ JS.InitJavascriptProject mempty contents
     Marlowe ->
       for_ (Map.lookup "Example" StaticData.marloweContracts) \contents -> do
         toMarloweEditor $ MarloweEditor.handleAction $ ME.InitMarloweProject contents
@@ -513,10 +499,10 @@ handleAction (DemosAction action@(Demos.LoadDemo lang (Demos.Demo key))) = do
   case lang of
     Haskell ->
       for_ (Map.lookup key StaticData.demoFiles) \contents ->
-        toHaskellEditor $ HaskellEditor.handleAction $ HE.InitHaskellProject contents
+        toHaskellEditor $ HaskellEditor.handleAction $ HE.InitHaskellProject metadataHints contents
     Javascript ->
       for_ (Map.lookup key StaticData.demoFilesJS) \contents -> do
-        toJavascriptEditor $ JavascriptEditor.handleAction $ JS.InitJavascriptProject contents
+        toJavascriptEditor $ JavascriptEditor.handleAction $ JS.InitJavascriptProject metadataHints contents
     Marlowe -> do
       for_ (preview (ix key) StaticData.marloweContracts) \contents -> do
         toMarloweEditor $ MarloweEditor.handleAction $ ME.InitMarloweProject contents
@@ -528,9 +514,13 @@ handleAction (DemosAction action@(Demos.LoadDemo lang (Demos.Demo key))) = do
     ( set _showModal Nothing
         <<< set _workflow (Just lang)
         <<< set _hasUnsavedChanges false
-        <<< set _contractMetadata emptyContractMetadata -- ToDo: Load metadata for example (SCP-1912)
+        <<< set _contractMetadata metadata
     )
   selectView $ selectLanguageView lang
+  where
+  metadata = fromMaybe emptyContractMetadata $ Map.lookup key StaticData.demoFilesMetadata
+
+  metadataHints = getHintsFromMetadata metadata
 
 handleAction (DemosAction Demos.Cancel) = fullHandleAction CloseModal
 
@@ -796,13 +786,16 @@ loadGist gist = do
     description = view gistDescription gist
 
     gistId' = preview gistId gist
+
+    metadata = maybe emptyContractMetadata (either (const emptyContractMetadata) identity <<< runExcept <<< decodeJSON) mMetadataJSON
+
+    metadataHints = getHintsFromMetadata metadata
   -- Restore or reset all editors
-  toHaskellEditor $ HaskellEditor.handleAction $ HE.InitHaskellProject $ fromMaybe mempty haskell
-  toJavascriptEditor $ JavascriptEditor.handleAction $ JS.InitJavascriptProject $ fromMaybe mempty javascript
+  toHaskellEditor $ HaskellEditor.handleAction $ HE.InitHaskellProject metadataHints $ fromMaybe mempty haskell
+  toJavascriptEditor $ JavascriptEditor.handleAction $ JS.InitJavascriptProject metadataHints $ fromMaybe mempty javascript
   toMarloweEditor $ MarloweEditor.handleAction $ ME.InitMarloweProject $ fromMaybe mempty marlowe
   toBlocklyEditor $ BlocklyEditor.handleAction $ BE.InitBlocklyProject $ fromMaybe mempty blockly
-  for_ mMetadataJSON \metadataJSON ->
-    assign _contractMetadata $ either (const emptyContractMetadata) identity $ runExcept (decodeJSON metadataJSON)
+  assign _contractMetadata metadata
   -- Actus doesn't have a SetCode to reset for the moment, so we only set if present.
   -- TODO add SetCode to Actus
   for_ actus \xml -> query _actusBlocklySlot unit (ActusBlockly.LoadWorkspace xml unit)

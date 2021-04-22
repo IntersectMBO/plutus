@@ -14,7 +14,9 @@ import           Servant.Client                (ClientError)
 
 import           Cardano.BM.Data.Tracer.Extras (StructuredLog, Tagged (..), mkObjectStr)
 import           Control.Monad.Logger          (Loc, LogSource)
+import           Servant.API                   (FromHttpApiData)
 import           Wallet.Emulator.Wallet        (WalletEvent (..))
+import           Wallet.Types                  (ContractInstanceId (..))
 
 deriving via (Tagged "location" Loc) instance StructuredLog Loc
 deriving via (Tagged "source" LogSource) instance StructuredLog LogSource
@@ -48,3 +50,5 @@ instance FromJSON ClientError where
 
 instance ToJSON ClientError where
     toJSON = toJSON . show
+
+deriving newtype instance FromHttpApiData ContractInstanceId

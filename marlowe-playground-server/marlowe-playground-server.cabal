@@ -17,10 +17,21 @@ source-repository head
 
 library
     exposed-modules:
-        Server
+        -- src
         API
-        Marlowe.Contracts
         Marlowe.Config
+        Marlowe.Contracts
+        Marlowe.Mermaid
+        Server
+        -- contracts
+        ContractForDifferences
+        ContractForDifferencesWithOracle
+        CouponBondGuaranteed
+        Escrow
+        EscrowWithCollateral
+        Example
+        Swap
+        ZeroCouponBond
     -- Include 'contracts' so haskell.nix knows to include the files that we embed with TH
     hs-source-dirs:
         src
@@ -37,6 +48,7 @@ library
         exceptions -any,
         file-embed -any,
         filepath -any,
+        hashable -any,
         http-client -any,
         http-client-tls -any,
         http-conduit -any,
@@ -80,7 +92,8 @@ executable marlowe-playground-server
         ZeroCouponBond
         Swap
         Option
-        ContractForDifference
+        ContractForDifferences
+        ContractForDifferencesWithOracle
     hs-source-dirs: app contracts
     default-language: Haskell2010
     ghc-options: -threaded -rtsopts -with-rtsopts=-N -Wall

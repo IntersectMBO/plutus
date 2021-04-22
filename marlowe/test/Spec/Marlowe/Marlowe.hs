@@ -11,49 +11,50 @@ module Spec.Marlowe.Marlowe
     )
 where
 
+import qualified Codec.CBOR.Write                      as Write
+import qualified Codec.Serialise                       as Serialise
 import           Control.Exception                     (SomeException, catch)
 import           Control.Lens                          ((&), (.~))
 import           Control.Monad                         (void)
 import           Control.Monad.Freer                   (run)
 import           Control.Monad.Freer.Error             (runError)
+import           Data.Aeson                            (decode, encode)
+import           Data.Aeson.Text                       (encodeToLazyText)
+import qualified Data.ByteString                       as BS
+import           Data.Default                          (Default (..))
+import           Data.Either                           (isRight)
 import qualified Data.Map.Strict                       as Map
 import           Data.Maybe                            (isJust)
+import           Data.Ratio                            ((%))
+import           Data.Set                              (Set)
+import qualified Data.Set                              as Set
+import           Data.String
 import qualified Data.Text                             as T
 import qualified Data.Text.IO                          as T
 import           Data.Text.Lazy                        (toStrict)
+import           Language.Haskell.Interpreter          (Extension (OverloadedStrings), MonadInterpreter,
+                                                        OptionVal ((:=)), as, interpret, languageExtensions,
+                                                        runInterpreter, set, setImports)
 import           Language.Marlowe.Analysis.FSSemantics
 import           Language.Marlowe.Client
 import           Language.Marlowe.Semantics
 import           Language.Marlowe.Util
-import qualified PlutusTx.AssocMap                     as AssocMap
-import           System.IO.Unsafe                      (unsafePerformIO)
-
-import           Data.Aeson                            (decode, encode)
-import           Data.Aeson.Text                       (encodeToLazyText)
-import qualified Data.ByteString                       as BS
-import           Data.Either                           (isRight)
-import           Data.Ratio                            ((%))
-import qualified Data.Set                              as Set
-import           Data.String
-
-import qualified Codec.CBOR.Write                      as Write
-import qualified Codec.Serialise                       as Serialise
-import           Language.Haskell.Interpreter          (Extension (OverloadedStrings), MonadInterpreter,
-                                                        OptionVal ((:=)), as, interpret, languageExtensions,
-                                                        runInterpreter, set, setImports)
-import           Plutus.Contract.Test                  hiding ((.&&.))
-import qualified Plutus.Contract.Test                  as T
-import qualified Plutus.Trace.Emulator                 as Trace
-import           PlutusTx.Lattice
-
-import           Ledger                                hiding (Value)
+import           Ledger                                (Slot (..), pubKeyHash, validatorHash)
 import           Ledger.Ada                            (lovelaceValueOf)
 import           Ledger.Constraints.TxConstraints      (TxConstraints)
 import           Ledger.Typed.Scripts                  (scriptHash, validatorScript)
 import qualified Ledger.Value                          as Val
+import           Plutus.Contract.Test                  hiding ((.&&.))
+import qualified Plutus.Contract.Test                  as T
+import           Plutus.Contract.Types                 (_observableState)
+import qualified Plutus.Trace.Emulator                 as Trace
+import           Plutus.Trace.Emulator.Types           (instContractState)
+import qualified PlutusTx.AssocMap                     as AssocMap
+import           PlutusTx.Lattice
 import qualified PlutusTx.Prelude                      as P
 import           Spec.Marlowe.Common
 import qualified Streaming.Prelude                     as S
+import           System.IO.Unsafe                      (unsafePerformIO)
 import           Test.Tasty
 import           Test.Tasty.HUnit
 import           Test.Tasty.QuickCheck
@@ -93,8 +94,8 @@ zeroCouponBondTest :: TestTree
 zeroCouponBondTest = checkPredicateOptions (defaultCheckOptions & maxSlot .~ 250) "Zero Coupon Bond Contract"
     (assertNoFailedTransactions
     -- T..&&. emulatorLog (const False) ""
-    T..&&. assertNotDone marlowePlutusContract (Trace.walletInstanceTag alice) "contract should close"
-    T..&&. assertNotDone marlowePlutusContract (Trace.walletInstanceTag bob) "contract should close"
+    T..&&. assertDone marlowePlutusContract (Trace.walletInstanceTag alice) (const True) "contract should close"
+    T..&&. assertDone marlowePlutusContract (Trace.walletInstanceTag bob) (const True) "contract should close"
     T..&&. walletFundsChange alice (lovelaceValueOf (150))
     T..&&. walletFundsChange bob (lovelaceValueOf (-150))
     ) $ do
@@ -117,14 +118,14 @@ zeroCouponBondTest = checkPredicateOptions (defaultCheckOptions & maxSlot .~ 250
     Trace.callEndpoint @"create" aliceHdl (AssocMap.empty, zeroCouponBond)
     Trace.waitNSlots 2
 
-    Trace.callEndpoint @"wait" bobHdl (params)
-
-    Trace.callEndpoint @"apply-inputs" aliceHdl (params, [IDeposit alicePk alicePk ada 850])
+    Trace.callEndpoint @"apply-inputs" aliceHdl (params, Nothing, [IDeposit alicePk alicePk ada 850])
     Trace.waitNSlots 2
 
-    Trace.callEndpoint @"wait" aliceHdl (params)
+    Trace.callEndpoint @"apply-inputs" bobHdl (params, Nothing, [IDeposit alicePk bobPk ada 1000])
+    void $ Trace.waitNSlots 2
 
-    Trace.callEndpoint @"apply-inputs" bobHdl (params, [IDeposit alicePk bobPk ada 1000])
+    Trace.callEndpoint @"close" aliceHdl ()
+    Trace.callEndpoint @"close" bobHdl ()
     void $ Trace.waitNSlots 2
 
 
@@ -136,6 +137,9 @@ trustFundTest = checkPredicateOptions (defaultCheckOptions & maxSlot .~ 200) "Tr
     T..&&. assertNotDone marlowePlutusContract (Trace.walletInstanceTag bob) "contract should not have any errors"
     T..&&. walletFundsChange alice (lovelaceValueOf (-256) <> Val.singleton (rolesCurrency params) "alice" 1)
     T..&&. walletFundsChange bob (lovelaceValueOf 256 <> Val.singleton (rolesCurrency params) "bob" 1)
+    T..&&. assertAccumState marloweFollowContract "bob follow"
+        (\state@(History mp MarloweData{marloweContract} history) ->
+            mp == params && marloweContract == contract) "follower contract state"
     ) $ do
 
     -- Init a contract
@@ -143,27 +147,33 @@ trustFundTest = checkPredicateOptions (defaultCheckOptions & maxSlot .~ 200) "Tr
         bobPkh = pubKeyHash $ walletPubKey bob
     bobHdl <- Trace.activateContractWallet bob marlowePlutusContract
     aliceHdl <- Trace.activateContractWallet alice marlowePlutusContract
+    bobCompanionHdl <- Trace.activateContract bob marloweCompanionContract "bob companion"
+    bobFollowHdl <- Trace.activateContract bob marloweFollowContract "bob follow"
 
     Trace.callEndpoint @"create" aliceHdl
         (AssocMap.fromList [("alice", alicePkh), ("bob", bobPkh)],
         contract)
     Trace.waitNSlots 5
+    CompanionState r <- _observableState . instContractState <$> Trace.getContractState bobCompanionHdl
+    case Map.toList r of
+        [] -> pure ()
+        (pms, _) : _ -> do
 
-    Trace.callEndpoint @"wait" bobHdl (params)
+            Trace.callEndpoint @"apply-inputs" aliceHdl (pms, Nothing,
+                [ IChoice chId 256
+                , IDeposit "alice" "alice" ada 256
+                ])
+            Trace.waitNSlots 17
 
-    Trace.callEndpoint @"apply-inputs" aliceHdl (params,
-        [ IChoice chId 256
-        , IDeposit "alice" "alice" ada 256
-        ])
-    Trace.waitNSlots 17
+            -- get contract's history and start following our contract
+            Trace.callEndpoint @"follow" bobFollowHdl pms
+            Trace.waitNSlots 2
 
-    Trace.callEndpoint @"wait" aliceHdl (params)
+            Trace.callEndpoint @"apply-inputs" bobHdl (pms, Nothing, [INotify])
 
-    Trace.callEndpoint @"apply-inputs" bobHdl (params, [INotify])
-
-    Trace.waitNSlots 2
-    Trace.callEndpoint @"redeem" bobHdl (params, "bob", bobPkh)
-    void $ Trace.waitNSlots 2
+            Trace.waitNSlots 2
+            Trace.callEndpoint @"redeem" bobHdl (pms, "bob", bobPkh)
+            void $ Trace.waitNSlots 2
     where
         alicePk = PK $ pubKeyHash $ walletPubKey alice
         bobPk = PK $ pubKeyHash $ walletPubKey bob
@@ -179,7 +189,7 @@ trustFundTest = checkPredicateOptions (defaultCheckOptions & maxSlot .~ 200) "Tr
                         (Slot 40) Close)
                     ] (Slot 30) Close)
             ] (Slot 20) Close
-        (params, (_ :: TxConstraints MarloweInput MarloweData)) =
+        (params, _ :: TxConstraints MarloweInput MarloweData) =
             let con = setupMarloweParams @MarloweSchema @MarloweError
                         (AssocMap.fromList [("alice", pubKeyHash $ walletPubKey alice), ("bob", pubKeyHash $ walletPubKey bob)])
                         contract
@@ -190,7 +200,7 @@ trustFundTest = checkPredicateOptions (defaultCheckOptions & maxSlot .~ 200) "Tr
                     $ run
                     $ runError @Folds.EmulatorFoldErr
                     $ foldEmulatorStreamM fld
-                    $ Trace.runEmulatorStream Trace.defaultEmulatorConfig
+                    $ Trace.runEmulatorStream def
                     $ do
                         void $ Trace.activateContractWallet alice (void con)
                         Trace.waitNSlots 10

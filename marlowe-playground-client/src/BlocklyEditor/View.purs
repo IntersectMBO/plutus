@@ -45,7 +45,8 @@ render metadata state =
     ]
   where
   panelTitles =
-    [ { title: "Static Analysis", view: StaticAnalysisView, classes: [] }
+    [ { title: "Metadata", view: MetadataView, classes: [] }
+    , { title: "Static Analysis", view: StaticAnalysisView, classes: [] }
     , { title: warningsTitle, view: BlocklyWarningsView, classes: [] }
     ]
 

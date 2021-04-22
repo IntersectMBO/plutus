@@ -339,7 +339,7 @@ helpText :: String
 helpText =
        "This program provides a number of utilities for dealing with Plutus Core "
     ++ "programs, including typechecking, evaluation, and conversion between a "
-    ++ "number of differnt formats.  The program also provides a number of example "
+    ++ "number of different formats.  The program also provides a number of example "
     ++ "typed Plutus Core programs.  Some commands read or write Plutus Core abstract "
     ++ "syntax trees serialised in CBOR or Flat format: ASTs are always written with "
     ++ "unit annotations, and any CBOR/Flat-encoded AST supplied as input must also be "

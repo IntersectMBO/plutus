@@ -6,17 +6,15 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE StrictData        #-}
 {-# LANGUAGE TemplateHaskell   #-}
+{-# LANGUAGE TypeApplications  #-}
 module Plutus.PAB.Events.Contract(
   -- $contract-events
-  ContractEvent(..)
-  , ContractInstanceId(..)
+  ContractInstanceId(..)
   , IterationID
   , ContractPABRequest(..)
   , ContractHandlersResponse(..)
+  , ContractHandlerRequest(..)
   , ContractResponse(..)
-  , PartiallyDecodedResponse(..)
-  , hasActiveRequests
-  , ContractInstanceState(..)
   -- * Prisms
   -- ** ContractRequest
   , _AwaitSlotRequest
@@ -24,7 +22,7 @@ module Plutus.PAB.Events.Contract(
   , _UserEndpointRequest
   , _OwnPubkeyRequest
   , _UtxoAtRequest
-  , _NextTxAtRequest
+  , _AddressChangedAtRequest
   , _WriteTxRequest
   , _OwnInstanceIdRequest
   , _SendNotificationRequest
@@ -34,21 +32,15 @@ module Plutus.PAB.Events.Contract(
   , _UserEndpointResponse
   , _OwnPubkeyResponse
   , _UtxoAtResponse
-  , _NextTxAtResponse
+  , _AddressChangedAtResponse
   , _WriteTxResponse
   , _OwnInstanceResponse
   , _NotificationResponse
-  -- ** ContractEvent
-  , _ContractInboxMessage
-  , _ContractInstanceStateUpdateEvent
   ) where
 
 import           Control.Lens.TH                          (makePrisms)
-import           Control.Monad.Freer.Extras.Log           (LogMessage)
-import           Data.Aeson                               (FromJSON, ToJSON, Value, (.:))
+import           Data.Aeson                               (FromJSON, ToJSON (..), Value, object, (.:), (.=))
 import qualified Data.Aeson                               as JSON
-import qualified Data.Aeson.Encode.Pretty                 as JSON
-import qualified Data.ByteString.Lazy.Char8               as BS8
 import qualified Data.Text                                as Text
 import           Data.Text.Prettyprint.Doc
 import           GHC.Generics                             (Generic)
@@ -58,10 +50,16 @@ import           Ledger.Address                           (Address)
 import           Ledger.Constraints.OffChain              (UnbalancedTx)
 import           Ledger.Crypto                            (PubKey)
 import           Ledger.Slot                              (Slot)
+import qualified Plutus.Contract.Effects.AwaitSlot        as AwaitSlot
+import qualified Plutus.Contract.Effects.AwaitTxConfirmed as AwaitTxConfirmed
+import qualified Plutus.Contract.Effects.Instance         as Instance
+import qualified Plutus.Contract.Effects.Notify           as Notify
+import qualified Plutus.Contract.Effects.OwnPubKey        as OwnPubKey
+import qualified Plutus.Contract.Effects.UtxoAt           as UtxoAt
+import qualified Plutus.Contract.Effects.WatchAddress     as AddressChangedAt
 import qualified Plutus.Contract.Effects.WriteTx          as W
+import qualified Plutus.Contract.Effects.WriteTx          as WriteTx
 import           Plutus.Contract.Resumable                (IterationID)
-import qualified Plutus.Contract.Resumable                as Contract
-import qualified Plutus.Contract.State                    as Contract
 
 import           Plutus.Contract.Effects.AwaitSlot        (WaitingForSlot)
 import           Plutus.Contract.Effects.AwaitTxConfirmed (TxConfirmed (..))
@@ -70,7 +68,6 @@ import           Plutus.Contract.Effects.Instance         (OwnIdRequest)
 import           Plutus.Contract.Effects.OwnPubKey        (OwnPubKeyRequest)
 import           Plutus.Contract.Effects.UtxoAt           (UtxoAtAddress)
 
-import           Data.Text.Extras                         (abbreviate)
 import           Wallet.Effects                           (AddressChangeRequest, AddressChangeResponse)
 import           Wallet.Types                             (ContractInstanceId (..), Notification, NotificationError)
 
@@ -115,7 +112,7 @@ data ContractPABRequest =
   | UserEndpointRequest ActiveEndpoint -- ^ Expose a named endpoint to the user.
   | OwnPubkeyRequest OwnPubKeyRequest -- ^ Request a public key. It is expected that the wallet treats any outputs locked by this public key as part of its own funds.
   | UtxoAtRequest Address -- ^ Get the unspent transaction outputs at the address.
-  | NextTxAtRequest AddressChangeRequest -- ^ Wait for the next transaction that modifies the UTXO at the address and return it.
+  | AddressChangedAtRequest AddressChangeRequest -- ^ Wait for the next transaction that modifies the UTXO at the address and return it.
   | WriteTxRequest UnbalancedTx -- ^ Submit an unbalanced transaction to the PAB.
   | OwnInstanceIdRequest OwnIdRequest -- ^ Request the ID of the contract instance.
   | SendNotificationRequest Notification -- ^ Send a notification to another contract instance
@@ -124,17 +121,17 @@ data ContractPABRequest =
 
 -- | 'ContractPABRequest' with a 'FromJSON' instance that is compatible with
 --   the 'ToJSON' instance of 'Plutus.Contract.Schema.Handlers'.
-newtype ContractHandlersResponse = ContractHandlersResponse { unContractHandlersResponse :: ContractPABRequest }
+newtype ContractHandlerRequest = ContractHandlerRequest { unContractHandlerRequest :: ContractPABRequest }
 
-instance FromJSON ContractHandlersResponse where
-    parseJSON = JSON.withObject "ContractHandlersResponse" $ \v -> ContractHandlersResponse <$> do
+instance FromJSON ContractHandlerRequest where
+    parseJSON = JSON.withObject "ContractHandlerRequest" $ \v -> ContractHandlerRequest <$> do
         (tag :: Text.Text) <- v .: "tag"
         case tag of
             "slot"            -> AwaitSlotRequest <$> v .: "value"
             "tx-confirmation" -> AwaitTxConfirmedRequest <$> v .: "value"
             "own-pubkey"      -> OwnPubkeyRequest <$> v .: "value"
             "utxo-at"         -> UtxoAtRequest <$> v.: "value"
-            "address"         -> NextTxAtRequest <$> v .: "value"
+            "address"         -> AddressChangedAtRequest <$> v .: "value"
             "tx"              -> WriteTxRequest <$> v .: "value"
             "own-instance-id" -> OwnInstanceIdRequest <$> v .: "value"
             "notify-instance" -> SendNotificationRequest <$> v .: "value"
@@ -147,7 +144,7 @@ instance Pretty ContractPABRequest where
         UserEndpointRequest t     -> "UserEndpoint:" <+> pretty t
         OwnPubkeyRequest r        -> "OwnPubKey:" <+> pretty r
         UtxoAtRequest a           -> "UtxoAt:" <+> pretty a
-        NextTxAtRequest a         -> "NextTxAt:" <+> pretty a
+        AddressChangedAtRequest a -> "AddressChangedAt:" <+> pretty a
         WriteTxRequest u          -> "WriteTx:" <+> pretty u
         OwnInstanceIdRequest r    -> "OwnInstanceId:" <+> pretty r
         SendNotificationRequest n -> "Notification:" <+> pretty n
@@ -158,7 +155,7 @@ data ContractResponse =
   | UserEndpointResponse EndpointDescription (EndpointValue Value)
   | OwnPubkeyResponse PubKey
   | UtxoAtResponse UtxoAtAddress
-  | NextTxAtResponse AddressChangeResponse
+  | AddressChangedAtResponse AddressChangeResponse
   | WriteTxResponse W.WriteTxResponse
   | OwnInstanceResponse ContractInstanceId
   | NotificationResponse (Maybe NotificationError)
@@ -167,68 +164,31 @@ data ContractResponse =
 
 instance Pretty ContractResponse where
     pretty = \case
-        AwaitSlotResponse s        -> "AwaitSlot:" <+> pretty s
-        UserEndpointResponse n r   -> "UserEndpoint:" <+> pretty n <+> pretty r
-        OwnPubkeyResponse pk       -> "OwnPubKey:" <+> pretty pk
-        UtxoAtResponse utxo        -> "UtxoAt:" <+> pretty utxo
-        NextTxAtResponse rsp       -> "NextTxAt:" <+> pretty rsp
-        WriteTxResponse w          -> "WriteTx:" <+> pretty w
-        AwaitTxConfirmedResponse w -> "AwaitTxConfirmed:" <+> pretty w
-        OwnInstanceResponse r      -> "OwnInstance:" <+> pretty r
-        NotificationResponse r     -> "Notification:" <+> pretty r
+        AwaitSlotResponse s          -> "AwaitSlot:" <+> pretty s
+        UserEndpointResponse n r     -> "UserEndpoint:" <+> pretty n <+> pretty r
+        OwnPubkeyResponse pk         -> "OwnPubKey:" <+> pretty pk
+        UtxoAtResponse utxo          -> "UtxoAt:" <+> pretty utxo
+        AddressChangedAtResponse rsp -> "AddressChangedAt:" <+> pretty rsp
+        WriteTxResponse w            -> "WriteTx:" <+> pretty w
+        AwaitTxConfirmedResponse w   -> "AwaitTxConfirmed:" <+> pretty w
+        OwnInstanceResponse r        -> "OwnInstance:" <+> pretty r
+        NotificationResponse r       -> "Notification:" <+> pretty r
 
-data ContractInstanceState t =
-    ContractInstanceState
-        { csContract           :: ContractInstanceId
-        , csCurrentIteration   :: IterationID
-        , csCurrentState       :: PartiallyDecodedResponse ContractPABRequest
-        , csContractDefinition :: t
-        }
-    deriving (Show, Eq, Generic)
-    deriving anyclass (ToJSON, FromJSON)
+-- | 'ContractResponse' with a 'ToJSON' instance that is compatible with
+--   the 'FromJSON' instance of 'Plutus.Contract.Schema.Event'.
+newtype ContractHandlersResponse = ContractHandlersResponse { unContractHandlersResponse :: ContractResponse }
 
-instance Pretty t => Pretty (ContractInstanceState t) where
-    pretty ContractInstanceState{csContract, csCurrentIteration, csCurrentState, csContractDefinition} =
-        hang 2 $ vsep
-            [ "Instance:" <+> pretty csContract
-            , "Iteration:" <+> pretty csCurrentIteration
-            , "State:" <+> pretty csCurrentState
-            , "Contract definition:" <+> pretty csContractDefinition
-            ]
-
-data PartiallyDecodedResponse v =
-    PartiallyDecodedResponse
-        { newState        :: Contract.State Value
-        , hooks           :: [Contract.Request v]
-        , logs            :: [LogMessage Value]
-        , observableState :: Value
-        }
-    deriving (Show, Eq, Generic, Functor, Foldable, Traversable)
-    deriving anyclass (ToJSON, FromJSON)
-
-instance Pretty v => Pretty (PartiallyDecodedResponse v) where
-    pretty PartiallyDecodedResponse {newState, hooks} =
-        vsep
-            [ "State:"
-            , indent 2 $ pretty $ abbreviate 120 $ Text.pack $ BS8.unpack $ JSON.encodePretty newState
-            , "Hooks:"
-            , indent 2 (vsep $ pretty <$> hooks)
-            ]
-
-data ContractEvent t =
-    ContractInboxMessage ContractInstanceId (Contract.Response ContractResponse)
-    | ContractInstanceStateUpdateEvent (ContractInstanceState t)
-    deriving (Show, Eq, Generic)
-    deriving anyclass (ToJSON, FromJSON)
-
-instance Pretty t => Pretty (ContractEvent t) where
-    pretty = \case
-        ContractInboxMessage mbx sb        -> "InboxMessage:" <+> pretty mbx <+> pretty sb
-        ContractInstanceStateUpdateEvent m -> "StateUpdate:" <+> pretty m
+instance ToJSON ContractHandlersResponse where
+    toJSON (ContractHandlersResponse c) = case c of
+        AwaitSlotResponse s  -> toJSON $ AwaitSlot.event @AwaitSlot.AwaitSlot s
+        OwnPubkeyResponse pk -> toJSON $ OwnPubKey.event @OwnPubKey.OwnPubKey pk
+        UtxoAtResponse utxo  -> toJSON $ UtxoAt.event @UtxoAt.UtxoAt utxo
+        AddressChangedAtResponse rsp -> toJSON $ AddressChangedAt.event @AddressChangedAt.WatchAddress rsp
+        WriteTxResponse rsp -> toJSON $ WriteTx.event @WriteTx.WriteTx rsp
+        AwaitTxConfirmedResponse (TxConfirmed rsp) -> toJSON $ AwaitTxConfirmed.event @AwaitTxConfirmed.TxConfirmation rsp
+        OwnInstanceResponse r -> toJSON $ Instance.event @Instance.OwnId r
+        NotificationResponse r -> toJSON $ Notify.event @Notify.ContractInstanceNotify r
+        UserEndpointResponse (EndpointDescription n) r -> object ["tag" .= n, "value" .= r]
 
 makePrisms ''ContractPABRequest
 makePrisms ''ContractResponse
-makePrisms ''ContractEvent
-
-hasActiveRequests :: ContractInstanceState t -> Bool
-hasActiveRequests = not . null . hooks . csCurrentState

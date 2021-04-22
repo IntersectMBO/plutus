@@ -24,7 +24,7 @@
       isLocal = true;
       detailLevel = "FullDetails";
       licenseFiles = [ "LICENSE" "NOTICE" ];
-      dataDir = "";
+      dataDir = ".";
       dataFiles = [];
       extraSrcFiles = [];
       extraTmpFiles = [];
@@ -55,7 +55,7 @@
           (hsPkgs."freer-simple" or (errorHandler.buildDepError "freer-simple"))
           ] ++ (pkgs.lib).optional (!(compiler.isGhcjs && true || system.isGhcjs)) (hsPkgs."plutus-tx-plugin" or (errorHandler.buildDepError "plutus-tx-plugin"));
         build-tools = [
-          (hsPkgs.buildPackages.unlit or (pkgs.buildPackages.unlit or (errorHandler.buildToolDepError "unlit")))
+          (hsPkgs.buildPackages.unlit.components.exes.unlit or (pkgs.buildPackages.unlit or (errorHandler.buildToolDepError "unlit:unlit")))
           ];
         buildable = true;
         modules = [
@@ -83,6 +83,50 @@
             "Main.hs"
             ] ++ (pkgs.lib).optional (!(compiler.isGhcjs && true || system.isGhcjs)) "") ++ (pkgs.lib).optional (flags.defer-plugin-errors) "";
           };
+        "marlowe-companion-app" = {
+          depends = [
+            (hsPkgs."base" or (errorHandler.buildDepError "base"))
+            (hsPkgs."plutus-pab" or (errorHandler.buildDepError "plutus-pab"))
+            (hsPkgs."plutus-contract" or (errorHandler.buildDepError "plutus-contract"))
+            (hsPkgs."marlowe" or (errorHandler.buildDepError "marlowe"))
+            ] ++ (pkgs.lib).optional (!(compiler.isGhcjs && true || system.isGhcjs)) (hsPkgs."plutus-tx-plugin" or (errorHandler.buildDepError "plutus-tx-plugin"));
+          buildable = true;
+          hsSourceDirs = [ "companion" ];
+          mainPath = ([
+            "Main.hs"
+            ] ++ (pkgs.lib).optional (!(compiler.isGhcjs && true || system.isGhcjs)) "") ++ (pkgs.lib).optional (flags.defer-plugin-errors) "";
+          };
+        "marlowe-follow-app" = {
+          depends = [
+            (hsPkgs."base" or (errorHandler.buildDepError "base"))
+            (hsPkgs."plutus-pab" or (errorHandler.buildDepError "plutus-pab"))
+            (hsPkgs."plutus-contract" or (errorHandler.buildDepError "plutus-contract"))
+            (hsPkgs."marlowe" or (errorHandler.buildDepError "marlowe"))
+            ] ++ (pkgs.lib).optional (!(compiler.isGhcjs && true || system.isGhcjs)) (hsPkgs."plutus-tx-plugin" or (errorHandler.buildDepError "plutus-tx-plugin"));
+          buildable = true;
+          hsSourceDirs = [ "follow" ];
+          mainPath = ([
+            "Main.hs"
+            ] ++ (pkgs.lib).optional (!(compiler.isGhcjs && true || system.isGhcjs)) "") ++ (pkgs.lib).optional (flags.defer-plugin-errors) "";
+          };
+        "marlowe-pab" = {
+          depends = [
+            (hsPkgs."base" or (errorHandler.buildDepError "base"))
+            (hsPkgs."plutus-pab" or (errorHandler.buildDepError "plutus-pab"))
+            (hsPkgs."plutus-contract" or (errorHandler.buildDepError "plutus-contract"))
+            (hsPkgs."marlowe" or (errorHandler.buildDepError "marlowe"))
+            (hsPkgs."aeson" or (errorHandler.buildDepError "aeson"))
+            (hsPkgs."freer-simple" or (errorHandler.buildDepError "freer-simple"))
+            (hsPkgs."prettyprinter" or (errorHandler.buildDepError "prettyprinter"))
+            (hsPkgs."freer-extras" or (errorHandler.buildDepError "freer-extras"))
+            (hsPkgs."plutus-ledger" or (errorHandler.buildDepError "plutus-ledger"))
+            ] ++ (pkgs.lib).optional (!(compiler.isGhcjs && true || system.isGhcjs)) (hsPkgs."plutus-tx-plugin" or (errorHandler.buildDepError "plutus-tx-plugin"));
+          buildable = true;
+          hsSourceDirs = [ "pab" ];
+          mainPath = ([
+            "Main.hs"
+            ] ++ (pkgs.lib).optional (!(compiler.isGhcjs && true || system.isGhcjs)) "") ++ (pkgs.lib).optional (flags.defer-plugin-errors) "";
+          };
         };
       tests = {
         "marlowe-test" = {
@@ -90,6 +134,7 @@
             (hsPkgs."aeson" or (errorHandler.buildDepError "aeson"))
             (hsPkgs."base" or (errorHandler.buildDepError "base"))
             (hsPkgs."containers" or (errorHandler.buildDepError "containers"))
+            (hsPkgs."data-default" or (errorHandler.buildDepError "data-default"))
             (hsPkgs."hint" or (errorHandler.buildDepError "hint"))
             (hsPkgs."lens" or (errorHandler.buildDepError "lens"))
             (hsPkgs."memory" or (errorHandler.buildDepError "memory"))

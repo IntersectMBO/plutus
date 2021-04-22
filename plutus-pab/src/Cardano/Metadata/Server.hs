@@ -13,7 +13,7 @@ module Cardano.Metadata.Server
     ) where
 
 import           Control.Monad.Except             (ExceptT (ExceptT))
-import           Control.Monad.Freer              (Eff, Member, runM)
+import           Control.Monad.Freer              (Eff, Member, interpret, runM)
 import           Control.Monad.Freer.Error        (Error, runError)
 import           Control.Monad.IO.Class           (liftIO)
 import           Data.Bifunctor                   (first)
@@ -52,7 +52,7 @@ asHandler trace =
     Handler .
     ExceptT .
     runM .
-    fmap (first toServerError) . runError . LM.handleLogMsgTrace trace . handleMetadata
+    fmap (first toServerError) . runError . interpret (LM.handleLogMsgTrace trace) . handleMetadata
 
 toServerError :: MetadataError -> ServerError
 toServerError err@(SubjectNotFound _) = err404 {errBody = BSL.pack $ show err}

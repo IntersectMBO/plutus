@@ -10,14 +10,16 @@ module.exports = {
       black: "#283346",
       lightgray: "#eeeeee",
       gray: "#dfdfdf",
+      green: "#00a551",
+      lightgreen: "#00e872",
       darkgray: "#b7b7b7",
       overlay: "rgba(10,10,10,0.4)",
       white: "#ffffff",
-      blue: "#4c40e5",
-      lightblue: "#3087d8",
+      purple: "#4700c3",
+      lightpurple: "#8701fc",
       grayblue: "#f5f9fc",
       purple: "#4c41e5",
-      red: "#de4c51",
+      red: "#e04b4c",
     },
     fontSize: {
       xs: "12px",
@@ -27,6 +29,10 @@ module.exports = {
       xl: "24px",
       "2xl": "34px",
       "3xl": "46px",
+      "big-icon": "100px",
+    },
+    scale: {
+      77: ".77",
     },
     borderRadius: {
       sm: "5px",
@@ -41,11 +47,30 @@ module.exports = {
         "0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05)",
       lg: "0 20px 25px -5px rgba(0,0,0,0.2), 0 10px 10px -5px rgba(0,0,0,0.04)",
       xl: "0 25px 50px -12px rgba(0,0,0,0.25)",
+      deep: "0 2.5px 5px 0 rgba(0, 0, 0, 0.22)",
     },
     extend: {
+      animation: {
+        "from-below": "from-below 250ms ease-out 1",
+        "to-bottom": "to-bottom 250ms ease-out 1",
+      },
+      keyframes: {
+        "from-below": {
+          "0%": { transform: "translateY(20px)", opacity: 0 },
+          "100%": { transform: "translateY(0px)", opacity: 1 },
+        },
+        "to-bottom": {
+          "0%": { transform: "translateY(0px)", opacity: 1 },
+          "100%": { transform: "translateY(20px)", opacity: 0 },
+        },
+      },
       gridTemplateRows: {
         main: "auto minmax(0, 1fr) auto",
         "contract-setup": "auto auto minmax(0, 1fr)",
+      },
+      gridTemplateColumns: {
+        "2-contract-home-card": "repeat(2, minmax(240px, 1fr))",
+        "auto-fill-contract-home-card": "repeat(auto-fill, minmax(240px, 1fr))",
       },
       spacing: {
         "5pc": "5%",
@@ -54,32 +79,32 @@ module.exports = {
         sm: "375px",
         md: "640px",
         lg: "768px",
-      },
-      borderWidth: {
-        half: "0.5px",
-      },
-      boxShadow: {
-        deep: "0 2.5px 5px 0 rgba(0, 0, 0, 0.22)",
-        "current-step": "0 25px 50px -12px rgb(0 0 0 / 25%)",
+        "contract-card": "264px",
       },
       height: {
-        "contract-card": "500px",
+        "contract-card": "467px",
+      },
+
+      borderWidth: {
+        half: "0.5px",
       },
       maxWidth: {
         sm: "375px",
         md: "640px",
         lg: "768px",
-        "contract-card": "360px",
+        "90p": "90%",
       },
       minWidth: {
         button: "120px",
+        "90p": "90%",
+        sm: "375px",
       },
     },
   },
   variants: {
     extend: {
       // note 'disabled' goes last so that it takes priority
-      backgroundColor: ["hover", "disabled"],
+      backgroundColor: ["last", "hover", "disabled"],
       backgroundImage: ["hover", "disabled"],
       boxShadow: ["hover", "disabled"],
       cursor: ["hover", "disabled"],
@@ -168,10 +193,10 @@ module.exports = {
     tableLayout: false,
     textAlign: true,
     textOpacity: false,
-    textOverflow: false,
+    textOverflow: true,
     fontStyle: false,
     textTransform: true,
-    textDecoration: false,
+    textDecoration: true,
     fontSmoothing: false,
     fontVariantNumeric: false,
     letterSpacing: false,
@@ -195,8 +220,8 @@ module.exports = {
     gridRowStart: false,
     gridRowEnd: false,
     transform: true,
-    transformOrigin: false,
-    scale: false,
+    transformOrigin: true,
+    scale: true,
     rotate: false,
     translate: true,
     skew: false,
@@ -204,6 +229,6 @@ module.exports = {
     transitionTimingFunction: false,
     transitionDuration: true,
     transitionDelay: false,
-    animation: false,
+    animation: true,
   },
 };

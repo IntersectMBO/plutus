@@ -155,7 +155,7 @@ instance MonadEmitter (CkCarryingM term uni fun s) where
             Nothing      -> pure ()
             Just logsRef -> lift . lift $ modifySTRef logsRef (`DList.snoc` str)
 
-instance ToExMemory term => SpendBudget (CkCarryingM term uni fun s) fun () term where
+instance SpendBudget (CkCarryingM term uni fun s) fun () where
     spendBudget _key _budget = pure ()
 
 type instance UniOf (CkValue uni fun) = uni

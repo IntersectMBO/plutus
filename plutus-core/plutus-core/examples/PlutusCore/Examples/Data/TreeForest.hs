@@ -41,7 +41,7 @@ Here we encode the following:
 
 using this representation:
 
-    {-# OPTIONS --type-in-type #-}
+    {-# OPTIONS_GHC --type-in-type #-}
 
     {-# NO_POSITIVITY_CHECK #-}
     data IFix {A : Set} (F : (A -> Set) -> A -> Set) (x : A) : Set where

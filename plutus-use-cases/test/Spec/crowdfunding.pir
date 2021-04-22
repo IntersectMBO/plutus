@@ -50,6 +50,61 @@
             (vardecl Collect CampaignAction) (vardecl Refund CampaignAction)
           )
         )
+        (datatypebind
+          (datatype
+            (tyvardecl StakingCredential (type))
+
+            StakingCredential_match
+            (vardecl StakingHash (fun (con bytestring) StakingCredential))
+            (vardecl
+              StakingPtr
+              (fun (con integer) (fun (con integer) (fun (con integer) StakingCredential)))
+            )
+          )
+        )
+        (datatypebind
+          (datatype
+            (tyvardecl DCert (type))
+
+            DCert_match
+            (vardecl DCertDelegDeRegKey (fun StakingCredential DCert))
+            (vardecl
+              DCertDelegDelegate
+              (fun StakingCredential (fun (con bytestring) DCert))
+            )
+            (vardecl DCertDelegRegKey (fun StakingCredential DCert))
+            (vardecl DCertGenesis DCert)
+            (vardecl DCertMir DCert)
+            (vardecl
+              DCertPoolRegister
+              (fun (con bytestring) (fun (con bytestring) DCert))
+            )
+            (vardecl
+              DCertPoolRetire (fun (con bytestring) (fun (con integer) DCert))
+            )
+          )
+        )
+        (datatypebind
+          (datatype
+            (tyvardecl TxOutRef (type))
+
+            TxOutRef_match
+            (vardecl
+              TxOutRef (fun (con bytestring) (fun (con integer) TxOutRef))
+            )
+          )
+        )
+        (datatypebind
+          (datatype
+            (tyvardecl ScriptPurpose (type))
+
+            ScriptPurpose_match
+            (vardecl Certifying (fun DCert ScriptPurpose))
+            (vardecl Minting (fun (con bytestring) ScriptPurpose))
+            (vardecl Rewarding (fun StakingCredential ScriptPurpose))
+            (vardecl Spending (fun TxOutRef ScriptPurpose))
+          )
+        )
         (let
           (rec)
           (datatypebind
@@ -107,10 +162,11 @@
             )
             (datatypebind
               (datatype
-                (tyvardecl Tuple3 (fun (type) (fun (type) (fun (type) (type)))))
-                (tyvardecl a (type)) (tyvardecl b (type)) (tyvardecl c (type))
-                Tuple3_match
-                (vardecl Tuple3 (fun a (fun b (fun c [[[Tuple3 a] b] c]))))
+                (tyvardecl Credential (type))
+
+                Credential_match
+                (vardecl PubKeyCredential (fun (con bytestring) Credential))
+                (vardecl ScriptCredential (fun (con bytestring) Credential))
               )
             )
             (datatypebind
@@ -123,41 +179,13 @@
             )
             (datatypebind
               (datatype
-                (tyvardecl TxOutRef (type))
-
-                TxOutRef_match
-                (vardecl
-                  TxOutRef (fun (con bytestring) (fun (con integer) TxOutRef))
-                )
-              )
-            )
-            (datatypebind
-              (datatype
-                (tyvardecl TxInInfo (type))
-
-                TxInInfo_match
-                (vardecl
-                  TxInInfo
-                  (fun TxOutRef (fun [Maybe [[[Tuple3 (con bytestring)] (con bytestring)] (con bytestring)]] (fun [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]] TxInInfo)))
-                )
-              )
-            )
-            (datatypebind
-              (datatype
                 (tyvardecl Address (type))
 
                 Address_match
-                (vardecl PubKeyAddress (fun (con bytestring) Address))
-                (vardecl ScriptAddress (fun (con bytestring) Address))
-              )
-            )
-            (datatypebind
-              (datatype
-                (tyvardecl TxOutType (type))
-
-                TxOutType_match
-                (vardecl PayToPubKey TxOutType)
-                (vardecl PayToScript (fun (con bytestring) TxOutType))
+                (vardecl
+                  Address
+                  (fun Credential (fun [Maybe StakingCredential] Address))
+                )
               )
             )
             (datatypebind
@@ -167,8 +195,16 @@
                 TxOut_match
                 (vardecl
                   TxOut
-                  (fun Address (fun [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]] (fun TxOutType TxOut)))
+                  (fun Address (fun [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]] (fun [Maybe (con bytestring)] TxOut)))
                 )
+              )
+            )
+            (datatypebind
+              (datatype
+                (tyvardecl TxInInfo (type))
+
+                TxInInfo_match
+                (vardecl TxInInfo (fun TxOutRef (fun TxOut TxInInfo)))
               )
             )
             (datatypebind
@@ -178,17 +214,17 @@
                 TxInfo_match
                 (vardecl
                   TxInfo
-                  (fun [List TxInInfo] (fun [List TxOut] (fun [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]] (fun [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]] (fun [Interval (con integer)] (fun [List (con bytestring)] (fun [List (con bytestring)] (fun [List [[Tuple2 (con bytestring)] Data]] (fun (con bytestring) TxInfo)))))))))
+                  (fun [List TxInInfo] (fun [List TxInInfo] (fun [List TxOut] (fun [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]] (fun [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]] (fun [List DCert] (fun [List [[Tuple2 StakingCredential] (con integer)]] (fun [Interval (con integer)] (fun [List (con bytestring)] (fun [List [[Tuple2 (con bytestring)] Data]] (fun (con bytestring) TxInfo)))))))))))
                 )
               )
             )
             (datatypebind
               (datatype
-                (tyvardecl ValidatorCtx (type))
+                (tyvardecl ScriptContext (type))
 
-                ValidatorCtx_match
+                ScriptContext_match
                 (vardecl
-                  ValidatorCtx (fun TxInfo (fun (con integer) ValidatorCtx))
+                  ScriptContext (fun TxInfo (fun ScriptPurpose ScriptContext))
                 )
               )
             )
@@ -933,17 +969,18 @@
                             (lam
                               arg
                               (con bytestring)
-                              [
-                                (lam
-                                  b
-                                  (con bool)
-                                  [
-                                    [ [ { (builtin ifThenElse) Bool } b ] True ]
-                                    False
-                                  ]
+                              (let
+                                (nonrec)
+                                (termbind
+                                  (strict)
+                                  (vardecl b (con bool))
+                                  [ [ (builtin equalsByteString) arg ] arg ]
                                 )
-                                [ [ (builtin equalsByteString) arg ] arg ]
-                              ]
+                                [
+                                  [ [ { (builtin ifThenElse) Bool } b ] True ]
+                                  False
+                                ]
+                              )
                             )
                           )
                         )
@@ -1954,64 +1991,6 @@
                         (termbind
                           (strict)
                           (vardecl
-                            greaterThanEqInteger
-                            (fun (con integer) (fun (con integer) Bool))
-                          )
-                          (lam
-                            arg
-                            (con integer)
-                            (lam
-                              arg
-                              (con integer)
-                              [
-                                (lam
-                                  b
-                                  (con bool)
-                                  [
-                                    [ [ { (builtin ifThenElse) Bool } b ] True ]
-                                    False
-                                  ]
-                                )
-                                [
-                                  [ (builtin greaterThanEqualsInteger) arg ] arg
-                                ]
-                              ]
-                            )
-                          )
-                        )
-                        (termbind
-                          (strict)
-                          (vardecl
-                            txInInfoValue
-                            (fun TxInInfo [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]])
-                          )
-                          (lam
-                            ds
-                            TxInInfo
-                            [
-                              {
-                                [ TxInInfo_match ds ]
-                                [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]
-                              }
-                              (lam
-                                ds
-                                TxOutRef
-                                (lam
-                                  ds
-                                  [Maybe [[[Tuple3 (con bytestring)] (con bytestring)] (con bytestring)]]
-                                  (lam
-                                    ds
-                                    [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]
-                                    ds
-                                  )
-                                )
-                              )
-                            ]
-                          )
-                        )
-                        (termbind
-                          (strict)
-                          (vardecl
                             equalsInteger
                             (fun (con integer) (fun (con integer) Bool))
                           )
@@ -2021,17 +2000,18 @@
                             (lam
                               arg
                               (con integer)
-                              [
-                                (lam
-                                  b
-                                  (con bool)
-                                  [
-                                    [ [ { (builtin ifThenElse) Bool } b ] True ]
-                                    False
-                                  ]
+                              (let
+                                (nonrec)
+                                (termbind
+                                  (strict)
+                                  (vardecl b (con bool))
+                                  [ [ (builtin equalsInteger) arg ] arg ]
                                 )
-                                [ [ (builtin equalsInteger) arg ] arg ]
-                              ]
+                                [
+                                  [ [ { (builtin ifThenElse) Bool } b ] True ]
+                                  False
+                                ]
+                              )
                             )
                           )
                         )
@@ -2047,16 +2027,76 @@
                             (lam
                               arg
                               (con integer)
-                              [
-                                (lam
-                                  b
-                                  (con bool)
+                              (let
+                                (nonrec)
+                                (termbind
+                                  (strict)
+                                  (vardecl b (con bool))
                                   [
-                                    [ [ { (builtin ifThenElse) Bool } b ] True ]
-                                    False
+                                    [ (builtin lessThanEqualsInteger) arg ] arg
                                   ]
                                 )
-                                [ [ (builtin lessThanEqualsInteger) arg ] arg ]
+                                [
+                                  [ [ { (builtin ifThenElse) Bool } b ] True ]
+                                  False
+                                ]
+                              )
+                            )
+                          )
+                        )
+                        (datatypebind
+                          (datatype
+                            (tyvardecl Ordering (type))
+
+                            Ordering_match
+                            (vardecl EQ Ordering)
+                            (vardecl GT Ordering)
+                            (vardecl LT Ordering)
+                          )
+                        )
+                        (termbind
+                          (strict)
+                          (vardecl
+                            fOrdData_ccompare
+                            (fun (con integer) (fun (con integer) Ordering))
+                          )
+                          (lam
+                            x
+                            (con integer)
+                            (lam
+                              y
+                              (con integer)
+                              [
+                                [
+                                  [
+                                    {
+                                      [ Bool_match [ [ equalsInteger x ] y ] ]
+                                      (fun Unit Ordering)
+                                    }
+                                    (lam thunk Unit EQ)
+                                  ]
+                                  (lam
+                                    thunk
+                                    Unit
+                                    [
+                                      [
+                                        [
+                                          {
+                                            [
+                                              Bool_match
+                                              [ [ lessThanEqInteger x ] y ]
+                                            ]
+                                            (fun Unit Ordering)
+                                          }
+                                          (lam thunk Unit LT)
+                                        ]
+                                        (lam thunk Unit GT)
+                                      ]
+                                      Unit
+                                    ]
+                                  )
+                                ]
+                                Unit
                               ]
                             )
                           )
@@ -2064,505 +2104,1128 @@
                         (termbind
                           (strict)
                           (vardecl
-                            wsfOrdUpperBound0_c
-                            (fun [Extended (con integer)] (fun Bool (fun [Extended (con integer)] (fun Bool Bool))))
+                            fOrdInteger_cmax
+                            (fun (con integer) (fun (con integer) (con integer)))
                           )
                           (lam
-                            ww
-                            [Extended (con integer)]
+                            x
+                            (con integer)
                             (lam
-                              ww
-                              Bool
-                              (lam
-                                ww
-                                [Extended (con integer)]
-                                (lam
-                                  ww
-                                  Bool
+                              y
+                              (con integer)
+                              [
+                                [
+                                  [
+                                    {
+                                      [
+                                        Bool_match [ [ lessThanEqInteger x ] y ]
+                                      ]
+                                      (fun Unit (con integer))
+                                    }
+                                    (lam thunk Unit y)
+                                  ]
+                                  (lam thunk Unit x)
+                                ]
+                                Unit
+                              ]
+                            )
+                          )
+                        )
+                        (termbind
+                          (strict)
+                          (vardecl
+                            fOrdInteger_cmin
+                            (fun (con integer) (fun (con integer) (con integer)))
+                          )
+                          (lam
+                            x
+                            (con integer)
+                            (lam
+                              y
+                              (con integer)
+                              [
+                                [
+                                  [
+                                    {
+                                      [
+                                        Bool_match [ [ lessThanEqInteger x ] y ]
+                                      ]
+                                      (fun Unit (con integer))
+                                    }
+                                    (lam thunk Unit x)
+                                  ]
+                                  (lam thunk Unit y)
+                                ]
+                                Unit
+                              ]
+                            )
+                          )
+                        )
+                        (termbind
+                          (strict)
+                          (vardecl
+                            greaterThanEqInteger
+                            (fun (con integer) (fun (con integer) Bool))
+                          )
+                          (lam
+                            arg
+                            (con integer)
+                            (lam
+                              arg
+                              (con integer)
+                              (let
+                                (nonrec)
+                                (termbind
+                                  (strict)
+                                  (vardecl b (con bool))
+                                  [
+                                    [ (builtin greaterThanEqualsInteger) arg ]
+                                    arg
+                                  ]
+                                )
+                                [
+                                  [ [ { (builtin ifThenElse) Bool } b ] True ]
+                                  False
+                                ]
+                              )
+                            )
+                          )
+                        )
+                        (termbind
+                          (strict)
+                          (vardecl
+                            greaterThanInteger
+                            (fun (con integer) (fun (con integer) Bool))
+                          )
+                          (lam
+                            arg
+                            (con integer)
+                            (lam
+                              arg
+                              (con integer)
+                              (let
+                                (nonrec)
+                                (termbind
+                                  (strict)
+                                  (vardecl b (con bool))
+                                  [ [ (builtin greaterThanInteger) arg ] arg ]
+                                )
+                                [
+                                  [ [ { (builtin ifThenElse) Bool } b ] True ]
+                                  False
+                                ]
+                              )
+                            )
+                          )
+                        )
+                        (termbind
+                          (strict)
+                          (vardecl
+                            lessThanInteger
+                            (fun (con integer) (fun (con integer) Bool))
+                          )
+                          (lam
+                            arg
+                            (con integer)
+                            (lam
+                              arg
+                              (con integer)
+                              (let
+                                (nonrec)
+                                (termbind
+                                  (strict)
+                                  (vardecl b (con bool))
+                                  [ [ (builtin lessThanInteger) arg ] arg ]
+                                )
+                                [
+                                  [ [ { (builtin ifThenElse) Bool } b ] True ]
+                                  False
+                                ]
+                              )
+                            )
+                          )
+                        )
+                        (datatypebind
+                          (datatype
+                            (tyvardecl Ord (fun (type) (type)))
+                            (tyvardecl a (type))
+                            Ord_match
+                            (vardecl
+                              CConsOrd
+                              (fun [(lam a (type) (fun a (fun a Bool))) a] (fun (fun a (fun a Ordering)) (fun (fun a (fun a Bool)) (fun (fun a (fun a Bool)) (fun (fun a (fun a Bool)) (fun (fun a (fun a Bool)) (fun (fun a (fun a a)) (fun (fun a (fun a a)) [Ord a]))))))))
+                            )
+                          )
+                        )
+                        (termbind
+                          (nonstrict)
+                          (vardecl fOrdSlot [Ord (con integer)])
+                          [
+                            [
+                              [
+                                [
                                   [
                                     [
                                       [
                                         [
-                                          {
-                                            [
-                                              { Extended_match (con integer) }
-                                              ww
-                                            ]
-                                            (fun Unit Bool)
-                                          }
+                                          { CConsOrd (con integer) }
+                                          equalsInteger
+                                        ]
+                                        fOrdData_ccompare
+                                      ]
+                                      lessThanInteger
+                                    ]
+                                    lessThanEqInteger
+                                  ]
+                                  greaterThanInteger
+                                ]
+                                greaterThanEqInteger
+                              ]
+                              fOrdInteger_cmax
+                            ]
+                            fOrdInteger_cmin
+                          ]
+                        )
+                        (datatypebind
+                          (datatype
+                            (tyvardecl Campaign (type))
+
+                            Campaign_match
+                            (vardecl
+                              Campaign
+                              (fun (con integer) (fun [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]] (fun (con integer) (fun (con bytestring) Campaign))))
+                            )
+                          )
+                        )
+                        (termbind
+                          (strict)
+                          (vardecl
+                            compare
+                            (all a (type) (fun [Ord a] (fun a (fun a Ordering))))
+                          )
+                          (abs
+                            a
+                            (type)
+                            (lam
+                              v
+                              [Ord a]
+                              [
+                                {
+                                  [ { Ord_match a } v ] (fun a (fun a Ordering))
+                                }
+                                (lam
+                                  v
+                                  [(lam a (type) (fun a (fun a Bool))) a]
+                                  (lam
+                                    v
+                                    (fun a (fun a Ordering))
+                                    (lam
+                                      v
+                                      (fun a (fun a Bool))
+                                      (lam
+                                        v
+                                        (fun a (fun a Bool))
+                                        (lam
+                                          v
+                                          (fun a (fun a Bool))
                                           (lam
-                                            default_arg0
-                                            (con integer)
+                                            v
+                                            (fun a (fun a Bool))
                                             (lam
-                                              thunk
-                                              Unit
-                                              [
+                                              v
+                                              (fun a (fun a a))
+                                              (lam v (fun a (fun a a)) v)
+                                            )
+                                          )
+                                        )
+                                      )
+                                    )
+                                  )
+                                )
+                              ]
+                            )
+                          )
+                        )
+                        (termbind
+                          (strict)
+                          (vardecl
+                            hull_ccompare
+                            (all a (type) (fun [Ord a] (fun [Extended a] (fun [Extended a] Ordering))))
+                          )
+                          (abs
+                            a
+                            (type)
+                            (lam
+                              dOrd
+                              [Ord a]
+                              (lam
+                                ds
+                                [Extended a]
+                                (lam
+                                  ds
+                                  [Extended a]
+                                  (let
+                                    (nonrec)
+                                    (termbind
+                                      (strict)
+                                      (vardecl
+                                        fail (fun (all a (type) a) Ordering)
+                                      )
+                                      (lam
+                                        ds
+                                        (all a (type) a)
+                                        (let
+                                          (nonrec)
+                                          (typebind
+                                            (tyvardecl e (type)) Ordering
+                                          )
+                                          (error e)
+                                        )
+                                      )
+                                    )
+                                    [
+                                      [
+                                        [
+                                          [
+                                            {
+                                              [ { Extended_match a } ds ]
+                                              (fun Unit Ordering)
+                                            }
+                                            (lam
+                                              default_arg0
+                                              a
+                                              (lam
+                                                thunk
+                                                Unit
                                                 [
                                                   [
                                                     [
-                                                      {
-                                                        [
-                                                          {
-                                                            Extended_match
-                                                            (con integer)
-                                                          }
-                                                          ww
-                                                        ]
-                                                        (fun Unit Bool)
-                                                      }
-                                                      (lam
-                                                        default_arg0
-                                                        (con integer)
-                                                        (lam
-                                                          thunk
-                                                          Unit
+                                                      [
+                                                        {
                                                           [
-                                                            [
-                                                              [
-                                                                [
-                                                                  {
+                                                            { Extended_match a }
+                                                            ds
+                                                          ]
+                                                          (fun Unit Ordering)
+                                                        }
+                                                        (lam
+                                                          default_arg0
+                                                          a
+                                                          (lam
+                                                            thunk
+                                                            Unit
+                                                            (let
+                                                              (nonrec)
+                                                              (termbind
+                                                                (strict)
+                                                                (vardecl
+                                                                  fail
+                                                                  (fun (all a (type) a) Ordering)
+                                                                )
+                                                                (lam
+                                                                  ds
+                                                                  (all a (type) a)
+                                                                  [
                                                                     [
-                                                                      {
-                                                                        Extended_match
-                                                                        (con integer)
-                                                                      }
-                                                                      ww
-                                                                    ]
-                                                                    (fun Unit Bool)
-                                                                  }
-                                                                  (lam
-                                                                    ipv
-                                                                    (con integer)
-                                                                    (lam
-                                                                      thunk
-                                                                      Unit
                                                                       [
                                                                         [
-                                                                          [
+                                                                          {
                                                                             [
                                                                               {
-                                                                                [
-                                                                                  {
-                                                                                    Extended_match
-                                                                                    (con integer)
-                                                                                  }
-                                                                                  ww
-                                                                                ]
-                                                                                (fun Unit Bool)
+                                                                                Extended_match
+                                                                                a
                                                                               }
-                                                                              (lam
-                                                                                ipv
-                                                                                (con integer)
-                                                                                (lam
-                                                                                  thunk
-                                                                                  Unit
+                                                                              ds
+                                                                            ]
+                                                                            (fun Unit Ordering)
+                                                                          }
+                                                                          (lam
+                                                                            default_arg0
+                                                                            a
+                                                                            (lam
+                                                                              thunk
+                                                                              Unit
+                                                                              [
+                                                                                [
                                                                                   [
                                                                                     [
-                                                                                      [
-                                                                                        {
-                                                                                          [
-                                                                                            Bool_match
-                                                                                            [
-                                                                                              [
-                                                                                                equalsInteger
-                                                                                                ipv
-                                                                                              ]
-                                                                                              ipv
-                                                                                            ]
-                                                                                          ]
-                                                                                          (fun Unit Bool)
-                                                                                        }
+                                                                                      {
+                                                                                        [
+                                                                                          {
+                                                                                            Extended_match
+                                                                                            a
+                                                                                          }
+                                                                                          ds
+                                                                                        ]
+                                                                                        (fun Unit Ordering)
+                                                                                      }
+                                                                                      (lam
+                                                                                        l
+                                                                                        a
                                                                                         (lam
                                                                                           thunk
                                                                                           Unit
                                                                                           [
                                                                                             [
                                                                                               [
-                                                                                                {
-                                                                                                  [
-                                                                                                    Bool_match
-                                                                                                    ww
-                                                                                                  ]
-                                                                                                  (fun Unit Bool)
-                                                                                                }
+                                                                                                [
+                                                                                                  {
+                                                                                                    [
+                                                                                                      {
+                                                                                                        Extended_match
+                                                                                                        a
+                                                                                                      }
+                                                                                                      ds
+                                                                                                    ]
+                                                                                                    (fun Unit Ordering)
+                                                                                                  }
+                                                                                                  (lam
+                                                                                                    r
+                                                                                                    a
+                                                                                                    (lam
+                                                                                                      thunk
+                                                                                                      Unit
+                                                                                                      [
+                                                                                                        [
+                                                                                                          [
+                                                                                                            {
+                                                                                                              compare
+                                                                                                              a
+                                                                                                            }
+                                                                                                            dOrd
+                                                                                                          ]
+                                                                                                          l
+                                                                                                        ]
+                                                                                                        r
+                                                                                                      ]
+                                                                                                    )
+                                                                                                  )
+                                                                                                ]
                                                                                                 (lam
                                                                                                   thunk
                                                                                                   Unit
-                                                                                                  ww
+                                                                                                  [
+                                                                                                    fail
+                                                                                                    (abs
+                                                                                                      e
+                                                                                                      (type)
+                                                                                                      (error
+                                                                                                        e
+                                                                                                      )
+                                                                                                    )
+                                                                                                  ]
                                                                                                 )
                                                                                               ]
                                                                                               (lam
                                                                                                 thunk
                                                                                                 Unit
-                                                                                                True
+                                                                                                [
+                                                                                                  fail
+                                                                                                  (abs
+                                                                                                    e
+                                                                                                    (type)
+                                                                                                    (error
+                                                                                                      e
+                                                                                                    )
+                                                                                                  )
+                                                                                                ]
                                                                                               )
                                                                                             ]
                                                                                             Unit
                                                                                           ]
                                                                                         )
-                                                                                      ]
-                                                                                      (lam
-                                                                                        thunk
-                                                                                        Unit
-                                                                                        [
-                                                                                          [
-                                                                                            lessThanEqInteger
-                                                                                            ipv
-                                                                                          ]
-                                                                                          ipv
-                                                                                        ]
                                                                                       )
                                                                                     ]
-                                                                                    Unit
+                                                                                    (lam
+                                                                                      thunk
+                                                                                      Unit
+                                                                                      [
+                                                                                        fail
+                                                                                        (abs
+                                                                                          e
+                                                                                          (type)
+                                                                                          (error
+                                                                                            e
+                                                                                          )
+                                                                                        )
+                                                                                      ]
+                                                                                    )
                                                                                   ]
-                                                                                )
-                                                                              )
-                                                                            ]
-                                                                            (lam
-                                                                              thunk
-                                                                              Unit
-                                                                              {
-                                                                                (abs
-                                                                                  e
-                                                                                  (type)
-                                                                                  (error
-                                                                                    e
+                                                                                  (lam
+                                                                                    thunk
+                                                                                    Unit
+                                                                                    GT
                                                                                   )
-                                                                                )
-                                                                                Bool
-                                                                              }
+                                                                                ]
+                                                                                Unit
+                                                                              ]
                                                                             )
-                                                                          ]
-                                                                          (lam
-                                                                            thunk
-                                                                            Unit
-                                                                            True
                                                                           )
                                                                         ]
-                                                                        Unit
-                                                                      ]
-                                                                    )
-                                                                  )
-                                                                ]
-                                                                (lam
-                                                                  thunk
-                                                                  Unit
-                                                                  {
-                                                                    (abs
-                                                                      e
-                                                                      (type)
-                                                                      (error e)
-                                                                    )
-                                                                    Bool
-                                                                  }
-                                                                )
-                                                              ]
-                                                              (lam
-                                                                thunk
-                                                                Unit
-                                                                [
-                                                                  [
-                                                                    [
-                                                                      [
-                                                                        {
-                                                                          [
-                                                                            {
-                                                                              Extended_match
-                                                                              (con integer)
-                                                                            }
-                                                                            ww
-                                                                          ]
-                                                                          (fun Unit Bool)
-                                                                        }
                                                                         (lam
-                                                                          ipv
-                                                                          (con integer)
-                                                                          (lam
-                                                                            thunk
+                                                                          thunk
+                                                                          Unit
+                                                                          [
+                                                                            [
+                                                                              [
+                                                                                [
+                                                                                  {
+                                                                                    [
+                                                                                      {
+                                                                                        Extended_match
+                                                                                        a
+                                                                                      }
+                                                                                      ds
+                                                                                    ]
+                                                                                    (fun Unit Ordering)
+                                                                                  }
+                                                                                  (lam
+                                                                                    l
+                                                                                    a
+                                                                                    (lam
+                                                                                      thunk
+                                                                                      Unit
+                                                                                      [
+                                                                                        [
+                                                                                          [
+                                                                                            [
+                                                                                              {
+                                                                                                [
+                                                                                                  {
+                                                                                                    Extended_match
+                                                                                                    a
+                                                                                                  }
+                                                                                                  ds
+                                                                                                ]
+                                                                                                (fun Unit Ordering)
+                                                                                              }
+                                                                                              (lam
+                                                                                                r
+                                                                                                a
+                                                                                                (lam
+                                                                                                  thunk
+                                                                                                  Unit
+                                                                                                  [
+                                                                                                    [
+                                                                                                      [
+                                                                                                        {
+                                                                                                          compare
+                                                                                                          a
+                                                                                                        }
+                                                                                                        dOrd
+                                                                                                      ]
+                                                                                                      l
+                                                                                                    ]
+                                                                                                    r
+                                                                                                  ]
+                                                                                                )
+                                                                                              )
+                                                                                            ]
+                                                                                            (lam
+                                                                                              thunk
+                                                                                              Unit
+                                                                                              [
+                                                                                                fail
+                                                                                                (abs
+                                                                                                  e
+                                                                                                  (type)
+                                                                                                  (error
+                                                                                                    e
+                                                                                                  )
+                                                                                                )
+                                                                                              ]
+                                                                                            )
+                                                                                          ]
+                                                                                          (lam
+                                                                                            thunk
+                                                                                            Unit
+                                                                                            [
+                                                                                              fail
+                                                                                              (abs
+                                                                                                e
+                                                                                                (type)
+                                                                                                (error
+                                                                                                  e
+                                                                                                )
+                                                                                              )
+                                                                                            ]
+                                                                                          )
+                                                                                        ]
+                                                                                        Unit
+                                                                                      ]
+                                                                                    )
+                                                                                  )
+                                                                                ]
+                                                                                (lam
+                                                                                  thunk
+                                                                                  Unit
+                                                                                  [
+                                                                                    fail
+                                                                                    (abs
+                                                                                      e
+                                                                                      (type)
+                                                                                      (error
+                                                                                        e
+                                                                                      )
+                                                                                    )
+                                                                                  ]
+                                                                                )
+                                                                              ]
+                                                                              (lam
+                                                                                thunk
+                                                                                Unit
+                                                                                GT
+                                                                              )
+                                                                            ]
                                                                             Unit
-                                                                            False
-                                                                          )
+                                                                          ]
                                                                         )
                                                                       ]
                                                                       (lam
                                                                         thunk
                                                                         Unit
-                                                                        {
-                                                                          (abs
-                                                                            e
-                                                                            (type)
-                                                                            (error
+                                                                        LT
+                                                                      )
+                                                                    ]
+                                                                    Unit
+                                                                  ]
+                                                                )
+                                                              )
+                                                              [
+                                                                [
+                                                                  [
+                                                                    [
+                                                                      {
+                                                                        [
+                                                                          {
+                                                                            Extended_match
+                                                                            a
+                                                                          }
+                                                                          ds
+                                                                        ]
+                                                                        (fun Unit Ordering)
+                                                                      }
+                                                                      (lam
+                                                                        default_arg0
+                                                                        a
+                                                                        (lam
+                                                                          thunk
+                                                                          Unit
+                                                                          [
+                                                                            fail
+                                                                            (abs
                                                                               e
+                                                                              (type)
+                                                                              (error
+                                                                                e
+                                                                              )
                                                                             )
-                                                                          )
-                                                                          Bool
-                                                                        }
+                                                                          ]
+                                                                        )
                                                                       )
                                                                     ]
                                                                     (lam
                                                                       thunk
                                                                       Unit
                                                                       [
+                                                                        fail
+                                                                        (abs
+                                                                          e
+                                                                          (type)
+                                                                          (error
+                                                                            e
+                                                                          )
+                                                                        )
+                                                                      ]
+                                                                    )
+                                                                  ]
+                                                                  (lam
+                                                                    thunk
+                                                                    Unit
+                                                                    [
+                                                                      [
                                                                         [
                                                                           [
                                                                             {
                                                                               [
-                                                                                Bool_match
-                                                                                ww
+                                                                                {
+                                                                                  Extended_match
+                                                                                  a
+                                                                                }
+                                                                                ds
                                                                               ]
-                                                                              (fun Unit Bool)
+                                                                              (fun Unit Ordering)
                                                                             }
                                                                             (lam
-                                                                              thunk
-                                                                              Unit
-                                                                              ww
+                                                                              default_arg0
+                                                                              a
+                                                                              (lam
+                                                                                thunk
+                                                                                Unit
+                                                                                [
+                                                                                  fail
+                                                                                  (abs
+                                                                                    e
+                                                                                    (type)
+                                                                                    (error
+                                                                                      e
+                                                                                    )
+                                                                                  )
+                                                                                ]
+                                                                              )
                                                                             )
                                                                           ]
                                                                           (lam
                                                                             thunk
                                                                             Unit
-                                                                            True
+                                                                            [
+                                                                              fail
+                                                                              (abs
+                                                                                e
+                                                                                (type)
+                                                                                (error
+                                                                                  e
+                                                                                )
+                                                                              )
+                                                                            ]
                                                                           )
                                                                         ]
-                                                                        Unit
+                                                                        (lam
+                                                                          thunk
+                                                                          Unit
+                                                                          EQ
+                                                                        )
                                                                       ]
-                                                                    )
-                                                                  ]
-                                                                  Unit
+                                                                      Unit
+                                                                    ]
+                                                                  )
                                                                 ]
-                                                              )
-                                                            ]
-                                                            Unit
-                                                          ]
-                                                        )
-                                                      )
-                                                    ]
-                                                    (lam thunk Unit False)
-                                                  ]
-                                                  (lam
-                                                    thunk
-                                                    Unit
-                                                    [
-                                                      [
-                                                        [
-                                                          [
-                                                            {
-                                                              [
-                                                                {
-                                                                  Extended_match
-                                                                  (con integer)
-                                                                }
-                                                                ww
-                                                              ]
-                                                              (fun Unit Bool)
-                                                            }
-                                                            (lam
-                                                              ipv
-                                                              (con integer)
-                                                              (lam
-                                                                thunk
                                                                 Unit
+                                                              ]
+                                                            )
+                                                          )
+                                                        )
+                                                      ]
+                                                      (lam thunk Unit GT)
+                                                    ]
+                                                    (lam
+                                                      thunk
+                                                      Unit
+                                                      (let
+                                                        (nonrec)
+                                                        (termbind
+                                                          (strict)
+                                                          (vardecl
+                                                            fail
+                                                            (fun (all a (type) a) Ordering)
+                                                          )
+                                                          (lam
+                                                            ds
+                                                            (all a (type) a)
+                                                            [
+                                                              [
                                                                 [
                                                                   [
-                                                                    [
+                                                                    {
                                                                       [
                                                                         {
-                                                                          [
-                                                                            {
-                                                                              Extended_match
-                                                                              (con integer)
-                                                                            }
-                                                                            ww
-                                                                          ]
-                                                                          (fun Unit Bool)
+                                                                          Extended_match
+                                                                          a
                                                                         }
-                                                                        (lam
-                                                                          ipv
-                                                                          (con integer)
-                                                                          (lam
-                                                                            thunk
-                                                                            Unit
+                                                                        ds
+                                                                      ]
+                                                                      (fun Unit Ordering)
+                                                                    }
+                                                                    (lam
+                                                                      default_arg0
+                                                                      a
+                                                                      (lam
+                                                                        thunk
+                                                                        Unit
+                                                                        [
+                                                                          [
                                                                             [
                                                                               [
-                                                                                [
-                                                                                  {
-                                                                                    [
-                                                                                      Bool_match
-                                                                                      [
-                                                                                        [
-                                                                                          equalsInteger
-                                                                                          ipv
-                                                                                        ]
-                                                                                        ipv
-                                                                                      ]
-                                                                                    ]
-                                                                                    (fun Unit Bool)
-                                                                                  }
+                                                                                {
+                                                                                  [
+                                                                                    {
+                                                                                      Extended_match
+                                                                                      a
+                                                                                    }
+                                                                                    ds
+                                                                                  ]
+                                                                                  (fun Unit Ordering)
+                                                                                }
+                                                                                (lam
+                                                                                  l
+                                                                                  a
                                                                                   (lam
                                                                                     thunk
                                                                                     Unit
                                                                                     [
                                                                                       [
                                                                                         [
-                                                                                          {
-                                                                                            [
-                                                                                              Bool_match
-                                                                                              ww
-                                                                                            ]
-                                                                                            (fun Unit Bool)
-                                                                                          }
+                                                                                          [
+                                                                                            {
+                                                                                              [
+                                                                                                {
+                                                                                                  Extended_match
+                                                                                                  a
+                                                                                                }
+                                                                                                ds
+                                                                                              ]
+                                                                                              (fun Unit Ordering)
+                                                                                            }
+                                                                                            (lam
+                                                                                              r
+                                                                                              a
+                                                                                              (lam
+                                                                                                thunk
+                                                                                                Unit
+                                                                                                [
+                                                                                                  [
+                                                                                                    [
+                                                                                                      {
+                                                                                                        compare
+                                                                                                        a
+                                                                                                      }
+                                                                                                      dOrd
+                                                                                                    ]
+                                                                                                    l
+                                                                                                  ]
+                                                                                                  r
+                                                                                                ]
+                                                                                              )
+                                                                                            )
+                                                                                          ]
                                                                                           (lam
                                                                                             thunk
                                                                                             Unit
-                                                                                            ww
+                                                                                            [
+                                                                                              fail
+                                                                                              (abs
+                                                                                                e
+                                                                                                (type)
+                                                                                                (error
+                                                                                                  e
+                                                                                                )
+                                                                                              )
+                                                                                            ]
                                                                                           )
                                                                                         ]
                                                                                         (lam
                                                                                           thunk
                                                                                           Unit
-                                                                                          True
+                                                                                          [
+                                                                                            fail
+                                                                                            (abs
+                                                                                              e
+                                                                                              (type)
+                                                                                              (error
+                                                                                                e
+                                                                                              )
+                                                                                            )
+                                                                                          ]
                                                                                         )
                                                                                       ]
                                                                                       Unit
                                                                                     ]
                                                                                   )
-                                                                                ]
-                                                                                (lam
-                                                                                  thunk
-                                                                                  Unit
-                                                                                  [
-                                                                                    [
-                                                                                      lessThanEqInteger
-                                                                                      ipv
-                                                                                    ]
-                                                                                    ipv
-                                                                                  ]
                                                                                 )
                                                                               ]
-                                                                              Unit
+                                                                              (lam
+                                                                                thunk
+                                                                                Unit
+                                                                                [
+                                                                                  fail
+                                                                                  (abs
+                                                                                    e
+                                                                                    (type)
+                                                                                    (error
+                                                                                      e
+                                                                                    )
+                                                                                  )
+                                                                                ]
+                                                                              )
                                                                             ]
-                                                                          )
-                                                                        )
-                                                                      ]
-                                                                      (lam
-                                                                        thunk
-                                                                        Unit
-                                                                        {
-                                                                          (abs
-                                                                            e
-                                                                            (type)
-                                                                            (error
-                                                                              e
+                                                                            (lam
+                                                                              thunk
+                                                                              Unit
+                                                                              GT
                                                                             )
-                                                                          )
-                                                                          Bool
-                                                                        }
+                                                                          ]
+                                                                          Unit
+                                                                        ]
                                                                       )
-                                                                    ]
-                                                                    (lam
-                                                                      thunk
-                                                                      Unit
-                                                                      True
                                                                     )
                                                                   ]
-                                                                  Unit
-                                                                ]
-                                                              )
-                                                            )
-                                                          ]
-                                                          (lam
-                                                            thunk
-                                                            Unit
-                                                            {
-                                                              (abs
-                                                                e
-                                                                (type)
-                                                                (error e)
-                                                              )
-                                                              Bool
-                                                            }
-                                                          )
-                                                        ]
-                                                        (lam
-                                                          thunk
-                                                          Unit
-                                                          [
-                                                            [
-                                                              [
-                                                                [
-                                                                  {
-                                                                    [
-                                                                      {
-                                                                        Extended_match
-                                                                        (con integer)
-                                                                      }
-                                                                      ww
-                                                                    ]
-                                                                    (fun Unit Bool)
-                                                                  }
                                                                   (lam
-                                                                    ipv
-                                                                    (con integer)
-                                                                    (lam
-                                                                      thunk
+                                                                    thunk
+                                                                    Unit
+                                                                    [
+                                                                      [
+                                                                        [
+                                                                          [
+                                                                            {
+                                                                              [
+                                                                                {
+                                                                                  Extended_match
+                                                                                  a
+                                                                                }
+                                                                                ds
+                                                                              ]
+                                                                              (fun Unit Ordering)
+                                                                            }
+                                                                            (lam
+                                                                              l
+                                                                              a
+                                                                              (lam
+                                                                                thunk
+                                                                                Unit
+                                                                                [
+                                                                                  [
+                                                                                    [
+                                                                                      [
+                                                                                        {
+                                                                                          [
+                                                                                            {
+                                                                                              Extended_match
+                                                                                              a
+                                                                                            }
+                                                                                            ds
+                                                                                          ]
+                                                                                          (fun Unit Ordering)
+                                                                                        }
+                                                                                        (lam
+                                                                                          r
+                                                                                          a
+                                                                                          (lam
+                                                                                            thunk
+                                                                                            Unit
+                                                                                            [
+                                                                                              [
+                                                                                                [
+                                                                                                  {
+                                                                                                    compare
+                                                                                                    a
+                                                                                                  }
+                                                                                                  dOrd
+                                                                                                ]
+                                                                                                l
+                                                                                              ]
+                                                                                              r
+                                                                                            ]
+                                                                                          )
+                                                                                        )
+                                                                                      ]
+                                                                                      (lam
+                                                                                        thunk
+                                                                                        Unit
+                                                                                        [
+                                                                                          fail
+                                                                                          (abs
+                                                                                            e
+                                                                                            (type)
+                                                                                            (error
+                                                                                              e
+                                                                                            )
+                                                                                          )
+                                                                                        ]
+                                                                                      )
+                                                                                    ]
+                                                                                    (lam
+                                                                                      thunk
+                                                                                      Unit
+                                                                                      [
+                                                                                        fail
+                                                                                        (abs
+                                                                                          e
+                                                                                          (type)
+                                                                                          (error
+                                                                                            e
+                                                                                          )
+                                                                                        )
+                                                                                      ]
+                                                                                    )
+                                                                                  ]
+                                                                                  Unit
+                                                                                ]
+                                                                              )
+                                                                            )
+                                                                          ]
+                                                                          (lam
+                                                                            thunk
+                                                                            Unit
+                                                                            [
+                                                                              fail
+                                                                              (abs
+                                                                                e
+                                                                                (type)
+                                                                                (error
+                                                                                  e
+                                                                                )
+                                                                              )
+                                                                            ]
+                                                                          )
+                                                                        ]
+                                                                        (lam
+                                                                          thunk
+                                                                          Unit
+                                                                          GT
+                                                                        )
+                                                                      ]
                                                                       Unit
-                                                                      False
-                                                                    )
+                                                                    ]
                                                                   )
                                                                 ]
                                                                 (lam
-                                                                  thunk
-                                                                  Unit
-                                                                  {
-                                                                    (abs
-                                                                      e
-                                                                      (type)
-                                                                      (error e)
-                                                                    )
-                                                                    Bool
-                                                                  }
+                                                                  thunk Unit LT
+                                                                )
+                                                              ]
+                                                              Unit
+                                                            ]
+                                                          )
+                                                        )
+                                                        [
+                                                          [
+                                                            [
+                                                              [
+                                                                {
+                                                                  [
+                                                                    {
+                                                                      Extended_match
+                                                                      a
+                                                                    }
+                                                                    ds
+                                                                  ]
+                                                                  (fun Unit Ordering)
+                                                                }
+                                                                (lam
+                                                                  default_arg0
+                                                                  a
+                                                                  (lam
+                                                                    thunk
+                                                                    Unit
+                                                                    [
+                                                                      fail
+                                                                      (abs
+                                                                        e
+                                                                        (type)
+                                                                        (error e
+                                                                        )
+                                                                      )
+                                                                    ]
+                                                                  )
                                                                 )
                                                               ]
                                                               (lam
                                                                 thunk
                                                                 Unit
                                                                 [
+                                                                  fail
+                                                                  (abs
+                                                                    e
+                                                                    (type)
+                                                                    (error e)
+                                                                  )
+                                                                ]
+                                                              )
+                                                            ]
+                                                            (lam
+                                                              thunk
+                                                              Unit
+                                                              [
+                                                                [
                                                                   [
                                                                     [
                                                                       {
                                                                         [
-                                                                          Bool_match
-                                                                          ww
+                                                                          {
+                                                                            Extended_match
+                                                                            a
+                                                                          }
+                                                                          ds
                                                                         ]
-                                                                        (fun Unit Bool)
+                                                                        (fun Unit Ordering)
                                                                       }
                                                                       (lam
-                                                                        thunk
-                                                                        Unit
-                                                                        ww
+                                                                        default_arg0
+                                                                        a
+                                                                        (lam
+                                                                          thunk
+                                                                          Unit
+                                                                          [
+                                                                            fail
+                                                                            (abs
+                                                                              e
+                                                                              (type)
+                                                                              (error
+                                                                                e
+                                                                              )
+                                                                            )
+                                                                          ]
+                                                                        )
                                                                       )
                                                                     ]
                                                                     (lam
                                                                       thunk
                                                                       Unit
-                                                                      True
+                                                                      [
+                                                                        fail
+                                                                        (abs
+                                                                          e
+                                                                          (type)
+                                                                          (error
+                                                                            e
+                                                                          )
+                                                                        )
+                                                                      ]
                                                                     )
                                                                   ]
-                                                                  Unit
+                                                                  (lam
+                                                                    thunk
+                                                                    Unit
+                                                                    EQ
+                                                                  )
                                                                 ]
-                                                              )
-                                                            ]
-                                                            Unit
+                                                                Unit
+                                                              ]
+                                                            )
                                                           ]
-                                                        )
-                                                      ]
-                                                      Unit
-                                                    ]
-                                                  )
+                                                          Unit
+                                                        ]
+                                                      )
+                                                    )
+                                                  ]
+                                                  Unit
                                                 ]
-                                                Unit
-                                              ]
+                                              )
                                             )
+                                          ]
+                                          (lam
+                                            thunk
+                                            Unit
+                                            [
+                                              [
+                                                [
+                                                  [
+                                                    {
+                                                      [
+                                                        { Extended_match a } ds
+                                                      ]
+                                                      (fun Unit Ordering)
+                                                    }
+                                                    (lam
+                                                      default_arg0
+                                                      a
+                                                      (lam thunk Unit LT)
+                                                    )
+                                                  ]
+                                                  (lam thunk Unit EQ)
+                                                ]
+                                                (lam thunk Unit LT)
+                                              ]
+                                              Unit
+                                            ]
                                           )
                                         ]
                                         (lam
@@ -2573,105 +3236,983 @@
                                               [
                                                 [
                                                   {
-                                                    [
-                                                      {
-                                                        Extended_match
-                                                        (con integer)
-                                                      }
-                                                      ww
-                                                    ]
-                                                    (fun Unit Bool)
+                                                    [ { Extended_match a } ds ]
+                                                    (fun Unit Ordering)
                                                   }
                                                   (lam
                                                     default_arg0
-                                                    (con integer)
-                                                    (lam thunk Unit True)
+                                                    a
+                                                    (lam
+                                                      thunk
+                                                      Unit
+                                                      (let
+                                                        (nonrec)
+                                                        (termbind
+                                                          (strict)
+                                                          (vardecl
+                                                            fail
+                                                            (fun (all a (type) a) Ordering)
+                                                          )
+                                                          (lam
+                                                            ds
+                                                            (all a (type) a)
+                                                            [
+                                                              [
+                                                                [
+                                                                  [
+                                                                    {
+                                                                      [
+                                                                        {
+                                                                          Extended_match
+                                                                          a
+                                                                        }
+                                                                        ds
+                                                                      ]
+                                                                      (fun Unit Ordering)
+                                                                    }
+                                                                    (lam
+                                                                      default_arg0
+                                                                      a
+                                                                      (lam
+                                                                        thunk
+                                                                        Unit
+                                                                        [
+                                                                          [
+                                                                            [
+                                                                              [
+                                                                                {
+                                                                                  [
+                                                                                    {
+                                                                                      Extended_match
+                                                                                      a
+                                                                                    }
+                                                                                    ds
+                                                                                  ]
+                                                                                  (fun Unit Ordering)
+                                                                                }
+                                                                                (lam
+                                                                                  l
+                                                                                  a
+                                                                                  (lam
+                                                                                    thunk
+                                                                                    Unit
+                                                                                    [
+                                                                                      [
+                                                                                        [
+                                                                                          [
+                                                                                            {
+                                                                                              [
+                                                                                                {
+                                                                                                  Extended_match
+                                                                                                  a
+                                                                                                }
+                                                                                                ds
+                                                                                              ]
+                                                                                              (fun Unit Ordering)
+                                                                                            }
+                                                                                            (lam
+                                                                                              r
+                                                                                              a
+                                                                                              (lam
+                                                                                                thunk
+                                                                                                Unit
+                                                                                                [
+                                                                                                  [
+                                                                                                    [
+                                                                                                      {
+                                                                                                        compare
+                                                                                                        a
+                                                                                                      }
+                                                                                                      dOrd
+                                                                                                    ]
+                                                                                                    l
+                                                                                                  ]
+                                                                                                  r
+                                                                                                ]
+                                                                                              )
+                                                                                            )
+                                                                                          ]
+                                                                                          (lam
+                                                                                            thunk
+                                                                                            Unit
+                                                                                            [
+                                                                                              fail
+                                                                                              (abs
+                                                                                                e
+                                                                                                (type)
+                                                                                                (error
+                                                                                                  e
+                                                                                                )
+                                                                                              )
+                                                                                            ]
+                                                                                          )
+                                                                                        ]
+                                                                                        (lam
+                                                                                          thunk
+                                                                                          Unit
+                                                                                          [
+                                                                                            fail
+                                                                                            (abs
+                                                                                              e
+                                                                                              (type)
+                                                                                              (error
+                                                                                                e
+                                                                                              )
+                                                                                            )
+                                                                                          ]
+                                                                                        )
+                                                                                      ]
+                                                                                      Unit
+                                                                                    ]
+                                                                                  )
+                                                                                )
+                                                                              ]
+                                                                              (lam
+                                                                                thunk
+                                                                                Unit
+                                                                                [
+                                                                                  fail
+                                                                                  (abs
+                                                                                    e
+                                                                                    (type)
+                                                                                    (error
+                                                                                      e
+                                                                                    )
+                                                                                  )
+                                                                                ]
+                                                                              )
+                                                                            ]
+                                                                            (lam
+                                                                              thunk
+                                                                              Unit
+                                                                              GT
+                                                                            )
+                                                                          ]
+                                                                          Unit
+                                                                        ]
+                                                                      )
+                                                                    )
+                                                                  ]
+                                                                  (lam
+                                                                    thunk
+                                                                    Unit
+                                                                    [
+                                                                      [
+                                                                        [
+                                                                          [
+                                                                            {
+                                                                              [
+                                                                                {
+                                                                                  Extended_match
+                                                                                  a
+                                                                                }
+                                                                                ds
+                                                                              ]
+                                                                              (fun Unit Ordering)
+                                                                            }
+                                                                            (lam
+                                                                              l
+                                                                              a
+                                                                              (lam
+                                                                                thunk
+                                                                                Unit
+                                                                                [
+                                                                                  [
+                                                                                    [
+                                                                                      [
+                                                                                        {
+                                                                                          [
+                                                                                            {
+                                                                                              Extended_match
+                                                                                              a
+                                                                                            }
+                                                                                            ds
+                                                                                          ]
+                                                                                          (fun Unit Ordering)
+                                                                                        }
+                                                                                        (lam
+                                                                                          r
+                                                                                          a
+                                                                                          (lam
+                                                                                            thunk
+                                                                                            Unit
+                                                                                            [
+                                                                                              [
+                                                                                                [
+                                                                                                  {
+                                                                                                    compare
+                                                                                                    a
+                                                                                                  }
+                                                                                                  dOrd
+                                                                                                ]
+                                                                                                l
+                                                                                              ]
+                                                                                              r
+                                                                                            ]
+                                                                                          )
+                                                                                        )
+                                                                                      ]
+                                                                                      (lam
+                                                                                        thunk
+                                                                                        Unit
+                                                                                        [
+                                                                                          fail
+                                                                                          (abs
+                                                                                            e
+                                                                                            (type)
+                                                                                            (error
+                                                                                              e
+                                                                                            )
+                                                                                          )
+                                                                                        ]
+                                                                                      )
+                                                                                    ]
+                                                                                    (lam
+                                                                                      thunk
+                                                                                      Unit
+                                                                                      [
+                                                                                        fail
+                                                                                        (abs
+                                                                                          e
+                                                                                          (type)
+                                                                                          (error
+                                                                                            e
+                                                                                          )
+                                                                                        )
+                                                                                      ]
+                                                                                    )
+                                                                                  ]
+                                                                                  Unit
+                                                                                ]
+                                                                              )
+                                                                            )
+                                                                          ]
+                                                                          (lam
+                                                                            thunk
+                                                                            Unit
+                                                                            [
+                                                                              fail
+                                                                              (abs
+                                                                                e
+                                                                                (type)
+                                                                                (error
+                                                                                  e
+                                                                                )
+                                                                              )
+                                                                            ]
+                                                                          )
+                                                                        ]
+                                                                        (lam
+                                                                          thunk
+                                                                          Unit
+                                                                          GT
+                                                                        )
+                                                                      ]
+                                                                      Unit
+                                                                    ]
+                                                                  )
+                                                                ]
+                                                                (lam
+                                                                  thunk Unit LT
+                                                                )
+                                                              ]
+                                                              Unit
+                                                            ]
+                                                          )
+                                                        )
+                                                        [
+                                                          [
+                                                            [
+                                                              [
+                                                                {
+                                                                  [
+                                                                    {
+                                                                      Extended_match
+                                                                      a
+                                                                    }
+                                                                    ds
+                                                                  ]
+                                                                  (fun Unit Ordering)
+                                                                }
+                                                                (lam
+                                                                  default_arg0
+                                                                  a
+                                                                  (lam
+                                                                    thunk
+                                                                    Unit
+                                                                    [
+                                                                      fail
+                                                                      (abs
+                                                                        e
+                                                                        (type)
+                                                                        (error e
+                                                                        )
+                                                                      )
+                                                                    ]
+                                                                  )
+                                                                )
+                                                              ]
+                                                              (lam
+                                                                thunk
+                                                                Unit
+                                                                [
+                                                                  fail
+                                                                  (abs
+                                                                    e
+                                                                    (type)
+                                                                    (error e)
+                                                                  )
+                                                                ]
+                                                              )
+                                                            ]
+                                                            (lam
+                                                              thunk
+                                                              Unit
+                                                              [
+                                                                [
+                                                                  [
+                                                                    [
+                                                                      {
+                                                                        [
+                                                                          {
+                                                                            Extended_match
+                                                                            a
+                                                                          }
+                                                                          ds
+                                                                        ]
+                                                                        (fun Unit Ordering)
+                                                                      }
+                                                                      (lam
+                                                                        default_arg0
+                                                                        a
+                                                                        (lam
+                                                                          thunk
+                                                                          Unit
+                                                                          [
+                                                                            fail
+                                                                            (abs
+                                                                              e
+                                                                              (type)
+                                                                              (error
+                                                                                e
+                                                                              )
+                                                                            )
+                                                                          ]
+                                                                        )
+                                                                      )
+                                                                    ]
+                                                                    (lam
+                                                                      thunk
+                                                                      Unit
+                                                                      [
+                                                                        fail
+                                                                        (abs
+                                                                          e
+                                                                          (type)
+                                                                          (error
+                                                                            e
+                                                                          )
+                                                                        )
+                                                                      ]
+                                                                    )
+                                                                  ]
+                                                                  (lam
+                                                                    thunk
+                                                                    Unit
+                                                                    EQ
+                                                                  )
+                                                                ]
+                                                                Unit
+                                                              ]
+                                                            )
+                                                          ]
+                                                          Unit
+                                                        ]
+                                                      )
+                                                    )
                                                   )
                                                 ]
-                                                (lam
-                                                  thunk
-                                                  Unit
+                                                (lam thunk Unit GT)
+                                              ]
+                                              (lam
+                                                thunk
+                                                Unit
+                                                (let
+                                                  (nonrec)
+                                                  (termbind
+                                                    (strict)
+                                                    (vardecl
+                                                      fail
+                                                      (fun (all a (type) a) Ordering)
+                                                    )
+                                                    (lam
+                                                      ds
+                                                      (all a (type) a)
+                                                      [
+                                                        [
+                                                          [
+                                                            [
+                                                              {
+                                                                [
+                                                                  {
+                                                                    Extended_match
+                                                                    a
+                                                                  }
+                                                                  ds
+                                                                ]
+                                                                (fun Unit Ordering)
+                                                              }
+                                                              (lam
+                                                                default_arg0
+                                                                a
+                                                                (lam
+                                                                  thunk
+                                                                  Unit
+                                                                  [
+                                                                    [
+                                                                      [
+                                                                        [
+                                                                          {
+                                                                            [
+                                                                              {
+                                                                                Extended_match
+                                                                                a
+                                                                              }
+                                                                              ds
+                                                                            ]
+                                                                            (fun Unit Ordering)
+                                                                          }
+                                                                          (lam
+                                                                            l
+                                                                            a
+                                                                            (lam
+                                                                              thunk
+                                                                              Unit
+                                                                              [
+                                                                                [
+                                                                                  [
+                                                                                    [
+                                                                                      {
+                                                                                        [
+                                                                                          {
+                                                                                            Extended_match
+                                                                                            a
+                                                                                          }
+                                                                                          ds
+                                                                                        ]
+                                                                                        (fun Unit Ordering)
+                                                                                      }
+                                                                                      (lam
+                                                                                        r
+                                                                                        a
+                                                                                        (lam
+                                                                                          thunk
+                                                                                          Unit
+                                                                                          [
+                                                                                            [
+                                                                                              [
+                                                                                                {
+                                                                                                  compare
+                                                                                                  a
+                                                                                                }
+                                                                                                dOrd
+                                                                                              ]
+                                                                                              l
+                                                                                            ]
+                                                                                            r
+                                                                                          ]
+                                                                                        )
+                                                                                      )
+                                                                                    ]
+                                                                                    (lam
+                                                                                      thunk
+                                                                                      Unit
+                                                                                      [
+                                                                                        fail
+                                                                                        (abs
+                                                                                          e
+                                                                                          (type)
+                                                                                          (error
+                                                                                            e
+                                                                                          )
+                                                                                        )
+                                                                                      ]
+                                                                                    )
+                                                                                  ]
+                                                                                  (lam
+                                                                                    thunk
+                                                                                    Unit
+                                                                                    [
+                                                                                      fail
+                                                                                      (abs
+                                                                                        e
+                                                                                        (type)
+                                                                                        (error
+                                                                                          e
+                                                                                        )
+                                                                                      )
+                                                                                    ]
+                                                                                  )
+                                                                                ]
+                                                                                Unit
+                                                                              ]
+                                                                            )
+                                                                          )
+                                                                        ]
+                                                                        (lam
+                                                                          thunk
+                                                                          Unit
+                                                                          [
+                                                                            fail
+                                                                            (abs
+                                                                              e
+                                                                              (type)
+                                                                              (error
+                                                                                e
+                                                                              )
+                                                                            )
+                                                                          ]
+                                                                        )
+                                                                      ]
+                                                                      (lam
+                                                                        thunk
+                                                                        Unit
+                                                                        GT
+                                                                      )
+                                                                    ]
+                                                                    Unit
+                                                                  ]
+                                                                )
+                                                              )
+                                                            ]
+                                                            (lam
+                                                              thunk
+                                                              Unit
+                                                              [
+                                                                [
+                                                                  [
+                                                                    [
+                                                                      {
+                                                                        [
+                                                                          {
+                                                                            Extended_match
+                                                                            a
+                                                                          }
+                                                                          ds
+                                                                        ]
+                                                                        (fun Unit Ordering)
+                                                                      }
+                                                                      (lam
+                                                                        l
+                                                                        a
+                                                                        (lam
+                                                                          thunk
+                                                                          Unit
+                                                                          [
+                                                                            [
+                                                                              [
+                                                                                [
+                                                                                  {
+                                                                                    [
+                                                                                      {
+                                                                                        Extended_match
+                                                                                        a
+                                                                                      }
+                                                                                      ds
+                                                                                    ]
+                                                                                    (fun Unit Ordering)
+                                                                                  }
+                                                                                  (lam
+                                                                                    r
+                                                                                    a
+                                                                                    (lam
+                                                                                      thunk
+                                                                                      Unit
+                                                                                      [
+                                                                                        [
+                                                                                          [
+                                                                                            {
+                                                                                              compare
+                                                                                              a
+                                                                                            }
+                                                                                            dOrd
+                                                                                          ]
+                                                                                          l
+                                                                                        ]
+                                                                                        r
+                                                                                      ]
+                                                                                    )
+                                                                                  )
+                                                                                ]
+                                                                                (lam
+                                                                                  thunk
+                                                                                  Unit
+                                                                                  [
+                                                                                    fail
+                                                                                    (abs
+                                                                                      e
+                                                                                      (type)
+                                                                                      (error
+                                                                                        e
+                                                                                      )
+                                                                                    )
+                                                                                  ]
+                                                                                )
+                                                                              ]
+                                                                              (lam
+                                                                                thunk
+                                                                                Unit
+                                                                                [
+                                                                                  fail
+                                                                                  (abs
+                                                                                    e
+                                                                                    (type)
+                                                                                    (error
+                                                                                      e
+                                                                                    )
+                                                                                  )
+                                                                                ]
+                                                                              )
+                                                                            ]
+                                                                            Unit
+                                                                          ]
+                                                                        )
+                                                                      )
+                                                                    ]
+                                                                    (lam
+                                                                      thunk
+                                                                      Unit
+                                                                      [
+                                                                        fail
+                                                                        (abs
+                                                                          e
+                                                                          (type)
+                                                                          (error
+                                                                            e
+                                                                          )
+                                                                        )
+                                                                      ]
+                                                                    )
+                                                                  ]
+                                                                  (lam
+                                                                    thunk
+                                                                    Unit
+                                                                    GT
+                                                                  )
+                                                                ]
+                                                                Unit
+                                                              ]
+                                                            )
+                                                          ]
+                                                          (lam thunk Unit LT)
+                                                        ]
+                                                        Unit
+                                                      ]
+                                                    )
+                                                  )
                                                   [
                                                     [
                                                       [
-                                                        {
-                                                          [ Bool_match ww ]
-                                                          (fun Unit Bool)
-                                                        }
-                                                        (lam thunk Unit ww)
+                                                        [
+                                                          {
+                                                            [
+                                                              {
+                                                                Extended_match a
+                                                              }
+                                                              ds
+                                                            ]
+                                                            (fun Unit Ordering)
+                                                          }
+                                                          (lam
+                                                            default_arg0
+                                                            a
+                                                            (lam
+                                                              thunk
+                                                              Unit
+                                                              [
+                                                                fail
+                                                                (abs
+                                                                  e
+                                                                  (type)
+                                                                  (error e)
+                                                                )
+                                                              ]
+                                                            )
+                                                          )
+                                                        ]
+                                                        (lam
+                                                          thunk
+                                                          Unit
+                                                          [
+                                                            fail
+                                                            (abs
+                                                              e (type) (error e)
+                                                            )
+                                                          ]
+                                                        )
                                                       ]
-                                                      (lam thunk Unit True)
+                                                      (lam
+                                                        thunk
+                                                        Unit
+                                                        [
+                                                          [
+                                                            [
+                                                              [
+                                                                {
+                                                                  [
+                                                                    {
+                                                                      Extended_match
+                                                                      a
+                                                                    }
+                                                                    ds
+                                                                  ]
+                                                                  (fun Unit Ordering)
+                                                                }
+                                                                (lam
+                                                                  default_arg0
+                                                                  a
+                                                                  (lam
+                                                                    thunk
+                                                                    Unit
+                                                                    [
+                                                                      fail
+                                                                      (abs
+                                                                        e
+                                                                        (type)
+                                                                        (error e
+                                                                        )
+                                                                      )
+                                                                    ]
+                                                                  )
+                                                                )
+                                                              ]
+                                                              (lam
+                                                                thunk
+                                                                Unit
+                                                                [
+                                                                  fail
+                                                                  (abs
+                                                                    e
+                                                                    (type)
+                                                                    (error e)
+                                                                  )
+                                                                ]
+                                                              )
+                                                            ]
+                                                            (lam thunk Unit EQ)
+                                                          ]
+                                                          Unit
+                                                        ]
+                                                      )
                                                     ]
                                                     Unit
                                                   ]
                                                 )
-                                              ]
-                                              (lam thunk Unit True)
+                                              )
                                             ]
                                             Unit
                                           ]
                                         )
                                       ]
+                                      Unit
+                                    ]
+                                  )
+                                )
+                              )
+                            )
+                          )
+                        )
+                        (termbind
+                          (strict)
+                          (vardecl
+                            fOrdUpperBound0_c
+                            (all a (type) (fun [Ord a] (fun [UpperBound a] (fun [UpperBound a] Bool))))
+                          )
+                          (abs
+                            a
+                            (type)
+                            (lam
+                              dOrd
+                              [Ord a]
+                              (lam
+                                x
+                                [UpperBound a]
+                                (lam
+                                  y
+                                  [UpperBound a]
+                                  [
+                                    { [ { UpperBound_match a } x ] Bool }
+                                    (lam
+                                      v
+                                      [Extended a]
                                       (lam
-                                        thunk
-                                        Unit
+                                        in
+                                        Bool
                                         [
-                                          [
-                                            [
+                                          { [ { UpperBound_match a } y ] Bool }
+                                          (lam
+                                            v
+                                            [Extended a]
+                                            (lam
+                                              in
+                                              Bool
                                               [
-                                                {
+                                                [
                                                   [
-                                                    {
-                                                      Extended_match
-                                                      (con integer)
-                                                    }
-                                                    ww
-                                                  ]
-                                                  (fun Unit Bool)
-                                                }
-                                                (lam
-                                                  default_arg0
-                                                  (con integer)
-                                                  (lam
-                                                    thunk
-                                                    Unit
                                                     [
-                                                      [
+                                                      {
                                                         [
+                                                          Ordering_match
                                                           [
-                                                            {
+                                                            [
                                                               [
                                                                 {
-                                                                  Extended_match
-                                                                  (con integer)
+                                                                  hull_ccompare
+                                                                  a
                                                                 }
-                                                                ww
+                                                                dOrd
                                                               ]
-                                                              (fun Unit Bool)
-                                                            }
-                                                            (lam
-                                                              ipv
-                                                              (con integer)
-                                                              (lam
-                                                                thunk
-                                                                Unit
+                                                              v
+                                                            ]
+                                                            v
+                                                          ]
+                                                        ]
+                                                        (fun Unit Bool)
+                                                      }
+                                                      (lam
+                                                        thunk
+                                                        Unit
+                                                        [
+                                                          [
+                                                            [
+                                                              {
                                                                 [
-                                                                  [
+                                                                  Bool_match in
+                                                                ]
+                                                                (fun Unit Bool)
+                                                              }
+                                                              (lam thunk Unit in
+                                                              )
+                                                            ]
+                                                            (lam thunk Unit True
+                                                            )
+                                                          ]
+                                                          Unit
+                                                        ]
+                                                      )
+                                                    ]
+                                                    (lam thunk Unit False)
+                                                  ]
+                                                  (lam thunk Unit True)
+                                                ]
+                                                Unit
+                                              ]
+                                            )
+                                          )
+                                        ]
+                                      )
+                                    )
+                                  ]
+                                )
+                              )
+                            )
+                          )
+                        )
+                        (termbind
+                          (strict)
+                          (vardecl
+                            contains
+                            (all a (type) (fun [Ord a] (fun [Interval a] (fun [Interval a] Bool))))
+                          )
+                          (abs
+                            a
+                            (type)
+                            (lam
+                              dOrd
+                              [Ord a]
+                              (lam
+                                ds
+                                [Interval a]
+                                (lam
+                                  ds
+                                  [Interval a]
+                                  [
+                                    { [ { Interval_match a } ds ] Bool }
+                                    (lam
+                                      l
+                                      [LowerBound a]
+                                      (lam
+                                        h
+                                        [UpperBound a]
+                                        [
+                                          { [ { Interval_match a } ds ] Bool }
+                                          (lam
+                                            l
+                                            [LowerBound a]
+                                            (lam
+                                              h
+                                              [UpperBound a]
+                                              [
+                                                {
+                                                  [ { LowerBound_match a } l ]
+                                                  Bool
+                                                }
+                                                (lam
+                                                  v
+                                                  [Extended a]
+                                                  (lam
+                                                    in
+                                                    Bool
+                                                    [
+                                                      {
+                                                        [
+                                                          { LowerBound_match a }
+                                                          l
+                                                        ]
+                                                        Bool
+                                                      }
+                                                      (lam
+                                                        v
+                                                        [Extended a]
+                                                        (lam
+                                                          in
+                                                          Bool
+                                                          [
+                                                            [
+                                                              [
+                                                                [
+                                                                  {
                                                                     [
+                                                                      Ordering_match
                                                                       [
-                                                                        {
+                                                                        [
                                                                           [
                                                                             {
-                                                                              Extended_match
-                                                                              (con integer)
+                                                                              hull_ccompare
+                                                                              a
                                                                             }
-                                                                            ww
+                                                                            dOrd
                                                                           ]
-                                                                          (fun Unit Bool)
-                                                                        }
-                                                                        (lam
-                                                                          ipv
-                                                                          (con integer)
+                                                                          v
+                                                                        ]
+                                                                        v
+                                                                      ]
+                                                                    ]
+                                                                    (fun Unit Bool)
+                                                                  }
+                                                                  (lam
+                                                                    thunk
+                                                                    Unit
+                                                                    [
+                                                                      [
+                                                                        [
+                                                                          {
+                                                                            [
+                                                                              Bool_match
+                                                                              in
+                                                                            ]
+                                                                            (fun Unit Bool)
+                                                                          }
                                                                           (lam
                                                                             thunk
                                                                             Unit
@@ -2681,13 +4222,7 @@
                                                                                   {
                                                                                     [
                                                                                       Bool_match
-                                                                                      [
-                                                                                        [
-                                                                                          equalsInteger
-                                                                                          ipv
-                                                                                        ]
-                                                                                        ipv
-                                                                                      ]
+                                                                                      in
                                                                                     ]
                                                                                     (fun Unit Bool)
                                                                                   }
@@ -2698,912 +4233,53 @@
                                                                                       [
                                                                                         [
                                                                                           {
-                                                                                            [
-                                                                                              Bool_match
-                                                                                              ww
-                                                                                            ]
-                                                                                            (fun Unit Bool)
+                                                                                            fOrdUpperBound0_c
+                                                                                            a
                                                                                           }
-                                                                                          (lam
-                                                                                            thunk
-                                                                                            Unit
-                                                                                            ww
-                                                                                          )
+                                                                                          dOrd
                                                                                         ]
-                                                                                        (lam
-                                                                                          thunk
-                                                                                          Unit
-                                                                                          True
-                                                                                        )
+                                                                                        h
                                                                                       ]
-                                                                                      Unit
+                                                                                      h
                                                                                     ]
                                                                                   )
                                                                                 ]
-                                                                                (lam
-                                                                                  thunk
-                                                                                  Unit
-                                                                                  [
-                                                                                    [
-                                                                                      lessThanEqInteger
-                                                                                      ipv
-                                                                                    ]
-                                                                                    ipv
-                                                                                  ]
-                                                                                )
-                                                                              ]
-                                                                              Unit
-                                                                            ]
-                                                                          )
-                                                                        )
-                                                                      ]
-                                                                      (lam
-                                                                        thunk
-                                                                        Unit
-                                                                        {
-                                                                          (abs
-                                                                            e
-                                                                            (type)
-                                                                            (error
-                                                                              e
-                                                                            )
-                                                                          )
-                                                                          Bool
-                                                                        }
-                                                                      )
-                                                                    ]
-                                                                    (lam
-                                                                      thunk
-                                                                      Unit
-                                                                      True
-                                                                    )
-                                                                  ]
-                                                                  Unit
-                                                                ]
-                                                              )
-                                                            )
-                                                          ]
-                                                          (lam
-                                                            thunk
-                                                            Unit
-                                                            {
-                                                              (abs
-                                                                e
-                                                                (type)
-                                                                (error e)
-                                                              )
-                                                              Bool
-                                                            }
-                                                          )
-                                                        ]
-                                                        (lam
-                                                          thunk
-                                                          Unit
-                                                          [
-                                                            [
-                                                              [
-                                                                [
-                                                                  {
-                                                                    [
-                                                                      {
-                                                                        Extended_match
-                                                                        (con integer)
-                                                                      }
-                                                                      ww
-                                                                    ]
-                                                                    (fun Unit Bool)
-                                                                  }
-                                                                  (lam
-                                                                    ipv
-                                                                    (con integer)
-                                                                    (lam
-                                                                      thunk
-                                                                      Unit
-                                                                      False
-                                                                    )
-                                                                  )
-                                                                ]
-                                                                (lam
-                                                                  thunk
-                                                                  Unit
-                                                                  {
-                                                                    (abs
-                                                                      e
-                                                                      (type)
-                                                                      (error e)
-                                                                    )
-                                                                    Bool
-                                                                  }
-                                                                )
-                                                              ]
-                                                              (lam
-                                                                thunk
-                                                                Unit
-                                                                [
-                                                                  [
-                                                                    [
-                                                                      {
-                                                                        [
-                                                                          Bool_match
-                                                                          ww
-                                                                        ]
-                                                                        (fun Unit Bool)
-                                                                      }
-                                                                      (lam
-                                                                        thunk
-                                                                        Unit
-                                                                        ww
-                                                                      )
-                                                                    ]
-                                                                    (lam
-                                                                      thunk
-                                                                      Unit
-                                                                      True
-                                                                    )
-                                                                  ]
-                                                                  Unit
-                                                                ]
-                                                              )
-                                                            ]
-                                                            Unit
-                                                          ]
-                                                        )
-                                                      ]
-                                                      Unit
-                                                    ]
-                                                  )
-                                                )
-                                              ]
-                                              (lam thunk Unit False)
-                                            ]
-                                            (lam
-                                              thunk
-                                              Unit
-                                              [
-                                                [
-                                                  [
-                                                    [
-                                                      {
-                                                        [
-                                                          {
-                                                            Extended_match
-                                                            (con integer)
-                                                          }
-                                                          ww
-                                                        ]
-                                                        (fun Unit Bool)
-                                                      }
-                                                      (lam
-                                                        ipv
-                                                        (con integer)
-                                                        (lam
-                                                          thunk
-                                                          Unit
-                                                          [
-                                                            [
-                                                              [
-                                                                [
-                                                                  {
-                                                                    [
-                                                                      {
-                                                                        Extended_match
-                                                                        (con integer)
-                                                                      }
-                                                                      ww
-                                                                    ]
-                                                                    (fun Unit Bool)
-                                                                  }
-                                                                  (lam
-                                                                    ipv
-                                                                    (con integer)
-                                                                    (lam
-                                                                      thunk
-                                                                      Unit
-                                                                      [
-                                                                        [
-                                                                          [
-                                                                            {
-                                                                              [
-                                                                                Bool_match
-                                                                                [
-                                                                                  [
-                                                                                    equalsInteger
-                                                                                    ipv
-                                                                                  ]
-                                                                                  ipv
-                                                                                ]
-                                                                              ]
-                                                                              (fun Unit Bool)
-                                                                            }
-                                                                            (lam
-                                                                              thunk
-                                                                              Unit
-                                                                              [
-                                                                                [
-                                                                                  [
-                                                                                    {
-                                                                                      [
-                                                                                        Bool_match
-                                                                                        ww
-                                                                                      ]
-                                                                                      (fun Unit Bool)
-                                                                                    }
-                                                                                    (lam
-                                                                                      thunk
-                                                                                      Unit
-                                                                                      ww
-                                                                                    )
-                                                                                  ]
-                                                                                  (lam
-                                                                                    thunk
-                                                                                    Unit
-                                                                                    True
-                                                                                  )
-                                                                                ]
-                                                                                Unit
-                                                                              ]
-                                                                            )
-                                                                          ]
-                                                                          (lam
-                                                                            thunk
-                                                                            Unit
-                                                                            [
-                                                                              [
-                                                                                lessThanEqInteger
-                                                                                ipv
-                                                                              ]
-                                                                              ipv
-                                                                            ]
-                                                                          )
-                                                                        ]
-                                                                        Unit
-                                                                      ]
-                                                                    )
-                                                                  )
-                                                                ]
-                                                                (lam
-                                                                  thunk
-                                                                  Unit
-                                                                  {
-                                                                    (abs
-                                                                      e
-                                                                      (type)
-                                                                      (error e)
-                                                                    )
-                                                                    Bool
-                                                                  }
-                                                                )
-                                                              ]
-                                                              (lam
-                                                                thunk Unit True
-                                                              )
-                                                            ]
-                                                            Unit
-                                                          ]
-                                                        )
-                                                      )
-                                                    ]
-                                                    (lam
-                                                      thunk
-                                                      Unit
-                                                      {
-                                                        (abs e (type) (error e))
-                                                        Bool
-                                                      }
-                                                    )
-                                                  ]
-                                                  (lam
-                                                    thunk
-                                                    Unit
-                                                    [
-                                                      [
-                                                        [
-                                                          [
-                                                            {
-                                                              [
-                                                                {
-                                                                  Extended_match
-                                                                  (con integer)
-                                                                }
-                                                                ww
-                                                              ]
-                                                              (fun Unit Bool)
-                                                            }
-                                                            (lam
-                                                              ipv
-                                                              (con integer)
-                                                              (lam
-                                                                thunk Unit False
-                                                              )
-                                                            )
-                                                          ]
-                                                          (lam
-                                                            thunk
-                                                            Unit
-                                                            {
-                                                              (abs
-                                                                e
-                                                                (type)
-                                                                (error e)
-                                                              )
-                                                              Bool
-                                                            }
-                                                          )
-                                                        ]
-                                                        (lam
-                                                          thunk
-                                                          Unit
-                                                          [
-                                                            [
-                                                              [
-                                                                {
-                                                                  [
-                                                                    Bool_match
-                                                                    ww
-                                                                  ]
-                                                                  (fun Unit Bool)
-                                                                }
-                                                                (lam
-                                                                  thunk Unit ww
-                                                                )
-                                                              ]
-                                                              (lam
-                                                                thunk Unit True
-                                                              )
-                                                            ]
-                                                            Unit
-                                                          ]
-                                                        )
-                                                      ]
-                                                      Unit
-                                                    ]
-                                                  )
-                                                ]
-                                                Unit
-                                              ]
-                                            )
-                                          ]
-                                          Unit
-                                        ]
-                                      )
-                                    ]
-                                    Unit
-                                  ]
-                                )
-                              )
-                            )
-                          )
-                        )
-                        (termbind
-                          (strict)
-                          (vardecl
-                            sfOrdUpperBound0_c
-                            (fun [UpperBound (con integer)] (fun [UpperBound (con integer)] Bool))
-                          )
-                          (lam
-                            w
-                            [UpperBound (con integer)]
-                            (lam
-                              w
-                              [UpperBound (con integer)]
-                              [
-                                {
-                                  [ { UpperBound_match (con integer) } w ] Bool
-                                }
-                                (lam
-                                  ww
-                                  [Extended (con integer)]
-                                  (lam
-                                    ww
-                                    Bool
-                                    [
-                                      {
-                                        [ { UpperBound_match (con integer) } w ]
-                                        Bool
-                                      }
-                                      (lam
-                                        ww
-                                        [Extended (con integer)]
-                                        (lam
-                                          ww
-                                          Bool
-                                          [
-                                            [
-                                              [ [ wsfOrdUpperBound0_c ww ] ww ]
-                                              ww
-                                            ]
-                                            ww
-                                          ]
-                                        )
-                                      )
-                                    ]
-                                  )
-                                )
-                              ]
-                            )
-                          )
-                        )
-                        (termbind
-                          (strict)
-                          (vardecl
-                            wscontains
-                            (fun [Extended (con integer)] (fun Bool (fun [UpperBound (con integer)] (fun [Extended (con integer)] (fun Bool (fun [UpperBound (con integer)] Bool))))))
-                          )
-                          (lam
-                            ww
-                            [Extended (con integer)]
-                            (lam
-                              ww
-                              Bool
-                              (lam
-                                ww
-                                [UpperBound (con integer)]
-                                (lam
-                                  ww
-                                  [Extended (con integer)]
-                                  (lam
-                                    ww
-                                    Bool
-                                    (lam
-                                      ww
-                                      [UpperBound (con integer)]
-                                      (let
-                                        (nonrec)
-                                        (termbind
-                                          (nonstrict)
-                                          (vardecl j Bool)
-                                          [
-                                            [
-                                              [
-                                                {
-                                                  [ Bool_match ww ]
-                                                  (fun Unit Bool)
-                                                }
-                                                (lam
-                                                  thunk
-                                                  Unit
-                                                  [
-                                                    [
-                                                      [
-                                                        {
-                                                          [ Bool_match ww ]
-                                                          (fun Unit Bool)
-                                                        }
-                                                        (lam
-                                                          thunk
-                                                          Unit
-                                                          [
-                                                            [
-                                                              sfOrdUpperBound0_c
-                                                              ww
-                                                            ]
-                                                            ww
-                                                          ]
-                                                        )
-                                                      ]
-                                                      (lam thunk Unit False)
-                                                    ]
-                                                    Unit
-                                                  ]
-                                                )
-                                              ]
-                                              (lam
-                                                thunk
-                                                Unit
-                                                [ [ sfOrdUpperBound0_c ww ] ww ]
-                                              )
-                                            ]
-                                            Unit
-                                          ]
-                                        )
-                                        [
-                                          [
-                                            [
-                                              [
-                                                {
-                                                  [
-                                                    {
-                                                      Extended_match
-                                                      (con integer)
-                                                    }
-                                                    ww
-                                                  ]
-                                                  (fun Unit Bool)
-                                                }
-                                                (lam
-                                                  default_arg0
-                                                  (con integer)
-                                                  (lam
-                                                    thunk
-                                                    Unit
-                                                    [
-                                                      [
-                                                        [
-                                                          [
-                                                            {
-                                                              [
-                                                                {
-                                                                  Extended_match
-                                                                  (con integer)
-                                                                }
-                                                                ww
-                                                              ]
-                                                              (fun Unit Bool)
-                                                            }
-                                                            (lam
-                                                              default_arg0
-                                                              (con integer)
-                                                              (lam
-                                                                thunk
-                                                                Unit
-                                                                [
-                                                                  [
-                                                                    [
-                                                                      [
-                                                                        {
-                                                                          [
-                                                                            {
-                                                                              Extended_match
-                                                                              (con integer)
-                                                                            }
-                                                                            ww
-                                                                          ]
-                                                                          (fun Unit Bool)
-                                                                        }
-                                                                        (lam
-                                                                          ipv
-                                                                          (con integer)
-                                                                          (lam
-                                                                            thunk
-                                                                            Unit
-                                                                            [
-                                                                              [
-                                                                                [
-                                                                                  [
-                                                                                    {
-                                                                                      [
-                                                                                        {
-                                                                                          Extended_match
-                                                                                          (con integer)
-                                                                                        }
-                                                                                        ww
-                                                                                      ]
-                                                                                      (fun Unit Bool)
-                                                                                    }
-                                                                                    (lam
-                                                                                      ipv
-                                                                                      (con integer)
-                                                                                      (lam
-                                                                                        thunk
-                                                                                        Unit
-                                                                                        [
-                                                                                          [
-                                                                                            [
-                                                                                              {
-                                                                                                [
-                                                                                                  Bool_match
-                                                                                                  [
-                                                                                                    [
-                                                                                                      equalsInteger
-                                                                                                      ipv
-                                                                                                    ]
-                                                                                                    ipv
-                                                                                                  ]
-                                                                                                ]
-                                                                                                (fun Unit Bool)
-                                                                                              }
-                                                                                              (lam
-                                                                                                thunk
-                                                                                                Unit
-                                                                                                j
-                                                                                              )
-                                                                                            ]
-                                                                                            (lam
-                                                                                              thunk
-                                                                                              Unit
-                                                                                              [
-                                                                                                [
-                                                                                                  [
-                                                                                                    {
-                                                                                                      [
-                                                                                                        Bool_match
-                                                                                                        [
-                                                                                                          [
-                                                                                                            lessThanEqInteger
-                                                                                                            ipv
-                                                                                                          ]
-                                                                                                          ipv
-                                                                                                        ]
-                                                                                                      ]
-                                                                                                      (fun Unit Bool)
-                                                                                                    }
-                                                                                                    (lam
-                                                                                                      thunk
-                                                                                                      Unit
-                                                                                                      [
-                                                                                                        [
-                                                                                                          sfOrdUpperBound0_c
-                                                                                                          ww
-                                                                                                        ]
-                                                                                                        ww
-                                                                                                      ]
-                                                                                                    )
-                                                                                                  ]
-                                                                                                  (lam
-                                                                                                    thunk
-                                                                                                    Unit
-                                                                                                    False
-                                                                                                  )
-                                                                                                ]
-                                                                                                Unit
-                                                                                              ]
-                                                                                            )
-                                                                                          ]
-                                                                                          Unit
-                                                                                        ]
-                                                                                      )
-                                                                                    )
-                                                                                  ]
-                                                                                  (lam
-                                                                                    thunk
-                                                                                    Unit
-                                                                                    {
-                                                                                      (abs
-                                                                                        e
-                                                                                        (type)
-                                                                                        (error
-                                                                                          e
-                                                                                        )
-                                                                                      )
-                                                                                      Bool
-                                                                                    }
-                                                                                  )
-                                                                                ]
-                                                                                (lam
-                                                                                  thunk
-                                                                                  Unit
-                                                                                  [
-                                                                                    [
-                                                                                      sfOrdUpperBound0_c
-                                                                                      ww
-                                                                                    ]
-                                                                                    ww
-                                                                                  ]
-                                                                                )
-                                                                              ]
-                                                                              Unit
-                                                                            ]
-                                                                          )
-                                                                        )
-                                                                      ]
-                                                                      (lam
-                                                                        thunk
-                                                                        Unit
-                                                                        {
-                                                                          (abs
-                                                                            e
-                                                                            (type)
-                                                                            (error
-                                                                              e
-                                                                            )
-                                                                          )
-                                                                          Bool
-                                                                        }
-                                                                      )
-                                                                    ]
-                                                                    (lam
-                                                                      thunk
-                                                                      Unit
-                                                                      [
-                                                                        [
-                                                                          [
-                                                                            [
-                                                                              {
-                                                                                [
-                                                                                  {
-                                                                                    Extended_match
-                                                                                    (con integer)
-                                                                                  }
-                                                                                  ww
-                                                                                ]
-                                                                                (fun Unit Bool)
-                                                                              }
-                                                                              (lam
-                                                                                ipv
-                                                                                (con integer)
                                                                                 (lam
                                                                                   thunk
                                                                                   Unit
                                                                                   False
                                                                                 )
-                                                                              )
-                                                                            ]
-                                                                            (lam
-                                                                              thunk
+                                                                              ]
                                                                               Unit
-                                                                              {
-                                                                                (abs
-                                                                                  e
-                                                                                  (type)
-                                                                                  (error
-                                                                                    e
-                                                                                  )
-                                                                                )
-                                                                                Bool
-                                                                              }
-                                                                            )
-                                                                          ]
-                                                                          (lam
-                                                                            thunk
-                                                                            Unit
-                                                                            j
+                                                                            ]
                                                                           )
                                                                         ]
-                                                                        Unit
-                                                                      ]
-                                                                    )
-                                                                  ]
-                                                                  Unit
-                                                                ]
-                                                              )
-                                                            )
-                                                          ]
-                                                          (lam thunk Unit False)
-                                                        ]
-                                                        (lam
-                                                          thunk
-                                                          Unit
-                                                          [
-                                                            [
-                                                              [
-                                                                [
-                                                                  {
-                                                                    [
-                                                                      {
-                                                                        Extended_match
-                                                                        (con integer)
-                                                                      }
-                                                                      ww
-                                                                    ]
-                                                                    (fun Unit Bool)
-                                                                  }
-                                                                  (lam
-                                                                    ipv
-                                                                    (con integer)
-                                                                    (lam
-                                                                      thunk
-                                                                      Unit
-                                                                      [
-                                                                        [
+                                                                        (lam
+                                                                          thunk
+                                                                          Unit
                                                                           [
                                                                             [
-                                                                              {
-                                                                                [
-                                                                                  {
-                                                                                    Extended_match
-                                                                                    (con integer)
-                                                                                  }
-                                                                                  ww
-                                                                                ]
-                                                                                (fun Unit Bool)
-                                                                              }
-                                                                              (lam
-                                                                                ipv
-                                                                                (con integer)
-                                                                                (lam
-                                                                                  thunk
-                                                                                  Unit
-                                                                                  [
-                                                                                    [
-                                                                                      [
-                                                                                        {
-                                                                                          [
-                                                                                            Bool_match
-                                                                                            [
-                                                                                              [
-                                                                                                equalsInteger
-                                                                                                ipv
-                                                                                              ]
-                                                                                              ipv
-                                                                                            ]
-                                                                                          ]
-                                                                                          (fun Unit Bool)
-                                                                                        }
-                                                                                        (lam
-                                                                                          thunk
-                                                                                          Unit
-                                                                                          j
-                                                                                        )
-                                                                                      ]
-                                                                                      (lam
-                                                                                        thunk
-                                                                                        Unit
-                                                                                        [
-                                                                                          [
-                                                                                            [
-                                                                                              {
-                                                                                                [
-                                                                                                  Bool_match
-                                                                                                  [
-                                                                                                    [
-                                                                                                      lessThanEqInteger
-                                                                                                      ipv
-                                                                                                    ]
-                                                                                                    ipv
-                                                                                                  ]
-                                                                                                ]
-                                                                                                (fun Unit Bool)
-                                                                                              }
-                                                                                              (lam
-                                                                                                thunk
-                                                                                                Unit
-                                                                                                [
-                                                                                                  [
-                                                                                                    sfOrdUpperBound0_c
-                                                                                                    ww
-                                                                                                  ]
-                                                                                                  ww
-                                                                                                ]
-                                                                                              )
-                                                                                            ]
-                                                                                            (lam
-                                                                                              thunk
-                                                                                              Unit
-                                                                                              False
-                                                                                            )
-                                                                                          ]
-                                                                                          Unit
-                                                                                        ]
-                                                                                      )
-                                                                                    ]
-                                                                                    Unit
-                                                                                  ]
-                                                                                )
-                                                                              )
-                                                                            ]
-                                                                            (lam
-                                                                              thunk
-                                                                              Unit
-                                                                              {
-                                                                                (abs
-                                                                                  e
-                                                                                  (type)
-                                                                                  (error
-                                                                                    e
-                                                                                  )
-                                                                                )
-                                                                                Bool
-                                                                              }
-                                                                            )
-                                                                          ]
-                                                                          (lam
-                                                                            thunk
-                                                                            Unit
-                                                                            [
                                                                               [
-                                                                                sfOrdUpperBound0_c
-                                                                                ww
+                                                                                {
+                                                                                  fOrdUpperBound0_c
+                                                                                  a
+                                                                                }
+                                                                                dOrd
                                                                               ]
-                                                                              ww
+                                                                              h
                                                                             ]
-                                                                          )
-                                                                        ]
-                                                                        Unit
+                                                                            h
+                                                                          ]
+                                                                        )
                                                                       ]
-                                                                    )
+                                                                      Unit
+                                                                    ]
                                                                   )
                                                                 ]
                                                                 (lam
                                                                   thunk
                                                                   Unit
-                                                                  {
-                                                                    (abs
-                                                                      e
-                                                                      (type)
-                                                                      (error e)
-                                                                    )
-                                                                    Bool
-                                                                  }
+                                                                  False
                                                                 )
                                                               ]
                                                               (lam
@@ -3612,336 +4288,15 @@
                                                                 [
                                                                   [
                                                                     [
-                                                                      [
-                                                                        {
-                                                                          [
-                                                                            {
-                                                                              Extended_match
-                                                                              (con integer)
-                                                                            }
-                                                                            ww
-                                                                          ]
-                                                                          (fun Unit Bool)
-                                                                        }
-                                                                        (lam
-                                                                          ipv
-                                                                          (con integer)
-                                                                          (lam
-                                                                            thunk
-                                                                            Unit
-                                                                            False
-                                                                          )
-                                                                        )
-                                                                      ]
-                                                                      (lam
-                                                                        thunk
-                                                                        Unit
-                                                                        {
-                                                                          (abs
-                                                                            e
-                                                                            (type)
-                                                                            (error
-                                                                              e
-                                                                            )
-                                                                          )
-                                                                          Bool
-                                                                        }
-                                                                      )
-                                                                    ]
-                                                                    (lam
-                                                                      thunk
-                                                                      Unit
-                                                                      j
-                                                                    )
-                                                                  ]
-                                                                  Unit
-                                                                ]
-                                                              )
-                                                            ]
-                                                            Unit
-                                                          ]
-                                                        )
-                                                      ]
-                                                      Unit
-                                                    ]
-                                                  )
-                                                )
-                                              ]
-                                              (lam
-                                                thunk
-                                                Unit
-                                                [
-                                                  [
-                                                    [
-                                                      [
-                                                        {
-                                                          [
-                                                            {
-                                                              Extended_match
-                                                              (con integer)
-                                                            }
-                                                            ww
-                                                          ]
-                                                          (fun Unit Bool)
-                                                        }
-                                                        (lam
-                                                          default_arg0
-                                                          (con integer)
-                                                          (lam
-                                                            thunk
-                                                            Unit
-                                                            [
-                                                              [
-                                                                sfOrdUpperBound0_c
-                                                                ww
-                                                              ]
-                                                              ww
-                                                            ]
-                                                          )
-                                                        )
-                                                      ]
-                                                      (lam thunk Unit j)
-                                                    ]
-                                                    (lam
-                                                      thunk
-                                                      Unit
-                                                      [
-                                                        [
-                                                          sfOrdUpperBound0_c ww
-                                                        ]
-                                                        ww
-                                                      ]
-                                                    )
-                                                  ]
-                                                  Unit
-                                                ]
-                                              )
-                                            ]
-                                            (lam
-                                              thunk
-                                              Unit
-                                              [
-                                                [
-                                                  [
-                                                    [
-                                                      {
-                                                        [
-                                                          {
-                                                            Extended_match
-                                                            (con integer)
-                                                          }
-                                                          ww
-                                                        ]
-                                                        (fun Unit Bool)
-                                                      }
-                                                      (lam
-                                                        default_arg0
-                                                        (con integer)
-                                                        (lam
-                                                          thunk
-                                                          Unit
-                                                          [
-                                                            [
-                                                              [
-                                                                [
-                                                                  {
-                                                                    [
                                                                       {
-                                                                        Extended_match
-                                                                        (con integer)
+                                                                        fOrdUpperBound0_c
+                                                                        a
                                                                       }
-                                                                      ww
+                                                                      dOrd
                                                                     ]
-                                                                    (fun Unit Bool)
-                                                                  }
-                                                                  (lam
-                                                                    ipv
-                                                                    (con integer)
-                                                                    (lam
-                                                                      thunk
-                                                                      Unit
-                                                                      [
-                                                                        [
-                                                                          [
-                                                                            [
-                                                                              {
-                                                                                [
-                                                                                  {
-                                                                                    Extended_match
-                                                                                    (con integer)
-                                                                                  }
-                                                                                  ww
-                                                                                ]
-                                                                                (fun Unit Bool)
-                                                                              }
-                                                                              (lam
-                                                                                ipv
-                                                                                (con integer)
-                                                                                (lam
-                                                                                  thunk
-                                                                                  Unit
-                                                                                  [
-                                                                                    [
-                                                                                      [
-                                                                                        {
-                                                                                          [
-                                                                                            Bool_match
-                                                                                            [
-                                                                                              [
-                                                                                                equalsInteger
-                                                                                                ipv
-                                                                                              ]
-                                                                                              ipv
-                                                                                            ]
-                                                                                          ]
-                                                                                          (fun Unit Bool)
-                                                                                        }
-                                                                                        (lam
-                                                                                          thunk
-                                                                                          Unit
-                                                                                          j
-                                                                                        )
-                                                                                      ]
-                                                                                      (lam
-                                                                                        thunk
-                                                                                        Unit
-                                                                                        [
-                                                                                          [
-                                                                                            [
-                                                                                              {
-                                                                                                [
-                                                                                                  Bool_match
-                                                                                                  [
-                                                                                                    [
-                                                                                                      lessThanEqInteger
-                                                                                                      ipv
-                                                                                                    ]
-                                                                                                    ipv
-                                                                                                  ]
-                                                                                                ]
-                                                                                                (fun Unit Bool)
-                                                                                              }
-                                                                                              (lam
-                                                                                                thunk
-                                                                                                Unit
-                                                                                                [
-                                                                                                  [
-                                                                                                    sfOrdUpperBound0_c
-                                                                                                    ww
-                                                                                                  ]
-                                                                                                  ww
-                                                                                                ]
-                                                                                              )
-                                                                                            ]
-                                                                                            (lam
-                                                                                              thunk
-                                                                                              Unit
-                                                                                              False
-                                                                                            )
-                                                                                          ]
-                                                                                          Unit
-                                                                                        ]
-                                                                                      )
-                                                                                    ]
-                                                                                    Unit
-                                                                                  ]
-                                                                                )
-                                                                              )
-                                                                            ]
-                                                                            (lam
-                                                                              thunk
-                                                                              Unit
-                                                                              {
-                                                                                (abs
-                                                                                  e
-                                                                                  (type)
-                                                                                  (error
-                                                                                    e
-                                                                                  )
-                                                                                )
-                                                                                Bool
-                                                                              }
-                                                                            )
-                                                                          ]
-                                                                          (lam
-                                                                            thunk
-                                                                            Unit
-                                                                            [
-                                                                              [
-                                                                                sfOrdUpperBound0_c
-                                                                                ww
-                                                                              ]
-                                                                              ww
-                                                                            ]
-                                                                          )
-                                                                        ]
-                                                                        Unit
-                                                                      ]
-                                                                    )
-                                                                  )
-                                                                ]
-                                                                (lam
-                                                                  thunk
-                                                                  Unit
-                                                                  {
-                                                                    (abs
-                                                                      e
-                                                                      (type)
-                                                                      (error e)
-                                                                    )
-                                                                    Bool
-                                                                  }
-                                                                )
-                                                              ]
-                                                              (lam
-                                                                thunk
-                                                                Unit
-                                                                [
-                                                                  [
-                                                                    [
-                                                                      [
-                                                                        {
-                                                                          [
-                                                                            {
-                                                                              Extended_match
-                                                                              (con integer)
-                                                                            }
-                                                                            ww
-                                                                          ]
-                                                                          (fun Unit Bool)
-                                                                        }
-                                                                        (lam
-                                                                          ipv
-                                                                          (con integer)
-                                                                          (lam
-                                                                            thunk
-                                                                            Unit
-                                                                            False
-                                                                          )
-                                                                        )
-                                                                      ]
-                                                                      (lam
-                                                                        thunk
-                                                                        Unit
-                                                                        {
-                                                                          (abs
-                                                                            e
-                                                                            (type)
-                                                                            (error
-                                                                              e
-                                                                            )
-                                                                          )
-                                                                          Bool
-                                                                        }
-                                                                      )
-                                                                    ]
-                                                                    (lam
-                                                                      thunk
-                                                                      Unit
-                                                                      j
-                                                                    )
+                                                                    h
                                                                   ]
-                                                                  Unit
+                                                                  h
                                                                 ]
                                                               )
                                                             ]
@@ -3950,333 +4305,17 @@
                                                         )
                                                       )
                                                     ]
-                                                    (lam thunk Unit False)
-                                                  ]
-                                                  (lam
-                                                    thunk
-                                                    Unit
-                                                    [
-                                                      [
-                                                        [
-                                                          [
-                                                            {
-                                                              [
-                                                                {
-                                                                  Extended_match
-                                                                  (con integer)
-                                                                }
-                                                                ww
-                                                              ]
-                                                              (fun Unit Bool)
-                                                            }
-                                                            (lam
-                                                              ipv
-                                                              (con integer)
-                                                              (lam
-                                                                thunk
-                                                                Unit
-                                                                [
-                                                                  [
-                                                                    [
-                                                                      [
-                                                                        {
-                                                                          [
-                                                                            {
-                                                                              Extended_match
-                                                                              (con integer)
-                                                                            }
-                                                                            ww
-                                                                          ]
-                                                                          (fun Unit Bool)
-                                                                        }
-                                                                        (lam
-                                                                          ipv
-                                                                          (con integer)
-                                                                          (lam
-                                                                            thunk
-                                                                            Unit
-                                                                            [
-                                                                              [
-                                                                                [
-                                                                                  {
-                                                                                    [
-                                                                                      Bool_match
-                                                                                      [
-                                                                                        [
-                                                                                          equalsInteger
-                                                                                          ipv
-                                                                                        ]
-                                                                                        ipv
-                                                                                      ]
-                                                                                    ]
-                                                                                    (fun Unit Bool)
-                                                                                  }
-                                                                                  (lam
-                                                                                    thunk
-                                                                                    Unit
-                                                                                    j
-                                                                                  )
-                                                                                ]
-                                                                                (lam
-                                                                                  thunk
-                                                                                  Unit
-                                                                                  [
-                                                                                    [
-                                                                                      [
-                                                                                        {
-                                                                                          [
-                                                                                            Bool_match
-                                                                                            [
-                                                                                              [
-                                                                                                lessThanEqInteger
-                                                                                                ipv
-                                                                                              ]
-                                                                                              ipv
-                                                                                            ]
-                                                                                          ]
-                                                                                          (fun Unit Bool)
-                                                                                        }
-                                                                                        (lam
-                                                                                          thunk
-                                                                                          Unit
-                                                                                          [
-                                                                                            [
-                                                                                              sfOrdUpperBound0_c
-                                                                                              ww
-                                                                                            ]
-                                                                                            ww
-                                                                                          ]
-                                                                                        )
-                                                                                      ]
-                                                                                      (lam
-                                                                                        thunk
-                                                                                        Unit
-                                                                                        False
-                                                                                      )
-                                                                                    ]
-                                                                                    Unit
-                                                                                  ]
-                                                                                )
-                                                                              ]
-                                                                              Unit
-                                                                            ]
-                                                                          )
-                                                                        )
-                                                                      ]
-                                                                      (lam
-                                                                        thunk
-                                                                        Unit
-                                                                        {
-                                                                          (abs
-                                                                            e
-                                                                            (type)
-                                                                            (error
-                                                                              e
-                                                                            )
-                                                                          )
-                                                                          Bool
-                                                                        }
-                                                                      )
-                                                                    ]
-                                                                    (lam
-                                                                      thunk
-                                                                      Unit
-                                                                      [
-                                                                        [
-                                                                          sfOrdUpperBound0_c
-                                                                          ww
-                                                                        ]
-                                                                        ww
-                                                                      ]
-                                                                    )
-                                                                  ]
-                                                                  Unit
-                                                                ]
-                                                              )
-                                                            )
-                                                          ]
-                                                          (lam
-                                                            thunk
-                                                            Unit
-                                                            {
-                                                              (abs
-                                                                e
-                                                                (type)
-                                                                (error e)
-                                                              )
-                                                              Bool
-                                                            }
-                                                          )
-                                                        ]
-                                                        (lam
-                                                          thunk
-                                                          Unit
-                                                          [
-                                                            [
-                                                              [
-                                                                [
-                                                                  {
-                                                                    [
-                                                                      {
-                                                                        Extended_match
-                                                                        (con integer)
-                                                                      }
-                                                                      ww
-                                                                    ]
-                                                                    (fun Unit Bool)
-                                                                  }
-                                                                  (lam
-                                                                    ipv
-                                                                    (con integer)
-                                                                    (lam
-                                                                      thunk
-                                                                      Unit
-                                                                      False
-                                                                    )
-                                                                  )
-                                                                ]
-                                                                (lam
-                                                                  thunk
-                                                                  Unit
-                                                                  {
-                                                                    (abs
-                                                                      e
-                                                                      (type)
-                                                                      (error e)
-                                                                    )
-                                                                    Bool
-                                                                  }
-                                                                )
-                                                              ]
-                                                              (lam thunk Unit j)
-                                                            ]
-                                                            Unit
-                                                          ]
-                                                        )
-                                                      ]
-                                                      Unit
-                                                    ]
                                                   )
-                                                ]
-                                                Unit
+                                                )
                                               ]
                                             )
-                                          ]
-                                          Unit
+                                          )
                                         ]
                                       )
                                     )
-                                  )
+                                  ]
                                 )
                               )
-                            )
-                          )
-                        )
-                        (termbind
-                          (strict)
-                          (vardecl
-                            scontains
-                            (fun [Interval (con integer)] (fun [Interval (con integer)] Bool))
-                          )
-                          (lam
-                            w
-                            [Interval (con integer)]
-                            (lam
-                              w
-                              [Interval (con integer)]
-                              [
-                                { [ { Interval_match (con integer) } w ] Bool }
-                                (lam
-                                  ww
-                                  [LowerBound (con integer)]
-                                  (lam
-                                    ww
-                                    [UpperBound (con integer)]
-                                    [
-                                      {
-                                        [
-                                          { LowerBound_match (con integer) } ww
-                                        ]
-                                        Bool
-                                      }
-                                      (lam
-                                        ww
-                                        [Extended (con integer)]
-                                        (lam
-                                          ww
-                                          Bool
-                                          [
-                                            {
-                                              [
-                                                { Interval_match (con integer) }
-                                                w
-                                              ]
-                                              Bool
-                                            }
-                                            (lam
-                                              ww
-                                              [LowerBound (con integer)]
-                                              (lam
-                                                ww
-                                                [UpperBound (con integer)]
-                                                [
-                                                  {
-                                                    [
-                                                      {
-                                                        LowerBound_match
-                                                        (con integer)
-                                                      }
-                                                      ww
-                                                    ]
-                                                    Bool
-                                                  }
-                                                  (lam
-                                                    ww
-                                                    [Extended (con integer)]
-                                                    (lam
-                                                      ww
-                                                      Bool
-                                                      [
-                                                        [
-                                                          [
-                                                            [
-                                                              [
-                                                                [
-                                                                  wscontains ww
-                                                                ]
-                                                                ww
-                                                              ]
-                                                              ww
-                                                            ]
-                                                            ww
-                                                          ]
-                                                          ww
-                                                        ]
-                                                        ww
-                                                      ]
-                                                    )
-                                                  )
-                                                ]
-                                              )
-                                            )
-                                          ]
-                                        )
-                                      )
-                                    ]
-                                  )
-                                )
-                              ]
-                            )
-                          )
-                        )
-                        (datatypebind
-                          (datatype
-                            (tyvardecl Campaign (type))
-
-                            Campaign_match
-                            (vardecl
-                              Campaign
-                              (fun (con integer) (fun [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]] (fun (con integer) (fun (con bytestring) Campaign))))
                             )
                           )
                         )
@@ -4348,119 +4387,132 @@
                                   [List TxInInfo]
                                   (lam
                                     ds
-                                    [List TxOut]
+                                    [List TxInInfo]
                                     (lam
                                       ds
-                                      [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]
+                                      [List TxOut]
                                       (lam
                                         ds
                                         [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]
                                         (lam
                                           ds
-                                          [Interval (con integer)]
+                                          [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]
                                           (lam
                                             ds
-                                            [List (con bytestring)]
+                                            [List DCert]
                                             (lam
                                               ds
-                                              [List (con bytestring)]
+                                              [List [[Tuple2 StakingCredential] (con integer)]]
                                               (lam
                                                 ds
-                                                [List [[Tuple2 (con bytestring)] Data]]
+                                                [Interval (con integer)]
                                                 (lam
                                                   ds
-                                                  (con bytestring)
-                                                  (let
-                                                    (nonrec)
-                                                    (termbind
-                                                      (nonstrict)
-                                                      (vardecl
-                                                        p
-                                                        (fun (con bytestring) Bool)
-                                                      )
-                                                      [ equalsByteString k ]
-                                                    )
-                                                    [
-                                                      [
+                                                  [List (con bytestring)]
+                                                  (lam
+                                                    ds
+                                                    [List [[Tuple2 (con bytestring)] Data]]
+                                                    (lam
+                                                      ds
+                                                      (con bytestring)
+                                                      (let
+                                                        (nonrec)
+                                                        (termbind
+                                                          (nonstrict)
+                                                          (vardecl
+                                                            p
+                                                            (fun (con bytestring) Bool)
+                                                          )
+                                                          [ equalsByteString k ]
+                                                        )
                                                         [
-                                                          {
+                                                          [
                                                             [
                                                               {
-                                                                Maybe_match
-                                                                (con bytestring)
-                                                              }
-                                                              [
                                                                 [
-                                                                  [
-                                                                    {
-                                                                      {
-                                                                        fFoldableNil_cfoldMap
-                                                                        [(lam a (type) [Maybe a]) (con bytestring)]
-                                                                      }
-                                                                      (con bytestring)
-                                                                    }
-                                                                    {
-                                                                      fMonoidFirst
-                                                                      (con bytestring)
-                                                                    }
-                                                                  ]
-                                                                  (lam
-                                                                    x
+                                                                  {
+                                                                    Maybe_match
                                                                     (con bytestring)
+                                                                  }
+                                                                  [
                                                                     [
                                                                       [
-                                                                        [
+                                                                        {
                                                                           {
-                                                                            [
-                                                                              Bool_match
-                                                                              [
-                                                                                p
-                                                                                x
-                                                                              ]
-                                                                            ]
-                                                                            (fun Unit [Maybe (con bytestring)])
+                                                                            fFoldableNil_cfoldMap
+                                                                            [(lam a (type) [Maybe a]) (con bytestring)]
                                                                           }
-                                                                          (lam
-                                                                            thunk
-                                                                            Unit
+                                                                          (con bytestring)
+                                                                        }
+                                                                        {
+                                                                          fMonoidFirst
+                                                                          (con bytestring)
+                                                                        }
+                                                                      ]
+                                                                      (lam
+                                                                        x
+                                                                        (con bytestring)
+                                                                        [
+                                                                          [
                                                                             [
                                                                               {
-                                                                                Just
+                                                                                [
+                                                                                  Bool_match
+                                                                                  [
+                                                                                    p
+                                                                                    x
+                                                                                  ]
+                                                                                ]
+                                                                                (fun Unit [Maybe (con bytestring)])
+                                                                              }
+                                                                              (lam
+                                                                                thunk
+                                                                                Unit
+                                                                                [
+                                                                                  {
+                                                                                    Just
+                                                                                    (con bytestring)
+                                                                                  }
+                                                                                  x
+                                                                                ]
+                                                                              )
+                                                                            ]
+                                                                            (lam
+                                                                              thunk
+                                                                              Unit
+                                                                              {
+                                                                                Nothing
                                                                                 (con bytestring)
                                                                               }
-                                                                              x
-                                                                            ]
-                                                                          )
-                                                                        ]
-                                                                        (lam
-                                                                          thunk
+                                                                            )
+                                                                          ]
                                                                           Unit
-                                                                          {
-                                                                            Nothing
-                                                                            (con bytestring)
-                                                                          }
-                                                                        )
-                                                                      ]
-                                                                      Unit
+                                                                        ]
+                                                                      )
                                                                     ]
-                                                                  )
+                                                                    ds
+                                                                  ]
                                                                 ]
+                                                                (fun Unit Bool)
+                                                              }
+                                                              (lam
                                                                 ds
-                                                              ]
+                                                                (con bytestring)
+                                                                (lam
+                                                                  thunk
+                                                                  Unit
+                                                                  True
+                                                                )
+                                                              )
                                                             ]
-                                                            (fun Unit Bool)
-                                                          }
-                                                          (lam
-                                                            ds
-                                                            (con bytestring)
-                                                            (lam thunk Unit True
+                                                            (lam
+                                                              thunk Unit False
                                                             )
-                                                          )
+                                                          ]
+                                                          Unit
                                                         ]
-                                                        (lam thunk Unit False)
-                                                      ]
-                                                      Unit
-                                                    ]
+                                                      )
+                                                    )
                                                   )
                                                 )
                                               )
@@ -4487,259 +4539,339 @@
                               txinfo
                               TxInfo
                               [
-                                { [ TxInfo_match txinfo ] Bool }
-                                (lam
-                                  ds
-                                  [List TxInInfo]
-                                  (lam
-                                    ds
-                                    [List TxOut]
-                                    (lam
-                                      ds
-                                      [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]
-                                      (lam
-                                        ds
-                                        [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]
-                                        (lam
-                                          ds
-                                          [Interval (con integer)]
-                                          (lam
-                                            ds
-                                            [List (con bytestring)]
-                                            (lam
-                                              ds
-                                              [List (con bytestring)]
-                                              (lam
-                                                ds
-                                                [List [[Tuple2 (con bytestring)] Data]]
-                                                (lam
-                                                  ds
-                                                  (con bytestring)
+                                [
+                                  [
+                                    {
+                                      [
+                                        Bool_match
+                                        [
+                                          [
+                                            [
+                                              { contains (con integer) }
+                                              fOrdSlot
+                                            ]
+                                            [
+                                              [
+                                                { Interval (con integer) }
+                                                [
                                                   [
+                                                    { LowerBound (con integer) }
                                                     [
+                                                      { Finite (con integer) }
                                                       [
                                                         {
                                                           [
-                                                            Bool_match
-                                                            [
-                                                              [
-                                                                scontains
-                                                                [
-                                                                  [
-                                                                    {
-                                                                      Interval
-                                                                      (con integer)
-                                                                    }
-                                                                    [
-                                                                      [
-                                                                        {
-                                                                          LowerBound
-                                                                          (con integer)
-                                                                        }
-                                                                        [
-                                                                          {
-                                                                            Finite
-                                                                            (con integer)
-                                                                          }
-                                                                          [
-                                                                            {
-                                                                              [
-                                                                                Campaign_match
-                                                                                campaign
-                                                                              ]
-                                                                              (con integer)
-                                                                            }
-                                                                            (lam
-                                                                              ds
-                                                                              (con integer)
-                                                                              (lam
-                                                                                ds
-                                                                                [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]
-                                                                                (lam
-                                                                                  ds
-                                                                                  (con integer)
-                                                                                  (lam
-                                                                                    ds
-                                                                                    (con bytestring)
-                                                                                    ds
-                                                                                  )
-                                                                                )
-                                                                              )
-                                                                            )
-                                                                          ]
-                                                                        ]
-                                                                      ]
-                                                                      True
-                                                                    ]
-                                                                  ]
-                                                                  [
-                                                                    [
-                                                                      {
-                                                                        UpperBound
-                                                                        (con integer)
-                                                                      }
-                                                                      [
-                                                                        {
-                                                                          Finite
-                                                                          (con integer)
-                                                                        }
-                                                                        [
-                                                                          {
-                                                                            [
-                                                                              Campaign_match
-                                                                              campaign
-                                                                            ]
-                                                                            (con integer)
-                                                                          }
-                                                                          (lam
-                                                                            ds
-                                                                            (con integer)
-                                                                            (lam
-                                                                              ds
-                                                                              [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]
-                                                                              (lam
-                                                                                ds
-                                                                                (con integer)
-                                                                                (lam
-                                                                                  ds
-                                                                                  (con bytestring)
-                                                                                  ds
-                                                                                )
-                                                                              )
-                                                                            )
-                                                                          )
-                                                                        ]
-                                                                      ]
-                                                                    ]
-                                                                    True
-                                                                  ]
-                                                                ]
-                                                              ]
-                                                              ds
-                                                            ]
+                                                            Campaign_match
+                                                            campaign
                                                           ]
-                                                          (fun Unit Bool)
+                                                          (con integer)
                                                         }
                                                         (lam
-                                                          thunk
-                                                          Unit
-                                                          [
-                                                            [
-                                                              [
-                                                                {
-                                                                  [
-                                                                    Bool_match
-                                                                    [
-                                                                      [
-                                                                        [
-                                                                          checkBinRel
-                                                                          greaterThanEqInteger
-                                                                        ]
-                                                                        [
-                                                                          [
-                                                                            [
-                                                                              {
-                                                                                {
-                                                                                  fFoldableNil_cfoldMap
-                                                                                  [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]
-                                                                                }
-                                                                                TxInInfo
-                                                                              }
-                                                                              fMonoidValue
-                                                                            ]
-                                                                            txInInfoValue
-                                                                          ]
-                                                                          ds
-                                                                        ]
-                                                                      ]
-                                                                      [
-                                                                        {
-                                                                          [
-                                                                            Campaign_match
-                                                                            campaign
-                                                                          ]
-                                                                          [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]
-                                                                        }
-                                                                        (lam
-                                                                          ds
-                                                                          (con integer)
-                                                                          (lam
-                                                                            ds
-                                                                            [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]
-                                                                            (lam
-                                                                              ds
-                                                                              (con integer)
-                                                                              (lam
-                                                                                ds
-                                                                                (con bytestring)
-                                                                                ds
-                                                                              )
-                                                                            )
-                                                                          )
-                                                                        )
-                                                                      ]
-                                                                    ]
-                                                                  ]
-                                                                  (fun Unit Bool)
-                                                                }
-                                                                (lam
-                                                                  thunk
-                                                                  Unit
-                                                                  [
-                                                                    [
-                                                                      txSignedBy
-                                                                      txinfo
-                                                                    ]
-                                                                    [
-                                                                      {
-                                                                        [
-                                                                          Campaign_match
-                                                                          campaign
-                                                                        ]
-                                                                        (con bytestring)
-                                                                      }
-                                                                      (lam
-                                                                        ds
-                                                                        (con integer)
-                                                                        (lam
-                                                                          ds
-                                                                          [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]
-                                                                          (lam
-                                                                            ds
-                                                                            (con integer)
-                                                                            (lam
-                                                                              ds
-                                                                              (con bytestring)
-                                                                              ds
-                                                                            )
-                                                                          )
-                                                                        )
-                                                                      )
-                                                                    ]
-                                                                  ]
-                                                                )
-                                                              ]
+                                                          ds
+                                                          (con integer)
+                                                          (lam
+                                                            ds
+                                                            [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]
+                                                            (lam
+                                                              ds
+                                                              (con integer)
                                                               (lam
-                                                                thunk Unit False
+                                                                ds
+                                                                (con bytestring)
+                                                                ds
                                                               )
-                                                            ]
-                                                            Unit
-                                                          ]
+                                                            )
+                                                          )
                                                         )
                                                       ]
-                                                      (lam thunk Unit False)
                                                     ]
-                                                    Unit
                                                   ]
+                                                  True
+                                                ]
+                                              ]
+                                              [
+                                                [
+                                                  { UpperBound (con integer) }
+                                                  [
+                                                    { Finite (con integer) }
+                                                    [
+                                                      {
+                                                        [
+                                                          Campaign_match
+                                                          campaign
+                                                        ]
+                                                        (con integer)
+                                                      }
+                                                      (lam
+                                                        ds
+                                                        (con integer)
+                                                        (lam
+                                                          ds
+                                                          [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]
+                                                          (lam
+                                                            ds
+                                                            (con integer)
+                                                            (lam
+                                                              ds
+                                                              (con bytestring)
+                                                              ds
+                                                            )
+                                                          )
+                                                        )
+                                                      )
+                                                    ]
+                                                  ]
+                                                ]
+                                                True
+                                              ]
+                                            ]
+                                          ]
+                                          [
+                                            {
+                                              [ TxInfo_match txinfo ]
+                                              [Interval (con integer)]
+                                            }
+                                            (lam
+                                              ds
+                                              [List TxInInfo]
+                                              (lam
+                                                ds
+                                                [List TxInInfo]
+                                                (lam
+                                                  ds
+                                                  [List TxOut]
+                                                  (lam
+                                                    ds
+                                                    [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]
+                                                    (lam
+                                                      ds
+                                                      [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]
+                                                      (lam
+                                                        ds
+                                                        [List DCert]
+                                                        (lam
+                                                          ds
+                                                          [List [[Tuple2 StakingCredential] (con integer)]]
+                                                          (lam
+                                                            ds
+                                                            [Interval (con integer)]
+                                                            (lam
+                                                              ds
+                                                              [List (con bytestring)]
+                                                              (lam
+                                                                ds
+                                                                [List [[Tuple2 (con bytestring)] Data]]
+                                                                (lam
+                                                                  ds
+                                                                  (con bytestring)
+                                                                  ds
+                                                                )
+                                                              )
+                                                            )
+                                                          )
+                                                        )
+                                                      )
+                                                    )
+                                                  )
                                                 )
                                               )
                                             )
-                                          )
-                                        )
-                                      )
+                                          ]
+                                        ]
+                                      ]
+                                      (fun Unit Bool)
+                                    }
+                                    (lam
+                                      thunk
+                                      Unit
+                                      [
+                                        [
+                                          [
+                                            {
+                                              [
+                                                Bool_match
+                                                [
+                                                  [
+                                                    [
+                                                      checkBinRel
+                                                      greaterThanEqInteger
+                                                    ]
+                                                    [
+                                                      {
+                                                        [ TxInfo_match txinfo ]
+                                                        [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]
+                                                      }
+                                                      (lam
+                                                        ds
+                                                        [List TxInInfo]
+                                                        (lam
+                                                          ds
+                                                          [List TxInInfo]
+                                                          (lam
+                                                            ds
+                                                            [List TxOut]
+                                                            (lam
+                                                              ds
+                                                              [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]
+                                                              (lam
+                                                                ds
+                                                                [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]
+                                                                (lam
+                                                                  ds
+                                                                  [List DCert]
+                                                                  (lam
+                                                                    ds
+                                                                    [List [[Tuple2 StakingCredential] (con integer)]]
+                                                                    (lam
+                                                                      ds
+                                                                      [Interval (con integer)]
+                                                                      (lam
+                                                                        ds
+                                                                        [List (con bytestring)]
+                                                                        (lam
+                                                                          ds
+                                                                          [List [[Tuple2 (con bytestring)] Data]]
+                                                                          (lam
+                                                                            ds
+                                                                            (con bytestring)
+                                                                            [
+                                                                              [
+                                                                                [
+                                                                                  {
+                                                                                    {
+                                                                                      fFoldableNil_cfoldMap
+                                                                                      [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]
+                                                                                    }
+                                                                                    TxInInfo
+                                                                                  }
+                                                                                  fMonoidValue
+                                                                                ]
+                                                                                (lam
+                                                                                  x
+                                                                                  TxInInfo
+                                                                                  [
+                                                                                    {
+                                                                                      [
+                                                                                        TxInInfo_match
+                                                                                        x
+                                                                                      ]
+                                                                                      [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]
+                                                                                    }
+                                                                                    (lam
+                                                                                      ds
+                                                                                      TxOutRef
+                                                                                      (lam
+                                                                                        ds
+                                                                                        TxOut
+                                                                                        [
+                                                                                          {
+                                                                                            [
+                                                                                              TxOut_match
+                                                                                              ds
+                                                                                            ]
+                                                                                            [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]
+                                                                                          }
+                                                                                          (lam
+                                                                                            ds
+                                                                                            Address
+                                                                                            (lam
+                                                                                              ds
+                                                                                              [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]
+                                                                                              (lam
+                                                                                                ds
+                                                                                                [Maybe (con bytestring)]
+                                                                                                ds
+                                                                                              )
+                                                                                            )
+                                                                                          )
+                                                                                        ]
+                                                                                      )
+                                                                                    )
+                                                                                  ]
+                                                                                )
+                                                                              ]
+                                                                              ds
+                                                                            ]
+                                                                          )
+                                                                        )
+                                                                      )
+                                                                    )
+                                                                  )
+                                                                )
+                                                              )
+                                                            )
+                                                          )
+                                                        )
+                                                      )
+                                                    ]
+                                                  ]
+                                                  [
+                                                    {
+                                                      [
+                                                        Campaign_match campaign
+                                                      ]
+                                                      [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]
+                                                    }
+                                                    (lam
+                                                      ds
+                                                      (con integer)
+                                                      (lam
+                                                        ds
+                                                        [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]
+                                                        (lam
+                                                          ds
+                                                          (con integer)
+                                                          (lam
+                                                            ds
+                                                            (con bytestring)
+                                                            ds
+                                                          )
+                                                        )
+                                                      )
+                                                    )
+                                                  ]
+                                                ]
+                                              ]
+                                              (fun Unit Bool)
+                                            }
+                                            (lam
+                                              thunk
+                                              Unit
+                                              [
+                                                [ txSignedBy txinfo ]
+                                                [
+                                                  {
+                                                    [ Campaign_match campaign ]
+                                                    (con bytestring)
+                                                  }
+                                                  (lam
+                                                    ds
+                                                    (con integer)
+                                                    (lam
+                                                      ds
+                                                      [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]
+                                                      (lam
+                                                        ds
+                                                        (con integer)
+                                                        (lam
+                                                          ds (con bytestring) ds
+                                                        )
+                                                      )
+                                                    )
+                                                  )
+                                                ]
+                                              ]
+                                            )
+                                          ]
+                                          (lam thunk Unit False)
+                                        ]
+                                        Unit
+                                      ]
                                     )
-                                  )
-                                )
+                                  ]
+                                  (lam thunk Unit False)
+                                ]
+                                Unit
                               ]
                             )
                           )
@@ -4760,136 +4892,131 @@
                                 txinfo
                                 TxInfo
                                 [
-                                  { [ TxInfo_match txinfo ] Bool }
-                                  (lam
-                                    ds
-                                    [List TxInInfo]
-                                    (lam
-                                      ds
-                                      [List TxOut]
-                                      (lam
-                                        ds
-                                        [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]
-                                        (lam
-                                          ds
-                                          [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]
-                                          (lam
-                                            ds
-                                            [Interval (con integer)]
-                                            (lam
-                                              ds
-                                              [List (con bytestring)]
-                                              (lam
-                                                ds
-                                                [List (con bytestring)]
-                                                (lam
-                                                  ds
-                                                  [List [[Tuple2 (con bytestring)] Data]]
-                                                  (lam
-                                                    ds
-                                                    (con bytestring)
+                                  [
+                                    [
+                                      {
+                                        [
+                                          Bool_match
+                                          [
+                                            [
+                                              [
+                                                { contains (con integer) }
+                                                fOrdSlot
+                                              ]
+                                              [
+                                                [
+                                                  { Interval (con integer) }
+                                                  [
                                                     [
+                                                      {
+                                                        LowerBound (con integer)
+                                                      }
                                                       [
+                                                        { Finite (con integer) }
                                                         [
                                                           {
                                                             [
-                                                              Bool_match
-                                                              [
-                                                                [
-                                                                  scontains
-                                                                  [
-                                                                    [
-                                                                      {
-                                                                        Interval
-                                                                        (con integer)
-                                                                      }
-                                                                      [
-                                                                        [
-                                                                          {
-                                                                            LowerBound
-                                                                            (con integer)
-                                                                          }
-                                                                          [
-                                                                            {
-                                                                              Finite
-                                                                              (con integer)
-                                                                            }
-                                                                            [
-                                                                              {
-                                                                                [
-                                                                                  Campaign_match
-                                                                                  campaign
-                                                                                ]
-                                                                                (con integer)
-                                                                              }
-                                                                              (lam
-                                                                                ds
-                                                                                (con integer)
-                                                                                (lam
-                                                                                  ds
-                                                                                  [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]
-                                                                                  (lam
-                                                                                    ds
-                                                                                    (con integer)
-                                                                                    (lam
-                                                                                      ds
-                                                                                      (con bytestring)
-                                                                                      ds
-                                                                                    )
-                                                                                  )
-                                                                                )
-                                                                              )
-                                                                            ]
-                                                                          ]
-                                                                        ]
-                                                                        True
-                                                                      ]
-                                                                    ]
-                                                                    [
-                                                                      [
-                                                                        {
-                                                                          UpperBound
-                                                                          (con integer)
-                                                                        }
-                                                                        {
-                                                                          PosInf
-                                                                          (con integer)
-                                                                        }
-                                                                      ]
-                                                                      True
-                                                                    ]
-                                                                  ]
-                                                                ]
-                                                                ds
-                                                              ]
+                                                              Campaign_match
+                                                              campaign
                                                             ]
-                                                            (fun Unit Bool)
+                                                            (con integer)
                                                           }
                                                           (lam
-                                                            thunk
-                                                            Unit
-                                                            [
-                                                              [
-                                                                txSignedBy
-                                                                txinfo
-                                                              ]
-                                                              contributor
-                                                            ]
+                                                            ds
+                                                            (con integer)
+                                                            (lam
+                                                              ds
+                                                              [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]
+                                                              (lam
+                                                                ds
+                                                                (con integer)
+                                                                (lam
+                                                                  ds
+                                                                  (con bytestring)
+                                                                  ds
+                                                                )
+                                                              )
+                                                            )
                                                           )
                                                         ]
-                                                        (lam thunk Unit False)
                                                       ]
-                                                      Unit
                                                     ]
+                                                    True
+                                                  ]
+                                                ]
+                                                [
+                                                  [
+                                                    { UpperBound (con integer) }
+                                                    { PosInf (con integer) }
+                                                  ]
+                                                  True
+                                                ]
+                                              ]
+                                            ]
+                                            [
+                                              {
+                                                [ TxInfo_match txinfo ]
+                                                [Interval (con integer)]
+                                              }
+                                              (lam
+                                                ds
+                                                [List TxInInfo]
+                                                (lam
+                                                  ds
+                                                  [List TxInInfo]
+                                                  (lam
+                                                    ds
+                                                    [List TxOut]
+                                                    (lam
+                                                      ds
+                                                      [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]
+                                                      (lam
+                                                        ds
+                                                        [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]
+                                                        (lam
+                                                          ds
+                                                          [List DCert]
+                                                          (lam
+                                                            ds
+                                                            [List [[Tuple2 StakingCredential] (con integer)]]
+                                                            (lam
+                                                              ds
+                                                              [Interval (con integer)]
+                                                              (lam
+                                                                ds
+                                                                [List (con bytestring)]
+                                                                (lam
+                                                                  ds
+                                                                  [List [[Tuple2 (con bytestring)] Data]]
+                                                                  (lam
+                                                                    ds
+                                                                    (con bytestring)
+                                                                    ds
+                                                                  )
+                                                                )
+                                                              )
+                                                            )
+                                                          )
+                                                        )
+                                                      )
+                                                    )
                                                   )
                                                 )
                                               )
-                                            )
-                                          )
-                                        )
+                                            ]
+                                          ]
+                                        ]
+                                        (fun Unit Bool)
+                                      }
+                                      (lam
+                                        thunk
+                                        Unit
+                                        [ [ txSignedBy txinfo ] contributor ]
                                       )
-                                    )
-                                  )
+                                    ]
+                                    (lam thunk Unit False)
+                                  ]
+                                  Unit
                                 ]
                               )
                             )
@@ -4899,7 +5026,7 @@
                           (strict)
                           (vardecl
                             mkValidator
-                            (fun Campaign (fun (con bytestring) (fun CampaignAction (fun ValidatorCtx Bool))))
+                            (fun Campaign (fun (con bytestring) (fun CampaignAction (fun ScriptContext Bool))))
                           )
                           (lam
                             c
@@ -4911,50 +5038,39 @@
                                 act
                                 CampaignAction
                                 (lam
-                                  p
-                                  ValidatorCtx
+                                  ds
+                                  ScriptContext
                                   [
-                                    [
-                                      [
-                                        {
-                                          [ CampaignAction_match act ]
-                                          (fun Unit Bool)
-                                        }
-                                        (lam
-                                          thunk
-                                          Unit
+                                    { [ ScriptContext_match ds ] Bool }
+                                    (lam
+                                      ds
+                                      TxInfo
+                                      (lam
+                                        ds
+                                        ScriptPurpose
+                                        [
                                           [
-                                            { [ ValidatorCtx_match p ] Bool }
-                                            (lam
-                                              ds
-                                              TxInfo
+                                            [
+                                              {
+                                                [ CampaignAction_match act ]
+                                                (fun Unit Bool)
+                                              }
                                               (lam
-                                                ds
-                                                (con integer)
+                                                thunk
+                                                Unit
                                                 [ [ validCollection c ] ds ]
                                               )
-                                            )
-                                          ]
-                                        )
-                                      ]
-                                      (lam
-                                        thunk
-                                        Unit
-                                        [
-                                          { [ ValidatorCtx_match p ] Bool }
-                                          (lam
-                                            ds
-                                            TxInfo
+                                            ]
                                             (lam
-                                              ds
-                                              (con integer)
+                                              thunk
+                                              Unit
                                               [ [ [ validRefund c ] con ] ds ]
                                             )
-                                          )
+                                          ]
+                                          Unit
                                         ]
                                       )
-                                    ]
-                                    Unit
+                                    )
                                   ]
                                 )
                               )

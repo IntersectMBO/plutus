@@ -16,6 +16,7 @@ module Plutus.Contract.State(
     , ContractResponse(..)
     , insertAndUpdateContract
     , initialiseContract
+    , mkResponse
     ) where
 
 import           Control.Monad.Freer.Extras.Log   (LogMessage)

@@ -7,14 +7,12 @@
 {-# LANGUAGE TypeApplications    #-}
 {-# OPTIONS_GHC -fno-strictness  #-}
 {-# OPTIONS_GHC -fno-ignore-interface-pragmas #-}
-{-# OPTIONS -fplugin-opt PlutusTx.Plugin:debug-context #-}
+{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:debug-context #-}
 module Spec.MultiSigStateMachine(tests, lockProposeSignPay) where
 
 import           Data.Foldable                         (traverse_)
 import           Test.Tasty                            (TestTree, testGroup)
 import qualified Test.Tasty.HUnit                      as HUnit
-
-import           Spec.Lib                              as Lib
 
 import qualified Ledger
 import qualified Ledger.Ada                            as Ada
@@ -54,8 +52,8 @@ tests =
         .&&. walletFundsChange w2 (Ada.lovelaceValueOf 10))
         (lockProposeSignPay 3 3)
 
-    , Lib.goldenPir "test/Spec/multisigStateMachine.pir" $$(PlutusTx.compile [|| MS.mkValidator ||])
-    , HUnit.testCase "script size is reasonable" (Lib.reasonable (Scripts.validatorScript $ MS.scriptInstance params) 51000)
+    , goldenPir "test/Spec/multisigStateMachine.pir" $$(PlutusTx.compile [|| MS.mkValidator ||])
+    , HUnit.testCaseSteps "script size is reasonable" $ \step -> reasonable' step (Scripts.validatorScript $ MS.scriptInstance params) 51000
     ]
 
 w1, w2, w3 :: EM.Wallet

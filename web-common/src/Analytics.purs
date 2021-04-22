@@ -37,6 +37,13 @@ type SegmentEvent
     , payload :: Object Foreign
     }
 
+type TimingEvent
+  = { category :: String
+    , variable :: String
+    , miliseconds :: Number
+    , label :: String
+    }
+
 defaultEvent :: String -> Event
 defaultEvent action =
   { action

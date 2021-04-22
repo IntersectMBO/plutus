@@ -1,0 +1,9 @@
+steps:
+  - label: 'morph deploy 🚀'
+    command:
+      - "./.buildkite/deploy.sh alpha"
+    branches: "master"
+    concurrency: 1
+    concurrency_group: "plutus-alpha-deploy"
+    agents:
+      system: x86_64-linux

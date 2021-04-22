@@ -55,9 +55,9 @@ handleLogMsgTrace :: forall a m effs.
   , MonadIO m
   )
   => Trace m a
-  -> Eff (LogMsg a ': effs)
+  -> LogMsg a
   ~> Eff effs
-handleLogMsgTrace trace = interpret $ \case
+handleLogMsgTrace trace = \case
   LMessage L.LogMessage{L._logLevel, L._logMessageContent} ->
     let defaultPrivacy = Public -- TODO: Configurable / add to 'L.LogMessage'?
     in sendM $ traceNamedItem trace defaultPrivacy (toSeverity _logLevel) _logMessageContent
@@ -69,7 +69,7 @@ handleLogMsgTraceMap :: forall b a m effs.
   )
   => (b -> a)
   -> Trace m a
-  -> Eff (LogMsg b ': effs)
+  -> LogMsg b
   ~> Eff effs
 handleLogMsgTraceMap f t = handleLogMsgTrace (contramap (second (fmap f)) t)
 
@@ -79,13 +79,11 @@ runLogEffects ::
     => Trace m l
     -> Eff '[LogMsg l, m]
     ~> m
-runLogEffects trace = runM . handleLogMsgTrace trace
-
+runLogEffects trace = runM . interpret (handleLogMsgTrace trace)
 
 -- | Convert tracer structured log data
 convertLog :: (a -> b) -> Trace m b -> Trace m a
 convertLog f = contramap (second (fmap f))
-
 
 -- | Handle the 'LogObserve' effect using the 'Cardano.BM.Observer.Monadic'
 --   observer functions

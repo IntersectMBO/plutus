@@ -4,6 +4,7 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TemplateHaskell     #-}
 {-# LANGUAGE TypeApplications    #-}
+{-# LANGUAGE TypeFamilies        #-}
 {-# OPTIONS_GHC -fno-warn-incomplete-uni-patterns #-}
 {-# OPTIONS_GHC -fno-ignore-interface-pragmas #-}
 module Spec.Emulator(tests) where
@@ -15,12 +16,15 @@ import qualified Control.Monad.Freer            as Eff
 import qualified Control.Monad.Freer.Error      as E
 import           Control.Monad.Freer.Extras
 import           Control.Monad.Freer.Extras.Log (logMessageContent)
+import           Control.Monad.Freer.Writer     (Writer, runWriter, tell)
 import           Control.Monad.Trans.Except     (runExcept)
 import qualified Data.Aeson                     as JSON
 import qualified Data.Aeson.Extras              as JSON
 import qualified Data.Aeson.Internal            as Aeson
 import qualified Data.ByteString                as BSS
 import qualified Data.ByteString.Lazy           as BSL
+import           Data.ByteString.Lazy.Char8     (pack)
+import           Data.Default                   (Default (..))
 import           Data.Either                    (isLeft, isRight)
 import           Data.Foldable                  (fold, foldl', traverse_)
 import           Data.List                      (sort)
@@ -42,7 +46,7 @@ import           Ledger.Typed.Scripts           (wrapValidator)
 import           Ledger.Value                   (CurrencySymbol, Value (Value))
 import qualified Ledger.Value                   as Value
 import           Plutus.Contract.Test           hiding (not)
-import           Plutus.Trace                   (EmulatorTrace)
+import           Plutus.Trace                   (EmulatorTrace, PrintEffect (..))
 import qualified Plutus.Trace                   as Trace
 import qualified PlutusTx                       as PlutusTx
 import           PlutusTx.AssocMap              as AssocMap
@@ -50,6 +54,7 @@ import qualified PlutusTx.Builtins              as Builtins
 import qualified PlutusTx.Numeric               as P
 import qualified PlutusTx.Prelude               as PlutusTx
 import           Test.Tasty
+import           Test.Tasty.Golden              (goldenVsString)
 import           Test.Tasty.HUnit               (testCase)
 import qualified Test.Tasty.HUnit               as HUnit
 import           Test.Tasty.Hedgehog            (testProperty)
@@ -61,6 +66,7 @@ import qualified Wallet.Emulator.NodeClient     as NC
 import           Wallet.Emulator.Types
 import qualified Wallet.Emulator.Wallet         as Wallet
 import qualified Wallet.Graph
+
 
 tests :: TestTree
 tests = testGroup "all tests" [
@@ -79,11 +85,44 @@ tests = testGroup "all tests" [
         testProperty "payToPubkey" payToPubKeyScript,
         testProperty "payToPubkey-2" payToPubKeyScript2
         ],
+    testGroup "trace output" [
+        goldenVsString
+          "captures a trace of a wait"
+          "test/Spec/golden/traceOutput - wait1.txt"
+          (pure $ captureTrace (void $ Trace.waitNSlots 1)),
+        goldenVsString
+          "captures a trace of pubKeytransactions"
+          "test/Spec/golden/traceOutput - pubKeyTransactions.txt"
+          (pure $ captureTrace pubKeyTransactions),
+        goldenVsString
+          "captures a trace of pubKeytransactions2"
+          "test/Spec/golden/traceOutput - pubKeyTransactions2.txt"
+          (pure $ captureTrace pubKeyTransactions2)
+    ],
     testGroup "Etc." [
         testProperty "selectCoin" selectCoinProp,
         testProperty "txnFlows" txnFlowsTest
         ]
     ]
+
+
+captureTrace
+    :: EmulatorTrace ()
+    -> BSL.ByteString
+captureTrace trace
+  = pack $ unlines output
+  where
+    output = capturePrintEffect $ Trace.runEmulatorTraceEff def def trace
+
+capturePrintEffect
+         :: Eff.Eff '[PrintEffect] r
+         -> [String]
+capturePrintEffect effs = snd $ Eff.run (runWriter (Eff.reinterpret f effs))
+  where
+    f :: PrintEffect r -> Eff.Eff '[Writer [String]] r
+    f = \case
+      PrintLn s -> tell [s]
+
 
 wallet1, wallet2, wallet3 :: Wallet
 wallet1 = Wallet 1
@@ -214,7 +253,7 @@ invalidScript = property $ do
     where
         failValidator :: Validator
         failValidator = mkValidatorScript $$(PlutusTx.compile [|| wrapValidator validator ||])
-        validator :: () -> () -> ValidatorCtx -> Bool
+        validator :: () -> () -> ScriptContext -> Bool
         validator _ _ _ = PlutusTx.traceError "I always fail everything"
 
 
@@ -231,7 +270,7 @@ txnFlowsTest =
 notifyWallet :: Property
 notifyWallet =
     checkPredicateGen Gen.generatorModel
-    (valueAtAddress (Wallet.walletAddress wallet1) (== initialBalance))
+    (walletFundsChange wallet1 mempty)
     (pure ())
 
 walletWatchinOwnAddress :: Property
@@ -242,7 +281,7 @@ walletWatchinOwnAddress =
 
 payToPubKeyScript :: Property
 payToPubKeyScript =
-    let hasInitialBalance w = valueAtAddress (Wallet.walletAddress w) (== initialBalance)
+    let hasInitialBalance w = walletFundsChange w mempty
     in checkPredicateGen Gen.generatorModel
         (hasInitialBalance wallet1
             .&&. hasInitialBalance wallet2
@@ -251,7 +290,7 @@ payToPubKeyScript =
 
 payToPubKeyScript2 :: Property
 payToPubKeyScript2 =
-    let hasInitialBalance w = valueAtAddress (Wallet.walletAddress w) (== initialBalance)
+    let hasInitialBalance w = walletFundsChange w mempty
     in checkPredicateGen Gen.generatorModel
         (hasInitialBalance wallet1
             .&&. hasInitialBalance wallet2
@@ -272,15 +311,15 @@ pubKeyTransactions = do
 pubKeyTransactions2 :: EmulatorTrace ()
 pubKeyTransactions2 = do
     let [w1, w2, w3] = [wallet1, wallet2, wallet3]
-        payment1 = initialBalance P.- Ada.lovelaceValueOf 1
-        payment2 = initialBalance P.+ Ada.lovelaceValueOf 1
+        payment1 = initialBalance P.- Ada.lovelaceValueOf 100
+        payment2 = initialBalance P.+ Ada.lovelaceValueOf 100
     Trace.liftWallet wallet1 $ payToPublicKey_ W.always payment1 pubKey2
     _ <- Trace.nextSlot
     Trace.liftWallet wallet2 $ payToPublicKey_ W.always payment2 pubKey3
     _ <- Trace.nextSlot
     Trace.liftWallet wallet3 $ payToPublicKey_ W.always payment2 pubKey1
     _ <- Trace.nextSlot
-    Trace.liftWallet wallet1 $ payToPublicKey_ W.always (Ada.lovelaceValueOf 2) pubKey2
+    Trace.liftWallet wallet1 $ payToPublicKey_ W.always (Ada.lovelaceValueOf 200) pubKey2
     void $ Trace.nextSlot
 
 genChainTxn :: Hedgehog.MonadGen m => m (Mockchain, Tx)

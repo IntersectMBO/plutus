@@ -37,15 +37,16 @@ module Plutus.V1.Ledger.Interval(
     , strictUpperBound
     ) where
 
-import           Codec.Serialise.Class (Serialise)
-import           Control.DeepSeq       (NFData)
-import           Data.Aeson            (FromJSON, ToJSON)
-import           Data.Hashable         (Hashable)
-import           GHC.Generics          (Generic)
-import qualified Prelude               as Haskell
+import           Codec.Serialise.Class     (Serialise)
+import           Control.DeepSeq           (NFData)
+import           Data.Aeson                (FromJSON, ToJSON)
+import           Data.Hashable             (Hashable)
+import           Data.Text.Prettyprint.Doc (Pretty (pretty), (<+>))
+import           GHC.Generics              (Generic)
+import qualified Prelude                   as Haskell
 
-import qualified PlutusTx              as PlutusTx
-import           PlutusTx.Lift         (makeLift)
+import qualified PlutusTx                  as PlutusTx
+import           PlutusTx.Lift             (makeLift)
 import           PlutusTx.Prelude
 
 -- | An interval of @a@s.
@@ -63,6 +64,11 @@ data Extended a = NegInf | Finite a | PosInf
     deriving stock (Haskell.Eq, Haskell.Ord, Show, Generic)
     deriving anyclass (FromJSON, ToJSON, Serialise, Hashable, NFData)
 
+instance Pretty a => Pretty (Extended a) where
+    pretty NegInf     = pretty "-∞"
+    pretty PosInf     = pretty "+∞"
+    pretty (Finite a) = pretty a
+
 -- | Whether a bound is inclusive or not.
 type Closure = Bool
 
@@ -71,10 +77,22 @@ data UpperBound a = UpperBound (Extended a) Closure
     deriving stock (Haskell.Eq, Haskell.Ord, Show, Generic)
     deriving anyclass (FromJSON, ToJSON, Serialise, Hashable, NFData)
 
+instance Pretty a => Pretty (UpperBound a) where
+    pretty (UpperBound PosInf _) = pretty "+∞)"
+    pretty (UpperBound NegInf _) = pretty "-∞)"
+    pretty (UpperBound a True)   = pretty a <+> pretty "]"
+    pretty (UpperBound a False)  = pretty a <+> pretty ")"
+
 -- | The lower bound of an interval.
 data LowerBound a = LowerBound (Extended a) Closure
     deriving stock (Haskell.Eq, Haskell.Ord, Show, Generic)
     deriving anyclass (FromJSON, ToJSON, Serialise, Hashable, NFData)
+
+instance Pretty a => Pretty (LowerBound a) where
+    pretty (LowerBound PosInf _) = pretty "(+∞"
+    pretty (LowerBound NegInf _) = pretty "(-∞"
+    pretty (LowerBound a True)   = pretty "[" <+> pretty a
+    pretty (LowerBound a False)  = pretty "(" <+> pretty a
 
 PlutusTx.makeIsDataIndexed ''Extended [('NegInf,0),('Finite,1),('PosInf,2)]
 PlutusTx.makeIsDataIndexed ''UpperBound [('UpperBound,0)]

@@ -14,11 +14,10 @@ import           Control.Monad.Freer                   (run)
 import           Control.Monad.Freer.Extras.Log        (LogLevel (..))
 import           Data.ByteString.Lazy                  (ByteString)
 import qualified Data.ByteString.Lazy                  as BSL
+import           Data.Default                          (Default (..))
 import qualified Data.Text.Encoding                    as T
 import           Data.Text.Prettyprint.Doc             (Pretty (..), defaultLayoutOptions, layoutPretty, vsep)
 import           Data.Text.Prettyprint.Doc.Render.Text (renderStrict)
-import           Spec.Lib                              (timesFeeAdjust)
-import qualified Spec.Lib                              as Lib
 import           Test.Tasty
 import           Test.Tasty.Golden                     (goldenVsString)
 import qualified Test.Tasty.HUnit                      as HUnit
@@ -54,12 +53,12 @@ tests = testGroup "crowdfunding"
         $ void (Trace.activateContractWallet w1 theContract)
 
     , checkPredicateOptions (defaultCheckOptions & maxSlot .~ 20) "make contribution"
-        (walletFundsChange w1 (1 `timesFeeAdjust` (-10)))
+        (walletFundsChange w1 (Ada.lovelaceValueOf (-10)))
         $ let contribution = Ada.lovelaceValueOf 10
           in makeContribution w1 contribution >> void Trace.nextSlot
 
     , checkPredicate "make contributions and collect"
-        (walletFundsChange w1 (1 `timesFeeAdjust` 21))
+        (walletFundsChange w1 (Ada.lovelaceValueOf 21))
         $ successfulCampaign
 
     , checkPredicate "cannot collect money too late"
@@ -92,22 +91,22 @@ tests = testGroup "crowdfunding"
             void $ Trace.waitUntilSlot 35
 
     , checkPredicate "can claim a refund"
-        (walletFundsChange w2 (2 `timesFeeAdjust` 0)
-        .&&. walletFundsChange w3 (2 `timesFeeAdjust` 0))
+        (walletFundsChange w2 mempty
+        .&&. walletFundsChange w3 mempty)
         $ do
             startCampaign
             makeContribution w2 (Ada.lovelaceValueOf 5)
             void $ makeContribution w3 (Ada.lovelaceValueOf 5)
             void $ Trace.waitUntilSlot 31
 
-    , Lib.goldenPir "test/Spec/crowdfunding.pir" $$(PlutusTx.compile [|| mkValidator ||])
+    , goldenPir "test/Spec/crowdfunding.pir" $$(PlutusTx.compile [|| mkValidator ||])
     ,   let
             deadline = 10
             target = Ada.lovelaceValueOf 1000
             collectionDeadline = 15
             owner = w1
             cmp = mkCampaign deadline target collectionDeadline owner
-        in HUnit.testCase "script size is reasonable" (Lib.reasonable (contributionScript cmp) 30000)
+        in HUnit.testCaseSteps "script size is reasonable" $ \step -> reasonable' step (contributionScript cmp) 30000
 
     , goldenVsString
         "renders the log of a single contract instance sensibly"
@@ -132,7 +131,7 @@ renderWalletLog trace =
             run
             $ foldEmulatorStreamM (L.generalize $ Folds.instanceLog (Trace.walletInstanceTag w1))
             $ filterLogLevel Info
-            $ Trace.runEmulatorStream Trace.defaultEmulatorConfig trace
+            $ Trace.runEmulatorStream def trace
     in BSL.fromStrict $ T.encodeUtf8 $ renderStrict $ layoutPretty defaultLayoutOptions $ vsep $ fmap pretty $ S.fst' result
 
 renderEmulatorLog :: EmulatorTrace () -> ByteString
@@ -141,5 +140,5 @@ renderEmulatorLog trace =
             run
             $ foldEmulatorStreamM (L.generalize Folds.emulatorLog)
             $ filterLogLevel Info
-            $ Trace.runEmulatorStream Trace.defaultEmulatorConfig trace
+            $ Trace.runEmulatorStream def trace
     in BSL.fromStrict $ T.encodeUtf8 $ renderStrict $ layoutPretty defaultLayoutOptions $ vsep $ fmap pretty $ S.fst' result

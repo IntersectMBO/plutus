@@ -28,6 +28,7 @@ import           PlutusCore.Name
 import           PlutusCore.Universe
 
 import           Control.Lens                            (ix, (^?))
+import           Control.Monad.Catch
 import           Control.Monad.Except
 import           Data.Array
 import qualified Data.ByteString                         as BS
@@ -116,6 +117,15 @@ lookupBuiltin
 -- @Data.Array@ doesn't seem to have a safe version of @(!)@, hence we use a prism.
 lookupBuiltin fun (BuiltinsRuntime env) = case env ^? ix fun of
     Nothing  -> throwingWithCause _MachineError (UnknownBuiltin fun) Nothing
+    Just bri -> pure bri
+
+-- | Look up the runtime info of a built-in function during evaluation.
+lookupBuiltinExc
+    :: forall ex err fun term m proxy val . (MonadThrow m, ex ~ ErrorWithCause err term, AsMachineError err fun term, Ix fun, Exception ex)
+    => proxy ex -> fun -> BuiltinsRuntime fun val -> m (BuiltinRuntime val)
+-- @Data.Array@ doesn't seem to have a safe version of @(!)@, hence we use a prism.
+lookupBuiltinExc _ fun (BuiltinsRuntime env) = case env ^? ix fun of
+    Nothing  -> throwingWithCauseExc @ex _MachineError (UnknownBuiltin fun) Nothing
     Just bri -> pure bri
 
 {- Note [Automatic derivation of type schemes]

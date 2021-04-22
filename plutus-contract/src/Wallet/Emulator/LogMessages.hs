@@ -14,14 +14,14 @@ import           Data.Text.Prettyprint.Doc   (Pretty (..), hang, viaShow, vsep, 
 import           GHC.Generics                (Generic)
 import           Ledger                      (Address)
 import           Ledger.Constraints.OffChain (UnbalancedTx)
-import           Ledger.Slot                 (Slot)
+import           Ledger.Slot                 (Slot, SlotRange)
 import           Ledger.Value                (Value)
 import           Wallet.Emulator.Error       (WalletAPIError)
 
 data RequestHandlerLogMsg =
     SlotNoficationTargetVsCurrent Slot Slot
     | StartWatchingContractAddresses
-    | HandleNextTxAt Slot Slot
+    | HandleAddressChangedAt Slot SlotRange
     | HandleTxFailed WalletAPIError
     | UtxoAtFailed Address
     deriving stock (Eq, Ord, Show, Generic)
@@ -33,9 +33,9 @@ instance Pretty RequestHandlerLogMsg where
             "target slot:" <+> pretty target <> "; current slot:" <+> pretty current
         StartWatchingContractAddresses -> "Start watching contract addresses"
         HandleTxFailed e -> "handleTx failed:" <+> viaShow e
-        HandleNextTxAt current target ->
-            "handle next tx at. Target:"
-                <+> pretty target
+        HandleAddressChangedAt current slotRange ->
+            "handle address changed at. Range:"
+                <+> pretty slotRange
                 <+> "Current:"
                 <+> pretty current
         UtxoAtFailed addr -> "UtxoAt failed:" <+> pretty addr

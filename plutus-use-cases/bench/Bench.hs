@@ -23,6 +23,7 @@ import qualified Ledger.Ada                    as Ada
 import           Ledger.Bytes
 import qualified Ledger.Crypto                 as Crypto
 import qualified Ledger.Typed.Scripts          as Scripts
+import           Ledger.Value                  (assetClass, currencySymbol)
 import qualified Plutus.Contracts.Future       as FT
 import qualified Plutus.Contracts.MultiSig     as MS
 import qualified Plutus.Contracts.PubKey       as PK
@@ -273,28 +274,31 @@ validationData1 :: Context
 validationData1 = Context $ PlutusTx.toData $ mockCtx
 
 validationData2 :: Context
-validationData2 = Context $ PlutusTx.toData $ mockCtx { valCtxTxInfo = (valCtxTxInfo mockCtx) { txInfoSignatories = [pubKeyHash pk1, pubKeyHash pk2] } }
+validationData2 = Context $ PlutusTx.toData $ mockCtx { scriptContextTxInfo = (scriptContextTxInfo mockCtx) { txInfoSignatories = [pubKeyHash pk1, pubKeyHash pk2] } }
 
-mockCtx :: ValidatorCtx
-mockCtx = ValidatorCtx
-    { valCtxTxInfo = TxInfo
+mockCtx :: ScriptContext
+mockCtx = ScriptContext
+    { scriptContextTxInfo = TxInfo
       { txInfoInputs = []
       , txInfoOutputs = []
       , txInfoFee = PlutusTx.zero
       , txInfoForge = PlutusTx.zero
       , txInfoValidRange = defaultSlotRange
-      , txInfoForgeScripts = []
       , txInfoSignatories = []
       , txInfoId = TxId P.emptyByteString
       , txInfoData = []
+      , txInfoInputsFees = []
+      , txInfoDCert = []
+      , txInfoWdrl = []
       }
-    , valCtxInput = 0
+    , scriptContextPurpose = Minting (currencySymbol "fd2c8c0705d3ca1e7b1aeaa4da85dfe5ac6dde64da9d241011d84c0ee97aac5e")
     }
 
 -- Script hashes
 scriptHashes :: Benchmark
 scriptHashes = bgroup "script hashes" [
-    let si = TA.scriptInstance (TA.Account ("fd2c8c0705d3ca1e7b1aeaa4da85dfe5ac6dde64da9d241011d84c0ee97aac5e", "my token")) in
+    let ac = assetClass "fd2c8c0705d3ca1e7b1aeaa4da85dfe5ac6dde64da9d241011d84c0ee97aac5e" "my token"
+        si = TA.scriptInstance (TA.Account ac) in
     bench "token account" $ nf Scripts.validatorScript si
     , bench "public key" $ nf (Scripts.validatorScript . PK.scriptInstance) (pubKeyHash $ walletPubKey $ Wallet 2)
     , bench "future" $ nf (Scripts.validatorScript . FT.scriptInstance theFuture) accounts
@@ -316,5 +320,5 @@ accounts :: FT.FutureAccounts
 accounts =
     let cur = "fd2c8c0705d3ca1e7b1aeaa4da85dfe5ac6dde64da9d241011d84c0ee97aac5e" in
     FT.mkAccounts
-            (TA.Account (cur, "long"))
-            (TA.Account (cur, "short"))
+            (TA.Account $ assetClass cur "long")
+            (TA.Account $ assetClass cur "short")

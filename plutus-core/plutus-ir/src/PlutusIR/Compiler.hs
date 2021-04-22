@@ -29,7 +29,8 @@ import           PlutusIR.Compiler.Lower
 import           PlutusIR.Compiler.Provenance
 import           PlutusIR.Compiler.Types
 import           PlutusIR.Error
-import qualified PlutusIR.Optimizer.DeadCode        as DeadCode
+import qualified PlutusIR.Transform.Beta            as Beta
+import qualified PlutusIR.Transform.DeadCode        as DeadCode
 import qualified PlutusIR.Transform.Inline          as Inline
 import qualified PlutusIR.Transform.LetFloat        as LetFloat
 import qualified PlutusIR.Transform.NonStrict       as NonStrict
@@ -38,14 +39,22 @@ import qualified PlutusIR.Transform.ThunkRecursions as ThunkRec
 import           PlutusIR.TypeCheck.Internal
 
 import qualified PlutusCore                         as PLC
+import qualified PlutusCore.Constant.Meaning        as M
 
 import           Control.Monad
 import           Control.Monad.Reader
 import           PlutusPrelude
 
+-- | Actual simplifier
+simplify :: M.ToBuiltinMeaning uni fun => Term TyName Name uni fun b -> Term TyName Name uni fun b
+simplify = DeadCode.removeDeadBindings . Inline.inline . Beta.beta
+
 -- | Perform some simplification of a 'Term'.
 simplifyTerm :: Compiling m e uni fun a => Term TyName Name uni fun b -> m (Term TyName Name uni fun b)
-simplifyTerm = runIfOpts $ pure . Inline.inline . DeadCode.removeDeadBindings
+simplifyTerm = PLC.rename >=> (runIfOpts $ pure . simplify)
+-- Note: There was a bug in renamer handling non-rec terms, so we need to rename
+-- again.
+-- https://jira.iohk.io/browse/SCP-2156
 
 -- | Perform floating/merging of lets in a 'Term' to their nearest lambda/Lambda/letStrictNonValue.
 -- Note: It assumes globally unique names
@@ -82,11 +91,12 @@ compileToReadable =
 compileReadableToPlc :: Compiling m e uni fun a => Term TyName Name uni fun (Provenance a) -> m (PLCTerm uni fun a)
 compileReadableToPlc =
     NonStrict.compileNonStrictBindings
-    >=> Let.compileLets Let.Types
+    >=> Let.compileLets Let.DataTypes
     >=> Let.compileLets Let.RecTerms
     -- We introduce some non-recursive let bindings while eliminating recursive let-bindings, so we
     -- can eliminate any of them which are unused here.
     >=> simplifyTerm
+    >=> Let.compileLets Let.Types
     >=> Let.compileLets Let.NonRecTerms
     >=> lowerTerm
 

@@ -20,14 +20,16 @@ import           Language.PureScript.Bridge.PSTypes        (psArray, psInt, psNu
 import           Language.PureScript.Bridge.TypeParameters (A)
 import           Ledger                                    (Address, Datum, DatumHash, MonetaryPolicy, PubKey,
                                                             PubKeyHash, Redeemer, Signature, Tx, TxId, TxIn, TxInType,
-                                                            TxOut, TxOutRef, TxOutTx, TxOutType, UtxoIndex, Validator)
+                                                            TxOut, TxOutRef, TxOutTx, UtxoIndex, Validator)
 import           Ledger.Ada                                (Ada)
 import           Ledger.Constraints.OffChain               (MkTxError)
+import           Ledger.Credential                         (Credential, StakingCredential)
+import           Ledger.DCert                              (DCert)
 import           Ledger.Index                              (ScriptType, ScriptValidationEvent, ValidationError)
 import           Ledger.Interval                           (Extended, Interval, LowerBound, UpperBound)
 import           Ledger.Scripts                            (ScriptError)
 import           Ledger.Slot                               (Slot)
-import           Ledger.Typed.Tx                           (ConnectionError)
+import           Ledger.Typed.Tx                           (ConnectionError, WrongOutTypeError)
 import           Ledger.Value                              (CurrencySymbol, TokenName, Value)
 import           Playground.Types                          (ContractCall, FunctionSchema, KnownCurrency)
 import           Plutus.Contract.Checkpoint                (CheckpointError)
@@ -43,7 +45,7 @@ import           Wallet.Rollup.Types                       (AnnotatedTx, Benefic
                                                             TxKey)
 import           Wallet.Types                              (AssertionError, ContractError, ContractInstanceId,
                                                             EndpointDescription, MatchingError, Notification,
-                                                            NotificationError)
+                                                            NotificationError, Payment)
 
 psJson :: PSType
 psJson = TypeInfo "web-common" "Data.RawJson" "RawJson" []
@@ -257,12 +259,16 @@ ledgerTypes =
     , (order <*> (genericShow <*> mkSumType)) (Proxy @DatumHash)
     , (order <*> (genericShow <*> mkSumType)) (Proxy @PubKey)
     , (order <*> (genericShow <*> mkSumType)) (Proxy @PubKeyHash)
-    , (order <*> (genericShow <*> mkSumType)) (Proxy @TxOutType)
+    , (order <*> (genericShow <*> mkSumType)) (Proxy @Credential)
+    , (order <*> (genericShow <*> mkSumType)) (Proxy @StakingCredential)
+    , (order <*> (genericShow <*> mkSumType)) (Proxy @DCert)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @MkTxError)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @ContractError)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @ConnectionError)
+    , (equal <*> (genericShow <*> mkSumType)) (Proxy @WrongOutTypeError)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @Notification)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @NotificationError)
+    , (equal <*> (genericShow <*> mkSumType)) (Proxy @Payment)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @MatchingError)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @AssertionError)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @CheckpointError)

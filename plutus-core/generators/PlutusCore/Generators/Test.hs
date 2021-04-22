@@ -21,7 +21,6 @@ import           PlutusPrelude                                (ShowPretty (..))
 import           PlutusCore.Constant
 import           PlutusCore.Core
 import           PlutusCore.Default
-import           PlutusCore.Evaluation.Machine.ExMemory
 import           PlutusCore.Evaluation.Machine.Exception
 import           PlutusCore.Evaluation.Result
 import           PlutusCore.Generators.Interesting
@@ -85,8 +84,8 @@ propEvaluate
     :: ( uni ~ DefaultUni, fun ~ DefaultFun, KnownType (Term TyName Name uni fun ()) a
        , PrettyPlc internal
        )
-    => (Plain Term uni fun ->
-           Either (EvaluationException user internal (Plain Term uni fun)) (Plain Term uni fun))
+    => (Term TyName Name uni fun () ->
+           Either (EvaluationException user internal (Term TyName Name uni fun ())) (Term TyName Name uni fun ()))
        -- ^ An evaluator.
     -> TermGen a  -- ^ A term/value generator.
     -> Property

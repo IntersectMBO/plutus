@@ -66,26 +66,31 @@ library
         Cardano.Wallet.Server
         Cardano.Wallet.Types
         Control.Monad.Freer.Delay
-        Control.Monad.Freer.WebSocket
         Control.Concurrent.Availability
         Data.Time.Units.Extra
         Plutus.PAB.App
-        Plutus.PAB.MockApp
         Plutus.PAB.Arbitrary
-        Plutus.PAB.Command
         Plutus.PAB.ContractCLI
         Plutus.PAB.Core
         Plutus.PAB.Core.ContractInstance
+        Plutus.PAB.Core.ContractInstance.BlockchainEnv
+        Plutus.PAB.Core.ContractInstance.RequestHandlers
         Plutus.PAB.Core.ContractInstance.STM
-        Plutus.PAB.Core.Projections
+        Plutus.PAB.Db.Eventful
+        Plutus.PAB.Db.Eventful.Command
+        Plutus.PAB.Db.Eventful.ContractDefinitionStore
+        Plutus.PAB.Db.Eventful.ContractStore
+        Plutus.PAB.Db.Eventful.Query
         Plutus.PAB.Effects.Contract
-        Plutus.PAB.Effects.ContractTest
+        Plutus.PAB.Effects.Contract.ContractTest
+        Plutus.PAB.Effects.Contract.Builtin
+        Plutus.PAB.Effects.Contract.ContractExe
         Plutus.PAB.Effects.ContractRuntime
         Plutus.PAB.Effects.ContractTest.AtomicSwap
         Plutus.PAB.Effects.ContractTest.PayToWallet
         Plutus.PAB.Effects.EventLog
-        Plutus.PAB.Effects.MultiAgent
         Plutus.PAB.Effects.UUID
+        Plutus.PAB.Effects.TimeEffect
         Plutus.PAB.Instances
         Plutus.PAB.Monitoring.MonadLoggerBridge
         Plutus.PAB.Monitoring.Monitoring
@@ -99,11 +104,10 @@ library
         Plutus.PAB.Webserver.WebSocket
         Plutus.PAB.Events
         Plutus.PAB.Events.Contract
-        Plutus.PAB.Events.Node
-        Plutus.PAB.Events.User
-        Plutus.PAB.Events.Wallet
+        Plutus.PAB.Events.ContractInstanceState
         Plutus.PAB.ParseStringifiedJSON
-        Plutus.PAB.Query
+        Plutus.PAB.Simulator
+        Plutus.PAB.Timeout
         Plutus.PAB.Types
     other-modules:
         Servant.Extra
@@ -190,6 +194,9 @@ library
         iohk-monitoring -any,
         lobemo-backend-ekg -any,
         exceptions -any,
+        data-default -any,
+        time-units -any,
+        time -any
 
 executable plutus-pab
     main-is: Main.hs
@@ -225,6 +232,7 @@ executable plutus-pab
         purescript-bridge -any,
         row-types -any,
         servant-purescript -any,
+        servant-server -any,
         text -any,
         unliftio-core -any,
         uuid -any,
@@ -247,7 +255,8 @@ executable plutus-game
     build-depends:
         base >=4.9 && <5,
         plutus-pab,
-        plutus-use-cases -any
+        plutus-use-cases -any,
+        text -any
 
 executable plutus-currency
     main-is: Main.hs
@@ -400,4 +409,5 @@ executable tx-inject
         stm -any,
         text -any,
         time-units -any,
-        yaml -any
+        yaml -any,
+        data-default -any

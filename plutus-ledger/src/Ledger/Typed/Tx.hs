@@ -112,8 +112,8 @@ makeTypedScriptTxOut
     -> Value.Value
     -> TypedScriptTxOut out
 makeTypedScriptTxOut ct d value =
-    let outTy = PayToScript $ datumHash $ Datum $ toData d
-    in TypedScriptTxOut @out (TxOut (scriptAddress ct) value outTy) d
+    let outTy = datumHash $ Datum $ toData d
+    in TypedScriptTxOut @out TxOut{txOutAddress = scriptAddress ct, txOutValue=value, txOutDatumHash = Just outTy} d
 
 -- | A 'TxOutRef' tagged by a phantom type: and the connection type of the output.
 data TypedScriptTxOutRef a = TypedScriptTxOutRef { tyTxOutRefRef :: TxOutRef, tyTxOutRefOut :: TypedScriptTxOut a }
@@ -141,10 +141,16 @@ newtype PubKeyTxOut = PubKeyTxOut { unPubKeyTxOut :: TxOut }
 makePubKeyTxOut :: Value.Value -> PubKey -> PubKeyTxOut
 makePubKeyTxOut value pubKey = PubKeyTxOut $ pubKeyTxOut value pubKey
 
+data WrongOutTypeError =
+    ExpectedScriptGotPubkey
+    | ExpectedPubkeyGotScript
+    deriving stock (Show, Eq, Ord, Generic)
+    deriving anyclass (ToJSON, FromJSON)
+
 -- | An error we can get while trying to type an existing transaction part.
 data ConnectionError =
     WrongValidatorAddress Address Address
-    | WrongOutType TxOutType
+    | WrongOutType WrongOutTypeError
     | WrongInType TxInType
     | WrongValidatorType String
     | WrongRedeemerType
@@ -235,10 +241,10 @@ typeScriptTxOut
     => ScriptInstance out
     -> TxOutTx
     -> m (TypedScriptTxOut out)
-typeScriptTxOut si TxOutTx{txOutTxTx=tx, txOutTxOut=TxOut{txOutAddress,txOutValue,txOutType}} = do
-    dsh <- case txOutType of
-        PayToScript ds -> pure ds
-        x              -> throwError $ WrongOutType x
+typeScriptTxOut si TxOutTx{txOutTxTx=tx, txOutTxOut=TxOut{txOutAddress,txOutValue,txOutDatumHash}} = do
+    dsh <- case txOutDatumHash of
+        Just ds -> pure ds
+        _       -> throwError $ WrongOutType ExpectedScriptGotPubkey
     ds <- case lookupDatum tx dsh of
         Just ds -> pure ds
         Nothing -> throwError $ NoDatum (txId tx) dsh
@@ -270,8 +276,8 @@ typePubKeyTxOut
     . (MonadError ConnectionError m)
     => TxOut
     -> m PubKeyTxOut
-typePubKeyTxOut out@TxOut{txOutType} = do
-    case txOutType of
-        PayToPubKey -> pure ()
-        x           -> throwError $ WrongOutType x
+typePubKeyTxOut out@TxOut{txOutDatumHash} = do
+    case txOutDatumHash of
+        Nothing -> pure ()
+        Just _  -> throwError $ WrongOutType ExpectedPubkeyGotScript
     pure $ PubKeyTxOut out

@@ -8,48 +8,49 @@
 
 module Cardano.ChainIndex.Client where
 
-import           Cardano.ChainIndex.API    (API)
-import           Control.Monad             (void)
+import           Cardano.ChainIndex.API     (API)
+import           Control.Monad              (void)
 import           Control.Monad.Freer
-import           Control.Monad.Freer.Error (Error, throwError)
-import           Control.Monad.IO.Class    (MonadIO (..))
-import           Data.Proxy                (Proxy (Proxy))
-import           Ledger                    (Address, TxId)
-import           Ledger.AddressMap         (AddressMap)
-import           Ledger.Blockchain         (Block)
-import           Servant                   (NoContent, (:<|>) (..))
-import           Servant.Client            (ClientEnv, ClientError, ClientM, client, runClientM)
+import           Control.Monad.Freer.Error  (Error, throwError)
+import           Control.Monad.Freer.Reader (Reader, ask)
+import           Control.Monad.IO.Class     (MonadIO (..))
+import           Data.Proxy                 (Proxy (Proxy))
+import           Ledger                     (Address, TxId)
+import           Ledger.AddressMap          (AddressMap)
+import           Ledger.Blockchain          (Block)
+import           Servant                    (NoContent, (:<|>) (..))
+import           Servant.Client             (ClientEnv, ClientError, ClientM, client, runClientM)
 
-import           Wallet.Effects            (AddressChangeRequest, AddressChangeResponse, ChainIndexEffect (..))
+import           Wallet.Effects             (AddressChangeRequest, AddressChangeResponse, ChainIndexEffect (..))
 
 healthCheck :: ClientM NoContent
 startWatching :: Address -> ClientM NoContent
 watchedAddresses :: ClientM AddressMap
 confirmedBlocks :: ClientM [Block]
 transactionConfirmed :: TxId -> ClientM Bool
-nextTx :: AddressChangeRequest -> ClientM AddressChangeResponse
-(healthCheck, startWatching, watchedAddresses, confirmedBlocks, transactionConfirmed, nextTx) =
-  (healthCheck_, startWatching_, watchedAddresses_, confirmedBlocks_, txConfirmed_, nextTx_)
+addressChanged :: AddressChangeRequest -> ClientM AddressChangeResponse
+(healthCheck, startWatching, watchedAddresses, confirmedBlocks, transactionConfirmed, addressChanged) =
+  (healthCheck_, startWatching_, watchedAddresses_, confirmedBlocks_, txConfirmed_, addressChanged_)
   where
-    healthCheck_ :<|> startWatching_ :<|> watchedAddresses_ :<|> confirmedBlocks_ :<|> txConfirmed_  :<|> nextTx_ =
+    healthCheck_ :<|> startWatching_ :<|> watchedAddresses_ :<|> confirmedBlocks_ :<|> txConfirmed_  :<|> addressChanged_ =
         client (Proxy @API)
 
 handleChainIndexClient ::
   forall m effs.
   ( LastMember m effs
+  , Member (Reader ClientEnv) effs
   , MonadIO m
   , Member (Error ClientError) effs)
-  => ClientEnv
-  -> ChainIndexEffect
+  => ChainIndexEffect
   ~> Eff effs
-handleChainIndexClient clientEnv =
+handleChainIndexClient event = do
+    clientEnv <- ask
     let
         runClient :: forall a. ClientM a -> Eff effs a
         runClient a = (sendM $ liftIO $ runClientM a clientEnv) >>= either throwError pure
-    in
-      \case
+    case event of
         StartWatching a           -> void (runClient (startWatching a))
         WatchedAddresses          -> runClient watchedAddresses
         ConfirmedBlocks           -> runClient confirmedBlocks
         TransactionConfirmed txid -> runClient (transactionConfirmed txid)
-        NextTx req                -> runClient (nextTx req)
+        AddressChanged req        -> runClient (addressChanged req)

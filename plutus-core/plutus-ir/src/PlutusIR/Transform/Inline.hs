@@ -16,6 +16,7 @@ import           PlutusIR
 import qualified PlutusIR.Analysis.Dependencies as Deps
 import           PlutusIR.MkPir
 import           PlutusIR.Purity
+import           PlutusPrelude
 
 import qualified PlutusCore                     as PLC
 import qualified PlutusCore.Constant.Meaning    as PLC
@@ -26,7 +27,6 @@ import           Control.Monad.Reader
 import           Control.Monad.State
 
 import qualified Algebra.Graph                  as G
-import           Data.Foldable
 import qualified Data.Map                       as Map
 import           Witherable
 

@@ -3,6 +3,10 @@ title: Type Reduction
 layout: page
 ---
 
+This is an experiment in using a stack of frames to present reduction.
+It close to the CK machine in style. It doesn't seperate the beta-rule
+out into a seperate relation. It probably should.
+
 ```
 module Type.ReductionStack where
 ```
@@ -24,7 +28,7 @@ open import Relation.Nullary
 open import Data.Product
 open import Data.Empty
 
-open import Relation.Binary.PropositionalEquality using (_≡_; refl; cong;subst;sym)
+open import Relation.Binary.PropositionalEquality using (_≡_; refl; cong;subst;sym;trans)
 ```
 
 ## Values
@@ -114,11 +118,9 @@ data Stack (K : Kind) : Kind → Set where
   ε   : Stack K K
   _,_ : Stack K J → Frame J I → Stack K I
 
-
 data BackStack (K : Kind) : Kind → Set where
   ε   : BackStack K K
   _,_ : Frame K J → BackStack J I → BackStack K I
-
 ```
 
 Analogously to frames we can close a stack by plugging in a type of
@@ -136,35 +138,37 @@ Reduction is intrinsically kind preserving. This doesn't require proof.
 
 ```
 infix 2 _—→⋆_
-infix 2 _—↠⋆_
+infix 2 _—→s_
+infix 2 _—↠s_
 
 data _—→⋆_ : ∀{J} → (∅ ⊢⋆ J) → (∅ ⊢⋆ J) → Set where
-  frameRule : ∀{K K'} → (f : Stack K K')
-    → ∀{A A' : ∅ ⊢⋆ K'} → A —→⋆ A'
-    → {B B' : ∅ ⊢⋆ K}
-    → B ≡ closeStack f A
-    → B' ≡ closeStack f A'
-      --------------------
-    → B —→⋆ B'
-    -- ^ explicit equality proofs make pattern matching easier and this uglier
-
   β-ƛ : Value⋆ B
         -------------------
       → ƛ A · B —→⋆ A [ B ]
+
+data _—→s_ : ∀{J} → (∅ ⊢⋆ J) → (∅ ⊢⋆ J) → Set where
+  stackRule : ∀{K K'} → (s : Stack K K')
+    → ∀{A A' : ∅ ⊢⋆ K'} → A —→⋆ A'
+    → {B B' : ∅ ⊢⋆ K}
+    → B ≡ closeStack s A
+    → B' ≡ closeStack s A'
+      --------------------
+    → B —→s B'
+    -- ^ explicit equality proofs make pattern matching easier and this uglier
 ```
 
 ## Reflexive transitie closure of reduction
 
 ```
-data _—↠⋆_ : (∅ ⊢⋆ J) → (∅ ⊢⋆ J) → Set where
+data _—↠s_ : (∅ ⊢⋆ J) → (∅ ⊢⋆ J) → Set where
 
-  refl—↠⋆ : --------
-             A —↠⋆ A
+  refl—↠s : --------
+             A —↠s A
 
-  trans—↠⋆ : A —→⋆ B
-           → B —↠⋆ C
+  trans—↠s : A —→s B
+           → B —↠s C
              -------
-           → A —↠⋆ C
+           → A —↠s C
 ```
 
 ## Progress
@@ -173,7 +177,7 @@ An enumeration of possible outcomes of progress: a step or we hit a value.
 
 ```
 data Progress⋆ (A : ∅ ⊢⋆ K) : Set where
-  step : A —→⋆ B
+  step : A —→s B
          -----------
        → Progress⋆ A
   done : Value⋆ A
@@ -182,30 +186,80 @@ data Progress⋆ (A : ∅ ⊢⋆ K) : Set where
 ```
 
 The progress proof. For any type in the empty context we can make
-progres. Note that ther is no case for variables as there are no
+progress. Note that there is no case for variables as there are no
 variables in the empty context.
 
 ```
+open import Data.Sum
+
+variable K' : Kind
+
+extendStack : Frame K' K → Stack K J → Stack K' J
+extendStack f ε        = ε , f
+extendStack f (s , f') = extendStack f s , f'
+
+extendStack-lemma : (f : Frame K' K)(s : Stack K J)(A : ∅ ⊢⋆ J)
+  → closeFrame f (closeStack s A) ≡ closeStack (extendStack f s) A
+extendStack-lemma f ε        A = refl
+extendStack-lemma f (s , f') A = extendStack-lemma f s (closeFrame f' A)
+
+
+data Factorisation (M : ∅ ⊢⋆ K) : Set where
+  fact : (s : Stack K J)
+       → (L : ∅ ⊢⋆ I ⇒ J)
+       → (N : ∅ ⊢⋆ I)
+       → Value⋆ L
+       → Value⋆ N
+       → M ≡ closeStack s (L · N)
+       → Factorisation M
+
+
+factor : (M : ∅ ⊢⋆ K)
+  → Value⋆ M
+  ⊎ Factorisation M
+factor (Π M)    = inj₁ (V-Π M)
+factor (M ⇒ M') with factor M
+... | inj₂ (fact s L N VL VN refl) =
+  inj₂ (fact (extendStack (-⇒ M') s) L N VL VN (extendStack-lemma (-⇒ M') s (L · N)))
+... | inj₁ VM with factor M'
+... | inj₁ VM' = inj₁ (VM V-⇒ VM')
+... | inj₂ (fact s L N VL VN refl) =
+  inj₂ (fact (extendStack (VM ⇒-) s) L N VL VN (extendStack-lemma (VM ⇒-) s (L · N)))
+factor (ƛ M)    = inj₁ (V-ƛ M)
+factor (M · M') with factor M
+... | inj₂ (fact s L N VL VN refl) =
+  inj₂ (fact (extendStack (-· M') s) L N VL VN (extendStack-lemma (-· M') s (L · N)))
+... | inj₁ VM with factor M'
+... | inj₁ VM' = inj₂ (fact ε M M' VM VM' refl)
+... | inj₂ (fact s L N VL VN refl) =
+  inj₂ (fact (extendStack (VM ·-) s) L N VL VN (extendStack-lemma (VM ·-) s (L · N)))
+factor (μ M M') with factor M
+... | inj₂ (fact s L N VL VN refl) =
+  inj₂ (fact (extendStack (μ- M') s) L N VL VN (extendStack-lemma (μ- M') s (L · N)))
+... | inj₁ VM with factor M'
+... | inj₁ VM' = inj₁ (V-μ VM VM')
+... | inj₂ (fact s L N VL VN refl) =
+  inj₂ (fact (extendStack (μ VM -) s) L N VL VN (extendStack-lemma (μ VM -) s (L · N)))
+factor (con c) = inj₁ (V-con c)
+
+closeStack-inj : ∀ (s s' : Stack K J) A → closeStack s A ≡ closeStack s' A → s ≡ s'
+closeStack-inj s s' A p = {!!}
+
+factor-unique : (M : ∅ ⊢⋆ K) → Value⋆ M ⊎ ∃ λ (f : Factorisation M) → ∀ (f' : Factorisation M) → f ≡ f' 
+factor-unique (Π M)    = inj₁ (V-Π M)
+factor-unique (M ⇒ M') with factor-unique M
+... | inj₁ VM = {!!}
+... | inj₂ (fact s L N VL VN refl , U) = inj₂ ((fact (extendStack (-⇒ M') s) L N VL VN (extendStack-lemma (-⇒ M') s (L · N))) , λ {(fact s' L' N' VL' VN' p') → {!extendStack-lemma (-⇒ M') s (L · N)!}})
+factor-unique (ƛ M)    = {!!}
+factor-unique (M · M') = {!!}
+factor-unique (μ M M') = {!!}
+factor-unique (con c)  = {!!}
+
 progress⋆ : (A : ∅ ⊢⋆ K) → Progress⋆ A
-progress⋆ (` ())
-progress⋆ (μ A B) with progress⋆ A
-... | step p  = step (frameRule (ε , μ- B) p refl refl)
-... | done VA with progress⋆ B
-... | step p  = step (frameRule (ε , μ VA -) p refl refl)
-... | done VB = done (V-μ VA VB)
-progress⋆ (Π A) = done (V-Π A)
-progress⋆ (A ⇒ B) with progress⋆ A
-... | step p = step (frameRule (ε , -⇒ B) p refl refl)
-... | done VA with progress⋆ B
-... | step q  = step (frameRule (ε , VA ⇒-) q refl refl)
-... | done VB = done (VA V-⇒ VB)
-progress⋆ (ƛ A) = done (V-ƛ A)
-progress⋆ (A · B) with progress⋆ A
-... | step p = step (frameRule (ε , -· B) p refl refl)
-... | done VA with progress⋆ B
-... | step p = step (frameRule (ε , VA ·-) p refl refl)
-progress⋆ (.(ƛ _) · B) | done (V-ƛ A) | done VB = step (β-ƛ VB)
-progress⋆ (con tcn) = done (V-con tcn)
+progress⋆ A with factor A
+... | inj₁ VA = done VA
+... | inj₂ (fact s _ N (V-ƛ L) VN p) =
+  step (stackRule s (β-ƛ VN) p refl)
 ```
 
 ## Determinism of Reduction:
@@ -220,7 +274,7 @@ lem0 A B ()
 
 -- you can't plug a application into a frame and get a value
 lem1 : (f : Frame K J)(A : ∅ ⊢⋆ J) → (Value⋆ A → ⊥)
-     → Value⋆ (closeFrame f A) → ⊥
+  → Value⋆ (closeFrame f A) → ⊥
 lem1 (-⇒ x) A ¬V (V V-⇒ W) = ¬V V
 lem1 (x ⇒-) A ¬V (W V-⇒ V) = ¬V V
 lem1 (μ- B) A ¬V (V-μ V W) = ¬V V
@@ -238,12 +292,12 @@ lem2' ε       A V = V
 lem2' (s , f) A V = lem1' f A (lem2' s (closeFrame f A) V)
 
 lem2 : (s : Stack K J)(A : ∅ ⊢⋆ J) → (Value⋆ A → ⊥)
-     → Value⋆ (closeStack s A) → ⊥
+  → Value⋆ (closeStack s A) → ⊥
 lem2 ε       A ¬V V = ¬V V
 lem2 (s , f) A ¬V W = lem2 s (closeFrame f A) (lem1 f A ¬V) W
 
 
---notboth : (A : ∅ ⊢⋆ K) → ¬ (Value⋆ A × (Σ (∅ ⊢⋆ K) (A —→⋆_)))
+--notboth : (A : ∅ ⊢⋆ K) → ¬ (Value⋆ A × (Σ (∅ ⊢⋆ K) (A —→s_)))
 ```
 
 Reduction is deterministic. There is only one possible reduction step

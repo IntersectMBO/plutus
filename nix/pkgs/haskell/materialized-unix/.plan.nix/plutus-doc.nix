@@ -24,7 +24,7 @@
       isLocal = true;
       detailLevel = "FullDetails";
       licenseFiles = [ "LICENSE" "NOTICE" ];
-      dataDir = "";
+      dataDir = ".";
       dataFiles = [];
       extraSrcFiles = [];
       extraTmpFiles = [];
@@ -42,14 +42,19 @@
             (hsPkgs."plutus-ledger" or (errorHandler.buildDepError "plutus-ledger"))
             (hsPkgs."plutus-contract" or (errorHandler.buildDepError "plutus-contract"))
             (hsPkgs."playground-common" or (errorHandler.buildDepError "playground-common"))
+            (hsPkgs."plutus-use-cases" or (errorHandler.buildDepError "plutus-use-cases"))
             (hsPkgs."prettyprinter" or (errorHandler.buildDepError "prettyprinter"))
             (hsPkgs."containers" or (errorHandler.buildDepError "containers"))
+            (hsPkgs."freer-extras" or (errorHandler.buildDepError "freer-extras"))
+            (hsPkgs."lens" or (errorHandler.buildDepError "lens"))
+            (hsPkgs."QuickCheck" or (errorHandler.buildDepError "QuickCheck"))
+            (hsPkgs."random" or (errorHandler.buildDepError "random"))
             (hsPkgs."text" or (errorHandler.buildDepError "text"))
             (hsPkgs."aeson" or (errorHandler.buildDepError "aeson"))
             ] ++ (pkgs.lib).optional (!(compiler.isGhcjs && true || system.isGhcjs)) (hsPkgs."plutus-tx-plugin" or (errorHandler.buildDepError "plutus-tx-plugin"));
           build-tools = [
-            (hsPkgs.buildPackages.unlit or (pkgs.buildPackages.unlit or (errorHandler.buildToolDepError "unlit")))
-            (hsPkgs.buildPackages.doctest or (pkgs.buildPackages.doctest or (errorHandler.buildToolDepError "doctest")))
+            (hsPkgs.buildPackages.unlit.components.exes.unlit or (pkgs.buildPackages.unlit or (errorHandler.buildToolDepError "unlit:unlit")))
+            (hsPkgs.buildPackages.doctest.components.exes.doctest or (pkgs.buildPackages.doctest or (errorHandler.buildToolDepError "doctest:doctest")))
             ];
           buildable = true;
           modules = [
@@ -57,9 +62,10 @@
             "BasicValidators"
             "BasicPolicies"
             "BasicApps"
+            "GameModel"
             "HelloWorldApp"
             ];
-          hsSourceDirs = [ "tutorials" ];
+          hsSourceDirs = [ "plutus/tutorials" ];
           mainPath = ([
             "Main.hs"
             ] ++ (pkgs.lib).optional (flags.defer-plugin-errors) "") ++ (pkgs.lib).optional (!(compiler.isGhcjs && true || system.isGhcjs)) "";

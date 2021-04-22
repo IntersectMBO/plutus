@@ -24,7 +24,7 @@
       isLocal = true;
       detailLevel = "FullDetails";
       licenseFiles = [];
-      dataDir = "";
+      dataDir = ".";
       dataFiles = [];
       extraSrcFiles = [ "CHANGELOG.md" "src/goblin_genomes/*.genome" ];
       extraTmpFiles = [];
@@ -77,7 +77,7 @@
             (hsPkgs."doctest" or (errorHandler.buildDepError "doctest"))
             ];
           build-tools = [
-            (hsPkgs.buildPackages.doctest-discover or (pkgs.buildPackages.doctest-discover or (errorHandler.buildToolDepError "doctest-discover")))
+            (hsPkgs.buildPackages.doctest-discover.components.exes.doctest-discover or (pkgs.buildPackages.doctest-discover or (errorHandler.buildToolDepError "doctest-discover:doctest-discover")))
             ];
           buildable = true;
           hsSourceDirs = [ "test" ];

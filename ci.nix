@@ -59,12 +59,10 @@ let
         in
         filterAttrsOnlyRecursive (_: drv: isBuildable drv) {
           # build relevant top level attributes from default.nix
-          inherit (packages) docs tests plutus-playground marlowe-playground marlowe-dashboard plutus-pab;
+          inherit (packages) docs tests plutus-playground marlowe-playground marlowe-dashboard plutus-pab deployment;
           # The haskell.nix IFD roots for the Haskell project. We include these so they won't be GCd and will be in the
           # cache for users
           inherit (plutus.haskell.project) roots;
-          # Should be in roots, see https://github.com/input-output-hk/haskell.nix/issues/967
-          inherit (pkgs.haskell-nix) internal-nix-tools internal-cabal-install;
 
           # Build the shell expression to be sure it works on all platforms
           #

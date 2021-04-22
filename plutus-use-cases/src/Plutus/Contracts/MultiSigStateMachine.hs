@@ -18,8 +18,8 @@
 {-# OPTIONS_GHC -fno-strictness #-}
 {-# OPTIONS_GHC -fno-specialise #-}
 -- | A multisig contract written as a state machine.
---   $multisig
 module Plutus.Contracts.MultiSigStateMachine(
+    -- $multisig
       Params(..)
     , Payment(..)
     , State
@@ -37,7 +37,7 @@ import           GHC.Generics                 (Generic)
 import           Ledger                       (PubKeyHash, Slot, pubKeyHash)
 import           Ledger.Constraints           (TxConstraints)
 import qualified Ledger.Constraints           as Constraints
-import           Ledger.Contexts              (TxInfo (..), ValidatorCtx (..))
+import           Ledger.Contexts              (ScriptContext (..), TxInfo (..))
 import qualified Ledger.Contexts              as Validation
 import qualified Ledger.Interval              as Interval
 import qualified Ledger.Typed.Scripts         as Scripts
@@ -51,7 +51,7 @@ import qualified Plutus.Contract.StateMachine as SM
 import qualified PlutusTx                     as PlutusTx
 import           PlutusTx.Prelude             hiding (Applicative (..))
 
---   $multisig
+-- $multisig
 --   The n-out-of-m multisig contract works like a joint account of
 --   m people, requiring the consent of n people for any payments.
 --   In the smart contract the signatories are represented by public keys,
@@ -179,8 +179,8 @@ proposalAccepted (Params signatories numReq) pks =
 -- | @valuePreserved v p@ is true if the pending transaction @p@ pays the amount
 --   @v@ to this script's address. It does not assert the number of such outputs:
 --   this is handled in the generic state machine validator.
-valuePreserved :: Value -> ValidatorCtx -> Bool
-valuePreserved vl ctx = vl == Validation.valueLockedBy (valCtxTxInfo ctx) (Validation.ownHash ctx)
+valuePreserved :: Value -> ScriptContext -> Bool
+valuePreserved vl ctx = vl == Validation.valueLockedBy (scriptContextTxInfo ctx) (Validation.ownHash ctx)
 
 {-# INLINABLE valuePaid #-}
 -- | @valuePaid pm ptx@ is true if the pending transaction @ptx@ pays
@@ -230,30 +230,26 @@ transition params State{ stateData =s, stateValue=currentValue} i = case (s, i) 
                     )
     _ -> Nothing
 
-{-# INLINABLE mkValidator #-}
-mkValidator :: Params -> Scripts.ValidatorType MultiSigSym
-mkValidator p = SM.mkValidator $ SM.mkStateMachine (transition p) (const False)
-
-validatorCode :: Params -> PlutusTx.CompiledCode (Scripts.ValidatorType MultiSigSym)
-validatorCode params = $$(PlutusTx.compile [|| mkValidator ||]) `PlutusTx.applyCode` PlutusTx.liftCode params
-
 type MultiSigSym = StateMachine MSState Input
 
+{-# INLINABLE machine #-}
+machine :: Params -> MultiSigSym
+machine params = SM.mkStateMachine Nothing (transition params) isFinal where
+    isFinal _ = False
+
+{-# INLINABLE mkValidator #-}
+mkValidator :: Params -> Scripts.ValidatorType MultiSigSym
+mkValidator params = SM.mkValidator $ machine params
+
 scriptInstance :: Params -> Scripts.ScriptInstance MultiSigSym
-scriptInstance params = Scripts.validator @MultiSigSym
-    (validatorCode params)
+scriptInstance = Scripts.validatorParam @MultiSigSym
+    $$(PlutusTx.compile [|| mkValidator ||])
     $$(PlutusTx.compile [|| wrap ||])
     where
-        wrap = Scripts.wrapValidator @MSState @Input
-
-machineInstance :: Params -> SM.StateMachineInstance MSState Input
-machineInstance params =
-    SM.StateMachineInstance
-    (SM.mkStateMachine (transition params) (const False))
-    (scriptInstance params)
+        wrap = Scripts.wrapValidator
 
 client :: Params -> SM.StateMachineClient MSState Input
-client p = SM.mkStateMachineClient (machineInstance p)
+client params = SM.mkStateMachineClient $ SM.StateMachineInstance (machine params) (scriptInstance params)
 
 contract ::
     ( AsContractError e

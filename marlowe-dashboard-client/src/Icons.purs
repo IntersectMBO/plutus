@@ -23,8 +23,12 @@ data Icon
   = Add
   | AddCircle
   | ArrowRight
+  | ArrowLeft
   | Close
   | Contacts
+  | Done
+  | DoneWithCircle
+  | ErrorOutline
   | Help
   | Home
   | Menu
@@ -32,6 +36,7 @@ data Icon
   | Pay
   | Previous
   | Roles
+  | TaskAlt
   | Terms
   | Timer
   | Wallet
@@ -43,9 +48,17 @@ content AddCircle = "add_circle_outline"
 
 content ArrowRight = "east"
 
+content ArrowLeft = "west"
+
 content Close = "close"
 
 content Contacts = "people"
+
+content Done = "done"
+
+content DoneWithCircle = "check_circle_outline"
+
+content ErrorOutline = "error_outline"
 
 content Help = "help"
 
@@ -61,6 +74,8 @@ content Previous = "chevron_left"
 
 content Roles = "person_pin_circle"
 
+content TaskAlt = "task_alt"
+
 content Terms = "alarm_add"
 
 content Timer = "timer"
@@ -74,9 +89,17 @@ iconClass AddCircle = "add-circle"
 
 iconClass ArrowRight = "arrow-right"
 
+iconClass ArrowLeft = "arrow-left"
+
 iconClass Close = "close"
 
 iconClass Contacts = "contacts"
+
+iconClass Done = "done"
+
+iconClass DoneWithCircle = "check-circle-outline"
+
+iconClass ErrorOutline = "error-outline"
 
 iconClass Help = "help"
 
@@ -91,6 +114,8 @@ iconClass Pay = "pay"
 iconClass Previous = "previous"
 
 iconClass Roles = "roles"
+
+iconClass TaskAlt = "task-alt"
 
 iconClass Terms = "terms"
 

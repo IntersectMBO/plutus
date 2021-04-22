@@ -13,6 +13,7 @@ module Plutus.Contract.Trace.RequestHandler(
     RequestHandler(..)
     , RequestHandlerLogMsg(..)
     , tryHandler
+    , tryHandler'
     , wrapHandler
     , extract
     , maybeToHandler
@@ -22,16 +23,16 @@ module Plutus.Contract.Trace.RequestHandler(
     , handlePendingTransactions
     , handleUtxoQueries
     , handleTxConfirmedQueries
-    , handleNextTxAtQueries
+    , handleAddressChangedAtQueries
     , handleOwnInstanceIdQueries
     , handleContractNotifications
     ) where
 
-import           Control.Applicative                      (Alternative (empty))
+import           Control.Applicative                      (Alternative (empty, (<|>)))
 import           Control.Arrow                            (Arrow, Kleisli (..))
 import           Control.Category                         (Category)
 import           Control.Lens
-import           Control.Monad                            (foldM, guard)
+import           Control.Monad                            (foldM, guard, join)
 import           Control.Monad.Freer
 import qualified Control.Monad.Freer.Error                as Eff
 import           Control.Monad.Freer.NonDet               (NonDet)
@@ -42,6 +43,7 @@ import qualified Data.Map                                 as Map
 import           Data.Monoid                              (Alt (..), Ap (..))
 import           Data.Text                                (Text)
 import qualified Ledger.AddressMap                        as AM
+import           Ledger.Interval
 
 import           Plutus.Contract.Resumable                (Request (..), Response (..))
 
@@ -75,8 +77,17 @@ tryHandler ::
     . RequestHandler effs req resp
     -> [req]
     -> Eff effs (Maybe resp)
-tryHandler (RequestHandler h) requests =
-    foldM (\e i -> maybe (NonDet.makeChoiceA @Maybe $ h i) (pure . Just) e) Nothing requests
+tryHandler handler = tryHandler' (Just <$> handler)
+
+-- Try the handler on the requests, using the 'Alternative' instance of @f@
+tryHandler' ::
+    forall f effs req resp
+    . (Alternative f, Monad f)
+    => RequestHandler effs req (f resp)
+    -> [req]
+    -> Eff effs (f resp)
+tryHandler' (RequestHandler h) requests =
+    foldM (\e i -> fmap (e <|>) $ fmap join $ NonDet.makeChoiceA @f $ h i) empty requests
 
 extract :: Alternative f => Prism' a b -> a -> f b
 extract p = maybe empty pure . preview p
@@ -162,7 +173,7 @@ handleTxConfirmedQueries = RequestHandler $ \txid ->
         guard conf
         pure (TxConfirmed txid)
 
-handleNextTxAtQueries ::
+handleAddressChangedAtQueries ::
     forall effs.
     ( Member (LogObserve (LogMessage Text)) effs
     , Member (LogMsg RequestHandlerLogMsg) effs
@@ -170,18 +181,20 @@ handleNextTxAtQueries ::
     , Member ChainIndexEffect effs
     )
     => RequestHandler effs AddressChangeRequest AddressChangeResponse
-handleNextTxAtQueries = RequestHandler $ \req ->
-    surroundDebug @Text "handleNextTxAtQueries" $ do
+handleAddressChangedAtQueries = RequestHandler $ \req ->
+    surroundDebug @Text "handleAddressChangedAtQueries" $ do
         current <- Wallet.Effects.walletSlot
-        let target = acreqSlot req
-        logDebug $ HandleNextTxAt current target
+        let target = case acreqSlotRange req of
+                Interval _ (UpperBound (Finite s) in2) -> if in2 then succ s else s
+                Interval _ _                           -> pred current
+        logDebug $ HandleAddressChangedAt current (acreqSlotRange req)
         -- If we ask the chain index for transactions that were confirmed in
         -- the current slot, we always get an empty list, because the chain
         -- index only learns about those transactions at the beginning of the
         -- next slot. So we need to make sure that we are past the current
         -- slot.
         guard (current > target)
-        Wallet.Effects.nextTx req
+        Wallet.Effects.addressChanged req
 
 handleOwnInstanceIdQueries ::
     forall effs.

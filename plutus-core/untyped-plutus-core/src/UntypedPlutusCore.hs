@@ -15,6 +15,7 @@ import           UntypedPlutusCore.Core.Instance.Flat as Export
 import           UntypedPlutusCore.DeBruijn           as Export
 import           UntypedPlutusCore.Size               as Export
 import           UntypedPlutusCore.Subst              as Export
+import           UntypedPlutusCore.Transform.Simplify as Export
 -- Also has some functions
 
 

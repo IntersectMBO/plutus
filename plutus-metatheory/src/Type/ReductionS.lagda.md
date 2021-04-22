@@ -3,6 +3,8 @@ title: Type Reduction, structural style
 layout: page
 ---
 
+This is an experiment in using a simple structural style of reduction.
+
 ```
 module Type.ReductionS where
 ```

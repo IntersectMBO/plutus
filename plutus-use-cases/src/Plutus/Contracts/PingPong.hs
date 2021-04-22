@@ -14,7 +14,7 @@
 {-# LANGUAGE ViewPatterns          #-}
 {-# OPTIONS_GHC -fno-strictness #-}
 {-# OPTIONS_GHC -fno-ignore-interface-pragmas #-}
-{-# OPTIONS -fplugin-opt PlutusTx.Plugin:debug-context #-}
+{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:debug-context #-}
 -- | A state machine with two states and two roles that take turns.
 module Plutus.Contracts.PingPong(
     PingPongState(..),
@@ -90,7 +90,7 @@ transition State{stateData=oldData,stateValue} input = case (oldData, input) of
 
 {-# INLINABLE machine #-}
 machine :: SM.StateMachine PingPongState Input
-machine = SM.mkStateMachine transition isFinal where
+machine = SM.mkStateMachine Nothing transition isFinal where
     isFinal Stopped = True
     isFinal _       = False
 

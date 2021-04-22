@@ -77,7 +77,7 @@ navigationBar contractName =
     [ a
         -- "-ml-1" makes the icon line up properly
         [ classNames [ "flex", "items-center", "font-semibold", "-ml-1" ]
-        , onClick_ ToggleTemplateLibraryCard
+        , onClick_ OpenTemplateLibraryCard
         ]
         [ icon_ Previous
         , span_
@@ -101,6 +101,10 @@ contractNicknameDisplay contractName contractNickname =
                 , type_ InputText
                 , placeholder "Contract name *"
                 , value contractNickname
+                -- TODO: We can allow users to provide custom contract nicknames when we are connecting to the
+                -- metadata server. For now, however, we have no way of sharing this information, so we just
+                -- make it readonly (it is set to equal the contract name initially).
+                , readOnly true
                 , onValueInput_ SetContractNickname
                 ]
             ]
@@ -181,7 +185,7 @@ roleInputs wallets extendedContract metaData roleWallets =
                 ]
             , button
                 [ classNames [ "absolute", "top-4", "right-4" ]
-                , onClick_ $ ToggleCreateWalletCard tokenName
+                , onClick_ $ OpenCreateWalletCard tokenName
                 ]
                 [ icon_ AddCircle ]
             ]
@@ -280,7 +284,7 @@ reviewAndPay accessible metaData =
         [ classNames [ "flex", "justify-end", "mb-4" ] ]
         [ button
             [ classNames Css.primaryButton
-            , onClick_ $ ToggleSetupConfirmationCard
+            , onClick_ $ OpenSetupConfirmationCard
             ]
             [ text "Pay" ]
         ]
@@ -350,13 +354,13 @@ contractSetupConfirmationCard =
             [ text "Confirm payment of:" ]
         -- FIXME: remove placeholder with actual value
         , p
-            [ classNames [ "mb-4", "text-blue", "font-semibold", "text-2xl" ] ]
-            [ text "$123.456" ]
+            [ classNames [ "mb-4", "text-purple", "font-semibold", "text-2xl" ] ]
+            [ text "₳ 123.456" ]
         , div
             [ classNames [ "flex" ] ]
             [ button
                 [ classNames $ Css.secondaryButton <> [ "flex-1", "mr-2" ]
-                , onClick_ ToggleSetupConfirmationCard
+                , onClick_ CloseSetupConfirmationCard
                 ]
                 [ text "Cancel" ]
             , button

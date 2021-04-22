@@ -1,24 +1,26 @@
 module Contract.Lenses
   ( _tab
   , _executionState
-  , _contractId
-  , _confirmation
-  , _step
+  , _previousSteps
+  , _contractInstanceId
+  , _selectedStep
   , _metadata
   , _participants
   , _mActiveUserParty
+  , _namedActions
   ) where
 
-import Contract.Types (State, Tab)
+import Contract.Types (PreviousStep, State, Tab)
 import Data.Lens (Lens')
 import Data.Lens.Record (prop)
 import Data.Map (Map)
 import Data.Maybe (Maybe)
 import Data.Symbol (SProxy(..))
-import Marlowe.Execution (ExecutionState)
+import Marlowe.Execution (ExecutionState, NamedAction)
 import Marlowe.Extended.Metadata (MetaData)
 import Marlowe.Semantics as Semantic
-import WalletData.Types (Nickname)
+import WalletData.Types (WalletNickname)
+import Types (ContractInstanceId)
 
 _tab :: Lens' State Tab
 _tab = prop (SProxy :: SProxy "tab")
@@ -26,20 +28,23 @@ _tab = prop (SProxy :: SProxy "tab")
 _executionState :: Lens' State ExecutionState
 _executionState = prop (SProxy :: SProxy "executionState")
 
-_contractId :: Lens' State (Maybe String)
-_contractId = prop (SProxy :: SProxy "contractId")
+_previousSteps :: Lens' State (Array PreviousStep)
+_previousSteps = prop (SProxy :: SProxy "previousSteps")
 
-_confirmation :: Lens' State (Maybe Semantic.Input)
-_confirmation = prop (SProxy :: SProxy "confirmation")
+_contractInstanceId :: Lens' State ContractInstanceId
+_contractInstanceId = prop (SProxy :: SProxy "contractInstanceId")
 
-_step :: Lens' State Int
-_step = prop (SProxy :: SProxy "step")
+_selectedStep :: Lens' State Int
+_selectedStep = prop (SProxy :: SProxy "selectedStep")
 
 _metadata :: Lens' State MetaData
 _metadata = prop (SProxy :: SProxy "metadata")
 
-_participants :: Lens' State (Map Semantic.Party (Maybe Nickname))
+_participants :: Lens' State (Map Semantic.Party (Maybe WalletNickname))
 _participants = prop (SProxy :: SProxy "participants")
 
 _mActiveUserParty :: Lens' State (Maybe Semantic.Party)
 _mActiveUserParty = prop (SProxy :: SProxy "mActiveUserParty")
+
+_namedActions :: Lens' State (Array NamedAction)
+_namedActions = prop (SProxy :: SProxy "namedActions")

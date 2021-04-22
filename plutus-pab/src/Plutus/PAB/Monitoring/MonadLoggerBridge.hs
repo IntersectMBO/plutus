@@ -32,6 +32,7 @@ import           Data.Aeson                     (FromJSON (..), ToJSON (..), Val
 import           Data.Aeson.Types               (typeMismatch)
 import           Data.String                    (IsString (..))
 import           Data.Text                      (Text)
+import qualified Data.Text                      as Text
 import qualified Data.Text.Encoding             as Encoding
 import           Data.Text.Prettyprint.Doc      (Pretty (..), viaShow, vsep, (<+>))
 import           GHC.Generics                   (Generic)
@@ -39,7 +40,9 @@ import           Plutus.PAB.Instances           ()
 import           Plutus.PAB.Monitoring.Util     (toSeverity)
 
 logStrToText :: LogStr -> Text
-logStrToText = Encoding.decodeUtf8 . fromLogStr -- I'm just assuming it's UTF-8...
+logStrToText =
+    let handleBS e = "Failed to decode 'LogStr': " <> Text.pack (show e) in
+    either handleBS id . Encoding.decodeUtf8' . fromLogStr
 
 data MonadLoggerMsg =
   MonadLoggerMsg

@@ -1,4 +1,5 @@
 {-# LANGUAGE AllowAmbiguousTypes #-}
+{-# LANGUAGE ConstraintKinds     #-}
 {-# LANGUAGE DataKinds           #-}
 {-# LANGUAGE DeriveAnyClass      #-}
 {-# LANGUAGE DeriveGeneric       #-}
@@ -12,597 +13,248 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeApplications    #-}
 {-# LANGUAGE TypeOperators       #-}
+{-
+
+Start the threads for contract instances
+
+-}
 module Plutus.PAB.Core.ContractInstance(
     ContractInstanceMsg(..)
-    , lookupContractState
-    , processFirstInboxMessage
-    , processAllContractInboxes
-    , processContractInbox
-    , lookupContract
-    , activateContract
-    -- * Contract outboxes
-    , MaxIterations(..)
-    , defaultMaxIterations
-    , processAllContractOutboxes
-    , processOwnPubkeyRequests
-    , processAwaitSlotRequests
-    , processUtxoAtRequests
+    , activateContractSTM
     , processWriteTxRequests
-    -- * Calling an endpoint
-    , callContractEndpoint
-    , callContractEndpoint'
+    -- * STM instances
+    , startSTMInstanceThread
+    , AppBackendConstraints
+    -- * Calling endpoints
+    , callEndpointOnInstance
     ) where
 
-import           Cardano.BM.Data.Tracer                 (ToObject (..), TracingVerbosity (..))
-import           Cardano.BM.Data.Tracer.Extras          (Tagged (..), mkObjectStr)
-import           Control.Arrow                          ((>>>), (>>^))
-import           Control.Lens
-import           Control.Monad                          (unless, void, when)
+import           Control.Arrow                                    ((>>>))
+import           Control.Concurrent                               (forkIO)
+import           Control.Concurrent.STM                           (STM)
+import qualified Control.Concurrent.STM                           as STM
+import           Control.Monad                                    (forM_, void)
 import           Control.Monad.Freer
-import           Control.Monad.Freer.Error              (Error, throwError)
-import           Control.Monad.Freer.Extras.Log         (LogMessage, LogMsg, LogObserve, logDebug, logInfo, logWarn,
-                                                         mapLog, surroundInfo)
-import           Control.Monad.Freer.Extras.Modify      (wrapError)
-import           Control.Monad.Freer.Reader             (Reader, runReader)
-import           Data.Aeson                             (ToJSON (..))
-import qualified Data.Aeson                             as JSON
-import           Data.Foldable                          (for_, traverse_)
-import qualified Data.Map                               as Map
-import           Data.Maybe                             (mapMaybe)
-import           Data.Semigroup                         (Last (..))
-import qualified Data.Set                               as Set
-import qualified Data.Text                              as Text
-import           Data.Text.Prettyprint.Doc              (Pretty, parens, pretty, viaShow, (<+>))
-import           GHC.Generics                           (Generic)
+import           Control.Monad.Freer.Error                        (Error)
+import           Control.Monad.Freer.Extras.Log                   (LogMessage, LogMsg, LogObserve, logDebug, logInfo)
+import           Control.Monad.Freer.Reader                       (Reader, ask, runReader)
+import           Control.Monad.IO.Class                           (MonadIO (liftIO))
+import           Data.Proxy                                       (Proxy (..))
+import qualified Data.Text                                        as Text
 
-import           Plutus.Contract.Effects.AwaitSlot      (WaitingForSlot (..))
-import           Plutus.Contract.Effects.ExposeEndpoint (ActiveEndpoint (..), EndpointDescription (..),
-                                                         EndpointValue (..))
-import           Plutus.Contract.Effects.WriteTx        (WriteTxResponse (..))
-import           Plutus.Contract.Resumable              (IterationID, Request (..), Response (..))
-import           Plutus.Contract.Trace                  (EndpointError (..))
-import           Plutus.Contract.Trace.RequestHandler   (RequestHandler (..), RequestHandlerLogMsg, extract,
-                                                         maybeToHandler, tryHandler, wrapHandler)
-import qualified Plutus.Contract.Trace.RequestHandler   as RequestHandler
+import           Plutus.Contract.Effects.AwaitSlot                (WaitingForSlot (..))
+import           Plutus.Contract.Effects.ExposeEndpoint           (ActiveEndpoint (..))
+import           Plutus.Contract.Resumable                        (Request (..), Response (..))
+import           Plutus.Contract.Trace.RequestHandler             (RequestHandler (..), RequestHandlerLogMsg, extract,
+                                                                   maybeToHandler, tryHandler', wrapHandler)
+import           Plutus.PAB.Core.ContractInstance.RequestHandlers (ContractInstanceMsg (..),
+                                                                   processAddressChangedAtRequests,
+                                                                   processInstanceRequests, processNotificationEffects,
+                                                                   processOwnPubkeyRequests, processTxConfirmedRequests,
+                                                                   processUtxoAtRequests, processWriteTxRequests)
 
-import           Ledger.Tx                              (Tx, txId)
-import           Wallet.Effects                         (ChainIndexEffect, ContractRuntimeEffect, WalletEffect)
-import           Wallet.Emulator.LogMessages            (TxBalanceMsg)
+import           Wallet.Effects                                   (ChainIndexEffect, ContractRuntimeEffect,
+                                                                   WalletEffect)
+import           Wallet.Emulator.LogMessages                      (TxBalanceMsg)
 
-import           Data.Text.Extras                       (tshow)
-import           Plutus.PAB.Command                     (saveBalancedTx, saveBalancedTxResult, sendContractEvent)
-import           Plutus.PAB.Effects.Contract            (ContractCommand (..), ContractEffect)
-import qualified Plutus.PAB.Effects.Contract            as Contract
-import           Plutus.PAB.Effects.EventLog            (EventLogEffect, runCommand, runGlobalQuery)
-import           Plutus.PAB.Effects.UUID                (UUIDEffect, uuidNextRandom)
-import           Plutus.PAB.Events                      (ChainEvent (..))
-import           Plutus.PAB.Events.Contract             (ContractEvent (..), ContractInstanceId (..),
-                                                         ContractInstanceState (..), ContractPABRequest (..),
-                                                         ContractResponse (..), PartiallyDecodedResponse (..),
-                                                         unContractHandlersResponse)
-import qualified Plutus.PAB.Events.Contract             as Events.Contract
-import qualified Plutus.PAB.Query                       as Query
-import           Plutus.PAB.Types                       (PABError (..),
-                                                         Source (ContractEventSource, NodeEventSource, WalletEventSource))
-
-import qualified Plutus.PAB.Core.Projections            as Projections
-
-newtype MaxIterations = MaxIterations Int
-    deriving stock (Eq, Ord, Show, Generic)
-    deriving newtype (ToJSON, JSON.FromJSON)
-
-defaultMaxIterations :: MaxIterations
-defaultMaxIterations = MaxIterations 20
-
-data ContractInstanceMsg t =
-    ProcessFirstInboxMessage ContractInstanceId (Response ContractResponse)
-    | SendingContractStateMessages ContractInstanceId IterationID [Request ContractPABRequest]
-    | LookingUpStateOfContractInstance
-    | CurrentIteration IterationID
-    | InboxMessageDoesntMatchIteration IterationID IterationID
-    | InboxMessageMatchesIteration
-    | InvokingContractUpdate
-    | ObtainedNewState
-    | UpdatedContract ContractInstanceId IterationID
-    | LookingUpContract t
-    | InitialisingContract t ContractInstanceId
-    | InitialContractResponse (PartiallyDecodedResponse ContractPABRequest)
-    | ActivatedContractInstance ContractInstanceId
-    | RunRequestHandler ContractInstanceId Int -- number of requests
-    | RunRequestHandlerDidNotHandleAnyEvents
-    | StoringSignedTx Tx
-    | CallingEndpoint String ContractInstanceId JSON.Value
-    | ProcessContractInbox ContractInstanceId
-    | HandlingRequest RequestHandlerLogMsg
-    | HandlingRequests ContractInstanceId [Request ContractPABRequest]
-    | BalancingTx TxBalanceMsg
-    | MaxIterationsExceeded ContractInstanceId MaxIterations
-    deriving stock (Eq, Show, Generic)
-    deriving anyclass (JSON.ToJSON, JSON.FromJSON)
-
-instance ToJSON v => ToObject (ContractInstanceMsg v) where
-    toObject v = \case
-        ProcessFirstInboxMessage instanceID response ->
-            mkObjectStr "Processing first contract inbox message" $
-                case v of
-                    MaximalVerbosity -> Left (instanceID, Tagged @"response" response)
-                    _                -> Right instanceID
-        SendingContractStateMessages instanceID iterationID requests ->
-            mkObjectStr "Sending contact state messages" $
-                case v of
-                    MaximalVerbosity ->
-                        Left (instanceID, iterationID, Tagged @"requests" requests)
-                    _ -> Right instanceID
-        LookingUpStateOfContractInstance -> mkObjectStr "looking up state of contract instance" ()
-        CurrentIteration i -> mkObjectStr "current iteration" i
-        InboxMessageDoesntMatchIteration i1 i2 ->
-            mkObjectStr
-                "inbox message doesn't match iteration"
-                (i1, Tagged @"inbox_message_iteration" i2)
-        InboxMessageMatchesIteration -> mkObjectStr "inbox message matches iteration" ()
-        InvokingContractUpdate -> mkObjectStr "invoking contract update" ()
-        ObtainedNewState -> mkObjectStr "obtained new state" ()
-        UpdatedContract instanceID iterationID ->
-            mkObjectStr "updated contract" (instanceID, iterationID)
-        LookingUpContract t ->
-            mkObjectStr "looking up contract" (Tagged @"contract" t)
-        InitialisingContract t instanceID ->
-            mkObjectStr "initialising contract" (Tagged @"contract" t, instanceID)
-        InitialContractResponse rsp ->
-            mkObjectStr "initial contract response" $
-                case v of
-                    MaximalVerbosity -> Left (Tagged @"response" rsp)
-                    _                -> Right ()
-        ActivatedContractInstance instanceID ->
-            mkObjectStr "activated contract instance" instanceID
-        RunRequestHandler instanceID n ->
-            mkObjectStr "running request handler" (instanceID, Tagged @"num_requests" n)
-        RunRequestHandlerDidNotHandleAnyEvents ->
-            mkObjectStr "request handler did not handle any events" ()
-        StoringSignedTx t ->
-            mkObjectStr "storing signed tx" $
-                case v of
-                    MaximalVerbosity -> Left t
-                    _                -> Right ()
-        CallingEndpoint ep instanceID vl ->
-            mkObjectStr "calling endpoint" $
-                case v of
-                    MinimalVerbosity -> Left (instanceID, Tagged @"endpoint" ep)
-                    _                -> Right (instanceID, Tagged @"endpoint" ep, Tagged @"value" vl)
-        ProcessContractInbox instanceID ->
-            mkObjectStr "processing contract inbox" instanceID
-        HandlingRequest reqLog ->
-            mkObjectStr "handling request" (Tagged @"request" reqLog)
-        HandlingRequests instanceID requests ->
-            mkObjectStr "handling requests" $
-                let n = length requests in
-                case v of
-                    MaximalVerbosity -> Left (instanceID, Tagged @"requests" requests, Tagged @"num_requests" n)
-                    _                -> Right (instanceID, Tagged @"num_requests" n)
-        BalancingTx m ->
-            mkObjectStr "balancing tx" $
-                case v of
-                    MaximalVerbosity -> Left m
-                    _                -> Right ()
-        MaxIterationsExceeded instanceID maxIts ->
-            mkObjectStr "exceeded maximum number of iterations"
-                (instanceID, Tagged @"max_iterations" maxIts)
-
-instance Pretty t => Pretty (ContractInstanceMsg t) where
-    pretty = \case
-        ProcessFirstInboxMessage instanceID response ->
-            "processFirstInboxMessage for" <+> pretty instanceID <> ". The first message is:" <+> pretty response
-        SendingContractStateMessages contract iterationID requests ->
-            "Sending messages for contract" <+> pretty contract <+> "at iteration" <+> pretty iterationID <+> ". The contract has the following requests:" <+> pretty requests
-        LookingUpStateOfContractInstance -> "Looking up current state of the contract instance."
-        CurrentIteration i -> "CurrentIteration:" <+> pretty i
-        InboxMessageDoesntMatchIteration imsg iinstance -> "The iteration of the first inbox message" <+> parens (pretty imsg) <+> "does not match the contract instance's iteration" <+> parens (pretty iinstance) <> "."
-        InboxMessageMatchesIteration -> "The iteration of the first inbox message matches the contract instance's iteration."
-        InvokingContractUpdate -> "Invoking contract update."
-        ObtainedNewState -> "Obtained new state. Sending contract state messages."
-        UpdatedContract instanceID iterationID -> "Updated contract" <+> pretty instanceID <+> "to new iteration" <+> pretty iterationID
-        LookingUpContract c -> "Looking up contract" <+> pretty c
-        InitialisingContract c instanceID -> "Initialising contract" <+> pretty c <+> "with ID" <+> pretty instanceID
-        InitialContractResponse rsp -> "Initial contract response:" <+> pretty rsp
-        ActivatedContractInstance instanceID -> "Activated instance" <+> pretty instanceID
-        RunRequestHandler instanceID numRequests -> "Running request handler for" <+> pretty instanceID <+> "with" <+> pretty numRequests <+> "requests."
-        RunRequestHandlerDidNotHandleAnyEvents -> "runRequestHandler: did not handle any requests"
-        StoringSignedTx tx -> "Storing signed tx" <+> pretty (txId tx)
-        CallingEndpoint endpoint instanceID value ->
-            "Calling endpoint" <+> pretty endpoint <+> "on instance" <+> pretty instanceID <+> "with" <+> viaShow value
-        ProcessContractInbox i -> "Processing contract inbox for" <+> pretty i
-        HandlingRequest msg -> pretty msg
-        HandlingRequests i rqs -> "Handling" <+> pretty (length rqs) <+> "requests for" <+> pretty i
-        BalancingTx msg -> pretty msg
-        MaxIterationsExceeded i (MaxIterations is) -> "Max iterations" <+> parens (pretty is) <+> "exceeded for" <+> pretty i
-
-sendContractStateMessages ::
-    forall t effs.
-        ( Member (EventLogEffect (ChainEvent t)) effs
-        , Member (LogMsg (ContractInstanceMsg t)) effs
-        )
-    => ContractInstanceState t
-    -> Eff effs ()
-sendContractStateMessages is = do
-    logDebug @(ContractInstanceMsg t) $ SendingContractStateMessages (csContract is) (csCurrentIteration is) (hooks (csCurrentState is))
-    void
-        $ runCommand (sendContractEvent @t) ContractEventSource
-        $ ContractInstanceStateUpdateEvent is
-
-sendContractMessage ::
-    forall t effs.
-        ( Member (EventLogEffect (ChainEvent t)) effs
-        )
-    => ContractInstanceId
-    -> Response ContractResponse
-    -> Eff effs [ChainEvent t]
-sendContractMessage instanceID =
-    runCommand (sendContractEvent @t) ContractEventSource
-    . ContractInboxMessage instanceID
-
--- | Get the current state of the contract instance
-lookupContractState ::
-    forall t effs.
-    ( Member (EventLogEffect (ChainEvent t)) effs
-    , Member (Error PABError) effs
-    )
-    => ContractInstanceId
-    -> Eff effs (ContractInstanceState t)
-lookupContractState instanceID = do
-    mp <- runGlobalQuery (Query.contractState @t)
-    case Map.lookup instanceID mp of
-        Nothing -> throwError $ OtherError $ "Contract instance not found " <> tshow instanceID
-        Just s  -> pure s
-
--- | For a given contract instance, take the first message
---   from the inbox and update the contract with it.
-processFirstInboxMessage ::
-    forall t effs.
-        ( Member (EventLogEffect (ChainEvent t)) effs
-        , Member (ContractEffect t) effs
-        , Member (Error PABError) effs
-        , Member (LogMsg (ContractInstanceMsg t)) effs
-        , Member (LogObserve (LogMessage Text.Text)) effs
-        )
-    => ContractInstanceId
-    -> Last (Response ContractResponse)
-    -> Eff effs ()
-processFirstInboxMessage instanceID (Last msg) = surroundInfo @Text.Text "processFirstInboxMessage" $ do
-    logDebug @(ContractInstanceMsg t) $ ProcessFirstInboxMessage instanceID msg
-    logDebug @(ContractInstanceMsg t) $ LookingUpStateOfContractInstance
-    -- look up contract 't'
-    ContractInstanceState{csCurrentIteration, csCurrentState, csContractDefinition} <- lookupContractState @t instanceID
-    logDebug @(ContractInstanceMsg t) $ CurrentIteration csCurrentIteration
-    if csCurrentIteration /= rspItID msg
-        then logDebug @(ContractInstanceMsg t) $ InboxMessageDoesntMatchIteration (rspItID msg) csCurrentIteration
-        else do
-            logDebug @(ContractInstanceMsg t) InboxMessageMatchesIteration
-            -- process the message
-            let payload = Contract.contractMessageToPayload msg
-            logDebug @(ContractInstanceMsg t) InvokingContractUpdate
-            newState <- Contract.invokeContractUpdate_ csContractDefinition csCurrentState payload
-            logDebug @(ContractInstanceMsg t) ObtainedNewState
-            -- send out the new requests
-            -- see note [Contract Iterations]
-            let newIteration = succ csCurrentIteration
-            sendContractStateMessages $ ContractInstanceState instanceID newIteration newState csContractDefinition
-            logDebug @(ContractInstanceMsg t) $ UpdatedContract instanceID newIteration
-
-
--- | Check the inboxes of all contracts.
-processAllContractInboxes ::
-    forall t effs.
-        ( Member (EventLogEffect (ChainEvent t)) effs
-        , Member (ContractEffect t) effs
-        , Member (Error PABError) effs
-        , Member (LogObserve (LogMessage Text.Text)) effs
-        , Member (LogMsg (ContractInstanceMsg t)) effs
-        )
-    => Eff effs ()
-processAllContractInboxes = surroundInfo @Text.Text "processAllContractInboxes" $ do
-    state <- runGlobalQuery (Query.inboxMessages @t)
-    itraverse_ (processFirstInboxMessage @t) state
-
--- | Check the inboxes of all contracts.
-processContractInbox ::
-    forall t effs.
-        ( Member (EventLogEffect (ChainEvent t)) effs
-        , Member (ContractEffect t) effs
-        , Member (Error PABError) effs
-        , Member (LogObserve (LogMessage Text.Text)) effs
-        , Member (LogMsg (ContractInstanceMsg t)) effs
-        )
-    => ContractInstanceId
-    -> Eff effs ()
-processContractInbox i = surroundInfo @Text.Text "processContractInbox" $ do
-    logDebug @(ContractInstanceMsg t) $ ProcessContractInbox i
-    state <- runGlobalQuery (Query.inboxMessages @t)
-    traverse_ (processFirstInboxMessage @t i) (Map.lookup i state)
-
--- | Generic error message for failures during the contract lookup
-newtype ContractLookupError = ContractLookupError { unContractLookupError :: String }
-
-lookupContract ::
-    forall t effs.
-    ( Member (EventLogEffect (ChainEvent t)) effs
-    , Show t
-    , Ord t
-    )
-    => t
-    -> Eff effs (Either ContractLookupError t)
-lookupContract t = do
-    installed <- Projections.installedContracts
-    let matchingContracts =
-            Set.filter
-                (\cp -> cp == t)
-                installed
-    pure
-        $ maybe
-            (Left (ContractLookupError (show t)))
-            Right
-            (Set.lookupMin matchingContracts)
+import           Plutus.Contract                                  (AddressChangeRequest (..))
+import           Plutus.PAB.Core.ContractInstance.STM             (Activity (Done), BlockchainEnv (..),
+                                                                   InstanceState (..), InstancesState,
+                                                                   callEndpointOnInstance, emptyInstanceState)
+import qualified Plutus.PAB.Core.ContractInstance.STM             as InstanceState
+import           Plutus.PAB.Effects.Contract                      (ContractEffect, ContractStore, PABContract (..))
+import qualified Plutus.PAB.Effects.Contract                      as Contract
+import           Plutus.PAB.Effects.UUID                          (UUIDEffect, uuidNextRandom)
+import           Plutus.PAB.Events.Contract                       (ContractInstanceId (..), ContractPABRequest (..),
+                                                                   ContractResponse (..))
+import qualified Plutus.PAB.Events.Contract                       as Events.Contract
+import           Plutus.PAB.Events.ContractInstanceState          (PartiallyDecodedResponse (..))
+import           Plutus.PAB.Types                                 (PABError (..))
+import           Plutus.PAB.Webserver.Types                       (ContractActivationArgs (..))
 
 -- | Create a new instance of the contract
-activateContract ::
-    forall t effs.
+activateContractSTM ::
+    forall t m appBackend effs.
     ( Member (LogMsg (ContractInstanceMsg t)) effs
-    , Member (EventLogEffect (ChainEvent t)) effs
-    , Member (Error PABError) effs
     , Member UUIDEffect effs
     , Member (ContractEffect t) effs
-    , Show t
-    , Ord t
+    , Member (ContractStore t) effs
+    , Member (Reader InstancesState) effs
+    , Contract.PABContract t
+    , AppBackendConstraints t m appBackend
+    , LastMember m (Reader ContractInstanceId ': appBackend)
+    , LastMember m effs
     )
-    => t
-    -> Eff effs (ContractInstanceState t)
-activateContract contract = do
-    logDebug @(ContractInstanceMsg t) $ LookingUpContract contract
-    contractDef <-
-        either (throwError . ContractNotFound . unContractLookupError) pure =<<
-        lookupContract @t contract
+    => (Eff appBackend ~> IO)
+    -> ContractActivationArgs (ContractDef t)
+    -> Eff effs ContractInstanceId
+activateContractSTM runAppBackend a@ContractActivationArgs{caID, caWallet} = do
     activeContractInstanceId <- ContractInstanceId <$> uuidNextRandom
-    logDebug $ InitialisingContract contract activeContractInstanceId
-    let initialIteration = succ mempty -- FIXME get max it. from initial response
-    response <- fmap (fmap unContractHandlersResponse) <$> Contract.invokeContract @t $ InitContract contractDef
-    logDebug @(ContractInstanceMsg t) $ InitialContractResponse response
-    let instanceState = ContractInstanceState
-                          { csContract = activeContractInstanceId
-                          , csCurrentIteration = initialIteration
-                          , csCurrentState = response
-                          , csContractDefinition = contract
-                          }
-    sendContractStateMessages instanceState
-    logInfo @(ContractInstanceMsg t) $ ActivatedContractInstance activeContractInstanceId
-    pure instanceState
+    logDebug @(ContractInstanceMsg t) $ InitialisingContract caID activeContractInstanceId
+    initialState <- Contract.initialState @t caID
+    Contract.putState @t a activeContractInstanceId initialState
+    s <- startSTMInstanceThread @t @m runAppBackend a activeContractInstanceId
+    ask >>= void . liftIO . STM.atomically . InstanceState.insertInstance activeContractInstanceId s
+    logInfo @(ContractInstanceMsg t) $ ActivatedContractInstance caID caWallet activeContractInstanceId
+    pure activeContractInstanceId
 
-respondtoRequests ::
-    forall t effs.
-    ( Member (EventLogEffect (ChainEvent t)) effs
-    , Member (LogMsg (ContractInstanceMsg t)) effs
-    , Member (ContractEffect t) effs
-    , Member (Error PABError) effs
-    , Member (LogObserve (LogMessage Text.Text)) effs
-    )
-    => MaxIterations
-    -> RequestHandler (Reader ContractInstanceId ': effs) ContractPABRequest ContractResponse
-    -> Eff effs ()
-respondtoRequests (MaxIterations mi) handler = do
-    contractStates <- runGlobalQuery (Query.contractState @t)
-    let instances = Map.keys contractStates
-    for_ instances $ \instanceId ->
-        let go j
-             | j >= mi =
-                 logWarn @(ContractInstanceMsg t) $ MaxIterationsExceeded instanceId (MaxIterations mi)
-             | otherwise = do
-                 requests <- hooks . csCurrentState <$> lookupContractState @t instanceId
-                 logDebug @(ContractInstanceMsg t) $ HandlingRequests instanceId requests
-                 events <- runReader instanceId $ runRequestHandler @t handler instanceId requests
-                 processContractInbox @t instanceId
-                 unless (null events) (go $ succ j)
-        in go 0
-
--- | Run a 'RequestHandler' on the 'ContractPABRequest' list of a contract
---   instance and send the responses to the contract instance.
-runRequestHandler ::
-    forall t effs req.
-    ( Member (EventLogEffect (ChainEvent t)) effs
-    , Member (LogMsg (ContractInstanceMsg t)) effs
-    )
-    => RequestHandler effs req ContractResponse
-    -> ContractInstanceId
-    -> [Request req]
-    -> Eff effs [ChainEvent t]
-runRequestHandler h contractInstance requests = do
-    logDebug @(ContractInstanceMsg t) $ RunRequestHandler contractInstance (length requests)
-    -- try the handler on the requests until it succeeds for the first time,
-    -- then stop. We want to handle at most 1 request per iteration.
-    (response :: Maybe (Response ContractResponse)) <-
-        tryHandler (wrapHandler h) requests
-
-    case response of
-        Just rsp ->
-            sendContractMessage @t contractInstance rsp
-        _ -> do
-            logDebug @(ContractInstanceMsg t) RunRequestHandlerDidNotHandleAnyEvents
-            pure []
-
-processOwnPubkeyRequests ::
+processAwaitSlotRequestsSTM ::
     forall effs.
-    ( Member (LogObserve (LogMessage Text.Text)) effs
-    , Member WalletEffect effs
+    ( Member (Reader BlockchainEnv) effs
     )
-    => RequestHandler effs ContractPABRequest ContractResponse
-processOwnPubkeyRequests =
-    maybeToHandler (extract Events.Contract._OwnPubkeyRequest) >>>
-        fmap OwnPubkeyResponse RequestHandler.handleOwnPubKey
-
-processAwaitSlotRequests ::
-    forall effs.
-    ( Member (LogObserve (LogMessage Text.Text)) effs
-    , Member (LogMsg RequestHandlerLogMsg) effs
-    , Member WalletEffect effs
-    )
-    => RequestHandler effs ContractPABRequest ContractResponse
-processAwaitSlotRequests =
+    => RequestHandler effs ContractPABRequest (STM ContractResponse)
+processAwaitSlotRequestsSTM =
     maybeToHandler (fmap unWaitingForSlot . extract Events.Contract._AwaitSlotRequest)
-    >>> RequestHandler.handleSlotNotifications
-    >>^ AwaitSlotResponse
+    >>> (RequestHandler $ \targetSlot -> fmap AwaitSlotResponse . InstanceState.awaitSlot targetSlot <$> ask)
 
-processUtxoAtRequests ::
+processTxConfirmedRequestsSTM ::
     forall effs.
-    ( Member ChainIndexEffect effs
-    , Member (LogObserve (LogMessage Text.Text)) effs
-    , Member (LogMsg RequestHandlerLogMsg) effs
+    ( Member (Reader BlockchainEnv) effs
     )
-    => RequestHandler effs ContractPABRequest ContractResponse
-processUtxoAtRequests =
-    maybeToHandler (extract Events.Contract._UtxoAtRequest)
-    >>> RequestHandler.handleUtxoQueries
-    >>^ UtxoAtResponse
-
-processWriteTxRequests ::
-    forall t effs.
-    ( Member (EventLogEffect (ChainEvent t)) effs
-    , Member ChainIndexEffect effs
-    , Member WalletEffect effs
-    , Member (LogObserve (LogMessage Text.Text)) effs
-    , Member (LogMsg RequestHandlerLogMsg) effs
-    , Member (LogMsg (ContractInstanceMsg t)) effs
-    , Member (LogMsg TxBalanceMsg) effs
-    )
-    => RequestHandler effs ContractPABRequest ContractResponse
-processWriteTxRequests =
-    let store result = case result of
-            Left err -> pure (Left err)
-            Right signedTx -> do
-                logDebug @(ContractInstanceMsg t) $ StoringSignedTx signedTx
-                void $ runCommand (saveBalancedTx @t) WalletEventSource signedTx
-                void $ runCommand (saveBalancedTxResult @t) NodeEventSource signedTx
-                pure (Right signedTx)
-    in
-
-    maybeToHandler (extract Events.Contract._WriteTxRequest)
-    >>> RequestHandler.handlePendingTransactions
-    >>> RequestHandler store
-    >>^ WriteTxResponse . either WriteTxFailed WriteTxSuccess
-
-processNextTxAtRequests ::
-    forall effs.
-    ( Member (LogObserve (LogMessage Text.Text)) effs
-    , Member WalletEffect effs
-    , Member ChainIndexEffect effs
-    , Member (LogMsg RequestHandlerLogMsg) effs
-    )
-    => RequestHandler effs ContractPABRequest ContractResponse
-processNextTxAtRequests =
-    maybeToHandler (extract Events.Contract._NextTxAtRequest)
-    >>> RequestHandler.handleNextTxAtQueries
-    >>^ NextTxAtResponse
-
-processTxConfirmedRequests ::
-    forall effs.
-    ( Member ChainIndexEffect effs
-    , Member (LogObserve (LogMessage Text.Text)) effs
-    )
-    => RequestHandler effs ContractPABRequest ContractResponse
-processTxConfirmedRequests =
+    => RequestHandler effs ContractPABRequest (STM ContractResponse)
+processTxConfirmedRequestsSTM =
     maybeToHandler (extract Events.Contract._AwaitTxConfirmedRequest)
-    >>> RequestHandler.handleTxConfirmedQueries
-    >>^ AwaitTxConfirmedResponse
+    >>> RequestHandler handler
+    where
+        handler req = do
+            env <- ask
+            pure (AwaitTxConfirmedResponse <$> InstanceState.waitForTxConfirmed req env)
 
-processInstanceRequests ::
+processEndpointRequestsSTM ::
     forall effs.
-    ( Member (Reader ContractInstanceId) effs
-    , Member (LogObserve (LogMessage Text.Text)) effs
+    ( Member (Reader InstanceState) effs
     )
-    => RequestHandler effs ContractPABRequest ContractResponse
-processInstanceRequests =
-    maybeToHandler (extract Events.Contract._OwnInstanceIdRequest)
-    >>> RequestHandler.handleOwnInstanceIdQueries
-    >>^ OwnInstanceResponse
+    => RequestHandler effs (Request ContractPABRequest) (Response (STM ContractResponse))
+processEndpointRequestsSTM =
+    maybeToHandler (traverse (extract Events.Contract._UserEndpointRequest))
+    >>> (RequestHandler $ \q@Request{rqID, itID, rqRequest} -> fmap (Response rqID itID) (fmap (UserEndpointResponse (aeDescription rqRequest)) . InstanceState.awaitEndpointResponse q <$> ask))
 
-processNotificationEffects ::
+-- | 'RequestHandler' that uses TVars to wait for events
+stmRequestHandler ::
     forall effs.
-    ( Member ContractRuntimeEffect effs
-    , Member (LogObserve (LogMessage Text.Text)) effs
-    )
-    => RequestHandler effs ContractPABRequest ContractResponse
-processNotificationEffects =
-    maybeToHandler (extract Events.Contract._SendNotificationRequest)
-    >>> RequestHandler.handleContractNotifications
-    >>^ NotificationResponse
-
-
--- | Call a named endpoint on a contract instance, throwing an 'PABError'
---   if the endpoint is not active.
-callContractEndpoint ::
-    forall t a effs.
-    ( Member (EventLogEffect (ChainEvent t)) effs
-    , Member (LogMsg (ContractInstanceMsg t)) effs
-    , Member (Error PABError) effs
-    , JSON.ToJSON a
-    )
-    => ContractInstanceId
-    -> String
-    -> a
-    -> Eff effs [ChainEvent t]
-callContractEndpoint instanceID endpointName =
-    wrapError (EndpointCallError instanceID) . callContractEndpoint' @t @a @(Error EndpointError ': effs) instanceID endpointName
-
--- | Call a named endpoint on a contract instance, throwing an 'EndpointError'
---   if the endpoint is not active.
-callContractEndpoint' ::
-    forall t a effs.
-    ( Member (EventLogEffect (ChainEvent t)) effs
-    , Member (LogMsg (ContractInstanceMsg t)) effs
-    , Member (Error EndpointError) effs
-    , JSON.ToJSON a
-    )
-    => ContractInstanceId
-    -> String
-    -> a
-    -> Eff effs [ChainEvent t]
-callContractEndpoint' instanceID endpointName endpointValue = do
-    -- we can't use respondtoRequests here because we want to call the endpoint only on
-    -- the contract instance 'inst'. And we want to error if the endpoint is not active.
-    logInfo @(ContractInstanceMsg t) $ CallingEndpoint endpointName instanceID (JSON.toJSON endpointValue)
-    state <- fmap (hooks . csCurrentState) <$> runGlobalQuery (Query.contractState @t)
-    let activeEndpoints =
-            filter ((==) (EndpointDescription endpointName) . aeDescription . rqRequest)
-            $ mapMaybe (traverse (preview Events.Contract._UserEndpointRequest))
-            $ Map.findWithDefault [] instanceID state
-
-    when (null activeEndpoints) $
-        throwError $ EndpointNotActive Nothing (EndpointDescription endpointName)
-
-    let handler _ = pure (UserEndpointResponse (EndpointDescription endpointName) (EndpointValue $ JSON.toJSON endpointValue))
-    runRequestHandler (RequestHandler handler) instanceID activeEndpoints
-
--- | Look at the outboxes of all contract instances and process them.
-processAllContractOutboxes ::
-    forall t effs.
-    ( Member (LogObserve (LogMessage Text.Text)) effs
-    , Member (LogMsg (ContractInstanceMsg t)) effs
-    , Member (EventLogEffect (ChainEvent t)) effs
+    ( Member ChainIndexEffect effs
     , Member WalletEffect effs
-    , Member ChainIndexEffect effs
     , Member ContractRuntimeEffect effs
-    , Member (Error PABError) effs
-    , Member (ContractEffect t) effs
+    , Member (LogMsg RequestHandlerLogMsg) effs
+    , Member (LogObserve (LogMessage Text.Text)) effs
+    , Member (LogMsg TxBalanceMsg) effs
+    , Member (Reader ContractInstanceId) effs
+    , Member (Reader BlockchainEnv) effs
+    , Member (Reader InstanceState) effs
     )
-    => MaxIterations -- ^ Maximum number of times the requests for each contract instance are processed
-    -> Eff effs ()
-processAllContractOutboxes mi =
-    interpret (mapLog @_ @(ContractInstanceMsg t) HandlingRequest)
-    $ interpret (mapLog @_ @(ContractInstanceMsg t) BalancingTx)
-    $ surroundInfo @Text.Text "processAllContractOutboxes"
-    $ respondtoRequests @t @(LogMsg TxBalanceMsg ': LogMsg RequestHandlerLogMsg ': effs) mi
-    $ contractRequestHandler @t @(Reader ContractInstanceId ': LogMsg TxBalanceMsg ': LogMsg RequestHandlerLogMsg ': effs)
+    => RequestHandler effs (Request ContractPABRequest) (STM (Response ContractResponse))
+stmRequestHandler = fmap sequence (wrapHandler (fmap pure nonBlockingRequests) <> blockingRequests) where
 
-contractRequestHandler ::
-    forall t effs.
-    ( Member (EventLogEffect (ChainEvent t)) effs
+    -- requests that can be handled by 'WalletEffect', 'ChainIndexEffect', etc.
+    nonBlockingRequests =
+        processOwnPubkeyRequests @effs
+        <> processUtxoAtRequests @effs
+        <> processWriteTxRequests @effs
+        <> processTxConfirmedRequests @effs
+        <> processAddressChangedAtRequests @effs
+        <> processInstanceRequests @effs
+        <> processNotificationEffects @effs
+
+    -- requests that wait for changes to happen
+    blockingRequests =
+        wrapHandler (processAwaitSlotRequestsSTM @effs)
+        <> wrapHandler (processTxConfirmedRequestsSTM @effs)
+        <> processEndpointRequestsSTM @effs
+
+-- | Start the thread for the contract instance
+startSTMInstanceThread ::
+    forall t m appBackend effs.
+    ( LastMember m effs
+    , Contract.PABContract t
+    , AppBackendConstraints t m appBackend
+    , LastMember m (Reader InstanceState ': Reader ContractInstanceId ': appBackend)
+    )
+    => (Eff appBackend ~> IO)
+    -> ContractActivationArgs (ContractDef t)
+    -> ContractInstanceId
+    -> Eff effs InstanceState
+startSTMInstanceThread runAppBackend def instanceID = do
+    state <- liftIO $ STM.atomically emptyInstanceState
+    _ <- liftIO
+        $ forkIO
+        $ runAppBackend
+        $ runReader instanceID
+        $ runReader state
+        $ stmInstanceLoop @t @m @(Reader InstanceState ': Reader ContractInstanceId ': appBackend) def instanceID
+
+    pure state
+    -- TODO: Separate chain index queries (non-blocking) from waiting for updates (blocking)
+
+type AppBackendConstraints t m effs =
+    ( LastMember m effs
+    , MonadIO m
+    , Member (Error PABError) effs
+    , Member (LogMsg (ContractInstanceMsg t)) effs
     , Member ChainIndexEffect effs
+    , Member WalletEffect effs
+    , Member ContractRuntimeEffect effs
+    , Member (LogMsg RequestHandlerLogMsg) effs
+    , Member (LogObserve (LogMessage Text.Text)) effs
+    , Member (LogMsg TxBalanceMsg) effs
+    , Member (Reader BlockchainEnv) effs
+    , Member (ContractEffect t) effs
+    , Member (ContractStore t) effs
+    )
+
+-- | Handle requests using 'respondToRequestsSTM' until the contract is done.
+stmInstanceLoop ::
+    forall t m effs.
+    ( AppBackendConstraints t m effs
+    , Member (Reader InstanceState) effs
+    , Member (Reader ContractInstanceId) effs
+    , Contract.PABContract t
+    )
+    => ContractActivationArgs (ContractDef t)
+    -> ContractInstanceId
+    -> Eff effs ()
+stmInstanceLoop def instanceId = do
+    (currentState :: Contract.State t) <- Contract.getState @t instanceId
+    let resp = serialisableState (Proxy @t) currentState
+    updateState resp
+    case Contract.requests @t currentState of
+        [] -> do
+            let PartiallyDecodedResponse{err} = resp
+            ask >>= liftIO . STM.atomically . InstanceState.setActivity (Done err)
+        _ -> do
+            response <- respondToRequestsSTM @t instanceId currentState
+            event <- liftIO $ STM.atomically response
+            (newState :: Contract.State t) <- Contract.updateContract @t (caID def) currentState event
+            Contract.putState @t def instanceId newState
+            stmInstanceLoop @t def instanceId
+
+-- | Update the TVars in the 'InstanceState' with data from the list
+--   of requests.
+updateState ::
+    forall m effs.
+    ( LastMember m effs
+    , MonadIO m
+    , Member (Reader InstanceState) effs
+    )
+    => PartiallyDecodedResponse ContractPABRequest
+    -> Eff effs ()
+updateState PartiallyDecodedResponse{observableState, hooks} = do
+    state <- ask
+    liftIO $ STM.atomically $ do
+        InstanceState.clearEndpoints state
+        forM_ hooks $ \r -> do
+            case rqRequest r of
+                AwaitTxConfirmedRequest txid -> InstanceState.addTransaction txid state
+                UtxoAtRequest addr -> InstanceState.addAddress addr state
+                AddressChangedAtRequest AddressChangeRequest{acreqAddress} -> InstanceState.addAddress acreqAddress state
+                UserEndpointRequest endpoint -> InstanceState.addEndpoint (r { rqRequest = endpoint}) state
+                _ -> pure ()
+        InstanceState.setObservableState observableState state
+
+-- | Run the STM-based request handler on a non-empty list
+--   of requests.
+respondToRequestsSTM ::
+    forall t effs.
+    ( Member ChainIndexEffect effs
     , Member WalletEffect effs
     , Member ContractRuntimeEffect effs
     , Member (LogMsg RequestHandlerLogMsg) effs
@@ -610,14 +262,14 @@ contractRequestHandler ::
     , Member (LogMsg (ContractInstanceMsg t)) effs
     , Member (LogMsg TxBalanceMsg) effs
     , Member (Reader ContractInstanceId) effs
+    , Member (Reader BlockchainEnv) effs
+    , Member (Reader InstanceState) effs
+    , Contract.PABContract t
     )
-    => RequestHandler effs ContractPABRequest ContractResponse
-contractRequestHandler =
-    processOwnPubkeyRequests @effs
-    <> processAwaitSlotRequests @effs
-    <> processUtxoAtRequests @effs
-    <> processWriteTxRequests @t @effs
-    <> processTxConfirmedRequests @effs
-    <> processNextTxAtRequests @effs
-    <> processInstanceRequests @effs
-    <> processNotificationEffects @effs
+    => ContractInstanceId
+    -> Contract.State t
+    -> Eff effs (STM (Response ContractResponse))
+respondToRequestsSTM instanceId currentState = do
+    let rqs = Contract.requests @t currentState
+    logDebug @(ContractInstanceMsg t) $ HandlingRequests instanceId rqs
+    tryHandler' stmRequestHandler rqs

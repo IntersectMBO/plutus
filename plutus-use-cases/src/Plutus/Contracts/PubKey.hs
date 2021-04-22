@@ -32,8 +32,8 @@ import qualified PlutusTx                 as PlutusTx
 import qualified Ledger.Constraints       as Constraints
 import           Plutus.Contract          as Contract
 
-mkValidator :: PubKeyHash -> () -> () -> ValidatorCtx -> Bool
-mkValidator pk' _ _ p = V.txSignedBy (valCtxTxInfo p) pk'
+mkValidator :: PubKeyHash -> () -> () -> ScriptContext -> Bool
+mkValidator pk' _ _ p = V.txSignedBy (scriptContextTxInfo p) pk'
 
 data PubKeyContract
 
@@ -42,11 +42,11 @@ instance Scripts.ScriptType PubKeyContract where
     type instance DatumType PubKeyContract = ()
 
 scriptInstance :: PubKeyHash -> Scripts.ScriptInstance PubKeyContract
-scriptInstance pk =
-    Scripts.validator @PubKeyContract
-        ($$(PlutusTx.compile [|| mkValidator ||]) `PlutusTx.applyCode` PlutusTx.liftCode pk)
-        $$(PlutusTx.compile [|| wrap ||]) where
-        wrap = Scripts.wrapValidator @() @()
+scriptInstance = Scripts.validatorParam @PubKeyContract
+    $$(PlutusTx.compile [|| mkValidator ||])
+    $$(PlutusTx.compile [|| wrap ||])
+    where
+        wrap = Scripts.wrapValidator
 
 data PubKeyError =
     ScriptOutputMissing PubKeyHash

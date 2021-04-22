@@ -1,112 +1,114 @@
-{-# LANGUAGE DataKinds         #-}
-{-# LANGUAGE DeriveAnyClass    #-}
-{-# LANGUAGE DeriveGeneric     #-}
-{-# LANGUAGE DerivingVia       #-}
-{-# LANGUAGE LambdaCase        #-}
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE StrictData        #-}
+{-# LANGUAGE DataKinds            #-}
+{-# LANGUAGE DeriveAnyClass       #-}
+{-# LANGUAGE DeriveGeneric        #-}
+{-# LANGUAGE DerivingVia          #-}
+{-# LANGUAGE FlexibleContexts     #-}
+{-# LANGUAGE LambdaCase           #-}
+{-# LANGUAGE NamedFieldPuns       #-}
+{-# LANGUAGE OverloadedStrings    #-}
+{-# LANGUAGE StrictData           #-}
+{-# LANGUAGE UndecidableInstances #-}
 
 module Plutus.PAB.Webserver.Types where
 
-import           Cardano.BM.Data.Tracer        (ToObject, toObject)
-import           Cardano.BM.Data.Tracer.Extras (StructuredLog, mkObjectStr)
-import qualified Cardano.Metadata.Types        as Metadata
-import           Data.Aeson                    (FromJSON, ToJSON)
-import           Data.Map                      (Map)
-import           Data.Tagged                   (Tagged (Tagged))
-import           Data.Text                     (Text)
-import           Data.Text.Prettyprint.Doc     (Pretty, pretty, viaShow, (<+>))
-import           Data.UUID                     (UUID)
-import           GHC.Generics                  (Generic)
-import           Ledger                        (Tx, TxId)
-import           Ledger.Index                  (UtxoIndex)
-import           Playground.Types              (FunctionSchema)
-import           Plutus.PAB.Events             (ChainEvent, ContractInstanceState)
-import           Plutus.PAB.Types              (ContractExe)
-import           Schema                        (FormSchema)
-import           Wallet.Rollup.Types           (AnnotatedTx)
+import           Data.Aeson                              (FromJSON, ToJSON)
+import qualified Data.Aeson                              as JSON
+import           Data.Map                                (Map)
+import           Data.Text.Prettyprint.Doc               (Pretty, pretty, (<+>))
+import           GHC.Generics                            (Generic)
+import           Ledger                                  (Tx, TxId)
+import           Ledger.Index                            (UtxoIndex)
+import           Ledger.Slot                             (Slot)
+import           Ledger.Value                            (Value)
+import           Playground.Types                        (FunctionSchema)
+import           Plutus.Contract.Effects.ExposeEndpoint  (ActiveEndpoint)
+import           Plutus.PAB.Events.Contract              (ContractPABRequest)
+import           Plutus.PAB.Events.ContractInstanceState (PartiallyDecodedResponse)
+import           Schema                                  (FormSchema)
+import           Wallet.Emulator.Wallet                  (Wallet)
+import           Wallet.Rollup.Types                     (AnnotatedTx)
+import           Wallet.Types                            (ContractInstanceId)
 
 data ContractReport t =
     ContractReport
         { crAvailableContracts   :: [ContractSignatureResponse t]
-        , crActiveContractStates :: [ContractInstanceState t]
+        , crActiveContractStates :: [(ContractInstanceId, PartiallyDecodedResponse ContractPABRequest)]
         }
-    deriving (Show, Eq, Generic)
-    deriving anyclass (FromJSON, ToJSON)
+    deriving stock (Generic, Eq, Show)
+    deriving anyclass (ToJSON, FromJSON)
 
 data ChainReport =
     ChainReport
         { transactionMap      :: Map TxId Tx
         , utxoIndex           :: UtxoIndex
         , annotatedBlockchain :: [[AnnotatedTx]]
-        , relatedMetadata     :: Map Metadata.Subject [Metadata.Property 'Metadata.AesonEncoding]
         }
     deriving (Show, Eq, Generic)
     deriving anyclass (FromJSON, ToJSON)
+
+emptyChainReport :: ChainReport
+emptyChainReport = ChainReport mempty mempty mempty
 
 data FullReport t =
     FullReport
         { contractReport :: ContractReport t
         , chainReport    :: ChainReport
-        , events         :: [ChainEvent t]
         }
-    deriving (Show, Eq, Generic)
-    deriving anyclass (FromJSON, ToJSON)
+    deriving stock (Generic, Eq, Show)
+    deriving anyclass (ToJSON, FromJSON)
 
 data ContractSignatureResponse t =
     ContractSignatureResponse
         { csrDefinition :: t
         , csrSchemas    :: [FunctionSchema FormSchema]
         }
-    deriving (Show, Eq, Generic)
-    deriving anyclass (FromJSON, ToJSON)
-
-data StreamToServer
-    = FetchProperties Metadata.Subject
-    | FetchProperty Metadata.Subject Metadata.PropertyKey
-    deriving (Show, Eq, Generic)
-    deriving anyclass (FromJSON, ToJSON)
-
-deriving via (Tagged "stream_to_server" StreamToServer) instance
-         StructuredLog StreamToServer
-
-data StreamToClient
-    = NewChainReport ChainReport
-    | NewContractReport (ContractReport ContractExe)
-    | NewChainEvents [ChainEvent ContractExe]
-    | FetchedProperties (Metadata.SubjectProperties 'Metadata.AesonEncoding)
-    | FetchedProperty Metadata.Subject (Metadata.Property 'Metadata.AesonEncoding)
-    | ErrorResponse Text
-    deriving (Show, Eq, Generic)
-    deriving anyclass (FromJSON, ToJSON)
-
-deriving via (Tagged "stream_to_client" StreamToClient) instance
-         StructuredLog StreamToClient
-
-data WebSocketLogMsg
-    = CreatedConnection UUID
-    | ClosedConnection UUID
-    | ReceivedWebSocketRequest (Either Text StreamToServer)
-    | SendingWebSocketResponse StreamToClient
-    deriving  (Show, Eq, Generic)
+    deriving stock (Generic, Eq, Show)
     deriving anyclass (ToJSON, FromJSON)
 
-instance Pretty WebSocketLogMsg where
-    pretty (CreatedConnection uuid) =
-        "Created WebSocket conection:" <+> viaShow uuid
-    pretty (ClosedConnection uuid) =
-        "Closed WebSocket conection:" <+> viaShow uuid
-    pretty (ReceivedWebSocketRequest request) =
-        "Received WebSocket request:" <+> viaShow request
-    pretty (SendingWebSocketResponse response) =
-        "Sending WebSocket response:" <+> viaShow response
+-- | Data needed to start a new instance of a contract.
+data ContractActivationArgs t =
+    ContractActivationArgs
+        { caID     :: t -- ^ ID of the contract
+        , caWallet :: Wallet -- ^ Wallet that should be used for this instance
+        }
+    deriving stock (Eq, Show, Generic)
+    deriving anyclass (ToJSON, FromJSON)
 
-instance ToObject WebSocketLogMsg where
-    toObject _ =
-        \case
-            CreatedConnection u -> mkObjectStr "created connection" u
-            ClosedConnection u -> mkObjectStr "closed connection" u
-            ReceivedWebSocketRequest request ->
-                mkObjectStr "received websocket request" request
-            SendingWebSocketResponse response ->
-                mkObjectStr "sending websocket response" response
+instance Pretty t => Pretty (ContractActivationArgs t) where
+    pretty ContractActivationArgs{caID, caWallet} =
+        pretty caID <+> "on" <+> pretty caWallet
+
+-- | Current state of a contract instance
+--   (to be sent to external clients)
+data ContractInstanceClientState t =
+    ContractInstanceClientState
+        { cicContract     :: ContractInstanceId
+        , cicCurrentState :: PartiallyDecodedResponse ActiveEndpoint
+        , cicWallet       :: Wallet
+        , cicDefintion    :: t
+        }
+        deriving stock (Eq, Show, Generic)
+        deriving anyclass (ToJSON, FromJSON)
+
+-- | Status updates for contract instances streamed to client
+data InstanceStatusToClient
+    = NewObservableState JSON.Value -- ^ The observable state of the contract has changed.
+    | NewActiveEndpoints [ActiveEndpoint] -- ^ The set of active endpoints has changed.
+    | ContractFinished (Maybe JSON.Value) -- ^ Contract instance is done with an optional error message.
+    deriving stock (Generic, Eq, Show)
+    deriving anyclass (ToJSON, FromJSON)
+
+-- | Data sent to the client through the combined websocket API
+data CombinedWSStreamToClient
+    = InstanceUpdate ContractInstanceId InstanceStatusToClient
+    | SlotChange Slot -- ^ New slot number
+    | WalletFundsChange Wallet Value -- ^ The funds of the wallet have changed
+    deriving stock (Generic, Eq, Show)
+    deriving anyclass (ToJSON, FromJSON)
+
+-- | Instructions sent to the server through the combined websocket API
+data CombinedWSStreamToServer
+    = Subscribe (Either ContractInstanceId Wallet)
+    | Unsubscribe (Either ContractInstanceId Wallet)
+    deriving stock (Generic, Eq, Show)
+    deriving anyclass (ToJSON, FromJSON)

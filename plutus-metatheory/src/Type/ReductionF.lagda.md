@@ -3,6 +3,10 @@ title: Type Reduction
 layout: page
 ---
 
+This is an experiment in using a frames to cut down on the number of
+rules in a structural presentation of reduction. The original version
+of the spec uses this style.
+
 ```
 module Type.ReductionF where
 ```

@@ -19,7 +19,7 @@
 {-# OPTIONS_GHC -fno-strictness #-}
 {-# OPTIONS_GHC -fno-ignore-interface-pragmas #-}
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
-{-# OPTIONS -fplugin-opt PlutusTx.Plugin:debug-context #-}
+{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:debug-context #-}
 module Plutus.Contracts.Future(
     -- $future
       Future(..)
@@ -50,6 +50,7 @@ import           Control.Monad.Error.Lens         (throwing)
 import qualified Control.Monad.Freer              as Freer
 import qualified Control.Monad.Freer.Error        as Freer
 import           Data.Aeson                       (FromJSON, ToJSON)
+import           Data.Default                     (Default (..))
 import           GHC.Generics                     (Generic)
 import           Ledger                           (Address, Datum (..), PubKey, Slot (..), Validator, ValidatorHash,
                                                    pubKeyHash)
@@ -85,6 +86,7 @@ import qualified Prelude                          as Haskell
 
 -- $future
 -- A futures contract in Plutus. This example illustrates a number of concepts.
+--
 --   1. Maintaining a margin (a kind of deposit) during the duration of the contract to protect against breach of contract (see note [Futures in Plutus])
 --   2. Using oracle values to obtain current pricing information (see note [Oracles] in Plutus.Contracts)
 --   3. Writing contracts as state machines
@@ -286,8 +288,8 @@ mkAccounts long short =
 {-# INLINABLE tokenFor #-}
 tokenFor :: Role -> FutureAccounts -> Value
 tokenFor = \case
-    Long  -> \case FutureAccounts{ftoLong=Account(sym,tn)} -> token sym tn
-    Short -> \case FutureAccounts{ftoShort=Account(sym,tn)} -> token sym tn
+    Long  -> \case FutureAccounts{ftoLong=Account cur} -> token cur
+    Short -> \case FutureAccounts{ftoShort=Account cur} -> token cur
 
 {-# INLINABLE adjustMargin #-}
 -- | Change the margin account of the role by the given amount.
@@ -308,7 +310,7 @@ futureStateMachine
     :: Future
     -> FutureAccounts
     -> StateMachine FutureState FutureAction
-futureStateMachine ft fos = SM.mkStateMachine (transition ft fos) isFinal where
+futureStateMachine ft fos = SM.mkStateMachine Nothing (transition ft fos) isFinal where
     isFinal Finished = True
     isFinal _        = False
 
@@ -594,8 +596,8 @@ setupTokens = mapError (review _FutureError) $ do
     -- Create the tokens using the currency contract, wrapping any errors in
     -- 'TokenSetupFailed'
     cur <- mapError TokenSetupFailed $ Currency.forgeContract (pubKeyHash pk) [("long", 1), ("short", 1)]
-    let sym = Currency.currencySymbol cur
-    pure $ mkAccounts (Account (sym, "long")) (Account (sym, "short"))
+    let acc = Account . Value.assetClass (Currency.currencySymbol cur)
+    pure $ mkAccounts (acc "long") (acc "short")
 
 -- | The escrow contract that initialises the future. Both parties have to pay
 --   their initial margin to this contract in order to unlock their tokens.
@@ -633,7 +635,7 @@ testAccounts =
         $ Freer.runError @Folds.EmulatorFoldErr
         $ Stream.foldEmulatorStreamM fld
         $ Stream.takeUntilSlot 10
-        $ Trace.runEmulatorStream Trace.defaultEmulatorConfig setupTokensTrace
+        $ Trace.runEmulatorStream def setupTokensTrace
 
 setupTokensTrace :: Trace.EmulatorTrace ()
 setupTokensTrace = do

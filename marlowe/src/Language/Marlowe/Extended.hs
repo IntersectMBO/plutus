@@ -19,8 +19,10 @@ module Language.Marlowe.Extended ( module Language.Marlowe.Extended
                                  , S.AccountId, S.Bound(..), S.ChoiceId(..)
                                  , S.ChoiceName, S.ChosenNum, S.Party(..)
                                  , S.SlotInterval, S.Token(..), S.ValueId(..)
+                                 , (%)
                                  ) where
 
+import           Data.Ratio                 ((%))
 import           GHC.Generics
 import           Language.Marlowe.Pretty    (Pretty (..), pretty)
 import qualified Language.Marlowe.Semantics as S
@@ -53,7 +55,7 @@ instance Num Timeout where
   negate _        = error "Tried to negate a template"
 
 instance Pretty Rational where
-    prettyFragment = text . show
+    prettyFragment r = text $ "(" ++ show r ++ ")"
 
 data Value = AvailableMoney S.AccountId S.Token
            | Constant Integer

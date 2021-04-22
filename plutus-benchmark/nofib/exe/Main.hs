@@ -196,15 +196,12 @@ toDeBruijn prog = do
     Left e  -> throw e
     Right p -> return $ UPLC.programMapNames (\(UPLC.NamedDeBruijn _ ix) -> UPLC.DeBruijn ix) p
 
-data CborMode = Named | DeBruijn
+writeCBORnamed :: UPLC.Program Name DefaultUni DefaultFun () -> IO ()
+writeCBORnamed prog = BSL.putStr $ UPLC.serialiseOmittingUnits prog
 
-writeCBOR :: CborMode -> UPLC.Program UPLC.NamedDeBruijn DefaultUni DefaultFun () -> IO ()
-writeCBOR cborMode prog =
-    case cborMode of
-      Named    -> case runExcept @UPLC.FreeVariableError $ PLC.runQuoteT $ UPLC.unDeBruijnProgram prog of
-          Left e  -> throw e
-          Right p -> BSL.putStr $ UPLC.serialiseOmittingUnits p
-      DeBruijn -> BSL.putStr $ UPLC.serialiseOmittingUnits $ UPLC.programMapNames (\(UPLC.NamedDeBruijn _ ix) -> UPLC.DeBruijn ix) $ prog
+writeCBORdeBruijn ::UPLC.Program UPLC.NamedDeBruijn DefaultUni DefaultFun () -> IO ()
+writeCBORdeBruijn  prog = BSL.putStr . UPLC.serialiseOmittingUnits $
+                      UPLC.programMapNames (\(UPLC.NamedDeBruijn _ ix) -> UPLC.DeBruijn ix) $ prog
 
 description :: String
 description = "This program provides operations on a number of Plutus programs "
@@ -237,14 +234,7 @@ footerInfo = text "Every command takes the name of a program and a (possbily emp
 main :: IO ()
 main = do
   execParser (info (helper <*> options) (fullDesc <> progDesc description <> footerDoc (Just footerInfo))) >>= \case
-    RunPLC pa -> do
-        let
-            program :: UPLC.Term UPLC.NamedDeBruijn PLC.DefaultUni PLC.DefaultFun ()
-            program = getProgram pa
-            result = case runExcept @UPLC.FreeVariableError $ PLC.runQuoteT $ UPLC.unDeBruijnTerm program of
-                Left e  -> throw e
-                Right p -> unsafeEvaluateCek defBuiltinsRuntime p
-        print . PLC.prettyPlcClassicDebug $ result
+    RunPLC pa ->  print . PLC.prettyPlcClassicDebug <$> evaluateWithCek . getUnDBrTerm $ pa
     RunHaskell pa ->
         case pa of
           Clausify formula        -> print $ Clausify.runClausify formula
@@ -254,12 +244,13 @@ main = do
           Prime input             -> print $ Prime.runFixedPrimalityTest input
           Primetest n             -> if n<0 then P.error "Positive number expected"
                                      else print $ Prime.runPrimalityTest n
-    DumpPLC pa -> mapM_ putStrLn $ unindent . PLC.prettyPlcClassicDebug $ getWrappedProgram pa
-               where unindent d = map (dropWhile isSpace) $ (lines . show $ d)
-    DumpCBORnamed pa   -> writeCBOR Named $ getWrappedProgram pa
-    DumpCBORdeBruijn pa-> writeCBOR DeBruijn $ getWrappedProgram pa
+    DumpPLC pa -> mapM_ putStrLn $ unindent . PLC.prettyPlcClassicDebug . mkProg . getUnDBrTerm $ pa
+        where unindent d = map (dropWhile isSpace) $ (lines . show $ d)
+    DumpCBORnamed pa   -> writeCBORnamed . mkProg . getUnDBrTerm $ pa
+    DumpCBORdeBruijn pa-> writeCBORdeBruijn . mkProg . getDBrTerm $ pa
     -- Write the output to stdout and let the user deal with redirecting it.
-    where getProgram =
+    where getDBrTerm :: ProgAndArgs -> UPLC.Term UPLC.NamedDeBruijn DefaultUni DefaultFun ()
+          getDBrTerm =
               \case
                Clausify formula        -> Clausify.mkClausifyTerm formula
                Queens boardSize alg    -> Queens.mkQueensTerm boardSize alg
@@ -268,4 +259,12 @@ main = do
                Prime input             -> Prime.mkPrimalityBenchTerm input
                Primetest n             -> if n<0 then P.error "Positive number expected"
                                           else Prime.mkPrimalityTestTerm n
-          getWrappedProgram = UPLC.Program () (UPLC.Version () 1 0 0) . getProgram
+
+          getUnDBrTerm :: ProgAndArgs -> UPLC.Term Name DefaultUni DefaultFun ()
+          getUnDBrTerm pa =
+              case runExcept @UPLC.FreeVariableError . PLC.runQuoteT . UPLC.unDeBruijnTerm . getDBrTerm $ pa of
+                Left e  -> throw e
+                Right t -> t
+
+          mkProg :: UPLC.Term name uni fun () -> UPLC.Program name uni fun ()
+          mkProg = UPLC.Program () (UPLC.Version () 1 0 0)

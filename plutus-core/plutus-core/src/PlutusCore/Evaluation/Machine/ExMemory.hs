@@ -1,24 +1,17 @@
-{-# LANGUAGE ConstraintKinds       #-}
-{-# LANGUAGE DataKinds             #-}
 {-# LANGUAGE DerivingVia           #-}
 {-# LANGUAGE FlexibleInstances     #-}
-{-# LANGUAGE KindSignatures        #-}
 {-# LANGUAGE MagicHash             #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings     #-}
-{-# LANGUAGE RankNTypes            #-}
 {-# LANGUAGE TypeApplications      #-}
 {-# LANGUAGE TypeOperators         #-}
 {-# LANGUAGE UndecidableInstances  #-}
 
 module PlutusCore.Evaluation.Machine.ExMemory
-( Plain
-, WithMemory
-, ExMemory(..)
+( ExMemory(..)
 , ExCPU(..)
 , GenericExMemoryUsage(..)
 , ExMemoryUsage(..)
-, withMemory
 ) where
 
 import           PlutusCore.Core
@@ -29,7 +22,6 @@ import           PlutusPrelude
 
 import           Control.Monad.RWS.Strict
 import qualified Data.ByteString          as BS
-import qualified Data.Kind                as GHC
 import           Data.Proxy
 import qualified Data.Text                as T
 import           GHC.Generics
@@ -47,11 +39,6 @@ Memory usage of the annotation is not counted, because this should be
 abstractly specifiable. It's an implementation detail.
 
 -}
-
-type Plain f (uni :: GHC.Type -> GHC.Type) (fun :: GHC.Type) = f TyName Name uni fun ()
--- | Caches Memory usage for builtin costing
--- | NOT the amount of memory it cost to calculate this value.
-type WithMemory f (uni :: GHC.Type -> GHC.Type) (fun :: GHC.Type) = f TyName Name uni fun ExMemory
 
 -- | Counts size in machine words (64bit for the near future)
 newtype ExMemory = ExMemory Integer
@@ -131,7 +118,7 @@ instance ExMemoryUsage () where
   memoryUsage _ = 0 -- TODO or 1?
 
 instance ExMemoryUsage Integer where
-  memoryUsage i = ExMemory (if i == 0 then 0 else smallInteger (integerLog2# (abs i) `quotInt#` integerToInt 60)) -- assume 60bit size
+  memoryUsage i = ExMemory (1 + smallInteger (integerLog2# (abs i) `quotInt#` integerToInt 64)) -- assume 64bit size
 
 instance ExMemoryUsage BS.ByteString where
   memoryUsage bs = ExMemory $ (toInteger $ BS.length bs) `div` 8
@@ -149,6 +136,3 @@ instance ExMemoryUsage Bool where
   memoryUsage _ = 1
 
 deriving via GenericExMemoryUsage [a] instance ExMemoryUsage a => ExMemoryUsage [a]
-
-withMemory :: ExMemoryUsage (f a) => Functor f => f a -> f ExMemory
-withMemory x = fmap (const (memoryUsage x)) x

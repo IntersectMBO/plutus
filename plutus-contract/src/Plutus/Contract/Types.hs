@@ -54,6 +54,7 @@ module Plutus.Contract.Types(
     , checkpointKey
     , suspend
     , runStep
+    , lastLogs
     ) where
 
 import           Control.Applicative
@@ -237,7 +238,7 @@ data ResumableResult w e i o a =
         { _responses       :: Responses i -- The record with the resumable's execution history
         , _requests        :: Requests o -- Handlers that the 'Resumable' has registered
         , _finalState      :: Either e (Maybe a) -- Error or final state of the 'Resumable' (if it has finished)
-        , _logs            :: Seq (LogMessage Value) -- Log messages
+        , _logs            :: Seq (LogMessage Value) -- All log messages that have been produced by this instance.
         , _checkpointStore :: CheckpointStore
         , _observableState :: w -- ^ Accumulated, observable state of the contract
         }
@@ -251,6 +252,7 @@ data SuspendedContract w e i o a =
     { _resumableResult :: ResumableResult w e i o a
     , _continuations   :: Maybe (MultiRequestContStatus i o (SuspendedContractEffects w e i) a)
     , _checkpointKey   :: CheckpointKey
+    , _lastLogs        :: Seq (LogMessage Value) -- ^ Log messages produced in the last step of this instance.
     }
 
 makeLenses ''SuspendedContract
@@ -279,7 +281,8 @@ runWithRecord action store events =
 mkResult ::
   forall w s e a.
   Monoid w
-  => w
+  => w -- ^ Observable state
+  -> Seq (LogMessage Value) -- ^ Old logs
   -> ( Either e (Maybe (MultiRequestContStatus (Event s) (Handlers s) (SuspendedContractEffects w e (Event s)) a))
      , CheckpointKey
      , CheckpointStore
@@ -287,7 +290,7 @@ mkResult ::
      , Seq (LogMessage Value)
      )
   -> SuspendedContract w e (Event s) (Handlers s) a
-mkResult oldW (initialRes, cpKey, cpStore, w, newLogs) =
+mkResult oldW oldLogs (initialRes, cpKey, cpStore, w, newLogs) =
   SuspendedContract
       { _resumableResult =
           ResumableResult
@@ -298,12 +301,13 @@ mkResult oldW (initialRes, cpKey, cpStore, w, newLogs) =
             , _finalState =
                 let getResult = \case { AResult a -> Just a; _ -> Nothing } in
                 fmap (>>= getResult) initialRes
-            , _logs = newLogs
+            , _logs = oldLogs <> newLogs
             , _checkpointStore = cpStore
             , _observableState = oldW <> w
             }
       , _continuations = either (const Nothing) id initialRes
       , _checkpointKey = cpKey
+      , _lastLogs = newLogs
       }
 
 runSuspContractEffects ::
@@ -333,7 +337,7 @@ suspend ::
   => Eff (ContractEffs w s e) a -- ^ The contract
   -> SuspendedContract w e (Event s) (Handlers s) a
 suspend action =
-  mkResult mempty
+  mkResult mempty mempty
     $ runSuspContractEffects @w @e @(Event s) @_
       (0 :: CheckpointKey)
       (mempty @CheckpointStore)
@@ -346,10 +350,10 @@ runStep ::
   => SuspendedContract w e (Event s) (Handlers s) a
   -> Response (Event s)
   -> Maybe (SuspendedContract w e (Event s) (Handlers s) a)
-runStep SuspendedContract{_continuations=Just (AContinuation MultiRequestContinuation{ndcCont}), _checkpointKey, _resumableResult=ResumableResult{_responses, _checkpointStore, _observableState}} event =
+runStep SuspendedContract{_continuations=Just (AContinuation MultiRequestContinuation{ndcCont}), _checkpointKey, _resumableResult=ResumableResult{_responses, _checkpointStore, _observableState, _logs=oldLogs}} event =
   Just
     $ set (resumableResult . responses) (insertResponse event _responses)
-    $ mkResult _observableState
+    $ mkResult _observableState oldLogs
     $ runSuspContractEffects
         _checkpointKey
         _checkpointStore

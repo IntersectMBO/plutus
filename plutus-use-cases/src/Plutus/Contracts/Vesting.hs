@@ -36,7 +36,7 @@ import           Prelude                  (Semigroup (..))
 import           GHC.Generics             (Generic)
 import           Ledger                   (Address, PubKeyHash (..), Slot (..), Validator)
 import           Ledger.Constraints       (TxConstraints, mustBeSignedBy, mustPayToTheScript, mustValidateIn)
-import           Ledger.Contexts          (TxInfo (..), ValidatorCtx (..))
+import           Ledger.Contexts          (ScriptContext (..), TxInfo (..))
 import qualified Ledger.Contexts          as Validation
 import qualified Ledger.Interval          as Interval
 import qualified Ledger.Slot              as Slot
@@ -128,8 +128,8 @@ remainingFrom t@VestingTranche{vestingTrancheAmount} range =
     vestingTrancheAmount - availableFrom t range
 
 {-# INLINABLE validate #-}
-validate :: VestingParams -> () -> () -> ValidatorCtx -> Bool
-validate VestingParams{vestingTranche1, vestingTranche2, vestingOwner} () () ctx@ValidatorCtx{valCtxTxInfo=txInfo@TxInfo{txInfoValidRange}} =
+validate :: VestingParams -> () -> () -> ScriptContext -> Bool
+validate VestingParams{vestingTranche1, vestingTranche2, vestingOwner} () () ctx@ScriptContext{scriptContextTxInfo=txInfo@TxInfo{txInfoValidRange}} =
     let
         remainingActual  = Validation.valueLockedBy txInfo (Validation.ownHash ctx)
 
@@ -150,11 +150,11 @@ vestingScript :: VestingParams -> Validator
 vestingScript = Scripts.validatorScript . scriptInstance
 
 scriptInstance :: VestingParams -> Scripts.ScriptInstance Vesting
-scriptInstance vesting = Scripts.validator @Vesting
-    ($$(PlutusTx.compile [|| validate ||]) `PlutusTx.applyCode` PlutusTx.liftCode vesting)
+scriptInstance = Scripts.validatorParam @Vesting
+    $$(PlutusTx.compile [|| validate ||])
     $$(PlutusTx.compile [|| wrap ||])
     where
-        wrap = Scripts.wrapValidator @() @()
+        wrap = Scripts.wrapValidator
 
 contractAddress :: VestingParams -> Ledger.Address
 contractAddress = Scripts.scriptAddress . scriptInstance

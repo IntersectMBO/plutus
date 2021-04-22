@@ -116,6 +116,7 @@ instance KnownKind GHC.Type where
 instance (KnownKind dom, KnownKind cod) => KnownKind (dom -> cod) where
     knownKind _ = KindArrow () (knownKind $ Proxy @dom) (knownKind $ Proxy @cod)
 
+-- | For getting the kind of a thing from the universe.
 class ToKind (uni :: GHC.Type -> GHC.Type) where
     toKind :: uni a -> Kind ()
 
