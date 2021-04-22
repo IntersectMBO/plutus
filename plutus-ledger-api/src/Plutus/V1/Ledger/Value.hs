@@ -31,6 +31,7 @@ module Plutus.V1.Ledger.Value(
     , AssetClass(..)
     , assetClass
     , assetClassValue
+    , assetClassValueOf
     -- ** Value
     , Value(..)
     , singleton
@@ -326,6 +327,11 @@ singleton c tn i = Value (Map.singleton c (Map.singleton tn i))
 -- | A 'Value' containing the given amount of the asset class.
 assetClassValue :: AssetClass -> Integer -> Value
 assetClassValue (AssetClass (c, t)) i = singleton c t i
+
+{-# INLINABLE assetClassValueOf #-}
+-- | Get the quantity of the given 'AssetClass' class in the 'Value'.
+assetClassValueOf :: Value -> AssetClass -> Integer
+assetClassValueOf v (AssetClass (c, t)) = valueOf v c t
 
 {-# INLINABLE unionVal #-}
 -- | Combine two 'Value' maps

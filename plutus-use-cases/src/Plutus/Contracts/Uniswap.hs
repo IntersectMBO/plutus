@@ -14,13 +14,14 @@
 {-# LANGUAGE TypeApplications           #-}
 {-# LANGUAGE TypeFamilies               #-}
 {-# LANGUAGE TypeOperators              #-}
+{-# options_ghc -fno-warn-orphans       #-}
 
 -- | A decentralized exchange for arbitrary token pairs following the
 -- [Uniswap protocol](https://uniswap.org/whitepaper.pdf).
 --
 module Plutus.Contracts.Uniswap
-    ( Coin (..)
-    , coin, coinValueOf
+    ( Coin
+    , coin, coinValueOf, mkCoin
     , Uniswap (..), uniswap
     , poolStateCoinFromUniswapCurrency, liquidityCoin
     , CreateParams (..)
@@ -46,7 +47,8 @@ import           Ledger.Constraints               as Constraints
 import           Ledger.Constraints.OnChain       as Constraints
 import           Ledger.Constraints.TxConstraints as Constraints
 import qualified Ledger.Typed.Scripts             as Scripts
-import           Ledger.Value                     as Value
+import           Ledger.Value                     (AssetClass (..), assetClass, assetClassValue, assetClassValueOf,
+                                                   symbols, unCurrencySymbol, unTokenName)
 import           Playground.Contract
 import           Plutus.Contract                  hiding (when)
 import qualified Plutus.Contracts.Currency        as Currency
@@ -60,54 +62,24 @@ uniswapTokenName, poolStateTokenName :: TokenName
 uniswapTokenName = "Uniswap"
 poolStateTokenName = "Pool State"
 
--- | A pair consisting of a 'CurrencySymbol' and a 'TokenName'.
--- Coins are the entities that can be swapped in the exchange.
-data Coin = Coin
-    { cCurrency :: CurrencySymbol
-    , cToken    :: TokenName
-    } deriving (Show, Generic, ToJSON, FromJSON, ToSchema)
+-- | A handy alias to put things in the language of "Coins" instead of
+-- "AssetClass".
+type Coin = AssetClass
 
-
-PlutusTx.unstableMakeIsData ''Coin
-PlutusTx.makeLift ''Coin
-
-instance Eq Coin where
-    {-# INLINABLE (==) #-}
-    c == d = cCurrency c == cCurrency d && cToken c == cToken d
-
-instance Prelude.Eq Coin where
-    (==) = (==)
-
-{-# INLINABLE compareCoins #-}
-compareCoins :: Coin -> Coin -> Ordering
-compareCoins c d = case compare (cCurrency c) (cCurrency d) of
-    LT -> LT
-    GT -> GT
-    EQ -> compare (cToken c) (cToken d)
-
-instance Prelude.Ord Coin where
-    compare = compareCoins
-
-{-# INLINABLE coinLT #-}
-coinLT :: Coin -> Coin -> Bool
-coinLT c d = case compareCoins c d of
-    LT -> True
-    _  -> False
+-- Note: An orphan instance here because of the alias above.
+deriving anyclass instance ToSchema AssetClass
 
 {-# INLINABLE coin #-}
--- | @'coin' c n@ denotes the value given by @n@ units of @'Coin'@ @c@.
-coin :: Coin    -- ^ The 'Coin'.
-     -> Integer -- ^ The desired number coins.
-     -> Value   -- ^ The 'Value' consisting of the given number of units of the given 'Coin'.
-coin Coin{..} = Value.singleton cCurrency cToken
+coin :: AssetClass -> Integer -> Value
+coin = assetClassValue
 
 {-# INLINABLE coinValueOf #-}
--- | Calculates how many units of the specified 'Coin' are contained in the
--- given 'Value'.
-coinValueOf :: Value   -- ^ The 'Value' to inspect.
-            -> Coin    -- ^ The 'Coin' to look for.
-            -> Integer -- ^ The number of units of the given 'Coin' contained in the given 'Value'.
-coinValueOf v Coin{..} = valueOf v cCurrency cToken
+coinValueOf :: Value -> AssetClass -> Integer
+coinValueOf = assetClassValueOf
+
+{-# INLINABLE mkCoin #-}
+mkCoin:: CurrencySymbol -> TokenName -> AssetClass
+mkCoin = assetClass
 
 data Sqrt =
       Imaginary
@@ -172,7 +144,8 @@ calculateRemoval inA inB liquidity diff = (f inA, f inB)
 data LiquidityPool = LiquidityPool
     { lpCoinA :: Coin
     , lpCoinB :: Coin
-    } deriving (Show, Generic, ToJSON, FromJSON, ToSchema)
+    }
+    deriving (Show, Generic, ToJSON, FromJSON, ToSchema)
 
 PlutusTx.unstableMakeIsData ''LiquidityPool
 PlutusTx.makeLift ''LiquidityPool
@@ -186,14 +159,15 @@ newtype Uniswap = Uniswap
     { usCoin :: Coin
     } deriving stock    (Show, Generic)
       deriving anyclass (ToJSON, FromJSON, ToSchema)
+      deriving newtype  (Prelude.Eq, Prelude.Ord)
 
 PlutusTx.makeLift ''Uniswap
 
-instance Prelude.Eq Uniswap where
-    u == v = usCoin u Prelude.== usCoin v
+-- instance Prelude.Eq Uniswap where
+--     u == v = usCoin u Prelude.== usCoin v
 
-instance Prelude.Ord Uniswap where
-    compare u v = Prelude.compare (usCoin u) (usCoin v)
+-- instance Prelude.Ord Uniswap where
+--     compare u v = Prelude.compare (usCoin u) (usCoin v)
 
 data UniswapAction = Create LiquidityPool | Close | Swap | Remove | Add
     deriving Show
@@ -283,8 +257,8 @@ validateSwap LiquidityPool{..} c ctx =
     noUniswapForging :: Bool
     noUniswapForging =
       let
-        Coin cs _ = c
-        forged    = txInfoForge info
+        AssetClass (cs, _) = c
+        forged             = txInfoForge info
       in
         all (/= cs) $ symbols forged
 
@@ -321,7 +295,7 @@ validateCreate Uniswap{..} c lps lp@LiquidityPool{..} ctx =
     forged = txInfoForge $ scriptContextTxInfo ctx
 
     liquidityCoin' :: Coin
-    liquidityCoin' = let Coin cs _ = c in Coin cs $ lpTicker lp
+    liquidityCoin' = let AssetClass (cs,_) = c in mkCoin cs $ lpTicker lp
 
 {-# INLINABLE validateCloseFactory #-}
 validateCloseFactory :: Uniswap -> Coin -> [LiquidityPool] -> ScriptContext -> Bool
@@ -348,7 +322,7 @@ validateCloseFactory us c lps ctx =
         Just h  -> findPoolDatum info h
 
     lC, usC :: Coin
-    lC  = Coin (cCurrency c) (lpTicker $ fst lpLiquidity)
+    lC  = let AssetClass (cs, _) = c in mkCoin cs (lpTicker $ fst lpLiquidity)
     usC = usCoin us
 
 {-# INLINABLE validateClosePool #-}
@@ -395,7 +369,7 @@ validateRemove c lp liquidity ctx =
         Just h  -> findPoolDatum info h
 
     lC :: Coin
-    lC = Coin (cCurrency c) (lpTicker lp)
+    lC = let AssetClass (cs, _) = c in mkCoin cs (lpTicker lp)
 
     diff, inA, inB, outA, outB :: Integer
     diff         = liquidity - snd lpLiquidity
@@ -446,7 +420,7 @@ validateAdd c lp liquidity ctx =
     aC, bC, lC :: Coin
     aC = lpCoinA lp
     bC = lpCoinB lp
-    lC = let Coin cs _ = c in Coin cs $ lpTicker lp
+    lC = let AssetClass (cs, _) = c in mkCoin cs $ lpTicker lp
 
 {-# INLINABLE findPoolDatum #-}
 findPoolDatum :: TxInfo -> DatumHash -> (LiquidityPool, Integer)
@@ -459,14 +433,14 @@ findPoolDatum info h = case findDatum h info of
 {-# INLINABLE lpTicker #-}
 lpTicker :: LiquidityPool -> TokenName
 lpTicker LiquidityPool{..} = TokenName $
-    unCurrencySymbol (cCurrency c) `concatenate`
-    unCurrencySymbol (cCurrency d) `concatenate`
-    unTokenName      (cToken    c) `concatenate`
-    unTokenName      (cToken    d)
+    unCurrencySymbol (c_cs)  `concatenate`
+    unCurrencySymbol (d_cs)  `concatenate`
+    unTokenName      (c_tok) `concatenate`
+    unTokenName      (d_tok)
   where
-    (c, d)
-        | lpCoinA `coinLT` lpCoinB = (lpCoinA, lpCoinB)
-        | otherwise                = (lpCoinB, lpCoinA)
+    (AssetClass (c_cs, c_tok), AssetClass (d_cs, d_tok))
+        | lpCoinA < lpCoinB = (lpCoinA, lpCoinB)
+        | otherwise         = (lpCoinB, lpCoinA)
 
 mkUniswapValidator :: Uniswap
                    -> Coin
@@ -495,7 +469,7 @@ validateLiquidityForging us tn ctx = case [ i
   where
     usC, lpC :: Coin
     usC = usCoin us
-    lpC = Coin (ownCurrencySymbol ctx) tn
+    lpC = mkCoin (ownCurrencySymbol ctx) tn
 
 uniswapInstance :: Uniswap -> Scripts.ScriptInstance Uniswapping
 uniswapInstance us = Scripts.validator @Uniswapping
@@ -516,7 +490,7 @@ uniswapAddress :: Uniswap -> Ledger.Address
 uniswapAddress = Ledger.scriptAddress . uniswapScript
 
 uniswap :: CurrencySymbol -> Uniswap
-uniswap cs = Uniswap $ Coin cs uniswapTokenName
+uniswap cs = Uniswap $ mkCoin cs uniswapTokenName
 
 liquidityPolicy :: Uniswap -> MonetaryPolicy
 liquidityPolicy us = mkMonetaryPolicyScript $
@@ -528,7 +502,7 @@ liquidityCurrency :: Uniswap -> CurrencySymbol
 liquidityCurrency = scriptCurrencySymbol . liquidityPolicy
 
 poolStateCoin :: Uniswap -> Coin
-poolStateCoin = flip Coin poolStateTokenName . liquidityCurrency
+poolStateCoin = flip mkCoin poolStateTokenName . liquidityCurrency
 
 -- | Gets the 'Coin' used to identity liquidity pools.
 poolStateCoinFromUniswapCurrency :: CurrencySymbol -- ^ The currency identifying the Uniswap instance.
@@ -540,9 +514,9 @@ liquidityCoin :: CurrencySymbol -- ^ The currency identifying the Uniswap instan
               -> Coin           -- ^ One coin in the liquidity pair.
               -> Coin           -- ^ The other coin in the liquidity pair.
               -> Coin
-liquidityCoin cs coinA coinB = Coin (liquidityCurrency $ uniswap cs) $ lpTicker $ LiquidityPool coinA coinB
+liquidityCoin cs coinA coinB = mkCoin (liquidityCurrency $ uniswap cs) $ lpTicker $ LiquidityPool coinA coinB
 
--- | Paraneters for the @create@-endpoint, which creates a new liquidity pool.
+-- | Parameters for the @create@-endpoint, which creates a new liquidity pool.
 data CreateParams = CreateParams
     { cpCoinA   :: Coin    -- ^ One 'Coin' of the liquidity pair.
     , cpCoinB   :: Coin    -- ^ The other 'Coin'.
@@ -588,7 +562,7 @@ start = do
     cs  <- fmap Currency.currencySymbol $
            mapError (pack . show @Currency.CurrencyError) $
            Currency.forgeContract pkh [(uniswapTokenName, 1)]
-    let c    = Coin cs uniswapTokenName
+    let c    = mkCoin cs uniswapTokenName
         us   = uniswap cs
         inst = uniswapInstance us
         tx   = mustPayToTheScript (Factory []) $ coin c 1
@@ -611,7 +585,7 @@ create us CreateParams{..} = do
         usDat1   = Factory $ lp : lps
         usDat2   = Pool lp liquidity
         psC      = poolStateCoin us
-        lC       = Coin (liquidityCurrency us) $ lpTicker lp
+        lC       = mkCoin (liquidityCurrency us) $ lpTicker lp
         usVal    = coin (usCoin us) 1
         lpVal    = coin cpCoinA cpAmountA <> coin cpCoinB cpAmountB <> coin psC 1
 
@@ -640,7 +614,7 @@ close us CloseParams{..} = do
         usDat    = Factory $ filter (/= lp) lps
         usC      = usCoin us
         psC      = poolStateCoin us
-        lC       = Coin (liquidityCurrency us) $ lpTicker lp
+        lC       = mkCoin (liquidityCurrency us) $ lpTicker lp
         usVal    = coin usC 1
         psVal    = coin psC 1
         lVal     = coin lC liquidity
@@ -673,7 +647,7 @@ remove us RemoveParams{..} = do
         usScript     = uniswapScript us
         dat          = Pool lp $ liquidity - rpDiff
         psC          = poolStateCoin us
-        lC           = Coin (liquidityCurrency us) $ lpTicker lp
+        lC           = mkCoin (liquidityCurrency us) $ lpTicker lp
         psVal        = coin psC 1
         lVal         = coin lC rpDiff
         inVal        = txOutValue $ txOutTxOut o
@@ -718,7 +692,7 @@ add us AddParams{..} = do
         usScript     = uniswapScript us
         dat          = Pool lp $ liquidity + delL
         psC          = poolStateCoin us
-        lC           = Coin (liquidityCurrency us) $ lpTicker lp
+        lC           = mkCoin (liquidityCurrency us) $ lpTicker lp
         psVal        = coin psC 1
         lVal         = coin lC delL
         val          = psVal <> coin apCoinA newA <> coin apCoinB newB
