@@ -514,6 +514,8 @@ handleAction (DemosAction action@(Demos.LoadDemo lang (Demos.Demo key))) = do
     ( set _showModal Nothing
         <<< set _workflow (Just lang)
         <<< set _hasUnsavedChanges false
+        <<< set _gistId Nothing
+        <<< set _projectName metadata.contractName
         <<< set _contractMetadata metadata
     )
   selectView $ selectLanguageView lang
