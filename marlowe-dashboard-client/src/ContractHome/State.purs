@@ -67,11 +67,11 @@ dummyContracts :: Slot -> (Map ContractInstanceId Contract.State)
 dummyContracts slot =
   catMaybes [ filledContract1 slot, filledContract2 slot, filledContract3 slot ]
     -- FIXME: only to have multiple contracts, remove.
-
+    
     -- # (bindFlipped $ Array.replicate 10)
-
+    
     -- # Array.mapWithIndex (\ix contract -> (show ix) /\ contract)
-
+    
     # map (\contract -> contract.contractInstanceId /\ contract)
     # Map.fromFoldable
 

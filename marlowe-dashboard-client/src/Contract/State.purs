@@ -271,7 +271,8 @@ handleAction CarouselClosed = unsubscribeFromSelectCenteredStep
 -- NOTE: In the first version of the selectCenteredStep feature the subscriptionId was stored in the
 --       Contract.State as a Maybe SubscriptionId. But when calling subscribe/unsubscribe multiple
 --       times in a small period of time there was a concurrency issue and multiple subscriptions
---       were active at the same time, which caused scroll issues.
+--       were active at the same time, which caused scroll issues. We use an AVar to control the
+--       concurrency and assure that only one subscription is active at a time.
 unsubscribeFromSelectCenteredStep ::
   forall m.
   MonadAff m =>
@@ -376,15 +377,16 @@ selectCenteredStepEventSource scrollContainer =
     --   in chrome when those properties were used at the same time of a `smooth` scrollTo, so I ended up
     --   doing manual snapping. The event is debounced, which means that it will be called just once after
     --   X time with no scroll events.
+    -- https://bugs.chromium.org/p/chromium/issues/detail?id=1195682
     unsubscribeSnapEventListener <-
       debouncedOnScroll
         150.0
-        (HTMLElement.toElement scrollContainer) \scrollPos -> do
-        let
-          index = calculateClosestStep scrollPos
-        scrollStepToCenter Smooth index scrollContainer
-        EventSource.emit emitter $ SelectStep index
-    -- (calculateClosestStep >>> \index -> scrollStepToCenter Smooth index scrollContainer)
+        (HTMLElement.toElement scrollContainer)
+        $ \scrollPos -> do
+            let
+              index = calculateClosestStep scrollPos
+            scrollStepToCenter Smooth index scrollContainer
+            EventSource.emit emitter $ SelectStep index
     pure $ EventSource.Finalizer
       $ do
           unsubscribeSelectEventListener

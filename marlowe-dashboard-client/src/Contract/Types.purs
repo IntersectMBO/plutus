@@ -93,7 +93,9 @@ data Action
   | SelectTab Tab
   | AskConfirmation NamedAction
   | CancelConfirmation
+  -- The SelectStep action is what changes the model and causes the card to seem bigger.
   | SelectStep Int
+  -- The MoveToStep action scrolls the step carousel so that the indicated step is at the center
   | MoveToStep Int
   | CarouselOpened
   | CarouselClosed
