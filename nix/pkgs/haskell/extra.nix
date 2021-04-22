@@ -7,8 +7,7 @@
 { stdenv
 , lib
 , haskell-nix
-, fetchFromGitHub
-, fetchFromGitLab
+, sources
 , index-state
 , compiler-nix-name
 , checkMaterialization
@@ -74,12 +73,7 @@ let
   # See https://github.com/input-output-hk/nix-tools/issues/97
   hlsShaFile = if stdenv.isLinux then ./hls-linux.sha else ./hls-darwin.sha;
   hlsProject = haskell-nix.cabalProject' {
-    src = fetchFromGitHub {
-      owner = "haskell";
-      repo = "haskell-language-server";
-      rev = "1.1.0";
-      sha256 = "0kviq3kinm3i0qm4r26rdnlkwbs1s3r1rqiqdry517rgkgnjpcp5";
-    };
+    src = sources.haskell-language-server;
     inherit compiler-nix-name index-state checkMaterialization;
     plan-sha256 = lib.removeSuffix "\n" (builtins.readFile hlsShaFile);
     modules = [{

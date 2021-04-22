@@ -1,6 +1,5 @@
 { lib
-, fetchFromGitHub
-, fetchFromGitLab
+, sources
 , agdaWithStdlib
 , stdenv
 , haskell-nix
@@ -55,7 +54,7 @@ let
   projectPackagesAllHaddock = haskell-nix.haskellLib.selectProjectPackages projectAllHaddock.hsPkgs;
 
   extraPackages = import ./extra.nix {
-    inherit stdenv lib haskell-nix fetchFromGitHub fetchFromGitLab buildPackages writeShellScript;
+    inherit stdenv lib haskell-nix sources buildPackages writeShellScript;
     inherit index-state checkMaterialization compiler-nix-name;
   };
 
