@@ -19,7 +19,7 @@ module PlutusCore.Universe.Core
     , ValueOf (..)
     , someValueOf
     , someValue
-    , TypeApp
+    , TypeApp (..)
     , HasUniApply (..)
     , Contains (..)
     , Includes
@@ -108,13 +108,16 @@ someValueOf uni = Some . ValueOf uni
 someValue :: forall a uni. uni `Includes` a => a -> Some (ValueOf uni)
 someValue = someValueOf knownUni
 
-data TypeApp (a :: k)
+data family TypeApp (a :: k)
+newtype instance TypeApp a = TypeApp
+    { unTypeApp :: a
+    }
 
 class HasUniApply (uni :: GHC.Type -> GHC.Type) where
-    matchUniRunTypeApp
+    matchUniTypeApp
         :: uni a
         -> r
-        -> (uni (TypeApp a) -> r)
+        -> (forall k f. a ~ TypeApp (f :: k) => r)
         -> r
     matchUniApply
         :: uni tfa

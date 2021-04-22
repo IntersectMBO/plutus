@@ -93,17 +93,16 @@ data DefaultUni a where
     DefaultUniListProto  :: DefaultUni (TypeApp [])
     DefaultUniTupleProto :: DefaultUni (TypeApp (,))
     DefaultUniApply      :: !(DefaultUni (TypeApp f)) -> !(DefaultUni a) -> DefaultUni (TypeApp (f a))
-    DefaultUniRunTypeApp :: !(DefaultUni (TypeApp a)) -> DefaultUni a
 
 -- GHC infers crazy types for these two and the straightforward ones break pattern matching,
 -- so we just leave GHC with its craziness.
 pattern DefaultUniList uniA =
-    DefaultUniRunTypeApp (DefaultUniListProto `DefaultUniApply` uniA)
+    DefaultUniListProto `DefaultUniApply` uniA
 pattern DefaultUniTuple uniA uniB =
-    DefaultUniRunTypeApp (DefaultUniTupleProto `DefaultUniApply` uniA `DefaultUniApply` uniB)
+    DefaultUniTupleProto `DefaultUniApply` uniA `DefaultUniApply` uniB
 
 -- Just for backwards compatibility, probably should be removed at some point.
-pattern DefaultUniString :: DefaultUni String
+pattern DefaultUniString :: DefaultUni (TypeApp String)
 pattern DefaultUniString = DefaultUniList DefaultUniChar
 
 instance ToKind DefaultUni where
@@ -119,14 +118,15 @@ instance ToKind DefaultUni where
         -- but having @error@ should be fine for now.
         Type _            -> error "A type function can't be of type *"
         KindArrow _ _ cod -> cod
-    toKind (DefaultUniRunTypeApp _)    = nonTypeAppKind
 
 deriveGEq ''DefaultUni
 deriving instance Lift (DefaultUni a)
 
 instance HasUniApply DefaultUni where
-    matchUniRunTypeApp (DefaultUniRunTypeApp a) _ h = h a
-    matchUniRunTypeApp _                        z _ = z
+    matchUniTypeApp DefaultUniListProto z h     = h
+    matchUniTypeApp DefaultUniTupleProto z h    = h
+    matchUniTypeApp (_ `DefaultUniApply` _) z h = h
+    matchUniTypeApp _                       z h = z
 
     matchUniApply (DefaultUniApply f a) _ h = h f a
     matchUniApply _                     z _ = z
@@ -138,7 +138,6 @@ instance Show (DefaultUni a) where
     show DefaultUniChar              = "char"
     show DefaultUniUnit              = "unit"
     show DefaultUniBool              = "bool"
-    show (DefaultUniRunTypeApp uniA) = show uniA
     show DefaultUniListProto         = "[]"
     show DefaultUniTupleProto        = "(,)"
     show (DefaultUniApply uniF uniB) = case uniF of
@@ -184,9 +183,9 @@ instance DefaultUni `Contains` TypeApp []  where knownUni = DefaultUniListProto
 instance DefaultUni `Contains` TypeApp (,) where knownUni = DefaultUniTupleProto
 
 instance DefaultUni `Contains` a => DefaultUni `Contains` [a] where
-    knownUni = DefaultUniList knownUni
+    knownUni = undefined -- DefaultUniList knownUni
 instance (DefaultUni `Contains` a, DefaultUni `Contains` b) => DefaultUni `Contains` (a, b) where
-    knownUni = DefaultUniTuple knownUni knownUni
+    knownUni = undefined -- DefaultUniTuple knownUni knownUni
 
 {- Note [Stable encoding of tags]
 'encodeUni' and 'decodeUni' are used for serialisation and deserialisation of types from the
@@ -242,5 +241,5 @@ instance Closed DefaultUni where
     bring _ DefaultUniChar              r = r
     bring _ DefaultUniUnit              r = r
     bring _ DefaultUniBool              r = r
-    bring p (DefaultUniList uniA)       r = bring p uniA r
-    bring p (DefaultUniTuple uniA uniB) r = bring p uniA $ bring p uniB r
+    bring p (DefaultUniList uniA)       r = undefined -- bring p uniA r
+    bring p (DefaultUniTuple uniA uniB) r = undefined -- bring p uniA $ bring p uniB r
