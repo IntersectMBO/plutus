@@ -726,7 +726,7 @@ handleGistAction PublishOrUpdateGist = do
           lift
             $ case mGist of
                 Nothing -> runAjax $ flip runReaderT settings $ Server.postApiGists newGist
-                Just gistId -> runAjax $ flip runReaderT settings $ Server.patchApiGistsByGistId newGist gistId
+                Just gistId -> runAjax $ flip runReaderT settings $ Server.postApiGistsByGistId newGist gistId
         assign _createGistResult newResult
         gistId <- hoistMaybe $ preview (_Success <<< gistId) newResult
         modify_

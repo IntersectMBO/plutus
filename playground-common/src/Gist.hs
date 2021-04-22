@@ -37,7 +37,7 @@ import           Data.Proxy        (Proxy (Proxy))
 import           Data.Text         (Text)
 import qualified Data.Text         as T
 import           GHC.Generics      (Generic, Rep)
-import           Servant.API       (Capture, FromHttpApiData (parseQueryParam), Get, Header, JSON, Patch, Post, ReqBody,
+import           Servant.API       (Capture, FromHttpApiData (parseQueryParam), Get, Header, JSON, Post, ReqBody,
                                     ToHttpApiData (toQueryParam), (:<|>), (:>))
 import           Servant.Client    (ClientM, client)
 import qualified Servant.Extra
@@ -49,7 +49,7 @@ type GistAPI
      = Get '[ JSON] [Gist]
        :<|> ReqBody '[ JSON] NewGist :> Post '[ JSON] Gist
        :<|> Capture "GistId" GistId :> Get '[ JSON] Gist
-       :<|> Capture "GistId" GistId :> ReqBody '[ JSON] NewGist :> Patch '[ JSON] Gist
+       :<|> Capture "GistId" GistId :> ReqBody '[ JSON] NewGist :> Post '[ JSON] Gist
 
 apiClient ::
        Maybe (Token 'Github)
@@ -141,7 +141,7 @@ instance FromJSON Gist where
             _gistGitPushUrl <- o .: "git_push_url"
             _gistHtmlUrl <- o .: "html_url"
             _gistOwner <- o .: "owner"
-            _gistFiles <- (o .: "files")
+            _gistFiles <- o .: "files"
             _gistTruncated <- o .: "truncated"
             _gistCreatedAt <- o .: "created_at"
             _gistUpdatedAt <- o .: "updated_at"
