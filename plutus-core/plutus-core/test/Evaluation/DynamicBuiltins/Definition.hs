@@ -16,6 +16,7 @@ import           PlutusCore.Examples.Builtins
 import           PlutusCore.StdLib.Data.Bool
 import           PlutusCore.StdLib.Data.Function   (fix)
 import qualified PlutusCore.StdLib.Data.Function   as Plc
+import           PlutusCore.StdLib.Data.Integer    (integer)
 import qualified PlutusCore.StdLib.Data.List       as Plc
 
 import           Evaluation.DynamicBuiltins.Common
@@ -62,7 +63,6 @@ test_Id =
     testCase "Id" $ do
         let zer = mkConstant @Integer @DefaultUni () 0
             one = mkConstant @Integer @DefaultUni () 1
-            integer = mkTyBuiltin @Integer ()
             -- id {integer -> integer} ((\(i : integer) (j : integer) -> i) 1) 0
             term =
                 mkIterApp () (TyInst () (Builtin () $ Right Id) (TyFun () integer integer))
@@ -103,7 +103,6 @@ test_IdList =
             one = mkConstant @Integer @DefaultUni () 1
             ten = mkConstant @Integer @DefaultUni () 10
             res = mkConstant @Integer @DefaultUni () 55
-            integer = mkTyBuiltin @Integer ()
             -- sum (idList {integer} (enumFromTo 1 10))
             term
                 = Apply () (mapFun Left Plc.sum)
@@ -141,7 +140,6 @@ test_IdRank2 :: TestTree
 test_IdRank2 =
     testCase "IdRank2" $ do
         let res = mkConstant @Integer @DefaultUni () 0
-            integer = mkTyBuiltin @Integer ()
             -- sum (idRank2 {list} nil {integer})
             term
                 = Apply () (mapFun Left Plc.sum)
@@ -221,7 +219,6 @@ test_List =
     testCase "List" $ do
         let xs  = [1..10]
             res = mkConstant @Integer @DefaultUni () $ foldr (-) 0 xs
-            integer = mkTyBuiltin @Integer ()
             term
                 = mkIterApp () (mkIterInst () foldrBuiltinList [integer, integer])
                     [ Builtin () $ Left SubtractInteger
@@ -234,9 +231,7 @@ test_Tuple :: TestTree
 test_Tuple =
     testCase "Tuple" $ do
         let arg = mkConstant @(Integer, Bool) @DefaultUni () (1, False)
-            integerPlc = mkTyBuiltin @Integer ()
-            boolPlc    = mkTyBuiltin @Bool    ()
-            inst fun = mkIterInst () (Builtin () $ Right fun) [integerPlc, boolPlc]
+            inst fun = mkIterInst () (Builtin () $ Right fun) [integer, bool]
             swapped = Apply () (inst Swap) arg
             fsted   = Apply () (inst Fst) arg
             snded   = Apply () (inst Snd) arg
@@ -250,6 +245,42 @@ test_Tuple =
         typecheckEvaluateCkNoEmit defBuiltinsRuntimeExt snded @?=
             Right (EvaluationSuccess $ mkConstant @Bool () False)
 
+-- | Test that @Null@, @Head@ and @Tail@ are enough to get pattern matching on built-in lists.
+test_SwapEls :: TestTree
+test_SwapEls =
+    testCase "SwapEls" $ do
+        let xs  = zip (map (\i -> [1..i]) [1..10]) $ cycle [False, True]
+            res = mkConstant @Integer @DefaultUni () $
+                    foldr (\p r -> r + foldr (-) (if snd p then 0 else 1) (fst p)) 0 xs
+            listInteger = mkTyBuiltin @[Integer]           ()
+            el          = mkTyBuiltin @([Integer], Bool)   ()
+            instProj proj = mkIterInst () (builtin () $ Right proj) [listInteger, bool]
+            fun = runQuote $ do
+                    p <- freshName "p"
+                    r <- freshName "r"
+                    return
+                        . LamAbs () p el
+                        . LamAbs () r integer
+                        $ mkIterApp () (builtin () $ Left AddInteger)
+                            [ Var () r
+                            , mkIterApp () (mkIterInst () foldrBuiltinList [integer, integer])
+                                [ builtin () $ Left SubtractInteger
+                                , mkIterApp () (tyInst () (builtin () $ Left IfThenElse) integer)
+                                    [ apply () (instProj Snd) $ Var () p
+                                    , mkConstant @Integer () 0
+                                    , mkConstant @Integer () 1
+                                    ]
+                                , apply () (instProj Fst) $ Var () p
+                                ]
+                            ]
+            term
+                = mkIterApp () (mkIterInst () foldrBuiltinList [el, integer])
+                    [ fun
+                    , mkConstant @Integer () 0
+                    , mkConstant @[([Integer], Bool)] () xs
+                    ]
+        typecheckEvaluateCkNoEmit defBuiltinsRuntimeExt term @?= Right (EvaluationSuccess res)
+
 test_definition :: TestTree
 test_definition =
     testGroup "definition"
@@ -261,4 +292,5 @@ test_definition =
         , test_IdRank2
         , test_List
         , test_Tuple
+        , test_SwapEls
         ]
