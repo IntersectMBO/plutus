@@ -8,18 +8,16 @@ module ContractHome.State
   ) where
 
 import Prelude
-import Contract.Lenses (_selectedStep)
-import Contract.State (applyTimeout, applyTx, isContractClosed)
+import Contract.State (applyTx, isContractClosed)
 import Contract.State (mkInitialState) as Contract
 import Contract.Types (State) as Contract
-import ContractHome.Lenses (_contracts, _selectedContract, _selectedContractIndex, _status)
+import ContractHome.Lenses (_selectedContractIndex, _status)
 import ContractHome.Types (Action(..), ContractStatus(..), State, PartitionedContracts)
 import Data.Array (catMaybes)
 import Data.Array as Array
 import Data.BigInteger (fromInt)
 import Data.Foldable (foldl)
-import Data.Lens (assign, filtered, over, traversed, use)
-import Data.Lens.Extra (peruse)
+import Data.Lens (assign)
 import Data.List as List
 import Data.Map (Map)
 import Data.Map as Map
@@ -27,11 +25,10 @@ import Data.Maybe (Maybe(..), fromMaybe)
 import Data.Tuple (snd)
 import Data.Tuple.Nested ((/\))
 import Data.UUID (emptyUUID)
-import Debug.Trace (traceM)
 import Examples.PureScript.Escrow as Escrow
 import Examples.PureScript.EscrowWithCollateral as EscrowWithCollateral
 import Examples.PureScript.ZeroCouponBond as ZeroCouponBond
-import Halogen (HalogenM, modify_)
+import Halogen (HalogenM)
 import MainFrame.Types (ChildSlots, Msg)
 import Marlowe.Extended (TemplateContent(..), fillTemplate, resolveRelativeTimes, toCore)
 import Marlowe.Semantics (ChoiceId(..), Input(..), Party(..), Slot(..), SlotInterval(..), Token(..), TransactionInput(..))
@@ -58,16 +55,6 @@ handleAction (SelectView view) = assign _status view
 
 handleAction (OpenContract ix) = assign _selectedContractIndex $ Just ix
 
--- FIXME: probably get rid of this action and take care of this in MainFrame.handleQuery
-handleAction (AdvanceTimedOutContracts currentSlot) = do
-  selectedStep <- peruse $ _selectedContract <<< _selectedStep
-  modify_
-    $ over
-        (_contracts <<< traversed <<< filtered (\contract -> contract.executionState.mNextTimeout == Just currentSlot))
-        (applyTimeout currentSlot)
-  selectedStep' <- peruse $ _selectedContract <<< _selectedStep
-  when (selectedStep /= selectedStep') $ traceM "FIXME: After rebase move this to PlayState and call MoveToStep"
-
 partitionContracts :: Map ContractInstanceId Contract.State -> PartitionedContracts
 partitionContracts contracts =
   Map.toUnfoldableUnordered contracts
@@ -80,11 +67,11 @@ dummyContracts :: Slot -> (Map ContractInstanceId Contract.State)
 dummyContracts slot =
   catMaybes [ filledContract1 slot, filledContract2 slot, filledContract3 slot ]
     -- FIXME: only to have multiple contracts, remove.
-    
+
     -- # (bindFlipped $ Array.replicate 10)
-    
+
     -- # Array.mapWithIndex (\ix contract -> (show ix) /\ contract)
-    
+
     # map (\contract -> contract.contractInstanceId /\ contract)
     # Map.fromFoldable
 
