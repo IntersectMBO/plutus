@@ -26,6 +26,9 @@ let
   haskell = pkgs.callPackage ./haskell {
     inherit gitignore-nix;
     inherit agdaWithStdlib checkMaterialization enableHaskellProfiling;
+    # This ensures that the utility scripts produced in here will run on the current system, not
+    # the build system, so we can run e.g. the darwin ones on linux
+    inherit (pkgs.evalPackages) writeShellScript;
   };
 
   #
@@ -81,6 +84,10 @@ let
 
     # Update the linux files (will do for all unixes atm).
     $(nix-build default.nix -A plutus.haskell.project.plan-nix.passthru.updateMaterialized --argstr system x86_64-linux)
+
+    # This updates the sha files for the extra packages
+    $(nix-build default.nix -A plutus.haskell.extraPackages.updateAllShaFiles --argstr system x86_64-linux)
+    $(nix-build default.nix -A plutus.haskell.extraPackages.updateAllShaFiles --argstr system x86_64-darwin)
   '';
   updateMetadataSamples = pkgs.callPackage ./update-metadata-samples { };
   updateClientDeps = pkgs.callPackage ./update-client-deps {

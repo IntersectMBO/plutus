@@ -5,6 +5,7 @@
 , stdenv
 , haskell-nix
 , buildPackages
+, writeShellScript
 , checkMaterialization
 , gitignore-nix
 , R
@@ -54,7 +55,7 @@ let
   projectPackagesAllHaddock = haskell-nix.haskellLib.selectProjectPackages projectAllHaddock.hsPkgs;
 
   extraPackages = import ./extra.nix {
-    inherit stdenv lib haskell-nix fetchFromGitHub fetchFromGitLab buildPackages;
+    inherit stdenv lib haskell-nix fetchFromGitHub fetchFromGitLab buildPackages writeShellScript;
     inherit index-state checkMaterialization compiler-nix-name;
   };
 

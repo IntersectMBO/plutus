@@ -13,12 +13,15 @@
 , compiler-nix-name
 , checkMaterialization
 , buildPackages
+, writeShellScript
 }:
-{
-  Agda = haskell-nix.hackage-package {
+let
+  agdaProject = haskell-nix.hackage-project {
     name = "Agda";
     version = "2.6.1.1";
-    plan-sha256 = "0w6cra4ynqprbv83qbc8bsnnzly9sv3ry99jfskls4cr47l3gjks";
+    plan-sha256 = lib.removeSuffix "\n" (builtins.readFile ./agda.sha);
+    # Should use the index-state from the target cabal.project, but that disables plan-sha256. Fixed
+    # in recent haskell.nix, delete the index-state passing when we update.
     inherit compiler-nix-name index-state checkMaterialization;
     modules = [{
       # Agda is a huge pain. They have a special custom setup that compiles the interface files for
@@ -49,33 +52,28 @@
     }];
     configureArgs = "--constraint 'haskeline == 0.8.0.0'";
   };
-  cabal-install = haskell-nix.hackage-package {
+  cabalInstallProject = haskell-nix.hackage-project {
     name = "cabal-install";
     version = "3.4.0.0";
     inherit compiler-nix-name index-state checkMaterialization;
-    # Invalidate and update if you change the version or index-state
-    plan-sha256 = "0z0ir8kcs9b8f0d72rx5xkq7w1m9s76i3h84lbk0bdh3l4kqld8r";
+    plan-sha256 = lib.removeSuffix "\n" (builtins.readFile ./cabal-install.sha);
   };
-  stylish-haskell = haskell-nix.hackage-package {
+  stylishHaskellProject = haskell-nix.hackage-project {
     name = "stylish-haskell";
     version = "0.12.2.0";
     inherit compiler-nix-name index-state checkMaterialization;
-    # Invalidate and update if you change the version or index-state
-    plan-sha256 = "1pgmscvz7jx5lx22pqbx6vw43mjd1a7sjj81i988bqw5ab4iq264";
+    plan-sha256 = lib.removeSuffix "\n" (builtins.readFile ./stylish-haskell.sha);
   };
-  hlint = haskell-nix.hackage-package {
+  hlintProject = haskell-nix.hackage-project {
     name = "hlint";
     version = "3.2.1";
     inherit compiler-nix-name index-state checkMaterialization;
-    # Invalidate and update if you change the version or index-state
-    plan-sha256 = "138zligphj3ndvjzb2hhb40jjji83m3brnqs2maysblplwcsm4gr";
+    plan-sha256 = lib.removeSuffix "\n" (builtins.readFile ./hlint.sha);
     modules = [{ reinstallableLibGhc = false; }];
   };
-}
-  //
-  # We need to lift this let-binding out far enough, otherwise it can get evaluated several times!
-(
-  let project = haskell-nix.cabalProject' {
+  # See https://github.com/input-output-hk/nix-tools/issues/97
+  hlsShaFile = if stdenv.isLinux then ./hls-linux.sha else ./hls-darwin.sha;
+  hlsProject = haskell-nix.cabalProject' {
     src = fetchFromGitHub {
       owner = "haskell";
       repo = "haskell-language-server";
@@ -83,17 +81,30 @@
       sha256 = "0kviq3kinm3i0qm4r26rdnlkwbs1s3r1rqiqdry517rgkgnjpcp5";
     };
     inherit compiler-nix-name index-state checkMaterialization;
-    # Invalidate and update if you change the version
-    plan-sha256 =
-      # See https://github.com/input-output-hk/nix-tools/issues/97
-      if stdenv.isLinux
-      then "0q6m14y4fbk75z5mm92ylyzbfjla885fyibq4cxcd6gsn445ai51"
-      else "0w6bwrysl0ni87k6qjsssv64h1hcg5czv6ml5czsl6rw8id0i9cj";
+    plan-sha256 = lib.removeSuffix "\n" (builtins.readFile hlsShaFile);
     modules = [{
       packages.ghcide.patches = [ ../../patches/ghcide_partial_iface.patch ];
       # Workaround for https://github.com/haskell/haskell-language-server/issues/1160
       packages.haskell-language-server.patches = lib.mkIf stdenv.isDarwin [ ../../patches/haskell-language-server-dynamic.patch ];
     }];
   };
-  in { inherit (project.hsPkgs) haskell-language-server hie-bios implicit-hie; }
-)
+
+  updateShaFile = project: shaFile: writeShellScript "updateShaFile" ''
+    ${project.plan-nix.passthru.calculateMaterializedSha} > ${toString shaFile}
+  '';
+  updateAllShaFiles = writeShellScript "updateShaFiles" ''
+    ${updateShaFile cabalInstallProject ./cabal-install.sha}
+    ${updateShaFile agdaProject ./agda.sha}
+    ${updateShaFile stylishHaskellProject ./stylish-haskell.sha}
+    ${updateShaFile hlintProject ./hlint.sha}
+    ${updateShaFile hlsProject hlsShaFile}
+  '';
+in
+{
+  inherit (agdaProject.hsPkgs) Agda;
+  inherit (hlsProject.hsPkgs) haskell-language-server hie-bios implicit-hie;
+  inherit (cabalInstallProject.hsPkgs) cabal-install;
+  inherit (stylishHaskellProject.hsPkgs) stylish-haskell;
+  inherit (hlintProject.hsPkgs) hlint;
+  inherit updateAllShaFiles;
+}

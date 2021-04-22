@@ -89,6 +89,8 @@ But the CI will tell you if you've failed to do so.
 
 You can regenerate the files by running `updateMaterialized` (provided by `nix-shell`) from the repository root.
 
+This will also update the `plan-256` shas for the extra Haskell tools, if you have a problem iwth that.
+
 === How to add a new Haskell package
 
 You need to do a few things when adding a new package, in the following order:
@@ -136,6 +138,8 @@ The Nix code which builds our packages also cares about the index state.
 The set of index states which it knows about is controlled by `hackage.nix`, which is a Nix representation of Hackage.
 This therefore needs to be newer than the index state.
 You can update it xref:update-nix-pins[with `niv`].
+
+You will need to update the xref:update-generated[package set] after this to reflect the new build plan that Cabal will pick.
 
 == Working conventions
 
