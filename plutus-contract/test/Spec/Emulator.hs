@@ -249,7 +249,7 @@ invalidScript = property $ do
                 ] -> txn == invalidTxn
             _ -> False
 
-    checkPredicateInner options (assertChainEvents pred) trace Hedgehog.annotate Hedgehog.assert
+    checkPredicateInner options (assertChainEvents pred .&&. walletPaidFees wallet1 (txFee scriptTxn <> txFee invalidTxn)) trace Hedgehog.annotate Hedgehog.assert
     where
         failValidator :: Validator
         failValidator = mkValidatorScript $$(PlutusTx.compile [|| wrapValidator validator ||])

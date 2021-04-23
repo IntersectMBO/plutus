@@ -66,7 +66,7 @@ import           Control.Concurrent                             (forkIO)
 import           Control.Concurrent.STM                         (STM, TQueue, TVar)
 import qualified Control.Concurrent.STM                         as STM
 import           Control.Lens                                   (_Just, at, makeLenses, makeLensesFor, preview, set,
-                                                                 view, (&), (.~), (^.))
+                                                                 view, (&), (.~), (?~), (^.))
 import           Control.Monad                                  (forM_, forever, void, when)
 import           Control.Monad.Freer                            (Eff, LastMember, Member, interpret, reinterpret,
                                                                  reinterpret2, reinterpretN, run, send, type (~>))
@@ -527,10 +527,10 @@ handleNodeClient wallet = \case
             mp <- STM.readTVar _agentStates
             case Map.lookup wallet mp of
                 Nothing -> do
-                    let newState = initialAgentState wallet & submittedFees . at (txId tx) .~ Just (txFee tx)
+                    let newState = initialAgentState wallet & submittedFees . at (txId tx) ?~ txFee tx
                     STM.writeTVar _agentStates (Map.insert wallet newState mp)
                 Just s' -> do
-                    let newState = s' & submittedFees . at (txId tx) .~ Just (txFee tx)
+                    let newState = s' & submittedFees . at (txId tx) ?~ txFee tx
                     STM.writeTVar _agentStates (Map.insert wallet newState mp)
     GetClientSlot -> Chain.getCurrentSlot
 
@@ -673,6 +673,7 @@ walletFees wallet = succeededFees <$> walletSubmittedFees <*> blockchain
     where
         succeededFees :: Map TxId Value -> [[Tx]] -> Value
         succeededFees submitted = foldMap . foldMap $ fold . (submitted Map.!?) . txId
+        -- succeededFees submitted _ = fold submitted
         walletSubmittedFees = do
             SimulatorState{_agentStates} <- Core.askUserEnv @t @(SimulatorState t)
             result <- liftIO $ STM.atomically $ do

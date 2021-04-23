@@ -23,6 +23,7 @@ module Plutus.V1.Ledger.Tx(
     unspentOutputsTx,
     spentOutputs,
     updateUtxo,
+    updateUtxoFees,
     validValuesTx,
     forgeScripts,
     signatures,
@@ -414,9 +415,12 @@ spentOutputs tx = Set.map txInRef (txInputs tx <> txInputsFees tx)
 -- | Update a map of unspent transaction outputs and signatures based on the inputs
 --   and outputs of a transaction.
 updateUtxo :: Tx -> Map TxOutRef TxOut -> Map TxOutRef TxOut
-updateUtxo t unspent = (unspent `Map.difference` lift' (spentOutputs t)) `Map.union` outs where
-    lift' = Map.fromSet (const ())
-    outs = unspentOutputsTx t
+updateUtxo tx unspent = (unspent `Map.withoutKeys` spentOutputs tx) `Map.union` unspentOutputsTx tx
+
+-- | Update a map of unspent transaction outputs and signatures based on
+--   only the fees of a transaction.
+updateUtxoFees :: Tx -> Map TxOutRef TxOut -> Map TxOutRef TxOut
+updateUtxoFees tx unspent = unspent `Map.withoutKeys` (Set.map txInRef . txInputsFees $ tx)
 
 -- | Sign the transaction with a 'PrivateKey' and add the signature to the
 --   transaction's list of signatures.

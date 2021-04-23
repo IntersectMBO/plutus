@@ -239,9 +239,10 @@ walletFunds = valueAtAddress . walletAddress
 
 -- | The fees paid by a wallet
 walletFees :: Wallet -> EmulatorEventFold Value
-walletFees w = succeededFees <$> walletSubmittedFees <*> validatedTransactions
+walletFees w = fees <$> walletSubmittedFees <*> validatedTransactions <*> failedTransactions
     where
-        succeededFees submitted = foldMap (\(i, _, _) -> fold (Map.lookup i submitted))
+        fees submitted txsV txsF = findFees (\(i, _, _) -> i) submitted txsV <> findFees (\(i, _, _, _) -> i) submitted txsF
+        findFees getId submitted = foldMap (\t -> fold (Map.lookup (getId t) submitted))
         walletSubmittedFees = L.handles (eteEvent . walletClientEvent w . _TxSubmit) L.map
 
 -- | Whether the wallet is watching an address

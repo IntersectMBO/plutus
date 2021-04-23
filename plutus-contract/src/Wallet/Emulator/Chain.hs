@@ -165,12 +165,9 @@ mkValidationEvent t result events =
 validateEm :: S.MonadState Index.UtxoIndex m => Slot -> Tx -> m (Maybe Index.ValidationError, [ScriptValidationEvent])
 validateEm h txn = do
     idx <- S.get
-    let (result, events) = Index.runValidation (Index.validateTransaction h txn) idx
-    case result of
-        Left e -> pure (Just e, events)
-        Right idx' -> do
-            _ <- S.put idx'
-            pure (Nothing, events)
+    let ((e, idx'), events) = Index.runValidation (Index.validateTransaction h txn) idx
+    _ <- S.put idx'
+    pure (e, events)
 
 -- | Adds a block to ChainState, without validation.
 addBlock :: Block -> ChainState -> ChainState

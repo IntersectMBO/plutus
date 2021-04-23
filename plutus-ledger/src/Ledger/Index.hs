@@ -83,6 +83,10 @@ initialise = UtxoIndex . unspentOutputs
 insert :: Tx -> UtxoIndex -> UtxoIndex
 insert tx = UtxoIndex . updateUtxo tx . getIndex
 
+-- | Update the index for the addition of only the fees of a failed transaction.
+insertFees :: Tx -> UtxoIndex -> UtxoIndex
+insertFees tx = UtxoIndex . updateUtxoFees tx . getIndex
+
 -- | Update the index for the addition of a block.
 insertBlock :: [Tx] -> UtxoIndex -> UtxoIndex
 insertBlock blck i = foldl' (flip insert) i blck
@@ -134,8 +138,8 @@ newtype Validation a = Validation { _runValidation :: (ReaderT UtxoIndex (Except
     deriving newtype (Functor, Applicative, Monad, MonadReader UtxoIndex, MonadError ValidationError, MonadWriter [ScriptValidationEvent])
 
 -- | Run a 'Validation' on a 'UtxoIndex'.
-runValidation :: Validation a -> UtxoIndex -> (Either ValidationError a, [ScriptValidationEvent])
-runValidation l idx = runWriter $ runExceptT $ runReaderT (_runValidation l) idx
+runValidation :: Validation (Maybe ValidationError, UtxoIndex) -> UtxoIndex -> ((Maybe ValidationError, UtxoIndex), [ScriptValidationEvent])
+runValidation l idx = runWriter $ fmap (either (\e -> (Just e, idx)) id) $ runExceptT $ runReaderT (_runValidation l) idx
 
 -- | Determine the unspent value that a ''TxOutRef' refers to.
 lkpValue :: ValidationMonad m => TxOutRef -> m V.Value
@@ -151,21 +155,30 @@ lkpTxOut t = lookup t =<< ask
 validateTransaction :: ValidationMonad m
     => Slot.Slot
     -> Tx
-    -> m UtxoIndex
+    -> m (Maybe ValidationError, UtxoIndex)
 validateTransaction h t = do
-    _ <- checkSlotRange h t
-    _ <- checkValuePreserved t
-    _ <- checkPositiveValues t
-    _ <- checkFeeIsAda t
+    _ <- checkValidInputs (view inputsFees) t
+    (do
+        _ <- checkSlotRange h t
+        _ <- checkValuePreserved t
+        _ <- checkPositiveValues t
+        _ <- checkFeeIsAda t
 
-    -- see note [Forging of Ada]
-    emptyUtxoSet <- reader (Map.null . getIndex)
-    unless emptyUtxoSet (checkForgingScripts t)
-    unless emptyUtxoSet (checkForgingAuthorised t)
-    unless emptyUtxoSet (checkTransactionFee t)
+        -- see note [Forging of Ada]
+        emptyUtxoSet <- reader (Map.null . getIndex)
+        unless emptyUtxoSet (checkForgingScripts t)
+        unless emptyUtxoSet (checkForgingAuthorised t)
+        unless emptyUtxoSet (checkTransactionFee t)
 
-    _ <- checkValidInputs t
-    insert t <$> ask
+        _ <- checkValidInputs (view inputs) t
+        idx <- ask
+        pure (Nothing, insert t idx)
+        )
+    `catchError` payFees
+    where
+        payFees e = do
+            idx <- ask
+            pure (Just e, insertFees t idx)
 
 -- | Check that a transaction can be validated in the given slot.
 checkSlotRange :: ValidationMonad m => Slot.Slot -> Tx -> m ()
@@ -176,18 +189,18 @@ checkSlotRange sl tx =
 
 -- | Check if the inputs of the transaction consume outputs that exist, and
 --   can be unlocked by the signatures or validator scripts of the inputs.
-checkValidInputs :: ValidationMonad m => Tx -> m ()
-checkValidInputs tx = do
+checkValidInputs :: ValidationMonad m => (Tx -> Set.Set TxIn) -> Tx -> m ()
+checkValidInputs getInputs tx = do
     let tid = txId tx
         sigs = tx ^. signatures
-    outs <- lkpOutputs tx
-    matches <- traverse (\(txin, txout) -> matchInputOutput tid sigs txin txout) outs
+    outs <- lkpOutputs (getInputs tx)
+    matches <- traverse (uncurry (matchInputOutput tid sigs)) outs
     vld     <- mkTxInfo tx
     traverse_ (checkMatch vld) matches
 
 -- | Match each input of the transaction with the output that it spends.
-lkpOutputs :: ValidationMonad m => Tx -> m [(TxIn, TxOut)]
-lkpOutputs tx = traverse (\t -> traverse (lkpTxOut . txInRef) (t, t)) . Set.toList $ view inputs tx <> view inputsFees tx
+lkpOutputs :: ValidationMonad m => Set.Set TxIn -> m [(TxIn, TxOut)]
+lkpOutputs = traverse (\t -> traverse (lkpTxOut . txInRef) (t, t)) . Set.toList
 
 {- note [Forging of Ada]
 
