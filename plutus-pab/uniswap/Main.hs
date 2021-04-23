@@ -53,8 +53,8 @@ main = void $ Simulator.runSimulationWith handlers $ do
 
     Simulator.logString @(Builtin UniswapContracts) $ "Initialization finished. Minted: " ++ show cs
 
-    let coins = Map.fromList [(tn, Uniswap.Coin cs tn) | tn <- tokenNames]
-        ada   = Uniswap.Coin adaSymbol adaToken
+    let coins = Map.fromList [(tn, Uniswap.mkCoin cs tn) | tn <- tokenNames]
+        ada   = Uniswap.mkCoin adaSymbol adaToken
 
     cidStart <- Simulator.activateContract (Wallet 1) UniswapStart
     us       <- flip Simulator.waitForState cidStart $ \json -> case (fromJSON json :: Result (Monoid.Last (Either Text Uniswap.Uniswap))) of

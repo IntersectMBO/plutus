@@ -79,6 +79,7 @@
           "PlutusTx/Numeric"
           "PlutusTx/Ratio"
           "PlutusTx/Semigroup"
+          "PlutusTx/Sqrt"
           "PlutusTx/Traversable"
           "PlutusTx/AssocMap"
           "PlutusTx/These"

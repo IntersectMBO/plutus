@@ -22,7 +22,7 @@ import           Plutus.Contract           hiding (when)
 import qualified Plutus.Contracts.Currency as Currency
 import           Wallet.Emulator.Types     (Wallet (..), walletPubKey)
 
-initContract :: Contract (Maybe (Semigroup.Last Currency.Currency)) Currency.CurrencySchema Currency.CurrencyError ()
+initContract :: Contract (Maybe (Semigroup.Last Currency.OneShotCurrency)) Currency.CurrencySchema Currency.CurrencyError ()
 initContract = do
     ownPK <- pubKeyHash <$> ownPubKey
     cur   <- Currency.forgeContract ownPK [(tn, fromIntegral (length wallets) * amount) | tn <- tokenNames]

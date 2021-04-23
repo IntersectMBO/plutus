@@ -54,6 +54,7 @@ import           Plutus.Contract                  hiding (when)
 import qualified Plutus.Contracts.Currency        as Currency
 import qualified PlutusTx
 import           PlutusTx.Prelude                 hiding (Semigroup (..), unless)
+import           PlutusTx.Sqrt
 import           Prelude                          (Semigroup (..))
 import qualified Prelude
 import           Text.Printf                      (printf)
@@ -80,39 +81,6 @@ coinValueOf = assetClassValueOf
 {-# INLINABLE mkCoin #-}
 mkCoin:: CurrencySymbol -> TokenName -> AssetClass
 mkCoin = assetClass
-
-data Sqrt =
-      Imaginary
-    | Exact Integer
-    | Irrational Integer
-    deriving stock Show
-
-PlutusTx.unstableMakeIsData ''Sqrt
-PlutusTx.makeLift ''Sqrt
-
-{-# INLINABLE rsqrt #-}
-rsqrt :: Integer -> Integer -> Sqrt
-rsqrt n d
-    | n * d < 0 = Imaginary
-    | n == 0    = Exact 0
-    | n == d    = Exact 1
-    | n < 0     = rsqrt (negate n) (negate d)
-    | otherwise = go 1 $ 1 + divide n d
-  where
-    go :: Integer -> Integer -> Sqrt
-    go l u
-        | l * l * d == n = Exact l
-        | u == (l + 1)   = Irrational l
-        | otherwise      =
-              let
-                m = divide (l + u) 2
-              in
-                if m * m * d <= n then go m u
-                                  else go l m
-
-{-# INLINABLE isqrt #-}
-isqrt :: Integer -> Sqrt
-isqrt n = rsqrt n 1
 
 {-# INLINABLE calculateInitialLiquidity #-}
 calculateInitialLiquidity :: Integer -> Integer -> Integer
