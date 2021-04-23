@@ -53,7 +53,6 @@
             (hsPkgs."aeson" or (errorHandler.buildDepError "aeson"))
             ] ++ (pkgs.lib).optional (!(compiler.isGhcjs && true || system.isGhcjs)) (hsPkgs."plutus-tx-plugin" or (errorHandler.buildDepError "plutus-tx-plugin"));
           build-tools = [
-            (hsPkgs.buildPackages.unlit.components.exes.unlit or (pkgs.buildPackages.unlit or (errorHandler.buildToolDepError "unlit:unlit")))
             (hsPkgs.buildPackages.doctest.components.exes.doctest or (pkgs.buildPackages.doctest or (errorHandler.buildToolDepError "doctest:doctest")))
             ];
           buildable = true;
