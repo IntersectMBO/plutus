@@ -4,7 +4,7 @@ import Prelude hiding (div)
 import Auth (_GithubUser, authStatusAuthRole)
 import BlocklyEditor.View as BlocklyEditor
 import Data.Lens (has, to, (^.))
-import Data.Maybe (Maybe(..))
+import Data.Maybe (Maybe(..), isNothing)
 import Effect.Aff.Class (class MonadAff)
 import Gists.Types (GistAction(..))
 import Halogen (ComponentHTML)
@@ -20,7 +20,7 @@ import HaskellEditor.View (otherActions, render) as HaskellEditor
 import Home as Home
 import Icons (Icon(..), icon)
 import JavascriptEditor.View as JSEditor
-import MainFrame.Types (Action(..), ChildSlots, ModalView(..), State, View(..), _actusBlocklySlot, _authStatus, _blocklyEditorState, _contractMetadata, _createGistResult, _hasUnsavedChanges, _haskellState, _javascriptState, _marloweEditorState, _projectName, _simulationState, _view, _walletSlot, hasGlobalLoading)
+import MainFrame.Types (Action(..), ChildSlots, ModalView(..), State, View(..), _actusBlocklySlot, _authStatus, _blocklyEditorState, _contractMetadata, _createGistResult, _gistId, _hasUnsavedChanges, _haskellState, _javascriptState, _marloweEditorState, _projectName, _simulationState, _view, _walletSlot, hasGlobalLoading)
 import Marlowe.ActusBlockly as AMB
 import MarloweEditor.View as MarloweEditor
 import Modal.View (modal)
@@ -146,7 +146,7 @@ menuBar state =
       ]
     <> showInEditor
         [ menuButton (OpenModal RenameProject) "Rename"
-        , gistModal (GistAction PublishGist) "Save"
+        , gistModal (if isNothing $ state ^. _gistId then OpenModal SaveProjectAs else GistAction PublishOrUpdateGist) "Save"
         , gistModal (OpenModal SaveProjectAs) "Save As..."
         ]
   where

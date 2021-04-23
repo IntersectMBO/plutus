@@ -54,7 +54,7 @@ import Marlowe (getApiGistsByGistId)
 import Marlowe as Server
 import Marlowe.ActusBlockly as AMB
 import Marlowe.Extended.Metadata (emptyContractMetadata, getHintsFromMetadata)
-import Marlowe.Gists (mkNewGist, playgroundFiles, PlaygroundFiles)
+import Marlowe.Gists (PlaygroundFiles, mkNewGist, playgroundFiles)
 import MarloweEditor.State as MarloweEditor
 import MarloweEditor.Types as ME
 import MetadataTab.State (carryMetadataAction)
@@ -514,6 +514,8 @@ handleAction (DemosAction action@(Demos.LoadDemo lang (Demos.Demo key))) = do
     ( set _showModal Nothing
         <<< set _workflow (Just lang)
         <<< set _hasUnsavedChanges false
+        <<< set _gistId Nothing
+        <<< set _projectName metadata.contractName
         <<< set _contractMetadata metadata
     )
   selectView $ selectLanguageView lang
@@ -543,7 +545,7 @@ handleAction (SaveAsAction action@SaveAs.SaveProject) = do
         <<< set _projectName projectName
         <<< set (_saveAs <<< SaveAs._status) Loading
     )
-  handleGistAction PublishGist
+  handleGistAction PublishOrUpdateGist
   res <- peruse (_createGistResult <<< _Success)
   case res of
     Just gist -> do
@@ -667,15 +669,11 @@ checkAuthStatus = do
   assign _authStatus authResult
 
 ------------------------------------------------------------
-handleGistAction ::
+createFiles ::
   forall m.
-  Warn (Text "Check if the handler for LoadGist is being used") =>
-  Warn (Text "SCP-1591 Saving failure does not provide enough information") =>
   MonadAff m =>
-  MonadAsk Env m =>
-  GistAction -> HalogenM State Action ChildSlots Void m Unit
-handleGistAction PublishGist = do
-  description <- use _projectName
+  MonadAsk Env m => HalogenM State Action ChildSlots Void m PlaygroundFiles
+createFiles = do
   let
     pruneEmpty :: forall a. Eq a => Monoid a => Maybe a -> Maybe a
     pruneEmpty (Just v)
@@ -689,7 +687,7 @@ handleGistAction PublishGist = do
   workflow <- use _workflow
   let
     emptyFiles = (mempty :: PlaygroundFiles) { playground = playground, metadata = metadata }
-  files <- case workflow of
+  case workflow of
     Just Marlowe -> do
       marlowe <- pruneEmpty <$> MarloweEditor.editorGetValue
       pure $ emptyFiles { marlowe = marlowe }
@@ -706,6 +704,17 @@ handleGistAction PublishGist = do
       actus <- pruneEmpty <$> query _actusBlocklySlot unit (H.request ActusBlockly.GetWorkspace)
       pure $ emptyFiles { actus = actus }
     Nothing -> mempty
+
+handleGistAction ::
+  forall m.
+  Warn (Text "Check if the handler for LoadGist is being used") =>
+  Warn (Text "SCP-1591 Saving failure does not provide enough information") =>
+  MonadAff m =>
+  MonadAsk Env m =>
+  GistAction -> HalogenM State Action ChildSlots Void m Unit
+handleGistAction PublishOrUpdateGist = do
+  description <- use _projectName
+  files <- createFiles
   let
     newGist = mkNewGist description $ files
   void
@@ -717,7 +726,7 @@ handleGistAction PublishGist = do
           lift
             $ case mGist of
                 Nothing -> runAjax $ flip runReaderT settings $ Server.postApiGists newGist
-                Just gistId -> runAjax $ flip runReaderT settings $ Server.patchApiGistsByGistId newGist gistId
+                Just gistId -> runAjax $ flip runReaderT settings $ Server.postApiGistsByGistId newGist gistId
         assign _createGistResult newResult
         gistId <- hoistMaybe $ preview (_Success <<< gistId) newResult
         modify_
@@ -824,7 +833,7 @@ handleConfirmUnsavedNavigationAction intendedAction modalAction = do
       -- refactor into a `Save (Maybe Action)` action. The handler for that should do
       -- this check and call the next action as a continuation
       if has (_authStatus <<< _Success <<< authStatusAuthRole <<< _GithubUser) state then do
-        fullHandleAction $ GistAction PublishGist
+        fullHandleAction $ GistAction PublishOrUpdateGist
         fullHandleAction intendedAction
       else
         fullHandleAction $ OpenModal $ GithubLogin $ ConfirmUnsavedNavigationAction intendedAction modalAction
