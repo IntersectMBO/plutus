@@ -88,8 +88,8 @@ constantFee = FeeEstimator . const . const . Ada.fromValue $ minFee mempty
 --   plutus-ledger (in particular, 'Ledger.Tx.unspentOutputs') we note the
 --   unspent outputs of the chain when it is first created.
 data Mockchain = Mockchain {
-    mockchainInitialBlock :: Block,
-    mockchainUtxo         :: Map TxOutRef TxOut
+    mockchainInitialTxPool :: [Tx],
+    mockchainUtxo          :: Map TxOutRef TxOut
     } deriving Show
 
 -- | The empty mockchain.
@@ -106,7 +106,7 @@ genMockchain' gm = do
     let (txn, ot) = genInitialTransaction gm
         tid = txId txn
     pure Mockchain {
-        mockchainInitialBlock = [txn],
+        mockchainInitialTxPool = [txn],
         mockchainUtxo = Map.fromList $ first (TxOutRef tid) <$> zip [0..] ot
         }
 
@@ -245,9 +245,9 @@ assertValid tx mc = Hedgehog.assert $ isNothing $ validateMockchain mc tx
 
 -- | Validate a transaction in a mockchain.
 validateMockchain :: Mockchain -> Tx -> Maybe Index.ValidationError
-validateMockchain (Mockchain blck _) tx = result where
+validateMockchain (Mockchain txPool _) tx = result where
     h      = 1
-    idx    = Index.initialise [blck]
+    idx    = Index.initialise [map Valid txPool]
     result = fst $ fst $ Index.runValidation (Index.validateTransaction h tx) idx
 
 {- | Split a value into max. n positive-valued parts such that the sum of the

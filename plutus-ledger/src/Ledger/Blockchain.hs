@@ -1,10 +1,16 @@
+{-# LANGUAGE DeriveAnyClass     #-}
 {-# LANGUAGE DerivingStrategies #-}
 {-# LANGUAGE FlexibleContexts   #-}
 {-# LANGUAGE FlexibleInstances  #-}
+{-# LANGUAGE TemplateHaskell    #-}
 module Ledger.Blockchain (
+    OnChainTx(..),
+    _Valid,
+    _Invalid,
     Block,
     Blockchain,
     Context(..),
+    eitherTx,
     transaction,
     out,
     value,
@@ -15,13 +21,18 @@ module Ledger.Blockchain (
     updateUtxo,
     txOutPubKey,
     pubKeyTxo,
-    validValuesTx
+    validValuesTx,
     ) where
 
+import           Codec.Serialise          (Serialise)
+import           Control.DeepSeq          (NFData)
+import           Control.Lens             (makePrisms)
 import           Control.Monad            (join)
-import           Data.List                (find)
+import           Data.Aeson               (FromJSON, ToJSON)
 import           Data.Map                 (Map)
 import qualified Data.Map                 as Map
+import           Data.Monoid              (First (..))
+import           GHC.Generics             (Generic)
 
 import           Plutus.V1.Ledger.Crypto
 import           Plutus.V1.Ledger.Scripts
@@ -29,16 +40,26 @@ import           Plutus.V1.Ledger.Tx
 import           Plutus.V1.Ledger.TxId
 import           Plutus.V1.Ledger.Value   (Value)
 
--- | A block on the blockchain. This is just a list of transactions which
--- successfully validate following on from the chain so far.
-type Block = [Tx]
+-- | A transaction on the blockchain.
+-- Invalid transactions are still put on the chain to be able to collect fees.
+data OnChainTx = Invalid Tx | Valid Tx
+    deriving stock (Eq, Show, Generic)
+    deriving anyclass (ToJSON, FromJSON, Serialise, NFData)
+-- | A block on the blockchain. This is just a list of transactions
+-- following on from the chain so far.
+type Block = [OnChainTx]
 -- | A blockchain, which is just a list of blocks, starting with the newest.
 type Blockchain = [Block]
 
+eitherTx :: (Tx -> r) -> (Tx -> r) -> OnChainTx -> r
+eitherTx ifInvalid _ (Invalid tx) = ifInvalid tx
+eitherTx _ ifValid (Valid tx)     = ifValid tx
+
 -- | Lookup a transaction in a 'Blockchain' by its id.
 transaction :: Blockchain -> TxId -> Maybe Tx
-transaction bc tid = find p $ join bc where
-    p tx = tid == txId tx
+transaction bc tid = getFirst . foldMap (foldMap p) $ bc where
+    p (Valid tx) = if tid == txId tx then First (Just tx) else mempty
+    p _          = mempty
 
 -- | Determine the unspent output that an input refers to
 out :: Blockchain -> TxOutRef -> Maybe TxOut
@@ -63,4 +84,6 @@ pubKeyTxo bc o = out bc o >>= txOutPubKey
 
 -- | The unspent transaction outputs of the ledger as a whole.
 unspentOutputs :: Blockchain -> Map TxOutRef TxOut
-unspentOutputs = foldr updateUtxo Map.empty . join
+unspentOutputs = foldr (eitherTx updateUtxoFees updateUtxo) Map.empty . join
+
+makePrisms ''OnChainTx

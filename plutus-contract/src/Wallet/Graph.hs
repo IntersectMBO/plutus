@@ -108,10 +108,13 @@ txnFlows keys bc = catMaybes (utxoLinks ++ foldMap extract bc')
     utxos = fmap fst $ Map.toList $ unspentOutputs bc
     utxoLinks = uncurry (flow Nothing) <$> zip (utxoTargets <$> utxos) utxos
 
-    extract :: (UtxoLocation, Tx) -> [Maybe FlowLink]
-    extract (loc, tx) =
+    extract :: (UtxoLocation, OnChainTx) -> [Maybe FlowLink]
+    extract (loc, Valid tx) =
       let targetRef = mkRef $ txId tx in
-      fmap (flow (Just loc) targetRef . txInRef) (Set.toList $ view inputs tx)
+      fmap (flow (Just loc) targetRef . txInRef) (Set.toList $ view inputs tx <> view inputsFees tx)
+    extract (loc, Invalid tx) =
+      let targetRef = mkRef $ txId tx in
+      fmap (flow (Just loc) targetRef . txInRef) (Set.toList $ view inputsFees tx)
     -- make a flow for a TxOutRef
 
     flow :: Maybe UtxoLocation -> TxRef -> TxOutRef -> Maybe FlowLink
@@ -131,8 +134,9 @@ txnFlows keys bc = catMaybes (utxoLinks ++ foldMap extract bc')
     zipWithIndex = zip [1..]
 
 -- | Annotate the 'TxOutRef's produced by a transaction with the location of the transaction.
-outRefsWithLoc :: UtxoLocation -> Tx -> [(TxOutRef, UtxoLocation)]
-outRefsWithLoc loc tx = (\txo -> (snd txo, loc)) <$> txOutRefs tx
+outRefsWithLoc :: UtxoLocation -> OnChainTx -> [(TxOutRef, UtxoLocation)]
+outRefsWithLoc loc (Valid tx) = (\txo -> (snd txo, loc)) <$> txOutRefs tx
+outRefsWithLoc _ (Invalid _)  = []
 
 -- | Create a 'TxRef' from a 'TxOutRef'.
 utxoTargets :: TxOutRef -> TxRef

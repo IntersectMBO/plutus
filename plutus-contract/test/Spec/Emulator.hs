@@ -136,8 +136,8 @@ pubKey3 = walletPubKey wallet3
 
 utxo :: Property
 utxo = property $ do
-    Mockchain block o <- forAll Gen.genMockchain
-    Hedgehog.assert (unspentOutputs [block] == o)
+    Mockchain txPool o <- forAll Gen.genMockchain
+    Hedgehog.assert (unspentOutputs [map Valid txPool] == o)
 
 txnValid :: Property
 txnValid = property $ do

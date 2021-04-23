@@ -60,7 +60,7 @@ import           Data.Maybe                             (fromMaybe, mapMaybe)
 import           Data.Text                              (Text)
 import           Data.Text.Prettyprint.Doc              (Pretty (..), defaultLayoutOptions, layoutPretty, vsep)
 import           Data.Text.Prettyprint.Doc.Render.Text  (renderStrict)
-import           Ledger                                 (TxId)
+import           Ledger                                 (Block, OnChainTx (..), TxId)
 import           Ledger.AddressMap                      (UtxoMap)
 import qualified Ledger.AddressMap                      as AM
 import           Ledger.Constraints.OffChain            (UnbalancedTx)
@@ -227,7 +227,7 @@ instanceOutcome con =
 utxoAtAddress :: Address -> EmulatorEventFold UtxoMap
 utxoAtAddress addr =
     preMapMaybe (preview (eteEvent . chainEvent . _TxnValidate . _2 ))
-    $ Fold (flip AM.updateAddresses) (AM.addAddress addr mempty) (view (AM.fundsAt addr))
+    $ Fold (flip (AM.updateAddresses . Valid)) (AM.addAddress addr mempty) (view (AM.fundsAt addr))
 
 -- | The total value of unspent outputs at an address
 valueAtAddress :: Address -> EmulatorEventFold Value
@@ -262,12 +262,12 @@ chainEvents :: EmulatorEventFold [ChainEvent]
 chainEvents = preMapMaybe (preview (eteEvent . chainEvent)) L.list
 
 -- | All transactions that happened during the simulation
-blockchain :: EmulatorEventFold [[Tx]]
+blockchain :: EmulatorEventFold [Block]
 blockchain =
     let step (currentBlock, otherBlocks) = \case
-            SlotAdd _           -> ([], currentBlock : otherBlocks)
-            TxnValidate _ txn _ -> (txn : currentBlock, otherBlocks)
-            TxnValidationFail{} -> (currentBlock, otherBlocks)
+            SlotAdd _                   -> ([], currentBlock : otherBlocks)
+            TxnValidate _ txn _         -> (Valid txn : currentBlock, otherBlocks)
+            TxnValidationFail _ txn _ _ -> (Invalid txn : currentBlock, otherBlocks)
         initial = ([], [])
         extract (currentBlock, otherBlocks) =
             reverse (currentBlock : otherBlocks)

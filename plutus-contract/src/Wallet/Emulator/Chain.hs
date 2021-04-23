@@ -25,12 +25,11 @@ import qualified Control.Monad.State            as S
 import           Data.Aeson                     (FromJSON, ToJSON)
 import           Data.Foldable                  (traverse_)
 import           Data.List                      (partition, (\\))
-import           Data.Maybe                     (isNothing)
 import           Data.Text.Prettyprint.Doc
 import           Data.Traversable               (for)
 import           GHC.Generics                   (Generic)
-import           Ledger                         (Block, Blockchain, ScriptValidationEvent, Slot (..), Tx (..), TxId,
-                                                 txId)
+import           Ledger                         (Block, Blockchain, OnChainTx (..), ScriptValidationEvent, Slot (..),
+                                                 Tx (..), TxId, eitherTx, txId)
 import qualified Ledger.Index                   as Index
 import qualified Ledger.Interval                as Interval
 import           Plutus.Contract.Util           (uncurry3)
@@ -115,7 +114,7 @@ handleChain = \case
 
 -- | The result of validating a block.
 data ValidatedBlock = ValidatedBlock
-    { vlbValid  :: [Tx]
+    { vlbValid  :: Block
     -- ^ The transactions that have been validated in this block.
     , vlbEvents :: [ChainEvent]
     -- ^ Transaction validation events for the transactions in this block.
@@ -142,7 +141,10 @@ validateBlock slot@(Slot s) idx txns =
 
         -- The new block contains all transaction that were validated
         -- successfully
-        block = view _1 <$> filter (isNothing . view _2) processed
+        block = map toOnChain processed
+          where
+            toOnChain (tx, Just _, _)  = Invalid tx
+            toOnChain (tx, Nothing, _) = Valid tx
 
         -- Also return an `EmulatorEvent` for each transaction that was
         -- processed
@@ -176,7 +178,7 @@ addBlock blk st =
      & index %~ Index.insertBlock blk
      -- The block update may contain txs that are not in this client's
      -- `txPool` which will get ignored
-     & txPool %~ (\\ blk)
+     & txPool %~ (\\ map (eitherTx id id) blk)
      & currentSlot +~ 1 -- This assumes that there is exactly one block per slot. In the real chain there may be more than one block per slot.
 
 addTxToPool :: Tx -> TxPool -> TxPool

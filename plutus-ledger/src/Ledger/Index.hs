@@ -88,8 +88,8 @@ insertFees :: Tx -> UtxoIndex -> UtxoIndex
 insertFees tx = UtxoIndex . updateUtxoFees tx . getIndex
 
 -- | Update the index for the addition of a block.
-insertBlock :: [Tx] -> UtxoIndex -> UtxoIndex
-insertBlock blck i = foldl' (flip insert) i blck
+insertBlock :: Block -> UtxoIndex -> UtxoIndex
+insertBlock blck i = foldl' (flip (eitherTx insertFees insert)) i blck
 
 -- | Find an unspent transaction output by the 'TxOutRef' that spends it.
 lookup :: MonadError ValidationError m => TxOutRef -> UtxoIndex -> m TxOut

@@ -56,7 +56,7 @@ import qualified Data.Text                            as Text
 import           Data.Void                            (Void, absurd)
 import           GHC.Generics                         (Generic)
 
-import           Ledger                               (Slot, Value)
+import           Ledger                               (OnChainTx (..), Slot, Value)
 import qualified Ledger
 import           Ledger.AddressMap                    (UtxoMap)
 import           Ledger.Constraints                   (ScriptLookups, TxConstraints (..), mustPayToTheScript)
@@ -204,11 +204,6 @@ waitForUpdateUntil ::
     -> Contract w schema e (WaitingResult state)
 waitForUpdateUntil StateMachineClient{scInstance, scChooser} timeoutSlot = do
     let addr = Scripts.scriptAddress $ validatorInstance scInstance
-        outputsMap :: Ledger.Tx -> Map.Map TxOutRef TxOutTx
-        outputsMap t =
-                fmap (\txout -> TxOutTx{txOutTxTx=t, txOutTxOut = txout})
-                $ Map.filter ((==) addr . Tx.txOutAddress)
-                $ Tx.unspentOutputsTx t
     let go sl = do
             txns <- acrTxns <$> addressChangeRequest AddressChangeRequest{acreqSlot = sl, acreqAddress=addr}
             if null txns && sl < timeoutSlot
@@ -218,7 +213,7 @@ waitForUpdateUntil StateMachineClient{scInstance, scChooser} timeoutSlot = do
     initial <- currentSlot
     txns <- go initial
     slot <- currentSlot -- current slot, can be after timeout
-    let states = txns >>= getStates scInstance . outputsMap
+    let states = txns >>= getStates scInstance . outputsMap addr
     case states of
         [] | slot < timeoutSlot -> pure ContractEnded
         [] | slot >= timeoutSlot -> pure $ Timeout timeoutSlot
@@ -242,16 +237,18 @@ waitForUpdate ::
     -> Contract w schema e (Maybe (OnChainState state i))
 waitForUpdate StateMachineClient{scInstance, scChooser} = do
     let addr = Scripts.scriptAddress $ validatorInstance scInstance
-        outputsMap :: Ledger.Tx -> Map TxOutRef TxOutTx
-        outputsMap t =
-                fmap (\txout -> TxOutTx{txOutTxTx=t, txOutTxOut = txout})
-                $ Map.filter ((==) addr . Tx.txOutAddress)
-                $ Tx.unspentOutputsTx t
     txns <- nextTransactionsAt addr
-    let states = txns >>= getStates scInstance . outputsMap
+    let states = txns >>= getStates scInstance . outputsMap addr
     case states of
         [] -> pure Nothing
         xs -> either (throwing _SMContractError) (pure . Just) (scChooser xs)
+
+outputsMap :: Address -> Ledger.OnChainTx -> Map TxOutRef TxOutTx
+outputsMap addr (Valid t) =
+        fmap (\txout -> TxOutTx{txOutTxTx=t, txOutTxOut = txout})
+        $ Map.filter ((==) addr . Tx.txOutAddress)
+        $ Tx.unspentOutputsTx t
+outputsMap _ (Invalid _) = mempty
 
 -- | Tries to run one step of a state machine: If the /guard/ (the last argument) returns @'Nothing'@ when given the
 -- unbalanced transaction to be submitted, the old state and the new step, the step is run and @'Right'@ the new state is returned.

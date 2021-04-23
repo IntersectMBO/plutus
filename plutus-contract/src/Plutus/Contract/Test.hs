@@ -226,8 +226,8 @@ checkPredicateGenOptions ::
     -> EmulatorTrace ()
     -> Property
 checkPredicateGenOptions options gm predicate action = property $ do
-    Mockchain{mockchainInitialBlock} <- forAll (Gen.genMockchain' gm)
-    let options' = options & emulatorConfig . initialChainState .~ Right mockchainInitialBlock
+    Mockchain{mockchainInitialTxPool} <- forAll (Gen.genMockchain' gm)
+    let options' = options & emulatorConfig . initialChainState .~ Right mockchainInitialTxPool
     checkPredicateInner options' predicate action Hedgehog.annotate Hedgehog.assert
 
 -- | A version of 'checkPredicate' with configurable 'CheckOptions'
@@ -542,7 +542,7 @@ walletPaidFees w val =
         pure result
 
 -- | An assertion about the blockchain
-assertBlockchain :: ([[Tx]] -> Bool) -> TracePredicate
+assertBlockchain :: ([Ledger.Block] -> Bool) -> TracePredicate
 assertBlockchain predicate =
     flip postMapM (L.generalize Folds.blockchain) $ \chain -> do
         let passing = predicate chain

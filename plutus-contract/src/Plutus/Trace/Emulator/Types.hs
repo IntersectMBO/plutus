@@ -68,8 +68,8 @@ import qualified Data.Text                      as T
 import           Data.Text.Prettyprint.Doc      (Pretty (..), braces, colon, fillSep, hang, parens, viaShow, vsep,
                                                  (<+>))
 import           GHC.Generics                   (Generic)
+import           Ledger.Blockchain              (Block)
 import           Ledger.Slot                    (Slot (..))
-import           Ledger.Tx                      (Tx)
 import           Plutus.Contract                (Contract (..))
 import           Plutus.Contract.Resumable      (Request (..), Requests (..), Response (..))
 import qualified Plutus.Contract.Resumable      as State
@@ -96,7 +96,7 @@ type ContractConstraints s =
 
 -- | Messages sent to, and received by, threads in the emulator.
 data EmulatorMessage =
-    NewSlot [[Tx]] Slot -- ^ A new slot has begun and some blocks were added.
+    NewSlot [Block] Slot -- ^ A new slot has begun and some blocks were added.
     | EndpointCall ThreadId EndpointDescription JSON.Value -- ^ Call to an endpoint
     | Freeze -- ^ Tell the contract instance to freeze itself (see note [Freeze and Thaw])
     | ContractInstanceStateRequest ThreadId -- ^ Request for the current state of a contract instance

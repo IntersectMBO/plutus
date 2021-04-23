@@ -37,7 +37,7 @@ import           Wallet.Types                     (AddressChangeRequest (..), Ad
 import           Ledger.Address                   (Address)
 import           Ledger.AddressMap                (AddressMap)
 import qualified Ledger.AddressMap                as AM
-import           Ledger.Blockchain                (Blockchain)
+import           Ledger.Blockchain                (Blockchain, eitherTx)
 import           Ledger.Slot                      (Slot)
 import           Ledger.Tx                        (txId)
 import           Ledger.TxId                      (TxId)
@@ -93,7 +93,7 @@ handleChainIndexControl = interpret $ \case
         (cs, addressMap) <- (,) <$> gets _idxCurrentSlot <*> gets _idxWatchedAddresses
         let currentSlot = maybe 0 getMax cs
         flip traverse_ txns $ \txn -> do
-            let i = txId txn
+            let i = eitherTx txId txId txn
                 itm = ChainIndexItem{ciSlot=currentSlot, ciTx = txn, ciTxId = i}
             modify $ \s ->
                 s & idxWatchedAddresses %~ AM.updateAllAddresses txn
