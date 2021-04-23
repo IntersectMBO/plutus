@@ -269,6 +269,7 @@
           "PlcTestUtils"
           "Crypto"
           "Data/Text/Prettyprint/Doc/Custom"
+          "Data/SatInt"
           ];
         hsSourceDirs = [
           "plutus-core/src"

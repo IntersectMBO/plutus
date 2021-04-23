@@ -23,6 +23,7 @@ import           PlutusPrelude
 import           Control.Monad.RWS.Strict
 import qualified Data.ByteString          as BS
 import           Data.Proxy
+import           Data.SatInt
 import qualified Data.Text                as T
 import           Foreign.Storable
 import           GHC.Generics
@@ -41,20 +42,58 @@ abstractly specifiable. It's an implementation detail.
 
 -}
 
--- | Counts size in machine words (64bit for the near future)
-newtype ExMemory = ExMemory Integer
-  deriving (Eq, Ord, Show)
-  deriving newtype (Num, Pretty, NFData)
-  deriving (Semigroup, Monoid) via (Sum Integer)
-deriving newtype instance PrettyDefaultBy config Integer => PrettyBy config ExMemory
+{- Note [Integer types for costing]
+We care about the speed of our integer operations for costing, this has a significant effect on speed.
+But we also need to care about overflow: the cost counters overflowing is a potential attack!
 
--- TODO: 'Integer's are not particularly fast. Should we use @Int64@?
--- | Counts CPU units - no fixed base, proportional.
-newtype ExCPU = ExCPU Integer
+We have a few choices here for what to do with an overflow:
+- Don't (this is what 'Integer' does, it's unbounded)
+- Wrap (this is what 'Int'/'Int64' and friends do)
+- Throw an overflow error (this is what 'Data.SafeInt' does)
+- Saturate (i.e. return max/min bound, this is what 'Data.SatInt does)
+
+In our case
+- Not overflowing would be nice, but 'Integer' is significantly slower than the other types.
+- Wrapping is quite dangerous, as it could lead to us getting attacked by someone wrapping
+their cost around to something that looks below the budget.
+- Throwing would be okay, but we'd have to worry about exception catching.
+- Saturating is actually quite nice: we care about whether `a op b < budget`. So long as `budget < maxBound`,
+  then `a op b < budget` will have the same truth value *regardless* of whether the operation overflows and saturates,
+  since saturating implies `a op b >= maxBound > budget`. Plus, it means we don't need to deal with
+  exceptions.
+
+So we use 'Data.SatInt', a variant of 'Data.SafeInt' that does saturating arithmetic.
+
+'SatInt' is quite fast, but not quite as fast as using 'Int64' directly (I don't know why that would be, apart from maybe
+just the overflow checks), but the wrapping behaviour of 'Int64' is unacceptable..
+
+One other wrinkle is that 'SatInt' is backed by an 'Int' (i.e. a machine integer with platform-dependent
+size), rather than an 'Int64' since the primops that we need are only available for 'Int' until GHC 9.2
+or so.
+
+This is okay, because we don't expect budgets to be anywhere near 'maxBound' for even Int32! So we're
+never going to need to worry about the possibility of saturating for 'Int32' but not for 'Int64' or something.
+-}
+
+-- | Counts size in machine words (64bit for the near future)
+newtype ExMemory = ExMemory SatInt
   deriving (Eq, Ord, Show)
-  deriving newtype (Num, Pretty, NFData)
-  deriving (Semigroup, Monoid) via (Sum Integer)
-deriving newtype instance PrettyDefaultBy config Integer => PrettyBy config ExCPU
+  deriving newtype (Num, NFData)
+  deriving (Semigroup, Monoid) via (Sum SatInt)
+instance Pretty ExMemory where
+    pretty (ExMemory i) = pretty (toInteger i)
+instance PrettyBy config ExMemory where
+    prettyBy _ m = pretty m
+
+-- | Counts CPU units - no fixed base, proportional.
+newtype ExCPU = ExCPU SatInt
+  deriving (Eq, Ord, Show)
+  deriving newtype (Num, NFData)
+  deriving (Semigroup, Monoid) via (Sum SatInt)
+instance Pretty ExCPU where
+    pretty (ExCPU i) = pretty (toInteger i)
+instance PrettyBy config ExCPU where
+    prettyBy _ m = pretty m
 
 -- Based on https://github.com/ekmett/semigroups/blob/master/src/Data/Semigroup/Generic.hs
 class GExMemoryUsage f where
@@ -103,6 +142,7 @@ deriving via (GenericExMemoryUsage (Term tyname name uni fun ann)) instance
     , Closed uni, uni `Everywhere` ExMemoryUsage, ExMemoryUsage fun
     ) => ExMemoryUsage (Term tyname name uni fun ann)
 deriving newtype instance ExMemoryUsage TyName
+deriving newtype instance ExMemoryUsage SatInt
 deriving newtype instance ExMemoryUsage ExMemory
 deriving newtype instance ExMemoryUsage Unique
 
@@ -119,10 +159,10 @@ instance ExMemoryUsage () where
   memoryUsage _ = 0 -- TODO or 1?
 
 instance ExMemoryUsage Integer where
-  memoryUsage i = ExMemory (1 + smallInteger (integerLog2# (abs i) `quotInt#` integerToInt 64)) -- assume 64bit size
+  memoryUsage i = ExMemory $ fromIntegral $ 1 + smallInteger (integerLog2# (abs i) `quotInt#` integerToInt 64) -- assume 64bit size
 
 instance ExMemoryUsage BS.ByteString where
-  memoryUsage bs = ExMemory $ (toInteger $ BS.length bs) `div` 8
+  memoryUsage bs = ExMemory $ fromIntegral $ (toInteger $ BS.length bs) `div` 8
 
 instance ExMemoryUsage T.Text where
   memoryUsage text = memoryUsage $ T.unpack text -- TODO not accurate, as Text uses UTF-16
@@ -137,4 +177,4 @@ instance ExMemoryUsage Bool where
   memoryUsage _ = 1
 
 instance ExMemoryUsage String where
-  memoryUsage string = ExMemory $ (toInteger $ sum $ fmap sizeOf string) `div` 8
+  memoryUsage string = ExMemory $ fromIntegral $ (sum $ fmap sizeOf string) `div` 8

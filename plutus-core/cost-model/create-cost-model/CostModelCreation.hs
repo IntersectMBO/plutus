@@ -26,6 +26,7 @@ import qualified Data.Text.Encoding                        as T
 import           Data.Vector
 import           GHC.Generics
 
+import           Data.SatInt
 import           Foreign.R
 import           H.Prelude                                 (MonadR, Region, r)
 import           Language.R
@@ -294,7 +295,7 @@ dropByteString cpuModelR = do
 
 memoryUsageAsDouble :: ExMemoryUsage a => a -> Double
 memoryUsageAsDouble x =
-    let m = coerce $ memoryUsage x :: Integer
+    let m = coerce $ memoryUsage x :: SatInt
     in fromIntegral m
 
 sHA2 :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelOneArgument)
