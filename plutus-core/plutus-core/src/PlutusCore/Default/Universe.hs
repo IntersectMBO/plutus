@@ -1,7 +1,6 @@
 -- | The universe used by default and its instances.
 
 {-# OPTIONS -fno-warn-missing-pattern-synonym-signatures #-}
-{-# OPTIONS -fno-warn-incomplete-patterns #-}
 
 {-# LANGUAGE ConstraintKinds       #-}
 {-# LANGUAGE EmptyCase             #-}
@@ -34,7 +33,10 @@ import           PlutusCore.Universe.Core
 import           Control.Applicative
 import qualified Data.ByteString          as BS
 import           Data.Foldable
+import qualified Data.Kind                as GHC
 import qualified Data.Text                as Text
+import           Data.Type.Equality
+import           Type.Reflection
 
 {- Note [PLC types and universes]
 We encode built-in types in PLC as tags for Haskell types (the latter are also called meta-types),
@@ -94,6 +96,7 @@ data DefaultUni a where
     DefaultUniTupleProto :: DefaultUni (TypeApp (,))
     DefaultUniApply      :: !(DefaultUni (TypeApp f)) -> !(DefaultUni a) -> DefaultUni (TypeApp (f a))
     DefaultUniRunTypeApp :: !(DefaultUni (TypeApp a)) -> DefaultUni a
+    -- DefaultUniRunTypeApp :: !(DefaultUni (TypeApp (f a))) -> DefaultUni (f a)
 
 -- GHC infers crazy types for these two and the straightforward ones break pattern matching,
 -- so we just leave GHC with its craziness.
@@ -147,6 +150,7 @@ instance Show (DefaultUni a) where
             _              -> "[" ++ show uniB ++ "]"
         DefaultUniTupleProto -> concat ["(", show uniB, ",)"]
         DefaultUniApply DefaultUniTupleProto uniA -> concat ["(", show uniA, ",", show uniB, ")"]
+        _ -> error "Impossible"
 
 instance Parsable (Some DefaultUni) where
     parse "bool"       = Just $ Some DefaultUniBool
@@ -183,6 +187,10 @@ instance DefaultUni `Contains` Bool          where knownUni = DefaultUniBool
 instance DefaultUni `Contains` TypeApp []  where knownUni = DefaultUniListProto
 instance DefaultUni `Contains` TypeApp (,) where knownUni = DefaultUniTupleProto
 
+instance (DefaultUni `Contains` TypeApp f, DefaultUni `Contains` a) =>
+            DefaultUni `Contains` TypeApp (f a) where
+    knownUni = knownUni `DefaultUniApply` knownUni
+
 instance DefaultUni `Contains` a => DefaultUni `Contains` [a] where
     knownUni = DefaultUniList knownUni
 instance (DefaultUni `Contains` a, DefaultUni `Contains` b) => DefaultUni `Contains` (a, b) where
@@ -196,6 +204,53 @@ and 'decodeUni' must be amended only in a backwards compatible manner.
 See Note [Stable encoding of PLC]
 -}
 
+asTypeApp
+    :: forall uni ta m r. (Typeable ta, MonadFail m)
+    => uni ta
+    -> (forall (a :: GHC.Type). (ta ~ TypeApp a, Typeable a) => m r)
+    -> m r
+asTypeApp _ k = do
+    App repT repA <- pure $ typeRep @ta
+    let kindA = typeRepKind repA
+        repT' = withTypeable kindA $ typeRep @TypeApp
+    Just Refl <- pure $ repT `testEquality` repT'
+    Just Refl <- pure $ typeRepKind repA `testEquality` typeRep @GHC.Type
+    withTypeable repA k
+
+withDecodeTypeAppM
+    :: forall uni r. Closed uni
+    => (forall (a :: GHC.Type). Typeable a => uni (TypeApp a) -> DecodeUniM r)
+    -> DecodeUniM r
+withDecodeTypeAppM k = withDecodeUniM @uni $ \uniTA -> asTypeApp uniTA $ k uniTA
+
+withTypeFunRep
+    :: forall uni tf m r. (Typeable tf, MonadFail m)
+    => uni tf
+    -> (forall k (f :: GHC.Type -> k). (tf ~ TypeApp f, Typeable k) => TypeRep f -> m r)
+    -> m r
+withTypeFunRep _ k = do
+    App repT repF <- pure $ typeRep @tf
+    let kindF = typeRepKind repF
+    Fun repArg repRes <- pure kindF
+    let repT' = withTypeable kindF $ typeRep @TypeApp
+    Just Refl  <- pure $ repT `testEquality` repT'
+    Just HRefl <- pure $ repArg `eqTypeRep` typeRep @GHC.Type
+    Just Refl  <- pure $ typeRepKind repRes `testEquality` typeRep @GHC.Type
+    withTypeable repRes $ k repF
+
+asTypeFun
+    :: forall uni tf m r. (Typeable tf, MonadFail m)
+    => uni tf
+    -> (forall k (f :: GHC.Type -> k). (tf ~ TypeApp f, Typeable k, Typeable f) => m r)
+    -> m r
+asTypeFun uniF k = withTypeFunRep uniF $ \repF -> withTypeable repF k
+
+withDecodeTypeFunM
+    :: forall uni r. Closed uni
+    => (forall k (f :: GHC.Type -> k). (Typeable k, Typeable f) => uni (TypeApp f) -> DecodeUniM r)
+    -> DecodeUniM r
+withDecodeTypeFunM k = withDecodeUniM @uni $ \uniF -> asTypeFun uniF $ k uniF
+
 instance Closed DefaultUni where
     type DefaultUni `Everywhere` constr =
         ( constr `Permits` Integer
@@ -207,31 +262,31 @@ instance Closed DefaultUni where
         , constr `Permits` (,)
         )
 
-    -- TODO: THIS IS AWFULLY WRONG
+    -- See Note [Stable encoding of tags].
+    encodeUni DefaultUniInteger           = [0]
+    encodeUni DefaultUniByteString        = [1]
+    encodeUni DefaultUniChar              = [2]
+    encodeUni DefaultUniUnit              = [3]
+    encodeUni DefaultUniBool              = [4]
+    encodeUni DefaultUniListProto         = [5]
+    encodeUni DefaultUniTupleProto        = [6]
+    encodeUni (DefaultUniApply uniF uniA) = 7 : encodeUni uniF ++ encodeUni uniA
+    encodeUni (DefaultUniRunTypeApp uniA) = 8 : encodeUni uniA
 
     -- See Note [Stable encoding of tags].
-    encodeUni DefaultUniInteger     = [0]
-    encodeUni DefaultUniByteString  = [1]
-    encodeUni DefaultUniChar        = [2]
-    encodeUni DefaultUniUnit        = [3]
-    encodeUni DefaultUniBool        = [4]
-    encodeUni (DefaultUniList a)    = 5 : encodeUni a
-    encodeUni (DefaultUniTuple a b) = 6 : encodeUni a ++ encodeUni b
-
-    -- See Note [Stable encoding of tags].
-    decodeUniM = peelTag >>= \case
-        0 -> pure . Some $ TypeIn DefaultUniInteger
-        1 -> pure . Some $ TypeIn DefaultUniByteString
-        2 -> pure . Some $ TypeIn DefaultUniChar
-        3 -> pure . Some $ TypeIn DefaultUniUnit
-        4 -> pure . Some $ TypeIn DefaultUniBool
-        5 -> do
-            Some (TypeIn a) <- decodeUniM
-            pure . Some . TypeIn $ DefaultUniList a
-        6 -> do
-            Some (TypeIn a) <- decodeUniM
-            Some (TypeIn b) <- decodeUniM
-            pure . Some . TypeIn $ DefaultUniTuple a b
+    withDecodeUniM k = peelUniTag >>= \case
+        0 -> k DefaultUniInteger
+        1 -> k DefaultUniByteString
+        2 -> k DefaultUniChar
+        3 -> k DefaultUniUnit
+        4 -> k DefaultUniBool
+        5 -> k DefaultUniListProto
+        6 -> k DefaultUniTupleProto
+        7 ->
+            withDecodeTypeFunM $ \uniF ->
+                withDecodeUniM $ \uniA ->
+                    k $ uniF `DefaultUniApply` uniA
+        8 -> withDecodeTypeAppM $ k . DefaultUniRunTypeApp
         _ -> empty
 
     bring
@@ -244,3 +299,10 @@ instance Closed DefaultUni where
     bring _ DefaultUniBool              r = r
     bring p (DefaultUniList uniA)       r = bring p uniA r
     bring p (DefaultUniTuple uniA uniB) r = bring p uniA $ bring p uniB r
+    bring _ _                           _ =
+        error "Can't use 'bring' for types that are not fully monomorphized"
+
+-- >>> encodeUni (DefaultUniList (DefaultUniTuple (DefaultUniList DefaultUniInteger) DefaultUniBool))
+-- [8,7,5,8,7,7,6,8,7,5,0,4]
+-- >>> decodeUni [8,7,5,8,7,7,6,8,7,5,0,4] :: Maybe (Some (TypeIn DefaultUni))
+-- Just (Some (TypeIn [([integer],bool)]))

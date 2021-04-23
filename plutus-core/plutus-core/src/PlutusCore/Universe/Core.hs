@@ -23,9 +23,10 @@ module PlutusCore.Universe.Core
     , HasUniApply (..)
     , Contains (..)
     , Includes
+    , DecodeUniM (..)
     , Closed (..)
     , decodeUni
-    , peelTag
+    , peelUniTag
     , Permits
     , EverywhereAll
     , type (<:)
@@ -38,6 +39,7 @@ module PlutusCore.Universe.Core
     , (:~:) (..)
     ) where
 
+import           Control.Applicative
 import           Control.DeepSeq
 import           Control.Monad
 import           Control.Monad.Trans.State.Strict
@@ -50,6 +52,7 @@ import           Data.Proxy
 import           GHC.Exts
 import           Language.Haskell.TH.Lift
 import           Text.Show.Deriving
+import           Type.Reflection
 
 {- Note [Universes]
 A universe is a collection of tags for types. It can be finite like
@@ -122,6 +125,10 @@ class HasUniApply (uni :: GHC.Type -> GHC.Type) where
         -> (forall k f a. tfa ~ TypeApp (f a :: k) => uni (TypeApp f) -> uni a -> r)
         -> r
 
+newtype DecodeUniM a = DecodeUniM
+    { unDecodeUniM :: StateT [Int] Maybe a
+    } deriving newtype (Functor, Applicative, Alternative, Monad, MonadFail)
+
 -- | A universe is 'Closed', if it's known how to constrain every type from the universe.
 -- The universe doesn't have to be finite and providing support for infinite universes is the
 -- reason why we encode a type as a sequence of integer tags as opposed to a single integer tag.
@@ -141,7 +148,9 @@ class Closed uni where
     -- The opposite of 'decodeUni'.
     encodeUni :: uni a -> [Int]
 
-    decodeUniM :: StateT [Int] Maybe (Some (TypeIn uni))
+    -- decodeUniM :: DecodeUniM (Some (TypeIn uni))
+
+    withDecodeUniM :: (forall a. Typeable a => uni a -> DecodeUniM r) -> DecodeUniM r
 
     -- | Bring a @constr a@ instance in scope, provided @a@ is a type from the universe and
     -- @constr@ holds for any type from the universe.
@@ -151,16 +160,16 @@ class Closed uni where
 -- The opposite of 'encodeUni' (modulo invalid input).
 decodeUni :: Closed uni => [Int] -> Maybe (Some (TypeIn uni))
 decodeUni is =
-    case runStateT decodeUniM is of
+    case runStateT (unDecodeUniM $ withDecodeUniM $ pure . Some . TypeIn) is of
         Just (res, []) -> Just res
         _              -> Nothing
 
--- >>> runStateT peelTag [1,2,3]
+-- >>> runStateT (unDecodeUniM peelUniTag) [1,2,3]
 -- Just (1,[2,3])
--- >>> runStateT peelTag []
+-- >>> runStateT (unDecodeUniM peelUniTag) []
 -- Nothing
-peelTag :: StateT [Int] Maybe Int
-peelTag = do
+peelUniTag :: DecodeUniM Int
+peelUniTag = DecodeUniM $ do
     i:is <- get
     i <$ put is
 
