@@ -1,4 +1,4 @@
--- Why is it needed here, but not in 'Universe.hs'?
+-- Why is it needed here, but not in "Universe.Core"?
 {-# LANGUAGE ExplicitNamespaces #-}
 {-# LANGUAGE PatternSynonyms    #-}
 {-# LANGUAGE TypeApplications   #-}

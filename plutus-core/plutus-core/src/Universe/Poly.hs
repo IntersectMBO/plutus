@@ -7,9 +7,9 @@ module Universe.Poly
     ( TypeApp
     , HasUniApply (..)
     , asTypeApp
-    , withDecodeTypeAppM
+    , withDecodedTypeApp
     , asTypeFun
-    , withDecodeTypeFunM
+    , withDecodedTypeFun
     ) where
 
 import           Universe.Core
@@ -45,11 +45,11 @@ asTypeApp _ k = do
     Just Refl <- pure $ typeRepKind repA `testEquality` typeRep @GHC.Type
     withTypeable repA k
 
-withDecodeTypeAppM
+withDecodedTypeApp
     :: forall uni r. Closed uni
     => (forall (a :: GHC.Type). Typeable a => uni (TypeApp a) -> DecodeUniM r)
     -> DecodeUniM r
-withDecodeTypeAppM k = withDecodeUniM @uni $ \uniTA -> asTypeApp uniTA $ k uniTA
+withDecodedTypeApp k = withDecodedUni @uni $ \uniTA -> asTypeApp uniTA $ k uniTA
 
 -- We only need this function, because GHC won't allow turning @repF@ into the @Typeable f@
 -- constraint at the end of the definition for whatever stupid reason. So we do that in 'asTypeFun'.
@@ -75,8 +75,8 @@ asTypeFun
     -> m r
 asTypeFun uniF k = withTypeFunRep uniF $ \repF -> withTypeable repF k
 
-withDecodeTypeFunM
+withDecodedTypeFun
     :: forall uni r. Closed uni
     => (forall k (f :: GHC.Type -> k). (Typeable k, Typeable f) => uni (TypeApp f) -> DecodeUniM r)
     -> DecodeUniM r
-withDecodeTypeFunM k = withDecodeUniM @uni $ \uniF -> asTypeFun uniF $ k uniF
+withDecodedTypeFun k = withDecodedUni @uni $ \uniF -> asTypeFun uniF $ k uniF

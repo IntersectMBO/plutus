@@ -221,7 +221,7 @@ instance Closed DefaultUni where
     encodeUni (DefaultUniRunTypeApp uniA) = 8 : encodeUni uniA
 
     -- See Note [Stable encoding of tags].
-    withDecodeUniM k = peelUniTag >>= \case
+    withDecodedUni k = peelUniTag >>= \case
         0 -> k DefaultUniInteger
         1 -> k DefaultUniByteString
         2 -> k DefaultUniChar
@@ -230,10 +230,10 @@ instance Closed DefaultUni where
         5 -> k DefaultUniListProto
         6 -> k DefaultUniTupleProto
         7 ->
-            withDecodeTypeFunM $ \uniF ->
-                withDecodeUniM $ \uniA ->
+            withDecodedTypeFun $ \uniF ->
+                withDecodedUni $ \uniA ->
                     k $ uniF `DefaultUniApply` uniA
-        8 -> withDecodeTypeAppM $ k . DefaultUniRunTypeApp
+        8 -> withDecodedTypeApp $ k . DefaultUniRunTypeApp
         _ -> empty
 
     bring
