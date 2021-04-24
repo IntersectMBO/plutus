@@ -407,7 +407,6 @@
         "cryptohash-sha1".revision = (((hackage."cryptohash-sha1")."0.11.100.1").revisions).default;
         "serialise".revision = (((hackage."serialise")."0.2.3.0").revisions).default;
         "serialise".flags.newtime15 = true;
-        "flat".revision = (((hackage."flat")."0.4.4").revisions).default;
         "wl-pprint".revision = (((hackage."wl-pprint")."1.2.1").revisions).default;
         "hostname".revision = (((hackage."hostname")."1.0").revisions).default;
         "tasty-smallcheck".revision = (((hackage."tasty-smallcheck")."0.8.2").revisions).default;
@@ -578,6 +577,7 @@
         "tls".flags.compat = true;
         "tls".flags.network = true;
         "tls".flags.hans = false;
+        "list-t".revision = (((hackage."list-t")."1.0.4").revisions).default;
         "kan-extensions".revision = (((hackage."kan-extensions")."5.2.2").revisions).default;
         "nonempty-vector".revision = (((hackage."nonempty-vector")."0.2.1.0").revisions).default;
         "wai-logger".revision = (((hackage."wai-logger")."2.3.6").revisions).default;
@@ -693,6 +693,7 @@
         cardano-crypto-wrapper = ./.plan.nix/cardano-crypto-wrapper.nix;
         cardano-ledger-test = ./.plan.nix/cardano-ledger-test.nix;
         plutus-use-cases = ./.plan.nix/plutus-use-cases.nix;
+        flat = ./.plan.nix/flat.nix;
         plutus-playground-server = ./.plan.nix/plutus-playground-server.nix;
         shelley-spec-ledger = ./.plan.nix/shelley-spec-ledger.nix;
         typed-protocols-examples = ./.plan.nix/typed-protocols-examples.nix;
@@ -769,6 +770,7 @@
           "plutus-use-cases" = {
             flags = { "defer-plugin-errors" = lib.mkOverride 900 false; };
             };
+          "flat" = { flags = {}; };
           "plutus-playground-server" = {
             flags = { "defer-plugin-errors" = lib.mkOverride 900 false; };
             };
