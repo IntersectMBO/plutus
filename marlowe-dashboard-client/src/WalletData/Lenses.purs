@@ -1,17 +1,21 @@
 module WalletData.Lenses
   ( _walletNicknameString
-  , _contractInstanceIdString
+  , _companionContractIdString
   , _remoteDataWalletInfo
   , _remoteDataAssets
   , _walletNickname
-  , _contractInstanceId
+  , _marloweContractId
+  , _companionContractId
+  , _walletInfo
+  , _assets
   , _wallet
   , _pubKey
   , _pubKeyHash
-  , _assets
   ) where
 
+import Prelude
 import Data.Lens (Lens')
+import Data.Lens.Iso.Newtype (_Newtype)
 import Data.Lens.Record (prop)
 import Data.Symbol (SProxy(..))
 import Marlowe.PAB (ContractInstanceId)
@@ -22,8 +26,8 @@ import WalletData.Types (NewWalletDetails, PubKeyHash, Wallet, WalletDetails, Wa
 _walletNicknameString :: Lens' NewWalletDetails String
 _walletNicknameString = prop (SProxy :: SProxy "walletNicknameString")
 
-_contractInstanceIdString :: Lens' NewWalletDetails String
-_contractInstanceIdString = prop (SProxy :: SProxy "contractInstanceIdString")
+_companionContractIdString :: Lens' NewWalletDetails String
+_companionContractIdString = prop (SProxy :: SProxy "contractInstanceIdString")
 
 _remoteDataWalletInfo :: Lens' NewWalletDetails (WebData WalletInfo)
 _remoteDataWalletInfo = prop (SProxy :: SProxy "remoteDataWalletInfo")
@@ -35,17 +39,24 @@ _remoteDataAssets = prop (SProxy :: SProxy "remoteDataAssets")
 _walletNickname :: Lens' WalletDetails WalletNickname
 _walletNickname = prop (SProxy :: SProxy "walletNickname")
 
-_contractInstanceId :: Lens' WalletDetails ContractInstanceId
-_contractInstanceId = prop (SProxy :: SProxy "contractInstanceId")
+_marloweContractId :: Lens' WalletDetails ContractInstanceId
+_marloweContractId = prop (SProxy :: SProxy "marloweContractId")
 
-_wallet :: Lens' WalletDetails Wallet
-_wallet = prop (SProxy :: SProxy "wallet")
+_companionContractId :: Lens' WalletDetails ContractInstanceId
+_companionContractId = prop (SProxy :: SProxy "companionContractId")
 
-_pubKey :: Lens' WalletDetails PubKey
-_pubKey = prop (SProxy :: SProxy "pubKey")
-
-_pubKeyHash :: Lens' WalletDetails PubKeyHash
-_pubKeyHash = prop (SProxy :: SProxy "pubKeyHash")
+_walletInfo :: Lens' WalletDetails WalletInfo
+_walletInfo = prop (SProxy :: SProxy "walletInfo")
 
 _assets :: Lens' WalletDetails Assets
 _assets = prop (SProxy :: SProxy "assets")
+
+------------------------------------------------------------
+_wallet :: Lens' WalletInfo Wallet
+_wallet = _Newtype <<< prop (SProxy :: SProxy "wallet")
+
+_pubKey :: Lens' WalletInfo PubKey
+_pubKey = _Newtype <<< prop (SProxy :: SProxy "pubKey")
+
+_pubKeyHash :: Lens' WalletInfo PubKeyHash
+_pubKeyHash = _Newtype <<< prop (SProxy :: SProxy "pubKeyHash")

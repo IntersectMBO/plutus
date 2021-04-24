@@ -8,34 +8,33 @@ import Css as Css
 import Data.Lens (preview, view)
 import Data.Maybe (Maybe(..))
 import Data.String (take)
-import Halogen.HTML (HTML, a, div, div_, footer, header, img, main, nav, span, span_, text)
+import Halogen.HTML (HTML, a, div, div_, footer, header, img, main, nav, span, text)
 import Halogen.HTML.Events.Extra (onClick_)
 import Halogen.HTML.Properties (href, src)
 import Logo (marloweRunNavLogo, marloweRunNavLogoDark)
-import MainFrame.Lenses (_screen)
 import MainFrame.Types (WebSocketStatus)
 import Marlowe.Extended.Template (ContractTemplate)
 import Marlowe.Semantics (PubKey)
-import Material.Icons (Icon(..), icon, icon_)
-import Play.Lenses (_cards, _contractsState, _currentSlot, _menuOpen, _selectedContract, _templateState, _walletDetails)
+import Material.Icons (Icon(..), icon_)
+import Play.Lenses (_cards, _contractsState, _currentSlot, _menuOpen, _newWalletNickname, _newWalletContractIdString, _newWalletInfo, _screen, _selectedContract, _templateState, _walletDetails, _walletLibrary)
 import Play.Types (Action(..), Card(..), Screen(..), State)
 import Prim.TypeError (class Warn, Text)
 import Template.View (contractSetupConfirmationCard, contractSetupScreen, templateLibraryCard)
 import WalletData.Lenses (_walletNickname)
 import WalletData.Types (NewWalletDetails, WalletLibrary)
-import WalletData.View (newWalletCard, walletDetailsCard, putdownWalletCard, walletLibraryScreen)
+import WalletData.View (putdownWalletCard, saveWalletCard, walletDetailsCard, walletLibraryScreen)
 
-renderPlayState :: forall p. WebSocketStatus -> WalletLibrary -> NewWalletDetails -> Array ContractTemplate -> State -> HTML p Action
-renderPlayState webSocketStatus wallets newWalletDetails templates playState =
+renderPlayState :: forall p. State -> HTML p Action
+renderPlayState state =
   let
-    walletNickname = view (_walletDetails <<< _walletNickname) playState
+    walletNickname = view (_walletDetails <<< _walletNickname) state
 
-    menuOpen = view _menuOpen playState
+    menuOpen = view _menuOpen state
   in
     div
       [ classNames [ "grid", "h-full", "grid-rows-main" ] ]
       [ renderHeader walletNickname menuOpen
-      , renderMain webSocketStatus wallets newWalletDetails templates playState
+      , renderMain state
       , renderFooter
       ]
 
@@ -89,20 +88,20 @@ renderHeader walletNickname menuOpen =
       ]
 
 ------------------------------------------------------------
-renderMain :: forall p. WebSocketStatus -> WalletLibrary -> NewWalletDetails -> Array ContractTemplate -> State -> HTML p Action
-renderMain webSocketStatus wallets newWalletDetails templates playState =
+renderMain :: forall p. State -> HTML p Action
+renderMain state =
   let
-    menuOpen = view _menuOpen playState
+    menuOpen = view _menuOpen state
 
-    screen = view _screen playState
+    screen = view _screen state
 
-    cards = view _cards playState
+    cards = view _cards state
   in
     main
       [ classNames [ "relative", "px-4", "md:px-5pc" ] ]
       [ renderMobileMenu menuOpen
-      , div_ $ renderCard wallets newWalletDetails templates playState <$> cards
-      , renderScreen webSocketStatus wallets screen playState
+      , div_ $ renderCard state <$> cards
+      , renderScreen state
       ]
 
 renderMobileMenu :: forall p. Boolean -> HTML p Action
@@ -117,14 +116,22 @@ renderMobileMenu menuOpen =
         iohkLinks
     ]
 
-renderCard :: forall p. WalletLibrary -> NewWalletDetails -> Array ContractTemplate -> State -> Card -> HTML p Action
-renderCard wallets newWalletDetails templates playState card =
+renderCard :: forall p. State -> Card -> HTML p Action
+renderCard state card =
   let
-    currentWalletDetails = view _walletDetails playState
+    walletLibrary = view _walletLibrary state
 
-    mSelectedContractState = preview _selectedContract playState
+    currentWalletDetails = view _walletDetails state
 
-    currentSlot = view _currentSlot playState
+    newWalletNickname = view _newWalletNickname state
+
+    newWalletContractIdString = view _newWalletContractIdString state
+
+    newWalletInfo = view _newWalletInfo state
+
+    mSelectedContractState = preview _selectedContract state
+
+    currentSlot = view _currentSlot state
 
     cardClasses = case card of
       TemplateLibraryCard -> Css.largeCard false
@@ -153,11 +160,10 @@ renderCard wallets newWalletDetails templates playState card =
           [ classNames cardClasses ]
           $ closeButton
           <> case card of
-              -- TODO: Should this be renamed to CreateContactCard?
-              CreateWalletCard mTokenName -> [ newWalletCard wallets newWalletDetails mTokenName ]
+              SaveWalletCard mTokenName -> [ saveWalletCard walletLibrary newWalletNickname newWalletContractIdString newWalletInfo mTokenName ]
               ViewWalletCard walletDetails -> [ walletDetailsCard walletDetails ]
               PutdownWalletCard -> [ putdownWalletCard currentWalletDetails ]
-              TemplateLibraryCard -> [ TemplateAction <$> templateLibraryCard templates ]
+              TemplateLibraryCard -> [ TemplateAction <$> templateLibraryCard ]
               ContractSetupConfirmationCard -> [ TemplateAction <$> contractSetupConfirmationCard ]
               -- FIXME: We need to pattern match on the Maybe because the selectedContractState
               --        could be Nothing. We could add the state as part of the view, but is not ideal
@@ -170,22 +176,26 @@ renderCard wallets newWalletDetails templates playState card =
                 Nothing -> []
       ]
 
-renderScreen :: forall p. WebSocketStatus -> WalletLibrary -> Screen -> State -> HTML p Action
-renderScreen webSocketStatus wallets screen playState =
+renderScreen :: forall p. State -> HTML p Action
+renderScreen state =
   let
-    currentSlot = view _currentSlot playState
+    walletLibrary = view _walletLibrary state
 
-    templateState = view _templateState playState
+    screen = view _screen state
 
-    contractsState = view _contractsState playState
+    currentSlot = view _currentSlot state
+
+    templateState = view _templateState state
+
+    contractsState = view _contractsState state
   in
     div
       -- TODO: Revisit the overflow-auto... I think the scrolling should be set at the screen level and not here.
       --       this should have overflow-hidden to avoid the main div to occupy more space than available.
       [ classNames [ "absolute", "inset-0", "overflow-auto", "z-0" ] ] case screen of
       ContractsScreen -> [ ContractHomeAction <$> contractsScreen currentSlot contractsState ]
-      WalletLibraryScreen -> [ walletLibraryScreen wallets ]
-      TemplateScreen -> [ TemplateAction <$> contractSetupScreen wallets currentSlot templateState ]
+      WalletLibraryScreen -> [ walletLibraryScreen walletLibrary ]
+      TemplateScreen -> [ TemplateAction <$> contractSetupScreen walletLibrary currentSlot templateState ]
 
 ------------------------------------------------------------
 renderFooter :: forall p. HTML p Action

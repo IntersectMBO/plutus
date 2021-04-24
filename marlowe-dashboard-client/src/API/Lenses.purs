@@ -1,5 +1,7 @@
 module API.Lenses
   ( _cicCurrentState
+  , _cicDefinition
+  , _cicWallet
   , _observableState
   , _hooks
   , _rqRequest
@@ -14,13 +16,23 @@ import Data.RawJson (RawJson)
 import Data.Symbol (SProxy(..))
 import Plutus.Contract.Effects.ExposeEndpoint (ActiveEndpoint, _ActiveEndpoint)
 import Plutus.Contract.Resumable (Request, _Request)
+import Plutus.PAB.Effects.Contract.ContractExe (ContractExe)
 import Plutus.PAB.Events.ContractInstanceState (PartiallyDecodedResponse, _PartiallyDecodedResponse)
 import Plutus.PAB.Webserver.Types (ContractInstanceClientState, _ContractInstanceClientState)
+import Wallet.Emulator.Wallet (Wallet)
 import Wallet.Types (EndpointDescription, _EndpointDescription)
 
-_cicCurrentState :: Lens' ContractInstanceClientState (PartiallyDecodedResponse ActiveEndpoint)
+_cicCurrentState :: Lens' (ContractInstanceClientState ContractExe) (PartiallyDecodedResponse ActiveEndpoint)
 _cicCurrentState = _ContractInstanceClientState <<< prop (SProxy :: SProxy "cicCurrentState")
 
+-- TODO: fix Haskell typo ("cicDefintion" instead of "cicDefinition")
+_cicDefinition :: Lens' (ContractInstanceClientState ContractExe) ContractExe
+_cicDefinition = _ContractInstanceClientState <<< prop (SProxy :: SProxy "cicDefintion")
+
+_cicWallet :: Lens' (ContractInstanceClientState ContractExe) Wallet
+_cicWallet = _ContractInstanceClientState <<< prop (SProxy :: SProxy "cicWallet")
+
+----------
 _observableState :: Lens' (PartiallyDecodedResponse ActiveEndpoint) RawJson
 _observableState = _PartiallyDecodedResponse <<< prop (SProxy :: SProxy "observableState")
 

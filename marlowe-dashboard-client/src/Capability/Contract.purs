@@ -26,13 +26,13 @@ import Plutus.Contract.Effects.ExposeEndpoint (ActiveEndpoint)
 import Plutus.Contract.Resumable (Request)
 import Plutus.PAB.Effects.Contract.ContractExe (ContractExe)
 import Plutus.PAB.Events.ContractInstanceState (PartiallyDecodedResponse)
-import Plutus.PAB.Webserver.Types (ContractActivationArgs, ContractInstanceClientState, ContractSignatureResponse)
+import Plutus.PAB.Webserver.Types (ContractActivationArgs(..), ContractInstanceClientState, ContractSignatureResponse)
 import Types (AjaxResponse)
 import WalletData.Types (Wallet)
 
 class
   Monad m <= ManageContract m where
-  activateContract :: ContractActivationArgs ContractExe -> m (AjaxResponse ContractInstanceId)
+  activateContract :: ContractExe -> Wallet -> m (AjaxResponse ContractInstanceId)
   getContractInstanceClientState :: ContractInstanceId -> m (AjaxResponse (ContractInstanceClientState ContractExe))
   getContractInstanceCurrentState :: ContractInstanceId -> m (AjaxResponse (PartiallyDecodedResponse ActiveEndpoint))
   getContractInstanceObservableState :: ContractInstanceId -> m (AjaxResponse RawJson)
@@ -43,7 +43,7 @@ class
   getContractDefinitions :: m (AjaxResponse (Array (ContractSignatureResponse ContractExe)))
 
 instance monadContractAppM :: ManageContract AppM where
-  activateContract contractActivationArgs = map toFront $ runExceptT $ API.activateContract contractActivationArgs
+  activateContract contractExe wallet = map toFront $ runExceptT $ API.activateContract $ ContractActivationArgs { caID: contractExe, caWallet: toBack wallet }
   getContractInstanceClientState contractInstanceId = runExceptT $ API.getContractInstanceClientState $ toBack contractInstanceId
   getContractInstanceCurrentState contractInstanceId = do
     clientState <- getContractInstanceClientState contractInstanceId
@@ -60,7 +60,7 @@ instance monadContractAppM :: ManageContract AppM where
   getContractDefinitions = runExceptT API.getContractDefinitions
 
 instance monadContractHalogenM :: ManageContract m => ManageContract (HalogenM state action slots msg m) where
-  activateContract = lift <<< activateContract
+  activateContract contractExe wallet = lift $ activateContract contractExe wallet
   getContractInstanceClientState = lift <<< getContractInstanceClientState
   getContractInstanceCurrentState = lift <<< getContractInstanceCurrentState
   getContractInstanceObservableState = lift <<< getContractInstanceObservableState

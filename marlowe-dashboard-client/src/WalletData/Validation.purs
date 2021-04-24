@@ -64,7 +64,7 @@ contractInstanceIdError "" _ _ = Just EmptyContractInstanceId
 contractInstanceIdError contractInstanceIdString remoteDataWalletInfo walletLibrary = case parseContractInstanceId contractInstanceIdString of
   Nothing -> Just InvalidContractInstanceId
   Just contractInstanceId
-    | not $ isEmpty $ filter (\walletDetails -> walletDetails.contractInstanceId == contractInstanceId) walletLibrary -> Just DuplicateContractInstanceId
+    | not $ isEmpty $ filter (\walletDetails -> walletDetails.companionContractId == contractInstanceId) walletLibrary -> Just DuplicateContractInstanceId
   _ -> case remoteDataWalletInfo of
     Success _ -> Nothing
     Failure _ -> Just NonexistentContractInstanceId

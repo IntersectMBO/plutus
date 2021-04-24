@@ -21,8 +21,8 @@ import Halogen.HTML.Events.Extra (onClick_, onValueInput_)
 import Halogen.HTML.Properties (InputType(..), for, id_, list, placeholder, readOnly, type_, value)
 import Marlowe.Extended (Contract, TemplateContent, _valueContent, contractTypeInitials)
 import Marlowe.Extended.Metadata (MetaData)
-import Marlowe.Extended.Template (ContractTemplate)
 import Marlowe.HasParties (getParties)
+import Marlowe.Market (contractTemplates)
 import Marlowe.Semantics (Party(..), Slot)
 import Material.Icons (Icon(..), icon_)
 import Template.Lenses (_contractName, _contractNickname, _extendedContract, _metaData, _roleWallets, _slotContentStrings, _template, _templateContent)
@@ -300,8 +300,8 @@ subSection accessible border content =
     ]
 
 ------------------------------------------------------------
-templateLibraryCard :: forall p. Array ContractTemplate -> HTML p Action
-templateLibraryCard templates =
+templateLibraryCard :: forall p. HTML p Action
+templateLibraryCard =
   div
     [ classNames [ "md:px-5pc", "p-4" ] ]
     [ h2
@@ -309,7 +309,7 @@ templateLibraryCard templates =
         [ text "Choose a contract template" ]
     , div
         [ classNames [ "grid", "gap-4", "md:grid-cols-2", "xl:grid-cols-3" ] ]
-        (templateBox <$> templates)
+        (templateBox <$> contractTemplates)
     ]
   where
   templateBox template =

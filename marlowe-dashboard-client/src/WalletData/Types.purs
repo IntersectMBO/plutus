@@ -35,14 +35,11 @@ type NewWalletDetails
 
 -- this is the data we have for wallets that have been created
 -- (we know the contractInstanceId is valid and that contract instance exists)
--- FIXME: the PubKey is in fact the PubKeyHash (which is what the Marlowe Plutus contract expects), so
--- we need to check whether the JSON encoding for PubKey works
 type WalletDetails
   = { walletNickname :: WalletNickname
-    , contractInstanceId :: ContractInstanceId -- this is the ID of the wallet's companion contract instance
-    , wallet :: Wallet
-    , pubKey :: PubKey
-    , pubKeyHash :: PubKeyHash
+    , marloweContractId :: ContractInstanceId
+    , companionContractId :: ContractInstanceId
+    , walletInfo :: WalletInfo
     , assets :: Assets
     }
 

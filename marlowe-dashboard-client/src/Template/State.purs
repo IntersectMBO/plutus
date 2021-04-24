@@ -39,7 +39,7 @@ mkInitialState template =
     , contractNickname: template.metaData.contractName
     , roleWallets: mkRoleWallets template.extendedContract
     , templateContent
-    -- slot content is input as a datetime input, the value of whic is a string :(
+    -- slot content is input as a datetime input, the value of which is a string :(
     -- so we need to keep a copy of that string value around
     , slotContentStrings: map (const "") $ view _slotContent templateContent
     }

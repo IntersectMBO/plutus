@@ -1,5 +1,5 @@
 module WalletData.View
-  ( newWalletCard
+  ( saveWalletCard
   , walletDetailsCard
   , putdownWalletCard
   , walletLibraryScreen
@@ -22,22 +22,17 @@ import Halogen.HTML.Events.Extra (onClick_, onValueInput_)
 import Halogen.HTML.Properties (InputType(..), disabled, id_, placeholder, readOnly, type_, value)
 import Material.Icons (Icon(..))
 import Play.Types (Action(..), Card(..))
-import WalletData.Lenses (_assets, _contractInstanceId, _contractInstanceIdString, _remoteDataWalletInfo, _walletNickname, _walletNicknameString)
-import WalletData.Types (NewWalletDetails, WalletDetails, WalletLibrary)
+import Types (WebData)
+import WalletData.Lenses (_assets, _companionContractId, _walletNickname)
+import WalletData.Types (WalletDetails, WalletInfo, WalletLibrary, WalletNickname)
 import WalletData.Validation (contractInstanceIdError, walletNicknameError)
 
-newWalletCard :: forall p. WalletLibrary -> NewWalletDetails -> Maybe String -> HTML p Action
-newWalletCard library newWalletDetails mTokenName =
+saveWalletCard :: forall p. WalletLibrary -> WalletNickname -> String -> WebData WalletInfo -> Maybe String -> HTML p Action
+saveWalletCard walletLibrary newWalletNickname newWalletContractIdString newWalletInfo mTokenName =
   let
-    walletNicknameString = view _walletNicknameString newWalletDetails
+    mWalletNicknameError = walletNicknameError newWalletNickname walletLibrary
 
-    contractInstanceIdString = view _contractInstanceIdString newWalletDetails
-
-    remoteDataWalletInfo = view _remoteDataWalletInfo newWalletDetails
-
-    mWalletNicknameError = walletNicknameError walletNicknameString library
-
-    mContractInstanceIdError = contractInstanceIdError contractInstanceIdString remoteDataWalletInfo library
+    mContractInstanceIdError = contractInstanceIdError newWalletContractIdString newWalletInfo walletLibrary
   in
     div
       [ classNames [ "flex", "flex-col", "p-5", "pb-6", "md:pb-8" ] ]
@@ -45,15 +40,15 @@ newWalletCard library newWalletDetails mTokenName =
           [ classNames [ "font-semibold", "mb-4" ] ]
           [ text $ "Create new contact" <> foldMap (\tokenName -> " for role " <> show tokenName) mTokenName ]
       , div
-          [ classNames $ [ "mb-4" ] <> (applyWhen (not null walletNicknameString) Css.hasNestedLabel) ]
+          [ classNames $ [ "mb-4" ] <> (applyWhen (not null newWalletNickname) Css.hasNestedLabel) ]
           [ label
-              [ classNames $ Css.nestedLabel <> hideWhen (null walletNicknameString) ]
+              [ classNames $ Css.nestedLabel <> hideWhen (null newWalletNickname) ]
               [ text "Nickname" ]
           , input
               [ type_ InputText
               , classNames $ Css.input $ isJust mWalletNicknameError
               , placeholder "Nickname"
-              , value walletNicknameString
+              , value newWalletNickname
               , onValueInput_ SetNewWalletNickname
               ]
           , div
@@ -61,16 +56,16 @@ newWalletCard library newWalletDetails mTokenName =
               [ text $ foldMap show mWalletNicknameError ]
           ]
       , div
-          [ classNames $ [ "mb-4" ] <> (applyWhen (not null contractInstanceIdString) Css.hasNestedLabel) ]
+          [ classNames $ [ "mb-4" ] <> (applyWhen (not null newWalletContractIdString) Css.hasNestedLabel) ]
           [ label
-              [ classNames $ Css.nestedLabel <> hideWhen (null contractInstanceIdString) ]
+              [ classNames $ Css.nestedLabel <> hideWhen (null newWalletContractIdString) ]
               [ text "Wallet ID" ]
           , input
               [ type_ InputText
               , classNames $ Css.input $ isJust mContractInstanceIdError
               , placeholder "Wallet ID"
-              , value contractInstanceIdString
-              , onValueInput_ SetNewWalletContractId
+              , value newWalletContractIdString
+              , onValueInput_ SetNewWalletContractIdString
               ]
           , div
               [ classNames Css.inputError ]
@@ -86,7 +81,7 @@ newWalletCard library newWalletDetails mTokenName =
           , button
               [ classNames $ Css.primaryButton <> [ "flex-1" ]
               , disabled $ isJust mWalletNicknameError || isJust mContractInstanceIdError
-              , onClick_ $ AddNewWallet mTokenName
+              , onClick_ $ SaveNewWallet mTokenName
               ]
               [ text "Save" ]
           ]
@@ -97,7 +92,7 @@ walletDetailsCard walletDetails =
   let
     walletNickname = view _walletNickname walletDetails
 
-    contractInstanceId = view _contractInstanceId walletDetails
+    contractInstanceId = view _companionContractId walletDetails
   in
     div [ classNames [ "p-5", "pb-6", "md:pb-8" ] ]
       [ h3
@@ -122,7 +117,7 @@ putdownWalletCard walletDetails =
   let
     walletNickname = view _walletNickname walletDetails
 
-    contractInstanceId = view _contractInstanceId walletDetails
+    contractInstanceId = view _companionContractId walletDetails
 
     -- TODO: use an At lens for getting ada from assets
     assets = view _assets walletDetails
@@ -185,14 +180,14 @@ walletLibraryScreen library =
           <$> toUnfoldable library
     , button
         [ classNames $ Css.primaryButton <> Css.withIcon Add <> Css.fixedBottomRight
-        , onClick_ $ OpenCard $ CreateWalletCard Nothing
+        , onClick_ $ OpenCard $ SaveWalletCard Nothing
         ]
         [ text "New contact" ]
     ]
   where
   contactLi (Tuple nickname walletDetails) =
     let
-      contractId = view _contractInstanceId walletDetails
+      contractId = view _companionContractId walletDetails
     in
       li
         [ classNames [ "mt-4", "hover:cursor-pointer", "hover:text-green" ]
