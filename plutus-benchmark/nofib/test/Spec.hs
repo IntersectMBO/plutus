@@ -18,8 +18,7 @@ import qualified Plutus.Benchmark.Queens                  as Queens
 import           Control.Exception
 import           Control.Monad.Except
 import qualified PlutusCore                               as PLC
-import           PlutusCore.Builtins
-import           PlutusCore.Universe                      (DefaultUni)
+import           PlutusCore.Default
 import qualified PlutusTx                                 as Tx
 import           Test.Tasty
 import           Test.Tasty.HUnit
