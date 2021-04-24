@@ -243,14 +243,10 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni ExtensionFun where
         swapElsPlc
             :: a ~ Opaque term (TyVarRep ('TyNameRep "a" 0))
             => SomeValueN uni [] '[SomeValueN uni (,) '[a, Bool]]
-            -> SomeValueN uni [] '[SomeValueN uni (,) '[Bool, a]]
+            -> EvaluationResult (SomeValueN uni [] '[SomeValueN uni (,) '[Bool, a]])
         swapElsPlc (SomeValueArg uniEl (SomeValueRes _ xs)) = case uniEl of
             DefaultUniTuple uniA DefaultUniBool ->
-                let uniElS = DefaultUniTuple DefaultUniBool uniA
-                in SomeValueArg uniElS . SomeValueRes (DefaultUniList uniElS) $ map swap xs
-            -- It would be nice to make GHC realize we've covered all options,
-            -- but that seems infeasible.
-            _ -> error "impossible"
-
--- tuples with general terms in them are not representable, hence @swap@ over a tuple with general
--- terms in it is essentially @absurd@
+                EvaluationSuccess $
+                    let uniElS = DefaultUniTuple DefaultUniBool uniA
+                    in SomeValueArg uniElS . SomeValueRes (DefaultUniList uniElS) $ map swap xs
+            _ -> EvaluationFailure

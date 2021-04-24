@@ -121,15 +121,46 @@ was previously added to an environment (while handling the function application 
 this value and rename all bound variables in it to preserve the global uniqueness condition. It is
 safe to do so, because picked values cannot contain uninstantiated variables as only normalized types
 are added to environments and normalization instantiates all variables presented in an environment.
+
+See also Note [Normalization of built-in types].
 -}
 
+{- Note [Normalization of built-in types]
+Instantiating a polymorphic built-in type amounts to applying it to some arguments. However,
+the notion of "applying" is ambiguous, it can mean one of these two things:
+
+1. lifting the built-in type to 'Type' and applying that via 'TyApp'
+2. applying the built-in type right inside the universe to get a monomorphized type tag
+   (e.g. the default universe has 'DefaultUniApply' for that purpose)
+
+We need both of these things. The former allows us to assign types to polymorphic built-in functions
+(otherwise applying a built-in type to a type variable would be unrepresentable), the latter is
+used at runtime to juggle type tags so that we can avoid @unsafeCoerce@-ing, bring instances in
+scope via 'bring' etc -- for all of that we have to have fully monomorphized type tags at runtime.
+
+So in order for type checking to work we need to normalize polymorphic built-in types. For that
+we simply turn intra-universe applications into regular type applications during type normalization.
+-}
+
+-- See Note [Normalization of built-in types].
+-- | Normalize a built-in type by replacing each application inside the universe with regular
+-- type application.
 normalizeUni :: forall a uni tyname. HasUniApply uni => uni a -> Type tyname uni ()
+-- For the purposes of normalization we don't care if a type tag is a partial application or
+-- a fully monomorphized type, so we just strip 'TypeApp' off and proceed regardless of whether
+-- there was one.
 normalizeUni uni0 = matchUniRunTypeApp uni0 (go uni0) go where
     go :: uni b -> Type tyname uni ()
     go uni =
         matchUniApply
             uni
+            -- If @uni@ is not an intra-universe application, then we're done.
             (mkTyBuiltinOf () uni)
+            -- If it is, then we turn that application into normal type application and recurse
+            -- into both the function and its argument. The type of 'matchUniRunTypeApp' ensures
+            -- that we can only strip 'TypeApp' off of types of kind star and so we call @go@
+            -- over the higher-kinded @uniF@ and call 'normalizeUni' over @uniA@ which can be
+            -- of any kind and so might require piping through 'matchUniRunTypeApp'.
             (\uniF uniA -> TyApp () (go uniF) $ normalizeUni uniA)
 
 -- See Note [Normalization].
