@@ -2,4 +2,5 @@ module PlutusCore.Universe
     ( module Export
     ) where
 
-import           PlutusCore.Universe.Core as Export
+import           Universe.Core as Export
+import           Universe.Poly as Export

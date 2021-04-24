@@ -29,7 +29,6 @@ module PlutusCore
     , GEq (..)
     , deriveGEq
     , (:~:) (..)
-    , Lift
     , type (<:)
     , DefaultUni (..)
     , pattern DefaultUniList

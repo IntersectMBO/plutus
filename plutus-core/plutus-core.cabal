@@ -185,7 +185,6 @@ library
         PlutusCore.Size
         PlutusCore.TypeCheck
         PlutusCore.TypeCheck.Internal
-        PlutusCore.Universe.Core
 
         PlutusIR.Analysis.Dependencies
         PlutusIR.Analysis.Usages
@@ -225,6 +224,8 @@ library
         Data.Aeson.Flatten
         Data.Aeson.THReader
         Data.Functor.Foldable.Monadic
+        Universe.Core
+        Universe.Poly
     build-depends:
         Stream -any,
         aeson -any,

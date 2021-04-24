@@ -3,7 +3,6 @@
 {-# OPTIONS -fno-warn-missing-pattern-synonym-signatures #-}
 
 {-# LANGUAGE ConstraintKinds       #-}
-{-# LANGUAGE EmptyCase             #-}
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE GADTs                 #-}
 {-# LANGUAGE InstanceSigs          #-}
@@ -14,7 +13,6 @@
 {-# LANGUAGE PolyKinds             #-}
 {-# LANGUAGE RankNTypes            #-}
 {-# LANGUAGE TemplateHaskell       #-}
-{-# LANGUAGE TypeApplications      #-}
 {-# LANGUAGE TypeFamilies          #-}
 {-# LANGUAGE TypeOperators         #-}
 {-# LANGUAGE UndecidableInstances  #-}
@@ -28,15 +26,12 @@ module PlutusCore.Default.Universe
 
 import           PlutusCore.Core
 import           PlutusCore.Parsable
-import           PlutusCore.Universe.Core
+import           PlutusCore.Universe
 
 import           Control.Applicative
-import qualified Data.ByteString          as BS
+import qualified Data.ByteString     as BS
 import           Data.Foldable
-import qualified Data.Kind                as GHC
-import qualified Data.Text                as Text
-import           Data.Type.Equality
-import           Type.Reflection
+import qualified Data.Text           as Text
 
 {- Note [PLC types and universes]
 We encode built-in types in PLC as tags for Haskell types (the latter are also called meta-types),
@@ -125,7 +120,6 @@ instance ToKind DefaultUni where
     toKind (DefaultUniRunTypeApp _)    = nonTypeAppKind
 
 deriveGEq ''DefaultUni
-deriving instance Lift (DefaultUni a)
 
 instance HasUniApply DefaultUni where
     matchUniRunTypeApp (DefaultUniRunTypeApp a) _ h = h a
@@ -203,53 +197,6 @@ and 'decodeUni' must be amended only in a backwards compatible manner.
 
 See Note [Stable encoding of PLC]
 -}
-
-asTypeApp
-    :: forall uni ta m r. (Typeable ta, MonadFail m)
-    => uni ta
-    -> (forall (a :: GHC.Type). (ta ~ TypeApp a, Typeable a) => m r)
-    -> m r
-asTypeApp _ k = do
-    App repT repA <- pure $ typeRep @ta
-    let kindA = typeRepKind repA
-        repT' = withTypeable kindA $ typeRep @TypeApp
-    Just Refl <- pure $ repT `testEquality` repT'
-    Just Refl <- pure $ typeRepKind repA `testEquality` typeRep @GHC.Type
-    withTypeable repA k
-
-withDecodeTypeAppM
-    :: forall uni r. Closed uni
-    => (forall (a :: GHC.Type). Typeable a => uni (TypeApp a) -> DecodeUniM r)
-    -> DecodeUniM r
-withDecodeTypeAppM k = withDecodeUniM @uni $ \uniTA -> asTypeApp uniTA $ k uniTA
-
-withTypeFunRep
-    :: forall uni tf m r. (Typeable tf, MonadFail m)
-    => uni tf
-    -> (forall k (f :: GHC.Type -> k). (tf ~ TypeApp f, Typeable k) => TypeRep f -> m r)
-    -> m r
-withTypeFunRep _ k = do
-    App repT repF <- pure $ typeRep @tf
-    let kindF = typeRepKind repF
-    Fun repArg repRes <- pure kindF
-    let repT' = withTypeable kindF $ typeRep @TypeApp
-    Just Refl  <- pure $ repT `testEquality` repT'
-    Just HRefl <- pure $ repArg `eqTypeRep` typeRep @GHC.Type
-    Just Refl  <- pure $ typeRepKind repRes `testEquality` typeRep @GHC.Type
-    withTypeable repRes $ k repF
-
-asTypeFun
-    :: forall uni tf m r. (Typeable tf, MonadFail m)
-    => uni tf
-    -> (forall k (f :: GHC.Type -> k). (tf ~ TypeApp f, Typeable k, Typeable f) => m r)
-    -> m r
-asTypeFun uniF k = withTypeFunRep uniF $ \repF -> withTypeable repF k
-
-withDecodeTypeFunM
-    :: forall uni r. Closed uni
-    => (forall k (f :: GHC.Type -> k). (Typeable k, Typeable f) => uni (TypeApp f) -> DecodeUniM r)
-    -> DecodeUniM r
-withDecodeTypeFunM k = withDecodeUniM @uni $ \uniF -> asTypeFun uniF $ k uniF
 
 instance Closed DefaultUni where
     type DefaultUni `Everywhere` constr =

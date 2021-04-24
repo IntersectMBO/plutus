@@ -34,13 +34,14 @@ where
 import           PlutusPrelude
 
 import           PlutusCore.Name
-import           PlutusCore.Universe.Core
+import           PlutusCore.Universe
 
 import           Control.Lens
 import           Data.Hashable
 import qualified Data.Kind                as GHC
 import           Data.Proxy
 import           Instances.TH.Lift        ()
+import           Language.Haskell.TH.Lift
 
 {- Note [Annotations and equality]
 Equality of two things does not depend on their annotations.

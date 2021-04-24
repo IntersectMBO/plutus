@@ -13,14 +13,12 @@
 {-# LANGUAGE TypeOperators            #-}
 {-# LANGUAGE UndecidableInstances     #-}
 
-module PlutusCore.Universe.Core
+module Universe.Core
     ( Some (..)
     , TypeIn (..)
     , ValueOf (..)
     , someValueOf
     , someValue
-    , TypeApp
-    , HasUniApply (..)
     , Contains (..)
     , Includes
     , DecodeUniM (..)
@@ -35,7 +33,6 @@ module PlutusCore.Universe.Core
     , gshow
     , GEq (..)
     , deriveGEq
-    , Lift
     , (:~:) (..)
     ) where
 
@@ -50,7 +47,6 @@ import           Data.Hashable
 import qualified Data.Kind                        as GHC (Type)
 import           Data.Proxy
 import           GHC.Exts
-import           Language.Haskell.TH.Lift
 import           Text.Show.Deriving
 import           Type.Reflection
 
@@ -111,20 +107,6 @@ someValueOf uni = Some . ValueOf uni
 someValue :: forall a uni. uni `Includes` a => a -> Some (ValueOf uni)
 someValue = someValueOf knownUni
 
-data TypeApp (a :: k)
-
-class HasUniApply (uni :: GHC.Type -> GHC.Type) where
-    matchUniRunTypeApp
-        :: uni a
-        -> r
-        -> (uni (TypeApp a) -> r)
-        -> r
-    matchUniApply
-        :: uni tfa
-        -> r
-        -> (forall k f a. tfa ~ TypeApp (f a :: k) => uni (TypeApp f) -> uni a -> r)
-        -> r
-
 newtype DecodeUniM a = DecodeUniM
     { unDecodeUniM :: StateT [Int] Maybe a
     } deriving newtype (Functor, Applicative, Alternative, Monad, MonadFail)
@@ -148,25 +130,25 @@ class Closed uni where
     -- The opposite of 'decodeUni'.
     encodeUni :: uni a -> [Int]
 
-    -- decodeUniM :: DecodeUniM (Some (TypeIn uni))
-
     withDecodeUniM :: (forall a. Typeable a => uni a -> DecodeUniM r) -> DecodeUniM r
 
     -- | Bring a @constr a@ instance in scope, provided @a@ is a type from the universe and
     -- @constr@ holds for any type from the universe.
     bring :: uni `Everywhere` constr => proxy constr -> uni a -> (constr a => r) -> r
 
+runDecodeUniM :: [Int] -> DecodeUniM a -> Maybe (a, [Int])
+runDecodeUniM is (DecodeUniM a) = runStateT a is
+
 -- | Decode a type from a sequence of 'Int' tags.
 -- The opposite of 'encodeUni' (modulo invalid input).
 decodeUni :: Closed uni => [Int] -> Maybe (Some (TypeIn uni))
-decodeUni is =
-    case runStateT (unDecodeUniM $ withDecodeUniM $ pure . Some . TypeIn) is of
-        Just (res, []) -> Just res
-        _              -> Nothing
+decodeUni is = do
+    (x, []) <- runDecodeUniM is $ withDecodeUniM $ pure . Some . TypeIn
+    pure x
 
--- >>> runStateT (unDecodeUniM peelUniTag) [1,2,3]
+-- >>> runDecodeUniM [1,2,3] peelUniTag
 -- Just (1,[2,3])
--- >>> runStateT (unDecodeUniM peelUniTag) []
+-- >>> runDecodeUniM [] peelUniTag
 -- Nothing
 peelUniTag :: DecodeUniM Int
 peelUniTag = DecodeUniM $ do
