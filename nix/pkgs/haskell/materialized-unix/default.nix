@@ -732,7 +732,6 @@
         cardano-crypto = ./.plan.nix/cardano-crypto.nix;
         plutus-tx = ./.plan.nix/plutus-tx.nix;
         prettyprinter-configurable = ./.plan.nix/prettyprinter-configurable.nix;
-        unlit = ./.plan.nix/unlit.nix;
         plutus-pab = ./.plan.nix/plutus-pab.nix;
         cardano-prelude-test = ./.plan.nix/cardano-prelude-test.nix;
         byron-spec-ledger = ./.plan.nix/byron-spec-ledger.nix;
@@ -860,7 +859,6 @@
             };
           "plutus-tx" = { flags = {}; };
           "prettyprinter-configurable" = { flags = {}; };
-          "unlit" = { flags = {}; };
           "plutus-pab" = {
             flags = { "defer-plugin-errors" = lib.mkOverride 900 false; };
             };

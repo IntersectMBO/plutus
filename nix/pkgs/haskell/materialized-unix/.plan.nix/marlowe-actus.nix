@@ -56,9 +56,6 @@
           (hsPkgs."validation" or (errorHandler.buildDepError "validation"))
           (hsPkgs."QuickCheck" or (errorHandler.buildDepError "QuickCheck"))
           ];
-        build-tools = [
-          (hsPkgs.buildPackages.unlit.components.exes.unlit or (pkgs.buildPackages.unlit or (errorHandler.buildToolDepError "unlit:unlit")))
-          ];
         buildable = true;
         modules = [
           "Language/Marlowe/ACTUS/Ops"

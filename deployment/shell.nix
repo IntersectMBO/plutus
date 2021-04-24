@@ -4,6 +4,7 @@
 let
   inherit (pkgs) writeShellScriptBin lib mkShell stdenv writeText;
   inherit (pkgs) awscli terraform morph jq;
+  inherit (pkgs.gitAndTools) hub;
 
   # All environments and the region they are in
   envs = import ./envs.nix;
@@ -63,6 +64,42 @@ let
 
         echo "[provision-infra]: Destroying infrastructure using terraform"
         ${terraform}/bin/terraform destroy ./terraform
+      '';
+
+      # wait-github-status: wait until the current commit has been processed by hydra
+      # - checks the github status in a loop with 30s breaks until it is is "success"
+      #
+      # The `hub ci-status` calls do not seem to get rate limited. This was verified
+      # via `curl -H "Accept: application/vnd.github.v3+json" https://api.github.com/rate_limit`
+      waitGitHubStatus = writeShellScriptBin "wait-github-status" ''
+        set -eou pipefail
+
+        echo "[wait-github-status]: waiting for commit to get processed by hydra"
+
+        SLEEP_SECS=60
+        GH_STATUS=$(${hub}/bin/hub ci-status)
+
+        while [ $GH_STATUS != "success" ]; do
+         case "$GH_STATUS" in
+          failure|error|action_required|cancelled|timed_out)
+            echo "[wait-github-status]: $GH_STATUS"
+            exit 1
+            ;;
+          pending)
+            pritnf "."
+            sleep $SLEEP_SECS
+            GH_STATUS=$(${hub}/bin/hub ci-status)
+            continue
+            ;;
+          *)
+            echo "[wait-github-status]: Unexpected status $GH_STATUS"
+            exit 1
+            ;;
+
+         esac
+        done
+        echo "[wait-github-status]: $GH_STATUS"
+        exit 0
       '';
 
       # deploy-nix: wrapper around executing `morph deploy`
@@ -148,7 +185,7 @@ let
 
     in
     mkShell {
-      buildInputs = [ terraform deployNix provisionInfra destroyInfra deploy ];
+      buildInputs = [ terraform deployNix provisionInfra destroyInfra deploy waitGitHubStatus ];
       shellHook = ''
         if ! ${awscli}/bin/aws sts get-caller-identity 2>/dev/null ; then
           echo "Error: Not logged in to aws. Aborting"

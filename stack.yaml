@@ -77,8 +77,6 @@ extra-deps:
   commit: 6454d5bcb9aa2a5d6e3a3dc935423b67b6f3993c
 - git: https://github.com/input-output-hk/cardano-crypto.git
   commit: f73079303f663e028288f9f4a9e08bcca39a923e
-- git: https://github.com/michaelpj/unlit.git
-  commit: 9ca1112093c5ffd356fc99c7dafa080e686dd748
 - git: https://github.com/input-output-hk/ouroboros-network
   commit: 6cb9052bde39472a0555d19ade8a42da63d3e904
   subdirs:

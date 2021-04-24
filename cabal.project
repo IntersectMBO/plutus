@@ -82,12 +82,6 @@ source-repository-package
   location: https://github.com/input-output-hk/cardano-crypto.git
   tag: f73079303f663e028288f9f4a9e08bcca39a923e
 
--- Needs a fix (https://github.com/wenkokke/unlit/pull/11) and a Hackage release
-source-repository-package
-  type: git
-  location: https://github.com/michaelpj/unlit.git
-  tag: 9ca1112093c5ffd356fc99c7dafa080e686dd748
-
 source-repository-package
   type: git
   location: https://github.com/input-output-hk/cardano-base

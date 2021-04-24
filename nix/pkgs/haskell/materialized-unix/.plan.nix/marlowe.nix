@@ -54,9 +54,6 @@
           (hsPkgs."wl-pprint" or (errorHandler.buildDepError "wl-pprint"))
           (hsPkgs."freer-simple" or (errorHandler.buildDepError "freer-simple"))
           ] ++ (pkgs.lib).optional (!(compiler.isGhcjs && true || system.isGhcjs)) (hsPkgs."plutus-tx-plugin" or (errorHandler.buildDepError "plutus-tx-plugin"));
-        build-tools = [
-          (hsPkgs.buildPackages.unlit.components.exes.unlit or (pkgs.buildPackages.unlit or (errorHandler.buildToolDepError "unlit:unlit")))
-          ];
         buildable = true;
         modules = [
           "Language/Marlowe"

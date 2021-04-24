@@ -125,7 +125,7 @@ instance monadAppMockApp :: Monad m => MonadApp (MockApp m) where
       pure $ RemoteData.fromMaybe $ Map.lookup gistId gists
   postEvaluation evaluation = pure NotAsked
   postGist newGist = pure NotAsked
-  patchGistByGistId newGist gistId = pure NotAsked
+  postGistByGistId newGist gistId = pure NotAsked
   postContract sourceCode =
     MockApp do
       Tuple { compilationResult } _ <- get
