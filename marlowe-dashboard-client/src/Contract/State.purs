@@ -203,6 +203,7 @@ handleAction walletDetails (ConfirmAction namedAction) = do
   case ajaxApplyInputs of
     Left ajaxError -> addToast $ ajaxErrorToast "Failed to submit transaction." ajaxError
     Right _ -> do
+      -- FIXME: don't applyTx here, but let the update from the websocket tell us about the change
       modify_ $ applyTx slot txInput
       stepNumber <- gets currentStep
       handleAction walletDetails (MoveToStep stepNumber)
