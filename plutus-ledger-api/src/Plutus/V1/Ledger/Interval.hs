@@ -185,8 +185,7 @@ instance Eq a => Eq (Interval a) where
 
 {-# INLINABLE interval #-}
 -- | @interval a b@ includes all values that are greater than or equal
---   to @a@ and smaller than @b@. Therefore it includes @a@ but not it
---   does not include @b@.
+--   to @a@, and less than or equal to @b@. Therefore it includes @a@ and @b@.
 interval :: a -> a -> Interval a
 interval s s' = Interval (lowerBound s) (upperBound s')
 
@@ -202,7 +201,7 @@ from s = Interval (lowerBound s) (UpperBound PosInf True)
 
 {-# INLINABLE to #-}
 -- | @to a@ is an 'Interval' that includes all values that are
---  smaller than @a@.
+--  less than or equal to @a@.
 to :: a -> Interval a
 to s = Interval (LowerBound NegInf True) (upperBound s)
 
