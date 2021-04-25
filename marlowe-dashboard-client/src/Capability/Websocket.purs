@@ -33,5 +33,5 @@ instance monadWebsocketAppM :: MonadWebsocket AppM where
 instance monadWebsocketHalogenM :: MonadWebsocket (HalogenM state action slots Msg m) where
   subscribeToWallet wallet = raise $ SendWebSocketMessage $ Subscribe $ Right $ toBack wallet
   unsubscribeFromWallet wallet = raise $ SendWebSocketMessage $ Unsubscribe $ Right $ toBack wallet
-  subscribeToContract contractInstanceId = raise $ SendWebSocketMessage $ Subscribe $ Left $ toBack contractInstanceId
-  unsubscribeFromContract contractInstanceId = raise $ SendWebSocketMessage $ Unsubscribe $ Left $ toBack contractInstanceId
+  subscribeToContract contractInstanceId = pure unit --raise $ SendWebSocketMessage $ Subscribe $ Left $ toBack contractInstanceId
+  unsubscribeFromContract contractInstanceId = pure unit --raise $ SendWebSocketMessage $ Unsubscribe $ Left $ toBack contractInstanceId

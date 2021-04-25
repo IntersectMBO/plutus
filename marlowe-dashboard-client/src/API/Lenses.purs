@@ -1,5 +1,6 @@
 module API.Lenses
-  ( _cicCurrentState
+  ( _cicContract
+  , _cicCurrentState
   , _cicDefinition
   , _cicWallet
   , _observableState
@@ -20,7 +21,10 @@ import Plutus.PAB.Effects.Contract.ContractExe (ContractExe)
 import Plutus.PAB.Events.ContractInstanceState (PartiallyDecodedResponse, _PartiallyDecodedResponse)
 import Plutus.PAB.Webserver.Types (ContractInstanceClientState, _ContractInstanceClientState)
 import Wallet.Emulator.Wallet (Wallet)
-import Wallet.Types (EndpointDescription, _EndpointDescription)
+import Wallet.Types (ContractInstanceId, EndpointDescription, _EndpointDescription)
+
+_cicContract :: Lens' (ContractInstanceClientState ContractExe) ContractInstanceId
+_cicContract = _ContractInstanceClientState <<< prop (SProxy :: SProxy "cicContract")
 
 _cicCurrentState :: Lens' (ContractInstanceClientState ContractExe) (PartiallyDecodedResponse ActiveEndpoint)
 _cicCurrentState = _ContractInstanceClientState <<< prop (SProxy :: SProxy "cicCurrentState")

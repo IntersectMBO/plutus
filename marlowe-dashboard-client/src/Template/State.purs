@@ -2,6 +2,7 @@ module Template.State
   ( dummyState
   , mkInitialState
   , handleAction
+  , instantiateExtendedContract
   ) where
 
 import Prelude
@@ -15,12 +16,14 @@ import Data.Set (mapMaybe) as Set
 import Data.Tuple (Tuple(..))
 import Effect.Aff.Class (class MonadAff)
 import Env (Env)
+import Examples.PureScript.Escrow (contractTemplate)
 import Halogen (HalogenM)
 import MainFrame.Types (ChildSlots, Msg)
-import Marlowe.Extended (Contract, _slotContent, _valueContent, getPlaceholderIds, initializeTemplateContent)
+import Marlowe.Extended (TemplateContent, _slotContent, _valueContent, fillTemplate, getPlaceholderIds, initializeTemplateContent, resolveRelativeTimes, toCore)
+import Marlowe.Extended (Contract) as Extended
 import Marlowe.Extended.Template (ContractTemplate)
 import Marlowe.HasParties (getParties)
-import Examples.PureScript.Escrow (contractTemplate)
+import Marlowe.Semantics (Contract) as Semantic
 import Marlowe.Semantics (Party(..), Slot(..))
 import Marlowe.Slot (dateTimeStringToSlot)
 import Template.Lenses (_contractNickname, _roleWallets, _slotContentStrings, _templateContent)
@@ -44,7 +47,7 @@ mkInitialState template =
     , slotContentStrings: map (const "") $ view _slotContent templateContent
     }
 
-mkRoleWallets :: Contract -> Map String String
+mkRoleWallets :: Extended.Contract -> Map String String
 mkRoleWallets contract = Map.fromFoldable $ Set.mapMaybe getRoleEntry (getParties contract)
   where
   getRoleEntry (PK pubKey) = Nothing
@@ -81,4 +84,11 @@ handleAction (SetSlotContent key dateTimeString) = do
 
 handleAction (SetValueContent key mValue) = modifying (_templateContent <<< _valueContent) $ insert key $ fromMaybe zero mValue
 
-handleAction StartContract = pure unit -- handled in MainFrame.State (see note [State] in MainFrame.State)
+handleAction StartContract = pure unit -- handled in Play.State (see note [State] in MainFrame.State)
+
+instantiateExtendedContract :: Slot -> Extended.Contract -> TemplateContent -> Maybe Semantic.Contract
+instantiateExtendedContract currentSlot extendedContract templateContent =
+  let
+    relativeContract = resolveRelativeTimes currentSlot extendedContract
+  in
+    toCore $ fillTemplate templateContent relativeContract

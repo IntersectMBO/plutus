@@ -3,7 +3,6 @@ module Contract.Types
   , PreviousStep
   , PreviousStepState(..)
   , Tab(..)
-  , Query(..)
   , Action(..)
   , scrollContainerRef
   ) where
@@ -15,7 +14,7 @@ import Data.Maybe (Maybe(..))
 import Halogen (RefLabel(..))
 import Marlowe.Execution (ExecutionState, NamedAction)
 import Marlowe.Extended.Metadata (MetaData)
-import Marlowe.PAB (ContractInstanceId)
+import Marlowe.PAB (ContractInstanceId, MarloweParams)
 import Marlowe.Semantics (ChoiceId, ChosenNum, Party, Slot, TransactionInput, Accounts)
 import WalletData.Types (WalletNickname)
 
@@ -24,6 +23,7 @@ type State
     , executionState :: ExecutionState
     , previousSteps :: Array PreviousStep
     , contractInstanceId :: ContractInstanceId
+    , marloweParams :: MarloweParams
     -- Which step is selected. This index is 0 based and should be between [0, previousSteps.length]
     -- (both sides inclusive). This is because the array represent the past steps and the
     -- executionState has the current state and visually we can select any one of them.
@@ -56,9 +56,6 @@ data Tab
   | Balances
 
 derive instance eqTab :: Eq Tab
-
-data Query a
-  = ApplyTx TransactionInput a
 
 data Action
   = ConfirmAction NamedAction

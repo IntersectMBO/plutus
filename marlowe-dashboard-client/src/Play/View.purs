@@ -12,16 +12,13 @@ import Halogen.HTML (HTML, a, div, div_, footer, header, img, main, nav, span, t
 import Halogen.HTML.Events.Extra (onClick_)
 import Halogen.HTML.Properties (href, src)
 import Logo (marloweRunNavLogo, marloweRunNavLogoDark)
-import MainFrame.Types (WebSocketStatus)
-import Marlowe.Extended.Template (ContractTemplate)
 import Marlowe.Semantics (PubKey)
 import Material.Icons (Icon(..), icon_)
 import Play.Lenses (_cards, _contractsState, _currentSlot, _menuOpen, _newWalletNickname, _newWalletContractIdString, _newWalletInfo, _screen, _selectedContract, _templateState, _walletDetails, _walletLibrary)
 import Play.Types (Action(..), Card(..), Screen(..), State)
 import Prim.TypeError (class Warn, Text)
 import Template.View (contractSetupConfirmationCard, contractSetupScreen, templateLibraryCard)
-import WalletData.Lenses (_walletNickname)
-import WalletData.Types (NewWalletDetails, WalletLibrary)
+import WalletData.Lenses (_assets, _walletNickname)
 import WalletData.View (putdownWalletCard, saveWalletCard, walletDetailsCard, walletLibraryScreen)
 
 renderPlayState :: forall p. State -> HTML p Action
@@ -123,6 +120,8 @@ renderCard state card =
 
     currentWalletDetails = view _walletDetails state
 
+    assets = view _assets currentWalletDetails
+
     newWalletNickname = view _newWalletNickname state
 
     newWalletContractIdString = view _newWalletContractIdString state
@@ -164,7 +163,7 @@ renderCard state card =
               ViewWalletCard walletDetails -> [ walletDetailsCard walletDetails ]
               PutdownWalletCard -> [ putdownWalletCard currentWalletDetails ]
               TemplateLibraryCard -> [ TemplateAction <$> templateLibraryCard ]
-              ContractSetupConfirmationCard -> [ TemplateAction <$> contractSetupConfirmationCard ]
+              ContractSetupConfirmationCard -> [ TemplateAction <$> contractSetupConfirmationCard assets ]
               -- FIXME: We need to pattern match on the Maybe because the selectedContractState
               --        could be Nothing. We could add the state as part of the view, but is not ideal
               --        Will have to rethink how to deal with this once the overall state is more mature.
@@ -172,7 +171,7 @@ renderCard state card =
                 Just contractState -> [ ContractAction <$> contractDetailsCard currentSlot contractState ]
                 Nothing -> []
               ContractActionConfirmationCard action -> case mSelectedContractState of
-                Just contractState -> [ ContractAction <$> actionConfirmationCard contractState action ]
+                Just contractState -> [ ContractAction <$> actionConfirmationCard assets contractState action ]
                 Nothing -> []
       ]
 

@@ -1,50 +1,41 @@
 module ContractHome.State
   ( dummyState
   , mkInitialState
+  , historyToContractState
   , handleAction
   , partitionContracts
-  -- FIXME: Remove this, only for developing
-  , dummyContracts
   ) where
 
 import Prelude
-import Contract.State (applyTx, isContractClosed)
-import Contract.State (mkInitialState) as Contract
+import Contract.State (applyTimeout, isContractClosed)
+import Contract.State (dummyState) as Contract
 import Contract.Types (State) as Contract
 import ContractHome.Lenses (_selectedContractIndex, _status)
 import ContractHome.Types (Action(..), ContractStatus(..), State, PartitionedContracts)
-import Data.Array (catMaybes)
 import Data.Array as Array
-import Data.BigInteger (fromInt)
-import Data.Foldable (foldl)
-import Data.Lens (assign)
-import Data.List as List
+import Data.Lens (assign, filtered, over, traversed)
 import Data.Map (Map)
 import Data.Map as Map
-import Data.Maybe (Maybe(..), fromMaybe)
+import Data.Maybe (Maybe(..))
 import Data.Tuple (snd)
-import Data.Tuple.Nested ((/\))
-import Data.UUID (emptyUUID)
-import Examples.PureScript.Escrow as Escrow
-import Examples.PureScript.EscrowWithCollateral as EscrowWithCollateral
-import Examples.PureScript.ZeroCouponBond as ZeroCouponBond
-import Halogen (HalogenM)
+import Halogen (HalogenM, modify_)
 import MainFrame.Types (ChildSlots, Msg)
-import Marlowe.Extended (TemplateContent(..), fillTemplate, resolveRelativeTimes, toCore)
-import Marlowe.PAB (ContractInstanceId(..))
-import Marlowe.Semantics (ChoiceId(..), Input(..), Party(..), Slot(..), SlotInterval(..), Token(..), TransactionInput(..))
-import WalletData.Validation (parseContractInstanceId)
+import Marlowe.PAB (ContractInstanceId, History)
 
 -- see note [dummyState] in MainFrame.State
 dummyState :: State
 dummyState = mkInitialState mempty
 
-mkInitialState :: Map ContractInstanceId Contract.State -> State
+mkInitialState :: Map ContractInstanceId History -> State
 mkInitialState contracts =
   { status: Running
-  , contracts
+  , contracts: map historyToContractState contracts
   , selectedContractIndex: Nothing
   }
+
+-- FIXME: get Contract.State from contract History
+historyToContractState :: History -> Contract.State
+historyToContractState history = Contract.dummyState
 
 handleAction ::
   forall m.
@@ -61,139 +52,3 @@ partitionContracts contracts =
     # map snd
     # Array.partition isContractClosed
     # \{ no, yes } -> { completed: yes, running: no }
-
--- FIXME: Remove this, only for developing
-dummyContracts :: Slot -> (Map ContractInstanceId Contract.State)
-dummyContracts slot =
-  catMaybes [ filledContract1 slot, filledContract2 slot, filledContract3 slot ]
-    -- FIXME: only to have multiple contracts, remove.
-    
-    -- # (bindFlipped $ Array.replicate 10)
-    
-    -- # Array.mapWithIndex (\ix contract -> (show ix) /\ contract)
-    
-    # map (\contract -> contract.contractInstanceId /\ contract)
-    # Map.fromFoldable
-
-filledContract1 :: Slot -> Maybe Contract.State
-filledContract1 (Slot currentSlot) =
-  let
-    templateContent =
-      TemplateContent
-        { slotContent:
-            Map.fromFoldable
-              [ "Buyer's deposit timeout" /\ (currentSlot + fromInt 60)
-              , "Buyer's dispute timeout" /\ (currentSlot + fromInt 120)
-              , "Seller's response timeout" /\ (currentSlot + fromInt 180)
-              , "Timeout for arbitrage" /\ (currentSlot + fromInt 340)
-              ]
-        , valueContent:
-            Map.fromFoldable
-              [ "Price" /\ fromInt 1500
-              ]
-        }
-
-    participants =
-      Map.fromFoldable
-        [ (Role "Arbiter") /\ Just "Alice"
-        , (Role "Buyer") /\ Just "Bob"
-        , (Role "Seller") /\ Nothing
-        ]
-
-    mContract = toCore $ fillTemplate templateContent Escrow.fixedTimeoutContract
-
-    contractInstanceId = fromMaybe (ContractInstanceId emptyUUID) $ parseContractInstanceId "09e83958-824d-4a9d-9fd3-2f57a4f211a1"
-  in
-    mContract <#> \contract -> Contract.mkInitialState contractInstanceId zero Escrow.metaData participants (Just $ Role "Buyer") contract
-
-filledContract2 :: Slot -> Maybe Contract.State
-filledContract2 (Slot currentSlot) = do
-  let
-    templateContent =
-      TemplateContent
-        { slotContent:
-            Map.fromFoldable
-              [ "Collateral deposit by seller timeout" /\ (currentSlot + fromInt 60)
-              , "Deposit of collateral by buyer timeout" /\ (currentSlot + fromInt 80)
-              , "Deposit of price by buyer timeout" /\ (currentSlot + fromInt 100)
-              , "Dispute by buyer timeout" /\ (currentSlot + fromInt 120)
-              , "Seller's response timeout" /\ (currentSlot + fromInt 140)
-              ]
-        , valueContent:
-            Map.fromFoldable
-              [ "Collateral amount" /\ fromInt 1000
-              , "Price" /\ fromInt 500
-              ]
-        }
-
-    participants =
-      Map.fromFoldable
-        [ (Role "Buyer") /\ Just "Alice"
-        , (Role "Seller") /\ Just "Bob"
-        ]
-
-    transactions =
-      [ TransactionInput
-          { interval:
-              (SlotInterval (Slot currentSlot) (Slot currentSlot))
-          , inputs:
-              List.singleton
-                $ IDeposit (Role "Seller") (Role "Seller") (Token "" "") (fromInt 1000)
-          }
-      , TransactionInput
-          { interval:
-              (SlotInterval (Slot currentSlot) (Slot currentSlot))
-          , inputs:
-              List.singleton
-                $ IDeposit (Role "Buyer") (Role "Buyer") (Token "" "") (fromInt 1000)
-          }
-      , TransactionInput
-          { interval:
-              (SlotInterval (Slot currentSlot) (Slot currentSlot))
-          , inputs:
-              List.singleton
-                $ IDeposit (Role "Seller") (Role "Buyer") (Token "" "") (fromInt 500)
-          }
-      , TransactionInput
-          { interval:
-              (SlotInterval (Slot currentSlot) (Slot currentSlot))
-          , inputs:
-              List.singleton
-                $ IChoice (ChoiceId "Report problem" (Role "Buyer")) (fromInt 1)
-          }
-      ]
-
-    contractInstanceId = fromMaybe (ContractInstanceId emptyUUID) $ parseContractInstanceId "59f292a0-3cd8-431c-8384-ea67583c1489"
-
-    nextState' :: Contract.State -> TransactionInput -> Contract.State
-    nextState' state txInput = applyTx (Slot currentSlot) txInput state
-  contract <- toCore $ fillTemplate templateContent EscrowWithCollateral.fixedTimeoutContract
-  initialState <- pure $ Contract.mkInitialState contractInstanceId zero EscrowWithCollateral.metaData participants (Just $ Role "Buyer") contract
-  pure $ foldl nextState' initialState transactions
-
-filledContract3 :: Slot -> Maybe Contract.State
-filledContract3 (Slot currentSlot) = do
-  let
-    templateContent =
-      TemplateContent
-        { slotContent:
-            Map.fromFoldable
-              [ "Initial exchange deadline" /\ (currentSlot + fromInt 60)
-              , "Maturity exchange deadline" /\ (currentSlot + fromInt 80)
-              ]
-        , valueContent:
-            Map.fromFoldable
-              [ "Discounted price" /\ fromInt 1000
-              , "Notional" /\ fromInt 1500
-              ]
-        }
-
-    participants =
-      Map.fromFoldable
-        [ (Role "Guarantor") /\ Just "Alice"
-        , (Role "Investor") /\ Just "Bob"
-        ]
-
-    contractInstanceId = fromMaybe (ContractInstanceId emptyUUID) $ parseContractInstanceId "8242d217-6f7c-4a70-9b18-233a82d089aa"
-  contract <- toCore $ fillTemplate templateContent $ resolveRelativeTimes (Slot currentSlot) ZeroCouponBond.fixedTimeoutContract
-  pure $ Contract.mkInitialState contractInstanceId zero ZeroCouponBond.metaData participants (Just $ Role "Guarantor") contract

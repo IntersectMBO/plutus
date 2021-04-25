@@ -1,7 +1,6 @@
 module WalletData.Types
   ( WalletLibrary
   , WalletNickname
-  , NewWalletDetails
   , WalletDetails
   , WalletInfo(..)
   , Wallet(..)
@@ -25,16 +24,6 @@ type WalletLibrary
 type WalletNickname
   = String
 
--- this is the data we have when creating a new wallet
-type NewWalletDetails
-  = { walletNicknameString :: String
-    , contractInstanceIdString :: String
-    , remoteDataWalletInfo :: WebData WalletInfo
-    , remoteDataAssets :: WebData Assets
-    }
-
--- this is the data we have for wallets that have been created
--- (we know the contractInstanceId is valid and that contract instance exists)
 type WalletDetails
   = { walletNickname :: WalletNickname
     , marloweContractId :: ContractInstanceId

@@ -1,12 +1,27 @@
-module Toast.Types where
+module Toast.Types
+  ( ToastMessage
+  , Action(..)
+  , ToastState
+  , State
+  , successToast
+  , errorToast
+  , ajaxErrorToast
+  , decodingErrorToast
+  , decodedAjaxErrorToast
+  , connectivityErrorToast
+  ) where
 
 import Prelude
 import Analytics (class IsEvent, Event)
 import Analytics as A
+import Data.Either (Either(..))
+import Data.List.NonEmpty (head)
 import Data.Maybe (Maybe(..))
+import Foreign (MultipleErrors, renderForeignError)
 import Halogen (SubscriptionId)
 import Material.Icons (Icon(..))
 import Servant.PureScript.Ajax (AjaxError, errorToString)
+import Types (DecodedAjaxError)
 
 type ToastMessage
   = { shortDescription :: String
@@ -69,6 +84,14 @@ errorToast shortDescription longDescription =
 
 ajaxErrorToast :: String -> AjaxError -> ToastMessage
 ajaxErrorToast shortDescription ajaxError = errorToast shortDescription $ Just $ errorToString ajaxError
+
+decodingErrorToast :: String -> MultipleErrors -> ToastMessage
+decodingErrorToast shortDescription foreignErrors = errorToast shortDescription $ Just $ renderForeignError $ head foreignErrors
+
+decodedAjaxErrorToast :: String -> DecodedAjaxError -> ToastMessage
+decodedAjaxErrorToast shortDescription decodedAjaxError = case decodedAjaxError of
+  Left ajaxError -> ajaxErrorToast shortDescription ajaxError
+  Right foreignErrors -> decodingErrorToast shortDescription foreignErrors
 
 connectivityErrorToast :: String -> ToastMessage
 connectivityErrorToast shortDescription = errorToast shortDescription (Just "There was a problem connecting with the server, please contact support if this problem persists.")

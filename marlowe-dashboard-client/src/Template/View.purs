@@ -8,7 +8,7 @@ import Prelude hiding (div)
 import Css (applyWhen, classNames, hideWhen)
 import Css as Css
 import Data.Array (mapWithIndex)
-import Data.BigInteger (fromString) as BigInteger
+import Data.BigInteger (fromInt, fromString) as BigInteger
 import Data.Lens (view)
 import Data.Map (Map, lookup)
 import Data.Map (toUnfoldable) as Map
@@ -19,15 +19,17 @@ import Data.Tuple.Nested ((/\))
 import Halogen.HTML (HTML, a, br_, button, div, div_, h2, hr, input, label, li, p, p_, span, span_, text, ul, ul_)
 import Halogen.HTML.Events.Extra (onClick_, onValueInput_)
 import Halogen.HTML.Properties (InputType(..), for, id_, list, placeholder, readOnly, type_, value)
+import Humanize (humanizeValue)
 import Marlowe.Extended (Contract, TemplateContent, _valueContent, contractTypeInitials)
 import Marlowe.Extended.Metadata (MetaData)
 import Marlowe.HasParties (getParties)
 import Marlowe.Market (contractTemplates)
-import Marlowe.Semantics (Party(..), Slot)
+import Marlowe.Semantics (Assets, Party(..), Slot)
 import Material.Icons (Icon(..), icon_)
 import Template.Lenses (_contractName, _contractNickname, _extendedContract, _metaData, _roleWallets, _slotContentStrings, _template, _templateContent)
 import Template.Types (Action(..), State)
 import Template.Validation (roleError, roleWalletsAreValid, slotError, templateContentIsValid, valueError)
+import WalletData.State (adaToken, getAda)
 import WalletData.Types (WalletLibrary)
 import WalletData.View (nicknamesDataList)
 
@@ -279,7 +281,18 @@ reviewAndPay accessible metaData =
   subSection accessible false
     [ div
         [ classNames $ [ "mb-4", "bg-white", "p-4", "shadow", "rounded" ] ]
-        [ contractTitle metaData ]
+        [ contractTitle metaData
+        , hr [ classNames [ "my-4" ] ]
+        , div_
+            [ p
+                [ classNames [ "text-sm" ] ]
+                [ text "Fee to pay:" ]
+            -- FIXME: replace fee placeholder with actual value
+            , p
+                [ classNames Css.funds ]
+                [ text $ humanizeValue adaToken $ BigInteger.fromInt 50 ]
+            ]
+        ]
     , div
         [ classNames [ "flex", "justify-end", "mb-4" ] ]
         [ button
@@ -340,22 +353,21 @@ contractTitle metaData =
         [ text $ metaData.contractName ]
     ]
 
-contractSetupConfirmationCard :: forall p. HTML p Action
-contractSetupConfirmationCard =
+contractSetupConfirmationCard :: forall p. Assets -> HTML p Action
+contractSetupConfirmationCard assets =
   div_
     [ div [ classNames [ "flex", "font-semibold", "justify-between", "bg-lightgray", "p-5" ] ]
         [ span_ [ text "Demo wallet balance:" ]
-        -- FIXME: remove placeholder with actual value
-        , span_ [ text "$223,456.78" ]
+        , span_ [ text $ humanizeValue adaToken $ getAda assets ]
         ]
     , div [ classNames [ "px-5", "pb-6", "md:pb-8" ] ]
         [ p
             [ classNames [ "mt-4", "text-sm", "font-semibold" ] ]
             [ text "Confirm payment of:" ]
-        -- FIXME: remove placeholder with actual value
+        -- FIXME: replace fee placeholder with actual value
         , p
             [ classNames [ "mb-4", "text-purple", "font-semibold", "text-2xl" ] ]
-            [ text "₳ 123.456" ]
+            [ text $ humanizeValue adaToken $ BigInteger.fromInt 50 ]
         , div
             [ classNames [ "flex" ] ]
             [ button

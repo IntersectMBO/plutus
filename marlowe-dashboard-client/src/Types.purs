@@ -3,11 +3,11 @@ module Types
   , DecodedAjaxResponse
   , WebData
   , DecodedWebData
+  , DecodedAjaxError
   ) where
 
 import Data.Either (Either)
-import Data.List.NonEmpty (NonEmptyList)
-import Foreign (ForeignError)
+import Foreign (MultipleErrors)
 import Network.RemoteData (RemoteData)
 import Servant.PureScript.Ajax (AjaxError)
 
@@ -15,10 +15,13 @@ type AjaxResponse
   = Either AjaxError
 
 type DecodedAjaxResponse
-  = Either (Either AjaxError (NonEmptyList ForeignError))
+  = Either DecodedAjaxError
 
 type WebData
   = RemoteData AjaxError
 
 type DecodedWebData
-  = RemoteData (Either AjaxError (NonEmptyList ForeignError))
+  = RemoteData DecodedAjaxError
+
+type DecodedAjaxError
+  = Either AjaxError MultipleErrors

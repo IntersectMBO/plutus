@@ -6,7 +6,7 @@ module Pickup.State
 
 import Prelude
 import Capability.MainFrameLoop (class MainFrameLoop, callMainFrameAction)
-import Capability.Marlowe (class ManageMarlowe, marloweCreateWallet, marloweLookupWallet)
+import Capability.Marlowe (class ManageMarlowe, marloweCreateWallet, marloweLookupWalletDetails)
 import Capability.Toast (class Toast, addToast)
 import Control.Monad.Reader (class MonadAsk)
 import Data.Either (Either(..))
@@ -82,7 +82,7 @@ handleAction (SetPickupWalletString string) = do
       -- then check whether the string is a valid UUID
       Nothing -> case parseContractInstanceId string of
         Just contractInstanceId -> do
-          ajaxWalletDetails <- marloweLookupWallet contractInstanceId
+          ajaxWalletDetails <- marloweLookupWalletDetails contractInstanceId
           case ajaxWalletDetails of
             Left ajaxError -> pure unit -- TODO: show negative feedback to the user
             Right walletDetails -> do

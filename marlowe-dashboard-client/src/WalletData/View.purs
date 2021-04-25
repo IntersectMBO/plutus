@@ -11,8 +11,8 @@ import Css (applyWhen, classNames, hideWhen)
 import Css as Css
 import Data.Foldable (foldMap)
 import Data.Lens (view)
-import Data.Map (isEmpty, lookup, toUnfoldable)
-import Data.Maybe (Maybe(..), fromMaybe, isJust)
+import Data.Map (isEmpty, toUnfoldable)
+import Data.Maybe (Maybe(..), isJust)
 import Data.Newtype (unwrap)
 import Data.String (null)
 import Data.Tuple (Tuple(..))
@@ -20,10 +20,12 @@ import Data.UUID (toString) as UUID
 import Halogen.HTML (HTML, button, datalist, div, h2, h3, h4, input, label, li, option, p, p_, text, ul_)
 import Halogen.HTML.Events.Extra (onClick_, onValueInput_)
 import Halogen.HTML.Properties (InputType(..), disabled, id_, placeholder, readOnly, type_, value)
+import Humanize (humanizeValue)
 import Material.Icons (Icon(..))
 import Play.Types (Action(..), Card(..))
 import Types (WebData)
 import WalletData.Lenses (_assets, _companionContractId, _walletNickname)
+import WalletData.State (adaToken, getAda)
 import WalletData.Types (WalletDetails, WalletInfo, WalletLibrary, WalletNickname)
 import WalletData.Validation (contractInstanceIdError, walletNicknameError)
 
@@ -119,10 +121,7 @@ putdownWalletCard walletDetails =
 
     contractInstanceId = view _companionContractId walletDetails
 
-    -- TODO: use an At lens for getting ada from assets
     assets = view _assets walletDetails
-
-    ada = fromMaybe zero $ lookup "" =<< lookup "" (unwrap assets)
   in
     div [ classNames [ "p-5", "pb-6", "md:pb-8" ] ]
       [ h3
@@ -146,9 +145,8 @@ putdownWalletCard walletDetails =
               [ classNames [ "font-semibold" ] ]
               [ text "Balance:" ]
           , p
-              [ classNames [ "text-2xl", "text-purple", "font-semibold" ] ]
-              -- FIXME: format ada prettily (separate out formatting functions from Contract.View)
-              [ text $ "₳ " <> show ada ]
+              [ classNames Css.funds ]
+              [ text $ humanizeValue adaToken $ getAda assets ]
           ]
       , div
           [ classNames [ "flex" ] ]

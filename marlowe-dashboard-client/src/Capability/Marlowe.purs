@@ -1,59 +1,77 @@
 module Capability.Marlowe
   ( class ManageMarlowe
   , marloweCreateWallet
-  , marloweCreateContract
   , marloweFollowContract
-  , marloweCloseContract
+  , marloweCreateContract
   , marloweApplyTransactionInput
   , marloweRedeem
-  , marloweGetRoleContracts
+  , marloweCloseContract
   , marloweLookupWalletInfo
-  , marloweLookupWallet
-  , marloweGetFollowerContracts
+  , marloweLookupWalletDetails
+  , marloweGetRoleContracts
+  , marloweGetContracts
   ) where
 
 import Prelude
+import API.Lenses (_cicContract, _cicCurrentState, _cicDefinition, _cicWallet, _observableState)
 import Affjax (defaultRequest)
-import API.Lenses (_cicDefinition, _cicWallet)
 import AppM (AppM)
 import Bridge (toBack, toFront)
-import Capability.Contract (class ManageContract, activateContract, getContractInstanceClientState, getContractInstanceObservableState, invokeEndpoint)
+import Capability.Contract (class ManageContract, activateContract, getContractInstanceClientState, getContractInstanceObservableState, getWalletContractInstances, invokeEndpoint)
 import Capability.Wallet (class ManageWallet, createWallet, getWalletInfo, getWalletTotalFunds)
 import Control.Monad.Except (lift, runExcept)
+import Data.Array (filter, find)
 import Data.Either (Either(..))
-import Data.Lens (view)
-import Data.Map (Map)
+import Data.Lens (set, view)
+import Data.Map (Map, fromFoldable)
 import Data.Maybe (Maybe(..))
 import Data.Newtype (unwrap)
+import Data.Traversable (traverse)
 import Data.Tuple (Tuple)
 import Data.Tuple.Nested ((/\))
 import Data.UUID (emptyUUID)
+import Foreign (MultipleErrors)
 import Foreign.Generic (decodeJSON)
 import Halogen (HalogenM)
 import Marlowe.PAB (ContractInstanceId(..), ContractType(..), History, MarloweData, MarloweParams, contractExe, contractType)
 import Marlowe.Semantics (Contract, TokenName, TransactionInput(..))
+import Plutus.PAB.Effects.Contract.ContractExe (ContractExe)
+import Plutus.PAB.Webserver.Types (ContractInstanceClientState)
 import Plutus.V1.Ledger.Crypto (PubKeyHash) as Back
 import Plutus.V1.Ledger.Value (TokenName) as Back
 import PlutusTx.AssocMap (Map) as Back
 import Servant.PureScript.Ajax (AjaxError(..), ErrorDescription(..))
 import Types (AjaxResponse, DecodedAjaxResponse)
-import WalletData.Lenses (_marloweContractId, _pubKeyHash, _wallet, _walletInfo)
+import WalletData.Lenses (_assets, _marloweContractId, _pubKeyHash, _wallet, _walletInfo)
 import WalletData.Types (PubKeyHash, WalletDetails, WalletInfo)
 
 -- The `ManageMarlowe` class provides a window on the `ManageContract` and `ManageWallet` capabilities
 -- with functions specific to Marlowe.
 class
   (ManageContract m, ManageWallet m) <= ManageMarlowe m where
+  -- create a Wallet, a WalletCompanionWontract, a MarloweContract, and return the WalletDetails
   marloweCreateWallet :: m (AjaxResponse WalletDetails)
-  marloweCreateContract :: WalletDetails -> Map TokenName PubKeyHash -> Contract -> m (AjaxResponse Unit)
+  -- create a WalletFollowerContract to follow a Marlowe contract on the blockchain
   marloweFollowContract :: WalletDetails -> MarloweParams -> m (DecodedAjaxResponse (Tuple ContractInstanceId History))
+  -- "create" a Marlowe contract on the blockchain
+  marloweCreateContract :: WalletDetails -> Map TokenName PubKeyHash -> Contract -> m (AjaxResponse Unit)
+  -- "apply-inputs" to a Marlowe contract on the blockchain
   marloweApplyTransactionInput :: WalletDetails -> MarloweParams -> TransactionInput -> m (AjaxResponse Unit)
-  marloweCloseContract :: WalletDetails -> MarloweParams -> m (AjaxResponse Unit)
+  -- "redeem" payments from a Marlowe contract on the blockchain
   marloweRedeem :: WalletDetails -> MarloweParams -> TokenName -> m (AjaxResponse Unit)
+  -- "close" a Marlowe contract on the blockchain
+  marloweCloseContract :: WalletDetails -> MarloweParams -> m (AjaxResponse Unit)
+  -- get the WalletInfo of a wallet given the contractInstanceId of its WalletCompanionContract
   marloweLookupWalletInfo :: ContractInstanceId -> m (AjaxResponse WalletInfo)
-  marloweLookupWallet :: ContractInstanceId -> m (AjaxResponse WalletDetails)
-  marloweGetRoleContracts :: WalletDetails -> m (DecodedAjaxResponse (Array (Tuple MarloweParams MarloweData)))
-  marloweGetFollowerContracts :: WalletDetails -> m (DecodedAjaxResponse (Array (Tuple ContractInstanceId History)))
+  -- get the WalletDetails of a wallet given the contractInstanceId of its WalletCompanionContract
+  -- note: this returns an empty walletNickname (because these are only saved locally) and an empty
+  -- marloweContractId (because this would take a while to lookup - to get the marloweContractId we
+  -- call `marloweGetContracts`)
+  marloweLookupWalletDetails :: ContractInstanceId -> m (AjaxResponse WalletDetails)
+  -- get the observable state of a wallet's WalletCompanionContract
+  marloweGetRoleContracts :: WalletDetails -> m (DecodedAjaxResponse (Map MarloweParams MarloweData))
+  -- get all contracts related to a wallet
+  marloweGetContracts :: WalletDetails -> m (DecodedAjaxResponse (Tuple WalletDetails (Map ContractInstanceId History)))
 
 instance monadMarloweAppM :: ManageMarlowe AppM where
   marloweCreateWallet = do
@@ -79,14 +97,6 @@ instance monadMarloweAppM :: ManageMarlowe AppM where
                   , walletInfo: walletInfo
                   , assets
                   }
-  marloweCreateContract walletDetails roles contract =
-    let
-      contractInstanceId = view _marloweContractId walletDetails
-
-      bRoles :: Back.Map Back.TokenName Back.PubKeyHash
-      bRoles = toBack roles
-    in
-      invokeEndpoint contractInstanceId "create" (bRoles /\ contract)
   marloweFollowContract walletDetails marloweParams = do
     let
       wallet = view (_walletInfo <<< _wallet) walletDetails
@@ -101,11 +111,17 @@ instance monadMarloweAppM :: ManageMarlowe AppM where
           Right rawJson -> case runExcept $ decodeJSON $ unwrap rawJson of
             Left decodingError -> pure $ Left $ Right decodingError
             Right observableState -> pure $ Right $ followContractId /\ observableState
-  marloweCloseContract walletDetails marloweParams =
+  -- FIXME: if we want users to be able to follow contracts that they don't have roles in, we need
+  -- this function to return the MarloweParams of the created contract - but this isn't currently
+  -- possible in the PAB
+  marloweCreateContract walletDetails roles contract =
     let
       contractInstanceId = view _marloweContractId walletDetails
+
+      bRoles :: Back.Map Back.TokenName Back.PubKeyHash
+      bRoles = toBack roles
     in
-      invokeEndpoint contractInstanceId "close" marloweParams
+      invokeEndpoint contractInstanceId "create" (bRoles /\ contract)
   marloweApplyTransactionInput walletDetails marloweParams (TransactionInput { interval, inputs }) =
     let
       contractInstanceId = view _marloweContractId walletDetails
@@ -118,15 +134,11 @@ instance monadMarloweAppM :: ManageMarlowe AppM where
       pubKeyHash = view (_walletInfo <<< _pubKeyHash) walletDetails
     in
       invokeEndpoint contractInstanceId "redeem" (marloweParams /\ tokenName /\ pubKeyHash)
-  marloweGetRoleContracts walletDetails = do
+  marloweCloseContract walletDetails marloweParams =
     let
       contractInstanceId = view _marloweContractId walletDetails
-    ajaxObservableState <- getContractInstanceObservableState contractInstanceId
-    case ajaxObservableState of
-      Left ajaxError -> pure $ Left $ Left ajaxError
-      Right rawJson -> case runExcept $ decodeJSON $ unwrap rawJson of
-        Left decodingError -> pure $ Left $ Right decodingError
-        Right observableState -> pure $ Right observableState
+    in
+      invokeEndpoint contractInstanceId "close" marloweParams
   marloweLookupWalletInfo companionContractId = do
     ajaxClientState <- getContractInstanceClientState companionContractId
     case ajaxClientState of
@@ -140,7 +152,7 @@ instance monadMarloweAppM :: ManageMarlowe AppM where
               wallet = toFront $ view _cicWallet clientState
             getWalletInfo wallet
           _ -> pure $ Left $ AjaxError { request: defaultRequest, description: NotFound }
-  marloweLookupWallet companionContractId = do
+  marloweLookupWalletDetails companionContractId = do
     ajaxClientState <- getContractInstanceClientState companionContractId
     case ajaxClientState of
       Left ajaxError -> pure $ Left ajaxError
@@ -166,17 +178,58 @@ instance monadMarloweAppM :: ManageMarlowe AppM where
                       , assets
                       }
           _ -> pure $ Left $ AjaxError { request: defaultRequest, description: NotFound }
-  marloweGetFollowerContracts walletDetails = do
-    
+  marloweGetRoleContracts walletDetails = do
+    let
+      contractInstanceId = view _marloweContractId walletDetails
+    ajaxObservableState <- getContractInstanceObservableState contractInstanceId
+    case ajaxObservableState of
+      Left ajaxError -> pure $ Left $ Left ajaxError
+      Right rawJson -> case runExcept $ decodeJSON $ unwrap rawJson of
+        Left decodingError -> pure $ Left $ Right decodingError
+        Right observableState -> pure $ Right observableState
+  marloweGetContracts walletDetails = do
+    let
+      wallet = view (_walletInfo <<< _wallet) walletDetails
+    ajaxRunningContracts <- getWalletContractInstances wallet
+    ajaxAssets <- getWalletTotalFunds wallet
+    case ajaxRunningContracts, ajaxAssets of
+      Left ajaxError, _ -> pure $ Left $ Left ajaxError
+      _, Left ajaxError -> pure $ Left $ Left ajaxError
+      Right runningContracts, Right assets -> do
+        let
+          mMarloweContract = find (\cic -> view _cicDefinition cic == contractExe MarloweContract) runningContracts
+
+          followerContracts = filter (\cic -> view _cicDefinition cic == contractExe WalletFollowerContract) runningContracts
+        case mMarloweContract of
+          Nothing -> pure $ Left $ Left $ AjaxError { request: defaultRequest, description: NotFound }
+          Just marloweContract -> do
+            let
+              marloweContractId = view _marloweContractId walletDetails
+
+              updatedWalletDetails = set _marloweContractId marloweContractId $ set _assets assets walletDetails
+            case traverse decodeFollowerContract followerContracts of
+              Left decodingError -> pure $ Left $ Right decodingError
+              Right decodedFollowerContracts -> pure $ Right $ updatedWalletDetails /\ fromFoldable decodedFollowerContracts
+    where
+    decodeFollowerContract :: ContractInstanceClientState ContractExe -> Either MultipleErrors (Tuple ContractInstanceId History)
+    decodeFollowerContract contractInstanceClientState =
+      let
+        contractInstanceId = toFront $ view _cicContract contractInstanceClientState
+
+        rawJson = view (_cicCurrentState <<< _observableState) contractInstanceClientState
+      in
+        case runExcept $ decodeJSON $ unwrap rawJson of
+          Left decodingErrors -> Left decodingErrors
+          Right observableState -> Right (contractInstanceId /\ observableState)
 
 instance monadMarloweHalogenM :: ManageMarlowe m => ManageMarlowe (HalogenM state action slots msg m) where
   marloweCreateWallet = lift marloweCreateWallet
-  marloweCreateContract walletDetails roles contract = lift $ marloweCreateContract walletDetails roles contract
   marloweFollowContract walletDetails marloweParams = lift $ marloweFollowContract walletDetails marloweParams
-  marloweCloseContract walletDetails marloweParams = lift $ marloweCloseContract walletDetails marloweParams
+  marloweCreateContract walletDetails roles contract = lift $ marloweCreateContract walletDetails roles contract
   marloweApplyTransactionInput walletDetails marloweParams transactionInput = lift $ marloweApplyTransactionInput walletDetails marloweParams transactionInput
   marloweRedeem walletDetails marloweParams tokenName = lift $ marloweRedeem walletDetails marloweParams tokenName
-  marloweGetRoleContracts = lift <<< marloweGetRoleContracts
+  marloweCloseContract walletDetails marloweParams = lift $ marloweCloseContract walletDetails marloweParams
   marloweLookupWalletInfo = lift <<< marloweLookupWalletInfo
-  marloweLookupWallet = lift <<< marloweLookupWallet
-  marloweGetFollowerContracts = lift <<< marloweGetFollowerContracts
+  marloweLookupWalletDetails = lift <<< marloweLookupWalletDetails
+  marloweGetRoleContracts = lift <<< marloweGetRoleContracts
+  marloweGetContracts = lift <<< marloweGetContracts

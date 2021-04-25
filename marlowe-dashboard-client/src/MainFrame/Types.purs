@@ -9,9 +9,12 @@ module MainFrame.Types
 
 import Prelude
 import Analytics (class IsEvent, defaultEvent, toEvent)
+import Contract.Types (State) as Contract
 import Data.Either (Either)
 import Data.Generic.Rep (class Generic)
+import Data.Map (Map)
 import Data.Maybe (Maybe(..))
+import Marlowe.PAB (ContractInstanceId)
 import Pickup.Types (Action, State) as Pickup
 import Play.Types (Action, State) as Play
 import Plutus.PAB.Webserver.Types (CombinedWSStreamToClient, CombinedWSStreamToServer)
@@ -57,7 +60,7 @@ data Msg
 ------------------------------------------------------------
 data Action
   = Init
-  | EnterPickupState WalletLibrary WalletDetails
+  | EnterPickupState WalletLibrary WalletDetails (Map ContractInstanceId Contract.State)
   | EnterPlayState WalletLibrary WalletDetails
   | PickupAction Pickup.Action
   | PlayAction Play.Action
@@ -67,8 +70,8 @@ data Action
 -- how to classify them.
 instance actionIsEvent :: IsEvent Action where
   toEvent Init = Just $ defaultEvent "Init"
-  toEvent (EnterPickupState _ _) = Just $ defaultEvent "ToPickupState"
-  toEvent (EnterPlayState _ _) = Just $ defaultEvent "ToPlayState"
+  toEvent (EnterPickupState _ _ _) = Just $ defaultEvent "EnterPickupState"
+  toEvent (EnterPlayState _ _) = Just $ defaultEvent "EnterPlayState"
   toEvent (PickupAction pickupAction) = toEvent pickupAction
   toEvent (PlayAction playAction) = toEvent playAction
   toEvent (ToastAction toastAction) = toEvent toastAction
