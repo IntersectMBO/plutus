@@ -70,13 +70,13 @@ Here are some values of the latter 'U' / the types that they encode
         UList UBool         / [Bool]
         UList (UList UBool) / [[Bool]]
 
-'U' being a GADT allows to package a type from a universe together with a value of that type.
+'U' being a GADT allows us to package a type from a universe together with a value of that type.
 For example,
 
     Some (ValueOf UBool True) :: Some (ValueOf U)
 
 We say that a type is in a universe whenever there is a tag for that type in the universe.
-For example, 'Int' is in 'U', because there exists a tag for 'Int' in 'U' -- 'UInt'.
+For example, 'Int' is in 'U', because there exists a tag for 'Int' in 'U' ('UInt').
 -}
 
 -- | Existential quantification as a data type.
@@ -110,7 +110,7 @@ data ValueOf uni a = ValueOf (uni a) a
 -- (including lists of lists etc). 'Contains' does not allow that, but 'Includes' does.
 -- For example, in the body of the following definition:
 --
---     foo :: (uni `Includes` Integer, uni `Includes` Bool, uni `Includes` []) => SomeResult
+--     foo :: (uni `Includes` Integer, uni `Includes` Bool, uni `Includes` []) => <...>
 --     foo = <...>
 --
 -- you can make use of the fact that @uni@ has lists of arbitrary included types (integers,
@@ -213,7 +213,7 @@ peelUniTag = DecodeUniM $ do
     i <$ put is
 
 -- It's not possible to return a @forall@ from a type family, let alone compute a proper
--- quantified context, hence the boilerplate and the finite number of supported cases.
+-- quantified context, hence the boilerplate and a finite number of supported cases.
 
 type Permits0 :: (Type -> Constraint) -> Type -> Constraint
 class    constr x => constr `Permits0` x

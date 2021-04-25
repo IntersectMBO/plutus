@@ -104,6 +104,8 @@ pattern DefaultUniTuple uniA uniB =
 pattern DefaultUniString :: DefaultUni String
 pattern DefaultUniString = DefaultUniList DefaultUniChar
 
+deriveGEq ''DefaultUni
+
 instance ToKind DefaultUni where
     toKind DefaultUniInteger           = nonTypeAppKind
     toKind DefaultUniByteString        = nonTypeAppKind
@@ -115,11 +117,9 @@ instance ToKind DefaultUni where
     toKind (DefaultUniApply uniF _) = case toKind uniF of
         -- We probably could avoid using @error@ here by having more type astronautics,
         -- but having @error@ should be fine for now.
-        Type _            -> error "A type function can't be of type *"
+        Type _            -> error "Panic: a type function can't be of type *"
         KindArrow _ _ cod -> cod
     toKind (DefaultUniRunTypeApp _)    = nonTypeAppKind
-
-deriveGEq ''DefaultUni
 
 instance HasUniApply DefaultUni where
     matchUniRunTypeApp (DefaultUniRunTypeApp a) _ h = h a
