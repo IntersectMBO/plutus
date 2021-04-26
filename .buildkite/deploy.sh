@@ -52,4 +52,4 @@ ssh-add -l
 # starting deployment
 # -----------------------------------------------------------------------------
 
-cd deployment && nix-shell -A "$DEPLOY_ENV" --run "wait-github-status && deploy-nix"
+cd deployment && nix-shell --argstr rev "$BUILDKITE_COMMIT" -A "$DEPLOY_ENV" --run "wait-github-status && deploy"
