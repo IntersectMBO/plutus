@@ -34,18 +34,6 @@ data "template_file" "ssh_config_section_playgrounds_a" {
   }
 }
 
-data "template_file" "ssh_config_section_playgrounds_b" {
-  template = file("${path.module}/templates/ssh-config")
-
-  vars = {
-    full_hostname    = "playgrounds-b.${aws_route53_zone.plutus_private_zone.name}"
-    short_hostname   = "playgrounds-b.${local.project}"
-    ip               = aws_instance.playgrounds_b.private_ip
-    bastion_hostname = aws_instance.bastion.*.public_ip[0]
-    user_name        = "root"
-  }
-}
-
 data "template_file" "ssh_config" {
   template = <<EOT
 $${webghc_a}
@@ -53,8 +41,6 @@ $${webghc_a}
 $${marlowe_dash_a}
 
 $${playgrounds_a}
-
-$${playgrounds_b}
 
 Host $${bastion_hostname}
   StrictHostKeyChecking no
@@ -64,7 +50,6 @@ EOT
     webghc_a         = data.template_file.ssh_config_section_webghc_a.rendered
     marlowe_dash_a   = data.template_file.ssh_config_section_marlowe_dash_a.rendered
     playgrounds_a    = data.template_file.ssh_config_section_playgrounds_a.rendered
-    playgrounds_b    = data.template_file.ssh_config_section_playgrounds_b.rendered
     bastion_hostname = aws_instance.bastion.*.public_ip[0]
   }
 }

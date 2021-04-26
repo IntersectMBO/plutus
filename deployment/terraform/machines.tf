@@ -18,17 +18,10 @@ locals {
     dns  = "playgrounds-a.${element(concat(aws_route53_zone.plutus_private_zone.*.name, list("")), 0)}"
   }
 
-  playgroundsB = {
-    name = "playgroundsB"
-    ip   = "${element(concat(aws_instance.playgrounds_b.*.private_ip, list("")), 0)}"
-    dns  = "playgrounds-b.${element(concat(aws_route53_zone.plutus_private_zone.*.name, list("")), 0)}"
-  }
-
   machines = {
     webghcA      = "${local.webghcA}"
     marloweDashA = "${local.marloweDashA}"
     playgroundsA = "${local.playgroundsA}"
-    playgroundsB = "${local.playgroundsB}"
     rootSshKeys  = local.root_ssh_keys
     awsRegion    = "${var.aws_region}"
     environment  = "${var.env}"
