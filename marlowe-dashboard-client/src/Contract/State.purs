@@ -15,7 +15,7 @@ import Capability.Toast (class Toast, addToast)
 import Contract.Lenses (_executionState, _marloweParams, _namedActions, _previousSteps, _selectedStep, _tab)
 import Contract.Types (Action(..), PreviousStep, PreviousStepState(..), State, Tab(..), scrollContainerRef)
 import Control.Monad.Reader (class MonadAsk, asks)
-import Data.Array (difference, head, index, length, mapMaybe, uncons)
+import Data.Array (difference, foldl, head, index, length, mapMaybe)
 import Data.Foldable (for_)
 import Data.FoldableWithIndex (foldlWithIndex)
 import Data.Either (Either(..))
@@ -209,9 +209,7 @@ handleAction _ CarouselOpened = do
 handleAction _ CarouselClosed = unsubscribeFromSelectCenteredStep
 
 applyTransactionInputs :: Array TransactionInput -> ExecutionState -> ExecutionState
-applyTransactionInputs transactionInputs state = case uncons transactionInputs of
-  Just { head: txInput, tail: txInputs } -> applyTransactionInputs txInputs $ nextState state txInput
-  Nothing -> state
+applyTransactionInputs transactionInputs state = foldl nextState state transactionInputs
 
 currentStep :: State -> Int
 currentStep = length <<< view _previousSteps
