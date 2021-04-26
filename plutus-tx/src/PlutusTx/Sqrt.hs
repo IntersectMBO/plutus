@@ -19,6 +19,7 @@ module PlutusTx.Sqrt(
 import           PlutusTx.IsData  (makeIsDataIndexed)
 import           PlutusTx.Lift    (makeLift)
 import           PlutusTx.Prelude (divide, negate, otherwise, ($), (*), (+), (<), (<=), (==))
+import           PlutusTx.Ratio   (Rational, denominator, numerator, (%))
 import           Prelude          (Integer)
 import qualified Prelude          as Haskell
 
@@ -27,22 +28,21 @@ data Sqrt
   = Imaginary
   | Exact Integer
   | Irrational Integer
-  deriving stock Haskell.Show
+  deriving stock (Haskell.Show, Haskell.Eq)
 
 {-# INLINABLE rsqrt #-}
--- | Calculates `rsqrt n d` the 'Integer' component of the d'th root of `n`
--- and tags whether it was 'Exact', or 'Irrationa'. If it's imaginary, we
--- don't return the integer part, and simple return 'Imaginary'. As the 0'th
--- root of n is undefined, calling this function with `d = 0` results in an
--- error.
-rsqrt :: Integer -> Integer -> Sqrt
-rsqrt n d
+-- | Calculates the sqrt of a ratio of integers. As x / 0 is undefined,
+-- calling this function with `d=0` results in an error.
+rsqrt :: Rational -> Sqrt
+rsqrt r
     | n * d < 0 = Imaginary
     | n == 0    = Exact 0
     | n == d    = Exact 1
-    | n < 0     = rsqrt (negate n) (negate d)
+    | n < 0     = rsqrt $ negate n % negate d
     | otherwise = go 1 $ 1 + divide n d
   where
+    n = numerator r
+    d = denominator r
     go :: Integer -> Integer -> Sqrt
     go l u
         | l * l * d == n = Exact l
@@ -57,7 +57,7 @@ rsqrt n d
 {-# INLINABLE isqrt #-}
 -- | Calculates the integer-component of the sqrt of 'n'.
 isqrt :: Integer -> Sqrt
-isqrt n = rsqrt n 1
+isqrt n = rsqrt (n % 1)
 
 makeLift ''Sqrt
 makeIsDataIndexed ''Sqrt [ ('Imaginary,  0)

@@ -93,7 +93,8 @@ calculateInitialLiquidity outA outB = case isqrt (outA * outB) of
 
 {-# INLINABLE calculateAdditionalLiquidity #-}
 calculateAdditionalLiquidity :: Integer -> Integer -> Integer -> Integer -> Integer -> Integer
-calculateAdditionalLiquidity oldA oldB liquidity delA delB = case rsqrt (liquidity * liquidity * newProd) oldProd of
+calculateAdditionalLiquidity oldA oldB liquidity delA delB =
+  case rsqrt ((liquidity * liquidity * newProd) % oldProd) of
     Imaginary    -> traceError "insufficient liquidity"
     Exact x      -> x - liquidity
     Irrational x -> x - liquidity
@@ -130,12 +131,6 @@ newtype Uniswap = Uniswap
       deriving newtype  (Prelude.Eq, Prelude.Ord)
 
 PlutusTx.makeLift ''Uniswap
-
--- instance Prelude.Eq Uniswap where
---     u == v = usCoin u Prelude.== usCoin v
-
--- instance Prelude.Ord Uniswap where
---     compare u v = Prelude.compare (usCoin u) (usCoin v)
 
 data UniswapAction = Create LiquidityPool | Close | Swap | Remove | Add
     deriving Show
