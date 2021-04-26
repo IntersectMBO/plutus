@@ -7,18 +7,18 @@ module ContractHome.State
   ) where
 
 import Prelude
-import Contract.State (applyTimeout, isContractClosed)
+import Contract.State (isContractClosed)
 import Contract.State (dummyState) as Contract
 import Contract.Types (State) as Contract
 import ContractHome.Lenses (_selectedContractIndex, _status)
 import ContractHome.Types (Action(..), ContractStatus(..), State, PartitionedContracts)
 import Data.Array as Array
-import Data.Lens (assign, filtered, over, traversed)
+import Data.Lens (assign)
 import Data.Map (Map)
 import Data.Map as Map
 import Data.Maybe (Maybe(..))
 import Data.Tuple (snd)
-import Halogen (HalogenM, modify_)
+import Halogen (HalogenM)
 import MainFrame.Types (ChildSlots, Msg)
 import Marlowe.PAB (ContractInstanceId, History)
 

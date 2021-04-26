@@ -6,7 +6,7 @@ module Marlowe.PAB
   , MarloweParams(..)
   , ValidatorHash
   , MarloweData(..)
-  , History
+  , History(..)
   ) where
 
 import Prelude

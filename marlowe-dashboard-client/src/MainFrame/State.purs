@@ -6,7 +6,8 @@ import Capability.Marlowe (class ManageMarlowe, marloweFollowContract, marloweGe
 import Capability.Toast (class Toast, addToast)
 import Capability.Websocket (class MonadWebsocket, subscribeToContract, subscribeToWallet, unsubscribeFromContract, unsubscribeFromWallet)
 import Contract.Lenses (_marloweParams)
-import ContractHome.State (historyToContractState)
+import Contract.State (mkInitialState, updateState) as Contract
+import ContractHome.Types (Action(..)) as ContractHome
 import Control.Monad.Except (runExcept)
 import Control.Monad.Reader (class MonadAsk)
 import Data.Array (difference)
@@ -37,14 +38,14 @@ import Marlowe.Slot (currentSlot)
 import Pickup.Lenses (_walletLibrary)
 import Pickup.State (handleAction, dummyState, mkInitialState) as Pickup
 import Pickup.Types (Action(..), State) as Pickup
-import Play.Lenses (_allContracts, _walletDetails)
+import Play.Lenses (_allContracts, _currentSlot, _walletDetails)
 import Play.State (dummyState, handleAction, mkInitialState) as Play
 import Play.Types (Action(..), State) as Play
 import Plutus.PAB.Webserver.Types (CombinedWSStreamToClient(..), InstanceStatusToClient(..))
 import StaticData (walletDetailsLocalStorageKey, walletLibraryLocalStorageKey)
 import Toast.State (defaultState, handleAction) as Toast
 import Toast.Types (Action, State) as Toast
-import Toast.Types (decodedAjaxErrorToast, decodingErrorToast, successToast)
+import Toast.Types (decodedAjaxErrorToast, decodingErrorToast, errorToast, successToast)
 import WalletData.Lenses (_assets, _companionContractId, _wallet, _walletInfo, _walletNickname)
 import WebSocket.Support as WS
 
@@ -131,7 +132,10 @@ handleQuery (ReceiveWebSocketMessage msg next) = do
               for_ (lookup changedContractInstanceId $ view _allContracts playState) \contractState -> do
                 case runExcept $ decodeJSON $ unwrap rawJson of
                   Left decodingError -> addToast $ decodingErrorToast "Failed to parse contract update." decodingError
-                  Right history -> modifying (_playState <<< _allContracts) $ insert changedContractInstanceId $ historyToContractState history
+                  Right history -> do
+                    let
+                      currentSlot = view _currentSlot playState
+                    modifying (_playState <<< _allContracts) $ insert changedContractInstanceId $ Contract.updateState currentSlot history contractState
         -- Plutus contracts in general can change in other ways, but the Marlowe contracts don't, so
         -- we can ignore these cases here
         _ -> pure unit
@@ -217,6 +221,7 @@ updateRunningContracts ::
   MonadAsk Env m =>
   ManageMarlowe m =>
   Toast m =>
+  MonadWebsocket m =>
   Map MarloweParams MarloweData ->
   HalogenM State Action ChildSlots Msg m Unit
 updateRunningContracts companionState = do
@@ -235,9 +240,17 @@ updateRunningContracts companionState = do
           ajaxFollowerContract <- marloweFollowContract walletDetails marloweParams
           case ajaxFollowerContract of
             Left decodedAjaxError -> addToast $ decodedAjaxErrorToast "Failed to load new contract." decodedAjaxError
-            Right (followerContractInstanceId /\ history) -> do
-              modifying (_playState <<< _allContracts) $ insert followerContractInstanceId $ historyToContractState history
-              addToast $ successToast "You have been given a role in a new contract."
+            Right (contractInstanceId /\ history) -> do
+              let
+                currentSlot = view _currentSlot playState
+
+                mContractState = Contract.mkInitialState currentSlot contractInstanceId history
+              case mContractState of
+                Just contractState -> do
+                  modifying (_playState <<< _allContracts) $ insert contractInstanceId contractState
+                  addToast $ successToast "You have been given a role in a new contract."
+                  handleAction $ PlayAction $ Play.ContractHomeAction $ ContractHome.OpenContract contractInstanceId
+                Nothing -> addToast $ errorToast "Could not determine contract type." $ Just "You have been given a role in a new contract, but we could not determine the type of the contract and therefore cannot display it. This should not happen. Please contact support."
 
 ------------------------------------------------------------
 -- Note [dummyState]: In order to map a submodule whose state might not exist, we need
