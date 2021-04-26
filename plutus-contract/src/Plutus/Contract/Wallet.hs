@@ -103,7 +103,7 @@ computeBalance ::
     )
     => Tx -> Eff effs Value
 computeBalance tx = (P.-) <$> left <*> pure right  where
-    right = L.txFee tx P.+ foldMap (view Tx.outValue) (tx ^. Tx.outputs)
+    right = foldMap (view Tx.outValue) (tx ^. Tx.outputs)
     left = do
         inputValues <- traverse lookupValue (Set.toList $ Tx.txInputs tx)
         pure $ foldr (P.+) P.zero (L.txForge tx : inputValues)
@@ -134,7 +134,8 @@ balanceTx ::
     -- ^ The unbalanced transaction
     -> Eff effs Tx
 balanceTx utxo pk UnbalancedTx{unBalancedTxTx} = do
-    (neg, pos) <- Value.split <$> computeBalance unBalancedTxTx
+    (neg', pos) <- Value.split <$> computeBalance unBalancedTxTx
+    let neg = neg' P.+ L.txFee unBalancedTxTx
 
     tx' <- if Value.isZero pos
            then do
