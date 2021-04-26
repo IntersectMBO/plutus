@@ -31,7 +31,7 @@ import qualified Ouroboros.Network.Protocol.LocalTxSubmission.Codec as TxSubmiss
 import qualified Ouroboros.Network.Protocol.LocalTxSubmission.Type  as TxSubmission
 import           Ouroboros.Network.Util.ShowProxy
 
-import           Ledger                                             (Block, Tx (..), TxId (..))
+import           Ledger                                             (Block, OnChainTx (..), Tx (..), TxId (..))
 import           Ledger.Bytes                                       (LedgerBytes (..))
 
 -- | Tip of the block chain type (used by node protocols).
@@ -60,6 +60,7 @@ deriving instance StandardHash Tx
 -- TODO: Is this the best place for these instances?
 instance ShowProxy Char
 instance ShowProxy Tx where
+instance ShowProxy OnChainTx where
 instance ShowProxy a => ShowProxy [a] where
   showProxy _ = "[" ++ showProxy (Proxy @a) ++ "]"
 

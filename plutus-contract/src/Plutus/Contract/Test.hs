@@ -564,7 +564,7 @@ assertChainEvents predicate =
 --   transactions that failed meet the predicate.
 assertFailedTransaction :: (Tx -> ValidationError -> [ScriptValidationEvent] -> Bool) -> TracePredicate
 assertFailedTransaction predicate =
-    flip postMapM (L.generalize Folds.failedTransactions) $ \case
+    flip postMapM (L.generalize $ Folds.failedTransactions Nothing) $ \case
         [] -> do
             tell @(Doc Void) $ "No transactions failed to validate."
             pure False
@@ -573,7 +573,7 @@ assertFailedTransaction predicate =
 -- | Assert that no transaction failed to validate.
 assertNoFailedTransactions :: TracePredicate
 assertNoFailedTransactions =
-    flip postMapM (L.generalize Folds.failedTransactions) $ \case
+    flip postMapM (L.generalize $ Folds.failedTransactions Nothing) $ \case
         [] -> pure True
         xs -> do
             let prettyTxFail (i, _, err, _) = pretty i <> colon <+> pretty err

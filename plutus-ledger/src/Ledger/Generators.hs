@@ -248,7 +248,7 @@ validateMockchain :: Mockchain -> Tx -> Maybe Index.ValidationError
 validateMockchain (Mockchain txPool _) tx = result where
     h      = 1
     idx    = Index.initialise [map Valid txPool]
-    result = fst $ fst $ Index.runValidation (Index.validateTransaction h tx) idx
+    result = fmap snd $ fst $ fst $ Index.runValidation (Index.validateTransaction h tx) idx
 
 {- | Split a value into max. n positive-valued parts such that the sum of the
      parts equals the original value.

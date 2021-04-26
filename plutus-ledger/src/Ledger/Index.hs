@@ -22,6 +22,8 @@ module Ledger.Index(
     lkpTxOut,
     lkpOutputs,
     ValidationError(..),
+    ValidationErrorInPhase,
+    ValidationPhase(..),
     InOutMatch(..),
     minFee,
     -- * Actual validation
@@ -133,13 +135,17 @@ instance FromJSON ValidationError
 instance ToJSON ValidationError
 deriving via (PrettyShow ValidationError) instance Pretty ValidationError
 
+data ValidationPhase = Phase1 | Phase2 deriving (Eq, Show, Generic, FromJSON, ToJSON)
+deriving via (PrettyShow ValidationPhase) instance Pretty ValidationPhase
+type ValidationErrorInPhase = (ValidationPhase, ValidationError)
+
 -- | A monad for running transaction validation inside, which is an instance of 'ValidationMonad'.
 newtype Validation a = Validation { _runValidation :: (ReaderT UtxoIndex (ExceptT ValidationError (Writer [ScriptValidationEvent]))) a }
     deriving newtype (Functor, Applicative, Monad, MonadReader UtxoIndex, MonadError ValidationError, MonadWriter [ScriptValidationEvent])
 
 -- | Run a 'Validation' on a 'UtxoIndex'.
-runValidation :: Validation (Maybe ValidationError, UtxoIndex) -> UtxoIndex -> ((Maybe ValidationError, UtxoIndex), [ScriptValidationEvent])
-runValidation l idx = runWriter $ fmap (either (\e -> (Just e, idx)) id) $ runExceptT $ runReaderT (_runValidation l) idx
+runValidation :: Validation (Maybe ValidationErrorInPhase, UtxoIndex) -> UtxoIndex -> ((Maybe ValidationErrorInPhase, UtxoIndex), [ScriptValidationEvent])
+runValidation l idx = runWriter $ fmap (either (\e -> (Just (Phase1, e), idx)) id) $ runExceptT $ runReaderT (_runValidation l) idx
 
 -- | Determine the unspent value that a ''TxOutRef' refers to.
 lkpValue :: ValidationMonad m => TxOutRef -> m V.Value
@@ -155,7 +161,7 @@ lkpTxOut t = lookup t =<< ask
 validateTransaction :: ValidationMonad m
     => Slot.Slot
     -> Tx
-    -> m (Maybe ValidationError, UtxoIndex)
+    -> m (Maybe ValidationErrorInPhase, UtxoIndex)
 validateTransaction h t = do
     _ <- checkValidInputs (view inputsFees) t
     (do
@@ -178,7 +184,7 @@ validateTransaction h t = do
     where
         payFees e = do
             idx <- ask
-            pure (Just e, insertFees t idx)
+            pure (Just (Phase2, e), insertFees t idx)
 
 -- | Check that a transaction can be validated in the given slot.
 checkSlotRange :: ValidationMonad m => Slot.Slot -> Tx -> m ()

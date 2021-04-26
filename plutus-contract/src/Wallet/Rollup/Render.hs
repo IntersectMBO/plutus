@@ -29,8 +29,8 @@ import qualified Data.Text                             as Text
 import           Data.Text.Prettyprint.Doc             (Doc, Pretty, defaultLayoutOptions, fill, indent, layoutPretty,
                                                         line, parens, pretty, viaShow, vsep, (<+>))
 import           Data.Text.Prettyprint.Doc.Render.Text (renderStrict)
-import           Ledger                                (Address, PubKey, PubKeyHash, Signature, Tx (Tx), TxId,
-                                                        TxIn (TxIn, txInRef, txInType),
+import           Ledger                                (Address, Blockchain, OnChainTx (..), PubKey, PubKeyHash,
+                                                        Signature, Tx (Tx), TxId, TxIn (TxIn, txInRef, txInType),
                                                         TxInType (ConsumePublicKeyAddress, ConsumeScriptAddress),
                                                         TxOut (TxOut), TxOutRef (TxOutRef, txOutRefId, txOutRefIdx),
                                                         Value, txFee, txForge, txOutValue, txOutputs, txSignatures)
@@ -60,7 +60,7 @@ showBlockchainFold walletKeys =
             <$> runReaderT (render txns) (Map.fromList walletKeys)
     in fmap r Folds.annotatedBlockchain
 
-showBlockchain :: [(PubKeyHash, Wallet)] -> [[Tx]] -> Either Text Text
+showBlockchain :: [(PubKeyHash, Wallet)] -> Blockchain -> Either Text Text
 showBlockchain walletKeys blockchain =
     flip runReaderT (Map.fromList walletKeys) $ do
         annotatedBlockchain <- doAnnotateBlockchain blockchain
@@ -92,7 +92,7 @@ instance Render [[AnnotatedTx]] where
 
 instance Render AnnotatedTx where
     render AnnotatedTx { txId
-                       , tx = Tx {txOutputs, txForge, txFee, txSignatures}
+                       , tx = Valid Tx {txOutputs, txForge, txFee, txSignatures}
                        , dereferencedInputs
                        , balances
                        } =
@@ -111,10 +111,20 @@ instance Render AnnotatedTx where
             , pure "Balances Carried Forward:"
             , indented balances
             ]
-      where
-        heading t x = do
-            r <- indented x
-            pure $ fill 10 t <> r
+    render AnnotatedTx { txId
+                       , tx = Invalid Tx { txFee }
+                       } =
+        vsep <$>
+        sequence
+            [ pure "Invalid transaction"
+            , heading "TxId:" txId
+            , heading "Fee:" txFee
+            ]
+
+heading :: Render a => Doc ann -> a -> ReaderT (Map PubKeyHash Wallet) (Either Text) (Doc ann)
+heading t x = do
+    r <- indented x
+    pure $ fill 10 t <> r
 
 instance Render SequenceId where
     render SequenceId {..} =
@@ -258,9 +268,9 @@ instance Render TxInType where
 instance Render TxOutRef where
     render TxOutRef {txOutRefId, txOutRefIdx} =
         vsep <$>
-        sequence [heading "Tx:" txOutRefId, heading "Output #" txOutRefIdx]
+        sequence [heading' "Tx:" txOutRefId, heading' "Output #" txOutRefIdx]
       where
-        heading t x = do
+        heading' t x = do
             r <- render x
             pure $ fill 8 t <> r
 

@@ -13,7 +13,7 @@ module Plutus.PAB.Core.ContractInstance.BlockchainEnv(
   ) where
 
 import qualified Cardano.Protocol.Socket.Client       as Client
-import           Ledger                               (Address, Block, Slot, Tx, TxId, txId)
+import           Ledger                               (Address, Block, OnChainTx, Slot, TxId, eitherTx, txId)
 import           Ledger.AddressMap                    (AddressMap)
 import qualified Ledger.AddressMap                    as AddressMap
 import           Plutus.PAB.Core.ContractInstance.STM (BlockchainEnv (..), InstancesState, TxStatus (..),
@@ -88,10 +88,11 @@ processBlock BlockchainEnv{beAddressMap, beTxChanges, beCurrentSlot, beTxIndex} 
   lastSlot <- STM.readTVar beCurrentSlot
   when (slot /= lastSlot) (STM.writeTVar beCurrentSlot slot)
 
-processTx :: Slot -> (AddressMap, Map TxId TxStatus, ChainIndex) -> Tx -> (AddressMap, Map TxId TxStatus, ChainIndex)
+processTx :: Slot -> (AddressMap, Map TxId TxStatus, ChainIndex) -> OnChainTx -> (AddressMap, Map TxId TxStatus, ChainIndex)
 processTx currentSlot (addressMap, txStatusMap, chainIndex) tx = (addressMap', txStatusMap', chainIndex') where
+  tid = eitherTx txId txId tx
   addressMap' = AddressMap.updateAddresses tx addressMap
   chainIndex' =
-    let itm = ChainIndexItem{ciSlot = currentSlot, ciTx = tx, ciTxId = txId tx} in
+    let itm = ChainIndexItem{ciSlot = currentSlot, ciTx = tx, ciTxId = tid } in
     Index.insert addressMap' itm chainIndex
-  txStatusMap' = txStatusMap & at (txId tx) .~ Just TentativelyConfirmed
+  txStatusMap' = txStatusMap & at tid .~ Just TentativelyConfirmed

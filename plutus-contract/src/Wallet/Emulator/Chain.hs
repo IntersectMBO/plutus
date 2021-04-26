@@ -25,6 +25,7 @@ import qualified Control.Monad.State            as S
 import           Data.Aeson                     (FromJSON, ToJSON)
 import           Data.Foldable                  (traverse_)
 import           Data.List                      (partition, (\\))
+import           Data.Maybe                     (mapMaybe)
 import           Data.Text.Prettyprint.Doc
 import           Data.Traversable               (for)
 import           GHC.Generics                   (Generic)
@@ -38,17 +39,17 @@ import           Plutus.Contract.Util           (uncurry3)
 data ChainEvent =
     TxnValidate TxId Tx [ScriptValidationEvent]
     -- ^ A transaction has been validated and added to the blockchain.
-    | TxnValidationFail TxId Tx Index.ValidationError [ScriptValidationEvent]
-    -- ^ A transaction failed  to validate.
+    | TxnValidationFail Index.ValidationPhase TxId Tx Index.ValidationError [ScriptValidationEvent]
+    -- ^ A transaction failed to validate.
     | SlotAdd Slot
     deriving stock (Eq, Show, Generic)
     deriving anyclass (FromJSON, ToJSON)
 
 instance Pretty ChainEvent where
     pretty = \case
-        TxnValidate i _ _         -> "TxnValidate" <+> pretty i
-        TxnValidationFail i _ e _ -> "TxnValidationFail" <+> pretty i <> colon <+> pretty e
-        SlotAdd sl                -> "SlotAdd" <+> pretty sl
+        TxnValidate i _ _           -> "TxnValidate" <+> pretty i
+        TxnValidationFail p i _ e _ -> "TxnValidationFail" <+> pretty p <+> pretty i <> colon <+> pretty e
+        SlotAdd sl                  -> "SlotAdd" <+> pretty sl
 
 -- | A pool of transactions which have yet to be validated.
 type TxPool = [Tx]
@@ -105,7 +106,7 @@ logEvent :: Member (LogMsg ChainEvent) effs => ChainEvent -> Eff effs ()
 logEvent e = case e of
     SlotAdd{}           -> logDebug e
     TxnValidationFail{} -> logWarn e
-    _                   -> logInfo e
+    TxnValidate{}       -> logInfo e
 
 handleChain :: (Members ChainEffs effs) => ChainEffect ~> Eff effs
 handleChain = \case
@@ -141,10 +142,11 @@ validateBlock slot@(Slot s) idx txns =
 
         -- The new block contains all transaction that were validated
         -- successfully
-        block = map toOnChain processed
+        block = mapMaybe toOnChain processed
           where
-            toOnChain (tx, Just _, _)  = Invalid tx
-            toOnChain (tx, Nothing, _) = Valid tx
+            toOnChain (_ , Just (Index.Phase1, _), _) = Nothing
+            toOnChain (tx, Just (Index.Phase2, _), _) = Just (Invalid tx)
+            toOnChain (tx, Nothing               , _) = Just (Valid tx)
 
         -- Also return an `EmulatorEvent` for each transaction that was
         -- processed
@@ -157,14 +159,14 @@ validateBlock slot@(Slot s) idx txns =
 canValidateNow :: Slot -> Tx -> Bool
 canValidateNow slot tx = Interval.member slot (txValidRange tx)
 
-mkValidationEvent :: Tx -> Maybe Index.ValidationError -> [ScriptValidationEvent] -> ChainEvent
+mkValidationEvent :: Tx -> Maybe Index.ValidationErrorInPhase -> [ScriptValidationEvent] -> ChainEvent
 mkValidationEvent t result events =
     case result of
-        Nothing  -> TxnValidate (txId t) t events
-        Just err -> TxnValidationFail (txId t) t err events
+        Nothing           -> TxnValidate (txId t) t events
+        Just (phase, err) -> TxnValidationFail phase (txId t) t err events
 
 -- | Validate a transaction in the current emulator state.
-validateEm :: S.MonadState Index.UtxoIndex m => Slot -> Tx -> m (Maybe Index.ValidationError, [ScriptValidationEvent])
+validateEm :: S.MonadState Index.UtxoIndex m => Slot -> Tx -> m (Maybe Index.ValidationErrorInPhase, [ScriptValidationEvent])
 validateEm h txn = do
     idx <- S.get
     let ((e, idx'), events) = Index.runValidation (Index.validateTransaction h txn) idx

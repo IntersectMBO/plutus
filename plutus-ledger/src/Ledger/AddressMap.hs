@@ -28,8 +28,7 @@ module Ledger.AddressMap(
     ) where
 
 import           Codec.Serialise.Class    (Serialise)
-import           Control.Lens             (At (..), Index, IxValue, Ixed (..), Lens', at, lens, non, view, (&), (.~),
-                                           (^.))
+import           Control.Lens             (At (..), Index, IxValue, Ixed (..), Lens', at, lens, non, (&), (.~), (^.))
 import           Control.Monad            (join)
 import           Data.Aeson               (FromJSON (..), ToJSON (..))
 import qualified Data.Aeson               as JSON
@@ -44,7 +43,6 @@ import           GHC.Generics             (Generic)
 import           Ledger.Blockchain
 import           Plutus.V1.Ledger.Address (Address (..))
 import           Plutus.V1.Ledger.Tx      (Tx (..), TxIn (..), TxOut (..), TxOutRef (..), TxOutTx (..), txId)
-import qualified Plutus.V1.Ledger.Tx      as Tx
 import           Plutus.V1.Ledger.Value   (Value)
 
 type UtxoMap = Map TxOutRef TxOutTx
@@ -182,7 +180,7 @@ inputs addrs = Map.fromListWith Set.union
     . fmap (fmap Set.singleton . swap)
     . mapMaybe ((\a -> sequence (a, Map.lookup a addrs)) . txInRef)
     . Set.toList
-    . eitherTx (view Tx.inputsFees) (view Tx.inputs <> view Tx.inputsFees)
+    . consumableInputs
 
 -- | Restrict an 'AddressMap' to a set of addresses.
 restrict :: AddressMap -> Set.Set Address -> AddressMap

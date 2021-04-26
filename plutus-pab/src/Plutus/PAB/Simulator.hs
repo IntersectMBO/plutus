@@ -91,7 +91,8 @@ import qualified Data.Text.IO                                   as Text
 import           Data.Text.Prettyprint.Doc                      (Pretty (pretty), defaultLayoutOptions, layoutPretty)
 import qualified Data.Text.Prettyprint.Doc.Render.Text          as Render
 import           Data.Time.Units                                (Millisecond)
-import           Ledger                                         (Address (..), Tx, TxId, TxOut (..), txFee, txId)
+import           Ledger                                         (Address (..), Blockchain, Tx, TxId, TxOut (..),
+                                                                 eitherTx, txFee, txId)
 import           Ledger.Crypto                                  (PubKey, toPublicKey)
 import qualified Ledger.Index                                   as UtxoIndex
 import           Ledger.Value                                   (Value, flattenValue)
@@ -671,9 +672,8 @@ valueAt address = do
 walletFees :: forall t. Wallet -> Simulation t Value
 walletFees wallet = succeededFees <$> walletSubmittedFees <*> blockchain
     where
-        succeededFees :: Map TxId Value -> [[Tx]] -> Value
-        succeededFees submitted = foldMap . foldMap $ fold . (submitted Map.!?) . txId
-        -- succeededFees submitted _ = fold submitted
+        succeededFees :: Map TxId Value -> Blockchain -> Value
+        succeededFees submitted = foldMap . foldMap $ fold . (submitted Map.!?) . eitherTx txId txId
         walletSubmittedFees = do
             SimulatorState{_agentStates} <- Core.askUserEnv @t @(SimulatorState t)
             result <- liftIO $ STM.atomically $ do
@@ -684,7 +684,7 @@ walletFees wallet = succeededFees <$> walletSubmittedFees <*> blockchain
                 Just s  -> pure (_submittedFees s)
 
 -- | The entire chain (newest transactions first)
-blockchain :: forall t. Simulation t [[Tx]]
+blockchain :: forall t. Simulation t Blockchain
 blockchain = do
     SimulatorState{_chainState} <- Core.askUserEnv @t @(SimulatorState t)
     Chain.ChainState{Chain._chainNewestFirst} <- liftIO $ STM.readTVarIO _chainState

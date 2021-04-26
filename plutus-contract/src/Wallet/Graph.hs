@@ -16,7 +16,6 @@ module Wallet.Graph
   , UtxoLocation
   ) where
 
-import           Control.Lens      (view)
 import           Data.Aeson.Types  (ToJSON, toJSON)
 import           Data.List         (nub)
 import qualified Data.Map          as Map
@@ -109,12 +108,9 @@ txnFlows keys bc = catMaybes (utxoLinks ++ foldMap extract bc')
     utxoLinks = uncurry (flow Nothing) <$> zip (utxoTargets <$> utxos) utxos
 
     extract :: (UtxoLocation, OnChainTx) -> [Maybe FlowLink]
-    extract (loc, Valid tx) =
-      let targetRef = mkRef $ txId tx in
-      fmap (flow (Just loc) targetRef . txInRef) (Set.toList $ view inputs tx <> view inputsFees tx)
-    extract (loc, Invalid tx) =
-      let targetRef = mkRef $ txId tx in
-      fmap (flow (Just loc) targetRef . txInRef) (Set.toList $ view inputsFees tx)
+    extract (loc, tx) =
+      let targetRef = mkRef $ eitherTx txId txId tx in
+      fmap (flow (Just loc) targetRef . txInRef) (Set.toList $ consumableInputs tx)
     -- make a flow for a TxOutRef
 
     flow :: Maybe UtxoLocation -> TxRef -> TxOutRef -> Maybe FlowLink

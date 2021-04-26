@@ -64,7 +64,7 @@ import           Ledger                                 (Block, OnChainTx (..), 
 import           Ledger.AddressMap                      (UtxoMap)
 import qualified Ledger.AddressMap                      as AM
 import           Ledger.Constraints.OffChain            (UnbalancedTx)
-import           Ledger.Index                           (ScriptValidationEvent, ValidationError)
+import           Ledger.Index                           (ScriptValidationEvent, ValidationError, ValidationPhase (..))
 import           Ledger.Tx                              (Address, Tx, TxOut (..), TxOutTx (..))
 import           Ledger.Value                           (Value)
 import           Plutus.Contract                        (Contract)
@@ -94,8 +94,11 @@ type EmulatorEventFold a = Fold EmulatorEvent a
 type EmulatorEventFoldM effs a = FoldM (Eff effs) EmulatorEvent a
 
 -- | Transactions that failed to validate
-failedTransactions :: EmulatorEventFold [(TxId, Tx, ValidationError, [ScriptValidationEvent])]
-failedTransactions = preMapMaybe (preview (eteEvent . chainEvent . _TxnValidationFail)) L.list
+failedTransactions :: Maybe ValidationPhase -> EmulatorEventFold [(TxId, Tx, ValidationError, [ScriptValidationEvent])]
+failedTransactions phase = preMapMaybe (preview (eteEvent . chainEvent . _TxnValidationFail) >=> filterPhase phase) L.list
+    where
+        filterPhase Nothing (_, i, t, v, e)   = Just (i, t, v, e)
+        filterPhase (Just p) (p', i, t, v, e) = if p == p' then Just (i, t, v, e) else Nothing
 
 -- | Transactions that were validated
 validatedTransactions :: EmulatorEventFold [(TxId, Tx, [ScriptValidationEvent])]
@@ -106,9 +109,9 @@ scriptEvents :: EmulatorEventFold [ScriptValidationEvent]
 scriptEvents = preMapMaybe (preview (eteEvent . chainEvent) >=> getEvent) (concat <$> L.list) where
     getEvent :: ChainEvent -> Maybe [ScriptValidationEvent]
     getEvent = \case
-        TxnValidate _ _ es         -> Just es
-        TxnValidationFail _ _ _ es -> Just es
-        SlotAdd _                  -> Nothing
+        TxnValidate _ _ es           -> Just es
+        TxnValidationFail _ _ _ _ es -> Just es
+        SlotAdd _                    -> Nothing
 
 -- | The state of a contract instance, recovered from the emulator log.
 instanceState ::
@@ -239,7 +242,7 @@ walletFunds = valueAtAddress . walletAddress
 
 -- | The fees paid by a wallet
 walletFees :: Wallet -> EmulatorEventFold Value
-walletFees w = fees <$> walletSubmittedFees <*> validatedTransactions <*> failedTransactions
+walletFees w = fees <$> walletSubmittedFees <*> validatedTransactions <*> failedTransactions (Just Phase2)
     where
         fees submitted txsV txsF = findFees (\(i, _, _) -> i) submitted txsV <> findFees (\(i, _, _, _) -> i) submitted txsF
         findFees getId submitted = foldMap (\t -> fold (Map.lookup (getId t) submitted))
@@ -265,9 +268,10 @@ chainEvents = preMapMaybe (preview (eteEvent . chainEvent)) L.list
 blockchain :: EmulatorEventFold [Block]
 blockchain =
     let step (currentBlock, otherBlocks) = \case
-            SlotAdd _                   -> ([], currentBlock : otherBlocks)
-            TxnValidate _ txn _         -> (Valid txn : currentBlock, otherBlocks)
-            TxnValidationFail _ txn _ _ -> (Invalid txn : currentBlock, otherBlocks)
+            SlotAdd _                          -> ([], currentBlock : otherBlocks)
+            TxnValidate _ txn _                -> (Valid txn : currentBlock, otherBlocks)
+            TxnValidationFail Phase1 _ _   _ _ -> (currentBlock, otherBlocks)
+            TxnValidationFail Phase2 _ txn _ _ -> (Invalid txn : currentBlock, otherBlocks)
         initial = ([], [])
         extract (currentBlock, otherBlocks) =
             reverse (currentBlock : otherBlocks)

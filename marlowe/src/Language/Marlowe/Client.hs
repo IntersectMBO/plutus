@@ -36,8 +36,9 @@ import           Language.Marlowe.Semantics   hiding (Contract)
 import qualified Language.Marlowe.Semantics   as Marlowe
 import           Language.Marlowe.Util        (extractContractRoles)
 import           Ledger                       (CurrencySymbol, Datum (..), PubKeyHash, ScriptContext (..), Slot (..),
-                                               TokenName, TxOut (..), TxOutTx (..), ValidatorHash, mkValidatorScript,
-                                               pubKeyHash, txOutDatum, txOutValue, txOutputs, validatorHash, valueSpent)
+                                               TokenName, TxOut (..), TxOutTx (..), ValidatorHash, eitherTx,
+                                               mkValidatorScript, pubKeyHash, txOutDatum, txOutValue, txOutputs,
+                                               validatorHash, valueSpent)
 import           Ledger.Ada                   (adaSymbol, adaValueOf)
 import           Ledger.Address               (pubKeyHashAddress, scriptHashAddress)
 import           Ledger.Constraints
@@ -532,7 +533,7 @@ marloweCompanionContract = contracts
         cont ownAddress
     cont ownAddress = do
         txns <- nextTransactionsAt ownAddress
-        let txOuts = txns >>= txOutputs
+        let txOuts = txns >>= eitherTx (const []) txOutputs
         forM_ txOuts notifyOnNewContractRoles
         cont ownAddress
 

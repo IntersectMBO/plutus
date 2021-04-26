@@ -71,7 +71,7 @@ data AnnotatedTx =
     AnnotatedTx
         { sequenceId         :: SequenceId
         , txId               :: TxId
-        , tx                 :: Tx
+        , tx                 :: OnChainTx
         , dereferencedInputs :: [DereferencedInput]
         , balances           :: Map BeneficialOwner Value
         }

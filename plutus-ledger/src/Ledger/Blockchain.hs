@@ -11,6 +11,7 @@ module Ledger.Blockchain (
     Blockchain,
     Context(..),
     eitherTx,
+    consumableInputs,
     transaction,
     out,
     value,
@@ -26,12 +27,13 @@ module Ledger.Blockchain (
 
 import           Codec.Serialise          (Serialise)
 import           Control.DeepSeq          (NFData)
-import           Control.Lens             (makePrisms)
+import           Control.Lens             (makePrisms, view)
 import           Control.Monad            (join)
 import           Data.Aeson               (FromJSON, ToJSON)
 import           Data.Map                 (Map)
 import qualified Data.Map                 as Map
 import           Data.Monoid              (First (..))
+import qualified Data.Set                 as Set
 import           GHC.Generics             (Generic)
 
 import           Plutus.V1.Ledger.Crypto
@@ -54,6 +56,9 @@ type Blockchain = [Block]
 eitherTx :: (Tx -> r) -> (Tx -> r) -> OnChainTx -> r
 eitherTx ifInvalid _ (Invalid tx) = ifInvalid tx
 eitherTx _ ifValid (Valid tx)     = ifValid tx
+
+consumableInputs :: OnChainTx -> Set.Set TxIn
+consumableInputs = eitherTx (view inputsFees) (view inputs <> view inputsFees)
 
 -- | Lookup a transaction in a 'Blockchain' by its id.
 transaction :: Blockchain -> TxId -> Maybe Tx
