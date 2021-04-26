@@ -47,7 +47,7 @@ import qualified Data.UUID.V4                     as UUID
 import           GHC.Generics                     (Generic)
 import qualified Language.Haskell.TH.Syntax       as TH
 
-import           Ledger                           (Address, OnChainTx, SlotRange, TxIn, TxOut, txId)
+import           Ledger                           (Address, OnChainTx, SlotRange, TxIn, TxOut, eitherTx, txId)
 import           Ledger.Constraints.OffChain      (MkTxError)
 import           Plutus.Contract.Checkpoint       (AsCheckpointError (..), CheckpointError)
 import           Wallet.Emulator.Error            (WalletAPIError)

@@ -55,7 +55,7 @@ import           Data.Text                            (Text)
 import qualified Data.Text                            as Text
 import           Data.Void                            (Void, absurd)
 import           GHC.Generics                         (Generic)
-import           Ledger                               (OnChainTx (..), Slot, Value)
+import           Ledger                               (Slot, Value)
 import qualified Ledger
 import           Ledger.AddressMap                    (UtxoMap, outputsMapFromTxForAddress)
 import           Ledger.Constraints                   (ScriptLookups, TxConstraints (..), mustPayToTheScript)
@@ -263,13 +263,6 @@ waitForUpdate StateMachineClient{scInstance, scChooser} = do
     case states of
         [] -> pure Nothing
         xs -> either (throwing _SMContractError) (pure . Just) (scChooser xs)
-
-outputsMap :: Address -> Ledger.OnChainTx -> Map TxOutRef TxOutTx
-outputsMap addr (Valid t) =
-        fmap (\txout -> TxOutTx{txOutTxTx=t, txOutTxOut = txout})
-        $ Map.filter ((==) addr . Tx.txOutAddress)
-        $ Tx.unspentOutputsTx t
-outputsMap _ (Invalid _) = mempty
 
 -- | Tries to run one step of a state machine: If the /guard/ (the last argument) returns @'Nothing'@ when given the
 -- unbalanced transaction to be submitted, the old state and the new step, the step is run and @'Right'@ the new state is returned.

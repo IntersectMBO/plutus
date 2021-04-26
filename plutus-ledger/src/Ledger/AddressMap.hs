@@ -124,11 +124,12 @@ traverseWithKey ::
   -> f AddressMap
 traverseWithKey f (AddressMap m) = AddressMap <$> Map.traverseWithKey f m
 
-outputsMapFromTxForAddress :: Address -> Tx -> Map TxOutRef TxOutTx
-outputsMapFromTxForAddress addr tx =
+outputsMapFromTxForAddress :: Address -> OnChainTx -> Map TxOutRef TxOutTx
+outputsMapFromTxForAddress addr (Valid tx) =
     fmap (\txout -> TxOutTx{txOutTxTx=tx, txOutTxOut = txout})
     $ Map.filter ((==) addr . txOutAddress)
     $ unspentOutputsTx tx
+outputsMapFromTxForAddress _ (Invalid _) = mempty
 
 -- | Create an 'AddressMap' with the unspent outputs of a single transaction.
 fromTxOutputs :: OnChainTx -> AddressMap
