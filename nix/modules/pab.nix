@@ -166,7 +166,7 @@ in
     };
 
     zeroSlotTime = mkOption {
-      type = types.string;
+      type = types.str;
       default = "2020-07-29T21:44:51Z"; # Wednesday, July 29, 2020 21:44:51 - shelley launch time
       description = ''
         Time of slot 0. Setting this (together with the slot length) enables pure datetime-to-slot mappings.
