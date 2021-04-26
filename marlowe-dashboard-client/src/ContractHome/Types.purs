@@ -5,7 +5,6 @@ import Analytics (class IsEvent, defaultEvent)
 import Contract.Types (State) as Contract
 import Data.Map (Map)
 import Data.Maybe (Maybe(..))
-import Marlowe.Semantics (Slot)
 import Types (ContractInstanceId)
 
 data ContractStatus
@@ -30,10 +29,8 @@ data Action
   = OpenTemplateLibraryCard
   | SelectView ContractStatus
   | OpenContract ContractInstanceId
-  | AdvanceTimedOutContracts Slot
 
 instance actionIsEvent :: IsEvent Action where
   toEvent OpenTemplateLibraryCard = Just $ defaultEvent "OpenTemplateLibraryCard"
   toEvent (SelectView _) = Just $ defaultEvent "SelectView"
   toEvent (OpenContract _) = Just $ defaultEvent "OpenContract"
-  toEvent (AdvanceTimedOutContracts _) = Nothing

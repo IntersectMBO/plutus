@@ -8,14 +8,17 @@ import Prelude
 import Capability.Contract (class ManageContract)
 import Capability.Toast (class Toast)
 import Capability.Wallet (class ManageWallet)
+import Contract.Lenses (_selectedStep)
+import Contract.State (applyTimeout)
 import Contract.State (dummyState, handleAction) as Contract
 import Contract.Types (Action(..), State) as Contract
+import ContractHome.Lenses (_contracts)
 import ContractHome.State (handleAction, mkInitialState) as ContractHome
 import ContractHome.Types (Action(..), State) as ContractHome
 import Control.Monad.Reader (class MonadAsk)
 import Data.Array (init, snoc)
 import Data.Foldable (for_)
-import Data.Lens (assign, modifying, set, use)
+import Data.Lens (assign, filtered, modifying, over, set, use)
 import Data.Lens.Extra (peruse)
 import Data.Lens.Fold (lastOf)
 import Data.Lens.Traversal (traversed)
@@ -98,8 +101,16 @@ handleAction CloseCard = do
     assign _cards remainingCards
 
 handleAction (SetCurrentSlot slot) = do
-  toContractHome $ ContractHome.handleAction $ ContractHome.AdvanceTimedOutContracts slot
-  assign _currentSlot slot
+  selectedStep <- peruse $ _selectedContract <<< _selectedStep
+  modify_
+    $ over
+        (_contractsState <<< _contracts <<< traversed <<< filtered (\contract -> contract.executionState.mNextTimeout == Just slot))
+        (applyTimeout slot)
+    <<< set _currentSlot slot
+  selectedStep' <- peruse $ _selectedContract <<< _selectedStep
+  when (selectedStep /= selectedStep')
+    $ for_ selectedStep'
+    $ \step -> toContract $ Contract.handleAction $ Contract.MoveToStep step
 
 handleAction (TemplateAction templateAction) = case templateAction of
   Template.SetTemplate template -> do
@@ -121,6 +132,7 @@ handleAction (ContractHomeAction contractHomeAction) = case contractHomeAction o
   a@(ContractHome.OpenContract _) -> do
     toContractHome $ ContractHome.handleAction a
     handleAction $ OpenCard ContractCard
+    toContract $ Contract.handleAction Contract.CarouselOpened
   _ -> toContractHome $ ContractHome.handleAction contractHomeAction
 
 handleAction (ContractAction contractAction) = case contractAction of

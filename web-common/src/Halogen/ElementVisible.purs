@@ -22,7 +22,7 @@ elementVisible ::
 elementVisible toAction element =
   EventSource.effectEventSource \emitter -> do
     observer <-
-      intersectionObserver \entries _ ->
+      intersectionObserver {} \entries _ ->
         for_ (head entries) \entry -> EventSource.emit emitter (toAction entry.isIntersecting)
-    observe element {} observer
+    observe element observer
     pure $ EventSource.Finalizer $ unobserve element observer

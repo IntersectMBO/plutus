@@ -8,16 +8,16 @@ module ContractHome.State
   ) where
 
 import Prelude
-import Contract.State (applyTimeout, applyTx, isContractClosed)
+import Contract.State (applyTx, isContractClosed)
 import Contract.State (mkInitialState) as Contract
 import Contract.Types (State) as Contract
-import ContractHome.Lenses (_contracts, _selectedContractIndex, _status)
+import ContractHome.Lenses (_selectedContractIndex, _status)
 import ContractHome.Types (Action(..), ContractStatus(..), State, PartitionedContracts)
 import Data.Array (catMaybes)
 import Data.Array as Array
 import Data.BigInteger (fromInt)
 import Data.Foldable (foldl)
-import Data.Lens (assign, filtered, over, traversed)
+import Data.Lens (assign)
 import Data.List as List
 import Data.Map (Map)
 import Data.Map as Map
@@ -28,10 +28,10 @@ import Data.UUID (emptyUUID)
 import Examples.PureScript.Escrow as Escrow
 import Examples.PureScript.EscrowWithCollateral as EscrowWithCollateral
 import Examples.PureScript.ZeroCouponBond as ZeroCouponBond
-import Halogen (HalogenM, modify_)
+import Halogen (HalogenM)
 import MainFrame.Types (ChildSlots, Msg)
 import Marlowe.Extended (TemplateContent(..), fillTemplate, resolveRelativeTimes, toCore)
-import Marlowe.Semantics (Input(..), Party(..), Slot(..), SlotInterval(..), Token(..), TransactionInput(..))
+import Marlowe.Semantics (ChoiceId(..), Input(..), Party(..), Slot(..), SlotInterval(..), Token(..), TransactionInput(..))
 import Types (ContractInstanceId(..))
 import WalletData.Validation (parseContractInstanceId)
 
@@ -54,13 +54,6 @@ handleAction OpenTemplateLibraryCard = pure unit -- handled in Play.State
 handleAction (SelectView view) = assign _status view
 
 handleAction (OpenContract ix) = assign _selectedContractIndex $ Just ix
-
--- FIXME: probably get rid of this action and take care of this in MainFrame.handleQuery
-handleAction (AdvanceTimedOutContracts currentSlot) =
-  modify_
-    $ over
-        (_contracts <<< traversed <<< filtered (\contract -> contract.executionState.mNextTimeout == Just currentSlot))
-        (applyTimeout currentSlot)
 
 partitionContracts :: Map ContractInstanceId Contract.State -> PartitionedContracts
 partitionContracts contracts =
@@ -146,6 +139,27 @@ filledContract2 (Slot currentSlot) = do
           , inputs:
               List.singleton
                 $ IDeposit (Role "Seller") (Role "Seller") (Token "" "") (fromInt 1000)
+          }
+      , TransactionInput
+          { interval:
+              (SlotInterval (Slot currentSlot) (Slot currentSlot))
+          , inputs:
+              List.singleton
+                $ IDeposit (Role "Buyer") (Role "Buyer") (Token "" "") (fromInt 1000)
+          }
+      , TransactionInput
+          { interval:
+              (SlotInterval (Slot currentSlot) (Slot currentSlot))
+          , inputs:
+              List.singleton
+                $ IDeposit (Role "Seller") (Role "Buyer") (Token "" "") (fromInt 500)
+          }
+      , TransactionInput
+          { interval:
+              (SlotInterval (Slot currentSlot) (Slot currentSlot))
+          , inputs:
+              List.singleton
+                $ IChoice (ChoiceId "Report problem" (Role "Buyer")) (fromInt 1)
           }
       ]
 
