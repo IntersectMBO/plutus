@@ -29,13 +29,6 @@ resource "aws_security_group" "public_alb" {
   }
 
   egress {
-    from_port   = local.prometheus_port
-    to_port     = local.prometheus_port
-    protocol    = "TCP"
-    cidr_blocks = var.private_subnet_cidrs
-  }
-
-  egress {
     from_port   = 80
     to_port     = 80
     protocol    = "TCP"
@@ -109,11 +102,6 @@ resource "aws_lb_listener_certificate" "marlowe" {
   certificate_arn = aws_acm_certificate.marlowe_private.arn
 }
 
-resource "aws_lb_listener_certificate" "monitoring" {
-  listener_arn    = aws_alb_listener.playground.arn
-  certificate_arn = aws_acm_certificate.monitoring_private.arn
-}
-
 resource "aws_lb_listener_certificate" "marlowe_dash" {
   listener_arn    = aws_alb_listener.playground.arn
   certificate_arn = aws_acm_certificate.marlowe_dash_private.arn
@@ -162,57 +150,6 @@ resource "aws_alb_target_group_attachment" "webghc_b" {
   target_group_arn = aws_alb_target_group.webghc.arn
   target_id        = aws_instance.webghc_b.id
   port             = "80"
-}
-
-# Monitoring
-resource "aws_alb_target_group" "monitoring" {
-  # ALB is taking care of SSL termination so we listen to port 80 here
-  port     = "80"
-  protocol = "HTTP"
-  vpc_id   = aws_vpc.plutus.id
-
-  health_check {
-    path = "/metrics"
-  }
-
-  stickiness {
-    type = "lb_cookie"
-  }
-}
-
-resource "aws_alb_listener_rule" "monitoring" {
-  depends_on   = [aws_alb_target_group.monitoring]
-  listener_arn = aws_alb_listener.playground.arn
-  priority     = 103
-
-  action {
-    type             = "forward"
-    target_group_arn = aws_alb_target_group.monitoring.id
-  }
-
-  condition {
-    host_header {
-      values = [local.monitoring_domain_name]
-    }
-  }
-}
-
-resource "aws_alb_target_group_attachment" "monitoring_a" {
-  target_group_arn = aws_alb_target_group.monitoring.arn
-  target_id        = aws_instance.prometheus.id
-  port             = local.prometheus_port
-}
-
-resource "aws_route53_record" "monitoring_alb" {
-  zone_id = var.monitoring_public_zone
-  name    = local.monitoring_domain_name
-  type    = "A"
-
-  alias {
-    name                   = aws_alb.plutus.dns_name
-    zone_id                = aws_alb.plutus.zone_id
-    evaluate_target_health = true
-  }
 }
 
 ## ALB rule for marlowe-dashboard
