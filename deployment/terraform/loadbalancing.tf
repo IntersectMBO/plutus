@@ -185,12 +185,6 @@ resource "aws_alb_target_group_attachment" "marlowe_dash_a" {
   port             = local.pab_port
 }
 
-# resource "aws_alb_target_group_attachment" "marlowe_dash_b" {
-#   target_group_arn = aws_alb_target_group.marlowe_dash.arn
-#   target_id        = aws_instance.marlowe_dash_b.id
-#   port             = local.pab_port
-# }
-
 resource "aws_route53_record" "marlowe_dash_alb" {
   zone_id = var.marlowe_dash_public_zone
   name    = local.marlowe_dash_domain_name
