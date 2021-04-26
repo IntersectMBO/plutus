@@ -10,9 +10,10 @@ import Prelude
 import Data.BigInteger (BigInteger, toNumber)
 import Data.DateTime (DateTime)
 import Data.Formatter.DateTime (FormatterCommand(..), format) as DateTime
+import Data.Formatter.Number (Formatter(..), format) as Number
 import Data.Int (floor, round)
 import Data.Int (toNumber) as Int
-import Data.Intl.NumberFormat (format) as Number
+--import Data.Intl.NumberFormat (format) as Number
 import Data.List as List
 import Data.Maybe (Maybe(..))
 import Data.Time.Duration (Seconds(..))
@@ -86,11 +87,21 @@ formatTime =
 
 humanizeValue :: Token -> BigInteger -> String
 -- FIXME: when we show ada (instead of lovelace) there is rounding, and I'm not sure if we want there to be
-humanizeValue (Token "" "") value = "₳ " <> Number.format (toAda value)
+humanizeValue (Token "" "") value = "₳ " <> Number.format currencyFormatter (toAda value)
 
-humanizeValue (Token "" "dollar") value = "$ " <> Number.format (toNumber value)
+humanizeValue (Token "" "dollar") value = "$ " <> Number.format currencyFormatter (toNumber value)
 
-humanizeValue (Token _ name) value = Number.format (toNumber value) <> " " <> name
+humanizeValue (Token _ name) value = Number.format currencyFormatter (toNumber value) <> " " <> name
 
 toAda :: BigInteger -> Number
 toAda lovelace = (toNumber lovelace) / 1000000.0
+
+currencyFormatter :: Number.Formatter
+currencyFormatter =
+  Number.Formatter
+    { sign: false
+    , before: 0
+    , comma: true
+    , after: 6
+    , abbreviations: false
+    }

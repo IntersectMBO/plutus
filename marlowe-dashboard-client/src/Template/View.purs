@@ -8,7 +8,7 @@ import Prelude hiding (div)
 import Css (applyWhen, classNames, hideWhen)
 import Css as Css
 import Data.Array (mapWithIndex)
-import Data.BigInteger (fromInt, fromString) as BigInteger
+import Data.BigInteger (fromString) as BigInteger
 import Data.Lens (view)
 import Data.Map (Map, lookup)
 import Data.Map (toUnfoldable) as Map
@@ -24,6 +24,7 @@ import Marlowe.Extended (Contract, TemplateContent, _valueContent, contractTypeI
 import Marlowe.Extended.Metadata (MetaData)
 import Marlowe.HasParties (getParties)
 import Marlowe.Market (contractTemplates)
+import Marlowe.PAB (contractCreationFee)
 import Marlowe.Semantics (Assets, Party(..), Slot)
 import Material.Icons (Icon(..), icon_)
 import Template.Lenses (_contractName, _contractNickname, _extendedContract, _metaData, _roleWallets, _slotContentStrings, _template, _templateContent)
@@ -287,10 +288,9 @@ reviewAndPay accessible metaData =
             [ p
                 [ classNames [ "text-sm" ] ]
                 [ text "Fee to pay:" ]
-            -- FIXME: replace fee placeholder with actual value
             , p
                 [ classNames Css.funds ]
-                [ text $ humanizeValue adaToken $ BigInteger.fromInt 50 ]
+                [ text $ humanizeValue adaToken contractCreationFee ]
             ]
         ]
     , div
@@ -364,10 +364,9 @@ contractSetupConfirmationCard assets =
         [ p
             [ classNames [ "mt-4", "text-sm", "font-semibold" ] ]
             [ text "Confirm payment of:" ]
-        -- FIXME: replace fee placeholder with actual value
         , p
             [ classNames [ "mb-4", "text-purple", "font-semibold", "text-2xl" ] ]
-            [ text $ humanizeValue adaToken $ BigInteger.fromInt 50 ]
+            [ text $ humanizeValue adaToken contractCreationFee ]
         , div
             [ classNames [ "flex" ] ]
             [ button

@@ -2,6 +2,8 @@ module Marlowe.PAB
   ( ContractType(..)
   , contractExe
   , contractType
+  , transactionFee
+  , contractCreationFee
   , ContractInstanceId(..)
   , MarloweParams(..)
   , ValidatorHash
@@ -10,6 +12,7 @@ module Marlowe.PAB
   ) where
 
 import Prelude
+import Data.BigInteger (BigInteger, fromInt)
 import Data.Generic.Rep (class Generic)
 import Data.Maybe (Maybe(..))
 import Data.Newtype (class Newtype)
@@ -50,6 +53,16 @@ contractType exe
   | exe == contractExe WalletFollowerContract = Just WalletFollowerContract
 
 contractType _ = Nothing
+
+-- in the PAB, transactions have a fixed cost of 10 lovelace; in the real node,
+-- transaction fees will vary, but this may still serve as a good approximation
+transactionFee :: BigInteger
+transactionFee = fromInt 10
+
+-- FIXME: it appears that creating a contract currently requires three transactions,
+-- but I believe it should be possible with one; check this with Alex
+contractCreationFee :: BigInteger
+contractCreationFee = transactionFee * (fromInt 3)
 
 newtype ContractInstanceId
   = ContractInstanceId UUID
