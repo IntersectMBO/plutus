@@ -50,9 +50,11 @@ receiveCollateral from amount timeout continue =
                     (Slot timeout)
                     Close
 
-
-invoice :: String -> String -> Value Observation -> Value Observation -> Slot -> Contract -> Contract
-invoice from to amount collateralAmount timeout continue =
+-- Any collateral-related code is commented out, until implemented properly
+-- invoice :: String -> String -> Value Observation -> Value Observation -> Slot -> Contract -> Contract
+-- invoice from to amount collateralAmount timeout continue =
+invoice :: String -> String -> Value Observation -> Slot -> Contract -> Contract
+invoice from to amount timeout continue =
     let party        = Role $ TokenName $ fromString from
         counterparty = Role $ TokenName $ fromString to
     in  When
@@ -66,12 +68,14 @@ invoice from to amount collateralAmount timeout continue =
                     )
             ]
             timeout
-            (Pay party
-                (Party counterparty)
-                ada
-                collateralAmount
-                Close
-            )
+            Close
+            -- Any collateral-related code is commented out, until implemented properly
+            -- (Pay party
+            --     (Party counterparty)
+            --     ada
+            --     collateralAmount
+            --     Close
+            -- )
 
 maxPseudoDecimalValue :: Integer
 maxPseudoDecimalValue = 100000000000000
@@ -149,22 +153,27 @@ genStaticContract terms =
                         "party"
                         "counterparty"
                         (Constant $ round amount)
-                        (Constant 0)
+                        -- Any collateral-related code is commented out, until implemented properly
+                        -- (Constant 0)
                         (Slot $ dayToSlotNumber cashPaymentDay)
                     | otherwise
                     = invoice
                         "counterparty"
                         "party"
                         (Constant $ round $ - amount)
-                        (Constant $ collateralAmount t)
+                        -- Any collateral-related code is commented out, until implemented properly
+                        -- (Constant $ collateralAmount t)
                         (Slot $ dayToSlotNumber cashPaymentDay)
-                withCollateral cont =
-                    receiveCollateral
-                        "counterparty"
-                        (collateralAmount t)
-                        (dayToSlotNumber $ ct_SD t)
-                        cont
-            in Success . withCollateral $ foldr gen Close cfs
+                -- Any collateral-related code is commented out, until implemented properly
+                -- withCollateral cont =
+                --     receiveCollateral
+                --         "counterparty"
+                --         (collateralAmount t)
+                --         (dayToSlotNumber $ ct_SD t)
+                --         cont
+            -- Any collateral-related code is commented out, until implemented properly
+            -- in Success . withCollateral $ foldr gen Close cfs
+            in Success $ foldr gen Close cfs
 
 
 genFsContract :: ContractTerms -> Validation [TermValidationError] Contract
@@ -198,7 +207,8 @@ genFsContract terms =
                             "party"
                             "counterparty"
                             (UseValue $ payoffAt t)
-                            (Constant 0)
+                            -- Any collateral-related code is commented out, until implemented properly
+                            -- (Constant 0)
                             date
                             cont
                     else
@@ -206,7 +216,8 @@ genFsContract terms =
                             "counterparty"
                             "party"
                             (NegValue $ UseValue $ payoffAt t)
-                            (Constant $ collateralAmount terms)
+                            -- Any collateral-related code is commented out, until implemented properly
+                            -- (Constant $ collateralAmount terms)
                             date
                             cont
                     where pof = payoffFs ev terms t (t - 1) prevDate (cashCalculationDay cf)
