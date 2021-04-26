@@ -146,12 +146,6 @@ resource "aws_alb_target_group_attachment" "webghc_a" {
   port             = "80"
 }
 
-resource "aws_alb_target_group_attachment" "webghc_b" {
-  target_group_arn = aws_alb_target_group.webghc.arn
-  target_id        = aws_instance.webghc_b.id
-  port             = "80"
-}
-
 ## ALB rule for marlowe-dashboard
 resource "aws_alb_target_group" "marlowe_dash" {
   # ALB is taking care of SSL termination so we listen to port 80 here

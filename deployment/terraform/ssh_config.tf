@@ -10,17 +10,6 @@ data "template_file" "ssh_config_section_webghc_a" {
   }
 }
 
-data "template_file" "ssh_config_section_webghc_b" {
-  template = file("${path.module}/templates/ssh-config")
-
-  vars = {
-    full_hostname    = "webghc-b.${aws_route53_zone.plutus_private_zone.name}"
-    short_hostname   = "webghc-b.${local.project}"
-    ip               = aws_instance.webghc_b.private_ip
-    bastion_hostname = aws_instance.bastion.*.public_ip[0]
-    user_name        = "root"
-  }
-}
 data "template_file" "ssh_config_section_marlowe_dash_a" {
   template = file("${path.module}/templates/ssh-config")
 
@@ -72,8 +61,6 @@ data "template_file" "ssh_config" {
   template = <<EOT
 $${webghc_a}
 
-$${webghc_b}
-
 $${marlowe_dash_a}
 
 $${marlowe_dash_b}
@@ -88,7 +75,6 @@ EOT
 
   vars = {
     webghc_a         = data.template_file.ssh_config_section_webghc_a.rendered
-    webghc_b         = data.template_file.ssh_config_section_webghc_b.rendered
     marlowe_dash_a   = data.template_file.ssh_config_section_marlowe_dash_a.rendered
     marlowe_dash_b   = data.template_file.ssh_config_section_marlowe_dash_b.rendered
     playgrounds_a    = data.template_file.ssh_config_section_playgrounds_a.rendered
