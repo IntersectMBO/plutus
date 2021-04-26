@@ -103,9 +103,9 @@ kind of the subtype in focus which may change.
 
 ```
 stepV : {A : ∅ ⊢⋆ J}(V : Value⋆ A)
-       → K ≡ J ⊎ Σ Kind (λ I → EvalCtx K I × Frame I J)
+       → (K ≡ J) ⊎ Σ Kind (λ I → EvalCtx K I × Frame I J)
        → ∃ (State K)
-stepV V (inj₁ refl) = -, □ V
+stepV V (inj₁ refl) = -, [] ◅ V
 stepV V (inj₂ (_ , E' , -· B)) = -, extendEvalCtx E' (V ·-)  ▻ B
 stepV V (inj₂ (_ , E' , (V-ƛ N ·-))) = -, E' ▻ (N [ discharge V ])
 stepV V (inj₂ (_ , E' , -⇒ B)) = -, extendEvalCtx E' (V ⇒-)  ▻ B
@@ -242,7 +242,45 @@ lem-→⋆ (ƛ A · B) ._ E (β-ƛ V) = step* refl (step* refl (step* (stepV·l-
 -- one every time. The termination checker cannot see that the call to
 -- dissect returns an E' that is smaller than E.
 
+dissect-lemma2 : ∀ (E : EvalCtx K K) → dissect E ≡ inj₁ refl -> E ≡ []
+dissect-lemma2 [] p = refl
+dissect-lemma2 (V ·r E) p with dissect E
+dissect-lemma2 (V ·r E) () | inj₁ refl
+dissect-lemma2 (E l· B) p with dissect E
+dissect-lemma2 (E l· B) p | inj₁ ()
+dissect-lemma2 (V ⇒r E) p with dissect E
+dissect-lemma2 (V ⇒r E) () | inj₁ refl
+dissect-lemma2 (E l⇒ B) p with dissect E
+dissect-lemma2 (E l⇒ B) () | inj₁ refl
+dissect-lemma2 (μr V E) p with dissect E
+dissect-lemma2 (μr V E) () | inj₁ refl
+dissect-lemma2 (μl E B) p with dissect E
+dissect-lemma2 (μl E B) p | inj₁ ()
+
+
+dissect-lemma : ∀ (E : EvalCtx K J)(E' : EvalCtx K J') F → dissect E ≡ inj₂ (_ , E' , F) -> E ≡ extendEvalCtx E' F
+dissect-lemma (x ·r E) E' F p with dissect E | inspect dissect E
+dissect-lemma (x ·r E) E' .(x ·-) refl | inj₁ refl | I[ eq ]
+  rewrite dissect-lemma2 E eq = refl
+dissect-lemma (x ·r E) .(x ·r E'') .F' refl | inj₂ (I , E'' , F') | I[_] eq = cong (_ ·r_) (dissect-lemma E E'' F' eq)
+dissect-lemma (E l· x) E' F p with dissect E | inspect dissect E
+dissect-lemma (E l· x) E' .(-· x) refl | inj₁ refl | I[ eq ] rewrite dissect-lemma2 E eq = refl
+dissect-lemma (E l· x) .(E'' l· x) .F' refl | inj₂ (I , E'' , F') | I[_] eq = cong (_l· _) (dissect-lemma E E'' F' eq)
+dissect-lemma (x ⇒r E) E' F p with dissect E | inspect dissect E
+dissect-lemma (x ⇒r E) E' .(x ⇒-) refl | inj₁ refl | I[ eq ] rewrite dissect-lemma2 E eq = refl
+dissect-lemma (x ⇒r E) .(x ⇒r E'') .F' refl | inj₂ (I , E'' , F') | I[_] eq = cong (_ ⇒r_) (dissect-lemma E E'' F' eq)
+dissect-lemma (E l⇒ x) E' F p with dissect E | inspect dissect E
+dissect-lemma (E l⇒ x) E' .(-⇒ x) refl | inj₁ refl | I[ eq ] rewrite dissect-lemma2 E eq = refl
+dissect-lemma (E l⇒ x) .(E'' l⇒ x) .F' refl | inj₂ (I , E'' , F') | I[_] eq = cong (_l⇒ _) (dissect-lemma E E'' F' eq)
+dissect-lemma (μr x E) E' F p with dissect E | inspect dissect E
+dissect-lemma (μr x E) E' .(μ x -) refl | inj₁ refl | I[ eq ] rewrite dissect-lemma2 E eq = refl
+dissect-lemma (μr x E) .(μr x E'') .F' refl | inj₂ (I , E'' , F') | I[_] eq = cong (μr _) (dissect-lemma E E'' F' eq)
+dissect-lemma (μl E B) E' F p with dissect E | inspect dissect E
+dissect-lemma (μl E B) E' .(μ- B) refl | inj₁ refl | I[ eq ] rewrite dissect-lemma2 E eq = refl
+dissect-lemma (μl E B) .(μl E'' B) .F' refl | inj₂ (I , E'' , F') | I[_] eq = cong (λ E → μl E B) (dissect-lemma E E'' F' eq)
+
 {-# TERMINATING #-}
+
 unwindVE : (A : ∅ ⊢⋆ I)(B : ∅ ⊢⋆ J)(E : EvalCtx K J)(E' : EvalCtx J I)
       → B ≡ closeEvalCtx E' A
       → (VA : Value⋆ A)
@@ -250,21 +288,21 @@ unwindVE : (A : ∅ ⊢⋆ I)(B : ∅ ⊢⋆ J)(E : EvalCtx K J)(E' : EvalCtx J 
       → (compEvalCtx E E' ◅ VA) -→s (E ◅ VB) 
 unwindVE A B E E' p VA VB with dissect' E' | inspect dissect' E'
 unwindVE A B E E' refl VA VB | inj₁ (refl , refl) | I[ eq ] rewrite compEvalCtx-eq E [] rewrite val-unique VA VB = base
-... | inj₂ (I , E'' , (-· C)) | I[ eq ] rewrite dissect-lemma E' E'' (-· C) eq =
+... | inj₂ (I , E'' , (-· C)) | I[ eq ] rewrite dissect'-lemma E' E'' (-· C) eq =
   ⊥-elim (lemV· (lem0 _ E'' (subst Value⋆ (trans p (closeEF E'' (-· C) A)) VB)))
-... | inj₂ (I , E'' , (V ·-)) | I[ eq ] rewrite dissect-lemma E' E'' (V ·-) eq =
+... | inj₂ (I , E'' , (V ·-)) | I[ eq ] rewrite dissect'-lemma E' E'' (V ·-) eq =
   ⊥-elim (lemV· (lem0 _ E'' (subst Value⋆ (trans p (closeEF E'' (V ·-) A)) VB)))
-unwindVE A B E E' refl VA VB | inj₂ (.* , E'' , (-⇒ C)) | I[ eq ] rewrite dissect-lemma E' E'' (-⇒ C) eq with decVal C
+unwindVE A B E E' refl VA VB | inj₂ (.* , E'' , (-⇒ C)) | I[ eq ] rewrite dissect'-lemma E' E'' (-⇒ C) eq with decVal C
 ... | inj₁ VC  = step*
   (cong (stepV VA) (trans (cong dissect (compEF' E E'' (-⇒ C))) (lemma (compEvalCtx E E'') (-⇒ C))))
   (step** (lemV C VC (extendEvalCtx (compEvalCtx E E'') (VA ⇒-)))
           (step* (cong (stepV VC) (lemma (compEvalCtx E E'') (VA ⇒-))) (unwindVE _ _ E E'' (closeEF E'' (-⇒ C) A) (VA V-⇒ VC) VB)))
 ... | inj₂ ¬VC = ⊥-elim (¬VC (lem0 C (extendEvalCtx E'' (VA ⇒-)) (subst Value⋆ (trans (closeEF E'' (-⇒ C) A) (sym (closeEF E'' (VA ⇒-) C))) VB)))
-unwindVE A B E E' refl VA VB | inj₂ (.* , E'' , (V ⇒-)) | I[ eq ] rewrite dissect-lemma E' E'' (V ⇒-) eq = step* (cong (stepV VA) (trans (cong dissect (compEF' E E'' (V ⇒-))) (lemma (compEvalCtx E E'') (V ⇒-)))) (unwindVE _ _ E E'' (closeEF E'' (V ⇒-) A) (V V-⇒ VA) VB)
-unwindVE A B E E' refl VA VB | inj₂ (.* , E'' , (μ- C)) | I[ eq ] rewrite dissect-lemma E' E'' (μ- C) eq with decVal C
+unwindVE A B E E' refl VA VB | inj₂ (.* , E'' , (V ⇒-)) | I[ eq ] rewrite dissect'-lemma E' E'' (V ⇒-) eq = step* (cong (stepV VA) (trans (cong dissect (compEF' E E'' (V ⇒-))) (lemma (compEvalCtx E E'') (V ⇒-)))) (unwindVE _ _ E E'' (closeEF E'' (V ⇒-) A) (V V-⇒ VA) VB)
+unwindVE A B E E' refl VA VB | inj₂ (.* , E'' , (μ- C)) | I[ eq ] rewrite dissect'-lemma E' E'' (μ- C) eq with decVal C
 ... | inj₁ VC  = step* (cong (stepV VA) (trans (cong dissect (compEF' E E'' (μ- C))) (lemma (compEvalCtx E E'') (μ- C)))) (step** (lemV C VC (extendEvalCtx (compEvalCtx E E'') (μ VA -))) (step* (cong (stepV VC) (lemma (compEvalCtx E E'') (μ VA -))) (unwindVE _ _ E E'' (closeEF E'' (μ- C) A) (V-μ VA VC) VB)))
 ... | inj₂ ¬VC = ⊥-elim (¬VC (lem0 C (extendEvalCtx E'' (μ VA -)) (subst Value⋆ (trans (closeEF E'' (μ- C) A) (sym (closeEF E'' (μ VA -) C))) VB)))
-unwindVE A B E E' refl VA VB | inj₂ (.* , E'' , μ V -) | I[ eq ] rewrite dissect-lemma E' E'' (μ V -) eq = step* (cong (stepV VA) (trans (cong dissect (compEF' E E'' (μ V -))) (lemma (compEvalCtx E E'') (μ V -)))) (unwindVE _ _ E E'' (closeEF E'' (μ V -) A) (V-μ V VA) VB)
+unwindVE A B E E' refl VA VB | inj₂ (.* , E'' , μ V -) | I[ eq ] rewrite dissect'-lemma E' E'' (μ V -) eq = step* (cong (stepV VA) (trans (cong dissect (compEF' E E'' (μ V -))) (lemma (compEvalCtx E E'') (μ V -)))) (unwindVE _ _ E E'' (closeEF E'' (μ V -) A) (V-μ V VA) VB)
 
 unwindE : (A : ∅ ⊢⋆ I)(B : ∅ ⊢⋆ J)(E : EvalCtx K J)(E' : EvalCtx J I)
       → B ≡ closeEvalCtx E' A
@@ -325,6 +363,26 @@ thm1 A A' E refl C V (trans—↠E {B = B} q q') with lemmaE' A E B q
   (step** (subst-step* (cong (λ E → _ , E ▻ A) (trans (sym (compEF E'' F E''')) (compEvalCtx-eq (extendEvalCtx E'' F) E'''))) (unwindE A _ (extendEvalCtx E'' F) E''' refl VE'''A)) (step** (lemmaF (closeEvalCtx E''' A) F E'' E'''' (ƛ L) N VE'''A (V-ƛ L) VN ¬VFE'''A (trans (trans (closeEF E'' F (closeEvalCtx E''' A)) (trans (cong (closeEvalCtx E'') (evalEF' F E''' A)) (sym  (close-comp E'' (evalFrame F E''') A)))) (trans (sym r') (sym (close-comp E'' E'''' (ƛ L · N)))) )) (step* (cong (stepV VN) (lemma (compEvalCtx E'' E'''') (V-ƛ L ·-))) (subst-step* (cong (λ E → _ , E ▻ (L [ N ])) (uniquenessE _ (lemE· (compEvalCtx E'' E'''')) (ƛ L · N) (L [ N ]) (β-ƛ VN) (compEvalCtx E'' E'''') E' refl (trans (trans (close-comp E'' E'''' (ƛ L · N)) r') p'))) base))))
   (thm1 (L [ N ]) B E' (sym p'') C V q')
 
-thm2 : (A B : ∅ ⊢⋆ K)(V : Value⋆ B) → A —↠E B -> ([] ▻ A) -→s ([] ◅ V)
+{-# TERMINATING #-}
+thm1b : (A : ∅ ⊢⋆ J)(A' : ∅ ⊢⋆ K)(E : EvalCtx K J)
+  → A' ≡ closeEvalCtx E A → (B : ∅ ⊢⋆ K)(V : Value⋆ B)
+  → (E ▻ A) -→s ([] ◅ V) ⊎ (∃ λ (W : Value⋆ A) → (E ◅ W) -→s ([] ◅ V)) → A' —↠E B
+thm1b (Π A) A' E p B V (inj₁ (step* refl q')) =
+ thm1b (Π A) A' E p B V (inj₂ ((V-Π A) , q'))
+thm1b (A ⇒ C) A' E p B V (inj₁ (step* refl q')) = thm1b A A' (extendEvalCtx E (-⇒ C)) (trans p (sym (closeEF E (-⇒ C) A))) B V (inj₁ q') 
+thm1b (ƛ A) A' E p B V (inj₁ (step* refl q')) =
+  thm1b (ƛ A) A' E p B V (inj₂ ((V-ƛ A) , q'))
+thm1b (A · C) A' E p B V (inj₁ (step* refl q')) = thm1b A A' (extendEvalCtx E (-· C)) (trans p (sym (closeEF E (-· C) A))) B V (inj₁ q')
+thm1b (μ A C) A' E p B V (inj₁ (step* refl q')) = thm1b A A' (extendEvalCtx E (μ- C)) (trans p (sym (closeEF E (μ- C) A))) B V (inj₁ q')
+thm1b (con c) A' E p B V (inj₁ (step* refl q')) = thm1b (con c) A' E p B V (inj₂ (V-con c , q'))
+thm1b A A' E p B V (inj₂ (W , q)) with dissect E | inspect dissect E
+thm1b A .A .[] refl A V (inj₂ (V , base)) | inj₁ refl | I[ eq ] = refl—↠E
+thm1b A A' E p B V (inj₂ (W , step* refl q)) | inj₁ refl | I[ eq ] rewrite dissect-lemma2 E eq = thm1b A A' [] p B V (inj₂ (W , q))
+... | inj₂ (I , E' , F) | I[ eq ] rewrite dissect-lemma E E' F eq = thm1b A A' (extendEvalCtx E' F) p B V (inj₂ (W , q))
+
+thm2 : (A B : ∅ ⊢⋆ K)(V : Value⋆ B) → A —↠E B → ([] ▻ A) -→s ([] ◅ V)
 thm2 A B V p = thm1 A A [] refl B V p
+
+thm2b : (A B : ∅ ⊢⋆ K)(V : Value⋆ B) → ([] ▻ A) -→s ([] ◅ V) → A —↠E B
+thm2b A B V p = thm1b A A [] refl B V (inj₁ p)
 ```

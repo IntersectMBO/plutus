@@ -55,19 +55,21 @@ import           Data.Text                            (Text)
 import qualified Data.Text                            as Text
 import           Data.Void                            (Void, absurd)
 import           GHC.Generics                         (Generic)
-
 import           Ledger                               (OnChainTx (..), Slot, Value)
 import qualified Ledger
-import           Ledger.AddressMap                    (UtxoMap)
+import           Ledger.AddressMap                    (UtxoMap, outputsMapFromTxForAddress)
 import           Ledger.Constraints                   (ScriptLookups, TxConstraints (..), mustPayToTheScript)
 import           Ledger.Constraints.OffChain          (UnbalancedTx)
 import qualified Ledger.Constraints.OffChain          as Constraints
 import           Ledger.Constraints.TxConstraints     (InputConstraint (..), OutputConstraint (..))
 import           Ledger.Crypto                        (pubKeyHash)
+import qualified Ledger.Interval                      as Interval
 import           Ledger.Tx                            as Tx
 import qualified Ledger.Typed.Scripts                 as Scripts
 import           Ledger.Typed.Tx                      (TypedScriptTxOut (..))
 import qualified Ledger.Typed.Tx                      as Typed
+import           Ledger.Value                         (AssetClass)
+import qualified Ledger.Value                         as Value
 import           Plutus.Contract
 import           Plutus.Contract.StateMachine.OnChain (State (..), StateMachine (..), StateMachineInstance (..))
 import qualified Plutus.Contract.StateMachine.OnChain as SM
@@ -150,15 +152,30 @@ defaultChooser xs  =
     let msg = "Found " <> show (length xs) <> " outputs, expected 1"
     in Left (ChooserError (Text.pack msg))
 
+-- | A state chooser function that searches for an output with the thread token
+threadTokenChooser ::
+    forall state input
+    . AssetClass
+    -> [OnChainState state input]
+    -> Either SMContractError (OnChainState state input)
+threadTokenChooser cur states =
+    let flt (TypedScriptTxOut{tyTxOutTxOut=TxOut{txOutValue}},_) = Value.assetClassValue cur 1 `Value.leq` txOutValue in
+    case filter flt states of
+        [x] -> Right x
+        xs ->
+            let msg = unwords ["Found ", show (length xs), "outputs with thread token ", show cur, "expected 1"]
+            in Left (ChooserError (Text.pack msg))
+
 -- | A state machine client with the 'defaultChooser' function
 mkStateMachineClient ::
     forall state input
     . SM.StateMachineInstance state input
     -> StateMachineClient state input
 mkStateMachineClient inst =
+    let scChooser = maybe defaultChooser threadTokenChooser $ SM.smThreadToken $ SM.stateMachine inst in
     StateMachineClient
         { scInstance = inst
-        , scChooser  = defaultChooser
+        , scChooser
         }
 
 {-| Get the current on-chain state of the state machine instance.
@@ -185,7 +202,8 @@ data WaitingResult a
     = Timeout Slot
     | ContractEnded
     | WaitingResult a
-  deriving (Show)
+  deriving (Show,Generic)
+  deriving anyclass (ToJSON, FromJSON)
 
 
 -- | Wait for the on-chain state of the state machine instance to change until timeoutSlot,
@@ -205,7 +223,10 @@ waitForUpdateUntil ::
 waitForUpdateUntil StateMachineClient{scInstance, scChooser} timeoutSlot = do
     let addr = Scripts.scriptAddress $ validatorInstance scInstance
     let go sl = do
-            txns <- acrTxns <$> addressChangeRequest AddressChangeRequest{acreqSlot = sl, acreqAddress=addr}
+            txns <- acrTxns <$> addressChangeRequest AddressChangeRequest
+                { acreqSlotRange = Interval.singleton sl
+                , acreqAddress = addr
+                }
             if null txns && sl < timeoutSlot
                 then go (succ sl)
                 else pure txns
@@ -213,7 +234,7 @@ waitForUpdateUntil StateMachineClient{scInstance, scChooser} timeoutSlot = do
     initial <- currentSlot
     txns <- go initial
     slot <- currentSlot -- current slot, can be after timeout
-    let states = txns >>= getStates scInstance . outputsMap addr
+    let states = txns >>= getStates scInstance . outputsMapFromTxForAddress addr
     case states of
         [] | slot < timeoutSlot -> pure ContractEnded
         [] | slot >= timeoutSlot -> pure $ Timeout timeoutSlot
@@ -238,7 +259,7 @@ waitForUpdate ::
 waitForUpdate StateMachineClient{scInstance, scChooser} = do
     let addr = Scripts.scriptAddress $ validatorInstance scInstance
     txns <- nextTransactionsAt addr
-    let states = txns >>= getStates scInstance . outputsMap addr
+    let states = txns >>= getStates scInstance . outputsMapFromTxForAddress addr
     case states of
         [] -> pure Nothing
         xs -> either (throwing _SMContractError) (pure . Just) (scChooser xs)
@@ -317,8 +338,8 @@ runInitialise ::
     -- ^ The value locked by the contract at the beginning
     -> Contract w schema e state
 runInitialise StateMachineClient{scInstance} initialState initialValue = mapError (review _SMContractError) $ do
-    let StateMachineInstance{validatorInstance} = scInstance
-        tx = mustPayToTheScript initialState initialValue
+    let StateMachineInstance{validatorInstance, stateMachine} = scInstance
+        tx = mustPayToTheScript initialState (initialValue <> SM.threadTokenValue stateMachine)
     let lookups = Constraints.scriptInstanceLookups validatorInstance
     utx <- either (throwing _ConstraintResolutionError) pure (Constraints.mkTx lookups tx)
     submitTxConfirmed utx
@@ -346,7 +367,8 @@ mkStep ::
     -> input
     -> Contract w schema e (Either (InvalidTransition state input) (StateMachineTransition state input))
 mkStep client@StateMachineClient{scInstance} input = do
-    let StateMachineInstance{stateMachine=StateMachine{smTransition}, validatorInstance} = scInstance
+    let StateMachineInstance{stateMachine, validatorInstance} = scInstance
+        StateMachine{smTransition} = stateMachine
     maybeState <- getOnChainState client
     case maybeState of
         Nothing -> pure $ Left $ InvalidTransition Nothing input
@@ -363,7 +385,7 @@ mkStep client@StateMachineClient{scInstance} input = do
                         outputConstraints =
                             if smFinal (SM.stateMachine scInstance) (stateData newState)
                                 then []
-                                else [OutputConstraint{ocDatum = stateData newState, ocValue = stateValue newState }]
+                                else [OutputConstraint{ocDatum = stateData newState, ocValue = stateValue newState <> SM.threadTokenValue stateMachine }]
                     in pure
                         $ Right
                         $ StateMachineTransition

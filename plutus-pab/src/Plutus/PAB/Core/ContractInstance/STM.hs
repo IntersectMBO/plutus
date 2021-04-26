@@ -46,7 +46,7 @@ import           Control.Applicative                      (Alternative (..))
 import           Control.Concurrent.STM                   (STM, TMVar, TVar)
 import qualified Control.Concurrent.STM                   as STM
 import           Control.Lens                             (view)
-import           Control.Monad                            (guard)
+import           Control.Monad                            (guard, void)
 import           Data.Aeson                               (Value)
 import           Data.Foldable                            (fold)
 import           Data.Map                                 (Map)
@@ -56,6 +56,7 @@ import qualified Data.Set                                 as Set
 import           Ledger                                   (Address, Slot, TxId, txOutTxOut, txOutValue)
 import           Ledger.AddressMap                        (AddressMap)
 import qualified Ledger.AddressMap                        as AM
+import           Ledger.Interval
 import qualified Ledger.Value                             as Value
 import           Plutus.Contract.Effects.AwaitTxConfirmed (TxConfirmed (..))
 import           Plutus.Contract.Effects.ExposeEndpoint   (ActiveEndpoint (..), EndpointValue (..))
@@ -347,14 +348,17 @@ watchedTransactions (InstancesState m) = do
 
 -- | Respond to an 'AddressChangeRequest' for a future slot.
 waitForAddressChange :: AddressChangeRequest -> BlockchainEnv -> STM AddressChangeResponse
-waitForAddressChange AddressChangeRequest{acreqSlot, acreqAddress} b@BlockchainEnv{beTxIndex} = do
-    _ <- awaitSlot (succ acreqSlot) b
+waitForAddressChange AddressChangeRequest{acreqSlotRange, acreqAddress} b@BlockchainEnv{beTxIndex} = do
+    case acreqSlotRange of
+        Interval _ (UpperBound (Finite s2) True)  -> void $ awaitSlot (succ s2) b
+        Interval _ (UpperBound (Finite s2) False) -> void $ awaitSlot s2 b
+        _                                         -> pure ()
     idx <- STM.readTVar beTxIndex
     pure
         AddressChangeResponse
         { acrAddress = acreqAddress
-        , acrSlot    = acreqSlot
-        , acrTxns    = Index.ciTx <$> Index.transactionsAt idx acreqSlot acreqAddress
+        , acrSlotRange    = acreqSlotRange
+        , acrTxns    = Index.ciTx <$> Index.transactionsAt idx acreqSlotRange acreqAddress
         }
 
 -- | Wait for the status of a transaction to be confirmed. TODO: Should be "status changed", some txns may never get to confirmed status

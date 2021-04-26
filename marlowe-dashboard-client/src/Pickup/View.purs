@@ -14,7 +14,7 @@ import Halogen.HTML.Properties (InputType(..), disabled, for, href, id_, list, p
 import Logo (marloweRunLogo)
 import MainFrame.Lenses (_card)
 import Material.Icons (Icon(..), icon_)
-import Pickup.Lenses (_pickupWalletString)
+import Pickup.Lenses (_pickingUp, _pickupWalletString)
 import Pickup.Types (Action(..), Card(..), PickupNewWalletContext(..), State)
 import Prim.TypeError (class Warn, Text)
 import WalletData.Lenses (_contractInstanceId, _contractInstanceIdString, _remoteDataWalletInfo, _walletNickname, _walletNicknameString)
@@ -26,24 +26,26 @@ renderPickupState :: forall p. WalletLibrary -> NewWalletDetails -> State -> HTM
 renderPickupState wallets newWalletDetails pickupState =
   let
     card = view _card pickupState
+
+    pickingUp = view _pickingUp pickupState
   in
     div
       [ classNames [ "grid", "h-full" ] ]
       [ main
           [ classNames [ "relative" ] ]
-          [ renderPickupCard wallets newWalletDetails card
+          -- In the Play view, there are potentially many cards all inside a containing div,
+          -- and the last one has a semi-transparent overlay (using class "last:bg-overlay").
+          -- Here in the Pickup view there is at most one card, but we need to put it inside
+          -- a containing div as well, so that it's the last child, and has the bg-overlay
+          -- applied.
+          [ div_ [ renderPickupCard wallets newWalletDetails card pickingUp ]
           , renderPickupScreen wallets pickupState
           ]
       ]
 
 ------------------------------------------------------------
-renderPickupCard :: forall p. WalletLibrary -> NewWalletDetails -> Maybe Card -> HTML p Action
-renderPickupCard wallets newWalletDetails card =
-  -- TODO: currently there is only one card rendered at any time, with different content
-  -- depending on the card selected in the state; we should change it so that all the
-  -- cards are rendered, with at most one visible at any time (likewise in Play.State).
-  -- The snag here is that some cards (like the `PickupWalletCard` below) take arguments
-  -- from the current card, so we will either need to remodel or use placeholders.
+renderPickupCard :: forall p. WalletLibrary -> NewWalletDetails -> Maybe Card -> Boolean -> HTML p Action
+renderPickupCard wallets newWalletDetails card pickingUp =
   div
     [ classNames $ Css.overlay $ isNothing card ]
     [ div
@@ -55,13 +57,13 @@ renderPickupCard wallets newWalletDetails card =
             [ icon_ Close ]
         , div_
             $ (flip foldMap card) \cardType -> case cardType of
-                PickupNewWalletCard pickupNewWalletContext -> [ pickupNewWalletCard wallets newWalletDetails pickupNewWalletContext ]
-                PickupWalletCard walletDetails -> [ pickupWalletCard walletDetails ]
+                PickupNewWalletCard pickupNewWalletContext -> [ pickupNewWalletCard wallets newWalletDetails pickingUp pickupNewWalletContext ]
+                PickupWalletCard walletDetails -> [ pickupWalletCard pickingUp walletDetails ]
         ]
     ]
 
-pickupNewWalletCard :: forall p. WalletLibrary -> NewWalletDetails -> PickupNewWalletContext -> HTML p Action
-pickupNewWalletCard wallets newWalletDetails pickupNewWalletContext =
+pickupNewWalletCard :: forall p. WalletLibrary -> NewWalletDetails -> Boolean -> PickupNewWalletContext -> HTML p Action
+pickupNewWalletCard wallets newWalletDetails pickingUp pickupNewWalletContext =
   let
     walletNicknameString = view _walletNicknameString newWalletDetails
 
@@ -127,15 +129,15 @@ pickupNewWalletCard wallets newWalletDetails pickupNewWalletContext =
               [ text "Cancel" ]
           , button
               [ classNames $ Css.primaryButton <> [ "flex-1" ]
-              , disabled $ isJust mWalletNicknameError || isJust mContractInstanceIdError
+              , disabled $ isJust mWalletNicknameError || isJust mContractInstanceIdError || pickingUp
               , onClick_ PickupNewWallet
               ]
-              [ text "Pickup" ]
+              [ text if pickingUp then "Picking up... " else "Pickup" ]
           ]
       ]
 
-pickupWalletCard :: forall p. WalletDetails -> HTML p Action
-pickupWalletCard walletDetails =
+pickupWalletCard :: forall p. Boolean -> WalletDetails -> HTML p Action
+pickupWalletCard pickingUp walletDetails =
   let
     nickname = view _walletNickname walletDetails
 
@@ -185,8 +187,9 @@ pickupWalletCard walletDetails =
           , button
               [ classNames $ Css.primaryButton <> [ "flex-1" ]
               , onClick_ $ PickupWallet walletDetails
+              , disabled pickingUp
               ]
-              [ text "Pickup" ]
+              [ text if pickingUp then "Picking up... " else "Pickup" ]
           ]
       ]
 

@@ -23,6 +23,7 @@ class
   subscribeToContract :: ContractInstanceId -> m Unit
   unsubscribeFromContract :: ContractInstanceId -> m Unit
 
+-- we can only send websocket messages in a HalogenM monad, but the compiler requires an AppM instance as well
 instance monadWebsocketAppM :: MonadWebsocket AppM where
   subscribeToWallet wallet = pure unit
   unsubscribeFromWallet wallet = pure unit

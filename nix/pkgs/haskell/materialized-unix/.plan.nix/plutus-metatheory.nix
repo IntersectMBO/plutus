@@ -23,14 +23,14 @@
       buildType = "Custom";
       isLocal = true;
       setup-depends = [
-        (hsPkgs.buildPackages.base or (pkgs.buildPackages.base or (errorHandler.buildToolDepError "base")))
-        (hsPkgs.buildPackages.Cabal or (pkgs.buildPackages.Cabal or (errorHandler.buildToolDepError "Cabal")))
-        (hsPkgs.buildPackages.process or (pkgs.buildPackages.process or (errorHandler.buildToolDepError "process")))
-        (hsPkgs.buildPackages.turtle or (pkgs.buildPackages.turtle or (errorHandler.buildToolDepError "turtle")))
+        (hsPkgs.buildPackages.base or (pkgs.buildPackages.base or (errorHandler.setupDepError "base")))
+        (hsPkgs.buildPackages.Cabal or (pkgs.buildPackages.Cabal or (errorHandler.setupDepError "Cabal")))
+        (hsPkgs.buildPackages.process or (pkgs.buildPackages.process or (errorHandler.setupDepError "process")))
+        (hsPkgs.buildPackages.turtle or (pkgs.buildPackages.turtle or (errorHandler.setupDepError "turtle")))
         ];
       detailLevel = "FullDetails";
       licenseFiles = [ "LICENSE" "NOTICE" ];
-      dataDir = "";
+      dataDir = ".";
       dataFiles = [];
       extraSrcFiles = [
         "README.md"
@@ -263,7 +263,7 @@
             (hsPkgs."process" or (errorHandler.buildDepError "process"))
             ];
           build-tools = [
-            (hsPkgs.buildPackages.plutus-core or (pkgs.buildPackages.plutus-core or (errorHandler.buildToolDepError "plutus-core")))
+            (hsPkgs.buildPackages.plutus-core.components.exes.plc or (pkgs.buildPackages.plc or (errorHandler.buildToolDepError "plutus-core:plc")))
             ];
           buildable = true;
           hsSourceDirs = [ "test" ];
@@ -280,7 +280,7 @@
             (hsPkgs."text" or (errorHandler.buildDepError "text"))
             ];
           build-tools = [
-            (hsPkgs.buildPackages.plutus-core or (pkgs.buildPackages.plutus-core or (errorHandler.buildToolDepError "plutus-core")))
+            (hsPkgs.buildPackages.plutus-core.components.exes.plc or (pkgs.buildPackages.plc or (errorHandler.buildToolDepError "plutus-core:plc")))
             ];
           buildable = true;
           hsSourceDirs = [ "test" ];

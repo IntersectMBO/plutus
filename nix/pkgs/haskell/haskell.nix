@@ -43,7 +43,6 @@ let
     sha256map = {
       "https://github.com/shmish111/purescript-bridge.git"."6a92d7853ea514be8b70bab5e72077bf5a510596" = "13j64vv116in3c204qsl1v0ajphac9fqvsjp7x3zzfr7n7g61drb";
       "https://github.com/shmish111/servant-purescript.git"."a76104490499aa72d40c2790d10e9383e0dbde63" = "11nxxmi5bw66va7psvrgrw7b7n85fvqgfp58yva99w3v9q3a50v9";
-      "https://github.com/michaelpj/unlit.git"."9ca1112093c5ffd356fc99c7dafa080e686dd748" = "145sffn8gbdn6xp9q5b75yd3m46ql5bnc02arzmpfs6wgjslfhff";
       "https://github.com/input-output-hk/cardano-base"."4251c0bb6e4f443f00231d28f5f70d42876da055" = "02a61ymvx054pcdcgvg5qj9kpybiajg993nr22iqiya196jmgciv";
       "https://github.com/input-output-hk/cardano-crypto.git"."f73079303f663e028288f9f4a9e08bcca39a923e" = "1n87i15x54s0cjkh3nsxs4r1x016cdw1fypwmr68936n3xxsjn6q";
       "https://github.com/input-output-hk/cardano-ledger-specs"."097890495cbb0e8b62106bcd090a5721c3f4b36f" = "0i3y9n0rsyarvhfqzzzjccqnjgwb9fbmbs6b7vj40afjhimf5hcj";
@@ -118,36 +117,33 @@ let
           iohk-monitoring.doHaddock = false;
 
           # Werror everything. This is a pain, see https://github.com/input-output-hk/haskell.nix/issues/519
-          plutus-core.package.ghcOptions = "-Werror";
-          marlowe.package.ghcOptions = "-Werror";
-          marlowe-symbolic.package.ghcOptions = "-Werror";
-          marlowe-actus.package.ghcOptions = "-Werror";
-          marlowe-playground-server.package.ghcOptions = "-Werror";
-          marlowe-dashboard-server.package.ghcOptions = "-Werror";
-          playground-common.package.ghcOptions = "-Werror";
+          plutus-core.ghcOptions = [ "-Werror" ];
+          marlowe.ghcOptions = [ "-Werror" ];
+          marlowe-symbolic.ghcOptions = [ "-Werror" ];
+          marlowe-actus.ghcOptions = [ "-Werror" ];
+          marlowe-playground-server.ghcOptions = [ "-Werror" ];
+          marlowe-dashboard-server.ghcOptions = [ "-Werror" ];
+          playground-common.ghcOptions = [ "-Werror" ];
           # FIXME: has warnings
           #plutus-metatheory.package.ghcOptions = "-Werror";
-          plutus-contract.package.ghcOptions = "-Werror";
-          plutus-ledger.package.ghcOptions = "-Werror";
-          plutus-ledger-api.package.ghcOptions = "-Werror";
-          plutus-playground-server.package.ghcOptions = "-Werror";
-          plutus-pab.package.ghcOptions = "-Werror";
-          plutus-tx.package.ghcOptions = "-Werror";
-          plutus-tx-plugin.package.ghcOptions = "-Werror";
-          plutus-doc.package.ghcOptions = "-Werror";
-          plutus-use-cases.package.ghcOptions = "-Werror";
+          plutus-contract.ghcOptions = [ "-Werror" ];
+          plutus-ledger.ghcOptions = [ "-Werror" ];
+          plutus-ledger-api.ghcOptions = [ "-Werror" ];
+          plutus-playground-server.ghcOptions = [ "-Werror" ];
+          plutus-pab.ghcOptions = [ "-Werror" ];
+          plutus-tx.ghcOptions = [ "-Werror" ];
+          plutus-tx-plugin.ghcOptions = [ "-Werror" ];
+          plutus-doc.ghcOptions = [ "-Werror" ];
+          plutus-use-cases.ghcOptions = [ "-Werror" ];
 
           # External package settings
 
-          # Using https connections ultimately requires x509. But on
-          # OSX, a pure build can't find the package. This is the
-          # solution used by the wallet build, and we reuse it here.
-          x509-system.components.library.preBuild = lib.optionalString (stdenv.isDarwin) ''
-            substituteInPlace System/X509/MacOS.hs --replace security /usr/bin/security
-          '';
-          inline-r.package.ghcOptions = "-XStandaloneKindSignatures";
+          inline-r.ghcOptions = [ "-XStandaloneKindSignatures" ];
 
-          eventful-sql-common.package.ghcOptions = "-XDerivingStrategies -XStandaloneDeriving -XUndecidableInstances -XDataKinds -XFlexibleInstances -XMultiParamTypeClasses";
+          # Haddock doesn't work for some reason
+          eventful-sql-common.doHaddock = false;
+          # Needs some extra options to work with newer persistent
+          eventful-sql-common.ghcOptions = [ "-XDerivingStrategies -XStandaloneDeriving -XUndecidableInstances -XDataKinds -XFlexibleInstances -XMultiParamTypeClasses" ];
 
           # Honestly not sure why we need this, it has a mysterious unused dependency on "m"
           # This will go away when we upgrade nixpkgs and things use ieee754 anyway.

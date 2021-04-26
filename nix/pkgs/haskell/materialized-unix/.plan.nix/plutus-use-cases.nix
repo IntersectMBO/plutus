@@ -24,7 +24,7 @@
       isLocal = true;
       detailLevel = "FullDetails";
       licenseFiles = [ "LICENSE" "NOTICE" ];
-      dataDir = "";
+      dataDir = ".";
       dataFiles = [];
       extraSrcFiles = [];
       extraTmpFiles = [];
@@ -52,6 +52,7 @@
           (hsPkgs."hashable" or (errorHandler.buildDepError "hashable"))
           (hsPkgs."freer-simple" or (errorHandler.buildDepError "freer-simple"))
           (hsPkgs."streaming" or (errorHandler.buildDepError "streaming"))
+          (hsPkgs."semigroups" or (errorHandler.buildDepError "semigroups"))
           ] ++ (pkgs.lib).optional (!(compiler.isGhcjs && true || system.isGhcjs)) (hsPkgs."plutus-tx-plugin" or (errorHandler.buildDepError "plutus-tx-plugin"));
         buildable = true;
         modules = [
@@ -62,6 +63,7 @@
           "Plutus/Contracts/Currency"
           "Plutus/Contracts/ErrorHandling"
           "Plutus/Contracts/Escrow"
+          "Plutus/Contracts/SimpleEscrow"
           "Plutus/Contracts/Future"
           "Plutus/Contracts/GameStateMachine"
           "Plutus/Contracts/Governance"
@@ -125,6 +127,7 @@
             "Spec/Currency"
             "Spec/ErrorHandling"
             "Spec/Escrow"
+            "Spec/SimpleEscrow"
             "Spec/Future"
             "Spec/GameStateMachine"
             "Spec/Governance"
@@ -182,6 +185,7 @@
             "Spec/Currency"
             "Spec/ErrorHandling"
             "Spec/Escrow"
+            "Spec/SimpleEscrow"
             "Spec/Future"
             "Spec/GameStateMachine"
             "Spec/Governance"

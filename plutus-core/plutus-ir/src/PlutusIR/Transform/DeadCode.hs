@@ -3,7 +3,7 @@
 {-# LANGUAGE LambdaCase       #-}
 {-# LANGUAGE TypeOperators    #-}
 -- | Optimization passes for removing dead code, mainly dead let bindings.
-module PlutusIR.Optimizer.DeadCode (removeDeadBindings) where
+module PlutusIR.Transform.DeadCode (removeDeadBindings) where
 
 import           PlutusIR
 import qualified PlutusIR.Analysis.Dependencies as Deps

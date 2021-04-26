@@ -44,11 +44,11 @@ type NewAPI t walletId -- see note [WalletID type in wallet API]
         ("activate" :> ReqBody '[ JSON] (ContractActivationArgs t) :> Post '[JSON] ContractInstanceId -- start a new instance
             :<|> "instance" :>
                     (Capture "contract-instance-id" Text :>
-                        ( "status" :> Get '[JSON] (ContractInstanceClientState) -- Current status of contract instance
+                        ( "status" :> Get '[JSON] (ContractInstanceClientState t) -- Current status of contract instance
                         :<|> "endpoint" :> Capture "endpoint-name" String :> ReqBody '[JSON] JSON.Value :> Post '[JSON] () -- Call an endpoint. Make
                         )
                     )
-            :<|> "instances" :> "wallet" :> Capture "wallet-id" walletId :> Get '[JSON] [ContractInstanceClientState]
-            :<|> "instances" :> Get '[ JSON] [ContractInstanceClientState] -- list of all active contract instances
+            :<|> "instances" :> "wallet" :> Capture "wallet-id" walletId :> Get '[JSON] [ContractInstanceClientState t]
+            :<|> "instances" :> Get '[ JSON] [ContractInstanceClientState t] -- list of all active contract instances
             :<|> "definitions" :> Get '[JSON] [ContractSignatureResponse t] -- list of available contracts
         )

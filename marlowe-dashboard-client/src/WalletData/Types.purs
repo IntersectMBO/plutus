@@ -45,6 +45,8 @@ type WalletDetails
     , assets :: Assets
     }
 
+-- this is the data that the wallet API returns when creating a wallet and when subsequently requesting
+-- its "own-public-key"
 newtype WalletInfo
   = WalletInfo
   { wallet :: Wallet
@@ -79,6 +81,7 @@ instance encodeWallet :: Encode Wallet where
 instance decodeWallet :: Decode Wallet where
   decode value = genericDecode defaultOptions value
 
+-- TODO: move this into Marlowe.Semantics
 newtype PubKeyHash
   = PubKeyHash String
 

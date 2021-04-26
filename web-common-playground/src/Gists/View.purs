@@ -116,7 +116,7 @@ gistControls { authStatus, createGistResult, gistErrorPaneVisible, gistUrl } =
       button
         [ idPublishGist
         , classes [ btn, btnSmall, btnSecondary ]
-        , onClick $ const $ Just PublishGist
+        , onClick $ const $ Just PublishOrUpdateGist
         ]
         [ text "Save" ]
     Loading ->
@@ -131,7 +131,7 @@ gistControls { authStatus, createGistResult, gistErrorPaneVisible, gistUrl } =
       button
         [ idPublishGist
         , classes [ btn, btnSmall, btnSecondary ]
-        , onClick $ const $ Just PublishGist
+        , onClick $ const $ Just PublishOrUpdateGist
         ]
         [ text "Save" ]
 

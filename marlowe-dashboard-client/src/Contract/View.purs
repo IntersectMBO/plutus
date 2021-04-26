@@ -6,7 +6,7 @@ module Contract.View
 import Prelude hiding (div)
 import Contract.Lenses (_executionState, _mActiveUserParty, _metadata, _namedActions, _participants, _previousSteps, _selectedStep, _tab)
 import Contract.State (currentStep, isContractClosed)
-import Contract.Types (Action(..), PreviousStep, PreviousStepState(..), State, Tab(..))
+import Contract.Types (Action(..), PreviousStep, PreviousStepState(..), State, Tab(..), scrollContainerRef)
 import Css (applyWhen, classNames, toggleWhen)
 import Css as Css
 import Data.Array (foldr, intercalate)
@@ -28,7 +28,7 @@ import Data.Tuple (Tuple(..), fst, uncurry)
 import Data.Tuple.Nested ((/\))
 import Halogen.HTML (HTML, a, button, div, div_, h1, h2, h3, input, p, span, span_, sup_, text)
 import Halogen.HTML.Events.Extra (onClick_, onValueInput_)
-import Halogen.HTML.Properties (InputType(..), enabled, href, placeholder, target, type_, value)
+import Halogen.HTML.Properties (InputType(..), enabled, href, placeholder, target, type_, value, ref)
 import Marlowe.Execution (NamedAction(..), _currentState, _mNextTimeout, expandBalances, getActionParticipant)
 import Marlowe.Extended (contractTypeName)
 import Marlowe.Semantics (Bound(..), ChoiceId(..), Input(..), Party(..), Slot, SlotInterval, Token(..), TransactionInput(..), Accounts, getEncompassBound)
@@ -50,13 +50,12 @@ contractDetailsCard currentSlot state =
 
     currentStepCard = [ renderCurrentStep currentSlot state ]
 
-    -- NOTE: Because the cards container is a flex element with a max width property, when there are more cards than can fit the view, the browser will try shrink them
-    --       and remove any extra right margin/padding (not sure why this is only done to the right side). To avoid our cards getting shrinked, we add the flex-shrink-0
-    --       property, and we add an empty `div` that occupies space (aka also cant be shrinked) for the right side only. Because this rule only applies for the right
-    --       side, we do the left side margin just by doing "pl-5" on the cards container.
-    --       Also, the negative left margin of 5 (-ml-5) that we add to this empty div, is to compensate for the positive right margin that the active card has. This way
-    --       the space is the same for an active or inactive card.
-    paddingRightElement = [ div [ classNames [ "w-5", "flex-shrink-0", "-ml-5" ] ] [] ]
+    -- NOTE: Because the cards container is a flex element with a max width property, when there are more cards than
+    --       can fit the view, the browser will try shrink them and remove any extra right margin/padding (not sure
+    --       why this is only done to the right side). To avoid our cards getting shrinked, we add the flex-shrink-0
+    --       property, and we add an empty `div` that occupies space (aka also cant be shrinked) to allow that the
+    --       first and last card can be scrolled to the center
+    paddingElement = [ div [ classNames [ "flex-shrink-0", "-ml-3", "w-carousel-padding-element" ] ] [] ]
   in
     div [ classNames [ "flex", "flex-col", "items-center", "pt-5", "h-full" ] ]
       [ h1 [ classNames [ "text-xl", "font-semibold" ] ] [ text metadata.contractName ]
@@ -64,8 +63,13 @@ contractDetailsCard currentSlot state =
       -- NOTE: The card is allowed to grow in an h-full container and the navigation buttons are absolute positioned
       --       because the cards x-scrolling can't coexist with a visible y-overflow. To avoid clipping the cards shadow
       --       we need the cards container to grow (hence the flex-grow).
-      , div [ classNames [ "flex-grow", "max-w-full" ] ]
-          [ div [ classNames [ "flex", "overflow-x-scroll", "h-full", "pl-5" ] ] (pastStepsCards <> currentStepCard <> paddingRightElement) ]
+      , div [ classNames [ "flex-grow", "w-full" ] ]
+          [ div
+              [ classNames [ "flex", "overflow-x-scroll", "h-full", "scrollbar-width-none", "relative" ]
+              , ref scrollContainerRef
+              ]
+              (paddingElement <> pastStepsCards <> currentStepCard <> paddingElement)
+          ]
       , cardNavigationButtons state
       ]
 
@@ -81,7 +85,7 @@ cardNavigationButtons state =
         Just
           $ a
               [ classNames [ "text-purple" ]
-              , onClick_ $ GoToStep $ selectedStep - 1
+              , onClick_ $ MoveToStep $ selectedStep - 1
               ]
               [ icon ArrowLeft [ "text-2xl" ] ]
       | otherwise = Nothing
@@ -97,7 +101,7 @@ cardNavigationButtons state =
         Just
           $ button
               [ classNames $ Css.primaryButton <> [ "ml-auto" ] <> Css.withIcon ArrowRight
-              , onClick_ $ GoToStep $ selectedStep + 1
+              , onClick_ $ MoveToStep $ selectedStep + 1
               ]
               [ text "Next" ]
   in
@@ -213,17 +217,15 @@ renderContractCard stepNumber state cardBody =
     contractCardCss =
       -- NOTE: The cards that are not selected gets scaled down to 77 percent of the original size. But when you scale down
       --       an element with CSS transform property, the parent still occupies the same layout dimensions as before,
-      --       so the perceived margins are bigger than we'd want to. To solve this we add negative right margin of 10
-      --       to the "not selected" cards, a positive margin of 5 to the selected one and we set the origin to the transformation
-      --       to be the left side (instead of being the middle).
+      --       so the perceived margins are bigger than we'd want to. To solve this we add negative margin of 4
+      --       to the "not selected" cards, a positive margin of 2 to the selected one
       -- Base classes
-      [ "rounded", "overflow-hidden", "flex-shrink-0", "w-contract-card", "h-contract-card" ]
+      [ "rounded", "overflow-hidden", "flex-shrink-0", "w-contract-card", "h-contract-card", "transform", "transition-transform", "duration-100", "ease-out" ]
         <> toggleWhen (state ^. _selectedStep /= stepNumber)
             -- Not selected card modifiers
-            -- FIXME: For now in mobile only the selected step is visible
-            [ "shadow", "hidden", "md:block", "transform", "origin-left", "scale-77", "-mr-10" ]
+            [ "shadow", "scale-77", "-mx-4" ]
             -- Selected card modifiers
-            [ "shadow-lg", "mr-5" ]
+            [ "shadow-lg", "mx-2" ]
   in
     div [ classNames contractCardCss ]
       [ div [ classNames [ "flex", "overflow-hidden" ] ]

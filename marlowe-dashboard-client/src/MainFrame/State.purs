@@ -3,58 +3,54 @@ module MainFrame.State (mkMainFrame, handleAction) where
 import Prelude
 import Bridge (toFront)
 import Capability.Contract (class ManageContract, getContractInstanceClientState, getWalletContractInstances)
-import Capability.Marlowe (class ManageMarloweContract, marloweCreateWalletCompanionContract, marloweGetWalletCompanionContractObservableState)
+import Capability.Marlowe (class ManageMarloweContract, marloweCreateContract, marloweCreateWalletCompanionContract, marloweGetWalletCompanionContractObservableState)
 import Capability.Toast (class Toast, addToast)
 import Capability.Wallet (class ManageWallet, createWallet, getWalletInfo, getWalletTotalFunds)
-import Capability.Websocket (class MonadWebsocket, subscribeToWallet, unsubscribeFromWallet)
-import ContractHome.State (loadExistingContracts)
+import Capability.Websocket (class MonadWebsocket, subscribeToContract, subscribeToWallet, unsubscribeFromWallet)
+import ContractHome.State (dummyContracts)
 import Control.Monad.Except (runExcept)
 import Control.Monad.Reader (class MonadAsk)
-import Control.Monad.Rec.Class (forever)
 import Data.Either (Either(..))
 import Data.Foldable (for_)
-import Data.Lens (assign, over, set, use, view)
+import Data.Lens (assign, over, set, use, view, (^.))
 import Data.Lens.Extra (peruse)
-import Data.Map (empty, filter, findMin, insert, lookup, member)
+import Data.Map (empty, filter, findMin, insert, lookup, mapMaybe, member)
 import Data.Maybe (Maybe(..))
 import Data.Newtype (unwrap)
-import Data.Time.Duration (Milliseconds(..))
 import Data.UUID (parseUUID)
 import Data.UUID (toString) as UUID
-import Effect.Aff (error)
-import Effect.Aff as Aff
 import Effect.Aff.Class (class MonadAff)
 import Effect.Now (getTimezoneOffset)
 import Env (Env)
 import Foreign.Generic (decodeJSON, encodeJSON)
-import Halogen (Component, HalogenM, liftEffect, mkComponent, mkEval, modify_, subscribe)
+import Halogen (Component, HalogenM, liftEffect, mkComponent, mkEval, modify_)
 import Halogen.Extra (mapMaybeSubmodule, mapSubmodule)
 import Halogen.HTML (HTML)
-import Halogen.Query.EventSource (EventSource)
-import Halogen.Query.EventSource as EventSource
 import LocalStorage (getItem, removeItem, setItem)
 import MainFrame.Lenses (_card, _newWalletDetails, _pickupState, _playState, _subState, _toast, _wallets, _webSocketStatus)
 import MainFrame.Types (Action(..), ChildSlots, Msg, Query(..), State, WebSocketStatus(..))
 import MainFrame.View (render)
+import Marlowe.Extended (fillTemplate, resolveRelativeTimes, toCore)
 import Marlowe.Market (contractTemplates)
 import Marlowe.Slot (currentSlot)
-import Network.RemoteData (RemoteData(..))
-import Pickup.Lenses (_pickupWalletString)
+import Network.RemoteData (RemoteData(..), fromEither)
+import Pickup.Lenses (_pickingUp, _pickupWalletString)
 import Pickup.State (handleAction, dummyState, initialState) as Pickup
 import Pickup.Types (Action(..), State) as Pickup
 import Pickup.Types (Card(..), PickupNewWalletContext(..))
 import Play.Lenses (_allContracts, _currentSlot, _templateState, _walletDetails)
 import Play.State (dummyState, handleAction, mkInitialState) as Play
-import Play.Types (Action(..), State) as Play
-import Plutus.PAB.Webserver.Types (CombinedWSStreamToClient(..), ContractInstanceClientState(..))
+import Play.Types (Action(..), Screen(..), State) as Play
+import Plutus.PAB.Webserver.Types (CombinedWSStreamToClient(..), ContractInstanceClientState(..), InstanceStatusToClient(..))
 import StaticData (walletDetailsLocalStorageKey, walletLibraryLocalStorageKey)
+import Template.Lenses (_extendedContract, _roleWallets, _template, _templateContent)
 import Template.State (dummyState, handleAction) as Template
 import Template.Types (Action(..), State) as Template
 import Toast.State (defaultState, handleAction) as Toast
 import Toast.Types (Action, State) as Toast
-import Toast.Types (connectivityErrorToast)
+import Toast.Types (ajaxErrorToast, connectivityErrorToast, successToast)
 import Types (ContractInstanceId(..))
-import WalletData.Lenses (_assets, _contractInstanceId, _contractInstanceIdString, _remoteDataWalletInfo, _remoteDataAssets, _wallet, _walletNicknameString)
+import WalletData.Lenses (_assets, _contractInstanceId, _contractInstanceIdString, _pubKeyHash, _remoteDataWalletInfo, _remoteDataAssets, _wallet, _walletNickname, _walletNicknameString)
 import WalletData.Types (NewWalletDetails, WalletDetails, WalletInfo(..))
 import WalletData.Validation (parseContractInstanceId)
 import WebSocket.Support as WS
@@ -106,37 +102,57 @@ handleQuery ::
 handleQuery (ReceiveWebSocketMessage msg next) = do
   case msg of
     WS.WebSocketOpen -> assign _webSocketStatus WebSocketOpen
-    (WS.WebSocketClosed reason) -> assign _webSocketStatus (WebSocketClosed (Just reason)) -- TODO: show warning to the user
+    (WS.WebSocketClosed closeEvent) -> do
+      -- TODO: When we change our websocket subscriptions, the websocket is closed and then reopened.
+      -- We don't want to warn the user in this case, but we do want to warn them if the websocket
+      -- closes for some unexpected reason. But currently I don't know how to distinguish these cases.
+      -- addToast $ connectivityErrorToast "Connection to the server has been lost"
+      assign _webSocketStatus (WebSocketClosed (Just closeEvent))
     (WS.ReceiveMessage (Left errors)) -> pure unit -- TODO: show error to the user
     (WS.ReceiveMessage (Right streamToClient)) -> case streamToClient of
-      InstanceUpdate contractInstanceId instanceStatusToClient -> pure unit
-      SlotChange slot -> assign (_playState <<< _currentSlot) $ toFront slot
+      -- update the current slot
+      SlotChange slot -> handleAction $ PlayAction $ Play.SetCurrentSlot $ toFront slot
+      -- update the wallet funds (if the change is to the current wallet)
+      -- note: we should only ever be notified of changes to the current wallet,
+      -- since we subscribe to this update when we pick it up, and unsubscribe
+      -- when we put it down - but we check here anyway in case
       WalletFundsChange wallet value -> do
         mCurrentWallet <- peruse (_playState <<< _walletDetails <<< _wallet)
         for_ mCurrentWallet \currentWallet ->
           when (currentWallet == toFront wallet)
             $ assign (_playState <<< _walletDetails <<< _assets) (toFront value)
+      -- update the state when a contract instance changes
+      -- note: we should be subsribed to updates from all (and only) the current
+      -- wallet's contract instances, including its wallet companion contract
+      InstanceUpdate bContractInstanceId instanceStatusToClient -> case instanceStatusToClient of
+        NewObservableState rawJson -> do
+          let
+            contractInstanceId = toFront bContractInstanceId
+          mPlayState <- peruse _playState
+          -- these updates should only ever be coming when we are in the Play state (and if
+          -- we're not, we don't care about them anyway)
+          for_ mPlayState \playState -> do
+            let
+              walletCompanionContractInstanceId = view (_walletDetails <<< _contractInstanceId) playState
+            if contractInstanceId == walletCompanionContractInstanceId then
+              -- this is the wallet companion contract
+              -- FIXME: parse the rawJson and check for roles in new contracts that need we need to join
+              pure unit
+            else
+              -- this should be one of the wallet's Marlowe contracts (if it isn't, we don't care
+              -- about it anyway)
+              for_ (lookup contractInstanceId $ view _allContracts playState) \contractState ->
+                -- FIXME: parse the jawJson and update the contract state accordingly
+                pure unit
+        -- Plutus contracts in general can change in two other ways (`NewActiveEndpoints` and
+        -- `ContractFinished`) - but Marlowe contracts and the wallet companion contract don't,
+        -- so these cases will never arise here
+        _ -> pure unit
   pure $ Just next
 
 handleQuery (MainFrameActionQuery action next) = do
   handleAction action
   pure $ Just next
-
--- FIXME: We need to discuss if we should remove this after we connect to the PAB. In case we do,
---        if there is a disconnection we might lose some seconds and timeouts will freeze.
-currentSlotSubscription ::
-  forall m.
-  MonadAff m =>
-  EventSource m Action
-currentSlotSubscription =
-  EventSource.affEventSource \emitter -> do
-    fiber <-
-      Aff.forkAff
-        $ forever do
-            Aff.delay $ Milliseconds 1000.0
-            slot <- liftEffect $ currentSlot
-            EventSource.emit emitter (PlayAction $ Play.SetCurrentSlot slot)
-    pure $ EventSource.Finalizer $ Aff.killFiber (error "removing aff") fiber
 
 -- Note [State]: Some actions belong logically in one part of the state, but
 -- from the user's point of view in another. For example, the action of picking
@@ -168,35 +184,39 @@ handleAction Init = do
   -- maybe load picked up wallet from localStorage and pick it up again
   mWalletDetailsJson <- liftEffect $ getItem walletDetailsLocalStorageKey
   for_ mWalletDetailsJson \json ->
-    for_ (runExcept $ decodeJSON json) \walletDetails ->
+    for_ (runExcept $ decodeJSON json) \walletDetails -> do
+      -- It takes a moment to pick up a wallet (a few trips to the PAB are required), so before
+      -- we trigger the PickupWallet action, we trigger the SetPickupWalletString action. This brings
+      -- up the pickup wallet card for this wallet to display to the user in the meantime.
+      handleAction $ PickupAction $ Pickup.SetPickupWalletString $ view _walletNickname walletDetails
       handleAction $ PickupAction $ Pickup.PickupWallet walletDetails
-  -- subscribe to local currentSlot counter
-  void $ subscribe currentSlotSubscription
 
 handleAction (SetNewWalletNicknameString walletNicknameString) = assign (_newWalletDetails <<< _walletNicknameString) walletNicknameString
 
 handleAction (SetNewWalletContractIdString contractInstanceIdString) = do
-  assign (_newWalletDetails <<< _contractInstanceIdString) contractInstanceIdString
+  modify_
+    $ set (_newWalletDetails <<< _contractInstanceIdString) contractInstanceIdString
+    <<< set (_newWalletDetails <<< _remoteDataWalletInfo) NotAsked
+    <<< set (_newWalletDetails <<< _remoteDataAssets) NotAsked
   -- if this is a valid contract ID ...
   for_ (parseContractInstanceId contractInstanceIdString)
     $ \contractInstanceId -> do
         -- lookup wallet companion contract with this ID on the PAB
-        remoteDataWalletCompanionContract <- getContractInstanceClientState contractInstanceId
-        case remoteDataWalletCompanionContract of
-          Success (ContractInstanceClientState { cicWallet }) -> do
+        ajaxResponseWalletCompanionContract <- getContractInstanceClientState contractInstanceId
+        case ajaxResponseWalletCompanionContract of
+          Left ajaxError -> assign (_newWalletDetails <<< _remoteDataWalletInfo) $ Failure ajaxError
+          Right (ContractInstanceClientState { cicWallet }) -> do
             -- if the companion contract is found, lookup wallet info and assets
             let
               wallet = toFront cicWallet
-            remoteDataWalletInfo <- getWalletInfo wallet
-            remoteDataAssets <- getWalletTotalFunds wallet
             modify_
-              $ set (_newWalletDetails <<< _remoteDataWalletInfo) remoteDataWalletInfo
-              <<< set (_newWalletDetails <<< _remoteDataAssets) remoteDataAssets
-          -- otherwise assign the remoteData value to remoteDataWalletInfo
-          -- (this is used when validating the contractInstanceIdString)
-          Failure ajaxError -> assign (_newWalletDetails <<< _remoteDataWalletInfo) $ Failure ajaxError
-          Loading -> assign (_newWalletDetails <<< _remoteDataWalletInfo) Loading
-          NotAsked -> assign (_newWalletDetails <<< _remoteDataWalletInfo) NotAsked
+              $ set (_newWalletDetails <<< _remoteDataWalletInfo) Loading
+              <<< set (_newWalletDetails <<< _remoteDataAssets) Loading
+            ajaxResponseWalletInfo <- getWalletInfo wallet
+            ajaxResponseAssets <- getWalletTotalFunds wallet
+            modify_
+              $ set (_newWalletDetails <<< _remoteDataWalletInfo) (fromEither ajaxResponseWalletInfo)
+              <<< set (_newWalletDetails <<< _remoteDataAssets) (fromEither ajaxResponseAssets)
 
 handleAction AddNewWallet = do
   oldWallets <- use _wallets
@@ -213,123 +233,173 @@ handleAction AddNewWallet = do
           newWallets <- use _wallets
           liftEffect $ setItem walletLibraryLocalStorageKey $ encodeJSON newWallets
 
--- pickup actions that need to be handled here
-handleAction (PickupAction (Pickup.SetNewWalletNickname nickname)) = handleAction $ SetNewWalletNicknameString nickname
+handleAction (PickupAction pickupAction) = case pickupAction of
+  -- some PickupActions have to be handled here; see note [State]
+  Pickup.SetNewWalletNickname nickname -> handleAction $ SetNewWalletNicknameString nickname
+  Pickup.SetNewWalletContractId contractId -> handleAction $ SetNewWalletContractIdString contractId
+  Pickup.PickupNewWallet -> do
+    newWalletDetails <- use _newWalletDetails
+    -- try and make a new wallet from the newWalletDetails (succeeds if all RemoteData properties are Success)
+    -- TODO: add error toast when this fails
+    for_ (mkNewWallet newWalletDetails)
+      $ \walletDetails -> do
+          handleAction AddNewWallet
+          handleAction $ PickupAction $ Pickup.PickupWallet walletDetails
+  Pickup.PickupWallet walletDetails -> do
+    -- Picking up a wallet takes a while (several trips to the PAB are required). So first of all we set
+    -- the pickingUp flag to true, so that we can inform the user that this is all ongoing...
+    assign (_pickupState <<< _pickingUp) true
+    let
+      wallet = view _wallet walletDetails
 
-handleAction (PickupAction (Pickup.SetNewWalletContractId contractId)) = handleAction $ SetNewWalletContractIdString contractId
+      shortErrorMessage = "Couldn't pickup wallet"
 
-handleAction (PickupAction Pickup.PickupNewWallet) = do
-  newWalletDetails <- use _newWalletDetails
-  -- try and make a new wallet from the newWalletDetails (succeeds if all RemoteData properties are Success)
-  -- TODO: add error toast when this fails
-  for_ (mkNewWallet newWalletDetails)
-    $ \walletDetails -> do
-        handleAction AddNewWallet
-        handleAction $ PickupAction $ Pickup.PickupWallet walletDetails
+      networkErrorToast = \_ -> addToast $ connectivityErrorToast shortErrorMessage
 
-handleAction (PickupAction (Pickup.PickupWallet walletDetails)) = do
-  let
-    wallet = view _wallet walletDetails
+      jsonErrorToast (Left ajaxError) = addToast $ ajaxErrorToast shortErrorMessage ajaxError
 
-    networkErrorToast = \_ -> addToast $ connectivityErrorToast "Couldn't pickup wallet"
-  -- we need the local timezoneOffset in Play.State in order to convert datetimeLocal
-  -- values to UTC (and vice versa), so we can manage date-to-slot conversions
-  timezoneOffset <- liftEffect getTimezoneOffset
-  -- get up to date balance for this wallet
-  remoteDataAssets <- getWalletTotalFunds wallet
-  -- get map of contracts for which this wallet has a role token (from the wallet companion contract)
-  let
-    contractInstanceId = view _contractInstanceId walletDetails
-  remoteDataCompanionContractObservableState <- marloweGetWalletCompanionContractObservableState contractInstanceId
-  remoteDataWalletContractInstances <- getWalletContractInstances wallet
-  -- FIXME: For now, we're just loading some dummy contracts for testing. Soon we need to get this from
-  --        the wallet's contract instances together with the wallet companion contract (the companion
-  --        contract will tell us if there are any contracts for which this wallet has a role that do not
-  --        yet have running instances).
-  contracts <- liftEffect $ loadExistingContracts
-  currentSlot' <- liftEffect currentSlot
-  case remoteDataAssets of
-    Success assets -> do
+      jsonErrorToast (Right foreignErrors) = addToast $ connectivityErrorToast shortErrorMessage
+    -- we need the local timezoneOffset in Play.State in order to convert datetimeLocal
+    -- values to UTC (and vice versa), so we can manage date-to-slot conversions
+    timezoneOffset <- liftEffect getTimezoneOffset
+    -- get up to date balance for this wallet
+    arAssets <- getWalletTotalFunds wallet
+    -- get map of contracts for which this wallet has a role token (from the wallet companion contract)
+    let
+      contractInstanceId = view _contractInstanceId walletDetails
+    arCompanionContractState <- marloweGetWalletCompanionContractObservableState contractInstanceId
+    -- FIXME: this call takes a long time - at the very least, we should pick up the wallet and
+    -- register contracts as loading while this call goes on in the background
+    arContractInstanceIds <- getWalletContractInstances wallet
+    case arAssets, arCompanionContractState, arContractInstanceIds of
+      Right assets, Right companionContractState, Right contractInstanceIds -> do
+        let
+          updatedWalletDetails = set _assets assets walletDetails
+        -- subscribe to the wallet to get updates about balance changes
+        subscribeToWallet wallet
+        -- FIXME: make sure all contracts are started and get latest contract state
+        -- FIXME: subscribe to each contract to get updates about their state
+        slot <- liftEffect currentSlot
+        let
+          contracts = dummyContracts slot
+        modify_
+          $ set _subState (Right $ Play.mkInitialState updatedWalletDetails contracts slot timezoneOffset)
+          <<< set (_pickupState <<< _card) Nothing
+        -- save the wallet details to local storage, so the user will automatically pick it up when they return
+        liftEffect $ setItem walletDetailsLocalStorageKey $ encodeJSON updatedWalletDetails
+      Left ajaxError, _, _ -> networkErrorToast ajaxError
+      _, Left ajaxError, _ -> jsonErrorToast ajaxError
+      _, _, Left ajaxError -> networkErrorToast ajaxError
+    assign (_pickupState <<< _pickingUp) false
+  Pickup.GenerateNewWallet -> do
+    modify_
+      $ set (_newWalletDetails <<< _remoteDataWalletInfo) Loading
+      <<< set (_newWalletDetails <<< _remoteDataAssets) NotAsked
+    arWalletInfo <- createWallet
+    assign (_newWalletDetails <<< _remoteDataWalletInfo) (fromEither arWalletInfo)
+    let
+      networkErrorToast = \_ -> addToast $ connectivityErrorToast "Couldn't generate wallet"
+    case arWalletInfo of
+      Right (WalletInfo { wallet }) -> do
+        assign (_newWalletDetails <<< _remoteDataAssets) Loading
+        arAssets <- getWalletTotalFunds wallet
+        assign (_newWalletDetails <<< _remoteDataAssets) (fromEither arAssets)
+        arContractInstanceId <- marloweCreateWalletCompanionContract wallet
+        case arContractInstanceId of
+          Right contractInstanceId -> do
+            let
+              contractInstanceIdString = UUID.toString $ unwrap contractInstanceId
+            modify_
+              $ set (_newWalletDetails <<< _contractInstanceIdString) contractInstanceIdString
+              <<< set (_pickupState <<< _card) (Just (PickupNewWalletCard WalletGenerated))
+          Left err -> networkErrorToast err
+      Left err -> networkErrorToast err
+  Pickup.SetPickupWalletString string -> do
+    assign (_pickupState <<< _pickupWalletString) string
+    wallets <- use _wallets
+    -- first check for a matching nickname in the wallet library
+    case lookup string wallets of
+      Just walletDetails -> assign (_pickupState <<< _card) $ Just $ PickupWalletCard walletDetails
+      -- then check for a matching ID in the wallet library
+      Nothing -> case findMin $ filter (\walletDetails -> UUID.toString (unwrap (view _contractInstanceId walletDetails)) == string) wallets of
+        Just { key, value } -> assign (_pickupState <<< _card) $ Just $ PickupWalletCard value
+        -- then check whether the string is a valid UUID
+        Nothing -> case parseContractInstanceId string of
+          Just contractInstanceId -> do
+            -- set this as the _newWalletDetails <<< _contractInstanceIdString, which will lookup on the PAB and
+            -- populate _newWalletDetails <<< _remoteDataWalletInfo with the result
+            handleAction $ SetNewWalletContractIdString string
+            -- if that triggered a match, show the pickup wallet card
+            remoteDataWalletInfo <- use (_newWalletDetails <<< _remoteDataWalletInfo)
+            case remoteDataWalletInfo of
+              Success _ -> assign (_pickupState <<< _card) $ Just $ PickupNewWalletCard WalletFound
+              _ -> pure unit
+          -- otherwise there's nothing we can do
+          Nothing -> pure unit
+  -- other PickupActions are handled in Pickup.State
+  _ -> toPickup $ Pickup.handleAction pickupAction
+
+handleAction (PlayAction playAction) = case playAction of
+  -- some PlayActions have to be handled here; see note [State]
+  Play.PutdownWallet -> do
+    mWallet <- peruse (_playState <<< _walletDetails <<< _wallet)
+    for_ mWallet \wallet -> do
+      assign _subState $ Left Pickup.initialState
+      -- unsubscribe to stop getting updates about this wallet
+      unsubscribeFromWallet wallet
+      -- FIXME: unsubscribe from all relevant contracts
+      -- clear the wallet details from local storage, so the user won't automatically pick it up when they return
+      liftEffect $ removeItem walletDetailsLocalStorageKey
+  Play.SetNewWalletNickname nickname -> handleAction $ SetNewWalletNicknameString nickname
+  Play.SetNewWalletContractId contractId -> handleAction $ SetNewWalletContractIdString contractId
+  Play.AddNewWallet mTokenName -> do
+    walletNickname <- use (_newWalletDetails <<< _walletNicknameString)
+    handleAction AddNewWallet
+    -- a tokenName is passed when we are creating a new wallet for a role (in contract setup)
+    for_ mTokenName \tokenName ->
+      toTemplate $ Template.handleAction $ Template.SetRoleWallet tokenName walletNickname
+  Play.TemplateAction Template.StartContract -> do
+    mPlayState <- peruse _playState
+    for_ mPlayState \playState -> do
+      -- TODO: check the current slot is what it should be and warn the user if it isn't
+      -- flesh out a contract from the templateState
       let
-        updatedWalletDetails = set _assets assets walletDetails
-      modify_
-        $ set (_playState <<< _allContracts) contracts
-        <<< set _subState (Right $ Play.mkInitialState updatedWalletDetails currentSlot' timezoneOffset)
-        <<< set (_pickupState <<< _card) Nothing
-      -- subscribe to the wallet to get updates about balance changes
-      subscribeToWallet wallet
-      liftEffect $ setItem walletDetailsLocalStorageKey $ encodeJSON updatedWalletDetails
-    Failure err -> networkErrorToast err
-    _ -> pure unit
+        currentSlot = playState ^. _currentSlot
 
-handleAction (PickupAction Pickup.GenerateNewWallet) = do
-  remoteDataWalletInfo <- createWallet
-  assign (_newWalletDetails <<< _remoteDataWalletInfo) remoteDataWalletInfo
-  let
-    networkErrorToast = \_ -> addToast $ connectivityErrorToast "Couldn't generate wallet"
-  case remoteDataWalletInfo of
-    Success (WalletInfo { wallet }) -> do
-      remoteDataAssets <- getWalletTotalFunds wallet
-      assign (_newWalletDetails <<< _remoteDataAssets) remoteDataAssets
-      remoteDataContractInstanceId <- marloweCreateWalletCompanionContract wallet
-      case remoteDataContractInstanceId of
-        Success contractInstanceId -> do
-          let
-            contractInstanceIdString = UUID.toString $ unwrap contractInstanceId
-          modify_
-            $ set (_newWalletDetails <<< _contractInstanceIdString) contractInstanceIdString
-            <<< set (_pickupState <<< _card) (Just (PickupNewWalletCard WalletGenerated))
-        Failure err -> networkErrorToast err
-        _ -> pure unit
-    Failure err -> networkErrorToast err
-    _ -> pure unit
+        templateState = playState ^. _templateState
 
-handleAction (PickupAction (Pickup.SetPickupWalletString string)) = do
-  assign (_pickupState <<< _pickupWalletString) string
-  wallets <- use _wallets
-  -- first check for a matching nickname in the wallet library
-  case lookup string wallets of
-    Just walletDetails -> assign (_pickupState <<< _card) $ Just $ PickupWalletCard walletDetails
-    -- then check for a matching ID in the wallet library
-    Nothing -> case findMin $ filter (\walletDetails -> UUID.toString (unwrap (view _contractInstanceId walletDetails)) == string) wallets of
-      Just { key, value } -> assign (_pickupState <<< _card) $ Just $ PickupWalletCard value
-      -- then check whether the string is a valid UUID
-      Nothing -> case parseContractInstanceId string of
-        Just contractInstanceId -> do
-          -- set this as the _newWalletDetails <<< _contractInstanceIdString, which will lookup on the PAB and
-          -- populate _newWalletDetails <<< _remoteDataWalletInfo with the result
-          handleAction $ SetNewWalletContractIdString string
-          -- if that triggered a match, show the pickup wallet card
-          remoteDataWalletInfo <- use (_newWalletDetails <<< _remoteDataWalletInfo)
-          case remoteDataWalletInfo of
-            Success _ -> assign (_pickupState <<< _card) $ Just $ PickupNewWalletCard WalletFound
-            _ -> pure unit
-        -- otherwise there's nothing we can do
-        Nothing -> pure unit
+        extendedContract = templateState ^. (_template <<< _extendedContract)
 
--- other pickup actions
-handleAction (PickupAction pickupAction) = toPickup $ Pickup.handleAction pickupAction
+        templateContent = templateState ^. _templateContent
 
--- play actions that need to be handled here
-handleAction (PlayAction Play.PutdownWallet) = do
-  mWallet <- peruse (_playState <<< _walletDetails <<< _wallet)
-  for_ mWallet \wallet -> do
-    assign _subState $ Left Pickup.initialState
-    liftEffect $ removeItem walletDetailsLocalStorageKey
-    unsubscribeFromWallet wallet
+        relativeContract = resolveRelativeTimes currentSlot extendedContract
 
-handleAction (PlayAction (Play.SetNewWalletNickname nickname)) = handleAction $ SetNewWalletNicknameString nickname
+        mContract = toCore $ fillTemplate templateContent relativeContract
+      -- with the fleshed-out contract ...
+      for_ mContract \contract -> do
+        -- create the contract in the PAB (this starts an instance of the contract in this wallet,
+        -- and calls the "create" endpoint, which distributes the role tokens)
+        wallets <- use _wallets
+        let
+          wallet = playState ^. (_walletDetails <<< _wallet)
 
-handleAction (PlayAction (Play.SetNewWalletContractId contractId)) = handleAction $ SetNewWalletContractIdString contractId
-
-handleAction (PlayAction (Play.AddNewWallet mTokenName)) = do
-  walletNickname <- use (_newWalletDetails <<< _walletNicknameString)
-  handleAction AddNewWallet
-  for_ mTokenName \tokenName ->
-    toTemplate $ Template.handleAction $ Template.SetRoleWallet tokenName walletNickname
-
--- other play actions
-handleAction (PlayAction playAction) = toPlay $ Play.handleAction playAction
+          roleWallets = templateState ^. _roleWallets
+        -- the user enters wallet nicknames for roles; here we convert these into pubKeyHashes
+        let
+          roles = mapMaybe (\walletNickname -> view _pubKeyHash <$> lookup walletNickname wallets) roleWallets
+        arContractInstanceId <- marloweCreateContract wallet roles contract
+        case arContractInstanceId of
+          Right contractInstanceId -> do
+            subscribeToContract contractInstanceId
+            contractInstanceClientState <- getContractInstanceClientState contractInstanceId
+            -- FIXME: map the clientState to the information we need, and update ContractHome.State
+            handleAction $ PlayAction $ Play.SetScreen Play.ContractsScreen
+            -- FIXME: open the card for this contract
+            addToast $ successToast "Contract started."
+          -- TODO: make this error message more informative
+          Left ajaxError -> addToast $ ajaxErrorToast "Failed to initialise contract." ajaxError
+  -- other PlayActions are handled in Play.State
+  _ -> toPlay $ Play.handleAction playAction
 
 handleAction (ToastAction toastAction) = toToast $ Toast.handleAction toastAction
 

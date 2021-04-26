@@ -1,15 +1,3 @@
-data "template_file" "ssh_config_section_prometheus" {
-  template = file("${path.module}/templates/ssh-config")
-
-  vars = {
-    full_hostname    = "prometheus.${aws_route53_zone.plutus_private_zone.name}"
-    short_hostname   = "prometheus.${local.project}"
-    ip               = aws_instance.prometheus.private_ip
-    bastion_hostname = aws_instance.bastion.*.public_ip[0]
-    user_name        = "root"
-  }
-}
-
 data "template_file" "ssh_config_section_webghc_a" {
   template = file("${path.module}/templates/ssh-config")
 
@@ -82,8 +70,6 @@ data "template_file" "ssh_config_section_playgrounds_b" {
 
 data "template_file" "ssh_config" {
   template = <<EOT
-$${prometheus_node}
-
 $${webghc_a}
 
 $${webghc_b}
@@ -101,7 +87,6 @@ Host $${bastion_hostname}
 EOT
 
   vars = {
-    prometheus_node  = data.template_file.ssh_config_section_prometheus.rendered
     webghc_a         = data.template_file.ssh_config_section_webghc_a.rendered
     webghc_b         = data.template_file.ssh_config_section_webghc_b.rendered
     marlowe_dash_a   = data.template_file.ssh_config_section_marlowe_dash_a.rendered

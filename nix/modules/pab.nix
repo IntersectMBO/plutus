@@ -27,8 +27,11 @@ let
     nodeServerConfig = {
       mscBaseUrl = "http://localhost:${builtins.toString cfg.nodePort}";
       mscSocketPath = "/tmp/node-server.sock";
-      mscSlotLength = 5;
       mscRandomTxInterval = 20000000;
+      mscSlotConfig = {
+        scZeroSlotTime = cfg.zeroSlotTime;
+        scSlotLength = cfg.slotLength;
+      };
       mscKeptBlocks = 100000;
       mscBlockReaper = {
         brcInterval = 6000000;
@@ -102,7 +105,7 @@ in
       type = types.int;
       default = 1;
       description = ''
-        The default wallet to opreate on.
+        The default wallet to operate on.
       '';
     };
 
@@ -159,6 +162,22 @@ in
       default = [ ];
       description = ''
         List of paths to contracts that should be installed.
+      '';
+    };
+
+    zeroSlotTime = mkOption {
+      type = types.string;
+      default = "2020-07-29T21:44:51Z"; # Wednesday, July 29, 2020 21:44:51 - shelley launch time
+      description = ''
+        Time of slot 0. Setting this (together with the slot length) enables pure datetime-to-slot mappings.
+      '';
+    };
+
+    slotLength = mkOption {
+      type = types.int;
+      default = 1;
+      description = ''
+        Length of a slot (in seconds).
       '';
     };
 

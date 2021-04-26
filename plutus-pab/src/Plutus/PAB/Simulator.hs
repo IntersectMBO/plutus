@@ -365,7 +365,7 @@ makeBlock = do
         $ makeTimedChainEvent
         $ interpret (handleChainIndexControlEffect @t)
         $ interpret (handleChainControl @t)
-        $ Chain.processBlock
+        $ Chain.processBlock >> Chain.modifySlot succ
 
 -- | Get the current state of the contract instance.
 instanceState :: forall t. Wallet -> ContractInstanceId -> Simulation t (Contract.State t)
@@ -444,20 +444,18 @@ handleChainControl = \case
     Chain.ProcessBlock -> do
         blockchainEnv <- ask @BlockchainEnv
         instancesState <- ask @InstancesState
-        (txns, slot) <- runChainEffects @t @_ $ do
-                txns <- Chain.processBlock
-                sl <- Chain.getCurrentSlot
-                pure (txns, sl)
-        runChainIndexEffects @t $ do
-            ChainIndex.chainIndexNotify $ BlockValidated txns
-            ChainIndex.chainIndexNotify $ SlotChanged slot
+        (txns, slot) <- runChainEffects @t @_ ((,) <$> Chain.processBlock <*> Chain.getCurrentSlot)
+        runChainIndexEffects @t (ChainIndex.chainIndexNotify $ BlockValidated txns)
 
         void $ liftIO $ STM.atomically $ do
             cenv <- BlockchainEnv.getClientEnv instancesState
             BlockchainEnv.updateInterestingAddresses blockchainEnv cenv
             BlockchainEnv.processBlock blockchainEnv txns slot
-
         pure txns
+    Chain.ModifySlot f -> do
+        slot <- runChainEffects @t @_ (Chain.modifySlot f)
+        runChainIndexEffects @t (ChainIndex.chainIndexNotify $ SlotChanged slot)
+        pure slot
 
 runChainEffects ::
     forall t a effs.
@@ -561,7 +559,7 @@ handleChainIndexEffect = runChainIndexEffects @t . \case
     WatchedAddresses          -> WalletEffects.watchedAddresses
     ConfirmedBlocks           -> WalletEffects.confirmedBlocks
     TransactionConfirmed txid -> WalletEffects.transactionConfirmed txid
-    NextTx r                  -> WalletEffects.nextTx r
+    AddressChanged r          -> WalletEffects.addressChanged r
 
 handleChainIndexControlEffect ::
     forall t effs.

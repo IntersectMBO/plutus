@@ -146,7 +146,7 @@ myTypes =
     -- * Web API types
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @(PABEvent A))
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @(ContractActivationArgs A))
-    , (genericShow <*> mkSumType) (Proxy @ContractInstanceClientState)
+    , (genericShow <*> mkSumType) (Proxy @(ContractInstanceClientState A))
     , (genericShow <*> mkSumType) (Proxy @InstanceStatusToClient)
     , (genericShow <*> mkSumType) (Proxy @CombinedWSStreamToClient)
     , (genericShow <*> mkSumType) (Proxy @CombinedWSStreamToServer)

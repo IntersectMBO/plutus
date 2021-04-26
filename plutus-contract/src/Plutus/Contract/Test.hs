@@ -50,6 +50,7 @@ module Plutus.Contract.Test(
     , valueAtAddress
     , dataAtAddress
     , reasonable
+    , reasonable'
     -- * Checking predicates
     , checkPredicate
     , checkPredicateOptions
@@ -624,11 +625,14 @@ assertAccumState contract inst p nm =
 -- | Assert that the size of a 'Validator' is below
 --   the maximum.
 reasonable :: Validator -> Integer -> HUnit.Assertion
-reasonable (Ledger.unValidatorScript -> s) maxSize = do
+reasonable = reasonable' putStrLn
+
+reasonable' :: (String -> IO ()) -> Validator -> Integer -> HUnit.Assertion
+reasonable' logger (Ledger.unValidatorScript -> s) maxSize = do
     let sz = Ledger.scriptSize s
         msg = "Script too big! Max. size: " <> show maxSize <> ". Actual size: " <> show sz
     -- so the actual size is visible in the log
-    liftIO $ putStrLn ("Script size: " ++ show sz)
+    liftIO $ logger ("Script size: " ++ show sz)
     HUnit.assertBool msg (sz <= maxSize)
 
 -- | Compare a golden PIR file to the provided 'CompiledCode'.

@@ -104,9 +104,9 @@ instance prettyContractResponse :: Pretty ContractResponse where
       , nbsp
       , text $ show utxoAtAddress
       ]
-  pretty (NextTxAtResponse addressChangeResponse) =
+  pretty (AddressChangedAtResponse addressChangeResponse) =
     span_
-      [ text "NextTxAtResponse:"
+      [ text "AddressChangedAtResponse:"
       , nbsp
       , text $ show addressChangeResponse
       ]
@@ -160,9 +160,9 @@ instance prettyContractPABRequest :: Pretty ContractPABRequest where
       , nbsp
       , text $ show utxoAtAddress
       ]
-  pretty (NextTxAtRequest addressChangeRequest) =
+  pretty (AddressChangedAtRequest addressChangeRequest) =
     span_
-      [ text "NextTxAtRequest:"
+      [ text "AddressChangedAtRequest:"
       , nbsp
       , text $ show addressChangeRequest
       ]

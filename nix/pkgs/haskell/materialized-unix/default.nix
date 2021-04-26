@@ -43,7 +43,7 @@
         "tf-random".revision = (((hackage."tf-random")."0.5").revisions).default;
         "async-timer".revision = (((hackage."async-timer")."0.1.4.1").revisions).default;
         "tdigest".revision = (((hackage."tdigest")."0.2.1.1").revisions).default;
-        "ghc".revision = (((hackage."ghc")."8.10.2.20201118").revisions).default;
+        "ghc".revision = (((hackage."ghc")."8.10.4.20210212").revisions).default;
         "Only".revision = (((hackage."Only")."0.1").revisions).default;
         "insert-ordered-containers".revision = (((hackage."insert-ordered-containers")."0.2.4").revisions).default;
         "cereal".revision = (((hackage."cereal")."0.5.8.1").revisions).default;
@@ -52,7 +52,7 @@
         "quiet".revision = (((hackage."quiet")."0.2").revisions).default;
         "ghc-paths".revision = (((hackage."ghc-paths")."0.1.0.12").revisions).default;
         "binary".revision = (((hackage."binary")."0.8.8.0").revisions).default;
-        "ghc-boot".revision = (((hackage."ghc-boot")."8.10.2.20201118").revisions).default;
+        "ghc-boot".revision = (((hackage."ghc-boot")."8.10.4.20210212").revisions).default;
         "wl-pprint-text".revision = (((hackage."wl-pprint-text")."1.2.0.1").revisions).default;
         "lazysmallcheck".revision = (((hackage."lazysmallcheck")."0.6").revisions).default;
         "attoparsec-iso8601".revision = (((hackage."attoparsec-iso8601")."1.0.2.0").revisions).default;
@@ -110,7 +110,7 @@
         "unix".revision = (((hackage."unix")."2.7.2.2").revisions).default;
         "SHA".revision = (((hackage."SHA")."1.6.4.4").revisions).default;
         "SHA".flags.exe = false;
-        "ghc-heap".revision = (((hackage."ghc-heap")."8.10.2.20201118").revisions).default;
+        "ghc-heap".revision = (((hackage."ghc-heap")."8.10.4.20210212").revisions).default;
         "tasty-quickcheck".revision = (((hackage."tasty-quickcheck")."0.10.1.2").revisions).default;
         "mtl".revision = (((hackage."mtl")."2.2.2").revisions).default;
         "lifted-async".revision = (((hackage."lifted-async")."0.10.2").revisions).default;
@@ -134,7 +134,7 @@
         "cmdargs".flags.testprog = false;
         "cmdargs".flags.quotation = true;
         "easy-file".revision = (((hackage."easy-file")."0.2.2").revisions).default;
-        "ghci".revision = (((hackage."ghci")."8.10.2.20201118").revisions).default;
+        "ghci".revision = (((hackage."ghci")."8.10.4.20210212").revisions).default;
         "dictionary-sharing".revision = (((hackage."dictionary-sharing")."0.1.0.0").revisions).default;
         "natural-transformation".revision = (((hackage."natural-transformation")."0.4").revisions).default;
         "statistics".revision = (((hackage."statistics")."0.15.2.0").revisions).default;
@@ -392,7 +392,7 @@
         "monad-par".revision = (((hackage."monad-par")."0.3.5").revisions).default;
         "monad-par".flags.newgeneric = false;
         "monad-par".flags.chaselev = false;
-        "bytestring".revision = (((hackage."bytestring")."0.10.10.0").revisions).default;
+        "bytestring".revision = (((hackage."bytestring")."0.10.12.0").revisions).default;
         "ansi-wl-pprint".revision = (((hackage."ansi-wl-pprint")."0.6.9").revisions).default;
         "ansi-wl-pprint".flags.example = false;
         "microlens-th".revision = (((hackage."microlens-th")."0.4.3.6").revisions).default;
@@ -464,8 +464,8 @@
         "deriving-compat".flags.new-functor-classes = true;
         "persistent".revision = (((hackage."persistent")."2.11.0.4").revisions).default;
         "persistent".flags.nooverlap = false;
-        "text".revision = (((hackage."text")."1.2.3.2").revisions).default;
-        "Cabal".revision = (((hackage."Cabal")."3.2.0.0").revisions).default;
+        "text".revision = (((hackage."text")."1.2.4.1").revisions).default;
+        "Cabal".revision = (((hackage."Cabal")."3.2.1.0").revisions).default;
         "assoc".revision = (((hackage."assoc")."1.0.2").revisions).default;
         "Diff".revision = (((hackage."Diff")."0.4.0").revisions).default;
         "unordered-containers".revision = (((hackage."unordered-containers")."0.2.13.0").revisions).default;
@@ -617,7 +617,7 @@
         "persistent-sqlite".flags.uri-filenames = true;
         "http-types".revision = (((hackage."http-types")."0.12.3").revisions).default;
         "signal".revision = (((hackage."signal")."0.1.0.4").revisions).default;
-        "ghc-boot-th".revision = (((hackage."ghc-boot-th")."8.10.2.20201118").revisions).default;
+        "ghc-boot-th".revision = (((hackage."ghc-boot-th")."8.10.4.20210212").revisions).default;
         "jwt".revision = (((hackage."jwt")."0.10.0").revisions).default;
         "th-lift-instances".revision = (((hackage."th-lift-instances")."0.1.18").revisions).default;
         "servant-server".revision = (((hackage."servant-server")."0.18.2").revisions).default;
@@ -649,28 +649,28 @@
         "integer-gmp".revision = (((hackage."integer-gmp")."1.0.3.0").revisions).default;
         };
       compiler = {
-        version = "8.10.2.20201118";
-        nix-name = "ghc810220201118";
+        version = "8.10.4.20210212";
+        nix-name = "ghc810420210212";
         packages = {
-          "ghc" = "8.10.2.20201118";
+          "ghc" = "8.10.4.20210212";
           "exceptions" = "0.10.4";
           "binary" = "0.8.8.0";
-          "ghc-boot" = "8.10.2.20201118";
+          "ghc-boot" = "8.10.4.20210212";
           "ghc-prim" = "0.6.1";
           "stm" = "2.5.0.0";
           "unix" = "2.7.2.2";
-          "ghc-heap" = "8.10.2.20201118";
+          "ghc-heap" = "8.10.4.20210212";
           "mtl" = "2.2.2";
           "rts" = "1.0";
-          "ghci" = "8.10.2.20201118";
+          "ghci" = "8.10.4.20210212";
           "deepseq" = "1.4.4.0";
           "parsec" = "3.1.14.0";
           "directory" = "1.3.6.0";
           "template-haskell" = "2.16.0.0";
           "containers" = "0.6.2.1";
-          "bytestring" = "0.10.10.0";
-          "text" = "1.2.3.2";
-          "Cabal" = "3.2.0.0";
+          "bytestring" = "0.10.12.0";
+          "text" = "1.2.4.1";
+          "Cabal" = "3.2.1.0";
           "base" = "4.14.1.0";
           "time" = "1.9.3";
           "terminfo" = "0.4.1.4";
@@ -679,7 +679,7 @@
           "filepath" = "1.4.2.1";
           "process" = "1.6.9.0";
           "pretty" = "1.1.3.6";
-          "ghc-boot-th" = "8.10.2.20201118";
+          "ghc-boot-th" = "8.10.4.20210212";
           "array" = "0.5.4.0";
           "integer-gmp" = "1.0.3.0";
           };
@@ -731,7 +731,6 @@
         cardano-crypto = ./.plan.nix/cardano-crypto.nix;
         plutus-tx = ./.plan.nix/plutus-tx.nix;
         prettyprinter-configurable = ./.plan.nix/prettyprinter-configurable.nix;
-        unlit = ./.plan.nix/unlit.nix;
         plutus-pab = ./.plan.nix/plutus-pab.nix;
         cardano-prelude-test = ./.plan.nix/cardano-prelude-test.nix;
         byron-spec-ledger = ./.plan.nix/byron-spec-ledger.nix;
@@ -858,7 +857,6 @@
             };
           "plutus-tx" = { flags = {}; };
           "prettyprinter-configurable" = { flags = {}; };
-          "unlit" = { flags = {}; };
           "plutus-pab" = {
             flags = { "defer-plugin-errors" = lib.mkOverride 900 false; };
             };

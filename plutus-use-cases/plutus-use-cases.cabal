@@ -32,6 +32,7 @@ library
         Plutus.Contracts.Currency
         Plutus.Contracts.ErrorHandling
         Plutus.Contracts.Escrow
+        Plutus.Contracts.SimpleEscrow
         Plutus.Contracts.Future
         Plutus.Contracts.GameStateMachine
         Plutus.Contracts.Governance
@@ -80,7 +81,8 @@ library
         prettyprinter -any,
         hashable -any,
         freer-simple -any,
-        streaming -any
+        streaming -any,
+        semigroups -any
 
     if !(impl(ghcjs) || os(ghcjs))
         build-depends: plutus-tx-plugin -any
@@ -98,6 +100,7 @@ test-suite plutus-use-cases-test
         Spec.Currency
         Spec.ErrorHandling
         Spec.Escrow
+        Spec.SimpleEscrow
         Spec.Future
         Spec.GameStateMachine
         Spec.Governance
@@ -163,6 +166,7 @@ executable plutus-use-cases-scripts
         Spec.Currency
         Spec.ErrorHandling
         Spec.Escrow
+        Spec.SimpleEscrow
         Spec.Future
         Spec.GameStateMachine
         Spec.Governance

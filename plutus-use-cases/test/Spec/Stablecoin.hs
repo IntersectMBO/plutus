@@ -20,7 +20,8 @@ import           Ledger.Address              (Address)
 import           Ledger.Oracle               (Observation, SignedMessage, signObservation)
 import           Ledger.Slot                 (Slot (..))
 import           Ledger.Typed.Scripts        (scriptAddress)
-import           Ledger.Value
+import           Ledger.Value                (Value)
+import qualified Ledger.Value                as Value
 import           Plutus.Contract.Test
 import           PlutusTx.Numeric            (negate, one, zero)
 import           PlutusTx.Ratio              as Ratio
@@ -52,7 +53,7 @@ coin = Stablecoin
     , scMinReserveRatio = zero
     , scMaxReserveRatio = 4 % 1
     , scReservecoinDefaultPrice = BC 1
-    , scBaseCurrency = (adaSymbol, adaToken)
+    , scBaseCurrency = Value.assetClass adaSymbol adaToken
     , scStablecoinTokenName = "stablecoin"
     , scReservecoinTokenName = "reservecoin"
     }

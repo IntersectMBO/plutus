@@ -110,12 +110,12 @@ handleChainIndex = interpret $ \case
     ConfirmedBlocks -> gets _idxConfirmedBlocks
     TransactionConfirmed txid ->
         Map.member txid <$> gets _idxConfirmedTransactions
-    NextTx r@AddressChangeRequest{acreqSlot, acreqAddress} -> do
+    AddressChanged r@AddressChangeRequest{acreqSlotRange, acreqAddress} -> do
         idx <- gets _idxIdx
-        let itms = Index.transactionsAt idx acreqSlot acreqAddress
+        let itms = Index.transactionsAt idx acreqSlotRange acreqAddress
         logDebug $ HandlingAddressChangeRequest r itms
         pure $ AddressChangeResponse
             { acrAddress=acreqAddress
-            , acrSlot=acreqSlot
+            , acrSlotRange=acreqSlotRange
             , acrTxns = fmap ciTx itms
             }

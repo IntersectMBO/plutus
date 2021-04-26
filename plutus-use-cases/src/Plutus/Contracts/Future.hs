@@ -288,8 +288,8 @@ mkAccounts long short =
 {-# INLINABLE tokenFor #-}
 tokenFor :: Role -> FutureAccounts -> Value
 tokenFor = \case
-    Long  -> \case FutureAccounts{ftoLong=Account(sym,tn)} -> token sym tn
-    Short -> \case FutureAccounts{ftoShort=Account(sym,tn)} -> token sym tn
+    Long  -> \case FutureAccounts{ftoLong=Account cur} -> token cur
+    Short -> \case FutureAccounts{ftoShort=Account cur} -> token cur
 
 {-# INLINABLE adjustMargin #-}
 -- | Change the margin account of the role by the given amount.
@@ -310,7 +310,7 @@ futureStateMachine
     :: Future
     -> FutureAccounts
     -> StateMachine FutureState FutureAction
-futureStateMachine ft fos = SM.mkStateMachine (transition ft fos) isFinal where
+futureStateMachine ft fos = SM.mkStateMachine Nothing (transition ft fos) isFinal where
     isFinal Finished = True
     isFinal _        = False
 
@@ -596,8 +596,8 @@ setupTokens = mapError (review _FutureError) $ do
     -- Create the tokens using the currency contract, wrapping any errors in
     -- 'TokenSetupFailed'
     cur <- mapError TokenSetupFailed $ Currency.forgeContract (pubKeyHash pk) [("long", 1), ("short", 1)]
-    let sym = Currency.currencySymbol cur
-    pure $ mkAccounts (Account (sym, "long")) (Account (sym, "short"))
+    let acc = Account . Value.assetClass (Currency.currencySymbol cur)
+    pure $ mkAccounts (acc "long") (acc "short")
 
 -- | The escrow contract that initialises the future. Both parties have to pay
 --   their initial margin to this contract in order to unlock their tokens.

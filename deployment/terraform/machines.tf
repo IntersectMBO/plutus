@@ -36,29 +36,20 @@ locals {
     dns  = "playgrounds-b.${element(concat(aws_route53_zone.plutus_private_zone.*.name, list("")), 0)}"
   }
 
-  prometheus = {
-    name        = "prometheus"
-    ip          = "${element(concat(aws_instance.prometheus.*.private_ip, list("")), 0)}"
-    dns         = "prometheus.${element(concat(aws_route53_zone.plutus_private_zone.*.name, list("")), 0)}"
-    externalDns = "${local.monitoring_domain_name}"
-  }
-
   machines = {
-    webghcA           = "${local.webghcA}"
-    webghcB           = "${local.webghcB}"
-    marloweDashA      = "${local.marloweDashA}"
-    marloweDashB      = "${local.marloweDashB}"
-    playgroundsA      = "${local.playgroundsA}"
-    playgroundsB      = "${local.playgroundsB}"
-    prometheus        = "${local.prometheus}"
-    rootSshKeys       = local.root_ssh_keys
-    monitoringSshKeys = local.monitoring_ssh_keys
-    awsRegion         = "${var.aws_region}"
-    environment       = "${var.env}"
-    project           = "${local.project}"
-    tld               = "${var.plutus_tld}"
-    plutusTld         = "${var.plutus_tld}"
-    marloweTld        = "${var.marlowe_tld}"
+    webghcA      = "${local.webghcA}"
+    webghcB      = "${local.webghcB}"
+    marloweDashA = "${local.marloweDashA}"
+    marloweDashB = "${local.marloweDashB}"
+    playgroundsA = "${local.playgroundsA}"
+    playgroundsB = "${local.playgroundsB}"
+    rootSshKeys  = local.root_ssh_keys
+    awsRegion    = "${var.aws_region}"
+    environment  = "${var.env}"
+    project      = "${local.project}"
+    tld          = "${var.plutus_tld}"
+    plutusTld    = "${var.plutus_tld}"
+    marloweTld   = "${var.marlowe_tld}"
   }
 }
 

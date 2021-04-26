@@ -24,7 +24,7 @@
       isLocal = true;
       detailLevel = "FullDetails";
       licenseFiles = [];
-      dataDir = "";
+      dataDir = ".";
       dataFiles = [];
       extraSrcFiles = [ "README.md" ];
       extraTmpFiles = [];
@@ -283,4 +283,4 @@
           };
         };
       };
-    } // rec { src = (pkgs.lib).mkDefault .././.source-repository-packages/28; }
+    } // rec { src = (pkgs.lib).mkDefault .././.source-repository-packages/27; }

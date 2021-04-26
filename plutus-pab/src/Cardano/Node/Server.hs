@@ -11,7 +11,7 @@ module Cardano.Node.Server
 import           Cardano.BM.Data.Trace            (Trace)
 import           Cardano.Node.API                 (API)
 import           Cardano.Node.Mock
-import           Cardano.Node.Types
+import           Cardano.Node.Types               hiding (currentSlot)
 import qualified Cardano.Protocol.Socket.Client   as Client
 import qualified Cardano.Protocol.Socket.Server   as Server
 import           Control.Concurrent               (MVar, forkIO, modifyMVar_, newMVar)
@@ -59,9 +59,9 @@ main trace MockServerConfig { mscBaseUrl
                             , mscRandomTxInterval
                             , mscBlockReaper
                             , mscKeptBlocks
-                            , mscSlotLength
+                            , mscSlotConfig
                             , mscInitialTxWallets
-                            , mscSocketPath } availability = LM.runLogEffects trace $ do
+                            , mscSocketPath} availability = LM.runLogEffects trace $ do
 
     -- make initial distribution of 1 billion Ada to all configured wallets
     let dist = Map.fromList $ zip mscInitialTxWallets (repeat (Ada.adaValueOf 1000_000_000))
@@ -72,11 +72,11 @@ main trace MockServerConfig { mscBaseUrl
     serverHandler <- liftIO $ Server.runServerNode mscSocketPath mscKeptBlocks (_chainState appState)
     serverState   <- liftIO $ newMVar appState
     handleDelayEffect $ delayThread (2 :: Second)
-    clientHandler <- liftIO $ Client.runClientNode mscSocketPath (updateChainState serverState)
+    clientHandler <- liftIO $ Client.runClientNode mscSocketPath mscSlotConfig (updateChainState serverState)
 
     let ctx = Ctx serverHandler clientHandler serverState trace
 
-    runSlotCoordinator ctx mscSlotLength
+    runSlotCoordinator ctx
     maybe (logInfo NoRandomTxGeneration) (runRandomTxGeneration ctx) mscRandomTxInterval
     maybe (logInfo KeepingOldBlocks) (runBlockReaper ctx) mscBlockReaper
 
@@ -94,9 +94,10 @@ main trace MockServerConfig { mscBaseUrl
                 logInfo RemovingOldBlocks
                 void $ liftIO $ forkIO $ blockReaper reaperConfig serverHandler
 
-            runSlotCoordinator Ctx { serverHandler } slotLength = do
-                logInfo StartingSlotCoordination
-                void $ liftIO $ forkIO $ slotCoordinator slotLength serverHandler
+            runSlotCoordinator Ctx { serverHandler } = do
+                let SlotConfig{scZeroSlotTime, scSlotLength} = mscSlotConfig
+                logInfo $ StartingSlotCoordination scZeroSlotTime scSlotLength
+                void $ liftIO $ forkIO $ slotCoordinator mscSlotConfig serverHandler
 
             updateChainState :: MVar AppState -> Block -> Slot -> IO ()
             updateChainState mv block slot =

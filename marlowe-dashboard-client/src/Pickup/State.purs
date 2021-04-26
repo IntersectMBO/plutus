@@ -15,7 +15,7 @@ import MainFrame.Lenses (_card)
 import MainFrame.Types (ChildSlots, Msg)
 import Pickup.Types (Action(..), State)
 
--- see note [dummyState]
+-- see note [dummyState] in MainFrame.State
 dummyState :: State
 dummyState = initialState
 
@@ -23,10 +23,11 @@ initialState :: State
 initialState =
   { card: Nothing
   , pickupWalletString: mempty
+  , pickingUp: false
   }
 
 -- Some actions are handled in `MainFrame.State` because they involve
--- modifications of that state. See Note [State].
+-- modifications of that state. See Note [State] in MainFrame.State.
 handleAction ::
   forall m.
   MonadAff m =>

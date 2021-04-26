@@ -52,11 +52,16 @@ module.exports = {
     extend: {
       animation: {
         "from-below": "from-below 250ms ease-out 1",
+        "to-bottom": "to-bottom 250ms ease-out 1",
       },
       keyframes: {
         "from-below": {
           "0%": { transform: "translateY(20px)", opacity: 0 },
           "100%": { transform: "translateY(0px)", opacity: 1 },
+        },
+        "to-bottom": {
+          "0%": { transform: "translateY(0px)", opacity: 1 },
+          "100%": { transform: "translateY(20px)", opacity: 0 },
         },
       },
       gridTemplateRows: {
@@ -75,6 +80,9 @@ module.exports = {
         md: "640px",
         lg: "768px",
         "contract-card": "264px",
+        /* This width is used by a padding element in both sides of the carousel and is enough
+           to push the first and last card to the center */
+        "carousel-padding-element": "calc(50% - 264px / 2)",
       },
       height: {
         "contract-card": "467px",
@@ -221,7 +229,7 @@ module.exports = {
     translate: true,
     skew: false,
     transitionProperty: true,
-    transitionTimingFunction: false,
+    transitionTimingFunction: true,
     transitionDuration: true,
     transitionDelay: false,
     animation: true,

@@ -105,13 +105,14 @@ library
         PlutusIR.Parser
         PlutusIR.MkPir
         PlutusIR.Purity
-        PlutusIR.Optimizer.DeadCode
+        PlutusIR.Transform.DeadCode
         PlutusIR.Transform.Substitute
         PlutusIR.Transform.ThunkRecursions
         PlutusIR.Transform.Rename
         PlutusIR.Transform.NonStrict
         PlutusIR.Transform.LetFloat
         PlutusIR.Transform.Inline
+        PlutusIR.Transform.Beta
         PlutusIR.TypeCheck
 
         UntypedPlutusCore
@@ -326,7 +327,6 @@ test-suite plutus-ir-test
     main-is: Spec.hs
     hs-source-dirs: plutus-ir/test
     other-modules:
-        OptimizerSpec
         TransformSpec
         ParserSpec
         TypeSpec

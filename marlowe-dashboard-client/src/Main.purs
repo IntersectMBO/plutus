@@ -5,6 +5,7 @@ import AppM (runAppM)
 import Control.Coroutine (Consumer, Process, connect, consumer, runProcess)
 import Data.Maybe (Maybe(..))
 import Effect (Effect)
+import Effect.AVar as AVar
 import Effect.Aff (Aff, forkAff)
 import Effect.Class (liftEffect)
 import Effect.Console (log)
@@ -26,21 +27,25 @@ import Servant.PureScript.Settings (SPSettingsDecodeJson_(..), SPSettingsEncodeJ
 import WebSocket.Support (WebSocketManager, mkWebSocketManager)
 import WebSocket.Support as WS
 
-environment :: Env
-environment =
-  { ajaxSettings: SPSettings_ (settings { decodeJson = decodeJson, encodeJson = encodeJson })
-  }
-  where
-  SPSettings_ settings = defaultSettings $ SPParams_ { baseURL: "/" }
+mkEnvironment :: Effect Env
+mkEnvironment = do
+  let
+    SPSettings_ settings = defaultSettings $ SPParams_ { baseURL: "/" }
 
-  jsonOptions = defaultOptions { unwrapSingleConstructors = true }
+    jsonOptions = defaultOptions { unwrapSingleConstructors = true }
 
-  decodeJson = SPSettingsDecodeJson_ jsonOptions
+    decodeJson = SPSettingsDecodeJson_ jsonOptions
 
-  encodeJson = SPSettingsEncodeJson_ jsonOptions
+    encodeJson = SPSettingsEncodeJson_ jsonOptions
+  contractStepCarouselSubscription <- AVar.empty
+  pure
+    { ajaxSettings: SPSettings_ (settings { decodeJson = decodeJson, encodeJson = encodeJson })
+    , contractStepCarouselSubscription
+    }
 
 main :: Effect Unit
 main = do
+  environment <- mkEnvironment
   let
     mainFrame :: Component HTML MainFrame.Query MainFrame.Action MainFrame.Msg Aff
     mainFrame = hoist (runAppM environment) mkMainFrame
@@ -66,7 +71,7 @@ main = do
           (SendWebSocketMessage msg) -> do
             WS.managerWriteOutbound wsManager $ WS.SendMessage msg
             pure Nothing
-          -- This handler allow us to call an action in the MainFrame from a child component
+          -- This handler allows us to call an action in the MainFrame from a child component
           -- (more info in the MainFrameLoop capability)
           (MainFrameActionMsg action) -> do
             void $ driver.query $ MainFrameActionQuery action unit

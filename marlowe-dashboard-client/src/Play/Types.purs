@@ -12,7 +12,7 @@ import ContractHome.Types (Action, State) as ContractHome
 import Data.Maybe (Maybe(..))
 import Data.Time.Duration (Minutes)
 import Marlowe.Execution (NamedAction)
-import Marlowe.Semantics (Slot)
+import Marlowe.Semantics (Slot, TokenName)
 import Template.Types (Action, State) as Template
 import WalletData.Types (WalletDetails, WalletNickname)
 
@@ -49,15 +49,15 @@ data Action
   = PutdownWallet
   | SetNewWalletNickname WalletNickname
   | SetNewWalletContractId String
-  | AddNewWallet (Maybe String)
+  | AddNewWallet (Maybe TokenName)
   | ToggleMenu
   | SetScreen Screen
   | OpenCard Card
   | CloseCard
+  | SetCurrentSlot Slot
   | TemplateAction Template.Action
   | ContractAction Contract.Action
   | ContractHomeAction ContractHome.Action
-  | SetCurrentSlot Slot
 
 -- | Here we decide which top-level queries to track as GA events, and
 -- how to classify them.
@@ -70,7 +70,7 @@ instance actionIsEvent :: IsEvent Action where
   toEvent (SetScreen _) = Just $ defaultEvent "SetScreen"
   toEvent (OpenCard _) = Nothing
   toEvent CloseCard = Nothing
+  toEvent (SetCurrentSlot _) = Nothing
   toEvent (TemplateAction templateAction) = toEvent templateAction
   toEvent (ContractAction contractAction) = toEvent contractAction
   toEvent (ContractHomeAction contractAction) = toEvent contractAction
-  toEvent (SetCurrentSlot _) = Nothing

@@ -238,12 +238,11 @@ tests =
 
     , goldenPir "test/Spec/gameStateMachine.pir" $$(PlutusTx.compile [|| mkValidator ||])
 
-    , HUnit.testCase "script size is reasonable"
-        (reasonable (Scripts.validatorScript G.scriptInstance) 49000)
+    , HUnit.testCaseSteps "script size is reasonable" $ \step ->
+        reasonable' step (Scripts.validatorScript G.scriptInstance) 49000
 
     , testProperty "can always get the funds out" $
         withMaxSuccess 10 prop_NoLockedFunds
-
     ]
 
 initialVal :: Value

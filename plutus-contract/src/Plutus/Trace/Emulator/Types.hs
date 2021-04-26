@@ -153,6 +153,7 @@ data EmulatorRuntimeError =
     ThreadIdNotFound ContractInstanceId
     | InstanceIdNotFound Wallet
     | JSONDecodingError String
+    | GenericError String
     deriving stock (Eq, Ord, Show, Generic)
     deriving anyclass (ToJSON, FromJSON)
 
@@ -161,6 +162,7 @@ instance Pretty EmulatorRuntimeError where
         ThreadIdNotFound i   -> "Thread ID not found:" <+> pretty i
         InstanceIdNotFound w -> "Instance ID not found:" <+> pretty w
         JSONDecodingError e  -> "JSON decoding error:" <+> pretty e
+        GenericError e       -> pretty e
 
 -- | A user-defined tag for a contract instance. Used to find the instance's
 --   log messages in the emulator log.

@@ -1,4 +1,4 @@
-{ pkgs, gitignore-nix, webCommon, webCommonMarlowe, buildPursPackage, buildNodeModules, filterNpm, plutus-pab, marlowe-app, marlowe-companion-app }:
+{ pkgs, gitignore-nix, webCommon, webCommonMarlowe, buildPursPackage, buildNodeModules, filterNpm, plutus-pab, marlowe-app, marlowe-companion-app, marlowe-follow-app }:
 let
   cleanSrc = gitignore-nix.gitignoreSource ./.;
 
@@ -12,6 +12,7 @@ let
   contractsJSON = pkgs.writeTextDir "contracts.json" (builtins.toJSON {
     marlowe = "${marlowe-app}/bin/marlowe-app";
     walletCompanion = "${marlowe-companion-app}/bin/marlowe-companion-app";
+    walletFollower = "${marlowe-follow-app}/bin/marlowe-follow-app";
   });
 
   client = buildPursPackage {
@@ -34,6 +35,7 @@ let
   install-marlowe-contracts = pkgs.writeShellScriptBin "install-marlowe-contracts" ''
     ${plutus-pab.server-invoker}/bin/plutus-pab contracts install --path ${marlowe-app}/bin/marlowe-app
     ${plutus-pab.server-invoker}/bin/plutus-pab contracts install --path ${marlowe-companion-app}/bin/marlowe-companion-app
+    ${plutus-pab.server-invoker}/bin/plutus-pab contracts install --path ${marlowe-follow-app}/bin/marlowe-follow-app
   '';
 in
 {

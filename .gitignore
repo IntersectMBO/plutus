@@ -65,6 +65,7 @@ pkgs/.stack
 *_flymake.*
 .psc-ide-port
 .dir-locals.el
+*.code-workspace
 
 # Frontend generated files (NPM/Yarn, Spago, generated PS, etc.)
 # N.B. officially we use NPM; ignoring Yarn files allows the local use of Yarn for those that want

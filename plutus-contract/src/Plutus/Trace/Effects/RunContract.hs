@@ -27,6 +27,7 @@ module Plutus.Trace.Effects.RunContract(
     , callEndpoint
     , getContractState
     , activeEndpoints
+    , observableState
     , walletInstanceTag
     , handleRunContract
     , startContractThread
@@ -261,6 +262,18 @@ activeEndpoints hdl = do
             JSON.Success a -> Just a
             _              -> Nothing
     pure $ mapMaybe (parse . handlerArgument . rqRequest) rq
+
+-- | Get the observable state @w@ of a contract instance.
+observableState :: forall w s e effs.
+    ( Member RunContract effs
+    , ContractConstraints s
+    , JSON.FromJSON e
+    , JSON.FromJSON w
+    )
+    => ContractHandle w s e -> Eff effs w
+observableState hdl = do
+    ContractInstanceState{instContractState=ResumableResult{_observableState}} <- getContractState hdl
+    pure _observableState
 
 callEndpointTag :: Tag
 callEndpointTag = "call endpoint"

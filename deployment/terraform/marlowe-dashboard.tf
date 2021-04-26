@@ -19,14 +19,6 @@ resource "aws_security_group" "marlowe_dash" {
     cidr_blocks = concat(var.public_subnet_cidrs, var.private_subnet_cidrs)
   }
 
-  # prometheus node exporter
-  ingress {
-    from_port   = local.node_exporter_port
-    to_port     = local.node_exporter_port
-    protocol    = "TCP"
-    cidr_blocks = var.private_subnet_cidrs
-  }
-
   ## outgoing: all
   egress {
     from_port   = 0

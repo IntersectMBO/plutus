@@ -24,7 +24,7 @@
       isLocal = true;
       detailLevel = "FullDetails";
       licenseFiles = [ "LICENSE" "NOTICE" ];
-      dataDir = "";
+      dataDir = ".";
       dataFiles = [
         "usecases/Crowdfunding.hs"
         "usecases/ErrorHandling.hs"
@@ -164,7 +164,7 @@
             (hsPkgs."optparse-applicative" or (errorHandler.buildDepError "optparse-applicative"))
             (hsPkgs."plutus-tx" or (errorHandler.buildDepError "plutus-tx"))
             (hsPkgs."plutus-playground-server" or (errorHandler.buildDepError "plutus-playground-server"))
-            (hsPkgs."plutus-playground-usecases" or (errorHandler.buildDepError "plutus-playground-usecases"))
+            (hsPkgs."plutus-playground-server".components.sublibs.plutus-playground-usecases or (errorHandler.buildDepError "plutus-playground-server:plutus-playground-usecases"))
             (hsPkgs."prometheus" or (errorHandler.buildDepError "prometheus"))
             (hsPkgs."purescript-bridge" or (errorHandler.buildDepError "purescript-bridge"))
             (hsPkgs."servant" or (errorHandler.buildDepError "servant"))
@@ -226,7 +226,7 @@
             (hsPkgs."plutus-playground-server" or (errorHandler.buildDepError "plutus-playground-server"))
             (hsPkgs."plutus-tx" or (errorHandler.buildDepError "plutus-tx"))
             (hsPkgs."plutus-ledger" or (errorHandler.buildDepError "plutus-ledger"))
-            (hsPkgs."plutus-playground-usecases" or (errorHandler.buildDepError "plutus-playground-usecases"))
+            (hsPkgs."plutus-playground-server".components.sublibs.plutus-playground-usecases or (errorHandler.buildDepError "plutus-playground-server:plutus-playground-usecases"))
             (hsPkgs."plutus-contract" or (errorHandler.buildDepError "plutus-contract"))
             (hsPkgs."tasty" or (errorHandler.buildDepError "tasty"))
             (hsPkgs."tasty-hunit" or (errorHandler.buildDepError "tasty-hunit"))

@@ -31,9 +31,9 @@ import           Data.Row
 import           Ledger                            (Address, OnChainTx, Slot, Value)
 import           Ledger.AddressMap                 (AddressMap, UtxoMap)
 import qualified Ledger.AddressMap                 as AM
+import qualified Ledger.Interval                   as Interval
 import           Ledger.Tx                         (txOutTxOut, txOutValue)
 import qualified Ledger.Value                      as V
-
 import           Plutus.Contract.Effects.AwaitSlot (HasAwaitSlot, awaitSlot, currentSlot)
 import           Plutus.Contract.Effects.UtxoAt    (HasUtxoAt, utxoAt)
 import           Plutus.Contract.Request           (ContractRow, requestMaybe)
@@ -62,8 +62,8 @@ addressChangeRequest ::
     -> Contract w s e AddressChangeResponse
 addressChangeRequest rq =
     let check :: AddressChangeResponse -> Maybe AddressChangeResponse
-        check r@AddressChangeResponse{acrAddress, acrSlot}
-                | acrAddress == acreqAddress rq && acrSlot >= acreqSlot rq = Just r
+        check r@AddressChangeResponse{acrAddress, acrSlotRange}
+                | acrAddress == acreqAddress rq && acrSlotRange >= acreqSlotRange rq = Just r
                 | otherwise = Nothing
     in requestMaybe @w @AddressSymbol @_ @_ @s rq check
 
@@ -80,7 +80,11 @@ nextTransactionsAt ::
 nextTransactionsAt addr = do
     initial <- currentSlot
     let go sl = do
-            txns <- acrTxns <$> addressChangeRequest AddressChangeRequest{acreqSlot = sl, acreqAddress=addr}
+            txns <- acrTxns <$> addressChangeRequest AddressChangeRequest
+                { acreqSlotRange = Interval.singleton sl
+                , acreqAddress = addr
+                }
+
             if null txns
                 then go (succ sl)
                 else pure txns
@@ -147,7 +151,7 @@ events
     -> OnChainTx
     -> Map Address (Event s)
 events sl utxo tx =
-    let mkEvent addr = AddressChangeResponse{acrAddress=addr,acrSlot=sl,acrTxns=[tx]}
+    let mkEvent addr = AddressChangeResponse{acrAddress=addr,acrSlotRange=Interval.singleton sl,acrTxns=[tx]}
     in Map.fromSet
         (Event . IsJust (Label @AddressSymbol) . mkEvent)
         (AM.addressesTouched utxo tx)
