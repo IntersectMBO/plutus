@@ -121,8 +121,8 @@ instance Closed uni => Flat (Some (TypeIn uni)) where
 instance (Closed uni, uni `Everywhere` Flat) => Flat (Some (ValueOf uni)) where
     encode (Some (ValueOf uni x)) = encode (Some $ TypeIn uni) <> bring (Proxy @Flat) uni (encode x)
 
-    decode = go =<< decode where
-        go (Some (TypeIn uni)) = Some . ValueOf uni <$> bring (Proxy @Flat) uni decode
+    decode = undefined {- go =<< decode where
+        go (Some (TypeIn uni)) = Some . ValueOf uni <$> bring (Proxy @Flat) uni decode -}
 
     -- We need to get the flat instance in scope.
     size (Some (ValueOf uni x)) acc = size (Some $ TypeIn uni) acc

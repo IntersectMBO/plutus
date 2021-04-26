@@ -8,8 +8,8 @@
 module Universe.Poly
     ( TypeApp
     , HasUniApply (..)
-    , asTypeApp
-    , withDecodedTypeApp
+--     , asTypeApp
+--     , withDecodedTypeApp
     , asTypeFun
     , withDecodedTypeFun
     ) where
@@ -262,76 +262,85 @@ instance GEq (ValueOf (uni :: IType)) where
 -}
 
 
-data T (a :: k)
+-- data T (a :: k)
 
-data U (a :: Type) where
-    UList  :: U (T [])
-    UInt   :: U (T Int)
-    UApply :: !(U (T f)) -> !(U (T a)) -> U (T (f a))
-
-
+-- data U (a :: Type) where
+--     UList  :: U (T [])
+--     UInt   :: U (T Int)
+--     UApply :: !(U (T f)) -> !(U (T a)) -> U (T (f a))
 
 
--- | A (possibly partial) type application.
-data TypeApp (a :: k)
+
+
+-- -- | A (possibly partial) type application.
+-- data TypeApp (a :: k)
 
 class HasUniApply (uni :: Type -> Type) where
-    matchUniRunTypeApp
-        :: uni a
-        -> r
-        -> (uni (TypeApp a) -> r)
-        -> r
     matchUniApply
         :: uni tfa
         -> r
-        -> (forall k f a. tfa ~ TypeApp (f a :: k) => uni (TypeApp f) -> uni a -> r)
+        -> (forall k l (f :: k -> l) a. tfa ~ TypeApp (f a) => uni (TypeApp f) -> uni (TypeApp a) -> r)
         -> r
-
-asTypeApp
-    :: forall uni ta m r. (Typeable ta, MonadFail m)
-    => uni ta
-    -> (forall (a :: Type). (ta ~ TypeApp a, Typeable a) => m r)
-    -> m r
-asTypeApp _ k = do
-    App repT repA <- pure $ typeRep @ta
-    let kindA = typeRepKind repA
-        repT' = withTypeable kindA $ typeRep @TypeApp
-    Just Refl <- pure $ repT `testEquality` repT'
-    Just Refl <- pure $ typeRepKind repA `testEquality` typeRep @Type
-    withTypeable repA k
-
-withDecodedTypeApp
-    :: forall uni r. Closed uni
-    => (forall (a :: Type). Typeable a => uni (TypeApp a) -> DecodeUniM r)
-    -> DecodeUniM r
-withDecodedTypeApp k = withDecodedUni @uni $ \uniTA -> asTypeApp uniTA $ k uniTA
-
--- We only need this function, because GHC won't allow turning @repF@ into the @Typeable f@
--- constraint at the end of the definition for whatever stupid reason. So we do that in 'asTypeFun'.
-withTypeFunRep
-    :: forall proxy tf m r. (Typeable tf, MonadFail m)
-    => proxy tf
-    -> (forall k (f :: Type -> k). (tf ~ TypeApp f, Typeable k) => TypeRep f -> m r)
-    -> m r
-withTypeFunRep _ k = do
-    App repT repF <- pure $ typeRep @tf
-    let kindF = typeRepKind repF
-    Fun repArg repRes <- pure kindF
-    let repT' = withTypeable kindF $ typeRep @TypeApp
-    Just Refl  <- pure $ repT `testEquality` repT'
-    Just HRefl <- pure $ repArg `eqTypeRep` typeRep @Type
-    Just Refl  <- pure $ typeRepKind repRes `testEquality` typeRep @Type
-    withTypeable repRes $ k repF
 
 asTypeFun
     :: forall proxy tf m r. (Typeable tf, MonadFail m)
     => proxy tf
     -> (forall k (f :: Type -> k). (tf ~ TypeApp f, Typeable k, Typeable f) => m r)
     -> m r
-asTypeFun uniF k = withTypeFunRep uniF $ \repF -> withTypeable repF k
+asTypeFun uniF k = undefined -- withTypeFunRep uniF $ \repF -> withTypeable repF k
 
 withDecodedTypeFun
     :: forall uni r. Closed uni
     => (forall k (f :: Type -> k). (Typeable k, Typeable f) => uni (TypeApp f) -> DecodeUniM r)
     -> DecodeUniM r
-withDecodedTypeFun k = withDecodedUni @uni $ \uniF -> asTypeFun uniF $ k uniF
+withDecodedTypeFun k = undefined -- withDecodedUni @uni $ \uniF -> asTypeFun uniF $ k uniF
+
+
+-- asTypeApp
+--     :: forall uni ta m r. (Typeable ta, MonadFail m)
+--     => uni ta
+--     -> (forall (a :: Type). (ta ~ TypeApp a, Typeable a) => m r)
+--     -> m r
+-- asTypeApp _ k = do
+--     App repT repA <- pure $ typeRep @ta
+--     let kindA = typeRepKind repA
+--         repT' = withTypeable kindA $ typeRep @TypeApp
+--     Just Refl <- pure $ repT `testEquality` repT'
+--     Just Refl <- pure $ typeRepKind repA `testEquality` typeRep @Type
+--     withTypeable repA k
+
+-- withDecodedTypeApp
+--     :: forall uni r. Closed uni
+--     => (forall (a :: Type). Typeable a => uni (TypeApp a) -> DecodeUniM r)
+--     -> DecodeUniM r
+-- withDecodedTypeApp k = withDecodedUni @uni $ \uniTA -> asTypeApp uniTA $ k uniTA
+
+-- -- We only need this function, because GHC won't allow turning @repF@ into the @Typeable f@
+-- -- constraint at the end of the definition for whatever stupid reason. So we do that in 'asTypeFun'.
+-- withTypeFunRep
+--     :: forall proxy tf m r. (Typeable tf, MonadFail m)
+--     => proxy tf
+--     -> (forall k (f :: Type -> k). (tf ~ TypeApp f, Typeable k) => TypeRep f -> m r)
+--     -> m r
+-- withTypeFunRep _ k = do
+--     App repT repF <- pure $ typeRep @tf
+--     let kindF = typeRepKind repF
+--     Fun repArg repRes <- pure kindF
+--     let repT' = withTypeable kindF $ typeRep @TypeApp
+--     Just Refl  <- pure $ repT `testEquality` repT'
+--     Just HRefl <- pure $ repArg `eqTypeRep` typeRep @Type
+--     Just Refl  <- pure $ typeRepKind repRes `testEquality` typeRep @Type
+--     withTypeable repRes $ k repF
+
+-- asTypeFun
+--     :: forall proxy tf m r. (Typeable tf, MonadFail m)
+--     => proxy tf
+--     -> (forall k (f :: Type -> k). (tf ~ TypeApp f, Typeable k, Typeable f) => m r)
+--     -> m r
+-- asTypeFun uniF k = withTypeFunRep uniF $ \repF -> withTypeable repF k
+
+-- withDecodedTypeFun
+--     :: forall uni r. Closed uni
+--     => (forall k (f :: Type -> k). (Typeable k, Typeable f) => uni (TypeApp f) -> DecodeUniM r)
+--     -> DecodeUniM r
+-- withDecodedTypeFun k = withDecodedUni @uni $ \uniF -> asTypeFun uniF $ k uniF

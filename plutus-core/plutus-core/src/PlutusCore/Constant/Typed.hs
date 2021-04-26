@@ -286,7 +286,7 @@ unliftConstant
     => term -> m a
 unliftConstant term = case asConstant term of
     Just (Some (ValueOf uniAct x)) -> do
-        let uniExp = knownUni @(UniOf term) @a
+        let uniExp = knownUni @_ @(UniOf term) @a
         case uniAct `geq` uniExp of
             Just Refl -> pure x
             Nothing   -> do
@@ -330,7 +330,7 @@ type KnownBuiltinType term a = KnownBuiltinTypeIn (UniOf term) term a
 
 -- See Note [KnownType's defaults].
 -- | A default implementation of 'toTypeAst' for built-in types.
-toBuiltinTypeAst :: uni `Contains` a => proxy a -> Type TyName uni ()
+toBuiltinTypeAst :: uni `Contains` (a :: GHC.Type) => proxy a -> Type TyName uni ()
 toBuiltinTypeAst (_ :: proxy a) = mkTyBuiltin @a ()
 
 -- See Note [KnownType's defaults]
@@ -395,8 +395,8 @@ instance KnownType term a => KnownType term (Emitter a) where
 -- We don't bother computing @k@ from @reps@.
 type SomeValueN :: forall k. (GHC.Type -> GHC.Type) -> k -> [GHC.Type] -> GHC.Type
 data SomeValueN uni (a :: k) reps where
-    SomeValueRes :: uni b -> b -> SomeValueN uni b '[]
-    SomeValueArg :: uni a -> SomeValueN uni (f a) reps -> SomeValueN uni f (rep ': reps)
+    SomeValueRes :: uni (TypeApp b) -> b -> SomeValueN uni b '[]
+    SomeValueArg :: uni (TypeApp a) -> SomeValueN uni (f a) reps -> SomeValueN uni f (rep ': reps)
 
 instance (uni `Contains` TypeApp f, uni ~ uni', All (KnownTypeAst uni) reps) =>
             KnownTypeAst uni (SomeValueN uni' f reps) where
@@ -413,7 +413,7 @@ data ReadSomeValueN m uni f reps =
 
 instance
         ( KnownTypeAst uni (SomeValueN uni f reps)
-        , KnownBuiltinTypeIn uni term (TypeApp f)
+        , KnownBuiltinTypeIn uni term f
         , All (KnownTypeAst uni) reps
         , HasUniApply uni
         ) => KnownType term (SomeValueN uni f reps) where
@@ -425,7 +425,7 @@ instance
     readKnown term = case asConstant term of
         Nothing -> throwingWithCause _UnliftingError "Not a constant" $ Just term
         Just (Some (ValueOf uni xs)) -> do
-            let uniF = knownUni @_ @(TypeApp f)
+            let uniF = knownUni @_ @_ @f
                 err = fromString $ concat
                     [ "Type mismatch: "
                     , "expected an application of: " ++ gshow uniF
@@ -434,19 +434,19 @@ instance
                 wrongType :: (MonadError (ErrorWithCause err term) m, AsUnliftingError err) => m a
                 wrongType = throwingWithCause _UnliftingError err $ Just term
             ReadSomeValueN res uniHead <-
-                matchUniRunTypeApp
-                    uni
-                    wrongType
-                    (\uniApp0 ->
+--                 matchUniRunTypeApp
+--                     uni
+--                     wrongType
+--                     (\uniApp0 ->
                         cparaM_SList @_ @(KnownTypeAst uni) @reps
                             Proxy
-                            (ReadSomeValueN (SomeValueRes uni xs) uniApp0)
+                            (ReadSomeValueN (SomeValueRes uni xs) uni)
                             (\(ReadSomeValueN acc uniApp) ->
                                 matchUniApply
                                     uniApp
                                     wrongType
                                     (\uniApp' uniA ->
-                                        pure $ ReadSomeValueN (SomeValueArg uniA acc) uniApp')))
+                                        pure $ ReadSomeValueN (SomeValueArg uniA acc) uniApp'))
             case uniHead `geq` uniF of
                 Nothing   -> wrongType
                 Just Refl -> pure res

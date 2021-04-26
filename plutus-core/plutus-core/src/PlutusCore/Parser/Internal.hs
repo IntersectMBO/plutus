@@ -55,11 +55,11 @@ mkBuiltinType tyloc typeName =
 mkBuiltinConstant
     :: (Parsable (Some uni), Closed uni, uni `Everywhere` Parsable)
     => AlexPosn -> T.Text -> AlexPosn -> T.Text -> Parse (AlexPosn, Some (ValueOf uni))
-mkBuiltinConstant tyloc typeName litloc lit  = do
-    Some uni <- decodeTypeName tyloc typeName
-    case bring (Proxy @Parsable) uni (parse lit) of
-        Nothing -> throwError $ InvalidBuiltinConstant litloc lit typeName
-        Just w  -> pure (litloc, Some (ValueOf uni w))
+mkBuiltinConstant tyloc typeName litloc lit  = undefined
+    -- Some uni <- decodeTypeName tyloc typeName
+    -- case bring (Proxy @Parsable) uni (parse lit) of
+    --     Nothing -> throwError $ InvalidBuiltinConstant litloc lit typeName
+    --     Just w  -> pure (litloc, Some (ValueOf uni w))
 
 -- | Produce (the contents of) a builtin function term from a type name and a literal constant.
 -- We return a pair of the position and the value rather than the actual term, since we want
