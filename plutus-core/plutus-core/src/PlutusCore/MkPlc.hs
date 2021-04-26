@@ -79,12 +79,12 @@ mkTyBuiltinOf ann = TyBuiltin ann . Some . TypeIn
 mkTyBuiltin
     :: forall a uni tyname ann. uni `Includes` a
     => ann -> Type tyname uni ann
-mkTyBuiltin ann = mkTyBuiltinOf ann $ knownUni @_ @uni @a
+mkTyBuiltin ann = mkTyBuiltinOf ann $ knownUni @uni @a
 
 -- | Embed a Haskell value (given its explicit type tag) into a PLC term.
 mkConstantOf
     :: forall a uni fun term tyname name ann. TermLike term tyname name uni fun
-    => ann -> uni (TypeApp a) -> a -> term ann
+    => ann -> uni a -> a -> term ann
 mkConstantOf ann uni = constant ann . someValueOf uni
 
 -- | Embed a Haskell value (provided its type is in the universe) into a PLC term.

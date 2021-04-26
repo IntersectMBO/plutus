@@ -82,24 +82,26 @@ and have meta-constructors as builtin names. We still have to handle types someh
 
 -- | The universe used by default.
 data DefaultUni a where
-    DefaultUniInteger    :: DefaultUni (TypeApp Integer)
-    DefaultUniByteString :: DefaultUni (TypeApp BS.ByteString)
-    DefaultUniChar       :: DefaultUni (TypeApp Char)
-    DefaultUniUnit       :: DefaultUni (TypeApp ())
-    DefaultUniBool       :: DefaultUni (TypeApp Bool)
+    DefaultUniInteger    :: DefaultUni Integer
+    DefaultUniByteString :: DefaultUni BS.ByteString
+    DefaultUniChar       :: DefaultUni Char
+    DefaultUniUnit       :: DefaultUni ()
+    DefaultUniBool       :: DefaultUni Bool
     DefaultUniListProto  :: DefaultUni (TypeApp [])
     DefaultUniTupleProto :: DefaultUni (TypeApp (,))
-    DefaultUniApply      :: !(DefaultUni (TypeApp f)) -> !(DefaultUni (TypeApp a)) -> DefaultUni (TypeApp (f a))
+    DefaultUniApply      :: !(DefaultUni (TypeApp f)) -> !(DefaultUni a) -> DefaultUni (TypeApp (f a))
+    DefaultUniRunTypeApp :: !(DefaultUni (TypeApp a)) -> DefaultUni a
+    -- DefaultUniRunTypeApp :: !(DefaultUni (TypeApp (f a))) -> DefaultUni (f a)
 
 -- GHC infers crazy types for these two and the straightforward ones break pattern matching,
 -- so we just leave GHC with its craziness.
 pattern DefaultUniList uniA =
-    DefaultUniListProto `DefaultUniApply` uniA
+    DefaultUniRunTypeApp (DefaultUniListProto `DefaultUniApply` uniA)
 pattern DefaultUniTuple uniA uniB =
-    DefaultUniTupleProto `DefaultUniApply` uniA `DefaultUniApply` uniB
+    DefaultUniRunTypeApp (DefaultUniTupleProto `DefaultUniApply` uniA `DefaultUniApply` uniB)
 
 -- Just for backwards compatibility, probably should be removed at some point.
-pattern DefaultUniString :: DefaultUni (TypeApp String)
+pattern DefaultUniString :: DefaultUni String
 pattern DefaultUniString = DefaultUniList DefaultUniChar
 
 deriveGEq ''DefaultUni
@@ -117,8 +119,12 @@ instance ToKind DefaultUni where
         -- but having @error@ should be fine for now.
         Type _            -> error "Panic: a type function can't be of type *"
         KindArrow _ _ cod -> cod
+    toKind (DefaultUniRunTypeApp _)    = nonTypeAppKind
 
 instance HasUniApply DefaultUni where
+    matchUniRunTypeApp (DefaultUniRunTypeApp a) _ h = h a
+    matchUniRunTypeApp _                        z _ = z
+
     matchUniApply (DefaultUniApply f a) _ h = h f a
     matchUniApply _                     z _ = z
 
@@ -129,6 +135,7 @@ instance Show (DefaultUni a) where
     show DefaultUniChar              = "char"
     show DefaultUniUnit              = "unit"
     show DefaultUniBool              = "bool"
+    show (DefaultUniRunTypeApp uniA) = show uniA
     show DefaultUniListProto         = "[]"
     show DefaultUniTupleProto        = "(,)"
     show (DefaultUniApply uniF uniB) = case uniF of
@@ -148,23 +155,21 @@ instance Parsable (Some DefaultUni) where
     parse "string"     = Just $ Some DefaultUniString
     parse text         = asum
         [ do
-            undefined
---             aT <- Text.stripPrefix "[" text >>= Text.stripSuffix "]"
---             Some a <- parse aT
---             Just . Some $ DefaultUniList a
+            aT <- Text.stripPrefix "[" text >>= Text.stripSuffix "]"
+            Some a <- parse aT
+            Just . Some $ DefaultUniList a
         , do
             abT <- Text.stripPrefix "(" text >>= Text.stripSuffix ")"
             -- Note that we don't allow whitespace after @,@ (but we could).
             -- Anyway, looking for a single comma is just plain wrong, as we may have a nested
             -- tuple (and it can be left- or right- or both-nested), so we're running into
             -- the same parsing problem as with constants.
-            undefined
---             case Text.splitOn "," abT of
---                 [aT, bT] -> do
---                     Some a <- parse aT
---                     Some b <- parse bT
---                     Just . Some $ DefaultUniTuple a b
---                 _ -> Nothing
+            case Text.splitOn "," abT of
+                [aT, bT] -> do
+                    Some a <- parse aT
+                    Some b <- parse bT
+                    Just . Some $ DefaultUniTuple a b
+                _ -> Nothing
         ]
 
 instance DefaultUni `Contains` Integer       where knownUni = DefaultUniInteger
@@ -173,12 +178,12 @@ instance DefaultUni `Contains` Char          where knownUni = DefaultUniChar
 instance DefaultUni `Contains` ()            where knownUni = DefaultUniUnit
 instance DefaultUni `Contains` Bool          where knownUni = DefaultUniBool
 
-instance DefaultUni `Contains` []  where knownUni = DefaultUniListProto
-instance DefaultUni `Contains` (,) where knownUni = DefaultUniTupleProto
+instance DefaultUni `Contains` TypeApp []  where knownUni = DefaultUniListProto
+instance DefaultUni `Contains` TypeApp (,) where knownUni = DefaultUniTupleProto
 
--- instance (DefaultUni `Contains` TypeApp f, DefaultUni `Contains` a) =>
---             DefaultUni `Contains` TypeApp (f a) where
---     knownUni = knownUni `DefaultUniApply` knownUni
+instance (DefaultUni `Contains` TypeApp f, DefaultUni `Contains` a) =>
+            DefaultUni `Contains` TypeApp (f a) where
+    knownUni = knownUni `DefaultUniApply` knownUni
 
 instance DefaultUni `Contains` a => DefaultUni `Contains` [a] where
     knownUni = DefaultUniList knownUni
@@ -213,6 +218,7 @@ instance Closed DefaultUni where
     encodeUni DefaultUniListProto         = [5]
     encodeUni DefaultUniTupleProto        = [6]
     encodeUni (DefaultUniApply uniF uniA) = 7 : encodeUni uniF ++ encodeUni uniA
+    encodeUni (DefaultUniRunTypeApp uniA) = 8 : encodeUni uniA
 
     -- See Note [Stable encoding of tags].
     withDecodedUni k = peelUniTag >>= \case
@@ -223,15 +229,16 @@ instance Closed DefaultUni where
         4 -> k DefaultUniBool
         5 -> k DefaultUniListProto
         6 -> k DefaultUniTupleProto
-        7 -> undefined
---             withDecodedTypeFun $ \uniF ->
---                 withDecodedUni $ \uniA ->
---                     k $ uniF `DefaultUniApply` uniA
+        7 ->
+            withDecodedTypeFun $ \uniF ->
+                withDecodedUni $ \uniA ->
+                    k $ uniF `DefaultUniApply` uniA
+        8 -> withDecodedTypeApp $ k . DefaultUniRunTypeApp
         _ -> empty
 
     bring
         :: forall constr a r proxy. DefaultUni `Everywhere` constr
-        => proxy constr -> DefaultUni (TypeApp a) -> (constr a => r) -> r
+        => proxy constr -> DefaultUni a -> (constr a => r) -> r
     bring _ DefaultUniInteger           r = r
     bring _ DefaultUniByteString        r = r
     bring _ DefaultUniChar              r = r

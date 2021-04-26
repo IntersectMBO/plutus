@@ -36,7 +36,6 @@ module Universe.Core
     , GEq (..)
     , deriveGEq
     , (:~:) (..)
-    , TypeApp
     ) where
 
 import           Control.Applicative
@@ -90,9 +89,7 @@ newtype TypeIn uni a = TypeIn (uni a)
 
 -- | A value of a particular type from a universe.
 type ValueOf :: (Type -> Type) -> Type -> Type
-data ValueOf uni a = ValueOf (uni (TypeApp a)) a
-
-data TypeApp (a :: k)
+data ValueOf uni a = ValueOf (uni a) a
 
 -- | A class for enumerating types and fully instantiated type formers that @uni@ contains.
 -- For example, a particular @ExampleUni@ may have monomorphic types in it:
@@ -123,9 +120,9 @@ data TypeApp (a :: k)
 --
 -- 'Includes' is defined in terms of 'Contains', so you only need to provide a 'Contains' instance
 -- per type from the universe and you'll get 'Includes' for free.
-type Contains :: forall k. (Type -> Type) -> k -> Constraint
+type Contains :: (Type -> Type) -> Type -> Constraint
 class uni `Contains` a where
-    knownUni :: uni (TypeApp a)
+    knownUni :: uni a
 
 {- Note [The definition of Includes]
 We need to be able to partially apply 'Includes' (required in the definition of '<:' for example),
@@ -154,11 +151,11 @@ type Includes :: forall k. (Type -> Type) -> k -> Constraint
 type Includes uni = Permits (Contains uni)
 
 -- | Same as 'knownUni', but receives a @proxy@.
-knownUniOf :: uni `Includes` (a :: Type) => proxy a -> uni (TypeApp a)
+knownUniOf :: uni `Includes` a => proxy a -> uni a
 knownUniOf _ = knownUni
 
 -- | Wrap a value into @Some (ValueOf uni)@, given its explicit type tag.
-someValueOf :: forall a uni. uni (TypeApp a) -> a -> Some (ValueOf uni)
+someValueOf :: forall a uni. uni a -> a -> Some (ValueOf uni)
 someValueOf uni = Some . ValueOf uni
 
 -- | Wrap a value into @Some (ValueOf uni)@, provided its type is in the universe.
@@ -193,11 +190,11 @@ class Closed uni where
     encodeUni :: uni a -> [Int]
 
     -- | Decode a type and feed it to the continuation.
-    withDecodedUni :: (forall k (a :: k). Typeable a => uni (TypeApp a) -> DecodeUniM r) -> DecodeUniM r
+    withDecodedUni :: (forall a. Typeable a => uni a -> DecodeUniM r) -> DecodeUniM r
 
     -- | Bring a @constr a@ instance in scope, provided @a@ is a type from the universe and
     -- @constr@ holds for any type from the universe.
-    bring :: uni `Everywhere` constr => proxy constr -> uni (TypeApp a) -> (constr a => r) -> r
+    bring :: uni `Everywhere` constr => proxy constr -> uni a -> (constr a => r) -> r
 
 -- | Decode a type from a sequence of 'Int' tags.
 -- The opposite of 'encodeUni' (modulo invalid input).
