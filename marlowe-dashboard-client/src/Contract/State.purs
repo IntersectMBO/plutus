@@ -119,8 +119,8 @@ mkInitialState currentSlot contractInstanceId history =
           , contractInstanceId
           , selectedStep: 0
           , metadata: template.metaData
-          , participants: mempty --- FIXME
-          , mActiveUserParty: Nothing -- FIXME
+          , participants: mempty --- FIXME: I don't think there is any way we can do this
+          , mActiveUserParty: Nothing -- FIXME: this should be a function of the walletDetails
           , namedActions: mempty
           }
 

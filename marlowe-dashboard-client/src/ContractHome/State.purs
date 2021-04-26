@@ -1,41 +1,37 @@
 module ContractHome.State
   ( dummyState
   , mkInitialState
-  , historyToContractState
   , handleAction
   , partitionContracts
   ) where
 
 import Prelude
 import Contract.State (isContractClosed)
-import Contract.State (dummyState) as Contract
+import Contract.State (mkInitialState) as Contract
 import Contract.Types (State) as Contract
 import ContractHome.Lenses (_selectedContractIndex, _status)
 import ContractHome.Types (Action(..), ContractStatus(..), State, PartitionedContracts)
 import Data.Array as Array
 import Data.Lens (assign)
-import Data.Map (Map)
+import Data.Map (Map, mapMaybeWithKey)
 import Data.Map as Map
 import Data.Maybe (Maybe(..))
 import Data.Tuple (snd)
 import Halogen (HalogenM)
 import MainFrame.Types (ChildSlots, Msg)
 import Marlowe.PAB (ContractInstanceId, History)
+import Marlowe.Semantics (Slot)
 
 -- see note [dummyState] in MainFrame.State
 dummyState :: State
-dummyState = mkInitialState mempty
+dummyState = mkInitialState zero mempty
 
-mkInitialState :: Map ContractInstanceId History -> State
-mkInitialState contracts =
+mkInitialState :: Slot -> Map ContractInstanceId History -> State
+mkInitialState currentSlot contracts =
   { status: Running
-  , contracts: map historyToContractState contracts
+  , contracts: mapMaybeWithKey (Contract.mkInitialState currentSlot) contracts
   , selectedContractIndex: Nothing
   }
-
--- FIXME: get Contract.State from contract History
-historyToContractState :: History -> Contract.State
-historyToContractState history = Contract.dummyState
 
 handleAction ::
   forall m.
