@@ -1,3 +1,5 @@
+{-# LANGUAGE DataKinds        #-}
+
 {-# LANGUAGE GADTs            #-}
 {-# LANGUAGE PolyKinds        #-}
 {-# LANGUAGE RankNTypes       #-}
@@ -95,13 +97,180 @@ that was mentioned above). It would be nice if we could impose each universe to 
 application constructor and not require polymorphic built-in types to be fully applied at all
 times ("fully applied" includes "applied to a hole").
 
+So can we index the universe by types of arbitrary kinds and have a single application constructor?
+Well, we can define
+
+    data U (a :: k) where
+        UList  :: U []
+        UInt   :: U Int
+        UApply :: !(U f) -> !(U a) -> U (f a)
+
+but 'U' is of kind @forall k. k -> Type@, which is really hard to deal with. For one thing, we lose
+pretty much any interop with the rest of the ecosystem, for example not only is it not possible to
+derive 'GEq' or 'GShow' anymore, it's not even correct to say @GEq U@, because 'GEq' expects
+something of type @k -> Type@ for a particular @k@, while 'U' has a different type.
+
+Our problems with 'U' don't end here. Having a @forall@ in the kind destroys type inference.
+For example, having
+
+    type ISome :: (forall k. k -> Type) -> Type
+    data ISome f = forall a (x :: a). ISome (f x)
+
+    data U (a :: k)
+
+we can check that
+
+    newtype TypeIn uni a = TypeIn (uni a)
+
+    type Test = ISome (TypeIn U)
+
+type checks just fine when 'TypeIn' has the following kind signature:
+
+    type TypeIn :: (forall k. k -> Type) -> forall l. l -> Type
+
+but fails to type check when the final @forall@ is moved to the left:
+
+    type TypeIn :: forall l. (forall k. k -> Type) -> l -> Type
+
+We could fix it by defining
+
+    type IType = forall k. k -> Type
+
+and using it everywhere instead of @forall k. k -> Type@, but our problems just start here.
+For another example, the following does not type check at all:
+
+    type IType = forall k. k -> Type
+
+    type IValueOf :: IType -> Type -> Type
+    data IValueOf uni a = IValueOf (uni a) a
+
+    instance Eq (IValueOf (uni :: IType) a)
+
+GHC does not seem to like that implicitly quantified @uni@ has a higher-rank kind.
+And it's annoying that we'd need both @Some@ (for values) and @ISome@ (for types).
+
+So basically this approach is unusable.
+
+But there's another way to spell @forall k. k -> Type@ and it's @(exists k. k) -> Type@ or in
+Haskell terms:
+
+    data T = forall k. T k
+
+    data U (a :: T) where
+        UList  :: U ('T [])
+        UInt   :: U ('T Int)
+        UApply :: !(U ('T f)) -> !(U ('T a)) -> U ('T (f a))
+
+This however this variant of 'U' has the disadvantage of not being of the @Type -> Type@ kind
+(it's @T -> Type@ instead), which means we now need to introduce kind polymorphism in 'Some',
+'TypeIn', 'Includes' and every other part of the infrastructure, which complicates the encoding.
+But it's trivial to fix that: we can think of @Type@ as a data type itself whose constructors
+(an infinite amount of them) are things introduced via the @data@ keyword. This gives us
+
+    data T (a :: k)
+
+    data U (a :: Type) where
+        UList  :: U (T [])
+        UInt   :: U (T Int)
+        UApply :: !(U (T f)) -> !(U (T a)) -> U (T (f a))
+
+This one is almost good enough, but note how in the process of trying to solve a problem with
+types we introduced complications for terms. Previously to say "'Int' is in @uni@" we'd
+either write @uni `Includes` Int@ or provide @uni Int@ directly, but now there's no @uni Int@
+and we have to use @uni (T Int)@ which means that we need to update
+
+    data ValueOf uni a = ValueOf (uni a) a
+
+to
+
+    data ValueOf uni a = ValueOf (uni (T a)) a
+
+and we need to update other parts of the infrastructure as well, which is rather non-trivial
+sometimes, for example @uni `Includes` []@ expanding to
+
+    forall a. uni `Contains` a => uni `Contains` [a]
+
+no longers works as it now has to expand to
+
+    forall a. uni `Contains` TypeApp a => uni `Contains` TypeApp [a]
+
+(or 'Contain
+
+
+someValue :: forall a uni. uni `Includes` a => a -> Some (ValueOf uni)
+
+
+
+someValue :: forall a uni. uni `Includes` TypeApp a => a -> Some (ValueOf uni)
+
+
+    bring :: uni `Everywhere` constr => proxy constr -> uni (TypeApp a) -> (constr a => r) -> r
+
+uni `Includes` [] =
+
+
+
+
 2. forall k. k -> *
 3. data T = forall k. T k
 4. TypeApp
 5. as data family
 6. as type family
 7. non-erasable types
+
+GEq, GShow
+
+data Uni (a :: k)
+
+type Test = SomeH (TypeInH Uni)
+
+-- | Existential quantification as a data type.
+type SomeH :: (forall k. k -> Type) -> Type
+data SomeH f = forall k (a :: k). SomeH (f a)
+
+-- | Existential quantification as a data type.
+-- type TypeInH :: (forall k. k -> Type) -> forall k. k -> Type
+-- newtype TypeInH uni x = TypeInH (uni x)
+
+
+type IType = forall k. k -> Type
+
+-- | Existential quantification as a data type.
+type ISome :: IType -> Type
+data ISome f = forall a (x :: a). ISome (f x)
+
+-- | Existential quantification as a data type.
+type Some :: (Type -> Type) -> Type
+data Some f = forall x. Some (f x)
+
+-- | A particular type from a universe.
+type TypeIn :: IType -> IType
+newtype TypeIn uni a = TypeIn (uni a)
+
+-- | A value of a particular type from a universe.
+type ValueOf :: IType -> Type -> Type
+data ValueOf uni a = ValueOf (uni a) a
+
+
+-- Explicit IType
+someValueOf :: forall a (uni :: IType). uni a -> a -> Some (ValueOf uni)
+
+
+instance GEq (ValueOf (uni :: IType)) where
+
+
 -}
+
+
+data T (a :: k)
+
+data U (a :: Type) where
+    UList  :: U (T [])
+    UInt   :: U (T Int)
+    UApply :: !(U (T f)) -> !(U (T a)) -> U (T (f a))
+
+
+
 
 -- | A (possibly partial) type application.
 data TypeApp (a :: k)
