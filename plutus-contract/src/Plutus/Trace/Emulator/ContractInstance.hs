@@ -347,5 +347,5 @@ logNewMessages :: forall w s e effs.
     )
     => Eff effs ()
 logNewMessages = do
-    newContractLogs <- gets @(ContractInstanceStateInternal w s e ()) (view lastLogs . cisiSuspState)
+    newContractLogs <- gets @(ContractInstanceStateInternal w s e ()) (view (resumableResult . lastLogs) . cisiSuspState)
     traverse_ (send . LMessage . fmap ContractLog) newContractLogs
