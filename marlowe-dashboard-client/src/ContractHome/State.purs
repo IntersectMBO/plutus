@@ -100,7 +100,7 @@ filledContract1 (Slot currentSlot) =
         , (Role "Seller") /\ Nothing
         ]
 
-    mContract = toCore $ fillTemplate templateContent Escrow.extendedContract
+    mContract = toCore $ fillTemplate templateContent Escrow.fixedTimeoutContract
 
     contractInstanceId = fromMaybe (ContractInstanceId emptyUUID) $ parseContractInstanceId "09e83958-824d-4a9d-9fd3-2f57a4f211a1"
   in
@@ -167,7 +167,7 @@ filledContract2 (Slot currentSlot) = do
 
     nextState' :: Contract.State -> TransactionInput -> Contract.State
     nextState' state txInput = applyTx (Slot currentSlot) txInput state
-  contract <- toCore $ fillTemplate templateContent EscrowWithCollateral.extendedContract
+  contract <- toCore $ fillTemplate templateContent EscrowWithCollateral.fixedTimeoutContract
   initialState <- pure $ Contract.mkInitialState contractInstanceId zero EscrowWithCollateral.metaData participants (Just $ Role "Buyer") contract
   pure $ foldl nextState' initialState transactions
 
@@ -195,5 +195,5 @@ filledContract3 (Slot currentSlot) = do
         ]
 
     contractInstanceId = fromMaybe (ContractInstanceId emptyUUID) $ parseContractInstanceId "8242d217-6f7c-4a70-9b18-233a82d089aa"
-  contract <- toCore $ fillTemplate templateContent $ resolveRelativeTimes (Slot currentSlot) ZeroCouponBond.extendedContract
+  contract <- toCore $ fillTemplate templateContent $ resolveRelativeTimes (Slot currentSlot) ZeroCouponBond.fixedTimeoutContract
   pure $ Contract.mkInitialState contractInstanceId zero ZeroCouponBond.metaData participants (Just $ Role "Guarantor") contract
