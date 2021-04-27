@@ -146,12 +146,6 @@ resource "aws_alb_target_group_attachment" "webghc_a" {
   port             = "80"
 }
 
-resource "aws_alb_target_group_attachment" "webghc_b" {
-  target_group_arn = aws_alb_target_group.webghc.arn
-  target_id        = aws_instance.webghc_b.id
-  port             = "80"
-}
-
 ## ALB rule for marlowe-dashboard
 resource "aws_alb_target_group" "marlowe_dash" {
   # ALB is taking care of SSL termination so we listen to port 80 here
@@ -190,12 +184,6 @@ resource "aws_alb_target_group_attachment" "marlowe_dash_a" {
   target_id        = aws_instance.marlowe_dash_a.id
   port             = local.pab_port
 }
-
-# resource "aws_alb_target_group_attachment" "marlowe_dash_b" {
-#   target_group_arn = aws_alb_target_group.marlowe_dash.arn
-#   target_id        = aws_instance.marlowe_dash_b.id
-#   port             = local.pab_port
-# }
 
 resource "aws_route53_record" "marlowe_dash_alb" {
   zone_id = var.marlowe_dash_public_zone
@@ -248,12 +236,6 @@ resource "aws_alb_target_group_attachment" "marlowe_playground_a" {
   port             = local.marlowe_playground_port
 }
 
-resource "aws_alb_target_group_attachment" "marlowe_playground_b" {
-  target_group_arn = aws_alb_target_group.marlowe_playground.arn
-  target_id        = aws_instance.playgrounds_b.id
-  port             = local.marlowe_playground_port
-}
-
 resource "aws_route53_record" "marlowe_playground_alb" {
   zone_id = var.marlowe_public_zone
   name    = local.marlowe_domain_name
@@ -302,12 +284,6 @@ resource "aws_alb_listener_rule" "plutus_playground" {
 resource "aws_alb_target_group_attachment" "plutus_playground_a" {
   target_group_arn = aws_alb_target_group.plutus_playground.arn
   target_id        = aws_instance.playgrounds_a.id
-  port             = local.plutus_playground_port
-}
-
-resource "aws_alb_target_group_attachment" "plutus_playground_b" {
-  target_group_arn = aws_alb_target_group.plutus_playground.arn
-  target_id        = aws_instance.playgrounds_b.id
   port             = local.plutus_playground_port
 }
 
