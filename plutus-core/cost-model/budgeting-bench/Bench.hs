@@ -255,22 +255,46 @@ benchVerifySignature =
         bs = (makeSizedBytestring seedA . fromInteger) <$> byteStringSizes
 
 
+---------------- Calibration ----------------
+
+{- We want the benchmark results to reflect only the time taken to evaluate a
+   builtin, not the startup costs of the CEK machine or the overhead incurred
+   while collecting the arguments (applyEvaluate/ forceEvaluate etc).  We
+   benchmark the no-op builtins Nop1, Nop2, and Nop3 and in the R code we
+   subtract the costs of those from the time recorded for the real builtins.
+   Experiments show that the time taken to evaluate these doesn't depend on the
+   types or the sizes of the arguments, so we just use function which consume a
+   number of integer arguments and return (). -}
+
+-- TODO.  Nop1, Nop2, and Nop3 are temporarily included in the set of default
+-- builtins.  These functions are only required here, so we should construct an
+-- extended set of bultins here and use that instead.
+
+benchNop1 :: StdGen -> Benchmark
+benchNop1 gen =
+    let name = Nop1
+        mem = 1
+        (x,_) = randNwords mem gen
+    in bgroup (show name) $ [runTermBench (show mem) $ mkApp1 name x]
+
+benchNop2 :: StdGen -> Benchmark
+benchNop2 gen =
+    let name = Nop2
+        mem = 1
+        (x,gen1) = randNwords mem gen
+        (y,_)    = randNwords mem gen1
+    in bgroup (show name) [bgroup (show $ memoryUsage x) [runTermBench (show $ memoryUsage y) $ mkApp2 name x y]]
+
+benchNop3 :: StdGen -> Benchmark
+benchNop3 gen =
+    let name = Nop3
+        mem = 1
+        (x,gen1) = randNwords mem gen
+        (y,gen2) = randNwords mem gen1
+        (z,_)    = randNwords mem gen2
+    in bgroup (show name) [bgroup (show $ memoryUsage x) [bgroup (show $ memoryUsage y) $ [runTermBench (show $ memoryUsage z) $ mkApp3 name x y z]]]
+
 ---------------- Miscellaneous ----------------
-
--- We may need these later.
-{-
-benchComparison :: [Benchmark]
-benchComparison = (\n -> runTermBench ("CalibratingBench/ExMemory " <> show n) (erase $ createRecursiveTerm n)) <$> [1..20]
-
--- Creates a cheap builtin operation to measure the base cost of executing one.
-createRecursiveTerm :: Integer -> Plain PLC.Term DefaultUni DefaultFun
-createRecursiveTerm d = mkIterApp () (builtin () AddInteger)
-                        [ (mkConstant () (1::Integer))
-                        , if d == 0
-                          then mkConstant () (1::Integer)
-                          else createRecursiveTerm (d-1)
-                        ]
--}
 
 {- Creates the .csv file consumed by create-cost-model. The data in this file is
    the time taken for all the builtin operations, as measured by criterion.
@@ -283,7 +307,7 @@ createRecursiveTerm d = mkIterApp () (builtin () AddInteger)
    (NOT `plutus`, where `default.nix` is).  See SCP-2005. -}
 main :: IO ()
 main = do
-  gen <- System.Random.getStdGen
+  gen <- System.Random.getStdGen  -- We use the initial state of gen repeatedly below, but that doesn't matter.
   let dataDir = "cost-model" </> "data"
       csvFile = dataDir </> "benching.csv"
       backupFile = dataDir </> "benching.csv.backup"
@@ -292,7 +316,8 @@ main = do
   if csvExists then renameFile csvFile backupFile else pure ()
 
   defaultMainWith (defaultConfig { C.csvFile = Just csvFile })
-                      $  (benchTwoIntegers gen <$> [ AddInteger
+                      $ [benchNop1 gen, benchNop2 gen, benchNop3 gen]
+                      <> (benchTwoIntegers gen <$> [ AddInteger
                                                    , SubtractInteger
                                                    , MultiplyInteger
                                                    , DivideInteger

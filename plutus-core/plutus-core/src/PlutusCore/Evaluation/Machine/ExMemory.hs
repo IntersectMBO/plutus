@@ -116,10 +116,11 @@ instance (Closed uni, uni `Everywhere` ExMemoryUsage) => ExMemoryUsage (Some (Va
   memoryUsage (Some (ValueOf uni x)) = bring (Proxy @ExMemoryUsage) uni (memoryUsage x)
 
 instance ExMemoryUsage () where
-  memoryUsage _ = 0 -- TODO or 1?
+  memoryUsage () = 1
 
 instance ExMemoryUsage Integer where
-  memoryUsage i = ExMemory (1 + smallInteger (integerLog2# (abs i) `quotInt#` integerToInt 64)) -- assume 64bit size
+  memoryUsage 0 = ExMemory 1  -- integerLog2# is unspecified for 0, but in practice returns -1
+  memoryUsage i = ExMemory (1 + smallInteger (integerLog2# (abs i) `quotInt#` integerToInt 64)) -- Assume 64bit size.
 
 instance ExMemoryUsage BS.ByteString where
   memoryUsage bs = ExMemory $ (toInteger $ BS.length bs) `div` 8
