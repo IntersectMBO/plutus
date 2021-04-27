@@ -39,6 +39,7 @@ import           Control.Monad.Freer.Error                        (Error)
 import           Control.Monad.Freer.Extras.Log                   (LogMessage, LogMsg, LogObserve, logDebug, logInfo)
 import           Control.Monad.Freer.Reader                       (Reader, ask, runReader)
 import           Control.Monad.IO.Class                           (MonadIO (liftIO))
+import           Data.Maybe                                       (fromMaybe)
 import           Data.Proxy                                       (Proxy (..))
 import qualified Data.Text                                        as Text
 
@@ -55,8 +56,11 @@ import           Plutus.PAB.Core.ContractInstance.RequestHandlers (ContractInsta
 
 import           Wallet.Effects                                   (ChainIndexEffect, ContractRuntimeEffect,
                                                                    WalletEffect)
+import qualified Wallet.Effects
 import           Wallet.Emulator.LogMessages                      (TxBalanceMsg)
+import           Wallet.Types                                     (targetSlot)
 
+import qualified Debug.Trace                                      as Trace
 import           Plutus.Contract                                  (AddressChangeRequest (..))
 import           Plutus.PAB.Core.ContractInstance.STM             (Activity (Done), BlockchainEnv (..),
                                                                    InstanceState (..), InstancesState,
@@ -105,7 +109,7 @@ processAwaitSlotRequestsSTM ::
     => RequestHandler effs ContractPABRequest (STM ContractResponse)
 processAwaitSlotRequestsSTM =
     maybeToHandler (fmap unWaitingForSlot . extract Events.Contract._AwaitSlotRequest)
-    >>> (RequestHandler $ \targetSlot -> fmap AwaitSlotResponse . InstanceState.awaitSlot targetSlot <$> ask)
+    >>> (RequestHandler $ \targetSlot_ -> fmap AwaitSlotResponse . InstanceState.awaitSlot targetSlot_ <$> ask)
 
 processTxConfirmedRequestsSTM ::
     forall effs.
@@ -151,9 +155,9 @@ stmRequestHandler = fmap sequence (wrapHandler (fmap pure nonBlockingRequests) <
         <> processUtxoAtRequests @effs
         <> processWriteTxRequests @effs
         <> processTxConfirmedRequests @effs
-        <> processAddressChangedAtRequests @effs
         <> processInstanceRequests @effs
         <> processNotificationEffects @effs
+        <> processAddressChangedAtRequests @effs
 
     -- requests that wait for changes to happen
     blockingRequests =

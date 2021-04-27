@@ -147,15 +147,16 @@ marloweFollowContract = do
     params <- endpoint @"follow"
     slot <- currentSlot
     logDebug @String "Getting contract history"
-    follow slot (Interval.to slot) params
+    follow 0 slot params
   where
-    follow slot slotRange params = do
+    follow ifrom ito params = do
         let client@StateMachineClient{scInstance} = mkMarloweClient params
         let inst = validatorInstance scInstance
         let address = Scripts.scriptAddress inst
         AddressChangeResponse{acrTxns} <- addressChangeRequest
                 AddressChangeRequest
-                { acreqSlotRange = slotRange
+                { acreqSlotRangeFrom = ifrom
+                , acreqSlotRangeTo = ito
                 , acreqAddress = address
                 }
         let go [] = pure InProgress
@@ -169,7 +170,9 @@ marloweFollowContract = do
             Finished -> do
                 logDebug @String ("Contract finished " <> show params)
                 pure () -- close the contract
-            InProgress -> follow (succ slot) (Interval.singleton (succ slot)) params
+            InProgress ->
+                let next = succ ito in
+                follow next next params
 
     updateHistoryFromTx StateMachineClient{scInstance, scChooser} params tx = do
         let inst = validatorInstance scInstance

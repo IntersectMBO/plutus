@@ -139,7 +139,7 @@ instance (Arbitrary k, Arbitrary v) => Arbitrary (AssocMap.Map k v) where
     arbitrary = AssocMap.fromList <$> arbitrary
 
 instance Arbitrary AddressChangeRequest where
-    arbitrary =  AddressChangeRequest <$> arbitrary <*> arbitrary
+    arbitrary =  AddressChangeRequest <$> arbitrary <*> arbitrary <*> arbitrary
 
 instance Arbitrary ContractPABRequest where
     arbitrary =
