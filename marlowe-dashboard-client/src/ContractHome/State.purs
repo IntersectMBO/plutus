@@ -30,7 +30,7 @@ import MainFrame.Types (ChildSlots, Msg)
 import Marlowe.PAB (ContractInstanceId(..), MarloweData, MarloweParams, History(..))
 import Marlowe.Extended (TemplateContent(..), fillTemplate, resolveRelativeTimes, toCore)
 import Marlowe.Semantics (ChoiceId(..), Contract, Input(..), Party(..), Slot(..), SlotInterval(..), TransactionInput(..), Token(..))
-import Marlowe.Semantics (State(..)) as Semantic
+import Marlowe.Semantics (emptyState) as Semantic
 import Plutus.V1.Ledger.Value (CurrencySymbol(..))
 import WalletData.Validation (parseContractInstanceId)
 
@@ -72,20 +72,14 @@ filledContract1 (Slot currentSlot) =
   let
     templateContent =
       TemplateContent
-        { slotContent:
-            Map.fromFoldable
-              [ "Buyer's deposit timeout" /\ (currentSlot + fromInt 60)
-              , "Buyer's dispute timeout" /\ (currentSlot + fromInt 120)
-              , "Seller's response timeout" /\ (currentSlot + fromInt 180)
-              , "Timeout for arbitrage" /\ (currentSlot + fromInt 340)
-              ]
+        { slotContent: mempty
         , valueContent:
             Map.fromFoldable
               [ "Price" /\ fromInt 1500
               ]
         }
 
-    mContract = toCore $ fillTemplate templateContent Escrow.extendedContract
+    mContract = toCore $ fillTemplate templateContent Escrow.fixedTimeoutContract
 
     contractInstanceId = fromMaybe (ContractInstanceId emptyUUID) $ parseContractInstanceId "09e83958-824d-4a9d-9fd3-2f57a4f211a1"
   in
@@ -96,14 +90,7 @@ filledContract2 (Slot currentSlot) =
   let
     templateContent =
       TemplateContent
-        { slotContent:
-            Map.fromFoldable
-              [ "Collateral deposit by seller timeout" /\ (currentSlot + fromInt 60)
-              , "Deposit of collateral by buyer timeout" /\ (currentSlot + fromInt 80)
-              , "Deposit of price by buyer timeout" /\ (currentSlot + fromInt 100)
-              , "Dispute by buyer timeout" /\ (currentSlot + fromInt 120)
-              , "Seller's response timeout" /\ (currentSlot + fromInt 140)
-              ]
+        { slotContent: mempty
         , valueContent:
             Map.fromFoldable
               [ "Collateral amount" /\ fromInt 1000
@@ -142,7 +129,7 @@ filledContract2 (Slot currentSlot) =
           }
       ]
 
-    mContract = toCore $ fillTemplate templateContent EscrowWithCollateral.extendedContract
+    mContract = toCore $ fillTemplate templateContent EscrowWithCollateral.fixedTimeoutContract
 
     contractInstanceId = fromMaybe (ContractInstanceId emptyUUID) $ parseContractInstanceId "59f292a0-3cd8-431c-8384-ea67583c1489"
   in
@@ -153,11 +140,7 @@ filledContract3 (Slot currentSlot) =
   let
     templateContent =
       TemplateContent
-        { slotContent:
-            Map.fromFoldable
-              [ "Initial exchange deadline" /\ (currentSlot + fromInt 60)
-              , "Maturity exchange deadline" /\ (currentSlot + fromInt 80)
-              ]
+        { slotContent: mempty
         , valueContent:
             Map.fromFoldable
               [ "Discounted price" /\ fromInt 1000
@@ -165,7 +148,7 @@ filledContract3 (Slot currentSlot) =
               ]
         }
 
-    mContract = toCore $ fillTemplate templateContent $ resolveRelativeTimes (Slot currentSlot) ZeroCouponBond.extendedContract
+    mContract = toCore $ fillTemplate templateContent $ resolveRelativeTimes (Slot currentSlot) ZeroCouponBond.fixedTimeoutContract
 
     contractInstanceId = fromMaybe (ContractInstanceId emptyUUID) $ parseContractInstanceId "8242d217-6f7c-4a70-9b18-233a82d089aa"
   in
@@ -180,11 +163,5 @@ dummyMarloweParams =
 marloweData :: Slot -> Contract -> MarloweData
 marloweData currentSlot contract =
   { marloweContract: contract
-  , marloweState:
-      Semantic.State
-        { accounts: mempty
-        , choices: mempty
-        , boundValues: mempty
-        , minSlot: currentSlot
-        }
+  , marloweState: Semantic.emptyState currentSlot
   }
