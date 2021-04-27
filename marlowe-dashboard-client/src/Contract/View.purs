@@ -639,11 +639,11 @@ renderAction state party CloseContract =
       , button
           -- TODO: adapt to use button classes from Css module
           [ classNames $ [ "font-bold", "w-full", "py-4", "mt-2", "rounded-lg", "shadow" ]
-              <> if isActiveParticipant then
+              <> if isActiveParticipant || debugMode then
                   [ "bg-gradient-to-r", "from-purple", "to-lightpurple", "text-white" ]
                 else
                   [ "bg-gray", "text-black", "opacity-50", "cursor-default" ]
-          , enabled isActiveParticipant
+          , enabled $ isActiveParticipant || debugMode
           , onClick_ $ AskConfirmation CloseContract
           ]
           [ text "Close contract" ]

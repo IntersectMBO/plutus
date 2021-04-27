@@ -16,9 +16,9 @@ import Contract.Lenses (_executionState, _marloweParams, _namedActions, _previou
 import Contract.Types (Action(..), PreviousStep, PreviousStepState(..), State, Tab(..), scrollContainerRef)
 import Control.Monad.Reader (class MonadAsk, asks)
 import Data.Array (difference, foldl, head, index, length, mapMaybe)
+import Data.Either (Either(..))
 import Data.Foldable (for_)
 import Data.FoldableWithIndex (foldlWithIndex)
-import Data.Either (Either(..))
 import Data.Lens (assign, modifying, over, to, toArrayOf, traversed, use, view, (^.))
 import Data.Map as Map
 import Data.Maybe (Maybe(..))
@@ -26,9 +26,9 @@ import Data.Newtype (unwrap)
 import Data.Ord (abs)
 import Data.Set as Set
 import Data.Traversable (traverse)
-import Data.Tuple.Nested (get1, get2, get3)
-import Data.Unfoldable as Unfoldable
+import Data.Tuple.Nested (get1, get2, get3, (/\))
 import Data.UUID as UUID
+import Data.Unfoldable as Unfoldable
 import Effect (Effect)
 import Effect.Aff.AVar as AVar
 import Effect.Aff.Class (class MonadAff, liftAff)
@@ -39,10 +39,11 @@ import Halogen.Query.EventSource (EventSource)
 import Halogen.Query.EventSource as EventSource
 import MainFrame.Types (ChildSlots, Msg)
 import Marlowe.Deinstantiate (findTemplate)
+import Marlowe.HasParties (getParties)
 import Marlowe.Execution (ExecutionState, NamedAction(..), PreviousState, _currentContract, _currentState, _pendingTimeouts, _previousState, _previousTransactions, expandBalances, extractNamedActions, initExecution, isClosed, mkTx, nextState, timeoutState)
 import Marlowe.Extended.Metadata (emptyContractMetadata)
 import Marlowe.PAB (ContractInstanceId(..), History)
-import Marlowe.Semantics (Contract(..), Input(..), Slot, SlotInterval(..), Token(..), TransactionInput(..))
+import Marlowe.Semantics (Contract(..), Input(..), Party, Slot, SlotInterval(..), Token(..), TransactionInput(..))
 import Marlowe.Semantics as Semantic
 import Marlowe.Slot (currentSlot)
 import Plutus.V1.Ledger.Value (CurrencySymbol(..))
@@ -102,6 +103,9 @@ mkInitialState currentSlot contractInstanceId history =
   in
     flip map mTemplate \template ->
       let
+        participants :: Array Party
+        participants = Set.toUnfoldable $ getParties contract
+
         initialState =
           { tab: Tasks
           , executionState: initialExecutionState
@@ -110,7 +114,7 @@ mkInitialState currentSlot contractInstanceId history =
           , contractInstanceId
           , selectedStep: 0
           , metadata: template.metaData
-          , participants: mempty --- FIXME: I don't think there is any way we can do this
+          , participants: Map.fromFoldable $ map (\x -> x /\ Nothing) participants
           , mActiveUserParty: Nothing -- FIXME: this should be a function of the walletDetails
           , namedActions: mempty
           }
@@ -159,15 +163,13 @@ handleAction walletDetails (ConfirmAction namedAction) = do
   handleAction walletDetails (MoveToStep stepNumber)
   addToast $ successToast "Payment received, step completed."
 
-{-
-  ajaxApplyInputs <- marloweApplyTransactionInput walletDetails marloweParams txInput
-  case ajaxApplyInputs of
-    Left ajaxError -> addToast $ ajaxErrorToast "Failed to submit transaction." ajaxError
-    Right _ -> do
-      stepNumber <- gets currentStep
-      handleAction walletDetails (MoveToStep stepNumber)
-      addToast $ successToast "Payment received, step completed."
-  -}
+--ajaxApplyInputs <- marloweApplyTransactionInput walletDetails marloweParams txInput
+--case ajaxApplyInputs of
+--  Left ajaxError -> addToast $ ajaxErrorToast "Failed to submit transaction." ajaxError
+--  Right _ -> do
+--    stepNumber <- gets currentStep
+--    handleAction walletDetails (MoveToStep stepNumber)
+--    addToast $ successToast "Payment received, step completed."
 handleAction _ (ChangeChoice choiceId chosenNum) = modifying _namedActions (map changeChoice)
   where
   changeChoice (MakeChoice choiceId' bounds _)

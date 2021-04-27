@@ -27,8 +27,8 @@ import Examples.PureScript.EscrowWithCollateral as EscrowWithCollateral
 import Examples.PureScript.ZeroCouponBond as ZeroCouponBond
 import Halogen (HalogenM)
 import MainFrame.Types (ChildSlots, Msg)
-import Marlowe.PAB (ContractInstanceId(..), MarloweData, MarloweParams, History(..))
 import Marlowe.Extended (TemplateContent(..), fillTemplate, resolveRelativeTimes, toCore)
+import Marlowe.PAB (ContractInstanceId(..), MarloweData, MarloweParams, History(..))
 import Marlowe.Semantics (ChoiceId(..), Contract, Input(..), Party(..), Slot(..), SlotInterval(..), TransactionInput(..), Token(..))
 import Marlowe.Semantics (emptyState) as Semantic
 import Plutus.V1.Ledger.Value (CurrencySymbol(..))
@@ -75,11 +75,11 @@ filledContract1 (Slot currentSlot) =
         { slotContent: mempty
         , valueContent:
             Map.fromFoldable
-              [ "Price" /\ fromInt 1500
+              [ "Price" /\ fromInt 1500000000
               ]
         }
 
-    mContract = toCore $ fillTemplate templateContent Escrow.fixedTimeoutContract
+    mContract = toCore $ fillTemplate templateContent $ resolveRelativeTimes (Slot currentSlot) Escrow.fixedTimeoutContract
 
     contractInstanceId = fromMaybe (ContractInstanceId emptyUUID) $ parseContractInstanceId "09e83958-824d-4a9d-9fd3-2f57a4f211a1"
   in
@@ -93,8 +93,8 @@ filledContract2 (Slot currentSlot) =
         { slotContent: mempty
         , valueContent:
             Map.fromFoldable
-              [ "Collateral amount" /\ fromInt 1000
-              , "Price" /\ fromInt 500
+              [ "Collateral amount" /\ fromInt 1000000000
+              , "Price" /\ fromInt 500000000
               ]
         }
 
@@ -104,21 +104,21 @@ filledContract2 (Slot currentSlot) =
               (SlotInterval (Slot currentSlot) (Slot currentSlot))
           , inputs:
               List.singleton
-                $ IDeposit (Role "Seller") (Role "Seller") (Token "" "") (fromInt 1000)
+                $ IDeposit (Role "Seller") (Role "Seller") (Token "" "") (fromInt 1000000000)
           }
       , TransactionInput
           { interval:
               (SlotInterval (Slot currentSlot) (Slot currentSlot))
           , inputs:
               List.singleton
-                $ IDeposit (Role "Buyer") (Role "Buyer") (Token "" "") (fromInt 1000)
+                $ IDeposit (Role "Buyer") (Role "Buyer") (Token "" "") (fromInt 1000000000)
           }
       , TransactionInput
           { interval:
               (SlotInterval (Slot currentSlot) (Slot currentSlot))
           , inputs:
               List.singleton
-                $ IDeposit (Role "Seller") (Role "Buyer") (Token "" "") (fromInt 500)
+                $ IDeposit (Role "Seller") (Role "Buyer") (Token "" "") (fromInt 500000000)
           }
       , TransactionInput
           { interval:
@@ -129,7 +129,7 @@ filledContract2 (Slot currentSlot) =
           }
       ]
 
-    mContract = toCore $ fillTemplate templateContent EscrowWithCollateral.fixedTimeoutContract
+    mContract = toCore $ fillTemplate templateContent $ resolveRelativeTimes (Slot currentSlot) EscrowWithCollateral.fixedTimeoutContract
 
     contractInstanceId = fromMaybe (ContractInstanceId emptyUUID) $ parseContractInstanceId "59f292a0-3cd8-431c-8384-ea67583c1489"
   in
@@ -143,8 +143,8 @@ filledContract3 (Slot currentSlot) =
         { slotContent: mempty
         , valueContent:
             Map.fromFoldable
-              [ "Discounted price" /\ fromInt 1000
-              , "Notional" /\ fromInt 1500
+              [ "Discounted price" /\ fromInt 1000000000
+              , "Notional" /\ fromInt 1500000000
               ]
         }
 

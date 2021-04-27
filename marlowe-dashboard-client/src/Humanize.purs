@@ -13,7 +13,6 @@ import Data.Formatter.DateTime (FormatterCommand(..), format) as DateTime
 import Data.Formatter.Number (Formatter(..), format) as Number
 import Data.Int (floor, round)
 import Data.Int (toNumber) as Int
---import Data.Intl.NumberFormat (format) as Number
 import Data.List as List
 import Data.Maybe (Maybe(..))
 import Data.Time.Duration (Seconds(..))
@@ -86,6 +85,7 @@ formatTime =
         ]
 
 humanizeValue :: Token -> BigInteger -> String
+-- TODO: use a different currencyFormatter with no decimal places when they're all zero
 humanizeValue (Token "" "") value = "₳ " <> Number.format currencyFormatter (toAda value)
 
 humanizeValue (Token "" "dollar") value = "$ " <> Number.format currencyFormatter (toNumber value)
