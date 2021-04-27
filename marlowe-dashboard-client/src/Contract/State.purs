@@ -127,7 +127,7 @@ updateState currentSlot history state =
   let
     allTransactionInputs = get3 $ unwrap history
 
-    previousTransactionInputs = toArrayOf (_executionState <<< _previousTransactions) state --map (\previousState -> previousState.txInput) $ view (_executionState <<< _previousState) state
+    previousTransactionInputs = toArrayOf (_executionState <<< _previousTransactions) state
 
     newTransactionInputs = difference allTransactionInputs previousTransactionInputs
 
