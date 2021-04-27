@@ -8,7 +8,7 @@ module Language.Marlowe.ACTUS.Generator
     )
 where
 
-import qualified Data.List                                                as L (zip6)
+import qualified Data.List                                                as L (foldl', zip6)
 import           Data.Maybe                                               (fromMaybe, isNothing, maybeToList)
 import           Data.Monoid
 import           Data.String                                              (IsString (fromString))
