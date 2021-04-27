@@ -294,6 +294,7 @@ benchNop3 gen =
         (z,_)    = randNwords mem gen2
     in bgroup (show name) [bgroup (show $ memoryUsage x) [bgroup (show $ memoryUsage y) $ [runTermBench (show $ memoryUsage z) $ mkApp3 name x y z]]]
 
+
 ---------------- Miscellaneous ----------------
 
 {- Creates the .csv file consumed by create-cost-model. The data in this file is
@@ -315,8 +316,8 @@ main = do
   csvExists <- doesFileExist csvFile
   if csvExists then renameFile csvFile backupFile else pure ()
 
-  defaultMainWith (defaultConfig { C.csvFile = Just csvFile })
-                      $ [benchNop1 gen, benchNop2 gen, benchNop3 gen]
+  defaultMainWith (defaultConfig { C.csvFile = Just csvFile }) $
+                         [benchNop1 gen, benchNop2 gen, benchNop3 gen]
                       <> (benchTwoIntegers gen <$> [ AddInteger
                                                    , SubtractInteger
                                                    , MultiplyInteger
