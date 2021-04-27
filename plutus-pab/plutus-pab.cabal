@@ -257,6 +257,7 @@ executable plutus-uniswap
         base >=4.9 && <5,
         aeson -any,
         containers -any,
+        freer-extras -any,
         freer-simple -any,
         plutus-contract -any,
         plutus-ledger -any,

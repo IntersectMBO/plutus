@@ -16,6 +16,7 @@ module Main
 import           Control.Monad                           (forM, void)
 import           Control.Monad.Freer                     (Eff, Member, interpret, type (~>))
 import           Control.Monad.Freer.Error               (Error)
+import           Control.Monad.Freer.Extras.Log          (LogMsg)
 import           Control.Monad.IO.Class                  (MonadIO (..))
 import           Data.Aeson                              (FromJSON, Result (..), ToJSON, encode, fromJSON)
 import qualified Data.Map.Strict                         as Map
@@ -32,6 +33,7 @@ import           Plutus.PAB.Effects.Contract             (ContractEffect (..))
 import           Plutus.PAB.Effects.Contract.Builtin     (Builtin, SomeBuiltin (..), type (.\\))
 import qualified Plutus.PAB.Effects.Contract.Builtin     as Builtin
 import           Plutus.PAB.Effects.ContractTest.Uniswap as US
+import           Plutus.PAB.Monitoring.PABLogMsg         (PABMultiAgentMsg)
 import           Plutus.PAB.Simulator                    (SimulatorEffectHandlers)
 import qualified Plutus.PAB.Simulator                    as Simulator
 import           Plutus.PAB.Types                        (PABError (..))
@@ -95,6 +97,7 @@ instance Pretty UniswapContracts where
 
 handleUniswapContract ::
     ( Member (Error PABError) effs
+    , Member (LogMsg (PABMultiAgentMsg (Builtin UniswapContracts))) effs
     )
     => ContractEffect (Builtin UniswapContracts)
     ~> Eff effs
