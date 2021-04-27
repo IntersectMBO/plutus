@@ -5,7 +5,7 @@
 1. A Marlowe contract (a program that conforms to the schema defined in Marlowe.Semantics).
 2. An instance of a Marlowe contract installed on the blockchain. These can be identified
    by their `MarloweParams`.
-3. A Plutus contract. Marlowe Run uses three Plutus contracts to operated (see below).
+3. A Plutus contract. Marlowe Run uses three Plutus contracts to operate (see below).
 4. An instance of a Plutus contract running in the PAB. These are identified by a
    `ContractInstanceId`.
 

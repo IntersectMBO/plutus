@@ -19,8 +19,9 @@ import AppM (AppM)
 import Bridge (toBack, toFront)
 import Capability.Contract (class ManageContract, activateContract, getContractInstanceClientState, getContractInstanceObservableState, getWalletContractInstances, invokeEndpoint)
 import Capability.Wallet (class ManageWallet, createWallet, getWalletInfo, getWalletTotalFunds)
-import Control.Monad.Except (lift, runExcept)
+import Control.Monad.Except (ExceptT(..), except, lift, mapExceptT, runExcept, runExceptT, withExceptT)
 import Data.Array (filter, find)
+import Data.Bifunctor (lmap)
 import Data.Either (Either(..))
 import Data.Lens (set, view)
 import Data.Map (Map, fromFoldable)
@@ -47,6 +48,7 @@ import WalletData.Types (PubKeyHash, WalletDetails, WalletInfo)
 
 -- The `ManageMarlowe` class provides a window on the `ManageContract` and `ManageWallet` capabilities
 -- with functions specific to Marlowe.
+-- TODO (possibly): make `AppM` a `MonadError` and remove all the `runExceptT`s
 class
   (ManageContract m, ManageWallet m) <= ManageMarlowe m where
   -- create a Wallet, a WalletCompanionWontract, a MarloweContract, and return the WalletDetails
@@ -84,33 +86,24 @@ instance monadMarloweAppM :: ManageMarlowe AppM where
         ajaxMarloweContractId <- activateContract (contractExe MarloweContract) wallet
         ajaxCompanionContractId <- activateContract (contractExe WalletCompanionContract) wallet
         ajaxAssets <- getWalletTotalFunds wallet
-        case ajaxMarloweContractId, ajaxCompanionContractId, ajaxAssets of
-          Left ajaxError, _, _ -> pure $ Left ajaxError
-          _, Left ajaxError, _ -> pure $ Left ajaxError
-          _, _, Left ajaxError -> pure $ Left ajaxError
-          Right marloweContractId, Right companionContractId, Right assets ->
-            pure
-              $ Right
-                  { walletNickname: ""
-                  , marloweContractId: marloweContractId
-                  , companionContractId: companionContractId
-                  , walletInfo: walletInfo
-                  , assets
-                  }
+        let
+          createWalletDetails marloweContractId companionContractId assets =
+            { walletNickname: ""
+            , marloweContractId
+            , companionContractId
+            , walletInfo
+            , assets
+            }
+        pure $ createWalletDetails <$> ajaxMarloweContractId <*> ajaxCompanionContractId <*> ajaxAssets
   marloweFollowContract walletDetails marloweParams = do
-    let
-      wallet = view (_walletInfo <<< _wallet) walletDetails
-    ajaxFollowContractId <- activateContract (contractExe WalletFollowerContract) wallet
-    case ajaxFollowContractId of
-      Left ajaxError -> pure $ Left $ Left ajaxError
-      Right followContractId -> do
-        _ <- invokeEndpoint followContractId "follow" marloweParams
-        ajaxObservableState <- getContractInstanceObservableState followContractId
-        case ajaxObservableState of
-          Left ajaxError -> pure $ Left $ Left ajaxError
-          Right rawJson -> case runExcept $ decodeJSON $ unwrap rawJson of
-            Left decodingError -> pure $ Left $ Right decodingError
-            Right observableState -> pure $ Right $ followContractId /\ observableState
+    runExceptT do
+      let
+        wallet = view (_walletInfo <<< _wallet) walletDetails
+      followContractId <- withExceptT Left $ ExceptT $ activateContract (contractExe WalletFollowerContract) wallet
+      void $ withExceptT Left $ ExceptT $ invokeEndpoint followContractId "follow" marloweParams
+      observableStateJson <- withExceptT Left $ ExceptT $ getContractInstanceObservableState followContractId
+      observableState <- mapExceptT (pure <<< lmap Right <<< unwrap) $ decodeJSON $ unwrap observableStateJson
+      pure $ followContractId /\ observableState
   -- FIXME: if we want users to be able to follow contracts that they don't have roles in, we need
   -- this function to return the MarloweParams of the created contract - but this isn't currently
   -- possible in the PAB
@@ -139,77 +132,63 @@ instance monadMarloweAppM :: ManageMarlowe AppM where
       contractInstanceId = view _marloweContractId walletDetails
     in
       invokeEndpoint contractInstanceId "close" marloweParams
-  marloweLookupWalletInfo companionContractId = do
-    ajaxClientState <- getContractInstanceClientState companionContractId
-    case ajaxClientState of
-      Left ajaxError -> pure $ Left ajaxError
-      Right clientState -> do
-        let
-          contractExe = view _cicDefinition clientState
-        case contractType contractExe of
-          Just WalletCompanionContract -> do
-            let
-              wallet = toFront $ view _cicWallet clientState
-            getWalletInfo wallet
-          _ -> pure $ Left $ AjaxError { request: defaultRequest, description: NotFound }
-  marloweLookupWalletDetails companionContractId = do
-    ajaxClientState <- getContractInstanceClientState companionContractId
-    case ajaxClientState of
-      Left ajaxError -> pure $ Left ajaxError
-      Right clientState -> do
-        let
-          contractExe = view _cicDefinition clientState
-        case contractType contractExe of
-          Just WalletCompanionContract -> do
-            let
-              wallet = toFront $ view _cicWallet clientState
-            ajaxWalletInfo <- getWalletInfo wallet
-            ajaxAssets <- getWalletTotalFunds wallet
-            case ajaxWalletInfo, ajaxAssets of
-              Left ajaxError, _ -> pure $ Left ajaxError
-              _, Left ajaxError -> pure $ Left ajaxError
-              Right walletInfo, Right assets ->
-                pure
-                  $ Right
-                      { walletNickname: ""
-                      , marloweContractId: ContractInstanceId emptyUUID
-                      , companionContractId
-                      , walletInfo
-                      , assets
-                      }
-          _ -> pure $ Left $ AjaxError { request: defaultRequest, description: NotFound }
-  marloweGetRoleContracts walletDetails = do
-    let
-      contractInstanceId = view _marloweContractId walletDetails
-    ajaxObservableState <- getContractInstanceObservableState contractInstanceId
-    case ajaxObservableState of
-      Left ajaxError -> pure $ Left $ Left ajaxError
-      Right rawJson -> case runExcept $ decodeJSON $ unwrap rawJson of
-        Left decodingError -> pure $ Left $ Right decodingError
-        Right observableState -> pure $ Right observableState
-  marloweGetContracts walletDetails = do
-    let
-      wallet = view (_walletInfo <<< _wallet) walletDetails
-    ajaxRunningContracts <- getWalletContractInstances wallet
-    ajaxAssets <- getWalletTotalFunds wallet
-    case ajaxRunningContracts, ajaxAssets of
-      Left ajaxError, _ -> pure $ Left $ Left ajaxError
-      _, Left ajaxError -> pure $ Left $ Left ajaxError
-      Right runningContracts, Right assets -> do
-        let
-          mMarloweContract = find (\cic -> view _cicDefinition cic == contractExe MarloweContract) runningContracts
+  marloweLookupWalletInfo companionContractId =
+    runExceptT do
+      clientState <- ExceptT $ getContractInstanceClientState companionContractId
+      let
+        contractExe = view _cicDefinition clientState
+      case contractType contractExe of
+        Just WalletCompanionContract -> do
+          let
+            wallet = toFront $ view _cicWallet clientState
+          ExceptT $ getWalletInfo wallet
+        _ -> except $ Left $ AjaxError { request: defaultRequest, description: NotFound }
+  marloweLookupWalletDetails companionContractId =
+    runExceptT do
+      clientState <- ExceptT $ getContractInstanceClientState companionContractId
+      let
+        contractExe = view _cicDefinition clientState
+      case contractType contractExe of
+        Just WalletCompanionContract -> do
+          let
+            wallet = toFront $ view _cicWallet clientState
+          walletInfo <- ExceptT $ getWalletInfo wallet
+          assets <- ExceptT $ getWalletTotalFunds wallet
+          ExceptT $ pure
+            $ Right
+                { walletNickname: ""
+                , marloweContractId: ContractInstanceId emptyUUID
+                , companionContractId
+                , walletInfo
+                , assets
+                }
+        _ -> except $ Left $ AjaxError { request: defaultRequest, description: NotFound }
+  marloweGetRoleContracts walletDetails =
+    runExceptT do
+      let
+        contractInstanceId = view _marloweContractId walletDetails
+      observableStateJson <- withExceptT Left $ ExceptT $ getContractInstanceObservableState contractInstanceId
+      mapExceptT (pure <<< lmap Right <<< unwrap) $ decodeJSON $ unwrap observableStateJson
+  marloweGetContracts walletDetails =
+    runExceptT do
+      let
+        wallet = view (_walletInfo <<< _wallet) walletDetails
+      runningContracts <- withExceptT Left $ ExceptT $ getWalletContractInstances wallet
+      assets <- withExceptT Left $ ExceptT $ getWalletTotalFunds wallet
+      let
+        mMarloweContract = find (\cic -> view _cicDefinition cic == contractExe MarloweContract) runningContracts
 
-          followerContracts = filter (\cic -> view _cicDefinition cic == contractExe WalletFollowerContract) runningContracts
-        case mMarloweContract of
-          Nothing -> pure $ Left $ Left $ AjaxError { request: defaultRequest, description: NotFound }
-          Just marloweContract -> do
-            let
-              marloweContractId = view _marloweContractId walletDetails
+        followerContracts = filter (\cic -> view _cicDefinition cic == contractExe WalletFollowerContract) runningContracts
+      case mMarloweContract of
+        Nothing -> except $ Left $ Left $ AjaxError { request: defaultRequest, description: NotFound }
+        Just marloweContract -> do
+          let
+            marloweContractId = view _marloweContractId walletDetails
 
-              updatedWalletDetails = set _marloweContractId marloweContractId $ set _assets assets walletDetails
-            case traverse decodeFollowerContract followerContracts of
-              Left decodingError -> pure $ Left $ Right decodingError
-              Right decodedFollowerContracts -> pure $ Right $ updatedWalletDetails /\ fromFoldable decodedFollowerContracts
+            updatedWalletDetails = set _marloweContractId marloweContractId $ set _assets assets walletDetails
+          case traverse decodeFollowerContract followerContracts of
+            Left decodingError -> except $ Left $ Right decodingError
+            Right decodedFollowerContracts -> ExceptT $ pure $ Right $ updatedWalletDetails /\ fromFoldable decodedFollowerContracts
     where
     decodeFollowerContract :: ContractInstanceClientState ContractExe -> Either MultipleErrors (Tuple ContractInstanceId History)
     decodeFollowerContract contractInstanceClientState =

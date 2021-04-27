@@ -39,8 +39,8 @@ import Halogen.Query.EventSource (EventSource)
 import Halogen.Query.EventSource as EventSource
 import MainFrame.Types (ChildSlots, Msg)
 import Marlowe.Deinstantiate (findTemplate)
-import Marlowe.Execution (ExecutionState, NamedAction(..), PreviousState, _currentContract, _currentState, _pendingTimeouts, _previousState, expandBalances, extractNamedActions, initExecution, isClosed, mkTx, nextState, timeoutState)
-import Marlowe.Extended (ContractType(..))
+import Marlowe.Execution (ExecutionState, NamedAction(..), PreviousState, _currentContract, _currentState, _pendingTimeouts, _previousState, _previousTransactions, expandBalances, extractNamedActions, initExecution, isClosed, mkTx, nextState, timeoutState)
+import Marlowe.Extended.Metadata (emptyContractMetadata)
 import Marlowe.PAB (ContractInstanceId(..), History)
 import Marlowe.Semantics (Contract(..), Input(..), Slot, SlotInterval(..), Token(..), TransactionInput(..))
 import Marlowe.Semantics as Semantic
@@ -65,7 +65,7 @@ dummyState =
   , marloweParams: emptyMarloweParams
   , contractInstanceId: emptyContractInstanceId
   , selectedStep: 0
-  , metadata: emptyMetaData
+  , metadata: emptyContractMetadata
   , participants: mempty
   , mActiveUserParty: Nothing
   , namedActions: mempty
@@ -81,16 +81,6 @@ dummyState =
 
   emptyMarloweState = Semantic.State { accounts: mempty, choices: mempty, boundValues: mempty, minSlot: zero }
 
-  emptyMetaData =
-    { contractType: Escrow
-    , contractName: mempty
-    , contractDescription: mempty
-    , roleDescriptions: mempty
-    , slotParameterDescriptions: mempty
-    , valueParameterDescriptions: mempty
-    , choiceDescriptions: mempty
-    }
-
 mkInitialState :: Slot -> ContractInstanceId -> History -> Maybe State
 mkInitialState currentSlot contractInstanceId history =
   let
@@ -104,9 +94,10 @@ mkInitialState currentSlot contractInstanceId history =
 
     mTemplate = findTemplate contract
 
-    -- We can't use the currentSlot to create the initial execution state, since the contract might
-    -- have been created several slots ago. Hopefully this doesn't matter (the argument is only used
-    -- to set the minSlot in the contract's initial state).
+    -- FIXME: We can't use the currentSlot to create the initial execution state, since the contract
+    -- might have been created several slots ago. Hopefully this doesn't matter (the argument is
+    -- only used to set the minSlot in the contract's initial state), but we should check. We could
+    -- also consider using the `minSlot` of the original contract.
     initialExecutionState = initExecution zero contract
   in
     flip map mTemplate \template ->
@@ -136,7 +127,7 @@ updateState currentSlot history state =
   let
     allTransactionInputs = get3 $ unwrap history
 
-    previousTransactionInputs = map (\previousState -> previousState.txInput) $ view (_executionState <<< _previousState) state
+    previousTransactionInputs = toArrayOf (_executionState <<< _previousTransactions) state --map (\previousState -> previousState.txInput) $ view (_executionState <<< _previousState) state
 
     newTransactionInputs = difference allTransactionInputs previousTransactionInputs
 
@@ -162,17 +153,21 @@ handleAction walletDetails (ConfirmAction namedAction) = do
     input = toInput namedAction
 
     txInput = mkTx slot (currentExeState ^. _currentContract) (Unfoldable.fromMaybe input)
-  -- TODO: currently we just ignore errors but we probably want to do something better in the future
+  -- FIXME: remove the next four lines and uncomment the code below when things are working in the PAB
+  modify_ $ applyTx slot txInput
+  stepNumber <- gets currentStep
+  handleAction walletDetails (MoveToStep stepNumber)
+  addToast $ successToast "Payment received, step completed."
+
+{-
   ajaxApplyInputs <- marloweApplyTransactionInput walletDetails marloweParams txInput
   case ajaxApplyInputs of
     Left ajaxError -> addToast $ ajaxErrorToast "Failed to submit transaction." ajaxError
     Right _ -> do
-      -- FIXME: don't applyTx here, but let the update from the websocket tell us about the change
-      modify_ $ applyTx slot txInput
       stepNumber <- gets currentStep
       handleAction walletDetails (MoveToStep stepNumber)
       addToast $ successToast "Payment received, step completed."
-
+  -}
 handleAction _ (ChangeChoice choiceId chosenNum) = modifying _namedActions (map changeChoice)
   where
   changeChoice (MakeChoice choiceId' bounds _)

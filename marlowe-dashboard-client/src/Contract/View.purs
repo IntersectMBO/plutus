@@ -272,7 +272,7 @@ renderPastStep state stepNumber step =
               TimeoutStep _ -> statusIndicator (Just Timer) "Timed out" [ "bg-red", "text-white" ]
               TransactionStep _ -> statusIndicator (Just Done) "Completed" [ "bg-green", "text-white" ]
           ]
-      , div [ classNames [ "overflow-y-scroll", "px-4" ] ]
+      , div [ classNames [ "overflow-y-auto", "px-4" ] ]
           [ renderBody currentTab step
           ]
       ]
@@ -401,7 +401,7 @@ renderCurrentStep currentSlot state =
             else
               statusIndicator (Just Timer) timeoutStr [ "bg-lightgray" ]
           ]
-      , div [ classNames [ "overflow-y-scroll", "px-4" ] ]
+      , div [ classNames [ "overflow-y-auto", "px-4" ] ]
           [ case currentTab /\ contractIsClosed of
               Tasks /\ false -> renderTasks state
               Tasks /\ true -> renderContractClose

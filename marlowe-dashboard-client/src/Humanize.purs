@@ -86,7 +86,6 @@ formatTime =
         ]
 
 humanizeValue :: Token -> BigInteger -> String
--- FIXME: when we show ada (instead of lovelace) there is rounding, and I'm not sure if we want there to be
 humanizeValue (Token "" "") value = "₳ " <> Number.format currencyFormatter (toAda value)
 
 humanizeValue (Token "" "dollar") value = "$ " <> Number.format currencyFormatter (toNumber value)

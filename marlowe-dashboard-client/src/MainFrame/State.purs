@@ -7,6 +7,7 @@ import Capability.Toast (class Toast, addToast)
 import Capability.Websocket (class MonadWebsocket, subscribeToContract, subscribeToWallet, unsubscribeFromContract, unsubscribeFromWallet)
 import Contract.Lenses (_marloweParams)
 import Contract.State (mkInitialState, updateState) as Contract
+import ContractHome.State (dummyContracts)
 import ContractHome.Types (Action(..)) as ContractHome
 import Control.Monad.Except (runExcept)
 import Control.Monad.Reader (class MonadAsk)
@@ -182,24 +183,27 @@ handleAction (EnterPickupState walletLibrary walletDetails followerContracts) = 
   let
     followerContractIds :: Array ContractInstanceId
     followerContractIds = Set.toUnfoldable $ keys followerContracts
-  void $ for followerContractIds unsubscribeFromContract
+  for_ followerContractIds unsubscribeFromContract
   assign _subState $ Left $ Pickup.mkInitialState walletLibrary
   liftEffect $ removeItem walletDetailsLocalStorageKey
 
 handleAction (EnterPlayState walletLibrary walletDetails) = do
   ajaxWalletDetailsAndContracts <- marloweGetContracts walletDetails
+  slot <- liftEffect currentSlot
   case ajaxWalletDetailsAndContracts of
     Left decodedAjaxError -> addToast $ decodedAjaxErrorToast "Failed to load wallet details." decodedAjaxError
     Right (updatedWalletDetails /\ followerContracts) -> do
+      -- FIXME: we are currently including some dummy contracts for testing
+      let
+        testingFollowerContracts = followerContracts <> dummyContracts slot
       subscribeToWallet $ view (_walletInfo <<< _wallet) updatedWalletDetails
       subscribeToContract $ view _companionContractId updatedWalletDetails
       timezoneOffset <- liftEffect getTimezoneOffset
-      slot <- liftEffect currentSlot
       let
         followerContractIds :: Array ContractInstanceId
-        followerContractIds = Set.toUnfoldable $ keys followerContracts
-      void $ for followerContractIds subscribeToContract
-      assign _subState $ Right $ Play.mkInitialState walletLibrary updatedWalletDetails followerContracts slot timezoneOffset
+        followerContractIds = Set.toUnfoldable $ keys testingFollowerContracts
+      for_ followerContractIds subscribeToContract
+      assign _subState $ Right $ Play.mkInitialState walletLibrary updatedWalletDetails testingFollowerContracts slot timezoneOffset
       liftEffect $ setItem walletDetailsLocalStorageKey $ encodeJSON updatedWalletDetails
       -- we now have all the running contracts for this wallet, but if new role tokens have been given to the
       -- wallet since we last picked it up, we have to create FollowerContracts for those contracts here

@@ -30,6 +30,7 @@ import Plutus.PAB.Webserver.Types (ContractActivationArgs(..), ContractInstanceC
 import Types (AjaxResponse)
 import WalletData.Types (Wallet)
 
+-- TODO (possibly): make `AppM` a `MonadError` and remove all the `runExceptT`s
 class
   Monad m <= ManageContract m where
   activateContract :: ContractExe -> Wallet -> m (AjaxResponse ContractInstanceId)

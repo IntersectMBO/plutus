@@ -81,6 +81,15 @@ instance encodeContractInstanceId :: Encode ContractInstanceId where
 instance decodeContractInstanceId :: Decode ContractInstanceId where
   decode value = genericDecode defaultOptions value
 
+-- `MarloweParams` are used to identify a Marlowe contract in the PAB, and the wallet
+-- companion contract state is a `Map MarloweParams MarloweData`. We are not currently
+-- generating PureScript types to match the Haskell `MarloweParams` and `MarloweData`
+-- types (side note: perhaps we should be). We have a `CurrencySymbol` type in
+-- `Marlowe.Semantics`, but it is just an alias for String. We could use that here for
+-- the `rolesCurrency` value, and convert using its Bridge instance when sharing data
+-- with the PAB. However, we currently don't need to do anything with `MarloweParams` on
+-- the frontend except save them and send them back to the PAB (to join a contract that
+-- is already running), so it is simpler just to use the generated type in this case.
 type MarloweParams
   = { rolePayoutValidatorHash :: ValidatorHash
     , rolesCurrency :: CurrencySymbol
@@ -94,15 +103,19 @@ type MarloweData
     , marloweState :: State
     }
 
+-- This is the observable state of the `FollowerContract`. The `MarloweParams` identify the
+-- the Marlowe contract on the blockchain, the `MarloweData` represents the initial contract
+-- and state, and the array of `TransactionInput` records all the transactions of the
+-- contract so far.
 newtype History
   = History (Tuple3 MarloweParams MarloweData (Array TransactionInput))
 
-derive instance newtypeHistoryId :: Newtype History _
+derive instance newtypeHistory :: Newtype History _
 
-derive instance genericHistoryId :: Generic History _
+derive instance genericHistory :: Generic History _
 
-instance encodeHistoryId :: Encode History where
+instance encodeHistory :: Encode History where
   encode value = genericEncode defaultOptions value
 
-instance decodeHistoryId :: Decode History where
+instance decodeHistory :: Decode History where
   decode value = genericDecode defaultOptions value
