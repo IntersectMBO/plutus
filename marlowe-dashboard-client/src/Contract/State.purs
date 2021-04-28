@@ -68,7 +68,6 @@ dummyState =
   , selectedStep: 0
   , metadata: emptyContractMetadata
   , participants: mempty
-  , mActiveUserParty: Nothing
   , namedActions: mempty
   }
   where
@@ -115,7 +114,6 @@ mkInitialState currentSlot contractInstanceId history =
           , selectedStep: 0
           , metadata: template.metaData
           , participants: Map.fromFoldable $ map (\x -> x /\ Nothing) participants
-          , mActiveUserParty: Nothing -- FIXME: this should be a function of the walletDetails
           , namedActions: mempty
           }
 

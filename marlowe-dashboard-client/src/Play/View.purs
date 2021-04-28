@@ -168,7 +168,7 @@ renderCard state card =
               --        could be Nothing. We could add the state as part of the view, but is not ideal
               --        Will have to rethink how to deal with this once the overall state is more mature.
               ContractCard -> case mSelectedContractState of
-                Just contractState -> [ ContractAction <$> contractDetailsCard currentSlot contractState ]
+                Just contractState -> [ ContractAction <$> contractDetailsCard currentWalletDetails currentSlot contractState ]
                 Nothing -> []
               ContractActionConfirmationCard action -> case mSelectedContractState of
                 Just contractState -> [ ContractAction <$> actionConfirmationCard assets contractState action ]

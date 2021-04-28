@@ -7,7 +7,6 @@ module Contract.Lenses
   , _selectedStep
   , _metadata
   , _participants
-  , _mActiveUserParty
   , _namedActions
   ) where
 
@@ -46,9 +45,6 @@ _metadata = prop (SProxy :: SProxy "metadata")
 
 _participants :: Lens' State (Map Semantic.Party (Maybe WalletNickname))
 _participants = prop (SProxy :: SProxy "participants")
-
-_mActiveUserParty :: Lens' State (Maybe Semantic.Party)
-_mActiveUserParty = prop (SProxy :: SProxy "mActiveUserParty")
 
 _namedActions :: Lens' State (Array NamedAction)
 _namedActions = prop (SProxy :: SProxy "namedActions")
