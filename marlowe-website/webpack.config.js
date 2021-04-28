@@ -1,6 +1,6 @@
 const path = require("path");
 const HtmlWebpackPlugin = require("html-webpack-plugin");
-const MiniCssExtractPlugin = require('mini-css-extract-plugin');
+const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 
 module.exports = {
   entry: path.resolve(__dirname, "src/index.js"),
@@ -18,7 +18,7 @@ module.exports = {
     rules: [
       {
         test: /\.css$/i,
-        use: [MiniCssExtractPlugin.loader, 'css-loader', 'postcss-loader']
+        use: [MiniCssExtractPlugin.loader, "css-loader", "postcss-loader"],
       },
     ],
   },
@@ -28,12 +28,12 @@ module.exports = {
       template: path.resolve(__dirname, "src/index.html"),
       // favicon: 'static/favicon.ico',
       title: "Marlowe",
-      liveReload: true
+      liveReload: true,
       // FIXME: add google analytics id
       // googleAnalyticsId: isWebpackDevServer ? 'UA-XXXXXXXXX-X' : 'UA-119953429-16'
     }),
     new MiniCssExtractPlugin({
-      filename: "css/[name]-[chunkhash].css"
-    })
+      filename: "css/[name]-[chunkhash].css",
+    }),
   ],
 };
