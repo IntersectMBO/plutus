@@ -21,10 +21,11 @@ import           Data.Type.Equality
 import           Type.Reflection
 
 {- Note [Representing polymorphism]
-Consider the following universe:
+Consider the following universe (in this example and the ones belwo bangs on arguments in universes
+are omitted for clarity):
 
     data U a where
-        UList :: !(U a) -> U [a]
+        UList :: U a -> U [a]
         UInt  :: U Int
 
 It has ints and polymorphic lists in it (including lists of lists etc).
@@ -72,7 +73,7 @@ we'd add the following constructor:
 
     data U a where
         <...>
-        UPair :: !(U a) -> !(U b) -> U (a, b)
+        UPair :: U a -> U b -> U (a, b)
 
 and here are some examples of meta types and what they'd mean in the target language:
 
@@ -101,14 +102,18 @@ So can we index the universe by types of arbitrary kinds and have a single appli
 Well, we can define
 
     data U (a :: k) where
-        UList  :: U []
-        UInt   :: U Int
-        UApply :: !(U f) -> !(U a) -> U (f a)
+        UProtoList :: U []
+        UInt       :: U Int
+        UApply     :: U f -> U a -> U (f a)
 
-but 'U' is of kind @forall k. k -> Type@, which is really hard to deal with. For one thing, we lose
+which allows us to recover the original 'UList' as
+
+    pattern UList = UApply UProtoList
+
+But 'U' is of kind @forall k. k -> Type@, which is really hard to deal with. For one thing, we lose
 pretty much any interop with the rest of the ecosystem, for example not only is it not possible to
 derive 'GEq' or 'GShow' anymore, it's not even correct to say @GEq U@, because 'GEq' expects
-something of type @k -> Type@ for a particular @k@, while 'U' has a different type.
+something of type @k -> Type@ for a particular @k@, while 'U' has a different kind.
 
 Our problems with 'U' don't end here. Having a @forall@ in the kind destroys type inference.
 For example, having
@@ -157,9 +162,9 @@ Haskell terms:
     data T = forall k. T k
 
     data U (a :: T) where
-        UList  :: U ('T [])
-        UInt   :: U ('T Int)
-        UApply :: !(U ('T f)) -> !(U ('T a)) -> U ('T (f a))
+        UProtoList :: U ('T [])
+        UInt       :: U ('T Int)
+        UApply     :: U ('T f) -> U ('T a) -> U ('T (f a))
 
 This however this variant of 'U' has the disadvantage of not being of the @Type -> Type@ kind
 (it's @T -> Type@ instead), which means we now need to introduce kind polymorphism in 'Some',
@@ -170,14 +175,12 @@ But it's trivial to fix that: we can think of @Type@ as a data type itself whose
     data T (a :: k)
 
     data U (a :: Type) where
-        UList  :: U (T [])
-        UInt   :: U (T Int)
-        UApply :: !(U (T f)) -> !(U (T a)) -> U (T (f a))
+        UProtoList :: U (T [])
+        UInt       :: U (T Int)
+        UApply     :: U (T f) -> U (T a) -> U (T (f a))
 
-This one is almost good enough, but note how in the process of trying to solve a problem with
-types we introduced complications for terms. Previously to say "'Int' is in @uni@" we'd
-either write @uni `Includes` Int@ or provide @uni Int@ directly, but now there's no @uni Int@
-and we have to use @uni (T Int)@ which means that we need to update
+This one seems to be good enough, however adopting this strategy requires reworking the whole
+infrastructure. For example, 'ValueOf' has to change from
 
     data ValueOf uni a = ValueOf (uni a) a
 
@@ -185,28 +188,25 @@ to
 
     data ValueOf uni a = ValueOf (uni (T a)) a
 
-and we need to update other parts of the infrastructure as well, which is rather non-trivial
-sometimes, for example @uni `Includes` []@ expanding to
+and we need to introduce @IType@ mentioned above, provide two versions of 'Some' etc. And it's
+annoying that if we want to talk about partially applied type constructors, then suddenly we need
+a completely different encoding of universes (and of the whole infrastructure) than the one that we
+used before we had type constructors (or cared about partially applying them). Maybe the annoyance
+is worth it, but I've opted for a slightly different encoding that allows us to keep the old
+infrastructure and only add a bit of stuff on top of it at the expense of slightly complicating
+user code (generally, not a good trade-off, I know). Ok, so the idea is that we only "shield" those
+types that are of a higher-kind instead of applying @T@ to every single type in the universe. I.e.
+we specifically embed into @Type@ only (possibly partial) type applications and add one more
+constructor that allows for "running" such applications:
 
-    forall a. uni `Contains` a => uni `Contains` [a]
+    data TypeApp
 
-no longers works as it now has to expand to
+    data U (a :: Type) where
+        UProtoList  :: U (TypeApp [])
+        UInt        :: U Int
+        UApply      :: U (TypeApp f) -> U a -> U (TypeApp (f a))
+        URunTypeApp :: U (TypeApp a) -> U a
 
-    forall a. uni `Contains` TypeApp a => uni `Contains` TypeApp [a]
-
-(or 'Contain
-
-
-someValue :: forall a uni. uni `Includes` a => a -> Some (ValueOf uni)
-
-
-
-someValue :: forall a uni. uni `Includes` TypeApp a => a -> Some (ValueOf uni)
-
-
-    bring :: uni `Everywhere` constr => proxy constr -> uni (TypeApp a) -> (constr a => r) -> r
-
-uni `Includes` [] =
 
 
 
