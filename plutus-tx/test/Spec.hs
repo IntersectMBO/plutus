@@ -1,3 +1,4 @@
+{-# LANGUAGE LambdaCase       #-}
 {-# LANGUAGE TypeApplications #-}
 module Main(main) where
 
@@ -8,8 +9,9 @@ import           Hedgehog            (MonadGen, Property, annotateShow, assert, 
 import qualified Hedgehog.Gen        as Gen
 import qualified Hedgehog.Range      as Range
 import           PlutusTx.Data       (Data (..))
-import           PlutusTx.Ratio      (denominator, numerator, (%))
+import           PlutusTx.Ratio      (Rational, denominator, numerator, (%))
 import           PlutusTx.Sqrt       (Sqrt (..), isqrt, rsqrt)
+import           Prelude             hiding (Rational)
 import           Test.Tasty
 import           Test.Tasty.Hedgehog (testProperty)
 
@@ -25,8 +27,55 @@ tests = testGroup "plutus-tx" [
 sqrtTests :: TestTree
 sqrtTests = testGroup "isqrt/rsqrt tests"
   [ testProperty "isqrt x^2 = x" isqrtRoundTrip
-  , testProperty "rsqrt ((m*x)/x)^2 = m" rsqrtRoundTripExact
+  , testProperty "rsqrt (a/b)^2 = integer part of a/b" rsqrtRoundTrip
+  , testProperty "rsqrt (-x/b) = Imaginary" rsqrtRoundTripImaginary
   ]
+
+rsqrtRoundTripImaginary :: Property
+rsqrtRoundTripImaginary = property $ do
+  let numerators   = Gen.integral (Range.linear (-100000) 0)
+  let denominators = Gen.integral (Range.linear 1 100000)
+
+  -- Note: We're using the fact that (a % -b) is reduced to (-a % b)
+  -- so we only need to test those negative numbers.
+
+  a <- forAll numerators
+  b <- forAll denominators
+
+  let x      = a % b
+      decode = \case
+            Imaginary -> True
+            _         -> False
+
+  assert $ decode (rsqrt x)
+
+rsqrtRoundTrip :: Property
+rsqrtRoundTrip = property $ do
+  let numerators   = Gen.integral (Range.linear 0 100000)
+  let denominators = Gen.integral (Range.linear 1 100000)
+
+  a <- forAll numerators
+  b <- forAll denominators
+
+  let x = a % b
+      f = square
+      g = decode . rsqrt
+      integerPart = a `div` b
+      remainder = rem a b
+      decode = \case
+            Exactly       i -> i == integerPart && remainder == 0
+            Approximately i -> i == integerPart && remainder > 0
+            Imaginary       -> False
+
+  assert $ g (f x)
+
+square :: Rational -> Rational
+square r =
+  let
+    n = numerator r
+    d = denominator r
+    two = 2 :: Integer
+    in (n^two) % (d^two)
 
 isqrtRoundTrip :: Property
 isqrtRoundTrip = property $ do
@@ -35,34 +84,8 @@ isqrtRoundTrip = property $ do
   tripping x' sq (decodeExact . isqrt)
     where
       sq x = x ^ (2 :: Integer)
-      decodeExact (Exact x) = Right x
-      decodeExact s         = Left  s
-
-rsqrtRoundTripExact :: Property
-rsqrtRoundTripExact = property $ do
-  let factors      = Gen.integral (Range.linear 0 100000)
-  let denominators = Gen.integral (Range.linear 1 100000)
-
-  n' <- forAll factors
-  d' <- forAll denominators
-
-  let x = (n' * d') % d'
-      f = sq
-      g = decodeExact x . rsqrt
-
-  tripping x f g
-    where
-      sq r =
-        let
-          n = numerator r
-          d = denominator r
-          two = 2 :: Integer
-         in (n^two) % (d^two)
-      decodeExact x s@(Exact e) =
-        if numerator x `div` denominator x == e && rem (numerator x) (denominator x) == 0
-           then Right x
-           else Left s
-      decodeExact _ s         = Left  s
+      decodeExact (Exactly x) = Right x
+      decodeExact s           = Left  s
 
 serdeTests :: TestTree
 serdeTests = testGroup "Data serialisation"

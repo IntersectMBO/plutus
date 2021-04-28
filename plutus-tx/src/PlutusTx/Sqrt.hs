@@ -25,9 +25,14 @@ import qualified Prelude          as Haskell
 
 -- | Integer square-root representation, discarding imaginary integers.
 data Sqrt
+  -- | The number was negative, so we don't even attempt to compute it;
+  -- just note that the result would be imaginary.
   = Imaginary
-  | Exact Integer
-  | Irrational Integer
+  -- | An exact integer result. The 'rsqrt' of 4 is 'Exactly 2'.
+  | Exactly Integer
+  -- | The Integer component of a non-integral result. The 'rsqrt 2' is
+  -- 'Approximately 1'.
+  | Approximately Integer
   deriving stock (Haskell.Show, Haskell.Eq)
 
 {-# INLINABLE rsqrt #-}
@@ -36,8 +41,8 @@ data Sqrt
 rsqrt :: Rational -> Sqrt
 rsqrt r
     | n * d < 0 = Imaginary
-    | n == 0    = Exact 0
-    | n == d    = Exact 1
+    | n == 0    = Exactly 0
+    | n == d    = Exactly 1
     | n < 0     = rsqrt $ negate n % negate d
     | otherwise = go 1 $ 1 + divide n d
   where
@@ -45,8 +50,9 @@ rsqrt r
     d = denominator r
     go :: Integer -> Integer -> Sqrt
     go l u
-        | l * l * d == n = Exact l
-        | u == (l + 1)   = Irrational l
+        | l * l * d == n = Exactly l
+        | u == (l + 1)   = Approximately l
+        | n < d          = Approximately 0
         | otherwise      =
               let
                 m = divide (l + u) 2
@@ -60,7 +66,7 @@ isqrt :: Integer -> Sqrt
 isqrt n = rsqrt (n % 1)
 
 makeLift ''Sqrt
-makeIsDataIndexed ''Sqrt [ ('Imaginary,  0)
-                         , ('Exact,      1)
-                         , ('Irrational, 2)
+makeIsDataIndexed ''Sqrt [ ('Imaginary,     0)
+                         , ('Exactly,       1)
+                         , ('Approximately, 2)
                          ]
