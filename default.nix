@@ -78,6 +78,8 @@ rec {
     }) client;
   };
 
+  marlowe-web = pkgs.callPackage ./marlowe-web { };
+
   plutus-pab = pkgs.recurseIntoAttrs (pkgs.callPackage ./plutus-pab-client {
     inherit (plutus.lib) buildPursPackage buildNodeModules gitignore-nix filterNpm;
     inherit haskell webCommon webCommonPlutus;
