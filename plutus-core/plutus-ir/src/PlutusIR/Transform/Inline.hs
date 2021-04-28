@@ -10,7 +10,7 @@ A simple inlining pass.
 The point of this pass is mainly to tidy up the code, not to particularly optimize performance.
 In particular, we want to get rid of "trivial" let bindings which the Plutus Tx compiler sometimes creates.
 -}
-module PlutusIR.Transform.Inline where
+module PlutusIR.Transform.Inline (inline) where
 
 import           PlutusIR
 import qualified PlutusIR.Analysis.Dependencies as Deps
@@ -74,10 +74,10 @@ contextually, so there's no point doing this.
 -- See Note [Inlining approach and 'Secrets of the GHC Inliner']
 newtype InlineTerm tyname name uni fun a = Done (Term tyname name uni fun a)
 
-newtype TermEnv tyname name uni fun a = TermEnv { unTermEnv :: UniqueMap TermUnique (InlineTerm tyname name uni fun a) }
+newtype TermEnv tyname name uni fun a = TermEnv { _unTermEnv :: UniqueMap TermUnique (InlineTerm tyname name uni fun a) }
     deriving newtype (Semigroup, Monoid)
 
-newtype Subst tyname name uni fun a = Subst { sTermEnv :: TermEnv tyname name uni fun a }
+newtype Subst tyname name uni fun a = Subst { _sTermEnv :: TermEnv tyname name uni fun a }
     deriving newtype (Semigroup, Monoid)
 
 type ExternalConstraints tyname name uni fun =
@@ -88,7 +88,7 @@ type ExternalConstraints tyname name uni fun =
 
 type Inlining tyname name uni fun a m =
     ( MonadState (Subst tyname name uni fun a) m
-    , MonadReader (Deps.StrictnessMap) m
+    , MonadReader Deps.StrictnessMap m
     , ExternalConstraints tyname name uni fun)
 
 lookupSubst

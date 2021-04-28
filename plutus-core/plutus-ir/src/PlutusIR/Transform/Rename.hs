@@ -57,8 +57,6 @@ Two problems arise:
    'PLC.ScopedRenameM' is for performing the renaming (the second stage).
 -}
 
-type instance PLC.HasUniques (Term tyname name uni fun ann) = PLC.HasUniques (PLC.Term tyname name uni fun ann)
-
 instance PLC.HasUniques (Term tyname name uni fun ann) => PLC.Rename (Term tyname name uni fun ann) where
     -- TODO: the Plutus Core codebase uses marking in order to prevent clashing with existing
     -- free variables. Should we do the same here?
