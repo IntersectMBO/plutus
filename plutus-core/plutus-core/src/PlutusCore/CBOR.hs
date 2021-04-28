@@ -102,8 +102,8 @@ instance Closed uni => Serialise (Some (TypeIn uni)) where
 instance (Closed uni, uni `Everywhere` Serialise) => Serialise (Some (ValueOf uni)) where
     encode (Some (ValueOf uni x)) = encode (Some $ TypeIn uni) <> bring (Proxy @Serialise) uni (encode x)
 
-    decode = go =<< decode where
-        go (Some (TypeIn uni)) = Some . ValueOf uni <$> bring (Proxy @Serialise) uni decode
+    decode = undefined {- go =<< decode where
+        go (Some (TypeIn uni)) = Some . ValueOf uni <$> bring (Proxy @Serialise) uni decode -}
 
 instance Serialise Unique where
     encode (Unique i) = encodeInt i
@@ -276,4 +276,3 @@ deserialiseRestoringUnitsOrFail ::
     => BSL.ByteString
     -> Either DeserialiseFailure (Program name tyname uni fun ())
 deserialiseRestoringUnitsOrFail bs = restoreUnitAnnotations <$> deserialiseOrFail bs
-
