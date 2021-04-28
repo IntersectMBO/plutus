@@ -39,7 +39,6 @@ import           Control.Monad.Freer.Error                        (Error)
 import           Control.Monad.Freer.Extras.Log                   (LogMessage, LogMsg, LogObserve, logDebug, logInfo)
 import           Control.Monad.Freer.Reader                       (Reader, ask, runReader)
 import           Control.Monad.IO.Class                           (MonadIO (liftIO))
-import           Data.Maybe                                       (fromMaybe)
 import           Data.Proxy                                       (Proxy (..))
 import qualified Data.Text                                        as Text
 
@@ -56,11 +55,8 @@ import           Plutus.PAB.Core.ContractInstance.RequestHandlers (ContractInsta
 
 import           Wallet.Effects                                   (ChainIndexEffect, ContractRuntimeEffect,
                                                                    WalletEffect)
-import qualified Wallet.Effects
 import           Wallet.Emulator.LogMessages                      (TxBalanceMsg)
-import           Wallet.Types                                     (targetSlot)
 
-import qualified Debug.Trace                                      as Trace
 import           Plutus.Contract                                  (AddressChangeRequest (..))
 import           Plutus.PAB.Core.ContractInstance.STM             (Activity (Done), BlockchainEnv (..),
                                                                    InstanceState (..), InstancesState,
