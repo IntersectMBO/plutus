@@ -63,7 +63,6 @@ import           Ledger.Constraints.OffChain          (UnbalancedTx)
 import qualified Ledger.Constraints.OffChain          as Constraints
 import           Ledger.Constraints.TxConstraints     (InputConstraint (..), OutputConstraint (..))
 import           Ledger.Crypto                        (pubKeyHash)
-import qualified Ledger.Interval                      as Interval
 import           Ledger.Tx                            as Tx
 import qualified Ledger.Typed.Scripts                 as Scripts
 import           Ledger.Typed.Tx                      (TypedScriptTxOut (..))
@@ -224,7 +223,8 @@ waitForUpdateUntil StateMachineClient{scInstance, scChooser} timeoutSlot = do
     let addr = Scripts.scriptAddress $ validatorInstance scInstance
     let go sl = do
             txns <- acrTxns <$> addressChangeRequest AddressChangeRequest
-                { acreqSlotRange = Interval.singleton sl
+                { acreqSlotRangeFrom = sl
+                , acreqSlotRangeTo = sl
                 , acreqAddress = addr
                 }
             if null txns && sl < timeoutSlot

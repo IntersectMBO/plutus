@@ -328,7 +328,7 @@ activateContract = Core.activateContract
 
 -- | Call a named endpoint on a contract instance
 callEndpointOnInstance :: forall a t. (JSON.ToJSON a) => ContractInstanceId -> String -> a -> Simulation t (Maybe NotificationError)
-callEndpointOnInstance = Core.callEndpointOnInstance
+callEndpointOnInstance = Core.callEndpointOnInstance'
 
 -- | Log some output to the console
 logString :: forall t effs. Member (LogMsg (PABMultiAgentMsg t)) effs => String -> Eff effs ()
