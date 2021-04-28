@@ -1,9 +1,17 @@
 steps:
-  - label: 'morph deploy 🚀'
+  - label: 'deploy (staging) 🚀'
     command:
       - "./.buildkite/deploy.sh alpha"
     branches: "master"
     concurrency: 1
     concurrency_group: "plutus-alpha-deploy"
+    agents:
+      system: x86_64-linux
+  - label: 'deploy (production) 🚀'
+    command:
+      - "./.buildkite/deploy.sh production"
+    branches: "production"
+    concurrency: 1
+    concurrency_group: "plutus-production-deploy"
     agents:
       system: x86_64-linux
