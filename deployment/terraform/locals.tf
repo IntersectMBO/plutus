@@ -27,7 +27,7 @@ locals {
   bastion_ssh_keys_ks = {
     alpha      = ["pablo", "tobias", "ci-deployer"]
     pablo      = ["pablo"]
-    prod       = ["tobias"]
+    production = ["tobias", "ci-deployer"]
     playground = ["tobias"]
     testing    = ["pablo", "tobias", "bozhidar", "dimitar"]
     hernan     = ["hernan"]
@@ -39,8 +39,7 @@ locals {
   root_ssh_keys_ks = {
     alpha      = ["pablo", "tobias", "ci-deployer"]
     pablo      = ["pablo"]
-    prod       = []
-    playground = []
+    production = ["tobias", "ci-deployer"]
     testing    = ["pablo", "tobias", "bozhidar", "dimitar"]
     hernan     = ["hernan"]
     tobias     = ["tobias", "ci-deployer"]
