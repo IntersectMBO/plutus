@@ -9,7 +9,7 @@
 
 module Plutus.PAB.CoreSpec
     ( tests
-    , pingPongSpec
+    , stopContractInstanceTest
     ) where
 
 import           Control.Lens                             ((&), (+~))
@@ -62,9 +62,6 @@ import           Wallet.Rollup                            (doAnnotateBlockchain)
 import           Wallet.Rollup.Types                      (DereferencedInput, dereferencedInputs, isFound)
 import           Wallet.Types                             (ContractInstanceId)
 
-pingPongSpec :: IO ()
-pingPongSpec = waitForUpdateTest
-
 tests :: TestTree
 tests = testGroup "Plutus.PAB.Core" [installContractTests, executionTests]
 
@@ -102,6 +99,7 @@ executionTests =
         , currencyTest
         , rpcTest
         , testCase "wait for update" waitForUpdateTest
+        , testCase "stop contract instance" stopContractInstanceTest
         ]
 
 waitForUpdateTest :: IO ()
@@ -123,6 +121,15 @@ waitForUpdateTest =
         void $ Simulator.callEndpointOnInstance p2 "ping" ()
         _ <- Simulator.waitForState (is Pinged) p1
         pure ()
+
+stopContractInstanceTest :: IO ()
+stopContractInstanceTest = do
+    runScenario $ do
+        p1 <- Simulator.activateContract defaultWallet PingPong
+        _ <- Simulator.stopInstance p1
+        _ <- Simulator.waitUntilFinished p1
+        st <- Simulator.instanceActivity p1
+        assertEqual "Instance should be 'Stopped'" st Simulator.Stopped
 
 currencyTest :: TestTree
 currencyTest =

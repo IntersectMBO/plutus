@@ -54,6 +54,8 @@ module Plutus.PAB.Core
     -- * Agent threads
     , ContractInstanceEffects
     , handleAgentThread
+    , stopInstance
+    , instanceActivity
     -- * Querying the state
     , instanceState
     , observableState
@@ -83,18 +85,20 @@ module Plutus.PAB.Core
     , timed
     ) where
 
+import           Control.Applicative                     (Alternative (..))
 import           Control.Concurrent.STM                  (STM)
 import qualified Control.Concurrent.STM                  as STM
 import           Control.Monad                           (forM, guard, void)
 import           Control.Monad.Freer                     (Eff, LastMember, Member, interpret, reinterpret, runM, send,
                                                           subsume, type (~>))
-import           Control.Monad.Freer.Error               (Error, runError)
+import           Control.Monad.Freer.Error               (Error, runError, throwError)
 import           Control.Monad.Freer.Extras.Log          (LogMessage, LogMsg (..), LogObserve, handleObserveLog,
                                                           logInfo, mapLog)
 import qualified Control.Monad.Freer.Extras.Modify       as Modify
 import           Control.Monad.Freer.Reader              (Reader (..), ask, asks, runReader)
 import           Control.Monad.IO.Class                  (MonadIO (..))
 import qualified Data.Aeson                              as JSON
+import           Data.Foldable                           (traverse_)
 import qualified Data.Map                                as Map
 import           Data.Proxy                              (Proxy (..))
 import           Data.Set                                (Set)
@@ -107,7 +111,8 @@ import           Ledger.Value                            (Value)
 import           Plutus.Contract.Effects.ExposeEndpoint  (ActiveEndpoint (..))
 import           Plutus.PAB.Core.ContractInstance        (ContractInstanceMsg)
 import qualified Plutus.PAB.Core.ContractInstance        as ContractInstance
-import           Plutus.PAB.Core.ContractInstance.STM    (BlockchainEnv, InstancesState, OpenEndpoint (..))
+import           Plutus.PAB.Core.ContractInstance.STM    (Activity (Active), BlockchainEnv, InstancesState,
+                                                          OpenEndpoint (..))
 import qualified Plutus.PAB.Core.ContractInstance.STM    as Instances
 import           Plutus.PAB.Effects.Contract             (ContractDefinitionStore, ContractEffect, ContractStore,
                                                           PABContract (..), addDefinition, getState)
@@ -120,7 +125,7 @@ import           Plutus.PAB.Events.ContractInstanceState (PartiallyDecodedRespon
 import           Plutus.PAB.Monitoring.PABLogMsg         (PABMultiAgentMsg (..))
 import           Plutus.PAB.Timeout                      (Timeout)
 import qualified Plutus.PAB.Timeout                      as Timeout
-import           Plutus.PAB.Types                        (PABError)
+import           Plutus.PAB.Types                        (PABError (ContractInstanceNotFound, InstanceAlreadyStopped))
 import           Plutus.PAB.Webserver.Types              (ContractActivationArgs (..))
 import           Wallet.API                              (PubKey, Slot)
 import qualified Wallet.API                              as WAPI
@@ -225,6 +230,32 @@ callEndpointOnInstance instanceID ep value = do
     liftIO
         $ STM.atomically
         $ Instances.callEndpointOnInstanceTimeout timeoutVar state (EndpointDescription ep) (JSON.toJSON value) instanceID
+
+-- | The 'InstanceState' for the instance. Throws a 'ContractInstanceNotFound' error if the instance does not exist.
+instanceStateInternal :: forall t env. ContractInstanceId -> PABAction t env Instances.InstanceState
+instanceStateInternal instanceId = do
+    instancesState <- asks @(PABEnvironment t env) instancesState
+    r <- liftIO $ STM.atomically $ (Left <$> Instances.instanceState instanceId instancesState) <|> (pure $ Right $ ContractInstanceNotFound instanceId)
+    case r of
+        Right err -> throwError err
+        Left s    -> pure s
+
+-- | Stop the instance.
+stopInstance :: forall t env. ContractInstanceId -> PABAction t env ()
+stopInstance instanceId = do
+    Instances.InstanceState{Instances.issStatus, Instances.issStop} <- instanceStateInternal instanceId
+    r' <- liftIO $ STM.atomically $ do
+            status <- STM.readTVar issStatus
+            case status of
+                Active -> STM.putTMVar issStop () >> pure Nothing
+                _      -> pure (Just $ InstanceAlreadyStopped instanceId)
+    traverse_ throwError r'
+
+-- | The 'Activity' of the instance.
+instanceActivity :: forall t env. ContractInstanceId -> PABAction t env Activity
+instanceActivity instanceId = do
+    Instances.InstanceState{Instances.issStatus} <- instanceStateInternal instanceId
+    liftIO $ STM.readTVarIO issStatus
 
 -- | Call a named endpoint on a contract instance. Fails immediately if the
 --   endpoint is not available.

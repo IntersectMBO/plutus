@@ -114,13 +114,15 @@ handlerNew ::
        Contract.PABContract t =>
        (ContractActivationArgs (Contract.ContractDef t) -> PABAction t env ContractInstanceId)
             :<|> (Text -> PABAction t env (ContractInstanceClientState (Contract.ContractDef t))
-                                        :<|> (String -> JSON.Value -> PABAction t env ()))
+                                        :<|> (String -> JSON.Value -> PABAction t env ())
+                                        :<|> PABAction t env ()
+                                        )
             :<|> (Integer -> PABAction t env [ContractInstanceClientState (Contract.ContractDef t)])
             :<|> PABAction t env [ContractInstanceClientState (Contract.ContractDef t)]
             :<|> PABAction t env [ContractSignatureResponse (Contract.ContractDef t)]
 handlerNew =
         (activateContract
-            :<|> (\x -> (parseContractId x >>= contractInstanceState) :<|> (\y z -> parseContractId x >>= \x' -> callEndpoint x' y z))
+            :<|> (\x -> (parseContractId x >>= contractInstanceState) :<|> (\y z -> parseContractId x >>= \x' -> callEndpoint x' y z) :<|> (parseContractId x >>= shutdown))
             :<|> instancesForWallets
             :<|> allInstanceStates
             :<|> availableContracts)
@@ -171,6 +173,9 @@ availableContracts = do
     def <- Contract.getDefinitions @t
     let mkSchema s = ContractSignatureResponse s <$> Contract.exportSchema @t s
     traverse mkSchema def
+
+shutdown :: forall t env. ContractInstanceId -> PABAction t env ()
+shutdown = Core.stopInstance
 
 -- | Proxy for the wallet API
 walletProxyClientEnv ::
