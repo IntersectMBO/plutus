@@ -2,11 +2,7 @@ module Contract.Types
   ( State
   , PreviousStep
   , PreviousStepState(..)
-  , MarloweParams(..)
-  , ValidatorHash
-  , MarloweData(..)
   , Tab(..)
-  , Query(..)
   , Action(..)
   , scrollContainerRef
   ) where
@@ -18,10 +14,8 @@ import Data.Maybe (Maybe(..))
 import Halogen (RefLabel(..))
 import Marlowe.Execution (ExecutionState, NamedAction)
 import Marlowe.Extended.Metadata (MetaData)
-import Marlowe.Semantics (ChoiceId, ChosenNum, Contract, Party, Slot, TransactionInput, Accounts)
-import Marlowe.Semantics (State) as Semantic
-import Plutus.V1.Ledger.Value (CurrencySymbol)
-import Types (ContractInstanceId)
+import Marlowe.PAB (ContractInstanceId, MarloweParams)
+import Marlowe.Semantics (ChoiceId, ChosenNum, Party, Slot, TransactionInput, Accounts)
 import WalletData.Types (WalletNickname)
 
 type State
@@ -29,6 +23,7 @@ type State
     , executionState :: ExecutionState
     , previousSteps :: Array PreviousStep
     , contractInstanceId :: ContractInstanceId
+    , marloweParams :: MarloweParams
     -- Which step is selected. This index is 0 based and should be between [0, previousSteps.length]
     -- (both sides inclusive). This is because the array represent the past steps and the
     -- executionState has the current state and visually we can select any one of them.
@@ -56,36 +51,11 @@ data PreviousStepState
   = TransactionStep TransactionInput
   | TimeoutStep Slot
 
--- MarloweParams are used to identify a Marlowe contract in the PAB, and the wallet
--- companion contract state is a Map MarloweParams MarloweData. We are not currently
--- generating PureScript types to match the Haskell MarloweParams and MarloweData
--- types (side note: perhaps we should be). We have a CurrencySymbol type in
--- Marlowe.Semantics, but it is just an alias for String. We could use that here for
--- the `rolesCurrency` value, and convert using its Bridge instance when sharing data
--- with the PAB. However, we currently don't need to do anything with MarloweParams on
--- the frontend except save them and send them back to the PAB (to join a contract that
--- is already running), so it is simpler just to use the generated type in this case.
-type MarloweParams
-  = { rolePayoutValidatorHash :: ValidatorHash
-    , rolesCurrency :: CurrencySymbol
-    }
-
-type ValidatorHash
-  = String
-
-type MarloweData
-  = { marloweContract :: Contract
-    , marloweState :: Semantic.State
-    }
-
 data Tab
   = Tasks
   | Balances
 
 derive instance eqTab :: Eq Tab
-
-data Query a
-  = ApplyTx TransactionInput a
 
 data Action
   = ConfirmAction NamedAction

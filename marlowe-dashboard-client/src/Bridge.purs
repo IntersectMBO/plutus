@@ -16,6 +16,7 @@ import Data.Lens (Iso', iso)
 import Data.Map (Map, fromFoldable, toUnfoldable) as Front
 import Data.Tuple (Tuple)
 import Data.Tuple.Nested ((/\))
+import Marlowe.PAB (ContractInstanceId(..)) as Front
 import Marlowe.Semantics (Assets(..), Slot(..)) as Front
 import Network.RemoteData (RemoteData)
 import Plutus.V1.Ledger.Crypto (PubKey(..), PubKeyHash(..)) as Back
@@ -23,7 +24,6 @@ import Plutus.V1.Ledger.Slot (Slot(..)) as Back
 import Plutus.V1.Ledger.Value (CurrencySymbol(..), TokenName(..), Value(..)) as Back
 import PlutusTx.AssocMap (Map, fromTuples, toTuples) as Back
 import Servant.PureScript.Ajax (AjaxError)
-import Types (ContractInstanceId(..)) as Front
 import Wallet.Emulator.Wallet (Wallet(..)) as Back
 import Wallet.Types (ContractInstanceId(..)) as Back
 import Wallet.Types (Payment)

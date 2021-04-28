@@ -24,6 +24,7 @@ import Types (AjaxResponse)
 import Wallet.Types (Payment)
 import WalletData.Types (Wallet, WalletInfo)
 
+-- TODO (possibly): make `AppM` a `MonadError` and remove all the `runExceptT`s
 class
   Monad m <= ManageWallet m where
   createWallet :: m (AjaxResponse WalletInfo)

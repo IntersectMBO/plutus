@@ -14,13 +14,18 @@ import Data.Time.Duration (Minutes)
 import Marlowe.Execution (NamedAction)
 import Marlowe.Semantics (Slot, TokenName)
 import Template.Types (Action, State) as Template
-import WalletData.Types (WalletDetails, WalletNickname)
+import Types (WebData)
+import WalletData.Types (WalletDetails, WalletInfo, WalletLibrary, WalletNickname)
 
 type State
-  = { walletDetails :: WalletDetails
+  = { walletLibrary :: WalletLibrary
+    , walletDetails :: WalletDetails
     , menuOpen :: Boolean
     , screen :: Screen
     , cards :: Array Card
+    , newWalletNickname :: WalletNickname
+    , newWalletContractIdString :: String
+    , newWalletInfo :: WebData WalletInfo
     , currentSlot :: Slot
     , timezoneOffset :: Minutes
     , templateState :: Template.State
@@ -35,7 +40,7 @@ data Screen
 derive instance eqScreen :: Eq Screen
 
 data Card
-  = CreateWalletCard (Maybe String)
+  = SaveWalletCard (Maybe String)
   | ViewWalletCard WalletDetails
   | PutdownWalletCard
   | TemplateLibraryCard
@@ -48,29 +53,29 @@ derive instance eqCard :: Eq Card
 data Action
   = PutdownWallet
   | SetNewWalletNickname WalletNickname
-  | SetNewWalletContractId String
-  | AddNewWallet (Maybe TokenName)
+  | SetNewWalletContractIdString String
+  | SaveNewWallet (Maybe TokenName)
   | ToggleMenu
   | SetScreen Screen
   | OpenCard Card
   | CloseCard
   | SetCurrentSlot Slot
   | TemplateAction Template.Action
-  | ContractAction Contract.Action
   | ContractHomeAction ContractHome.Action
+  | ContractAction Contract.Action
 
 -- | Here we decide which top-level queries to track as GA events, and
 -- how to classify them.
 instance actionIsEvent :: IsEvent Action where
   toEvent PutdownWallet = Just $ defaultEvent "PutdownWallet"
   toEvent (SetNewWalletNickname _) = Just $ defaultEvent "SetNewWalletNickname"
-  toEvent (SetNewWalletContractId _) = Just $ defaultEvent "SetNewWalletContractId"
-  toEvent (AddNewWallet _) = Just $ defaultEvent "AddNewWallet"
+  toEvent (SetNewWalletContractIdString _) = Just $ defaultEvent "SetNewWalletContractId"
+  toEvent (SaveNewWallet _) = Just $ defaultEvent "SaveNewWallet"
   toEvent ToggleMenu = Just $ defaultEvent "ToggleMenu"
   toEvent (SetScreen _) = Just $ defaultEvent "SetScreen"
   toEvent (OpenCard _) = Nothing
   toEvent CloseCard = Nothing
   toEvent (SetCurrentSlot _) = Nothing
   toEvent (TemplateAction templateAction) = toEvent templateAction
-  toEvent (ContractAction contractAction) = toEvent contractAction
   toEvent (ContractHomeAction contractAction) = toEvent contractAction
+  toEvent (ContractAction contractAction) = toEvent contractAction
