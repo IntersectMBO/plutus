@@ -275,7 +275,7 @@ benchNop1 gen =
     let name = Nop1
         mem = 1
         (x,_) = randNwords mem gen
-    in bgroup (show name) $ [runTermBench (show mem) $ mkApp1 name x]
+    in bgroup (show name) $ [runTermBench (show $ memoryUsage x) $ mkApp1 name x]
 
 benchNop2 :: StdGen -> Benchmark
 benchNop2 gen =
