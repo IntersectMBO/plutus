@@ -53,12 +53,12 @@ tests = testGroup "crowdfunding"
         $ void (Trace.activateContractWallet w1 theContract)
 
     , checkPredicateOptions (defaultCheckOptions & maxSlot .~ 20) "make contribution"
-        (walletFundsChange w1 (Ada.lovelaceValueOf (-10)))
-        $ let contribution = Ada.lovelaceValueOf 10
+        (walletFundsChange w1 (Ada.lovelaceValueOf (-100)))
+        $ let contribution = Ada.lovelaceValueOf 100
           in makeContribution w1 contribution >> void Trace.nextSlot
 
     , checkPredicate "make contributions and collect"
-        (walletFundsChange w1 (Ada.lovelaceValueOf 21))
+        (walletFundsChange w1 (Ada.lovelaceValueOf 225))
         $ successfulCampaign
 
     , checkPredicate "cannot collect money too late"
@@ -66,9 +66,9 @@ tests = testGroup "crowdfunding"
         .&&. assertNoFailedTransactions)
         $ do
             ContractHandle{chInstanceId} <- startCampaign
-            makeContribution w2 (Ada.lovelaceValueOf 10)
-            makeContribution w3 (Ada.lovelaceValueOf 10)
-            makeContribution w4 (Ada.lovelaceValueOf 1)
+            makeContribution w2 (Ada.lovelaceValueOf 100)
+            makeContribution w3 (Ada.lovelaceValueOf 100)
+            makeContribution w4 (Ada.lovelaceValueOf 25)
             Trace.freezeContractInstance chInstanceId
             -- Add some blocks to bring the total up to 31
             -- (that is, above the collection deadline)
@@ -81,9 +81,9 @@ tests = testGroup "crowdfunding"
         (walletFundsChange w1 PlutusTx.zero)
         $ do
             ContractHandle{chInstanceId} <- startCampaign
-            makeContribution w2 (Ada.lovelaceValueOf 10)
-            makeContribution w3 (Ada.lovelaceValueOf 10)
-            makeContribution w4 (Ada.lovelaceValueOf 1)
+            makeContribution w2 (Ada.lovelaceValueOf 100)
+            makeContribution w3 (Ada.lovelaceValueOf 100)
+            makeContribution w4 (Ada.lovelaceValueOf 25)
             Trace.freezeContractInstance chInstanceId
             -- The contributions could be collected now, but without
             -- the slot notifications, wallet 1 is not aware that the
@@ -91,12 +91,13 @@ tests = testGroup "crowdfunding"
             void $ Trace.waitUntilSlot 35
 
     , checkPredicate "can claim a refund"
-        (walletFundsChange w2 mempty
+        (walletFundsChange w1 mempty
+        .&&. walletFundsChange w2 mempty
         .&&. walletFundsChange w3 mempty)
         $ do
             startCampaign
-            makeContribution w2 (Ada.lovelaceValueOf 5)
-            void $ makeContribution w3 (Ada.lovelaceValueOf 5)
+            makeContribution w2 (Ada.lovelaceValueOf 50)
+            void $ makeContribution w3 (Ada.lovelaceValueOf 50)
             void $ Trace.waitUntilSlot 31
 
     , goldenPir "test/Spec/crowdfunding.pir" $$(PlutusTx.compile [|| mkValidator ||])

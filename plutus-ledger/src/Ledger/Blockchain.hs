@@ -61,15 +61,14 @@ consumableInputs :: OnChainTx -> Set.Set TxIn
 consumableInputs = eitherTx (view inputsFees) (view inputs <> view inputsFees)
 
 -- | Lookup a transaction in a 'Blockchain' by its id.
-transaction :: Blockchain -> TxId -> Maybe Tx
+transaction :: Blockchain -> TxId -> Maybe OnChainTx
 transaction bc tid = getFirst . foldMap (foldMap p) $ bc where
-    p (Valid tx) = if tid == txId tx then First (Just tx) else mempty
-    p _          = mempty
+    p tx = if tid == eitherTx txId txId tx then First (Just tx) else mempty
 
 -- | Determine the unspent output that an input refers to
 out :: Blockchain -> TxOutRef -> Maybe TxOut
 out bc o = do
-    t <- transaction bc (txOutRefId o)
+    Valid t <- transaction bc (txOutRefId o)
     let i = txOutRefIdx o
     if fromIntegral (length (txOutputs t)) <= i
         then Nothing

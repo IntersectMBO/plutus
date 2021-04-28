@@ -198,7 +198,7 @@ crowdfunding c = contribute c `select` scheduleCollection c
 theCampaign :: Campaign
 theCampaign = Campaign
     { campaignDeadline = 20
-    , campaignTarget   = Ada.lovelaceValueOf 20
+    , campaignTarget   = Ada.lovelaceValueOf 200
     , campaignCollectionDeadline = 30
     , campaignOwner = pubKeyHash $ Emulator.walletPubKey (Emulator.Wallet 1)
     }
@@ -273,7 +273,7 @@ makeContribution w v = do
 successfulCampaign :: EmulatorTrace ()
 successfulCampaign = do
     _ <- startCampaign
-    makeContribution (Wallet 2) (Ada.lovelaceValueOf 10)
-    makeContribution (Wallet 3) (Ada.lovelaceValueOf 10)
-    makeContribution (Wallet 4) (Ada.lovelaceValueOf 1)
+    makeContribution (Wallet 2) (Ada.lovelaceValueOf 100)
+    makeContribution (Wallet 3) (Ada.lovelaceValueOf 100)
+    makeContribution (Wallet 4) (Ada.lovelaceValueOf 25)
     void $ Trace.waitUntilSlot 21
