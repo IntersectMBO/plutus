@@ -1,6 +1,4 @@
 ```
-{-# OPTIONS --termination-depth=1000 #-}
-
 module Algorithmic.ReductionEC where
 ```
 
@@ -17,7 +15,7 @@ open import Data.Integer using (_<?_;_+_;_-_;∣_∣;_≤?_;_≟_) renaming (_*_
 open import Relation.Nullary
 open import Relation.Nullary.Decidable
 open import Data.Unit hiding (_≤_; _≤?_; _≟_)
-open import Data.List as List using (List; _∷_; []; _++_)
+open import Data.List as List using (List; _∷_; []; _++_;reverse)
 open import Data.Bool using (Bool;true;false)
 open import Data.Nat using (zero)
 open import Data.Unit using (tt)
@@ -47,20 +45,129 @@ open import Data.String using (String)
 
 ```
 
+data Arg : Set where
+  Term Type : Arg
+
+Arity = List Arg
+
+-- number of args still needed
+
+arity : Builtin → Arity
+arity addInteger = Term ∷ Term ∷ []
+arity subtractInteger = Term ∷ Term ∷ []
+arity multiplyInteger = Term ∷ Term ∷ []
+arity divideInteger = Term ∷ Term ∷ []
+arity quotientInteger = Term ∷ Term ∷ []
+arity remainderInteger = Term ∷ Term ∷ []
+arity modInteger = Term ∷ Term ∷ []
+arity lessThanInteger = Term ∷ Term ∷ []
+arity lessThanEqualsInteger = Term ∷ Term ∷ []
+arity greaterThanInteger = Term ∷ Term ∷ []
+arity greaterThanEqualsInteger = Term ∷ Term ∷ []
+arity equalsInteger = Term ∷ Term ∷ []
+arity concatenate = Term ∷ Term ∷ []
+arity takeByteString = Term ∷ Term ∷ []
+arity dropByteString = Term ∷ Term ∷ []
+arity lessThanByteString = Term ∷ Term ∷ []
+arity greaterThanByteString = Term ∷ Term ∷ []
+arity sha2-256 = Term ∷ []
+arity sha3-256 = Term ∷ Term ∷ []
+arity verifySignature = Term ∷ Term ∷ Term ∷ []
+arity equalsByteString = Term ∷ Term ∷ []
+arity ifThenElse = Type ∷ Term ∷ Term ∷ Term ∷ []
+arity charToString = Term ∷ []
+arity append = Term ∷ Term ∷ []
+arity trace = Term ∷ []
+
+
 -- something very much like a substitution
 -- labelled by a builtin and given a first order presentation
+{-
 ITel : Builtin → ∀{Φ} → Ctx Φ → SubNf Φ ∅ → Set
+-}
+
+data Bwd (A : Set) : Set where
+  [] : Bwd A
+  _∷_ : Bwd A → A → Bwd A
+
+cons : ∀{A} → A → Bwd A → Bwd A
+cons a [] = [] ∷ a
+cons a (as ∷ a') = cons a as ∷ a'
+
+rev : ∀{A} → List A → Bwd A
+rev [] = []
+rev (a ∷ as) = cons a (rev as)
+
+
+data _<>_∈_ : ∀{A} → Bwd A → List A → List A → Set where
+  start : ∀{A}(as : List A) → [] <> as ∈ as
+  bubble : ∀{A}{a : A}{as : Bwd A}{as' as'' : List A} → as <> (a ∷ as') ∈ as''
+    → (as ∷ a) <> as' ∈ as''
+
+cons' : ∀{A}{a : A}{as : Bwd A}{as' as'' : List A} → as <> as' ∈ as''
+    → (cons a as) <> as' ∈ (a ∷ as'')
+cons' (start _) = bubble (start _)
+cons' (bubble p) = bubble (cons' p)
+
+
+stop' : ∀{A}(as : List A) → rev as <> [] ∈ as
+stop' [] = start []
+stop' (a ∷ as) = cons' (stop' as)
 
 data Value : {A : ∅ ⊢Nf⋆ *} → ∅ ⊢ A → Set
 
-data BV (b : Builtin) : ∀{A} → ∅ ⊢ A → Set where
-  base : BV b (ibuiltin b)
+data BApp (b : Builtin) : ∀{A} → ∅ ⊢ A → Set where
+  base : BApp b (ibuiltin b)
   step : ∀{A B}
-    → {t : ∅ ⊢ A ⇒ B} → BV b t → Value t
-    → {u : ∅ ⊢ A} → Value u → BV b (t · u)
+    → {t : ∅ ⊢ A ⇒ B} → BApp b t → Value t
+    → {u : ∅ ⊢ A} → Value u → BApp b (t · u)
   step⋆ : ∀{B}
-    → {t : ∅ ⊢ Π B} → BV b t → Value t
-    → {A : ∅ ⊢Nf⋆ K} → BV b (t ·⋆ A)
+    → {t : ∅ ⊢ Π B} → BApp b t → Value t
+    → {A : ∅ ⊢Nf⋆ K} → BApp b (t ·⋆ A)
+
+-- here we count keep track of the arity of the application
+-- useful info for managing partiall applied builtin values
+data BAppA (b : Builtin) : Arity → ∀{A} → ∅ ⊢ A → Set where
+  base : BAppA b (arity b) (ibuiltin b)
+  step : ∀{A B as}{t : ∅ ⊢ A ⇒ B} → BAppA b (Term ∷ as) t
+    → {u : ∅ ⊢ A} → Value u → BAppA b as (t · u)
+  step⋆ : ∀{B as}
+    → {t : ∅ ⊢ Π B} → BAppA b (Type ∷ as) t
+    → {A : ∅ ⊢Nf⋆ K} → BAppA b as (t ·⋆ A)
+
+-- here we keep track of the arguments that have been received
+-- useful info for executing builtins
+data BAppR (b : Builtin) : Bwd Arg → ∀{A} → ∅ ⊢ A → Set where
+  base : BAppR b [] (ibuiltin b)
+  step : ∀{A B as}{t : ∅ ⊢ A ⇒ B} → BAppR b as t
+    → {u : ∅ ⊢ A} → Value u → BAppR b (as ∷ Term) (t · u)
+  step⋆ : ∀{B C as}
+    → {t : ∅ ⊢ Π B} → BAppR b as t
+    → {A : ∅ ⊢Nf⋆ K}{tA : ∅ ⊢ C} (p : C ≡ B [ A ]Nf) → substEq (∅ ⊢_) p tA ≡ t ·⋆ A
+    → BAppR b (as ∷ Type) tA
+
+
+-- to convert from BAppA to BAppR I need to take a partly depleted
+-- arity and convert it into a list of what args we have received...
+
+-- actual arity
+-- -> remaining arity
+-- -> args so far
+
+convert : ∀ {A} b {args} {rem}{t : ∅ ⊢ A}
+        → args <> rem ∈ arity b
+        → BAppR b args t
+        → BAppA b rem t
+convert b (start .(arity b)) base = base
+convert b (bubble p) (step q x) = step (convert b p q) x
+convert b (bubble p) (step⋆ q refl refl) = step⋆ (convert b p q)
+
+postulate
+  convert' : ∀ {A} b {args} {rem}{t : ∅ ⊢ A}
+        → args <> rem ∈ arity b
+        → BAppA b rem t
+        → BAppR b args t
+
 
 data Value where
   V-ƛ : {A B : ∅ ⊢Nf⋆ *}
@@ -88,46 +195,29 @@ data Value where
   -- by a context which is extracted from the builtin in the base case,
   -- but is it helpful to have it on the top level?
 
-  V-I⇒ : ∀(b : Builtin){Φ Φ'}{Γ : Ctx Φ}{Δ : Ctx Φ'}{A : Φ' ⊢Nf⋆ *}{C : Φ ⊢Nf⋆ *}
-    → let Ψ ,, Γ' ,, C' = ISIG b in
-      (p : Ψ ≡ Φ)
-    → (q : substEq Ctx p Γ' ≡ Γ)
-    → (r : substEq (_⊢Nf⋆ *) p C' ≡ C)
-    → (σ : SubNf Φ' ∅)
-    → (p : (Δ , A) ≤C' Γ)
-    → ITel b Δ σ
-    → ∀ {A'}
-    → A' ≡ subNf σ (<C'2type (skip p) C)
-    → (t : ∅ ⊢ A')
-    → BV b t
-    → Value t
-
-  V-IΠ : ∀(b : Builtin){Φ Φ'}{Γ : Ctx Φ}{Δ : Ctx Φ'}{K}{C : Φ ⊢Nf⋆ *}
-    → let Ψ ,, Γ' ,, C' = ISIG b in
-      (p : Ψ ≡ Φ)
-    → (q : substEq Ctx p Γ' ≡ Γ)
-    → (r : substEq (_⊢Nf⋆ *) p C' ≡ C)
-    → (σ : SubNf Φ' ∅) -- could try one at a time
-      (p : (Δ ,⋆ K) ≤C' Γ)
-    → ITel b Δ σ
-    → ∀{A}
-    → A ≡ subNf σ (<C'2type (skip⋆ p) C)
-    → (t : ∅ ⊢ A)
-    → BV b t
-    → Value t
-
-ITel b ∅       σ = ⊤
-ITel b (Γ ,⋆ J) σ = ITel b Γ (σ ∘ S) × ∅ ⊢Nf⋆ J
-ITel b (Γ , A) σ = ITel b Γ σ × Σ (∅ ⊢ subNf σ A) Value
-
-convBV : ∀{b A A'}{t : ∅ ⊢ A}(p : A ≡ A') → BV b t → BV b (conv⊢ refl p t)
-convBV refl bv = bv
+  V-I⇒ : ∀ b {A B as}{t : ∅ ⊢ A ⇒ B}
+       → BAppA b (Term ∷ as) t
+       → Value t
+  V-IΠ : ∀ b {A : ∅ ,⋆ K ⊢Nf⋆ *}{as}{t : ∅ ⊢ Π A}
+       → BAppA b (Type ∷ as) t
+       → Value t
 
 deval : {A : ∅ ⊢Nf⋆ *}{u : ∅ ⊢ A} → Value u → ∅ ⊢ A
 deval {u = u} _ = u
 
 tval : {A : ∅ ⊢Nf⋆ *}{u : ∅ ⊢ A} → Value u → ∅ ⊢Nf⋆ *
 tval {A = A} _ = A
+
+BUILTIN : ∀ b {A}{t : ∅ ⊢ A} → BAppR b (rev (arity b)) t → ∅ ⊢ A
+BUILTIN addInteger (step (step base (V-con (integer i))) (V-con (integer j))) = con (integer (i + j))
+BUILTIN subtractInteger (step (step base (V-con (integer i))) (V-con (integer j))) = con (integer (i - j))
+BUILTIN ifThenElse (step (step (step (step⋆ base refl refl) (V-con (bool false))) t) f) = deval f
+BUILTIN ifThenElse (step (step (step (step⋆ base refl refl) (V-con (bool true))) t) f) = deval t
+BUILTIN _ bapp = error _
+
+BUILTIN' : ∀ b {A}{t : ∅ ⊢ A} → BAppA b [] t → ∅ ⊢ A
+BUILTIN' b bs = BUILTIN b (convert' b (stop' (arity b)) bs)
+
 ```
 
 ```
@@ -148,6 +238,7 @@ convVal refl v = v
 ```
 
 ```
+{-
 IBUILTIN : (b : Builtin)
     → let Φ ,, Γ ,, C = ISIG b in
       (σ : SubNf Φ ∅)
@@ -220,6 +311,7 @@ IBUILTIN' : (b : Builtin)
     → Σ (∅ ⊢ subNf σ C') λ t → Value t ⊎ Error t
     
 IBUILTIN' b refl refl σ tel _ refl = IBUILTIN b σ tel
+-}
 ```
 
 ## Intrinsically Type Preserving Reduction
@@ -269,38 +361,26 @@ data _—→⋆_ : {A : ∅ ⊢Nf⋆ *} → (∅ ⊢ A) → (∅ ⊢ A) → Set 
     → Value M
     → unwrap (wrap A B M) —→⋆ M
 
-  β-sbuiltin :
+  β-sbuiltin : ∀{A B}
       (b : Builtin)
-    → let Φ ,, Γ ,, C = ISIG b in
-      ∀{Φ'}{Γ' : Ctx Φ'}{A : Φ' ⊢Nf⋆ *}
-    → (σ : SubNf Φ' ∅)
-    → (p : Φ ≡ Φ')
-    → (q : substEq Ctx p Γ ≡  Γ' , A)
-    → (C' : Φ' ⊢Nf⋆ *)
-    → (r : substEq (_⊢Nf⋆ *) p C ≡ C')
-    → (t : ∅ ⊢ subNf σ A ⇒ subNf σ C')
-    → (u : ∅ ⊢ subNf σ A)
-    → (tel : ITel b Γ' σ)
-    → (v : Value u)
+    → (t : ∅ ⊢ A ⇒ B)
+    → (bt : BAppA b (Term ∷ []) t) -- one left
+    → (u : ∅ ⊢ A)
+    → (vu : Value u)
       -----------------------------
-    → t · u —→⋆ proj₁ (IBUILTIN' b p q σ (tel ,, u ,, v) C' r)
+    → t · u —→⋆ BUILTIN' b (BAppA.step bt vu)
 
-  β-sbuiltin⋆ :
+  β-sbuiltin⋆ : ∀{B : ∅ ,⋆ K ⊢Nf⋆ *}
       (b : Builtin)
-    → let Φ ,, Γ ,, C = ISIG b in
-      ∀{Φ'}{Γ' : Ctx Φ'}{K}{A : ∅ ⊢Nf⋆ K}
-    → (σ : SubNf Φ' ∅)
-    → (p : Φ ≡ Φ' ,⋆ K)
-    → (q : substEq Ctx p Γ ≡  (Γ' ,⋆ K))
-    → (C' : Φ' ,⋆ K ⊢Nf⋆ *)
-    → (r : substEq (_⊢Nf⋆ *) p C ≡ C')
-    → (t : ∅ ⊢ subNf σ (Π C'))
-    → (tel : ITel b Γ' σ)
+    → (t : ∅ ⊢ Π B)
+    → (bt : BAppA b (Type ∷ []) t) -- one left
+    → ∀ A
       -----------------------------
-    → t ·⋆ A —→⋆ conv⊢ refl (subNf-cons-[]Nf C') (proj₁ (IBUILTIN' b p q (subNf-cons σ A) (tel ,, A) C' r))
+    → t ·⋆ A —→⋆ BUILTIN' b (BAppA.step⋆ bt)
 
 infix 2 _—→_
 
+{-
 _[_]ᴱ : ∀{A B : ∅ ⊢Nf⋆ *} → EC B A → ∅ ⊢ A → ∅ ⊢ B
 []       [ L ]ᴱ = L
 (E l· B) [ L ]ᴱ = E [ L ]ᴱ · B
@@ -517,3 +597,5 @@ lemma51' M with lemma51 M
 ... | inj₁ V = done V
 ... | inj₂ (B ,, E ,, L ,, inj₁ (M' ,, p) ,, p') = step E p p'
 ... | inj₂ (B ,, E ,, L ,, inj₂ e ,, p) = error E e p
+
+-}
