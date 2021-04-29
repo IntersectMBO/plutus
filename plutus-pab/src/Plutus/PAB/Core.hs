@@ -74,6 +74,7 @@ module Plutus.PAB.Core
     , askUserEnv
     , askBlockchainEnv
     , askInstancesState
+    , runningInstances
     -- * Run PAB effects in separate threads
     , PABRunner(..)
     , pabRunner
@@ -533,6 +534,9 @@ valueAt address = valueAtSTM address >>= liftIO . STM.atomically
 --   the error (if any)
 waitUntilFinished :: forall t env. ContractInstanceId -> PABAction t env (Maybe JSON.Value)
 waitUntilFinished i = finalResult i >>= liftIO . STM.atomically
+
+runningInstances :: forall t env. PABAction t env (Set ContractInstanceId)
+runningInstances = askInstancesState @t @env >>= liftIO . STM.atomically . Instances.runningInstances
 
 -- | Read the 'env' from the environment
 askUserEnv :: forall t env effs. Member (Reader (PABEnvironment t env)) effs => Eff effs env

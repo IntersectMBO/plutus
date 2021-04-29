@@ -39,6 +39,7 @@ module Plutus.PAB.Core.ContractInstance.STM(
     , obervableContractState
     , instanceState
     , instanceIDs
+    , runningInstances
     ) where
 
 import           Control.Applicative                      (Alternative (..))
@@ -364,3 +365,15 @@ valueAt addr BlockchainEnv{beAddressMap} = do
 -- | The current slot number
 currentSlot :: BlockchainEnv -> STM Slot
 currentSlot BlockchainEnv{beCurrentSlot} = STM.readTVar beCurrentSlot
+
+-- | The IDs of contract instances that are currently running
+runningInstances :: InstancesState -> STM (Set ContractInstanceId)
+runningInstances (InstancesState m) = do
+    let flt :: InstanceState -> STM (Maybe InstanceState)
+        flt s@InstanceState{issStatus} = do
+            status <- STM.readTVar issStatus
+            case status of
+                Active -> pure (Just s)
+                _      -> pure Nothing
+    mp <- STM.readTVar m
+    Map.keysSet . Map.mapMaybe id <$> traverse flt mp

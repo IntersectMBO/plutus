@@ -37,6 +37,7 @@ import           Data.Foldable                           (traverse_)
 import qualified Data.Map                                as Map
 import           Data.Maybe                              (mapMaybe)
 import           Data.Proxy                              (Proxy (..))
+import qualified Data.Set                                as Set
 import           Data.Text                               (Text)
 import qualified Data.UUID                               as UUID
 import           Ledger                                  (Slot, Value, pubKeyHash)
@@ -165,8 +166,10 @@ instancesForWallets wallet = filter ((==) (Wallet wallet) . cicWallet) <$> allIn
 allInstanceStates :: forall t env. Contract.PABContract t => PABAction t env [ContractInstanceClientState (Contract.ContractDef t)]
 allInstanceStates = do
     mp <- Contract.getActiveContracts @t
+    inst <- Core.runningInstances
+    let isRunning i = Set.member i inst
     let get (i, ContractActivationArgs{caWallet, caID}) = fromInternalState caID i caWallet . Contract.serialisableState (Proxy @t) <$> Contract.getState @t i
-    traverse get $ Map.toList mp
+    filter (isRunning . cicContract) <$> traverse get (Map.toList mp)
 
 availableContracts :: forall t env. Contract.PABContract t => PABAction t env [ContractSignatureResponse (Contract.ContractDef t)]
 availableContracts = do
