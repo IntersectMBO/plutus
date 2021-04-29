@@ -185,6 +185,7 @@ evaluateScriptRestricting verbose params budget p args = swap $ runWriter @LogOu
 
     let (res, _, logs) =
             UPLC.runCek
+                UPLC.defaultCekCosts
                 (toBuiltinsRuntime model)
                 (UPLC.restricting $ PLC.ExRestrictingBudget budget)
                 (verbose == Verbose)
@@ -209,6 +210,7 @@ evaluateScriptCounting verbose params p args = swap $ runWriter @LogOutput $ run
 
     let (res, UPLC.CountingSt final, logs) =
             UPLC.runCek
+                UPLC.defaultCekCosts
                 (toBuiltinsRuntime model)
                 UPLC.counting
                 (verbose == Verbose)
