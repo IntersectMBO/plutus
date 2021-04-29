@@ -28,7 +28,7 @@ module UntypedPlutusCore.Evaluation.Machine.Cek.Internal
     , ExBudgetInfo(..)
     , ExBudgetMode(..)
     , CekCosts
-    , defaultCekCosts
+    , unitCekCosts
     , CekM
     , liftCekST
     , ErrorWithCause(..)
@@ -441,13 +441,6 @@ lookupVarName varName varEnv = do
             var = Var () varName
         Just val -> pure val
 
--- We provisionally charge a unit CPU cost for AST nodes: this is just to allow
--- us to count the number of times each node type is evaluated.  We may wish to
--- change this later if it turns out that different node types have
--- significantly different costs.
-unitCost :: ExBudget
-unitCost = ExBudget 1 0
-
 data CekCosts =
     CekCosts {
       cekStartupCost :: ExBudget
@@ -463,8 +456,19 @@ data CekCosts =
     -- happen if calling 'Error' caused the budget to be exceeded?
     }
 
-defaultCekCosts :: CekCosts
-defaultCekCosts = CekCosts unitCost unitCost unitCost unitCost unitCost unitCost unitCost unitCost
+-- Charge a unit CPU cost for AST nodes: this allows us to count the number of
+-- times each node type is evaluated.  For actual prediction/costing we will use
+-- a different version of CekCosts.
+unitCekCosts :: CekCosts
+unitCekCosts =
+    CekCosts unitCost unitCost
+             unitCost unitCost
+             unitCost unitCost
+             unitCost unitCost
+        where
+          unitCost :: ExBudget
+          unitCost = ExBudget 1 0
+
 
 -- See Note [Compilation peculiarities].
 -- | The entering point to the CEK machine's engine.

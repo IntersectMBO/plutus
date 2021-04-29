@@ -41,5 +41,5 @@ evaluateCekTrace
     => Program Name uni fun ()
     -> ([String], CekExTally fun, Either (CekEvaluationException uni fun) (Term Name uni fun ()))
 evaluateCekTrace (Program _ _ t) =
-    case runCek Cek.defaultCekCosts defBuiltinsRuntime Cek.tallying True t of
+    case runCek Cek.unitCekCosts defBuiltinsRuntime Cek.tallying True t of
         (errOrRes, TallyingSt st _, logs) -> (logs, st, errOrRes)
