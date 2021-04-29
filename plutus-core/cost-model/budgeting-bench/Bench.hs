@@ -244,6 +244,9 @@ sig = "e5564300c360ac729086e2cc806e828a84877f1eb8e5d974d873e065224901555fb882159
 pubKey :: BS.ByteString
 pubKey = "d75a980182b10ab7d54bfed3c964073a0ee172f3daa62325af021a68f707511a"
 
+-- The sizes of the signature and the key are fixed (64 and 32 bytes) so we don't include
+-- them in the benchmark name.  However, in models.R we still have to remove the overhead
+-- for a three-argument function.
 benchVerifySignature :: Benchmark
 benchVerifySignature =
     bgroup (show name) $
