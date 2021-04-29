@@ -330,8 +330,8 @@ type KnownBuiltinType term a = KnownBuiltinTypeIn (UniOf term) term a
 
 -- See Note [KnownType's defaults].
 -- | A default implementation of 'toTypeAst' for built-in types.
-toBuiltinTypeAst :: uni `Contains` (a :: GHC.Type) => proxy a -> Type TyName uni ()
-toBuiltinTypeAst (_ :: proxy a) = mkTyBuiltin @a ()
+toBuiltinTypeAst :: uni `Contains` a => proxy a -> Type TyName uni ()
+toBuiltinTypeAst (_ :: proxy a) = mkTyBuiltin @_ @a ()
 
 -- See Note [KnownType's defaults]
 -- | Haskell types known to exist on the PLC side.
@@ -395,21 +395,21 @@ instance KnownType term a => KnownType term (Emitter a) where
 -- We don't bother computing @k@ from @reps@.
 type SomeValueN :: forall k. (GHC.Type -> GHC.Type) -> k -> [GHC.Type] -> GHC.Type
 data SomeValueN uni (a :: k) reps where
-    SomeValueRes :: uni (TypeApp b) -> b -> SomeValueN uni b '[]
-    SomeValueArg :: uni (TypeApp a) -> SomeValueN uni (f a) reps -> SomeValueN uni f (rep ': reps)
+    SomeValueRes :: uni (T b) -> b -> SomeValueN uni b '[]
+    SomeValueArg :: uni (T a) -> SomeValueN uni (f a) reps -> SomeValueN uni f (rep ': reps)
 
-instance (uni `Contains` TypeApp f, uni ~ uni', All (KnownTypeAst uni) reps) =>
+instance (uni `Contains` f, uni ~ uni', All (KnownTypeAst uni) reps) =>
             KnownTypeAst uni (SomeValueN uni' f reps) where
     toTypeAst _ =
-        mkIterTyApp () (mkTyBuiltin @(TypeApp f) ()) $
+        mkIterTyApp () (mkTyBuiltin @_ @f ()) $
             cfoldr_SList
                 (Proxy @(All (KnownTypeAst uni) reps))
                 (\(_ :: Proxy (All (KnownTypeAst uni) (rep ': _reps'))) rs ->
                     toTypeAst (Proxy @rep) : rs)
                 []
 
-data ReadSomeValueN m uni f reps =
-    forall k (a :: k). ReadSomeValueN (SomeValueN uni a reps) (uni (TypeApp a))
+data ReadSomeValue m uni f reps =
+    forall k (a :: k). ReadSomeValue (SomeValueN uni a reps) (uni (T a))
 
 instance
         ( KnownTypeAst uni (SomeValueN uni f reps)
@@ -433,20 +433,15 @@ instance
                     ]
                 wrongType :: (MonadError (ErrorWithCause err term) m, AsUnliftingError err) => m a
                 wrongType = throwingWithCause _UnliftingError err $ Just term
-            ReadSomeValueN res uniHead <-
---                 matchUniRunTypeApp
---                     uni
---                     wrongType
---                     (\uniApp0 ->
-                        cparaM_SList @_ @(KnownTypeAst uni) @reps
-                            Proxy
-                            (ReadSomeValueN (SomeValueRes uni xs) uni)
-                            (\(ReadSomeValueN acc uniApp) ->
-                                matchUniApply
-                                    uniApp
-                                    wrongType
-                                    (\uniApp' uniA ->
-                                        pure $ ReadSomeValueN (SomeValueArg uniA acc) uniApp'))
+            ReadSomeValue res uniHead <-
+                cparaM_SList @_ @(KnownTypeAst uni) @reps
+                    Proxy
+                    (ReadSomeValue (SomeValueRes uni xs) uni)
+                    (\(ReadSomeValue acc uniApp) ->
+                        matchUniApply
+                            uniApp
+                            wrongType
+                            (\uniApp' uniA -> pure $ ReadSomeValue (SomeValueArg uniA acc) uniApp'))
             case uniHead `geq` uniF of
                 Nothing   -> wrongType
                 Just Refl -> pure res

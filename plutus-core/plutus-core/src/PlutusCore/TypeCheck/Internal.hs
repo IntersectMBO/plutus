@@ -215,7 +215,7 @@ inferKindM
 -- b :: k
 -- ------------------------
 -- [infer| G !- con b :: k]
-inferKindM (TyBuiltin _ (Some (TypeIn uni))) =
+inferKindM (TyBuiltin _ (SomeTypeIn uni)) =
     pure $ toKind uni
 
 -- [infer| G !- v :: k]

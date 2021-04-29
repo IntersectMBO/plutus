@@ -23,7 +23,7 @@ import           PlutusCore.StdLib.Data.Unit
 
 -- | 'Bool' as a PLC type.
 bool :: uni `Includes` Bool => Type TyName uni ()
-bool = mkTyBuiltin @Bool ()
+bool = mkTyBuiltin @_ @Bool ()
 
 -- | 'True' as a PLC term.
 true :: (TermLike term TyName Name uni fun, uni `Includes` Bool) => term ()

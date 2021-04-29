@@ -13,6 +13,7 @@
 {-# LANGUAGE PolyKinds             #-}
 {-# LANGUAGE RankNTypes            #-}
 {-# LANGUAGE TemplateHaskell       #-}
+{-# LANGUAGE TypeApplications      #-}
 {-# LANGUAGE TypeFamilies          #-}
 {-# LANGUAGE TypeOperators         #-}
 {-# LANGUAGE UndecidableInstances  #-}
@@ -82,24 +83,24 @@ and have meta-constructors as builtin names. We still have to handle types someh
 
 -- | The universe used by default.
 data DefaultUni a where
-    DefaultUniInteger    :: DefaultUni (TypeApp Integer)
-    DefaultUniByteString :: DefaultUni (TypeApp BS.ByteString)
-    DefaultUniChar       :: DefaultUni (TypeApp Char)
-    DefaultUniUnit       :: DefaultUni (TypeApp ())
-    DefaultUniBool       :: DefaultUni (TypeApp Bool)
-    DefaultUniListProto  :: DefaultUni (TypeApp [])
-    DefaultUniTupleProto :: DefaultUni (TypeApp (,))
-    DefaultUniApply      :: !(DefaultUni (TypeApp f)) -> !(DefaultUni (TypeApp a)) -> DefaultUni (TypeApp (f a))
+    DefaultUniInteger    :: DefaultUni (T Integer)
+    DefaultUniByteString :: DefaultUni (T BS.ByteString)
+    DefaultUniChar       :: DefaultUni (T Char)
+    DefaultUniUnit       :: DefaultUni (T ())
+    DefaultUniBool       :: DefaultUni (T Bool)
+    DefaultUniProtoList  :: DefaultUni (T [])
+    DefaultUniProtoTuple :: DefaultUni (T (,))
+    DefaultUniApply      :: !(DefaultUni (T f)) -> !(DefaultUni (T a)) -> DefaultUni (T (f a))
 
 -- GHC infers crazy types for these two and the straightforward ones break pattern matching,
 -- so we just leave GHC with its craziness.
 pattern DefaultUniList uniA =
-    DefaultUniListProto `DefaultUniApply` uniA
+    DefaultUniProtoList `DefaultUniApply` uniA
 pattern DefaultUniTuple uniA uniB =
-    DefaultUniTupleProto `DefaultUniApply` uniA `DefaultUniApply` uniB
+    DefaultUniProtoTuple `DefaultUniApply` uniA `DefaultUniApply` uniB
 
 -- Just for backwards compatibility, probably should be removed at some point.
-pattern DefaultUniString :: DefaultUni (TypeApp String)
+pattern DefaultUniString :: DefaultUni (T String)
 pattern DefaultUniString = DefaultUniList DefaultUniChar
 
 deriveGEq ''DefaultUni
@@ -110,8 +111,8 @@ instance ToKind DefaultUni where
     toKind DefaultUniChar              = nonTypeAppKind
     toKind DefaultUniUnit              = nonTypeAppKind
     toKind DefaultUniBool              = nonTypeAppKind
-    toKind DefaultUniListProto         = typeAppToKind DefaultUniListProto
-    toKind DefaultUniTupleProto        = typeAppToKind DefaultUniTupleProto
+    toKind DefaultUniProtoList         = typeAppToKind DefaultUniProtoList
+    toKind DefaultUniProtoTuple        = typeAppToKind DefaultUniProtoTuple
     toKind (DefaultUniApply uniF _) = case toKind uniF of
         -- We probably could avoid using @error@ here by having more type astronautics,
         -- but having @error@ should be fine for now.
@@ -129,29 +130,29 @@ instance Show (DefaultUni a) where
     show DefaultUniChar              = "char"
     show DefaultUniUnit              = "unit"
     show DefaultUniBool              = "bool"
-    show DefaultUniListProto         = "[]"
-    show DefaultUniTupleProto        = "(,)"
+    show DefaultUniProtoList         = "[]"
+    show DefaultUniProtoTuple        = "(,)"
     show (DefaultUniApply uniF uniB) = case uniF of
-        DefaultUniListProto -> case uniB of
+        DefaultUniProtoList -> case uniB of
             DefaultUniChar -> "string"
             _              -> "[" ++ show uniB ++ "]"
-        DefaultUniTupleProto -> concat ["(", show uniB, ",)"]
-        DefaultUniApply DefaultUniTupleProto uniA -> concat ["(", show uniA, ",", show uniB, ")"]
+        DefaultUniProtoTuple -> concat ["(", show uniB, ",)"]
+        DefaultUniApply DefaultUniProtoTuple uniA -> concat ["(", show uniA, ",", show uniB, ")"]
         _ -> error "Impossible"
 
-instance Parsable (Some DefaultUni) where
-    parse "bool"       = Just $ Some DefaultUniBool
-    parse "bytestring" = Just $ Some DefaultUniByteString
-    parse "char"       = Just $ Some DefaultUniChar
-    parse "integer"    = Just $ Some DefaultUniInteger
-    parse "unit"       = Just $ Some DefaultUniUnit
-    parse "string"     = Just $ Some DefaultUniString
+instance Parsable (SomeTypeIn (Kinded DefaultUni)) where
+    parse "bool"       = Just . SomeTypeIn $ Kinded DefaultUniBool
+    parse "bytestring" = Just . SomeTypeIn $ Kinded DefaultUniByteString
+    parse "char"       = Just . SomeTypeIn $ Kinded DefaultUniChar
+    parse "integer"    = Just . SomeTypeIn $ Kinded DefaultUniInteger
+    parse "unit"       = Just . SomeTypeIn $ Kinded DefaultUniUnit
+    parse "string"     = Just . SomeTypeIn $ Kinded DefaultUniString
     parse text         = asum
         [ do
             undefined
---             aT <- Text.stripPrefix "[" text >>= Text.stripSuffix "]"
---             Some a <- parse aT
---             Just . Some $ DefaultUniList a
+            -- aT <- Text.stripPrefix "[" text >>= Text.stripSuffix "]"
+            -- SomeTypeIn a <- parse aT
+            -- Just . SomeTypeIn $ DefaultUniList a
         , do
             abT <- Text.stripPrefix "(" text >>= Text.stripSuffix ")"
             -- Note that we don't allow whitespace after @,@ (but we could).
@@ -172,18 +173,16 @@ instance DefaultUni `Contains` BS.ByteString where knownUni = DefaultUniByteStri
 instance DefaultUni `Contains` Char          where knownUni = DefaultUniChar
 instance DefaultUni `Contains` ()            where knownUni = DefaultUniUnit
 instance DefaultUni `Contains` Bool          where knownUni = DefaultUniBool
+instance DefaultUni `Contains` []            where knownUni = DefaultUniProtoList
+instance DefaultUni `Contains` (,)           where knownUni = DefaultUniProtoTuple
 
-instance DefaultUni `Contains` []  where knownUni = DefaultUniListProto
-instance DefaultUni `Contains` (,) where knownUni = DefaultUniTupleProto
+instance (DefaultUni `Contains` f, DefaultUni `Contains` a) => DefaultUni `Contains` f a where
+    knownUni = knownUni `DefaultUniApply` knownUni
 
--- instance (DefaultUni `Contains` TypeApp f, DefaultUni `Contains` a) =>
---             DefaultUni `Contains` TypeApp (f a) where
---     knownUni = knownUni `DefaultUniApply` knownUni
-
-instance DefaultUni `Contains` a => DefaultUni `Contains` [a] where
-    knownUni = DefaultUniList knownUni
-instance (DefaultUni `Contains` a, DefaultUni `Contains` b) => DefaultUni `Contains` (a, b) where
-    knownUni = DefaultUniTuple knownUni knownUni
+-- instance DefaultUni `Contains` a => DefaultUni `Contains` [a] where
+--     knownUni = DefaultUniList knownUni
+-- instance (DefaultUni `Contains` a, DefaultUni `Contains` b) => DefaultUni `Contains` (a, b) where
+--     knownUni = DefaultUniTuple knownUni knownUni
 
 {- Note [Stable encoding of tags]
 'encodeUni' and 'decodeUni' are used for serialisation and deserialisation of types from the
@@ -210,8 +209,8 @@ instance Closed DefaultUni where
     encodeUni DefaultUniChar              = [2]
     encodeUni DefaultUniUnit              = [3]
     encodeUni DefaultUniBool              = [4]
-    encodeUni DefaultUniListProto         = [5]
-    encodeUni DefaultUniTupleProto        = [6]
+    encodeUni DefaultUniProtoList         = [5]
+    encodeUni DefaultUniProtoTuple        = [6]
     encodeUni (DefaultUniApply uniF uniA) = 7 : encodeUni uniF ++ encodeUni uniA
 
     -- See Note [Stable encoding of tags].
@@ -221,26 +220,32 @@ instance Closed DefaultUni where
         2 -> k DefaultUniChar
         3 -> k DefaultUniUnit
         4 -> k DefaultUniBool
-        5 -> k DefaultUniListProto
-        6 -> k DefaultUniTupleProto
-        7 -> undefined
---             withDecodedTypeFun $ \uniF ->
---                 withDecodedUni $ \uniA ->
---                     k $ uniF `DefaultUniApply` uniA
+        5 -> k DefaultUniProtoList
+        6 -> k DefaultUniProtoTuple
+        7 ->
+            withDecodedUni @DefaultUni $ \uniF ->
+                withDecodedUni @DefaultUni $ \uniA ->
+                    withApplicable uniF uniA $
+                        k $ uniF `DefaultUniApply` uniA
         _ -> empty
 
     bring
         :: forall constr a r proxy. DefaultUni `Everywhere` constr
-        => proxy constr -> DefaultUni (TypeApp a) -> (constr a => r) -> r
-    bring _ DefaultUniInteger           r = r
-    bring _ DefaultUniByteString        r = r
-    bring _ DefaultUniChar              r = r
-    bring _ DefaultUniUnit              r = r
-    bring _ DefaultUniBool              r = r
-    bring p (DefaultUniList uniA)       r = bring p uniA r
-    bring p (DefaultUniTuple uniA uniB) r = bring p uniA $ bring p uniB r
-    bring _ _                           _ =
-        error "Can't use 'bring' for types that are not fully monomorphized"
+        => proxy constr -> DefaultUni (T a) -> (constr a => r) -> r
+    bring _ DefaultUniInteger    r = r
+    bring _ DefaultUniByteString r = r
+    bring _ DefaultUniChar       r = r
+    bring _ DefaultUniUnit       r = r
+    bring _ DefaultUniBool       r = r
+    bring p (DefaultUniProtoList `DefaultUniApply` uniA) r =
+        bring p uniA r
+    bring p (DefaultUniProtoTuple `DefaultUniApply` uniA `DefaultUniApply` uniB) r =
+        bring p uniA $ bring p uniB r
+    bring _ (f `DefaultUniApply` _ `DefaultUniApply` _ `DefaultUniApply` _) _ =
+        noMoreTypeFunctions f
+
+noMoreTypeFunctions :: DefaultUni (T (f :: a -> b -> c -> d)) -> r
+noMoreTypeFunctions (f `DefaultUniApply` _) = noMoreTypeFunctions f
 
 -- >>> encodeUni (DefaultUniList (DefaultUniTuple (DefaultUniList DefaultUniInteger) DefaultUniBool))
 -- [8,7,5,8,7,7,6,8,7,5,0,4]

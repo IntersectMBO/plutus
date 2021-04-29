@@ -17,7 +17,7 @@ import           PlutusCore.Quote
 import           PlutusCore.Universe
 
 integer :: uni `Includes` Integer => Type tyname uni ()
-integer = mkTyBuiltin @Integer ()
+integer = mkTyBuiltin @_ @Integer ()
 
 -- |  @succ :: Integer -> Integer@ as a PLC term.
 --

@@ -28,7 +28,7 @@ getShadF a = do
         . TyFun () (TyVar () a)
         . TyForall () a (KindArrow () (Type ()) $ Type ())
         . TyFun () (TyApp () (TyVar () a) $ TyVar () i)
-        $ mkTyBuiltin @Integer ()
+        $ mkTyBuiltin @_ @Integer ()
 
 -- |
 --
@@ -96,7 +96,7 @@ recUnitF = runQuote $ do
 --
 -- > ifix recUnitF ()
 recUnit :: uni `Includes` () => Type TyName uni ()
-recUnit = TyIFix () recUnitF $ mkTyBuiltin @() ()
+recUnit = TyIFix () recUnitF $ mkTyBuiltin @_ @() ()
 
 -- |  Test that a binder in a pattern functor does not get duplicated. The definition is as follows:
 --

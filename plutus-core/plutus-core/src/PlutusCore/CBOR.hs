@@ -1,6 +1,7 @@
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 
 {-# LANGUAGE FlexibleInstances    #-}
+{-# LANGUAGE GADTs                #-}
 {-# LANGUAGE LambdaCase           #-}
 {-# LANGUAGE StandaloneDeriving   #-}
 {-# LANGUAGE TypeApplications     #-}
@@ -32,9 +33,9 @@ import           PlutusCore.Universe
 import           Codec.CBOR.Decoding
 import           Codec.CBOR.Encoding
 import           Codec.Serialise
-import           Data.Proxy
-
 import qualified Data.ByteString.Lazy  as BSL
+import           Data.Functor
+import           Data.Proxy
 
 {- Note [Stable encoding of PLC]
 READ THIS BEFORE TOUCHING ANYTHING IN THIS FILE
@@ -90,20 +91,27 @@ encodeConstructorTag = encodeWord
 decodeConstructorTag :: Decoder s Word
 decodeConstructorTag = decodeWord
 
--- See Note [The G, the Tag and the Auto].
-instance Closed uni => Serialise (Some (TypeIn uni)) where
-    encode (Some (TypeIn uni)) = encode . map (fromIntegral :: Int -> Word) $ encodeUni uni
-
-    decode = go . decodeUni . map (fromIntegral :: Word -> Int) =<< decode where
+decodeKindedUniSerialize :: Closed uni => Decoder s (SomeTypeIn (Kinded uni))
+decodeKindedUniSerialize =
+    go . decodeKindedUni . map (fromIntegral :: Word -> Int) =<< decode where
         go Nothing    = fail "Failed to decode a universe"
         go (Just uni) = pure uni
 
 -- See Note [The G, the Tag and the Auto].
-instance (Closed uni, uni `Everywhere` Serialise) => Serialise (Some (ValueOf uni)) where
-    encode (Some (ValueOf uni x)) = encode (Some $ TypeIn uni) <> bring (Proxy @Serialise) uni (encode x)
+instance Closed uni => Serialise (SomeTypeIn uni) where
+    encode (SomeTypeIn uni) = encode . map (fromIntegral :: Int -> Word) $ encodeUni uni
 
-    decode = undefined {- go =<< decode where
-        go (Some (TypeIn uni)) = Some . ValueOf uni <$> bring (Proxy @Serialise) uni decode -}
+    decode = decodeKindedUniSerialize <&> \(SomeTypeIn (Kinded uni)) -> SomeTypeIn uni
+
+-- See Note [The G, the Tag and the Auto].
+instance (Closed uni, uni `Everywhere` Serialise) => Serialise (Some (ValueOf uni)) where
+    encode (Some (ValueOf uni x)) = encode (SomeTypeIn uni) <> bring (Proxy @Serialise) uni (encode x)
+
+    decode =
+        decodeKindedUniSerialize @uni >>= \(SomeTypeIn (Kinded uni)) ->
+            case checkStar uni of
+                Nothing   -> fail "A non-star type can't have a value to decode"
+                Just Refl -> Some . ValueOf uni <$> bring (Proxy @Serialise) uni decode
 
 instance Serialise Unique where
     encode (Unique i) = encodeInt i

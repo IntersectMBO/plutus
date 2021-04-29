@@ -20,7 +20,7 @@ import           Test.Tasty.Hedgehog
 
 test_appAppLamLam :: IO ()
 test_appAppLamLam = do
-    let integer2 = mkTyBuiltin @Integer @DefaultUni ()
+    let integer2 = mkTyBuiltin @_ @Integer @DefaultUni ()
         Normalized integer2' = runQuote $ do
             x <- freshTyName "x"
             y <- freshTyName "y"

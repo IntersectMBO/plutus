@@ -13,12 +13,12 @@ module PlutusCore
     , topAlexPosn
     -- * Builtins
     , Some (..)
-    , TypeIn (..)
+    , SomeTypeIn (..)
+    , Kinded (..)
     , ValueOf (..)
     , someValueOf
     , someValue
-    , TypeApp
-    , HasUniApply (..)
+    , T
     , Contains (..)
     , Includes
     , Closed (..)
@@ -28,6 +28,9 @@ module PlutusCore
     , show
     , GEq (..)
     , deriveGEq
+    , HasUniApply (..)
+    , checkStar
+    , withApplicable
     , (:~:) (..)
     , type (<:)
     , DefaultUni (..)

@@ -18,7 +18,7 @@ import           PlutusCore.Universe
 
 -- | '()' as a PLC type.
 unit :: uni `Includes` () => Type TyName uni ()
-unit = mkTyBuiltin @() ()
+unit = mkTyBuiltin @_ @() ()
 
 -- | '()' as a PLC term.
 unitval :: (TermLike term TyName Name uni fun, uni `Includes` ()) => term ()

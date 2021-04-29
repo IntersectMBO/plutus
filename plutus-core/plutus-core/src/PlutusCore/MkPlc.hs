@@ -4,6 +4,7 @@
 {-# LANGUAGE FunctionalDependencies #-}
 {-# LANGUAGE LambdaCase             #-}
 {-# LANGUAGE MultiParamTypeClasses  #-}
+{-# LANGUAGE PolyKinds              #-}
 {-# LANGUAGE TypeApplications       #-}
 {-# LANGUAGE TypeFamilies           #-}
 {-# LANGUAGE TypeOperators          #-}
@@ -72,19 +73,19 @@ class TermLike term tyname name uni fun | term -> tyname name uni fun where
     typeLet = mkImmediateTyAbs
 
 -- | Embed a type (given its explicit type tag) into a PLC type.
-mkTyBuiltinOf :: forall a uni tyname ann. ann -> uni a -> Type tyname uni ann
-mkTyBuiltinOf ann = TyBuiltin ann . Some . TypeIn
+mkTyBuiltinOf :: forall k (a :: k) uni tyname ann. ann -> uni (T a) -> Type tyname uni ann
+mkTyBuiltinOf ann = TyBuiltin ann . SomeTypeIn
 
 -- | Embed a type (provided its type is in the universe) into a PLC type.
 mkTyBuiltin
-    :: forall a uni tyname ann. uni `Includes` a
+    :: forall k (a :: k) uni tyname ann. uni `Contains` a
     => ann -> Type tyname uni ann
 mkTyBuiltin ann = mkTyBuiltinOf ann $ knownUni @_ @uni @a
 
 -- | Embed a Haskell value (given its explicit type tag) into a PLC term.
 mkConstantOf
     :: forall a uni fun term tyname name ann. TermLike term tyname name uni fun
-    => ann -> uni (TypeApp a) -> a -> term ann
+    => ann -> uni (T a) -> a -> term ann
 mkConstantOf ann uni = constant ann . someValueOf uni
 
 -- | Embed a Haskell value (provided its type is in the universe) into a PLC term.

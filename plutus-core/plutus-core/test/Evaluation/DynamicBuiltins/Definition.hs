@@ -164,8 +164,8 @@ caseBuiltinList = runQuote $ do
     z <- freshName "z"
     f <- freshName "f"
     u <- freshName "u"
-    let listA = TyApp () (mkTyBuiltin @(TypeApp []) ()) $ TyVar () a
-        unit = mkTyBuiltin @() ()
+    let listA = TyApp () (mkTyBuiltin @_ @[] ()) $ TyVar () a
+        unit = mkTyBuiltin @_ @() ()
         funAtXs fun = apply () (tyInst () (builtin () $ Right fun) $ TyVar () a) $ var () xs
     return
         . tyAbs () a (Type ())
@@ -194,7 +194,7 @@ foldrBuiltinList = runQuote $ do
     xs  <- freshName "xs"
     x   <- freshName "x"
     xs' <- freshName "xs'"
-    let listA = TyApp () (mkTyBuiltin @(TypeApp []) ()) $ TyVar () a
+    let listA = TyApp () (mkTyBuiltin @_ @[] ()) $ TyVar () a
         unwrap ann = apply ann . tyInst () caseBuiltinList $ TyVar () a
     -- Copypasted verbatim from @foldrList@ from the PLC stdlib.
     return
@@ -252,7 +252,7 @@ test_SwapEls =
         let xs = zip [1..10] $ cycle [False, True]
             res = mkConstant @Integer @DefaultUni () $
                     foldr (\p r -> r + (if snd p then -1 else 1) * fst p) 0 xs
-            el = mkTyBuiltin @(Integer, Bool) ()
+            el = mkTyBuiltin @_ @(Integer, Bool) ()
             instProj proj = mkIterInst () (builtin () $ Right proj) [integer, bool]
             fun = runQuote $ do
                     p <- freshName "p"

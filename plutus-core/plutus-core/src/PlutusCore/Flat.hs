@@ -1,6 +1,7 @@
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 
 {-# LANGUAGE FlexibleInstances    #-}
+{-# LANGUAGE GADTs                #-}
 {-# LANGUAGE LambdaCase           #-}
 {-# LANGUAGE StandaloneDeriving   #-}
 {-# LANGUAGE TypeApplications     #-}
@@ -24,6 +25,7 @@ import           PlutusCore.MkPlc      (TyVarDecl (..), VarDecl (..))
 import           PlutusCore.Name
 import           PlutusCore.Universe
 
+import           Data.Functor
 import           Data.Proxy
 import           Data.Word             (Word8)
 import           Flat
@@ -99,33 +101,40 @@ encodeConstant = safeEncodeBits constantWidth
 decodeConstant :: Get Word8
 decodeConstant = dBEBits8 constantWidth
 
--- See Note [The G, the Tag and the Auto].
-instance Closed uni => Flat (Some (TypeIn uni)) where
-    encode (Some (TypeIn uni)) =
-      encodeListWith encodeConstant .
-        map (fromIntegral :: Int -> Word8) $ encodeUni uni
-
-    decode = go . decodeUni . map (fromIntegral :: Word8 -> Int)
-                =<< decodeListWith decodeConstant
+decodeKindedUniFlat :: Closed uni => Get (SomeTypeIn (Kinded uni))
+decodeKindedUniFlat =
+    go . decodeKindedUni . map (fromIntegral :: Word8 -> Int)
+        =<< decodeListWith decodeConstant
         where
         go Nothing    = fail "Failed to decode a universe"
         go (Just uni) = pure uni
 
+-- See Note [The G, the Tag and the Auto].
+instance Closed uni => Flat (SomeTypeIn uni) where
+    encode (SomeTypeIn uni) =
+      encodeListWith encodeConstant .
+        map (fromIntegral :: Int -> Word8) $ encodeUni uni
+
+    decode = decodeKindedUniFlat <&> \(SomeTypeIn (Kinded uni)) -> SomeTypeIn uni
+
     -- Encode a view of the universe, not the universe itself.
-    size (Some (TypeIn uni)) acc =
+    size (SomeTypeIn uni) acc =
       acc +
       length (encodeUni uni) * (1 + constantWidth) + -- List Cons (1 bit) + constant
       1 -- List Nil (1 bit)
 
 -- See Note [The G, the Tag and the Auto].
 instance (Closed uni, uni `Everywhere` Flat) => Flat (Some (ValueOf uni)) where
-    encode (Some (ValueOf uni x)) = encode (Some $ TypeIn uni) <> bring (Proxy @Flat) uni (encode x)
+    encode (Some (ValueOf uni x)) = encode (SomeTypeIn uni) <> bring (Proxy @Flat) uni (encode x)
 
-    decode = undefined {- go =<< decode where
-        go (Some (TypeIn uni)) = Some . ValueOf uni <$> bring (Proxy @Flat) uni decode -}
+    decode =
+        decodeKindedUniFlat @uni >>= \(SomeTypeIn (Kinded uni)) ->
+            case checkStar uni of
+                Nothing   -> fail "A non-star type can't have a value to decode"
+                Just Refl -> Some . ValueOf uni <$> bring (Proxy @Flat) uni decode
 
     -- We need to get the flat instance in scope.
-    size (Some (ValueOf uni x)) acc = size (Some $ TypeIn uni) acc
+    size (Some (ValueOf uni x)) acc = size (SomeTypeIn uni) acc
                                         + bring (Proxy @Flat) uni (size x 0)
 
 instance Flat Unique where

@@ -1,4 +1,5 @@
 {-# LANGUAGE FlexibleContexts  #-}
+{-# LANGUAGE GADTs             #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RankNTypes        #-}
 {-# LANGUAGE TypeApplications  #-}
@@ -50,6 +51,7 @@ newtype ParserState = ParserState { identifiers :: M.Map T.Text PLC.Unique }
     deriving (Show)
 
 data ParseError = UnknownBuiltinType T.Text
+                | BuiltinTypeNotAStar T.Text
                 | InvalidConstant T.Text T.Text
                 deriving (Eq, Ord, Show)
 
@@ -61,6 +63,8 @@ type Error = Parsec.ParseError Char ParseError
 
 instance ShowErrorComponent ParseError where
     showErrorComponent (UnknownBuiltinType ty) = "Unknown built-in type: " ++ T.unpack ty
+    showErrorComponent (BuiltinTypeNotAStar ty) =
+        "Expected a type of kind star (to later parse a constant), but got: " ++ T.unpack ty
     showErrorComponent (InvalidConstant ty con) =
         "Invalid constant: " ++ T.unpack con ++ " of type " ++ T.unpack ty
 
@@ -168,27 +172,27 @@ strictness :: Parser Strictness
 strictness = inParens $ (reservedWord "strict" >> return Strict) <|> (reservedWord "nonstrict" >> return NonStrict)
 
 funType
-    :: PLC.Parsable (PLC.Some uni)
+    :: PLC.Parsable (PLC.SomeTypeIn (PLC.Kinded uni))
     => Parser (Type TyName uni SourcePos)
 funType = TyFun <$> reservedWord "fun" <*> typ <*> typ
 
 allType
-    :: PLC.Parsable (PLC.Some uni)
+    :: PLC.Parsable (PLC.SomeTypeIn (PLC.Kinded uni))
     => Parser (Type TyName uni SourcePos)
 allType = TyForall <$> reservedWord "all" <*> tyVar <*> kind <*> typ
 
 lamType
-    :: PLC.Parsable (PLC.Some uni)
+    :: PLC.Parsable (PLC.SomeTypeIn (PLC.Kinded uni))
     => Parser (Type TyName uni SourcePos)
 lamType = TyLam <$> reservedWord "lam" <*> tyVar <*> kind <*> typ
 
 ifixType
-    :: PLC.Parsable (PLC.Some uni)
+    :: PLC.Parsable (PLC.SomeTypeIn (PLC.Kinded uni))
     => Parser (Type TyName uni SourcePos)
 ifixType = TyIFix <$> reservedWord "ifix" <*> typ <*> typ
 
 conType
-    :: PLC.Parsable (PLC.Some uni)
+    :: PLC.Parsable (PLC.SomeTypeIn (PLC.Kinded uni))
     => Parser (Type TyName uni SourcePos)
 conType = reservedWord "con" >> builtinType
 
@@ -215,8 +219,8 @@ closedChunk = T.pack <$> manyTill anySingle end where
 
 -- | Parse a type tag by feeding the output of 'closedChunk' to 'PLC.parse'.
 builtinTypeTag
-    :: PLC.Parsable (PLC.Some uni)
-    => Parser (PLC.Some uni)
+    :: PLC.Parsable (PLC.SomeTypeIn (PLC.Kinded uni))
+    => Parser (PLC.SomeTypeIn (PLC.Kinded uni))
 builtinTypeTag = do
     uniText <- closedChunk
     case PLC.parse uniText of
@@ -226,27 +230,33 @@ builtinTypeTag = do
 -- | Parse a constant by parsing a type tag first and using the type-specific parser of constants.
 -- Uses 'PLC.parse' under the hood for both types and constants.
 constant
-    :: (PLC.Parsable (PLC.Some uni), PLC.Closed uni, uni `PLC.Everywhere` PLC.Parsable)
+    :: forall uni.
+       ( PLC.Parsable (PLC.SomeTypeIn (PLC.Kinded uni))
+       , PLC.Closed uni, uni `PLC.Everywhere` PLC.Parsable
+       )
     => Parser (PLC.Some (PLC.ValueOf uni))
 constant = do
     -- We use 'match' for remembering the textual representation of the parsed type tag,
     -- so that we can show it in the error message if the constant fails to parse.
-    (uniText, PLC.Some uni) <- match builtinTypeTag
-    conText <- closedChunk
-    case PLC.bring (Proxy @PLC.Parsable) uni $ PLC.parse conText of
-        Nothing  -> customFailure $ InvalidConstant uniText conText
-        Just con -> pure . PLC.Some $ PLC.ValueOf uni con
+    (uniText, PLC.SomeTypeIn (PLC.Kinded uni)) <- match builtinTypeTag
+    case PLC.checkStar @uni uni of
+        Nothing -> customFailure $ BuiltinTypeNotAStar uniText
+        Just PLC.Refl -> do
+            conText <- closedChunk
+            case PLC.bring (Proxy @PLC.Parsable) uni $ PLC.parse conText of
+                Nothing  -> customFailure $ InvalidConstant uniText conText
+                Just con -> pure . PLC.Some $ PLC.ValueOf uni con
 
 builtinType
-    :: PLC.Parsable (PLC.Some uni)
+    :: PLC.Parsable (PLC.SomeTypeIn (PLC.Kinded uni))
     => Parser (Type TyName uni SourcePos)
 builtinType = do
     p <- getSourcePos
-    PLC.Some uni <- builtinTypeTag
-    pure . TyBuiltin p . PLC.Some $ PLC.TypeIn uni
+    PLC.SomeTypeIn (PLC.Kinded uni) <- builtinTypeTag
+    pure . TyBuiltin p $ PLC.SomeTypeIn uni
 
 appType
-    :: PLC.Parsable (PLC.Some uni)
+    :: PLC.Parsable (PLC.SomeTypeIn (PLC.Kinded uni))
     => Parser (Type TyName uni SourcePos)
 appType = do
     pos  <- getSourcePos
@@ -261,14 +271,14 @@ kind = inParens (typeKind <|> funKind)
         funKind  = KindArrow <$> reservedWord "fun" <*> kind <*> kind
 
 typ
-    :: PLC.Parsable (PLC.Some uni)
+    :: PLC.Parsable (PLC.SomeTypeIn (PLC.Kinded uni))
     => Parser (Type TyName uni SourcePos)
 typ = (tyVar >>= (\n -> getSourcePos >>= \p -> return $ TyVar p n))
     <|> (inParens $ funType <|> allType <|> lamType <|> ifixType <|> conType)
     <|> inBrackets appType
 
 varDecl
-    :: PLC.Parsable (PLC.Some uni)
+    :: PLC.Parsable (PLC.SomeTypeIn (PLC.Kinded uni))
     => Parser (VarDecl TyName Name uni fun SourcePos)
 varDecl = inParens $ VarDecl <$> reservedWord "vardecl" <*> var <*> typ
 
@@ -276,7 +286,7 @@ tyVarDecl :: Parser (TyVarDecl TyName SourcePos)
 tyVarDecl = inParens $ TyVarDecl <$> reservedWord "tyvardecl" <*> tyVar <*> kind
 
 datatype
-    :: PLC.Parsable (PLC.Some uni)
+    :: PLC.Parsable (PLC.SomeTypeIn (PLC.Kinded uni))
     => Parser (Datatype TyName Name uni fun SourcePos)
 datatype = inParens $ Datatype <$> reservedWord "datatype"
     <*> tyVarDecl
@@ -285,7 +295,8 @@ datatype = inParens $ Datatype <$> reservedWord "datatype"
     <*> many varDecl
 
 binding
-    :: ( PLC.Parsable (PLC.Some uni), PLC.Closed uni, uni `PLC.Everywhere` PLC.Parsable
+    :: ( PLC.Parsable (PLC.SomeTypeIn (PLC.Kinded uni))
+       , PLC.Closed uni, uni `PLC.Everywhere` PLC.Parsable
        , Bounded fun, Enum fun, Pretty fun
        )
     => Parser (Binding TyName Name uni fun SourcePos)
@@ -303,15 +314,17 @@ type Parametric uni fun
 absTerm :: Parametric uni fun
 absTerm tm = PIR.tyAbs <$> reservedWord "abs" <*> tyVar <*> kind <*> tm
 
-lamTerm :: PLC.Parsable (PLC.Some uni) => Parametric uni fun
+lamTerm :: PLC.Parsable (PLC.SomeTypeIn (PLC.Kinded uni)) => Parametric uni fun
 lamTerm tm = PIR.lamAbs <$> reservedWord "lam" <*> name <*> typ <*> tm
 
 conTerm
-    :: (PLC.Parsable (PLC.Some uni), PLC.Closed uni, uni `PLC.Everywhere` PLC.Parsable)
+    :: ( PLC.Parsable (PLC.SomeTypeIn (PLC.Kinded uni))
+       , PLC.Closed uni, uni `PLC.Everywhere` PLC.Parsable
+       )
     => Parametric uni fun
 conTerm _tm = PIR.constant <$> reservedWord "con" <*> constant
 
-iwrapTerm :: PLC.Parsable (PLC.Some uni) => Parametric uni fun
+iwrapTerm :: PLC.Parsable (PLC.SomeTypeIn (PLC.Kinded uni)) => Parametric uni fun
 iwrapTerm tm = PIR.iWrap <$> reservedWord "iwrap" <*> typ <*> typ <*> tm
 
 builtinTerm :: (Bounded fun, Enum fun, Pretty fun) => Parametric uni fun
@@ -320,11 +333,12 @@ builtinTerm _term = PIR.builtin <$> reservedWord "builtin" <*> builtinFunction
 unwrapTerm :: Parametric uni fun
 unwrapTerm tm = PIR.unwrap <$> reservedWord "unwrap" <*> tm
 
-errorTerm :: PLC.Parsable (PLC.Some uni) => Parametric uni fun
+errorTerm :: PLC.Parsable (PLC.SomeTypeIn (PLC.Kinded uni)) => Parametric uni fun
 errorTerm _tm = PIR.error <$> reservedWord "error" <*> typ
 
 letTerm
-    :: ( PLC.Parsable (PLC.Some uni), PLC.Closed uni, uni `PLC.Everywhere` PLC.Parsable
+    :: ( PLC.Parsable (PLC.SomeTypeIn (PLC.Kinded uni))
+       , PLC.Closed uni, uni `PLC.Everywhere` PLC.Parsable
        , Bounded fun, Enum fun, Pretty fun
        )
     => Parser (Term TyName Name uni fun SourcePos)
@@ -333,11 +347,12 @@ letTerm = Let <$> reservedWord "let" <*> recursivity <*> NE.some (try binding) <
 appTerm :: Parametric uni fun
 appTerm tm = PIR.mkIterApp <$> getSourcePos <*> tm <*> some tm
 
-tyInstTerm :: PLC.Parsable (PLC.Some uni) => Parametric uni fun
+tyInstTerm :: PLC.Parsable (PLC.SomeTypeIn (PLC.Kinded uni)) => Parametric uni fun
 tyInstTerm tm = PIR.mkIterInst <$> getSourcePos <*> tm <*> some typ
 
 term'
-    :: ( PLC.Parsable (PLC.Some uni), PLC.Closed uni, uni `PLC.Everywhere` PLC.Parsable
+    :: ( PLC.Parsable (PLC.SomeTypeIn (PLC.Kinded uni))
+       , PLC.Closed uni, uni `PLC.Everywhere` PLC.Parsable
        , Bounded fun, Enum fun, Pretty fun
        )
     => Parametric uni fun
@@ -348,14 +363,16 @@ term' other = (var >>= (\n -> getSourcePos >>= \p -> return $ PIR.var p n))
     where self = term' other
 
 term
-    :: ( PLC.Parsable (PLC.Some uni), PLC.Closed uni, uni `PLC.Everywhere` PLC.Parsable
+    :: ( PLC.Parsable (PLC.SomeTypeIn (PLC.Kinded uni))
+       , PLC.Closed uni, uni `PLC.Everywhere` PLC.Parsable
        , Bounded fun, Enum fun, Pretty fun
        )
     => Parser (Term TyName Name uni fun SourcePos)
 term = term' letTerm
 
 plcTerm
-    :: ( PLC.Parsable (PLC.Some uni), PLC.Closed uni, uni `PLC.Everywhere` PLC.Parsable
+    :: ( PLC.Parsable (PLC.SomeTypeIn (PLC.Kinded uni))
+       , PLC.Closed uni, uni `PLC.Everywhere` PLC.Parsable
        , Bounded fun, Enum fun, Pretty fun
        )
     => Parser (PLC.Term TyName Name uni fun SourcePos)
@@ -364,7 +381,8 @@ plcTerm = term' empty
 -- Note that PIR programs do not actually carry a version number
 -- we (optionally) parse it all the same so we can parse all PLC code
 program
-    :: ( PLC.Parsable (PLC.Some uni), PLC.Closed uni, uni `PLC.Everywhere` PLC.Parsable
+    :: ( PLC.Parsable (PLC.SomeTypeIn (PLC.Kinded uni))
+       , PLC.Closed uni, uni `PLC.Everywhere` PLC.Parsable
        , Bounded fun, Enum fun, Pretty fun
        )
     => Parser (Program TyName Name uni fun SourcePos)
@@ -377,7 +395,8 @@ program = whitespace >> do
     return prog
 
 plcProgram
-    :: ( PLC.Parsable (PLC.Some uni), PLC.Closed uni, uni `PLC.Everywhere` PLC.Parsable
+    :: ( PLC.Parsable (PLC.SomeTypeIn (PLC.Kinded uni))
+       , PLC.Closed uni, uni `PLC.Everywhere` PLC.Parsable
        , Bounded fun, Enum fun, Pretty fun
        )
     => Parser (PLC.Program TyName Name uni fun SourcePos)

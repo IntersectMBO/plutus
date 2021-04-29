@@ -106,7 +106,7 @@ deriving newtype instance ExMemoryUsage ExMemory
 deriving newtype instance ExMemoryUsage Unique
 
 -- See https://github.com/input-output-hk/plutus/issues/1861
-instance ExMemoryUsage (Some (TypeIn uni)) where
+instance ExMemoryUsage (SomeTypeIn uni) where
   memoryUsage _ = 1 -- TODO things like @list (list (list integer))@ take up a non-constant amount of space.
 
 -- See https://github.com/input-output-hk/plutus/issues/1861

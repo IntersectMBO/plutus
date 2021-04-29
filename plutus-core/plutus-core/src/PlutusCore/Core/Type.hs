@@ -60,7 +60,7 @@ data Type tyname (uni :: GHC.Type -> GHC.Type) ann
     | TyIFix ann (Type tyname uni ann) (Type tyname uni ann)
       -- ^ Fix-point type, for constructing self-recursive types
     | TyForall ann tyname (Kind ann) (Type tyname uni ann)
-    | TyBuiltin ann (Some (TypeIn uni)) -- ^ Builtin type
+    | TyBuiltin ann (SomeTypeIn uni) -- ^ Builtin type
     | TyLam ann tyname (Kind ann) (Type tyname uni ann)
     | TyApp ann (Type tyname uni ann) (Type tyname uni ann)
     deriving (Show, Functor, Generic, NFData, Hashable)
@@ -122,7 +122,7 @@ class ToKind (uni :: GHC.Type -> GHC.Type) where
     toKind :: uni a -> Kind ()
 
 -- | Get the PLC kind of a type constructor @f@.
-typeAppToKind :: forall uni k (f :: k). KnownKind k => uni (TypeApp f) -> Kind ()
+typeAppToKind :: forall uni k (f :: k). KnownKind k => uni (T f) -> Kind ()
 typeAppToKind _ = knownKind $ Proxy @k
 
 -- | The PLC kind of a fully monomorphized type. I.e. @Type ()@.

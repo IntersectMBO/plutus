@@ -107,15 +107,12 @@ asBytes x = Text 2 $ T.pack $ addLeadingZero $ showHex x mempty
               | x < 16    = ('0' :)
               | otherwise = id
 
-instance GShow uni => Pretty (TypeIn uni a) where
-    pretty (TypeIn uni) = pretty $ gshow uni
+instance GShow uni => Pretty (SomeTypeIn uni) where
+    pretty (SomeTypeIn uni) = pretty $ gshow uni
 
 -- | Special treatment for built-in constants: see the Note in PlutusCore.Pretty.PrettyConst.
 instance (Closed uni, uni `Everywhere` PrettyConst) => Pretty (ValueOf uni a) where
     pretty (ValueOf uni x) = bring (Proxy @PrettyConst) uni $ prettyConst x
-
-instance GShow uni => Pretty (Some (TypeIn uni)) where
-    pretty (Some s) = pretty s
 
 -- Note that the call to `pretty` here is to the instance for `ValueOf uni a`, which calls prettyConst.
 instance (Closed uni, uni `Everywhere` PrettyConst) => Pretty (Some (ValueOf uni)) where

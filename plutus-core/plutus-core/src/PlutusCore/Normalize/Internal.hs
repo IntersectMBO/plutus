@@ -145,23 +145,15 @@ we simply turn intra-universe applications into regular type applications during
 -- See Note [Normalization of built-in types].
 -- | Normalize a built-in type by replacing each application inside the universe with regular
 -- type application.
-normalizeUni :: forall a uni tyname. HasUniApply uni => uni a -> Type tyname uni ()
--- For the purposes of normalization we don't care if a type tag is a partial application or
--- a fully monomorphized type, so we just strip 'TypeApp' off and proceed regardless of whether
--- there was one.
-normalizeUni uni0 = matchUniRunTypeApp uni0 (go uni0) go where
-    go :: uni b -> Type tyname uni ()
-    go uni =
-        matchUniApply
-            uni
-            -- If @uni@ is not an intra-universe application, then we're done.
-            (mkTyBuiltinOf () uni)
-            -- If it is, then we turn that application into normal type application and recurse
-            -- into both the function and its argument. The type of 'matchUniRunTypeApp' ensures
-            -- that we can only strip 'TypeApp' off of types of kind star and so we call @go@
-            -- over the higher-kinded @uniF@ and call 'normalizeUni' over @uniA@ which can be
-            -- of any kind and so might require piping through 'matchUniRunTypeApp'.
-            (\uniF uniA -> TyApp () (go uniF) $ normalizeUni uniA)
+normalizeUni :: forall k (a :: k) uni tyname. HasUniApply uni => uni (T a) -> Type tyname uni ()
+normalizeUni uni =
+    matchUniApply
+        uni
+        -- If @uni@ is not an intra-universe application, then we're done.
+        (mkTyBuiltinOf () uni)
+        -- If it is, then we turn that application into normal type application and recurse
+        -- into both the function and its argument.
+        (\uniF uniA -> TyApp () (normalizeUni uniF) $ normalizeUni uniA)
 
 -- See Note [Normalization].
 -- | Normalize a 'Type' in the 'NormalizeTypeM' monad.
@@ -188,7 +180,7 @@ normalizeTypeM var@(TyVar _ name)            = do
         -- A variable is always normalized.
         Nothing -> pure $ Normalized var
         Just ty -> liftDupable ty
-normalizeTypeM (TyBuiltin ann (Some (TypeIn uni))) =
+normalizeTypeM (TyBuiltin ann (SomeTypeIn uni)) =
     pure . Normalized $ ann <$ normalizeUni uni
 
 {- Note [Normalizing substitution]

@@ -17,7 +17,8 @@
 
 module Universe.Core
     ( Some (..)
-    , TypeIn (..)
+    , SomeTypeIn (..)
+    , Kinded (..)
     , ValueOf (..)
     , someValueOf
     , someValue
@@ -25,7 +26,7 @@ module Universe.Core
     , Includes
     , DecodeUniM (..)
     , Closed (..)
-    , decodeUni
+    , decodeKindedUni
     , peelUniTag
     , Permits
     , EverywhereAll
@@ -36,7 +37,7 @@ module Universe.Core
     , GEq (..)
     , deriveGEq
     , (:~:) (..)
-    , TypeApp
+    , T
     ) where
 
 import           Control.Applicative
@@ -80,19 +81,23 @@ We say that a type is in a universe whenever there is a tag for that type in the
 For example, 'Int' is in 'U', because there exists a tag for 'Int' in 'U' ('UInt').
 -}
 
+type T :: forall k. k -> Type
+data T a
+
 -- | Existential quantification as a data type.
 type Some :: forall a. (a -> Type) -> Type
-data Some f = forall x. Some (f x)
+data Some f = forall x. Some !(f x)
 
 -- | A particular type from a universe.
-type TypeIn :: (Type -> Type) -> Type -> Type
-newtype TypeIn uni a = TypeIn (uni a)
+type SomeTypeIn :: (Type -> Type) -> Type
+data SomeTypeIn uni = forall k (a :: k). SomeTypeIn !(uni (T a))
+
+data Kinded uni ta where
+    Kinded :: Typeable k => !(uni (T a)) -> Kinded uni (T (a :: k))
 
 -- | A value of a particular type from a universe.
 type ValueOf :: (Type -> Type) -> Type -> Type
-data ValueOf uni a = ValueOf (uni (TypeApp a)) a
-
-data TypeApp (a :: k)
+data ValueOf uni a = ValueOf !(uni (T a)) !a
 
 -- | A class for enumerating types and fully instantiated type formers that @uni@ contains.
 -- For example, a particular @ExampleUni@ may have monomorphic types in it:
@@ -125,7 +130,7 @@ data TypeApp (a :: k)
 -- per type from the universe and you'll get 'Includes' for free.
 type Contains :: forall k. (Type -> Type) -> k -> Constraint
 class uni `Contains` a where
-    knownUni :: uni (TypeApp a)
+    knownUni :: uni (T a)
 
 {- Note [The definition of Includes]
 We need to be able to partially apply 'Includes' (required in the definition of '<:' for example),
@@ -154,11 +159,11 @@ type Includes :: forall k. (Type -> Type) -> k -> Constraint
 type Includes uni = Permits (Contains uni)
 
 -- | Same as 'knownUni', but receives a @proxy@.
-knownUniOf :: uni `Includes` (a :: Type) => proxy a -> uni (TypeApp a)
+knownUniOf :: uni `Contains` a => proxy a -> uni (T a)
 knownUniOf _ = knownUni
 
 -- | Wrap a value into @Some (ValueOf uni)@, given its explicit type tag.
-someValueOf :: forall a uni. uni (TypeApp a) -> a -> Some (ValueOf uni)
+someValueOf :: forall a uni. uni (T a) -> a -> Some (ValueOf uni)
 someValueOf uni = Some . ValueOf uni
 
 -- | Wrap a value into @Some (ValueOf uni)@, provided its type is in the universe.
@@ -193,17 +198,17 @@ class Closed uni where
     encodeUni :: uni a -> [Int]
 
     -- | Decode a type and feed it to the continuation.
-    withDecodedUni :: (forall k (a :: k). Typeable a => uni (TypeApp a) -> DecodeUniM r) -> DecodeUniM r
+    withDecodedUni :: (forall k (a :: k). Typeable k => uni (T a) -> DecodeUniM r) -> DecodeUniM r
 
     -- | Bring a @constr a@ instance in scope, provided @a@ is a type from the universe and
     -- @constr@ holds for any type from the universe.
-    bring :: uni `Everywhere` constr => proxy constr -> uni (TypeApp a) -> (constr a => r) -> r
+    bring :: uni `Everywhere` constr => proxy constr -> uni (T a) -> (constr a => r) -> r
 
 -- | Decode a type from a sequence of 'Int' tags.
 -- The opposite of 'encodeUni' (modulo invalid input).
-decodeUni :: Closed uni => [Int] -> Maybe (Some (TypeIn uni))
-decodeUni is = do
-    (x, []) <- runDecodeUniM is $ withDecodedUni $ pure . Some . TypeIn
+decodeKindedUni :: Closed uni => [Int] -> Maybe (SomeTypeIn (Kinded uni))
+decodeKindedUni is = do
+    (x, []) <- runDecodeUniM is $ withDecodedUni $ pure . SomeTypeIn . Kinded
     pure x
 
 -- >>> runDecodeUniM [1,2,3] peelUniTag
@@ -237,7 +242,7 @@ instance (forall a b c. (constr a, constr b, constr c) => constr (f a b c)) => c
 -- I tried defining 'Permits' as a class but that didn't have the right inference properties
 -- (i.e. I was getting errors in existing code). That probably requires bidirectional instances
 -- to work, but who cares given that the type family version works alright and can even be
--- partially applied (the kind has to be provided immediately though).
+-- partially applied (the kind has to be provided immediately though, but that's fine).
 -- | @constr `Permits` f@ elaborates to one of
 --
 --     constr f
@@ -327,7 +332,7 @@ e.g. 'Hashable' is handled like that:
     instance Closed uni => Hashable (TypeIn uni a) where
         hashWithSalt salt (TypeIn uni) = hashWithSalt salt $ encodeUni uni
 
-    instance Closed uni => Hashable (Some (TypeIn uni)) where
+    instance Closed uni => Hashable (SomeTypeIn uni) where
         hashWithSalt salt (Some s) = hashWithSalt salt s
 
 where
@@ -344,14 +349,14 @@ any @Some f@. This is because @f@ can be anything of kind @* -> *@ and we only h
 universes. In order to stress that the @f@ in this instance has to be a universe we use
 the 'TypeIn' wrapper:
 
-    instance Closed uni => Hashable (Some (TypeIn uni)) where
+    instance Closed uni => Hashable (SomeTypeIn uni) where
 
 This allows us to hash a type from a universe and a value of a type from a universe in different
 ways. The latter instance looks like this:
 
     instance (Closed uni, uni `Everywhere` Hashable) => Hashable (ValueOf uni a) where
         hashWithSalt salt (ValueOf uni x) =
-            bring (Proxy @Hashable) uni $ hashWithSalt salt (Some (TypeIn uni), x)
+            bring (Proxy @Hashable) uni $ hashWithSalt salt (SomeTypeIn uni, x)
 
     instance (Closed uni, uni `Everywhere` Hashable) => Hashable (Some (ValueOf uni)) where
         hashWithSalt salt (Some s) = hashWithSalt salt s
@@ -364,7 +369,7 @@ For universes we define
     instance NFData (TypeIn uni a) where
         rnf (TypeIn uni) = rnf $ encodeUni uni
 
-    instance NFData (Some (TypeIn uni)) where
+    instance NFData (SomeTypeIn uni) where
         rnf (Some s) = rnf s
 
 i.e. to fully force a type from a universe it's enough to encode the type as a sequence of integer
@@ -403,13 +408,8 @@ instance GShow f => Show (AG f a) where
 instance GShow f => Show (Some f) where
     showsPrec pr (Some a) = ($(makeShowsPrec ''Some)) pr (Some (AG a))
 
-instance GShow uni => GShow (TypeIn uni) where gshowsPrec = showsPrec
-
--- If it was possible to combine @stock@ and @via@ that instance could look like
---
---     deriving stock via TypeIn (AG uni) a instance GShow uni => Show (TypeIn uni a)
-instance GShow uni => Show (TypeIn uni a) where
-    showsPrec pr (TypeIn uni) = ($(makeShowsPrec ''TypeIn)) pr (TypeIn (AG uni))
+instance GShow uni => Show (SomeTypeIn uni) where
+    showsPrec pr (SomeTypeIn uni) = ($(makeShowsPrec ''SomeTypeIn)) pr (SomeTypeIn (AG uni))
 
 instance (GShow uni, Closed uni, uni `Everywhere` Show) => GShow (ValueOf uni) where
     gshowsPrec = showsPrec
@@ -422,45 +422,37 @@ instance (GShow uni, Closed uni, uni `Everywhere` Show) => Show (ValueOf uni a) 
 instance GEq f => Eq (Some f) where
     Some a1 == Some a2 = a1 `defaultEq` a2
 
-deriving newtype instance GEq uni => GEq (TypeIn uni)
-
 instance (GEq uni, Closed uni, uni `Everywhere` Eq) => GEq (ValueOf uni) where
     ValueOf uni1 x1 `geq` ValueOf uni2 x2 = do
         Refl <- uni1 `geq` uni2
         guard $ bring (Proxy @Eq) uni1 (x1 == x2)
         Just Refl
 
-instance GEq uni => Eq (TypeIn uni a) where
-    (==) = defaultEq
+instance GEq uni => Eq (SomeTypeIn uni) where
+    SomeTypeIn a1 == SomeTypeIn a2 = a1 `defaultEq` a2
 
 instance (GEq uni, Closed uni, uni `Everywhere` Eq) => Eq (ValueOf uni a) where
     (==) = defaultEq
 
 -------------------- 'NFData'
 
-instance Closed uni => NFData (TypeIn uni a) where
-    rnf (TypeIn uni) = rnf $ encodeUni uni
+instance Closed uni => NFData (SomeTypeIn uni) where
+    rnf (SomeTypeIn uni) = rnf $ encodeUni uni
 
 instance (Closed uni, uni `Everywhere` NFData) => NFData (ValueOf uni a) where
     rnf (ValueOf uni x) = bring (Proxy @NFData) uni $ rnf x
-
-instance Closed uni => NFData (Some (TypeIn uni)) where
-    rnf (Some s) = rnf s
 
 instance (Closed uni, uni `Everywhere` NFData) => NFData (Some (ValueOf uni)) where
     rnf (Some s) = rnf s
 
 -------------------- 'Hashable'
 
-instance Closed uni => Hashable (TypeIn uni a) where
-    hashWithSalt salt (TypeIn uni) = hashWithSalt salt $ encodeUni uni
+instance Closed uni => Hashable (SomeTypeIn uni) where
+    hashWithSalt salt (SomeTypeIn uni) = hashWithSalt salt $ encodeUni uni
 
 instance (Closed uni, uni `Everywhere` Hashable) => Hashable (ValueOf uni a) where
     hashWithSalt salt (ValueOf uni x) =
-        bring (Proxy @Hashable) uni $ hashWithSalt salt (Some (TypeIn uni), x)
-
-instance Closed uni => Hashable (Some (TypeIn uni)) where
-    hashWithSalt salt (Some s) = hashWithSalt salt s
+        bring (Proxy @Hashable) uni $ hashWithSalt salt (SomeTypeIn uni, x)
 
 instance (Closed uni, uni `Everywhere` Hashable) => Hashable (Some (ValueOf uni)) where
     hashWithSalt salt (Some s) = hashWithSalt salt s

@@ -138,13 +138,13 @@ type ClosedTermG = TermG Z Z
 -- * Converting types
 
 -- |Convert generated builtin types to Plutus builtin types.
-convertTypeBuiltin :: TypeBuiltinG -> Some (TypeIn DefaultUni)
-convertTypeBuiltin TyByteStringG = Some (TypeIn DefaultUniByteString)
-convertTypeBuiltin TyIntegerG    = Some (TypeIn DefaultUniInteger)
-convertTypeBuiltin TyStringG     = Some (TypeIn DefaultUniString)
-convertTypeBuiltin TyBoolG       = Some (TypeIn DefaultUniBool)
-convertTypeBuiltin TyUnitG       = Some (TypeIn DefaultUniUnit)
-convertTypeBuiltin TyCharG       = Some (TypeIn DefaultUniChar)
+convertTypeBuiltin :: TypeBuiltinG -> SomeTypeIn DefaultUni
+convertTypeBuiltin TyByteStringG = SomeTypeIn DefaultUniByteString
+convertTypeBuiltin TyIntegerG    = SomeTypeIn DefaultUniInteger
+convertTypeBuiltin TyStringG     = SomeTypeIn DefaultUniString
+convertTypeBuiltin TyBoolG       = SomeTypeIn DefaultUniBool
+convertTypeBuiltin TyUnitG       = SomeTypeIn DefaultUniUnit
+convertTypeBuiltin TyCharG       = SomeTypeIn DefaultUniChar
 
 -- |Convert well-kinded generated types to Plutus types.
 --

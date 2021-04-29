@@ -138,7 +138,7 @@ foldNat = runQuote $ do
 natToInteger :: (TermLike term TyName Name uni DefaultFun, uni `Includes` Integer) => term ()
 natToInteger = runQuote $ do
     return $
-        mkIterApp () (tyInst () foldNat $ mkTyBuiltin @Integer ())
+        mkIterApp () (tyInst () foldNat $ mkTyBuiltin @_ @Integer ())
           [ apply () (builtin () AddInteger) (mkConstant @Integer () 1)
           , mkConstant @Integer () 0
           ]
