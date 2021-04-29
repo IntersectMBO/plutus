@@ -231,3 +231,51 @@ _STF_SC_LAM st@ContractStatePoly{..} t y_sd_t y_tfpminus_t y_tfpminus_tfpplus _F
     in st' {nsc = nsc', isc = isc'}
 
 _STF_CE_LAM st@ContractStatePoly{..} = _STF_AD_PAM st
+
+-- Negative Amortizer
+_STF_AD_NAM st t y_sd_t = _STF_AD_PAM st t y_sd_t
+
+_STF_IED_NAM st t y_ipanx_t _IPNR _IPANX _CNTRL _IPAC _NT _IPCB _IPCBA =
+    _STF_IED_LAM st t y_ipanx_t _IPNR _IPANX _CNTRL _IPAC _NT _IPCB _IPCBA
+
+_STF_PR_NAM st@ContractStatePoly{..} t pp_payoff y_sd_t y_tfpminus_t y_tfpminus_tfpplus _FEB _FER _CNTRL _IPCB =
+    let
+        st'@ContractStatePoly{ ipac = ipac' } =
+          _STF_PP_LAM st t pp_payoff y_sd_t y_tfpminus_t y_tfpminus_tfpplus _FEB _FER _CNTRL _IPCB
+
+        nt' = nt - prnxt - ipac'
+    in st' { nt = nt' }
+
+_STF_MD_NAM st t = _STF_MD_LAM st t
+
+_STF_PP_NAM st t pp_payoff y_sd_t y_tfpminus_t y_tfpminus_tfpplus _FEB _FER _CNTRL _IPCB =
+    _STF_PP_LAM st t pp_payoff y_sd_t y_tfpminus_t y_tfpminus_tfpplus _FEB _FER _CNTRL _IPCB
+
+_STF_PY_NAM st t y_sd_t y_tfpminus_t y_tfpminus_tfpplus _FEB _FER _CNTRL =
+    _STF_PY_LAM st t y_sd_t y_tfpminus_t y_tfpminus_tfpplus _FEB _FER _CNTRL
+
+_STF_FP_NAM st t y_sd_t = _STF_FP_LAM st t y_sd_t
+
+_STF_PRD_NAM st = _STF_PRD_LAM st
+
+_STF_TD_NAM st t = _STF_TD_PAM st t
+
+_STF_IP_NAM st t y_sd_t y_tfpminus_t y_tfpminus_tfpplus _FEB _FER _CNTRL =
+    _STF_IP_PAM st t y_sd_t y_tfpminus_t y_tfpminus_tfpplus _FEB _FER _CNTRL
+
+_STF_IPCI_NAM st t y_sd_t y_tfpminus_t y_tfpminus_tfpplus _FEB _FER _CNTRL _IPCB =
+    _STF_IPCI_LAM st t y_sd_t y_tfpminus_t y_tfpminus_tfpplus _FEB _FER _CNTRL _IPCB
+
+_STF_IPCB_NAM st t y_sd_t y_tfpminus_t y_tfpminus_tfpplus _FEB _FER _CNTRL =
+  _STF_IPCB_LAM st t y_sd_t y_tfpminus_t y_tfpminus_tfpplus _FEB _FER _CNTRL
+
+_STF_RR_NAM st t y_sd_t y_tfpminus_t y_tfpminus_tfpplus _FEB _FER _CNTRL _RRLF _RRLC _RRPC _RRPF _RRMLT _RRSP o_rf_RRMO =
+    _STF_RR_LAM st t y_sd_t y_tfpminus_t y_tfpminus_tfpplus _FEB _FER _CNTRL _RRLF _RRLC _RRPC _RRPF _RRMLT _RRSP o_rf_RRMO
+
+_STF_RRF_NAM st t y_sd_t y_tfpminus_t y_tfpminus_tfpplus _FEB _FER _CNTRL _RRNXT =
+    _STF_RRF_LAM st t y_sd_t y_tfpminus_t y_tfpminus_tfpplus _FEB _FER _CNTRL _RRNXT
+
+_STF_SC_NAM st t y_sd_t y_tfpminus_t y_tfpminus_tfpplus _FEB _FER _CNTRL _SCEF o_rf_SCMO _SCIED =
+    _STF_SC_LAM st t y_sd_t y_tfpminus_t y_tfpminus_tfpplus _FEB _FER _CNTRL _SCEF o_rf_SCMO _SCIED
+
+_STF_CE_NAM st t y_sd_t = _STF_AD_PAM st t y_sd_t
