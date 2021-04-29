@@ -414,7 +414,6 @@ postulate
   bappTermLem : ∀  b {A}{as}(M : ∅ ⊢ A) → BAppA b (Term ∷ as) M → ∃ λ A' → ∃ λ A'' → A ≡ A' ⇒ A''
   bappTypeLem : ∀  b {A}{as}(M : ∅ ⊢ A) → BAppA b (Type ∷ as) M → ∃ λ K → ∃ λ (B : ∅ ,⋆ K ⊢Nf⋆ *) → A ≡ Π B
 
-
 progress : {A : ∅ ⊢Nf⋆ *} → (M : ∅ ⊢ A) → Progress M
 progress (ƛ M)        = done (V-ƛ M)
 progress (M · M')     with progress M
@@ -463,7 +462,6 @@ _↓ : ∀{A} → ∅ ⊢ A → Set
 M ↓ = ∃ λ M' → M —→⋆ M'
 
 -- progress in disguise
-{-
 lemma51 : ∀{A}(M : ∅ ⊢ A)
         → Value M
         ⊎ ∃ λ B
@@ -476,31 +474,31 @@ lemma51 (M · M') with lemma51 M
 ... | inj₂ (B ,, E ,, L ,, p ,, q) =
   inj₂ (B ,, E l· M' ,, L ,, p ,, cong (_· M') q)
 ... | inj₁ VM with lemma51 M'
-lemma51 (.(ƛ M) · M') | inj₁ (V-ƛ M) | inj₁ VM' =
-  inj₂ (_ ,, ([] ,, (ƛ M · M' ,, ((inj₁ (M [ M' ] ,, β-ƛ VM')) ,, refl))))
-lemma51 (M · M') | inj₁ (V-I⇒ b p q r σ base x refl .M X) | inj₁ VM' =
-  inj₂ (_ ,, [] ,, M · M' ,, inj₁ (_ ,, (β-sbuiltin b σ p q _ r M (deval VM') x VM')) ,, refl)
-lemma51 (M · M') | inj₁ V@(V-I⇒ b p q r σ (skip⋆ p₁) x refl .M X) | inj₁ VM' =
-  inj₁ (V-IΠ b p q r σ p₁ (x ,, M' ,, VM') refl (M · M') (step X V VM'))
-lemma51 (M · M') | inj₁ V@(V-I⇒ b p q r σ (skip p₁) x refl .M X) | inj₁ VM' =
-  inj₁ (V-I⇒ b p q r σ p₁ (x ,, M' ,, VM') refl (M · M') (step X V VM'))
 ... | inj₂ (B ,, E ,, L ,, p ,, q) =
   inj₂ (B ,, VM ·r E ,, L ,, p ,, cong (M ·_) q)
+lemma51 (.(ƛ M) · M') | inj₁ (V-ƛ M) | inj₁ VM' =
+  inj₂ (_ ,, [] ,, _ ,, (inj₁ (_ ,, β-ƛ VM')) ,, refl)
+lemma51 (M · M') | inj₁ (V-I⇒ b {as = []} x) | inj₁ VM' =
+  inj₂ (_ ,, [] ,, _ ,, (inj₁ (_ ,, (β-sbuiltin b M x M' VM'))) ,, refl)
+lemma51 (M · M') | inj₁ (V-I⇒ b {as = Term ∷ as} x) | inj₁ VM'
+  with bappTermLem b (M · M') (step x VM')
+... | _ ,, _ ,, refl = inj₁ (V-I⇒ b (BAppA.step x VM'))
+lemma51 (M · M') | inj₁ (V-I⇒ b {as = Type ∷ as} x) | inj₁ VM'
+  with bappTypeLem b (M · M') (step x VM')
+... | _ ,, _ ,, refl = inj₁ (V-IΠ b (BAppA.step x VM'))
 lemma51 (Λ M) = inj₁ (V-Λ M)
--}
-{-
 lemma51 (M ·⋆ A) with lemma51 M
-... | inj₂ (B ,, E ,, L ,, p ,, p') = inj₂ (B ,, E ·⋆ A ,, L ,, p ,, cong (_·⋆ A) p')
 ... | inj₁ (V-Λ M') =
   inj₂ (_ ,, [] ,, M ·⋆ A ,, inj₁ (M' [ A ]⋆ ,, β-Λ) ,, refl)
-... | inj₁ (V-IΠ b p q r σ base x refl .M X) =
-  inj₂ (_ ,, [] ,, M ·⋆ A ,, inj₁ (_ ,, β-sbuiltin⋆ b σ p q _ r M x) ,, refl)
-... | inj₁ V@(V-IΠ b {C = C} p q r σ (skip⋆ p₁) x refl .M X) =
-  inj₁ (convValue (Πlem p₁ A C σ) (V-IΠ b {C = C} p q r (subNf-cons σ A) p₁ (x ,, A) refl (conv⊢ refl (Πlem p₁ A C σ) (M ·⋆ A)) (convBV _ (step⋆ X V))))
-... | inj₁ V@(V-IΠ b {C = C} p q r σ (skip p₁) x refl .M X) =
-  inj₁ (convValue (⇒lem p₁ σ C) (V-I⇒ b p q r (subNf-cons σ A) p₁ (x ,, A) refl (conv⊢ refl (⇒lem p₁ σ C) (M ·⋆ A)) (convBV _ (step⋆ X V))))
--}
-{-
+... | inj₂ (B ,, E ,, L ,, p ,, q) =
+  inj₂ (B ,, E ·⋆ A ,, L ,, p ,, cong (_·⋆ A) q)
+lemma51 (M ·⋆ A) | inj₁ (V-IΠ b {as = []} x) =
+  inj₂ (_ ,, [] ,, _ ,, inj₁ (_ ,, β-sbuiltin⋆ b M x A) ,, refl)
+lemma51 (M ·⋆ A) | inj₁ (V-IΠ b {as = Term ∷ as} x)
+  with bappTermLem b (M ·⋆ A) (step⋆ x)
+... | _ ,, _ ,, q = inj₁ (convVal' q (V-I⇒ b (convBAppA b q (step⋆ x))))
+lemma51 (M ·⋆ A) | inj₁ (V-IΠ b {as = Type ∷ as} x) with bappTypeLem b (M ·⋆ A) (step⋆ x)
+... | _ ,, _ ,, q = inj₁ (convVal' q (V-IΠ b (convBAppA b q (step⋆ x))))
 lemma51 (wrap A B M) with lemma51 M
 ... | inj₁ V = inj₁ (V-wrap V)
 ... | inj₂ (C ,, E ,, L ,, p ,, p') =
@@ -518,7 +516,7 @@ progress' M with lemma51 M
 ... | inj₁ V = done V
 ... | inj₂ (B ,, E ,, L ,, inj₁ (M' ,, p) ,, refl) = step (ruleEC E p refl refl)
 ... | inj₂ (B ,, E ,, L ,, inj₂ E-error ,, refl) = step (ruleErr E)
--}
+
 data EProgress {A : ∅ ⊢Nf⋆ *} (M : ∅ ⊢ A) : Set where
   step : ∀{B}(E : EC A B){L L' : ∅ ⊢ B}
     → L —→⋆ L'
