@@ -10,7 +10,6 @@ module Plutus.PAB.Core.ContractInstance.STM(
     , emptyBlockchainEnv
     , awaitSlot
     , awaitEndpointResponse
-    , waitForAddressChange
     , waitForTxConfirmed
     , valueAt
     , currentSlot
@@ -61,9 +60,7 @@ import           Plutus.Contract.Effects.AwaitTxConfirmed (TxConfirmed (..))
 import           Plutus.Contract.Effects.ExposeEndpoint   (ActiveEndpoint (..), EndpointValue (..))
 import           Plutus.Contract.Resumable                (IterationID, Request (..), RequestID)
 import           Wallet.Emulator.ChainIndex.Index         (ChainIndex)
-import qualified Wallet.Emulator.ChainIndex.Index         as Index
-import           Wallet.Types                             (AddressChangeRequest (..), AddressChangeResponse (..),
-                                                           ContractInstanceId, EndpointDescription,
+import           Wallet.Types                             (ContractInstanceId, EndpointDescription,
                                                            NotificationError (..))
 
 {- Note [Contract instance thread model]
@@ -344,18 +341,6 @@ watchedTransactions (InstancesState m) = do
     mp <- STM.readTVar m
     allSets <- traverse (STM.readTVar . issTransactions) (snd <$> Map.toList mp)
     pure $ fold allSets
-
--- | Respond to an 'AddressChangeRequest' for a future slot.
-waitForAddressChange :: AddressChangeRequest -> BlockchainEnv -> STM AddressChangeResponse
-waitForAddressChange AddressChangeRequest{acreqSlot, acreqAddress} b@BlockchainEnv{beTxIndex} = do
-    _ <- awaitSlot (succ acreqSlot) b
-    idx <- STM.readTVar beTxIndex
-    pure
-        AddressChangeResponse
-        { acrAddress = acreqAddress
-        , acrSlot    = acreqSlot
-        , acrTxns    = Index.ciTx <$> Index.transactionsAt idx acreqSlot acreqAddress
-        }
 
 -- | Wait for the status of a transaction to be confirmed. TODO: Should be "status changed", some txns may never get to confirmed status
 waitForTxConfirmed :: TxId -> BlockchainEnv -> STM TxConfirmed

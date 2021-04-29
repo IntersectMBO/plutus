@@ -9,6 +9,7 @@
 
 module Plutus.PAB.CoreSpec
     ( tests
+    , pingPongSpec
     ) where
 
 import           Control.Lens                             ((&), (+~))
@@ -25,6 +26,7 @@ import           Data.Foldable                            (fold)
 import qualified Data.Aeson.Types                         as JSON
 import           Data.Either                              (isRight)
 import qualified Data.Map                                 as Map
+import qualified Data.Monoid                              as M
 import           Data.Proxy                               (Proxy (..))
 import           Data.Semigroup                           (Last (..))
 import qualified Data.Set                                 as Set
@@ -36,12 +38,14 @@ import           Ledger.Ada                               (adaSymbol, adaToken, 
 import           Ledger.Value                             (valueOf)
 import           Plutus.Contracts.Currency                (OneShotCurrency, SimpleMPS (..))
 import qualified Plutus.Contracts.GameStateMachine        as Contracts.GameStateMachine
+import           Plutus.Contracts.PingPong                (PingPongState (..))
 import           Plutus.PAB.Core
 import           Plutus.PAB.Core.ContractInstance         (ContractInstanceMsg)
 import           Plutus.PAB.Db.Eventful.Command           ()
 import qualified Plutus.PAB.Db.Eventful.Query             as Query
 import           Plutus.PAB.Effects.Contract              (ContractEffect, serialisableState)
 import           Plutus.PAB.Effects.Contract.Builtin      (Builtin)
+import qualified Plutus.PAB.Effects.Contract.Builtin      as Builtin
 import           Plutus.PAB.Effects.Contract.ContractTest (TestContracts (..))
 import           Plutus.PAB.Effects.EventLog              (EventLogEffect)
 import           Plutus.PAB.Events.ContractInstanceState  (PartiallyDecodedResponse (..))
@@ -49,7 +53,7 @@ import           Plutus.PAB.Simulator                     (Simulation, TxCounts 
 import qualified Plutus.PAB.Simulator                     as Simulator
 import           Plutus.PAB.Types                         (PABError (..), chainOverviewBlockchain, mkChainOverview)
 import           Test.QuickCheck.Instances.UUID           ()
-import           Test.Tasty                               (TestTree, testGroup)
+import           Test.Tasty                               (TestTree, defaultMain, testGroup)
 import           Test.Tasty.HUnit                         (testCase)
 import           Wallet.API                               (WalletAPIError, ownPubKey)
 import qualified Wallet.Emulator.Chain                    as Chain
@@ -57,6 +61,9 @@ import           Wallet.Emulator.Wallet                   (Wallet (..))
 import           Wallet.Rollup                            (doAnnotateBlockchain)
 import           Wallet.Rollup.Types                      (DereferencedInput, dereferencedInputs, isFound)
 import           Wallet.Types                             (ContractInstanceId)
+
+pingPongSpec :: IO ()
+pingPongSpec = waitForUpdateTest
 
 tests :: TestTree
 tests = testGroup "Plutus.PAB.Core" [installContractTests, executionTests]
@@ -94,7 +101,28 @@ executionTests =
         [ guessingGameTest
         , currencyTest
         , rpcTest
+        , testCase "wait for update" waitForUpdateTest
         ]
+
+waitForUpdateTest :: IO ()
+waitForUpdateTest =
+    runScenario $ do
+        let is :: PingPongState -> JSON.Value -> Maybe PingPongState
+            is st vl = do
+                case JSON.parseEither JSON.parseJSON vl of
+                    Right (M.Last (Just st')) | st == st' -> Just st'
+                    _                                     -> Nothing
+        p1 <- Simulator.activateContract defaultWallet PingPong
+        p2 <- Simulator.activateContract defaultWallet PingPong
+        void $ Simulator.callEndpointOnInstance p1 "initialise" ()
+        Simulator.waitNSlots 5
+        void $ Simulator.callEndpointOnInstance p1 "wait" ()
+        void $ Simulator.callEndpointOnInstance p2 "pong" ()
+        _ <- Simulator.waitForState (is Ponged) p1
+        void $ Simulator.callEndpointOnInstance p1 "wait" ()
+        void $ Simulator.callEndpointOnInstance p2 "ping" ()
+        _ <- Simulator.waitForState (is Pinged) p1
+        pure ()
 
 currencyTest :: TestTree
 currencyTest =

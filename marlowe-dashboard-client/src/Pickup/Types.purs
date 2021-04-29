@@ -1,48 +1,42 @@
 module Pickup.Types
   ( State
   , Card(..)
-  , PickupNewWalletContext(..)
   , Action(..)
   ) where
 
 import Prelude
 import Analytics (class IsEvent, defaultEvent)
 import Data.Maybe (Maybe(..))
-import WalletData.Types (WalletNickname, WalletDetails)
+import WalletData.Types (WalletDetails, WalletLibrary, WalletNickname)
 
 type State
   = { card :: Maybe Card
+    , walletLibrary :: WalletLibrary
     , pickupWalletString :: String
+    , walletDetails :: WalletDetails
+    , pickingUp :: Boolean -- true when we are in the process of picking up a wallet
     }
 
 data Card
-  = PickupNewWalletCard PickupNewWalletContext
-  | PickupWalletCard WalletDetails
+  = PickupNewWalletCard
+  | PickupWalletCard
 
 derive instance eqCard :: Eq Card
 
-data PickupNewWalletContext
-  = WalletGenerated
-  | WalletFound
-
-derive instance eqPickupNewWalletContext :: Eq PickupNewWalletContext
-
 data Action
-  = SetCard (Maybe Card)
-  | GenerateNewWallet
+  = OpenCard Card
+  | CloseCard
+  | GenerateWallet
   | SetPickupWalletString String
-  | SetNewWalletNickname WalletNickname
-  | SetNewWalletContractId String
-  | PickupNewWallet
-  | PickupWallet WalletDetails
+  | SetWalletNickname WalletNickname
+  | PickupWallet
 
 -- | Here we decide which top-level queries to track as GA events, and
 -- how to classify them.
 instance actionIsEvent :: IsEvent Action where
-  toEvent (SetCard _) = Just $ defaultEvent "SetPickupCard"
-  toEvent GenerateNewWallet = Just $ defaultEvent "GenerateNewWallet"
+  toEvent (OpenCard _) = Nothing
+  toEvent CloseCard = Nothing
+  toEvent GenerateWallet = Just $ defaultEvent "GenerateWallet"
   toEvent (SetPickupWalletString _) = Nothing
-  toEvent (SetNewWalletNickname _) = Nothing
-  toEvent (SetNewWalletContractId _) = Nothing
-  toEvent PickupNewWallet = Just $ defaultEvent "PickupWallet"
-  toEvent (PickupWallet _) = Just $ defaultEvent "PickupWallet"
+  toEvent (SetWalletNickname _) = Nothing
+  toEvent PickupWallet = Just $ defaultEvent "PickupWallet"

@@ -22,6 +22,7 @@ nodeServerConfig:
   mscBlockReaper:
     brcInterval: 600
     brcBlocksToKeep: 100
+  mscKeptBlocks: 100
   mscInitialTxWallets:
     - getWallet: 1
     - getWallet: 2

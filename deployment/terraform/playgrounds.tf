@@ -21,13 +21,6 @@ resource "aws_security_group" "playgrounds" {
   }
 
   ingress {
-    from_port   = local.node_exporter_port
-    to_port     = local.node_exporter_port
-    protocol    = "TCP"
-    cidr_blocks = var.private_subnet_cidrs
-  }
-
-  ingress {
     from_port   = local.plutus_playground_port
     to_port     = local.plutus_playground_port
     protocol    = "TCP"
@@ -92,34 +85,4 @@ resource "aws_route53_record" "playgrounds_internal_a" {
   name    = "playgrounds-a.${aws_route53_zone.plutus_private_zone.name}"
   ttl     = 300
   records = [aws_instance.playgrounds_a.private_ip]
-}
-
-resource "aws_instance" "playgrounds_b" {
-  ami = module.nixos_image.ami
-
-  instance_type = var.playgrounds_instance_type
-  subnet_id     = aws_subnet.private.*.id[1]
-  user_data     = data.template_file.playgrounds_user_data.rendered
-
-  vpc_security_group_ids = [
-    aws_security_group.playgrounds.id,
-  ]
-
-  root_block_device {
-    volume_size = "20"
-  }
-
-  tags = {
-    Name        = "${local.project}_${var.env}_playgrounds_b"
-    Project     = local.project
-    Environment = var.env
-  }
-}
-
-resource "aws_route53_record" "playgrounds_internal_b" {
-  zone_id = aws_route53_zone.plutus_private_zone.zone_id
-  type    = "A"
-  name    = "playgrounds-b.${aws_route53_zone.plutus_private_zone.name}"
-  ttl     = 300
-  records = [aws_instance.playgrounds_b.private_ip]
 }

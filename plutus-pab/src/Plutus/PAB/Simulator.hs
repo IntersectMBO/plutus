@@ -176,6 +176,7 @@ initialState = do
 type SimulatorContractHandler t =
     forall effs.
         ( Member (Error PABError) effs
+        , Member (LogMsg (PABMultiAgentMsg t)) effs
         )
         => Eff (Contract.ContractEffect t ': effs)
         ~> Eff effs
@@ -327,7 +328,7 @@ activateContract = Core.activateContract
 
 -- | Call a named endpoint on a contract instance
 callEndpointOnInstance :: forall a t. (JSON.ToJSON a) => ContractInstanceId -> String -> a -> Simulation t (Maybe NotificationError)
-callEndpointOnInstance = Core.callEndpointOnInstance
+callEndpointOnInstance = Core.callEndpointOnInstance'
 
 -- | Log some output to the console
 logString :: forall t effs. Member (LogMsg (PABMultiAgentMsg t)) effs => String -> Eff effs ()
@@ -558,7 +559,7 @@ handleChainIndexEffect = runChainIndexEffects @t . \case
     WatchedAddresses          -> WalletEffects.watchedAddresses
     ConfirmedBlocks           -> WalletEffects.confirmedBlocks
     TransactionConfirmed txid -> WalletEffects.transactionConfirmed txid
-    NextTx r                  -> WalletEffects.nextTx r
+    AddressChanged r          -> WalletEffects.addressChanged r
 
 handleChainIndexControlEffect ::
     forall t effs.

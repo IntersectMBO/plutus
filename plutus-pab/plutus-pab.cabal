@@ -88,6 +88,7 @@ library
         Plutus.PAB.Effects.ContractRuntime
         Plutus.PAB.Effects.ContractTest.AtomicSwap
         Plutus.PAB.Effects.ContractTest.PayToWallet
+        Plutus.PAB.Effects.ContractTest.Uniswap
         Plutus.PAB.Effects.EventLog
         Plutus.PAB.Effects.UUID
         Plutus.PAB.Effects.TimeEffect
@@ -243,6 +244,28 @@ executable plutus-pab
         servant-client -any,
         contra-tracer -any,
         lobemo-backend-ekg -any
+
+executable plutus-uniswap
+    main-is: Main.hs
+    hs-source-dirs:  uniswap
+    other-modules:
+    default-language: Haskell2010
+    ghc-options: -threaded -rtsopts -with-rtsopts=-N -Wall -Wcompat
+                 -Wincomplete-uni-patterns -Wincomplete-record-updates
+                 -Wno-missing-import-lists -Wredundant-constraints -O0
+    build-depends:
+        base >=4.9 && <5,
+        aeson -any,
+        containers -any,
+        freer-extras -any,
+        freer-simple -any,
+        plutus-contract -any,
+        plutus-ledger -any,
+        plutus-pab,
+        plutus-use-cases -any,
+        prettyprinter -any,
+        text -any
+
 
 executable plutus-game
     main-is: Main.hs

@@ -9,27 +9,25 @@ module MainFrame.Types
 
 import Prelude
 import Analytics (class IsEvent, defaultEvent, toEvent)
+import Contract.Types (State) as Contract
 import Data.Either (Either)
 import Data.Generic.Rep (class Generic)
+import Data.Map (Map)
 import Data.Maybe (Maybe(..))
-import Marlowe.Extended.Template (ContractTemplate)
+import Marlowe.PAB (ContractInstanceId)
 import Pickup.Types (Action, State) as Pickup
 import Play.Types (Action, State) as Play
 import Plutus.PAB.Webserver.Types (CombinedWSStreamToClient, CombinedWSStreamToServer)
 import Toast.Types (Action, State) as Toast
-import WalletData.Types (WalletLibrary, NewWalletDetails)
+import WalletData.Types (WalletDetails, WalletLibrary)
 import Web.Socket.Event.CloseEvent (CloseEvent, reason) as WS
 import WebSocket.Support (FromSocket) as WS
 
--- Apart from the wallet library (which you need in both cases), the app exists
--- in one of two distinct states: the "pickup" state for when you have no wallet,
--- and all you can do is pick one up or generate a new one; and the "play" state
--- for when you have picked up a wallet, and can do all of the things.
+-- The app exists in one of two main subStates: the "pickup" state for when you have
+-- no wallet, and all you can do is pick one up or generate a new one; and the "play"
+-- state for when you have picked up a wallet, and can do all of the things.
 type State
-  = { wallets :: WalletLibrary
-    , newWalletDetails :: NewWalletDetails
-    , templates :: Array ContractTemplate
-    , webSocketStatus :: WebSocketStatus
+  = { webSocketStatus :: WebSocketStatus
     , subState :: Either Pickup.State Play.State
     , toast :: Toast.State
     }
@@ -62,9 +60,8 @@ data Msg
 ------------------------------------------------------------
 data Action
   = Init
-  | SetNewWalletNicknameString String
-  | SetNewWalletContractIdString String
-  | AddNewWallet
+  | EnterPickupState WalletLibrary WalletDetails (Map ContractInstanceId Contract.State)
+  | EnterPlayState WalletLibrary WalletDetails
   | PickupAction Pickup.Action
   | PlayAction Play.Action
   | ToastAction Toast.Action
@@ -73,9 +70,8 @@ data Action
 -- how to classify them.
 instance actionIsEvent :: IsEvent Action where
   toEvent Init = Just $ defaultEvent "Init"
-  toEvent (SetNewWalletNicknameString _) = Nothing
-  toEvent (SetNewWalletContractIdString _) = Nothing
-  toEvent AddNewWallet = Just $ defaultEvent "AddNewWallet"
+  toEvent (EnterPickupState _ _ _) = Just $ defaultEvent "EnterPickupState"
+  toEvent (EnterPlayState _ _) = Just $ defaultEvent "EnterPlayState"
   toEvent (PickupAction pickupAction) = toEvent pickupAction
   toEvent (PlayAction playAction) = toEvent playAction
   toEvent (ToastAction toastAction) = toEvent toastAction

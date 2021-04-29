@@ -47,8 +47,9 @@ import           Plutus.Contract.Effects.ExposeEndpoint           (ActiveEndpoin
 import           Plutus.Contract.Resumable                        (Request (..), Response (..))
 import           Plutus.Contract.Trace.RequestHandler             (RequestHandler (..), RequestHandlerLogMsg, extract,
                                                                    maybeToHandler, tryHandler', wrapHandler)
-import           Plutus.PAB.Core.ContractInstance.RequestHandlers (ContractInstanceMsg (..), processInstanceRequests,
-                                                                   processNextTxAtRequests, processNotificationEffects,
+import           Plutus.PAB.Core.ContractInstance.RequestHandlers (ContractInstanceMsg (..),
+                                                                   processAddressChangedAtRequests,
+                                                                   processInstanceRequests, processNotificationEffects,
                                                                    processOwnPubkeyRequests, processTxConfirmedRequests,
                                                                    processUtxoAtRequests, processWriteTxRequests)
 
@@ -90,7 +91,7 @@ activateContractSTM ::
 activateContractSTM runAppBackend a@ContractActivationArgs{caID, caWallet} = do
     activeContractInstanceId <- ContractInstanceId <$> uuidNextRandom
     logDebug @(ContractInstanceMsg t) $ InitialisingContract caID activeContractInstanceId
-    initialState <- Contract.initialState @t caID
+    initialState <- Contract.initialState @t activeContractInstanceId caID
     Contract.putState @t a activeContractInstanceId initialState
     s <- startSTMInstanceThread @t @m runAppBackend a activeContractInstanceId
     ask >>= void . liftIO . STM.atomically . InstanceState.insertInstance activeContractInstanceId s
@@ -104,7 +105,7 @@ processAwaitSlotRequestsSTM ::
     => RequestHandler effs ContractPABRequest (STM ContractResponse)
 processAwaitSlotRequestsSTM =
     maybeToHandler (fmap unWaitingForSlot . extract Events.Contract._AwaitSlotRequest)
-    >>> (RequestHandler $ \targetSlot -> fmap AwaitSlotResponse . InstanceState.awaitSlot targetSlot <$> ask)
+    >>> (RequestHandler $ \targetSlot_ -> fmap AwaitSlotResponse . InstanceState.awaitSlot targetSlot_ <$> ask)
 
 processTxConfirmedRequestsSTM ::
     forall effs.
@@ -150,9 +151,9 @@ stmRequestHandler = fmap sequence (wrapHandler (fmap pure nonBlockingRequests) <
         <> processUtxoAtRequests @effs
         <> processWriteTxRequests @effs
         <> processTxConfirmedRequests @effs
-        <> processNextTxAtRequests @effs
         <> processInstanceRequests @effs
         <> processNotificationEffects @effs
+        <> processAddressChangedAtRequests @effs
 
     -- requests that wait for changes to happen
     blockingRequests =
@@ -222,7 +223,7 @@ stmInstanceLoop def instanceId = do
         _ -> do
             response <- respondToRequestsSTM @t instanceId currentState
             event <- liftIO $ STM.atomically response
-            (newState :: Contract.State t) <- Contract.updateContract @t (caID def) currentState event
+            (newState :: Contract.State t) <- Contract.updateContract @t instanceId (caID def) currentState event
             Contract.putState @t def instanceId newState
             stmInstanceLoop @t def instanceId
 
@@ -244,7 +245,7 @@ updateState PartiallyDecodedResponse{observableState, hooks} = do
             case rqRequest r of
                 AwaitTxConfirmedRequest txid -> InstanceState.addTransaction txid state
                 UtxoAtRequest addr -> InstanceState.addAddress addr state
-                NextTxAtRequest AddressChangeRequest{acreqAddress} -> InstanceState.addAddress acreqAddress state
+                AddressChangedAtRequest AddressChangeRequest{acreqAddress} -> InstanceState.addAddress acreqAddress state
                 UserEndpointRequest endpoint -> InstanceState.addEndpoint (r { rqRequest = endpoint}) state
                 _ -> pure ()
         InstanceState.setObservableState observableState state

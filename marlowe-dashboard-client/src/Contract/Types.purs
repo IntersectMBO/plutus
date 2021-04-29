@@ -2,31 +2,28 @@ module Contract.Types
   ( State
   , PreviousStep
   , PreviousStepState(..)
-  , MarloweParams(..)
-  , ValidatorHash
-  , MarloweData(..)
   , Tab(..)
-  , Query(..)
   , Action(..)
+  , scrollContainerRef
   ) where
 
 import Prelude
 import Analytics (class IsEvent, defaultEvent)
 import Data.Map (Map)
 import Data.Maybe (Maybe(..))
+import Halogen (RefLabel(..))
 import Marlowe.Execution (ExecutionState, NamedAction)
 import Marlowe.Extended.Metadata (MetaData)
-import Marlowe.Semantics (ChoiceId, ChosenNum, Contract, Party, Slot, TransactionInput, Accounts)
-import Marlowe.Semantics (State) as Semantic
-import Plutus.V1.Ledger.Value (CurrencySymbol)
+import Marlowe.PAB (ContractInstanceId, MarloweParams)
+import Marlowe.Semantics (ChoiceId, ChosenNum, Party, Slot, TransactionInput, Accounts)
 import WalletData.Types (WalletNickname)
-import Types (ContractInstanceId)
 
 type State
   = { tab :: Tab
     , executionState :: ExecutionState
     , previousSteps :: Array PreviousStep
     , contractInstanceId :: ContractInstanceId
+    , marloweParams :: MarloweParams
     -- Which step is selected. This index is 0 based and should be between [0, previousSteps.length]
     -- (both sides inclusive). This is because the array represent the past steps and the
     -- executionState has the current state and visually we can select any one of them.
@@ -54,36 +51,11 @@ data PreviousStepState
   = TransactionStep TransactionInput
   | TimeoutStep Slot
 
--- MarloweParams are used to identify a Marlowe contract in the PAB, and the wallet
--- companion contract state is a Map MarloweParams MarloweData. We are not currently
--- generating PureScript types to match the Haskell MarloweParams and MarloweData
--- types (side note: perhaps we should be). We have a CurrencySymbol type in
--- Marlowe.Semantics, but it is just an alias for String. We could use that here for
--- the `rolesCurrency` value, and convert using its Bridge instance when sharing data
--- with the PAB. However, we currently don't need to do anything with MarloweParams on
--- the frontend except save them and send them back to the PAB (to join a contract that
--- is already running), so it is simpler just to use the generated type in this case.
-type MarloweParams
-  = { rolePayoutValidatorHash :: ValidatorHash
-    , rolesCurrency :: CurrencySymbol
-    }
-
-type ValidatorHash
-  = String
-
-type MarloweData
-  = { marloweContract :: Contract
-    , marloweState :: Semantic.State
-    }
-
 data Tab
   = Tasks
   | Balances
 
 derive instance eqTab :: Eq Tab
-
-data Query a
-  = ApplyTx TransactionInput a
 
 data Action
   = ConfirmAction NamedAction
@@ -91,7 +63,12 @@ data Action
   | SelectTab Tab
   | AskConfirmation NamedAction
   | CancelConfirmation
-  | GoToStep Int
+  -- The SelectStep action is what changes the model and causes the card to seem bigger.
+  | SelectStep Int
+  -- The MoveToStep action scrolls the step carousel so that the indicated step is at the center
+  | MoveToStep Int
+  | CarouselOpened
+  | CarouselClosed
 
 instance actionIsEvent :: IsEvent Action where
   toEvent (ConfirmAction _) = Just $ defaultEvent "ConfirmAction"
@@ -99,4 +76,10 @@ instance actionIsEvent :: IsEvent Action where
   toEvent (SelectTab _) = Just $ defaultEvent "SelectTab"
   toEvent (AskConfirmation _) = Just $ defaultEvent "AskConfirmation"
   toEvent CancelConfirmation = Just $ defaultEvent "CancelConfirmation"
-  toEvent (GoToStep _) = Just $ defaultEvent "GoToStep"
+  toEvent (SelectStep _) = Just $ defaultEvent "SelectStep"
+  toEvent (MoveToStep _) = Just $ defaultEvent "MoveToStep"
+  toEvent CarouselOpened = Just $ defaultEvent "CarouselOpened"
+  toEvent CarouselClosed = Just $ defaultEvent "CarouselClosed"
+
+scrollContainerRef :: RefLabel
+scrollContainerRef = RefLabel "scroll-container"

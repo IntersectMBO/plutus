@@ -24,7 +24,7 @@
       isLocal = true;
       detailLevel = "FullDetails";
       licenseFiles = [ "LICENSE" "NOTICE" ];
-      dataDir = "";
+      dataDir = ".";
       dataFiles = [];
       extraSrcFiles = [];
       extraTmpFiles = [];
@@ -55,9 +55,6 @@
           (hsPkgs."sort" or (errorHandler.buildDepError "sort"))
           (hsPkgs."validation" or (errorHandler.buildDepError "validation"))
           (hsPkgs."QuickCheck" or (errorHandler.buildDepError "QuickCheck"))
-          ];
-        build-tools = [
-          (hsPkgs.buildPackages.unlit or (pkgs.buildPackages.unlit or (errorHandler.buildToolDepError "unlit")))
           ];
         buildable = true;
         modules = [

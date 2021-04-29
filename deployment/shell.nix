@@ -4,6 +4,7 @@
 let
   inherit (pkgs) writeShellScriptBin lib mkShell stdenv writeText;
   inherit (pkgs) awscli terraform morph jq;
+  inherit (pkgs.gitAndTools) hub;
 
   # All environments and the region they are in
   envs = import ./envs.nix;
@@ -23,12 +24,17 @@ let
         export DEPLOYMENT_ENV="${env}"
 
         SECRETS=$(${awscli}/bin/aws secretsmanager get-secret-value --secret env/${env} --query SecretString --output text --region ${region})
-        export TF_VAR_marlowe_github_client_id=$(echo $SECRETS | ${jq}/bin/jq ".marlowe.githubClientId")
-        export TF_VAR_marlowe_github_client_secret=$(echo $SECRETS | ${jq}/bin/jq ".marlowe.githubClientSecret")
-        export TF_VAR_marlowe_jwt_signature=$(echo $SECRETS | ${jq}/bin/jq ".marlowe.jwtSignature")
-        export TF_VAR_plutus_github_client_id=$(echo $SECRETS | ${jq}/bin/jq ".plutus.githubClientId")
-        export TF_VAR_plutus_github_client_secret=$(echo $SECRETS | ${jq}/bin/jq ".plutus.githubClientSecret")
-        export TF_VAR_plutus_jwt_signature=$(echo $SECRETS | ${jq}/bin/jq ".plutus.jwtSignature")
+        export TF_VAR_marlowe_github_client_id=$(echo $SECRETS | ${jq}/bin/jq --raw-output .marlowe.githubClientId)
+        export TF_VAR_marlowe_github_client_secret=$(echo $SECRETS | ${jq}/bin/jq --raw-output .marlowe.githubClientSecret)
+        export TF_VAR_marlowe_jwt_signature=$(echo $SECRETS | ${jq}/bin/jq --raw-output .marlowe.jwtSignature)
+        export TF_VAR_plutus_github_client_id=$(echo $SECRETS | ${jq}/bin/jq --raw-output .plutus.githubClientId)
+        export TF_VAR_plutus_github_client_secret=$(echo $SECRETS | ${jq}/bin/jq --raw-output .plutus.githubClientSecret)
+        export TF_VAR_plutus_jwt_signature=$(echo $SECRETS | ${jq}/bin/jq --raw-output .plutus.jwtSignature)
+
+        # In order to avoid problems with API rate-limiting when using `wait-github-status`
+        # we can specify an OAUTH application id and secret
+        export GITHUB_API_USER=$TF_VAR_plutus_github_client_id
+        export GITHUB_API_PW=$TF_VAR_plutus_github_client_secret
       '';
 
       # setupTerraform : Switch to `env` workspace (create it if neccessary)
@@ -65,6 +71,64 @@ let
         ${terraform}/bin/terraform destroy ./terraform
       '';
 
+      # wait-github-status: wait until the current commit has been processed by hydra
+      # - checks the github status in a loop with 60s breaks until it is is "success"
+      #
+      # NOTE: this script depends on the GITHUB_API_USER and GITHUB_API_PW variables
+      # that are set above in `setupEnvSecrets` to avoid rate limiting problems.
+      waitGitHubStatus = writeShellScriptBin "wait-github-status" ''
+        set -eou pipefail
+
+        if [ -z $GITHUB_API_USER ] || [ -z $GITHUB_API_PW ]; then
+          echo "[wait-github-status]: GITHUB_API_USER and GITHUB_API_PW must be set! Exiting."
+          exit 1
+        fi
+
+        echo "[wait-github-status]: waiting for commit to get processed by hydra"
+        GIT_COMMIT=$(git rev-parse HEAD)
+        GITHUB_API_URL=https://api.github.com/repos/input-output-hk/plutus/commits/"$GIT_COMMIT"/status
+
+        fetchCommitStatus() {
+            # Request the status from the GitHub API and build an object:
+            # { <context>, <status> }
+            # Note: the "buildkite/plutus" state gets filtered out otherwise we
+            # will be stuck in an infinite loop waiting for our own success.
+            curl --silent\
+             -u "$GITHUB_API_USER:$GITHUB_API_PW" \
+             -H "Accept: application/vnd.github.v3+json" \
+             "$GITHUB_API_URL" \
+                | ${jq}/bin/jq -c '.statuses | map(select(.context != "buildkite/plutus")) | map ({(.context): (.state)}) | add'
+        }
+
+        while true; do
+            GH_STATUS_MAP=$(fetchCommitStatus)
+
+            # If any of the tests are in a failed state we can abort
+            if echo "$GH_STATUS_MAP" | ${jq}/bin/jq -c "values | .[]" | grep "failure\|error\|action_required\|cancelled\|timed_out" ; then
+                echo "[wait-github-status]: github reported a failure. Exiting"
+                exit 1
+            fi
+
+            # Check if all statuses have already been reported. If
+            # not we need to keep on waiting - hydra isn't ready.
+            ALL_CHECKS_PRESENT=$(echo "$GH_STATUS_MAP" | ${jq}/bin/jq 'has("ci/hydra-eval") and has("ci/hydra:Cardano:plutus:required") and has("ci/hydra-build:required")')
+            if ! [ "$ALL_CHECKS_PRESENT" = "true" ] ; then
+                echo "[wait-github-status]: waiting for all statuses to get reported ..."
+                sleep 60
+                continue
+            fi
+
+            # All relevant statuses have been reported and none of them are in a failed state.
+            # If all of them are "success" we are done. If not we have to keep on waiting.
+            # NOTE: A status is one of the failures captured above, "pending" or "success".
+            ALL_CHECKS_SUCCESS=$(echo "$GH_STATUS_MAP" | ${jq}/bin/jq  '[.[]] | all(. == "success")')
+            if [ "$ALL_CHECKS_SUCCESS" = "true" ] ; then
+                echo "[wait-github-status]: all statuses have been reported as successful"
+                exit 0
+            fi
+        done
+      '';
+
       # deploy-nix: wrapper around executing `morph deploy`
       # - Checks if `machines.json` is present - aborts if not
       # - Checks if terraform is up to date - aborts if not
@@ -76,6 +140,14 @@ let
         # In order to ensure a consistent state we verify that terraform
         # reports it has nothing to do before we even attempt to deploy
         # any nix configuration.
+
+        # The local files (ssh configuration and dns/ip information on ec2
+        # instances) is part of the state so we have to create these before
+        # we check if the state is up to date
+        echo "[deploy-nix]: Creating terraform bridge files"
+        rm -rf ./plutus_playground.$DEPLOYMENT_ENV.conf
+        rm -rf ./machines.json
+        ${terraform}/bin/terraform apply -auto-approve -target=local_file.ssh_config -target=local_file.machines ./terraform/
 
         echo "[deploy-nix]: Checking if terraform state is up to date"
         if ! ${terraform}/bin/terraform plan --detailed-exitcode -compact-warnings ./terraform >/dev/null ; then
@@ -140,7 +212,7 @@ let
 
     in
     mkShell {
-      buildInputs = [ terraform deployNix provisionInfra destroyInfra deploy ];
+      buildInputs = [ terraform deployNix provisionInfra destroyInfra deploy waitGitHubStatus ];
       shellHook = ''
         if ! ${awscli}/bin/aws sts get-caller-identity 2>/dev/null ; then
           echo "Error: Not logged in to aws. Aborting"

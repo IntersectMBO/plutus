@@ -80,11 +80,12 @@ instance Pretty t => Pretty (ContractActivationArgs t) where
 
 -- | Current state of a contract instance
 --   (to be sent to external clients)
-data ContractInstanceClientState =
+data ContractInstanceClientState t =
     ContractInstanceClientState
         { cicContract     :: ContractInstanceId
         , cicCurrentState :: PartiallyDecodedResponse ActiveEndpoint
         , cicWallet       :: Wallet
+        , cicDefintion    :: t
         }
         deriving stock (Eq, Show, Generic)
         deriving anyclass (ToJSON, FromJSON)

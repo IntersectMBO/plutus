@@ -113,10 +113,10 @@ handlerNew ::
        forall t env.
        Contract.PABContract t =>
        (ContractActivationArgs (Contract.ContractDef t) -> PABAction t env ContractInstanceId)
-            :<|> (Text -> PABAction t env (ContractInstanceClientState)
+            :<|> (Text -> PABAction t env (ContractInstanceClientState (Contract.ContractDef t))
                                         :<|> (String -> JSON.Value -> PABAction t env ()))
-            :<|> (Integer -> PABAction t env [ContractInstanceClientState])
-            :<|> PABAction t env [ContractInstanceClientState]
+            :<|> (Integer -> PABAction t env [ContractInstanceClientState (Contract.ContractDef t)])
+            :<|> PABAction t env [ContractInstanceClientState (Contract.ContractDef t)]
             :<|> PABAction t env [ContractSignatureResponse (Contract.ContractDef t)]
 handlerNew =
         (activateContract
@@ -126,17 +126,19 @@ handlerNew =
             :<|> availableContracts)
 
 fromInternalState ::
-    ContractInstanceId
+    t
+    -> ContractInstanceId
     -> Wallet
     -> PartiallyDecodedResponse ContractPABRequest
-    -> ContractInstanceClientState
-fromInternalState i wallet resp =
+    -> ContractInstanceClientState t
+fromInternalState t i wallet resp =
     ContractInstanceClientState
         { cicContract = i
         , cicCurrentState =
             let hks' = mapMaybe (traverse (preview _UserEndpointRequest)) (hooks resp)
             in resp { hooks = hks' }
         , cicWallet = wallet
+        , cicDefintion = t
         }
 
 -- HANDLERS
@@ -145,23 +147,23 @@ activateContract :: forall t env. Contract.PABContract t => ContractActivationAr
 activateContract ContractActivationArgs{caID, caWallet} = do
     Core.activateContract caWallet caID
 
-contractInstanceState :: forall t env. Contract.PABContract t => ContractInstanceId -> PABAction t env ContractInstanceClientState
+contractInstanceState :: forall t env. Contract.PABContract t => ContractInstanceId -> PABAction t env (ContractInstanceClientState (Contract.ContractDef t))
 contractInstanceState i = do
     definition <- Contract.getDefinition @t i
     case definition of
         Nothing -> throwError @PABError (ContractInstanceNotFound i)
-        Just ContractActivationArgs{caWallet} -> fromInternalState i caWallet . Contract.serialisableState (Proxy @t) <$> Contract.getState @t i
+        Just ContractActivationArgs{caWallet, caID} -> fromInternalState caID i caWallet . Contract.serialisableState (Proxy @t) <$> Contract.getState @t i
 
 callEndpoint :: forall t env. ContractInstanceId -> String -> JSON.Value -> PABAction t env ()
 callEndpoint a b v = Core.callEndpointOnInstance a b v >>= traverse_ (throwError @PABError . EndpointCallError)
 
-instancesForWallets :: forall t env. Contract.PABContract t => Integer -> PABAction t env [ContractInstanceClientState]
+instancesForWallets :: forall t env. Contract.PABContract t => Integer -> PABAction t env [ContractInstanceClientState (Contract.ContractDef t)]
 instancesForWallets wallet = filter ((==) (Wallet wallet) . cicWallet) <$> allInstanceStates
 
-allInstanceStates :: forall t env. Contract.PABContract t => PABAction t env [ContractInstanceClientState]
+allInstanceStates :: forall t env. Contract.PABContract t => PABAction t env [ContractInstanceClientState (Contract.ContractDef t)]
 allInstanceStates = do
     mp <- Contract.getActiveContracts @t
-    let get (i, ContractActivationArgs{caWallet}) = fromInternalState i caWallet . Contract.serialisableState (Proxy @t) <$> Contract.getState @t i
+    let get (i, ContractActivationArgs{caWallet, caID}) = fromInternalState caID i caWallet . Contract.serialisableState (Proxy @t) <$> Contract.getState @t i
     traverse get $ Map.toList mp
 
 availableContracts :: forall t env. Contract.PABContract t => PABAction t env [ContractSignatureResponse (Contract.ContractDef t)]

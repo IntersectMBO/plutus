@@ -275,7 +275,12 @@ waitForChange AuctionParams{apEndTime} client lastHighestBid = do
                                            -- use succ.succ instead of just a single succ if we want 'addressChangeRequest'
                                            -- to wait for the next slot to begin.
                                            -- I don't have the time to look into that atm though :(
-            AddressChangeResponse{acrTxns} <- addressChangeRequest AddressChangeRequest{acreqSlot=targetSlot, acreqAddress = address}
+            AddressChangeResponse{acrTxns} <- addressChangeRequest
+                AddressChangeRequest
+                { acreqSlotRangeFrom = targetSlot
+                , acreqSlotRangeTo = targetSlot
+                , acreqAddress = address
+                }
             case acrTxns of
                 [] -> pure (NoChange lastHighestBid)
                 _  -> currentState client >>= pure . maybe (AuctionIsOver lastHighestBid) OtherBid

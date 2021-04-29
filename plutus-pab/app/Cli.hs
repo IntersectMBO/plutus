@@ -255,7 +255,7 @@ runCliCommand _ _ _ _ StartSimulatorWebServer = do
 runCliCommand _ _ _ _ WriteDefaultConfig{_outputFile} =
     LM.defaultConfig >>= flip CM.exportConfiguration _outputFile
 
-toPABMsg :: Trace m (LM.AppMsg ContractExe) -> Trace m LM.PABLogMsg
+toPABMsg :: Trace m (LM.AppMsg ContractExe) -> Trace m (LM.PABLogMsg ContractExe)
 toPABMsg = LM.convertLog LM.PABMsg
 
 toChainIndexLog :: Trace m (LM.AppMsg ContractExe) -> Trace m LM.ChainIndexServerMsg

@@ -1,18 +1,16 @@
-module ContractHome.Types where
+module ContractHome.Types
+  ( State
+  , ContractStatus(..)
+  , PartitionedContracts
+  , Action(..)
+  ) where
 
 import Prelude
 import Analytics (class IsEvent, defaultEvent)
 import Contract.Types (State) as Contract
 import Data.Map (Map)
 import Data.Maybe (Maybe(..))
-import Marlowe.Semantics (Slot)
-import Types (ContractInstanceId)
-
-data ContractStatus
-  = Running
-  | Completed
-
-derive instance eqContractStatus :: Eq ContractStatus
+import Marlowe.PAB (ContractInstanceId)
 
 type State
   = { status :: ContractStatus
@@ -23,6 +21,12 @@ type State
     , selectedContractIndex :: Maybe ContractInstanceId
     }
 
+data ContractStatus
+  = Running
+  | Completed
+
+derive instance eqContractStatus :: Eq ContractStatus
+
 type PartitionedContracts
   = { completed :: Array Contract.State, running :: Array Contract.State }
 
@@ -30,10 +34,8 @@ data Action
   = OpenTemplateLibraryCard
   | SelectView ContractStatus
   | OpenContract ContractInstanceId
-  | AdvanceTimedOutContracts Slot
 
 instance actionIsEvent :: IsEvent Action where
   toEvent OpenTemplateLibraryCard = Just $ defaultEvent "OpenTemplateLibraryCard"
   toEvent (SelectView _) = Just $ defaultEvent "SelectView"
   toEvent (OpenContract _) = Just $ defaultEvent "OpenContract"
-  toEvent (AdvanceTimedOutContracts _) = Nothing

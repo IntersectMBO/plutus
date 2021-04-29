@@ -12,16 +12,6 @@
     config = ./machines/marlowe-dash.nix;
   };
 
-  "${tfinfo.marloweDashB.dns}" = mkMachine {
-    name = "marloweDashB";
-    config = ./machines/marlowe-dash.nix;
-  };
-
-  "${tfinfo.playgroundsB.dns}" = mkMachine {
-    name = "playgroundsA";
-    config = ./machines/playground.nix;
-  };
-
   "${tfinfo.playgroundsA.dns}" = mkMachine {
     name = "playgroundsB";
     config = ./machines/playground.nix;
@@ -29,11 +19,6 @@
 
   "${tfinfo.webghcA.dns}" = mkMachine {
     name = "webghcA";
-    config = ./machines/web-ghc.nix;
-  };
-
-  "${tfinfo.webghcB.dns}" = mkMachine {
-    name = "webghcB";
     config = ./machines/web-ghc.nix;
   };
 }

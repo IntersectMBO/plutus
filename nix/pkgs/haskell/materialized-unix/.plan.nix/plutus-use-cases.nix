@@ -24,7 +24,7 @@
       isLocal = true;
       detailLevel = "FullDetails";
       licenseFiles = [ "LICENSE" "NOTICE" ];
-      dataDir = "";
+      dataDir = ".";
       dataFiles = [];
       extraSrcFiles = [];
       extraTmpFiles = [];
@@ -63,6 +63,7 @@
           "Plutus/Contracts/Currency"
           "Plutus/Contracts/ErrorHandling"
           "Plutus/Contracts/Escrow"
+          "Plutus/Contracts/SimpleEscrow"
           "Plutus/Contracts/Future"
           "Plutus/Contracts/GameStateMachine"
           "Plutus/Contracts/Governance"
@@ -80,6 +81,7 @@
           "Plutus/Contracts/RPC"
           "Plutus/Contracts/Stablecoin"
           "Plutus/Contracts/Swap"
+          "Plutus/Contracts/Uniswap"
           "Plutus/Contracts/Vesting"
           ];
         hsSourceDirs = [ "src" ];
@@ -126,6 +128,7 @@
             "Spec/Currency"
             "Spec/ErrorHandling"
             "Spec/Escrow"
+            "Spec/SimpleEscrow"
             "Spec/Future"
             "Spec/GameStateMachine"
             "Spec/Governance"
@@ -183,6 +186,7 @@
             "Spec/Currency"
             "Spec/ErrorHandling"
             "Spec/Escrow"
+            "Spec/SimpleEscrow"
             "Spec/Future"
             "Spec/GameStateMachine"
             "Spec/Governance"

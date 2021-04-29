@@ -239,6 +239,7 @@ data ResumableResult w e i o a =
         , _requests        :: Requests o -- Handlers that the 'Resumable' has registered
         , _finalState      :: Either e (Maybe a) -- Error or final state of the 'Resumable' (if it has finished)
         , _logs            :: Seq (LogMessage Value) -- All log messages that have been produced by this instance.
+        , _lastLogs        :: Seq (LogMessage Value) -- Log messages produced in the last step
         , _checkpointStore :: CheckpointStore
         , _observableState :: w -- ^ Accumulated, observable state of the contract
         }
@@ -252,7 +253,6 @@ data SuspendedContract w e i o a =
     { _resumableResult :: ResumableResult w e i o a
     , _continuations   :: Maybe (MultiRequestContStatus i o (SuspendedContractEffects w e i) a)
     , _checkpointKey   :: CheckpointKey
-    , _lastLogs        :: Seq (LogMessage Value) -- ^ Log messages produced in the last step of this instance.
     }
 
 makeLenses ''SuspendedContract
@@ -302,12 +302,12 @@ mkResult oldW oldLogs (initialRes, cpKey, cpStore, w, newLogs) =
                 let getResult = \case { AResult a -> Just a; _ -> Nothing } in
                 fmap (>>= getResult) initialRes
             , _logs = oldLogs <> newLogs
+            , _lastLogs = newLogs
             , _checkpointStore = cpStore
             , _observableState = oldW <> w
             }
       , _continuations = either (const Nothing) id initialRes
       , _checkpointKey = cpKey
-      , _lastLogs = newLogs
       }
 
 runSuspContractEffects ::

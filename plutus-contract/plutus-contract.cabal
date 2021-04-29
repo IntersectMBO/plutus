@@ -149,29 +149,6 @@ library
             tasty-hunit -any,
             tasty-golden -any,
 
-test-suite contract-doctests
-    type: exitcode-stdio-1.0
-    -- Include 'doc' so Haskell.nix finds the symlink sources
-    hs-source-dirs:
-        doctest
-        doc
-    default-language: Haskell2010
-    main-is: Main.hs
-    ghc-options: -pgmL unlit -optL--ghc -optL--language=haskell -optL--from=asciidoc -Wno-unused-imports
-    build-tool-depends: unlit:unlit -any, doctest:doctest -any
-    other-modules:
-      ContractAPI
-    build-depends:
-      base >=4.9 && <5,
-      template-haskell >=2.13.0.0,
-      bytestring -any,
-      freer-extras -any,
-      plutus-core -any,
-      plutus-contract -any,
-      plutus-ledger -any,
-      prettyprinter -any,
-      containers -any
-
 test-suite plutus-contract-test
     -- TODO: put this back, turns out there were lots of warnings in the `plutus-emulator` tests...
     --import: lang

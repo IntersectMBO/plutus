@@ -1,4 +1,4 @@
-{ pkgs, gitignore-nix, haskell, webCommon, webCommonPlutus, webCommonPlayground, buildPursPackage, buildNodeModules, filterNpm }:
+{ pkgs, lib, gitignore-nix, haskell, webCommon, webCommonPlutus, webCommonPlayground, buildPursPackage, buildNodeModules, filterNpm }:
 let
   playground-exe = haskell.packages.plutus-playground-server.components.exes.plutus-playground-server;
 
@@ -13,7 +13,8 @@ let
     let
       ghcWithPlutus = haskell.project.ghcWithPackages (ps: [ ps.plutus-core ps.plutus-tx ps.plutus-contract ps.plutus-ledger ps.playground-common ]);
     in
-    pkgs.runCommand "plutus-playground-purescript" { } ''
+    # For some reason on darwin GHC will complain bout missing otool, I really don't know why
+    pkgs.runCommand "plutus-playground-purescript" { buildInputs = lib.optional pkgs.stdenv.isDarwin [ pkgs.darwin.cctools ]; } ''
       PATH=${ghcWithPlutus}/bin:$PATH
       mkdir $out
       ${playground-exe}/bin/plutus-playground-server psgenerator $out

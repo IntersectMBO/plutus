@@ -38,18 +38,6 @@ variable "marlowe_dash_public_zone" {
   default = "Z04600362E06M9P9U3Y12"
 }
 
-variable "monitoring_tld" {
-  default = "goguen.monitoring.iohkdev.io"
-}
-
-variable "monitoring_full_domain" {
-  default = ""
-}
-
-variable "monitoring_public_zone" {
-  default = "Z2Y3TWJMJ0Q6Z7"
-}
-
 variable "bastion_instance_type" {
   default = "t3.micro"
 }
@@ -64,10 +52,6 @@ variable "playgrounds_instance_type" {
 
 variable "marlowe_dash_instance_type" {
   default = "t3.small"
-}
-
-variable "prometheus_instance_type" {
-  default = "t2.large"
 }
 
 variable "vpc_cidr" {

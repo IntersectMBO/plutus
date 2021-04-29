@@ -25,7 +25,7 @@ else instance genericIsInstanceOfSum2 :: (GenericIsInstanceOf a b, GenericIsInst
   genericIsInstanceOf' a (Inl b) = genericIsInstanceOf' a b
   genericIsInstanceOf' a (Inr c) = genericIsInstanceOf' a c
 
-instance genericIsInstanceOfSlotParam :: (GenericIsInstanceOf a b) => GenericIsInstanceOf (Constructor "Constant" a) (Constructor "ConstantParam" b) where
+instance genericIsInstanceOfConstantParam :: (GenericIsInstanceOf a b) => GenericIsInstanceOf (Constructor "Constant" a) (Constructor "ConstantParam" b) where
   genericIsInstanceOf' (Constructor a) (Constructor b) = true
 else instance genericIsInstanceOfEqConstructor :: (GenericIsInstanceOf a b, IsSymbol nameA) => GenericIsInstanceOf (Constructor nameA a) (Constructor nameA b) where
   genericIsInstanceOf' (Constructor a) (Constructor b) = genericIsInstanceOf' a b
@@ -68,7 +68,8 @@ instance isInstanceOfArrayOfCase :: IsInstanceOf (Array S.Case) (Array EM.Case) 
 
 instance isInstanceOfSlotTimeout :: IsInstanceOf S.Slot EM.Timeout where
   isInstance _ (EM.SlotParam _) = true
-  isInstance (S.Slot x) (EM.Slot y) = x == y
+  -- we don't check x == y here because then we get false negatives when resolving relative slots to absolutes
+  isInstance (S.Slot x) (EM.Slot y) = true
 
 instance isInstanceOfContract :: IsInstanceOf S.Contract EM.Contract where
   isInstance a b = genericIsInstanceOf a b

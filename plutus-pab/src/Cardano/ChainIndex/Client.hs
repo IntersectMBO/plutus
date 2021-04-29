@@ -28,11 +28,11 @@ startWatching :: Address -> ClientM NoContent
 watchedAddresses :: ClientM AddressMap
 confirmedBlocks :: ClientM [Block]
 transactionConfirmed :: TxId -> ClientM Bool
-nextTx :: AddressChangeRequest -> ClientM AddressChangeResponse
-(healthCheck, startWatching, watchedAddresses, confirmedBlocks, transactionConfirmed, nextTx) =
-  (healthCheck_, startWatching_, watchedAddresses_, confirmedBlocks_, txConfirmed_, nextTx_)
+addressChanged :: AddressChangeRequest -> ClientM AddressChangeResponse
+(healthCheck, startWatching, watchedAddresses, confirmedBlocks, transactionConfirmed, addressChanged) =
+  (healthCheck_, startWatching_, watchedAddresses_, confirmedBlocks_, txConfirmed_, addressChanged_)
   where
-    healthCheck_ :<|> startWatching_ :<|> watchedAddresses_ :<|> confirmedBlocks_ :<|> txConfirmed_  :<|> nextTx_ =
+    healthCheck_ :<|> startWatching_ :<|> watchedAddresses_ :<|> confirmedBlocks_ :<|> txConfirmed_  :<|> addressChanged_ =
         client (Proxy @API)
 
 handleChainIndexClient ::
@@ -53,4 +53,4 @@ handleChainIndexClient event = do
         WatchedAddresses          -> runClient watchedAddresses
         ConfirmedBlocks           -> runClient confirmedBlocks
         TransactionConfirmed txid -> runClient (transactionConfirmed txid)
-        NextTx req                -> runClient (nextTx req)
+        AddressChanged req        -> runClient (addressChanged req)

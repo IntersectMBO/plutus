@@ -20,6 +20,7 @@ module Css
   , largeCard
   , iconCircle
   , fixedBottomRight
+  , funds
   ) where
 
 import Prelude
@@ -84,7 +85,7 @@ nestedLabel = [ "relative", "left-2", "top-2.5", "px-1", "bg-white", "text-xs", 
 
 --- cards
 overlay :: Boolean -> Array String
-overlay invisible = [ "overflow-hidden", "absolute", "top-0", "bottom-0", "left-0", "right-0", "z-20", "flex", "justify-center", "content-end", "md:content-center", "last:bg-overlay", "transition-opacity", "duration-400" ] <> toggleWhen invisible [ "opacity-0", "pointer-events-none" ] [ "opacity-1" ]
+overlay invisible = [ "overflow-hidden", "absolute", "inset-0", "z-20", "flex", "justify-center", "content-end", "md:content-center", "last:bg-overlay", "transition-opacity", "duration-400" ] <> toggleWhen invisible [ "opacity-0", "pointer-events-none" ] [ "opacity-1" ]
 
 card :: Boolean -> Array String
 card invisible = [ "overflow-hidden", "bg-white", "flex-grow", "max-w-sm", "mx-2", "shadow", "rounded-t", "md:rounded-b", "transform", "transition-transform", "duration-400", "self-end", "md:self-center" ] <> applyWhen invisible [ "translate-y-20" ]
@@ -98,3 +99,6 @@ iconCircle enabled = [ "inline-flex", "items-center", "justify-center", "w-8", "
 
 fixedBottomRight :: Array String
 fixedBottomRight = [ "absolute", "bottom-4", "right-4", "md:right-5pc" ]
+
+funds :: Array String
+funds = [ "text-2xl", "text-purple", "font-semibold" ]

@@ -55,10 +55,9 @@ import           Data.Text                            (Text)
 import qualified Data.Text                            as Text
 import           Data.Void                            (Void, absurd)
 import           GHC.Generics                         (Generic)
-
 import           Ledger                               (Slot, Value)
 import qualified Ledger
-import           Ledger.AddressMap                    (UtxoMap)
+import           Ledger.AddressMap                    (UtxoMap, outputsMapFromTxForAddress)
 import           Ledger.Constraints                   (ScriptLookups, TxConstraints (..), mustPayToTheScript)
 import           Ledger.Constraints.OffChain          (UnbalancedTx)
 import qualified Ledger.Constraints.OffChain          as Constraints
@@ -202,7 +201,8 @@ data WaitingResult a
     = Timeout Slot
     | ContractEnded
     | WaitingResult a
-  deriving (Show)
+  deriving (Show,Generic)
+  deriving anyclass (ToJSON, FromJSON)
 
 
 -- | Wait for the on-chain state of the state machine instance to change until timeoutSlot,
@@ -221,13 +221,12 @@ waitForUpdateUntil ::
     -> Contract w schema e (WaitingResult state)
 waitForUpdateUntil StateMachineClient{scInstance, scChooser} timeoutSlot = do
     let addr = Scripts.scriptAddress $ validatorInstance scInstance
-        outputsMap :: Ledger.Tx -> Map.Map TxOutRef TxOutTx
-        outputsMap t =
-                fmap (\txout -> TxOutTx{txOutTxTx=t, txOutTxOut = txout})
-                $ Map.filter ((==) addr . Tx.txOutAddress)
-                $ Tx.unspentOutputsTx t
     let go sl = do
-            txns <- acrTxns <$> addressChangeRequest AddressChangeRequest{acreqSlot = sl, acreqAddress=addr}
+            txns <- acrTxns <$> addressChangeRequest AddressChangeRequest
+                { acreqSlotRangeFrom = sl
+                , acreqSlotRangeTo = sl
+                , acreqAddress = addr
+                }
             if null txns && sl < timeoutSlot
                 then go (succ sl)
                 else pure txns
@@ -235,7 +234,7 @@ waitForUpdateUntil StateMachineClient{scInstance, scChooser} timeoutSlot = do
     initial <- currentSlot
     txns <- go initial
     slot <- currentSlot -- current slot, can be after timeout
-    let states = txns >>= getStates scInstance . outputsMap
+    let states = txns >>= getStates scInstance . outputsMapFromTxForAddress addr
     case states of
         [] | slot < timeoutSlot -> pure ContractEnded
         [] | slot >= timeoutSlot -> pure $ Timeout timeoutSlot
@@ -259,13 +258,8 @@ waitForUpdate ::
     -> Contract w schema e (Maybe (OnChainState state i))
 waitForUpdate StateMachineClient{scInstance, scChooser} = do
     let addr = Scripts.scriptAddress $ validatorInstance scInstance
-        outputsMap :: Ledger.Tx -> Map TxOutRef TxOutTx
-        outputsMap t =
-                fmap (\txout -> TxOutTx{txOutTxTx=t, txOutTxOut = txout})
-                $ Map.filter ((==) addr . Tx.txOutAddress)
-                $ Tx.unspentOutputsTx t
     txns <- nextTransactionsAt addr
-    let states = txns >>= getStates scInstance . outputsMap
+    let states = txns >>= getStates scInstance . outputsMapFromTxForAddress addr
     case states of
         [] -> pure Nothing
         xs -> either (throwing _SMContractError) (pure . Just) (scChooser xs)

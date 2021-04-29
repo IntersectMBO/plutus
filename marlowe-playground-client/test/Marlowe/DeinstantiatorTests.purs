@@ -27,10 +27,10 @@ all =
                 ( TemplateContent
                     { slotContent:
                         Map.fromFoldable
-                          [ "Buyer's deposit timeout" /\ fromInt 10
-                          , "Buyer's dispute timeout" /\ fromInt 50
-                          , "Seller's response timeout" /\ fromInt 100
-                          , "Timeout for arbitrage" /\ fromInt 1000
+                          [ "Buyer's deposit timeout" /\ fromInt 60
+                          , "Buyer's dispute timeout" /\ fromInt 180
+                          , "Seller's response timeout" /\ fromInt 240
+                          , "Timeout for arbitrage" /\ fromInt 360
                           ]
                     , valueContent:
                         Map.fromFoldable
@@ -51,11 +51,11 @@ all =
                 ( TemplateContent
                     { slotContent:
                         Map.fromFoldable
-                          [ "Collateral deposit by seller timeout" /\ fromInt 10
-                          , "Deposit of collateral by buyer timeout" /\ fromInt 50
-                          , "Deposit of price by buyer timeout" /\ fromInt 100
-                          , "Dispute by buyer timeout" /\ fromInt 1000
-                          , "Seller's response timeout" /\ fromInt 2000
+                          [ "Collateral deposit by seller timeout" /\ fromInt 60
+                          , "Deposit of collateral by buyer timeout" /\ fromInt 120
+                          , "Deposit of price by buyer timeout" /\ fromInt 180
+                          , "Dispute by buyer timeout" /\ fromInt 300
+                          , "Seller's response timeout" /\ fromInt 360
                           ]
                     , valueContent:
                         Map.fromFoldable
@@ -77,8 +77,8 @@ all =
                 ( TemplateContent
                     { slotContent:
                         Map.fromFoldable
-                          [ "Initial exchange deadline" /\ fromInt 10
-                          , "Maturity exchange deadline" /\ fromInt 20
+                          [ "Initial exchange deadline" /\ fromInt 60
+                          , "Maturity exchange deadline" /\ fromInt 150
                           ]
                     , valueContent:
                         Map.fromFoldable

@@ -28,6 +28,7 @@ data PartiallyDecodedResponse v =
         { newState        :: Contract.State Value
         , hooks           :: [Contract.Request v]
         , logs            :: [LogMessage Value]
+        , lastLogs        :: [LogMessage Value] -- The log messages returned by the last step ('lastLogs' is a suffix of 'logs')
         , err             :: Maybe Value
         , observableState :: Value
         }
@@ -36,12 +37,12 @@ data PartiallyDecodedResponse v =
 
 
 toResp :: PartiallyDecodedResponse v -> Contract.ContractResponse Value Value Value v
-toResp PartiallyDecodedResponse{newState, hooks, logs, err, observableState} =
-    Contract.ContractResponse{Contract.newState = newState, Contract.hooks=hooks, Contract.logs=logs, Contract.err=err, Contract.observableState=observableState}
+toResp PartiallyDecodedResponse{newState, hooks, logs, err, observableState, lastLogs} =
+    Contract.ContractResponse{Contract.newState = newState, Contract.hooks=hooks, Contract.logs=logs, Contract.err=err, Contract.observableState=observableState, Contract.lastLogs=lastLogs}
 
 fromResp :: Contract.ContractResponse Value Value Value v -> PartiallyDecodedResponse v
-fromResp Contract.ContractResponse{Contract.newState, Contract.hooks, Contract.logs, Contract.err, Contract.observableState} =
-    PartiallyDecodedResponse{newState, hooks, logs, err, observableState}
+fromResp Contract.ContractResponse{Contract.newState, Contract.hooks, Contract.logs, Contract.err, Contract.observableState, Contract.lastLogs} =
+    PartiallyDecodedResponse{newState, hooks, logs, err, observableState, lastLogs}
 
 instance Pretty v => Pretty (PartiallyDecodedResponse v) where
     pretty PartiallyDecodedResponse {newState, hooks} =

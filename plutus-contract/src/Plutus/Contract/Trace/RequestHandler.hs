@@ -23,7 +23,7 @@ module Plutus.Contract.Trace.RequestHandler(
     , handlePendingTransactions
     , handleUtxoQueries
     , handleTxConfirmedQueries
-    , handleNextTxAtQueries
+    , handleAddressChangedAtQueries
     , handleOwnInstanceIdQueries
     , handleContractNotifications
     ) where
@@ -60,7 +60,8 @@ import           Wallet.Effects                           (ChainIndexEffect, Con
 import qualified Wallet.Effects
 import           Wallet.Emulator.LogMessages              (RequestHandlerLogMsg (..), TxBalanceMsg)
 import           Wallet.Types                             (AddressChangeRequest (..), AddressChangeResponse,
-                                                           ContractInstanceId, Notification, NotificationError)
+                                                           ContractInstanceId, Notification, NotificationError,
+                                                           slotRange, targetSlot)
 
 
 -- | Request handlers that can choose whether to handle an effect (using
@@ -119,11 +120,11 @@ handleSlotNotifications ::
     )
     => RequestHandler effs Slot Slot
 handleSlotNotifications =
-    RequestHandler $ \targetSlot ->
+    RequestHandler $ \targetSlot_ ->
         surroundDebug @Text "handleSlotNotifications" $ do
             currentSlot <- Wallet.Effects.walletSlot
-            logDebug $ SlotNoficationTargetVsCurrent targetSlot currentSlot
-            guard (currentSlot >= targetSlot)
+            logDebug $ SlotNoficationTargetVsCurrent targetSlot_ currentSlot
+            guard (currentSlot >= targetSlot_)
             pure currentSlot
 
 handlePendingTransactions ::
@@ -172,7 +173,7 @@ handleTxConfirmedQueries = RequestHandler $ \txid ->
         guard conf
         pure (TxConfirmed txid)
 
-handleNextTxAtQueries ::
+handleAddressChangedAtQueries ::
     forall effs.
     ( Member (LogObserve (LogMessage Text)) effs
     , Member (LogMsg RequestHandlerLogMsg) effs
@@ -180,18 +181,18 @@ handleNextTxAtQueries ::
     , Member ChainIndexEffect effs
     )
     => RequestHandler effs AddressChangeRequest AddressChangeResponse
-handleNextTxAtQueries = RequestHandler $ \req ->
-    surroundDebug @Text "handleNextTxAtQueries" $ do
+handleAddressChangedAtQueries = RequestHandler $ \req ->
+    surroundDebug @Text "handleAddressChangedAtQueries" $ do
         current <- Wallet.Effects.walletSlot
-        let target = acreqSlot req
-        logDebug $ HandleNextTxAt current target
+        let target = targetSlot req
+        logDebug $ HandleAddressChangedAt current (slotRange req)
         -- If we ask the chain index for transactions that were confirmed in
         -- the current slot, we always get an empty list, because the chain
         -- index only learns about those transactions at the beginning of the
         -- next slot. So we need to make sure that we are past the current
         -- slot.
         guard (current > target)
-        Wallet.Effects.nextTx req
+        Wallet.Effects.addressChanged req
 
 handleOwnInstanceIdQueries ::
     forall effs.

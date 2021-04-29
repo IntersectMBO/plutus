@@ -27,17 +27,24 @@ import Effect.Now (now)
 import Marlowe.Semantics (Slot(..))
 import Partial.Unsafe (unsafePartial)
 
--- This was the slot number when shelley was released
--- FIXME: check with Alex the exact number
+-- TODO: When we are integrated with the real Cardano node, we will need to
+-- know the datetime of one slot so that we can convert slots to and from
+-- datetimes. Any slot will do, but to avoid arbitrariness it would be nice
+-- to know the exact datetime of the Shelley launch, and the slot number at
+-- that moment. In the meantime, these are our best guesses based on some
+-- quick Googling.  :)
 shelleyInitialSlot :: Slot
 shelleyInitialSlot = Slot $ fromInt 4492800
 
--- This was the exact DateTime when shelley was released
--- FIXME: check with Alex if the date and time are correct
+-- Note [Datetime to slot]: The `plutus-pab.yaml` config file can specify
+-- the datetime of slot zero. To synchronise with the frontend, this should
+-- be set to `shelleyLaunchDate - (shelleyInitialSlot * 1000)` (because there
+-- is 1 slot per second). On the current estimates this comes to 1591566291000,
+-- which is 2020-06-07 21:44:51 UTC.
 shelleyLaunchDate :: DateTime
 shelleyLaunchDate =
   let
-    -- Wednesday, July 29, 2020 21:44:51 UTC expressed as unix epoch
+    -- 2020-07-29 21:44:51 UTC expressed as unix epoch
     epoch = Milliseconds 1596059091000.0
   in
     unsafePartial $ fromJust $ toDateTime <$> instant epoch
