@@ -19,17 +19,20 @@ import Effect.Aff.Class (class MonadAff)
 import Env (Env)
 import Foreign.Generic (encodeJSON)
 import Halogen (HalogenM, liftEffect)
-import LocalStorage (setItem)
+import LocalStorage (setItem, removeItem)
 import MainFrame.Types (ChildSlots, Msg)
 import MainFrame.Types (Action(..)) as MainFrame
 import Pickup.Lenses (_card, _pickupWalletString, _walletDetails, _walletLibrary)
 import Pickup.Types (Action(..), Card(..), State)
-import StaticData (walletLibraryLocalStorageKey)
+import StaticData (walletLibraryLocalStorageKey, walletDetailsLocalStorageKey)
 import Toast.Types (ajaxErrorToast)
 import WalletData.Lenses (_companionContractId, _walletNickname)
 import WalletData.State (defaultWalletDetails)
 import WalletData.Types (WalletLibrary)
 import WalletData.Validation (parseContractInstanceId)
+import Web.HTML (window)
+import Web.HTML.Location (reload)
+import Web.HTML.Window (location)
 
 -- see note [dummyState] in MainFrame.State
 dummyState :: State
@@ -99,3 +102,10 @@ handleAction PickupWallet = do
   walletLibrary <- use _walletLibrary
   liftEffect $ setItem walletLibraryLocalStorageKey $ encodeJSON walletLibrary
   callMainFrameAction $ MainFrame.EnterPlayState walletLibrary walletDetails
+
+handleAction ClearLocalStorage = do
+  liftEffect $ removeItem walletLibraryLocalStorageKey
+  liftEffect $ removeItem walletDetailsLocalStorageKey
+  window_ <- liftEffect window
+  location_ <- liftEffect $ location window_
+  liftEffect $ reload location_
