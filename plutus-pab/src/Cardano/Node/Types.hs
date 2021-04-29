@@ -51,6 +51,7 @@ module Cardano.Node.Types
 
 import           Control.Lens                   (makeLenses, view)
 import           Control.Monad.Freer.TH         (makeEffect)
+import           Control.Monad.IO.Class         (MonadIO)
 import           Data.Aeson                     (FromJSON, ToJSON)
 import qualified Data.Map                       as Map
 import           Data.Text.Prettyprint.Doc      (Pretty (..), pretty, viaShow, (<+>))
@@ -64,6 +65,7 @@ import           Servant.Client                 (BaseUrl)
 
 import           Cardano.BM.Data.Tracer         (ToObject (..))
 import           Cardano.BM.Data.Tracer.Extras  (Tagged (..), mkObjectStr)
+import           Cardano.Chain                  (ChainState, fromEmulatorChainState)
 import qualified Cardano.Protocol.Socket.Client as Client
 import           Cardano.Protocol.Socket.Type   (SlotConfig (..), currentSlot, slotNumber)
 import           Control.Monad.Freer.Extras.Log (LogMessage, LogMsg (..))
@@ -72,7 +74,7 @@ import           Control.Monad.Freer.State      (State)
 import qualified Plutus.Contract.Trace          as Trace
 import           Wallet.Emulator                (Wallet)
 import qualified Wallet.Emulator                as EM
-import           Wallet.Emulator.Chain          (ChainControlEffect, ChainEffect, ChainEvent, ChainState)
+import           Wallet.Emulator.Chain          (ChainControlEffect, ChainEffect, ChainEvent)
 import qualified Wallet.Emulator.MultiAgent     as MultiAgent
 
 import           Plutus.PAB.Arbitrary           ()
@@ -196,17 +198,18 @@ makeLenses 'AppState
 
 -- | 'AppState' with an initial transaction that pays some Ada to
 --   the wallets.
-initialAppState :: [Wallet] -> AppState
-initialAppState wallets =
-    AppState
-        { _chainState = initialChainState (Trace.defaultDistFor wallets)
+initialAppState :: MonadIO m => [Wallet] -> m AppState
+initialAppState wallets = do
+    initialState <- initialChainState (Trace.defaultDistFor wallets)
+    pure $ AppState
+        { _chainState = initialState
         , _eventHistory = mempty
         }
 
 -- | 'ChainState' with initial values
-initialChainState :: Trace.InitialDistribution -> ChainState
+initialChainState :: MonadIO m => Trace.InitialDistribution -> m ChainState
 initialChainState =
-    view EM.chainState .
+    fromEmulatorChainState . view EM.chainState .
     MultiAgent.emulatorStateInitialDist . Map.mapKeys EM.walletPubKey
 
 -- Effects -------------------------------------------------------------------------------------------------------------

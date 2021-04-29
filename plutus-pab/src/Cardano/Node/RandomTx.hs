@@ -28,6 +28,8 @@ import qualified Data.Set                       as Set
 import qualified Hedgehog.Gen                   as Gen
 import           System.Random.MWC              as MWC
 
+import           Cardano.Chain                  (ChainState)
+import qualified Cardano.Chain                  as CC
 import           Cardano.Node.Types             (GenRandomTx (..), MockServerLogMsg (..), genRandomTx)
 import           Control.Monad.Freer.Extras.Log
 import qualified Ledger.Ada                     as Ada
@@ -38,8 +40,6 @@ import qualified Ledger.Generators              as Generators
 import           Ledger.Index                   (UtxoIndex (..))
 import           Ledger.Tx                      (Tx, TxOut (..))
 import qualified Ledger.Tx                      as Tx
-import qualified Wallet.Emulator                as EM
-import           Wallet.Emulator.Chain          (ChainState)
 
 -- $randomTx
 -- Generate a random, valid transaction that moves some ada
@@ -61,7 +61,7 @@ runGenRandomTx =
         Eff.sendM $
           liftIO $ do
             gen <- MWC.createSystemRandom
-            generateTx gen (view EM.index chainState)
+            generateTx gen (view CC.index chainState)
 
 {- | This function will generate a random transaction, given a `GenIO` and a
      `ChainState`.
