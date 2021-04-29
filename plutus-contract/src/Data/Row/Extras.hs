@@ -13,14 +13,14 @@ module Data.Row.Extras(
       JsonRec(..)
     , JsonVar(..)
     , namedBranchFromJSON
-    , type (.\/)
+    , type (.\\)
     ) where
 
 import           Data.Aeson        (FromJSON, ToJSON, (.:), (.=))
 import qualified Data.Aeson        as Aeson
 import qualified Data.Aeson.Types  as Aeson
-import           Data.Row          hiding (type (.\/))
-import           Data.Row.Internal hiding (type (.\/))
+import           Data.Row          hiding (type (.\\))
+import           Data.Row.Internal hiding (type (.\\))
 import qualified Data.Row.Records  as Records
 import qualified Data.Row.Variants as Variants
 import           Data.Text         (Text)
@@ -56,29 +56,26 @@ instance Forall s ToJSON => ToJSON (JsonRec s) where
 instance (AllUniqueLabels s, Forall s FromJSON) => FromJSON (JsonRec s) where
   parseJSON vl = JsonRec <$> Records.fromLabelsA @FromJSON @Aeson.Parser @s  (\lbl -> Aeson.withObject "Rec" (\obj -> obj .: (Text.pack $ show lbl) >>= Aeson.parseJSON) vl)
 
--- | Fast union. The implementation in row-types is exponential in time and memory in the number of
+-- | Fast diff. The implementation in row-types is exponential in time and memory in the number of
 --   overlapping rows, due to limitations in ghc's handling of type families. This version is much
 --   faster.
-type family (l :: Row k) .\/ (r :: Row k) where
-  'R l .\/ 'R r = 'R (MinJoinR l r)
+infixl 6 .\\ {- This comment needed to appease CPP -}
+-- | Type level Row difference.  That is, @l '.\\' r@ is the row remaining after
+-- removing any matching elements of @r@ from @l@.
+type family (l :: Row k) .\\ (r :: Row k) :: Row k where
+  'R l .\\ 'R r = 'R (Diff l r)
 
-type family MinJoinR (l :: [LT k]) (r :: [LT k]) where
-  MinJoinR '[] r = r
-  MinJoinR l '[] = l
-  MinJoinR (h ':-> a ': tl)   (h ':-> a ': tr) =
-      (h ':-> a ': MinJoinR tl tr)
-  MinJoinR (h ':-> a ': tl)   (h ':-> b ': tr) =
-    TypeError ('TL.Text "The label " ':<>: 'ShowType h ':<>: 'TL.Text " has conflicting assignments."
-         ':$$: 'TL.Text "Its type is both " ':<>: 'ShowType a ':<>: 'TL.Text " and " ':<>: 'ShowType b ':<>: 'TL.Text ".")
-  MinJoinR (hl ':-> al ': tl) (hr ':-> ar ': tr) =
-    -- Here the row-types implementation uses a type-level if-then-else, which for some reason GHC
-    -- really doesn't like. Specializing it to the particular branches we want makes it not blow up.
-    MinJoinRCont (CmpSymbol hl hr) hl al tl hr ar tr
+type family Diff (l :: [LT k]) (r :: [LT k]) where
+  Diff '[] r = '[]
+  Diff l '[] = l
+  Diff (l ':-> al ': tl) (l ':-> al ': tr) = Diff tl tr
+  Diff (hl ':-> al ': tl) (hr ':-> ar ': tr) =
+    DiffCont (CmpSymbol hl hr) hl al tl hr ar tr
 
-type family MinJoinRCont (o :: Ordering)
-                         (hl :: Symbol) (al :: k) (tl :: [LT k])
-                         (hr :: Symbol) (ar :: k) (tr :: [LT k]) where
-    MinJoinRCont 'LT hl al tl hr ar tr =
-      (hl ':-> al ': MinJoinR tl (hr ':-> ar ': tr))
-    MinJoinRCont _ hl al tl hr ar tr =
-      (hr ':-> ar ': MinJoinR (hl ':-> al ': tl) tr)
+type family DiffCont (o :: Ordering)
+                     (hl :: Symbol) (al :: k) (tl :: [LT k])
+                     (hr :: Symbol) (ar :: k) (tr :: [LT k]) where
+    DiffCont 'LT hl al tl hr ar tr =
+      (hl ':-> al ': Diff tl (hr ':-> ar ': tr))
+    DiffCont _ hl al tl hr ar tr =
+      (Diff (hl ':-> al ': tl) tr)
