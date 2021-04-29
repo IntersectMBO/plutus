@@ -892,16 +892,12 @@ selectView view = do
   case view of
     HomePage -> modify_ (set _workflow Nothing <<< set _hasUnsavedChanges false)
     Simulation -> do
-      Simulation.editorResize
       Simulation.editorSetTheme
     MarloweEditor -> do
-      MarloweEditor.editorResize
       MarloweEditor.editorSetTheme
     HaskellEditor -> do
-      HaskellEditor.editorResize
       HaskellEditor.editorSetTheme
     JSEditor -> do
-      void $ query _jsEditorSlot unit (Monaco.Resize unit)
       void $ query _jsEditorSlot unit (Monaco.SetTheme HM.daylightTheme.name unit)
     BlocklyEditor -> pure unit
     WalletEmulator -> pure unit

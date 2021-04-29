@@ -1,8 +1,6 @@
 module HaskellEditor.State
   ( handleAction
   , editorGetValue
-  -- TODO: This should probably be exposed by an action
-  , editorResize
   , editorSetTheme
   ) where
 
@@ -107,7 +105,6 @@ handleAction (BottomPanelAction (BottomPanel.PanelAction action)) = handleAction
 
 handleAction (BottomPanelAction action) = do
   toBottomPanel (BottomPanel.handleAction action)
-  editorResize
 
 handleAction SendResultToSimulator = pure unit
 
@@ -158,9 +155,6 @@ runAjax action = RemoteData.fromEither <$> runExceptT action
 
 editorSetTheme :: forall state action msg m. HalogenM state action ChildSlots msg m Unit
 editorSetTheme = void $ query _haskellEditorSlot unit (Monaco.SetTheme HM.daylightTheme.name unit)
-
-editorResize :: forall state action msg m. HalogenM state action ChildSlots msg m Unit
-editorResize = void $ query _haskellEditorSlot unit (Monaco.Resize unit)
 
 editorSetValue :: forall state action msg m. String -> HalogenM state action ChildSlots msg m Unit
 editorSetValue contents = void $ query _haskellEditorSlot unit (Monaco.SetText contents unit)
