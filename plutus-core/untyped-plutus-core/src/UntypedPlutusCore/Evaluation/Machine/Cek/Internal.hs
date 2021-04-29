@@ -27,6 +27,8 @@ module UntypedPlutusCore.Evaluation.Machine.Cek.Internal
     , CekBudgetSpender(..)
     , ExBudgetInfo(..)
     , ExBudgetMode(..)
+    , CekCosts
+    , defaultCekCosts
     , CekM
     , liftCekST
     , ErrorWithCause(..)
@@ -132,7 +134,7 @@ data ExBudgetCategory fun
     | BError
     | BBuiltin         -- Cost of evaluating a Builtin AST node
     | BBuiltinApp fun  -- Cost of evaluating a fully applied builtin function
-    | BAST
+    | BStartup
     deriving stock (Show, Eq, Ord, Generic)
     deriving anyclass (NFData, Hashable)
 instance Show fun => Pretty (ExBudgetCategory fun) where
@@ -443,19 +445,38 @@ lookupVarName varName varEnv = do
 -- us to count the number of times each node type is evaluated.  We may wish to
 -- change this later if it turns out that different node types have
 -- significantly different costs.
-astNodeCost :: ExBudget
-astNodeCost = ExBudget 1 0
+unitCost :: ExBudget
+unitCost = ExBudget 1 0
+
+data CekCosts =
+    CekCosts {
+      cekStartupCost :: ExBudget
+    , cekVarCost     :: ExBudget
+    , cekConstCost   :: ExBudget
+    , cekLamCost     :: ExBudget
+    , cekDelayCost   :: ExBudget
+    , cekForceCost   :: ExBudget
+    , cekApplyCost   :: ExBudget
+    , cekBuiltinCost :: ExBudget
+    -- ^ Just the cost of evaluating a Builtin node, not the builtin itself.
+    -- There's no entry for Error since we'll be exiting anyway; also, what would
+    -- happen if calling 'Error' caused the budget to be exceeded?
+    }
+
+defaultCekCosts :: CekCosts
+defaultCekCosts = CekCosts unitCost unitCost unitCost unitCost unitCost unitCost unitCost unitCost
 
 -- See Note [Compilation peculiarities].
 -- | The entering point to the CEK machine's engine.
 enterComputeCek
     :: forall cost uni fun s
     . (Ix fun, PrettyUni uni fun)
-    => Context uni fun
+    => CekCosts
+    -> Context uni fun
     -> CekValEnv uni fun
     -> TermWithMem uni fun
     -> CekM cost uni fun s (Term Name uni fun ())
-enterComputeCek = computeCek where
+enterComputeCek costs = computeCek where
     -- | The computing part of the CEK machine.
     -- Either
     -- 1. adds a frame to the context and calls 'computeCek' ('Force', 'Apply')
@@ -469,37 +490,36 @@ enterComputeCek = computeCek where
         -> CekM cost uni fun s (Term Name uni fun ())
     -- s ; ρ ▻ {L A}  ↦ s , {_ A} ; ρ ▻ L
     computeCek ctx env (Var _ varName) = do
-        spendBudget BVar astNodeCost
+        spendBudget BVar (cekVarCost costs)
         val <- lookupVarName varName env
         returnCek ctx val
     computeCek ctx _ (Constant ex val) = do
-        spendBudget BConst astNodeCost
+        spendBudget BConst (cekConstCost costs)
         returnCek ctx (VCon ex val)
     computeCek ctx env (LamAbs ex name body) = do
-        spendBudget BLamAbs astNodeCost
+        spendBudget BLamAbs (cekLamCost costs)
         returnCek ctx (VLamAbs ex name body env)
     computeCek ctx env (Delay ex body) = do
-        spendBudget BDelay astNodeCost
+        spendBudget BDelay (cekDelayCost costs)
         returnCek ctx (VDelay ex body env)
     -- s ; ρ ▻ lam x L  ↦  s ◅ lam x (L , ρ)
     computeCek ctx env (Force _ body) = do
-        spendBudget BForce astNodeCost
+        spendBudget BForce (cekForceCost costs)
         computeCek (FrameForce : ctx) env body
     -- s ; ρ ▻ [L M]  ↦  s , [_ (M,ρ)]  ; ρ ▻ L
     computeCek ctx env (Apply _ fun arg) = do
-        spendBudget BApply astNodeCost
+        spendBudget BApply (cekApplyCost costs)
         computeCek (FrameApplyArg env arg : ctx) env fun
     -- s ; ρ ▻ abs α L  ↦  s ◅ abs α (L , ρ)
     -- s ; ρ ▻ con c  ↦  s ◅ con c
     -- s ; ρ ▻ builtin bn  ↦  s ◅ builtin bn arity arity [] [] ρ
     computeCek ctx _ (Builtin ex bn) = do
-        spendBudget BBuiltin astNodeCost
+        spendBudget BBuiltin (cekBuiltinCost costs)
         rt <- asks cekEnvRuntime
         BuiltinRuntime _ arity _ _ <- lookupBuiltinExc (Proxy @(CekEvaluationException uni fun)) bn rt
         returnCek ctx (VBuiltin ex bn arity arity 0 [])
     -- s ; ρ ▻ error A  ↦  <> A
-    computeCek _ _ (Error _) = do
-        spendBudget BError astNodeCost
+    computeCek _ _ (Error _) =
         throwingCek _EvaluationFailure ()
 
     {- | The returning phase of the CEK machine.
@@ -618,15 +638,16 @@ enterComputeCek = computeCek where
 -- | Evaluate a term using the CEK machine and keep track of costing, logging is optional.
 runCek
     :: ( uni `Everywhere` ExMemoryUsage, Ix fun, PrettyUni uni fun)
-    => BuiltinsRuntime fun (CekValue uni fun)
+    => CekCosts
+    -> BuiltinsRuntime fun (CekValue uni fun)
     -> ExBudgetMode cost uni fun
     -> Bool
     -> Term Name uni fun ()
     -> (Either (CekEvaluationException uni fun) (Term Name uni fun ()), cost, [String])
-runCek runtime mode emitting term =
+runCek costs runtime mode emitting term =
     runCekM runtime mode emitting $ do
-        spendBudget BAST (ExBudget 0 (termAnn memTerm))
-        enterComputeCek [] mempty memTerm
+        spendBudget BStartup (cekStartupCost costs)
+        enterComputeCek costs [] mempty memTerm
   where
     memTerm = withMemory term
     {- This is a temporary workaround for a bug where every AST node was being

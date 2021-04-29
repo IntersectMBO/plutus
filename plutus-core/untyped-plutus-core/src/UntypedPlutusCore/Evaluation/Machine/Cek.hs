@@ -70,7 +70,7 @@ runCekNoEmit
     -> Term Name uni fun ()
     -> (Either (CekEvaluationException uni fun) (Term Name uni fun ()), cost)
 runCekNoEmit runtime mode term =
-    case runCek runtime mode False term of
+    case runCek defaultCekCosts runtime mode False term of
         (errOrRes, cost', _) -> (errOrRes, cost')
 
 -- | Unsafely evaluate a term using the CEK machine with logging disabled and keep track of costing.
@@ -94,7 +94,7 @@ evaluateCek
     -> Term Name uni fun ()
     -> (Either (CekEvaluationException uni fun) (Term Name uni fun ()), [String])
 evaluateCek runtime term =
-    case runCek runtime restrictingEnormous True term of
+    case runCek defaultCekCosts runtime restrictingEnormous True term of
         (errOrRes, _, logs) -> (errOrRes, logs)
 
 -- | Evaluate a term using the CEK machine with logging disabled.

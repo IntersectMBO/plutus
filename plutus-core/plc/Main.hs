@@ -759,7 +759,7 @@ printBudgetStateTally (Cek.CekExTally costs) = do
   putStrLn $ "Error      " ++ pbudget Cek.BError
   putStrLn $ "Builtin    " ++ pbudget Cek.BBuiltin
   putStrLn ""
-  putStrLn $ "AST        " ++ pbudget Cek.BAST
+  putStrLn $ "Startup    " ++ pbudget Cek.BStartup
   putStrLn $ "compute    " ++ printf "%-20s" (budgetToString totalComputeSteps)
   putStrLn $ "BuiltinApp " ++ budgetToString (mconcat (map snd builtinsAndCosts))
   putStrLn ""
