@@ -49,6 +49,7 @@ module Plutus.PAB.Core
     , reportContractState
     , activateContract
     , callEndpointOnInstance
+    , callEndpointOnInstance'
     , payToPublicKey
     -- * Agent threads
     , ContractInstanceEffects
@@ -208,7 +209,8 @@ activateContract w def = do
     handleAgentThread w
         $ ContractInstance.activateContractSTM @t @IO @(ContractInstanceEffects t env '[IO]) handler args
 
--- | Call a named endpoint on a contract instance
+-- | Call a named endpoint on a contract instance. Waits if the endpoint is not
+--   available.
 callEndpointOnInstance ::
     forall t env a.
     ( JSON.ToJSON a
@@ -223,6 +225,22 @@ callEndpointOnInstance instanceID ep value = do
     liftIO
         $ STM.atomically
         $ Instances.callEndpointOnInstanceTimeout timeoutVar state (EndpointDescription ep) (JSON.toJSON value) instanceID
+
+-- | Call a named endpoint on a contract instance. Fails immediately if the
+--   endpoint is not available.
+callEndpointOnInstance' ::
+    forall t env a.
+    ( JSON.ToJSON a
+    )
+    => ContractInstanceId
+    -> String
+    -> a
+    -> PABAction t env (Maybe NotificationError)
+callEndpointOnInstance' instanceID ep value = do
+    state <- asks @(PABEnvironment t env) instancesState
+    liftIO
+        $ STM.atomically
+        $ Instances.callEndpointOnInstance state (EndpointDescription ep) (JSON.toJSON value) instanceID
 
 -- | Make a payment to a public key
 payToPublicKey :: Wallet -> PubKey -> Value -> PABAction t env Tx

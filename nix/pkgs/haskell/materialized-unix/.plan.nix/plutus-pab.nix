@@ -237,6 +237,7 @@
             (hsPkgs."base" or (errorHandler.buildDepError "base"))
             (hsPkgs."aeson" or (errorHandler.buildDepError "aeson"))
             (hsPkgs."containers" or (errorHandler.buildDepError "containers"))
+            (hsPkgs."freer-extras" or (errorHandler.buildDepError "freer-extras"))
             (hsPkgs."freer-simple" or (errorHandler.buildDepError "freer-simple"))
             (hsPkgs."plutus-contract" or (errorHandler.buildDepError "plutus-contract"))
             (hsPkgs."plutus-ledger" or (errorHandler.buildDepError "plutus-ledger"))

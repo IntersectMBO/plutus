@@ -105,7 +105,7 @@ processAwaitSlotRequestsSTM ::
     => RequestHandler effs ContractPABRequest (STM ContractResponse)
 processAwaitSlotRequestsSTM =
     maybeToHandler (fmap unWaitingForSlot . extract Events.Contract._AwaitSlotRequest)
-    >>> (RequestHandler $ \targetSlot -> fmap AwaitSlotResponse . InstanceState.awaitSlot targetSlot <$> ask)
+    >>> (RequestHandler $ \targetSlot_ -> fmap AwaitSlotResponse . InstanceState.awaitSlot targetSlot_ <$> ask)
 
 processTxConfirmedRequestsSTM ::
     forall effs.
@@ -151,9 +151,9 @@ stmRequestHandler = fmap sequence (wrapHandler (fmap pure nonBlockingRequests) <
         <> processUtxoAtRequests @effs
         <> processWriteTxRequests @effs
         <> processTxConfirmedRequests @effs
-        <> processAddressChangedAtRequests @effs
         <> processInstanceRequests @effs
         <> processNotificationEffects @effs
+        <> processAddressChangedAtRequests @effs
 
     -- requests that wait for changes to happen
     blockingRequests =

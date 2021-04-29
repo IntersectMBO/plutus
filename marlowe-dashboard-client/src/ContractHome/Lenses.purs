@@ -14,7 +14,7 @@ import Data.Map (Map)
 import Data.Map as Map
 import Data.Maybe (Maybe(..))
 import Data.Symbol (SProxy(..))
-import Types (ContractInstanceId)
+import Marlowe.PAB (ContractInstanceId)
 
 _status :: Lens' State ContractStatus
 _status = prop (SProxy :: SProxy "status")

@@ -10,7 +10,6 @@ module Plutus.PAB.Core.ContractInstance.STM(
     , emptyBlockchainEnv
     , awaitSlot
     , awaitEndpointResponse
-    , waitForAddressChange
     , waitForTxConfirmed
     , valueAt
     , currentSlot
@@ -46,7 +45,7 @@ import           Control.Applicative                      (Alternative (..))
 import           Control.Concurrent.STM                   (STM, TMVar, TVar)
 import qualified Control.Concurrent.STM                   as STM
 import           Control.Lens                             (view)
-import           Control.Monad                            (guard, void)
+import           Control.Monad                            (guard)
 import           Data.Aeson                               (Value)
 import           Data.Foldable                            (fold)
 import           Data.Map                                 (Map)
@@ -56,15 +55,12 @@ import qualified Data.Set                                 as Set
 import           Ledger                                   (Address, Slot, TxId, txOutTxOut, txOutValue)
 import           Ledger.AddressMap                        (AddressMap)
 import qualified Ledger.AddressMap                        as AM
-import           Ledger.Interval
 import qualified Ledger.Value                             as Value
 import           Plutus.Contract.Effects.AwaitTxConfirmed (TxConfirmed (..))
 import           Plutus.Contract.Effects.ExposeEndpoint   (ActiveEndpoint (..), EndpointValue (..))
 import           Plutus.Contract.Resumable                (IterationID, Request (..), RequestID)
 import           Wallet.Emulator.ChainIndex.Index         (ChainIndex)
-import qualified Wallet.Emulator.ChainIndex.Index         as Index
-import           Wallet.Types                             (AddressChangeRequest (..), AddressChangeResponse (..),
-                                                           ContractInstanceId, EndpointDescription,
+import           Wallet.Types                             (ContractInstanceId, EndpointDescription,
                                                            NotificationError (..))
 
 {- Note [Contract instance thread model]
@@ -345,21 +341,6 @@ watchedTransactions (InstancesState m) = do
     mp <- STM.readTVar m
     allSets <- traverse (STM.readTVar . issTransactions) (snd <$> Map.toList mp)
     pure $ fold allSets
-
--- | Respond to an 'AddressChangeRequest' for a future slot.
-waitForAddressChange :: AddressChangeRequest -> BlockchainEnv -> STM AddressChangeResponse
-waitForAddressChange AddressChangeRequest{acreqSlotRange, acreqAddress} b@BlockchainEnv{beTxIndex} = do
-    case acreqSlotRange of
-        Interval _ (UpperBound (Finite s2) True)  -> void $ awaitSlot (succ s2) b
-        Interval _ (UpperBound (Finite s2) False) -> void $ awaitSlot s2 b
-        _                                         -> pure ()
-    idx <- STM.readTVar beTxIndex
-    pure
-        AddressChangeResponse
-        { acrAddress = acreqAddress
-        , acrSlotRange    = acreqSlotRange
-        , acrTxns    = Index.ciTx <$> Index.transactionsAt idx acreqSlotRange acreqAddress
-        }
 
 -- | Wait for the status of a transaction to be confirmed. TODO: Should be "status changed", some txns may never get to confirmed status
 waitForTxConfirmed :: TxId -> BlockchainEnv -> STM TxConfirmed

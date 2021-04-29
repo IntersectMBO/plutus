@@ -25,27 +25,29 @@ module Plutus.Contracts.PingPong(
     runPong,
     initialise,
     runStop,
-    runWaitForUpdate
+    runWaitForUpdate,
+    combined
     ) where
 
 import           Control.Lens
-import           Control.Monad                (void)
+import           Control.Monad                (forever, void)
 import           Data.Aeson                   (FromJSON, ToJSON)
+import           Data.Monoid                  (Last (..))
 import           GHC.Generics                 (Generic)
 import qualified Ledger.Ada                   as Ada
 import           Ledger.Constraints           (TxConstraints)
 import qualified Ledger.Typed.Scripts         as Scripts
-import           Ledger.Typed.Tx              (tyTxOutData)
+import           Ledger.Typed.Tx              (TypedScriptTxOut (..))
 import qualified PlutusTx                     as PlutusTx
 import           PlutusTx.Prelude             hiding (Applicative (..), check)
 
+import           Plutus.Contract
 import           Plutus.Contract.StateMachine (AsSMContractError (..), OnChainState, State (..), Void)
 import qualified Plutus.Contract.StateMachine as SM
-
-import           Plutus.Contract
+import qualified Prelude                      as Haskell
 
 data PingPongState = Pinged | Ponged | Stopped
-    deriving stock (Show, Generic)
+    deriving stock (Haskell.Eq, Show, Generic)
     deriving anyclass (ToJSON, FromJSON)
 
 instance Eq PingPongState where
@@ -111,13 +113,14 @@ machineInstance = SM.StateMachineInstance machine scriptInstance
 client :: SM.StateMachineClient PingPongState Input
 client = SM.mkStateMachineClient machineInstance
 
-initialise :: Contract () PingPongSchema PingPongError PingPongState
+initialise :: forall w. Contract w PingPongSchema PingPongError PingPongState
 initialise = endpoint @"initialise" >> SM.runInitialise client Pinged (Ada.lovelaceValueOf 1)
 
 run ::
+    forall w.
     PingPongState
-    -> Contract () PingPongSchema PingPongError ()
-    -> Contract () PingPongSchema PingPongError ()
+    -> Contract w PingPongSchema PingPongError ()
+    -> Contract w PingPongSchema PingPongError ()
 run expectedState action = do
     let extractState = tyTxOutData . fst
         go Nothing = throwError StoppedUnexpectedly
@@ -128,17 +131,34 @@ run expectedState action = do
     let datum = fmap fst maybeState
     go datum
 
-runPing :: Contract () PingPongSchema PingPongError ()
-runPing = run Ponged (endpoint @"ping" >> void (SM.runStep client Ping))
+runPing :: forall w. Contract w PingPongSchema PingPongError ()
+runPing = run Ponged ping
 
-runPong :: Contract () PingPongSchema PingPongError ()
-runPong = run Pinged (endpoint @"pong" >> void (SM.runStep client Pong))
+ping :: forall w. Contract w PingPongSchema PingPongError ()
+ping = endpoint @"ping" >> void (SM.runStep client Ping)
 
-runStop :: Contract () PingPongSchema PingPongError ()
+runPong :: forall w. Contract w PingPongSchema PingPongError ()
+runPong = run Pinged pong
+
+pong :: forall w. Contract w PingPongSchema PingPongError ()
+pong = endpoint @"pong" >> void (SM.runStep client Pong)
+
+runStop :: forall w. Contract w PingPongSchema PingPongError ()
 runStop = endpoint @"stop" >> void (SM.runStep client Stop)
 
-runWaitForUpdate :: Contract () PingPongSchema PingPongError (Maybe (OnChainState PingPongState Input))
+runWaitForUpdate :: forall w. Contract w PingPongSchema PingPongError (Maybe (OnChainState PingPongState Input))
 runWaitForUpdate = SM.waitForUpdate client
+
+combined :: Contract (Last PingPongState) PingPongSchema PingPongError ()
+combined = forever (void initialise `select` ping `select` pong `select` runStop `select` wait) where
+    wait = do
+        _ <- endpoint @"wait"
+        newState <- runWaitForUpdate
+        case newState of
+            Nothing -> logWarn @String "runWaitForUpdate: Nothing"
+            Just (TypedScriptTxOut{tyTxOutData=s}, _) -> do
+                logInfo $ "new state: " <> show s
+                tell (Last $ Just s)
 
 PlutusTx.unstableMakeIsData ''PingPongState
 PlutusTx.makeLift ''PingPongState

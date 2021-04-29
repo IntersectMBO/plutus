@@ -30,11 +30,12 @@ module Plutus.PAB.Effects.Contract.Builtin(
     , BlockchainActions
     , Empty
     , endpointsToSchemas
+    , getResponse
     ) where
 
 import           Control.Monad.Freer
 import           Control.Monad.Freer.Error                        (Error, throwError)
-import           Control.Monad.Freer.Extras.Log                   (LogMsg (..))
+import           Control.Monad.Freer.Extras.Log                   (LogMsg (..), logDebug)
 import           Data.Aeson                                       (FromJSON, ToJSON, Value)
 import qualified Data.Aeson                                       as JSON
 import qualified Data.Aeson.Types                                 as JSON
@@ -58,7 +59,7 @@ import           Plutus.Contract.Resumable                        (Response)
 import           Plutus.Contract.Schema                           (Event, Handlers, Input, Output)
 import           Plutus.Contract.State                            (ContractResponse (..))
 import qualified Plutus.Contract.State                            as ContractState
-import           Plutus.PAB.Core.ContractInstance.RequestHandlers (ContractInstanceMsg (ContractLog))
+import           Plutus.PAB.Core.ContractInstance.RequestHandlers (ContractInstanceMsg (ContractLog, ProcessFirstInboxMessage))
 import           Plutus.Trace.Emulator.Types                      (ContractInstanceStateInternal (..))
 import qualified Plutus.Trace.Emulator.Types                      as Emulator
 import           Schema                                           (FormSchema)
@@ -145,6 +146,7 @@ updateBuiltin i oldState event = do
     let newState = Emulator.addEventInstanceState resp oldState
     case newState of
         Just k -> do
+            logDebug @(PABMultiAgentMsg (Builtin a)) (ContractInstanceLog $ ProcessFirstInboxMessage i event)
             logNewMessages @a i k
             pure (SomeBuiltinState k)
         _      -> throwError $ ContractCommandError 0 "failed to update contract"

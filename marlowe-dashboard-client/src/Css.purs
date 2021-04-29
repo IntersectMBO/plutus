@@ -20,6 +20,7 @@ module Css
   , largeCard
   , iconCircle
   , fixedBottomRight
+  , funds
   ) where
 
 import Prelude
@@ -98,3 +99,6 @@ iconCircle enabled = [ "inline-flex", "items-center", "justify-center", "w-8", "
 
 fixedBottomRight :: Array String
 fixedBottomRight = [ "absolute", "bottom-4", "right-4", "md:right-5pc" ]
+
+funds :: Array String
+funds = [ "text-2xl", "text-purple", "font-semibold" ]
