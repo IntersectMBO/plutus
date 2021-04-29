@@ -15,6 +15,7 @@
 {-# LANGUAGE TypeFamilies               #-}
 {-# LANGUAGE TypeOperators              #-}
 {-# options_ghc -fno-warn-orphans       #-}
+{-# options_ghc -Wno-redundant-constraints #-}
 
 -- | A decentralized exchange for arbitrary token pairs following the
 -- [Uniswap protocol](https://uniswap.org/whitepaper.pdf).
@@ -57,34 +58,57 @@ import           PlutusTx.Prelude                 hiding (Semigroup (..), unless
 import           PlutusTx.Sqrt
 import           Prelude                          (Semigroup (..))
 import qualified Prelude
-import           Text.Printf                      (printf)
+import           Text.Printf                      (PrintfArg, printf)
 
 uniswapTokenName, poolStateTokenName :: TokenName
 uniswapTokenName = "Uniswap"
 poolStateTokenName = "Pool State"
 
--- | A handy alias to put things in the language of "Coins" instead of
--- "AssetClass".
-type Coin = AssetClass
-
 -- Note: An orphan instance here because of the alias above.
 deriving anyclass instance ToSchema AssetClass
 
+-- | Uniswap coin token
+data U = U
+
+-- | "A"-side coin token
+data A = A
+
+-- | "B"-side coin token
+data B = B
+
+-- | Pool-state coin token
+data PoolState = PoolState
+
+-- | Liquidity-state coin token
+data Liquidity = Liquidity
+
+-- | A single 'AssetClass'. Because we use three coins, we use a phantom type to track
+-- which one is which.
+newtype Coin a = Coin { unCoin :: AssetClass }
+  deriving stock   (Show, Generic)
+  deriving newtype (ToJSON, FromJSON, ToSchema, Eq, Prelude.Eq, Prelude.Ord)
+
+-- | Likewise for 'Integer'; the corresponding amount we have of the
+-- particular 'Coin'.
+newtype Amount a = Amount { unAmount :: Integer }
+  deriving stock   (Show, Generic)
+  deriving newtype (ToJSON, FromJSON, ToSchema, Eq, Prelude.Eq, Prelude.Ord, Prelude.Num, AdditiveGroup, AdditiveMonoid, AdditiveSemigroup, Ord, MultiplicativeSemigroup, PrintfArg)
+
 {-# INLINABLE coin #-}
-coin :: AssetClass -> Integer -> Value
-coin = assetClassValue
+coin :: Coin a -> Amount a -> Value
+coin c a = assetClassValue (unCoin c) (unAmount a)
 
 {-# INLINABLE coinValueOf #-}
-coinValueOf :: Value -> AssetClass -> Integer
-coinValueOf = assetClassValueOf
+coinValueOf :: Value -> Coin a -> Amount a
+coinValueOf v = Amount . assetClassValueOf v . unCoin
 
 {-# INLINABLE mkCoin #-}
-mkCoin:: CurrencySymbol -> TokenName -> AssetClass
-mkCoin = assetClass
+mkCoin:: CurrencySymbol -> TokenName -> Coin a
+mkCoin c = Coin . assetClass c
 
 {-# INLINABLE calculateInitialLiquidity #-}
-calculateInitialLiquidity :: Integer -> Integer -> Integer
-calculateInitialLiquidity outA outB = case isqrt (outA * outB) of
+calculateInitialLiquidity :: Amount A -> Amount B -> Amount Liquidity
+calculateInitialLiquidity outA outB = Amount $ case isqrt (unAmount outA * unAmount outB) of
     Exactly l
         | l > 0 -> l
     Approximately l
@@ -92,27 +116,41 @@ calculateInitialLiquidity outA outB = case isqrt (outA * outB) of
     _           -> traceError "insufficient liquidity"
 
 {-# INLINABLE calculateAdditionalLiquidity #-}
-calculateAdditionalLiquidity :: Integer -> Integer -> Integer -> Integer -> Integer -> Integer
-calculateAdditionalLiquidity oldA oldB liquidity delA delB =
-  case rsqrt ((liquidity * liquidity * newProd) % oldProd) of
+calculateAdditionalLiquidity :: Amount A -> Amount B -> Amount Liquidity -> Amount A -> Amount B -> Amount Liquidity
+calculateAdditionalLiquidity oldA' oldB' liquidity delA' delB' =
+  case rsqrt ratio of
     Imaginary       -> traceError "insufficient liquidity"
-    Exactly x       -> x - liquidity
-    Approximately x -> x - liquidity
+    Exactly x       -> Amount x - liquidity
+    Approximately x -> Amount x - liquidity
   where
-    oldProd, newProd :: Integer
-    oldProd = oldA * oldB
-    newProd = (oldA + delA) * (oldB + delB)
+    ratio = (unAmount (liquidity * liquidity * newProd)) % unAmount oldProd
+
+    -- Unwrap, as we're combining terms
+    oldA = unAmount oldA'
+    oldB = unAmount oldB'
+    delA = unAmount delA'
+    delB = unAmount delB'
+
+    oldProd, newProd :: Amount Liquidity
+    oldProd = Amount $ oldA * oldB
+    newProd = Amount $ (oldA + delA) * (oldB + delB)
 
 {-# INLINABLE calculateRemoval #-}
-calculateRemoval :: Integer -> Integer -> Integer -> Integer -> (Integer, Integer)
-calculateRemoval inA inB liquidity diff = (f inA, f inB)
+calculateRemoval :: Amount A -> Amount B -> Amount Liquidity -> Amount Liquidity -> (Amount A, Amount B)
+calculateRemoval inA inB liquidity' diff' = (f inA, f inB)
   where
-    f :: Integer -> Integer
-    f x = x - divide (x * diff) liquidity
+    f :: Amount a -> Amount a
+    f = Amount . g . unAmount
+
+    diff      = unAmount diff'
+    liquidity = unAmount liquidity'
+
+    g :: Integer -> Integer
+    g x = x - divide (x * diff) liquidity
 
 data LiquidityPool = LiquidityPool
-    { lpCoinA :: Coin
-    , lpCoinB :: Coin
+    { lpCoinA :: Coin A
+    , lpCoinB :: Coin B
     }
     deriving (Show, Generic, ToJSON, FromJSON, ToSchema)
 
@@ -122,10 +160,11 @@ PlutusTx.makeLift ''LiquidityPool
 instance Eq LiquidityPool where
     {-# INLINABLE (==) #-}
     x == y = (lpCoinA x == lpCoinA y && lpCoinB x == lpCoinB y) ||
-             (lpCoinA x == lpCoinB y && lpCoinB x == lpCoinA y)
+              -- Make sure the underlying coins aren't equal.
+             (unCoin (lpCoinA x) == unCoin (lpCoinB y) && unCoin (lpCoinB x) == unCoin (lpCoinA y))
 
 newtype Uniswap = Uniswap
-    { usCoin :: Coin
+    { usCoin :: Coin U
     } deriving stock    (Show, Generic)
       deriving anyclass (ToJSON, FromJSON, ToSchema)
       deriving newtype  (Prelude.Eq, Prelude.Ord)
@@ -140,7 +179,7 @@ PlutusTx.makeLift ''UniswapAction
 
 data UniswapDatum =
       Factory [LiquidityPool]
-    | Pool LiquidityPool Integer
+    | Pool LiquidityPool (Amount Liquidity)
     deriving stock (Show)
 
 PlutusTx.unstableMakeIsData ''UniswapDatum
@@ -161,8 +200,8 @@ valueWithin :: TxInInfo -> Value
 valueWithin = txOutValue . txInInfoResolved
 
 {-# INLINABLE checkSwap #-}
-checkSwap :: Integer -> Integer -> Integer -> Integer -> Bool
-checkSwap oldA oldB newA newB =
+checkSwap :: Amount A -> Amount B -> Amount A -> Amount B -> Bool
+checkSwap oldA' oldB' newA' newB' =
     traceIfFalse "expected positive oldA" (oldA > 0) &&
     traceIfFalse "expected positive oldB" (oldB > 0) &&
     traceIfFalse "expected positive-newA" (newA > 0) &&
@@ -171,7 +210,12 @@ checkSwap oldA oldB newA newB =
         ((((newA * feeDen) - (inA * feeNum)) * ((newB * feeDen) - (inB * feeNum)))
          >= (feeDen * feeDen * oldA * oldB))
   where
-    inA, inB :: Integer
+    -- Unwrap; because we are mixing terms.
+    oldA = unAmount oldA'
+    oldB = unAmount oldB'
+    newA = unAmount newA'
+    newB = unAmount newB'
+
     inA = max 0 $ newA - oldA
     inB = max 0 $ newB - oldB
     -- The uniswap fee is 0.3%; here it is multiplied by 1000, so that the
@@ -182,7 +226,7 @@ checkSwap oldA oldB newA newB =
     feeDen = 1000
 
 {-# INLINABLE validateSwap #-}
-validateSwap :: LiquidityPool -> Coin -> ScriptContext -> Bool
+validateSwap :: LiquidityPool -> Coin PoolState -> ScriptContext -> Bool
 validateSwap LiquidityPool{..} c ctx =
     checkSwap oldA oldB newA newB                                                                &&
     traceIfFalse "expected pool state token to be present in input" (coinValueOf inVal c == 1)   &&
@@ -203,13 +247,11 @@ validateSwap LiquidityPool{..} c ctx =
         [o] -> o
         _   -> traceError "expected exactly one output to the same liquidity pool"
 
-    oldA, oldB, newA, newB :: Integer
     oldA = amountA inVal
     oldB = amountB inVal
     newA = amountA outVal
     newB = amountB outVal
 
-    amountA, amountB :: Value -> Integer
     amountA v = coinValueOf v lpCoinA
     amountB v = coinValueOf v lpCoinB
 
@@ -220,21 +262,21 @@ validateSwap LiquidityPool{..} c ctx =
     noUniswapForging :: Bool
     noUniswapForging =
       let
-        AssetClass (cs, _) = c
+        AssetClass (cs, _) = unCoin c
         forged             = txInfoForge info
       in
         all (/= cs) $ symbols forged
 
 {-# INLINABLE validateCreate #-}
 validateCreate :: Uniswap
-               -> Coin
+               -> Coin PoolState
                -> [LiquidityPool]
                -> LiquidityPool
                -> ScriptContext
                -> Bool
 validateCreate Uniswap{..} c lps lp@LiquidityPool{..} ctx =
     traceIfFalse "Uniswap coin not present" (coinValueOf (valueWithin $ findOwnInput' ctx) usCoin == 1) &&
-    (lpCoinA /= lpCoinB)                                                                                &&
+    (unCoin lpCoinA /= unCoin lpCoinB)                                                                  &&
     all (/= lp) lps                                                                                     &&
     Constraints.checkOwnOutputConstraint ctx (OutputConstraint (Factory $ lp : lps) $ coin usCoin 1)    &&
     (coinValueOf forged c == 1)                                                                         &&
@@ -249,7 +291,6 @@ validateCreate Uniswap{..} c lps lp@LiquidityPool{..} ctx =
         [o] -> o
         _   -> traceError "expected exactly one pool output"
 
-    outA, outB, liquidity :: Integer
     outA      = coinValueOf (txOutValue poolOutput) lpCoinA
     outB      = coinValueOf (txOutValue poolOutput) lpCoinB
     liquidity = calculateInitialLiquidity outA outB
@@ -257,11 +298,11 @@ validateCreate Uniswap{..} c lps lp@LiquidityPool{..} ctx =
     forged :: Value
     forged = txInfoForge $ scriptContextTxInfo ctx
 
-    liquidityCoin' :: Coin
-    liquidityCoin' = let AssetClass (cs,_) = c in mkCoin cs $ lpTicker lp
+    liquidityCoin' :: Coin Liquidity
+    liquidityCoin' = let AssetClass (cs,_) = unCoin c in mkCoin cs $ lpTicker lp
 
 {-# INLINABLE validateCloseFactory #-}
-validateCloseFactory :: Uniswap -> Coin -> [LiquidityPool] -> ScriptContext -> Bool
+validateCloseFactory :: Uniswap -> Coin PoolState -> [LiquidityPool] -> ScriptContext -> Bool
 validateCloseFactory us c lps ctx =
     traceIfFalse "Uniswap coin not present" (coinValueOf (valueWithin $ findOwnInput' ctx) usC == 1)              &&
     traceIfFalse "wrong forge value"        (txInfoForge info == negate (coin c 1 <>  coin lC (snd lpLiquidity))) &&
@@ -279,13 +320,13 @@ validateCloseFactory us c lps ctx =
         [i] -> i
         _   -> traceError "expected exactly one pool input"
 
-    lpLiquidity :: (LiquidityPool, Integer)
+    lpLiquidity :: (LiquidityPool, Amount Liquidity)
     lpLiquidity = case txOutDatumHash . txInInfoResolved $ poolInput of
         Nothing -> traceError "pool input witness missing"
         Just h  -> findPoolDatum info h
 
-    lC, usC :: Coin
-    lC  = let AssetClass (cs, _) = c in mkCoin cs (lpTicker $ fst lpLiquidity)
+    lC :: Coin Liquidity
+    lC  = let AssetClass (cs, _) = unCoin c in mkCoin cs (lpTicker $ fst lpLiquidity)
     usC = usCoin us
 
 {-# INLINABLE validateClosePool #-}
@@ -301,7 +342,7 @@ validateClosePool us ctx = hasFactoryInput
         coinValueOf (valueSpent info) (usCoin us) == 1
 
 {-# INLINABLE validateRemove #-}
-validateRemove :: Coin -> LiquidityPool -> Integer -> ScriptContext -> Bool
+validateRemove :: Coin PoolState -> LiquidityPool -> Amount Liquidity -> ScriptContext -> Bool
 validateRemove c lp liquidity ctx =
     traceIfFalse "zero removal"                        (diff > 0)                                  &&
     traceIfFalse "removal of too much liquidity"       (diff < liquidity)                          &&
@@ -326,22 +367,21 @@ validateRemove c lp liquidity ctx =
     inVal  = valueWithin ownInput
     outVal = txOutValue output
 
-    lpLiquidity :: (LiquidityPool, Integer)
+    lpLiquidity :: (LiquidityPool, Amount Liquidity)
     lpLiquidity = case txOutDatumHash output of
         Nothing -> traceError "pool output witness missing"
         Just h  -> findPoolDatum info h
 
-    lC :: Coin
-    lC = let AssetClass (cs, _) = c in mkCoin cs (lpTicker lp)
+    lC :: Coin Liquidity
+    lC = let AssetClass (cs, _) = unCoin c in mkCoin cs (lpTicker lp)
 
-    diff, inA, inB, outA, outB :: Integer
     diff         = liquidity - snd lpLiquidity
     inA          = coinValueOf inVal $ lpCoinA lp
     inB          = coinValueOf inVal $ lpCoinB lp
     (outA, outB) = calculateRemoval inA inB liquidity diff
 
 {-# INLINABLE validateAdd #-}
-validateAdd :: Coin -> LiquidityPool -> Integer -> ScriptContext -> Bool
+validateAdd :: Coin PoolState -> LiquidityPool -> Amount Liquidity -> ScriptContext -> Bool
 validateAdd c lp liquidity ctx =
     traceIfFalse "pool stake token missing from input"          (coinValueOf inVal c == 1)                                           &&
     traceIfFalse "output pool for same liquidity pair expected" (lp == fst outDatum)                                                 &&
@@ -364,7 +404,7 @@ validateAdd c lp liquidity ctx =
         [o] -> o
         _   -> traceError "expected exactly on pool output"
 
-    outDatum :: (LiquidityPool, Integer)
+    outDatum :: (LiquidityPool, Amount Liquidity)
     outDatum = case txOutDatum ownOutput of
         Nothing -> traceError "pool output datum hash not found"
         Just h  -> findPoolDatum info h
@@ -373,20 +413,20 @@ validateAdd c lp liquidity ctx =
     inVal  = valueWithin ownInput
     outVal = txOutValue ownOutput
 
-    oldA, oldB, delA, delB, delL :: Integer
     oldA = coinValueOf inVal aC
     oldB = coinValueOf inVal bC
     delA = coinValueOf outVal aC - oldA
     delB = coinValueOf outVal bC - oldB
     delL = snd outDatum - liquidity
 
-    aC, bC, lC :: Coin
     aC = lpCoinA lp
     bC = lpCoinB lp
-    lC = let AssetClass (cs, _) = c in mkCoin cs $ lpTicker lp
+
+    lC :: Coin Liquidity
+    lC = let AssetClass (cs, _) = unCoin c in mkCoin cs $ lpTicker lp
 
 {-# INLINABLE findPoolDatum #-}
-findPoolDatum :: TxInfo -> DatumHash -> (LiquidityPool, Integer)
+findPoolDatum :: TxInfo -> DatumHash -> (LiquidityPool, Amount Liquidity)
 findPoolDatum info h = case findDatum h info of
     Just (Datum d) -> case PlutusTx.fromData d of
         Just (Pool lp a) -> (lp, a)
@@ -395,18 +435,22 @@ findPoolDatum info h = case findDatum h info of
 
 {-# INLINABLE lpTicker #-}
 lpTicker :: LiquidityPool -> TokenName
-lpTicker LiquidityPool{..} = TokenName $
-    unCurrencySymbol (c_cs)  `concatenate`
-    unCurrencySymbol (d_cs)  `concatenate`
-    unTokenName      (c_tok) `concatenate`
-    unTokenName      (d_tok)
-  where
-    (AssetClass (c_cs, c_tok), AssetClass (d_cs, d_tok))
-        | lpCoinA < lpCoinB = (lpCoinA, lpCoinB)
-        | otherwise         = (lpCoinB, lpCoinA)
+lpTicker LiquidityPool{..}  = TokenName hash
+    where
+      cA@(csA, tokA) = unAssetClass (unCoin lpCoinA)
+      cB@(csB, tokB) = unAssetClass (unCoin lpCoinB)
+      ((x1, y1), (x2, y2))
+        | cA < cB   = ((csA, tokA), (csB, tokB))
+        | otherwise = ((csB, tokB), (csA, tokA))
+
+      h1   = sha2_256 $ unTokenName y1
+      h2   = sha2_256 $ unTokenName y2
+      h3   = sha2_256 $ unCurrencySymbol x1
+      h4   = sha2_256 $ unCurrencySymbol x2
+      hash = sha2_256 $ (h1 `concatenate` h2 `concatenate` h3 `concatenate` h4)
 
 mkUniswapValidator :: Uniswap
-                   -> Coin
+                   -> Coin PoolState
                    -> UniswapDatum
                    -> UniswapAction
                    -> ScriptContext
@@ -430,8 +474,9 @@ validateLiquidityForging us tn ctx = case [ i
     [_, _] -> True
     _      -> traceError "pool state forging without Uniswap input"
   where
-    usC, lpC :: Coin
+    -- usC, lpC :: Coin
     usC = usCoin us
+    lpC :: Coin Liquidity
     lpC = mkCoin (ownCurrencySymbol ctx) tn
 
 uniswapInstance :: Uniswap -> Scripts.ScriptInstance Uniswapping
@@ -441,7 +486,7 @@ uniswapInstance us = Scripts.validator @Uniswapping
         `PlutusTx.applyCode` PlutusTx.liftCode c)
      $$(PlutusTx.compile [|| wrap ||])
   where
-    c :: Coin
+    c :: Coin PoolState
     c = poolStateCoin us
 
     wrap = Scripts.wrapValidator @UniswapDatum @UniswapAction
@@ -464,57 +509,57 @@ liquidityPolicy us = mkMonetaryPolicyScript $
 liquidityCurrency :: Uniswap -> CurrencySymbol
 liquidityCurrency = scriptCurrencySymbol . liquidityPolicy
 
-poolStateCoin :: Uniswap -> Coin
+poolStateCoin :: Uniswap -> Coin PoolState
 poolStateCoin = flip mkCoin poolStateTokenName . liquidityCurrency
 
 -- | Gets the 'Coin' used to identity liquidity pools.
 poolStateCoinFromUniswapCurrency :: CurrencySymbol -- ^ The currency identifying the Uniswap instance.
-                                 -> Coin
+                                 -> Coin PoolState
 poolStateCoinFromUniswapCurrency = poolStateCoin . uniswap
 
 -- | Gets the liquidity token for a given liquidity pool.
 liquidityCoin :: CurrencySymbol -- ^ The currency identifying the Uniswap instance.
-              -> Coin           -- ^ One coin in the liquidity pair.
-              -> Coin           -- ^ The other coin in the liquidity pair.
-              -> Coin
+              -> Coin A         -- ^ One coin in the liquidity pair.
+              -> Coin B         -- ^ The other coin in the liquidity pair.
+              -> Coin Liquidity
 liquidityCoin cs coinA coinB = mkCoin (liquidityCurrency $ uniswap cs) $ lpTicker $ LiquidityPool coinA coinB
 
 -- | Parameters for the @create@-endpoint, which creates a new liquidity pool.
 data CreateParams = CreateParams
-    { cpCoinA   :: Coin    -- ^ One 'Coin' of the liquidity pair.
-    , cpCoinB   :: Coin    -- ^ The other 'Coin'.
-    , cpAmountA :: Integer -- ^ Amount of liquidity for the first 'Coin'.
-    , cpAmountB :: Integer -- ^ Amount of liquidity for the second 'Coin'.
+    { cpCoinA   :: Coin A   -- ^ One 'Coin' of the liquidity pair.
+    , cpCoinB   :: Coin B   -- ^ The other 'Coin'.
+    , cpAmountA :: Amount A -- ^ Amount of liquidity for the first 'Coin'.
+    , cpAmountB :: Amount B -- ^ Amount of liquidity for the second 'Coin'.
     } deriving (Show, Generic, ToJSON, FromJSON, ToSchema)
 
 -- | Parameters for the @swap@-endpoint, which allows swaps between the two different coins in a liquidity pool.
 -- One of the provided amounts must be positive, the other must be zero.
 data SwapParams = SwapParams
-    { spCoinA   :: Coin           -- ^ One 'Coin' of the liquidity pair.
-    , spCoinB   :: Coin           -- ^ The other 'Coin'.
-    , spAmountA :: Integer        -- ^ The amount the first 'Coin' that should be swapped.
-    , spAmountB :: Integer        -- ^ The amount of the second 'Coin' that should be swapped.
+    { spCoinA   :: Coin A         -- ^ One 'Coin' of the liquidity pair.
+    , spCoinB   :: Coin B         -- ^ The other 'Coin'.
+    , spAmountA :: Amount A       -- ^ The amount the first 'Coin' that should be swapped.
+    , spAmountB :: Amount B       -- ^ The amount of the second 'Coin' that should be swapped.
     } deriving (Show, Generic, ToJSON, FromJSON, ToSchema)
 
 -- | Parameters for the @close@-endpoint, which closes a liquidity pool.
 data CloseParams = CloseParams
-    { clpCoinA :: Coin           -- ^ One 'Coin' of the liquidity pair.
-    , clpCoinB :: Coin           -- ^ The other 'Coin' of the liquidity pair.
+    { clpCoinA :: Coin A         -- ^ One 'Coin' of the liquidity pair.
+    , clpCoinB :: Coin B         -- ^ The other 'Coin' of the liquidity pair.
     } deriving (Show, Generic, ToJSON, FromJSON, ToSchema)
 
 -- | Parameters for the @remove@-endpoint, which removes some liquidity from a liquidity pool.
 data RemoveParams = RemoveParams
-    { rpCoinA :: Coin           -- ^ One 'Coin' of the liquidity pair.
-    , rpCoinB :: Coin           -- ^ The other 'Coin' of the liquidity pair.
-    , rpDiff  :: Integer        -- ^ The amount of liquidity tokens to burn in exchange for liquidity from the pool.
+    { rpCoinA :: Coin A           -- ^ One 'Coin' of the liquidity pair.
+    , rpCoinB :: Coin B           -- ^ The other 'Coin' of the liquidity pair.
+    , rpDiff  :: Amount Liquidity -- ^ The amount of liquidity tokens to burn in exchange for liquidity from the pool.
     } deriving (Show, Generic, ToJSON, FromJSON, ToSchema)
 
 -- | Parameters for the @add@-endpoint, which adds liquidity to a liquidity pool in exchange for liquidity tokens.
 data AddParams = AddParams
-    { apCoinA   :: Coin           -- ^ One 'Coin' of the liquidity pair.
-    , apCoinB   :: Coin           -- ^ The other 'Coin' of the liquidity pair.
-    , apAmountA :: Integer        -- ^ The amount of coins of the first kind to add to the pool.
-    , apAmountB :: Integer        -- ^ The amount of coins of the second kind to add to the pool.
+    { apCoinA   :: Coin A         -- ^ One 'Coin' of the liquidity pair.
+    , apCoinB   :: Coin B         -- ^ The other 'Coin' of the liquidity pair.
+    , apAmountA :: Amount A       -- ^ The amount of coins of the first kind to add to the pool.
+    , apAmountB :: Amount B       -- ^ The amount of coins of the second kind to add to the pool.
     } deriving (Show, Generic, ToJSON, FromJSON, ToSchema)
 
 -- | Creates a Uniswap "factory". This factory will keep track of the existing liquidity pools and enforce that there will be at most one liquidity pool
@@ -538,7 +583,7 @@ start = do
 -- | Creates a liquidity pool for a pair of coins. The creator provides liquidity for both coins and gets liquidity tokens in return.
 create :: HasBlockchainActions s => Uniswap -> CreateParams -> Contract w s Text ()
 create us CreateParams{..} = do
-    when (cpCoinA == cpCoinB)               $ throwError "coins must be different"
+    when (unCoin cpCoinA == unCoin cpCoinB) $ throwError "coins must be different"
     when (cpAmountA <= 0 || cpAmountB <= 0) $ throwError "amounts must be positive"
     (oref, o, lps) <- findUniswapFactory us
     let liquidity = calculateInitialLiquidity cpAmountA cpAmountB
@@ -689,16 +734,16 @@ swap us SwapParams{..} = do
     let oldA = coinValueOf outVal spCoinA
         oldB = coinValueOf outVal spCoinB
     (newA, newB) <- if spAmountA > 0 then do
-        let outB = findSwapA oldA oldB spAmountA
+        let outB = Amount $ findSwapA oldA oldB spAmountA
         when (outB == 0) $ throwError "no payout"
         return (oldA + spAmountA, oldB - outB)
                                      else do
-        let outA = findSwapB oldA oldB spAmountB
+        let outA = Amount $ findSwapB oldA oldB spAmountB
         when (outA == 0) $ throwError "no payout"
         return (oldA - outA, oldB + spAmountB)
     pkh <- pubKeyHash <$> ownPubKey
 
-    logInfo @String $ printf "oldA = %d, oldB = %d, old product = %d, newA = %d, newB = %d, new product = %d" oldA oldB (oldA * oldB) newA newB (newA * newB)
+    logInfo @String $ printf "oldA = %d, oldB = %d, old product = %d, newA = %d, newB = %d, new product = %d" oldA oldB (unAmount oldA * unAmount oldB) newA newB (unAmount newA * unAmount newB)
 
     let inst    = uniswapInstance us
         val     = coin spCoinA newA <> coin spCoinB newB <> coin (poolStateCoin us) 1
@@ -720,12 +765,12 @@ swap us SwapParams{..} = do
 
 -- | Finds all liquidity pools and their liquidity belonging to the Uniswap instance.
 -- This merely inspects the blockchain and does not issue any transactions.
-pools :: forall w s. HasBlockchainActions s => Uniswap -> Contract w s Text [((Coin, Integer), (Coin, Integer))]
+pools :: forall w s. HasBlockchainActions s => Uniswap -> Contract w s Text [((Coin A, Amount A), (Coin B, Amount B))]
 pools us = do
     utxos <- utxoAt (uniswapAddress us)
     go $ snd <$> Map.toList utxos
   where
-    go :: [TxOutTx] -> Contract w s Text [((Coin, Integer), (Coin, Integer))]
+    go :: [TxOutTx] -> Contract w s Text [((Coin A, Amount A), (Coin B, Amount B))]
     go []       = return []
     go (o : os) = do
         let v = txOutValue $ txOutTxOut o
@@ -745,7 +790,7 @@ pools us = do
                         return $ s : ss
             else go os
       where
-        c :: Coin
+        c :: Coin PoolState
         c = poolStateCoin us
 --
 -- | Gets the caller's funds.
@@ -764,7 +809,7 @@ getUniswapDatum o = case txOutDatumHash $ txOutTxOut o of
                 Nothing -> throwError "datum has wrong type"
                 Just d  -> return d
 
-findUniswapInstance :: HasBlockchainActions s => Uniswap -> Coin -> (UniswapDatum -> Maybe a) -> Contract w s Text (TxOutRef, TxOutTx, a)
+findUniswapInstance :: HasBlockchainActions s => Uniswap -> Coin b -> (UniswapDatum -> Maybe a) -> Contract w s Text (TxOutRef, TxOutTx, a)
 findUniswapInstance us c f = do
     let addr = uniswapAddress us
     logInfo @String $ printf "looking for Uniswap instance at address %s containing coin %s " (show addr) (show c)
@@ -785,7 +830,7 @@ findUniswapFactory us@Uniswap{..} = findUniswapInstance us usCoin $ \case
     Factory lps -> Just lps
     Pool _ _    -> Nothing
 
-findUniswapPool :: HasBlockchainActions s => Uniswap -> LiquidityPool -> Contract w s Text (TxOutRef, TxOutTx, Integer)
+findUniswapPool :: HasBlockchainActions s => Uniswap -> LiquidityPool -> Contract w s Text (TxOutRef, TxOutTx, Amount Liquidity)
 findUniswapPool us lp = findUniswapInstance us (poolStateCoin us) $ \case
         Pool lp' l
             | lp == lp' -> Just l
@@ -793,10 +838,10 @@ findUniswapPool us lp = findUniswapInstance us (poolStateCoin us) $ \case
 
 findUniswapFactoryAndPool :: HasBlockchainActions s
                           => Uniswap
-                          -> Coin
-                          -> Coin
+                          -> Coin A
+                          -> Coin B
                           -> Contract w s Text ( (TxOutRef, TxOutTx, [LiquidityPool])
-                                               , (TxOutRef, TxOutTx, LiquidityPool, Integer)
+                                               , (TxOutRef, TxOutTx, LiquidityPool, Amount Liquidity)
                                                )
 findUniswapFactoryAndPool us coinA coinB = do
     (oref1, o1, lps) <- findUniswapFactory us
@@ -811,13 +856,13 @@ findUniswapFactoryAndPool us coinA coinB = do
                    )
         _    -> throwError "liquidity pool not found"
 
-findSwapA :: Integer -> Integer -> Integer -> Integer
+findSwapA :: Amount A -> Amount B -> Amount A -> Integer
 findSwapA oldA oldB inA
     | ub' <= 1   = 0
     | otherwise  = go 1 ub'
   where
     cs :: Integer -> Bool
-    cs outB = checkSwap oldA oldB (oldA + inA) (oldB - outB)
+    cs outB = checkSwap oldA oldB (oldA + inA) (oldB - Amount outB)
 
     ub' :: Integer
     ub' = head $ dropWhile cs [2 ^ i | i <- [0 :: Int ..]]
@@ -831,8 +876,10 @@ findSwapA oldA oldB inA
       in
         if cs m then go m ub else go lb m
 
-findSwapB :: Integer -> Integer -> Integer -> Integer
-findSwapB oldA oldB = findSwapA oldB oldA
+findSwapB :: Amount A -> Amount B -> Amount B -> Integer
+findSwapB oldA oldB inB = findSwapA (switch oldB) (switch oldA) (switch inB)
+  where
+    switch = Amount . unAmount
 
 ownerEndpoint :: Contract (Last (Either Text Uniswap)) BlockchainActions Void ()
 ownerEndpoint = do
@@ -859,7 +906,7 @@ type UniswapUserSchema =
 
 -- | Type of the Uniswap user contract state.
 data UserContractState =
-      Pools [((Coin, Integer), (Coin, Integer))]
+      Pools [((Coin A, Amount A), (Coin B, Amount B))]
     | Funds Value
     | Created
     | Swapped
@@ -911,3 +958,24 @@ userEndpoints us =
         tell $ Last $ Just $ case e of
             Left err -> Left err
             Right () -> Right Stopped
+
+PlutusTx.makeIsDataIndexed ''U [('U, 0)]
+PlutusTx.makeLift ''U
+
+PlutusTx.makeIsDataIndexed ''A [('A, 0)]
+PlutusTx.makeLift ''A
+
+PlutusTx.makeIsDataIndexed ''B [('B, 0)]
+PlutusTx.makeLift ''B
+
+PlutusTx.makeIsDataIndexed ''PoolState [('PoolState, 0)]
+PlutusTx.makeLift ''PoolState
+
+PlutusTx.makeIsDataIndexed ''Liquidity [('Liquidity, 0)]
+PlutusTx.makeLift ''Liquidity
+
+PlutusTx.makeIsDataIndexed ''Coin [('Coin, 0)]
+PlutusTx.makeLift ''Coin
+
+PlutusTx.makeIsDataIndexed ''Amount [('Amount, 0)]
+PlutusTx.makeLift ''Amount
