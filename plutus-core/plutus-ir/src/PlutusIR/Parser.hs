@@ -56,8 +56,9 @@ data ParseError = UnknownBuiltinType T.Text
                 deriving (Eq, Ord, Show)
 
 instance HasErrorCode ParseError where
-      errorCode UnknownBuiltinType {} = ErrorCode 5
-      errorCode InvalidConstant {}    = ErrorCode 4
+      errorCode UnknownBuiltinType {}  = ErrorCode 5
+      errorCode BuiltinTypeNotAStar {} = ErrorCode 52
+      errorCode InvalidConstant {}     = ErrorCode 4
 
 type Error = Parsec.ParseError Char ParseError
 

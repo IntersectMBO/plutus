@@ -37,10 +37,12 @@ allErrors =
    , 'PIR.CompilationError
    , 'PIR.UnsupportedError
    , 'PIR.UnknownBuiltinType
+   , 'PIR.BuiltinTypeNotAStar
    , 'PIR.InvalidConstant
    , 'PLC.LexErr
    , 'PLC.Unexpected
    , 'PLC.UnknownBuiltinType
+   , 'PLC.BuiltinTypeNotAStar
    , 'PLC.UnknownBuiltinFunction
    , 'PLC.InvalidBuiltinConstant
    , 'PLC.MultiplyDefined

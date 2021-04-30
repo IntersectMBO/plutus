@@ -62,6 +62,7 @@ data ParseError ann
     = LexErr String
     | Unexpected (Token ann)
     | UnknownBuiltinType ann T.Text
+    | BuiltinTypeNotAStar ann T.Text
     | UnknownBuiltinFunction ann T.Text
     | InvalidBuiltinConstant ann T.Text T.Text
     deriving (Eq, Generic, NFData, Functor)
@@ -131,6 +132,7 @@ instance Pretty ann => Pretty (ParseError ann) where
     pretty (LexErr s)                       = "Lexical error:" <+> Text (length s) (T.pack s)
     pretty (Unexpected t)                   = "Unexpected" <+> squotes (pretty t) <+> "at" <+> pretty (tkLoc t)
     pretty (UnknownBuiltinType loc s)       = "Unknown built-in type" <+> squotes (pretty s) <+> "at" <+> pretty loc
+    pretty (BuiltinTypeNotAStar loc ty)     = "Expected a type of kind star (to later parse a constant), but got:" <+> squotes (pretty ty) <+> "at" <+> pretty loc
     pretty (UnknownBuiltinFunction loc s)   = "Unknown built-in function" <+> squotes (pretty s) <+> "at" <+> pretty loc
     pretty (InvalidBuiltinConstant loc c s) = "Invalid constant" <+> squotes (pretty c) <+> "of type" <+> squotes (pretty s) <+> "at" <+> pretty loc
 
@@ -195,6 +197,7 @@ instance HasErrorCode (ParseError _a) where
     errorCode InvalidBuiltinConstant {} = ErrorCode 10
     errorCode UnknownBuiltinFunction {} = ErrorCode 9
     errorCode UnknownBuiltinType {}     = ErrorCode 8
+    errorCode BuiltinTypeNotAStar {}    = ErrorCode 51
     errorCode Unexpected {}             = ErrorCode 7
     errorCode LexErr {}                 = ErrorCode 6
 

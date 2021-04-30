@@ -55,7 +55,7 @@ instance Typeable uni (->) where
 typeRepBuiltin
     :: forall (a :: GHC.Type) uni fun. uni `PLC.Includes` a
     => Proxy a -> RTCompile uni fun (Type TyName uni ())
-typeRepBuiltin (_ :: Proxy a) = pure $ mkTyBuiltin @a ()
+typeRepBuiltin (_ :: Proxy a) = pure $ mkTyBuiltin @_ @a ()
 
 liftBuiltin
     :: forall a uni fun. uni `PLC.Includes` a
