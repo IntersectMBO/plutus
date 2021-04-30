@@ -7,7 +7,7 @@ module Contract.Lenses
   , _selectedStep
   , _metadata
   , _participants
-  , _mActiveUserParty
+  , _userParties
   , _namedActions
   ) where
 
@@ -16,6 +16,7 @@ import Data.Lens (Lens')
 import Data.Lens.Record (prop)
 import Data.Map (Map)
 import Data.Maybe (Maybe)
+import Data.Set (Set)
 import Data.Symbol (SProxy(..))
 import Marlowe.Execution (ExecutionState, NamedAction)
 import Marlowe.Extended.Metadata (MetaData)
@@ -47,8 +48,8 @@ _metadata = prop (SProxy :: SProxy "metadata")
 _participants :: Lens' State (Map Semantic.Party (Maybe WalletNickname))
 _participants = prop (SProxy :: SProxy "participants")
 
-_mActiveUserParty :: Lens' State (Maybe Semantic.Party)
-_mActiveUserParty = prop (SProxy :: SProxy "mActiveUserParty")
+_userParties :: Lens' State (Set Semantic.Party)
+_userParties = prop (SProxy :: SProxy "userParties")
 
 _namedActions :: Lens' State (Array NamedAction)
 _namedActions = prop (SProxy :: SProxy "namedActions")

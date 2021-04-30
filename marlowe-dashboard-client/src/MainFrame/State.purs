@@ -2,7 +2,7 @@ module MainFrame.State (mkMainFrame, handleAction) where
 
 import Prelude
 import Bridge (toFront)
-import Capability.Marlowe (class ManageMarlowe, marloweFollowContract, marloweGetContracts, marloweGetRoleContracts)
+import Capability.Marlowe (class ManageMarlowe, marloweFollowContract, marloweLookupWalletDetails, marloweGetContracts, marloweGetRoleContracts)
 import Capability.Toast (class Toast, addToast)
 import Capability.Websocket (class MonadWebsocket, subscribeToContract, subscribeToWallet, unsubscribeFromContract, unsubscribeFromWallet)
 import Contract.Lenses (_marloweParams)
@@ -38,7 +38,7 @@ import Marlowe.PAB (ContractInstanceId, MarloweData, MarloweParams)
 import Marlowe.Slot (currentSlot)
 import Pickup.Lenses (_walletLibrary)
 import Pickup.State (handleAction, dummyState, mkInitialState) as Pickup
-import Pickup.Types (Action(..), State) as Pickup
+import Pickup.Types (Action(..), Card(..), State) as Pickup
 import Play.Lenses (_allContracts, _currentSlot, _walletDetails)
 import Play.State (dummyState, handleAction, mkInitialState) as Play
 import Play.Types (Action(..), State) as Play
@@ -175,7 +175,10 @@ handleAction Init = do
   mWalletDetailsJson <- liftEffect $ getItem walletDetailsLocalStorageKey
   for_ mWalletDetailsJson \json ->
     for_ (runExcept $ decodeJSON json) \walletDetails -> do
-      handleAction $ PickupAction $ Pickup.SetPickupWalletString $ view _walletNickname walletDetails
+      ajaxWalletDetails <- marloweLookupWalletDetails $ view _companionContractId walletDetails
+      case ajaxWalletDetails of
+        Left ajaxError -> handleAction $ PickupAction $ Pickup.OpenCard Pickup.LocalWalletMissingCard
+        Right _ -> handleAction $ PickupAction $ Pickup.SetPickupWalletString $ view _walletNickname walletDetails
 
 handleAction (EnterPickupState walletLibrary walletDetails followerContracts) = do
   unsubscribeFromWallet $ view (_walletInfo <<< _wallet) walletDetails
@@ -248,7 +251,7 @@ updateRunningContracts companionState = do
               let
                 currentSlot = view _currentSlot playState
 
-                mContractState = Contract.mkInitialState currentSlot contractInstanceId history
+                mContractState = Contract.mkInitialState walletDetails currentSlot contractInstanceId history
               case mContractState of
                 Just contractState -> do
                   modifying (_playState <<< _allContracts) $ insert contractInstanceId contractState

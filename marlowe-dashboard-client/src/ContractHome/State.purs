@@ -32,16 +32,18 @@ import Marlowe.PAB (ContractInstanceId(..), MarloweData, MarloweParams, History(
 import Marlowe.Semantics (ChoiceId(..), Contract, Input(..), Party(..), Slot(..), SlotInterval(..), TransactionInput(..), Token(..))
 import Marlowe.Semantics (emptyState) as Semantic
 import Plutus.V1.Ledger.Value (CurrencySymbol(..))
+import WalletData.State (defaultWalletDetails)
+import WalletData.Types (WalletDetails)
 import WalletData.Validation (parseContractInstanceId)
 
 -- see note [dummyState] in MainFrame.State
 dummyState :: State
-dummyState = mkInitialState zero mempty
+dummyState = mkInitialState defaultWalletDetails zero mempty
 
-mkInitialState :: Slot -> Map ContractInstanceId History -> State
-mkInitialState currentSlot contracts =
+mkInitialState :: WalletDetails -> Slot -> Map ContractInstanceId History -> State
+mkInitialState walletDetails currentSlot contracts =
   { status: Running
-  , contracts: mapMaybeWithKey (Contract.mkInitialState currentSlot) contracts
+  , contracts: mapMaybeWithKey (Contract.mkInitialState walletDetails currentSlot) contracts
   , selectedContractIndex: Nothing
   }
 

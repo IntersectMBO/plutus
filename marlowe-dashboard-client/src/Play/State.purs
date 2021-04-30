@@ -72,7 +72,7 @@ mkInitialState walletLibrary walletDetails contracts currentSlot timezoneOffset 
   , currentSlot
   , timezoneOffset
   , templateState: Template.dummyState
-  , contractsState: ContractHome.mkInitialState currentSlot contracts
+  , contractsState: ContractHome.mkInitialState walletDetails currentSlot contracts
   }
 
 handleAction ::

@@ -4,7 +4,7 @@ module Contract.View
   ) where
 
 import Prelude hiding (div)
-import Contract.Lenses (_executionState, _mActiveUserParty, _metadata, _namedActions, _participants, _previousSteps, _selectedStep, _tab)
+import Contract.Lenses (_executionState, _metadata, _namedActions, _participants, _previousSteps, _selectedStep, _tab, _userParties)
 import Contract.State (currentStep, isContractClosed)
 import Contract.Types (Action(..), PreviousStep, PreviousStepState(..), State, Tab(..), scrollContainerRef)
 import Css (applyWhen, classNames, toggleWhen)
@@ -320,7 +320,9 @@ renderPartyPastActions state { inputs, interval, party } =
   let
     participantName = participantWithNickname state party
 
-    isActiveParticipant = (state ^. _mActiveUserParty) == Just party
+    userParties = state ^. _userParties
+
+    isActiveParticipant = Set.member party userParties
 
     fromDescription =
       if isActiveParticipant then
@@ -335,7 +337,7 @@ renderPartyPastActions state { inputs, interval, party } =
       IDeposit intoAccountOf by token value ->
         let
           toDescription =
-            if (state ^. _mActiveUserParty) == Just intoAccountOf then
+            if Set.member intoAccountOf userParties then
               "your"
             else
               if by == intoAccountOf then
@@ -427,13 +429,13 @@ renderContractClose =
 -- then groups by participant and sorts it so that the owner starts first and the rest go
 -- in alphabetical order
 expandAndGroupByRole ::
-  Maybe Party ->
+  Set Party ->
   Set Party ->
   Array NamedAction ->
   Array (Tuple Party (Array NamedAction))
-expandAndGroupByRole mActiveUserParty allParticipants actions =
+expandAndGroupByRole userParties allParticipants actions =
   expandedActions
-    # Array.sortBy currentPartyFirst
+    # Array.sortBy currentPartiesFirst
     # Array.groupBy sameParty
     # map extractGroupedParty
   where
@@ -446,9 +448,9 @@ expandAndGroupByRole mActiveUserParty allParticipants actions =
           Just participant -> [ participant /\ action ]
           Nothing -> Set.toUnfoldable allParticipants <#> \participant -> participant /\ action
 
-  currentPartyFirst (Tuple party1 _) (Tuple party2 _)
-    | Just party1 == mActiveUserParty = LT
-    | Just party2 == mActiveUserParty = GT
+  currentPartiesFirst (Tuple party1 _) (Tuple party2 _)
+    | Set.member party1 userParties = LT
+    | Set.member party2 userParties = GT
     | otherwise = compare party1 party2
 
   sameParty a b = fst a == fst b
@@ -462,11 +464,13 @@ renderTasks state =
   let
     executionState = state ^. _executionState
 
+    userParties = state ^. _userParties
+
     actions = state ^. _namedActions
 
     expandedActions =
       expandAndGroupByRole
-        (state ^. _mActiveUserParty)
+        userParties
         (Map.keys $ state ^. _participants)
         actions
   in
@@ -518,7 +522,9 @@ debugMode = true
 renderAction :: forall p. State -> Party -> NamedAction -> HTML p Action
 renderAction state party namedAction@(MakeDeposit intoAccountOf by token value) =
   let
-    isActiveParticipant = (state ^. _mActiveUserParty) == Just party
+    userParties = state ^. _userParties
+
+    isActiveParticipant = Set.member party userParties
 
     fromDescription =
       if isActiveParticipant then
@@ -528,7 +534,7 @@ renderAction state party namedAction@(MakeDeposit intoAccountOf by token value) 
         Role roleName -> capitalize roleName <> " makes"
 
     toDescription =
-      if (state ^. _mActiveUserParty) == Just intoAccountOf then
+      if Set.member intoAccountOf userParties then
         "your"
       else
         if by == intoAccountOf then
@@ -558,7 +564,9 @@ renderAction state party namedAction@(MakeDeposit intoAccountOf by token value) 
 
 renderAction state party namedAction@(MakeChoice choiceId bounds mChosenNum) =
   let
-    isActiveParticipant = (state ^. _mActiveUserParty) == Just party
+    userParties = state ^. _userParties
+
+    isActiveParticipant = Set.member party userParties
 
     metadata = state ^. _metadata
 
@@ -631,7 +639,9 @@ renderAction _ _ (Evaluate _) = div [] [ text "FIXME: what should we put here? E
 
 renderAction state party CloseContract =
   let
-    isActiveParticipant = (state ^. _mActiveUserParty) == Just party
+    userParties = state ^. _userParties
+
+    isActiveParticipant = Set.member party userParties
   in
     div_
       -- FIXME: revisit the text
