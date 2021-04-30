@@ -4,7 +4,7 @@ module Contract.View
   ) where
 
 import Prelude hiding (div)
-import Contract.Lenses (_executionState, _marloweParams, _metadata, _namedActions, _participants, _previousSteps, _selectedStep, _tab, _userParties)
+import Contract.Lenses (_executionState, _metadata, _namedActions, _participants, _previousSteps, _selectedStep, _tab, _userParties)
 import Contract.State (currentStep, isContractClosed)
 import Contract.Types (Action(..), PreviousStep, PreviousStepState(..), State, Tab(..), scrollContainerRef)
 import Css (applyWhen, classNames, toggleWhen)
@@ -467,8 +467,6 @@ renderTasks state =
     userParties = state ^. _userParties
 
     actions = state ^. _namedActions
-
-    marloweParams = state ^. _marloweParams
 
     expandedActions =
       expandAndGroupByRole
