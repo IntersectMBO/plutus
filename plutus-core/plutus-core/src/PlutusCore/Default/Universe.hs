@@ -106,16 +106,16 @@ pattern DefaultUniString = DefaultUniList DefaultUniChar
 deriveGEq ''DefaultUni
 
 instance ToKind DefaultUni where
-    toKind DefaultUniInteger           = nonTypeAppKind
-    toKind DefaultUniByteString        = nonTypeAppKind
-    toKind DefaultUniChar              = nonTypeAppKind
-    toKind DefaultUniUnit              = nonTypeAppKind
-    toKind DefaultUniBool              = nonTypeAppKind
-    toKind DefaultUniProtoList         = typeAppToKind DefaultUniProtoList
-    toKind DefaultUniProtoTuple        = typeAppToKind DefaultUniProtoTuple
+    toKind DefaultUniInteger        = kindOf DefaultUniInteger
+    toKind DefaultUniByteString     = kindOf DefaultUniByteString
+    toKind DefaultUniChar           = kindOf DefaultUniChar
+    toKind DefaultUniUnit           = kindOf DefaultUniUnit
+    toKind DefaultUniBool           = kindOf DefaultUniBool
+    toKind DefaultUniProtoList      = kindOf DefaultUniProtoList
+    toKind DefaultUniProtoTuple     = kindOf DefaultUniProtoTuple
     toKind (DefaultUniApply uniF _) = case toKind uniF of
-        -- We probably could avoid using @error@ here by having more type astronautics,
-        -- but having @error@ should be fine for now.
+        -- We can using @error@ here by having more type astronautics with 'Typeable',
+        -- but having @error@ should be fine.
         Type _            -> error "Panic: a type function can't be of type *"
         KindArrow _ _ cod -> cod
 
@@ -149,23 +149,24 @@ instance Parsable (SomeTypeIn (Kinded DefaultUni)) where
     parse "string"     = Just . SomeTypeIn $ Kinded DefaultUniString
     parse text         = asum
         [ do
-            undefined
-            -- aT <- Text.stripPrefix "[" text >>= Text.stripSuffix "]"
-            -- SomeTypeIn a <- parse aT
-            -- Just . SomeTypeIn $ DefaultUniList a
+            aT <- Text.stripPrefix "[" text >>= Text.stripSuffix "]"
+            SomeTypeIn (Kinded a) <- parse aT
+            Refl <- checkStar @DefaultUni a
+            Just . SomeTypeIn . Kinded $ DefaultUniList a
         , do
             abT <- Text.stripPrefix "(" text >>= Text.stripSuffix ")"
             -- Note that we don't allow whitespace after @,@ (but we could).
             -- Anyway, looking for a single comma is just plain wrong, as we may have a nested
             -- tuple (and it can be left- or right- or both-nested), so we're running into
             -- the same parsing problem as with constants.
-            undefined
---             case Text.splitOn "," abT of
---                 [aT, bT] -> do
---                     Some a <- parse aT
---                     Some b <- parse bT
---                     Just . Some $ DefaultUniTuple a b
---                 _ -> Nothing
+            case Text.splitOn "," abT of
+                [aT, bT] -> do
+                    SomeTypeIn (Kinded a) <- parse aT
+                    Refl <- checkStar @DefaultUni a
+                    SomeTypeIn (Kinded b) <- parse bT
+                    Refl <- checkStar @DefaultUni b
+                    Just . SomeTypeIn . Kinded $ DefaultUniTuple a b
+                _ -> Nothing
         ]
 
 instance DefaultUni `Contains` Integer       where knownUni = DefaultUniInteger

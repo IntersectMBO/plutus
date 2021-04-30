@@ -20,8 +20,7 @@ module PlutusCore.Core.Type
     , HasUniques
     , KnownKind (..)
     , ToKind (..)
-    , typeAppToKind
-    , nonTypeAppKind
+    , kindOf
     , defaultVersion
     -- * Helper functions
     , toTerm
@@ -119,15 +118,11 @@ instance (KnownKind dom, KnownKind cod) => KnownKind (dom -> cod) where
 
 -- | For getting the kind of a thing from the universe.
 class ToKind (uni :: GHC.Type -> GHC.Type) where
-    toKind :: uni a -> Kind ()
+    toKind :: forall k (a :: k). uni (T a) -> Kind ()
 
--- | Get the PLC kind of a type constructor @f@.
-typeAppToKind :: forall uni k (f :: k). KnownKind k => uni (T f) -> Kind ()
-typeAppToKind _ = knownKind $ Proxy @k
-
--- | The PLC kind of a fully monomorphized type. I.e. @Type ()@.
-nonTypeAppKind :: Kind ()
-nonTypeAppKind = Type ()
+-- | Get the PLC kind of @a@.
+kindOf :: forall uni k (a :: k). KnownKind k => uni (T a) -> Kind ()
+kindOf _ = knownKind $ Proxy @k
 
 -- | The default version of Plutus Core supported by this library.
 defaultVersion :: ann -> Version ann
