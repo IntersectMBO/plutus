@@ -25,6 +25,7 @@ import Data.String as String
 import Data.String.Extra (capitalize)
 import Data.Tuple (Tuple(..), fst, uncurry)
 import Data.Tuple.Nested ((/\))
+import Halogen.Extra (lifeCycleEvent)
 import Halogen.HTML (HTML, a, button, div, div_, h1, h2, h3, input, p, span, span_, sup_, text)
 import Halogen.HTML.Events.Extra (onClick_, onValueInput_)
 import Halogen.HTML.Properties (InputType(..), enabled, href, placeholder, ref, target, type_, value)
@@ -57,7 +58,10 @@ contractDetailsCard currentSlot state =
     --       first and last card can be scrolled to the center
     paddingElement = [ div [ classNames [ "flex-shrink-0", "-ml-3", "w-carousel-padding-element" ] ] [] ]
   in
-    div [ classNames [ "flex", "flex-col", "items-center", "pt-5", "h-full" ] ]
+    div
+      [ classNames [ "flex", "flex-col", "items-center", "pt-5", "h-full" ]
+      , lifeCycleEvent { onInit: Just CarouselOpened, onFinilize: Just CarouselClosed }
+      ]
       [ h1 [ classNames [ "text-xl", "font-semibold" ] ] [ text metadata.contractName ]
       , h2 [ classNames [ "mb-5", "text-xs", "uppercase" ] ] [ text $ contractTypeName metadata.contractType ]
       -- NOTE: The card is allowed to grow in an h-full container and the navigation buttons are absolute positioned
