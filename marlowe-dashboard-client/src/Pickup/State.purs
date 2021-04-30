@@ -103,9 +103,9 @@ handleAction PickupWallet = do
   liftEffect $ setItem walletLibraryLocalStorageKey $ encodeJSON walletLibrary
   callMainFrameAction $ MainFrame.EnterPlayState walletLibrary walletDetails
 
-handleAction ClearLocalStorage = do
-  liftEffect $ removeItem walletLibraryLocalStorageKey
-  liftEffect $ removeItem walletDetailsLocalStorageKey
-  window_ <- liftEffect window
-  location_ <- liftEffect $ location window_
-  liftEffect $ reload location_
+handleAction ClearLocalStorage =
+  liftEffect do
+    removeItem walletLibraryLocalStorageKey
+    removeItem walletDetailsLocalStorageKey
+    location_ <- location =<< window
+    reload location_
