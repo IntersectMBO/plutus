@@ -17,7 +17,7 @@ import qualified Data.Aeson                 as JSON
 import           Data.Text                  (Text)
 import           Plutus.PAB.Webserver.Types (ContractActivationArgs, ContractInstanceClientState,
                                              ContractSignatureResponse, FullReport)
-import           Servant.API                (Capture, Get, JSON, Post, ReqBody, (:<|>), (:>))
+import           Servant.API                (Capture, Get, JSON, Post, Put, ReqBody, (:<|>), (:>))
 import           Servant.API.WebSocket      (WebSocketPending)
 import           Wallet.Types               (ContractInstanceId, NotificationError)
 
@@ -46,6 +46,7 @@ type NewAPI t walletId -- see note [WalletID type in wallet API]
                     (Capture "contract-instance-id" Text :>
                         ( "status" :> Get '[JSON] (ContractInstanceClientState t) -- Current status of contract instance
                         :<|> "endpoint" :> Capture "endpoint-name" String :> ReqBody '[JSON] JSON.Value :> Post '[JSON] () -- Call an endpoint. Make
+                        :<|> "stop" :> Put '[JSON] () -- Terminate the instance.
                         )
                     )
             :<|> "instances" :> "wallet" :> Capture "wallet-id" walletId :> Get '[JSON] [ContractInstanceClientState t]

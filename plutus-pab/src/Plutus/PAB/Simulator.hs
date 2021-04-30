@@ -27,6 +27,7 @@ module Plutus.PAB.Simulator(
     , mkSimulatorHandlers
     , addWallet
     -- * Simulator actions
+    -- ** Logging
     , logString
     , logPretty
     -- ** Agent actions
@@ -34,6 +35,9 @@ module Plutus.PAB.Simulator(
     , activateContract
     , callEndpointOnInstance
     , handleAgentThread
+    , Activity(..)
+    , stopInstance
+    , instanceActivity
     -- ** Control actions
     , makeBlock
     -- * Querying the state
@@ -98,7 +102,8 @@ import           Ledger.Value                                   (Value, flattenV
 import           Plutus.PAB.Core                                (EffectHandlers (..))
 import qualified Plutus.PAB.Core                                as Core
 import qualified Plutus.PAB.Core.ContractInstance.BlockchainEnv as BlockchainEnv
-import           Plutus.PAB.Core.ContractInstance.STM           (BlockchainEnv, InstancesState, OpenEndpoint)
+import           Plutus.PAB.Core.ContractInstance.STM           (Activity (..), BlockchainEnv, InstancesState,
+                                                                 OpenEndpoint)
 import qualified Plutus.PAB.Core.ContractInstance.STM           as Instances
 import           Plutus.PAB.Effects.Contract                    (ContractStore)
 import qualified Plutus.PAB.Effects.Contract                    as Contract
@@ -694,6 +699,14 @@ handleAgentThread ::
     -> Eff (Core.ContractInstanceEffects t (SimulatorState t) '[IO]) a
     -> Simulation t a
 handleAgentThread = Core.handleAgentThread
+
+-- | Stop the instance.
+stopInstance :: forall t. ContractInstanceId -> Simulation t ()
+stopInstance = Core.stopInstance
+
+-- | The 'Activity' state of the instance
+instanceActivity :: forall t. ContractInstanceId -> Simulation t Activity
+instanceActivity = Core.instanceActivity
 
 -- | Create a new wallet with a random key and add it to the list of simulated wallets
 addWallet :: forall t. Simulation t (Wallet, PubKey)
