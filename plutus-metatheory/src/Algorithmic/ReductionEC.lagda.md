@@ -534,10 +534,35 @@ data EProgress {A : ∅ ⊢Nf⋆ *} (M : ∅ ⊢ A) : Set where
       -------
     → EProgress M
 
-{-
 lemma51' : ∀{A}(M : ∅ ⊢ A) → EProgress M
 lemma51' M with lemma51 M
 ... | inj₁ V = done V
 ... | inj₂ (B ,, E ,, L ,, inj₁ (M' ,, p) ,, p') = step E p p'
 ... | inj₂ (B ,, E ,, L ,, inj₂ e ,, p) = error E e p
--}
+
+uniqueVal : ∀{A}(M : ∅ ⊢ A)(v v' : Value M) → v ≡ v'
+
+uniqueBAppA : ∀{A b as}(M : ∅ ⊢ A)(v : BAppA b as M)(v' : BAppA b as M) → v ≡ v'
+uniqueBAppA _ base base = refl
+uniqueBAppA (M · M') (step v x) (step v' x₁) with uniqueBAppA M v v' | uniqueVal M' x x₁
+... | refl | refl = refl
+uniqueBAppA (M ·⋆ A) (step⋆ v) (step⋆ v') with uniqueBAppA M v v'
+... | refl = refl
+
+uniqueBAppA' : ∀{A b b' as as'}(M : ∅ ⊢ A)(v : BAppA b as M)(v' : BAppA b' as' M) → b ≡ b' × as ≡ as'
+uniqueBAppA' _ base base = refl ,, refl
+uniqueBAppA' (M · M') (step v x) (step v' x₁) with uniqueBAppA' M v v'
+... | refl ,, refl = refl ,, refl
+uniqueBAppA' (M ·⋆ A) (step⋆ v) (step⋆ v') with uniqueBAppA' M v v'
+... | refl ,, refl = refl ,, refl
+
+
+uniqueVal .(ƛ M) (V-ƛ M) (V-ƛ .M) = refl
+uniqueVal .(Λ M) (V-Λ M) (V-Λ .M) = refl
+uniqueVal .(wrap _ _ _) (V-wrap v) (V-wrap v') with uniqueVal _ v v'
+... | refl = refl
+uniqueVal .(con cn) (V-con cn) (V-con .cn) = refl
+uniqueVal M (V-I⇒ b x) (V-I⇒ b₁ x₁) with uniqueBAppA' M x x₁
+... | refl ,, refl = cong (V-I⇒ b) (uniqueBAppA M x x₁) 
+uniqueVal M (V-IΠ b x) (V-IΠ b₁ x₁) with uniqueBAppA' M x x₁
+... | refl ,, refl = cong (V-IΠ b) (uniqueBAppA M x x₁) 
