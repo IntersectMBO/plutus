@@ -1,8 +1,16 @@
+{-# LANGUAGE DataKinds       #-}
 {-# LANGUAGE TemplateHaskell #-}
+
 module PlutusCore.Evaluation.Machine.ExBudgetingDefaults where
 
 import           Data.Aeson.THReader
+import           PlutusCore.Evaluation.Machine.ExBudget    ()
 import           PlutusCore.Evaluation.Machine.ExBudgeting
+import           PlutusCore.Evaluation.Machine.ExMemory    ()
+
+import           UntypedPlutusCore.Evaluation.Machine.Cek  (CekCosts)
+
+
 
 -- | The default cost model.
 defaultCostModel :: CostModel
@@ -19,3 +27,8 @@ defaultCostModelParams = extractModelParams defaultCostModel
 -- import           Data.Default
 -- defaultCostModel :: CostModel
 -- defaultCostModel = def
+
+defaultCekCosts :: CekCosts
+defaultCekCosts =
+  $$(readJSONFromFile "cost-model/data/machineModel.json")
+

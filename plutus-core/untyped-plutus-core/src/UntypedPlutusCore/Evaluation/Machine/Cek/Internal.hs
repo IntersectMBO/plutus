@@ -68,6 +68,7 @@ import           Data.Hashable                           (Hashable)
 import           Data.Proxy
 import           Data.STRef
 import           Data.Text.Prettyprint.Doc
+import           Deriving.Aeson
 
 {- Note [Compilation peculiarities]
 READ THIS BEFORE TOUCHING ANYTHING IN THIS FILE
@@ -454,7 +455,10 @@ data CekCosts =
     -- ^ Just the cost of evaluating a Builtin node, not the builtin itself.
     -- There's no entry for Error since we'll be exiting anyway; also, what would
     -- happen if calling 'Error' caused the budget to be exceeded?
-    }
+    } deriving (Show, Generic, Lift)
+
+deriving via CustomJSON '[FieldLabelModifier (CamelToSnake)] CekCosts instance ToJSON CekCosts
+deriving via CustomJSON '[FieldLabelModifier (CamelToSnake)] CekCosts instance FromJSON CekCosts
 
 -- Charge a unit CPU cost for AST nodes: this allows us to count the number of
 -- times each node type is evaluated.  For actual prediction/costing we will use

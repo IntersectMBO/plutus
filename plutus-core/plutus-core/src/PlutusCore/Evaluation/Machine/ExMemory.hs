@@ -21,6 +21,7 @@ import           PlutusCore.Universe
 import           PlutusPrelude
 
 import           Control.Monad.RWS.Strict
+import           Data.Aeson
 import qualified Data.ByteString          as BS
 import           Data.Proxy
 import qualified Data.Text                as T
@@ -43,18 +44,23 @@ abstractly specifiable. It's an implementation detail.
 
 -- | Counts size in machine words (64bit for the near future)
 newtype ExMemory = ExMemory Integer
-  deriving (Eq, Ord, Show)
+  deriving (Eq, Ord, Show, Lift)
   deriving newtype (Num, Pretty, NFData)
   deriving (Semigroup, Monoid) via (Sum Integer)
 deriving newtype instance PrettyDefaultBy config Integer => PrettyBy config ExMemory
+deriving via Integer instance FromJSON ExMemory
+deriving via Integer instance ToJSON   ExMemory
+
 
 -- TODO: 'Integer's are not particularly fast. Should we use @Int64@?
 -- | Counts CPU units - no fixed base, proportional.
 newtype ExCPU = ExCPU Integer
-  deriving (Eq, Ord, Show)
+  deriving (Eq, Ord, Show, Lift)
   deriving newtype (Num, Pretty, NFData)
   deriving (Semigroup, Monoid) via (Sum Integer)
 deriving newtype instance PrettyDefaultBy config Integer => PrettyBy config ExCPU
+deriving via Integer instance FromJSON ExCPU
+deriving via Integer instance ToJSON   ExCPU
 
 -- Based on https://github.com/ekmett/semigroups/blob/master/src/Data/Semigroup/Generic.hs
 class GExMemoryUsage f where

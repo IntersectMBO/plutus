@@ -1,3 +1,4 @@
+{-# LANGUAGE DataKinds              #-}
 {-# LANGUAGE DeriveAnyClass         #-}
 {-# LANGUAGE FlexibleInstances      #-}
 {-# LANGUAGE FunctionalDependencies #-}
@@ -95,6 +96,8 @@ import           PlutusCore.Name
 import           Control.Monad.Except
 import           Data.Semigroup.Generic
 import           Data.Text.Prettyprint.Doc
+import           Deriving.Aeson
+import           Language.Haskell.TH.Lift               (Lift)
 import           PlutusCore.Evaluation.Machine.ExMemory
 
 class ToExMemory term where
@@ -133,9 +136,12 @@ instance (Monad m, SpendBudget m fun exBudgetCat) => SpendBudget (ExceptT e m) f
     spendBudget c b  = lift $ spendBudget c b
 
 data ExBudget = ExBudget { _exBudgetCPU :: ExCPU, _exBudgetMemory :: ExMemory }
-    deriving stock (Eq, Show, Generic)
+    deriving stock (Eq, Show, Generic, Lift)
     deriving (Semigroup, Monoid) via (GenericSemigroupMonoid ExBudget)
     deriving anyclass (PrettyBy config, NFData)
+deriving via CustomJSON '[FieldLabelModifier (CamelToSnake)] ExBudget instance ToJSON ExBudget
+deriving via CustomJSON '[FieldLabelModifier (CamelToSnake)] ExBudget instance FromJSON ExBudget
+
 
 instance Pretty ExBudget where
     pretty (ExBudget cpu memory) = parens $ fold

@@ -17,6 +17,7 @@ module UntypedPlutusCore.Evaluation.Machine.Cek
     , CountingSt (..)
     , TallyingSt (..)
     , RestrictingSt (..)
+    , CekCosts
     , Hashable
     , PrettyUni
     , counting
@@ -66,12 +67,13 @@ allow one to specify an 'ExBudgetMode'. I.e. such functions are only for fully e
 -- | Evaluate a term using the CEK machine with logging disabled and keep track of costing.
 runCekNoEmit
     :: ( uni `Everywhere` ExMemoryUsage, Ix fun, PrettyUni uni fun)
-    => BuiltinsRuntime fun (CekValue uni fun)
+    => CekCosts
+    -> BuiltinsRuntime fun (CekValue uni fun)
     -> ExBudgetMode cost uni fun
     -> Term Name uni fun ()
     -> (Either (CekEvaluationException uni fun) (Term Name uni fun ()), cost)
-runCekNoEmit runtime mode term =
-    case runCek unitCekCosts runtime mode False term of
+runCekNoEmit costs runtime mode term =
+    case runCek costs runtime mode False term of
         (errOrRes, cost', _) -> (errOrRes, cost')
 
 -- | Unsafely evaluate a term using the CEK machine with logging disabled and keep track of costing.
@@ -81,30 +83,33 @@ unsafeRunCekNoEmit
        , Closed uni, uni `EverywhereAll` '[ExMemoryUsage, PrettyConst]
        , Ix fun, Pretty fun, Typeable fun
        )
-    => BuiltinsRuntime fun (CekValue uni fun)
+    => CekCosts
+    -> BuiltinsRuntime fun (CekValue uni fun)
     -> ExBudgetMode cost uni fun
     -> Term Name uni fun ()
     -> (EvaluationResult (Term Name uni fun ()), cost)
-unsafeRunCekNoEmit runtime mode =
-    first unsafeExtractEvaluationResult . runCekNoEmit runtime mode
+unsafeRunCekNoEmit costs runtime mode =
+    first unsafeExtractEvaluationResult . runCekNoEmit costs runtime mode
 
 -- | Evaluate a term using the CEK machine with logging enabled.
 evaluateCek
     :: ( uni `Everywhere` ExMemoryUsage, Ix fun, PrettyUni uni fun)
-    => BuiltinsRuntime fun (CekValue uni fun)
+    => CekCosts
+    -> BuiltinsRuntime fun (CekValue uni fun)
     -> Term Name uni fun ()
     -> (Either (CekEvaluationException uni fun) (Term Name uni fun ()), [String])
-evaluateCek runtime term =
-    case runCek unitCekCosts runtime restrictingEnormous True term of
+evaluateCek costs runtime term =
+    case runCek costs runtime restrictingEnormous True term of
         (errOrRes, _, logs) -> (errOrRes, logs)
 
 -- | Evaluate a term using the CEK machine with logging disabled.
 evaluateCekNoEmit
     :: ( uni `Everywhere` ExMemoryUsage, Ix fun, PrettyUni uni fun)
-    => BuiltinsRuntime fun (CekValue uni fun)
+    => CekCosts
+    -> BuiltinsRuntime fun (CekValue uni fun)
     -> Term Name uni fun ()
     -> Either (CekEvaluationException uni fun) (Term Name uni fun ())
-evaluateCekNoEmit runtime = fst . runCekNoEmit runtime restrictingEnormous
+evaluateCekNoEmit costs runtime = fst . runCekNoEmit costs runtime restrictingEnormous
 
 -- | Evaluate a term using the CEK machine with logging enabled. May throw a 'CekMachineException'.
 unsafeEvaluateCek
@@ -112,10 +117,11 @@ unsafeEvaluateCek
        , Closed uni, uni `EverywhereAll` '[ExMemoryUsage, PrettyConst]
        , Ix fun, Pretty fun, Typeable fun
        )
-    => BuiltinsRuntime fun (CekValue uni fun)
+    => CekCosts
+    -> BuiltinsRuntime fun (CekValue uni fun)
     -> Term Name uni fun ()
     -> (EvaluationResult (Term Name uni fun ()), [String])
-unsafeEvaluateCek runtime = first unsafeExtractEvaluationResult . evaluateCek runtime
+unsafeEvaluateCek costs runtime = first unsafeExtractEvaluationResult . evaluateCek costs runtime
 
 -- | Evaluate a term using the CEK machine with logging disabled. May throw a 'CekMachineException'.
 unsafeEvaluateCekNoEmit
@@ -123,10 +129,11 @@ unsafeEvaluateCekNoEmit
        , Closed uni, uni `EverywhereAll` '[ExMemoryUsage, PrettyConst]
        , Ix fun, Pretty fun, Typeable fun
        )
-    => BuiltinsRuntime fun (CekValue uni fun)
+    => CekCosts
+    -> BuiltinsRuntime fun (CekValue uni fun)
     -> Term Name uni fun ()
     -> EvaluationResult (Term Name uni fun ())
-unsafeEvaluateCekNoEmit runtime = unsafeExtractEvaluationResult . evaluateCekNoEmit runtime
+unsafeEvaluateCekNoEmit costs runtime = unsafeExtractEvaluationResult . evaluateCekNoEmit costs runtime
 
 -- | Unlift a value using the CEK machine.
 readKnownCek
@@ -134,7 +141,8 @@ readKnownCek
        , KnownType (Term Name uni fun ()) a
        , Ix fun, PrettyUni uni fun
        )
-    => BuiltinsRuntime fun (CekValue uni fun)
+    => CekCosts
+    -> BuiltinsRuntime fun (CekValue uni fun)
     -> Term Name uni fun ()
     -> Either (CekEvaluationException uni fun) a
-readKnownCek runtime = evaluateCekNoEmit runtime >=> readKnown
+readKnownCek costs runtime = evaluateCekNoEmit costs runtime >=> readKnown

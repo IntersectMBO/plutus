@@ -30,20 +30,21 @@ module PlutusCore.Generators.NEAT.Spec
 
 import           PlutusCore
 import           PlutusCore.Evaluation.Machine.Ck
+import           PlutusCore.Evaluation.Machine.ExBudgetingDefaults (defaultCekCosts)
 import           PlutusCore.Generators.NEAT.Common
 import           PlutusCore.Generators.NEAT.Term
 import           PlutusCore.Normalize
 import           PlutusCore.Pretty
-import qualified UntypedPlutusCore                        as U
-import qualified UntypedPlutusCore.Evaluation.Machine.Cek as U
+import qualified UntypedPlutusCore                                 as U
+import qualified UntypedPlutusCore.Evaluation.Machine.Cek          as U
 
 import           Control.Monad.Except
-import           Control.Search                           (Enumerable (..), Options (..), ctrex', search')
-import           Data.Coolean                             (Cool, toCool, (!=>))
+import           Control.Search                                    (Enumerable (..), Options (..), ctrex', search')
+import           Data.Coolean                                      (Cool, toCool, (!=>))
 import           Data.Either
 import           Data.Maybe
-import qualified Data.Stream                              as Stream
-import qualified Data.Text                                as Text
+import qualified Data.Stream                                       as Stream
+import qualified Data.Text                                         as Text
 import           System.IO.Unsafe
 import           Test.Tasty
 import           Test.Tasty.HUnit
@@ -159,7 +160,7 @@ prop_agree_termEval tyG tmG = do
 
   -- run untyped CEK on erased input
   tmUCek <- withExceptT UCekP $ liftEither $
-    U.evaluateCekNoEmit defBuiltinsRuntime (U.erase tm) `catchError` handleUError
+    U.evaluateCekNoEmit defaultCekCosts defBuiltinsRuntime (U.erase tm) `catchError` handleUError
 
   -- check if typed CK and untyped CEK give the same output modulo erasure
   unless (tmUCk == tmUCek) $
