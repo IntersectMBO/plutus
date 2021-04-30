@@ -28,6 +28,7 @@ NOTE: You may want to consider using https://github.com/target/lorri[lorri] as a
 === How to use helper scripts to fix some common issues
 
 The shell comes with some tools for fixing various simple problems that the CI will complain about. Specifically:
+
 - `fix-stylish-haskell` will re-format all the Haskell sources correctly.
 - `fix-purty` will re-format all the Purescript sources correctly.
 - `fix-png-optimization` will optimize all PNGs in the repository.
@@ -277,6 +278,7 @@ So please do use this ability where it helps, for example:
 * Add low-effort or WIP commits to fix review comments, and then squash them away before merging the PR.
 * If you have already had a PR review, don't rebase away the old commits until the PR is ready to merge, so that the reviewer only has to look at the "new" commits.
 * Rewrite the commits to make the story clearer where possible.
+* Always prefer `git push --force-with-lease` to just `git push --force` to ensure that no work gets accidentally deleted.
 
 Don't be obsessive about history though: a little bit of effort making the history clear is nice, but you can rapidly hit diminishing returns.
 Use your judgement, but probably don't merge a PR that has commits called "WIP" or "fix"!
@@ -306,6 +308,7 @@ to spend time explaining or clarifying something in advance than for them to puz
 === Continuous integration
 
 We have two sources of CI checks at the moment:
+
 - Hydra
 - ReadTheDocs
 
