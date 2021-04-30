@@ -34,6 +34,14 @@ variable "marlowe_dash_tld" {
   default = "marlowe-dash.iohkdev.io"
 }
 
+variable "marlowe_web_public_zone" {
+  default = "Z09016162N4S3NFVWHXYP"
+}
+
+variable "marlowe_web_tld" {
+  default = "marlowe-web.iohkdev.io"
+}
+
 variable "marlowe_dash_public_zone" {
   default = "Z04600362E06M9P9U3Y12"
 }

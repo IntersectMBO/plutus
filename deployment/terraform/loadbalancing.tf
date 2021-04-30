@@ -50,6 +50,13 @@ resource "aws_security_group" "public_alb" {
     cidr_blocks = var.private_subnet_cidrs
   }
 
+  egress {
+    from_port   = local.marlowe_web_port
+    to_port     = local.marlowe_web_port
+    protocol    = "TCP"
+    cidr_blocks = var.private_subnet_cidrs
+  }
+
   tags = {
     Name        = "${local.project}_${var.env}_public_alb"
     Project     = local.project
@@ -97,6 +104,11 @@ resource "aws_alb_listener" "playground" {
   }
 }
 
+resource "aws_lb_listener_certificate" "marlowe_web" {
+  listener_arn    = aws_alb_listener.playground.arn
+  certificate_arn = aws_acm_certificate.marlowe_web_private.arn
+}
+
 resource "aws_lb_listener_certificate" "marlowe" {
   listener_arn    = aws_alb_listener.playground.arn
   certificate_arn = aws_acm_certificate.marlowe_private.arn
@@ -105,6 +117,44 @@ resource "aws_lb_listener_certificate" "marlowe" {
 resource "aws_lb_listener_certificate" "marlowe_dash" {
   listener_arn    = aws_alb_listener.playground.arn
   certificate_arn = aws_acm_certificate.marlowe_dash_private.arn
+}
+
+resource "aws_alb_listener_rule" "marlowe-web" {
+  listener_arn = aws_alb_listener.playground.arn
+  action {
+    type             = "forward"
+    target_group_arn = aws_alb_target_group.marlowe_web.id
+  }
+
+  condition {
+    host_header {
+      values = [local.marlowe_web_domain_name]
+    }
+  }
+}
+
+resource "aws_alb_target_group" "marlowe_web" {
+  port     = "80"
+  protocol = "HTTP"
+  vpc_id   = aws_vpc.plutus.id
+}
+
+resource "aws_alb_target_group_attachment" "marlowe_web" {
+  target_group_arn = aws_alb_target_group.marlowe_web.arn
+  target_id        = aws_instance.playgrounds_a.id
+  port             = local.marlowe_web_port
+}
+
+resource "aws_route53_record" "marlowe_web_alb" {
+  zone_id = var.marlowe_web_public_zone
+  name    = local.marlowe_web_domain_name
+  type    = "A"
+
+  alias {
+    name                   = aws_alb.plutus.dns_name
+    zone_id                = aws_alb.plutus.zone_id
+    evaluate_target_health = true
+  }
 }
 
 ## ALB rule for web-ghc

@@ -8,7 +8,9 @@ locals {
   marlowe_domain_name      = "${var.marlowe_full_domain != "" ? var.marlowe_full_domain : "${var.env}.${var.marlowe_tld}"}"
   plutus_domain_name       = "${var.plutus_full_domain != "" ? var.plutus_full_domain : "${var.env}.${var.plutus_tld}"}"
   marlowe_dash_domain_name = "${var.env}.${var.marlowe_dash_tld}"
+  marlowe_web_domain_name  = "${var.env}.${var.marlowe_web_tld}"
 
+  marlowe_web_port        = 8181
   plutus_playground_port  = 8080
   marlowe_playground_port = 9080
   pab_port                = 9080
