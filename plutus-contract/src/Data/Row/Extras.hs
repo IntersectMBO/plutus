@@ -26,7 +26,6 @@ import qualified Data.Row.Variants as Variants
 import           Data.Text         (Text)
 import qualified Data.Text         as Text
 import           GHC.TypeLits      hiding (Text)
-import qualified GHC.TypeLits      as TL
 
 newtype JsonVar s = JsonVar { unJsonVar :: Var s }
 
