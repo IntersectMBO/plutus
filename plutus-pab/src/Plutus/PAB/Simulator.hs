@@ -18,6 +18,7 @@ to one PAB, with its own view of the world, all acting on the same blockchain.
 -}
 module Plutus.PAB.Simulator(
     Simulation
+    , SimulatorState
     , runSimulation
     -- * Run with user-defined contracts
     , SimulatorContractHandler

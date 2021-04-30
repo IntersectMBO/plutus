@@ -19,6 +19,16 @@ module Plutus.PAB.Webserver.WebSocket
     , contractInstanceUpdates
     -- * Reports
     , getContractReport
+    -- * Streams
+    , STMStream
+    , readOne
+    , readN
+    , foldM
+    , unfold
+    -- ** Streams of PAB events
+    , walletFundsChange
+    , openEndpoints
+    , slotChange
     ) where
 
 import           Control.Applicative                    (Alternative (..), Applicative (..))
@@ -43,6 +53,7 @@ import qualified Ledger
 import           Ledger.Slot                            (Slot)
 import qualified Network.WebSockets                     as WS
 import           Network.WebSockets.Connection          (Connection, PendingConnection)
+import           Numeric.Natural                        (Natural)
 import           Plutus.Contract.Effects.ExposeEndpoint (ActiveEndpoint (..))
 import           Plutus.PAB.Core                        (PABAction)
 import qualified Plutus.PAB.Core                        as Core
@@ -200,16 +211,29 @@ instanceUpdates instanceId instancesState =
         , ContractFinished   <$> finalValue instanceId instancesState
         ]
 
+readOne :: STMStream a -> IO (a, Maybe (STMStream a))
+readOne STMStream{unSTMStream} = STM.atomically unSTMStream
+
+readN :: Natural -> STMStream a -> IO [a]
+readN 0 _ = pure []
+readN k s = do
+    (a, s') <- readOne s
+    case s' of
+        Nothing   -> pure [a]
+        Just rest -> (:) a <$> readN (pred k) rest
+
+foldM :: STMStream a -> (a -> IO ()) -> IO () -> IO ()
+foldM s handleEvent handleStop = do
+    (v, next) <- readOne s
+    handleEvent v
+    case next of
+        Nothing -> handleStop
+        Just s' -> foldM s' handleEvent handleStop
+
 -- | Send all updates from an 'STMStream' to a websocket until it finishes.
 streamToWebsocket :: forall t env a. ToJSON a => Connection -> STMStream a -> PABAction t env ()
-streamToWebsocket connection stream = do
-    let go STMStream{unSTMStream} = do
-            (event, next) <- liftIO $ STM.atomically unSTMStream
-            liftIO $ WS.sendTextData connection $ JSON.encode event
-            case next of
-                Nothing -> pure ()
-                Just n  -> go n
-    go stream
+streamToWebsocket connection stream = liftIO $
+    foldM stream (WS.sendTextData connection . JSON.encode) (pure ())
 
 -- | Handler for WSAPI
 wsHandler ::

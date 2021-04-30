@@ -92,7 +92,7 @@ processBlock BlockchainEnv{beAddressMap, beTxChanges, beCurrentSlot, beTxIndex} 
 
 processTx :: Slot -> (AddressMap, Map TxId TxStatus, ChainIndex) -> Tx -> (AddressMap, Map TxId TxStatus, ChainIndex)
 processTx currentSlot (addressMap, txStatusMap, chainIndex) tx = (addressMap', txStatusMap', chainIndex') where
-  addressMap' = AddressMap.updateAddresses tx addressMap
+  addressMap' = AddressMap.updateAllAddresses tx addressMap
   chainIndex' =
     let itm = ChainIndexItem{ciSlot = currentSlot, ciTx = tx, ciTxId = txId tx} in
     Index.insert addressMap' itm chainIndex
