@@ -19,7 +19,7 @@
         "mtl-compat".flags.two-point-one = false;
         "mtl-compat".flags.two-point-two = false;
         "barbies".revision = (((hackage."barbies")."2.0.2.0").revisions).default;
-        "row-types".revision = (((hackage."row-types")."0.4.0.0").revisions).default;
+        "row-types".revision = (((hackage."row-types")."1.0.1.0").revisions).default;
         "io-streams-haproxy".revision = (((hackage."io-streams-haproxy")."1.0.1.0").revisions).default;
         "ieee".revision = (((hackage."ieee")."0.7").revisions).default;
         "ieee".flags.big_endian = false;
