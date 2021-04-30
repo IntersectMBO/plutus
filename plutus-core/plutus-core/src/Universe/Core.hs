@@ -411,6 +411,11 @@ instance GShow f => Show (Some f) where
 instance GShow uni => Show (SomeTypeIn uni) where
     showsPrec pr (SomeTypeIn uni) = ($(makeShowsPrec ''SomeTypeIn)) pr (SomeTypeIn (AG uni))
 
+instance GShow uni => Show (Kinded uni ta) where
+    showsPrec pr (Kinded uni) = ($(makeShowsPrec ''Kinded)) pr (Kinded (AG uni))
+
+instance GShow uni => GShow (Kinded uni) where gshowsPrec = showsPrec
+
 instance (GShow uni, Closed uni, uni `Everywhere` Show) => GShow (ValueOf uni) where
     gshowsPrec = showsPrec
 instance (GShow uni, Closed uni, uni `Everywhere` Show) => Show (ValueOf uni a) where

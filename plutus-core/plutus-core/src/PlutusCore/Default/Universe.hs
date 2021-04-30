@@ -180,11 +180,6 @@ instance DefaultUni `Contains` (,)           where knownUni = DefaultUniProtoTup
 instance (DefaultUni `Contains` f, DefaultUni `Contains` a) => DefaultUni `Contains` f a where
     knownUni = knownUni `DefaultUniApply` knownUni
 
--- instance DefaultUni `Contains` a => DefaultUni `Contains` [a] where
---     knownUni = DefaultUniList knownUni
--- instance (DefaultUni `Contains` a, DefaultUni `Contains` b) => DefaultUni `Contains` (a, b) where
---     knownUni = DefaultUniTuple knownUni knownUni
-
 {- Note [Stable encoding of tags]
 'encodeUni' and 'decodeUni' are used for serialisation and deserialisation of types from the
 universe and we need serialised things to be extremely stable, hence the definitions of 'encodeUni'
@@ -249,6 +244,11 @@ noMoreTypeFunctions :: DefaultUni (T (f :: a -> b -> c -> d)) -> r
 noMoreTypeFunctions (f `DefaultUniApply` _) = noMoreTypeFunctions f
 
 -- >>> encodeUni (DefaultUniList (DefaultUniTuple (DefaultUniList DefaultUniInteger) DefaultUniBool))
--- [8,7,5,8,7,7,6,8,7,5,0,4]
--- >>> decodeUni [8,7,5,8,7,7,6,8,7,5,0,4] :: Maybe (Some (TypeIn DefaultUni))
--- Just (Some (TypeIn [([integer],bool)]))
+-- [7,5,7,7,6,7,5,0,4]
+-- >>> decodeKindedUni [7,5,7,7,6,7,5,0,4] :: Maybe (SomeTypeIn (Kinded DefaultUni))
+-- Just (SomeTypeIn (Kinded [([integer],bool)]))
+
+-- >>> encodeUni (DefaultUniProtoTuple `DefaultUniApply` DefaultUniList DefaultUniInteger)
+-- [7,6,7,5,0]
+-- >>> decodeKindedUni [7,6,7,5,0] :: Maybe (SomeTypeIn (Kinded DefaultUni))
+-- Just (SomeTypeIn (Kinded ([integer],)))

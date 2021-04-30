@@ -72,11 +72,13 @@ class TermLike term tyname name uni fun | term -> tyname name uni fun where
     termLet = mkImmediateLamAbs
     typeLet = mkImmediateTyAbs
 
+-- TODO: make it @forall {k}@ once we have that.
 -- | Embed a type (given its explicit type tag) into a PLC type.
 mkTyBuiltinOf :: forall k (a :: k) uni tyname ann. ann -> uni (T a) -> Type tyname uni ann
 mkTyBuiltinOf ann = TyBuiltin ann . SomeTypeIn
 
--- | Embed a type (provided its type is in the universe) into a PLC type.
+-- TODO: make it @forall {k}@ once we have that.
+-- | Embed a type (provided it's in the universe) into a PLC type.
 mkTyBuiltin
     :: forall k (a :: k) uni tyname ann. uni `Contains` a
     => ann -> Type tyname uni ann

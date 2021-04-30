@@ -330,7 +330,7 @@ type KnownBuiltinType term a = KnownBuiltinTypeIn (UniOf term) term a
 
 -- See Note [KnownType's defaults].
 -- | A default implementation of 'toTypeAst' for built-in types.
-toBuiltinTypeAst :: uni `Contains` a => proxy a -> Type TyName uni ()
+toBuiltinTypeAst :: forall k (a :: k) uni proxy. uni `Contains` a => proxy a -> Type TyName uni ()
 toBuiltinTypeAst (_ :: proxy a) = mkTyBuiltin @_ @a ()
 
 -- See Note [KnownType's defaults]
@@ -408,8 +408,8 @@ instance (uni `Contains` f, uni ~ uni', All (KnownTypeAst uni) reps) =>
                     toTypeAst (Proxy @rep) : rs)
                 []
 
-data ReadSomeValue m uni f reps =
-    forall k (a :: k). ReadSomeValue (SomeValueN uni a reps) (uni (T a))
+data ReadSomeValueN m uni f reps =
+    forall k (a :: k). ReadSomeValueN (SomeValueN uni a reps) (uni (T a))
 
 instance
         ( KnownTypeAst uni (SomeValueN uni f reps)
@@ -433,15 +433,15 @@ instance
                     ]
                 wrongType :: (MonadError (ErrorWithCause err term) m, AsUnliftingError err) => m a
                 wrongType = throwingWithCause _UnliftingError err $ Just term
-            ReadSomeValue res uniHead <-
+            ReadSomeValueN res uniHead <-
                 cparaM_SList @_ @(KnownTypeAst uni) @reps
                     Proxy
-                    (ReadSomeValue (SomeValueRes uni xs) uni)
-                    (\(ReadSomeValue acc uniApp) ->
+                    (ReadSomeValueN (SomeValueRes uni xs) uni)
+                    (\(ReadSomeValueN acc uniApp) ->
                         matchUniApply
                             uniApp
                             wrongType
-                            (\uniApp' uniA -> pure $ ReadSomeValue (SomeValueArg uniA acc) uniApp'))
+                            (\uniApp' uniA -> pure $ ReadSomeValueN (SomeValueArg uniA acc) uniApp'))
             case uniHead `geq` uniF of
                 Nothing   -> wrongType
                 Just Refl -> pure res

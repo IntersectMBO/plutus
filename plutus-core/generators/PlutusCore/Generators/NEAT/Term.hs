@@ -147,6 +147,8 @@ convertTypeBuiltin TyUnitG       = TyBuiltin () $ SomeTypeIn DefaultUniUnit
 convertTypeBuiltin TyCharG       = TyBuiltin () $ SomeTypeIn DefaultUniChar
 convertTypeBuiltin TyListG       = TyBuiltin () $ SomeTypeIn DefaultUniProtoList
 
+-- Calling it 'TypeStringG' rather than @TyStringG@ to emphasize that it creates a 'TypeG' rather
+-- than a 'TyBuiltinG'.
 pattern TypeStringG :: TypeG n
 pattern TypeStringG = TyAppG (TyBuiltinG TyListG) (TyBuiltinG TyCharG) (Type ())
 
@@ -179,7 +181,6 @@ convertType tns (Type _) (TyForallG k ty) = do
   TyForall () (tynameOf tns' FZ) k <$> convertType tns' (Type ()) ty
 convertType _ _ (TyBuiltinG tyBuiltin) =
   pure $ convertTypeBuiltin tyBuiltin
-  -- return (TyBuiltin () (convertTypeBuiltin tyBuiltin))
 convertType tns (KindArrow _ k1 k2) (TyLamG ty) = do
   tns' <- extTyNameState tns
   TyLam () (tynameOf tns' FZ) k1 <$> convertType tns' k2 ty
@@ -479,9 +480,6 @@ firstTCS f tcs = TCS{ typeOf = fmap f . typeOf tcs }
 
 weakenTy :: TypeG m -> TypeG (S m)
 weakenTy ty = sub (TyVarG . FS) ty
-
--- stepTyBuiltinG :: TyBuiltinG -> Maybe (TypeG n)
--- stepTyBuiltinG (TyListG a) = pure $ TyAppG
 
 -- |Reduce a generated type by a single step, or fail.
 stepTypeG :: TypeG n -> Maybe (TypeG n)

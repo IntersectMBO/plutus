@@ -16,7 +16,6 @@ module PlutusCore.Default.Builtins where
 import           PlutusCore.Constant.Dynamic.Emit
 import           PlutusCore.Constant.Meaning
 import           PlutusCore.Constant.Typed
-import           PlutusCore.Core
 import           PlutusCore.Default.Universe
 import           PlutusCore.Evaluation.Machine.ExBudgeting
 import           PlutusCore.Evaluation.Machine.ExBudgetingDefaults
@@ -111,7 +110,7 @@ nonZeroArg f x y = EvaluationSuccess $ f x y
 defBuiltinsRuntime :: HasConstantIn DefaultUni term => BuiltinsRuntime DefaultFun term
 defBuiltinsRuntime = toBuiltinsRuntime defaultCostModel
 
-instance (ToKind uni, GShow uni, GEq uni, DefaultUni <: uni) => ToBuiltinMeaning uni DefaultFun where
+instance (GShow uni, GEq uni, DefaultUni <: uni) => ToBuiltinMeaning uni DefaultFun where
     type CostingPart uni DefaultFun = CostModel
     toBuiltinMeaning AddInteger =
         makeBuiltinMeaning
