@@ -11,6 +11,7 @@ import Prelude
 import Analytics (class IsEvent, defaultEvent)
 import Data.Map (Map)
 import Data.Maybe (Maybe(..))
+import Data.Set (Set)
 import Halogen (RefLabel(..))
 import Marlowe.Execution (ExecutionState, NamedAction)
 import Marlowe.Extended.Metadata (MetaData)
@@ -30,6 +31,7 @@ type State
     , selectedStep :: Int
     , metadata :: MetaData
     , participants :: Map Party (Maybe WalletNickname)
+    , userParties :: Set Party
     -- These are the possible actions a user can make in the current step. We store this mainly because
     -- extractNamedActions could potentially be unperformant to compute.
     , namedActions :: Array NamedAction

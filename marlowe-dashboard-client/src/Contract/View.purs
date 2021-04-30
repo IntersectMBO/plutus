@@ -4,7 +4,7 @@ module Contract.View
   ) where
 
 import Prelude hiding (div)
-import Contract.Lenses (_executionState, _marloweParams, _metadata, _namedActions, _participants, _previousSteps, _selectedStep, _tab)
+import Contract.Lenses (_executionState, _marloweParams, _metadata, _namedActions, _participants, _previousSteps, _selectedStep, _tab, _userParties)
 import Contract.State (currentStep, isContractClosed)
 import Contract.Types (Action(..), PreviousStep, PreviousStepState(..), State, Tab(..), scrollContainerRef)
 import Css (applyWhen, classNames, toggleWhen)
@@ -16,10 +16,9 @@ import Data.Array.NonEmpty as NonEmptyArray
 import Data.BigInteger (BigInteger, fromInt, fromString)
 import Data.Foldable (foldMap)
 import Data.FunctorWithIndex (mapWithIndex)
-import Data.Lens ((^.), view)
+import Data.Lens ((^.))
 import Data.Map as Map
-import Data.Maybe (Maybe(..), fromMaybe, maybe, maybe')
-import Data.Newtype (unwrap)
+import Data.Maybe (Maybe(..), maybe, maybe')
 import Data.Set (Set)
 import Data.Set as Set
 import Data.String as String
@@ -32,27 +31,24 @@ import Halogen.HTML.Properties (InputType(..), enabled, href, placeholder, ref, 
 import Humanize (formatDate, formatTime, humanizeDuration, humanizeInterval, humanizeValue)
 import Marlowe.Execution (NamedAction(..), _currentState, _mNextTimeout, expandBalances, getActionParticipant)
 import Marlowe.Extended (contractTypeName)
-import Marlowe.PAB (MarloweParams)
 import Marlowe.Semantics (Accounts, Assets, Bound(..), ChoiceId(..), Input(..), Party(..), Slot, SlotInterval, Token(..), TransactionInput(..), getEncompassBound)
 import Marlowe.Slot (secondsDiff, slotToDateTime)
 import Material.Icons (Icon(..), icon)
-import WalletData.Lenses (_assets, _pubKeyHash, _walletInfo)
 import WalletData.State (adaToken, getAda)
-import WalletData.Types (WalletDetails)
 
 -- NOTE: Currently, the horizontal scrolling for this element does not match the exact desing. In the designs, the active card is always centered and you
 -- can change which card is active via scrolling or the navigation buttons. To implement this we would probably need to add snap scrolling to the center of the
 -- big container and create a smaller absolute positioned element of the size of a card (positioned in the middle), and with JS check that if a card enters
 -- that "viewport", then we make that the selected element.
 -- Current implementation just hides non active elements in mobile and makes a simple x-scrolling for larger devices.
-contractDetailsCard :: forall p. WalletDetails -> Slot -> State -> HTML p Action
-contractDetailsCard walletDetails currentSlot state =
+contractDetailsCard :: forall p. Slot -> State -> HTML p Action
+contractDetailsCard currentSlot state =
   let
     metadata = state ^. _metadata
 
-    pastStepsCards = mapWithIndex (renderPastStep walletDetails state) (state ^. _previousSteps)
+    pastStepsCards = mapWithIndex (renderPastStep state) (state ^. _previousSteps)
 
-    currentStepCard = [ renderCurrentStep walletDetails currentSlot state ]
+    currentStepCard = [ renderCurrentStep currentSlot state ]
 
     -- NOTE: Because the cards container is a flex element with a max width property, when there are more cards than
     --       can fit the view, the browser will try shrink them and remove any extra right margin/padding (not sure
@@ -255,13 +251,13 @@ statusIndicator mIcon status extraClasses =
         , Just $ span [ classNames [ "text-xs", "flex-grow", "text-center", "font-semibold" ] ] [ text status ]
         ]
 
-renderPastStep :: forall p. WalletDetails -> State -> Int -> PreviousStep -> HTML p Action
-renderPastStep walletDetails state stepNumber step =
+renderPastStep :: forall p. State -> Int -> PreviousStep -> HTML p Action
+renderPastStep state stepNumber step =
   let
     -- FIXME: We need to make the tab independent.
     currentTab = state ^. _tab
 
-    renderBody Tasks { state: TransactionStep txInput } = renderPastActions walletDetails state txInput
+    renderBody Tasks { state: TransactionStep txInput } = renderPastActions state txInput
 
     renderBody Tasks { state: TimeoutStep timeoutSlot } = renderTimeout stepNumber timeoutSlot
 
@@ -307,8 +303,8 @@ groupTransactionInputByParticipant (TransactionInput { inputs, interval }) =
       (NonEmptyArray.head elements # \{ party } -> { inputs: [], party, interval })
       elements
 
-renderPastActions :: forall p a. WalletDetails -> State -> TransactionInput -> HTML p a
-renderPastActions walletDetails state txInput =
+renderPastActions :: forall p a. State -> TransactionInput -> HTML p a
+renderPastActions state txInput =
   let
     actionsByParticipant = groupTransactionInputByParticipant txInput
   in
@@ -317,16 +313,16 @@ renderPastActions walletDetails state txInput =
           -- TODO: See if we can reach this state and what text describes it better.
           [ text "An empty transaction was made to advance this step" ]
         else
-          renderPartyPastActions walletDetails state <$> actionsByParticipant
+          renderPartyPastActions state <$> actionsByParticipant
 
-renderPartyPastActions :: forall p a. WalletDetails -> State -> InputsByParty -> HTML p a
-renderPartyPastActions walletDetails state { inputs, interval, party } =
+renderPartyPastActions :: forall p a. State -> InputsByParty -> HTML p a
+renderPartyPastActions state { inputs, interval, party } =
   let
     participantName = participantWithNickname state party
 
-    marloweParams = state ^. _marloweParams
+    userParties = state ^. _userParties
 
-    isActiveParticipant = isParty walletDetails marloweParams party
+    isActiveParticipant = Set.member party userParties
 
     fromDescription =
       if isActiveParticipant then
@@ -341,7 +337,7 @@ renderPartyPastActions walletDetails state { inputs, interval, party } =
       IDeposit intoAccountOf by token value ->
         let
           toDescription =
-            if isParty walletDetails marloweParams intoAccountOf then
+            if Set.member intoAccountOf userParties then
               "your"
             else
               if by == intoAccountOf then
@@ -375,8 +371,8 @@ renderTimeout stepNumber timeoutSlot =
           [ text $ "Step " <> show (stepNumber + 1) <> " timed out on " <> timedOutDate ]
       ]
 
-renderCurrentStep :: forall p. WalletDetails -> Slot -> State -> HTML p Action
-renderCurrentStep walletDetails currentSlot state =
+renderCurrentStep :: forall p. Slot -> State -> HTML p Action
+renderCurrentStep currentSlot state =
   let
     stepNumber = currentStep state
 
@@ -409,7 +405,7 @@ renderCurrentStep walletDetails currentSlot state =
           ]
       , div [ classNames [ "overflow-y-auto", "px-4" ] ]
           [ case currentTab /\ contractIsClosed of
-              Tasks /\ false -> renderTasks walletDetails state
+              Tasks /\ false -> renderTasks state
               Tasks /\ true -> renderContractClose
               Balances /\ _ -> renderBalances state balances
           ]
@@ -433,13 +429,11 @@ renderContractClose =
 -- then groups by participant and sorts it so that the owner starts first and the rest go
 -- in alphabetical order
 expandAndGroupByRole ::
-  WalletDetails ->
-  MarloweParams ->
   Set Party ->
   Set Party ->
   Array NamedAction ->
   Array (Tuple Party (Array NamedAction))
-expandAndGroupByRole walletDetails marloweParams activeUserParties allParticipants actions =
+expandAndGroupByRole userParties allParticipants actions =
   expandedActions
     # Array.sortBy currentPartiesFirst
     # Array.groupBy sameParty
@@ -455,8 +449,8 @@ expandAndGroupByRole walletDetails marloweParams activeUserParties allParticipan
           Nothing -> Set.toUnfoldable allParticipants <#> \participant -> participant /\ action
 
   currentPartiesFirst (Tuple party1 _) (Tuple party2 _)
-    | isParty walletDetails marloweParams party1 = LT
-    | isParty walletDetails marloweParams party2 = GT
+    | Set.member party1 userParties = LT
+    | Set.member party2 userParties = GT
     | otherwise = compare party1 party2
 
   sameParty a b = fst a == fst b
@@ -465,10 +459,12 @@ expandAndGroupByRole walletDetails marloweParams activeUserParties allParticipan
   extractGroupedParty group = case NonEmptyArray.unzip group of
     tokens /\ actions' -> NonEmptyArray.head tokens /\ NonEmptyArray.toArray actions'
 
-renderTasks :: forall p. WalletDetails -> State -> HTML p Action
-renderTasks walletDetails state =
+renderTasks :: forall p. State -> HTML p Action
+renderTasks state =
   let
     executionState = state ^. _executionState
+
+    userParties = state ^. _userParties
 
     actions = state ^. _namedActions
 
@@ -476,13 +472,11 @@ renderTasks walletDetails state =
 
     expandedActions =
       expandAndGroupByRole
-        walletDetails
-        marloweParams
-        (getParties walletDetails marloweParams)
+        userParties
         (Map.keys $ state ^. _participants)
         actions
   in
-    div [ classNames [ "pb-4" ] ] $ expandedActions <#> uncurry (renderPartyTasks walletDetails state)
+    div [ classNames [ "pb-4" ] ] $ expandedActions <#> uncurry (renderPartyTasks state)
 
 participantWithNickname :: State -> Party -> String
 participantWithNickname state party =
@@ -509,14 +503,14 @@ renderParty state party =
       , div [ classNames [ "font-semibold" ] ] [ text participantName ]
       ]
 
-renderPartyTasks :: forall p. WalletDetails -> State -> Party -> Array NamedAction -> HTML p Action
-renderPartyTasks walletDetails state party actions =
+renderPartyTasks :: forall p. State -> Party -> Array NamedAction -> HTML p Action
+renderPartyTasks state party actions =
   let
     actionsSeparatedByOr =
       intercalate
         [ div [ classNames [ "font-semibold", "text-center", "my-2", "text-xs" ] ] [ text "OR" ]
         ]
-        (Array.singleton <<< renderAction walletDetails state party <$> actions)
+        (Array.singleton <<< renderAction state party <$> actions)
   in
     div [ classNames [ "mt-3" ] ]
       ([ renderParty state party ] <> actionsSeparatedByOr)
@@ -524,15 +518,15 @@ renderPartyTasks walletDetails state party actions =
 -- FIXME: This was added to allow anybody being able to do any actions for debug purposes...
 --        Remove once the PAB is connected
 debugMode :: Boolean
-debugMode = false
+debugMode = true
 
 -- The Party parameter represents who is taking the action
-renderAction :: forall p. WalletDetails -> State -> Party -> NamedAction -> HTML p Action
-renderAction walletDetails state party namedAction@(MakeDeposit intoAccountOf by token value) =
+renderAction :: forall p. State -> Party -> NamedAction -> HTML p Action
+renderAction state party namedAction@(MakeDeposit intoAccountOf by token value) =
   let
-    marloweParams = state ^. _marloweParams
+    userParties = state ^. _userParties
 
-    isActiveParticipant = isParty walletDetails marloweParams party
+    isActiveParticipant = Set.member party userParties
 
     fromDescription =
       if isActiveParticipant then
@@ -542,7 +536,7 @@ renderAction walletDetails state party namedAction@(MakeDeposit intoAccountOf by
         Role roleName -> capitalize roleName <> " makes"
 
     toDescription =
-      if isParty walletDetails marloweParams intoAccountOf then
+      if Set.member intoAccountOf userParties then
         "your"
       else
         if by == intoAccountOf then
@@ -570,11 +564,11 @@ renderAction walletDetails state party namedAction@(MakeDeposit intoAccountOf by
           ]
       ]
 
-renderAction walletDetails state party namedAction@(MakeChoice choiceId bounds mChosenNum) =
+renderAction state party namedAction@(MakeChoice choiceId bounds mChosenNum) =
   let
-    marloweParams = state ^. _marloweParams
+    userParties = state ^. _userParties
 
-    isActiveParticipant = isParty walletDetails marloweParams party
+    isActiveParticipant = Set.member party userParties
 
     metadata = state ^. _metadata
 
@@ -641,15 +635,15 @@ renderAction walletDetails state party namedAction@(MakeChoice choiceId bounds m
           multipleInput unit
       ]
 
-renderAction _ _ _ (MakeNotify _) = div [] [ text "FIXME: awaiting observation?" ]
+renderAction _ _ (MakeNotify _) = div [] [ text "FIXME: awaiting observation?" ]
 
-renderAction _ _ _ (Evaluate _) = div [] [ text "FIXME: what should we put here? Evaluate" ]
+renderAction _ _ (Evaluate _) = div [] [ text "FIXME: what should we put here? Evaluate" ]
 
-renderAction walletDetails state party CloseContract =
+renderAction state party CloseContract =
   let
-    marloweParams = state ^. _marloweParams
+    userParties = state ^. _userParties
 
-    isActiveParticipant = isParty walletDetails marloweParams party
+    isActiveParticipant = Set.member party userParties
   in
     div_
       -- FIXME: revisit the text
@@ -702,23 +696,3 @@ getParty (IDeposit _ p _ _) = Just p
 getParty (IChoice (ChoiceId _ p) _) = Just p
 
 getParty _ = Nothing
-
-isParty :: WalletDetails -> MarloweParams -> Party -> Boolean
-isParty walletDetails marloweParams party = Set.member party $ getParties walletDetails marloweParams
-
-getParties :: WalletDetails -> MarloweParams -> Set Party
-getParties walletDetails marloweParams =
-  let
-    pubKeyHash = view (_walletInfo <<< _pubKeyHash) walletDetails
-
-    assets = view _assets walletDetails
-
-    currencySymbolString = (unwrap marloweParams.rolesCurrency).unCurrencySymbol
-
-    roleTokenStrings :: Set String
-    roleTokenStrings = Map.keys $ fromMaybe mempty $ Map.lookup currencySymbolString (unwrap assets)
-
-    roleTokens :: Set Party
-    roleTokens = Set.map Role roleTokenStrings
-  in
-    Set.insert (PK $ unwrap pubKeyHash) roleTokens

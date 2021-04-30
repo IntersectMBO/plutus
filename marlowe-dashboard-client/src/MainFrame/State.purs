@@ -248,7 +248,7 @@ updateRunningContracts companionState = do
               let
                 currentSlot = view _currentSlot playState
 
-                mContractState = Contract.mkInitialState currentSlot contractInstanceId history
+                mContractState = Contract.mkInitialState walletDetails currentSlot contractInstanceId history
               case mContractState of
                 Just contractState -> do
                   modifying (_playState <<< _allContracts) $ insert contractInstanceId contractState

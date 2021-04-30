@@ -17,13 +17,14 @@ import Contract.Types (Action(..), PreviousStep, PreviousStepState(..), State, T
 import Control.Monad.Reader (class MonadAsk, asks)
 import Data.Array (difference, foldl, head, index, length, mapMaybe)
 import Data.Either (Either(..))
-import Data.Foldable (for_)
+import Data.Foldable (foldMap, for_)
 import Data.FoldableWithIndex (foldlWithIndex)
 import Data.Lens (assign, modifying, over, to, toArrayOf, traversed, use, view, (^.))
 import Data.Map as Map
 import Data.Maybe (Maybe(..))
 import Data.Newtype (unwrap)
 import Data.Ord (abs)
+import Data.Set (Set)
 import Data.Set as Set
 import Data.Traversable (traverse)
 import Data.Tuple.Nested (get1, get2, get3, (/\))
@@ -42,12 +43,13 @@ import Marlowe.Deinstantiate (findTemplate)
 import Marlowe.HasParties (getParties)
 import Marlowe.Execution (ExecutionState, NamedAction(..), PreviousState, _currentContract, _currentState, _pendingTimeouts, _previousState, _previousTransactions, expandBalances, extractNamedActions, initExecution, isClosed, mkTx, nextState, timeoutState)
 import Marlowe.Extended.Metadata (emptyContractMetadata)
-import Marlowe.PAB (ContractInstanceId(..), History)
-import Marlowe.Semantics (Contract(..), Input(..), Party, Slot, SlotInterval(..), Token(..), TransactionInput(..))
+import Marlowe.PAB (ContractInstanceId(..), History, MarloweParams)
+import Marlowe.Semantics (Contract(..), Input(..), Party(..), Slot, SlotInterval(..), Token(..), TransactionInput(..))
 import Marlowe.Semantics as Semantic
 import Marlowe.Slot (currentSlot)
 import Plutus.V1.Ledger.Value (CurrencySymbol(..))
 import Toast.Types (ajaxErrorToast, successToast)
+import WalletData.Lenses (_assets, _pubKeyHash, _walletInfo)
 import WalletData.Types (WalletDetails)
 import Web.DOM.Element (getElementsByClassName)
 import Web.DOM.HTMLCollection as HTMLCollection
@@ -68,6 +70,7 @@ dummyState =
   , selectedStep: 0
   , metadata: emptyContractMetadata
   , participants: mempty
+  , userParties: mempty
   , namedActions: mempty
   }
   where
@@ -81,8 +84,8 @@ dummyState =
 
   emptyMarloweState = Semantic.State { accounts: mempty, choices: mempty, boundValues: mempty, minSlot: zero }
 
-mkInitialState :: Slot -> ContractInstanceId -> History -> Maybe State
-mkInitialState currentSlot contractInstanceId history =
+mkInitialState :: WalletDetails -> Slot -> ContractInstanceId -> History -> Maybe State
+mkInitialState walletDetails currentSlot contractInstanceId history =
   let
     marloweParams = get1 $ unwrap history
 
@@ -102,8 +105,8 @@ mkInitialState currentSlot contractInstanceId history =
   in
     flip map mTemplate \template ->
       let
-        participants :: Array Party
-        participants = Set.toUnfoldable $ getParties contract
+        parties :: Array Party
+        parties = Set.toUnfoldable $ getParties contract
 
         initialState =
           { tab: Tasks
@@ -113,7 +116,8 @@ mkInitialState currentSlot contractInstanceId history =
           , contractInstanceId
           , selectedStep: 0
           , metadata: template.metaData
-          , participants: Map.fromFoldable $ map (\x -> x /\ Nothing) participants
+          , participants: Map.fromFoldable $ map (\x -> x /\ Nothing) parties
+          , userParties: getUserParties walletDetails marloweParams
           , namedActions: mempty
           }
 
@@ -139,6 +143,21 @@ updateState currentSlot history state =
       # updateExecutionState
       # regenerateStepCards currentSlot
       # selectLastStep
+
+getUserParties :: WalletDetails -> MarloweParams -> Set Party
+getUserParties walletDetails marloweParams =
+  let
+    pubKeyHash = view (_walletInfo <<< _pubKeyHash) walletDetails
+
+    assets = view _assets walletDetails
+
+    currencySymbolString = (unwrap marloweParams.rolesCurrency).unCurrencySymbol
+
+    mCurrencyTokens = Map.lookup currencySymbolString (unwrap assets)
+
+    roleTokens = foldMap (Set.map Role <<< Map.keys <<< Map.filter ((/=) zero)) mCurrencyTokens
+  in
+    Set.insert (PK $ unwrap pubKeyHash) roleTokens
 
 handleAction ::
   forall m.
