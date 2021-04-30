@@ -78,7 +78,7 @@ rec {
     }) client;
   };
 
-  marlowe-web = pkgs.callPackage ./marlowe-web { };
+  marlowe-web = pkgs.callPackage ./marlowe-website { inherit (plutus.lib) npmlock2nix gitignore-nix; };
 
   plutus-pab = pkgs.recurseIntoAttrs (pkgs.callPackage ./plutus-pab-client {
     inherit (plutus.lib) buildPursPackage buildNodeModules gitignore-nix filterNpm;
