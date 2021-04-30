@@ -3,12 +3,14 @@
 {-# LANGUAGE MagicHash             #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings     #-}
+{-# LANGUAGE TemplateHaskell       #-}
 {-# LANGUAGE TypeApplications      #-}
 {-# LANGUAGE TypeOperators         #-}
 {-# LANGUAGE UndecidableInstances  #-}
 
 module PlutusCore.Evaluation.Machine.ExMemory
-( ExMemory(..)
+( CostingInteger
+, ExMemory(..)
 , ExCPU(..)
 , GenericExMemoryUsage(..)
 , ExMemoryUsage(..)
@@ -21,6 +23,7 @@ import           PlutusCore.Universe
 import           PlutusPrelude
 
 import           Control.Monad.RWS.Strict
+import           Data.Bits
 import qualified Data.ByteString          as BS
 import           Data.Proxy
 import           Data.SatInt
@@ -71,25 +74,33 @@ One other wrinkle is that 'SatInt' is backed by an 'Int' (i.e. a machine integer
 size), rather than an 'Int64' since the primops that we need are only available for 'Int' until GHC 9.2
 or so.
 
-This is okay, because we don't expect budgets to be anywhere near 'maxBound' for even Int32! So we're
-never going to need to worry about the possibility of saturating for 'Int32' but not for 'Int64' or something.
+However we mostly care about 64bit platforms, so this isn't too much of a problem. The only one where it could be a problem
+is GHCJS, which does present as a 32bit platform. However, we won't care about *performance* on GHCJS, since
+nobody will be running a node compiled to JS (and if they do, they deserve terrible performance). So:
+if we are not on a 64bit platform, then we can just fallback to the slower (but safe) 'Integer'.
+
 -}
 
+-- See Note [Integer types for costing]
+-- This relies on the fact that TH is run on the *target* platform, so even if we're e.g. cross-compiling to GHCJS
+-- this will give the right answer.
+type CostingInteger = $(if finiteBitSize (0::SatInt) < 64 then [t|Integer|] else [t|SatInt|])
+
 -- | Counts size in machine words (64bit for the near future)
-newtype ExMemory = ExMemory SatInt
+newtype ExMemory = ExMemory CostingInteger
   deriving (Eq, Ord, Show)
   deriving newtype (Num, NFData)
-  deriving (Semigroup, Monoid) via (Sum SatInt)
+  deriving (Semigroup, Monoid) via (Sum CostingInteger)
 instance Pretty ExMemory where
     pretty (ExMemory i) = pretty (toInteger i)
 instance PrettyBy config ExMemory where
     prettyBy _ m = pretty m
 
 -- | Counts CPU units - no fixed base, proportional.
-newtype ExCPU = ExCPU SatInt
+newtype ExCPU = ExCPU CostingInteger
   deriving (Eq, Ord, Show)
   deriving newtype (Num, NFData)
-  deriving (Semigroup, Monoid) via (Sum SatInt)
+  deriving (Semigroup, Monoid) via (Sum CostingInteger)
 instance Pretty ExCPU where
     pretty (ExCPU i) = pretty (toInteger i)
 instance PrettyBy config ExCPU where

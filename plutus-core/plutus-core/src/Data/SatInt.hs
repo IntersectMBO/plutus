@@ -10,12 +10,13 @@ This is not quite as fast as using 'Int' or 'Int64' directly, but we need the sa
 module Data.SatInt (SatInt(..), fromSat, toSat) where
 
 import           Control.DeepSeq (NFData)
+import           Data.Bits
 import           GHC.Base
 import           GHC.Num
 import           GHC.Real
 
 newtype SatInt = SI Int
-    deriving newtype NFData
+    deriving newtype (NFData, Bits, FiniteBits)
 
 fromSat :: SatInt -> Int
 fromSat (SI x) = x

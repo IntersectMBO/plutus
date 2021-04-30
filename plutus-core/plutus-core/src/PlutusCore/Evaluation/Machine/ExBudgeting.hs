@@ -49,7 +49,6 @@ import qualified Data.HashMap.Strict                    as HM
 import           Data.Hashable
 import qualified Data.Kind                              as Kind
 import qualified Data.Map                               as Map
-import           Data.SatInt
 import qualified Data.Scientific                        as S
 import qualified Data.Text                              as Text
 import           Deriving.Aeson
@@ -70,7 +69,7 @@ type CostModel = CostModelBase CostingFun
    `toCostUnit` is exported).
 -}
 
-toCostUnit :: Double -> SatInt
+toCostUnit :: Double -> CostingInteger
 toCostUnit x = ceiling (10000 * x)
 
 -- | The main model which contains all data required to predict the cost of builtin functions. See Note [Creation of the Cost Model] for how this is generated. Calibrated for the CeK machine.
@@ -204,7 +203,7 @@ runCostingFunOneArgument
     (CostingFun cpu mem) mem1 =
         ExBudget (ExCPU $ runOneArgumentModel cpu mem1) (ExMemory $ runOneArgumentModel mem mem1)
 
-runOneArgumentModel :: ModelOneArgument -> ExMemory -> SatInt
+runOneArgumentModel :: ModelOneArgument -> ExMemory -> CostingInteger
 runOneArgumentModel (ModelOneArgumentConstantCost c) _ = toCostUnit c
 runOneArgumentModel (ModelOneArgumentLinearCost (ModelLinearSize intercept slope _)) (ExMemory s) =
     toCostUnit $ (fromIntegral s) * slope + intercept
@@ -293,7 +292,7 @@ runCostingFunTwoArguments :: CostingFun ModelTwoArguments -> ExMemory -> ExMemor
 runCostingFunTwoArguments (CostingFun cpu mem) mem1 mem2 =
     ExBudget (ExCPU (runTwoArgumentModel cpu mem1 mem2)) (ExMemory (runTwoArgumentModel mem mem1 mem2))
 
-runTwoArgumentModel :: ModelTwoArguments -> ExMemory -> ExMemory -> SatInt
+runTwoArgumentModel :: ModelTwoArguments -> ExMemory -> ExMemory -> CostingInteger
 runTwoArgumentModel
     (ModelTwoArgumentsConstantCost c) _ _ = toCostUnit c
 runTwoArgumentModel
@@ -331,7 +330,7 @@ data ModelThreeArguments =
 instance Default ModelThreeArguments where
     def = ModelThreeArgumentsConstantCost 1.0
 
-runThreeArgumentModel :: ModelThreeArguments -> ExMemory -> ExMemory -> ExMemory -> SatInt
+runThreeArgumentModel :: ModelThreeArguments -> ExMemory -> ExMemory -> ExMemory -> CostingInteger
 runThreeArgumentModel (ModelThreeArgumentsConstantCost c) _ _ _ = toCostUnit c
 runThreeArgumentModel (ModelThreeArgumentsAddedSizes (ModelAddedSizes intercept slope)) (ExMemory size1) (ExMemory size2) (ExMemory size3) =
     toCostUnit $ (fromIntegral (size1 + size2 + size3)) * slope + intercept
