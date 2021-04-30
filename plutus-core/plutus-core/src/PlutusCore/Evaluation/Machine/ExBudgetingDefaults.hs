@@ -30,5 +30,5 @@ defaultCostModelParams = extractModelParams defaultCostModel
 
 defaultCekCosts :: CekCosts
 defaultCekCosts =
-  $$(readJSONFromFile "cost-model/data/machineModel.json")
+  $$(readJSONFromFile "cost-model/data/cekCosts.json")
 
