@@ -9,12 +9,13 @@ import           Common
 
 import           Control.Exception
 import           Control.Monad.Except
-import qualified Plutus.Benchmark.Clausify                as Clausify
-import qualified Plutus.Benchmark.Knights                 as Knights
-import qualified Plutus.Benchmark.Prime                   as Prime
-import qualified Plutus.Benchmark.Queens                  as Queens
-import qualified PlutusCore                               as PLC
+import qualified Plutus.Benchmark.Clausify                         as Clausify
+import qualified Plutus.Benchmark.Knights                          as Knights
+import qualified Plutus.Benchmark.Prime                            as Prime
+import qualified Plutus.Benchmark.Queens                           as Queens
+import qualified PlutusCore                                        as PLC
 import           PlutusCore.Builtins
+import           PlutusCore.Evaluation.Machine.ExBudgetingDefaults (defaultCekCosts)
 import           PlutusCore.Universe
 import           UntypedPlutusCore
 import           UntypedPlutusCore.Evaluation.Machine.Cek
@@ -23,7 +24,7 @@ import           UntypedPlutusCore.Evaluation.Machine.Cek
 benchCek :: Term NamedDeBruijn DefaultUni DefaultFun () -> Benchmarkable
 benchCek t = case runExcept @PLC.FreeVariableError $ PLC.runQuoteT $ unDeBruijnTerm t of
     Left e   -> throw e
-    Right t' -> nf (unsafeEvaluateCek defBuiltinsRuntime) t'
+    Right t' -> nf (unsafeEvaluateCek defaultCekCosts defBuiltinsRuntime) t'
 
 benchClausify :: Clausify.StaticFormula -> Benchmarkable
 benchClausify f = benchCek $ Clausify.mkClausifyTerm f
