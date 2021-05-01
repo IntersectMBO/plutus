@@ -98,9 +98,7 @@ pattern DefaultUniList uniA =
     DefaultUniProtoList `DefaultUniApply` uniA
 pattern DefaultUniTuple uniA uniB =
     DefaultUniProtoTuple `DefaultUniApply` uniA `DefaultUniApply` uniB
-
 -- Just for backwards compatibility, probably should be removed at some point.
-pattern DefaultUniString :: DefaultUni (T String)
 pattern DefaultUniString = DefaultUniList DefaultUniChar
 
 deriveGEq ''DefaultUni

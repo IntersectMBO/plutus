@@ -1,6 +1,7 @@
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE GADTs                 #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE PatternSynonyms       #-}
 
 module Raw where
 
@@ -71,10 +72,11 @@ convT (TyIFix _ a b)                = RTyMu (convT a) (convT b)
 convC :: Some (ValueOf DefaultUni) -> RConstant
 convC (Some (ValueOf DefaultUniInteger    i)) = RConInt i
 convC (Some (ValueOf DefaultUniByteString b)) = RConBS b
-convC (Some (ValueOf DefaultUniString     s)) = RConStr (T.pack s)
+convC (Some (ValueOf DefaultUniString   s))   = RConStr (T.pack s)
 convC (Some (ValueOf DefaultUniChar       c)) = RConChar c
 convC (Some (ValueOf DefaultUniUnit       u)) = RConUnit
 convC (Some (ValueOf DefaultUniBool       b)) = RConBool b
+convC (Some (ValueOf uni                  _)) = error $ "convC: " ++ show uni ++ " is not supported"
 
 conv :: Term NamedTyDeBruijn NamedDeBruijn DefaultUni DefaultFun a -> RTerm
 conv (Var _ x)           = RVar (unIndex (ndbnIndex x))
