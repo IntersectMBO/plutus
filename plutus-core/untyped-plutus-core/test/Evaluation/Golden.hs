@@ -6,7 +6,7 @@ module Evaluation.Golden
     ( test_golden
     ) where
 
-import           Prelude                                  hiding (even)
+import           Prelude                                           hiding (even)
 
 import           PlutusCore.StdLib.Data.Bool
 import           PlutusCore.StdLib.Data.Function
@@ -18,16 +18,17 @@ import           PlutusCore.StdLib.Type
 
 import           PlutusCore
 import           PlutusCore.Evaluation.Machine.Ck
+import           PlutusCore.Evaluation.Machine.ExBudgetingDefaults
 import           PlutusCore.Generators.Interesting
 import           PlutusCore.MkPlc
 import           PlutusCore.Pretty
-import qualified UntypedPlutusCore                        as UPLC
+import qualified UntypedPlutusCore                                 as UPLC
 import           UntypedPlutusCore.Evaluation.Machine.Cek
 
 import           Data.Bifunctor
-import qualified Data.ByteString                          as BS
-import qualified Data.ByteString.Lazy                     as BSL
-import           Data.Text.Encoding                       (encodeUtf8)
+import qualified Data.ByteString                                   as BS
+import qualified Data.ByteString.Lazy                              as BSL
+import           Data.Text.Encoding                                (encodeUtf8)
 import           Test.Tasty
 import           Test.Tasty.Golden
 
@@ -317,12 +318,12 @@ goldenVsEvaluatedCK :: String -> Term TyName Name DefaultUni DefaultFun () -> Te
 goldenVsEvaluatedCK name
     = goldenVsPretty ".plc.golden" name
     . bimap (fmap UPLC.erase) UPLC.erase
-    . evaluateCkNoEmit defBuiltinsRuntime
+    . evaluateCkNoEmit defaultCekCosts defBuiltinsRuntime
 
 goldenVsEvaluatedCEK :: String -> Term TyName Name DefaultUni DefaultFun () -> TestTree
 goldenVsEvaluatedCEK name
     = goldenVsPretty ".plc.golden" name
-    . evaluateCekNoEmit defBuiltinsRuntime
+    . evaluateCekNoEmit defaultCekCosts defBuiltinsRuntime
     . UPLC.erase
 
 runTypecheck
@@ -342,7 +343,7 @@ goldenVsTypecheckedEvaluatedCK name term =
     -- that the term is well-typed before checking that the type of the result is the
     -- one stored in the golden file (we could simply check the two types for equality,
     -- but since we're doing golden testing in this file, why not do it here as well).
-    case (runTypecheck term, evaluateCkNoEmit defBuiltinsRuntime term) of
+    case (runTypecheck term, evaluateCkNoEmit defaultCekCosts defBuiltinsRuntime term) of
         (Right _, Right res) -> goldenVsTypechecked name res
         _                    -> testGroup name []
 
