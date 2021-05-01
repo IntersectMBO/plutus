@@ -2,7 +2,7 @@
 
 module Untyped where
 
-import           PlutusCore.Builtins
+import           PlutusCore.Default
 import           PlutusCore.Universe
 import           UntypedPlutusCore
 

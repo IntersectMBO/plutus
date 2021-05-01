@@ -9,8 +9,8 @@ import           GHC.Natural
 import           Data.ByteString     as BS
 import qualified Data.Text           as T
 import           PlutusCore
-import           PlutusCore.Builtins
 import           PlutusCore.DeBruijn
+import           PlutusCore.Default
 import           PlutusCore.Parser
 import           PlutusCore.Pretty
 
@@ -25,7 +25,7 @@ data RType = RTyVar Integer
            | RTyPi RKind RType
            | RTyLambda RKind RType
            | RTyApp RType RType
-           | RTyCon (Some (TypeIn DefaultUni))
+           | RTyCon (SomeTypeIn DefaultUni)
            | RTyMu RType RType
            deriving Show
 
@@ -147,5 +147,3 @@ data ERROR = TypeError T.Text
 
 data ScopeError = DeBError|FreeVariableError FreeVariableError deriving Show
 data RuntimeError = GasError | UserError | RuntimeTypeError deriving Show
-
-
