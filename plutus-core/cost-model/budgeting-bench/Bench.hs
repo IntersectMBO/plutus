@@ -5,7 +5,7 @@
 module Main (main) where
 
 import           PlutusCore                                        as PLC
-import           PlutusCore.Evaluation.Machine.ExBudgetingDefaults
+import           PlutusCore.Evaluation.Machine.ExBudgetingDefaults (defaultCekCosts)
 import           PlutusCore.Evaluation.Machine.ExMemory
 import           PlutusCore.MkPlc
 import           UntypedPlutusCore                                 as UPLC
