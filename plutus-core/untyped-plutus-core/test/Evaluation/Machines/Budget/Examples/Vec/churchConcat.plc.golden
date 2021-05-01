@@ -1,11 +1,11 @@
 ( (Right (delay (delay (delay (\xs -> \ys -> delay (\f -> \z -> force xs (delay (force f)) (force ys f z)))))))
-, ({ tally: ({ BDelay causes ({ cpu: 1
-| mem: 0
+, ({ tally: ({ BDelay causes ({ cpu: 12
+| mem: 10
 })
-| BAST causes ({ cpu: 0
-| mem: 1
+| BStartup causes ({ cpu: 344234
+| mem: 0
 })})
-| budget: ({ cpu: 1
-| mem: 1
+| budget: ({ cpu: 344246
+| mem: 10
 })
 }) )
