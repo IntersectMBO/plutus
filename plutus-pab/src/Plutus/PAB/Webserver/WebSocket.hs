@@ -215,9 +215,12 @@ instanceUpdates instanceId instancesState =
         , ContractFinished   <$> finalValue instanceId instancesState
         ]
 
+-- | Read the first event from the stream
 readOne :: STMStream a -> IO (a, Maybe (STMStream a))
 readOne STMStream{unSTMStream} = STM.atomically unSTMStream
 
+-- | Read a number of events from the stream. Blocks until all events
+--   have been received.
 readN :: Natural -> STMStream a -> IO [a]
 readN 0 _ = pure []
 readN k s = do
@@ -226,7 +229,12 @@ readN k s = do
         Nothing   -> pure [a]
         Just rest -> (:) a <$> readN (pred k) rest
 
-foldM :: STMStream a -> (a -> IO ()) -> IO () -> IO ()
+-- | Consume a stream. Blocks until the stream has terminated.
+foldM ::
+    STMStream a -- ^ The stream
+    -> (a -> IO ()) -- ^ Event handler
+    -> IO () -- ^ Handler for the end of the stream
+    -> IO ()
 foldM s handleEvent handleStop = do
     (v, next) <- readOne s
     handleEvent v

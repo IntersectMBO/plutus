@@ -409,6 +409,7 @@
             (hsPkgs."transformers" or (errorHandler.buildDepError "transformers"))
             (hsPkgs."prettyprinter" or (errorHandler.buildDepError "prettyprinter"))
             (hsPkgs."row-types" or (errorHandler.buildDepError "row-types"))
+            (hsPkgs."plutus-tx" or (errorHandler.buildDepError "plutus-tx"))
             ];
           buildable = true;
           modules = [
