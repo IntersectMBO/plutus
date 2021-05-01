@@ -11,8 +11,7 @@ import           PlutusCore.Evaluation.Machine.ExMemory    ()
 import           UntypedPlutusCore.Evaluation.Machine.Cek  (CekCosts)
 
 
-
--- | The default cost model.
+-- | The default cost model for built-in functions.
 defaultCostModel :: CostModel
 defaultCostModel =
   $$(readJSONFromFile "cost-model/data/costModel.json")
@@ -28,6 +27,7 @@ defaultCostModelParams = extractModelParams defaultCostModel
 -- defaultCostModel :: CostModel
 -- defaultCostModel = def
 
+-- | Default costs for CEK machine instructions.
 defaultCekCosts :: CekCosts
 defaultCekCosts =
   $$(readJSONFromFile "cost-model/data/cekCosts.json")

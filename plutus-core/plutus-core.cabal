@@ -16,6 +16,7 @@ build-type: Simple
 extra-doc-files: README.md
 extra-source-files:
     cost-model/data/costModel.json
+    cost-model/data/cekCosts.json
     cost-model/data/benching.csv
     cost-model/data/*.R
 
