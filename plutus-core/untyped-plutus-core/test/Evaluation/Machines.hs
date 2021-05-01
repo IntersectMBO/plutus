@@ -15,7 +15,7 @@ import           UntypedPlutusCore.Evaluation.Machine.Cek          as Cek
 import qualified PlutusCore                                        as Plc
 import           PlutusCore.Builtins
 import           PlutusCore.Constant
-import           PlutusCore.Evaluation.Machine.ExBudgetingDefaults
+import           PlutusCore.Evaluation.Machine.ExBudgetingDefaults (defaultCekCosts)
 import           PlutusCore.Evaluation.Machine.ExMemory
 import           PlutusCore.Evaluation.Machine.Exception
 import           PlutusCore.FsTree

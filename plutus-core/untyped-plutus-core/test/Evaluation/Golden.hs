@@ -18,7 +18,7 @@ import           PlutusCore.StdLib.Type
 
 import           PlutusCore
 import           PlutusCore.Evaluation.Machine.Ck
-import           PlutusCore.Evaluation.Machine.ExBudgetingDefaults
+import           PlutusCore.Evaluation.Machine.ExBudgetingDefaults (defaultCekCosts)
 import           PlutusCore.Generators.Interesting
 import           PlutusCore.MkPlc
 import           PlutusCore.Pretty
