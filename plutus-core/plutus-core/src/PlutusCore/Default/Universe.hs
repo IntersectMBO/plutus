@@ -242,13 +242,3 @@ instance Closed DefaultUni where
 
 noMoreTypeFunctions :: DefaultUni (T (f :: a -> b -> c -> d)) -> r
 noMoreTypeFunctions (f `DefaultUniApply` _) = noMoreTypeFunctions f
-
--- >>> encodeUni (DefaultUniList (DefaultUniTuple (DefaultUniList DefaultUniInteger) DefaultUniBool))
--- [7,5,7,7,6,7,5,0,4]
--- >>> decodeKindedUni [7,5,7,7,6,7,5,0,4] :: Maybe (SomeTypeIn (Kinded DefaultUni))
--- Just (SomeTypeIn (Kinded [([integer],bool)]))
-
--- >>> encodeUni (DefaultUniProtoTuple `DefaultUniApply` DefaultUniList DefaultUniInteger)
--- [7,6,7,5,0]
--- >>> decodeKindedUni [7,6,7,5,0] :: Maybe (SomeTypeIn (Kinded DefaultUni))
--- Just (SomeTypeIn (Kinded ([integer],)))
