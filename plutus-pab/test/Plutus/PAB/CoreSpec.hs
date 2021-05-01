@@ -1,5 +1,6 @@
 {-# LANGUAGE DataKinds           #-}
 {-# LANGUAGE FlexibleContexts    #-}
+{-# LANGUAGE LambdaCase          #-}
 {-# LANGUAGE MonoLocalBinds      #-}
 {-# LANGUAGE NamedFieldPuns      #-}
 {-# LANGUAGE OverloadedStrings   #-}
@@ -38,12 +39,14 @@ import           Data.Text.Extras                         (tshow)
 import           Ledger                                   (pubKeyAddress)
 import           Ledger.Ada                               (adaSymbol, adaToken, lovelaceValueOf)
 import qualified Ledger.Ada                               as Ada
+import qualified Ledger.AddressMap                        as AM
 import           Ledger.Value                             (valueOf)
 import           Plutus.Contracts.Currency                (OneShotCurrency, SimpleMPS (..))
 import qualified Plutus.Contracts.GameStateMachine        as Contracts.GameStateMachine
 import           Plutus.Contracts.PingPong                (PingPongState (..))
 import           Plutus.PAB.Core                          as Core
 import           Plutus.PAB.Core.ContractInstance         (ContractInstanceMsg)
+import           Plutus.PAB.Core.ContractInstance.STM     (BlockchainEnv (..))
 import           Plutus.PAB.Db.Eventful.Command           ()
 import qualified Plutus.PAB.Db.Eventful.Query             as Query
 import           Plutus.PAB.Effects.Contract              (ContractEffect, serialisableState)
@@ -149,7 +152,7 @@ slotChangeTest = runScenario $ do
 walletFundsChangeTest :: IO ()
 walletFundsChangeTest = runScenario $ do
     let payment = lovelaceValueOf 50
-        fee     = lovelaceValueOf 10
+        fee     = lovelaceValueOf 10 -- TODO: Calculate the fee from the tx
 
     env <- Core.askBlockchainEnv @(Builtin TestContracts) @(Simulator.SimulatorState (Builtin TestContracts))
     let stream = WS.walletFundsChange defaultWallet env
@@ -160,6 +163,11 @@ walletFundsChangeTest = runScenario $ do
     (finalValue, _) <- liftIO (WS.readOne nextStream)
     let difference = initialValue <> inv finalValue
     assertEqual "defaultWallet should make a payment" difference (payment <> fee)
+
+    -- Check that the funds are correctly registerd in the newly created wallet
+    let stream2 = WS.walletFundsChange wllt env
+    vl2 <- liftIO (WS.readN 1 stream2) >>= \case { [newVal] -> pure newVal; _ -> throwError (OtherError "newVal not found")}
+    assertEqual "generated wallet should receive a payment" payment vl2
 
 currencyTest :: TestTree
 currencyTest =
