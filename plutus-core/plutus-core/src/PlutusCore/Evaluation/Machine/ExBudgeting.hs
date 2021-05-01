@@ -70,7 +70,7 @@ type CostModel = CostModelBase CostingFun
 -}
 
 toCostUnit :: Double -> Integer
-toCostUnit x = ceiling (10000 * x)
+toCostUnit x = ceiling (1000000 * x)
 
 -- | The main model which contains all data required to predict the cost of builtin functions. See Note [Creation of the Cost Model] for how this is generated. Calibrated for the CeK machine.
 data CostModelBase f =

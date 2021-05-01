@@ -762,21 +762,27 @@ printBudgetStateTally (Cek.CekExTally costs) = do
   putStrLn $ "Builtin    " ++ pbudget Cek.BBuiltin
   putStrLn ""
   putStrLn $ "Startup    " ++ pbudget Cek.BStartup
-  putStrLn $ "compute    " ++ printf "%-20s" (budgetToString totalComputeSteps)
-  putStrLn $ "BuiltinApp " ++ budgetToString (mconcat (map snd builtinsAndCosts))
-  putStrLn ""
+  putStrLn $ "compute    " ++ printf "%-20s" (budgetToString totalComputeCost)
+  putStrLn $ "BuiltinApp " ++ budgetToString builtinCosts
+  -- 1e9*(0.200  + 0.0000725 * totalComputeSteps + builtinExeTimes/1000)  putStrLn ""
   traverse_ (\(b,cost) -> putStrLn $ printf "%-20s %s" (show b) (budgetToString cost :: String)) builtinsAndCosts
+  putStrLn ""
+  putStrLn $ "Total budget spent: " ++ printf (budgetToString totalCost)
+  putStrLn $ "Predicted execution time: " ++ (formatTime $ getCPU totalCost)
       where
-        get k =
+        getSpent k =
             case H.lookup k costs of
               Just v  -> v
               Nothing -> ExBudget 0 0
         allNodeTags = [Cek.BConst, Cek.BVar, Cek.BLamAbs, Cek.BApply, Cek.BDelay, Cek.BForce, Cek.BError, Cek.BBuiltin]
-        totalComputeSteps = mconcat $ map get allNodeTags  -- Depends on the fact that we have a unit cost for each AST node type
+        totalComputeCost = mconcat $ map getSpent allNodeTags  -- For unitCekCosts this will be the total number of compute steps
         budgetToString (ExBudget (ExCPU cpu) (ExMemory mem)) = printf "%10d  %10d" cpu mem :: String
-        pbudget k = budgetToString $ get k
+        pbudget = budgetToString . getSpent
         f l e = case e of {(Cek.BBuiltinApp b, cost)  -> (b,cost):l; _ -> l}
         builtinsAndCosts = List.foldl f [] (H.toList costs)
+        builtinCosts = mconcat (map snd builtinsAndCosts)
+        totalCost = totalComputeCost <> builtinCosts
+        getCPU b = let ExCPU b' = _exBudgetCPU b in fromIntegral b'::Double
 
 class PrintBudgetState cost where
     printBudgetState :: cost -> IO ()
