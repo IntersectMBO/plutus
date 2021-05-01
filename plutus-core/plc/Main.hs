@@ -765,10 +765,12 @@ printBudgetStateTally (Cek.CekExTally costs) = do
   putStrLn $ "compute    " ++ printf "%-20s" (budgetToString totalComputeCost)
   putStrLn $ "BuiltinApp " ++ budgetToString builtinCosts
   -- 1e9*(0.200  + 0.0000725 * totalComputeSteps + builtinExeTimes/1000)  putStrLn ""
+  putStrLn ""
   traverse_ (\(b,cost) -> putStrLn $ printf "%-20s %s" (show b) (budgetToString cost :: String)) builtinsAndCosts
   putStrLn ""
   putStrLn $ "Total budget spent: " ++ printf (budgetToString totalCost)
   putStrLn $ "Predicted execution time: " ++ (formatTime $ getCPU totalCost)
+  putStrLn $ "Predicted execution time: " ++ (formatTime totalTime)
       where
         getSpent k =
             case H.lookup k costs of
@@ -781,8 +783,9 @@ printBudgetStateTally (Cek.CekExTally costs) = do
         f l e = case e of {(Cek.BBuiltinApp b, cost)  -> (b,cost):l; _ -> l}
         builtinsAndCosts = List.foldl f [] (H.toList costs)
         builtinCosts = mconcat (map snd builtinsAndCosts)
-        totalCost = totalComputeCost <> builtinCosts
         getCPU b = let ExCPU b' = _exBudgetCPU b in fromIntegral b'::Double
+        totalCost = getSpent Cek.BStartup <> totalComputeCost <> builtinCosts
+        totalTime = 1000 * ((getCPU $ getSpent Cek.BStartup) + getCPU totalComputeCost) + getCPU builtinCosts
 
 class PrintBudgetState cost where
     printBudgetState :: cost -> IO ()
