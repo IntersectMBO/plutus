@@ -60,6 +60,7 @@ module Plutus.PAB.Core
     , instanceState
     , observableState
     , waitForState
+    , waitForTxConfirmed
     , activeEndpoints
     , waitForEndpoint
     , currentSlot
@@ -86,57 +87,59 @@ module Plutus.PAB.Core
     , timed
     ) where
 
-import           Control.Applicative                     (Alternative (..))
-import           Control.Concurrent.STM                  (STM)
-import qualified Control.Concurrent.STM                  as STM
-import           Control.Monad                           (forM, guard, void)
-import           Control.Monad.Freer                     (Eff, LastMember, Member, interpret, reinterpret, runM, send,
-                                                          subsume, type (~>))
-import           Control.Monad.Freer.Error               (Error, runError, throwError)
-import           Control.Monad.Freer.Extras.Log          (LogMessage, LogMsg (..), LogObserve, handleObserveLog,
-                                                          logInfo, mapLog)
-import qualified Control.Monad.Freer.Extras.Modify       as Modify
-import           Control.Monad.Freer.Reader              (Reader (..), ask, asks, runReader)
-import           Control.Monad.IO.Class                  (MonadIO (..))
-import qualified Data.Aeson                              as JSON
-import           Data.Foldable                           (traverse_)
-import qualified Data.Map                                as Map
-import           Data.Proxy                              (Proxy (..))
-import           Data.Set                                (Set)
-import           Data.Text                               (Text)
-import qualified Data.Text                               as Text
-import           Data.Text.Prettyprint.Doc               (Pretty, defaultLayoutOptions, layoutPretty, pretty)
-import qualified Data.Text.Prettyprint.Doc.Render.Text   as Render
-import           Ledger.Tx                               (Address, Tx)
-import           Ledger.Value                            (Value)
-import           Plutus.Contract.Effects.ExposeEndpoint  (ActiveEndpoint (..))
-import           Plutus.PAB.Core.ContractInstance        (ContractInstanceMsg)
-import qualified Plutus.PAB.Core.ContractInstance        as ContractInstance
-import           Plutus.PAB.Core.ContractInstance.STM    (Activity (Active), BlockchainEnv, InstancesState,
-                                                          OpenEndpoint (..))
-import qualified Plutus.PAB.Core.ContractInstance.STM    as Instances
-import           Plutus.PAB.Effects.Contract             (ContractDefinitionStore, ContractEffect, ContractStore,
-                                                          PABContract (..), addDefinition, getState)
-import qualified Plutus.PAB.Effects.Contract             as Contract
-import qualified Plutus.PAB.Effects.ContractRuntime      as ContractRuntime
-import           Plutus.PAB.Effects.TimeEffect           (TimeEffect (..), systemTime)
-import           Plutus.PAB.Effects.UUID                 (UUIDEffect, handleUUIDEffect)
-import           Plutus.PAB.Events.Contract              (ContractPABRequest)
-import           Plutus.PAB.Events.ContractInstanceState (PartiallyDecodedResponse)
-import           Plutus.PAB.Monitoring.PABLogMsg         (PABMultiAgentMsg (..))
-import           Plutus.PAB.Timeout                      (Timeout)
-import qualified Plutus.PAB.Timeout                      as Timeout
-import           Plutus.PAB.Types                        (PABError (ContractInstanceNotFound, InstanceAlreadyStopped))
-import           Plutus.PAB.Webserver.Types              (ContractActivationArgs (..))
-import           Wallet.API                              (PubKey, Slot)
-import qualified Wallet.API                              as WAPI
-import           Wallet.Effects                          (ChainIndexEffect, ContractRuntimeEffect, NodeClientEffect,
-                                                          WalletEffect)
-import           Wallet.Emulator.LogMessages             (RequestHandlerLogMsg, TxBalanceMsg)
-import           Wallet.Emulator.MultiAgent              (EmulatorEvent' (..), EmulatorTimeEvent (..))
-import           Wallet.Emulator.Wallet                  (Wallet, WalletEvent (..))
-import           Wallet.Types                            (ContractInstanceId, EndpointDescription (..),
-                                                          NotificationError)
+import           Control.Applicative                      (Alternative (..))
+import           Control.Concurrent.STM                   (STM)
+import qualified Control.Concurrent.STM                   as STM
+import           Control.Monad                            (forM, guard, void)
+import           Control.Monad.Freer                      (Eff, LastMember, Member, interpret, reinterpret, runM, send,
+                                                           subsume, type (~>))
+import           Control.Monad.Freer.Error                (Error, runError, throwError)
+import           Control.Monad.Freer.Extras.Log           (LogMessage, LogMsg (..), LogObserve, handleObserveLog,
+                                                           logInfo, mapLog)
+import qualified Control.Monad.Freer.Extras.Modify        as Modify
+import           Control.Monad.Freer.Reader               (Reader (..), ask, asks, runReader)
+import           Control.Monad.IO.Class                   (MonadIO (..))
+import qualified Data.Aeson                               as JSON
+import           Data.Foldable                            (traverse_)
+import qualified Data.Map                                 as Map
+import           Data.Proxy                               (Proxy (..))
+import           Data.Set                                 (Set)
+import           Data.Text                                (Text)
+import qualified Data.Text                                as Text
+import           Data.Text.Prettyprint.Doc                (Pretty, defaultLayoutOptions, layoutPretty, pretty)
+import qualified Data.Text.Prettyprint.Doc.Render.Text    as Render
+import           Ledger.Tx                                (Address, Tx)
+import           Ledger.TxId                              (TxId)
+import           Ledger.Value                             (Value)
+import           Plutus.Contract.Effects.AwaitTxConfirmed (TxConfirmed)
+import           Plutus.Contract.Effects.ExposeEndpoint   (ActiveEndpoint (..))
+import           Plutus.PAB.Core.ContractInstance         (ContractInstanceMsg)
+import qualified Plutus.PAB.Core.ContractInstance         as ContractInstance
+import           Plutus.PAB.Core.ContractInstance.STM     (Activity (Active), BlockchainEnv, InstancesState,
+                                                           OpenEndpoint (..))
+import qualified Plutus.PAB.Core.ContractInstance.STM     as Instances
+import           Plutus.PAB.Effects.Contract              (ContractDefinitionStore, ContractEffect, ContractStore,
+                                                           PABContract (..), addDefinition, getState)
+import qualified Plutus.PAB.Effects.Contract              as Contract
+import qualified Plutus.PAB.Effects.ContractRuntime       as ContractRuntime
+import           Plutus.PAB.Effects.TimeEffect            (TimeEffect (..), systemTime)
+import           Plutus.PAB.Effects.UUID                  (UUIDEffect, handleUUIDEffect)
+import           Plutus.PAB.Events.Contract               (ContractPABRequest)
+import           Plutus.PAB.Events.ContractInstanceState  (PartiallyDecodedResponse)
+import           Plutus.PAB.Monitoring.PABLogMsg          (PABMultiAgentMsg (..))
+import           Plutus.PAB.Timeout                       (Timeout)
+import qualified Plutus.PAB.Timeout                       as Timeout
+import           Plutus.PAB.Types                         (PABError (ContractInstanceNotFound, InstanceAlreadyStopped))
+import           Plutus.PAB.Webserver.Types               (ContractActivationArgs (..))
+import           Wallet.API                               (PubKey, Slot)
+import qualified Wallet.API                               as WAPI
+import           Wallet.Effects                           (ChainIndexEffect, ContractRuntimeEffect, NodeClientEffect,
+                                                           WalletEffect)
+import           Wallet.Emulator.LogMessages              (RequestHandlerLogMsg, TxBalanceMsg)
+import           Wallet.Emulator.MultiAgent               (EmulatorEvent' (..), EmulatorTimeEvent (..))
+import           Wallet.Emulator.Wallet                   (Wallet, WalletEvent (..))
+import           Wallet.Types                             (ContractInstanceId, EndpointDescription (..),
+                                                           NotificationError)
 
 -- | Effects that are available in 'PABAction's.
 type PABEffects t env =
@@ -473,6 +476,12 @@ waitForState extract instanceId = do
         case extract state of
             Nothing -> STM.retry
             Just k  -> pure k
+
+-- | Wait for the transaction to be confirmed on the blockchain.
+waitForTxConfirmed :: forall t env. TxId -> PABAction t env TxConfirmed
+waitForTxConfirmed t = do
+    env <- asks @(PABEnvironment t env) blockchainEnv
+    liftIO $ STM.atomically $ Instances.waitForTxConfirmed t env
 
 -- | The list of endpoints that are currently open
 activeEndpoints :: forall t env. ContractInstanceId -> PABAction t env (STM [OpenEndpoint])
