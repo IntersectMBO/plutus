@@ -14,7 +14,7 @@ import Data.Either (Either)
 import Data.Generic.Rep (class Generic)
 import Data.Map (Map)
 import Data.Maybe (Maybe(..))
-import Marlowe.PAB (ContractInstanceId)
+import Marlowe.PAB (PlutusAppId)
 import Pickup.Types (Action, State) as Pickup
 import Play.Types (Action, State) as Play
 import Plutus.PAB.Webserver.Types (CombinedWSStreamToClient, CombinedWSStreamToServer)
@@ -60,7 +60,7 @@ data Msg
 ------------------------------------------------------------
 data Action
   = Init
-  | EnterPickupState WalletLibrary WalletDetails (Map ContractInstanceId Contract.State)
+  | EnterPickupState WalletLibrary WalletDetails (Map PlutusAppId Contract.State)
   | EnterPlayState WalletLibrary WalletDetails
   | PickupAction Pickup.Action
   | PlayAction Play.Action

@@ -6,7 +6,7 @@ module Pickup.State
 
 import Prelude
 import Capability.MainFrameLoop (class MainFrameLoop, callMainFrameAction)
-import Capability.Marlowe (class ManageMarlowe, marloweCreateWallet, marloweLookupWalletDetails)
+import Capability.Marlowe (class ManageMarlowe, createWallet, lookupWalletDetails)
 import Capability.Toast (class Toast, addToast)
 import Control.Monad.Reader (class MonadAsk)
 import Data.Either (Either(..))
@@ -26,10 +26,10 @@ import Pickup.Lenses (_card, _pickupWalletString, _walletDetails, _walletLibrary
 import Pickup.Types (Action(..), Card(..), State)
 import StaticData (walletLibraryLocalStorageKey, walletDetailsLocalStorageKey)
 import Toast.Types (ajaxErrorToast)
-import WalletData.Lenses (_companionContractId, _walletNickname)
+import WalletData.Lenses (_companionAppId, _walletNickname)
 import WalletData.State (defaultWalletDetails)
 import WalletData.Types (WalletLibrary)
-import WalletData.Validation (parseContractInstanceId)
+import WalletData.Validation (parsePlutusAppId)
 import Web.HTML (window)
 import Web.HTML.Location (reload)
 import Web.HTML.Window (location)
@@ -62,7 +62,7 @@ handleAction (OpenCard card) = assign _card $ Just card
 handleAction CloseCard = assign _card Nothing
 
 handleAction GenerateWallet = do
-  ajaxWallet <- marloweCreateWallet
+  ajaxWallet <- createWallet
   case ajaxWallet of
     Left ajaxError -> addToast $ ajaxErrorToast "Failed to generate wallet." ajaxError
     Right walletDetails -> do
@@ -78,14 +78,14 @@ handleAction (SetPickupWalletString string) = do
       assign _walletDetails walletDetails
       handleAction $ OpenCard PickupWalletCard
     -- then check for a matching ID in the wallet library
-    Nothing -> case findMin $ filter (\walletDetails -> UUID.toString (unwrap (view _companionContractId walletDetails)) == string) walletLibrary of
+    Nothing -> case findMin $ filter (\walletDetails -> UUID.toString (unwrap (view _companionAppId walletDetails)) == string) walletLibrary of
       Just { key, value } -> do
         assign _walletDetails value
         handleAction $ OpenCard PickupWalletCard
       -- then check whether the string is a valid UUID
-      Nothing -> case parseContractInstanceId string of
+      Nothing -> case parsePlutusAppId string of
         Just contractInstanceId -> do
-          ajaxWalletDetails <- marloweLookupWalletDetails contractInstanceId
+          ajaxWalletDetails <- lookupWalletDetails contractInstanceId
           case ajaxWalletDetails of
             Left ajaxError -> pure unit -- TODO: show negative feedback to the user
             Right walletDetails -> do

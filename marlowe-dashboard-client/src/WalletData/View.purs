@@ -24,17 +24,17 @@ import Humanize (humanizeValue)
 import Material.Icons (Icon(..))
 import Play.Types (Action(..), Card(..))
 import Types (WebData)
-import WalletData.Lenses (_assets, _companionContractId, _walletNickname)
+import WalletData.Lenses (_assets, _companionAppId, _walletNickname)
 import WalletData.State (adaToken, getAda)
 import WalletData.Types (WalletDetails, WalletInfo, WalletLibrary, WalletNickname)
-import WalletData.Validation (contractInstanceIdError, walletNicknameError)
+import WalletData.Validation (plutusAppIdError, walletNicknameError)
 
 saveWalletCard :: forall p. WalletLibrary -> WalletNickname -> String -> WebData WalletInfo -> Maybe String -> HTML p Action
-saveWalletCard walletLibrary newWalletNickname newWalletContractIdString newWalletInfo mTokenName =
+saveWalletCard walletLibrary newWalletNickname newWalletCompanionAppIdString newWalletInfo mTokenName =
   let
     mWalletNicknameError = walletNicknameError newWalletNickname walletLibrary
 
-    mContractInstanceIdError = contractInstanceIdError newWalletContractIdString newWalletInfo walletLibrary
+    mCompanionAppIdError = plutusAppIdError newWalletCompanionAppIdString newWalletInfo walletLibrary
   in
     div
       [ classNames [ "flex", "flex-col", "p-5", "pb-6", "md:pb-8" ] ]
@@ -58,20 +58,20 @@ saveWalletCard walletLibrary newWalletNickname newWalletContractIdString newWall
               [ text $ foldMap show mWalletNicknameError ]
           ]
       , div
-          [ classNames $ [ "mb-4" ] <> (applyWhen (not null newWalletContractIdString) Css.hasNestedLabel) ]
+          [ classNames $ [ "mb-4" ] <> (applyWhen (not null newWalletCompanionAppIdString) Css.hasNestedLabel) ]
           [ label
-              [ classNames $ Css.nestedLabel <> hideWhen (null newWalletContractIdString) ]
+              [ classNames $ Css.nestedLabel <> hideWhen (null newWalletCompanionAppIdString) ]
               [ text "Wallet ID" ]
           , input
               [ type_ InputText
-              , classNames $ Css.input $ isJust mContractInstanceIdError
+              , classNames $ Css.input $ isJust mCompanionAppIdError
               , placeholder "Wallet ID"
-              , value newWalletContractIdString
-              , onValueInput_ SetNewWalletContractIdString
+              , value newWalletCompanionAppIdString
+              , onValueInput_ SetNewWalletCompanionAppIdString
               ]
           , div
               [ classNames Css.inputError ]
-              [ text $ foldMap show mContractInstanceIdError ]
+              [ text $ foldMap show mCompanionAppIdError ]
           ]
       , div
           [ classNames [ "flex" ] ]
@@ -82,7 +82,7 @@ saveWalletCard walletLibrary newWalletNickname newWalletContractIdString newWall
               [ text "Cancel" ]
           , button
               [ classNames $ Css.primaryButton <> [ "flex-1" ]
-              , disabled $ isJust mWalletNicknameError || isJust mContractInstanceIdError
+              , disabled $ isJust mWalletNicknameError || isJust mCompanionAppIdError
               , onClick_ $ SaveNewWallet mTokenName
               ]
               [ text "Save" ]
@@ -94,7 +94,7 @@ walletDetailsCard walletDetails =
   let
     walletNickname = view _walletNickname walletDetails
 
-    contractInstanceId = view _companionContractId walletDetails
+    companionAppId = view _companionAppId walletDetails
   in
     div [ classNames [ "p-5", "pb-6", "md:pb-8" ] ]
       [ h3
@@ -108,7 +108,7 @@ walletDetailsCard walletDetails =
           , input
               [ type_ InputText
               , classNames $ Css.input false <> [ "mb-4" ]
-              , value $ UUID.toString $ unwrap contractInstanceId
+              , value $ UUID.toString $ unwrap companionAppId
               , readOnly true
               ]
           ]
@@ -119,7 +119,7 @@ putdownWalletCard walletDetails =
   let
     walletNickname = view _walletNickname walletDetails
 
-    contractInstanceId = view _companionContractId walletDetails
+    companionAppId = view _companionAppId walletDetails
 
     assets = view _assets walletDetails
   in
@@ -135,7 +135,7 @@ putdownWalletCard walletDetails =
           , input
               [ type_ InputText
               , classNames $ Css.input false <> [ "mb-4" ]
-              , value $ UUID.toString $ unwrap contractInstanceId
+              , value $ UUID.toString $ unwrap companionAppId
               , readOnly true
               ]
           ]
@@ -184,14 +184,11 @@ walletLibraryScreen library =
     ]
   where
   contactLi (Tuple nickname walletDetails) =
-    let
-      contractId = view _companionContractId walletDetails
-    in
-      li
-        [ classNames [ "mt-4", "hover:cursor-pointer", "hover:text-green" ]
-        , onClick_ $ OpenCard $ ViewWalletCard walletDetails
-        ]
-        [ text nickname ]
+    li
+      [ classNames [ "mt-4", "hover:cursor-pointer", "hover:text-green" ]
+      , onClick_ $ OpenCard $ ViewWalletCard walletDetails
+      ]
+      [ text nickname ]
 
 nicknamesDataList :: forall p a. WalletLibrary -> HTML p a
 nicknamesDataList library =

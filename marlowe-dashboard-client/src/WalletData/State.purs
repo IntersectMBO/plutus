@@ -10,15 +10,14 @@ import Data.Map (lookup)
 import Data.Maybe (fromMaybe)
 import Data.Newtype (unwrap)
 import Data.UUID (emptyUUID)
-import Marlowe.PAB (ContractInstanceId(..))
+import Marlowe.PAB (PlutusAppId(..))
 import Marlowe.Semantics (Assets, Token(..))
 import WalletData.Types (PubKeyHash(..), Wallet(..), WalletDetails, WalletInfo(..))
 
 defaultWalletDetails :: WalletDetails
 defaultWalletDetails =
   { walletNickname: mempty
-  , marloweContractId: ContractInstanceId emptyUUID
-  , companionContractId: ContractInstanceId emptyUUID
+  , companionAppId: PlutusAppId emptyUUID
   , walletInfo: defaultWalletInfo
   , assets: mempty
   }

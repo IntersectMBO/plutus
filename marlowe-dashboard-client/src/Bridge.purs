@@ -16,7 +16,7 @@ import Data.Lens (Iso', iso)
 import Data.Map (Map, fromFoldable, toUnfoldable) as Front
 import Data.Tuple (Tuple)
 import Data.Tuple.Nested ((/\))
-import Marlowe.PAB (ContractInstanceId(..)) as Front
+import Marlowe.PAB (PlutusAppId(..)) as Front
 import Marlowe.Semantics (Assets(..), Slot(..)) as Front
 import Network.RemoteData (RemoteData)
 import Plutus.V1.Ledger.Crypto (PubKey(..), PubKeyHash(..)) as Back
@@ -126,9 +126,9 @@ instance pubKeyHashBridge :: Bridge Back.PubKeyHash Front.PubKeyHash where
   toFront (Back.PubKeyHash { getPubKeyHash }) = Front.PubKeyHash getPubKeyHash
   toBack (Front.PubKeyHash getPubKeyHash) = Back.PubKeyHash { getPubKeyHash }
 
-instance contractInstanceIdBridge :: Bridge Back.ContractInstanceId Front.ContractInstanceId where
-  toFront (Back.ContractInstanceId { unContractInstanceId: JsonUUID uuid }) = Front.ContractInstanceId uuid
-  toBack (Front.ContractInstanceId uuid) = Back.ContractInstanceId { unContractInstanceId: JsonUUID uuid }
+instance contractInstanceIdBridge :: Bridge Back.ContractInstanceId Front.PlutusAppId where
+  toFront (Back.ContractInstanceId { unContractInstanceId: JsonUUID uuid }) = Front.PlutusAppId uuid
+  toBack (Front.PlutusAppId uuid) = Back.ContractInstanceId { unContractInstanceId: JsonUUID uuid }
 
 -- NOTE: the `Payment` type defined in `Marlowe.Semantics` is for something different
 instance paymentBridge :: Bridge Payment Payment where

@@ -15,7 +15,7 @@ import Data.Set (Set)
 import Halogen (RefLabel(..))
 import Marlowe.Execution (ExecutionState, NamedAction)
 import Marlowe.Extended.Metadata (MetaData)
-import Marlowe.PAB (ContractInstanceId, MarloweParams)
+import Marlowe.PAB (PlutusAppId, MarloweParams)
 import Marlowe.Semantics (ChoiceId, ChosenNum, Party, Slot, TransactionInput, Accounts)
 import WalletData.Types (WalletNickname)
 
@@ -23,7 +23,7 @@ type State
   = { tab :: Tab
     , executionState :: ExecutionState
     , previousSteps :: Array PreviousStep
-    , contractInstanceId :: ContractInstanceId
+    , followerAppId :: PlutusAppId
     , marloweParams :: MarloweParams
     -- Which step is selected. This index is 0 based and should be between [0, previousSteps.length]
     -- (both sides inclusive). This is because the array represent the past steps and the

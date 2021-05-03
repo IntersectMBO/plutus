@@ -5,7 +5,7 @@ module Play.Lenses
   , _screen
   , _cards
   , _newWalletNickname
-  , _newWalletContractIdString
+  , _newWalletCompanionAppIdString
   , _newWalletInfo
   , _currentSlot
   , _templateState
@@ -22,7 +22,7 @@ import Data.Lens (Lens', Traversal')
 import Data.Lens.Record (prop)
 import Data.Map (Map)
 import Data.Symbol (SProxy(..))
-import Marlowe.PAB (ContractInstanceId)
+import Marlowe.PAB (PlutusAppId)
 import Marlowe.Semantics (Slot)
 import Play.Types (Card, Screen, State)
 import Template.Types (State) as Template
@@ -47,8 +47,8 @@ _cards = prop (SProxy :: SProxy "cards")
 _newWalletNickname :: Lens' State WalletNickname
 _newWalletNickname = prop (SProxy :: SProxy "newWalletNickname")
 
-_newWalletContractIdString :: Lens' State String
-_newWalletContractIdString = prop (SProxy :: SProxy "newWalletContractIdString")
+_newWalletCompanionAppIdString :: Lens' State String
+_newWalletCompanionAppIdString = prop (SProxy :: SProxy "newWalletCompanionAppIdString")
 
 _newWalletInfo :: Lens' State (WebData WalletInfo)
 _newWalletInfo = prop (SProxy :: SProxy "newWalletInfo")
@@ -62,7 +62,7 @@ _templateState = prop (SProxy :: SProxy "templateState")
 _contractsState :: Lens' State ContractHome.State
 _contractsState = prop (SProxy :: SProxy "contractsState")
 
-_allContracts :: Lens' State (Map ContractInstanceId Contract.State)
+_allContracts :: Lens' State (Map PlutusAppId Contract.State)
 _allContracts = _contractsState <<< ContractHome._contracts
 
 -- This traversal focus on a specific contract indexed by another property of the state

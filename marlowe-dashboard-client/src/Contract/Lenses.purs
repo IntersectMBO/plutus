@@ -3,7 +3,7 @@ module Contract.Lenses
   , _executionState
   , _previousSteps
   , _marloweParams
-  , _contractInstanceId
+  , _followerAppId
   , _selectedStep
   , _metadata
   , _participants
@@ -20,7 +20,7 @@ import Data.Set (Set)
 import Data.Symbol (SProxy(..))
 import Marlowe.Execution (ExecutionState, NamedAction)
 import Marlowe.Extended.Metadata (MetaData)
-import Marlowe.PAB (ContractInstanceId, MarloweParams)
+import Marlowe.PAB (PlutusAppId, MarloweParams)
 import Marlowe.Semantics as Semantic
 import WalletData.Types (WalletNickname)
 
@@ -36,8 +36,8 @@ _previousSteps = prop (SProxy :: SProxy "previousSteps")
 _marloweParams :: Lens' State MarloweParams
 _marloweParams = prop (SProxy :: SProxy "marloweParams")
 
-_contractInstanceId :: Lens' State ContractInstanceId
-_contractInstanceId = prop (SProxy :: SProxy "contractInstanceId")
+_followerAppId :: Lens' State PlutusAppId
+_followerAppId = prop (SProxy :: SProxy "followerAppId")
 
 _selectedStep :: Lens' State Int
 _selectedStep = prop (SProxy :: SProxy "selectedStep")
