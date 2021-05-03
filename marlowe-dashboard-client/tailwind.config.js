@@ -4,7 +4,7 @@ module.exports = {
   purge: [
     "src/**/*.purs",
     "web-common/**/*.purs",
-    "web-common-marlowe/**/*.purs"
+    "web-common-marlowe/**/*.purs",
   ],
   darkMode: false, // or 'media' or 'class'
   theme: {
@@ -22,7 +22,7 @@ module.exports = {
       purple: "#4700c3",
       lightpurple: "#8701fc",
       grayblue: "#f5f9fc",
-      purple: "#4c41e5",
+      purple: "#4700C3",
       red: "#e04b4c",
     },
     fontSize: {
@@ -31,6 +31,8 @@ module.exports = {
       base: "16px",
       lg: "18px",
       xl: "24px",
+      /* this value was requested for some icons in the contract home */
+      "28px": "28px",
       "2xl": "34px",
       "3xl": "46px",
       "big-icon": "100px",
@@ -113,7 +115,7 @@ module.exports = {
       // note 'disabled' goes last so that it takes priority
       backgroundColor: ["last", "hover", "disabled"],
       backgroundImage: ["hover", "disabled"],
-      boxShadow: ["hover", "disabled"],
+      boxShadow: ["hover", "disabled", "active"],
       cursor: ["hover", "disabled"],
       // This causes an error
       // spacing: ['first', 'last'],

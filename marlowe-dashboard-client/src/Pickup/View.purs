@@ -8,7 +8,7 @@ import Data.Lens (view)
 import Data.Maybe (isJust, isNothing)
 import Data.Newtype (unwrap)
 import Data.UUID (toString) as UUID
-import Halogen.HTML (HTML, a, button, div, div_, footer, header, hr, img, input, label, main, p, span_, text)
+import Halogen.HTML (HTML, a, button, div, div_, footer, header_, hr, img, input, label, main, p, span_, text)
 import Halogen.HTML.Events.Extra (onClick_, onValueInput_)
 import Halogen.HTML.Properties (InputType(..), disabled, for, href, id_, list, placeholder, readOnly, src, type_, value)
 import Logo (marloweRunLogo)
@@ -85,7 +85,7 @@ pickupNewWalletCard state =
                   [ text "Nickname" ]
               , input
                   $ [ type_ InputText
-                    , classNames $ (Css.input $ isJust mWalletNicknameError) <> [ "text-lg" ]
+                    , classNames $ (Css.inputCard $ isJust mWalletNicknameError) <> [ "text-lg" ] <> Css.withNestedLabel
                     , id_ "newWalletNickname"
                     , placeholder "Nickname"
                     , value walletNickname
@@ -104,7 +104,7 @@ pickupNewWalletCard state =
                 [ text "Wallet ID" ]
             , input
                 [ type_ InputText
-                , classNames $ (Css.input false) <> [ "text-lg" ]
+                , classNames $ (Css.inputCard false) <> [ "text-lg" ] <> Css.withNestedLabel
                 , id_ "newWalletID"
                 , value $ UUID.toString $ unwrap contractInstanceId
                 , readOnly true
@@ -145,7 +145,7 @@ pickupWalletCard state =
         [ icon_ Close ]
     , div [ classNames [ "p-5", "pb-6", "md:pb-8" ] ]
         [ p
-            [ classNames [ "font-bold", "mb-4" ] ]
+            [ classNames [ "font-bold", "mb-4", "truncate", "w-11/12" ] ]
             [ text $ "Play wallet " <> walletNickname ]
         , div
             [ classNames $ Css.hasNestedLabel <> [ "mb-4" ] ]
@@ -156,7 +156,7 @@ pickupWalletCard state =
                   [ text "Nickname" ]
               , input
                   $ [ type_ InputText
-                    , classNames $ Css.input false
+                    , classNames $ Css.inputCard false <> Css.withNestedLabel
                     , id_ "nickname"
                     , value walletNickname
                     , readOnly true
@@ -171,7 +171,7 @@ pickupWalletCard state =
                 [ text "Wallet ID" ]
             , input
                 [ type_ InputText
-                , classNames $ Css.input false
+                , classNames $ Css.inputCard false <> Css.withNestedLabel
                 , id_ "walletId"
                 , value $ UUID.toString $ unwrap companionContractId
                 , readOnly true
@@ -226,14 +226,12 @@ renderPickupScreen :: forall p. Warn (Text "We need to add the Marlowe links.") 
 renderPickupScreen state =
   div
     [ classNames [ "absolute", "top-0", "bottom-0", "left-0", "right-0", "overflow-auto", "z-0", "flex", "flex-col", "justify-between" ] ]
-    [ header
-        [ classNames [ "flex" ] ]
-        [ link "marlowe.io" "" ]
+    [ header_ []
     , pickupWalletScreen state
     , footer
-        [ classNames [ "flex", "justify-between" ] ]
-        [ link "Docs" ""
-        , link "Marketplace" ""
+        [ classNames [ "flex", "justify-between", "p-6", "lg:py-8", "md:px-5pc" ] ]
+        [ link "marlowe.finance" "https://marlowe.finance"
+        , link "Docs" ""
         ]
     ]
 
@@ -277,7 +275,7 @@ pickupWalletScreen state =
 link :: forall p a. String -> String -> HTML p a
 link label url =
   a
-    [ classNames [ "flex", "items-center", "p-2", "font-bold" ]
+    [ classNames [ "flex", "items-center", "font-bold" ]
     , href url
     ]
     [ text label ]

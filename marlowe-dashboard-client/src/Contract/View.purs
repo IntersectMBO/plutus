@@ -502,7 +502,7 @@ renderParty state party =
   in
     -- FIXME: mb-2 should not belong here
     div [ classNames [ "text-xs", "flex", "mb-2" ] ]
-      [ div [ classNames [ "bg-gradient-to-r", "from-purple", "to-lightpurple", "text-white", "rounded-full", "w-5", "h-5", "text-center", "mr-1" ] ] [ text $ String.take 1 participantName ]
+      [ div [ classNames [ "bg-gradient-to-r", "from-purple", "to-lightpurple", "text-white", "rounded-full", "w-5", "h-5", "text-center", "mr-1", "font-semibold" ] ] [ text $ String.take 1 participantName ]
       , div [ classNames [ "font-semibold" ] ] [ text participantName ]
       ]
 
@@ -553,12 +553,11 @@ renderAction state party namedAction@(MakeDeposit intoAccountOf by token value) 
     div_
       [ shortDescription isActiveParticipant description
       , button
-          -- TODO: adapt to use button classes from Css module
-          [ classNames $ [ "flex", "justify-between", "px-6", "font-bold", "w-full", "py-4", "mt-2", "rounded-lg", "shadow" ]
+          [ classNames $ Css.button <> [ "flex", "justify-between", "w-full", "mt-2" ]
               <> if isActiveParticipant || debugMode then
-                  [ "bg-gradient-to-r", "from-purple", "to-lightpurple", "text-white" ]
+                  Css.bgBlueGradient <> Css.withShadow
                 else
-                  [ "bg-gray", "text-black", "opacity-50", "cursor-default" ]
+                  [ "text-black", "cursor-default" ]
           , enabled $ isActiveParticipant || debugMode
           , onClick_ $ AskConfirmation namedAction
           ]
@@ -619,11 +618,11 @@ renderAction state party namedAction@(MakeChoice choiceId bounds mChosenNum) =
     singleInput = \_ ->
       button
         -- TODO: adapt to use button classes from Css module
-        [ classNames $ [ "px-6", "font-bold", "w-full", "py-4", "mt-2", "rounded-lg", "shadow" ]
+        [ classNames $ Css.button <> [ "w-full", "mt-2" ]
             <> if isActiveParticipant || debugMode then
-                [ "bg-gradient-to-r", "from-purple", "to-lightpurple", "text-white" ]
+                Css.bgBlueGradient <> Css.withShadow
               else
-                [ "bg-gray", "text-black", "opacity-50", "cursor-default" ]
+                [ "text-black", "cursor-default" ]
         , enabled $ isActiveParticipant || debugMode
         , onClick_ $ AskConfirmation $ MakeChoice choiceId bounds $ Just minBound
         ]
