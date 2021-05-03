@@ -18,6 +18,7 @@ to one PAB, with its own view of the world, all acting on the same blockchain.
 -}
 module Plutus.PAB.Simulator(
     Simulation
+    , SimulatorState
     , runSimulation
     -- * Run with user-defined contracts
     , SimulatorContractHandler
@@ -88,7 +89,6 @@ import           Data.Default                                   (Default (..))
 import           Data.Foldable                                  (fold, traverse_)
 import           Data.Map                                       (Map)
 import qualified Data.Map                                       as Map
-import           Data.Semigroup                                 (Max (..))
 import           Data.Set                                       (Set)
 import           Data.Text                                      (Text)
 import qualified Data.Text                                      as Text
@@ -721,8 +721,7 @@ addWallet = do
     (_, privateKey) <- MockWallet.newKeyPair
     liftIO $ STM.atomically $ do
         currentWallets <- STM.readTVar _agentStates
-        let newWalletId = maybe 0 (succ . getMax) $ foldMap (Just . Max . getWallet) $ Map.keysSet currentWallets
-            newWallet = Wallet newWalletId
+        let newWallet = MockWallet.privKeyWallet privateKey
             newWallets = currentWallets & at newWallet .~ Just (AgentState (Wallet.emptyWalletStateFromPrivateKey privateKey) mempty)
         STM.writeTVar _agentStates newWallets
         pure (newWallet, toPublicKey privateKey)

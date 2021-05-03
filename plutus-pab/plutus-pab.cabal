@@ -360,7 +360,8 @@ test-suite plutus-pab-test
         text -any,
         transformers -any,
         prettyprinter -any,
-        row-types -any
+        row-types -any,
+        plutus-tx -any
 
 executable prism-credential-manager
     import: lang

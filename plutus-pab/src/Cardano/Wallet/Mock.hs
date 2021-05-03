@@ -12,6 +12,8 @@ module Cardano.Wallet.Mock
     , integer2ByteString32
     , byteString2Integer
     , newKeyPair
+    , walletPubKey
+    , privKeyWallet
     ) where
 
 import           Cardano.BM.Data.Trace            (Trace)
@@ -97,6 +99,21 @@ newKeyPair = do
             let pubKey = toPublicKey privateKey
             pure (pubKey, privateKey)
 
+-- | Get the public key of a 'Wallet' by converting the wallet identifier
+--   to a private key bytestring.
+walletPubKey :: Wallet -> PubKey
+walletPubKey (Wallet i) =
+    let secretKeyBytes = integer2ByteString32 i
+        privateKey = PrivateKey (KB.fromBytes secretKeyBytes)
+    in toPublicKey privateKey
+
+-- | Get the 'Wallet' whose identifier is the integer representation of the
+--   private key.
+privKeyWallet :: PrivateKey -> Wallet
+privKeyWallet (PrivateKey kb) =
+--   TODO (jm): this is terrible and we need to change it - see SCP-2208
+    Wallet $ byteString2Integer $ KB.bytes kb
+
 -- | Handle multiple wallets using existing @Wallet.handleWallet@ handler
 handleMultiWallet :: forall m effs.
     ( Member NodeClientEffect effs
@@ -131,7 +148,6 @@ handleMultiWallet = do
             _ <- evalState walletState $ interpret Wallet.handleWallet (raiseEnd $ distributeNewWalletFunds pubKey)
             WalletEffects.startWatching (pubKeyAddress pubKey)
             return $ WalletInfo{wiWallet = wallet, wiPubKey = pubKey, wiPubKeyHash = pubKeyHash pubKey}
-
 
 -- | Process wallet effects. Retain state and yield HTTP400 on error
 --   or set new state on success.
