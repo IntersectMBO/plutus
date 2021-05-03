@@ -9,10 +9,9 @@ import Capability.Contract (class ManageContract)
 import Capability.MainFrameLoop (class MainFrameLoop, callMainFrameAction)
 import Capability.Marlowe (class ManageMarlowe, createContract, lookupWalletInfo)
 import Capability.Toast (class Toast, addToast)
-import Capability.Wallet (class ManageWallet)
 import Contract.Lenses (_selectedStep)
 import Contract.State (applyTimeout)
-import Contract.State (dummyState, handleAction) as Contract
+import Contract.State (dummyState, handleAction, mkInitialState) as Contract
 import Contract.Types (Action(..), State) as Contract
 import ContractHome.Lenses (_contracts)
 import ContractHome.State (handleAction, mkInitialState) as ContractHome
@@ -27,6 +26,8 @@ import Data.Lens.Traversal (traversed)
 import Data.Map (Map, insert, lookup, mapMaybe)
 import Data.Maybe (Maybe(..))
 import Data.Time.Duration (Minutes(..))
+import Data.Tuple.Nested (tuple3)
+import Data.UUID (genUUID)
 import Effect.Aff.Class (class MonadAff)
 import Env (Env)
 import Foreign.Generic (encodeJSON)
@@ -35,11 +36,13 @@ import Halogen.Extra (mapMaybeSubmodule, mapSubmodule)
 import LocalStorage (setItem)
 import MainFrame.Types (Action(..)) as MainFrame
 import MainFrame.Types (ChildSlots, Msg)
-import Marlowe.PAB (PlutusAppId, History)
+import Marlowe.PAB (PlutusAppId(..), History(..))
 import Marlowe.Semantics (Slot(..))
+import Marlowe.Semantics (State(..)) as Semantic
 import Network.RemoteData (RemoteData(..), fromEither)
 import Play.Lenses (_allContracts, _cards, _contractsState, _currentSlot, _menuOpen, _newWalletCompanionAppIdString, _newWalletInfo, _newWalletNickname, _screen, _selectedContract, _templateState, _walletDetails, _walletLibrary)
 import Play.Types (Action(..), Card(..), Screen(..), State)
+import Plutus.V1.Ledger.Value (CurrencySymbol(..))
 import StaticData (walletLibraryLocalStorageKey)
 import Template.Lenses (_extendedContract, _roleWallets, _template, _templateContent)
 import Template.State (dummyState, handleAction, mkInitialState) as Template
@@ -81,7 +84,6 @@ handleAction ::
   MainFrameLoop m =>
   ManageContract m =>
   ManageMarlowe m =>
-  ManageWallet m =>
   Toast m =>
   Action -> HalogenM State Action ChildSlots Msg m Unit
 handleAction PutdownWallet = do
@@ -194,6 +196,23 @@ handleAction (TemplateAction templateAction) = case templateAction of
             -- should create a WalletFollower contract manually here.
             handleAction $ SetScreen ContractsScreen
             addToast $ successToast "Contract started."
+            -- FIXME: until we get contracts running properly in the PAB, we just fake the contract here locally
+            uuid <- liftEffect genUUID
+            let
+              contractInstanceId = PlutusAppId uuid
+
+              marloweParams = { rolePayoutValidatorHash: mempty, rolesCurrency: CurrencySymbol { unCurrencySymbol: "" } }
+
+              marloweState = Semantic.State { accounts: mempty, choices: mempty, boundValues: mempty, minSlot: zero }
+
+              marloweData = { marloweContract: contract, marloweState }
+
+              history = History $ tuple3 marloweParams marloweData mempty
+
+              mContractState = Contract.mkInitialState walletDetails currentSlot contractInstanceId history
+            for_ mContractState \contractState -> do
+              modifying _allContracts $ insert contractInstanceId contractState
+              handleAction $ ContractHomeAction $ ContractHome.OpenContract contractInstanceId
   _ -> toTemplate $ Template.handleAction templateAction
 
 handleAction (ContractHomeAction contractHomeAction) = case contractHomeAction of
