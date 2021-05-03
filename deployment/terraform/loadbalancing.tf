@@ -104,6 +104,11 @@ resource "aws_alb_listener" "playground" {
   }
 }
 
+resource "aws_lb_listener_certificate" "marlowe_finance_io" {
+  listener_arn    = aws_alb_listener.playground.arn
+  certificate_arn = aws_acm_certificate.marlowe_finance_io.arn
+}
+
 resource "aws_lb_listener_certificate" "marlowe_web" {
   listener_arn    = aws_alb_listener.playground.arn
   certificate_arn = aws_acm_certificate.marlowe_web_private.arn

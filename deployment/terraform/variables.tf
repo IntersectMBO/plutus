@@ -46,6 +46,10 @@ variable "marlowe_dash_public_zone" {
   default = "Z04600362E06M9P9U3Y12"
 }
 
+variable "marlowe_finance_io_public_zone" {
+  default = "Z08915482QHLWPND8OWOL"
+}
+
 variable "bastion_instance_type" {
   default = "t3.micro"
 }
