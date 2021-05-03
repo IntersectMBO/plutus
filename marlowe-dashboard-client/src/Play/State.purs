@@ -198,7 +198,6 @@ handleAction (ContractHomeAction contractHomeAction) = case contractHomeAction o
     walletDetails <- use _walletDetails
     toContractHome $ ContractHome.handleAction a
     handleAction $ OpenCard ContractCard
-    toContract $ Contract.handleAction walletDetails Contract.CarouselOpened
   _ -> toContractHome $ ContractHome.handleAction contractHomeAction
 
 handleAction (ContractAction contractAction) = do

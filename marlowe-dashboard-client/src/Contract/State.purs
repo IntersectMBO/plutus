@@ -35,7 +35,7 @@ import Effect.Aff.AVar as AVar
 import Effect.Aff.Class (class MonadAff, liftAff)
 import Effect.Exception.Unsafe (unsafeThrow)
 import Env (Env)
-import Halogen (HalogenM, SubscriptionId, getHTMLElementRef, gets, liftEffect, modify_, subscribe, subscribe', unsubscribe)
+import Halogen (HalogenM, getHTMLElementRef, gets, liftEffect, modify_, subscribe, unsubscribe)
 import Halogen.Query.EventSource (EventSource)
 import Halogen.Query.EventSource as EventSource
 import MainFrame.Types (ChildSlots, Msg)
@@ -53,7 +53,6 @@ import WalletData.Lenses (_assets, _pubKeyHash, _walletInfo)
 import WalletData.Types (WalletDetails)
 import Web.DOM.Element (getElementsByClassName)
 import Web.DOM.HTMLCollection as HTMLCollection
-import Web.DOM.IntersectionObserver (disconnect, intersectionObserver, observe)
 import Web.Dom.ElementExtra (Alignment(..), ScrollBehavior(..), debouncedOnScroll, scrollIntoView, throttledOnScroll)
 import Web.HTML (HTMLElement)
 import Web.HTML.HTMLElement (getBoundingClientRect, offsetLeft)
@@ -217,7 +216,6 @@ handleAction _ CarouselOpened = do
     -- When the carousel is opened we want to assure that the selected step is
     -- in the center without any animation
     liftEffect $ scrollStepToCenter Auto selectedStep elm
-    subscribe' $ carouselCloseEventSource elm
     subscribeToSelectCenteredStep
 
 handleAction _ CarouselClosed = unsubscribeFromSelectCenteredStep
@@ -364,26 +362,6 @@ scrollStepToCenter behavior stepNumber parentElement = do
     getStepElemets = HTMLCollection.toArray =<< getElementsByClassName "w-contract-card" (HTMLElement.toElement parentElement)
   mStepElement <- flip index stepNumber <$> getStepElemets
   for_ mStepElement $ scrollIntoView { block: Center, inline: Center, behavior }
-
--- Because this is a subcomponent, we don't have a `Finalize` event that we can use, so we add a self contained
--- subscription (a.k.a. it closes itself) that detects when the modal is no longer visible (not intersecting with the
--- viewport)
-carouselCloseEventSource ::
-  forall m.
-  MonadAff m =>
-  HTMLElement ->
-  SubscriptionId ->
-  EventSource m Action
-carouselCloseEventSource parentElement _ =
-  EventSource.effectEventSource \emitter -> do
-    observer <-
-      intersectionObserver {} \entries _ ->
-        for_ (head entries) \entry ->
-          when (not entry.isIntersecting) do
-            EventSource.emit emitter CarouselClosed
-            EventSource.close emitter
-    observe (HTMLElement.toElement parentElement) observer
-    pure $ EventSource.Finalizer $ disconnect observer
 
 -- This EventSource is responsible for selecting the step closest to the center of the scroll container
 -- when scrolling
