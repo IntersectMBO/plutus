@@ -63,6 +63,7 @@ mkBuiltinConstant
     => AlexPosn -> T.Text -> AlexPosn -> T.Text -> Parse (AlexPosn, Some (ValueOf uni))
 mkBuiltinConstant tyloc typeName litloc lit = do
     SomeTypeIn (Kinded uni) <- decodeTypeName tyloc typeName
+    -- See Note [Decoding universes].
     case checkStar @uni uni of
         Nothing -> throwError undefined
         Just Refl -> case bring (Proxy @Parsable) uni (parse lit) of

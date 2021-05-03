@@ -225,7 +225,6 @@ library
         Data.Aeson.THReader
         Data.Functor.Foldable.Monadic
         Universe.Core
-        Universe.Poly
     build-depends:
         Stream -any,
         aeson -any,

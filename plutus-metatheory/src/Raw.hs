@@ -1,7 +1,6 @@
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE GADTs                 #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE PatternSynonyms       #-}
 
 module Raw where
 
@@ -72,7 +71,7 @@ convT (TyIFix _ a b)                = RTyMu (convT a) (convT b)
 convC :: Some (ValueOf DefaultUni) -> RConstant
 convC (Some (ValueOf DefaultUniInteger    i)) = RConInt i
 convC (Some (ValueOf DefaultUniByteString b)) = RConBS b
-convC (Some (ValueOf DefaultUniString   s))   = RConStr (T.pack s)
+convC (Some (ValueOf DefaultUniString     s)) = RConStr (T.pack s)
 convC (Some (ValueOf DefaultUniChar       c)) = RConChar c
 convC (Some (ValueOf DefaultUniUnit       u)) = RConUnit
 convC (Some (ValueOf DefaultUniBool       b)) = RConBool b

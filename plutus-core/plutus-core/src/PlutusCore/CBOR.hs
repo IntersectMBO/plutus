@@ -109,6 +109,7 @@ instance (Closed uni, uni `Everywhere` Serialise) => Serialise (Some (ValueOf un
 
     decode =
         decodeKindedUniSerialize @uni >>= \(SomeTypeIn (Kinded uni)) ->
+            -- See Note [Decoding universes].
             case checkStar uni of
                 Nothing   -> fail "A non-star type can't have a value to decode"
                 Just Refl -> Some . ValueOf uni <$> bring (Proxy @Serialise) uni decode

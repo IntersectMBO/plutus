@@ -139,13 +139,13 @@ type ClosedTermG = TermG Z Z
 -- * Converting types
 
 -- |Convert generated builtin types to Plutus builtin types.
-convertTypeBuiltin :: TypeBuiltinG -> Type tyname DefaultUni ()
-convertTypeBuiltin TyByteStringG = TyBuiltin () $ SomeTypeIn DefaultUniByteString
-convertTypeBuiltin TyIntegerG    = TyBuiltin () $ SomeTypeIn DefaultUniInteger
-convertTypeBuiltin TyBoolG       = TyBuiltin () $ SomeTypeIn DefaultUniBool
-convertTypeBuiltin TyUnitG       = TyBuiltin () $ SomeTypeIn DefaultUniUnit
-convertTypeBuiltin TyCharG       = TyBuiltin () $ SomeTypeIn DefaultUniChar
-convertTypeBuiltin TyListG       = TyBuiltin () $ SomeTypeIn DefaultUniProtoList
+convertTypeBuiltin :: TypeBuiltinG -> SomeTypeIn DefaultUni
+convertTypeBuiltin TyByteStringG = SomeTypeIn DefaultUniByteString
+convertTypeBuiltin TyIntegerG    = SomeTypeIn DefaultUniInteger
+convertTypeBuiltin TyBoolG       = SomeTypeIn DefaultUniBool
+convertTypeBuiltin TyUnitG       = SomeTypeIn DefaultUniUnit
+convertTypeBuiltin TyCharG       = SomeTypeIn DefaultUniChar
+convertTypeBuiltin TyListG       = SomeTypeIn DefaultUniProtoList
 
 -- Calling it 'TypeStringG' rather than @TyStringG@ to emphasize that it creates a 'TypeG' rather
 -- than a 'TyBuiltinG'.
@@ -180,7 +180,7 @@ convertType tns (Type _) (TyForallG k ty) = do
   tns' <- extTyNameState tns
   TyForall () (tynameOf tns' FZ) k <$> convertType tns' (Type ()) ty
 convertType _ _ (TyBuiltinG tyBuiltin) =
-  pure $ convertTypeBuiltin tyBuiltin
+  pure $ TyBuiltin () (convertTypeBuiltin tyBuiltin)
 convertType tns (KindArrow _ k1 k2) (TyLamG ty) = do
   tns' <- extTyNameState tns
   TyLam () (tynameOf tns' FZ) k1 <$> convertType tns' k2 ty

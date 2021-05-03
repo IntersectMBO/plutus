@@ -3,4 +3,3 @@ module PlutusCore.Universe
     ) where
 
 import           Universe.Core as Export
-import           Universe.Poly as Export
