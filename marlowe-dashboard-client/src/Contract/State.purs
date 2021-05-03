@@ -10,7 +10,7 @@ module Contract.State
   ) where
 
 import Prelude
-import Capability.Marlowe (class ManageMarlowe, marloweApplyTransactionInput)
+import Capability.Marlowe (class ManageMarlowe, applyTransactionInput)
 import Capability.Toast (class Toast, addToast)
 import Contract.Lenses (_executionState, _marloweParams, _namedActions, _previousSteps, _selectedStep, _tab)
 import Contract.Types (Action(..), PreviousStep, PreviousStepState(..), State, Tab(..), scrollContainerRef)
@@ -180,7 +180,7 @@ handleAction walletDetails (ConfirmAction namedAction) = do
   handleAction walletDetails (MoveToStep stepNumber)
   addToast $ successToast "Payment received, step completed."
 
---ajaxApplyInputs <- marloweApplyTransactionInput walletDetails marloweParams txInput
+--ajaxApplyInputs <- applyTransactionInput walletDetails marloweParams txInput
 --case ajaxApplyInputs of
 --  Left ajaxError -> addToast $ ajaxErrorToast "Failed to submit transaction." ajaxError
 --  Right _ -> do

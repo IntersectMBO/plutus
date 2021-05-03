@@ -7,7 +7,7 @@ module Play.State
 import Prelude
 import Capability.Contract (class ManageContract)
 import Capability.MainFrameLoop (class MainFrameLoop, callMainFrameAction)
-import Capability.Marlowe (class ManageMarlowe, marloweCreateContract, marloweLookupWalletInfo)
+import Capability.Marlowe (class ManageMarlowe, createContract, lookupWalletInfo)
 import Capability.Toast (class Toast, addToast)
 import Capability.Wallet (class ManageWallet)
 import Contract.Lenses (_selectedStep)
@@ -100,7 +100,7 @@ handleAction (SetNewWalletCompanionAppIdString companionAppIdString) = do
   for_ (parsePlutusAppId companionAppIdString) \companionAppId -> do
     assign _newWalletInfo Loading
     -- .. lookup wallet info
-    ajaxWalletInfo <- marloweLookupWalletInfo companionAppId
+    ajaxWalletInfo <- lookupWalletInfo companionAppId
     assign _newWalletInfo $ fromEither ajaxWalletInfo
 
 handleAction (SaveNewWallet mTokenName) = do
@@ -184,7 +184,7 @@ handleAction (TemplateAction templateAction) = case templateAction of
         roleWallets <- use (_templateState <<< _roleWallets)
         let
           roles = mapMaybe (\walletNickname -> view (_walletInfo <<< _pubKeyHash) <$> lookup walletNickname walletLibrary) roleWallets
-        ajaxCreateContract <- marloweCreateContract walletDetails roles contract
+        ajaxCreateContract <- createContract walletDetails roles contract
         case ajaxCreateContract of
           -- TODO: make this error message more informative
           Left ajaxError -> addToast $ ajaxErrorToast "Failed to initialise contract." ajaxError

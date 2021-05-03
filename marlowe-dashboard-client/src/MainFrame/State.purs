@@ -2,9 +2,8 @@ module MainFrame.State (mkMainFrame, handleAction) where
 
 import Prelude
 import Bridge (toFront)
-import Capability.Marlowe (class ManageMarlowe, marloweFollowContract, marloweLookupWalletDetails, marloweGetFollowerApps, marloweGetRoleContracts)
+import Capability.Marlowe (class ManageMarlowe, followContract, lookupWalletDetails, getFollowerApps, getRoleContracts, subscribeToPlutusApp, subscribeToWallet, unsubscribeFromPlutusApp, unsubscribeFromWallet)
 import Capability.Toast (class Toast, addToast)
-import Capability.Websocket (class MonadWebsocket, subscribeToPlutusApp, subscribeToWallet, unsubscribeFromPlutusApp, unsubscribeFromWallet)
 import Contract.Lenses (_marloweParams)
 import Contract.State (mkInitialState, updateState) as Contract
 import ContractHome.State (dummyContracts)
@@ -55,7 +54,6 @@ mkMainFrame ::
   MonadAff m =>
   MonadAsk Env m =>
   ManageMarlowe m =>
-  MonadWebsocket m =>
   Toast m =>
   Component HTML Query Action Msg m
 mkMainFrame =
@@ -84,7 +82,6 @@ handleQuery ::
   MonadAff m =>
   MonadAsk Env m =>
   ManageMarlowe m =>
-  MonadWebsocket m =>
   Toast m =>
   Query a -> HalogenM State Action ChildSlots Msg m (Maybe a)
 handleQuery (ReceiveWebSocketMessage msg next) = do
@@ -160,7 +157,6 @@ handleAction ::
   MonadAff m =>
   MonadAsk Env m =>
   ManageMarlowe m =>
-  MonadWebsocket m =>
   Toast m =>
   Action ->
   HalogenM State Action ChildSlots Msg m Unit
@@ -175,7 +171,7 @@ handleAction Init = do
   mWalletDetailsJson <- liftEffect $ getItem walletDetailsLocalStorageKey
   for_ mWalletDetailsJson \json ->
     for_ (runExcept $ decodeJSON json) \walletDetails -> do
-      ajaxWalletDetails <- marloweLookupWalletDetails $ view _companionAppId walletDetails
+      ajaxWalletDetails <- lookupWalletDetails $ view _companionAppId walletDetails
       case ajaxWalletDetails of
         Left ajaxError -> handleAction $ PickupAction $ Pickup.OpenCard Pickup.LocalWalletMissingCard
         Right _ -> handleAction $ PickupAction $ Pickup.SetPickupWalletString $ view _walletNickname walletDetails
@@ -191,7 +187,7 @@ handleAction (EnterPickupState walletLibrary walletDetails followerApps) = do
   liftEffect $ removeItem walletDetailsLocalStorageKey
 
 handleAction (EnterPlayState walletLibrary walletDetails) = do
-  ajaxFollowerApps <- marloweGetFollowerApps walletDetails
+  ajaxFollowerApps <- getFollowerApps walletDetails
   slot <- liftEffect currentSlot
   case ajaxFollowerApps of
     Left decodedAjaxError -> addToast $ decodedAjaxErrorToast "Failed to load wallet details." decodedAjaxError
@@ -210,7 +206,7 @@ handleAction (EnterPlayState walletLibrary walletDetails) = do
       liftEffect $ setItem walletDetailsLocalStorageKey $ encodeJSON walletDetails
       -- we now have all the running contracts for this wallet, but if new role tokens have been given to the
       -- wallet since we last picked it up, we have to create FollowerApps for those contracts here
-      ajaxRoleContracts <- marloweGetRoleContracts walletDetails
+      ajaxRoleContracts <- getRoleContracts walletDetails
       case ajaxRoleContracts of
         Left decodedAjaxError -> addToast $ decodedAjaxErrorToast "Failed to load wallet details." decodedAjaxError
         Right companionState -> updateRunningContracts companionState
@@ -228,7 +224,6 @@ updateRunningContracts ::
   MonadAsk Env m =>
   ManageMarlowe m =>
   Toast m =>
-  MonadWebsocket m =>
   Map MarloweParams MarloweData ->
   HalogenM State Action ChildSlots Msg m Unit
 updateRunningContracts companionState = do
@@ -244,7 +239,7 @@ updateRunningContracts companionState = do
       walletDetails = playState ^. _walletDetails
     void
       $ for newMarloweParams \marloweParams -> do
-          ajaxFollowerContract <- marloweFollowContract walletDetails marloweParams
+          ajaxFollowerContract <- followContract walletDetails marloweParams
           case ajaxFollowerContract of
             Left decodedAjaxError -> addToast $ decodedAjaxErrorToast "Failed to load new contract." decodedAjaxError
             Right (contractInstanceId /\ history) -> do

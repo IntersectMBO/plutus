@@ -6,7 +6,7 @@ module Pickup.State
 
 import Prelude
 import Capability.MainFrameLoop (class MainFrameLoop, callMainFrameAction)
-import Capability.Marlowe (class ManageMarlowe, marloweCreateWallet, marloweLookupWalletDetails)
+import Capability.Marlowe (class ManageMarlowe, createWallet, lookupWalletDetails)
 import Capability.Toast (class Toast, addToast)
 import Control.Monad.Reader (class MonadAsk)
 import Data.Either (Either(..))
@@ -62,7 +62,7 @@ handleAction (OpenCard card) = assign _card $ Just card
 handleAction CloseCard = assign _card Nothing
 
 handleAction GenerateWallet = do
-  ajaxWallet <- marloweCreateWallet
+  ajaxWallet <- createWallet
   case ajaxWallet of
     Left ajaxError -> addToast $ ajaxErrorToast "Failed to generate wallet." ajaxError
     Right walletDetails -> do
@@ -85,7 +85,7 @@ handleAction (SetPickupWalletString string) = do
       -- then check whether the string is a valid UUID
       Nothing -> case parsePlutusAppId string of
         Just contractInstanceId -> do
-          ajaxWalletDetails <- marloweLookupWalletDetails contractInstanceId
+          ajaxWalletDetails <- lookupWalletDetails contractInstanceId
           case ajaxWalletDetails of
             Left ajaxError -> pure unit -- TODO: show negative feedback to the user
             Right walletDetails -> do
