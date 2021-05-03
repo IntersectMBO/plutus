@@ -242,16 +242,17 @@ updateRunningContracts companionState = do
           ajaxFollowerContract <- followContract walletDetails marloweParams
           case ajaxFollowerContract of
             Left decodedAjaxError -> addToast $ decodedAjaxErrorToast "Failed to load new contract." decodedAjaxError
-            Right (contractInstanceId /\ history) -> do
+            Right (plutusAppId /\ history) -> do
               let
                 currentSlot = view _currentSlot playState
 
-                mContractState = Contract.mkInitialState walletDetails currentSlot contractInstanceId history
+                mContractState = Contract.mkInitialState walletDetails currentSlot plutusAppId history
               case mContractState of
                 Just contractState -> do
-                  modifying (_playState <<< _allContracts) $ insert contractInstanceId contractState
+                  subscribeToPlutusApp plutusAppId
+                  modifying (_playState <<< _allContracts) $ insert plutusAppId contractState
+                  handleAction $ PlayAction $ Play.ContractHomeAction $ ContractHome.OpenContract plutusAppId
                   addToast $ successToast "You have been given a role in a new contract."
-                  handleAction $ PlayAction $ Play.ContractHomeAction $ ContractHome.OpenContract contractInstanceId
                 Nothing -> addToast $ errorToast "Could not determine contract type." $ Just "You have been given a role in a new contract, but we could not determine the type of the contract and therefore cannot display it. This should not happen. Please contact support."
 
 ------------------------------------------------------------
