@@ -348,3 +348,55 @@ resource "aws_route53_record" "plutus_playground_alb" {
     evaluate_target_health = true
   }
 }
+
+
+#
+# Production: marlowe-finance.io forwarding
+#
+
+resource "aws_alb_listener_rule" "marlowe-finance-marlowe-web" {
+  listener_arn = aws_alb_listener.playground.arn
+  action {
+    type             = "forward"
+    target_group_arn = aws_alb_target_group.marlowe_web.id
+  }
+
+  condition {
+    host_header {
+      values = ["marlowe-finance.io"]
+    }
+  }
+}
+
+resource "aws_alb_listener_rule" "marlowe-finance-marlowe-dash" {
+  depends_on   = [aws_alb_target_group.marlowe_dash]
+  listener_arn = aws_alb_listener.playground.arn
+
+  action {
+    type             = "forward"
+    target_group_arn = aws_alb_target_group.marlowe_dash.id
+  }
+
+  condition {
+    host_header {
+      values = ["run.marlowe-finance.io"]
+    }
+  }
+}
+
+resource "aws_alb_listener_rule" "marlowe-finance-marlowe-playground" {
+  depends_on   = [aws_alb_target_group.marlowe_playground]
+  listener_arn = aws_alb_listener.playground.arn
+
+  action {
+    type             = "forward"
+    target_group_arn = aws_alb_target_group.marlowe_playground.id
+  }
+
+  condition {
+    host_header {
+      values = ["play.marlowe-finance.io"]
+    }
+  }
+}
+
