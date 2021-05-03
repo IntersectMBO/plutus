@@ -1,7 +1,7 @@
 module ContractHome.View where
 
 import Prelude hiding (div)
-import Contract.Lenses (_contractInstanceId, _executionState, _metadata)
+import Contract.Lenses (_followerAppId, _executionState, _metadata)
 import Contract.State (currentStep, isContractClosed)
 import Contract.Types (State) as Contract
 import ContractHome.Lenses (_status)
@@ -97,7 +97,7 @@ contractCard currentSlot contractState =
 
     mNextTimeout = contractState ^. (_executionState <<< _mNextTimeout)
 
-    contractInstanceId = contractState ^. _contractInstanceId
+    contractInstanceId = contractState ^. _followerAppId
 
     timeoutStr =
       maybe'

@@ -1,7 +1,6 @@
 module WalletData.Lenses
   ( _walletNickname
-  , _marloweContractId
-  , _companionContractId
+  , _companionAppId
   , _walletInfo
   , _assets
   , _wallet
@@ -14,18 +13,15 @@ import Data.Lens (Lens')
 import Data.Lens.Iso.Newtype (_Newtype)
 import Data.Lens.Record (prop)
 import Data.Symbol (SProxy(..))
-import Marlowe.PAB (ContractInstanceId)
+import Marlowe.PAB (PlutusAppId)
 import Marlowe.Semantics (Assets, PubKey)
 import WalletData.Types (PubKeyHash, Wallet, WalletDetails, WalletInfo, WalletNickname)
 
 _walletNickname :: Lens' WalletDetails WalletNickname
 _walletNickname = prop (SProxy :: SProxy "walletNickname")
 
-_marloweContractId :: Lens' WalletDetails ContractInstanceId
-_marloweContractId = prop (SProxy :: SProxy "marloweContractId")
-
-_companionContractId :: Lens' WalletDetails ContractInstanceId
-_companionContractId = prop (SProxy :: SProxy "companionContractId")
+_companionAppId :: Lens' WalletDetails PlutusAppId
+_companionAppId = prop (SProxy :: SProxy "companionAppId")
 
 _walletInfo :: Lens' WalletDetails WalletInfo
 _walletInfo = prop (SProxy :: SProxy "walletInfo")

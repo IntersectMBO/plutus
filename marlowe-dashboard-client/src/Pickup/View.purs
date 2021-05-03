@@ -16,7 +16,7 @@ import Material.Icons (Icon(..), icon, icon_)
 import Pickup.Lenses (_card, _pickingUp, _pickupWalletString, _walletDetails, _walletLibrary)
 import Pickup.Types (Action(..), Card(..), State)
 import Prim.TypeError (class Warn, Text)
-import WalletData.Lenses (_companionContractId, _walletNickname)
+import WalletData.Lenses (_companionAppId, _walletNickname)
 import WalletData.Validation (walletNicknameError)
 import WalletData.View (nicknamesDataList)
 
@@ -63,7 +63,7 @@ pickupNewWalletCard state =
 
     walletNickname = view _walletNickname walletDetails
 
-    contractInstanceId = view _companionContractId walletDetails
+    contractInstanceId = view _companionAppId walletDetails
 
     mWalletNicknameError = walletNicknameError walletNickname walletLibrary
   in
@@ -136,7 +136,7 @@ pickupWalletCard state =
 
     walletNickname = view _walletNickname walletDetails
 
-    companionContractId = view _companionContractId walletDetails
+    companionContractId = view _companionAppId walletDetails
   in
     [ a
         [ classNames [ "absolute", "top-4", "right-4" ]

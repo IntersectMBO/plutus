@@ -1,5 +1,6 @@
 module API.Contract
   ( activateContract
+  , deactivateContract
   , getContractInstanceClientState
   , invokeEndpoint
   , getWalletContractInstances

@@ -26,10 +26,10 @@ import Pickup.Lenses (_card, _pickupWalletString, _walletDetails, _walletLibrary
 import Pickup.Types (Action(..), Card(..), State)
 import StaticData (walletLibraryLocalStorageKey, walletDetailsLocalStorageKey)
 import Toast.Types (ajaxErrorToast)
-import WalletData.Lenses (_companionContractId, _walletNickname)
+import WalletData.Lenses (_companionAppId, _walletNickname)
 import WalletData.State (defaultWalletDetails)
 import WalletData.Types (WalletLibrary)
-import WalletData.Validation (parseContractInstanceId)
+import WalletData.Validation (parsePlutusAppId)
 import Web.HTML (window)
 import Web.HTML.Location (reload)
 import Web.HTML.Window (location)
@@ -78,12 +78,12 @@ handleAction (SetPickupWalletString string) = do
       assign _walletDetails walletDetails
       handleAction $ OpenCard PickupWalletCard
     -- then check for a matching ID in the wallet library
-    Nothing -> case findMin $ filter (\walletDetails -> UUID.toString (unwrap (view _companionContractId walletDetails)) == string) walletLibrary of
+    Nothing -> case findMin $ filter (\walletDetails -> UUID.toString (unwrap (view _companionAppId walletDetails)) == string) walletLibrary of
       Just { key, value } -> do
         assign _walletDetails value
         handleAction $ OpenCard PickupWalletCard
       -- then check whether the string is a valid UUID
-      Nothing -> case parseContractInstanceId string of
+      Nothing -> case parsePlutusAppId string of
         Just contractInstanceId -> do
           ajaxWalletDetails <- marloweLookupWalletDetails contractInstanceId
           case ajaxWalletDetails of

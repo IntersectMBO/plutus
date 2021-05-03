@@ -27,7 +27,6 @@ import Data.Lens.Traversal (traversed)
 import Data.Map (Map, insert, lookup, mapMaybe)
 import Data.Maybe (Maybe(..))
 import Data.Time.Duration (Minutes(..))
-import Data.UUID (emptyUUID)
 import Effect.Aff.Class (class MonadAff)
 import Env (Env)
 import Foreign.Generic (encodeJSON)
@@ -36,10 +35,10 @@ import Halogen.Extra (mapMaybeSubmodule, mapSubmodule)
 import LocalStorage (setItem)
 import MainFrame.Types (Action(..)) as MainFrame
 import MainFrame.Types (ChildSlots, Msg)
-import Marlowe.PAB (ContractInstanceId(..), History)
+import Marlowe.PAB (PlutusAppId, History)
 import Marlowe.Semantics (Slot(..))
 import Network.RemoteData (RemoteData(..), fromEither)
-import Play.Lenses (_allContracts, _cards, _contractsState, _currentSlot, _menuOpen, _newWalletContractIdString, _newWalletInfo, _newWalletNickname, _screen, _selectedContract, _templateState, _walletDetails, _walletLibrary)
+import Play.Lenses (_allContracts, _cards, _contractsState, _currentSlot, _menuOpen, _newWalletCompanionAppIdString, _newWalletInfo, _newWalletNickname, _screen, _selectedContract, _templateState, _walletDetails, _walletLibrary)
 import Play.Types (Action(..), Card(..), Screen(..), State)
 import StaticData (walletLibraryLocalStorageKey)
 import Template.Lenses (_extendedContract, _roleWallets, _template, _templateContent)
@@ -50,7 +49,7 @@ import Toast.Types (ajaxErrorToast, errorToast, successToast)
 import WalletData.Lenses (_pubKeyHash, _walletInfo)
 import WalletData.State (defaultWalletDetails)
 import WalletData.Types (WalletDetails, WalletLibrary)
-import WalletData.Validation (parseContractInstanceId)
+import WalletData.Validation (parsePlutusAppId)
 
 -- see note [dummyState] in MainFrame.State
 dummyState :: State
@@ -59,7 +58,7 @@ dummyState = mkInitialState mempty defaultWalletDetails mempty (Slot zero) (Minu
 -- We initialise the play state using the locally determined currentSlot, but subsequently
 -- it will be updated through the websocket to the PAB's currentSlot. The two should always
 -- be in sync (if they go out of sync, a toast warning is displayed).
-mkInitialState :: WalletLibrary -> WalletDetails -> Map ContractInstanceId History -> Slot -> Minutes -> State
+mkInitialState :: WalletLibrary -> WalletDetails -> Map PlutusAppId History -> Slot -> Minutes -> State
 mkInitialState walletLibrary walletDetails contracts currentSlot timezoneOffset =
   { walletLibrary
   , walletDetails
@@ -67,7 +66,7 @@ mkInitialState walletLibrary walletDetails contracts currentSlot timezoneOffset 
   , screen: ContractsScreen
   , cards: mempty
   , newWalletNickname: mempty
-  , newWalletContractIdString: mempty
+  , newWalletCompanionAppIdString: mempty
   , newWalletInfo: NotAsked
   , currentSlot
   , timezoneOffset
@@ -93,39 +92,44 @@ handleAction PutdownWallet = do
 
 handleAction (SetNewWalletNickname walletNickname) = assign _newWalletNickname walletNickname
 
-handleAction (SetNewWalletContractIdString contractIdString) = do
+handleAction (SetNewWalletCompanionAppIdString companionAppIdString) = do
   modify_
-    $ set _newWalletContractIdString contractIdString
+    $ set _newWalletCompanionAppIdString companionAppIdString
     <<< set _newWalletInfo NotAsked
   -- if this is a valid contract ID ...
-  for_ (parseContractInstanceId contractIdString) \contractInstanceId -> do
+  for_ (parsePlutusAppId companionAppIdString) \companionAppId -> do
     assign _newWalletInfo Loading
     -- .. lookup wallet info
-    ajaxWalletInfo <- marloweLookupWalletInfo contractInstanceId
+    ajaxWalletInfo <- marloweLookupWalletInfo companionAppId
     assign _newWalletInfo $ fromEither ajaxWalletInfo
 
 handleAction (SaveNewWallet mTokenName) = do
   oldWalletLibrary <- use _walletLibrary
   newWalletNickname <- use _newWalletNickname
-  newWalletContractIdString <- use _newWalletContractIdString
+  newWalletCompanionAppIdString <- use _newWalletCompanionAppIdString
   newWalletInfo <- use _newWalletInfo
-  for_ newWalletInfo \walletInfo -> do
-    handleAction CloseCard
-    let
-      walletDetails =
-        { walletNickname: newWalletNickname
-        , marloweContractId: ContractInstanceId emptyUUID
-        , companionContractId: ContractInstanceId emptyUUID -- WRONG
-        , walletInfo: walletInfo
-        , assets: mempty
-        }
-    modify_
-      $ over _walletLibrary (insert newWalletNickname walletDetails)
-      <<< set _newWalletNickname mempty
-      <<< set _newWalletContractIdString mempty
-      <<< set _newWalletInfo NotAsked
-    newWalletLibrary <- use _walletLibrary
-    liftEffect $ setItem walletLibraryLocalStorageKey $ encodeJSON newWalletLibrary
+  let
+    newWalletCompanionAppId = parsePlutusAppId newWalletCompanionAppIdString
+  case newWalletInfo, newWalletCompanionAppId of
+    Success walletInfo, Just companionAppId -> do
+      handleAction CloseCard
+      let
+        walletDetails =
+          { walletNickname: newWalletNickname
+          , companionAppId
+          , walletInfo
+          , assets: mempty
+          }
+      modify_
+        $ over _walletLibrary (insert newWalletNickname walletDetails)
+        <<< set _newWalletNickname mempty
+        <<< set _newWalletCompanionAppIdString mempty
+        <<< set _newWalletInfo NotAsked
+      newWalletLibrary <- use _walletLibrary
+      liftEffect $ setItem walletLibraryLocalStorageKey $ encodeJSON newWalletLibrary
+    -- TODO: show error feedback to the user (just to be safe - but this should never happen, because
+    -- the button to save a new wallet should be disabled in this case)
+    _, _ -> pure unit
 
 handleAction ToggleMenu = modifying _menuOpen not
 

@@ -43,7 +43,7 @@ import Marlowe.Deinstantiate (findTemplate)
 import Marlowe.HasParties (getParties)
 import Marlowe.Execution (ExecutionState, NamedAction(..), PreviousState, _currentContract, _currentState, _pendingTimeouts, _previousState, _previousTransactions, expandBalances, extractNamedActions, initExecution, isClosed, mkTx, nextState, timeoutState)
 import Marlowe.Extended.Metadata (emptyContractMetadata)
-import Marlowe.PAB (ContractInstanceId(..), History, MarloweParams)
+import Marlowe.PAB (PlutusAppId(..), History, MarloweParams)
 import Marlowe.Semantics (Contract(..), Input(..), Party(..), Slot, SlotInterval(..), Token(..), TransactionInput(..))
 import Marlowe.Semantics as Semantic
 import Marlowe.Slot (currentSlot)
@@ -66,7 +66,7 @@ dummyState =
   , executionState: initExecution zero contract
   , previousSteps: mempty
   , marloweParams: emptyMarloweParams
-  , contractInstanceId: emptyContractInstanceId
+  , followerAppId: emptyPlutusAppId
   , selectedStep: 0
   , metadata: emptyContractMetadata
   , participants: mempty
@@ -76,7 +76,7 @@ dummyState =
   where
   contract = Close
 
-  emptyContractInstanceId = ContractInstanceId UUID.emptyUUID
+  emptyPlutusAppId = PlutusAppId UUID.emptyUUID
 
   emptyMarloweParams = { rolePayoutValidatorHash: mempty, rolesCurrency: CurrencySymbol { unCurrencySymbol: "" } }
 
@@ -84,8 +84,8 @@ dummyState =
 
   emptyMarloweState = Semantic.State { accounts: mempty, choices: mempty, boundValues: mempty, minSlot: zero }
 
-mkInitialState :: WalletDetails -> Slot -> ContractInstanceId -> History -> Maybe State
-mkInitialState walletDetails currentSlot contractInstanceId history =
+mkInitialState :: WalletDetails -> Slot -> PlutusAppId -> History -> Maybe State
+mkInitialState walletDetails currentSlot followerAppId history =
   let
     marloweParams = get1 $ unwrap history
 
@@ -113,7 +113,7 @@ mkInitialState walletDetails currentSlot contractInstanceId history =
           , executionState: initialExecutionState
           , previousSteps: mempty
           , marloweParams
-          , contractInstanceId
+          , followerAppId
           , selectedStep: 0
           , metadata: template.metaData
           , participants: Map.fromFoldable $ map (\x -> x /\ Nothing) parties
