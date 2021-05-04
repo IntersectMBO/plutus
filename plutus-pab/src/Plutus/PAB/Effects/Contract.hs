@@ -118,8 +118,10 @@ updateContract i def state request =
 
 -- | Storing and retrieving the state of a contract instance
 data ContractStore t r where
+    StartInstance :: ContractActivationArgs (ContractDef t) -> ContractInstanceId -> ContractStore t ()
     PutState :: ContractActivationArgs (ContractDef t) -> ContractInstanceId -> State t -> ContractStore t ()
     GetState :: ContractInstanceId -> ContractStore t (State t)
+    StopInstance :: ContractInstanceId -> ContractStore t ()
     ActiveContracts :: ContractStore t (Map ContractInstanceId (ContractActivationArgs (ContractDef t)))
 
 -- | Store the state of the contract instance
