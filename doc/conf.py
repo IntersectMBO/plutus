@@ -50,8 +50,17 @@ extensions = [
     'sphinx_markdown_tables',
     'sphinxemoji.sphinxemoji',
     "sphinx.ext.intersphinx",
+    'sphinxcontrib.plantuml',
+    'sphinxcontrib.bibtex',
     'hs_domain',
 ]
+
+bibtex_bibfiles = ['bibliography.bib']
+bibtex_default_style = 'plain'
+
+# Amazingly, RTD actually provide plantuml
+if on_rtd:
+    plantuml = 'java -Djava.awt.headless=true -jar /usr/share/plantuml/plantuml.jar'
 
 primary_domain = 'hs'
 
@@ -83,7 +92,7 @@ source_suffix = {
 exclude_patterns = [
     'haddock', # Otherwise it tries to pick up the README.md's in the Haddock doc!
     'README.md'
-] 
+]
 
 
 # -- Options for HTML output -------------------------------------------------

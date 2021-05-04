@@ -18,6 +18,8 @@ let
     sphinxcontrib-haddock.sphinxcontrib-domaintools
     sphinx-markdown-tables
     sphinxemoji
+    ps.sphinxcontrib_plantuml
+    ps.sphinxcontrib-bibtex
     ps.sphinx
     ps.sphinx_rtd_theme
     ps.recommonmark
