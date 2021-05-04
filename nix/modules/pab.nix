@@ -166,7 +166,7 @@ in
     };
 
     zeroSlotTime = mkOption {
-      type = types.string;
+      type = types.str;
       default = "2020-07-29T21:44:51Z"; # Wednesday, July 29, 2020 21:44:51 - shelley launch time
       description = ''
         Time of slot 0. Setting this (together with the slot length) enables pure datetime-to-slot mappings.
@@ -187,16 +187,32 @@ in
 
     environment.systemPackages = [ pabExec ];
 
-    systemd.services.pab-init = {
-      wantedBy = [ "multi-user.target" ];
-      serviceConfig = {
-        Type = "oneshot";
-        Restart = "no";
-        DynamicUser = true;
-        StateDirectory = [ "pab" ];
-        ExecStart = "${cfg.pab-package}/bin/plutus-pab --config=${pabYaml} migrate";
+    systemd.services.pab-init =
+      let
+        # Note: The db is dropped as a workaround for a problem with
+        # eventful which crashes PAB. Currently data persistence is not
+        # relevant, but the problem *will* occur again when the DB removal
+        # is removed unless the underlying problem is identified/fixed.
+        pab-init-cmd = pkgs.writeShellScript "pab-init-cmd" ''
+          set -eEuo pipefail
+
+          echo "[pab-init-cmd]: Dropping PAB database file '${cfg.dbFile}'"
+          rm -rf ${cfg.dbFile}
+
+          echo "[pab-init-cmd]: Creating new DB '${cfg.dbFile}'"
+          ${cfg.pab-package}/bin/plutus-pab --config=${pabYaml} migrate
+        '';
+      in
+      {
+        wantedBy = [ "multi-user.target" ];
+        serviceConfig = {
+          Type = "oneshot";
+          Restart = "no";
+          DynamicUser = true;
+          StateDirectory = [ "pab" ];
+          ExecStart = pab-init-cmd;
+        };
       };
-    };
 
     systemd.services.pab = {
       wantedBy = [ "multi-user.target" ];

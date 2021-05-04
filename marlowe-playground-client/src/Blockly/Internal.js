@@ -17,6 +17,13 @@ exports.getElementById_ = function (id) {
 };
 
 exports.createWorkspace_ = function (blockly, workspaceDiv, config) {
+
+  /* Disable disabling blocks */
+  blockly.ContextMenuRegistry.registry.unregister('blockDisable');
+
+  /* Disable comments */
+  blockly.ContextMenuRegistry.registry.unregister('blockComment');
+
   /* Register extensions */
   /* Silently clean if already registered */
   try { blockly.Extensions.register('timeout_validator', function () { }); } catch(err) { }

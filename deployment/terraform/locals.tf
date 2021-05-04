@@ -8,7 +8,9 @@ locals {
   marlowe_domain_name      = "${var.marlowe_full_domain != "" ? var.marlowe_full_domain : "${var.env}.${var.marlowe_tld}"}"
   plutus_domain_name       = "${var.plutus_full_domain != "" ? var.plutus_full_domain : "${var.env}.${var.plutus_tld}"}"
   marlowe_dash_domain_name = "${var.env}.${var.marlowe_dash_tld}"
+  marlowe_web_domain_name  = "${var.env}.${var.marlowe_web_tld}"
 
+  marlowe_web_port        = 8181
   plutus_playground_port  = 8080
   marlowe_playground_port = 9080
   pab_port                = 9080
@@ -27,7 +29,7 @@ locals {
   bastion_ssh_keys_ks = {
     alpha      = ["pablo", "tobias", "ci-deployer"]
     pablo      = ["pablo"]
-    prod       = ["tobias"]
+    production = ["tobias", "ci-deployer"]
     playground = ["tobias"]
     testing    = ["pablo", "tobias", "bozhidar", "dimitar"]
     hernan     = ["hernan"]
@@ -39,8 +41,7 @@ locals {
   root_ssh_keys_ks = {
     alpha      = ["pablo", "tobias", "ci-deployer"]
     pablo      = ["pablo"]
-    prod       = []
-    playground = []
+    production = ["tobias", "ci-deployer"]
     testing    = ["pablo", "tobias", "bozhidar", "dimitar"]
     hernan     = ["hernan"]
     tobias     = ["tobias", "ci-deployer"]

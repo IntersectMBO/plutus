@@ -125,7 +125,7 @@ library
         transformers-base -any,
         monad-control -any,
         mmorph -any,
-        row-types < 1.0,
+        row-types >= 1.0.1.0,
         freer-simple -any,
         prettyprinter >=1.1.0.1,
         semigroups -any,

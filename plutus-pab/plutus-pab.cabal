@@ -257,6 +257,7 @@ executable plutus-uniswap
         base >=4.9 && <5,
         aeson -any,
         containers -any,
+        freer-extras -any,
         freer-simple -any,
         plutus-contract -any,
         plutus-ledger -any,
@@ -359,7 +360,8 @@ test-suite plutus-pab-test
         text -any,
         transformers -any,
         prettyprinter -any,
-        row-types -any
+        row-types -any,
+        plutus-tx -any
 
 executable prism-credential-manager
     import: lang

@@ -1,5 +1,6 @@
 {-# LANGUAGE DataKinds           #-}
 {-# LANGUAGE FlexibleContexts    #-}
+{-# LANGUAGE LambdaCase          #-}
 {-# LANGUAGE MonoLocalBinds      #-}
 {-# LANGUAGE NamedFieldPuns      #-}
 {-# LANGUAGE OverloadedStrings   #-}
@@ -9,6 +10,8 @@
 
 module Plutus.PAB.CoreSpec
     ( tests
+    , stopContractInstanceTest
+    , walletFundsChangeTest
     ) where
 
 import           Control.Lens                             ((&), (+~))
@@ -19,12 +22,14 @@ import           Control.Monad.Freer.Extras.Log           (LogMsg)
 import qualified Control.Monad.Freer.Extras.Log           as EmulatorLog
 import           Control.Monad.Freer.Extras.State         (use)
 import           Control.Monad.Freer.State                (State)
+import           Control.Monad.IO.Class                   (MonadIO (..))
 import qualified Data.Aeson                               as JSON
-import           Data.Foldable                            (fold)
+import           Data.Foldable                            (fold, traverse_)
 
 import qualified Data.Aeson.Types                         as JSON
 import           Data.Either                              (isRight)
 import qualified Data.Map                                 as Map
+import qualified Data.Monoid                              as M
 import           Data.Proxy                               (Proxy (..))
 import           Data.Semigroup                           (Last (..))
 import qualified Data.Set                                 as Set
@@ -33,25 +38,33 @@ import qualified Data.Text                                as Text
 import           Data.Text.Extras                         (tshow)
 import           Ledger                                   (pubKeyAddress)
 import           Ledger.Ada                               (adaSymbol, adaToken, lovelaceValueOf)
+import qualified Ledger.Ada                               as Ada
+import qualified Ledger.AddressMap                        as AM
 import           Ledger.Value                             (valueOf)
 import           Plutus.Contracts.Currency                (OneShotCurrency, SimpleMPS (..))
 import qualified Plutus.Contracts.GameStateMachine        as Contracts.GameStateMachine
-import           Plutus.PAB.Core
+import           Plutus.Contracts.PingPong                (PingPongState (..))
+import           Plutus.PAB.Core                          as Core
 import           Plutus.PAB.Core.ContractInstance         (ContractInstanceMsg)
+import           Plutus.PAB.Core.ContractInstance.STM     (BlockchainEnv (..))
 import           Plutus.PAB.Db.Eventful.Command           ()
 import qualified Plutus.PAB.Db.Eventful.Query             as Query
 import           Plutus.PAB.Effects.Contract              (ContractEffect, serialisableState)
 import           Plutus.PAB.Effects.Contract.Builtin      (Builtin)
+import qualified Plutus.PAB.Effects.Contract.Builtin      as Builtin
 import           Plutus.PAB.Effects.Contract.ContractTest (TestContracts (..))
 import           Plutus.PAB.Effects.EventLog              (EventLogEffect)
 import           Plutus.PAB.Events.ContractInstanceState  (PartiallyDecodedResponse (..))
 import           Plutus.PAB.Simulator                     (Simulation, TxCounts (..))
 import qualified Plutus.PAB.Simulator                     as Simulator
 import           Plutus.PAB.Types                         (PABError (..), chainOverviewBlockchain, mkChainOverview)
+import qualified Plutus.PAB.Webserver.WebSocket           as WS
+import           PlutusTx.Monoid                          (Group (inv))
 import           Test.QuickCheck.Instances.UUID           ()
-import           Test.Tasty                               (TestTree, testGroup)
+import           Test.Tasty                               (TestTree, defaultMain, testGroup)
 import           Test.Tasty.HUnit                         (testCase)
 import           Wallet.API                               (WalletAPIError, ownPubKey)
+import qualified Wallet.API                               as WAPI
 import qualified Wallet.Emulator.Chain                    as Chain
 import           Wallet.Emulator.Wallet                   (Wallet (..))
 import           Wallet.Rollup                            (doAnnotateBlockchain)
@@ -94,7 +107,67 @@ executionTests =
         [ guessingGameTest
         , currencyTest
         , rpcTest
+        , testCase "wait for update" waitForUpdateTest
+        , testCase "stop contract instance" stopContractInstanceTest
+        , testCase "can subscribe to slot updates" slotChangeTest
+        , testCase "can subscribe to wallet funds changes" walletFundsChangeTest
         ]
+
+waitForUpdateTest :: IO ()
+waitForUpdateTest =
+    runScenario $ do
+        let is :: PingPongState -> JSON.Value -> Maybe PingPongState
+            is st vl = do
+                case JSON.parseEither JSON.parseJSON vl of
+                    Right (M.Last (Just st')) | st == st' -> Just st'
+                    _                                     -> Nothing
+        p1 <- Simulator.activateContract defaultWallet PingPong
+        p2 <- Simulator.activateContract defaultWallet PingPong
+        void $ Simulator.callEndpointOnInstance p1 "initialise" ()
+        Simulator.waitNSlots 5
+        void $ Simulator.callEndpointOnInstance p1 "wait" ()
+        void $ Simulator.callEndpointOnInstance p2 "pong" ()
+        _ <- Simulator.waitForState (is Ponged) p1
+        void $ Simulator.callEndpointOnInstance p1 "wait" ()
+        void $ Simulator.callEndpointOnInstance p2 "ping" ()
+        _ <- Simulator.waitForState (is Pinged) p1
+        pure ()
+
+stopContractInstanceTest :: IO ()
+stopContractInstanceTest = do
+    runScenario $ do
+        p1 <- Simulator.activateContract defaultWallet PingPong
+        _ <- Simulator.stopInstance p1
+        _ <- Simulator.waitUntilFinished p1
+        st <- Simulator.instanceActivity p1
+        assertEqual "Instance should be 'Stopped'" st Simulator.Stopped
+
+slotChangeTest :: IO ()
+slotChangeTest = runScenario $ do
+    env <- Core.askBlockchainEnv @(Builtin TestContracts) @(Simulator.SimulatorState (Builtin TestContracts))
+    let stream = WS.slotChange env
+    ns <- liftIO (WS.readN 5 stream)
+    assertEqual "Should wait for five slots" 5 (length ns)
+
+walletFundsChangeTest :: IO ()
+walletFundsChangeTest = runScenario $ do
+    let payment = lovelaceValueOf 50
+        fee     = lovelaceValueOf 10 -- TODO: Calculate the fee from the tx
+
+    env <- Core.askBlockchainEnv @(Builtin TestContracts) @(Simulator.SimulatorState (Builtin TestContracts))
+    let stream = WS.walletFundsChange defaultWallet env
+    (initialValue, next) <- liftIO (WS.readOne stream)
+    (wllt, pk) <- Simulator.addWallet
+    _ <- Simulator.handleAgentThread defaultWallet $ WAPI.payToPublicKey WAPI.defaultSlotRange payment pk
+    nextStream <- case next of { Nothing -> throwError (OtherError "no next value"); Just a -> pure a; }
+    (finalValue, _) <- liftIO (WS.readOne nextStream)
+    let difference = initialValue <> inv finalValue
+    assertEqual "defaultWallet should make a payment" difference (payment <> fee)
+
+    -- Check that the funds are correctly registerd in the newly created wallet
+    let stream2 = WS.walletFundsChange wllt env
+    vl2 <- liftIO (WS.readN 1 stream2) >>= \case { [newVal] -> pure newVal; _ -> throwError (OtherError "newVal not found")}
+    assertEqual "generated wallet should receive a payment" payment vl2
 
 currencyTest :: TestTree
 currencyTest =
@@ -153,14 +226,15 @@ guessingGameTest =
               assertTxCounts
                   "Activating the game does not generate transactions."
                   initialTxCounts
-              _ <- Simulator.waitNSlots 2
+              _ <- Simulator.waitNSlots 5
               lock
                   instanceId
                   Contracts.GameStateMachine.LockArgs
                       { Contracts.GameStateMachine.lockArgsValue = lovelaceValueOf lockAmount
                       , Contracts.GameStateMachine.lockArgsSecret = "password"
                       }
-              _ <- Simulator.waitNSlots 2
+              _ <- Simulator.waitNSlots 5
+
               assertTxCounts
                   "Locking the game state machine should produce two transactions"
                   (initialTxCounts & Simulator.txValidated +~ 2)
@@ -175,13 +249,13 @@ guessingGameTest =
                       , Contracts.GameStateMachine.guessArgsValueTakenOut = lovelaceValueOf lockAmount
                       }
 
-              _ <- Simulator.waitNSlots 2
+              _ <- Simulator.waitNSlots 5
               assertTxCounts
                 "A wrong guess does not produce a valid transaction on the chain."
                 (initialTxCounts & Simulator.txValidated +~ 2)
               game2Id <- Simulator.activateContract defaultWallet GameStateMachine
 
-              _ <- Simulator.waitNSlots 2
+              _ <- Simulator.waitNSlots 5
               guess
                   game2Id
                   Contracts.GameStateMachine.GuessArgs
@@ -190,7 +264,7 @@ guessingGameTest =
                       , Contracts.GameStateMachine.guessArgsValueTakenOut = lovelaceValueOf lockAmount
                       }
 
-              _ <- Simulator.waitNSlots 2
+              _ <- Simulator.waitNSlots 5
               assertTxCounts
                 "A correct guess creates a third transaction."
                 (initialTxCounts & Simulator.txValidated +~ 3)

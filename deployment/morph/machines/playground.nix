@@ -8,7 +8,7 @@
   ];
 
   networking = {
-    firewall.allowedTCPPorts = [ 22 80 8080 9080 ];
+    firewall.allowedTCPPorts = [ 22 80 8080 8181 9080 ];
   };
 
   services.marlowe-playground = {
@@ -59,6 +59,17 @@
         marlowe-playground.servers."127.0.0.1:4001" = { };
       };
       virtualHosts = {
+        "marlowe-web" = {
+          listen = [{ addr = "0.0.0.0"; port = 8181; }];
+          locations = {
+            "/" = {
+              root = "${pkgs.marlowe-web}";
+              extraConfig = ''
+                ${staticFileCacheControl}
+              '';
+            };
+          };
+        };
         "plutus-playground" = {
           listen = [{ addr = "0.0.0.0"; port = 8080; }];
           locations = {

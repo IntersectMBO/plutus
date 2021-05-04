@@ -10,7 +10,6 @@ module Plutus.PAB.Core.ContractInstance.STM(
     , emptyBlockchainEnv
     , awaitSlot
     , awaitEndpointResponse
-    , waitForAddressChange
     , waitForTxConfirmed
     , valueAt
     , currentSlot
@@ -40,13 +39,14 @@ module Plutus.PAB.Core.ContractInstance.STM(
     , obervableContractState
     , instanceState
     , instanceIDs
+    , runningInstances
     ) where
 
 import           Control.Applicative                      (Alternative (..))
 import           Control.Concurrent.STM                   (STM, TMVar, TVar)
 import qualified Control.Concurrent.STM                   as STM
 import           Control.Lens                             (view)
-import           Control.Monad                            (guard, void)
+import           Control.Monad                            (guard)
 import           Data.Aeson                               (Value)
 import           Data.Foldable                            (fold)
 import           Data.Map                                 (Map)
@@ -56,15 +56,12 @@ import qualified Data.Set                                 as Set
 import           Ledger                                   (Address, Slot, TxId, txOutTxOut, txOutValue)
 import           Ledger.AddressMap                        (AddressMap)
 import qualified Ledger.AddressMap                        as AM
-import           Ledger.Interval
 import qualified Ledger.Value                             as Value
 import           Plutus.Contract.Effects.AwaitTxConfirmed (TxConfirmed (..))
 import           Plutus.Contract.Effects.ExposeEndpoint   (ActiveEndpoint (..), EndpointValue (..))
 import           Plutus.Contract.Resumable                (IterationID, Request (..), RequestID)
 import           Wallet.Emulator.ChainIndex.Index         (ChainIndex)
-import qualified Wallet.Emulator.ChainIndex.Index         as Index
-import           Wallet.Types                             (AddressChangeRequest (..), AddressChangeResponse (..),
-                                                           ContractInstanceId, EndpointDescription,
+import           Wallet.Types                             (ContractInstanceId, EndpointDescription,
                                                            NotificationError (..))
 
 {- Note [Contract instance thread model]
@@ -193,7 +190,9 @@ awaitEndpointResponse Request{rqID, itID} InstanceState{issEndpoints} = do
 -- | Whether the contract instance is still waiting for an event.
 data Activity =
         Active
+        | Stopped -- ^ Instance was stopped before all requests were handled
         | Done (Maybe Value) -- ^ Instance finished, possibly with an error
+        deriving (Eq, Show)
 
 -- | The state of an active contract instance.
 data InstanceState =
@@ -203,6 +202,7 @@ data InstanceState =
         , issTransactions    :: TVar (Set TxId) -- ^ Transactions whose status the contract is interested in
         , issStatus          :: TVar Activity -- ^ Whether the instance is still running.
         , issObservableState :: TVar (Maybe Value) -- ^ Serialised observable state of the contract instance (if available)
+        , issStop            :: TMVar () -- ^ Stop the instance if a value is written into the TMVar.
         }
 
 -- | An 'InstanceState' value with empty fields
@@ -214,6 +214,7 @@ emptyInstanceState =
         <*> STM.newTVar mempty
         <*> STM.newTVar Active
         <*> STM.newTVar Nothing
+        <*> STM.newEmptyTMVar
 
 -- | Add an address to the set of addresses that the instance is watching
 addAddress :: Address -> InstanceState -> STM ()
@@ -325,8 +326,9 @@ finalResult instanceId m = do
     InstanceState{issStatus} <- instanceState instanceId m
     v <- STM.readTVar issStatus
     case v of
-        Done r -> pure r
-        _      -> empty
+        Done r  -> pure r
+        Stopped -> pure Nothing
+        _       -> empty
 
 -- | Insert an 'InstanceState' value into the 'InstancesState'
 insertInstance :: ContractInstanceId -> InstanceState -> InstancesState -> STM ()
@@ -346,21 +348,6 @@ watchedTransactions (InstancesState m) = do
     allSets <- traverse (STM.readTVar . issTransactions) (snd <$> Map.toList mp)
     pure $ fold allSets
 
--- | Respond to an 'AddressChangeRequest' for a future slot.
-waitForAddressChange :: AddressChangeRequest -> BlockchainEnv -> STM AddressChangeResponse
-waitForAddressChange AddressChangeRequest{acreqSlotRange, acreqAddress} b@BlockchainEnv{beTxIndex} = do
-    case acreqSlotRange of
-        Interval _ (UpperBound (Finite s2) True)  -> void $ awaitSlot (succ s2) b
-        Interval _ (UpperBound (Finite s2) False) -> void $ awaitSlot s2 b
-        _                                         -> pure ()
-    idx <- STM.readTVar beTxIndex
-    pure
-        AddressChangeResponse
-        { acrAddress = acreqAddress
-        , acrSlotRange    = acreqSlotRange
-        , acrTxns    = Index.ciTx <$> Index.transactionsAt idx acreqSlotRange acreqAddress
-        }
-
 -- | Wait for the status of a transaction to be confirmed. TODO: Should be "status changed", some txns may never get to confirmed status
 waitForTxConfirmed :: TxId -> BlockchainEnv -> STM TxConfirmed
 waitForTxConfirmed tx BlockchainEnv{beTxChanges} = do
@@ -378,3 +365,15 @@ valueAt addr BlockchainEnv{beAddressMap} = do
 -- | The current slot number
 currentSlot :: BlockchainEnv -> STM Slot
 currentSlot BlockchainEnv{beCurrentSlot} = STM.readTVar beCurrentSlot
+
+-- | The IDs of contract instances that are currently running
+runningInstances :: InstancesState -> STM (Set ContractInstanceId)
+runningInstances (InstancesState m) = do
+    let flt :: InstanceState -> STM (Maybe InstanceState)
+        flt s@InstanceState{issStatus} = do
+            status <- STM.readTVar issStatus
+            case status of
+                Active -> pure (Just s)
+                _      -> pure Nothing
+    mp <- STM.readTVar m
+    Map.keysSet . Map.mapMaybe id <$> traverse flt mp

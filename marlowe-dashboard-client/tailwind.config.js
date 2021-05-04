@@ -1,7 +1,11 @@
 "use strict";
 
 module.exports = {
-  purge: [],
+  purge: [
+    "src/**/*.purs",
+    "web-common/**/*.purs",
+    "web-common-marlowe/**/*.purs"
+  ],
   darkMode: false, // or 'media' or 'class'
   theme: {
     colors: {

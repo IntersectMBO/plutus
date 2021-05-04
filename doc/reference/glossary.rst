@@ -12,6 +12,9 @@ Glossary
       stipulates the conditions for unlocking the output. This can be a
       public key hash, or (in the Extended UTXO model) a script hash.
 
+    Cardano
+      The blockchain system upon which the Plutus Platform is built.
+
     contract application
       An application written against the contract application API, which
       runs in the PAB.
@@ -50,21 +53,9 @@ Glossary
     Extended UTXO Model
       The ledger model which the Plutus Platform relies on.
 
-      This is implemented in the Goguen release of the Cardano blockchain.
-      Notable differences from traditional UTXO ledgers are:
+      This is implemented in the Alonzo hard fork of the Cardano blockchain.
 
-      1. UTXOs carry an additional data output, called the datum
-
-      2. Validators get to see a representation of the transaction being
-          validated, called the context
-
-      3. The validator script is provided with:
-
-          a. The datum on the spent output
-
-          b. The redeemer provided by the input
-
-          c. The context representing the transaction being validated
+      See :ref:`what_is_a_ledger`.
 
     forging
       A transaction which forges tokens creates new tokens, providing that
@@ -79,6 +70,13 @@ Glossary
     forging policy script
       A script which must be satisfied in order for a transaction to forge
       tokens of the corresponding currency.
+
+    Hydra
+      A Layer 2 scalability solution for Cardano. See :cite:t:`chakravarty2020hydra`.
+
+    distributed ledger
+    ledger
+      See :ref:`what_is_a_ledger`.
 
     Marlowe
       A domain-specific language for writing financial contract
@@ -130,6 +128,8 @@ Glossary
       Plutus Core is not read or written by humans, it is a compilation
       target for other languages.
 
+      See :ref:`what_is_plutus_foundation`.
+
     Plutus IR
       An intermediate language that compiles to Plutus Core. Plutus IR is
       not used by users, but rather as a compilation target on the way to
@@ -141,11 +141,11 @@ Glossary
       The combined software support for writing contract applications,
       including:
 
-      1. The Plutus Application Backend
+      1. Plutus Foundation, and
 
-      2. The Plutus SDK
+      2. The Plutus Application Framework
 
-      3. The support for Plutus scripts on the Cardano chain
+      See :ref:`what_is_the_plutus_platform`.
 
     Plutus SDK
       The libraries and development tooling for writing contract

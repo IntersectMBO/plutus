@@ -18,6 +18,7 @@ to one PAB, with its own view of the world, all acting on the same blockchain.
 -}
 module Plutus.PAB.Simulator(
     Simulation
+    , SimulatorState
     , runSimulation
     -- * Run with user-defined contracts
     , SimulatorContractHandler
@@ -27,6 +28,7 @@ module Plutus.PAB.Simulator(
     , mkSimulatorHandlers
     , addWallet
     -- * Simulator actions
+    -- ** Logging
     , logString
     , logPretty
     -- ** Agent actions
@@ -34,6 +36,9 @@ module Plutus.PAB.Simulator(
     , activateContract
     , callEndpointOnInstance
     , handleAgentThread
+    , Activity(..)
+    , stopInstance
+    , instanceActivity
     -- ** Control actions
     , makeBlock
     -- * Querying the state
@@ -42,6 +47,7 @@ module Plutus.PAB.Simulator(
     , waitForState
     , activeEndpoints
     , waitForEndpoint
+    , waitForTxConfirmed
     , currentSlot
     , waitUntilSlot
     , waitNSlots
@@ -83,7 +89,6 @@ import           Data.Default                                   (Default (..))
 import           Data.Foldable                                  (fold, traverse_)
 import           Data.Map                                       (Map)
 import qualified Data.Map                                       as Map
-import           Data.Semigroup                                 (Max (..))
 import           Data.Set                                       (Set)
 import           Data.Text                                      (Text)
 import qualified Data.Text                                      as Text
@@ -95,10 +100,12 @@ import           Ledger                                         (Address (..), T
 import           Ledger.Crypto                                  (PubKey, toPublicKey)
 import qualified Ledger.Index                                   as UtxoIndex
 import           Ledger.Value                                   (Value, flattenValue)
+import           Plutus.Contract.Effects.AwaitTxConfirmed       (TxConfirmed)
 import           Plutus.PAB.Core                                (EffectHandlers (..))
 import qualified Plutus.PAB.Core                                as Core
 import qualified Plutus.PAB.Core.ContractInstance.BlockchainEnv as BlockchainEnv
-import           Plutus.PAB.Core.ContractInstance.STM           (BlockchainEnv, InstancesState, OpenEndpoint)
+import           Plutus.PAB.Core.ContractInstance.STM           (Activity (..), BlockchainEnv, InstancesState,
+                                                                 OpenEndpoint)
 import qualified Plutus.PAB.Core.ContractInstance.STM           as Instances
 import           Plutus.PAB.Effects.Contract                    (ContractStore)
 import qualified Plutus.PAB.Effects.Contract                    as Contract
@@ -328,7 +335,7 @@ activateContract = Core.activateContract
 
 -- | Call a named endpoint on a contract instance
 callEndpointOnInstance :: forall a t. (JSON.ToJSON a) => ContractInstanceId -> String -> a -> Simulation t (Maybe NotificationError)
-callEndpointOnInstance = Core.callEndpointOnInstance
+callEndpointOnInstance = Core.callEndpointOnInstance'
 
 -- | Log some output to the console
 logString :: forall t effs. Member (LogMsg (PABMultiAgentMsg t)) effs => String -> Eff effs ()
@@ -391,6 +398,10 @@ finalResult = Core.finalResult
 --   the error (if any)
 waitUntilFinished :: forall t. ContractInstanceId -> Simulation t (Maybe JSON.Value)
 waitUntilFinished = Core.waitUntilFinished
+
+-- | Wait until the transaction has been confirmed on the blockchain.
+waitForTxConfirmed :: forall t. TxId -> Simulation t TxConfirmed
+waitForTxConfirmed = Core.waitForTxConfirmed
 
 -- | Wait until the endpoint becomes active.
 waitForEndpoint :: forall t. ContractInstanceId -> String -> Simulation t ()
@@ -695,6 +706,14 @@ handleAgentThread ::
     -> Simulation t a
 handleAgentThread = Core.handleAgentThread
 
+-- | Stop the instance.
+stopInstance :: forall t. ContractInstanceId -> Simulation t ()
+stopInstance = Core.stopInstance
+
+-- | The 'Activity' state of the instance
+instanceActivity :: forall t. ContractInstanceId -> Simulation t Activity
+instanceActivity = Core.instanceActivity
+
 -- | Create a new wallet with a random key and add it to the list of simulated wallets
 addWallet :: forall t. Simulation t (Wallet, PubKey)
 addWallet = do
@@ -702,8 +721,7 @@ addWallet = do
     (_, privateKey) <- MockWallet.newKeyPair
     liftIO $ STM.atomically $ do
         currentWallets <- STM.readTVar _agentStates
-        let newWalletId = maybe 0 (succ . getMax) $ foldMap (Just . Max . getWallet) $ Map.keysSet currentWallets
-            newWallet = Wallet newWalletId
+        let newWallet = MockWallet.privKeyWallet privateKey
             newWallets = currentWallets & at newWallet .~ Just (AgentState (Wallet.emptyWalletStateFromPrivateKey privateKey) mempty)
         STM.writeTVar _agentStates newWallets
         pure (newWallet, toPublicKey privateKey)

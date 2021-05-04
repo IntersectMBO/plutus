@@ -29,6 +29,7 @@ module Plutus.PAB.Core.ContractInstance(
     , callEndpointOnInstance
     ) where
 
+import           Control.Applicative                              (Alternative (..))
 import           Control.Arrow                                    ((>>>))
 import           Control.Concurrent                               (forkIO)
 import           Control.Concurrent.STM                           (STM)
@@ -58,7 +59,7 @@ import           Wallet.Effects                                   (ChainIndexEff
 import           Wallet.Emulator.LogMessages                      (TxBalanceMsg)
 
 import           Plutus.Contract                                  (AddressChangeRequest (..))
-import           Plutus.PAB.Core.ContractInstance.STM             (Activity (Done), BlockchainEnv (..),
+import           Plutus.PAB.Core.ContractInstance.STM             (Activity (Done, Stopped), BlockchainEnv (..),
                                                                    InstanceState (..), InstancesState,
                                                                    callEndpointOnInstance, emptyInstanceState)
 import qualified Plutus.PAB.Core.ContractInstance.STM             as InstanceState
@@ -105,7 +106,7 @@ processAwaitSlotRequestsSTM ::
     => RequestHandler effs ContractPABRequest (STM ContractResponse)
 processAwaitSlotRequestsSTM =
     maybeToHandler (fmap unWaitingForSlot . extract Events.Contract._AwaitSlotRequest)
-    >>> (RequestHandler $ \targetSlot -> fmap AwaitSlotResponse . InstanceState.awaitSlot targetSlot <$> ask)
+    >>> (RequestHandler $ \targetSlot_ -> fmap AwaitSlotResponse . InstanceState.awaitSlot targetSlot_ <$> ask)
 
 processTxConfirmedRequestsSTM ::
     forall effs.
@@ -151,9 +152,9 @@ stmRequestHandler = fmap sequence (wrapHandler (fmap pure nonBlockingRequests) <
         <> processUtxoAtRequests @effs
         <> processWriteTxRequests @effs
         <> processTxConfirmedRequests @effs
-        <> processAddressChangedAtRequests @effs
         <> processInstanceRequests @effs
         <> processNotificationEffects @effs
+        <> processAddressChangedAtRequests @effs
 
     -- requests that wait for changes to happen
     blockingRequests =
@@ -214,6 +215,7 @@ stmInstanceLoop ::
     -> Eff effs ()
 stmInstanceLoop def instanceId = do
     (currentState :: Contract.State t) <- Contract.getState @t instanceId
+    InstanceState{issStop} <- ask
     let resp = serialisableState (Proxy @t) currentState
     updateState resp
     case Contract.requests @t currentState of
@@ -222,10 +224,16 @@ stmInstanceLoop def instanceId = do
             ask >>= liftIO . STM.atomically . InstanceState.setActivity (Done err)
         _ -> do
             response <- respondToRequestsSTM @t instanceId currentState
-            event <- liftIO $ STM.atomically response
-            (newState :: Contract.State t) <- Contract.updateContract @t instanceId (caID def) currentState event
-            Contract.putState @t def instanceId newState
-            stmInstanceLoop @t def instanceId
+            let rsp' = Right <$> response
+                stop = Left <$> STM.takeTMVar issStop
+            event <- liftIO $ STM.atomically (stop <|> rsp')
+            case event of
+                Left () -> do
+                    ask >>= liftIO . STM.atomically . InstanceState.setActivity Stopped
+                Right event' -> do
+                    (newState :: Contract.State t) <- Contract.updateContract @t instanceId (caID def) currentState event'
+                    Contract.putState @t def instanceId newState
+                    stmInstanceLoop @t def instanceId
 
 -- | Update the TVars in the 'InstanceState' with data from the list
 --   of requests.

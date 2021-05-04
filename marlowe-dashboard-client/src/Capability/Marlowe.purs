@@ -1,77 +1,219 @@
 module Capability.Marlowe
-  ( class ManageMarloweContract
-  , marloweCreateWalletCompanionContract
-  , marloweGetWalletCompanionContractObservableState
-  , marloweCreateContract
-  , marloweApplyInputs
-  , marloweWait
-  , marloweAuto
-  , marloweRedeem
+  ( class ManageMarlowe
+  , createWallet
+  , followContract
+  , createContract
+  , invokeEndpoint
+  , applyTransactionInput
+  , redeem
+  , lookupWalletInfo
+  , lookupWalletDetails
+  , getRoleContracts
+  , getFollowerApps
+  , subscribeToWallet
+  , unsubscribeFromWallet
+  , subscribeToPlutusApp
+  , unsubscribeFromPlutusApp
   ) where
 
 import Prelude
+import API.Lenses (_cicContract, _cicCurrentState, _cicDefinition, _cicWallet, _observableState)
+import Affjax (defaultRequest)
 import AppM (AppM)
-import Bridge (toBack)
-import Capability.Contract (class ManageContract, activateContract, getContractInstanceObservableState, invokeEndpoint)
-import Capability.ContractExe (marloweContractExe, walletCompanionContractExe)
-import Contract.Types (MarloweParams, MarloweData)
-import Control.Monad.Except (lift, runExcept)
+import Bridge (toBack, toFront)
+import Capability.Contract (class ManageContract)
+import Capability.Contract (activateContract, deactivateContract, getContractInstanceClientState, getContractInstanceObservableState, getWalletContractInstances, invokeEndpoint) as Contract
+import Capability.Wallet (class ManageWallet)
+import Capability.Wallet (createWallet, getWalletInfo, getWalletTotalFunds) as Wallet
+import Capability.Websocket (class ManageWebsocket)
+import Capability.Websocket (subscribeToContract, subscribeToWallet, unsubscribeFromContract, unsubscribeFromWallet) as Websocket
+import Control.Monad.Except (ExceptT(..), except, lift, mapExceptT, runExcept, runExceptT, withExceptT)
+import Data.Array (filter)
+import Data.Bifunctor (lmap)
 import Data.Either (Either(..))
-import Data.Map (Map)
+import Data.Lens (view)
+import Data.Map (Map, fromFoldable)
+import Data.Maybe (Maybe(..))
 import Data.Newtype (unwrap)
+import Data.Traversable (traverse)
 import Data.Tuple (Tuple)
 import Data.Tuple.Nested ((/\))
-import Foreign.Generic (decodeJSON)
+import Foreign (MultipleErrors)
+import Foreign.Generic (class Encode, decodeJSON)
 import Halogen (HalogenM)
-import Marlowe.Semantics (Contract, Input, Party, Slot, TokenName)
-import Plutus.PAB.Webserver.Types (ContractActivationArgs(..))
+import MainFrame.Types (Msg)
+import Marlowe.PAB (PlutusAppId, PlutusApp(..), History, MarloweData, MarloweParams, plutusAppPath, plutusAppType)
+import Marlowe.Semantics (Contract, TokenName, TransactionInput(..))
+import Plutus.PAB.Effects.Contract.ContractExe (ContractExe)
+import Plutus.PAB.Webserver.Types (ContractInstanceClientState)
 import Plutus.V1.Ledger.Crypto (PubKeyHash) as Back
 import Plutus.V1.Ledger.Value (TokenName) as Back
 import PlutusTx.AssocMap (Map) as Back
-import Types (AjaxResponse, DecodedAjaxResponse, ContractInstanceId)
-import WalletData.Types (PubKeyHash, Wallet)
+import Servant.PureScript.Ajax (AjaxError(..), ErrorDescription(..))
+import Types (AjaxResponse, DecodedAjaxResponse)
+import WalletData.Lenses (_companionAppId, _pubKeyHash, _wallet, _walletInfo)
+import WalletData.Types (PubKeyHash, Wallet, WalletDetails, WalletInfo)
 
--- The `ManageMarloweContract` class provides a window on the `ManageContract` class with function
--- calls specific to the Marlowe Plutus contract.
+-- The `ManageMarlowe` class provides a window on the `ManageContract`, `ManageWallet`, and
+-- `ManageWebsocket` capabilities with functions specific to Marlowe.
+-- TODO (possibly): make `AppM` a `MonadError` and remove all the `runExceptT`s
 class
-  ManageContract m <= ManageMarloweContract m where
-  marloweCreateWalletCompanionContract :: Wallet -> m (AjaxResponse ContractInstanceId)
-  marloweGetWalletCompanionContractObservableState :: ContractInstanceId -> m (DecodedAjaxResponse (Array (Tuple MarloweParams MarloweData)))
-  marloweCreateContract :: Wallet -> Map TokenName PubKeyHash -> Contract -> m (AjaxResponse ContractInstanceId)
-  marloweApplyInputs :: ContractInstanceId -> MarloweParams -> Array Input -> m (AjaxResponse Unit)
-  marloweWait :: ContractInstanceId -> MarloweParams -> m (AjaxResponse Unit)
-  marloweAuto :: ContractInstanceId -> MarloweParams -> Party -> Slot -> m (AjaxResponse Unit)
-  marloweRedeem :: ContractInstanceId -> MarloweParams -> TokenName -> PubKeyHash -> m (AjaxResponse Unit)
+  (ManageContract m, ManageWallet m, ManageWebsocket m) <= ManageMarlowe m where
+  createWallet :: m (AjaxResponse WalletDetails)
+  followContract :: WalletDetails -> MarloweParams -> m (DecodedAjaxResponse (Tuple PlutusAppId History))
+  invokeEndpoint :: forall d. Encode d => WalletDetails -> String -> d -> m (AjaxResponse Unit)
+  createContract :: WalletDetails -> Map TokenName PubKeyHash -> Contract -> m (AjaxResponse Unit)
+  applyTransactionInput :: WalletDetails -> MarloweParams -> TransactionInput -> m (AjaxResponse Unit)
+  redeem :: WalletDetails -> MarloweParams -> TokenName -> m (AjaxResponse Unit)
+  lookupWalletInfo :: PlutusAppId -> m (AjaxResponse WalletInfo)
+  lookupWalletDetails :: PlutusAppId -> m (AjaxResponse WalletDetails)
+  getRoleContracts :: WalletDetails -> m (DecodedAjaxResponse (Map MarloweParams MarloweData))
+  getFollowerApps :: WalletDetails -> m (DecodedAjaxResponse (Map PlutusAppId History))
+  subscribeToWallet :: Wallet -> m Unit
+  unsubscribeFromWallet :: Wallet -> m Unit
+  subscribeToPlutusApp :: PlutusAppId -> m Unit
+  unsubscribeFromPlutusApp :: PlutusAppId -> m Unit
 
-instance monadMarloweAppM :: ManageMarloweContract AppM where
-  marloweCreateWalletCompanionContract wallet = activateContract $ ContractActivationArgs { caID: walletCompanionContractExe, caWallet: toBack wallet }
-  marloweGetWalletCompanionContractObservableState contractInstanceId = do
-    ajaxObservableState <- getContractInstanceObservableState contractInstanceId
-    case ajaxObservableState of
-      Left ajaxError -> pure $ Left $ Left ajaxError
-      Right rawJson -> case runExcept $ decodeJSON $ unwrap rawJson of
-        Left decodingError -> pure $ Left $ Right decodingError
-        Right observableState -> pure $ Right observableState
-  marloweCreateContract wallet roles contract = do
-    webContractInstanceId <- activateContract $ ContractActivationArgs { caID: marloweContractExe, caWallet: toBack wallet }
-    case webContractInstanceId of
-      Left _ -> pure webContractInstanceId
-      Right contractInstanceId -> do
+instance monadMarloweAppM :: ManageMarlowe AppM where
+  -- create a Wallet and a WalletCompanionApp, and return the WalletDetails
+  createWallet = do
+    ajaxWalletInfo <- Wallet.createWallet
+    case ajaxWalletInfo of
+      Left ajaxError -> pure $ Left ajaxError
+      Right walletInfo -> do
         let
-          bRoles :: Back.Map Back.TokenName Back.PubKeyHash
-          bRoles = toBack roles
-        _ <- invokeEndpoint contractInstanceId "create" (bRoles /\ contract)
-        pure webContractInstanceId
-  marloweApplyInputs contractInstanceId params inputs = invokeEndpoint contractInstanceId "apply-inputs" (params /\ inputs)
-  marloweWait contractInstanceId params = invokeEndpoint contractInstanceId "wait" params
-  marloweAuto contractInstanceId params party slot = invokeEndpoint contractInstanceId "auto" (params /\ party /\ slot)
-  marloweRedeem contractInstanceId params tokenName pubKey = invokeEndpoint contractInstanceId "redeem" (params /\ tokenName /\ pubKey)
+          wallet = view _wallet walletInfo
+        ajaxCompanionAppId <- Contract.activateContract (plutusAppPath WalletCompanionApp) wallet
+        ajaxAssets <- Wallet.getWalletTotalFunds wallet
+        let
+          createWalletDetails companionAppId assets =
+            { walletNickname: ""
+            , companionAppId
+            , walletInfo
+            , assets
+            }
+        pure $ createWalletDetails <$> ajaxCompanionAppId <*> ajaxAssets
+  -- create a WalletFollowerApp to follow a Marlowe contract on the blockchain, and return its instance ID and initial state
+  followContract walletDetails marloweParams = do
+    runExceptT do
+      let
+        wallet = view (_walletInfo <<< _wallet) walletDetails
+      followAppId <- withExceptT Left $ ExceptT $ Contract.activateContract (plutusAppPath WalletFollowerApp) wallet
+      void $ withExceptT Left $ ExceptT $ Contract.invokeEndpoint followAppId "follow" marloweParams
+      observableStateJson <- withExceptT Left $ ExceptT $ Contract.getContractInstanceObservableState followAppId
+      observableState <- mapExceptT (pure <<< lmap Right <<< unwrap) $ decodeJSON $ unwrap observableStateJson
+      pure $ followAppId /\ observableState
+  -- create a MarloweApp, invoke one of its endpoints, and then immediately deactivate it
+  -- Note: We have no need to keep MarloweApp instances around, so it is simpler to just activate one whenever
+  -- we need to. Also this avoids the problem of having to check whether the endpoint is available - MarloweApps
+  -- that have been used before may become unusable if there is any error.
+  invokeEndpoint walletDetails endpoint payload =
+    runExceptT do
+      let
+        wallet = view (_walletInfo <<< _wallet) walletDetails
+      contractInstanceId <- ExceptT $ Contract.activateContract (plutusAppPath MarloweApp) wallet
+      result <- ExceptT $ Contract.invokeEndpoint contractInstanceId endpoint payload
+      void $ ExceptT $ Contract.deactivateContract contractInstanceId
+      pure result
+  -- "create" a Marlowe contract on the blockchain
+  -- FIXME: if we want users to be able to follow contracts that they don't have roles in, we need this function
+  -- to return the MarloweParams of the created contract - but this isn't currently possible in the PAB
+  -- UPDATE to this FIXME: it is possible this won't be a problem, as it seems role tokens are first paid into
+  -- the wallet that created the contract, and distributed to other wallets from there - but this remains to be
+  -- seen when all the parts are working together as they should be...
+  createContract walletDetails roles contract =
+    let
+      bRoles :: Back.Map Back.TokenName Back.PubKeyHash
+      bRoles = toBack roles
+    in
+      invokeEndpoint walletDetails "create" (bRoles /\ contract)
+  -- "apply-inputs" to a Marlowe contract on the blockchain
+  applyTransactionInput walletDetails marloweParams (TransactionInput { interval, inputs }) = invokeEndpoint walletDetails "apply-inputs" (marloweParams /\ Just interval /\ inputs)
+  -- "redeem" payments from a Marlowe contract on the blockchain
+  redeem walletDetails marloweParams tokenName =
+    let
+      pubKeyHash = view (_walletInfo <<< _pubKeyHash) walletDetails
+    in
+      invokeEndpoint walletDetails "redeem" (marloweParams /\ tokenName /\ pubKeyHash)
+  -- get the WalletInfo of a wallet given the PlutusAppId of its WalletCompanionApp
+  lookupWalletInfo companionAppId =
+    runExceptT do
+      clientState <- ExceptT $ Contract.getContractInstanceClientState companionAppId
+      let
+        appPath = view _cicDefinition clientState
+      case plutusAppType appPath of
+        Just WalletCompanionApp -> do
+          let
+            wallet = toFront $ view _cicWallet clientState
+          ExceptT $ Wallet.getWalletInfo wallet
+        _ -> except $ Left $ AjaxError { request: defaultRequest, description: NotFound }
+  -- get the WalletDetails of a wallet given the PlutusAppId of its WalletCompanionApp
+  -- note: this returns an empty walletNickname (because these are only saved locally)
+  lookupWalletDetails companionAppId =
+    runExceptT do
+      clientState <- ExceptT $ Contract.getContractInstanceClientState companionAppId
+      let
+        appPath = view _cicDefinition clientState
+      case plutusAppType appPath of
+        Just WalletCompanionApp -> do
+          let
+            wallet = toFront $ view _cicWallet clientState
+          walletInfo <- ExceptT $ Wallet.getWalletInfo wallet
+          assets <- ExceptT $ Wallet.getWalletTotalFunds wallet
+          ExceptT $ pure
+            $ Right
+                { walletNickname: ""
+                , companionAppId
+                , walletInfo
+                , assets
+                }
+        _ -> except $ Left $ AjaxError { request: defaultRequest, description: NotFound }
+  -- get the observable state of a wallet's WalletCompanionApp
+  getRoleContracts walletDetails =
+    runExceptT do
+      let
+        companionAppId = view _companionAppId walletDetails
+      observableStateJson <- withExceptT Left $ ExceptT $ Contract.getContractInstanceObservableState companionAppId
+      mapExceptT (pure <<< lmap Right <<< unwrap) $ decodeJSON $ unwrap observableStateJson
+  -- get all WalletFollowerApps for a given wallet
+  getFollowerApps walletDetails =
+    runExceptT do
+      let
+        wallet = view (_walletInfo <<< _wallet) walletDetails
+      runningApps <- withExceptT Left $ ExceptT $ Contract.getWalletContractInstances wallet
+      let
+        followerApps = filter (\cic -> view _cicDefinition cic == plutusAppPath WalletFollowerApp) runningApps
+      case traverse decodeFollowerAppState followerApps of
+        Left decodingError -> except $ Left $ Right decodingError
+        Right decodedFollowerApps -> ExceptT $ pure $ Right $ fromFoldable decodedFollowerApps
+    where
+    decodeFollowerAppState :: ContractInstanceClientState ContractExe -> Either MultipleErrors (Tuple PlutusAppId History)
+    decodeFollowerAppState contractInstanceClientState =
+      let
+        plutusAppId = toFront $ view _cicContract contractInstanceClientState
 
-instance monadMarloweHalogenM :: ManageMarloweContract m => ManageMarloweContract (HalogenM state action slots msg m) where
-  marloweCreateWalletCompanionContract = lift <<< marloweCreateWalletCompanionContract
-  marloweGetWalletCompanionContractObservableState = lift <<< marloweGetWalletCompanionContractObservableState
-  marloweCreateContract wallet roles contract = lift $ marloweCreateContract wallet roles contract
-  marloweApplyInputs contractInstanceId params inputs = lift $ marloweApplyInputs contractInstanceId params inputs
-  marloweWait contractInstanceId params = lift $ marloweWait contractInstanceId params
-  marloweAuto contractInstanceId params party slot = lift $ marloweAuto contractInstanceId params party slot
-  marloweRedeem contractInstanceId params tokenName pubKeyHash = lift $ marloweRedeem contractInstanceId params tokenName pubKeyHash
+        rawJson = view (_cicCurrentState <<< _observableState) contractInstanceClientState
+      in
+        case runExcept $ decodeJSON $ unwrap rawJson of
+          Left decodingErrors -> Left decodingErrors
+          Right observableState -> Right (plutusAppId /\ observableState)
+  subscribeToPlutusApp = Websocket.subscribeToContract <<< toBack
+  subscribeToWallet = Websocket.subscribeToWallet <<< toBack
+  unsubscribeFromPlutusApp = Websocket.unsubscribeFromContract <<< toBack
+  unsubscribeFromWallet = Websocket.unsubscribeFromWallet <<< toBack
+
+instance monadMarloweHalogenM :: (ManageMarlowe m, ManageWebsocket m) => ManageMarlowe (HalogenM state action slots Msg m) where
+  createWallet = lift createWallet
+  followContract walletDetails marloweParams = lift $ followContract walletDetails marloweParams
+  createContract walletDetails roles contract = lift $ createContract walletDetails roles contract
+  invokeEndpoint walletDetails endpoint payload = lift $ invokeEndpoint walletDetails endpoint payload
+  applyTransactionInput walletDetails marloweParams transactionInput = lift $ applyTransactionInput walletDetails marloweParams transactionInput
+  redeem walletDetails marloweParams tokenName = lift $ redeem walletDetails marloweParams tokenName
+  lookupWalletInfo = lift <<< lookupWalletInfo
+  lookupWalletDetails = lift <<< lookupWalletDetails
+  getRoleContracts = lift <<< getRoleContracts
+  getFollowerApps = lift <<< getFollowerApps
+  subscribeToPlutusApp = Websocket.subscribeToContract <<< toBack
+  subscribeToWallet = Websocket.subscribeToWallet <<< toBack
+  unsubscribeFromPlutusApp = Websocket.unsubscribeFromContract <<< toBack
+  unsubscribeFromWallet = Websocket.unsubscribeFromWallet <<< toBack

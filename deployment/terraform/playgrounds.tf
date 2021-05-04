@@ -34,6 +34,13 @@ resource "aws_security_group" "playgrounds" {
     cidr_blocks = concat(var.public_subnet_cidrs, var.private_subnet_cidrs)
   }
 
+  ingress {
+    from_port   = local.marlowe_web_port
+    to_port     = local.marlowe_web_port
+    protocol    = "TCP"
+    cidr_blocks = concat(var.public_subnet_cidrs, var.private_subnet_cidrs)
+  }
+
   ## outgoing: all
   egress {
     from_port   = 0

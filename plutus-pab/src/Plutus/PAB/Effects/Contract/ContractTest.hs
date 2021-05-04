@@ -37,6 +37,7 @@ import           Plutus.Contract                             (BlockchainActions)
 import           Plutus.Contract.Effects.RPC                 (RPCClient)
 import qualified Plutus.Contracts.Currency                   as Contracts.Currency
 import qualified Plutus.Contracts.GameStateMachine           as Contracts.GameStateMachine
+import qualified Plutus.Contracts.PingPong                   as Contracts.PingPong
 import qualified Plutus.Contracts.RPC                        as Contracts.RPC
 import           Plutus.PAB.Effects.Contract                 (ContractEffect (..))
 import           Plutus.PAB.Effects.Contract.Builtin         (Builtin, SomeBuiltin (..))
@@ -47,7 +48,7 @@ import           Plutus.PAB.Monitoring.PABLogMsg             (PABMultiAgentMsg)
 import           Plutus.PAB.Types                            (PABError (..))
 import           Schema                                      (FormSchema)
 
-data TestContracts = GameStateMachine | Currency | AtomicSwap | PayToWallet | RPCClient | RPCServer
+data TestContracts = GameStateMachine | Currency | AtomicSwap | PayToWallet | RPCClient | RPCServer | PingPong
     deriving (Eq, Ord, Show, Generic)
     deriving anyclass (FromJSON, ToJSON)
 
@@ -71,6 +72,7 @@ getSchema = \case
     PayToWallet      -> Builtin.endpointsToSchemas @(Contracts.PayToWallet.PayToWalletSchema .\\ BlockchainActions)
     RPCClient        -> adderSchema
     RPCServer        -> adderSchema
+    PingPong         -> Builtin.endpointsToSchemas @(Contracts.PingPong.PingPongSchema .\\ BlockchainActions)
     where
         adderSchema = Builtin.endpointsToSchemas @(Contracts.RPC.AdderSchema .\\ (BlockchainActions .\/ RPCClient Contracts.RPC.Adder))
 
@@ -82,6 +84,7 @@ getContract = \case
     PayToWallet      -> SomeBuiltin payToWallet
     RPCClient        -> SomeBuiltin rpcClient
     RPCServer        -> SomeBuiltin rpcServer
+    PingPong         -> SomeBuiltin pingPong
     where
         game = Contracts.GameStateMachine.contract
         currency = Contracts.Currency.forgeCurrency
@@ -89,4 +92,4 @@ getContract = \case
         payToWallet = Contracts.PayToWallet.payToWallet
         rpcClient =  Contracts.RPC.callAdder
         rpcServer = Contracts.RPC.respondAdder
-
+        pingPong = Contracts.PingPong.combined
