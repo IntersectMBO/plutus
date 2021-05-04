@@ -224,6 +224,46 @@ and/or type classes is a way of solving the expression problem for indexed data 
 level, if you are into these things.
 -}
 
+{- Note [Pattern matching on built-in types]
+At the moment we really only support direct pattern matching on enumeration types: 'Void', 'Unit',
+'Bool' etc. This is because the denotation of a builtin cannot construct general terms (as opposed
+to constants), only juggle the ones that were provided as arguments without changing them.
+So e.g. if we wanted to add the following data type:
+
+    newtype AnInt = AnInt Int
+
+as a built-in type, we wouldn't be able to add the following function as its pattern matcher:
+
+    matchAnInt :: AnInt -> (Int -> r) -> r
+    matchAnInt (AnInt i) f = f i
+
+because currently we cannot express the @f i@ part using the builtins machinery as that would
+require applying an arbitrary Plutus Core function in the denotation of a builtin, which would
+allow us to return arbitrary terms from the builtin application machinery, which is something
+that we originally had, but decided to abandon due to performance concerns.
+
+But it's still possible to have @AnInt@ as a built-in type, it's just that instead of trying to
+make its pattern matcher into a builtin we can have the following builtin:
+
+    anIntToInt :: AnInt -> Int
+    anIntToInt (AnInt i) = i
+
+which fits perfectly well into the builtins machinery.
+
+Although that becomes annoying for more complex data types. For tuples we need to provide two
+projection functions ('fst' and 'snd') instead of a single pattern matcher, which is not too
+bad, but to get pattern matching on lists we need three built-in functions: `null`, `head` and
+`tail` and to require `Bool` to be in the universe to be able to define a PLC equivalent of
+
+    matchList :: [a] -> r -> (a -> [a] -> r) -> r
+    matchList xs z f = if null xs then z else f (head xs) (tail xs)
+
+On the bright side, this encoding of pattern matchers does work, so maybe it's indeed worth to
+prioritize performance over convenience, especially given the fact that performance is of a concern
+to every single end user while the inconvenience is only a concern for the compiler writers and
+we don't add complex built-in types too often.
+-}
+
 -- | Representation of a type variable: its name and unique and an implicit kind.
 data TyNameRep (kind :: GHC.Type) = TyNameRep Symbol Nat
 
@@ -236,8 +276,9 @@ data family TyAppRep (fun :: dom -> cod) (arg :: dom) :: cod
 -- | Representation of of an intrinsically-kinded universal quantifier: a bound name and a body.
 data family TyForallRep (var :: TyNameRep kind) (a :: GHC.Type) :: GHC.Type
 
--- See Note [Motivation for polymorphic built-in functions]
--- See Note [Implemetation of polymorphic built-in functions]
+-- See Note [Motivation for polymorphic built-in functions].
+-- See Note [Implemetation of polymorphic built-in functions].
+-- See Note [Pattern matching on built-in types].
 -- | The denotation of a term whose PLC type is encoded in @rep@ (for example a type variable or
 -- an application of a type variable). I.e. the denotation of such a term is the term itself.
 -- This is because we have parametricity in Haskell, so we can't inspect a value whose
@@ -298,29 +339,15 @@ unliftConstant term = case asConstant term of
                 throwingWithCause _UnliftingError err $ Just term
     Nothing -> throwingWithCause _UnliftingError "Not a constant" $ Just term
 
-{- Note [KnownType's defaults]
-We'd like to use @default@ for providing instances for built-in types instead of @DerivingVia@,
-because the latter breaks on @m a@
-
-It's possible to circumvent this, by using @forall r. (a -> m r) -> m r@ instead,
-but then we need to recover the original handy definitions and make the API and
-the code bloated (instances are more verbose with @DerivingVia@).
-
-We don't use @default@ in 'KnownTypeAst', because an attempt to write
-
-    default toTypeAst :: (k ~ GHC.Type, uni `Includes` a) => proxy a -> Type TyName uni ()
-    toTypeAst = toBuiltinTypeAst
-
-results in
-
-    Expected kind '* -> *', but 'uni' has kind 'k -> *'
-
-see https://gitlab.haskell.org/ghc/ghc/-/issues/15710
--}
+-- | A default implementation of 'toTypeAst' for built-in types.
+toBuiltinTypeAst :: forall k (a :: k) uni proxy. uni `Contains` a => proxy a -> Type TyName uni ()
+toBuiltinTypeAst _ = mkTyBuiltin @_ @a ()
 
 class KnownTypeAst uni (a :: k) where
     -- | The type representing @a@ used on the PLC side.
     toTypeAst :: proxy a -> Type TyName uni ()
+    default toTypeAst :: uni `Contains` a => proxy a -> Type TyName uni ()
+    toTypeAst = toBuiltinTypeAst
 
 -- | A constraint for \"@a@ is a 'KnownType' by means of being included in @uni@\".
 type KnownBuiltinTypeIn uni term a = (HasConstantIn uni term, GShow uni, GEq uni, uni `Contains` a)
@@ -328,12 +355,6 @@ type KnownBuiltinTypeIn uni term a = (HasConstantIn uni term, GShow uni, GEq uni
 -- | A constraint for \"@a@ is a 'KnownType' by means of being included in @UniOf term@\".
 type KnownBuiltinType term a = KnownBuiltinTypeIn (UniOf term) term a
 
--- See Note [KnownType's defaults].
--- | A default implementation of 'toTypeAst' for built-in types.
-toBuiltinTypeAst :: forall k (a :: k) uni proxy. uni `Contains` a => proxy a -> Type TyName uni ()
-toBuiltinTypeAst (_ :: proxy a) = mkTyBuiltin @_ @a ()
-
--- See Note [KnownType's defaults]
 -- | Haskell types known to exist on the PLC side.
 class KnownTypeAst (UniOf term) a => KnownType term a where
     -- | Convert a Haskell value to the corresponding PLC term.
@@ -392,35 +413,57 @@ instance KnownType term a => KnownType term (Emitter a) where
     -- TODO: we really should tear 'KnownType' apart into two separate type classes.
     readKnown = throwingWithCause _UnliftingError "Can't unlift an 'Emitter'" . Just
 
--- We don't bother computing @k@ from @reps@.
+-- | A @SomeValueN uni f reps@ is a value of existentially instantiated @f@. For instance,
+-- a @SomeValueN uni [] reps@ is a list of something (a list of integers or a list of lists
+-- of booleans etc). And a @SomeValueN uni (,) reps@ is a tuple of something.
+--
+-- The @reps@ parameter serves two purposes: its main purpose is to specify how the argument
+-- types look on the PLC side (i.e. it's the same thing as with @Opaque term rep@), so that
+-- we can apply the type of built-in lists to a PLC type variable for example. The secondary
+-- purpose is ensuring type safety via indexing: a value of @SomeValueN uni f reps@ can be viewed
+-- as a proof that the amount of arguments @f@ expects and the length of @reps@ are the same number
+-- (we could go even further and compute the kind of @f@ from @reps@, but it doesn't seem like
+-- that would give us any more type safety while it certainly would be a more complex thing to do).
+--
+-- The existential Haskell types @f@ is applied to are reified as type tags from @uni@.
+-- Note however that the correspondence between the Haskell types and the PLC ones from @reps@ is
+-- not demanded and this is by design: during evaluation (i.e. on the Haskell side of things)
+-- we always have concrete type tags, but at Plutus compile time an argument to @f@ can be
+-- a Plutus type variable and so we can't establish any connection between the type tag that
+-- we'll end up having at runtime and a Plutus type variable that we have at compile time.
+-- Which also implies that one can specify that a built-in function takes, say, a tuple of a type
+-- variable and a boolean, but in the actual denotation unlift to a tuple of a unit and an integer
+-- (boolean vs integer) and there won't be any Haskell type error for that, let alone a Plutus type
+-- error -- it'll be an evaluation failure (in particular, an unlifting error).
+-- So be careful in the denotation of a builtin to unlift its arguments to what you promised to
+-- unlift them to in its type signature.
 type SomeValueN :: forall k. (GHC.Type -> GHC.Type) -> k -> [GHC.Type] -> GHC.Type
-data SomeValueN uni (a :: k) reps where
+data SomeValueN uni (f :: k) reps where
     SomeValueRes :: uni (T b) -> b -> SomeValueN uni b '[]
     SomeValueArg :: uni (T a) -> SomeValueN uni (f a) reps -> SomeValueN uni f (rep ': reps)
+
+-- | Extract the value stored in a 'SomeValueN'.
+runSomeValueN :: SomeValueN uni f reps -> Some (ValueOf uni)
+runSomeValueN (SomeValueRes uniA x) = Some $ ValueOf uniA x
+runSomeValueN (SomeValueArg _ svn)  = runSomeValueN svn
 
 instance (uni `Contains` f, uni ~ uni', All (KnownTypeAst uni) reps) =>
             KnownTypeAst uni (SomeValueN uni' f reps) where
     toTypeAst _ =
+        -- Convert the type-level list of arguments into a term-level one and feed it to @f@.
         mkIterTyApp () (mkTyBuiltin @_ @f ()) $
             cfoldr_SList
                 (Proxy @(All (KnownTypeAst uni) reps))
-                (\(_ :: Proxy (All (KnownTypeAst uni) (rep ': _reps'))) rs ->
-                    toTypeAst (Proxy @rep) : rs)
+                (\(_ :: Proxy (rep ': _reps')) rs -> toTypeAst (Proxy @rep) : rs)
                 []
 
+-- | State needed during unlifting of a 'SomeValueN'.
 data ReadSomeValueN m uni f reps =
-    forall k (a :: k). ReadSomeValueN (SomeValueN uni a reps) (uni (T a))
+    forall k (a :: k). ReadSomeValueN !(SomeValueN uni a reps) !(uni (T a))
 
-instance
-        ( KnownTypeAst uni (SomeValueN uni f reps)
-        , KnownBuiltinTypeIn uni term f
-        , All (KnownTypeAst uni) reps
-        , HasUniApply uni
-        ) => KnownType term (SomeValueN uni f reps) where
-    makeKnown = go where
-        go :: Monad m => SomeValueN uni f' reps' -> m term
-        go (SomeValueRes uniA x) = pure . fromConstant . Some $ ValueOf uniA x
-        go (SomeValueArg _ svn)  = go svn
+instance (KnownBuiltinTypeIn uni term f, All (KnownTypeAst uni) reps, HasUniApply uni) =>
+            KnownType term (SomeValueN uni f reps) where
+    makeKnown = pure . fromConstant . runSomeValueN
 
     readKnown term = case asConstant term of
         Nothing -> throwingWithCause _UnliftingError "Not a constant" $ Just term
@@ -433,6 +476,10 @@ instance
                     ]
                 wrongType :: (MonadError (ErrorWithCause err term) m, AsUnliftingError err) => m a
                 wrongType = throwingWithCause _UnliftingError err $ Just term
+            -- In order to prove that the type of @xs@ is an application of @f@ we need to
+            -- peel all type applications off until we get to the head and then check that the
+            -- head is indeed @f@. Each peeled type application becomes a 'SomeValueArg' in the
+            -- final result.
             ReadSomeValueN res uniHead <-
                 cparaM_SList @_ @(KnownTypeAst uni) @reps
                     Proxy
@@ -476,20 +523,13 @@ instance (term ~ term', KnownTypeAst (UniOf term) rep) => KnownType term (Opaque
     makeKnown = pure . unOpaque
     readKnown = pure . Opaque
 
-instance uni `Includes` Integer       => KnownTypeAst uni Integer       where
-    toTypeAst = toBuiltinTypeAst
-instance uni `Includes` BS.ByteString => KnownTypeAst uni BS.ByteString where
-    toTypeAst = toBuiltinTypeAst
-instance uni `Includes` Char          => KnownTypeAst uni Char          where
-    toTypeAst = toBuiltinTypeAst
-instance uni `Includes` ()            => KnownTypeAst uni ()            where
-    toTypeAst = toBuiltinTypeAst
-instance uni `Includes` Bool          => KnownTypeAst uni Bool          where
-    toTypeAst = toBuiltinTypeAst
-instance uni `Includes` [a]           => KnownTypeAst uni [a]           where
-    toTypeAst = toBuiltinTypeAst
-instance uni `Includes` (a, b)        => KnownTypeAst uni (a, b)        where
-    toTypeAst = toBuiltinTypeAst
+instance uni `Contains` Integer       => KnownTypeAst uni Integer
+instance uni `Contains` BS.ByteString => KnownTypeAst uni BS.ByteString
+instance uni `Contains` Char          => KnownTypeAst uni Char
+instance uni `Contains` ()            => KnownTypeAst uni ()
+instance uni `Contains` Bool          => KnownTypeAst uni Bool
+instance uni `Contains` [a]           => KnownTypeAst uni [a]
+instance uni `Contains` (a, b)        => KnownTypeAst uni (a, b)
 
 instance KnownBuiltinType term Integer       => KnownType term Integer
 instance KnownBuiltinType term BS.ByteString => KnownType term BS.ByteString
@@ -521,6 +561,7 @@ instance KnownBuiltinType term Integer => KnownType term Int where
 
 -- Utils
 
+-- | Like 'cpara_SList' but the folding function is monadic.
 cparaM_SList
     :: forall k c (xs :: [k]) proxy r m. (All c xs, Monad m)
     => proxy c
@@ -533,18 +574,21 @@ cparaM_SList p z f =
         (Compose $ pure z)
         (\(Compose r) -> Compose $ r >>= f)
 
+-- | Like 'cpara_SList' but the folding function takes a 'Proxy' argument for the convenience of
+-- the caller.
 cparaP_SList
     :: forall k c (xs :: [k]) proxy r. All c xs
     => proxy c
     -> r '[]
-    -> (forall y ys. (c y, All c ys) => Proxy (All c (y ': ys)) -> r ys -> r (y ': ys))
+    -> (forall y ys. (c y, All c ys) => Proxy (y ': ys) -> r ys -> r (y ': ys))
     -> r xs
 cparaP_SList p z f = cpara_SList p z $ f Proxy
 
+-- | A right fold over reflected lists. Like 'cparaP_SList' except not indexed.
 cfoldr_SList
     :: forall c xs r proxy. All c xs
     => proxy (All c xs)
-    -> (forall y ys. (c y, All c ys) => Proxy (All c (y ': ys)) -> r -> r)
+    -> (forall y ys. (c y, All c ys) => Proxy (y ': ys) -> r -> r)
     -> r
     -> r
 cfoldr_SList _ f z = getConst $ cparaP_SList @_ @c @xs Proxy (coerce z) (coerce . f)

@@ -147,6 +147,7 @@ test_IdRank2 =
                 $ integer
         typecheckEvaluateCkNoEmit defBuiltinsRuntimeExt term @?= Right (EvaluationSuccess res)
 
+-- See Note [Pattern matching on built-in types].
 -- | Pattern matching on built-in lists. @caseBuiltinList {a} xs@ on built-in lists is
 -- equivalent to @unwrap xs@ on lists defined in PLC itself (hence why we bind @r@ after @xs@).
 --
