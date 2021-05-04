@@ -36,10 +36,10 @@ toggleWhen :: Boolean -> Array String -> Array String -> Array String
 toggleWhen condition classes1 classes2 = if condition then classes1 else classes2
 
 applyWhen :: Boolean -> Array String -> Array String
-applyWhen condition classes = if condition then classes else []
+applyWhen condition classes = toggleWhen condition classes []
 
 hideWhen :: Boolean -> Array String
-hideWhen condition = applyWhen condition [ "hidden" ]
+hideWhen = flip applyWhen [ "hidden" ]
 
 --- color gradients
 bgBlueGradient :: Array String
