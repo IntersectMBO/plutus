@@ -30,8 +30,8 @@ data Sqrt
   = Imaginary
   -- | An exact integer result. The 'rsqrt' of 4 is 'Exactly 2'.
   | Exactly Integer
-  -- | The Integer component of a non-integral result. The 'rsqrt 2' is
-  -- 'Approximately 1'.
+  -- | The Integer component (i.e. the floor) of a non-integral result. The
+  -- 'rsqrt 2' is 'Approximately 1'.
   | Approximately Integer
   deriving stock (Haskell.Show, Haskell.Eq)
 
@@ -43,6 +43,7 @@ rsqrt r
     | n * d < 0 = Imaginary
     | n == 0    = Exactly 0
     | n == d    = Exactly 1
+    | n < d     = Approximately 0
     | n < 0     = rsqrt $ negate n % negate d
     | otherwise = go 1 $ 1 + divide n d
   where
@@ -52,7 +53,6 @@ rsqrt r
     go l u
         | l * l * d == n = Exactly l
         | u == (l + 1)   = Approximately l
-        | n < d          = Approximately 0
         | otherwise      =
               let
                 m = divide (l + u) 2
