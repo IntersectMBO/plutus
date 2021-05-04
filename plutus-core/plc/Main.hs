@@ -785,7 +785,7 @@ printBudgetStateTally (Cek.CekExTally costs) = do
         builtinCosts = mconcat (map snd builtinsAndCosts)
         getCPU b = let ExCPU b' = _exBudgetCPU b in fromIntegral b'::Double
         totalCost = getSpent Cek.BStartup <> totalComputeCost <> builtinCosts
-        totalTime = 1000 * ((getCPU $ getSpent Cek.BStartup) + getCPU totalComputeCost) + getCPU builtinCosts/1e9
+        totalTime = 1000 * ((getCPU $ getSpent Cek.BStartup) + getCPU totalComputeCost) + getCPU builtinCosts/1e6
 
 class PrintBudgetState cost where
     printBudgetState :: cost -> IO ()
