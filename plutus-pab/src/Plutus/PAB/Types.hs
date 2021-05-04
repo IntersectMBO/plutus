@@ -32,7 +32,7 @@ import           Plutus.PAB.Instances      ()
 import           Servant.Client            (BaseUrl, ClientError)
 import           Wallet.API                (WalletAPIError)
 import           Wallet.Emulator.Wallet    (Wallet)
-import           Wallet.Types              (ContractInstanceId, NotificationError)
+import           Wallet.Types              (ContractInstanceId (..), NotificationError)
 
 data PABError
     = FileNotFound FilePath
@@ -111,15 +111,16 @@ data WebserverConfig =
     deriving (Show, Eq, Generic)
     deriving anyclass (FromJSON, ToJSON)
 
+-- | The source of a PAB event, used for sharding of the event stream
 data Source
     = PABEventSource
+    | InstanceEventSource ContractInstanceId
     deriving (Show, Eq)
 
 toUUID :: Source -> UUID
-toUUID source =
-    UUID.sequenceIdToMockUUID $
-    case source of
-        PABEventSource -> 1
+toUUID = \case
+    InstanceEventSource (ContractInstanceId i) -> i
+    PABEventSource                             -> UUID.sequenceIdToMockUUID 1
 
 data ChainOverview =
     ChainOverview
