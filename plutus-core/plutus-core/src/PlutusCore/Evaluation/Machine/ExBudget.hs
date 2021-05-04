@@ -153,11 +153,11 @@ isNegativeBudget (ExRestrictingBudget (ExBudget cpu mem)) = cpu < 0 || mem < 0
 
 -- | @(-)@ on 'ExCPU'.
 minusExCPU :: ExCPU -> ExCPU -> ExCPU
-minusExCPU = coerce $ (-) @Integer
+minusExCPU = coerce $ (-) @CostingInteger
 
 -- | @(-)@ on 'ExMemory'.
 minusExMemory :: ExMemory -> ExMemory -> ExMemory
-minusExMemory = coerce $ (-) @Integer
+minusExMemory = coerce $ (-) @CostingInteger
 
 -- | Subtract an 'ExBudget' from an 'ExRestrictingBudget'.
 minusExBudget :: ExRestrictingBudget -> ExBudget -> ExRestrictingBudget
