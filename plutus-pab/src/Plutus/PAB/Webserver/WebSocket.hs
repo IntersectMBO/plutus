@@ -189,7 +189,7 @@ walletFundsChange :: Wallet -> BlockchainEnv -> STMStream Ledger.Value
 walletFundsChange wallet blockchainEnv =
     let addr = if Wallet.isEmulatorWallet wallet
                 then Wallet.walletAddress wallet
-                else Ledger.pubKeyAddress (Mock.walletPubKey wallet)
+                else Ledger.pubKeyHashAddress (Mock.walletPubKey wallet)
     in unfold (Instances.valueAt addr blockchainEnv)
 
 observableStateChange :: ContractInstanceId -> InstancesState -> STMStream JSON.Value

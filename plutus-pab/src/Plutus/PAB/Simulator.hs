@@ -97,7 +97,7 @@ import           Data.Text.Prettyprint.Doc                      (Pretty (pretty)
 import qualified Data.Text.Prettyprint.Doc.Render.Text          as Render
 import           Data.Time.Units                                (Millisecond)
 import           Ledger                                         (Address (..), Tx, TxId, TxOut (..), txFee, txId)
-import           Ledger.Crypto                                  (PubKey, toPublicKey)
+import           Ledger.Crypto                                  (PubKey, pubKeyHash)
 import qualified Ledger.Index                                   as UtxoIndex
 import           Ledger.Value                                   (Value, flattenValue)
 import           Plutus.Contract.Effects.AwaitTxConfirmed       (TxConfirmed)
@@ -718,13 +718,13 @@ instanceActivity = Core.instanceActivity
 addWallet :: forall t. Simulation t (Wallet, PubKey)
 addWallet = do
     SimulatorState{_agentStates} <- Core.askUserEnv @t @(SimulatorState t)
-    (_, privateKey) <- MockWallet.newKeyPair
+    (publicKey, privateKey) <- MockWallet.newKeyPair
     liftIO $ STM.atomically $ do
         currentWallets <- STM.readTVar _agentStates
-        let newWallet = MockWallet.privKeyWallet privateKey
+        let newWallet = MockWallet.pubKeyHashWallet (pubKeyHash publicKey)
             newWallets = currentWallets & at newWallet .~ Just (AgentState (Wallet.emptyWalletStateFromPrivateKey privateKey) mempty)
         STM.writeTVar _agentStates newWallets
-        pure (newWallet, toPublicKey privateKey)
+        pure (newWallet, publicKey)
 
 -- | Retrieve the balances of all the entities in the simulator.
 currentBalances :: forall t. Simulation t (Map.Map Wallet.Entity Value)
