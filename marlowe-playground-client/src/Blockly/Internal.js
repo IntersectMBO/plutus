@@ -18,11 +18,11 @@ exports.getElementById_ = function (id) {
 
 exports.createWorkspace_ = function (blockly, workspaceDiv, config) {
 
-  /* Disable disabling blocks */
-  blockly.ContextMenuRegistry.registry.unregister('blockDisable');
-
   /* Disable comments */
-  blockly.ContextMenuRegistry.registry.unregister('blockComment');
+  try { blockly.ContextMenuRegistry.registry.unregister('blockComment'); } catch(err) { }
+
+  /* Disable disabling blocks */
+  try { blockly.ContextMenuRegistry.registry.unregister('blockDisable'); } catch(err) { }
 
   /* Register extensions */
   /* Silently clean if already registered */
@@ -66,6 +66,7 @@ exports.createWorkspace_ = function (blockly, workspaceDiv, config) {
   /* Inject workspace */
   var workspace = blockly.inject(workspaceDiv, config);
   blockly.svgResize(workspace);
+  
   return workspace;
 };
 
