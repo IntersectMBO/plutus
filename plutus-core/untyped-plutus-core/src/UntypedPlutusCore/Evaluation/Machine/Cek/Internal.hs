@@ -484,7 +484,7 @@ enterComputeCek
     -> CekValEnv uni fun
     -> TermWithMem uni fun
     -> CekM cost uni fun s (Term Name uni fun ())
-enterComputeCek costs = trace (">> " ++ show costs) $ computeCek where
+enterComputeCek costs = computeCek where
     -- | The computing part of the CEK machine.
     -- Either
     -- 1. adds a frame to the context and calls 'computeCek' ('Force', 'Apply')
