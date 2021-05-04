@@ -1,19 +1,32 @@
-= https://github.com/input-output-hk/plutus[Plutus Platform]
+= https://github.com/input-output-hk/plutus[The Plutus Platform and Marlowe]
 :email: plutus@iohk.io
 :author: Input Output HK Limited
 :toc: left
 :reproducible:
 
-The Plutus Platform enables you to:
+The Plutus Platform is an application development platform for developing distributed applications using the Cardano blockchain; and Marlowe is a platform specifically for financial products, built on top of Plutus.
+For more information about the projects, see https://docs.cardano.org/projects/plutus/en/latest/[the documentation].
 
-* Work with Plutus Core, the smart contract language embedded in the Cardano ledger.
-* Write Haskell programs that create and use embedded Plutus Core programs using Plutus Tx.
-* Write smart contract executables which can be distributed for use with the Plutus
-Smart Contract Backend.
+This repository contains:
 
-You are free to copy, modify, and distribute the Plutus Platform with
-under the terms of the Apache 2.0 license. See the link:./LICENSE[LICENSE]
-and link:./NOTICE[NOTICE] files for details.
+* Plutus Platform
+  * The implementation, specification, and mechanized metatheory of Plutus Core, the scripting language embedded in the Cardano ledger.
+  * Plutus Tx, the compiler from Haskell to Plutus Core.
+  * Libraries which implement the Plutus Application Framework, a framework for writing applications that work with Cardano.
+  * A selection of end-to-end usecases written with the Plutus Application Framework
+  * The Plutus Playground, a web-based playground for learning and writing basic Plutus Applications.
+* Marlowe
+  * The implementation of the Marlowe domain-specific language.
+  * Tools for working with Marlowe, including static analysis.
+  * A selection of examples using Marlowe, including a number based on the ACTUS financial standard.
+  * The Marlowe Playground, a web-based playground for learning and writing Marlowe Applications.
+
+[IMPORTANT]
+====
+The rest of this README is focussed on people who want to develop or contribute to the Platform.
+
+For people who want to *use* the Platform, please consult https://docs.cardano.org/projects/plutus/en/latest/[the documentation].
+====
 
 [[cache-warning]]
 [IMPORTANT]
@@ -27,15 +40,15 @@ If you find yourself building GHC, STOP and fix the cache.
 
 == How to use the project
 
-This section contains brief information about how to use this project. For development
-work see <<how-to-develop>> for more information.
+This section contains brief information about how to use this project.
+For development work see <<how-to-develop>> for more information.
 
 [[prerequisites]]
 === Prerequisites
 
-The Haskell libraries in the Plutus Platform can be built in a number of ways. The prerequisites depend
-on how you want to build the libraries. The other artifacts (docs etc.) are most easily built with Nix,
-so we recommend installing it regardless.
+The Haskell libraries in the Plutus Platform can be built in a number of ways.
+The prerequisites depend on how you want to build the libraries.
+The other artifacts (docs etc.) are most easily built with Nix, so we recommend installing it regardless.
 
 ==== Nix
 
@@ -54,38 +67,29 @@ If you use Nix, these tools are provided for you via `shell.nix`, and you do *no
 * If you want to build our Haskell packages with https://haskellstack.org/[`stack`], then install it.
 * If you want to build our Agda code, then install https://github.com/agda/agda[Agda] and the https://github.com/agda/agda-stdlib[standard library].
 
-=== How to get started using the platform
-
-The https://github.com/input-output-hk/plutus-starter[`plutus-starter`] repository contains a starter setup.
-
 === How to build the Haskell packages and other artifacts
 
 [[building-with-nix]]
 ==== How to build Haskell packages and other artifacts with Nix
 
-Run `nix build -f default.nix plutus.haskell.packages.plutus-core.components.library`
-from the root to build the Plutus Core library.
+Run `nix build -f default.nix plutus.haskell.packages.plutus-core.components.library` from the root to build the Plutus Core library.
 
-See <<nix-build-attributes>> to find out
-what other attributes you can build.
+See <<nix-build-attributes>> to find out what other attributes you can build.
 
 ==== How to build Haskell packages with `cabal`
 
-Run `cabal build plutus-core` from the root to build the
-Plutus Core library.
+Run `cabal build plutus-core` from the root to build the Plutus Core library.
 
 NOTE: you must have R installed for this to work. https://cran.r-project.org/[R Installation]
 
-See the link:./cabal.project[cabal project file] to see the other
-projects that you can build with `cabal`.
+See the link:./cabal.project[cabal project file] to see the other projects that you can build with `cabal`.
 
 ==== How to build the Haskell packages with `stack`
 
-Run `stack build plutus-core` from the root to build the
-Plutus Core library. The `stack` build is less well supported than the `cabal` build, we do not promise that it will work.
+Run `stack build plutus-core` from the root to build the Plutus Core library.
+The `stack` build is less well supported than the `cabal` build, we do not promise that it will work.
 
-See the link:./stack.yaml[stack project file] to see the other
-projects that you can build with stack.
+See the link:./stack.yaml[stack project file] to see the other projects that you can build with stack.
 
 === How to get the most recent documentation PDFs from CI
 
@@ -105,35 +109,16 @@ projects that you can build with stack.
 
 == Where to go next
 
-=== Where to find tutorials
-
-The link:./doc[doc] folder contains the documentation site.
-
-To build a full HTML version of the site that you can view locally, build the `docs.site` attribute xref:building-with-nix[using Nix].
-
-The online version of the tutorial can be found https://docs.cardano.org/projects/plutus/en/latest/index.html[here]
-
 === How to submit an issue
 
-User issues can be filed in the 
-https://github.com/input-output-hk/plutus/issues[GitHub Issue tracker].
+User issues can be filed in the https://github.com/input-output-hk/plutus/issues[GitHub Issue tracker].
 
 However, note that this is pre-release software, so we will not usually be providing support.
-
-=== How to communicate with us
-
-We’re active on the https://forum.cardano.org/[Cardano
-forum]. Tag your post with the `plutus` tag so we’ll see it.
-
-Use the Github issue tracker for bugs and feature requests, but keep
-other discussions to the forum.
 
 [[how-to-develop]]
 === How to develop and contribute to the project
 
-See link:CONTRIBUTING{outfilesuffix}[CONTRIBUTING], which describes our processes in more
-detail including development environments;
-and link:ARCHITECTURE{outfilesuffix}[ARCHITECTURE], which describes the structure of the repository.
+See link:CONTRIBUTING{outfilesuffix}[CONTRIBUTING], which describes our processes in more detail including development environments; and link:ARCHITECTURE{outfilesuffix}[ARCHITECTURE], which describes the structure of the repository.
 
 [[nix-advice]]
 == Nix
@@ -176,8 +161,7 @@ nix = {
 
 Nix on macOS can be a bit tricky. In particular, sandboxing is disabled by default, which can lead to strange failures.
 
-These days it should be safe to turn on sandboxing on macOS with a few exceptions. Consider setting the following Nix settings,
-in the same way as in xref:iohk-binary-cache[previous section]:
+These days it should be safe to turn on sandboxing on macOS with a few exceptions. Consider setting the following Nix settings, in the same way as in xref:iohk-binary-cache[previous section]:
 
 ----
 sandbox = true
@@ -188,12 +172,12 @@ extra-sandbox-paths = /System/Library/Frameworks /System/Library/PrivateFramewor
 [[nix-build-attributes]]
 === Which attributes to use to build different artifacts
 
-link:./default.nix[`default.nix`] defines a package set with attributes for all the
-artifacts you can build from this repository. These can be built
-using `nix build`. For example:
+link:./default.nix[`default.nix`] defines a package set with attributes for all the artifacts you can build from this repository.
+These can be built using `nix build`.
+For example:
 
 ----
-nix build -f default.nix plutus.haskell.packages.plutus-core
+nix build -f default.nix docs.papers.eutxo
 ----
 
 .Example attributes
@@ -201,7 +185,11 @@ nix build -f default.nix plutus.haskell.packages.plutus-core
 ** e.g. `plutus.haskell.packages.plutus-core.components.library`
 * Documents: defined inside `docs`
 ** e.g. `docs.plutus-core-spec`
-* Development scripts: defined inside `dev`
-** e.g. `dev.scripts.fixStylishHaskell`
 
 There are other attributes defined in link:./default.nix[`default.nix`].
+
+== Licensing
+
+You are free to copy, modify, and distribute the Plutus Platform with
+under the terms of the Apache 2.0 license. See the link:./LICENSE[LICENSE]
+and link:./NOTICE[NOTICE] files for details.
