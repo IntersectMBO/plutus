@@ -99,7 +99,8 @@ handleQuery (ReceiveWebSocketMessage msg next) = do
           followAppIds = Set.toUnfoldable $ keys $ view _allContracts playState
         subscribeToWallet wallet
         for followAppIds subscribeToPlutusApp -}
-    (WS.WebSocketClosed closeEvent) -> -- TODO: Consider whether we should show an error/warning when this happens. It might be more
+    (WS.WebSocketClosed closeEvent) -> do
+      -- TODO: Consider whether we should show an error/warning when this happens. It might be more
       -- confusing than helpful, since the websocket is automatically reopened if it closes for any
       -- reason.
       assign _webSocketStatus (WebSocketClosed (Just closeEvent))
