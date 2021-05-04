@@ -1,9 +1,9 @@
+{-# LANGUAGE CPP                   #-}
 {-# LANGUAGE DerivingVia           #-}
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE MagicHash             #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings     #-}
-{-# LANGUAGE TemplateHaskell       #-}
 {-# LANGUAGE TypeApplications      #-}
 {-# LANGUAGE TypeOperators         #-}
 {-# LANGUAGE UndecidableInstances  #-}
@@ -23,7 +23,6 @@ import           PlutusCore.Universe
 import           PlutusPrelude
 
 import           Control.Monad.RWS.Strict
-import           Data.Bits
 import qualified Data.ByteString          as BS
 import           Data.Proxy
 import           Data.SatInt
@@ -33,6 +32,8 @@ import           GHC.Generics
 import           GHC.Integer
 import           GHC.Integer.Logarithms
 import           GHC.Prim
+
+#include "MachDeps.h"
 
 {- Note [Memory Usage for Plutus]
 
@@ -72,7 +73,7 @@ just the overflow checks), but the wrapping behaviour of 'Int64' is unacceptable
 
 One other wrinkle is that 'SatInt' is backed by an 'Int' (i.e. a machine integer with platform-dependent
 size), rather than an 'Int64' since the primops that we need are only available for 'Int' until GHC 9.2
-or so.
+or so. So on 32bit platforms, we have much less header
 
 However we mostly care about 64bit platforms, so this isn't too much of a problem. The only one where it could be a problem
 is GHCJS, which does present as a 32bit platform. However, we won't care about *performance* on GHCJS, since
@@ -82,9 +83,14 @@ if we are not on a 64bit platform, then we can just fallback to the slower (but 
 -}
 
 -- See Note [Integer types for costing]
--- This relies on the fact that TH is run on the *target* platform, so even if we're e.g. cross-compiling to GHCJS
--- this will give the right answer.
-type CostingInteger = $(if finiteBitSize (0::SatInt) < 64 then [t|Integer|] else [t|SatInt|])
+type CostingInteger =
+#if WORD_SIZE_IN_BITS < 64
+    Integer
+#else
+    SatInt
+#endif
+
+-- $(if finiteBitSize (0::SatInt) < 64 then [t|Integer|] else [t|SatInt|])
 
 -- | Counts size in machine words (64bit for the near future)
 newtype ExMemory = ExMemory CostingInteger

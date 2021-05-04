@@ -155,6 +155,7 @@ efdtIntUp x1 x2 y    -- Be careful about overflow!
                in SI (I# x1) : go_up x2
 
 -- Requires x2 >= x1
+{-# INLINE [0] efdtIntUpFB #-}
 efdtIntUpFB :: (SatInt -> r -> r) -> r -> Int# -> Int# -> Int# -> r
 efdtIntUpFB c n x1 x2 y    -- Be careful about overflow!
  | isTrue# (y <# x2) = if isTrue# (y <# x1) then n else SI (I# x1) `c` n
@@ -186,6 +187,7 @@ efdtIntDn x1 x2 y    -- Be careful about underflow!
 
 
 -- Requires x2 <= x1
+{-# INLINE [0] efdtIntDnFB #-}
 efdtIntDnFB :: (SatInt -> r -> r) -> r -> Int# -> Int# -> Int# -> r
 efdtIntDnFB c n x1 x2 y    -- Be careful about underflow!
  | isTrue# (y ># x2) = if isTrue# (y ># x1) then n else SI (I# x1) `c` n
