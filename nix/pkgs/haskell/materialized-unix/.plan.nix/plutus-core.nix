@@ -183,7 +183,6 @@
           "Data/Aeson/THReader"
           "Data/Functor/Foldable/Monadic"
           "Universe/Core"
-          "Universe/Poly"
           "PlutusCore"
           "PlutusCore/CBOR"
           "PlutusCore/Check/Normal"
