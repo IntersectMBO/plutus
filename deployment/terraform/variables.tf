@@ -78,6 +78,12 @@ variable "private_subnet_cidrs" {
   default = ["10.0.4.0/24", "10.0.5.0/24", "10.0.6.0/24"]
 }
 
+# The public ip address of production.marlowe.iohkdev.io which
+# is used to create a route53 A record for marlowe-finance.io.
+variable "marlowe_finance_production_ip" {
+  default = "52.213.243.4"
+}
+
 variable "azs" {
   default = ["a", "b"]
 }
