@@ -8,7 +8,7 @@ Ledgers are typically *implemented* with a blockchain, such as Cardano.
 However, much of the time when we are talking about ledgers we don't care about the underlying implementation, and so we will just talk about the ledger itself.
 
 .. note::
-    This is not always true: applications do need to care about details of how the underlying blockchian work, because that affects behaviour such as settlement time and rollback policies.
+    This is not always true: applications do need to care about details of how the underlying blockchain work, because that affects behaviour such as settlement time and rollback policies.
     As much as possible the Plutus Application Framework tries to shield developers from this complexity, but it is not always possible.
 
 In its simplest form, a ledger is a system that tracks who owns what.
