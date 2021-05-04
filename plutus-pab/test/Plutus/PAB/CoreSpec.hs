@@ -12,6 +12,7 @@ module Plutus.PAB.CoreSpec
     ( tests
     , stopContractInstanceTest
     , walletFundsChangeTest
+    , observableStateChangeTest
     ) where
 
 import           Control.Lens                             ((&), (+~))
@@ -29,6 +30,7 @@ import           Data.Foldable                            (fold, traverse_)
 import qualified Data.Aeson.Types                         as JSON
 import           Data.Either                              (isRight)
 import qualified Data.Map                                 as Map
+import           Data.Maybe                               (isJust)
 import qualified Data.Monoid                              as M
 import           Data.Proxy                               (Proxy (..))
 import           Data.Semigroup                           (Last (..))
@@ -111,6 +113,7 @@ executionTests =
         , testCase "stop contract instance" stopContractInstanceTest
         , testCase "can subscribe to slot updates" slotChangeTest
         , testCase "can subscribe to wallet funds changes" walletFundsChangeTest
+        , testCase "can subscribe to observable state changes" observableStateChangeTest
         ]
 
 waitForUpdateTest :: IO ()
@@ -168,6 +171,20 @@ walletFundsChangeTest = runScenario $ do
     let stream2 = WS.walletFundsChange wllt env
     vl2 <- liftIO (WS.readN 1 stream2) >>= \case { [newVal] -> pure newVal; _ -> throwError (OtherError "newVal not found")}
     assertEqual "generated wallet should receive a payment" payment vl2
+
+observableStateChangeTest :: IO ()
+observableStateChangeTest = runScenario $ do
+    let getCurrency :: JSON.Value -> Maybe OneShotCurrency
+        getCurrency vl = do
+            case JSON.parseEither JSON.parseJSON vl of
+                Right (Just (Last cur)) -> Just cur
+                _                       -> Nothing
+    env <- Core.askInstancesState @(Builtin TestContracts) @(Simulator.SimulatorState (Builtin TestContracts))
+    instanceId <- Simulator.activateContract defaultWallet Currency
+    createCurrency instanceId SimpleMPS{tokenName="my token", amount = 10000}
+    let stream = WS.observableStateChange instanceId env
+    vl2 <- liftIO (WS.readN 2 stream) >>= \case { [_, newVal] -> pure newVal; _ -> throwError (OtherError "newVal not found")}
+    assertBool "observable state should change" (isJust $ getCurrency vl2)
 
 currencyTest :: TestTree
 currencyTest =

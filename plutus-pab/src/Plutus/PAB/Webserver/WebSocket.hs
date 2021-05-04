@@ -29,6 +29,7 @@ module Plutus.PAB.Webserver.WebSocket
     , walletFundsChange
     , openEndpoints
     , slotChange
+    , observableStateChange
     ) where
 
 import qualified Cardano.Wallet.Mock                    as Mock
