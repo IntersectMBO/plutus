@@ -141,7 +141,10 @@ handleAction (SetScreen screen) =
     <<< set _cards mempty
     <<< set _screen screen
 
-handleAction (OpenCard card) = modifying _cards $ flip snoc card
+handleAction (OpenCard card) =
+  modify_
+    $ over _cards (flip snoc card)
+    <<< set _menuOpen false
 
 handleAction CloseCard = do
   cards <- use _cards

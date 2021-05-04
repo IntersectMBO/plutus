@@ -111,16 +111,17 @@ contractCard currentSlot contractState =
           [ "cursor-pointer", "shadow-sm", "hover:shadow", "active:shadow-lg", "bg-white", "rounded", "overflow-hidden" ]
       , onClick_ $ OpenContract contractInstanceId
       ]
+      -- TODO: This part is really similar to contractTitle in Template.View, see if it makes sense to factor a component out
       [ div [ classNames [ "flex", "px-4", "pt-4", "items-center" ] ]
           [ span [ classNames [ "text-2xl", "leading-none", "font-semibold" ] ] [ text contractAcronym ]
           , span [ classNames [ "flex-grow", "ml-2", "self-start", "text-xs", "uppercase" ] ] [ text contractType ]
           , icon ArrowRight [ "text-28px" ]
           ]
-      , div [ classNames [ "font-semibold", "px-4", "py-2", "text-lg" ] ]
+      , div [ classNames [ "px-4", "py-2", "text-lg" ] ]
           [ text longTitle
           ]
-      , div [ classNames [ "bg-lightgray", "flex", "flex-col", "px-4", "py-2", "font-semibold" ] ]
-          [ span [ classNames [ "text-xs" ] ] [ text $ "Step " <> show stepNumber <> ":" ]
+      , div [ classNames [ "bg-lightgray", "flex", "flex-col", "px-4", "py-2" ] ]
+          [ span [ classNames [ "text-xs", "font-semibold" ] ] [ text $ "Step " <> show stepNumber <> ":" ]
           , span [ classNames [ "text-xl" ] ] [ text timeoutStr ]
           ]
       ]

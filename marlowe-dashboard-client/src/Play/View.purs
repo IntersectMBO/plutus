@@ -60,7 +60,7 @@ renderHeader walletNickname menuOpen =
                 [ span
                     [ classNames $ [ "-m-1", "mr-2", "rounded-full", "text-white", "w-5", "h-5", "flex", "justify-center", "items-center", "uppercase", "font-semibold" ] <> Css.bgBlueGradient ]
                     [ text $ take 1 walletNickname ]
-                , span [ classNames [ "truncate", "w-16" ] ] [ text walletNickname ]
+                , span [ classNames [ "truncate", "max-w-16" ] ] [ text walletNickname ]
                 ]
             ]
         , a
@@ -214,14 +214,15 @@ dashboardLinks :: forall p. Warn (Text "We need to add the dashboard links.") =>
 dashboardLinks =
   -- FIXME: Add link to Docs
   [ link "Docs" ""
+  , link "marlowe-finance.io" "https://marlowe-finance.io"
+  , link "play.marlowe-finance.io" "https://play.marlowe-finance.io"
   {- disabled for phase 1, link "Market" ""
   , link "Support" "" -}
   ]
 
-iohkLinks :: forall p. Warn (Text "We need to add the IOHK links.") => Array (HTML p Action)
+iohkLinks :: forall p. Array (HTML p Action)
 iohkLinks =
-  [ link "marlowe.finance" "https://marlowe.finance"
-  , link "cardano.org" "https://cardano.org"
+  [ link "cardano.org" "https://cardano.org"
   , link "iohk.io" "https://iohk.io"
   ]
 

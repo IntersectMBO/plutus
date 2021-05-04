@@ -100,7 +100,7 @@ cardNavigationButtons state =
       | selectedStep == lastStep =
         Just
           $ div
-              [ classNames [ "px-6", "py-4", "rounded-lg", "bg-white", "font-semibold", "ml-auto" ] ]
+              [ classNames [ "px-6", "py-4", "rounded-full", "bg-white", "font-semibold", "ml-auto" ] ]
               [ text "Waiting..." ]
       | otherwise =
         Just
@@ -250,7 +250,7 @@ renderContractCard stepNumber state cardBody =
 statusIndicator :: forall p a. Maybe Icon -> String -> Array String -> HTML p a
 statusIndicator mIcon status extraClasses =
   div
-    [ classNames $ [ "flex-grow", "rounded-lg", "h-10", "flex", "items-center" ] <> extraClasses ]
+    [ classNames $ [ "flex-grow", "rounded-full", "h-10", "flex", "items-center" ] <> extraClasses ]
     $ Array.catMaybes
         [ mIcon <#> \anIcon -> icon anIcon [ "pl-3" ]
         , Just $ span [ classNames [ "text-xs", "flex-grow", "text-center", "font-semibold" ] ] [ text status ]
@@ -277,7 +277,7 @@ renderPastStep state stepNumber step =
               TimeoutStep _ -> statusIndicator (Just Timer) "Timed out" [ "bg-red", "text-white" ]
               TransactionStep _ -> statusIndicator (Just Done) "Completed" [ "bg-green", "text-white" ]
           ]
-      , div [ classNames [ "overflow-y-auto", "px-4" ] ]
+      , div [ classNames [ "overflow-y-auto", "px-4", "h-full" ] ]
           [ renderBody currentTab step
           ]
       ]
@@ -408,7 +408,7 @@ renderCurrentStep currentSlot state =
             else
               statusIndicator (Just Timer) timeoutStr [ "bg-lightgray" ]
           ]
-      , div [ classNames [ "overflow-y-auto", "px-4" ] ]
+      , div [ classNames [ "overflow-y-auto", "px-4", "h-full" ] ]
           [ case currentTab /\ contractIsClosed of
               Tasks /\ false -> renderTasks state
               Tasks /\ true -> renderContractClose
@@ -589,10 +589,19 @@ renderAction state party namedAction@(MakeChoice choiceId bounds mChosenNum) =
 
     multipleInput = \_ ->
       div
-        [ classNames [ "flex", "w-full", "shadow", "rounded-lg", "mt-2", "overflow-hidden", "focus-within:ring-1", "ring-black" ]
+        [ classNames
+            $ [ "flex"
+              , "w-full"
+              , "rounded"
+              , "mt-2"
+              , "overflow-hidden"
+              , "focus-within:ring-1"
+              , "ring-black"
+              ]
+            <> applyWhen (isActiveParticipant || debugMode) Css.withShadow
         ]
         [ input
-            [ classNames [ "border-0", "py-4", "pl-4", "pr-1", "flex-grow", "focus:ring-0" ]
+            [ classNames [ "border-0", "py-4", "pl-4", "pr-1", "flex-grow", "focus:ring-0", "min-w-0", "text-sm", "disabled:bg-lightgray" ]
             , type_ InputNumber
             , enabled $ isActiveParticipant || debugMode
             , maybe'
@@ -605,9 +614,9 @@ renderAction state party namedAction@(MakeChoice choiceId bounds mChosenNum) =
             [ classNames
                 ( [ "px-5", "font-bold" ]
                     <> if isValid then
-                        [ "bg-gradient-to-b", "from-purple", "to-lightpurple", "text-white" ]
+                        Css.bgBlueGradient
                       else
-                        [ "bg-gray", "text-black", "opacity-50", "cursor-default" ]
+                        [ "bg-darkgray", "text-white", "opacity-50", "cursor-default" ]
                 )
             , onClick_ $ AskConfirmation namedAction
             , enabled $ isValid && isActiveParticipant
@@ -617,7 +626,6 @@ renderAction state party namedAction@(MakeChoice choiceId bounds mChosenNum) =
 
     singleInput = \_ ->
       button
-        -- TODO: adapt to use button classes from Css module
         [ classNames $ Css.button <> [ "w-full", "mt-2" ]
             <> if isActiveParticipant || debugMode then
                 Css.bgBlueGradient <> Css.withShadow
@@ -652,11 +660,11 @@ renderAction state party CloseContract =
       [ shortDescription isActiveParticipant "The contract is still open and needs to be manually closed by any participant for the remainder of the balances to be distributed (charges may apply)"
       , button
           -- TODO: adapt to use button classes from Css module
-          [ classNames $ [ "font-bold", "w-full", "py-4", "mt-2", "rounded-lg", "shadow" ]
+          [ classNames $ Css.button <> [ "w-full", "mt-2" ]
               <> if isActiveParticipant || debugMode then
-                  [ "bg-gradient-to-r", "from-purple", "to-lightpurple", "text-white" ]
+                  Css.bgBlueGradient <> Css.withShadow
                 else
-                  [ "bg-gray", "text-black", "opacity-50", "cursor-default" ]
+                  [ "text-black", "cursor-default" ]
           , enabled $ isActiveParticipant || debugMode
           , onClick_ $ AskConfirmation CloseContract
           ]

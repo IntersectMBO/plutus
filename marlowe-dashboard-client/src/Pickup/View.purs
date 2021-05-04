@@ -230,7 +230,7 @@ renderPickupScreen state =
     , pickupWalletScreen state
     , footer
         [ classNames [ "flex", "justify-between", "p-6", "lg:py-8", "md:px-5pc" ] ]
-        [ link "marlowe.finance" "https://marlowe.finance"
+        [ link "marlowe-finance.io" "https://www.marlowe-finance.io/"
         , link "Docs" ""
         ]
     ]

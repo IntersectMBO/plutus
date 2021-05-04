@@ -102,9 +102,9 @@ contractNicknameDisplay contractName contractNickname =
             [ input
                 [ classNames
                     -- TODO: Once we remove the readOnly, remove this filter. I tried adding "text-black" to the end of the array
-                    
+
                     --       but the browser does not respect ordering and for some reason "text-darkgray was winning"
-                    
+
                     $ filter (not <<< eq "text-darkgray")
                     $ (Css.input $ null contractNickname)
                     <> [ "font-semibold" ]
@@ -348,15 +348,16 @@ templateLibraryCard =
           [ text template.metaData.contractDescription ]
       ]
 
+-- TODO: This helper is really similar to contractCard in ContractHome.View, see if it makes sense to factor a component out
 contractTitle :: forall p. MetaData -> HTML p Action
 contractTitle metaData =
   div
-    [ classNames [ "flex", "items-start", "leading-none", "mr-1" ] ]
+    [ classNames [ "flex", "items-start", "mr-1" ] ]
     [ span
-        [ classNames [ "text-2xl", "font-semibold", "mr-2" ] ]
+        [ classNames [ "text-2xl", "leading-none", "font-semibold" ] ]
         [ text $ contractTypeInitials metaData.contractType ]
     , span
-        [ classNames [ "text-sm", "pt-1", "uppercase" ] ]
+        [ classNames [ "text-xs", "uppercase", "ml-2" ] ]
         [ text $ metaData.contractName ]
     ]
 
