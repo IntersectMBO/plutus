@@ -19,10 +19,10 @@ const plugins = isWebpackDevServer || !isWatch
     ];
 
 // source map adds 20Mb to the output!
-const devtool = isWebpackDevServer ? 'eval-source-map' : false;
+const devtool = isWebpackDevServer ? "eval-source-map" : false;
 
 module.exports = {
-    devtool: isDevelopment ? "eval-source-map" : false,
+    devtool,
     devServer: {
         contentBase: path.join(__dirname, "dist"),
         compress: true,

@@ -156,7 +156,8 @@ instance encodeHistory :: Encode History where
 instance decodeHistory :: Decode History where
   decode value = genericDecode defaultOptions value
 
--- HACK: rolling my own websocket type to see if this helps
+-- FIXME: this is a temporary hack to get the websocket communication working - the generated
+-- type has encoding/decoding instances that differ from what the server expects :(
 data CombinedWSStreamToServer
   = Subscribe (Either Back.ContractInstanceId Back.Wallet)
   | Unsubscribe (Either Back.ContractInstanceId Back.Wallet)
