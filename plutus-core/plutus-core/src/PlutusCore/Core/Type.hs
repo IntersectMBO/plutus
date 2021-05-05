@@ -116,7 +116,14 @@ instance KnownKind GHC.Type where
 instance (KnownKind dom, KnownKind cod) => KnownKind (dom -> cod) where
     knownKind _ = KindArrow () (knownKind $ Proxy @dom) (knownKind $ Proxy @cod)
 
--- | For getting the kind of a thing from the universe.
+-- We need this for type checking Plutus, however we get Plutus types/terms/programs by either
+-- producing them directly or by parsing/decoding them and in both the cases we have access to the
+-- @Typeable@ information for the Haskell kind of a type and so we could just keep it around
+-- (instead of throwing it away like we do now) and compute the Plutus kind directly from that.
+-- That might be less efficient and probably requires updating the Plutus Tx compiler, so we went
+-- with the simplest option for now and it's to have a class. Providing an instance per universe is
+-- no big deal.
+-- | For getting the Plutus kind of a type from the universe.
 class ToKind (uni :: GHC.Type -> GHC.Type) where
     toKind :: forall k (a :: k). uni (T a) -> Kind ()
 

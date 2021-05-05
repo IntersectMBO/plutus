@@ -17,6 +17,8 @@
 {-# LANGUAGE TypeOperators            #-}
 {-# LANGUAGE UndecidableInstances     #-}
 
+{-# LANGUAGE StrictData               #-}
+
 module PlutusCore.Constant.Typed
     ( TypeScheme (..)
     , FoldArgs
@@ -462,7 +464,7 @@ instance (uni `Contains` f, uni ~ uni', All (KnownTypeAst uni) reps) =>
 
 -- | State needed during unlifting of a 'SomeValueN'.
 data ReadSomeValueN m uni f reps =
-    forall k (a :: k). ReadSomeValueN !(SomeValueN uni a reps) !(uni (T a))
+    forall k (a :: k). ReadSomeValueN (SomeValueN uni a reps) (uni (T a))
 
 instance (KnownBuiltinTypeIn uni term f, All (KnownTypeAst uni) reps, HasUniApply uni) =>
             KnownType term (SomeValueN uni f reps) where
