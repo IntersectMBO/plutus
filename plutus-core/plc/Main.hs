@@ -852,8 +852,8 @@ runEval (EvalOptions language inp ifmt evalMode printMode budgetMode timingMode 
                       !_ = rnf body
                       costs = case cekModel of
                                 Default -> defaultCekCosts  -- AST nodes are charged according to the default cost model
-                                Unit    -> Cek.unitCekCosts -- AST nodes are charged one unit each, so we can see how many times
-                                                            -- each node type is encountered.  This is useful for calibrating the budgeting code.
+                                Unit    -> Cek.unitCekCosts -- AST nodes are charged one unit each, so we can see how many times each node
+                                                            -- type is encountered.  This is useful for calibrating the budgeting code.
                   case budgetMode of
                     Silent -> do
                           let evaluate = Cek.evaluateCekNoEmit costs PLC.defBuiltinsRuntime

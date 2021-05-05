@@ -215,7 +215,7 @@ data ModelOneArgument =
     deriving (FromJSON, ToJSON) via CustomJSON
         '[SumTaggedObject "type" "arguments", ConstructorTagModifier (StripPrefix "ModelOneArgument", CamelToSnake)] ModelOneArgument
 instance Default ModelOneArgument where
-    def = ModelOneArgumentConstantCost 1.0
+    def = ModelOneArgumentConstantCost 0.0
 
 runCostingFunOneArgument :: CostingFun ModelOneArgument -> ExMemory -> ExBudget
 runCostingFunOneArgument
@@ -305,7 +305,7 @@ data ModelTwoArguments =
         '[SumTaggedObject "type" "arguments", ConstructorTagModifier (StripPrefix "ModelTwoArguments", CamelToSnake)] ModelTwoArguments
 
 instance Default ModelTwoArguments where
-    def = ModelTwoArgumentsConstantCost 1.0
+    def = ModelTwoArgumentsConstantCost 0.0
 
 runCostingFunTwoArguments :: CostingFun ModelTwoArguments -> ExMemory -> ExMemory -> ExBudget
 runCostingFunTwoArguments (CostingFun cpu mem) mem1 mem2 =
@@ -347,7 +347,7 @@ data ModelThreeArguments =
         '[SumTaggedObject "type" "arguments", ConstructorTagModifier (StripPrefix "ModelThreeArguments", CamelToSnake)] ModelThreeArguments
 
 instance Default ModelThreeArguments where
-    def = ModelThreeArgumentsConstantCost 1.0
+    def = ModelThreeArgumentsConstantCost 0.0
 
 runThreeArgumentModel :: ModelThreeArguments -> ExMemory -> ExMemory -> ExMemory -> Integer
 runThreeArgumentModel (ModelThreeArgumentsConstantCost c) _ _ _ = toCostUnit c
