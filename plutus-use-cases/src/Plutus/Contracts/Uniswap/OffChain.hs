@@ -180,7 +180,7 @@ start = do
     let c    = mkCoin cs uniswapTokenName
         us   = uniswap cs
         inst = uniswapInstance us
-        tx   = mustPayToTheScript (Factory []) $ coin c 1
+        tx   = mustPayToTheScript (Factory []) $ unitValue c
     ledgerTx <- submitTxConstraints inst tx
     void $ awaitTxConfirmed $ txId ledgerTx
 
@@ -201,17 +201,17 @@ create us CreateParams{..} = do
         usDat2   = Pool lp liquidity
         psC      = poolStateCoin us
         lC       = mkCoin (liquidityCurrency us) $ lpTicker lp
-        usVal    = coin (usCoin us) 1
-        lpVal    = coin cpCoinA cpAmountA <> coin cpCoinB cpAmountB <> coin psC 1
+        usVal    = unitValue $ usCoin us
+        lpVal    = valueOf cpCoinA cpAmountA <> valueOf cpCoinB cpAmountB <> unitValue psC
 
         lookups  = Constraints.scriptInstanceLookups usInst        <>
                    Constraints.otherScript usScript                <>
                    Constraints.monetaryPolicy (liquidityPolicy us) <>
                    Constraints.unspentOutputs (Map.singleton oref o)
 
-        tx       = Constraints.mustPayToTheScript usDat1 usVal                                               <>
-                   Constraints.mustPayToTheScript usDat2 lpVal                                               <>
-                   Constraints.mustForgeValue (coin psC 1 <> coin lC liquidity)                              <>
+        tx       = Constraints.mustPayToTheScript usDat1 usVal                                     <>
+                   Constraints.mustPayToTheScript usDat2 lpVal                                     <>
+                   Constraints.mustForgeValue (unitValue psC <> valueOf lC liquidity)              <>
                    Constraints.mustSpendScriptOutput oref (Redeemer $ PlutusTx.toData $ Create lp)
 
     ledgerTx <- submitTxConstraintsWith lookups tx
@@ -230,9 +230,9 @@ close us CloseParams{..} = do
         usC      = usCoin us
         psC      = poolStateCoin us
         lC       = mkCoin (liquidityCurrency us) $ lpTicker lp
-        usVal    = coin usC 1
-        psVal    = coin psC 1
-        lVal     = coin lC liquidity
+        usVal    = unitValue usC
+        psVal    = unitValue psC
+        lVal     = valueOf lC liquidity
         redeemer = Redeemer $ PlutusTx.toData Close
 
         lookups  = Constraints.scriptInstanceLookups usInst        <>
@@ -263,13 +263,13 @@ remove us RemoveParams{..} = do
         dat          = Pool lp $ liquidity - rpDiff
         psC          = poolStateCoin us
         lC           = mkCoin (liquidityCurrency us) $ lpTicker lp
-        psVal        = coin psC 1
-        lVal         = coin lC rpDiff
+        psVal        = unitValue psC
+        lVal         = valueOf lC rpDiff
         inVal        = txOutValue $ txOutTxOut o
-        inA          = coinValueOf inVal rpCoinA
-        inB          = coinValueOf inVal rpCoinB
+        inA          = amountOf inVal rpCoinA
+        inB          = amountOf inVal rpCoinB
         (outA, outB) = calculateRemoval inA inB liquidity rpDiff
-        val          = psVal <> coin rpCoinA outA <> coin rpCoinB outB
+        val          = psVal <> valueOf rpCoinA outA <> valueOf rpCoinB outB
         redeemer     = Redeemer $ PlutusTx.toData Remove
 
         lookups  = Constraints.scriptInstanceLookups usInst          <>
@@ -294,12 +294,12 @@ add us AddParams{..} = do
     (_, (oref, o, lp, liquidity)) <- findUniswapFactoryAndPool us apCoinA apCoinB
     when (apAmountA < 0 || apAmountB < 0) $ throwError "amounts must not be negative"
     let outVal = txOutValue $ txOutTxOut o
-        oldA   = coinValueOf outVal apCoinA
-        oldB   = coinValueOf outVal apCoinB
+        oldA   = amountOf outVal apCoinA
+        oldB   = amountOf outVal apCoinB
         newA   = oldA + apAmountA
         newB   = oldB + apAmountB
         delL   = calculateAdditionalLiquidity oldA oldB liquidity apAmountA apAmountB
-        inVal  = coin apCoinA apAmountA <> coin apCoinB apAmountB
+        inVal  = valueOf apCoinA apAmountA <> valueOf apCoinB apAmountB
     when (delL <= 0) $ throwError "insufficient liquidity"
     logInfo @String $ printf "oldA = %d, oldB = %d, newA = %d, newB = %d, delL = %d" oldA oldB newA newB delL
 
@@ -308,9 +308,9 @@ add us AddParams{..} = do
         dat          = Pool lp $ liquidity + delL
         psC          = poolStateCoin us
         lC           = mkCoin (liquidityCurrency us) $ lpTicker lp
-        psVal        = coin psC 1
-        lVal         = coin lC delL
-        val          = psVal <> coin apCoinA newA <> coin apCoinB newB
+        psVal        = unitValue psC
+        lVal         = valueOf lC delL
+        val          = psVal <> valueOf apCoinA newA <> valueOf apCoinB newB
         redeemer     = Redeemer $ PlutusTx.toData Add
 
         lookups  = Constraints.scriptInstanceLookups usInst             <>
@@ -338,8 +338,8 @@ swap us SwapParams{..} = do
     unless (spAmountA > 0 && spAmountB == 0 || spAmountA == 0 && spAmountB > 0) $ throwError "exactly one amount must be positive"
     (_, (oref, o, lp, liquidity)) <- findUniswapFactoryAndPool us spCoinA spCoinB
     let outVal = txOutValue $ txOutTxOut o
-    let oldA = coinValueOf outVal spCoinA
-        oldB = coinValueOf outVal spCoinB
+    let oldA = amountOf outVal spCoinA
+        oldB = amountOf outVal spCoinB
     (newA, newB) <- if spAmountA > 0 then do
         let outB = Amount $ findSwapA oldA oldB spAmountA
         when (outB == 0) $ throwError "no payout"
@@ -353,7 +353,7 @@ swap us SwapParams{..} = do
     logInfo @String $ printf "oldA = %d, oldB = %d, old product = %d, newA = %d, newB = %d, new product = %d" oldA oldB (unAmount oldA * unAmount oldB) newA newB (unAmount newA * unAmount newB)
 
     let inst    = uniswapInstance us
-        val     = coin spCoinA newA <> coin spCoinB newB <> coin (poolStateCoin us) 1
+        val     = valueOf spCoinA newA <> valueOf spCoinB newB <> unitValue (poolStateCoin us)
 
         lookups = Constraints.scriptInstanceLookups inst                 <>
                   Constraints.otherScript (Scripts.validatorScript inst) <>
@@ -380,7 +380,7 @@ pools us = do
     go []       = return []
     go (o : os) = do
         let v = txOutValue $ txOutTxOut o
-        if coinValueOf v c == 1
+        if isUnity v c
             then do
                 d <- getUniswapDatum o
                 case d of
@@ -388,8 +388,8 @@ pools us = do
                     Pool lp _ -> do
                         let coinA = lpCoinA lp
                             coinB = lpCoinB lp
-                            amtA  = coinValueOf v coinA
-                            amtB  = coinValueOf v coinB
+                            amtA  = amountOf v coinA
+                            amtB  = amountOf v coinB
                             s     = ((coinA, amtA), (coinB, amtB))
                         logInfo $ "found pool: " ++ show s
                         ss <- go os
@@ -420,7 +420,7 @@ findUniswapInstance us c f = do
     let addr = uniswapAddress us
     logInfo @String $ printf "looking for Uniswap instance at address %s containing coin %s " (show addr) (show c)
     utxos <- utxoAt addr
-    go  [x | x@(_, o) <- Map.toList utxos, coinValueOf (txOutValue $ txOutTxOut o) c == 1]
+    go  [x | x@(_, o) <- Map.toList utxos, isUnity (txOutValue $ txOutTxOut o) c]
   where
     go [] = throwError "Uniswap instance not found"
     go ((oref, o) : xs) = do

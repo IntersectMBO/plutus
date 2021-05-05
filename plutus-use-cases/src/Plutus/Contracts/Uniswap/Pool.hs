@@ -61,6 +61,8 @@ calculateRemoval inA inB liquidity' diff' = (f inA, f inB)
     g x = x - divide (x * diff) liquidity
 
 {-# INLINABLE checkSwap #-}
+-- | A swap is valid if the fee is computed correctly, and we're swapping some
+-- positive amount of A for B.  See: <https://uniswap.org/whitepaper.pdf> Eq (11) (Page 7.)
 checkSwap :: Amount A -> Amount B -> Amount A -> Amount B -> Bool
 checkSwap oldA' oldB' newA' newB' =
     traceIfFalse "expected positive oldA" (oldA > 0) &&

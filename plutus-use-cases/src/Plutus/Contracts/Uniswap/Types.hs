@@ -73,13 +73,21 @@ newtype Amount a = Amount { unAmount :: Integer }
 PlutusTx.makeIsDataIndexed ''Amount [('Amount, 0)]
 PlutusTx.makeLift ''Amount
 
-{-# INLINABLE coin #-}
-coin :: Coin a -> Amount a -> Value
-coin c a = assetClassValue (unCoin c) (unAmount a)
+{-# INLINABLE valueOf #-}
+valueOf :: Coin a -> Amount a -> Value
+valueOf c a = assetClassValue (unCoin c) (unAmount a)
 
-{-# INLINABLE coinValueOf #-}
-coinValueOf :: Value -> Coin a -> Amount a
-coinValueOf v = Amount . assetClassValueOf v . unCoin
+{-# INLINABLE unitValue #-}
+unitValue :: Coin a -> Value
+unitValue c = valueOf c 1
+
+{-# INLINABLE isUnity #-}
+isUnity :: Value -> Coin a -> Bool
+isUnity v c = amountOf v c == 1
+
+{-# INLINABLE amountOf #-}
+amountOf :: Value -> Coin a -> Amount a
+amountOf v = Amount . assetClassValueOf v . unCoin
 
 {-# INLINABLE mkCoin #-}
 mkCoin:: CurrencySymbol -> TokenName -> Coin a
