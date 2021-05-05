@@ -134,8 +134,7 @@ convert such an argument from PLC to Haskell just to convert it back later witho
 the value. Instead we can keep the argument intact and apply the Haskell function directly to
 the PLC AST representing some value.
 
-E.g. Having a built-in function with the following signature (assuming we somehow have a PLC @list@
-mapping to Haskell @[]@ -- that was possible before, but not now, but the example is still instructive):
+E.g. Having a built-in function with the following signature:
 
     reverse : all a. list a -> list a
 
@@ -222,6 +221,10 @@ handy and is going to be improved.
 Representing contructors as poly-kinded data families and handling those with open type families
 and/or type classes is a way of solving the expression problem for indexed data types at the type
 level, if you are into these things.
+-}
+
+{- Note [Representable polymorphic built-in functions]
+
 -}
 
 {- Note [Pattern matching on built-in types]

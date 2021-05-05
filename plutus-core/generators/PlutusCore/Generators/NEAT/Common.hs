@@ -1,7 +1,7 @@
-{-# LANGUAGE EmptyCase #-}
-{-# LANGUAGE EmptyDataDeriving #-}
-{-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE EmptyCase           #-}
+{-# LANGUAGE EmptyDataDeriving   #-}
+{-# LANGUAGE FlexibleContexts    #-}
+{-# LANGUAGE RecordWildCards     #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
 module PlutusCore.Generators.NEAT.Common where
@@ -20,10 +20,10 @@ module PlutusCore.Generators.NEAT.Common where
 
 
 import           Control.Enumerable
-import qualified Data.Stream               as Stream
-import qualified Data.Text                 as Text
-import           PlutusCore.Name  (Name, TyName (..))
-import           PlutusCore.Quote (MonadQuote (..), freshName)
+import qualified Data.Stream        as Stream
+import qualified Data.Text          as Text
+import           PlutusCore.Name    (Name, TyName (..))
+import           PlutusCore.Quote   (MonadQuote (..), freshName)
 
 data Z deriving (Eq, Ord, Show)
 
@@ -88,4 +88,3 @@ mkTextNameStream prefix =
   Stream.map
     (\n -> prefix <> Text.pack (show n))
     (Stream.iterate (+1) (0 :: Integer))
-
