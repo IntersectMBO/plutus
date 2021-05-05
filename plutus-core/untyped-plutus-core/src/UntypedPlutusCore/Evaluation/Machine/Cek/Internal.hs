@@ -442,6 +442,7 @@ lookupVarName varName varEnv = do
             var = Var () varName
         Just val -> pure val
 
+-- | Costs for evaluating AST nodes.  Times should be specified in picoseconds, memory sizes in bytes.
 data CekCosts =
     CekCosts {
       cekStartupCost :: ExBudget

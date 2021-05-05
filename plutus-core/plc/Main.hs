@@ -720,8 +720,8 @@ runTypecheck (TypecheckOptions inp fmt) = do
 ---------------- Timing ----------------
 
 -- Convert a time in picoseconds into a readble format with appropriate units
-formatTime :: Double -> String
-formatTime t
+formatTime_picoseconds :: Double -> String
+formatTime_picoseconds t
     | t >= 1e12 = printf "%.3f s"  (t/1e12)
     | t >= 1e9  = printf "%.3f ms" (t/1e9)
     | t >= 1e6  = printf "%.3f μs" (t/1e6)
@@ -739,7 +739,7 @@ timeEval n evaluate prog
   (results, times) <- unzip . tail <$> for (replicate (fromIntegral (n+1)) prog) (timeOnce evaluate)
   let mean = (fromIntegral $ sum times) / (fromIntegral n) :: Double
       runs :: String = if n==1 then "run" else "runs"
-  printf "Mean evaluation time (%d %s): %s\n" n runs (formatTime mean)
+  printf "Mean evaluation time (%d %s): %s\n" n runs (formatTime_picoseconds mean)
   pure results
     where timeOnce eval prg = do
             start <- performGC >> getCPUTime
@@ -786,8 +786,7 @@ printBudgetStateTally term model (Cek.CekExTally costs) = do
           traverse_ (\(b,cost) -> putStrLn $ printf "%-20s %s" (show b) (budgetToString cost :: String)) builtinsAndCosts
           putStrLn ""
           putStrLn $ "Total budget spent: " ++ printf (budgetToString totalCost)
-          putStrLn $ "Predicted execution time: " ++ (formatTime $ getCPU totalCost)
-          putStrLn $ "Predicted execution time: " ++ (formatTime totalTime)
+          putStrLn $ "Predicted execution time: " ++ (formatTime_picoseconds totalTime)
     Unit -> pure ()
   where
         getSpent k =
@@ -803,7 +802,7 @@ printBudgetStateTally term model (Cek.CekExTally costs) = do
         builtinCosts = mconcat (map snd builtinsAndCosts)  -- Total builtin evaluation time (accoridng to the models) in picoseconds.
         getCPU b = let ExCPU b' = _exBudgetCPU b in fromIntegral b'::Double
         totalCost = getSpent Cek.BStartup <> totalComputeCost <> builtinCosts
-        totalTime = 1000 * ((getCPU $ getSpent Cek.BStartup) + getCPU totalComputeCost) + getCPU builtinCosts/1e6
+        totalTime = (getCPU $ getSpent Cek.BStartup) + getCPU totalComputeCost + getCPU builtinCosts
 
 class PrintBudgetState cost where
     printBudgetState :: UPLC.Term PLC.Name PLC.DefaultUni PLC.DefaultFun () -> CekModel -> cost -> IO ()
