@@ -40,9 +40,9 @@ import qualified Ledger.Typed.Scripts             as Scripts
 import           Playground.Contract
 import           Plutus.Contract                  hiding (when)
 import qualified Plutus.Contracts.Currency        as Currency
-import           Plutus.Contracts.Uniswap.Data
 import           Plutus.Contracts.Uniswap.OnChain (mkUniswapValidator, validateLiquidityForging)
 import           Plutus.Contracts.Uniswap.Pool
+import           Plutus.Contracts.Uniswap.Types
 import qualified PlutusTx
 import           PlutusTx.Prelude                 hiding (Semigroup (..), unless)
 import           Prelude                          (Semigroup (..))

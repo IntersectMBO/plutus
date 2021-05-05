@@ -16,7 +16,7 @@
 {-# options_ghc -fno-strictness            #-}
 {-# options_ghc -fno-specialise            #-}
 
-module Plutus.Contracts.Uniswap.Data
+module Plutus.Contracts.Uniswap.Types
   where
 
 import           Ledger

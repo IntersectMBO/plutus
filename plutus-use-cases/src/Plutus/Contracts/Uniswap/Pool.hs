@@ -10,8 +10,8 @@ module Plutus.Contracts.Uniswap.Pool
   , lpTicker
   ) where
 
-import           Ledger.Value                  (TokenName (..), unAssetClass, unCurrencySymbol)
-import           Plutus.Contracts.Uniswap.Data
+import           Ledger.Value                   (TokenName (..), unAssetClass, unCurrencySymbol)
+import           Plutus.Contracts.Uniswap.Types
 import           PlutusTx.Prelude
 import           PlutusTx.Sqrt
 

@@ -17,9 +17,6 @@
 {-# options_ghc -fno-strictness         #-}
 {-# options_ghc -fno-specialise         #-}
 
--- | A decentralized exchange for arbitrary token pairs following the
--- [Uniswap protocol](https://uniswap.org/whitepaper.pdf).
---
 module Plutus.Contracts.Uniswap.OnChain
     ( mkUniswapValidator
     , validateLiquidityForging
@@ -29,9 +26,9 @@ import           Ledger
 import           Ledger.Constraints.OnChain       as Constraints
 import           Ledger.Constraints.TxConstraints as Constraints
 import           Ledger.Value                     (AssetClass (..), symbols)
-import           Plutus.Contracts.Uniswap.Data
 import           Plutus.Contracts.Uniswap.Pool    (calculateAdditionalLiquidity, calculateInitialLiquidity,
                                                    calculateRemoval, checkSwap, lpTicker)
+import           Plutus.Contracts.Uniswap.Types
 import qualified PlutusTx
 import           PlutusTx.Prelude
 
