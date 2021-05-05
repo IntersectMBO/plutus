@@ -59,7 +59,7 @@ handleQuery ::
   MonadAff m =>
   Query a ->
   HalogenM State Action slots Message m (Maybe a)
-handleQuery (SetCode code next) = do
+handleQuery (SetCode clearUndoStack code next) = do
   mState <- use _blocklyState
   for_ mState \blocklyState -> do
     let
@@ -70,7 +70,7 @@ handleQuery (SetCode code next) = do
           $ Parser.parseContract (Text.stripParens code)
     -- Create the blocks temporarily disabling the blockly events until they settle
     -- FIXME: check why buildBlocks requires we pass newBlock
-    runWithoutEventSubscription 100 BlocklyEvent $ buildBlocks newBlock blocklyState contract
+    runWithoutEventSubscription 100 BlocklyEvent $ buildBlocks clearUndoStack newBlock blocklyState contract
   assign _errorMessage Nothing
   pure $ Just next
 

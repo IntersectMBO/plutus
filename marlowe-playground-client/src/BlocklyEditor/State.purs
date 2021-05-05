@@ -52,7 +52,7 @@ handleAction ::
   HalogenM State Action ChildSlots Void m Unit
 handleAction Init = do
   mContents <- liftEffect $ SessionStorage.getItem marloweBufferLocalStorageKey
-  handleAction $ InitBlocklyProject $ fromMaybe ME.example mContents
+  handleAction $ InitBlocklyProject true $ fromMaybe ME.example mContents
 
 handleAction (HandleBlocklyMessage Blockly.CodeChange) = processBlocklyCode
 
@@ -64,8 +64,8 @@ handleAction (HandleBlocklyMessage (Blockly.BlockSelection selection)) = case mB
     { blockType } <- selection
     Map.lookup blockType MB.definitionsMap
 
-handleAction (InitBlocklyProject code) = do
-  void $ query _blocklySlot unit $ H.tell (Blockly.SetCode code)
+handleAction (InitBlocklyProject clearUndoStack code) = do
+  void $ query _blocklySlot unit $ H.tell (Blockly.SetCode clearUndoStack code)
   liftEffect $ SessionStorage.setItem marloweBufferLocalStorageKey code
   processBlocklyCode
   -- Reset the toolbox

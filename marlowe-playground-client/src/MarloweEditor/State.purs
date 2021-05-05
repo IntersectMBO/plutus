@@ -38,7 +38,7 @@ import Marlowe.LinterText as Linter
 import Marlowe.Monaco (updateAdditionalContext)
 import Marlowe.Monaco as MM
 import Marlowe.Parser (parseContract)
-import MarloweEditor.Types (Action(..), BottomPanelView, State, _hasHoles, _bottomPanelState, _editorErrors, _editorWarnings, _keybindings, _metadataHintInfo, _selectedHole, _showErrorDetail)
+import MarloweEditor.Types (Action(..), BottomPanelView, State, _bottomPanelState, _comesFromBlockly, _editorErrors, _editorWarnings, _hasHoles, _keybindings, _metadataHintInfo, _selectedHole, _showErrorDetail)
 import Monaco (isError, isWarning)
 import Network.RemoteData as RemoteData
 import Servant.PureScript.Ajax (AjaxError)
@@ -113,6 +113,7 @@ handleAction ViewAsBlockly = pure unit
 
 handleAction (InitMarloweProject contents) = do
   editorSetValue contents
+  assign (_comesFromBlockly) false
   liftEffect $ SessionStorage.setItem marloweBufferLocalStorageKey contents
 
 handleAction (SelectHole hole) = assign _selectedHole hole
