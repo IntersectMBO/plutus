@@ -34,6 +34,7 @@ module.exports = {
       "28px": "28px",
       "2xl": "34px",
       "3xl": "46px",
+      "4xl": "64px",
       "medium-icon": "80px",
       "big-icon": "100px",
     },
@@ -82,6 +83,7 @@ module.exports = {
         "auto-fill-contract-home-card": "repeat(auto-fill, minmax(240px, 1fr))",
       },
       spacing: {
+        "22": "5.5rem",
         "160": "40rem",
         "256": "64rem",
         "5pc": "5%",

@@ -250,13 +250,18 @@ renderPickupScreen state =
                 ]
             , text "marlowe-finance.io"
             ]
+        , div
+            [ classNames [ "hidden", "md:block", "absolute", "top-20", "right-0", "p-8", "pt-6", "bg-white", "text-gray", "text-4xl", "font-semibold", "leading-none", "rounded-l-lg", "shadow-lg" ] ]
+            [ text "ES" ]
         ]
     , pickupWalletScreen state
     , footer
-        [ classNames [ "flex", "justify-between" ] ]
+        -- we give the footer a fixed height and the div inside it absolute positioning, because otherwise
+        -- the div makes the `pickupWalletScreen` element above it too small
+        [ classNames [ "h-22", "flex", "justify-between" ] ]
         [ div
-            [ classNames [ "bg-white", "p-8", "rounded-tr-lg", "shadow-lg" ] ]
-            [ icon ArrowRight [ "hidden", "md:block", "md:text-medium-icon", "md:text-gray", "md:text-center", "md:mb-6" ]
+            [ classNames [ "absolute", "bottom-0", "left-0", "bg-white", "p-8", "rounded-tr-lg", "shadow-lg" ] ]
+            [ icon ArrowRight [ "hidden", "md:block", "text-medium-icon", "leading-none", "text-gray", "text-center", "mb-6" ]
             , a
                 [ classNames [ "px-8", "py-4", "font-bold", "hover:bg-link-highlight", "bg-no-repeat", "bg-center" ]
                 , href ""
