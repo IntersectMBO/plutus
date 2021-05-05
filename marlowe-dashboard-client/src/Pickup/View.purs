@@ -8,10 +8,10 @@ import Data.Lens (view)
 import Data.Maybe (isJust, isNothing)
 import Data.Newtype (unwrap)
 import Data.UUID (toString) as UUID
-import Halogen.HTML (HTML, a, button, div, div_, footer, header_, hr, img, input, label, main, p, span_, text)
+import Halogen.HTML (HTML, a, button, div, div_, footer, header, hr, img, input, label, main, p, span_, text)
 import Halogen.HTML.Events.Extra (onClick_, onValueInput_)
 import Halogen.HTML.Properties (InputType(..), disabled, for, href, id_, list, placeholder, readOnly, src, type_, value)
-import Logo (marloweRunLogo)
+import Images (arrowBack, marloweRunLogo)
 import Material.Icons (Icon(..), icon, icon_)
 import Pickup.Lenses (_card, _pickingUp, _pickupWalletString, _walletDetails, _walletLibrary)
 import Pickup.Types (Action(..), Card(..), State)
@@ -226,12 +226,22 @@ renderPickupScreen :: forall p. Warn (Text "We need to add the Marlowe links.") 
 renderPickupScreen state =
   div
     [ classNames [ "absolute", "top-0", "bottom-0", "left-0", "right-0", "overflow-auto", "z-0", "flex", "flex-col", "justify-between" ] ]
-    [ header_ []
+    [ header
+        [ classNames [ "flex" ] ]
+        [ a
+            [ classNames []
+            , href "https://marlowe-finance.io"
+            ]
+            [ text "marlowe-finance.io" ]
+        ]
     , pickupWalletScreen state
     , footer
-        [ classNames [ "flex", "justify-between", "p-6", "lg:py-8", "md:px-5pc" ] ]
-        [ link "marlowe-finance.io" "https://www.marlowe-finance.io/"
-        , link "Docs" ""
+        [ classNames [ "flex", "justify-between" ] ]
+        [ a
+            [ classNames [ "flex", "items-center", "p-2", "font-bold" ]
+            , href "FIXME: add a link to the Docs"
+            ]
+            [ text "Docs" ]
         ]
     ]
 
@@ -271,11 +281,3 @@ pickupWalletScreen state =
           ]
       , nicknamesDataList walletLibrary
       ]
-
-link :: forall p a. String -> String -> HTML p a
-link label url =
-  a
-    [ classNames [ "flex", "items-center", "font-bold" ]
-    , href url
-    ]
-    [ text label ]

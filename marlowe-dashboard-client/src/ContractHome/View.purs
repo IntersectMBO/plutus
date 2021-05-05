@@ -69,12 +69,20 @@ contractsScreen currentSlot state =
 
 renderContracts :: forall p. Slot -> State -> PartitionedContracts -> HTML p Action
 renderContracts currentSlot { status: Running } { running }
-  | length running == 0 = p_ [ text "You have no running contracts. Tap create to begin" ]
+  | length running == 0 = noContractsMessage "You have no running contracts. Tap create to begin."
   | otherwise = contractGrid currentSlot running
 
 renderContracts currentSlot { status: Completed } { completed }
-  | length completed == 0 = p_ [ text "You have no completed contracts." ]
+  | length completed == 0 = noContractsMessage "You have no completed contracts."
   | otherwise = contractGrid currentSlot completed
+
+noContractsMessage :: forall p. String -> HTML p Action
+noContractsMessage message =
+  div
+    [ classNames [ "h-full", "flex", "flex-col", "justify-center", "items-center" ] ]
+    [ icon Contract [ "-mt-32", "text-big-icon", "text-gray" ]
+    , p_ [ text message ]
+    ]
 
 contractGrid :: forall p. Slot -> Array Contract.State -> HTML p Action
 contractGrid currentSlot contracts =
