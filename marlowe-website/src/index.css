@@ -1,6 +1,14 @@
+@import url("https://fonts.googleapis.com/css?family=Barlow:400,600,700|Comfortaa:400,600,700&display=swap");
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+body {
+  @apply h-full text-black bg-lightgray;
+
+  font-family: Barlow, sans-serif;
+}
 
 .primary-button {
   @apply bg-gradient-to-r from-purple to-lightpurple text-white font-bold;
@@ -8,6 +16,6 @@
 }
 
 .secondary-button {
-  @apply bg-transparent border-2 border-lightpurple text-lightpurple font-bold;
+  @apply bg-transparent border-3 border-lightpurple text-lightpurple font-bold;
   @apply rounded-full px-5 py-3;
 }

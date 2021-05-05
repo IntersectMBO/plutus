@@ -21,6 +21,10 @@ module.exports = {
         use: [MiniCssExtractPlugin.loader, "css-loader", "postcss-loader"],
       },
       {
+        test: /\.(woff|woff2|eot|ttf|otf)$/i,
+        type: "asset/resource",
+      },
+      {
         test: /\.(gif|png|jpe?g|svg)$/i,
         type: "asset/resource",
         generator: {

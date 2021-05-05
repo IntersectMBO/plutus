@@ -7,8 +7,10 @@ module.exports = {
     colors: {
       transparent: "transparent",
       current: "currentColor",
-      black: "#283346",
-      lightgray: "#eeeeee",
+      // FIXME: Marlowe run uses "#283346" but the website uses this, unify
+      black: "#273245",
+      // FIXME: Marlowe run uses "#eeeeee" but the website uses this, unify
+      lightgray: "#f6f9fc",
       gray: "#dfdfdf",
       // FIXME: Marlowe run uses "#00a551" but the website uses this, unify
       green: "#00e39c",
@@ -21,6 +23,10 @@ module.exports = {
       lightpurple: "#8701fc",
       grayblue: "#f5f9fc",
       red: "#e04b4c",
+    },
+    fontFamily: {
+      barlowe: ["barlowe", "sans-serif"],
+      comfortaa: ["comfortaa", "sans-serif"],
     },
     fontSize: {
       xs: "12px",
@@ -53,6 +59,9 @@ module.exports = {
       backgroundImage: (theme) => ({
         main: "url('/static/img/woman-using-cellphone.jpg')",
       }),
+      borderWidth: {
+        3: "3px",
+      },
     },
   },
   variants: {
@@ -103,7 +112,7 @@ module.exports = {
     order: false,
     float: true,
     clear: false,
-    fontFamily: false,
+    fontFamily: true,
     fontWeight: true,
     height: true,
     lineHeight: true,
