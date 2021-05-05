@@ -102,5 +102,5 @@ main trace MockServerConfig { mscBaseUrl
                 ch <- readMVar mv <&> view (chainState . channel)
                 void $ atomically $ writeTChan ch block
                 modifyMVar_ mv $ pure .
-                  set  (chainState . currentSlot     ) slot
+                  set  (chainState . currentSlot) slot
 

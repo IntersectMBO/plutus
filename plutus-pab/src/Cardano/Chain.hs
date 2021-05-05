@@ -51,6 +51,9 @@ emptyChainState = do
     chan <- liftIO . atomically $ newTChan
     pure $ ChainState [] mempty 0 chan Nothing
 
+getChannel :: MonadIO m => MVar ChainState -> m (TChan Block)
+getChannel mv = liftIO (readMVar mv) <&> view channel
+
 -- | Build a PAB ChainState from a emulator ChainState
 fromEmulatorChainState :: MonadIO m => EC.ChainState -> m ChainState
 fromEmulatorChainState EC.ChainState {EC._txPool, EC._index, EC._currentSlot, EC._chainNewestFirst} = do

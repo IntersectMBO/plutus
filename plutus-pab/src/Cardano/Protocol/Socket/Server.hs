@@ -11,7 +11,6 @@
 module Cardano.Protocol.Socket.Server where
 
 import qualified Data.ByteString.Lazy                                as LBS
-import           Data.Foldable                                       (traverse_)
 import           Data.List                                           (intersect)
 import           Data.Maybe                                          (listToMaybe)
 import           Data.Text                                           (Text)
@@ -45,11 +44,11 @@ import           Ouroboros.Network.Protocol.Handshake.Version
 import           Ouroboros.Network.Snocket
 import           Ouroboros.Network.Socket
 
-import           Cardano.Protocol.Socket.Type
+import           Cardano.Protocol.Socket.Type                        hiding (currentSlot)
 
 import           Cardano.Chain                                       (ChainState (..), addTxToPool, chainNewestFirst,
-                                                                      channel, getTip, handleControlChain, tip, txPool)
-import qualified Cardano.Chain                                       as C
+                                                                      channel, currentSlot, getChannel, getTip,
+                                                                      handleControlChain, tip, txPool)
 import           Ledger                                              (Block, Slot (..), Tx (..))
 import qualified Wallet.Emulator.Chain                               as Chain
 
@@ -142,33 +141,31 @@ pruneChain k original = do
 handleCommand ::
     MonadIO m
  => CommandChannel
- -> InternalState
+ -> MVar ChainState
  -> m ()
-handleCommand CommandChannel {ccCommand, ccResponse}
-              InternalState  {isBlocks , isState   } =
+handleCommand CommandChannel {ccCommand, ccResponse} mvChainState =
     liftIO (atomically $ readTQueue ccCommand) >>= \case
         AddTx tx     ->
-            liftIO $ modifyMVar_ isState (pure . over txPool (tx :))
+            liftIO $ modifyMVar_ mvChainState (pure . over txPool (tx :))
         ModifySlot f -> liftIO $ do
-            state <- liftIO $ takeMVar isState
+            state <- liftIO $ takeMVar mvChainState
             (s, nextState') <- liftIO $ Chain.modifySlot f
                   & interpret handleControlChain
                   & Log.handleLogIgnore @Chain.ChainEvent
                   & runState state
                   & runM
-            putMVar isState nextState'
+            putMVar mvChainState nextState'
             atomically $ do
                 writeTQueue ccResponse (SlotChanged s)
         ProcessBlock -> liftIO $ do
-            state <- liftIO $ takeMVar isState
+            state <- liftIO $ takeMVar mvChainState
             (block, nextState') <- liftIO $ Chain.processBlock
-                  & interpret C.handleControlChain
+                  & interpret handleControlChain
                   & Log.handleLogIgnore @Chain.ChainEvent
                   & runState state
                   & runM
-            putMVar isState nextState'
-            atomically $ do
-                writeTChan  isBlocks   block
+            putMVar mvChainState nextState'
+            atomically $
                 writeTQueue ccResponse (BlockAdded block)
 
 {- | Start the server in a new thread, and return a server handler
@@ -180,32 +177,13 @@ runServerNode ::
  -> ChainState
  -> m ServerHandler
 runServerNode shSocketPath k initialState = liftIO $ do
-    serverState      <- initialiseInternalState initialState
+    serverState      <- newMVar initialState
     shCommandChannel <- CommandChannel <$> newTQueueIO <*> newTQueueIO
+    globalChannel    <- getChannel serverState
     void $ forkIO . void    $ protocolLoop  shSocketPath     serverState
     void $ forkIO . forever $ handleCommand shCommandChannel serverState
-    void                    $ pruneChain k (isBlocks serverState)
+    void                    $ pruneChain k globalChannel
     pure $ ServerHandler { shSocketPath, shCommandChannel }
-
--- * Internal state
-
-{- Store a channel (that is *never* cleared, for now) containing all
-   the blocks, and the state required for validating the next block. -}
-data InternalState = InternalState {
-    isBlocks :: TChan Block,      -- ^ Broadcast channel for the whole chain.
-    isState  :: MVar ChainState   -- ^ Used to track the tip of the chain.
-}
-
-initialiseInternalState ::
-    MonadIO m
- => ChainState
- -> m InternalState
-initialiseInternalState chainState = liftIO $ do
-    isBlocks <- newTChanIO
-    isState  <- newMVar chainState
-    -- traverse_ (atomically . writeTChan isBlocks)
-    --           (view Chain.chainNewestFirst chainState)
-    pure InternalState { isBlocks, isState }
 
 -- * ChainSync protocol
 
@@ -213,16 +191,16 @@ initialiseInternalState chainState = liftIO $ do
    transition is invoked. It makes the implementation of
    state transitions easier to read. -}
 
-type ChainSyncMonad = ReaderT InternalState IO
+type ChainSyncMonad = ReaderT (MVar ChainState) IO
 
-runChainSync :: InternalState -> ChainSyncMonad a -> IO a
+runChainSync :: MVar ChainState -> ChainSyncMonad a -> IO a
 runChainSync = flip runReaderT
 
 {- The initial state of the protocol. You can move into
    requesting the next block or reset state by searching for an
    intersection. -}
 idleState ::
-    ( MonadReader InternalState m
+    ( MonadReader (MVar ChainState) m
     , MonadIO m )
  => Maybe LocalChannel
  -> m (ServerStIdle Block (Point Block) Tip m ())
@@ -238,13 +216,13 @@ idleState Nothing = undefined
    or within a monad (IO, in our case) where you can wait for the
    next block (Nothing/Right branch) -}
 nextState ::
-    ( MonadReader InternalState m
+    ( MonadReader (MVar ChainState) m
     , MonadIO m )
  => LocalChannel
  -> m (Either (ServerStNext Block (Point Block) Tip m ())
               (m (ServerStNext Block (Point Block) Tip m ())))
 nextState localChannel@(LocalChannel channel') = do
-    chainState <- ask <&> isState
+    chainState <- ask
     tip' <- getTip chainState
     (liftIO . atomically $ tryReadTChan channel') >>= \case
         Nothing -> Right . pure <$> do
@@ -260,12 +238,12 @@ nextState localChannel@(LocalChannel channel') = do
    the client state is reset to the new offset (the Just branch)
    or to the genesis block if no intersection was found. -}
 findIntersect ::
-    ( MonadReader InternalState m
+    ( MonadReader (MVar ChainState) m
     , MonadIO m )
  => [Point Block]
  -> m (ServerStIntersect Block (Point Block) Tip m ())
 findIntersect clientPoints = do
-    mvState <- ask <&> isState
+    mvState <- ask
     chainState <- liftIO $ readMVar mvState
     serverPoints <- getChainPoints (view channel chainState) chainState
     let point = listToMaybe
@@ -287,7 +265,7 @@ findIntersect clientPoints = do
 
 {- This is a wrapper around the creation of a `ServerStNext` -}
 sendRollForward ::
-    ( MonadReader InternalState m
+    ( MonadReader (MVar ChainState) m
     , MonadIO m )
  => LocalChannel
  -> Block -- tip
@@ -303,7 +281,7 @@ sendRollForward channel' tip' current = pure $
    slot 0, and in idleState. This will probably change, since it
    makes more sense to start in the `StIntersect` state. -}
 chainSyncServer ::
-    ( MonadReader InternalState m
+    ( MonadReader (MVar ChainState) m
     , MonadIO m )
  => ChainSyncServer Block (Point Block) Tip m ()
 chainSyncServer =
@@ -312,7 +290,7 @@ chainSyncServer =
 {- Use a `TChan` to model a broadcast channel of which we
    clone (with potentially varying offsets) for clients. -}
 cloneChainFrom :: forall m.
-    ( MonadReader InternalState m
+    ( MonadReader (MVar ChainState) m
     , MonadIO m )
  => Integer
  -> m (Maybe LocalChannel)
@@ -320,10 +298,10 @@ cloneChainFrom offset = (LocalChannel <$>) <$> go
   where
     go :: m (Maybe (TChan Block))
     go = do
-        blocks <- ask <&> isBlocks
+        globalChannel <- ask >>= getChannel
         liftIO $ atomically $ do
-            newChannel <- cloneTChan blocks
-            consume newChannel offset
+            localChannel <- cloneTChan globalChannel
+            consume localChannel offset
 
     consume :: TChan a -> Integer -> STM (Maybe (TChan a))
     consume channel' ix | ix == 0    = pure $ Just channel'
@@ -341,7 +319,7 @@ cloneChainFrom offset = (LocalChannel <$>) <$> go
    into IO. -}
 
 hoistChainSync ::
-    MonadReader InternalState m
+    MonadReader (MVar ChainState) m
  => ChainSyncServer Block (Point Block) Tip ChainSyncMonad a
  -> m (ChainSyncServer Block (Point Block) Tip IO a)
 hoistChainSync machine = do
@@ -355,7 +333,7 @@ hoistChainSync machine = do
     }
 
 hoistStIdle ::
-    MonadReader InternalState m
+    MonadReader (MVar ChainState) m
  => ServerStIdle Block (Point Block) Tip ChainSyncMonad a
  -> m (ServerStIdle Block (Point Block) Tip IO a)
 hoistStIdle (ServerStIdle nextState' findIntersect' done) = do
@@ -373,7 +351,7 @@ hoistStIdle (ServerStIdle nextState' findIntersect' done) = do
    }
 
 hoistStIntersect ::
-    MonadReader InternalState m
+    MonadReader (MVar ChainState) m
  => ServerStIntersect Block (Point Block) Tip ChainSyncMonad a
  -> m (ServerStIntersect Block (Point Block) Tip IO a)
 hoistStIntersect (SendMsgIntersectFound point tip' nextState') =
@@ -382,7 +360,7 @@ hoistStIntersect (SendMsgIntersectNotFound tip' nextState') =
     SendMsgIntersectNotFound tip'    <$> hoistChainSync nextState'
 
 hoistStNext ::
-    MonadReader InternalState m
+    MonadReader (MVar ChainState) m
  => ServerStNext Block (Point Block) Tip ChainSyncMonad a
  -> m (ServerStNext Block (Point Block) Tip IO a)
 hoistStNext (SendMsgRollForward header tip' nextState') =
@@ -397,7 +375,7 @@ hoistStNext (SendMsgRollBackward header tip' nextState') =
 protocolLoop ::
     MonadIO m
  => FilePath
- -> InternalState
+ -> MVar ChainState
  -> m Void
 protocolLoop socketPath internalState = liftIO $ withIOManager $ \iocp -> do
     networkState <- newNetworkMutableState
@@ -416,12 +394,12 @@ protocolLoop socketPath internalState = liftIO $ withIOManager $ \iocp -> do
       $ \_ serverAsync -> wait serverAsync
 
 application ::
-    InternalState
+    MVar ChainState
  -> OuroborosApplication 'ResponderMode
                          addr
                          LBS.ByteString
                          IO Void ()
-application internalState@InternalState {isState} =
+application mvChainState =
     nodeApplication chainSync txSubmission
     where
         chainSync :: RunMiniProtocol 'ResponderMode LBS.ByteString IO Void ()
@@ -432,7 +410,7 @@ application internalState@InternalState {isState} =
                codecChainSync
                (ChainSync.chainSyncServerPeer
                    (runReader (hoistChainSync chainSyncServer)
-                              internalState))
+                              mvChainState))
 
         txSubmission :: RunMiniProtocol 'ResponderMode LBS.ByteString IO Void ()
         txSubmission =
@@ -440,7 +418,8 @@ application internalState@InternalState {isState} =
             MuxPeer
               nullTracer
               codecTxSubmission
-              (TxSubmission.localTxSubmissionServerPeer (pure $ txSubmissionServer isState))
+              (TxSubmission.localTxSubmissionServerPeer
+                  (pure $ txSubmissionServer mvChainState))
 
 -- * Computing intersections
 
@@ -457,7 +436,7 @@ getChainPoints :: MonadIO m => TChan Block -> ChainState -> m [Point Block]
 getChainPoints ch st = do
   chain <- chainNewestFirst ch
   pure $ zipWith mkPoint
-    [(st ^. C.currentSlot) .. 0]
+    [(st ^. currentSlot) .. 0]
     chain
   where
     mkPoint :: Slot -> Block -> Point Block
