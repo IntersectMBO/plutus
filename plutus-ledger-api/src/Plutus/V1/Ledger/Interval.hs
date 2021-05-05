@@ -225,7 +225,7 @@ member a i = i `contains` singleton a
 -- | Check whether two intervals overlap, that is, whether there is a value that
 --   is a member of both intervals.
 overlaps :: Ord a => Interval a -> Interval a -> Bool
-overlaps l r = isEmpty (l `intersection` r)
+overlaps l r = not $ isEmpty (l `intersection` r)
 
 {-# INLINABLE intersection #-}
 -- | 'intersection a b' is the largest interval that is contained in 'a' and in
@@ -249,8 +249,8 @@ contains (Interval l1 h1) (Interval l2 h2) = l1 <= l2 && h2 <= h1
 -- | Check if an 'Interval' is empty.
 isEmpty :: Ord a => Interval a -> Bool
 isEmpty (Interval (LowerBound v1 in1) (UpperBound v2 in2)) = case v1 `compare` v2 of
-    LT -> True
-    GT -> False
+    LT -> False
+    GT -> True
     EQ -> not (in1 && in2)
 
 {-# INLINABLE before #-}

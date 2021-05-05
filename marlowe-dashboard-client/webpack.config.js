@@ -1,6 +1,7 @@
 'use strict';
 
 const HtmlWebpackPlugin = require('html-webpack-plugin');
+const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 const path = require('path');
 
 const isWebpackDevServer = process.argv.some(a => path.basename(a) === 'webpack-dev-server');
@@ -22,7 +23,6 @@ const devtool = isWebpackDevServer ? 'eval-source-map' : false;
 
 module.exports = {
     devtool,
-
     devServer: {
         contentBase: path.join(__dirname, "dist"),
         compress: true,
@@ -50,20 +50,13 @@ module.exports = {
     output: {
         path: path.join(__dirname, 'dist'),
         pathinfo: true,
-        filename: 'app.[hash].js'
+        filename: 'app.[hash].js',
     },
 
     module: {
         rules: [
             { test: /\.woff(2)?(\?v=[0-9]\.[0-9]\.[0-9])?$/, loader: "url-loader?limit=10000&mimetype=application/font-woff" },
             { test: /fontawesome-.*\.(ttf|eot|svg)(\?v=[0-9]\.[0-9]\.[0-9])?$/, loader: "file-loader" },
-            {
-                test: /\.ne$/,
-                loader: 'nearley-webpack-loader',
-                options: {
-                    baseDir: '.'
-                }
-            },
             {
                 test: /\.purs$/,
                 use: [
@@ -86,14 +79,11 @@ module.exports = {
                         }
                     }
                 ]
-            }, {
-                test: /\.tsx?$/,
-                loader: "ts-loader"
             },
             {
                 test: /\.css$/,
                 exclude: /node_modules/,
-                use: ['style-loader', 'css-loader', 'postcss-loader']
+                use: [MiniCssExtractPlugin.loader, 'css-loader', 'postcss-loader']
             },
             {
                 test: /\.(gif|png|jpe?g|svg)$/i,
@@ -112,7 +102,6 @@ module.exports = {
         ],
         alias: {
             contracts: path.resolve(__dirname, './contracts'),
-            grammar: path.resolve(__dirname, './grammar.ne'),
             static: path.resolve(__dirname, './static'),
             src: path.resolve(__dirname, './src')
         },
@@ -133,6 +122,9 @@ module.exports = {
             title: 'Marlowe Dashboard',
             productName: 'marlowe-dashboard',
             googleAnalyticsId: isWebpackDevServer ? 'UA-XXXXXXXXX-X' : 'UA-119953429-16'
-        })
+        }),
+        new MiniCssExtractPlugin({
+            filename: "[name].[hash].css",
+        }),
     ].concat(plugins)
 };

@@ -58,3 +58,11 @@ To log in use `aws-mfa-login` which is provided by the top-level shell.nix:
 ```
 $ eval $(aws-mfa-login <username> <mfa-code>)
 ```
+
+The first time you login to AWS using the client it is necessary to create a local profile for `dev-mantis`, this can be done by writing:
+
+```
+$ aws configure --profile "dev-mantis"
+```
+
+See https://stackoverflow.com/questions/34134879/aws-the-config-profile-myname-could-not-be-found.

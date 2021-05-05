@@ -1,5 +1,6 @@
 module API.Contract
   ( activateContract
+  , deactivateContract
   , getContractInstanceClientState
   , invokeEndpoint
   , getWalletContractInstances
@@ -8,7 +9,7 @@ module API.Contract
   ) where
 
 import Prelude
-import API.Request (doPostRequest, doGetRequest)
+import API.Request (doGetRequest, doPostRequest, doPutRequest)
 import API.Url (toUrlPiece)
 import Control.Monad.Error.Class (class MonadError)
 import Effect.Aff.Class (class MonadAff)
@@ -25,6 +26,13 @@ activateContract ::
   MonadAff m =>
   ContractActivationArgs ContractExe -> m ContractInstanceId
 activateContract contractActivationArgs = doPostRequest "/api/new/contract/activate" contractActivationArgs
+
+deactivateContract ::
+  forall m.
+  MonadError AjaxError m =>
+  MonadAff m =>
+  ContractInstanceId -> m Unit
+deactivateContract contractInstanceId = doPutRequest $ "api/new/contract/instance/" <> toUrlPiece contractInstanceId <> "/stop"
 
 getContractInstanceClientState ::
   forall m.

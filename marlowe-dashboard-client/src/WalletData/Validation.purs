@@ -1,9 +1,9 @@
 module WalletData.Validation
   ( WalletNicknameError(..)
-  , ContractInstanceIdError(..)
+  , PlutusAppIdError(..)
   , walletNicknameError
-  , contractInstanceIdError
-  , parseContractInstanceId
+  , plutusAppIdError
+  , parsePlutusAppId
   ) where
 
 import Prelude
@@ -13,8 +13,9 @@ import Data.Map (isEmpty, filter, member)
 import Data.Maybe (Maybe(..))
 import Data.String.CodeUnits (toCharArray)
 import Data.UUID (parseUUID)
+import Marlowe.PAB (PlutusAppId(..))
 import Network.RemoteData (RemoteData(..))
-import Types (ContractInstanceId(..), WebData)
+import Types (WebData)
 import WalletData.Types (WalletInfo, WalletNickname, WalletLibrary)
 
 data WalletNicknameError
@@ -29,21 +30,21 @@ instance showWalletNicknameError :: Show WalletNicknameError where
   show DuplicateWalletNickname = "Nickname is already in use in your contacts"
   show BadWalletNickname = "Nicknames can only contain letters and numbers"
 
-data ContractInstanceIdError
-  = EmptyContractInstanceId
-  | DuplicateContractInstanceId
-  | InvalidContractInstanceId
-  | UnconfirmedContractInstanceId
-  | NonexistentContractInstanceId
+data PlutusAppIdError
+  = EmptyPlutusAppId
+  | DuplicatePlutusAppId
+  | InvalidPlutusAppId
+  | UnconfirmedPlutusAppId
+  | NonexistentPlutusAppId
 
-derive instance eqContractInstanceIdError :: Eq ContractInstanceIdError
+derive instance eqPlutusAppIdError :: Eq PlutusAppIdError
 
-instance showContractInstanceIdError :: Show ContractInstanceIdError where
-  show EmptyContractInstanceId = "Wallet ID cannot be blank"
-  show DuplicateContractInstanceId = "Wallet ID is already in your contacts"
-  show InvalidContractInstanceId = "Wallet ID is not valid"
-  show UnconfirmedContractInstanceId = "Looking up wallet ID..."
-  show NonexistentContractInstanceId = "Wallet ID not found"
+instance showPlutusAppIdError :: Show PlutusAppIdError where
+  show EmptyPlutusAppId = "Wallet ID cannot be blank"
+  show DuplicatePlutusAppId = "Wallet ID is already in your contacts"
+  show InvalidPlutusAppId = "Wallet ID is not valid"
+  show UnconfirmedPlutusAppId = "Looking up wallet ID..."
+  show NonexistentPlutusAppId = "Wallet ID not found"
 
 walletNicknameError :: WalletNickname -> WalletLibrary -> Maybe WalletNicknameError
 walletNicknameError "" _ = Just EmptyWalletNickname
@@ -57,19 +58,19 @@ walletNicknameError walletNickname walletLibrary =
     else
       Nothing
 
-contractInstanceIdError :: String -> WebData WalletInfo -> WalletLibrary -> Maybe ContractInstanceIdError
-contractInstanceIdError "" _ _ = Just EmptyContractInstanceId
+plutusAppIdError :: String -> WebData WalletInfo -> WalletLibrary -> Maybe PlutusAppIdError
+plutusAppIdError "" _ _ = Just EmptyPlutusAppId
 
-contractInstanceIdError contractInstanceIdString remoteDataWalletInfo walletLibrary = case parseContractInstanceId contractInstanceIdString of
-  Nothing -> Just InvalidContractInstanceId
-  Just contractInstanceId
-    | not $ isEmpty $ filter (\walletDetails -> walletDetails.contractInstanceId == contractInstanceId) walletLibrary -> Just DuplicateContractInstanceId
+plutusAppIdError plutusAppIdString remoteDataWalletInfo walletLibrary = case parsePlutusAppId plutusAppIdString of
+  Nothing -> Just InvalidPlutusAppId
+  Just plutusAppId
+    | not $ isEmpty $ filter (\walletDetails -> walletDetails.companionAppId == plutusAppId) walletLibrary -> Just DuplicatePlutusAppId
   _ -> case remoteDataWalletInfo of
     Success _ -> Nothing
-    Failure _ -> Just NonexistentContractInstanceId
-    _ -> Just UnconfirmedContractInstanceId
+    Failure _ -> Just NonexistentPlutusAppId
+    _ -> Just UnconfirmedPlutusAppId
 
-parseContractInstanceId :: String -> Maybe ContractInstanceId
-parseContractInstanceId contractInstanceIdString = case parseUUID contractInstanceIdString of
-  Just uuid -> Just $ ContractInstanceId uuid
+parsePlutusAppId :: String -> Maybe PlutusAppId
+parsePlutusAppId plutusAppIdString = case parseUUID plutusAppIdString of
+  Just uuid -> Just $ PlutusAppId uuid
   Nothing -> Nothing

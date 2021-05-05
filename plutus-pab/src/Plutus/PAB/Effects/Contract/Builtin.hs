@@ -1,3 +1,4 @@
+{-# LANGUAGE AllowAmbiguousTypes #-}
 {-# LANGUAGE ConstraintKinds     #-}
 {-# LANGUAGE DataKinds           #-}
 {-# LANGUAGE DeriveAnyClass      #-}
@@ -29,32 +30,39 @@ module Plutus.PAB.Effects.Contract.Builtin(
     , BlockchainActions
     , Empty
     , endpointsToSchemas
+    , getResponse
     ) where
 
 import           Control.Monad.Freer
-import           Control.Monad.Freer.Error               (Error, throwError)
-import           Data.Aeson                              (FromJSON, ToJSON, Value)
-import qualified Data.Aeson                              as JSON
-import qualified Data.Aeson.Types                        as JSON
+import           Control.Monad.Freer.Error                        (Error, throwError)
+import           Control.Monad.Freer.Extras.Log                   (LogMsg (..), logDebug)
+import           Data.Aeson                                       (FromJSON, ToJSON, Value)
+import qualified Data.Aeson                                       as JSON
+import qualified Data.Aeson.Types                                 as JSON
+import           Data.Foldable                                    (traverse_)
 import           Data.Row
-import qualified Data.Text                               as Text
+import qualified Data.Text                                        as Text
 
-import           Plutus.PAB.Effects.Contract             (ContractEffect (..), PABContract (..))
-import           Plutus.PAB.Events.Contract              (ContractPABRequest)
-import qualified Plutus.PAB.Events.Contract              as C
-import           Plutus.PAB.Events.ContractInstanceState (PartiallyDecodedResponse)
-import qualified Plutus.PAB.Events.ContractInstanceState as C
-import           Plutus.PAB.Types                        (PABError (..))
+import           Plutus.Contract.Types                            (ResumableResult (..), SuspendedContract (..))
+import           Plutus.PAB.Effects.Contract                      (ContractEffect (..), PABContract (..))
+import           Plutus.PAB.Events.Contract                       (ContractPABRequest)
+import qualified Plutus.PAB.Events.Contract                       as C
+import           Plutus.PAB.Events.ContractInstanceState          (PartiallyDecodedResponse)
+import qualified Plutus.PAB.Events.ContractInstanceState          as C
+import           Plutus.PAB.Monitoring.PABLogMsg                  (PABMultiAgentMsg (..))
+import           Plutus.PAB.Types                                 (PABError (..))
 
-import           Playground.Schema                       (endpointsToSchemas)
-import           Playground.Types                        (FunctionSchema)
-import           Plutus.Contract                         (BlockchainActions, Contract)
-import           Plutus.Contract.Resumable               (Response)
-import           Plutus.Contract.Schema                  (Event, Handlers, Input, Output)
-import           Plutus.Contract.State                   (ContractResponse (..))
-import qualified Plutus.Contract.State                   as ContractState
-import qualified Plutus.Trace.Emulator.Types             as Emulator
-import           Schema                                  (FormSchema)
+import           Playground.Schema                                (endpointsToSchemas)
+import           Playground.Types                                 (FunctionSchema)
+import           Plutus.Contract                                  (BlockchainActions, Contract, ContractInstanceId)
+import           Plutus.Contract.Resumable                        (Response)
+import           Plutus.Contract.Schema                           (Event, Handlers, Input, Output)
+import           Plutus.Contract.State                            (ContractResponse (..))
+import qualified Plutus.Contract.State                            as ContractState
+import           Plutus.PAB.Core.ContractInstance.RequestHandlers (ContractInstanceMsg (ContractLog, ProcessFirstInboxMessage))
+import           Plutus.Trace.Emulator.Types                      (ContractInstanceStateInternal (..))
+import qualified Plutus.Trace.Emulator.Types                      as Emulator
+import           Schema                                           (FormSchema)
 
 -- | Contracts that are built into the PAB (ie. compiled with it) and receive
 --   an initial value of type 'a'.
@@ -91,15 +99,17 @@ instance PABContract (Builtin a) where
 --   @a@.
 handleBuiltin ::
     forall a effs.
-    Member (Error PABError) effs
+    ( Member (Error PABError) effs
+    , Member (LogMsg (PABMultiAgentMsg (Builtin a))) effs
+    )
     => (a -> [FunctionSchema FormSchema]) -- ^ The schema (construct with 'endpointsToSchemas'. Can also be an empty list)
     -> (a -> SomeBuiltin) -- ^ The actual contract
     -> ContractEffect (Builtin a)
     ~> Eff effs
 handleBuiltin mkSchema initialise = \case
-    InitialState c           -> case initialise c of SomeBuiltin c' -> initBuiltin c'
-    UpdateContract _ state p -> case state of SomeBuiltinState s -> updateBuiltin s p
-    ExportSchema a           -> pure $ mkSchema a
+    InitialState i c           -> case initialise c of SomeBuiltin c' -> initBuiltin i c'
+    UpdateContract i _ state p -> case state of SomeBuiltinState s -> updateBuiltin i s p
+    ExportSchema a             -> pure $ mkSchema a
 
 getResponse :: forall a. SomeBuiltinState a -> PartiallyDecodedResponse ContractPABRequest
 getResponse (SomeBuiltinState s) =
@@ -110,25 +120,45 @@ getResponse (SomeBuiltinState s) =
 
 initBuiltin ::
     forall effs a w schema error b.
-    ContractConstraints w schema error
-    => Contract w schema error b
+    ( ContractConstraints w schema error
+    , Member (LogMsg (PABMultiAgentMsg (Builtin a))) effs
+    )
+    => ContractInstanceId
+    -> Contract w schema error b
     -> Eff effs (SomeBuiltinState a)
-initBuiltin = pure . SomeBuiltinState . Emulator.emptyInstanceState
+initBuiltin i con = do
+    let initialState = Emulator.emptyInstanceState con
+    logNewMessages @a i initialState
+    pure $ SomeBuiltinState initialState
 
 updateBuiltin ::
     forall effs a w schema error b.
     ( ContractConstraints w schema error
     , Member (Error PABError) effs
+    , Member (LogMsg (PABMultiAgentMsg (Builtin a))) effs
     )
-    => Emulator.ContractInstanceStateInternal w schema error b
+    => ContractInstanceId
+    -> Emulator.ContractInstanceStateInternal w schema error b
     -> Response C.ContractResponse
     -> Eff effs (SomeBuiltinState a)
-updateBuiltin oldState event = do
+updateBuiltin i oldState event = do
     resp <- traverse toEvent event
     let newState = Emulator.addEventInstanceState resp oldState
     case newState of
-        Just k -> pure (SomeBuiltinState k)
+        Just k -> do
+            logDebug @(PABMultiAgentMsg (Builtin a)) (ContractInstanceLog $ ProcessFirstInboxMessage i event)
+            logNewMessages @a i k
+            pure (SomeBuiltinState k)
         _      -> throwError $ ContractCommandError 0 "failed to update contract"
+
+logNewMessages ::
+    forall b w s e a effs.
+    Member (LogMsg (PABMultiAgentMsg (Builtin b))) effs
+    => ContractInstanceId
+    -> ContractInstanceStateInternal w s e a
+    -> Eff effs ()
+logNewMessages i ContractInstanceStateInternal{cisiSuspState=SuspendedContract{_resumableResult=ResumableResult{_lastLogs}}} =
+    traverse_ (send @(LogMsg (PABMultiAgentMsg (Builtin b))) . LMessage . fmap (ContractInstanceLog . ContractLog i)) _lastLogs
 
 toEvent ::
     forall schema effs.
@@ -149,11 +179,12 @@ mkResponse ::
     )
     => ContractResponse w err (Event schema) (Handlers schema)
     -> PartiallyDecodedResponse ContractPABRequest
-mkResponse ContractResponse{newState, hooks, logs, observableState, err} =
+mkResponse ContractResponse{newState, hooks, logs, observableState, err, lastLogs} =
     C.PartiallyDecodedResponse
         { C.newState = fmap JSON.toJSON newState
         , C.hooks    = fmap (fmap (encodeRequest @schema)) hooks
         , C.logs     = logs
+        , C.lastLogs = lastLogs
         , C.observableState = JSON.toJSON observableState
         , C.err = fmap JSON.toJSON err
         }

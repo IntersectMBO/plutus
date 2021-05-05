@@ -33,7 +33,9 @@ You can also use a normal Haskell development environment on your computer to wr
    :caption: Explore Plutus
    :maxdepth: 2
 
+   plutus/explanations/index
    plutus/tutorials/index
+   plutus/troubleshooting
 
 .. toctree::
    :caption: Explore Marlowe

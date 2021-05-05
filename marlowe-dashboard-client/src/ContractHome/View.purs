@@ -1,7 +1,7 @@
 module ContractHome.View where
 
 import Prelude hiding (div)
-import Contract.Lenses (_contractInstanceId, _executionState, _metadata)
+import Contract.Lenses (_followerAppId, _executionState, _metadata)
 import Contract.State (currentStep, isContractClosed)
 import Contract.Types (State) as Contract
 import ContractHome.Lenses (_status)
@@ -14,12 +14,12 @@ import Data.Lens ((^.))
 import Data.Maybe (maybe')
 import Halogen.HTML (HTML, a, div, h2, p_, span, text)
 import Halogen.HTML.Events.Extra (onClick_)
+import Humanize (humanizeDuration)
 import Marlowe.Execution (_mNextTimeout)
 import Marlowe.Extended (contractTypeName, contractTypeInitials)
 import Marlowe.Semantics (Slot)
 import Marlowe.Slot (secondsDiff)
 import Material.Icons (Icon(..), icon_)
-import TimeHelpers (humanizeDuration)
 
 contractsScreen :: forall p. Slot -> State -> HTML p Action
 contractsScreen currentSlot state =
@@ -35,7 +35,7 @@ contractsScreen currentSlot state =
     contracts = partitionContracts state.contracts
 
     viewSelector =
-      div [ classNames [ "flex", "my-4", "justify-between", "sm:justify-center", "px-4" ] ]
+      div [ classNames [ "flex", "my-4", "justify-center", "px-4" ] ]
         [ a
             [ classNames $ (selectorButton $ state ^. _status == Running) <> [ "mr-4" ]
             , onClick_ $ SelectView Running
@@ -97,7 +97,7 @@ contractCard currentSlot contractState =
 
     mNextTimeout = contractState ^. (_executionState <<< _mNextTimeout)
 
-    contractId = contractState ^. _contractInstanceId
+    contractInstanceId = contractState ^. _followerAppId
 
     timeoutStr =
       maybe'
@@ -109,7 +109,7 @@ contractCard currentSlot contractState =
       -- NOTE: The overflow hidden helps fix a visual bug in which the background color eats away the border-radius
       [ classNames
           [ "cursor-pointer", "shadow", "bg-white", "rounded", "overflow-hidden" ]
-      , onClick_ $ OpenContract contractId
+      , onClick_ $ OpenContract contractInstanceId
       ]
       [ div [ classNames [ "flex", "px-4", "pt-4" ] ]
           [ span [ classNames [ "text-xl", "font-semibold" ] ] [ text contractAcronym ]

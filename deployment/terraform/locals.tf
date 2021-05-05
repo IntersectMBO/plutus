@@ -8,11 +8,9 @@ locals {
   marlowe_domain_name      = "${var.marlowe_full_domain != "" ? var.marlowe_full_domain : "${var.env}.${var.marlowe_tld}"}"
   plutus_domain_name       = "${var.plutus_full_domain != "" ? var.plutus_full_domain : "${var.env}.${var.plutus_tld}"}"
   marlowe_dash_domain_name = "${var.env}.${var.marlowe_dash_tld}"
-  monitoring_domain_name   = "${var.monitoring_full_domain != "" ? var.monitoring_full_domain : "${var.env}.${var.monitoring_tld}"}"
+  marlowe_web_domain_name  = "${var.env}.${var.marlowe_web_tld}"
 
-  prometheus_port         = 9090
-  node_exporter_port      = 9100
-  webghc_exporter_port    = 9091
+  marlowe_web_port        = 8181
   plutus_playground_port  = 8080
   marlowe_playground_port = 9080
   pab_port                = 9080
@@ -27,11 +25,11 @@ locals {
     dimitar     = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC/GZjyhqoOMCbCEANAqpXOzVZsKnnAXkaZQICSSibk2AZxokgplHi9CpAX63M5fRhxy8YfA5v7iOUTYt8OYQEYm1EFlPWkf9CtUWIKp89uT5618SC6vbrFDY5qHXrgZRPSoyhO0/XNQSiGB34JwBQ5rvD1SAXSnoCNT6SvbgNuJfcCRVrIPdn60qmwNfyJmrHDyqbyENhDlYBdrBgncpki0SW51pJ0Q4OwC+686Mjo0I3IJcw9BHIrNoCxc84vR6o4IhjdSOs8lDej5iBccYQ833jI/EAnbhVbTKphPUzbnAeQnPcKV9DH/uv6J0c2jKcMXsSTSGsb2cLLt4xUy9I5 dimitar@dimitar-HP-ProBook-450-G4"
   }
 
-  # Anyone who wants ssh access to a machine needs ssh access to the bastion hosts (i.e. both root and monitoring users should be in here)
+  # Anyone who wants ssh access to a machine needs ssh access to the bastion hosts
   bastion_ssh_keys_ks = {
     alpha      = ["pablo", "tobias", "ci-deployer"]
     pablo      = ["pablo"]
-    prod       = ["tobias"]
+    production = ["tobias", "ci-deployer"]
     playground = ["tobias"]
     testing    = ["pablo", "tobias", "bozhidar", "dimitar"]
     hernan     = ["hernan"]
@@ -39,24 +37,11 @@ locals {
   }
   bastion_ssh_keys = [for k in local.bastion_ssh_keys_ks[var.env] : local.ssh_keys[k]]
 
-  # There is a special user with limited permissions that can log on to machines to view logs etc
-  monitoring_ssh_keys_ks = {
-    alpha      = ["pablo"]
-    pablo      = ["pablo"]
-    prod       = []
-    playground = []
-    testing    = ["pablo", "tobias", "bozhidar", "dimitar"]
-    hernan     = ["hernan"]
-    tobias     = ["tobias"]
-  }
-  monitoring_ssh_keys = [for k in local.monitoring_ssh_keys_ks[var.env] : local.ssh_keys[k]]
-
   # root users are able to deploy to the machines using morph
   root_ssh_keys_ks = {
     alpha      = ["pablo", "tobias", "ci-deployer"]
     pablo      = ["pablo"]
-    prod       = []
-    playground = []
+    production = ["tobias", "ci-deployer"]
     testing    = ["pablo", "tobias", "bozhidar", "dimitar"]
     hernan     = ["hernan"]
     tobias     = ["tobias", "ci-deployer"]

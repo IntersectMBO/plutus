@@ -277,7 +277,8 @@ waitForChange AuctionParams{apEndTime} client lastHighestBid = do
                                            -- I don't have the time to look into that atm though :(
             AddressChangeResponse{acrTxns} <- addressChangeRequest
                 AddressChangeRequest
-                { acreqSlotRange = Interval.singleton targetSlot
+                { acreqSlotRangeFrom = targetSlot
+                , acreqSlotRangeTo = targetSlot
                 , acreqAddress = address
                 }
             case acrTxns of

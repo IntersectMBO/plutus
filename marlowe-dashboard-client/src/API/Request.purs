@@ -1,6 +1,7 @@
 module API.Request
   ( doPostRequest
   , doEmptyPostRequest
+  , doPutRequest
   , doGetRequest
   ) where
 
@@ -44,6 +45,20 @@ doEmptyPostRequest url =
   perform
     $ defaultRequest
         { method = fromString "POST"
+        , url = url
+        , headers = defaultRequest.headers
+        }
+
+doPutRequest ::
+  forall m d.
+  MonadError AjaxError m =>
+  MonadAff m =>
+  Decode d =>
+  String -> m d
+doPutRequest url =
+  perform
+    $ defaultRequest
+        { method = fromString "PUT"
         , url = url
         , headers = defaultRequest.headers
         }

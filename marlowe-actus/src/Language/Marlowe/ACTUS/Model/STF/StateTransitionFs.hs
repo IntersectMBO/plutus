@@ -7,7 +7,8 @@ import           Data.Time                                              (Day)
 import           Language.Marlowe.ACTUS.Definitions.BusinessEvents      (EventType (..))
 
 import           Data.Maybe                                             (fromJust, fromMaybe)
-import           Language.Marlowe.ACTUS.Definitions.ContractTerms       (ContractTerms (..), ContractType (LAM, PAM))
+import           Language.Marlowe.ACTUS.Definitions.ContractTerms       (ContractTerms (..),
+                                                                         ContractType (LAM, NAM, PAM))
 import           Language.Marlowe.ACTUS.Definitions.Schedule            (ShiftedDay (calculationDay))
 import           Language.Marlowe.ACTUS.Model.SCHED.ContractSchedule    (schedule)
 import           Language.Marlowe.ACTUS.Model.STF.StateTransitionModel
@@ -50,10 +51,10 @@ stateTransitionFs ev terms@ContractTerms{..} t prevDate curDate continue =
         fpSchedule         = schedule FP terms
         tfp_minus          = fromMaybe curDate $ calculationDay <$> ((\sc -> sup sc curDate) =<< fpSchedule)
         tfp_plus           = fromMaybe curDate $ calculationDay <$> ((\sc -> inf sc curDate) =<< fpSchedule)
-        y_tfpminus_t       = constnt $ _y ct_DCC tfp_minus curDate (fromJust ct_MD)
-        y_tfpminus_tfpplus = constnt $ _y ct_DCC tfp_minus tfp_plus (fromJust ct_MD)
-        y_ipanx_t          = constnt $ _y ct_DCC (fromJust ct_IPANX) curDate (fromJust ct_MD)
-        y_sd_t             = constnt $ _y ct_DCC prevDate curDate (fromJust ct_MD)
+        y_tfpminus_t       = constnt $ _y ct_DCC tfp_minus curDate ct_MD
+        y_tfpminus_tfpplus = constnt $ _y ct_DCC tfp_minus tfp_plus ct_MD
+        y_ipanx_t          = constnt $ _y ct_DCC (fromJust ct_IPANX) curDate ct_MD
+        y_sd_t             = constnt $ _y ct_DCC prevDate curDate ct_MD
 
         addComment cont    = case ev of
             IED -> letval "IED" t (constnt 0) cont
@@ -101,4 +102,23 @@ stateTransitionFs ev terms@ContractTerms{..} t prevDate curDate continue =
                     SC   -> _STF_SC_LAM st time y_sd_t y_tfpminus_t y_tfpminus_tfpplus __FEB __FER ct_CNTRL ct_SCEF __o_rf_SCMO __SCIED
                     CE   -> _STF_CE_LAM st time y_sd_t
                     _    -> st
-
+        NAM ->
+            addComment $ stateTransitionMarlowe ev t continue $ \event st ->
+                case event of
+                    AD   -> _STF_AD_NAM st time y_sd_t
+                    IED  -> _STF_IED_NAM st time y_ipanx_t __IPNR __IPANX ct_CNTRL __IPAC __NT __IPCB __IPCBA
+                    PR   -> _STF_PR_NAM st time __pp_payoff y_sd_t y_tfpminus_t y_tfpminus_tfpplus __FEB __FER ct_CNTRL __IPCB
+                    MD   -> _STF_MD_NAM st time
+                    PP   -> _STF_PP_NAM st time __pp_payoff y_sd_t y_tfpminus_t y_tfpminus_tfpplus __FEB __FER ct_CNTRL __IPCB
+                    PY   -> _STF_PY_NAM st time y_sd_t y_tfpminus_t y_tfpminus_tfpplus __FEB __FER ct_CNTRL
+                    FP   -> _STF_FP_NAM st time y_sd_t
+                    PRD  -> _STF_PRD_NAM st time y_sd_t y_tfpminus_t y_tfpminus_tfpplus __FEB __FER ct_CNTRL
+                    TD   -> _STF_TD_NAM st time
+                    IP   -> _STF_IP_NAM st time y_sd_t y_tfpminus_t y_tfpminus_tfpplus __FEB __FER ct_CNTRL
+                    IPCI -> _STF_IPCI_NAM st time y_sd_t y_tfpminus_t y_tfpminus_tfpplus __FEB __FER ct_CNTRL __IPCB
+                    IPCB -> _STF_IPCB_NAM st time y_sd_t y_tfpminus_t y_tfpminus_tfpplus __FEB __FER ct_CNTRL
+                    RR   -> _STF_RR_NAM st time y_sd_t y_tfpminus_t y_tfpminus_tfpplus __FEB __FER ct_CNTRL __RRLF __RRLC __RRPC __RRPF __RRMLT __RRSP __o_rf_RRMO
+                    RRF  -> _STF_RRF_NAM st time y_sd_t y_tfpminus_t y_tfpminus_tfpplus __FEB __FER ct_CNTRL __RRNXT
+                    SC   -> _STF_SC_NAM st time y_sd_t y_tfpminus_t y_tfpminus_tfpplus __FEB __FER ct_CNTRL ct_SCEF __o_rf_SCMO __SCIED
+                    CE   -> _STF_AD_NAM st time y_sd_t
+                    _    -> st

@@ -7,9 +7,9 @@ import           Data.Maybe                                                 (fro
 import           Language.Marlowe.ACTUS.Definitions.BusinessEvents          (EventType (FP, IED, IP, IPCB, IPCI, MD, PP, PR, PRD, PY, RR, RRF, SC, TD))
 import           Language.Marlowe.ACTUS.Definitions.ContractState           (ContractStatePoly (tmd))
 import           Language.Marlowe.ACTUS.Definitions.ContractTerms           (ContractTerms (..),
-                                                                             ContractType (LAM, PAM))
+                                                                             ContractType (LAM, NAM, PAM))
 import           Language.Marlowe.ACTUS.Definitions.Schedule                (ShiftedDay (calculationDay))
-import           Language.Marlowe.ACTUS.Model.INIT.StateInitializationModel (_INIT_LAM)
+import           Language.Marlowe.ACTUS.Model.INIT.StateInitializationModel (_INIT_LAM, _INIT_NAM)
 import           Language.Marlowe.ACTUS.Model.SCHED.ContractScheduleModel
 import           Language.Marlowe.ACTUS.Model.Utility.ScheduleGenerator     (inf, sup)
 
@@ -59,4 +59,32 @@ schedule ev ct@ContractTerms {..} = case fromJust contractType of
         RRF  -> _SCHED_RRF_LAM scfg ct_IED ct_RRANX ct_RRCL _tmd
         SC   -> _SCHED_SC_LAM scfg ct_IED ct_SCEF ct_SCANX ct_SCCL _tmd
         _    -> Nothing
-
+    NAM ->
+      -- Same as LAM - need to calculate Tmd0
+      -- TODO: refactor for LAM and NAM
+      let
+        t0                 = ct_SD
+        fpSchedule         = schedule FP ct
+        tfp_minus          = fromMaybe t0 $ calculationDay <$> ((\sc -> sup sc t0) =<< fpSchedule)
+        tfp_plus           = fromMaybe t0 $ calculationDay <$> ((\sc -> inf sc t0) =<< fpSchedule)
+        ipSchedule         = schedule IP ct
+        tminus             = fromMaybe t0 $ calculationDay <$> ((\sc -> sup sc t0) =<< ipSchedule)
+        prSchedule         = schedule PR ct
+        tpr_minus          = fromMaybe t0 $ calculationDay <$> ((\sc -> sup sc t0) =<< prSchedule)
+        _tmd = tmd $ _INIT_NAM ct_SD tminus tpr_minus tfp_minus tfp_plus ct_MD ct_IED ct_IPNR ct_CNTRL (fromJust ct_NT) ct_IPAC ct_DCC (Just ct_FER) ct_FEAC ct_FEB ct_SCEF ct_SCIXSD ct_PRF ct_PRCL ct_PRANX ct_PRNXT ct_IPCB ct_IPCBA
+      in case ev of
+        IED  -> _SCHED_IED_NAM scfg ct_IED
+        PR   -> _SCHED_PR_NAM scfg ct_PRCL ct_IED ct_PRANX _tmd
+        MD   -> _SCHED_MD_NAM scfg _tmd
+        PP   -> _SCHED_PP_NAM scfg ct_PREF ct_OPCL ct_IED ct_OPANX _tmd
+        PY   -> _SCHED_PY_NAM scfg ct_PYTP ct_PREF ct_OPCL ct_IED ct_OPANX _tmd
+        FP   -> _SCHED_FP_NAM scfg ct_FER ct_FECL ct_IED ct_FEANX _tmd
+        PRD  -> _SCHED_PRD_NAM scfg (fromJust ct_PRD)
+        TD   -> _SCHED_TD_NAM scfg (fromJust ct_TD)
+        IP   -> _SCHED_IP_NAM scfg ct_IED ct_PRCL ct_PRANX ct_IPCED ct_IPANX ct_IPCL _tmd
+        IPCI -> _SCHED_IPCI_NAM scfg ct_IED ct_IPANX ct_IPCL ct_IPCED
+        IPCB -> _SCHED_IPCB_NAM scfg ct_IED ct_IPCB ct_IPCBCL ct_IPCBANX _tmd
+        RR   -> _SCHED_RR_NAM scfg ct_IED ct_SD ct_RRANX ct_RRCL ct_RRNXT _tmd
+        RRF  -> _SCHED_RRF_NAM scfg ct_IED ct_RRANX ct_RRCL _tmd
+        SC   -> _SCHED_SC_NAM scfg ct_IED ct_SCEF ct_SCANX ct_SCCL _tmd
+        _    -> Nothing

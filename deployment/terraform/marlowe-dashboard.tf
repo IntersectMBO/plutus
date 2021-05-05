@@ -19,14 +19,6 @@ resource "aws_security_group" "marlowe_dash" {
     cidr_blocks = concat(var.public_subnet_cidrs, var.private_subnet_cidrs)
   }
 
-  # prometheus node exporter
-  ingress {
-    from_port   = local.node_exporter_port
-    to_port     = local.node_exporter_port
-    protocol    = "TCP"
-    cidr_blocks = var.private_subnet_cidrs
-  }
-
   ## outgoing: all
   egress {
     from_port   = 0
@@ -78,34 +70,4 @@ resource "aws_route53_record" "marlowe_dash_internal_a" {
   name    = "marlowe-dash-a.${aws_route53_zone.plutus_private_zone.name}"
   ttl     = 300
   records = [aws_instance.marlowe_dash_a.private_ip]
-}
-
-resource "aws_instance" "marlowe_dash_b" {
-  ami = module.nixos_image.ami
-
-  instance_type = var.marlowe_dash_instance_type
-  subnet_id     = aws_subnet.private.*.id[1]
-  user_data     = data.template_file.marlowe_dash_user_data.rendered
-
-  vpc_security_group_ids = [
-    aws_security_group.marlowe_dash.id,
-  ]
-
-  root_block_device {
-    volume_size = "20"
-  }
-
-  tags = {
-    Name        = "${local.project}_${var.env}_marlowe_dash_b"
-    Project     = local.project
-    Environment = var.env
-  }
-}
-
-resource "aws_route53_record" "marlowe_dash_internal_b" {
-  zone_id = aws_route53_zone.plutus_private_zone.zone_id
-  type    = "A"
-  name    = "marlowe-dash-b.${aws_route53_zone.plutus_private_zone.name}"
-  ttl     = 300
-  records = [aws_instance.marlowe_dash_b.private_ip]
 }

@@ -5,7 +5,7 @@ let
     FRONTEND_URL="http://localhost:8080"
     GITHUB_CALLBACK_PATH="/#/gh-oauth-cb"
     GITHUB_CLIENT_ID="314123123a312fe"
-    GITHUB_CLIENT_SECRET=kljfks234dskjhfeskjr"
+    GITHUB_CLIENT_SECRET="kljfks234dskjhfeskjr"
   '';
 in
 makeTest {

@@ -117,7 +117,7 @@ data ScheduleConfig = ScheduleConfig
   }   deriving stock (Show, Generic)
   deriving anyclass (FromJSON, ToJSON)
 
-data ContractType = PAM | LAM   deriving stock (Show, Eq, Generic) deriving anyclass (FromJSON, ToJSON)
+data ContractType = PAM | LAM | NAM  deriving stock (Show, Eq, Generic) deriving anyclass (FromJSON, ToJSON)
 
 
 data Assertions = Assertions
@@ -147,7 +147,7 @@ data ContractTerms = ContractTerms {
   contractId         :: String
   , contractType     :: Maybe ContractType
   , ct_IED           :: Day -- Initial Exchange Date
-  , ct_SD            :: Day -- start date
+  , ct_SD            :: Day -- status date
   , ct_MD            :: Maybe Day -- maturity date
   , ct_TD            :: Maybe Day -- termination date
   , ct_PRNXT         :: Maybe Double -- periodic payment amount
@@ -177,7 +177,7 @@ data ContractTerms = ContractTerms {
   -- Rate Reset
   , ct_RRCL          :: Maybe Cycle
   , ct_RRANX         :: Maybe Day
-  , ct_RRNXT         :: Maybe Double -- next reset date
+  , ct_RRNXT         :: Maybe Double -- next reset rate
   , ct_RRSP          :: Double
   , ct_RRMLT         :: Double
   , ct_RRPF          :: Double

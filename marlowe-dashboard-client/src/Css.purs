@@ -20,6 +20,7 @@ module Css
   , largeCard
   , iconCircle
   , fixedBottomRight
+  , funds
   ) where
 
 import Prelude
@@ -35,10 +36,10 @@ toggleWhen :: Boolean -> Array String -> Array String -> Array String
 toggleWhen condition classes1 classes2 = if condition then classes1 else classes2
 
 applyWhen :: Boolean -> Array String -> Array String
-applyWhen condition classes = if condition then classes else []
+applyWhen condition classes = toggleWhen condition classes []
 
 hideWhen :: Boolean -> Array String
-hideWhen condition = applyWhen condition [ "hidden" ]
+hideWhen = flip applyWhen [ "hidden" ]
 
 --- color gradients
 bgBlueGradient :: Array String
@@ -98,3 +99,6 @@ iconCircle enabled = [ "inline-flex", "items-center", "justify-center", "w-8", "
 
 fixedBottomRight :: Array String
 fixedBottomRight = [ "absolute", "bottom-4", "right-4", "md:right-5pc" ]
+
+funds :: Array String
+funds = [ "text-2xl", "text-purple", "font-semibold" ]

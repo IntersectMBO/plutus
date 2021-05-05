@@ -75,10 +75,10 @@ data AppEnv =
         , chainIndexEnv   :: ClientEnv
         , clientHandler   :: Client.ClientHandler
         , appConfig       :: Config
-        , appTrace        :: Trace IO PABLogMsg
+        , appTrace        :: Trace IO (PABLogMsg ContractExe)
         }
 
-appEffectHandlers :: Config -> Trace IO PABLogMsg -> EffectHandlers ContractExe AppEnv
+appEffectHandlers :: Config -> Trace IO (PABLogMsg ContractExe) -> EffectHandlers ContractExe AppEnv
 appEffectHandlers config trace =
     EffectHandlers
         { initialiseEnvironment = do
@@ -100,7 +100,7 @@ appEffectHandlers config trace =
 
         , handleContractEffect =
             interpret (handleLogMsgTrace trace)
-            . reinterpret (mapLog SContractExeLogMsg)
+            . reinterpret (mapLog @_ @(PABLogMsg ContractExe) SContractExeLogMsg)
             . reinterpret (handleContractEffectContractExe @IO)
 
         , handleContractDefinitionStoreEffect =
@@ -139,7 +139,7 @@ appEffectHandlers config trace =
 
 runApp ::
     forall a.
-    Trace IO PABLogMsg -- ^ Top-level tracer
+    Trace IO (PABLogMsg ContractExe) -- ^ Top-level tracer
     -> Config -- ^ Client configuration
     -> App a -- ^ Action
     -> IO (Either PABError a)
@@ -147,7 +147,7 @@ runApp trace config@Config{endpointTimeout} = Core.runPAB (Timeout endpointTimeo
 
 type App a = PABAction ContractExe AppEnv a
 
-mkEnv :: Trace IO PABLogMsg -> Config -> IO AppEnv
+mkEnv :: Trace IO (PABLogMsg ContractExe) -> Config -> IO AppEnv
 mkEnv appTrace appConfig@Config { dbConfig
              , nodeServerConfig =  MockServerConfig{mscBaseUrl, mscSocketPath, mscSlotConfig}
              , walletServerConfig
@@ -167,7 +167,7 @@ mkEnv appTrace appConfig@Config { dbConfig
         tlsManagerSettings {managerModifyRequest = pure . setRequestIgnoreStatus}
 
 -- | Initialize/update the database to hold events.
-migrate :: Trace IO PABLogMsg -> DbConfig -> IO ()
+migrate :: Trace IO (PABLogMsg ContractExe) -> DbConfig -> IO ()
 migrate trace config = do
     Connection (sqlConfig, connectionPool) <- dbConnect trace config
     flip runTraceLoggerT (convertLog SLoggerBridge trace) $ do
@@ -178,7 +178,7 @@ migrate trace config = do
 ------------------------------------------------------------
 -- | Create a database 'Connection' containing the connection pool
 -- plus some configuration information.
-dbConnect :: Trace IO PABLogMsg -> DbConfig -> IO EventLog.Connection
+dbConnect :: Trace IO (PABLogMsg ContractExe) -> DbConfig -> IO EventLog.Connection
 dbConnect trace DbConfig {dbConfigFile, dbConfigPoolSize} =
     flip runTraceLoggerT (convertLog SLoggerBridge trace) $ do
         let connectionInfo = mkSqliteConnectionInfo dbConfigFile

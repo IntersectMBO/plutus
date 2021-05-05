@@ -503,11 +503,12 @@ toDefinition blockType@(PartyType PKPartyType) =
         { type: show PKPartyType
         , message0: "Public Key %1"
         , args0:
-            [ Input { name: "pubkey", text: "pubkey", spellcheck: false }
+            [ Input { name: "pubkey", text: "0000000000000000000000000000000000000000000000000000000000000000", spellcheck: false }
             ]
         , colour: blockColour blockType
         , output: Just "party"
         , inputsInline: Just true
+        , extensions: [ "hash_validator" ]
         }
         defaultBlockDefinition
 
@@ -537,6 +538,7 @@ toDefinition blockType@(TokenType CustomTokenType) =
         , colour: blockColour blockType
         , output: Just "token"
         , inputsInline: Just true
+        , extensions: [ "hash_validator" ]
         }
         defaultBlockDefinition
 

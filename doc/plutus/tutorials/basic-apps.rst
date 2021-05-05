@@ -66,7 +66,7 @@ The validator looks at the ``ValidatorCtx`` value to see if the conditions for m
    :start-after: BLOCK2
    :end-before: BLOCK3
 
-The validator checks that the transaction, represented by ``valCtxTxInfo``, pays half the specified amount to each recipient.
+The validator checks that the transaction, represented by ``scriptContextTxInfo``, pays half the specified amount to each recipient.
 
 You then need some boilerplate to compile the validator to a Plutus script (see :ref:`basic_validators_tutorial`).
 

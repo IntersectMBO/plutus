@@ -43,7 +43,6 @@ import qualified Data.Map                                 as Map
 import           Data.Monoid                              (Alt (..), Ap (..))
 import           Data.Text                                (Text)
 import qualified Ledger.AddressMap                        as AM
-import           Ledger.Interval
 
 import           Plutus.Contract.Resumable                (Request (..), Response (..))
 
@@ -61,7 +60,8 @@ import           Wallet.Effects                           (ChainIndexEffect, Con
 import qualified Wallet.Effects
 import           Wallet.Emulator.LogMessages              (RequestHandlerLogMsg (..), TxBalanceMsg)
 import           Wallet.Types                             (AddressChangeRequest (..), AddressChangeResponse,
-                                                           ContractInstanceId, Notification, NotificationError)
+                                                           ContractInstanceId, Notification, NotificationError,
+                                                           slotRange, targetSlot)
 
 
 -- | Request handlers that can choose whether to handle an effect (using
@@ -120,11 +120,11 @@ handleSlotNotifications ::
     )
     => RequestHandler effs Slot Slot
 handleSlotNotifications =
-    RequestHandler $ \targetSlot ->
+    RequestHandler $ \targetSlot_ ->
         surroundDebug @Text "handleSlotNotifications" $ do
             currentSlot <- Wallet.Effects.walletSlot
-            logDebug $ SlotNoficationTargetVsCurrent targetSlot currentSlot
-            guard (currentSlot >= targetSlot)
+            logDebug $ SlotNoficationTargetVsCurrent targetSlot_ currentSlot
+            guard (currentSlot >= targetSlot_)
             pure currentSlot
 
 handlePendingTransactions ::
@@ -184,10 +184,8 @@ handleAddressChangedAtQueries ::
 handleAddressChangedAtQueries = RequestHandler $ \req ->
     surroundDebug @Text "handleAddressChangedAtQueries" $ do
         current <- Wallet.Effects.walletSlot
-        let target = case acreqSlotRange req of
-                Interval _ (UpperBound (Finite s) in2) -> if in2 then succ s else s
-                Interval _ _                           -> pred current
-        logDebug $ HandleAddressChangedAt current (acreqSlotRange req)
+        let target = targetSlot req
+        logDebug $ HandleAddressChangedAt current (slotRange req)
         -- If we ask the chain index for transactions that were confirmed in
         -- the current slot, we always get an empty list, because the chain
         -- index only learns about those transactions at the beginning of the

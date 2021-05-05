@@ -14,15 +14,15 @@ import Data.Map (Map)
 import Data.Map as Map
 import Data.Maybe (Maybe(..))
 import Data.Symbol (SProxy(..))
-import Types (ContractInstanceId)
+import Marlowe.PAB (PlutusAppId)
 
 _status :: Lens' State ContractStatus
 _status = prop (SProxy :: SProxy "status")
 
-_contracts :: Lens' State (Map ContractInstanceId Contract.State)
+_contracts :: Lens' State (Map PlutusAppId Contract.State)
 _contracts = prop (SProxy :: SProxy "contracts")
 
-_selectedContractIndex :: Lens' State (Maybe ContractInstanceId)
+_selectedContractIndex :: Lens' State (Maybe PlutusAppId)
 _selectedContractIndex = prop (SProxy :: SProxy "selectedContractIndex")
 
 -- This traversal focus on a specific contract indexed by another property of the state

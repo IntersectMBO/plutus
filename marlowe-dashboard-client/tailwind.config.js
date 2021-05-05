@@ -1,7 +1,11 @@
 "use strict";
 
 module.exports = {
-  purge: [],
+  purge: [
+    "src/**/*.purs",
+    "web-common/**/*.purs",
+    "web-common-marlowe/**/*.purs"
+  ],
   darkMode: false, // or 'media' or 'class'
   theme: {
     colors: {
@@ -80,6 +84,9 @@ module.exports = {
         md: "640px",
         lg: "768px",
         "contract-card": "264px",
+        /* This width is used by a padding element in both sides of the carousel and is enough
+           to push the first and last card to the center */
+        "carousel-padding-element": "calc(50% - 264px / 2)",
       },
       height: {
         "contract-card": "467px",
@@ -226,7 +233,7 @@ module.exports = {
     translate: true,
     skew: false,
     transitionProperty: true,
-    transitionTimingFunction: false,
+    transitionTimingFunction: true,
     transitionDuration: true,
     transitionDelay: false,
     animation: true,
