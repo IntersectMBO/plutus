@@ -198,4 +198,6 @@ exports.updateToolbox_ = function (toolboxJson, workspace) {
   workspace.updateToolbox(toolboxJson);
 }
 
-
+exports.clearUndoStack_ = function (workspace) {
+  workspace.clearUndo();
+}

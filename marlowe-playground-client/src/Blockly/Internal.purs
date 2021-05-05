@@ -116,6 +116,8 @@ foreign import getBlockType_ :: EffectFn1 Block String
 
 foreign import updateToolbox_ :: EffectFn2 Json Workspace Unit
 
+foreign import clearUndoStack_ :: EffectFn1 Workspace Unit
+
 newtype ElementId
   = ElementId String
 
@@ -216,6 +218,9 @@ getBlockType = runEffectFn1 getBlockType_
 
 updateToolbox :: Toolbox -> Workspace -> Effect Unit
 updateToolbox toolbox = runEffectFn2 updateToolbox_ (encodeToolbox toolbox)
+
+clearUndoStack :: Workspace -> Effect Unit
+clearUndoStack = runEffectFn1 clearUndoStack_
 
 data Pair
   = Pair String String

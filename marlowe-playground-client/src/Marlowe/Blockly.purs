@@ -3,7 +3,7 @@ module Marlowe.Blockly where
 import Prelude
 import Blockly.Dom as BDom
 import Blockly.Generator (Connection, Input, NewBlockFunction, clearWorkspace, connect, connectToOutput, connectToPrevious, fieldName, fieldRow, getInputWithName, inputList, inputName, inputType, nextConnection, previousConnection, setFieldText)
-import Blockly.Internal (AlignDirection(..), Arg(..), BlockDefinition(..), Pair(..), defaultBlockDefinition, getBlockById, initializeWorkspace, render, typedArguments)
+import Blockly.Internal (AlignDirection(..), Arg(..), BlockDefinition(..), Pair(..), clearUndoStack, defaultBlockDefinition, getBlockById, initializeWorkspace, render, typedArguments)
 import Blockly.Toolbox (Category, Toolbox(..), category, leaf, rename, separator)
 import Blockly.Types (Block, BlocklyState, Workspace)
 import Control.Monad.Error.Class (catchError)
@@ -1452,6 +1452,7 @@ buildBlocks newBlock bs contract = do
   for_ mInput \input -> do
     toBlockly newBlock bs.workspace input contract
     render bs.workspace
+  clearUndoStack bs.workspace
 
 setField :: Block -> String -> String -> Effect Unit
 setField block name value = do
