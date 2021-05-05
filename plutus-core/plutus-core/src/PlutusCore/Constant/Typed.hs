@@ -138,7 +138,7 @@ the PLC AST representing some value.
 
 E.g. Having a built-in function with the following signature:
 
-    reverse : all a. list a -> list a
+    reverse : all a. [a] -> [a]
 
 that maps to Haskell's
 
@@ -225,10 +225,6 @@ and/or type classes is a way of solving the expression problem for indexed data 
 level, if you are into these things.
 -}
 
-{- Note [Representable polymorphic built-in functions]
-
--}
-
 {- Note [Pattern matching on built-in types]
 At the moment we really only support direct pattern matching on enumeration types: 'Void', 'Unit',
 'Bool' etc. This is because the denotation of a builtin cannot construct general terms (as opposed
@@ -267,6 +263,71 @@ On the bright side, this encoding of pattern matchers does work, so maybe it's i
 prioritize performance over convenience, especially given the fact that performance is of a concern
 to every single end user while the inconvenience is only a concern for the compiler writers and
 we don't add complex built-in types too often.
+-}
+
+{- Note [Representable built-in functions over polymorphic built-in types]
+In Note [Pattern matching on built-in types] we talked how general higher-order polymorphic
+built-in functions are troubling, but polymorphic built-in functions can be troubling even in
+the first-order case. In a Plutus program we always pair constant of built-in types with their
+tags from the universe, which means that in order to produce a constant embedded into a program
+we need the tag of the type of that constant. We can't get that tag from a Plutus type -- those
+are gone at runtime, so the only place we can get a type tag from during evaluation is some already
+existing constant. I.e. the following built-in function is representable:
+
+    tail : all a. [a] -> [a]
+
+because for constructing the result we need a type tag for @[a]@, but we have a value of that type
+as an argument and so we can extract the type tag from it. Same applies to
+
+    swap : all a b. (a, b) -> (b, a)
+
+since 'SomeValueN' always contains a type tag for each type that a polymorphic built-in type is
+instantiated with and so constructing a type tag for @(b, a)@ given type tags for @a@ and @b@ is
+unproblematic.
+
+And so neither
+
+    cons : all a. a -> [a] -> [a]
+
+is troubling.
+
+However consider the following imaginary builtin:
+
+    nil : all a. [a]
+
+we can't represent it for two reasons:
+
+1. we don't have any argument providing us a type tag for @a@ and hence we can't construct a type
+   tag for @[a]@
+2. it would be a very unsound builtin to have. We can only instantiate built-in types with other
+   built-in types and so allowing @nil {some_non_built_in_type}@ would be a lie that couldn't reduce
+   to anything since it's not even possible to represent a built-in list with non-built-in elements
+   (even if there's zero of them)
+
+"Wait, but wouldn't @cons {some_non_built_in_type}@ be a lie as well?" -- No! Since @cons@ does not
+just construct a list but also expects one as an argument and providing such an argument is
+impossible, 'cause it's pretty much the same thing as populating 'Void' -- both values are equally
+unrepresentable. And so @cons {some_non_built_in_type}@ is a way to say @absurd@, which is perfectly
+fine to have.
+
+So could we still get @nil@ somehow? Well, we could have this weirdness:
+
+    nilOfTypeOf : all a. [a] -> [a]
+
+i.e. ask for an already existing list, but ignore the actual list and only use the type tag.
+
+But since we're ignoring the actual list, can't we just not pass it in the first place? And instead
+pass around our good old friends: singletons. We should be able to do that, but it hasn't been
+investigated. Perhaps something along the lines of adding the following constructor to 'DefaultUni':
+
+    DefaultUniSing :: DefaultUni a -> DefaultUni (T (Proxy a))
+
+and then defining
+
+    nil : all a. sing a -> [a]
+
+and then the Plutus Tx compiler can provide a type class or something for constructing singletons
+for built-in types.
 -}
 
 -- | Representation of a type variable: its name and unique and an implicit kind.

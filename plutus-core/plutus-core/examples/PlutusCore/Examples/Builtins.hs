@@ -139,6 +139,7 @@ instance KnownType term Void where
     readKnown = throwingWithCause _UnliftingError "Can't unlift a 'Void'" . Just
 type instance ToBinds Void = '[]
 
+-- See Note [Representable built-in functions over polymorphic built-in types].
 -- Every polymorphic function ignores the memory annotation of its argument. This is due to the fact
 -- that no function duplicates the AST and so threading an argument through a function or dropping
 -- it completely does not increase memory consumption. It does not seem to be possible to define

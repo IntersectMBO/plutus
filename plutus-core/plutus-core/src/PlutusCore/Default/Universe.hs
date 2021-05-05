@@ -48,39 +48,27 @@ A value of a built-in type is a regular Haskell value stored in
 
 (together with the tag associated with its type) and such a value is also called a meta-constant.
 
-At the moment the default universe is finite and we don't have things like
+The default universe has the following constructor (pattern synonym actually):
 
     DefaultUniList :: !(DefaultUni a) -> DefaultUni [a]
 
-Such a type constructor can be added, but note that this doesn't directly lead to interop between
-Plutus Core and Haskell, i.e. you can't have a meta-list whose elements are of a PLC type.
-You can only have a meta-list constant with elements of a meta-type (i.e. a type from the universe).
+But note that this doesn't directly lead to interop between Plutus Core and Haskell, i.e. you can't
+have a meta-list whose elements are of a PLC type. You can only have a meta-list constant with
+elements of a meta-type (i.e. a type from the universe).
 
-Consequently, all built-in types are of kind @*@ currently.
-
-This restriction might be fixable by adding
-
-    DefaultUniPlc :: Type TyName DefaultUni () -> DefaultUni (Term TyName Name DefaultUni ())
-
-to the universe (modulo exact details like 'Type'/'Term' being PLC things rather than general 'ty'
-and 'term' to properly support IR, etc). But that'll require adding support to every procedure
-out there (renaming, normalization, type checking, evaluation, what have you).
-
-There might be another solution: instead of requiring universes to be of kind @* -> *@, we can allow
-universes of any @k -> *@, then we'll need to establish a connection between Haskell @k@ and
-a PLC 'Kind'.
-
-data SomeK (uni :: forall k. k -> *) = forall k (a :: k). SomeK (uni a)
-
-data AKind = forall k. AKind k
-
-data SomeAK (uni :: AKind -> *) = forall ak. SomeAK (uni ak)
+However it is possible to apply a built-in type to an arbitrary PLC/PIR type, since we can embed
+a type of an arbitrary kind into 'Type' and then apply it via 'TyApp'. But we only use it to
+get polymorphic built-in functions over polymorphic built-in types, since it's not possible
+to juggle values of polymorphic built-in types instantiated with non-built-in types at runtime
+(it's not even possible to represent such a value in the AST, even though it's possible to represent
+such a type).
 
 Finally, it is not necessarily the case that we need to allow embedding PLC terms into meta-constants.
 We already allow built-in names with polymorphic types. There might be a way to utilize this feature
-and have meta-constructors as builtin names. We still have to handle types somehow, though.
+and have meta-constructors as builtin names.
 -}
 
+-- See Note [Representing polymorphism].
 -- | The universe used by default.
 data DefaultUni a where
     DefaultUniInteger    :: DefaultUni (T Integer)
@@ -238,5 +226,6 @@ instance Closed DefaultUni where
     bring _ (f `DefaultUniApply` _ `DefaultUniApply` _ `DefaultUniApply` _) _ =
         noMoreTypeFunctions f
 
+-- | For pleasing the coverage checker.
 noMoreTypeFunctions :: DefaultUni (T (f :: a -> b -> c -> d)) -> r
 noMoreTypeFunctions (f `DefaultUniApply` _) = noMoreTypeFunctions f
