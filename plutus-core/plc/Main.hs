@@ -93,6 +93,7 @@ data Input       = FileInput FilePath | StdInput
 data Output      = FileOutput FilePath | StdOutput
 data Language    = TypedPLC | UntypedPLC
 data TimingMode  = NoTiming | Timing Integer deriving (Eq)  -- Report program execution time?
+data CekModel    = Default | Unit   -- Which cost model should we use for CEK machine steps?
 data PrintMode   = Classic | Debug | Readable | ReadableDebug deriving (Show, Read)
 type ExampleName = T.Text
 data ExampleMode = ExampleSingle ExampleName | ExampleAvailable
@@ -116,7 +117,7 @@ data ConvertOptions   = ConvertOptions Language Input Format Output Format Print
 data PrintOptions     = PrintOptions Language Input PrintMode
 data ExampleOptions   = ExampleOptions Language ExampleMode
 data EraseOptions     = EraseOptions Input Format Output Format PrintMode
-data EvalOptions      = EvalOptions Language Input Format EvalMode PrintMode BudgetMode TimingMode
+data EvalOptions      = EvalOptions Language Input Format EvalMode PrintMode BudgetMode TimingMode CekModel
 data ApplyOptions     = ApplyOptions Language Files Format Output Format PrintMode
 
 -- Main commands
@@ -276,6 +277,13 @@ timing2 = Timing <$> option auto
 timingmode :: Parser TimingMode
 timingmode = timing1 <|> timing2
 
+cekmodel :: Parser CekModel
+cekmodel = flag Default Unit
+           (  short '1'
+           <> long "unit-cek-model"
+           <> help "Use unit AST node costs for CEK cost model (tallying mode only)"
+           )
+
 files :: Parser Files
 files = some (argument str (metavar "[FILES...]"))
 
@@ -335,7 +343,7 @@ evalmode = option auto
   <> help "Evaluation mode (CK or CEK)" )
 
 evalOpts :: Parser EvalOptions
-evalOpts = EvalOptions <$> languagemode <*> input <*> inputformat <*> evalmode <*> printmode <*> budgetmode <*> timingmode
+evalOpts = EvalOptions <$> languagemode <*> input <*> inputformat <*> evalmode <*> printmode <*> budgetmode <*> timingmode <*> cekmodel
 
 helpText :: String
 helpText =
@@ -743,15 +751,18 @@ timeEval n evaluate prog
 
 ---------------- Printing budgets and costs ----------------
 
-printBudgetStateBudget :: ExBudget -> IO ()
-printBudgetStateBudget b = do
-  let ExCPU cpu = _exBudgetCPU b
-      ExMemory mem = _exBudgetMemory b
-  putStrLn $ "CPU budget:    " ++ show cpu
-  putStrLn $ "Memory budget: " ++ show mem
+printBudgetStateBudget :: CekModel -> ExBudget -> IO ()
+printBudgetStateBudget model b =
+    case model of
+      Unit -> pure ()
+      _ ->  let ExCPU cpu = _exBudgetCPU b
+                ExMemory mem = _exBudgetMemory b
+            in do
+              putStrLn $ "CPU budget:    " ++ show cpu
+              putStrLn $ "Memory budget: " ++ show mem
 
-printBudgetStateTally :: (Eq fun, Cek.Hashable fun, Show fun) => Cek.CekExTally fun -> IO ()
-printBudgetStateTally (Cek.CekExTally costs) = do
+printBudgetStateTally :: (Eq fun, Cek.Hashable fun, Show fun) => CekModel ->  Cek.CekExTally fun -> IO ()
+printBudgetStateTally model (Cek.CekExTally costs) = do
   putStrLn $ "Const      " ++ pbudget Cek.BConst
   putStrLn $ "Var        " ++ pbudget Cek.BVar
   putStrLn $ "LamAbs     " ++ pbudget Cek.BLamAbs
@@ -763,15 +774,19 @@ printBudgetStateTally (Cek.CekExTally costs) = do
   putStrLn ""
   putStrLn $ "Startup    " ++ pbudget Cek.BStartup
   putStrLn $ "compute    " ++ printf "%-20s" (budgetToString totalComputeCost)
-  putStrLn $ "BuiltinApp " ++ budgetToString builtinCosts
+  case model of
+    Default ->
+        do
+          putStrLn $ "BuiltinApp " ++ budgetToString builtinCosts
   -- 1e9*(0.200  + 0.0000725 * totalComputeSteps + builtinExeTimes/1000)  putStrLn ""
-  putStrLn ""
-  traverse_ (\(b,cost) -> putStrLn $ printf "%-20s %s" (show b) (budgetToString cost :: String)) builtinsAndCosts
-  putStrLn ""
-  putStrLn $ "Total budget spent: " ++ printf (budgetToString totalCost)
-  putStrLn $ "Predicted execution time: " ++ (formatTime $ getCPU totalCost)
-  putStrLn $ "Predicted execution time: " ++ (formatTime totalTime)
-      where
+          putStrLn ""
+          traverse_ (\(b,cost) -> putStrLn $ printf "%-20s %s" (show b) (budgetToString cost :: String)) builtinsAndCosts
+          putStrLn ""
+          putStrLn $ "Total budget spent: " ++ printf (budgetToString totalCost)
+          putStrLn $ "Predicted execution time: " ++ (formatTime $ getCPU totalCost)
+          putStrLn $ "Predicted execution time: " ++ (formatTime totalTime)
+    Unit -> pure ()
+  where
         getSpent k =
             case H.lookup k costs of
               Just v  -> v
@@ -782,32 +797,33 @@ printBudgetStateTally (Cek.CekExTally costs) = do
         pbudget = budgetToString . getSpent
         f l e = case e of {(Cek.BBuiltinApp b, cost)  -> (b,cost):l; _ -> l}
         builtinsAndCosts = List.foldl f [] (H.toList costs)
-        builtinCosts = mconcat (map snd builtinsAndCosts)
+        builtinCosts = mconcat (map snd builtinsAndCosts)  -- Total builtin evaluation time (accoridng to the models) in picoseconds.
         getCPU b = let ExCPU b' = _exBudgetCPU b in fromIntegral b'::Double
         totalCost = getSpent Cek.BStartup <> totalComputeCost <> builtinCosts
         totalTime = 1000 * ((getCPU $ getSpent Cek.BStartup) + getCPU totalComputeCost) + getCPU builtinCosts/1e6
 
 class PrintBudgetState cost where
-    printBudgetState :: cost -> IO ()
+    printBudgetState :: CekModel -> cost -> IO ()
+    -- Not ideal: we only need the CEK cost model in tallying mode
 
 instance PrintBudgetState Cek.CountingSt where
-    printBudgetState (Cek.CountingSt budget) = printBudgetStateBudget budget
+    printBudgetState model (Cek.CountingSt budget) = printBudgetStateBudget model budget
 
 instance (Eq fun, Cek.Hashable fun, Show fun) => PrintBudgetState (Cek.TallyingSt fun) where
-    printBudgetState (Cek.TallyingSt tally budget) = do
-        printBudgetStateBudget budget
+    printBudgetState model (Cek.TallyingSt tally budget) = do
+        printBudgetStateBudget model budget
         putStrLn ""
-        printBudgetStateTally tally
+        printBudgetStateTally model tally
 
 instance PrintBudgetState Cek.RestrictingSt where
-    printBudgetState (Cek.RestrictingSt (ExRestrictingBudget budget)) =
-        printBudgetStateBudget budget
+    printBudgetState model (Cek.RestrictingSt (ExRestrictingBudget budget)) =
+        printBudgetStateBudget model budget
 
 
 ---------------- Evaluation ----------------
 
 runEval :: EvalOptions -> IO ()
-runEval (EvalOptions language inp ifmt evalMode printMode budgetMode timingMode) =
+runEval (EvalOptions language inp ifmt evalMode printMode budgetMode timingMode cekModel) =
     case language of
 
       TypedPLC ->
@@ -834,18 +850,22 @@ runEval (EvalOptions language inp ifmt evalMode printMode budgetMode timingMode)
                   UntypedProgram prog <- getProgram UntypedPLC ifmt inp
                   let body = void . UPLC.toTerm $ prog
                       !_ = rnf body
+                      costs = case cekModel of
+                                Default -> defaultCekCosts  -- AST nodes are charged according to the default cost model
+                                Unit    -> Cek.unitCekCosts -- AST nodes are charged one unit each, so we can see how many times
+                                                            -- each node type is encountered.  This is useful for calibrating the budgeting code.
                   case budgetMode of
                     Silent -> do
-                          let evaluate = Cek.evaluateCekNoEmit defaultCekCosts PLC.defBuiltinsRuntime
+                          let evaluate = Cek.evaluateCekNoEmit costs PLC.defBuiltinsRuntime
                           case timingMode of
                             NoTiming -> evaluate body & handleResult
                             Timing n -> timeEval n evaluate body >>= handleTimingResults
                     Verbose bm -> do
-                          let evaluate = Cek.runCekNoEmit defaultCekCosts PLC.defBuiltinsRuntime bm
+                          let evaluate = Cek.runCekNoEmit costs PLC.defBuiltinsRuntime bm
                           case timingMode of
                             NoTiming -> do
                                     let (result, budget) = evaluate body
-                                    printBudgetState budget
+                                    printBudgetState cekModel budget
                                     handleResultSilently result  -- We just want to see the budget information
                             Timing n -> timeEval n evaluate body >>= handleTimingResultsWithBudget
 
@@ -865,12 +885,12 @@ runEval (EvalOptions language inp ifmt evalMode printMode budgetMode timingMode)
               case nub results of
                 [(Right _, budget)] -> do
                     putStrLn ""
-                    printBudgetState budget
+                    printBudgetState cekModel budget
                     exitSuccess
                 [(Left err,   budget)] -> do
                     putStrLn ""
                     print err
-                    printBudgetState budget
+                    printBudgetState cekModel budget
                     exitFailure
                 _                                   -> error "Timing evaluations returned inconsistent results"
 

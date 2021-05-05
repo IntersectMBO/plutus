@@ -64,7 +64,7 @@
             "type": "constant_cost"
         },
         "cpu": {
-            "arguments": 1,
+            "arguments": 0,
             "type": "constant_cost"
         }
     },

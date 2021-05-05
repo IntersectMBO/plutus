@@ -465,12 +465,12 @@ deriving via CustomJSON '[FieldLabelModifier (CamelToSnake)] CekCosts instance F
 -- a different version of CekCosts.
 unitCekCosts :: CekCosts
 unitCekCosts =
-    CekCosts unitCost unitCost
+    CekCosts zeroCost unitCost
              unitCost unitCost
              unitCost unitCost
              unitCost unitCost
         where
-          unitCost :: ExBudget
+          zeroCost = ExBudget 0 0
           unitCost = ExBudget 1 0
 
 
@@ -526,7 +526,7 @@ enterComputeCek costs = computeCek where
         rt <- asks cekEnvRuntime
         BuiltinRuntime _ arity _ _ <- lookupBuiltinExc (Proxy @(CekEvaluationException uni fun)) bn rt
         returnCek ctx (VBuiltin ex bn arity arity 0 [])
-    -- s ; ρ ▻ error A  ↦  <> A
+     -- s ; ρ ▻ error A  ↦  <> A
     computeCek _ _ (Error _) =
         throwingCek _EvaluationFailure ()
 
