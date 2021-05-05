@@ -32,6 +32,7 @@ import Halogen.HTML.Properties (InputType(..), enabled, href, placeholder, ref, 
 import Humanize (formatDate, formatTime, humanizeDuration, humanizeInterval, humanizeValue)
 import Marlowe.Execution (NamedAction(..), _currentState, _mNextTimeout, expandBalances, getActionParticipant)
 import Marlowe.Extended (contractTypeName)
+import Marlowe.PAB (transactionFee)
 import Marlowe.Semantics (Accounts, Assets, Bound(..), ChoiceId(..), Input(..), Party(..), Slot, SlotInterval, Token(..), TransactionInput(..), getEncompassBound)
 import Marlowe.Slot (secondsDiff, slotToDateTime)
 import Material.Icons (Icon(..), icon)
@@ -138,7 +139,7 @@ actionConfirmationCard assets state namedAction =
         , span [ classNames [ "font-semibold" ] ] amountHtml
         ]
 
-    transactionFeeItem = detailItem [ text "Transaction fee", sup_ [ text "*" ], text ":" ] [ text "₳ 0.00" ]
+    transactionFeeItem = detailItem [ text "Transaction fee", sup_ [ text "*" ], text ":" ] [ text $ humanizeValue adaToken transactionFee ]
 
     actionAmountItems = case namedAction of
       MakeDeposit _ _ token amount ->
@@ -191,7 +192,7 @@ actionConfirmationCard assets state namedAction =
               [ h3 [ classNames [ "text-sm", "font-semibold" ] ] [ sup_ [ text "*" ], text "Transaction fees are estimates only:" ]
               , p [ classNames [ "pb-4", "border-b-half", "border-lightgray", "text-xs", "text-gray" ] ]
                   -- FIXME: review text with simon
-                  [ text "In the demo all fees are free but in the live version the cost will depend on the status of the blockchain at the moment of the transaction" ]
+                  [ text "In the demo all fees are fixed at 10 lovelace, but in the live version the cost will depend on the status of the blockchain at the moment of the transaction." ]
               , div [ classNames [ "pt-4", "flex", "justify-between", "items-center" ] ]
                   [ a
                       -- FIXME: where should this link point to?

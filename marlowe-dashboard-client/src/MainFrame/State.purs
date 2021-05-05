@@ -33,7 +33,7 @@ import LocalStorage (getItem, setItem, removeItem)
 import MainFrame.Lenses (_pickupState, _playState, _subState, _toast, _webSocketStatus)
 import MainFrame.Types (Action(..), ChildSlots, Msg, Query(..), State, WebSocketStatus(..))
 import MainFrame.View (render)
-import Marlowe.PAB (PlutusAppId, MarloweData, MarloweParams)
+import Marlowe.PAB (MarloweData, MarloweParams, PlutusAppId)
 import Marlowe.Slot (currentSlot)
 import Pickup.Lenses (_walletLibrary)
 import Pickup.State (handleAction, dummyState, mkInitialState) as Pickup
@@ -86,12 +86,23 @@ handleQuery ::
   Query a -> HalogenM State Action ChildSlots Msg m (Maybe a)
 handleQuery (ReceiveWebSocketMessage msg next) = do
   case msg of
-    WS.WebSocketOpen -> assign _webSocketStatus WebSocketOpen
+    WS.WebSocketOpen -> do
+      assign _webSocketStatus WebSocketOpen
+    {- FIXME: uncomment this when the websocket communication is fixed
+      -- potentially renew websocket subscriptions
+      mPlayState <- peruse _playState
+      for_ mPlayState \playState -> do
+        let
+          wallet = view (_walletDetails <<< _walletInfo <<< _wallet) playState
+
+          followAppIds :: Array PlutusAppId
+          followAppIds = Set.toUnfoldable $ keys $ view _allContracts playState
+        subscribeToWallet wallet
+        for followAppIds subscribeToPlutusApp -}
     (WS.WebSocketClosed closeEvent) -> do
-      -- TODO: When we change our websocket subscriptions, the websocket is closed and then reopened.
-      -- We don't want to warn the user in this case, but we do want to warn them if the websocket
-      -- closes for some unexpected reason. But currently I don't know how to distinguish these cases.
-      -- addToast $ connectivityErrorToast "Connection to the server has been lost"
+      -- TODO: Consider whether we should show an error/warning when this happens. It might be more
+      -- confusing than helpful, since the websocket is automatically reopened if it closes for any
+      -- reason.
       assign _webSocketStatus (WebSocketClosed (Just closeEvent))
     (WS.ReceiveMessage (Left multipleErrors)) -> addToast $ decodingErrorToast "Failed to parse message from the server." multipleErrors
     (WS.ReceiveMessage (Right streamToClient)) -> case streamToClient of
@@ -171,6 +182,7 @@ handleAction Init = do
   mWalletDetailsJson <- liftEffect $ getItem walletDetailsLocalStorageKey
   for_ mWalletDetailsJson \json ->
     for_ (runExcept $ decodeJSON json) \walletDetails -> do
+      -- check the wallet still exists in the wallet server, and show the LocalWalletMissingCard if not
       ajaxWalletDetails <- lookupWalletDetails $ view _companionAppId walletDetails
       case ajaxWalletDetails of
         Left ajaxError -> handleAction $ PickupAction $ Pickup.OpenCard Pickup.LocalWalletMissingCard
@@ -253,7 +265,7 @@ updateRunningContracts companionState = do
                   modifying (_playState <<< _allContracts) $ insert plutusAppId contractState
                   handleAction $ PlayAction $ Play.ContractHomeAction $ ContractHome.OpenContract plutusAppId
                   addToast $ successToast "You have been given a role in a new contract."
-                Nothing -> addToast $ errorToast "Could not determine contract type." $ Just "You have been given a role in a new contract, but we could not determine the type of the contract and therefore cannot display it. This should not happen. Please contact support."
+                Nothing -> addToast $ errorToast "Could not determine contract type." $ Just "You have been given a role in a new contract, but we could not determine the type of the contract and therefore cannot display it."
 
 ------------------------------------------------------------
 -- Note [dummyState]: In order to map a submodule whose state might not exist, we need

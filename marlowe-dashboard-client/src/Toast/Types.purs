@@ -8,19 +8,17 @@ module Toast.Types
   , ajaxErrorToast
   , decodingErrorToast
   , decodedAjaxErrorToast
-  , connectivityErrorToast
   ) where
 
 import Prelude
 import Analytics (class IsEvent, Event)
 import Analytics as A
 import Data.Either (Either(..))
-import Data.List.NonEmpty (head)
 import Data.Maybe (Maybe(..))
-import Foreign (MultipleErrors, renderForeignError)
+import Foreign (MultipleErrors)
 import Halogen (SubscriptionId)
 import Material.Icons (Icon(..))
-import Servant.PureScript.Ajax (AjaxError, errorToString)
+import Servant.PureScript.Ajax (AjaxError)
 import Types (DecodedAjaxError)
 
 type ToastMessage
@@ -74,7 +72,7 @@ successToast shortDescription =
 errorToast :: String -> Maybe String -> ToastMessage
 errorToast shortDescription longDescription =
   { shortDescription
-  , longDescription
+  , longDescription: map (\m -> m <> " " <> contactSupportMessage) longDescription
   , icon: ErrorOutline
   , iconColor: "text-white"
   , textColor: "text-white"
@@ -83,15 +81,15 @@ errorToast shortDescription longDescription =
   }
 
 ajaxErrorToast :: String -> AjaxError -> ToastMessage
-ajaxErrorToast shortDescription ajaxError = errorToast shortDescription $ Just $ errorToString ajaxError
+ajaxErrorToast shortDescription ajaxError = errorToast shortDescription $ Just $ "A request was made to the server, but the expected response was not returned. " <> contactSupportMessage
 
 decodingErrorToast :: String -> MultipleErrors -> ToastMessage
-decodingErrorToast shortDescription foreignErrors = errorToast shortDescription $ Just $ renderForeignError $ head foreignErrors
+decodingErrorToast shortDescription decodingError = errorToast shortDescription $ Just $ "Some data was received from the server, but the browser was unable to parse it. " <> contactSupportMessage
 
 decodedAjaxErrorToast :: String -> DecodedAjaxError -> ToastMessage
 decodedAjaxErrorToast shortDescription decodedAjaxError = case decodedAjaxError of
   Left ajaxError -> ajaxErrorToast shortDescription ajaxError
-  Right foreignErrors -> decodingErrorToast shortDescription foreignErrors
+  Right multipleErrors -> decodingErrorToast shortDescription multipleErrors
 
-connectivityErrorToast :: String -> ToastMessage
-connectivityErrorToast shortDescription = errorToast shortDescription (Just "There was a problem connecting with the server, please contact support if this problem persists.")
+contactSupportMessage :: String
+contactSupportMessage = "Please contact support if the problem persists."

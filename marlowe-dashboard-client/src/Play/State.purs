@@ -178,7 +178,7 @@ handleAction (TemplateAction templateAction) = case templateAction of
     extendedContract <- use (_templateState <<< _template <<< _extendedContract)
     templateContent <- use (_templateState <<< _templateContent)
     case instantiateExtendedContract currentSlot extendedContract templateContent of
-      Nothing -> addToast $ errorToast "Failed to instantiate contract." Nothing
+      Nothing -> addToast $ errorToast "Failed to instantiate contract." $ Just "Something went wrong when trying to instantiate a contract from this template using the parameters you specified."
       Just contract -> do
         -- the user enters wallet nicknames for roles; here we convert these into pubKeyHashes
         walletDetails <- use _walletDetails
