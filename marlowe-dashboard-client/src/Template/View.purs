@@ -102,9 +102,9 @@ contractNicknameDisplay contractName contractNickname =
             [ input
                 [ classNames
                     -- TODO: Once we remove the readOnly, remove this filter. I tried adding "text-black" to the end of the array
-
+                    
                     --       but the browser does not respect ordering and for some reason "text-darkgray was winning"
-
+                    
                     $ filter (not <<< eq "text-darkgray")
                     $ (Css.input $ null contractNickname)
                     <> [ "font-semibold" ]
