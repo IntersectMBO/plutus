@@ -1,7 +1,6 @@
 module MarloweEditor.State
   ( handleAction
   , editorGetValue
-  , {- FIXME: this should be an action -} editorResize
   , editorSetTheme
   ) where
 
@@ -105,7 +104,6 @@ handleAction (BottomPanelAction (BottomPanel.PanelAction action)) = handleAction
 
 handleAction (BottomPanelAction action) = do
   toBottomPanel (BottomPanel.handleAction action)
-  editorResize
 
 handleAction (ShowErrorDetail val) = assign _showErrorDetail val
 
@@ -233,9 +231,6 @@ runAjax action = RemoteData.fromEither <$> runExceptT action
 
 editorSetTheme :: forall state action msg m. HalogenM state action ChildSlots msg m Unit
 editorSetTheme = void $ query _marloweEditorPageSlot unit (Monaco.SetTheme MM.daylightTheme.name unit)
-
-editorResize :: forall state action msg m. HalogenM state action ChildSlots msg m Unit
-editorResize = void $ query _marloweEditorPageSlot unit (Monaco.Resize unit)
 
 editorSetValue :: forall state action msg m. String -> HalogenM state action ChildSlots msg m Unit
 editorSetValue contents = void $ query _marloweEditorPageSlot unit (Monaco.SetText contents unit)

@@ -7,6 +7,7 @@ import           Data.Either
 import           Data.Maybe
 import           Plutus.V1.Ledger.Api
 import           Plutus.V1.Ledger.Examples
+import qualified Spec.Interval
 
 main :: IO ()
 main = defaultMain tests
@@ -25,4 +26,5 @@ tests :: TestTree
 tests = testGroup "plutus-ledger-api" [
     alwaysTrue
     , alwaysFalse
+    , Spec.Interval.tests
     ]

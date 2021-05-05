@@ -8,7 +8,7 @@ module Language.Marlowe.ACTUS.Generator
     )
 where
 
-import qualified Data.List                                                as L (zip6)
+import qualified Data.List                                                as L (foldl', zip6)
 import           Data.Maybe                                               (fromMaybe, isNothing, maybeToList)
 import           Data.Monoid
 import           Data.String                                              (IsString (fromString))
@@ -164,7 +164,7 @@ genStaticContract terms =
                         (collateralAmount t)
                         (dayToSlotNumber $ ct_SD t)
                         cont
-            in Success . withCollateral $ foldl (flip gen) Close cfs
+            in Success . withCollateral $ L.foldl' (flip gen) Close $ reverse cfs
 
 
 genFsContract :: ContractTerms -> Validation [TermValidationError] Contract

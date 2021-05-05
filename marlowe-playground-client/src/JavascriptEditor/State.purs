@@ -140,13 +140,11 @@ handleAction Compile = do
   case compilationResult of
     (CompilationError _) -> handleAction $ BottomPanelAction (BottomPanel.ChangePanel ErrorsView)
     _ -> pure unit
-  editorResize
 
 handleAction (BottomPanelAction (BottomPanel.PanelAction action)) = handleAction action
 
 handleAction (BottomPanelAction action) = do
   toBottomPanel (BottomPanel.handleAction action)
-  editorResize
 
 handleAction SendResultToSimulator = pure unit
 
@@ -184,9 +182,6 @@ analyze initialAnalysisState doAnalyze = do
   case compilationResult of
     CompiledSuccessfully (InterpreterResult interpretedResult) -> doAnalyze interpretedResult.result
     _ -> pure unit
-
-editorResize :: forall state action msg m. HalogenM state action ChildSlots msg m Unit
-editorResize = void $ query _jsEditorSlot unit (Monaco.Resize unit)
 
 decorationHeader :: String
 decorationHeader =

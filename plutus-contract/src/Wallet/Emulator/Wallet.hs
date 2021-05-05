@@ -87,6 +87,10 @@ walletAddress = pubKeyAddress . walletPubKey
 signWithWallet :: Wallet -> Tx -> Tx
 signWithWallet wlt = addSignature (walletPrivKey wlt)
 
+-- | Whether the wallet is one of the known emulated wallets
+isEmulatorWallet :: Wallet -> Bool
+isEmulatorWallet (Wallet i) = 0 <= i && i < fromIntegral (length Crypto.knownPrivateKeys)
+
 data WalletEvent =
     GenericLog T.Text
     | CheckpointLog CheckpointLogMsg

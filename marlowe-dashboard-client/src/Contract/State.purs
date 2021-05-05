@@ -10,20 +10,21 @@ module Contract.State
   ) where
 
 import Prelude
-import Capability.Marlowe (class ManageMarlowe, marloweApplyTransactionInput)
+import Capability.Marlowe (class ManageMarlowe, applyTransactionInput)
 import Capability.Toast (class Toast, addToast)
 import Contract.Lenses (_executionState, _marloweParams, _namedActions, _previousSteps, _selectedStep, _tab)
 import Contract.Types (Action(..), PreviousStep, PreviousStepState(..), State, Tab(..), scrollContainerRef)
 import Control.Monad.Reader (class MonadAsk, asks)
 import Data.Array (difference, foldl, head, index, length, mapMaybe)
 import Data.Either (Either(..))
-import Data.Foldable (for_)
+import Data.Foldable (foldMap, for_)
 import Data.FoldableWithIndex (foldlWithIndex)
 import Data.Lens (assign, modifying, over, to, toArrayOf, traversed, use, view, (^.))
 import Data.Map as Map
 import Data.Maybe (Maybe(..))
 import Data.Newtype (unwrap)
 import Data.Ord (abs)
+import Data.Set (Set)
 import Data.Set as Set
 import Data.Traversable (traverse)
 import Data.Tuple.Nested (get1, get2, get3, (/\))
@@ -34,7 +35,7 @@ import Effect.Aff.AVar as AVar
 import Effect.Aff.Class (class MonadAff, liftAff)
 import Effect.Exception.Unsafe (unsafeThrow)
 import Env (Env)
-import Halogen (HalogenM, SubscriptionId, getHTMLElementRef, gets, liftEffect, modify_, subscribe, subscribe', unsubscribe)
+import Halogen (HalogenM, getHTMLElementRef, gets, liftEffect, modify_, subscribe, unsubscribe)
 import Halogen.Query.EventSource (EventSource)
 import Halogen.Query.EventSource as EventSource
 import MainFrame.Types (ChildSlots, Msg)
@@ -42,16 +43,16 @@ import Marlowe.Deinstantiate (findTemplate)
 import Marlowe.HasParties (getParties)
 import Marlowe.Execution (ExecutionState, NamedAction(..), PreviousState, _currentContract, _currentState, _pendingTimeouts, _previousState, _previousTransactions, expandBalances, extractNamedActions, initExecution, isClosed, mkTx, nextState, timeoutState)
 import Marlowe.Extended.Metadata (emptyContractMetadata)
-import Marlowe.PAB (ContractInstanceId(..), History)
-import Marlowe.Semantics (Contract(..), Input(..), Party, Slot, SlotInterval(..), Token(..), TransactionInput(..))
+import Marlowe.PAB (PlutusAppId(..), History, MarloweParams)
+import Marlowe.Semantics (Contract(..), Input(..), Party(..), Slot, SlotInterval(..), Token(..), TransactionInput(..))
 import Marlowe.Semantics as Semantic
 import Marlowe.Slot (currentSlot)
 import Plutus.V1.Ledger.Value (CurrencySymbol(..))
 import Toast.Types (ajaxErrorToast, successToast)
+import WalletData.Lenses (_assets, _pubKeyHash, _walletInfo)
 import WalletData.Types (WalletDetails)
 import Web.DOM.Element (getElementsByClassName)
 import Web.DOM.HTMLCollection as HTMLCollection
-import Web.DOM.IntersectionObserver (disconnect, intersectionObserver, observe)
 import Web.Dom.ElementExtra (Alignment(..), ScrollBehavior(..), debouncedOnScroll, scrollIntoView, throttledOnScroll)
 import Web.HTML (HTMLElement)
 import Web.HTML.HTMLElement (getBoundingClientRect, offsetLeft)
@@ -64,17 +65,17 @@ dummyState =
   , executionState: initExecution zero contract
   , previousSteps: mempty
   , marloweParams: emptyMarloweParams
-  , contractInstanceId: emptyContractInstanceId
+  , followerAppId: emptyPlutusAppId
   , selectedStep: 0
   , metadata: emptyContractMetadata
   , participants: mempty
-  , mActiveUserParty: Nothing
+  , userParties: mempty
   , namedActions: mempty
   }
   where
   contract = Close
 
-  emptyContractInstanceId = ContractInstanceId UUID.emptyUUID
+  emptyPlutusAppId = PlutusAppId UUID.emptyUUID
 
   emptyMarloweParams = { rolePayoutValidatorHash: mempty, rolesCurrency: CurrencySymbol { unCurrencySymbol: "" } }
 
@@ -82,8 +83,8 @@ dummyState =
 
   emptyMarloweState = Semantic.State { accounts: mempty, choices: mempty, boundValues: mempty, minSlot: zero }
 
-mkInitialState :: Slot -> ContractInstanceId -> History -> Maybe State
-mkInitialState currentSlot contractInstanceId history =
+mkInitialState :: WalletDetails -> Slot -> PlutusAppId -> History -> Maybe State
+mkInitialState walletDetails currentSlot followerAppId history =
   let
     marloweParams = get1 $ unwrap history
 
@@ -103,19 +104,19 @@ mkInitialState currentSlot contractInstanceId history =
   in
     flip map mTemplate \template ->
       let
-        participants :: Array Party
-        participants = Set.toUnfoldable $ getParties contract
+        parties :: Array Party
+        parties = Set.toUnfoldable $ getParties contract
 
         initialState =
           { tab: Tasks
           , executionState: initialExecutionState
           , previousSteps: mempty
           , marloweParams
-          , contractInstanceId
+          , followerAppId
           , selectedStep: 0
           , metadata: template.metaData
-          , participants: Map.fromFoldable $ map (\x -> x /\ Nothing) participants
-          , mActiveUserParty: Nothing -- FIXME: this should be a function of the walletDetails
+          , participants: Map.fromFoldable $ map (\x -> x /\ Nothing) parties
+          , userParties: getUserParties walletDetails marloweParams
           , namedActions: mempty
           }
 
@@ -142,6 +143,21 @@ updateState currentSlot history state =
       # regenerateStepCards currentSlot
       # selectLastStep
 
+getUserParties :: WalletDetails -> MarloweParams -> Set Party
+getUserParties walletDetails marloweParams =
+  let
+    pubKeyHash = view (_walletInfo <<< _pubKeyHash) walletDetails
+
+    assets = view _assets walletDetails
+
+    currencySymbolString = (unwrap marloweParams.rolesCurrency).unCurrencySymbol
+
+    mCurrencyTokens = Map.lookup currencySymbolString (unwrap assets)
+
+    roleTokens = foldMap (Set.map Role <<< Map.keys <<< Map.filter ((/=) zero)) mCurrencyTokens
+  in
+    Set.insert (PK $ unwrap pubKeyHash) roleTokens
+
 handleAction ::
   forall m.
   MonadAff m =>
@@ -163,7 +179,7 @@ handleAction walletDetails (ConfirmAction namedAction) = do
   handleAction walletDetails (MoveToStep stepNumber)
   addToast $ successToast "Payment received, step completed."
 
---ajaxApplyInputs <- marloweApplyTransactionInput walletDetails marloweParams txInput
+--ajaxApplyInputs <- applyTransactionInput walletDetails marloweParams txInput
 --case ajaxApplyInputs of
 --  Left ajaxError -> addToast $ ajaxErrorToast "Failed to submit transaction." ajaxError
 --  Right _ -> do
@@ -200,7 +216,6 @@ handleAction _ CarouselOpened = do
     -- When the carousel is opened we want to assure that the selected step is
     -- in the center without any animation
     liftEffect $ scrollStepToCenter Auto selectedStep elm
-    subscribe' $ carouselCloseEventSource elm
     subscribeToSelectCenteredStep
 
 handleAction _ CarouselClosed = unsubscribeFromSelectCenteredStep
@@ -347,26 +362,6 @@ scrollStepToCenter behavior stepNumber parentElement = do
     getStepElemets = HTMLCollection.toArray =<< getElementsByClassName "w-contract-card" (HTMLElement.toElement parentElement)
   mStepElement <- flip index stepNumber <$> getStepElemets
   for_ mStepElement $ scrollIntoView { block: Center, inline: Center, behavior }
-
--- Because this is a subcomponent, we don't have a `Finalize` event that we can use, so we add a self contained
--- subscription (a.k.a. it closes itself) that detects when the modal is no longer visible (not intersecting with the
--- viewport)
-carouselCloseEventSource ::
-  forall m.
-  MonadAff m =>
-  HTMLElement ->
-  SubscriptionId ->
-  EventSource m Action
-carouselCloseEventSource parentElement _ =
-  EventSource.effectEventSource \emitter -> do
-    observer <-
-      intersectionObserver {} \entries _ ->
-        for_ (head entries) \entry ->
-          when (not entry.isIntersecting) do
-            EventSource.emit emitter CarouselClosed
-            EventSource.close emitter
-    observe (HTMLElement.toElement parentElement) observer
-    pure $ EventSource.Finalizer $ disconnect observer
 
 -- This EventSource is responsible for selecting the step closest to the center of the scroll container
 -- when scrolling

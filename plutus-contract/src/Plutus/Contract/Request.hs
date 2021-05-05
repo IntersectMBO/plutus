@@ -49,6 +49,7 @@ type ContractRow s =
 request
   :: forall w l req resp s e.
     ( KnownSymbol l
+    , AllUniqueLabels (Output s)
     , HasType l resp (Input s)
     , HasType l req (Output s)
     , AsContractError e

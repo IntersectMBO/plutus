@@ -34,8 +34,20 @@ variable "marlowe_dash_tld" {
   default = "marlowe-dash.iohkdev.io"
 }
 
+variable "marlowe_web_public_zone" {
+  default = "Z09016162N4S3NFVWHXYP"
+}
+
+variable "marlowe_web_tld" {
+  default = "marlowe-web.iohkdev.io"
+}
+
 variable "marlowe_dash_public_zone" {
   default = "Z04600362E06M9P9U3Y12"
+}
+
+variable "marlowe_finance_io_public_zone" {
+  default = "Z08915482QHLWPND8OWOL"
 }
 
 variable "bastion_instance_type" {
@@ -64,6 +76,12 @@ variable "public_subnet_cidrs" {
 
 variable "private_subnet_cidrs" {
   default = ["10.0.4.0/24", "10.0.5.0/24", "10.0.6.0/24"]
+}
+
+# The public ip address of production.marlowe.iohkdev.io which
+# is used to create a route53 A record for marlowe-finance.io.
+variable "marlowe_finance_production_ip" {
+  default = "52.213.243.4"
 }
 
 variable "azs" {

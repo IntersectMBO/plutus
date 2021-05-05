@@ -24,7 +24,7 @@ type State
     , screen :: Screen
     , cards :: Array Card
     , newWalletNickname :: WalletNickname
-    , newWalletContractIdString :: String
+    , newWalletCompanionAppIdString :: String
     , newWalletInfo :: WebData WalletInfo
     , currentSlot :: Slot
     , timezoneOffset :: Minutes
@@ -53,7 +53,7 @@ derive instance eqCard :: Eq Card
 data Action
   = PutdownWallet
   | SetNewWalletNickname WalletNickname
-  | SetNewWalletContractIdString String
+  | SetNewWalletCompanionAppIdString String
   | SaveNewWallet (Maybe TokenName)
   | ToggleMenu
   | SetScreen Screen
@@ -69,7 +69,7 @@ data Action
 instance actionIsEvent :: IsEvent Action where
   toEvent PutdownWallet = Just $ defaultEvent "PutdownWallet"
   toEvent (SetNewWalletNickname _) = Just $ defaultEvent "SetNewWalletNickname"
-  toEvent (SetNewWalletContractIdString _) = Just $ defaultEvent "SetNewWalletContractId"
+  toEvent (SetNewWalletCompanionAppIdString _) = Just $ defaultEvent "SetNewWalletCompanionAppId"
   toEvent (SaveNewWallet _) = Just $ defaultEvent "SaveNewWallet"
   toEvent ToggleMenu = Just $ defaultEvent "ToggleMenu"
   toEvent (SetScreen _) = Just $ defaultEvent "SetScreen"

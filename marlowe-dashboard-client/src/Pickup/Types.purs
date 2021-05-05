@@ -20,6 +20,7 @@ type State
 data Card
   = PickupNewWalletCard
   | PickupWalletCard
+  | LocalWalletMissingCard
 
 derive instance eqCard :: Eq Card
 
@@ -30,6 +31,7 @@ data Action
   | SetPickupWalletString String
   | SetWalletNickname WalletNickname
   | PickupWallet
+  | ClearLocalStorage
 
 -- | Here we decide which top-level queries to track as GA events, and
 -- how to classify them.
@@ -40,3 +42,4 @@ instance actionIsEvent :: IsEvent Action where
   toEvent (SetPickupWalletString _) = Nothing
   toEvent (SetWalletNickname _) = Nothing
   toEvent PickupWallet = Just $ defaultEvent "PickupWallet"
+  toEvent ClearLocalStorage = Just $ defaultEvent "ClearLocalStorage"

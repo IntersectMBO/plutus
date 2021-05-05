@@ -39,6 +39,7 @@ module Plutus.PAB.Core.ContractInstance.STM(
     , obervableContractState
     , instanceState
     , instanceIDs
+    , runningInstances
     ) where
 
 import           Control.Applicative                      (Alternative (..))
@@ -189,7 +190,9 @@ awaitEndpointResponse Request{rqID, itID} InstanceState{issEndpoints} = do
 -- | Whether the contract instance is still waiting for an event.
 data Activity =
         Active
+        | Stopped -- ^ Instance was stopped before all requests were handled
         | Done (Maybe Value) -- ^ Instance finished, possibly with an error
+        deriving (Eq, Show)
 
 -- | The state of an active contract instance.
 data InstanceState =
@@ -199,6 +202,7 @@ data InstanceState =
         , issTransactions    :: TVar (Set TxId) -- ^ Transactions whose status the contract is interested in
         , issStatus          :: TVar Activity -- ^ Whether the instance is still running.
         , issObservableState :: TVar (Maybe Value) -- ^ Serialised observable state of the contract instance (if available)
+        , issStop            :: TMVar () -- ^ Stop the instance if a value is written into the TMVar.
         }
 
 -- | An 'InstanceState' value with empty fields
@@ -210,6 +214,7 @@ emptyInstanceState =
         <*> STM.newTVar mempty
         <*> STM.newTVar Active
         <*> STM.newTVar Nothing
+        <*> STM.newEmptyTMVar
 
 -- | Add an address to the set of addresses that the instance is watching
 addAddress :: Address -> InstanceState -> STM ()
@@ -321,8 +326,9 @@ finalResult instanceId m = do
     InstanceState{issStatus} <- instanceState instanceId m
     v <- STM.readTVar issStatus
     case v of
-        Done r -> pure r
-        _      -> empty
+        Done r  -> pure r
+        Stopped -> pure Nothing
+        _       -> empty
 
 -- | Insert an 'InstanceState' value into the 'InstancesState'
 insertInstance :: ContractInstanceId -> InstanceState -> InstancesState -> STM ()
@@ -359,3 +365,15 @@ valueAt addr BlockchainEnv{beAddressMap} = do
 -- | The current slot number
 currentSlot :: BlockchainEnv -> STM Slot
 currentSlot BlockchainEnv{beCurrentSlot} = STM.readTVar beCurrentSlot
+
+-- | The IDs of contract instances that are currently running
+runningInstances :: InstancesState -> STM (Set ContractInstanceId)
+runningInstances (InstancesState m) = do
+    let flt :: InstanceState -> STM (Maybe InstanceState)
+        flt s@InstanceState{issStatus} = do
+            status <- STM.readTVar issStatus
+            case status of
+                Active -> pure (Just s)
+                _      -> pure Nothing
+    mp <- STM.readTVar m
+    Map.keysSet . Map.mapMaybe id <$> traverse flt mp

@@ -294,7 +294,7 @@ dropByteString cpuModelR = do
 
 memoryUsageAsDouble :: ExMemoryUsage a => a -> Double
 memoryUsageAsDouble x =
-    let m = coerce $ memoryUsage x :: Integer
+    let m = coerce $ memoryUsage x :: CostingInteger
     in fromIntegral m
 
 sHA2 :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelOneArgument)

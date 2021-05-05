@@ -1,5 +1,7 @@
-Plutus tutorials
-================
+.. _plutus_tutorials:
+
+Tutorials
+=========
 
 .. toctree::
    :maxdepth: 3
@@ -11,4 +13,3 @@ Plutus tutorials
    basic-validators
    basic-forging-policies
    contract-testing
-   troubleshooting

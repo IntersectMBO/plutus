@@ -1,10 +1,10 @@
 module Marlowe.PAB
-  ( ContractType(..)
-  , contractExe
-  , contractType
+  ( PlutusApp(..)
+  , plutusAppPath
+  , plutusAppType
   , transactionFee
   , contractCreationFee
-  , ContractInstanceId(..)
+  , PlutusAppId(..)
   , MarloweParams(..)
   , ValidatorHash
   , MarloweData(..)
@@ -24,61 +24,93 @@ import Marlowe.Semantics (Contract, State, TransactionInput)
 import Plutus.PAB.Effects.Contract.ContractExe (ContractExe(..))
 import Plutus.V1.Ledger.Value (CurrencySymbol)
 
-foreign import marloweContractPath_ :: String
+{-
+Marlowe requires three Plutus "contracts" to run in the PAB, which we refer to here as "apps" so as
+to avoid confusion with *Marlowe* contracts:
 
-foreign import walletCompanionContractPath_ :: String
+1. The `MarloweApp`. This is used to:
+   - "create" Marlowe contracts (i.e. to install them on the blockchain and distribute the role tokens)
+   - "apply-inputs" to a Marlowe contract (i.e. perform an action to move that contract forward)
+   - "redeem" payments made to a role token
+2. The `WalletCompanionApp`. Every wallet has one instance of this app installed in the PAB. It listens
+   continuously for payments of role tokens to that wallet, and updates its observable state with an
+   array of `(MarloweParams, MarloweData)`, one pair for each role token, hence one for each Marlowe
+   contract for which this wallet has a role.
+3. The `WalletFollowerApp`. Every wallet has zero or more istances of this app installed in the PAB. We
+   use this to "follow" a Marlowe contract. Once a contract has been "created", and we have its
+   `MarloweParams`, we use an instance of the `WalletFollowerApp` to track its history and status. Once
+   we have called the "follow" endpoint of this app (passing it the `MarloweParams`), its observable
+   state will tell us everything we need to know about the contract, and will be updated when it changes.
+-}
+data PlutusApp
+  = MarloweApp
+  | WalletCompanionApp
+  | WalletFollowerApp
 
-foreign import walletFollowerContractPath_ :: String
+{-
+In order to activate instances of the Plutus "contracts" (or apps) in the PAB, we need to pass the path
+to the executable on the server. We get these paths from nix, which writes them to a `contracts.json` file.
+So we don't have to worry about this anywhere else, we provide here functions mapping `PlutusApp` to their
+paths (in the format that the PAB expects).
+-}
+foreign import marloweAppPath_ :: String
 
-data ContractType
-  = MarloweContract
-  | WalletCompanionContract
-  | WalletFollowerContract
+foreign import walletCompanionAppPath_ :: String
 
-contractExe :: ContractType -> ContractExe
-contractExe MarloweContract = ContractExe { contractPath: marloweContractPath_ }
+foreign import walletFollowerAppPath_ :: String
 
-contractExe WalletCompanionContract = ContractExe { contractPath: walletCompanionContractPath_ }
+plutusAppPath :: PlutusApp -> ContractExe
+plutusAppPath MarloweApp = ContractExe { contractPath: marloweAppPath_ }
 
-contractExe WalletFollowerContract = ContractExe { contractPath: walletFollowerContractPath_ }
+plutusAppPath WalletCompanionApp = ContractExe { contractPath: walletCompanionAppPath_ }
 
-contractType :: ContractExe -> Maybe ContractType
-contractType exe
-  | exe == contractExe MarloweContract = Just MarloweContract
+plutusAppPath WalletFollowerApp = ContractExe { contractPath: walletFollowerAppPath_ }
 
-contractType exe
-  | exe == contractExe WalletCompanionContract = Just WalletCompanionContract
+plutusAppType :: ContractExe -> Maybe PlutusApp
+plutusAppType exe
+  | exe == plutusAppPath MarloweApp = Just MarloweApp
 
-contractType exe
-  | exe == contractExe WalletFollowerContract = Just WalletFollowerContract
+plutusAppType exe
+  | exe == plutusAppPath WalletCompanionApp = Just WalletCompanionApp
 
-contractType _ = Nothing
+plutusAppType exe
+  | exe == plutusAppPath WalletFollowerApp = Just WalletFollowerApp
 
--- in the PAB, transactions have a fixed cost of 10 lovelace; in the real node,
--- transaction fees will vary, but this may still serve as a good approximation
+plutusAppType _ = Nothing
+
+-- in the PAB, transactions have a fixed cost of 10 lovelace; in the real node,transaction fees will vary,
+-- but this may still serve as a good approximation
 transactionFee :: BigInteger
 transactionFee = fromInt 10
 
--- FIXME: it appears that creating a contract currently requires three transactions,
--- but I believe it should be possible with one; check this with Alex
+-- FIXME: it appears that creating a contract currently requires three transactions, but I believe it
+-- should be possible with one; check this with Alex
 contractCreationFee :: BigInteger
 contractCreationFee = transactionFee * (fromInt 3)
 
-newtype ContractInstanceId
-  = ContractInstanceId UUID
+{-
+A `PlutusAppId` is used to identify an instance of a Plutus "contract" in the PAB. In the PAB code it is
+called `ContractInstanceId` - as above, we don't refer to "contracts" here so as to avoid confusion with
+*Marlowe* contracts. This is converted to a `ContractInstanceId` that the PAB understands by the `Bridge`
+module.
+-}
+newtype PlutusAppId
+  = PlutusAppId UUID
 
-derive instance newtypeContractInstanceId :: Newtype ContractInstanceId _
+derive instance newtypePlutusAppId :: Newtype PlutusAppId _
 
-derive instance eqContractInstanceId :: Eq ContractInstanceId
+derive instance eqPlutusAppId :: Eq PlutusAppId
 
-derive instance ordContractInstanceId :: Ord ContractInstanceId
+derive instance ordPlutusAppId :: Ord PlutusAppId
 
-derive instance genericContractInstanceId :: Generic ContractInstanceId _
+derive instance genericPlutusAppId :: Generic PlutusAppId _
 
-instance encodeContractInstanceId :: Encode ContractInstanceId where
+-- note we need to encode this type, not to communicate with the PAB (we have the `ContractInstanceId`
+-- for that), but to save `WalletData` to local storage
+instance encodePlutusAppId :: Encode PlutusAppId where
   encode value = genericEncode defaultOptions value
 
-instance decodeContractInstanceId :: Decode ContractInstanceId where
+instance decodePlutusAppId :: Decode PlutusAppId where
   decode value = genericDecode defaultOptions value
 
 -- `MarloweParams` are used to identify a Marlowe contract in the PAB, and the wallet

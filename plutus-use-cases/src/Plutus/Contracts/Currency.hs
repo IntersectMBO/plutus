@@ -69,7 +69,7 @@ data OneShotCurrency = OneShotCurrency
   -- ^ How many units of each 'TokenName' are to
   --   be forged.
   }
-  deriving stock (Generic, Prelude.Show)
+  deriving stock (Generic, Prelude.Show, Prelude.Eq)
   deriving anyclass (ToJSON, FromJSON)
 
 PlutusTx.makeLift ''OneShotCurrency

@@ -5,7 +5,7 @@ import           Data.Time                                        (Day, diffDays
 import           Language.Marlowe.ACTUS.Definitions.ContractTerms (DCC (DCC_A_360, DCC_A_365, DCC_A_AISDA, DCC_E30_360, DCC_E30_360ISDA))
 
 
-yearFraction :: DCC -> Day -> Day -> Day -> Double
+yearFraction :: DCC -> Day -> Day -> Maybe Day -> Double
 yearFraction DCC_A_AISDA startDay endDay _
   | startDay <= endDay
   = let
@@ -39,7 +39,8 @@ yearFraction DCC_A_365 startDay endDay _
   | otherwise
   = 0.0
 
-yearFraction DCC_E30_360ISDA startDay endDay maturityDate
+yearFraction DCC_E30_360ISDA _ _ Nothing = error "DCC_E30_360ISDA requires maturity date"
+yearFraction DCC_E30_360ISDA startDay endDay (Just maturityDate)
   | startDay <= endDay
   = let
       (d1Year, d1Month, d1Day) = toGregorian startDay
