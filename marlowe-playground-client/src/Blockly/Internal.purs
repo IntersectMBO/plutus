@@ -118,6 +118,10 @@ foreign import updateToolbox_ :: EffectFn2 Json Workspace Unit
 
 foreign import clearUndoStack_ :: EffectFn1 Workspace Unit
 
+foreign import isWorkspaceEmpty_ :: EffectFn1 Workspace Boolean
+
+foreign import setGroup_ :: EffectFn2 Blockly Boolean Unit
+
 newtype ElementId
   = ElementId String
 
@@ -221,6 +225,12 @@ updateToolbox toolbox = runEffectFn2 updateToolbox_ (encodeToolbox toolbox)
 
 clearUndoStack :: Workspace -> Effect Unit
 clearUndoStack = runEffectFn1 clearUndoStack_
+
+isWorkspaceEmpty :: Workspace -> Effect Boolean
+isWorkspaceEmpty = runEffectFn1 isWorkspaceEmpty_
+
+setGroup :: Blockly -> Boolean -> Effect Unit
+setGroup = runEffectFn2 setGroup_
 
 data Pair
   = Pair String String

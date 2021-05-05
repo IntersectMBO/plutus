@@ -38,7 +38,7 @@ emptyState =
   }
 
 data Query a
-  = SetCode String a
+  = SetCode Boolean String a
   | SetError String a
   | GetWorkspace (XML -> a)
   | LoadWorkspace XML a
