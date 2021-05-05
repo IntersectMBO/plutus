@@ -3,7 +3,7 @@ module Play.View (renderPlayState) where
 import Prelude hiding (div)
 import Contract.View (actionConfirmationCard, contractDetailsCard)
 import ContractHome.View (contractsScreen)
-import Css (applyWhen, classNames, hideWhen)
+import Css (applyWhen, classNames, hideWhen, toggleWhen)
 import Css as Css
 import Data.Lens (preview, view)
 import Data.Maybe (Maybe(..))
@@ -39,10 +39,20 @@ renderPlayState state =
 renderHeader :: forall p. PubKey -> Boolean -> HTML p Action
 renderHeader walletNickname menuOpen =
   header
-    [ classNames $ [ "relative", "flex", "justify-between", "items-center", "leading-none", "py-3", "md:py-1", "px-4", "md:px-5pc" ] <> if menuOpen then [ "bg-black", "text-white" ] else [ "border-b", "border-gray" ] ]
+    [ classNames
+        $ [ "relative", "flex", "justify-between", "items-center", "leading-none", "py-3", "md:py-1", "px-4", "md:px-5pc" ]
+        -- in case the menu is open when the user makes their window wider, we make sure the menuOpen styles only apply on small screens ...
+        
+        <> toggleWhen menuOpen [ "border-0", "bg-black", "text-white", "md:border-b", "md:bg-transparent", "md:text-black" ] [ "border-b", "border-gray" ]
+    ]
     [ img
-        [ classNames [ "w-16" ]
+        [ classNames [ "w-16", "md:hidden" ]
         , src if menuOpen then marloweRunNavLogoDark else marloweRunNavLogo
+        ]
+    -- ... and provide an alternative logo for wider screens that always has black text
+    , img
+        [ classNames [ "w-16", "hidden", "md:inline" ]
+        , src marloweRunNavLogo
         ]
     , nav
         [ classNames [ "flex", "items-center" ] ]

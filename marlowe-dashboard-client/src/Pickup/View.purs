@@ -24,7 +24,19 @@ renderPickupState :: forall p. State -> HTML p Action
 renderPickupState state =
   div
     [ classNames [ "grid", "h-full" ] ]
-    [ main
+    [ div
+        [ classNames
+            $ [ "absolute", "top-0", "-left-32", "w-160", "h-32", "bg-link-highlight", "bg-cover", "opacity-10", "transform", "rotate-180" ]
+            <> [ "md:-left-64", "md:w-256", "md:h-48" ]
+        ]
+        []
+    , div
+        [ classNames
+            $ [ "absolute", "bottom-0", "-right-64", "w-160", "h-32", "bg-link-highlight", "bg-cover", "opacity-10" ]
+            <> [ "md:w-256", "md:h-56" ]
+        ]
+        []
+    , main
         [ classNames [ "relative" ] ]
         -- In the Play view, there are potentially many cards all inside a containing div,
         -- and the last one has a semi-transparent overlay (using class "last:bg-overlay").
@@ -222,26 +234,35 @@ localWalletMissingCard =
   ]
 
 ------------------------------------------------------------
-renderPickupScreen :: forall p. Warn (Text "We need to add the Marlowe links.") => State -> HTML p Action
+renderPickupScreen :: forall p. Warn (Text "We need to add the documentation link.") => State -> HTML p Action
 renderPickupScreen state =
   div
     [ classNames [ "absolute", "top-0", "bottom-0", "left-0", "right-0", "overflow-auto", "z-0", "flex", "flex-col", "justify-between" ] ]
     [ header
-        [ classNames [ "flex" ] ]
+        [ classNames [ "p-2" ] ]
         [ a
-            [ classNames []
+            [ classNames [ "flex", "p-2", "font-bold" ]
             , href "https://marlowe-finance.io"
             ]
-            [ text "marlowe-finance.io" ]
+            [ img
+                [ classNames [ "mr-2" ]
+                , src arrowBack
+                ]
+            , text "marlowe-finance.io"
+            ]
         ]
     , pickupWalletScreen state
     , footer
         [ classNames [ "flex", "justify-between" ] ]
-        [ a
-            [ classNames [ "flex", "items-center", "p-2", "font-bold" ]
-            , href "FIXME: add a link to the Docs"
+        [ div
+            [ classNames [ "bg-white", "p-8", "rounded-tr-lg", "shadow-lg" ] ]
+            [ icon ArrowRight [ "hidden", "md:block", "md:text-medium-icon", "md:text-gray", "md:text-center", "md:mb-6" ]
+            , a
+                [ classNames [ "px-8", "py-4", "font-bold", "hover:bg-link-highlight", "bg-no-repeat", "bg-center" ]
+                , href ""
+                ]
+                [ text "Docs" ]
             ]
-            [ text "Docs" ]
         ]
     ]
 
