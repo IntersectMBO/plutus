@@ -50,6 +50,10 @@
   content: "chevron_right";
 }
 
+.with-icon-new-contact::after {
+  content: "person_add_alt";
+}
+
 .with-icon-pay::after {
   content: "credit_score";
 }

@@ -7,7 +7,7 @@ module Template.View
 import Prelude hiding (div)
 import Css (applyWhen, classNames, hideWhen)
 import Css as Css
-import Data.Array (mapWithIndex)
+import Data.Array (filter, mapWithIndex)
 import Data.BigInteger (fromString) as BigInteger
 import Data.Lens (view)
 import Data.Map (Map, lookup)
@@ -100,7 +100,14 @@ contractNicknameDisplay contractName contractNickname =
         [ div
             [ classNames [ "max-w-sm", "mx-auto", "px-4", "pt-2" ] ]
             [ input
-                [ classNames $ (Css.input $ null contractNickname) <> [ "bg-transparent", "font-semibold" ]
+                [ classNames
+                    -- TODO: Once we remove the readOnly, remove this filter. I tried adding "text-black" to the end of the array
+                    
+                    --       but the browser does not respect ordering and for some reason "text-darkgray was winning"
+                    
+                    $ filter (not <<< eq "text-darkgray")
+                    $ (Css.input $ null contractNickname)
+                    <> [ "font-semibold" ]
                 , type_ InputText
                 , placeholder "Contract name *"
                 , value contractNickname
@@ -148,7 +155,7 @@ roleInputs wallets extendedContract metaData roleWallets =
           ]
           [ text $ "Party " <> (show $ index + 1) ]
       , input
-          [ classNames $ Css.input false <> [ "shadow" ]
+          [ classNames $ Css.inputCard false
           , id_ pubKey
           , type_ InputText
           , value pubKey
@@ -179,7 +186,7 @@ roleInputs wallets extendedContract metaData roleWallets =
         , div
             [ classNames [ "relative" ] ]
             [ input
-                [ classNames $ Css.input (isJust mRoleError) <> [ "shadow", "pr-9" ]
+                [ classNames $ Css.inputCard (isJust mRoleError) <> [ "pr-9" ]
                 , id_ tokenName
                 , type_ InputText
                 , list "walletNicknames"
@@ -232,7 +239,7 @@ parameterInputs wallets currentSlot metaData templateContent slotContentStrings 
             , text description
             ]
         , input
-            [ classNames $ Css.input (isJust mParameterError) <> [ "shadow" ]
+            [ classNames $ Css.inputCard (isJust mParameterError)
             , id_ $ "slot-" <> key
             , type_ InputDatetimeLocal
             , onValueInput_ $ SetSlotContent key
@@ -264,7 +271,7 @@ parameterInputs wallets currentSlot metaData templateContent slotContentStrings 
             , text description
             ]
         , input
-            [ classNames $ Css.input (isJust mParameterError) <> [ "shadow" ]
+            [ classNames $ Css.inputCard (isJust mParameterError)
             , id_ $ "value-" <> key
             , type_ InputNumber
             , onValueInput_ $ SetValueContent key <<< BigInteger.fromString
@@ -341,15 +348,16 @@ templateLibraryCard =
           [ text template.metaData.contractDescription ]
       ]
 
+-- TODO: This helper is really similar to contractCard in ContractHome.View, see if it makes sense to factor a component out
 contractTitle :: forall p. MetaData -> HTML p Action
 contractTitle metaData =
   div
-    [ classNames [ "flex", "items-start", "leading-none", "mr-1" ] ]
+    [ classNames [ "flex", "items-start", "mr-1" ] ]
     [ span
-        [ classNames [ "text-2xl", "font-semibold", "mr-2" ] ]
+        [ classNames [ "text-2xl", "leading-none", "font-semibold" ] ]
         [ text $ contractTypeInitials metaData.contractType ]
     , span
-        [ classNames [ "text-sm", "pt-1", "uppercase" ] ]
+        [ classNames [ "text-xs", "uppercase", "ml-2" ] ]
         [ text $ metaData.contractName ]
     ]
 

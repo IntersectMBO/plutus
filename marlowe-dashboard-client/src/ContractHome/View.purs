@@ -19,14 +19,14 @@ import Marlowe.Execution (_mNextTimeout)
 import Marlowe.Extended (contractTypeName, contractTypeInitials)
 import Marlowe.Semantics (Slot)
 import Marlowe.Slot (secondsDiff)
-import Material.Icons (Icon(..), icon_)
+import Material.Icons (Icon(..), icon)
 
 contractsScreen :: forall p. Slot -> State -> HTML p Action
 contractsScreen currentSlot state =
   let
     buttonClasses = [ "w-40", "text-center" ]
 
-    selectorButton true = Css.whiteButton <> buttonClasses
+    selectorButton true = Css.button <> [ "shadow", "bg-white" ] <> buttonClasses
 
     selectorButton false = Css.secondaryButton <> buttonClasses
 
@@ -108,19 +108,20 @@ contractCard currentSlot contractState =
     div
       -- NOTE: The overflow hidden helps fix a visual bug in which the background color eats away the border-radius
       [ classNames
-          [ "cursor-pointer", "shadow", "bg-white", "rounded", "overflow-hidden" ]
+          [ "cursor-pointer", "shadow-sm", "hover:shadow", "active:shadow-lg", "bg-white", "rounded", "overflow-hidden" ]
       , onClick_ $ OpenContract contractInstanceId
       ]
-      [ div [ classNames [ "flex", "px-4", "pt-4" ] ]
-          [ span [ classNames [ "text-xl", "font-semibold" ] ] [ text contractAcronym ]
-          , span [ classNames [ "flex-grow", "text-xs" ] ] [ text contractType ]
-          , icon_ ArrowRight
+      -- TODO: This part is really similar to contractTitle in Template.View, see if it makes sense to factor a component out
+      [ div [ classNames [ "flex", "px-4", "pt-4", "items-center" ] ]
+          [ span [ classNames [ "text-2xl", "leading-none", "font-semibold" ] ] [ text contractAcronym ]
+          , span [ classNames [ "flex-grow", "ml-2", "self-start", "text-xs", "uppercase" ] ] [ text contractType ]
+          , icon ArrowRight [ "text-28px" ]
           ]
-      , div [ classNames [ "font-semibold", "px-4", "py-2" ] ]
+      , div [ classNames [ "px-4", "py-2", "text-lg" ] ]
           [ text longTitle
           ]
       , div [ classNames [ "bg-lightgray", "flex", "flex-col", "px-4", "py-2" ] ]
-          [ span [ classNames [ "text-xs" ] ] [ text $ "Step " <> show stepNumber <> ":" ]
+          [ span [ classNames [ "text-xs", "font-semibold" ] ] [ text $ "Step " <> show stepNumber <> ":" ]
           , span [ classNames [ "text-xl" ] ] [ text timeoutStr ]
           ]
       ]

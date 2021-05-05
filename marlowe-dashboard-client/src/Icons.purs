@@ -33,6 +33,7 @@ data Icon
   | Home
   | Menu
   | Next
+  | NewContact
   | Pay
   | Previous
   | Roles
@@ -67,6 +68,8 @@ content Home = "home"
 content Menu = "short_text"
 
 content Next = "chevron_right"
+
+content NewContact = "person_add_alt"
 
 content Pay = "credit_score"
 
@@ -108,6 +111,8 @@ iconClass Home = "home"
 iconClass Menu = "menu"
 
 iconClass Next = "next"
+
+iconClass NewContact = "new-contact"
 
 iconClass Pay = "pay"
 
