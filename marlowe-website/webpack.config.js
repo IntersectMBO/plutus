@@ -20,6 +20,13 @@ module.exports = {
         test: /\.css$/i,
         use: [MiniCssExtractPlugin.loader, "css-loader", "postcss-loader"],
       },
+      {
+        test: /\.(gif|png|jpe?g|svg)$/i,
+        type: "asset/resource",
+        generator: {
+          filename: "img/[hash][ext][query]",
+        },
+      },
     ],
   },
   target: "web",

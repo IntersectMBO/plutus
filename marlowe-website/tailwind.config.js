@@ -10,15 +10,16 @@ module.exports = {
       black: "#283346",
       lightgray: "#eeeeee",
       gray: "#dfdfdf",
-      green: "#00a551",
+      // FIXME: Marlowe run uses "#00a551" but the website uses this, unify
+      green: "#00e39c",
       lightgreen: "#00e872",
       darkgray: "#b7b7b7",
       overlay: "rgba(10,10,10,0.4)",
       white: "#ffffff",
       purple: "#4700c3",
+      purple: "#4700c3",
       lightpurple: "#8701fc",
       grayblue: "#f5f9fc",
-      purple: "#4c41e5",
       red: "#e04b4c",
     },
     fontSize: {
@@ -29,7 +30,7 @@ module.exports = {
       xl: "24px",
       "2xl": "34px",
       "3xl": "46px",
-      "big-icon": "100px",
+      "5xl": "68px",
     },
     borderRadius: {
       sm: "5px",
@@ -49,6 +50,9 @@ module.exports = {
       spacing: {
         "5pc": "5%",
       },
+      backgroundImage: (theme) => ({
+        main: "url('/static/img/woman-using-cellphone.jpg')",
+      }),
     },
   },
   variants: {
@@ -107,7 +111,7 @@ module.exports = {
     listStyleType: false,
     maxHeight: true,
     maxWidth: true,
-    minHeight: false,
+    minHeight: true,
     minWidth: true,
     objectFit: false,
     objectPosition: false,

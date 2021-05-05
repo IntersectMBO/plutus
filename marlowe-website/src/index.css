@@ -1,0 +1,13 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+.primary-button {
+  @apply bg-gradient-to-r from-purple to-lightpurple text-white font-bold;
+  @apply rounded-full px-5 py-3;
+}
+
+.secondary-button {
+  @apply bg-transparent border-2 border-lightpurple text-lightpurple font-bold;
+  @apply rounded-full px-5 py-3;
+}

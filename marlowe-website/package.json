@@ -2,7 +2,7 @@
   "name": "marlowe-website",
   "version": "1.0.0",
   "scripts": {
-    "webpack:server": "webpack serve --mode=development --open",
+    "webpack:server": "webpack serve --mode=development",
     "start": "npm run webpack:server",
     "build": "NODE_ENV=production webpack --mode=production"
   },
@@ -17,6 +17,8 @@
     "postcss": "^8.2.13",
     "postcss-loader": "^5.2.0",
     "prettier": "^2.2.1",
+    "stylelint": "^13.13.1",
+    "stylelint-config-standard": "^22.0.0",
     "tailwindcss": "^2.1.2",
     "webpack": "^5.36.0",
     "webpack-cli": "^4.6.0",

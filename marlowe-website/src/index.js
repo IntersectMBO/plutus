@@ -1,5 +1,5 @@
-import "tailwindcss/tailwind.css"
+import "./index.css";
 
 window.onload = function () {
-  console.log('Placeholder');
-}
+  console.log("Placeholder");
+};
