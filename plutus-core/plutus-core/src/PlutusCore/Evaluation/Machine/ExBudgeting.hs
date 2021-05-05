@@ -68,19 +68,22 @@ type CostModel = CostModelBase CostingFun
    Note also that it's important to perform the same adjustments on the R output
    in TestCostModel.hs so that Haskell and R results agree (which is why
    `toCostUnit` is exported).
+   TODO: this also scales memory costs, which we don't need to do.  Does that cost
+   us anything?
 -}
 
-{- Note [Time units]. What are the units?  The Criterion output produces times in
-   seconds, and these are usually very small, typically of the order of 10^-6.
-   In models.R, the get.bench.data funtion multiplies everything by 10^6 after
-   reading it in, so it (and the models it outputs) deal with times in
-   microseconds.  So for example the model for "addInteger" may have an
-   intercept of 0.249487779229322 and a slope of 1.87065741871939e-3.  This
-   means that it's taking a basic time of 249ns plus another 1.87ns for every
-   word in the input (in fact, for the maximum of the number of words in the
-   input).  This is still very small, so here we're scaling up by another 10^6,
-   to get times in picoseconds.  For the addInteger example we'll now have an
-   intercept of 249000ps plus another 1870 for each word in the input. -}
+{- Note [Time units]. What units are times measured in?  The Criterion output
+   produces times in seconds, and these are usually very small, typically of the
+   order of 10^-6.  In models.R, the get.bench.data funtion multiplies
+   everything by 10^6 after reading it in, so it (and the models it outputs)
+   deal with times in microseconds.  So for example the model for "addInteger"
+   may have an intercept of 0.249487779229322 and a slope of
+   1.87065741871939e-3.  This means that it's taking a basic time of 249ns plus
+   another 1.87ns for every word in the input (in fact, for the maximum of the
+   number of words in the input).  This is still very small, so here we're
+   scaling up by another 10^6, to get times in picoseconds.  For the addInteger
+   example we'll now have an intercept of 249000ps plus another 1870 for each
+   word in the input. -}
 
 costMultiplier :: Integer
 costMultiplier = 1000 * 1000
@@ -91,7 +94,9 @@ toCostUnit x = ceiling ((fromInteger costMultiplier) * x)
 fromCostUnit :: Integer -> Integer
 fromCostUnit x = x `div` costMultiplier
 
--- | The main model which contains all data required to predict the cost of builtin functions. See Note [Creation of the Cost Model] for how this is generated. Calibrated for the CeK machine.
+-- | The main model which contains all data required to predict the cost of
+-- builtin functions. See Note [Creation of the Cost Model] for how this is
+-- generated. Calibrated for the CEK machine.
 data CostModelBase f =
     CostModel
     { paramAddInteger           :: f ModelTwoArguments
