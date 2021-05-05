@@ -751,8 +751,8 @@ timeEval n evaluate prog
 
 ---------------- Printing budgets and costs ----------------
 
-printBudgetStateBudget :: CekModel -> ExBudget -> IO ()
-printBudgetStateBudget model b =
+printBudgetStateBudget :: UPLC.Term UPLC.Name PLC.DefaultUni PLC.DefaultFun () -> CekModel -> ExBudget -> IO ()
+printBudgetStateBudget _ model b =
     case model of
       Unit -> pure ()
       _ ->  let ExCPU cpu = _exBudgetCPU b
@@ -761,8 +761,9 @@ printBudgetStateBudget model b =
               putStrLn $ "CPU budget:    " ++ show cpu
               putStrLn $ "Memory budget: " ++ show mem
 
-printBudgetStateTally :: (Eq fun, Cek.Hashable fun, Show fun) => CekModel ->  Cek.CekExTally fun -> IO ()
-printBudgetStateTally model (Cek.CekExTally costs) = do
+printBudgetStateTally :: (Eq fun, Cek.Hashable fun, Show fun)
+       => UPLC.Term UPLC.Name PLC.DefaultUni PLC.DefaultFun () -> CekModel ->  Cek.CekExTally fun -> IO ()
+printBudgetStateTally term model (Cek.CekExTally costs) = do
   putStrLn $ "Const      " ++ pbudget Cek.BConst
   putStrLn $ "Var        " ++ pbudget Cek.BVar
   putStrLn $ "LamAbs     " ++ pbudget Cek.BLamAbs
@@ -772,12 +773,14 @@ printBudgetStateTally model (Cek.CekExTally costs) = do
   putStrLn $ "Error      " ++ pbudget Cek.BError
   putStrLn $ "Builtin    " ++ pbudget Cek.BBuiltin
   putStrLn ""
-  putStrLn $ "Startup    " ++ pbudget Cek.BStartup
+  putStrLn $ "startup    " ++ pbudget Cek.BStartup
   putStrLn $ "compute    " ++ printf "%-20s" (budgetToString totalComputeCost)
+  putStrLn $ "AST nodes  " ++ printf "%10d" (UPLC.termSize term)
+  putStrLn ""
+  putStrLn $ "BuiltinApp " ++ budgetToString builtinCosts
   case model of
     Default ->
         do
-          putStrLn $ "BuiltinApp " ++ budgetToString builtinCosts
   -- 1e9*(0.200  + 0.0000725 * totalComputeSteps + builtinExeTimes/1000)  putStrLn ""
           putStrLn ""
           traverse_ (\(b,cost) -> putStrLn $ printf "%-20s %s" (show b) (budgetToString cost :: String)) builtinsAndCosts
@@ -803,21 +806,24 @@ printBudgetStateTally model (Cek.CekExTally costs) = do
         totalTime = 1000 * ((getCPU $ getSpent Cek.BStartup) + getCPU totalComputeCost) + getCPU builtinCosts/1e6
 
 class PrintBudgetState cost where
-    printBudgetState :: CekModel -> cost -> IO ()
-    -- Not ideal: we only need the CEK cost model in tallying mode
+    printBudgetState :: UPLC.Term PLC.Name PLC.DefaultUni PLC.DefaultFun () -> CekModel -> cost -> IO ()
+    -- TODO: Tidy this up.  We're passing in the term and the CEK cost model
+    -- here, but we only need them in tallying mode (where we need the term so
+    -- we can print out the AST size and we need the model type to decide how
+    -- much information we're going to print out).
 
 instance PrintBudgetState Cek.CountingSt where
-    printBudgetState model (Cek.CountingSt budget) = printBudgetStateBudget model budget
+    printBudgetState term model (Cek.CountingSt budget) = printBudgetStateBudget term model budget
 
 instance (Eq fun, Cek.Hashable fun, Show fun) => PrintBudgetState (Cek.TallyingSt fun) where
-    printBudgetState model (Cek.TallyingSt tally budget) = do
-        printBudgetStateBudget model budget
+    printBudgetState term model (Cek.TallyingSt tally budget) = do
+        printBudgetStateBudget term model budget
         putStrLn ""
-        printBudgetStateTally model tally
+        printBudgetStateTally term model tally
 
 instance PrintBudgetState Cek.RestrictingSt where
-    printBudgetState model (Cek.RestrictingSt (ExRestrictingBudget budget)) =
-        printBudgetStateBudget model budget
+    printBudgetState term model (Cek.RestrictingSt (ExRestrictingBudget budget)) =
+        printBudgetStateBudget term model budget
 
 
 ---------------- Evaluation ----------------
@@ -835,21 +841,21 @@ runEval (EvalOptions language inp ifmt evalMode printMode budgetMode timingMode 
                                Verbose _ -> errorWithoutStackTrace "There is no budgeting for typed Plutus Core"
                     TypedProgram prog <- getProgram TypedPLC ifmt inp
                     let evaluate = Ck.evaluateCkNoEmit PLC.defBuiltinsRuntime
-                        body = void . PLC.toTerm $ prog
-                        !_ = rnf body
+                        term = void . PLC.toTerm $ prog
+                        !_ = rnf term
                         -- Force evaluation of body to ensure that we're not timing parsing/deserialisation.
                         -- The parser apparently returns a fully-evaluated AST, but let's be on the safe side.
                     case timingMode of
-                      NoTiming -> evaluate body & handleResult
-                      Timing n -> timeEval n evaluate body >>= handleTimingResults
+                      NoTiming -> evaluate term & handleResult
+                      Timing n -> timeEval n evaluate term >>= handleTimingResults term
 
       UntypedPLC ->
           case evalMode of
             CK  -> errorWithoutStackTrace "There is no CK machine for Untyped Plutus Core"
             CEK -> do
                   UntypedProgram prog <- getProgram UntypedPLC ifmt inp
-                  let body = void . UPLC.toTerm $ prog
-                      !_ = rnf body
+                  let term = void . UPLC.toTerm $ prog
+                      !_ = rnf term
                       costs = case cekModel of
                                 Default -> defaultCekCosts  -- AST nodes are charged according to the default cost model
                                 Unit    -> Cek.unitCekCosts -- AST nodes are charged one unit each, so we can see how many times each node
@@ -858,16 +864,16 @@ runEval (EvalOptions language inp ifmt evalMode printMode budgetMode timingMode 
                     Silent -> do
                           let evaluate = Cek.evaluateCekNoEmit costs PLC.defBuiltinsRuntime
                           case timingMode of
-                            NoTiming -> evaluate body & handleResult
-                            Timing n -> timeEval n evaluate body >>= handleTimingResults
+                            NoTiming -> evaluate term & handleResult
+                            Timing n -> timeEval n evaluate term >>= handleTimingResults term
                     Verbose bm -> do
                           let evaluate = Cek.runCekNoEmit costs PLC.defBuiltinsRuntime bm
                           case timingMode of
                             NoTiming -> do
-                                    let (result, budget) = evaluate body
-                                    printBudgetState cekModel budget
+                                    let (result, budget) = evaluate term
+                                    printBudgetState term cekModel budget
                                     handleResultSilently result  -- We just want to see the budget information
-                            Timing n -> timeEval n evaluate body >>= handleTimingResultsWithBudget
+                            Timing n -> timeEval n evaluate term >>= handleTimingResultsWithBudget term
 
     where handleResult result =
               case result of
@@ -876,21 +882,21 @@ runEval (EvalOptions language inp ifmt evalMode printMode budgetMode timingMode 
           handleResultSilently = \case
                 Right _  -> exitSuccess
                 Left err -> print err >> exitFailure
-          handleTimingResults results =
+          handleTimingResults _ results =
               case nub results of
                 [Right _]  -> exitSuccess -- We don't want to see the result here
                 [Left err] -> print err >> exitFailure
                 _          -> error "Timing evaluations returned inconsistent results" -- Should never happen
-          handleTimingResultsWithBudget results =
+          handleTimingResultsWithBudget term results =
               case nub results of
                 [(Right _, budget)] -> do
                     putStrLn ""
-                    printBudgetState cekModel budget
+                    printBudgetState term cekModel budget
                     exitSuccess
                 [(Left err,   budget)] -> do
                     putStrLn ""
                     print err
-                    printBudgetState cekModel budget
+                    printBudgetState term cekModel budget
                     exitFailure
                 _                                   -> error "Timing evaluations returned inconsistent results"
 
