@@ -91,6 +91,7 @@ inline =
     , "builtin"
     , "constant"
     , "transitive"
+    , "tyvar"
     ]
 
 

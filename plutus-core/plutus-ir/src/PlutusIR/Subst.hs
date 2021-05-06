@@ -9,7 +9,6 @@ import           PlutusCore.Subst     (uniquesType)
 
 import           PlutusIR.Core
 
-import           Control.Lens
 import           Data.Set             as Set
 import           Data.Set.Lens        (setOf)
 
