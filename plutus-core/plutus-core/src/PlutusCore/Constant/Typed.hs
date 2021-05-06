@@ -266,7 +266,7 @@ we don't add complex built-in types too often.
 -}
 
 {- Note [Representable built-in functions over polymorphic built-in types]
-In Note [Pattern matching on built-in types] we talked how general higher-order polymorphic
+In Note [Pattern matching on built-in types] we talked about how general higher-order polymorphic
 built-in functions are troubling, but polymorphic built-in functions can be troubling even in
 the first-order case. In a Plutus program we always pair constant of built-in types with their
 tags from the universe, which means that in order to produce a constant embedded into a program
@@ -289,7 +289,9 @@ And so neither
 
     cons : all a. a -> [a] -> [a]
 
-is troubling.
+is troubling (even though that ones requires checking at runtime that the element to be prepended
+is of the same type as the type of the elements of the list as it's impossible to enforce this kind
+of type safety in Haskell over possibly untyped PLC).
 
 However consider the following imaginary builtin:
 
@@ -305,10 +307,10 @@ we can't represent it for two reasons:
    (even if there's zero of them)
 
 "Wait, but wouldn't @cons {some_non_built_in_type}@ be a lie as well?" -- No! Since @cons@ does not
-just construct a list but also expects one as an argument and providing such an argument is
-impossible, 'cause it's pretty much the same thing as populating 'Void' -- both values are equally
-unrepresentable. And so @cons {some_non_built_in_type}@ is a way to say @absurd@, which is perfectly
-fine to have.
+just construct a list filled with elements of a non-built-in type but also expects one as an
+argument and providing such an argument is impossible, 'cause it's pretty much the same thing as
+populating 'Void' -- both values are equally unrepresentable. And so @cons {some_non_built_in_type}@
+is a way to say @absurd@, which is perfectly fine to have.
 
 So could we still get @nil@ somehow? Well, we could have this weirdness:
 
@@ -317,7 +319,7 @@ So could we still get @nil@ somehow? Well, we could have this weirdness:
 i.e. ask for an already existing list, but ignore the actual list and only use the type tag.
 
 But since we're ignoring the actual list, can't we just not pass it in the first place? And instead
-pass around our good old friends: singletons. We should be able to do that, but it hasn't been
+pass around our good old friends, singletons. We should be able to do that, but it hasn't been
 investigated. Perhaps something along the lines of adding the following constructor to 'DefaultUni':
 
     DefaultUniProtoSing :: DefaultUni (T (Proxy @GHC.Type))
@@ -407,6 +409,12 @@ type KnownBuiltinTypeIn uni term a = (HasConstantIn uni term, GShow uni, GEq uni
 -- | A constraint for \"@a@ is a 'KnownType' by means of being included in @UniOf term@\".
 type KnownBuiltinType term a = KnownBuiltinTypeIn (UniOf term) term a
 
+{- Note [KnownType's defaults]
+We use @default@ for providing instances for built-in types instead of @DerivingVia@, because the
+latter breaks on @m a@
+-}
+
+-- See Note [KnownType's defaults].
 -- | Haskell types known to exist on the PLC side.
 class KnownTypeAst (UniOf term) a => KnownType term a where
     -- | Convert a Haskell value to the corresponding PLC term.
@@ -518,7 +526,7 @@ instance (HasConstantIn uni term, KnownTypeAst uni rep) =>
 -- Which also implies that one can specify that a built-in function takes, say, a tuple of a type
 -- variable and a boolean, but in the actual denotation unlift to a tuple of a unit and an integer
 -- (boolean vs integer) and there won't be any Haskell type error for that, let alone a Plutus type
--- error -- it'll be an evaluation failure (in particular, an unlifting error).
+-- error -- it'll be an evaluation failure, maybe even a delayed one.
 -- So be careful in the denotation of a builtin to unlift its arguments to what you promised to
 -- unlift them to in its type signature.
 type SomeConstantOf :: forall k. (GHC.Type -> GHC.Type) -> k -> [GHC.Type] -> GHC.Type
@@ -563,9 +571,9 @@ instance (KnownBuiltinTypeIn uni term f, All (KnownTypeAst uni) reps, HasUniAppl
             wrongType :: (MonadError (ErrorWithCause err term) m, AsUnliftingError err) => m a
             wrongType = throwingWithCause _UnliftingError err $ Just term
         -- In order to prove that the type of @xs@ is an application of @f@ we need to
-        -- peel all type applications off until we get to the head and then check that the
-        -- head is indeed @f@. Each peeled type application becomes a 'SomeConstantOfArg' in the
-        -- final result.
+        -- peel all type applications off in the type of @xs@ until we get to the head and then
+        -- check that the head is indeed @f@. Each peeled type application becomes a
+        -- 'SomeConstantOfArg' in the final result.
         ReadSomeConstantOf res uniHead <-
             cparaM_SList @_ @(KnownTypeAst uni) @reps
                 Proxy

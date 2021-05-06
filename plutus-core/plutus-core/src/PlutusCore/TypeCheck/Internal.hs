@@ -329,7 +329,7 @@ inferTypeM
 -- -------------------------
 -- [infer| G !- con c : vTy]
 inferTypeM (Constant _ (Some (ValueOf uni _))) =
-    -- See Note [PLC types and universes].
+    -- See Note [Normalization of built-in types].
     normalizeTypeM $ mkTyBuiltinOf () uni
 
 -- [infer| G !- bi : vTy]

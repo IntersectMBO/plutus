@@ -297,8 +297,8 @@ instance
     , j ~ If (a === var) (i + 1) i
     ) => TrySpecializeAsVar i j term a
 
--- | For looking into arguments of polymorphic built-in types and specializing them as types
--- representing Plutus type variables there.
+-- | For looking into the type of a constant or the type arguments of a polymorphic built-in type
+-- and specializing them as types representing Plutus type variables.
 type HandleSomeConstant :: Nat -> Nat -> GHC.Type -> GHC.Type -> GHC.Constraint
 class HandleSomeConstant i j term a | i term a -> j
 instance {-# OVERLAPPABLE #-} i ~ j => HandleSomeConstant i j term a

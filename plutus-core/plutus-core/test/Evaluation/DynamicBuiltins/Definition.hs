@@ -228,6 +228,7 @@ test_BuiltinList =
                     ]
         typecheckEvaluateCkNoEmit defBuiltinsRuntimeExt term @?= Right (EvaluationSuccess res)
 
+-- | Test that right-folding a built-in list with built-in 'Cons' recreates that list.
 test_IdBuiltinList :: TestTree
 test_IdBuiltinList =
     testCase "IdBuiltinList" $ do

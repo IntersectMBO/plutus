@@ -91,6 +91,10 @@ pattern DefaultUniString = DefaultUniList DefaultUniChar
 
 deriveGEq ''DefaultUni
 
+-- | For pleasing the coverage checker.
+noMoreTypeFunctions :: DefaultUni (T (f :: a -> b -> c -> d)) -> any
+noMoreTypeFunctions (f `DefaultUniApply` _) = noMoreTypeFunctions f
+
 instance ToKind DefaultUni where
     toKind DefaultUniInteger        = kindOf DefaultUniInteger
     toKind DefaultUniByteString     = kindOf DefaultUniByteString
@@ -111,21 +115,22 @@ instance HasUniApply DefaultUni where
 
 instance GShow DefaultUni where gshowsPrec = showsPrec
 instance Show (DefaultUni a) where
-    show DefaultUniInteger           = "integer"
-    show DefaultUniByteString        = "bytestring"
-    show DefaultUniChar              = "char"
-    show DefaultUniUnit              = "unit"
-    show DefaultUniBool              = "bool"
-    show DefaultUniProtoList         = "[]"
-    show DefaultUniProtoTuple        = "(,)"
-    show (DefaultUniApply uniF uniB) = case uniF of
+    show DefaultUniInteger             = "integer"
+    show DefaultUniByteString          = "bytestring"
+    show DefaultUniChar                = "char"
+    show DefaultUniUnit                = "unit"
+    show DefaultUniBool                = "bool"
+    show DefaultUniProtoList           = "[]"
+    show DefaultUniProtoTuple          = "(,)"
+    show (uniF `DefaultUniApply` uniB) = case uniF of
         DefaultUniProtoList -> case uniB of
             DefaultUniChar -> "string"
             _              -> "[" ++ show uniB ++ "]"
         DefaultUniProtoTuple -> concat ["(", show uniB, ",)"]
-        DefaultUniApply DefaultUniProtoTuple uniA -> concat ["(", show uniA, ",", show uniB, ")"]
-        _ -> error "Impossible"
+        DefaultUniProtoTuple `DefaultUniApply` uniA -> concat ["(", show uniA, ",", show uniB, ")"]
+        uniG `DefaultUniApply` _ `DefaultUniApply` _ -> noMoreTypeFunctions uniG
 
+-- See Note [Parsing horribly broken].
 instance Parsable (SomeTypeIn (Kinded DefaultUni)) where
     parse "bool"       = Just . SomeTypeIn $ Kinded DefaultUniBool
     parse "bytestring" = Just . SomeTypeIn $ Kinded DefaultUniByteString
@@ -227,7 +232,3 @@ instance Closed DefaultUni where
         bring p uniA $ bring p uniB r
     bring _ (f `DefaultUniApply` _ `DefaultUniApply` _ `DefaultUniApply` _) _ =
         noMoreTypeFunctions f
-
--- | For pleasing the coverage checker.
-noMoreTypeFunctions :: DefaultUni (T (f :: a -> b -> c -> d)) -> r
-noMoreTypeFunctions (f `DefaultUniApply` _) = noMoreTypeFunctions f
