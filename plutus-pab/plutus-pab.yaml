@@ -1,5 +1,5 @@
 dbConfig:
-    dbConfigFile: pab-core.db
+    dbConfigFile: /tmp/wat/pab-core.db
     dbConfigPoolSize: 20
 
 pabWebserverConfig:

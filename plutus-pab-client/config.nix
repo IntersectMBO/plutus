@@ -1,7 +1,7 @@
 { pkgs }:
 # in the future this could just be a nix attr set turned into a json file
 { name
-, db-file ? "/tmp/pab-core.db"
+, db-file ? "pab-core.db"
 , client
 , webserver-port ? "9080"
 , walletserver-port ? "9081"
