@@ -1,4 +1,5 @@
-'use strict';
+"use strict";
+
 const extraPlugins =
   process.env.NODE_ENV === "production"
     ? [
@@ -17,10 +18,9 @@ const extraPlugins =
 
 module.exports = {
   plugins: [
-    require('postcss-import'),
-    require('precss'),
-    require('tailwindcss'),
-    require('autoprefixer'),
+    require("postcss-import"),
+    require("tailwindcss"),
+    require("autoprefixer"),
     ...extraPlugins
   ]
 };
