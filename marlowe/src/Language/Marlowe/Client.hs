@@ -224,7 +224,9 @@ marlowePlutusContract = do
   where
     create = do
         (owners, contract) <- endpoint @"create"
+        logWarn @String "setup marlowe params"
         (params, distributeRoleTokens) <- setupMarloweParams owners contract
+        logWarn @String "Received marlowe params"
         slot <- currentSlot
         let StateMachineClient{scInstance} = mkMarloweClient params
         let marloweData = MarloweData {
@@ -359,14 +361,17 @@ setupMarloweParams owners contract = mapError (review _MarloweError) $ do
     let roles = extractContractRoles contract
     if Set.null roles
     then do
+        logWarn @String "No roles"
         let params = MarloweParams
                 { rolesCurrency = adaSymbol
                 , rolePayoutValidatorHash = defaultRolePayoutValidatorHash }
         pure (params, mempty)
     else if roles `Set.isSubsetOf` Set.fromList (AssocMap.keys owners)
     then do
+        logWarn @String "Roles (I)"
         let tokens = fmap (\role -> (role, 1)) $ Set.toList roles
         cur <- mapError RolesCurrencyError $ Currency.forgeContract creator tokens
+        logWarn @String "Roles (I): Curreny obtained."
         let rolesSymbol = Currency.currencySymbol cur
         let giveToParty (role, pkh) = Constraints.mustPayToPubKey pkh (Val.singleton rolesSymbol role 1)
         let distributeRoleTokens = foldMap giveToParty (AssocMap.toList owners)
@@ -375,6 +380,7 @@ setupMarloweParams owners contract = mapError (review _MarloweError) $ do
                 , rolePayoutValidatorHash = mkRolePayoutValidatorHash rolesSymbol }
         pure (params, distributeRoleTokens)
     else do
+        logWarn @String "Roles (II)"
         let missingRoles = roles `Set.difference` Set.fromList (AssocMap.keys owners)
         let message = T.pack $ "You didn't specify owners of these roles: " <> show missingRoles
         throwing _ContractError $ OtherError message
