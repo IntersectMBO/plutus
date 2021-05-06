@@ -119,6 +119,7 @@
         modules = [
           "Servant/Extra"
           "Cardano/BM/Data/Tracer/Extras"
+          "Cardano/Chain"
           "Cardano/ChainIndex/API"
           "Cardano/ChainIndex/ChainIndex"
           "Cardano/ChainIndex/Client"

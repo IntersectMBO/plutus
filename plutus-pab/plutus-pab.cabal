@@ -41,6 +41,7 @@ library
     import: lang
     exposed-modules:
         Cardano.BM.Data.Tracer.Extras
+        Cardano.Chain
         Cardano.ChainIndex.API
         Cardano.ChainIndex.ChainIndex
         Cardano.ChainIndex.Client
