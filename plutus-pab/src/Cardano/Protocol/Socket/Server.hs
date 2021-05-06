@@ -10,6 +10,8 @@
 
 module Cardano.Protocol.Socket.Server where
 
+import           Cardano.BM.Data.Trace                               (Trace)
+import           Cardano.Node.Types                                  (MockServerLogMsg (..))
 import qualified Data.ByteString.Lazy                                as LBS
 import           Data.List                                           (intersect)
 import           Data.Maybe                                          (listToMaybe)
@@ -19,9 +21,8 @@ import           Data.Void                                           (Void)
 import           Control.Concurrent
 import           Control.Concurrent.Async
 import           Control.Concurrent.STM
-import           Control.Lens                                        hiding (ix)
+import           Control.Lens                                        hiding (index, ix)
 import           Control.Monad.Freer                                 (interpret, runM)
-import qualified Control.Monad.Freer.Extras.Log                      as Log
 import           Control.Monad.Freer.State                           (runState)
 import           Control.Monad.Reader
 import           Control.Tracer
@@ -31,6 +32,7 @@ import           Ouroboros.Network.Protocol.ChainSync.Server         (ChainSyncS
 import qualified Ouroboros.Network.Protocol.ChainSync.Server         as ChainSync
 import qualified Ouroboros.Network.Protocol.LocalTxSubmission.Server as TxSubmission
 import qualified Ouroboros.Network.Protocol.LocalTxSubmission.Type   as TxSubmission
+import qualified Plutus.PAB.Monitoring.Util                          as LM
 
 import           Cardano.Slotting.Slot                               (SlotNo (..), WithOrigin (..))
 import           Ouroboros.Network.Block                             (Point (..), pointSlot)
@@ -48,7 +50,7 @@ import           Cardano.Protocol.Socket.Type                        hiding (cur
 
 import           Cardano.Chain                                       (ChainState (..), addTxToPool, chainNewestFirst,
                                                                       channel, currentSlot, getChannel, getTip,
-                                                                      handleControlChain, tip, txPool)
+                                                                      handleControlChain, index, tip, txPool)
 import           Ledger                                              (Block, Slot (..), Tx (..))
 import qualified Wallet.Emulator.Chain                               as Chain
 
@@ -140,18 +142,19 @@ pruneChain k original = do
 
 handleCommand ::
     MonadIO m
- => CommandChannel
+ => Trace IO MockServerLogMsg
+ -> CommandChannel
  -> MVar ChainState
  -> m ()
-handleCommand CommandChannel {ccCommand, ccResponse} mvChainState =
+handleCommand trace CommandChannel {ccCommand, ccResponse} mvChainState =
     liftIO (atomically $ readTQueue ccCommand) >>= \case
-        AddTx tx     ->
+        AddTx tx     -> do
             liftIO $ modifyMVar_ mvChainState (pure . over txPool (tx :))
         ModifySlot f -> liftIO $ do
             state <- liftIO $ takeMVar mvChainState
             (s, nextState') <- liftIO $ Chain.modifySlot f
                   & interpret handleControlChain
-                  & Log.handleLogIgnore @Chain.ChainEvent
+                  & interpret (LM.handleLogMsgTraceMap ProcessingChainEvent trace)
                   & runState state
                   & runM
             putMVar mvChainState nextState'
@@ -159,9 +162,12 @@ handleCommand CommandChannel {ccCommand, ccResponse} mvChainState =
                 writeTQueue ccResponse (SlotChanged s)
         ProcessBlock -> liftIO $ do
             state <- liftIO $ takeMVar mvChainState
+            let nonEmptyPool = state ^. txPool . to (not . null)
+            when nonEmptyPool $ do
+                putStrLn $ show $ state ^. index
             (block, nextState') <- liftIO $ Chain.processBlock
                   & interpret handleControlChain
-                  & Log.handleLogIgnore @Chain.ChainEvent
+                  & interpret (LM.handleLogMsgTraceMap ProcessingChainEvent trace)
                   & runState state
                   & runM
             putMVar mvChainState nextState'
@@ -172,16 +178,17 @@ handleCommand CommandChannel {ccCommand, ccResponse} mvChainState =
      used to control the server -}
 runServerNode ::
     MonadIO m
- => FilePath
+ => Trace IO MockServerLogMsg
+ -> FilePath
  -> Integer
  -> ChainState
  -> m ServerHandler
-runServerNode shSocketPath k initialState = liftIO $ do
+runServerNode trace shSocketPath k initialState = liftIO $ do
     serverState      <- newMVar initialState
     shCommandChannel <- CommandChannel <$> newTQueueIO <*> newTQueueIO
     globalChannel    <- getChannel serverState
-    void $ forkIO . void    $ protocolLoop  shSocketPath     serverState
-    void $ forkIO . forever $ handleCommand shCommandChannel serverState
+    void $ forkIO . void    $ protocolLoop        shSocketPath     serverState
+    void $ forkIO . forever $ handleCommand trace shCommandChannel serverState
     void                    $ pruneChain k globalChannel
     pure $ ServerHandler { shSocketPath, shCommandChannel }
 

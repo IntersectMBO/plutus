@@ -177,9 +177,9 @@ runWalletEffects ::
     -> m (Either ServerError (a, Wallets))
 runWalletEffects trace clientHandler chainIndexEnv wallets action =
     handleMultiWallet action
-    & reinterpret (NodeClient.handleNodeClientClient)
+    & reinterpret NodeClient.handleNodeClientClient
     & runReader clientHandler
-    & reinterpret (ChainIndexClient.handleChainIndexClient)
+    & reinterpret ChainIndexClient.handleChainIndexClient
     & runReader chainIndexEnv
     & runState wallets
     & interpret (LM.handleLogMsgTrace (toWalletMsg trace))
