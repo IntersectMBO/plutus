@@ -15,6 +15,10 @@ import           PlutusCore.Evaluation.Result
 import           Control.Monad.Except
 import           Data.Proxy
 
+-- This INLINE pragma has the effect of making 'go' a local function definition at the use site.
+-- This lets GHC be a bit more aggressive, in particular it helps get rid of the small overhead
+-- from the constant arguments (e.g. the budget-spending function).
+{-# INLINE applyTypeSchemed #-}
 -- | Apply a function with a known 'TypeScheme' to a list of 'Constant's (unwrapped from 'Value's).
 -- Checks that the constants are of expected types.
 applyTypeSchemed
