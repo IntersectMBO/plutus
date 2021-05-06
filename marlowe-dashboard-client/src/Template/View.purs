@@ -27,6 +27,7 @@ import Marlowe.Market (contractTemplates)
 import Marlowe.PAB (contractCreationFee)
 import Marlowe.Semantics (Assets, Party(..), Slot)
 import Material.Icons (Icon(..), icon_)
+import Template.Format (formatText)
 import Template.Lenses (_contractName, _contractNickname, _extendedContract, _metaData, _roleWallets, _slotContentStrings, _template, _templateContent)
 import Template.Types (Action(..), State)
 import Template.Validation (roleError, roleWalletsAreValid, slotError, templateContentIsValid, valueError)
@@ -181,7 +182,7 @@ roleInputs wallets extendedContract metaData roleWallets =
                 [ classNames [ "font-bold" ] ]
                 [ text $ "Role " <> (show $ index + 1) <> " (" <> tokenName <> ")*" ]
             , br_
-            , text description
+            , span_ $ formatText description
             ]
         , div
             [ classNames [ "relative" ] ]
@@ -236,7 +237,7 @@ parameterInputs wallets currentSlot metaData templateContent slotContentStrings 
                 [ classNames [ "font-bold" ] ]
                 [ text $ "Timeout " <> (show $ index + 1) <> " (" <> key <> ")*" ]
             , br_
-            , text description
+            , span_ $ formatText description
             ]
         , input
             [ classNames $ Css.inputCard (isJust mParameterError)
@@ -268,7 +269,7 @@ parameterInputs wallets currentSlot metaData templateContent slotContentStrings 
                 [ classNames [ "font-bold" ] ]
                 [ text $ "Value " <> (show $ index + 1) <> " (" <> key <> ")*" ]
             , br_
-            , text description
+            , span_ $ formatText description
             ]
         , input
             [ classNames $ Css.inputCard (isJust mParameterError)
@@ -344,8 +345,7 @@ templateLibraryCard =
               ]
               [ text "Setup" ]
           ]
-      , p_
-          [ text template.metaData.contractDescription ]
+      , p_ $ formatText template.metaData.contractDescription
       ]
 
 -- TODO: This helper is really similar to contractCard in ContractHome.View, see if it makes sense to factor a component out
