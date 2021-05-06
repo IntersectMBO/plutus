@@ -13,7 +13,7 @@ import Prelude
 import Capability.Marlowe (class ManageMarlowe, applyTransactionInput)
 import Capability.Toast (class Toast, addToast)
 import Contract.Lenses (_executionState, _marloweParams, _namedActions, _previousSteps, _selectedStep, _tab)
-import Contract.Types (Action(..), PreviousStep, PreviousStepState(..), State, Tab(..), scrollContainerRef)
+import Contract.Types (Action(..), Inputs, PreviousStep, PreviousStepState(..), State, Tab(..), scrollContainerRef)
 import Control.Monad.Reader (class MonadAsk, asks)
 import Data.Array (difference, foldl, head, index, length, mapMaybe)
 import Data.Either (Either(..))
@@ -46,7 +46,6 @@ import Marlowe.Extended.Metadata (emptyContractMetadata)
 import Marlowe.PAB (PlutusAppId(..), History, MarloweParams)
 import Marlowe.Semantics (Contract(..), Input(..), Party(..), Slot, SlotInterval(..), Token(..), TransactionInput(..))
 import Marlowe.Semantics as Semantic
-import Marlowe.Slot (currentSlot)
 import Plutus.V1.Ledger.Value (CurrencySymbol(..))
 import Toast.Types (ajaxErrorToast, successToast)
 import WalletData.Lenses (_assets, _pubKeyHash, _walletInfo)
@@ -164,19 +163,18 @@ handleAction ::
   MonadAsk Env m =>
   ManageMarlowe m =>
   Toast m =>
-  WalletDetails -> Action -> HalogenM State Action ChildSlots Msg m Unit
-handleAction walletDetails (ConfirmAction namedAction) = do
+  Inputs -> Action -> HalogenM State Action ChildSlots Msg m Unit
+handleAction inputs@{ currentSlot, walletDetails } (ConfirmAction namedAction) = do
   currentExeState <- use _executionState
   marloweParams <- use _marloweParams
-  slot <- liftEffect currentSlot
   let
     input = toInput namedAction
 
-    txInput = mkTx slot (currentExeState ^. _currentContract) (Unfoldable.fromMaybe input)
+    txInput = mkTx currentSlot (currentExeState ^. _currentContract) (Unfoldable.fromMaybe input)
   -- FIXME: remove the next four lines and uncomment the code below when things are working in the PAB
-  modify_ $ applyTx slot txInput
+  modify_ $ applyTx currentSlot txInput
   stepNumber <- gets currentStep
-  handleAction walletDetails (MoveToStep stepNumber)
+  handleAction inputs (MoveToStep stepNumber)
   addToast $ successToast "Payment received, step completed."
 
 --ajaxApplyInputs <- applyTransactionInput walletDetails marloweParams txInput

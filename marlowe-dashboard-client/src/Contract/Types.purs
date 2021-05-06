@@ -3,6 +3,7 @@ module Contract.Types
   , PreviousStep
   , PreviousStepState(..)
   , Tab(..)
+  , Inputs
   , Action(..)
   , scrollContainerRef
   ) where
@@ -17,7 +18,7 @@ import Marlowe.Execution (ExecutionState, NamedAction)
 import Marlowe.Extended.Metadata (MetaData)
 import Marlowe.PAB (PlutusAppId, MarloweParams)
 import Marlowe.Semantics (ChoiceId, ChosenNum, Party, Slot, TransactionInput, Accounts)
-import WalletData.Types (WalletNickname)
+import WalletData.Types (WalletDetails, WalletNickname)
 
 type State
   = { tab :: Tab
@@ -52,6 +53,11 @@ data Tab
   | Balances
 
 derive instance eqTab :: Eq Tab
+
+type Inputs
+  = { currentSlot :: Slot
+    , walletDetails :: WalletDetails
+    }
 
 data Action
   = ConfirmAction NamedAction

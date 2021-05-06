@@ -15,6 +15,7 @@ import Data.Generic.Rep (class Generic)
 import Data.Map (Map)
 import Data.Maybe (Maybe(..))
 import Marlowe.PAB (PlutusAppId)
+import Marlowe.Semantics (Slot)
 import Pickup.Types (Action, State) as Pickup
 import Play.Types (Action, State) as Play
 import Plutus.PAB.Webserver.Types (CombinedWSStreamToClient, CombinedWSStreamToServer)
@@ -28,6 +29,7 @@ import WebSocket.Support (FromSocket) as WS
 -- state for when you have picked up a wallet, and can do all of the things.
 type State
   = { webSocketStatus :: WebSocketStatus
+    , currentSlot :: Slot
     , subState :: Either Pickup.State Play.State
     , toast :: Toast.State
     }
