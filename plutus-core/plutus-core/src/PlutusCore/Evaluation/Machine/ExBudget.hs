@@ -139,9 +139,7 @@ data ExBudget = ExBudget { _exBudgetCPU :: ExCPU, _exBudgetMemory :: ExMemory }
     deriving stock (Eq, Show, Generic, Lift)
     deriving (Semigroup, Monoid) via (GenericSemigroupMonoid ExBudget)
     deriving anyclass (PrettyBy config, NFData)
-deriving via CustomJSON '[FieldLabelModifier (CamelToSnake)] ExBudget instance ToJSON ExBudget
-deriving via CustomJSON '[FieldLabelModifier (CamelToSnake)] ExBudget instance FromJSON ExBudget
-
+    deriving (FromJSON, ToJSON) via CustomJSON '[FieldLabelModifier (CamelToSnake)] ExBudget
 
 instance Pretty ExBudget where
     pretty (ExBudget cpu memory) = parens $ fold
