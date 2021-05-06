@@ -161,4 +161,5 @@ executable marlowe-pab
     freer-simple -any,
     prettyprinter -any,
     freer-extras -any,
-    plutus-ledger -any
+    plutus-ledger -any,
+    plutus-tx -any

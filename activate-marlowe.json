@@ -1,0 +1,8 @@
+{
+  "caID": {
+    "contractPath": "/home/jann/plutus/dist-newstyle/build/x86_64-linux/ghc-8.10.4.20210212/marlowe-0.1.0.0/x/marlowe-app/build/marlowe-app/marlowe-app"
+  },
+  "caWallet": {
+    "getWallet": 3614025011873356618246603223473073590335649524810869601024784281680898109011
+  }
+}
