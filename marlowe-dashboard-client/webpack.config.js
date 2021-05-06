@@ -15,6 +15,7 @@ module.exports = {
         compress: true,
         port: 8009,
         https: true,
+        stats: "errors-warnings",
         proxy: {
             "/api": {
                 target: "http://localhost:9080"
@@ -25,7 +26,7 @@ module.exports = {
             "/ws": {
                 target: "ws://localhost:9080",
                 ws: true,
-                onError(err) {
+                onError (err) {
                   console.log("Error with the WebSocket:", err);
                 }
             }
@@ -50,14 +51,12 @@ module.exports = {
                                 "generated/**/*.purs",
                                 ".spago/*/*/src/**/*.purs",
                                 "web-common-marlowe/**/*.purs",
-                                "web-common/**/*.purs"
+                                "web-common/**/*.purs",
                             ],
-                            psc: null,
+                            psc: "psa",
+                            spago: true,
                             bundle: !isDevelopment,
-                            warnings: true,
                             watch: isDevelopment,
-                            pscPackage: false,
-                            pscIde: false
                         }
                     }
                 ]
@@ -79,19 +78,19 @@ module.exports = {
     },
     resolve: {
         modules: [
-            "node_modules"
+            "node_modules",
         ],
         alias: {
             contracts: path.resolve(__dirname, "./contracts"),
             static: path.resolve(__dirname, "./static"),
-            src: path.resolve(__dirname, "./src")
+            src: path.resolve(__dirname, "./src"),
         },
-        extensions: [".purs", ".js", ".ts", ".tsx"]
+        extensions: [".purs", ".js"],
     },
     resolveLoader: {
         modules: [
             "node_modules",
-            path.resolve(__dirname, ".")
+            path.resolve(__dirname, "."),
         ]
     },
     plugins: [
@@ -100,7 +99,7 @@ module.exports = {
             favicon: "static/favicon.ico",
             title: "Marlowe Run",
             productName: "marlowe-run",
-            googleAnalyticsId: isDevelopment ? "UA-XXXXXXXXX-X" : "UA-119953429-16"
+            googleAnalyticsId: isDevelopment ? "UA-XXXXXXXXX-X" : "UA-119953429-16",
         }),
         new MiniCssExtractPlugin({
             filename: "[name].[hash].css",
