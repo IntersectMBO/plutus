@@ -795,7 +795,8 @@ printBudgetStateTally term model (Cek.CekExTally costs) = do
               Nothing -> ExBudget 0 0
         allNodeTags = [Cek.BConst, Cek.BVar, Cek.BLamAbs, Cek.BApply, Cek.BDelay, Cek.BForce, Cek.BError, Cek.BBuiltin]
         totalComputeCost = mconcat $ map getSpent allNodeTags  -- For unitCekCosts this will be the total number of compute steps
-        budgetToString (ExBudget (ExCPU cpu) (ExMemory mem)) = printf "%15s  %15s" (show cpu) (show mem) :: String
+        budgetToString (ExBudget (ExCPU cpu) (ExMemory mem)) =
+            printf "%15s  %15s" (show cpu) (show mem) :: String -- Not %d: doesn't work when CostingInteger is SatInt.
         pbudget = budgetToString . getSpent
         f l e = case e of {(Cek.BBuiltinApp b, cost)  -> (b,cost):l; _ -> l}
         builtinsAndCosts = List.foldl f [] (H.toList costs)
