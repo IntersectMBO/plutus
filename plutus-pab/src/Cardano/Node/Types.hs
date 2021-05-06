@@ -49,7 +49,7 @@ module Cardano.Node.Types
     )
         where
 
-import           Control.Lens                   (makeLenses, view, (^.))
+import           Control.Lens                   (makeLenses, view)
 import           Control.Monad.Freer.TH         (makeEffect)
 import           Control.Monad.IO.Class         (MonadIO (..))
 import           Data.Aeson                     (FromJSON, ToJSON)
@@ -65,7 +65,7 @@ import           Servant.Client                 (BaseUrl)
 
 import           Cardano.BM.Data.Tracer         (ToObject (..))
 import           Cardano.BM.Data.Tracer.Extras  (Tagged (..), mkObjectStr)
-import           Cardano.Chain                  (MockNodeServerChainState, fromEmulatorChainState, index)
+import           Cardano.Chain                  (MockNodeServerChainState, fromEmulatorChainState)
 import qualified Cardano.Protocol.Socket.Client as Client
 import           Cardano.Protocol.Socket.Type   (SlotConfig (..), currentSlot, slotNumber)
 import           Control.Monad.Freer.Extras.Log (LogMessage, LogMsg (..))
@@ -201,7 +201,6 @@ makeLenses 'AppState
 initialAppState :: MonadIO m => [Wallet] -> m AppState
 initialAppState wallets = do
     initialState <- initialChainState (Trace.defaultDistFor wallets)
-    liftIO $ putStrLn $ "initialState.index: " <> show (initialState ^. index)
     pure $ AppState
         { _chainState = initialState
         , _eventHistory = mempty
