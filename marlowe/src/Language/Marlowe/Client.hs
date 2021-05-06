@@ -638,6 +638,7 @@ marloweCompanionContract :: Contract CompanionState MarloweCompanionSchema Marlo
 marloweCompanionContract = contracts
   where
     contracts = do
+        logInfo @String "Initialising marlowe companion contract"
         pkh <- pubKeyHash <$> ownPubKey
         let ownAddress = pubKeyHashAddress pkh
         utxo <- utxoAt ownAddress
@@ -645,7 +646,9 @@ marloweCompanionContract = contracts
         forM_ txOuts notifyOnNewContractRoles
         cont ownAddress
     cont ownAddress = do
+        logInfo @String $ "Starting to watch own adress: " <> show ownAddress
         txns <- nextTransactionsAt ownAddress
+        logInfo @String "Received transactions"
         let txOuts = txns >>= txOutputs
         forM_ txOuts notifyOnNewContractRoles
         cont ownAddress
@@ -656,6 +659,7 @@ notifyOnNewContractRoles :: TxOut
 notifyOnNewContractRoles txout = do
     let curSymbols = filterRoles txout
     forM_ curSymbols $ \cs -> do
+        logInfo @String $ "Processing currency symbol: " <> show cs
         contract <- findMarloweContractsOnChainByRoleCurrency cs
         case contract of
             Just (params, md) -> tell $ CompanionState (Map.singleton params md)
