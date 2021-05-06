@@ -83,7 +83,7 @@ processBlock BlockchainEnv{beAddressMap, beTxChanges, beCurrentSlot, beTxIndex} 
   addressMap <- STM.readTVar beAddressMap
   chainIndex <- STM.readTVar beTxIndex
   txStatusMap <- STM.readTVar beTxChanges
-  let (addressMap', txStatusMap', chainIndex') = foldl' (processTx slot) (addressMap, txStatusMap, chainIndex) transactions
+  let (addressMap', txStatusMap', chainIndex') = foldl' (processTx slot) (addressMap, S.increaseDepth <$> txStatusMap, chainIndex) transactions
   STM.writeTVar beAddressMap addressMap'
   STM.writeTVar beTxChanges txStatusMap'
   STM.writeTVar beTxIndex chainIndex'
@@ -96,4 +96,4 @@ processTx currentSlot (addressMap, txStatusMap, chainIndex) tx = (addressMap', t
   chainIndex' =
     let itm = ChainIndexItem{ciSlot = currentSlot, ciTx = tx, ciTxId = txId tx} in
     Index.insert addressMap' itm chainIndex
-  txStatusMap' = txStatusMap & at (txId tx) .~ Just TentativelyConfirmed
+  txStatusMap' = txStatusMap & at (txId tx) .~ Just (TentativelyConfirmed 0)
