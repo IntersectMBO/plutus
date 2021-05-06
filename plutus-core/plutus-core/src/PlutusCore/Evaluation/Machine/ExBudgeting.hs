@@ -68,8 +68,8 @@ type CostModel = CostModelBase CostingFun
    Note also that it's important to perform the same adjustments on the R output
    in TestCostModel.hs so that Haskell and R results agree (which is why
    `toCostUnit` is exported).
-   TODO: this also scales memory costs, which we don't need to do.  Does that cost
-   us anything?
+   TODO: this also scales memory costs, which we perhaps don't need to do.  Does
+   that cost us anything?
 -}
 
 {- Note [Time units]. What units are times measured in?  The Criterion output
@@ -84,6 +84,7 @@ type CostModel = CostModelBase CostingFun
    scaling up by another 10^6, to get times in picoseconds.  For the addInteger
    example we'll now have an intercept of 249000ps plus another 1870 for each
    word in the input. -}
+
 
 costMultiplier :: Double
 costMultiplier = 1000 * 1000

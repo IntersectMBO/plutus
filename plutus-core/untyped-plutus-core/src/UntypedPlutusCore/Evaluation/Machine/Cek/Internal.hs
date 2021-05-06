@@ -112,9 +112,10 @@ with calls to 'error' in a recursive call, but that changes the dictionary and s
 be pulled out of recursion). But that entails passing a redundant argument around, which slows down
 the machine a tiny little bit.
 
-Hence we define a number of the functions as local functions making use of a shared context from their
-parent function. This also allows GHC to inline almost all of the machine into a single definition (with a bunch
-of recursive join points in it).
+Hence we define a number of the functions as local functions making use of a
+shared context from their parent function. This also allows GHC to inline almost
+all of the machine into a single definition (with a bunch of recursive join
+points in it).
 
 In general, it's advised to run benchmarks (and look at Core output if the results are suspicious)
 on any changes in this file.
@@ -147,7 +148,7 @@ instance ExBudgetBuiltin fun (ExBudgetCategory fun) where
 -- | Costs for evaluating AST nodes.  Times should be specified in picoseconds, memory sizes in bytes.
 data CekCosts =
     CekCosts {
-      cekStartupCost :: ExBudget
+      cekStartupCost :: ExBudget  -- General overhead
     , cekVarCost     :: ExBudget
     , cekConstCost   :: ExBudget
     , cekLamCost     :: ExBudget
@@ -158,10 +159,9 @@ data CekCosts =
     -- ^ Just the cost of evaluating a Builtin node, not the builtin itself.
     -- There's no entry for Error since we'll be exiting anyway; also, what would
     -- happen if calling 'Error' caused the budget to be exceeded?
-    } deriving (Show, Generic, Lift)
-
-deriving via CustomJSON '[FieldLabelModifier (CamelToSnake)] CekCosts instance ToJSON CekCosts
-deriving via CustomJSON '[FieldLabelModifier (CamelToSnake)] CekCosts instance FromJSON CekCosts
+    }
+    deriving (Show, Generic, Lift)
+    deriving (FromJSON, ToJSON) via CustomJSON '[FieldLabelModifier (CamelToSnake)] CekCosts
 
 -- Charge a unit CPU cost for AST nodes: this allows us to count the number of
 -- times each node type is evaluated.  For actual prediction/costing we use
