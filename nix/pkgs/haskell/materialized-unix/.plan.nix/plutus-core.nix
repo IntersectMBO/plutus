@@ -28,6 +28,7 @@
       dataFiles = [];
       extraSrcFiles = [
         "cost-model/data/costModel.json"
+        "cost-model/data/cekCosts.json"
         "cost-model/data/benching.csv"
         "cost-model/data/*.R"
         ];
