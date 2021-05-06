@@ -30,6 +30,7 @@ import           Data.Yaml                               (decodeFileThrow)
 import           Plutus.PAB.Effects.Contract.ContractExe (ContractExe)
 import           Plutus.PAB.Monitoring.Config            (defaultConfig, loadConfig)
 import           Plutus.PAB.Monitoring.PABLogMsg         (AppMsg (..))
+import           Plutus.PAB.Monitoring.Util              (PrettyObject (..), convertLog)
 import           Plutus.PAB.Types                        (PABError)
 import           System.Exit                             (ExitCode (ExitFailure), exitSuccess, exitWith)
 
@@ -41,7 +42,7 @@ main = do
     config <- liftIO $ decodeFileThrow configPath
     logConfig <- maybe defaultConfig loadConfig logConfigPath
     for_ minLogLevel $ \ll -> CM.setMinSeverity logConfig ll
-    (trace :: Trace IO (AppMsg ContractExe), switchboard) <- setupTrace_ logConfig "pab"
+    (trace :: Trace IO (PrettyObject (AppMsg ContractExe)), switchboard) <- setupTrace_ logConfig "pab"
 
     -- enable EKG backend
     when runEkgServer $ EKGView.plugin logConfig trace switchboard >>= loadPlugin switchboard
@@ -50,7 +51,7 @@ main = do
     serviceAvailability <- newToken
 
     -- execute parsed pab command and handle errors on faliure
-    result <- executePABCommand trace logConfig config serviceAvailability cmd
+    result <- executePABCommand (convertLog PrettyObject trace) logConfig config serviceAvailability cmd
     either handleError (const exitSuccess) result
 
         where

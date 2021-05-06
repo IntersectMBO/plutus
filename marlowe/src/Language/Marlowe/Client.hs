@@ -237,6 +237,7 @@ marlowePlutusContract = do
         let tx = mustPayToTheScript marloweData payValue <> distributeRoleTokens
         let lookups = Constraints.scriptInstanceLookups validatorInstance
         utx <- either (throwing _ConstraintResolutionError) pure (Constraints.mkTx lookups tx)
+        logWarn @String "Sumitting tx"
         submitTxConfirmed utx
         marlowePlutusContract
     apply = do
