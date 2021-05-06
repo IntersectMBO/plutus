@@ -144,6 +144,38 @@ instance Show fun => Pretty (ExBudgetCategory fun) where
 instance ExBudgetBuiltin fun (ExBudgetCategory fun) where
     exBudgetBuiltin = BBuiltinApp
 
+-- | Costs for evaluating AST nodes.  Times should be specified in picoseconds, memory sizes in bytes.
+data CekCosts =
+    CekCosts {
+      cekStartupCost :: ExBudget
+    , cekVarCost     :: ExBudget
+    , cekConstCost   :: ExBudget
+    , cekLamCost     :: ExBudget
+    , cekDelayCost   :: ExBudget
+    , cekForceCost   :: ExBudget
+    , cekApplyCost   :: ExBudget
+    , cekBuiltinCost :: ExBudget
+    -- ^ Just the cost of evaluating a Builtin node, not the builtin itself.
+    -- There's no entry for Error since we'll be exiting anyway; also, what would
+    -- happen if calling 'Error' caused the budget to be exceeded?
+    } deriving (Show, Generic, Lift)
+
+deriving via CustomJSON '[FieldLabelModifier (CamelToSnake)] CekCosts instance ToJSON CekCosts
+deriving via CustomJSON '[FieldLabelModifier (CamelToSnake)] CekCosts instance FromJSON CekCosts
+
+-- Charge a unit CPU cost for AST nodes: this allows us to count the number of
+-- times each node type is evaluated.  For actual prediction/costing we use
+-- a different version of CekCosts: see ExBudgetingDefaults.defaultCekCosts.
+unitCekCosts :: CekCosts
+unitCekCosts =
+    CekCosts zeroCost unitCost
+             unitCost unitCost
+             unitCost unitCost
+             unitCost unitCost
+        where
+          zeroCost = ExBudget 0 0
+          unitCost = ExBudget 1 0
+
 type TermWithMem uni fun = Term Name uni fun ExMemory
 
 {- Note [Arities in VBuiltin]
@@ -441,39 +473,6 @@ lookupVarName varName varEnv = do
         Nothing  -> throwingWithCauseExc @(CekEvaluationException uni fun) _MachineError OpenTermEvaluatedMachineError $ Just var where
             var = Var () varName
         Just val -> pure val
-
--- | Costs for evaluating AST nodes.  Times should be specified in picoseconds, memory sizes in bytes.
-data CekCosts =
-    CekCosts {
-      cekStartupCost :: ExBudget
-    , cekVarCost     :: ExBudget
-    , cekConstCost   :: ExBudget
-    , cekLamCost     :: ExBudget
-    , cekDelayCost   :: ExBudget
-    , cekForceCost   :: ExBudget
-    , cekApplyCost   :: ExBudget
-    , cekBuiltinCost :: ExBudget
-    -- ^ Just the cost of evaluating a Builtin node, not the builtin itself.
-    -- There's no entry for Error since we'll be exiting anyway; also, what would
-    -- happen if calling 'Error' caused the budget to be exceeded?
-    } deriving (Show, Generic, Lift)
-
-deriving via CustomJSON '[FieldLabelModifier (CamelToSnake)] CekCosts instance ToJSON CekCosts
-deriving via CustomJSON '[FieldLabelModifier (CamelToSnake)] CekCosts instance FromJSON CekCosts
-
--- Charge a unit CPU cost for AST nodes: this allows us to count the number of
--- times each node type is evaluated.  For actual prediction/costing we will use
--- a different version of CekCosts.
-unitCekCosts :: CekCosts
-unitCekCosts =
-    CekCosts zeroCost unitCost
-             unitCost unitCost
-             unitCost unitCost
-             unitCost unitCost
-        where
-          zeroCost = ExBudget 0 0
-          unitCost = ExBudget 1 0
-
 
 -- See Note [Compilation peculiarities].
 -- | The entering point to the CEK machine's engine.
