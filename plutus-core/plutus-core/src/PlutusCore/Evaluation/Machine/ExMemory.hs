@@ -1,10 +1,8 @@
 {-# LANGUAGE CPP                   #-}
-{-# LANGUAGE DeriveLift            #-}
 {-# LANGUAGE DerivingVia           #-}
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE MagicHash             #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE OverloadedStrings     #-}
 {-# LANGUAGE TypeApplications      #-}
 {-# LANGUAGE TypeOperators         #-}
 {-# LANGUAGE UndecidableInstances  #-}
@@ -88,13 +86,10 @@ if we are not on a 64bit platform, then we can just fallback to the slower (but 
 type CostingInteger =
 #if WORD_SIZE_IN_BITS < 64
     Integer
-deriving via Integer instance FromJSON CostingInteger
-deriving via Integer instance ToJSON CostingInteger
 #else
     SatInt
-deriving via SatInt instance FromJSON CostingInteger
-deriving via SatInt instance ToJSON CostingInteger
 #endif
+
 
 -- $(if finiteBitSize (0::SatInt) < 64 then [t|Integer|] else [t|SatInt|])
 
@@ -103,8 +98,7 @@ newtype ExMemory = ExMemory CostingInteger
   deriving (Eq, Ord, Show, Lift)
   deriving newtype (Num, NFData)
   deriving (Semigroup, Monoid) via (Sum CostingInteger)
-deriving via CostingInteger instance FromJSON ExMemory
-deriving via CostingInteger instance ToJSON   ExMemory
+  deriving (FromJSON, ToJSON) via CostingInteger
 instance Pretty ExMemory where
     pretty (ExMemory i) = pretty (toInteger i)
 instance PrettyBy config ExMemory where
@@ -115,12 +109,11 @@ newtype ExCPU = ExCPU CostingInteger
   deriving (Eq, Ord, Show, Lift)
   deriving newtype (Num, NFData)
   deriving (Semigroup, Monoid) via (Sum CostingInteger)
+  deriving (FromJSON, ToJSON) via CostingInteger
 instance Pretty ExCPU where
     pretty (ExCPU i) = pretty (toInteger i)
 instance PrettyBy config ExCPU where
     prettyBy _ m = pretty m
-deriving via CostingInteger instance FromJSON ExCPU
-deriving via CostingInteger instance ToJSON   ExCPU
 
 -- Based on https://github.com/ekmett/semigroups/blob/master/src/Data/Semigroup/Generic.hs
 class GExMemoryUsage f where
