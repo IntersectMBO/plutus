@@ -1,0 +1,1 @@
+(all a (type) (fun a (fun [(con []) a] [(con []) a])))

@@ -215,9 +215,9 @@ foldrBuiltinList = runQuote $ do
           ]
 
 -- | Test that @Null@, @Head@ and @Tail@ are enough to get pattern matching on built-in lists.
-test_List :: TestTree
-test_List =
-    testCase "List" $ do
+test_BuiltinList :: TestTree
+test_BuiltinList =
+    testCase "BuiltinList" $ do
         let xs  = [1..10]
             res = mkConstant @Integer @DefaultUni () $ foldr (-) 0 xs
             term
@@ -228,9 +228,22 @@ test_List =
                     ]
         typecheckEvaluateCkNoEmit defBuiltinsRuntimeExt term @?= Right (EvaluationSuccess res)
 
-test_Tuple :: TestTree
-test_Tuple =
-    testCase "Tuple" $ do
+test_IdBuiltinList :: TestTree
+test_IdBuiltinList =
+    testCase "IdBuiltinList" $ do
+        let xsTerm = mkConstant @[Integer] () [1..10]
+            listOfInteger = mkTyBuiltin @_ @[Integer] ()
+            term
+                = mkIterApp () (mkIterInst () foldrBuiltinList [integer, listOfInteger])
+                    [ TyInst () (Builtin () $ Right Cons) integer
+                    , mkConstant @[Integer] () []
+                    , xsTerm
+                    ]
+        typecheckEvaluateCkNoEmit defBuiltinsRuntimeExt term @?= Right (EvaluationSuccess xsTerm)
+
+test_BuiltinTuple :: TestTree
+test_BuiltinTuple =
+    testCase "BuiltinTuple" $ do
         let arg = mkConstant @(Integer, Bool) @DefaultUni () (1, False)
             inst fun = mkIterInst () (Builtin () $ Right fun) [integer, bool]
             swapped = Apply () (inst Swap) arg
@@ -289,7 +302,8 @@ test_definition =
         , test_IdFInteger
         , test_IdList
         , test_IdRank2
-        , test_List
-        , test_Tuple
+        , test_BuiltinList
+        , test_IdBuiltinList
+        , test_BuiltinTuple
         , test_SwapEls
         ]

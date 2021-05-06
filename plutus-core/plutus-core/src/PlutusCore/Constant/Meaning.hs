@@ -216,14 +216,15 @@ type instance ToBinds Int           = '[]
 type instance ToBinds []            = '[]
 type instance ToBinds (,)           = '[]
 type instance ToBinds [a]           = '[]  -- One can't directly put a PLC type variable into lists
-type instance ToBinds (a, b)        = '[]  -- or tuples ('SomeValueN' has to be used for that),
+type instance ToBinds (a, b)        = '[]  -- or tuples ('SomeConstantOf' has to be used for that),
                                            -- hence we say that polymorphic built-in types can't
                                            -- directly contain any PLC type variables in them.
 
-type instance ToBinds (EvaluationResult a)  = ToBinds a
-type instance ToBinds (Emitter a)           = ToBinds a
-type instance ToBinds (Opaque _ rep)        = ToBinds rep
-type instance ToBinds (SomeValueN _ _ reps) = ToBinds reps
+type instance ToBinds (EvaluationResult a)      = ToBinds a
+type instance ToBinds (Emitter a)               = ToBinds a
+type instance ToBinds (Opaque _ rep)            = ToBinds rep
+type instance ToBinds (SomeConstant _ rep)      = ToBinds rep
+type instance ToBinds (SomeConstantOf _ _ reps) = ToBinds reps
 
 type instance ToBinds (TyVarRep var) = '[ 'Some var ]
 type instance ToBinds (TyAppRep fun arg) = Merge (ToBinds fun) (ToBinds arg)
@@ -298,16 +299,19 @@ instance
 
 -- | For looking into arguments of polymorphic built-in types and specializing them as types
 -- representing Plutus type variables there.
-type HandleSomeValueN :: Nat -> Nat -> GHC.Type -> GHC.Type -> GHC.Constraint
-class HandleSomeValueN i j term a | i term a -> j
-instance {-# OVERLAPPABLE #-} i ~ j => HandleSomeValueN i j term a
+type HandleSomeConstant :: Nat -> Nat -> GHC.Type -> GHC.Type -> GHC.Constraint
+class HandleSomeConstant i j term a | i term a -> j
+instance {-# OVERLAPPABLE #-} i ~ j => HandleSomeConstant i j term a
 -- Take an argument of a built-in type and try to specialize it as a type representing a Plutus
 -- type variable. Note that we don't explicitly handle the no-more-arguments case as it's handled
 -- by the OVERLAPPABLE instance right above.
 instance {-# OVERLAPPING #-}
     ( TrySpecializeAsVar i j term rep
-    , HandleSomeValueN j k term (SomeValueN uni f reps)
-    ) => HandleSomeValueN i k term (SomeValueN uni f (rep ': reps))
+    , HandleSomeConstant j k term (SomeConstantOf uni f reps)
+    ) => HandleSomeConstant i k term (SomeConstantOf uni f (rep ': reps))
+instance {-# OVERLAPPING #-}
+    ( TrySpecializeAsVar i j term rep
+    ) => HandleSomeConstant i j term (SomeConstant uni rep)
 
 -- See https://github.com/effectfully/sketches/tree/master/poly-type-of-saga/part2-enumerate-type-vars
 -- for a detailed elaboration on how this works.
@@ -327,7 +331,7 @@ class EnumerateFromTo i j term a | i term a -> j
 instance {-# OVERLAPPABLE #-} i ~ j => EnumerateFromTo i j term a
 instance {-# OVERLAPPING #-}
     ( TrySpecializeAsVar i j term a
-    , HandleSomeValueN j k term a
+    , HandleSomeConstant j k term a
     , EnumerateFromTo k l term b
     ) => EnumerateFromTo i l term (a -> b)
 

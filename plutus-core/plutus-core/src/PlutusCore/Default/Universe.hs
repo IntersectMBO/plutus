@@ -61,7 +61,7 @@ a type of an arbitrary kind into 'Type' and then apply it via 'TyApp'. But we on
 get polymorphic built-in functions over polymorphic built-in types, since it's not possible
 to juggle values of polymorphic built-in types instantiated with non-built-in types at runtime
 (it's not even possible to represent such a value in the AST, even though it's possible to represent
-such a type).
+such a 'Type').
 
 Finally, it is not necessarily the case that we need to allow embedding PLC terms into meta-constants.
 We already allow built-in names with polymorphic types. There might be a way to utilize this feature
@@ -185,6 +185,7 @@ instance Closed DefaultUni where
         , constr `Permits` (,)
         )
 
+    -- TODO: optimize
     -- See Note [Stable encoding of tags].
     encodeUni DefaultUniInteger           = [0]
     encodeUni DefaultUniByteString        = [1]
@@ -195,6 +196,7 @@ instance Closed DefaultUni where
     encodeUni DefaultUniProtoTuple        = [6]
     encodeUni (DefaultUniApply uniF uniA) = 7 : encodeUni uniF ++ encodeUni uniA
 
+    -- See Note [Decoding universes].
     -- See Note [Stable encoding of tags].
     withDecodedUni k = peelUniTag >>= \case
         0 -> k DefaultUniInteger

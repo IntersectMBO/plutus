@@ -90,6 +90,7 @@ instance (Bounded a, Bounded b, Ix a, Ix b) => Ix (Either a b) where
 
     inRange (m, n) i = m <= i && i <= n
 
+-- See Note [Representable built-in functions over polymorphic built-in types]
 data ExtensionFun
     = Factorial
     | Const
@@ -98,6 +99,7 @@ data ExtensionFun
     | IdList
     | IdRank2
     | Absurd
+    | Cons
     | Null
     | Head
     | Tail
@@ -207,46 +209,68 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni ExtensionFun where
                 => Void -> a)
             (\_ _ -> ExBudget 1 0)
 
+    toBuiltinMeaning Cons = makeBuiltinMeaning consPlc mempty where
+        consPlc
+            :: SomeConstant uni a
+            -> SomeConstantOf uni [] '[a]
+            -> EvaluationResult (SomeConstantOf uni [] '[a])
+        consPlc
+            (SomeConstant (Some (ValueOf uniA x)))
+            (SomeConstantOfArg uniA' (SomeConstantOfRes uniListA xs)) =
+                -- Checking that the type of the constant is the same as the type of the elements
+                -- of the unlifted list. Note that there's no way we could enforce this statically
+                -- since in UPLC one can create an ill-typed program that attempts to prepend
+                -- a value of the wrong type to a list.
+                case uniA `geq` uniA' of
+                    -- Should this rather be an 'UnliftingError'? For that we need
+                    -- https://github.com/input-output-hk/plutus/pull/3035
+                    Nothing   -> EvaluationFailure
+                    Just Refl ->
+                        EvaluationSuccess . SomeConstantOfArg uniA $
+                            SomeConstantOfRes uniListA $ x : xs
+
     toBuiltinMeaning Null = makeBuiltinMeaning nullPlc mempty where
-        nullPlc :: SomeValueN uni [] '[a] -> Bool
-        nullPlc (SomeValueArg _ (SomeValueRes _ xs)) = null xs
+        nullPlc :: SomeConstantOf uni [] '[a] -> Bool
+        nullPlc (SomeConstantOfArg _ (SomeConstantOfRes _ xs)) = null xs
 
     toBuiltinMeaning Head = makeBuiltinMeaning headPlc mempty where
-        headPlc :: SomeValueN uni [] '[a] -> EvaluationResult (Opaque term a)
-        headPlc (SomeValueArg uniA (SomeValueRes _ xs)) = case xs of
+        headPlc :: SomeConstantOf uni [] '[a] -> EvaluationResult (Opaque term a)
+        headPlc (SomeConstantOfArg uniA (SomeConstantOfRes _ xs)) = case xs of
             x : _ -> EvaluationSuccess . Opaque . fromConstant $ someValueOf uniA x
             _     -> EvaluationFailure
 
     toBuiltinMeaning Tail = makeBuiltinMeaning tailPlc mempty where
-        tailPlc :: SomeValueN uni [] '[a] -> EvaluationResult (SomeValueN uni [] '[a])
-        tailPlc (SomeValueArg uniA (SomeValueRes uniListA xs)) = case xs of
-            _ : xs' -> EvaluationSuccess . SomeValueArg uniA $ SomeValueRes uniListA xs'
+        tailPlc :: SomeConstantOf uni [] '[a] -> EvaluationResult (SomeConstantOf uni [] '[a])
+        tailPlc (SomeConstantOfArg uniA (SomeConstantOfRes uniListA xs)) = case xs of
+            _ : xs' -> EvaluationSuccess . SomeConstantOfArg uniA $ SomeConstantOfRes uniListA xs'
             _       -> EvaluationFailure
 
     toBuiltinMeaning Fst = makeBuiltinMeaning fstPlc mempty where
-        fstPlc :: SomeValueN uni (,) '[a, b] -> Opaque term a
-        fstPlc (SomeValueArg uniA (SomeValueArg _ (SomeValueRes _ (x, _)))) =
+        fstPlc :: SomeConstantOf uni (,) '[a, b] -> Opaque term a
+        fstPlc (SomeConstantOfArg uniA (SomeConstantOfArg _ (SomeConstantOfRes _ (x, _)))) =
             Opaque . fromConstant . Some $ ValueOf uniA x
 
     toBuiltinMeaning Snd = makeBuiltinMeaning sndPlc mempty where
-        sndPlc :: SomeValueN uni (,) '[a, b] -> Opaque term b
-        sndPlc (SomeValueArg _ (SomeValueArg uniB (SomeValueRes _ (_, y)))) =
+        sndPlc :: SomeConstantOf uni (,) '[a, b] -> Opaque term b
+        sndPlc (SomeConstantOfArg _ (SomeConstantOfArg uniB (SomeConstantOfRes _ (_, y)))) =
             Opaque . fromConstant . Some $ ValueOf uniB y
 
     toBuiltinMeaning Swap = makeBuiltinMeaning swapPlc mempty where
-        swapPlc :: SomeValueN uni (,) '[a, b] -> SomeValueN uni (,) '[b, a]
-        swapPlc (SomeValueArg uniA (SomeValueArg uniB (SomeValueRes _ (x, y)))) =
-            SomeValueArg uniB (SomeValueArg uniA (SomeValueRes (DefaultUniTuple uniB uniA) (y, x)))
+        swapPlc :: SomeConstantOf uni (,) '[a, b] -> SomeConstantOf uni (,) '[b, a]
+        swapPlc (SomeConstantOfArg uniA (SomeConstantOfArg uniB (SomeConstantOfRes _ (x, y)))) =
+            SomeConstantOfArg uniB . SomeConstantOfArg uniA $
+                SomeConstantOfRes (DefaultUniTuple uniB uniA) (y, x)
 
     toBuiltinMeaning SwapEls = makeBuiltinMeaning swapElsPlc mempty where
         -- The type reads as @[(a, Bool)] -> [(Bool, a)]@.
         swapElsPlc
             :: a ~ Opaque term (TyVarRep ('TyNameRep "a" 0))
-            => SomeValueN uni [] '[SomeValueN uni (,) '[a, Bool]]
-            -> EvaluationResult (SomeValueN uni [] '[SomeValueN uni (,) '[Bool, a]])
-        swapElsPlc (SomeValueArg uniEl (SomeValueRes _ xs)) = case uniEl of
+            => SomeConstantOf uni [] '[SomeConstantOf uni (,) '[a, Bool]]
+            -> EvaluationResult (SomeConstantOf uni [] '[SomeConstantOf uni (,) '[Bool, a]])
+        swapElsPlc (SomeConstantOfArg uniEl (SomeConstantOfRes _ xs)) = case uniEl of
             DefaultUniTuple uniA DefaultUniBool ->
                 EvaluationSuccess $
                     let uniElS = DefaultUniTuple DefaultUniBool uniA
-                    in SomeValueArg uniElS . SomeValueRes (DefaultUniList uniElS) $ map swap xs
+                        listUniElS = DefaultUniList uniElS
+                    in SomeConstantOfArg uniElS . SomeConstantOfRes listUniElS $ map swap xs
             _ -> EvaluationFailure

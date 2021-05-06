@@ -22,25 +22,55 @@ import           Data.Bits       (shiftL, (.|.))
 import           Data.ByteString (ByteString)
 import qualified Data.ByteString as BS (pack)
 import           Data.Char       (ord)
-import           Data.Maybe
 import qualified Data.Text       as T
 import           Text.Read
 
+{- Note [Parsing horribly broken]
+As the title suggests, at the moment parsing is horribly broken. 'parse' expects a closed chunk of
+text, but in order to provide one we need to determine in the main parsing pipeline (which can be
+Happy-based or megaparsec-based) where that closed chunk ends (determining where it starts is easy).
+So we need either of these two:
+
+1. perform lexical analysis, cut the right piece and feed it to 'parse'
+2. make 'parse' take as much as it needs and return the rest to the main parsing machinery
+
+The latter option is quite non-trivial, because we have that Happy parser and it's hard to poke a
+hole in it to get some custom parsing of constants consuming an arbitrary amount of symbols
+(we don't even have symbols in Happy -- it's tokens there). So if we wanted to do the latter,
+it would probably be the easiest option to just remove the Happy parser and replace it with a
+megaparsec-based one (should be the simplest thing in the world, given that PIR is a superset of
+PLC and already has a megaparsec-based parser).
+
+There are arguments in favor of the former option (https://github.com/input-output-hk/plutus/pull/2458#discussion_r522091227):
+
+> If you look in Lexer.x there's extensive commentary about how it parses constants. We could steal
+the relevant regular expressions from there or reuse the entire lexer. I'm not convinced that
+letting types do their own lexical analysis is a good idea: doing these things correctly can be
+quite tricky and if you got it wrong it might mess up the main parser in some subtle way that
+doesn't show up until you encounter an unexpected situation. The way that it's done at the moment
+provides reasonably general syntax for constants and I'm fairly confident it's correct. I guess I
+feel that this is low-level stuff that should be done once and then shut away in a box where it
+won't cause any trouble.
+
+however it's not that simple. Consider a list of lists: let's say the lexer determines what
+constitutes a closed chunk of text representing such a value. And we feed that chunk to 'parse'.
+But now we need to do lexical analysis again, but this time in 'parse' to determine whether a @,@
+is a part of formatting or is inside an element (being, say, a string or a list of strings) of the
+list. I.e. our constant parsers can be recursive and it's a pain to deal with when you do all the
+lexical analysis upfront.
+
+So at the moment we don't do anything correctly. Neither PLC nor PIR can handle lists of lists
+and none of them can handle tuples at all ('Read' provides us with overloaded parsing for lists
+but not tuples, hence the difference) and PIR, doing its own broken lexical analysis, fails o
+things like @(con string "yes (no)")@.
+
+This mess needs to be fixed at some point. It seems that dumping Happy and using megaparsec
+eveywhere and making 'Parsable' megaparsec-based would be the simplest option and we don't
+really care about the efficiency of the parser.
+-}
+
 parseDefault :: Read a => T.Text -> Maybe a
 parseDefault = readMaybe . T.unpack
-
-{-
-https://github.com/input-output-hk/plutus/pull/2458
-
-effectfully:
-I think what we should do is make Parsable megaparsec-based. Then constant parsers consume as many symbols as they like and we won't need to try to predict in the main parser what is a constant and what is formatting.
-
-kwxm:
-If you look in Lexer.x there's extensive commentary about how it parses constants. We could steal the relevant regular expressions from there or reuse the entire lexer. I'm not convinced that letting types do their own lexical analysis is a good idea: doing these things correctly can be quite tricky and if you got it wrong it might mess up the main parser in some subtle way that doesn't show up until you encounter an unexpected situation. The way that it's done at the moment provides reasonably general syntax for constants and I'm fairly confident it's correct. I guess I feel that this is low-level stuff that should be done once and then shut away in a box where it won't cause any trouble.
-
-michaelpj:
-I think the parsers are generally not super urgent. I also think it's okay to have them not be totally robust: they're not in the "production" line, we don't really have to worry about users doing arbitrary/malicious things with them. It would be nice if they were really solid, but we can live with a few holes.
--}
 
 -- | A class for things that are parsable. Those include tags for built-in types and constants of
 -- such types.
@@ -48,28 +78,16 @@ class Parsable a where
     -- | Return Nothing if the string is invalid, otherwise the corresponding value of type a.
     parse :: T.Text -> Maybe a
 
+    -- | Overloading parsing for lists to special-case 'String' (the GHC's billion dollar mistake).
     parseList :: T.Text -> Maybe [a]
-    parseList = error "No default implementation for 'parseList'"
+    parseList text =
+        error $ "Parsing of lists of this type is not implemented. Caused by: " ++
+            T.unpack text
 
-newtype AsParsable a = AsParsable a
-instance Parsable a => Read (AsParsable a) where
-    readsPrec _ = maybeToList . fmap ((, "") . AsParsable) . parse . T.pack
-    readList = maybeToList . fmap ((, "") . fmap AsParsable) . parseList . T.pack
-
--- newtype DeriveParseList a = DeriveParseList a
--- instance Parsable a => Read (DeriveParseList a) where
---     readsPrec = coerce $ readsPrec @(AsParsable a)
-
---     parseList = coerce $ parseDefault @[DeriveParseList a]
-
-newtype AsReadMono a = AsReadMono a
-instance Read a => Parsable (AsReadMono a) where
-    parse = coerce $ parseDefault @a
+newtype AsRead a = AsRead a
+instance Read a => Parsable (AsRead a) where
+    parse     = coerce $ parseDefault @a
     parseList = coerce $ parseDefault @[a]
-
-newtype AsReadPoly a = AsReadPoly a
-instance Read a => Parsable (AsReadPoly a) where
-    parse = coerce $ parseDefault @a
 
 instance Parsable a => Parsable [a] where
     parse = parseList
@@ -80,16 +98,18 @@ instance Parsable a => Parsable [a] where
 -- >>> parse "\"abc\"" :: Maybe String
 -- Just "abc"
 -- >>> parse "[\"abc\"]" :: Maybe [String]
--- *** Exception: No default implementation for 'parseList'
+-- *** Exception: Parsing of lists of this type is not implemented. Caused by: ["abc"]
 -- CallStack (from HasCallStack):
---   error, called at /tmp/dante19742wSk.hs:53:17 in main:PlutusCore.Parsable
-deriving via AsReadMono Bool    instance Parsable Bool
-deriving via AsReadMono Char    instance Parsable Char
-deriving via AsReadMono Integer instance Parsable Integer
-deriving via AsReadMono ()      instance Parsable ()
+--   error, called at /tmp/dante13247OOZ.hs:83:9 in main:PlutusCore.Parsable
+-- >>> parse "(1, False)" :: Maybe (Integer, Bool)
+-- Nothing
+deriving via AsRead Bool    instance Parsable Bool
+deriving via AsRead Char    instance Parsable Char
+deriving via AsRead Integer instance Parsable Integer
+deriving via AsRead ()      instance Parsable ()
 
-deriving via AsReadPoly (AsParsable a, AsParsable b)
-    instance (Parsable a, Parsable b) => Parsable (a, b)
+instance Parsable (a, b) where
+    parse = error "Parsing for tuples is not implemented"
 
 instance Parsable ByteString where
     parse = parseByteStringConstant
