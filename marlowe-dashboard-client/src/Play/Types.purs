@@ -2,7 +2,7 @@ module Play.Types
   ( State
   , Screen(..)
   , Card(..)
-  , Inputs
+  , Input
   , Action(..)
   ) where
 
@@ -50,7 +50,7 @@ data Card
 
 derive instance eqCard :: Eq Card
 
-type Inputs
+type Input
   = { currentSlot :: Slot
     }
 

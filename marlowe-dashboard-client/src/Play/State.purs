@@ -41,7 +41,7 @@ import Marlowe.Semantics (Slot(..))
 import Marlowe.Semantics (State(..)) as Semantic
 import Network.RemoteData (RemoteData(..), fromEither)
 import Play.Lenses (_allContracts, _cards, _contractsState, _menuOpen, _newWalletCompanionAppIdString, _newWalletInfo, _newWalletNickname, _screen, _selectedContract, _templateState, _walletDetails, _walletLibrary)
-import Play.Types (Action(..), Card(..), Inputs, Screen(..), State)
+import Play.Types (Action(..), Card(..), Input, Screen(..), State)
 import Plutus.V1.Ledger.Value (CurrencySymbol(..))
 import StaticData (walletLibraryLocalStorageKey)
 import Template.Lenses (_extendedContract, _roleWallets, _template, _templateContent)
@@ -81,7 +81,7 @@ handleAction ::
   ManageContract m =>
   ManageMarlowe m =>
   Toast m =>
-  Inputs -> Action -> HalogenM State Action ChildSlots Msg m Unit
+  Input -> Action -> HalogenM State Action ChildSlots Msg m Unit
 handleAction _ PutdownWallet = do
   walletLibrary <- use _walletLibrary
   walletDetails <- use _walletDetails
@@ -101,7 +101,7 @@ handleAction _ (SetNewWalletCompanionAppIdString companionAppIdString) = do
     ajaxWalletInfo <- lookupWalletInfo companionAppId
     assign _newWalletInfo $ fromEither ajaxWalletInfo
 
-handleAction inputs (SaveNewWallet mTokenName) = do
+handleAction input (SaveNewWallet mTokenName) = do
   oldWalletLibrary <- use _walletLibrary
   newWalletNickname <- use _newWalletNickname
   newWalletCompanionAppIdString <- use _newWalletCompanionAppIdString
@@ -110,7 +110,7 @@ handleAction inputs (SaveNewWallet mTokenName) = do
     newWalletCompanionAppId = parsePlutusAppId newWalletCompanionAppIdString
   case newWalletInfo, newWalletCompanionAppId of
     Success walletInfo, Just companionAppId -> do
-      handleAction inputs CloseCard
+      handleAction input CloseCard
       let
         walletDetails =
           { walletNickname: newWalletNickname
@@ -159,21 +159,21 @@ handleAction { currentSlot } AdvanceTimedoutSteps = do
     $ for_ selectedStep'
     $ \step ->
         let
-          contractInputs = { currentSlot, walletDetails }
+          contractInput = { currentSlot, walletDetails }
         in
-          toContract $ Contract.handleAction contractInputs $ Contract.MoveToStep step
+          toContract $ Contract.handleAction contractInput $ Contract.MoveToStep step
 
 -- TODO: we have to handle quite a lot of submodule actions here (mainly just because of the cards),
 -- so there's probably a better way of structuring this - perhaps making cards work more like toasts
-handleAction inputs@{ currentSlot } (TemplateAction templateAction) = case templateAction of
+handleAction input@{ currentSlot } (TemplateAction templateAction) = case templateAction of
   Template.SetTemplate template -> do
     mCurrentTemplate <- peruse (_templateState <<< _template)
     when (mCurrentTemplate /= Just template) $ assign _templateState $ Template.mkInitialState template
-    handleAction inputs $ SetScreen TemplateScreen
-  Template.OpenTemplateLibraryCard -> handleAction inputs $ OpenCard TemplateLibraryCard
-  Template.OpenCreateWalletCard tokenName -> handleAction inputs $ OpenCard $ SaveWalletCard $ Just tokenName
-  Template.OpenSetupConfirmationCard -> handleAction inputs $ OpenCard ContractSetupConfirmationCard
-  Template.CloseSetupConfirmationCard -> handleAction inputs CloseCard -- TODO: guard against closing the wrong card
+    handleAction input $ SetScreen TemplateScreen
+  Template.OpenTemplateLibraryCard -> handleAction input $ OpenCard TemplateLibraryCard
+  Template.OpenCreateWalletCard tokenName -> handleAction input $ OpenCard $ SaveWalletCard $ Just tokenName
+  Template.OpenSetupConfirmationCard -> handleAction input $ OpenCard ContractSetupConfirmationCard
+  Template.CloseSetupConfirmationCard -> handleAction input CloseCard -- TODO: guard against closing the wrong card
   Template.StartContract -> do
     extendedContract <- use (_templateState <<< _template <<< _extendedContract)
     templateContent <- use (_templateState <<< _templateContent)
@@ -194,7 +194,7 @@ handleAction inputs@{ currentSlot } (TemplateAction templateAction) = case templ
             -- FIXME: If the user gives themselves a role in this contract, their WalletCompanion contract
             -- should notice, and that will trigger all the other necessary updates. But if they don't, we
             -- should create a WalletFollower contract manually here.
-            handleAction inputs $ SetScreen ContractsScreen
+            handleAction input $ SetScreen ContractsScreen
             addToast $ successToast "Contract started."
             -- FIXME: until we get contracts running properly in the PAB, we just fake the contract here locally
             uuid <- liftEffect genUUID
@@ -212,28 +212,28 @@ handleAction inputs@{ currentSlot } (TemplateAction templateAction) = case templ
               mContractState = Contract.mkInitialState walletDetails currentSlot contractInstanceId history
             for_ mContractState \contractState -> do
               modifying _allContracts $ insert contractInstanceId contractState
-              handleAction inputs $ ContractHomeAction $ ContractHome.OpenContract contractInstanceId
+              handleAction input $ ContractHomeAction $ ContractHome.OpenContract contractInstanceId
   _ -> toTemplate $ Template.handleAction templateAction
 
-handleAction inputs (ContractHomeAction contractHomeAction) = case contractHomeAction of
-  ContractHome.OpenTemplateLibraryCard -> handleAction inputs $ OpenCard TemplateLibraryCard
+handleAction input (ContractHomeAction contractHomeAction) = case contractHomeAction of
+  ContractHome.OpenTemplateLibraryCard -> handleAction input $ OpenCard TemplateLibraryCard
   a@(ContractHome.OpenContract _) -> do
     walletDetails <- use _walletDetails
     toContractHome $ ContractHome.handleAction a
-    handleAction inputs $ OpenCard ContractCard
+    handleAction input $ OpenCard ContractCard
   _ -> toContractHome $ ContractHome.handleAction contractHomeAction
 
-handleAction inputs@{ currentSlot } (ContractAction contractAction) = do
+handleAction input@{ currentSlot } (ContractAction contractAction) = do
   walletDetails <- use _walletDetails
   let
-    contractInputs = { currentSlot, walletDetails }
+    contractInput = { currentSlot, walletDetails }
   case contractAction of
-    Contract.AskConfirmation action -> handleAction inputs $ OpenCard $ ContractActionConfirmationCard action
+    Contract.AskConfirmation action -> handleAction input $ OpenCard $ ContractActionConfirmationCard action
     Contract.ConfirmAction action -> do
-      void $ toContract $ Contract.handleAction contractInputs contractAction
-      handleAction inputs CloseCard -- TODO: guard against closing the wrong card
-    Contract.CancelConfirmation -> handleAction inputs CloseCard -- TODO: guard against closing the wrong card
-    _ -> toContract $ Contract.handleAction contractInputs contractAction
+      void $ toContract $ Contract.handleAction contractInput contractAction
+      handleAction input CloseCard -- TODO: guard against closing the wrong card
+    Contract.CancelConfirmation -> handleAction input CloseCard -- TODO: guard against closing the wrong card
+    _ -> toContract $ Contract.handleAction contractInput contractAction
 
 ------------------------------------------------------------
 toTemplate ::

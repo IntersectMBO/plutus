@@ -13,7 +13,7 @@ import Prelude
 import Capability.Marlowe (class ManageMarlowe, applyTransactionInput)
 import Capability.Toast (class Toast, addToast)
 import Contract.Lenses (_executionState, _marloweParams, _namedActions, _previousSteps, _selectedStep, _tab)
-import Contract.Types (Action(..), Inputs, PreviousStep, PreviousStepState(..), State, Tab(..), scrollContainerRef)
+import Contract.Types (Action(..), Input, PreviousStep, PreviousStepState(..), State, Tab(..), scrollContainerRef)
 import Control.Monad.Reader (class MonadAsk, asks)
 import Data.Array (difference, foldl, head, index, length, mapMaybe)
 import Data.Either (Either(..))
@@ -44,8 +44,8 @@ import Marlowe.HasParties (getParties)
 import Marlowe.Execution (ExecutionState, NamedAction(..), PreviousState, _currentContract, _currentState, _pendingTimeouts, _previousState, _previousTransactions, expandBalances, extractNamedActions, initExecution, isClosed, mkTx, nextState, timeoutState)
 import Marlowe.Extended.Metadata (emptyContractMetadata)
 import Marlowe.PAB (PlutusAppId(..), History, MarloweParams)
-import Marlowe.Semantics (Contract(..), Input(..), Party(..), Slot, SlotInterval(..), Token(..), TransactionInput(..))
-import Marlowe.Semantics as Semantic
+import Marlowe.Semantics (Contract(..), Party(..), Slot, SlotInterval(..), Token(..), TransactionInput(..))
+import Marlowe.Semantics (Input(..), State(..)) as Semantic
 import Plutus.V1.Ledger.Value (CurrencySymbol(..))
 import Toast.Types (ajaxErrorToast, successToast)
 import WalletData.Lenses (_assets, _pubKeyHash, _walletInfo)
@@ -163,18 +163,18 @@ handleAction ::
   MonadAsk Env m =>
   ManageMarlowe m =>
   Toast m =>
-  Inputs -> Action -> HalogenM State Action ChildSlots Msg m Unit
-handleAction inputs@{ currentSlot, walletDetails } (ConfirmAction namedAction) = do
+  Input -> Action -> HalogenM State Action ChildSlots Msg m Unit
+handleAction input@{ currentSlot, walletDetails } (ConfirmAction namedAction) = do
   currentExeState <- use _executionState
   marloweParams <- use _marloweParams
   let
-    input = toInput namedAction
+    contractInput = toInput namedAction
 
-    txInput = mkTx currentSlot (currentExeState ^. _currentContract) (Unfoldable.fromMaybe input)
+    txInput = mkTx currentSlot (currentExeState ^. _currentContract) (Unfoldable.fromMaybe contractInput)
   -- FIXME: remove the next four lines and uncomment the code below when things are working in the PAB
   modify_ $ applyTx currentSlot txInput
   stepNumber <- gets currentStep
-  handleAction inputs (MoveToStep stepNumber)
+  handleAction input (MoveToStep stepNumber)
   addToast $ successToast "Payment received, step completed."
 
 --ajaxApplyInputs <- applyTransactionInput walletDetails marloweParams txInput
@@ -247,10 +247,10 @@ applyTimeout currentSlot state =
       # regenerateStepCards currentSlot
       # selectLastStep
 
-toInput :: NamedAction -> Maybe Input
-toInput (MakeDeposit accountId party token value) = Just $ IDeposit accountId party token value
+toInput :: NamedAction -> Maybe Semantic.Input
+toInput (MakeDeposit accountId party token value) = Just $ Semantic.IDeposit accountId party token value
 
-toInput (MakeChoice choiceId _ (Just chosenNum)) = Just $ IChoice choiceId chosenNum
+toInput (MakeChoice choiceId _ (Just chosenNum)) = Just $ Semantic.IChoice choiceId chosenNum
 
 -- WARNING:
 --       This is possible in the types but should never happen in runtime. And I prefer to explicitly throw
@@ -263,7 +263,7 @@ toInput (MakeChoice choiceId _ (Just chosenNum)) = Just $ IChoice choiceId chose
 --       seems like an overkill.
 toInput (MakeChoice _ _ Nothing) = unsafeThrow "A choice action has been triggered"
 
-toInput (MakeNotify _) = Just $ INotify
+toInput (MakeNotify _) = Just $ Semantic.INotify
 
 toInput _ = Nothing
 

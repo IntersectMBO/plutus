@@ -3,7 +3,7 @@ module Contract.Types
   , PreviousStep
   , PreviousStepState(..)
   , Tab(..)
-  , Inputs
+  , Input
   , Action(..)
   , scrollContainerRef
   ) where
@@ -54,7 +54,7 @@ data Tab
 
 derive instance eqTab :: Eq Tab
 
-type Inputs
+type Input
   = { currentSlot :: Slot
     , walletDetails :: WalletDetails
     }
