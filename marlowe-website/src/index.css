@@ -12,10 +12,36 @@ body {
 
 .primary-button {
   @apply bg-gradient-to-r from-purple to-lightpurple text-white font-bold;
-  @apply rounded-full px-5 py-3;
+  @apply rounded-full px-5 py-2;
+}
+
+.primary-button::after {
+  content: url("/static/img/caret.svg");
+  position: relative;
+  top: 4px;
+  right: -5px;
 }
 
 .secondary-button {
   @apply bg-transparent border-3 border-lightpurple text-lightpurple font-bold;
-  @apply rounded-full px-5 py-3;
+  @apply rounded-full px-5 py-2;
+}
+
+.secondary-button::after {
+  content: url("/static/img/caret-purple.svg");
+  position: relative;
+  top: 4px;
+  right: -5px;
+}
+
+.bg-blured {
+  -webkit-backdrop-filter: blur(30px);
+  backdrop-filter: blur(30px);
+  box-shadow: 0 2px 24px -1px rgba(0, 0, 0, 0.2);
+  background-image: linear-gradient(
+    144deg,
+    rgba(255, 255, 255, 0.64) 17%,
+    rgba(255, 255, 255, 0.1) 89%,
+    rgba(255, 255, 255, 0.1) 89%
+  );
 }

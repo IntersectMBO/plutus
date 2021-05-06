@@ -24,6 +24,12 @@ module.exports = {
         test: /\.(woff|woff2|eot|ttf|otf)$/i,
         type: "asset/resource",
       },
+      // We use the HTML loader so that webpack can manage the assets referenced by
+      // the page
+      {
+        test: /\.html$/i,
+        loader: "html-loader",
+      },
       {
         test: /\.(gif|png|jpe?g|svg)$/i,
         type: "asset/resource",

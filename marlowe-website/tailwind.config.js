@@ -33,9 +33,9 @@ module.exports = {
       sm: "14px",
       base: "16px",
       lg: "18px",
-      xl: "24px",
-      "2xl": "34px",
-      "3xl": "46px",
+      xl: "22px",
+      "2xl": "24px",
+      "3xl": "36px",
       "5xl": "68px",
     },
     borderRadius: {

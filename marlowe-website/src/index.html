@@ -7,60 +7,76 @@
 </head>
 
 <body>
-  <header class="flex justify-between ">
-    <h2>Marlowe Prototype</h2>
-    <a href="">Docs</a>
+  <header class="flex justify-between p-4 items-center">
+    <img class="h-10" src="/static/img/marlowe-prototype-logo.svg" alt="Marlowe Prototype">
+    <a class="text-lightpurple font-bold text-sm" href="">Docs</a>
   </header>
-  <section class="bg-main min-h-screen">
-    <h1 class="text-2xl md:text-5xl flex flex-col font-bold font-comfortaa"> <span>Smart contracts,</span>
+  <section class="md:bg-main md:min-h-screen px-6">
+    <h1 class="text-3xl md:text-5xl flex flex-col font-bold font-comfortaa leading-tight py-4">
+      <span>Smart contracts,</span>
       <span>reimagined.</span>
     </h1>
-    <h2 class="text-xl">Marlowe puts the power of financial agreements into the hands of millions. Without the need for
+    <h2 class="text-xl py-4">Marlowe puts the power of financial agreements into the hands of millions. Without the need
+      for
       a bank.</h2>
-    <button class="primary-button">Try Marlowe Run</button>
-    <button class="secondary-button">Try Marlowe Play</button>
-  </section>
+    <div class="flex pb-10 justify-between text-sm">
+      <button class="primary-button">Try Marlowe Run</button>
+      <button class="secondary-button">Try Marlowe Play</button>
+    </div>
 
-  <section class="bg-green">
-    <div>
+  </section>
+  <img class="w-full md:hidden" src="/static/img/woman-using-cellphone-small.jpg" alt="Marlowe Prototype">
+
+  <section class="bg-green relative px-6 pb-14">
+    <div class="relative -top-12 rounded-lg px-4 py-6 bg-blured">
       <h4 class="text-xl font-semibold text-lightpurple">Marlowe Run ‘Prototype’</h4>
-      <h3 class="text-2xl font-bold font-comfortaa">Download, tune, participate, run.</h3>
-      <p class="text-lg">The Marlowe Run prototype lets you download, tune,
-        participate in and run Marlowe contracts with other
-        end users on a simulated blockchain. </p>
-      <button class="primary-button">Tutorial</button>
+      <h3 class="text-2xl font-bold font-comfortaa my-4">Download, tune, participate, run.</h3>
+      <p class="text-lg my-4">The Marlowe Run prototype lets you download, tune, participate in and run Marlowe
+        contracts with other end users on a simulated blockchain.
+      </p>
+      <button class="primary-button my-4">Tutorial</button>
     </div>
     <div>
-      <h4 class="font-bold">Special purpose</h4>
-      <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit pellentesque facilisis.</p>
-      <h4 class="font-bold">Fast and Safe</h4>
-      <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit pellentesque facilisis.</p>
+      <div class="py-6">
+        <h4 class="font-bold">Special purpose</h4>
+        <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit pellentesque facilisis.</p>
+
+      </div>
+      <div class="py-6">
+        <h4 class="font-bold">Fast and Safe</h4>
+        <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit pellentesque facilisis.</p>
+      </div>
     </div>
-    <p class="text-white text-xl font-comfortaa font-bold">We’re rolling this out early so that we can get your feedback
-      on the user experience,
-      and make
-      sure that we have it 100% right when we roll out.
+    <p class="text-white text-xl font-comfortaa font-bold py-8">We’re rolling this out early so that we can get your
+      feedback
+      on the user experience, and make sure that we have it 100% right when we roll out.
     </p>
-    <div class="rounded bg-lightgray">
-      <h4 class="text-lightpurple">Already tried Marlowe Run?</h4>
-      <p>Tell us what you think, we need
-        your feedback to turn great
-        into exceptional.</p>
-      <button class="primary-button">Submit feedback</button>
+    <div class="rounded-lg bg-lightgray p-4">
+      <h4 class="text-lightpurple text-xl font-semibold mb-3">Already tried Marlowe Run?</h4>
+      <p class="text-lg ">Tell us what you think, we need your feedback to turn great into exceptional.</p>
+      <div class="flex items-end justify-between">
+        <img class="relative top-2" src="/static/img/top-down-arrow.svg" alt="Arrow">
+        <button class="text-sm flex-shrink-0 primary-button">Submit feedback</button>
+      </div>
     </div>
   </section>
-  <section>
-    <h4 class="text-lightpurple">Marlowe Play</h4>
-    <h3 class="font-bold">Build, validate, simulate and analayse.</h3>
-    <p class="text-lg">Write Marlowe contracts in a variety of different ways, then analyse its behaviour, and
-      likeliness of any payments failing.
-      You can also step through how a contract will behave, simulating the actions of the participants.</p>
-    <button class="primary-button">Tutorial</button>
+  <section class="px-6">
+    <h4 class="text-lightpurple text-xl font-semibold mt-20 mb-6">Marlowe Play</h4>
+    <h3 class="text-2xl font-comfortaa leading-tight font-bold mb-6">Build, validate, simulate and analayse.</h3>
+    <p class="text-lg mb-6">Write Marlowe contracts in a variety of different ways, then analyse its behaviour, and
+      likeliness of any payments failing. You can also step through how a contract will behave, simulating the actions
+      of the participants.</p>
+    <button class="primary-button mb-6">Tutorial</button>
     <div>
-      <h4 class="font-bold">Special purpose</h4>
-      <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit pellentesque facilisis.</p>
-      <h4 class="font-bold">Fast and Safe</h4>
-      <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit pellentesque facilisis.</p>
+      <div class="py-6">
+        <h4 class="font-bold">Special purpose</h4>
+        <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit pellentesque facilisis.</p>
+
+      </div>
+      <div class="py-6">
+        <h4 class="font-bold">Fast and Safe</h4>
+        <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit pellentesque facilisis.</p>
+      </div>
     </div>
 
   </section>
