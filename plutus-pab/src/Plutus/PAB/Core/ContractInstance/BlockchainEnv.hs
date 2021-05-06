@@ -9,7 +9,6 @@ module Plutus.PAB.Core.ContractInstance.BlockchainEnv(
   , ClientEnv(..)
   , processBlock
   , getClientEnv
-  , updateInterestingAddresses
   ) where
 
 import qualified Cardano.Protocol.Socket.Client       as Client
@@ -25,7 +24,7 @@ import           Control.Concurrent                   (forkIO)
 import           Control.Concurrent.STM               (STM)
 import qualified Control.Concurrent.STM               as STM
 import           Control.Lens
-import           Control.Monad                        (guard, when)
+import           Control.Monad                        (guard, unless, when)
 import           Data.Foldable                        (foldl')
 import           Data.Map                             (Map)
 import           Data.Set                             (Set)
@@ -42,8 +41,9 @@ startNodeClient ::
   -> IO BlockchainEnv
 startNodeClient socket slotConfig instancesState =  do
     env <- STM.atomically emptyBlockchainEnv
-    _ <- Client.runClientNode socket slotConfig (\block -> STM.atomically . processBlock env block)
-    _ <- forkIO (clientEnvLoop env instancesState)
+    _ <- Client.runClientNode socket slotConfig $ \block slot -> do
+          unless (null block) $ putStrLn $ "node client block: " <> show (txId <$> block)
+          STM.atomically $ processBlock env block slot
     pure env
 
 -- | Interesting addresses and transactions from all the
@@ -66,29 +66,23 @@ nextClientEnv instancesState currentEnv = do
   guard $ newEnv /= currentEnv
   pure newEnv
 
-clientEnvLoop :: BlockchainEnv -> InstancesState -> IO ()
-clientEnvLoop env instancesState = go initialClientEnv where
-  go currentEnv = do
-    STM.atomically (updateInterestingAddresses env currentEnv)
-    STM.atomically (nextClientEnv instancesState currentEnv) >>= go
-
-updateInterestingAddresses :: BlockchainEnv -> ClientEnv -> STM ()
-updateInterestingAddresses BlockchainEnv{beAddressMap} ClientEnv{ceAddresses} = do
-  STM.modifyTVar beAddressMap (AddressMap.addAddresses (Set.toList ceAddresses))
-
 -- | Go through the transactions in a block, updating the 'BlockchainEnv'
 --   when any interesting addresses or transactions have changed.
 processBlock :: BlockchainEnv -> Block -> Slot -> STM ()
 processBlock BlockchainEnv{beAddressMap, beTxChanges, beCurrentSlot, beTxIndex} transactions slot = do
-  addressMap <- STM.readTVar beAddressMap
-  chainIndex <- STM.readTVar beTxIndex
-  txStatusMap <- STM.readTVar beTxChanges
-  let (addressMap', txStatusMap', chainIndex') = foldl' (processTx slot) (addressMap, S.increaseDepth <$> txStatusMap, chainIndex) transactions
-  STM.writeTVar beAddressMap addressMap'
-  STM.writeTVar beTxChanges txStatusMap'
-  STM.writeTVar beTxIndex chainIndex'
   lastSlot <- STM.readTVar beCurrentSlot
-  when (slot /= lastSlot) (STM.writeTVar beCurrentSlot slot)
+  when (slot > lastSlot) $ do
+    STM.modifyTVar beTxChanges (fmap S.increaseDepth)
+    STM.writeTVar beCurrentSlot slot
+  unless (null transactions) $ do
+    addressMap <- STM.readTVar beAddressMap
+    chainIndex <- STM.readTVar beTxIndex
+    txStatusMap <- STM.readTVar beTxChanges
+    let (addressMap', txStatusMap', chainIndex') = foldl' (processTx slot) (addressMap, txStatusMap, chainIndex) transactions
+    STM.writeTVar beAddressMap addressMap'
+    STM.writeTVar beTxChanges txStatusMap'
+    STM.writeTVar beTxIndex chainIndex'
+
 
 processTx :: Slot -> (AddressMap, Map TxId TxStatus, ChainIndex) -> Tx -> (AddressMap, Map TxId TxStatus, ChainIndex)
 processTx currentSlot (addressMap, txStatusMap, chainIndex) tx = (addressMap', txStatusMap', chainIndex') where

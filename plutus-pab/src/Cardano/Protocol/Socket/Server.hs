@@ -138,8 +138,10 @@ pruneChain k original = do
        {- When the counter reaches zero, there are K blocks in the
           original channel and we start to remove the oldest stored
           block by reading it. -}
-       then liftIO $ atomically (readTChan original) >> go 0 localChannel
-       else go (k' - 1) localChannel
+       then do
+           liftIO $ atomically (readTChan original) >> go 0 localChannel
+       else do
+           go (k' - 1) localChannel
 
 handleCommand ::
     MonadIO m
@@ -230,11 +232,14 @@ nextState localChannel@(LocalChannel channel') = do
     chainState <- ask
     tip' <- getTip chainState
     (liftIO . atomically $ tryReadTChan channel') >>= \case
-        Nothing -> Right . pure <$> do
-            nextBlock <- liftIO . atomically $ readTChan channel'
-            liftIO $ modifyMVar_ chainState (pure . (tip ?~ nextBlock))
-            sendRollForward localChannel tip' nextBlock
+        Nothing -> do
+            -- liftIO $ putStrLn $ "Socket.Server: nextState Nothing" -- happens too often
+            Right . pure <$> do
+                nextBlock <- liftIO . atomically $ readTChan channel'
+                liftIO $ modifyMVar_ chainState (pure . (tip ?~ nextBlock))
+                sendRollForward localChannel tip' nextBlock
         Just nextBlock -> do
+            -- liftIO $ putStrLn $ "Socket.Server: nextState Just" -- happens too often
             liftIO $ modifyMVar_ chainState (pure . (tip ?~ nextBlock))
             Left <$> sendRollForward localChannel tip' nextBlock
 
@@ -248,6 +253,7 @@ findIntersect ::
  => [Point Block]
  -> m (ServerStIntersect Block (Point Block) Tip m ())
 findIntersect clientPoints = do
+    liftIO $ putStrLn "findIntersect"
     mvState <- ask
     chainState <- liftIO $ readMVar mvState
     serverPoints <- getChainPoints (view channel chainState) chainState
@@ -303,6 +309,7 @@ cloneChainFrom offset = (LocalChannel <$>) <$> go
   where
     go :: m (Maybe (TChan Block))
     go = do
+        liftIO $ putStrLn $ "cloneChainFrom: " <> show offset
         globalChannel <- ask >>= getChannel
         liftIO $ atomically $ do
             localChannel <- cloneTChan globalChannel

@@ -368,7 +368,7 @@ watchedTransactions (InstancesState m) = do
 waitForTxConfirmed :: TxId -> BlockchainEnv -> STM TxConfirmed
 waitForTxConfirmed tx BlockchainEnv{beTxChanges} = do
     idx <- STM.readTVar beTxChanges
-    let minDepth = 5 -- how many blocks the tx must be into the chain
+    let minDepth = 8 -- how many blocks the tx must be into the chain
     guard $ maybe False (isConfirmed minDepth) (Map.lookup tx idx)
     pure (TxConfirmed tx)
 
