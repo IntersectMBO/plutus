@@ -28,7 +28,7 @@ import qualified Data.Set                       as Set
 import qualified Hedgehog.Gen                   as Gen
 import           System.Random.MWC              as MWC
 
-import           Cardano.Chain                  (ChainState, index)
+import           Cardano.Chain                  (MockNodeServerChainState, index)
 import           Cardano.Node.Types             (GenRandomTx (..), MockServerLogMsg (..), genRandomTx)
 import           Control.Monad.Freer.Extras.Log
 import qualified Ledger.Ada                     as Ada
@@ -45,7 +45,7 @@ import qualified Ledger.Tx                      as Tx
 -- around between the emulator wallets.
 
 runGenRandomTx ::
-       ( Member (State ChainState) effs
+       ( Member (State MockNodeServerChainState) effs
        , Member (LogMsg MockServerLogMsg) effs
        , LastMember m effs
        , MonadIO m

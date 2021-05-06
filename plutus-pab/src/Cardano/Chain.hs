@@ -28,39 +28,39 @@ import qualified Wallet.Emulator.Chain          as EC
 
 type TxPool = [Tx]
 
-data ChainState = ChainState
-  { _txPool      :: TxPool
+data MockNodeServerChainState = MockNodeServerChainState
+  { _txPool      :: TxPool -- ?
   , _index       :: Index.UtxoIndex
-  , _currentSlot :: Slot
+  , _currentSlot :: Slot -- ?
   , _channel     :: TChan Block
   , _tip         :: Maybe Block
   } deriving (Generic)
 
-makeLenses ''ChainState
+makeLenses ''MockNodeServerChainState
 
-instance Show ChainState where
+instance Show MockNodeServerChainState where
     -- Skip showing the full chain
-    show ChainState {_txPool, _index, _currentSlot, _tip} =
-        "ChainState { " <> show _txPool
+    show MockNodeServerChainState {_txPool, _index, _currentSlot, _tip} =
+        "MockNodeServerChainState { " <> show _txPool
                         <> ", " <> show _index
                         <> ", " <> show _currentSlot
                         <> ", " <> show _tip <> " }"
 
-emptyChainState :: MonadIO m => m ChainState
+emptyChainState :: MonadIO m => m MockNodeServerChainState
 emptyChainState = do
     chan <- liftIO . atomically $ newTChan
-    pure $ ChainState [] mempty 0 chan Nothing
+    pure $ MockNodeServerChainState [] mempty 0 chan Nothing
 
-getChannel :: MonadIO m => MVar ChainState -> m (TChan Block)
+getChannel :: MonadIO m => MVar MockNodeServerChainState -> m (TChan Block)
 getChannel mv = liftIO (readMVar mv) <&> view channel
 
 -- | Build a PAB ChainState from a emulator ChainState
-fromEmulatorChainState :: MonadIO m => EC.ChainState -> m ChainState
+fromEmulatorChainState :: MonadIO m => EC.ChainState -> m MockNodeServerChainState
 fromEmulatorChainState EC.ChainState {EC._txPool, EC._index, EC._currentSlot, EC._chainNewestFirst} = do
     ch <- liftIO $ atomically newTChan
     void $ liftIO $
         mapM_ (atomically . writeTChan ch) _chainNewestFirst
-    pure $ ChainState { _channel     = ch
+    pure $ MockNodeServerChainState { _channel     = ch
                       , _txPool      = _txPool
                       , _index       = _index
                       , _currentSlot = _currentSlot
@@ -68,16 +68,16 @@ fromEmulatorChainState EC.ChainState {EC._txPool, EC._index, EC._currentSlot, EC
                       }
 
 -- Get the current tip or wait for one if there are no blocks.
-getTip :: forall m. MonadIO m => MVar ChainState -> m Block
+getTip :: forall m. MonadIO m => MVar MockNodeServerChainState -> m Block
 getTip mvChainState = liftIO $ readMVar mvChainState >>= \case
-    ChainState { _tip = Just tip' } -> pure tip'
-    ChainState { _channel }         -> do
+    MockNodeServerChainState { _tip = Just tip' } -> pure tip'
+    MockNodeServerChainState { _channel }         -> do
         -- Wait for the initial block.
         void $ liftIO $ atomically $ peekTChan _channel
         getTip mvChainState
 
 handleControlChain ::
-     ( Member (State ChainState) effs
+     ( Member (State MockNodeServerChainState) effs
      , Member (LogMsg EC.ChainEvent) effs
      , LastMember m effs
      , MonadIO m )
@@ -99,10 +99,10 @@ handleControlChain = \case
 
         liftIO $ atomically $ writeTChan (st ^. channel) block
         pure block
-    EC.ModifySlot f -> modify @ChainState (over currentSlot f) >> gets (view currentSlot)
+    EC.ModifySlot f -> modify @MockNodeServerChainState (over currentSlot f) >> gets (view currentSlot)
 
 handleChain ::
-     ( Member (State ChainState) effs )
+     ( Member (State MockNodeServerChainState) effs )
   => EC.ChainEffect ~> Eff effs
 handleChain = \case
     EC.QueueTx tx     -> modify $ over txPool (addTxToPool tx)

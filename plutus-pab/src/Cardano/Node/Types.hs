@@ -49,9 +49,9 @@ module Cardano.Node.Types
     )
         where
 
-import           Control.Lens                   (makeLenses, view)
+import           Control.Lens                   (makeLenses, view, (^.))
 import           Control.Monad.Freer.TH         (makeEffect)
-import           Control.Monad.IO.Class         (MonadIO)
+import           Control.Monad.IO.Class         (MonadIO (..))
 import           Data.Aeson                     (FromJSON, ToJSON)
 import qualified Data.Map                       as Map
 import           Data.Text.Prettyprint.Doc      (Pretty (..), pretty, viaShow, (<+>))
@@ -65,7 +65,7 @@ import           Servant.Client                 (BaseUrl)
 
 import           Cardano.BM.Data.Tracer         (ToObject (..))
 import           Cardano.BM.Data.Tracer.Extras  (Tagged (..), mkObjectStr)
-import           Cardano.Chain                  (ChainState, fromEmulatorChainState)
+import           Cardano.Chain                  (MockNodeServerChainState, fromEmulatorChainState, index)
 import qualified Cardano.Protocol.Socket.Client as Client
 import           Cardano.Protocol.Socket.Type   (SlotConfig (..), currentSlot, slotNumber)
 import           Control.Monad.Freer.Extras.Log (LogMessage, LogMsg (..))
@@ -189,7 +189,7 @@ instance Pretty BlockEvent where
 -- | Application State
 data AppState =
     AppState
-        { _chainState   :: ChainState -- ^ blockchain state
+        { _chainState   :: MockNodeServerChainState -- ^ blockchain state
         , _eventHistory :: [LogMessage MockServerLogMsg] -- ^ history of all log messages
         }
     deriving (Show)
@@ -201,13 +201,14 @@ makeLenses 'AppState
 initialAppState :: MonadIO m => [Wallet] -> m AppState
 initialAppState wallets = do
     initialState <- initialChainState (Trace.defaultDistFor wallets)
+    liftIO $ putStrLn $ "initialState.index: " <> show (initialState ^. index)
     pure $ AppState
         { _chainState = initialState
         , _eventHistory = mempty
         }
 
 -- | 'ChainState' with initial values
-initialChainState :: MonadIO m => Trace.InitialDistribution -> m ChainState
+initialChainState :: MonadIO m => Trace.InitialDistribution -> m MockNodeServerChainState
 initialChainState =
     fromEmulatorChainState . view EM.chainState .
     MultiAgent.emulatorStateInitialDist . Map.mapKeys EM.walletPubKey
@@ -219,7 +220,7 @@ type NodeServerEffects m
         , LogMsg MockServerLogMsg
         , ChainControlEffect
         , ChainEffect
-        , State ChainState
+        , State MockNodeServerChainState
         , LogMsg MockServerLogMsg
         , Reader Client.ClientHandler
         , State AppState
