@@ -1,5 +1,6 @@
 module MainFrame.Lenses
   ( _webSocketStatus
+  , _currentSlot
   , _subState
   , _toast
   , _pickupState
@@ -13,12 +14,16 @@ import Data.Lens.Prism.Either (_Left, _Right)
 import Data.Lens.Record (prop)
 import Data.Symbol (SProxy(..))
 import MainFrame.Types (State, WebSocketStatus)
+import Marlowe.Semantics (Slot)
 import Pickup.Types (State) as Pickup
 import Play.Types (State) as Play
 import Toast.Types (State) as Toast
 
 _webSocketStatus :: Lens' State WebSocketStatus
 _webSocketStatus = prop (SProxy :: SProxy "webSocketStatus")
+
+_currentSlot :: Lens' State Slot
+_currentSlot = prop (SProxy :: SProxy "currentSlot")
 
 _subState :: Lens' State (Either Pickup.State Play.State)
 _subState = prop (SProxy :: SProxy "subState")

@@ -7,7 +7,6 @@ module Play.Lenses
   , _newWalletNickname
   , _newWalletCompanionAppIdString
   , _newWalletInfo
-  , _currentSlot
   , _templateState
   , _contractsState
   , _allContracts
@@ -23,7 +22,6 @@ import Data.Lens.Record (prop)
 import Data.Map (Map)
 import Data.Symbol (SProxy(..))
 import Marlowe.PAB (PlutusAppId)
-import Marlowe.Semantics (Slot)
 import Play.Types (Card, Screen, State)
 import Template.Types (State) as Template
 import Types (WebData)
@@ -52,9 +50,6 @@ _newWalletCompanionAppIdString = prop (SProxy :: SProxy "newWalletCompanionAppId
 
 _newWalletInfo :: Lens' State (WebData WalletInfo)
 _newWalletInfo = prop (SProxy :: SProxy "newWalletInfo")
-
-_currentSlot :: Lens' State Slot
-_currentSlot = prop (SProxy :: SProxy "currentSlot")
 
 _templateState :: Lens' State Template.State
 _templateState = prop (SProxy :: SProxy "templateState")

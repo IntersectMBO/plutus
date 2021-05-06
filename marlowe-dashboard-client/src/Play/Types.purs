@@ -2,6 +2,7 @@ module Play.Types
   ( State
   , Screen(..)
   , Card(..)
+  , Input
   , Action(..)
   ) where
 
@@ -26,7 +27,6 @@ type State
     , newWalletNickname :: WalletNickname
     , newWalletCompanionAppIdString :: String
     , newWalletInfo :: WebData WalletInfo
-    , currentSlot :: Slot
     , timezoneOffset :: Minutes
     , templateState :: Template.State
     , contractsState :: ContractHome.State
@@ -50,6 +50,10 @@ data Card
 
 derive instance eqCard :: Eq Card
 
+type Input
+  = { currentSlot :: Slot
+    }
+
 data Action
   = PutdownWallet
   | SetNewWalletNickname WalletNickname
@@ -59,7 +63,7 @@ data Action
   | SetScreen Screen
   | OpenCard Card
   | CloseCard
-  | SetCurrentSlot Slot
+  | AdvanceTimedoutSteps
   | TemplateAction Template.Action
   | ContractHomeAction ContractHome.Action
   | ContractAction Contract.Action
@@ -75,7 +79,7 @@ instance actionIsEvent :: IsEvent Action where
   toEvent (SetScreen _) = Just $ defaultEvent "SetScreen"
   toEvent (OpenCard _) = Nothing
   toEvent CloseCard = Nothing
-  toEvent (SetCurrentSlot _) = Nothing
+  toEvent AdvanceTimedoutSteps = Nothing
   toEvent (TemplateAction templateAction) = toEvent templateAction
   toEvent (ContractHomeAction contractAction) = toEvent contractAction
   toEvent (ContractAction contractAction) = toEvent contractAction
