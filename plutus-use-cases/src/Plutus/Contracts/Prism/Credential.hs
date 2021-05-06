@@ -26,7 +26,7 @@ import qualified Ledger.Typed.Scripts          as Scripts
 import           Ledger.Value                  (TokenName, Value)
 import qualified Ledger.Value                  as Value
 import           Plutus.Contracts.TokenAccount (Account (..))
-import qualified PlutusTx                      as PlutusTx
+import qualified PlutusTx
 import           PlutusTx.Prelude
 import qualified Prelude                       as Haskell
 import           Schema                        (ToSchema)

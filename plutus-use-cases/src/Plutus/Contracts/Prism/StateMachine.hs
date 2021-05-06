@@ -29,7 +29,7 @@ import           Plutus.Contract.StateMachine      (State (..), StateMachine (..
 import qualified Plutus.Contract.StateMachine      as StateMachine
 import           Plutus.Contracts.Prism.Credential (Credential (..), CredentialAuthority (..))
 import qualified Plutus.Contracts.Prism.Credential as Credential
-import qualified PlutusTx                          as PlutusTx
+import qualified PlutusTx
 import           PlutusTx.Prelude
 import qualified Prelude                           as Haskell
 
