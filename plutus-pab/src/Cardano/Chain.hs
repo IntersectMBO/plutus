@@ -29,9 +29,9 @@ import qualified Wallet.Emulator.Chain          as EC
 type TxPool = [Tx]
 
 data MockNodeServerChainState = MockNodeServerChainState
-  { _txPool      :: TxPool -- ?
+  { _txPool      :: TxPool
   , _index       :: Index.UtxoIndex
-  , _currentSlot :: Slot -- ?
+  , _currentSlot :: Slot
   , _channel     :: TChan Block
   , _tip         :: Maybe Block
   } deriving (Generic)
@@ -93,6 +93,7 @@ handleControlChain = \case
 
         let st' = st & txPool .~ rest
                      & tip    ?~ block
+                     & index  %~ Index.insertBlock block
 
         put st'
         traverse_ logEvent events

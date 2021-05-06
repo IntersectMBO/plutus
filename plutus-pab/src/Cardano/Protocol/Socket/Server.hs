@@ -50,8 +50,8 @@ import           Cardano.Protocol.Socket.Type                        hiding (cur
 
 import           Cardano.Chain                                       (MockNodeServerChainState (..), addTxToPool,
                                                                       chainNewestFirst, channel, currentSlot,
-                                                                      getChannel, getTip, handleControlChain, index,
-                                                                      tip, txPool)
+                                                                      getChannel, getTip, handleControlChain, tip,
+                                                                      txPool)
 import           Ledger                                              (Block, Slot (..), Tx (..))
 import qualified Wallet.Emulator.Chain                               as Chain
 
@@ -163,9 +163,6 @@ handleCommand trace CommandChannel {ccCommand, ccResponse} mvChainState =
                 writeTQueue ccResponse (SlotChanged s)
         ProcessBlock -> liftIO $ do
             state <- liftIO $ takeMVar mvChainState
-            let nonEmptyPool = state ^. txPool . to (not . null)
-            when nonEmptyPool $ do
-                putStrLn $ show $ state ^. index
             (block, nextState') <- liftIO $ Chain.processBlock
                   & interpret handleControlChain
                   & interpret (LM.handleLogMsgTraceMap ProcessingChainEvent trace)
