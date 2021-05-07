@@ -209,15 +209,14 @@ runChainSync = flip runReaderT
 idleState ::
     ( MonadReader (MVar MockNodeServerChainState) m
     , MonadIO m )
- => Maybe LocalChannel
+ => LocalChannel
  -> m (ServerStIdle Block (Point Block) Tip m ())
-idleState (Just channel') =
+idleState channel' =
     pure ServerStIdle {
         recvMsgRequestNext = nextState channel',
         recvMsgFindIntersect = findIntersect,
         recvMsgDoneClient = return ()
     }
-idleState Nothing = undefined
 
 {- Get the next block, either immediately (the Just/Left branch)
    or within a monad (IO, in our case) where you can wait for the
@@ -286,7 +285,7 @@ sendRollForward channel' tip' current = pure $
     SendMsgRollForward
         current
         tip'
-        (ChainSyncServer (idleState (Just channel')))
+        (ChainSyncServer (idleState channel'))
 
 {- This is the state for a new connection. For now we start with
    slot 0, and in idleState. This will probably change, since it
@@ -304,10 +303,10 @@ cloneChainFrom :: forall m.
     ( MonadReader (MVar MockNodeServerChainState) m
     , MonadIO m )
  => Integer
- -> m (Maybe LocalChannel)
-cloneChainFrom offset = (LocalChannel <$>) <$> go
+ -> m LocalChannel
+cloneChainFrom offset = LocalChannel <$> go
   where
-    go :: m (Maybe (TChan Block))
+    go :: m (TChan Block)
     go = do
         liftIO $ putStrLn $ "cloneChainFrom: " <> show offset
         globalChannel <- ask >>= getChannel
@@ -315,8 +314,8 @@ cloneChainFrom offset = (LocalChannel <$>) <$> go
             localChannel <- cloneTChan globalChannel
             consume localChannel offset
 
-    consume :: TChan a -> Integer -> STM (Maybe (TChan a))
-    consume channel' ix | ix == 0    = pure $ Just channel'
+    consume :: TChan a -> Integer -> STM (TChan a)
+    consume channel' ix | ix == 0    = pure channel'
     consume channel' ix =
         -- We should have all requested blocks available on the
         -- channel, for consumption.
