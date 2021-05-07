@@ -42,7 +42,6 @@ startNodeClient ::
 startNodeClient socket slotConfig instancesState =  do
     env <- STM.atomically emptyBlockchainEnv
     _ <- Client.runClientNode socket slotConfig $ \block slot -> do
-          unless (null block) $ putStrLn $ "node client block: " <> show (txId <$> block)
           STM.atomically $ processBlock env block slot
     pure env
 
