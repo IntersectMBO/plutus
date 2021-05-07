@@ -142,7 +142,7 @@ newtype PrettyObject t = PrettyObject { unPrettyObject :: t }
     deriving newtype (ToJSON, FromJSON)
 
 instance (Pretty t) => ToObject (PrettyObject t) where
-    toObject v (PrettyObject t) =
+    toObject _ (PrettyObject t) =
         let str = Text.toStrict . Render.renderLazy . layoutPretty defaultLayoutOptions $ pretty t in
         HM.singleton "string" (toJSON str)
     textTransformer (PrettyObject t) _ = Text.toStrict . Render.renderLazy . layoutPretty defaultLayoutOptions $ pretty t

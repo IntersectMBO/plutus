@@ -20,15 +20,13 @@ import           Plutus.PAB.Core.ContractInstance.STM (BlockchainEnv (..), Insta
 import qualified Plutus.PAB.Core.ContractInstance.STM as S
 
 import           Cardano.Node.Types                   (SlotConfig)
-import           Control.Concurrent                   (forkIO)
 import           Control.Concurrent.STM               (STM)
 import qualified Control.Concurrent.STM               as STM
 import           Control.Lens
-import           Control.Monad                        (guard, unless, when)
+import           Control.Monad                        (unless, when)
 import           Data.Foldable                        (foldl')
 import           Data.Map                             (Map)
 import           Data.Set                             (Set)
-import qualified Data.Set                             as Set
 import           Wallet.Emulator.ChainIndex.Index     (ChainIndex, ChainIndexItem (..))
 import qualified Wallet.Emulator.ChainIndex.Index     as Index
 
@@ -37,9 +35,8 @@ import qualified Wallet.Emulator.ChainIndex.Index     as Index
 startNodeClient ::
   FilePath -- ^ Socket to connect to node
   -> SlotConfig -- ^ Slot config used by the node
-  -> InstancesState
   -> IO BlockchainEnv
-startNodeClient socket slotConfig instancesState =  do
+startNodeClient socket slotConfig = do
     env <- STM.atomically emptyBlockchainEnv
     _ <- Client.runClientNode socket slotConfig $ \block slot -> do
           STM.atomically $ processBlock env block slot
@@ -49,21 +46,11 @@ startNodeClient socket slotConfig instancesState =  do
 --   active instances.
 data ClientEnv = ClientEnv{ceAddresses :: Set Address, ceTransactions :: Set TxId} deriving Eq
 
-initialClientEnv :: ClientEnv
-initialClientEnv = ClientEnv mempty mempty
-
 getClientEnv :: InstancesState -> STM ClientEnv
 getClientEnv instancesState =
   ClientEnv
     <$> S.watchedAddresses instancesState
     <*> S.watchedTransactions instancesState
-
--- | Wait until the 'ClientEnv' has changed.
-nextClientEnv :: InstancesState -> ClientEnv -> STM ClientEnv
-nextClientEnv instancesState currentEnv = do
-  newEnv <- getClientEnv instancesState
-  guard $ newEnv /= currentEnv
-  pure newEnv
 
 -- | Go through the transactions in a block, updating the 'BlockchainEnv'
 --   when any interesting addresses or transactions have changed.
