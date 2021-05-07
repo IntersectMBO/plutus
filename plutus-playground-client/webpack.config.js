@@ -25,8 +25,9 @@ module.exports = {
     },
     entry: "./entry.js",
     output: {
-        path: path.join(__dirname, "dist"),
         filename: "[name].[contenthash].js",
+        path: path.join(__dirname, "dist"),
+        pathinfo: true,
         clean: true,
     },
     optimization: {

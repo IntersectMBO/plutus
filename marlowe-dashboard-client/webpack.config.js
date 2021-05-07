@@ -34,8 +34,9 @@ module.exports = {
     },
     entry: "./entry.js",
     output: {
-        path: path.join(__dirname, "dist"),
         filename: "[name].[contenthash].js",
+        path: path.join(__dirname, "dist"),
+        pathinfo: true,
         clean: true,
     },
     optimization: {
@@ -89,7 +90,12 @@ module.exports = {
         ],
     },
     resolve: {
-        modules: ["node_modules"],
+        modules: [
+            "node_modules",
+            // We need this entry for node to be able to locate `node_modules` from
+            // client directory when modules are referenced from inside `web-common`.
+            path.resolve(__dirname, "./node_modules"),
+        ],
         alias: {
             contracts: path.resolve(__dirname, "./contracts"),
             static: path.resolve(__dirname, "./static"),
