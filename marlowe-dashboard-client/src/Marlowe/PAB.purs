@@ -9,10 +9,12 @@ module Marlowe.PAB
   , ValidatorHash
   , MarloweData(..)
   , History(..)
+  , CombinedWSStreamToServer(..)
   ) where
 
 import Prelude
 import Data.BigInteger (BigInteger, fromInt)
+import Data.Either (Either)
 import Data.Generic.Rep (class Generic)
 import Data.Maybe (Maybe(..))
 import Data.Newtype (class Newtype)
@@ -23,6 +25,8 @@ import Foreign.Generic (defaultOptions, genericDecode, genericEncode)
 import Marlowe.Semantics (Contract, State, TransactionInput)
 import Plutus.PAB.Effects.Contract.ContractExe (ContractExe(..))
 import Plutus.V1.Ledger.Value (CurrencySymbol)
+import Wallet.Emulator.Wallet (Wallet) as Back
+import Wallet.Types (ContractInstanceId) as Back
 
 {-
 Marlowe requires three Plutus "contracts" to run in the PAB, which we refer to here as "apps" so as
@@ -150,4 +154,17 @@ instance encodeHistory :: Encode History where
   encode value = genericEncode defaultOptions value
 
 instance decodeHistory :: Decode History where
+  decode value = genericDecode defaultOptions value
+
+-- HACK: rolling my own websocket type to see if this helps
+data CombinedWSStreamToServer
+  = Subscribe (Either Back.ContractInstanceId Back.Wallet)
+  | Unsubscribe (Either Back.ContractInstanceId Back.Wallet)
+
+derive instance genericCombinedWSStreamToServer :: Generic CombinedWSStreamToServer _
+
+instance encodeCombinedWSStreamToServer :: Encode CombinedWSStreamToServer where
+  encode value = genericEncode defaultOptions value
+
+instance decodeCombinedWSStreamToServer :: Decode CombinedWSStreamToServer where
   decode value = genericDecode defaultOptions value

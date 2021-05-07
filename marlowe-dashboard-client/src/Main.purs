@@ -21,8 +21,10 @@ import LocalStorage as LocalStorage
 import MainFrame.State (mkMainFrame)
 import MainFrame.Types (Action(..), Msg(..), Query(..))
 import MainFrame.Types as MainFrame
+import Marlowe.PAB (CombinedWSStreamToServer)
 import Plutus.PAB.Webserver (SPParams_(SPParams_))
-import Plutus.PAB.Webserver.Types (CombinedWSStreamToClient, CombinedWSStreamToServer)
+import Plutus.PAB.Webserver.Types (CombinedWSStreamToClient)
+--import Plutus.PAB.Webserver.Types (CombinedWSStreamToClient, CombinedWSStreamToServer)
 import Servant.PureScript.Settings (SPSettingsDecodeJson_(..), SPSettingsEncodeJson_(..), SPSettings_(..), defaultSettings)
 import WebSocket.Support (WebSocketManager, mkWebSocketManager)
 import WebSocket.Support as WS
