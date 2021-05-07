@@ -1,6 +1,8 @@
 const path = require("path");
 const HtmlWebpackPlugin = require("html-webpack-plugin");
 const MiniCssExtractPlugin = require("mini-css-extract-plugin");
+const faqContent = require("./faqContent.json");
+
 module.exports = {
   entry: path.resolve(__dirname, "src/index.js"),
   output: {
@@ -24,11 +26,14 @@ module.exports = {
         test: /\.(woff|woff2|eot|ttf|otf)$/i,
         type: "asset/resource",
       },
-      // We use the HTML loader so that webpack can manage the assets referenced by
-      // the page
       {
-        test: /\.html$/i,
-        loader: "html-loader",
+        test: /\.njk$/,
+        use: [
+          {
+            loader: "simple-nunjucks-loader",
+            options: {},
+          },
+        ],
       },
       {
         test: /\.(gif|png|jpe?g|svg)$/i,
@@ -42,7 +47,8 @@ module.exports = {
   target: "web",
   plugins: [
     new HtmlWebpackPlugin({
-      template: path.resolve(__dirname, "src/index.html"),
+      template: path.resolve(__dirname, "src/index.njk"),
+      templateParameters: { faqContent },
       // favicon: 'static/favicon.ico',
       title: "Marlowe",
       liveReload: true,

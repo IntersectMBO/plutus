@@ -10,6 +10,7 @@ module.exports = {
         ignoreAtRules: ["tailwind", "apply", "variants", "responsive", "screen"],
       },
     ],
+    "declaration-colon-newline-after": null,
     "declaration-block-trailing-semicolon": null,
     "no-descending-specificity": null,
   },

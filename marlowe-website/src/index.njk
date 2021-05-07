@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  </head>
+
+  <body>
+    <header class="flex justify-between p-4 items-center">
+      <img class="h-10" src="{% static './static/img/marlowe-prototype-logo.svg' %}" alt="Marlowe Prototype">
+      <a class="text-lightpurple font-bold text-sm" href="">Docs</a>
+    </header>
+    <section class="md:bg-main md:min-h-screen px-6">
+      <h1 class="text-3xl md:text-5xl flex flex-col font-bold font-comfortaa leading-tight py-4">
+        <span>Smart contracts,</span>
+        <span>reimagined.</span>
+      </h1>
+      <h2 class="text-xl py-4">Marlowe puts the power of financial agreements into the hands of millions. Without the need for a bank.</h2>
+      <div class="flex pb-10 justify-between text-sm">
+        <a href="https://run.marlowe-finance.io" target="_blank" class="primary-button">Try Marlowe Run</a>
+        <a href="https://play.marlowe-finance.io" target="_blank" class="secondary-button">Try Marlowe Play</a>
+      </div>
+
+    </section>
+    <img class="w-full md:hidden" src="{% static './static/img/woman-using-cellphone-small.jpg' %}" alt="Marlowe Prototype">
+
+    <section class="bg-green relative px-6 pb-14">
+      <div class="relative -top-12 rounded-lg px-4 py-6 bg-blured">
+        <h4 class="text-xl font-semibold text-lightpurple">Marlowe Run ‘Prototype’</h4>
+        <h3 class="text-2xl font-bold font-comfortaa my-4">Download, tune, participate, run.</h3>
+        <p class="text-lg my-4">The Marlowe Run prototype lets you download, tune, participate in and run Marlowe contracts with other end users on a simulated blockchain.
+        </p>
+        <button class="primary-button my-4">Tutorial</button>
+      </div>
+      <div>
+        <div class="py-6">
+          <h4 class="font-bold">Special purpose</h4>
+          <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit pellentesque facilisis.</p>
+
+        </div>
+        <div class="py-6">
+          <h4 class="font-bold">Fast and Safe</h4>
+          <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit pellentesque facilisis.</p>
+        </div>
+      </div>
+      <p class="text-white text-xl font-comfortaa font-bold py-8">We’re rolling this out early so that we can get your feedback on the user experience, and make sure that we have it 100% right when we roll out.
+      </p>
+      <div class="rounded-lg bg-lightgray p-4">
+        <h4 class="text-lightpurple text-xl font-semibold mb-3">Already tried Marlowe Run?</h4>
+        <p class="text-lg ">Tell us what you think, we need your feedback to turn great into exceptional.</p>
+        <div class="flex items-end justify-between">
+          <img class="relative top-2" src="{% static './static/img/top-down-arrow.svg' %}" alt="Arrow">
+          <button class="text-sm flex-shrink-0 primary-button">Submit feedback</button>
+        </div>
+      </div>
+    </section>
+    <section class="px-6">
+      <h4 class="text-lightpurple text-xl font-semibold mt-20 mb-6">Marlowe Play</h4>
+      <h3 class="text-2xl font-comfortaa leading-tight font-bold mb-6">Build, validate, simulate and analayse.</h3>
+      <p class="text-lg mb-6">Write Marlowe contracts in a variety of different ways, then analyse its behaviour, and likeliness of any payments failing. You can also step through how a contract will behave, simulating the actions of the participants.</p>
+      <button class="primary-button mb-6">Tutorial</button>
+      <div>
+        <div class="py-6">
+          <h4 class="font-bold">Special purpose</h4>
+          <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit pellentesque facilisis.</p>
+
+        </div>
+        <div class="py-6">
+          <h4 class="font-bold">Fast and Safe</h4>
+          <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit pellentesque facilisis.</p>
+        </div>
+      </div>
+    </section>
+    <section >
+      <div class="px-6">
+        <h4 class="text-lightpurple text-xl font-semibold mt-20 mb-6">What is Marlowe?</h4>
+        <h3 class="text-2xl font-comfortaa leading-tight font-bold mb-6">A special-purpose language for financial contracts on Cardano.</h3>
+        <p class="text-lg mb-6">Allowing contracts to be written in the language of finance, rather than using a general-purpose language on the blockchain.</p>
+        <button class="primary-button mb-6">Learn more</button>
+
+      </div>
+      <img class="w-full" src="{% static './static/img/marlowe-code.svg' %}" alt="Marlowe code example">
+
+    </section>
+    <section class="px-6">
+      <h3 class="text-2xl font-comfortaa leading-tight font-bold mb-6">Marlowe FAQ’s</h3>
+      {% macro faqComponent(index, question, answer) %}
+        <div class="faq border-t border-darkgray pt-5 mt-5">
+          <h4 class="text-lightpurple text-xl font-semibold flex ">
+            <span class="flex-grow">
+              {{index}}.
+              {{ question }}
+            </span>
+            <span class="flex-shrink-0 w-6 faq-caret"></span>
+          </h4>
+
+          <p class="text-xl faq-answer">{{ answer }}</p>
+        </div>
+      {% endmacro %}
+      {% for item in faqContent %}
+        {{faqComponent(loop.index, item.question, item.answer)}}
+      {% endfor %}
+      <div id="faq"></div>
+    </section>
+
+  </body>
+
+</html>

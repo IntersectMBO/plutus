@@ -1,0 +1,14 @@
+[
+  {
+    "question": "Faq question",
+    "answer": "Write Marlowe contracts in a variety of different ways, then analyse its behaviour, and likeliness of any payments failing. You can also step through how a contract will behave, simulating the actions of the participants."
+  },
+  {
+    "question": "Looooooooooong Faq question",
+    "answer": "Write Marlowe contracts in a variety of different ways, then analyse its behaviour, and likeliness of any payments failing. You can also step through how a contract will behave, simulating the actions of the participants."
+  },
+  {
+    "question": "Lorem ipsum dolor sit amet, consectetur adipiscing elit pellentesque facilisis.",
+    "answer": "Write Marlowe contracts in a variety of different ways, then analyse its behaviour, and likeliness of any payments failing. You can also step through how a contract will behave, simulating the actions of the participants."
+  }
+]

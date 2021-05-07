@@ -1,7 +1,7 @@
 "use strict";
 
 module.exports = {
-  purge: ["./src/**/*.html", "./src/**/*.js"],
+  purge: ["./src/**/*.njk", "./src/**/*.js"],
   darkMode: false, // or 'media' or 'class'
   theme: {
     colors: {

@@ -13,10 +13,11 @@ body {
 .primary-button {
   @apply bg-gradient-to-r from-purple to-lightpurple text-white font-bold;
   @apply rounded-full px-5 py-2;
+  @apply hover:shadow;
 }
 
 .primary-button::after {
-  content: url("/static/img/caret.svg");
+  content: url("/static/img/caret-right.svg");
   position: relative;
   top: 4px;
   right: -5px;
@@ -25,10 +26,11 @@ body {
 .secondary-button {
   @apply bg-transparent border-3 border-lightpurple text-lightpurple font-bold;
   @apply rounded-full px-5 py-2;
+  @apply hover:shadow;
 }
 
 .secondary-button::after {
-  content: url("/static/img/caret-purple.svg");
+  content: url("/static/img/caret-right-purple.svg");
   position: relative;
   top: 4px;
   right: -5px;
@@ -44,4 +46,37 @@ body {
     rgba(255, 255, 255, 0.1) 89%,
     rgba(255, 255, 255, 0.1) 89%
   );
+}
+
+/* For the FAQ caret we use the background image property instead of an img tag because the expanded/collapsed
+   state is only stored as a CSS class on the parent. */
+
+.faq-answer {
+  max-height: 0;
+  opacity: 0;
+  transition-property: max-height, opacity, padding;
+  transition-duration: 200ms;
+  transition-timing-function: ease-out;
+
+  /* Because we use max-height for the collapse/expand animation and the element still occupies
+  space (but with 0 opacity). Overflow hidden solves that */
+  overflow: hidden;
+}
+
+.expanded .faq-answer {
+  @apply pt-3;
+
+  max-height: 2000px;
+  opacity: 1;
+}
+
+.faq-caret {
+  background-image: url("/static/img/caret-down-purple.svg");
+  background-repeat: no-repeat;
+  background-position: center 5px;
+}
+
+.expanded .faq-caret {
+  background-image: url("/static/img/caret-up-purple.svg");
+  background-position: center 10px;
 }
