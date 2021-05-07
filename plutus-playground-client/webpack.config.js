@@ -26,8 +26,20 @@ module.exports = {
     entry: "./entry.js",
     output: {
         path: path.join(__dirname, "dist"),
-        pathinfo: true,
-        filename: "app.[hash].js",
+        filename: "[name].[contenthash].js",
+        clean: true,
+    },
+    optimization: {
+        runtimeChunk: 'single',
+        splitChunks: {
+            cacheGroups: {
+                vendor: {
+                    test: /[\\/]node_modules[\\/]/,
+                    name: 'vendors',
+                    chunks: 'all',
+                },
+            },
+        },
     },
     module: {
         rules: [
@@ -41,9 +53,9 @@ module.exports = {
                                 "src/**/*.purs",
                                 "generated/**/*.purs",
                                 ".spago/*/*/src/**/*.purs",
+                                "web-common/**/*.purs",
                                 "web-common-plutus/**/*.purs",
                                 "web-common-playground/**/*.purs",
-                                "web-common/**/*.purs",
                             ],
                             psc: "psa",
                             spago: true,
@@ -76,10 +88,10 @@ module.exports = {
     },
     resolve: {
         modules: [
-            // We need the second entry for node to be able to
-            // locate `node_modules` from client directory when 
-            // modules are referenced from inside `web-common`.
-            "node_modules", path.resolve(__dirname, "./node_modules")
+            "node_modules",
+            // We need this entry for node to be able to locate `node_modules` from
+            // client directory when modules are referenced from inside `web-common`.
+            path.resolve(__dirname, "./node_modules"),
         ],
         alias: {
             static: path.resolve(__dirname, "./static"),
@@ -103,7 +115,7 @@ module.exports = {
             segmentAnalyticsId: isDevelopment ? "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX" : "0CEePM8LJUSpPoo2QGrXHDw4GKg4JFBo",
         }),
         new MiniCssExtractPlugin({
-            filename: "[name].[hash].css",
+            filename: "[name].[contenthash].css",
         }),
         new MonacoWebpackPlugin({
             languages: ["haskell"],

@@ -35,8 +35,20 @@ module.exports = {
     entry: "./entry.js",
     output: {
         path: path.join(__dirname, "dist"),
-        pathinfo: true,
-        filename: "app.[hash].js",
+        filename: "[name].[contenthash].js",
+        clean: true,
+    },
+    optimization: {
+        runtimeChunk: 'single',
+        splitChunks: {
+            cacheGroups: {
+                vendor: {
+                    test: /[\\/]node_modules[\\/]/,
+                    name: 'vendors',
+                    chunks: 'all',
+                },
+            },
+        },
     },
     module: {
         rules: [

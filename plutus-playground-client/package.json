@@ -40,10 +40,10 @@
     "purescript-psa": "^0.8.2",
     "purs-loader": "^3.7.2",
     "sass-loader": "^11.0.1",
+    "style-loader": "^2.0.0",
+    "url-loader": "^4.1.1",
     "webpack": "^5.36.2",
     "webpack-cli": "^4.6.0",
-    "webpack-dev-server": "^3.11.2",
-    "style-loader": "^2.0.0",
-    "url-loader": "^4.1.1"
+    "webpack-dev-server": "^3.11.2"
   }
 }
