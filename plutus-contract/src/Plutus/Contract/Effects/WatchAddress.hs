@@ -17,6 +17,9 @@ module Plutus.Contract.Effects.WatchAddress(
     nextTransactionsAt,
     fundsAtAddressGt,
     fundsAtAddressGeq,
+    fundsAtAddressLt,
+    fundsAtAddressLeq,
+    fundsAtAddressCondition,
     events,
     watchAddressRequest,
     watchedAddress,
@@ -109,6 +112,8 @@ fundsAtAddressGt
 fundsAtAddressGt addr vl =
     fundsAtAddressCondition (\presentVal -> presentVal `V.gt` vl) addr
 
+-- | Watch an address for changes, and return the outputs
+--   at that address when the condition succeeds.
 fundsAtAddressCondition
     :: forall w s e.
        ( AsContractError e
@@ -141,6 +146,36 @@ fundsAtAddressGeq
     -> Contract w s e UtxoMap
 fundsAtAddressGeq addr vl =
     fundsAtAddressCondition (\presentVal -> presentVal `V.geq` vl) addr
+
+-- | Watch an address for changes, and return the outputs
+--   at that address when the total value at the address
+--   has fallen below the given value.
+fundsAtAddressLt
+    :: forall w s e.
+       ( AsContractError e
+       , HasAwaitSlot s
+       , HasUtxoAt s
+       )
+    => Address
+    -> Value
+    -> Contract w s e UtxoMap
+fundsAtAddressLt addr vl =
+    fundsAtAddressCondition (\presentVal -> presentVal `V.lt` vl) addr
+
+-- | Watch an address for changes, and return the outputs
+--   at that address when the total value at the address
+--   has reached or fallen below the given value.
+fundsAtAddressLeq
+    :: forall w s e.
+       ( AsContractError e
+       , HasAwaitSlot s
+       , HasUtxoAt s
+       )
+    => Address
+    -> Value
+    -> Contract w s e UtxoMap
+fundsAtAddressLeq addr vl =
+    fundsAtAddressCondition (\presentVal -> presentVal `V.leq` vl) addr
 
 -- | The 'AddressChangeResponse' events for all addresses touched by the
 --   transaction. The 'AddressMap' is used to lookup the addresses of outputs
