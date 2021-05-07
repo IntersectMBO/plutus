@@ -10,19 +10,21 @@ import Halogen.HTML (HTML, b_, text)
 formatText :: forall p a. String -> Array (HTML p a)
 formatText "" = []
 
-formatText string | take 2 string == "\\*" =
-  let
-    rest = drop 2 string
-  in
-    [ text "*" ] <> formatText rest
+formatText string
+  | take 2 string == "\\*" =
+    let
+      rest = drop 2 string
+    in
+      [ text "*" ] <> formatText rest
 
-formatText string | take 1 string == "*" =
-  let
-    boldText = takeWhile ((/=) asterisk) (drop 1 string)
+formatText string
+  | take 1 string == "*" =
+    let
+      boldText = takeWhile ((/=) asterisk) (drop 1 string)
 
-    rest = drop ((length boldText) + 2) string
-  in
-    [ b_ [ text boldText ] ] <> formatText rest
+      rest = drop ((length boldText) + 2) string
+    in
+      [ b_ [ text boldText ] ] <> formatText rest
 
 formatText string =
   let
