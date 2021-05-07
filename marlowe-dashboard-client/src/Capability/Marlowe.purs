@@ -113,6 +113,8 @@ instance monadMarloweAppM :: ManageMarlowe AppM where
         wallet = view (_walletInfo <<< _wallet) walletDetails
       contractInstanceId <- ExceptT $ Contract.activateContract (plutusAppPath MarloweApp) wallet
       result <- ExceptT $ Contract.invokeEndpoint contractInstanceId endpoint payload
+      -- FIXME: this plan didn't work - deactivating the contract right away stops the endpoint invocation
+      -- from doing what it needs to do
       void $ ExceptT $ Contract.deactivateContract contractInstanceId
       pure result
   -- "create" a Marlowe contract on the blockchain

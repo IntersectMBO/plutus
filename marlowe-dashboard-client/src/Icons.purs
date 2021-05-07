@@ -26,6 +26,7 @@ data Icon
   | ArrowLeft
   | Close
   | Contacts
+  | Contract
   | Done
   | DoneWithCircle
   | ErrorOutline
@@ -54,6 +55,8 @@ content ArrowLeft = "west"
 content Close = "close"
 
 content Contacts = "people"
+
+content Contract = "history_edu"
 
 content Done = "done"
 
@@ -97,6 +100,8 @@ iconClass ArrowLeft = "arrow-left"
 iconClass Close = "close"
 
 iconClass Contacts = "contacts"
+
+iconClass Contract = "contract"
 
 iconClass Done = "done"
 

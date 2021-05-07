@@ -88,7 +88,6 @@ handleQuery (ReceiveWebSocketMessage msg next) = do
   case msg of
     WS.WebSocketOpen -> do
       assign _webSocketStatus WebSocketOpen
-    {- FIXME: uncomment this when the websocket communication is fixed
       -- potentially renew websocket subscriptions
       mPlayState <- peruse _playState
       for_ mPlayState \playState -> do
@@ -98,7 +97,7 @@ handleQuery (ReceiveWebSocketMessage msg next) = do
           followAppIds :: Array PlutusAppId
           followAppIds = Set.toUnfoldable $ keys $ view _allContracts playState
         subscribeToWallet wallet
-        for followAppIds subscribeToPlutusApp -}
+        for followAppIds subscribeToPlutusApp
     (WS.WebSocketClosed closeEvent) -> do
       -- TODO: Consider whether we should show an error/warning when this happens. It might be more
       -- confusing than helpful, since the websocket is automatically reopened if it closes for any

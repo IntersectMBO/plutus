@@ -34,6 +34,10 @@
   content: "people";
 }
 
+.with-icon-contract::after {
+  content: "history_edu";
+}
+
 .with-icon-help::after {
   content: "help";
 }
