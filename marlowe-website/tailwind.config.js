@@ -44,6 +44,7 @@ module.exports = {
       lg: "25px",
       full: "9999px",
     },
+
     boxShadow: {
       none: "none",
       sm: "0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06)",
@@ -55,6 +56,15 @@ module.exports = {
     extend: {
       spacing: {
         "5pc": "5%",
+      },
+      padding: {
+        /* This value was obtained from a "hack" to make the div occupy the height of
+           its background image
+           https://stackoverflow.com/questions/600743/how-to-get-div-height-to-auto-adjust-to-background-size
+           */
+        /* (img-height / img-width * container-width) */
+        /* (927 / 1440 * 100) */
+        "main-bg": "64.37%",
       },
       backgroundImage: (theme) => ({
         main: "url('/static/img/woman-using-cellphone.jpg')",
@@ -84,8 +94,8 @@ module.exports = {
     gradientColorStops: true,
     backgroundOpacity: false,
     backgroundPosition: false,
-    backgroundRepeat: false,
-    backgroundSize: false,
+    backgroundRepeat: true,
+    backgroundSize: true,
     borderCollapse: false,
     borderColor: true,
     borderOpacity: false,
