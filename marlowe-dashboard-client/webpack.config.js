@@ -112,7 +112,7 @@ module.exports = {
             googleAnalyticsId: isDevelopment ? "UA-XXXXXXXXX-X" : "UA-119953429-16",
         }),
         new MiniCssExtractPlugin({
-            filename: "[name].[hash].css",
+            filename: "[name].[contenthash].css",
         }),
     ],
 };
