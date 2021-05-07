@@ -1,7 +1,7 @@
 module Template.Format (formatText) where
 
 import Prelude
-import Data.String (codePointFromChar, drop, length, take, takeWhile)
+import Data.String (CodePoint, codePointFromChar, drop, length, take, takeWhile)
 import Halogen.HTML (HTML, b_, text)
 
 -- We want to include some very basic formatting in the metadata. A full implementation of
@@ -10,20 +10,30 @@ import Halogen.HTML (HTML, b_, text)
 formatText :: forall p a. String -> Array (HTML p a)
 formatText "" = []
 
+formatText string | take 2 string == "\\*" =
+  let
+    rest = drop 2 string
+  in
+    [ text "*" ] <> formatText rest
+
+formatText string | take 1 string == "*" =
+  let
+    boldText = takeWhile ((/=) asterisk) (drop 1 string)
+
+    rest = drop ((length boldText) + 2) string
+  in
+    [ b_ [ text boldText ] ] <> formatText rest
+
 formatText string =
-  if take 1 string == "*" then
-    let
-      boldText = takeWhile ((/=) asterisk) (drop 1 string)
+  let
+    plainText = takeWhile (\c -> c /= asterisk && c /= backslash) string
 
-      rest = drop ((length boldText) + 2) string
-    in
-      [ b_ [ text boldText ] ] <> formatText rest
-  else
-    let
-      plainText = takeWhile ((/=) asterisk) string
+    rest = drop (length plainText) string
+  in
+    [ text plainText ] <> formatText rest
 
-      rest = drop (length plainText) string
-    in
-      [ text plainText ] <> formatText rest
-  where
-  asterisk = codePointFromChar '*'
+asterisk :: CodePoint
+asterisk = codePointFromChar '*'
+
+backslash :: CodePoint
+backslash = codePointFromChar '\\'

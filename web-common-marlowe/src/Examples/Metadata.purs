@@ -80,7 +80,7 @@ zeroCouponBond :: MetaData
 zeroCouponBond =
   { contractType: ZeroCouponBond
   , contractName: "Zero Coupon Bond"
-  , contractDescription: "A simple loan. The investor pays the issuer the discounted price at the start, and is repaid the full (notional) price at the end."
+  , contractDescription: "A simple loan. The *Investor* pays the *Issuer* the *Discounted price* at the start, and is repaid the full *Notional price* at the end."
   , choiceDescriptions: empty
   , roleDescriptions:
       ( fromFoldable
@@ -97,7 +97,7 @@ zeroCouponBond =
   , valueParameterDescriptions:
       ( fromFoldable
           [ "Discounted price" /\ "The price in Lovelace of the Zero Coupon Bond at the start date."
-          , "Notional" /\ "The full price in Lovelace of the Zero Coupon Bond."
+          , "Notional price" /\ "The full price in Lovelace of the Zero Coupon Bond."
           ]
       )
   }
