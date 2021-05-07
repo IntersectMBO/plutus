@@ -70,7 +70,7 @@ costModelsR = do
     modelFun("cost-model/data/benching.csv")
   |]
   -- TODO use btraverse instead
-  bsequence $ bmap (\name -> let n = getConst name in Compose $ fmap Const $ [r| list_hs[[n_hs]] |]) costModelNames
+  bsequence $ bmap (\name -> let n = getConst name in Compose $ fmap Const $ [r| list_hs[[n_hs]] |]) builtinCostModelNames
 
 -- Creates the cost model from the csv benchmarking files
 createBuiltinCostModel :: IO BuiltinCostModel
