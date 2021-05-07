@@ -95,18 +95,18 @@ tests = testGroup "crowdfunding"
         .&&. walletFundsChange w2 mempty
         .&&. walletFundsChange w3 mempty)
         $ do
-            startCampaign
+            ContractHandle{chInstanceId} <- startCampaign
             makeContribution w2 (Ada.lovelaceValueOf 50)
             void $ makeContribution w3 (Ada.lovelaceValueOf 50)
+            Trace.freezeContractInstance chInstanceId
             void $ Trace.waitUntilSlot 31
 
     , goldenPir "test/Spec/crowdfunding.pir" $$(PlutusTx.compile [|| mkValidator ||])
     ,   let
             deadline = 10
-            target = Ada.lovelaceValueOf 1000
             collectionDeadline = 15
             owner = w1
-            cmp = mkCampaign deadline target collectionDeadline owner
+            cmp = mkCampaign deadline collectionDeadline owner
         in HUnit.testCaseSteps "script size is reasonable" $ \step -> reasonable' step (contributionScript cmp) 30000
 
     , goldenVsString

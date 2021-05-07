@@ -201,7 +201,7 @@ marloweFollowContract = do
                     _  -> pure InProgress
 
     findInput inst tx = do
-        let txIns = Set.toList (Ledger.txInputs tx)
+        let txIns = Set.toList (Ledger.consumableInputs tx)
         let inputs = txIns >>= (maybeToList . inScripts)
         let script = Scripts.validatorScript inst
         -- find previous Marlowe contract
