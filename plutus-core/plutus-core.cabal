@@ -119,7 +119,6 @@ library
         UntypedPlutusCore
         UntypedPlutusCore.DeBruijn
         UntypedPlutusCore.Evaluation.HOAS
-        UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts
         UntypedPlutusCore.Evaluation.Machine.Cek
         UntypedPlutusCore.Parser
         UntypedPlutusCore.Rename
@@ -216,6 +215,7 @@ library
         UntypedPlutusCore.Core.Instance.Recursive
         UntypedPlutusCore.Core.Plated
         UntypedPlutusCore.Core.Type
+        UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts
         UntypedPlutusCore.Evaluation.Machine.Cek.ExBudgetMode
         UntypedPlutusCore.Evaluation.Machine.Cek.Internal
         UntypedPlutusCore.Mark
