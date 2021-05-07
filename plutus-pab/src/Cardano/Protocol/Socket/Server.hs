@@ -232,13 +232,11 @@ nextState localChannel@(LocalChannel channel') = do
     tip' <- getTip chainState
     (liftIO . atomically $ tryReadTChan channel') >>= \case
         Nothing -> do
-            -- liftIO $ putStrLn $ "Socket.Server: nextState Nothing" -- happens too often
             Right . pure <$> do
                 nextBlock <- liftIO . atomically $ readTChan channel'
                 liftIO $ modifyMVar_ chainState (pure . (tip ?~ nextBlock))
                 sendRollForward localChannel tip' nextBlock
         Just nextBlock -> do
-            -- liftIO $ putStrLn $ "Socket.Server: nextState Just" -- happens too often
             liftIO $ modifyMVar_ chainState (pure . (tip ?~ nextBlock))
             Left <$> sendRollForward localChannel tip' nextBlock
 
@@ -252,7 +250,6 @@ findIntersect ::
  => [Point Block]
  -> m (ServerStIntersect Block (Point Block) Tip m ())
 findIntersect clientPoints = do
-    liftIO $ putStrLn "findIntersect"
     mvState <- ask
     chainState <- liftIO $ readMVar mvState
     serverPoints <- getChainPoints (view channel chainState) chainState
@@ -308,7 +305,6 @@ cloneChainFrom offset = LocalChannel <$> go
   where
     go :: m (TChan Block)
     go = do
-        liftIO $ putStrLn $ "cloneChainFrom: " <> show offset
         globalChannel <- ask >>= getChannel
         liftIO $ atomically $ do
             localChannel <- cloneTChan globalChannel
