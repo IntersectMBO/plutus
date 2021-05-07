@@ -124,10 +124,10 @@ nonZeroArg _ _ 0 = EvaluationFailure
 nonZeroArg f x y = EvaluationSuccess $ f x y
 
 defBuiltinsRuntime :: HasConstantIn DefaultUni term => BuiltinsRuntime DefaultFun term
-defBuiltinsRuntime = toBuiltinsRuntime defaultCostModel
+defBuiltinsRuntime = toBuiltinsRuntime defaultBuiltinCostModel
 
 instance (GShow uni, GEq uni, DefaultUni <: uni) => ToBuiltinMeaning uni DefaultFun where
-    type CostingPart uni DefaultFun = CostModel
+    type CostingPart uni DefaultFun = BuiltinCostModel
     toBuiltinMeaning AddInteger =
         makeBuiltinMeaning
             ((+) @Integer)

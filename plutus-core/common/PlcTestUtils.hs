@@ -26,19 +26,18 @@ import           PlutusPrelude
 
 import           Common
 
-import qualified PlutusCore                                        as TPLC
+import qualified PlutusCore                               as TPLC
 import           PlutusCore.DeBruijn
-import qualified PlutusCore.Evaluation.Machine.Ck                  as TPLC
+import qualified PlutusCore.Evaluation.Machine.Ck         as TPLC
 import           PlutusCore.Pretty
 import           PlutusCore.Universe
 
-import           PlutusCore.Evaluation.Machine.ExBudgetingDefaults (defaultCekCosts)
-import qualified UntypedPlutusCore                                 as UPLC
-import qualified UntypedPlutusCore.Evaluation.Machine.Cek          as UPLC
+import qualified UntypedPlutusCore                        as UPLC
+import qualified UntypedPlutusCore.Evaluation.Machine.Cek as UPLC
 
 import           Control.Exception
 import           Control.Monad.Except
-import qualified Data.Text.Prettyprint.Doc                         as PP
+import qualified Data.Text.Prettyprint.Doc                as PP
 import           System.IO.Unsafe
 
 -- | Class for ad-hoc overloading of things which can be turned into a PLC program. Any errors
@@ -89,7 +88,7 @@ runUPlc
 runUPlc values = do
     ps <- traverse toUPlc values
     let (UPLC.Program _ _ t) = foldl1 UPLC.applyProgram ps
-    liftEither $ first toException $ TPLC.extractEvaluationResult $ UPLC.evaluateCekNoEmit defaultCekCosts TPLC.defBuiltinsRuntime t
+    liftEither $ first toException $ TPLC.extractEvaluationResult $ UPLC.evaluateCekNoEmit UPLC.defaultCekMachineCosts TPLC.defBuiltinsRuntime t
 
 ppCatch :: PrettyPlc a => ExceptT SomeException IO a -> IO (Doc ann)
 ppCatch value = either (PP.pretty . show) prettyPlcClassicDebug <$> runExceptT value

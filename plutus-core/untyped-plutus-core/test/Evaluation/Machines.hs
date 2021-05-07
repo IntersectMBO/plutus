@@ -10,12 +10,11 @@ module Evaluation.Machines
 
 import           UntypedPlutusCore
 import           UntypedPlutusCore.Evaluation.HOAS
-import           UntypedPlutusCore.Evaluation.Machine.Cek          as Cek
+import           UntypedPlutusCore.Evaluation.Machine.Cek as Cek
 
-import qualified PlutusCore                                        as Plc
+import qualified PlutusCore                               as Plc
 import           PlutusCore.Builtins
 import           PlutusCore.Constant
-import           PlutusCore.Evaluation.Machine.ExBudgetingDefaults (defaultCekCosts)
 import           PlutusCore.Evaluation.Machine.ExMemory
 import           PlutusCore.Evaluation.Machine.Exception
 import           PlutusCore.FsTree
@@ -25,18 +24,18 @@ import           PlutusCore.Pretty
 import           PlutusCore.Universe
 
 import           PlutusCore.Examples.Builtins
-import           PlutusCore.Examples.Everything                    (examples)
-import qualified PlutusCore.StdLib.Data.Nat                        as Plc
-import           PlutusCore.StdLib.Everything                      (stdLib)
+import           PlutusCore.Examples.Everything           (examples)
+import qualified PlutusCore.StdLib.Data.Nat               as Plc
+import           PlutusCore.StdLib.Everything             (stdLib)
 import           PlutusCore.StdLib.Meta
-import           PlutusCore.StdLib.Meta.Data.Function              (etaExpand)
+import           PlutusCore.StdLib.Meta.Data.Function     (etaExpand)
 
 import           Common
 import           Data.String
 import           Data.Text.Prettyprint.Doc
 import           Data.Text.Prettyprint.Doc.Render.Text
 import           GHC.Ix
-import           Hedgehog                                          hiding (Size, Var, eval)
+import           Hedgehog                                 hiding (Size, Var, eval)
 import           Test.Tasty
 import           Test.Tasty.Hedgehog
 
@@ -58,7 +57,7 @@ testMachine machine eval =
 test_machines :: TestTree
 test_machines =
     testGroup "machines"
-        [ testMachine "CEK"  $ evaluateCekNoEmit defaultCekCosts defBuiltinsRuntime
+        [ testMachine "CEK"  $ evaluateCekNoEmit defaultCekMachineCosts defBuiltinsRuntime
         , testMachine "HOAS" $ evaluateHoas defBuiltinsRuntime
         ]
 
@@ -83,7 +82,7 @@ testBudget runtime name term =
                        nestedGoldenVsText
     name
     (renderStrict $ layoutPretty defaultLayoutOptions {layoutPageWidth = AvailablePerLine maxBound 1.0} $
-        prettyPlcReadableDef $ runCekNoEmit defaultCekCosts runtime Cek.tallying term)
+        prettyPlcReadableDef $ runCekNoEmit defaultCekMachineCosts runtime Cek.tallying term)
 
 bunchOfFibs :: PlcFolderContents DefaultUni DefaultFun
 bunchOfFibs = FolderContents [treeFolderContents "Fib" $ map fibFile [1..3]] where
@@ -147,7 +146,7 @@ testTallying name term =
                        nestedGoldenVsText
     name
     (renderStrict $ layoutPretty defaultLayoutOptions {layoutPageWidth = AvailablePerLine maxBound 1.0} $
-        prettyPlcReadableDef $ runCekNoEmit defaultCekCosts defBuiltinsRuntime Cek.tallying term)
+        prettyPlcReadableDef $ runCekNoEmit defaultCekMachineCosts defBuiltinsRuntime Cek.tallying term)
 
 test_tallying :: TestTree
 test_tallying =

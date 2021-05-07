@@ -18,22 +18,21 @@ import           PlutusCore.Builtins
 import           PlutusCore.Name
 import           PlutusCore.Universe
 
-import           PlutusCore.Evaluation.Machine.ExBudgetingDefaults (defaultCekCosts)
 import           UntypedPlutusCore
-import           UntypedPlutusCore.Evaluation.Machine.Cek          hiding (evaluateCek, unsafeEvaluateCek)
-import qualified UntypedPlutusCore.Evaluation.Machine.Cek          as Cek
+import           UntypedPlutusCore.Evaluation.Machine.Cek hiding (evaluateCek, unsafeEvaluateCek)
+import qualified UntypedPlutusCore.Evaluation.Machine.Cek as Cek
 
 -- | Evaluate a program in the CEK machine with the usual string dynamic builtins.
 evaluateCek
     :: (uni ~ DefaultUni, fun ~ DefaultFun)
     => Program Name uni fun () -> Either (CekEvaluationException uni fun) (Term Name uni fun ())
-evaluateCek (Program _ _ t) = Cek.evaluateCekNoEmit defaultCekCosts defBuiltinsRuntime t
+evaluateCek (Program _ _ t) = Cek.evaluateCekNoEmit Cek.defaultCekMachineCosts defBuiltinsRuntime t
 
 -- | Evaluate a program in the CEK machine with the usual string dynamic builtins. May throw.
 unsafeEvaluateCek
     :: (uni ~ DefaultUni, fun ~ DefaultFun)
     => Program Name uni fun () -> EvaluationResult (Term Name uni fun ())
-unsafeEvaluateCek (Program _ _ t) = Cek.unsafeEvaluateCekNoEmit defaultCekCosts defBuiltinsRuntime t
+unsafeEvaluateCek (Program _ _ t) = Cek.unsafeEvaluateCekNoEmit Cek.defaultCekMachineCosts defBuiltinsRuntime t
 
 -- | Evaluate a program in the CEK machine with the usual string dynamic builtins and tracing, additionally
 -- returning the trace output.
@@ -42,5 +41,5 @@ evaluateCekTrace
     => Program Name uni fun ()
     -> ([String], CekExTally fun, Either (CekEvaluationException uni fun) (Term Name uni fun ()))
 evaluateCekTrace (Program _ _ t) =
-    case runCek defaultCekCosts defBuiltinsRuntime Cek.tallying True t of
+    case runCek Cek.defaultCekMachineCosts defBuiltinsRuntime Cek.tallying True t of
         (errOrRes, TallyingSt st _, logs) -> (logs, st, errOrRes)

@@ -6,7 +6,7 @@ module Evaluation.Golden
     ( test_golden
     ) where
 
-import           Prelude                                           hiding (even)
+import           Prelude                                  hiding (even)
 
 import           PlutusCore.StdLib.Data.Bool
 import           PlutusCore.StdLib.Data.Function
@@ -18,17 +18,16 @@ import           PlutusCore.StdLib.Type
 
 import           PlutusCore
 import           PlutusCore.Evaluation.Machine.Ck
-import           PlutusCore.Evaluation.Machine.ExBudgetingDefaults (defaultCekCosts)
 import           PlutusCore.Generators.Interesting
 import           PlutusCore.MkPlc
 import           PlutusCore.Pretty
-import qualified UntypedPlutusCore                                 as UPLC
+import qualified UntypedPlutusCore                        as UPLC
 import           UntypedPlutusCore.Evaluation.Machine.Cek
 
 import           Data.Bifunctor
-import qualified Data.ByteString                                   as BS
-import qualified Data.ByteString.Lazy                              as BSL
-import           Data.Text.Encoding                                (encodeUtf8)
+import qualified Data.ByteString                          as BS
+import qualified Data.ByteString.Lazy                     as BSL
+import           Data.Text.Encoding                       (encodeUtf8)
 import           Test.Tasty
 import           Test.Tasty.Golden
 
@@ -323,7 +322,7 @@ goldenVsEvaluatedCK name
 goldenVsEvaluatedCEK :: String -> Term TyName Name DefaultUni DefaultFun () -> TestTree
 goldenVsEvaluatedCEK name
     = goldenVsPretty ".plc.golden" name
-    . evaluateCekNoEmit defaultCekCosts defBuiltinsRuntime
+    . evaluateCekNoEmit defaultCekMachineCosts defBuiltinsRuntime
     . UPLC.erase
 
 runTypecheck

@@ -1,41 +1,41 @@
 ( (Right (1))
-, ({ tally: ({ BConst causes ({ cpu: 720000
+, ({ tally: ({ BConst causes ({ cpu: 630000
 | mem: 90
 })
-| BVar causes ({ cpu: 2880000
+| BVar causes ({ cpu: 2520000
 | mem: 360
 })
-| BLamAbs causes ({ cpu: 2400000
+| BLamAbs causes ({ cpu: 2100000
 | mem: 300
 })
-| BApply causes ({ cpu: 4160000
+| BApply causes ({ cpu: 3640000
 | mem: 520
 })
-| BDelay causes ({ cpu: 720000
+| BDelay causes ({ cpu: 630000
 | mem: 90
 })
-| BForce causes ({ cpu: 960000
+| BForce causes ({ cpu: 840000
 | mem: 120
 })
-| BBuiltin causes ({ cpu: 720000
+| BBuiltin causes ({ cpu: 630000
 | mem: 90
 })
-| BBuiltinApp AddInteger causes ({ cpu: 251359
+| BBuiltinApp AddInteger causes ({ cpu: 830210
 | mem: 2000000
 })
-| BBuiltinApp SubtractInteger causes ({ cpu: 496262
+| BBuiltinApp SubtractInteger causes ({ cpu: 1794358
 | mem: 4000000
 })
-| BBuiltinApp LessThanEqInteger causes ({ cpu: 717531
+| BBuiltinApp LessThanEqInteger causes ({ cpu: 2449911
 | mem: 3000000
 })
 | BBuiltinApp IfThenElse causes ({ cpu: 0
 | mem: 0
 })
-| BStartup causes ({ cpu: 7000000
+| BStartup causes ({ cpu: 50000000
 | mem: 0
 })})
-| budget: ({ cpu: 21025152
+| budget: ({ cpu: 66064479
 | mem: 9001570
 })
 }) )

@@ -27,8 +27,6 @@ module UntypedPlutusCore.Evaluation.Machine.Cek.Internal
     , CekBudgetSpender(..)
     , ExBudgetInfo(..)
     , ExBudgetMode(..)
-    , CekCosts
-    , unitCekCosts
     , CekM
     , liftCekST
     , ErrorWithCause(..)
@@ -54,6 +52,7 @@ import           PlutusCore.Evaluation.Result
 import           PlutusCore.Name
 import           PlutusCore.Pretty
 import           PlutusCore.Universe
+import           UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts (CekMachineCosts (..))
 
 import           Control.Lens.Review
 import           Control.Monad.Catch
@@ -62,13 +61,12 @@ import           Control.Monad.Reader
 import           Control.Monad.ST
 import           Control.Monad.ST.Unsafe
 import           Data.Array
-import           Data.DList                              (DList)
-import qualified Data.DList                              as DList
-import           Data.Hashable                           (Hashable)
+import           Data.DList                                               (DList)
+import qualified Data.DList                                               as DList
+import           Data.Hashable                                            (Hashable)
 import           Data.Proxy
 import           Data.STRef
 import           Data.Text.Prettyprint.Doc
-import           Deriving.Aeson
 
 {- Note [Compilation peculiarities]
 READ THIS BEFORE TOUCHING ANYTHING IN THIS FILE
@@ -144,37 +142,6 @@ instance Show fun => Pretty (ExBudgetCategory fun) where
 
 instance ExBudgetBuiltin fun (ExBudgetCategory fun) where
     exBudgetBuiltin = BBuiltinApp
-
--- | Costs for evaluating AST nodes.  Times should be specified in picoseconds, memory sizes in bytes.
-data CekCosts =
-    CekCosts {
-      cekStartupCost :: ExBudget  -- General overhead
-    , cekVarCost     :: ExBudget
-    , cekConstCost   :: ExBudget
-    , cekLamCost     :: ExBudget
-    , cekDelayCost   :: ExBudget
-    , cekForceCost   :: ExBudget
-    , cekApplyCost   :: ExBudget
-    , cekBuiltinCost :: ExBudget
-    -- ^ Just the cost of evaluating a Builtin node, not the builtin itself.
-    -- There's no entry for Error since we'll be exiting anyway; also, what would
-    -- happen if calling 'Error' caused the budget to be exceeded?
-    }
-    deriving (Show, Generic, Lift)
-    deriving (FromJSON, ToJSON) via CustomJSON '[FieldLabelModifier (CamelToSnake)] CekCosts
-
--- Charge a unit CPU cost for AST nodes: this allows us to count the number of
--- times each node type is evaluated.  For actual prediction/costing we use
--- a different version of CekCosts: see ExBudgetingDefaults.defaultCekCosts.
-unitCekCosts :: CekCosts
-unitCekCosts =
-    CekCosts zeroCost unitCost
-             unitCost unitCost
-             unitCost unitCost
-             unitCost unitCost
-        where
-          zeroCost = ExBudget 0 0
-          unitCost = ExBudget 1 0
 
 type TermWithMem uni fun = Term Name uni fun ExMemory
 
@@ -479,7 +446,7 @@ lookupVarName varName varEnv = do
 enterComputeCek
     :: forall cost uni fun s
     . (Ix fun, PrettyUni uni fun)
-    => CekCosts
+    => CekMachineCosts
     -> Context uni fun
     -> CekValEnv uni fun
     -> TermWithMem uni fun
@@ -646,7 +613,7 @@ enterComputeCek costs = computeCek where
 -- | Evaluate a term using the CEK machine and keep track of costing, logging is optional.
 runCek
     :: ( uni `Everywhere` ExMemoryUsage, Ix fun, PrettyUni uni fun)
-    => CekCosts
+    => CekMachineCosts
     -> BuiltinsRuntime fun (CekValue uni fun)
     -> ExBudgetMode cost uni fun
     -> Bool

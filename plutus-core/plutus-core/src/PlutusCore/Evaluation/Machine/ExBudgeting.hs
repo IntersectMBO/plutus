@@ -11,8 +11,8 @@
 {-# LANGUAGE StrictData           #-}
 
 module PlutusCore.Evaluation.Machine.ExBudgeting
-    ( CostModel
-    , CostModelBase(..)
+    ( BuiltinCostModel
+    , BuiltinCostModelBase(..)
     , CostingFun(..)
     , ModelAddedSizes(..)
     , ModelSubtractedSizes(..)
@@ -31,8 +31,8 @@ module PlutusCore.Evaluation.Machine.ExBudgeting
     , toCostUnit
     , fromCostUnit
     , Hashable
-    , CostModelParams
-    , extractModelParams
+    , BuiltinCostModelParams
+    , extractBuiltinCostModelParams
     , applyModelParams
     )
 where
@@ -55,7 +55,7 @@ import qualified Data.Text                              as Text
 import           Deriving.Aeson
 import           Language.Haskell.TH.Syntax             hiding (Name, newName)
 
-type CostModel = CostModelBase CostingFun
+type BuiltinCostModel = BuiltinCostModelBase CostingFun
 
 
 {- | Convert a cost prediction to an integer.  The coefficients in the cost models
@@ -98,8 +98,8 @@ fromCostUnit x = x `div` (floor costMultiplier)
 -- | The main model which contains all data required to predict the cost of
 -- builtin functions. See Note [Creation of the Cost Model] for how this is
 -- generated. Calibrated for the CEK machine.
-data CostModelBase f =
-    CostModel
+data BuiltinCostModelBase f =
+    BuiltinCostModel
     { paramAddInteger           :: f ModelTwoArguments
     , paramSubtractInteger      :: f ModelTwoArguments
     , paramMultiplyInteger      :: f ModelTwoArguments
@@ -125,15 +125,17 @@ data CostModelBase f =
     }
     deriving (Generic, FunctorB, TraversableB, ConstraintsB)
 
-deriving via CustomJSON '[FieldLabelModifier (StripPrefix "param", CamelToSnake)] (CostModelBase CostingFun) instance ToJSON (CostModelBase CostingFun)
-deriving via CustomJSON '[FieldLabelModifier (StripPrefix "param", CamelToSnake)] (CostModelBase CostingFun) instance FromJSON (CostModelBase CostingFun)
+deriving via CustomJSON '[FieldLabelModifier (StripPrefix "param", CamelToSnake)]
+             (BuiltinCostModelBase CostingFun) instance ToJSON (BuiltinCostModelBase CostingFun)
+deriving via CustomJSON '[FieldLabelModifier (StripPrefix "param", CamelToSnake)]
+             (BuiltinCostModelBase CostingFun) instance FromJSON (BuiltinCostModelBase CostingFun)
 
 {- Note [Cost model parameters]
 We want to expose to the ledger some notion of the "cost model parameters". Intuitively, these should be all the numbers that appear in the cost model.
 
 However, there are quite a few quirks to deal with.
 
-1. CostModel is stuctured
+1. BuiltinCostModel is stuctured
 
 That is, it's a complex data structure and the numbers in question are often nested inside it.
 To deal with this quickly, we take the ugly approach of operating on the JSON representation of the model.
@@ -148,7 +150,7 @@ the integral floor, at some loss of precision.
 
 Once we use integers internally this will be simpler.
 
-3. CostModel includes the *type* of the model, which isn't a parameter
+3. BuiltinCostModel includes the *type* of the model, which isn't a parameter
 
 We can just strip the out, but in particular this means that the parameters are not enough to *construct* a model.
 So we punt and say that you can *update* a model by giving the parameters. So you can take the default model and then
@@ -162,12 +164,12 @@ Ugly JSON stuff and failure possibilities where there probably shouldn't be any.
 -}
 
 -- See Note [Cost model parameters]
-type CostModelParams = Map.Map Text.Text Integer
+type BuiltinCostModelParams = Map.Map Text.Text Integer
 
 -- See Note [Cost model parameters]
 -- | Extract the model parameters from a model.
-extractModelParams :: CostModel -> Maybe CostModelParams
-extractModelParams cm = case toJSON cm of
+extractBuiltinCostModelParams :: BuiltinCostModel -> Maybe BuiltinCostModelParams
+extractBuiltinCostModelParams cm = case toJSON cm of
     Object o ->
         let
             flattened = flattenObject "-" o
@@ -180,7 +182,7 @@ extractModelParams cm = case toJSON cm of
 
 -- See Note [Cost model parameters]
 -- | Update a model by overwriting the parameters with the given ones.
-applyModelParams :: CostModel -> CostModelParams -> Maybe CostModel
+applyModelParams :: BuiltinCostModel -> BuiltinCostModelParams -> Maybe BuiltinCostModel
 applyModelParams cm params = case toJSON cm of
     Object o ->
         let
@@ -195,14 +197,15 @@ applyModelParams cm params = case toJSON cm of
             Error _   -> Nothing
     _ -> Nothing
 
-type AllArgumentModels (constraint :: Kind.Type -> Kind.Constraint) f = (constraint (f ModelOneArgument), constraint (f ModelTwoArguments), constraint (f ModelThreeArguments))
+type AllArgumentModels (constraint :: Kind.Type -> Kind.Constraint) f =
+    (constraint (f ModelOneArgument), constraint (f ModelTwoArguments), constraint (f ModelThreeArguments))
 
 -- HLS doesn't like the AllBF from Barbies.
-deriving instance AllArgumentModels NFData f => NFData (CostModelBase f)
-deriving instance AllArgumentModels Default f => Default (CostModelBase f)
-deriving instance AllArgumentModels Lift f => Lift (CostModelBase f)
-deriving instance AllArgumentModels Show f => Show (CostModelBase f)
-deriving instance AllArgumentModels Eq f => Eq (CostModelBase f)
+deriving instance AllArgumentModels NFData  f => NFData  (BuiltinCostModelBase f)
+deriving instance AllArgumentModels Default f => Default (BuiltinCostModelBase f)
+deriving instance AllArgumentModels Lift    f => Lift    (BuiltinCostModelBase f)
+deriving instance AllArgumentModels Show    f => Show    (BuiltinCostModelBase f)
+deriving instance AllArgumentModels Eq      f => Eq      (BuiltinCostModelBase f)
 
 -- TODO there's probably a nice way to abstract over the number of arguments here. Feel free to implement it.
 

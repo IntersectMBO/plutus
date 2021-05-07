@@ -15,7 +15,7 @@ module Evaluation.ApplyBuiltinName
 import           PlutusCore
 import           PlutusCore.Constant
 import           PlutusCore.Evaluation.Machine.ExBudget
-import           PlutusCore.Evaluation.Machine.ExBudgetingDefaults (defaultCostModel)
+import           PlutusCore.Evaluation.Machine.ExBudgetingDefaults (defaultBuiltinCostModel)
 import           PlutusCore.Evaluation.Machine.Exception
 import           PlutusCore.Generators
 
@@ -45,7 +45,7 @@ test_applyBuiltinFunction :: DefaultFun -> TestTree
 test_applyBuiltinFunction fun =
     testProperty (show fun) . property $ case toBuiltinMeaning fun of
         BuiltinMeaning sch f toExF -> do
-            let exF = toExF defaultCostModel
+            let exF = toExF defaultBuiltinCostModel
                 denot = Denotation fun (Builtin ()) f sch
                 getIterAppValue = runPlcT genTypedBuiltinDef $ genIterAppValue denot
             IterAppValue _ (IterApp _ args) res <- forAllNoShow getIterAppValue
