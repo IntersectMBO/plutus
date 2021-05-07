@@ -113,7 +113,7 @@ module.exports = {
             template: "./static/index.html",
             favicon: "static/favicon.ico",
             title: "Marlowe Run",
-            productName: "marlowe-run",
+            productName: "marlowe-dashboard",
             googleAnalyticsId: isDevelopment ? "UA-XXXXXXXXX-X" : "UA-119953429-16",
         }),
         new MiniCssExtractPlugin({
