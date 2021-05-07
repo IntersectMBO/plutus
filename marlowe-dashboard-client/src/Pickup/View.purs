@@ -8,10 +8,10 @@ import Data.Lens (view)
 import Data.Maybe (isJust, isNothing)
 import Data.Newtype (unwrap)
 import Data.UUID (toString) as UUID
-import Halogen.HTML (HTML, a, button, div, div_, footer, header_, hr, img, input, label, main, p, span_, text)
+import Halogen.HTML (HTML, a, button, div, div_, footer, header, hr, img, input, label, main, p, span_, text)
 import Halogen.HTML.Events.Extra (onClick_, onValueInput_)
 import Halogen.HTML.Properties (InputType(..), disabled, for, href, id_, list, placeholder, readOnly, src, type_, value)
-import Logo (marloweRunLogo)
+import Images (arrowBack, marloweRunLogo)
 import Material.Icons (Icon(..), icon, icon_)
 import Pickup.Lenses (_card, _pickingUp, _pickupWalletString, _walletDetails, _walletLibrary)
 import Pickup.Types (Action(..), Card(..), State)
@@ -23,8 +23,20 @@ import WalletData.View (nicknamesDataList)
 renderPickupState :: forall p. State -> HTML p Action
 renderPickupState state =
   div
-    [ classNames [ "grid", "h-full" ] ]
-    [ main
+    [ classNames [ "grid", "h-full", "relative", "overflow-x-hidden" ] ]
+    [ div
+        [ classNames
+            $ [ "absolute", "top-0", "-left-32", "w-160", "h-32", "bg-link-highlight", "bg-cover", "opacity-10", "transform", "rotate-180" ]
+            <> [ "md:-left-64", "md:w-256", "md:h-48" ]
+        ]
+        []
+    , div
+        [ classNames
+            $ [ "absolute", "bottom-0", "-right-64", "w-160", "h-32", "bg-link-highlight", "bg-cover", "opacity-10" ]
+            <> [ "md:w-256", "md:h-56" ]
+        ]
+        []
+    , main
         [ classNames [ "relative" ] ]
         -- In the Play view, there are potentially many cards all inside a containing div,
         -- and the last one has a semi-transparent overlay (using class "last:bg-overlay").
@@ -222,16 +234,40 @@ localWalletMissingCard =
   ]
 
 ------------------------------------------------------------
-renderPickupScreen :: forall p. Warn (Text "We need to add the Marlowe links.") => State -> HTML p Action
+renderPickupScreen :: forall p. Warn (Text "We need to add the documentation link.") => State -> HTML p Action
 renderPickupScreen state =
   div
     [ classNames [ "absolute", "top-0", "bottom-0", "left-0", "right-0", "overflow-auto", "z-0", "flex", "flex-col", "justify-between" ] ]
-    [ header_ []
+    [ header
+        [ classNames [ "p-2" ] ]
+        [ a
+            [ classNames [ "flex", "p-2", "font-bold" ]
+            , href "https://marlowe-finance.io"
+            ]
+            [ img
+                [ classNames [ "mr-2" ]
+                , src arrowBack
+                ]
+            , text "marlowe-finance.io"
+            ]
+        , div
+            [ classNames [ "hidden", "md:block", "absolute", "top-20", "right-0", "p-8", "pt-6", "bg-white", "text-gray", "text-4xl", "font-semibold", "leading-none", "rounded-l-lg", "shadow-lg" ] ]
+            [ text "ES" ]
+        ]
     , pickupWalletScreen state
     , footer
-        [ classNames [ "flex", "justify-between", "p-6", "lg:py-8", "md:px-5pc" ] ]
-        [ link "marlowe-finance.io" "https://www.marlowe-finance.io/"
-        , link "Docs" ""
+        -- we give the footer a fixed height and the div inside it absolute positioning, because otherwise
+        -- the div makes the `pickupWalletScreen` element above it too small
+        [ classNames [ "h-22", "flex", "justify-between" ] ]
+        [ div
+            [ classNames [ "absolute", "bottom-0", "left-0", "bg-white", "p-8", "rounded-tr-lg", "shadow-lg" ] ]
+            [ icon ArrowRight [ "hidden", "md:block", "text-medium-icon", "leading-none", "text-gray", "text-center", "mb-6" ]
+            , a
+                [ classNames [ "px-8", "py-4", "font-bold", "hover:bg-link-highlight", "bg-no-repeat", "bg-center" ]
+                , href ""
+                ]
+                [ text "Docs" ]
+            ]
         ]
     ]
 
@@ -271,11 +307,3 @@ pickupWalletScreen state =
           ]
       , nicknamesDataList walletLibrary
       ]
-
-link :: forall p a. String -> String -> HTML p a
-link label url =
-  a
-    [ classNames [ "flex", "items-center", "font-bold" ]
-    , href url
-    ]
-    [ text label ]
