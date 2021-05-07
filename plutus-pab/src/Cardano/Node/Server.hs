@@ -9,27 +9,21 @@ module Cardano.Node.Server
     ) where
 
 import           Cardano.BM.Data.Trace            (Trace)
-import           Cardano.Chain                    (channel, currentSlot)
 import           Cardano.Node.API                 (API)
 import           Cardano.Node.Mock
 import           Cardano.Node.Types               hiding (currentSlot)
 import qualified Cardano.Protocol.Socket.Client   as Client
 import qualified Cardano.Protocol.Socket.Server   as Server
-import           Control.Concurrent               (MVar, forkIO, modifyMVar_, newMVar, readMVar)
+import           Control.Concurrent               (MVar, forkIO, newMVar)
 import           Control.Concurrent.Availability  (Availability, available)
-import           Control.Concurrent.STM           (atomically)
-import           Control.Concurrent.STM.TChan     (writeTChan)
-import           Control.Lens                     (set, view)
 import           Control.Monad                    (void)
 import           Control.Monad.Freer.Delay        (delayThread, handleDelayEffect)
 import           Control.Monad.Freer.Extras.Log   (logInfo)
 import           Control.Monad.IO.Class           (liftIO)
 import           Data.Function                    ((&))
-import           Data.Functor                     ((<&>))
 import qualified Data.Map.Strict                  as Map
 import           Data.Proxy                       (Proxy (Proxy))
 import           Data.Time.Units                  (Second)
-import           Ledger                           (Block, Slot (..))
 import qualified Ledger.Ada                       as Ada
 import qualified Network.Wai.Handler.Warp         as Warp
 import           Plutus.PAB.Arbitrary             ()
@@ -75,7 +69,7 @@ main trace MockServerConfig { mscBaseUrl
     serverHandler <- liftIO $ Server.runServerNode trace mscSocketPath mscKeptBlocks (_chainState appState)
     serverState   <- liftIO $ newMVar appState
     handleDelayEffect $ delayThread (2 :: Second)
-    clientHandler <- liftIO $ Client.runClientNode mscSocketPath mscSlotConfig (updateChainState serverState)
+    clientHandler <- liftIO $ Client.runClientNode mscSocketPath mscSlotConfig (\_ _ -> pure ())
 
     let ctx = Ctx serverHandler clientHandler serverState trace
 
@@ -96,11 +90,3 @@ main trace MockServerConfig { mscBaseUrl
                 let SlotConfig{scZeroSlotTime, scSlotLength} = mscSlotConfig
                 logInfo $ StartingSlotCoordination scZeroSlotTime scSlotLength
                 void $ liftIO $ forkIO $ slotCoordinator mscSlotConfig serverHandler
-
-            updateChainState :: MVar AppState -> Block -> Slot -> IO ()
-            updateChainState mv block slot = do
-                ch <- readMVar mv <&> view (chainState . channel)
-                void $ atomically $ writeTChan ch block
-                modifyMVar_ mv $ pure .
-                  set  (chainState . currentSlot) slot
-
