@@ -40,13 +40,13 @@ module.exports = {
         clean: true,
     },
     optimization: {
-        runtimeChunk: 'single',
+        runtimeChunk: "single",
         splitChunks: {
             cacheGroups: {
                 vendor: {
                     test: /[\\/]node_modules[\\/]/,
-                    name: 'vendors',
-                    chunks: 'all',
+                    name: "vendors",
+                    chunks: "all",
                 },
             },
         },
@@ -67,7 +67,6 @@ module.exports = {
                                 "web-common/**/*.purs",
                             ],
                             psc: "psa",
-                            spago: true,
                             bundle: !isDevelopment,
                             watch: isDevelopment,
                         },

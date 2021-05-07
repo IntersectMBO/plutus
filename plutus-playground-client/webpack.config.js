@@ -59,7 +59,6 @@ module.exports = {
                                 "web-common-playground/**/*.purs",
                             ],
                             psc: "psa",
-                            spago: true,
                             bundle: !isDevelopment,
                             watch: isDevelopment,
                         },
