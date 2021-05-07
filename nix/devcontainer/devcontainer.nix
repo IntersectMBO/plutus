@@ -44,7 +44,7 @@ let
       (stdenv.mkDerivation {
         name = "wrapped";
         src = ./root;
-        installPhase = "ln -s $src $out";
+        installPhase = "cp -r $src $out";
       })
       coreutils
       procps
