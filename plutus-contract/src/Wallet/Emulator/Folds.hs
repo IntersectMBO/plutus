@@ -229,8 +229,14 @@ instanceOutcome con =
 -- | Unspent outputs at an address
 utxoAtAddress :: Address -> EmulatorEventFold UtxoMap
 utxoAtAddress addr =
-    preMapMaybe (preview (eteEvent . chainEvent . _TxnValidate . _2 ))
-    $ Fold (flip (AM.updateAddresses . Valid)) (AM.addAddress addr mempty) (view (AM.fundsAt addr))
+    preMapMaybe (preview (eteEvent . chainEvent))
+    $ Fold (flip step) (AM.addAddress addr mempty) (view (AM.fundsAt addr))
+    where
+        step = \case
+            TxnValidate _ txn _                -> AM.updateAddresses (Valid txn)
+            TxnValidationFail Phase2 _ txn _ _ -> AM.updateAddresses (Invalid txn)
+            _                                  -> id
+
 
 -- | The total value of unspent outputs at an address
 valueAtAddress :: Address -> EmulatorEventFold Value

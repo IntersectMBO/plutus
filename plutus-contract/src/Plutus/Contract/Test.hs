@@ -44,6 +44,7 @@ module Plutus.Contract.Test(
     , anyTx
     , assertEvents
     , walletFundsChange
+    , walletFundsExactChange
     , walletPaidFees
     , waitingForSlot
     , walletWatchingAddress
@@ -515,19 +516,27 @@ assertOutcome contract inst p nm =
 
 -- | Check that the funds in the wallet have changed by the given amount, exluding fees.
 walletFundsChange :: Wallet -> Value -> TracePredicate
-walletFundsChange w dlt =
-    flip postMapM (L.generalize $ (,) <$> Folds.walletFunds w <*> Folds.walletFees w) $ \(finalValue, fees) -> do
+walletFundsChange = walletFundsChangeImpl False
+
+-- | Check that the funds in the wallet have changed by the given amount, including fees.
+walletFundsExactChange :: Wallet -> Value -> TracePredicate
+walletFundsExactChange = walletFundsChangeImpl True
+
+walletFundsChangeImpl :: Bool -> Wallet -> Value -> TracePredicate
+walletFundsChangeImpl exact w dlt =
+    flip postMapM (L.generalize $ (,) <$> Folds.walletFunds w <*> Folds.walletFees w) $ \(finalValue', fees) -> do
         dist <- ask @InitialDistribution
         let initialValue = fold (dist ^. at w)
-            result = initialValue P.+ dlt == finalValue P.+ fees
+            finalValue = finalValue' P.+ if exact then mempty else fees
+            result = initialValue P.+ dlt == finalValue
         unless result $ do
             tell @(Doc Void) $ vsep $
                 [ "Expected funds of" <+> pretty w <+> "to change by"
-                , " " <+> viaShow dlt
-                , "  (excluding" <+> viaShow (Ada.getLovelace (Ada.fromValue fees)) <+> "lovelace in fees)" ] ++
-                if initialValue == finalValue P.+ fees
+                , " " <+> viaShow dlt] ++
+                (if exact then [] else ["  (excluding" <+> viaShow (Ada.getLovelace (Ada.fromValue fees)) <+> "lovelace in fees)" ]) ++
+                if initialValue == finalValue
                 then ["but they did not change"]
-                else ["but they changed by", " " <+> viaShow (finalValue P.+ fees P.- initialValue)]
+                else ["but they changed by", " " <+> viaShow (finalValue P.- initialValue)]
         pure result
 
 walletPaidFees :: Wallet -> Value -> TracePredicate
