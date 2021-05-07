@@ -1,18 +1,14 @@
 (program 1.0.0
   [
     [
-      (force
-        (delay
-          (lam
-            GHC_Tuple_Tuple2_i0
-            (lam
-              match_GHC_Tuple_Tuple2_i0
-              [
-                [ (force (force GHC_Tuple_Tuple2_i2)) (con integer 1) ]
-                (con integer 2)
-              ]
-            )
-          )
+      (lam
+        GHC_Tuple_Tuple2_i0
+        (lam
+          match_GHC_Tuple_Tuple2_i0
+          [
+            [ (force (force GHC_Tuple_Tuple2_i2)) (con integer 1) ]
+            (con integer 2)
+          ]
         )
       )
       (delay
