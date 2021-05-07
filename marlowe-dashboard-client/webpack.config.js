@@ -18,19 +18,19 @@ module.exports = {
         stats: "errors-warnings",
         proxy: {
             "/api": {
-                target: "http://localhost:9080"
+                target: "http://localhost:9080",
             },
             "/wallet": {
-                target: "http://localhost:9080"
+                target: "http://localhost:9080",
             },
             "/ws": {
                 target: "ws://localhost:9080",
                 ws: true,
                 onError (err) {
                   console.log("Error with the WebSocket:", err);
-                }
-            }
-        }
+                },
+            },
+        },
     },
     entry: "./entry.js",
     output: {
@@ -57,14 +57,14 @@ module.exports = {
                             spago: true,
                             bundle: !isDevelopment,
                             watch: isDevelopment,
-                        }
-                    }
-                ]
+                        },
+                    },
+                ],
             },
             {
                 test: /\.css$/,
                 exclude: /node_modules/,
-                use: [MiniCssExtractPlugin.loader, "css-loader", "postcss-loader"]
+                use: [MiniCssExtractPlugin.loader, "css-loader", "postcss-loader"],
             },
             {
                 test: /\.(png|svg|jpg|jpeg|gif)$/i,
@@ -73,13 +73,11 @@ module.exports = {
             {
                 test: /\.(woff|woff2|eot|ttf|otf)$/i,
                 type: "asset/resource",
-            }
-        ]
+            },
+        ],
     },
     resolve: {
-        modules: [
-            "node_modules",
-        ],
+        modules: ["node_modules"],
         alias: {
             contracts: path.resolve(__dirname, "./contracts"),
             static: path.resolve(__dirname, "./static"),
@@ -91,7 +89,7 @@ module.exports = {
         modules: [
             "node_modules",
             path.resolve(__dirname, "."),
-        ]
+        ],
     },
     plugins: [
         new HtmlWebpackPlugin({
