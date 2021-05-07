@@ -24,8 +24,8 @@ defaultBuiltinCostModelParams = extractBuiltinCostModelParams defaultBuiltinCost
 -- Then rerun
 --  cabal run language-plutus-core-create-cost-model
 -- import           Data.Default
--- defaultCostModel :: CostModel
--- defaultCostModel = def
+-- defaultBuiltinCostModel :: BuiltinCostModel
+-- defaultBuiltinCostModel = def
 
 -- | Default costs for CEK machine instructions.
 defaultCekMachineCosts :: CekMachineCosts

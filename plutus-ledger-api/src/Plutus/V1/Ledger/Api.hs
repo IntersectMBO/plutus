@@ -168,7 +168,7 @@ mkTermToEvaluate bs args = do
 
 -- | Evaluates a script, with a cost model and a budget that restricts how many
 -- resources it can use according to the cost model.  There's a default cost
--- model in  'UPLC.defaultCostModel' and a budget called 'enormousBudget' in
+-- model in  'UPLC.defaultBuiltinCostModel' and a budget called 'enormousBudget' in
 -- 'UntypedPlutusCore.Evaluation.Machine.Cek.ExBudgetMode' which should be large
 -- enough to evaluate any sensible program.
 evaluateScriptRestricting
