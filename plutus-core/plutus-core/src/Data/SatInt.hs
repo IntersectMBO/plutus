@@ -7,8 +7,9 @@ This is not quite as fast as using 'Int' or 'Int64' directly, but we need the sa
 {-# LANGUAGE DerivingStrategies #-}
 {-# LANGUAGE MagicHash          #-}
 {-# LANGUAGE UnboxedTuples      #-}
-module Data.SatInt (SatInt(..), fromSat, toSat) where
--- Removing the export list speeds things up by 2-3%
+module Data.SatInt where
+-- module Data.SatInt (SatInt(..), fromSat, toSat) where
+-- Removing the export list speeds up the validation benchmarks by 2-3%
 
 import           Control.DeepSeq (NFData)
 import           Data.Bits
@@ -19,12 +20,16 @@ import           GHC.Real
 newtype SatInt = SI Int
     deriving newtype (NFData, Bits, FiniteBits)
 
+-- *** We need an instance of Lift for the CEK machine steps cost model PR.
+-- I accidentally included this here earlier and it seems to slow things
+-- down by a small amount for some reason
+
 fromSat :: SatInt -> Int
 fromSat (SI x) = x
 
 toSat :: Int -> SatInt
 toSat = SI
-{- ^ No range check:
+{- **** ^ No range check:
 
    > toSat 12345678901234567890
 
@@ -262,34 +267,49 @@ quotRemSI a@(I# _) b@(I# _) = (SI (a `quotInt` b), SI (a `remInt` b))
 divModSI ::  Int -> Int -> (SatInt, SatInt)
 divModSI x@(I# _) y@(I# _) = (SI (x `divInt` y), SI (x `modInt` y))
 
+
 plusSI :: SatInt -> SatInt -> SatInt
 plusSI (SI (I# x#)) (SI (I# y#)) =
+  let (# r#, f# #) = addIntC# x# y#  -- Using `case` instead of `let` here is slower.
+  in if isTrue# f# then  -- Overflow;  I think the value of f# is always 1 in this case
+                         -- and doesn't give us any other useful information
+         if      isTrue# ((x# ># 0#) `andI#` (y# ># 0#)) then maxBound
+         else if isTrue# ((x# <# 0#) `andI#` (y# <# 0#)) then minBound
+         else 0  -- Shouldn't happen: error?  `succ maxBound` already raises an exception.
+     else SI (I# r#)
+
+{- **** I originally tried
+plusSI (SI (I# x#)) (SI (I# y#)) =
   case addIntC# x# y# of
-    (# r#, f# #) ->
-        if isTrue# f# then
-            if isTrue# ((x# ># 0#) `andI#` (y# ># 0#)) then maxBound
-            else if isTrue# ((x# <# 0#) `andI#` (y# <# 0#)) then minBound
-                 else 0  -- Shouldn't happen: error?  `succ maxBound` already raises an exception.
-        else SI (I# r#)
+    (# r#, 0# #) -> SI (I# r#)
+    _ -> if isTrue# (x# ># 0#) && isTrue# (y# ># 0#) then maxBound
+         else ...
+
+but that made the benchmarks slower, presumably because of the `case`:
+the rest of it's only executed in case of overflow.
+
+I believe that things like ># return either 0 or 1, so it's safe to use bitwise `and#`
+here rather than `isTrue# (x# ># 0#) && isTrue# (y# ># 0#)`.
+-}
 
 minusSI :: SatInt -> SatInt -> SatInt
 minusSI (SI (I# x#)) (SI (I# y#)) =
-    case subIntC# x# y# of
-      (# r#, f# #) -> if isTrue# f# then
-                          if isTrue# ((x# >=# 0#) `andI#` (y# <# 0#)) then maxBound
-                          else if isTrue# ((x# <=# 0#) `andI#` (y# ># 0#)) then minBound
-                               else 0  -- Shouldn't happen: error?
-                      else SI (I# r#)
+    let (# r#, f# #) = subIntC# x# y# in
+    if isTrue# f# then -- Overflow
+        if      isTrue# ((x# >=# 0#) `andI#` (y# <# 0#)) then maxBound
+        else if isTrue# ((x# <=# 0#) `andI#` (y# ># 0#)) then minBound
+        else 0  -- Shouldn't happen: error?
+    else SI (I# r#)
 
 timesSI :: SatInt -> SatInt -> SatInt
 timesSI (SI (I# x#)) (SI (I# y#)) =
   let f# = mulIntMayOflo# x# y# in
-  if isTrue# f# then
-      if isTrue# ((x# ># 0#) `andI#` (y# ># 0#)) then maxBound
-          else if isTrue# ((x# ># 0#) `andI#` (y# <# 0#)) then minBound
-               else if isTrue# ((x# <# 0#) `andI#` (y# ># 0#)) then minBound
-                    else if isTrue# ((x# <# 0#) `andI#` (y# <# 0#)) then maxBound
-                         else 0  -- Shouldn't happen: error?
+  if isTrue# f# then  -- Overflow
+      if      isTrue# ((x# ># 0#) `andI#` (y# ># 0#)) then maxBound
+      else if isTrue# ((x# ># 0#) `andI#` (y# <# 0#)) then minBound
+      else if isTrue# ((x# <# 0#) `andI#` (y# ># 0#)) then minBound
+      else if isTrue# ((x# <# 0#) `andI#` (y# <# 0#)) then maxBound
+      else 0  -- Shouldn't happen: error?
   else SI (I# (x# *# y#))
 
 {-# RULES
