@@ -3,26 +3,47 @@ Adapted from 'Data.SafeInt' to perform saturating arithmetic (i.e. returning max
 
 This is not quite as fast as using 'Int' or 'Int64' directly, but we need the safety.
 -}
-{-# LANGUAGE BangPatterns       #-}
-{-# LANGUAGE DerivingStrategies #-}
-{-# LANGUAGE MagicHash          #-}
-{-# LANGUAGE UnboxedTuples      #-}
-module Data.SatInt (SatInt(..), fromSat, toSat) where
+{-# LANGUAGE BangPatterns               #-}
+{-# LANGUAGE DeriveLift                 #-}
+{-# LANGUAGE DerivingStrategies         #-}
+{-# LANGUAGE DerivingVia                #-}
+{-# LANGUAGE GeneralisedNewtypeDeriving #-}
+{-# LANGUAGE MagicHash                  #-}
+{-# LANGUAGE UnboxedTuples              #-}
+module SatInt  where
 
-import           Control.DeepSeq (NFData)
+import           Control.DeepSeq            (NFData)
+--import           Data.Aeson                 (FromJSON, ToJSON)
 import           Data.Bits
 import           GHC.Base
 import           GHC.Num
 import           GHC.Real
+import           Language.Haskell.TH.Syntax (Lift)
 
 newtype SatInt = SI Int
     deriving newtype (NFData, Bits, FiniteBits)
+    deriving Lift
 
 fromSat :: SatInt -> Int
 fromSat (SI x) = x
 
 toSat :: Int -> SatInt
 toSat = SI
+{- ^ No range check:
+
+   > toSat 12345678901234567890
+
+   <interactive>:213:7: warning: [-Woverflowed-literals]
+       Literal 12345678901234567890 is out of the Int range -9223372036854775808..9223372036854775807
+   -6101065172474983726
+
+   However,
+
+   > 12345678901234567890 :: SatInt
+   9223372036854775807
+
+-}
+
 
 instance Show SatInt where
   showsPrec p x = showsPrec p (fromSat x)
@@ -249,18 +270,31 @@ divModSI x@(I# _) y@(I# _) = (SI (x `divInt` y), SI (x `modInt` y))
 plusSI :: SatInt -> SatInt -> SatInt
 plusSI (SI (I# x#)) (SI (I# y#)) =
   case addIntC# x# y# of
-    (# r#, _ #) -> SI (I# r#)
+    (# r#, 0# #) -> SI (I# r#)
+    _ -> -- addIntC# returns (r#, f#) with f# nonzero in case of overflow, but
+         -- the value of f# doesn't appear to provide any useful information.
+             if isTrue# (x# ># 0#) && isTrue# (y# ># 0#) then maxBound
+        else if isTrue# (x# <# 0#) && isTrue# (y# <# 0#) then minBound
+        else 0  -- Shouldn't happen: error?  `succ maxBound` already raises an exception.
 
 minusSI :: SatInt -> SatInt -> SatInt
 minusSI (SI (I# x#)) (SI (I# y#)) =
   case subIntC# x# y# of
-    (# r#, _ #) -> SI (I# r#)
+    (# r#, 0# #) -> SI (I# r#)
+    _ ->     if isTrue# (x# >=# 0#) && isTrue# (y# <# 0#) then maxBound
+        else if isTrue# (x# <=# 0#) && isTrue# (y# ># 0#) then minBound
+        else 0  -- Shouldn't happen: error?
 
 timesSI :: SatInt -> SatInt -> SatInt
 timesSI (SI (I# x#)) (SI (I# y#)) =
   case mulIntMayOflo# x# y# of
     0# -> SI (I# (x# *# y#))
-    _  -> maxBound
+    _  ->    if isTrue# (x# ># 0#) && isTrue# (y# ># 0#) then maxBound
+        else if isTrue# (x# ># 0#) && isTrue# (y# <# 0#) then minBound
+        else if isTrue# (x# <# 0#) && isTrue# (y# ># 0#) then minBound
+        else if isTrue# (x# <# 0#) && isTrue# (y# <# 0#) then maxBound
+        else 0  -- Shouldn't happen: error?
+
 
 {-# RULES
 "fromIntegral/Int->SatInt"     fromIntegral = toSat
