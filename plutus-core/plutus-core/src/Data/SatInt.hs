@@ -270,13 +270,14 @@ divModSI x@(I# _) y@(I# _) = (SI (x `divInt` y), SI (x `modInt` y))
 
 plusSI :: SatInt -> SatInt -> SatInt
 plusSI (SI (I# x#)) (SI (I# y#)) =
-  let !(# r#, f# #) = addIntC# x# y#  -- Using `case` instead of `let` here is slower.
-  in if isTrue# f# then  -- Overflow;  I think the value of f# is always 1 in this case
-                         -- and doesn't give us any other useful information
-         if      isTrue# ((x# ># 0#) `andI#` (y# ># 0#)) then maxBound
-         else if isTrue# ((x# <# 0#) `andI#` (y# <# 0#)) then minBound
-         else 0  -- Shouldn't happen: error?  `succ maxBound` already raises an exception.
-     else SI (I# r#)
+  case addIntC# x# y#  of
+    (# r#, f# #) ->
+        if isTrue# f# then  -- Overflow;  I think the value of f# is always 1 in this case
+                            -- and doesn't give us any other useful information
+        if      isTrue# ((x# ># 0#) `andI#` (y# ># 0#)) then maxBound
+        else if isTrue# ((x# <# 0#) `andI#` (y# <# 0#)) then minBound
+        else 0  -- Shouldn't happen: error?  `succ maxBound` already raises an exception.
+        else SI (I# r#)
 
 {- **** I originally tried
 plusSI (SI (I# x#)) (SI (I# y#)) =
@@ -285,7 +286,7 @@ plusSI (SI (I# x#)) (SI (I# y#)) =
     _ -> if isTrue# (x# ># 0#) && isTrue# (y# ># 0#) then maxBound
          else ...
 
-but that made the benchmarks slower, presumably because of the `case`:
+but that made the benchmarks slower, presumably because there are two `case`s:
 the rest of it's only executed in case of overflow.
 
 I believe that things like ># return either 0 or 1, so it's safe to use bitwise `and#`
@@ -294,23 +295,23 @@ here rather than `isTrue# (x# ># 0#) && isTrue# (y# ># 0#)`.
 
 minusSI :: SatInt -> SatInt -> SatInt
 minusSI (SI (I# x#)) (SI (I# y#)) =
-    let !(# r#, f# #) = subIntC# x# y# in
-    if isTrue# f# then -- Overflow
-        if      isTrue# ((x# >=# 0#) `andI#` (y# <# 0#)) then maxBound
-        else if isTrue# ((x# <=# 0#) `andI#` (y# ># 0#)) then minBound
-        else 0  -- Shouldn't happen: error?
-    else SI (I# r#)
+    case subIntC# x# y# of
+      (# r#, f# #) ->
+          if isTrue# f# then -- Overflow
+          if      isTrue# ((x# >=# 0#) `andI#` (y# <# 0#)) then maxBound
+          else if isTrue# ((x# <=# 0#) `andI#` (y# ># 0#)) then minBound
+          else 0  -- Shouldn't happen: error?
+          else SI (I# r#)
 
 timesSI :: SatInt -> SatInt -> SatInt
 timesSI (SI (I# x#)) (SI (I# y#)) =
-  let !f# = mulIntMayOflo# x# y# in
-  if isTrue# f# then  -- Overflow
-      if      isTrue# ((x# ># 0#) `andI#` (y# ># 0#)) then maxBound
-      else if isTrue# ((x# ># 0#) `andI#` (y# <# 0#)) then minBound
-      else if isTrue# ((x# <# 0#) `andI#` (y# ># 0#)) then minBound
-      else if isTrue# ((x# <# 0#) `andI#` (y# <# 0#)) then maxBound
-      else 0  -- Shouldn't happen: error?
-  else SI (I# (x# *# y#))
+    if isTrue# (mulIntMayOflo# x# y#) then  -- Overflow
+        if      isTrue# ((x# ># 0#) `andI#` (y# ># 0#)) then maxBound
+        else if isTrue# ((x# ># 0#) `andI#` (y# <# 0#)) then minBound
+        else if isTrue# ((x# <# 0#) `andI#` (y# ># 0#)) then minBound
+        else if isTrue# ((x# <# 0#) `andI#` (y# <# 0#)) then maxBound
+        else 0  -- Shouldn't happen: error?
+    else SI (I# (x# *# y#))
 
 {-# RULES
 "fromIntegral/Int->SatInt"     fromIntegral = toSat
