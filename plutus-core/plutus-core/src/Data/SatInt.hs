@@ -270,7 +270,7 @@ divModSI x@(I# _) y@(I# _) = (SI (x `divInt` y), SI (x `modInt` y))
 
 plusSI :: SatInt -> SatInt -> SatInt
 plusSI (SI (I# x#)) (SI (I# y#)) =
-  let (# r#, f# #) = addIntC# x# y#  -- Using `case` instead of `let` here is slower.
+  let !(# r#, f# #) = addIntC# x# y#  -- Using `case` instead of `let` here is slower.
   in if isTrue# f# then  -- Overflow;  I think the value of f# is always 1 in this case
                          -- and doesn't give us any other useful information
          if      isTrue# ((x# ># 0#) `andI#` (y# ># 0#)) then maxBound
@@ -294,7 +294,7 @@ here rather than `isTrue# (x# ># 0#) && isTrue# (y# ># 0#)`.
 
 minusSI :: SatInt -> SatInt -> SatInt
 minusSI (SI (I# x#)) (SI (I# y#)) =
-    let (# r#, f# #) = subIntC# x# y# in
+    let !(# r#, f# #) = subIntC# x# y# in
     if isTrue# f# then -- Overflow
         if      isTrue# ((x# >=# 0#) `andI#` (y# <# 0#)) then maxBound
         else if isTrue# ((x# <=# 0#) `andI#` (y# ># 0#)) then minBound
@@ -303,7 +303,7 @@ minusSI (SI (I# x#)) (SI (I# y#)) =
 
 timesSI :: SatInt -> SatInt -> SatInt
 timesSI (SI (I# x#)) (SI (I# y#)) =
-  let f# = mulIntMayOflo# x# y# in
+  let !f# = mulIntMayOflo# x# y# in
   if isTrue# f# then  -- Overflow
       if      isTrue# ((x# ># 0#) `andI#` (y# ># 0#)) then maxBound
       else if isTrue# ((x# ># 0#) `andI#` (y# <# 0#)) then minBound
