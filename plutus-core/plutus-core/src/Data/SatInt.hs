@@ -7,7 +7,7 @@ This is not quite as fast as using 'Int' or 'Int64' directly, but we need the sa
 {-# LANGUAGE DerivingStrategies #-}
 {-# LANGUAGE MagicHash          #-}
 {-# LANGUAGE UnboxedTuples      #-}
-module Data.SatInt  where
+module Data.SatInt (SatInt(..), fromSat, toSat) where
 
 import           Control.DeepSeq (NFData)
 import           Data.Aeson      (FromJSON, ToJSON)
