@@ -8,6 +8,7 @@ This is not quite as fast as using 'Int' or 'Int64' directly, but we need the sa
 {-# LANGUAGE MagicHash          #-}
 {-# LANGUAGE UnboxedTuples      #-}
 module Data.SatInt (SatInt(..), fromSat, toSat) where
+-- Removing the export list speeds things up by 2-3%
 
 import           Control.DeepSeq (NFData)
 import           Data.Bits
@@ -264,31 +265,32 @@ divModSI x@(I# _) y@(I# _) = (SI (x `divInt` y), SI (x `modInt` y))
 plusSI :: SatInt -> SatInt -> SatInt
 plusSI (SI (I# x#)) (SI (I# y#)) =
   case addIntC# x# y# of
-    (# r#, 0# #) -> SI (I# r#)
-    _ -> -- addIntC# returns (r#, f#) with f# nonzero in case of overflow, but
-         -- the value of f# doesn't appear to provide any useful information.
-             if isTrue# (x# ># 0#) && isTrue# (y# ># 0#) then maxBound
-        else if isTrue# (x# <# 0#) && isTrue# (y# <# 0#) then minBound
-        else 0  -- Shouldn't happen: error?  `succ maxBound` already raises an exception.
+    (# r#, f# #) ->
+        if isTrue# f# then
+            if isTrue# ((x# ># 0#) `andI#` (y# ># 0#)) then maxBound
+            else if isTrue# ((x# <# 0#) `andI#` (y# <# 0#)) then minBound
+                 else 0  -- Shouldn't happen: error?  `succ maxBound` already raises an exception.
+        else SI (I# r#)
 
 minusSI :: SatInt -> SatInt -> SatInt
 minusSI (SI (I# x#)) (SI (I# y#)) =
-  case subIntC# x# y# of
-    (# r#, 0# #) -> SI (I# r#)
-    _ ->     if isTrue# (x# >=# 0#) && isTrue# (y# <# 0#) then maxBound
-        else if isTrue# (x# <=# 0#) && isTrue# (y# ># 0#) then minBound
-        else 0  -- Shouldn't happen: error?
+    case subIntC# x# y# of
+      (# r#, f# #) -> if isTrue# f# then
+                          if isTrue# ((x# >=# 0#) `andI#` (y# <# 0#)) then maxBound
+                          else if isTrue# ((x# <=# 0#) `andI#` (y# ># 0#)) then minBound
+                               else 0  -- Shouldn't happen: error?
+                      else SI (I# r#)
 
 timesSI :: SatInt -> SatInt -> SatInt
 timesSI (SI (I# x#)) (SI (I# y#)) =
-  case mulIntMayOflo# x# y# of
-    0# -> SI (I# (x# *# y#))
-    _  ->    if isTrue# (x# ># 0#) && isTrue# (y# ># 0#) then maxBound
-        else if isTrue# (x# ># 0#) && isTrue# (y# <# 0#) then minBound
-        else if isTrue# (x# <# 0#) && isTrue# (y# ># 0#) then minBound
-        else if isTrue# (x# <# 0#) && isTrue# (y# <# 0#) then maxBound
-        else 0  -- Shouldn't happen: error?
-
+  let f# = mulIntMayOflo# x# y# in
+  if isTrue# f# then
+      if isTrue# ((x# ># 0#) `andI#` (y# ># 0#)) then maxBound
+          else if isTrue# ((x# ># 0#) `andI#` (y# <# 0#)) then minBound
+               else if isTrue# ((x# <# 0#) `andI#` (y# ># 0#)) then minBound
+                    else if isTrue# ((x# <# 0#) `andI#` (y# <# 0#)) then maxBound
+                         else 0  -- Shouldn't happen: error?
+  else SI (I# (x# *# y#))
 
 {-# RULES
 "fromIntegral/Int->SatInt"     fromIntegral = toSat
