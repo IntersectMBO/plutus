@@ -10,10 +10,10 @@ This is not quite as fast as using 'Int' or 'Int64' directly, but we need the sa
 {-# LANGUAGE GeneralisedNewtypeDeriving #-}
 {-# LANGUAGE MagicHash                  #-}
 {-# LANGUAGE UnboxedTuples              #-}
-module SatInt  where
+module Data.SatInt  where
 
 import           Control.DeepSeq            (NFData)
---import           Data.Aeson                 (FromJSON, ToJSON)
+import           Data.Aeson                 (FromJSON, ToJSON)
 import           Data.Bits
 import           GHC.Base
 import           GHC.Num
