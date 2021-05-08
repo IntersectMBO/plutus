@@ -290,7 +290,8 @@ but that made the benchmarks slower, presumably because there are two `case`s:
 the rest of it's only executed in case of overflow.
 
 I believe that things like ># return either 0 or 1, so it's safe to use bitwise `and#`
-here rather than `isTrue# (x# ># 0#) && isTrue# (y# ># 0#)`.
+here rather than `isTrue# (x# ># 0#) && isTrue# (y# ># 0#)`.  That only matters when
+we've overflowed though, so it's probably not too important.
 -}
 
 minusSI :: SatInt -> SatInt -> SatInt
