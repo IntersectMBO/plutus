@@ -40,12 +40,14 @@ import           Control.Monad.Freer.Error                        (Error)
 import           Control.Monad.Freer.Extras.Log                   (LogMessage, LogMsg, LogObserve, logDebug, logInfo)
 import           Control.Monad.Freer.Reader                       (Reader, ask, runReader)
 import           Control.Monad.IO.Class                           (MonadIO (liftIO))
+import           Data.Aeson                                       (Value)
 import           Data.Proxy                                       (Proxy (..))
 import qualified Data.Text                                        as Text
 
 import           Plutus.Contract.Effects.AwaitSlot                (WaitingForSlot (..))
 import           Plutus.Contract.Effects.ExposeEndpoint           (ActiveEndpoint (..))
 import           Plutus.Contract.Resumable                        (Request (..), Response (..))
+import           Plutus.Contract.State                            (ContractResponse (..))
 import           Plutus.Contract.Trace.RequestHandler             (RequestHandler (..), RequestHandlerLogMsg, extract,
                                                                    maybeToHandler, tryHandler', wrapHandler)
 import           Plutus.PAB.Core.ContractInstance.RequestHandlers (ContractInstanceMsg (..),
@@ -67,9 +69,8 @@ import           Plutus.PAB.Effects.Contract                      (ContractEffec
 import qualified Plutus.PAB.Effects.Contract                      as Contract
 import           Plutus.PAB.Effects.UUID                          (UUIDEffect, uuidNextRandom)
 import           Plutus.PAB.Events.Contract                       (ContractInstanceId (..), ContractPABRequest (..),
-                                                                   ContractResponse (..))
+                                                                   ContractPABResponse (..))
 import qualified Plutus.PAB.Events.Contract                       as Events.Contract
-import           Plutus.PAB.Events.ContractInstanceState          (PartiallyDecodedResponse (..))
 import           Plutus.PAB.Types                                 (PABError (..))
 import           Plutus.PAB.Webserver.Types                       (ContractActivationArgs (..))
 
@@ -103,7 +104,7 @@ processAwaitSlotRequestsSTM ::
     forall effs.
     ( Member (Reader BlockchainEnv) effs
     )
-    => RequestHandler effs ContractPABRequest (STM ContractResponse)
+    => RequestHandler effs ContractPABRequest (STM ContractPABResponse)
 processAwaitSlotRequestsSTM =
     maybeToHandler (fmap unWaitingForSlot . extract Events.Contract._AwaitSlotRequest)
     >>> (RequestHandler $ \targetSlot_ -> fmap AwaitSlotResponse . InstanceState.awaitSlot targetSlot_ <$> ask)
@@ -112,7 +113,7 @@ processTxConfirmedRequestsSTM ::
     forall effs.
     ( Member (Reader BlockchainEnv) effs
     )
-    => RequestHandler effs ContractPABRequest (STM ContractResponse)
+    => RequestHandler effs ContractPABRequest (STM ContractPABResponse)
 processTxConfirmedRequestsSTM =
     maybeToHandler (extract Events.Contract._AwaitTxConfirmedRequest)
     >>> RequestHandler handler
@@ -125,7 +126,7 @@ processEndpointRequestsSTM ::
     forall effs.
     ( Member (Reader InstanceState) effs
     )
-    => RequestHandler effs (Request ContractPABRequest) (Response (STM ContractResponse))
+    => RequestHandler effs (Request ContractPABRequest) (Response (STM ContractPABResponse))
 processEndpointRequestsSTM =
     maybeToHandler (traverse (extract Events.Contract._UserEndpointRequest))
     >>> (RequestHandler $ \q@Request{rqID, itID, rqRequest} -> fmap (Response rqID itID) (fmap (UserEndpointResponse (aeDescription rqRequest)) . InstanceState.awaitEndpointResponse q <$> ask))
@@ -143,7 +144,7 @@ stmRequestHandler ::
     , Member (Reader BlockchainEnv) effs
     , Member (Reader InstanceState) effs
     )
-    => RequestHandler effs (Request ContractPABRequest) (STM (Response ContractResponse))
+    => RequestHandler effs (Request ContractPABRequest) (STM (Response ContractPABResponse))
 stmRequestHandler = fmap sequence (wrapHandler (fmap pure nonBlockingRequests) <> blockingRequests) where
 
     -- requests that can be handled by 'WalletEffect', 'ChainIndexEffect', etc.
@@ -220,7 +221,7 @@ stmInstanceLoop def instanceId = do
     updateState resp
     case Contract.requests @t currentState of
         [] -> do
-            let PartiallyDecodedResponse{err} = resp
+            let ContractResponse{err} = resp
             ask >>= liftIO . STM.atomically . InstanceState.setActivity (Done err)
         _ -> do
             response <- respondToRequestsSTM @t instanceId currentState
@@ -243,9 +244,9 @@ updateState ::
     , MonadIO m
     , Member (Reader InstanceState) effs
     )
-    => PartiallyDecodedResponse ContractPABRequest
+    => ContractResponse Value Value Value ContractPABRequest
     -> Eff effs ()
-updateState PartiallyDecodedResponse{observableState, hooks} = do
+updateState ContractResponse{observableState, hooks} = do
     state <- ask
     liftIO $ STM.atomically $ do
         InstanceState.clearEndpoints state
@@ -276,7 +277,7 @@ respondToRequestsSTM ::
     )
     => ContractInstanceId
     -> Contract.State t
-    -> Eff effs (STM (Response ContractResponse))
+    -> Eff effs (STM (Response ContractPABResponse))
 respondToRequestsSTM instanceId currentState = do
     let rqs = Contract.requests @t currentState
     logDebug @(ContractInstanceMsg t) $ HandlingRequests instanceId rqs

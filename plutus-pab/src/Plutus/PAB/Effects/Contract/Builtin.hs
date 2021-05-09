@@ -39,6 +39,7 @@ import           Control.Monad.Freer.Extras.Log                   (LogMsg (..), 
 import           Data.Aeson                                       (FromJSON, ToJSON, Value)
 import qualified Data.Aeson                                       as JSON
 import qualified Data.Aeson.Types                                 as JSON
+import           Data.Bifunctor                                   (Bifunctor (..))
 import           Data.Foldable                                    (traverse_)
 import           Data.Row
 import qualified Data.Text                                        as Text
@@ -47,8 +48,6 @@ import           Plutus.Contract.Types                            (ResumableResu
 import           Plutus.PAB.Effects.Contract                      (ContractEffect (..), PABContract (..))
 import           Plutus.PAB.Events.Contract                       (ContractPABRequest)
 import qualified Plutus.PAB.Events.Contract                       as C
-import           Plutus.PAB.Events.ContractInstanceState          (PartiallyDecodedResponse)
-import qualified Plutus.PAB.Events.ContractInstanceState          as C
 import           Plutus.PAB.Monitoring.PABLogMsg                  (PABMultiAgentMsg (..))
 import           Plutus.PAB.Types                                 (PABError (..))
 
@@ -56,7 +55,7 @@ import           Playground.Schema                                (endpointsToSc
 import           Playground.Types                                 (FunctionSchema)
 import           Plutus.Contract                                  (BlockchainActions, Contract, ContractInstanceId)
 import           Plutus.Contract.Resumable                        (Response)
-import           Plutus.Contract.Schema                           (Event, Handlers, Input, Output)
+import           Plutus.Contract.Schema                           (Event, Input, Output)
 import           Plutus.Contract.State                            (ContractResponse (..))
 import qualified Plutus.Contract.State                            as ContractState
 import           Plutus.PAB.Core.ContractInstance.RequestHandlers (ContractInstanceMsg (ContractLog, ProcessFirstInboxMessage))
@@ -111,9 +110,11 @@ handleBuiltin mkSchema initialise = \case
     UpdateContract i _ state p -> case state of SomeBuiltinState s -> updateBuiltin i s p
     ExportSchema a             -> pure $ mkSchema a
 
-getResponse :: forall a. SomeBuiltinState a -> PartiallyDecodedResponse ContractPABRequest
+getResponse :: forall a. SomeBuiltinState a -> ContractResponse Value Value Value ContractPABRequest
 getResponse (SomeBuiltinState s) =
-    mkResponse
+    bimap JSON.toJSON (C.unContractHandlerRequest . fromJSON' . JSON.toJSON)
+    $ ContractState.mapE JSON.toJSON
+    $ ContractState.mapW JSON.toJSON
     $ ContractState.mkResponse
     $ Emulator.instContractState
     $ Emulator.toInstanceState s
@@ -139,7 +140,7 @@ updateBuiltin ::
     )
     => ContractInstanceId
     -> Emulator.ContractInstanceStateInternal w schema error b
-    -> Response C.ContractResponse
+    -> Response C.ContractPABResponse
     -> Eff effs (SomeBuiltinState a)
 updateBuiltin i oldState event = do
     resp <- traverse toEvent event
@@ -166,38 +167,14 @@ toEvent ::
     , AllUniqueLabels (Input schema)
     , Forall (Input schema) FromJSON
     )
-    => C.ContractResponse
+    => C.ContractPABResponse
     -> Eff effs (Event schema)
 toEvent = fromJSON . JSON.toJSON . C.ContractHandlersResponse
-
-mkResponse ::
-    forall w schema err.
-    ( Forall (Output schema) ToJSON
-    , Forall (Input schema) ToJSON
-    , ToJSON err
-    , ToJSON w
-    )
-    => ContractResponse w err (Event schema) (Handlers schema)
-    -> PartiallyDecodedResponse ContractPABRequest
-mkResponse ContractResponse{newState, hooks, logs, observableState, err, lastLogs} =
-    C.PartiallyDecodedResponse
-        { C.newState = fmap JSON.toJSON newState
-        , C.hooks    = fmap (fmap (encodeRequest @schema)) hooks
-        , C.logs     = logs
-        , C.lastLogs = lastLogs
-        , C.observableState = JSON.toJSON observableState
-        , C.err = fmap JSON.toJSON err
-        }
-
-encodeRequest ::
-    forall schema.
-    ( Forall (Output schema) ToJSON
-    )
-    => Handlers schema
-    -> ContractPABRequest
-encodeRequest = either error C.unContractHandlerRequest . JSON.eitherDecode . JSON.encode
 
 fromJSON :: (Member (Error PABError) effs, FromJSON a) => Value -> Eff effs a
 fromJSON =
     either (throwError . OtherError . Text.pack) pure
     . JSON.parseEither JSON.parseJSON
+
+fromJSON' :: FromJSON a => Value -> a
+fromJSON' = either (\x -> error $ "fromJSON'" <> show x) id . JSON.parseEither JSON.parseJSON

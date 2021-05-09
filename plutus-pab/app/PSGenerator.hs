@@ -48,7 +48,7 @@ import           Plutus.PAB.Effects.Contract.ContractExe    (ContractExe)
 import           Plutus.PAB.Effects.Contract.ContractTest   (TestContracts (Currency, GameStateMachine))
 import           Plutus.PAB.Events                          (PABEvent)
 import           Plutus.PAB.Events.Contract                 (ContractInstanceId (..), ContractPABRequest,
-                                                             ContractResponse)
+                                                             ContractPABResponse)
 import           Plutus.PAB.Events.ContractInstanceState    (PartiallyDecodedResponse)
 import qualified Plutus.PAB.Simulator                       as Simulator
 import qualified Plutus.PAB.Webserver.API                   as API
@@ -112,7 +112,7 @@ myTypes =
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @(PartiallyDecodedResponse A))
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @(ContractRequest A))
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @ContractPABRequest)
-    , (equal <*> (genericShow <*> mkSumType)) (Proxy @ContractResponse)
+    , (equal <*> (genericShow <*> mkSumType)) (Proxy @ContractPABResponse)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @UnbalancedTx)
 
     -- Contract request / response types

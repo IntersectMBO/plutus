@@ -10,6 +10,7 @@ module Plutus.PAB.Events.ContractSpec
 import           Control.Monad                           (void)
 import           Control.Monad.Except                    (ExceptT (ExceptT), runExceptT)
 import           Control.Monad.Trans.Except              (except)
+import           Data.Aeson                              (Value)
 import qualified Data.Aeson                              as JSON
 import qualified Data.Aeson.Encode.Pretty                as JSON
 import           Data.Bifunctor                          (first)
@@ -26,11 +27,12 @@ import           Plutus.Contract.Effects.ExposeEndpoint  (ActiveEndpoint (..),
 import           Plutus.Contract.Resumable               (Response (..))
 import qualified Plutus.Contract.Schema                  as Schema
 import           Plutus.Contract.State                   (ContractRequest (..))
+import qualified Plutus.Contract.State                   as State
 import           Plutus.Contracts.GameStateMachine       (GameStateMachineSchema, contract)
 import           Plutus.PAB.Arbitrary                    ()
 import           Plutus.PAB.ContractCLI                  (Command (Initialise, Update), runCliCommand, runPromptPure)
 import           Plutus.PAB.Events.Contract              (ContractHandlerRequest, ContractHandlersResponse (..),
-                                                          ContractPABRequest, ContractResponse (AwaitSlotResponse))
+                                                          ContractPABRequest, ContractPABResponse (AwaitSlotResponse))
 import           Plutus.PAB.Events.ContractInstanceState (PartiallyDecodedResponse)
 import qualified Plutus.PAB.Events.ContractInstanceState as ContractInstanceState
 import           Test.Tasty                              (TestTree, testGroup)
@@ -60,7 +62,7 @@ jsonTests =
         , testCase "Send a response to the contract" $ do
             oldState <- assertRight initialResponse
             let req :: ContractRequest JSON.Value
-                req = ContractRequest{oldState = ContractInstanceState.newState oldState, event = Response{rspRqID = 0, rspItID = 0, rspResponse = JSON.toJSON (ContractHandlersResponse $ AwaitSlotResponse 1)}}
+                req = ContractRequest{oldState = State.newState oldState, event = Response{rspRqID = 0, rspItID = 0, rspResponse = JSON.toJSON (ContractHandlersResponse $ AwaitSlotResponse 1)}}
                 input = BSL.toStrict (JSON.encodePretty req)
                 v = first (foldMap BS8.unpack) $ runPromptPure (runCliCommand (Proxy @BlockchainActions) (first (T.pack . show) contract) Update) input
                 result = v >>= JSON.eitherDecode @(PartiallyDecodedResponse ContractHandlerRequest) . BSL.fromStrict
@@ -71,7 +73,7 @@ jsonTests =
 assertRight :: Either String a -> IO a
 assertRight = either assertFailure pure
 
-initialResponse :: Either String (PartiallyDecodedResponse ContractHandlerRequest)
+initialResponse :: Either String (State.ContractResponse Value Value Value ContractHandlerRequest)
 initialResponse =
     let v = first (foldMap BS8.unpack) $ runPromptPure (runCliCommand (Proxy @BlockchainActions) (first (T.pack . show) contract) Initialise) mempty
-    in v >>= JSON.eitherDecode @(PartiallyDecodedResponse ContractHandlerRequest) . BSL.fromStrict
+    in v >>= JSON.eitherDecode @(State.ContractResponse Value Value Value ContractHandlerRequest) . BSL.fromStrict

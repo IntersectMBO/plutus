@@ -185,7 +185,7 @@ instance Arbitrary WaitingForSlot where
 -- | Generate responses for mock requests. This function returns a
 -- 'Maybe' because we can't (yet) create a generator for every request
 -- type.
-genResponse :: ContractPABRequest -> Maybe (Gen ContractResponse)
+genResponse :: ContractPABRequest -> Maybe (Gen ContractPABResponse)
 genResponse (AwaitSlotRequest (WaitingForSlot slot))        = Just . pure . AwaitSlotResponse $ slot
 genResponse (AwaitTxConfirmedRequest txId) = Just . pure . AwaitTxConfirmedResponse . TxConfirmed $ txId
 genResponse (UserEndpointRequest _)        = Just $ UserEndpointResponse <$> arbitrary <*> (EndpointValue <$> arbitrary)
