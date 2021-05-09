@@ -125,7 +125,7 @@ import qualified Plutus.PAB.Effects.ContractRuntime       as ContractRuntime
 import           Plutus.PAB.Effects.TimeEffect            (TimeEffect (..), systemTime)
 import           Plutus.PAB.Effects.UUID                  (UUIDEffect, handleUUIDEffect)
 import           Plutus.PAB.Events.Contract               (ContractPABRequest)
-import           Plutus.PAB.Events.ContractInstanceState  (PartiallyDecodedResponse)
+import           Plutus.PAB.Events.ContractInstanceState  (PartiallyDecodedResponse, fromResp)
 import           Plutus.PAB.Monitoring.PABLogMsg          (PABMultiAgentMsg (..))
 import           Plutus.PAB.Timeout                       (Timeout)
 import qualified Plutus.PAB.Timeout                       as Timeout
@@ -426,7 +426,7 @@ reportContractState ::
     )
     => ContractInstanceId
     -> Eff effs (PartiallyDecodedResponse ContractPABRequest)
-reportContractState cid = Contract.serialisableState (Proxy @t) <$> getState @t cid
+reportContractState cid = fromResp . Contract.serialisableState (Proxy @t) <$> getState @t cid
 
 -- | Annotate log messages with the current slot number.
 timed ::

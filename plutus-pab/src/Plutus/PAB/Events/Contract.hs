@@ -14,7 +14,7 @@ module Plutus.PAB.Events.Contract(
   , ContractPABRequest(..)
   , ContractHandlersResponse(..)
   , ContractHandlerRequest(..)
-  , ContractResponse(..)
+  , ContractPABResponse(..)
   -- * Prisms
   -- ** ContractRequest
   , _AwaitSlotRequest
@@ -149,7 +149,7 @@ instance Pretty ContractPABRequest where
         OwnInstanceIdRequest r    -> "OwnInstanceId:" <+> pretty r
         SendNotificationRequest n -> "Notification:" <+> pretty n
 
-data ContractResponse =
+data ContractPABResponse =
   AwaitSlotResponse Slot
   | AwaitTxConfirmedResponse TxConfirmed
   | UserEndpointResponse EndpointDescription (EndpointValue Value)
@@ -162,7 +162,7 @@ data ContractResponse =
   deriving  (Eq, Show, Generic)
   deriving anyclass (FromJSON, ToJSON)
 
-instance Pretty ContractResponse where
+instance Pretty ContractPABResponse where
     pretty = \case
         AwaitSlotResponse s          -> "AwaitSlot:" <+> pretty s
         UserEndpointResponse n r     -> "UserEndpoint:" <+> pretty n <+> pretty r
@@ -176,7 +176,7 @@ instance Pretty ContractResponse where
 
 -- | 'ContractResponse' with a 'ToJSON' instance that is compatible with
 --   the 'FromJSON' instance of 'Plutus.Contract.Schema.Event'.
-newtype ContractHandlersResponse = ContractHandlersResponse { unContractHandlersResponse :: ContractResponse }
+newtype ContractHandlersResponse = ContractHandlersResponse { unContractHandlersResponse :: ContractPABResponse }
 
 instance ToJSON ContractHandlersResponse where
     toJSON (ContractHandlersResponse c) = case c of
@@ -191,4 +191,4 @@ instance ToJSON ContractHandlersResponse where
         UserEndpointResponse (EndpointDescription n) r -> object ["tag" .= n, "value" .= r]
 
 makePrisms ''ContractPABRequest
-makePrisms ''ContractResponse
+makePrisms ''ContractPABResponse

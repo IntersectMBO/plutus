@@ -8,18 +8,19 @@ module Plutus.PAB.Db.Eventful.ContractStore(
     handleContractStore
     ) where
 
-import           Control.Monad                           (void)
-import           Control.Monad.Freer                     (Eff, Member, type (~>))
-import           Control.Monad.Freer.Error               (Error, throwError)
-import qualified Data.Map                                as Map
-import qualified Plutus.PAB.Db.Eventful.Command          as Command
-import qualified Plutus.PAB.Db.Eventful.Query            as Query
-import           Plutus.PAB.Effects.Contract             (ContractStore (..), PABContract (..))
-import           Plutus.PAB.Effects.EventLog             (EventLogEffect, runCommand, runGlobalQuery)
-import           Plutus.PAB.Events                       (PABEvent)
-import           Plutus.PAB.Events.Contract              (ContractPABRequest)
-import           Plutus.PAB.Events.ContractInstanceState (PartiallyDecodedResponse)
-import           Plutus.PAB.Types                        (PABError (..), Source (..))
+import           Control.Monad                  (void)
+import           Control.Monad.Freer            (Eff, Member, type (~>))
+import           Control.Monad.Freer.Error      (Error, throwError)
+import           Data.Aeson                     (Value)
+import qualified Data.Map                       as Map
+import           Plutus.Contract.State          (ContractResponse)
+import qualified Plutus.PAB.Db.Eventful.Command as Command
+import qualified Plutus.PAB.Db.Eventful.Query   as Query
+import           Plutus.PAB.Effects.Contract    (ContractStore (..), PABContract (..))
+import           Plutus.PAB.Effects.EventLog    (EventLogEffect, runCommand, runGlobalQuery)
+import           Plutus.PAB.Events              (PABEvent)
+import           Plutus.PAB.Events.Contract     (ContractPABRequest)
+import           Plutus.PAB.Types               (PABError (..), Source (..))
 
 -- | Handle the 'ContractStore' effect by storing states
 --   in the eventful database.
@@ -27,7 +28,7 @@ handleContractStore ::
     forall t effs.
     ( Member (EventLogEffect (PABEvent (ContractDef t))) effs
     , Member (Error PABError) effs
-    , State t ~ PartiallyDecodedResponse ContractPABRequest -- FIXME
+    , State t ~ ContractResponse Value Value Value ContractPABRequest
     )
     => ContractStore t
     ~> Eff effs

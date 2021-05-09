@@ -22,7 +22,7 @@ module Plutus.PAB.Monitoring.PABLogMsg(
     ContractEffectMsg(..)
     ) where
 
-import           Data.Aeson                              (FromJSON, ToJSON)
+import           Data.Aeson                              (FromJSON, ToJSON, Value)
 import qualified Data.Aeson                              as JSON
 import           Data.String                             (IsString (..))
 import           Data.Text                               (Text)
@@ -40,7 +40,7 @@ import           Data.Aeson.Text                         (encodeToLazyText)
 import qualified Data.ByteString.Lazy.Char8              as BSL8
 import qualified Data.Text                               as T
 import           Plutus.Contract.Resumable               (Response)
-import           Plutus.Contract.State                   (ContractRequest)
+import           Plutus.Contract.State                   (ContractRequest, ContractResponse)
 import           Plutus.PAB.Core.ContractInstance        (ContractInstanceMsg (..))
 import           Plutus.PAB.Effects.Contract             (PABContract (..))
 import           Plutus.PAB.Effects.ContractRuntime      (ContractRuntimeMsg)
@@ -212,7 +212,7 @@ data CoreMsg t =
     Installing (ContractDef t)
     | Installed
     | FindingContract ContractInstanceId
-    | FoundContract (Maybe (PartiallyDecodedResponse ContractPABRequest))
+    | FoundContract (Maybe (ContractResponse Value Value Value ContractPABRequest))
     deriving stock Generic
 
 deriving stock instance (Show (ContractDef t)) => Show (CoreMsg t)
@@ -224,7 +224,7 @@ instance Pretty (ContractDef t) => Pretty (CoreMsg t) where
         Installing d      -> "Installing" <+> pretty d
         Installed         -> "Installed"
         FindingContract i -> "Finding contract" <+> pretty i
-        FoundContract c   -> "Found contract" <+> pretty c
+        FoundContract c   -> "Found contract" <+> viaShow c
 
 instance (StructuredLog (ContractDef t), ToJSON (ContractDef t)) => ToObject (CoreMsg t) where
     toObject v = \case
@@ -237,7 +237,7 @@ instance (StructuredLog (ContractDef t), ToJSON (ContractDef t)) => ToObject (Co
         FoundContract state ->
             mkObjectStr "found contract" $
                 case v of
-                    MaximalVerbosity -> Left state
+                    MaximalVerbosity -> Left (Tagged @"contract" state)
                     _                -> Right ()
 
 data ContractEffectMsg =
@@ -257,7 +257,7 @@ data ContractExeLogMsg =
     | UpdateContractMsg FilePath (ContractRequest JSON.Value)
     | ExportSignatureMsg FilePath
     | ProcessExitFailure String
-    | ContractResponse String
+    | AContractResponse String
     | Migrating
     | InvokingEndpoint String JSON.Value
     | EndpointInvocationResponse [Text]
@@ -276,7 +276,7 @@ instance Pretty ContractExeLogMsg where
             <+> fromString pl
         ExportSignatureMsg fp -> fromString fp <+> "export-signature"
         ProcessExitFailure err -> "ExitFailure" <+> pretty err
-        ContractResponse str -> pretty str
+        AContractResponse str -> pretty str
         Migrating -> "Migrating"
         InvokingEndpoint s v ->
             "Invoking:" <+> pretty s <+> "/" <+> viaShow v
@@ -299,7 +299,7 @@ instance ToObject ContractExeLogMsg where
             mkObjectStr "exporting signature" (Tagged @"file_path" fp)
         ProcessExitFailure f ->
             mkObjectStr "process exit failure" (Tagged @"error" f)
-        ContractResponse r ->
+        AContractResponse r ->
             mkObjectStr "received contract response" $
                 case v of
                     MaximalVerbosity -> Left (Tagged @"response" r)
