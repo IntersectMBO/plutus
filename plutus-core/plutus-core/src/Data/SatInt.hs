@@ -20,10 +20,6 @@ import           GHC.Real
 newtype SatInt = SI Int
     deriving newtype (NFData, Bits, FiniteBits)
 
--- *** We need an instance of Lift for the CEK machine steps cost model PR.
--- I accidentally included this here earlier and it seems to slow things
--- down by a small amount for some reason
-
 fromSat :: SatInt -> Int
 fromSat (SI x) = x
 
@@ -42,7 +38,7 @@ toSat = SI
    > 12345678901234567890 :: SatInt
    9223372036854775807
 
--}
+**** -}
 
 
 instance Show SatInt where
@@ -286,13 +282,12 @@ plusSI (SI (I# x#)) (SI (I# y#)) =
     _ -> if isTrue# (x# ># 0#) && isTrue# (y# ># 0#) then maxBound
          else ...
 
-but that made the benchmarks slower, presumably because there are two `case`s:
-the rest of it's only executed in case of overflow.
+but that made the benchmarks slower, maybe because it has to go via Eq.
 
 I believe that things like ># return either 0 or 1, so it's safe to use bitwise `and#`
 here rather than `isTrue# (x# ># 0#) && isTrue# (y# ># 0#)`.  That only matters when
 we've overflowed though, so it's probably not too important.
--}
+**** -}
 
 minusSI :: SatInt -> SatInt -> SatInt
 minusSI (SI (I# x#)) (SI (I# y#)) =
