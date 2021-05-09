@@ -9,7 +9,9 @@ This is not quite as fast as using 'Int' or 'Int64' directly, but we need the sa
 {-# LANGUAGE UnboxedTuples      #-}
 module Data.SatInt where
 -- module Data.SatInt (SatInt(..), fromSat, toSat) where
--- Removing the export list speeds up the validation benchmarks by 2-3%
+{- **** Removing the export list speeds up the validation benchmarks by 2-3%.
+   Presumably that's due to something specific being exported, but I was too
+   lazy to find out.  **** -}
 
 import           Control.DeepSeq (NFData)
 import           Data.Bits
