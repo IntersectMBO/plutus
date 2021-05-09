@@ -43,6 +43,8 @@ instance prettyPABEvent :: Pretty t => Pretty (PABEvent t) where
                   ]
               ]
           SubmitTx tx -> span_ [ text "SubmittedTx:", nbsp, pretty tx ]
+          ActivateContract _ instanceId -> span_ [ text $ "Activate contract:", nbsp, text (view _contractInstanceIdString instanceId) ]
+          StopContract instanceId -> span_ [ text $ "Stop contract:", nbsp, text (view _contractInstanceIdString instanceId) ]
 
 withHeading :: forall i p. String -> HTML p i -> HTML p i
 withHeading prefix content =
