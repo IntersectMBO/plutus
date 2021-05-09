@@ -286,10 +286,11 @@ plusSI (SI (I# x#)) (SI (I# y#)) =
 
 but that made the benchmarks slower, maybe because it has to go via Eq.
 
-I believe that things like ># return either 0 or 1, so it's safe to use bitwise `and#`
-here rather than `isTrue# (x# ># 0#) && isTrue# (y# ># 0#)`.  That only matters when
-we've overflowed though, so it's probably not too important.
-**** -}
+I believe that things like ># return either 0 or 1, so it's safe to use bitwise
+`and#` here rather than `isTrue# (x# ># 0#) && isTrue# (y# ># 0#)`.  That only
+matters when we've overflowed though, so it's probably not too important to be
+super-efficient in that case.
+ **** -}
 
 minusSI :: SatInt -> SatInt -> SatInt
 minusSI (SI (I# x#)) (SI (I# y#)) =
