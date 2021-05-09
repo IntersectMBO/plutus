@@ -24,7 +24,7 @@ import           Language.Marlowe.Semantics          (Action (..), Case (..), Co
                                                       Value (..))
 import qualified Language.Marlowe.Semantics          as Marlowe
 import           Language.Marlowe.Util               (ada)
-import           Ledger                              (PubKeyHash, Slot, pubKeyHash, txId)
+import           Ledger                              (PubKeyHash, Slot, pubKeyHash)
 import qualified Ledger.Ada                          as Ada
 import qualified Ledger.Value                        as Val
 import           Plutus.PAB.Effects.Contract         (ContractEffect (..))
@@ -58,16 +58,16 @@ marloweTest = void $ Simulator.runSimulationWith handlers $ do
     shutdown <- PAB.Server.startServerDebug
     (newWallet, newPubKey) <- Simulator.addWallet @(Builtin Marlowe)
     Simulator.logString @(Builtin Marlowe) "Created new wallet"
-    companionContractId <- Simulator.activateContract newWallet WalletCompanion
+    _ <- Simulator.activateContract newWallet WalletCompanion
     Simulator.logString @(Builtin Marlowe) "Activated companion contract"
     marloweContractId <- Simulator.activateContract newWallet MarloweApp
     Simulator.logString @(Builtin Marlowe) "Activated marlowe contract"
 
-    tx <- Simulator.handleAgentThread (Wallet 1) (Simulator.payToWallet newWallet (Ada.adaValueOf 10))
+    _ <- Simulator.handleAgentThread (Wallet 1) (Simulator.payToWallet newWallet (Ada.adaValueOf 10))
     void $ Simulator.waitNSlots 10
 
     let args = let h = (pubKeyHash newPubKey) in createArgs h h
-    Simulator.callEndpointOnInstance marloweContractId "create" args
+    void $ Simulator.callEndpointOnInstance marloweContractId "create" args
     void $ liftIO getLine
     shutdown
 
