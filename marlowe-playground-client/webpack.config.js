@@ -1,61 +1,62 @@
 "use strict";
 
-const HtmlWebpackPlugin = require("html-webpack-plugin");
-const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 const MonacoWebpackPlugin = require("monaco-editor-webpack-plugin");
+const HtmlWebpackPlugin = require("html-webpack-plugin");
 const path = require("path");
 
-const isDevelopment = process.env.NODE_ENV === "development";
+const isWebpackDevServer = process.argv.some(a => path.basename(a) === "webpack-dev-server");
 
-const devtool = isDevelopment ? "eval-source-map" : false;
+const isWatch = process.argv.some(a => a === "--watch");
+
+const plugins =
+    isWebpackDevServer || !isWatch ? [] : [
+        function () {
+            this.plugin("done", function (stats) {
+                process.stderr.write(stats.toString("errors-only"));
+            });
+        }
+    ]
+;
+
+// source map adds 20Mb to the output!
+const devtool = isWebpackDevServer ? "eval-source-map" : false;
 
 module.exports = {
     devtool,
+
     devServer: {
         contentBase: path.join(__dirname, "dist"),
         compress: true,
         port: 8009,
         https: true,
-        stats: "errors-warnings",
         proxy: {
             "/api": {
-                target: "http://localhost:8080",
+                target: "http://localhost:8080"
             },
             "/runghc": {
-                target: "http://localhost:8080",
+                target: "http://localhost:8080"
             },
             "/marlowe-analysis": {
-                target: "http://localhost:8080",
-            },
-        },
+                target: "http://localhost:8080"
+            }
+        }
     },
     entry: "./entry.js",
     output: {
-        filename: "[name].[contenthash].js",
         path: path.join(__dirname, "dist"),
         pathinfo: true,
-        clean: true,
-    },
-    optimization: {
-        runtimeChunk: 'single',
-        splitChunks: {
-            cacheGroups: {
-                vendor: {
-                    test: /[\\/]node_modules[\\/]/,
-                    name: 'vendors',
-                    chunks: 'all',
-                },
-            },
-        },
+        filename: "app.[hash].js"
     },
     module: {
         rules: [
+            { test: /\.woff(2)?(\?v=[0-9]\.[0-9]\.[0-9])?$/, loader: "url-loader?limit=10000&mimetype=application/font-woff" },
+            { test: /fontawesome-.*\.(ttf|eot|svg)(\?v=[0-9]\.[0-9]\.[0-9])?$/, loader: "file-loader" },
             {
                 test: /\.ne$/,
                 loader: "nearley-webpack-loader",
                 options: {
-                    baseDir: ".",
-                },
+                    baseDir: "."
+                }
             },
             {
                 test: /\.purs$/,
@@ -69,52 +70,52 @@ module.exports = {
                                 ".spago/*/*/src/**/*.purs",
                                 "web-common/**/*.purs",
                                 "web-common-marlowe/**/*.purs",
-                                "web-common-playground/**/*.purs",
+                                "web-common-playground/**/*.purs"
                             ],
-                            psc: "psa",
-                            bundle: !isDevelopment,
-                            watch: isDevelopment,
-                        },
-                    },
-                ],
+                            psc: null,
+                            bundle: !(isWebpackDevServer || isWatch),
+                            warnings: true,
+                            watch: isWebpackDevServer || isWatch,
+                            pscPackage: false,
+                            pscIde: false
+                        }
+                    }
+                ]
             }, {
                 test: /\.tsx?$/,
-                loader: "ts-loader",
+                loader: "ts-loader"
             },
             {
                 test: /\.css$/,
-                use: [MiniCssExtractPlugin.loader, "css-loader"],
+                use: ["style-loader", "css-loader"]
             },
             {
                 test: /\.scss$/,
-                use: [MiniCssExtractPlugin.loader, "css-loader", "sass-loader"],
+                use: ["style-loader", "css-loader", "sass-loader"]
             },
             {
-                test: /\.(png|svg|jpg|jpeg|gif)$/i,
-                type: "asset/resource",
+                test: /\.(gif|png|jpe?g|svg)$/i,
+                use: "url-loader"
             },
             {
-                test: /\.(woff|woff2|eot|ttf|otf)$/i,
-                type: "asset/resource",
-            },
-        ],
+                test: /\.ttf$/,
+                use: ["file-loader"],
+            }
+        ]
     },
     resolve: {
         modules: [
-            "node_modules",
-            // We need this entry for node to be able to locate `node_modules` from
-            // client directory when modules are referenced from inside `web-common`.
-            path.resolve(__dirname, "./node_modules"),
+            // We need the second entry for node to be able to
+            // locate `node_modules` from client directory when 
+            // modules are referenced from inside `web-common`.
+            "node_modules", path.resolve(__dirname, "./node_modules")
         ],
         alias: {
             grammar: path.resolve(__dirname, "./grammar.ne"),
             static: path.resolve(__dirname, "./static"),
             src: path.resolve(__dirname, "./src")
         },
-        extensions: [".purs", ".js", ".ts", ".tsx"],
-        fallback: {
-            "vm": require.resolve("vm-browserify"),
-        },
+        extensions: [".purs", ".js", ".ts", ".tsx"]
     },
     resolveLoader: {
         modules: [
@@ -128,14 +129,11 @@ module.exports = {
             favicon: "static/favicon.ico",
             title: "Marlowe Playground",
             productName: "marlowe-playground",
-            googleAnalyticsId: isDevelopment ? "UA-XXXXXXXXX-X" : "UA-119953429-16",
-        }),
-        new MiniCssExtractPlugin({
-            filename: "[name].[contenthash].css",
+            googleAnalyticsId: isWebpackDevServer ? "UA-XXXXXXXXX-X" : "UA-119953429-16"
         }),
         new MonacoWebpackPlugin({
             // note that you have to include typescript if you want javascript to work!
             languages: ["javascript", "typescript"],
-        }),
-    ],
+        })
+    ].concat(plugins)
 };
