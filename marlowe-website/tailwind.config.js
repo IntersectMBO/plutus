@@ -28,14 +28,17 @@ module.exports = {
       barlowe: ["barlowe", "sans-serif"],
       comfortaa: ["comfortaa", "sans-serif"],
     },
+    // FIXME: we should unify the font sizes
     fontSize: {
       xs: "12px",
       sm: "14px",
       base: "16px",
       lg: "18px",
       xl: "22px",
+      "27px": "27px",
       "2xl": "24px",
       "3xl": "36px",
+      "4xl": "48px",
       "5xl": "68px",
     },
     borderRadius: {
@@ -56,6 +59,8 @@ module.exports = {
     extend: {
       spacing: {
         "5pc": "5%",
+        "5vw": "5vw",
+        "10vw": "10vw",
       },
       padding: {
         /* This value was obtained from a "hack" to make the div occupy the height of
@@ -179,9 +184,9 @@ module.exports = {
     gridColumnEnd: false,
     gridTemplateRows: true,
     gridAutoRows: false,
-    gridRow: false,
-    gridRowStart: false,
-    gridRowEnd: false,
+    gridRow: true,
+    gridRowStart: true,
+    gridRowEnd: true,
     transform: true,
     transformOrigin: true,
     scale: true,

@@ -7,21 +7,21 @@
   </head>
 
   <body>
-    <header class="flex justify-between p-4 items-center">
+    <header class="flex justify-between p-6 md:px-5vw xl:px-10vw  items-center">
       <img class="h-10" src="{% static './static/img/marlowe-prototype-logo.svg' %}" alt="Marlowe Prototype">
       <a class="text-lightpurple font-bold text-sm" href="">Docs</a>
     </header>
     {# The padding top and height 0 are part of a "hack" to make the div to occupy the height of its background image
     https://stackoverflow.com/questions/600743/how-to-get-div-height-to-auto-adjust-to-background-size #}
     <section class="sm:bg-main bg-no-repeat bg-contain sm:h-0 sm:pt-main-bg relative ">
-      <div class="sm:absolute sm:w-3/5 md:w-1/2 inset-0 px-6">
-        <h1 class="text-3xl lg:text-5xl flex flex-col font-bold font-comfortaa leading-tight py-4">
+      <div class="sm:absolute sm:w-3/5 md:w-1/2 inset-0 mx-6 md:ml-5vw xl:ml-10vw  max-w-2xl">
+        <h1 class="text-3xl lg:text-4xl xl:text-5xl flex flex-col font-bold font-comfortaa leading-tight py-4">
           <span>Smart contracts,</span>
           <span>reimagined.</span>
         </h1>
-        <h2 class="text-xl py-4">Marlowe puts the power of financial agreements into the hands of millions. Without the need for a bank.</h2>
-        <div class="flex pb-10 justify-between text-sm">
-          <a href="https://run.marlowe-finance.io" target="_blank" class="primary-button flex-shrink-0">Try Marlowe Run</a>
+        <h2 class="text-xl lg:text-2xl xl:text-27px py-4">Marlowe puts the power of financial agreements into the hands of millions. Without the need for a bank.</h2>
+        <div class="flex pb-10 text-sm">
+          <a href="https://run.marlowe-finance.io" target="_blank" class="primary-button flex-shrink-0 mr-2 sm:mr-4 md:mr-5 lg:mr-7">Try Marlowe Run</a>
           <a href="https://play.marlowe-finance.io" target="_blank" class="secondary-button flex-shrink-0">Try Marlowe Play</a>
         </div>
 
@@ -30,40 +30,40 @@
     </section>
     <img loading="lazy" class="w-full sm:hidden" src="{% static './static/img/woman-using-cellphone-small.jpg' %}" alt="Marlowe Prototype">
 
-    <section class="bg-green  pb-14">
-      <div class="px-6">
-
-        <div class="relative -top-12 rounded-lg px-4 py-6 bg-blured">
-          <h4 class="text-xl font-semibold text-lightpurple">Marlowe Run ‘Prototype’</h4>
-          <h3 class="text-2xl font-bold font-comfortaa my-4">Download, tune, participate, run.</h3>
-          <p class="text-lg my-4">The Marlowe Run prototype lets you download, tune, participate in and run Marlowe contracts with other end users on a simulated blockchain.
-          </p>
-          <button class="primary-button my-4">Tutorial</button>
-        </div>
-        <div>
-          <div class="py-6">
-            <h4 class="font-bold">Special purpose</h4>
-            <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit pellentesque facilisis.</p>
-
-          </div>
-          <div class="py-6">
-            <h4 class="font-bold">Fast and Safe</h4>
-            <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit pellentesque facilisis.</p>
-          </div>
-        </div>
-        <p class="text-white text-xl font-comfortaa font-bold py-8">We’re rolling this out early so that we can get your feedback on the user experience, and make sure that we have it 100% right when we roll out.
+    <section class="bg-green pb-14 grid grid-cols-1 md:grid-cols-2 lg:gap-x-5vw xl:gap-x-10vw">
+      <div class="relative -top-12 rounded-lg mx-6 md:mr-5vw xl:mr-10vw  px-4 py-6 bg-blured">
+        <h4 class="text-xl font-semibold text-lightpurple">Marlowe Run ‘Prototype’</h4>
+        <h3 class="text-2xl font-bold font-comfortaa my-4">Download, tune, participate, run.</h3>
+        <p class="text-lg my-4">The Marlowe Run prototype lets you download, tune, participate in and run Marlowe contracts with other end users on a simulated blockchain.
         </p>
-        <div class="rounded-lg bg-lightgray p-4">
-          <h4 class="text-lightpurple text-xl font-semibold mb-3">Already tried Marlowe Run?</h4>
-          <p class="text-lg ">Tell us what you think, we need your feedback to turn great into exceptional.</p>
-          <div class="flex items-end justify-between">
-            <img class="relative top-2" src="{% static './static/img/top-down-arrow.svg' %}" alt="Arrow">
-            <button class="text-sm flex-shrink-0 primary-button">Submit feedback</button>
-          </div>
+        <button class="primary-button my-4">Tutorial</button>
+      </div>
+      <div class="mx-6 md:mr-5vw xl:mr-10vw  md:flex gap-4">
+        <div class="py-6">
+          <h4 class="font-bold">Special purpose</h4>
+          <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit pellentesque facilisis.</p>
+
+        </div>
+        <div class="py-6">
+          <h4 class="font-bold">Fast and Safe</h4>
+          <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit pellentesque facilisis.</p>
         </div>
       </div>
-      <img loading="lazy" class="w-full" src="{% static './static/img/marlowe-run-large.png' %}" alt="Marlowe Run">
-
+      <div class="mx-6 md:mr-5vw xl:mr-10vw ">
+        <p class="text-white text-xl font-comfortaa font-bold py-8">We’re rolling this out early so that we can get your feedback on the user experience, and make sure that we have it 100% right when we roll out.
+        </p>
+      </div>
+      <div class="rounded-lg bg-lightgray mx-6 md:mr-5vw xl:mr-10vw p-4">
+        <h4 class="text-lightpurple text-xl font-semibold mb-3">Already tried Marlowe Run?</h4>
+        <p class="text-lg ">Tell us what you think, we need your feedback to turn great into exceptional.</p>
+        <div class="flex items-end justify-between">
+          <img class="relative top-2" src="{% static './static/img/top-down-arrow.svg' %}" alt="Arrow">
+          <button class="text-sm flex-shrink-0 primary-button">Submit feedback</button>
+        </div>
+      </div>
+      <div class="md:row-start-1 md:row-end-5 md:relative md:-top-20 mt-16 md:mt-0">
+        <img loading="lazy" class="w-full" src="{% static './static/img/marlowe-run.png' %}" alt="Marlowe Run">
+      </div>
     </section>
     <section class="px-6">
       <h4 class="text-lightpurple text-xl font-semibold mt-20 mb-6">Marlowe Play</h4>
