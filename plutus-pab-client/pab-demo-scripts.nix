@@ -46,7 +46,7 @@ let
     in
     runCommand "pab-setup" { } ''
       echo "Creating PAB database"
-      ${pab} --config=${cfg} migrate
+      ${pab} migrate ${conf.db-file}
       ${sqlite-interactive}/bin/sqlite3 ${conf.db-file} '.tables'
       mkdir $out
       cp ${conf.db-file}* $out/
