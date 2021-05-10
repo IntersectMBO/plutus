@@ -3,7 +3,6 @@
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE MagicHash             #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE OverloadedStrings     #-}
 {-# LANGUAGE TypeApplications      #-}
 {-# LANGUAGE TypeOperators         #-}
 {-# LANGUAGE UndecidableInstances  #-}
@@ -23,6 +22,7 @@ import           PlutusCore.Universe
 import           PlutusPrelude
 
 import           Control.Monad.RWS.Strict
+import           Data.Aeson
 import qualified Data.ByteString          as BS
 import           Data.Proxy
 import           Data.SatInt
@@ -90,13 +90,15 @@ type CostingInteger =
     SatInt
 #endif
 
+
 -- $(if finiteBitSize (0::SatInt) < 64 then [t|Integer|] else [t|SatInt|])
 
 -- | Counts size in machine words (64bit for the near future)
 newtype ExMemory = ExMemory CostingInteger
-  deriving (Eq, Ord, Show)
+  deriving (Eq, Ord, Show, Lift)
   deriving newtype (Num, NFData)
   deriving (Semigroup, Monoid) via (Sum CostingInteger)
+  deriving (FromJSON, ToJSON) via CostingInteger
 instance Pretty ExMemory where
     pretty (ExMemory i) = pretty (toInteger i)
 instance PrettyBy config ExMemory where
@@ -104,9 +106,10 @@ instance PrettyBy config ExMemory where
 
 -- | Counts CPU units - no fixed base, proportional.
 newtype ExCPU = ExCPU CostingInteger
-  deriving (Eq, Ord, Show)
+  deriving (Eq, Ord, Show, Lift)
   deriving newtype (Num, NFData)
   deriving (Semigroup, Monoid) via (Sum CostingInteger)
+  deriving (FromJSON, ToJSON) via CostingInteger
 instance Pretty ExCPU where
     pretty (ExCPU i) = pretty (toInteger i)
 instance PrettyBy config ExCPU where
@@ -173,13 +176,18 @@ instance (Closed uni, uni `Everywhere` ExMemoryUsage) => ExMemoryUsage (Some (Va
   memoryUsage (Some (ValueOf uni x)) = bring (Proxy @ExMemoryUsage) uni (memoryUsage x)
 
 instance ExMemoryUsage () where
-  memoryUsage _ = 0 -- TODO or 1?
+  memoryUsage () = 1
 
 instance ExMemoryUsage Integer where
-  memoryUsage i = ExMemory $ fromIntegral $ 1 + smallInteger (integerLog2# (abs i) `quotInt#` integerToInt 64) -- assume 64bit size
+  memoryUsage 0 = ExMemory 1  -- integerLog2# is unspecified for 0, but in practice returns -1
+  memoryUsage i = ExMemory . fromIntegral $ (1 + smallInteger (integerLog2# (abs i) `quotInt#` integerToInt 64)) -- Assume 64bit size.
 
 instance ExMemoryUsage BS.ByteString where
-  memoryUsage bs = ExMemory $ fromIntegral $ (toInteger $ BS.length bs) `div` 8
+  memoryUsage bs = ExMemory . fromIntegral $ 1 + ((toInteger $ BS.length bs)-1) `quot` 8
+-- We want things of length 0-8 to have size 1, 9-16 to have size 2, etc.
+-- We use 'quot' to deal with the empty bytestring because 'div' would give -1.
+-- Maybe we should just use 1 + (toInteger $ BS.length bs) `div` 8, which
+-- would count one extra for things whose sizes are multiples of 8.
 
 instance ExMemoryUsage T.Text where
   memoryUsage text = memoryUsage $ T.unpack text -- TODO not accurate, as Text uses UTF-16

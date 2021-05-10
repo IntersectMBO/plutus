@@ -23,7 +23,7 @@ import           UntypedPlutusCore.Evaluation.Machine.Cek
 benchCek :: Term NamedDeBruijn DefaultUni DefaultFun () -> Benchmarkable
 benchCek t = case runExcept @PLC.FreeVariableError $ PLC.runQuoteT $ unDeBruijnTerm t of
     Left e   -> throw e
-    Right t' -> nf (unsafeEvaluateCek defBuiltinsRuntime) t'
+    Right t' -> nf (unsafeEvaluateCek defaultCekMachineCosts defBuiltinsRuntime) t'
 
 benchClausify :: Clausify.StaticFormula -> Benchmarkable
 benchClausify f = benchCek $ Clausify.mkClausifyTerm f

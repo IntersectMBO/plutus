@@ -36,8 +36,8 @@ import           Language.R
 -- TODO some generics magic
 -- Mentioned in CostModel.md. Change here, change there.
 -- The names of the models in R
-costModelNames :: CostModelBase (Const Text)
-costModelNames = CostModel
+builtinCostModelNames :: BuiltinCostModelBase (Const Text)
+builtinCostModelNames = BuiltinCostModelBase
   { paramAddInteger           = "addIntegerModel"
   , paramSubtractInteger      = "subtractIntegerModel"
   , paramMultiplyInteger      = "multiplyIntegerModel"
@@ -63,18 +63,18 @@ costModelNames = CostModel
   }
 
 -- Loads the models from R
-costModelsR :: MonadR m => m (CostModelBase (Const (SomeSEXP (Region m))))
+costModelsR :: MonadR m => m (BuiltinCostModelBase (Const (SomeSEXP (Region m))))
 costModelsR = do
   list <- [r|
     source("cost-model/data/models.R")
     modelFun("cost-model/data/benching.csv")
   |]
   -- TODO use btraverse instead
-  bsequence $ bmap (\name -> let n = getConst name in Compose $ fmap Const $ [r| list_hs[[n_hs]] |]) costModelNames
+  bsequence $ bmap (\name -> let n = getConst name in Compose $ fmap Const $ [r| list_hs[[n_hs]] |]) builtinCostModelNames
 
 -- Creates the cost model from the csv benchmarking files
-createCostModel :: IO CostModel
-createCostModel =
+createBuiltinCostModel :: IO BuiltinCostModel
+createBuiltinCostModel =
   withEmbeddedR defaultConfig $ runRegion $ do
     models <- costModelsR
     -- TODO: refactor with barbies
@@ -102,7 +102,7 @@ createCostModel =
     paramGtByteString         <- getParams gtByteString         paramGtByteString
     paramIfThenElse           <- getParams ifThenElse           paramIfThenElse
 
-    pure $ CostModel {..}
+    pure $ BuiltinCostModelBase {..}
 
 -- The output of `tidy(model)` on the R side.
 data LinearModelRaw = LinearModelRaw

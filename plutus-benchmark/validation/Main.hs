@@ -38,7 +38,7 @@ loadPlcSource file = do
      Right p                    -> return $ () <$ p
 
 benchCek :: Term () -> Benchmarkable
-benchCek program = nf (UPLC.unsafeEvaluateCek PLC.defBuiltinsRuntime) program
+benchCek program = nf (UPLC.unsafeEvaluateCek UPLC.defaultCekMachineCosts PLC.defBuiltinsRuntime) program
 
 
 plcSuffix :: String

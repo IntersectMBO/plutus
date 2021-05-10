@@ -27,7 +27,8 @@
       dataDir = ".";
       dataFiles = [];
       extraSrcFiles = [
-        "cost-model/data/costModel.json"
+        "cost-model/data/builtinCostModel.json"
+        "cost-model/data/cekMachineCosts.json"
         "cost-model/data/benching.csv"
         "cost-model/data/*.R"
         ];
@@ -171,6 +172,7 @@
           "UntypedPlutusCore/Core/Instance/Recursive"
           "UntypedPlutusCore/Core/Plated"
           "UntypedPlutusCore/Core/Type"
+          "UntypedPlutusCore/Evaluation/Machine/Cek/CekMachineCosts"
           "UntypedPlutusCore/Evaluation/Machine/Cek/ExBudgetMode"
           "UntypedPlutusCore/Evaluation/Machine/Cek/Internal"
           "UntypedPlutusCore/Mark"

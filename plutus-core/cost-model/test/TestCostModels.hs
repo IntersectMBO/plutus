@@ -135,7 +135,7 @@ propertyR prop = withTests 20 $ property $ unsafeHoist unsafeRunRegion prop
 -- runs both models with a bunch of ExMemory combinations and compares the
 -- outputs.
 testPredictOne :: ((SomeSEXP (Region (R s))) -> (R s) (CostingFun ModelOneArgument))
-  -> ((CostModelBase (Const (SomeSEXP (Region (R s))))) -> SomeSEXP s)
+  -> ((BuiltinCostModelBase (Const (SomeSEXP (Region (R s))))) -> SomeSEXP s)
   -> Property
 testPredictOne haskellModelFun modelFun = propertyR $ do
   modelR <- lift $ costModelsR
@@ -159,7 +159,7 @@ testPredictOne haskellModelFun modelFun = propertyR $ do
   byR === predictH x
 
 testPredictTwo :: ((SomeSEXP (Region (R s))) -> (R s) (CostingFun ModelTwoArguments))
-  -> ((CostModelBase (Const (SomeSEXP (Region (R s))))) -> SomeSEXP s)
+  -> ((BuiltinCostModelBase (Const (SomeSEXP (Region (R s))))) -> SomeSEXP s)
   -> Property
 testPredictTwo haskellModelFun modelFun = propertyR $ do
   modelR <- lift $ costModelsR
@@ -185,7 +185,7 @@ testPredictTwo haskellModelFun modelFun = propertyR $ do
   byR === predictH x y
 
 testPredictThree :: ((SomeSEXP (Region (R s))) -> (R s) (CostingFun ModelThreeArguments))
-  -> ((CostModelBase (Const (SomeSEXP (Region (R s))))) -> SomeSEXP s)
+  -> ((BuiltinCostModelBase (Const (SomeSEXP (Region (R s))))) -> SomeSEXP s)
   -> Property
 testPredictThree haskellModelFun modelFun = propertyR $ do
   modelR <- lift $ costModelsR
