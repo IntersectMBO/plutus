@@ -78,7 +78,6 @@ initialState =
     { currentView: ActiveContracts
     , contractSignatures: Stream.NotAsked
     , chainReport: NotAsked
-    , events: NotAsked
     , chainState: Chain.initialState
     , contractStates: Map.empty
     , webSocketMessage: Stream.NotAsked
