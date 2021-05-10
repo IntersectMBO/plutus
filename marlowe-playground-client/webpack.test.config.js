@@ -13,7 +13,7 @@ module.exports = {
     output: {
         path: path.join(__dirname, "dist"),
         pathinfo: true,
-        filename: "test.js",
+        filename: "test.js"
     },
     module: {
         rules: [
@@ -40,36 +40,36 @@ module.exports = {
                                 "web-common/**/*.purs",
                                 "web-common-marlowe/**/*.purs",
                                 "web-common-playground/**/*.purs",
-                                "test/**/*.purs",
+                                "test/**/*.purs"
                             ],
                         }
                     }
                 ]
             },
             {
-                test: /\.(png|svg|jpg|jpeg|gif)$/i,
-                type: "asset/resource",
+                test: /\.(gif|png|jpe?g|svg)$/i,
+                use: "url-loader"
             },
         ]
     },
     resolve: {
         modules: [
-            "node_modules",
-            // We need this entry for node to be able to locate `node_modules` from
-            // client directory when modules are referenced from inside `web-common`.
-            path.resolve(__dirname, "./node_modules"),
+            // We need the second entry for node to be able to
+            // locate `node_modules` from client directory when 
+            // modules are referenced from inside `web-common`.
+            "node_modules", path.resolve(__dirname, "./node_modules")
         ],
         alias: {
             grammar: path.resolve(__dirname, "./grammar.ne"),
             static: path.resolve(__dirname, "./static"),
-            src: path.resolve(__dirname, "./src"),
+            src: path.resolve(__dirname, "./src")
         },
-        extensions: [".purs", ".js", ".ts"],
+        extensions: [".purs", ".js", ".ts"]
     },
     resolveLoader: {
         modules: [
             "node_modules",
-            path.resolve(__dirname, "."),
-        ],
+            path.resolve(__dirname, ".")
+        ]
     },
 };
