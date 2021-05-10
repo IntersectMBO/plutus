@@ -5,14 +5,16 @@ module Pickup.Types
   ) where
 
 import Prelude
-import Analytics (class IsEvent, defaultEvent)
+import Analytics (class IsEvent, defaultEvent, toEvent)
 import Data.Maybe (Maybe(..))
+import InputField.Types (Action, State) as InputField
+import Pickup.Validation (WalletNicknameOrIdError)
 import WalletData.Types (WalletDetails, WalletLibrary, WalletNickname)
 
 type State
   = { card :: Maybe Card
     , walletLibrary :: WalletLibrary
-    , pickupWalletString :: String
+    , walletNicknameOrIdInput :: InputField.State WalletNicknameOrIdError
     , walletDetails :: WalletDetails
     , pickingUp :: Boolean -- true when we are in the process of picking up a wallet
     }
@@ -28,7 +30,7 @@ data Action
   = OpenCard Card
   | CloseCard
   | GenerateWallet
-  | SetPickupWalletString String
+  | WalletNicknameOrIdAction (InputField.Action WalletNicknameOrIdError)
   | SetWalletNickname WalletNickname
   | PickupWallet
   | ClearLocalStorage
@@ -39,7 +41,7 @@ instance actionIsEvent :: IsEvent Action where
   toEvent (OpenCard _) = Nothing
   toEvent CloseCard = Nothing
   toEvent GenerateWallet = Just $ defaultEvent "GenerateWallet"
-  toEvent (SetPickupWalletString _) = Nothing
+  toEvent (WalletNicknameOrIdAction inputFieldAction) = toEvent inputFieldAction
   toEvent (SetWalletNickname _) = Nothing
   toEvent PickupWallet = Just $ defaultEvent "PickupWallet"
   toEvent ClearLocalStorage = Just $ defaultEvent "ClearLocalStorage"

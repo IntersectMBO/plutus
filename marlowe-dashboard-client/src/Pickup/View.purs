@@ -10,10 +10,11 @@ import Data.Newtype (unwrap)
 import Data.UUID (toString) as UUID
 import Halogen.HTML (HTML, a, button, div, div_, footer, header, hr, img, input, label, main, p, span_, text)
 import Halogen.HTML.Events.Extra (onClick_, onValueInput_)
-import Halogen.HTML.Properties (InputType(..), disabled, for, href, id_, list, placeholder, readOnly, src, type_, value)
+import Halogen.HTML.Properties (InputType(..), disabled, for, href, id_, placeholder, readOnly, src, type_, value)
 import Images (arrowBack, marloweRunLogo)
+import InputField.View (renderInput)
 import Material.Icons (Icon(..), icon, icon_)
-import Pickup.Lenses (_card, _pickingUp, _pickupWalletString, _walletDetails, _walletLibrary)
+import Pickup.Lenses (_card, _pickingUp, _walletDetails, _walletLibrary, _walletNicknameOrIdInput)
 import Pickup.Types (Action(..), Card(..), State)
 import Prim.TypeError (class Warn, Text)
 import WalletData.Lenses (_companionAppId, _walletNickname)
@@ -276,7 +277,15 @@ pickupWalletScreen state =
   let
     walletLibrary = view _walletLibrary state
 
-    pickupWalletString = view _pickupWalletString state
+    walletNicknameOrIdInput = view _walletNicknameOrIdInput state
+
+    inputDisplayOptions =
+      { baseCss: Css.inputCard
+      , additionalCss: mempty
+      , id_: "existingWallet"
+      , placeholder: "Choose or input wallet ID/nickname"
+      , readOnly: false
+      }
   in
     main
       [ classNames [ "p-4", "max-w-sm", "mx-auto", "text-center" ] ]
@@ -296,7 +305,12 @@ pickupWalletScreen state =
       , p
           [ classNames [ "mb-4" ] ]
           [ text "Or use an existing one by selecting from the list or typing a public key or nickname." ]
-      , input
+      , WalletNicknameOrIdAction <$> renderInput walletNicknameOrIdInput inputDisplayOptions
+      , nicknamesDataList walletLibrary
+      ]
+
+{-
+input
           [ type_ InputText
           , classNames $ Css.inputCard false
           , id_ "existingWallet"
@@ -305,5 +319,4 @@ pickupWalletScreen state =
           , value pickupWalletString
           , onValueInput_ SetPickupWalletString
           ]
-      , nicknamesDataList walletLibrary
-      ]
+-}

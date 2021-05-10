@@ -29,6 +29,7 @@ import Foreign.Generic (decodeJSON, encodeJSON)
 import Halogen (Component, HalogenM, liftEffect, mkComponent, mkEval)
 import Halogen.Extra (mapMaybeSubmodule, mapSubmodule)
 import Halogen.HTML (HTML)
+import InputField.Types (Action(..)) as InputField
 import LocalStorage (getItem, setItem, removeItem)
 import MainFrame.Lenses (_currentSlot, _pickupState, _playState, _subState, _toast, _webSocketStatus)
 import MainFrame.Types (Action(..), ChildSlots, Msg, Query(..), State, WebSocketStatus(..))
@@ -186,7 +187,7 @@ handleAction Init = do
       ajaxWalletDetails <- lookupWalletDetails $ view _companionAppId walletDetails
       case ajaxWalletDetails of
         Left ajaxError -> handleAction $ PickupAction $ Pickup.OpenCard Pickup.LocalWalletMissingCard
-        Right _ -> handleAction $ PickupAction $ Pickup.SetPickupWalletString $ view _walletNickname walletDetails
+        Right _ -> handleAction $ PickupAction $ Pickup.WalletNicknameOrIdAction $ InputField.SetValue $ view _walletNickname walletDetails
 
 handleAction (EnterPickupState walletLibrary walletDetails followerApps) = do
   unsubscribeFromWallet $ view (_walletInfo <<< _wallet) walletDetails

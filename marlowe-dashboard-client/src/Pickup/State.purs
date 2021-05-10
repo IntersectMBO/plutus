@@ -19,11 +19,15 @@ import Effect.Aff.Class (class MonadAff)
 import Env (Env)
 import Foreign.Generic (encodeJSON)
 import Halogen (HalogenM, liftEffect)
+import Halogen.Extra (mapSubmodule)
+import InputField.State (handleAction, mkInitialState) as InputField
+import InputField.Types (Action(..), State) as InputField
 import LocalStorage (setItem, removeItem)
-import MainFrame.Types (ChildSlots, Msg)
 import MainFrame.Types (Action(..)) as MainFrame
-import Pickup.Lenses (_card, _pickupWalletString, _walletDetails, _walletLibrary)
+import MainFrame.Types (ChildSlots, Msg)
+import Pickup.Lenses (_card, _walletDetails, _walletLibrary, _walletNicknameOrIdInput)
 import Pickup.Types (Action(..), Card(..), State)
+import Pickup.Validation (WalletNicknameOrIdError, walletIdError, walletNicknameError)
 import StaticData (walletLibraryLocalStorageKey, walletDetailsLocalStorageKey)
 import Toast.Types (ajaxErrorToast)
 import WalletData.Lenses (_companionAppId, _walletNickname)
@@ -42,7 +46,7 @@ mkInitialState :: WalletLibrary -> State
 mkInitialState walletLibrary =
   { walletLibrary
   , card: Nothing
-  , pickupWalletString: mempty
+  , walletNicknameOrIdInput: InputField.mkInitialState mempty $ walletNicknameError walletLibrary
   , walletDetails: defaultWalletDetails
   , pickingUp: false
   }
@@ -69,29 +73,37 @@ handleAction GenerateWallet = do
       assign _walletDetails walletDetails
       handleAction $ OpenCard PickupNewWalletCard
 
-handleAction (SetPickupWalletString string) = do
-  assign _pickupWalletString string
-  walletLibrary <- use _walletLibrary
-  -- first check for a matching nickname in the wallet library
-  case lookup string walletLibrary of
-    Just walletDetails -> do
-      assign _walletDetails walletDetails
-      handleAction $ OpenCard PickupWalletCard
-    -- then check for a matching ID in the wallet library
-    Nothing -> case findMin $ filter (\walletDetails -> UUID.toString (unwrap (view _companionAppId walletDetails)) == string) walletLibrary of
-      Just { key, value } -> do
-        assign _walletDetails value
-        handleAction $ OpenCard PickupWalletCard
-      -- then check whether the string is a valid UUID
-      Nothing -> case parsePlutusAppId string of
-        Just contractInstanceId -> do
-          ajaxWalletDetails <- lookupWalletDetails contractInstanceId
-          case ajaxWalletDetails of
-            Left ajaxError -> pure unit -- TODO: show negative feedback to the user
-            Right walletDetails -> do
-              assign _walletDetails walletDetails
-              handleAction $ OpenCard PickupWalletCard
-        Nothing -> pure unit -- TODO: show negative feedback to the user
+handleAction (WalletNicknameOrIdAction inputFieldAction) = do
+  case inputFieldAction of
+    InputField.SetValue string -> do
+      walletLibrary <- use _walletLibrary
+      -- start with nickname validation
+      handleAction $ WalletNicknameOrIdAction $ InputField.SetValidator $ walletNicknameError walletLibrary
+      -- first check for a matching nickname in the wallet library
+      case lookup string walletLibrary of
+        Just walletDetails -> do
+          toWalletNicknameOrIdInput $ InputField.handleAction $ InputField.SetValue string
+          assign _walletDetails walletDetails
+          handleAction $ OpenCard PickupWalletCard
+        -- then check for a matching ID in the wallet library
+        Nothing -> case findMin $ filter (\walletDetails -> UUID.toString (unwrap (view _companionAppId walletDetails)) == string) walletLibrary of
+          Just { key, value } -> do
+            assign _walletDetails value
+            handleAction $ OpenCard PickupWalletCard
+          -- then check whether the string is a valid UUID
+          Nothing -> case parsePlutusAppId string of
+            Just plutusAppId -> do
+              ajaxWalletDetails <- lookupWalletDetails plutusAppId
+              -- now we know it's a wallet id, switch validator
+              toWalletNicknameOrIdInput $ InputField.handleAction $ InputField.SetValidator $ walletIdError ajaxWalletDetails
+              case ajaxWalletDetails of
+                Left ajaxError -> pure unit
+                Right walletDetails -> do
+                  assign _walletDetails walletDetails
+                  handleAction $ OpenCard PickupWalletCard
+            Nothing -> pure unit
+    _ -> pure unit
+  toWalletNicknameOrIdInput $ InputField.handleAction inputFieldAction
 
 handleAction (SetWalletNickname walletNickname) = assign (_walletDetails <<< _walletNickname) walletNickname
 
@@ -109,3 +121,11 @@ handleAction ClearLocalStorage =
     removeItem walletDetailsLocalStorageKey
     location_ <- location =<< window
     reload location_
+
+----------
+toWalletNicknameOrIdInput ::
+  forall m msg slots.
+  Functor m =>
+  HalogenM (InputField.State WalletNicknameOrIdError) (InputField.Action WalletNicknameOrIdError) slots msg m Unit ->
+  HalogenM State Action slots msg m Unit
+toWalletNicknameOrIdInput = mapSubmodule _walletNicknameOrIdInput WalletNicknameOrIdAction
