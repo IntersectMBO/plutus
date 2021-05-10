@@ -32,7 +32,7 @@ render ::
   forall m slots.
   MonadAff m =>
   State -> ComponentHTML HAction slots m
-render (State { currentView, chainState, contractSignatures, chainReport, events, contractStates, webSocketStatus, webSocketMessage, metadata }) =
+render (State { currentView, chainState, contractSignatures, chainReport, contractStates, webSocketStatus, webSocketMessage, metadata }) =
   div
     [ class_ $ ClassName "main-frame" ]
     [ container_
