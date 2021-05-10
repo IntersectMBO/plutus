@@ -13,6 +13,7 @@ module Main
     ) where
 
 import           Cli
+import           Command                                 (Command (..))
 import           CommandParser
 
 import qualified Cardano.BM.Backend.EKGView              as EKGView
@@ -31,15 +32,14 @@ import           Plutus.PAB.Effects.Contract.ContractExe (ContractExe)
 import           Plutus.PAB.Monitoring.Config            (defaultConfig, loadConfig)
 import           Plutus.PAB.Monitoring.PABLogMsg         (AppMsg (..))
 import           Plutus.PAB.Monitoring.Util              (PrettyObject (..), convertLog)
-import           Plutus.PAB.Types                        (PABError)
+import           Plutus.PAB.Types                        (PABError (MissingConfigFileOption))
 import           System.Exit                             (ExitCode (ExitFailure), exitSuccess, exitWith)
 
 main :: IO ()
 main = do
-    AppOpts { minLogLevel, configPath, logConfigPath, runEkgServer, cmd } <- parseOptions
+    AppOpts { minLogLevel, logConfigPath, runEkgServer, cmd, configPath } <- parseOptions
 
     -- Parse config files and initialize logging
-    config <- liftIO $ decodeFileThrow configPath
     logConfig <- maybe defaultConfig loadConfig logConfigPath
     for_ minLogLevel $ \ll -> CM.setMinSeverity logConfig ll
     (trace :: Trace IO (PrettyObject (AppMsg ContractExe)), switchboard) <- setupTrace_ logConfig "pab"
@@ -51,7 +51,14 @@ main = do
     serviceAvailability <- newToken
 
     -- execute parsed pab command and handle errors on faliure
-    result <- executePABCommand (convertLog PrettyObject trace) logConfig config serviceAvailability cmd
+    result <- case cmd of
+                WithConfig command -> do
+                    case configPath of
+                        Nothing -> pure $ Left MissingConfigFileOption
+                        Just p -> do
+                            config <- liftIO $ decodeFileThrow p
+                            Right <$> runConfigCommand (convertLog PrettyObject trace) logConfig config serviceAvailability command
+                WithoutConfig command -> Right <$> runNoConfigCommand (convertLog PrettyObject trace) command
     either handleError (const exitSuccess) result
 
         where
@@ -59,10 +66,3 @@ main = do
             handleError (err :: PABError) = do
                 runStdoutLoggingT $ (logErrorN . tshow) err
                 exitWith (ExitFailure 1)
-
-            executePABCommand t logConfig config availability cmd =
-                fmap Right
-                $ runCliCommand t logConfig config availability cmd
-                -- runApp (convertLog PABMsg t) logConfig config
-                -- $ handleLogMsgTrace (monadLoggerTracer t)
-                -- $ runCliCommand t logConfig config availability cmd
