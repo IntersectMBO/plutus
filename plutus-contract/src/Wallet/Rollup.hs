@@ -80,7 +80,13 @@ annotateTransaction sequenceId tx = do
     assign rollingBalances newBalances
     pure $
         AnnotatedTx
-            {sequenceId, txId, tx, dereferencedInputs, balances = newBalances}
+            { sequenceId
+            , txId
+            , tx = eitherTx id id tx
+            , dereferencedInputs
+            , balances = newBalances
+            , valid = eitherTx (const False) (const True) tx
+            }
 
 annotateChainSlot :: Monad m => Int -> Block -> StateT Rollup m [AnnotatedTx]
 annotateChainSlot slotIndex =

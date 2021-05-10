@@ -20,7 +20,8 @@ import           Language.PureScript.Bridge.PSTypes        (psArray, psInt, psNu
 import           Language.PureScript.Bridge.TypeParameters (A)
 import           Ledger                                    (Address, Datum, DatumHash, MonetaryPolicy, OnChainTx,
                                                             PubKey, PubKeyHash, Redeemer, Signature, Tx, TxId, TxIn,
-                                                            TxInType, TxOut, TxOutRef, TxOutTx, UtxoIndex, Validator)
+                                                            TxInType, TxOut, TxOutRef, TxOutTx, UtxoIndex,
+                                                            ValidationPhase, Validator)
 import           Ledger.Ada                                (Ada)
 import           Ledger.Constraints.OffChain               (MkTxError)
 import           Ledger.Credential                         (Credential, StakingCredential)
@@ -255,6 +256,7 @@ ledgerTypes =
     , (genericShow <*> (order <*> mkSumType)) (Proxy @Validator)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @ScriptError)
     , (genericShow <*> mkSumType) (Proxy @ValidationError)
+    , (equal <*> (genericShow <*> mkSumType)) (Proxy @ValidationPhase)
     , (order <*> (genericShow <*> mkSumType)) (Proxy @Address)
     , (order <*> (genericShow <*> mkSumType)) (Proxy @Datum)
     , (order <*> (genericShow <*> mkSumType)) (Proxy @DatumHash)

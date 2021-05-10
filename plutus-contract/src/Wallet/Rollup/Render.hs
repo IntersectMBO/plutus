@@ -29,8 +29,8 @@ import qualified Data.Text                             as Text
 import           Data.Text.Prettyprint.Doc             (Doc, Pretty, defaultLayoutOptions, fill, indent, layoutPretty,
                                                         line, parens, pretty, viaShow, vsep, (<+>))
 import           Data.Text.Prettyprint.Doc.Render.Text (renderStrict)
-import           Ledger                                (Address, Blockchain, OnChainTx (..), PubKey, PubKeyHash,
-                                                        Signature, Tx (Tx), TxId, TxIn (TxIn, txInRef, txInType),
+import           Ledger                                (Address, Blockchain, PubKey, PubKeyHash, Signature, Tx (Tx),
+                                                        TxId, TxIn (TxIn, txInRef, txInType),
                                                         TxInType (ConsumePublicKeyAddress, ConsumeScriptAddress),
                                                         TxOut (TxOut), TxOutRef (TxOutRef, txOutRefId, txOutRefIdx),
                                                         Value, txFee, txForge, txOutValue, txOutputs, txSignatures)
@@ -51,7 +51,7 @@ import           Wallet.Rollup.Types                   (AnnotatedTx (AnnotatedTx
                                                         BeneficialOwner (OwnedByPubKey, OwnedByScript),
                                                         DereferencedInput (DereferencedInput, InputNotFound, originalInput, refersTo),
                                                         SequenceId (SequenceId, slotIndex, txIndex), balances,
-                                                        dereferencedInputs, toBeneficialOwner, tx, txId)
+                                                        dereferencedInputs, toBeneficialOwner, tx, txId, valid)
 
 showBlockchainFold :: [(PubKeyHash, Wallet)] -> EmulatorEventFold (Either Text Text)
 showBlockchainFold walletKeys =
@@ -92,9 +92,10 @@ instance Render [[AnnotatedTx]] where
 
 instance Render AnnotatedTx where
     render AnnotatedTx { txId
-                       , tx = Valid Tx {txOutputs, txForge, txFee, txSignatures}
+                       , tx = Tx {txOutputs, txForge, txFee, txSignatures}
                        , dereferencedInputs
                        , balances
+                       , valid = True
                        } =
         vsep <$>
         sequence
@@ -112,7 +113,8 @@ instance Render AnnotatedTx where
             , indented balances
             ]
     render AnnotatedTx { txId
-                       , tx = Invalid Tx { txFee }
+                       , tx = Tx { txFee }
+                       , valid = False
                        } =
         vsep <$>
         sequence
