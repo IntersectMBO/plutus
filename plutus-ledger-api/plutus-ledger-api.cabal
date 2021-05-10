@@ -63,6 +63,7 @@ library
         cardano-crypto -any,
         flat -any,
         hashable -any,
+        hedgehog -any,
         plutus-core -any,
         memory -any,
         mtl -any,
@@ -83,8 +84,12 @@ test-suite plutus-ledger-api-test
     type: exitcode-stdio-1.0
     main-is: Spec.hs
     hs-source-dirs: test
+    other-modules:
+        Spec.Interval
     build-depends:
         base >=4.9 && <5,
         plutus-ledger-api -any,
+        hedgehog -any,
         tasty -any,
+        tasty-hedgehog -any,
         tasty-hunit -any

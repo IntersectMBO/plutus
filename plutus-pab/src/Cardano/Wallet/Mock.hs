@@ -12,6 +12,8 @@ module Cardano.Wallet.Mock
     , integer2ByteString32
     , byteString2Integer
     , newKeyPair
+    , walletPubKey
+    , pubKeyHashWallet
     ) where
 
 import           Cardano.BM.Data.Trace            (Trace)
@@ -46,7 +48,8 @@ import qualified Data.Map                         as Map
 import           Data.Text.Encoding               (encodeUtf8)
 import qualified Ledger.Ada                       as Ada
 import           Ledger.Address                   (pubKeyAddress)
-import           Ledger.Crypto                    (PrivateKey (..), getPubKeyHash, privateKey2, pubKeyHash, toPublicKey)
+import           Ledger.Crypto                    (PrivateKey (..), PubKeyHash (..), privateKey2, pubKeyHash,
+                                                   toPublicKey)
 import           Ledger.Tx                        (Tx)
 import           Plutus.PAB.Arbitrary             ()
 import qualified Plutus.PAB.Monitoring.Monitoring as LM
@@ -97,6 +100,18 @@ newKeyPair = do
             let pubKey = toPublicKey privateKey
             pure (pubKey, privateKey)
 
+-- | Get the public key of a 'Wallet' by converting the wallet identifier
+--   to a private key bytestring.
+walletPubKey :: Wallet -> PubKeyHash
+walletPubKey (Wallet i) = PubKeyHash $ integer2ByteString32 i
+
+-- | Get the 'Wallet' whose identifier is the integer representation of the
+--   pubkey hash.
+pubKeyHashWallet :: PubKeyHash -> Wallet
+pubKeyHashWallet (PubKeyHash kb) =
+--   TODO (jm): this is terrible and we need to change it - see SCP-2208
+    Wallet $ byteString2Integer kb
+
 -- | Handle multiple wallets using existing @Wallet.handleWallet@ handler
 handleMultiWallet :: forall m effs.
     ( Member NodeClientEffect effs
@@ -118,9 +133,7 @@ handleMultiWallet = do
         CreateWallet -> do
             wallets <- get @Wallets
             (pubKey, privateKey) <- newKeyPair
-            let pkh = pubKeyHash pubKey
-            let walletId = byteString2Integer (getPubKeyHash pkh)
-            let wallet = Wallet walletId
+            let wallet = pubKeyHashWallet $ pubKeyHash pubKey
                 newState = Wallet.emptyWalletStateFromPrivateKey privateKey
             let wallets' = Map.insert wallet newState wallets
             put wallets'
@@ -131,7 +144,6 @@ handleMultiWallet = do
             _ <- evalState walletState $ interpret Wallet.handleWallet (raiseEnd $ distributeNewWalletFunds pubKey)
             WalletEffects.startWatching (pubKeyAddress pubKey)
             return $ WalletInfo{wiWallet = wallet, wiPubKey = pubKey, wiPubKeyHash = pubKeyHash pubKey}
-
 
 -- | Process wallet effects. Retain state and yield HTTP400 on error
 --   or set new state on success.
@@ -165,9 +177,9 @@ runWalletEffects ::
     -> m (Either ServerError (a, Wallets))
 runWalletEffects trace clientHandler chainIndexEnv wallets action =
     handleMultiWallet action
-    & reinterpret (NodeClient.handleNodeClientClient)
+    & reinterpret NodeClient.handleNodeClientClient
     & runReader clientHandler
-    & reinterpret (ChainIndexClient.handleChainIndexClient)
+    & reinterpret ChainIndexClient.handleChainIndexClient
     & runReader chainIndexEnv
     & runState wallets
     & interpret (LM.handleLogMsgTrace (toWalletMsg trace))

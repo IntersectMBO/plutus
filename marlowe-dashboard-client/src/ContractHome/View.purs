@@ -1,7 +1,7 @@
 module ContractHome.View where
 
 import Prelude hiding (div)
-import Contract.Lenses (_contractInstanceId, _executionState, _metadata)
+import Contract.Lenses (_followerAppId, _executionState, _metadata)
 import Contract.State (currentStep, isContractClosed)
 import Contract.Types (State) as Contract
 import ContractHome.Lenses (_status)
@@ -14,19 +14,19 @@ import Data.Lens ((^.))
 import Data.Maybe (maybe')
 import Halogen.HTML (HTML, a, div, h2, p_, span, text)
 import Halogen.HTML.Events.Extra (onClick_)
+import Humanize (humanizeDuration)
 import Marlowe.Execution (_mNextTimeout)
 import Marlowe.Extended (contractTypeName, contractTypeInitials)
 import Marlowe.Semantics (Slot)
 import Marlowe.Slot (secondsDiff)
-import Material.Icons (Icon(..), icon_)
-import TimeHelpers (humanizeDuration)
+import Material.Icons (Icon(..), icon)
 
 contractsScreen :: forall p. Slot -> State -> HTML p Action
 contractsScreen currentSlot state =
   let
     buttonClasses = [ "w-40", "text-center" ]
 
-    selectorButton true = Css.whiteButton <> buttonClasses
+    selectorButton true = Css.button <> [ "shadow", "bg-white" ] <> buttonClasses
 
     selectorButton false = Css.secondaryButton <> buttonClasses
 
@@ -35,7 +35,7 @@ contractsScreen currentSlot state =
     contracts = partitionContracts state.contracts
 
     viewSelector =
-      div [ classNames [ "flex", "my-4", "justify-between", "sm:justify-center", "px-4" ] ]
+      div [ classNames [ "flex", "my-4", "justify-center", "px-4" ] ]
         [ a
             [ classNames $ (selectorButton $ state ^. _status == Running) <> [ "mr-4" ]
             , onClick_ $ SelectView Running
@@ -69,12 +69,20 @@ contractsScreen currentSlot state =
 
 renderContracts :: forall p. Slot -> State -> PartitionedContracts -> HTML p Action
 renderContracts currentSlot { status: Running } { running }
-  | length running == 0 = p_ [ text "You have no running contracts. Tap create to begin" ]
+  | length running == 0 = noContractsMessage "You have no running contracts. Tap create to begin."
   | otherwise = contractGrid currentSlot running
 
 renderContracts currentSlot { status: Completed } { completed }
-  | length completed == 0 = p_ [ text "You have no completed contracts." ]
+  | length completed == 0 = noContractsMessage "You have no completed contracts."
   | otherwise = contractGrid currentSlot completed
+
+noContractsMessage :: forall p. String -> HTML p Action
+noContractsMessage message =
+  div
+    [ classNames [ "h-full", "flex", "flex-col", "justify-center", "items-center" ] ]
+    [ icon Contract [ "-mt-32", "text-big-icon", "text-gray" ]
+    , p_ [ text message ]
+    ]
 
 contractGrid :: forall p. Slot -> Array Contract.State -> HTML p Action
 contractGrid currentSlot contracts =
@@ -97,7 +105,7 @@ contractCard currentSlot contractState =
 
     mNextTimeout = contractState ^. (_executionState <<< _mNextTimeout)
 
-    contractId = contractState ^. _contractInstanceId
+    contractInstanceId = contractState ^. _followerAppId
 
     timeoutStr =
       maybe'
@@ -108,19 +116,20 @@ contractCard currentSlot contractState =
     div
       -- NOTE: The overflow hidden helps fix a visual bug in which the background color eats away the border-radius
       [ classNames
-          [ "cursor-pointer", "shadow", "bg-white", "rounded", "overflow-hidden" ]
-      , onClick_ $ OpenContract contractId
+          [ "cursor-pointer", "shadow-sm", "hover:shadow", "active:shadow-lg", "bg-white", "rounded", "overflow-hidden" ]
+      , onClick_ $ OpenContract contractInstanceId
       ]
-      [ div [ classNames [ "flex", "px-4", "pt-4" ] ]
-          [ span [ classNames [ "text-xl", "font-semibold" ] ] [ text contractAcronym ]
-          , span [ classNames [ "flex-grow", "text-xs" ] ] [ text contractType ]
-          , icon_ ArrowRight
+      -- TODO: This part is really similar to contractTitle in Template.View, see if it makes sense to factor a component out
+      [ div [ classNames [ "flex", "px-4", "pt-4", "items-center" ] ]
+          [ span [ classNames [ "text-2xl", "leading-none", "font-semibold" ] ] [ text contractAcronym ]
+          , span [ classNames [ "flex-grow", "ml-2", "self-start", "text-xs", "uppercase" ] ] [ text contractType ]
+          , icon ArrowRight [ "text-28px" ]
           ]
-      , div [ classNames [ "font-semibold", "px-4", "py-2" ] ]
+      , div [ classNames [ "px-4", "py-2", "text-lg" ] ]
           [ text longTitle
           ]
       , div [ classNames [ "bg-lightgray", "flex", "flex-col", "px-4", "py-2" ] ]
-          [ span [ classNames [ "text-xs" ] ] [ text $ "Step " <> show stepNumber <> ":" ]
+          [ span [ classNames [ "text-xs", "font-semibold" ] ] [ text $ "Step " <> show stepNumber <> ":" ]
           , span [ classNames [ "text-xl" ] ] [ text timeoutStr ]
           ]
       ]

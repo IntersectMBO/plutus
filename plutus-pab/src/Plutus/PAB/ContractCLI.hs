@@ -47,7 +47,8 @@ import qualified Data.ByteString.Char8             as BS8
 import qualified Data.ByteString.Lazy              as BSL
 import           Data.Foldable                     (traverse_)
 import           Data.Proxy                        (Proxy (..))
-import           Data.Row                          (AllUniqueLabels, Forall, type (.\\))
+import           Data.Row                          (AllUniqueLabels, Forall)
+import           Data.Row.Extras                   (type (.\\))
 import           Data.Text                         (Text)
 import qualified Data.Text                         as Text
 import           Options.Applicative               (CommandFields, Mod, Parser, ParserResult, command, disambiguate,

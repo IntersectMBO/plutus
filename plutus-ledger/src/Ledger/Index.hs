@@ -249,9 +249,9 @@ checkForgingScripts tx = do
         let vd = Context $ toData ptx'
         in case runExcept $ runMonetaryPolicyScript vd vl of
             Left e  -> do
-                tell [mpsValidationEvent vd vl (Just e)]
+                tell [mpsValidationEvent vd vl (Left e)]
                 throwError $ ScriptFailure e
-            Right _ -> tell [mpsValidationEvent vd vl Nothing]
+            res -> tell [mpsValidationEvent vd vl res]
 
 -- | A matching pair of transaction input and transaction output, ensuring that they are of matching types also.
 data InOutMatch =
@@ -303,10 +303,10 @@ checkMatch txinfo = \case
             ptx' = ScriptContext { scriptContextTxInfo = txinfo, scriptContextPurpose = Spending txOutRef }
             vd = Context (toData ptx')
         case runExcept $ runScript vd vl d r of
-            Left e  -> do
-                tell [validatorScriptValidationEvent vd vl d r (Just e)]
+            Left e -> do
+                tell [validatorScriptValidationEvent vd vl d r (Left e)]
                 throwError $ ScriptFailure e
-            Right _ -> tell [validatorScriptValidationEvent vd vl d r Nothing]
+            res -> tell [validatorScriptValidationEvent vd vl d r res]
     PubKeyMatch msg pk sig -> unless (signedBy sig pk msg) $ throwError $ InvalidSignature pk sig
 
 -- | Check if the value produced by a transaction equals the value consumed by it.
@@ -378,24 +378,24 @@ data ScriptType = ValidatorScript | MonetaryPolicyScript
 data ScriptValidationEvent =
     ScriptValidationEvent
         { sveScript :: Script -- ^ The script applied to all arguments
-        , sveError  :: Maybe ScriptError -- ^ Result of running the script
+        , sveResult :: Either ScriptError [String] -- ^ Result of running the script: an error or the trace logs
         , sveType   :: ScriptType -- ^ What type of script it was
         }
     deriving stock (Eq, Show, Generic)
     deriving anyclass (ToJSON, FromJSON)
 
-validatorScriptValidationEvent :: Context -> Validator -> Datum -> Redeemer -> Maybe ScriptError -> ScriptValidationEvent
-validatorScriptValidationEvent ctx validator datum redeemer err =
+validatorScriptValidationEvent :: Context -> Validator -> Datum -> Redeemer -> Either ScriptError [String] -> ScriptValidationEvent
+validatorScriptValidationEvent ctx validator datum redeemer result =
     ScriptValidationEvent
         { sveScript = applyValidator ctx validator datum redeemer
-        , sveError = err
+        , sveResult = result
         , sveType = ValidatorScript
         }
 
-mpsValidationEvent :: Context -> MonetaryPolicy -> Maybe ScriptError -> ScriptValidationEvent
-mpsValidationEvent ctx mps err =
+mpsValidationEvent :: Context -> MonetaryPolicy -> Either ScriptError [String] -> ScriptValidationEvent
+mpsValidationEvent ctx mps result =
     ScriptValidationEvent
         { sveScript = applyMonetaryPolicyScript ctx mps
-        , sveError = err
+        , sveResult = result
         , sveType = MonetaryPolicyScript
         }

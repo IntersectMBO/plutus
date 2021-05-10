@@ -7,7 +7,7 @@ module Template.View
 import Prelude hiding (div)
 import Css (applyWhen, classNames, hideWhen)
 import Css as Css
-import Data.Array (mapWithIndex)
+import Data.Array (filter, mapWithIndex)
 import Data.BigInteger (fromString) as BigInteger
 import Data.Lens (view)
 import Data.Map (Map, lookup)
@@ -19,15 +19,19 @@ import Data.Tuple.Nested ((/\))
 import Halogen.HTML (HTML, a, br_, button, div, div_, h2, hr, input, label, li, p, p_, span, span_, text, ul, ul_)
 import Halogen.HTML.Events.Extra (onClick_, onValueInput_)
 import Halogen.HTML.Properties (InputType(..), for, id_, list, placeholder, readOnly, type_, value)
+import Humanize (humanizeValue)
 import Marlowe.Extended (Contract, TemplateContent, _valueContent, contractTypeInitials)
 import Marlowe.Extended.Metadata (MetaData)
-import Marlowe.Extended.Template (ContractTemplate)
 import Marlowe.HasParties (getParties)
-import Marlowe.Semantics (Party(..), Slot)
+import Marlowe.Market (contractTemplates)
+import Marlowe.PAB (contractCreationFee)
+import Marlowe.Semantics (Assets, Party(..), Slot)
 import Material.Icons (Icon(..), icon_)
+import Template.Format (formatText)
 import Template.Lenses (_contractName, _contractNickname, _extendedContract, _metaData, _roleWallets, _slotContentStrings, _template, _templateContent)
 import Template.Types (Action(..), State)
 import Template.Validation (roleError, roleWalletsAreValid, slotError, templateContentIsValid, valueError)
+import WalletData.State (adaToken, getAda)
 import WalletData.Types (WalletLibrary)
 import WalletData.View (nicknamesDataList)
 
@@ -97,7 +101,14 @@ contractNicknameDisplay contractName contractNickname =
         [ div
             [ classNames [ "max-w-sm", "mx-auto", "px-4", "pt-2" ] ]
             [ input
-                [ classNames $ (Css.input $ null contractNickname) <> [ "bg-transparent", "font-semibold" ]
+                [ classNames
+                    -- TODO: Once we remove the readOnly, remove this filter. I tried adding "text-black" to the end of the array
+                    
+                    --       but the browser does not respect ordering and for some reason "text-darkgray was winning"
+                    
+                    $ filter (not <<< eq "text-darkgray")
+                    $ (Css.input $ null contractNickname)
+                    <> [ "font-semibold" ]
                 , type_ InputText
                 , placeholder "Contract name *"
                 , value contractNickname
@@ -145,7 +156,7 @@ roleInputs wallets extendedContract metaData roleWallets =
           ]
           [ text $ "Party " <> (show $ index + 1) ]
       , input
-          [ classNames $ Css.input false <> [ "shadow" ]
+          [ classNames $ Css.inputCard false
           , id_ pubKey
           , type_ InputText
           , value pubKey
@@ -171,12 +182,12 @@ roleInputs wallets extendedContract metaData roleWallets =
                 [ classNames [ "font-bold" ] ]
                 [ text $ "Role " <> (show $ index + 1) <> " (" <> tokenName <> ")*" ]
             , br_
-            , text description
+            , span_ $ formatText description
             ]
         , div
             [ classNames [ "relative" ] ]
             [ input
-                [ classNames $ Css.input (isJust mRoleError) <> [ "shadow", "pr-9" ]
+                [ classNames $ Css.inputCard (isJust mRoleError) <> [ "pr-9" ]
                 , id_ tokenName
                 , type_ InputText
                 , list "walletNicknames"
@@ -226,10 +237,10 @@ parameterInputs wallets currentSlot metaData templateContent slotContentStrings 
                 [ classNames [ "font-bold" ] ]
                 [ text $ "Timeout " <> (show $ index + 1) <> " (" <> key <> ")*" ]
             , br_
-            , text description
+            , span_ $ formatText description
             ]
         , input
-            [ classNames $ Css.input (isJust mParameterError) <> [ "shadow" ]
+            [ classNames $ Css.inputCard (isJust mParameterError)
             , id_ $ "slot-" <> key
             , type_ InputDatetimeLocal
             , onValueInput_ $ SetSlotContent key
@@ -258,10 +269,10 @@ parameterInputs wallets currentSlot metaData templateContent slotContentStrings 
                 [ classNames [ "font-bold" ] ]
                 [ text $ "Value " <> (show $ index + 1) <> " (" <> key <> ")*" ]
             , br_
-            , text description
+            , span_ $ formatText description
             ]
         , input
-            [ classNames $ Css.input (isJust mParameterError) <> [ "shadow" ]
+            [ classNames $ Css.inputCard (isJust mParameterError)
             , id_ $ "value-" <> key
             , type_ InputNumber
             , onValueInput_ $ SetValueContent key <<< BigInteger.fromString
@@ -279,7 +290,17 @@ reviewAndPay accessible metaData =
   subSection accessible false
     [ div
         [ classNames $ [ "mb-4", "bg-white", "p-4", "shadow", "rounded" ] ]
-        [ contractTitle metaData ]
+        [ contractTitle metaData
+        , hr [ classNames [ "my-4" ] ]
+        , div_
+            [ p
+                [ classNames [ "text-sm" ] ]
+                [ text "Fee to pay:" ]
+            , p
+                [ classNames Css.funds ]
+                [ text $ humanizeValue adaToken contractCreationFee ]
+            ]
+        ]
     , div
         [ classNames [ "flex", "justify-end", "mb-4" ] ]
         [ button
@@ -300,8 +321,8 @@ subSection accessible border content =
     ]
 
 ------------------------------------------------------------
-templateLibraryCard :: forall p. Array ContractTemplate -> HTML p Action
-templateLibraryCard templates =
+templateLibraryCard :: forall p. HTML p Action
+templateLibraryCard =
   div
     [ classNames [ "md:px-5pc", "p-4" ] ]
     [ h2
@@ -309,7 +330,7 @@ templateLibraryCard templates =
         [ text "Choose a contract template" ]
     , div
         [ classNames [ "grid", "gap-4", "md:grid-cols-2", "xl:grid-cols-3" ] ]
-        (templateBox <$> templates)
+        (templateBox <$> contractTemplates)
     ]
   where
   templateBox template =
@@ -324,38 +345,36 @@ templateLibraryCard templates =
               ]
               [ text "Setup" ]
           ]
-      , p_
-          [ text template.metaData.contractDescription ]
+      , p_ $ formatText template.metaData.contractDescription
       ]
 
+-- TODO: This helper is really similar to contractCard in ContractHome.View, see if it makes sense to factor a component out
 contractTitle :: forall p. MetaData -> HTML p Action
 contractTitle metaData =
   div
-    [ classNames [ "flex", "items-start", "leading-none", "mr-1" ] ]
+    [ classNames [ "flex", "items-start", "mr-1" ] ]
     [ span
-        [ classNames [ "text-2xl", "font-semibold", "mr-2" ] ]
+        [ classNames [ "text-2xl", "leading-none", "font-semibold" ] ]
         [ text $ contractTypeInitials metaData.contractType ]
     , span
-        [ classNames [ "text-sm", "pt-1", "uppercase" ] ]
+        [ classNames [ "text-xs", "uppercase", "ml-2" ] ]
         [ text $ metaData.contractName ]
     ]
 
-contractSetupConfirmationCard :: forall p. HTML p Action
-contractSetupConfirmationCard =
+contractSetupConfirmationCard :: forall p. Assets -> HTML p Action
+contractSetupConfirmationCard assets =
   div_
     [ div [ classNames [ "flex", "font-semibold", "justify-between", "bg-lightgray", "p-5" ] ]
         [ span_ [ text "Demo wallet balance:" ]
-        -- FIXME: remove placeholder with actual value
-        , span_ [ text "$223,456.78" ]
+        , span_ [ text $ humanizeValue adaToken $ getAda assets ]
         ]
     , div [ classNames [ "px-5", "pb-6", "md:pb-8" ] ]
         [ p
             [ classNames [ "mt-4", "text-sm", "font-semibold" ] ]
             [ text "Confirm payment of:" ]
-        -- FIXME: remove placeholder with actual value
         , p
             [ classNames [ "mb-4", "text-purple", "font-semibold", "text-2xl" ] ]
-            [ text "₳ 123.456" ]
+            [ text $ humanizeValue adaToken contractCreationFee ]
         , div
             [ classNames [ "flex" ] ]
             [ button

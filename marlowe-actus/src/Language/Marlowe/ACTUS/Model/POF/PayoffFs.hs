@@ -6,7 +6,7 @@ import           Data.Maybe                                        (fromJust)
 import           Data.Time                                         (Day)
 import           Language.Marlowe                                  (Observation, Value)
 import           Language.Marlowe.ACTUS.Definitions.BusinessEvents (EventType (FP, IED, IP, MD, PP, PR, PRD, PY, TD))
-import           Language.Marlowe.ACTUS.Definitions.ContractTerms  (ContractTerms (..), ContractType (LAM, PAM))
+import           Language.Marlowe.ACTUS.Definitions.ContractTerms  (ContractTerms (..), ContractType (LAM, NAM, PAM))
 import           Language.Marlowe.ACTUS.MarloweCompat              (constnt, enum, useval)
 import           Language.Marlowe.ACTUS.Model.POF.PayoffModel
 import           Language.Marlowe.ACTUS.Ops                        (ActusNum (..), YearFractionOps (_y),
@@ -37,7 +37,7 @@ payoffFs ev ContractTerms{..} t t_minus prevDate curDate =
         __ipcb            = useval "ipcb" t_minus
         __prnxt           = useval "prnxt" t_minus
 
-        y_sd_t            = constnt $ _y ct_DCC prevDate curDate (fromJust ct_MD)
+        y_sd_t            = constnt $ _y ct_DCC prevDate curDate ct_MD
 
         pof = case fromJust contractType of
             PAM -> case ev of
@@ -61,5 +61,15 @@ payoffFs ev ContractTerms{..} t t_minus prevDate curDate =
                 TD  -> Just $ _POF_TD_LAM __o_rf_CURS ct_CNTRL __PTD __ipac __ipnr __ipcb y_sd_t
                 IP  -> Just $ _POF_IP_LAM __o_rf_CURS __isc __ipac __ipnr __ipcb y_sd_t
                 _   -> Nothing
+            NAM -> case ev of
+                IED -> Just $ _POF_IED_NAM  __o_rf_CURS ct_CNTRL __NT __PDIED
+                PR  -> Just $ _POF_PR_NAM __o_rf_CURS __nsc __prnxt __ipac y_sd_t __ipnr __ipcb
+                MD  -> Just $ _POF_MD_NAM __o_rf_CURS __nsc __nt __isc __ipac __feac
+                PP  -> Just $ _POF_PP_NAM __o_rf_CURS __pp_payoff
+                PY  -> Just $ _POF_PY_NAM __PYTP __o_rf_CURS __o_rf_RRMO __PYRT __cPYRT ct_CNTRL __nt __ipnr y_sd_t
+                FP  -> Just $ _POF_FP_NAM __FEB __FER __o_rf_CURS ct_CNTRL __nt __fac y_sd_t
+                PRD -> Just $ _POF_PRD_NAM __o_rf_CURS ct_CNTRL __PPRD __ipac __ipnr __ipcb y_sd_t
+                TD  -> Just $ _POF_TD_NAM __o_rf_CURS ct_CNTRL __PTD __ipac __ipnr __ipcb y_sd_t
+                IP  -> Just $ _POF_IP_NAM __o_rf_CURS __isc __ipac __ipnr __ipcb y_sd_t
+                _   -> Nothing
     in (\x -> x / (constnt $ fromIntegral marloweFixedPoint)) <$> pof
-

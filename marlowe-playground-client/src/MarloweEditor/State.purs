@@ -1,7 +1,6 @@
 module MarloweEditor.State
   ( handleAction
   , editorGetValue
-  , {- FIXME: this should be an action -} editorResize
   , editorSetTheme
   ) where
 
@@ -39,7 +38,7 @@ import Marlowe.LinterText as Linter
 import Marlowe.Monaco (updateAdditionalContext)
 import Marlowe.Monaco as MM
 import Marlowe.Parser (parseContract)
-import MarloweEditor.Types (Action(..), BottomPanelView, State, _hasHoles, _bottomPanelState, _editorErrors, _editorWarnings, _keybindings, _metadataHintInfo, _selectedHole, _showErrorDetail)
+import MarloweEditor.Types (Action(..), BottomPanelView, State, _bottomPanelState, _comesFromBlockly, _editorErrors, _editorWarnings, _hasHoles, _keybindings, _metadataHintInfo, _selectedHole, _showErrorDetail)
 import Monaco (isError, isWarning)
 import Network.RemoteData as RemoteData
 import Servant.PureScript.Ajax (AjaxError)
@@ -105,7 +104,6 @@ handleAction (BottomPanelAction (BottomPanel.PanelAction action)) = handleAction
 
 handleAction (BottomPanelAction action) = do
   toBottomPanel (BottomPanel.handleAction action)
-  editorResize
 
 handleAction (ShowErrorDetail val) = assign _showErrorDetail val
 
@@ -115,6 +113,7 @@ handleAction ViewAsBlockly = pure unit
 
 handleAction (InitMarloweProject contents) = do
   editorSetValue contents
+  assign (_comesFromBlockly) false
   liftEffect $ SessionStorage.setItem marloweBufferLocalStorageKey contents
 
 handleAction (SelectHole hole) = assign _selectedHole hole
@@ -233,9 +232,6 @@ runAjax action = RemoteData.fromEither <$> runExceptT action
 
 editorSetTheme :: forall state action msg m. HalogenM state action ChildSlots msg m Unit
 editorSetTheme = void $ query _marloweEditorPageSlot unit (Monaco.SetTheme MM.daylightTheme.name unit)
-
-editorResize :: forall state action msg m. HalogenM state action ChildSlots msg m Unit
-editorResize = void $ query _marloweEditorPageSlot unit (Monaco.Resize unit)
 
 editorSetValue :: forall state action msg m. String -> HalogenM state action ChildSlots msg m Unit
 editorSetValue contents = void $ query _marloweEditorPageSlot unit (Monaco.SetText contents unit)

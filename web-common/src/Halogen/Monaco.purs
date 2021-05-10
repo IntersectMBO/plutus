@@ -7,6 +7,9 @@ module Halogen.Monaco
   , monacoComponent
   ) where
 
+import Prelude hiding (div)
+import Control.Monad.Maybe.Trans (runMaybeT, MaybeT(..))
+import Control.Monad.Trans.Class (lift)
 import Data.Either (Either(..))
 import Data.Enum (class BoundedEnum, class Enum)
 import Data.Generic.Rep (class Generic)
@@ -14,22 +17,24 @@ import Data.Generic.Rep.Bounded (genericBottom, genericTop)
 import Data.Generic.Rep.Enum (genericCardinality, genericFromEnum, genericPred, genericSucc, genericToEnum)
 import Data.Generic.Rep.Eq (genericEq)
 import Data.Generic.Rep.Ord (genericCompare)
-import Data.Lens (view)
+import Data.Lens (Lens', use, view)
+import Data.Lens.Record (prop)
 import Data.Maybe (Maybe(..))
-import Control.Monad.Maybe.Trans (runMaybeT, MaybeT(..))
-import Control.Monad.Trans.Class (lift)
+import Data.Symbol (SProxy(..))
 import Data.Traversable (for_, traverse)
 import Effect (Effect)
 import Effect.Aff.Class (class MonadAff)
 import Effect.Class (class MonadEffect, liftEffect)
 import Halogen (HalogenM, RefLabel, get, modify_)
 import Halogen as H
+import Halogen.ElementResize (elementResize)
 import Halogen.HTML (HTML, div)
 import Halogen.HTML.Properties (class_, ref)
 import Halogen.Query.EventSource (Emitter(..), Finalizer, effectEventSource)
 import Monaco (CodeActionProvider, CompletionItemProvider, DocumentFormattingEditProvider, Editor, HoverProvider, IMarker, IMarkerData, IPosition, LanguageExtensionPoint, MonarchLanguage, Theme, TokensProvider, IRange)
 import Monaco as Monaco
-import Prelude hiding (div)
+import Web.DOM.ResizeObserver (ResizeObserverBoxOptions(..))
+import Web.HTML.HTMLElement as HTMLElement
 
 data KeyBindings
   = DefaultBindings
@@ -79,6 +84,9 @@ type State
     , objects :: Objects
     }
 
+_editor :: Lens' State (Maybe Editor)
+_editor = prop (SProxy :: SProxy "editor")
+
 data Query a
   = SetText String a
   | GetText (String -> a)
@@ -98,6 +106,7 @@ data Query a
 data Action
   = Init
   | HandleChange String
+  | ResizeWorkspace
 
 data Message
   = TextChanged String
@@ -173,10 +182,16 @@ handleAction settings Init = do
       H.lift $ settings.setup editor
       model <- liftEffect $ Monaco.getModel editor
       H.raise $ TextChanged (Monaco.getValue model)
+      void $ H.subscribe $ elementResize ContentBox (const ResizeWorkspace) (HTMLElement.toElement element)
       pure unit
     Nothing -> pure unit
 
 handleAction _ (HandleChange contents) = H.raise $ TextChanged contents
+
+handleAction _ ResizeWorkspace = do
+  mEditor <- use _editor
+  for_ mEditor \editor ->
+    liftEffect $ Monaco.layout editor
 
 changeContentHandler ::
   forall m.

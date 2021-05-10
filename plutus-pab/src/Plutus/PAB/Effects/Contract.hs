@@ -73,8 +73,8 @@ requests = hooks . serialisableState (Proxy @contract)
 -- | An effect for sending updates to contracts that implement @PABContract@
 data ContractEffect t r where
     ExportSchema   :: PABContract t => ContractDef t -> ContractEffect t [FunctionSchema FormSchema] -- ^ The schema of the contract
-    InitialState   :: PABContract t => ContractDef t -> ContractEffect t (State t) -- ^ The initial state of the contract's instance
-    UpdateContract :: PABContract t => ContractDef t -> State t -> Response ContractResponse -> ContractEffect t (State t) -- ^ Send an update to the contract and return the new state.
+    InitialState   :: PABContract t => ContractInstanceId -> ContractDef t -> ContractEffect t (State t) -- ^ The initial state of the contract's instance
+    UpdateContract :: PABContract t => ContractInstanceId -> ContractDef t -> State t -> Response ContractResponse -> ContractEffect t (State t) -- ^ Send an update to the contract and return the new state.
 
 -- | Get the schema of a contract given its definition.
 exportSchema ::
@@ -94,10 +94,11 @@ initialState ::
     ( Member (ContractEffect t) effs
     , PABContract t
     )
-    => ContractDef t
+    => ContractInstanceId
+    -> ContractDef t
     -> Eff effs (State t)
-initialState def =
-    let command :: ContractEffect t (State t) = InitialState def
+initialState i def =
+    let command :: ContractEffect t (State t) = InitialState i def
     in send command
 
 -- | Send an update to the contract and return the new state.
@@ -106,19 +107,22 @@ updateContract ::
     ( Member (ContractEffect t) effs
     , PABContract t
     )
-    => ContractDef t
+    => ContractInstanceId
+    -> ContractDef t
     -> State t
     -> Response ContractResponse
     -> Eff effs (State t)
-updateContract def state request =
-    let command :: ContractEffect t (State t) = UpdateContract def state request
+updateContract i def state request =
+    let command :: ContractEffect t (State t) = UpdateContract i def state request
     in send command
 
 -- | Storing and retrieving the state of a contract instance
 data ContractStore t r where
-    PutState :: ContractActivationArgs (ContractDef t) -> ContractInstanceId -> State t -> ContractStore t ()
-    GetState :: ContractInstanceId -> ContractStore t (State t)
-    ActiveContracts :: ContractStore t (Map ContractInstanceId (ContractActivationArgs (ContractDef t)))
+    PutStartInstance :: ContractActivationArgs (ContractDef t) -> ContractInstanceId -> ContractStore t () -- ^ Record the starting of a new contract instance
+    PutState :: ContractActivationArgs (ContractDef t) -> ContractInstanceId -> State t -> ContractStore t () -- ^ Record the updated state of the contract instance
+    GetState :: ContractInstanceId -> ContractStore t (State t) -- ^ Retrieve the last recorded state of the contract instance
+    PutStopInstance :: ContractInstanceId -> ContractStore t () -- ^ Record the fact that a contract instance has stopped
+    GetActiveContracts :: ContractStore t (Map ContractInstanceId (ContractActivationArgs (ContractDef t))) -- ^ Get all active contracts with their activation args
 
 -- | Store the state of the contract instance
 putState ::
@@ -151,7 +155,7 @@ getActiveContracts ::
     )
     => Eff effs (Map ContractInstanceId (ContractActivationArgs (ContractDef t)))
 getActiveContracts =
-    let command :: ContractStore t (Map ContractInstanceId (ContractActivationArgs (ContractDef t))) = ActiveContracts
+    let command :: ContractStore t (Map ContractInstanceId (ContractActivationArgs (ContractDef t))) = GetActiveContracts
     in send command
 
 -- | Get the definition of a running contract

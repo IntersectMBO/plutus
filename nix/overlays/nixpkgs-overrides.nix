@@ -4,7 +4,7 @@ self: super: {
   morph = super.morph.overrideAttrs (old: {
     # See https://github.com/DBCDK/morph/pull/141
     # Note that this patch does refelct the original content
-    # of the PR above since it was broken. 
+    # of the PR above since it was broken.
     patches = [ ../pkgs/morph/sshopts.patch ];
     src = self.fetchFromGitHub {
       owner = "DBCDK";
@@ -14,4 +14,17 @@ self: super: {
     };
   });
 
+  python3 = super.python3.override {
+    packageOverrides = python-self: python-super: {
+      # New version has much better citation styles
+      sphinxcontrib-bibtex = python-super.sphinxcontrib-bibtex.overrideAttrs (oldAttrs: rec {
+        version = "2.2.0";
+        src = python-super.fetchPypi {
+          inherit (oldAttrs) pname;
+          inherit version;
+          sha256 = "1cp3dj5bbl122d64i3vbqhjhfplnh1rwm9dw4cy9hxjd2lz8803m";
+        };
+      });
+    };
+  };
 }

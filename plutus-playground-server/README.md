@@ -13,7 +13,7 @@ stack exec -- plutus-playground-server webserver
 ### nix
 
 ```sh
-$(nix-build -A plutus-playground.server-invoker)/bin/plutus-playground webserver
+$(nix-build -A plutus-playground.server)/bin/plutus-playground-server webserver
 ```
 
 ## Testing

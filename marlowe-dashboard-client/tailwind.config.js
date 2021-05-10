@@ -1,7 +1,11 @@
 "use strict";
 
 module.exports = {
-  purge: [],
+  purge: [
+    "src/**/*.purs",
+    "web-common/**/*.purs",
+    "web-common-marlowe/**/*.purs",
+  ],
   darkMode: false, // or 'media' or 'class'
   theme: {
     colors: {
@@ -18,7 +22,6 @@ module.exports = {
       purple: "#4700c3",
       lightpurple: "#8701fc",
       grayblue: "#f5f9fc",
-      purple: "#4c41e5",
       red: "#e04b4c",
     },
     fontSize: {
@@ -27,9 +30,13 @@ module.exports = {
       base: "16px",
       lg: "18px",
       xl: "24px",
+      /* this value was requested for some icons in the contract home */
+      "28px": "28px",
       "2xl": "34px",
       "3xl": "46px",
+      "4xl": "64px",
       "big-icon": "100px",
+      "medium-icon": "80px",
     },
     scale: {
       77: ".77",
@@ -54,6 +61,9 @@ module.exports = {
         "from-below": "from-below 250ms ease-out 1",
         "to-bottom": "to-bottom 250ms ease-out 1",
       },
+      backgroundImage: theme => ({
+        "link-highlight": "url('/static/images/link-highlight.svg')",
+      }),
       keyframes: {
         "from-below": {
           "0%": { transform: "translateY(20px)", opacity: 0 },
@@ -73,6 +83,9 @@ module.exports = {
         "auto-fill-contract-home-card": "repeat(auto-fill, minmax(240px, 1fr))",
       },
       spacing: {
+        "22": "5.5rem",
+        "160": "40rem",
+        "256": "64rem",
         "5pc": "5%",
       },
       width: {
@@ -109,7 +122,7 @@ module.exports = {
       // note 'disabled' goes last so that it takes priority
       backgroundColor: ["last", "hover", "disabled"],
       backgroundImage: ["hover", "disabled"],
-      boxShadow: ["hover", "disabled"],
+      boxShadow: ["hover", "disabled", "active"],
       cursor: ["hover", "disabled"],
       // This causes an error
       // spacing: ['first', 'last'],
@@ -133,9 +146,9 @@ module.exports = {
     backgroundImage: true,
     gradientColorStops: true,
     backgroundOpacity: false,
-    backgroundPosition: false,
-    backgroundRepeat: false,
-    backgroundSize: false,
+    backgroundPosition: true,
+    backgroundRepeat: true,
+    backgroundSize: true,
     borderCollapse: false,
     borderColor: true,
     borderOpacity: false,
@@ -225,7 +238,7 @@ module.exports = {
     transform: true,
     transformOrigin: true,
     scale: true,
-    rotate: false,
+    rotate: true,
     translate: true,
     skew: false,
     transitionProperty: true,

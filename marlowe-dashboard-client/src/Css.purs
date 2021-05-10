@@ -15,11 +15,13 @@ module Css
   , inputError
   , hasNestedLabel
   , nestedLabel
+  , withNestedLabel
   , overlay
   , card
   , largeCard
   , iconCircle
   , fixedBottomRight
+  , funds
   ) where
 
 import Prelude
@@ -35,10 +37,10 @@ toggleWhen :: Boolean -> Array String -> Array String -> Array String
 toggleWhen condition classes1 classes2 = if condition then classes1 else classes2
 
 applyWhen :: Boolean -> Array String -> Array String
-applyWhen condition classes = if condition then classes else []
+applyWhen condition classes = toggleWhen condition classes []
 
 hideWhen :: Boolean -> Array String
-hideWhen condition = applyWhen condition [ "hidden" ]
+hideWhen = flip applyWhen [ "hidden" ]
 
 --- color gradients
 bgBlueGradient :: Array String
@@ -46,7 +48,22 @@ bgBlueGradient = [ "bg-gradient-to-r", "from-purple", "to-lightpurple", "text-wh
 
 -- buttons
 button :: Array String
-button = [ "leading-none", "whitespace-nowrap", "px-6", "py-4", "font-black", "rounded-lg", "transition-all", "duration-200", "hover:shadow", "outline-none", "focus:outline-none", "disabled:bg-none", "disabled:bg-lightgray", "disabled:text-darkgray", "disabled:shadow-none" ]
+button =
+  [ "px-6"
+  , "py-4"
+  , "rounded-full"
+  , "font-bold"
+  , "leading-none"
+  , "whitespace-nowrap"
+  , "transition-all"
+  , "duration-200"
+  , "outline-none"
+  , "focus:outline-none"
+  , "disabled:bg-none"
+  , "disabled:bg-lightgray"
+  , "disabled:text-darkgray"
+  , "disabled:shadow-none"
+  ]
 
 withShadow :: Array String
 withShadow = [ "shadow", "hover:shadow-lg" ]
@@ -55,7 +72,7 @@ primaryButton :: Array String
 primaryButton = button <> bgBlueGradient <> withShadow
 
 secondaryButton :: Array String
-secondaryButton = button <> [ "bg-lightgray", "text-black" ]
+secondaryButton = button <> [ "bg-lightgray", "text-black", "hover:shadow" ]
 
 whiteButton :: Array String
 whiteButton = button <> withShadow <> [ "bg-white" ]
@@ -65,13 +82,32 @@ withIcon icon = [ "with-icon", "with-icon-" <> iconClass icon ]
 
 --- inputs
 inputBase :: Array String
-inputBase = [ "block", "w-full", "border", "p-4", "rounded", "transition-all", "duration-200", "outline-none", "focus:outline-none" ]
+inputBase =
+  [ "block"
+  , "w-full"
+  , "p-4"
+  , "rounded"
+  , "transition-all"
+  , "duration-200"
+  , "outline-none"
+  , "focus:outline-none"
+  , "text-black"
+  , "border-transparent"
+  , "focus:border-transparent"
+  , "focus:ring-1"
+  , "shadow-sm"
+  , "focus:shadow"
+  , "hover:shadow"
+  ]
 
 input :: Boolean -> Array String
-input invalid = inputBase <> [ "hover:shadow", "focus:shadow" ] <> toggleWhen invalid [ "border-red" ] [ "border-gray", "hover:border-black", "focus:border-black" ]
+input invalid = inputBase <> [ "border" ] <> [ "bg-transparent" ] <> toggleWhen invalid [ "border-red" ] [ "border-black", "focus:border-black" ]
+
+withNestedLabel :: Array String
+withNestedLabel = [ "border", "border-gray", "focus:border-gray" ]
 
 inputCard :: Boolean -> Array String
-inputCard invalid = inputBase <> [ "shadow-sm", "hover:shadow", "focus:shadow" ] <> toggleWhen invalid [ "border-red" ] [ "border-transparent" ]
+inputCard invalid = inputBase <> toggleWhen invalid [ "border-red" ] [ "border-transparent" ]
 
 inputError :: Array String
 inputError = [ "text-red", "text-sm" ]
@@ -98,3 +134,6 @@ iconCircle enabled = [ "inline-flex", "items-center", "justify-center", "w-8", "
 
 fixedBottomRight :: Array String
 fixedBottomRight = [ "absolute", "bottom-4", "right-4", "md:right-5pc" ]
+
+funds :: Array String
+funds = [ "text-2xl", "text-purple", "font-semibold" ]

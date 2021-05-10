@@ -27,7 +27,7 @@ class ActusNum a where
     (/) :: a -> a -> a
 
 class YearFractionOps a b where
-    _y :: DCC -> a -> a -> a -> b
+    _y :: DCC -> a -> a -> Maybe a -> b
 
 class DateOps a b where
     _lt :: a -> a -> b --returns pseudo-boolean

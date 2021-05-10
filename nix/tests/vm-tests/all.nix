@@ -232,10 +232,10 @@ makeTest {
     playgrounds.wait_for_open_port(9090)
     playgrounds.succeed("curl --silent http://plutus-playground:8080/ | grep  'plutus'")
     playgrounds.succeed("curl --silent http://plutus-playground:8080/doc/ | grep 'The Plutus Platform'")
-    playgrounds.succeed("curl --silent http://plutus-playground:8080/doc/plutus/tutorials/ | grep 'Plutus tutorials'")
+    playgrounds.succeed("curl --silent http://plutus-playground:8080/doc/plutus/tutorials/ | grep 'Tutorials'")
     playgrounds.succeed("curl --silent http://marlowe-playground:9090/ | grep 'marlowe-playground'")
     playgrounds.succeed("curl --silent http://marlowe-playground:9090/doc/ | grep 'The Plutus Platform'")
-    playgrounds.succeed("curl --silent http://marlowe-playground:9090/doc/marlowe/tutorials/ | grep 'Marlowe tutorials'")
+    playgrounds.succeed("curl --silent http://marlowe-playground:9090/doc/marlowe/tutorials/ | grep 'Tutorials'")
 
     #
     # webghc asserts

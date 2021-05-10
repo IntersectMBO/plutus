@@ -92,12 +92,13 @@ instance (Forall (Output s) Pretty) => Pretty (Handlers s) where
 initialise ::
   forall (s :: Row *) l a.
   ( KnownSymbol l
+  , AllUniqueLabels (Output s)
   , HasType l a (Output s)
   )
   => a
   -> Handlers s
 initialise a =
-  Handlers (Variants.unsafeMakeVar @(Output s) @l (Label @l) a)
+  Handlers (Variants.IsJust @l @(Output s) (Label @l) a)
 
 --  | Given a schema 's', 'Input s' is the 'Row' type of the inputs that
 --    contracts with this schema accept. See [Contract Schema]

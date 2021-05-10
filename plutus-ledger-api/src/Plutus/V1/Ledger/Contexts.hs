@@ -216,7 +216,7 @@ fromSymbol :: CurrencySymbol -> ValidatorHash
 fromSymbol (CurrencySymbol s) = ValidatorHash s
 
 {-# INLINABLE scriptOutputsAt #-}
--- | Get the list of 'TxOutInfo' outputs of the pending transaction at
+-- | Get the list of 'TxOut' outputs of the pending transaction at
 --   a given script address.
 scriptOutputsAt :: ValidatorHash -> TxInfo -> [(DatumHash, Value)]
 scriptOutputsAt h p =

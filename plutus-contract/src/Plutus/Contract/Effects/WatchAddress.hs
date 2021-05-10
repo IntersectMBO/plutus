@@ -40,7 +40,8 @@ import           Plutus.Contract.Request           (ContractRow, requestMaybe)
 import           Plutus.Contract.Schema            (Event (..), Handlers (..), Input, Output)
 import           Plutus.Contract.Types             (AsContractError, Contract)
 import           Plutus.Contract.Util              (loopM)
-import           Wallet.Types                      (AddressChangeRequest (..), AddressChangeResponse (..))
+import           Wallet.Types                      (AddressChangeRequest (..), AddressChangeResponse (..), slotRange,
+                                                    targetSlot)
 
 type AddressSymbol = "address"
 
@@ -57,15 +58,17 @@ addressChangeRequest ::
     forall w s e.
     ( HasWatchAddress s
     , AsContractError e
+    , HasAwaitSlot s
     )
     => AddressChangeRequest
     -> Contract w s e AddressChangeResponse
-addressChangeRequest rq =
+addressChangeRequest rq = do
     let check :: AddressChangeResponse -> Maybe AddressChangeResponse
         check r@AddressChangeResponse{acrAddress, acrSlotRange}
-                | acrAddress == acreqAddress rq && acrSlotRange >= acreqSlotRange rq = Just r
+                | acrAddress == acreqAddress rq && acrSlotRange == slotRange rq = Just r
                 | otherwise = Nothing
-    in requestMaybe @w @AddressSymbol @_ @_ @s rq check
+    _ <- awaitSlot (targetSlot rq)
+    requestMaybe @w @AddressSymbol @_ @_ @s rq check
 
 -- | Call 'addresssChangeRequest' for the address in each slot, until at least one
 --   transaction is returned that modifies the address.
@@ -81,7 +84,8 @@ nextTransactionsAt addr = do
     initial <- currentSlot
     let go sl = do
             txns <- acrTxns <$> addressChangeRequest AddressChangeRequest
-                { acreqSlotRange = Interval.singleton sl
+                { acreqSlotRangeFrom = sl
+                , acreqSlotRangeTo = sl
                 , acreqAddress = addr
                 }
 

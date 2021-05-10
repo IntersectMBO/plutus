@@ -1,9 +1,8 @@
 module Contract.State
-  ( handleQuery
-  , handleAction
+  ( dummyState
   , mkInitialState
-  , instantiateExtendedContract
-  , dummyState
+  , updateState
+  , handleAction
   , currentStep
   , isContractClosed
   , applyTx
@@ -11,48 +10,48 @@ module Contract.State
   ) where
 
 import Prelude
+import Capability.Marlowe (class ManageMarlowe, applyTransactionInput)
 import Capability.Toast (class Toast, addToast)
-import Contract.Lenses (_contractInstanceId, _executionState, _namedActions, _previousSteps, _selectedStep, _tab)
-import Contract.Types (Action(..), PreviousStep, PreviousStepState(..), Query(..), State, Tab(..), scrollContainerRef)
+import Contract.Lenses (_executionState, _marloweParams, _namedActions, _previousSteps, _selectedStep, _tab)
+import Contract.Types (Action(..), Input, PreviousStep, PreviousStepState(..), State, Tab(..), scrollContainerRef)
 import Control.Monad.Reader (class MonadAsk, asks)
-import Data.Array as Array
-import Data.Foldable (for_)
+import Data.Array (difference, foldl, head, index, length, mapMaybe)
+import Data.Either (Either(..))
+import Data.Foldable (foldMap, for_)
 import Data.FoldableWithIndex (foldlWithIndex)
 import Data.Lens (assign, modifying, over, to, toArrayOf, traversed, use, view, (^.))
-import Data.Map (Map)
 import Data.Map as Map
 import Data.Maybe (Maybe(..))
+import Data.Newtype (unwrap)
 import Data.Ord (abs)
-import Data.RawJson (RawJson(..))
+import Data.Set (Set)
 import Data.Set as Set
 import Data.Traversable (traverse)
-import Data.UUID (emptyUUID)
+import Data.Tuple.Nested (get1, get2, get3, (/\))
+import Data.UUID as UUID
 import Data.Unfoldable as Unfoldable
 import Effect (Effect)
 import Effect.Aff.AVar as AVar
 import Effect.Aff.Class (class MonadAff, liftAff)
-import Effect.Class (class MonadEffect)
 import Effect.Exception.Unsafe (unsafeThrow)
 import Env (Env)
-import Foreign.Generic (encode)
-import Foreign.JSON (unsafeStringify)
-import Halogen (HalogenM, SubscriptionId, getHTMLElementRef, gets, liftEffect, modify_, subscribe, subscribe', unsubscribe)
+import Halogen (HalogenM, getHTMLElementRef, gets, liftEffect, modify_, subscribe, unsubscribe)
 import Halogen.Query.EventSource (EventSource)
 import Halogen.Query.EventSource as EventSource
 import MainFrame.Types (ChildSlots, Msg)
-import Marlowe.Execution (NamedAction(..), PreviousState, _currentContract, _currentState, _pendingTimeouts, _previousState, expandBalances, extractNamedActions, initExecution, isClosed, mkTx, nextState, timeoutState)
-import Marlowe.Extended (TemplateContent, fillTemplate, resolveRelativeTimes, toCore)
-import Marlowe.Extended as Extended
-import Marlowe.Extended.Metadata (MetaData, emptyContractMetadata)
-import Marlowe.Semantics (Contract(..), Input(..), Slot, SlotInterval(..), Token(..), TransactionInput(..))
-import Marlowe.Semantics as Semantic
-import Marlowe.Slot (currentSlot)
-import Toast.Types (successToast)
-import Types (ContractInstanceId(..))
-import WalletData.Types (WalletNickname)
+import Marlowe.Deinstantiate (findTemplate)
+import Marlowe.HasParties (getParties)
+import Marlowe.Execution (ExecutionState, NamedAction(..), PreviousState, _currentContract, _currentState, _pendingTimeouts, _previousState, _previousTransactions, expandBalances, extractNamedActions, initExecution, isClosed, mkTx, nextState, timeoutState)
+import Marlowe.Extended.Metadata (emptyContractMetadata)
+import Marlowe.PAB (PlutusAppId(..), History, MarloweParams)
+import Marlowe.Semantics (Contract(..), Party(..), Slot, SlotInterval(..), Token(..), TransactionInput(..))
+import Marlowe.Semantics (Input(..), State(..)) as Semantic
+import Plutus.V1.Ledger.Value (CurrencySymbol(..))
+import Toast.Types (ajaxErrorToast, successToast)
+import WalletData.Lenses (_assets, _pubKeyHash, _walletInfo)
+import WalletData.Types (WalletDetails)
 import Web.DOM.Element (getElementsByClassName)
 import Web.DOM.HTMLCollection as HTMLCollection
-import Web.DOM.IntersectionObserver (disconnect, intersectionObserver, observe)
 import Web.Dom.ElementExtra (Alignment(..), ScrollBehavior(..), debouncedOnScroll, scrollIntoView, throttledOnScroll)
 import Web.HTML (HTMLElement)
 import Web.HTML.HTMLElement (getBoundingClientRect, offsetLeft)
@@ -60,17 +59,198 @@ import Web.HTML.HTMLElement as HTMLElement
 
 -- see note [dummyState] in MainFrame.State
 dummyState :: State
-dummyState = mkInitialState emptyContractInstanceId zero emptyContractMetadata mempty Nothing Close
+dummyState =
+  { tab: Tasks
+  , executionState: initExecution zero contract
+  , previousSteps: mempty
+  , marloweParams: emptyMarloweParams
+  , followerAppId: emptyPlutusAppId
+  , selectedStep: 0
+  , metadata: emptyContractMetadata
+  , participants: mempty
+  , userParties: mempty
+  , namedActions: mempty
+  }
   where
-  emptyContractInstanceId = ContractInstanceId emptyUUID
+  contract = Close
+
+  emptyPlutusAppId = PlutusAppId UUID.emptyUUID
+
+  emptyMarloweParams = { rolePayoutValidatorHash: mempty, rolesCurrency: CurrencySymbol { unCurrencySymbol: "" } }
+
+  emptyMarloweData = { marloweContract: contract, marloweState: emptyMarloweState }
+
+  emptyMarloweState = Semantic.State { accounts: mempty, choices: mempty, boundValues: mempty, minSlot: zero }
+
+mkInitialState :: WalletDetails -> Slot -> PlutusAppId -> History -> Maybe State
+mkInitialState walletDetails currentSlot followerAppId history =
+  let
+    marloweParams = get1 $ unwrap history
+
+    marloweData = get2 $ unwrap history
+
+    transactionInputs = get3 $ unwrap history
+
+    contract = marloweData.marloweContract
+
+    mTemplate = findTemplate contract
+
+    -- FIXME: We can't use the currentSlot to create the initial execution state, since the contract
+    -- might have been created several slots ago. Hopefully this doesn't matter (the argument is
+    -- only used to set the minSlot in the contract's initial state), but we should check. We could
+    -- also consider using the `minSlot` of the original contract.
+    initialExecutionState = initExecution zero contract
+  in
+    flip map mTemplate \template ->
+      let
+        parties :: Array Party
+        parties = Set.toUnfoldable $ getParties contract
+
+        initialState =
+          { tab: Tasks
+          , executionState: initialExecutionState
+          , previousSteps: mempty
+          , marloweParams
+          , followerAppId
+          , selectedStep: 0
+          , metadata: template.metaData
+          , participants: Map.fromFoldable $ map (\x -> x /\ Nothing) parties
+          , userParties: getUserParties walletDetails marloweParams
+          , namedActions: mempty
+          }
+
+        updateExecutionState = over _executionState (applyTransactionInputs transactionInputs)
+      in
+        initialState
+          # updateExecutionState
+          # regenerateStepCards currentSlot
+          # selectLastStep
+
+updateState :: Slot -> History -> State -> State
+updateState currentSlot history state =
+  let
+    allTransactionInputs = get3 $ unwrap history
+
+    previousTransactionInputs = toArrayOf (_executionState <<< _previousTransactions) state
+
+    newTransactionInputs = difference allTransactionInputs previousTransactionInputs
+
+    updateExecutionState = over _executionState (applyTransactionInputs newTransactionInputs)
+  in
+    state
+      # updateExecutionState
+      # regenerateStepCards currentSlot
+      # selectLastStep
+
+getUserParties :: WalletDetails -> MarloweParams -> Set Party
+getUserParties walletDetails marloweParams =
+  let
+    pubKeyHash = view (_walletInfo <<< _pubKeyHash) walletDetails
+
+    assets = view _assets walletDetails
+
+    currencySymbolString = (unwrap marloweParams.rolesCurrency).unCurrencySymbol
+
+    mCurrencyTokens = Map.lookup currencySymbolString (unwrap assets)
+
+    roleTokens = foldMap (Set.map Role <<< Map.keys <<< Map.filter ((/=) zero)) mCurrencyTokens
+  in
+    Set.insert (PK $ unwrap pubKeyHash) roleTokens
+
+handleAction ::
+  forall m.
+  MonadAff m =>
+  MonadAsk Env m =>
+  ManageMarlowe m =>
+  Toast m =>
+  Input -> Action -> HalogenM State Action ChildSlots Msg m Unit
+handleAction input@{ currentSlot, walletDetails } (ConfirmAction namedAction) = do
+  currentExeState <- use _executionState
+  marloweParams <- use _marloweParams
+  let
+    contractInput = toInput namedAction
+
+    txInput = mkTx currentSlot (currentExeState ^. _currentContract) (Unfoldable.fromMaybe contractInput)
+  -- FIXME: remove the next four lines and uncomment the code below when things are working in the PAB
+  modify_ $ applyTx currentSlot txInput
+  stepNumber <- gets currentStep
+  handleAction input (MoveToStep stepNumber)
+  addToast $ successToast "Payment received, step completed."
+
+--ajaxApplyInputs <- applyTransactionInput walletDetails marloweParams txInput
+--case ajaxApplyInputs of
+--  Left ajaxError -> addToast $ ajaxErrorToast "Failed to submit transaction." ajaxError
+--  Right _ -> do
+--    stepNumber <- gets currentStep
+--    handleAction walletDetails (MoveToStep stepNumber)
+--    addToast $ successToast "Payment received, step completed."
+handleAction _ (ChangeChoice choiceId chosenNum) = modifying _namedActions (map changeChoice)
+  where
+  changeChoice (MakeChoice choiceId' bounds _)
+    | choiceId == choiceId' = MakeChoice choiceId bounds chosenNum
+
+  changeChoice namedAction = namedAction
+
+handleAction _ (SelectTab tab) = assign _tab tab
+
+handleAction _ (AskConfirmation action) = pure unit -- Managed by Play.State
+
+handleAction _ CancelConfirmation = pure unit -- Managed by Play.State
+
+handleAction _ (SelectStep stepNumber) = assign _selectedStep stepNumber
+
+handleAction _ (MoveToStep stepNumber) = do
+  -- The MoveToStep action is called when a new step is added (either via an apply transaction or
+  -- a timeout). We unsubscribe and resubscribe to update the tracked elements.
+  unsubscribeFromSelectCenteredStep
+  subscribeToSelectCenteredStep
+  mElement <- getHTMLElementRef scrollContainerRef
+  for_ mElement $ liftEffect <<< scrollStepToCenter Smooth stepNumber
+
+handleAction _ CarouselOpened = do
+  selectedStep <- use _selectedStep
+  mElement <- getHTMLElementRef scrollContainerRef
+  for_ mElement \elm -> do
+    -- When the carousel is opened we want to assure that the selected step is
+    -- in the center without any animation
+    liftEffect $ scrollStepToCenter Auto selectedStep elm
+    subscribeToSelectCenteredStep
+
+handleAction _ CarouselClosed = unsubscribeFromSelectCenteredStep
+
+applyTransactionInputs :: Array TransactionInput -> ExecutionState -> ExecutionState
+applyTransactionInputs transactionInputs state = foldl nextState state transactionInputs
 
 currentStep :: State -> Int
-currentStep = Array.length <<< view _previousSteps
+currentStep = length <<< view _previousSteps
 
-toInput :: NamedAction -> Maybe Input
-toInput (MakeDeposit accountId party token value) = Just $ IDeposit accountId party token value
+isContractClosed :: State -> Boolean
+isContractClosed state = isClosed $ state ^. _executionState
 
-toInput (MakeChoice choiceId _ (Just chosenNum)) = Just $ IChoice choiceId chosenNum
+applyTx :: Slot -> TransactionInput -> State -> State
+applyTx currentSlot txInput state =
+  let
+    updateExecutionState = over _executionState (\s -> nextState s txInput)
+  in
+    state
+      # updateExecutionState
+      # regenerateStepCards currentSlot
+      # selectLastStep
+
+applyTimeout :: Slot -> State -> State
+applyTimeout currentSlot state =
+  let
+    updateExecutionState = over _executionState (timeoutState currentSlot)
+  in
+    state
+      # updateExecutionState
+      # regenerateStepCards currentSlot
+      # selectLastStep
+
+toInput :: NamedAction -> Maybe Semantic.Input
+toInput (MakeDeposit accountId party token value) = Just $ Semantic.IDeposit accountId party token value
+
+toInput (MakeChoice choiceId _ (Just chosenNum)) = Just $ Semantic.IChoice choiceId chosenNum
 
 -- WARNING:
 --       This is possible in the types but should never happen in runtime. And I prefer to explicitly throw
@@ -83,59 +263,9 @@ toInput (MakeChoice choiceId _ (Just chosenNum)) = Just $ IChoice choiceId chose
 --       seems like an overkill.
 toInput (MakeChoice _ _ Nothing) = unsafeThrow "A choice action has been triggered"
 
-toInput (MakeNotify _) = Just $ INotify
+toInput (MakeNotify _) = Just $ Semantic.INotify
 
 toInput _ = Nothing
-
-isContractClosed :: State -> Boolean
-isContractClosed state = isClosed $ state ^. _executionState
-
-instantiateExtendedContract ::
-  ContractInstanceId ->
-  Slot ->
-  Extended.Contract ->
-  TemplateContent ->
-  MetaData ->
-  Map Semantic.Party (Maybe WalletNickname) ->
-  Maybe Semantic.Party ->
-  Maybe State
-instantiateExtendedContract contractInstanceId currentSlot extendedContract templateContent metadata participants mActiveUserParty =
-  let
-    relativeContract = resolveRelativeTimes currentSlot extendedContract
-
-    mContract = toCore $ fillTemplate templateContent relativeContract
-  in
-    mContract
-      <#> mkInitialState contractInstanceId currentSlot metadata participants mActiveUserParty
-
-mkInitialState ::
-  ContractInstanceId ->
-  Slot ->
-  MetaData ->
-  Map Semantic.Party (Maybe WalletNickname) ->
-  Maybe Semantic.Party ->
-  Contract ->
-  State
-mkInitialState contractInstanceId slot metadata participants mActiveUserParty contract =
-  let
-    executionState = initExecution slot contract
-  in
-    { tab: Tasks
-    , executionState
-    , previousSteps: mempty
-    , contractInstanceId
-    , selectedStep: 0
-    , metadata
-    , participants
-    , mActiveUserParty
-    , namedActions: extractNamedActions slot executionState
-    }
-
-handleQuery :: forall a m. MonadEffect m => Query a -> HalogenM State Action ChildSlots Msg m (Maybe a)
-handleQuery (ApplyTx tx next) = do
-  slot <- liftEffect $ currentSlot
-  modify_ $ applyTx slot tx
-  pure $ Just next
 
 transactionsToStep :: State -> PreviousState -> PreviousStep
 transactionsToStep { participants } { txInput, state } =
@@ -186,88 +316,9 @@ regenerateStepCards currentSlot state =
     state { previousSteps = previousSteps, namedActions = namedActions }
 
 selectLastStep :: State -> State
-selectLastStep state@{ previousSteps } = state { selectedStep = Array.length previousSteps }
+selectLastStep state@{ previousSteps } = state { selectedStep = length previousSteps }
 
-applyTx :: Slot -> TransactionInput -> State -> State
-applyTx currentSlot txInput state =
-  let
-    updateExecutionState = over _executionState (\s -> nextState s txInput)
-  in
-    state
-      # updateExecutionState
-      # regenerateStepCards currentSlot
-      # selectLastStep
-
-applyTimeout :: Slot -> State -> State
-applyTimeout currentSlot state =
-  let
-    updateExecutionState = over _executionState (timeoutState currentSlot)
-  in
-    state
-      # updateExecutionState
-      # regenerateStepCards currentSlot
-      # selectLastStep
-
-handleAction ::
-  forall m.
-  MonadAff m =>
-  MonadAsk Env m =>
-  Toast m =>
-  Action -> HalogenM State Action ChildSlots Msg m Unit
-handleAction (ConfirmAction namedAction) = do
-  currentExeState <- use _executionState
-  contractId <- use _contractInstanceId
-  slot <- liftEffect currentSlot
-  let
-    input = toInput namedAction
-
-    txInput = mkTx slot (currentExeState ^. _currentContract) (Unfoldable.fromMaybe input)
-
-    json = RawJson <<< unsafeStringify <<< encode $ input
-  -- TODO: currently we just ignore errors but we probably want to do something better in the future
-  -- FIXME: send data to BE
-  -- void $ mapEnvReaderT _.ajaxSettings $ runExceptT $ postApiContractByContractinstanceidEndpointByEndpointname json contractId "apply-inputs"
-  modify_ $ applyTx slot txInput
-  stepNumber <- gets currentStep
-  handleAction $ MoveToStep stepNumber
-  addToast $ successToast "Payment received, step completed"
-
--- raise (SendWebSocketMessage (ServerMsg true)) -- FIXME: send txInput to the server to apply to the on-chain contract
-handleAction (ChangeChoice choiceId chosenNum) = modifying _namedActions (map changeChoice)
-  where
-  changeChoice (MakeChoice choiceId' bounds _)
-    | choiceId == choiceId' = MakeChoice choiceId bounds chosenNum
-
-  changeChoice namedAction = namedAction
-
-handleAction (SelectTab tab) = assign _tab tab
-
-handleAction (AskConfirmation action) = pure unit -- Managed by Play.State
-
-handleAction CancelConfirmation = pure unit -- Managed by Play.State
-
-handleAction (SelectStep stepNumber) = assign _selectedStep stepNumber
-
-handleAction (MoveToStep stepNumber) = do
-  -- The MoveToStep action is called when a new step is added (either via an apply transaction or
-  -- a timeout). We unsubscribe and resubscribe to update the tracked elements.
-  unsubscribeFromSelectCenteredStep
-  subscribeToSelectCenteredStep
-  mElement <- getHTMLElementRef scrollContainerRef
-  for_ mElement $ liftEffect <<< scrollStepToCenter Smooth stepNumber
-
-handleAction CarouselOpened = do
-  selectedStep <- use _selectedStep
-  mElement <- getHTMLElementRef scrollContainerRef
-  for_ mElement \elm -> do
-    -- When the carousel is opened we want to assure that the selected step is
-    -- in the center without any animation
-    liftEffect $ scrollStepToCenter Auto selectedStep elm
-    subscribe' $ carouselCloseEventSource elm
-    subscribeToSelectCenteredStep
-
-handleAction CarouselClosed = unsubscribeFromSelectCenteredStep
-
+------------------------------------------------------------------
 -- NOTE: In the first version of the selectCenteredStep feature the subscriptionId was stored in the
 --       Contract.State as a Maybe SubscriptionId. But when calling subscribe/unsubscribe multiple
 --       times in a small period of time there was a concurrency issue and multiple subscriptions
@@ -307,28 +358,8 @@ scrollStepToCenter ::
 scrollStepToCenter behavior stepNumber parentElement = do
   let
     getStepElemets = HTMLCollection.toArray =<< getElementsByClassName "w-contract-card" (HTMLElement.toElement parentElement)
-  mStepElement <- flip Array.index stepNumber <$> getStepElemets
+  mStepElement <- flip index stepNumber <$> getStepElemets
   for_ mStepElement $ scrollIntoView { block: Center, inline: Center, behavior }
-
--- Because this is a subcomponent, we don't have a `Finalize` event that we can use, so we add a self contained
--- subscription (a.k.a. it closes itself) that detects when the modal is no longer visible (not intersecting with the
--- viewport)
-carouselCloseEventSource ::
-  forall m.
-  MonadAff m =>
-  HTMLElement ->
-  SubscriptionId ->
-  EventSource m Action
-carouselCloseEventSource parentElement _ =
-  EventSource.effectEventSource \emitter -> do
-    observer <-
-      intersectionObserver {} \entries _ ->
-        for_ (Array.head entries) \entry ->
-          when (not entry.isIntersecting) do
-            EventSource.emit emitter CarouselClosed
-            EventSource.close emitter
-    observe (HTMLElement.toElement parentElement) observer
-    pure $ EventSource.Finalizer $ disconnect observer
 
 -- This EventSource is responsible for selecting the step closest to the center of the scroll container
 -- when scrolling
@@ -349,7 +380,7 @@ selectCenteredStepEventSource scrollContainer =
     -- Calculate the left coordinate of all cards relative to the scroll container (which needs to have a
     -- display: relative property)
     stepElements <- HTMLCollection.toArray =<< getElementsByClassName "w-contract-card" (HTMLElement.toElement scrollContainer)
-    stepLeftOffsets <- traverse offsetLeft $ Array.mapMaybe HTMLElement.fromElement stepElements
+    stepLeftOffsets <- traverse offsetLeft $ mapMaybe HTMLElement.fromElement stepElements
     let
       calculateClosestStep scrollPos =
         _.index

@@ -17,6 +17,8 @@ module Wallet.Types(
     , Payment(..)
     , emptyPayment
     , AddressChangeRequest(..)
+    , targetSlot
+    , slotRange
     , AddressChangeResponse(..)
     -- * Error types
     , MatchingError(..)
@@ -47,7 +49,8 @@ import qualified Data.UUID.V4                     as UUID
 import           GHC.Generics                     (Generic)
 import qualified Language.Haskell.TH.Syntax       as TH
 
-import           Ledger                           (Address, OnChainTx, SlotRange, TxIn, TxOut, eitherTx, txId)
+import           Ledger                           (Address, OnChainTx, Slot, SlotRange, TxIn, TxOut, eitherTx, interval,
+                                                   txId)
 import           Ledger.Constraints.OffChain      (MkTxError)
 import           Plutus.Contract.Checkpoint       (AsCheckpointError (..), CheckpointError)
 import           Wallet.Emulator.Error            (WalletAPIError)
@@ -213,15 +216,25 @@ instance Pretty AddressChangeResponse where
 --   outputs at a specific address in a slot range.
 data AddressChangeRequest =
     AddressChangeRequest
-        { acreqSlotRange :: SlotRange -- ^ The slot range
-        , acreqAddress   :: Address -- ^ The address
+        { acreqSlotRangeFrom :: Slot
+        , acreqSlotRangeTo   :: Slot
+        , acreqAddress       :: Address -- ^ The address
         }
         deriving stock (Eq, Generic, Show, Ord)
         deriving anyclass (ToJSON, FromJSON)
 
+-- | The earliest slot in which we can respond to an 'AddressChangeRequest'.
+targetSlot :: AddressChangeRequest -> Slot
+targetSlot = succ . acreqSlotRangeTo
+
+-- | The slot range for this request
+slotRange :: AddressChangeRequest -> SlotRange
+slotRange AddressChangeRequest{acreqSlotRangeFrom, acreqSlotRangeTo} =
+    interval acreqSlotRangeFrom acreqSlotRangeTo
+
 instance Pretty AddressChangeRequest where
-    pretty AddressChangeRequest{acreqSlotRange, acreqAddress} =
+    pretty AddressChangeRequest{acreqSlotRangeFrom, acreqSlotRangeTo, acreqAddress} =
         hang 2 $ vsep
-            [ "Slot range:" <+> pretty acreqSlotRange
+            [ "From " <+> pretty acreqSlotRangeFrom <+> "to" <+> pretty acreqSlotRangeTo
             , "Address:" <+> pretty acreqAddress
             ]

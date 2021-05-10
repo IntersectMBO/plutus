@@ -36,13 +36,22 @@ handleContractStore = \case
         void
             $ runCommand @() @(PABEvent (ContractDef t))
                 Command.updateContractInstanceState
-                PABEventSource
+                (InstanceEventSource i)
                 (def, i, state)
     GetState i -> do
         contractState <- runGlobalQuery (Query.contractState @(ContractDef t))
         case Map.lookup i contractState of
             Nothing -> throwError $ ContractInstanceNotFound i
             Just k  -> pure k
-    ActiveContracts ->
+    GetActiveContracts ->
         runGlobalQuery (Query.contractDefinition @(ContractDef t))
-
+    PutStartInstance def i ->
+        void $ runCommand @() @(PABEvent (ContractDef t))
+            Command.startContractInstance
+            PABEventSource
+            (def, i)
+    PutStopInstance i ->
+        void $ runCommand @() @(PABEvent (ContractDef t))
+            Command.stopContractInstance
+            PABEventSource
+            i

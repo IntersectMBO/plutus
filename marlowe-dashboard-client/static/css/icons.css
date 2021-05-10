@@ -34,6 +34,10 @@
   content: "people";
 }
 
+.with-icon-contract::after {
+  content: "history_edu";
+}
+
 .with-icon-help::after {
   content: "help";
 }
@@ -48,6 +52,10 @@
 
 .with-icon-next::after {
   content: "chevron_right";
+}
+
+.with-icon-new-contact::after {
+  content: "person_add_alt";
 }
 
 .with-icon-pay::after {

@@ -27,6 +27,7 @@ import           Data.Time.Units.Extra             ()
 import           Servant                           (NoContent (NoContent))
 
 import           Cardano.BM.Data.Trace             (Trace)
+import           Cardano.Chain                     (handleChain, handleControlChain)
 import           Cardano.Node.RandomTx
 import           Cardano.Node.Types
 import qualified Cardano.Protocol.Socket.Client    as Client
@@ -87,7 +88,7 @@ runChainEffects trace clientHandler stateVar eff = do
 
             runRandomTx = subsume . runGenRandomTx
 
-            runChain = interpret (mapLog ProcessingChainEvent) . reinterpret Chain.handleChain . interpret (mapLog ProcessingChainEvent) . reinterpret Chain.handleControlChain
+            runChain = interpret (mapLog ProcessingChainEvent) . reinterpret handleChain . interpret (mapLog ProcessingChainEvent) . reinterpret handleControlChain
 
             mergeState = interpret (handleZoomedState chainState)
 
@@ -137,14 +138,3 @@ slotCoordinator sc@SlotConfig{scSlotLength} serverHandler = do
         newSlot <- currentSlot sc
         void $ Server.modifySlot (const newSlot) serverHandler
         liftIO $ threadDelay $ fromIntegral $ toMicroseconds scSlotLength
-
--- | Discards old blocks according to the 'BlockReaperConfig'. (avoids memory
---   leak)
-blockReaper ::
-    BlockReaperConfig
- -> Server.ServerHandler
- -> IO ()
-blockReaper BlockReaperConfig {brcInterval, brcBlocksToKeep} serverHandler =
-    forever $ do
-        Server.trimTo serverHandler brcBlocksToKeep
-        liftIO $ threadDelay $ fromIntegral $ toMicroseconds brcInterval

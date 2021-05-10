@@ -56,6 +56,7 @@ import Marlowe.ActusBlockly as AMB
 import Marlowe.Extended.Metadata (emptyContractMetadata, getHintsFromMetadata)
 import Marlowe.Gists (PlaygroundFiles, mkNewGist, playgroundFiles)
 import MarloweEditor.State as MarloweEditor
+import MarloweEditor.Types (_comesFromBlockly)
 import MarloweEditor.Types as ME
 import MetadataTab.State (carryMetadataAction)
 import Network.RemoteData (RemoteData(..), _Success)
@@ -359,9 +360,10 @@ handleAction (MarloweEditorAction action) = do
       for_ mContents \contents ->
         sendToSimulation contents
     ME.ViewAsBlockly -> do
+      comesFromBlockly <- use (_marloweEditorState <<< _comesFromBlockly)
       mSource <- MarloweEditor.editorGetValue
       for_ mSource \source -> do
-        void $ toBlocklyEditor $ BlocklyEditor.handleAction (BE.InitBlocklyProject source)
+        void $ toBlocklyEditor $ BlocklyEditor.handleAction (BE.InitBlocklyProject (not comesFromBlockly) source)
         assign _workflow (Just Blockly)
         selectView BlocklyEditor
     ME.HandleEditorMessage (Monaco.TextChanged _) -> setUnsavedChangesForLanguage Marlowe true
@@ -384,6 +386,7 @@ handleAction (BlocklyEditorAction action) = do
         selectView MarloweEditor
         assign _workflow (Just Marlowe)
         toMarloweEditor $ MarloweEditor.handleAction $ ME.InitMarloweProject code
+      assign (_marloweEditorState <<< _comesFromBlockly) true
     BE.HandleBlocklyMessage Blockly.CodeChange -> setUnsavedChangesForLanguage Blockly true
     BE.BottomPanelAction (BP.PanelAction (BE.MetadataAction metadataAction)) -> carryMetadataAction metadataAction
     _ -> pure unit
@@ -470,7 +473,7 @@ handleAction (NewProjectAction (NewProject.CreateProject lang)) = do
   toHaskellEditor $ HaskellEditor.handleAction $ HE.InitHaskellProject mempty mempty
   toJavascriptEditor $ JavascriptEditor.handleAction $ JS.InitJavascriptProject mempty mempty
   toMarloweEditor $ MarloweEditor.handleAction $ ME.InitMarloweProject mempty
-  toBlocklyEditor $ BlocklyEditor.handleAction $ BE.InitBlocklyProject mempty
+  toBlocklyEditor $ BlocklyEditor.handleAction $ BE.InitBlocklyProject true mempty
   -- TODO: implement ActusBlockly.SetCode
   case lang of
     Haskell ->
@@ -484,7 +487,7 @@ handleAction (NewProjectAction (NewProject.CreateProject lang)) = do
         toMarloweEditor $ MarloweEditor.handleAction $ ME.InitMarloweProject contents
     Blockly ->
       for_ (Map.lookup "Example" StaticData.marloweContracts) \contents -> do
-        toBlocklyEditor $ BlocklyEditor.handleAction $ BE.InitBlocklyProject contents
+        toBlocklyEditor $ BlocklyEditor.handleAction $ BE.InitBlocklyProject true contents
     _ -> pure unit
   selectView $ selectLanguageView lang
   modify_
@@ -508,7 +511,7 @@ handleAction (DemosAction action@(Demos.LoadDemo lang (Demos.Demo key))) = do
         toMarloweEditor $ MarloweEditor.handleAction $ ME.InitMarloweProject contents
     Blockly -> do
       for_ (preview (ix key) StaticData.marloweContracts) \contents -> do
-        toBlocklyEditor $ BlocklyEditor.handleAction $ BE.InitBlocklyProject contents
+        toBlocklyEditor $ BlocklyEditor.handleAction $ BE.InitBlocklyProject true contents
     Actus -> pure unit
   modify_
     ( set _showModal Nothing
@@ -803,7 +806,7 @@ loadGist gist = do
   toHaskellEditor $ HaskellEditor.handleAction $ HE.InitHaskellProject metadataHints $ fromMaybe mempty haskell
   toJavascriptEditor $ JavascriptEditor.handleAction $ JS.InitJavascriptProject metadataHints $ fromMaybe mempty javascript
   toMarloweEditor $ MarloweEditor.handleAction $ ME.InitMarloweProject $ fromMaybe mempty marlowe
-  toBlocklyEditor $ BlocklyEditor.handleAction $ BE.InitBlocklyProject $ fromMaybe mempty blockly
+  toBlocklyEditor $ BlocklyEditor.handleAction $ BE.InitBlocklyProject true $ fromMaybe mempty blockly
   assign _contractMetadata metadata
   -- Actus doesn't have a SetCode to reset for the moment, so we only set if present.
   -- TODO add SetCode to Actus
@@ -892,16 +895,12 @@ selectView view = do
   case view of
     HomePage -> modify_ (set _workflow Nothing <<< set _hasUnsavedChanges false)
     Simulation -> do
-      Simulation.editorResize
       Simulation.editorSetTheme
     MarloweEditor -> do
-      MarloweEditor.editorResize
       MarloweEditor.editorSetTheme
     HaskellEditor -> do
-      HaskellEditor.editorResize
       HaskellEditor.editorSetTheme
     JSEditor -> do
-      void $ query _jsEditorSlot unit (Monaco.Resize unit)
       void $ query _jsEditorSlot unit (Monaco.SetTheme HM.daylightTheme.name unit)
     BlocklyEditor -> pure unit
     WalletEmulator -> pure unit

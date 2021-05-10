@@ -21,13 +21,15 @@ module Plutus.PAB.Db.Eventful.Command
     , saveBalancedTxResult
     -- * Commands related to updating the contract state
     , updateContractInstanceState
+    , startContractInstance
+    , stopContractInstance
     ) where
 
 import           Eventful                                (Aggregate (Aggregate), aggregateCommandHandler,
                                                           aggregateProjection)
 import qualified Ledger
 import           Plutus.PAB.Db.Eventful.Query            (nullProjection)
-import           Plutus.PAB.Events                       (PABEvent (InstallContract, SubmitTx, UpdateContractInstanceState))
+import           Plutus.PAB.Events                       (PABEvent (..))
 import           Plutus.PAB.Events.Contract              (ContractPABRequest)
 import           Plutus.PAB.Events.ContractInstanceState (PartiallyDecodedResponse)
 import           Plutus.PAB.Webserver.Types              (ContractActivationArgs)
@@ -53,3 +55,9 @@ saveBalancedTxResult = sendEvents (return . SubmitTx)
 
 updateContractInstanceState :: forall t. Aggregate () (PABEvent t) (ContractActivationArgs t, ContractInstanceId, (PartiallyDecodedResponse ContractPABRequest))
 updateContractInstanceState = sendEvents (\(x, y, z) -> return $ UpdateContractInstanceState x y z)
+
+startContractInstance :: forall t. Aggregate () (PABEvent t) (ContractActivationArgs t, ContractInstanceId)
+startContractInstance = sendEvents (\(x, y) -> return $ ActivateContract x y)
+
+stopContractInstance :: forall t. Aggregate () (PABEvent t) ContractInstanceId
+stopContractInstance = sendEvents (return . StopContract)

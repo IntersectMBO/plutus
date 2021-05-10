@@ -81,6 +81,11 @@
           "Plutus/Contracts/RPC"
           "Plutus/Contracts/Stablecoin"
           "Plutus/Contracts/Swap"
+          "Plutus/Contracts/Uniswap"
+          "Plutus/Contracts/Uniswap/OnChain"
+          "Plutus/Contracts/Uniswap/OffChain"
+          "Plutus/Contracts/Uniswap/Pool"
+          "Plutus/Contracts/Uniswap/Types"
           "Plutus/Contracts/Vesting"
           ];
         hsSourceDirs = [ "src" ];

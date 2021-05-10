@@ -6,22 +6,10 @@ locals {
     dns  = "webghc-a.${element(concat(aws_route53_zone.plutus_private_zone.*.name, list("")), 0)}"
   }
 
-  webghcB = {
-    name = "webghcB"
-    ip   = "${element(concat(aws_instance.webghc_b.*.private_ip, list("")), 0)}"
-    dns  = "webghc-b.${element(concat(aws_route53_zone.plutus_private_zone.*.name, list("")), 0)}"
-  }
-
   marloweDashA = {
     name = "marloweDashA"
     ip   = "${element(concat(aws_instance.marlowe_dash_a.*.private_ip, list("")), 0)}"
     dns  = "marlowe-dash-a.${element(concat(aws_route53_zone.plutus_private_zone.*.name, list("")), 0)}"
-  }
-
-  marloweDashB = {
-    name = "marloweDashB"
-    ip   = "${element(concat(aws_instance.marlowe_dash_b.*.private_ip, list("")), 0)}"
-    dns  = "marlowe-dash-b.${element(concat(aws_route53_zone.plutus_private_zone.*.name, list("")), 0)}"
   }
 
   playgroundsA = {
@@ -30,19 +18,10 @@ locals {
     dns  = "playgrounds-a.${element(concat(aws_route53_zone.plutus_private_zone.*.name, list("")), 0)}"
   }
 
-  playgroundsB = {
-    name = "playgroundsB"
-    ip   = "${element(concat(aws_instance.playgrounds_b.*.private_ip, list("")), 0)}"
-    dns  = "playgrounds-b.${element(concat(aws_route53_zone.plutus_private_zone.*.name, list("")), 0)}"
-  }
-
   machines = {
     webghcA      = "${local.webghcA}"
-    webghcB      = "${local.webghcB}"
     marloweDashA = "${local.marloweDashA}"
-    marloweDashB = "${local.marloweDashB}"
     playgroundsA = "${local.playgroundsA}"
-    playgroundsB = "${local.playgroundsB}"
     rootSshKeys  = local.root_ssh_keys
     awsRegion    = "${var.aws_region}"
     environment  = "${var.env}"

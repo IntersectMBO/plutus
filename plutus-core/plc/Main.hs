@@ -771,7 +771,7 @@ printBudgetStateTally (Cek.CekExTally costs) = do
               Nothing -> ExBudget 0 0
         allNodeTags = [Cek.BConst, Cek.BVar, Cek.BLamAbs, Cek.BApply, Cek.BDelay, Cek.BForce, Cek.BError, Cek.BBuiltin]
         totalComputeSteps = mconcat $ map get allNodeTags  -- Depends on the fact that we have a unit cost for each AST node type
-        budgetToString (ExBudget (ExCPU cpu) (ExMemory mem)) = printf "%10d  %10d" cpu mem :: String
+        budgetToString (ExBudget (ExCPU cpu) (ExMemory mem)) = printf "%10d  %10d" (toInteger cpu) (toInteger mem) :: String
         pbudget k = budgetToString $ get k
         f l e = case e of {(Cek.BBuiltinApp b, cost)  -> (b,cost):l; _ -> l}
         builtinsAndCosts = List.foldl f [] (H.toList costs)

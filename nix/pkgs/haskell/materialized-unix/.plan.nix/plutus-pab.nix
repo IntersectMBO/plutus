@@ -119,6 +119,7 @@
         modules = [
           "Servant/Extra"
           "Cardano/BM/Data/Tracer/Extras"
+          "Cardano/Chain"
           "Cardano/ChainIndex/API"
           "Cardano/ChainIndex/ChainIndex"
           "Cardano/ChainIndex/Client"
@@ -166,6 +167,7 @@
           "Plutus/PAB/Effects/ContractRuntime"
           "Plutus/PAB/Effects/ContractTest/AtomicSwap"
           "Plutus/PAB/Effects/ContractTest/PayToWallet"
+          "Plutus/PAB/Effects/ContractTest/Uniswap"
           "Plutus/PAB/Effects/EventLog"
           "Plutus/PAB/Effects/UUID"
           "Plutus/PAB/Effects/TimeEffect"
@@ -229,6 +231,24 @@
           buildable = true;
           modules = [ "PSGenerator" "Cli" "Command" "CommandParser" ];
           hsSourceDirs = [ "app" ];
+          mainPath = [ "Main.hs" ];
+          };
+        "plutus-uniswap" = {
+          depends = [
+            (hsPkgs."base" or (errorHandler.buildDepError "base"))
+            (hsPkgs."aeson" or (errorHandler.buildDepError "aeson"))
+            (hsPkgs."containers" or (errorHandler.buildDepError "containers"))
+            (hsPkgs."freer-extras" or (errorHandler.buildDepError "freer-extras"))
+            (hsPkgs."freer-simple" or (errorHandler.buildDepError "freer-simple"))
+            (hsPkgs."plutus-contract" or (errorHandler.buildDepError "plutus-contract"))
+            (hsPkgs."plutus-ledger" or (errorHandler.buildDepError "plutus-ledger"))
+            (hsPkgs."plutus-pab" or (errorHandler.buildDepError "plutus-pab"))
+            (hsPkgs."plutus-use-cases" or (errorHandler.buildDepError "plutus-use-cases"))
+            (hsPkgs."prettyprinter" or (errorHandler.buildDepError "prettyprinter"))
+            (hsPkgs."text" or (errorHandler.buildDepError "text"))
+            ];
+          buildable = true;
+          hsSourceDirs = [ "uniswap" ];
           mainPath = [ "Main.hs" ];
           };
         "plutus-game" = {
@@ -390,6 +410,7 @@
             (hsPkgs."transformers" or (errorHandler.buildDepError "transformers"))
             (hsPkgs."prettyprinter" or (errorHandler.buildDepError "prettyprinter"))
             (hsPkgs."row-types" or (errorHandler.buildDepError "row-types"))
+            (hsPkgs."plutus-tx" or (errorHandler.buildDepError "plutus-tx"))
             ];
           buildable = true;
           modules = [

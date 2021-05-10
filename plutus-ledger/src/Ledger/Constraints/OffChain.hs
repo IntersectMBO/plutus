@@ -464,6 +464,7 @@ processConstraint = \case
                 --       'lookupDatum'
                 let input = Tx.scriptTxIn txo validator red dataValue
                 unbalancedTx . tx . Tx.inputs %= Set.insert input
+                unbalancedTx . tx . Tx.datumWitnesses %= set (at dvh) (Just dataValue)
                 valueSpentInputs <>= provided (Tx.txOutValue (txOutTxOut txOutTx))
             _                 -> throwError (TxOutRefWrongType txo)
 

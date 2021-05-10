@@ -28,7 +28,7 @@ import           Data.Text.Prettyprint.Doc.Extras (Pretty, PrettyShow (..))
 import           Plutus.Contract.Checkpoint       (CheckpointStore)
 import           Plutus.Contract.Resumable
 import           Plutus.Contract.Schema           (Event (..), Handlers (..))
-import           Plutus.Contract.Types            hiding (logs, observableState)
+import           Plutus.Contract.Types            hiding (lastLogs, logs, observableState)
 
 -- $contractstate
 -- Types for initialising and running instances of 'Contract's. The types and
@@ -75,6 +75,7 @@ data ContractResponse w e s h = ContractResponse
     { newState        :: State s -- ^ Serialised state of the contract (internal)
     , hooks           :: [Request h] -- ^ Open requests that can be handled
     , logs            :: [LogMessage Value] -- ^ Logs produced by the contract
+    , lastLogs        :: [LogMessage Value] -- ^ Logs produced in the last step
     , err             :: Maybe e -- ^ Error that happened during contract execution
     , observableState :: w -- ^ Observable, accumulated state of the contract
     }
@@ -95,11 +96,12 @@ insertAndUpdateContract (Contract con) ContractRequest{oldState=State record che
 mkResponse :: forall w e s h a.
     ResumableResult w e s h a
     -> ContractResponse w e s h
-mkResponse ResumableResult{_responses, _requests=Requests{unRequests},_checkpointStore, _logs, _finalState, _observableState=observableState} =
+mkResponse ResumableResult{_responses, _requests=Requests{unRequests},_checkpointStore, _logs, _lastLogs, _finalState, _observableState=observableState} =
     ContractResponse
         { hooks = unRequests
         , newState = State { record = _responses, checkpoints=_checkpointStore }
         , logs = toList _logs
+        , lastLogs = toList _lastLogs
         , err = either Just (const Nothing) _finalState
         , observableState
         }
