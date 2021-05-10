@@ -30,6 +30,7 @@ import           Language.Haskell.Interpreter           (InterpreterError,
                                                          InterpreterResult (InterpreterResult, result),
                                                          SourceCode (SourceCode))
 import           Ledger.Ada                             (adaValueOf, lovelaceValueOf)
+import           Ledger.Blockchain                      (OnChainTx (..))
 import           Ledger.Scripts                         (ValidatorHash (ValidatorHash))
 import           Ledger.Value                           (TokenName (TokenName), Value)
 import qualified Playground.Interpreter                 as PI
@@ -52,7 +53,7 @@ import           Test.Tasty                             (TestTree, testGroup)
 import           Test.Tasty.HUnit                       (Assertion, assertBool, assertEqual, assertFailure, testCase)
 import           Wallet.Emulator.Types                  (Wallet (Wallet))
 import           Wallet.Rollup.Render                   (showBlockchain)
-import           Wallet.Rollup.Types                    (AnnotatedTx (tx))
+import           Wallet.Rollup.Types                    (AnnotatedTx (..))
 
 tests :: TestTree
 tests =
@@ -241,7 +242,7 @@ hasFundsDistribution requiredDistribution (Right InterpreterResult {result = Eva
     let noFeesDistribution = zipWith addFees fundsDistribution feesDistribution
     unless (requiredDistribution == noFeesDistribution) $ do
         Text.putStrLn $
-            either id id $ showBlockchain walletKeys $ fmap (fmap tx) resultRollup
+            either id id $ showBlockchain walletKeys $ fmap (fmap (\(AnnotatedTx {tx, valid}) -> if valid then Valid tx else Invalid tx)) resultRollup
         traverse_ print $ reverse emulatorLog
     assertEqual "" requiredDistribution noFeesDistribution
 
