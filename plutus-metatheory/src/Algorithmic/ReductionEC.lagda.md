@@ -15,9 +15,9 @@ open import Data.Integer using (_<?_;_+_;_-_;∣_∣;_≤?_;_≟_) renaming (_*_
 open import Relation.Nullary
 open import Relation.Nullary.Decidable
 open import Data.Unit hiding (_≤_; _≤?_; _≟_)
-open import Data.List as List using (List; _∷_; []; _++_;reverse)
+open import Data.List as List using (List; _∷_; []; _++_;reverse;length)
 open import Data.Bool using (Bool;true;false)
-open import Data.Nat using (zero)
+open import Data.Nat using (zero;ℕ;_+_)
 open import Data.Unit using (tt)
 import Debug.Trace as Debug
 
@@ -71,7 +71,7 @@ arity dropByteString = Term ∷ Term ∷ []
 arity lessThanByteString = Term ∷ Term ∷ []
 arity greaterThanByteString = Term ∷ Term ∷ []
 arity sha2-256 = Term ∷ []
-arity sha3-256 = Term ∷ Term ∷ []
+arity sha3-256 = Term ∷ []
 arity verifySignature = Term ∷ Term ∷ Term ∷ []
 arity equalsByteString = Term ∷ Term ∷ []
 arity ifThenElse = Type ∷ Term ∷ Term ∷ Term ∷ []
@@ -87,34 +87,74 @@ cons : ∀{A} → A → Bwd A → Bwd A
 cons a [] = [] ∷ a
 cons a (as ∷ a') = cons a as ∷ a'
 
-data _><>_∈_ : ∀{A} → Bwd A → List A → List A → Set where
-  start : ∀{A}(as : List A) → [] ><> as ∈ as
-  bubble : ∀{A}{a : A}{as : Bwd A}{as' as'' : List A} → as ><> (a ∷ as') ∈ as''
-    → (as ∷ a) ><> as' ∈ as''
+data _<>>_∈_ : ∀{A} → Bwd A → List A → List A → Set where
+  start : ∀{A}(as : List A) → [] <>> as ∈ as
+  bubble : ∀{A}{a : A}{as : Bwd A}{as' as'' : List A} → as <>> (a ∷ as') ∈ as''
+    → (as ∷ a) <>> as' ∈ as''
 
-unique><> : ∀{A}{az : Bwd A}{as as' : List A}(p p' : az ><> as ∈ as') → p ≡ p'
-unique><> (start _) (start _) = refl
-unique><> (bubble p) (bubble p') = cong bubble (unique><> p p')
+unique<>> : ∀{A}{az : Bwd A}{as as' : List A}(p p' : az <>> as ∈ as') → p ≡ p'
+unique<>> (start _) (start _) = refl
+unique<>> (bubble p) (bubble p') = cong bubble (unique<>> p p')
 
-_><>_ : ∀{A} → Bwd A → List A → List A
-[] ><> ys = ys
-(xs ∷ x) ><> ys = xs ><> (x ∷ ys)
+_<>>_ : ∀{A} → Bwd A → List A → List A
+[] <>> as = as
+(az ∷ a) <>> as = az <>> (a ∷ as)
 
 _<><_ : ∀{A} → Bwd A → List A → Bwd A
-xs <>< []       = xs
-xs <>< (x ∷ ys) = (xs ∷ x) <>< ys
+az <>< []       = az
+az <>< (a ∷ as) = (az ∷ a) <>< as
 
-_><>_∈'_ : ∀{A} → Bwd A → List A → List A → Set
-xs ><> ys ∈' zs = xs ><> ys ≡ zs
+_<>>_∈'_ : ∀{A} → Bwd A → List A → List A → Set
+xs <>> ys ∈' zs = xs <>> ys ≡ zs
 
-><>2><>' : ∀{A}(xs : Bwd A)(ys zs : List A) → xs ><> ys ∈ zs → xs ><> ys ∈' zs
-><>2><>' [] ys .ys (start .ys) = refl
-><>2><>' (xs ∷ x) ys zs (bubble p) = ><>2><>' xs (x ∷ ys) zs p
+bwd-length : ∀{A} → Bwd A → ℕ
+bwd-length [] = 0
+bwd-length (az ∷ a) = Data.Nat.suc (bwd-length az)
 
-><>'2><> : ∀{A}(xs : Bwd A)(ys zs : List A) → xs ><> ys ∈' zs → xs ><> ys ∈ zs
-><>'2><> [] ys .ys refl = start ys
-><>'2><> (xs ∷ x) ys zs p = bubble (><>'2><> xs (x ∷ ys) zs p)
+open import Data.Nat.Properties
 
+<>>-length : ∀{A}(az : Bwd A)(as : List A)
+  → List.length (az <>> as) ≡ bwd-length az Data.Nat.+ List.length as
+<>>-length [] as = refl
+<>>-length (az ∷ x) as = trans (<>>-length az (x ∷ as)) (+-suc _ _)
+
+-- reasoning about the length inspired by similar proof about ++ in the stdlib
+<>>-rcancel : ∀{A}(az : Bwd A)(as : List A) → az <>> [] ≡ az <>> as → as ≡ []
+<>>-rcancel []       as p = sym p
+<>>-rcancel (az ∷ a) [] p = refl
+<>>-rcancel (az ∷ a) (a' ∷ as) p = ⊥-elim
+  (m+1+n≢m 1
+           (sym (+-cancelˡ-≡ (bwd-length az)
+                             (trans (trans (sym (<>>-length az (a ∷ [])))
+                                           (cong List.length p))
+                                    (<>>-length az (a ∷ a' ∷ as))))))
+
+<>>-lcancel : ∀{A}(az : Bwd A)(as : List A) → as ≡ az <>> as → az ≡ []
+<>>-lcancel []       as p = refl
+<>>-lcancel (az ∷ a) as p = ⊥-elim
+  (m≢1+n+m (List.length as)
+           (trans (trans (cong List.length p)
+                         (<>>-length az (a ∷ as)))
+                  (+-suc (bwd-length az) (List.length as))))
+
+<>>-lcancel' : ∀{A}(az : Bwd A)(as as' : List A)
+  → as ≡ az <>> as'
+  → List.length as ≡ List.length as'
+  → az ≡ [] × as ≡ as'
+<>>-lcancel' [] as as' p q = refl ,, p
+<>>-lcancel' (az ∷ a) as as' p q = ⊥-elim
+  (m≢1+n+m (List.length as')
+           (trans (trans (trans (sym q) (cong List.length p))
+                         (<>>-length az (a ∷ as')))
+                  (+-suc (bwd-length az) (List.length as'))))
+
+<>>2<>>' : ∀{A}(xs : Bwd A)(ys zs : List A) → xs <>> ys ∈ zs → xs <>> ys ∈' zs
+<>>2<>>' [] ys .ys (start .ys) = refl
+<>>2<>>' (xs ∷ x) ys zs (bubble p) = <>>2<>>' xs (x ∷ ys) zs p
+
+<>>'2<>> : ∀{A}(xs : Bwd A)(ys zs : List A) → xs <>> ys ∈' zs → xs <>> ys ∈ zs
+<>>'2<>> [] ys .ys refl = start ys
+<>>'2<>> (xs ∷ x) ys zs p = bubble (<>>'2<>> xs (x ∷ ys) zs p)
 
 data _<><_∈_ : ∀{A} → Bwd A → List A → Bwd A → Set where
   start : ∀{A}(as : Bwd A) → as <>< [] ∈ as
@@ -138,26 +178,26 @@ xs <>< ys ∈' zs = xs <>< ys ≡ zs
 lemma<><[] : ∀{A}(xs : Bwd A) → (xs <>< []) ≡ xs
 lemma<><[] xs = refl
 
-lemma[]><> : ∀{A}(xs : List A) → ([] ><> xs) ≡ xs
-lemma[]><> xs = refl
+lemma[]<>> : ∀{A}(xs : List A) → ([] <>> xs) ≡ xs
+lemma[]<>> xs = refl
 
 -- convert a list to a backward list and back again
 
-lemma<>1 : ∀{A}(xs : Bwd A)(ys : List A) → (xs <>< ys) ><> [] ≡ xs ><> ys
+lemma<>1 : ∀{A}(xs : Bwd A)(ys : List A) → (xs <>< ys) <>> [] ≡ xs <>> ys
 lemma<>1 xs []       = refl
 lemma<>1 xs (x ∷ ys) = lemma<>1 (xs ∷ x) ys
 
-lemma<>2 : ∀{A}(xs : Bwd A)(ys : List A) → ([] <>< (xs ><> ys)) ≡ xs <>< ys
+lemma<>2 : ∀{A}(xs : Bwd A)(ys : List A) → ([] <>< (xs <>> ys)) ≡ xs <>< ys
 lemma<>2 [] ys = refl
 lemma<>2 (xs ∷ x) ys = lemma<>2 xs (x ∷ ys)
 
-saturated : ∀{A}(as : List A) → ([] <>< as) ><> [] ∈ as
-saturated as = ><>'2><> ([] <>< as) [] as (lemma<>1 [] as)
+saturated : ∀{A}(as : List A) → ([] <>< as) <>> [] ∈ as
+saturated as = <>>'2<>> ([] <>< as) [] as (lemma<>1 [] as)
 
 
 -- I'd prefer not to use cons', stop' and rev
-cons' : ∀{A}{a : A}{as : Bwd A}{as' as'' : List A} → as ><> as' ∈ as''
-    → (cons a as) ><> as' ∈ (a ∷ as'')
+cons' : ∀{A}{a : A}{as : Bwd A}{as' as'' : List A} → as <>> as' ∈ as''
+    → (cons a as) <>> as' ∈ (a ∷ as'')
 cons' (start _) = bubble (start _)
 cons' (bubble p) = bubble (cons' p)
 
@@ -165,7 +205,7 @@ toBwd : ∀{A} → List A → Bwd A
 toBwd [] = []
 toBwd (a ∷ as) = cons a (toBwd as)
 
-stop' : ∀{A}(as : List A) → toBwd as ><> [] ∈ as
+stop' : ∀{A}(as : List A) → toBwd as <>> [] ∈ as
 stop' [] = start []
 stop' (a ∷ as) = cons' (stop' as)
 
@@ -173,15 +213,15 @@ data Value : {A : ∅ ⊢Nf⋆ *} → ∅ ⊢ A → Set
 
 -- one BApp to rule them all...
 data BApp (b : Builtin) : ∀{az}{as}
-  → az ><> as ∈ arity b
+  → az <>> as ∈ arity b
   → ∀{A} → ∅ ⊢ A → Set where
   base : BApp b (start (arity b)) (ibuiltin b)
   step : ∀{A B}{az as}
-    → (p : az ><> (Term ∷ as) ∈ arity b)
+    → (p : az <>> (Term ∷ as) ∈ arity b)
     → {t : ∅ ⊢ A ⇒ B} → BApp b p t
     → {u : ∅ ⊢ A} → Value u → BApp b (bubble p) (t · u)
   step⋆ : ∀{B C}{az as}
-    → (p : az ><> (Type ∷ as) ∈ arity b)
+    → (p : az <>> (Type ∷ as) ∈ arity b)
     → {t : ∅ ⊢ Π B} → BApp b p t
     → {A : ∅ ⊢Nf⋆ K}{tA : ∅ ⊢ C}
     → (q : C ≡ B [ A ]Nf)
@@ -210,17 +250,13 @@ data Value where
     → (cn : TermCon (con tcn))
     → Value (con cn)
 
-  -- It is not necessary to index by the builtin, I could instead index
-  -- by a context which is extracted from the builtin in the base case,
-  -- but is it helpful to have it on the top level?
-
   V-I⇒ : ∀ b {A B as as'}
-       → (p : as ><> (Term ∷ as') ∈ arity b)
+       → (p : as <>> (Term ∷ as') ∈ arity b)
        → {t : ∅ ⊢ A ⇒ B}
        → BApp b p t
        → Value t
   V-IΠ : ∀ b {A : ∅ ,⋆ K ⊢Nf⋆ *}{as as'}
-       → (p : as ><> (Type ∷ as') ∈ arity b)
+       → (p : as <>> (Type ∷ as') ∈ arity b)
        → {t : ∅ ⊢ Π A}
        → BApp b p t
        → Value t
@@ -232,19 +268,19 @@ tval : {A : ∅ ⊢Nf⋆ *}{u : ∅ ⊢ A} → Value u → ∅ ⊢Nf⋆ *
 tval {A = A} _ = A
 
 BUILTIN : ∀ b {A}{t : ∅ ⊢ A} → BApp b (saturated (arity b)) t → ∅ ⊢ A
-BUILTIN addInteger (step .(bubble (start (Term ∷ Term ∷ []))) (step .(start (Term ∷ Term ∷ [])) base (V-con (integer i))) (V-con (integer j))) = con (integer (i + j))
+BUILTIN addInteger (step .(bubble (start (Term ∷ Term ∷ []))) (step .(start (Term ∷ Term ∷ [])) base (V-con (integer i))) (V-con (integer j))) = con (integer (i Data.Integer.+ j))
 BUILTIN ifThenElse (step .(bubble (bubble (bubble (start (Type ∷ Term ∷ Term ∷ Term ∷ []))))) (step .(bubble (bubble (start (Type ∷ Term ∷ Term ∷ Term ∷ [])))) (step .(bubble (start (Type ∷ Term ∷ Term ∷ Term ∷ []))) (step⋆ .(start (Type ∷ Term ∷ Term ∷ Term ∷ [])) base refl refl) (V-con (bool true))) t) f) = deval t
 BUILTIN ifThenElse (step .(bubble (bubble (bubble (start (Type ∷ Term ∷ Term ∷ Term ∷ []))))) (step .(bubble (bubble (start (Type ∷ Term ∷ Term ∷ Term ∷ [])))) (step .(bubble (start (Type ∷ Term ∷ Term ∷ Term ∷ []))) (step⋆ .(start (Type ∷ Term ∷ Term ∷ Term ∷ [])) base refl refl) (V-con (bool false))) t) f) = deval f
 BUILTIN _ p = error _
 
-convBApp : (b : Builtin) → ∀{az}{as}(p p' : az ><> as ∈ arity b) → ∀{A}(t : ∅ ⊢ A) → BApp b p t → BApp b p' t
-convBApp b p p' t q rewrite unique><> p p' = q
+convBApp : (b : Builtin) → ∀{az}{as}(p p' : az <>> as ∈ arity b) → ∀{A}(t : ∅ ⊢ A) → BApp b p t → BApp b p' t
+convBApp b p p' t q rewrite unique<>> p p' = q
 
-BUILTIN' : ∀ b {A}{t : ∅ ⊢ A}{az}(p : az ><> [] ∈ arity b)
+BUILTIN' : ∀ b {A}{t : ∅ ⊢ A}{az}(p : az <>> [] ∈ arity b)
   → BApp b p t
   → ∅ ⊢ A
 BUILTIN' b {t = t}{az = az} p q
-  with sym (trans (cong ([] <><_) (sym (><>2><>' _ _ _ p))) (lemma<>2 az []))
+  with sym (trans (cong ([] <><_) (sym (<>>2<>>' _ _ _ p))) (lemma<>2 az []))
 ... | refl = BUILTIN b (convBApp b p (saturated (arity b)) t q)
 
 ```
@@ -269,11 +305,11 @@ convVal' :  ∀ {A A' : ∅ ⊢Nf⋆ *}(q : A ≡ A')
   → ∀{t : ∅ ⊢ A} → Value (conv⊢ refl q t) → Value t
 convVal' refl v = v
 
-convBApp1 :  ∀ b {az as}{p : az ><> as ∈ arity b}{A A' : ∅ ⊢Nf⋆ *}(q : A ≡ A')
+convBApp1 :  ∀ b {az as}{p : az <>> as ∈ arity b}{A A' : ∅ ⊢Nf⋆ *}(q : A ≡ A')
   → ∀{t : ∅ ⊢ A} → BApp b p t → BApp b p (conv⊢ refl q t)
 convBApp1 b refl v = v
 
-convBApp1' :  ∀ b {az as}{p : az ><> as ∈ arity b}{A A' : ∅ ⊢Nf⋆ *}(q : A ≡ A')
+convBApp1' :  ∀ b {az as}{p : az <>> as ∈ arity b}{A A' : ∅ ⊢Nf⋆ *}(q : A ≡ A')
   → ∀{t : ∅ ⊢ A} → BApp b p (conv⊢ refl q t) → BApp b p t
 convBApp1' b refl v = v
 
@@ -330,7 +366,7 @@ data _—→⋆_ : {A : ∅ ⊢Nf⋆ *} → (∅ ⊢ A) → (∅ ⊢ A) → Set 
       (b : Builtin)
     → (t : ∅ ⊢ A ⇒ B)
     → ∀{az}
-    → (p : az ><> (Term ∷ []) ∈ arity b)
+    → (p : az <>> (Term ∷ []) ∈ arity b)
     → (bt : BApp b p t) -- one left
     → (u : ∅ ⊢ A)
     → (vu : Value u)
@@ -341,7 +377,7 @@ data _—→⋆_ : {A : ∅ ⊢Nf⋆ *} → (∅ ⊢ A) → (∅ ⊢ A) → Set 
       (b : Builtin)
     → (t : ∅ ⊢ Π B)
     → ∀{az}
-    → (p : az ><> (Type ∷ []) ∈ arity b)    
+    → (p : az <>> (Type ∷ []) ∈ arity b)    
     → (bt : BApp b p t) -- one left
     → ∀ A
       -----------------------------
@@ -442,8 +478,273 @@ ival append = V-I⇒ append (start _) base
 ival trace = V-I⇒ trace (start _) base 
 
 postulate
-  bappTermLem : ∀  b {A}{az as}(M : ∅ ⊢ A)(p : az ><> (Term ∷ as) ∈ arity b) → BApp b p M → ∃ λ A' → ∃ λ A'' → A ≡ A' ⇒ A''
-  bappTypeLem : ∀  b {A}{az as}(M : ∅ ⊢ A)(p : az ><> (Type ∷ as) ∈ arity b) → BApp b p M → ∃ λ K → ∃ λ (B : ∅ ,⋆ K ⊢Nf⋆ *) → A ≡ Π B
+  bappTypeLem : ∀  b {A}{az as}(M : ∅ ⊢ A)(p : az <>> (Type ∷ as) ∈ arity b)
+    → BApp b p M → ∃ λ K → ∃ λ (B : ∅ ,⋆ K ⊢Nf⋆ *) → A ≡ Π B
+
+lemma∷1 : ∀{A}(as as' : List A) → [] <>> as ∈ as' → as ≡ as'
+lemma∷1 as .as (start .as) = refl
+
+-- these properties are needed for bappTermLem
+<>>-cancel-both : ∀{A}(az az' : Bwd A)(as : List A)
+  → az <>> (az' <>> as) ∈ (az' <>> [])
+  → az ≡ [] × as ≡ []
+<>>-cancel-both az az' [] p =
+  <>>-lcancel az (az' <>> []) (sym (<>>2<>>' az (az' <>> []) (az' <>> []) p))
+  ,,
+  refl
+<>>-cancel-both az az' (a ∷ as) p = ⊥-elim (m+1+n≢0
+  _
+  (+-cancelʳ-≡
+    _
+    0
+    (trans
+      (trans
+        (+-assoc (bwd-length az) (List.length (a ∷ as)) (bwd-length az'))
+        (trans
+          (cong
+            (bwd-length az Data.Nat.+_)
+            (+-comm (List.length (a ∷ as)) (bwd-length az')))
+          (trans
+            (cong
+              (bwd-length az Data.Nat.+_)
+              (sym (<>>-length az' (a ∷ as))))
+            (trans
+              (sym (<>>-length az (az' <>> (a ∷ as))))
+              (trans
+                (cong
+                  List.length
+                  (<>>2<>>' az (az' <>> (a ∷ as)) (az' <>> []) p))
+                (<>>-length az' []))))))
+      (+-comm (bwd-length az') 0))))
+
+<>>-cancel-both' : ∀{A}(az az' az'' : Bwd A)(as : List A)
+  → az <>> (az' <>> as) ∈ (az'' <>> []) → bwd-length az' ≡ bwd-length az''
+  → az ≡ [] × as ≡ [] × az' ≡ az''
+<>>-cancel-both' az az' az'' [] p q with <>>-lcancel' az (az'' <>> []) (az' <>> []) (sym (<>>2<>>' _ _ _ p)) (trans (<>>-length az'' []) (trans (cong (Data.Nat._+ 0) (sym q)) (sym (<>>-length az' []))))
+... | refl ,, Y = refl ,, refl ,, sym (trans (trans (sym (lemma<>2 az'' [])) (cong ([] <><_) Y)) (lemma<>2 az' []))
+<>>-cancel-both' az az' az'' (a ∷ as) p q = ⊥-elim (m+1+n≢0
+  _
+  (+-cancelʳ-≡
+    _
+    0
+    (trans
+      (trans
+        (+-assoc (bwd-length az) (List.length (a ∷ as)) (bwd-length az'))
+        (trans
+          (cong
+            (bwd-length az Data.Nat.+_)
+            (+-comm (List.length (a ∷ as)) (bwd-length az')))
+          (trans
+            (cong
+              (bwd-length az Data.Nat.+_)
+              (sym (<>>-length az' (a ∷ as))))
+            (trans
+              (sym (<>>-length az (az' <>> (a ∷ as))))
+              (trans
+                (cong
+                  List.length
+                  (<>>2<>>' az (az' <>> (a ∷ as)) (az'' <>> []) p))
+                (trans (<>>-length az'' []) (cong (Data.Nat._+ 0) (sym q))))))))
+      (+-comm (bwd-length az') 0))))
+
+-- this proof is defined by pattern matching on the builtin
+-- it could probably be made shorter by giving cases for particular
+-- types/arities
+bappTermLem : ∀  b {A}{az as}(M : ∅ ⊢ A)(p : az <>> (Term ∷ as) ∈ arity b)
+  → BApp b p M → ∃ λ A' → ∃ λ A'' → A ≡ A' ⇒ A''
+bappTermLem addInteger _ _ base = _ ,, _ ,, refl
+bappTermLem addInteger {as = as} (M · M') .(bubble p) (step {az = az} p q x)
+  with <>>-cancel-both az (([] ∷ Term) ∷ Term) as p
+bappTermLem addInteger {as = .[]} (.(ibuiltin addInteger) · M') (bubble (start .(Term ∷ Term ∷ []))) (step {az = _} (start .(Term ∷ Term ∷ [])) base x)
+  | refl ,, refl = _ ,, _ ,, refl
+bappTermLem addInteger {as = as} M .(bubble p) (step⋆ {az = az} p q q₁ x)
+  with <>>-cancel-both' az (([] ∷ Type) ∷ Term) (([] ∷ Term) ∷ Term) as p refl
+... | refl ,, refl ,, ()
+bappTermLem subtractInteger _ _ base = _ ,, _ ,, refl
+bappTermLem subtractInteger {as = as} (M · M') .(bubble p) (step {az = az} p q x)
+  with <>>-cancel-both az (([] ∷ Term) ∷ Term) as p
+bappTermLem subtractInteger {as = .[]} (.(ibuiltin subtractInteger) · M') (bubble (start .(Term ∷ Term ∷ []))) (step {az = _} (start .(Term ∷ Term ∷ [])) base x)
+  | refl ,, refl = _ ,, _ ,, refl
+bappTermLem subtractInteger {as = as} M .(bubble p) (step⋆ {az = az} p q q₁ x)
+  with <>>-cancel-both' az (([] ∷ Type) ∷ Term) (([] ∷ Term) ∷ Term) as p refl
+... | refl ,, refl ,, ()
+bappTermLem multiplyInteger _ _ base = _ ,, _ ,, refl
+bappTermLem multiplyInteger {as = as} (M · M') .(bubble p) (step {az = az} p q x)
+  with <>>-cancel-both az (([] ∷ Term) ∷ Term) as p
+bappTermLem multiplyInteger {as = .[]} (.(ibuiltin multiplyInteger) · M') (bubble (start .(Term ∷ Term ∷ []))) (step {az = _} (start .(Term ∷ Term ∷ [])) base x)
+  | refl ,, refl = _ ,, _ ,, refl
+bappTermLem multiplyInteger {as = as} M .(bubble p) (step⋆ {az = az} p q q₁ x)
+  with <>>-cancel-both' az (([] ∷ Type) ∷ Term) (([] ∷ Term) ∷ Term) as p refl
+... | refl ,, refl ,, ()
+bappTermLem divideInteger _ _ base = _ ,, _ ,, refl
+bappTermLem divideInteger {as = as} (M · M') .(bubble p) (step {az = az} p q x)
+  with <>>-cancel-both az (([] ∷ Term) ∷ Term) as p
+bappTermLem divideInteger {as = .[]} (.(ibuiltin divideInteger) · M') (bubble (start .(Term ∷ Term ∷ []))) (step {az = _} (start .(Term ∷ Term ∷ [])) base x)
+  | refl ,, refl = _ ,, _ ,, refl
+bappTermLem divideInteger {as = as} M .(bubble p) (step⋆ {az = az} p q q₁ x)
+  with <>>-cancel-both' az (([] ∷ Type) ∷ Term) (([] ∷ Term) ∷ Term) as p refl
+... | refl ,, refl ,, ()
+bappTermLem quotientInteger _ _ base = _ ,, _ ,, refl
+bappTermLem quotientInteger {as = as} (M · M') .(bubble p) (step {az = az} p q x)
+  with <>>-cancel-both az (([] ∷ Term) ∷ Term) as p
+bappTermLem quotientInteger {as = .[]} (.(ibuiltin quotientInteger) · M') (bubble (start .(Term ∷ Term ∷ []))) (step {az = _} (start .(Term ∷ Term ∷ [])) base x)
+  | refl ,, refl = _ ,, _ ,, refl
+bappTermLem quotientInteger {as = as} M .(bubble p) (step⋆ {az = az} p q q₁ x)
+  with <>>-cancel-both' az (([] ∷ Type) ∷ Term) (([] ∷ Term) ∷ Term) as p refl
+... | refl ,, refl ,, ()
+bappTermLem remainderInteger _ _ base = _ ,, _ ,, refl
+bappTermLem remainderInteger {as = as} (M · M') .(bubble p) (step {az = az} p q x)
+  with <>>-cancel-both az (([] ∷ Term) ∷ Term) as p
+bappTermLem remainderInteger {as = .[]} (.(ibuiltin remainderInteger) · M') (bubble (start .(Term ∷ Term ∷ []))) (step {az = _} (start .(Term ∷ Term ∷ [])) base x)
+  | refl ,, refl = _ ,, _ ,, refl
+bappTermLem remainderInteger {as = as} M .(bubble p) (step⋆ {az = az} p q q₁ x)
+  with <>>-cancel-both' az (([] ∷ Type) ∷ Term) (([] ∷ Term) ∷ Term) as p refl
+... | refl ,, refl ,, ()
+
+bappTermLem modInteger _ _ base = _ ,, _ ,, refl
+bappTermLem modInteger {as = as} (M · M') .(bubble p) (step {az = az} p q x)
+  with <>>-cancel-both az (([] ∷ Term) ∷ Term) as p
+bappTermLem modInteger {as = .[]} (.(ibuiltin modInteger) · M') (bubble (start .(Term ∷ Term ∷ []))) (step {az = _} (start .(Term ∷ Term ∷ [])) base x)
+  | refl ,, refl = _ ,, _ ,, refl
+bappTermLem modInteger {as = as} M .(bubble p) (step⋆ {az = az} p q q₁ x)
+  with <>>-cancel-both' az (([] ∷ Type) ∷ Term) (([] ∷ Term) ∷ Term) as p refl
+... | refl ,, refl ,, ()
+
+bappTermLem lessThanInteger _ _ base = _ ,, _ ,, refl
+bappTermLem lessThanInteger {as = as} (M · M') .(bubble p) (step {az = az} p q x)
+  with <>>-cancel-both az (([] ∷ Term) ∷ Term) as p
+bappTermLem lessThanInteger {as = .[]} (.(ibuiltin lessThanInteger) · M') (bubble (start .(Term ∷ Term ∷ []))) (step {az = _} (start .(Term ∷ Term ∷ [])) base x)
+  | refl ,, refl = _ ,, _ ,, refl
+bappTermLem lessThanInteger {as = as} M .(bubble p) (step⋆ {az = az} p q q₁ x)
+  with <>>-cancel-both' az (([] ∷ Type) ∷ Term) (([] ∷ Term) ∷ Term) as p refl
+... | refl ,, refl ,, ()
+
+bappTermLem lessThanEqualsInteger _ _ base = _ ,, _ ,, refl
+bappTermLem lessThanEqualsInteger {as = as} (M · M') .(bubble p) (step {az = az} p q x)
+  with <>>-cancel-both az (([] ∷ Term) ∷ Term) as p
+bappTermLem lessThanEqualsInteger {as = .[]} (.(ibuiltin lessThanEqualsInteger) · M') (bubble (start .(Term ∷ Term ∷ []))) (step {az = _} (start .(Term ∷ Term ∷ [])) base x)
+  | refl ,, refl = _ ,, _ ,, refl
+bappTermLem lessThanEqualsInteger {as = as} M .(bubble p) (step⋆ {az = az} p q q₁ x)
+  with <>>-cancel-both' az (([] ∷ Type) ∷ Term) (([] ∷ Term) ∷ Term) as p refl
+... | refl ,, refl ,, ()
+bappTermLem greaterThanInteger _ _ base = _ ,, _ ,, refl
+bappTermLem greaterThanInteger {as = as} (M · M') .(bubble p) (step {az = az} p q x)
+  with <>>-cancel-both az (([] ∷ Term) ∷ Term) as p
+bappTermLem greaterThanInteger {as = .[]} (.(ibuiltin greaterThanInteger) · M') (bubble (start .(Term ∷ Term ∷ []))) (step {az = _} (start .(Term ∷ Term ∷ [])) base x)
+  | refl ,, refl = _ ,, _ ,, refl
+bappTermLem greaterThanInteger {as = as} M .(bubble p) (step⋆ {az = az} p q q₁ x)
+  with <>>-cancel-both' az (([] ∷ Type) ∷ Term) (([] ∷ Term) ∷ Term) as p refl
+... | refl ,, refl ,, ()
+bappTermLem greaterThanEqualsInteger _ _ base = _ ,, _ ,, refl
+bappTermLem greaterThanEqualsInteger {as = as} (M · M') .(bubble p) (step {az = az} p q x)
+  with <>>-cancel-both az (([] ∷ Term) ∷ Term) as p
+bappTermLem greaterThanEqualsInteger {as = .[]} (.(ibuiltin greaterThanEqualsInteger) · M') (bubble (start .(Term ∷ Term ∷ []))) (step {az = _} (start .(Term ∷ Term ∷ [])) base x)
+  | refl ,, refl = _ ,, _ ,, refl
+bappTermLem greaterThanEqualsInteger {as = as} M .(bubble p) (step⋆ {az = az} p q q₁ x)
+  with <>>-cancel-both' az (([] ∷ Type) ∷ Term) (([] ∷ Term) ∷ Term) as p refl
+... | refl ,, refl ,, ()
+bappTermLem equalsInteger _ _ base = _ ,, _ ,, refl
+bappTermLem equalsInteger {as = as} (M · M') .(bubble p) (step {az = az} p q x)
+  with <>>-cancel-both az (([] ∷ Term) ∷ Term) as p
+bappTermLem equalsInteger {as = .[]} (.(ibuiltin equalsInteger) · M') (bubble (start .(Term ∷ Term ∷ []))) (step {az = _} (start .(Term ∷ Term ∷ [])) base x)
+  | refl ,, refl = _ ,, _ ,, refl
+bappTermLem equalsInteger {as = as} M .(bubble p) (step⋆ {az = az} p q q₁ x)
+  with <>>-cancel-both' az (([] ∷ Type) ∷ Term) (([] ∷ Term) ∷ Term) as p refl
+... | refl ,, refl ,, ()
+bappTermLem concatenate _ _ base = _ ,, _ ,, refl
+bappTermLem concatenate {as = as} (M · M') .(bubble p) (step {az = az} p q x)
+  with <>>-cancel-both az (([] ∷ Term) ∷ Term) as p
+bappTermLem concatenate {as = .[]} (.(ibuiltin concatenate) · M') (bubble (start .(Term ∷ Term ∷ []))) (step {az = _} (start .(Term ∷ Term ∷ [])) base x)
+  | refl ,, refl = _ ,, _ ,, refl
+bappTermLem concatenate {as = as} M .(bubble p) (step⋆ {az = az} p q q₁ x)
+  with <>>-cancel-both' az (([] ∷ Type) ∷ Term) (([] ∷ Term) ∷ Term) as p refl
+... | refl ,, refl ,, ()
+bappTermLem takeByteString _ _ base = _ ,, _ ,, refl
+bappTermLem takeByteString {as = as} (M · M') .(bubble p) (step {az = az} p q x)
+  with <>>-cancel-both az (([] ∷ Term) ∷ Term) as p
+bappTermLem takeByteString {as = .[]} (.(ibuiltin takeByteString) · M') (bubble (start .(Term ∷ Term ∷ []))) (step {az = _} (start .(Term ∷ Term ∷ [])) base x)
+  | refl ,, refl = _ ,, _ ,, refl
+bappTermLem takeByteString {as = as} M .(bubble p) (step⋆ {az = az} p q q₁ x)
+  with <>>-cancel-both' az (([] ∷ Type) ∷ Term) (([] ∷ Term) ∷ Term) as p refl
+... | refl ,, refl ,, ()
+
+bappTermLem dropByteString _ _ base = _ ,, _ ,, refl
+bappTermLem dropByteString {as = as} (M · M') .(bubble p) (step {az = az} p q x)
+  with <>>-cancel-both az (([] ∷ Term) ∷ Term) as p
+bappTermLem dropByteString {as = .[]} (.(ibuiltin dropByteString) · M') (bubble (start .(Term ∷ Term ∷ []))) (step {az = _} (start .(Term ∷ Term ∷ [])) base x)
+  | refl ,, refl = _ ,, _ ,, refl
+bappTermLem dropByteString {as = as} M .(bubble p) (step⋆ {az = az} p q q₁ x)
+  with <>>-cancel-both' az (([] ∷ Type) ∷ Term) (([] ∷ Term) ∷ Term) as p refl
+... | refl ,, refl ,, ()
+bappTermLem lessThanByteString _ _ base = _ ,, _ ,, refl
+bappTermLem lessThanByteString {as = as} (M · M') .(bubble p) (step {az = az} p q x)
+  with <>>-cancel-both az (([] ∷ Term) ∷ Term) as p
+bappTermLem lessThanByteString {as = .[]} (.(ibuiltin lessThanByteString) · M') (bubble (start .(Term ∷ Term ∷ []))) (step {az = _} (start .(Term ∷ Term ∷ [])) base x)
+  | refl ,, refl = _ ,, _ ,, refl
+bappTermLem lessThanByteString {as = as} M .(bubble p) (step⋆ {az = az} p q q₁ x)
+  with <>>-cancel-both' az (([] ∷ Type) ∷ Term) (([] ∷ Term) ∷ Term) as p refl
+... | refl ,, refl ,, ()
+
+bappTermLem greaterThanByteString _ _ base = _ ,, _ ,, refl
+bappTermLem greaterThanByteString {as = as} (M · M') .(bubble p) (step {az = az} p q x)
+  with <>>-cancel-both az (([] ∷ Term) ∷ Term) as p
+bappTermLem greaterThanByteString {as = .[]} (.(ibuiltin greaterThanByteString) · M') (bubble (start .(Term ∷ Term ∷ []))) (step {az = _} (start .(Term ∷ Term ∷ [])) base x)
+  | refl ,, refl = _ ,, _ ,, refl
+bappTermLem greaterThanByteString {as = as} M .(bubble p) (step⋆ {az = az} p q q₁ x)
+  with <>>-cancel-both' az (([] ∷ Type) ∷ Term) (([] ∷ Term) ∷ Term) as p refl
+... | refl ,, refl ,, ()
+bappTermLem sha2-256 {az = az} {as} M p q with <>>-cancel-both az ([] ∷ Term) as p
+bappTermLem sha2-256 {az = .[]} {.[]} .(ibuiltin sha2-256) .(start (Term ∷ [])) base | refl ,, refl = _ ,, _ ,, refl
+bappTermLem sha3-256 {az = az} {as} M p q with <>>-cancel-both az ([] ∷ Term) as p
+bappTermLem sha3-256 {az = .[]} {.[]} .(ibuiltin sha3-256) .(start (Term ∷ [])) base | refl ,, refl = _ ,, _ ,, refl
+bappTermLem verifySignature .(ibuiltin verifySignature) .(start (Term ∷ Term ∷ Term ∷ [])) base = _ ,, _ ,, refl
+bappTermLem verifySignature .(ibuiltin verifySignature · _) .(bubble (start (Term ∷ Term ∷ Term ∷ []))) (step .(start (Term ∷ Term ∷ Term ∷ [])) base x) = _ ,, _ ,, refl
+bappTermLem verifySignature {as = as} .((_ · _) · _) .(bubble (bubble p)) (step .(bubble p) (step {az = az} p q x₁) x) with <>>-cancel-both az ((([] ∷ Term) ∷ Term) ∷ Term) as p
+bappTermLem verifySignature {as = .[]} ((.(ibuiltin verifySignature) · _) · _) (bubble (bubble .(start (Term ∷ Term ∷ Term ∷ [])))) (step .(bubble (start (Term ∷ Term ∷ Term ∷ []))) (step {az = _} .(start (Term ∷ Term ∷ Term ∷ [])) base x₁) x) | refl ,, refl = _ ,, _ ,, refl
+bappTermLem verifySignature {as = as} .(_ · _) .(bubble (bubble p)) (step .(bubble p) (step⋆ {az = az} p q q₁ x₁) x) with <>>-cancel-both' az ((([] ∷ Type) ∷ Term) ∷ Term) ((([] ∷ Term) ∷ Term) ∷ Term) as p refl
+... | refl ,, refl ,, ()
+bappTermLem verifySignature {as = as} M .(bubble (bubble p)) (step⋆ .(bubble p) (step {az = az} p q x₁) q₁ x)  with <>>-cancel-both' az ((([] ∷ Term) ∷ Type) ∷ Term) ((([] ∷ Term) ∷ Term) ∷ Term) as p refl
+... | refl ,, refl ,, ()
+bappTermLem verifySignature {as = as} M .(bubble (bubble p)) (step⋆ .(bubble p) (step⋆ {az = az} p q q₂ x₁) q₁ x) with <>>-cancel-both' az ((([] ∷ Type) ∷ Type) ∷ Term) ((([] ∷ Term) ∷ Term) ∷ Term) as p refl
+... | refl ,, refl ,, ()
+bappTermLem equalsByteString _ _ base = _ ,, _ ,, refl
+bappTermLem equalsByteString {as = as} (M · M') .(bubble p) (step {az = az} p q x)
+  with <>>-cancel-both az (([] ∷ Term) ∷ Term) as p
+bappTermLem equalsByteString {as = .[]} (.(ibuiltin equalsByteString) · M') (bubble (start .(Term ∷ Term ∷ []))) (step {az = _} (start .(Term ∷ Term ∷ [])) base x)
+  | refl ,, refl = _ ,, _ ,, refl
+bappTermLem equalsByteString {as = as} M .(bubble p) (step⋆ {az = az} p q q₁ x)
+  with <>>-cancel-both' az (([] ∷ Type) ∷ Term) (([] ∷ Term) ∷ Term) as p refl
+... | refl ,, refl ,, ()
+
+bappTermLem ifThenElse {as = as} .(((_ · _) · _) · _) .(bubble (bubble (bubble p))) (step .(bubble (bubble p)) (step .(bubble p) (step {az = az} p q x₂) x₁) x) with <>>-cancel-both' az (((([] ∷ Term) ∷ Term) ∷ Term) ∷ Term) (((([] ∷ Type) ∷ Term) ∷ Term) ∷ Term) as p refl
+... | refl ,, refl ,, ()
+bappTermLem ifThenElse {as = as} .((_ · _) · _) .(bubble (bubble (bubble p))) (step .(bubble (bubble p)) (step .(bubble p) (step⋆ {az = az} p q q₁ x₂) x₁) x) with <>>-cancel-both az (((([] ∷ Type) ∷ Term) ∷ Term) ∷ Term) as p
+bappTermLem ifThenElse {as = .[]} ((_ · _) · _) (bubble (bubble (bubble .(start (Type ∷ Term ∷ Term ∷ Term ∷ []))))) (step .(bubble (bubble (start (Type ∷ Term ∷ Term ∷ Term ∷ [])))) (step .(bubble (start (Type ∷ Term ∷ Term ∷ Term ∷ []))) (step⋆ {az = _} .(start (Type ∷ Term ∷ Term ∷ Term ∷ [])) base refl x₂) x₁) x) | refl ,, refl = _ ,, _ ,, refl
+-- last one maybe?
+bappTermLem ifThenElse .(_ · _) .(bubble (bubble (start (Type ∷ Term ∷ Term ∷ Term ∷ [])))) (step .(bubble (start (Type ∷ Term ∷ Term ∷ Term ∷ []))) (step⋆ (start .(Type ∷ Term ∷ Term ∷ Term ∷ [])) base refl x₁) x) = _ ,, _ ,, refl
+bappTermLem ifThenElse {as = as} .(_ · _) .(bubble (bubble (bubble p))) (step .(bubble (bubble p)) (step⋆ (bubble {as = as₁} p) q q₁ x₁) x) with <>>-cancel-both' as₁ (((([] ∷ _) ∷ Type) ∷ Term) ∷ Term) (((([] ∷ Type) ∷ Term) ∷ Term) ∷ Term)as p refl
+... | refl ,, refl ,, ()
+bappTermLem ifThenElse M .(bubble (start (Type ∷ Term ∷ Term ∷ Term ∷ []))) (step⋆ .(start (Type ∷ Term ∷ Term ∷ Term ∷ [])) base refl x) = _ ,, _ ,, refl
+bappTermLem ifThenElse {as = as} M .(bubble (bubble (bubble p))) (step⋆ .(bubble (bubble p)) (step .(bubble p) (step {az = az} p q x₂) x₁) q₁ x) with <>>-cancel-both' az (((([] ∷ Term) ∷ Term) ∷ Type) ∷ Term) (((([] ∷ Type) ∷ Term) ∷ Term) ∷ Term) as p refl
+... | refl ,, refl ,, ()
+bappTermLem ifThenElse {as = as} M .(bubble (bubble (bubble p))) (step⋆ .(bubble (bubble p)) (step .(bubble p) (step⋆ {az = az} p q q₂ x₂) x₁) q₁ x) with <>>-cancel-both' az (((([] ∷ Type) ∷ Term) ∷ Type) ∷ Term) (((([] ∷ Type) ∷ Term) ∷ Term) ∷ Term) as p refl
+... | refl ,, refl ,, ()
+bappTermLem ifThenElse {as = as} M .(bubble (bubble (bubble p))) (step⋆ .(bubble (bubble p)) (step⋆ .(bubble p) (step {az = az} p q x₂) q₂ x₁) q₁ x) with <>>-cancel-both' az (((([] ∷ Term) ∷ Type) ∷ Type) ∷ Term) (((([] ∷ Type) ∷ Term) ∷ Term) ∷ Term) as p refl
+... | refl ,, refl ,, ()
+bappTermLem ifThenElse {as = as} M .(bubble (bubble (bubble p))) (step⋆ .(bubble (bubble p)) (step⋆ .(bubble p) (step⋆ {az = az} p q q₃ x₂) q₂ x₁) q₁ x) with <>>-cancel-both' az (((([] ∷ Type) ∷ Type) ∷ Type) ∷ Term) (((([] ∷ Type) ∷ Term) ∷ Term) ∷ Term) as p refl
+... | refl ,, refl ,, ()
+bappTermLem charToString {az = az} {as} M p q with <>>-cancel-both az ([] ∷ Term) as p
+bappTermLem charToString {az = .[]} {.[]} .(ibuiltin charToString) .(start (Term ∷ [])) base | refl ,, refl = _ ,, _ ,, refl
+bappTermLem append _ _ base = _ ,, _ ,, refl
+bappTermLem append {as = as} (M · M') .(bubble p) (step {az = az} p q x)
+  with <>>-cancel-both az (([] ∷ Term) ∷ Term) as p
+bappTermLem append {as = .[]} (.(ibuiltin append) · M') (bubble (start .(Term ∷ Term ∷ []))) (step {az = _} (start .(Term ∷ Term ∷ [])) base x)
+  | refl ,, refl = _ ,, _ ,, refl
+bappTermLem append {as = as} M .(bubble p) (step⋆ {az = az} p q q₁ x)
+  with <>>-cancel-both' az (([] ∷ Type) ∷ Term) (([] ∷ Term) ∷ Term) as p refl
+... | refl ,, refl ,, ()
+bappTermLem trace {az = az} {as} M p q with <>>-cancel-both az ([] ∷ Term) as p
+bappTermLem trace {az = .[]} {.[]} .(ibuiltin trace) .(start (Term ∷ [])) base | refl ,, refl = _ ,, _ ,, refl
 
 progress : {A : ∅ ⊢Nf⋆ *} → (M : ∅ ⊢ A) → Progress M
 progress (ƛ M)        = done (V-ƛ M)
