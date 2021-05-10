@@ -37,7 +37,7 @@ import           Language.R
 -- Mentioned in CostModel.md. Change here, change there.
 -- The names of the models in R
 builtinCostModelNames :: BuiltinCostModelBase (Const Text)
-builtinCostModelNames = BuiltinCostModel
+builtinCostModelNames = BuiltinCostModelBase
   { paramAddInteger           = "addIntegerModel"
   , paramSubtractInteger      = "subtractIntegerModel"
   , paramMultiplyInteger      = "multiplyIntegerModel"
@@ -102,7 +102,7 @@ createBuiltinCostModel =
     paramGtByteString         <- getParams gtByteString         paramGtByteString
     paramIfThenElse           <- getParams ifThenElse           paramIfThenElse
 
-    pure $ BuiltinCostModel {..}
+    pure $ BuiltinCostModelBase {..}
 
 -- The output of `tidy(model)` on the R side.
 data LinearModelRaw = LinearModelRaw

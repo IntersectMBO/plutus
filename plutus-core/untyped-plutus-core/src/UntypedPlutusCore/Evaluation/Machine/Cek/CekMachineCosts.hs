@@ -34,11 +34,15 @@ data CekMachineCosts =
 -- a different version of CekMachineCosts: see ExBudgetingDefaults.defaultCekMachineCosts.
 unitCekMachineCosts :: CekMachineCosts
 unitCekMachineCosts =
-    CekMachineCosts zeroCost unitCost
-             unitCost unitCost
-             unitCost unitCost
-             unitCost unitCost
+    CekMachineCosts { cekStartupCost = zeroCost
+                    , cekVarCost     = unitCost
+                    , cekConstCost   = unitCost
+                    , cekLamCost     = unitCost
+                    , cekDelayCost   = unitCost
+                    , cekForceCost   = unitCost
+                    , cekApplyCost   = unitCost
+                    , cekBuiltinCost = unitCost
+                    }
         where
           zeroCost = ExBudget 0 0
           unitCost = ExBudget 1 0
-
