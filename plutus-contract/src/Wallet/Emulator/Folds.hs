@@ -93,7 +93,7 @@ type EmulatorEventFold a = Fold EmulatorEvent a
 -- | A fold over emulator events that can fail with 'EmulatorFoldErr'
 type EmulatorEventFoldM effs a = FoldM (Eff effs) EmulatorEvent a
 
--- | Transactions that failed to validate
+-- | Transactions that failed to validate, in the given validation phase (if specified).
 failedTransactions :: Maybe ValidationPhase -> EmulatorEventFold [(TxId, Tx, ValidationError, [ScriptValidationEvent])]
 failedTransactions phase = preMapMaybe (preview (eteEvent . chainEvent . _TxnValidationFail) >=> filterPhase phase) L.list
     where

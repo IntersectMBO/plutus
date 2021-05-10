@@ -135,6 +135,11 @@ balanceTx ::
     -> Eff effs Tx
 balanceTx utxo pk UnbalancedTx{unBalancedTxTx} = do
     (neg', pos) <- Value.split <$> computeBalance unBalancedTxTx
+
+    -- Make sure fees are always added to `neg` instead of subtracted from `pos`.
+    -- This way inputs will always be created for fees, which are added to the txInputsFees field.
+    -- This is not the optimal strategy, but it does ensure that at least all the fees will be
+    -- covered if the transaction turns out to be invalid.
     let neg = neg' P.+ L.txFee unBalancedTxTx
 
     tx' <- if Value.isZero pos
