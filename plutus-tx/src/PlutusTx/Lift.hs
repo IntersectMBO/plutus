@@ -65,7 +65,7 @@ safeLift x = do
     tcConfig <- PLC.getDefTypeCheckConfig $ Original ()
     compiled <- flip runReaderT (toDefaultCompilationCtx tcConfig) $ compileTerm lifted
     let erased = UPLC.erase compiled
-    db <- UPLC.deBruijnTerm erased
+    db <- UPLC.deBruijnTerm $ UPLC.simplifyTerm erased
     pure $ void db
 
 -- | Get a Plutus Core program corresponding to the given value.
@@ -186,5 +186,5 @@ typeCode
 typeCode p prog@(PLC.Program _ _ term) = do
     _ <- typeCheckAgainst p term
     let erased = UPLC.eraseProgram prog
-    db <- UPLC.deBruijnProgram erased
+    db <-  UPLC.deBruijnProgram $ UPLC.simplifyProgram erased
     pure $ DeserializedCode db Nothing
