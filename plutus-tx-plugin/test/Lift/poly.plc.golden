@@ -2,22 +2,16 @@
   [
     [
       [
-        (force
-          (delay
+        (lam
+          Plugin_Data_Spec_Poly1_i0
+          (lam
+            Plugin_Data_Spec_Poly2_i0
             (lam
-              Plugin_Data_Spec_Poly1_i0
-              (lam
-                Plugin_Data_Spec_Poly2_i0
-                (lam
-                  match_Plugin_Data_Spec_MyPolyData_i0
-                  [
-                    [
-                      (force (force Plugin_Data_Spec_Poly1_i3)) (con integer 1)
-                    ]
-                    (con integer 2)
-                  ]
-                )
-              )
+              match_Plugin_Data_Spec_MyPolyData_i0
+              [
+                [ (force (force Plugin_Data_Spec_Poly1_i3)) (con integer 1) ]
+                (con integer 2)
+              ]
             )
           )
         )

@@ -3,19 +3,15 @@
     [
       [
         [
-          (force
-            (delay
+          (lam
+            Plugin_Data_Spec_Mono1_i0
+            (lam
+              Plugin_Data_Spec_Mono2_i0
               (lam
-                Plugin_Data_Spec_Mono1_i0
+                Plugin_Data_Spec_Mono3_i0
                 (lam
-                  Plugin_Data_Spec_Mono2_i0
-                  (lam
-                    Plugin_Data_Spec_Mono3_i0
-                    (lam
-                      match_Plugin_Data_Spec_MyMonoData_i0
-                      [ Plugin_Data_Spec_Mono2_i3 (con integer 2) ]
-                    )
-                  )
+                  match_Plugin_Data_Spec_MyMonoData_i0
+                  [ Plugin_Data_Spec_Mono2_i3 (con integer 2) ]
                 )
               )
             )
