@@ -397,12 +397,13 @@ toDefinition BoundsType =
         { type: show BoundsType
         , message0: "between %1 and %2"
         , args0:
-            [ Number { name: "from", value: 1.0, min: Nothing, max: Nothing, precision: Nothing }
-            , Number { name: "to", value: 2.0, min: Nothing, max: Nothing, precision: Nothing }
+            [ Number { name: "from", value: 1.0, min: Nothing, max: Nothing, precision: Just 1.0 }
+            , Number { name: "to", value: 2.0, min: Nothing, max: Nothing, precision: Just 1.0 }
             ]
         , colour: blockColour BoundsType
         , previousStatement: Just (show BoundsType)
         , nextStatement: Just (show BoundsType)
+        , extensions: [ "number_validator" ]
         }
         defaultBlockDefinition
 
@@ -843,11 +844,12 @@ toDefinition blockType@(ValueType ConstantValueType) =
         { type: show ConstantValueType
         , message0: "Constant %1"
         , args0:
-            [ Number { name: "constant", value: 1.0, min: Nothing, max: Nothing, precision: Nothing }
+            [ Number { name: "constant", value: 1.0, min: Nothing, max: Nothing, precision: Just 1.0 }
             ]
         , colour: blockColour blockType
         , output: Just "value"
         , inputsInline: Just true
+        , extensions: [ "number_validator" ]
         }
         defaultBlockDefinition
 
@@ -946,13 +948,14 @@ toDefinition blockType@(ValueType ScaleValueType) =
         { type: show ScaleValueType
         , message0: "(%1 / %2) * %3"
         , args0:
-            [ Number { name: "numerator", value: 1.0, min: Nothing, max: Nothing, precision: Nothing }
-            , Number { name: "denominator", value: 1.0, min: Just 1.0, max: Nothing, precision: Nothing }
+            [ Number { name: "numerator", value: 1.0, min: Nothing, max: Nothing, precision: Just 1.0 }
+            , Number { name: "denominator", value: 1.0, min: Just 1.0, max: Nothing, precision: Just 1.0 }
             , Value { name: "value", check: "value", align: Right }
             ]
         , colour: blockColour blockType
         , output: Just "value"
         , inputsInline: Just true
+        , extensions: [ "number_validator" ]
         }
         defaultBlockDefinition
 
