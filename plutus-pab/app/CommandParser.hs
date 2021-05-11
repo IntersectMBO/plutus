@@ -19,14 +19,16 @@ import           Options.Applicative                     (CommandFields, Mod, Pa
                                                           idm, info, long, metavar, option, prefs, progDesc, short,
                                                           showHelpOnEmpty, showHelpOnError, str, strOption, subparser,
                                                           value)
+import           Plutus.PAB.App                          (EventfulBackend (..))
 import           Plutus.PAB.Effects.Contract.ContractExe (ContractExe (..))
 import           Wallet.Types                            (ContractInstanceId (..))
 
-data AppOpts = AppOpts { minLogLevel   :: Maybe Severity
-                       , logConfigPath :: Maybe FilePath
-                       , configPath    :: Maybe FilePath
-                       , runEkgServer  :: Bool
-                       , cmd           :: Command
+data AppOpts = AppOpts { minLogLevel     :: Maybe Severity
+                       , logConfigPath   :: Maybe FilePath
+                       , configPath      :: Maybe FilePath
+                       , runEkgServer    :: Bool
+                       , eventfulBackend :: EventfulBackend
+                       , cmd             :: Command
                        }
 
 parseOptions :: IO AppOpts
@@ -48,12 +50,20 @@ ekgFlag =
         True
         (short 'e' <> long "ekg" <> help "Enable the EKG server")
 
+inMemoryFlag :: Parser EventfulBackend
+inMemoryFlag =
+    flag
+        SqliteBackend
+        InMemoryBackend
+        (short 'm' <> long "memory" <> help "Use the memory-backed eventful backend. If false, the sqlite backend is used.")
+
 commandLineParser :: Parser AppOpts
 commandLineParser =
         AppOpts <$> logLevelFlag
                <*> logConfigFileParser
                <*> configFileParser
                <*> ekgFlag
+               <*> inMemoryFlag
                <*> commandParser
 
 configFileParser :: Parser (Maybe FilePath)

@@ -140,11 +140,12 @@ runConfigCommand ::
     -> Configuration -- ^ Monitoring configuration
     -> Config        -- ^ PAB Configuration
     -> Availability  -- ^ Token for signaling service availability
+    -> App.EventfulBackend -- ^ Whether to use the sqlite or the in-memory backend
     -> ConfigCommand
     -> IO ()
 
 -- Run mock wallet service
-runConfigCommand trace _ Config {..} serviceAvailability (MockWallet) =
+runConfigCommand trace _ Config {..} serviceAvailability _ MockWallet =
     liftIO $ WalletServer.main
         (toWalletLog trace)
         walletServerConfig
@@ -154,30 +155,30 @@ runConfigCommand trace _ Config {..} serviceAvailability (MockWallet) =
         serviceAvailability
 
 -- Run mock node server
-runConfigCommand trace _ Config {nodeServerConfig} serviceAvailability MockNode =
+runConfigCommand trace _ Config {nodeServerConfig} serviceAvailability _ MockNode =
     liftIO $ NodeServer.main
         (toMockNodeServerLog trace)
         nodeServerConfig
         serviceAvailability
 
 -- Run mock metadata server
-runConfigCommand trace _ Config {metadataServerConfig} serviceAvailability Metadata =
+runConfigCommand trace _ Config {metadataServerConfig} serviceAvailability _ Metadata =
     liftIO $ Metadata.main
         (toMetaDataLog trace)
         metadataServerConfig
         serviceAvailability
 
 -- Run PAB webserver
-runConfigCommand trace _ config@Config{pabWebserverConfig} serviceAvailability PABWebserver =
+runConfigCommand trace _ config@Config{pabWebserverConfig} serviceAvailability eventfulBackend PABWebserver =
         fmap (either (error . show) id)
-        $ App.runApp (toPABMsg trace) config
+        $ App.runApp eventfulBackend (toPABMsg trace) config
         $ do
             App.AppEnv{App.walletClientEnv} <- Core.askUserEnv @ContractExe @App.AppEnv
             (mvar, _) <- PABServer.startServer pabWebserverConfig (Left walletClientEnv) serviceAvailability
             liftIO $ takeMVar mvar
 
 -- Fork a list of commands
-runConfigCommand trace logConfig config serviceAvailability (ForkCommands commands) =
+runConfigCommand trace logConfig config serviceAvailability backend (ForkCommands commands) =
     void $ do
         threads <- traverse forkCommand commands
         putStrLn "Started all commands."
@@ -186,13 +187,13 @@ runConfigCommand trace logConfig config serviceAvailability (ForkCommands comman
     forkCommand :: ConfigCommand -> IO (Async ())
     forkCommand subcommand = do
       putStrLn $ "Starting: " <> show subcommand
-      asyncId <- async . void . runConfigCommand trace logConfig config serviceAvailability $ subcommand
+      asyncId <- async . void . runConfigCommand trace logConfig config serviceAvailability backend $ subcommand
       putStrLn $ "Started: " <> show subcommand
       starting serviceAvailability
       pure asyncId
 
 -- Run the chain-index service
-runConfigCommand t _ Config {nodeServerConfig, chainIndexConfig} serviceAvailability ChainIndex =
+runConfigCommand t _ Config {nodeServerConfig, chainIndexConfig} serviceAvailability _ ChainIndex =
     ChainIndex.main
         (toChainIndexLog t)
         chainIndexConfig
@@ -201,15 +202,15 @@ runConfigCommand t _ Config {nodeServerConfig, chainIndexConfig} serviceAvailabi
         serviceAvailability
 
 -- Install a contract
-runConfigCommand t _ Config{dbConfig} _ (InstallContract contractExe) = do
-    connection <- App.dbConnect (LM.convertLog LM.PABMsg t) dbConfig
+runConfigCommand t _ Config{dbConfig} _ _ (InstallContract contractExe) = do
+    connection <- Left <$> App.dbConnect (LM.convertLog LM.PABMsg t) dbConfig
     fmap (either (error . show) id)
         $ Eventful.runEventfulStoreAction connection (LM.convertLog (LM.PABMsg . LM.SLoggerBridge) t)
         $ Contract.addDefinition @ContractExe contractExe
 
 -- Get the state of a contract
-runConfigCommand t _ Config{dbConfig} _ (ContractState contractInstanceId) = do
-    connection <- App.dbConnect (LM.convertLog LM.PABMsg t) dbConfig
+runConfigCommand t _ Config{dbConfig} _ _ (ContractState contractInstanceId) = do
+    connection <- Left <$> App.dbConnect (LM.convertLog LM.PABMsg t) dbConfig
     fmap (either (error . show) id)
         $ Eventful.runEventfulStoreAction connection (LM.convertLog (LM.PABMsg . LM.SLoggerBridge) t)
         $ interpret (LM.handleLogMsgTrace t)
@@ -220,8 +221,8 @@ runConfigCommand t _ Config{dbConfig} _ (ContractState contractInstanceId) = do
             drainLog
 
 -- Get all installed contracts
-runConfigCommand t _ Config{dbConfig} _ ReportInstalledContracts = do
-    connection <- App.dbConnect (LM.convertLog LM.PABMsg t) dbConfig
+runConfigCommand t _ Config{dbConfig} _ _ ReportInstalledContracts = do
+    connection <- Left <$> App.dbConnect (LM.convertLog LM.PABMsg t) dbConfig
     fmap (either (error . show) id)
         $ Eventful.runEventfulStoreAction connection (LM.convertLog (LM.PABMsg . LM.SLoggerBridge) t)
         $ interpret (LM.handleLogMsgTrace t)
@@ -233,8 +234,8 @@ runConfigCommand t _ Config{dbConfig} _ ReportInstalledContracts = do
                     render = renderStrict . layoutPretty defaultLayoutOptions
 
 -- Get all active contracts
-runConfigCommand t _ Config{dbConfig} _ ReportActiveContracts = do
-    connection <- App.dbConnect (LM.convertLog LM.PABMsg t) dbConfig
+runConfigCommand t _ Config{dbConfig} _ _ ReportActiveContracts = do
+    connection <- Left <$> App.dbConnect (LM.convertLog LM.PABMsg t) dbConfig
     fmap (either (error . show) id)
         $ Eventful.runEventfulStoreAction connection (LM.convertLog (LM.PABMsg . LM.SLoggerBridge) t)
         $ interpret (LM.handleLogMsgTrace t)
@@ -246,8 +247,8 @@ runConfigCommand t _ Config{dbConfig} _ ReportActiveContracts = do
             drainLog
 
 -- Get history of a specific contract
-runConfigCommand t _ Config{dbConfig} _ (ReportContractHistory contractInstanceId) = do
-    connection <- App.dbConnect (LM.convertLog LM.PABMsg t) dbConfig
+runConfigCommand t _ Config{dbConfig} _ _ (ReportContractHistory contractInstanceId) = do
+    connection <- Left <$> App.dbConnect (LM.convertLog LM.PABMsg t) dbConfig
     fmap (either (error . show) id)
         $ Eventful.runEventfulStoreAction connection (LM.convertLog (LM.PABMsg . LM.SLoggerBridge) t)
         $ interpret (LM.handleLogMsgTrace t)
