@@ -32,7 +32,7 @@ defaultCekCostModel :: CostModel CekMachineCosts
 defaultCekCostModel = CostModel defaultCekMachineCosts defaultBuiltinCostModel
 --- defaultCekMachineCosts is CekMachineCosts
 
-data MachineParameters (machinecosts :: *) (val :: (* -> *) -> * -> *) (uni :: * -> *) fun =
+data MachineParameters machinecosts (val :: (* -> *) -> * -> *) uni fun =
     MachineParameters {
       machineCosts2   :: machinecosts
     , builtinsRuntime :: BuiltinsRuntime fun (val uni fun)
