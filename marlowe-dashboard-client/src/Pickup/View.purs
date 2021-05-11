@@ -18,7 +18,7 @@ import InputField.Lenses (_value)
 import InputField.State (validate)
 import InputField.View (renderInput)
 import Material.Icons (Icon(..), icon, icon_)
-import Network.RemoteData (isFailure)
+import Network.RemoteData (isFailure, isSuccess)
 import Pickup.Lenses (_card, _pickingUp, _remoteWalletDetails, _walletLibrary, _walletIdInput, _walletNicknameInput, _walletNicknameOrId)
 import Pickup.Types (Action(..), Card(..), State)
 import Prim.TypeError (class Warn, Text)
@@ -72,6 +72,8 @@ pickupNewWalletCard :: forall p. State -> Array (HTML p Action)
 pickupNewWalletCard state =
   let
     pickingUp = view _pickingUp state
+
+    remoteWalletDetails = view _remoteWalletDetails state
 
     walletNicknameInput = view _walletNicknameInput state
 
@@ -129,7 +131,7 @@ pickupNewWalletCard state =
                 [ text "Cancel" ]
             , button
                 [ classNames $ Css.primaryButton <> [ "flex-1" ]
-                , disabled $ isJust (validate walletNicknameInput) || pickingUp
+                , disabled $ isJust (validate walletNicknameInput) || pickingUp || not isSuccess remoteWalletDetails
                 , onClick_ $ PickupWallet $ view _value walletNicknameInput
                 ]
                 [ text if pickingUp then "Picking up... " else "Pickup" ]
@@ -141,6 +143,8 @@ pickupWalletCard :: forall p. State -> Array (HTML p Action)
 pickupWalletCard state =
   let
     pickingUp = view _pickingUp state
+
+    remoteWalletDetails = view _remoteWalletDetails state
 
     walletNicknameInput = view _walletNicknameInput state
 
@@ -199,7 +203,7 @@ pickupWalletCard state =
             , button
                 [ classNames $ Css.primaryButton <> [ "flex-1" ]
                 , onClick_ $ PickupWallet $ view _value walletNicknameInput
-                , disabled pickingUp
+                , disabled $ pickingUp || not isSuccess remoteWalletDetails
                 ]
                 [ text if pickingUp then "Picking up... " else "Pickup" ]
             ]

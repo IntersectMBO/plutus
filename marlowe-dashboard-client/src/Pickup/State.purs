@@ -136,7 +136,7 @@ handleAction (PickupWallet walletNickname) = do
       walletLibrary <- use _walletLibrary
       liftEffect $ setItem walletLibraryLocalStorageKey $ encodeJSON walletLibrary
       callMainFrameAction $ MainFrame.EnterPlayState walletLibrary walletDetailsWithNickname
-    _ -> pure unit
+    _ -> pure unit -- this action should never be triggered in this case
 
 handleAction ClearLocalStorage =
   liftEffect do
