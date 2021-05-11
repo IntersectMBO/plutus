@@ -104,7 +104,7 @@ import           Plutus.Contract.Effects.AwaitTxConfirmed       (TxConfirmed)
 import           Plutus.PAB.Core                                (EffectHandlers (..))
 import qualified Plutus.PAB.Core                                as Core
 import qualified Plutus.PAB.Core.ContractInstance.BlockchainEnv as BlockchainEnv
-import           Plutus.PAB.Core.ContractInstance.STM           (Activity (..), BlockchainEnv, OpenEndpoint)
+import           Plutus.PAB.Core.ContractInstance.STM           (Activity (..), BlockchainEnv (..), OpenEndpoint)
 import qualified Plutus.PAB.Core.ContractInstance.STM           as Instances
 import           Plutus.PAB.Effects.Contract                    (ContractStore)
 import qualified Plutus.PAB.Effects.Contract                    as Contract
@@ -454,6 +454,7 @@ handleChainControl = \case
         runChainIndexEffects @t (ChainIndex.chainIndexNotify $ BlockValidated txns)
 
         void $ liftIO $ STM.atomically $ BlockchainEnv.processBlock blockchainEnv txns slot
+
         pure txns
     Chain.ModifySlot f -> do
         slot <- runChainEffects @t @_ (Chain.modifySlot f)
