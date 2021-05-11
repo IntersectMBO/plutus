@@ -856,18 +856,18 @@ runEval (EvalOptions language inp ifmt evalMode printMode budgetMode timingMode 
                   UntypedProgram prog <- getProgram UntypedPLC ifmt inp
                   let term = void . UPLC.toTerm $ prog
                       !_ = rnf term
-                      cekcosts = case cekModel of
-                                Default -> Cek.defaultCekMachineCosts  -- AST nodes are charged according to the default cost model
-                                Unit    -> Cek.unitCekMachineCosts     -- AST nodes are charged one unit each, so we can see how many times each node
-                                                                       -- type is encountered.  This is useful for calibrating the budgeting code.
+                      cekparams = case cekModel of
+                                Default -> Cek.defaultCekParameters  -- AST nodes are charged according to the default cost model
+                                Unit    -> Cek.unitCekParameters     -- AST nodes are charged one unit each, so we can see how many times each node
+                                                                     -- type is encountered.  This is useful for calibrating the budgeting code.
                   case budgetMode of
                     Silent -> do
-                          let evaluate = Cek.evaluateCekNoEmit cekcosts PLC.defBuiltinsRuntime
+                          let evaluate = Cek.evaluateCekNoEmit cekparams
                           case timingMode of
                             NoTiming -> evaluate term & handleResult
                             Timing n -> timeEval n evaluate term >>= handleTimingResults term
                     Verbose bm -> do
-                          let evaluate = Cek.runCekNoEmit cekcosts PLC.defBuiltinsRuntime bm
+                          let evaluate = Cek.runCekNoEmit cekparams bm
                           case timingMode of
                             NoTiming -> do
                                     let (result, budget) = evaluate term

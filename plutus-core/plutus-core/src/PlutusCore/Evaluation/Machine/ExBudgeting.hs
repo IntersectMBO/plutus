@@ -113,7 +113,7 @@ data BuiltinCostModelBase f =
     , paramGreaterThanEqInteger :: f ModelTwoArguments
     , paramEqInteger            :: f ModelTwoArguments
     , paramConcatenate          :: f ModelTwoArguments
-    , paramTakeByteString       :: f ModelTwoArguments -- TODO these two might be a bit interesting on size
+    , paramTakeByteString       :: f ModelTwoArguments
     , paramDropByteString       :: f ModelTwoArguments
     , paramSHA2                 :: f ModelOneArgument
     , paramSHA3                 :: f ModelOneArgument

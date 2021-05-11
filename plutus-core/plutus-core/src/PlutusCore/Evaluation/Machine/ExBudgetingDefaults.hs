@@ -31,4 +31,3 @@ defaultBuiltinCostModelParams = extractBuiltinCostModelParams defaultBuiltinCost
 defaultCekMachineCosts :: CekMachineCosts
 defaultCekMachineCosts =
   $$(readJSONFromFile "cost-model/data/cekMachineCosts.json")
-

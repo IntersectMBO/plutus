@@ -159,7 +159,7 @@ prop_agree_termEval tyG tmG = do
 
   -- run untyped CEK on erased input
   tmUCek <- withExceptT UCekP $ liftEither $
-    U.evaluateCekNoEmit U.defaultCekMachineCosts defBuiltinsRuntime (U.erase tm) `catchError` handleUError
+    U.evaluateCekNoEmit U.defaultCekParameters (U.erase tm) `catchError` handleUError
 
   -- check if typed CK and untyped CEK give the same output modulo erasure
   unless (tmUCk == tmUCek) $
