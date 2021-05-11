@@ -128,10 +128,12 @@ waitForUpdateTest =
         p2 <- Simulator.activateContract defaultWallet PingPong
         void $ Simulator.callEndpointOnInstance p1 "initialise" ()
         Simulator.waitNSlots 5
+        _ <- Simulator.waitForEndpoint p1 "wait"
         void $ Simulator.callEndpointOnInstance p1 "wait" ()
         void $ Simulator.callEndpointOnInstance p2 "pong" ()
         _ <- Simulator.waitForState (is Ponged) p1
         void $ Simulator.callEndpointOnInstance p1 "wait" ()
+        _ <- Simulator.waitForEndpoint p2 "ping"
         void $ Simulator.callEndpointOnInstance p2 "ping" ()
         _ <- Simulator.waitForState (is Pinged) p1
         pure ()
@@ -250,7 +252,7 @@ guessingGameTest =
                       { Contracts.GameStateMachine.lockArgsValue = lovelaceValueOf lockAmount
                       , Contracts.GameStateMachine.lockArgsSecret = "password"
                       }
-              _ <- Simulator.waitNSlots 5
+              _ <- Simulator.waitNSlots 10
 
               assertTxCounts
                   "Locking the game state machine should produce two transactions"
