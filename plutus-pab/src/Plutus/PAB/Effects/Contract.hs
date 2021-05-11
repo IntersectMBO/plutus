@@ -118,9 +118,11 @@ updateContract i def state request =
 
 -- | Storing and retrieving the state of a contract instance
 data ContractStore t r where
-    PutState :: ContractActivationArgs (ContractDef t) -> ContractInstanceId -> State t -> ContractStore t ()
-    GetState :: ContractInstanceId -> ContractStore t (State t)
-    ActiveContracts :: ContractStore t (Map ContractInstanceId (ContractActivationArgs (ContractDef t)))
+    PutStartInstance :: ContractActivationArgs (ContractDef t) -> ContractInstanceId -> ContractStore t () -- ^ Record the starting of a new contract instance
+    PutState :: ContractActivationArgs (ContractDef t) -> ContractInstanceId -> State t -> ContractStore t () -- ^ Record the updated state of the contract instance
+    GetState :: ContractInstanceId -> ContractStore t (State t) -- ^ Retrieve the last recorded state of the contract instance
+    PutStopInstance :: ContractInstanceId -> ContractStore t () -- ^ Record the fact that a contract instance has stopped
+    GetActiveContracts :: ContractStore t (Map ContractInstanceId (ContractActivationArgs (ContractDef t))) -- ^ Get all active contracts with their activation args
 
 -- | Store the state of the contract instance
 putState ::
@@ -153,7 +155,7 @@ getActiveContracts ::
     )
     => Eff effs (Map ContractInstanceId (ContractActivationArgs (ContractDef t)))
 getActiveContracts =
-    let command :: ContractStore t (Map ContractInstanceId (ContractActivationArgs (ContractDef t))) = ActiveContracts
+    let command :: ContractStore t (Map ContractInstanceId (ContractActivationArgs (ContractDef t))) = GetActiveContracts
     in send command
 
 -- | Get the definition of a running contract

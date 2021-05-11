@@ -628,9 +628,11 @@ handleContractStore = \case
         case result of
             Just s  -> pure s
             Nothing -> throwError (ContractInstanceNotFound instanceId)
-    Contract.ActiveContracts -> do
+    Contract.GetActiveContracts -> do
         instancesTVar <- view instances <$> (Core.askUserEnv @t @(SimulatorState t))
         fmap _contractDef <$> liftIO (STM.readTVarIO instancesTVar)
+    Contract.PutStartInstance{} -> pure ()
+    Contract.PutStopInstance{} -> pure ()
 
 render :: forall a. Pretty a => a -> Text
 render = Render.renderStrict . layoutPretty defaultLayoutOptions . pretty

@@ -125,7 +125,7 @@ instance (ToBuiltinMeaning uni fun1, ToBuiltinMeaning uni fun2) =>
 defBuiltinsRuntimeExt
     :: HasConstantIn DefaultUni term
     => BuiltinsRuntime (Either DefaultFun ExtensionFun) term
-defBuiltinsRuntimeExt = toBuiltinsRuntime (defaultCostModel, ())
+defBuiltinsRuntimeExt = toBuiltinsRuntime (defaultBuiltinCostModel, ())
 
 data PlcListRep (a :: GHC.Type)
 instance KnownTypeAst uni a => KnownTypeAst uni (PlcListRep a) where

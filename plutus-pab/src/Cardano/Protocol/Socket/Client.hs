@@ -38,7 +38,7 @@ data ClientHandler = ClientHandler
     { chInputQueue  :: TQueue Tx
     , chSocketPath  :: FilePath
     , chCurrentSlot :: IO Slot
-    , chHandler     :: (Block -> Slot -> IO ())
+    , chHandler     :: Block -> Slot -> IO ()
     }
 
 -- | Queue a transaction to be sent to the server.

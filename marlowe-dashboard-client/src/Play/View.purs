@@ -3,7 +3,7 @@ module Play.View (renderPlayState) where
 import Prelude hiding (div)
 import Contract.View (actionConfirmationCard, contractDetailsCard)
 import ContractHome.View (contractsScreen)
-import Css (applyWhen, classNames, hideWhen)
+import Css (applyWhen, classNames, hideWhen, toggleWhen)
 import Css as Css
 import Data.Lens (preview, view)
 import Data.Maybe (Maybe(..))
@@ -11,27 +11,27 @@ import Data.String (take)
 import Halogen.HTML (HTML, a, div, div_, footer, header, img, main, nav, span, text)
 import Halogen.HTML.Events.Extra (onClick_)
 import Halogen.HTML.Properties (href, src)
-import Logo (marloweRunNavLogo, marloweRunNavLogoDark)
-import Marlowe.Semantics (PubKey)
+import Images (marloweRunNavLogo, marloweRunNavLogoDark)
+import Marlowe.Semantics (PubKey, Slot)
 import Material.Icons (Icon(..), icon_)
-import Play.Lenses (_cards, _contractsState, _currentSlot, _menuOpen, _newWalletNickname, _newWalletCompanionAppIdString, _newWalletInfo, _screen, _selectedContract, _templateState, _walletDetails, _walletLibrary)
+import Play.Lenses (_cards, _contractsState, _menuOpen, _newWalletNickname, _newWalletCompanionAppIdString, _newWalletInfo, _screen, _selectedContract, _templateState, _walletDetails, _walletLibrary)
 import Play.Types (Action(..), Card(..), Screen(..), State)
 import Prim.TypeError (class Warn, Text)
 import Template.View (contractSetupConfirmationCard, contractSetupScreen, templateLibraryCard)
 import WalletData.Lenses (_assets, _walletNickname)
 import WalletData.View (putdownWalletCard, saveWalletCard, walletDetailsCard, walletLibraryScreen)
 
-renderPlayState :: forall p. State -> HTML p Action
-renderPlayState state =
+renderPlayState :: forall p. Slot -> State -> HTML p Action
+renderPlayState currentSlot state =
   let
     walletNickname = view (_walletDetails <<< _walletNickname) state
 
     menuOpen = view _menuOpen state
   in
     div
-      [ classNames [ "grid", "h-full", "grid-rows-main" ] ]
+      [ classNames $ [ "grid", "h-full", "grid-rows-main" ] <> applyWhen menuOpen [ "bg-black" ] ]
       [ renderHeader walletNickname menuOpen
-      , renderMain state
+      , renderMain currentSlot state
       , renderFooter
       ]
 
@@ -39,10 +39,20 @@ renderPlayState state =
 renderHeader :: forall p. PubKey -> Boolean -> HTML p Action
 renderHeader walletNickname menuOpen =
   header
-    [ classNames $ [ "relative", "flex", "justify-between", "items-center", "leading-none", "border-b", "border-gray", "py-3", "md:py-1", "px-4", "md:px-5pc" ] <> applyWhen menuOpen [ "border-0", "bg-black", "text-white" ] ]
+    [ classNames
+        $ [ "relative", "flex", "justify-between", "items-center", "leading-none", "py-3", "md:py-1", "px-4", "md:px-5pc" ]
+        -- in case the menu is open when the user makes their window wider, we make sure the menuOpen styles only apply on small screens ...
+        
+        <> toggleWhen menuOpen [ "border-0", "bg-black", "text-white", "md:border-b", "md:bg-transparent", "md:text-black" ] [ "border-b", "border-gray" ]
+    ]
     [ img
-        [ classNames [ "w-16" ]
+        [ classNames [ "w-16", "md:hidden" ]
         , src if menuOpen then marloweRunNavLogoDark else marloweRunNavLogo
+        ]
+    -- ... and provide an alternative logo for wider screens that always has black text
+    , img
+        [ classNames [ "w-16", "hidden", "md:inline" ]
+        , src marloweRunNavLogo
         ]
     , nav
         [ classNames [ "flex", "items-center" ] ]
@@ -58,9 +68,9 @@ renderHeader walletNickname menuOpen =
             , span
                 [ classNames $ [ "hidden", "md:flex", "md:items-baseline" ] <> Css.button <> [ "bg-white" ] ]
                 [ span
-                    [ classNames $ [ "-m-1", "mr-2", "rounded-full", "text-white", "w-5", "h-5", "flex", "justify-center", "items-center", "uppercase" ] <> Css.bgBlueGradient ]
+                    [ classNames $ [ "-m-1", "mr-2", "rounded-full", "text-white", "w-5", "h-5", "flex", "justify-center", "items-center", "uppercase", "font-semibold" ] <> Css.bgBlueGradient ]
                     [ text $ take 1 walletNickname ]
-                , text walletNickname
+                , span [ classNames [ "truncate", "max-w-16" ] ] [ text walletNickname ]
                 ]
             ]
         , a
@@ -85,8 +95,8 @@ renderHeader walletNickname menuOpen =
       ]
 
 ------------------------------------------------------------
-renderMain :: forall p. State -> HTML p Action
-renderMain state =
+renderMain :: forall p. Slot -> State -> HTML p Action
+renderMain currentSlot state =
   let
     menuOpen = view _menuOpen state
 
@@ -97,8 +107,8 @@ renderMain state =
     main
       [ classNames [ "relative", "px-4", "md:px-5pc" ] ]
       [ renderMobileMenu menuOpen
-      , div_ $ renderCard state <$> cards
-      , renderScreen state
+      , div_ $ renderCard currentSlot state <$> cards
+      , renderScreen currentSlot state
       ]
 
 renderMobileMenu :: forall p. Boolean -> HTML p Action
@@ -113,8 +123,8 @@ renderMobileMenu menuOpen =
         iohkLinks
     ]
 
-renderCard :: forall p. State -> Card -> HTML p Action
-renderCard state card =
+renderCard :: forall p. Slot -> State -> Card -> HTML p Action
+renderCard currentSlot state card =
   let
     walletLibrary = view _walletLibrary state
 
@@ -129,8 +139,6 @@ renderCard state card =
     newWalletInfo = view _newWalletInfo state
 
     mSelectedContractState = preview _selectedContract state
-
-    currentSlot = view _currentSlot state
 
     cardClasses = case card of
       TemplateLibraryCard -> Css.largeCard false
@@ -175,14 +183,12 @@ renderCard state card =
                 Nothing -> []
       ]
 
-renderScreen :: forall p. State -> HTML p Action
-renderScreen state =
+renderScreen :: forall p. Slot -> State -> HTML p Action
+renderScreen currentSlot state =
   let
     walletLibrary = view _walletLibrary state
 
     screen = view _screen state
-
-    currentSlot = view _currentSlot state
 
     templateState = view _templateState state
 
@@ -212,15 +218,17 @@ renderFooter =
 ------------------------------------------------------------
 dashboardLinks :: forall p. Warn (Text "We need to add the dashboard links.") => Array (HTML p Action)
 dashboardLinks =
-  [ link "Market" ""
-  , link "Docs" ""
-  , link "Support" ""
+  -- FIXME: Add link to Docs
+  [ link "Docs" ""
+  , link "marlowe-finance.io" "https://marlowe-finance.io"
+  , link "play.marlowe-finance.io" "https://play.marlowe-finance.io"
+  {- disabled for phase 1, link "Market" ""
+  , link "Support" "" -}
   ]
 
-iohkLinks :: forall p. Warn (Text "We need to add the IOHK links.") => Array (HTML p Action)
+iohkLinks :: forall p. Array (HTML p Action)
 iohkLinks =
-  [ link "marlowe.io" ""
-  , link "cardano.org" "https://cardano.org"
+  [ link "cardano.org" "https://cardano.org"
   , link "iohk.io" "https://iohk.io"
   ]
 

@@ -58,7 +58,7 @@ test_applyBuiltinFunction :: DefaultFun -> TestTree
 test_applyBuiltinFunction fun =
     testProperty (show fun) . property $ case toBuiltinMeaning fun of
         BuiltinMeaning sch f toExF -> do
-            let exF = toExF defaultCostModel
+            let exF = toExF defaultBuiltinCostModel
             withGenArgsRes sch f $ \args res ->
                 -- The calls to 'unAppM' are just to drive type inference.
                 unAppM (applyTypeSchemed fun sch f exF args) === unAppM (makeKnown res)

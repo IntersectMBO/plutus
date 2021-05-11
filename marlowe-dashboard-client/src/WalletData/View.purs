@@ -125,7 +125,7 @@ putdownWalletCard walletDetails =
   in
     div [ classNames [ "p-5", "pb-6", "md:pb-8" ] ]
       [ h3
-          [ classNames [ "font-semibold", "mb-4" ] ]
+          [ classNames [ "font-semibold", "mb-4", "truncate", "w-11/12" ] ]
           [ text $ "Wallet " <> walletNickname ]
       , div
           [ classNames Css.hasNestedLabel ]
@@ -177,7 +177,7 @@ walletLibraryScreen library =
           $ contactLi
           <$> toUnfoldable library
     , button
-        [ classNames $ Css.primaryButton <> Css.withIcon Add <> Css.fixedBottomRight
+        [ classNames $ Css.primaryButton <> Css.withIcon NewContact <> Css.fixedBottomRight
         , onClick_ $ OpenCard $ SaveWalletCard Nothing
         ]
         [ text "New contact" ]

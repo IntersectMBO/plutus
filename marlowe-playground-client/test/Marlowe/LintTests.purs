@@ -4,61 +4,65 @@ import Prelude
 import Data.Array (singleton)
 import Data.Either (Either(..))
 import Data.List (List(..))
+import Data.Map as Map
 import Data.Set (toUnfoldable)
+import Data.Traversable (sequence_)
 import Data.Tuple (fst)
 import Data.Tuple.Nested (type (/\), (/\))
 import Marlowe.Linter (State(..), WarningDetail(..), lint)
 import Marlowe.Parser (parseContract)
 import Marlowe.Semantics as S
+import StaticData (marloweContracts)
 import Test.Unit (TestSuite, Test, suite, test, failure)
 import Test.Unit.Assert as Assert
 
 all :: TestSuite
 all = do
   suite "Marlowe.Linter reports simplification" do
-    test "in Let construct" $ letSimplifies
-    test "in Deposit construct" $ depositSimplifies
-    test "in Pay construct" $ paySimplifies
-    test "in AddValue" $ addValueSimplifies
-    test "of AddValue with 0 constant" $ addValueSimplifiesWithZero
-    test "in SubValue" $ subValueSimplifies
-    test "of SubValue with 0 constant" $ subValueSimplifiesWithZero
-    test "in If construct" $ ifSimplifies
-    test "in Notify construct" $ notifySimplifies
-    test "in Assert construct" $ assertSimplifies
-    test "in AndObs" $ andObsSimplifies
-    test "of AndObs with True constant" $ andObsSimplifiesWithTrue
-    test "in OrObs" $ orObsSimplifies
-    test "of OrObs with False constant" $ orObsSimplifiesWithFalse
-    test "of non-reduced Scale" $ nonReducedScaleSimplified
-    test "of Scale with constant" $ scaleConstantSimplified
-    test "of Scale with constant expression" $ scaleConstantExpressionSimplified
-    test "Invalid bound in Case" $ unreachableCaseInvalidBound
+    test "in Let construct" letSimplifies
+    test "in Deposit construct" depositSimplifies
+    test "in Pay construct" paySimplifies
+    test "in AddValue" addValueSimplifies
+    test "of AddValue with 0 constant" addValueSimplifiesWithZero
+    test "in SubValue" subValueSimplifies
+    test "of SubValue with 0 constant" subValueSimplifiesWithZero
+    test "in If construct" ifSimplifies
+    test "in Notify construct" notifySimplifies
+    test "in Assert construct" assertSimplifies
+    test "in AndObs" andObsSimplifies
+    test "of AndObs with True constant" andObsSimplifiesWithTrue
+    test "in OrObs" orObsSimplifies
+    test "of OrObs with False constant" orObsSimplifiesWithFalse
+    test "of non-reduced Scale" nonReducedScaleSimplified
+    test "of Scale with constant" scaleConstantSimplified
+    test "of Scale with constant expression" scaleConstantExpressionSimplified
+    test "Invalid bound in Case" unreachableCaseInvalidBound
   suite "Marlowe.Linter reports bad pratices" do
-    test "Let shadowing" $ letShadowing
-    test "Non-increasing timeouts" $ nonIncreasingTimeouts
+    test "Let shadowing" letShadowing
+    test "Non-increasing timeouts" nonIncreasingTimeouts
   suite "Marlowe.Linter reports unreachable code" do
-    test "Unreachable If branch (then)" $ unreachableThen
-    test "Unreachable If branch (else)" $ unreachableElse
-    test "Unreachable Case (Notify)" $ unreachableCaseNotify
-    test "Unreachable Case (empty Choice list)" $ unreachableCaseEmptyChoiceList
+    test "Unreachable If branch (then)" unreachableThen
+    test "Unreachable If branch (else)" unreachableElse
+    test "Unreachable Case (Notify)" unreachableCaseNotify
+    test "Unreachable Case (empty Choice list)" unreachableCaseEmptyChoiceList
   suite "Marlowe.Linter reports bad contracts" do
-    test "Undefined Let" $ undefinedLet
-    test "Undefined ChoiceValue" $ undefinedChoiceValue
-    test "Non-positive Deposit" $ nonPositiveDeposit
-    test "Non-positive Pay" $ nonPositivePay
-    test "Pay before deposit" $ payBeforeWarning
-    test "Pay before deposit in branch" $ payBeforeWarningBranch
-    test "Pay with insufficient deposit" $ payInsufficientDeposit
-    test "Pay twice with insufficient deposit for both" $ payTwiceInsufficientDeposit
+    test "Undefined Let" undefinedLet
+    test "Undefined ChoiceValue" undefinedChoiceValue
+    test "Non-positive Deposit" nonPositiveDeposit
+    test "Non-positive Pay" nonPositivePay
+    test "Pay before deposit" payBeforeWarning
+    test "Pay before deposit in branch" payBeforeWarningBranch
+    test "Pay with insufficient deposit" payInsufficientDeposit
+    test "Pay twice with insufficient deposit for both" payTwiceInsufficientDeposit
   suite "Marlowe.Linter does not report good contracts" do
-    test "Defined Let" $ normalLet
-    test "Defined ChoiceValue" $ normalChoiceValue
-    test "Positive Deposit" $ positiveDeposit
-    test "Positive Pay" $ positivePay
+    test "Defined Let" normalLet
+    test "Defined ChoiceValue" normalChoiceValue
+    test "Positive Deposit" positiveDeposit
+    test "Positive Pay" positivePay
     test "Pay to hole" payToHole
-    test "Pay to account and then Pay" $ payThroughAccount
-    test "Pay twice" $ payTwice
+    test "Pay to account and then Pay" payThroughAccount
+    test "Pay twice" payTwice
+  suite "All examples pass Marlowe.Linter" examplesPassLinter
 
 addParenthesis :: String -> String
 addParenthesis str = "(" <> str <> ")"
@@ -392,3 +396,9 @@ positiveDeposit = testNoWarning (depositContract "(Constant 1)")
 
 positivePay :: Test
 positivePay = testNoWarning (payContract "(Constant 1)")
+
+examplesPassLinter :: TestSuite
+examplesPassLinter = sequence_ (map examplePassesLinter (Map.toUnfoldable marloweContracts) :: Array TestSuite)
+  where
+  examplePassesLinter :: String /\ String -> TestSuite
+  examplePassesLinter (name /\ contract) = test (show name <> " example passes Marlowe.Linter") $ testNoWarning contract

@@ -198,4 +198,16 @@ exports.updateToolbox_ = function (toolboxJson, workspace) {
   workspace.updateToolbox(toolboxJson);
 }
 
+exports.clearUndoStack_ = function (workspace) {
+  workspace.clearUndo();
+}
+
+exports.isWorkspaceEmpty_ = function (workspace) {
+  var topBlocks = workspace.getTopBlocks(false);
+  return ((topBlocks == null) || (topBlocks.length == 0));
+}
+
+exports.setGroup_ = function (blockly, isGroup) {
+  blockly.Events.setGroup(isGroup);
+}
 

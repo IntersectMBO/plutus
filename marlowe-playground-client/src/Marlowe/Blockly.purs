@@ -3,7 +3,7 @@ module Marlowe.Blockly where
 import Prelude
 import Blockly.Dom as BDom
 import Blockly.Generator (Connection, Input, NewBlockFunction, clearWorkspace, connect, connectToOutput, connectToPrevious, fieldName, fieldRow, getInputWithName, inputList, inputName, inputType, nextConnection, previousConnection, setFieldText)
-import Blockly.Internal (AlignDirection(..), Arg(..), BlockDefinition(..), Pair(..), defaultBlockDefinition, getBlockById, initializeWorkspace, render, typedArguments)
+import Blockly.Internal (AlignDirection(..), Arg(..), BlockDefinition(..), Pair(..), clearUndoStack, defaultBlockDefinition, getBlockById, initializeWorkspace, isWorkspaceEmpty, render, setGroup, typedArguments)
 import Blockly.Toolbox (Category, Toolbox(..), category, leaf, rename, separator)
 import Blockly.Types (Block, BlocklyState, Workspace)
 import Control.Monad.Error.Class (catchError)
@@ -1436,8 +1436,10 @@ instance blockToTermBound :: BlockToTerm Bound where
   blockToTerm block = throwError $ InvalidBlock block "Bound"
 
 ---------------------------------------------------------------------------------------------------
-buildBlocks :: NewBlockFunction -> BlocklyState -> Term Contract -> Effect Unit
-buildBlocks newBlock bs contract = do
+buildBlocks :: Boolean -> NewBlockFunction -> BlocklyState -> Term Contract -> Effect Unit
+buildBlocks shouldClearUndoStack newBlock bs contract = do
+  workspaceWasEmpty <- isWorkspaceEmpty bs.workspace
+  setGroup bs.blockly true -- We group the events together so that the are undone at the same time
   clearWorkspace bs.workspace
   initializeWorkspace bs.blockly bs.workspace
   -- Get or create rootBlock
@@ -1452,6 +1454,10 @@ buildBlocks newBlock bs contract = do
   for_ mInput \input -> do
     toBlockly newBlock bs.workspace input contract
     render bs.workspace
+  setGroup bs.blockly false
+  -- If `shouldClearUndoStack` is `true` or the workspace was empty (which means it is the first time we populate blockly)
+  -- we clean up the stack. This way we prevent UNDO from deleting every block (we cannot allow the CONTRACT block to be deleted)
+  if shouldClearUndoStack || workspaceWasEmpty then clearUndoStack bs.workspace else pure unit
 
 setField :: Block -> String -> String -> Effect Unit
 setField block name value = do

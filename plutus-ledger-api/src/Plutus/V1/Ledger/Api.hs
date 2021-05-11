@@ -10,8 +10,8 @@ module Plutus.V1.Ledger.Api (
     , validateScript
     -- * Cost model
     , validateCostModelParams
-    , defaultCostModelParams
-    , CostModelParams
+    , defaultBuiltinCostModelParams
+    , BuiltinCostModelParams
     -- * Running scripts
     , evaluateScriptRestricting
     , evaluateScriptCounting
@@ -92,8 +92,9 @@ import           PlutusCore.Constant                               (toBuiltinsRu
 import qualified PlutusCore.DeBruijn                               as PLC
 import           PlutusCore.Evaluation.Machine.ExBudget            (ExBudget (..))
 import qualified PlutusCore.Evaluation.Machine.ExBudget            as PLC
-import           PlutusCore.Evaluation.Machine.ExBudgeting         (CostModelParams, applyModelParams)
-import           PlutusCore.Evaluation.Machine.ExBudgetingDefaults (defaultCostModel, defaultCostModelParams)
+import           PlutusCore.Evaluation.Machine.ExBudgeting         (BuiltinCostModelParams, applyModelParams)
+import           PlutusCore.Evaluation.Machine.ExBudgetingDefaults (defaultBuiltinCostModel,
+                                                                    defaultBuiltinCostModelParams)
 import           PlutusCore.Evaluation.Machine.ExMemory            (ExCPU (..), ExMemory (..))
 import qualified PlutusCore.MkPlc                                  as PLC
 import           PlutusCore.Pretty
@@ -126,8 +127,8 @@ anything, we're just going to create new versions.
 validateScript :: Script -> Bool
 validateScript = isRight . Flat.unflat @Scripts.Script . fromShort
 
-validateCostModelParams :: CostModelParams -> Bool
-validateCostModelParams = isJust . applyModelParams defaultCostModel
+validateCostModelParams :: BuiltinCostModelParams -> Bool
+validateCostModelParams = isJust . applyModelParams defaultBuiltinCostModel
 
 data VerboseMode = Verbose | Quiet
     deriving (Eq)
@@ -167,24 +168,25 @@ mkTermToEvaluate bs args = do
 
 -- | Evaluates a script, with a cost model and a budget that restricts how many
 -- resources it can use according to the cost model.  There's a default cost
--- model in  'UPLC.defaultCostModel' and a budget called 'enormousBudget' in
+-- model in  'UPLC.defaultBuiltinCostModel' and a budget called 'enormousBudget' in
 -- 'UntypedPlutusCore.Evaluation.Machine.Cek.ExBudgetMode' which should be large
 -- enough to evaluate any sensible program.
 evaluateScriptRestricting
     :: VerboseMode -- ^ Whether to produce log output
-    -> CostModelParams -- ^ The cost model to use
+    -> BuiltinCostModelParams -- ^ The cost model to use
     -> ExBudget    -- ^ The resource budget which must not be exceeded during evaluation
     -> Script      -- ^ The script to evaluate
     -> [Data]      -- ^ The arguments to the script
     -> (LogOutput, Either EvaluationError ())
 evaluateScriptRestricting verbose params budget p args = swap $ runWriter @LogOutput $ runExceptT $ do
     appliedTerm <- mkTermToEvaluate p args
-    model <- case applyModelParams defaultCostModel params of
+    model <- case applyModelParams defaultBuiltinCostModel params of
         Just model -> pure model
         Nothing    -> throwError CostModelParameterMismatch
 
     let (res, _, logs) =
             UPLC.runCek
+                UPLC.defaultCekMachineCosts
                 (toBuiltinsRuntime model)
                 (UPLC.restricting $ PLC.ExRestrictingBudget budget)
                 (verbose == Verbose)
@@ -197,18 +199,19 @@ evaluateScriptRestricting verbose params budget p args = swap $ runWriter @LogOu
 -- to evaluate successfully.
 evaluateScriptCounting
     :: VerboseMode -- ^ Whether to produce log output
-    -> CostModelParams -- ^ The cost model to use
+    -> BuiltinCostModelParams -- ^ The cost model to use
     -> Script      -- ^ The script to evaluate
     -> [Data]      -- ^ The arguments to the script
     -> (LogOutput, Either EvaluationError ExBudget)
 evaluateScriptCounting verbose params p args = swap $ runWriter @LogOutput $ runExceptT $ do
     appliedTerm <- mkTermToEvaluate p args
-    model <- case applyModelParams defaultCostModel params of
+    model <- case applyModelParams defaultBuiltinCostModel params of
         Just model -> pure model
         Nothing    -> throwError CostModelParameterMismatch
 
     let (res, UPLC.CountingSt final, logs) =
             UPLC.runCek
+                UPLC.defaultCekMachineCosts
                 (toBuiltinsRuntime model)
                 UPLC.counting
                 (verbose == Verbose)
