@@ -30,6 +30,8 @@ exports.createWorkspace_ = function (blockly, workspaceDiv, config) {
   blockly.Extensions.unregister('timeout_validator');
   try { blockly.Extensions.register('hash_validator', function () { }); } catch(err) { }
   blockly.Extensions.unregister('hash_validator');
+  try { blockly.Extensions.register('number_validator', function () { }); } catch(err) { }
+  blockly.Extensions.unregister('number_validator');
 
   /* Timeout extension (advanced validation for the timeout field) */
   blockly.Extensions.register('timeout_validator',
@@ -49,7 +51,7 @@ exports.createWorkspace_ = function (blockly, workspaceDiv, config) {
           return input;
         }
       };
-      
+
       thisBlock.getField('timeout').setValidator(timeoutValidator);
 
       /* This sets the timeout to zero when switching to slot in the dropdown */
@@ -89,10 +91,32 @@ exports.createWorkspace_ = function (blockly, workspaceDiv, config) {
         });
     });
 
+  /* Number extension (advanced validation for number fields - other than timeout) */
+  blockly.Extensions.register('number_validator',
+    function() {
+      var thisBlock = this;
+
+      /* Validator for number fields */
+      var numberValidator = function (input) {
+        if (!isFinite(input)) {
+          return null;
+        }
+      }
+
+      thisBlock.inputList.forEach((input) => {
+        input.fieldRow.forEach((field) => {
+          if (field instanceof blockly.FieldNumber) {
+            field.setValidator(numberValidator);
+          }
+        })
+      })
+    })
+
+
   /* Inject workspace */
   var workspace = blockly.inject(workspaceDiv, config);
   blockly.svgResize(workspace);
-  
+
   return workspace;
 };
 
