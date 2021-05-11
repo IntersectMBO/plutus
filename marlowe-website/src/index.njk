@@ -7,20 +7,33 @@
   </head>
 
   <body>
-    <header class="flex justify-between p-6 md:px-5vw xl:px-10vw  items-center">
-      <img class="h-10" src="{% static './static/img/marlowe-prototype-logo.svg' %}" alt="Marlowe prototype logo">
+    <header class="flex p-6 md:px-5vw xl:px-10vw items-center fixed top-0 left-0 right-0 z-10 transition-all duration-300 ease-out">
+      <img class="h-10 hidden md:block" src="{% static './static/img/marlowe-prototype-logo.svg' %}" alt="Marlowe prototype logo">
+      <img class="h-10 md:hidden" src="{% static './static/img/marlowe-logo.svg' %}" alt="Marlowe prototype logo">
+      <div id="header-try-buttons" class="opacity-0 transition-opacity duration-300 ease-out text-sm flex-grow flex justify-end mr-2 sm:mr-4 md:mr-5 lg:mr-7">
+        <div class="hidden md:block">
+          <a href="https://run.marlowe-finance.io" target="_blank" class="primary-button flex-shrink-0 mr-2 sm:mr-4 md:mr-5 lg:mr-7">Try Marlowe Run</a>
+          <a href="https://play.marlowe-finance.io" target="_blank" class="secondary-button flex-shrink-0">Try Marlowe Play</a>
+        </div>
+
+        <div class="md:hidden">
+          <a href="https://run.marlowe-finance.io" target="_blank" class="button-base primary-button-outline flex-shrink-0 mr-2 sm:mr-4 md:mr-5 lg:mr-7">Try Run</a>
+          <a href="https://play.marlowe-finance.io" target="_blank" class="button-base secondary-button-outline flex-shrink-0">Try Play</a>
+        </div>
+
+      </div>
       <a class="text-lightpurple font-bold text-sm" href="">Docs</a>
     </header>
     {# The padding top and height 0 are part of a "hack" to make the div to occupy the height of its background image
     https://stackoverflow.com/questions/600743/how-to-get-div-height-to-auto-adjust-to-background-size #}
     <section class="sm:bg-main bg-no-repeat bg-contain sm:h-0 sm:pt-main-bg relative ">
-      <div class="sm:absolute sm:w-3/5 md:w-1/2 inset-0 mx-6 md:ml-5vw xl:ml-10vw  max-w-2xl">
-        <h1 class="text-3xl lg:text-4xl xl:text-5xl flex flex-col font-bold font-comfortaa leading-tight py-4">
-          <span>Smart contracts,</span>
+      <div class="sm:absolute sm:w-min inset-0 mx-6 md:ml-5vw xl:ml-10vw max-w-2xl">
+        <h1 class="text-3xl md:text-4xl lg:text-5xl flex flex-col font-bold font-comfortaa leading-tight pt-28 lg:pt-40 pb-4">
+          <span class="min-w-max">Smart contracts,</span>
           <span>reimagined.</span>
         </h1>
-        <h2 class="text-xl lg:text-2xl xl:text-27px py-4">Marlowe puts the power of financial agreements into the hands of millions. Without the need for a bank.</h2>
-        <div class="flex pb-10 text-sm">
+        <h2 class="text-xl lg:text-2xl xl:text-27px pb-8">Marlowe puts the power of financial agreements into the hands of millions. Without the need for a bank.</h2>
+        <div id="main-try-buttons" class="flex mb-10 text-sm">
           <a href="https://run.marlowe-finance.io" target="_blank" class="primary-button flex-shrink-0 mr-2 sm:mr-4 md:mr-5 lg:mr-7">Try Marlowe Run</a>
           <a href="https://play.marlowe-finance.io" target="_blank" class="secondary-button flex-shrink-0">Try Marlowe Play</a>
         </div>
@@ -84,13 +97,13 @@
         </div>
       </div>
       <div class="md:row-start-1 md:row-end-3 md:col-start-2 self-end  ml-6 mt-6 lg:mt-20 ">
-        <div class="bg-white rounded-tl-lg pl-2 shadow-top-left">
-          <div class="ml-3 py-4 flex gap-2">
-            <div class="bg-mac-red w-3 h-3 rounded-full"></div>
-            <div class="bg-mac-yellow w-3 h-3 rounded-full"></div>
+        <div class="bg-white rounded-tl pl-2 shadow-top-left">
+          <div class="ml-3 py-3 flex">
+            <div class="bg-mac-red w-3 h-3 rounded-full mr-2"></div>
+            <div class="bg-mac-yellow w-3 h-3 rounded-full mr-2"></div>
             <div class="bg-mac-green w-3 h-3 rounded-full"></div>
           </div>
-          <div>
+          <div class="rounded-tl overflow-hidden">
             <img loading="lazy" class="w-full" src="{% static './static/img/marlowe-play.png' %}" alt="Marlowe play screenshot">
           </div>
         </div>
@@ -121,13 +134,13 @@
         </div>
       </div>
       <div class="md:row-start-1 md:row-end-3">
-        <div class="bg-white rounded-lg px-2 pb-2 shadow-lg">
-          <div class="ml-3 py-4 flex gap-2">
-            <div class="bg-mac-red w-3 h-3 rounded-full"></div>
-            <div class="bg-mac-yellow w-3 h-3 rounded-full"></div>
+        <div class="bg-white rounded px-2 pb-2 shadow-lg">
+          <div class="ml-3 py-3 flex">
+            <div class="bg-mac-red w-3 h-3 rounded-full mr-2"></div>
+            <div class="bg-mac-yellow w-3 h-3 rounded-full mr-2"></div>
             <div class="bg-mac-green w-3 h-3 rounded-full"></div>
           </div>
-          <div class="rounded-lg overflow-hidden">
+          <div class="rounded overflow-hidden">
             <img loading="lazy" class="w-full" src="{% static './static/img/marlowe-code.svg' %}" alt="Marlowe contract example">
           </div>
         </div>
@@ -164,17 +177,17 @@
       <h3 class="text-2xl font-comfortaa leading-tight font-bold mb-6">Sign up to the testing program</h3>
       <button class="primary-button">Help make Marlowe better</button>
     </section>
-    <footer class="py-10 mx-6 md:mx-5vw xl:mx-10vw flex flex-col gap-6 md:flex-row md:items-center">
-      <div class="self-center">
+    <footer class="py-10 mx-6 md:mx-5vw xl:mx-10vw flex flex-col md:flex-row md:items-center">
+      <div class="self-center md:mr-6">
         <img class="h-10" src="{% static './static/img/marlowe-prototype-logo.svg' %}" alt="Marlowe prototype logo">
       </div>
-      <div class="flex flex-col md:flex-row">
+      <div class="flex flex-col md:flex-row mt-6 md:mt-0">
         {# FIXME add links #}
         <a href="" class="text-lightpurple font-semibold mr-6">Privacy</a>
         <a href="" class="text-lightpurple font-semibold">Terms
         </a>
       </div>
-      <div class="flex-grow  flex flex-col md:flex-row md:justify-end">
+      <div class="flex-grow  flex flex-col md:flex-row md:justify-end mt-6 md:mt-0">
         <a href="https://cardano.org/" class="text-lightpurple font-semibold mr-6">cardano.org</a>
         <a href="https://iohk.io/" class="text-lightpurple font-semibold">iohk.io</a>
       </div>
