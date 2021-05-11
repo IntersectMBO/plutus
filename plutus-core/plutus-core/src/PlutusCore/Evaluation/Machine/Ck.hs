@@ -155,9 +155,6 @@ instance MonadEmitter (CkCarryingM term uni fun s) where
             Nothing      -> pure ()
             Just logsRef -> lift . lift $ modifySTRef logsRef (`DList.snoc` str)
 
-instance SpendBudget (CkCarryingM term uni fun s) fun () where
-    spendBudget _key _budget = pure ()
-
 type instance UniOf (CkValue uni fun) = uni
 
 instance FromConstant (CkValue uni fun) where
@@ -374,9 +371,10 @@ applyBuiltin
     -> [CkValue uni fun]
     -> CkM uni fun s (Term TyName Name uni fun ())
 applyBuiltin stack bn args = do
-    let dischargeError = hoist $ withExceptT $ mapCauseInMachineException ckValueToTerm
+    let
+        dischargeError = hoist $ withExceptT $ mapCauseInMachineException ckValueToTerm
     BuiltinRuntime sch _ f exF <- asksM $ lookupBuiltin bn . ckEnvRuntime
-    result <- dischargeError $ applyTypeSchemed bn sch f exF args
+    result <- dischargeError $ applyTypeSchemed (\_ _ -> pure ()) bn sch f exF args
     stack <| result
 
 runCk
