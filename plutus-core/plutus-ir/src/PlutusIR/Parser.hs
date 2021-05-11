@@ -240,6 +240,7 @@ constant = do
     -- We use 'match' for remembering the textual representation of the parsed type tag,
     -- so that we can show it in the error message if the constant fails to parse.
     (uniText, PLC.SomeTypeIn (PLC.Kinded uni)) <- match builtinTypeTag
+    -- See Note [Decoding universes].
     case PLC.checkStar @uni uni of
         Nothing -> customFailure $ BuiltinTypeNotAStar uniText
         Just PLC.Refl -> do

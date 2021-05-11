@@ -190,7 +190,6 @@ instance Closed DefaultUni where
         , constr `Permits` (,)
         )
 
-    -- TODO: optimize
     -- See Note [Stable encoding of tags].
     encodeUni DefaultUniInteger           = [0]
     encodeUni DefaultUniByteString        = [1]
