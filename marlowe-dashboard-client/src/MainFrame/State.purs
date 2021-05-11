@@ -29,7 +29,6 @@ import Foreign.Generic (decodeJSON, encodeJSON)
 import Halogen (Component, HalogenM, liftEffect, mkComponent, mkEval)
 import Halogen.Extra (mapMaybeSubmodule, mapSubmodule)
 import Halogen.HTML (HTML)
-import InputField.Types (Action(..)) as InputField
 import LocalStorage (getItem, setItem, removeItem)
 import MainFrame.Lenses (_currentSlot, _pickupState, _playState, _subState, _toast, _webSocketStatus)
 import MainFrame.Types (Action(..), ChildSlots, Msg, Query(..), State, WebSocketStatus(..))
@@ -119,7 +118,6 @@ handleQuery (ReceiveWebSocketMessage msg next) = do
         for_ mCurrentWallet \currentWallet -> do
           when (currentWallet == toFront wallet)
             $ assign (_playState <<< _walletDetails <<< _assets) (toFront value)
-          handleAction $ PlayAction Play.ToggleMenu
       -- update the state when a contract instance changes
       -- note: we should be subsribed to updates from all (and only) the current wallet's contract
       -- instances, including its wallet companion contract
@@ -187,7 +185,7 @@ handleAction Init = do
       ajaxWalletDetails <- lookupWalletDetails $ view _companionAppId walletDetails
       case ajaxWalletDetails of
         Left ajaxError -> handleAction $ PickupAction $ Pickup.OpenCard Pickup.LocalWalletMissingCard
-        Right _ -> handleAction $ PickupAction $ Pickup.WalletNicknameOrIdAction $ InputField.SetValue $ view _walletNickname walletDetails
+        Right _ -> handleAction $ PickupAction $ Pickup.SetWalletNicknameOrId $ view _walletNickname walletDetails
 
 handleAction (EnterPickupState walletLibrary walletDetails followerApps) = do
   unsubscribeFromWallet $ view (_walletInfo <<< _wallet) walletDetails

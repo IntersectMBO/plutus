@@ -24,9 +24,11 @@ type InputDisplayOptions
 data Action error
   = SetValue String
   | SetValidator (String -> Maybe error)
+  | Reset
 
 -- | Here we decide which top-level queries to track as GA events, and
 -- how to classify them.
 instance actionIsEvent :: IsEvent (Action e) where
   toEvent (SetValue _) = Nothing
   toEvent (SetValidator _) = Nothing
+  toEvent Reset = Nothing

@@ -1,7 +1,7 @@
 module Pickup.Validation
-  ( WalletNicknameOrIdError(..)
-  , walletNicknameError
-  , walletIdError
+  ( LookupWalletError(..)
+  , lookupWalletNicknameError
+  , lookupWalletIdError
   ) where
 
 import Prelude
@@ -11,24 +11,28 @@ import Data.Maybe (Maybe(..))
 import Types (AjaxResponse)
 import WalletData.Types (WalletLibrary, WalletDetails)
 
-data WalletNicknameOrIdError
+-- this error is for the multi-purpose input box on the pickup screen
+data LookupWalletError
   = NicknameNotFound
+  | LookingUpWallet
   | WalletNotFound
 
-derive instance eqWalletNicknameOrIdError :: Eq WalletNicknameOrIdError
+derive instance eqLookupWalletError :: Eq LookupWalletError
 
-instance showWalletNicknameOrIdError :: Show WalletNicknameOrIdError where
+instance showLookupWalletError :: Show LookupWalletError where
   show NicknameNotFound = "Nickname not found in your wallet library"
+  show LookingUpWallet = "Looking for wallet..."
   show WalletNotFound = "Wallet with this ID not found"
 
-walletNicknameError :: WalletLibrary -> String -> Maybe WalletNicknameOrIdError
-walletNicknameError walletLibrary walletNickname =
+lookupWalletNicknameError :: WalletLibrary -> String -> Maybe LookupWalletError
+lookupWalletNicknameError walletLibrary walletNickname =
   if member walletNickname walletLibrary then
     Nothing
   else
     Just NicknameNotFound
 
-walletIdError :: AjaxResponse WalletDetails -> String -> Maybe WalletNicknameOrIdError
-walletIdError (Left _) _ = Just WalletNotFound
+-- FIXME: use WebData and provide LookingUpWallet error for Loading case
+lookupWalletIdError :: AjaxResponse WalletDetails -> String -> Maybe LookupWalletError
+lookupWalletIdError (Left _) _ = Just WalletNotFound
 
-walletIdError (Right _) _ = Nothing
+lookupWalletIdError (Right _) _ = Nothing

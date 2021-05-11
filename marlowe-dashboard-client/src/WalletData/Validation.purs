@@ -1,8 +1,8 @@
 module WalletData.Validation
   ( WalletNicknameError(..)
-  , PlutusAppIdError(..)
   , walletNicknameError
-  , plutusAppIdError
+  , WalletIdError(..)
+  , walletIdError
   , parsePlutusAppId
   ) where
 
@@ -30,26 +30,10 @@ instance showWalletNicknameError :: Show WalletNicknameError where
   show DuplicateWalletNickname = "Nickname is already in use in your contacts"
   show BadWalletNickname = "Nicknames can only contain letters and numbers"
 
-data PlutusAppIdError
-  = EmptyPlutusAppId
-  | DuplicatePlutusAppId
-  | InvalidPlutusAppId
-  | UnconfirmedPlutusAppId
-  | NonexistentPlutusAppId
+walletNicknameError :: WalletLibrary -> WalletNickname -> Maybe WalletNicknameError
+walletNicknameError _ "" = Just EmptyWalletNickname
 
-derive instance eqPlutusAppIdError :: Eq PlutusAppIdError
-
-instance showPlutusAppIdError :: Show PlutusAppIdError where
-  show EmptyPlutusAppId = "Wallet ID cannot be blank"
-  show DuplicatePlutusAppId = "Wallet ID is already in your contacts"
-  show InvalidPlutusAppId = "Wallet ID is not valid"
-  show UnconfirmedPlutusAppId = "Looking up wallet ID..."
-  show NonexistentPlutusAppId = "Wallet ID not found"
-
-walletNicknameError :: WalletNickname -> WalletLibrary -> Maybe WalletNicknameError
-walletNicknameError "" _ = Just EmptyWalletNickname
-
-walletNicknameError walletNickname walletLibrary =
+walletNicknameError walletLibrary walletNickname =
   if member walletNickname walletLibrary then
     Just DuplicateWalletNickname
   else
@@ -58,17 +42,33 @@ walletNicknameError walletNickname walletLibrary =
     else
       Nothing
 
-plutusAppIdError :: String -> WebData WalletInfo -> WalletLibrary -> Maybe PlutusAppIdError
-plutusAppIdError "" _ _ = Just EmptyPlutusAppId
+data WalletIdError
+  = EmptyWalletId
+  | DuplicateWalletId
+  | InvalidWalletId
+  | UnconfirmedWalletId
+  | NonexistentWalletId
 
-plutusAppIdError plutusAppIdString remoteDataWalletInfo walletLibrary = case parsePlutusAppId plutusAppIdString of
-  Nothing -> Just InvalidPlutusAppId
+derive instance eqWalletIdError :: Eq WalletIdError
+
+instance showWalletIdError :: Show WalletIdError where
+  show EmptyWalletId = "Wallet ID cannot be blank"
+  show DuplicateWalletId = "Wallet ID is already in your contacts"
+  show InvalidWalletId = "Wallet ID is not valid"
+  show UnconfirmedWalletId = "Looking up wallet..."
+  show NonexistentWalletId = "Wallet not found"
+
+walletIdError :: WebData WalletInfo -> WalletLibrary -> String -> Maybe WalletIdError
+walletIdError _ _ "" = Just EmptyWalletId
+
+walletIdError remoteDataWalletInfo walletLibrary walletIdString = case parsePlutusAppId walletIdString of
+  Nothing -> Just InvalidWalletId
   Just plutusAppId
-    | not $ isEmpty $ filter (\walletDetails -> walletDetails.companionAppId == plutusAppId) walletLibrary -> Just DuplicatePlutusAppId
+    | not $ isEmpty $ filter (\walletDetails -> walletDetails.companionAppId == plutusAppId) walletLibrary -> Just DuplicateWalletId
   _ -> case remoteDataWalletInfo of
     Success _ -> Nothing
-    Failure _ -> Just NonexistentPlutusAppId
-    _ -> Just UnconfirmedPlutusAppId
+    Failure _ -> Just NonexistentWalletId
+    _ -> Just UnconfirmedWalletId
 
 parsePlutusAppId :: String -> Maybe PlutusAppId
 parsePlutusAppId plutusAppIdString = case parseUUID plutusAppIdString of

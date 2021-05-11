@@ -5,11 +5,12 @@ import Css (classNames)
 import Css as Css
 import Data.Foldable (foldMap)
 import Data.Lens (view)
-import Data.Maybe (Maybe, isJust)
+import Data.Maybe (isJust)
 import Halogen.HTML (HTML, div, div_, input, text)
 import Halogen.HTML.Events.Extra (onValueInput_)
-import Halogen.HTML.Properties (InputType(..), id_, placeholder, readOnly, type_, value)
-import InputField.Lenses (_additionalCss, _baseCss, _id_, _placeholder, _pristine, _readOnly, _validator, _value)
+import Halogen.HTML.Properties (InputType(..), autocomplete, id_, placeholder, readOnly, type_, value)
+import InputField.Lenses (_additionalCss, _baseCss, _id_, _placeholder, _pristine, _readOnly, _value)
+import InputField.State (validate)
 import InputField.Types (Action(..), InputDisplayOptions, State)
 
 renderInput :: forall p e. Show e => State e -> InputDisplayOptions -> HTML p (Action e)
@@ -33,18 +34,10 @@ renderInput state options =
           , placeholder $ view _placeholder options
           , value $ view _value state
           , readOnly $ view _readOnly options
+          , autocomplete false
           , onValueInput_ SetValue
           ]
       , div
           [ classNames Css.inputError ]
           [ text if showError then foldMap show mError else mempty ]
       ]
-
-validate :: forall e. Show e => State e -> Maybe e
-validate state =
-  let
-    value = view _value state
-
-    validator = view _validator state
-  in
-    validator value
