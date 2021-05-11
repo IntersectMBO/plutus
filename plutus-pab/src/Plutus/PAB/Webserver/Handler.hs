@@ -47,7 +47,7 @@ import           Plutus.PAB.Core                         (PABAction)
 import qualified Plutus.PAB.Core                         as Core
 import qualified Plutus.PAB.Effects.Contract             as Contract
 import           Plutus.PAB.Events.Contract              (ContractPABRequest, _UserEndpointRequest)
-import           Plutus.PAB.Events.ContractInstanceState (PartiallyDecodedResponse (..))
+import           Plutus.PAB.Events.ContractInstanceState (PartiallyDecodedResponse (..), fromResp)
 import           Plutus.PAB.Types
 import           Plutus.PAB.Webserver.Types
 import           Servant                                 (NoContent (NoContent), (:<|>) ((:<|>)))
@@ -88,7 +88,7 @@ getContractReport = do
         traverse
             (\t -> ContractSignatureResponse t <$> Contract.exportSchema @t t)
             installedContracts
-    crActiveContractStates <- traverse (\i -> Contract.getState @t i >>= \s -> pure (i, Contract.serialisableState (Proxy @t) s)) activeContractIDs
+    crActiveContractStates <- traverse (\i -> Contract.getState @t i >>= \s -> pure (i, fromResp $ Contract.serialisableState (Proxy @t) s)) activeContractIDs
     pure ContractReport {crAvailableContracts, crActiveContractStates}
 
 getFullReport :: forall t env. Contract.PABContract t => PABAction t env (FullReport (Contract.ContractDef t))
@@ -155,7 +155,7 @@ contractInstanceState i = do
     definition <- Contract.getDefinition @t i
     case definition of
         Nothing -> throwError @PABError (ContractInstanceNotFound i)
-        Just ContractActivationArgs{caWallet, caID} -> fromInternalState caID i caWallet . Contract.serialisableState (Proxy @t) <$> Contract.getState @t i
+        Just ContractActivationArgs{caWallet, caID} -> fromInternalState caID i caWallet . fromResp . Contract.serialisableState (Proxy @t) <$> Contract.getState @t i
 
 callEndpoint :: forall t env. ContractInstanceId -> String -> JSON.Value -> PABAction t env ()
 callEndpoint a b v = Core.callEndpointOnInstance a b v >>= traverse_ (throwError @PABError . EndpointCallError)
@@ -168,7 +168,7 @@ allInstanceStates = do
     mp <- Contract.getActiveContracts @t
     inst <- Core.runningInstances
     let isRunning i = Set.member i inst
-    let get (i, ContractActivationArgs{caWallet, caID}) = fromInternalState caID i caWallet . Contract.serialisableState (Proxy @t) <$> Contract.getState @t i
+    let get (i, ContractActivationArgs{caWallet, caID}) = fromInternalState caID i caWallet . fromResp . Contract.serialisableState (Proxy @t) <$> Contract.getState @t i
     filter (isRunning . cicContract) <$> traverse get (Map.toList mp)
 
 availableContracts :: forall t env. Contract.PABContract t => PABAction t env [ContractSignatureResponse (Contract.ContractDef t)]

@@ -31,7 +31,6 @@ import Network.RemoteData (RemoteData)
 import Network.StreamData (StreamData)
 import Network.StreamData as Stream
 import Playground.Types (FunctionSchema)
-import Plutus.PAB.Events (PABEvent)
 import Plutus.PAB.Events.Contract (ContractPABRequest, _UserEndpointRequest)
 import Plutus.PAB.Effects.Contract.ContractExe (ContractExe)
 import Plutus.PAB.Events.ContractInstanceState (PartiallyDecodedResponse)
@@ -97,7 +96,6 @@ newtype State
   { currentView :: View
   , contractSignatures :: WebStreamData ContractSignatures
   , chainReport :: WebData ChainReport
-  , events :: WebData (Array (PABEvent ContractExe))
   , chainState :: Chain.State
   , contractStates :: ContractStates
   , webSocketMessage :: WebStreamData CombinedWSStreamToClient

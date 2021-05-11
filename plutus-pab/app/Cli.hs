@@ -85,13 +85,13 @@ import           Cardano.Node.Types                       (MockServerConfig (..)
 import qualified PSGenerator
 import           Plutus.Contract.Resumable                (responses)
 import           Plutus.Contract.State                    (State (..))
+import qualified Plutus.Contract.State                    as State
 import           Plutus.Contracts.Currency                (SimpleMPS (..))
 import qualified Plutus.PAB.App                           as App
 import qualified Plutus.PAB.Core                          as Core
 import qualified Plutus.PAB.Db.Eventful                   as Eventful
 import           Plutus.PAB.Effects.Contract.ContractExe  (ContractExe)
 import           Plutus.PAB.Effects.Contract.ContractTest (TestContracts (Currency))
-import           Plutus.PAB.Events.ContractInstanceState  (PartiallyDecodedResponse (..))
 import qualified Plutus.PAB.Monitoring.Monitoring         as LM
 import qualified Plutus.PAB.Simulator                     as Simulator
 import           Plutus.PAB.Types                         (Config (..), chainIndexConfig, metadataServerConfig,
@@ -226,7 +226,7 @@ runCliCommand t _ Config{dbConfig} _ (ReportContractHistory contractInstanceId) 
         $ do
             logInfo @(LM.AppMsg ContractExe) LM.ContractHistoryMsg
             s <- Contract.getState @ContractExe contractInstanceId
-            let PartiallyDecodedResponse{newState=State{record}} = Contract.serialisableState (Proxy @ContractExe) s
+            let State.ContractResponse{State.newState=State{record}} = Contract.serialisableState (Proxy @ContractExe) s
             traverse_ logStep (responses record)
             drainLog
                 where

@@ -85,7 +85,7 @@ appEffectHandlers config trace =
             env <- liftIO $ mkEnv trace config
             let Config{nodeServerConfig=MockServerConfig{mscSocketPath, mscSlotConfig}} = config
             instancesState <- liftIO $ STM.atomically $ Instances.emptyInstancesState
-            blockchainEnv <- liftIO $ BlockchainEnv.startNodeClient mscSocketPath mscSlotConfig instancesState
+            blockchainEnv <- liftIO $ BlockchainEnv.startNodeClient mscSocketPath mscSlotConfig
             pure (instancesState, blockchainEnv, env)
 
         , handleLogMessages =

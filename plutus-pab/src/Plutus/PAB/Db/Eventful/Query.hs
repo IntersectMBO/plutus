@@ -25,18 +25,19 @@ module Plutus.PAB.Db.Eventful.Query
     ) where
 
 import           Control.Lens
-import           Data.Map.Strict                         (Map)
-import qualified Data.Map.Strict                         as Map
-import           Data.Set                                (Set)
-import qualified Data.Set                                as Set
-import           Data.Text.Prettyprint.Doc               (Pretty, pretty)
-import           Eventful                                (Projection (Projection), StreamEvent (StreamEvent),
-                                                          StreamProjection, projectionEventHandler, projectionMapMaybe,
-                                                          projectionSeed, streamProjectionState)
-import           Plutus.PAB.Events                       (PABEvent (InstallContract, UpdateContractInstanceState))
-import           Plutus.PAB.Events.Contract              (ContractInstanceId, ContractPABRequest)
-import           Plutus.PAB.Events.ContractInstanceState (PartiallyDecodedResponse)
-import           Plutus.PAB.Webserver.Types              (ContractActivationArgs (..))
+import           Data.Aeson                 (Value)
+import           Data.Map.Strict            (Map)
+import qualified Data.Map.Strict            as Map
+import           Data.Set                   (Set)
+import qualified Data.Set                   as Set
+import           Data.Text.Prettyprint.Doc  (Pretty, pretty)
+import           Eventful                   (Projection (Projection), StreamEvent (StreamEvent), StreamProjection,
+                                             projectionEventHandler, projectionMapMaybe, projectionSeed,
+                                             streamProjectionState)
+import           Plutus.Contract.State      (ContractResponse)
+import           Plutus.PAB.Events          (PABEvent (InstallContract, UpdateContractInstanceState))
+import           Plutus.PAB.Events.Contract (ContractInstanceId, ContractPABRequest)
+import           Plutus.PAB.Webserver.Types (ContractActivationArgs (..))
 
 -- | The empty projection. Particularly useful for commands that have no 'state'.
 nullProjection :: Projection () event
@@ -68,9 +69,9 @@ instance Pretty state =>
     pretty = pretty . streamProjectionState
 
 -- | The last known state of the contract.
-contractState :: forall t key position. Projection (Map ContractInstanceId (PartiallyDecodedResponse ContractPABRequest)) (StreamEvent key position (PABEvent t))
+contractState :: forall t key position. Projection (Map ContractInstanceId (ContractResponse Value Value Value ContractPABRequest)) (StreamEvent key position (PABEvent t))
 contractState =
-    let projectionEventHandler :: Map ContractInstanceId (PartiallyDecodedResponse ContractPABRequest) -> StreamEvent key position (PABEvent t) -> Map ContractInstanceId (PartiallyDecodedResponse ContractPABRequest)
+    let projectionEventHandler :: Map ContractInstanceId (ContractResponse Value Value Value ContractPABRequest) -> StreamEvent key position (PABEvent t) -> Map ContractInstanceId (ContractResponse Value Value Value ContractPABRequest)
         projectionEventHandler oldMap = \case
             (StreamEvent _ _ (UpdateContractInstanceState _ i s)) ->
                 Map.union (Map.singleton i s) oldMap
