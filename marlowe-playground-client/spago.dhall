@@ -20,6 +20,7 @@ You can edit this file as you like.
   , "halogen"
   , "matryoshka"
   , "node-fs"
+  , "markdown"
   , "prelude"
   , "psci-support"
   , "remotedata"
