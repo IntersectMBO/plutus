@@ -46,6 +46,8 @@ data TxBalanceMsg =
     | AddingPublicKeyOutputFor Value
     | NoInputsAdded
     | AddingInputsFor Value
+    | NoInputsAssignedToFees
+    | AssiningInputsToFeesFor Value
     deriving stock (Eq, Show, Generic)
     deriving anyclass (ToJSON, FromJSON)
 
@@ -56,3 +58,5 @@ instance Pretty TxBalanceMsg where
         AddingPublicKeyOutputFor vl -> "Adding public key output for" <+> pretty vl
         NoInputsAdded               -> "No inputs added"
         AddingInputsFor vl          -> "Adding inputs for" <+> pretty vl
+        NoInputsAssignedToFees      -> "No inputs assigned to fees"
+        AssiningInputsToFeesFor vl  -> "Assigning inputs to fees for" <+> pretty vl

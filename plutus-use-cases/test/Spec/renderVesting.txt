@@ -101,11 +101,11 @@ Balances Carried Forward:
     Ada:      Lovelace:  100000000
 
 ==== Slot #1, Tx #0 ====
-TxId:       180e1d8f5521b205fbe9c83406c9ceab4fcdc3eb9c88ce96f3273b25ea3067fc
+TxId:       ad72725dde1db3af1385945e2c1aa79f0153ea89de674ab2ebd046f2ae05c01b
 Fee:        Ada:      Lovelace:  10
 Forge:      -
 Signatures  PubKey: 3d4017c3e843895a92b70aa74d1b7ebc9c982ccf...
-              Signature: 5840bb1d9fef85cb69d4443d0b770caec2948571...
+              Signature: 5840c39ee6d037b697579ad2f0fe4c6cfa76ee7d...
 Inputs:
   ---- Input 0 ----
   Destination:  PubKeyHash: 39f713d0a644253f04529421b9f51b9b08979d08... (Wallet 2)
@@ -121,9 +121,14 @@ Outputs:
   ---- Output 0 ----
   Destination:  PubKeyHash: 39f713d0a644253f04529421b9f51b9b08979d08... (Wallet 2)
   Value:
-    Ada:      Lovelace:  99999930
+    Ada:      Lovelace:  99999920
 
   ---- Output 1 ----
+  Destination:  PubKeyHash: 39f713d0a644253f04529421b9f51b9b08979d08... (Wallet 2)
+  Value:
+    Ada:      Lovelace:  10
+
+  ---- Output 2 ----
   Destination:  Script: fb0bec67791ef238bd19255aa70943abab6f76736a1184c58b55f52b187446e7
   Value:
     Ada:      Lovelace:  60
@@ -175,19 +180,19 @@ Balances Carried Forward:
     Ada:      Lovelace:  60
 
 ==== Slot #2, Tx #0 ====
-TxId:       30630fe9fbdc6e1866490d52e03260d48b9725fb1cd34a53e41156ee5cc6f79b
+TxId:       9cc66a7e8709fbeef066abfd239841f005a19d59e9122fc9d208309fdbccadd1
 Fee:        Ada:      Lovelace:  10
 Forge:      -
 Signatures  PubKey: d75a980182b10ab7d54bfed3c964073a0ee172f3...
-              Signature: 5840d821dc2426735aefe9ae647bb6d2460e5064...
+              Signature: 5840033720a48dc94b0b2badb19a3a0c062317b7...
 Inputs:
   ---- Input 0 ----
   Destination:  Script: fb0bec67791ef238bd19255aa70943abab6f76736a1184c58b55f52b187446e7
   Value:
     Ada:      Lovelace:  60
   Source:
-    Tx:     180e1d8f5521b205fbe9c83406c9ceab4fcdc3eb9c88ce96f3273b25ea3067fc
-    Output #1
+    Tx:     ad72725dde1db3af1385945e2c1aa79f0153ea89de674ab2ebd046f2ae05c01b
+    Output #2
     Script: 5926b70100003320033320020020032003320020...
 
   ---- Input 1 ----

@@ -20,6 +20,7 @@ import           Control.Monad.Freer            (Eff, Member)
 import           Control.Monad.Freer.Error      (Error)
 import           Control.Monad.Freer.Extras.Log (LogMsg, logDebug, logInfo)
 import           Data.Bifunctor                 (second)
+import           Data.Foldable                  (fold)
 import qualified Data.Map                       as Map
 import qualified Data.Set                       as Set
 import           Data.String                    (IsString (fromString))
@@ -90,34 +91,26 @@ balanceWallet utx = do
     outputs <- ownOutputs
     balanceTx outputs pk utx
 
--- | Compute the difference between the value of the inputs consumed and the
---   value of the outputs produced by the transaction. If the result is zero
---   then the transaction is balanced.
---
---   Fails if the unbalanced transaction contains an input that spends an output
---   unknown to the wallet.
-computeBalance ::
+splitInRef :: Tx.TxIn -> ([Tx.TxIn], [Tx.TxIn])
+splitInRef ref = if Tx.txInType ref == Tx.ConsumePublicKeyAddress then ([ref], []) else ([], [ref])
+
+lookupValue ::
     ( Member WalletEffect effs
     , Member (Error WalletAPIError) effs
     , Member ChainIndexEffect effs
     )
-    => Tx -> Eff effs Value
-computeBalance tx = (P.-) <$> left <*> pure right  where
-    right = foldMap (view Tx.outValue) (tx ^. Tx.outputs)
-    left = do
-        inputValues <- traverse lookupValue (Set.toList $ Tx.txInputs tx)
-        pure $ foldr (P.+) P.zero (L.txForge tx : inputValues)
-    lookupValue outputRef = do
-        walletIndex <- WAPI.ownOutputs
-        chainIndex <- AM.outRefMap <$> WAPI.watchedAddresses
-        let txout = (walletIndex <> chainIndex) ^. at (Tx.txInRef outputRef)
-        case txout of
-            Just out -> pure $ Tx.txOutValue $ Tx.txOutTxOut out
-            Nothing ->
-                WAPI.throwOtherError $ "Unable to find TxOut for " <> fromString (show outputRef)
+    => Tx.TxIn -> Eff effs Value
+lookupValue outputRef = do
+    walletIndex <- WAPI.ownOutputs
+    chainIndex <- AM.outRefMap <$> WAPI.watchedAddresses
+    let txout = (walletIndex <> chainIndex) ^. at (Tx.txInRef outputRef)
+    case txout of
+        Just out -> pure $ Tx.txOutValue $ Tx.txOutTxOut out
+        Nothing ->
+            WAPI.throwOtherError $ "Unable to find TxOut for " <> fromString (show outputRef)
 
 -- | Balance an unbalanced transaction by adding public key inputs
---   and outputs.
+--   and outputs and by assigning enough inputs to fees.
 balanceTx ::
     ( Member WalletEffect effs
     , Member (Error WalletAPIError) effs
@@ -134,29 +127,44 @@ balanceTx ::
     -- ^ The unbalanced transaction
     -> Eff effs Tx
 balanceTx utxo pk UnbalancedTx{unBalancedTxTx} = do
-    (neg', pos) <- Value.split <$> computeBalance unBalancedTxTx
-
-    -- Make sure fees are always added to `neg` instead of subtracted from `pos`.
-    -- This way inputs will always be created for fees, which are added to the txInputsFees field.
-    -- This is not the optimal strategy, but it does ensure that at least all the fees will be
-    -- covered if the transaction turns out to be invalid.
-    let neg = neg' P.+ L.txFee unBalancedTxTx
+    let (pubKeyInputs, scriptInputs) = foldMap splitInRef (Tx.txInputs unBalancedTxTx)
+    pubKeyInputValues <- traverse lookupValue pubKeyInputs
+    scriptInputValues <- traverse lookupValue scriptInputs
+    feesIn            <- traverse lookupValue (Set.toList $ Tx.txInputsFees unBalancedTxTx)
+    let pubKeyInputValue = fold pubKeyInputValues
+        left = L.txForge unBalancedTxTx <> pubKeyInputValue <> fold scriptInputValues
+        right = foldMap (view Tx.outValue) (unBalancedTxTx ^. Tx.outputs)
+        remainingFees = L.txFee unBalancedTxTx P.- fold feesIn
+        extraInput = if remainingFees `Value.leq` pubKeyInputValue then mempty else remainingFees
+        balance = left P.- right P.- remainingFees
+        (neg', pos') = Value.split balance
+        neg = neg' <> extraInput
+        pos = pos' <> extraInput
 
     tx' <- if Value.isZero pos
            then do
                logDebug NoOutputsAdded
                pure unBalancedTxTx
            else do
-                   logDebug $ AddingPublicKeyOutputFor pos
-                   pure $ addOutputs pk pos unBalancedTxTx
+                logDebug $ AddingPublicKeyOutputFor pos
+                pure $ addOutputs pk pos unBalancedTxTx
 
-    if Value.isZero neg
+    tx'' <- if Value.isZero neg
+            then do
+                logDebug NoInputsAdded
+                pure tx'
+            else do
+                logDebug $ AddingInputsFor neg
+                addInputs utxo pk neg tx'
+
+    if Value.isZero remainingFees
     then do
-        logDebug NoInputsAdded
-        pure tx'
+        logDebug NoInputsAssignedToFees
+        pure tx''
     else do
-        logDebug $ AddingInputsFor neg
-        addInputs utxo pk neg tx'
+        logDebug $ AssiningInputsToFeesFor remainingFees
+        assignInputsFees remainingFees tx''
+
 
 -- | @addInputs mp pk vl tx@ selects transaction outputs worth at least
 --   @vl@ from the UTXO map @mp@ and adds them as inputs to @tx@. A public
@@ -174,7 +182,7 @@ addInputs mp pk vl tx = do
 
         addTxIns  =
             let ins = Set.fromList (Tx.pubKeyTxIn . fst <$> spend)
-            in over Tx.inputsFees (Set.union ins)
+            in over Tx.inputs (Set.union ins)
 
         addTxOuts = if Value.isZero change
                     then id
@@ -185,6 +193,25 @@ addInputs mp pk vl tx = do
 addOutputs :: PubKey -> Value -> Tx -> Tx
 addOutputs pk vl tx = tx & over Tx.outputs (pko :) where
     pko = Tx.pubKeyTxOut vl pk
+
+assignInputsFees ::
+    ( Member WalletEffect effs
+    , Member (Error WalletAPIError) effs
+    , Member ChainIndexEffect effs
+    )
+    => Value
+    -> Tx
+    -> Eff effs Tx
+assignInputsFees fees tx = do
+    let (pubKeyInputs, _) = foldMap splitInRef (Tx.txInputs tx)
+    pubKeyInputValues <- traverse (\ref -> (,) ref <$> lookupValue ref) pubKeyInputs
+    (assigned, _) <- E.selectCoin pubKeyInputValues fees
+    let
+        toFees = Set.fromList (fst <$> assigned)
+        addTxFees = over Tx.inputsFees (Set.union toFees)
+        removeTxIns = over Tx.inputs (Set.\\ toFees)
+
+    pure $ tx & addTxFees & removeTxIns
 
 -- | Balance an unabalanced transaction, sign it, and submit
 --   it to the chain in the context of a wallet.

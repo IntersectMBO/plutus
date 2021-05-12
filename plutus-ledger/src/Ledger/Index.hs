@@ -129,6 +129,8 @@ data ValidationError =
     --   the currency's monetary policy.
     | TransactionFeeTooLow V.Value V.Value
     -- ^ The transaction fee is lower than the minimum acceptable fee.
+    | InputsOverlap (Set.Set TxIn)
+    -- ^ Inputs in 'txInputs' and 'txInputsFees' should not overlap.
     deriving (Eq, Show, Generic)
 
 instance FromJSON ValidationError
@@ -163,20 +165,22 @@ validateTransaction :: ValidationMonad m
     -> Tx
     -> m (Maybe ValidationErrorInPhase, UtxoIndex)
 validateTransaction h t = do
-    _ <- checkValidInputs (view inputsFees) t
+    checkSlotRange h t
+    checkValuePreserved t
+    checkPositiveValues t
+    checkFeeIsAda t
+
+    -- see note [Forging of Ada]
+    emptyUtxoSet <- reader (Map.null . getIndex)
+    unless emptyUtxoSet (checkForgingAuthorised t)
+    unless emptyUtxoSet (checkTransactionFee t)
+
+    checkValidInputs (view inputs) t
+    checkValidInputs (view inputsFees) t
+    checkNoInputOverlap t
+
     (do
-        _ <- checkSlotRange h t
-        _ <- checkValuePreserved t
-        _ <- checkPositiveValues t
-        _ <- checkFeeIsAda t
-
-        -- see note [Forging of Ada]
-        emptyUtxoSet <- reader (Map.null . getIndex)
         unless emptyUtxoSet (checkForgingScripts t)
-        unless emptyUtxoSet (checkForgingAuthorised t)
-        unless emptyUtxoSet (checkTransactionFee t)
-
-        _ <- checkValidInputs (view inputs) t
         idx <- ask
         pure (Nothing, insert t idx)
         )
@@ -203,6 +207,12 @@ checkValidInputs getInputs tx = do
     matches <- traverse (uncurry (matchInputOutput tid sigs)) outs
     vld     <- mkTxInfo tx
     traverse_ (checkMatch vld) matches
+
+-- | Check if no inputs are used in both 'txInputs' and 'txInputsFees'.
+checkNoInputOverlap :: ValidationMonad m => Tx -> m ()
+checkNoInputOverlap tx = do
+    let overlap = Set.intersection (view inputs tx) (view inputsFees tx)
+    unless (Set.null overlap) $ throwError $ InputsOverlap overlap
 
 -- | Match each input of the transaction with the output that it spends.
 lkpOutputs :: ValidationMonad m => Set.Set TxIn -> m [(TxIn, TxOut)]
