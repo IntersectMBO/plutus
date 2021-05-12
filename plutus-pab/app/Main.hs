@@ -57,7 +57,14 @@ main = do
                         Nothing -> pure $ Left MissingConfigFileOption
                         Just p -> do
                             config <- liftIO $ decodeFileThrow p
-                            Right <$> runConfigCommand (convertLog PrettyObject trace) logConfig config serviceAvailability eventfulBackend command
+                            let args = ConfigCommandArgs
+                                        { ccaTrace = convertLog PrettyObject trace
+                                        , ccaLoggingConfig = logConfig
+                                        , ccaPABConfig = config
+                                        , ccaAvailability = serviceAvailability
+                                        , ccaEventfulBackend = eventfulBackend
+                                        }
+                            Right <$> runConfigCommand args command
                 WithoutConfig command -> Right <$> runNoConfigCommand (convertLog PrettyObject trace) command
     either handleError (const exitSuccess) result
 
