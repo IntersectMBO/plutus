@@ -108,10 +108,16 @@ runNoConfigCommand ::
     -> NoConfigCommand
     -> IO ()
 runNoConfigCommand trace = \case
+
+    -- Run database migration
     Migrate{dbPath} ->
         let conf = DbConfig{dbConfigPoolSize=10, dbConfigFile=Text.pack dbPath} in
         App.migrate (LM.convertLog LM.PABMsg trace) conf
+
+    -- Generate PureScript bridge code
     PSGenerator {outputDir} -> PSGenerator.generate outputDir
+
+    -- Start the simulation web server & activate a contract.
     StartSimulatorWebServer -> void $ Simulator.runSimulation $ do
         instanceId <- Simulator.activateContract (Wallet 1) Currency
         shutdown <- PABServer.startServerDebug
@@ -123,6 +129,8 @@ runNoConfigCommand trace = \case
             Simulator.callEndpointOnInstance instanceId endpointName monetaryPolicy
         _ <- liftIO getLine
         shutdown
+
+    -- Get default logging configuration
     WriteDefaultConfig{outputFile} -> LM.defaultConfig >>= flip CM.exportConfiguration outputFile
 
 -- | Interpret a 'Command' in 'Eff' using the provided tracer and configurations
