@@ -8,7 +8,7 @@ import Data.Foldable (foldMap)
 import Data.Lens (view)
 import Data.List (toUnfoldable) as List
 import Data.Map (filter, values)
-import Data.Maybe (isJust, isNothing)
+import Data.Maybe (Maybe(..), isJust, isNothing)
 import Data.String (Pattern(..), contains, null, toLower)
 import Halogen.HTML (HTML, a, button, div, div_, footer, header, hr, img, input, label, main, p, span_, text)
 import Halogen.HTML.Events.Extra (onClick_, onValueInput_)
@@ -85,6 +85,7 @@ pickupNewWalletCard state =
       , id_: "walletNickname"
       , placeholder: "Choose any nickname"
       , readOnly: false
+      , datalistId: Nothing
       }
 
     walletIdInputDisplayOptions =
@@ -93,6 +94,7 @@ pickupNewWalletCard state =
       , id_: "walletId"
       , placeholder: "Wallet ID"
       , readOnly: true
+      , datalistId: Nothing
       }
   in
     [ a
@@ -156,6 +158,7 @@ pickupWalletCard state =
       , id_: "walletNickname"
       , placeholder: "Nickname"
       , readOnly: true
+      , datalistId: Nothing
       }
 
     walletIdInputDisplayOptions =
@@ -164,6 +167,7 @@ pickupWalletCard state =
       , id_: "walletId"
       , placeholder: "Wallet ID"
       , readOnly: true
+      , datalistId: Nothing
       }
   in
     [ a

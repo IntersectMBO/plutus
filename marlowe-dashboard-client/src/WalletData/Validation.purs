@@ -13,6 +13,7 @@ import Data.Map (isEmpty, filter, member)
 import Data.Maybe (Maybe(..))
 import Data.String.CodeUnits (toCharArray)
 import Data.UUID (parseUUID)
+import InputField.Types (class InputFieldError)
 import Marlowe.PAB (PlutusAppId(..))
 import Network.RemoteData (RemoteData(..))
 import Types (WebData)
@@ -25,10 +26,10 @@ data WalletNicknameError
 
 derive instance eqWalletNicknameError :: Eq WalletNicknameError
 
-instance showWalletNicknameError :: Show WalletNicknameError where
-  show EmptyWalletNickname = "Nickname cannot be blank"
-  show DuplicateWalletNickname = "Nickname is already in use in your contacts"
-  show BadWalletNickname = "Nicknames can only contain letters and numbers"
+instance inputFieldErrorWalletNicknameError :: InputFieldError WalletNicknameError where
+  inputErrorToString EmptyWalletNickname = "Nickname cannot be blank"
+  inputErrorToString DuplicateWalletNickname = "Nickname is already in use in your contacts"
+  inputErrorToString BadWalletNickname = "Nicknames can only contain letters and numbers"
 
 walletNicknameError :: WalletLibrary -> WalletNickname -> Maybe WalletNicknameError
 walletNicknameError _ "" = Just EmptyWalletNickname
@@ -51,12 +52,12 @@ data WalletIdError
 
 derive instance eqWalletIdError :: Eq WalletIdError
 
-instance showWalletIdError :: Show WalletIdError where
-  show EmptyWalletId = "Wallet ID cannot be blank"
-  show DuplicateWalletId = "Wallet ID is already in your contacts"
-  show InvalidWalletId = "Wallet ID is not valid"
-  show UnconfirmedWalletId = "Looking up wallet..."
-  show NonexistentWalletId = "Wallet not found"
+instance inputeFieldErrorWalletIdError :: InputFieldError WalletIdError where
+  inputErrorToString EmptyWalletId = "Wallet ID cannot be blank"
+  inputErrorToString DuplicateWalletId = "Wallet ID is already in your contacts"
+  inputErrorToString InvalidWalletId = "Wallet ID is not valid"
+  inputErrorToString UnconfirmedWalletId = "Looking up wallet..."
+  inputErrorToString NonexistentWalletId = "Wallet not found"
 
 walletIdError :: WebData WalletInfo -> WalletLibrary -> String -> Maybe WalletIdError
 walletIdError _ _ "" = Just EmptyWalletId

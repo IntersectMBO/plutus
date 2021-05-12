@@ -1,5 +1,6 @@
 module InputField.State
-  ( initialState
+  ( dummyState
+  , initialState
   , handleAction
   , validate
   ) where
@@ -12,10 +13,13 @@ import Effect.Aff.Class (class MonadAff)
 import Env (Env)
 import Halogen (HalogenM, modify_)
 import InputField.Lenses (_pristine, _validator, _value)
-import InputField.Types (Action(..), State)
-import MainFrame.Types (ChildSlots, Msg)
+import InputField.Types (class InputFieldError, Action(..), State)
 
-initialState :: forall e. Show e => State e
+-- see note [dummyState] in MainFrame.State
+dummyState :: forall e. InputFieldError e => State e
+dummyState = initialState
+
+initialState :: forall e. InputFieldError e => State e
 initialState =
   { value: mempty
   , pristine: true
@@ -23,11 +27,11 @@ initialState =
   }
 
 handleAction ::
-  forall m e.
+  forall m e slots msg.
   MonadAff m =>
   MonadAsk Env m =>
-  Show e =>
-  Action e -> HalogenM (State e) (Action e) ChildSlots Msg m Unit
+  InputFieldError e =>
+  Action e -> HalogenM (State e) (Action e) slots msg m Unit
 handleAction (SetValue value) =
   modify_
     $ set _value value
@@ -41,7 +45,7 @@ handleAction Reset =
     <<< set _pristine true
     <<< set _validator (const Nothing)
 
-validate :: forall e. Show e => State e -> Maybe e
+validate :: forall e. InputFieldError e => State e -> Maybe e
 validate state =
   let
     value = view _value state

@@ -7,6 +7,7 @@ module InputField.Lenses
   , _id_
   , _placeholder
   , _readOnly
+  , _datalistId
   ) where
 
 import Data.Lens (Lens')
@@ -39,3 +40,6 @@ _placeholder = prop (SProxy :: SProxy "placeholder")
 
 _readOnly :: Lens' InputDisplayOptions Boolean
 _readOnly = prop (SProxy :: SProxy "readOnly")
+
+_datalistId :: Lens' InputDisplayOptions (Maybe String)
+_datalistId = prop (SProxy :: SProxy "datalistId")
