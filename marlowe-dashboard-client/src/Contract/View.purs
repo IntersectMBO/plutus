@@ -17,7 +17,7 @@ import Data.BigInteger (BigInteger, fromInt, fromString)
 import Data.Foldable (foldMap)
 import Data.FunctorWithIndex (mapWithIndex)
 import Data.Lens ((^.))
-import Data.Map (filterKeys, keys, lookup, toUnfoldable) as Map
+import Data.Map (keys, lookup, toUnfoldable) as Map
 import Data.Maybe (Maybe(..), maybe, maybe')
 import Data.Set (Set)
 import Data.Set as Set
@@ -677,13 +677,7 @@ renderBalances state accounts =
     -- TODO: Right now we only have one type of Token (ada), but when we support multiple tokens we may want to group by
     --       participant and show the different tokens for each participant.
     accounts' :: Array (Tuple (Tuple Party Token) BigInteger)
-    accounts' = Map.toUnfoldable $ Map.filterKeys isRoleAccount accounts
-
-    -- Note we are currently filtering out PK accounts. We have no nice way to display them, and we are only using them
-    -- in one special case where it is confusing to display them anyway.
-    isRoleAccount (accountId /\ token) = case accountId of
-      Role _ -> true
-      _ -> false
+    accounts' = Map.toUnfoldable accounts
   in
     div [ classNames [ "text-xs" ] ]
       ( append

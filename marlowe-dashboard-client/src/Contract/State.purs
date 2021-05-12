@@ -15,7 +15,7 @@ import Capability.Toast (class Toast, addToast)
 import Contract.Lenses (_executionState, _marloweParams, _namedActions, _previousSteps, _selectedStep, _tab)
 import Contract.Types (Action(..), Input, PreviousStep, PreviousStepState(..), State, Tab(..), scrollContainerRef)
 import Control.Monad.Reader (class MonadAsk, asks)
-import Data.Array (difference, foldl, head, index, length, mapMaybe)
+import Data.Array (difference, filter, foldl, index, length, mapMaybe)
 import Data.Either (Either(..))
 import Data.Foldable (foldMap, for_)
 import Data.FoldableWithIndex (foldlWithIndex)
@@ -103,8 +103,16 @@ mkInitialState walletDetails currentSlot followerAppId history =
   in
     flip map mTemplate \template ->
       let
-        parties :: Array Party
-        parties = Set.toUnfoldable $ getParties contract
+        isRoleParty party = case party of
+          Role _ -> true
+          _ -> false
+
+        -- Note we filter out PK parties here. This is because we don't have a design for displaying
+        -- them anywhere, and because we are currently only using one in a special case (in the Escrow
+        -- with Collateral contract), where it doesn't make much sense to show it to the user anyway.
+        -- If we ever want to use PK parties for other purposes, we will need to rethink this.
+        roleParties :: Array Party
+        roleParties = filter isRoleParty $ Set.toUnfoldable $ getParties contract
 
         initialState =
           { tab: Tasks
@@ -114,7 +122,7 @@ mkInitialState walletDetails currentSlot followerAppId history =
           , followerAppId
           , selectedStep: 0
           , metadata: template.metaData
-          , participants: Map.fromFoldable $ map (\x -> x /\ Nothing) parties
+          , participants: Map.fromFoldable $ map (\x -> x /\ Nothing) roleParties
           , userParties: getUserParties walletDetails marloweParams
           , namedActions: mempty
           }
