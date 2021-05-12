@@ -56,7 +56,7 @@ import           Plutus.PAB.Core.ContractInstance.STM           as Instances
 import           Plutus.PAB.Db.Eventful.ContractDefinitionStore (handleContractDefinitionStore)
 import           Plutus.PAB.Db.Eventful.ContractStore           (handleContractStore)
 import           Plutus.PAB.Effects.Contract.ContractExe        (ContractExe, handleContractEffectContractExe)
-import           Plutus.PAB.Effects.EventLog                    (Connection (..), EventLogBackend, handleEventLog)
+import           Plutus.PAB.Effects.EventLog                    (Connection (..), EventLogBackend (..), handleEventLog)
 import qualified Plutus.PAB.Effects.EventLog                    as EventLog
 import           Plutus.PAB.Events                              (PABEvent)
 import           Plutus.PAB.Monitoring.MonadLoggerBridge        (TraceLoggerT (..))
@@ -163,8 +163,8 @@ mkEnv eventfulBackend appTrace appConfig@Config { dbConfig
     nodeClientEnv <- clientEnv mscBaseUrl
     chainIndexEnv <- clientEnv (ChainIndex.ciBaseUrl chainIndexConfig)
     dbConnection <- case eventfulBackend of
-        SqliteBackend   -> Left <$> dbConnect appTrace dbConfig
-        InMemoryBackend -> Right <$> M.eventMapTVar
+        SqliteBackend   -> Sqlite <$> dbConnect appTrace dbConfig
+        InMemoryBackend -> InMemory <$> M.eventMapTVar
     clientHandler <- liftIO $ Client.runClientNode mscSocketPath mscSlotConfig (\_ _ -> pure ())
     pure AppEnv {..}
   where

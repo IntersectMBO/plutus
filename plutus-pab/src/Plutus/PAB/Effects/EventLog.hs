@@ -47,7 +47,9 @@ data EventLogEffect event r where
 
 makeEffect ''EventLogEffect
 
-type EventLogBackend event = Either Connection (TVar (M.EventMap event))
+data EventLogBackend event =
+    Sqlite Connection
+    | InMemory (TVar (M.EventMap event))
 
 handleEventLog ::
     forall effs event.
@@ -62,8 +64,8 @@ handleEventLog ::
 handleEventLog trace m = do
     backend <- ask @(EventLogBackend event)
     case backend of
-        Left conn  -> handleEventLogSql trace conn m
-        Right tvar -> handleEventLogTVar tvar m
+        Sqlite conn   -> handleEventLogSql trace conn m
+        InMemory tvar -> handleEventLogTVar tvar m
 
 -- | A handler for 'EventLogEffect' that uses an 'M.EventMap'
 --   as the event store (in-memory)
