@@ -331,7 +331,6 @@ mkTxInfo tx = do
     txins <- traverse mkIn $ Set.toList $ view inputs tx
     let ptx = TxInfo
             { txInfoInputs = txins
-            , txInfoInputsFees = [] -- TODO: Fee inputs in emulator transactions
             , txInfoOutputs = txOutputs tx
             , txInfoForge = txForge tx
             , txInfoFee = txFee tx

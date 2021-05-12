@@ -100,7 +100,6 @@ data ScriptPurpose
 -- | A pending transaction. This is the view as seen by validator scripts, so some details are stripped out.
 data TxInfo = TxInfo
     { txInfoInputs      :: [TxInInfo] -- ^ Transaction inputs
-    , txInfoInputsFees  :: [TxInInfo]     -- ^ Transaction inputs designated to pay fees
     , txInfoOutputs     :: [TxOut] -- ^ Transaction outputs
     , txInfoFee         :: Value -- ^ The fee paid by this transaction.
     , txInfoForge       :: Value -- ^ The 'Value' forged by this transaction.
