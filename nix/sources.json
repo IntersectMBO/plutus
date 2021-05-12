@@ -134,10 +134,10 @@
         "homepage": "",
         "owner": "cachix",
         "repo": "pre-commit-hooks.nix",
-        "rev": "caba2a7208abd6a2dae2c8afd8e2a818108b1376",
-        "sha256": "1ic85hqnlijby0fj2x66v99fr03zl4xpvbymzc7aaciis65j41kj",
+        "rev": "09fb9e425111878b58223852e87ed85e8a189e0d",
+        "sha256": "0adfbgknb9xpgzmiwi4z5pnnw4n5gzjm2gxzria1vabyvqzxbn6s",
         "type": "tarball",
-        "url": "https://github.com/cachix/pre-commit-hooks.nix/archive/caba2a7208abd6a2dae2c8afd8e2a818108b1376.tar.gz",
+        "url": "https://github.com/cachix/pre-commit-hooks.nix/archive/09fb9e425111878b58223852e87ed85e8a189e0d.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     },
     "spago2nix": {
