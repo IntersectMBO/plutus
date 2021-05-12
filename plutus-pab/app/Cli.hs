@@ -82,6 +82,7 @@ import           Data.Text.Prettyprint.Doc                (Pretty (..), defaultL
 import           Data.Text.Prettyprint.Doc.Render.Text    (renderStrict)
 import           Data.Time.Units                          (Second)
 import qualified Plutus.PAB.Effects.Contract              as Contract
+import           Plutus.PAB.Effects.EventLog              (EventLogBackend (..))
 
 import           Cardano.Node.Types                       (MockServerConfig (..))
 import qualified PSGenerator
@@ -203,14 +204,14 @@ runConfigCommand t _ Config {nodeServerConfig, chainIndexConfig} serviceAvailabi
 
 -- Install a contract
 runConfigCommand t _ Config{dbConfig} _ _ (InstallContract contractExe) = do
-    connection <- Left <$> App.dbConnect (LM.convertLog LM.PABMsg t) dbConfig
+    connection <- Sqlite <$> App.dbConnect (LM.convertLog LM.PABMsg t) dbConfig
     fmap (either (error . show) id)
         $ Eventful.runEventfulStoreAction connection (LM.convertLog (LM.PABMsg . LM.SLoggerBridge) t)
         $ Contract.addDefinition @ContractExe contractExe
 
 -- Get the state of a contract
 runConfigCommand t _ Config{dbConfig} _ _ (ContractState contractInstanceId) = do
-    connection <- Left <$> App.dbConnect (LM.convertLog LM.PABMsg t) dbConfig
+    connection <- Sqlite <$> App.dbConnect (LM.convertLog LM.PABMsg t) dbConfig
     fmap (either (error . show) id)
         $ Eventful.runEventfulStoreAction connection (LM.convertLog (LM.PABMsg . LM.SLoggerBridge) t)
         $ interpret (LM.handleLogMsgTrace t)
@@ -222,7 +223,7 @@ runConfigCommand t _ Config{dbConfig} _ _ (ContractState contractInstanceId) = d
 
 -- Get all installed contracts
 runConfigCommand t _ Config{dbConfig} _ _ ReportInstalledContracts = do
-    connection <- Left <$> App.dbConnect (LM.convertLog LM.PABMsg t) dbConfig
+    connection <- Sqlite <$> App.dbConnect (LM.convertLog LM.PABMsg t) dbConfig
     fmap (either (error . show) id)
         $ Eventful.runEventfulStoreAction connection (LM.convertLog (LM.PABMsg . LM.SLoggerBridge) t)
         $ interpret (LM.handleLogMsgTrace t)
@@ -235,7 +236,7 @@ runConfigCommand t _ Config{dbConfig} _ _ ReportInstalledContracts = do
 
 -- Get all active contracts
 runConfigCommand t _ Config{dbConfig} _ _ ReportActiveContracts = do
-    connection <- Left <$> App.dbConnect (LM.convertLog LM.PABMsg t) dbConfig
+    connection <- Sqlite <$> App.dbConnect (LM.convertLog LM.PABMsg t) dbConfig
     fmap (either (error . show) id)
         $ Eventful.runEventfulStoreAction connection (LM.convertLog (LM.PABMsg . LM.SLoggerBridge) t)
         $ interpret (LM.handleLogMsgTrace t)
@@ -248,7 +249,7 @@ runConfigCommand t _ Config{dbConfig} _ _ ReportActiveContracts = do
 
 -- Get history of a specific contract
 runConfigCommand t _ Config{dbConfig} _ _ (ReportContractHistory contractInstanceId) = do
-    connection <- Left <$> App.dbConnect (LM.convertLog LM.PABMsg t) dbConfig
+    connection <- Sqlite <$> App.dbConnect (LM.convertLog LM.PABMsg t) dbConfig
     fmap (either (error . show) id)
         $ Eventful.runEventfulStoreAction connection (LM.convertLog (LM.PABMsg . LM.SLoggerBridge) t)
         $ interpret (LM.handleLogMsgTrace t)
