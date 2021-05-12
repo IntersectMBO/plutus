@@ -1020,8 +1020,6 @@ progress' M with lemma51 M
 ... | inj₂ (B ,, E ,, L ,, inj₁ (M' ,, p) ,, refl) = step (ruleEC E p refl refl)
 ... | inj₂ (B ,, E ,, L ,, inj₂ E-error ,, refl) = step (ruleErr E)
 
-{-
-
 data EProgress {A : ∅ ⊢Nf⋆ *} (M : ∅ ⊢ A) : Set where
   step : ∀{B}(E : EC A B){L L' : ∅ ⊢ B}
     → L —→⋆ L'
@@ -1033,9 +1031,7 @@ data EProgress {A : ∅ ⊢Nf⋆ *} (M : ∅ ⊢ A) : Set where
       ----------
     → EProgress M
 
-  error : ∀{B}(E : EC A B){L : ∅ ⊢ B}
-    →  Error L
-    →  M ≡ E [ L ]ᴱ
+  error : ∀{B}(E : EC A B){L : ∅ ⊢ B} → Error L → M ≡ E [ L ]ᴱ
       -------
     → EProgress M
 
@@ -1045,16 +1041,40 @@ lemma51' M with lemma51 M
 ... | inj₂ (B ,, E ,, L ,, inj₁ (M' ,, p) ,, p') = step E p p'
 ... | inj₂ (B ,, E ,, L ,, inj₂ e ,, p) = error E e p
 
-uniqueVal : ∀{A}(M : ∅ ⊢ A)(v v' : Value M) → v ≡ v'
 
-uniqueBAppA : ∀{A b as}(M : ∅ ⊢ A)(v : BAppA b as M)(v' : BAppA b as M) → v ≡ v'
+{-
+uniqueVal : ∀{A}(M : ∅ ⊢ A)(v v' : Value M) → v ≡ v'
+uniqueVal M v v' = {!!}
+
+·⋆-subst-lem : ∀{K K'}
+ → {A : ∅ ⊢Nf⋆ K}{A' : ∅ ⊢Nf⋆ K'}
+ → {B : ∅ ,⋆ K ⊢Nf⋆ *}{B' : ∅ ,⋆ K' ⊢Nf⋆ *}
+ → {t : ∅ ⊢ Π B}{t' : ∅ ⊢ Π B'}
+ → (q : (B [ A ]Nf) ≡ (B' [ A' ]Nf))
+ → substEq (∅ ⊢_) q (t ·⋆ A) ≡ t' ·⋆ A'
+ → K ≡ K' 
+·⋆-subst-lem q r = {!q!}
+
+uniqueBApp : ∀{A b as az}
+  → (p : az <>> as ∈ arity b)(M : ∅ ⊢ A)(v v' : BApp b p M) → v ≡ v'
+uniqueBApp {b = b} .(start (arity b)) .(ibuiltin b) base base = refl
+uniqueBApp .(bubble p) _ (step⋆ p v q r) (step⋆ .p v' q' r') = {!q!}
+uniqueBApp .(bubble p) .(_ · _) (step p v w) (step .p v' w')
+  with uniqueBApp p _ v v' | uniqueVal _ w w'
+... | refl | refl = refl
+{-
+  with uniqueBApp p M {!q!} {!v!}
+... | X = {!!}
+-}
+{-
 uniqueBAppA _ base base = refl
 uniqueBAppA (M · M') (step v x) (step v' x₁) with uniqueBAppA M v v' | uniqueVal M' x x₁
 ... | refl | refl = refl
 uniqueBAppA (M ·⋆ A) (step⋆ v) (step⋆ v') with uniqueBAppA M v v'
 ... | refl = refl
-
-uniqueBAppA' : ∀{A b b' as as'}(M : ∅ ⊢ A)(v : BAppA b as M)(v' : BAppA b' as' M) → b ≡ b' × as ≡ as'
+-}
+{-
+uniqueBAppA' : ∀{A b b' as as'}(M : ∅ ⊢ A)(v : BApp b as M)(v' : BApp b' as' M) → b ≡ b' × as ≡ as'
 uniqueBAppA' _ base base = refl ,, refl
 uniqueBAppA' (M · M') (step v x) (step v' x₁) with uniqueBAppA' M v v'
 ... | refl ,, refl = refl ,, refl
@@ -1071,6 +1091,7 @@ uniqueVal M (V-I⇒ b x) (V-I⇒ b₁ x₁) with uniqueBAppA' M x x₁
 ... | refl ,, refl = cong (V-I⇒ b) (uniqueBAppA M x x₁) 
 uniqueVal M (V-IΠ b x) (V-IΠ b₁ x₁) with uniqueBAppA' M x x₁
 ... | refl ,, refl = cong (V-IΠ b) (uniqueBAppA M x x₁) 
+
 -}
 
-
+-}
