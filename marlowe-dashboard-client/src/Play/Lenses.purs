@@ -4,9 +4,9 @@ module Play.Lenses
   , _menuOpen
   , _screen
   , _cards
-  , _newWalletNickname
-  , _newWalletCompanionAppIdString
-  , _newWalletInfo
+  , _walletNicknameInput
+  , _walletIdInput
+  , _remoteWalletInfo
   , _templateState
   , _contractsState
   , _allContracts
@@ -21,11 +21,13 @@ import Data.Lens (Lens', Traversal')
 import Data.Lens.Record (prop)
 import Data.Map (Map)
 import Data.Symbol (SProxy(..))
+import InputField.Types (State) as InputField
 import Marlowe.PAB (PlutusAppId)
 import Play.Types (Card, Screen, State)
 import Template.Types (State) as Template
 import Types (WebData)
-import WalletData.Types (WalletDetails, WalletInfo, WalletLibrary, WalletNickname)
+import WalletData.Types (WalletDetails, WalletInfo, WalletLibrary)
+import WalletData.Validation (WalletIdError, WalletNicknameError)
 
 _walletLibrary :: Lens' State WalletLibrary
 _walletLibrary = prop (SProxy :: SProxy "walletLibrary")
@@ -42,14 +44,14 @@ _screen = prop (SProxy :: SProxy "screen")
 _cards :: Lens' State (Array Card)
 _cards = prop (SProxy :: SProxy "cards")
 
-_newWalletNickname :: Lens' State WalletNickname
-_newWalletNickname = prop (SProxy :: SProxy "newWalletNickname")
+_walletNicknameInput :: Lens' State (InputField.State WalletNicknameError)
+_walletNicknameInput = prop (SProxy :: SProxy "walletNicknameInput")
 
-_newWalletCompanionAppIdString :: Lens' State String
-_newWalletCompanionAppIdString = prop (SProxy :: SProxy "newWalletCompanionAppIdString")
+_walletIdInput :: Lens' State (InputField.State WalletIdError)
+_walletIdInput = prop (SProxy :: SProxy "walletIdInput")
 
-_newWalletInfo :: Lens' State (WebData WalletInfo)
-_newWalletInfo = prop (SProxy :: SProxy "newWalletInfo")
+_remoteWalletInfo :: Lens' State (WebData WalletInfo)
+_remoteWalletInfo = prop (SProxy :: SProxy "remoteWalletInfo")
 
 _templateState :: Lens' State Template.State
 _templateState = prop (SProxy :: SProxy "templateState")

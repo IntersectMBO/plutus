@@ -1,5 +1,7 @@
 module InputField.Types
   ( State
+  , class InputFieldError
+  , inputErrorToString
   , Action(..)
   , InputDisplayOptions
   ) where
@@ -13,12 +15,16 @@ type State error
     , validator :: String -> Maybe error
     }
 
+class InputFieldError e where
+  inputErrorToString :: e -> String
+
 type InputDisplayOptions
   = { baseCss :: Boolean -> Array String
     , additionalCss :: Array String
     , id_ :: String
     , placeholder :: String
     , readOnly :: Boolean
+    , datalistId :: Maybe String
     }
 
 data Action error
