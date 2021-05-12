@@ -14,6 +14,8 @@ module Plutus.Contract.State(
     , State(..)
     , ContractRequest(..)
     , ContractResponse(..)
+    , mapE
+    , mapW
     , insertAndUpdateContract
     , initialiseContract
     , mkResponse
@@ -21,6 +23,7 @@ module Plutus.Contract.State(
 
 import           Control.Monad.Freer.Extras.Log   (LogMessage)
 import           Data.Aeson                       (FromJSON, ToJSON, Value)
+import           Data.Bifunctor                   (Bifunctor (..))
 import           Data.Foldable                    (toList)
 import           GHC.Generics                     (Generic)
 
@@ -79,8 +82,18 @@ data ContractResponse w e s h = ContractResponse
     , err             :: Maybe e -- ^ Error that happened during contract execution
     , observableState :: w -- ^ Observable, accumulated state of the contract
     }
-    deriving stock (Generic, Eq, Show)
+    deriving stock (Generic, Eq, Show, Functor)
     deriving anyclass (ToJSON, FromJSON)
+
+instance Bifunctor (ContractResponse w e) where
+    bimap f g c@ContractResponse{newState} =
+        fmap g c{ newState = fmap f newState }
+
+mapE :: forall e f w s h. (e -> f) -> ContractResponse w e s h -> ContractResponse w f s h
+mapE f c@ContractResponse{err} = c{err = fmap f err}
+
+mapW :: forall w q e s h. (w -> q) -> ContractResponse w e s h -> ContractResponse q e s h
+mapW f c@ContractResponse{observableState} = c{observableState=f observableState}
 
 -- | Run one step of the contract by restoring it to its previous state and
 --   feeding it a single new 'Response' event.

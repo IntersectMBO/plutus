@@ -134,10 +134,10 @@
         "homepage": "",
         "owner": "cachix",
         "repo": "pre-commit-hooks.nix",
-        "rev": "caba2a7208abd6a2dae2c8afd8e2a818108b1376",
-        "sha256": "1ic85hqnlijby0fj2x66v99fr03zl4xpvbymzc7aaciis65j41kj",
+        "rev": "09fb9e425111878b58223852e87ed85e8a189e0d",
+        "sha256": "0adfbgknb9xpgzmiwi4z5pnnw4n5gzjm2gxzria1vabyvqzxbn6s",
         "type": "tarball",
-        "url": "https://github.com/cachix/pre-commit-hooks.nix/archive/caba2a7208abd6a2dae2c8afd8e2a818108b1376.tar.gz",
+        "url": "https://github.com/cachix/pre-commit-hooks.nix/archive/09fb9e425111878b58223852e87ed85e8a189e0d.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     },
     "spago2nix": {
@@ -147,10 +147,10 @@
         "homepage": "",
         "owner": "justinwoo",
         "repo": "spago2nix",
-        "rev": "898798204fa8f53837bbcf71e30aeb425deb0906",
-        "sha256": "1igb1ldilj52f6vppsv58hxwzasd9vjcfsfhxsmk1jhs7cbnb1dq",
+        "rev": "a4622c3b27fca47e3276131a8ec4097a1d3c78a7",
+        "sha256": "1v7mpzqx9hwfk7xz1vyf3xf2ry7zb7658mh11r7d2avb311b1xw2",
         "type": "tarball",
-        "url": "https://github.com/justinwoo/spago2nix/archive/898798204fa8f53837bbcf71e30aeb425deb0906.tar.gz",
+        "url": "https://github.com/justinwoo/spago2nix/archive/a4622c3b27fca47e3276131a8ec4097a1d3c78a7.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     },
     "sphinxcontrib-haddock": {

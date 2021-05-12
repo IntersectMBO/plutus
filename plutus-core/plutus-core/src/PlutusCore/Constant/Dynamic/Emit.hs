@@ -4,6 +4,7 @@ module PlutusCore.Constant.Dynamic.Emit
     ( MonadEmitter (..)
     , Emitter (..)
     , NoEmitterT (..)
+    , WithEmitterT (..)
     ) where
 
 import           Control.Monad.Except
@@ -33,6 +34,22 @@ instance Monad Emitter where
 
 instance MonadEmitter Emitter where
     emit str = Emitter $ emit str
+
+-- | A newtype wrapper for providing a 'MonadEmitter' instance by directly providing the function.
+newtype WithEmitterT m a = WithEmitterT
+    { unWithEmitterT :: (String -> m ()) -> m a
+    } deriving
+        ( Functor, Applicative, Monad
+        , MonadError e, MonadState s
+        )
+      via
+        ReaderT (String -> m ()) m
+
+instance Monad m => MonadEmitter (WithEmitterT m) where
+    emit s = WithEmitterT $ \e -> e s
+
+instance MonadTrans WithEmitterT where
+    lift a = WithEmitterT $ \_ -> a
 
 -- | A newtype wrapper for via-deriving a vacuous 'MonadEmitter' instance for a monad.
 newtype NoEmitterT m a = NoEmitterT

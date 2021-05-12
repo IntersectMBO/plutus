@@ -27,14 +27,14 @@ import Types (WebData)
 import WalletData.Lenses (_assets, _companionAppId, _walletNickname)
 import WalletData.State (adaToken, getAda)
 import WalletData.Types (WalletDetails, WalletInfo, WalletLibrary, WalletNickname)
-import WalletData.Validation (plutusAppIdError, walletNicknameError)
+import WalletData.Validation (walletIdError, walletNicknameError)
 
 saveWalletCard :: forall p. WalletLibrary -> WalletNickname -> String -> WebData WalletInfo -> Maybe String -> HTML p Action
 saveWalletCard walletLibrary newWalletNickname newWalletCompanionAppIdString newWalletInfo mTokenName =
   let
-    mWalletNicknameError = walletNicknameError newWalletNickname walletLibrary
+    mWalletNicknameError = walletNicknameError walletLibrary newWalletNickname
 
-    mCompanionAppIdError = plutusAppIdError newWalletCompanionAppIdString newWalletInfo walletLibrary
+    mCompanionAppIdError = walletIdError newWalletInfo walletLibrary newWalletCompanionAppIdString
   in
     div
       [ classNames [ "flex", "flex-col", "p-5", "pb-6", "md:pb-8" ] ]

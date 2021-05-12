@@ -1,4 +1,6 @@
-{-# LANGUAGE NamedFieldPuns #-}
+{-# LANGUAGE DerivingStrategies #-}
+{-# LANGUAGE LambdaCase         #-}
+{-# LANGUAGE NamedFieldPuns     #-}
 {-
 
 Types and functions for contract instances that communicate with the outside
@@ -27,7 +29,9 @@ module Plutus.PAB.Core.ContractInstance.STM(
     , callEndpoint
     , finalResult
     , Activity(..)
+    , Depth(..)
     , TxStatus(..)
+    , increaseDepth
     -- * State of all running contract instances
     , InstancesState
     , emptyInstancesState
@@ -137,19 +141,31 @@ The initial state after submitting the transaction is InMemPool.
 
 -}
 
+-- | How many blocks deep the tx is on the chain
+newtype Depth = Depth Int
+    deriving stock (Eq, Ord, Show)
+    deriving newtype (Num, Real, Enum, Integral)
+
 -- | Status of a transaction from the perspective of the contract.
 --   See note [TxStatus state machine]
 data TxStatus =
     InMemPool -- ^ Not on chain yet
     | Invalid -- ^ Invalid (its inputs were spent or its validation range has passed)
-    | TentativelyConfirmed -- ^ On chain, can still be rolled back
+    | TentativelyConfirmed Depth -- ^ On chain, can still be rolled back
     | DefinitelyConfirmed -- ^ Cannot be rolled back
     deriving (Eq, Ord, Show)
 
-isConfirmed :: TxStatus -> Bool
-isConfirmed TentativelyConfirmed = True
-isConfirmed DefinitelyConfirmed  = True
-isConfirmed _                    = False
+-- | Whether a 'TxStatus' counts as confirmed given the minimum depth
+isConfirmed :: Depth -> TxStatus -> Bool
+isConfirmed minDepth = \case
+    TentativelyConfirmed d | d >= minDepth -> True
+    DefinitelyConfirmed                    -> True
+    _                                      -> False
+
+-- | Increase the depth of a tentatively confirmed transaction
+increaseDepth :: TxStatus -> TxStatus
+increaseDepth (TentativelyConfirmed d) = TentativelyConfirmed (d + 1)
+increaseDepth e                        = e
 
 -- | Data about the blockchain that contract instances
 --   may be interested in.
@@ -352,7 +368,8 @@ watchedTransactions (InstancesState m) = do
 waitForTxConfirmed :: TxId -> BlockchainEnv -> STM TxConfirmed
 waitForTxConfirmed tx BlockchainEnv{beTxChanges} = do
     idx <- STM.readTVar beTxChanges
-    guard $ maybe False isConfirmed (Map.lookup tx idx)
+    let minDepth = 8 -- how many blocks the tx must be into the chain
+    guard $ maybe False (isConfirmed minDepth) (Map.lookup tx idx)
     pure (TxConfirmed tx)
 
 -- | The value at an address

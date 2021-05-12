@@ -9,5 +9,5 @@ import           CostModelCreation
 -}
 main :: IO ()
 main = do
-  model <- createCostModel
-  BSL.writeFile "cost-model/data/costModel.json" $ encodePretty' (defConfig { confCompare = \_ _-> EQ }) model
+  model <- createBuiltinCostModel
+  BSL.writeFile "cost-model/data/builtinCostModel.json" $ encodePretty' (defConfig { confCompare = \_ _-> EQ }) model

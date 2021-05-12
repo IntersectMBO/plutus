@@ -9,14 +9,18 @@ This is not quite as fast as using 'Int' or 'Int64' directly, but we need the sa
 {-# LANGUAGE UnboxedTuples      #-}
 module Data.SatInt (SatInt(..), fromSat, toSat) where
 
-import           Control.DeepSeq (NFData)
+import           Control.DeepSeq            (NFData)
+import           Data.Aeson                 (FromJSON, ToJSON)
 import           Data.Bits
 import           GHC.Base
 import           GHC.Num
 import           GHC.Real
+import           Language.Haskell.TH.Syntax (Lift)
 
 newtype SatInt = SI Int
     deriving newtype (NFData, Bits, FiniteBits)
+    deriving Lift
+    deriving (FromJSON, ToJSON) via Int
 
 fromSat :: SatInt -> Int
 fromSat (SI x) = x

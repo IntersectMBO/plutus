@@ -11,6 +11,7 @@ module Css
   , secondaryButton
   , whiteButton
   , input
+  , inputNoFocus
   , inputCard
   , inputError
   , hasNestedLabel
@@ -94,23 +95,31 @@ inputBase =
   , "text-black"
   , "border-transparent"
   , "focus:border-transparent"
-  , "focus:ring-1"
   , "shadow-sm"
   , "focus:shadow"
   , "hover:shadow"
   ]
 
+inputBaseFocus :: Array String
+inputBaseFocus = inputBase <> [ "focus:ring-1" ]
+
+inputBaseNoFocus :: Array String
+inputBaseNoFocus = inputBase <> [ "focus:ring-0" ]
+
 input :: Boolean -> Array String
-input invalid = inputBase <> [ "border" ] <> [ "bg-transparent" ] <> toggleWhen invalid [ "border-red" ] [ "border-black", "focus:border-black" ]
+input invalid = inputBaseFocus <> [ "border" ] <> [ "bg-transparent" ] <> toggleWhen invalid [ "border-red" ] [ "border-black", "focus:border-black" ]
+
+inputNoFocus :: Boolean -> Array String
+inputNoFocus invalid = inputBaseNoFocus <> toggleWhen invalid [ "border-red" ] [ "border-transparent" ]
 
 withNestedLabel :: Array String
 withNestedLabel = [ "border", "border-gray", "focus:border-gray" ]
 
 inputCard :: Boolean -> Array String
-inputCard invalid = inputBase <> toggleWhen invalid [ "border-red" ] [ "border-transparent" ]
+inputCard invalid = inputBaseFocus <> toggleWhen invalid [ "border-red" ] [ "border-transparent" ]
 
 inputError :: Array String
-inputError = [ "text-red", "text-sm" ]
+inputError = [ "px-3", "mt-1", "text-red", "text-sm" ]
 
 hasNestedLabel :: Array String
 hasNestedLabel = [ "-mt-4" ]

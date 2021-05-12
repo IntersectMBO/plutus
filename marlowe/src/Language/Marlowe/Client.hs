@@ -656,6 +656,7 @@ notifyOnNewContractRoles :: TxOut
 notifyOnNewContractRoles txout = do
     let curSymbols = filterRoles txout
     forM_ curSymbols $ \cs -> do
+        logInfo @String $ "Processing currency symbol: " <> show cs
         contract <- findMarloweContractsOnChainByRoleCurrency cs
         case contract of
             Just (params, md) -> tell $ CompanionState (Map.singleton params md)

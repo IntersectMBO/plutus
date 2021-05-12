@@ -191,7 +191,7 @@ handleAddressChangedAtQueries = RequestHandler $ \req ->
         -- index only learns about those transactions at the beginning of the
         -- next slot. So we need to make sure that we are past the current
         -- slot.
-        guard (current > target)
+        guard (current >= target)
         Wallet.Effects.addressChanged req
 
 handleOwnInstanceIdQueries ::

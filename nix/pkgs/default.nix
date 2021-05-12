@@ -107,7 +107,7 @@ let
   nix-pre-commit-hooks = (pkgs.callPackage ((sources."pre-commit-hooks.nix") + "/nix/default.nix") {
     inherit system;
     inherit (sources) nixpkgs;
-  }).packages;
+  });
 
   # purty is unable to process several files but that is what pre-commit
   # does. pre-commit-hooks.nix does provide a wrapper for that but when
