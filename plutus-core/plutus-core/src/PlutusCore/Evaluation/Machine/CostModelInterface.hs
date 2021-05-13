@@ -124,11 +124,3 @@ applyCostModelData cm cmdata =
     of
       (Just machineCosts, Just buitinCosts) -> Just $ CostModel machineCosts buitinCosts
       _                                     -> Nothing
-
-
-
-
-
-
-
-
