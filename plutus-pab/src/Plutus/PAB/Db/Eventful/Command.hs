@@ -25,15 +25,15 @@ module Plutus.PAB.Db.Eventful.Command
     , stopContractInstance
     ) where
 
-import           Eventful                                (Aggregate (Aggregate), aggregateCommandHandler,
-                                                          aggregateProjection)
+import           Data.Aeson                   (Value)
+import           Eventful                     (Aggregate (Aggregate), aggregateCommandHandler, aggregateProjection)
 import qualified Ledger
-import           Plutus.PAB.Db.Eventful.Query            (nullProjection)
-import           Plutus.PAB.Events                       (PABEvent (..))
-import           Plutus.PAB.Events.Contract              (ContractPABRequest)
-import           Plutus.PAB.Events.ContractInstanceState (PartiallyDecodedResponse)
-import           Plutus.PAB.Webserver.Types              (ContractActivationArgs)
-import           Wallet.Types                            (ContractInstanceId)
+import           Plutus.Contract.State        (ContractResponse)
+import           Plutus.PAB.Db.Eventful.Query (nullProjection)
+import           Plutus.PAB.Events            (PABEvent (..))
+import           Plutus.PAB.Events.Contract   (ContractPABRequest)
+import           Plutus.PAB.Webserver.Types   (ContractActivationArgs)
+import           Wallet.Types                 (ContractInstanceId)
 
 -- | An aggregate that just sends a list of events with no state
 sendEvents ::
@@ -53,7 +53,7 @@ installCommand = sendEvents (return . InstallContract)
 saveBalancedTxResult :: forall t. Aggregate () (PABEvent t) Ledger.Tx
 saveBalancedTxResult = sendEvents (return . SubmitTx)
 
-updateContractInstanceState :: forall t. Aggregate () (PABEvent t) (ContractActivationArgs t, ContractInstanceId, (PartiallyDecodedResponse ContractPABRequest))
+updateContractInstanceState :: forall t. Aggregate () (PABEvent t) (ContractActivationArgs t, ContractInstanceId, (ContractResponse Value Value Value ContractPABRequest))
 updateContractInstanceState = sendEvents (\(x, y, z) -> return $ UpdateContractInstanceState x y z)
 
 startContractInstance :: forall t. Aggregate () (PABEvent t) (ContractActivationArgs t, ContractInstanceId)

@@ -34,18 +34,13 @@
 , which
 }:
 let
+  bashrc = ./bashrc;
   # I think we should be able to use buildLayeredImage, but for some reason it
   # produces a nonfunctional image
   image = dockerTools.buildImage {
     inherit name tag;
 
     contents = [
-      # See: https://github.com/NixOS/nixpkgs/issues/118722
-      (stdenv.mkDerivation {
-        name = "wrapped";
-        src = ./root;
-        installPhase = "ln -s $src $out";
-      })
       coreutils
       procps
       gnugrep
@@ -98,7 +93,10 @@ let
     runAsRoot = ''
       ${dockerTools.shadowSetup}
       groupadd --gid ${nonRootUserId} ${nonRootUser}
-      useradd --uid ${nonRootUserId} --gid ${nonRootUserId} -m ${nonRootUser}
+      useradd --uid ${nonRootUserId} --gid ${nonRootUserId} ${nonRootUser}
+
+      mkdir -p /home/${nonRootUser}
+      cat ${bashrc} > /home/${nonRootUser}/.bashrc
 
       # Because we map in the `./.cabal` folder from the users home directory,
       # (see: https://github.com/input-output-hk/plutus-starter/blob/main/.devcontainer/devcontainer.json)
@@ -106,7 +104,8 @@ let
       # (see: https://github.com/moby/moby/issues/2259 link), we have to make the
       # folder first and chown it ...
       mkdir /home/${nonRootUser}/.cabal
-      chown ${nonRootUser}:${nonRootUser} /home/${nonRootUser}/.cabal
+
+      chown -R ${nonRootUser}:${nonRootUser} /home/${nonRootUser}
     '';
 
     config = {

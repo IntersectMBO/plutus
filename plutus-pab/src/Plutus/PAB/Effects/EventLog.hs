@@ -4,16 +4,18 @@
 {-# LANGUAGE LambdaCase       #-}
 {-# LANGUAGE RankNTypes       #-}
 {-# LANGUAGE TemplateHaskell  #-}
+{-# LANGUAGE TypeApplications #-}
 {-# LANGUAGE TypeOperators    #-}
 
 module Plutus.PAB.Effects.EventLog where
 
 import           Cardano.BM.Trace                        (Trace)
-import           Control.Monad.Freer                     (Eff, LastMember, Member, interpret, sendM, type (~>))
-import           Control.Monad.Freer.Extras.Modify       (monadStateToState)
+import           Control.Concurrent.STM                  (TVar)
+import qualified Control.Concurrent.STM                  as STM
+import           Control.Monad.Freer                     (Eff, LastMember, Member, sendM, type (~>))
 import           Control.Monad.Freer.Reader              (Reader, ask)
-import           Control.Monad.Freer.State               (State)
 import           Control.Monad.Freer.TH                  (makeEffect)
+import           Control.Monad.IO.Class                  (MonadIO (..))
 import           Data.Aeson                              (FromJSON, ToJSON)
 import           Database.Persist.Sqlite                 (ConnectionPool, SqlPersistT, retryOnBusy, runSqlPool)
 import           Eventful                                (Aggregate, EventStoreWriter, GlobalStreamProjection,
@@ -45,21 +47,46 @@ data EventLogEffect event r where
 
 makeEffect ''EventLogEffect
 
+data EventLogBackend event =
+    Sqlite Connection
+    | InMemory (TVar (M.EventMap event))
+
+handleEventLog ::
+    forall effs event.
+    ( Member (Reader (EventLogBackend event)) effs
+    , LastMember IO effs
+    , ToJSON event
+    , FromJSON event
+    ) =>
+    Trace IO MonadLoggerMsg
+    -> EventLogEffect event
+    ~> Eff effs
+handleEventLog trace m = do
+    backend <- ask @(EventLogBackend event)
+    case backend of
+        Sqlite conn   -> handleEventLogSql trace conn m
+        InMemory tvar -> handleEventLogTVar tvar m
+
 -- | A handler for 'EventLogEffect' that uses an 'M.EventMap'
 --   as the event store (in-memory)
-handleEventLogState ::
-       forall effs event. (Member (State (M.EventMap event)) effs)
-    => Eff (EventLogEffect event ': effs) ~> Eff effs
-handleEventLogState =
-    interpret $ \case
-        RefreshProjection projection ->
-            monadStateToState $
-            getLatestStreamProjection M.stateGlobalEventStoreReader projection
-        RunCommand aggregate source command ->
-            monadStateToState $
-            commandStoredAggregate
-                M.stateEventStoreWriter
-                M.stateEventStoreReader
+handleEventLogTVar ::
+    forall effs event.
+    ( LastMember IO effs
+    )
+    => TVar (M.EventMap event)
+    -> EventLogEffect event
+    ~> Eff effs
+handleEventLogTVar mp = \case
+    RefreshProjection projection ->
+        liftIO
+            $ STM.atomically
+            $ getLatestStreamProjection (M.tvarGlobalEventStoreReader mp) projection
+    RunCommand aggregate source command ->
+        liftIO
+            $ STM.atomically
+            $ commandStoredAggregate
+                (M.tvarEventStoreWriter mp)
+                (M.tvarEventStoreReader mp)
                 aggregate
                 (toUUID source)
                 command
@@ -68,17 +95,17 @@ handleEventLogState =
 --   as the event store (remote)
 handleEventLogSql ::
        forall effs event.
-       ( Member (Reader Connection) effs
-       , LastMember IO effs
+       ( LastMember IO effs
        , ToJSON event
        , FromJSON event
        )
     => Trace IO MonadLoggerMsg
+    -> Connection
     -> EventLogEffect event
     ~> Eff effs
-handleEventLogSql trace = \case
+handleEventLogSql trace connection = \case
     RefreshProjection projection -> do
-        (Connection (sqlConfig, connectionPool)) <- ask
+        let Connection (sqlConfig, connectionPool) = connection
         sendM $ flip runTraceLoggerT trace $ do
             let reader =
                     serializedGlobalEventStoreReader jsonStringSerializer $
@@ -86,7 +113,7 @@ handleEventLogSql trace = \case
             flip runSqlPool connectionPool $
                 getLatestStreamProjection reader projection
     RunCommand aggregate source input -> do
-        Connection (sqlConfig, connectionPool) <- ask
+        let Connection (sqlConfig, connectionPool) = connection
         sendM $ flip runTraceLoggerT trace $ do
             let reader :: VersionedEventStoreReader (SqlPersistT (TraceLoggerT IO)) event
                 reader =

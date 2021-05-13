@@ -104,8 +104,7 @@ import           Plutus.Contract.Effects.AwaitTxConfirmed       (TxConfirmed)
 import           Plutus.PAB.Core                                (EffectHandlers (..))
 import qualified Plutus.PAB.Core                                as Core
 import qualified Plutus.PAB.Core.ContractInstance.BlockchainEnv as BlockchainEnv
-import           Plutus.PAB.Core.ContractInstance.STM           (Activity (..), BlockchainEnv, InstancesState,
-                                                                 OpenEndpoint)
+import           Plutus.PAB.Core.ContractInstance.STM           (Activity (..), BlockchainEnv (..), OpenEndpoint)
 import qualified Plutus.PAB.Core.ContractInstance.STM           as Instances
 import           Plutus.PAB.Effects.Contract                    (ContractStore)
 import qualified Plutus.PAB.Effects.Contract                    as Contract
@@ -225,7 +224,6 @@ mkSimulatorHandlers definitions handleContractEffect =
                 $ handleDelayEffect
                 $ interpret (Core.handleUserEnvReader @t @(SimulatorState t))
                 $ interpret (Core.handleBlockchainEnvReader @t @(SimulatorState t))
-                $ interpret (Core.handleInstancesStateReader @t @(SimulatorState t))
                 $ advanceClock @t
             Core.waitUntilSlot 1
         , onShutdown = do
@@ -350,7 +348,6 @@ makeBlock ::
     forall t effs.
     ( LastMember IO effs
     , Member (Reader (SimulatorState t)) effs
-    , Member (Reader InstancesState) effs
     , Member (Reader BlockchainEnv) effs
     , Member DelayEffect effs
     , Member TimeEffect effs
@@ -445,7 +442,6 @@ handleChainControl ::
     ( LastMember IO effs
     , Member (Reader (SimulatorState t)) effs
     , Member (Reader BlockchainEnv) effs
-    , Member (Reader InstancesState) effs
     , Member (LogMsg Chain.ChainEvent) effs
     , Member (LogMsg ChainIndex.ChainIndexEvent) effs
     )
@@ -454,14 +450,11 @@ handleChainControl ::
 handleChainControl = \case
     Chain.ProcessBlock -> do
         blockchainEnv <- ask @BlockchainEnv
-        instancesState <- ask @InstancesState
         (txns, slot) <- runChainEffects @t @_ ((,) <$> Chain.processBlock <*> Chain.getCurrentSlot)
         runChainIndexEffects @t (ChainIndex.chainIndexNotify $ BlockValidated txns)
 
-        void $ liftIO $ STM.atomically $ do
-            cenv <- BlockchainEnv.getClientEnv instancesState
-            BlockchainEnv.updateInterestingAddresses blockchainEnv cenv
-            BlockchainEnv.processBlock blockchainEnv txns slot
+        void $ liftIO $ STM.atomically $ BlockchainEnv.processBlock blockchainEnv txns slot
+
         pure txns
     Chain.ModifySlot f -> do
         slot <- runChainEffects @t @_ (Chain.modifySlot f)
@@ -598,7 +591,6 @@ advanceClock ::
     forall t effs.
     ( LastMember IO effs
     , Member (Reader (SimulatorState t)) effs
-    , Member (Reader InstancesState) effs
     , Member (Reader BlockchainEnv) effs
     , Member DelayEffect effs
     , Member TimeEffect effs

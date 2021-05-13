@@ -13,46 +13,45 @@ import Data.Lens (view)
 import Data.Map (Map, lookup)
 import Data.Map (toUnfoldable) as Map
 import Data.Maybe (Maybe(..), fromMaybe, isJust)
-import Data.Set (toUnfoldable) as Set
 import Data.String (null)
 import Data.Tuple.Nested ((/\))
 import Halogen.HTML (HTML, a, br_, button, div, div_, h2, hr, input, label, li, p, p_, span, span_, text, ul, ul_)
 import Halogen.HTML.Events.Extra (onClick_, onValueInput_)
-import Halogen.HTML.Properties (InputType(..), for, id_, list, placeholder, readOnly, type_, value)
+import Halogen.HTML.Properties (InputType(..), for, id_, placeholder, readOnly, type_, value)
 import Humanize (humanizeValue)
-import Marlowe.Extended (Contract, TemplateContent, _valueContent, contractTypeInitials)
+import InputField.Types (inputErrorToString)
+import InputField.Types (State) as InputField
+import InputField.View (renderInput)
+import Marlowe.Extended (TemplateContent, _valueContent, contractTypeInitials)
 import Marlowe.Extended.Metadata (MetaData)
-import Marlowe.HasParties (getParties)
 import Marlowe.Market (contractTemplates)
 import Marlowe.PAB (contractCreationFee)
-import Marlowe.Semantics (Assets, Party(..), Slot)
+import Marlowe.Semantics (Assets, Slot, TokenName)
 import Material.Icons (Icon(..), icon_)
 import Template.Format (formatText)
-import Template.Lenses (_contractName, _contractNickname, _extendedContract, _metaData, _roleWallets, _slotContentStrings, _template, _templateContent)
+import Template.Lenses (_contractName, _contractNickname, _metaData, _roleWalletInputs, _slotContentStrings, _template, _templateContent)
 import Template.Types (Action(..), State)
-import Template.Validation (roleError, roleWalletsAreValid, slotError, templateContentIsValid, valueError)
+import Template.Validation (RoleError, roleWalletsAreValid, slotError, templateContentIsValid, valueError)
 import WalletData.State (adaToken, getAda)
 import WalletData.Types (WalletLibrary)
-import WalletData.View (nicknamesDataList)
+import WalletData.View (nicknamesDataList, nicknamesDataListId)
 
 contractSetupScreen :: forall p. WalletLibrary -> Slot -> State -> HTML p Action
-contractSetupScreen wallets currentSlot state =
+contractSetupScreen walletLibrary currentSlot state =
   let
     metaData = view (_template <<< _metaData) state
 
     contractName = view (_contractName) metaData
 
-    extendedContract = view (_template <<< _extendedContract) state
-
     contractNickname = view _contractNickname state
 
-    roleWallets = view _roleWallets state
+    roleWalletInputs = view _roleWalletInputs state
 
     templateContent = view _templateContent state
 
     slotContentStrings = view _slotContentStrings state
 
-    termsAreAccessible = roleWalletsAreValid roleWallets wallets
+    termsAreAccessible = roleWalletsAreValid roleWalletInputs
 
     payIsAccessible = termsAreAccessible && templateContentIsValid templateContent slotContentStrings currentSlot
   in
@@ -65,9 +64,9 @@ contractSetupScreen wallets currentSlot state =
           [ div -- and then this fills that height fully
               [ classNames [ "h-full", "overflow-y-auto" ] ]
               [ subHeader "top-0" true Roles "Roles" true
-              , roleInputs wallets extendedContract metaData roleWallets
+              , roleInputs walletLibrary metaData roleWalletInputs
               , subHeader "top-10" true Terms "Terms" termsAreAccessible
-              , parameterInputs wallets currentSlot metaData templateContent slotContentStrings roleWallets termsAreAccessible
+              , parameterInputs currentSlot metaData templateContent slotContentStrings termsAreAccessible
               , subHeader "top-20" false Pay "Review and pay" payIsAccessible
               , reviewAndPay payIsAccessible metaData
               ]
@@ -138,44 +137,26 @@ subHeader topMargin border i title accessible =
         ]
     ]
 
-roleInputs :: forall p. WalletLibrary -> Contract -> MetaData -> Map String String -> HTML p Action
-roleInputs wallets extendedContract metaData roleWallets =
+-- We range over roleWalletInputs rather than all the parties in the contract. This excludes any `PK` parties.
+-- At the moment, this is a good thing: we don't have a design for them, and we only use a `PK` party in one
+-- special case, where it is read-only and would be confusing to show the user anyway. But if we ever need to
+-- use `PK` inputs properly (and make them editable) we will have to rethink this.
+roleInputs :: forall p. WalletLibrary -> MetaData -> Map TokenName (InputField.State RoleError) -> HTML p Action
+roleInputs walletLibrary metaData roleWalletInputs =
   subSection true true
     [ ul_
-        $ mapWithIndex partyInput
-        $ Set.toUnfoldable
-        $ getParties extendedContract
+        $ mapWithIndex roleInput
+        $ Map.toUnfoldable roleWalletInputs
     ]
   where
-  partyInput index (PK pubKey) =
-    li
-      [ classNames [ "mb-2", "last:mb-0" ] ]
-      [ label
-          [ classNames [ "block", "text-sm" ]
-          , for pubKey
-          ]
-          [ text $ "Party " <> (show $ index + 1) ]
-      , input
-          [ classNames $ Css.inputCard false
-          , id_ pubKey
-          , type_ InputText
-          , value pubKey
-          , readOnly true
-          ]
-      ]
-
-  partyInput index (Role tokenName) =
+  roleInput index (tokenName /\ roleWalletInput) =
     let
       description = fromMaybe "no description available" $ lookup tokenName metaData.roleDescriptions
-
-      assigned = fromMaybe "" $ lookup tokenName roleWallets
-
-      mRoleError = roleError assigned wallets
     in
       li
         [ classNames [ "mb-2", "last:mb-0" ] ]
         [ label
-            [ classNames [ "block", "text-sm" ]
+            [ classNames [ "block", "text-sm", "mb-2" ]
             , for tokenName
             ]
             [ span
@@ -186,30 +167,27 @@ roleInputs wallets extendedContract metaData roleWallets =
             ]
         , div
             [ classNames [ "relative" ] ]
-            [ input
-                [ classNames $ Css.inputCard (isJust mRoleError) <> [ "pr-9" ]
-                , id_ tokenName
-                , type_ InputText
-                , list "walletNicknames"
-                , onValueInput_ $ SetRoleWallet tokenName
-                , value assigned
-                ]
+            [ RoleWalletInputAction tokenName <$> renderInput roleWalletInput (roleWalletInputDisplayOptions tokenName)
             , button
                 [ classNames [ "absolute", "top-4", "right-4" ]
                 , onClick_ $ OpenCreateWalletCard tokenName
                 ]
                 [ icon_ AddCircle ]
             ]
-        , div
-            [ classNames Css.inputError ]
-            $ case mRoleError of
-                Just roleError -> [ text $ show roleError ]
-                Nothing -> []
-        , nicknamesDataList wallets
+        , nicknamesDataList walletLibrary
         ]
 
-parameterInputs :: forall p. WalletLibrary -> Slot -> MetaData -> TemplateContent -> Map String String -> Map String String -> Boolean -> HTML p Action
-parameterInputs wallets currentSlot metaData templateContent slotContentStrings roleWallets accessible =
+  roleWalletInputDisplayOptions tokenName =
+    { baseCss: Css.inputCard
+    , additionalCss: [ "pr-9" ]
+    , id_: tokenName
+    , placeholder: "Choose any nickname"
+    , readOnly: false
+    , datalistId: Just nicknamesDataListId
+    }
+
+parameterInputs :: forall p. Slot -> MetaData -> TemplateContent -> Map String String -> Boolean -> HTML p Action
+parameterInputs currentSlot metaData templateContent slotContentStrings accessible =
   let
     valueContent = view _valueContent templateContent
   in
@@ -225,7 +203,7 @@ parameterInputs wallets currentSlot metaData templateContent slotContentStrings 
     let
       description = fromMaybe "no description available" $ lookup key metaData.slotParameterDescriptions
 
-      mParameterError = slotError dateTimeString currentSlot
+      mParameterError = slotError currentSlot dateTimeString
     in
       li
         [ classNames [ "mb-4", "last:mb-0" ] ]
@@ -249,7 +227,7 @@ parameterInputs wallets currentSlot metaData templateContent slotContentStrings 
         , div
             [ classNames Css.inputError ]
             $ case mParameterError of
-                Just parameterError -> [ text $ show parameterError ]
+                Just parameterError -> [ text $ inputErrorToString parameterError ]
                 Nothing -> []
         ]
 
@@ -281,7 +259,7 @@ parameterInputs wallets currentSlot metaData templateContent slotContentStrings 
         , div
             [ classNames Css.inputError ]
             $ case mParameterError of
-                Just parameterError -> [ text $ show parameterError ]
+                Just parameterError -> [ text $ inputErrorToString parameterError ]
                 Nothing -> []
         ]
 

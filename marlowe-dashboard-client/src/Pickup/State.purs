@@ -10,26 +10,29 @@ import Capability.Marlowe (class ManageMarlowe, createWallet, lookupWalletDetail
 import Capability.Toast (class Toast, addToast)
 import Control.Monad.Reader (class MonadAsk)
 import Data.Either (Either(..))
-import Data.Lens (assign, modifying, use, view)
-import Data.Map (filter, findMin, insert, lookup)
+import Data.Lens (assign, modifying, set, use, view)
+import Data.Map (filter, findMin, insert)
 import Data.Maybe (Maybe(..))
 import Data.Newtype (unwrap)
 import Data.UUID (toString) as UUID
 import Effect.Aff.Class (class MonadAff)
 import Env (Env)
 import Foreign.Generic (encodeJSON)
-import Halogen (HalogenM, liftEffect)
+import Halogen (HalogenM, liftEffect, modify_)
+import Halogen.Extra (mapSubmodule)
+import InputField.State (handleAction, initialState) as InputField
+import InputField.Types (Action(..), State) as InputField
 import LocalStorage (setItem, removeItem)
-import MainFrame.Types (ChildSlots, Msg)
 import MainFrame.Types (Action(..)) as MainFrame
-import Pickup.Lenses (_card, _pickupWalletString, _walletDetails, _walletLibrary)
+import MainFrame.Types (ChildSlots, Msg)
+import Network.RemoteData (RemoteData(..), fromEither)
+import Pickup.Lenses (_card, _pickingUp, _remoteWalletDetails, _walletLibrary, _walletIdInput, _walletNicknameInput, _walletNicknameOrId)
 import Pickup.Types (Action(..), Card(..), State)
 import StaticData (walletLibraryLocalStorageKey, walletDetailsLocalStorageKey)
-import Toast.Types (ajaxErrorToast)
+import Toast.Types (ajaxErrorToast, errorToast)
 import WalletData.Lenses (_companionAppId, _walletNickname)
-import WalletData.State (defaultWalletDetails)
 import WalletData.Types (WalletLibrary)
-import WalletData.Validation (parsePlutusAppId)
+import WalletData.Validation (WalletIdError, WalletNicknameError, parsePlutusAppId, walletNicknameError)
 import Web.HTML (window)
 import Web.HTML.Location (reload)
 import Web.HTML.Window (location)
@@ -42,8 +45,10 @@ mkInitialState :: WalletLibrary -> State
 mkInitialState walletLibrary =
   { walletLibrary
   , card: Nothing
-  , pickupWalletString: mempty
-  , walletDetails: defaultWalletDetails
+  , walletNicknameOrId: mempty
+  , walletNicknameInput: InputField.initialState
+  , walletIdInput: InputField.initialState
+  , remoteWalletDetails: NotAsked
   , pickingUp: false
   }
 
@@ -59,49 +64,87 @@ handleAction ::
   Action -> HalogenM State Action ChildSlots Msg m Unit
 handleAction (OpenCard card) = assign _card $ Just card
 
-handleAction CloseCard = assign _card Nothing
+handleAction CloseCard = do
+  modify_
+    $ set _walletNicknameOrId mempty
+    <<< set _remoteWalletDetails NotAsked
+    <<< set _pickingUp false
+    <<< set _card Nothing
+  handleAction $ WalletNicknameInputAction $ InputField.Reset
+  handleAction $ WalletIdInputAction $ InputField.Reset
 
 handleAction GenerateWallet = do
-  ajaxWallet <- createWallet
-  case ajaxWallet of
+  walletLibrary <- use _walletLibrary
+  assign _remoteWalletDetails Loading
+  ajaxWalletDetails <- createWallet
+  assign _remoteWalletDetails $ fromEither ajaxWalletDetails
+  case ajaxWalletDetails of
     Left ajaxError -> addToast $ ajaxErrorToast "Failed to generate wallet." ajaxError
     Right walletDetails -> do
-      assign _walletDetails walletDetails
+      handleAction $ WalletNicknameInputAction $ InputField.Reset
+      handleAction $ WalletNicknameInputAction $ InputField.SetValidator $ walletNicknameError walletLibrary
+      handleAction $ WalletIdInputAction $ InputField.SetValue $ UUID.toString (unwrap (view _companionAppId walletDetails))
       handleAction $ OpenCard PickupNewWalletCard
 
-handleAction (SetPickupWalletString string) = do
-  assign _pickupWalletString string
-  walletLibrary <- use _walletLibrary
-  -- first check for a matching nickname in the wallet library
-  case lookup string walletLibrary of
-    Just walletDetails -> do
-      assign _walletDetails walletDetails
-      handleAction $ OpenCard PickupWalletCard
-    -- then check for a matching ID in the wallet library
-    Nothing -> case findMin $ filter (\walletDetails -> UUID.toString (unwrap (view _companionAppId walletDetails)) == string) walletLibrary of
-      Just { key, value } -> do
-        assign _walletDetails value
-        handleAction $ OpenCard PickupWalletCard
-      -- then check whether the string is a valid UUID
-      Nothing -> case parsePlutusAppId string of
-        Just contractInstanceId -> do
-          ajaxWalletDetails <- lookupWalletDetails contractInstanceId
-          case ajaxWalletDetails of
-            Left ajaxError -> pure unit -- TODO: show negative feedback to the user
-            Right walletDetails -> do
-              assign _walletDetails walletDetails
+handleAction (SetWalletNicknameOrId string) = do
+  modify_
+    $ set _remoteWalletDetails NotAsked
+    <<< set _walletNicknameOrId string
+  case parsePlutusAppId string of
+    Just plutusAppId -> do
+      assign _remoteWalletDetails Loading
+      ajaxWalletDetails <- lookupWalletDetails plutusAppId
+      assign _remoteWalletDetails $ fromEither ajaxWalletDetails
+      case ajaxWalletDetails of
+        Left ajaxError -> pure unit -- feedback is shown in the view in this case
+        Right walletDetails -> do
+          -- check whether this wallet ID is already in the walletLibrary ...
+          walletLibrary <- use _walletLibrary
+          case findMin $ filter (\details -> UUID.toString (unwrap (view _companionAppId details)) == string) walletLibrary of
+            Just { key, value } -> do
+              -- if so, open the PickupWalletCard
+              handleAction $ WalletNicknameInputAction $ InputField.SetValue key
+              handleAction $ WalletIdInputAction $ InputField.SetValue string
               handleAction $ OpenCard PickupWalletCard
-        Nothing -> pure unit -- TODO: show negative feedback to the user
+            Nothing -> do
+              -- otherwise open the PickupNewWalletCard
+              handleAction $ WalletNicknameInputAction $ InputField.Reset
+              handleAction $ WalletNicknameInputAction $ InputField.SetValidator $ walletNicknameError walletLibrary
+              handleAction $ WalletIdInputAction $ InputField.SetValue $ UUID.toString (unwrap (view _companionAppId walletDetails))
+              handleAction $ OpenCard PickupNewWalletCard
+    Nothing -> pure unit
 
-handleAction (SetWalletNickname walletNickname) = assign (_walletDetails <<< _walletNickname) walletNickname
+handleAction (OpenPickupWalletCardWithDetails walletDetails) = do
+  assign _remoteWalletDetails Loading
+  ajaxWalletDetails <- lookupWalletDetails $ view _companionAppId walletDetails
+  assign _remoteWalletDetails $ fromEither ajaxWalletDetails
+  case ajaxWalletDetails of
+    Left ajaxError -> handleAction $ OpenCard LocalWalletMissingCard
+    Right _ -> do
+      handleAction $ WalletNicknameInputAction $ InputField.SetValue $ view _walletNickname walletDetails
+      handleAction $ WalletIdInputAction $ InputField.SetValue $ UUID.toString (unwrap (view _companionAppId walletDetails))
+      handleAction $ OpenCard PickupWalletCard
 
-handleAction PickupWallet = do
-  walletDetails <- use _walletDetails
-  walletNickname <- use (_walletDetails <<< _walletNickname)
-  modifying _walletLibrary (insert walletNickname walletDetails)
-  walletLibrary <- use _walletLibrary
-  liftEffect $ setItem walletLibraryLocalStorageKey $ encodeJSON walletLibrary
-  callMainFrameAction $ MainFrame.EnterPlayState walletLibrary walletDetails
+handleAction (WalletNicknameInputAction inputFieldAction) = toWalletNicknameInput $ InputField.handleAction inputFieldAction
+
+handleAction (WalletIdInputAction inputFieldAction) = toWalletIdInput $ InputField.handleAction inputFieldAction
+
+handleAction (PickupWallet walletNickname) = do
+  assign _pickingUp true
+  remoteWalletDetails <- use _remoteWalletDetails
+  case remoteWalletDetails of
+    Success walletDetails -> do
+      let
+        walletDetailsWithNickname = set _walletNickname walletNickname walletDetails
+      modifying _walletLibrary (insert walletNickname walletDetailsWithNickname)
+      walletLibrary <- use _walletLibrary
+      liftEffect $ setItem walletLibraryLocalStorageKey $ encodeJSON walletLibrary
+      callMainFrameAction $ MainFrame.EnterPlayState walletLibrary walletDetailsWithNickname
+    _ -> do
+      -- this should never happen (the "Pickup Wallet" button should be disabled unless remoteWalletDetails is Success),
+      -- but let's add some sensible behaviour anyway just in case
+      handleAction CloseCard
+      addToast $ errorToast "Unable to pick up wallet." $ Just "Details for this wallet could not be loaded."
 
 handleAction ClearLocalStorage =
   liftEffect do
@@ -109,3 +152,18 @@ handleAction ClearLocalStorage =
     removeItem walletDetailsLocalStorageKey
     location_ <- location =<< window
     reload location_
+
+------------------------------------------------------------
+toWalletNicknameInput ::
+  forall m msg slots.
+  Functor m =>
+  HalogenM (InputField.State WalletNicknameError) (InputField.Action WalletNicknameError) slots msg m Unit ->
+  HalogenM State Action slots msg m Unit
+toWalletNicknameInput = mapSubmodule _walletNicknameInput WalletNicknameInputAction
+
+toWalletIdInput ::
+  forall m msg slots.
+  Functor m =>
+  HalogenM (InputField.State WalletIdError) (InputField.Action WalletIdError) slots msg m Unit ->
+  HalogenM State Action slots msg m Unit
+toWalletIdInput = mapSubmodule _walletIdInput WalletIdInputAction

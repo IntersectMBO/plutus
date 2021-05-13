@@ -178,6 +178,18 @@ let additions =
           , repo = "https://github.com/LiamGoodacre/purescript-filterable"
           , version = "v3.0.1"
           }
+      , markdown =
+          { dependencies =
+            [ "const", "datetime", "functors", "lists", "ordered-collections", "parsing", "partial", "precise", "prelude", "strings", "unicode", "validation" ]
+          , repo = "https://github.com/input-output-hk/purescript-markdown"
+          , version = "b51ee0e4aa04c9e6a5a70f2552a400c3f9cad439"
+          }
+      , precise =
+          { dependencies =
+            [ "arrays", "console", "effect", "exceptions", "gen", "integers", "lists", "numbers", "prelude", "strings" ]
+          , repo = "https://github.com/purescript-contrib/purescript-precise"
+          , version = "v5.1.0"
+          }
       }
 
 in  upstream ⫽ overrides ⫽ additions

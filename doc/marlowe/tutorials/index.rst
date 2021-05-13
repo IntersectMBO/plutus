@@ -1,3 +1,5 @@
+.. _marlowe_tutorials:
+
 Tutorials
 =========
 

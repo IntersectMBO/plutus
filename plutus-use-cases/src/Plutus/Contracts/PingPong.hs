@@ -153,6 +153,7 @@ combined :: Contract (Last PingPongState) PingPongSchema PingPongError ()
 combined = forever (void initialise `select` ping `select` pong `select` runStop `select` wait) where
     wait = do
         _ <- endpoint @"wait"
+        logInfo @String "runWaitForUpdate"
         newState <- runWaitForUpdate
         case newState of
             Nothing -> logWarn @String "runWaitForUpdate: Nothing"

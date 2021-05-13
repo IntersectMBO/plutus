@@ -79,7 +79,6 @@ module PlutusCore.Evaluation.Machine.ExBudget
     ( ExBudget(..)
     , ToExMemory(..)
     , ExBudgetBuiltin(..)
-    , SpendBudget(..)
     , ExRestrictingBudget(..)
     , isNegativeBudget
     , minusExCPU
@@ -93,7 +92,6 @@ import           PlutusPrelude                          hiding (toList)
 import           PlutusCore.Core
 import           PlutusCore.Name
 
-import           Control.Monad.Except
 import           Data.Semigroup.Generic
 import           Data.Text.Prettyprint.Doc
 import           Deriving.Aeson
@@ -121,19 +119,6 @@ class ExBudgetBuiltin fun exBudgetCat where
 -- | A dummy 'ExBudgetBuiltin' instance to be used in monads where we don't care about costing.
 instance ExBudgetBuiltin fun () where
     exBudgetBuiltin _ = ()
-
--- This works nicely because @m@ contains @term@.
-class (ExBudgetBuiltin fun exBudgetCat) =>
-            SpendBudget m fun exBudgetCat | m -> fun exBudgetCat where
-    -- | Spend the budget, which may mean different things depending on the monad:
-    --
-    -- 1. do nothing for an evaluator that does not care about costing
-    -- 2. count upwards to get the cost of a computation
-    -- 3. subtract from the current budget and fail if the budget goes below zero
-    spendBudget :: exBudgetCat -> ExBudget -> m ()
-
-instance (Monad m, SpendBudget m fun exBudgetCat) => SpendBudget (ExceptT e m) fun exBudgetCat where
-    spendBudget c b  = lift $ spendBudget c b
 
 data ExBudget = ExBudget { _exBudgetCPU :: ExCPU, _exBudgetMemory :: ExMemory }
     deriving stock (Eq, Show, Generic, Lift)

@@ -17,7 +17,7 @@ import Data.BigInteger (BigInteger, fromInt, fromString)
 import Data.Foldable (foldMap)
 import Data.FunctorWithIndex (mapWithIndex)
 import Data.Lens ((^.))
-import Data.Map as Map
+import Data.Map (keys, lookup, toUnfoldable) as Map
 import Data.Maybe (Maybe(..), maybe, maybe')
 import Data.Set (Set)
 import Data.Set as Set

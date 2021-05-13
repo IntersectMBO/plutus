@@ -12,7 +12,6 @@ import           UntypedPlutusCore
 
 import           PlutusCore.Builtins
 import           PlutusCore.Constant
-import           PlutusCore.Evaluation.Machine.ExBudget
 import           PlutusCore.Evaluation.Machine.ExBudgetingDefaults
 import           PlutusCore.Evaluation.Machine.Exception
 import           PlutusCore.Generators
@@ -51,9 +50,6 @@ newtype AppM a = AppM
     } deriving newtype (Functor, Applicative, Monad, MonadError AppErr)
       deriving (MonadEmitter) via (NoEmitterT AppM)
 
-instance SpendBudget AppM DefaultFun () where
-    spendBudget _ _ = pure ()
-
 -- | This shows that the builtin application machinery accepts untyped terms.
 test_applyBuiltinFunction :: DefaultFun -> TestTree
 test_applyBuiltinFunction fun =
@@ -62,7 +58,7 @@ test_applyBuiltinFunction fun =
             let exF = toExF defaultBuiltinCostModel
             withGenArgsRes sch f $ \args res ->
                 -- The calls to 'unAppM' are just to drive type inference.
-                unAppM (applyTypeSchemed fun sch f exF args) === unAppM (makeKnown res)
+                unAppM (applyTypeSchemed (\_ _ -> pure ()) fun sch f exF args) === unAppM (makeKnown res)
 
 test_applyDefaultBuiltin :: TestTree
 test_applyDefaultBuiltin =

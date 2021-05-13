@@ -2,7 +2,7 @@ module MainFrame.State (mkMainFrame, handleAction) where
 
 import Prelude
 import Bridge (toFront)
-import Capability.Marlowe (class ManageMarlowe, followContract, lookupWalletDetails, getFollowerApps, getRoleContracts, subscribeToPlutusApp, subscribeToWallet, unsubscribeFromPlutusApp, unsubscribeFromWallet)
+import Capability.Marlowe (class ManageMarlowe, followContract, getFollowerApps, getRoleContracts, subscribeToPlutusApp, subscribeToWallet, unsubscribeFromPlutusApp, unsubscribeFromWallet)
 import Capability.Toast (class Toast, addToast)
 import Contract.Lenses (_marloweParams)
 import Contract.State (mkInitialState, updateState) as Contract
@@ -36,7 +36,7 @@ import MainFrame.View (render)
 import Marlowe.PAB (MarloweData, MarloweParams, PlutusAppId)
 import Pickup.Lenses (_walletLibrary)
 import Pickup.State (handleAction, dummyState, mkInitialState) as Pickup
-import Pickup.Types (Action(..), Card(..), State) as Pickup
+import Pickup.Types (Action(..), State) as Pickup
 import Play.Lenses (_allContracts, _walletDetails)
 import Play.State (dummyState, handleAction, mkInitialState) as Play
 import Play.Types (Action(..), State) as Play
@@ -45,7 +45,7 @@ import StaticData (walletDetailsLocalStorageKey, walletLibraryLocalStorageKey)
 import Toast.State (defaultState, handleAction) as Toast
 import Toast.Types (Action, State) as Toast
 import Toast.Types (decodedAjaxErrorToast, decodingErrorToast, errorToast, successToast)
-import WalletData.Lenses (_assets, _companionAppId, _wallet, _walletInfo, _walletNickname)
+import WalletData.Lenses (_assets, _companionAppId, _wallet, _walletInfo)
 import WebSocket.Support as WS
 
 mkMainFrame ::
@@ -118,7 +118,6 @@ handleQuery (ReceiveWebSocketMessage msg next) = do
         for_ mCurrentWallet \currentWallet -> do
           when (currentWallet == toFront wallet)
             $ assign (_playState <<< _walletDetails <<< _assets) (toFront value)
-          handleAction $ PlayAction Play.ToggleMenu
       -- update the state when a contract instance changes
       -- note: we should be subsribed to updates from all (and only) the current wallet's contract
       -- instances, including its wallet companion contract
@@ -182,11 +181,7 @@ handleAction Init = do
   mWalletDetailsJson <- liftEffect $ getItem walletDetailsLocalStorageKey
   for_ mWalletDetailsJson \json ->
     for_ (runExcept $ decodeJSON json) \walletDetails -> do
-      -- check the wallet still exists in the wallet server, and show the LocalWalletMissingCard if not
-      ajaxWalletDetails <- lookupWalletDetails $ view _companionAppId walletDetails
-      case ajaxWalletDetails of
-        Left ajaxError -> handleAction $ PickupAction $ Pickup.OpenCard Pickup.LocalWalletMissingCard
-        Right _ -> handleAction $ PickupAction $ Pickup.SetPickupWalletString $ view _walletNickname walletDetails
+      handleAction $ PickupAction $ Pickup.OpenPickupWalletCardWithDetails walletDetails
 
 handleAction (EnterPickupState walletLibrary walletDetails followerApps) = do
   unsubscribeFromWallet $ view (_walletInfo <<< _wallet) walletDetails
@@ -202,7 +197,9 @@ handleAction (EnterPlayState walletLibrary walletDetails) = do
   ajaxFollowerApps <- getFollowerApps walletDetails
   currentSlot <- use _currentSlot
   case ajaxFollowerApps of
-    Left decodedAjaxError -> addToast $ decodedAjaxErrorToast "Failed to load wallet details." decodedAjaxError
+    Left decodedAjaxError -> do
+      handleAction $ PickupAction Pickup.CloseCard
+      addToast $ decodedAjaxErrorToast "Failed to load wallet contracts." decodedAjaxError
     Right followerApps -> do
       -- FIXME: we are currently including some dummy contracts for testing
       let
@@ -220,7 +217,9 @@ handleAction (EnterPlayState walletLibrary walletDetails) = do
       -- wallet since we last picked it up, we have to create FollowerApps for those contracts here
       ajaxRoleContracts <- getRoleContracts walletDetails
       case ajaxRoleContracts of
-        Left decodedAjaxError -> addToast $ decodedAjaxErrorToast "Failed to load wallet details." decodedAjaxError
+        Left decodedAjaxError -> do
+          handleAction $ PickupAction Pickup.CloseCard
+          addToast $ decodedAjaxErrorToast "Failed to load wallet contracts." decodedAjaxError
         Right companionState -> updateRunningContracts companionState
 
 handleAction (PickupAction pickupAction) = toPickup $ Pickup.handleAction pickupAction

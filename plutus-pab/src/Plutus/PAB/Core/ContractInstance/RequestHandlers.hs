@@ -41,7 +41,7 @@ import           Plutus.Contract.Trace.RequestHandler    (RequestHandler (..), R
 import qualified Plutus.Contract.Trace.RequestHandler    as RequestHandler
 import qualified Plutus.PAB.Effects.Contract             as Contract
 import           Plutus.PAB.Events.Contract              (ContractInstanceId (..), ContractPABRequest (..),
-                                                          ContractResponse (..))
+                                                          ContractPABResponse (..))
 import qualified Plutus.PAB.Events.Contract              as Events.Contract
 import           Plutus.PAB.Events.ContractInstanceState (PartiallyDecodedResponse)
 import           Wallet.Effects                          (ChainIndexEffect, ContractRuntimeEffect, WalletEffect)
@@ -54,7 +54,7 @@ processOwnPubkeyRequests ::
     ( Member (LogObserve (LogMessage Text.Text)) effs
     , Member WalletEffect effs
     )
-    => RequestHandler effs ContractPABRequest ContractResponse
+    => RequestHandler effs ContractPABRequest ContractPABResponse
 processOwnPubkeyRequests =
     maybeToHandler (extract Events.Contract._OwnPubkeyRequest) >>>
         fmap OwnPubkeyResponse RequestHandler.handleOwnPubKey
@@ -65,7 +65,7 @@ processUtxoAtRequests ::
     , Member (LogObserve (LogMessage Text.Text)) effs
     , Member (LogMsg RequestHandlerLogMsg) effs
     )
-    => RequestHandler effs ContractPABRequest ContractResponse
+    => RequestHandler effs ContractPABRequest ContractPABResponse
 processUtxoAtRequests =
     maybeToHandler (extract Events.Contract._UtxoAtRequest)
     >>> RequestHandler.handleUtxoQueries
@@ -79,7 +79,7 @@ processWriteTxRequests ::
     , Member (LogMsg RequestHandlerLogMsg) effs
     , Member (LogMsg TxBalanceMsg) effs
     )
-    => RequestHandler effs ContractPABRequest ContractResponse
+    => RequestHandler effs ContractPABRequest ContractPABResponse
 processWriteTxRequests =
     maybeToHandler (extract Events.Contract._WriteTxRequest)
     >>> RequestHandler.handlePendingTransactions
@@ -92,7 +92,7 @@ processAddressChangedAtRequests ::
     , Member ChainIndexEffect effs
     , Member (LogMsg RequestHandlerLogMsg) effs
     )
-    => RequestHandler effs ContractPABRequest ContractResponse
+    => RequestHandler effs ContractPABRequest ContractPABResponse
 processAddressChangedAtRequests =
     maybeToHandler (extract Events.Contract._AddressChangedAtRequest)
     >>> RequestHandler.handleAddressChangedAtQueries
@@ -103,7 +103,7 @@ processTxConfirmedRequests ::
     ( Member ChainIndexEffect effs
     , Member (LogObserve (LogMessage Text.Text)) effs
     )
-    => RequestHandler effs ContractPABRequest ContractResponse
+    => RequestHandler effs ContractPABRequest ContractPABResponse
 processTxConfirmedRequests =
     maybeToHandler (extract Events.Contract._AwaitTxConfirmedRequest)
     >>> RequestHandler.handleTxConfirmedQueries
@@ -114,7 +114,7 @@ processInstanceRequests ::
     ( Member (Reader ContractInstanceId) effs
     , Member (LogObserve (LogMessage Text.Text)) effs
     )
-    => RequestHandler effs ContractPABRequest ContractResponse
+    => RequestHandler effs ContractPABRequest ContractPABResponse
 processInstanceRequests =
     maybeToHandler (extract Events.Contract._OwnInstanceIdRequest)
     >>> RequestHandler.handleOwnInstanceIdQueries
@@ -125,7 +125,7 @@ processNotificationEffects ::
     ( Member ContractRuntimeEffect effs
     , Member (LogObserve (LogMessage Text.Text)) effs
     )
-    => RequestHandler effs ContractPABRequest ContractResponse
+    => RequestHandler effs ContractPABRequest ContractPABResponse
 processNotificationEffects =
     maybeToHandler (extract Events.Contract._SendNotificationRequest)
     >>> RequestHandler.handleContractNotifications
@@ -133,7 +133,7 @@ processNotificationEffects =
 
 -- | Log messages about the
 data ContractInstanceMsg t =
-    ProcessFirstInboxMessage ContractInstanceId (Response ContractResponse)
+    ProcessFirstInboxMessage ContractInstanceId (Response ContractPABResponse)
     | SendingContractStateMessages ContractInstanceId IterationID [Request ContractPABRequest]
     | LookingUpStateOfContractInstance
     | CurrentIteration IterationID
@@ -145,7 +145,7 @@ data ContractInstanceMsg t =
     | UpdatedContract ContractInstanceId IterationID
     | LookingUpContract (Contract.ContractDef t)
     | InitialisingContract (Contract.ContractDef t) ContractInstanceId
-    | InitialContractResponse (PartiallyDecodedResponse ContractPABRequest)
+    | InitialContractPABResponse (PartiallyDecodedResponse ContractPABRequest)
     | ActivatedContractInstance (Contract.ContractDef t) Wallet ContractInstanceId
     | RunRequestHandler ContractInstanceId Int -- number of requests
     | RunRequestHandlerDidNotHandleAnyEvents
@@ -191,7 +191,7 @@ instance (ToJSON (Contract.ContractDef t)) => ToObject (ContractInstanceMsg t) w
             mkObjectStr "looking up contract" (Tagged @"contract" t)
         InitialisingContract t instanceID ->
             mkObjectStr "initialising contract" (Tagged @"contract" t, instanceID)
-        InitialContractResponse rsp ->
+        InitialContractPABResponse rsp ->
             mkObjectStr "initial contract response" $
                 case v of
                     MaximalVerbosity -> Left (Tagged @"response" rsp)
@@ -247,7 +247,7 @@ instance Pretty (Contract.ContractDef t) => Pretty (ContractInstanceMsg t) where
         UpdatedContract instanceID iterationID -> "Updated contract" <+> pretty instanceID <+> "to new iteration" <+> pretty iterationID
         LookingUpContract c -> "Looking up contract" <+> pretty c
         InitialisingContract c instanceID -> "Initialising contract" <+> pretty c <+> "with ID" <+> pretty instanceID
-        InitialContractResponse rsp -> "Initial contract response:" <+> pretty rsp
+        InitialContractPABResponse rsp -> "Initial contract response:" <+> pretty rsp
         ActivatedContractInstance _ wallet instanceID -> "Activated instance" <+> pretty instanceID <+> "on" <+> pretty wallet
         RunRequestHandler instanceID numRequests -> "Running request handler for" <+> pretty instanceID <+> "with" <+> pretty numRequests <+> "requests."
         RunRequestHandlerDidNotHandleAnyEvents -> "runRequestHandler: did not handle any requests"

@@ -36,6 +36,7 @@ import Pretty (renderPrettyParty, renderPrettyToken, showPrettyMoney)
 import SimulationPage.BottomPanel (panelContents)
 import SimulationPage.Types (Action(..), ActionInput(..), ActionInputId, BottomPanelView(..), ExecutionState(..), InitialConditionsRecord, MarloweEvent(..), State, _SimulationRunning, _bottomPanelState, _currentContract, _currentMarloweState, _executionState, _log, _marloweState, _possibleActions, _slot, _transactionError, _transactionWarnings, otherActionsParty)
 import Simulator (hasHistory, inFuture)
+import Text.Markdown.TrimmedInline (markdownToHTML)
 
 render ::
   forall m.
@@ -249,7 +250,7 @@ integerTemplateParameters explanations actionGen typeName title prefix content =
                             , marloweActionInput (actionGen typeName key) value
                             ]
                               <> [ div [ classes [ ClassName "action-group-explanation" ] ]
-                                    $ maybe [] (\explanation -> [ text ("“" <> explanation <> "„") ])
+                                    $ maybe [] (\explanation -> [ text "“" ] <> markdownToHTML explanation <> [ text "„" ])
                                     $ Map.lookup key explanations
                                 ]
                           )
@@ -361,7 +362,7 @@ participant metadata state party actionInputs =
         [ div [ classes [ ClassName "action-group-title" ] ] [ h6_ [ em_ [ text "Participant ", strong_ [ text partyName ] ] ] ] ]
           <> [ div [ classes [ ClassName "action-group-explanation" ] ]
                 ( case party of
-                    Role roleName -> maybe [] (\explanation -> [ text ("“" <> explanation <> "„") ]) $ Map.lookup roleName metadata.roleDescriptions
+                    Role roleName -> maybe [] (\explanation -> [ text "“" ] <> markdownToHTML explanation <> [ text "„" ]) $ Map.lookup roleName metadata.roleDescriptions
                     _ -> []
                 )
             ]
@@ -403,7 +404,7 @@ inputItem metadata _ person (ChoiceInput choiceId@(ChoiceId choiceName choiceOwn
               <> ( maybe []
                     ( \explanation ->
                         [ div [ class_ (ClassName "action-explanation") ]
-                            [ text ("“" <> explanation <> "„") ]
+                            ([ text "“" ] <> markdownToHTML explanation <> [ text "„" ])
                         ]
                     )
                     $ Map.lookup choiceName metadata.choiceDescriptions

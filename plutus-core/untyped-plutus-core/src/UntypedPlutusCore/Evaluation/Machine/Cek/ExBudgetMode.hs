@@ -47,7 +47,7 @@ monoidalBudgeting
     :: Monoid cost => (ExBudgetCategory fun -> ExBudget -> cost) -> ExBudgetMode cost uni fun
 monoidalBudgeting toCost = ExBudgetMode $ do
     costRef <- newSTRef mempty
-    let spend key budgetToSpend = liftCekST $ modifySTRef' costRef (<> toCost key budgetToSpend)
+    let spend key budgetToSpend = modifySTRef' costRef (<> toCost key budgetToSpend)
     pure . ExBudgetInfo (CekBudgetSpender spend) $ readSTRef costRef
 
 -- | For calculating the cost of execution by counting up using the 'Monoid' instance of 'ExBudget'.
@@ -111,14 +111,14 @@ restricting (ExRestrictingBudget (ExBudget cpuInit memInit)) = ExBudgetMode $ do
     cpuRef <- newSTRef cpuInit
     memRef <- newSTRef memInit
     let spend _ (ExBudget cpuToSpend memToSpend) = do
-            cpuLeft <- liftCekST $ readSTRef cpuRef
-            memLeft <- liftCekST $ readSTRef memRef
+            cpuLeft <- readSTRef cpuRef
+            memLeft <- readSTRef memRef
             let cpuLeft' = cpuLeft `minusExCPU` cpuToSpend
             let memLeft' = memLeft `minusExMemory` memToSpend
             -- Note that even if we throw an out-of-budget error, we still need to record
             -- what the final state was.
-            liftCekST . writeSTRef cpuRef $! cpuLeft'
-            liftCekST . writeSTRef memRef $! memLeft'
+            writeSTRef cpuRef $! cpuLeft'
+            writeSTRef memRef $! memLeft'
             when (cpuLeft' < 0 || memLeft' < 0) $
                 throwingWithCauseExc @(CekEvaluationException uni fun) _EvaluationError
                     (UserEvaluationError $ CekOutOfExError $ ExRestrictingBudget $ ExBudget cpuLeft' memLeft')
