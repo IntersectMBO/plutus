@@ -641,7 +641,7 @@ runCek
     -> (Either (CekEvaluationException uni fun) (Term Name uni fun ()), cost, [String])
 runCek (MachineParameters cekcosts runtime) mode emitting term =
     runCekM runtime mode emitting $ do
-        spendBudget BStartup (cekStartupCost cekcosts)
+        spendBudgetCek BStartup (cekStartupCost cekcosts)
         enterComputeCek cekcosts [] mempty memTerm
   where
     memTerm = withMemory term

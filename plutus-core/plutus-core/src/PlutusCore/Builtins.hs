@@ -15,7 +15,7 @@ module PlutusCore.Builtins where
 
 import           PlutusCore.Constant.Dynamic.Emit
 import           PlutusCore.Constant.Meaning
-import           PlutusCore.Evaluation.Machine.ExBudgeting
+import           PlutusCore.Evaluation.Machine.BuiltinCostModel
 import           PlutusCore.Evaluation.Machine.ExMemory
 import           PlutusCore.Evaluation.Result
 import           PlutusCore.Pretty
@@ -26,13 +26,13 @@ import           Codec.CBOR.Encoding
 import           Codec.Serialise
 import           Control.DeepSeq
 import           Crypto
-import qualified Data.ByteString                           as BS
-import qualified Data.ByteString.Hash                      as Hash
+import qualified Data.ByteString                                as BS
+import qualified Data.ByteString.Hash                           as Hash
 import           Data.Ix
-import           Data.Word                                 (Word8)
+import           Data.Word                                      (Word8)
 import           Flat
 import           Flat.Decoder
-import           Flat.Encoder                              as Flat
+import           Flat.Encoder                                   as Flat
 
 -- TODO: I think we should have the following structure:
 --

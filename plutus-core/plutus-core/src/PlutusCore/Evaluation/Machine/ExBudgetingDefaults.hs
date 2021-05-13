@@ -9,8 +9,9 @@ import           Data.Aeson.THReader
 import           PlutusCore
 import           PlutusCore.Constant
 
+import           PlutusCore.Evaluation.Machine.BuiltinCostModel
+import           PlutusCore.Evaluation.Machine.CostModelInterface
 import           PlutusCore.Evaluation.Machine.ExBudget                   ()
-import           PlutusCore.Evaluation.Machine.ExBudgeting
 import           PlutusCore.Evaluation.Machine.ExMemory                   ()
 import           PlutusCore.Evaluation.Machine.MachineParameters
 
@@ -38,7 +39,6 @@ defaultBuiltinCostModelParams = extractBuiltinCostModelParams defaultBuiltinCost
 defaultCekMachineCosts :: CekMachineCosts
 defaultCekMachineCosts =
   $$(readJSONFromFile "cost-model/data/cekMachineCosts.json")
-
 
 defaultCekCostModel :: CostModel CekMachineCosts
 defaultCekCostModel = CostModel defaultCekMachineCosts defaultBuiltinCostModel

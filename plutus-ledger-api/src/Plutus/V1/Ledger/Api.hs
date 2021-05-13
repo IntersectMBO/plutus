@@ -90,9 +90,9 @@ import           Plutus.V1.Ledger.Slot
 import qualified PlutusCore                                        as PLC
 import           PlutusCore.Constant                               (toBuiltinsRuntime)
 import qualified PlutusCore.DeBruijn                               as PLC
+import           PlutusCore.Evaluation.Machine.CostModelInterface  (BuiltinCostModelParams, applyModelParams)
 import           PlutusCore.Evaluation.Machine.ExBudget            (ExBudget (..))
 import qualified PlutusCore.Evaluation.Machine.ExBudget            as PLC
-import           PlutusCore.Evaluation.Machine.ExBudgeting         (BuiltinCostModelParams, applyModelParams)
 import           PlutusCore.Evaluation.Machine.ExBudgetingDefaults (defaultBuiltinCostModel,
                                                                     defaultBuiltinCostModelParams,
                                                                     defaultCekMachineCosts)
