@@ -9,9 +9,9 @@ module Plutus.V1.Ledger.Api (
     -- * Validating scripts
     , validateScript
     -- * Cost model
-    , validateCostModelParams
-    , defaultBuiltinCostModelParams
-    , BuiltinCostModelParams
+    , validateCostModelData
+    , defaultCekCostModelData
+    , CostModelData
     -- * Running scripts
     , evaluateScriptRestricting
     , evaluateScriptCounting
@@ -88,14 +88,11 @@ import           Plutus.V1.Ledger.Scripts                          hiding (Scrip
 import qualified Plutus.V1.Ledger.Scripts                          as Scripts
 import           Plutus.V1.Ledger.Slot
 import qualified PlutusCore                                        as PLC
-import           PlutusCore.Constant                               (toBuiltinsRuntime)
 import qualified PlutusCore.DeBruijn                               as PLC
-import           PlutusCore.Evaluation.Machine.CostModelInterface  (BuiltinCostModelParams, applyModelParams)
+import           PlutusCore.Evaluation.Machine.CostModelInterface  (CostModelData, applyCostModelData)
 import           PlutusCore.Evaluation.Machine.ExBudget            (ExBudget (..))
 import qualified PlutusCore.Evaluation.Machine.ExBudget            as PLC
-import           PlutusCore.Evaluation.Machine.ExBudgetingDefaults (defaultBuiltinCostModel,
-                                                                    defaultBuiltinCostModelParams,
-                                                                    defaultCekMachineCosts)
+import           PlutusCore.Evaluation.Machine.ExBudgetingDefaults (defaultCekCostModel, defaultCekCostModelData)
 import           PlutusCore.Evaluation.Machine.ExMemory            (ExCPU (..), ExMemory (..))
 import           PlutusCore.Evaluation.Machine.MachineParameters
 import qualified PlutusCore.MkPlc                                  as PLC
@@ -129,8 +126,8 @@ anything, we're just going to create new versions.
 validateScript :: Script -> Bool
 validateScript = isRight . Flat.unflat @Scripts.Script . fromShort
 
-validateCostModelParams :: BuiltinCostModelParams -> Bool
-validateCostModelParams = isJust . applyModelParams defaultBuiltinCostModel
+validateCostModelData :: CostModelData -> Bool
+validateCostModelData = isJust . applyCostModelData defaultCekCostModel
 
 data VerboseMode = Verbose | Quiet
     deriving (Eq)
@@ -174,21 +171,21 @@ mkTermToEvaluate bs args = do
 -- 'UntypedPlutusCore.Evaluation.Machine.Cek.ExBudgetMode' which should be large
 -- enough to evaluate any sensible program.
 evaluateScriptRestricting
-    :: VerboseMode -- ^ Whether to produce log output
-    -> BuiltinCostModelParams -- ^ The cost model to use
-    -> ExBudget    -- ^ The resource budget which must not be exceeded during evaluation
-    -> Script      -- ^ The script to evaluate
-    -> [Data]      -- ^ The arguments to the script
+    :: VerboseMode   -- ^ Whether to produce log output
+    -> CostModelData -- ^ The cost model to use
+    -> ExBudget      -- ^ The resource budget which must not be exceeded during evaluation
+    -> Script        -- ^ The script to evaluate
+    -> [Data]        -- ^ The arguments to the script
     -> (LogOutput, Either EvaluationError ())
-evaluateScriptRestricting verbose params budget p args = swap $ runWriter @LogOutput $ runExceptT $ do
+evaluateScriptRestricting verbose cmdata budget p args = swap $ runWriter @LogOutput $ runExceptT $ do
     appliedTerm <- mkTermToEvaluate p args
-    model <- case applyModelParams defaultBuiltinCostModel params of
+    model <- case applyCostModelData defaultCekCostModel cmdata of
         Just model -> pure model
         Nothing    -> throwError CostModelParameterMismatch
 
     let (res, _, logs) =
             UPLC.runCek
-                (MachineParameters defaultCekMachineCosts (toBuiltinsRuntime model))
+                (toMachineParameters model)
                 (UPLC.restricting $ PLC.ExRestrictingBudget budget)
                 (verbose == Verbose)
                 appliedTerm
@@ -199,20 +196,20 @@ evaluateScriptRestricting verbose params budget p args = swap $ runWriter @LogOu
 -- | Evaluates a script, returning the minimum budget that the script would need
 -- to evaluate successfully.
 evaluateScriptCounting
-    :: VerboseMode -- ^ Whether to produce log output
-    -> BuiltinCostModelParams -- ^ The cost model to use
-    -> Script      -- ^ The script to evaluate
-    -> [Data]      -- ^ The arguments to the script
+    :: VerboseMode   -- ^ Whether to produce log output
+    -> CostModelData -- ^ The cost model to use
+    -> Script        -- ^ The script to evaluate
+    -> [Data]        -- ^ The arguments to the script
     -> (LogOutput, Either EvaluationError ExBudget)
-evaluateScriptCounting verbose params p args = swap $ runWriter @LogOutput $ runExceptT $ do
+evaluateScriptCounting verbose cmdata p args = swap $ runWriter @LogOutput $ runExceptT $ do
     appliedTerm <- mkTermToEvaluate p args
-    model <- case applyModelParams defaultBuiltinCostModel params of
+    model <- case applyCostModelData defaultCekCostModel cmdata of
         Just model -> pure model
         Nothing    -> throwError CostModelParameterMismatch
 
     let (res, UPLC.CountingSt final, logs) =
             UPLC.runCek
-                (MachineParameters defaultCekMachineCosts (toBuiltinsRuntime model))
+                (toMachineParameters model)
                 UPLC.counting
                 (verbose == Verbose)
                 appliedTerm

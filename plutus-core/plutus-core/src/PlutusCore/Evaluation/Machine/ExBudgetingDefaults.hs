@@ -24,10 +24,6 @@ defaultBuiltinCostModel :: BuiltinCostModel
 defaultBuiltinCostModel =
   $$(readJSONFromFile "cost-model/data/builtinCostModel.json")
 
--- | The default cost model parameters.
-defaultBuiltinCostModelParams :: Maybe BuiltinCostModelParams
-defaultBuiltinCostModelParams = extractBuiltinCostModelParams defaultBuiltinCostModel
-
 -- Use this one when you've changed the type of `CostModel` and you can't load the json.
 -- Then rerun
 --  cabal run language-plutus-core-create-cost-model
@@ -43,6 +39,10 @@ defaultCekMachineCosts =
 defaultCekCostModel :: CostModel CekMachineCosts
 defaultCekCostModel = CostModel defaultCekMachineCosts defaultBuiltinCostModel
 --- defaultCekMachineCosts is CekMachineCosts
+
+-- | The default cost model data.
+defaultCekCostModelData :: Maybe CostModelData
+defaultCekCostModelData = extractCostModelData defaultCekCostModel
 
 defaultCekParameters :: MachineParameters CekMachineCosts CekValue DefaultUni DefaultFun
 defaultCekParameters = toMachineParameters defaultCekCostModel

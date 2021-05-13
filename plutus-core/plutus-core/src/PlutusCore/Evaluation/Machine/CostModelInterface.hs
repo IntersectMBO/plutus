@@ -2,20 +2,22 @@
 {-# LANGUAGE OverloadedStrings #-}
 
 module PlutusCore.Evaluation.Machine.CostModelInterface
-    ( BuiltinCostModelParams
-    , extractBuiltinCostModelParams
-    , applyModelParams
+    ( CostModelData
+    , extractCostModelData
+    , applyCostModelData
     )
 where
 
-import           PlutusCore.Evaluation.Machine.BuiltinCostModel
+import           PlutusCore.Evaluation.Machine.BuiltinCostModel           ()
+import           PlutusCore.Evaluation.Machine.MachineParameters          (CostModel (..))
+import           UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts ()
 
 import           Data.Aeson
 import           Data.Aeson.Flatten
-import qualified Data.HashMap.Strict                            as HM
-import qualified Data.Map                                       as Map
-import qualified Data.Scientific                                as S
-import qualified Data.Text                                      as Text
+import qualified Data.HashMap.Strict                                      as HM
+import qualified Data.Map                                                 as Map
+import qualified Data.Scientific                                          as S
+import qualified Data.Text                                                as Text
 
 
 {- Note [Cost model parameters]
@@ -54,15 +56,21 @@ This is also implemented in a horrible JSON-y way.
 4. The implementation is not nice
 
 Ugly JSON stuff and failure possibilities where there probably shouldn't be any.
+
+5. The overall cost model now includes two components: a model for the internal
+costs of the evaluator and a model for built-in evaluation costs.  We just
+re-use the technique mentioned above to extract parameters for the evaluator
+costs, packing these together with the parameters for the builtin cost model to
+obtain parameters for the overall model
 -}
 
 -- See Note [Cost model parameters]
-type BuiltinCostModelParams = Map.Map Text.Text Integer
+type ModelData = Map.Map Text.Text Integer
 
 -- See Note [Cost model parameters]
 -- | Extract the model parameters from a model.
-extractBuiltinCostModelParams :: BuiltinCostModel -> Maybe BuiltinCostModelParams
-extractBuiltinCostModelParams cm = case toJSON cm of
+extractData :: ToJSON a => a -> Maybe ModelData
+extractData cm = case toJSON cm of
     Object o ->
         let
             flattened = flattenObject "-" o
@@ -73,10 +81,11 @@ extractBuiltinCostModelParams cm = case toJSON cm of
         in Just mapified
     _ -> Nothing
 
+
 -- See Note [Cost model parameters]
 -- | Update a model by overwriting the parameters with the given ones.
-applyModelParams :: BuiltinCostModel -> BuiltinCostModelParams -> Maybe BuiltinCostModel
-applyModelParams cm params = case toJSON cm of
+applyData :: (FromJSON a, ToJSON a) => a -> ModelData -> Maybe a
+applyData cm params = case toJSON cm of
     Object o ->
         let
             hashmapified = HM.fromList $ Map.toList params
@@ -89,3 +98,37 @@ applyModelParams cm params = case toJSON cm of
             Success a -> Just a
             Error _   -> Nothing
     _ -> Nothing
+
+
+-- | Parameters for a model with components for both machien costs and builtin costs
+data CostModelData = CostModelData {
+      machineCostModelData :: ModelData
+    , builtinCostModelData :: ModelData
+    }
+
+extractCostModelData :: ToJSON machinecosts => CostModel machinecosts -> Maybe (CostModelData)
+extractCostModelData cm =
+    case ( extractData (machineCostModel cm)
+         , extractData (builtinCostModel cm) )
+    of (Just machineData, Just builtinData) -> Just $ CostModelData machineData builtinData
+       _                                    -> Nothing
+
+applyCostModelData
+    :: (FromJSON machinecosts, ToJSON machinecosts)
+    => CostModel machinecosts
+    -> CostModelData
+    -> Maybe (CostModel machinecosts)
+applyCostModelData cm cmdata =
+    case ( applyData (machineCostModel cm) (machineCostModelData cmdata)
+         , applyData (builtinCostModel cm) (builtinCostModelData cmdata) )
+    of
+      (Just machineCosts, Just buitinCosts) -> Just $ CostModel machineCosts buitinCosts
+      _                                     -> Nothing
+
+
+
+
+
+
+
+
