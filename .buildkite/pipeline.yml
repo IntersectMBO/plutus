@@ -18,8 +18,7 @@ steps:
       system: x86_64-linux
 
   - label: ':shipit: deploy devcontainer image for plutus-starter'
-    if: |
-      build.tag =~ /^plutus-starter-devcontainer\/v\//
+    branches: "plutus-starter-devcontainer/v*"
     command:
       - "./.buildkite/plutus-starter-devcontainer-push.sh"
     concurrency: 1
