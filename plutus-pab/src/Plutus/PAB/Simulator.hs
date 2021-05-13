@@ -27,10 +27,8 @@ module Plutus.PAB.Simulator(
     , SimulatorEffectHandlers
     , mkSimulatorHandlers
     , addWallet
-    -- * Simulator actions
-    -- ** Logging
+    -- * Logging
     , logString
-    , logPretty
     -- ** Agent actions
     , payToWallet
     , activateContract
@@ -335,14 +333,6 @@ activateContract = Core.activateContract
 -- | Call a named endpoint on a contract instance
 callEndpointOnInstance :: forall a t. (JSON.ToJSON a) => ContractInstanceId -> String -> a -> Simulation t (Maybe NotificationError)
 callEndpointOnInstance = Core.callEndpointOnInstance'
-
--- | Log some output to the console
-logString :: forall t effs. Member (LogMsg (PABMultiAgentMsg t)) effs => String -> Eff effs ()
-logString = logInfo @(PABMultiAgentMsg t) . UserLog . Text.pack
-
--- | Pretty-print a value to the console
-logPretty :: forall a t effs. (Pretty a, Member (LogMsg (PABMultiAgentMsg t)) effs) => a -> Eff effs ()
-logPretty = logInfo @(PABMultiAgentMsg t) . UserLog . render
 
 -- | Wait 1 second, then add a new block.
 makeBlock ::
@@ -739,3 +729,7 @@ logBalances bs = do
         logString @t $ show e <> ": "
         forM_ (flattenValue v) $ \(cs, tn, a) ->
             logString @t $ "    {" <> show cs <> ", " <> show tn <> "}: " <> show a
+
+-- | Log some output to the console
+logString :: forall t effs. Member (LogMsg (PABMultiAgentMsg t)) effs => String -> Eff effs ()
+logString = logInfo @(PABMultiAgentMsg t) . UserLog . Text.pack
