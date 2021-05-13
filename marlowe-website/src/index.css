@@ -47,15 +47,13 @@ body {
   right: -5px;
 }
 
+/*
+  Not all browsers support backdrop filter to make it transparent with a blur.
+  For the browsers that don't support this we make a default
+*/
 .bg-blured {
-  @apply bg-lightgray;
+  @apply bg-white;
 
-  background-image: linear-gradient(
-    144deg,
-    rgba(240, 240, 240, 0.85) 17%,
-    rgba(240, 240, 240, 0.7) 89%,
-    rgba(240, 240, 240, 0.7) 89%
-  );
   box-shadow: 0 2px 24px -1px rgba(0, 0, 0, 0.2);
 }
 
@@ -105,4 +103,29 @@ body {
 .expanded .faq-caret {
   background-image: url("/static/img/caret-up-purple.svg");
   background-position: center 10px;
+}
+
+/* Similary to the FAQ expanded class, we use a with-buttons class in the header to simplify the JS
+   and HTML */
+#header-try-buttons {
+  opacity: 0;
+}
+
+.with-buttons #header-try-buttons {
+  opacity: 1;
+}
+
+/* The maximum bold that comfortaa ships is still less bold than the one provided in the designs
+   so we add the not official text-stroke-width for the browsers that support it to make it a
+   little bit bolder. */
+.font-comfortaa-bold {
+  @apply font-comfortaa font-bold;
+
+  -webkit-text-stroke-width: 1px;
+}
+
+.font-comfortaa-bolder {
+  @apply font-comfortaa font-bold;
+
+  -webkit-text-stroke-width: 2px;
 }

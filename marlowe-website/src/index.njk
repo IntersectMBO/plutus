@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 
   <head>
     <meta charset="UTF-8"/>
@@ -7,10 +7,10 @@
   </head>
 
   <body>
-    <header class="flex p-6 md:px-5vw xl:px-10vw items-center fixed top-0 left-0 right-0 z-10 transition-all duration-300 ease-out">
-      <img class="h-10 hidden md:block" src="{% static './static/img/marlowe-prototype-logo.svg' %}" alt="Marlowe prototype logo">
-      <img class="h-10 md:hidden" src="{% static './static/img/marlowe-logo.svg' %}" alt="Marlowe prototype logo">
-      <div id="header-try-buttons" class="opacity-0 transition-opacity duration-300 ease-out text-sm flex-grow flex justify-end mr-2 sm:mr-4 md:mr-5 lg:mr-7">
+    <header class="flex p-6 md:px-5vw xl:px-10vw items-center fixed top-0 left-0 right-0 z-10 transition-colors duration-300 ease-out">
+      <img loading="lazy" class="h-10 hidden md:block" src="{% static './static/img/marlowe-prototype-logo.svg' %}" alt="Marlowe prototype logo">
+      <img loading="lazy" class="h-10 block md:hidden" src="{% static './static/img/marlowe-logo.svg' %}" alt="Marlowe prototype logo">
+      <div id="header-try-buttons" class="transition-opacity duration-300 ease-out text-sm flex-grow flex justify-end mr-2 sm:mr-4 md:mr-5 lg:mr-7">
         <div class="hidden md:block">
           <a href="https://run.marlowe-finance.io" target="_blank" class="primary-button flex-shrink-0 mr-2 sm:mr-4 md:mr-5 lg:mr-7">Try Marlowe Run</a>
           <a href="https://play.marlowe-finance.io" target="_blank" class="secondary-button flex-shrink-0">Try Marlowe Play</a>
@@ -28,7 +28,7 @@
     https://stackoverflow.com/questions/600743/how-to-get-div-height-to-auto-adjust-to-background-size #}
     <section class="sm:bg-main bg-no-repeat bg-contain sm:h-0 sm:pt-main-bg relative ">
       <div class="sm:absolute sm:w-min inset-0 mx-6 md:ml-5vw xl:ml-10vw max-w-2xl">
-        <h1 class="text-3xl md:text-4xl lg:text-5xl flex flex-col font-bold font-comfortaa leading-tight pt-28 lg:pt-40 pb-4">
+        <h1 class="text-3xl md:text-4xl lg:text-5xl flex flex-col font-comfortaa-bolder leading-tight pt-28 lg:pt-40 pb-4">
           <span class="min-w-max">Smart contracts,</span>
           <span>reimagined.</span>
         </h1>
@@ -46,7 +46,7 @@
     <section class="bg-green pb-14 grid grid-cols-1 md:grid-cols-2 lg:gap-x-5vw xl:gap-x-10vw">
       <div class="relative -top-12 rounded-lg mx-6 md:mr-5vw xl:mr-10vw px-4 py-6 bg-blured">
         <h4 class="text-xl font-semibold text-lightpurple">Marlowe Run ‘Prototype’</h4>
-        <h3 class="text-2xl font-bold font-comfortaa my-4">Download, tune, participate, run.</h3>
+        <h3 class="text-2xl font-comfortaa-bold my-4">Download, tune, participate, run.</h3>
         <p class="text-lg my-4">The Marlowe Run prototype lets you download, tune, participate in and run Marlowe contracts with other end users on a simulated blockchain.
         </p>
         <button class="primary-button my-4">Tutorial</button>
@@ -80,9 +80,9 @@
     </section>
     <section class="grid grid-cols-1 md:grid-cols-2 lg:gap-x-5vw xl:gap-x-10vw">
       <div class="mx-6 md:ml-5vw xl:ml-10vw">
-        <h4 class="text-lightpurple text-xl font-semibold mt-20 mb-6">Marlowe Play</h4>
-        <h3 class="text-2xl font-comfortaa leading-tight font-bold mb-6">Build, validate, simulate and analayse.</h3>
-        <p class="text-lg mb-6">Write Marlowe contracts in a variety of different ways, then analyse its behaviour, and likeliness of any payments failing. You can also step through how a contract will behave, simulating the actions of the participants.</p>
+        <h4 class="text-lightpurple text-xl font-semibold mt-20 mb-8">Marlowe Play</h4>
+        <h3 class="text-2xl font-comfortaa-bold leading-tight mb-8">Build, validate, simulate and analayse.</h3>
+        <p class="text-lg mb-8">Write Marlowe contracts in a variety of different ways, then analyse its behaviour, and likeliness of any payments failing. You can also step through how a contract will behave, simulating the actions of the participants.</p>
         <button class="primary-button mb-6">Tutorial</button>
       </div>
       <div class="mx-6 md:ml-5vw xl:ml-10vw md:flex gap-4">
@@ -118,7 +118,7 @@
     <section class="pt-6 pb-20 lg:py-20 grid grid-cols-1 md:grid-cols-2 md:auto-rows-fr md:gap-x-6 lg:gap-x-5vw xl:gap-x-10vw mx-6 lg:mx-5vw xl:mx-10vw">
       <div>
         <h4 class="text-lightpurple text-xl font-semibold mb-6">What is Marlowe?</h4>
-        <h3 class="text-2xl font-comfortaa leading-tight font-bold mb-6">A special-purpose language for financial contracts on Cardano.</h3>
+        <h3 class="text-2xl font-comfortaa-bold leading-tight mb-6">A special-purpose language for financial contracts on Cardano.</h3>
         <p class="text-lg mb-6">Allowing contracts to be written in the language of finance, rather than using a general-purpose language on the blockchain.</p>
         <button class="primary-button mb-6">Learn more</button>
       </div>
@@ -148,7 +148,7 @@
 
     </section>
     <section class="pb-10 mx-6 md:mx-5vw xl:mx-10vw">
-      <h3 class="text-2xl font-comfortaa leading-tight font-bold mb-6 md:text-center">Marlowe FAQ’s</h3>
+      <h3 class="text-2xl font-comfortaa-bold  mb-6 md:text-center">Marlowe FAQ’s</h3>
       {% macro faqComponent(index, question, answer) %}
         <div class="faq border-t border-darkgray pt-5 mt-5">
           <h4 class="text-lightpurple text-xl font-semibold flex ">
@@ -159,7 +159,7 @@
             <span class="flex-shrink-0 w-6 faq-caret"></span>
           </h4>
 
-          <p class="text-xl faq-answer">{{ answer }}</p>
+          <p class="text-lg faq-answer">{{ answer }}</p>
         </div>
       {% endmacro %}
       {% for item in faqContent %}
@@ -174,7 +174,7 @@
     </section>
 
     <section class="px-6 md:px-5vw xl:px-10vw bg-green py-20">
-      <h3 class="text-2xl font-comfortaa leading-tight font-bold mb-6">Sign up to the testing program</h3>
+      <h3 class="text-2xl font-comfortaa-bold leading-tight mb-6">Sign up to the testing program</h3>
       <button class="primary-button">Help make Marlowe better</button>
     </section>
     <footer class="py-10 mx-6 md:mx-5vw xl:mx-10vw flex flex-col md:flex-row md:items-center">

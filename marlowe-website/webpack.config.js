@@ -14,6 +14,10 @@ module.exports = {
   devServer: {
     port: 8000,
     compress: true,
+    hot: false,
+    liveReload: true,
+    overlay: true,
+    writeToDisk: true,
     contentBase: path.resolve(__dirname, "public"),
   },
   module: {
@@ -45,13 +49,16 @@ module.exports = {
     ],
   },
   target: "web",
+  stats: {
+    logging: "info",
+  },
+
   plugins: [
     new HtmlWebpackPlugin({
       template: path.resolve(__dirname, "src/index.njk"),
       templateParameters: { faqContent },
       // favicon: 'static/favicon.ico',
       title: "Marlowe",
-      liveReload: true,
       // FIXME: add google analytics id
       // googleAnalyticsId: isWebpackDevServer ? 'UA-XXXXXXXXX-X' : 'UA-119953429-16'
     }),

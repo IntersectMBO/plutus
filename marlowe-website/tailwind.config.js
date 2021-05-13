@@ -19,7 +19,6 @@ module.exports = {
       overlay: "rgba(10,10,10,0.4)",
       white: "#ffffff",
       purple: "#4700c3",
-      purple: "#4700c3",
       lightpurple: "#8701fc",
       grayblue: "#f5f9fc",
       red: "#e04b4c",
