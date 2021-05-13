@@ -192,6 +192,7 @@
           "PlutusCore/Evaluation/Machine/ExBudgetingDefaults"
           "PlutusCore/Evaluation/Machine/Exception"
           "PlutusCore/Evaluation/Machine/ExMemory"
+          "PlutusCore/Evaluation/Machine/MachineParameters"
           "PlutusCore/Evaluation/Result"
           "PlutusCore/Check/Value"
           "PlutusCore/Check/Normal"
