@@ -3,19 +3,23 @@
 {- | Plutus benchmarks based on some nofib examples. -}
 module Main where
 
-import           Criterion.Main
 
 import           Common
 
 import           Control.Exception
 import           Control.Monad.Except
-import qualified Plutus.Benchmark.Clausify                as Clausify
-import qualified Plutus.Benchmark.Knights                 as Knights
-import qualified Plutus.Benchmark.Prime                   as Prime
-import qualified Plutus.Benchmark.Queens                  as Queens
-import qualified PlutusCore                               as PLC
+import           Criterion.Main
+
+import qualified Plutus.Benchmark.Clausify                         as Clausify
+import qualified Plutus.Benchmark.Knights                          as Knights
+import qualified Plutus.Benchmark.Prime                            as Prime
+import qualified Plutus.Benchmark.Queens                           as Queens
+
+import qualified PlutusCore                                        as PLC
 import           PlutusCore.Builtins
+import           PlutusCore.Evaluation.Machine.ExBudgetingDefaults (defaultCekParameters)
 import           PlutusCore.Universe
+
 import           UntypedPlutusCore
 import           UntypedPlutusCore.Evaluation.Machine.Cek
 
@@ -23,7 +27,7 @@ import           UntypedPlutusCore.Evaluation.Machine.Cek
 benchCek :: Term NamedDeBruijn DefaultUni DefaultFun () -> Benchmarkable
 benchCek t = case runExcept @PLC.FreeVariableError $ PLC.runQuoteT $ unDeBruijnTerm t of
     Left e   -> throw e
-    Right t' -> nf (unsafeEvaluateCek defaultCekMachineCosts defBuiltinsRuntime) t'
+    Right t' -> nf (unsafeEvaluateCek defaultCekParameters) t'
 
 benchClausify :: Clausify.StaticFormula -> Benchmarkable
 benchClausify f = benchCek $ Clausify.mkClausifyTerm f

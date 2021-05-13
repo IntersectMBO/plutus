@@ -34,10 +34,6 @@ module UntypedPlutusCore.Evaluation.Machine.Cek
     , unsafeEvaluateCekNoEmit
     , readKnownCek
     , enormousBudget
-    , defaultCekMachineCosts
-    , unitCekMachineCosts
-    , defaultCekParameters
-    , unitCekParameters
     )
 where
 
@@ -47,12 +43,11 @@ import           UntypedPlutusCore.Core
 import           UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts
 import           UntypedPlutusCore.Evaluation.Machine.Cek.ExBudgetMode
 import           UntypedPlutusCore.Evaluation.Machine.Cek.Internal
-import           UntypedPlutusCore.Evaluation.Machine.MachineParameters
 
 import           PlutusCore.Constant
-import           PlutusCore.Evaluation.Machine.ExBudgetingDefaults        (defaultCekMachineCosts)
 import           PlutusCore.Evaluation.Machine.ExMemory
 import           PlutusCore.Evaluation.Machine.Exception
+import           PlutusCore.Evaluation.Machine.MachineParameters
 import           PlutusCore.Name
 import           PlutusCore.Pretty
 import           PlutusCore.Universe
@@ -77,8 +72,8 @@ runCekNoEmit
     -> ExBudgetMode cost uni fun
     -> Term Name uni fun ()
     -> (Either (CekEvaluationException uni fun) (Term Name uni fun ()), cost)
-runCekNoEmit (MachineParameters cekcosts runtime) mode term =
-    case runCek cekcosts runtime mode False term of
+runCekNoEmit params mode term =
+    case runCek params mode False term of
         (errOrRes, cost', _) -> (errOrRes, cost')
 
 -- | Unsafely evaluate a term using the CEK machine with logging disabled and keep track of costing.
@@ -101,8 +96,8 @@ evaluateCek
     => MachineParameters CekMachineCosts CekValue uni fun
     -> Term Name uni fun ()
     -> (Either (CekEvaluationException uni fun) (Term Name uni fun ()), [String])
-evaluateCek (MachineParameters cekcosts runtime) term =
-    case runCek cekcosts runtime restrictingEnormous True term of
+evaluateCek params term =
+    case runCek params restrictingEnormous True term of
         (errOrRes, _, logs) -> (errOrRes, logs)
 
 -- | Evaluate a term using the CEK machine with logging disabled.

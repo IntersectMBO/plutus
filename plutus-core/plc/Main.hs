@@ -7,48 +7,49 @@
 
 module Main (main) where
 
-import qualified PlutusCore                               as PLC
-import qualified PlutusCore.CBOR                          as PLC
-import qualified PlutusCore.Evaluation.Machine.Ck         as Ck
-import           PlutusCore.Evaluation.Machine.ExBudget   (ExBudget (..), ExRestrictingBudget (..))
-import           PlutusCore.Evaluation.Machine.ExMemory   (ExCPU (..), ExMemory (..))
-import qualified PlutusCore.Generators                    as Gen
-import qualified PlutusCore.Generators.Interesting        as Gen
-import qualified PlutusCore.Generators.Test               as Gen
-import qualified PlutusCore.Pretty                        as PP
-import qualified PlutusCore.StdLib.Data.Bool              as StdLib
-import qualified PlutusCore.StdLib.Data.ChurchNat         as StdLib
-import qualified PlutusCore.StdLib.Data.Integer           as StdLib
-import qualified PlutusCore.StdLib.Data.Unit              as StdLib
-import qualified UntypedPlutusCore                        as UPLC
-import qualified UntypedPlutusCore.Evaluation.Machine.Cek as Cek
+import qualified PlutusCore                                        as PLC
+import qualified PlutusCore.CBOR                                   as PLC
+import qualified PlutusCore.Evaluation.Machine.Ck                  as Ck
+import           PlutusCore.Evaluation.Machine.ExBudget            (ExBudget (..), ExRestrictingBudget (..))
+import           PlutusCore.Evaluation.Machine.ExBudgetingDefaults as ExBD
+import           PlutusCore.Evaluation.Machine.ExMemory            (ExCPU (..), ExMemory (..))
+import qualified PlutusCore.Generators                             as Gen
+import qualified PlutusCore.Generators.Interesting                 as Gen
+import qualified PlutusCore.Generators.Test                        as Gen
+import qualified PlutusCore.Pretty                                 as PP
+import qualified PlutusCore.StdLib.Data.Bool                       as StdLib
+import qualified PlutusCore.StdLib.Data.ChurchNat                  as StdLib
+import qualified PlutusCore.StdLib.Data.Integer                    as StdLib
+import qualified PlutusCore.StdLib.Data.Unit                       as StdLib
+import qualified UntypedPlutusCore                                 as UPLC
+import qualified UntypedPlutusCore.Evaluation.Machine.Cek          as Cek
 
 
 import           Codec.Serialise
-import           Control.DeepSeq                          (NFData, rnf)
+import           Control.DeepSeq                                   (NFData, rnf)
 import           Control.Monad
-import           Control.Monad.Trans.Except               (runExcept, runExceptT)
-import           Data.Bifunctor                           (second)
-import qualified Data.ByteString.Lazy                     as BSL
-import           Data.Foldable                            (asum, traverse_)
-import           Data.Function                            ((&))
-import           Data.Functor                             ((<&>))
-import qualified Data.HashMap.Monoidal                    as H
-import           Data.List                                (nub)
-import qualified Data.List                                as List
-import           Data.List.Split                          (splitOn)
-import qualified Data.Text                                as T
-import           Data.Text.Encoding                       (encodeUtf8)
-import qualified Data.Text.IO                             as T
-import           Data.Text.Prettyprint.Doc                (Doc, pretty, (<+>))
-import           Data.Traversable                         (for)
+import           Control.Monad.Trans.Except                        (runExcept, runExceptT)
+import           Data.Bifunctor                                    (second)
+import qualified Data.ByteString.Lazy                              as BSL
+import           Data.Foldable                                     (asum, traverse_)
+import           Data.Function                                     ((&))
+import           Data.Functor                                      ((<&>))
+import qualified Data.HashMap.Monoidal                             as H
+import           Data.List                                         (nub)
+import qualified Data.List                                         as List
+import           Data.List.Split                                   (splitOn)
+import qualified Data.Text                                         as T
+import           Data.Text.Encoding                                (encodeUtf8)
+import qualified Data.Text.IO                                      as T
+import           Data.Text.Prettyprint.Doc                         (Doc, pretty, (<+>))
+import           Data.Traversable                                  (for)
 import           Flat
 import           Options.Applicative
-import           System.CPUTime                           (getCPUTime)
-import           System.Exit                              (exitFailure, exitSuccess)
-import           System.Mem                               (performGC)
-import           Text.Printf                              (printf)
-import           Text.Read                                (readMaybe)
+import           System.CPUTime                                    (getCPUTime)
+import           System.Exit                                       (exitFailure, exitSuccess)
+import           System.Mem                                        (performGC)
+import           Text.Printf                                       (printf)
+import           Text.Read                                         (readMaybe)
 
 {- Note [Annotation types] This program now reads and writes CBOR-serialised PLC
    ASTs.  In all cases we require the annotation type to be ().  There are two
@@ -840,7 +841,7 @@ runEval (EvalOptions language inp ifmt evalMode printMode budgetMode timingMode 
                                Silent    -> ()
                                Verbose _ -> errorWithoutStackTrace "There is no budgeting for typed Plutus Core"
                     TypedProgram prog <- getProgram TypedPLC ifmt inp
-                    let evaluate = Ck.evaluateCkNoEmit PLC.defBuiltinsRuntime
+                    let evaluate = Ck.evaluateCkNoEmit ExBD.defaultBuiltinsRuntime
                         term = void . PLC.toTerm $ prog
                         !_ = rnf term
                         -- Force evaluation of body to ensure that we're not timing parsing/deserialisation.
@@ -857,9 +858,9 @@ runEval (EvalOptions language inp ifmt evalMode printMode budgetMode timingMode 
                   let term = void . UPLC.toTerm $ prog
                       !_ = rnf term
                       cekparams = case cekModel of
-                                Default -> Cek.defaultCekParameters  -- AST nodes are charged according to the default cost model
-                                Unit    -> Cek.unitCekParameters     -- AST nodes are charged one unit each, so we can see how many times each node
-                                                                     -- type is encountered.  This is useful for calibrating the budgeting code.
+                                Default -> ExBD.defaultCekParameters  -- AST nodes are charged according to the default cost model
+                                Unit    -> ExBD.unitCekParameters     -- AST nodes are charged one unit each, so we can see how many times each node
+                                                                      -- type is encountered.  This is useful for calibrating the budgeting code.
                   case budgetMode of
                     Silent -> do
                           let evaluate = Cek.evaluateCekNoEmit cekparams

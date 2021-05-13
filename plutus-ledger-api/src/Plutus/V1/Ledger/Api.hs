@@ -94,8 +94,10 @@ import           PlutusCore.Evaluation.Machine.ExBudget            (ExBudget (..
 import qualified PlutusCore.Evaluation.Machine.ExBudget            as PLC
 import           PlutusCore.Evaluation.Machine.ExBudgeting         (BuiltinCostModelParams, applyModelParams)
 import           PlutusCore.Evaluation.Machine.ExBudgetingDefaults (defaultBuiltinCostModel,
-                                                                    defaultBuiltinCostModelParams)
+                                                                    defaultBuiltinCostModelParams,
+                                                                    defaultCekMachineCosts)
 import           PlutusCore.Evaluation.Machine.ExMemory            (ExCPU (..), ExMemory (..))
+import           PlutusCore.Evaluation.Machine.MachineParameters
 import qualified PlutusCore.MkPlc                                  as PLC
 import           PlutusCore.Pretty
 import           PlutusTx                                          (Data (..), IsData (..))
@@ -186,8 +188,7 @@ evaluateScriptRestricting verbose params budget p args = swap $ runWriter @LogOu
 
     let (res, _, logs) =
             UPLC.runCek
-                UPLC.defaultCekMachineCosts
-                (toBuiltinsRuntime model)
+                (MachineParameters defaultCekMachineCosts (toBuiltinsRuntime model))
                 (UPLC.restricting $ PLC.ExRestrictingBudget budget)
                 (verbose == Verbose)
                 appliedTerm
@@ -211,8 +212,7 @@ evaluateScriptCounting verbose params p args = swap $ runWriter @LogOutput $ run
 
     let (res, UPLC.CountingSt final, logs) =
             UPLC.runCek
-                UPLC.defaultCekMachineCosts
-                (toBuiltinsRuntime model)
+                (MachineParameters defaultCekMachineCosts (toBuiltinsRuntime model))
                 UPLC.counting
                 (verbose == Verbose)
                 appliedTerm

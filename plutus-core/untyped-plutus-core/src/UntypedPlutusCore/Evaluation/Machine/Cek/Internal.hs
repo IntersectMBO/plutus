@@ -48,6 +48,7 @@ import           PlutusCore.Constant
 import           PlutusCore.Evaluation.Machine.ExBudget
 import           PlutusCore.Evaluation.Machine.ExMemory
 import           PlutusCore.Evaluation.Machine.Exception
+import           PlutusCore.Evaluation.Machine.MachineParameters
 import           PlutusCore.Evaluation.Result
 import           PlutusCore.Name
 import           PlutusCore.Pretty
@@ -613,16 +614,15 @@ enterComputeCek costs = computeCek where
 -- | Evaluate a term using the CEK machine and keep track of costing, logging is optional.
 runCek
     :: ( uni `Everywhere` ExMemoryUsage, Ix fun, PrettyUni uni fun)
-    => CekMachineCosts
-    -> BuiltinsRuntime fun (CekValue uni fun)
+    => MachineParameters CekMachineCosts CekValue uni fun
     -> ExBudgetMode cost uni fun
     -> Bool
     -> Term Name uni fun ()
     -> (Either (CekEvaluationException uni fun) (Term Name uni fun ()), cost, [String])
-runCek costs runtime mode emitting term =
+runCek (MachineParameters cekcosts runtime) mode emitting term =
     runCekM runtime mode emitting $ do
-        spendBudget BStartup (cekStartupCost costs)
-        enterComputeCek costs [] mempty memTerm
+        spendBudget BStartup (cekStartupCost cekcosts)
+        enterComputeCek cekcosts [] mempty memTerm
   where
     memTerm = withMemory term
     {- This is a temporary workaround for a bug where every AST node was being

@@ -103,7 +103,6 @@ module PlutusCore
     , freshTyName
     -- * Evaluation
     , EvaluationResult (..)
-    , defBuiltinsRuntime
     -- * Combining programs
     , applyProgram
     -- * Benchmarking

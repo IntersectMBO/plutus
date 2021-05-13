@@ -1,14 +1,21 @@
 {-# LANGUAGE DataKinds       #-}
 {-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE TypeFamilies    #-}
 
 module PlutusCore.Evaluation.Machine.ExBudgetingDefaults where
 
 import           Data.Aeson.THReader
+
+import           PlutusCore
+import           PlutusCore.Constant
+
 import           PlutusCore.Evaluation.Machine.ExBudget                   ()
 import           PlutusCore.Evaluation.Machine.ExBudgeting
 import           PlutusCore.Evaluation.Machine.ExMemory                   ()
+import           PlutusCore.Evaluation.Machine.MachineParameters
 
-import           UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts (CekMachineCosts)
+import           UntypedPlutusCore.Evaluation.Machine.Cek
+import           UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts (unitCekMachineCosts)
 
 
 -- | The default cost model for built-in functions.
@@ -31,3 +38,18 @@ defaultBuiltinCostModelParams = extractBuiltinCostModelParams defaultBuiltinCost
 defaultCekMachineCosts :: CekMachineCosts
 defaultCekMachineCosts =
   $$(readJSONFromFile "cost-model/data/cekMachineCosts.json")
+
+
+defaultCekCostModel :: CostModel CekMachineCosts
+defaultCekCostModel = CostModel defaultCekMachineCosts defaultBuiltinCostModel
+--- defaultCekMachineCosts is CekMachineCosts
+
+defaultCekParameters :: MachineParameters CekMachineCosts CekValue DefaultUni DefaultFun
+defaultCekParameters = toMachineParameters defaultCekCostModel
+
+unitCekParameters :: MachineParameters CekMachineCosts CekValue DefaultUni DefaultFun
+unitCekParameters = toMachineParameters (CostModel unitCekMachineCosts defaultBuiltinCostModel)
+
+defaultBuiltinsRuntime :: HasConstantIn DefaultUni term => BuiltinsRuntime DefaultFun term
+defaultBuiltinsRuntime = toBuiltinsRuntime defaultBuiltinCostModel
+

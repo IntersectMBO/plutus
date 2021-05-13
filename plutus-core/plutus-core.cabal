@@ -48,6 +48,7 @@ library
         PlutusCore.Evaluation.Machine.ExBudgetingDefaults
         PlutusCore.Evaluation.Machine.Exception
         PlutusCore.Evaluation.Machine.ExMemory
+        PlutusCore.Evaluation.Machine.MachineParameters
         PlutusCore.Evaluation.Result
         PlutusCore.Check.Value
         PlutusCore.Check.Normal
@@ -120,7 +121,6 @@ library
         UntypedPlutusCore.DeBruijn
         UntypedPlutusCore.Evaluation.HOAS
         UntypedPlutusCore.Evaluation.Machine.Cek
-        UntypedPlutusCore.Evaluation.Machine.MachineParameters
         UntypedPlutusCore.Parser
         UntypedPlutusCore.Rename
 
