@@ -14,7 +14,7 @@ import           Language.Marlowe.ACTUS.Definitions.Schedule      (ShiftedDay (.
 {- Business Day Convention -}
 
 applyBDCWithCfg :: ScheduleConfig -> Day -> ShiftedDay
-applyBDCWithCfg ScheduleConfig {..} = applyBDC bdc calendar
+applyBDCWithCfg ScheduleConfig { bdc = Just bdc, .. } = applyBDC bdc calendar
 
 applyBDC :: BDC -> [Day] -> Day -> ShiftedDay
 applyBDC BDC_NULL _ date =
@@ -95,4 +95,3 @@ maybeShiftToPreceedingBusinessDay date calendar =
   in  if isHoliday date
         then maybeShiftToPreceedingBusinessDay preceedingDay calendar
         else date
-

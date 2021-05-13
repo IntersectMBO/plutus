@@ -4,7 +4,7 @@
 module Language.Marlowe.ACTUS.Model.SCHED.ContractScheduleModel where
 
 import           Data.Maybe                                             (fromJust, fromMaybe, isJust, isNothing)
-import           Language.Marlowe.ACTUS.Definitions.ContractTerms       (IPCB (IPCB_NTL), PREF (..), PYTP (..),
+import           Language.Marlowe.ACTUS.Definitions.ContractTerms       (IPCB (IPCB_NTL), PPEF (..), PYTP (..),
                                                                          SCEF (..), ScheduleConfig (..))
 import           Language.Marlowe.ACTUS.Definitions.Schedule            ()
 import           Language.Marlowe.ACTUS.Model.Utility.DateShift         (applyBDCWithCfg)

@@ -27,37 +27,37 @@ tests = testGroup "Actus"
 contractTerms :: ContractTerms
 contractTerms = ContractTerms {
           contractId = "0"
-        , contractType = Just PAM
-        , ct_IED = fromGregorian 2020 10 20 -- Initial Exchange Date
+        , contractType = PAM
+        , ct_IED = Just $ fromGregorian 2020 10 20 -- Initial Exchange Date
         , ct_SD = fromGregorian 2007 10 22 -- status date
         , ct_MD = Just $ fromGregorian 2025 10 22 -- maturity date
         , ct_TD = Nothing  -- termination date
         , ct_PRNXT = Nothing -- Next principal redemption payment (N/A for PAM)
         , ct_PRD = Nothing -- purchase date
         , ct_CNTRL = CR_BUY
-        , ct_PDIED = -100.0 -- Discount At IED
+        , ct_PDIED = Just $ -100.0 -- Discount At IED
         , ct_NT = Just 1000.0 -- Notional
         , ct_PPRD = Nothing-- Price At Purchase Date
         , ct_PTD = Nothing -- Price At Termination Date
-        , ct_DCC = DCC_A_360 -- Date Count Convention
-        , ct_PREF = PREF_Y -- allow PP
-        , ct_PRF = CS_PF
+        , ct_DCC = Just DCC_A_360 -- Date Count Convention
+        , ct_PPEF = Just PREF_Y -- allow PP
+        , ct_PRF = Just PRF_PF
         , scfg = ScheduleConfig {
             calendar = []
             , includeEndDay = False
-            , eomc = EOMC_EOM
-            , bdc = BDC_NULL
+            , eomc = Just EOMC_EOM
+            , bdc = Just BDC_NULL
         }
         -- Penalties
-        , ct_PYRT = 0.0
-        , ct_PYTP = PYTP_A -- Penalty Pype
+        , ct_PYRT = Just 0.0
+        , ct_PYTP = Just PYTP_A -- Penalty Pype
         , ct_cPYRT = 0.0
         -- Optionality
         , ct_OPCL = Nothing
         , ct_OPANX = Nothing
         -- Scaling:
-        , ct_SCIED = 0.0
-        , ct_SCEF = SE_000
+        , ct_SCIED = Just 0.0
+        , ct_SCEF = Just SE_000
         , ct_SCCL = Nothing
         , ct_SCANX = Nothing
         , ct_SCIXSD = 0.0
@@ -65,12 +65,12 @@ contractTerms = ContractTerms {
         , ct_RRCL = Nothing
         , ct_RRANX = Nothing
         , ct_RRNXT = Nothing
-        , ct_RRSP = 0.0
-        , ct_RRMLT = 0.0
-        , ct_RRPF = 0.0
-        , ct_RRPC = 0.0
-        , ct_RRLC = 0.0
-        , ct_RRLF = 0.0
+        , ct_RRSP = Just 0.0
+        , ct_RRMLT = Just 0.0
+        , ct_RRPF = Just 0.0
+        , ct_RRPC = Just 0.0
+        , ct_RRLC = Just 0.0
+        , ct_RRLF = Just 0.0
         -- Interest
         , ct_IPCED = Nothing
         , ct_IPCL  = Just $ Cycle 1 P_Y ShortStub
@@ -87,8 +87,8 @@ contractTerms = ContractTerms {
         , ct_FECL  = Nothing
         , ct_FEANX  = Nothing
         , ct_FEAC  = Nothing
-        , ct_FEB = FEB_N
-        , ct_FER = 0.03 -- fee rate
+        , ct_FEB = Just FEB_N
+        , ct_FER = Just 0.03 -- fee rate
         , ct_CURS = False
         , constraints = Nothing
         , collateralAmount = 10000
@@ -97,20 +97,20 @@ contractTerms = ContractTerms {
 namContractTerms :: ContractTerms
 namContractTerms =
   contractTerms{
-    contractType = Just NAM,
+    contractType = NAM,
     ct_SD = fromGregorian 2015 1 1,
     ct_CNTRL = CR_RPA,
     ct_IPANX = Just $ fromGregorian 2016 1 2,
     ct_IPCL = Just $ Cycle 1 P_Y ShortStub,
     ct_IPNR = Just 0.05,
     ct_IPCB = Just IPCB_NT,
-    ct_IED = fromGregorian 2015 1 2,
+    ct_IED = Just $ fromGregorian 2015 1 2,
     ct_PRANX = Just $ fromGregorian 2016 1 2,
     ct_PRCL = Just $ Cycle 1 P_Y ShortStub,
     ct_PRNXT = Just 200.0,
     ct_RRCL = Just $ Cycle 1 P_Y ShortStub,
-    ct_RRSP = 0.02,
-    ct_FER = 0.0,
+    ct_RRSP = Just 0.02,
+    ct_FER = Just 0.0,
     collateralAmount = 0
     }
 

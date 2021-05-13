@@ -5,7 +5,7 @@
 module Language.Marlowe.ACTUS.Definitions.ContractState where
 
 import           Data.Time                                        (Day)
-import           Language.Marlowe.ACTUS.Definitions.ContractTerms (ContractStatus)
+import           Language.Marlowe.ACTUS.Definitions.ContractTerms (PRF)
 
 type ContractState = ContractStatePoly Double Day
 
@@ -19,7 +19,7 @@ data ContractStatePoly a b = ContractStatePoly
   , fac   :: a
   , nsc   :: a
   , isc   :: a
-  , prf   :: ContractStatus
+  , prf   :: PRF
   , sd    :: b
   , prnxt :: a
   , ipcb  :: a

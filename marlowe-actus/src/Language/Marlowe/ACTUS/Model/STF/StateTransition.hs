@@ -8,8 +8,8 @@ import           Language.Marlowe.ACTUS.Definitions.ContractState       (Contrac
                                                                          ContractStatePoly (ContractStatePoly, fac, feac, ipac, ipcb, ipnr, isc, nsc, nt, prf, prnxt, sd, tmd))
 
 import           Data.Maybe                                             (fromJust, fromMaybe)
-import           Language.Marlowe.ACTUS.Definitions.ContractTerms       (ContractTerms (..),
-                                                                         ContractType (LAM, NAM, PAM), ScheduleConfig)
+import           Language.Marlowe.ACTUS.Definitions.ContractTerms       (CT (LAM, NAM, PAM), ContractTerms (..),
+                                                                         ScheduleConfig)
 import           Language.Marlowe.ACTUS.Definitions.Schedule            (ShiftedDay (calculationDay))
 import           Language.Marlowe.ACTUS.Model.SCHED.ContractSchedule    (schedule)
 import           Language.Marlowe.ACTUS.Model.STF.StateTransitionModel
@@ -23,7 +23,21 @@ shift :: ScheduleConfig -> Day -> ShiftedDay
 shift = applyBDCWithCfg
 
 stateTransition :: EventType -> RiskFactors -> ContractTerms -> ContractState -> Day -> ContractState
-stateTransition ev RiskFactors{..} terms@ContractTerms{..} st@ContractStatePoly{..} t =
+stateTransition ev RiskFactors{..}
+  terms@ContractTerms{
+    ct_DCC   = Just ct_DCC,
+    ct_FEB   = Just ct_FEB,
+    ct_FER   = Just ct_FER,
+    ct_RRLF  = Just ct_RRLF,
+    ct_RRLC  = Just ct_RRLC,
+    ct_RRPC  = Just ct_RRPC,
+    ct_RRPF  = Just ct_RRPF,
+    ct_RRMLT = Just ct_RRMLT,
+    ct_RRSP  = Just ct_RRSP,
+    ct_SCEF  = Just ct_SCEF,
+    ct_SCIED = Just ct_SCIED,
+    .. }
+  st@ContractStatePoly{..} t =
     let
         fpSchedule         = schedule FP terms
         tfp_minus          = fromMaybe t $ calculationDay <$> ((\sc -> sup sc t) =<< fpSchedule)
@@ -32,7 +46,7 @@ stateTransition ev RiskFactors{..} terms@ContractTerms{..} st@ContractStatePoly{
         y_tfpminus_t       = _y ct_DCC tfp_minus t ct_MD
         y_tfpminus_tfpplus = _y ct_DCC tfp_minus tfp_plus ct_MD
         y_ipanx_t          = _y ct_DCC (fromJust ct_IPANX) t ct_MD
-    in case fromJust contractType of
+    in case contractType of
         PAM ->
             case ev of
                 AD   -> _STF_AD_PAM st t y_sd_t

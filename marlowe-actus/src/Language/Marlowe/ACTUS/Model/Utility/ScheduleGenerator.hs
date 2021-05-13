@@ -71,7 +71,7 @@ generateRecurrentSchedule Cycle {..} anchorDate endDate =
 
 generateRecurrentScheduleWithCorrections
   :: Day -> Cycle -> Day -> ScheduleConfig -> ShiftedSchedule
-generateRecurrentScheduleWithCorrections anchorDate cycle endDate ScheduleConfig {..}
+generateRecurrentScheduleWithCorrections anchorDate cycle endDate ScheduleConfig { eomc = Just eomc, bdc = Just bdc, .. }
   = generateRecurrentSchedule cycle anchorDate endDate &
       (endDateCorrection includeEndDay endDate >>>
       (fmap $ applyEOMC anchorDate cycle eomc) >>>
