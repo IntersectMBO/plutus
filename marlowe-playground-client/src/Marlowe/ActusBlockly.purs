@@ -976,6 +976,7 @@ actusContractToTerms raw = do
         , constraints: constraint <$> assertionCtx
         -- Any collateral-related code is commented out, until implemented properly
         -- , collateralAmount: fromMaybe (BigInteger.fromInt 0) collateral
+        , collateralAmount: 0
         }
 
 aesonCompatibleOptions :: Options
