@@ -7,11 +7,21 @@ steps:
     concurrency_group: "plutus-alpha-deploy"
     agents:
       system: x86_64-linux
+
   - label: 'deploy (production) 🚀'
     command:
       - "./.buildkite/deploy.sh production"
     branches: "production"
     concurrency: 1
     concurrency_group: "plutus-production-deploy"
+    agents:
+      system: x86_64-linux
+
+  - label: ':shipit: deploy devcontainer image for plutus-starter'
+    branches: 'plutus-starter-devcontainer/v*'
+    command:
+      - "./.buildkite/plutus-starter-devcontainer-push.sh"
+    concurrency: 1
+    concurrency_group: "plutus-starter-devcontainer-push"
     agents:
       system: x86_64-linux
