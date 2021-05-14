@@ -23,6 +23,7 @@ module Plutus.Contract.Checkpoint(
     , CheckpointKey
     , CheckpointLogMsg(..)
     , jsonCheckpoint
+    , jsonCheckpointLoop
     , handleCheckpoint
     ) where
 
@@ -229,15 +230,39 @@ jsonCheckpoint ::
     )
     => Eff effs a -- ^ The @action@ that is checkpointed
     -> Eff effs a
-jsonCheckpoint action = do
+jsonCheckpoint action = jsonCheckpointLoop @err @() @a (\() -> Left <$> action) ()
+
+{-
+
+Create a checkpoint for an action that is run repeatedly.
+
+-}
+jsonCheckpointLoop ::
+    forall err a b effs.
+    ( Member Checkpoint effs
+    , Member (Error err) effs
+    , ToJSON a
+    , FromJSON a
+    , ToJSON b
+    , FromJSON b
+    , AsCheckpointError err
+    )
+    => (a -> Eff effs (Either b a)) -- ^ The action that is repeated until it returns a 'Left'. Only the accumulated result of the action will be stored.
+    -> a -- ^ Initial value
+    -> Eff effs b
+jsonCheckpointLoop action initial = do
     doCheckpoint
     k <- allocateKey
-    vl <- retrieve @_ k
-    case vl of
-        Left err -> throwError @err (review _CheckpointError err)
-        Right (Just a) -> return a
-        Right Nothing -> do
-            result <- action
-            k' <- allocateKey
-            store  @_ k k' result
-            pure result
+    current <- do
+                vl <- retrieve @_ k
+                case vl of
+                    Left err       -> throwError @err (review _CheckpointError err)
+                    Right (Just a) -> pure a
+                    Right Nothing  -> pure (Right initial)
+    let go (Left b) = pure b -- we are already done
+        go (Right a) = do
+                actionResult <- action a
+                k' <- allocateKey
+                store @_ k k' actionResult
+                go actionResult
+    go current

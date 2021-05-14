@@ -13,7 +13,7 @@
 module Spec.Contract(tests) where
 
 import           Control.Lens
-import           Control.Monad                          (forever, void)
+import           Control.Monad                          (forM, forever, void)
 import           Control.Monad.Error.Lens
 import           Control.Monad.Except                   (catchError, throwError)
 import           Control.Monad.Freer                    (Eff)
@@ -182,6 +182,13 @@ tests =
             (assertDone errorContract tag (\i -> i == 11) "should finish")
             (void $ activateContract w1 (void errorContract) tag >>= \hdl -> callEndpoint @"1" hdl 1 >> callEndpoint @"2" hdl 10 >> callEndpoint @"3" hdl 11)
 
+        , run 1 "loop checkpoint"
+            (assertDone loopCheckpointContract tag (\i -> i == 4) "should finish")
+            $ do
+                hdl <- activateContract w1 loopCheckpointContract tag
+                forM [1..4] (\_ -> callEndpoint @"1" hdl 1)
+                pure ()
+
         , let theContract :: Contract () Schema ContractError () = logInfo @String "waiting for endpoint 1" >> endpoint @"1" >>= logInfo . (<>) "Received value: " . show
               matchLogs :: [EM.EmulatorTimeEvent ContractInstanceLog] -> Bool
               matchLogs lgs =
@@ -225,6 +232,15 @@ checkpointContract = void $ do
     checkpoint $ do
         endpoint @"1" @Int
         endpoint @"3" @Int
+
+loopCheckpointContract :: Contract () Schema ContractError Int
+loopCheckpointContract = do
+    flip checkpointLoop (0 :: Int) $ \counter -> do
+        vl <- endpoint @"1" @Int
+        let newVal = counter + vl
+        if newVal > 3
+            then pure (Left newVal)
+            else pure (Right newVal)
 
 errorContract :: Contract () Schema ContractError Int
 errorContract = do

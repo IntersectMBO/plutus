@@ -76,6 +76,7 @@ module Plutus.Contract(
     , awaitTxConfirmed
     -- * Checkpoints
     , checkpoint
+    , checkpointLoop
     , AsCheckpointError(..)
     , CheckpointError(..)
     -- * Logging
@@ -107,8 +108,8 @@ import           Plutus.Contract.Request                  (ContractRow)
 import           Plutus.Contract.Typed.Tx                 as Tx
 import           Plutus.Contract.Types                    (AsCheckpointError (..), AsContractError (..),
                                                            CheckpointError (..), Contract (..), ContractError (..),
-                                                           checkpoint, handleError, mapError, runError, select,
-                                                           selectEither, throwError)
+                                                           checkpoint, checkpointLoop, handleError, mapError, runError,
+                                                           select, selectEither, throwError)
 
 import qualified Control.Monad.Freer.Extras.Log           as L
 import qualified Control.Monad.Freer.Writer               as W

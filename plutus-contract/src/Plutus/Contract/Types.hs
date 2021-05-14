@@ -35,6 +35,7 @@ module Plutus.Contract.Types(
     , AsCheckpointError(..)
     , CheckpointError(..)
     , checkpoint
+    , checkpointLoop
     -- * Run and update
     , runResumable
     , insertAndUpdate
@@ -81,7 +82,7 @@ import           Plutus.Contract.Schema            (Event (..), Handlers (..))
 
 import           Plutus.Contract.Checkpoint        (AsCheckpointError (..), Checkpoint (..), CheckpointError (..),
                                                     CheckpointKey, CheckpointLogMsg, CheckpointStore, handleCheckpoint,
-                                                    jsonCheckpoint)
+                                                    jsonCheckpoint, jsonCheckpointLoop)
 import           Plutus.Contract.Resumable         hiding (responses, select)
 import qualified Plutus.Contract.Resumable         as Resumable
 
@@ -196,6 +197,9 @@ selectEither l r = (Left <$> l) `select` (Right <$> r)
 -- | Write the current state of the contract to a checkpoint.
 checkpoint :: forall w s e a. (AsCheckpointError e, Aeson.FromJSON a, Aeson.ToJSON a) => Contract w s e a -> Contract w s e a
 checkpoint = Contract . jsonCheckpoint @e . unContract
+
+checkpointLoop :: forall w s e a b. (AsCheckpointError e, Aeson.FromJSON a, Aeson.ToJSON a, Aeson.ToJSON b, Aeson.FromJSON b) => (a -> Contract w s e (Either b a)) -> a -> Contract w s e b
+checkpointLoop f initial = Contract $ jsonCheckpointLoop @e (fmap unContract f) initial
 
 -- | Transform any exceptions thrown by the 'Contract' using the given function.
 mapError ::
