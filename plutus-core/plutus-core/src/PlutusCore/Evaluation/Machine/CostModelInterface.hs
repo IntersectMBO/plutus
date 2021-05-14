@@ -100,7 +100,7 @@ applyData cm params = case toJSON cm of
     _ -> Nothing
 
 
--- | Parameters for a model with components for both machien costs and builtin costs
+-- | Parameters for a model with components for both machine costs and builtin costs
 data CostModelData = CostModelData {
       machineCostModelData :: ModelData
     , builtinCostModelData :: ModelData
