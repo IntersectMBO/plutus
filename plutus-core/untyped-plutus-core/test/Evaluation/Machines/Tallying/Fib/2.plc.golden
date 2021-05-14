@@ -1,23 +1,23 @@
 ( (Right (1))
-, ({ tally: ({ BConst causes ({ cpu: 351000
+, ({ tally: ({ BStep BConst causes ({ cpu: 351000
 | mem: 90
 })
-| BVar causes ({ cpu: 1404000
+| BStep BVar causes ({ cpu: 1404000
 | mem: 360
 })
-| BLamAbs causes ({ cpu: 1170000
+| BStep BLamAbs causes ({ cpu: 1170000
 | mem: 300
 })
-| BApply causes ({ cpu: 2028000
+| BStep BApply causes ({ cpu: 2028000
 | mem: 520
 })
-| BDelay causes ({ cpu: 351000
+| BStep BDelay causes ({ cpu: 351000
 | mem: 90
 })
-| BForce causes ({ cpu: 468000
+| BStep BForce causes ({ cpu: 468000
 | mem: 120
 })
-| BBuiltin causes ({ cpu: 351000
+| BStep BBuiltin causes ({ cpu: 351000
 | mem: 90
 })
 | BBuiltinApp AddInteger causes ({ cpu: 237457
