@@ -306,6 +306,20 @@
           };
         };
       tests = {
+        "satint-test" = {
+          depends = [
+            (hsPkgs."base" or (errorHandler.buildDepError "base"))
+            (hsPkgs."test-framework" or (errorHandler.buildDepError "test-framework"))
+            (hsPkgs."test-framework-hunit" or (errorHandler.buildDepError "test-framework-hunit"))
+            (hsPkgs."test-framework-quickcheck2" or (errorHandler.buildDepError "test-framework-quickcheck2"))
+            (hsPkgs."HUnit" or (errorHandler.buildDepError "HUnit"))
+            (hsPkgs."QuickCheck" or (errorHandler.buildDepError "QuickCheck"))
+            (hsPkgs."plutus-core" or (errorHandler.buildDepError "plutus-core"))
+            ];
+          buildable = true;
+          hsSourceDirs = [ "plutus-core/satint-test" ];
+          mainPath = [ "TestSatInt.hs" ];
+          };
         "plutus-core-test" = {
           depends = [
             (hsPkgs."base" or (errorHandler.buildDepError "base"))
